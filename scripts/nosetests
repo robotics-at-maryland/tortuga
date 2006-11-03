@@ -1,8 +1,23 @@
-#! /bin/bash
+#! /usr/bin/python
 
 # Replaces the standard nosetests script
-# You must have MRBC_SVN_ROOT set in your environment to where you have placed
-# the trunk of the source tree
+# Just type 'nosetests' and nose will seek out all python tests,
+# Command line arguments are passed on
 
-python $MRBC_SVN_ROOT/deps/nose/nose/core.py $*
+import os
+import sys
+import util # For add_sys_path
 
+def main():
+    # Find the root of the repository (sys.path[0] is the path to script)
+    repo_root = os.path.split(sys.path[0])[0]  # Move one directory up the tree
+
+    # Build repository path
+    util.add_sys_path(os.path.join(repo_root,'deps','nose'))
+
+    # run nosetest with the current arguments
+    import nose
+    nose.core.main()
+    
+if __name__ == '__main__':
+    main()
