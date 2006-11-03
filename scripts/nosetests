@@ -1,0 +1,8 @@
+#! /bin/bash
+
+# Replaces the standard nosetests script
+# You must have MRBC_SVN_ROOT set in your environment to where you have placed
+# the trunk of the source tree
+
+python $MRBC_SVN_ROOT/deps/nose/nose/core.py $*
+

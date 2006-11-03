@@ -1,0 +1,12 @@
+#! /bin/bash
+
+# This sets up the environment for use of our software
+# The only thing you need to do is set the environment variable MRBC_SVN_ROOT
+# to the location of the source tree. Then in your shell type 'source setenv'
+# and you will be all set. (Note the only works for the current shell)
+
+# Set up PYTHONPATH so imports will work properly
+export PYTHONPATH=$MRBC_SVN_ROOT/deps/nose:$PYTHONPATH    # For nose
+
+# Setup the PATH
+export PATH=$MRBC_SVN_ROOT/scripts:$PATH
