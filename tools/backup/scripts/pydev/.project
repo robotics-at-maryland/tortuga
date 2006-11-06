@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>backup</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.python.pydev.PyDevBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.python.pydev.pythonNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>backup.py</name>
+			<type>1</type>
+			<location>/home/jlisee/projects/mrbc/trunk/tools/backup/backup.py</location>
+		</link>
+		<link>
+			<name>test.py</name>
+			<type>1</type>
+			<location>/home/jlisee/projects/mrbc/trunk/tools/backup/test.py</location>
+		</link>
+	</linkedResources>
+</projectDescription>

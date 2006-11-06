@@ -17,9 +17,20 @@ def setup_logging():
     syslog.setFormatter(formatter)
     logging.getLogger('').addHandler(syslog)
 
-
-
-def remove_old(dir, date):
+def remove_path(path):
+    """
+    Remove directories and files recursively
+    """
+    if os.path.exists(path):
+       if os.path.isdir(path):
+           #sub_dirs 
+           for d in os.listdir(path):
+               remove_path(os.path.join(path, d))
+           os.rmdir(path)
+       else:
+           os.remove(path)
+    
+def remove_old(path, date):
     """
     Removes any file who's name is older than the give date. Files names must
     have the format: %F_%T use strftime
@@ -35,15 +46,15 @@ def remove_old(dir, date):
     date_cutoff = date.strftime('%F_%T')
     
     # Grab and sort directories (oldest first)
-    backups = os.listdirs(dir)
-    backups.sort().reverse()
-
+    backups = os.listdir(path)
+    backups.sort()
+ 
     # Trim off the old ones
     for backup in backups:
        if backup < date_cutoff:
-           old = dir + '/' + backu[
+           old = os.path.join(path, backup)
            logging.info('Removing: ' + old) 
-           os.rmdir(old)
+           remove_path(old)
        else:
            break
 
@@ -59,6 +70,19 @@ def get_backup_dirs(configfile):
     config.read(configfile)
 
 def main(argv=None):
+    """
+    Config file format:
+    # Name directory pair
+    [locations]
+    trac = /var/backup/trac
+    
+    # Specifies a weekly and inremental
+    # With 10 days of incremental and 4 weeks of weekly backups
+    [trac]
+    type = inremental,weekly
+    days = 10
+    weeks = 4
+    """
     backup_dir = './test_bkp'
     incr_dir = backup_dir + '/incremental'
     week_dir = backup_dir + '/weekly'
@@ -67,3 +91,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+        
+    
+    
