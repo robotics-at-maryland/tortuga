@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 
 class TestBackup(unittest.TestCase):
-    test_dir = os.path.normpath('/tmp/tmp-backup-test')
+    test_dir = os.tempnam()
     
     def cleandirs(self):
         if os.path.exists(self.test_dir):

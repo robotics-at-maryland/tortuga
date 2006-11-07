@@ -2,9 +2,13 @@
 
 import os
 import sys
+import shutil
 import logging
-from datetime import datetime
+import subprocess
+
+from datetime import datetime, timedelta
 from ConfigParser import ConfigParser
+from optparse import OptionParser
 
 def setup_logging():
     """
@@ -20,6 +24,7 @@ def setup_logging():
 def remove_path(path):
     """
     Remove directories and files recursively
+    Todo - replace me shutil.rmtree !!!! (why is that there)
     """
     if os.path.exists(path):
        if os.path.isdir(path):
@@ -54,23 +59,18 @@ def remove_old(path, date):
        if backup < date_cutoff:
            old = os.path.join(path, backup)
            logging.info('Removing: ' + old) 
-           remove_path(old)
+           shutil.rmtree(old)
        else:
            break
 
-def get_backup_dirs(configfile):
+def get_backup_info(config):
     """
-    @type  configfile: string
-    @param configfile: The absolute path to the config file
+    @type  configfile: ConfigParser
+    @param configfile: The config file to read from
 
-    @rtype:  list
-    @return: The list of directories
-    """
-    config = ConfigParser()
-    config.read(configfile)
-
-def main(argv=None):
-    """
+    @rtype:  dictionary of tuples
+    @return: Maps directory to a tuple of (src, days, weeks)
+    
     Config file format:
     # Name directory pair
     [locations]
@@ -78,16 +78,102 @@ def main(argv=None):
     
     # Specifies a weekly and inremental
     # With 10 days of incremental and 4 weeks of weekly backups
+    # Days and weeks can be missing and default values will be used
     [trac]
-    type = inremental,weekly
     days = 10
     weeks = 4
+    src = /tmp/trac-backup
     """
-    backup_dir = './test_bkp'
-    incr_dir = backup_dir + '/incremental'
-    week_dir = backup_dir + '/weekly'
+    if ~config.has_section('locations'):
+        raise 'Congfig file must have a \'location\' section'
+    
+    backup_info = {}
+    locations = config.options('locations')
+    
+    # Read in the days and weeks for each slection (10 and 4 if not given)
+    for location in locations:
+        # Where to do the backup
+        directory = config.get('locations', location)
 
-    # Weekly backup
+        # Change values if options are set
+        def get_option(key, default):
+            if config.has_section(location):
+                if config.has_option(location, key):
+                    return config.get(location, key)
+                else:
+                    return default
+              
+        weeks = get_option('weeks', 10)
+        days = get_option('days', 4)
+        src = get_option('src', os.path.join('/tmp', location + '-backup'))
+            
+        backup_info[directory] = (src, days, weeks)
+        
+    return backup_info
+        
+def date_name(path):
+    """
+    Takes a file specified by path and returns its name in strftime format 
+    %F_%T which is its last modified time
+    """
+    # Get the modification time from the timestamp of the fill
+    mod_time = datetime.fromtimestamp(os.stat(path).st_mtime)
+    # Grab our parent directory
+    base_dir = os.path.split(path)[0]
+    # Join the two and rename the file
+    dated_path = os.path.join(base_dir, mod_time.strftime('%F_%T'))
+    
+    return dated_path
+
+def ensure_path(path):
+    """
+    Makes sure a path exists, and if it doesn't it will create it
+    """
+    if ~os.path.exists(path):
+        os.makedirs(path);
+
+def main(argv=None):
+
+    # Parse are command line
+    parser = OptionParser()
+    parser.add_option("-c", "--config", dest="configfile",
+                  help="The location of config", default='etc/opt/backup.cfg')
+    
+    (options, args) = parser.parse_args()
+    
+    # Read the config file and pull out usefull information
+    config = ConfigParser()
+    config.read(options.configfile)
+    backup_tasks = get_backup_info(config)
+
+    now = datetime.now()
+    for (path, opts) in backup_tasks:
+        # Make sure src and destination are properly formatted
+        src_path = opts[0]
+        if ~os.path.exists(src_path):
+            raise "Could not find source directory %s" % src_path
+        
+        weekly_path = os.path.join(path, 'weekly')
+        incremental_path = os.path.join(path, 'incremental')
+        ensure_path(weekly_path)
+        ensure_path(incremental_path)
+        
+        # Roll back time the needed number of weeks
+        delta = timedelta(opts[2] * 7)
+        cutoff = now - delta;
+
+        # Weekly backup
+        shutil.copytree(src_path, weekly_path + os.sep + date_name(src_dir)) 
+        remove_old(weekly_path, cutoff)
+        
+        # Incremental Backup
+        try:
+            subprocess.call(['rdiff-backup', src_path, incremental_path])
+            subprocess.call(['rdiff-backup', '--remove-older-than',
+                             opts[1] + 'D', incremental_path])
+        except OSError:
+            raise "Please install rdiff-backup and put it in on your PATH"
+
 
 if __name__ == "__main__":
     sys.exit(main())
