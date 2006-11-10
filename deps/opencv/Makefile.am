@@ -9,7 +9,7 @@ if BUILD_APPS
 else
   APPS_DIR =
 endif
-SUBDIRS = cxcore cv cvaux ml otherlibs utils interfaces $(APPS_DIR) tests samples data docs
+SUBDIRS = cxcore cv cvaux ml otherlibs utils interfaces $(APPS_DIR) tests samples docs
 
 # All the rest of the distributed files
 #EXTRA_DIST = THANKS COPYING INSTALL README NEWS ChangeLog \
