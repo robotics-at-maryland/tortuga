@@ -1,0 +1,248 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module cfgparse.config</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="cfgparse.html"><font color="#ffffff">cfgparse</font></a>.config</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a></font></td></tr></table>
+    <p><tt>Implements&nbsp;basic&nbsp;mechanisms&nbsp;for&nbsp;managing&nbsp;configuration&nbsp;information<br>
+&nbsp;<br>
+*&nbsp;A&nbsp;NAMESPACE&nbsp;is&nbsp;a&nbsp;collection&nbsp;of&nbsp;values&nbsp;and&nbsp;other&nbsp;namepsaces<br>
+*&nbsp;A&nbsp;VALUE&nbsp;is&nbsp;a&nbsp;basic&nbsp;value,&nbsp;like&nbsp;3.1415,&nbsp;or&nbsp;'Hello&nbsp;World!'<br>
+*&nbsp;A&nbsp;NAME&nbsp;identifies&nbsp;a&nbsp;value&nbsp;or&nbsp;<a href="#namespace">namespace</a>&nbsp;within&nbsp;a&nbsp;<a href="#namespace">namespace</a><br>
+&nbsp;<br>
+The&nbsp;<a href="#namespace">namespace</a>&nbsp;class&nbsp;is&nbsp;an&nbsp;abstract&nbsp;class&nbsp;that&nbsp;defines&nbsp;the&nbsp;basic<br>
+interface&nbsp;implemented&nbsp;by&nbsp;all&nbsp;<a href="#namespace">namespace</a>&nbsp;objects.&nbsp;&nbsp;Two&nbsp;concrete<br>
+implementations&nbsp;are&nbsp;include:&nbsp;<a href="#basic_namespace">basic_namespace</a>&nbsp;and&nbsp;ini_namespace.<br>
+&nbsp;<br>
+Each&nbsp;is&nbsp;described&nbsp;in&nbsp;detail&nbsp;elsewhere.&nbsp;&nbsp;However,&nbsp;here's&nbsp;an<br>
+example&nbsp;of&nbsp;the&nbsp;capabilities&nbsp;available:<br>
+&nbsp;<br>
+Create&nbsp;<a href="#namespace">namespace</a>&nbsp;and&nbsp;populate&nbsp;it:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;n&nbsp;=&nbsp;<a href="#basic_namespace">basic_namespace</a>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;n.playlist.expand_playlist&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;n.ui.display_clock&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;n.ui.display_qlength&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;n.ui.width&nbsp;=&nbsp;150<br>
+&nbsp;<br>
+Examine&nbsp;data:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;print&nbsp;n.playlist.expand_playlist<br>
+&nbsp;&nbsp;&nbsp;&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;print&nbsp;n['ui']['width']<br>
+&nbsp;&nbsp;&nbsp;&nbsp;150<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;print&nbsp;n<br>
+&nbsp;&nbsp;&nbsp;&nbsp;playlist.expand_playlist&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui.display_clock&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui.display_qlength&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui.width&nbsp;=&nbsp;150<br>
+&nbsp;<br>
+Delete&nbsp;items:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;del&nbsp;n.playlist<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;print&nbsp;n<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui.display_clock&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui.display_qlength&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ui.width&nbsp;=&nbsp;150<br>
+&nbsp;<br>
+Convert&nbsp;it&nbsp;to&nbsp;ini&nbsp;format:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;from&nbsp;cfgparse&nbsp;import&nbsp;iniparser<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;i&nbsp;=&nbsp;iniparser.ini_namespace()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;i.import_namespace(n)<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&gt;&gt;&gt;&nbsp;print&nbsp;i<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[ui]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;display_clock&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;display_qlength&nbsp;=&nbsp;True<br>
+&nbsp;&nbsp;&nbsp;&nbsp;width&nbsp;=&nbsp;150</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="__builtin__.html#object">__builtin__.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="cfgparse.config.html#namespace">namespace</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="cfgparse.config.html#basic_namespace">basic_namespace</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="cfgparse.config.html#unknown">unknown</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="basic_namespace">class <strong>basic_namespace</strong></a>(<a href="cfgparse.config.html#namespace">namespace</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Represents&nbsp;a&nbsp;collection&nbsp;of&nbsp;named&nbsp;values<br>
+&nbsp;<br>
+Values&nbsp;are&nbsp;added&nbsp;using&nbsp;dotted&nbsp;notation:<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;n&nbsp;=&nbsp;<a href="#basic_namespace">basic_namespace</a>()<br>
+&gt;&gt;&gt;&nbsp;n.x&nbsp;=&nbsp;7<br>
+&gt;&gt;&gt;&nbsp;n.name.first&nbsp;=&nbsp;'paramjit'<br>
+&gt;&gt;&gt;&nbsp;n.name.last&nbsp;=&nbsp;'oberoi'<br>
+&nbsp;<br>
+...and&nbsp;accessed&nbsp;the&nbsp;same&nbsp;way,&nbsp;or&nbsp;with&nbsp;[...]:<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;n.x<br>
+7<br>
+&gt;&gt;&gt;&nbsp;n.name.first<br>
+'paramjit'<br>
+&gt;&gt;&gt;&nbsp;n.name.last<br>
+'oberoi'<br>
+&gt;&gt;&gt;&nbsp;n['x']<br>
+7<br>
+&nbsp;<br>
+The&nbsp;<a href="#namespace">namespace</a>&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;is&nbsp;a&nbsp;'container&nbsp;<a href="__builtin__.html#object">object</a>'.&nbsp;&nbsp;The&nbsp;default<br>
+iterator&nbsp;returns&nbsp;the&nbsp;names&nbsp;of&nbsp;values&nbsp;(i.e.&nbsp;keys).<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;l&nbsp;=&nbsp;list(n)<br>
+&gt;&gt;&gt;&nbsp;l.sort()<br>
+&gt;&gt;&gt;&nbsp;l<br>
+['name',&nbsp;'x']<br>
+&nbsp;<br>
+Values&nbsp;can&nbsp;be&nbsp;deleted&nbsp;using&nbsp;'del'&nbsp;and&nbsp;printed&nbsp;using&nbsp;'print'.<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;n.aaa&nbsp;=&nbsp;42<br>
+&gt;&gt;&gt;&nbsp;del&nbsp;n.x<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;n<br>
+aaa&nbsp;=&nbsp;42<br>
+name.first&nbsp;=&nbsp;paramjit<br>
+name.last&nbsp;=&nbsp;oberoi<br>
+&nbsp;<br>
+Nested&nbsp;namepsaces&nbsp;are&nbsp;also&nbsp;namespaces:<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;isinstance(n.name,&nbsp;<a href="#namespace">namespace</a>)<br>
+True<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;n.name<br>
+first&nbsp;=&nbsp;paramjit<br>
+last&nbsp;=&nbsp;oberoi<br>
+&nbsp;<br>
+Finally,&nbsp;values&nbsp;can&nbsp;be&nbsp;read&nbsp;from&nbsp;a&nbsp;file&nbsp;as&nbsp;follows:<br>
+&nbsp;<br>
+&gt;&gt;&gt;&nbsp;from&nbsp;StringIO&nbsp;import&nbsp;StringIO<br>
+&gt;&gt;&gt;&nbsp;sio&nbsp;=&nbsp;StringIO('''<br>
+...&nbsp;#&nbsp;comment<br>
+...&nbsp;ui.height&nbsp;=&nbsp;100<br>
+...&nbsp;ui.width&nbsp;=&nbsp;150<br>
+...&nbsp;complexity&nbsp;=&nbsp;medium<br>
+...&nbsp;have_python<br>
+...&nbsp;data.secret.password&nbsp;=&nbsp;goodness=gracious&nbsp;me<br>
+...&nbsp;''')<br>
+&gt;&gt;&gt;&nbsp;n&nbsp;=&nbsp;<a href="#basic_namespace">basic_namespace</a>()<br>
+&gt;&gt;&gt;&nbsp;n.<a href="#basic_namespace-readfp">readfp</a>(sio)<br>
+&gt;&gt;&gt;&nbsp;print&nbsp;n<br>
+complexity&nbsp;=&nbsp;medium<br>
+data.secret.password&nbsp;=&nbsp;goodness=gracious&nbsp;me<br>
+have_python<br>
+ui.height&nbsp;=&nbsp;100<br>
+ui.width&nbsp;=&nbsp;150<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="cfgparse.config.html#basic_namespace">basic_namespace</a></dd>
+<dd><a href="cfgparse.config.html#namespace">namespace</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="basic_namespace-__delitem__"><strong>__delitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="basic_namespace-__getitem__"><strong>__getitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="basic_namespace-__init__"><strong>__init__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="basic_namespace-__iter__"><strong>__iter__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="basic_namespace-__setitem__"><strong>__setitem__</strong></a>(self, key, value)</dt></dl>
+
+<dl><dt><a name="basic_namespace-__str__"><strong>__str__</strong></a>(self, prefix<font color="#909090">=''</font>)</dt></dl>
+
+<dl><dt><a name="basic_namespace-new_namespace"><strong>new_namespace</strong></a>(self, name)</dt></dl>
+
+<dl><dt><a name="basic_namespace-readfp"><strong>readfp</strong></a>(self, fp)</dt></dl>
+
+<hr>
+Methods inherited from <a href="cfgparse.config.html#namespace">namespace</a>:<br>
+<dl><dt><a name="basic_namespace-__delattr__"><strong>__delattr__</strong></a>(self, name)</dt></dl>
+
+<dl><dt><a name="basic_namespace-__getattr__"><strong>__getattr__</strong></a>(self, name)</dt></dl>
+
+<dl><dt><a name="basic_namespace-__setattr__"><strong>__setattr__</strong></a>(self, name, value)</dt></dl>
+
+<dl><dt><a name="basic_namespace-import_namespace"><strong>import_namespace</strong></a>(self, ns)</dt></dl>
+
+<hr>
+Data and other attributes inherited from <a href="cfgparse.config.html#namespace">namespace</a>:<br>
+<dl><dt><strong>__dict__</strong> = &lt;dictproxy object&gt;<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dl>
+
+<dl><dt><strong>__weakref__</strong> = &lt;attribute '__weakref__' of 'namespace' objects&gt;<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;(if&nbsp;defined)</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="namespace">class <strong>namespace</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="namespace-__delattr__"><strong>__delattr__</strong></a>(self, name)</dt></dl>
+
+<dl><dt><a name="namespace-__delitem__"><strong>__delitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="namespace-__getattr__"><strong>__getattr__</strong></a>(self, name)</dt></dl>
+
+<dl><dt><a name="namespace-__getitem__"><strong>__getitem__</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="namespace-__iter__"><strong>__iter__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="namespace-__setattr__"><strong>__setattr__</strong></a>(self, name, value)</dt></dl>
+
+<dl><dt><a name="namespace-__setitem__"><strong>__setitem__</strong></a>(self, key, value)</dt></dl>
+
+<dl><dt><a name="namespace-import_namespace"><strong>import_namespace</strong></a>(self, ns)</dt></dl>
+
+<dl><dt><a name="namespace-new_namespace"><strong>new_namespace</strong></a>(self, name)</dt></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__dict__</strong> = &lt;dictproxy object&gt;<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dl>
+
+<dl><dt><strong>__weakref__</strong> = &lt;attribute '__weakref__' of 'namespace' objects&gt;<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;(if&nbsp;defined)</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="unknown">class <strong>unknown</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="unknown-__init__"><strong>__init__</strong></a>(self, name, namespace)</dt></dl>
+
+<dl><dt><a name="unknown-__setattr__"><strong>__setattr__</strong></a>(self, name, value)</dt></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__dict__</strong> = &lt;dictproxy object&gt;<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dl>
+
+<dl><dt><strong>__weakref__</strong> = &lt;attribute '__weakref__' of 'unknown' objects&gt;<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;(if&nbsp;defined)</tt></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>
