@@ -49,9 +49,6 @@ def do_serialize(obj, outfile, name = None, depth = 0):
             if not item.startswith('__'):
                 do_serialize(getattr(obj,item), outfile, str(item), depth + 1)
     else:
-        # Output the class member, if its a string we need to quote it
-        obj_str = str(obj)
-        if type(obj) is type(''):
-            obj_str = '\'%s\'' % obj_str 
-        outfile.write('%s%s = %s\n' % ('\t' * depth, name, obj_str))
+        # Output the class member 
+        outfile.write('%s%s = %s\n' % ('\t' * depth, name, repr(obj)))
 
