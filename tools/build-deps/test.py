@@ -27,13 +27,18 @@ class TestBuild_Deps(unittest.TestCase):
         shutil.rmtree(self.test_dir)
         
     def test_run_location(self):
-        build_deps.run_location(('test','test_loc'), self.config)
+        build_deps.run_location(('test','tools/build-deps/test_loc'), self.config)
         
         self.assertEquals(['B', 'BOB', 'E', 'F'], os.listdir(self.test_dir))
         self.assertEquals(self.base_dir, os.getcwd())
         
     def test_run_config(self):
         build_deps.run_config(os.path.join(self.base_dir, 'test.cfg'))
+        self.assertEquals(['A'], os.listdir(self.test_dir))
+        self.assertEquals(self.base_dir, os.getcwd())
+        
+    def test_run_config_location(self):
+        build_deps.run_config(os.path.join(self.base_dir, 'test.cfg'), 'test')
         self.assertEquals(['A'], os.listdir(self.test_dir))
         self.assertEquals(self.base_dir, os.getcwd())
         
