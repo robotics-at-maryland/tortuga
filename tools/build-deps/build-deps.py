@@ -2,7 +2,7 @@
 
 import os
 import sys
-from ConfigParser import ConfigParser
+from cfgparse.compat import ConfigParser
 from optparse import OptionParser
 
 def get_svn_root():

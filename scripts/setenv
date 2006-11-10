@@ -6,7 +6,7 @@
 # and you will be all set. (Note the only works for the current shell)
 
 # Set up PYTHONPATH so imports will work properly
-export PYTHONPATH=$MRBC_SVN_ROOT/deps/cfgparse:$PYTHONPATH    # For nose
+#export PYTHONPATH=$MRBC_SVN_ROOT/deps/cfgparse:$PYTHONPATH    # For nose
 
 # Setup the PATH
 export PATH=$MRBC_SVN_ROOT/scripts:$PATH
