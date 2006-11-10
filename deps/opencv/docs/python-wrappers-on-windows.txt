@@ -1,0 +1,68 @@
+A quick HOWTO for installing the Python wrappers on Windows. Taken
+from an email I have send to OpenCV support. At least one positive
+feed-back.
+
+The setup.py file can be found in interfaces/swig/python and is named
+setup-for-win.py
+
+Look at http://groups.yahoo.com/group/OpenCV/ if you have any
+comments, or if you need help about OpenCV.
+
+Olivier Bornet.
+
+======================================================================
+
+> Does anybody success to use it under Windows?
+
+As they was no answers, I have borrow a Windows 2000 laptop at work to
+test it last days... So, here is the answer: yes, you can build ans use
+it on Windows with Python. :-)
+
+Here is a quick howto (note that I don't use Windows at all, so maybe my
+explanations are not always correct):
+
+ 1. install the beta5 OpenCV distribution,
+    (http://sourceforge.net/projects/opencvlibrary/),
+ 2. install ActivePython
+    (http://www.activestate.com/Products/ActivePython/),
+ 3. run the attached setup.py to build and install the new OpenCV Python
+    wrapper:
+        python setup.py install
+ 4. run one of the Python OpenCV samples.
+
+And that's all. :-)
+You maybe need to adapt opencv_base_dir in setup.py to reflect your
+OpenCV installation.
+
+Now, the problems I have had, or the problems you can encounter:
+
+  - my installation of OpenCV don't add the OpenCV path in the search
+    path, so I have added it manually, (but if the OpenCV C samples
+    works for you, this will be not needed),
+
+  - as I have an old Visual Studio 6.0, distutils has some problems, and
+    the install part (3) was saying something like "Python was built
+    with version 7.1 of Visual Studio, and extensions need to be built
+    with the same version of the compiler, but it isn't installed"
+    To correct this, I have edited
+    \python24\lib\distutils\msvccompiler.py and change the
+    get_build_version() function to return 6 directly... A quick and
+    dirty ack...
+
+  - some lines in _cv.cpp don't compile with VC6 (don't have tested with
+    recent MS C compiler, but it seems that at least long long is now
+    supported):
+    - PyAPI_FUNC,
+    - long long variables definitions.
+    So, I have remove the PyAPI_FUNC and changed long long to __int64. A
+    patch for making this is attached to this email.
+
+After that, the samples are more or less running. At least contours.py
+and convexhull.py are OK. capture-cam.py don't generate any file, and
+cam-histo.py crash after cvCaptureFromCAM(0) call.
+
+I don't know if these problems are related to my specific installation
+or not. (Windows 2000, VC6, ...) And I don't want to make lot of things
+ok Windows. So, I will stop here my tests...
+
+======================================================================
