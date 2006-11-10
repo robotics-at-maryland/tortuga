@@ -197,7 +197,7 @@ class Thruster(Actuator):
     
 def main():
     th = Thruster("thruster")
-    th.power = 100
+    th.power = 120
     print th.power
     
     
