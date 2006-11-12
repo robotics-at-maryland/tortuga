@@ -40,7 +40,6 @@ class IVehicle(object):
     """
     def __init__(self):
         print "initialized a vehicle interface"
-      
 
 class Sensor(object):
     """
@@ -64,8 +63,8 @@ class LightSensor(Sensor):
 
     def __init__(self):
         print "Initializing a light sensor"
-        self.type = "light"
-        self.value = 0
+        self._type = "light"
+        self._value = 0
 
     class value(property):
         def fset(self, value):
@@ -201,5 +200,3 @@ def main():
     print th.power
     
     
-if __name__ == "__main__":
-    main()
