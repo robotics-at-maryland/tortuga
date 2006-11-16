@@ -1,7 +1,7 @@
 from PIL import Image
 
 def reset():
-	im=Image.open("/Users/Dan/Desktop/DSC00099-1.jpg");
+	im=Image.open("/Users/Dan/Desktop/test-1.png");
 	im.thumbnail((128,128))
 	return im
 
@@ -60,35 +60,69 @@ def threshold(image,val):
 
 def explore(image,(i,j),color):
 	count=0
+	totali=0
+	totalj=0
 	(width,height)=image.size
 	if (image.getpixel((i,j))==(0,0,0)):
 		image.putpixel((i,j),color)
+		totali+=i
+		totalj+=j
+		count+=1
+		
 		if (i-1 >= 0):
-			count+=explore(image,(i-1,j),color)
+			(a,b,c)=explore(image,(i-1,j),color)
+			count+=a
+			totali+=b
+			totalj+=c
 		if (i+1 <width):
-			count+=explore(image,(i+1,j),color)
+			(a,b,c)=explore(image,(i+1,j),color)
+			count+=a
+			totali+=b
+			totalj+=c
 		if (j-1 >= 0):
-			count+=explore(image,(i,j-1),color)
+			(a,b,c)=explore(image,(i,j-1),color)
+			count+=a
+			totali+=b
+			totalj+=c
 		if (j+1 <height):
-			count+=explore(image,(i,j+1),color)
-		return count+1
-	return 0
+			(a,b,c)=explore(image,(i,j+1),color)
+			count+=a
+			totali+=b
+			totalj+=c
+		return (count,totali,totalj)
+	return (0,0,0)
 		
 def DFS(image):
 	(width,height)=image.size
 	colors=((255,0,0),(0,255,0),(0,0,255),(255,0,0),(0,255,0),(0,0,255),(255,0,0),(0,255,0),(0,0,255),(255,0,0),(0,255,0),(0,0,255))
 	count=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-	colorIndex=0;
+	colorIndex=0
+	biggestCount=0
+	center=(0,0)
 	for y in range(height):
 		for x in range(width):
 			color=colors[colorIndex]
 			if (image.getpixel((x,y))==(0,0,0)):
-				count[colorIndex]=explore(image,(x,y),color)
-				print count[colorIndex] 
-				print " pixels are color \n"
-				print color
+				(count,totali,totalj)=explore(image,(x,y),color)
+				if (count>biggestCount):
+					biggestCount=count
+					center=(totali/count,totalj/count)
 				colorIndex=colorIndex+1
-			
+	
+	if (center != (0,0)):
+		(a,b)=center
+		image.putpixel((a,b),(0,0,0))
+		image.putpixel((a+1,b),(0,0,0))
+		image.putpixel((a-1,b),(0,0,0))
+		image.putpixel((a,b+1),(0,0,0))
+		image.putpixel((a,b-1),(0,0,0))
+		image.putpixel((a+2,b),(0,0,0))
+		image.putpixel((a-2,b),(0,0,0))
+		image.putpixel((a,b+2),(0,0,0))
+		image.putpixel((a,b-2),(0,0,0))
+	print center
+	
+		
 im=grayscale(im)
 im.show()
 im2=Image.new(im.mode,im.size)
