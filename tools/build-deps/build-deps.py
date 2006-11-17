@@ -69,8 +69,9 @@ def run_config(configfile, location = None):
     if location:
         loc_path = config.get('locations', location)
         run_location((location,loc_path), config)
-    for loc in config.items('locations'):
-        run_location(loc, config)
+    else:
+        for loc in config.items('locations'):
+            run_location(loc, config)
         
 def main():
     # Parse are command line
@@ -87,7 +88,7 @@ def main():
     (options, args) = parser.parse_args()
     
     config_path = get_config_path(options.configfile)
-    run_config(config_path)
+    run_config(config_path, options.location)
 
     
 
