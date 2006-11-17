@@ -40,7 +40,16 @@ class IVehicle(object):
     """
     def __init__(self):
         print "initialized a vehicle interface"
+    def process_sensor_packet(self,packet):
+        print "must be implemented, but there are no interfaces in python"
+    
 
+class SensorPacket(object):
+    def __init(self,type,value,time):
+        self.type = type;
+        self.value = value;
+        self.time = time;
+        
 class Sensor(object):
     """
     A superclass for a Sensor object of all types. All that a sensor shares with other sensors right now is
@@ -48,7 +57,7 @@ class Sensor(object):
     """
     def __init__(self,type):
         self._type = type
-
+        self.history = [];
     class type(property):
         def fget(self):
             return self._type

@@ -1,4 +1,5 @@
 from VehicleInterface import *
+import time,os,sys
 
 """
     Sensors:
@@ -20,6 +21,15 @@ class Vehicle(IVehicle):
         self.x_thruster = Thruster()
         self.y_thruster = Thruster()
         self.z_thruster = Thruster()
+    def operate(self):
+        def hello():
+            print "hello, world"
+            t = Timer(30.0, hello)
+            t.start() # after 30 seconds, "hello, world" will be printed
+    def process_sensor_packet(self,packet):
+        if packet.type == "light":
+            print "Light packet received at: " + packet.time
+            print "Value: " + packet.value
     def set_thruster_power(self,axis,value):
         if value > 100 or value < -100:
             print "Invalid value"
