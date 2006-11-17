@@ -209,6 +209,11 @@ class PropulsionMessage:
         self.z_power = z
         self.clock_power = clock
         self.counterclock_power = counter
+    def compare(self,other):
+        if self.x_power == other.x_power and self.y_power == other.y_power and self.z_power == other.z_power and self.clock_power == other.clock_power and self.counterclock_power == other.counterclock_power:
+            return True
+        else:
+            return False
     def __str__(self):
         return str(self.x_power) + "," + str(self.y_power) + "," + str(self.z_power) + "," + str(self.clock_power) + "," + str(self.counterclock_power)
 def main():

@@ -16,45 +16,26 @@ import PropulsionController
     """
     
 class Vehicle(IVehicle):
-    #interval in seconds that we send propulsion a message
-    prop_time = 0.5     
     
-    def __init__(self):
+    def __init__(self):        
         self.light_sensor = LightSensor()
         self.acclerometer = Accelerometer("accelerometer")
         self.x_thruster = Thruster("thruster")
         self.y_thruster = Thruster("thruster")
         self.z_thruster = Thruster("thruster")
-        self.propulsion_controller = PropulsionController.Controller()
-        self.propulsion_instruction = PropulsionMessage(0,0,0,0,0)
-    """
-    Function starts the propulsion message thread, activated every
-    self.prop_time seconds that sends a message with the requested
-    power of each direction axis
-    """
-    def fire_propulsion_messaging(self):
-        def reset_propulsion_ticker():
-            self.propulsion_message_thread = threading.Timer(self.prop_time,self.fire_propulsion_messaging)
-            self.propulsion_message_thread.start()
-        def send_message():
-            self.propulsion_controller.set_message(self.propulsion_instruction)
         
-        send_message()
-        reset_propulsion_ticker()    
+        self.propulsion_controller = PropulsionController.Controller()
+        self.propulsion_controller.set_vehicle(self)
+        
+        self.propulsion_instruction = PropulsionMessage(10,0,0,0,0)
     """
-    Function stops the sending of messages to the propulsion system every
-    prop_time seconds
+    Function that begins the operatiorn of the vehicle
     """
-    def stop_propulsion_messaging(self):
-        robot.propulsion_message_thread.cancel()
-    """
-    Helper function that allows the propulsion messager to repeat
-    """
-    
         
     def operate(self):
         self.propulsion_controller.start()
-        self.fire_propulsion_messaging()
+    def terminate(self):
+        self.propulsion_controller.close()
         
     def process_sensor_packet(self,packet):
         if packet.type == "light":
