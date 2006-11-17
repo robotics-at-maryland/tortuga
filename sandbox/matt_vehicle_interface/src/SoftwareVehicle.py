@@ -1,5 +1,5 @@
 from VehicleInterface import *
-import time,os,sys
+import threading
 
 """
     Sensors:
@@ -24,7 +24,7 @@ class Vehicle(IVehicle):
     def operate(self):
         def hello():
             print "hello, world"
-            t = Timer(30.0, hello)
+            t = threading.Timer(30.0, hello)
             t.start() # after 30 seconds, "hello, world" will be printed
     def process_sensor_packet(self,packet):
         if packet.type == "light":
@@ -44,3 +44,8 @@ class Vehicle(IVehicle):
             else:
                 print "Invalid axis"
                 return
+            
+        
+        
+    v = Vehicle()    
+    v.operate.hello()
