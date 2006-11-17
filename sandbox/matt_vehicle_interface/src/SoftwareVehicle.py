@@ -1,6 +1,7 @@
 from VehicleInterface import *
 import threading
 from time import localtime
+import PropulsionController
 """
     Sensors:
         Light Sensor object
@@ -24,16 +25,21 @@ class Vehicle(IVehicle):
         self.x_thruster = Thruster("thruster")
         self.y_thruster = Thruster("thruster")
         self.z_thruster = Thruster("thruster")
+        self.propulsion_controller = PropulsionController.Controller()
+        self.propulsion_instruction = PropulsionMessage(0,0,0,0,0)
     """
     Function starts the propulsion message thread, activated every
     self.prop_time seconds that sends a message with the requested
     power of each direction axis
     """
-    def send_propulsion_messaging(self):
+    def fire_propulsion_messaging(self):
         def reset_propulsion_ticker():
-            self.propulsion_message_thread = threading.Timer(self.prop_time,self.send_propulsion_messaging)
+            self.propulsion_message_thread = threading.Timer(self.prop_time,self.fire_propulsion_messaging)
             self.propulsion_message_thread.start()
-        print "sending propulsion a message"
+        def send_message():
+            self.propulsion_controller.set_message(self.propulsion_instruction)
+        
+        send_message()
         reset_propulsion_ticker()    
     """
     Function stops the sending of messages to the propulsion system every
@@ -47,7 +53,9 @@ class Vehicle(IVehicle):
     
         
     def operate(self):
-        self.send_propulsion_messaging()
+        self.propulsion_controller.start()
+        self.fire_propulsion_messaging()
+        
     def process_sensor_packet(self,packet):
         if packet.type == "light":
             print "Light packet received at: " + packet.time
@@ -68,6 +76,7 @@ class Vehicle(IVehicle):
                 return
 
 
+###################
 
 robot = Vehicle()
 robot.operate()

@@ -202,7 +202,15 @@ class Thruster(Actuator):
     def stop(self):
         self.power = 0;
     
-    
+class PropulsionMessage:
+    def __init__(self,x,y,z,clock,counter):
+        self.x_power = x
+        self.y_power = y
+        self.z_power = z
+        self.clock_power = clock
+        self.counterclock_power = counter
+    def __str__(self):
+        return str(self.x_power) + "," + str(self.y_power) + "," + str(self.z_power) + "," + str(self.clock_power) + "," + str(self.counterclock_power)
 def main():
     th = Thruster("thruster")
     th.power = 120
