@@ -1,6 +1,6 @@
 from VehicleInterface import *
 import threading
-
+from time import localtime
 """
     Sensors:
         Light Sensor object
@@ -15,17 +15,39 @@ import threading
     """
     
 class Vehicle(IVehicle):
+    #interval in seconds that we send propulsion a message
+    prop_time = 0.5     
+    
     def __init__(self):
         self.light_sensor = LightSensor()
-        self.acclerometer = Accelerometer()
-        self.x_thruster = Thruster()
-        self.y_thruster = Thruster()
-        self.z_thruster = Thruster()
+        self.acclerometer = Accelerometer("accelerometer")
+        self.x_thruster = Thruster("thruster")
+        self.y_thruster = Thruster("thruster")
+        self.z_thruster = Thruster("thruster")
+    """
+    Function starts the propulsion message thread, activated every
+    self.prop_time seconds that sends a message with the requested
+    power of each direction axis
+    """
+    def send_propulsion_messaging(self):
+        def reset_propulsion_ticker():
+            self.propulsion_message_thread = threading.Timer(self.prop_time,self.send_propulsion_messaging)
+            self.propulsion_message_thread.start()
+        print "sending propulsion a message"
+        reset_propulsion_ticker()    
+    """
+    Function stops the sending of messages to the propulsion system every
+    prop_time seconds
+    """
+    def stop_propulsion_messaging(self):
+        robot.propulsion_message_thread.cancel()
+    """
+    Helper function that allows the propulsion messager to repeat
+    """
+    
+        
     def operate(self):
-        def hello():
-            print "hello, world"
-            t = threading.Timer(30.0, hello)
-            t.start() # after 30 seconds, "hello, world" will be printed
+        self.send_propulsion_messaging()
     def process_sensor_packet(self,packet):
         if packet.type == "light":
             print "Light packet received at: " + packet.time
@@ -44,8 +66,9 @@ class Vehicle(IVehicle):
             else:
                 print "Invalid axis"
                 return
-            
-        
-        
-    v = Vehicle()    
-    v.operate.hello()
+
+
+
+robot = Vehicle()
+robot.operate()
+
