@@ -8,8 +8,27 @@ CC = gcc
 CXX = g++
 AR = ar
 
-INCDIR = /usr/include
-INSTALLDIR = /usr/lib
+PREFIX=/usr
+INCDIR = $(PREFIX)/include
+INSTALLDIR = $(PREFIX)/lib
+
+# Mods to make a local install work
+LOCAL_INSTALL_OPTS=
+LOCAL_LDCONFIG_CMD=
+GLOBAL_INSTALL_OPTS= -o root -g root
+GLOBAL_LDCONFIG_CMD= ldconfig
+
+ifeq ($(PREFIX),/usr/)
+INSTALL_OPTS= $(GLOBAL_INSTALL_OPTS)
+LDCONFIG= $(GLOBAL_LDCONFIG_CMD)
+else ifeq  ($(PREFIX),/usr/local/)
+INSTALL_OPTS= $(GLOBAL_INSTALL_OPTS)
+LDCONFIG= $(GLOBAL_LDCONFIG_CMD)
+else
+INSTALL_OPTS= $(LOCAL_INSTALL_OPTS)
+LDCONFIG= $(LOCAL_LDCONFIG_CMD)
+endif
+
 
 # Converts cr/lf to just lf
 DOS2UNIX = dos2unix
@@ -58,12 +77,14 @@ $(SHAREDLIB): $(MODULES)
 	$(CC) -s -shared -Wl,-soname,$(VERLIBNAME) -o $@ $(MODULES) $(LIBRARIES)
 
 install:
-	install -m 644 -o root -g root $(HEADER) $(INCDIR)
-	install -m 644 -o root -g root $(STATICLIB) $(INSTALLDIR)
-	install -m 755 -o root -g root $(SHAREDLIB) $(INSTALLDIR)
+	mkdir -p $(INCDIR)
+	mkdir -p $(INSTALLDIR)
+	install -m 644 ${INSTALL_OPTS} $(HEADER) $(INCDIR)
+	install -m 644 ${INSTALL_OPTS} $(STATICLIB) $(INSTALLDIR)
+	install -m 755 ${INSTALL_OPTS} $(SHAREDLIB) $(INSTALLDIR)
 	ln -sf $(SHAREDLIB) $(INSTALLDIR)/$(VERLIBNAME)
 	ln -sf $(VERLIBNAME) $(INSTALLDIR)/$(LIBNAME)	
-	ldconfig
+	$(LDCONFIG)
 
 clean:
 	rm -f core Dist/*.* u2dtmp* $(MODULES) $(STATICLIB) $(SHAREDLIB) $(LIBNAME)
