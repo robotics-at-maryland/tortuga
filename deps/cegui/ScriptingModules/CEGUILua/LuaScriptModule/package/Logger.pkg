@@ -1,0 +1,25 @@
+/***********************************************************************
+	LoggingLevel
+***********************************************************************/
+enum LoggingLevel
+{
+	Errors,
+	Standard,
+	Informative,
+	Insane
+};
+
+
+
+/***********************************************************************
+	Logger
+***********************************************************************/
+class Logger
+{
+	static Logger& getSingleton();
+
+	void setLoggingLevel(LoggingLevel level);
+	LoggingLevel getLoggingLevel() const;
+
+	void logEvent(string message, LoggingLevel level=Standard);
+};

@@ -1,0 +1,34 @@
+/***********************************************************************
+	Renderer
+***********************************************************************/
+class Renderer : public EventSet
+{
+	//void doRender();
+	//void clearRenderList();
+
+	//void resetZValue();
+	//void advanceZValue();
+	float getCurrentZ() const;
+	float getZLayer(unsigned int layer) const;
+
+	//void setQueueingEnabled(bool setting);
+	bool isQueueingEnabled() const;
+
+	Texture* createTexture();
+	Texture* createTexture(float size);
+	Texture* createTexture(string filename, string resourcegroup);
+
+	void destroyTexture(Texture* tex);
+	void destroyAllTextures();
+
+	float getWidth() const;
+	float getHeight() const;
+	Size getSize() const;
+	Rect getRect() const;
+
+	unsigned int getMaxTextureSize() const;
+	unsigned int getHorzScreenDPI() const;
+	unsigned int getVertScreenDPI() const;
+
+    tolua_outside EventIterator ceguiLua_getEventIterator @ getEventIterator() const;
+};

@@ -1,0 +1,21 @@
+/***********************************************************************
+	FontManager
+***********************************************************************/
+class FontManager
+{
+	static FontManager& getSingleton();
+
+	tolua_throws|CEGUI::AlreadyExistsException,error|CEGUI::InvalidRequestException,error| Font* createFont(string type, string name, string fontname, string resourcegroup="");
+	tolua_throws|CEGUI::AlreadyExistsException,error|CEGUI::InvalidRequestException,error| Font* createFont(string filename, string resourcegroup="");
+
+	void destroyFont(string name);
+	void destroyFont(Font* font);
+	void destroyAllFonts();
+
+	bool isFontPresent(string name) const;
+	Font* getFont(string name) const;
+
+	void notifyScreenResolution(const Size& sz);
+
+    FontIterator getIterator() const;
+};
