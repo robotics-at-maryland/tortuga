@@ -1,0 +1,23 @@
+/Makefile.am/1.2/Wed Dec 29 13:52:04 2004//
+/OgreD3D9Driver.cpp/1.13/Wed Aug 23 08:18:51 2006//
+/OgreD3D9DriverList.cpp/1.10/Wed Aug 23 08:18:51 2006//
+/OgreD3D9EngineDll.cpp/1.10/Wed Aug 23 08:18:51 2006//
+/OgreD3D9GpuProgram.cpp/1.19/Wed Aug 23 08:18:51 2006//
+/OgreD3D9GpuProgramManager.cpp/1.11/Sun Oct  8 16:34:04 2006//
+/OgreD3D9HLSLProgram.cpp/1.15/Thu Aug 24 14:40:54 2006//
+/OgreD3D9HLSLProgramFactory.cpp/1.6/Wed Aug 23 08:18:51 2006//
+/OgreD3D9HardwareBufferManager.cpp/1.15/Sun Sep 24 23:10:01 2006//
+/OgreD3D9HardwareIndexBuffer.cpp/1.15/Wed Aug 23 08:18:51 2006//
+/OgreD3D9HardwareOcclusionQuery.cpp/1.8/Wed Aug 23 08:18:51 2006//
+/OgreD3D9HardwarePixelBuffer.cpp/1.19/Sun Nov 12 16:45:49 2006//
+/OgreD3D9HardwareVertexBuffer.cpp/1.15/Wed Aug 23 08:18:51 2006//
+/OgreD3D9Mappings.cpp/1.29/Wed Aug 23 08:18:51 2006//
+/OgreD3D9MultiRenderTarget.cpp/1.4/Thu Aug 24 11:13:25 2006//
+/OgreD3D9RenderSystem.cpp/1.165/Sun Nov 12 16:45:49 2006//
+/OgreD3D9RenderWindow.cpp/1.54/Sun Sep 17 22:36:23 2006//
+/OgreD3D9Texture.cpp/1.77/Sun Oct  1 11:32:13 2006//
+/OgreD3D9TextureManager.cpp/1.13/Wed Aug 23 08:18:52 2006//
+/OgreD3D9VertexDeclaration.cpp/1.12/Wed Aug 23 08:18:52 2006//
+/OgreD3D9VideoMode.cpp/1.9/Wed Aug 23 08:18:52 2006//
+/OgreD3D9VideoModeList.cpp/1.11/Wed Aug 23 08:18:52 2006//
+D
