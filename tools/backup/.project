@@ -14,16 +14,4 @@
 	<natures>
 		<nature>org.python.pydev.pythonNature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>backup.py</name>
-			<type>1</type>
-			<locationURI>backup.py</locationURI>
-		</link>
-		<link>
-			<name>test.py</name>
-			<type>1</type>
-			<locationURI>test.py</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>
