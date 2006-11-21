@@ -84,8 +84,8 @@ def get_backup_info(config):
     weeks = 4
     src = /tmp/trac-backup
     """
-    if ~config.has_section('locations'):
-        raise 'Congfig file must have a \'location\' section'
+    if config.has_section('locations') is False:
+        raise 'Congfig file must have a \'locations\' section'
     
     backup_info = {}
     locations = config.options('locations')
@@ -119,17 +119,17 @@ def date_name(path):
     # Get the modification time from the timestamp of the fill
     mod_time = datetime.fromtimestamp(os.stat(path).st_mtime)
     # Grab our parent directory
-    base_dir = os.path.split(path)[0]
+    #base_dir = os.path.split(path)[0]
     # Join the two and rename the file
-    dated_path = os.path.join(base_dir, mod_time.strftime('%F_%T'))
-    
+    return mod_time.strftime('%F_%T')    
+
     return dated_path
 
 def ensure_path(path):
     """
     Makes sure a path exists, and if it doesn't it will create it
     """
-    if ~os.path.exists(path):
+    if os.path.exists(path) is False:
         os.makedirs(path);
 
 def main(argv=None):
@@ -146,11 +146,17 @@ def main(argv=None):
     config.read(options.configfile)
     backup_tasks = get_backup_info(config)
 
+    print backup_tasks
+
     now = datetime.now()
-    for (path, opts) in backup_tasks:
+    for path in backup_tasks.iterkeys():
+	# Convert options
+	raw_opts = backup_tasks[path]
+	opts = (raw_opts[0], int(raw_opts[1]), int(raw_opts[2]))
+	
         # Make sure src and destination are properly formatted
         src_path = opts[0]
-        if ~os.path.exists(src_path):
+        if os.path.exists(src_path) is False:
             raise "Could not find source directory %s" % src_path
         
         weekly_path = os.path.join(path, 'weekly')
@@ -162,15 +168,15 @@ def main(argv=None):
         delta = timedelta(opts[2] * 7)
         cutoff = now - delta;
 
-        # Weekly backup
-        shutil.copytree(src_path, weekly_path + os.sep + date_name(src_dir)) 
+        # Weekly backup 
+        shutil.copytree(src_path, weekly_path + os.sep + date_name(src_path)) 
         remove_old(weekly_path, cutoff)
         
         # Incremental Backup
         try:
             subprocess.call(['rdiff-backup', src_path, incremental_path])
             subprocess.call(['rdiff-backup', '--remove-older-than',
-                             opts[1] + 'D', incremental_path])
+                             str(opts[1]) + 'D', incremental_path])
         except OSError:
             raise "Please install rdiff-backup and put it in on your PATH"
 
