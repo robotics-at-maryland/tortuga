@@ -26,6 +26,23 @@ def dotProduct(v1, v2):
 	"""Return the dot product of two 3-vectors"""
 	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
 
+def scaleVec(v, s):
+	return (v[0]*s, v[1]*s, v[2]*s)
+
+def addVec(v1, v2):
+	return (v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2])
+
+def magnitude(v):
+	return math.sqrt(magnitudeSquared(v))
+
+def magnitudeSquared(v):
+	return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
+
+def projectOntoUnit(v, d):
+	"""Return the projection of v onto the unit vector d"""
+	dotprod = dotProduct(v, d)
+	return (d[0] * dotprod, d[1] * dotprod, d[2] * dotprod)
+
 def glTranslateVec(v):
 	glTranslated(v[0], v[1], v[2])
 
