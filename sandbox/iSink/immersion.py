@@ -27,7 +27,7 @@ def __pointDepth(r, v):
 	return dotProduct((projectOntoUnit(r, v)),v)
 
 def __sphereChordVolume(r, y):
-	"""Compute the submerged volume a sphere whose center
+	"""Compute the submerged volume of a sphere whose center
 lies y units below the water level"""
 	return 2 * math.pi / 3 * math.pow(r, 3) * (1 - float(y) / r)
 
