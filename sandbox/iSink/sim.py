@@ -31,7 +31,7 @@ class Simulator:
 	def go(self):
 		glutInitWindowSize(500,500)
 		glutInitWindowPosition(100,100)
-		glutInitDisplayMode(GLUT_RGBA | GLUT_SINGLE)
+		glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE)
 		self.win = glutCreateWindow("iSink ROV Simulator")
 		self.init()
 		glutDisplayFunc(self.display)
@@ -59,6 +59,7 @@ class Simulator:
 	def display(self):
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 		self.world.display()
+		glutSwapBuffers()
 	
 	def doframe(self):
 		self.lastime = self.thistime
