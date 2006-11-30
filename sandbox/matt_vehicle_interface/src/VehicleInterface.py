@@ -203,19 +203,28 @@ class Thruster(Actuator):
         self.power = 0;
     
 class PropulsionMessage:
-    def __init__(self,x,y,z,clock,counter):
+    def __init__(self,x,y,z,yaw):
         self.x_power = x
         self.y_power = y
         self.z_power = z
-        self.clock_power = clock
-        self.counterclock_power = counter
-    def compare(self,other):
-        if self.x_power == other.x_power and self.y_power == other.y_power and self.z_power == other.z_power and self.clock_power == other.clock_power and self.counterclock_power == other.counterclock_power:
+        self.yaw_power = yaw
+    def __cmp__(self,other):
+        if self.x_power == other.x_power and self.y_power == other.y_power and self.z_power == other.z_power and self.yaw_power == other.yaw_power:
             return True
         else:
             return False
     def __str__(self):
-        return str(self.x_power) + "," + str(self.y_power) + "," + str(self.z_power) + "," + str(self.clock_power) + "," + str(self.counterclock_power)
+        return str(self.x_power) + "," + str(self.y_power) + "," + str(self.z_power) + "," + str(self.yaw_power)
+
+class VisionGateMessage:
+    #the intentino is that the x,y,and z components are from 0.0 to 1.0
+    #they should be floats
+    def __init__(self,x,y,z):
+        self.x_component = x
+        self.y_component = y
+        self.z_component = z
+
+
 def main():
     th = Thruster("thruster")
     th.power = 120

@@ -23,19 +23,15 @@ class Vehicle(IVehicle):
         self.x_thruster = Thruster("thruster")
         self.y_thruster = Thruster("thruster")
         self.z_thruster = Thruster("thruster")
-        
-        self.propulsion_controller = PropulsionController.Controller()
-        self.propulsion_controller.set_vehicle(self)
-        
-        self.propulsion_instruction = PropulsionMessage(10,0,0,0,0)
+        self.yaw_thruster = Thruster("thruster")
+                
+        self.propulsion_instruction = PropulsionMessage(0,0,0,0)
     """
     Function that begins the operatiorn of the vehicle
     """
         
     def operate(self):
-        self.propulsion_controller.start()
-    def terminate(self):
-        self.propulsion_controller.close()
+        print "operating vehicle"
         
     def process_sensor_packet(self,packet):
         if packet.type == "light":
@@ -55,10 +51,4 @@ class Vehicle(IVehicle):
             else:
                 print "Invalid axis"
                 return
-
-
-###################
-
-robot = Vehicle()
-robot.operate()
 

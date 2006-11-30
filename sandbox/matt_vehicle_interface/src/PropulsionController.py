@@ -4,10 +4,13 @@ from VehicleInterface import PropulsionMessage
 
 class Controller ( threading.Thread ): 
     prop_time = 0.5
+    def __init__(self,vehicle):
+        threading.Thread.__init__(self)
+        self.vehicle = vehicle
     def set_vehicle(self,vehicle):
         self.vehicle = vehicle   
     def run ( self ):
-        self.instructions = PropulsionMessage(0,0,0,0,0)
+        self.instructions = PropulsionMessage(0,0,0,0)
         self.message_changed = 1
         while True:
             self.set_message()
