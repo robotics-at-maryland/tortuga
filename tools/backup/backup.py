@@ -133,6 +133,7 @@ def ensure_path(path):
         os.makedirs(path);
 
 def main(argv=None):
+    setup_logging()
 
     # Parse are command line
     parser = OptionParser()
