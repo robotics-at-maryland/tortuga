@@ -1,1 +1,0 @@
-SUBDIRS=XMLConverter MeshUpgrader MaterialUpgrader

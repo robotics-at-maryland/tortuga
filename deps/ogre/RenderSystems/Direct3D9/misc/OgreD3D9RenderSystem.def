@@ -1,4 +1,0 @@
-LIBRARY RenderSystem_Direct3D9
-EXPORTS	
-	dllStartPlugin @1
-	dllStopPlugin  @2

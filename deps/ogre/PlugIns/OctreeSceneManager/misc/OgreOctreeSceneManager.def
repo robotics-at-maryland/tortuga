@@ -1,4 +1,0 @@
-LIBRARY Plugin_OctreeSceneManager
-EXPORTS	
-	dllStartPlugin
-	dllStopPlugin

@@ -1,9 +1,0 @@
-//
-// Prefix header for all source files of the 'Samples' target in the 'Samples' project
-//
-
-#include <Carbon/Carbon.h>
-
-#ifdef __OBJC__
-#   include <Cocoa/Cocoa.h>
-#endif
