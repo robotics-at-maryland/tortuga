@@ -10,7 +10,7 @@
 
 # Setup the PATH
 export PATH=$MRBC_SVN_ROOT/scripts:$PATH
-export LD_LIBRARY_PATH=$MRBC_SVN_ROOT/local/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$MRBC_SVN_ROOT/deps/local/lib:$LD_LIBRARY_PATH
 
 # Setup path for pkgconfig (so it can find our local libraries)
 export PKG_CONFIG_PATH=$MRBC_SVN_ROOT/deps/local/lib/pkgconfig:$PKG_CONFIG_PATH
