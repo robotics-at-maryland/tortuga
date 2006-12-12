@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.4: http://docutils.sourceforge.net/" />
+<title>Validation Schema with validate.py</title>
+<meta name="authors" content="Michael Foord  Nicola Larosa  Mark Andrews" />
+<meta name="date" content="2005/04/29" />
+<link rel="stylesheet" href="stylesheets/voidspace_docutils.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="validation-schema-with-validate-py">
+<h1 class="title">Validation Schema with validate.py</h1>
+<h2 class="subtitle" id="using-the-validator-class">Using the Validator class</h2>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Authors:</th>
+<td>Michael Foord
+<br />Nicola Larosa
+<br />Mark Andrews</td></tr>
+<tr><th class="docinfo-name">Version:</th>
+<td>Validate 0.2.2</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2005/04/29</td></tr>
+<tr class="field"><th class="docinfo-name">Homepage:</th><td class="field-body"><a class="reference" href="http://www.voidspace.org.uk/python/validate.html">Validate Homepage</a></td>
+</tr>
+<tr class="field"><th class="docinfo-name">License:</th><td class="field-body"><a class="reference" href="http://www.voidspace.org.uk/python/license.shtml">BSD License</a></td>
+</tr>
+<tr class="field"><th class="docinfo-name">Support:</th><td class="field-body"><a class="reference" href="http://lists.sourceforge.net/lists/listinfo/configobj-develop">Mailing List</a></td>
+</tr>
+</tbody>
+</table>
+<div class="contents topic">
+<p class="topic-title first"><a id="validate-manual" name="validate-manual">Validate Manual</a></p>
+<ul class="simple">
+<li><a class="reference" href="#introduction" id="id2" name="id2">Introduction</a></li>
+<li><a class="reference" href="#downloading" id="id3" name="id3">Downloading</a><ul>
+<li><a class="reference" href="#files" id="id4" name="id4">Files</a></li>
+<li><a class="reference" href="#documentation" id="id5" name="id5">Documentation</a></li>
+<li><a class="reference" href="#pythonutils" id="id6" name="id6">Pythonutils</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#the-standard-functions" id="id7" name="id7">The standard functions</a></li>
+<li><a class="reference" href="#using-validator" id="id8" name="id8">Using Validator</a><ul>
+<li><a class="reference" href="#instantiate" id="id9" name="id9">Instantiate</a></li>
+<li><a class="reference" href="#adding-functions" id="id10" name="id10">Adding functions</a></li>
+<li><a class="reference" href="#writing-the-check" id="id11" name="id11">Writing the check</a></li>
+<li><a class="reference" href="#the-check-method" id="id12" name="id12">The check method</a><ul>
+<li><a class="reference" href="#default-values" id="id13" name="id13">Default Values</a></li>
+<li><a class="reference" href="#list-values" id="id14" name="id14">List Values</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference" href="#validator-exceptions" id="id15" name="id15">Validator Exceptions</a></li>
+<li><a class="reference" href="#writing-check-functions" id="id16" name="id16">Writing check functions</a><ul>
+<li><a class="reference" href="#example" id="id17" name="id17">Example</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#todo" id="id18" name="id18">TODO</a></li>
+<li><a class="reference" href="#issues" id="id19" name="id19">ISSUES</a></li>
+<li><a class="reference" href="#changelog" id="id20" name="id20">CHANGELOG</a><ul>
+<li><a class="reference" href="#version-0-2-2" id="id21" name="id21">2006/04/29      Version 0.2.2</a></li>
+<li><a class="reference" href="#version-0-2-1" id="id22" name="id22">2005/12/16      Version 0.2.1</a></li>
+<li><a class="reference" href="#version-0-2-0" id="id23" name="id23">2005/08/18      Version 0.2.0</a></li>
+<li><a class="reference" href="#version-0-1-0" id="id24" name="id24">2005/02/01      Version 0.1.0</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id2" id="introduction" name="introduction">Introduction</a></h1>
+<p>Validation is used to check that supplied values conform to a specification.</p>
+<p>The value can be supplied as a string, e.g. from a config file. In this case
+the check will also <em>convert</em> the value to the required type. This allows you
+to add validation as a transparent layer to access data stored as strings. The
+validation checks that the data is correct <em>and</em> converts it to the expected
+type.</p>
+<p>Checks are also strings, and are easy to write. One generic system can be used
+to validate information from different sources, via a single consistent
+mechanism.</p>
+<p>Checks look like function calls, and map to function calls. They can include
+parameters and keyword arguments. These arguments are passed to the relevant
+function by the <tt class="docutils literal"><span class="pre">Validator</span></tt> instance, along with the value being checked.</p>
+<p>The syntax for checks also allows for specifying a default value. This default
+value can be <tt class="docutils literal"><span class="pre">None</span></tt>, no matter what the type of the check. This can be used
+to indicate that a value was missing, and so holds no useful value.</p>
+<p>Functions either return a new value, or raise an exception. See <a class="reference" href="#validator-exceptions">Validator
+Exceptions</a> for the low down on the exception classes that <tt class="docutils literal"><span class="pre">validate.py</span></tt>
+defines.</p>
+<p>Some standard functions are provided, for basic data types; these come built
+into every validator. Additional checks are easy to write: they can be provided
+when the <tt class="docutils literal"><span class="pre">Validator</span></tt> is instantiated, or added afterwards.</p>
+<p>Validate was primarily written to support <a class="reference" href="http://www.voidspace.org.uk/python/configobj.html">ConfigObj</a>, but is designed to be
+applicable to many other situations.</p>
+<p>For support and bug reports please use the ConfigObj <a class="reference" href="http://lists.sourceforge.net/lists/listinfo/configobj-develop">Mailing List</a>.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id3" id="downloading" name="downloading">Downloading</a></h1>
+<p>The current version is <strong>0.2.2</strong>, dated 29th April 2006.</p>
+<p>You can get obtain validate in the following ways :</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id4" id="files" name="files">Files</a></h2>
+<ul>
+<li><p class="first"><a class="reference" href="http://www.voidspace.org.uk/cgi-bin/voidspace/downman.py?file=validate.py">validate.py</a> from Voidspace</p>
+</li>
+<li><p class="first">configobj.zip from Voidspace - See the homepage of <a class="reference" href="http://www.voidspace.org.uk/python/configobj.html">ConfigObj</a> for the latest
+version and download links.</p>
+<blockquote>
+<p>This contains validate.py and <a class="reference" href="http://www.voidspace.org.uk/python/validate.html">this document</a>. (As well as <a class="reference" href="http://www.voidspace.org.uk/python/configobj.html">ConfigObj</a> and
+the ConfigObj documentation).</p>
+</blockquote>
+</li>
+<li><p class="first">The latest development version can be obtained from the <a class="reference" href="http://svn.rest2web.python-hosting.com/branches/configobj4/">Subversion Repository</a>.</p>
+</li>
+</ul>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id5" id="documentation" name="documentation">Documentation</a></h2>
+<p><em>configobj.zip</em> contains <a class="reference" href="http://www.voidspace.org.uk/python/validate.html">this document</a> and full <a class="reference" href="http://www.voidspace.org.uk/python/configobj-api/">API Docs</a>, generated
+automatically by <a class="reference" href="http://epydoc.sourceforge.net">EpyDoc</a>.</p>
+<ul class="simple">
+<li>You can view <a class="reference" href="http://www.voidspace.org.uk/python/validate.html">this document</a> online as the <a class="reference" href="http://www.voidspace.org.uk/python/validate.html">Validate Homepage</a>.</li>
+<li>You can also browse the <a class="reference" href="http://www.voidspace.org.uk/python/configobj-api/">API Docs</a> online.</li>
+</ul>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id6" id="pythonutils" name="pythonutils">Pythonutils</a></h2>
+<p><a class="reference" href="http://www.voidspace.org.uk/python/validate.html">Validate</a> is also part of the <a class="reference" href="http://www.voidspace.org.uk/python/pythonutils.html">Pythonutils</a> set of modules. This contains
+various other useful helper modules, and is required by many of the <a class="reference" href="http://www.voidspace.org.uk/python">Voidspace
+Python Projects</a>.</p>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id7" id="the-standard-functions" name="the-standard-functions">The standard functions</a></h1>
+<p>The standard functions come built-in to every <tt class="docutils literal"><span class="pre">Validator</span></tt> instance. They work
+with the following basic data types :</p>
+<ul class="simple">
+<li>integer</li>
+<li>float</li>
+<li>boolean</li>
+<li>string</li>
+<li>ip_addr</li>
+</ul>
+<p>plus lists of these datatypes.</p>
+<p>Adding additional checks is done through coding simple functions.</p>
+<p>The full set of standard checks are :</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">'integer':</th><td class="field-body"><p class="first">matches integer values (including negative). Takes optional 'min'
+and 'max' arguments :</p>
+<pre class="literal-block">
+integer()
+integer(3, 9)    # any value from 3 to 9
+integer(min=0) # any positive value
+integer(max=9)
+</pre>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'float':</th><td class="field-body"><p class="first">matches float values
+Has the same parameters as the integer check.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'bool':</th><td class="field-body"><p class="first">matches boolean values: <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt>.
+Acceptable string values for True are :</p>
+<pre class="literal-block">
+true, on, yes, 1
+</pre>
+<p>Acceptable string values for False are :</p>
+<pre class="literal-block">
+false, off, no, 0
+</pre>
+<p>Any other value raises an error.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'string':</th><td class="field-body"><p class="first">matches any string. Takes optional keyword args 'min' and 'max' to
+specify min and max length of string.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'ip_addr':</th><td class="field-body"><p class="first">matches an Internet Protocol address, v.4, represented by a
+dotted-quad string, i.e. '1.2.3.4'.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'list':</th><td class="field-body"><p class="first">matches any list. Takes optional keyword args 'min', and 'max' to
+specify min and max sizes of the list.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'int_list':</th><td class="field-body"><p class="first">Matches a list of integers. Takes the same arguments as list.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'float_list':</th><td class="field-body"><p class="first">Matches a list of floats. Takes the same arguments as list.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'bool_list':</th><td class="field-body"><p class="first">Matches a list of boolean values. Takes the same arguments as
+list.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'string_list':</th><td class="field-body"><p class="first">Matches a list of strings. Takes the same arguments as list.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'ip_addr_list':</th><td class="field-body"><p class="first">Matches a list of IP addresses. Takes the same arguments as
+list.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'mixed_list':</th><td class="field-body"><p class="first">Matches a list with different types in specific positions.
+List size must match the number of arguments.</p>
+<p>Each position can be one of :</p>
+<pre class="literal-block">
+int, str, bool, float, ip_addr
+</pre>
+<p>So to specify a list with two strings followed by two integers,
+you write the check as :</p>
+<pre class="literal-block">
+mixed_list(str, str, int, int)
+</pre>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'pass':</th><td class="field-body"><p class="first">matches everything: it never fails and the value is unchanged. It is
+also the default if no check is specified.</p>
+</td>
+</tr>
+<tr class="field"><th class="field-name">'option':</th><td class="field-body"><p class="first">matches any from a list of options.
+You specify this test with :</p>
+<pre class="last literal-block">
+option('option 1', 'option 2', 'option 3')
+</pre>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The following code will work without you having to specifically add the
+functions yourself.</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">validate</span> <span class="pykeyword">import</span> <span class="pytext">Validator</span><br />
+<span class="pycomment">#<br />
+</span><span class="pytext">vtor</span> <span class="pyoperator">=</span> <span class="pytext">Validator</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<span class="pytext">newval1</span> <span class="pyoperator">=</span> <span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">check</span><span class="pyoperator">(</span><span class="pystring">'integer'</span><span class="pyoperator">,</span> <span class="pytext">value1</span><span class="pyoperator">)</span><br />
+<span class="pytext">newval2</span> <span class="pyoperator">=</span> <span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">check</span><span class="pyoperator">(</span><span class="pystring">'bool'</span><span class="pyoperator">,</span> <span class="pytext">value2</span><span class="pyoperator">)</span><br />
+<span class="pycomment"># etc ...</span><span class="pytext"></span></div><div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">Of course, if these checks fail they raise exceptions. So you should wrap
+them in <tt class="docutils literal"><span class="pre">try...except</span></tt> blocks. Better still,  use ConfigObj for a higher
+level interface.</p>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id8" id="using-validator" name="using-validator">Using Validator</a></h1>
+<p>Using <tt class="docutils literal"><span class="pre">Validator</span></tt> is very easy. It has one public attribute and one public
+method.</p>
+<p>Shown below are the different steps in using <tt class="docutils literal"><span class="pre">Validator</span></tt>.</p>
+<p>The only additional thing you need to know, is about <a class="reference" href="#writing-check-functions">Writing check
+functions</a>.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id9" id="instantiate" name="instantiate">Instantiate</a></h2>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">validate</span> <span class="pykeyword">import</span> <span class="pytext">Validator</span><br />
+<span class="pytext">vtor</span> <span class="pyoperator">=</span> <span class="pytext">Validator</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pytext"></span></div><p>or even :</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">validate</span> <span class="pykeyword">import</span> <span class="pytext">Validator</span><br />
+<span class="pycomment">#<br />
+</span><span class="pytext">fdict</span> <span class="pyoperator">=</span> <span class="pyoperator">{</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">'check_name1'</span><span class="pyoperator">:</span> <span class="pytext">function1</span><span class="pyoperator">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">'check_name2'</span><span class="pyoperator">:</span> <span class="pytext">function2</span><span class="pyoperator">,</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">'check_name3'</span><span class="pyoperator">:</span> <span class="pytext">function3</span><span class="pyoperator">,</span><br />
+<span class="pyoperator">}</span><br />
+<span class="pycomment">#<br />
+</span><span class="pytext">vtor</span> <span class="pyoperator">=</span> <span class="pytext">Validator</span><span class="pyoperator">(</span><span class="pytext">fdict</span><span class="pyoperator">)</span><span class="pytext"></span></div><p>The second method adds a set of your functions as soon as your validator is
+created. They are stored in the <tt class="docutils literal"><span class="pre">vtor.functions</span></tt> dictionary. The 'key' you
+give them in this dictionary is the name you use in your checks (not the
+original function name).</p>
+<p>Dictionary keys/functions you pass in can override the built-in ones if you
+want.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="adding-functions" name="adding-functions">Adding functions</a></h2>
+<p>The code shown above, for adding functions on instantiation, has exactly the
+same effect as the following code :</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">validate</span> <span class="pykeyword">import</span> <span class="pytext">Validator</span><br />
+<span class="pycomment">#<br />
+</span><span class="pytext">vtor</span> <span class="pyoperator">=</span> <span class="pytext">Validator</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">functions</span><span class="pyoperator">[</span><span class="pystring">'check_name1'</span><span class="pyoperator">]</span> <span class="pyoperator">=</span> <span class="pytext">function1</span><br />
+<span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">functions</span><span class="pyoperator">[</span><span class="pystring">'check_name2'</span><span class="pyoperator">]</span> <span class="pyoperator">=</span> <span class="pytext">function2</span><br />
+<span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">functions</span><span class="pyoperator">[</span><span class="pystring">'check_name3'</span><span class="pyoperator">]</span> <span class="pyoperator">=</span> <span class="pytext">function3</span><span class="pytext"></span></div><p><tt class="docutils literal"><span class="pre">vtor.functions``is</span> <span class="pre">just</span> <span class="pre">a</span> <span class="pre">dictionary</span> <span class="pre">that</span> <span class="pre">maps</span> <span class="pre">names</span> <span class="pre">to</span> <span class="pre">functions,</span> <span class="pre">so</span> <span class="pre">we</span>
+<span class="pre">could</span> <span class="pre">also</span> <span class="pre">have</span> <span class="pre">called</span> <span class="pre">``vtor.functions.update(fdict)</span></tt>.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id11" id="writing-the-check" name="writing-the-check">Writing the check</a></h2>
+<p>As we've heard, the checks map to the names in the <tt class="docutils literal"><span class="pre">functions</span></tt> dictionary.
+You've got a full list of <a class="reference" href="#the-standard-functions">The standard functions</a> and the arguments they
+take.</p>
+<p>If you're using <tt class="docutils literal"><span class="pre">Validator</span></tt> from ConfigObj, then your checks will look like
+:</p>
+<pre class="literal-block">
+keyword = int_list(max=6)
+</pre>
+<p>but the check part will be identical .</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id12" id="the-check-method" name="the-check-method">The check method</a></h2>
+<p>If you're not using <tt class="docutils literal"><span class="pre">Validator</span></tt> from ConfigObj, then you'll need to call the
+<tt class="docutils literal"><span class="pre">check</span></tt> method yourself.</p>
+<p>If the check fails then it will raise an exception, so you'll want to trap
+that. Here's the basic example :</p>
+<div class="pysrc"><span class="pykeyword">from</span> <span class="pytext">validate</span> <span class="pykeyword">import</span> <span class="pytext">Validator</span><span class="pyoperator">,</span> <span class="pytext">ValidateError</span><br />
+<span class="pycomment">#<br />
+</span><span class="pytext">vtor</span> <span class="pyoperator">=</span> <span class="pytext">Validator</span><span class="pyoperator">(</span><span class="pyoperator">)</span><br />
+<span class="pytext">check</span> <span class="pyoperator">=</span> <span class="pystring">"integer(0, 9)"</span><br />
+<span class="pytext">value</span> <span class="pyoperator">=</span> <span class="pynumber">3</span><br />
+<span class="pykeyword">try</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">newvalue</span> <span class="pyoperator">=</span> <span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">check</span><span class="pyoperator">(</span><span class="pytext">check</span><span class="pyoperator">,</span> <span class="pytext">value</span><span class="pyoperator">)</span><br />
+<span class="pykeyword">except</span> <span class="pytext">ValidateError</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">print</span> <span class="pystring">'Check Failed.'</span><br />
+<span class="pykeyword">else</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">print</span> <span class="pystring">'Check passed.'</span><span class="pytext"></span></div><div class="caution">
+<p class="first admonition-title">Caution!</p>
+<p class="last">Although the value can be a string, if it represents a list it should
+already have been turned into a list of strings.</p>
+</div>
+<div class="section">
+<h3><a class="toc-backref" href="#id13" id="default-values" name="default-values">Default Values</a></h3>
+<p>Some values may not be available, and you may want to be able to specify a
+default as part of the check.</p>
+<p>You do this by passing the keyword <tt class="docutils literal"><span class="pre">missing=True</span></tt> to the <tt class="docutils literal"><span class="pre">check</span></tt> method, as
+well as a <tt class="docutils literal"><span class="pre">default=value</span></tt> in the check. (Constructing these checks is done
+automatically by ConfigObj: you only need to know about the <tt class="docutils literal"><span class="pre">default=value</span></tt>
+part) :</p>
+<div class="pysrc"><span class="pytext">check1</span> <span class="pyoperator">=</span> <span class="pystring">'integer(default=50)'</span><br />
+<span class="pytext">check2</span> <span class="pyoperator">=</span> <span class="pystring">'option("val 1", "val 2", "val 3", default="val 1")'</span><br />
+<br />
+<span class="pykeyword">assert</span> <span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">check</span><span class="pyoperator">(</span><span class="pystring">''</span><span class="pyoperator">,</span> <span class="pytext">check1</span><span class="pyoperator">,</span> <span class="pytext">missing</span><span class="pyoperator">=</span><span class="pytext">True</span><span class="pyoperator">)</span> <span class="pyoperator">==</span> <span class="pynumber">50</span><br />
+<span class="pykeyword">assert</span> <span class="pytext">vtor</span><span class="pyoperator">.</span><span class="pytext">check</span><span class="pyoperator">(</span><span class="pystring">''</span><span class="pyoperator">,</span> <span class="pytext">check2</span><span class="pyoperator">,</span> <span class="pytext">missing</span><span class="pyoperator">=</span><span class="pytext">True</span><span class="pyoperator">)</span> <span class="pyoperator">==</span> <span class="pystring">"val 1"</span><span class="pytext"></span></div><p>If you pass in <tt class="docutils literal"><span class="pre">missing=True</span></tt> to the check method, then the actual value is
+ignored. If no default is specified in the check, a <tt class="docutils literal"><span class="pre">ValidateMissingValue</span></tt>
+exception is raised. If a default is specified then that is passed to the
+check instead.</p>
+<p>If the check has <tt class="docutils literal"><span class="pre">default=None</span></tt> (case sensitive) then <tt class="docutils literal"><span class="pre">vtor.check</span></tt> will
+<em>always</em> return <tt class="docutils literal"><span class="pre">None</span></tt> (the object). This makes it easy to tell your program
+that this check contains no useful value when missing, i.e. the value is
+optional, and may be omitted without harm.</p>
+</div>
+<div class="section">
+<h3><a class="toc-backref" href="#id14" id="list-values" name="list-values">List Values</a></h3>
+<p>It's possible that you would like your default value to be a list. It's even
+possible that you will write your own check functions - and would like to pass
+them keyword arguments as lists from within the check.</p>
+<p>To avoid confusing syntax with commas and quotes you use a list constructor to
+specify that keyword arguments are lists. This includes the <tt class="docutils literal"><span class="pre">default</span></tt> value.
+This makes checks look something like :</p>
+<pre class="literal-block">
+checkname(default=list('val1', 'val2', 'val3'))
+</pre>
+</div>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id15" id="validator-exceptions" name="validator-exceptions">Validator Exceptions</a></h1>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you only use Validator through ConfigObj, it traps these Exceptions for
+you. You will still need to know about them for writing your own check
+functions.</p>
+</div>
+<p><tt class="docutils literal"><span class="pre">vtor.check</span></tt> indicates that the check has failed by raising an exception.
+The appropriate error should be raised in the check function.</p>
+<p>The base error class is <tt class="docutils literal"><span class="pre">ValidateError</span></tt>. All errors (except for <tt class="docutils literal"><span class="pre">VdtParamError</span></tt>)
+raised are sub-classes of this.</p>
+<p>If an unrecognised check is specified then <tt class="docutils literal"><span class="pre">VdtUnknownCheckError</span></tt> is
+raised.</p>
+<p>There are also <tt class="docutils literal"><span class="pre">VdtTypeError</span></tt> and <tt class="docutils literal"><span class="pre">VdtValueError</span></tt>.</p>
+<p>If incorrect parameters are passed to a check function then it will (or should)
+raise <tt class="docutils literal"><span class="pre">VdtParamError</span></tt>. As this indicates <em>programmer</em> error, rather than an error
+in the value, it is a subclass of <tt class="docutils literal"><span class="pre">SyntaxError</span></tt> instead of <tt class="docutils literal"><span class="pre">ValidateError</span></tt>.</p>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">This means it <em>won't</em> be caught by ConfigObj - but propagated instead.</p>
+</div>
+<p>If the value supplied is the wrong type, then the check should raise
+<tt class="docutils literal"><span class="pre">VdtTypeError</span></tt>. e.g. the check requires the value to be an integer (or
+representation of an integer) and something else was supplied.</p>
+<p>If the value supplied is the right type, but an unacceptable value, then the
+check should raise <tt class="docutils literal"><span class="pre">VdtValueError</span></tt>. e.g. the check requires the value to
+be an integer (or representation of an integer) less than ten and a higher
+value was supplied.</p>
+<p>Both <tt class="docutils literal"><span class="pre">VdtTypeError</span></tt> and <tt class="docutils literal"><span class="pre">VdtValueError</span></tt> are initialised with the
+incorrect value. In other words you raise them like this :</p>
+<div class="pysrc"><span class="pykeyword">raise</span> <span class="pytext">VdtTypeError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+<span class="pycomment">#<br />
+</span><span class="pykeyword">raise</span> <span class="pytext">VdtValueError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><span class="pytext"></span></div><p><tt class="docutils literal"><span class="pre">VdtValueError</span></tt> has the following subclasses, which should be raised if
+they are more appropriate.</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">VdtValueTooSmallError</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">VdtValueTooBigError</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">VdtValueTooShortError</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">VdtValueTooLongError</span></tt></li>
+</ul>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id16" id="writing-check-functions" name="writing-check-functions">Writing check functions</a></h1>
+<p>Writing check functions is easy.</p>
+<p>The check function will receive the value as its first argument, followed by
+any other parameters and keyword arguments.</p>
+<p>If the check fails, it should raise a <tt class="docutils literal"><span class="pre">VdtTypeError</span></tt> or a
+<tt class="docutils literal"><span class="pre">VdtValueError</span></tt> (or an appropriate subclass).</p>
+<p>All parameters and keyword arguments are <em>always</em> passed as strings. (Parsed
+from the check string).</p>
+<p>The value might be a string (or list of strings) and need
+converting to the right type - alternatively it might already be a list of
+integers. Our function needs to be able to handle either.</p>
+<p>If the check passes then it should return the value (possibly converted to the
+right type).</p>
+<p>And that's it !</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id17" id="example" name="example">Example</a></h2>
+<p>Here is an example function that requires a list of integers. Each integer
+must be between 0 and 99.</p>
+<p>It takes a single argument specifying the length of the list. (Which allows us
+to use the same check in more than one place). If the length can't be converted
+to an integer then we need to raise <tt class="docutils literal"><span class="pre">VdtParamError</span></tt>.</p>
+<p>Next we check that the value is a list. Anything else should raise a
+<tt class="docutils literal"><span class="pre">VdtTypeError</span></tt>. The list should also have 'length' entries. If the list
+has more or less entries then we will need to raise a
+<tt class="docutils literal"><span class="pre">VdtValueTooShortError</span></tt> or a <tt class="docutils literal"><span class="pre">VdtValueTooLongError</span></tt>.</p>
+<p>Then we need to check every entry in the list. Each entry should be an integer
+between 0 and 99, or a string representation of an integer between 0 and 99.
+Any other type is a <tt class="docutils literal"><span class="pre">VdtTypeError</span></tt>, any other value is a
+<tt class="docutils literal"><span class="pre">VdtValueError</span></tt> (either too big, or too small).</p>
+<div class="pysrc"><span class="pykeyword">def</span> <span class="pytext">special_list</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">,</span> <span class="pytext">length</span><span class="pyoperator">)</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pystring">"""<br />
+&nbsp;&nbsp;&nbsp;&nbsp;Check that the supplied value is a list of integers,<br />
+&nbsp;&nbsp;&nbsp;&nbsp;with 'length' entries, and each entry between 0 and 99.<br />
+&nbsp;&nbsp;&nbsp;&nbsp;"""</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># length is supplied as a string<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># we need to convert it to an integer<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">try</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">length</span> <span class="pyoperator">=</span> <span class="pytext">int</span><span class="pyoperator">(</span><span class="pytext">length</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">except</span> <span class="pytext">ValueError</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtParamError</span><span class="pyoperator">(</span><span class="pystring">'length'</span><span class="pyoperator">,</span> <span class="pytext">length</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment">#<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># Check the supplied value is a list<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">if</span> <span class="pykeyword">not</span> <span class="pytext">isinstance</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">,</span> <span class="pytext">list</span><span class="pyoperator">)</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtTypeError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment">#<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># check the length of the list is correct<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">if</span> <span class="pytext">len</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span> <span class="pyoperator">&gt;</span> <span class="pytext">length</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtValueTooLongError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">elif</span> <span class="pytext">len</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span> <span class="pyoperator">&lt;</span> <span class="pytext">length</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtValueTooShortError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment">#<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># Next, check every member in the list<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># converting strings as necessary<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">out</span> <span class="pyoperator">=</span> <span class="pyoperator">[</span><span class="pyoperator">]</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">for</span> <span class="pytext">entry</span> <span class="pykeyword">in</span> <span class="pytext">value</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">if</span> <span class="pykeyword">not</span> <span class="pytext">isinstance</span><span class="pyoperator">(</span><span class="pytext">entry</span><span class="pyoperator">,</span> <span class="pyoperator">(</span><span class="pytext">str</span><span class="pyoperator">,</span> <span class="pytext">unicode</span><span class="pyoperator">,</span> <span class="pytext">int</span><span class="pyoperator">)</span><span class="pyoperator">)</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># a value in the list<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># is neither an integer nor a string<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtTypeError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">elif</span> <span class="pytext">isinstance</span><span class="pyoperator">(</span><span class="pytext">entry</span><span class="pyoperator">,</span> <span class="pyoperator">(</span><span class="pytext">str</span><span class="pyoperator">,</span> <span class="pytext">unicode</span><span class="pyoperator">)</span><span class="pyoperator">)</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">if</span> <span class="pykeyword">not</span> <span class="pytext">entry</span><span class="pyoperator">.</span><span class="pytext">isdigit</span><span class="pyoperator">(</span><span class="pyoperator">)</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtTypeError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">else</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">entry</span> <span class="pyoperator">=</span> <span class="pytext">int</span><span class="pyoperator">(</span><span class="pytext">entry</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">if</span> <span class="pytext">entry</span> <span class="pyoperator">&lt;</span> <span class="pynumber">0</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtValueTooSmallError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">elif</span> <span class="pytext">entry</span> <span class="pyoperator">&gt;</span> <span class="pynumber">99</span><span class="pyoperator">:</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">raise</span> <span class="pytext">VdtValueTooBigError</span><span class="pyoperator">(</span><span class="pytext">value</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="pytext">out</span><span class="pyoperator">.</span><span class="pytext">append</span><span class="pyoperator">(</span><span class="pytext">entry</span><span class="pyoperator">)</span><br />
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment">#<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># if we got this far, all is well<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pycomment"># return the new list<br />
+</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="pykeyword">return</span> <span class="pytext">out</span><span class="pytext"></span></div><p>If you are only using validate from ConfigObj then the error type (<em>TooBig</em>,
+<em>TooSmall</em>, etc) is lost - so you may only want to raise <tt class="docutils literal"><span class="pre">VdtValueError</span></tt>.</p>
+<div class="caution">
+<p class="first admonition-title">Caution!</p>
+<p>If your function raises an exception that isn't a subclass of
+<tt class="docutils literal"><span class="pre">ValidateError</span></tt>, then ConfigObj won't trap it. This means validation will
+fail.</p>
+<p class="last">This is why our function starts by checking the type of the value. If we
+are passed the wrong type (e.g. an integer rather than a list) we get a
+<tt class="docutils literal"><span class="pre">VdtTypeError</span></tt> rather than bombing out when we try to iterate over
+the value.</p>
+</div>
+<p>If you are using validate in another circumstance you may want to create your
+own subclasses of <tt class="docutils literal"><span class="pre">ValidateError</span></tt>, that convey more specific information.</p>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id18" id="todo" name="todo">TODO</a></h1>
+<ul class="simple">
+<li>A regex check function ?</li>
+<li>A timestamp check function ? (Using the <tt class="docutils literal"><span class="pre">parse</span></tt> function from <tt class="docutils literal"><span class="pre">DateUtil</span></tt>).</li>
+<li>Allow triple quotes ? (getting a bit heavy for a regex)</li>
+</ul>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id19" id="issues" name="issues">ISSUES</a></h1>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please file any bug reports to <a class="reference" href="mailto:fuzzyman&#37;&#52;&#48;voidspace&#46;org&#46;uk">Michael Foord</a> or the ConfigObj
+<a class="reference" href="http://lists.sourceforge.net/lists/listinfo/configobj-develop">Mailing List</a>.</p>
+</div>
+<p>If we could pull tuples out of arguments, it would be easier
+to specify arguments for 'mixed_lists'.</p>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id20" id="changelog" name="changelog">CHANGELOG</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id21" id="version-0-2-2" name="version-0-2-2">2006/04/29      Version 0.2.2</a></h2>
+<p>Addressed bug where a string would pass the <tt class="docutils literal"><span class="pre">is_list</span></tt> test. (Thanks to
+Konrad Wojas.)</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id22" id="version-0-2-1" name="version-0-2-1">2005/12/16      Version 0.2.1</a></h2>
+<p>Fixed bug so we can handle keyword argument values with commas.</p>
+<p>We now use a list constructor for passing list values to keyword arguments
+(including <tt class="docutils literal"><span class="pre">default</span></tt>) :</p>
+<pre class="literal-block">
+default=list(&quot;val&quot;, &quot;val&quot;, &quot;val&quot;)
+</pre>
+<p>Added the <tt class="docutils literal"><span class="pre">_test</span></tt> test.  <img src="smilies/smile.gif" alt="Smile" height="15" width="15" /> </p>
+<p>Moved a function call outside a try...except block.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id23" id="version-0-2-0" name="version-0-2-0">2005/08/18      Version 0.2.0</a></h2>
+<p>Updated by <a class="reference" href="mailto:fuzzyman&#37;&#52;&#48;voidspace&#46;org&#46;uk">Michael Foord</a> and <a class="reference" href="mailto:nico&#37;&#52;&#48;teknico&#46;net">Nicola Larosa</a></p>
+<p>Does type conversion as well.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id24" id="version-0-1-0" name="version-0-1-0">2005/02/01      Version 0.1.0</a></h2>
+<p>Initial version developed by <a class="reference" href="mailto:fuzzyman&#37;&#52;&#48;voidspace&#46;org&#46;uk">Michael Foord</a>
+and <a class="reference" href="mailto:mark&#37;&#52;&#48;la-la&#46;com">Mark Andrews</a></p>
+<div class="note">
+<p class="first admonition-title">Note</p>
+<p class="last">Rendering this document with docutils also needs the
+textmacros module and the PySrc CSS stuff. See
+<a class="reference" href="http://www.voidspace.org.uk/python/firedrop2/textmacros.shtml">http://www.voidspace.org.uk/python/firedrop2/textmacros.shtml</a></p>
+</div>
+<div align="center">
+    <p>
+        <a href="http://www.python.org">
+            <img src="images/new_python.gif" width="100" height="103" border="0"
+                alt="Powered by Python" />
+        </a>
+        <a href="http://sourceforge.net">
+            <img src="http://sourceforge.net/sflogo.php?group_id=123265&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" />
+        </a>
+        <a href="http://www.opensource.org">
+            <img src="images/osi-certified-120x100.gif" width="120" height="100" border="0"
+                alt="Certified Open Source"/>
+        </a>
+    </p>
+    <p>
+        <a href="http://www.voidspace.org.uk/python/index.shtml">
+            <img src="images/pythonbanner.gif" width="468" height="60"
+            alt="Python on Voidspace" border="0" />
+        </a>
+    </p>
+    <p>
+        <a href="http://sourceforge.net/donate/index.php?group_id=123265">
+            <img src="http://images.sourceforge.net/images/project-support.jpg" width="88" height="32" border="0" alt="Support This Project" />
+        </a>
+    </p>
+    <p>
+        <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+        </script>
+        <script type="text/javascript">
+        _uacct = "UA-203625-1";
+        urchinTracker();
+        </script>
+    </p>
+</div></div>
+</div>
+</div>
+<div class="footer">
+<hr class="footer" />
+<a class="reference" href="validate.txt">View document source</a>.
+Generated on: 2006-04-29 10:24 UTC.
+Generated by <a class="reference" href="http://docutils.sourceforge.net/">Docutils</a> from <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> source.
+
+</div>
+</body>
+</html>

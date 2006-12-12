@@ -1,0 +1,729 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pythonutils.configobj</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navselect"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar"
+        href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar"
+        href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar"
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center">
+            <p class="nomargin">
+              <a class="navbar" target="_top" href="http://www.voidspace.org.uk/python/configobj.html">ConfigObj</a>
+      </p></th></tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Package&nbsp;pythonutils ::
+        Module&nbsp;configobj
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript: void(0);" class="privatelink"
+    onclick="toggle_private();">hide private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pythonutils.configobj-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h2 class="module">Module configobj
+<br/><span class="codelink"><a href="pythonutils.configobj-pysrc.html">source&nbsp;code</a></span></h2>
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <td colspan="2">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <th align="left" class="summary">Classes</th>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Classes"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.UnknownType-class.html">UnknownType</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.Builder-class.html">Builder</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.ConfigObjError-class.html">ConfigObjError</a></strong></td>
+  <td>This is the base class for all errors that ConfigObj raises.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.NestingError-class.html">NestingError</a></strong></td>
+  <td>This error indicates a level of nesting that doesn't match.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.ParseError-class.html">ParseError</a></strong></td>
+  <td>This error indicates that a line is badly written.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.DuplicateError-class.html">DuplicateError</a></strong></td>
+  <td>The keyword or section specified already exists.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.ConfigspecError-class.html">ConfigspecError</a></strong></td>
+  <td>An error occured whilst parsing a configspec.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.InterpolationError-class.html">InterpolationError</a></strong></td>
+  <td>Base class for the two interpolation errors.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.InterpolationDepthError-class.html">InterpolationDepthError</a></strong></td>
+  <td>Maximum interpolation depth exceeded in string interpolation.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.RepeatSectionError-class.html">RepeatSectionError</a></strong></td>
+  <td>This error indicates additional sections in a section with a
+<tt class="docutils literal docutils literal"><span class="pre">__many__</span></tt> (repeated) section.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.MissingInterpolationOption-class.html">MissingInterpolationOption</a></strong></td>
+  <td>A value specified for interpolation was missing.</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.Section-class.html">Section</a></strong></td>
+  <td>A dictionary-like object that represents a section in a config file.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.ConfigObj-class.html">ConfigObj</a></strong></td>
+  <td>An object to read, create, and write config files.</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj.SimpleVal-class.html">SimpleVal</a></strong></td>
+  <td>A simple validator.</td>
+</tr>
+</table>
+
+<br />
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <td colspan="2">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <th align="left" class="summary">Functions</th>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+  <td width="15%" align="right" valign="top" class="rtype">
+    &nbsp;
+   </td>
+  <td>
+    <span class="sig"><a href="pythonutils.configobj-module.html#enumerate" class="sig-name">enumerate</a>(<span class="sig-arg">obj</span>)</span>
+    <br />enumerate for Python 2.2.
+  </td>
+</tr>
+<tr class="private">
+  <td width="15%" align="right" valign="top" class="rtype">
+    &nbsp;
+   </td>
+  <td>
+    <span class="sig"><a href="pythonutils.configobj-module.html#getObj" class="sig-name">getObj</a>(<span class="sig-arg">s</span>)</span>
+    
+  </td>
+</tr>
+<tr class="private">
+  <td width="15%" align="right" valign="top" class="rtype">
+    &nbsp;
+   </td>
+  <td>
+    <span class="sig"><a href="pythonutils.configobj-module.html#unrepr" class="sig-name">unrepr</a>(<span class="sig-arg">s</span>)</span>
+    
+  </td>
+</tr>
+<tr>
+  <td width="15%" align="right" valign="top" class="rtype">
+    &nbsp;
+   </td>
+  <td>
+    <span class="sig"><a href="pythonutils.configobj-module.html#flatten_errors" class="sig-name">flatten_errors</a>(<span class="sig-arg">cfg</span>,
+        <span class="sig-arg">res</span>,
+        <span class="sig-arg">levels</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">results</span>=<span class="sig-default">None</span>)</span>
+    <br />An example function that will turn a nested dictionary of results
+(as returned by <tt class="docutils literal"><span class="pre">ConfigObj.validate</span></tt>) into a flat list.
+  </td>
+</tr>
+</table>
+
+<br />
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="summary">
+  <td colspan="2">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <th align="left" class="summary">Variables</th>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#INTP_VER">INTP_VER</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#BOMS">BOMS</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#BOM_LIST">BOM_LIST</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#BOM_SET">BOM_SET</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#VdtMissingValue">VdtMissingValue</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#__version__">__version__</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#__revision__">__revision__</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#DEFAULT_INDENT_TYPE">DEFAULT_INDENT_TYPE</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#NUM_INDENT_SPACES">NUM_INDENT_SPACES</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#MAX_INTERPOL_DEPTH">MAX_INTERPOL_DEPTH</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#OPTION_DEFAULTS">OPTION_DEFAULTS</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+<tr class="private">
+  <td width="15%">
+    <strong><a href="pythonutils.configobj-module.html#generators">generators</a></strong></td>
+  <td>&nbsp;</td>
+</tr>
+</table>
+
+<br />
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <td colspan="2">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <th align="left" class="details">Function Details</th>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="enumerate"></a>
+<div class="private">
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3><span class="sig"><span class="sig-name">enumerate</span>(<span class="sig-arg">obj</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pythonutils.configobj-pysrc.html#enumerate">source&nbsp;code</a></span>&nbsp;</span
+    ></td>
+  </table>
+  
+  enumerate for Python 2.2.
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="getObj"></a>
+<div class="private">
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3><span class="sig"><span class="sig-name">getObj</span>(<span class="sig-arg">s</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pythonutils.configobj-pysrc.html#getObj">source&nbsp;code</a></span>&nbsp;</span
+    ></td>
+  </table>
+  
+  
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="unrepr"></a>
+<div class="private">
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3><span class="sig"><span class="sig-name">unrepr</span>(<span class="sig-arg">s</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pythonutils.configobj-pysrc.html#unrepr">source&nbsp;code</a></span>&nbsp;</span
+    ></td>
+  </table>
+  
+  
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="flatten_errors"></a>
+<div>
+<table width="100%" class="func-details" bgcolor="#e0e0e0"><tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3><span class="sig"><span class="sig-name">flatten_errors</span>(<span class="sig-arg">cfg</span>,
+        <span class="sig-arg">res</span>,
+        <span class="sig-arg">levels</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">results</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pythonutils.configobj-pysrc.html#flatten_errors">source&nbsp;code</a></span>&nbsp;</span
+    ></td>
+  </table>
+  
+  <p>An example function that will turn a nested dictionary of results
+(as returned by <tt class="docutils literal docutils literal"><span class="pre">ConfigObj.validate</span></tt>) into a flat list.</p>
+<p><tt class="docutils literal"><span class="pre">cfg</span></tt> is the ConfigObj instance being checked, <tt class="docutils literal"><span class="pre">res</span></tt> is the results
+dictionary returned by <tt class="docutils literal"><span class="pre">validate</span></tt>.</p>
+<p>(This is a recursive function, so you shouldn't use the <tt class="docutils literal"><span class="pre">levels</span></tt> or
+<tt class="docutils literal"><span class="pre">results</span></tt> arguments - they are used by the function.</p>
+<p>Returns a list of keys that failed. Each member of the list is a tuple :</p>
+<pre class="literal-block">
+([list of sections...], key, result)
+</pre>
+<p>If <tt class="docutils literal"><span class="pre">validate</span></tt> was called with <tt class="docutils literal"><span class="pre">preserve_errors=False</span></tt> (the default)
+then <tt class="docutils literal"><span class="pre">result</span></tt> will always be <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
+<p><em>list of sections</em> is a flattened list of sections that the key was found
+in.</p>
+<p>If the section was missing then key will be <tt class="docutils literal"><span class="pre">None</span></tt>.</p>
+<p>If the value (or section) was missing then <tt class="docutils literal"><span class="pre">result</span></tt> will be <tt class="docutils literal"><span class="pre">False</span></tt>.</p>
+<p>If <tt class="docutils literal"><span class="pre">validate</span></tt> was called with <tt class="docutils literal"><span class="pre">preserve_errors=True</span></tt> and a value
+was present, but failed the check, then <tt class="docutils literal"><span class="pre">result</span></tt> will be the exception
+object returned. You can use this as a string that describes the failure.</p>
+<p>For example <em>The value &quot;3&quot; is of the wrong type</em>.</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; import validate
+&gt;&gt;&gt; vtor = validate.Validator()
+&gt;&gt;&gt; my_ini = '''
+...     option1 = True
+...     [section1]
+...     option1 = True
+...     [section2]
+...     another_option = Probably
+...     [section3]
+...     another_option = True
+...     [[section3b]]
+...     value = 3
+...     value2 = a
+...     value3 = 11
+...     '''
+&gt;&gt;&gt; my_cfg = '''
+...     option1 = boolean()
+...     option2 = boolean()
+...     option3 = boolean(default=Bad_value)
+...     [section1]
+...     option1 = boolean()
+...     option2 = boolean()
+...     option3 = boolean(default=Bad_value)
+...     [section2]
+...     another_option = boolean()
+...     [section3]
+...     another_option = boolean()
+...     [[section3b]]
+...     value = integer
+...     value2 = integer
+...     value3 = integer(0, 10)
+...         [[[section3b-sub]]]
+...         value = string
+...     [section4]
+...     another_option = boolean()
+...     '''
+&gt;&gt;&gt; cs = my_cfg.split('\n')
+&gt;&gt;&gt; ini = my_ini.split('\n')
+&gt;&gt;&gt; cfg = ConfigObj(ini, configspec=cs)
+&gt;&gt;&gt; res = cfg.validate(vtor, preserve_errors=True)
+&gt;&gt;&gt; errors = []
+&gt;&gt;&gt; for entry in flatten_errors(cfg, res):
+...     section_list, key, error = entry
+...     section_list.insert(0, '[root]')
+...     if key is not None:
+...        section_list.append(key)
+...     else:
+...         section_list.append('[missing]')
+...     section_string = ', '.join(section_list)
+...     errors.append((section_string, ' = ', error))
+&gt;&gt;&gt; errors.sort()
+&gt;&gt;&gt; for entry in errors:
+...     print entry[0], entry[1], (entry[2] or 0)
+[root], option2  =  0
+[root], option3  =  the value &quot;Bad_value&quot; is of the wrong type.
+[root], section1, option2  =  0
+[root], section1, option3  =  the value &quot;Bad_value&quot; is of the wrong type.
+[root], section2, another_option  =  the value &quot;Probably&quot; is of the wrong type.
+[root], section3, section3b, section3b-sub, [missing]  =  0
+[root], section3, section3b, value2  =  the value &quot;a&quot; is of the wrong type.
+[root], section3, section3b, value3  =  the value &quot;11&quot; is too big.
+[root], section4, [missing]  =  0
+</pre>
+  <dl><dt></dt><dd>
+  </dd></dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="details">
+  <td colspan="2">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <th align="left" class="details">Variables Details</th>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="INTP_VER"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>INTP_VER</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="sys.version_info [:2]"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+(2, 4)                                                                 
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="BOMS"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>BOMS</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="{'\xff\xfe': ('utf_16', 'utf_16'), '\xef\xbb\xbf': ('utf_8', None), '\xfe\xff': ('utf16_be', 'utf_16')}"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'\xef\xbb\xbf': ('utf_8', None),
+ '\xfe\xff': ('utf16_be', 'utf_16'),
+ '\xff\xfe': ('utf_16', 'utf_16')}                                     
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="BOM_LIST"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>BOM_LIST</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="{'utf_8': 'utf_8', 'utf': 'utf_8', 'u8': 'utf_8', 'utf8': 'utf_8', 'utf16_le': 'utf16_le', 'u16': 'utf_16', 'utf-16be': 'utf16_be', 'utf_16_be': 'utf16_be', 'utf_16_le': 'utf16_le', 'utf-8': 'utf_8', 'utf-16': 'utf_16', 'utf-16le': 'utf16_le', 'utf_16': 'utf_16', 'utf16_be': 'utf16_be', 'utf16': 'utf_16'}"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'u16': 'utf_16',
+ 'u8': 'utf_8',
+ 'utf': 'utf_8',
+ 'utf-16': 'utf_16',
+ 'utf-16be': 'utf16_be',
+ 'utf-16le': 'utf16_le',
+ 'utf-8': 'utf_8',
+ 'utf16': 'utf_16',
+<span class="variable-ellipsis">...</span>                                                                    
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="BOM_SET"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>BOM_SET</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="{'utf16_le': '\xff\xfe', None: '\xef\xbb\xbf', 'utf_8': '\xef\xbb\xbf', 'utf_16': '\xff\xfe', 'utf16_be': '\xfe\xff'}"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{None: '\xef\xbb\xbf',
+ 'utf16_be': '\xfe\xff',
+ 'utf16_le': '\xff\xfe',
+ 'utf_16': '\xff\xfe',
+ 'utf_8': '\xef\xbb\xbf'}                                              
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="VdtMissingValue"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>VdtMissingValue</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="&lt;class pythonutils.validate.VdtMissingValue at 0x01F21E40&gt;"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+&lt;class pythonutils.validate.VdtMissingValue at 0x01F21E40&gt;             
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="__version__"></a>
+<div>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>__version__</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="'4.3.1'"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<span class="variable-quote">'</span>4.3.1<span class="variable-quote">'</span>                                                                
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="__revision__"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>__revision__</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="'$Id: configobj.py 156 2006-01-31 14:57:08Z fuzzyman $'"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<span class="variable-quote">'</span>$Id: configobj.py 156 2006-01-31 14:57:08Z fuzzyman $<span class="variable-quote">'</span>                
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="DEFAULT_INDENT_TYPE"></a>
+<div>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>DEFAULT_INDENT_TYPE</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="' '"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<span class="variable-quote">'</span> <span class="variable-quote">'</span>                                                                    
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="NUM_INDENT_SPACES"></a>
+<div>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>NUM_INDENT_SPACES</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="4"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="MAX_INTERPOL_DEPTH"></a>
+<div>
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>MAX_INTERPOL_DEPTH</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="10"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+10&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="OPTION_DEFAULTS"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>OPTION_DEFAULTS</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="{'list_values': True, 'stringify': True, 'write_empty_values': False, 'file_error': False, 'create_empty': False, 'default_encoding': None, 'encoding': None, 'unrepr': False, 'raise_errors': False, 'configspec': None, 'indent_type': None, 'interpolation': True}"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'configspec': None,
+ 'create_empty': False,
+ 'default_encoding': None,
+ 'encoding': None,
+ 'file_error': False,
+ 'indent_type': None,
+ 'interpolation': True,
+ 'list_values': True,
+<span class="variable-ellipsis">...</span>                                                                    
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<a name="generators"></a>
+<div class="private">
+<table width="100%" class="var-details" bgcolor="#e0e0e0"><tr><td>
+  <h3>generators</h3>
+  
+  <dl><dt></dt><dd>
+    <dl title="_Feature((2, 2, 0, 'alpha', 1), (2, 3, 0, 'final', 0), 4096)"><dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+_Feature((2, 2, 0, 'alpha', 1), (2, 3, 0, 'final', 0), 4096)           
+      </pre></td></tr></table></dd>
+    </dl>
+  </dd></dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th bgcolor="#70b0f0" class="navselect"
+          >&nbsp;&nbsp;&nbsp;Home&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar"
+        href="trees.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar"
+        href="indices.html">Index</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th class="navbar">&nbsp;&nbsp;&nbsp;<a class="navbar"
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center">
+            <p class="nomargin">
+              <a class="navbar" target="_top" href="http://www.voidspace.org.uk/python/configobj.html">ConfigObj</a>
+      </p></th></tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">Generated by Epydoc
+        3.0alpha2 on Sat Apr 29 11:33:52 2006</td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sf.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>
