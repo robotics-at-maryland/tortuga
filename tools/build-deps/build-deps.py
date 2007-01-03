@@ -4,7 +4,7 @@ import os
 import sys
 import logging
 import subprocess
-from cfgparse.compat import ConfigParser
+from configobj import ConfigObj
 from optparse import OptionParser
 
 
@@ -23,10 +23,9 @@ def setup_logging():
     
 
 def get_svn_root():
-     # Move up to directories to the root, and then down the default
-     # location
-    repo_root = os.path.split(sys.path[0])[0]
-    repo_root = os.path.split(repo_root)[0]
+    """Work from the the scripts start location to the root"""
+    script_dir = os.path.split(sys.path[0])[0]   # <root>/scripts
+    repo_root = os.path.split(script_dir)[0]     # <root>
     return repo_root
 
 def get_config_path(start_path):
@@ -50,11 +49,12 @@ def run_location(location, config, mode='file'):
     @type  location: tuple
     @param location: Location name + path pair
     
-    @type  config: ConfigParser object
+    @type  config: ConfigObj instance
     @param config: An already loaded config parser
     """
     current_dir = os.getcwd()
-    location_path = os.path.join(get_svn_root(), location[1])
+    build_cfg_dir = os.path.split(config.filename)[0]
+    location_path = os.path.join(build_cfg_dir, location[1])
     deps_dir = os.path.join(get_svn_root(), 'deps')
     
     # Check to make sure the file isn't already built
@@ -73,11 +73,11 @@ def run_location(location, config, mode='file'):
     os.chdir(location_path)
     
     # Set current location so it can be expanded in the config file
-    config.set(location[0], 'deps', deps_dir)
+    config[location[0]]['DEFAULT'] = {'deps' : deps_dir}
     
-    for command in config.items(location[0]):
+    for command in config[location[0]].iteritems():
         # Run everything but the 'hidden' deps command
-        if command[0] is not 'deps':
+        if command[0] is not 'DEFAULT':
             logging.info('Running \'%s %s\'' % command)
             ret = subprocess.call('%s %s' % command, stdout=runlog, 
                                   stderr=runlog, shell=True) 
@@ -97,48 +97,45 @@ def run_location(location, config, mode='file'):
     dep_file = open(dep_file_path,'w')
     dep_file.close()
     
-
-def run_config(configfile, location = None):
-    """
-    Loads the config file and call run_location
-    """    
-    # Parse config file
-    config = ConfigParser()
-    config.optionxform = lambda x: x
-    config.read(configfile)
-    if not config.has_section('locations'):
-        print 'ERROR: Configuration file: %s does not have a \'locations\'' \
-              ' section' % config_path
-        sys.exit(1)
-        
-    # Run sections
-    if location:
-        loc_path = config.get('locations', location)
-        run_location((location,loc_path), config)
-    else:
-        for loc in config.items('locations'):
-            run_location(loc, config)
-        
-def main():
+def main(argv = None):
+    if argv is None:
+        argv = sys.argv
     setup_logging()
     
     # Parse are command line
     parser = OptionParser(description= \
       'This runs a config file that is basically a mapping of locations to'\
       'commands.  Each command name for each location must be unique, see'\
-      'test config in the tools/build-deps for an example')
+      'test config in the tools/build-deps for an example.  Anything on the'\
+      'command line a flag is considered a location to run.')
     parser.add_option("-c", "--config", dest="configfile",
-                  help="The location of config", 
-                  default='<mrbc-root>/deps/build.cfg')
-    parser.add_option("-l", "--location", dest="location",
-                  help="If given, run just this location from the configfile")
+                      help="The location of config", 
+                      default='<mrbc-root>/deps/build.cfg')
+    #parser.add_option("-l", "--location", dest="location",
+    #              help="If given, run just this location from the configfile")
     
-    (options, args) = parser.parse_args()
+    # TODO: Change the location thing to the positional options instead of
+    #       a flag
+    (options, args) = parser.parse_args(argv)
     
     config_path = get_config_path(options.configfile)
-    run_config(config_path, options.location)
-
     
+    # Parse config file
+    config = ConfigObj(config_path)
+    if not config.has_key('locations'):
+        print 'ERROR: Configuration file: %s does not have a \'locations\'' \
+              ' section' % config_path
+        sys.exit(1)
+    
+    print options.configfile
+    # Run sections given on the command line, or all in the config file
+    if (len(args) != 0) and ('<mrbc-root>/deps/build.cfg' == options.configfile):
+        for location in args:
+            loc_path = config['locations'][location]
+            run_location((location,loc_path), config)
+    else:
+        for loc in config['locations'].iteritems():
+            run_location(loc, config)
 
 if __name__ == '__main__':
     try:
