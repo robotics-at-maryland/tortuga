@@ -73,11 +73,16 @@ def run_location(location, config, mode='file'):
     os.chdir(location_path)
     
     # Set current location so it can be expanded in the config file
-    config[location[0]]['DEFAULT'] = {'deps' : deps_dir}
-    
+    proc_lines = file('/proc/cpuinfo').readlines()
+    cpus = len([line for line in proc_lines if line.startswith('processor')])
+    variables = {'deps' : deps_dir, 'cpus': str(cpus), 'j' : str(cpus + 1)}
+    config[location[0]]['DEFAULT'] = variables
+
     for command in config[location[0]].iteritems():
         # Run everything but the 'hidden' deps command
         if command[0] is not 'DEFAULT':
+            # We must do this so we can interpolate properly
+            #command = (command[0], config[location[0]][command[0]])
             logging.info('Running \'%s %s\'' % command)
             ret = subprocess.call('%s %s' % command, stdout=runlog, 
                                   stderr=runlog, shell=True) 
