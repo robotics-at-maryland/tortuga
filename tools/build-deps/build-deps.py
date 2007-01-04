@@ -44,6 +44,27 @@ def get_config_path(start_path):
         
     return config_path
 
+def translate_command(_command):
+    """
+    If the command is one like 'cd' that won't work directly we need to 
+    translate it the proper python call.  This just currently work for 'cd'
+    """
+    command = ''
+    if type(_command) is tuple:
+        for item in _command:
+            print 'Adding "%s"' % item
+            command = command + str(item)
+    else:
+        command = _command
+    
+    if command.startswith('cd'):
+        target_dir = os.path.abspath(command[2:len(command)].strip())
+        logging.info('Translating "%s" to an os.chdir("%s") call' % (command,target_dir))
+        os.chdir(target_dir)
+        return True
+    else:
+        return False
+
 def run_location(location, config, mode='file'):
     """
     @type  location: tuple
@@ -63,8 +84,9 @@ def run_location(location, config, mode='file'):
         logging.info('%s already built' % location[0])
         return
     
+    print 'Build Dir',build_cfg_dir
     if mode is 'file':
-        runlog = open(os.path.join(deps_dir, '%s.log' % location[0]), 'w')
+        runlog = open(os.path.join(build_cfg_dir, '%s.log' % location[0]), 'w')
     else:
         runlog = None
     
@@ -83,9 +105,11 @@ def run_location(location, config, mode='file'):
         if command[0] is not 'DEFAULT':
             # We must do this so we can interpolate properly
             #command = (command[0], config[location[0]][command[0]])
-            logging.info('Running \'%s %s\'' % command)
-            ret = subprocess.call('%s %s' % command, stdout=runlog, 
-                                  stderr=runlog, shell=True) 
+            if not translate_command(command):
+                logging.info('Running \'%s %s\'' % command)
+                ret = subprocess.call('%s %s' % command, stdout=runlog, 
+                                      stderr=runlog, shell=True) 
+            
             if ret is not 0:
                 logging.error('executing %s %s. Exiting.' % command)
                 sys.exit(1)
@@ -132,12 +156,11 @@ def main(argv = None):
               ' section' % config_path
         sys.exit(1)
     
-    print options.configfile
     # Run sections given on the command line, or all in the config file
-    if (len(args) != 0) and ('<mrbc-root>/deps/build.cfg' == options.configfile):
-        for location in args:
-            loc_path = config['locations'][location]
-            run_location((location,loc_path), config)
+    if len(args) > 1:
+        for location in args[1:len(args)]:
+                loc_path = config['locations'][location]
+                run_location((location,loc_path), config)
     else:
         for loc in config['locations'].iteritems():
             run_location(loc, config)

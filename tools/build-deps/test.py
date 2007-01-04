@@ -42,6 +42,14 @@ class TestBuild_Deps(unittest.TestCase):
         self.assertEquals(['A'], os.listdir(self.test_dir))
         self.assertEquals(self.base_dir, os.getcwd())
         
+    def test_translate_command(self):
+        cur_dir = os.path.abspath(os.getcwd())
+        self.assertFalse(build_deps.translate_command('make my-target'))
+        
+        self.assertTrue(build_deps.translate_command('cd /tmp'))
+        self.assertEquals('/tmp', os.getcwd())
+        os.chdir(cur_dir)
+        
     #def test_run_config_location(self):
     #    build_deps.run_config(os.path.join(self.base_dir, 'test.cfg'), 'test')
     #    self.assertEquals(['A'], os.listdir(self.test_dir))
