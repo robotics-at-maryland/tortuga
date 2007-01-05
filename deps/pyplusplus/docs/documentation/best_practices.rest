@@ -1,0 +1,134 @@
+==============
+Best practices
+==============
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Py++`_ has reach interface and a lot of functionality. Sometimes reach
+interface helps, but sometimes it can confuse. This document will describe how
+effectively to use `Py++`_.
+
+------------
+Big projects
+------------
+
+Definition
+----------
+
+First of all, let me to define "big project". "Big project" is a project with
+few hundred of header files. `Py++`_ was born to create `Python`_ bindings
+for such projects. If you take a look `here`__ you will find few such projects.
+
+.. __ : ./../../pyplusplus/quotes.html
+
+Tips
+----
+
+* Create one header file, which will include all project header files.
+
+  Doing it this way makes it so `GCC-XML`_ is only called once and it reduces the
+  overhead that would occur if you pass `GCC-XML`_ all the files individually.
+  Namely `GCC-XML`_ would have to run hundreds of times and each call would
+  actually end up including quite a bit of common code anyway. This way takes a
+  `GCC-XML`_ processing time from multiple hours with gigabytes of caches to a
+  couple minutes with a reasonable cache size.
+
+  You can read more about different caches supported by `pygccxml`_ `here`__.
+  ``module_builder_t.__init__`` methods takes reference to an instance of cache
+  class or ``None``:
+
+  .. code-block:: Python
+
+    from module_builder import *
+    mb = module_builder_t( ..., cache=file_cache_t( path to project cache file ), ... )
+
+* Single header file, will also improve performance compiling the generated bindings.
+
+  When `Py++`_ generated the bindings, you have a lot of .cpp files to
+  compile. The project you are working on is big. I am sure it takes a lot of
+  time to compile projects that depend on it. Generated code also depend on it,
+  more over this code contains a lot of template instantiations. So it could
+  take a great deal of time to compile it. Allen Bierbaum investigated this
+  problem. He found out that most of the time is really spent processing all the
+  headers, templates, macros from the project and from the boost library. So he
+  come to conclusion, that in order to improve compilation speed, user should
+  be able to control( to be able to generate ) precompiled header file. He
+  implemented an initial version of the functionality. After small discussion,
+  we agreed on next interface:
+
+  .. code-block:: Python
+
+    class module_builder_t( ... ):
+        ...
+        def split_module( self, directory_path, huge_classes=None, precompiled_header=None ):
+            ...
+
+  ``precompiled_header`` argument could be ``None`` or string, that contains
+  name of precompiled header file, which will be created in the directory.
+  `Py++`_ will add to it header files from `Boost.Python`_ library and
+  your header files.
+
+  What is ``huge_classes`` argument for? ``huge_classes`` could be ``None`` or
+  list of references to class declarations. It is there to provide a solution to
+  `this error`_. `Py++`_ will automatically split generated code for the
+  huge classes to few files:
+
+  .. code-block:: Python
+
+    mb = module_builder_t( ... )
+    ...
+    my_big_class = mb.class_( my_big_class )
+    mb.split_module( ..., huge_classes=[my_big_class], ... )
+
+
+.. _`this error` : http://boost.org/libs/python/doc/v2/faq.html#c1204
+.. __ : ./../../pygccxml/design.html
+
+* Keep the declaration tree small.
+
+  When parsing the header files to build the declaration tree, there will also
+  be the occasional "junk" declaration inside the tree that is not relevant to
+  the bindings you want to generate. These extra declarations come from header
+  files that were included somewhere in the header files that you were actually
+  parsing (e.g. if that library uses the STL or OpenGL or other system headers
+  then the final declaration tree will contain those declarations, too).
+  It can happen that the majority of declarations in your declaration tree are
+  such "junk" declarations that are not required for generating your bindings
+  and that just slow down the generation process (reading the declaration cache
+  and doing queries will take longer).
+
+  To speed up your generation process you might want to consider making the
+  declaration tree as small as possible and only store those declarations that
+  somehow have an influence on the bindings. Ideally, this is done as early
+  as possible and luckily gccxml provides an option that allows you to reduce
+  the number of declarations that it will store in the output XML file. You can
+  specify one or more declarations using the ``-fxml-start`` option and only
+  those sub-tree starting at the specified declarations will be written. For
+  example, if you specify the name of a particular class, only this class
+  and all its members will get written. Or if your project already uses
+  a dedicated namespace you can simply use this namespace as a starting point
+  and all declarations stemming from system headers will be ignored (except
+  for those declarations that are actually used within your library).
+
+  In the ``pygccxml`` package you can set the value for the ``-fxml-start``
+  option using the ``start_with_declarations`` attribute of the
+  ``pygccxml.parser.config_t`` object that you are passing to the parser.
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`pygccxml` : ./../../pygccxml/pygccxml.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

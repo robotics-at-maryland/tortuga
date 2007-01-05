@@ -1,0 +1,84 @@
+====
+TODO
+====
+
+.. contents:: Table of contents
+
+-----------
+Description
+-----------
+
+This page is an official `Py++`_ "TODO" page.
+
+For small features, the description of the feature and it's implementation will
+be written here. Big features will get their own page.
+
+---------------
+Unnamed classes
+---------------
+
+There is no technical reason why unnamed classes/structs/unions are not exported
+
+by `Py++`_:
+
+.. code-block:: C++
+
+  class Foo{
+      union {
+          struct {
+              float r,g,b,a;
+          };
+          float val[4];
+      };
+  };
+
+
+Implementation details
+----------------------
+
+As it seems to me, the only code that should be changed is
+"pyplusplus/module_creator/creator.py" file. To be more specific: all code creators,
+for declarations in unnamed classes, should be created under named class.
+
+The coding itself should take something like 4 - 5 hours, including unit test.
+
+------------------------------------------
+Domain Specific Language ( DSL ) challenge
+------------------------------------------
+
+.. include:: ./dsl_challenge_introduction.rest
+
+Please read `DSL challenge`_ document and contribute your ideas, thoughts or just
+comments.
+
+.. _`DSL challenge` : ./dsl_challenge.html
+
+---------------
+Unicode support
+---------------
+
+In version 0.8.1 `Py++`_ introduced nice feature: automatic extraction and
+integration of documentation strings. I estimated wrong the influence of the
+feature on the project. First user, who actually tried it, was Gottfried Ganssauge.
+He asked me to add support for documentation string that contains unicode characters.
+These days I understand the influence. I should convert all strings in the whole
+project to be unicode strings, with encoding specified by the user. This is a
+lot of work, but I think this is really important. So this is high priority "TODO".
+
+http://www.joelonsoftware.com/articles/Unicode.html - a nice article, which
+explains what is unicode, encoding and character sets.
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:
+

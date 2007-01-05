@@ -1,0 +1,181 @@
+===========
+Overloading
+===========
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+Things get a little bit complex, when you have to export overloaded functions.
+In general the solution is to explicitly say to compiler what function you
+want to export, by specifying its type. Before we proceed, please take a look
+on next class:
+
+.. code-block:: C++
+
+  struct X
+  {
+      bool f(int a)
+      {
+          return true;
+      }
+
+      bool f(int a, double b)
+      {
+          return true;
+      }
+
+      bool f(int a, double b, char c)
+      {
+          return true;
+      }
+  };
+
+This class has been taken from `Boost.Python`_ `tutorials`__.
+
+.. __ : http://boost.org/libs/python/doc/tutorial/doc/html/python/functions.html#python.overloading
+
+There are few approaches, which you can use in order to export the functions.
+
+-------------------
+Do nothing approach
+-------------------
+
+I am sure you will like "do nothing" approach. `Py++`_ recognize that you want to
+export an overloaded function and will generate the right code:
+
+.. code-block:: C++
+
+  namespace bp = boost::python;
+
+  BOOST_PYTHON_MODULE(pyplusplus){
+    bp::class_< X >( "X" )
+        .def(
+            "f"
+            , (bool ( ::X::* )( int ) )( &::X::f )
+            , ( bp::arg("a") ) )
+        .def(
+            "f"
+            , (bool ( ::X::* )( int,double ) )( &::X::f )
+            , ( bp::arg("a"), bp::arg("b") ) )
+        .def(
+            "f"
+            , (bool ( ::X::* )( int,double,char ) )( &::X::f )
+            , ( bp::arg("a"), bp::arg("b"), bp::arg("c") ) );
+  }
+
+--------------------------------
+"create_with_signature" approach
+--------------------------------
+
+Well, while previous approach is very attractive it does not work in all cases
+and have a weakness.
+
+Overloaded template function
+----------------------------
+
+I am sure you already know next fact, but still I want to remind it:
+
+* `GCC-XML`_ doesn't report about un-instantiated templates
+
+It is very important to understand it. Lets take a look on next source code:
+
+.. code-block:: C++
+
+  struct Y{
+
+      void do_smth( int );
+
+      template< class T>
+      void do_smth( T t );
+
+  };
+
+If you didn't instantiate( use ) ``do_smth`` member function, than `GCC-XML`_
+will not report it. As a result, `Py++`_ will not be aware of the fact that
+``do_smth`` is an overloaded function. To make the long story short, the generated
+code will not compile. You have to instruct `Py++`_ to generate code, which
+contains function type:
+
+.. code-block:: Python
+
+  from pyplusplus import module_builder
+
+  mb = module_builder.module_builder_t( ... )
+  y = mb.class_( 'Y' )
+  y.member_function( 'do_smth' ).create_with_signature = True
+  #------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Every `Py++`_ class, which describes C++ function\\operator has ``create_with_signature``
+property. You have to set it to ``True``. Default value of the property is
+computed. If the exported function is overloaded, then its value is ``True``
+otherwise it will be ``False``.
+
+Do nothing approach weakness
+----------------------------
+
+Code modification - the weakness of the "do nothing" approach. We live in the
+dynamic world. You can create bindings for a project, but a month letter, the
+project developers will add a new function to the exported class. Lets assume
+that the new function will introduce overloading. If ``create_with_signature``
+has ``False`` as a value, than the previously generated code will not compile
+and you will have to run code generator one more time.
+
+Consider to explicitly set ``create_with_signature`` to ``True``. It will save
+your and your users time in future.
+
+.. code-block:: Python
+
+  mb = module_builder_t( ... )
+  mb.calldefs().create_with_signature = True
+
+
+------------------------
+Overloading using macros
+------------------------
+
+`Boost.Python`_ provides two macros, which help you to deal with overloaded
+functions:
+
+* ``BOOST_PYTHON_FUNCTION_OVERLOADS``
+
+* ``BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS``
+
+`Boost.Python`_ tutorials contain an `explanation`_ about this macros.
+
+.. _`explanation` : http://boost.org/libs/python/doc/tutorial/doc/html/python/functions.html#python.auto_overloading
+
+You can instruct `Py++`_ to generate code, which will use the macros:
+
+.. code-block:: Python
+
+  import module_builder
+
+  mb = module_builder.module_builder_t( ... )
+  x = mb.class_( "X" )
+  x.member_functions( "f" ).use_overload_macro = True
+  #-------------------------^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Member and free functions declaration classes have ``use_overload_macro`` property.
+The default value of the property is ``False``.
+
+You don't really have to use the macros, unless you have "registration order"
+problem. The problem and work around described in `default arguments`_ document.
+
+.. _`default arguments` : ./default_args.html
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

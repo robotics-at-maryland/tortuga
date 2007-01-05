@@ -1,0 +1,40 @@
+==============================
+Boost.Python - lessons learned
+==============================
+
+.. contents:: Table of contents
+
+--------
+Preamble
+--------
+
+Software development is an interactrive process. During `Py++`_ development
+I see many interesting problems and even more interesting solutions.
+
+On this page you will find my collection of the solutions to some of the problems.
+
+
+`custom smart pointer class`_
+
+  .. include:: ./smart_ptrs/definition.rest
+
+.. _`custom smart pointer class` : ./smart_ptrs/smart_ptrs.html
+
+`boost::shared_ptr< const T>`_
+
+  .. include:: ./shared_ptr/definition.rest
+
+.. _`boost::shared_ptr< const T>` : ./shared_ptr/shared_ptr.html
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`pygccxml` : http://www.language-binding.net/pygccxml/pygccxml.html
+.. _`SourceForge`: http://sourceforge.net/index.php
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:
+

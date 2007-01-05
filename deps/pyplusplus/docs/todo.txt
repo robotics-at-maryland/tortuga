@@ -1,0 +1,4 @@
+Todo
+----
+
+- Provide a way to customize log messages (i.e. set verbosity level)

@@ -1,0 +1,40 @@
+==================
+Py++ documentation
+==================
+
+.. contents:: Table of contents
+
+------------
+Help needed!
+------------
+
+`Py++`_ documentation is always under active development. It is not an easy
+task to create and maintain it. I will appreciate any help!
+
+How can you help?
+
+* Lets face it: today it is not possible to use `Py++`_ without eventually
+  looking into source code. `Py++`_ uses `Epydoc`_ to generate documentation
+  from source files. So, if you found some undocumented piece of code and you
+  understand what it does, please write documentation string.
+
+* You are reading documentation and my English cause you to scream? Please, fix
+  those errors and send me new version of the document. I will integrate the
+  changes.
+
+* Do you think, that the documentation is not clear, I will be glad to improve it,
+  just point me to the place.
+
+.. _`Epydoc` : http://epydoc.sourceforge.net/
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

@@ -1,0 +1,207 @@
+======================
+C++ containers support
+======================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+C++ has a bunch of container classes:
+
+    * list
+    * deque
+    * queue
+    * priority_queue
+    * vector
+    * stack
+    * map
+    * multimap
+    * hash_map
+    * hash_multimap
+    * set
+    * hash_set
+    * multiset
+    * hash_multiset
+
+It is not a trivial task to expose C++ container to Python. Boost.Python has
+a functionality that will help you to expose some of STL containers to `Python`_.
+This functionality called - "indexing suite". If you want, you can read more
+about indexing suite `here`__.
+
+.. __ : http://boost.org/libs/python/doc/v2/indexing.html
+
+Boost.Python, out of the box, supports only ``vector``, ``map`` and ``hash_map``
+containers. In October 2003, Raoul Gough implemented support for the rest of
+containers. Well, actually he did much more - he implemented new framework.
+This framework provides support for almost all C++ containers and also an easy
+way to add support for custom ones. You'd better read his `post`_ to
+`Boost.Python`_ mailing list or `documentation`_ for the new indexing suite.
+
+
+Now, I am sure you have next question: if this suite is so good, why it is not
+in the main branch? The short answer is that this suite has some problems on
+MSVC 6.0 compiler and there are few users, that still use that compiler.
+The long answer is here:
+
+* http://mail.python.org/pipermail/c++-sig/2006-June/010830.html
+* http://mail.python.org/pipermail/c++-sig/2006-June/010835.html
+
+
+.. _`documentation` : ./indexing_suite_v2.html
+.. _`post` : http://mail.python.org/pipermail/c++-sig/2003-October/005802.html
+
+
+------------------------
+Py++ and indexing suites
+------------------------
+
+`Py++`_ implements support for both indexing suites. More over, you can
+freely mix indexing suites. For example you can expose ``std::vector<int>`` using
+`Boost.Python`_ built-in indexing suite and ``std::map< int, std::string>`` using
+Raoul Gough's indexing suite.
+
+-----------------
+How does it work?
+-----------------
+
+In both cases, `Py++`_ provides almost "hands free" solution. `Py++`_
+keeps track of all exported functions and variables, and if it sees that there is
+a usage of stl container, it exports the container. In both cases, `Py++`_
+analyzes the container ``value_type`` ( or in case of mapping container
+``mapped_type`` ), in order to set reasonable defaults, when it generates the code.
+
+-------------------
+Indexing suites API
+-------------------
+
+By default, `Py++`_ works with built-in indexing suite. If you want to use
+next version of indexing suite, you should tell this to the ``module_builder_t.__init__``
+method:
+
+.. code-block:: Python
+
+  mb = module_builder_t( ..., indexing_suite_version=2 )
+
+Every declared class has ``indexing_suite`` property. If the class is an
+instantiation of STL container, this property contains reference to an instance
+of ``indexing_suite1_t`` or ``indexing_suite2_t`` class.
+
+
+How does `Py++`_ know, that a class represents STL container instantiation?
+Well, it uses ``pygccxml.declarations.container_traits`` to find out this.
+``pygccxml.declarations.container_traits`` class, provides all functionality
+needed to identify container and to find out its ``value_type``
+( ``mapped_type`` ).
+
+
+Built-in indexing suite API
+---------------------------
+
+`Py++`_ defines ``indexing_suite1_t`` class. This class allows configure
+any detail of generated code:
+
+* ``no_proxy`` - a boolean, if ``value_type`` is one of the next types
+
+  * fundamental type
+
+  * enumeration
+
+  * std::string or std::wstring
+
+  * boost::shared_ptr<?>
+
+  then, ``no_proxy`` will be set to ``True``, otherwise to ``False``.
+
+* ``derived_policies`` - a string, that will be added as is to generated code
+
+* ``element_type`` - is a reference to container ``value_type`` or ``mapped_type``.
+
+
+Next version of indexing suite API
+----------------------------------
+
+In this case there is no single place, where you can configure exported container
+functionality. Please take a look on next C++ code:
+
+.. code-block:: C++
+
+  struct item{
+      ...
+  private:
+      bool operator==( const item& ) const;
+      bool operator<( const item& ) const;
+  };
+
+  struct my_data{
+      std::vector<item> items;
+      std::map< std::string, item > name2item_mapping;
+  };
+
+
+`Py++`_ declarations tree will contains ``item``, ``my_data``,
+``vector<item>`` and ``map<string,item>`` class declarations.
+
+If ``value_type`` does not support "equal" or "less than" functionality, sort
+and search functionality could not be exported.
+
+`Py++`_ class declaration has two properties: ``equality_comparable`` and
+``less_than_comparable``. The value of those properties is calculated on first
+invocation. If `Py++`_ can find ``operator==``, that works on ``value_type``,
+then, ``equality_comparable`` property value will be set to ``True``, otherwise
+to ``False``. Same process is applied on ``less_than_comparable`` property.
+
+In our case, `Py++`_ will set both properties to ``False``, thus sort and
+search functionality will not be exported.
+
+It is the time to introduce ``indexing_suite2_t`` class:
+
+* ``container_class`` - read only property, returns reference to container class
+  declaration
+
+* ``container_traits`` - read only property, returns reference to the relevant
+  container traits class. Container traits classes are defined in
+  ``pygccxml.declarations`` package.
+
+* ``element_type`` - is a reference to container ``value_type`` or ``mapped_type``.
+
+* ``call_policies`` - read/write property, in near future I will add code to
+  `Py++`_ that will analyze container ``value_type`` and will decide about
+  default call policies. Just an example: for non-copy constructable classes
+  ``call_policies`` should be set to ``return_internal_reference``.
+
+* ``[disable|enable]_method`` - new indexing suite, allows to configure
+  functionality exported to Python, using simple bitwise operations on predefined
+  flags. `Py++`_ allows you to specify what methods you want to disable
+  or enable. ``indexing_suite2_t.METHODS`` contains names of all supported methods.
+
+* ``[disable|enable]_methods_group`` - almost same as above, but allows you
+  to specify what group of methods you want to disable or enable.
+  ``indexing_suite2_t.METHOD_GROUPS`` contains names of all supported groups.
+
+Small tips/hints
+----------------
+
+1. If you set ``equality_comparable`` or ``less_than_comparable`` to ``False``.
+   The indexing suite will disable relevant functionality. You don't have
+   explicitly to disable method or mothods group.
+
+2. The documentation of new indexing suite contains few small mistakes.
+   I hope, I will have time to fix them. Any way, `Py++`_ generates
+   correct code.
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:
+

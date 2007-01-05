@@ -1,0 +1,115 @@
+=========================
+What they say about Py++?
+=========================
+
+.. contents:: Table of contents
+
+-----------------
+What do they say?
+-----------------
+
+"... If you can, use pyplusplus over pyste. I say that for ALL users of
+pyste, pyplusplus is now mature enough to be useful as well as being
+actively developed. It can also do quite a few tricks pyste cannot. "
+
+  Niall Douglas, the author of  `TnFOX`_ library
+
+
+"... On a related note, I highly suggest that any users out there that have
+tried/used Pyste but have found it to be too lacking in power should
+really give pyplusplus a try.  It has allowed me to do everything I
+ever wanted to do with Pyste and couldn't and then some.  It is really
+a great tool and I can't thank Roman enough for taking the time to
+create it and make it available. "
+
+  Allen Bierbaum, the author of `PyOpenSG`_ library
+
+"... This rule based approach is amazing for maintenance, as it reduces the
+turnaround for binding new code. If the new Ogre API's follow similar rules and
+standards as previously defined, the same set of rules will appropriately bind
+the new API without any effort on the part of the maintainers. "
+
+" ... In general, I've really liked working with pyplusplus. I've probably spent
+20-30 hours working on these bindings, and they are very close to being equivalent
+to the PyOgre bindings (when I last used them). "
+
+  Lakin Wecker, the author of `Python-OGRE`_ project
+
+"... Py++ allows the wrappers to be "automagically" created, which means it's much
+easier to keep things up to date (the maintainence on the Py++ based wrapper is
+tiny compared to any other system I've used). It also allows us to wrap other
+libraries fairly easily. "
+
+  Andy Miller, a developer of `Python-OGRE`_ project
+
+------------------
+Who is using Py++?
+------------------
+
+* Matthias Baas, the author of `Python Computer Graphics Kit`_ project, is using
+  `Py++`_ to create Python bindings for `Maya C++ SDK`__.
+
+  .. __ : http://www.highend3d.com/maya
+
+* Lakin Wecker, the author of `Python-OGRE`_ project, is using `Py++`_ to
+  create Python bindings for `OGRE`_.
+
+  `OGRE`_ - is a scene-oriented, flexible 3D engine written in C++ designed to
+  make it easier and more intuitive for developers to produce applications
+  utilizing hardware-accelerated 3D graphics.
+
+* Andy Miller, another developer of `Python-OGRE`_ project, is using `Py++`_ to
+  create Python bindings for:
+
+  * `CEGUI`_ - a free library providing windowing and widgets for graphics
+    APIs / engines where such functionality is not available, or severely lacking.
+
+    .. _`CEGUI` : http://www.cegui.org.uk/wiki/index.php/Main_Page
+
+  * `Newton`_ - Newton Game Dynamics, a closed source (but free) physics and
+    collisions library.
+
+    .. _`Newton` : http://www.newtondynamics.com/apache2-default/
+
+  * `ODE`_ - an open source, high performance library for simulating rigid body
+    dynamics.
+
+    .. _`ODE` : http://www.ode.org/
+
+  * `OIS`_ - an object oriented input system.
+
+    .. _`OIS` : http://www.wreckedgames.com/wiki/index.php/WreckedLibs:OIS
+
+* Nicolas Tessore is using `Py++`_ to create Python bindings for `NifTools`_
+  project. You can read in his `blog`_ what he thinks about `Py++`_.
+
+  .. _`NifTools` : http://www.niftools.org/wiki/index.php/NIF_File_Format_Library_and_Tools
+  .. _`blog` : http://ni-te.de/blog/?p=10
+
+* I am :-). I created Python bindings for next libraries:
+
+  * `Boost.Date_Time`_
+  * `Boost.CRC`_
+  * `Boost.Rational`_
+  * `Boost.Random`_
+
+  .. _`boost.date_time` : http://boost.org/doc/html/date_time.html
+  .. _`boost.crc` : http://boost.org/libs/crc/index.html
+  .. _`boost.rational` : http://boost.org/libs/rational/index.html
+  .. _`boost.random` : http://boost.org/libs/random/index.html
+
+  You can download the bindings from https://sourceforge.net/project/showfiles.php?group_id=118209 .
+
+.. _`Py++` : ./pyplusplus.html
+.. _`Python Computer Graphics Kit` : http://cgkit.sourceforge.net/
+.. _`TnFOX`: http://www.nedprod.com/TnFOX/
+.. _`PyOpenSG`: https://realityforge.vrsource.org/view/PyOpenSG/WebHome
+.. _`Python-OGRE` : http://lakin.weckers.net/index_ogre_python.html
+.. _`OGRE` : http://www.ogre3d.org/index.php?option=com_content&task=view&id=19&Itemid=79
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

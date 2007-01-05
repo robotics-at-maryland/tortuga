@@ -1,0 +1,93 @@
+=============
+Name mangling
+=============
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+Wikipedia has a nice `explanation`_ what name mangling is.
+
+.. _`explanation` : http://en.wikipedia.org/wiki/Name_mangling
+
+----
+Why?
+----
+
+I am sure you want to ask why and where `Py++`_ uses name mangling? `Py++`_ uses
+name mangling to create function-wrappers for overloaded and\\or free functions.
+Consider next use case:
+
+  .. code-block:: C++
+
+     void get_distance( long& );
+     void get_distance( double& );
+
+In order to expose ``get_distance`` functions you have to create 2 function
+wrappers:
+
+  .. code-block:: C++
+
+     long get_distance_as_long(){...}
+     double get_distance_as_double(){...}
+
+You have to give them distinguish names - C++ does not allow overloading, base
+on return type only. You also have to exposes them under different aliases,
+otherwise they will not be callable from `Python`_:
+
+  .. code-block:: C++
+
+     namespace bp = boost::python;
+     BOOST_PYTHON_MODULE(...){
+         bp::def( "get_distance_as_long", &get_distance_as_long );
+         bp::def( "get_distance_as_double", &get_distance_as_double );
+     }
+
+------------
+The solution
+------------
+
+`Py++`_ implements a solution to the problem. The generated wrapper names are
+unique in the whole project. However, they are pretty ugly:
+
+* ``get_distance_610ef0e8a293a62001a25cd3dc59b769`` for ``get_distance( long& )``
+  function
+
+* ``get_distance_702c7b971ac4e91b12f260ac85b36d84`` for ``get_distance( double& )``
+  function
+
+The good news - they will not be changed between different runs of the code
+generator.
+
+If you are exposing an overloaded function, in that case `Py++`_ uses the ugly
+function-wrapper name as an alias. It is up to you to change the alias:
+
+  .. code-block:: Python
+
+     from pyplusplus import module_builder
+     from pyplusplus import function_transformers as FT
+
+     mb = module_builder.module_builder_t( ... )
+     get_distance_as_long = mb.mem_fun( 'get_distance', arg_types=['long &'] )
+     get_distance_as_long.add_transformation( FT.output(0), alias="get_distance_as_long" )
+
+There are two main reasons for such implementation\\behaviour:
+
+1. The generated code will always compile and be correct.
+2. If you forgot to give an alias to a function, your users will still be able
+   to call the function. So no need to rush and create new release.
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

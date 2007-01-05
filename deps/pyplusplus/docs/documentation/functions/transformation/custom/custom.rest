@@ -1,0 +1,40 @@
+=========================
+User defined transformers
+=========================
+
+.. contents:: Table of contents
+
+----
+KISS
+----
+
+KISS - Keep It Simple Stupid!
+
+The main goal of the feature: to provide relatively simple way to implement
+custom transformers. More over, all `built-in transformers`_ implemented as is
+they were custom transformers.
+
+-----------
+How to ...?
+-----------
+
+Unfortunately I don't have enough time to write a complete documentation :-(.
+Meanwhile fill free to `contact me`_. You also can take a look on `built-in transformers`_
+implementation.
+
+.. _`contact me` : ../../../../links.html#id5
+.. _`built-in transformers` : ../built_in/built_in.html
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

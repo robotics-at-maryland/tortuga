@@ -1,0 +1,3 @@
+.. code-block::
+     :language: diff
+     :source-file: ./pointer_holder.hpp.patch

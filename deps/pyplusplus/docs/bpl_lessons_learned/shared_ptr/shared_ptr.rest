@@ -1,0 +1,103 @@
+===================================================
+How to register ``shared_ptr<const T>`` conversion?
+===================================================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+.. include:: ./definition.rest
+
+---------
+Solutions
+---------
+
+There are two possible solutions to the problem. The first one is to fix 
+Boost.Python library: `pointer_holder.hpp.patch`_ . The patch was contributed
+to the library ( 8-December-2006 ) and some day it will be commited to the CVS.
+
+It is also possible to solve the problem, without changing Boost.Python library:
+
+  .. code-block:: C++
+
+     namespace boost{ 
+         
+         template<class T> 
+         inline T* get_pointer( boost::shared_ptr<const T> const& p ){
+             return const_cast< T* >( p.get() );
+         }
+     
+     }
+      
+     namespace boost{ namespace python{    
+         
+         template<class T> 
+         struct pointee< boost::shared_ptr<T const> >{
+             typedef T type;
+         };
+         
+     } } //boost::python
+    
+     namespace utils{
+      
+         template< class T >
+         register_shared_ptrs_to_python(){
+             namespace bpl = boost::python;
+             bpl::register_ptr_to_python< boost::shared_ptr< T > >();
+             bpl::register_ptr_to_python< boost::shared_ptr< const T > >();
+             bpl::implicitly_convertible< boost::shared_ptr< T >, boost::shared_ptr< const T > >();
+         }
+      
+     }
+     
+     BOOST_PYTHON_MODULE(...){
+        class_< YourClass >( "YourClass" )
+            ...;
+        utils::register_shared_ptrs_to_python< YourClass >();
+     }
+
+The second approach is a little bit "evil" because it redefines ``get_pointer``
+function for all shared pointer class instantiations. So you should be careful.
+
+Files
+-----
+
+* `solution.cpp`_ file contains definition of a class and few functions, which 
+  have ``shared_ptr< T >`` and ``shared_ptr< const T>`` as return type or as an 
+  argument. The file also contains source code that exposes the defined 
+  functionality to Python.
+
+* `sconstruct`_ file contains build instructions for scons build tool.
+
+* `test.py`_ file contains complete unit tests for the exposed classes
+
+* `pointer_holder.hpp.patch`_ file contains patch for the library
+
+All files contain comments, which describe what and why was done. 
+
+.. _`solution.cpp` : ./solution.cpp.html
+.. _`sconstruct` : ./sconstruct.html
+.. _`test.py` : ./test.py.html
+.. _`pointer_holder.hpp.patch` : ./pointer_holder.hpp.patch.html
+
+--------
+Download
+--------
+
+https://sourceforge.net/project/showfiles.php?group_id=118209
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`pygccxml` : http://www.language-binding.net/pygccxml/pygccxml.html
+.. _`SourceForge`: http://sourceforge.net/index.php
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:
+
