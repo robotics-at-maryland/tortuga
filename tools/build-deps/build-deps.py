@@ -20,21 +20,28 @@ def setup_logging():
     console.setFormatter(formatter)
     logging.getLogger('').setLevel(logging.INFO)
     logging.getLogger('').addHandler(console)
-    
 
-def get_svn_root():
-    """Work from the the scripts start location to the root"""
-    script_dir = os.path.split(sys.path[0])[0]   # <root>/scripts
-    repo_root = os.path.split(script_dir)[0]     # <root>
-    return repo_root
+
+def get_build_root(options):
+    """
+    Returns the root location for the install, this is either on the command
+    line of from the scripts start location
+    """
+    if options.root != "<script_dir>/../deps":
+        return options.root
+    else:
+        script_dir = os.path.split(sys.path[0])[0]   # <root>/scripts
+        repo_root = os.path.split(script_dir)[0]     # <root>
+        deps_dir = os.path.join(repo_root, 'deps')   # <root>/deps
+        return deps_dir
 
 def get_config_path(start_path):
     """
     Gets the location of the config file, either in the deps directory or the 
     user specified one, and ensures that it exists
     """
-    if start_path == '<mrbc-root>/deps/build.cfg':
-        config_path = os.path.join(get_svn_root(), 'deps','build.cfg')
+    if start_path == './build.cfg' and not os.path.exists('./build.cfg'):
+        config_path = os.path.join(get_build_root(options), 'build.cfg')
     else:
         config_path = os.path.abspath(start_path)
         
@@ -52,7 +59,6 @@ def translate_command(_command):
     command = ''
     if type(_command) is tuple:
         for item in _command:
-            print 'Adding "%s"' % item
             command = command + str(item)
     else:
         command = _command
@@ -65,7 +71,7 @@ def translate_command(_command):
     else:
         return False
 
-def run_location(location, config, mode='file'):
+def run_location(location, config, options, mode='file'):
     """
     @type  location: tuple
     @param location: Location name + path pair
@@ -73,18 +79,22 @@ def run_location(location, config, mode='file'):
     @type  config: ConfigObj instance
     @param config: An already loaded config parser
     """
+    if not config.has_key(location[0]):
+        print 'ERROR: Configuration file does not have a "%s"' \
+              ' section' % location[0]
+        sys.exit(1)
+        
     current_dir = os.getcwd()
     build_cfg_dir = os.path.split(config.filename)[0]
     location_path = os.path.join(build_cfg_dir, location[1])
-    deps_dir = os.path.join(get_svn_root(), 'deps')
+    deps_dir = os.path.join(get_build_root(options))
     
     # Check to make sure the file isn't already built
-    dep_file_path = os.path.join(deps_dir, 'local', '%s.depend' % location[0])
-    if os.path.exists(dep_file_path):
+    dep_file_path = os.path.join(deps_dir, 'depends', '%s.depend' % location[0])
+    if not options.force_install and os.path.exists(dep_file_path):
         logging.info('%s already built' % location[0])
         return
     
-    print 'Build Dir',build_cfg_dir
     if mode is 'file':
         runlog = open(os.path.join(build_cfg_dir, '%s.log' % location[0]), 'w')
     else:
@@ -102,7 +112,7 @@ def run_location(location, config, mode='file'):
 
     for command in config[location[0]].iteritems():
         # Run everything but the 'hidden' deps command
-        if command[0] is not 'DEFAULT':
+        if  command[0] != 'DEFAULT':
             # We must do this so we can interpolate properly
             #command = (command[0], config[location[0]][command[0]])
             if not translate_command(command):
@@ -125,6 +135,15 @@ def run_location(location, config, mode='file'):
     # create dependency file to make sure we aren't build twice
     dep_file = open(dep_file_path,'w')
     dep_file.close()
+
+def run_group(group, config, options):
+    if not config.has_key('groups'):
+        print 'ERROR: Configuration file does not have a "groups"' \
+              ' section'
+        sys.exit(1)
+
+    for loc in config['groups'][group].split(' '):
+        run_location((loc, config['locations'][loc]), config, options)
     
 def main(argv = None):
     if argv is None:
@@ -139,12 +158,17 @@ def main(argv = None):
       'command line a flag is considered a location to run.')
     parser.add_option("-c", "--config", dest="configfile",
                       help="The location of config", 
-                      default='<mrbc-root>/deps/build.cfg')
-    #parser.add_option("-l", "--location", dest="location",
-    #              help="If given, run just this location from the configfile")
+                      default='./build.cfg')
+    parser.add_option("-r", "--root", dest="root",
+                      help="The location into which everything is installed",
+                      default="<script_dir>/../deps")
+    parser.add_option("-f", "--force",
+                      action="store_true", dest="force_install", default=False,
+                      help="Force the components to be compiled and install")
+    parser.add_option("-g", "--group-mode",
+                      action="store_true", dest="group_mode", default=False,
+                      help="Positional options are now considered groups")
     
-    # TODO: Change the location thing to the positional options instead of
-    #       a flag
     (options, args) = parser.parse_args(argv)
     
     config_path = get_config_path(options.configfile)
@@ -152,18 +176,21 @@ def main(argv = None):
     # Parse config file
     config = ConfigObj(config_path)
     if not config.has_key('locations'):
-        print 'ERROR: Configuration file: %s does not have a \'locations\'' \
+        print 'ERROR: Configuration file: %s does not have a "locations"' \
               ' section' % config_path
         sys.exit(1)
     
     # Run sections given on the command line, or all in the config file
     if len(args) > 1:
         for location in args[1:len(args)]:
+            if options.group_mode:
+                run_group(location, config, options)
+            else:
                 loc_path = config['locations'][location]
-                run_location((location,loc_path), config)
+                run_location((location,loc_path), config, options)
     else:
         for loc in config['locations'].iteritems():
-            run_location(loc, config)
+            run_location(loc, config, options)
 
 if __name__ == '__main__':
     try:
