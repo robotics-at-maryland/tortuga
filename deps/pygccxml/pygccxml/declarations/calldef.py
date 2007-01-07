@@ -21,6 +21,7 @@ import cpptypes
 import algorithm
 import declaration
 import type_traits
+import dependencies
 import call_invocation
 
 class VIRTUALITY_TYPES:
@@ -270,6 +271,17 @@ class calldef_t( declaration.declaration_t ):
     demangled_name = property( _get_demangled_name
                               , doc="returns function demangled name. It can help you to deal with function template instantiations")
 
+    def i_depend_on_them( self, recursive=True ):
+        report_dependency = lambda x: dependencies.dependency_info_t( self, x )
+        answer = []
+        map( lambda arg: answer.append( report_dependency( arg.type ) )
+             , self.arguments )
+        if self.return_type:
+            answer.append( report_dependency( self.return_type ) )
+        map( lambda exception: answer.append( report_dependency( exception ) )
+             , self.exceptions )
+        return answer
+
 #Second level in hierarchy of calldef
 class member_calldef_t( calldef_t ):
     """base class for "callable" declarations that defined within C++ class or struct"""
@@ -300,6 +312,7 @@ class member_calldef_t( calldef_t ):
         cls = self.__class__.__name__
         if cls[-2:]=="_t":
             cls = cls[:-2]
+        cls = cls.replace( '_', ' ' )
         return "%s [%s]"%(res, cls)
 
     def _get__cmp__call_items(self):
@@ -380,6 +393,7 @@ class free_calldef_t( calldef_t ):
         cls = self.__class__.__name__
         if cls[-2:]=="_t":
             cls = cls[:-2]
+        cls = cls.replace( '_', ' ' )
         return "%s [%s]"%(res, cls)
 
     def _get__cmp__call_items(self):
@@ -416,6 +430,20 @@ class constructor_t( member_calldef_t ):
     """describes constructor declaration"""
     def __init__( self, *args, **keywords ):
         member_calldef_t.__init__( self, *args, **keywords )
+
+    def __str__(self):
+        # Get the full name of the calldef...
+        name = algorithm.full_name(self)
+        if name[:2]=="::":
+            name = name[2:]
+        # Add the arguments...
+        args = map(lambda a: str(a), self.arguments)
+        res = "%s(%s)"%(name, ", ".join(args))
+        # Append the declaration class
+        cls = 'constructor'
+        if self.is_copy_constructor:
+            cls = 'copy ' + cls
+        return "%s [%s]"%(res, cls)
 
     def _get_is_copy_constructor(self):
         args = self.arguments
