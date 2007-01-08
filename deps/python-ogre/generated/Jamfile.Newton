@@ -1,0 +1,23 @@
+project-root ;
+import python ;
+
+
+# build a list of source file, including subdirectories.
+local pat = *.cpp ;
+local dirs = newton_1.0 ;
+local sourcefiles = [ glob-tree $(dirs) : $(pat) ] ;
+
+extension NEWTON
+    :
+    #(define)BOOST_PYTHON_MAX_ARITY = 19
+    $(sourcefiles)
+    <template>@boost/libs/python/build/extension
+    : <include>$(BOOST_PARENT_DIRECTORY)
+    <include>c:/development/newtonsdk/sdk
+    <include>./newton_1.0/
+    <library-path>c:/development/newtonsdk/sdk/lib_mt
+    <find-library>newton1.lib
+ 
+
+    
+;

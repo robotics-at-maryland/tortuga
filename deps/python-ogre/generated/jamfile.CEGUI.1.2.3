@@ -1,0 +1,30 @@
+project-root ;
+import python ;
+
+
+# build a list of source file, including subdirectories.
+local pat = *.cpp ;
+local dirs = CEGUI_0.5 ;
+local sourcefiles = [ glob-tree $(dirs) : $(pat) ] ;
+
+extension CEGUI
+    :
+    #(define)BOOST_PYTHON_MAX_ARITY = 19
+    $(sourcefiles)
+    <template>@boost/libs/python/build/extension
+    : <include>$(BOOST_PARENT_DIRECTORY)
+    <include>c:/devold/cegui_mk2/include
+    <include>c:/devold/ogresdk/include
+    <include>c:/devold/ogresdk/samples/include
+    <include>./CEGUI_0.5/
+    <library-path>c:/devold/cegui_mk2/lib
+    <find-library>CEGUIBase.lib
+    # <find-library>CEGUIExpatParser.lib
+    <find-library>CEGUIFalagardBase.lib
+    <library-path>c:/devold/ogresdk/lib
+    <find-library>ogreguirenderer.lib
+    <find-library>ogremain.lib
+ 
+
+    
+;

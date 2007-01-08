@@ -1,0 +1,34 @@
+# Specify the path to the Boost project.  If you move this project,
+# adjust this path to refer to the Boost root directory.
+use-project boost 
+   : ../.. ; 
+
+local sourcefiles =  [ glob ogrenewt_1.0/*.cpp ] ;
+
+project 
+  : requirements 
+    <library>/boost/python//boost_python
+    <include>$(BOOST_ROOT)
+    <include>c:/development/ocvs/ogrenew/ogremain/include
+    
+    <library-path>c:/development/ocvs/ogrenew/ogremain/lib/release
+    : default-build release
+    : build-dir bin/ogrenewt_1.0
+  ;
+    
+python-extension ogrenewt  :
+    $(sourcefiles) 
+    :
+    <include>./ogrenewt_1.0/
+    <include>c:/development/ocvs/ogreaddons/ogrenewt/ogrenewt_main/inc
+    <include>c:/development/newtonsdk/sdk
+    
+    <library-path>c:/development/ocvs/ogreaddons/ogrenewt/ogrenewt_main/lib/release
+    <library-path>c:/development/newtonsdk/sdk/dll
+    <find-static-library>newton.lib
+    <find-static-library>ogrenewt_main.lib
+    
+    <find-static-library>ogremain.lib
+    <define>BOOST_PYTHON_MAX_ARITY=19
+    ;
+

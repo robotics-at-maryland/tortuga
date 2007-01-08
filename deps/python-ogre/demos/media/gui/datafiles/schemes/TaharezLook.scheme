@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<GUIScheme Name="TaharezLook">
+	<Imageset Name="TaharezLook" Filename="../datafiles/imagesets/TaharezLook.imageset" />
+	<WindowSet Filename="CEGUITaharezLook" />
+</GUIScheme>

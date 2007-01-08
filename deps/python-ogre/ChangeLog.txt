@@ -1,0 +1,37 @@
+
+Jul -Aug 2006:  All the base work done by Larkin and Roman
+13 Aug 2006:  Initial Version from Andy
+13 Aug 2006:  Roman - fix to Ogre_Generate_code.py to simplify build process (removed 'non exposed'? ENUMS)
+                    * Needed to remove cmdXXXX functions etc from ParticleSystem in order to compile correctly
+              Change to Ogre_Customization_data.py to add 'NamedValuePairList' mapping
+15 Aug 2006:  Andy - addition to Ogre_Generate_code.py to expose additional template classes (initially Controller<float>)
+              Fixed ParticleSystem class to remove CmdXXXX functions
+              Update to Ogre_Customization_data.py as some mappings had been lost :)
+----          Significant improvements to both Py++ and the Ogre wrappers make code generation far simpler
+29 Sept 2006: Andy - Update to support both the Ogre CVS and Ogre 1.2.3 code bases.  
+              PYPOS project added as a sub driectory (initially)
+15 Oct 2006:  Andy - initial release of the binary for windows 0.5/ 0.51 release
+18 Nov 2006:  Version 0.6 Windows release.
+              Built against the CVS version of Ogre, hence dlls included as part of this release
+              CEGUI/OIS/OgreNewt (Newton Physics)/OgreRefApp (ODE Physics) part of the release
+              Media is now a seperate download as expected to change (can be cleaned up and shrunk)
+26 Nov 2006:  Version 0.65 Windows Release
+              Series of minor fixes - added support for MovableObjects in Ogre
+              Call backs in OgreNewt now work - or seem too :)  Demos 0-6 working well
+              Known problems in a couple of the OgreNewt demos 7 and 8..
+02 Jan 2007:  Version 0.70 Windows Release
+                Lots of improvements - should have removed all 'No to Python' converter errors in Ogre
+                Everything that is 'exposable' should be there
+                Documentation strings (pulled from the C++ source) now in the Python Doc Strings..
+                Use PyDoc etc against the modules for accurate doc imformation
+                Added leading lower case property names (in addition to the typicaly leading Upper case from Ogre)
+                Strict testing for property names - only add those that don't confict with Ogre function names 
+                which means a number of older properties have been removed - see Pydoc etc..
+                New Demos (Demo-Grass etc) showing low level Ogre access (creating raw Vertic buffers etc)
+                Fixed many functions that Boost doesn't like by default
+                Remove need for path variable to be set - modules do this automajically
+                Renamed and cleaned up the demos and their file naming..
+                Fixed Demo06 in CEGUI
+
+              
+              

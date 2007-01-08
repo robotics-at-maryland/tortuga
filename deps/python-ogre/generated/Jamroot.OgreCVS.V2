@@ -1,0 +1,43 @@
+# Specify the path to the Boost project.  If you move this project,
+# adjust this path to refer to the Boost root directory.
+use-project boost 
+   : ../.. ; 
+
+# build a list of source file, including subdirectories.
+local sourcefiles =  [ glob ogre_CVS/*.cpp ] ;
+#echo $(sourcefiles)
+
+# Set up the project-wide requirements that everything uses the
+# boost_python library from the project whose global ID is /boost/python.
+
+project 
+  : requirements 
+    <library>/boost/python//boost_python
+    <include>$(BOOST_ROOT)
+    <include>c:/development/ocvs/ogrenew/ogremain/include
+    
+    
+    <library-path>c:/development/ocvs/ogrenew/samples/common/ceguirenderer/lib
+    <library-path>c:/development/ocvs/ogrenew/ogremain/lib/release
+    <library-path>c:/development/ocvs/ogrenew/dependencies/lib/release
+
+    : default-build release
+    : build-dir bin/ogre_cvs
+    
+  ;
+#lib ogremain : : <name>ogremain.lib <search>c:/development/ocvs/ogrenew/ogremain/lib/release
+#    lib ogremain : : <name>ogreguirenderer.lib <search>c:/development/ocvs/ogrenew/dependencies/lib/release
+#    <lib> ogremain : : <name>ceguibase.lib <search>c:/development/ocvs/ogrenew/samples/common/ceguirenderer/lib
+#    <lib> ogremain : : <name>ode.lib <search>c:/development/ocvs/ogrenew/dependencies/lib/release
+    
+python-extension ogre  :
+    $(sourcefiles) 
+    :
+    <include>./ogre_CVS/
+    <find-static-library>ogremain.lib
+    <find-static-library>ogreguirenderer.lib
+    <find-static-library>ceguibase.lib
+    <find-static-library>ode.lib
+    <define>BOOST_PYTHON_MAX_ARITY=19
+    ;
+

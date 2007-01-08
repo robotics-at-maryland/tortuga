@@ -1,0 +1,24 @@
+project-root ;
+import python ;
+
+
+# build a list of source file, including subdirectories.
+local pat = *.cpp ;
+local dirs = ode_0.7 ;
+local sourcefiles = [ glob-tree $(dirs) : $(pat) ] ;
+
+extension ode
+    :
+    #(define)BOOST_PYTHON_MAX_ARITY = 19
+    $(sourcefiles)
+    <template>@boost/libs/python/build/extension
+    : <include>$(BOOST_PARENT_DIRECTORY)
+    <include>c:/development/ode-0.7/include
+    <include>./ode_0.7/
+    <library-path>c:/development/ode-0.7/lib/releasedll
+    <find-library>ode.lib
+    # this is needed due to messagebox call in ode.lib
+    <find-library>user32.lib
+    
+    
+;
