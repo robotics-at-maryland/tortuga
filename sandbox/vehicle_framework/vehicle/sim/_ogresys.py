@@ -1,3 +1,6 @@
+import Ogre
+from Ogre import sf_OIS as sf
+
 class OgreSys(object):
     """
     Wrap up all ogre initialization in an Inner class (maybe more it outside)
@@ -7,35 +10,47 @@ class OgreSys(object):
         self.camera = None
         self.renderWindow = None # Done
         self.sceneManager = None # Done
+        
+    def __del__(self):
+        del self.camera;
+        del self.sceneManager
+        del self.root
+        del self.renderWindow  
     
     def _setUp(self, config):
-        self.ogre.root = ogre.Root();
+        self.root = Ogre.Root(sf.getPluginPath());
         ogreConf = config['Ogre']
 
         # Add Resource Locations
-        _addResourceLocations(ogreConf['Resources']);
+        self._addResourceLocations(ogreConf['Resources']);
 
         # if we cannot initialise Ogre, just abandon the whole deal         
-        if not _initOgreCore(ogreConf['RenderSystem']):
+        if not self._initOgreCore(ogreConf['RenderSystem']):
             return False
         # Create the Ogre SceneManager
-        self.sceneManager = self.root.createSceneManager(ogre.ST_GENERIC,
+        self.sceneManager = self.root.createSceneManager(Ogre.ST_GENERIC,
                                                         'SimSceneMgr')
         
         # Possibly considate/config drive these
-        _createCamera();
-        _createViewports();
+        self._createCamera();
+        self._createViewports();
 
         # Set default mipmap level (NB some APIs ignore this)
-        ogre.TextureManager.getSingleton().setDefaultNumMipmaps(5)
+        Ogre.TextureManager.getSingleton().setDefaultNumMipmaps(5)
         # Initialise resources
-        ogre.ResourceGroupManager.getSingleton().initialiseAllResourceGroups()
+        Ogre.ResourceGroupManager.getSingleton().initialiseAllResourceGroups()
         # Create the scene (override me)
-        _createScene();
+        # _createScene();
 
         return True
     
-    def  _addResourceLocations(self, config);
+    def go(self):
+        """
+        Starts a continous rendering loop
+        """
+        self.root.startRendering()
+    
+    def  _addResourceLocations(self, config):
         """
         The Config needs a section like so, this tells ogre where to look
         for all the files to load.
@@ -48,11 +63,11 @@ class OgreSys(object):
                     '../Media/materials/programs',
                     '../Media/materials/scripts']
         """
-        rsrcMrg = ogre.ResourceGrourpManager.getSingleton()
+        rsrcMrg = Ogre.ResourceGroupManager.getSingleton()
         for group in config:
             for type in group:
                 for location in type:
-                    rsrcMrg(location, type, group)
+                    rsrcMrg.addResourceLocation(location, type, group)
                     
     def _initOgreCore(self, config):
         """
@@ -78,33 +93,36 @@ class OgreSys(object):
                    'DirectX' : 'D3D9RenderSystem',
                    'DirectX9' : 'D3D9RenderSystem',
                    'Direct 3D' : 'D3D9RenderSystem'}
-                   
-        try:
-            type = typemap[config['Type'].replace(' ','')]
-            renderSystem = getattr(ogre, type)
-        except AttributeError:
-            print 'Improper Ogre RenderSystem'
-            return False
-
+        # Currently doesn't work           
+        #try:
+        #    type = typemap[config['Type'].replace(' ','')]
+        #    RenderSystemCls = getattr(ogre, type)
+        #except AttributeError:
+        #    print 'Improper Ogre RenderSystem'
+        #    return False
+        
+        #renderSystem = RenderSystemCls()
         # Load our options from the custom config system          
-        for option in config[renderSystem]:
-            renderSystem.setConfigOption(option, config[option])
+        #for option in config[str(RenderSystemCls)]:
+        #    renderSystem.setConfigOption(option, config[option])
 
         # If we have gotten this far, the we can let Ogre create a default
-        # window from the setting loaded above
-        self.root = ogre.Root()
-        self.root.setRenderSystem(renderSystem)
-        self.renderWindow = self.root.initialize(True)
-        return True
+        # window from the settings loaded above
+        #self.root.setRenderSystem(renderSystem)
+        
+        carryOn = self.root.showConfigDialog()
+        if carryOn:
+            self.renderWindow = self.root.initialise(True, "MRBC AUV SIM")
+        return carryOn
 
     def _createCamera(self):
         """Creates the camera."""        
         self.camera = self.sceneManager.createCamera('PlayerCam')
-        self.camera.setPosition(ogre.Vector3(0, 0, 500))
-        self.camera.lookAt(ogre.Vector3(0, 0, -300))
+        self.camera.setPosition(Ogre.Vector3(0, 0, 500))
+        self.camera.lookAt(Ogre.Vector3(0, 0, -300))
         self.camera.NearClipDistance = 5
 
     def _createViewports(self):
         """Creates the Viewport."""
         self.viewport = self.renderWindow.addViewport(self.camera)
-        self.viewport.BackgroundColour = ogre.ColourValue(0,0,0)        
+        self.viewport.BackgroundColour = Ogre.ColourValue(0,20,0)        

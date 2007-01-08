@@ -21,7 +21,8 @@ def main():
     # Start up our other systems(possibly use component interface to find them?)
 
     # Start up our vehicle
-    # vehicle.start_update();
+    vehicle.start_update();
+    print "Hello World"
 
     return 0
 
