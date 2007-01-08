@@ -5,11 +5,15 @@ from pygccxml import declarations
 
 OGRE_SP_HELD_TYPE_TMPL = \
 """
+using boost::get_pointer;
+
 %(class_name)s* get_pointer( %(class_ptr_name)s const& p ){
     return p.get();
 }
 
 namespace boost{ namespace python{
+
+using ::get_pointer;
 
 template <>
 struct pointee< %(class_ptr_name)s >{

@@ -6,10 +6,10 @@
 
 import os
 import sys
-import ogre_settings
+import environment
 
 
-build_dir = ogre_settings.build_dir
+build_dir = 'ogre_CVS'
 
 #Import( 'env' )
 #SharedLibrary( target='Ogre', SHLIBPREFIX='.so', .... )
@@ -17,14 +17,14 @@ build_dir = ogre_settings.build_dir
 env = Environment(ENV=os.environ)
 
 # Using distcc can really speed up the compile
-if os.path.exists('/usr/lib/distcc'):
-    os.environ['PATH'] = '/usr/lib/distcc:' + os.environ['PATH']
-    env['ENV']['DISTCC_HOSTS'] = os.environ['DISTCC_HOSTS']
-    env['ENV']['PATH'] = os.environ['PATH']
+#if os.path.exists('/usr/lib/distcc'):
+#    os.environ['PATH'] = '/usr/lib/distcc:' + os.environ['PATH']
+#    env['ENV']['DISTCC_HOSTS'] = os.environ['DISTCC_HOSTS']
+#    env['ENV']['PATH'] = os.environ['PATH']
 
 def get_ccflags():
     CCFLAGS = ' `pkg-config --cflags OGRE` '
-    CCFLAGS += ' -I' + ogre_settings.python_headers_dir + ' -D"BOOST_PYTHON_MAX_ARITY=19"'
+    CCFLAGS += ' -I' + environment.python_include_dir + ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     CCFLAGS += ' -O0 -g -I./'
     return CCFLAGS
 
@@ -42,16 +42,17 @@ def get_libs():
 
 local_env = env.Copy()
 local_env.Append( LINKFLAGS=get_libs() )
-local_env.Append( CPPPATH=[ build_dir ] )
+local_env.Append( CPPPATH=[ build_dir, environment.ogre.include_dirs,
+                            environment.boost_include_dir ] )
 local_env.Append( CCFLAGS=get_ccflags() )
 
 _Ogre_ = local_env.SharedLibrary( target='Ogre', SHLIBPREFIX=''
                                        , source=get_source_files() )
 
-if sys.platform == 'win32':
-    Ogre_so_dll = os.path.join( build_dir, 'ogre-vc71-mt-1_2.dll' )
-else:
-    Ogre_so_dll = os.path.join( build_dir, 'ogre-gcc-1_2.so' )
+#if sys.platform == 'win32':
+#    Ogre_so_dll = os.path.join( build_dir, 'ogre-vc71-mt-1_2.dll' )
+#else:
+#    Ogre_so_dll = os.path.join( build_dir, 'ogre-gcc-1_2.so' )
 
 
 local_env.Install( 'Ogre', [_Ogre_] )

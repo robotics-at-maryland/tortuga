@@ -2,9 +2,9 @@ import os
 import sys
 import getpass
 
-root_dir = None #python-ogre root directory
+root_dir = None # python-ogre root directory 
 gccxml_bin = None #path to gccxml binary
-python_include_dirs = None #path to python include files directory
+python_include_dir = None #path to python include files directory
 pyplusplus_install_dir = None #path to pygccxml & Py++ packages
 
 generated = None #path to generated files dir
@@ -23,115 +23,107 @@ class ogre:
     version = "CVS"
     #version = "1.2.3"
     cache_file = None
-    libs_files = ["ogremain", "ogreguirenderer", "ceguibase", "ode", "newton"]
+    libs_files = ["ogremain", "ogreguirenderer", "ceguibase", "newton"]
 
 class ois:
     version= "1.0"
     
-class ogreode:
-    version= "1.0"
+#class ogreode:
+#    version= "1.0"
     
 
 class CEGUI:
-    version = "0.5.0b" 
-class ode:
-    version= "0.7"
+    version = "0.5.0" 
+#class ode:
+#    version= "0.7"
     
 class newton:
     version= "1.0"
     
-class FMOD:
-    version= "1.0"
+#class FMOD:
+#    version= "1.0"
     
-class ogrerefapp:
-    version = "1.2.3"
+#class ogrerefapp:
+#    version = "1.2.3"
 
 class ogrenewt:
     version = "1.0"
         
-       
+
+# We have removed all unneeded projects
 projects = {
     'ois' : ois
     , 'ogre' : ogre
     , 'CEGUI' : CEGUI
-    , 'ode' : ode
+#    , 'ode' : ode
     , 'newton' : newton
-    , 'ogrerefapp' : ogrerefapp
+#    , 'ogrerefapp' : ogrerefapp
     , 'ogrenewt' : ogrenewt
-    , 'FMOD' : FMOD
-    , 'ogreode' : ogreode
+#    , 'FMOD' : FMOD
+#    , 'ogreode' : ogreode
 }
 
-if 'roman' in getpass.getuser():
-    root_dir = r'D:\dev\python-ogre\bindings-dev'
-    gccxml_bin = r'D:\dev\gccxml/gccxml.exe'
-    python_include_dirs = 'e:/python24/include'
-    pyplusplus_install_dir = r'D:\dev\language-binding\sources'
-
-    ogre.include_dirs = [r'D:\dev\python-ogre\sources\ogre_cvs\ogrenew\OgreMain\include']
-    ois.include_dirs = r'D:\OisSDK\includes'
-else:
-    root_dir = r'C:\development\pywork'
-    gccxml_bin = r'c:/development/gccxml/bin/release/gccxml.exe'
-#    python_include_dirs = 'c:/python25/include'
-#    python_include_dirs = 'c:/python24/include'
-    pyplusplus_install_dir = r'c:\development\pyplus'
-
-    if ogre.version == "CVS":
-        ogre.include_dirs  = [r'c:\development\ocvs\ogrenew\ogremain\include']
-        ogreode.include_dirs = [r'c:/development/ocvs/ogreaddons/ogreode/include',
-                            r'c:/development/ocvs/ogreaddons/ogreode/prefab/include',
-                            r'c:\development\ocvs\ogrenew\ogremain\include',
-                            r'c:/development/ode/include']
-        ogrerefapp.include_dirs = [r'c:\development\ocvs\ogrenew\ogremain\include',
-                           r'c:\development\ocvs\ogrenew\referenceapplication\referenceapplayer\include',
-                            r'c:\development\ocvs\ogrenew\dependencies\include']
-        ogrerefapp.version="CVS"
-        
-#         ogre.libs_dirs = [r'c:/development/ocvs/ogrenew/ogremain/lib/release', 
-#                         r'c:/development/ocvs/ogrenew/samples/common/ceguirenderer/lib',
-#                         r'c:/development/ocvs/ogrenew/dependencies/lib/release',
-#                         r'c:/development/boost/boost' ]
-        CEGUI.include_dirs = [r'c:/development/cegui-0.5.0/include',
-                           ## r'c:/development/ocvs/ogrenew/dependencies/include',
-                           ## NOTE: ogre headers expect cegui to live in ./CEGUI so I've copied the cegui include
-                           ## tree to ./CEGUI in the following directory..
-                            r'c:/development/ocvs/ogrenew/dependencies/include/',
-                            r'c:/development/ocvs/ogrenew/samples/common/CEGUIRenderer/include',
-                            r'c:/development/ocvs/ogrenew/ogremain/include',
-                            r'c:/development/boost'
-                            ]
-                            
-        ogrenewt.include_dirs = [r'c:/development/ocvs/ogreaddons/ogrenewt/OgreNewt_Main/inc',
-                            r'c:/development/ocvs/ogrenew/ogremain/include',
-                            r'c:/development/newtonsdk/sdk',
-                            r'c:/development/boost',
-                            r'c:/python25/include'
-                            ]
-
-    else:
-        ogre.include_dirs  = [r'c:\devold\ogreSDK\include',
-                                r'c:\devold\ogreSDK\samples\refapp\include'
-                                ]
-        CEGUI.include_dirs = [r'c:/devold/cegui-0.5.0/include',
-                            r'c:/devold/ogresdk/samples/include',
-                            r'c:/devold/ogresdk/include',
-                            r'c:/development/boost'
-                            ]  
-                                    
-        ogrerefapp.include_dirs = ogre.include_dir
-        
-#    CEGUI.include_dir = r'c:/ogresdk/include/CEGUI'
-    ode.include_dirs = [r'c:/development/ode/include']
-    newton.include_dirs = [r'c:/development/newtonsdk/sdk']
-    ois.include_dirs = [r'c:\development\ois\includes']
-    FMOD.include_dirs=[r'c:\development\fmod\api\inc']
+def shell_backquote(_command):
+    command = _command
+    if type(_command) is not list:
+        command = _command.split(' ')
+    # Run the command and check the return code
+    process = Popen(command, stdout=PIPE)
+    result = process.communicate()[0]
+    
+    if process.returncode != 0:
+        raise 'Shell command "%s" failed' % _command
+    return result
     
 
+if os.name == 'posix':
+    _env_root = os.path.abspath(os.path.join(os.environ["MRBC_SVN_ROOT"],
+                                             'deps', 'local'))
+
+    # Path to python-ogre root directory found automatically
+    _relative_path = os.path.dirname(sys.modules[__name__].__file__)
+    root_dir = os.path.abspath(_relative_path) 
+    python_include_dir = '/usr/include/python2.4'
+
+    # Attempt automatic detection of gccxml
+    # try:
+    #    gccxml_bin = shell_backquote('which gccxml');
+    #except:
+    #    raise "Could not find gccxml on the path"
+    gccxml_bin = os.path.join(_env_root, 'bin', 'gccxml')
+
+    # Base directories
+    _base_include_dir = os.path.join(_env_root, 'include')
+    _ogre_include_dir = os.path.join(_base_include_dir, 'OGRE')
+    _boost_include_dir = os.path.join(_base_include_dir, 'boost-1_35', 'boost')
+    boost_include_dir = os.path.join(_base_include_dir, 'boost-1_35')
+    # Include Directories
+    ogre.include_dirs = [_ogre_include_dir]
+
+    CEGUI.include_dirs = \
+        [os.path.join(_base_include_dir, 'CEGUI'),
+         _ogre_include_dir,
+         os.path.abspath(os.path.join(root_dir,
+              '../ogre/Samples/Common/CEGUIRenderer/include')),
+         _boost_include_dir,
+         _base_include_dir]
+
+    ogrenewt.include_dirs = \
+        [os.path.join(_env_root, 'include', 'OgreNewt'),
+         _ogre_include_dir,
+         os.path.join(_env_root, 'include'), # Newton SDK include
+         _boost_include_dir,
+         python_include_dir]
+
+    ois.include_dirs = [os.path.join(_env_root, 'include', 'OIS')]
+    
+else:
+    raise "OS Not Supported"
 
 sys.path.append( os.path.join( root_dir, 'common_utils' ) )
-sys.path.append( pyplusplus_install_dir + r'/pygccxml_dev' )
-sys.path.append( pyplusplus_install_dir + r'/pyplusplus_dev' )
+# This is not needed we have these packages installed globally
+#sys.path.append( pyplusplus_install_dir + r'/pygccxml_dev' )
+#sys.path.append( pyplusplus_install_dir + r'/pyplusplus_dev' )
 
 shared_ptr_dir = os.path.join( root_dir, 'shared_ptr' )
 generated_dir = os.path.join( root_dir, 'generated' )
@@ -139,6 +131,7 @@ generated_dir = os.path.join( root_dir, 'generated' )
 
 declarations_cache_dir = os.path.join( root_dir, 'code_generators', 'cache' )
 
+# Generate the per project root, generated and cache dirs
 for name, cls in projects.items():
     cls.root_dir = os.path.join( root_dir, 'code_generators', name )
     cls.generated_dir = os.path.join( generated_dir, name + '_' + str(cls.version) )
