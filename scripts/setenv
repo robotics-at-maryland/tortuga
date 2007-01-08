@@ -9,7 +9,7 @@
 export PYTHONPATH=$MRBC_SVN_ROOT/deps/local/lib/python2.4/site-packages
 
 # Setup the PATH
-export PATH=$MRBC_SVN_ROOT/scripts:$PATH
+export PATH=$MRBC_SVN_ROOT/scripts:$MRBC_SVN_ROOT/deps/local/bin:$PATH
 export LD_LIBRARY_PATH=$MRBC_SVN_ROOT/deps/local/lib:$LD_LIBRARY_PATH
 
 # Setup path for pkgconfig (so it can find our local libraries)
