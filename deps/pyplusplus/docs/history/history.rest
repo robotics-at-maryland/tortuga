@@ -18,6 +18,7 @@ Thanks to all the people that have contributed patches, bug reports and suggesti
 * Georgiy Dernovoy
 * Gottfried Ganssauge
 * Andy Miller
+* Martin Preisler
 
 ------------
 Project name
@@ -31,6 +32,17 @@ There were few reasons to this:
 2. "Py++" was the original name of the project: http://mail.python.org/pipermail/c++-sig/2005-July/009280.html
 
 3. Users always changed the name of the projects. I saw at least 6 different names.
+
+
+-------------
+Version 0.8.*
+-------------
+
+1. Bug fixes:
+   
+   * Declaration of virtual functions that have an exception specification with 
+     an empty throw was fixed. Now the exception specification is generated properly.
+     Many thanks to Martin Preisler for reporting the bug.
 
 -------------
 Version 0.8.5

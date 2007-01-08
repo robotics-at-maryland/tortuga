@@ -128,6 +128,24 @@ W1043 = 'Py++ created an ugly alias ("%s") for template instantiated class.'
 
 W1044 = 'Py++ created an ugly alias ("%s") for function wrapper.'
 
+W1045 = 'Py++ does not expose static arrays with unknown size. ' \
+        'You can fix this by setting array size to the actual one.' \
+        'For more information see "array_t" class documentation.'
+
+W1046 = 'The virtual function was declared with empty throw. ' \
+        'Adding the ability to override the function from Python breaks the exception specification. ' \
+        'The function wrapper can throw any exception. ' \
+        'In case of exception in run-time, the behaviour of the program is undefined! '
+
+W1047 = 'There are two or more classes that use same alias("%s"). ' \
+        'Duplicated aliases causes few problems, but the main one is that some ' \
+        'of the classes will not be exposed to Python.' \
+        'Other classes : %s'
+
+W1048 = 'There are two or more aliases within "pyplusplus::aliases" namespace for ' \
+        'the class. In order to enjoy from automatic aliasing, the class alias ' \
+        'should be unique. Other aliases: %s'
+        
 warnings = globals()
 
 for identifier, explanation in warnings.items():

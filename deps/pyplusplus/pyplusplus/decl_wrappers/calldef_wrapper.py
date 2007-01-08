@@ -208,6 +208,13 @@ class member_function_t( declarations.member_function_t, calldef_t ):
             return messages.W1011
         return ''
     
+    def _readme_impl( self ):
+        msgs = super( member_function_t, self )._readme_impl()
+        if self.does_throw == False \
+           and self.virtuality != declarations.VIRTUALITY_TYPES.NOT_VIRTUAL:
+            msgs.append( messages.W1046 )
+        return msgs
+    
 class constructor_t( declarations.constructor_t, calldef_t ):
     """defines a set of properties, that will instruct Py++ how to expose the constructor"""
     def __init__(self, *arguments, **keywords):

@@ -19,6 +19,9 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
                                                                     
     def customize(self, mb ):
         mb.class_( 'fundamental2' ).alias = 'FUNDAMENTAL2'
+        apple = mb.class_( 'apple' )
+        self.failUnless( apple.alias == 'the_tastest_fruit' )
+        apple.alias = 'apple'
 
     def run_tests(self, module):        
         self.failIfRaisesAny( module.fundamental1 )

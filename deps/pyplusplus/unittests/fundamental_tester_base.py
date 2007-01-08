@@ -7,6 +7,7 @@ import os
 import sys
 import unittest
 import autoconfig
+from pygccxml import parser
 from pyplusplus import module_builder
 
 LICENSE = """// Copyright 2004 Roman Yakovenko.
@@ -63,7 +64,12 @@ class fundamental_tester_base_t( unittest.TestCase ):
 
     def _create_extension_source_file(self):
         global LICENSE
-        mb = module_builder.module_builder_t( [self.__to_be_exported_header]
+        
+        xml_file = os.path.split( self.__to_be_exported_header )[1]
+        xml_file = os.path.join( autoconfig.build_dir, xml_file + '.xml' )
+        xml_cached_fc = parser.create_cached_source_fc( self.__to_be_exported_header, xml_file )
+
+        mb = module_builder.module_builder_t( [xml_cached_fc]
                                               , gccxml_path=autoconfig.gccxml.executable
                                               , include_paths=[autoconfig.boost.include]
                                               , undefine_symbols=['__MINGW32__']

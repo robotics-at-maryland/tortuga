@@ -26,6 +26,13 @@ On this page you will find my collection of the solutions to some of the problem
 
 .. _`boost::shared_ptr< const T>` : ./shared_ptr/shared_ptr.html
 
+`automatic conversion`_
+
+  .. include:: ./automatic_conversion/definition.rest
+
+.. _`automatic conversion` : ./automatic_conversion/automatic_conversion.html
+
+
 .. _`Py++` : ./../pyplusplus.html
 .. _`pygccxml` : http://www.language-binding.net/pygccxml/pygccxml.html
 .. _`SourceForge`: http://sourceforge.net/index.php

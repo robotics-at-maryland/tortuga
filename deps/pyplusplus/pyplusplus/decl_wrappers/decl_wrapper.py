@@ -47,18 +47,27 @@ class decl_wrapper_t(object):
             name = self.name
         return algorithm.create_valid_name( name )
 
+    def __select_alias_directives( self ):
+        if not isinstance( self, declarations.class_t ):
+            return []
+        return list( set( filter( lambda typedef: typedef.is_directive, self.aliases ) ) )
+
     def _get_alias(self):
         if not self._alias:
-            if declarations.templates.is_instantiation( self.name ):
-                container_aliases = [ 'value_type', 'key_type', 'mapped_type' ]
-                if isinstance( self, declarations.class_t ) \
-                    and 1 == len( set( map( lambda typedef: typedef.name, self.aliases ) ) ) \
-                    and self.aliases[0].name not in container_aliases:
-                        self._alias = self.aliases[0].name
-                else:
-                    self._alias = self._generate_valid_name()
+            directives = self.__select_alias_directives()
+            if 1 == len( directives ):
+                self._alias = directives[0].name
             else:
-                self._alias = self.name
+                if declarations.templates.is_instantiation( self.name ):
+                    container_aliases = [ 'value_type', 'key_type', 'mapped_type' ]
+                    if isinstance( self, declarations.class_t ) \
+                        and 1 == len( set( map( lambda typedef: typedef.name, self.aliases ) ) ) \
+                        and self.aliases[0].name not in container_aliases:
+                            self._alias = self.aliases[0].name
+                    else:
+                        self._alias = self._generate_valid_name()
+                else:
+                    self._alias = self.name
         return self._alias
     def _set_alias(self, alias):
         self._alias = alias
@@ -132,7 +141,12 @@ class decl_wrapper_t(object):
         if declarations.templates.is_instantiation( self.name ) \
            and self.alias == self._generate_valid_name():
             msgs.append( messages.W1043 % self.alias )
-            
+        
+        directives = self.__select_alias_directives()
+        if 1 < len( directives ):                  
+            msgs.append( messages.W1048 
+                         % ', '.join( map( lambda typedef: typedef.name, directives ) ) )
+
         msgs.extend( self._readme_impl() )        
         
         return messages.filter_disabled_msgs( msgs, self.__msgs_to_ignore )

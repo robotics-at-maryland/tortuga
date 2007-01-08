@@ -97,4 +97,13 @@ struct protected_derived : protected protected_base{};
 
 }//classes 
 
+namespace pyplusplus{ namespace aliases{
+    
+typedef classes::hierarchical::apple the_tastest_fruit;
+    
+typedef classes::protected_static::protected_static_t PROTECTED_STATIC_T_1;
+typedef classes::protected_static::protected_static_t PROTECTED_STATIC_T_2;
+    
+}}
+
 #endif//__classes_to_be_exported_hpp__

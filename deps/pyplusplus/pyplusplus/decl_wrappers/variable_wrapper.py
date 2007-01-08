@@ -101,6 +101,8 @@ class variable_t(decl_wrapper.decl_wrapper_t, declarations.variable_t):
             return messages.W1033
         if self.bits == 0 and self.name == "":
             return messages.W1034
+        if declarations.is_array( self.type ) and declarations.array_size( self.type ) < 1:
+            return messages.W1045
         type_ = declarations.remove_alias( self.type )
         type_ = declarations.remove_const( type_ )
         if declarations.is_pointer( type_ ):

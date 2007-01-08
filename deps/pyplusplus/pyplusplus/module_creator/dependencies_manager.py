@@ -19,6 +19,41 @@ class manager_t( object ):
     def add_exported( self, decl ):
         self.__exported_decls.append( decl )  
 
+    def __select_duplicate_aliases( self, decls ):
+        duplicated = {}
+        for decl in decls:
+            if not duplicated.has_key( decl.alias ):
+                duplicated[ decl.alias ] = set()
+            duplicated[ decl.alias ].add( decl )        
+        for alias, buggy_decls in duplicated.items():
+            if 1 == len( buggy_decls ):
+                del duplicated[ alias ]        
+        return duplicated
+
+    def __report_duplicate_aliases_impl( self, control_decl, duplicated ):
+        if control_decl.alias in duplicated:
+            buggy_decls = duplicated[control_decl.alias].copy()
+            buggy_decls.remove( control_decl )
+            warning = messages.W1047 % ( control_decl.alias
+                                         , os.linesep.join( map( str, buggy_decls ) ) )
+            self.__logger.warn( "%s;%s" % ( control_decl, warning ) )
+            
+        if isinstance( control_decl, declarations.class_t ):
+            query = lambda i_decl: isinstance( i_decl, declarations.class_types ) \
+                                   and i_decl.ignore == False
+            i_decls = control_decl.classes( query, recursive=False, allow_empty=True )
+            i_duplicated = self.__select_duplicate_aliases( i_decls )
+            for i_decl in i_decls:
+                self.__report_duplicate_aliases_impl( i_decl, i_duplicated )
+
+    def __report_duplicate_aliases( self ):
+        decls = filter( lambda decl: isinstance( decl, declarations.class_types ) \
+                                     and isinstance( decl.parent, declarations.namespace_t )
+                        , self.__exported_decls )
+        duplicated = self.__select_duplicate_aliases( decls )
+        for decl in decls:
+            self.__report_duplicate_aliases_impl( decl, duplicated )
+    
     def __is_std_decl( self, decl ):
         #Every class under std should be exported by Boost.Python and\\or Py++
         #Also this is not the case right now, I prefer to hide the warnings
@@ -34,6 +69,7 @@ class manager_t( object ):
 
     def __build_dependencies( self, decl ):
         if self.__is_std_decl( decl ):
+            #TODO add element_type to the list of dependencies
             return [] #std declarations should be exported by Py++!
         
         dependencies = decl.i_depend_on_them(recursive=False)
@@ -69,7 +105,7 @@ class manager_t( object ):
             groups[ id( depend_on_decl ) ].append( dependency )
         return groups
 
-    def __create_msg( self, dependencies ):
+    def __create_dependencies_msg( self, dependencies ):
         depend_on_decl = dependencies[0].find_out_depend_on_declaration()
         decls = []
         for dependency in dependencies:
@@ -80,4 +116,5 @@ class manager_t( object ):
         used_not_exported_decls = self.__find_out_used_but_not_exported()
         groups = self.__group_by_unexposed( used_not_exported_decls )
         for group in groups.itervalues():
-            self.__logger.warn( self.__create_msg( group ) )
+            self.__logger.warn( self.__create_dependencies_msg( group ) )
+        self.__report_duplicate_aliases()

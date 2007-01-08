@@ -15,7 +15,7 @@ class property_t( object ):
     
     It keeps
     """
-    def __init__( self, name, fget, fset=None, doc='', is_static=False ):
+    def __init__( self, name, fget, fset=None, doc=None, is_static=False ):
         self._name = name
         self._fget = fget
         self._fset = fset
@@ -34,9 +34,19 @@ class property_t( object ):
     def fset( self ):
         return self._fset
 
-    @property
-    def doc( self ):
+    def _get_doc( self ):
+        if None is self._doc:            
+            doc = ['get']
+            if self.fset:
+                doc.append( r'\\set' )
+            doc.append( r' property, built on top of \"%s\"' % self.fget )
+            if self.fset:
+                doc.append( r' and \"%s\"' % self.fset )
+            self._doc = '"%s"' % ''.join( doc )
         return self._doc
+    def _set_doc( self, doc ):
+        self._doc = doc
+    doc = property( _get_doc, _set_doc )
 
     @property
     def is_static( self ):

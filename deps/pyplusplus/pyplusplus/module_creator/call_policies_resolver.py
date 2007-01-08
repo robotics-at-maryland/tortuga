@@ -141,6 +141,9 @@ class variable_accessors_resolver_t( resolver_t ):
         base_type = declarations.remove_alias( base_type )
         decl = base_type.declaration
         
+        if declarations.is_class_declaration( decl ):
+            return None
+        
         if decl.is_abstract:
             return None
         if declarations.has_destructor( decl ) and not declarations.has_public_destructor( decl ): 

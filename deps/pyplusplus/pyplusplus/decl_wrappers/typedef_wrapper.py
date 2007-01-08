@@ -19,3 +19,14 @@ class typedef_t(decl_wrapper.decl_wrapper_t, declarations.typedef_t):
     def __init__(self, *arguments, **keywords):
         declarations.typedef_t.__init__(self, *arguments, **keywords )
         decl_wrapper.decl_wrapper_t.__init__( self )
+        self.__is_directive = None
+        
+    @property
+    def is_directive( self ):
+        if None is self.__is_directive:
+            dpath = declarations.declaration_path( self )
+            if len( dpath ) != 4:
+                self.__is_directive = False
+            else:
+                self.__is_directive = dpath[:3] == ['::', 'pyplusplus', 'aliases']
+        return self.__is_directive

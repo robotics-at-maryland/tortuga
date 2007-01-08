@@ -158,12 +158,16 @@ class calldef_wrapper_t( code_creator.code_creator_t
         return 'throw std::logic_error("%s");' % msg
 
     def throw_specifier_code( self ):
-        if not self.declaration.exceptions:
-            return ''
-        exceptions = map( lambda exception:
-                            algorithm.create_identifier( self, declarations.full_name( exception ) )
-                          , self.declaration.exceptions )
-        return ' throw( ' + self.PARAM_SEPARATOR.join( exceptions ) + ' )'
+        if self.declaration.does_throw:
+            if not self.declaration.exceptions:
+                return ''
+            else:
+                exceptions = map( lambda exception: 
+                                        algorithm.create_identifier( self, declarations.full_name( exception ) )
+                                  , self.declaration.exceptions )
+                return ' throw( ' + self.PARAM_SEPARATOR.join( exceptions ) + ' )'
+        else:
+            return ' throw()'
 
 class free_function_t( calldef_t ):
     def __init__( self, function ):
