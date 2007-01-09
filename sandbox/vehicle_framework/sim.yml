@@ -13,12 +13,12 @@ Vehicles:
                 type: GLRenderSystem
                 
                 GLRenderSystem:
-                    - Colour Depth: '32'
-                    - Display Frequency: 'N/A'
-                    - FSAA: '0'
-                    - Full Screen: 'No'
-                    - RTT Preferred Mode: 'FBO'
-                    - VSync: 'No'
+                    - [Colour Depth, '32']
+                    - [Display Frequency, 'N/A']
+                    - [FSAA, '0']
+                    - [Full Screen, 'No']
+                    - [RTT Preferred Mode, 'FBO']
+                    - [VSync, 'No']
             
             # This replaces Ogre's resources.cfg, Each node under resources
             # is a group and each node under that is an archive type, with a 
@@ -31,3 +31,6 @@ Vehicles:
                                  'media/primitives',
                                  'media/materials/textures',
                                  'media/materials/scripts']
+        Physics:
+            # Number of time persecond you wished to have the physics updated
+            update_rate: 60

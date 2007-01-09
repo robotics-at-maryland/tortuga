@@ -11,7 +11,7 @@ def main():
     # Parse Command line options
 
     # Read in value from config file and create the right vehicle    
-    config = yaml.load(file('sim.cfg'))
+    config = yaml.load(file('sim.yml'))
 
     vehicle_type = config['vehicle']
     # Pass along the subsection of the config corresponding to the vehicle
@@ -22,7 +22,10 @@ def main():
 
     # Start up our vehicle
     vehicle.start_update();
+    
+    del vehicle
     print "Hello World"
+    
 
     return 0
 

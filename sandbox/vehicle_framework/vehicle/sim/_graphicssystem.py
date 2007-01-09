@@ -3,21 +3,38 @@ import os
 import Ogre
 from Ogre import sf_OIS as sf
 
-class OgreSys(object):
+class GraphicsSystem(object):
     """
-    Wrap up all ogre initialization in an Inner class (maybe more it outside)
+    This class handles all initialization of graphics with the Ogre rendering
+    engine.  It is driven completely by config file.  Current a bug in 
+    Python-Ogre means with have the rendersystem config dialog.
     """    
-    def __init__(self):
-        self.root = None # Done
+    def __init__(self, config):
+        self.root = None
         self.camera = None
-        self.renderWindow = None # Done
-        self.sceneManager = None # Done
+        self.renderWindow = None
+        self.scene_manager = None
+        
+        # Setups Ogre, step by step
+        self._setUp(config)
         
     def __del__(self):
         del self.camera;
-        del self.sceneManager
+        del self.scene_manager
         del self.root
         del self.renderWindow  
+    
+    def update(self, time_since_last_update):
+        """
+        Renders one frame
+        """
+        self.root.renderOneFrame()
+    
+    def start_update(self):
+        """
+        Starts a continous rendering loop
+        """
+        self.root.startRendering()
     
     def _setUp(self, config):
         self.root = Ogre.Root(sf.getPluginPath());
@@ -30,7 +47,7 @@ class OgreSys(object):
         if not self._initOgreCore(ogreConf['RenderSystem']):
             return False
         # Create the Ogre SceneManager
-        self.sceneManager = self.root.createSceneManager(Ogre.ST_GENERIC,
+        self.scene_manager = self.root.createSceneManager(Ogre.ST_GENERIC,
                                                         'SimSceneMgr')
         
         # Possibly considate/config drive these
@@ -46,24 +63,21 @@ class OgreSys(object):
 
         return True
     
-    def go(self):
-        """
-        Starts a continous rendering loop
-        """
-        self.root.startRendering()
-    
     def  _addResourceLocations(self, config):
         """
-        The Config needs a section like so, this tells ogre where to look
-        for all the files to load.
-        [Ogre]
-            [[Resources]]
-                zip = ['../Media/packs/textures.zip',
-                    '../Media/packs/models.zip']
-                filesystem = ['../Media'
-                    '../Media/fonts',
-                    '../Media/materials/programs',
-                    '../Media/materials/scripts']
+        This replaces Ogre's resources.cfg, Each node under resources
+        is a group and each node under that is an archive type, with a 
+        list of directories to load for that type. Example:
+        
+        Ogre:
+            Resources:
+                General:
+                    Zip: ['media/packs/OgreCore.zip',
+                          'media/packs/cubemapsJS.zip']
+                    FileSystem: ['media/models',
+                                 'media/primitives',
+                                 'media/materials/textures',
+                                 'media/materials/scripts']
         """
         rsrcMrg = Ogre.ResourceGroupManager.getSingleton()
         for group in config:
@@ -75,23 +89,25 @@ class OgreSys(object):
                     
     def _initOgreCore(self, config):
         """
-        Loads the needed setting ogre settings from the config file, based
-        on render system type. Should be of the form:
-        [Ogre]
-        [[RenderSystem]]
-            type = GLRenderSystem
-
-            # Must be of the same name as the type                
-            [[GLRenderSystem]]
-                Colour Depth=32
-                Display Frequency=N/A
-                FSAA=0
-                Full Screen=No
-                RTT Preferred Mode=FBO
-                VSync=No
-                Video Mode=640 x 480
+        This secion here takes over for Ogre's ogre.cfg.  The type 
+        indicates which Ogre RenderSystem to create and which section to
+        load the options from.  Example:
+        
+        Ogre:
+            RenderSystem:
+                type: GLRenderSystem
+                
+                GLRenderSystem:
+                    - [Colour Depth, '32']
+                    - [Display Frequency, 'N/A']
+                    - [FSAA, '0']
+                    - [Full Screen, 'No']
+                    - [RTT Preferred Mode, 'FBO']
+                    - [VSync, 'No']
 
         """
+        
+        # Allows looser specification of RenderSystem names
         typemap = {'GLRenderSystem' : 'GLRenderSystem',
                    'OpenGL' : 'GLRenderSystem',
                    'DirectX' : 'D3D9RenderSystem',
@@ -99,7 +115,7 @@ class OgreSys(object):
                    'Direct 3D' : 'D3D9RenderSystem'}
         # Currently doesn't work           
         #try:
-        #    type = typemap[config['Type'].replace(' ','')]
+        #    type = typemap[config['type'].replace(' ','')]
         #    RenderSystemCls = getattr(ogre, type)
         #except AttributeError:
         #    print 'Improper Ogre RenderSystem'
@@ -107,8 +123,8 @@ class OgreSys(object):
         
         #renderSystem = RenderSystemCls()
         # Load our options from the custom config system          
-        #for option in config[str(RenderSystemCls)]:
-        #    renderSystem.setConfigOption(option, config[option])
+        #for name, value in config[str(RenderSystemCls)]:
+        #    renderSystem.setConfigOption(name, value])
 
         # If we have gotten this far, the we can let Ogre create a default
         # window from the settings loaded above
@@ -120,13 +136,17 @@ class OgreSys(object):
         return carryOn
 
     def _createCamera(self):
-        """Creates the camera."""        
-        self.camera = self.sceneManager.createCamera('PlayerCam')
+        """
+        Creates the camera.
+        """        
+        self.camera = self.scene_manager.createCamera('PlayerCam')
         self.camera.setPosition(Ogre.Vector3(0, 0, 500))
         self.camera.lookAt(Ogre.Vector3(0, 0, -300))
         self.camera.NearClipDistance = 5
 
     def _createViewports(self):
-        """Creates the Viewport."""
+        """
+        Creates the Viewport.
+        """
         self.viewport = self.renderWindow.addViewport(self.camera)
         self.viewport.BackgroundColour = Ogre.ColourValue(0,20,0)        
