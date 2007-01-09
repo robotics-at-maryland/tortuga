@@ -1,6 +1,6 @@
 # Python Imports
 import sys
-from configobj import ConfigObj
+import yaml
 
 
 
@@ -11,7 +11,7 @@ def main():
     # Parse Command line options
 
     # Read in value from config file and create the right vehicle    
-    config = ConfigObj('sim.cfg', unrepr = True)
+    config = yaml.load(file('sim.cfg'))
 
     vehicle_type = config['vehicle']
     # Pass along the subsection of the config corresponding to the vehicle
