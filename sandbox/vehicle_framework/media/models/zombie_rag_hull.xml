@@ -1,0 +1,49 @@
+<RagDoll>
+	<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="20.0" skeleton_bone="PELVIS">
+		<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="20.0" skeleton_bone="STOMACH">
+			<Joint type="ballsocket" pin="0 1 0" limit1="20.0" limit2="10.0" />
+			<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="20.0" skeleton_bone="CHEST">
+				<Joint type="ballsocket" pin="0 1 0" limit1="20.0" limit2="10.0" />
+				<Bone dir="0 1 0" length="0.0" shape="hull" size="0.1 0.0 0.0" mass="10.0" skeleton_bone="NECK">
+					<Joint type="ballsocket" pin="0 1 0" limit1="20.0" limit2="10.0" />
+					<Bone dir="0 1 0" length="0.0" shape="hull" size="0.5 0.0 0.0" mass="8.0" skeleton_bone="HEAD">
+						<Joint type="ballsocket" pin="0 1 0" limit1="40.0" limit2="30.0" />
+					</Bone>
+				</Bone>
+				<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="18.0" skeleton_bone="ARM_L">
+					<Joint type="ballsocket" pin="1 0 0" limit1="80.0" limit2="20.0" />
+					<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="16.0" skeleton_bone="FOREARM_L">
+						<Joint type="hinge" pin="1 0 0" limit1="-5.0" limit2="120.0" />
+						<Bone dir="0 1 0" length="0.0" shape="hull" size="0.1 0.0 0.0" mass="8.0" skeleton_bone="WRIST_L">
+							<Joint type="ballsocket" pin="1 0 0" limit1="50.0" limit2="20.0" />
+						</Bone>
+					</Bone>
+				</Bone>
+				<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="18.0" skeleton_bone="ARM_R">
+					<Joint type="ballsocket" pin="-1 0 0" limit1="80.0" limit2="20.0" />
+					<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="16.0" skeleton_bone="FOREARM_R">
+						<Joint type="hinge" pin="1 0 0" limit1="-5.0" limit2="120.0" />
+					</Bone>
+				</Bone>
+			</Bone>
+		</Bone>
+		<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="25.0" skeleton_bone="FEMUR_L">
+			<Joint type="ballsocket" pin="0 -1 0.2" limit1="90.0" limit2="15.0" />
+			<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="20.0" skeleton_bone="CALF_L">
+				<Joint type="hinge" pin="0 0 1" limit1="-5.0" limit2="120.0" />
+				<Bone dir="0 1 0" length="0.0" shape="hull" size="0.1 0.0 0.0" mass="10.0" skeleton_bone="FOOT_L">
+					<Joint type="ballsocket" pin="0 1 0" limit1="30.0" limit2="10.0" />
+				</Bone>
+			</Bone>
+		</Bone>
+		<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="25.0" skeleton_bone="FEMUR_R">
+			<Joint type="ballsocket" pin="0 -1 -0.2" limit1="90.0" limit2="15.0" />
+			<Bone dir="0 1 0" length="0.0" shape="hull" size="0.3 0.0 0.0" mass="20.0" skeleton_bone="CALF_R">
+				<Joint type="hinge" pin="0 0 -1" limit1="-5.0" limit2="120.0" />
+				<Bone dir="0 1 0" length="0.0" shape="hull" size="0.1 0.0 0.0" mass="10.0" skeleton_bone="FOOT_R">
+					<Joint type="ballsocket" pin="0 1 0" limit1="30.0" limit2="10.0" />
+				</Bone>
+			</Bone>
+		</Bone>
+	</Bone>
+</RagDoll>

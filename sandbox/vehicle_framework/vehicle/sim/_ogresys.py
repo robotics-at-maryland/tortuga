@@ -1,3 +1,5 @@
+import os
+
 import Ogre
 from Ogre import sf_OIS as sf
 
@@ -65,8 +67,10 @@ class OgreSys(object):
         """
         rsrcMrg = Ogre.ResourceGroupManager.getSingleton()
         for group in config:
-            for type in group:
-                for location in type:
+            group_cfg = config[group];
+            for type in group_cfg:
+                for location in group_cfg[type]:
+                    location = os.path.abspath(location)
                     rsrcMrg.addResourceLocation(location, type, group)
                     
     def _initOgreCore(self, config):
