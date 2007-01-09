@@ -2,22 +2,35 @@
 #import Ogre
 
 # Project Includes
-from .. vehicle import VehicleFactory
-from . import GraphicsSystem
-from . import PhysicsSystem
+from .. import VehicleFactory
+from . import GraphicsSystem, PhysicsSystem, InputSystem
 
 class Vehicle(object):          
     def __init__(self, config):
         print "Created Simulated vehicle:", config
-        self.gfx_sys = GraphicsSystem(config)
-        self.phy_sys = PhysicsSystem(config, self.gfx_sys)
+        self.graphics_sys = GraphicsSystem(config)
+        self.physics_sys = PhysicsSystem(config, self.graphics_sys)
+        self.input_sys = InputSystem(self.graphics_sys)
+        
+        self.components = [self.input_sys, self.physics_sys, 
+                           self.graphics_sys]
         
     def __del__(self):
-        del self.phy_sys
-        del self.gfx_sys
+        del self.input_sys
+        del self.physics_sys
+        del self.graphics_sys
         
-    def start_update(self):
-        self.gfx_sys.start_update()
+        
+    def update(self, time_since_last_update):
+        # Update all components, drop out if one returns false
+        for component in self.components:
+            #print 'Updating: %s ...' % str(component)
+            if not component.update(time_since_last_update):
+                print 'Comp %s, quitting' % str(component)
+                return False
+            #print 'Done'
+        return True
+        
 
-
+# Register Simuldated Vehicle with Factory
 VehicleFactory.createFunc['Sim'] = Vehicle

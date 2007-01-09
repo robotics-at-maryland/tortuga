@@ -2,4 +2,5 @@
 
 from _graphicssystem import *
 from _physicssystem import *
+from _inputsystem import *
 from _vehicle import *

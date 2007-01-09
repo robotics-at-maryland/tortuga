@@ -1,8 +1,7 @@
 # Python Imports
 import sys
+import time
 import yaml
-
-
 
 # Project Imports
 from vehicle import *
@@ -19,9 +18,24 @@ def main():
                                     config['Vehicles'][vehicle_type])
 
     # Start up our other systems(possibly use component interface to find them?)
+    components = [vehicle]
 
-    # Start up our vehicle
-    vehicle.start_update();
+    # Main Loop
+    last_time = time.clock()
+    time_since_last_iteration = 0
+    run = True
+    
+    while (run):
+        # Loop over all components updating them, if one returns false exit
+        print 'Vehicle Update time slice: %f' % time_since_last_iteration
+        for component in components:
+            if not component.update(time_since_last_iteration):
+                print 'On Main Comp %s, quitting' % str(component)
+                run = False
+        
+        current_time = time.clock()
+        time_since_last_iteration = current_time - last_time;
+        last_time = current_time
     
     del vehicle
     print "Hello World"

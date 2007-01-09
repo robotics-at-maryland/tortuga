@@ -1,4 +1,5 @@
 import os
+import time
 
 import Ogre
 from Ogre import sf_OIS as sf
@@ -12,7 +13,7 @@ class GraphicsSystem(object):
     def __init__(self, config):
         self.root = None
         self.camera = None
-        self.renderWindow = None
+        self.render_window = None
         self.scene_manager = None
         
         # Setups Ogre, step by step
@@ -22,19 +23,16 @@ class GraphicsSystem(object):
         del self.camera;
         del self.scene_manager
         del self.root
-        del self.renderWindow  
+        del self.render_window  
     
     def update(self, time_since_last_update):
         """
         Renders one frame
         """
         self.root.renderOneFrame()
-    
-    def start_update(self):
-        """
-        Starts a continous rendering loop
-        """
-        self.root.startRendering()
+        # Fake rendering for now
+        time.sleep(0.1)
+        return True
     
     def _setUp(self, config):
         self.root = Ogre.Root(sf.getPluginPath());
@@ -132,7 +130,7 @@ class GraphicsSystem(object):
         
         carryOn = self.root.showConfigDialog()
         if carryOn:
-            self.renderWindow = self.root.initialise(True, "MRBC AUV SIM")
+            self.render_window = self.root.initialise(True, "MRBC AUV SIM")
         return carryOn
 
     def _createCamera(self):
@@ -148,5 +146,5 @@ class GraphicsSystem(object):
         """
         Creates the Viewport.
         """
-        self.viewport = self.renderWindow.addViewport(self.camera)
+        self.viewport = self.render_window.addViewport(self.camera)
         self.viewport.BackgroundColour = Ogre.ColourValue(0,20,0)        
