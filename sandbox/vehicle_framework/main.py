@@ -6,6 +6,21 @@ import yaml
 # Project Imports
 from vehicle import *
 
+def main_loop(components):
+    last_time = time.clock()
+    time_since_last_iteration = 0
+    run = True
+    
+    while (run):
+        # Loop over all components updating them, if one returns false exit
+        for component in components:
+            if not component.update(time_since_last_iteration):
+                run = False
+        
+        current_time = time.clock()
+        time_since_last_iteration = current_time - last_time;
+        last_time = current_time
+
 def main():
     # Parse Command line options
 
@@ -21,21 +36,7 @@ def main():
     components = [vehicle]
 
     # Main Loop
-    last_time = time.clock()
-    time_since_last_iteration = 0
-    run = True
-    
-    while (run):
-        # Loop over all components updating them, if one returns false exit
-        print 'Vehicle Update time slice: %f' % time_since_last_iteration
-        for component in components:
-            if not component.update(time_since_last_iteration):
-                print 'On Main Comp %s, quitting' % str(component)
-                run = False
-        
-        current_time = time.clock()
-        time_since_last_iteration = current_time - last_time;
-        last_time = current_time
+    main_loop(components)
     
     del vehicle
     print "Hello World"

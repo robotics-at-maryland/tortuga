@@ -12,7 +12,7 @@ class PhysicsSystem(object):
         # Here so we can clean up after outselves
         self.bodies = []
         
-        self.update_interval = (1.0 / config['Physics']['update_rate'])
+        self.update_interval = (1.0 / config['update_rate'])
         self.elapsed = 0.0;
         
         # Start up the debugger so that we can show debugging lines
@@ -25,7 +25,7 @@ class PhysicsSystem(object):
         OgreNewt.Debugger.getSingleton().deInit()
         
         del self.bodies
-        del self.World
+        del self.world
         
     def update(self, time_since_last_update):
         """

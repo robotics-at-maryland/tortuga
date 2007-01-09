@@ -36,13 +36,12 @@ class GraphicsSystem(object):
     
     def _setUp(self, config):
         self.root = Ogre.Root(sf.getPluginPath());
-        ogreConf = config['Ogre']
 
         # Add Resource Locations
-        self._addResourceLocations(ogreConf['Resources']);
+        self._addResourceLocations(config['Resources']);
 
         # if we cannot initialise Ogre, just abandon the whole deal         
-        if not self._initOgreCore(ogreConf['RenderSystem']):
+        if not self._initOgreCore(config['RenderSystem']):
             return False
         # Create the Ogre SceneManager
         self.scene_manager = self.root.createSceneManager(Ogre.ST_GENERIC,

@@ -5,7 +5,7 @@ vehicle: Sim
 Vehicles:
     Sim:
         dotscene_files: not_here.xml
-        Ogre:
+        Graphics:
             # This secion here takes over for Ogre's ogre.cfg.  The type 
             # indicates which Ogre RenderSystem to create and which section to
             # load the options from
@@ -31,6 +31,18 @@ Vehicles:
                                  'media/primitives',
                                  'media/materials/textures',
                                  'media/materials/scripts']
+                                 #'data/gui-bad',
+                                 #'data/fonts']
+                GUI:
+                     FileSystem: ['data/gui/',
+                                  'data/gui/schemes',
+                                  'data/gui/fonts']
         Physics:
             # Number of time persecond you wished to have the physics updated
             update_rate: 60
+            
+        GUI:
+            # These settings are used by the underlying GUI toolkit (CEGUI)
+            scheme: TaharezLookSkin.scheme
+            look: TaharezLook
+            font: BlueHighway-12

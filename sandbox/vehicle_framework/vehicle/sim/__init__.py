@@ -1,5 +1,6 @@
 # Pull in our classes (so we don't have odd import statements)
 
+from _guisystem import *
 from _graphicssystem import *
 from _physicssystem import *
 from _inputsystem import *
