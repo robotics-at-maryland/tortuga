@@ -1,7 +1,7 @@
 # Pull in our classes (so we don't have odd import statements)
 
-from _guisystem import *
-from _graphicssystem import *
-from _physicssystem import *
-from _inputsystem import *
-from _vehicle import *
+from gui import *
+from graphics import *
+from physics import *
+from input import *
+from simvehicle import *

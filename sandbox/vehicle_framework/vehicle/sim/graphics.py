@@ -5,6 +5,12 @@ import logging
 import Ogre
 from Ogre import sf_OIS as sf
 
+from vehicle.sim.utility import SimulationError
+
+class GraphicsError(SimulationError):
+    """ Error from the graphics system """
+    pass
+
 class GraphicsSystem(object):
     """
     This class handles all initialization of graphics with the Ogre rendering
@@ -18,7 +24,7 @@ class GraphicsSystem(object):
         self.scene_manager = None
         
         # Setups Ogre, step by step
-        self._setUp(config)
+        self._setup(config)
         
     def __del__(self):
         # Make sure the C++ based objects are deleted in the proper order
@@ -27,38 +33,25 @@ class GraphicsSystem(object):
         del self.root
         del self.render_window  
         del self.logManager
-        del self.py2ogre_log
+        del self.ogre_log
         
     def update(self, time_since_last_update):
         """
         Renders one frame
         """
         self.root.renderOneFrame()
-        # Fake rendering for now
-        time.sleep(0.1)
         return True
     
-    def _setUp(self, config):
-        self._reroute_logging(config)
-        
-        Ogre.LogManager.getSingletonPtr().logMessage("****Test****",
-                                                     Ogre.LML_CRITICAL, False)
-        print self.py2ogre_log.getName()
-        print Ogre.LogManager.getSingletonPtr().getDefaultLog().getName()
-        
-        Ogre.LogManager.getSingletonPtr().logMessage("****Test2****",
-                                                     Ogre.LML_CRITICAL, False)
-        if self.py2ogre_log != Ogre.LogManager.getSingletonPtr().getDefaultLog():
-            print 'ERROR'
+    def _setup(self, config):
+        #    self._reroute_logging(config)  # Broken in Python-Ogre 0.70
         self.root = Ogre.Root(sf.getPluginPath());
-        
 
         # Add Resource Locations
         self._addResourceLocations(config['Resources']);
 
         # if we cannot initialise Ogre, just abandon the whole deal         
-        if not self._initOgreCore(config['RenderSystem']):
-            return False
+        self._initOgreCore(config['RenderSystem'])
+            
         # Create the Ogre SceneManager
         self.scene_manager = self.root.createSceneManager(Ogre.ST_GENERIC,
                                                         'SimSceneMgr')
@@ -81,8 +74,8 @@ class GraphicsSystem(object):
         self.logManager = Ogre.LogManager()
  
         # Create That, doesn't output anything, just calls its listeners
-        self.py2ogre_log = Py2OgreLog(config)
-        self.logManager.setDefaultLog(self.py2ogre_log)
+        self.ogre_log = Py2OgreLog(config)
+        self.logManager.setDefaultLog(self.ogre_log)
         
     
     def  _addResourceLocations(self, config):
@@ -135,13 +128,13 @@ class GraphicsSystem(object):
                    'DirectX' : 'D3D9RenderSystem',
                    'DirectX9' : 'D3D9RenderSystem',
                    'Direct 3D' : 'D3D9RenderSystem'}
-        # Currently doesn't work           
-        #try:
-        #    type = typemap[config['type'].replace(' ','')]
-        #    RenderSystemCls = getattr(ogre, type)
-        #except AttributeError:
-        #    print 'Improper Ogre RenderSystem'
-        #    return False
+                   
+        try:
+            type = typemap[config['type'].replace(' ','')]
+            # Todo: replace this with proper render system iteration
+            #RenderSystemCls = getattr(ogre, type)
+        except AttributeError, KeyError:
+            raise GraphicsError('Improper Ogre RenderSystem')
         
         #renderSystem = RenderSystemCls()
         # Load our options from the custom config system          
@@ -152,11 +145,26 @@ class GraphicsSystem(object):
         # window from the settings loaded above
         #self.root.setRenderSystem(renderSystem)
         
-        carryOn = self.root.showConfigDialog()
-        if carryOn:
-            self.render_window = self.root.initialise(True, "MRBC AUV SIM")
-        return carryOn
-
+        # Small hack until we can iterater render systems
+        ogrecfg = file('ogre.cfg','w')
+        if type == 'GLRenderSystem':
+            ogrecfg.write("Render System=OpenGL Rendering Subsystem\r\n\r\n"
+                          "[OpenGL Rendering Subsystem]\r\n")
+        else:
+            ogrecfg.write("Render System=Direct3D9 Rendering Subsystem\r\n\r\n"
+                          "[Direct3D9 Rendering Subsystem]\r\n")
+        for name, value in config[type]:
+            ogrecfg.write('%s=%s\r\n'% (name,value)) 
+        ogrecfg.close()
+        
+        restored = self.root.restoreConfig()
+        os.remove(ogrecfg.name)
+        
+        if not restored:
+            if not self.root.showConfigDialog():
+                raise GraphicsError('Go not initialize render system')
+            
+        self.render_window = self.root.initialise(True, "MRBC AUV SIM")
     def _createCamera(self):
         """
         Creates the camera.
@@ -176,9 +184,11 @@ class GraphicsSystem(object):
         
 class Py2OgreLog(Ogre.Log):
     """
-    This pipes Ogre's logging into the python logging system
+    This pipes Ogre's logging into the python logging system and supresses 
+    normal console and file output.
     """
     def __init__(self, config):
+        # Call to the C++ base class
         Ogre.Log.__init__(self, "python.logging", True, False)
         self.config = config
         self.logger = logging.getLogger('Graphics')
@@ -186,12 +196,8 @@ class Py2OgreLog(Ogre.Log):
         self.log_level_map = {Ogre.LML_CRITICAL : self.logger.critical,
                               Ogre.LML_NORMAL : self.logger.warning,
                               Ogre.LML_TRIVIAL : self.logger.debug}
-        self.log_level_map[Ogre.LML_CRITICAL]("***********THIS IS A TEST***********")
-        
-        Ogre.Log.logMessage = self.logMessage
         
     def logMessage(self, message, level, debug):
-        #self.log_level_map[level](message)
-        pass
+        self.log_level_map[level](message)
         
                

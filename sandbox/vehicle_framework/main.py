@@ -37,10 +37,6 @@ def main():
 
     # Main Loop
     main_loop(components)
-    
-    del vehicle
-    print "Hello World"
-    
 
     return 0
 

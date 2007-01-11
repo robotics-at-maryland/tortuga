@@ -23,6 +23,7 @@ Vehicles:
                     - [Full Screen, 'No']
                     - [RTT Preferred Mode, 'FBO']
                     - [VSync, 'No']
+                    - [Video Mode, 800 x 600]
             
             # This replaces Ogre's resources.cfg, Each node under resources
             # is a group and each node under that is an archive type, with a 

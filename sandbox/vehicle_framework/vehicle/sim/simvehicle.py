@@ -1,8 +1,11 @@
 import logging
 
 # Project Includes
-from .. import VehicleFactory
-from . import GraphicsSystem, PhysicsSystem, InputSystem, GUISystem
+from vehicle import VehicleFactory as VehicleFactory
+from vehicle.sim.graphics import GraphicsSystem
+from vehicle.sim.physics import PhysicsSystem
+from vehicle.sim.input import InputSystem
+from vehicle.sim.gui import GUISystem
 
 class Vehicle(object):          
     def __init__(self, config):
@@ -53,4 +56,5 @@ class Vehicle(object):
         
 
 # Register Simuldated Vehicle with Factory
+print 'Registring Sim Vehicle'
 VehicleFactory.createFunc['Sim'] = Vehicle
