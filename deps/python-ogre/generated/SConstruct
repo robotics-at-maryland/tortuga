@@ -45,6 +45,8 @@ local_env.Append( LINKFLAGS=get_libs() )
 local_env.Append( CPPPATH=[ build_dir, environment.ogre.include_dirs,
                             environment.boost_include_dir ] )
 local_env.Append( CCFLAGS=get_ccflags() )
+local_env['CC'] = 'gcc-4.0'
+local_env['CXX'] = 'g++-4.0'
 
 _Ogre_ = local_env.SharedLibrary( target='Ogre', SHLIBPREFIX=''
                                        , source=get_source_files() )
