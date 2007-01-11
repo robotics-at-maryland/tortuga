@@ -5,6 +5,10 @@ vehicle: Sim
 Vehicles:
     Sim:
         dotscene_files: not_here.xml
+        
+        Logging:
+            file: log.txt
+        
         Graphics:
             # This secion here takes over for Ogre's ogre.cfg.  The type 
             # indicates which Ogre RenderSystem to create and which section to

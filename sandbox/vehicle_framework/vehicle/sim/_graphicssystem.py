@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 
 import Ogre
 from Ogre import sf_OIS as sf
@@ -20,11 +21,14 @@ class GraphicsSystem(object):
         self._setUp(config)
         
     def __del__(self):
+        # Make sure the C++ based objects are deleted in the proper order
         del self.camera;
         del self.scene_manager
         del self.root
         del self.render_window  
-    
+        del self.logManager
+        del self.py2ogre_log
+        
     def update(self, time_since_last_update):
         """
         Renders one frame
@@ -35,7 +39,19 @@ class GraphicsSystem(object):
         return True
     
     def _setUp(self, config):
+        self._reroute_logging(config)
+        
+        Ogre.LogManager.getSingletonPtr().logMessage("****Test****",
+                                                     Ogre.LML_CRITICAL, False)
+        print self.py2ogre_log.getName()
+        print Ogre.LogManager.getSingletonPtr().getDefaultLog().getName()
+        
+        Ogre.LogManager.getSingletonPtr().logMessage("****Test2****",
+                                                     Ogre.LML_CRITICAL, False)
+        if self.py2ogre_log != Ogre.LogManager.getSingletonPtr().getDefaultLog():
+            print 'ERROR'
         self.root = Ogre.Root(sf.getPluginPath());
+        
 
         # Add Resource Locations
         self._addResourceLocations(config['Resources']);
@@ -59,6 +75,15 @@ class GraphicsSystem(object):
         # _createScene();
 
         return True
+    
+    def _reroute_logging(self, config):
+        #logManager = Ogre.LogManager.getSingletonPtr()
+        self.logManager = Ogre.LogManager()
+ 
+        # Create That, doesn't output anything, just calls its listeners
+        self.py2ogre_log = Py2OgreLog(config)
+        self.logManager.setDefaultLog(self.py2ogre_log)
+        
     
     def  _addResourceLocations(self, config):
         """
@@ -146,4 +171,27 @@ class GraphicsSystem(object):
         Creates the Viewport.
         """
         self.viewport = self.render_window.addViewport(self.camera)
-        self.viewport.BackgroundColour = Ogre.ColourValue(0,20,0)        
+        self.viewport.BackgroundColour = Ogre.ColourValue(0,20,0)
+        
+        
+class Py2OgreLog(Ogre.Log):
+    """
+    This pipes Ogre's logging into the python logging system
+    """
+    def __init__(self, config):
+        Ogre.Log.__init__(self, "python.logging", True, False)
+        self.config = config
+        self.logger = logging.getLogger('Graphics')
+        
+        self.log_level_map = {Ogre.LML_CRITICAL : self.logger.critical,
+                              Ogre.LML_NORMAL : self.logger.warning,
+                              Ogre.LML_TRIVIAL : self.logger.debug}
+        self.log_level_map[Ogre.LML_CRITICAL]("***********THIS IS A TEST***********")
+        
+        Ogre.Log.logMessage = self.logMessage
+        
+    def logMessage(self, message, level, debug):
+        #self.log_level_map[level](message)
+        pass
+        
+               

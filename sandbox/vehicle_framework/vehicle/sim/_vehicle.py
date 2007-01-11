@@ -1,5 +1,4 @@
-# Ogre Includes
-#import Ogre
+import logging
 
 # Project Includes
 from .. import VehicleFactory
@@ -7,7 +6,8 @@ from . import GraphicsSystem, PhysicsSystem, InputSystem, GUISystem
 
 class Vehicle(object):          
     def __init__(self, config):
-        print "Created Simulated vehicle:", config
+        self._setup_logging(config['Logging']) 
+        
         self.graphics_sys = GraphicsSystem(config['Graphics'])
         self.physics_sys = PhysicsSystem(config['Physics'], self.graphics_sys)
         self.input_sys = InputSystem(self.graphics_sys)
@@ -22,6 +22,26 @@ class Vehicle(object):
         del self.input_sys
         del self.physics_sys
         del self.graphics_sys
+        
+    def _setup_logging(self, config):
+        # Setup the config so only critical messages get sent to console
+        root = logging.getLogger('')
+        
+        file_format = logging.Formatter("%(asctime)s %(name)-12s %(levelname)"
+                                        "-8s %(message)s")
+        console_format = logging.Formatter('%(name)-12s %(message)s')
+        
+        # Send only critical message to the console, and everything to the 
+        # main log file
+        console = logging.StreamHandler()
+        console.setLevel(logging.CRITICAL)
+        file_handler = logging.FileHandler(config['file'], 'w')
+        file_handler.setLevel(logging.INFO)
+        
+        root.addHandler(console)
+        root.addHandler(file_handler)
+        
+        
         
         
     def update(self, time_since_last_update):

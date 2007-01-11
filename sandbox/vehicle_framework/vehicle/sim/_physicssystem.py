@@ -30,7 +30,7 @@ class PhysicsSystem(object):
     def update(self, time_since_last_update):
         """
         Called at a set interval update the physics and there graphical 
-        counter parts.  This cannot be running at the same time as update for
+        counter parts.  This cannot be running at the same time as update for   
         the GraphicsSystem.
         
         A return of false from here shuts down the application
