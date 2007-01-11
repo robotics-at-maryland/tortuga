@@ -43,7 +43,6 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         
     # OIS MouseListener Methods
     def mouseMoved(self, arg):
-        print 'Mouse Moved',arg
         self.cegui_sys.injectMouseMove( arg.get_state().X.rel, 
                                         arg.get_state().Y.rel )
         return True

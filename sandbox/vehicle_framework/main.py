@@ -24,7 +24,7 @@ def main_loop(components):
 def main():
     # Parse Command line options
 
-    # Read in value from config file and create the right vehicle    
+    # Read in value from config file and create the right vehicle
     config = yaml.load(file('sim.yml'))
 
     vehicle_type = config['vehicle']
@@ -42,4 +42,7 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except yaml.scanner.ScannerError, e:
+        print str(e)

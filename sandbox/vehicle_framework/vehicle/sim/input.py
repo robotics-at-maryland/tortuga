@@ -10,6 +10,7 @@ class InputSystem(Ogre.WindowEventListener):
         # Call constructor of C++ super class
         Ogre.WindowEventListener.__init__(self)
         
+        self.cam_node = graphics_sys.camera_node
         self.render_window = graphics_sys.render_window
         
         # Hook OIS up to the window created by Ogre
@@ -43,10 +44,39 @@ class InputSystem(Ogre.WindowEventListener):
         if self.time_until_next_toggle >= 0:
             self.time_until_next_toggle -= time_since_last_update
             
+        # Move our camera
+        self._update_camera()
+            
+        # Quit simulation if needed
         if self.keyboard.isKeyDown(OIS.KC_ESCAPE) or self.keyboard.isKeyDown(OIS.KC_Q):
             return False
         
         return True
+    
+    def _update_camera(self):
+        ms = self.mouse.getMouseState()
+
+        quat = self.cam_node.getOrientation()
+        vec = Ogre.Vector3(0.0,0.0,-0.5)
+        trans = quat * vec
+        vec = Ogre.Vector3(0.5,0.0,0.0)
+        strafe = quat * vec
+        
+        if ((self.keyboard.isKeyDown(OIS.KC_LSHIFT)) or \
+            (self.keyboard.isKeyDown(OIS.KC_RSHIFT))):
+            # now lets handle mouse input
+            self.cam_node.pitch(Ogre.Radian(ms.Y.rel * -0.5))
+            self.cam_node.yaw(Ogre.Radian(ms.X.rel * -0.5), Ogre.Node.TS_WORLD)
+
+        # Keyboard
+        if (self.keyboard.isKeyDown(OIS.KC_UP)):
+            self.cam_node.translate(trans)
+        if (self.keyboard.isKeyDown(OIS.KC_DOWN)):
+            self.cam_node.translate(trans * -1.0)
+        if (self.keyboard.isKeyDown(OIS.KC_LEFT)):
+            self.cam_node.translate(strafe * -1.0)
+        if (self.keyboard.isKeyDown(OIS.KC_RIGHT)):
+            self.cam_node.translate(strafe)
         
     # Ogre.WindowEventListener Methods
     def windowResized(self, render_window):

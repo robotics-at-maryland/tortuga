@@ -5,7 +5,7 @@ import logging
 import Ogre
 from Ogre import sf_OIS as sf
 
-from vehicle.sim.utility import SimulationError
+from vehicle.sim.core import SimulationError
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
@@ -33,7 +33,7 @@ class GraphicsSystem(object):
         del self.root
         del self.render_window  
         #del self.logManager
-        del self.ogre_log
+        #del self.ogre_log
         
     def update(self, time_since_last_update):
         """
@@ -171,9 +171,13 @@ class GraphicsSystem(object):
         Creates the camera.
         """        
         self.camera = self.scene_manager.createCamera('PlayerCam')
-        self.camera.setPosition(Ogre.Vector3(0, 0, 500))
+        self.camera.setPosition(Ogre.Vector3( 0.0, -3.0, 23.0))
         self.camera.lookAt(Ogre.Vector3(0, 0, -300))
         self.camera.NearClipDistance = 5
+        
+        # Allows easier movement of camera
+        self.camera_node = self.scene_manager.getRootSceneNode().createChildSceneNode()
+        self.camera_node.attachObject(self.camera)
 
     def _createViewports(self):
         """

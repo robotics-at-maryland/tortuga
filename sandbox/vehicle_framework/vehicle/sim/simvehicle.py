@@ -1,6 +1,8 @@
 import logging
 
-# Project Includes
+# Project imports
+import core
+
 from vehicle import VehicleFactory as VehicleFactory
 from vehicle.sim.graphics import GraphicsSystem
 from vehicle.sim.physics import PhysicsSystem
@@ -11,6 +13,7 @@ class Vehicle(object):
     def __init__(self, config):
         self._setup_logging(config['Logging']) 
         
+        # Create all our components
         self.graphics_sys = GraphicsSystem(config['Graphics'])
         self.physics_sys = PhysicsSystem(config['Physics'], self.graphics_sys)
         self.input_sys = InputSystem(self.graphics_sys)
@@ -20,7 +23,12 @@ class Vehicle(object):
         self.components = [self.input_sys, self.physics_sys, 
                            self.graphics_sys]
         
+        # load the scene
+        self.scene = core.load_scene(config['Scenes'], self.graphics_sys, 
+                                     self.physics_sys)
+        
     def __del__(self):
+        del self.scene
         del self.gui_sys
         del self.input_sys
         del self.physics_sys
@@ -45,8 +53,6 @@ class Vehicle(object):
         root.addHandler(file_handler)
         
         
-        
-        
     def update(self, time_since_last_update):
         # Update all components, drop out if one returns false
         for component in self.components:
@@ -56,5 +62,4 @@ class Vehicle(object):
         
 
 # Register Simuldated Vehicle with Factory
-print 'Registring Sim Vehicle'
 VehicleFactory.createFunc['Sim'] = Vehicle

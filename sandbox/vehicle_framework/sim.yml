@@ -4,15 +4,23 @@
 vehicle: Sim
 Vehicles:
     Sim:
-        dotscene_files: not_here.xml
+        # This describes all the general
+        Scenes:
+            # The curren scene to load, must be a python module on the given
+            # scene_path, this for example is 'data/scenes/basic.py
+            current: basic
+            
+            # Searh path for scene files
+            path: ['data/scenes']
         
         Logging:
             file: log.txt
         
+        # This secion here takes over for Ogre's ogre.cfg.  The type 
+        # indicates which Ogre RenderSystem to create and which section to
+        # load the options from
         Graphics:
-            # This secion here takes over for Ogre's ogre.cfg.  The type 
-            # indicates which Ogre RenderSystem to create and which section to
-            # load the options from
+
             RenderSystem:
                 type: GLRenderSystem
                 
@@ -36,8 +44,7 @@ Vehicles:
                                  'media/primitives',
                                  'media/materials/textures',
                                  'media/materials/scripts']
-                                 #'data/gui-bad',
-                                 #'data/fonts']
+
                 GUI:
                      FileSystem: ['data/gui/',
                                   'data/gui/schemes',
