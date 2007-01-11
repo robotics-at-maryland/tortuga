@@ -32,7 +32,7 @@ class GraphicsSystem(object):
         del self.scene_manager
         del self.root
         del self.render_window  
-        del self.logManager
+        #del self.logManager
         del self.ogre_log
         
     def update(self, time_since_last_update):
@@ -165,6 +165,7 @@ class GraphicsSystem(object):
                 raise GraphicsError('Go not initialize render system')
             
         self.render_window = self.root.initialise(True, "MRBC AUV SIM")
+        
     def _createCamera(self):
         """
         Creates the camera.
@@ -179,7 +180,7 @@ class GraphicsSystem(object):
         Creates the Viewport.
         """
         self.viewport = self.render_window.addViewport(self.camera)
-        self.viewport.BackgroundColour = Ogre.ColourValue(0,20,0)
+        self.viewport.BackgroundColour = Ogre.ColourValue(0,0,0)
         
         
 class Py2OgreLog(Ogre.Log):

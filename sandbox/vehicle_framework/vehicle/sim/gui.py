@@ -32,12 +32,18 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         CEGUI.FontManager.getSingleton().createFont(config['font'] + '.font');   
         self.cegui_sys.setDefaultFont(config['font'])
         
+        # Create the base window that everything is rendered in
+        sheet = CEGUI.WindowManager.getSingleton().createWindow("DefaultWindow", 
+                                                                "root_wnd" )
+        CEGUI.System.getSingleton().setGUISheet( sheet )
+        
     def __del__(self):
         del self.cegui_sys
         del self.gui_renderer
         
     # OIS MouseListener Methods
     def mouseMoved(self, arg):
+        print 'Mouse Moved',arg
         self.cegui_sys.injectMouseMove( arg.get_state().X.rel, 
                                         arg.get_state().Y.rel )
         return True
