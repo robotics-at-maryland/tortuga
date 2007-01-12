@@ -24,7 +24,8 @@ from pyplusplus.module_builder import call_policies
 
 from pygccxml import parser
 from pygccxml import declarations
-
+import common_utils.extract_documentation as exdoc
+import ogre_properties
 
 def filter_declarations( mb ):
     global_ns = mb.global_ns
@@ -39,7 +40,7 @@ def filter_declarations( mb ):
     non_public_non_pure_virtual.exclude()
     
     # exclude this as standard boost libraries don't support std::Multimap's.  Replace by createPythonInputSystem
-    ois_ns.class_( "InputManager" ).member_functions("createInputSystem").exclude()
+    # ois_ns.class_( "InputManager" ).member_functions("createInputSystem").exclude()
     
 def set_call_policies( mb ):
     ois_ns = mb.global_ns.namespace ('OIS')
@@ -81,8 +82,6 @@ def generate_code():
 
     filter_declarations (mb)
 
-    common_utils.set_declaration_aliases( mb.global_ns, customization_data.aliases() )
-
     mb.BOOST_PYTHON_MAX_ARITY = 25
     mb.classes().always_expose_using_scope = True
 
@@ -91,15 +90,19 @@ def generate_code():
     set_call_policies (mb)
     hand_made_wrappers.apply( mb )
 
-    ois_ns = mb.global_ns.namespace ('OIS')
-    common_utils.add_properties( ois_ns.classes() )
+    for cls in mb.global_ns.namespace ('OIS').classes():
+        cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t() )
+        ##common_utils.add_LeadingLowerProperties ( cls )
+        common_utils.add_PropertyDoc ( cls )
+
 
     common_utils.add_constants( mb, { 'ois_version' :  '"%s"' % environment.ois.version
                                       , 'python_version' : '"%s"' % sys.version } )
 
 
     #Creating code creator. After this step you should not modify/customize declarations.
-    mb.build_code_creator (module_name='_ois_')
+    extractor = exdoc.doc_extractor("")
+    mb.build_code_creator (module_name='_ois_',doc_extractor= extractor)
 
     for inc in environment.ois.include_dirs:
         mb.code_creator.user_defined_directories.append(inc )

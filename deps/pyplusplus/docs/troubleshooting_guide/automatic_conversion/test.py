@@ -1,26 +1,23 @@
 import unittest
-import shared_ptr
+from auto_conversion import  *
 
-
-class tester_t( unittest.TestCase ):
+class auto_conversion_tester_t( unittest.TestCase ):
     def __init__( self, *args ):
         unittest.TestCase.__init__( self, *args )
 
     def test( self ):
-        ptr = shared_ptr.create_ptr()
-        self.failUnless( ptr.text == "ptr" )
-        self.failUnless( shared_ptr.read_ptr( ptr ) == "ptr" )
+        self.failUnless( (0,0,0) == point_ret_val_000() )
+        self.failUnless( (1,0,1) == point_ret_val_101() )
+        self.failUnless( (0,1,0) == point_ret_ref_010() )
+        self.failUnlessRaises( TypeError, point_ret_ptr_110 )
+        self.failUnless( test_point_val_000( (0,0,0) ) )
+        self.failUnless( test_point_cref_010( (0,1,0) ) )
+        self.failUnlessRaises( TypeError, test_point_ref_110, (1,1,0) )
+        self.failUnlessRaises( TypeError, test_point_ptr_101, (1,0,1) )
         
-        const_ptr = shared_ptr.create_const_ptr()
-        self.failUnless( const_ptr.text == "const ptr" )
-        self.failUnless( shared_ptr.read_const_ptr( const_ptr ) == "const ptr" )
-        
-        #testing conversion functionality
-        self.failUnless( shared_ptr.read_const_ptr( ptr ) == "ptr" )
-
 def create_suite():
     suite = unittest.TestSuite()
-    suite.addTest( unittest.makeSuite(tester_t))
+    suite.addTest( unittest.makeSuite(auto_conversion_tester_t))
     return suite
 
 def run_suite():

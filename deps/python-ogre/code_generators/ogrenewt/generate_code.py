@@ -31,6 +31,8 @@ from pyplusplus.module_builder import call_policies
 
 import common_utils.extract_documentation as exdoc
 
+import common_utils.ogre_properties as ogre_properties
+
 def filter_declarations( mb ):
     global_ns = mb.global_ns
     global_ns.exclude()
@@ -131,7 +133,24 @@ def set_call_policies( mb ):
             mem_fun.call_policies = call_policies.return_value_policy(
                 call_policies.reference_existing_object )
                 
-                               
+
+def find_nonconst ( mb ):
+    """ we have problems with sharedpointer arguments that are defined as references
+    but are NOT const.  Boost doesn't understand how to match them and you get a C++ Signature match fails.
+    In reality the Ogre code probably needs to be patched as all of these should (??) be const.  However we'll fix it 
+    with a function transformation wrapper
+    """
+    funcs = mb.member_functions( )
+    for fun in funcs:
+        arg_position = 0
+        for arg in fun.arguments:
+            if 'Ptr' in arg.type.decl_string:
+                 if not 'const' in arg.type.decl_string and '&' in arg.type.decl_string:
+                    print "Fixing Const", fun.parent.name,"::", fun.name, "::", arg_position
+                    fun.add_transformation( ft.modify_type(arg_position,declarations.remove_reference ) )
+            arg_position +=1                
+                
+                                               
 def add_transformations ( mb ):
     ns = mb.global_ns.namespace ('OgreNewt')
     
@@ -168,12 +187,13 @@ def generate_ogrenewt():
                                           , indexing_suite_version=2 )
 
     filter_declarations (mb)
-
-    common_utils.set_declaration_aliases( mb.global_ns, customization_data.aliases(environment.ogrenewt.version) )
+    #
+    # fix shared Ptr's that are defined as references but NOT const...
+    #
+    find_nonconst ( mb.namespace( 'Ogre' ) )
 
     mb.BOOST_PYTHON_MAX_ARITY = 25
     mb.classes().always_expose_using_scope = True
-
 
     #
     # the manual stuff all done here !!!
@@ -193,7 +213,7 @@ def generate_ogrenewt():
     # now add properties
     #
     for cls in mb.namespace ('OgreNewt').classes():
-        cls.add_properties(  )
+        cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t()  )
         common_utils.add_LeadingLowerProperties ( cls )
     
     common_utils.add_constants( mb, { 'ogrenewt_version' :  '"%s"' % environment.ogrenewt.version

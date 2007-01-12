@@ -99,22 +99,24 @@ class OgreNewtonApplication (sf.Application):
 
 
     def _createFrameListener(self):
-        ## this is our custom frame listener for this app, that lets us shoot cylinders with the space bar, move
-        ## the camera, etc.
-        self.frameListener = OgreNewtonFrameListener( self.renderWindow, self.camera, self.sceneManager, self.World, self.msnCam )
-        self.root.addFrameListener(self.frameListener)
-
         ## this is a basic frame listener included with OgreNewt that does nothing but update the
         ## physics at a set framerate for you.  complex project will want more control, but this
         ## works for simple demos like this.  feel free to look at the source to see how it works.
         self.NewtonListener = BasicFrameListener( self.renderWindow, self.sceneManager, self.World, 120 )
         self.root.addFrameListener(self.NewtonListener)
 
+        ## this is our custom frame listener for this app, that lets us shoot cylinders with the space bar, move
+        ## the camera, etc.
+        self.frameListener = OgreNewtonFrameListener( self.renderWindow, self.camera, self.sceneManager, 
+                                                    self.World, self.msnCam, self.NewtonListener )
+        self.root.addFrameListener(self.frameListener)
+
+
         
     
     
 class OgreNewtonFrameListener(sf.FrameListener):
-    def __init__(self, renderWindow, camera, Mgr, World, msnCam):
+    def __init__(self, renderWindow, camera, Mgr, World, msnCam,  NewtonListener):
 
         sf.FrameListener.__init__(self, renderWindow, camera)
         self.World = World
@@ -124,7 +126,9 @@ class OgreNewtonFrameListener(sf.FrameListener):
         self.timer=0
         self.count=0
         self.bodies=[]
-     
+        self.basicframelistener = NewtonListener
+        self.Debug = False
+      
     
     def frameStarted(self, frameEvent):
 
@@ -190,6 +194,12 @@ class OgreNewtonFrameListener(sf.FrameListener):
                 self.timer = 1.5
                 
         self.timer -= frameEvent.timeSinceLastFrame
+        if (self.Keyboard.isKeyDown(OIS.KC_F3)):
+            if self.Debug:
+                self.Debug = False
+            else:
+                self.Debug = True
+            self.basicframelistener.debug ( self.Debug )
         if (self.Keyboard.isKeyDown(OIS.KC_ESCAPE)):
             return False
         #sf.FrameListener.frameStarted(self, frameEvent)

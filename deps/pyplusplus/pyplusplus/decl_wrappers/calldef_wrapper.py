@@ -33,6 +33,7 @@ class calldef_t(decl_wrapper.decl_wrapper_t):
         self._use_default_arguments = True
         self._create_with_signature = False
         self._overridable = None
+        self._non_overridable_reason = None
         self._transformations = None
 
     def get_call_policies(self):
@@ -90,7 +91,7 @@ class calldef_t(decl_wrapper.decl_wrapper_t):
                and self.virtuality != declarations.VIRTUALITY_TYPES.NOT_VIRTUAL \
                and declarations.is_reference( self.return_type ):
                 self._overridable = False
-                self._non_overridable_reason = messages.W1003
+                self._non_overridable_reason = messages.W1049
             else:
                 self._overridable = True
                 self._non_overridable_reason = ""
@@ -98,9 +99,17 @@ class calldef_t(decl_wrapper.decl_wrapper_t):
 
     def set_overridable( self, overridable ):
         self._overridable = overridable
-
+        
     overridable = property( get_overridable, set_overridable
                             , doc = get_overridable.__doc__ )
+
+    @property 
+    def non_overridable_reason( self ):
+        return self._non_overridable_reason
+
+    def mark_as_non_overridable( self, reason ):
+        self.overridable = False
+        self._non_overridable_reason = reason
 
     @property
     def transformations(self):

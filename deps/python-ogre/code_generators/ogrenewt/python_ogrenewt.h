@@ -1,30 +1,25 @@
-#ifndef __python_ogrenewt_h_01
-#define __python_ogrenewt_h_01
-
-//See best practices section in Py++ documentation
 
 #include <vector>
 #include <string>
 #include <map>
 #include "ogrenewt.h"
 
-//namespace OgreNewt{ 
 
-    inline void instantiate(){
-        //sizeof ( EventCallback);
-//        sizeof ( OgreNewt::NewtonHingeSliderUpdateDescTag );
-        sizeof ( NewtonJoint);
-        sizeof ( NewtonBody );
-        sizeof ( NewtonCollision );
-        sizeof ( NewtonWorld );
+// First we create a magic namespace to hold all our aliases
+namespace pyplusplus { namespace aliases {
+    
+ #include "python_ogrenewt_aliases.h"
+} } 
+
+// then we exposed everything needed (and more) to ensure GCCXML makes them visible to Py++
+//
+namespace python_ogrenewt{ namespace details{
+inline void instantiate(){
+ using namespace Ogre;
+ #include "python_ogrenewt_sizeof.h"
+ 
+} } }
+
         
-/*        sizeof ( Ogre::Radian );
-        sizeof ( Ogre::Node );
-        sizeof ( Ogre::Vector3);
-        sizeof ( Ogre::Quaternion ); */
-                
-    }
 
-//}
-
-#endif
+        

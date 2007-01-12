@@ -6,7 +6,7 @@
 """defines interface for exposing STD containers, using next version of indexing suite"""
 
 from pygccxml import declarations
-
+import call_policies
 """
 method_len
 method_iter
@@ -76,7 +76,7 @@ class indexing_suite2_t( object ):
                                 , doc="Reference to STD container class" )
 
     def _get_container_traits( self ):
-        return self._get_container_traits()
+        return self.__container_traits
     container_traits = property( _get_container_traits
                                  , doc="Reference to container traits. See "
                                        "pygccxml documentation for STD container traits.")
@@ -86,9 +86,23 @@ class indexing_suite2_t( object ):
     element_type = property( _get_element_type
                              , doc="Reference to container value_type( mapped_type ) type" )
 
-    def _get_call_policies( self ):
-        #TODO find out call policies
+    def _get_call_policies( self ):      
+        if self.__call_policies:
+            return self.__call_policies
+        if self.container_traits not in declarations.sequential_container_traits:
+            #TODO: find out why map's don't like the policy
+            return self.__call_policies 
+        element_type = None
+        try:
+            element_type = self.element_type
+        except:
+            return
+        if declarations.is_const( element_type ):
+            element_type = declarations.remove_const( element_type )
+        if declarations.is_pointer( element_type ):
+            self.__call_policies = call_policies.return_internal_reference()
         return self.__call_policies
+        
     def _set_call_policies( self, call_policies ):
         self.__call_policies = call_policies
     call_policies = property( _get_call_policies, _set_call_policies

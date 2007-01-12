@@ -169,7 +169,8 @@ class OgreNewtonFrameListener(sf.FrameListener):
         self.timer=0
         self.count=0
         self.bodies=[]
-    
+        self.Debug = False
+     
     def frameStarted(self, frameEvent):
         
         ## in this frame listener we control the camera movement, and allow the user to "shoot" cylinders
@@ -257,6 +258,13 @@ class OgreNewtonFrameListener(sf.FrameListener):
         self.timer -= frameEvent.timeSinceLastFrame
         if (self.Keyboard.isKeyDown(OIS.KC_ESCAPE)):
             return False
+        if (self.Keyboard.isKeyDown(OIS.KC_F3)):
+            if self.Debug:
+                self.Debug = False
+            else:
+                self.Debug = True
+            self.basicframelistener.debug ( self.Debug )
+    
         sf.FrameListener.frameStarted(self, frameEvent)
         return True        
 

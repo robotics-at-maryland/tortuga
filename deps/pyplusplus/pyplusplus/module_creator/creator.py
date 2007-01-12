@@ -300,6 +300,9 @@ class creator_t( declarations.decl_visitor_t ):
             if not isuite.has_key( container_name ):
                 continue #not supported
 
+            for msg in cls.readme():
+                self.decl_logger.warn( "%s;%s" % ( cls, msg ) )
+
             if isuite is INDEXING_SUITE_2_CONTAINERS:
                 used_headers.add( INDEXING_SUITE_2_MAIN_HEADER )
 

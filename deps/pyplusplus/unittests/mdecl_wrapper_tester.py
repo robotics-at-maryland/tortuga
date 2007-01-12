@@ -60,7 +60,7 @@ class tester_t(unittest.TestCase):
         try:
             mdw.call_policies = None
             self.fail( "Runtime error has not been raised." )
-        except RuntimeError:
+        except RuntimeError, err:
             pass
     
     def test__getitem__( self ):

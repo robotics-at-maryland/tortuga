@@ -153,9 +153,7 @@ class calldef_wrapper_t( code_creator.code_creator_t
         return algorithm.create_identifier( self, declarations.full_name( self.declaration.parent ) )
 
     def unoverriden_function_body( self ):
-        msg = r'This function could not be overriden in Python!'
-        msg = msg + 'Reason: function returns reference to local variable!'
-        return 'throw std::logic_error("%s");' % msg
+        return 'throw std::logic_error("%s");' % self.declaration.non_overridable_reason
 
     def throw_specifier_code( self ):
         if self.declaration.does_throw:
@@ -256,7 +254,7 @@ class mem_fun_pv_wrapper_t( calldef_wrapper_t ):
         }
 
     def create_body( self ):
-        if declarations.is_reference( self.declaration.return_type ):
+        if not self.declaration.overridable:
             return self.unoverriden_function_body()
         template = []
         template.append( '%(override)s func_%(alias)s = this->get_override( "%(alias)s" );' )
@@ -665,7 +663,7 @@ class mem_fun_protected_pv_wrapper_t( calldef_wrapper_t ):
         }
 
     def create_body( self ):
-        if declarations.is_reference( self.declaration.return_type ):
+        if not self.declaration.overridable:
             return self.unoverriden_function_body()
 
         template = []
@@ -720,7 +718,7 @@ class mem_fun_private_v_wrapper_t( calldef_wrapper_t ):
         }
 
     def create_body( self ):
-        if declarations.is_reference( self.declaration.return_type ):
+        if not self.declaration.overridable:
             return self.unoverriden_function_body()
 
         template = []

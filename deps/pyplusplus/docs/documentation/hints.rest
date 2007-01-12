@@ -29,9 +29,33 @@ For example:
   class_< std::vector< int > >( "numbers" )
       ...
   ;
+
+`Py++`_ will pick up the alias, only in case the class has single "typedef". 
+
+``pyplusplus::aliases`` namespace
+---------------------------------
+
+The previous approach is "implicit" - `Py++`_ does something behind the scene. 
+Recently (version 0.8.6 ), another approach was introduced:
+
+.. code-block:: C++
+
+  #include <vector>
   
-This feature will work only in case there is only one such ``typedef``. Using class
-property ``aliases`` you can get access to all ``typedef``'s of the class.
+  namespace pyplusplus{ namespace aliases{
+  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      typedef std::vector< int > numbers;
+    
+  } } //pyplusplus::aliases
+
+The idea is that you create namespace with a special name - ``pyplusplus::aliases``
+and `Py++`_ automatically picks the class aliases from it. In case you accidentally 
+introduced two or more different aliases to the same class, it will pick the 
+longest one and print a warning. Other advantages of the approach:
+
+* you are not forced to learn new API
+
+* you continue to use your favorite editor and familiar language
 
 .. _`Py++` : ./../pyplusplus.html
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html

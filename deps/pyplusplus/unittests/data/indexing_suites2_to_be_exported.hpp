@@ -19,7 +19,8 @@ inline void do_nothing( const strings_t& ){}
 
 struct item_t{    
     item_t() : value( -1 ){}
-    
+    explicit item_t( int v) : value( v ){}
+        
     bool operator==(item_t const& item) const { 
         return value == item.value; 
     }
@@ -36,7 +37,13 @@ typedef std::vector<item_t> items_t;
 
 typedef std::vector<item_t*> items_ptr_t;
 inline items_ptr_t create_items_ptr(){
-    return items_ptr_t();
+    items_ptr_t items;
+    items.push_back( new item_t(0) );
+    items.push_back( new item_t(1) );
+    items.push_back( new item_t(2) );
+    items.push_back( new item_t(3) );
+    items.push_back( new item_t(4) );    
+    return items;
 }
 
 inline item_t get_value( const std::vector<item_t>& vec, unsigned int index ){

@@ -105,8 +105,6 @@ class OgreNewtonFrameListener(sf.FrameListener):
         self.bodies=[]
         self.basicframelistener = NewtonListener
         self.Debug = False
-        #OgreNewt.Debugger.getSingleton().init( self.sceneManager )
-        #OgreNewt.Debugger.getSingleton().showLines( self.World )
  
 
     

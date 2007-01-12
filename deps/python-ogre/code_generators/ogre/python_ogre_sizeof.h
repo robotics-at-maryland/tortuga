@@ -1,6 +1,19 @@
+sizeof (std::pair<bool, float> );
+sizeof (std::pair<unsigned int,unsigned int> );
+sizeof (Ogre::RadixSort<std::vector<Ogre::RenderablePass>,Ogre::RenderablePass,unsigned int> );
+sizeof (Ogre::RadixSort<std::vector<Ogre::RenderablePass>,Ogre::RenderablePass,float> );
+sizeof (Ogre::RadixSort<std::list<Ogre::Particle*>,Ogre::Particle*,float> );
+sizeof (Ogre::RadixSort<std::list<Ogre::Billboard*>,Ogre::Billboard*,float> );
+sizeof (HashMap<Ogre::String, unsigned short> ); // SubMeshNameMap
+sizeof ( std::map<Ogre::String, Ogre::MovableObjectFactory*> );
+
 sizeof( ::Ogre::Controller<float> );
+sizeof( ::Ogre::ControllerValue<float> );
+sizeof( ::Ogre::ControllerFunction<float> );
+
 sizeof( ::Ogre::Mesh::SubMeshNameMap );
 sizeof( ::Ogre::RenderSystem );
+
 sizeof( ::Ogre::ConvexBody::PolygonList );
 sizeof( ::Ogre::Polygon::VertexList );
 sizeof( ::Ogre::Polygon::EdgeMap );
@@ -224,13 +237,3 @@ sizeof( ::Ogre::Real );
 sizeof( ::Ogre::uint8 );
 sizeof( ::Ogre::uint16 );
 sizeof( ::Ogre::uint32 );
-
-//  sizeof (VectorIterator<std::vector<Bone*> >);
-//     sizeof (VectorIterator<std::vector<CompositionTargetPass*> >);
-//     sizeof (VectorIterator<std::vector<CompositorInstance*> >);
-//     sizeof (VectorIterator<std::vector<IlluminationPass*> >);
-//     sizeof (VectorIterator<std::vector<Pass*> >);
-//     sizeof (VectorIterator<std::vector<RenderQueueInvocation*> >);
-//     sizeof (VectorIterator<std::vector<Technique*> >);
-//     sizeof (VectorIterator<std::vector<TextureUnitState*> >);
-//     sizeof (VectorIterator<std::vector<VertexPoseKeyFrame::PoseRef> >);

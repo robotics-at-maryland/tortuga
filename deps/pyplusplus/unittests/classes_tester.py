@@ -23,6 +23,10 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         self.failUnless( apple.alias == 'the_tastest_fruit' )
         apple.alias = 'apple'
 
+        protected_static_t = mb.class_( 'protected_static_t' )
+        self.failUnless( 'PROTECTED_STATIC' in protected_static_t.alias)
+        protected_static_t.alias = 'protected_static_t'
+
     def run_tests(self, module):        
         self.failIfRaisesAny( module.fundamental1 )
         self.failIfRaisesAny( module.FUNDAMENTAL2 )

@@ -20,6 +20,7 @@ from pyplusplus.module_builder import call_policies
 from pygccxml import parser
 from pygccxml import declarations
 import common_utils.extract_documentation as exdoc
+import common_utils.ogre_properties as ogre_properties
 
 
 def filter_declarations( mb ):
@@ -174,13 +175,10 @@ def generate_code():
                                           , working_directory=environment.root_dir
                                           , include_paths=environment.CEGUI.include_dirs
                                           , define_symbols=['CEGUI_NONCLIENT_BUILD']
-#                                          , start_with_declarations=['CEGUI']
                                           , indexing_suite_version=2 )
     filter_declarations (mb)
    
     change_cls_alias( mb.global_ns.namespace ('CEGUI') )
-
-    common_utils.set_declaration_aliases( mb.global_ns, customization_data.aliases(environment.CEGUI.version) )
 
     mb.BOOST_PYTHON_MAX_ARITY = 25
     mb.classes().always_expose_using_scope = True
@@ -191,7 +189,7 @@ def generate_code():
 
     set_call_policies (mb)
     for cls in mb.global_ns.namespace ('CEGUI').classes():
-        cls.add_properties(  )
+        cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t()  )
         common_utils.add_LeadingLowerProperties ( cls )
 
     common_utils.add_constants( mb, { 'CEGUI_version' :  '"%s"' % environment.CEGUI.version
@@ -200,7 +198,7 @@ def generate_code():
     #Creating code creator. After this step you should not modify/customize declarations.
     extractor = exdoc.doc_extractor("")
     
-    mb.build_code_creator (module_name='_CEGUI_', doc_extractor= extractor)
+    mb.build_code_creator (module_name='_cegui_', doc_extractor= extractor)
     for incs in environment.CEGUI.include_dirs:
         mb.code_creator.user_defined_directories.append( incs )
     mb.code_creator.user_defined_directories.append( environment.CEGUI.generated_dir )

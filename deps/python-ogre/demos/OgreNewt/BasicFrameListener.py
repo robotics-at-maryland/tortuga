@@ -13,26 +13,27 @@ class BasicFrameListener (Ogre.FrameListener ): ##, Ogre.WindowEventListener ): 
         self.update = (1.0 / self.desired_framerate)
         self.debugflag = False  ## turn on and off debugging here to stop windows memory crashes
         self.elapsed = 0.0;
-    
+        OgreNewt.Debugger.getSingleton().init(self.sceneManager) 
+
     
     def debug ( self , state):
         if state :  # user want to turn it on..
             if not self.debugflag:
                 self.debugflag = True
-                s = OgreNewt.Debugger.getSingleton()
-                s.showLines( self.World )
         else:   # turn it off
             if self.debugflag:
                 self.debugflag=False
-                OgreNewt.Debugger.getSingleton().deInit()
-
+                OgreNewt.Debugger.getSingleton().hideLines() 
+                
     def __del__ ( self ):
         self.debug ( False )
+        OgreNewt.Debugger.getSingleton().deInit() 
 
     def frameStarted(self, evt):
         Ogre.FrameListener.frameStarted(self, evt)
         self.elapsed += evt.timeSinceLastFrame
-  
+        if self.debugflag == True:
+            OgreNewt.Debugger.getSingleton().showLines(self.World)
         if ((self.elapsed > self.update) and (self.elapsed < (1.0)) ):
             while (self.elapsed > self.update):
                 self.World.update( self.update )
