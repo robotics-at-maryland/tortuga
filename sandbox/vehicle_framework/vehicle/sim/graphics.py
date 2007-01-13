@@ -10,12 +10,13 @@ Wraps up the initialization and management of CEGUI and GUI activites
 """
 
 import os
+import sys
 import time
 import logging
 
 import Ogre
-from Ogre import sf_OIS as sf
 
+import logloader
 from vehicle.sim.core import SimulationError
 
 class GraphicsError(SimulationError):
@@ -28,11 +29,13 @@ class GraphicsSystem(object):
     engine.  It is driven completely by config file.  Current a bug in 
     Python-Ogre means with have the rendersystem config dialog.
     """    
-    def __init__(self, config):
-        self.root = None
+    def __init__(self, config):      
         self.camera = None
+        self.root = None
         self.render_window = None
         self.scene_manager = None
+        self.logManager = None
+        self.ogre_log = None
         
         # Setups Ogre, step by step
         self._setup(config)
@@ -54,16 +57,12 @@ class GraphicsSystem(object):
         return True
     
     def _setup(self, config):
-        self._reroute_logging(config)  # Broken in Python-Ogre 0.70
-        self.root = Ogre.Root(sf.getPluginPath());
-
-        # Add Resource Locations
-        self._addResourceLocations(config['Resources']);
-
-        # if we cannot initialise Ogre, just abandon the whole deal         
+        self._setup_logging(config["Logging"])  # Broken in Python-Ogre 0.70
+        self.root = Ogre.Root("");
+        
+        self._load_plugins(config['Plugins'])
+        self._addResourceLocations(config['Resources']);        
         self._initOgreCore(config['RenderSystem'])
-            
-        # Create the Ogre SceneManager
         self.scene_manager = self.root.createSceneManager(Ogre.ST_GENERIC,
                                                         'SimSceneMgr')
         
@@ -75,19 +74,59 @@ class GraphicsSystem(object):
         Ogre.TextureManager.getSingleton().setDefaultNumMipmaps(5)
         # Initialise resources
         Ogre.ResourceGroupManager.getSingleton().initialiseAllResourceGroups()
-        # Create the scene (override me)
-        # _createScene();
-
-        return True
     
-    def _reroute_logging(self, config):
+    def _setup_logging(self, config):
+        self.logger = logloader.setup_logger(config, config)
+        
         #logManager = Ogre.LogManager.getSingletonPtr()
         self.logManager = Ogre.LogManager()
  
         # Create That, doesn't output anything, just calls its listeners
-        self.ogre_log = Py2OgreLog(config)
+        self.ogre_log = Py2OgreLog(config, self.logger)
         self.logManager.setDefaultLog(self.ogre_log)
         
+    def _load_plugins(self, config):
+        """
+        This loads the plugins Ogre needs to run based on the config file.
+        Here is an example:
+        Plugins:
+            # Where to search for the plugins
+            search_path: [ C:\Libraries\Python-Ogre-0.7\plugins,
+                           C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins]
+               
+            # The plugins to load
+            plugins: [ RenderSystem_GL, 
+                       Plugin_ParticleFX, 
+                       Plugin_OctreeSceneManager ]   
+        """
+        import platform
+        
+        # Filter out non-existant paths from search, this keeps windows paths
+        # out of unix and unix paths out of windows
+        
+        search_path = [p for p in config['search_path'] if os.path.exists(p)]
+        self.logger.info('Loadings Ogre Plugins on path:')
+        for path in search_path: 
+            self.logger.info('\t%s' % path )
+        
+        extension = '.so'
+        if 'Windows' == platform.system():
+            extension = '.dll'
+            
+        for plugin in config['plugins']:
+            plugin_name = plugin + extension
+            self.logger.info('\tSearching for: %s' % plugin_name)
+            found = False
+            
+            for dir in search_path:
+                plugin_path = os.path.join(dir, plugin_name)
+                
+                if os.path.exists(plugin_path):
+                    self.root.loadPlugin(plugin_path)
+                    found = True
+                
+            if not found:
+                raise GraphicsError('Could not load plugin: %s' % plugin_name)
     
     def  _addResourceLocations(self, config):
         """
@@ -173,7 +212,7 @@ class GraphicsSystem(object):
         
         if not restored:
             if not self.root.showConfigDialog():
-                raise GraphicsError('Go not initialize render system')
+                raise GraphicsError('Could not initialize render system')
             
         self.render_window = self.root.initialise(True, "MRBC AUV SIM")
         
@@ -203,14 +242,14 @@ class Py2OgreLog(Ogre.Log):
     This pipes Ogre's logging into the python logging system and supresses 
     normal console and file output.
     """
-    def __init__(self, config):
+    def __init__(self, config, logger):
         # Call to the C++ base class
-        Ogre.Log.__init__(self, "python.logging", False, False)
+        Ogre.Log.__init__(self, os.path.join("logs", "ogre.txt"), False, False)
         self.config = config
-        self.logger = logging.getLogger('Graphics')
+        self.logger = logger
         
         self.log_level_map = {Ogre.LML_CRITICAL : self.logger.critical,
-                              Ogre.LML_NORMAL : self.logger.warning,
+                              Ogre.LML_NORMAL : self.logger.info,
                               Ogre.LML_TRIVIAL : self.logger.debug}
         
     def logMessage(self, message, level, debug):

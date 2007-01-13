@@ -14,8 +14,10 @@ import sys
 import time
 
 import yaml
+import CEGUI
 
 from vehicle import *
+import logloader
 
 def main_loop(components):
     last_time = time.clock()
@@ -37,12 +39,13 @@ def main():
 
     # Read in value from config file and create the right vehicle
     config = yaml.load(file('sim.yml'))
-
+    logloader.load_loggers(config["Logging"])
+    
     vehicle_type = config['vehicle']
     # Pass along the subsection of the config corresponding to the vehicle
     vehicle = VehicleFactory.create(vehicle_type,
                                     config['Vehicles'][vehicle_type])
-
+    
     # Start up our other systems(possibly use component interface to find them?)
     components = [vehicle]
 
@@ -50,8 +53,7 @@ def main():
     main_loop(components)
 
     return 0
-
-
+    
 if __name__ == '__main__':
     try:
         sys.exit(main())

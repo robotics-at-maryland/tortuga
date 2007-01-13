@@ -9,9 +9,15 @@
 Wraps up the initialization and management of CEGUI and GUI activites
 """
 
+import os
+import logging
+import shutil
+
 import OIS
 import CEGUI
 import Ogre
+
+import logloader
 
 class GUISystem(OIS.MouseListener, OIS.KeyListener):
     """
@@ -19,6 +25,10 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
     """
     
     def __init__(self, config, graphics_sys, input_sys):
+        self.cegui_sys = None
+        self.cegui_log = None
+        self.gui_renderer = None
+        
         # Call C++ Super class constructor
         OIS.MouseListener.__init__( self)
         OIS.KeyListener.__init__(self)
@@ -27,12 +37,19 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         input_sys.mouse.setEventCallback(self)
         input_sys.keyboard.setEventCallback(self)
         
+        # Create our own logger to reroute the logging
+        #self.cegui_log = CEGUI2PyLog(config["Logging"]) # Broken Python-Ogre 0.70
+        
         # Create the CEGUIOgreRender with are GUI Components and CEGUI System
         self.gui_renderer = \
             CEGUI.OgreCEGUIRenderer( graphics_sys.render_window, 
                                      Ogre.RENDER_QUEUE_OVERLAY, False, 3000, 
                                      graphics_sys.scene_manager)
         self.cegui_sys = CEGUI.System(self.gui_renderer)
+        
+        # Hack to deal with the singleton log issue
+        CEGUI.Logger.getSingletonPtr().setLogFilename("logs/CEGUI_Rest.log")
+        shutil.move("CEGUI.log","logs/CEGUI_Start.log")
         
         ## load up CEGUI stuff...
         CEGUI.Logger.getSingleton().setLoggingLevel(CEGUI.Informative)
@@ -49,6 +66,7 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         CEGUI.System.getSingleton().setGUISheet( sheet )
         
     def __del__(self):
+        #del self.cegui_log
         del self.cegui_sys
         del self.gui_renderer
         
@@ -87,5 +105,26 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
     def keyReleased( self, arg ):
         self.cegui_sys.injectKeyUp(arg.key)
         return True
+    
+class CEGUI2PyLog(CEGUI.Logger):
+    """
+    This pipes CEGUI's logging into the python logging system and supresses 
+    normal console and file output.
+    """
+    def __init__(self, config):
+        # Call to the C++ base class
+        CEGUI.Logger.__init__(self)
+        self.logger = logloader.setup_logger(config, config)
+        
+        self.log_level_map = {CEGUI.LoggingLevel.Errors : self.logger.critical,
+                              CEGUI.LoggingLevel.Standard : self.logger.info,
+                              CEGUI.LoggingLevel.Informative : self.logger.info,
+                              CEGUI.LoggingLevel.Insane : self.logger.debug}
+        
+    def logEvent(self, message, level):
+        self.log_level_map[level](message.c_str())
+        
+    def setLogFilename(self, filename, append = False):
+        pass
     
     

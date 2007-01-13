@@ -1,9 +1,53 @@
 # This is our config file
 # It tells the program what kind of vehicle to create
 
-vehicle: Sim
+# --------------------------------------------------------------------------- #
+#                     G E N E R A L   O P T I O N S                           #
+# --------------------------------------------------------------------------- #
+
+# This the vehicle that wish to create (see below for the options)
+vehicle: Simulated
+
+Logging:
+    # Loggers are organized in a tree and message propgate upward by default
+    # and are passed to every handler they find along the way until they hit
+    # the root logger, or a logger which has "propgate: 0"
+    Loggers:
+        Root:
+            level: INFO
+            handlers: [Console, File]
+
+    # The handlers are what output the actual the log messages and they are 
+    # attached to the loggers
+    Handlers:
+        Console:
+            class: StreamHandler
+            level: WARNING
+            formatter: Console
+            args: (sys.stdout,)
+        File:
+            class: FileHandler
+            level: INFO
+            formatter: File
+            args: ('logs/log.txt', 'w')
+
+    # Called on every log messages by the handler before output            
+    Formatters:
+        Console:
+            format: '%(name)-12s- %(message)s'
+            class: logging.Formatter
+        File:
+            format: '%(asctime)s %(name)-12s %(levelname) -8s %(message)s'
+            class: logging.Formatter
+            
+
+# --------------------------------------------------------------------------- #
+#                             V E H I C L E S                                 #
+# --------------------------------------------------------------------------- #
 Vehicles:
-    Sim:
+
+    # ------------------------- S I M U L A T E D --------------------------- #
+    Simulated:
         # This describes all the general
         Scenes:
             # The curren scene to load, must be a python module on the given
@@ -13,13 +57,17 @@ Vehicles:
             # Searh path for scene files
             path: ['data/scenes']
         
-        Logging:
-            file: log.txt
-        
         # This secion here takes over for Ogre's ogre.cfg.  The type 
         # indicates which Ogre RenderSystem to create and which section to
         # load the options from
         Graphics:
+            # This is a special case of the above logging format, basically it
+            # creates a logger which sends messages upward that have a level at
+            # or higher than it
+            Logging:
+                name: Graphics
+                level: INFO
+        
 
             RenderSystem:
                 type: GLRenderSystem
@@ -32,6 +80,15 @@ Vehicles:
                     - [RTT Preferred Mode, 'FBO']
                     - [VSync, 'No']
                     - [Video Mode, 800 x 600]
+            Plugins:
+                # Where to search for the plugins
+                search_path: [ 'C:\Libraries\Python-Ogre-0.7\plugins',
+                               'C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins']
+
+                # The plugins to load
+                plugins: [ RenderSystem_GL, 
+                           Plugin_ParticleFX, 
+                           Plugin_OctreeSceneManager ]
             
             # This replaces Ogre's resources.cfg, Each node under resources
             # is a group and each node under that is an archive type, with a 
@@ -54,6 +111,10 @@ Vehicles:
             update_rate: 60
             
         GUI:
+            Logging:
+                name: GUI
+                level: INFO
+        
             # These settings are used by the underlying GUI toolkit (CEGUI)
             scheme: TaharezLookSkin.scheme
             look: TaharezLook
