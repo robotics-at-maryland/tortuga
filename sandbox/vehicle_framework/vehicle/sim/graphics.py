@@ -1,3 +1,14 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/sim/graphics.py
+
+"""
+Wraps up the initialization and management of CEGUI and GUI activites
+"""
+
 import os
 import time
 import logging
@@ -32,8 +43,8 @@ class GraphicsSystem(object):
         del self.scene_manager
         del self.root
         del self.render_window  
-        #del self.logManager
-        #del self.ogre_log
+        del self.logManager
+        del self.ogre_log
         
     def update(self, time_since_last_update):
         """
@@ -43,7 +54,7 @@ class GraphicsSystem(object):
         return True
     
     def _setup(self, config):
-        #    self._reroute_logging(config)  # Broken in Python-Ogre 0.70
+        self._reroute_logging(config)  # Broken in Python-Ogre 0.70
         self.root = Ogre.Root(sf.getPluginPath());
 
         # Add Resource Locations
@@ -194,7 +205,7 @@ class Py2OgreLog(Ogre.Log):
     """
     def __init__(self, config):
         # Call to the C++ base class
-        Ogre.Log.__init__(self, "python.logging", True, False)
+        Ogre.Log.__init__(self, "python.logging", False, False)
         self.config = config
         self.logger = logging.getLogger('Graphics')
         

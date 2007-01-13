@@ -1,3 +1,14 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/sim/gui.py
+
+"""
+Wraps up the initialization and management of CEGUI and GUI activites
+"""
+
 import OIS
 import CEGUI
 import Ogre

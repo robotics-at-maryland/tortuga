@@ -1,3 +1,14 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/sim/physics.py
+
+"""
+Wraps up the initialization and management of OgreNewt
+"""
+
 import Ogre
 import OgreNewt
 
@@ -36,6 +47,8 @@ class PhysicsSystem(object):
         
         A return of false from here shuts down the application
         """
+        OgreNewt.Debugger.getSingleton().showLines(self.world)
+        
         self.elapsed += time_since_last_update
   
         if ((self.elapsed > self.update_interval) and (self.elapsed < (1.0)) ):
@@ -53,44 +66,10 @@ class PhysicsSystem(object):
                 
         return True
     
-    def makeSimpleBox(self, name, size, pos, orient):
-        """
-        Convience function, creates a box of the give size where the user wants
-        it
-        """
-        scene_mgr = self.graphics_sys.scene_manager
-        
-        ## base mass on the size of the object.
-        mass = size.x * size.y * size.z * 0.5
-            
-        ## calculate the inertia based on box formula and mass
-        inertia = OgreNewt.CalcBoxSolid(mass, size)
-                    
-        box1 = scene_mgr.createEntity( name, "box.mesh" )
-        box1node = scene_mgr.getRootSceneNode().createChildSceneNode()
-        box1node.attachObject(box1)
-        box1node.setScale(size)
-        box1.setNormaliseNormals(True)
-        
-        col = OgreNewt.Box( self.world, size )
-        bod = OgreNewt.Body( self.world, col )
-        #del col
-                    
-        bod.attachToNode( box1node )
-        
-        bod.setMassMatrix( mass, inertia )
-        bod.setCustomForceAndTorqueCallback( gravityAndBouyancyCallback, "")
-        
-        box1.setMaterialName("Simple/BumpyMetal")
-    
-        bod.setPositionOrientation(pos, orient)
-    
-        return bod
-    
 def gravityAndBouyancyCallback(me):
     mass, inertia = me.getMassMatrix()
 
-    gravity = Ogre.Vector3(0,-9.8,0) * mass
+    gravity = Ogre.Vector3(0, -9.8, 0) * mass
     me.addForce(gravity)
 
     # also don't forget buoyancy force.

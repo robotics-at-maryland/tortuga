@@ -1,15 +1,26 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/sim/simvehicle.py
+
+"""
+    Contains the vehicle class, main object for the vehicle simulation, it
+encapsulates all aspects of the GUI, and simulation elements away from the 
+control code below.
+"""
+
 import logging
 
-# Project imports
-import core
-
-from vehicle import VehicleFactory as VehicleFactory
-from vehicle.sim.graphics import GraphicsSystem
-from vehicle.sim.physics import PhysicsSystem
-from vehicle.sim.input import InputSystem
+from vehicle import VehicleFactory, IVehicle
+from vehicle.sim import core
 from vehicle.sim.gui import GUISystem
+from vehicle.sim.input import InputSystem
+from vehicle.sim.physics import PhysicsSystem
+from vehicle.sim.graphics import GraphicsSystem
 
-class Vehicle(object):          
+class Vehicle(IVehicle):          
     def __init__(self, config):
         self._setup_logging(config['Logging']) 
         

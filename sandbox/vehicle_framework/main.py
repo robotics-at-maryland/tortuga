@@ -1,9 +1,20 @@
-# Python Imports
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  main.py
+
+"""
+    The entry point to the program.  This load the configuration files, 
+instantiates the proper vehicle and then jumps into the main loop.
+"""
+
 import sys
 import time
+
 import yaml
 
-# Project Imports
 from vehicle import *
 
 def main_loop(components):

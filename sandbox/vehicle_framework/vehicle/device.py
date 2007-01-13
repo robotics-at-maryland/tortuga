@@ -1,3 +1,17 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/device.py
+
+"""
+    Defines the base interface for the Device objects and the factory to 
+create them.
+"""
+
+from core import property
+
 # Device Creation Classes
 class DeviceFactory(object):
     """
@@ -9,7 +23,7 @@ class DeviceFactory(object):
     def create(type, args):
         return DeviceFactory.createFunc[type](args)
     
-class Device(object):
+class IDevice(object):
     """
     Represents a physical object on the vehicle like thrusters, sensors,
     actuators, etc.
@@ -21,9 +35,15 @@ class Device(object):
         """
         pass
 
-    def startUpdate(self):
+    def start_update(self):
         """
         Start automatic update (this would utilize threads and locking to keep
         the vehicle up to date)
         """
         pass
+    
+class IThruster(IDevice):
+    """
+    A non rotating thruster that can have its powerlevel set from -100 to 100
+    """
+    pass

@@ -1,3 +1,15 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/sim/input.py
+
+"""
+    Wraps up the initialization and management of OIS and other input releated
+activities
+"""
+
 import Ogre
 import OIS
 

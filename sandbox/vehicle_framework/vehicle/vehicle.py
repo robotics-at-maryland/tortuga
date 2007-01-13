@@ -1,3 +1,15 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/vehicle.py
+
+"""
+    Defines the base interface the Vehicle objects and the factory to create
+them.
+"""
+
 # Vehicle Creation Classes
 class VehicleFactory(object):
     """
@@ -10,7 +22,7 @@ class VehicleFactory(object):
         return VehicleFactory.createFunc[type](args)
 
 # Definition of the vehicle interface
-class Vehicle(object):
+class IVehicle(object):
     """
     Needed properties: Heading, Depth, possibly some accelerations,
     incorperate other vehicle models and plans here.
