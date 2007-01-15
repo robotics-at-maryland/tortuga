@@ -31,18 +31,18 @@ class Scene(object):
         # Sky Box.
         self.scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
         
-        size = Ogre.Vector3(3,1.0,1.0)
-        pos = Ogre.Vector3(0,1,0)
-
-        box = utility.create_box(self.scene_mgr, self.world, 
-                                 gravityAndBouyancyCallback,
-                                 pos = pos, size = size)
-        self.bodies.append(box)
-        
         # Light
+        #self.scene_mgr.setAmbientLight( Ogre.ColourValue( 0.7,0.7,0.7 ))
         light = self.scene_mgr.createLight("Light1")
         light.setType(Ogre.Light.LT_POINT )
         light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
+        
+    def add_wall(self, pos, norm = Ogre.Vector3.UNIT_Z, 
+                 orient = Ogre.Quaternion.IDENTITY):
+        wall_body = utility.create_plane(self.scene_mgr,self.world,80,20, 
+                                         pos = pos, norm = norm, 
+                                         orient = orient)
+        self.bodies.append(wall_body)
         
     def create_tank(self):
         # Floor
@@ -61,18 +61,18 @@ class Scene(object):
         self.bodies.append(bod)
         
         # Far Wall
-        self.bodies.append(utility.create_plane(self.scene_mgr,self.world,80,20, 
-                                                pos = Ogre.Vector3(0,-5,-40)))
-        
+        self.add_wall(Ogre.Vector3(0,-5,-40))
         # Rear Wall
-        self.bodies.append(utility.create_plane(self.scene_mgr,self.world,80,20, 
-                                                pos = Ogre.Vector3(0,-5,40),
-                                                norm = Ogre.Vector3.UNIT_Z*-1.0))
+        self.add_wall(Ogre.Vector3(0,-5,40), norm = Ogre.Vector3.UNIT_Z*-1.0)
+        # Right Side Wall
+        orient = Ogre.Quaternion( Ogre.Degree(d=-90), Ogre.Vector3(0,1,0))
+        self.add_wall(Ogre.Vector3(40,-5,0), orient = orient)
+        # Left Side Wall
+        orient = Ogre.Quaternion( Ogre.Degree(d=90), Ogre.Vector3(0,1,0))
+        self.add_wall(Ogre.Vector3(-40,-5,0), orient = orient)
         
-        #self.bodies.append(utility.create_plane(self.scene_mgr,self.world,80,20, 
-        #                                        pos = Ogre.Vector3(40,-5,0),
-        #                                        norm = Ogre.Vector3.UNIT_X))
-        
-        self.bodies.append(utility.create_plane(self.scene_mgr,self.world,80,20, 
-                                                pos = Ogre.Vector3(-40,-5,0),
-                                                norm = Ogre.Vector3.UNIT_X*-1.0))
+        # Water
+        orient = Ogre.Quaternion( Ogre.Degree(d=-90), Ogre.Vector3(1,0,0) ) 
+        plane_body = utility.create_plane(self.scene_mgr,self.world,80,80,  
+                                          material = "Simple/Translucent", 
+                                          orient = orient)

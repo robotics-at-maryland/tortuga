@@ -18,8 +18,12 @@ class VehicleFactory(object):
     createFunc = {};
 
     @staticmethod    
-    def create(type, args):
-        return VehicleFactory.createFunc[type](args)
+    def create(type, args, kwargs = {}):
+        return apply(VehicleFactory.createFunc[type], args, kwargs)
+    
+    @staticmethod
+    def register(type, function):
+        VehicleFactory.createFunc[type] = function
 
 # Definition of the vehicle interface
 class IVehicle(object):

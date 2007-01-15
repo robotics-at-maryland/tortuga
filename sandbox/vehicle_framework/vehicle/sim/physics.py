@@ -90,5 +90,4 @@ def buoyancyCallback(colID, me, orient, pos, plane):
     plane.normal = plane1.normal
     plane.d = plane1.d
    
-    return True
-              
+    return True              

@@ -20,8 +20,14 @@ class DeviceFactory(object):
     createFunc = {};
 
     @staticmethod    
-    def create(type, args):
-        return DeviceFactory.createFunc[type](args)
+    def create(type, args, kwargs = {}):
+        # apply calls the given function with args, as the list of arugments
+        # and the dict as the set of keyword arguments
+        return apply(DeviceFactory.createFunc[type], args, kwargs)
+    
+    @staticmethod
+    def register(type, function):
+        DeviceFactory.createFunc[type] = function
     
 class IDevice(object):
     """

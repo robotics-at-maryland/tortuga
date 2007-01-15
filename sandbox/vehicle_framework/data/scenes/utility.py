@@ -45,8 +45,10 @@ def create_box(scene_mgr, world, callback, size = Ogre.Vector3(1.0, 1.0, 1.0),
 
 def create_plane(scene_mgr, world, width, height,
                  name = 'GeneratedValue',
-                 pos = Ogre.Vector3(0.0, 0.0, 0.0), 
-                 norm = Ogre.Vector3.UNIT_Z):
+                 pos = Ogre.Vector3(0.0, 0.0, 0.0),
+                 orient = Ogre.Quaternion.IDENTITY, 
+                 norm = Ogre.Vector3.UNIT_Z,
+                 material = "Simple/BumpyMetal"):
     if name == 'GeneratedValue':
         name =  'GeneratedPlane' + str(plane_entity_count)            
                  
@@ -58,12 +60,12 @@ def create_plane(scene_mgr, world, width, height,
            width,height);
     
     theplane = scene_mgr.createEntity(name, meshname)
-    theplane.setMaterialName("Simple/BumpyMetal")
+    theplane.setMaterialName(material)
     
     plane_node = scene_mgr.getRootSceneNode().createChildSceneNode()
     plane_node.attachObject(theplane)
     plane_node.setPosition(pos)
-    #plane_node.setOrientation(orient)
+    plane_node.setOrientation(orient)
     #plane_node.setScale(0.4)
 
     col = OgreNewt.TreeCollision(world, plane_node, True)

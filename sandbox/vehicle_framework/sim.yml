@@ -48,6 +48,38 @@ Vehicles:
 
     # ------------------------- S I M U L A T E D --------------------------- #
     Simulated:
+        # In kilograms
+        mass: 1
+        # In the X, Y, and Z direction
+        size: [0.2032, 0.2032, 0.6858]
+        position: [0.0, 0.0, 0.0]
+        # In Axis/Angle Form (last term angle)
+        orientation: [0.0, 0.0, 1.0, 0.0]
+
+        # This is all the devices that will be attached to the body of the sub
+        # The name of each is the type of device to create
+        Devices:
+            # For each simulated thruster you need to give its name relative
+            # to the body coordinate system (describe me here)
+            # Y is UP, Z comes out the front of the vehicle and when looking at
+            # vehicle from the back X comes out the right (starboard) side 
+            SimThruster:
+                name: PortThruster
+                # Position relative to vehicle
+                position: [0.0, 0.0, -5.0]
+                # A unit vector along which thrust will be applied
+                direction: [0.0, 0.0, -1.0]
+                # The rotation of the thruster along the direction vector
+                rotation: 0.0
+                # The maximum avialable thrust (in Newtons)
+                strength: 1000.0
+            SimThruster:
+                name: StarboardThruster
+                position: [0.0, 0.0, 5.0]
+                direction: [0.0, 0.0, -1.0]
+                rotation: 0.0
+                strength: 1000.0
+    
         # This describes all the general
         Scenes:
             # The curren scene to load, must be a python module on the given
@@ -56,6 +88,10 @@ Vehicles:
             
             # Searh path for scene files
             path: ['data/scenes']
+        
+        Physics:
+            # Number of time persecond you wished to have the physics updated
+            update_rate: 60
         
         # This secion here takes over for Ogre's ogre.cfg.  The type 
         # indicates which Ogre RenderSystem to create and which section to
@@ -106,9 +142,6 @@ Vehicles:
                      FileSystem: ['data/gui/',
                                   'data/gui/schemes',
                                   'data/gui/fonts']
-        Physics:
-            # Number of time persecond you wished to have the physics updated
-            update_rate: 60
             
         GUI:
             Logging:
