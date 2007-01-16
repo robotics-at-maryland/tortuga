@@ -12,6 +12,8 @@ the vehicle.device module.
 
 from vehicle import IThruster
 from vehicle import DeviceFactory
+from vehicle.sim import SimulationError
+from vehicle.sim.core import Vector, Quat
 
 class Thruster(IThruster):
     """
@@ -19,19 +21,41 @@ class Thruster(IThruster):
     """
     thrusters = []
     
-    def __init__(self, config, vehicle):
-        # Attach the thruster mesh to the scene node
-        entity = vehicle.graphics_sys.scene_manage.createEntity(config['name'],
-                                                                config['mesh'])
-        vehicle.hull_node.attachObject(entity)
-        
-        # Read in our configuration data
-        self.position = config['position']
-        self.direction = config['direction']    
-        self.strength = config['strength']
+    def __init__(self, name, config, vehicle):
+        try:
+            scene_manager = vehicle.graphics_sys.scene_manager
+            gfx_cfg = config['Graphical']
+            
+            entity = scene_manager.createEntity(name, gfx_cfg['mesh'])
+            entity.setMaterialName(gfx_cfg['material'])
+            
+            # Read in our properties from configuration data
+            self.position = Vector(config['position'])
+            self.direction = Vector(config['direction'])
+            self.strength = config['strength']
+            
+            # Attach the thruster mesh to the scene node   
+
+            # This position scaling is needed to undo Ogre scaling of parent
+            # child positions
+            pscale = vehicle.hull_node.getScale()
+            position = self.position * Vector(((1 / pscale.x),(1 / pscale.y),
+                                               (1 / pscale.z)))
+            orientation =  Quat(gfx_cfg['orientation'], axis_angle = True)
+            node = vehicle.hull_node.createChildSceneNode(name, position, 
+                                                          orientation)
+            node.attachObject(entity)
+            node.setInheritScale(False)
+            node.setScale(Vector(gfx_cfg['scale']))
+            
+        except KeyError, e:
+            raise SimulationError("The Thruster device must have property:"
+                                  " %s" % e)
         
         # Append to current list of thrusters
-        Thrusters.thrusters.append(self)
+        Thruster.thrusters.append(self)
+        
+        self.power = 0
     
     @staticmethod
     def clear_thrusters():

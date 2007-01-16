@@ -55,6 +55,7 @@ Vehicles:
         # In kilograms
         mass: 26.0  # About 0.5% bouyant
         # In the X, Y, and Z direction
+        # Actual size in meters
         size: [0.2032, 0.2032, 0.6858]
         position: [0.0, 0.0, 0.0]
         # In Axis/Angle Form (last term angle)
@@ -63,26 +64,37 @@ Vehicles:
         # This is all the devices that will be attached to the body of the sub
         # The name of each is the type of device to create
         Devices:
-            # For each simulated thruster you need to give its name relative
+            # For each simulated thruster you need to give its type, relative
             # to the body coordinate system (describe me here)
             # Y is UP, Z comes out the front of the vehicle and when looking at
             # vehicle from the back X comes out the right (starboard) side 
-            SimThruster:
-                name: PortThruster
+            PortThruster:
+                # The type of device to create
+                type: SimThruster
                 # Position relative to vehicle
-                position: [0.0, 0.0, -5.0]
+                position: [-0.16, 0, 0]
                 # A unit vector along which thrust will be applied
-                direction: [0.0, 0.0, -1.0]
-                # The rotation of the thruster along the direction vector
-                rotation: 0.0
+                direction: [0, 0, -1]
                 # The maximum avialable thrust (in Newtons)
-                strength: 1000.0
-            SimThruster:
-                name: StarboardThruster
-                position: [0.0, 0.0, 5.0]
-                direction: [0.0, 0.0, -1.0]
-                rotation: 0.0
-                strength: 1000.0
+                strength: 30
+                
+                Graphical:
+                    mesh: cylinder.mesh
+                    material: Simple/BumpyMetal
+                    scale: [0.15,0.047,0.047]
+                    orientation: [0, 1, 0, 90]
+                
+            StarboardThruster:
+                type: SimThruster
+                position: [0.16, 0, 0]
+                direction: [0, 0, -1]
+                strength: 30
+                
+                Graphical:
+                    mesh: cylinder.mesh
+                    material: Simple/BumpyMetal
+                    scale: [0.15,0.047,0.047]
+                    orientation: [0, 1, 0, 90]
     
         # This describes all the general
         Scenes:

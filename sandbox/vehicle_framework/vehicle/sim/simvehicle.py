@@ -39,8 +39,11 @@ class Vehicle(IVehicle):
                                      self.physics_sys)
         # Create vehicle and devices
         self._create_vehicle(config)
-        #for device in config['Devices']:
-        #    DeviceFactory.create(device, config[device], self])
+        devices = config['Devices']
+        for device_name in devices:
+            device_cfg = devices[device_name]
+            DeviceFactory.create(device_cfg['type'], device_name, device_cfg, 
+                                 self)
 
         
     def __del__(self):
@@ -87,7 +90,6 @@ class Vehicle(IVehicle):
         self.hull_node.setScale(size)
         self.hull_node.setPosition(position)
         
-        
         col = OgreNewt.Box(world, size)
         self.hull_body = OgreNewt.Body(world, col)
         self.hull_body.attachToNode(self.hull_node)
@@ -109,4 +111,4 @@ def thruster_force_callback(body):
     body.addBouyancyForce(1000, 0.01, 0.01, gravity, buoyancyCallback, "")
     
     # Apply our thrust from the thrusters
-    #Thruster.apply_thruster_force(body)
+    Thruster.apply_thruster_force(body)

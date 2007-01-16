@@ -41,7 +41,7 @@ def Quat(values, axis_angle = False):
     (w,x,y,z)
     """
     if axis_angle:
-        return Ogre.Quaternion( values[3], Vector(values, 3))
+        return Ogre.Quaternion( Ogre.Degree(d = values[3]), Vector(values, 3))
     else:
         return Ogre.Quaternion(values[0], values[1], values[2], values[3])
 
