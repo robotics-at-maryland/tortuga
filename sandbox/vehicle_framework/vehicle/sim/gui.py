@@ -18,6 +18,7 @@ import CEGUI
 import Ogre
 
 import logloader
+import event
 
 class GUISystem(OIS.MouseListener, OIS.KeyListener):
     """
@@ -32,10 +33,6 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         # Call C++ Super class constructor
         OIS.MouseListener.__init__( self)
         OIS.KeyListener.__init__(self)
-        
-        # Register self as listener
-        input_sys.mouse.setEventCallback(self)
-        input_sys.keyboard.setEventCallback(self)
         
         # Create our own logger to reroute the logging
         #self.cegui_log = CEGUI2PyLog(config["Logging"]) # Broken Python-Ogre 0.70
@@ -65,46 +62,13 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
                                                                 "root_wnd" )
         CEGUI.System.getSingleton().setGUISheet( sheet )
         
+        # Setup forwarder so CEGUI gets input events
+        self.event_forwarder = CEGUIEventForwarder(self.cegui_sys)
+        
     def __del__(self):
         #del self.cegui_log
         del self.cegui_sys
         del self.gui_renderer
-        
-    # OIS MouseListener Methods
-    def mouseMoved(self, arg):
-        self.cegui_sys.injectMouseMove( arg.get_state().X.rel, 
-                                        arg.get_state().Y.rel )
-        return True
-
-    def mousePressed(self, arg, id):
-        self.cegui_sys.injectMouseButtonDown(self.convertOISMouseButtonToCegui(id))
-        return True
-
-    def mouseReleased(self, arg, id):
-        self.cegui_sys.injectMouseButtonUp(self.convertOISMouseButtonToCegui(id))
-        return True
-    
-    def convertOISMouseButtonToCegui(self, buttonID):
-        if buttonID ==0:
-            return CEGUI.LeftButton
-        elif buttonID ==1:
-            return CEGUI.RightButton
-        elif buttonID ==2:
-            return CEGUI.MiddleButton
-        elif buttonID ==3:
-            return CEGUI.X1Button
-        else:
-            return CEGUI.LeftButton
-    
-    # OIS KeyListener Methods
-    def keyPressed(self, arg):
-        self.cegui_sys.injectKeyDown(arg.key)
-        self.cegui_sys.injectChar(arg.text )
-        return True
-
-    def keyReleased( self, arg ):
-        self.cegui_sys.injectKeyUp(arg.key)
-        return True
     
 class CEGUI2PyLog(CEGUI.Logger):
     """
@@ -126,5 +90,55 @@ class CEGUI2PyLog(CEGUI.Logger):
         
     def setLogFilename(self, filename, append = False):
         pass
+ 
+class CEGUIEventForwarder(object):
+    """
+    This grabs mouse and keyboard events from the event system and hands them
+    off to CEGUI
+    """
+    def __init__(self, cegui_sys):
+        self.cegui_sys = cegui_sys
+  
+        self.handler_map = {
+            'KEY_PRESSED': self.key_pressed,
+            'KEY_RELEASED': self.key_released,
+            'MOUSE_MOVED': self.mouse_moved,
+            'MOUSE_PRESSED': self.mouse_pressed,
+            'MOUSE_RELEASED': self.mouse_released}
+        
+        event.register_handlers(self.handler_map)
     
+    def __del__(self):
+        event.remove_handlers(self.handler_map)
+      
+    def convertOISMouseButtonToCegui(self, buttonID):
+        if buttonID ==0:
+            return CEGUI.LeftButton
+        elif buttonID ==1:
+            return CEGUI.RightButton
+        elif buttonID ==2:
+            return CEGUI.MiddleButton
+        elif buttonID ==3:
+            return CEGUI.X1Button
+        else:
+            return CEGUI.LeftButton
+        
+    # Mouse Events
+    def mouse_moved(self, arg):
+        self.cegui_sys.injectMouseMove( arg.get_state().X.rel, 
+                                        arg.get_state().Y.rel )
+
+    def mouse_pressed(self, arg, id):
+        self.cegui_sys.injectMouseButtonDown(self.convertOISMouseButtonToCegui(id))
+
+    def mouse_released(self, arg, id):
+        self.cegui_sys.injectMouseButtonUp(self.convertOISMouseButtonToCegui(id))
+
+    # Keyboard Events
+    def key_pressed(self, arg):
+        self.cegui_sys.injectKeyDown(arg.key)
+        self.cegui_sys.injectChar(arg.text )
+
+    def key_released( self, arg ):
+        self.cegui_sys.injectKeyUp(arg.key)
     

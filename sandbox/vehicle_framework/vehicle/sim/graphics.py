@@ -15,9 +15,12 @@ import time
 import logging
 
 import Ogre
+import OIS
 
 import logloader
+import event
 from vehicle.sim.core import SimulationError
+from vehicle.sim.input import KeyStateObserver
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
@@ -40,6 +43,8 @@ class GraphicsSystem(object):
         # Setups Ogre, step by step
         self._setup(config)
         
+        self.camera_controller = CameraController(self.camera, self.camera_node)
+        
     def __del__(self):
         # Make sure the C++ based objects are deleted in the proper order
         del self.camera;
@@ -54,6 +59,7 @@ class GraphicsSystem(object):
         Renders one frame
         """
         self.root.renderOneFrame()
+        self.camera_controller.update()
         return True
     
     def _setup(self, config):
@@ -236,7 +242,62 @@ class GraphicsSystem(object):
         self.viewport = self.render_window.addViewport(self.camera)
         self.viewport.BackgroundColour = Ogre.ColourValue(0,0,0)
         
+class CameraController(object):
+    def __init__(self, camera, camera_node):
+        self.camera = camera
+        self.camera_node = camera_node
         
+        self.handler_map = {
+            'KEY_PRESSED': self._key_pressed,
+            'KEY_RELEASED': self._key_released,
+            'MOUSE_MOVED': self._mouse_moved}
+        
+        event.register_handlers(self.handler_map)
+        
+        # This sets up automatic setting of the key down properties
+        watched_keys = [('shift_key', [OIS.KC_LSHIFT, OIS.KC_RSHIFT]), 
+                        OIS.KC_UP, OIS.KC_DOWN, OIS.KC_LEFT, OIS.KC_RIGHT]
+        self.key_observer = KeyStateObserver(self, watched_keys)
+    
+    def __del__(self):
+        # Make sure to remove event handlers so they are called after the 
+        # object is gone
+        event.remove_handlers(self.handler_map)
+    
+    def update(self):
+        quat = self.camera_node.getOrientation()
+        vec = Ogre.Vector3(0.0,0.0,-0.5)
+        trans = quat * vec
+        vec = Ogre.Vector3(0.5,0.0,0.0)
+        strafe = quat * vec
+        
+        if self.up_key:
+            self.camera_node.translate(trans)
+        if self.down_key:
+            self.camera_node.translate(trans * -1.0)
+        if self.left_key:
+            self.camera_node.translate(strafe * -1.0)
+        if self.right_key:
+            self.camera_node.translate(strafe)
+    
+    def _mouse_moved(self, arg):
+        """
+        If the shift key is down, swing the camera
+        """
+        if self.shift_key:
+            ms = arg.get_state()
+            self.camera_node.pitch(Ogre.Radian(ms.Y.rel * -0.5))
+            self.camera_node.yaw(Ogre.Radian(ms.X.rel * -0.5), 
+                                 Ogre.Node.TS_WORLD)
+
+    def _key_pressed(self, key_event):
+        # Update the state of *_key properties  
+        self.key_observer.key_pressed(key_event)
+
+    def _key_released( self, key_event ):
+        # Update the state of *_key properties
+        self.key_observer.key_released(key_event)
+
 class Py2OgreLog(Ogre.Log):
     """
     This pipes Ogre's logging into the python logging system and supresses 

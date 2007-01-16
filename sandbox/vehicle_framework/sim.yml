@@ -17,6 +17,10 @@ Logging:
             level: INFO
             handlers: [Console, File]
 
+        Event:
+            level: WARNING
+            name: event
+
     # The handlers are what output the actual the log messages and they are 
     # attached to the loggers
     Handlers:

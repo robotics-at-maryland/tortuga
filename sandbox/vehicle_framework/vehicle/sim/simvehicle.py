@@ -18,7 +18,7 @@ from vehicle.sim import core
 from vehicle.sim.gui import GUISystem
 from vehicle.sim.input import InputSystem
 from vehicle.sim.physics import PhysicsSystem, buoyancyCallback
-from vehicle.sim.graphics import GraphicsSystem
+from vehicle.sim.graphics import GraphicsSystem, CameraController
 from vehicle.sim.core import Vector, Quat
 from vehicle.sim.device import Thruster
 
