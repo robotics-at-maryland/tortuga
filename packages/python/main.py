@@ -10,6 +10,7 @@
 instantiates the proper vehicle and then jumps into the main loop.
 """
 
+import os
 import sys
 import time
 
@@ -38,7 +39,7 @@ def main():
     # Parse Command line options
 
     # Read in value from config file and create the right vehicle
-    config = yaml.load(file('sim.yml'))
+    config = yaml.load(file(os.path.join('..', 'sim.yml')))
     logloader.load_loggers(config["Logging"])
     
     vehicle_type = config['vehicle']

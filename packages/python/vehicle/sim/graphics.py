@@ -305,7 +305,8 @@ class Py2OgreLog(Ogre.Log):
     """
     def __init__(self, config, logger):
         # Call to the C++ base class
-        Ogre.Log.__init__(self, os.path.join("logs", "ogre.txt"), False, False)
+        Ogre.Log.__init__(self, os.path.join('..', "logs", "ogre.txt"), False, 
+                          False)
         self.config = config
         self.logger = logger
         

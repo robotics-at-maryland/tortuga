@@ -45,8 +45,8 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         self.cegui_sys = CEGUI.System(self.gui_renderer)
         
         # Hack to deal with the singleton log issue
-        CEGUI.Logger.getSingletonPtr().setLogFilename("logs/CEGUI_Rest.log")
-        shutil.move("CEGUI.log","logs/CEGUI_Start.log")
+        CEGUI.Logger.getSingletonPtr().setLogFilename("../logs/CEGUI_Rest.log")
+        shutil.move("CEGUI.log","../logs/CEGUI_Start.log")
         
         ## load up CEGUI stuff...
         CEGUI.Logger.getSingleton().setLoggingLevel(CEGUI.Informative)

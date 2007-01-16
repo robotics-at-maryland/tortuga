@@ -33,7 +33,7 @@ Logging:
             class: FileHandler
             level: INFO
             formatter: File
-            args: ('logs/log.txt', 'w')
+            args: ('../logs/log.txt', 'w')
 
     # Called on every log messages by the handler before output            
     Formatters:
@@ -127,7 +127,7 @@ Vehicles:
             current: basic
             
             # Searh path for scene files
-            path: ['data/scenes']
+            path: ['../data/scenes']
         
         Physics:
             # Number of time persecond you wished to have the physics updated
@@ -171,17 +171,17 @@ Vehicles:
             # list of directories to load for that type
             Resources:
                 General:
-                    Zip: ['media/packs/OgreCore.zip',
-                          'media/packs/cubemapsJS.zip']
-                    FileSystem: ['media/models',
-                                 'media/primitives',
-                                 'media/materials/textures',
-                                 'media/materials/scripts']
+                    Zip: ['../media/packs/OgreCore.zip',
+                          '../media/packs/cubemapsJS.zip']
+                    FileSystem: ['../media/models',
+                                 '../media/primitives',
+                                 '../media/materials/textures',
+                                 '../media/materials/scripts']
 
                 GUI:
-                     FileSystem: ['data/gui/',
-                                  'data/gui/schemes',
-                                  'data/gui/fonts']
+                     FileSystem: ['../data/gui/',
+                                  '../data/gui/schemes',
+                                  '../data/gui/fonts']
             
         GUI:
             Logging:
