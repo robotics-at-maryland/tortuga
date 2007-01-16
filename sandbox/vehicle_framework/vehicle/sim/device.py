@@ -10,6 +10,8 @@
 the vehicle.device module.
 """
 
+import Ogre
+
 from vehicle import IThruster
 from vehicle import DeviceFactory
 from vehicle.sim import SimulationError
@@ -48,6 +50,11 @@ class Thruster(IThruster):
             node.setInheritScale(False)
             node.setScale(Vector(gfx_cfg['scale']))
             
+            self.node = node
+            self.scene_mgr = scene_manager
+            self.name = name
+            self.manual = None
+            
         except KeyError, e:
             raise SimulationError("The Thruster device must have property:"
                                   " %s" % e)
@@ -55,7 +62,7 @@ class Thruster(IThruster):
         # Append to current list of thrusters
         Thruster.thrusters.append(self)
         
-        self.power = 0
+        self._power = 0
     
     @staticmethod
     def clear_thrusters():
@@ -71,9 +78,33 @@ class Thruster(IThruster):
         uses the global list of thrusters.
         """
         for thruster in Thruster.thrusters:
-            if 0 != thruster.power :
-                force = thruster.direction * thruster.power * strength
+            if 0 != thruster._power :
+                force = thruster.direction * thruster._power * thruster.strength
                 body.addLocalForce(force, thruster.position)
-        
+                
+                # This should be cleaned up and moved somewhere else
+                if thruster.manual is not None:
+                    thruster.node.detachObject(thruster.manual)
+                    thruster.scene_mgr.destroyManualObject(thruster.manual)
+                    
+                manual = thruster.scene_mgr.createManualObject(thruster.name + "manual");
+                manual.begin("BaseRedNoLighting", Ogre.RenderOperation.OT_LINE_STRIP);
+
+                base_pt = thruster.node.position
+                thrust_pt = base_pt + ((thruster.node.getOrientation() * \
+                                        thruster.direction) * (thruster._power * 10))
+                manual.position(base_pt)
+                manual.position(thrust_pt)
+                #manual.position(0,20,0)
+
+               # manual.index(0)
+                #manual.index(1)
+                #manual.index(2)
+                
+                manual.end()
+                
+                thruster.manual = manual
+                thruster.node.attachObject(thruster.manual)
+                        
 # Register Thruster
 DeviceFactory.register('SimThruster', Thruster)

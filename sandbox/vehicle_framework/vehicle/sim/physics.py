@@ -28,13 +28,13 @@ class PhysicsSystem(object):
         self.elapsed = 0.0;
         
         # Start up the debugger so that we can show debugging lines
-        OgreNewt.Debugger.getSingleton().init(graphics_sys.scene_manager)
+        #OgreNewt.Debugger.getSingleton().init(graphics_sys.scene_manager)
         
     def __del__(self):
         """
         You must delete this before the GraphicsSystem
         """
-        OgreNewt.Debugger.getSingleton().deInit()
+        #OgreNewt.Debugger.getSingleton().deInit()
         
         del self.bodies
         del self.world
@@ -47,7 +47,7 @@ class PhysicsSystem(object):
         
         A return of false from here shuts down the application
         """
-        OgreNewt.Debugger.getSingleton().showLines(self.world)
+        #OgreNewt.Debugger.getSingleton().showLines(self.world)
         
         self.elapsed += time_since_last_update
   

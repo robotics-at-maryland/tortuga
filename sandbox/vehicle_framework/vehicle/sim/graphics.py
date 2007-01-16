@@ -256,7 +256,7 @@ class CameraController(object):
         
         # This sets up automatic setting of the key down properties
         watched_keys = [('shift_key', [OIS.KC_LSHIFT, OIS.KC_RSHIFT]), 
-                        OIS.KC_UP, OIS.KC_DOWN, OIS.KC_LEFT, OIS.KC_RIGHT]
+                        OIS.KC_W, OIS.KC_A, OIS.KC_S, OIS.KC_D]
         self.key_observer = KeyStateObserver(self, watched_keys)
     
     def __del__(self):
@@ -266,18 +266,18 @@ class CameraController(object):
     
     def update(self):
         quat = self.camera_node.getOrientation()
-        vec = Ogre.Vector3(0.0,0.0,-0.5)
+        vec = Ogre.Vector3(0.0,0.0,-0.2)
         trans = quat * vec
-        vec = Ogre.Vector3(0.5,0.0,0.0)
+        vec = Ogre.Vector3(0.2,0.0,0.0)
         strafe = quat * vec
         
-        if self.up_key:
+        if self.w_key:
             self.camera_node.translate(trans)
-        if self.down_key:
+        if self.s_key:
             self.camera_node.translate(trans * -1.0)
-        if self.left_key:
+        if self.a_key:
             self.camera_node.translate(strafe * -1.0)
-        if self.right_key:
+        if self.d_key:
             self.camera_node.translate(strafe)
     
     def _mouse_moved(self, arg):

@@ -8,6 +8,7 @@
 """
 Offers core functionallity for the vehicle framework
 """
+real_property = property
 
 class property_meta(type):
     """

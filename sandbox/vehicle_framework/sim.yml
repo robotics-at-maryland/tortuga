@@ -95,6 +95,30 @@ Vehicles:
                     material: Simple/BumpyMetal
                     scale: [0.15,0.047,0.047]
                     orientation: [0, 1, 0, 90]
+                    
+            ForeThruster:
+                type: SimThruster
+                position: [0, 0, 0.4]
+                direction: [0, 1, 0]
+                strength: 30
+                
+                Graphical:
+                    mesh: cylinder.mesh
+                    material: Simple/BumpyMetal
+                    scale: [0.15,0.047,0.047]
+                    orientation: [0, 0, 1, 90]
+                    
+            AftThruster:
+                type: SimThruster
+                position: [0, 0, -0.4]
+                direction: [0, 1, 0]
+                strength: 30
+                
+                Graphical:
+                    mesh: cylinder.mesh
+                    material: Simple/BumpyMetal
+                    scale: [0.15,0.047,0.047]
+                    orientation: [0, 0, 1, 90]
     
         # This describes all the general
         Scenes:

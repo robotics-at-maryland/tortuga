@@ -52,4 +52,10 @@ class IThruster(IDevice):
     """
     A non rotating thruster that can have its powerlevel set from -100 to 100
     """
-    pass
+    class power(property):
+        '''The angle in radians'''
+        def fget(self):
+            return self._power
+        def fset(self,power):
+            if  (power >= -1) and (power <= 1):
+                self._power = power
