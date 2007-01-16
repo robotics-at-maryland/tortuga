@@ -34,6 +34,9 @@ class IVehicle(object):
     Notice the lack of methods like "addXXX" and "setXXX" the internals of the
     vehicle will be very protected.  Generally a device will be turned "on",
     ie told to update, and it will set the proper data in the vehicle.
+    
+    The attitude and position attributes hold the current attitude and position
+    of the vehicle.  These are currently Ogre Vectors, and Quaternions
     """
     
     def update(self, timestep):

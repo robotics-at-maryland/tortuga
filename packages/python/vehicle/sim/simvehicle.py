@@ -69,6 +69,8 @@ class Vehicle(IVehicle):
                 return False
             
         self.kmcontroller.update()
+        self.attitude = self.hull_node.orientation
+        self.position = self.hull_node.position
         return True
     
     def _create_components(self, config):
