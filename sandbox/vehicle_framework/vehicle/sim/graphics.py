@@ -221,10 +221,10 @@ class GraphicsSystem(object):
         Creates the camera.
         """        
         self.camera = self.scene_manager.createCamera('PlayerCam')
-        self.camera.setPosition(Ogre.Vector3( 0.0, -3.0, 23.0))
+        self.camera.setPosition(Ogre.Vector3( 0.0, 0.0, 0.0))
         self.camera.lookAt(Ogre.Vector3(0, 0, -300))
-        self.camera.NearClipDistance = 5
-        
+        self.camera.nearClipDistance = 0.5
+                
         # Allows easier movement of camera
         self.camera_node = self.scene_manager.getRootSceneNode().createChildSceneNode()
         self.camera_node.attachObject(self.camera)

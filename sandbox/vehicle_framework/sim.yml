@@ -49,7 +49,7 @@ Vehicles:
     # ------------------------- S I M U L A T E D --------------------------- #
     Simulated:
         # In kilograms
-        mass: 1
+        mass: 26.0  # About 0.5% bouyant
         # In the X, Y, and Z direction
         size: [0.2032, 0.2032, 0.6858]
         position: [0.0, 0.0, 0.0]

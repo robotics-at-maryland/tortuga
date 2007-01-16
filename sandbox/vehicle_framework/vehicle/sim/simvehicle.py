@@ -40,7 +40,7 @@ class Vehicle(IVehicle):
         # Create vehicle and devices
         self._create_vehicle(config)
         #for device in config['Devices']:
-        #    DeviceFactory.create(device, [config[device], self])
+        #    DeviceFactory.create(device, config[device], self])
 
         
     def __del__(self):
@@ -72,10 +72,12 @@ class Vehicle(IVehicle):
         scene_mgr = self.graphics_sys.scene_manager
         world = self.physics_sys.world
         
-        # calculate the inertia based on box formula and mass
+        # Load values from the config file
         size = Vector(config['size'])
         mass = config['mass']
-        inertia = OgreNewt.CalcBoxSolid(mass, size)
+        orientation = Quat(config['orientation'], axis_angle = True)
+        position = Vector(config['position'])
+        
                     
         hull = scene_mgr.createEntity('Hull', 'box.mesh')
         hull.setMaterialName("Simple/BumpyMetal")
@@ -83,27 +85,28 @@ class Vehicle(IVehicle):
         self.hull_node = scene_mgr.getRootSceneNode().createChildSceneNode()
         self.hull_node.attachObject(hull)
         self.hull_node.setScale(size)
+        self.hull_node.setPosition(position)
         
         
         col = OgreNewt.Box(world, size)
         self.hull_body = OgreNewt.Body(world, col)
         self.hull_body.attachToNode(self.hull_node)
+        inertia = OgreNewt.CalcBoxSolid(mass, size)
         self.hull_body.setMassMatrix(mass, inertia)
-        
-        self.hull_body.setCustomForceAndTorqueCallback(thruster_force_callback, 
-                                                       "")
-        orientation = Quat(config['orientation'], axis_angle = True)
-        self.hull_body.setPositionOrientation(Vector(config['position']), 
-                                              orientation)
+        self.hull_body.setCustomForceAndTorqueCallback(
+            thruster_force_callback, "")
+        self.hull_body.setPositionOrientation(position, orientation)
         
 
 # Register Simuldated Vehicle with Factory
 VehicleFactory.register('Simulated', Vehicle)
 
 def thruster_force_callback(body):
+    mass, inertia = body.getMassMatrix()
     gravity = Vector((0, -9.8, 0))
-    body.addForce(gravity)
-    body.addBouyancyForce(100, 0.01, 0.01, gravity, buoyancyCallback, "")
+    
+    body.addForce(gravity * mass)
+    body.addBouyancyForce(1000, 0.01, 0.01, gravity, buoyancyCallback, "")
     
     # Apply our thrust from the thrusters
     #Thruster.apply_thruster_force(body)

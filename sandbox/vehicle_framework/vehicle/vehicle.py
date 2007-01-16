@@ -18,7 +18,7 @@ class VehicleFactory(object):
     createFunc = {};
 
     @staticmethod    
-    def create(type, args, kwargs = {}):
+    def create(type, *args, **kwargs):
         return apply(VehicleFactory.createFunc[type], args, kwargs)
     
     @staticmethod

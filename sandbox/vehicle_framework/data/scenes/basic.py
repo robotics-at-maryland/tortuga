@@ -23,16 +23,13 @@ class Scene(object):
         self.bodies = []
         
         # position camera
-        graphics_sys.camera.setPosition(0.0, 5.0, 10.0)
-        graphics_sys.camera_node.setPosition( 0.0, -3.0, 23.0)
+        graphics_sys.camera_node.setPosition( 0, 1, 3)
+        graphics_sys.camera.lookAt(0, 0, 0)
         
         self.create_tank()
-        
-        # Sky Box.
         self.scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
         
         # Light
-        #self.scene_mgr.setAmbientLight( Ogre.ColourValue( 0.7,0.7,0.7 ))
         light = self.scene_mgr.createLight("Light1")
         light.setType(Ogre.Light.LT_POINT )
         light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
@@ -47,11 +44,11 @@ class Scene(object):
     def create_tank(self):
         # Floor
         floor = self.scene_mgr.createEntity("Floor", "simple_terrain.mesh")
+        floor.setMaterialName("Simple/BeachStones")
         floornode = \
             self.scene_mgr.getRootSceneNode().createChildSceneNode("FloorNode")
         floornode.attachObject(floor)
-        floor.setMaterialName("Simple/BeachStones")
-        
+      
         col = OgreNewt.TreeCollision(self.world, floornode, True)
         bod = OgreNewt.Body(self.world, col)
         del col

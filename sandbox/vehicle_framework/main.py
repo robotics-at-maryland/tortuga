@@ -44,7 +44,7 @@ def main():
     vehicle_type = config['vehicle']
     # Pass along the subsection of the config corresponding to the vehicle
     vehicle = VehicleFactory.create(vehicle_type,
-                                    [config['Vehicles'][vehicle_type]])
+                                    config['Vehicles'][vehicle_type])
     
     # Start up our other systems(possibly use component interface to find them?)
     components = [vehicle]
