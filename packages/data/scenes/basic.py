@@ -30,9 +30,9 @@ class Scene(object):
         self.scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
         
         # Light
-        light = self.scene_mgr.createLight("Light1")
-        light.setType(Ogre.Light.LT_POINT )
-        light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
+        #light = self.scene_mgr.createLight("Light1")
+        #light.setType(Ogre.Light.LT_POINT )
+        #light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
         
     def add_wall(self, pos, norm = Ogre.Vector3.UNIT_Z, 
                  orient = Ogre.Quaternion.IDENTITY):

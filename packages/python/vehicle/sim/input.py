@@ -173,6 +173,7 @@ class KeyStateObserver(object):
             if type(attr) is list:
                 attribute, count = attr
                 count += 1
+                self.key_map[key_event.key] = [attribute, count]
                 setattr(self.subject, attribute, True)
             else:
                 setattr(self.subject, attr, True)
@@ -184,6 +185,7 @@ class KeyStateObserver(object):
             if type(attr) is list:
                 attribute, count = attr
                 count -= 1
+                self.key_map[key_event.key] = [attribute, count]
                 if 0 == count:
                     setattr(self.subject, attribute, False)
             else:

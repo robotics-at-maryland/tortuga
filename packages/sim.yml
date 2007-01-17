@@ -53,7 +53,7 @@ Vehicles:
     # ------------------------- S I M U L A T E D --------------------------- #
     Simulated:
         # In kilograms
-        mass: 26.0  # About 0.5% bouyant
+        mass: 26  # About 0.5% bouyant
         # In the X, Y, and Z direction
         # Actual size in meters
         size: [0.2032, 0.2032, 0.6858]

@@ -109,6 +109,7 @@ class Vehicle(IVehicle):
         self.hull_body.setCustomForceAndTorqueCallback(
             thruster_force_callback, "")
         self.hull_body.setPositionOrientation(position, orientation)
+        self.hull_body.setAutoFreeze(False)
         
 # Register Simuldated Vehicle with Factory
 VehicleFactory.register('Simulated', Vehicle)
@@ -176,11 +177,11 @@ class VehicleKeyMouseController(object):
             self.vehicle.AftThruster.power -= 0.005
             #print self.vehicle.StarboardThruster.power
             
-        print 'P: %3d S: %3d F: %3d  A: %3d' % \
-            (self.vehicle.PortThruster.power * 100,
-             self.vehicle.StarboardThruster.power * 100,
-             self.vehicle.ForeThruster.power * 100,
-             self.vehicle.AftThruster.power * 100)
+        #print 'P: %3d S: %3d F: %3d  A: %3d' % \
+        #    (self.vehicle.PortThruster.power * 100,
+        #     self.vehicle.StarboardThruster.power * 100,
+        #     self.vehicle.ForeThruster.power * 100,
+        #     self.vehicle.AftThruster.power * 100)
 
     def _key_pressed(self, key_event):
         # Update the state of *_key properties  

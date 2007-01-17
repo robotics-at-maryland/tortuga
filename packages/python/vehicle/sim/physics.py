@@ -50,7 +50,6 @@ class PhysicsSystem(object):
         #OgreNewt.Debugger.getSingleton().showLines(self.world)
         
         self.elapsed += time_since_last_update
-  
         if ((self.elapsed > self.update_interval) and (self.elapsed < (1.0)) ):
             while (self.elapsed > self.update_interval):
                 self.world.update(self.update_interval)

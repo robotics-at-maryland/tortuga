@@ -102,7 +102,6 @@ material Simple/Translucent
 		
 		pass
 		{
-			ambient 0 0 0
 			diffuse 0.2 0.2 0.8
 			specular 0 0 0 0
 			ambient 0 0 0

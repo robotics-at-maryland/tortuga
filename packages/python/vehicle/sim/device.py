@@ -77,6 +77,7 @@ class Thruster(IThruster):
         Applies the force of the current thrusters to the given body.  This 
         uses the global list of thrusters.
         """
+        #print 'Applying Force'
         for thruster in Thruster.thrusters:
             if 0 != thruster._power :
                 force = thruster.direction * thruster._power * thruster.strength
@@ -95,11 +96,6 @@ class Thruster(IThruster):
                                         thruster.direction) * (thruster._power * 10))
                 manual.position(base_pt)
                 manual.position(thrust_pt)
-                #manual.position(0,20,0)
-
-               # manual.index(0)
-                #manual.index(1)
-                #manual.index(2)
                 
                 manual.end()
                 
