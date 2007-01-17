@@ -84,14 +84,16 @@ class ogre:
     active = True
     version = "1.4"   # "1.2"
     libs=[LIB_Boost, 'OgreMain', 'ode', 'OgreGUIRenderer', 'CEGUIBase']
-    lib_dirs = [ PATH_LIB_Boost
-                , os.path.join( PATH_Ogre, 'Samples/Common/CEGUIRenderer/lib')
-                , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
-                , os.path.join( PATH_Ogre, 'Dependencies/lib/Release')
-                ]
-    include_dirs = [ PATH_Boost 
-                , os.path.join(PATH_Ogre,'OgreMain/include') 
-                ]
+    #lib_dirs = [ PATH_LIB_Boost
+    #            , os.path.join( PATH_Ogre, 'Samples/Common/CEGUIRenderer/lib')
+    #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
+    #            , os.path.join( PATH_Ogre, 'Dependencies/lib/Release')
+    #            ]
+    lib_dirs = OGRE_LIB_DIRS
+    #include_dirs = [ PATH_Boost 
+    #            , os.path.join(PATH_Ogre,'OgreMain/include') 
+    #            ]
+    include_dirs = OGRE_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR)
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     LINKFLAGS = ''
     CheckIncludes=['boost/python.hpp', 'Ogre.h']
@@ -101,18 +103,20 @@ class ois:
     active = True
     version= "1.0"
     libs=['OIS']
-    include_dirs = [ PATH_Boost 
-            , os.path.join(PATH_OIS,'includes')    ## Note the plural include's
-            ]
+    #include_dirs = [ PATH_Boost 
+    #        , os.path.join(PATH_OIS,'includes')    ## Note the plural include's
+    #        ]
+    include_dirs = OIS_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR)
     if os.name =='nt':
         _lpath='dll'
     elif os.name == 'posix':
         _lpath='lib'   
     elif os.name =='mac':
         _lpath='Mac' ## TOFIX
-    lib_dirs = [ PATH_LIB_Boost 
-            , os.path.join(PATH_OIS, _lpath)
-            ]
+    #lib_dirs = [ PATH_LIB_Boost 
+    #        , os.path.join(PATH_OIS, _lpath)
+    #        ]
+    lib_dirs = OIS_LIB_DIRS
     ModuleName = 'OIS'
     CheckIncludes=['boost/python.hpp', 'OIS.h']
         
@@ -145,16 +149,18 @@ class ogrenewt:
         _lpath='lib-mt'  
     elif os.name == 'mac':
         print "WARNING: Newton doesn't support MAC's"
-    include_dirs = [PATH_Boost
-                    , PATH_Newton   # only one path for Newton
-                , os.path.join(PATH_Ogre,'OgreMain/include') 
-                , os.path.join(PATH_OgreAddons,'ogrenewt/OgreNewt_Main/inc')
-                    ]
-    lib_dirs = [ PATH_LIB_Boost
-                , os.path.join(PATH_Newton ,_lpath)
-                ,os.path.join(PATH_OgreAddons, r'ogrenewt/OgreNewt_Main/lib/Release') 
-                , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
-                ]
+    #include_dirs = [PATH_Boost
+    #                , PATH_Newton   # only one path for Newton
+    #            , os.path.join(PATH_Ogre,'OgreMain/include') 
+    #            , os.path.join(PATH_OgreAddons,'ogrenewt/OgreNewt_Main/inc')
+    #                ]
+    include_dirs = OGRENEWT_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR) 
+    #lib_dirs = [ PATH_LIB_Boost
+    #            , os.path.join(PATH_Newton ,_lpath)
+    #            ,os.path.join(PATH_OgreAddons, r'ogrenewt/OgreNewt_Main/lib/Release') 
+    #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
+    #            ]
+    lib_dirs = OGRENEWT_LIBS_DIRS
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     ModuleName = 'OgreNewt'
     CheckIncludes=['boost/python.hpp', 'Ogre.h', 'OgreNewt.h', 'Newton.h']
@@ -163,18 +169,19 @@ class CEGUI:
     active = True
     version = "0.5.0b" 
     libs=[LIB_Boost, 'CEGUIBase', 'OgreMain', 'OgreGUIRenderer' ]
-    include_dirs = [PATH_Boost
-                    ,os.path.join(PATH_CEGUI, r'include')
-                    ,PATH_CEGUI
-                    ,os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/include' )
-                    , os.path.join(PATH_Ogre,'OgreMain/include')
-                    ]
-                  
-    lib_dirs = [ PATH_LIB_Boost
-                , os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/lib' )
-                , os.path.join ( PATH_Ogre, r'OgreMain/lib/Release' )
-                , os.path.join ( PATH_Ogre, r'Dependencies/lib/Release' )
-                ]
+    #include_dirs = [PATH_Boost
+    #                ,os.path.join(PATH_CEGUI, r'include')
+    #                ,PATH_CEGUI
+    #                ,os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/include' )
+    #                , os.path.join(PATH_Ogre,'OgreMain/include')
+    #                ]
+    include_dirs = CEGUI_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR)              
+    #lib_dirs = [ PATH_LIB_Boost
+    #            , os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/lib' )
+    #            , os.path.join ( PATH_Ogre, r'OgreMain/lib/Release' )
+    #            , os.path.join ( PATH_Ogre, r'Dependencies/lib/Release' )
+    #            ]
+    lib_dirs = CEGUI_LIB_DIRS
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     ModuleName = 'CEGUI'
     CheckIncludes = ['boost/python.hpp', 'Ogre.h', 'CEGUI.h', 'OgreCEGUIRenderer.h'] 
@@ -224,12 +231,12 @@ projects = {
     'ois' : ois
     , 'ogre' : ogre
     , 'cegui' : CEGUI
-    , 'ode' : ode
-    , 'newton' : newton
-    , 'ogrerefapp' : ogrerefapp
+#    , 'ode' : ode
+#    , 'newton' : newton
+#    , 'ogrerefapp' : ogrerefapp
     , 'ogrenewt' : ogrenewt
-    , 'fmod' : FMOD
-    , 'ogreode' : ogreode
+#    , 'fmod' : FMOD
+#    , 'ogreode' : ogreode
 }        
 
 #
