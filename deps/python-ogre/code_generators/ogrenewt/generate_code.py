@@ -30,7 +30,6 @@ from pyplusplus import function_transformers as ft
 from pyplusplus.module_builder import call_policies
 
 import common_utils.extract_documentation as exdoc
-
 import common_utils.ogre_properties as ogre_properties
 
 def filter_declarations( mb ):

@@ -156,7 +156,7 @@ class ogrerefapp:
 class ogrenewt:
     active=True
     version = "1.0"
-    libs = ['newton', LIB_Boost, 'OgreNewt_Main', 'OgreMain']
+    libs = ['Newton', LIB_Boost, 'OgreNewt', 'OgreMain']
     if os.name =='nt':
         _lpath='dll'
     elif os.name =='posix':
@@ -248,7 +248,7 @@ class FMOD:
 projects = {
     'ois' : ois
     , 'ogre' : ogre
-    , 'cegui' : CEGUI
+    , 'CEGUI' : CEGUI
 #    , 'ode' : ode
 #    , 'newton' : newton
 #    , 'ogrerefapp' : ogrerefapp

@@ -17,14 +17,6 @@ def log ( instring ):
 import os
 import sys
 import environment
-
-#
-# list the modules here you want to build
-# The names must match those in environment.projects
-#
-#tobuild = ['ogre' , 'ois', 'ogrerefapp', 'ogrenewt', 'cegui']
-tobuild = ['ogre']
-#tobuild = ['fmod']
  
 builddir = "build_dir"
  
@@ -70,6 +62,18 @@ def get_linkflags():
         LINKFLAGS = ' `pkg-config --libs OGRE` '
         #LINKFLAGS += ' -lboost_python'
     return LINKFLAGS
+
+# Let us select the projects to build
+possible_projects = ['ogre' , 'ois', 'ogrerefapp', 'ogrenewt', 'cegui']
+default_projects = possible_projects
+
+# This lets you call scons like: 'scons PROJECTS=ogre,cegui'
+opts = Options('custom.py')
+opts.Add(ListOption('PROJECTS', 'Project to build wrappers for',
+                    possible_projects, default_projects))
+temp_env = Environment(options = opts)
+tobuild = temp_env['PROJECTS']
+del temp_env
     
 for name, cls in environment.projects.items():
     ##if name.active:

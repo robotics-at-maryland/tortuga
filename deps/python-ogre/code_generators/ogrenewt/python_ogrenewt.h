@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <map>
-#include "ogrenewt.h"
+#include "OgreNewt.h"
 
 
 // First we create a magic namespace to hold all our aliases

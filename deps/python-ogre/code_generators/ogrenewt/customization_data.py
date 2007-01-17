@@ -1,7 +1,7 @@
 
 def header_files( Version ):
-    return [ 'ogre.h',
-             'ogrenewt.h',
+    return [ 'Ogre.h',
+             'OgreNewt.h',
              #'return_pointee_value.hpp'
 
              ]
