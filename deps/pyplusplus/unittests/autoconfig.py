@@ -34,6 +34,7 @@ class scons_config:
           , "    , CPPPATH=[ %s ]" % ','.join( [ 'r"%s"' % path for path in scons_config.include_dirs] )
           , "    , CCFLAGS=[ %s ]" % ','.join( [ 'r"%s"' % flag for flag in scons.ccflags ] )
           , "    , SHLIBPREFIX=''"
+          , "    , CXX='%s'" % scons.compiler
           , "    , SHLIBSUFFIX='%s'" % scons.suffix #explicit better then implicit
           , ")" ]
         return os.linesep.join( code )

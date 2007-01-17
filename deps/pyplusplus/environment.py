@@ -1,6 +1,7 @@
 import os
 import sys
 import getpass
+import platform
 
 class boost:
     libs = ''
@@ -14,30 +15,30 @@ class gccxml:
     executable = ''
 
 class scons:
+    compiler = ''
     suffix = ''
     cmd_build = ''
     cmd_clean = ''
     ccflags = []
-    
-if 'roman' in getpass.getuser():
-    
-    scons.cmd_build = 'scons --file=%s'
-    scons.cmd_clean = 'scons --clean --file=%s'
 
-    if sys.platform == 'win32':
-        scons.suffix = '.pyd'
-        scons.ccflags = ['/MD', '/EHsc', '/GR', '/Zc:wchar_t', '/Zc:forScope' ]
-        boost.libs = [ 'd:/dev/boost_cvs/libs/python/build/bin-stage' ]
-        boost.include = 'd:/dev/boost_cvs'
-        python.libs = 'e:/python25/libs'
-        python.include = 'e:/python25/include'
-        gccxml.executable = r'd:/dev/gccxml_cvs/gccxml-bin/bin/release/gccxml.exe'
-    else:
-        scons.suffix = '.so'
-        boost.libs = [ '/home/roman/boost_cvs/libs/python/build/bin-stage' ]
-        boost.include = '/home/roman/boost_cvs'
-        python.include = '/usr/include/python2.4'
-        gccxml.executable = '/home/roman/gccxml/bin/gccxml'
+# Setup the MRBC
+scons.cmd_build = 'scons --file=%s'
+scons.cmd_clean = 'scons --clean --file=%s'
+
+if platform.system() == 'Linux':
+    prefix = os.path.join(os.environ['MRBC_SVN_ROOT'], 'deps', 'local')
+    lib = os.path.join(prefix, 'lib')
+    include = os.path.join(prefix, 'include')
+    
+    scons.suffix = '.so'
+    scons.compiler = 'g++-3.4'
+    
+    boost.libs = [lib]
+    boost.include = os.path.join(include, 'boost-1_35')
+    python.include = '/usr/include/python2.4'
+    gccxml.executable = os.path.join(prefix, 'bin','gccxml')
+else:
+    raise "Environment Not Configured"
 
 
 _my_path = None
