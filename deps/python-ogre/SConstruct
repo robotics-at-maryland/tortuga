@@ -22,7 +22,8 @@ import environment
 # list the modules here you want to build
 # The names must match those in environment.projects
 #
-tobuild = ['ogre' , 'ois', 'ogrerefapp', 'ogrenewt', 'cegui']
+#tobuild = ['ogre' , 'ois', 'ogrerefapp', 'ogrenewt', 'cegui']
+tobuild = ['ogre']
 #tobuild = ['fmod']
  
 builddir = "build_dir"
@@ -54,7 +55,11 @@ def get_ccflags():
     return CCFLAGS
 
 def get_source_files(_dir):
-    source_files = filter( lambda s: s.endswith( '.cpp' ), os.listdir(_dir) )
+    try:
+        source_files = filter( lambda s: s.endswith( '.cpp' ), os.listdir(_dir) )
+    except OSError,e:
+        print 'WARNING: Generate the sources this directory: "%s"' % _dir
+        raise e
     source_files.sort()
     return source_files
 
@@ -63,7 +68,7 @@ def get_linkflags():
         LINKFLAGS = " -NOLOGO -INCREMENTAL:NO -DLL -OPT:NOREF,NOICF -subsystem:console "
     elif os.name == 'posix':
         LINKFLAGS = ' `pkg-config --libs OGRE` '
-        LINKFLAGS += ' -lboost_python'
+        #LINKFLAGS += ' -lboost_python'
     return LINKFLAGS
     
 for name, cls in environment.projects.items():
@@ -76,9 +81,15 @@ for name, cls in environment.projects.items():
         cls._build_dir = os.path.join ( builddir, cls.dir_name)
         cls._name = name
         _env = Environment(ENV=os.environ)
+
+        ## Use custom compilier if wanted (things like ccache)
+        if hasattr(environment, 'cxx_compiler'):
+            _env['CXX'] = environment.cxx_compiler
+        if hasattr(environment, 'cc_compiler'):
+            _env['CC'] = environment.cc_compiler
         
         ## setup linker paths/libs and flags (standard and additional)
-        _env.Append ( LIBPATH= cls.lib_dirs + [environment.python_lib_dirs, environment.PATH_LIB_Boost] )
+        _env.Append ( LIBPATH= cls.lib_dirs + [environment.python_lib_dirs] )
         linkflags=get_linkflags()
         if hasattr ( cls, 'LINKFLAGS' ):
             linkflags += cls.LINKFLAGS
@@ -106,14 +117,17 @@ for name, cls in environment.projects.items():
         ## now call the SConscript file in the source directory
         Export ( '_env' ) 
         package = _env.SConscript(os.path.join( cls._build_dir, 'SConscript' ) )
-        
+        print package
         ## and lets have it install the output into the 'package_dir_name/ModuleName' dir and rename to the PydName
         
         ## ugly hack - scons returns a list of targets from SharedLibrary - we have to choose the one we want
-        if os.name == 'nt':  
-            index=0
-        else:
-            index=1
-        _env.InstallAs(os.path.join(environment.package_dir_name,cls.ModuleName, cls.PydName), package[index] )
+        #if os.name == 'nt':  
+        #    index=0
+        #else:
+        #    index=1
+        index = 0
+        _env.InstallAs(os.path.join(environment.package_dir_name,
+                                    cls.ModuleName, cls.PydName),
+                       package[index] )
 
 

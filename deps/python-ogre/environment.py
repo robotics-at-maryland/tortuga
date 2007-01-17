@@ -2,7 +2,6 @@ import os
 import sys
 import getpass
 
-
 ##
 ##  Jan 2007 modification
 ##
@@ -15,11 +14,12 @@ import getpass
 ## otherwise it will use the values you enter below...
 ##
 
-_LOGGING_ON = False
+_LOGGING_ON = True
 
 def log ( instring ):
     if _LOGGING_ON:
-        print __file__, "LOG::", instring
+        #print __file__, "LOG::", instring
+        print "LOG::", instring
 
 PythonOgreMajorVersion = "0"
 PythonOgreMinorVersion = "7" # change to 0.7 due to lowercase properties
@@ -29,9 +29,21 @@ PythonOgrePatchVersion = "2"
 ## these should be fine with auto create - however override them as necessary
 ##
 PATH_Python = os.path.dirname( sys.executable )
-python_include_dirs = os.path.join ( PATH_Python, 'include')
-python_lib_dirs = os.path.join ( PATH_Python, 'libs' )
+if os.name == 'nt':
+    python_include_dirs = os.path.join ( PATH_Python, 'include')
+    python_lib_dirs = os.path.join ( PATH_Python, 'libs' )
+elif os.name == 'posix':
+    env_root =  os.path.join( PATH_Python, '..' )
+    ver_str = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
+    python_include_dirs = os.path.join( env_root, 'include', 'python' + ver_str)
+    python_lib_dirs = os.path.join ( env_root, 'libs', 'python' + ver_str)
+else:
+    raise "ERROR unsupported"
+    
+
 root_dir = os.path.abspath(os.path.dirname(__file__) )## The root directory is where this module is located
+
+print python_include_dirs
 
 sys.path.append( os.path.join( root_dir, 'common_utils' ) )
 shared_ptr_dir = os.path.join( root_dir, 'shared_ptr' )
@@ -50,19 +62,17 @@ _PlatformType = sys.platform ## win32, ??
 ##
 
 # log ( "PATH_Python: %s, UserName: %s, SystemType: %s, Root_dir: %s" % (PATH_Python, _UserName, _SystemType, root_dir) )
-try:
-    s = 'PythonOgreConfig_' + _UserName + '.py'
-    execfile( os.path.join(root_dir, s ) )
+user_config  = os.path.join(root_dir, 'PythonOgreConfig_' + _UserName + '.py')
+plat_config = os.path.join(root_dir, 'PythonOgreConfig_' + _SystemType + '.py')
+
+if os.path.exists(user_config):
+    execfile(user_config)
     _ConfigSet = True
-    log ( "Loaded Config (based on username) from %s" % (s))
-except:
-    try:
-        s= 'PythonOgreConfig_' + _SystemType + '.py'
-        execfile( os.path.join(root_dir, s ) )
-        _ConfigSet = True
-        log ( "Loaded Config (based on systemtype) from %s" % (s))
-    except:
-        pass   
+    log ( "Loaded Config (based on username) from %s" % (user_config))
+elif os.path.exists(plat_config):
+    execfile(user_config)
+    _ConfigSet = True
+    log ( "Loaded Config (based on systemtype) from %s" % (plat_config))
 
 if not _ConfigSet:
     log ( "  Going to use internal config setting")
@@ -83,7 +93,7 @@ if not _ConfigSet:
 class ogre:
     active = True
     version = "1.4"   # "1.2"
-    libs=[LIB_Boost, 'OgreMain', 'ode', 'OgreGUIRenderer', 'CEGUIBase']
+    libs=[LIB_Boost, 'OgreMain', 'CEGUIOgreRenderer', 'CEGUIBase']
     #lib_dirs = [ PATH_LIB_Boost
     #            , os.path.join( PATH_Ogre, 'Samples/Common/CEGUIRenderer/lib')
     #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
@@ -93,7 +103,8 @@ class ogre:
     #include_dirs = [ PATH_Boost 
     #            , os.path.join(PATH_Ogre,'OgreMain/include') 
     #            ]
-    include_dirs = OGRE_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR)
+    include_dirs = OGRE_INCLUDE_DIRS
+    include_dirs.append(BOOST_INCLUDE_DIR)
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     LINKFLAGS = ''
     CheckIncludes=['boost/python.hpp', 'Ogre.h']
@@ -102,11 +113,12 @@ class ogre:
 class ois:
     active = True
     version= "1.0"
-    libs=['OIS']
+    libs=[LIB_Boost, 'OIS']
     #include_dirs = [ PATH_Boost 
     #        , os.path.join(PATH_OIS,'includes')    ## Note the plural include's
     #        ]
-    include_dirs = OIS_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR)
+    include_dirs = OIS_INCLUDE_DIRS
+    include_dirs.append(BOOST_INCLUDE_DIR)
     if os.name =='nt':
         _lpath='dll'
     elif os.name == 'posix':
@@ -123,18 +135,20 @@ class ois:
 class ogrerefapp:
     active = True
     version = "1.4"
-    libs=[LIB_Boost, 'OgreMain', 'ode', 'OgreGUIRenderer', 'CEGUIBase', 'ReferenceAppLayer']
-    lib_dirs = [ PATH_LIB_Boost
-                , os.path.join( PATH_Ogre, 'Samples/Common/CEGUIRenderer/lib')
-                , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
-                , os.path.join( PATH_Ogre, 'Dependencies/lib/Release')
-                , os.path.join( PATH_Ogre, 'ReferenceApplication/ReferenceAppLayer/lib/Release')
-                ]
-    include_dirs = [ PATH_Boost 
-                    , os.path.join(PATH_Ogre,'OgreMain/include') 
-                    , os.path.join(PATH_Ogre,'ReferenceApplication/ReferenceAppLayer/include') 
-                    , os.path.join( PATH_Ogre, 'Dependencies/include')
-                    ]
+    libs=[LIB_Boost, 'OgreMain', 'ode', 'CEGUIOgreRenderer', 'CEGUIBase', 'ReferenceAppLayer']
+    #lib_dirs = [ PATH_LIB_Boost
+    #            , os.path.join( PATH_Ogre, 'Samples/Common/CEGUIRenderer/lib')
+    #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
+    #            , os.path.join( PATH_Ogre, 'Dependencies/lib/Release')
+    #            , os.path.join( PATH_Ogre, 'ReferenceApplication/ReferenceAppLayer/lib/Release')
+    #            ]
+    lib_dirs = []
+    #include_dirs = [ PATH_Boost 
+    #                , os.path.join(PATH_Ogre,'OgreMain/include') 
+    #                , os.path.join(PATH_Ogre,'ReferenceApplication/ReferenceAppLayer/include') 
+    #                , os.path.join( PATH_Ogre, 'Dependencies/include')
+    #                ]
+    include_dirs = []
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     ModuleName = 'OgreRefApp'
     CheckIncludes = ['boost/python.hpp', 'Ogre.h', 'OgreReferenceAppLayer.h', 'OIS/OIS.h']
@@ -154,28 +168,30 @@ class ogrenewt:
     #            , os.path.join(PATH_Ogre,'OgreMain/include') 
     #            , os.path.join(PATH_OgreAddons,'ogrenewt/OgreNewt_Main/inc')
     #                ]
-    include_dirs = OGRENEWT_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR) 
+    include_dirs = OGRENEWT_INCLUDE_DIRS
+    include_dirs.append(BOOST_INCLUDE_DIR)
     #lib_dirs = [ PATH_LIB_Boost
     #            , os.path.join(PATH_Newton ,_lpath)
     #            ,os.path.join(PATH_OgreAddons, r'ogrenewt/OgreNewt_Main/lib/Release') 
     #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
     #            ]
-    lib_dirs = OGRENEWT_LIBS_DIRS
+    lib_dirs = OGRENEWT_LIB_DIRS
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     ModuleName = 'OgreNewt'
     CheckIncludes=['boost/python.hpp', 'Ogre.h', 'OgreNewt.h', 'Newton.h']
-    
+
 class CEGUI:
     active = True
     version = "0.5.0b" 
-    libs=[LIB_Boost, 'CEGUIBase', 'OgreMain', 'OgreGUIRenderer' ]
+    libs=[LIB_Boost, 'CEGUIBase', 'OgreMain', 'CEGUIOgreRenderer' ]
     #include_dirs = [PATH_Boost
     #                ,os.path.join(PATH_CEGUI, r'include')
     #                ,PATH_CEGUI
     #                ,os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/include' )
     #                , os.path.join(PATH_Ogre,'OgreMain/include')
     #                ]
-    include_dirs = CEGUI_INCLUDE_DIRS.append(BOOST_INCLUDE_DIR)              
+    include_dirs = CEGUI_INCLUDE_DIRS
+    include_dirs.append(BOOST_INCLUDE_DIR)
     #lib_dirs = [ PATH_LIB_Boost
     #            , os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/lib' )
     #            , os.path.join ( PATH_Ogre, r'OgreMain/lib/Release' )
@@ -210,10 +226,12 @@ class ogreode:
     
 class FMOD:
     version= "4.06"
-    include_dirs=[PATH_Boost
-                   ,os.path.join(PATH_FMOD, 'api/inc')]
-    lib_dirs = [ PATH_LIB_Boost
-                  ,os.path.join(PATH_FMOD, 'api/lib')] 
+#    include_dirs=[PATH_Boost
+#                   ,os.path.join(PATH_FMOD, 'api/inc')]
+#    lib_dirs = [ PATH_LIB_Boost
+#                  ,os.path.join(PATH_FMOD, 'api/lib')]
+    include_dirs = []
+    lib_dirs = []
     CCFLAGS = ' /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" '
     ModuleName = 'FMOD'
     if os.name =='nt':
@@ -255,7 +273,9 @@ def CheckPaths ( cls , name):
                     found = True
                     break
             if not found:
-                print "WARNING: Unable to find %s include file (%s class) in include_dirs" % (incfile, name)
+                print "WARNING: Unable to find %s include file (%s class) in include_dirs in path:" % (incfile, name)
+                for p in cls.include_dirs:
+                    print "\t",p
         if os.name =='nt': 
             for libfile in cls.libs :
                 libfile += '.lib'

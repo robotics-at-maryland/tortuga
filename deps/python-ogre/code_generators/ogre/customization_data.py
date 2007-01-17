@@ -1,7 +1,7 @@
 #I think it is possible to create code that will do that automaticly.
 
 def aliases( version ):
-    if version == "CVS":
+    if version == "1.4":
         return {
             "map<unsigned, Ogre::StaticGeometry::Region*, std::less<unsigned>, std::allocator<std::pair<unsigned const, Ogre::StaticGeometry::Region*> > >"
               : "MapOfRegionIterator"
@@ -264,7 +264,7 @@ def aliases( version ):
     }
 
 def header_files( version ):
-    if version == "CVS":
+    if version == "1.4":
         return [ 'Ogre.h'
                 , 'OgreErrorDialog.h'
                 , 'OgreConfigDialog.h'
