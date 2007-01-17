@@ -30,7 +30,7 @@ Utility_setFloat(void * ptrin, boost::python::list listin)
 }
 
 void
-Utility_setUint16(void * ptrin, boost::python::list listin)
+Utility_setUint16(void * ptrin, boost::python::list listin)     // unsigned short
 {
     int index;
     Ogre::uint16 * newptr = reinterpret_cast<Ogre::uint16 *>(ptrin);
@@ -199,7 +199,8 @@ WRAPPER_REGISTRATION_Frustum = \
     def( "enableCustomNearClipPlaneMP", &::Frustum_enableCustomNearClipPlaneMP );
 """
 
-if environment.ogre.version != "CVS":
+## WARNING, this is OLD CODE and is probably broken
+if environment.ogre.version == "1.2":
     ### need to override keylistener etc
     WRAPPER_DEFINITION_EventProcessor =\
     """
@@ -265,7 +266,7 @@ def apply( mb ):
     rt = mb.class_( 'Frustum' )
     rt.add_declaration_code( WRAPPER_DEFINITION_Frustum )
     rt.add_registration_code( WRAPPER_REGISTRATION_Frustum )
-    if environment.ogre.version != "CVS":
+    if environment.ogre.version == "1.2":
         rt = mb.class_( 'EventProcessor' )
         rt.add_declaration_code( WRAPPER_DEFINITION_EventProcessor )
         rt.add_registration_code( WRAPPER_REGISTRATION_EventProcessor )

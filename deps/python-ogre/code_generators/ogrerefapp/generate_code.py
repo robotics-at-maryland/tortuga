@@ -23,6 +23,8 @@ from pygccxml import parser
 from pygccxml import declarations
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
+import common_utils.extract_documentation as exdoc
+import ogre_properties
 
 def filter_declarations( mb ):
     global_ns = mb.global_ns
@@ -58,15 +60,29 @@ def configure_exception(mb):
     Exception = mb.namespace( 'OgreRefApp' ).class_( 'Exception' )
     Exception.translate_exception_to_string( 'PyExc_RuntimeError',  'exc.getFullDescription().c_str()' )
 
-
+def find_nonconst ( mb ):
+    """ we have problems with sharedpointer arguments that are defined as references
+    but are NOT const.  Boost doesn't understand how to match them and you get a C++ Signature match fails.
+    In reality the Ogre code probably needs to be patched as all of these should (??) be const.  However we'll fix it 
+    with a function transformation wrapper
+    """
+    funcs = mb.member_functions( )
+    for fun in funcs:
+        arg_position = 0
+        for arg in fun.arguments:
+            if 'Ptr' in arg.type.decl_string:
+                 if not 'const' in arg.type.decl_string and '&' in arg.type.decl_string:
+                    print "Fixing Const", fun.parent.name,"::", fun.name, "::", arg_position
+                    fun.add_transformation( ft.modify_type(arg_position,declarations.remove_reference ) )
+            arg_position +=1
+ 
 def generate_code():
     xml_cached_fc = parser.create_cached_source_fc(
                         os.path.join( environment.ogrerefapp.root_dir, "python_ogre.h" )
                         , environment.ogrerefapp.cache_file )
 
     defined_symbols = [ 'OGREREFAPP_NONCLIENT_BUILD' ]
-    if environment.ogrerefapp.version == "CVS":
-        defined_symbols.append( 'OGREREFAPP_VERSION_CVS' )
+    defined_symbols.append( 'OGREREFAPP_VERSION_' + environment.ogrerefapp.version )
     mb = module_builder.module_builder_t( [ xml_cached_fc ]
                                           , gccxml_path=environment.gccxml_bin
                                           , working_directory=environment.root_dir
@@ -77,7 +93,11 @@ def generate_code():
     filter_declarations (mb)
 
 #     common_utils.set_declaration_aliases( mb.global_ns, customization_data.aliases( environment.ogrerefapp.version ) )
-
+    #
+    # fix shared Ptr's that are defined as references but NOT const...
+    #
+    find_nonconst ( mb.namespace( 'OgreRefApp' ) )
+  
     mb.BOOST_PYTHON_MAX_ARITY = 25
     mb.classes().always_expose_using_scope = True
 
@@ -90,12 +110,22 @@ def generate_code():
     hand_made_wrappers.apply( mb )
 
     set_call_policies ( mb.global_ns.namespace ('OgreRefApp') )
-    common_utils.add_properties( ogrerefapp_ns.classes() )
+    
+    for cls in ogrerefapp_ns.classes():
+        cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t() )
+        ## because we want backwards pyogre compatibility lets add leading lowercase properties
+        common_utils.add_LeadingLowerProperties ( cls )
+        common_utils.add_PropertyDoc ( cls )
+
+    
     common_utils.add_constants( mb, { 'ogrerefapp_version' :  '"%s"' % environment.ogrerefapp.version
-                                      , 'python_version' : '"%s"' % sys.version } )
+                                      , 'python_version' : '"%s"' % sys.version.replace("\n", "\\\n") } )
 
     #Creating code creator. After this step you should not modify/customize declarations.
-    mb.build_code_creator (module_name='_ogrerefapp_')
+        
+    extractor = exdoc.doc_extractor("")
+
+    mb.build_code_creator (module_name='_ogrerefapp_',doc_extractor= extractor)
     for inc in environment.ogrerefapp.include_dirs :
         mb.code_creator.user_defined_directories.append(inc )
     mb.code_creator.user_defined_directories.append( environment.ogrerefapp.generated_dir )

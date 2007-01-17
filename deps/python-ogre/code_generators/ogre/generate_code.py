@@ -85,24 +85,36 @@ def filter_declarations( mb ):
     ogre_ns.class_('ParticleSystemManager').mem_fun('addRendererFactory').exclude()
     
   
-    #ogre_ns.class_('Mesh').typedef('SubMeshNameMap').include()
-    #ogre_ns.class_('Mesh').mem_fun('getSubMeshNameMap').include()
+    ogre_ns.class_('GpuProgramParameters').exclude() ### DAMM  - need to spend time on this class - fix for now!!
+    ogre_ns.typedef('GpuLogicalIndexUseMap').exclude()  ## Fails as no default constructor for 'IndexUse...
+    ogre_ns.class_('GpuLogicalIndexUse').exclude()  ## related to IndexUseMap..
 
+    ## However, GpuLogicalIndexUseMap shows back up because it's part of the GpuLogicalBufferStruct struct
+    ogre_ns.class_('GpuLogicalBufferStruct').exclude()  
     
-    ## Ogre::GpuProgramParameters::AutoConstantEntry is flagged as private but other functions rely on it
-    ## however we can't expose it as Py++ doesn't like the Union that's defined within the class def..
+    
+    
+    ogre_ns.class_('GpuProgramParameters').class_('AutoConstantEntry').exclude()    # it's got a union that needs to be handled
     ogre_ns.class_('Renderable').mem_fun('_updateCustomGpuParameter').exclude()
-    ogre_ns.class_('ConstVectorIterator<std::vector<Ogre::GpuProgramParameters::AutoConstantEntry, std::allocator<Ogre::GpuProgramParameters::AutoConstantEntry> > >').exclude() # ::getNext(), ::peekNext()
     ogre_ns.class_('GpuProgramParameters').mem_fun('getAutoConstantEntry').exclude()
     ogre_ns.class_('SubEntity').mem_fun('_updateCustomGpuParameter').exclude()
+    ogre_ns.class_('GpuProgramParameters').mem_fun('getAutoConstantIterator').exclude()
+    ogre_ns.class_('GpuProgramParameters').mem_fun('_findRawAutoConstantEntryFloat').exclude()
+    ogre_ns.class_('GpuProgramParameters').mem_fun('_findRawAutoConstantEntryInt').exclude()
+    ogre_ns.class_('GpuProgramParameters').mem_fun('findAutoConstantEntry').exclude()
+    ogre_ns.class_('GpuProgramParameters').mem_fun('findFloatAutoConstantEntry').exclude()
+    ogre_ns.class_('GpuProgramParameters').mem_fun('findIntAutoConstantEntry').exclude()
+    ogre_ns.class_('GpuProgramParameters').mem_fun('getConstantDefinitionIterator').exclude()
+    
+    
     
     # there are a set of consiterators that I'm not exposing as they need better understanding and testing
     # these functions rely on them so they are being excluded as well
     ogre_ns.class_('SceneNode').member_functions('getAttachedObjectIterator').exclude()
     ogre_ns.class_('Mesh').mem_fun('getBoneAssignmentIterator').exclude()
     ogre_ns.class_('SubMesh').mem_fun('getBoneAssignmentIterator').exclude()
-    ogre_ns.class_('GpuProgramParameters').mem_fun('getAutoConstantIterator').exclude()
-     
+    
+    
     # A couple of Std's that need exposing
     std_ns = global_ns.namespace("std")
     std_ns.class_("pair<unsigned, unsigned>").include()
@@ -133,7 +145,13 @@ def filter_declarations( mb ):
     ogre_ns.mem_funs( return_type='::Ogre::uchar const *', allow_empty=True).exclude() #light::getdata xxx.opaque = True ??
    
     #all constructors in this class are private, also some of them are public.
-    Skeleton = ogre_ns.class_( 'Skeleton' ).constructors().exclude()
+    if sys.platform=='win32':
+        Skeleton = ogre_ns.class_( 'Skeleton' ).constructors().exclude()
+    else:
+        skeleton = ogre_ns.class_( 'Skeleton' )
+        for f in skeleton.calldefs(recursive=False):
+            for arg in f.arguments:
+                arg.default_value = None 
 
     ogre_ns.free_functions ('any_cast').exclude () #not relevant for Python
 
@@ -165,6 +183,12 @@ def filter_declarations( mb ):
     ogre_ns.class_( 'CompositorInstance').class_('RenderSystemOperation').exclude() # doesn't exist for link time
     ogre_ns.class_( 'CompositorChain').mem_fun('_queuedOperation').exclude() #needs RenderSystemOperation
     
+    #as reported by mike with linux:bp::arg("flags")=(std::_Ios_Fmtflags)0
+    if os.name == 'posix':
+        ogre_ns.class_('StringConverter').member_functions('toString').exclude()    
+        
+    
+        
 ##  Note - you need to do all the 'excludes' AFTER you've included all the classes you want..
 ##  Otherwise things get screwed up...
 
@@ -216,12 +240,6 @@ def filter_declarations( mb ):
                                                       , allow_empty=True
                                                       , recursive=False )
        constructors.exclude()
-
-    # Something wrong with this class on Linux
-    skeleton = ogre_ns.class_( 'Skeleton' )
-    for f in skeleton.calldefs(recursive=False):
-        for arg in f.arguments:
-            arg.default_value = None 
 
 
 def find_nonconst ( mb ):
@@ -375,23 +393,23 @@ def query_containers_with_ptrs(decl):
 # the 'main'function
 #            
 def generate_code():  
-    messages.disable( 
-          #Warnings 1020 - 1031 are all about why Py++ generates wrapper for class X
-          messages.W1020
-        , messages.W1021
-        , messages.W1022
-        , messages.W1023
-        , messages.W1024
-        , messages.W1025
-        , messages.W1026
-        , messages.W1027
-        , messages.W1028
-        , messages.W1029
-        , messages.W1030
-        , messages.W1031
-        #, messages.W1040 
-        # Inaccessible property warning
-        , messages.W1041 )
+#     messages.disable( 
+#           #Warnings 1020 - 1031 are all about why Py++ generates wrapper for class X
+#           messages.W1020
+#         , messages.W1021
+#         , messages.W1022
+#         , messages.W1023
+#         , messages.W1024
+#         , messages.W1025
+#         , messages.W1026
+#         , messages.W1027
+#         , messages.W1028
+#         , messages.W1029
+#         , messages.W1030
+#         , messages.W1031
+#         #, messages.W1040 
+#         # Inaccessible property warning
+#         , messages.W1041 )
     
     #
     # Use GCCXML to create the controlling XML file.
@@ -403,8 +421,7 @@ def generate_code():
                         , environment.ogre.cache_file )
 
     defined_symbols = [ 'OGRE_NONCLIENT_BUILD' ]
-    if not environment.ogre.version.startswith("1.2"):
-        defined_symbols.append( 'OGRE_VERSION_CVS' )  
+    defined_symbols.append( 'OGRE_VERSION_' + environment.ogre.version )  
     
     #
     # build the core Py++ system from the GCCXML created source
@@ -436,12 +453,6 @@ def generate_code():
     #
     find_nonconst ( mb.namespace( 'Ogre' ) )
       
-    #
-    # lets fix containers that hold pointers - the return value needs adjusting...   
-    #
-#     tt = mb.namespace( 'std' ).decls( query_containers_with_ptrs )
-#     for t in tt:
-#         t.indexing_suite.call_policies  = module_builder.call_policies.return_internal_reference()
         
     mb.BOOST_PYTHON_MAX_ARITY = 25
     mb.classes().always_expose_using_scope = True
@@ -483,13 +494,13 @@ def generate_code():
 
 #     for cls in ogre_ns.classes():
     for cls in mb.global_ns.classes():
-        print "Adding Prop to:", cls
+#        print "Adding Prop to:", cls
         cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t() )
         ## because we want backwards pyogre compatibility lets add leading lowercase properties
         common_utils.add_LeadingLowerProperties ( cls )
 
-    common_utils.add_constants( mb, { 'ogre_version' :  '"%s"' % environment.ogre.version
-                                      , 'python_version' : '"%s"' % sys.version } )
+    common_utils.add_constants( mb, { 'ogre_version' :  '"%s"' % environment.ogre.version.replace("\n", "\\\n") 
+                                      , 'python_version' : '"%s"' % sys.version.replace("\n", "\\\n" ) } )
 
     ##########################################################################################
     #
@@ -497,7 +508,6 @@ def generate_code():
     #
     ##########################################################################################
     extractor = exdoc.doc_extractor("")
-    
     mb.build_code_creator (module_name='_ogre_' , doc_extractor= extractor)
     
     for inc in environment.ogre.include_dirs:

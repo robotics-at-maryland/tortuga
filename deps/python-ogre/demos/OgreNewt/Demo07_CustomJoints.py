@@ -3,14 +3,13 @@
 #   Demo07_CustomJoints - basic demo that shows a simple OgreNewt world, and how
 #   to setup basic rigid bodies.
 # 
-## NOT YET WORKING
 
 import Ogre
 import OgreNewt
 import OIS
 import SampleFramework as sf
-from MyCustomBallSocket import *
 from BasicFrameListener import *     # a simple frame listener that updates physics as required..
+from MyCustomBallSocket import *
 
 class OgreNewtonApplication (sf.Application):
     def __init__ ( self):
@@ -18,10 +17,12 @@ class OgreNewtonApplication (sf.Application):
         self.World = OgreNewt.World()
         self.EntityCount = 0
         self.bodies=[]
+        sf.Application.debugText = "Press Space Bar to fire bouncing balls.  ESC to end"
 
     def __del__ (self):
         ## delete the world when we're done.
-        del self.World;
+        del self.bodies
+        del self.World
     
         ## de-initialize the debugger.
     #   OgreNewt.Debugger.getSingleton().deInit();
@@ -62,6 +63,7 @@ class OgreNewtonApplication (sf.Application):
         ## shadows on!
         self.sceneManager.setShadowTechnique( Ogre.SHADOWTYPE_STENCIL_ADDITIVE )
  
+        ## floor object!
         floor = self.sceneManager.createEntity("Floor", "simple_terrain.mesh" )
         floornode = self.sceneManager.getRootSceneNode().createChildSceneNode( "FloorNode" )
         floornode.attachObject( floor )
@@ -78,34 +80,36 @@ class OgreNewtonApplication (sf.Application):
         
         body.attachToNode( floornode )
         body.setPositionOrientation( Ogre.Vector3(0.0,-20.0,0.0), Ogre.Quaternion.IDENTITY )
+        self.bodies.append(body)
         
         ## make a simple rope.
-        size= Ogre.Vector3(3,1.5,1.5)
+        size = Ogre.Vector3(3,1.5,1.5)
         pos = Ogre.Vector3(0,3,0)
         orient = Ogre.Quaternion.IDENTITY
-        parent=None
-        if False: #### NOTE AJM -- DEMO NOT YET FINISHED !!!!
-            for x in range(5):
-                ## make the next box.
-                child = self.makeSimpleBox(size, pos, orient)
-            
-                ## make the joint right between the bodies...
-                if (parent):  # OgreNewt.BallAndSocket
-                    joint = MyCustomBallSocket(child, parent, 
-                                        pos-Ogre.Vector3(size.x/2,0,0), Ogre.Vector3.UNIT_X )
-                else:
-                    ## no parent, this is the first joint, so just pass None as the parent, to stick it to the "world"
-                    joint = MyCustomBallSocket(child, None, 
-                                        pos-Ogre.Vector3(size.x/2,0,0), Ogre.Vector3.UNIT_X )
-                ## rememeber to make a copy
-                self.bodies.append ( joint )
-                ## offset pos a little more.
-                pos += Ogre.Vector3(size.x, 0, 0)
-            
-                ## save the last body for the next loop!
-                parent = child
         
-        self.bodies.append(body)
+        parent=None
+        
+        for x in range(5):
+            ## make the next box.
+            child = self.makeSimpleBox(size, pos, orient)
+            self.bodies.append ( child )
+            ## make the joint right between the bodies...
+            if (parent):  # OgreNewt.BallAndSocket
+                joint = MyCustomBallSocket(child, parent, 
+                                    pos-Ogre.Vector3(size.x/2,0,0), Ogre.Vector3.UNIT_X )
+            else:
+                ## no parent, this is the first joint, so just pass None as the parent, to stick it to the "world"
+                joint = MyCustomBallSocket(child, None, 
+                                    pos-Ogre.Vector3(size.x/2,0,0), Ogre.Vector3.UNIT_X )
+            ## rememeber to make a copy
+            self.bodies.append ( joint )
+            
+            ## offset pos a little more.
+            pos += Ogre.Vector3(size.x, 0, 0)
+        
+            ## save the last body for the next loop!
+            parent = child
+        
         ## position camera
         self.msnCam = self.sceneManager.getRootSceneNode().createChildSceneNode()
         self.msnCam.attachObject( self.camera )
@@ -125,7 +129,7 @@ class OgreNewtonApplication (sf.Application):
 
         self.NewtonListener = BasicFrameListener( self.renderWindow, self.sceneManager, self.World, 60 )
         self.root.addFrameListener(self.NewtonListener)
-                
+
        
 class OgreNewtonFrameListener(sf.FrameListener):
     def __init__(self, renderWindow, camera, Mgr, World, msnCam):
@@ -140,7 +144,6 @@ class OgreNewtonFrameListener(sf.FrameListener):
         self.bodies=[]
     
     def frameStarted(self, frameEvent):
-        ##sf.FrameListener.frameStarted(self, frameEvent)
 
         ## in this frame listener we control the camera movement, and allow the user to "shoot" cylinders
         ## by pressing the space bar.  first the camera movement...
@@ -220,6 +223,9 @@ class OgreNewtonFrameListener(sf.FrameListener):
         self.timer -= frameEvent.timeSinceLastFrame
         if (self.Keyboard.isKeyDown(OIS.KC_ESCAPE)):
             return False
+            
+        sf.FrameListener.frameStarted(self, frameEvent)
+            
         return True        
     
 

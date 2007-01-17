@@ -165,13 +165,15 @@ def add_transformations ( mb ):
     
     ns.mem_fun('::OgreNewt::CustomJoint::pinAndDirToLocal') \
         .add_transformation(ft.output('localOrient0'), ft.output('localPos0'), ft.output('localOrient1'), ft.output('localPos1') )
-    
+    ns.mem_fun('::OgreNewt::CustomJoint::localToGlobal') \
+        .add_transformation(ft.output('globalOrient'), ft.output('globalPos') )
+
     ns.mem_fun('::OgreNewt::Vehicle::Tire::getPositionOrientation').add_transformation( *create_output(2) )
     ns.mem_fun('::OgreNewt::ContactCallback::getContactPositionAndNormal').add_transformation( *create_output(2) )
     ns.mem_fun('::OgreNewt::ContactCallback::getContactTangentDirections').add_transformation( *create_output(2) )
    
-#     ns.mem_fun('::OgreNewt::CollisionRayCast').add_transformation( ft.output('retColID') )
-#     ns.mem_fun('::OgreNewt::CollisionCollideContinue').add_transformation( ft.output('retTimeOfImpact') )
+    ns.free_fun('CollisionRayCast').add_transformation( ft.output('retColID') )
+    ns.free_fun('CollisionCollideContinue').add_transformation( ft.output('retTimeOfImpact') )
 
         
 def generate_ogrenewt():
@@ -217,7 +219,7 @@ def generate_ogrenewt():
         common_utils.add_LeadingLowerProperties ( cls )
     
     common_utils.add_constants( mb, { 'ogrenewt_version' :  '"%s"' % environment.ogrenewt.version
-                                      , 'python_version' : '"%s"' % sys.version } )
+                                      , 'python_version' : '"%s"' % sys.version.replace("\n", "\\\n") } )
     
     # create the doc extractor we'll be using
     extractor = exdoc.doc_extractor("")
@@ -233,12 +235,12 @@ def generate_ogrenewt():
 
     mb.split_module(environment.ogrenewt.generated_dir, huge_classes)
 
-    return_pointee_value_source_path \
-        = os.path.join( environment.pyplusplus_install_dir
-                        , 'pyplusplus_dev'
-                        , 'pyplusplus'
-                        , 'code_repository' )
-                        ## , 'return_pointee_value.hpp' ) ## Removed AJM 1/1/07
+#     return_pointee_value_source_path \
+#         = os.path.join( environment.pyplusplus_install_dir
+#                         , 'pyplusplus_dev'
+#                         , 'pyplusplus'
+#                         , 'code_repository' )
+#                         ## , 'return_pointee_value.hpp' ) ## Removed AJM 1/1/07
 
 #     return_pointee_value_target_path \
 #         = os.path.join( environment.ogrenewt.generated_dir, 'return_pointee_value.hpp' )

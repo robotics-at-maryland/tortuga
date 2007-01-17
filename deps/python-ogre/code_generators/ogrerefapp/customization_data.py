@@ -1,7 +1,7 @@
 #I think it is possible to create code that will do that automaticly.
 
 def aliases( version ):
-    if version == "CVS":
+    if version == "1.2":
         return { }
         
     else: #1.2
@@ -9,7 +9,7 @@ def aliases( version ):
 
 
 def header_files( version ):
-    if version == "CVS":
+    if version == "1.2":
         return [ 'OgreReferenceAppLayer.h'
             ]
     else: #1.2
@@ -18,7 +18,7 @@ def header_files( version ):
         ]
 
 def huge_classes( version ):
-    if version == "CVS":
+    if version == "1.2":
         return [  ]
     else: #1.2
         return [   ]

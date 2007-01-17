@@ -107,10 +107,12 @@ typedef ::Ogre::ConfigFile::SettingsIterator SettingsIterator;
 typedef ::Ogre::ConfigFile::SettingsBySection SettingsBySection;
 typedef ::Ogre::ConfigFile::SectionIterator SectionIterator;
 typedef ::Ogre::PlaneBoundedVolumeList PlaneBoundedVolumeList;
-typedef ::Ogre::GpuProgramParametersSharedPtr GpuProgramParametersSharedPtr;
-typedef ::Ogre::GpuProgramParameters::RealConstantIterator RealConstantIterator;
-typedef ::Ogre::GpuProgramParameters::IntConstantIterator IntConstantIterator;
+
+// typedef ::Ogre::GpuProgramParametersSharedPtr GpuProgramParametersSharedPtr;  // no longer in source
+// typedef ::Ogre::GpuProgramParameters::RealConstantIterator RealConstantIterator;
+//typedef ::Ogre::GpuProgramParameters::IntConstantIterator IntConstantIterator;
 typedef ::Ogre::GpuProgramParameters::AutoConstantIterator AutoConstantIterator;
+
 typedef ::Ogre::BufferUsageList BufferUsageList;
 typedef ::Ogre::ResourcePtr ResourcePtr;
 typedef ::Ogre::ResourceHandle ResourceHandle;

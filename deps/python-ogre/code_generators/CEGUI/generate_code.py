@@ -79,7 +79,7 @@ def filter_declarations( mb ):
 #   
     ## couple of functions that fail when compiling
     
-    if environment.ogre.version == "CVS":    
+    if environment.ogre.version == "1.4":    
         CEGUI_ns.class_( "RawDataContainer" ).member_functions( 'getDataPtr' ).exclude()
         CEGUI_ns.class_( "ItemListBase" ).member_functions( 'getSortCallback' ).exclude()
     else:   
@@ -193,7 +193,7 @@ def generate_code():
         common_utils.add_LeadingLowerProperties ( cls )
 
     common_utils.add_constants( mb, { 'CEGUI_version' :  '"%s"' % environment.CEGUI.version
-                                       , 'python_version' : '"%s"' % sys.version } )
+                                       , 'python_version' : '"%s"' % sys.version.replace("\n", "\\\n") } )
                                       
     #Creating code creator. After this step you should not modify/customize declarations.
     extractor = exdoc.doc_extractor("")

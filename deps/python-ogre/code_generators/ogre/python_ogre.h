@@ -44,7 +44,7 @@ inline void instantiate(){
 
 // This code is VERY UNTESTED and PROBABLY BROKEN
 // Uee the CVS version of Ogre !!!!
-#ifndef OGRE_VERSION_CVS        // these are needed for the 1.2.x SDK
+#ifndef OGRE_VERSION_1.4        // these are needed for the 1.2.x SDK
     #include "OgreEventListeners.h"
     #include "OgreEventQueue.h"
     #include "OgreKeyEvent.h"

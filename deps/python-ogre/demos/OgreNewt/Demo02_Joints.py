@@ -9,6 +9,8 @@ import OgreNewt
 import OIS
 import SampleFramework as sf
 from BasicFrameListener import *     # a simple frame listener that updates physics as required..
+from MyCustomBallSocket import *
+
 
 class OgreNewtonApplication (sf.Application):
     def __init__ ( self):
@@ -18,7 +20,6 @@ class OgreNewtonApplication (sf.Application):
         self.bodies=[]
         sf.Application.debugText = "Press Space Bar to fire bouncing balls.  ESC to end"
 
-
     def __del__ (self):
         ## delete the world when we're done.
         del self.bodies
@@ -27,7 +28,34 @@ class OgreNewtonApplication (sf.Application):
         ## de-initialize the debugger.
     #   OgreNewt.Debugger.getSingleton().deInit();
         sf.Application.__del__(self)
-
+        
+    def makeSimpleBox( self, size, pos,  orient ):
+        ## base mass on the size of the object.
+        mass = size.x * size.y * size.z * 2.5
+            
+        ## calculate the inertia based on box formula and mass
+        inertia = OgreNewt.CalcBoxSolid( mass, size )
+    
+        box1 = self.sceneManager.createEntity( "Entity"+str(self.EntityCount), "box.mesh" )
+        self.EntityCount += 1
+        box1node = self.sceneManager.getRootSceneNode().createChildSceneNode()
+        box1node.attachObject( box1 )
+        box1node.setScale( size )
+        box1.setNormaliseNormals(True)
+    
+        col = OgreNewt.Box( self.World, size )
+        bod = OgreNewt.Body( self.World, col )
+        del col
+                    
+        bod.attachToNode( box1node )
+        bod.setMassMatrix( mass, inertia )
+        bod.setStandardForceCallback()
+    
+        box1.setMaterialName( "Simple/BumpyMetal" )
+    
+        bod.setPositionOrientation( pos, orient )
+    
+        return bod
 
     def _createScene ( self ):
         ## sky box.
@@ -35,8 +63,7 @@ class OgreNewtonApplication (sf.Application):
         
         ## shadows on!
         self.sceneManager.setShadowTechnique( Ogre.SHADOWTYPE_STENCIL_ADDITIVE )
-    
-    
+       
         ## floor object!
         floor = self.sceneManager.createEntity("Floor", "simple_terrain.mesh" )
         floornode = self.sceneManager.getRootSceneNode().createChildSceneNode( "FloorNode" )
@@ -72,9 +99,10 @@ class OgreNewtonApplication (sf.Application):
         bod.attachToNode( floornode )
         bod.setPositionOrientation( Ogre.Vector3(0.0,-20.0,0.0), Ogre.Quaternion.IDENTITY )
         self.bodies.append( bod )
+        
         ## make a simple rope.
-        size= Ogre.Vector3(3,1.5,1.5)
-        pos= Ogre.Vector3(0,3,0)
+        size = Ogre.Vector3(3,1.5,1.5)
+        pos = Ogre.Vector3(0,3,0)
         orient = Ogre.Quaternion.IDENTITY
     
         ## loop through, making bodies and connecting them.
@@ -89,10 +117,11 @@ class OgreNewtonApplication (sf.Application):
             ## make the joint right between the bodies...
             if (parent):
                 joint = OgreNewt.BallAndSocket( self.World, child, parent, pos-Ogre.Vector3(size.x/2,0,0) )
+                
             else:
                 ## no parent, this is the first joint, so just pass NULL as the parent, to stick it to the "world"
                 joint = OgreNewt.BallAndSocket( self.World, child, None, pos-Ogre.Vector3(size.x/2,0,0) )
-    
+                
             ## offset pos a little more.
             pos += Ogre.Vector3(size.x,0,0)
     
@@ -112,36 +141,6 @@ class OgreNewtonApplication (sf.Application):
         light = self.sceneManager.createLight( "Light1" )
         light.setType( Ogre.Light.LT_POINT )
         light.setPosition( Ogre.Vector3(0.0, 100.0, 100.0) )
-
-
-    def makeSimpleBox( self, size, pos,  orient ):
-        ## base mass on the size of the object.
-        mass = size.x * size.y * size.z * 2.5
-            
-        ## calculate the inertia based on box formula and mass
-        inertia = OgreNewt.CalcBoxSolid( mass, size )
-    
-        box1 = self.sceneManager.createEntity( "Entity"+str(self.EntityCount), "box.mesh" )
-        self.EntityCount += 1
-        box1node = self.sceneManager.getRootSceneNode().createChildSceneNode()
-        box1node.attachObject( box1 )
-        box1node.setScale( size )
-        box1.setNormaliseNormals(True)
-    
-        col = OgreNewt.Box( self.World, size )
-        bod = OgreNewt.Body( self.World, col )
-        del col
-                    
-        bod.attachToNode( box1node )
-        bod.setMassMatrix( mass, inertia )
-        bod.setStandardForceCallback()
-    
-        box1.setMaterialName( "Simple/BumpyMetal" )
-    
-        bod.setPositionOrientation( pos, orient )
-    
-        return bod
-        
         
     def _createFrameListener(self):
         ## this is our custom frame listener for this app, that lets us shoot cylinders with the space bar, move
@@ -153,10 +152,7 @@ class OgreNewtonApplication (sf.Application):
         ## physics at a set framerate for you.  complex project will want more control, but this
         ## works for simple demos like this.  feel free to look at the source to see how it works.
         self.NewtonListener = BasicFrameListener( self.renderWindow, self.sceneManager, self.World, 120 )
-        self.root.addFrameListener(self.NewtonListener)
-
-        
-    
+        self.root.addFrameListener(self.NewtonListener)    
     
 class OgreNewtonFrameListener(sf.FrameListener):
     def __init__(self, renderWindow, camera, Mgr, World, msnCam):
