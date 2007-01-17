@@ -217,6 +217,12 @@ def filter_declarations( mb ):
                                                       , recursive=False )
        constructors.exclude()
 
+    # Something wrong with this class on Linux
+    skeleton = ogre_ns.class_( 'Skeleton' )
+    for f in skeleton.calldefs(recursive=False):
+        for arg in f.arguments:
+            arg.default_value = None 
+
 
 def find_nonconst ( mb ):
     """ we have problems with sharedpointer arguments that are defined as references

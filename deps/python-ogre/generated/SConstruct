@@ -25,7 +25,7 @@ env = Environment(ENV=os.environ)
 def get_ccflags():
     CCFLAGS = ' `pkg-config --cflags OGRE` '
     CCFLAGS += ' -I' + environment.python_include_dir + ' -D"BOOST_PYTHON_MAX_ARITY=19"'
-    CCFLAGS += ' -O0 -g -I./'
+    CCFLAGS += ' -Os -I./'
     return CCFLAGS
 
 def get_source_files():
@@ -36,7 +36,7 @@ def get_source_files():
 
 def get_libs():
     LINKFLAGS = ' `pkg-config --libs OGRE` '
-    LINKFLAGS += ' -lboost_python'
+    LINKFLAGS += ' -lboost_python-gcc'
     return LINKFLAGS
 
 
@@ -57,6 +57,7 @@ _Ogre_ = local_env.SharedLibrary( target='Ogre', SHLIBPREFIX=''
 #    Ogre_so_dll = os.path.join( build_dir, 'ogre-gcc-1_2.so' )
 
 
-local_env.Install( 'Ogre', [_Ogre_] )
+local_env.InstallAs( os.path.join(environment.ogre.package_dir, '_ogre_.so'),
+                     [_Ogre_] )
 
 # vim:et:ts=4:sw=4:sts=4

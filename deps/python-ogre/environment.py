@@ -136,4 +136,5 @@ for name, cls in projects.items():
     cls.root_dir = os.path.join( root_dir, 'code_generators', name )
     cls.generated_dir = os.path.join( generated_dir, name + '_' + str(cls.version) )
     cls.cache_file = os.path.join( declarations_cache_dir, name + '_' + str(cls.version) + '_cache.xml' )
+    cls.package_dir = os.path.join(root_dir, 'packages', name )
 
