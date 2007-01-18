@@ -39,7 +39,7 @@ def header_files( Version ):
 #             , "OgreRenderQueue.h"
             , "CEGUIXMLHandler.h"
             , "CEGUIXMLAttributes.h"
-            , "CEGUIXMLserializer.h"
+            , "CEGUIXMLSerializer.h"
             , "OgreCEGUIRenderer.h"
             ,"OgreCEGUIResourceProvider.h"
                   ]
