@@ -422,7 +422,6 @@ def generate_code():
 
     defined_symbols = [ 'OGRE_NONCLIENT_BUILD' ]
     defined_symbols.append( 'OGRE_VERSION_' + environment.ogre.version )
-    print "DEBUG:",defined_symbols
     
     #
     # build the core Py++ system from the GCCXML created source
