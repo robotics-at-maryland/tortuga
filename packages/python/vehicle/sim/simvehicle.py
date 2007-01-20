@@ -15,10 +15,12 @@ import OIS
 import logging
 
 import event
+import control
+
 from vehicle import VehicleFactory, IVehicle, DeviceFactory
 from vehicle.sim import core
 from vehicle.sim.gui import GUISystem
-from vehicle.sim.input import InputSystem, KeyStateObserver
+from vehicle.sim.input import InputSystem
 from vehicle.sim.physics import PhysicsSystem, buoyancyCallback
 from vehicle.sim.graphics import GraphicsSystem, CameraController
 from vehicle.sim.core import Vector, Quat
@@ -49,11 +51,10 @@ class Vehicle(IVehicle):
             setattr(self, device_name, device)
             
         # Create Simple Keyboard Mouse controller
-        self.kmcontroller = VehicleKeyMouseController(self)
+        self.kmcontroller = control.DirectVehicleController(self)
 
         
     def __del__(self):
-        del self.kmcontroller
         del self.hull_node
         del self.hull_body
         del self.scene
@@ -68,15 +69,15 @@ class Vehicle(IVehicle):
             if not component.update(time_since_last_update):
                 return False
             
-        self.kmcontroller.update()
         self.attitude = self.hull_node.orientation
         self.position = self.hull_node.position
         return True
     
     def _create_components(self, config):
-        self.graphics_sys = GraphicsSystem(config['Graphics'])
-        self.physics_sys = PhysicsSystem(config['Physics'], self.graphics_sys)
-        self.input_sys = InputSystem(self.graphics_sys)
+        self.graphics_sys = GraphicsSystem(config.get('Graphics',{}))
+        self.physics_sys = PhysicsSystem(config.get('Physics',{}), 
+                                         self.graphics_sys)
+        self.input_sys = InputSystem(self.graphics_sys, config.get('Input',{}))
         self.gui_sys = GUISystem(config['GUI'], self.graphics_sys, 
                                  self.input_sys)
         
@@ -123,70 +124,3 @@ def thruster_force_callback(body):
     
     # Apply our thrust from the thrusters
     Thruster.apply_thruster_force(body)
-    
-class VehicleKeyMouseController(object):
-    """
-    This listens to key events and will move the vehicle accordingly
-    """
-    def __init__(self, vehicle):
-        self.vehicle = vehicle
-        
-        self.handler_map = {
-            'KEY_PRESSED': self._key_pressed,
-            'KEY_RELEASED': self._key_released }
-        
-        event.register_handlers(self.handler_map)
-        
-        # This sets up automatic setting of the key down properties
-        watched_keys = [OIS.KC_I, OIS.KC_K, OIS.KC_U, OIS.KC_J,
-                        OIS.KC_Y, OIS.KC_H, OIS.KC_O, OIS.KC_L]
-        self.key_observer = KeyStateObserver(self, watched_keys)
-    
-    def __del__(self):
-        # Make sure to remove event handlers so they are called after the 
-        # object is gone
-        event.remove_handlers(self.handler_map)
-    
-    def update(self):
-        #if self.up_i:
-        #    self.vehicle.
-        #if self.down_m:
-        #    self.camera_node.translate(trans * -1.0)
-        if self.i_key:
-            self.vehicle.PortThruster.power += 0.005
-            #print self.vehicle.PortThruster.power
-        if self.k_key:
-            self.vehicle.PortThruster.power -= 0.005
-            #print self.vehicle.PortThruster.power
-        if self.u_key:
-            self.vehicle.StarboardThruster.power += 0.005
-            #print self.vehicle.StarboardThruster.power
-        if self.j_key:
-            self.vehicle.StarboardThruster.power -= 0.005
-            #print self.vehicle.StarboardThruster.power
-        if self.y_key:
-            self.vehicle.ForeThruster.power += 0.005
-            #print self.vehicle.PortThruster.power
-        if self.h_key:
-            self.vehicle.ForeThruster.power -= 0.005
-            #print self.vehicle.PortThruster.power
-        if self.o_key:
-            self.vehicle.AftThruster.power += 0.005
-            #print self.vehicle.StarboardThruster.power
-        if self.l_key:
-            self.vehicle.AftThruster.power -= 0.005
-            #print self.vehicle.StarboardThruster.power
-            
-        #print 'P: %3d S: %3d F: %3d  A: %3d' % \
-        #    (self.vehicle.PortThruster.power * 100,
-        #     self.vehicle.StarboardThruster.power * 100,
-        #     self.vehicle.ForeThruster.power * 100,
-        #     self.vehicle.AftThruster.power * 100)
-
-    def _key_pressed(self, key_event):
-        # Update the state of *_key properties  
-        self.key_observer.key_pressed(key_event)
-
-    def _key_released( self, key_event ):
-        # Update the state of *_key properties
-        self.key_observer.key_released(key_event)

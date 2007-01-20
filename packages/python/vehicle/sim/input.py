@@ -15,23 +15,49 @@ import OIS
 
 import event
 
+from vehicle.sim.core import SimulationError
+
+class InputError(SimulationError):
+    """ Error from the input system """
+    pass
+
 # Add the events to the event system
-event.add_event_type('KEY_PRESSED')    # Once fired once per key press
-event.add_event_type('KEY_RELEASED')   # When a key is released
-event.add_event_type('MOUSE_MOVED')    # When the mouse is moved
-event.add_event_type('MOUSE_PRESSED')  # When a mouse button is pressed
-event.add_event_type('MOUSE_RELEASED') # When the mouse button is released
+event.add_event_type(['KEY_PRESSED',     # Once fired once per key press
+                      'KEY_RELEASED',    # When a key is released
+                      'MOUSE_MOVED',     # When the mouse is moved
+                      'MOUSE_PRESSED',   # When a mouse button is pressed
+                      'MOUSE_RELEASED']) # When the mouse button is released
 
 class InputSystem(Ogre.WindowEventListener):
     """
     This handles input from the keyboard and mouse.  It currently just listens
     for the ESCAPE key and quits ogre is needed.
     """
-    def __init__(self, graphics_sys):
+    
+    DEFAULT_EVENT_MAP = {
+         # Thruster control section 
+         'PORT_THRUST_UP' : OIS.KC_U,
+         'PORT_THRUST_DOWN' : OIS.KC_J,
+         'STARBOARD_THRUST_UP' : OIS.KC_I,
+         'STARBOARD_THRUST_DOWN' : OIS.KC_K,
+         'FORE_THRUST_UP' : OIS.KC_Y,
+         'FORE_THRUST_DOWN' : OIS.KC_H,
+         'AFT_THRUST_UP' : OIS.KC_O,
+         'AFT_THRUST_DOWN' : OIS.KC_L}
+         # Camera control section Not yet done
+         #'CAM_FORWARD' : [OIS.KC_LSHIFT, OIS.KC_RSHIFT],
+         #'CAM_FORWARD': [OIS.KC_W, OIS.KC_UP], 
+         #'CAM_LEFT': [OIS.KC_A, OIS.KC_LEFT], 
+         #'CAM_BACK': [OIS.KC_DOWN, OIS.KC_S], 
+         #'CAM_RIGHT': [OIS.KC_D, OIS.KC_RIGHT]}
+    
+    def __init__(self, graphics_sys, config):
         # Call constructor of C++ super class
         Ogre.WindowEventListener.__init__(self)
         
-        self.cam_node = graphics_sys.camera_node
+        self.update_interval = (1.0 / config.get('update_rate',30))
+        self.elapsed = 0.0;
+        
         self.render_window = graphics_sys.render_window
         
         # Hook OIS up to the window created by Ogre
@@ -50,12 +76,41 @@ class InputSystem(Ogre.WindowEventListener):
         # Setup fowarding of events through the system
         self.event_forwarder = EventForwarder(self.mouse, self.keyboard)
         
+        self._load_event_map(config.get('Eevent_Map', 
+                                        InputSystem.DEFAULT_EVENT_MAP))
+        
     def __del__ (self ):
       Ogre.WindowEventUtilities.removeWindowEventListener(self.render_window, 
                                                           self)
       self.windowClosed(self.render_window)
-            
+         
     def update(self, time_since_last_update):
+        """
+        Called at a set interval update the physics and there graphical 
+        counter parts.  This cannot be running at the same time as update for   
+        the GraphicsSystem.
+        
+        A return of false from here shuts down the application
+        """
+        
+        self.elapsed += time_since_last_update
+        if ((self.elapsed > self.update_interval) and (self.elapsed < (1.0)) ):
+            while (self.elapsed > self.update_interval):
+                if not self._update(self.update_interval):
+                    return False
+                self.elapsed -= self.update_interval
+        else:
+            if (self.elapsed < self.update_interval):
+                # not enough time has passed this loop, so ignore for now.
+                pass
+            else:
+                self.world.update(self.elapsed)
+                # reset the elapsed time so we don't become "eternally behind"
+                self.elapsed = 0.0
+                
+        return True
+            
+    def _update(self, time_since_last_update):
         # Drop out if the render_window has been closed
         if(self.render_window.isClosed()):
             return False
@@ -72,7 +127,36 @@ class InputSystem(Ogre.WindowEventListener):
         if self.keyboard.isKeyDown(OIS.KC_ESCAPE) or self.keyboard.isKeyDown(OIS.KC_Q):
             return False
         
+        self._generate_events()
+
         return True
+    
+    def _load_event_map(self, config):
+        self.key_event_map = {}
+        for event,key in config.iteritems():
+            # Fail if we already have the even registered
+            if self.key_event_map.has_key(event):
+                raise InputError('Event "%s" already assinged' % event)
+            
+            if type(key) is not list:
+                self.key_event_map[event] = [key]
+            else:
+                self.key_event_map[event] = key
+                
+            
+        
+    def _generate_events(self):
+        # Go through every event and check its keys
+        for event_type,keys in self.key_event_map.iteritems():
+            send_event = True
+            
+            # Only send the event if all keys are down
+            for key in keys:
+                if not self.keyboard.isKeyDown(key):
+                    send_event = False
+                    break
+            if send_event:
+                event.send(event_type)
         
     # Ogre.WindowEventListener Methods
     def windowResized(self, render_window):

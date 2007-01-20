@@ -76,7 +76,7 @@ Vehicles:
                 # A unit vector along which thrust will be applied
                 direction: [0, 0, -1]
                 # The maximum avialable thrust (in Newtons)
-                strength: 30
+                strength: 25.5
                 
                 Graphical:
                     mesh: cylinder.mesh
@@ -88,7 +88,7 @@ Vehicles:
                 type: SimThruster
                 position: [0.16, 0, 0]
                 direction: [0, 0, -1]
-                strength: 30
+                strength: 25.5
                 
                 Graphical:
                     mesh: cylinder.mesh
@@ -100,7 +100,7 @@ Vehicles:
                 type: SimThruster
                 position: [0, 0, 0.4]
                 direction: [0, 1, 0]
-                strength: 30
+                strength: 25.5
                 
                 Graphical:
                     mesh: cylinder.mesh
@@ -112,7 +112,7 @@ Vehicles:
                 type: SimThruster
                 position: [0, 0, -0.4]
                 direction: [0, 1, 0]
-                strength: 30
+                strength: 25.5
                 
                 Graphical:
                     mesh: cylinder.mesh
@@ -129,9 +129,13 @@ Vehicles:
             # Searh path for scene files
             path: ['../data/scenes']
         
-        Physics:
+        #Input:
             # Number of time persecond you wished to have the physics updated
-            update_rate: 60
+            # update_rate: 40 # Default, uncomment and set to change
+        
+        #Physics:
+            # Number of time persecond you wished to have the physics updated
+            # update_rate: 60 # Default, uncomment and set to change
         
         # This secion here takes over for Ogre's ogre.cfg.  The type 
         # indicates which Ogre RenderSystem to create and which section to

@@ -24,7 +24,7 @@ class PhysicsSystem(object):
         # Here so we can clean up after outselves
         self.bodies = []
         
-        self.update_interval = (1.0 / config['update_rate'])
+        self.update_interval = (1.0 / config.get('update_rate',60))
         self.elapsed = 0.0;
         
         # Start up the debugger so that we can show debugging lines

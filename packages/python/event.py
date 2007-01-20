@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  logloader.py
+# File:  event.py
 
 """
 This module is a very simple event system.  It allow you to register, events
@@ -69,10 +69,23 @@ def remove_handlers(handler_map):
 
 def add_event_type(_type):
     """
-    Registers an event type, can be any python object
+    Registers an event type, if the type is list or tuple it will treat each 
+    element as an event type.  Other wise the passed object will be an event 
+    type.
+    """
+    if type(_type) is list:
+        for t in _type:
+            _add_event_type(t)
+    else:
+        _add_event_type(_type)
+        
+def _add_event_type(_type):
+    """
+    Registers an event type, can be any python object if the item is a list
     """
     if event_map.has_key(_type):
         raise EventError('Event type: "%s", allready present' % _type)
     else:
         event_map[_type] = []
+        
     

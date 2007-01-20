@@ -241,7 +241,9 @@ class GraphicsSystem(object):
         """
         self.viewport = self.render_window.addViewport(self.camera)
         self.viewport.BackgroundColour = Ogre.ColourValue(0,0,0)
-        
+
+event.add_event_type(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT'])
+
 class CameraController(object):
     def __init__(self, camera, camera_node):
         self.camera = camera
@@ -256,7 +258,10 @@ class CameraController(object):
         
         # This sets up automatic setting of the key down properties
         watched_keys = [('shift_key', [OIS.KC_LSHIFT, OIS.KC_RSHIFT]), 
-                        OIS.KC_W, OIS.KC_A, OIS.KC_S, OIS.KC_D]
+                        ('up_key', [OIS.KC_W, OIS.KC_UP]), 
+                        ('left_key', [OIS.KC_A, OIS.KC_LEFT]), 
+                        ('down_key', [OIS.KC_DOWN, OIS.KC_S]), 
+                        ('right_key', [OIS.KC_D, OIS.KC_RIGHT])]
         self.key_observer = KeyStateObserver(self, watched_keys)
     
     def __del__(self):
@@ -271,13 +276,13 @@ class CameraController(object):
         vec = Ogre.Vector3(0.2,0.0,0.0)
         strafe = quat * vec
         
-        if self.w_key:
+        if self.up_key:
             self.camera_node.translate(trans)
-        if self.s_key:
+        if self.down_key:
             self.camera_node.translate(trans * -1.0)
-        if self.a_key:
+        if self.left_key:
             self.camera_node.translate(strafe * -1.0)
-        if self.d_key:
+        if self.right_key:
             self.camera_node.translate(strafe)
     
     def _mouse_moved(self, arg):

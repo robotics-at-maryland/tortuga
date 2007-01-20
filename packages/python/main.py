@@ -19,6 +19,7 @@ import CEGUI
 
 from vehicle import *
 import logloader
+import control
 
 def main_loop(components):
     last_time = time.clock()
