@@ -14,4 +14,4 @@ from vehicle import *
 from device import *
 
 # Import submodules to register any objects that are needed
-import sim
+import sim as sim

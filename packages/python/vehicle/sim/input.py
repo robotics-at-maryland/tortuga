@@ -10,12 +10,15 @@
 activities
 """
 
+# Library imports
 import Ogre
 import OIS
 
+# Project imports
 import event
+import logloader
 
-from vehicle.sim.core import SimulationError
+from vehicle.sim.core import SimulationError, FixedUpdater
 
 class InputError(SimulationError):
     """ Error from the input system """
@@ -28,7 +31,7 @@ event.add_event_type(['KEY_PRESSED',     # Once fired once per key press
                       'MOUSE_PRESSED',   # When a mouse button is pressed
                       'MOUSE_RELEASED']) # When the mouse button is released
 
-class InputSystem(Ogre.WindowEventListener):
+class InputSystem(FixedUpdater, Ogre.WindowEventListener):
     """
     This handles input from the keyboard and mouse.  It currently just listens
     for the ESCAPE key and quits ogre is needed.
@@ -52,68 +55,61 @@ class InputSystem(Ogre.WindowEventListener):
          #'CAM_RIGHT': [OIS.KC_D, OIS.KC_RIGHT]}
     
     def __init__(self, graphics_sys, config):
+        self._setup_logging(config.get('Logging', {'name' : 'Input',
+                                                   'level': 'INFO'}))
+        self.logger.info('* * * Beginning initialization')
+        
         # Call constructor of C++ super class
         Ogre.WindowEventListener.__init__(self)
         
-        self.update_interval = (1.0 / config.get('update_rate',30))
-        self.elapsed = 0.0;
+        FixedUpdater.__init__(self, 1.0 / config.get('update_rate',60), 1.0)
         
         self.render_window = graphics_sys.render_window
         
-        # Hook OIS up to the window created by Ogre
-        windowHnd = self.render_window.getCustomAttributeInt("WINDOW")
-        self.input_mgr = OIS.createPythonInputSystem(windowHnd)
-        
-        # Setup Unbuffered Keyboard and Buffered Mouse Input
-        self.keyboard = \
-            self.input_mgr.createInputObjectKeyboard(OIS.OISKeyboard, True)
-        self.mouse = \
-            self.input_mgr.createInputObjectMouse(OIS.OISMouse, True)
-        
+        self._setup_ois(config)
         # Allows buttons to toggle properly    
         self.time_until_next_toggle = 0
         
         # Setup fowarding of events through the system
         self.event_forwarder = EventForwarder(self.mouse, self.keyboard)
         
-        self._load_event_map(config.get('Eevent_Map', 
+        self._load_event_map(config.get('Event_Map', 
                                         InputSystem.DEFAULT_EVENT_MAP))
+        self.logger.info('* * * Initialized')
+        
+    def _setup_ois(self, config):
+        # Hook OIS up to the window created by Ogre
+        windowHnd = self.render_window.getCustomAttributeInt("WINDOW")
+        
+        params = [('WINDOW',windowHnd)]
+        if config.get('debug', False):
+            self.logger.info("OIS Keyboard grab off")
+            params = params + [('x11_keyboard_grab', 'false'), 
+                               ('x11_mouse_grab','false')]
+        
+        self.input_mgr = OIS.createPythonInputSystem(params)
+        # Setup Unbuffered Keyboard and Buffered Mouse Input
+        self.keyboard = \
+            self.input_mgr.createInputObjectKeyboard(OIS.OISKeyboard, True)
+        self.mouse = \
+            self.input_mgr.createInputObjectMouse(OIS.OISMouse, True)
+        
         
     def __del__ (self ):
-      Ogre.WindowEventUtilities.removeWindowEventListener(self.render_window, 
+        self.logger.info('* * * Beginning shutdown')
+        if self.render_window is not None:
+            self.windowClosed(self.render_window)
+            Ogre.WindowEventUtilities.removeWindowEventListener(self.render_window, 
                                                           self)
-      self.windowClosed(self.render_window)
+        self.logger.info('* * * Shutdown complete')
          
-    def update(self, time_since_last_update):
-        """
-        Called at a set interval update the physics and there graphical 
-        counter parts.  This cannot be running at the same time as update for   
-        the GraphicsSystem.
-        
-        A return of false from here shuts down the application
-        """
-        
-        self.elapsed += time_since_last_update
-        if ((self.elapsed > self.update_interval) and (self.elapsed < (1.0)) ):
-            while (self.elapsed > self.update_interval):
-                if not self._update(self.update_interval):
-                    return False
-                self.elapsed -= self.update_interval
-        else:
-            if (self.elapsed < self.update_interval):
-                # not enough time has passed this loop, so ignore for now.
-                pass
-            else:
-                self.world.update(self.elapsed)
-                # reset the elapsed time so we don't become "eternally behind"
-                self.elapsed = 0.0
-                
-        return True
+    def _setup_logging(self, config):
+        self.logger = logloader.setup_logger(config, config)   
             
     def _update(self, time_since_last_update):
         # Drop out if the render_window has been closed
         if(self.render_window.isClosed()):
-            return False
+            event.post('SIM_SHUTDOWN')
         
         # Need to capture/update each device - this will also trigger any listeners
         self.keyboard.capture()    
@@ -125,11 +121,9 @@ class InputSystem(Ogre.WindowEventListener):
             
         # Quit simulation if needed
         if self.keyboard.isKeyDown(OIS.KC_ESCAPE) or self.keyboard.isKeyDown(OIS.KC_Q):
-            return False
+            event.post('SIM_SHUTDOWN')
         
         self._generate_events()
-
-        return True
     
     def _load_event_map(self, config):
         self.key_event_map = {}
@@ -180,6 +174,10 @@ class InputSystem(Ogre.WindowEventListener):
                 self.input_mgr.destroyInputObjectKeyboard( self.keyboard )
                 OIS.InputManager.destroyInputSystem(self.input_mgr)
                 self.input_mgr = None
+                self.render_window = None
+                
+        # Send shutdown event
+        event.post('SIM_SHUTDOWN')
                 
 class EventForwarder(OIS.MouseListener, OIS.KeyListener):
     """

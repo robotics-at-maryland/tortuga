@@ -30,6 +30,8 @@ class Scene(object):
         self.scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
         
         # Light
+        #print 'Light'
+        #self.scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
         #light = self.scene_mgr.createLight("Light1")
         #light.setType(Ogre.Light.LT_POINT )
         #light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))

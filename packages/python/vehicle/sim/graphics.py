@@ -19,7 +19,7 @@ import OIS
 
 import logloader
 import event
-from vehicle.sim.core import SimulationError
+from vehicle.sim.core import SimulationError, FixedUpdater
 from vehicle.sim.input import KeyStateObserver
 
 class GraphicsError(SimulationError):
@@ -33,7 +33,7 @@ class GraphicsSystem(object):
     Python-Ogre means with have the rendersystem config dialog.
     """    
     def __init__(self, config):      
-        self.camera = None
+        #self.camera = None
         self.root = None
         self.render_window = None
         self.scene_manager = None
@@ -41,29 +41,36 @@ class GraphicsSystem(object):
         self.ogre_log = None
         
         # Setups Ogre, step by step
-        self._setup(config)
+        self._setup_logging(config.get('Logging', {'name' : 'Graphics',
+                                                   'level': 'INFO'}))
         
+        self.logger.info('* * * Beginning initialization')
+        self._setup(config)
         self.camera_controller = CameraController(self.camera, self.camera_node)
+        self.logger.info('* * * Initialized')
         
     def __del__(self):
+        self.logger.info('* * * Beginning shutdown')
         # Make sure the C++ based objects are deleted in the proper order
-        del self.camera;
+        
+        #del self.camera_controller
         del self.scene_manager
         del self.root
         del self.render_window  
         del self.logManager
+        self.logger.info('* * * Shutdown complete, closing log')
         del self.ogre_log
         
     def update(self, time_since_last_update):
         """
         Renders one frame
         """
+        Ogre.WindowEventUtilities.messagePump()
         self.root.renderOneFrame()
-        self.camera_controller.update()
+        self.camera_controller.update(time_since_last_update)
         return True
     
     def _setup(self, config):
-        self._setup_logging(config["Logging"])  # Broken in Python-Ogre 0.70
         self.root = Ogre.Root("");
         
         self._load_plugins(config['Plugins'])
@@ -84,11 +91,12 @@ class GraphicsSystem(object):
     def _setup_logging(self, config):
         self.logger = logloader.setup_logger(config, config)
         
+        # Broken in Python-Ogre 0.70
         #logManager = Ogre.LogManager.getSingletonPtr()
         self.logManager = Ogre.LogManager()
  
         # Create That, doesn't output anything, just calls its listeners
-        self.ogre_log = Py2OgreLog(config, self.logger)
+        self.ogre_log = Py2OgreLog(config, self.logger) 
         self.logManager.setDefaultLog(self.ogre_log)
         
     def _load_plugins(self, config):
@@ -244,8 +252,10 @@ class GraphicsSystem(object):
 
 event.add_event_type(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT'])
 
-class CameraController(object):
+class CameraController(FixedUpdater):
     def __init__(self, camera, camera_node):
+        FixedUpdater.__init__(self, 1.0 / 60, 1.0)
+        
         self.camera = camera
         self.camera_node = camera_node
         
@@ -269,7 +279,7 @@ class CameraController(object):
         # object is gone
         event.remove_handlers(self.handler_map)
     
-    def update(self):
+    def _update(self, time_since_last_frame):
         quat = self.camera_node.getOrientation()
         vec = Ogre.Vector3(0.0,0.0,-0.2)
         trans = quat * vec
@@ -296,6 +306,8 @@ class CameraController(object):
                                  Ogre.Node.TS_WORLD)
 
     def _key_pressed(self, key_event):
+        print 'GUI',key_event
+        print dir(key_event)
         # Update the state of *_key properties  
         self.key_observer.key_pressed(key_event)
 
@@ -309,7 +321,8 @@ class Py2OgreLog(Ogre.Log):
     normal console and file output.
     """
     def __init__(self, config, logger):
-        # Call to the C++ base class
+        # Call to the C++ base class, 
+        # First Bool - console output, second - no file output
         Ogre.Log.__init__(self, os.path.join('..', "logs", "ogre.txt"), False, 
                           False)
         self.config = config

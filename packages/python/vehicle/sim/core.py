@@ -19,6 +19,47 @@ class SimulationError (Exception):
     """ Base class for exceptions in the simulation """
     pass
 
+class FixedUpdater(object):
+    def __init__(self, update_interval, threshold = 1.0):
+        """
+        update_iterval: the time you would like between updates
+        threshol: the maximum time between updates where you try to catch up
+            by calling lots of updates in  row, instead of skipping them.
+        """
+        self.update_interval = update_interval
+        self.threshold = threshold
+        self.elapsed = 0
+        
+    def update(self, time_since_last_update):
+        self._always_updated(time_since_last_update)
+        
+        self.elapsed += time_since_last_update
+        if ((self.elapsed > self.update_interval) and (self.elapsed < (1.0)) ):
+            while (self.elapsed > self.update_interval):
+                self._update(time_since_last_update)
+                self.elapsed -= self.update_interval
+        else:
+            if (self.elapsed < self.update_interval):
+                # not enough time has passed this loop, so ignore for now.
+                pass
+            else:
+                self._update(time_since_last_update)
+                # reset the elapsed time so we don't become "eternally behind"
+                self.elapsed = 0.0
+        
+    def _update(self, time_since_last_update):
+        """
+        Called only at the fixed interval you provide
+        """
+        pass
+        
+    def _always_updated(self, time_since_last_update):
+        """
+        Called everytime update is called
+        """
+        pass
+        
+
 def Vector(values, length = 0):
     """ 
     Converts Lists and Tuples to Ogre.Vector2/3/4, this is just a place holder

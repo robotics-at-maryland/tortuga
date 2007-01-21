@@ -19,7 +19,9 @@ import CEGUI
 
 from vehicle import *
 import logloader
-import control
+import event
+
+from vehicle.sim import Vehicle
 
 def main_loop(components):
     last_time = time.clock()
@@ -31,6 +33,8 @@ def main_loop(components):
         for component in components:
             if not component.update(time_since_last_iteration):
                 run = False
+        
+        event.process_events()
         
         current_time = time.clock()
         time_since_last_iteration = current_time - last_time;
@@ -48,12 +52,21 @@ def main():
     vehicle = VehicleFactory.create(vehicle_type,
                                     config['Vehicles'][vehicle_type])
     
-    # Start up our other systems(possibly use component interface to find them?)
     components = [vehicle]
-
+    del vehicle
+    
     # Main Loop
     main_loop(components)
 
+
+    # Still Have some kind of circular vehicle reference, __del__, doesn't get
+    # called even when all the refernce from the function are gone
+    for component in components:
+        component.__del__()
+    
+    del components
+
+   
     return 0
     
 if __name__ == '__main__':

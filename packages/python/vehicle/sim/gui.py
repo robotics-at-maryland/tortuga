@@ -30,6 +30,10 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         self.cegui_log = None
         self.gui_renderer = None
         
+        self._setup_logging(config.get('Logging', {'name' : 'Graphics',
+                                                   'level': 'INFO'}))
+        self.logger.info('* * * Beginning initialization')
+        
         # Call C++ Super class constructor
         OIS.MouseListener.__init__( self)
         OIS.KeyListener.__init__(self)
@@ -37,6 +41,7 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         # Create our own logger to reroute the logging
         #self.cegui_log = CEGUI2PyLog(config["Logging"]) # Broken Python-Ogre 0.70
         
+        CEGUI.System.setDefaultXMLParserName('TinyXMLParser')
         # Create the CEGUIOgreRender with are GUI Components and CEGUI System
         self.gui_renderer = \
             CEGUI.OgreCEGUIRenderer( graphics_sys.render_window, 
@@ -65,10 +70,17 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         # Setup forwarder so CEGUI gets input events
         self.event_forwarder = CEGUIEventForwarder(self.cegui_sys)
         
+        self.logger.info('* * * Initialized')
+        
     def __del__(self):
+        self.logger.info('* * * Beginning shutdown')
         #del self.cegui_log
         del self.cegui_sys
         del self.gui_renderer
+        self.logger.info('* * * Shutdown complete')
+        
+    def _setup_logging(self, config):
+        self.logger = logloader.setup_logger(config, config)
     
 class CEGUI2PyLog(CEGUI.Logger):
     """
@@ -125,6 +137,7 @@ class CEGUIEventForwarder(object):
         
     # Mouse Events
     def mouse_moved(self, arg):
+        #print 'Moved'
         self.cegui_sys.injectMouseMove( arg.get_state().X.rel, 
                                         arg.get_state().Y.rel )
 

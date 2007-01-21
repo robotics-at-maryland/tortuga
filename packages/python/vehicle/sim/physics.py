@@ -12,11 +12,19 @@ Wraps up the initialization and management of OgreNewt
 import Ogre
 import OgreNewt
 
-class PhysicsSystem(object):
+import logloader
+from vehicle.sim.core import FixedUpdater
+
+class PhysicsSystem(FixedUpdater):
     """
     This handles everything need with the Physics system.
     """
     def __init__(self, config, graphics_sys):
+        
+        self._setup_logging(config.get('Logging', {'name' : 'Physics',
+                                                  'level': 'INFO'}))
+        self.logger.info('* * * Beginning initialization')
+        
         self.graphics_sys = graphics_sys
         
         # The main OgreNewt object
@@ -24,22 +32,26 @@ class PhysicsSystem(object):
         # Here so we can clean up after outselves
         self.bodies = []
         
-        self.update_interval = (1.0 / config.get('update_rate',60))
-        self.elapsed = 0.0;
+        # This super class runs the update at a fixed rate
+        FixedUpdater.__init__(self, 1.0 / config.get('update_rate',60), 1.0)
+   
         
         # Start up the debugger so that we can show debugging lines
         #OgreNewt.Debugger.getSingleton().init(graphics_sys.scene_manager)
+        self.logger.info('* * * Initialized')
         
     def __del__(self):
         """
         You must delete this before the GraphicsSystem
         """
+        self.logger.info('* * * Beginning shutdown')
         #OgreNewt.Debugger.getSingleton().deInit()
         
         del self.bodies
         del self.world
+        self.logger.info('* * * Shutdown complete')
         
-    def update(self, time_since_last_update):
+    def _update(self, time_since_last_update):        
         """
         Called at a set interval update the physics and there graphical 
         counter parts.  This cannot be running at the same time as update for   
@@ -47,23 +59,15 @@ class PhysicsSystem(object):
         
         A return of false from here shuts down the application
         """
-        #OgreNewt.Debugger.getSingleton().showLines(self.world)
+        self.world.update(self.update_interval)
         
-        self.elapsed += time_since_last_update
-        if ((self.elapsed > self.update_interval) and (self.elapsed < (1.0)) ):
-            while (self.elapsed > self.update_interval):
-                self.world.update(self.update_interval)
-                self.elapsed -= self.update_interval
-        else:
-            if (self.elapsed < self.update_interval):
-                # not enough time has passed this loop, so ignore for now.
-                pass
-            else:
-                self.world.update(self.elapsed)
-                # reset the elapsed time so we don't become "eternally behind"
-                self.elapsed = 0.0
-                
-        return True
+    def _always_updated(self, time_since_last_update):
+        #OgreNewt.Debugger.getSingleton().showLines(self.world)
+        pass
+        
+    def _setup_logging(self, config):
+        self.logger = logloader.setup_logger(config, config)
+        
     
 def gravityAndBouyancyCallback(me):
     mass, inertia = me.getMassMatrix()

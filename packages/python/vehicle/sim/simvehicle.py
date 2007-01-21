@@ -10,12 +10,18 @@
 encapsulates all aspects of the GUI, and simulation elements away from the 
 control code below.
 """
-import OgreNewt
-import OIS
+
+# Stdlib imports
 import logging
 
+# Library Imports
+import OgreNewt
+import OIS
+
+# Project imports
 import event
 import control
+import logloader
 
 from vehicle import VehicleFactory, IVehicle, DeviceFactory
 from vehicle.sim import core
@@ -26,6 +32,9 @@ from vehicle.sim.graphics import GraphicsSystem, CameraController
 from vehicle.sim.core import Vector, Quat
 from vehicle.sim.device import Thruster
 
+# Events
+event.add_event_type('SIM_SHUTDOWN') # Called to shutdown the simulation
+
 class Vehicle(IVehicle):          
     def __init__(self, config):
         self.scene = None
@@ -33,8 +42,10 @@ class Vehicle(IVehicle):
         self.input_sys = None
         self.physics_sys = None
         self.graphics_sys = None
-        self.hull_node = None
-        self.hull_body = None
+        
+        self._setup_logging(config.get('Logging', {'name' : 'SimVehicle',
+                                                   'level': 'INFO'}))
+        self.logger.info('* * * Beginning initialization')
         
         self.components = self._create_components(config)
         
@@ -52,26 +63,39 @@ class Vehicle(IVehicle):
             
         # Create Simple Keyboard Mouse controller
         self.kmcontroller = control.DirectVehicleController(self)
+        self.logger.info('* * * Initialized')
 
+        event.register_handler('SIM_SHUTDOWN', self._shutdown)
+        self.run = True
+        
+    def _shutdown(self):
+        self.run = False
         
     def __del__(self):
-        del self.hull_node
-        del self.hull_body
+        self.logger.info('* * * Beginning shutdown')
+        
+        del self.components
         del self.scene
         del self.gui_sys
         del self.input_sys
         del self.physics_sys
-        del self.graphics_sys    
+        del self.graphics_sys
+
+        self.logger.info('* * * Shutdown complete')
         
     def update(self, time_since_last_update):
-        # Update all components, drop out if one returns false
-        for component in self.components:
-            if not component.update(time_since_last_update):
-                return False
-            
-        self.attitude = self.hull_node.orientation
-        self.position = self.hull_node.position
-        return True
+        if self.run:
+            # Update all components, drop out if one returns false
+            for component in self.components:
+                component.update(time_since_last_update)
+                
+            self.attitude = self.hull_node.orientation
+            self.position = self.hull_node.position
+   
+        return self.run
+    
+    def _setup_logging(self, config):
+        self.logger = logloader.setup_logger(config, config)
     
     def _create_components(self, config):
         self.graphics_sys = GraphicsSystem(config.get('Graphics',{}))
@@ -103,15 +127,17 @@ class Vehicle(IVehicle):
         self.hull_node.setPosition(position)
         
         col = OgreNewt.Box(world, size)
-        self.hull_body = OgreNewt.Body(world, col)
-        self.hull_body.attachToNode(self.hull_node)
+        hull_body = OgreNewt.Body(world, col)
+        hull_body.attachToNode(self.hull_node)
         inertia = OgreNewt.CalcBoxSolid(mass, size)
-        self.hull_body.setMassMatrix(mass, inertia)
-        self.hull_body.setCustomForceAndTorqueCallback(
+        hull_body.setMassMatrix(mass, inertia)
+        hull_body.setCustomForceAndTorqueCallback(
             thruster_force_callback, "")
-        self.hull_body.setPositionOrientation(position, orientation)
-        self.hull_body.setAutoFreeze(False)
+        hull_body.setPositionOrientation(position, orientation)
+        hull_body.setAutoFreeze(False)
         
+        self.physics_sys.bodies.append(hull_body)
+
 # Register Simuldated Vehicle with Factory
 VehicleFactory.register('Simulated', Vehicle)
 

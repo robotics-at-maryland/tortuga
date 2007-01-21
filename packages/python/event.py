@@ -12,12 +12,27 @@ on the signature of the callback functions and multiple events can be
 registered to one event type.
 """
 
+from collections import deque
+
 class EventError(Exception):
     pass
 
+# Module global variables
 event_map = {}
+event_queue = deque()
+
+def post(_type, *args, **kwargs):
+    event_queue.appendleft((_type, args, kwargs))
+    
+def process_events():
+    while len(event_queue) > 0:
+        _type, args, kwargs = event_queue.pop()
+        _send(_type, args, kwargs)
 
 def send(_type, *args, **kwargs):
+    _send(_type, args, kwargs)
+
+def _send(_type, args, kwargs):
     """
     Calls all registered callbacks and returns a list of the non None return
     values of the callback functions.
