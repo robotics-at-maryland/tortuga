@@ -306,8 +306,6 @@ class CameraController(FixedUpdater):
                                  Ogre.Node.TS_WORLD)
 
     def _key_pressed(self, key_event):
-        print 'GUI',key_event
-        print dir(key_event)
         # Update the state of *_key properties  
         self.key_observer.key_pressed(key_event)
 

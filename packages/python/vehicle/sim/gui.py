@@ -137,7 +137,6 @@ class CEGUIEventForwarder(object):
         
     # Mouse Events
     def mouse_moved(self, arg):
-        #print 'Moved'
         self.cegui_sys.injectMouseMove( arg.get_state().X.rel, 
                                         arg.get_state().Y.rel )
 
