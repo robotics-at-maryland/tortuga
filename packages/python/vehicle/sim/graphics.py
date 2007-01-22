@@ -252,7 +252,9 @@ class GraphicsSystem(object):
         self.viewport = self.render_window.addViewport(self.camera)
         self.viewport.BackgroundColour = Ogre.ColourValue(0,0,0)
 
-event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT'])
+event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT',
+                       'CAM_FOLLOW',       # A hack, follow the given node
+                       'CAM_INDEPENDENT']) # Return back to free floating
 
 class CameraController(FixedUpdater):
     """
@@ -264,11 +266,14 @@ class CameraController(FixedUpdater):
         
         self.camera = camera
         self.camera_node = camera_node
+        self.original_node = None
         
         self.handler_map = {
             'KEY_PRESSED': self._key_pressed,
             'KEY_RELEASED': self._key_released,
-            'MOUSE_MOVED': self._mouse_moved}
+            'MOUSE_MOVED': self._mouse_moved,
+            'CAM_FOLLOW' : self._follow_node,
+            'CAM_INDEPENDENT' : self._make_independent}
         
         event.register_handlers(self.handler_map)
         
@@ -329,6 +334,27 @@ class CameraController(FixedUpdater):
     def _key_released( self, key_event ):
         # Update the state of *_key properties
         self.key_observer.key_released(key_event)
+        
+    def _follow_node(self, node):
+        self.camera_node.detachObject(self.camera)
+        self.original_node = self.camera_node
+        
+        self.camera_node = node
+        self.camera_node.attachObject(self.camera)
+        self.camera.loogAt(node._getDerivedPosition())
+        
+    def _make_independent(self, node):
+        if self.original_node is None:
+            raise GraphicsError('Camera is already free floating')
+        self.camera_node.detachObject(self.camera)
+        self.camera_node = self.original_node
+        
+        current_pos = self.original_node._getDerivedPosition()
+        self.camera_node.setPosition(current_pos)
+        self.camera_node.attachObject(self.camera)
+        self.camera.lookAt(current_pos)
+        
+        self.original_node = None
 
 class Py2OgreLog(Ogre.Log):
     """
