@@ -234,13 +234,15 @@ class GraphicsSystem(object):
         """
         Creates the camera.
         """        
+        
         self.camera = self.scene_manager.createCamera('PlayerCam')
-        self.camera.setPosition(Ogre.Vector3( 0.0, 0.0, 0.0))
-        self.camera.lookAt(Ogre.Vector3(0, 0, -300))
+        self.camera.setPosition(Ogre.Vector3( 0.0, 5.0, 5.0))
+        self.camera.lookAt(Ogre.Vector3(0, 0, 0))
         self.camera.nearClipDistance = 0.5
                 
         # Allows easier movement of camera
         self.camera_node = self.scene_manager.getRootSceneNode().createChildSceneNode()
+        self.camera_node.setPosition(0,0,0)
         self.camera_node.attachObject(self.camera)
 
     def _createViewports(self):
@@ -250,9 +252,13 @@ class GraphicsSystem(object):
         self.viewport = self.render_window.addViewport(self.camera)
         self.viewport.BackgroundColour = Ogre.ColourValue(0,0,0)
 
-event.add_event_type(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT'])
+event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT'])
 
 class CameraController(FixedUpdater):
+    """
+    Here we have our camera attached to a node, looking at then node.
+    
+    """
     def __init__(self, camera, camera_node):
         FixedUpdater.__init__(self, 1.0 / 60, 1.0)
         
@@ -283,27 +289,38 @@ class CameraController(FixedUpdater):
         quat = self.camera_node.getOrientation()
         vec = Ogre.Vector3(0.0,0.0,-0.2)
         trans = quat * vec
+        #trans.x = 0
+        trans.y = 0
         vec = Ogre.Vector3(0.2,0.0,0.0)
         strafe = quat * vec
+        strafe.y = 0
+        #strafe.z = 0
         
         if self.up_key:
-            self.camera_node.translate(trans)
+            self.camera_node.translate(trans, Ogre.Node.TS_WORLD)
         if self.down_key:
-            self.camera_node.translate(trans * -1.0)
+            self.camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
         if self.left_key:
-            self.camera_node.translate(strafe * -1.0)
+            self.camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
         if self.right_key:
-            self.camera_node.translate(strafe)
+            self.camera_node.translate(strafe, Ogre.Node.TS_WORLD)
     
     def _mouse_moved(self, arg):
         """
         If the shift key is down, swing the camera
         """
+        
         if self.shift_key:
             ms = arg.get_state()
+            # Rotate around our object
             self.camera_node.pitch(Ogre.Radian(ms.Y.rel * -0.5))
             self.camera_node.yaw(Ogre.Radian(ms.X.rel * -0.5), 
                                  Ogre.Node.TS_WORLD)
+            
+            # Zoom in or out of our objective
+            if ms.Z.rel < 0 or ms.Z.rel > 0:
+                pos = self.camera.position
+                self.camera.setPosition(pos + (pos * ms.Z.rel * 0.002))
 
     def _key_pressed(self, key_event):
         # Update the state of *_key properties  

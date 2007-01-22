@@ -13,10 +13,12 @@ activities
 # Library imports
 import Ogre
 import OIS
+import platform
 
 # Project imports
 import event
 import logloader
+
 
 from vehicle.sim.core import SimulationError, FixedUpdater
 
@@ -25,11 +27,11 @@ class InputError(SimulationError):
     pass
 
 # Add the events to the event system
-event.add_event_type(['KEY_PRESSED',     # Once fired once per key press
-                      'KEY_RELEASED',    # When a key is released
-                      'MOUSE_MOVED',     # When the mouse is moved
-                      'MOUSE_PRESSED',   # When a mouse button is pressed
-                      'MOUSE_RELEASED']) # When the mouse button is released
+event.add_event_types(['KEY_PRESSED',     # Once fired once per key press
+                       'KEY_RELEASED',    # When a key is released
+                       'MOUSE_MOVED',     # When the mouse is moved
+                       'MOUSE_PRESSED',   # When a mouse button is pressed
+                       'MOUSE_RELEASED']) # When the mouse button is released
 
 class InputSystem(FixedUpdater, Ogre.WindowEventListener):
     """
@@ -81,11 +83,15 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         # Hook OIS up to the window created by Ogre
         windowHnd = self.render_window.getCustomAttributeInt("WINDOW")
         
-        params = [('WINDOW',windowHnd)]
-        if config.get('debug', False):
-            self.logger.info("OIS Keyboard grab off")
-            params = params + [('x11_keyboard_grab', 'false'), 
-                               ('x11_mouse_grab','false')]
+        if 'Linux' == platform.system():
+            params = [('WINDOW',windowHnd)]
+            if config.get('debug', False):
+                self.logger.info("OIS Keyboard grab off")
+                params = params + [('x11_keyboard_grab', 'false'), 
+                                   ('x11_mouse_grab','false')]
+        elif 'Windows' == platform.system():
+            params = windowHnd
+            
         
         self.input_mgr = OIS.createPythonInputSystem(params)
         # Setup Unbuffered Keyboard and Buffered Mouse Input
@@ -120,7 +126,7 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
             self.time_until_next_toggle -= time_since_last_update
             
         # Quit simulation if needed
-        if self.keyboard.isKeyDown(OIS.KC_ESCAPE) or self.keyboard.isKeyDown(OIS.KC_Q):
+        if self.keyboard.isKeyDown(OIS.KC_ESCAPE):
             event.post('SIM_SHUTDOWN')
         
         self._generate_events()
@@ -150,7 +156,7 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
                     send_event = False
                     break
             if send_event:
-                event.send(event_type)
+                event.post(event_type)
         
     # Ogre.WindowEventListener Methods
     def windowResized(self, render_window):

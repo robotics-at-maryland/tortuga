@@ -33,7 +33,7 @@ from vehicle.sim.core import Vector, Quat
 from vehicle.sim.device import Thruster
 
 # Events
-event.add_event_type('SIM_SHUTDOWN') # Called to shutdown the simulation
+event.add_event_types('SIM_SHUTDOWN') # Called to shutdown the simulation
 
 class Vehicle(IVehicle):          
     def __init__(self, config):
@@ -65,7 +65,7 @@ class Vehicle(IVehicle):
         self.kmcontroller = control.DirectVehicleController(self)
         self.logger.info('* * * Initialized')
 
-        event.register_handler('SIM_SHUTDOWN', self._shutdown)
+        event.register_handlers('SIM_SHUTDOWN', self._shutdown)
         self.run = True
         
     def _shutdown(self):

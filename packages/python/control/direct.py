@@ -12,10 +12,10 @@ of the vehicle with the keyboard.
 
 import event
 
-event.add_event_type(['PORT_THRUST_UP', 'PORT_THRUST_DOWN',
-                      'STARBOARD_THRUST_UP', 'STARBOARD_THRUST_DOWN',
-                      'FORE_THRUST_UP', 'FORE_THRUST_DOWN',
-                      'AFT_THRUST_UP', 'AFT_THRUST_DOWN'])
+event.add_event_types(['PORT_THRUST_UP', 'PORT_THRUST_DOWN',
+                       'STARBOARD_THRUST_UP', 'STARBOARD_THRUST_DOWN',
+                       'FORE_THRUST_UP', 'FORE_THRUST_DOWN',
+                       'AFT_THRUST_UP', 'AFT_THRUST_DOWN'])
 
 class DirectVehicleController(object):
     """
