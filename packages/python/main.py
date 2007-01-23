@@ -10,18 +10,24 @@
 instantiates the proper vehicle and then jumps into the main loop.
 """
 
+# Makes everything much easier, all imports must work from the root
+#from __future__ import absolute_import
+
+# Stdlib Imports
 import os
 import sys
 import time
 
+# Library Imports
 import yaml
 import CEGUI
 
-from vehicle import *
+# Project Imports
 import logloader
 import event
 
-from vehicle.sim import Vehicle
+import sim
+from vehicle.sim import Vehicle, VehicleFactory
 
 def main_loop(components):
     last_time = time.clock()

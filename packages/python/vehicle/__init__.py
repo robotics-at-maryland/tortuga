@@ -9,9 +9,12 @@
 Initailize module properly on import
 """
 
+# Makes everything much easier, all imports must work from the root
+from __future__ import absolute_import
+
 # Pull in our classes (so we don't have odd import statements)
-from vehicle import *
-from device import *
+from vehicle.vehicle import *
+from vehicle.device import *
 
 # Import submodules to register any objects that are needed
-import sim as sim
+import vehicle.sim as sim

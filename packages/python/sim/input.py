@@ -10,6 +10,9 @@
 activities
 """
 
+# Makes everything much easier, all imports must work from the root
+#from __future__ import absolute_import
+
 # Library imports
 import Ogre
 import OIS
@@ -19,8 +22,14 @@ import platform
 import event
 import logloader
 
+from core import FixedUpdater
+from sim.util import Vector
+from sim import *
+#item = 0
+#for item in locals().iteritems():
+#    print item
+from sim.foo import SimulationError
 
-from vehicle.sim.core import SimulationError, FixedUpdater
 
 class InputError(SimulationError):
     """ Error from the input system """
@@ -56,7 +65,7 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
          #'CAM_BACK': [OIS.KC_DOWN, OIS.KC_S], 
          #'CAM_RIGHT': [OIS.KC_D, OIS.KC_RIGHT]}
     
-    def __init__(self, graphics_sys, config):
+    def __init__(self, config):
         self._setup_logging(config.get('Logging', {'name' : 'Input',
                                                    'level': 'INFO'}))
         self.logger.info('* * * Beginning initialization')
@@ -66,7 +75,7 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         
         FixedUpdater.__init__(self, 1.0 / config.get('update_rate',60), 1.0)
         
-        self.render_window = graphics_sys.render_window
+        self.render_window = Simulation.get().graphics_sys.render_window
         
         self._setup_ois(config)
         # Allows buttons to toggle properly    

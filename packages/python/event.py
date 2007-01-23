@@ -19,6 +19,9 @@ from collections import deque
 from Queue import Queue
 
 class EventError(Exception):
+    """
+    The base of all error for the event module
+    """
     pass
 
 EVENT_QUEUE_SIZE = 1000

@@ -3,20 +3,26 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  vehicle/sim/graphics.py
+# File:  sim/graphics.py
 
 """
 Wraps up the initialization and management of CEGUI and GUI activites
 """
 
+# Makes everything much easier, all imports must work from the root
+#from __future__ import absolute_import
+
+# Stdlib Imports
 import os
 import sys
 import time
 import logging
 
+# Library Imports
 import Ogre
 import OIS
 
+# Project Imports
 import logloader
 import event
 from vehicle.sim.core import SimulationError, FixedUpdater

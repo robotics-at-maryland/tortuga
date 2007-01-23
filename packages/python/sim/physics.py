@@ -3,15 +3,20 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  vehicle/sim/physics.py
+# File:  sim/physics.py
 
 """
 Wraps up the initialization and management of OgreNewt
 """
 
+# Makes everything much easier, all imports must work from the root
+#from __future__ import absolute_import
+
+# Libraries Imports
 import Ogre
 import OgreNewt
 
+# Project Imports
 import logloader
 from vehicle.sim.core import FixedUpdater
 
@@ -19,13 +24,11 @@ class PhysicsSystem(FixedUpdater):
     """
     This handles everything need with the Physics system.
     """
-    def __init__(self, config, graphics_sys):
+    def __init__(self, config):
         
         self._setup_logging(config.get('Logging', {'name' : 'Physics',
                                                   'level': 'INFO'}))
         self.logger.info('* * * Beginning initialization')
-        
-        self.graphics_sys = graphics_sys
         
         # The main OgreNewt object
         self.world = OgreNewt.World()

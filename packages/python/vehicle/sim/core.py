@@ -3,125 +3,108 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   vehicle/sim/core.py
+# File:  vehicle/sim/simvehicle.py
 
 """
-Provides core fuctionality for the simulation
+    Contains the vehicle class, this implements the vehicle interface using the
+sim module.
 """
 
-import os
-import sys
-import imp
+# Makes everything much easier, all imports must work from the root
+#from __future__ import absolute_import
 
-import Ogre
+# Stdlib imports
+import logging
 
-class SimulationError (Exception):
-    """ Base class for exceptions in the simulation """
-    pass
+# Library Imports
+import OgreNewt
+import OIS
 
-class FixedUpdater(object):
-    def __init__(self, update_interval, threshold = 1.0):
-        """
-        update_iterval: the time you would like between updates
-        threshol: the maximum time between updates where you try to catch up
-            by calling lots of updates in  row, instead of skipping them.
-        """
-        self.update_interval = update_interval
-        self.threshold = threshold
-        self.elapsed = 0
+# Project imports
+import event
+import control
+import logloader
+
+from sim.util import Vector, Quat
+from sim.foo import Simulation
+from vehicle import VehicleFactory, IVehicle, DeviceFactory
+from vehicle.sim.device import Thruster
+
+class Vehicle(IVehicle):          
+    def __init__(self, config):
+        self._setup_logging(config.get('Logging', {'name' : 'SimVehicle',
+                                                   'level': 'INFO'}))
+        self.logger.info('* * * Beginning initialization')
+        
+        # Create simulation singleton
+        Simulation(config['Simulation'])
+        
+        # Create vehicle and devices
+        self._create_vehicle(config)
+        devices = config['Devices']
+        for device_name in devices:
+            device_cfg = devices[device_name]
+            device = DeviceFactory.create(device_cfg['type'], device_name, 
+                                          device_cfg, self)
+            setattr(self, device_name, device)
+            
+        # Create Simple Keyboard Mouse controller
+        self.kmcontroller = control.DirectVehicleController(self)
+        self.logger.info('* * * Initialized')
+        
+    def __del__(self):
+        self.logger.info('* * * Beginning shutdown')
+        Simulation.delete()
+        self.logger.info('* * * Shutdown complete')
         
     def update(self, time_since_last_update):
-        self._always_updated(time_since_last_update)
-        
-        self.elapsed += time_since_last_update
-        if ((self.elapsed > self.update_interval) and (self.elapsed < (1.0)) ):
-            while (self.elapsed > self.update_interval):
-                self._update(time_since_last_update)
-                self.elapsed -= self.update_interval
-        else:
-            if (self.elapsed < self.update_interval):
-                # not enough time has passed this loop, so ignore for now.
-                pass
-            else:
-                self._update(time_since_last_update)
-                # reset the elapsed time so we don't become "eternally behind"
-                self.elapsed = 0.0
-        
-    def _update(self, time_since_last_update):
-        """
-        Called only at the fixed interval you provide
-        """
-        pass
-        
-    def _always_updated(self, time_since_last_update):
-        """
-        Called everytime update is called
-        """
-        pass
-        
-
-def Vector(values, length = 0):
-    """ 
-    Converts Lists and Tuples to Ogre.Vector2/3/4, this is just a place holder
-    till Python-Ogre does the automatically
-    """
-    if not length:
-        length = len(values)
-    if 2 == length:
-        return Ogre.Vector2(values[0], values[1])
-    elif 3 == length:
-        return Ogre.Vector3(values[0], values[1], values[2])
-    elif 4 == length:
-        return Ogre.Vector4(values[0], values[1], values[2], values[3])
-    raise SimulationError("Cannon convert %s to a vector" % str(values))
-
-def Quat(values, axis_angle = False):
-    """
-    Converts to list  of values to a Quaternion, either with axis angles, when 
-    the flag is true, the last value is treated as the angle.  Otherwise its
-    (w,x,y,z)
-    """
-    if axis_angle:
-        return Ogre.Quaternion( Ogre.Degree(d = values[3]), Vector(values, 3))
-    else:
-        return Ogre.Quaternion(values[0], values[1], values[2], values[3])
-
-def load_scene(config, graphics_sys, physics_sys):
-    """
-    Loads a scene based on the configuration data. This expects a configuration
-    of the following format (with the Scenes node being passed in):
-    Scenes:  
-        current: name_of_module
-        path: path_on_which_module_exits
-    """
-    mod_name = config['current']
-    search_path = [os.path.abspath(p) for p in config['path']]
-    sys_path = sys.path
+        # Update our public attributes
+        self.attitude = self.hull_node.orientation
+        self.position = self.hull_node.position
     
-    try:
-        # Load the modules
-        modfile, path, desc = imp.find_module(mod_name, search_path)
+    def _setup_logging(self, config):
+        self.logger = logloader.setup_logger(config, config)
         
-        # Prepend current directory to the module loading path the module can
-        # import modules in that directory
-        sys.path.insert(0, os.path.split(path)[0])
+    def _create_vehicle(self, config):
+        scene_mgr = self.graphics_sys.scene_manager
+        world = self.physics_sys.world
         
-        scene = None
-        try:
-            scene = imp.load_module(mod_name, modfile, path, desc)
-        finally:
-            # Always restore path
-            sys.path = sys_path
-            # Remove file if needed
-            if modfile:
-                modfile.close()
-                
-        new_scene = scene.Scene()
-        new_scene.create_scene(graphics_sys, physics_sys)
-        return new_scene
-                
-    except ImportError, e:
-        raise SimulationError('Could not load scene "%s"\n On path: %s\n Error: %s' % (mod_name, search_path, str(e)))
+        # Load values from the config file
+        size = Vector(config['size'])
+        mass = config['mass']
+        orientation = Quat(config['orientation'], axis_angle = True)
+        position = Vector(config['position'])
         
+                    
+        hull = scene_mgr.createEntity('Hull', 'box.mesh')
+        hull.setMaterialName("Simple/BumpyMetal")
+        hull.setNormaliseNormals(True)
+        self.hull_node = scene_mgr.getRootSceneNode().createChildSceneNode()
+        self.hull_node.attachObject(hull)
+        self.hull_node.setScale(size)
+        self.hull_node.setPosition(position)
+        
+        col = OgreNewt.Box(world, size)
+        hull_body = OgreNewt.Body(world, col)
+        hull_body.attachToNode(self.hull_node)
+        inertia = OgreNewt.CalcBoxSolid(mass, size)
+        hull_body.setMassMatrix(mass, inertia)
+        hull_body.setCustomForceAndTorqueCallback(
+            thruster_force_callback, "")
+        hull_body.setPositionOrientation(position, orientation)
+        hull_body.setAutoFreeze(False)
+        
+        self.physics_sys.bodies.append(hull_body)
+
+# Register Simuldated Vehicle with Factory
+VehicleFactory.register('Simulated', Vehicle)
+
+def thruster_force_callback(body):
+    mass, inertia = body.getMassMatrix()
+    gravity = Vector((0, -9.8, 0))
     
-        
+    body.addForce(gravity * mass)
+    body.addBouyancyForce(1000, 0.01, 0.01, gravity, buoyancyCallback, "")
+    
+    # Apply our thrust from the thrusters
+    Thruster.apply_thruster_force(body)

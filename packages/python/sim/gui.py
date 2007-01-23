@@ -3,29 +3,36 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  vehicle/sim/gui.py
+# File:  sim/gui.py
 
 """
 Wraps up the initialization and management of CEGUI and GUI activites
 """
 
+# Makes everything much easier, all imports must work from the root
+#from __future__ import absolute_import
+
+# Stdlib Imports
 import os
 import logging
 import shutil
 
+# Library Imports
 import OIS
 import CEGUI
 import Ogre
 
+# Project Imports
 import logloader
 import event
+from sim.core import Simulation
 
-class GUISystem(OIS.MouseListener, OIS.KeyListener):
+class GUISystem(object):
     """
     This class manages the GUI, currently it just draws the mouse cursor
     """
     
-    def __init__(self, config, graphics_sys, input_sys):
+    def __init__(self, config):
         self.cegui_sys = None
         self.cegui_log = None
         self.gui_renderer = None
@@ -40,6 +47,9 @@ class GUISystem(OIS.MouseListener, OIS.KeyListener):
         
         # Create our own logger to reroute the logging
         #self.cegui_log = CEGUI2PyLog(config["Logging"]) # Broken Python-Ogre 0.70
+        
+        # Grab the global simulation object and get its graphics system
+        graphics_sys = Simulation.get().graphics_sys
         
         CEGUI.System.setDefaultXMLParserName('TinyXMLParser')
         # Create the CEGUIOgreRender with are GUI Components and CEGUI System

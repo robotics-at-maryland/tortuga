@@ -10,12 +10,17 @@
 the vehicle.device module.
 """
 
+# Makes everything much easier, all imports must work from the root
+#from __future__ import absolute_import
+
+# Library Imports
 import Ogre
 
+# Project Imports
 from vehicle import IThruster
 from vehicle import DeviceFactory
-from vehicle.sim import SimulationError
-from vehicle.sim.core import Vector, Quat
+from sim.core import SimulationError
+from sim.util import Vector, Quat
 
 class Thruster(IThruster):
     """

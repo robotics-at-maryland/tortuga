@@ -129,89 +129,90 @@ Vehicles:
         #        level: INFO
     
         # This describes all the general
-        Scenes:
-            # The curren scene to load, must be a python module on the given
-            # scene_path, this for example is 'data/scenes/basic.py
-            current: basic
+        Simulation:
+            Scenes:
+                # The curren scene to load, must be a python module on the given
+                # scene_path, this for example is 'data/scenes/basic.py
+                current: basic
             
-            # Searh path for scene files
-            path: ['../data/scenes']
+                # Searh path for scene files
+                path: ['../data/scenes']
         
-        Input:
-            debug: False
+            Input:
+                debug: False
 
-            # Number of time persecond you wished to have the physics updated
-            update_rate: 60 # Default, uncomment and set to change
+                # Number of time persecond you wished to have the physics updated
+                update_rate: 60 # Default, uncomment and set to change
             
-            # Shown are the default values, uncomment to change
-            #Logging:
-            #    name: Input
-            #    level: INFO
+                # Shown are the default values, uncomment to change
+                #Logging:
+                #    name: Input
+                #    level: INFO
         
-        #Physics:
-            # Number of time persecond you wished to have the physics updated
-            # update_rate: 60 # Default, uncomment and set to change
+            #Physics:
+                # Number of time persecond you wished to have the physics updated
+                # update_rate: 60 # Default, uncomment and set to change
             
-            # Shown are the default values, uncomment to change
-            #Logging:
-            #    name: Physics
-            #    level: INFO
+                # Shown are the default values, uncomment to change
+                #Logging:
+                #    name: Physics
+                #    level: INFO
         
-        # This secion here takes over for Ogre's ogre.cfg.  The type 
-        # indicates which Ogre RenderSystem to create and which section to
-        # load the options from
-        Graphics:
-            # Shown are the default values, uncomment to change
-            #Logging:
-            #    name: Graphics
-            #    level: INFO
+            # This secion here takes over for Ogre's ogre.cfg.  The type 
+            # indicates which Ogre RenderSystem to create and which section to
+            # load the options from
+            Graphics:
+                # Shown are the default values, uncomment to change
+                #Logging:
+                #    name: Graphics
+                #    level: INFO
         
 
-            RenderSystem:
-                type: GLRenderSystem
+                RenderSystem:
+                    type: GLRenderSystem
                 
-                GLRenderSystem:
-                   # - [Colour Depth, '32']
-                   # - [Display Frequency, 'N/A']
-                    - [FSAA, '0']
-                    - [Full Screen, 'No']
-                    - [RTT Preferred Mode, 'PBuffer']
-                   # - [VSync, 'No']
-                    - [Video Mode, 800 x 600]
-            Plugins:
-                # Where to search for the plugins
-                search_path: [ 'C:\Libraries\Python-Ogre-0.7\plugins',
-                               'C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins',
-                               '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
+                    GLRenderSystem:
+                       # - [Colour Depth, '32']
+                       # - [Display Frequency, 'N/A']
+                        - [FSAA, '0']
+                        - [Full Screen, 'No']
+                        - [RTT Preferred Mode, 'PBuffer']
+                       # - [VSync, 'No']
+                        - [Video Mode, 800 x 600]
+                Plugins:
+                    # Where to search for the plugins
+                    search_path: [ 'C:\Libraries\Python-Ogre-0.7\plugins',
+                                   'C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins',
+                                   '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
 
-                # The plugins to load
-                plugins: [ RenderSystem_GL, 
-                           Plugin_ParticleFX, 
-                           Plugin_OctreeSceneManager ]
+                    # The plugins to load
+                    plugins: [ RenderSystem_GL, 
+                               Plugin_ParticleFX, 
+                               Plugin_OctreeSceneManager ]
             
-            # This replaces Ogre's resources.cfg, Each node under resources
-            # is a group and each node under that is an archive type, with a 
-            # list of directories to load for that type
-            Resources:
-                General:
-                    Zip: ['../media/packs/OgreCore.zip',
-                          '../media/packs/cubemapsJS.zip']
-                    FileSystem: ['../media/models',
-                                 '../media/primitives',
-                                 '../media/materials/textures',
-                                 '../media/materials/scripts']
+                # This replaces Ogre's resources.cfg, Each node under resources
+                # is a group and each node under that is an archive type, with a 
+                # list of directories to load for that type
+                Resources:
+                    General:
+                        Zip: ['../media/packs/OgreCore.zip',
+                              '../media/packs/cubemapsJS.zip']
+                        FileSystem: ['../media/models',
+                                     '../media/primitives',
+                                     '../media/materials/textures',
+                                     '../media/materials/scripts']
 
-                GUI:
-                     FileSystem: ['../data/gui/',
-                                  '../data/gui/schemes',
-                                  '../data/gui/fonts']
+                    GUI:
+                         FileSystem: ['../data/gui/',
+                                      '../data/gui/schemes',
+                                      '../data/gui/fonts']
             
-        GUI:
-            Logging:
-                name: GUI
-                level: INFO
+            GUI:
+                Logging:
+                    name: GUI
+                    level: INFO
         
-            # These settings are used by the underlying GUI toolkit (CEGUI)
-            scheme: TaharezLookSkin.scheme
-            look: TaharezLook
-            font: BlueHighway-12
+                # These settings are used by the underlying GUI toolkit (CEGUI)
+                scheme: TaharezLookSkin.scheme
+                look: TaharezLook
+                font: BlueHighway-12
