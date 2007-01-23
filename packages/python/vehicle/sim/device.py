@@ -17,9 +17,8 @@ the vehicle.device module.
 import Ogre
 
 # Project Imports
-from vehicle import IThruster
-from vehicle import DeviceFactory
-from sim.core import SimulationError
+from vehicle.device import IThruster, DeviceFactory
+from sim.simulation import SimulationError, Simulation
 from sim.util import Vector, Quat
 
 class Thruster(IThruster):
@@ -30,7 +29,7 @@ class Thruster(IThruster):
     
     def __init__(self, name, config, vehicle):
         try:
-            scene_manager = vehicle.graphics_sys.scene_manager
+            scene_manager = Simulation.get().graphics_sys.scene_manager
             gfx_cfg = config['Graphical']
             
             entity = scene_manager.createEntity(name, gfx_cfg['mesh'])

@@ -12,15 +12,16 @@ This module provides the core functionallity of the simulation
 # Makes everything much easier, all imports must work from the root
 #from __future__ import absolute_import
 
+# Stdlib Imports
+import os
+import sys
+import imp
+
 # Project Imports
 import logloader
 import event
 
 from core import Singleton, property
-from sim.input import InputSystem
-from sim.graphics import GraphicsSystem
-from sim.physics import PhysicsSystem
-from sim.gui import GUISystem
 
 # Events
 event.add_event_types('SIM_SHUTDOWN') # Called to shutdown the simulation
@@ -40,7 +41,7 @@ class Simulation(Singleton):
         The object that handles the graphical side of the simulation
         """
         def fget(self):
-            return self._gfx_sys
+            return self._graphics_sys
     
     class physics_sys(property):
         """
@@ -93,10 +94,15 @@ class Simulation(Singleton):
         self.logger = logloader.setup_logger(config, config)
         
     def _create_components(self):
-        self._graphics_sys = GraphicsSystem(self._config.get('Graphics',{}))
-        self._physics_sys = PhysicsSystem(self._config.get('Physics',{}))
-        self._input_sys = InputSystem(self._config.get('Input',{}))
-        self._gui_sys = GUISystem(self._config.get('GUI',{}))
+        import sim.graphics
+        import sim.input
+        import sim.gui
+        import sim.physics
+        
+        self._graphics_sys = sim.graphics.GraphicsSystem(self._config.get('Graphics',{}))
+        self._physics_sys = sim.physics.PhysicsSystem(self._config.get('Physics',{}))
+        self._input_sys = sim.input.InputSystem(self._config.get('Input',{}))
+        self._gui_sys = sim.gui.GUISystem(self._config.get('GUI',{}))
         
         self._components = \
             [self._input_sys, self._physics_sys, self._graphics_sys]
@@ -135,7 +141,7 @@ class Simulation(Singleton):
         """
         
         # Read config value, falling back to default if needed
-        scene_cfg = config.get('Scene', {})
+        scene_cfg = self._config.get('Scene', {})
         mod_name = scene_cfg.get('current', 'basic')
         scene_path = scene_cfg.get('path', ['../data/scenes'])
         

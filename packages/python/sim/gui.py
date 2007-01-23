@@ -25,7 +25,7 @@ import Ogre
 # Project Imports
 import logloader
 import event
-from sim.core import Simulation
+from sim.simulation import Simulation
 
 class GUISystem(object):
     """
@@ -42,8 +42,8 @@ class GUISystem(object):
         self.logger.info('* * * Beginning initialization')
         
         # Call C++ Super class constructor
-        OIS.MouseListener.__init__( self)
-        OIS.KeyListener.__init__(self)
+        #OIS.MouseListener.__init__( self)
+        #OIS.KeyListener.__init__(self)
         
         # Create our own logger to reroute the logging
         #self.cegui_log = CEGUI2PyLog(config["Logging"]) # Broken Python-Ogre 0.70

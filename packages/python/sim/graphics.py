@@ -25,10 +25,11 @@ import OIS
 # Project Imports
 import logloader
 import event
-from vehicle.sim.core import SimulationError, FixedUpdater
-from vehicle.sim.input import KeyStateObserver
+from core import FixedUpdater
+import sim.simulation as simulation
+from sim.input import KeyStateObserver
 
-class GraphicsError(SimulationError):
+class GraphicsError(simulation.SimulationError):
     """ Error from the graphics system """
     pass
 
@@ -370,7 +371,7 @@ class Py2OgreLog(Ogre.Log):
     def __init__(self, config, logger):
         # Call to the C++ base class, 
         # First Bool - console output, second - no file output
-        Ogre.Log.__init__(self, os.path.join('..', "logs", "ogre.txt"), False, 
+        Ogre.Log.__init__(self, os.path.join('..', "logs", "ogre.txt"), True, 
                           False)
         self.config = config
         self.logger = logger

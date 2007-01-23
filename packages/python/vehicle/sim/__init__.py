@@ -9,5 +9,5 @@
 #from __future__ import absolute_import
 
 # Pull in our classes (so we don't have odd import statements)
-#from vehicle.sim.core import *
+#from vehicle.sim.simvehicle import *
 #from vehicle.sim.device import *

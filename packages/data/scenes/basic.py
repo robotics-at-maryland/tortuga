@@ -7,7 +7,7 @@
 import Ogre, OgreNewt
 
 import utility
-from vehicle.sim.physics import gravityAndBouyancyCallback
+from sim.physics import gravityAndBouyancyCallback
 
 class Scene(object):
     def __del__(self):

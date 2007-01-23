@@ -18,7 +18,7 @@ import OgreNewt
 
 # Project Imports
 import logloader
-from vehicle.sim.core import FixedUpdater
+from core import FixedUpdater
 
 class PhysicsSystem(FixedUpdater):
     """

@@ -26,8 +26,10 @@ import control
 import logloader
 
 from sim.util import Vector, Quat
-from sim.foo import Simulation
-from vehicle import VehicleFactory, IVehicle, DeviceFactory
+from sim.simulation import Simulation
+from sim.physics import buoyancyCallback
+from vehicle.vehicle import VehicleFactory, IVehicle
+from vehicle.device import DeviceFactory
 from vehicle.sim.device import Thruster
 
 class Vehicle(IVehicle):          
@@ -58,16 +60,18 @@ class Vehicle(IVehicle):
         self.logger.info('* * * Shutdown complete')
         
     def update(self, time_since_last_update):
+        Simulation.get().update(time_since_last_update)
         # Update our public attributes
         self.attitude = self.hull_node.orientation
         self.position = self.hull_node.position
+        return True
     
     def _setup_logging(self, config):
         self.logger = logloader.setup_logger(config, config)
         
     def _create_vehicle(self, config):
-        scene_mgr = self.graphics_sys.scene_manager
-        world = self.physics_sys.world
+        scene_mgr = Simulation.get().graphics_sys.scene_manager
+        world = Simulation.get().physics_sys.world
         
         # Load values from the config file
         size = Vector(config['size'])
@@ -94,7 +98,7 @@ class Vehicle(IVehicle):
         hull_body.setPositionOrientation(position, orientation)
         hull_body.setAutoFreeze(False)
         
-        self.physics_sys.bodies.append(hull_body)
+        Simulation.get().physics_sys.bodies.append(hull_body)
 
 # Register Simuldated Vehicle with Factory
 VehicleFactory.register('Simulated', Vehicle)

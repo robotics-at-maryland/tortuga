@@ -12,11 +12,6 @@ Provides core fuctionality for the simulation
 # Makes everything much easier, all imports must work from the root
 #from __future__ import absolute_import
 
-# Stdlib Imports
-import os
-import sys
-import imp
-
 # Libraries Imports
 import Ogre
 
@@ -27,19 +22,20 @@ def Vector(*args, **kwargs):
     """
     values = args # Assumes each argument is an element
     length = len(values)
-    if kwargs.has_item('length'):
+    if kwargs.has_key('length'):
         length = kwargs['length']
+        values = args[0] 
+    elif length == 1:
         values = args[0]
+        length = len(values)
         
-    if length == 1:
-        values = args[0]
-    elif 2 == length:
+    if 2 == length:
         return Ogre.Vector2(values[0], values[1])
     elif 3 == length:
         return Ogre.Vector3(values[0], values[1], values[2])
     elif 4 == length:
         return Ogre.Vector4(values[0], values[1], values[2], values[3])
-    raise SimulationError("Cannon convert %s to a vector" % str(values))
+    raise "Cannot convert %s to a vector" % str(values)
 
 def Quat(*args, **kwargs):
     """
@@ -51,8 +47,8 @@ def Quat(*args, **kwargs):
     if len(values) == 1:
         values = args[0]
     
-    if kwargs.has_item('axis_angle') and kwars['axis_angle'] == True:
-        return Ogre.Quaternion( Ogre.Degree(d = values[3]), Vector(values, 3))
+    if kwargs.has_key('axis_angle') and kwargs['axis_angle'] == True:
+        return Ogre.Quaternion( Ogre.Degree(d = values[3]), Vector(values, length = 3))
     else:
         return Ogre.Quaternion(values[0], values[1], values[2], values[3])
         

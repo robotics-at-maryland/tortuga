@@ -27,7 +27,7 @@ import logloader
 import event
 
 import sim
-from vehicle.sim import Vehicle, VehicleFactory
+from vehicle.sim.simvehicle import Vehicle, VehicleFactory
 
 def main_loop(components):
     last_time = time.clock()

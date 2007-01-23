@@ -15,7 +15,8 @@ Logging:
     Loggers:
         Root:
             level: INFO
-            handlers: [Console, File]
+            #handlers: [Console, File]
+            handlers: [Console]
 
         Event:
             level: WARNING
@@ -29,11 +30,11 @@ Logging:
             level: INFO
             formatter: Console
             args: (sys.stdout,)
-        File:
-            class: FileHandler
-            level: INFO
-            formatter: File
-            args: ('../logs/log.txt', 'w')
+        #File:
+        #    class: FileHandler
+        #    level: INFO
+        #    formatter: File
+        #    args: ('../logs/log.txt', 'w')
 
     # Called on every log messages by the handler before output            
     Formatters:
