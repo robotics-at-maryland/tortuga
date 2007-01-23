@@ -108,7 +108,7 @@ class Simulation(Singleton):
             [self._input_sys, self._physics_sys, self._graphics_sys]
         
     def _shutdown(self):
-        self.run = False
+        self._run = False
         
     def update(self, time_since_last_update):
         """

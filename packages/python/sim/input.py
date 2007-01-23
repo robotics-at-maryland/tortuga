@@ -108,7 +108,6 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         
     def __del__ (self ):
         self.logger.info('* * * Beginning shutdown')
-        print "DELETING VEHICLE"
         if self.render_window is not None:
             self.windowClosed(self.render_window)
             Ogre.WindowEventUtilities.removeWindowEventListener(self.render_window, 
@@ -182,7 +181,6 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         #Only close for window that created OIS (mWindow)
         if( render_window == self.render_window ):
             if(self.input_mgr):
-                print 'WINDOW CLOSED...'
                 self.input_mgr.destroyInputObjectMouse( self.mouse )
                 self.input_mgr.destroyInputObjectKeyboard( self.keyboard )
                 OIS.InputManager.destroyInputSystem(self.input_mgr)

@@ -60,11 +60,11 @@ class Vehicle(IVehicle):
         self.logger.info('* * * Shutdown complete')
         
     def update(self, time_since_last_update):
-        Simulation.get().update(time_since_last_update)
+        
         # Update our public attributes
         self.attitude = self.hull_node.orientation
         self.position = self.hull_node.position
-        return True
+        return Simulation.get().update(time_since_last_update)
     
     def _setup_logging(self, config):
         self.logger = logloader.setup_logger(config, config)
