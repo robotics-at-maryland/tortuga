@@ -32,6 +32,8 @@ from vehicle.vehicle import VehicleFactory, IVehicle
 from vehicle.device import DeviceFactory
 from vehicle.sim.device import Thruster
 
+event.add_event_types('CAM_CHANGE')
+
 class Vehicle(IVehicle):          
     def __init__(self, config):
         self._setup_logging(config.get('Logging', {'name' : 'SimVehicle',
@@ -50,14 +52,25 @@ class Vehicle(IVehicle):
                                           device_cfg, self)
             setattr(self, device_name, device)
             
-        # Create Simple Keyboard Mouse controller
-        self.kmcontroller = control.DirectVehicleController(self)
+        self._setup_controller(config)
         self.logger.info('* * * Initialized')
+        
+        event.register_handlers('CAM_CHANGE', self._cam_follow)
+        Simulation.get().input_sys.map_key_events('CAM_CHANGE', OIS.KC_F)
+        self.following = False
         
     def __del__(self):
         self.logger.info('* * * Beginning shutdown')
         Simulation.delete()
         self.logger.info('* * * Shutdown complete')
+        
+    def _cam_follow(self):
+        if self.following:
+            event.send('CAM_INDEPENDENT')
+            self.following = False
+        else:
+            event.send('CAM_FOLLOW', self.hull_node)
+            self.following = True
         
     def update(self, time_since_last_update):
         
@@ -68,6 +81,23 @@ class Vehicle(IVehicle):
     
     def _setup_logging(self, config):
         self.logger = logloader.setup_logger(config, config)
+        
+    def _setup_controller(self, config):
+        # Hook up input system to thrusters
+        thruster_events = {
+         'PORT_THRUST_UP' : OIS.KC_U,
+         'PORT_THRUST_DOWN' : OIS.KC_J,
+         'STARBOARD_THRUST_UP' : OIS.KC_I,
+         'STARBOARD_THRUST_DOWN' : OIS.KC_K,
+         'FORE_THRUST_UP' : OIS.KC_Y,
+         'FORE_THRUST_DOWN' : OIS.KC_H,
+         'AFT_THRUST_UP' : OIS.KC_O,
+         'AFT_THRUST_DOWN' : OIS.KC_L}
+        
+        Simulation.get().input_sys.map_key_events(thruster_events)
+        
+        # Create Simple Keyboard Mouse controller
+        self.kmcontroller = control.DirectVehicleController(self)
         
     def _create_vehicle(self, config):
         scene_mgr = Simulation.get().graphics_sys.scene_manager

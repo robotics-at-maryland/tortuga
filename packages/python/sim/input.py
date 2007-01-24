@@ -22,7 +22,7 @@ import platform
 import event
 import logloader
 
-from core import FixedUpdater
+from core import FixedUpdater, property
 from sim.util import Vector
 from sim import *
 from sim.simulation import Simulation
@@ -44,27 +44,12 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
     for the ESCAPE key and quits ogre is needed.
     """
     
-    DEFAULT_EVENT_MAP = {
-         # Thruster control section 
-         'PORT_THRUST_UP' : OIS.KC_U,
-         'PORT_THRUST_DOWN' : OIS.KC_J,
-         'STARBOARD_THRUST_UP' : OIS.KC_I,
-         'STARBOARD_THRUST_DOWN' : OIS.KC_K,
-         'FORE_THRUST_UP' : OIS.KC_Y,
-         'FORE_THRUST_DOWN' : OIS.KC_H,
-         'AFT_THRUST_UP' : OIS.KC_O,
-         'AFT_THRUST_DOWN' : OIS.KC_L}
-         # Camera control section Not yet done
-         #'CAM_FORWARD' : [OIS.KC_LSHIFT, OIS.KC_RSHIFT],
-         #'CAM_FORWARD': [OIS.KC_W, OIS.KC_UP], 
-         #'CAM_LEFT': [OIS.KC_A, OIS.KC_LEFT], 
-         #'CAM_BACK': [OIS.KC_DOWN, OIS.KC_S], 
-         #'CAM_RIGHT': [OIS.KC_D, OIS.KC_RIGHT]}
-    
     def __init__(self, config):
         self._setup_logging(config.get('Logging', {'name' : 'Input',
                                                    'level': 'INFO'}))
         self.logger.info('* * * Beginning initialization')
+        
+        self._key_event_map = {}
         
         # Call constructor of C++ super class
         Ogre.WindowEventListener.__init__(self)
@@ -80,9 +65,33 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         # Setup fowarding of events through the system
         self.event_forwarder = EventForwarder(self.mouse, self.keyboard)
         
-        self._load_event_map(config.get('Event_Map', 
-                                        InputSystem.DEFAULT_EVENT_MAP))
         self.logger.info('* * * Initialized')
+        
+        # Need to make these local to the class for some reason
+        self.ois_cleanup = OIS.InputManager.destroyInputSystem
+        self.ogre_cleanup = Ogre.WindowEventUtilities.removeWindowEventListener
+        
+    def map_key_events(self, event_map, key = None):
+        if hasattr(event_map, 'iteritems'):
+            for event_type, key_list in event_map.iteritems():
+                # Make sure we have a list of callbacks
+                keys = [key_list] # Assume list single event
+                if type(key_list) is list:
+                    keys = key_list
+                
+                for key in keys:
+                    self._map_key_event(event_type, key)
+        elif key is not None:
+            # Handler_map is our type now
+            self._map_key_event(event_map, key)
+        else:
+            raise InputError('map_event_type requries a dict or given callback')
+    
+    def _map_key_event(self, event, key):
+        try:
+            self._key_event_map[event].append(key)
+        except KeyError:
+            self._key_event_map[event] = [key]
         
     def _setup_ois(self, config):
         # Hook OIS up to the window created by Ogre
@@ -110,8 +119,7 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         self.logger.info('* * * Beginning shutdown')
         if self.render_window is not None:
             self.windowClosed(self.render_window)
-            Ogre.WindowEventUtilities.removeWindowEventListener(self.render_window, 
-                                                          self)
+            self.ogre_cleanup(self.render_window, self)
         self.logger.info('* * * Shutdown complete')
          
     def _setup_logging(self, config):
@@ -134,25 +142,11 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         if self.keyboard.isKeyDown(OIS.KC_ESCAPE):
             event.post('SIM_SHUTDOWN')
         
-        self._generate_events()
-    
-    def _load_event_map(self, config):
-        self.key_event_map = {}
-        for event,key in config.iteritems():
-            # Fail if we already have the even registered
-            if self.key_event_map.has_key(event):
-                raise InputError('Event "%s" already assinged' % event)
-            
-            if type(key) is not list:
-                self.key_event_map[event] = [key]
-            else:
-                self.key_event_map[event] = key
-                
-            
+        self._generate_events()        
         
     def _generate_events(self):
         # Go through every event and check its keys
-        for event_type,keys in self.key_event_map.iteritems():
+        for event_type,keys in self._key_event_map.iteritems():
             send_event = True
             
             # Only send the event if all keys are down
@@ -181,14 +175,21 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         #Only close for window that created OIS (mWindow)
         if( render_window == self.render_window ):
             if(self.input_mgr):
+                self.logger.info('Shutting down OIS')
                 self.input_mgr.destroyInputObjectMouse( self.mouse )
                 self.input_mgr.destroyInputObjectKeyboard( self.keyboard )
-                OIS.InputManager.destroyInputSystem(self.input_mgr)
+                self.ois_cleanup(self.input_mgr)
                 self.input_mgr = None
                 self.render_window = None
-                
+            
+    def shutdown_ois(self):
+        self.input_mgr.destroyInputObjectMouse( self.mouse )
+        self.input_mgr.destroyInputObjectKeyboard( self.keyboard )
+        OIS.InputManager.destroyInputSystem(self.input_mgr)
+        
         # Send shutdown event
         event.post('SIM_SHUTDOWN')
+        
                 
 class EventForwarder(OIS.MouseListener, OIS.KeyListener):
     """

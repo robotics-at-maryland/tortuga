@@ -10,8 +10,10 @@ Provides a very simple controller for the vehicle that provides direct control
 of the vehicle with the keyboard.
 """
 
+# Project Imports
 import event
 
+# Register Are Event types
 event.add_event_types(['PORT_THRUST_UP', 'PORT_THRUST_DOWN',
                        'STARBOARD_THRUST_UP', 'STARBOARD_THRUST_DOWN',
                        'FORE_THRUST_UP', 'FORE_THRUST_DOWN',

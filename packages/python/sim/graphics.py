@@ -273,7 +273,7 @@ class CameraController(FixedUpdater):
         
         self.camera = camera
         self.camera_node = camera_node
-        self.original_node = None
+        self.original_parent = None
         
         self.handler_map = {
             'KEY_PRESSED': self._key_pressed,
@@ -286,10 +286,12 @@ class CameraController(FixedUpdater):
         
         # This sets up automatic setting of the key down properties
         watched_keys = [('shift_key', [OIS.KC_LSHIFT, OIS.KC_RSHIFT]), 
-                        ('up_key', [OIS.KC_W, OIS.KC_UP]), 
+                        ('forward_key', [OIS.KC_W, OIS.KC_UP]), 
                         ('left_key', [OIS.KC_A, OIS.KC_LEFT]), 
-                        ('down_key', [OIS.KC_DOWN, OIS.KC_S]), 
-                        ('right_key', [OIS.KC_D, OIS.KC_RIGHT])]
+                        ('back_key', [OIS.KC_DOWN, OIS.KC_S]), 
+                        ('right_key', [OIS.KC_D, OIS.KC_RIGHT]),
+                        ('up_key', [OIS.KC_Q]),
+                        ('down_key', [OIS.KC_E])]
         self.key_observer = KeyStateObserver(self, watched_keys)
     
     def __del__(self):
@@ -299,23 +301,33 @@ class CameraController(FixedUpdater):
     
     def _update(self, time_since_last_frame):
         quat = self.camera_node.getOrientation()
-        vec = Ogre.Vector3(0.0,0.0,-0.2)
+        
+        # A really bad way to generate the rotation vectors I want
+        vec = Ogre.Vector3(0,0,-0.2)
         trans = quat * vec
-        #trans.x = 0
         trans.y = 0
-        vec = Ogre.Vector3(0.2,0.0,0.0)
+        
+        vec = Ogre.Vector3(0.2,0,0)
         strafe = quat * vec
         strafe.y = 0
-        #strafe.z = 0
         
-        if self.up_key:
-            self.camera_node.translate(trans, Ogre.Node.TS_WORLD)
-        if self.down_key:
-            self.camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
-        if self.left_key:
-            self.camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
-        if self.right_key:
-            self.camera_node.translate(strafe, Ogre.Node.TS_WORLD)
+        vec = Ogre.Vector3(0,0.2,0)
+        height = quat * vec
+        height.z = 0
+        
+        if self.original_parent is None:
+            if self.up_key:
+                self.camera_node.translate(height, Ogre.Node.TS_WORLD)
+            if self.down_key:
+                self.camera_node.translate(height * -1.0, Ogre.Node.TS_WORLD)
+            if self.forward_key:
+                self.camera_node.translate(trans, Ogre.Node.TS_WORLD)
+            if self.back_key:
+                self.camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
+            if self.left_key:
+                self.camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
+            if self.right_key:
+                self.camera_node.translate(strafe, Ogre.Node.TS_WORLD)
     
     def _mouse_moved(self, arg):
         """
@@ -343,25 +355,28 @@ class CameraController(FixedUpdater):
         self.key_observer.key_released(key_event)
         
     def _follow_node(self, node):
-        self.camera_node.detachObject(self.camera)
-        self.original_node = self.camera_node
+        if self.original_parent is not None:
+            raise GraphicsError('Camera is already free')
         
-        self.camera_node = node
-        self.camera_node.attachObject(self.camera)
-        self.camera.loogAt(node._getDerivedPosition())
+        # Remove node from its current parent
+        self.original_parent = self.camera_node.parent
+        self.original_parent.removeChild(self.camera_node)
         
-    def _make_independent(self, node):
-        if self.original_node is None:
+        # Reparent node and 
+        node.addChild(self.camera_node)
+        self.camera_node.setPosition(Ogre.Vector3(0,0,0))
+        #self.camera_node = node
+        #self.camera_node.attachObject(self.camera)
+        self.camera.lookAt(node._getDerivedPosition())
+        
+    def _make_independent(self):
+        if self.original_parent is None:
             raise GraphicsError('Camera is already free floating')
-        self.camera_node.detachObject(self.camera)
-        self.camera_node = self.original_node
         
-        current_pos = self.original_node._getDerivedPosition()
-        self.camera_node.setPosition(current_pos)
-        self.camera_node.attachObject(self.camera)
-        self.camera.lookAt(current_pos)
-        
-        self.original_node = None
+        self.camera_node.parent.removeChild(self.camera_node)
+        self.original_parent.addChild(self.camera_node)
+        self.camera.lookAt(self.camera_node._getDerivedPosition())
+        self.original_parent = None
 
 class Py2OgreLog(Ogre.Log):
     """
@@ -371,7 +386,7 @@ class Py2OgreLog(Ogre.Log):
     def __init__(self, config, logger):
         # Call to the C++ base class, 
         # First Bool - console output, second - no file output
-        Ogre.Log.__init__(self, os.path.join('..', "logs", "ogre.txt"), True, 
+        Ogre.Log.__init__(self, os.path.join('..', "logs", "ogre.txt"), False, 
                           False)
         self.config = config
         self.logger = logger

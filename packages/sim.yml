@@ -16,7 +16,7 @@ Logging:
         Root:
             level: INFO
             #handlers: [Console, File]
-            handlers: [Console]
+            #handlers: [Console]
 
         Event:
             level: WARNING
