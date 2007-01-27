@@ -1,0 +1,96 @@
+/* Author: Scott Watson
+
+Description: This code accepts binary coded input on 4 pins
+and uses it to determine which of the other pins to drive high
+
+The functionality is as a BCD to Decimal decoder for a light display
+
+*/
+
+#include <pic.h>
+ __CONFIG(FCMDIS & IESODIS & BORDIS & UNPROTECT & 
+    MCLRDIS & PWRTEN & WDTDIS & INTIO);
+
+void delay1();
+
+
+long delayNum; //delay loop
+
+void delayIt(){
+	for(delayNum=0; delayNum<10000; delayNum++);
+}
+
+main(){    
+	//disabling the analog functions on all pins
+	ANSEL = 0b00000000;
+	ANSELH = 0b00000000;
+
+	
+    TRISA = 0b00000000;	//enable digital output on port A
+	TRISB = 0b11110000; //port B enabled for digital input
+	TRISC = 0b00000000; //enable digital output on port C
+
+	PORTA=0;
+	PORTC=0;
+
+	//Main part of program begins here...
+    while (1 == 1){
+
+	delayIt();
+	RA0=1;
+	delayIt();
+	RA1=1;
+	delayIt();
+	RA2=1;
+	delayIt();
+	RC7=1; //changed from RA3 because it can only be an input
+	delayIt();
+	RA4=1;
+	delayIt();
+	RA5=1;
+	delayIt();
+	RC0=1;
+	delayIt();
+	RC1=1;
+	delayIt();
+	RC2=1;
+	delayIt();
+	RC3=1;
+	delayIt();
+	RC4=1;
+	delayIt();
+	RC5=1;
+	delayIt();
+	RC6=1;
+
+	delayIt();
+	RA0=0;
+	delayIt();
+	RA1=0;
+	delayIt();
+	RA2=0;
+	delayIt();
+	RC7=0; //changed from RA3 because it can only be an input
+	delayIt();
+	RA4=0;
+	delayIt();
+	RA5=0;
+	delayIt();
+	RC0=0;
+	delayIt();
+	RC1=0;
+	delayIt();
+	RC2=0;
+	delayIt();
+	RC3=0;
+	delayIt();
+	RC4=0;
+	delayIt();
+	RC5=0;
+	delayIt();
+	RC6=0;
+	
+    }//elihw
+}//end main
+
+

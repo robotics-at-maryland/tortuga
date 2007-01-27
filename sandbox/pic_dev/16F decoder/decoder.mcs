@@ -1,0 +1,12 @@
+[Header]
+MagicCookie={0b13fe8c-dfe0-40eb-8900-6712719559a7}
+Version=1.0
+[File000]
+Location=C:\PICprog\me04 16F decoder\decoder.obj
+Folder=Intermediary
+[File001]
+Location=C:\PICprog\me04 16F decoder\decoder.cce
+Folder=Intermediary
+[File002]
+Location=decoder.cof
+Folder=Output
