@@ -84,7 +84,7 @@ main(){
 	T0IF = 0; //T0 interupt flag //clear pending interupts and ready timer for first run
 
 	//set threshold for in between values
-	midThresh=50; //at PSA=8 and 4MHz clock this is 400us
+	midThresh=48; //50; //update comment needed //at PSA=8 and 4MHz clock this is 400us
 
 	//Main part of program begins here...
     while (1 == 1){
@@ -103,10 +103,17 @@ timer incriment will be equivelent to 4us
 			T0IF = 0;
 			TMR0 = 0;
 			checkT2T4();
-			if(td02<midThresh){
+			if(td02<midThresh && td04<midThresh && td24<midThresh){
+				// this means that the sound originated from above or below
+				PORTC=0b00001100;
+			}else if(td02<midThresh){
 				PORTC = 0b00000010; //RC1=1;
 			}else if(td04<midThresh){
 				PORTC = 0b00001010; //RC5=1;
+			}else if(td04<td02){
+				PORTC = 0b00001011; 
+			}else if(td04>td02){
+				PORTC = 0b00000001; 
 			}else{
 				PORTC = 0b00000000; //RC0=1;
 			}
@@ -117,10 +124,17 @@ timer incriment will be equivelent to 4us
 			T0IF = 0;
 			TMR0 = 0;
 			checkT0T4();
-			if(td02<midThresh){
+			if(td02<midThresh && td04<midThresh && td24<midThresh){
+				// this means that the sound originated from above or below
+				PORTC=0b00001100;
+			}else if(td02<midThresh){
 				PORTC = 0b00000010; //RC1=1;
 			}else if(td24<midThresh){
 				PORTC = 0b00000110; //RC3=1;
+			}else if(td24<td02){
+				PORTC = 0b00000011; 
+			}else if(td24>td02){
+				PORTC = 0b00000101; 
 			}else{
 				PORTC = 0b00000100; //RC2=1;
 			}
@@ -131,10 +145,17 @@ timer incriment will be equivelent to 4us
 			T0IF = 0;
 			TMR0 = 0;
 			checkT0T2();
-			if(td04<midThresh){
+			if(td02<midThresh && td04<midThresh && td24<midThresh){
+				// this means that the sound originated from above or below
+				PORTC=0b00001100;
+			}else if(td04<midThresh){
 				PORTC = 0b00001010; //RC5=1;
 			}else if(td24<midThresh){
 				PORTC = 0b00000110; //RC3=1;
+			}else if(td24<td04){
+				PORTC = 0b00000111; 
+			}else if(td24>td04){
+				PORTC = 0b00001001; 
 			}else{
 				PORTC = 0b00001000; //RC4=1;
 			}
