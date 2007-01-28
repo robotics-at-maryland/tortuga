@@ -95,7 +95,7 @@ time to travel this distance... 1020.4us
 
 with prescaler set to 4 and a clock of 4MHz this means that each
 timer incriment will be equivelent to 4us
-
+***************************************************
 */
 
 		//time delays written back to td02,td04,td24
