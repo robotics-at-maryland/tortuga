@@ -52,7 +52,7 @@ main(){
     while (1 == 1){
 		TMR0=0;
 		while(TMR0<166){
-
+			//do nothing
 		}
 		RC0=RC0^1;
     }//elihw
