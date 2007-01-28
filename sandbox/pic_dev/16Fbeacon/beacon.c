@@ -1,6 +1,8 @@
 /* Author: Scott Watson
 
-Description: 
+Description: This code is meant to toggle an output pin on a 
+PIC16F690 for the purpose of generating tones for the passive
+sonar system to detect.
 
 */
 
@@ -8,12 +10,10 @@ Description:
  __CONFIG(FCMDIS & IESODIS & BORDIS & UNPROTECT & 
     MCLRDIS & PWRTEN & WDTDIS & INTIO);
 
-
 void delay1();
 
-
 unsigned int delayNum; //delay loop
-
+unsigned int delayN; //not needed?
 
 main(){
     
