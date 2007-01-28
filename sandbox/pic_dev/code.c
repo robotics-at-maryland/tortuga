@@ -3,6 +3,11 @@
 Description: This is a redo of the 3 direction PIC16F690
 passive sonar application in c code with the PICC Lite compiler
 
+update... it now supports 6 directions on the breadboard display
+
+update... it now supports 6 directions on the 13 LED display
+
+1-27-07 update... it now supports 12 directions with the 13 LED display
 */
 
 #include <pic.h>
