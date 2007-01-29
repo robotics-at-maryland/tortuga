@@ -29,6 +29,9 @@ class Scene(object):
         self.create_tank()
         self.scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
         
+        del self.scene_mgr
+        del self.world
+        
         # Light
         #self.scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
         #light = self.scene_mgr.createLight("Light1")
@@ -49,7 +52,7 @@ class Scene(object):
         floornode = \
             self.scene_mgr.getRootSceneNode().createChildSceneNode("FloorNode")
         floornode.attachObject(floor)
-      
+
         col = OgreNewt.TreeCollision(self.world, floornode, True)
         bod = OgreNewt.Body(self.world, col)
         del col

@@ -80,7 +80,7 @@ def gravityAndBouyancyCallback(me):
 
     # also don't forget buoyancy force.
     # just pass the acceleration due to gravity, not the force (accel * mass)! 
-    me.addBouyancyForce(1000, 0.01, 0.01, Ogre.Vector3(0.0,-9.8,0.0), 
+    me.addBouyancyForce(1000, 0.03, 0.03, Ogre.Vector3(0.0,-9.8,0.0), 
                         buoyancyCallback, "")
     
 def buoyancyCallback(colID, me, orient, pos, plane):

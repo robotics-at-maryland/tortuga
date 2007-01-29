@@ -23,7 +23,7 @@ import Ogre
 import OIS
 
 # Project Imports
-import logloader
+import logloader    
 import event
 from core import FixedUpdater
 import sim.simulation as simulation
@@ -39,13 +39,13 @@ class GraphicsSystem(object):
     engine.  It is driven completely by config file.  Current a bug in 
     Python-Ogre means with have the rendersystem config dialog.
     """    
-    def __init__(self, config):      
-        #self.camera = None
+    def __init__(self, config, create_window = True):      
         self.root = None
         self.render_window = None
         self.scene_manager = None
         self.logManager = None
         self.ogre_log = None
+        self.own_window = create_window
         
         # Setups Ogre, step by step
         self._setup_logging(config.get('Logging', {'name' : 'Graphics',
@@ -61,9 +61,9 @@ class GraphicsSystem(object):
         # Make sure the C++ based objects are deleted in the proper order
         
         #del self.camera_controller
-        del self.scene_manager
+        #del self.scene_manager
         del self.root
-        del self.render_window  
+        #del self.render_window  
         del self.logManager
         self.logger.info('* * * Shutdown complete, closing log')
         del self.ogre_log
@@ -77,23 +77,32 @@ class GraphicsSystem(object):
         self.camera_controller.update(time_since_last_update)
         return True
     
+    def create_window(self, name, width, height, params):
+        """
+        This creates a new render window.  If the post render window setup has
+        not already been done, it will be done with the creation of the first
+        window.
+        """
+        
+        render_system = self.root.getRenderSystem()
+        new_window = render_system.createRenderWindow(name, width, height, 
+                                                      false, params)
+        
+        if render_window is None:
+            self._post_window_setup()
+            render_window = new_window
+            
+        return new_window
+    
     def _setup(self, config):
         self.root = Ogre.Root("");
         
         self._load_plugins(config['Plugins'])
         self._addResourceLocations(config['Resources']);        
-        self._initOgreCore(config['RenderSystem'])
-        self.scene_manager = self.root.createSceneManager(Ogre.ST_GENERIC,
-                                                        'SimSceneMgr')
-        
-        # Possibly considate/config drive these
-        self._createCamera();
-        self._createViewports();
-
-        # Set default mipmap level (NB some APIs ignore this)
-        Ogre.TextureManager.getSingleton().setDefaultNumMipmaps(5)
-        # Initialise resources
-        Ogre.ResourceGroupManager.getSingleton().initialiseAllResourceGroups()
+        self._init_ogre_core(config['RenderSystem'])
+    
+        if self.own_window:
+            self._post_window_setup()
     
     def _setup_logging(self, config):
         self.logger = logloader.setup_logger(config, config)
@@ -173,7 +182,7 @@ class GraphicsSystem(object):
                     location = os.path.abspath(location)
                     rsrcMrg.addResourceLocation(location, type, group)
                     
-    def _initOgreCore(self, config):
+    def _init_ogre_core(self, config):
         """
         This secion here takes over for Ogre's ogre.cfg.  The type 
         indicates which Ogre RenderSystem to create and which section to
@@ -235,7 +244,24 @@ class GraphicsSystem(object):
             if not self.root.showConfigDialog():
                 raise GraphicsError('Could not initialize render system')
             
-        self.render_window = self.root.initialise(True, "MRBC AUV SIM")
+        if self.own_window:
+            self.render_window = self.root.initialise(True, "RAM AUV SIM")
+        else:
+            self.root.initialise(False)
+        
+    def _post_window_setup(self):
+        self.scene_manager = self.root.createSceneManager(Ogre.ST_GENERIC,
+                                                        'SimSceneMgr')
+        
+        if self.own_window:
+            # Possibly considate/config drive these
+            self._createCamera()
+            self._createViewports()
+
+        # Set default mipmap level (NB some APIs ignore this)
+        Ogre.TextureManager.getSingleton().setDefaultNumMipmaps(5)
+        # Initialise resources
+        Ogre.ResourceGroupManager.getSingleton().initialiseAllResourceGroups()
         
     def _createCamera(self):
         """
