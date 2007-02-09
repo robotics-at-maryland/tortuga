@@ -251,6 +251,8 @@ class multiple_files_t(writer.writer_t):
         @type class_creator: class_t
         """
         try:
+            if class_creator.declaration.already_exposed:
+                return
             self.split_class_impl( class_creator )
         except IOError, error:
             msg = [ 'Failed to write code for class "%s" into file.;' % class_creator.declaration.name ]
@@ -267,6 +269,9 @@ class multiple_files_t(writer.writer_t):
         Write the value_traits class to header file, that will be included
         from files, that uses indexing suite 2
         """
+        if value_traits.declaration.already_exposed:
+            return
+
         header_name = self.create_value_traits_header_name( value_traits.declaration )
         file_path = os.path.join( self.directory_path, header_name )
         self.write_file( file_path

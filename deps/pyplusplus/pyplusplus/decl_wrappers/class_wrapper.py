@@ -18,6 +18,14 @@ import indexing_suite2 as isuite2
 ACCESS_TYPES = declarations.ACCESS_TYPES
 VIRTUALITY_TYPES = declarations.VIRTUALITY_TYPES
 
+class impl_details:
+    class GAEUS_VALUES: #guess always expose using scope values
+        TRUE = 'true'
+        FALSE = 'false'
+        ALWAYS_TRUE = 'always true'
+        all = [ TRUE,  FALSE, ALWAYS_TRUE ]
+
+
 always_expose_using_scope_documentation = \
 """boolean, configures how Py++ should generate code for class.
 Py can generate code using IDL like syntax:
@@ -49,7 +57,7 @@ class class_common_details_t( object ):
     """
     def __init__(self):
         object.__init__( self )
-        self._always_expose_using_scope = False
+        self._always_expose_using_scope = None
         self._indexing_suite = None
         self._equality_comparable = None
         self._less_than_comparable = None
@@ -80,12 +88,24 @@ class class_common_details_t( object ):
                                , doc="reference to indexing suite configuration class. " \
                                     +"If the class is not STD container, returns None")
 
-    def _get_always_expose_using_scope( self ):
-        #I am almost sure this logic should be moved to code_creators
+    def guess_always_expose_using_scope_value( self ):
         if isinstance( self.indexing_suite, isuite2.indexing_suite2_t ) \
            and ( self.indexing_suite.disable_methods or self.indexing_suite.disabled_methods_groups ):
+            return impl_details.GAEUS_VALUES.ALWAYS_TRUE
+        else:
+            return impl_details.GAEUS_VALUES.FALSE
+
+    def _get_always_expose_using_scope( self ):
+        tmp = self.guess_always_expose_using_scope_value()
+        if tmp == impl_details.GAEUS_VALUES.ALWAYS_TRUE:
             return True
+        if None is self._always_expose_using_scope:
+            if impl_details.GAEUS_VALUES.TRUE == tmp:
+                self._always_expose_using_scope = True
+            else:
+                self._always_expose_using_scope = False
         return self._always_expose_using_scope
+        
     def _set_always_expose_using_scope( self, value ):
         self._always_expose_using_scope = value
     always_expose_using_scope = property( _get_always_expose_using_scope, _set_always_expose_using_scope
@@ -126,6 +146,20 @@ class class_common_details_t( object ):
                       , doc="If True, Py++ will treat return types and arguments T* as opaque types." \
                             +"Thus it will be able to generate code, that uses " \
                             +" BOOST_PYTHON_OPAQUE_SPECIALIZED_TYPE_ID macro in a right places." )
+
+    def _get_already_exposed_impl( self ):
+        if not self.indexing_suite:
+            return self._already_exposed 
+        try:
+            et = self.indexing_suite.element_type
+            et = declarations.remove_const( et )
+            et = declarations.remove_pointer( et )
+            et = declarations.remove_declarated( et )
+            if isinstance(et, declarations.declaration_t):
+                return et._already_exposed
+            return False
+        except:
+            return False
 
 #this will only be exported if indexing suite is not None and only when needed
 class class_declaration_t( class_common_details_t
@@ -314,17 +348,21 @@ class class_t( class_common_details_t
         vfunction_selector = lambda member: isinstance( member, declarations.member_function_t ) \
                                             and member.virtuality == declarations.VIRTUALITY_TYPES.PURE_VIRTUAL
         members.extend( filter( vfunction_selector, self.private_members ) )
-        #now lets filter out none public operators: Py++ does not support them right now
-        members = filter( lambda decl: not isinstance( decl, declarations.member_operator_t )
-                                       or decl.access_type == declarations.ACCESS_TYPES.PUBLIC
-                          , members )
+        
+        def is_exportable( decl ):
+            #filter out non-public member operators - Py++ does not support them right now
+            if isinstance( decl, declarations.member_operator_t ) \
+               and decl.access_type != declarations.ACCESS_TYPES.PUBLIC:
+                return False
+            #remove artificial constructors
+            if isinstance( decl, declarations.constructor_t ) and decl.is_artificial:
+                return False
+            if decl.ignore == True or decl.exportable == False:
+                return False
+            return True                
         #-#if declarations.has_destructor( self ) \
         #-#   and not declarations.has_public_destructor( self ):
-            #remove artificial constructors
-        members = filter( lambda decl: not isinstance( decl, declarations.constructor_t )
-                                       or not decl.is_artificial
-                          , members )
-        members = filter( lambda member: member.ignore == False and member.exportable, members )
+        members = filter( is_exportable, members )
         sorted_members = members
         if sort:
             sorted_members = sort( members )
@@ -470,3 +508,17 @@ class class_t( class_common_details_t
 
     def _readme_impl( self ):
         return self.is_wrapper_needed()
+
+    def guess_always_expose_using_scope_value( self ):
+        def is_assign( oper ):
+            if oper.symbol != '=':
+                return False
+            if oper.is_artificial:
+                return False
+            if oper.access_type != ACCESS_TYPES.PUBLIC:
+                return False
+            return True
+        #MSVC 7.1 has problem with taking reference to operator=
+        if self.member_operators( is_assign, allow_empty=True, recursive=False ):
+            return impl_details.GAEUS_VALUES.ALWAYS_TRUE
+        return super(class_t, self).guess_always_expose_using_scope_value()    

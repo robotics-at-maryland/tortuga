@@ -75,6 +75,8 @@ class class_declaration_t( scoped.scoped_t
         return os.linesep.join( result )
 
     def _create_impl(self):
+        if self.declaration.already_exposed:
+            return ''
         if self.is_exposed_using_scope():
             return self._generate_code_with_scope()
         else:
@@ -306,6 +308,8 @@ class class_t( scoped.scoped_t, registration_based.registration_based_t ):
         return bool( filter( lambda cc: not cc.works_on_instance, self.creators ) )
 
     def _create_impl(self):
+        if self.declaration.already_exposed:
+            return ''
         if self.is_exposed_using_scope():
             return self._generate_code_with_scope()
         else:
@@ -374,6 +378,8 @@ class class_wrapper_t( scoped.scoped_t ):
         return ', '.join( [self.exposed_identifier, self.boost_wrapper_identifier] )
 
     def _create_impl(self):
+        if self.declaration.already_exposed:
+            return ''
         answer = ['struct %s : %s {' % ( self.wrapper_alias, self._create_bases() )]
         answer.append( '' )
         answer.append( self.create_internal_code( self.creators )  )

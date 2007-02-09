@@ -137,7 +137,10 @@ class creator_t( declarations.decl_visitor_t ):
         for decl in decls:
             if decl.ignore:
                 continue
-
+            
+            if decl.already_exposed:
+                continue
+            
             #Right now this functionality introduce a bug: declarations that should
             #not be exported for some reason are not marked as such. I will need to
             #find out.
@@ -426,7 +429,8 @@ class creator_t( declarations.decl_visitor_t ):
                 included = filter( lambda cc: isinstance(cc, code_creators.include_t) and cc.header==header
                                    , self.__extmodule.creators)
                 if not included:
-                    self.__extmodule.add_include( header )
+                    self.__extmodule.adopt_include( 
+                        code_creators.include_t( header=header, user_defined=True ) )
     
                 # Check if it is a header from the code repository
                 if header in code_repository.headers:
@@ -446,8 +450,6 @@ class creator_t( declarations.decl_visitor_t ):
                 self.curr_code_creator.adopt_creator( static_method )
 
     def visit_constructor( self ):
-        if self.curr_decl.is_copy_constructor:
-            return
         self.__types_db.update( self.curr_decl )
         self.__dependencies_manager.add_exported( self.curr_decl )
         if self.curr_decl.allow_implicit_conversion:
@@ -469,7 +471,7 @@ class creator_t( declarations.decl_visitor_t ):
         pass
 
     def visit_member_operator( self ):
-        if self.curr_decl.symbol in ( '()', '[]' ):
+        if self.curr_decl.symbol in ( '()', '[]', '=' ):
             self.visit_member_function()
         else:
             self.__types_db.update( self.curr_decl )

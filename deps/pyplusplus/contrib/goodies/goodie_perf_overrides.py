@@ -219,6 +219,6 @@ def mb_override__init__( self
     self._module_builder_t__registrations_code_head = []
     self._module_builder_t__registrations_code_tail = []
 
-pyplusplus.module_builder.module_builder_t.__init__ = mb_override__init__
-print "   overriding module_builder.__init__ with cache."
+#pyplusplus.module_builder.module_builder_t.__init__ = mb_override__init__
+#print "   overriding module_builder.__init__ with cache."
 

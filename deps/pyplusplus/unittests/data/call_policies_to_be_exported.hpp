@@ -72,8 +72,17 @@ inline float* get_fundamental_ptr_value_null(){
     return (float*)(0);
 }
 
-
 }
+
+struct arrays{
+    int* create_arr_3(){
+        int* arr3 = new int[3];
+        for( int i = 0 ; i < 3; ++i ){
+            arr3[i] = i;
+        }
+        return arr3;
+    }
+};
 
 }
 

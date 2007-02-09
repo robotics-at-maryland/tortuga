@@ -88,7 +88,16 @@ template< class Inserter >
 void copy_sequence( boost::python::object const& seq, Inserter inserter ){
     index_type length = boost::python::len( seq );
     for( index_type index = 0; index < length; ++index ){
-        inserter( seq[index] );
+        inserter = seq[index];
+    }
+}
+
+template< class Inserter, class TItemType >
+void copy_sequence( boost::python::object const& seq, Inserter inserter, boost::type< TItemType > ){
+    index_type length = boost::python::len( seq );
+    for( index_type index = 0; index < length; ++index ){
+        boost::python::object item = seq[index];
+        inserter = boost::python::extract< TItemType >( item );
     }
 }
 
@@ -112,16 +121,22 @@ struct array_inserter_t{
       , m_curr_pos( 0 )
       , m_size( size )
     {}
-    
-    void operator()( boost::python::object const & item ){
+
+    void insert( const T& item ){
         if( m_size <= m_curr_pos ){
             std::stringstream err;
             err << "Index out of range. Array size is" << m_size << ", "
                 << "current position is" << m_curr_pos << ".";
             raise_error( PyExc_ValueError, err.str().c_str() );
         }
-        m_array[ m_curr_pos ] = boost::python::extract< T >( item );
+        m_array[ m_curr_pos ] = item;
         m_curr_pos += 1;
+    }
+
+    array_inserter_t<T>& 
+    operator=( boost::python::object const & item ){
+        insert( boost::python::extract< T >( item ) );
+        return *this;
     }
     
 private:

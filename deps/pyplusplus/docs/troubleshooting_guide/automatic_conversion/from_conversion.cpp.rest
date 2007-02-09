@@ -1,3 +1,0 @@
-.. code-block::
-     :language: C++
-     :source-file: ./from_conversion.cpp

@@ -26,6 +26,7 @@ class decl_wrapper_t(object):
         object.__init__(self)
         self._alias = None
         self._ignore = False
+        self._already_exposed = False
         self._exportable = None
         self._exportable_reason = None
         self._documentation = None
@@ -100,14 +101,24 @@ class decl_wrapper_t(object):
     ignore = property( _get_ignore, _set_ignore
                        ,doc="If you set ignore to True then this declaration will not be exported." )
 
+    def _get_already_exposed_impl( self ):
+        return self._already_exposed
+        
+    def _get_already_exposed( self ):
+        return self._get_already_exposed_impl()
+    def _set_already_exposed( self, value ):
+        self._already_exposed = value
+    already_exposed = property( _get_already_exposed, _set_already_exposed )
+
     def exclude( self ):
         """Exclude "self" and child declarations from being exposed."""
         self.ignore = True
 
-    def include( self ):
+    def include( self, already_exposed=False ):
         """Include "self" and child declarations to be exposed."""
         self.ignore = False
-
+        self.already_exposed = already_exposed
+    
     def why_not_exportable( self ):
         """returns strings that explains why this declaration could not be exported or None otherwise"""
         if None is self._exportable_reason:

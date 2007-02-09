@@ -71,7 +71,8 @@ class manager_t( object ):
         if self.__is_std_decl( decl ):
             #TODO add element_type to the list of dependencies
             return [] #std declarations should be exported by Py++!
-        
+        if decl.already_exposed:
+            return []
         dependencies = decl.i_depend_on_them(recursive=False)
         if isinstance( decl, declarations.class_t ):
             dependencies = filter( lambda d: d.access_type != declarations.ACCESS_TYPES.PRIVATE

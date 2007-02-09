@@ -61,6 +61,8 @@ class smart_pointer_registrator_t( registration_based.registration_based_t
     class_creator = property( _get_class_creator, _set_class_creator )
 
     def _create_impl(self):     
+        if self.declaration.already_exposed:
+            return ''
         if self.class_creator \
            and self.class_creator.held_type \
            and isinstance( self.class_creator.held_type, held_type_t ) \

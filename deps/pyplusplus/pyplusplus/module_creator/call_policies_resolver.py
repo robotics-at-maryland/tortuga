@@ -115,6 +115,19 @@ class return_internal_reference_resolver_t( resolver_t ):
         else:
             return decl_wrappers.return_internal_reference()
 
+class return_self_resolver_t( resolver_t ):
+    def __init__( self ):    
+        resolver_t.__init__( self )
+        
+    def __call__(self, calldef, hint=None):
+        if not isinstance( calldef, declarations.member_operator_t ):
+            return None
+        
+        if calldef.symbol != '=':
+            return None
+
+        return decl_wrappers.return_self()
+
 class variable_accessors_resolver_t( resolver_t ):
     def __init__( self ):    
         resolver_t.__init__( self )
@@ -170,6 +183,7 @@ class built_in_resolver_t(resolver_t):
             self.__resolvers.append( void_pointer_resolver_t() )
         self.__resolvers.append( return_internal_reference_resolver_t() )
         self.__resolvers.append( variable_accessors_resolver_t() )
+        self.__resolvers.append( return_self_resolver_t() )        
 
     def __call__( self, calldef, hint=None ):
         for resolver in self.__resolvers:

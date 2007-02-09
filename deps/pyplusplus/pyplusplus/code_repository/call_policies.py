@@ -27,6 +27,23 @@ namespace pyplusplus{ namespace call_policies{
 
 namespace bpl = boost::python;
 
+namespace memory_managers{
+
+    struct none{
+        template< typename T>
+        static void deallocate_array(T*){}
+    };
+    
+    struct delete_{
+        template< typename T>
+        static void deallocate_array(T* arr){
+            delete[] arr;
+        }
+    };    
+    
+}/*memory_managers*/
+
+
 namespace detail{
     
 struct make_value_holder{
@@ -77,6 +94,44 @@ bpl::object make_object( T x ){
     result_converter_t rc;
     return bpl::object( bpl::handle<>( rc( x ) ) );
 }
+
+namespace arrays{
+
+namespace details{
+
+template< unsigned int size, typename MemoryManager, typename CallPolicies>
+struct as_tuple_impl{
+
+    template <class U>
+    inline PyObject* operator()(U const* arr) const{
+        if( !arr ){
+            return bpl::incref( bpl::tuple().ptr() );
+        }
+        bpl::list list_;
+        for( unsigned int i = 0; i < size; ++i ){
+            list_.append( make_object< CallPolicies>( arr[i] ) );
+        }
+        MemoryManager::deallocate_array( arr );
+        return bpl::incref( bpl::tuple( list_ ).ptr() );
+    }
+};
+
+}
+
+template< unsigned int size, typename MemoryManager, typename MakeObjectCallPolicies=bpl::default_call_policies>
+struct as_tuple{
+public:
+
+    template <class T>
+    struct apply{
+        BOOST_STATIC_CONSTANT( bool, ok = boost::is_pointer<T>::value );
+        typedef details::as_tuple_impl<size, MemoryManager, MakeObjectCallPolicies> type;
+    };
+    
+};
+
+} /*arrays*/
+
 
 } /*pyplusplus*/ } /*call_policies*/
 

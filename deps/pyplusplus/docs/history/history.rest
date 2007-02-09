@@ -44,6 +44,27 @@ Version 0.8.*
      an empty throw was fixed. Now the exception specification is generated properly.
      Many thanks to Martin Preisler for reporting the bug.
 
+.. line-separator
+
+2. Added exposing of copy constructors and "operator=". "operator=" is exposed 
+   under "assign" name. 
+
+.. line-separator
+
+3. Added new call policy - `as_tuple`_
+
+.. _`as_tuple` : ../documentation/functions/call_policies.html#as-tuple
+
+4. Added initial support for multi-module development.
+
+.. line-separator
+
+5. `input_c_buffer`_ - new functions transformation, which allows to pass a Python
+   sequence to function, instead of pair of arguments: pointer to buffer and size.
+   
+.. _`input_c_buffer` : ../documentation/functions/transformation/built_in/input_c_buffer.html
+
+
 -------------
 Version 0.8.5
 -------------

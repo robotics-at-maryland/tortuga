@@ -41,6 +41,9 @@ class global_variable_t( global_variable_base_t ):
         global_variable_base_t.__init__( self, variable=variable )
 
     def _create_impl(self):
+        if self.declaration.already_exposed:
+            return ''
+
         assert isinstance( self.declaration, pygccxml.declarations.variable_t )
         result = []
         result.append( algorithm.create_identifier( self, '::boost::python::scope' ) )
@@ -59,6 +62,9 @@ class array_gv_t( global_variable_base_t ):
         global_variable_base_t.__init__( self, variable=variable, wrapper=wrapper )
 
     def _create_impl( self ):
+        if self.declaration.already_exposed:
+            return ''
+        
         answer = []
         answer.append( algorithm.create_identifier( self, '::boost::python::scope' ) )
         answer.append( '().attr("%s")' % self.alias )
@@ -122,6 +128,9 @@ class array_gv_wrapper_t( code_creator.code_creator_t
         return ''.join( temp )
 
     def _create_impl( self ):
+        if self.declaration.already_exposed:
+            return ''
+        
         answer = [self._create_namespaces_name()]
         answer.append( self.wrapper_type.decl_string )
         answer.append( ''.join([ self.wrapper_creator_name, '(){']) )

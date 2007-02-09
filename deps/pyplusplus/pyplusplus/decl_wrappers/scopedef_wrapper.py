@@ -22,7 +22,8 @@ class scopedef_t(decl_wrapper.decl_wrapper_t):
         self.ignore = True
         map( lambda decl: decl.exclude(), self.declarations )
 
-    def include( self ):
+    def include( self, already_exposed=False  ):
         """Include "self" and child declarations to be exposed."""
         self.ignore = False
-        map( lambda decl: decl.include(), self.declarations )
+        self.already_exposed = already_exposed
+        map( lambda decl: decl.include(already_exposed), self.declarations )

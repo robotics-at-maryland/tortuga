@@ -231,3 +231,75 @@ def is_return_pointee_value_policy( policy ):
     return isinstance( policy, return_value_policy_t ) \
             and policy.result_converter_generator == return_pointee_value
     
+
+class custom_call_policies_t(call_policy_t):
+    """implementation for user defined call policies"""
+    def __init__( self, call_policies ):
+        call_policy_t.__init__( self )
+        self.__call_policies = call_policies
+
+    def _create_impl(self, function_creator ):
+        return str( self.__call_policies )
+
+    def __str__(self):
+        return 'custom call policies'
+
+def custom_call_policies(call_policies):
+    """create custom\\user defined call policies"""
+    return custom_call_policies_t(call_policies)
+
+class memory_managers:
+    none = 'none'
+    delete_ = 'delete_'
+    all = [ none, delete_ ]
+    
+    @staticmethod
+    def create( manager, function_creator=None):
+        mem_manager = 'pyplusplus::call_policies::memory_managers::' + manager
+        if function_creator:
+            mem_manager = algorithm.create_identifier( function_creator, mem_manager )
+        return mem_manager
+
+class convert_array_to_tuple_t( compound_policy_t ):
+    def __init__( self, array_size, memory_manager, make_object_call_policies=None, base=None):
+        compound_policy_t.__init__( self, base )
+        self._array_size = array_size
+        self._memory_manager = memory_manager
+        self._make_objec_call_policies = make_object_call_policies
+    
+    def _get_array_size( self ):
+        return self._array_size
+    def _set_array_size( self, new_array_size):
+        self._array_size = new_array_size
+    array_size = property( _get_array_size, _set_array_size )
+
+    def _get_memory_manager( self ):
+        return self._memory_manager
+    def _set_memory_manager( self, new_memory_manager):
+        self._memory_manager = new_memory_manager
+    memory_manager = property( _get_memory_manager, _set_memory_manager )
+
+    def _get_make_objec_call_policies( self ):
+        if None is self._make_objec_call_policies:
+            self._make_objec_call_policies = default_call_policies()
+        return self._make_objec_call_policies
+    def _set_make_objec_call_policies( self, new_make_objec_call_policies):
+        self._make_objec_call_policies = new_make_objec_call_policies
+    make_objec_call_policies = property( _get_make_objec_call_policies, _set_make_objec_call_policies )
+
+
+    def _get_name(self, function_creator):
+        return '::boost::python::return_value_policy'
+
+    def _get_args(self, function_creator):
+        as_tuple_args = [ str( self.array_size ) ]
+        as_tuple_args.append( memory_managers.create( self.memory_manager, function_creator ) )
+        if not self.make_objec_call_policies.is_default():
+            as_tuple_args.append( self.make_objec_call_policies.create_template_arg( function_creator ) )
+        as_tuple = '::pyplusplus::call_policies::arrays::as_tuple'
+        if function_creator:
+            as_tuple = algorithm.create_identifier( function_creator, as_tuple )
+        return [ declarations.templates.join( as_tuple, as_tuple_args ) ]
+    
+def convert_array_to_tuple( array_size, memory_manager, make_object_call_policies=None, base=None ):
+    return convert_array_to_tuple_t( array_size, memory_manager, make_object_call_policies, base )

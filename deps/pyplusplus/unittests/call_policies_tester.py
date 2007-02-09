@@ -33,6 +33,9 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         mb.calldef( 'get_fundamental_ptr_value_null' ).call_policies \
             = call_policies.return_value_policy( call_policies.return_pointee_value )
 
+        mb.calldef( 'create_arr_3' ).call_policies \
+            = call_policies.convert_array_to_tuple( 3, call_policies.memory_managers.delete_ )
+
     def run_tests(self, module):
         self.failUnless( module.compare( module.my_address() ) )
 
@@ -56,6 +59,11 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         module.get_impl_details()
 
         module.get_opaque()
+        
+        x = module.arrays()
+        for i in range( 4 ):
+            arr3 = x.create_arr_3()
+            self.failUnless( arr3 == (0,1,2) )
 
 def create_suite():
     suite = unittest.TestSuite()

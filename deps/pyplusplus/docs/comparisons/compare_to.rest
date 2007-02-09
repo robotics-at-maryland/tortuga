@@ -40,7 +40,9 @@ Some other links, that compare Boost.Python, SWIG, SIP and other tools:
 
   .. _`Integrating Python, C and C++` : http://www.suttoncourtenay.org.uk/duncan/accu/integratingpython.html
 
+* `Python Wrapper Tools: A Performance Study`_
 
+  .. _`Python Wrapper Tools: A Performance Study` : http://people.web.psi.ch/geus/talks/europython2004_geus.pdf
 
 .. _`Py++` : ./../pyplusplus.html
 .. _`Pyste`: http://www.boost.org/libs/python/doc/index.html

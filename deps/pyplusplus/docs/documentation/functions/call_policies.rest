@@ -231,6 +231,77 @@ Python code:
   assert 0.5 == my_module.get_value()
   assert None is my_module.get_null_value()
 
+as_tuple
+--------
+
+Class ``as_tuple`` is a model of `ResultConverterGenerator`_  which
+can be used to wrap C++ functions returning a pointer to arrays with fixed size.
+The policy will construct a Python tuple from the array and treat the array memory.
+
+Example
+~~~~~~~
+
+.. code-block:: C++
+
+   struct vector3{
+       ...
+
+       float* clone_row_data() const{
+           float* values = new float[3];
+           //copy values
+           return values;
+       }
+
+       const flow* get_row_data() const{
+           return m_values;
+       }
+
+   private:
+       float m_values[3];
+   };
+
+  namespace bpl = boost::python;
+  namespace pypp_cp = pyplusplus::call_policies;
+  BOOST_PYTHON_MODULE(my_module){
+    bpl::class_< vector3 >( "vector3" )
+        .def( "clone_row_data"
+              , &::vector3::clone_row_data
+              , bpl::return_value_policy< pypp_cp::arrays::as_tuple< 3, pypp_cp::memory_managers::delete_ > >() )
+        .def( "get_row_data"
+              , &::vector3::get_row_data
+              , bpl::return_value_policy< pypp_cp::arrays::as_tuple< 3, pypp_cp::memory_managers::none > >() ) );
+  }
+
+``as_tuple`` class
+~~~~~~~~~~~~~~~~~~
+``as_tuple`` is a template class that takes few arguments:
+
+1. the size of the array - compile time constant
+
+2. memory management policy - a class, which will manage the return value.
+   There are two built-in memory managers:
+
+   * delete\_ - the array will be deleted after it was copied to tuple, using
+     ``operator delete[]``
+
+   * none - do nothing
+
+
+The `Py++`_ code is slightly different from the C++ one, but it is definitely shorter:
+
+.. code-block:: Python
+
+  from pyplusplus import module_builder
+  from pyplusplus.module_builder import call_policies
+
+  mb = module_builder.module_builder_t( ... )
+  mb.member_function( 'clone_row_data' ).call_policies \
+      = call_policies.convert_array_to_tuple( 3, call_policies.memory_managers.delete_ )
+  mb.member_function( 'get_row_data' ).call_policies \
+      = call_policies.convert_array_to_tuple( 3, call_policies.memory_managers.none )
+
+
+
 .. _`ResultConverterGenerator` : http://boost.org/libs/python/doc/v2/ResultConverter.html#ResultConverterGenerator-concept
 
 .. _`Py++` : ./../pyplusplus.html

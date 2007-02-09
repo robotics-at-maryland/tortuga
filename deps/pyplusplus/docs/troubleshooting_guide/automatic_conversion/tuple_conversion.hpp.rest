@@ -1,3 +1,0 @@
-.. code-block::
-     :language: C++
-     :source-file: ./tuple_conversion.hpp

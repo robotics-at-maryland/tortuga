@@ -20,6 +20,9 @@ struct helper{
         boost::gcd<long int>( 1, 1);
         boost::lcm<long int>( 1, 1);
         std::cout << pyrational( 1,1);        
+        pyrational x(1,1);
+        x = pyrational( 2, 3 );
+        
     }
 };
 

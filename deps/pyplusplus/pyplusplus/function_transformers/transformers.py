@@ -224,8 +224,12 @@ class inout_t(transformer.transformer_t):
 
 
 _seq2arr = string.Template( os.linesep.join([
-            'pyplus_conv::ensure_uniform_sequence< $type >( $pylist, $array_size );'
+              'pyplus_conv::ensure_uniform_sequence< $type >( $pylist, $array_size );'
             , 'pyplus_conv::copy_sequence( $pylist, pyplus_conv::array_inserter( $native_array, $array_size ) );']))
+
+_seq2vector = string.Template( os.linesep.join([
+                 'pyplus_conv::ensure_uniform_sequence< $type >( $pylist );'
+               , 'pyplus_conv::copy_sequence( $pylist, std::back_inserter( $native_array), boost::type< $type >() );']))
 
 _arr2seq = string.Template( 
             'pyplus_conv::copy_container( $native_array, $native_array + $array_size, pyplus_conv::list_inserter( $pylist ) );' )
@@ -395,3 +399,96 @@ class output_static_array_t(transformer.transformer_t):
     def configure_virtual_mem_fun( self, controller ):
         self.__configure_v_mem_fun_override( controller.override_controller )
         self.__configure_v_mem_fun_default( controller.default_controller )
+
+
+class input_c_buffer_t(transformer.transformer_t):
+    """Handles an input of C buffere:
+
+    void write( byte *buffer, int size ) -> void write( python sequence )
+    """
+
+    def __init__(self, function, buffer_arg_ref, size_arg_ref):
+        """Constructor.
+
+        @param buffer_arg_ref: "reference" to the buffer argument 
+        @param buffer_arg_ref: "reference" to argument, which holds buffer size
+        """
+        transformer.transformer_t.__init__( self, function )
+        
+        self.buffer_arg = self.get_argument( buffer_arg_ref )
+        self.buffer_arg_index = self.function.arguments.index( self.buffer_arg )
+
+        self.size_arg = self.get_argument( size_arg_ref )
+        self.size_arg_index = self.function.arguments.index( self.size_arg )
+
+        if not is_ptr_or_array( self.buffer_arg.type ):
+            raise ValueError( '%s\nin order to use "input_c_buffer" transformation, "buffer" argument %s type must be a array or a pointer (got %s).' ) \
+                  % ( function, self.buffer_arg.name, self.buffer_arg.type)
+
+        if not declarations.is_integral( self.size_arg.type ):
+            raise ValueError( '%s\nin order to use "input_c_buffer" transformation, "size" argument %s type must be an integral type (got %s).' ) \
+                  % ( function, self.size_arg.name, self.size_arg.type)
+
+        self.buffer_item_type = declarations.array_item_type( self.buffer_arg.type )
+
+    def __str__(self):
+        return "input_c_buffer(buffer arg=%s, size arg=%s)" \
+               % ( self.buffer_arg.name, self.size_arg.name)
+
+    def required_headers( self ):
+        """Returns list of header files that transformer generated code depends on."""
+        return [ code_repository.convenience.file_name, '<vector>', '<iterator>' ]
+
+    def __configure_sealed(self, controller):
+        global _seq2arr
+        w_buffer_arg = controller.find_wrapper_arg( self.buffer_arg.name )
+        w_buffer_arg.type = declarations.dummy_type_t( "boost::python::object" )
+        
+        controller.remove_wrapper_arg( self.size_arg.name )
+
+        size_var = controller.declare_variable( 
+                          declarations.remove_const( self.size_arg.type )
+                        , self.size_arg.name
+                        , ' = boost::python::len(%s)' % w_buffer_arg.name )
+        
+        # Declare a variable that will hold the C array...
+        buffer_var = controller.declare_variable( 
+                          declarations.dummy_type_t( "std::vector< %s >" % self.buffer_item_type.decl_string )
+                        , "native_" + self.buffer_arg.name )
+
+        controller.add_pre_call_code( '%s.reserve( %s );' % ( buffer_var, size_var ) )
+        
+        copy_pylist2arr = _seq2vector.substitute( type=self.buffer_item_type
+                                                  , pylist=w_buffer_arg.name
+                                                  , native_array=buffer_var )
+        
+        controller.add_pre_call_code( copy_pylist2arr )
+        
+        controller.modify_arg_expression( self.buffer_arg_index, '&%s[0]' % buffer_var )        
+        controller.modify_arg_expression( self.size_arg_index, '%s' % size_var )        
+
+    def __configure_v_mem_fun_default( self, controller ):
+        self.__configure_sealed( controller )
+        
+    def __configure_v_mem_fun_override( self, controller ):
+        raise NotImplementedError()
+        #global _arr2seq
+        #pylist = controller.declare_py_variable( declarations.dummy_type_t( 'boost::python::list' )
+                                                 #, 'py_' + self.arg.name )
+        
+        #copy_arr2pylist = _arr2seq.substitute( native_array=self.arg.name
+                                                #, array_size=self.array_size
+                                                #, pylist=pylist )
+                            
+        #controller.add_py_pre_call_code( copy_arr2pylist )
+
+    def configure_mem_fun( self, controller ):
+        self.__configure_sealed( controller )
+        
+    def configure_free_fun(self, controller ):
+        self.__configure_sealed( controller )
+
+    def configure_virtual_mem_fun( self, controller ):
+        self.__configure_v_mem_fun_override( controller.override_controller )
+        self.__configure_v_mem_fun_default( controller.default_controller )
+        

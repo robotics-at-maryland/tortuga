@@ -49,3 +49,8 @@ def modify_type( *args, **keywd ):
     def creator( function ):
         return transformers.type_modifier_t( function, *args, **keywd )
     return creator
+
+def input_c_buffer( *args, **keywd ):
+    def creator( function ):
+        return transformers.input_c_buffer_t( function, *args, **keywd )
+    return creator

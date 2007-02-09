@@ -22,6 +22,8 @@ class exception_translator_t( code_creator.code_creator_t
         return 'translate_%(alias)s' % { 'alias' : self.declaration.alias }
     
     def _create_impl(self):
+        if self.declaration.already_exposed:
+            return ''        
         return os.linesep.join([
               "void translate_%(alias)s( const %(cls_name)s& %(arg_name)s ){" \
             , self.indent( self.declaration.exception_translation_code )
@@ -40,6 +42,9 @@ class exception_translator_register_t( registration_based.registration_based_t
         self.translator = exception_translator
     
     def _create_impl( self ):
+        if self.declaration.already_exposed:
+            return ''
+
         return '%(register_exception_translator)s< %(cls)s >( &%(translator)s );' \
                % { 'register_exception_translator' : algorithm.create_identifier( self, 'boost::python::register_exception_translator' )
                    , 'cls'  : self.decl_identifier

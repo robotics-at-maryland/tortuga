@@ -85,6 +85,11 @@ from call_policies import return_value_policy
 from call_policies import return_pointee_value
 from call_policies import is_return_opaque_pointer_policy
 from call_policies import is_return_pointee_value_policy
+from call_policies import custom_call_policies_t
+from call_policies import custom_call_policies
+from call_policies import convert_array_to_tuple_t
+from call_policies import convert_array_to_tuple
+from call_policies import memory_managers
 
 from decl_wrapper_printer import decl_wrapper_printer_t
 from decl_wrapper_printer import print_declarations

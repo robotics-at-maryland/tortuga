@@ -46,7 +46,7 @@ class indexing_suite1_t( registration_based.registration_based_t
                 args.append( no_proxy)
         return declarations.templates.join( suite_identifier, args )
 
-    def _create_impl(self):
+    def _create_impl(self):        
         return "def( %s() )" %  self._create_suite_declaration()
 
 
@@ -83,6 +83,9 @@ class indexing_suite2_t( registration_based.registration_based_t
         return ''.join( answer )
 
     def _create_impl( self ):
+        if self.declaration.already_exposed:
+            return ''
+        
         answer = []
         if self.does_user_disable_methods():
             answer.append( self.generate_algorithm_mask() )
@@ -161,6 +164,8 @@ class value_traits_t( code_creator.code_creator_t
         pass # for inner class this code will generate error :-((((
 
     def _create_impl( self ):
+        if self.declaration.already_exposed:
+            return ''
         return self.generate_value_traits()
 
 

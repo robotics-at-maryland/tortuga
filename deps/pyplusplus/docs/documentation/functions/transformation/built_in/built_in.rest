@@ -22,6 +22,8 @@ Introduction
 
 * ``output_static_array``
 
+* ``input_c_buffer``
+
 The set doesn't cover all common use cases, but it will grow with every new
 version of `Py++`_. If you created your own transformer consider to contribute
 it to the project.

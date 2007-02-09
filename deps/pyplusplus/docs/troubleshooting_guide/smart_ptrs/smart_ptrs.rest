@@ -36,7 +36,9 @@ All files contain comments, which describe what and why was done.
 Download
 --------
 
-https://sourceforge.net/project/showfiles.php?group_id=118209
+`smart_ptrs.zip`_
+
+.. _`smart_ptrs.zip` : ./smart_ptrs.zip
 
 
 .. _`Py++` : ./../pyplusplus.html

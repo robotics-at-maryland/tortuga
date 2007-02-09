@@ -113,6 +113,8 @@ class return_stmt_creator_t( object ):
                and ( self.__function.call_policies.is_default() \
                      or False == bool( self.__controller.return_variables ) ):
                 self.__pre_return_code = ''
+            elif self.__function.call_policies.is_default():
+                self.__pre_return_code = ''
             else:
                 c_p_typedef = 'typedef %s %s;' \
                               % ( self.__function.call_policies.create_template_arg( self.__creator )

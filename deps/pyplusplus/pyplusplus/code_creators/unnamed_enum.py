@@ -23,6 +23,9 @@ class unnamed_enum_t( registration_based.registration_based_t
     value_aliases = property( _get_value_aliases, _set_value_aliases )
     
     def _create_impl(self):
+        if self.declaration.already_exposed:
+            return ''
+        
         tmpl = algorithm.create_identifier( self, '::boost::python::scope' ) + '().attr("%s") = (int)%s;'
         full_name = pygccxml.declarations.full_name( self.declaration )
         result = []

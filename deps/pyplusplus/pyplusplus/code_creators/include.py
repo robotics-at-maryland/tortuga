@@ -12,10 +12,15 @@ class include_t(code_creator.code_creator_t):
     """
     Creates C++ code for include directive
     """
-    def __init__( self, header ):
+    def __init__( self, header, user_defined=False ):
         code_creator.code_creator_t.__init__(self)
         self._header = include_directories.include_directories_t.normalize( header )
         self._include_dirs_optimization = None #This parameter will be set from module_t.create function
+        self._user_defined = user_defined
+
+    @property
+    def is_user_defined(self):
+        return self._user_defined
     
     def _get_header(self):
         return self._header
@@ -30,6 +35,10 @@ class include_t(code_creator.code_creator_t):
     include_dirs_optimization = property( _get_include_dirs_optimization, _set_include_dirs_optimization )       
        
     def _create_impl(self):
+        header = self.header.strip()
+        if header.startswith( '"' ) or header.startswith( '<' ):
+            return '#include %s' % self.header
+        
         if not self.include_dirs_optimization:
             return '#include "%s"' % self.header
         else:

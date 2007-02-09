@@ -80,6 +80,9 @@ class calldef_t( registration_based.registration_based_t
         raise NotImplementedError()
 
     def _create_impl( self ):
+        if self.declaration.already_exposed:
+            return ''
+
         result = []
 
         if not self.works_on_instance:
@@ -1144,6 +1147,9 @@ class mem_fun_overloads_class_t( calldef_overloads_class_t ):
         calldef_overloads_class_t.__init__( self, mem_funs )
 
     def _create_impl(self):
+        if self.max_function.already_exposed:
+            return ''
+
         min_, max_ = self.min_max_num_of_args()
         return "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS( %(overloads_cls)s, %(fun)s, %(min)d, %(max)d )" \
                % {   'overloads_cls' : self.name
@@ -1159,6 +1165,9 @@ class free_fun_overloads_class_t( calldef_overloads_class_t ):
         calldef_overloads_class_t.__init__( self, free_funs )
 
     def _create_impl(self):
+        if self.max_function.already_exposed:
+            return ''
+
         min_, max_ = self.min_max_num_of_args()
         return "BOOST_PYTHON_FUNCTION_OVERLOADS( %(overloads_cls)s, %(fun)s, %(min)d, %(max)d )" \
                % {   'overloads_cls' : self.name

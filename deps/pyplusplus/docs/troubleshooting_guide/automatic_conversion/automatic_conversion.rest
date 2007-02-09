@@ -1,6 +1,6 @@
-===================================================
-How to register ``shared_ptr<const T>`` conversion?
-===================================================
+=================================================
+Automatic conversion between C++ and Python types
+=================================================
 
 .. contents:: Table of contents
 
@@ -10,83 +10,52 @@ Introduction
 
 .. include:: ./definition.rest
 
----------
-Solutions
----------
+-------
+Content
+-------
 
-There are two possible solutions to the problem. The first one is to fix 
-Boost.Python library: `pointer_holder.hpp.patch`_ . The patch was contributed
-to the library ( 8-December-2006 ) and some day it will be commited to the CVS.
+This example actually consist from 2 small, well documented examples.
 
-It is also possible to solve the problem, without changing Boost.Python library:
+The first one shows how to handle conversion between tuples: `boost::tuples::tuple`_
+and Python tuple.
 
-  .. code-block:: C++
+.. _`boost::tuples::tuple` : http://boost.org/libs/tuple/doc/tuple_users_guide.html
 
-     namespace boost{ 
-         
-         template<class T> 
-         inline T* get_pointer( boost::shared_ptr<const T> const& p ){
-             return const_cast< T* >( p.get() );
-         }
-     
-     }
-      
-     namespace boost{ namespace python{    
-         
-         template<class T> 
-         struct pointee< boost::shared_ptr<T const> >{
-             typedef T type;
-         };
-         
-     } } //boost::python
-    
-     namespace utils{
-      
-         template< class T >
-         register_shared_ptrs_to_python(){
-             namespace bpl = boost::python;
-             bpl::register_ptr_to_python< boost::shared_ptr< T > >();
-             bpl::register_ptr_to_python< boost::shared_ptr< const T > >();
-             bpl::implicitly_convertible< boost::shared_ptr< T >, boost::shared_ptr< const T > >();
-         }
-      
-     }
-     
-     BOOST_PYTHON_MODULE(...){
-        class_< YourClass >( "YourClass" )
-            ...;
-        utils::register_shared_ptrs_to_python< YourClass >();
-     }
-
-The second approach is a little bit "evil" because it redefines ``get_pointer``
-function for all shared pointer class instantiations. So you should be careful.
+The second one shows how to add an automatic conversion from Python tuple to
+some registered class. The class registration allows you to use its functionality
+and enjoy from automatic conversion.
 
 Files
 -----
 
-* `solution.cpp`_ file contains definition of a class and few functions, which 
-  have ``shared_ptr< T >`` and ``shared_ptr< const T>`` as return type or as an 
-  argument. The file also contains source code that exposes the defined 
-  functionality to Python.
+* `tuples.hpp`_ file contains Boost.Tuple to\\from Python tuple conversion
+  implementation
+
+* `tuples_tester.cpp`_ file contains few functions, which test the tuples
+  conversion functionality
+
+* `custom_rvalue.cpp`_ file contains example of registration custom r-value
+  converter
 
 * `sconstruct`_ file contains build instructions for scons build tool.
 
-* `test.py`_ file contains complete unit tests for the exposed classes
+* `test.py`_ file contains complete unit tests for both example
 
-* `pointer_holder.hpp.patch`_ file contains patch for the library
+All files contain comments, which describe what and why was done.
 
-All files contain comments, which describe what and why was done. 
-
-.. _`solution.cpp` : ./solution.cpp.html
+.. _`tuples.hpp` : ./tuples.hpp.html
+.. _`tuples_tester.cpp` : ./tuples_tester.cpp.html
+.. _`custom_rvalue.cpp` : ./custom_rvalue.cpp.html
 .. _`sconstruct` : ./sconstruct.html
 .. _`test.py` : ./test.py.html
-.. _`pointer_holder.hpp.patch` : ./pointer_holder.hpp.patch.html
 
 --------
 Download
 --------
 
-https://sourceforge.net/project/showfiles.php?group_id=118209
+`automatic_conversion.zip`_
+
+.. _`automatic_conversion.zip` : ./automatic_conversion.zip
 
 
 .. _`Py++` : ./../pyplusplus.html

@@ -148,6 +148,14 @@ W1048 = 'There are two or more aliases within "pyplusplus::aliases" namespace fo
 W1049 = 'This method could not be overriden in Python - method returns reference ' \
         'to local variable!'
 
+W1050 = 'The function returns "%s" type. You have to specify a call policies.' 
+
+
+W1051 = 'The function takes as argument (name=%s, pos=%d) "%s" type. ' \
+        'You have to specify a call policies or to use "Function Transformation" ' \
+        'functionality.'
+
+
 warnings = globals()
 
 for identifier, explanation in warnings.items():

@@ -79,6 +79,12 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         clone.call_policies = call_policies.return_value_policy( call_policies.manage_new_object )
         clone.add_transformation( ft.modify_type(0, declarations.remove_reference ) )
         
+        cls = mb.class_( 'input_c_buffer_tester_t')
+        write_mf = cls.mem_fun( 'write' )
+        write_mf.add_transformation( ft.input_c_buffer( 'buffer', 'size' ) )
+        write_s = cls.mem_fun( 'write_s' )
+        write_s.add_transformation( ft.input_c_buffer( 'buffer', 'size' ) )
+        
     def run_tests(self, module):
         """Run the actual unit tests.
         """
@@ -226,6 +232,12 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         tmp = module.modify_type_tester_t()
         self.failUnless( 123 == tmp.do_nothing(123) )
         self.failUnless( tmp != tmp.clone(123) )
+
+        tmp = module.input_c_buffer_tester_t()
+        hw = 'hello world'
+        dummy = 11
+        self.failUnless( 'hello world' == tmp.write( list( hw ), dummy ) )
+        self.failUnless( 'hello world' == tmp.write_s( dummy, tuple( list( hw ) ) ) )
         
 def create_suite():
     suite = unittest.TestSuite()

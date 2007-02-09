@@ -76,6 +76,9 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         
         self.failUnless( 0 < r1 )
         
+        r1 = pyrational( 5, 7 )
+        self.failUnless( r1.assign( 17 ) == pyrational( 17, 1 ) )
+        
 def create_suite():
     suite = unittest.TestSuite()    
     suite.addTest( unittest.makeSuite(tester_t))

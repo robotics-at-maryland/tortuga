@@ -18,3 +18,6 @@ from pyplusplus.decl_wrappers import return_by_value
 from pyplusplus.decl_wrappers import return_opaque_pointer
 from pyplusplus.decl_wrappers import return_value_policy
 from pyplusplus.decl_wrappers import return_pointee_value
+from pyplusplus.decl_wrappers import custom_call_policies
+from pyplusplus.decl_wrappers import convert_array_to_tuple
+from pyplusplus.decl_wrappers import memory_managers

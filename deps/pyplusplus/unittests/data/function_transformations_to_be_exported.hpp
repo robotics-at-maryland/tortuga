@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <string>
+#include <iostream>
 
 namespace ft2{
     
@@ -217,6 +218,17 @@ struct modify_type_tester_t{
         return new modify_type_tester_t();
     }
     
+};
+
+struct input_c_buffer_tester_t{
+	std::string write( char* buffer, int dummy, int size ) const {
+		return std::string( buffer, size );
+	}
+	
+	static std::string write_s( int dummy, char* buffer, int size ){
+		return std::string( buffer, size );
+	}
+
 };
 
 }
