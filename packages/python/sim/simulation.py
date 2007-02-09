@@ -99,13 +99,16 @@ class Simulation(Singleton):
         import sim.gui
         import sim.physics
         
-        self._graphics_sys = sim.graphics.GraphicsSystem(self._config.get('Graphics',{}))
+        graphics_cfg = self._config.get('Graphics',{})
+        self._graphics_sys = \
+            sim.graphics.GraphicsSystem(graphics_cfg,
+                                        not graphics_cfg.get('embedded', True))
         self._physics_sys = sim.physics.PhysicsSystem(self._config.get('Physics',{}))
-        self._input_sys = sim.input.InputSystem(self._config.get('Input',{}))
-        self._gui_sys = sim.gui.GUISystem(self._config.get('GUI',{}))
+        #self._input_sys = sim.input.InputSystem(self._config.get('Input',{}))
+        #self._gui_sys = sim.gui.GUISystem(self._config.get('GUI',{}))
         
-        self._components = \
-            [self._input_sys, self._physics_sys, self._graphics_sys]
+        self._components = [self._physics_sys]#,
+            #self._input_sys, self._physics_sys, self._graphics_sys]
         
     def _shutdown(self):
         self._run = False
@@ -117,7 +120,7 @@ class Simulation(Singleton):
         @type time_since_last_update: a decimal number
         @param time_since_last_update: name says it all
         """
-        
+            
         if self._run:
             # Update all components, drop out if one returns false
             for component in self._components:

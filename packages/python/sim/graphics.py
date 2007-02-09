@@ -53,7 +53,6 @@ class GraphicsSystem(object):
         
         self.logger.info('* * * Beginning initialization')
         self._setup(config)
-        self.camera_controller = CameraController(self.camera, self.camera_node)
         self.logger.info('* * * Initialized')
         
     def __del__(self):
@@ -101,7 +100,18 @@ class GraphicsSystem(object):
         self._addResourceLocations(config['Resources']);        
         self._init_ogre_core(config['RenderSystem'])
     
+    
+        if self.own_window == False:
+            print 'Window is false'
+        if False:
+            print 'ERRORORORORORORORO'
+        print 'Test'
         if self.own_window:
+            print 'FINAL ERROR'
+        print 'Test2'
+    
+        if self.own_window:
+            print 'Post setup error'
             self._post_window_setup()
     
     def _setup_logging(self, config):
@@ -262,6 +272,8 @@ class GraphicsSystem(object):
         Ogre.TextureManager.getSingleton().setDefaultNumMipmaps(5)
         # Initialise resources
         Ogre.ResourceGroupManager.getSingleton().initialiseAllResourceGroups()
+        
+        self.camera_controller = CameraController(self.camera, self.camera_node)
         
     def _createCamera(self):
         """

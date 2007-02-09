@@ -22,7 +22,6 @@ import OIS
 
 # Project imports
 import event
-import control
 import logloader
 
 from sim.util import Vector, Quat
@@ -97,7 +96,7 @@ class Vehicle(IVehicle):
         Simulation.get().input_sys.map_key_events(thruster_events)
         
         # Create Simple Keyboard Mouse controller
-        self.kmcontroller = control.DirectVehicleController(self)
+        #self.kmcontroller = control.DirectVehicleController(self)
         
     def _create_vehicle(self, config):
         scene_mgr = Simulation.get().graphics_sys.scene_manager

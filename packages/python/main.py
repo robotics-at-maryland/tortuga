@@ -25,6 +25,7 @@ import CEGUI
 # Project Imports
 import logloader
 import event
+import control
 
 import sim
 from vehicle.sim.simvehicle import Vehicle, VehicleFactory
@@ -57,8 +58,10 @@ def main():
     # Pass along the subsection of the config corresponding to the vehicle
     vehicle = VehicleFactory.create(vehicle_type,
                                     config['Vehicles'][vehicle_type])
+    #controller = control.DirectVehicleController(vehicle)
+    controller = control.RandomVehicleController(vehicle)
     
-    components = [vehicle]
+    components = [vehicle, controller]
     del vehicle
     
     # Main Loop

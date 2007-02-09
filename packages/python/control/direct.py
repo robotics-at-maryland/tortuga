@@ -43,6 +43,9 @@ class DirectVehicleController(object):
         # object is gone
         event.remove_handlers(self.handler_map)
     
+    def update(self, time):
+        return True
+    
     def port_up(self):
         self.vehicle.PortThruster.power += 0.005
     def port_down(self):
