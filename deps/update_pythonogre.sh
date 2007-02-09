@@ -1,5 +1,5 @@
 PYPLUSPLUS_ROOT=https://pygccxml.svn.sourceforge.net/svnroot/pygccxml
-MRBC_VENDOR_SVN=https://nearspace.net/svn/mrbc/vendor
+MRBC_VENDOR_SVN=https://ram.umd.edu/svn/mrbc/vendor
 PYTHON_OGRE_SVN=https://svn.python-ogre.python-hosting.com/trunk/python-ogre 
 
 # Grab Revision
