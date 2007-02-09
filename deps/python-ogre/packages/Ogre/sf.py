@@ -1,7 +1,7 @@
 # This code is in the Public Domain
 # Designed for version 1.2.x of Ogre (non OIS)
 import Ogre as ogre
-import OgreRefApp
+#import OgreRefApp
 
 def getPluginPath():
     """Return the absolute path to a valid plugins.cfg file.""" 
@@ -218,8 +218,8 @@ class FrameListener(ogre.FrameListener):
 
         self._moveCamera()
         # Perform simulation step only if using OgreRefApp etc
-        if  self.RefAppEnable:
-            OgreRefApp.World.getSingleton().simulationStep(frameEvent.timeSinceLastFrame)
+        #if  self.RefAppEnable:
+        #    OgreRefApp.World.getSingleton().simulationStep(frameEvent.timeSinceLastFrame)
         
         return True
 

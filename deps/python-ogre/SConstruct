@@ -64,7 +64,7 @@ def get_linkflags():
     return LINKFLAGS
 
 # Let us select the projects to build
-possible_projects = ['ogre' , 'ois', 'ogrerefapp', 'ogrenewt', 'cegui']
+possible_projects = ['ogre' , 'ois', 'ogrerefapp', 'ogrenewt', 'CEGUI']
 default_projects = possible_projects
 
 # This lets you call scons like: 'scons PROJECTS=ogre,cegui'
@@ -121,10 +121,11 @@ for name, cls in environment.projects.items():
         ## now call the SConscript file in the source directory
         Export ( '_env' ) 
         package = _env.SConscript(os.path.join( cls._build_dir, 'SConscript' ) )
-        print package
+        
         ## and lets have it install the output into the 'package_dir_name/ModuleName' dir and rename to the PydName
         
         ## ugly hack - scons returns a list of targets from SharedLibrary - we have to choose the one we want
+        # JL - This does not appear to be needed on Linux (Scons - v0.96.93)
         #if os.name == 'nt':  
         #    index=0
         #else:

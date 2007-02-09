@@ -2,7 +2,7 @@
 # designed for the CVS/OIS verison of Ogre
 import Ogre as ogre
 import OIS as OIS
-import OgreRefApp
+#import OgreRefApp
 
 def getPluginPath():
     """Return the absolute path to a valid plugins.cfg file.""" 
@@ -205,7 +205,10 @@ class FrameListener(ogre.FrameListener, ogre.WindowEventListener):
         # ignore buffered input
            
          windowHnd = self.renderWindow.getCustomAttributeInt("WINDOW")
-         self.InputManager = OIS.createPythonInputSystem( windowHnd )
+         self.InputManager = \
+             OIS.createPythonInputSystem( [("WINDOW",str(windowHnd))] )#,
+                                          #("x11_keyboard_grab", "false"),
+                                          #("x11_mouse_grab","false")])
          
          #pl = OIS.ParamList()
          #windowHndStr = str ( windowHnd)
@@ -281,8 +284,8 @@ class FrameListener(ogre.FrameListener, ogre.WindowEventListener):
         
         self._moveCamera()
         # Perform simulation step only if using OgreRefApp etc
-        if  self.RefAppEnable:
-            OgreRefApp.World.getSingleton().simulationStep(frameEvent.timeSinceLastFrame)
+        #if  self.RefAppEnable:
+        #    OgreRefApp.World.getSingleton().simulationStep(frameEvent.timeSinceLastFrame)
         return True
 
     def frameEnded(self, frameEvent):

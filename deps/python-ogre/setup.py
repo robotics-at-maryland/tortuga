@@ -13,7 +13,7 @@ Py++, hence making maintainence etc very simple."""
 
 METADATA = {
     "name":             "Python-Ogre",
-    "version":          "0.5 Release",
+    "version":          "0.7 Release",
     "license":          "LGPL",
     "url":              "http://python-ogre.python-hosting.com/",
     "author":           "Lakin Wecker, Roman Yakovenko, Andy Miller",
@@ -35,9 +35,9 @@ base = os.path.join(os.getcwd(), os.path.dirname(sys.argv[0]) )
 demofiles = GetFileList ( os.path.join (base, "demos") )
 
 PACKAGEDATA = {
-       "packages":    ['Ogre'],
+       "packages":    ['Ogre', 'OIS','CEGUI','OgreNewt'],
        "package_dir": {'': 'packages'},
-       "package_data": {'': ['*.pyd', '*.dll']},
+       "package_data": {'': ['*.pyd', '*.dll', '*.so']},
 #       "data_files": [(base+'Demos', demofiles),]
 
 }
