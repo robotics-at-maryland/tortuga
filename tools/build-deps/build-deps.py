@@ -35,7 +35,7 @@ def get_build_root(options):
         deps_dir = os.path.join(repo_root, 'deps')   # <root>/deps
         return deps_dir
 
-def get_config_path(start_path):
+def get_config_path(start_path, options):
     """
     Gets the location of the config file, either in the deps directory or the 
     user specified one, and ensures that it exists
@@ -88,6 +88,8 @@ def run_location(location, config, options, mode='file'):
     build_cfg_dir = os.path.split(config.filename)[0]
     location_path = os.path.join(build_cfg_dir, location[1])
     deps_dir = os.path.join(get_build_root(options))
+
+    logging.info("Installation root is: %s" % (deps_dir))
     
     # Check to make sure the file isn't already built
     dep_file_path = os.path.join(deps_dir, 'depends', '%s.depend' % location[0])
@@ -107,7 +109,8 @@ def run_location(location, config, options, mode='file'):
     # Set current location so it can be expanded in the config file
     proc_lines = file('/proc/cpuinfo').readlines()
     cpus = len([line for line in proc_lines if line.startswith('processor')])
-    variables = {'deps' : deps_dir, 'cpus': str(cpus), 'j' : str(cpus + 1)}
+    variables = {'deps' : deps_dir, 'cpus': str(cpus), 'j' : str(cpus + 1),
+                 'root' : os.environ['MRBC_SVN_ROOT']}
     config[location[0]]['DEFAULT'] = variables
 
     for command in config[location[0]].iteritems():
@@ -171,7 +174,7 @@ def main(argv = None):
     
     (options, args) = parser.parse_args(argv)
     
-    config_path = get_config_path(options.configfile)
+    config_path = get_config_path(options.configfile, options)
     
     # Parse config file
     config = ConfigObj(config_path)
