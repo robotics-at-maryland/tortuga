@@ -3,7 +3,7 @@ TMP_DIR=/tmp
 TRAC_DIR=/var/trac
 SVN_DIR=/var/svn
 PROJ=mrbc
-BACKUP_TOOL_DIR=/home/jlisee/projects/mrbc/trunk/tools/backup
+BACKUP_TOOL_DIR=/home/ramshare/backup-tool
 #BACKUP_USER=mrbc-backup
 
 # Helper variables
