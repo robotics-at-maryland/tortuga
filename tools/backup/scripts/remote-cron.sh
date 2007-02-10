@@ -1,20 +1,11 @@
 # Only these need to be changed if server configuration changes
-BACKUP_DIR=/tmp
-PROJ=mrbc
-BACKUP_USER=mrbc-backup
-BACKUP_TARGET=nearspace.net
-BACKUP_TOOL_DIR=/home/backup/backup
+BACKUP_LOC=/var/backups/ram
+BACKUP_USER=rambackup
+BACKUP_TARGET=ram.umd.edu
 
-# Helper variables
-SVN_BACKUP_FILE=$BACKUP_DIR/svn-$PROJ-backup
-TRAC_BACKUP_FILE=$BACKUP_DIR/trac-$PROJ-backup
+BACKUP_REMOTE_DIR=/var/backup/ram
+BACKUP_DIRS="svn trac"
 
-# Copy files
-scp -r "$BACKUP_USER@$BACKUP_TARGET:$SVN_BACKUP_FILE*" $SVN_BACKUP_FILE
-scp -r "$BACKUP_USER@$BACKUP_TARGET:$TRAC_BACKUP_FILE*" $TRAC_BACKUP_FILE
-
-# Run backup script here....
-$BACKUP_TOOL_DIR/backup.py -c $BACKUP_TOOL_DIR/backup.cfg
-
-# Clean up temporary files at 5:00AM
-echo rm -rf $SVN_BACKUP_FILE $TRAC_BACKUP_FILE | at 5:30AM
+for i in $BACKUP_DIRS; do
+    rsync -ave ssh --delete $BACKUP_USER@$BACKUP_TARGET:$BACKUP_REMOTE_DIR/$i $BACKUP_LOC
+done

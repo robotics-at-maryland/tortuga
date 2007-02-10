@@ -15,7 +15,12 @@ def setup_logging():
     Create a system logging and make it the root logger
     """
     
-    syslog = logging.SysLogHandler()
+    #syslog = logging.SysLogHandler()
+    # Borken for some reason
+    if os.access('/root/backup.py', os.R_OK):
+        syslog = logging.FileHandler('/root/backup.py')
+    else:
+        syslog = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s'
                                   '%(message)s')
     syslog.setFormatter(formatter)
