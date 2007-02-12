@@ -32,9 +32,9 @@ mStaticGeom = None # ogre.StaticGeometry()
 
 
 #  This class 'wibbles' the light and billboard 
-class LightWibbler ( ogre.FloatControllerValue ):
+class LightWibbler ( ogre.ControllerValueFloat ):
     def __init__ ( self, light, billboard, minColour, maxColour, minSize, maxSize):
-        ogre.FloatControllerValue.__init__(self)    ## don't forget this !!!
+        ogre.ControllerValueFloat.__init__(self)    ## don't forget this !!!
         self.mLight = light 
         self.mBillboard = billboard 
         self.mColourRange = ogre.ColourValue()
@@ -276,9 +276,7 @@ class Grass_Application(sf.Application):
         self.func = ogre.WaveformControllerFunction(ogre.WFT_SINE, 0.0, 0.5)
         self.val = LightWibbler(self.mLight, bb, mMinLightColour, mMaxLightColour, 
             mMinFlareSize, mMaxFlareSize)
-            
         contMgr = ogre.ControllerManager.getSingleton() 
-
         controller = contMgr.createController(contMgr.getFrameTimeSource(), self.val, self.func) 
 
         self.mLightNode.setPosition(ogre.Vector3(300,250,-300)) 

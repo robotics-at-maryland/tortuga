@@ -44,7 +44,7 @@ class SkeletalApplication(sf.Application):
         # to give it an offset of where the animation ends
         
         ## Doing this returns a SharedPtr_less_Ogre_scope_Resource_grate 
-        skel = ogre.SkeletonManager.getSingleton().load("jaiqua.skeleton", ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME,False, ogre.ManualResourceLoader(), ogre.NamedValuePairList()) 
+        skel = ogre.SkeletonManager.getSingleton().load("jaiqua.skeleton", ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME,False, ogre.ManualResourceLoader(), ogre.NameValuePairList()) 
         ### NOTE the need for pointer here....
         anim = skel.getAnimation("Sneak") 
         

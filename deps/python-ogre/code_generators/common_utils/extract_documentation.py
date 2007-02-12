@@ -83,7 +83,14 @@ class doc_extractor:
         if doc_lines:
             #print "Extracted Doc String for:",  declaration, "[", len(doc_lines),"]"
             ## we need to cope with strings longer than 2048 for MSVC
-            ret = '"' + "\\\n".join(doc_lines) + '"'
+            ret1 = '"' + "\\\n".join(doc_lines) + '"'
+            ret =""
+            ## Py++ doesn't like non ascii characters in the doc string
+            ## class_declaration.py - _generate_constructor - return ( ''.join( result ), used_init )
+            for c in ret1:
+                if ord(c) >127:
+                    c = ' '
+                ret = ret + c
             if len ( ret ) < 1700:  ## just to be safe and adjust for line end chars etc..
                 return ret  ## OK we don't need to do anything special...
             ret =  '"'
@@ -96,6 +103,7 @@ class doc_extractor:
                 else :
                     ret = ret + '"' + "\n" + '"'    # we close the original 'quote', move to a new line and open a new quote
                     length = 1
+            
             return ret + '"'     
         #print "Doc String not found for", declaration  
         return ""
@@ -118,8 +126,6 @@ def clear_str(str):
     """
     def clean ( str, sym, change2 = ""): 
         return str.replace(sym, change2)
-    str = reduce(clean, [str, '/', '*', '!', "\\brief", '\\fn',\
-     "@brief", "@fn", "@ref", '\\ref', '"']) ## somtimes there are '"' in the doc strings...
     str = clean(str, "@param", "Param: ")
     str = clean(str, "\\param", "Param: ")
     str = clean(str, "@ingroup", "Group")
@@ -129,7 +135,16 @@ def clear_str(str):
     str = clean(str, "@note", "Note: ")
     str = clean(str, "@remarks", "Remarks: ")
     str = clean(str, "@see", "See: ")
+    str = clean(str, "\\see", "See: ")
+    str = clean(str, "@ref", "Ref: ")
+    str = clean(str, "\\ref", "REf: ")
+    
     str = clean(str, "\\sa", "See also: ")   # comment string in OgreNewt
+    str = clean(str, "\\code", "Code: ")    
+    str = clean(str, "\\codeblock", "CodeBlock: ")    
+    str = clean(str, "\\endcode", "")    
+    str = clean(str, "@code", "")    
+    str = clean(str, "@codeblock", "")    
     
     str = clean(str, "@par", "")    ## it will get a single blank line by default
     str = clean(str, "\\par", "")    ## it will get a single blank line by default
@@ -138,6 +153,10 @@ def clear_str(str):
     str = clean(str, "\\exception", "Exception: ") 
     str = clean(str, "::", ".")     ## make it more python accurate 
     str = clean(str, "->", ".") 
+    
+    ## now clean up the rest
+    str = reduce(clean, [str, '/', '*', '!', "\\brief", '\\fn',\
+     "@brief", "@fn", '"', "@{", "\\c", "\\a"]) ## somtimes there are '"' in the doc strings and other "\\"...
     return str.lstrip()
     return "  " + str.lstrip()
 

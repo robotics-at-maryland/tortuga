@@ -1,0 +1,18 @@
+
+material Ac3d/Crate/Mat001_Tex00
+{
+//    receive_shadows off
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1 1
+			diffuse 1 1 1 1
+
+			texture_unit
+			{
+				texture crate.png
+			}
+		}
+	}
+}

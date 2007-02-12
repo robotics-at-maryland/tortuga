@@ -1,0 +1,15 @@
+material ZOMBIE/SOLID/TEX/ZOMBIE.JPG
+{
+	technique
+	{
+		pass
+		{
+			diffuse 0.509804 0.509804 0.509804
+			specular 0.000000 0.000000 0.000000 0.250000
+			texture_unit
+			{
+				texture ZOMBIE.JPG
+			}
+		}
+	}
+}

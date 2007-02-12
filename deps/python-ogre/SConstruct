@@ -17,7 +17,7 @@ def log ( instring ):
 import os
 import sys
 import environment
- 
+
 builddir = "build_dir"
  
 def create_SConscript ( cls ):
@@ -57,11 +57,14 @@ def get_source_files(_dir):
 
 def get_linkflags():
     if os.name=='nt':
-        LINKFLAGS = " -NOLOGO -INCREMENTAL:NO -DLL -OPT:NOREF,NOICF -subsystem:console "
+        #LINKFLAGS = " -NOLOGO -INCREMENTAL:NO -DLL -OPT:NOREF -subsystem:console " # no change
+        LINKFLAGS = " -NOLOGO -INCREMENTAL:NO -DLL -OPT:NOICF -subsystem:console " # 7 minutes 25% smaller 16.6 Meg
+        #LINKFLAGS = " -NOLOGO -INCREMENTAL:NO -DLL -subsystem:console " ### LONG Link , 80 minutes - 15.7 meg
     elif os.name == 'posix':
         LINKFLAGS = ' `pkg-config --libs OGRE` '
         #LINKFLAGS += ' -lboost_python'
     return LINKFLAGS
+
 
 # Let us select the projects to build
 possible_projects = ['ogre' , 'ois', 'ogrerefapp', 'ogrenewt', 'CEGUI']
@@ -73,8 +76,8 @@ opts.Add(ListOption('PROJECTS', 'Project to build wrappers for',
                     possible_projects, default_projects))
 temp_env = Environment(options = opts)
 tobuild = temp_env['PROJECTS']
-del temp_env
-    
+del temp_env    
+        
 for name, cls in environment.projects.items():
     ##if name.active:
     if name in tobuild:
@@ -91,7 +94,7 @@ for name, cls in environment.projects.items():
             _env['CXX'] = environment.cxx_compiler
         if hasattr(environment, 'cc_compiler'):
             _env['CC'] = environment.cc_compiler
-        
+
         ## setup linker paths/libs and flags (standard and additional)
         _env.Append ( LIBPATH= cls.lib_dirs + [environment.python_lib_dirs] )
         linkflags=get_linkflags()
@@ -101,7 +104,7 @@ for name, cls in environment.projects.items():
         _env.Append ( LIBS = cls.libs )
         
         ## setup compile paths and flags (standard and additional)
-        _env.Append ( CPPPATH = cls.include_dirs + [environment.python_include_dirs, environment.PATH_Boost]  )
+        _env.Append ( CPPPATH = cls.include_dirs + [environment.python_include_dirs, environment.Config.PATH_Boost]  )
         ccflags= get_ccflags()
         if hasattr( cls, 'CCFLAGS'):
             ccflags += cls.CCFLAGS
@@ -125,14 +128,7 @@ for name, cls in environment.projects.items():
         ## and lets have it install the output into the 'package_dir_name/ModuleName' dir and rename to the PydName
         
         ## ugly hack - scons returns a list of targets from SharedLibrary - we have to choose the one we want
-        # JL - This does not appear to be needed on Linux (Scons - v0.96.93)
-        #if os.name == 'nt':  
-        #    index=0
-        #else:
-        #    index=1
-        index = 0
+        index = 0  # this is the index into a list of targets - '0' should be the platform default
         _env.InstallAs(os.path.join(environment.package_dir_name,
-                                    cls.ModuleName, cls.PydName),
-                       package[index] )
-
-
+                                    cls.ModuleName, cls.PydName), 
+                                     package[index] )

@@ -123,3 +123,84 @@ material Examples/OffsetMapping/Specular
    }
 
 }
+
+
+
+// Bump map with Parallax offset vertex program, support for this is required 
+vertex_program Examples/OffsetMappingCustomShadowsVP cg 
+{ 
+   source OffsetMapping.cg 
+   entry_point customshadows_vp 
+   profiles vs_1_1 arbvp1 
+} 
+
+// Bump map with parallax fragment program 
+fragment_program Examples/OffsetMappingCustomShadowsFP cg
+{ 
+   source OffsetMapping.cg
+   entry_point customshadows_fp
+   profiles ps_2_0 arbfp1
+} 
+
+
+material Examples/OffsetMapping/CustomShadows 
+{ 
+
+   technique 
+   { 
+      // do the lighting  and bump mapping with parallax pass 
+      pass 
+      { 
+       
+         // Vertex program reference 
+         vertex_program_ref Examples/OffsetMappingCustomShadowsVP
+         { 
+            param_named_auto lightPosition light_position_object_space 0
+            param_named_auto eyePosition camera_position_object_space 
+            param_named_auto worldViewProj worldviewproj_matrix 
+			param_named_auto spotDirection light_direction_object_space 0
+
+            param_named_auto lightPosition1 light_position_object_space 1
+			param_named_auto spotDirection1 light_direction_object_space 1
+			// shadow texture projections
+			param_named_auto texViewProj texture_viewproj_matrix
+         } 
+
+         // Fragment program 
+         fragment_program_ref Examples/OffsetMappingCustomShadowsFP
+         { 
+            param_named_auto lightDiffuse light_diffuse_colour 0 
+			param_named_auto spotParams spotlight_params 0
+
+			param_named_auto lightDiffuse1 light_diffuse_colour 1
+			param_named_auto spotParams1 spotlight_params 1
+            // Parallax Height scale and bias 
+            param_named scaleBias float4 0.04 -0.02 1 0 
+         } 
+          
+         // Normal + height(alpha) map 
+         texture_unit 
+         { 
+            texture rockwall_NH.tga
+            tex_coord_set 0 
+         } 
+
+         // Base diffuse texture map 
+         texture_unit 
+         { 
+            texture rockwall.tga
+            tex_coord_set 1 
+         } 
+
+		 texture_unit
+		 {
+		 	content_type shadow
+            tex_coord_set 2
+		 }
+      } 
+   } 
+
+
+
+}
+

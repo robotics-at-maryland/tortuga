@@ -1,0 +1,16 @@
+
+material Ac3d/Jeep_Body/Mat001_Tex00
+{
+    receive_shadows off
+	technique
+	{
+		pass
+		{
+			specular 1 1 1 1 10
+			texture_unit
+			{
+				texture red_jeep.jpg
+			}
+		}
+	}
+}

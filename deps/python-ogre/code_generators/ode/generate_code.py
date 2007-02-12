@@ -32,25 +32,49 @@ from pygccxml import declarations
 def filter_declarations( mb ):
     global_ns = mb.global_ns
     global_ns.exclude()
-    ode_ns = global_ns  ##  Ode doesn't have it's own namespace..  .namespace( 'ode' )
     
+    ode_ns = global_ns  ##  Ode doesn't have it's own namespace..  .namespace( 'ode' )
     for cls in ode_ns.classes():
-        #print "Checking ", cls.decl_string
+        print "Checking ", cls.decl_string
         if  cls.decl_string[2]=='d' and cls.decl_string[3].isupper():
             print "Including Class:", cls.name
             cls.include()
     ## and the dxXXclasses        
     for cls in ode_ns.classes():
-        #print "Checking ", cls.decl_string
+        print "Checking ", cls.decl_string
         if  cls.decl_string[2:4]=='dx' and cls.decl_string[4].isupper():
             print "Including dxClass:", cls.name
             cls.include()
      ## and we'll need the free functions as well
     for funcs in ode_ns.free_functions ():
-        #print "FREE Func:", funcs.name
-        if funcs.name[0]=='d':
+        print "FREE Func:", funcs.name
+        if funcs.name[0]=='d' and funcs.name[1].isupper():
             print "Including Function", funcs.name
             funcs.include()
+    for var in ode_ns.variables ():
+        print "Checking Variable:", var.name
+        if len(var.name) > 2:
+            if var.name[0]=='d' and var.name[1].isupper():
+                print "Including variable", var.name
+                var.include()
+    for var in ode_ns.typedefs ():
+        print "Checking typedef:", var.name
+        if len(var.name) > 2:
+            if var.name[0]=='d' and var.name[1].isupper():
+                print "Including typedef", var.name
+                var.include()                
+#         print "Member Func:", funcs.name
+#         if funcs.name[0]=='d':
+#             print "Including Member Function", funcs.name
+#             funcs.include()
+    ignore=(  "dGeomGetBodyNext", "dGeomMoved", "dPrintMatrix",
+        "dWorldGetAutoDisableAngularAverageThreshold",
+        "dWorldGetAutoDisableLinearAverageThreshold", 
+        "dWorldSetAutoDisableAngularAverageThreshold",
+        "dWorldSetAutoDisableLinearAverageThreshold"     )
+    for cls in ignore:
+        ode_ns.free_function(cls).exclude()
+       
    # these are excluded as they pass real pointers as function varialbles and expectde them to be updated
     # they have been replaced in hand wrappers
     ode_ns.class_( "dBody" ).member_functions( "getPosRelPoint").exclude()
@@ -74,6 +98,13 @@ def filter_declarations( mb ):
     ode_ns.class_( "dGeom" ).member_functions( "getPosition").exclude()
     ode_ns.class_( "dGeom" ).member_functions( "getRotation").exclude()
     
+    # in hand wrappers to handle pyobjects...
+    ode_ns.class_( "dGeom" ).member_functions( "getData").exclude()
+    ode_ns.class_( "dGeom" ).member_functions( "setData").exclude()
+    ode_ns.class_( "dBody" ).member_functions( "setData").exclude()
+    ode_ns.class_( "dBody" ).member_functions( "getData").exclude()
+    
+    ode_ns.class_( "dSpace" ).member_functions( "collide").exclude()
     
          
 #     ptr_to_fundamental_query \
@@ -119,9 +150,11 @@ def filter_declarations( mb ):
 #     sys.exit()
             
     ## Exclude protected and private that are not pure virtual
-    query = ~declarations.access_type_matcher_t( 'public' ) \
+    ### need to be careful here as it removes free functions
+    query = ( declarations.access_type_matcher_t( 'private' ) | declarations.access_type_matcher_t( 'protected' ) )\
             & ~declarations.virtuality_type_matcher_t( declarations.VIRTUALITY_TYPES.PURE_VIRTUAL )
     non_public_non_pure_virtual = ode_ns.calldefs( query )
+    print "TO EXCLUDE:", non_public_non_pure_virtual
     non_public_non_pure_virtual.exclude()
     
     #For some reason Py++ does not honor call policies in this case.
@@ -173,8 +206,18 @@ def generate_code():
 
     query = lambda decl: isinstance( decl, ( declarations.class_t, declarations.class_declaration_t ) ) \
                          and decl.name.startswith( 'dx' )
-    mb.global_ns.decls( query ).opaque = True                         
-       
+    mb.global_ns.decls( query ).opaque = True   
+#     mb.global_ns.variable('dSpaceID').opaque=True
+                          
+#     ## here we adjust for functions that return poiners to ODE "ID's", which are really C structs
+#     ## I may have been over agressive in identifing these functions but hopefully not...
+#     for func in mb.namespace( 'OgreOde' ).member_functions():  
+#         if func.return_type.decl_string.endswith('ID'):
+#             print "Setting ", func.name, "to Opaque"
+#             func.opaque = True
+#             func.call_policies = call_policies.return_value_policy(
+#                 call_policies.return_opaque_pointer )
+        
 
     common_utils.set_declaration_aliases( mb.global_ns, customization_data.aliases(environment.ode.version) )
 
@@ -188,7 +231,7 @@ def generate_code():
     common_utils.add_properties( ode_ns.classes() )
 
     common_utils.add_constants( mb, { 'ode_version' :  '"%s"' % environment.ode.version
-                                      , 'python_version' : '"%s"' % sys.version } )
+                                      , 'python_version' : '"%s"' % sys.version.replace("\n", "\\\n") } )
 
 
     #Creating code creator. After this step you should not modify/customize declarations.

@@ -1,0 +1,200 @@
+
+material Ac3d/RacingCircuit/Mat001_Tex13
+{
+	technique
+	{
+		pass
+		{
+			scene_blend alpha_blend
+			cull_hardware none
+			cull_software none
+            depth_write off            
+			alpha_rejection greater 0
+			
+			texture_unit
+			{
+				texture fence.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex14
+{
+	technique
+	{
+		pass
+		{
+			scene_blend alpha_blend
+
+			alpha_rejection greater 0
+			texture_unit
+			{
+				texture forest.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex00
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture grass.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex09
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture concrete.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex02
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+       			filtering anisotropic
+       			max_anisotropy 10
+				texture curb.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex07
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+       			filtering anisotropic
+       			max_anisotropy 10
+				texture tarmac2.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex08
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture sand.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex10
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture barrelside.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex05
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+       			filtering anisotropic
+       			max_anisotropy 10
+				texture tarmac2finish.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex06
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+       			filtering anisotropic
+       			max_anisotropy 10
+				texture tarmac2stage.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex12
+{
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+       			filtering anisotropic
+       			max_anisotropy 10
+				texture devimg1.tga
+			}
+		}
+	}
+}
+material Ac3d/RacingCircuit/Mat001_Tex15
+{
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none
+			texture_unit
+			{
+       			filtering anisotropic
+       			max_anisotropy 10
+				texture drpetter1.tga
+			}
+		}
+	}
+}
+
+material GranTurismOgre/Skybox
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			depth_write off
+			texture_unit
+			{
+				cubic_texture skybox.jpg separateUV
+				tex_address_mode clamp
+			}
+		}
+	}
+}
+

@@ -69,33 +69,6 @@ class OgreNewtonApplication (sf.Application):
         light.setPosition( Ogre.Vector3(0.0, 100.0, 100.0) )
 
 
-    def makeSimpleBox( self, size, pos,  orient ):
-        ## base mass on the size of the object.
-        mass = size.x * size.y * size.z * 2.5
-            
-        ## calculate the inertia based on box formula and mass
-        inertia = OgreNewt.CalcBoxSolid( mass, size )
-    
-        box1 = self.sceneManager.createEntity( "Entity"+str(self.EntityCount), "box.mesh" )
-        self.EntityCount += 1
-        box1node = self.sceneManager.getRootSceneNode().createChildSceneNode()
-        box1node.attachObject( box1 )
-        box1node.setScale( size )
-        box1.setNormaliseNormals(True)
-    
-        col = OgreNewt.Box( self.World, size )
-        bod = OgreNewt.Body( self.World, col )
-        del col
-                    
-        bod.attachToNode( box1node )
-        bod.setMassMatrix( mass, inertia )
-        bod.setStandardForceCallback()
-    
-        box1.setMaterialName( "Simple/BumpyMetal" )
-    
-        bod.setPositionOrientation( pos, orient )
-    
-        return bod
         
         
     def _createFrameListener(self):
@@ -104,7 +77,8 @@ class OgreNewtonApplication (sf.Application):
         self.frameListener = OgreNewtonFrameListener( self.renderWindow, self.camera, self.sceneManager, self.World, self.msnCam )
         self.root.addFrameListener(self.frameListener)
 
-        ## this is a basic frame listener included with OgreNewt that does nothing but update the
+        ## this is a basic frame listener implemented in Python-Ogre
+        ## that does nothing but update the
         ## physics at a set framerate for you.  complex project will want more control, but this
         ## works for simple demos like this.  feel free to look at the source to see how it works.
         self.NewtonListener = BasicFrameListener( self.renderWindow, self.sceneManager, self.World, 120 )

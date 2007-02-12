@@ -66,7 +66,7 @@ class BezierApplication(sf.Application):
         sceneManager = self.sceneManager
 
         ## Set ambient light
-        sceneManager.setAmbientLight(ogre.ColourValue(0.2, 0.2, 0.2)) 
+        sceneManager.setAmbientLight( (0.2, 0.2, 0.2) ) 
 
         ## Create a point light
         l = sceneManager.createLight("MainLight") 

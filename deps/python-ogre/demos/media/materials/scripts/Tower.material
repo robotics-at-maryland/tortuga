@@ -1,0 +1,34 @@
+material Tower
+{
+	receive_shadows on
+	transparency_casts_shadows off
+	technique
+	{
+		pass
+		{
+			cull_hardware none
+			cull_software none
+			alpha_rejection greater_equal 128
+			texture_unit
+			{
+				texture Tower.png
+				colour_op modulate
+			}
+		}
+	}
+}
+
+material Horn
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.513487 0.512644 0.556351 1.000000
+			specular 1.000000 1.000000 1.000000 1.000000 90.250000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}

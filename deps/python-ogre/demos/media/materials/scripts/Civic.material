@@ -1,0 +1,84 @@
+material Bling Bling chrome
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.824313 1.000000
+			specular 1.000000 1.000000 1.000000 1.000000 111.250000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material Tireblank
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.123797 0.123797 0.123797 1.000000
+			specular 0.500000 0.500000 0.500000 1.000000 8.750000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material Tire
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.123797 0.123797 0.123797 1.000000
+			specular 0.500000 0.500000 0.500000 1.000000 8.750000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material BlackPlastic
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.107595 0.107595 0.107595 1.000000
+			specular 0.847676 0.847676 0.847676 1.000000 25.250000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material Best car  paint
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.765082 1.000000 0.275788 1.000000
+			specular 1.000000 1.000000 1.000000 1.000000 127.750000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material Ray glass 3
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.000000 0.000000 0.000000 1.000000
+			specular 1.000000 1.000000 1.000000 1.000000 56.750000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}

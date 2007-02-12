@@ -23,7 +23,7 @@ class BasicFrameListener (Ogre.FrameListener ): ##, Ogre.WindowEventListener ): 
         else:   # turn it off
             if self.debugflag:
                 self.debugflag=False
-                OgreNewt.Debugger.getSingleton().hideLines() 
+                ##OgreNewt.Debugger.getSingleton().hideLines() 
                 
     def __del__ ( self ):
         self.debug ( False )
@@ -33,7 +33,8 @@ class BasicFrameListener (Ogre.FrameListener ): ##, Ogre.WindowEventListener ): 
         Ogre.FrameListener.frameStarted(self, evt)
         self.elapsed += evt.timeSinceLastFrame
         if self.debugflag == True:
-            OgreNewt.Debugger.getSingleton().showLines(self.World)
+            pass
+            ##OgreNewt.Debugger.getSingleton().showLines(self.World)
         if ((self.elapsed > self.update) and (self.elapsed < (1.0)) ):
             while (self.elapsed > self.update):
                 self.World.update( self.update )

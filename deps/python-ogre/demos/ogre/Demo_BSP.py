@@ -58,7 +58,7 @@ class BspApplication (sf.Application):
         
         self.camera.setNearClipDistance(4)
         self.camera.setFarClipDistance(0)
-        self.sceneManager.setAmbientLight (ogre.ColourValue(0.7, 0.7, 0.7))
+        self.sceneManager.setAmbientLight ( (0.7, 0.7, 0.7) )
 
         # Also change position, and set Quake-type orientation
         # Get random player start point

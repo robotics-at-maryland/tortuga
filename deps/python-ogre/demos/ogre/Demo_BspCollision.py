@@ -6,7 +6,7 @@
 
 import Ogre as ogre
 import SampleFramework as sf     ## note that we are forcing the OIS sample framework
-import OgreRefApp
+import OgreRefApp as OgreRefApp
 
 ## As this demo does it's own key input, AND we want to support Ogre 1.2.x we need to cope with the 
 ## change to OIS in ogre 1.3.x (current CVS version)
@@ -33,6 +33,9 @@ class BspCollisionListener (sf.FrameListener):
         self.timeUntilNextToggle = 0
         self.MAX_TIME_INCREMENT = 0.5
         
+    def _UpdateSimulation ( self, Event ):
+         OgreRefApp.World.getSingleton().simulationStep(Event.timeSinceLastFrame)
+           
     def frameEnded(self, evt):
         global gBall, gTargetNode, gRsq
         ## Deal with time delays that are too large
@@ -84,8 +87,8 @@ class BspCollisionApplication (sf.Application):
         """ when doing collisions with OgreRefApp Framework the camera is linked to the 'WORLD'
         not to the scene manager"""
         self.camera = self.world.createCamera('PlayerCam')
-        self.camera.setPosition(ogre.Vector3(0, 0, 500))
-        self.camera.lookAt(ogre.Vector3(0, 0, -300))
+        self.camera.setPosition( (0, 0, 500) )
+        self.camera.lookAt( (0, 0, -300) )
         self.camera.NearClipDistance = 5
 
         
@@ -93,7 +96,7 @@ class BspCollisionApplication (sf.Application):
         global gBall, gTargetNode, gRsq
         self.sceneManager.setShadowTechnique(ogre.SHADOWTYPE_STENCIL_MODULATIVE)
         ## Set ambient light
-        self.sceneManager.setAmbientLight(ogre.ColourValue(0.2, 0.2, 0.2))
+        self.sceneManager.setAmbientLight( (0.2, 0.2, 0.2) )
         
         ## Create a point light
         l = self.sceneManager.createLight("MainLight")
@@ -101,7 +104,7 @@ class BspCollisionApplication (sf.Application):
         l.setAttenuation(8000,1,0,0)
 
         ## Setup World
-        self.world.setGravity(ogre.Vector3(0, 0, -60))
+        self.world.setGravity( (0, 0, -60) )
         self.world.getSceneManager().setWorldGeometry("ogretestmap.bsp")
 
         ## modify camera for close work

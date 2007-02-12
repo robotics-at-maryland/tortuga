@@ -1,0 +1,14 @@
+
+material Ac3d/gun/Mat015_Tex00
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture gun.jpg
+			}
+		}
+	}
+}

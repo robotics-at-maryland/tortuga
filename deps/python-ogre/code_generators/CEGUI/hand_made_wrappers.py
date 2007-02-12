@@ -32,6 +32,8 @@ EventSet_exposer.def( "subscribeEvent", &EventSet_subscribeEventRadioButton,
             bp::return_value_policy< bp::reference_existing_object, bp::default_call_policies >());
 EventSet_exposer.def( "subscribeEvent", &EventSet_subscribeDragContainer, 
             bp::return_value_policy< bp::reference_existing_object, bp::default_call_policies >());
+EventSet_exposer.def( "subscribeEvent", &EventSet_subscribeMultiColumnList, 
+            bp::return_value_policy< bp::reference_existing_object, bp::default_call_policies >());
  
 { //EventConnection
         typedef bp::class_< EventConnection > EventConnection_exposer_t;
@@ -270,6 +272,13 @@ EventConnection * EventSet_subscribeDragContainer(CEGUI::DragContainer *self , C
     EventConnection *connect = new EventConnection(self->subscribeEvent(name, EventCallback(subscriber, method))); 
     return connect; 
 }
+EventConnection * EventSet_subscribeMultiColumnList(CEGUI::MultiColumnList *self , CEGUI::String const & name, 
+                                                PyObject* subscriber, CEGUI::String const & method="")
+{
+    EventConnection *connect = new EventConnection(self->subscribeEvent(name, EventCallback(subscriber, method))); 
+    return connect; 
+}
+
 """
 
 def apply( mb ):

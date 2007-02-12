@@ -1,0 +1,15 @@
+<ogreode>
+    <ragdoll name="ninja" meshName="ninja.mesh">
+
+        <!-- Set up the default settings -->
+        <defaults>
+            <settings geometry="capsule"  joint="ball" collapse="none" mass="50" radius="0.25">
+                <damping angular="0.1" linear="0.1" />
+                <axis number="1" x="1" y="0" z="0" />
+                <axis number="2" x="0" y="1" z="0" />
+            </settings>
+        </defaults>
+
+    </ragdoll>
+</ogreode>
+

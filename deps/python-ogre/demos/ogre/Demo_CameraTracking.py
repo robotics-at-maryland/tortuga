@@ -6,7 +6,7 @@ class CameraTrackApplication(sf.Application):
     def _createScene(self):
         sceneManager = self.sceneManager
         
-        sceneManager.setAmbientLight (ogre.ColourValue(0.7, 0.7, 0.7))
+        sceneManager.setAmbientLight ( (0.7, 0.7, 0.7) )
 #        sceneManager.setSkyBox (True, "Examples/CloudySky") ## AJM THIS FAILS FOR SOME REASON?
         sceneManager.setSkyDome (True, "Examples/CloudySky")
         
@@ -20,7 +20,7 @@ class CameraTrackApplication(sf.Application):
         mm = ogre.MeshManager.getSingleton()
         print dir(mm)
         mm.createPlane('FloorPlane', 'General', plane, 200000.0, 200000.0,
-               20, 20, True, 1, 200.0, 200.0, ogre.Vector3(0, 0, 1),
+               20, 20, True, 1, 200.0, 200.0,  (0, 0, 1),
                ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY, ogre.HardwareBuffer.HBU_STATIC_WRITE_ONLY, 
                True,True )
 
@@ -51,16 +51,16 @@ class CameraTrackApplication(sf.Application):
         key = animationTrack.createNodeKeyFrame(0)
         
         key = animationTrack.createNodeKeyFrame(2.5)
-        key.setTranslate (ogre.Vector3(500.0, 500.0, -1000.0))
+        key.setTranslate ( (500.0, 500.0, -1000.0))
         
         key = animationTrack.createNodeKeyFrame(5)
-        key.setTranslate (ogre.Vector3 (-1500.0, 1000.0, -600.0))
+        key.setTranslate (  (-1500.0, 1000.0, -600.0))
         
         key = animationTrack.createNodeKeyFrame(7.5)
-        key.setTranslate (ogre.Vector3 (0.0, -100.0, 0.0))
+        key.setTranslate ( (0.0, -100.0, 0.0))
         
         key = animationTrack.createNodeKeyFrame(10.0)
-        key.setTranslate (ogre.Vector3 (0.0, 0.0, 0.0))
+        key.setTranslate (  (0.0, 0.0, 0.0))
 
         self.animationState = sceneManager.createAnimationState('CameraTrack')
         self.animationState.setEnabled (True)
@@ -68,7 +68,7 @@ class CameraTrackApplication(sf.Application):
 
 		
         # add some fog
-        sceneManager.setFog(ogre.FOG_EXP, ogre.ColourValue(1, 1, 1), 0.0002)
+        sceneManager.setFog(ogre.FOG_EXP, (1, 1, 1), 0.0002)
 
     def _createFrameListener(self):
         self.frameListener = CameraTrackListener(self.renderWindow, self.camera, self.animationState)

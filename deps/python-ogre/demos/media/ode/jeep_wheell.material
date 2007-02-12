@@ -1,0 +1,30 @@
+
+material Ac3d/Jeep_WheelL/Mat001_Tex01
+{
+    receive_shadows off
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture jeep_wheel.jpg
+			}
+		}
+	}
+}
+material Ac3d/Jeep_WheelL/Mat002_Tex01
+{
+    receive_shadows off
+	technique
+	{
+		pass
+		{
+			specular 1 1 1 1 10
+			texture_unit
+			{
+				texture jeep_wheel.jpg
+			}
+		}
+	}
+}

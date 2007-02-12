@@ -2,7 +2,7 @@
 # designed for the CVS/OIS verison of Ogre
 import Ogre as ogre
 import OIS as OIS
-#import OgreRefApp
+###import OgreRefApp
 
 def getPluginPath():
     """Return the absolute path to a valid plugins.cfg file.""" 

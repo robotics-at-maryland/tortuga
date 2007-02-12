@@ -88,6 +88,18 @@ def filter_declarations( mb ):
     cls.variable('m_contact').include()
     cls.variable('m_material').include()
     
+    global_ns.namespace( 'Ogre' ).class_('AxisAlignedBox').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('Radian').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('SceneNode').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('IndexData').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('SceneManager').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('Vector3').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('Matrix4').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('Degree').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('Quaternion').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('Node').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('Serializer').include(already_exposed=True)
+    
     
     
 def set_call_policies_pointee( mb ):
@@ -176,6 +188,7 @@ def add_transformations ( mb ):
 
         
 def generate_ogrenewt():
+ 
     xml_cached_fc = parser.create_cached_source_fc(
                         os.path.join( environment.ogrenewt.root_dir, "python_ogrenewt.h" )
                         , environment.ogrenewt.cache_file )
@@ -184,7 +197,7 @@ def generate_ogrenewt():
                                           , gccxml_path=environment.gccxml_bin
                                           , working_directory=environment.root_dir
                                           , include_paths=environment.ogrenewt.include_dirs
-                                          , define_symbols=['ogrenewt_NONCLIENT_BUILD']
+                                          , define_symbols=['ogrenewt_NONCLIENT_BUILD', 'OGRE_NONCLIENT_BUILD']
                                           , indexing_suite_version=2 )
 
     filter_declarations (mb)

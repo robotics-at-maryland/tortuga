@@ -10,7 +10,7 @@ from sys import stdout
 
 class ApplicationFramework(object):
     def __init__(self):
-        self.client = None	
+        self.client = None  
         self.root = ogre.Root( sf.getPluginPath() )
         config = ogre.ConfigFile()
         config.load('resources.cfg' ) 
@@ -28,7 +28,7 @@ class ApplicationFramework(object):
         renList = self.root.getAvailableRenderers()
         miscParams = ogre.NameValuePairList()
         bOpenGL = True
-		
+        
         for r in renList:
             print "Renederer",r.getName(), r, type(r)
             if r.getName().startswith( "OpenGL" ) and bOpenGL:
@@ -39,7 +39,7 @@ class ApplicationFramework(object):
                 
                 miscParams["Video Mode"]= "1024 X 768 @ 32-bit colour"
                 miscParams["title"]="Python-Ogre is COOL - Check the source to see how to set the title!!"
-		        stdout.write("Using OpenGL renderer")
+                stdout.write("Using OpenGL renderer")
             else:
                if r.getName().startswith('Direct') and not bOpenGL:
                     self.root.setRenderSystem ( r )
@@ -48,7 +48,7 @@ class ApplicationFramework(object):
                     miscParams["Anti aliasing"] = "Level4"
            
         self.root.initialise(False)
-		
+        
         self.renderWindow = self.root.createRenderWindow( "Python-Ogre Window", 800, 600, False, miscParams )
         self.sceneManager = self.root.createSceneManager(ogre.ST_GENERIC,"Test")
         
@@ -64,9 +64,9 @@ class ApplicationFramework(object):
         # create head entity
         entity = self.sceneManager.createEntity('head', 'ogrehead.mesh')
         self.sceneManager.getRootSceneNode().createChildSceneNode().attachObject(entity)
-		
+        
         self.camera.setPosition (20, 0, 100)
-        self.camera.lookAt(0, 0, 0)		
+        self.camera.lookAt(0, 0, 0)     
         self._createFrameListener()
 
     def __del__(self):

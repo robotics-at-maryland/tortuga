@@ -1,0 +1,28 @@
+
+material Ac3d/landscape/Mat001_Tex00
+{
+	technique
+	{
+		pass
+		{
+			specular 0.2 0.4 0.2 0.5 10
+			texture_unit
+			{
+				texture grass.jpg
+			}
+		}
+	}
+}
+material Ac3d/landscape/Mat001_Tex01
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture soil_wall.jpg
+			}
+		}
+	}
+}

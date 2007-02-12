@@ -1,5 +1,6 @@
 import sys
 import Ogre as ogre
+import OgreAL
 import SampleFramework as sf
 
 class RenderToTextureFrameListener(sf.FrameListener):
@@ -22,7 +23,12 @@ class RenderToTextureFrameListener(sf.FrameListener):
         self.planeNode.yaw(dd, ogre.Node.TS_PARENT)
         
         return result        
-
+        
+class test1 (ogre.MovableObject):
+    def __init__(self):
+        print "Test1 __init__"
+        
+        
 class RenderToTextureApplication(sf.Application,ogre.RenderTargetListener):
     def __init__(self):
         "Init Render Application"
@@ -38,7 +44,18 @@ class RenderToTextureApplication(sf.Application,ogre.RenderTargetListener):
            
     def postRenderTargetUpdate(self,evt):
         self.mPlane.setVisible(True)
-
+        
+    def _createCamera(self):
+        """Creates the camera."""        
+        self.camera = self.sceneManager.createCamera('PlayerCam')
+        self.camera.setPosition(ogre.Vector3(0, 0, 500))
+        self.camera.lookAt(ogre.Vector3(0, 0, -300))
+        self.camera.NearClipDistance = 5
+        
+    def __del__ ( self ):
+        del self.soundManager
+        sf.Application.__del__(self)
+        
     def _createScene(self):
         "Override sf create scene"
         sceneManager = self.sceneManager
@@ -88,6 +105,9 @@ class RenderToTextureApplication(sf.Application,ogre.RenderTargetListener):
         rootNode = sceneManager.getRootSceneNode()
         self.mPlaneNode = rootNode.createChildSceneNode()
 
+        
+        
+        
         # Attach both the plane entity, and the plane definition
         self.mPlaneNode.attachObject(self.mPlaneEnt)
         self.mPlaneNode.attachObject(self.mPlane) 
@@ -95,8 +115,28 @@ class RenderToTextureApplication(sf.Application,ogre.RenderTargetListener):
         self.mPlaneNode.translate( ogre.Vector3(0, -10, 0))
         self.mPlaneNode.roll(ogre.Degree(d=5))
 
-        rootNode.createChildSceneNode( "Head" ).attachObject( ogreHead )
+               #
+        #
+        ## SOUND !!!!!!!!!!!!
+        #
+        #
+        node = rootNode.createChildSceneNode( "Head" )
+        node.attachObject( ogreHead )
+        self.soundManager  = OgreAL.SoundManager()
+        sound = self.soundManager.createSound("Roar", "roar.wav", True)
+        node.attachObject(sound)
 
+        sound.play()
+
+        bgSound = self.soundManager.createSoundStream("ZeroFactor", "Zero Factor - Untitled.ogg", True)
+        bgSound.setGain(0.5)
+#         bgSound.setRelativeToListener(True)
+   
+        
+    
+        
+        
+        
         ## Either of these techniques works...
         # create RenderTexture
         rttTex = self.root.getRenderSystem().createRenderTexture( "RttTex", 512, 512, 
@@ -162,6 +202,13 @@ class RenderToTextureApplication(sf.Application,ogre.RenderTargetListener):
             
         camera.setPosition (ogre.Vector3(-50, 100, 500))
         camera.lookAt (0,0,0)
+#         camera.attachObject(OgreAL.SoundManager.getListener())
+# node = sceneMgr->getRootSceneNode()->createChildSceneNode("CameraNode");
+# node->setPosition(0, 100, 100);
+# node = node->createChildSceneNode("PitchNode");
+# node->attachObject(camera);
+# node->attachObject(soundManager->getListener());
+# node->pitch(Ogre::Degree(-30));
       
     def _createFrameListener(self):
         # "create FrameListener"

@@ -28,7 +28,7 @@ class LightingApplication(sf.Application):
         l.setDirection(direct_vec)
 
 #         # create Ribbon Trail
-        pairList = ogre.NamedValuePairList()
+        pairList = ogre.NameValuePairList()
         pairList['numberOfChains'] = '2'
         pairList['maxElements'] = '80'
 

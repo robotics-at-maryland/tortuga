@@ -1,0 +1,14 @@
+
+material Ac3d/Scooby_Wheel/Mat001_Tex00
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture ruedas.jpg
+			}
+		}
+	}
+}

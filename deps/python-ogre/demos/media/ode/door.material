@@ -1,0 +1,14 @@
+
+material Ac3d/Door/Mat001_Tex00
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture door.png
+			}
+		}
+	}
+}

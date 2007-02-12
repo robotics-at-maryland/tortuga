@@ -29,21 +29,9 @@ PythonOgrePatchVersion = "2"
 ## these should be fine with auto create - however override them as necessary
 ##
 PATH_Python = os.path.dirname( sys.executable )
-if os.name == 'nt':
-    python_include_dirs = os.path.join ( PATH_Python, 'include')
-    python_lib_dirs = os.path.join ( PATH_Python, 'libs' )
-elif os.name == 'posix':
-    env_root =  os.path.join( PATH_Python, '..' )
-    ver_str = str(sys.version_info[0]) + '.' + str(sys.version_info[1])
-    python_include_dirs = os.path.join( env_root, 'include', 'python' + ver_str)
-    python_lib_dirs = os.path.join ( env_root, 'libs', 'python' + ver_str)
-else:
-    raise "ERROR unsupported"
-    
-
+python_include_dirs = os.path.join ( PATH_Python, 'include')
+python_lib_dirs = os.path.join ( PATH_Python, 'libs' )
 root_dir = os.path.abspath(os.path.dirname(__file__) )## The root directory is where this module is located
-
-print python_include_dirs
 
 sys.path.append( os.path.join( root_dir, 'common_utils' ) )
 shared_ptr_dir = os.path.join( root_dir, 'shared_ptr' )
@@ -62,14 +50,14 @@ _PlatformType = sys.platform ## win32, ??
 ##
 
 # log ( "PATH_Python: %s, UserName: %s, SystemType: %s, Root_dir: %s" % (PATH_Python, _UserName, _SystemType, root_dir) )
-user_config  = os.path.join(root_dir, 'PythonOgreConfig_' + _UserName + '.py')
-plat_config = os.path.join(root_dir, 'PythonOgreConfig_' + _SystemType + '.py')
+user_config = 'PythonOgreConfig_' + _UserName ## + '.py'
+plat_config = 'PythonOgreConfig_' + _SystemType ## + '.py'
 
-if os.path.exists(user_config):
-    execfile(user_config)
+if os.path.exists(user_config + '.py'):
+    Config = __import__(  s  )
     _ConfigSet = True
     log ( "Loaded Config (based on username) from %s" % (user_config))
-elif os.path.exists(plat_config):
+elif os.path.exists(plat_config + '.py'):
     execfile(user_config)
     _ConfigSet = True
     log ( "Loaded Config (based on systemtype) from %s" % (plat_config))
@@ -80,7 +68,7 @@ if not _ConfigSet:
     ##
     ## PLEASE use an external PythonOgreConfig_<username>.py to hold these value !!!!
     ## 
-    print "\n\n You DO need to create a PythonOgreConfig_%s.py file with config details", _SystemType
+    print "\n\n You DO need to create a PythonOgreConfig_%s.py file with config details" % ( _SystemType)
     sys.exit(-1)
     
         
@@ -93,18 +81,15 @@ if not _ConfigSet:
 class ogre:
     active = True
     version = "1.4"   # "1.2"
-    libs=[LIB_Boost, 'OgreMain', 'CEGUIOgreRenderer', 'CEGUIBase']
-    #lib_dirs = [ PATH_LIB_Boost
-    #            , os.path.join( PATH_Ogre, 'Samples/Common/CEGUIRenderer/lib')
-    #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
-    #            , os.path.join( PATH_Ogre, 'Dependencies/lib/Release')
-    #            ]
-    lib_dirs = OGRE_LIB_DIRS
-    #include_dirs = [ PATH_Boost 
-    #            , os.path.join(PATH_Ogre,'OgreMain/include') 
-    #            ]
-    include_dirs = OGRE_INCLUDE_DIRS
-    include_dirs.append(BOOST_INCLUDE_DIR)
+    libs=[Config.LIB_Boost, 'OgreMain', 'ode', 'OgreGUIRenderer', 'CEGUIBase']
+    lib_dirs = [ Config.PATH_LIB_Boost
+                ,  Config.PATH_LIB_Ogre_CEGUIRenderer
+                , Config.PATH_LIB_Ogre_OgreMain
+                , Config.PATH_LIB_Ogre_Dependencies 
+                ]
+    include_dirs = [ Config.PATH_Boost 
+                , Config.PATH_INCLUDE_Ogre 
+                ]
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     LINKFLAGS = ''
     CheckIncludes=['boost/python.hpp', 'Ogre.h']
@@ -113,69 +98,48 @@ class ogre:
 class ois:
     active = True
     version= "1.0"
-    libs=[LIB_Boost, 'OIS']
-    #include_dirs = [ PATH_Boost 
-    #        , os.path.join(PATH_OIS,'includes')    ## Note the plural include's
-    #        ]
-    include_dirs = OIS_INCLUDE_DIRS
-    include_dirs.append(BOOST_INCLUDE_DIR)
-    if os.name =='nt':
-        _lpath='dll'
-    elif os.name == 'posix':
-        _lpath='lib'   
-    elif os.name =='mac':
-        _lpath='Mac' ## TOFIX
-    #lib_dirs = [ PATH_LIB_Boost 
-    #        , os.path.join(PATH_OIS, _lpath)
-    #        ]
-    lib_dirs = OIS_LIB_DIRS
+    libs=['OIS']
+    include_dirs = [ Config.PATH_Boost 
+            , Config.PATH_INCLUDE_OIS
+            ]
+    lib_dirs = [ Config.PATH_LIB_Boost 
+            , Config.PATH_LIB_OIS
+            ]
     ModuleName = 'OIS'
     CheckIncludes=['boost/python.hpp', 'OIS.h']
         
 class ogrerefapp:
     active = True
     version = "1.4"
-    libs=[LIB_Boost, 'OgreMain', 'ode', 'CEGUIOgreRenderer', 'CEGUIBase', 'ReferenceAppLayer']
-    #lib_dirs = [ PATH_LIB_Boost
-    #            , os.path.join( PATH_Ogre, 'Samples/Common/CEGUIRenderer/lib')
-    #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
-    #            , os.path.join( PATH_Ogre, 'Dependencies/lib/Release')
-    #            , os.path.join( PATH_Ogre, 'ReferenceApplication/ReferenceAppLayer/lib/Release')
-    #            ]
-    lib_dirs = []
-    #include_dirs = [ PATH_Boost 
-    #                , os.path.join(PATH_Ogre,'OgreMain/include') 
-    #                , os.path.join(PATH_Ogre,'ReferenceApplication/ReferenceAppLayer/include') 
-    #                , os.path.join( PATH_Ogre, 'Dependencies/include')
-    #                ]
-    include_dirs = []
+    libs=[Config.LIB_Boost, 'OgreMain', 'ode', 'ReferenceAppLayer']
+    lib_dirs = [ Config.PATH_LIB_Boost
+                , Config.PATH_LIB_Ogre_OgreMain
+                , Config.PATH_LIB_ODE
+                , Config.PATH_LIB_OgreRefApp
+                ]
+    include_dirs = [ Config.PATH_Boost 
+                    ,Config.PATH_INCLUDE_Ogre
+                    ,Config.PATH_INCLUDE_OgreRefApp
+                    ,Config.PATH_INCLUDE_ODE
+                    ]
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     ModuleName = 'OgreRefApp'
-    CheckIncludes = ['boost/python.hpp', 'Ogre.h', 'OgreReferenceAppLayer.h', 'OIS/OIS.h']
+    CheckIncludes = ['boost/python.hpp', 'Ogre.h', 'OgreReferenceAppLayer.h', 'ode/ode.h']
     
 class ogrenewt:
     active=True
     version = "1.0"
-    libs = ['Newton', LIB_Boost, 'OgreNewt', 'OgreMain']
-    if os.name =='nt':
-        _lpath='dll'
-    elif os.name =='posix':
-        _lpath='lib-mt'  
-    elif os.name == 'mac':
-        print "WARNING: Newton doesn't support MAC's"
-    #include_dirs = [PATH_Boost
-    #                , PATH_Newton   # only one path for Newton
-    #            , os.path.join(PATH_Ogre,'OgreMain/include') 
-    #            , os.path.join(PATH_OgreAddons,'ogrenewt/OgreNewt_Main/inc')
-    #                ]
-    include_dirs = OGRENEWT_INCLUDE_DIRS
-    include_dirs.append(BOOST_INCLUDE_DIR)
-    #lib_dirs = [ PATH_LIB_Boost
-    #            , os.path.join(PATH_Newton ,_lpath)
-    #            ,os.path.join(PATH_OgreAddons, r'ogrenewt/OgreNewt_Main/lib/Release') 
-    #            , os.path.join( PATH_Ogre, 'OgreMain/lib/Release' )
-    #            ]
-    lib_dirs = OGRENEWT_LIB_DIRS
+    libs = ['newton', Config.LIB_Boost, 'OgreNewt_Main', 'OgreMain']
+    include_dirs = [Config.PATH_Boost
+                    , Config.PATH_Newton   # only one path for Newton
+                    , Config.PATH_INCLUDE_Ogre 
+                    , Config.PATH_INCLUDE_OgreNewt
+                    ]
+    lib_dirs = [ Config.PATH_LIB_Boost
+                ,Config.PATH_LIB_Newton
+                ,Config.PATH_LIB_OgreNewt
+                , Config.PATH_LIB_Ogre_OgreMain
+                ]
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     ModuleName = 'OgreNewt'
     CheckIncludes=['boost/python.hpp', 'Ogre.h', 'OgreNewt.h', 'Newton.h']
@@ -183,21 +147,20 @@ class ogrenewt:
 class CEGUI:
     active = True
     version = "0.5.0b" 
-    libs=[LIB_Boost, 'CEGUIBase', 'OgreMain', 'CEGUIOgreRenderer' ]
-    #include_dirs = [PATH_Boost
-    #                ,os.path.join(PATH_CEGUI, r'include')
-    #                ,PATH_CEGUI
-    #                ,os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/include' )
-    #                , os.path.join(PATH_Ogre,'OgreMain/include')
-    #                ]
-    include_dirs = CEGUI_INCLUDE_DIRS
-    include_dirs.append(BOOST_INCLUDE_DIR)
-    #lib_dirs = [ PATH_LIB_Boost
-    #            , os.path.join ( PATH_Ogre, r'Samples/Common/CEGUIRenderer/lib' )
-    #            , os.path.join ( PATH_Ogre, r'OgreMain/lib/Release' )
-    #            , os.path.join ( PATH_Ogre, r'Dependencies/lib/Release' )
-    #            ]
-    lib_dirs = CEGUI_LIB_DIRS
+    libs=[Config.LIB_Boost, 'CEGUIBase', 'OgreMain', 'OgreGUIRenderer' ]
+    include_dirs = [Config.PATH_Boost
+                    ,Config.PATH_INCLUDE_CEGUI
+                    ,Config.PATH_CEGUI
+                    , Config.PATH_INCLUDE_Ogre_CEGUIRenderer
+                    , Config.PATH_INCLUDE_Ogre
+                    , Config.PATH_INCLUDE_Ogre_Dependencies
+                    ]
+                  
+    lib_dirs = [ Config.PATH_LIB_Boost
+                ,  Config.PATH_LIB_Ogre_CEGUIRenderer
+                , Config.PATH_LIB_Ogre_OgreMain
+                ,  Config.PATH_LIB_Ogre_Dependencies
+                ]
     CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
     ModuleName = 'CEGUI'
     CheckIncludes = ['boost/python.hpp', 'Ogre.h', 'CEGUI.h', 'OgreCEGUIRenderer.h'] 
@@ -208,7 +171,17 @@ class CEGUI:
 class ode:
     version= "0.7"
     include_dirs = [r'c:/development/ode/include']
+    libs=[Config.LIB_Boost,  'ode']
+    lib_dirs = [ Config.PATH_LIB_Boost
+                ,  Config.PATH_LIB_ODE
+                ]
+    include_dirs = [ Config.PATH_Boost 
+                    ,  Config.PATH_INCLUDE_ODE
+                    , Config.PATH_INCLUDE_ODESOURCE ## some header files are in the source tree ??
+                    ]
+
     ModuleName = 'ODE'
+    CheckIncludes = ['boost/python.hpp',  'ode/ode.h'] 
     active=False
 class newton:
     version= "1.0"
@@ -217,30 +190,62 @@ class newton:
     ModuleName = 'NEWTON'
 class ogreode:
     version= "1.0"
-    include_dirs = [r'c:/development/ocvs/ogreaddons/ogreode/include',
-                    r'c:/development/ocvs/ogreaddons/ogreode/prefab/include',
-                    r'c:\development\ocvs\ogrenew\ogremain\include',
-                    r'c:/development/ode/include']
+    lib_dirs = [ Config.PATH_LIB_Boost
+                , Config.PATH_LIB_OgreOde
+                , Config.PATH_LIB_OgreOdePrefab
+                , Config.PATH_LIB_OgreOdeLoader
+                , Config.PATH_LIB_Ogre_OgreMain
+                ,  Config.PATH_LIB_ODE
+                ]
+    include_dirs = [ Config.PATH_Boost 
+                , Config.PATH_INCLUDE_ODE
+                , Config.PATH_INCLUDE_OgreOde
+                , Config.PATH_INCLUDE_OgreOdePrefab
+                , Config.PATH_INCLUDE_OgreOdeLoader
+                , Config.PATH_INCLUDE_Ogre
+                ]
+
+    libs=[Config.LIB_Boost, 'OgreMain', 'ode', 'OgreOde_Core', 'OgreOde_Prefab', 'OgreOde_Loader' ]
+    CCFLAGS =  ' -D"BOOST_PYTHON_MAX_ARITY=19"'
+    CheckIncludes = ['boost/python.hpp', 'Ogre.h', 'ode/ode.h', 'ode/odecpp.h', 'OgreOde_Core.h', 'OgreOde_Loader.h', 
+                    'Ogreode_Prefab.h'] 
+                     
     ModuleName='OgreOde'
     active=False
     
-class FMOD:
+class fmod:
     version= "4.06"
-#    include_dirs=[PATH_Boost
-#                   ,os.path.join(PATH_FMOD, 'api/inc')]
-#    lib_dirs = [ PATH_LIB_Boost
-#                  ,os.path.join(PATH_FMOD, 'api/lib')]
-    include_dirs = []
-    lib_dirs = []
-    CCFLAGS = ' /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" '
-    ModuleName = 'FMOD'
-    if os.name =='nt':
-        libs=[LIB_Boost, 'fmodexL_vc']
-    elif os.name =='posix':
-        libs=[LIB_Boost, 'libfmodex']
-    elif os.name == 'mac':
-        pass        #TOFIX
+    include_dirs=[Config.PATH_Boost
+                   ,Config.PATH_INCLUDE_FMOD
+                   ]
+    lib_dirs = [ Config.PATH_LIB_Boost
+                  ,Config.PATH_LIB_FMOD
+                  ] 
+                 
+    CCFLAGS = ' /D "NDEBUG" /D "WIN32" /D "_MBCS" '
+    ModuleName = 'FMOD' 
+    CheckIncludes = ['fmod.h']
+    active=True
+    
+class ogreal:
+    version="0.3"
+    include_dirs = [ Config.PATH_Boost
+                , Config.PATH_INCLUDE_Ogre
+                , Config.PATH_INCLUDE_OgreAL
+                , Config.PATH_INCLUDE_OGG
+                , Config.PATH_INCLUDE_VORBIS
+                , Config.PATH_INCLUDE_OPENAL
+                , Config.PATH_INCLUDE_ALUT
+                ]    
+    lib_dirs = [ Config.PATH_LIB_Boost
+                  ,Config.PATH_LIB_Ogre_OgreMain
+                  , Config.PATH_LIB_OgreAL
+                  ] 
+    libs=[Config.LIB_Boost, 'OgreMain', 'OgreAL']
+    ModuleName = 'OgreAL'
+    CheckIncludes = ['OgreAL.h']
     active=False
+                
 ############################################################################################
 
 ## Here is the master list....
@@ -253,8 +258,9 @@ projects = {
 #    , 'newton' : newton
 #    , 'ogrerefapp' : ogrerefapp
     , 'ogrenewt' : ogrenewt
-#    , 'fmod' : FMOD
+#    , 'fmod' : fmod
 #    , 'ogreode' : ogreode
+#    , 'ogreal' : ogreal
 }        
 
 #
@@ -279,10 +285,6 @@ def CheckPaths ( cls , name):
         if os.name =='nt': 
             for libfile in cls.libs :
                 libfile += '.lib'
-    #             elif os.name == 'posix':
-    #                 libfile += '.a'
-    #             elif os.name == 'mac':
-    #                 libfie += '' # I don't know what to do here 
                 found = False
                 log ( "Checking for %s library (%s class) in lib_dirs" % (libfile, name) )
                 for lookdir in cls.lib_dirs:
@@ -292,8 +294,21 @@ def CheckPaths ( cls , name):
                 if not found:
                     print "WARNING: Unable to find %s library (%s class) in lib_dirs" % (libfile, name)
     
-        
+#
+# a couple of specials that should be done differently
+gccxml_bin = Config.gccxml_bin
+pyplusplus_install_dir = Config.pyplusplus_install_dir                    
+                            
 for name, cls in projects.items():
+    # little hack to allow overriding of settings from the config file
+    if hasattr(Config, name):   # look to see if the class exists in the config file
+        print "Using Override for class ", name
+        _class = Config.__dict__[name]  # get the class
+        for key, value in _class.__dict__.items():
+            if not key.startswith('_'):
+                cls.__dict__[key] = value   
+                print "Set %s.%s to %s" % (name, key, value) 
+                
     CheckPaths( cls, name )
     cls.root_dir = os.path.join( root_dir, 'code_generators', name )
     cls.dir_name = name + '_' + str(cls.version)

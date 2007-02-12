@@ -71,11 +71,11 @@ class ExampleLoadingBar (ogre.ResourceGroupListener):
             # Lets assume script loading is 70%
             self.mProgressBarInc = self.mProgressBarMaxSize * self.mInitProportion / scriptCount
             self.mProgressBarInc /= self.mNumGroupsInit
-            self.mLoadingDescriptionElement.setCaption("Parsing scripts...")
+            self.mLoadingDescriptionElement.setCaption(ogre.UTFString("Parsing scripts..."))
             self.mWindow.update()
     
     def scriptParseStarted(self, scriptName):
-        self.mLoadingCommentElement.setCaption(scriptName)
+        self.mLoadingCommentElement.setCaption(ogre.UTFString(scriptName))
         self.mWindow.update()
 
     if ogre.OgreVersionString[:2] == "12":
@@ -96,18 +96,18 @@ class ExampleLoadingBar (ogre.ResourceGroupListener):
         if self.mNumGroupsLoad >0 :
             self.mProgressBarInc = self.mProgressBarMaxSize * (1-self.mInitProportion) / resourceCount
             self.mProgressBarInc /= self.mNumGroupsLoad
-            self.mLoadingDescriptionElement.setCaption("Loading resources...")
+            self.mLoadingDescriptionElement.setCaption(ogre.UTFString("Loading resources..."))
             self.mWindow.update()
         
     def resourceLoadStarted(self, resource):
-        self.mLoadingCommentElement.setCaption(resource.getName())
+        self.mLoadingCommentElement.setCaption(ogre.UTFString(resource.getName()))
         self.mWindow.update()
     
     def resourceLoadEnded(self):
         pass
         
     def worldGeometryStageStarted(self, description):
-        self.mLoadingCommentElement.setCaption(description)
+        self.mLoadingCommentElement.setCaption(ogre.UTFString(description))
         self.mWindow.update()
         
     def worldGeometryStageEnded(self):

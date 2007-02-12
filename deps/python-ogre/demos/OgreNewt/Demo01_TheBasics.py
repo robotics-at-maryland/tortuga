@@ -21,6 +21,7 @@ class OgreNewtonApplication (sf.Application):
     def __del__ (self):
         ## delete the world when we're done.
         #OgreNewt.Debugger.getSingleton().deInit()
+        del self.bodies
         del self.World;
     
         ## de-initialize the debugger.
@@ -202,7 +203,7 @@ class OgreNewtonFrameListener(sf.FrameListener):
             self.basicframelistener.debug ( self.Debug )
             
         if (self.Keyboard.isKeyDown(OIS.KC_ESCAPE)):
-            OgreNewt.Debugger.getSingleton().deInit()
+            ##OgreNewt.Debugger.getSingleton().deInit()
             return False
         return True        
     

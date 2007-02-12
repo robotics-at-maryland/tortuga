@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-#-------------------------------------------------------------------------------
-# TODO:
-# 1.    void* as a function argument - they are currently wrapped (and compile/load etc) due to latest CVS of boost.
-#       However probably don't actually work
-# 2.    Properties.py and calling 'properties.create' - commented out at the moment, not sure if it is really needed?
 
 import os, sys, time
 
@@ -41,6 +36,7 @@ def filter_declarations( mb ):
     
     # exclude this as standard boost libraries don't support std::Multimap's.  Replace by createPythonInputSystem
     # ois_ns.class_( "InputManager" ).member_functions("createInputSystem").exclude()
+    ois_ns.class_('Effect').variable('OIS_INFINITE').exclude()
     
 def set_call_policies( mb ):
     ois_ns = mb.global_ns.namespace ('OIS')
@@ -92,13 +88,10 @@ def generate_code():
 
     for cls in mb.global_ns.namespace ('OIS').classes():
         cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t() )
-        ##common_utils.add_LeadingLowerProperties ( cls )
-        ##common_utils.add_PropertyDoc ( cls ) Prsent in Py++
 
 
-    common_utils.add_constants( mb, { 'ois_version' :  '"%s"' % environment.ois.version.replace("\n","\\\n")
-                                      , 'python_version' : '"%s"' % sys.version.replace("\n","\\\n") } )
-
+    common_utils.add_constants( mb, { 'ois_version' :  '"%s"' % environment.ois.version
+                                      , 'python_version' : '"%s"' % sys.version.replace("\n", "\\\n") } )
 
     #Creating code creator. After this step you should not modify/customize declarations.
     extractor = exdoc.doc_extractor("")

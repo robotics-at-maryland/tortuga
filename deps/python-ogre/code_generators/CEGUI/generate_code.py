@@ -26,6 +26,8 @@ import common_utils.ogre_properties as ogre_properties
 def filter_declarations( mb ):
     global_ns = mb.global_ns
     global_ns.exclude()
+    global_ns.namespace('std').class_('pair<float, float>').include()
+    
     CEGUI_ns = global_ns.namespace( 'CEGUI' )
     CEGUI_ns.include()
     
@@ -111,18 +113,18 @@ def filter_declarations( mb ):
     
     ## a string one that stops pydoc working against CEGUI
     CEGUI_ns.class_('ListHeader').variable('SegmentNameSuffix').exclude()
-#     #Exclude non default constructors of iterator classes. 
-#     for cls in CEGUI_ns.classes():
-#        if not declarations.templates.is_instantiation( cls.name ):
-#            continue
-#        name = declarations.templates.name( cls.name )
-#        if not name.endswith( 'Iterator' ):
-#            continue
-#        #default constructor does not have arguments
-#        constructors = cls.constructors( lambda decl: bool( decl.arguments )
-#                                                       , allow_empty=True
-#                                                       , recursive=False )
-#        constructors.exclude()
+    #Exclude non default constructors of iterator classes. 
+    for cls in CEGUI_ns.classes():
+       if not declarations.templates.is_instantiation( cls.name ):
+           continue
+       name = declarations.templates.name( cls.name )
+       if not name.endswith( 'Iterator' ):
+           continue
+       #default constructor does not have arguments
+       constructors = cls.constructors( lambda decl: bool( decl.arguments )
+                                                      , allow_empty=True
+                                                      , recursive=False )
+       constructors.exclude()
 
     ## I'm going to exclude all iterators as there is a problem with CEGUIIteratorBase.h
     for cls in CEGUI_ns.classes():
@@ -130,6 +132,11 @@ def filter_declarations( mb ):
         if 'iterator' in cls.name.lower() :
             cls.exclude()
             print "Excluding Iterator", cls.name
+    global_ns.namespace( 'Ogre' ).class_('SceneManager').include(already_exposed=True)
+            
+    global_ns.namespace( 'Ogre' ).class_('RenderWindow').include(already_exposed=True)
+    global_ns.namespace( 'Ogre' ).class_('TexturePtr').include(already_exposed=True)
+#     global_ns.namespace( 'Ogre' ).class_('SimpleRenderable').include(already_exposed=True)
             
     
 def set_call_policies( mb ):
@@ -167,14 +174,14 @@ def change_cls_alias( ns ):
 
 def generate_code():
     xml_cached_fc = parser.create_cached_source_fc(
-                        os.path.join( environment.CEGUI.root_dir, "python_CEGUI.h" )
-                        , environment.CEGUI.cache_file )
+                        os.path.join( environment.cegui.root_dir, "python_CEGUI.h" )
+                        , environment.cegui.cache_file )
 
     mb = module_builder.module_builder_t( [ xml_cached_fc ]
                                           , gccxml_path=environment.gccxml_bin
                                           , working_directory=environment.root_dir
-                                          , include_paths=environment.CEGUI.include_dirs
-                                          , define_symbols=['CEGUI_NONCLIENT_BUILD']
+                                          , include_paths=environment.cegui.include_dirs
+                                          , define_symbols=['CEGUI_NONCLIENT_BUILD', 'OGRE_NONCLIENT_BUILD']
                                           , indexing_suite_version=2 )
     filter_declarations (mb)
    
@@ -192,19 +199,19 @@ def generate_code():
         cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t()  )
         common_utils.add_LeadingLowerProperties ( cls )
 
-    common_utils.add_constants( mb, { 'CEGUI_version' :  '"%s"' % environment.CEGUI.version
+    common_utils.add_constants( mb, { 'CEGUI_version' :  '"%s"' % environment.cegui.version
                                        , 'python_version' : '"%s"' % sys.version.replace("\n", "\\\n") } )
                                       
     #Creating code creator. After this step you should not modify/customize declarations.
     extractor = exdoc.doc_extractor("")
     
     mb.build_code_creator (module_name='_cegui_', doc_extractor= extractor)
-    for incs in environment.CEGUI.include_dirs:
+    for incs in environment.cegui.include_dirs:
         mb.code_creator.user_defined_directories.append( incs )
-    mb.code_creator.user_defined_directories.append( environment.CEGUI.generated_dir )
-    mb.code_creator.replace_included_headers( customization_data.header_files(environment.CEGUI.version) )
-    huge_classes = map( mb.class_, customization_data.huge_classes(environment.CEGUI.version) )
-    mb.split_module(environment.CEGUI.generated_dir, huge_classes)
+    mb.code_creator.user_defined_directories.append( environment.cegui.generated_dir )
+    mb.code_creator.replace_included_headers( customization_data.header_files(environment.cegui.version) )
+    huge_classes = map( mb.class_, customization_data.huge_classes(environment.cegui.version) )
+    mb.split_module(environment.cegui.generated_dir, huge_classes)
 
 if __name__ == '__main__':
     start_time = time.clock()

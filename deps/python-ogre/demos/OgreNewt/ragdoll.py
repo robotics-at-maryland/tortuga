@@ -34,25 +34,25 @@ class RagDoll:
 
             ## make the rigid body.
             if shape == RagDoll.RagBone.BS_BOX:
-                col = OgreNewt.CollisionPrimitives.Box( world, size ) 
+                col = OgreNewt.Box( world, size ) 
             elif shape == RagDoll.RagBone.BS_CAPSULE:
-                col = OgreNewt.CollisionPrimitives.Capsule( world, size.y, size.x, orient, pos ) 
+                col = OgreNewt.Capsule( world, size.y, size.x, orient, pos ) 
             elif shape == RagDoll.RagBone.BS_CONE:
-                col = OgreNewt.CollisionPrimitives.Cone( world, size.y, size.x, orient, pos ) 
+                col = OgreNewt.Cone( world, size.y, size.x, orient, pos ) 
             elif shape == RagDoll.RagBone.BS_CYLINDER:
-                col = OgreNewt.CollisionPrimitives.Cylinder( world, size.y, size.x, orient, pos ) 
+                col = OgreNewt.Cylinder( world, size.y, size.x, orient, pos ) 
             elif shape == RagDoll.RagBone.BS_ELLIPSOID:
-                col = OgreNewt.CollisionPrimitives.Ellipsoid( world, size ) 
+                col = OgreNewt.Ellipsoid( world, size ) 
             elif shape == RagDoll.RagBone.BS_CONVEXHULL:
                 col = _makeConvexHull( world, mesh, size.x ) 
             else:
-                col = OgreNewt.CollisionPrimitives.Box( world, size ) 
+                col = OgreNewt.Box( world, size ) 
         
             self.Body = OgreNewt.Body( world, col ) 
             self.Body.setUserData( self ) 
             self.Body.setStandardForceCallback() 
         
-            inertia, om = col.calculateInertialMatrix( ) 
+            inertia, com = col.calculateInertialMatrix( ) 
             
             self.Body.setMassMatrix( mass, inertia * mass ) 
             self.Body.setCenterOfMass( com ) 
@@ -127,7 +127,7 @@ class RagDoll:
                             vert.z = v_Posptr  
                             ## apply transformation in to local space.
                             vert = invMatrix * vert 
-                            vertexVector.push_back( vert ) 
+                            vertexVector.append( vert ) 
         ##                  Ogre.LogManager.getSingletonPtr().logMessage("  vertex found! id:"+Ogre.StringConverter.toString(vba.vertexIndex)) 
                 v_sptr.unlock() 
                 
@@ -137,7 +137,7 @@ class RagDoll:
             j = 0 
             while (not vertexVector.empty()):
                 verts[j] = vertexVector.back() 
-                vertexVector.pop_back() 
+                vertexVector.pop() 
                 j+=1 
         
             ##////////////////////////////////////////////////////////////////////////////////
@@ -149,6 +149,7 @@ class RagDoll:
     def __init__( self, filename, world, node ):    # ragdoll __init__
         self.Node = node 
         self.World = world 
+        self.Bones=[]
         ## get the skeleton.
         self.Skeleton = self.Node.getAttachedObject(0).getSkeleton() 
         ## get the mesh.
@@ -167,22 +168,40 @@ class RagDoll:
             return 
         ## found the root ragdoll.  find the root bone, and go!
         parent = None 
-        bone = root.getElementsByTagName ("Bone")
+        print "\n**************\n"
+        print root
+        print dir(root)
+        print "\n**************\n"
+        
+        bone = root.getElementsByTagName ("Bone")[0]
+
         ##bone = root.FirstChildElement("Bone") 
         if (bone):
             self._addAllBones( None, bone ) 
 
 
     def _addAllBones ( self, parent,  bone):
-    
+        print "==============="
+        print bone
+        
+        print dir(bone)
+        print "\n========\n"
+#         print bone[0]
+#         print dir(bone[0])
+        print bone.getAttribute("dir")
+        
         ## get the information for the bone represented by self element.
-        dire = Ogre.StringConverter.parseVector3( bone.getAttribute("dir") ) 
-        length = Ogre.StringConverter.parseReal( bone.getAttribute("length") ) 
+        t =  bone.getAttribute("dir").split()  #vector3
+        dire = Ogre.Vector3(float(t[0]), float(t[1]), float(t[2]))
+        
+        length =  float(bone.getAttribute("length") )# real
             
-        size = Ogre.StringConverter.parseVector3( bone.getAttribute("size") ) 
+        t =  bone.getAttribute("size").split() #vector3
+        size = Ogre.Vector3(float(t[0]), float(t[1]), float(t[2]))
         
         skeleton_bone = bone.getAttribute("skeleton_bone") 
-        ogrebone = self.Skeleton.getBone( skeleton_bone ) 
+        print skeleton_bone
+        ogrebone = self.Skeleton.getBone( str(skeleton_bone) ) 
     
         shapestr = bone.getAttribute("shape") 
         shape = RagDoll.RagBone.BS_BOX 
@@ -200,7 +219,7 @@ class RagDoll:
         elif (shapestr=="hull"):
             shape = RagDoll.RagBone.BS_CONVEXHULL 
     
-        mass = Ogre.StringConverter.parseReal( bone.Attribute("mass") ) 
+        mass = float( bone.getAttribute("mass") ) 
         
         ##/////////////////////////////////////////////////////////////////////////////
         me = self._addBone( self.World, parent, dire, shape, size, mass, ogrebone ) 
@@ -209,10 +228,11 @@ class RagDoll:
         ## position the bone.
         boneorient = self.Node.getWorldOrientation() * ogrebone._getDerivedOrientation() 
         if (shape != RagDoll.RagBone.BS_CONVEXHULL):
-            bonepos = self.Node._getFullTransform() * ogrebone._getDerivedPosition() + (boneorient * (dir * (length*0.5))) 
+            bonepos = self.Node._getFullTransform() * ogrebone._getDerivedPosition() + (boneorient * (dire * (length*0.5))) 
         else:
-            bonepos = self.Node._getFullTransform() * ogrebone._getDerivedPosition() 
-        me.getBody().setPositionOrientation( bonepos, boneorient ) 
+            bonepos = self.Node._getFullTransform() * ogrebone._getDerivedPosition()
+        
+        me.Body.setPositionOrientation( bonepos, boneorient ) 
     
         ## set offsets
         if (not parent):
@@ -261,23 +281,23 @@ class RagDoll:
         while (self.Bones.size() > 0):
             bone = self.Bones.back() 
             del bone 
-            self.Bones.pop_back() 
+            self.Bones.pop() 
 
     #RagDoll.RagBone* RagDoll
     def _addBone( self, world, parent, dire, shape, size, mass, ogrebone ):
         bone = RagDoll.RagBone( self, world, parent, ogrebone, self.Mesh, dire, shape, size, mass ) 
         ogrebone.setManuallyControlled( True ) 
-        self.Bones.push_back( bone ) 
+        self.Bones.append( bone ) 
         return bone 
     
     
     def _joinBones( self, typein, parent, child, pos, pin, limit1, limit2 ):
         pin.normalise() 
         if typein == RagDoll.JT_BALLSOCKET:
-            joint = OgreNewt.BasicJoints.BallAndSocket( child.getBody().getWorld(), child.getBody(), parent.getBody(), pos ) 
+            joint = OgreNewt.BasicJoints.BallAndSocket( child.Body.getWorld(), child.Body, parent.Body, pos ) 
             joint.setLimits(pin, Ogre.Degree(limit1), Ogre.Degree(limit2)) 
         elif typein == RagDoll.JT_HINGE:
-            joint = OgreNewt.BasicJoints.Hinge( child.getBody().getWorld(), child.getBody(), parent.getBody(), pos, pin ) 
+            joint = OgreNewt.BasicJoints.Hinge( child.Body.getWorld(), child.Body, parent.Body, pos, pin ) 
             joint.setCallback( self, "_hingeCallback" ) 
             joint.setUserData( child ) 
             child.setLimits( limit1, limit2 ) 
@@ -295,7 +315,7 @@ class RagDoll:
             doll.self.Node.setOrientation( finalorient ) 
         else:
             ## standard bone, calculate the local orientation between it and it's parent.
-            parentpos, parentorient = bone.getParent().getBody().getPositionOrientation(  ) 
+            parentpos, parentorient = bone.getParent().Body.getPositionOrientation(  ) 
             localorient = parentorient.Inverse() * orient 
             bone.getOgreBone().setOrientation( localorient ) 
             
@@ -306,6 +326,6 @@ class RagDoll:
         it = self.Bones.begin()
         while it:
         ## for (RagBoneListIterator it = self.Bones.begin()  it != self.Bones.end(); it++)
-            pos, orient = it.getBody().getPositionOrientation(  ) 
-            it.getBody().setVelocity( vel + omega.crossProduct( pos - mainpos ) ) 
+            pos, orient = it.Body.getPositionOrientation(  ) 
+            it.Body.setVelocity( vel + omega.crossProduct( pos - mainpos ) ) 
     

@@ -1,0 +1,105 @@
+OgreOdeDemos/Overlay
+{
+	zorder 500
+	// Stats block
+	container BorderPanel(OgreOdeDemos/Panel)
+	{
+		metrics_mode pixels
+		vert_align top
+        horz_align left
+		left 5
+		top 5
+		width 500
+		height 74
+		material Core/StatsBlockCenter
+        	border_size 1 1 1 1
+        	border_material Core/StatsBlockBorder
+        	border_topleft_uv     0.0000 1.0000 0.0039 0.9961
+	    	border_top_uv         0.0039 1.0000 0.9961 0.9961
+	    	border_topright_uv    0.9961 1.0000 1.0000 0.9961
+	    	border_left_uv        0.0000 0.9961 0.0039 0.0039
+	    	border_right_uv       0.9961 0.9961 1.0000 0.0039
+	    	border_bottomleft_uv  0.0000 0.0039 0.0039 0.0000
+        	border_bottom_uv      0.0039 0.0039 0.9961 0.0000
+	    	border_bottomright_uv 0.9961 0.0039 1.0000 0.0000
+
+
+		element TextArea(OgreOdeDemos/Name)
+		{
+			metrics_mode pixels
+			left 5
+			top 5
+			width 490
+			height 16
+			font_name BlueHighway
+			char_height 16
+			caption Name: None
+			colour_top 0.5 0.7 0.5
+			colour_bottom 0.3 0.5 0.3
+		}
+
+		element TextArea(OgreOdeDemos/Keys)
+		{
+			metrics_mode pixels
+			left 5
+			top 21
+			width 490
+			height 16
+			font_name BlueHighway
+			char_height 16
+			caption Keys: Press a function key; F1 - F6
+			colour_top 0.5 0.7 0.5
+			colour_bottom 0.3 0.5 0.3
+		}
+
+		element TextArea(OgreOdeDemos/Info)
+		{
+			metrics_mode pixels
+			left 5
+			top 37
+			width 490
+			height 16
+			font_name BlueHighway
+			char_height 16
+			caption Info:
+			colour_top 0.5 0.7 0.5
+			colour_bottom 0.3 0.5 0.3
+		}
+
+		element TextArea(OgreOdeDemos/OtherKeys)
+		{
+			metrics_mode pixels
+			left 5
+			top 53
+			width 490
+			height 16
+			font_name BlueHighway
+			char_height 16
+			caption Extras: Space - Shadows, R - Look/Chase, E - Debug Objects
+			colour_top 0.5 0.7 0.5
+			colour_bottom 0.3 0.5 0.3
+		}
+	}
+}
+
+OgreOdeDemos/Target
+{
+	zorder 500
+	container Panel(OgreOdeDemos/Sights)
+	{
+		left 0.485937
+		top 0.475
+		width 0.0375
+		height 0.05
+		material OgreOdeDemos/TargetSights
+		metrics_mode relative
+		horz_align left
+		vert_align top
+		visible true
+		uv_coords  0 0 1 1
+		tiling 0 1 1
+		transparent false
+		}
+}
+
+

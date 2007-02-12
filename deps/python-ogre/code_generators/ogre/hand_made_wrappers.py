@@ -184,6 +184,33 @@ WRAPPER_REGISTRATION_HardwareBufferManager = \
 //           bp::return_value_policy< bp::reference_existing_object, bp::default_call_policies >());
 """
 
+#####################################################################
+
+WRAPPER_DEFINITION_SectionIterator = \
+"""
+Ogre::SectionIterator
+SectionIterator_iter ( Ogre::SectionIterator & me ) {
+    return me;
+    }
+   
+boost::python::tuple
+SectionIterator_next( Ogre::SectionIterator & me ){
+    if me.hasMoreElements(){
+        return boost::python::make_tuple (
+                    boost::python::str (me.peekNextKey())
+                   ,boost::python::str (me.getNext())
+                    )
+        }
+    else
+        boost::python::raise StopIteration ()   
+    }
+"""
+WRAPPER_REGISTRATION_SectionIterator = \
+"""
+       SectionIterator_exposer.def( "__iter__", &::SectionIterator_iter );
+       SectionIterator_exposer.def( "next", &::SectionIterator_next );
+"""
+
 #########################################
 
 ## Needed as boost doesn't handle this overload properly and always uses 'Plane' as the override - see renderToTexture demo
@@ -288,6 +315,10 @@ def apply( mb ):
     rt.add_declaration_code( WRAPPER_DEFINITION_BillboardParticleRendererFactory )
     rt.add_registration_code( WRAPPER_REGISTRATION_BillboardParticleRendererFactory )
       
+#     rt = mb.class_( 'MapIterator' )
+#     rt.add_declaration_code( WRAPPER_DEFINITION_SectionIterator )
+#     rt.add_registration_code( WRAPPER_REGISTRATION_SectionIterator )
+
     mb.add_declaration_code( WRAPPER_DEFINITION_General )
     mb.add_registration_code( WRAPPER_REGISTRATION_General )
     

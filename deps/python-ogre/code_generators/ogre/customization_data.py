@@ -265,11 +265,14 @@ def aliases( version ):
 
 def header_files( version ):
     if version == "1.4":
+        return [ 'python_ogre_masterlist.h'
+                ,'py_shared_ptr.h'
+        ]
+
         return [ 'Ogre.h'
                 , 'OgreErrorDialog.h'
                 , 'OgreConfigDialog.h'
                 , 'OgreTagPoint.h'
-                , 'OgreTargetManager.h'
                 , 'OgreOverlayElementFactory.h'
                 , 'OgreArchiveFactory.h'
                 , 'OgreParticleSystemRenderer.h'
@@ -281,6 +284,7 @@ def header_files( version ):
                 , 'OgreCompositor.h'
                 , 'py_shared_ptr.h'
                 ,  'OgreBillboardParticleRenderer.h'
+                , 'OgrePlugin.h'
                 
             ]
     else: #1.2

@@ -1,0 +1,58 @@
+// Vertex program for automatic terrain texture generation
+void main_vp
+(
+    float4             iPosition           : POSITION,
+	float4             iNormal             : NORMAL,
+	float2             iTexcoord           : TEXCOORD0,
+
+	out float4         oPosition           : POSITION,
+	out float4         oTexcoord           : TEXCOORD0,
+	out float4         oColor0             : COLOR0,
+	out float4         oColor1             : COLOR1,
+	out float4         oFog                : TEXCOORD1,
+
+	uniform float4x4   worldViewProj,
+	uniform float4     lightDirection,
+	uniform float4     ambientLight,
+
+	uniform float4     configSettings,
+	uniform float4     fogSettings,
+	uniform float4     fogColour
+)
+{
+    // Calculate the output position and texture coordinates
+	oPosition  = mul(worldViewProj,iPosition);
+    oTexcoord = float4(iPosition.x,iPosition.z,0.0,0.0) * configSettings[0];
+
+    float fog = clamp(( oPosition.z - fogSettings[0] ) / (fogSettings[1] - fogSettings[0]),0.0,1.0) * fogSettings[2];
+
+    // Calculate the diffuse and the ambient lighting
+    float diffuse = dot(iNormal,lightDirection);
+
+    // Set the output color based on the lighting
+    float rock_factor = (iNormal.y > configSettings[1])?0.0:(clamp((configSettings[1] - iNormal.y) * configSettings[2],0.0,1.0));
+    float4 color = float4(diffuse,diffuse,diffuse,1.0) + (ambientLight * configSettings[3]);
+    oColor0 = (1.0 - fog) * (color * (1.0 - rock_factor));
+    oColor1 = (1.0 - fog) * (color * rock_factor);
+    oFog = fogColour * fog;
+}
+
+// Fragment program for automatic terrain texture generation
+void main_fp
+(
+    float4              iTexcoord	: TEXCOORD0,
+    float4              iColor0     : COLOR0,
+    float4              iColor1     : COLOR1,
+    float4              iFog        : TEXCOORD1,
+
+	out float4          oColor		: COLOR,
+
+    uniform sampler2D   textureUnit0,
+    uniform sampler2D   textureUnit1
+)
+{
+    // Sample the texture to get the output colour, times the lighting
+	oColor = iFog + (tex2D(textureUnit0,iTexcoord.xy) * iColor0) + (tex2D(textureUnit1,iTexcoord.xy) * iColor1);
+	oColor.a = 1.0;
+}
+

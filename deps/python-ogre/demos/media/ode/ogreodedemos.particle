@@ -1,0 +1,37 @@
+OgreOdeDemos/Rocket
+{
+    	material        	  Examples/Smoke
+    	particle_width  	  0.5
+    	particle_height 	  0.5
+    	cull_each       	  true
+    	quota           	  500
+    	billboard_type  	  point
+
+    	emitter Point
+    	{
+        	emission_rate     50
+        	time_to_live      1
+        	direction         0 1 0
+        	velocity_min      0.2
+        	velocity_max      1.0
+  	    }
+
+        affector ColourImage
+	    {
+		    image             smokecolors.png
+	    }
+
+        affector Rotator
+   	    {
+        	rotation_range_start  		   0
+        	rotation_range_end   	 	   360
+        	rotation_speed_range_start     -60
+        	rotation_speed_range_end       200
+   	    }
+
+        affector Scaler
+   	    {
+       	    rate 	          1
+   	    }
+}
+

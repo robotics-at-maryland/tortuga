@@ -1,0 +1,19 @@
+
+material Ac3d/Ball/Mat001_Tex00
+{
+    receive_shadows off
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1 1
+			diffuse 1 1 1 1
+			specular 1 1 1 1 10
+
+			texture_unit
+			{
+				texture ball.png
+			}
+		}
+	}
+}

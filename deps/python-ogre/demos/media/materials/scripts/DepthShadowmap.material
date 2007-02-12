@@ -1,0 +1,217 @@
+vertex_program Ogre/DepthShadowmap/CasterVP hlsl
+{
+    source DepthShadowmap.hlsl
+    entry_point casterVP
+    target vs_2_0
+
+    default_params
+    {
+        param_named_auto worldViewProj worldviewproj_matrix
+		param_named_auto texelOffsets texel_offsets
+		//param_named rangeOffset float 1000
+		//param_named rangeScale float 200
+    }
+}
+
+
+fragment_program Ogre/DepthShadowmap/CasterFPraw hlsl
+{
+    source DepthShadowmap.hlsl
+    entry_point casterFPraw
+    target ps_2_0
+
+    default_params
+    {
+    }
+}
+
+
+vertex_program Ogre/DepthShadowmap/ReceiverVP hlsl
+{
+    source DepthShadowmap.hlsl
+    entry_point receiverVP
+    target vs_2_0
+
+    default_params
+    {
+        param_named_auto world world_matrix
+        param_named_auto worldIT inverse_transpose_world_matrix
+		param_named_auto worldViewProj worldviewproj_matrix
+		param_named_auto texViewProj texture_viewproj_matrix
+		param_named_auto lightPosition light_position 0
+		param_named_auto lightColour light_diffuse_colour 0
+		param_named fixedDepthBias float 0.0005
+    }
+}
+
+
+fragment_program Ogre/DepthShadowmap/ReceiverFPraw hlsl
+{
+    source DepthShadowmap.hlsl
+    entry_point receiverFPraw
+	target ps_2_0
+
+    default_params
+    {
+        param_named inverseShadowmapSize float 0.0009765625
+		param_named gradientClamp float 0.0098
+		param_named gradientScaleBias float 0
+		param_named shadowFuzzyWidth float 1
+    }
+}
+
+
+
+// Generic Shadow caster material (floating point shadowmap)
+material Ogre/DepthShadowmap/Caster/Float
+{
+	technique
+    {
+        pass 
+        {
+            vertex_program_ref Ogre/DepthShadowmap/CasterVP
+            {
+            }
+            fragment_program_ref Ogre/DepthShadowmap/CasterFPraw
+            {
+            }
+        }
+    }
+}
+
+// Generic Shadow receiver material (floating point shadowmap)
+material Ogre/DepthShadowmap/Receiver/Float
+{
+	technique
+    {
+        pass 
+        {
+            vertex_program_ref Ogre/DepthShadowmap/ReceiverVP
+            {
+            }
+            fragment_program_ref Ogre/DepthShadowmap/ReceiverFPraw
+            {
+            }
+            texture_unit ShadowMap
+            {
+                tex_address_mode clamp
+                filtering none
+            }
+        }
+    }
+}
+
+
+// TEST!!!!!
+material Ogre/DepthShadowmap/Receiver/RockWalltest
+{
+    technique
+    {
+        pass 
+        {
+            vertex_program_ref Ogre/DepthShadowmap/ReceiverVP
+            {
+            }
+
+            fragment_program_ref Ogre/DepthShadowmap/ReceiverFPraw
+            {
+            }
+
+            texture_unit 
+            {
+                texture rockwall.tga
+            }
+        }
+    }
+}
+
+// Specific receiver material for rockwall
+material Ogre/DepthShadowmap/Receiver/RockWall
+{
+
+	// This is the preferred technique which uses both vertex and
+	// fragment programs, supports coloured lights
+	technique
+	{
+		// Base ambient pass
+		pass
+		{
+			// base colours, not needed for rendering, but as information
+			// to lighting pass categorisation routine
+			ambient 1 1 1
+			diffuse 0 0 0 
+			specular 0 0 0 0 
+			// Really basic vertex program
+			// NB we don't use fixed function here because GL does not like
+			// mixing fixed function and vertex programs, depth fighting can
+			// be an issue
+			vertex_program_ref Ogre/BasicVertexPrograms/AmbientOneTextureHLSL
+			{
+				param_named_auto worldViewProj worldviewproj_matrix
+				param_named_auto ambient ambient_light_colour
+			}
+			
+		}
+		// Now do the lighting pass
+		// NB we don't do decal texture here because this is repeated per light
+		pass
+		{
+			// base colours, not needed for rendering, but as information
+			// to lighting pass categorisation routine
+			ambient 0 0 0 
+			
+			// do this for each light
+			iteration once_per_light
+
+		
+			scene_blend add
+
+			// Vertex program reference
+			vertex_program_ref Ogre/DepthShadowmap/ReceiverVP
+			{
+			}
+			shadow_receiver_vertex_program_ref Ogre/DepthShadowmap/ReceiverVP
+			{
+			}
+
+			// Fragment program
+			fragment_program_ref Ogre/DepthShadowmap/ReceiverFPraw
+			{
+			}
+			shadow_receiver_fragment_program_ref Ogre/DepthShadowmap/ReceiverFPraw
+			{
+			}
+
+			// shadowmap texture will be bound by code
+
+		}
+		
+		// Decal pass
+		pass
+		{
+			// base colours, not needed for rendering, but as information
+			// to lighting pass categorisation routine
+			lighting off
+			// Really basic vertex program
+			// NB we don't use fixed function here because GL does not like
+			// mixing fixed function and vertex programs, depth fighting can
+			// be an issue
+			vertex_program_ref Ogre/BasicVertexPrograms/AmbientOneTextureHLSL
+			{
+				param_named_auto worldViewProj worldviewproj_matrix
+				param_named ambient float4 1 1 1 1
+			}
+			scene_blend dest_colour zero
+
+
+			texture_unit
+			{
+				texture rockwall.tga
+			}
+			
+		}
+	}
+
+
+}
+

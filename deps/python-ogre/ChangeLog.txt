@@ -32,6 +32,20 @@ Jul -Aug 2006:  All the base work done by Larkin and Roman
                 Remove need for path variable to be set - modules do this automajically
                 Renamed and cleaned up the demos and their file naming..
                 Fixed Demo06 in CEGUI
+09 jan 2007;  SNAPSHOT
+              Changes to demo01 in OgreNewt showing how to do debug lines
+              MANY changes to code generation (with Py++) enhancements - fixing many container classes that wrap pointers
+              Demo_renderCreate to show how to create your own render window and uses previously broken wrappers
+04 feb 2007:  Version 0.8 Release
+                Number of minor tweaks to Ogre, some classes corrected to match the Ogre Library better:
+                (NamedValuePairList is now NameValuePairList, FloatController... are now Controller...Float)
+                Most calls automatically convert from tuples (or lists) to colourvalues or vectors. So instead of
+                having to do an ogre.ColourValue(1,1,1) you can do (1,1,1) 
+                CEGUI has been updated a little, more from an internal code creation perspective (less classes unexposed)
+                Used the Scons build system for everything 
+                OgreAl has been added - we now have simple sound for the library
+                ODE and OgreOde have been added for a new physics library - DEMOS have not been completed to expect problems:)
+                FMOD has been included for fun, a VERY limited support at present, but will be improved:)                              
 
               
               

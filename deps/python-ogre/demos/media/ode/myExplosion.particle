@@ -1,0 +1,104 @@
+
+myExplosionTemplate
+{
+	quota	5000
+	material	PE/Streak
+	particle_width	0.2
+	particle_height	0.2
+	cull_each	false
+	renderer	billboard
+	billboard_type	point
+
+	emitter Point
+	{
+		angle	180
+		colour	1 1 0 1
+		colour_range_start	1 1 0 1
+		colour_range_end	1 0 0 1
+		direction	0 1 0
+		emission_rate	2000
+		position	0 0 0
+		velocity	0
+		velocity_min	0
+		velocity_max	26.09
+		time_to_live	0.5348
+		time_to_live_min	0.1048
+		time_to_live_max	0.5548
+		duration	0.1304
+		duration_min	0.1304
+		duration_max	0.1604
+		repeat_delay	0
+		repeat_delay_min	0
+		repeat_delay_max	0
+	}
+}
+
+
+myExplosionSmokewhiteTemplate
+{
+	quota	5000
+	material	PE/smoke
+	particle_width	2
+	particle_height	2
+	cull_each	false
+	renderer	billboard
+	billboard_type	oriented_self
+
+	emitter Point
+	{
+		angle	180
+		colour	1 1 1 1
+		colour_range_start	1 1 1 1
+		colour_range_end	1 1 1 0.1
+		direction	0 1 0
+		emission_rate	2000
+		position	0 0 0
+		velocity	0
+		velocity_min	0
+		velocity_max	6.522
+		time_to_live	0.2348
+		time_to_live_min	0.1048
+		time_to_live_max	0.2548
+		duration	0.1304
+		duration_min	0.1304
+		duration_max	0.1604
+		repeat_delay	0
+		repeat_delay_min	0
+		repeat_delay_max	0
+	}
+}
+
+
+myExplosionSmokeTemplate
+{
+	quota	5000
+	material	PE/smoke
+	particle_width	2
+	particle_height	2
+	cull_each	false
+	renderer	billboard
+	billboard_type	oriented_self
+
+	emitter Point
+	{
+		angle	180
+		colour	0 0 0 0.575342
+		colour_range_start	0 0 0 0.575342
+		colour_range_end	0 0 0 0.1
+		direction	0 1 0
+		emission_rate	2000
+		position	0 0 0
+		velocity	0
+		velocity_min	0
+		velocity_max	6.522
+		time_to_live	0.2348
+		time_to_live_min	0.1348
+		time_to_live_max	0.3348
+		duration	0.1304
+		duration_min	0.1304
+		duration_max	0.1604
+		repeat_delay	0
+		repeat_delay_min	0
+		repeat_delay_max	0
+	}
+}

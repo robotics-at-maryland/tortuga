@@ -1,0 +1,41 @@
+
+material Ac3d/Scooby_Body/Mat001_Tex01
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture chasis.jpg
+			}
+		}
+	}
+}
+material Ac3d/Scooby_Body/Mat001_Tex02
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture ventanas.jpg
+			}
+		}
+	}
+}
+material Ac3d/Scooby_Body/Mat001_Tex03
+{
+	technique
+	{
+		pass
+		{
+			texture_unit
+			{
+				texture chasis_a.jpg
+			}
+		}
+	}
+}
+

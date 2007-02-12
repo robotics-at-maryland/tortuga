@@ -25,7 +25,7 @@ void destroyInputObjectJoyStick( OIS::InputManager& im, OIS::JoyStick* obj ) {
      im.destroyInputObject( (OIS::Object*) obj );
      }
 """
-
+     
 WRAPPER_DEFINITION_General = \
 """
 OIS::InputManager * createPythonInputSystem( boost::python::object parameters) {
@@ -55,7 +55,7 @@ WRAPPER_REGISTRATION_InputManager = \
 
 """
 WRAPPER_REGISTRATION_General = \
-"""
+"""   
 def( "createPythonInputSystem", &createPythonInputSystem, bp::return_value_policy< bp::reference_existing_object, bp::default_call_policies >());
 """
 
@@ -63,7 +63,7 @@ def apply( mb ):
     rt = mb.class_( 'InputManager' )
     rt.add_declaration_code( WRAPPER_DEFINITION_InputManager )
     rt.add_registration_code( WRAPPER_REGISTRATION_InputManager )
-
+    
     mb.add_declaration_code( WRAPPER_DEFINITION_General )
     mb.add_registration_code( WRAPPER_REGISTRATION_General )
 

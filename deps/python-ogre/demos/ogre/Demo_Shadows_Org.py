@@ -83,7 +83,7 @@ global mShadowTech,mShadowTechSoft,mSoftShadowsSupported,mCurrentAtheneMaterial,
 
 
 ## This class 'wibbles' the light and billboard 
-class LightWibbler ( ogre.FloatControllerValue ):
+class LightWibbler ( ogre.ControllerValueFloat ):
    global NUM_ATHENE_MATERIALS,mAtheneMaterials,NUM_SHADOW_TECH,mShadowTechDescriptions
    global mShadowTech,mShadowTechSoft,mSoftShadowsSupported,mCurrentAtheneMaterial,mCurrentShadowTechnique
    
@@ -99,14 +99,14 @@ class LightWibbler ( ogre.FloatControllerValue ):
         self.mMinSize = minSize
         self.mSizeRange = maxSize - minSize
         self.intensity=0
-        ogre.FloatControllerValue.__init__(self)
+        ogre.ControllerValueFloat.__init__(self)
 
 
 
-   def getValue ():
+   def getValue (self):
         return self.intensity
         
-   def  setValue ( value):
+   def  setValue ( self, value):
         
         self.intensity = value
 
@@ -252,7 +252,7 @@ class ShadowsListener (sf.FrameListener):
 #             mCurrentShadowTechnique = ++mCurrentShadowTechnique % NUM_SHADOW_TECH
             
             
-        mShadowTechniqueInfo.setCaption("Current: " + mShadowTechDescriptions[mCurrentShadowTechnique])
+        mShadowTechniqueInfo.setCaption(ogre.UTFString("Current: " + mShadowTechDescriptions[mCurrentShadowTechnique]))
 
         if mShadowTechSoft[prevTech] and not mShadowTechSoft[mCurrentShadowTechnique]:
             # Clean up compositors
@@ -260,9 +260,9 @@ class ShadowsListener (sf.FrameListener):
                 mShadowCompositor.removeListener(gaussianListener)
             except:
                 pass
-            ogre.CompositorManager.getSingleton().setCompositorEnabled(self.mShadowVp, SHADOW_COMPOSITOR_NAME, False)
+#####            ogre.CompositorManager.getSingleton().setCompositorEnabled(self.mShadowVp, SHADOW_COMPOSITOR_NAME, False)
             # Remove entire compositor chain
-            ogre.CompositorManager.getSingleton().removeCompositorChain(self.mShadowVp)
+#####            ogre.CompositorManager.getSingleton().removeCompositorChain(self.mShadowVp)
             self.mShadowVp = 0
             self.mShadowCompositor = 0
 
@@ -273,7 +273,7 @@ class ShadowsListener (sf.FrameListener):
             mSunLight.setCastShadows(True)
 
             # Point light, movable, reddish
-            mLight.setType(Light.LT_POINT)
+            mLight.setType(ogre.Light.LT_POINT)
             mLight.setCastShadows(True)
             mLight.setDiffuseColour(mMinLightColour)
             mLight.setSpecularColour(1, 1, 1)
@@ -326,7 +326,7 @@ class ShadowsListener (sf.FrameListener):
             mCurrentAtheneMaterial += 1
         else:
             mCurrentAtheneMaterial=0
-        mMaterialInfo.setCaption("Current: " + mAtheneMaterials[mCurrentAtheneMaterial])
+        mMaterialInfo.setCaption(ogre.UTFString("Current: " + mAtheneMaterials[mCurrentAtheneMaterial]))
         mAthene.setMaterialName(mAtheneMaterials[mCurrentAtheneMaterial])
     
     def CheckKeyPressed ( self, key, time, func):
@@ -405,11 +405,10 @@ class ShadowsApplication ( sf.Application ):
         mLightNode.attachObject(bbs)
 
         # create controller, after this is will get updated on its own
-#         func = ogre.ControllerFunctionRealPtr(ogre.WaveformControllerFunction(ogre.WFT_SINE, 0.75, 0.5))
-#         contMgr = ogre.ControllerManager.getSingleton()
-#         val = ogre.ControllerValueRealPtr(LightWibbler(mLight, bb, mMinLightColour, mMaxLightColour, mMinFlareSize, mMaxFlareSize))
-# #        val = LightWibbler(mLight, bb, mMinLightColour, mMaxLightColour, mMinFlareSize, mMaxFlareSize)
-# #        controller = contMgr.createController(contMgr.getFrameTimeSource(), val, func)
+        self.func = ogre.WaveformControllerFunction(ogre.WFT_SINE, 0.75, 0.5)
+        contMgr = ogre.ControllerManager.getSingleton()
+        self.val = LightWibbler(mLight, bb, mMinLightColour, mMaxLightColour, mMinFlareSize, mMaxFlareSize)
+        controller = contMgr.createController(contMgr.getFrameTimeSource(), self.val, self.func)
 
         #mLight.setPosition(Vector3(300,250,-300))
         mLightNode.setPosition(ogre.Vector3(300,250,-300))
@@ -510,8 +509,8 @@ class ShadowsApplication ( sf.Application ):
         mMaterialInfo = ogre.OverlayManager.getSingleton().getOverlayElement("Example/Shadows/MaterialInfo")
         mInfo = ogre.OverlayManager.getSingleton().getOverlayElement("Example/Shadows/Info")
 
-        mShadowTechniqueInfo.setCaption("Current: " + mShadowTechDescriptions[mCurrentShadowTechnique])
-        mMaterialInfo.setCaption("Current: " + mAtheneMaterials[mCurrentAtheneMaterial])
+        mShadowTechniqueInfo.setCaption(ogre.UTFString("Current: " + mShadowTechDescriptions[mCurrentShadowTechnique]))
+        mMaterialInfo.setCaption(ogre.UTFString("Current: " + mAtheneMaterials[mCurrentAtheneMaterial]))
         pOver.show()
 
 #         if (sceneManager.getRootSceneNode().getRenderSystem().getCapabilities().hasCapability(ogre.RSC_HWRENDER_TO_TEXTURE)):

@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-#-------------------------------------------------------------------------------
-# TODO:
-# 1.    void* as a function argument - they are currently wrapped (and compile/load etc) due to latest CVS of boost.
-#       However probably don't actually work
-# 2.    Properties.py and calling 'properties.create' - commented out at the moment, not sure if it is really needed?
-
 import os, sys, time, shutil
 
 #add environment to the path
@@ -24,7 +18,7 @@ from pygccxml import declarations
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 import common_utils.extract_documentation as exdoc
-import ogre_properties
+import common_utils.ogre_properties as ogre_properties
 
 def filter_declarations( mb ):
     global_ns = mb.global_ns
@@ -81,7 +75,7 @@ def generate_code():
                         os.path.join( environment.ogrerefapp.root_dir, "python_ogre.h" )
                         , environment.ogrerefapp.cache_file )
 
-    defined_symbols = [ 'OGREREFAPP_NONCLIENT_BUILD' ]
+    defined_symbols = [ 'OGREREFAPP_NONCLIENT_BUILD', 'OGRE_NONCLIENT_BUILD' ]
     defined_symbols.append( 'OGREREFAPP_VERSION_' + environment.ogrerefapp.version )
     mb = module_builder.module_builder_t( [ xml_cached_fc ]
                                           , gccxml_path=environment.gccxml_bin
@@ -115,7 +109,6 @@ def generate_code():
         cls.add_properties( recognizer=ogre_properties.ogre_property_recognizer_t() )
         ## because we want backwards pyogre compatibility lets add leading lowercase properties
         common_utils.add_LeadingLowerProperties ( cls )
-        common_utils.add_PropertyDoc ( cls )
 
     
     common_utils.add_constants( mb, { 'ogrerefapp_version' :  '"%s"' % environment.ogrerefapp.version

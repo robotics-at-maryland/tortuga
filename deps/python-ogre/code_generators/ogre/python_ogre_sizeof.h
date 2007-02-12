@@ -1,9 +1,45 @@
+// sizeof ( ::Ogre::VectorIterator );
+// sizeof ( ::Ogre::MapIterator );
+// sizeof ( ::Ogre::ConstVectorIterator );
+// sizeof ( ::Ogre::ConstMapIterator );
+
+sizeof ( ::Ogre::SharedPtr<Ogre::WaveformControllerFunction> );
+// sizeof ( ::Ogre::ControllerFunction<float>);
+// sizeof ( ::Ogre::SharedPtr<::Ogre::ControllerFunction<float>>);
+
+sizeof ( ::Ogre::SharedPtr<Ogre::AnimableValue> );
+sizeof ( ::Ogre::SharedPtr<Ogre::FileInfoList> );
+//sizeof ( ::Ogre::SharedPtr<Ogre::CodecData> );
+sizeof ( ::Ogre::SharedPtr<Ogre::ControllerFunction<Real> > );
+sizeof ( ::Ogre::SharedPtr<Ogre::ControllerValue<Real> > );
+sizeof ( ::Ogre::SharedPtr<Ogre::MemoryDataStream> );
+sizeof ( ::Ogre::SharedPtr<Ogre::DataStream> );
+sizeof ( ::Ogre::SharedPtr<Ogre::DataStreamList> );
+sizeof ( ::Ogre::SharedPtr<Ogre::GpuProgramParameters> );
+// sizeof ( std::multimap<Ogre::HardwareVertexBuffer*, Ogre::VertexBufferBinding::HardwareVertexBufferSharedPtr> FreeTemporaryVertexBufferMap;
+//sizeof ( std::map<unsigned short, Ogre::VertexBufferBinding::HardwareVertexBufferSharedPtr>); // VertexBufferBindingMap;
+sizeof ( ::Ogre::SharedPtr<Ogre::Resource> ); //ResourcePtr;
+sizeof ( ::Ogre::SharedPtr<Ogre::ShadowCameraSetup> ); //ShadowCameraSetupPtr;
+sizeof ( ::Ogre::SharedPtr<Ogre::StringVector> ); //StringVectorPtr;
+
+
+
+
+sizeof ( exception );
+
+sizeof ( ::Ogre::Singleton<Ogre::FontManager> );
+sizeof ( ::Ogre::Singleton<Ogre::ExternalTextureSourceManager> );
+sizeof (  ::Ogre::Singleton<Ogre::DynLibManager> );
+
 sizeof (std::pair<bool, float> );
 sizeof (std::pair<unsigned int,unsigned int> );
-sizeof (Ogre::RadixSort<std::vector<Ogre::RenderablePass>,Ogre::RenderablePass,unsigned int> );
-sizeof (Ogre::RadixSort<std::vector<Ogre::RenderablePass>,Ogre::RenderablePass,float> );
-sizeof (Ogre::RadixSort<std::list<Ogre::Particle*>,Ogre::Particle*,float> );
-sizeof (Ogre::RadixSort<std::list<Ogre::Billboard*>,Ogre::Billboard*,float> );
+sizeof (::Ogre::Root::PluginLibList );
+sizeof (::Ogre::Root::PluginInstanceList );
+
+sizeof (::Ogre::RadixSort<std::vector<Ogre::RenderablePass>,Ogre::RenderablePass,unsigned int> );
+sizeof (::Ogre::RadixSort<std::vector<Ogre::RenderablePass>,Ogre::RenderablePass,float> );
+sizeof (::Ogre::RadixSort<std::list<Ogre::Particle*>,Ogre::Particle*,float> );
+sizeof (::Ogre::RadixSort<std::list<Ogre::Billboard*>,Ogre::Billboard*,float> );
 sizeof (HashMap<Ogre::String, unsigned short> ); // SubMeshNameMap
 sizeof ( std::map<Ogre::String, Ogre::MovableObjectFactory*> );
 
@@ -38,6 +74,8 @@ sizeof( ::Ogre::RenderTargetPriorityMap );
 sizeof( ::Ogre::RenderTargetMap );
 sizeof( ::Ogre::ConfigOptionMap );
 sizeof( ::Ogre::ConfigOption );
+sizeof( ::Ogre::_ConfigOption );
+
 sizeof( ::Ogre::RenderQueueInvocationIterator );
 sizeof( ::Ogre::RenderQueueInvocationList );
 sizeof( ::Ogre::IlluminationPassList );
@@ -121,6 +159,29 @@ sizeof( ::Ogre::SubMesh::IndexMap );
 sizeof( ::Ogre::SubMesh::VertexBoneAssignmentList );
 sizeof( ::Ogre::SubMesh::BoneAssignmentIterator );
 sizeof( ::Ogre::SubMesh::AliasTextureIterator );
+
+sizeof( ::Ogre::StaticGeometry::SubMeshLodGeometryLink );
+sizeof( ::Ogre::InstancedGeometry::SubMeshLodGeometryLink );
+sizeof ( ::pyplusplus::aliases::SubMeshLodGeometryLinkList );
+sizeof ( ::pyplusplus::aliases::InstSubMeshLodGeometryLinkList );
+
+sizeof( ::Ogre::InstancedGeometry::OptimisedSubMeshGeometryList );
+sizeof( ::Ogre::InstancedGeometry::SubMeshLodGeometryLinkList );
+sizeof( ::Ogre::InstancedGeometry::SubMeshGeometryLookup );
+sizeof( ::Ogre::InstancedGeometry::QueuedSubMeshList );
+sizeof( ::Ogre::InstancedGeometry::QueuedSubMeshOriginList );
+sizeof( ::Ogre::InstancedGeometry::QueuedGeometryList );
+sizeof( ::Ogre::InstancedGeometry::InstancedObject::GeometryBucketList );
+sizeof( ::Ogre::InstancedGeometry::MaterialBucket::GeometryIterator );
+sizeof( ::Ogre::InstancedGeometry::LODBucket::MaterialBucketMap );
+sizeof( ::Ogre::InstancedGeometry::LODBucket::MaterialIterator );
+sizeof( ::Ogre::InstancedGeometry::BatchInstance::LODBucketList );
+sizeof( ::Ogre::InstancedGeometry::BatchInstance::ObjectsMap );
+sizeof( ::Ogre::InstancedGeometry::BatchInstance::LODIterator );
+sizeof( ::Ogre::InstancedGeometry::BatchInstanceMap );
+sizeof( ::Ogre::InstancedGeometry::RenderOperationVector );
+sizeof( ::Ogre::InstancedGeometry::BatchInstanceIterator );
+
 sizeof( ::Ogre::StaticGeometry::OptimisedSubMeshGeometryList );
 sizeof( ::Ogre::StaticGeometry::SubMeshLodGeometryLinkList );
 sizeof( ::Ogre::StaticGeometry::SubMeshGeometryLookup );
@@ -134,6 +195,7 @@ sizeof( ::Ogre::StaticGeometry::Region::LODBucketList );
 sizeof( ::Ogre::StaticGeometry::Region::LODIterator );
 sizeof( ::Ogre::StaticGeometry::RegionMap );
 sizeof( ::Ogre::StaticGeometry::RegionIterator );
+
 sizeof( ::Ogre::Skeleton::BoneList );
 sizeof( ::Ogre::Skeleton::BoneIterator );
 sizeof( ::Ogre::Skeleton::LinkedSkeletonAnimSourceList );
