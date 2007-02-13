@@ -104,11 +104,10 @@ class Simulation(Singleton):
             sim.graphics.GraphicsSystem(graphics_cfg,
                                         not graphics_cfg.get('embedded', True))
         self._physics_sys = sim.physics.PhysicsSystem(self._config.get('Physics',{}))
-        #self._input_sys = sim.input.InputSystem(self._config.get('Input',{}))
-        #self._gui_sys = sim.gui.GUISystem(self._config.get('GUI',{}))
+        self._input_sys = sim.input.InputSystem(self._config.get('Input',{}))
+        self._gui_sys = sim.gui.GUISystem(self._config.get('GUI',{}))
         
-        self._components = [self._physics_sys]#,
-            #self._input_sys, self._physics_sys, self._graphics_sys]
+        self._components = [self._input_sys, self._physics_sys, self._graphics_sys]
         
     def _shutdown(self):
         self._run = False

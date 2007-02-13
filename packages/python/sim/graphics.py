@@ -148,6 +148,8 @@ class GraphicsSystem(object):
         self.logger.info('Loadings Ogre Plugins on path:')
         for path in search_path: 
             self.logger.info('\t%s' % path )
+        if len(path) == 1:
+            raise GraphicsError('No valid plugin directories found in path:\n %s' % str(path))
         
         extension = '.so'
         if 'Windows' == platform.system():

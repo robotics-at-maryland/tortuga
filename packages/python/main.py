@@ -62,7 +62,6 @@ def main():
     controller = control.RandomVehicleController(vehicle)
     
     components = [vehicle, controller]
-    del vehicle
     
     # Main Loop
     main_loop(components)
@@ -70,10 +69,9 @@ def main():
 
     # Still Have some kind of circular vehicle reference, __del__, doesn't get
     # called even when all the refernce from the function are gone
-    for component in components:
-        component.__del__()
-    
     del components
+    vehicle.__del__()
+    del vehicle
 
     print 'Shutdown Complete'
     return 0

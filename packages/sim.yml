@@ -163,6 +163,9 @@ Vehicles:
             # indicates which Ogre RenderSystem to create and which section to
             # load the options from
             Graphics:
+                # Have the sim create its own windows
+                embedded: False
+            
                 # Shown are the default values, uncomment to change
                 #Logging:
                 #    name: Graphics
