@@ -4,6 +4,8 @@ TRAC_DIR=/var/trac
 SVN_DIR=/var/svn
 PROJ=mrbc
 BACKUP_TOOL_DIR=/home/rambackup/backup-tool
+SVNADMIN=/usr/bin/svnadmin
+TRACADMIN/usr/bin/trac-admin
 #BACKUP_USER=mrbc-backup
 
 # Helper variables
@@ -15,8 +17,8 @@ TRAC_BACKUP_FILE=$LOCAL_DIR/trac
 rm -rf $SVN_BACKUP_FILE $TRAC_BACKUP_FILE
 
 # Copy files
-svnadmin hotcopy $SVN_DIR/$PROJ $SVN_BACKUP_FILE
-trac-admin $TRAC_DIR/$PROJ hotcopy $TRAC_BACKUP_FILE
+$SVNADMIN hotcopy $SVN_DIR/$PROJ $SVN_BACKUP_FILE
+$TRACADMIN $TRAC_DIR/$PROJ hotcopy $TRAC_BACKUP_FILE
 
 # Run backup script here....
 $BACKUP_TOOL_DIR/backup.py -c $BACKUP_TOOL_DIR/backup.cfg
