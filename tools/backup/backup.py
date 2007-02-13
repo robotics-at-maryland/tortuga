@@ -152,8 +152,6 @@ def main(argv=None):
     config.read(options.configfile)
     backup_tasks = get_backup_info(config)
 
-    print backup_tasks
-
     now = datetime.now()
     for path in backup_tasks.iterkeys():
 	# Convert options
