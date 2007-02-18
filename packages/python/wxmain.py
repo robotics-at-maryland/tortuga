@@ -11,14 +11,15 @@ import yaml
 import logloader
 import event
 
-import sim
-from vehicle.sim.simvehicle import Vehicle, VehicleFactory
+import sim.simulation
+import gui.wxogre
 
 class SimApp(wx.App):
     def OnInit(self):
-        frame = wx.Frame(None, -1, "Hello wxPython world")
+        frame = wx.Frame(None, -1, "AUV Sim")
         
         self._init_simulation()
+        gui.wxogre.wxOgre(None, frame)
         
         frame.Show(True)
         self.SetTopWindow(frame)
@@ -26,15 +27,16 @@ class SimApp(wx.App):
     
     def _init_simulation(self):
         # Read in value from config file and create the right vehicle
-        config = yaml.load(file(os.path.join('..', 'sim.yml')))
-        logloader.load_loggers(config["Logging"])
+        #config = yaml.load(file(os.path.join('..', 'sim.yml')))
+        #logloader.load_loggers(config["Logging"])
         
-        vehicle_type = config['vehicle']
+        #vehicle_type = config['vehicle']
         # Pass along the subsection of the config corresponding to the vehicle
-        vehicle = VehicleFactory.create(vehicle_type,
-                                        config['Vehicles'][vehicle_type])
+        #vehicle = VehicleFactory.create(vehicle_type,
+        #                                config['Vehicles'][vehicle_type])
     
-        self.components = [vehicle]
+        self.sim = sim.simulation.Simulation({})
+        #self.components = [vehicle]
     def on_timer(self):
         last_time = time.clock()
         time_since_last_iteration = 0
@@ -52,6 +54,12 @@ class SimApp(wx.App):
             time_since_last_iteration = current_time - last_time;
             last_time = current_time
             
-            
-app = SimApp(0)
-app.MainLoop()
+def main():            
+    app = SimApp(0)
+    app.MainLoop()
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except yaml.scanner.ScannerError, e:
+        print str(e)

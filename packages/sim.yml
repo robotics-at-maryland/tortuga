@@ -65,6 +65,8 @@ Vehicles:
         # This is all the devices that will be attached to the body of the sub
         # The name of each is the type of device to create
         Devices:
+            Name:
+                type: SimDepth
             # For each simulated thruster you need to give its type, relative
             # to the body coordinate system (describe me here)
             # Y is UP, Z comes out the front of the vehicle and when looking at

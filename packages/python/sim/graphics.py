@@ -168,7 +168,7 @@ class GraphicsSystem(object):
             Resources:
                 General:
                     Zip: ['media/packs/OgreCore.zip',
-                          'media/packs/cubemapsJS.zip']
+                              'media/packs/cubemapsJS.zip']
                     FileSystem: ['media/models',
                                  'media/primitives',
                                  'media/materials/textures',

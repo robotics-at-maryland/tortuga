@@ -7,73 +7,108 @@
 import Ogre, OgreNewt
 
 import utility
-from sim.physics import gravityAndBouyancyCallback
+from sim.util import gravityAndBouyancyCallback
 
-class Scene(object):
-    def __del__(self):
-        del self.bodies
+# These globals are a hack!
+bodies = []
+scene_mgr = None
+world = None
+
+def create_scene(self, loader, scene):
+    """
+    This is the main entry point to the scene, it will be called when 
+    loading the simulation
+    """
+    global scene_mgr
+    global world
+    global bodies
+    scene_mgr = scene._scene_manager
+    world = scene._world
     
-    def create_scene(self, graphics_sys, physics_sys):
-        """
-        This is the main entry point to the scene, it will be called when 
-        loading the simulation
-        """
-        self.scene_mgr = graphics_sys.scene_manager
-        self.world = physics_sys.world
-        self.bodies = []
-        
-        # position camera
-        graphics_sys.camera_node.setPosition( 0, 1, 3)
-        graphics_sys.camera.lookAt(0, 0, 0)
-        
-        self.create_tank()
-        self.scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
-        
-        del self.scene_mgr
-        del self.world
-        
-        # Light
-        #self.scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
-        #light = self.scene_mgr.createLight("Light1")
-        #light.setType(Ogre.Light.LT_POINT )
-        #light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
-        
-    def add_wall(self, pos, norm = Ogre.Vector3.UNIT_Z, 
-                 orient = Ogre.Quaternion.IDENTITY):
-        wall_body = utility.create_plane(self.scene_mgr,self.world,80,20, 
-                                         pos = pos, norm = norm, 
-                                         orient = orient)
-        self.bodies.append(wall_body)
-        
-    def create_tank(self):
-        # Floor
-        floor = self.scene_mgr.createEntity("Floor", "simple_terrain.mesh")
-        floor.setMaterialName("Simple/BeachStones")
-        floornode = \
-            self.scene_mgr.getRootSceneNode().createChildSceneNode("FloorNode")
-        floornode.attachObject(floor)
+    locations = {'zip': ['../media/packs/OgreCore.zip', 
+                         '../media/packs/cubemapsJS.zip'],
+                 'file_system' : ['../media/models', '../media/primitives',
+                                  '../media/materials/textures', 
+                                  '../media/materials/scripts'] }
+    
+    
+    # Create Camera here
+    camera = scene_mgr.createCamera('PlayerCam')
+    camera.setPosition(Ogre.Vector3( 0.0, 5.0, 5.0))
+    camera.lookAt(Ogre.Vector3(0, 0, 0))
+    camera.nearClipDistance = 0.5
+                
+    # Allows easier movement of camera
+    camera_node = scene_mgr.getRootSceneNode().createChildSceneNode()
+    camera_node.setPosition(0,0,0)
+    camera_node.attachObject(self.camera)
+    
+    # position camera
+    camera_node.setPosition( 0, 1, 3)
+    camera.lookAt(0, 0, 0)
+    
+    create_tank()
+    scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
+    
+    locations = {'zip': ['../media/packs/OgreCore.zip', 
+                         '../media/packs/cubemapsJS.zip'],
+                 'file_system' : ['../media/models', '../media/primitives',
+                                  '../media/materials/textures', 
+                                  '../media/materials/scripts'] }
+    scene.add_resource_locations(locations)
+    
+    # Light
+    #self.scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
+    #light = self.scene_mgr.createLight("Light1")
+    #light.setType(Ogre.Light.LT_POINT )
+    #light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
+    return bodies
 
-        col = OgreNewt.TreeCollision(self.world, floornode, True)
-        bod = OgreNewt.Body(self.world, col)
-        del col
-        bod.attachToNode(floornode)
-        bod.setPositionOrientation(Ogre.Vector3(0.0,-10.0,0.0), 
-                                   Ogre.Quaternion.IDENTITY )
-        self.bodies.append(bod)
-        
-        # Far Wall
-        self.add_wall(Ogre.Vector3(0,-5,-40))
-        # Rear Wall
-        self.add_wall(Ogre.Vector3(0,-5,40), norm = Ogre.Vector3.UNIT_Z*-1.0)
-        # Right Side Wall
-        orient = Ogre.Quaternion( Ogre.Degree(d=-90), Ogre.Vector3(0,1,0))
-        self.add_wall(Ogre.Vector3(40,-5,0), orient = orient)
-        # Left Side Wall
-        orient = Ogre.Quaternion( Ogre.Degree(d=90), Ogre.Vector3(0,1,0))
-        self.add_wall(Ogre.Vector3(-40,-5,0), orient = orient)
-        
-        # Water
-        orient = Ogre.Quaternion( Ogre.Degree(d=-90), Ogre.Vector3(1,0,0) ) 
-        plane_body = utility.create_plane(self.scene_mgr,self.world,80,80,  
-                                          material = "Simple/Translucent", 
-                                          orient = orient)
+def add_wall(pos, norm = Ogre.Vector3.UNIT_Z, 
+             orient = Ogre.Quaternion.IDENTITY):
+    global scene_mgr
+    global world
+    global bodies
+    
+    
+    wall_body = utility.create_plane(scene_mgr,world,80,20, 
+                                     pos = pos, norm = norm, 
+                                     orient = orient)
+    bodies.append(wall_body)
+    
+def create_tank():
+    global scene_mgr
+    global world
+    global bodies
+    
+    # Floor
+    floor = scene_mgr.createEntity("Floor", "simple_terrain.mesh")
+    floor.setMaterialName("Simple/BeachStones")
+    floornode = \
+        scene_mgr.getRootSceneNode().createChildSceneNode("FloorNode")
+    floornode.attachObject(floor)
+
+    col = OgreNewt.TreeCollision(world, floornode, True)
+    bod = OgreNewt.Body(world, col)
+    del col
+    bod.attachToNode(floornode)
+    bod.setPositionOrientation(Ogre.Vector3(0.0,-10.0,0.0), 
+                               Ogre.Quaternion.IDENTITY )
+    bodies.append(bod)
+    
+    # Far Wall
+    add_wall(Ogre.Vector3(0,-5,-40))
+    # Rear Wall
+    add_wall(Ogre.Vector3(0,-5,40), norm = Ogre.Vector3.UNIT_Z*-1.0)
+    # Right Side Wall
+    orient = Ogre.Quaternion( Ogre.Degree(d=-90), Ogre.Vector3(0,1,0))
+    add_wall(Ogre.Vector3(40,-5,0), orient = orient)
+    # Left Side Wall
+    orient = Ogre.Quaternion( Ogre.Degree(d=90), Ogre.Vector3(0,1,0))
+    add_wall(Ogre.Vector3(-40,-5,0), orient = orient)
+    
+    # Water
+    orient = Ogre.Quaternion( Ogre.Degree(d=-90), Ogre.Vector3(1,0,0) ) 
+    plane_body = utility.create_plane(scene_mgr,world,80,80,  
+                                      material = "Simple/Translucent", 
+                                      orient = orient)

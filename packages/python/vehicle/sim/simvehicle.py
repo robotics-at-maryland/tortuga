@@ -22,7 +22,6 @@ import OIS
 
 # Project imports
 import event
-import control
 import logloader
 
 from sim.util import Vector, Quat
@@ -34,7 +33,13 @@ from vehicle.sim.device import Thruster
 
 event.add_event_types('CAM_CHANGE')
 
-class Vehicle(IVehicle):          
+class Vehicle(IVehicle):
+    """
+    self.position is and Ogre.Vector3 that gives the position of the vehicle
+    self.attitude is and Ogre.Quaternion that gives the orientation of the 
+                            vehicle
+    """
+              
     def __init__(self, config):
         self._setup_logging(config.get('Logging', {'name' : 'SimVehicle',
                                                    'level': 'INFO'}))
@@ -97,7 +102,7 @@ class Vehicle(IVehicle):
         Simulation.get().input_sys.map_key_events(thruster_events)
         
         # Create Simple Keyboard Mouse controller
-        self.kmcontroller = control.DirectVehicleController(self)
+        #self.kmcontroller = control.DirectVehicleController(self)
         
     def _create_vehicle(self, config):
         scene_mgr = Simulation.get().graphics_sys.scene_manager

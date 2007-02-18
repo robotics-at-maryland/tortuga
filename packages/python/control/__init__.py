@@ -6,3 +6,4 @@
 # File:  control/__init__.py
 
 from direct import *
+from randomcontrol import *
