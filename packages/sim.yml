@@ -1,6 +1,20 @@
 # This is our config file
 # It tells the program what kind of vehicle to create
 
+
+# All new config file stuff here
+Scenes:
+    # The curren scene to load, must be a python module on the given
+    # scene_path, this for example is 'data/scenes/basic.py
+    current: basic.py
+            
+    # Searh path for scene files
+    path: ['../data/scenes']
+
+
+
+
+
 # --------------------------------------------------------------------------- #
 #                     G E N E R A L   O P T I O N S                           #
 # --------------------------------------------------------------------------- #

@@ -4,7 +4,7 @@ material Simple/RockWall
 	{
 		pass
 		{
-			#ambient 0 0 0
+			//ambient 0 0 0
 			texture_unit
 			{
 				texture rockwall.tga
@@ -19,7 +19,7 @@ material Simple/BeachStones
 	{
 		pass
 		{
-			#ambient 0 0 0
+			//ambient 0 0 0
 			texture_unit
 			{
 				texture BeachStones.jpg
@@ -35,7 +35,7 @@ material Simple/dirt01
 	{
 		pass
 		{
-			#ambient 0 0 0
+			//ambient 0 0 0
 			texture_unit
 			{
 				texture dirt01.jpg
@@ -50,7 +50,7 @@ material Simple/BumpyMetal
 	{
 		pass
 		{
-			#ambient 0 0 0
+			//ambient 0 0 0
 			texture_unit
 			{
 				texture BumpyMetal.jpg
@@ -66,7 +66,7 @@ material ConveyorBelt1
 	{
 		pass
 		{
-			#ambient 0 0 0
+			//ambient 0 0 0
 			texture_unit
 			{
 				texture conveyor.png
@@ -84,7 +84,7 @@ material ConveyorBelt2
 	{
 		pass
 		{
-			#ambient 0 0 0
+			//ambient 0 0 0
 			texture_unit
 			{
 				texture conveyor.png

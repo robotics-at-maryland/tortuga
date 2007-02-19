@@ -23,6 +23,8 @@ import Ogre
 # Project Imports
 import logloader
 import event
+import scene
+from sim.util import SimulationError
 
 from core import Singleton, log, log_init
 
@@ -49,10 +51,6 @@ DEFAULT_RENDER_SYSTEM_OPTIONS = \
 DEFAULT_LOG_CONFIG = {'name' : 'Simulation', 'level': 'INFO'}
 
 DEFAULT_SCENE_SEARCH_PATH = 'data/scenes'
-    
-class SimulationError (Exception):
-    """ Base class for exceptions in the simulation """
-    pass
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
@@ -114,17 +112,39 @@ class Simulation(Singleton):
             
         return new_window
     
-    def create_scene(self, name, scene_file):
+    def create_scene(self, name, scene_file, scene_path):
         """
         @type name: string
         @param name: The name of the scene to create
         
         @type scene_file: string
-        @param scene_file: The absolute path to a the scene file
+        @param scene_file: the name of the scene file
+        
+        @type scene_path: list of strings
+        @param scene_path: The path to search for the scene_file on
         """
-        # TODO: Finish me
-        raise "Function not implemented"
-        pass
+        
+        # Filter out non-existant paths from search, this keeps windows paths
+        # out of unix and unix paths out of windows
+        search_path = [p for p in scene_path if os.path.exists(p)]
+        if len(scene_path) == 0:
+            raise SimulationError('No valid directory found on scene path')
+        
+        self.logger.info('Loading %s on path:', scene_file)
+        for path in search_path: 
+            self.logger.info('\t%s' % path )
+        
+        found = False
+        for dir in search_path:
+            scene_path = os.path.abspath(os.path.join(dir, scene_file))
+         
+            if os.path.exists(scene_path):
+                self._scenes[name] = scene.Scene(name, scene_path)
+                self.root.loadPlugin(plugin_path)
+                found = True
+        
+        if not found:
+            raise SimulationError('Could not find scene file: %s' % scene_file)
     
     
     # ----------------------------------------------------------------------- #

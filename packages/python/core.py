@@ -260,7 +260,7 @@ class Component(object):
 
 
 
-def fixed_updated(update_interval_attr, elapsed_attr = 'elapsed',
+def fixed_update(_update_interval_attr, _elapsed_attr = 'elapsed',
                   update_time_pos = 0):
     """
     A decorator function that wraps a normal update function in a way which 
@@ -280,8 +280,8 @@ def fixed_updated(update_interval_attr, elapsed_attr = 'elapsed',
     """
     def decorator(func):
         # Determine the name of attributes
-        update_interval_attr = '%s_%s' %(func.__name__, update_interval_attr)
-        elapsed_attr = '%s_%s' %(func.__name__, elapsed_attr)
+        update_interval_attr = '%s_%s' %(func.__name__, _update_interval_attr)
+        elapsed_attr = '%s_%s' %(func.__name__, _elapsed_attr)
         
         def wrapper(self, *args, **kwargs):
             # Grab attributes off object

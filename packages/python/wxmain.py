@@ -18,11 +18,21 @@ class SimApp(wx.App):
     def OnInit(self):
         frame = wx.Frame(None, -1, "AUV Sim")
         
+        config = yaml.load(file(os.path.join('..', 'sim.yml')))
+        
+        # Start up simulation
         self._init_simulation()
-        gui.wxogre.wxOgre(None, frame)
+        # Create our windows
+        ogre = gui.wxogre.wxOgre(None, frame)
         
         frame.Show(True)
         self.SetTopWindow(frame)
+        
+        # Create out scene
+        self.sim.create_scene('Main', config['Scenes']['current'],
+                              config['Scenes']['path'])
+        
+        ogre.camera = self.sim.cameras['Main']
         return True
     
     def _init_simulation(self):

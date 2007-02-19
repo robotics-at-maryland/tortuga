@@ -60,7 +60,7 @@ class wxOgre(wx.PyControl):
         # Resize the window on resize
         if event.EventType == wx.SizeEvent.EventType:
             # On GTK we let Ogre create its own child window, so we have to
-            # manually resiz    e it match its parent, this control
+            # manually resize it match its parent, this control
             if '__WXGTK__' == wx.Platform:
                 size = self.GetClientSize()
                 self._render_window.resize(size.width, size.height)

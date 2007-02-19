@@ -8,6 +8,7 @@
 
 # Python imports
 import imp
+import sys
 import os.path
 
 # Library Ipmorts
@@ -16,10 +17,10 @@ import OgreNewt
 
 # Project Imports
 import core
-import sim.simulation.SimulationError
-from core import fixed_updated
+from sim.util import SimulationError
+from core import fixed_update, log_init
 
-class SceneError(sim.simulation.SimulationError):
+class SceneError(SimulationError):
 	pass
 
 
@@ -41,17 +42,19 @@ class ISceneLoader(core.Interface):
         """
         pass
     
-    def load(name, scene):
+    def load(scene_file, scene):
         """
         Loads the scene from the file into the given scene object.
         
-        @type name: string
-        @param name: The absolute path to the scene file
+        @type scene_file: string
+        @param scene_file: The absolute path to the scene file
         
         @type scene: Scene
         @param scene: The scene into which the objects should be placed
         """
         pass
+
+DEFAULT_LOG_CONFIG = {'name' : 'Unknown Scene', 'level': 'INFO'}
 
 class Scene(object):
     """
@@ -60,6 +63,7 @@ class Scene(object):
     """
     scene_loaders = core.ExtensionPoint(ISceneLoader)    
     
+    #@log_init(DEFAULT_LOG_CONFIG)
     def __init__(self, name, scene_file):
         """
         @type name: string
@@ -67,6 +71,7 @@ class Scene(object):
         """
         self.name = name
         self._objects = {}
+        self._bodies = []
         
         # Create Ogre SceneManager and OgreNewt World
         self._scene_manager = \
@@ -82,7 +87,7 @@ class Scene(object):
             raise SceneError('No Loader found for "%s".' % scene_file)
         
         loader = loaders[0]()
-        loader.load(self, scene_file)
+        loader.load(scene_file, self)
         Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(self.name)
         
 
@@ -93,7 +98,7 @@ class Scene(object):
         for obj in _objects.itervalues():
             obj.update(time_since_last_update)
     
-    @fixed_udpate('_physics_update_interval')
+    @fixed_update('_physics_update_interval')
     def _update_physics(self, time_since_last_update):
         """
         Updates the physics of the sim at a rate near the 
@@ -102,33 +107,45 @@ class Scene(object):
         self._world.update(time_since_last_update)
 	
     def reload(self):
+        raise SceneError("Reload not yet implemented")
         # TODO: Finish me
-        pass
-    
-	def add_resource_locations(self, location_map):
-		"""
-		Adds resouce location to the scene internal resource group.  This 
-		resources will only be after the scene is loaded initialized.
+        
+    def add_resource_locations(self, location_map):
+        """
+        Adds resouce location to the scene internal resource group.  This 
+        resources will only be after the scene is loaded initialized.
 		
-		@type location_map: dict: string to string
-		@param location_map: maps resource type, to its location.  Valid types
-							 are 'Zip' and 'FileSystem'.
+        @type location_map: dict: string to string
+        @param location_map: maps resource type, to its location.  Valid types
+        					 are 'Zip' and 'FileSystem'.
 		"""
+        #self.logger.info('Adding resources locations')
+        
+        print 'Adding resource locations'
+        print location_map
         rsrc_mrg = Ogre.ResourceGroupManager.getSingleton()
         for resource_type in location_map:
-            for location in location_map[resource_type]:
-                location = os.path.abspath(location)
-                rsrc_mrg.addResourceLocation(location, resource_type, self.name)
+        	#self.logger.info('/tAdding resources of type: %s' % resource_type)
+        	print '\tAdding resources of type: %s' % resource_type
+        	for location in location_map[resource_type]:
+        		print '\t',location_map[resource_type]
+        		print '\t\t-',location
+          		location = os.path.abspath(location)
+          		#self.logger.info('/t/tAdding location: %s' % location)
+          		print '\t\tAdding location: %s' % location
+          		rsrc_mrg.addResourceLocation(location, resource_type,
+											 self.name, False)
+        rsrc_mrg.initialiseResourceGroup(self.name)
 	
-	def create_object(self, obj_type, *args, **kwargs):
-		"""
-		Creates an object
-		
-		@type type: Interface
-		@param type: The interface
-		"""
-		kwargs['scene'] = self
-		core.Component.create(obj_type, *args, **kwargs)
+    def create_object(self, obj_type, *args, **kwargs):
+        """
+        Creates an object
+
+        @type type: Interface
+        @param type: The interface
+        """
+        kwargs['scene'] = self
+        core.Component.create(obj_type, *args, **kwargs)
 	
 class ModuleSceneLoader(core.Component):
 	"""
@@ -143,31 +160,30 @@ class ModuleSceneLoader(core.Component):
 	
 	# ISceneLoader Methods
 	@staticmethod
-	def can_load(name):
+	def can_load(scene_file):
 		"""
 		Any name ending in ".py" will be accepted.
 		"""
-		if name.endswith('.py'):
+		if scene_file.endswith('.py'):
 			return True
 		return False
 		
-	def load(self, name, scene):
+	def load(self, scene_file, scene):
 		"""
 		Uses the python imp module to load the module given the path to it.
 		"""
 		
 		# Sanity check to make sure we can load the scene
-		if not self.can_load(name):
-			raise SceneError("%s cannon load: %s" % (self.__name__, name))
+		if not ModuleSceneLoader.can_load(scene_file):
+			raise SceneError("%s cannon load: %s" % (self.__name__, scene_file))
 		
-		directory, mod_name = os.path.split(name)
+		directory, mod_name = os.path.split(scene_file)
 		search_path = [directory]
 		
 		# Strip off extension
 		mod_name = mod_name[0:-3]
 		
 		try:
-			
 			# Load the modules
 			modfile, path, desc = imp.find_module(mod_name, search_path)
 			
@@ -175,17 +191,18 @@ class ModuleSceneLoader(core.Component):
 			# import modules in that directory
 			sys.path.insert(0, os.path.split(path)[0])
 			
-			scene = None
+			scene_mod = None
 			try:
-				scene = imp.load_module(mod_name, modfile, path, desc)
+				scene_mod = imp.load_module(mod_name, modfile, path, desc)
 			finally:
 				# Always restore path
-				sys.path = sys_path
+				sys.path = sys.path[1:len(sys.path)]
 				# Remove file if needed
 				if modfile:
 					modfile.close()
 					
-			scene._bodes.extend(new_scene.create_scene(self, scene))
+			print type(scene)
+			scene._bodies.extend(scene_mod.create_scene(self, scene))
 					
 		except ImportError, e:
 			raise SimulationError('Could not load scene "%s"\n On path: %s\n Error: %s' % (mod_name, search_path, str(e)))

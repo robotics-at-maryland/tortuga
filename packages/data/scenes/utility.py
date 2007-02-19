@@ -4,7 +4,7 @@ import Ogre, OgreNewt
 box_entity_count = 0
 plane_entity_count = 0
 
-create_object(name, mesh, pos, orient, col_type, )
+#create_object(name, mesh, pos, orient, col_type, )
 
 def create_box(scene_mgr, world, callback, size = Ogre.Vector3(1.0, 1.0, 1.0), 
                name = 'GeneratedBox' + str(box_entity_count), 

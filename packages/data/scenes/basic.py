@@ -14,7 +14,7 @@ bodies = []
 scene_mgr = None
 world = None
 
-def create_scene(self, loader, scene):
+def create_scene(loader, scene):
     """
     This is the main entry point to the scene, it will be called when 
     loading the simulation
@@ -25,12 +25,14 @@ def create_scene(self, loader, scene):
     scene_mgr = scene._scene_manager
     world = scene._world
     
-    locations = {'zip': ['../media/packs/OgreCore.zip', 
+    locations = {'Zip': ['../media/packs/OgreCore.zip', 
                          '../media/packs/cubemapsJS.zip'],
-                 'file_system' : ['../media/models', '../media/primitives',
+                 'FileSystem' : ['../media/models', '../media/primitives',
                                   '../media/materials/textures', 
                                   '../media/materials/scripts'] }
     
+    print dir(scene)
+    scene.add_resource_locations(locations)
     
     # Create Camera here
     camera = scene_mgr.createCamera('PlayerCam')
@@ -41,21 +43,19 @@ def create_scene(self, loader, scene):
     # Allows easier movement of camera
     camera_node = scene_mgr.getRootSceneNode().createChildSceneNode()
     camera_node.setPosition(0,0,0)
-    camera_node.attachObject(self.camera)
+    camera_node.attachObject(camera)
     
     # position camera
     camera_node.setPosition( 0, 1, 3)
     camera.lookAt(0, 0, 0)
     
+    # TODO: Remove this hack, place functionality in Scene class
+    scene.cameras = {}
+    scene.cameras['Main'] = camera
+    
     create_tank()
     scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
-    
-    locations = {'zip': ['../media/packs/OgreCore.zip', 
-                         '../media/packs/cubemapsJS.zip'],
-                 'file_system' : ['../media/models', '../media/primitives',
-                                  '../media/materials/textures', 
-                                  '../media/materials/scripts'] }
-    scene.add_resource_locations(locations)
+
     
     # Light
     #self.scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))

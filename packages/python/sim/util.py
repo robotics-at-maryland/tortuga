@@ -12,6 +12,10 @@ Provides core fuctionality for the simulation
 # Makes everything much easier, all imports must work from the root
 #from __future__ import absolute_import
 
+class SimulationError (Exception):
+    """ Base class for exceptions in the simulation """
+    pass
+
 # Libraries Imports
 import Ogre
 
