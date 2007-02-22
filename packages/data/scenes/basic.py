@@ -31,7 +31,7 @@ def create_scene(loader, scene):
                                   '../media/materials/textures', 
                                   '../media/materials/scripts'] }
     
-    print dir(scene)
+    #print dir(scene)
     scene.add_resource_locations(locations)
     
     # Create Camera here
@@ -58,10 +58,10 @@ def create_scene(loader, scene):
 
     
     # Light
-    #self.scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
-    #light = self.scene_mgr.createLight("Light1")
-    #light.setType(Ogre.Light.LT_POINT )
-    #light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
+    scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
+    light = scene_mgr.createLight("Light1")
+    light.setType(Ogre.Light.LT_POINT )
+    light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
     return bodies
 
 def add_wall(pos, norm = Ogre.Vector3.UNIT_Z, 

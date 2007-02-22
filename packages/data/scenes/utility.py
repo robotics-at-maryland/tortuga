@@ -36,7 +36,7 @@ def create_box(scene_mgr, world, callback, size = Ogre.Vector3(1.0, 1.0, 1.0),
     bod.setMassMatrix(mass, inertia)
     bod.setCustomForceAndTorqueCallback( callback , "")
     
-    box.setMaterialName("Simple/BumpyMetal")
+    #box.setMaterialName("Simple/BumpyMetal")
 
     bod.setPositionOrientation(pos, orient)
 

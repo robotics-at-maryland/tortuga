@@ -260,7 +260,7 @@ class Component(object):
 
 
 
-def fixed_update(_update_interval_attr, _elapsed_attr = 'elapsed',
+def fixed_update(update_interval_attr, _elapsed_attr = None,
                   update_time_pos = 0):
     """
     A decorator function that wraps a normal update function in a way which 
@@ -272,7 +272,8 @@ def fixed_update(_update_interval_attr, _elapsed_attr = 'elapsed',
                                  
     @type elapsed_attr: string
     @param elapsed_attr: The name of the object attribute that will hold the 
-                         elapsed time between updates.
+                         elapsed time between updates. If None 
+                         func.__name__ + '_elapsed' is used.
                          
     @type update_time_pos: number
     @param update_time_pos: The position of the variable in the args list that
@@ -280,14 +281,20 @@ def fixed_update(_update_interval_attr, _elapsed_attr = 'elapsed',
     """
     def decorator(func):
         # Determine the name of attributes
-        update_interval_attr = '%s_%s' %(func.__name__, _update_interval_attr)
-        elapsed_attr = '%s_%s' %(func.__name__, _elapsed_attr)
+        if _elapsed_attr is None:
+            elapsed_attr = '%s_%s' %(func.__name__, 'elapsed')
+            setattr(func, elapsed_attr, 0)
         
         def wrapper(self, *args, **kwargs):
             # Grab attributes off object
-            update_interval = getattr(self, update_interval)
-            elapsed = getattr(self, elapsed_attr)
-            
+            update_interval = getattr(self, update_interval_attr)
+            elapsed = None
+            try:
+                elapsed = getattr(self, elapsed_attr)
+            except AttributeError:
+                setattr(self, elapsed_attr, 0)
+                elapsed = getattr(self, elapsed_attr)
+                
             # Add the time since the last update to the elapsed time
             elapsed += args[update_time_pos]
             if ((elapsed > update_interval) and (elapsed < (1.0)) ):

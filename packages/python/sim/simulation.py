@@ -89,12 +89,13 @@ class Simulation(Singleton):
         @type time_since_last_update: a decimal number
         @param time_since_last_update: name says it all
         """
-        
+        print 'Update'
         if self._run:
-            Ogre.WindowEventUtilities.messagePump()
-            self.root.renderOneFrame()
+            print 'Update Stuff'
+            #Ogre.WindowEventUtilities.messagePump()
+            self._ogre_root.renderOneFrame()
    
-            for scene in _scenes.itervalues():
+            for scene in self._scenes.itervalues():
                 scene.update(time_since_last_update)
    
         return self._run
@@ -106,8 +107,7 @@ class Simulation(Singleton):
         window.
         """
         
-        render_system = self._ogre_root.getRenderSystem()
-        new_window = render_system.createRenderWindow(str(name), width, height, 
+        new_window = self._ogre_root.createRenderWindow(str(name), width, height, 
                                                       False, params)
             
         return new_window
@@ -140,7 +140,6 @@ class Simulation(Singleton):
          
             if os.path.exists(scene_path):
                 self._scenes[name] = scene.Scene(name, scene_path)
-                self.root.loadPlugin(plugin_path)
                 found = True
         
         if not found:

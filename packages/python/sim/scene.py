@@ -72,6 +72,7 @@ class Scene(object):
         self.name = name
         self._objects = {}
         self._bodies = []
+        self._physics_update_interval = 1.0 / 60
         
         # Create Ogre SceneManager and OgreNewt World
         self._scene_manager = \
@@ -88,15 +89,16 @@ class Scene(object):
         
         loader = loaders[0]()
         loader.load(scene_file, self)
-        Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(self.name)
+#        Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(self.name)
         
 
     def update(self, time_since_last_update):
-        _update_physics(time_since_last_update)
+        self._update_physics(time_since_last_update)
         
         # Update all of our objects
-        for obj in _objects.itervalues():
-            obj.update(time_since_last_update)
+        for obj in self._objects.itervalues():
+           obj.update(time_since_last_update)
+        pass
     
     @fixed_update('_physics_update_interval')
     def _update_physics(self, time_since_last_update):
