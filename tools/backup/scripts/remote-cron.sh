@@ -10,7 +10,7 @@ BACKUP_DIRS="svn trac"
 RSYNC=/usr/bin/rsync
 
 # Wait for the remove server to do its backup (15 minutes)
-sleep 900
+#sleep 900 not needed current set the time manually
 
 # Sync the current backup from the remove computer to this one
 $RSYNC -ave ssh --delete $BACKUP_USER@$BACKUP_TARGET:$BACKUP_REMOTE_DIR $BACKUP_LOC
