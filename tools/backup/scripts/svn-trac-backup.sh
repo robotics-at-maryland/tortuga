@@ -5,7 +5,7 @@ SVN_DIR=/var/svn
 PROJ=mrbc
 BACKUP_TOOL_DIR=/home/rambackup/backup-tool
 SVNADMIN=/usr/bin/svnadmin
-TRACADMIN/usr/bin/trac-admin
+TRACADMIN=/usr/bin/trac-admin
 #BACKUP_USER=mrbc-backup
 
 # Helper variables
