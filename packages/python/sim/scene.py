@@ -17,7 +17,7 @@ import OgreNewt
 
 # Project Imports
 import core
-from sim.util import SimulationError
+from sim.util import SimulationError, ModuleLoader
 from core import fixed_update, log_init
 
 class SceneError(SimulationError):
@@ -149,7 +149,7 @@ class Scene(object):
         kwargs['scene'] = self
         core.Component.create(obj_type, *args, **kwargs)
 	
-class ModuleSceneLoader(core.Component):
+class ModuleSceneLoader(core.Component, ModuleLoader):
 	"""
 	Loads a scene by loading a python module from file and executing the
 	create_scene method.
@@ -161,52 +161,11 @@ class ModuleSceneLoader(core.Component):
 	core.implements(ISceneLoader)
 	
 	# ISceneLoader Methods
-	@staticmethod
-	def can_load(scene_file):
-		"""
-		Any name ending in ".py" will be accepted.
-		"""
-		if scene_file.endswith('.py'):
-			return True
-		return False
-		
 	def load(self, scene_file, scene):
 		"""
 		Uses the python imp module to load the module given the path to it.
 		"""
-		
-		# Sanity check to make sure we can load the scene
-		if not ModuleSceneLoader.can_load(scene_file):
-			raise SceneError("%s cannon load: %s" % (self.__name__, scene_file))
-		
-		directory, mod_name = os.path.split(scene_file)
-		search_path = [directory]
-		
-		# Strip off extension
-		mod_name = mod_name[0:-3]
-		
-		try:
-			# Load the modules
-			modfile, path, desc = imp.find_module(mod_name, search_path)
-			
-			# Prepend current directory to the module loading path the module can
-			# import modules in that directory
-			sys.path.insert(0, os.path.split(path)[0])
-			
-			scene_mod = None
-			try:
-				scene_mod = imp.load_module(mod_name, modfile, path, desc)
-			finally:
-				# Always restore path
-				sys.path = sys.path[1:len(sys.path)]
-				# Remove file if needed
-				if modfile:
-					modfile.close()
-					
-			print type(scene)
-			scene._bodies.extend(scene_mod.create_scene(self, scene))
-					
-		except ImportError, e:
-			raise SimulationError('Could not load scene "%s"\n On path: %s\n Error: %s' % (mod_name, search_path, str(e)))
+		scene_mod = ModuleLoader.load(self, scene_file)
+		scene._bodies.extend(scene_mod.create_scene(self, scene))
 	
 	# End ISceneLoader Methods

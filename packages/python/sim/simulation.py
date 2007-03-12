@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   /sim/core.py
+# File:   /sim/simulation.py
 
 """
 This module provides the core functionallity of the simulation
@@ -260,51 +260,3 @@ class Simulation(Singleton):
 
         # Give Ogre our new render system 
         self._ogre_root.setRenderSystem(render_system)
-
-    def load_scene(self, scene_name = None):
-        """
-        Loads a scene based on the configuration data given to simulation on
-        start. This expects a configuration of the following format.
-        
-        Scenes:  
-            current: name_of_module
-            path: path_on_which_module_exits
-        
-        @type scene_name = string
-        @param scene_name = The name of the scene to load, must be on the scene
-            path of the configuration given to module.
-
-        """
-        
-        # Read config value, falling back to default if needed
-        scene_cfg = self._config.get('Scene', {})
-        mod_name = scene_cfg.get('current', 'basic')
-        scene_path = scene_cfg.get('path', ['../data/scenes'])
-        
-        search_path = [os.path.abspath(p) for p in scene_path]
-        sys_path = sys.path
-        
-        try:
-            # Load the modules
-            modfile, path, desc = imp.find_module(mod_name, search_path)
-            
-            # Prepend current directory to the module loading path the module can
-            # import modules in that directory
-            sys.path.insert(0, os.path.split(path)[0])
-            
-            scene = None
-            try:
-                scene = imp.load_module(mod_name, modfile, path, desc)
-            finally:
-                # Always restore path
-                sys.path = sys_path
-                # Remove file if needed
-                if modfile:
-                    modfile.close()
-                    
-            new_scene = scene.Scene()
-            new_scene.create_scene(self._graphics_sys, self._physics_sys)
-            return new_scene
-                    
-        except ImportError, e:
-            raise SimulationError('Could not load scene "%s"\n On path: %s\n Error: %s' % (mod_name, search_path, str(e)))

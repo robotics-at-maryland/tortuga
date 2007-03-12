@@ -22,7 +22,7 @@ import platform
 import event
 import logloader
 
-from core import FixedUpdater, property
+from core import fixed_update, cls_property
 from sim.util import Vector
 from sim import *
 from sim.simulation import Simulation
@@ -38,7 +38,7 @@ event.add_event_types(['KEY_PRESSED',     # Once fired once per key press
                        'MOUSE_PRESSED',   # When a mouse button is pressed
                        'MOUSE_RELEASED']) # When the mouse button is released
 
-class InputSystem(FixedUpdater, Ogre.WindowEventListener):
+class InputSystem(Ogre.WindowEventListener):
     """
     This handles input from the keyboard and mouse.  It currently just listens
     for the ESCAPE key and quits ogre is needed.
@@ -54,7 +54,7 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         # Call constructor of C++ super class
         Ogre.WindowEventListener.__init__(self)
         
-        FixedUpdater.__init__(self, 1.0 / config.get('update_rate',60), 1.0)
+        self._update_interval = 1.0 / config.get('update_rate',60)
         
         self.render_window = Simulation.get().graphics_sys.render_window
         
@@ -125,6 +125,7 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
     def _setup_logging(self, config):
         self.logger = logloader.setup_logger(config, config)   
             
+    @fixed_update('_update_interval')
     def _update(self, time_since_last_update):
         # Drop out if the render_window has been closed
         if(self.render_window.isClosed()):

@@ -228,11 +228,12 @@ class ComponentMeta(type):
                 # (mypkg.submod.Myclass) and map it to the new class in the 
                 # registry.
 
-                # Check to make sure the class fufills the interface 
-                for required_attr in interface.names():
-                    if not d.has_key(required_attr):
-                        raise "%s must implement '%s' method of %s interface" % \
-                            (name, required_attr, interface.getName())
+                # Check to make sure the class fufills the interface
+                # TODO: Fix this so that it works with attributes 
+#                for required_attr in interface.names():
+#                    if not d.has_key(required_attr):
+#                        raise "%s must implement '%s' attribute of %s interface" % \
+#                            (name, required_attr, interface.getName())
                     
 
                 full_name = d['__module__'] + '.' + name
@@ -252,12 +253,17 @@ class Component(object):
     """
     __metaclass__ = ComponentMeta
 
-    def create(interface, cls, *args, **kwargs):
-        """
-        Finds and creates 
-        """
-        return Component._registry[interface][cls](*args, **kwargs)
+    @staticmethod
+    def get_class(interface, class_name):
+        return Component._registry[interface][class_name]
 
+    @staticmethod
+    def create(interface, class_name, *args, **kwargs):
+        """
+        Finds and creates objects based on the interface and class names
+        """
+        return Componentget_class(interface, class_name)(*args, **kwargs)
+    
 
 
 def fixed_update(update_interval_attr, _elapsed_attr = None,

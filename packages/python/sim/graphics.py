@@ -25,12 +25,17 @@ import OIS
 # Project Imports
 import logloader    
 import event
-from core import FixedUpdater
+from core import fixed_update
 import sim.simulation as simulation
 from sim.input import KeyStateObserver
+import sim.util
 
 class GraphicsError(simulation.SimulationError):
     """ Error from the graphics system """
+    pass
+
+class IVisual(sim.util.IObject):
+    """ An object which you can see in the simulation"""
     pass
 
 class GraphicsSystem(object):
@@ -289,13 +294,13 @@ event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT',
                        'CAM_FOLLOW',       # A hack, follow the given node
                        'CAM_INDEPENDENT']) # Return back to free floating
 
-class CameraController(FixedUpdater):
+class CameraController(object):
     """
     Here we have our camera attached to a node, looking at then node.
     
     """
     def __init__(self, camera, camera_node):
-        FixedUpdater.__init__(self, 1.0 / 60, 1.0)
+        self._update_interval = 1.0 / 60;
         
         self.camera = camera
         self.camera_node = camera_node
@@ -325,6 +330,7 @@ class CameraController(FixedUpdater):
         # object is gone
         event.remove_handlers(self.handler_map)
     
+    @fixed_update('_update_interval')
     def _update(self, time_since_last_frame):
         quat = self.camera_node.getOrientation()
         

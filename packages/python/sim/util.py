@@ -12,12 +12,54 @@ Provides core fuctionality for the simulation
 # Makes everything much easier, all imports must work from the root
 #from __future__ import absolute_import
 
-class SimulationError (Exception):
-    """ Base class for exceptions in the simulation """
-    pass
+# Standard Library Imports
+import os
+import sys
+import imp
 
 # Libraries Imports
 import Ogre
+
+import core
+
+# TODO: Move these base classes somewhere a little more obvious
+class IObject(core.Interface):
+    """
+    A basic object in the simulation it has and can have children.
+    """
+    
+    parent = core.Attribute("""The parent of current object, none if root""")
+    name = core.Attribute("""The name of the object""")
+    
+    def get_child(name):
+        """
+        @type  name: string
+        @param name: The name fo the child you wish to retrieve
+        """
+        pass
+    
+    def add_child(name, child):
+        """
+        @type  name: string
+        @param name: The name fo the child you wish to add
+        
+        @type  child: Implementer of IObject
+        @param child: The child to add
+        """
+        pass
+    
+    def remove_child(self, child):
+        """
+        @type  child: IOjbect or string
+        @param child: The actual object you wish to remove, or its name
+        """
+        
+        if IObject.providedBy(child):
+            pass
+
+class SimulationError (Exception):
+    """ Base class for exceptions in the simulation """
+    pass
 
 def Vector(*args, **kwargs):
     """ 
@@ -84,3 +126,61 @@ def buoyancyCallback(colID, me, orient, pos, plane):
     # pos = Ogre.Vector3(0,0,0)
    
     return True  
+
+class ModuleLoader(object):
+    """
+    The base class for all module based loaders.
+    """
+    
+    @staticmethod
+    def can_load(file_name):
+        """
+        Any name ending in ".py" will be accepted.
+        """
+        if file_name.endswith('.py'):
+            return True
+        return False
+        
+    def load(self, file_name):
+        """
+        Uses the python imp module to load the module given the path to it.
+        
+        @type  file_name: string
+        @param file_name: The full path to the module
+        
+        @rtype:  module
+        @return: the module requsted
+        """
+        
+        # Sanity check to make sure we can load the scene
+        if not self.__class__.can_load(file_name):
+            raise SimulationError("%s cannon load: %s" % (self.__name__, file_name))
+        
+        directory, mod_name = os.path.split(file_name)
+        search_path = [directory]
+        
+        # Strip off extension
+        mod_name = mod_name[0:-3]
+        
+        try:
+            # Load the modules
+            modfile, path, desc = imp.find_module(mod_name, search_path)
+            
+            # Prepend current directory to the module loading path the module can
+            # import modules in that directory
+            sys.path.insert(0, os.path.split(path)[0])
+            
+            mod = None
+            try:
+                mod = imp.load_module(mod_name, modfile, path, desc)
+            finally:
+                # Always restore path
+                sys.path = sys.path[1:len(sys.path)]
+                # Remove file if needed
+                if modfile:
+                    modfile.close()
+                    
+            return mod
+                    
+        except ImportError, e:
+            raise SimulationError('Could not load scene "%s"\n On path: %s\n Error: %s' % (mod_name, search_path, str(e)))

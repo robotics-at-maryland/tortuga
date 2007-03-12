@@ -1,0 +1,96 @@
+# This the config file that builds the simulated version of the AUV
+
+Robot:
+    name: AUT
+    
+    # In the X, Y, and Z direction
+    position: [0.0, 0.0, 0.0]
+    # In Axis/Angle Form (last term angle)
+    orientation: [0.0, 0.0, 1.0, 0.0]
+    
+    # This section describes the physics of the object
+    Physical:
+        # In kilograms
+        mass: 24.6  # About 0.5% bouyant
+ 
+        Shape:
+            type: box
+            # Actual size in meters
+            size: [0.2032, 0.2032, 0.6858]
+                
+     # This section describes how the object will appear
+     Graphical:
+          mesh: box.mesh
+          material: Simple/BumpyMetal
+          scale: [1,1,1]
+    
+#    Parts:
+#        
+#        # For each simulated thruster you need to give its type, relative
+#        # to the body coordinate system (describe me here)
+#        # Y is UP, Z comes out the front of the vehicle and when looking at
+#        # vehicle from the back X comes out the right (starboard) side 
+#        Thruster:
+#            type: Basic
+#            name: left_thruster
+#            
+#            # Position relative to robot
+#            position: [-0.16, 0, 0]
+#            orientation: [0, 1, 0, 90]
+#            
+#            # Thruster Properties
+#            # A unit vector along which thrust will be applied
+#            direction: [0, 0, -1]
+#            # The maximum avialable thrust (in Newtons)
+#            strength: 25.5
+#            
+#            # This section describes the physics of the object
+#            Physical:
+#                mass: 0.35
+#                
+#                Shapes:
+#                    Capsule:
+#                        
+#            # This section describes how the object will apear
+#            Graphical:
+#                mesh: cylinder.mesh
+#                material: Simple/BumpyMetal
+#                scale: [0.15,0.047,0.047]
+#
+#        Thruster:
+#            type: Basic
+#            name: left_thruster
+#            
+#                position: [0.16, 0, 0]
+#                direction: [0, 0, -1]
+#                strength: 25.5
+#                
+#                Graphical:
+#                    mesh: cylinder.mesh
+#                    material: Simple/BumpyMetal
+#                    scale: [0.15,0.047,0.047]
+#                    orientation: [0, 1, 0, 90]
+#                    
+#            ForeThruster:
+#                type: SimThruster
+#                position: [0, 0, 0.4]
+#                direction: [0, 1, 0]
+#                strength: 25.5
+#                
+#                Graphical:
+#                    mesh: cylinder.mesh
+#                    material: Simple/BumpyMetal
+#                    scale: [0.15,0.047,0.047]
+#                    orientation: [0, 0, 1, 90]
+#                    
+#            AftThruster:
+#                type: SimThruster
+#                position: [0, 0, -0.4]
+#                direction: [0, 1, 0]
+#                strength: 25.5
+#                
+#                Graphical:
+#                    mesh: cylinder.mesh
+#                    material: Simple/BumpyMetal
+#                    scale: [0.15,0.047,0.047]
+#                    orientation: [0, 0, 1, 90]
