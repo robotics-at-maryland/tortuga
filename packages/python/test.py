@@ -10,6 +10,7 @@ import unittest
 import re
 import os
 import os.path
+import optparse
 
 # Library Imports
 import figleaf
@@ -180,17 +181,34 @@ def generate_coverage_files(report_file, coverage_directory):
     
     coverage = figleaf.read_coverage(report_file)
     figleaf.htmlizer.report_as_html(coverage, coverage_directory, regexes,
-                                    relative_paths = True, sort_by_path = False)
+                                    relative_paths = True, sort_by_path = True)
 
-if __name__ == '__main__':
-    # Remove old coverage data and start collecting a new set
+def test_with_coverage(test_func):
+    # Run test function with coverage
     figleaf.start()
-    
-    # Run All Tests
-    suite = gather_suites_from_package('tests')
-    
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
+    test_func()
     figleaf.stop()
+    
+    # Create html coverage data
     figleaf.write_coverage('.figleaf')
     generate_coverage_files('.figleaf', 'coverage')
+
+if __name__ == '__main__':
+    option_parser = optparse.OptionParser()
+
+    option_parser.add_option('-c', '--coverage', action="store_true",
+                             dest="create_coverage",
+                             help="Generage an html code coverage report")
+
+    (options, args) = option_parser.parse_args()
+    # Remove old coverage data and start collecting a new set
+    
+    # Run All Tests
+    def run_tests():
+        suite = gather_suites_from_package('tests')
+        unittest.TextTestRunner(verbosity=2).run(suite)
+        
+    if options.create_coverage:
+        test_with_coverage(run_tests)
+    else:
+        run_tests()
