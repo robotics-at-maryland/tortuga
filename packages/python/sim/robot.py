@@ -105,7 +105,7 @@ class KMLRobotLoader(core.Component):
         return _class(**kwargs)
     
 class Robot(Body, Visual):
-    core.implements(robot.IRobot)
+    core.implements(IRobot)
             
     def __init__(self, name, position, orientation, mass, shape_type,
                  shape_props, mesh, material, scale):

@@ -48,10 +48,6 @@ class TestKMLRobotLoader(unittest.TestCase):
                 test_case.assertEquals(Ogre.Vector3(1, 2, 3), position)
                 test_case.assertEquals(Ogre.Quaternion(Ogre.Degree(d = 45), [0, 1, 2]),
                                        orientation)
-                # Physical
-                test_case.assertEquals(24.6, mass)
-                test_case.assertEquals('box', shape_type)
-                test_case.assertEquals({'size' : [0.3, 0.5, 0.7]}, shape_props)
                 
                 # Graphical
                 test_case.assertEquals('box.mesh', mesh)

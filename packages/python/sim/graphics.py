@@ -25,7 +25,7 @@ import OIS
 # Project Imports
 import logloader    
 import event
-from core import fixed_update
+from core import fixed_update, Component, implements
 import sim.simulation as simulation
 from sim.input import KeyStateObserver
 import sim.util
@@ -37,6 +37,17 @@ class GraphicsError(simulation.SimulationError):
 class IVisual(sim.util.IObject):
     """ An object which you can see in the simulation"""
     pass
+
+# TODO: Fill out the methods for the class
+
+class Visual(sim.util.Object):
+    implements(IVisual)
+    
+    def __init__(self, parent, position, orietnation, mesh, material, 
+                 scale):
+        # TODO: Call object
+        
+        pass
 
 class GraphicsSystem(object):
     """

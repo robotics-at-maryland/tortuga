@@ -1,9 +1,19 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  test.py
 
 # Python Imports
 import unittest
+import re
+import os
+import os.path
 
-# Project Imports
-import tests
+# Library Imports
+import figleaf
+import figleaf.htmlizer
 
 # Note This code is borrowed from Trac:
 #  Copyright (C) 2003-2006 Edgewall Software
@@ -65,5 +75,122 @@ def Mock(bases=(), *initargs, **kw):
         setattr(mock, k, v)
     return mock
 
+def import_module_from_name(name):
+    """
+    Equivalent to import <name> as <return>.
+    
+    @type  name: string
+    @param name: The module to be import, of the form 'root.submod.module'
+    
+    @rtype : module
+    @return: The module at the end of the dotted module name
+    """
+    mod = __import__(name)
+    components = name.split('.')
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return mod
+
+def import_sub_modules(package_name):
+    """
+    Gets all modules contained within a package
+    
+    @type  name: string
+    @param name: A package name of the form 'root.submod.module'
+    
+    @rtype : list
+    @return: This is a list containing all sub modules of the given package
+    """
+    
+    # Get a files in the packages directory
+    package = import_module_from_name(package_name)
+    package_dir = os.path.split(package.__file__)[0]
+    files = os.listdir(package_dir)
+    
+    # This filtering might be cleaned with a regular expression
+    # Accept only *.py files that aren't __init__ and strip the .py
+    mod_files = [path[0:-3] for path in files if path.endswith('.py')]
+    mod_files.remove('__init__')
+ 
+    # Import all sub modules into a list
+    modules = []
+    for mod_file in mod_files:
+        mod_name = '%s.%s' % (package_name, mod_file)
+        modules.append(import_module_from_name(mod_name))
+        
+    # Now recursively add sub modules excluding hidden directories
+    sub_modules = [path for path in files if os.path.isdir(path)]
+    sub_modules = [path for path in sub_modules if not path.startswith('.')]
+    
+    for sub_module in sub_modules:
+        mod_name = '%s.%s' % (package_name, sub_module)
+        modules.extend(import_sub_modules(mod_name))
+        
+    return modules
+    
+def gather_suites(modules):
+    """
+    This gets the suites from all given modules with 'get_suites' and combines
+    them into one large unittest.
+    """
+    suites = []
+    
+    for mod in modules:
+        suites.append(mod.get_suite())
+    
+    return unittest.TestSuite(suites)
+
+def gather_suites_from_package(package_name):
+    """
+    Gets all modules contained within a package
+    
+    @type  name: string
+    @param name: A package name of the form 'root.submod.module'
+    
+    @rtype : unittest.TestSuite
+    @return: A test suite that contains all tests of the package and its sub
+             modules.
+    """
+    modules = import_sub_modules(package_name)
+    return gather_suites(modules)
+
+def generate_coverage_files(report_file, coverage_directory):
+    """
+    Go through all modules in the given package and generate the coverage data
+    for them.
+    
+    @type  name: string
+    @param name: A package name of the form 'root.submod.module'
+    
+    @type  coverage_directory: string
+    @param coverage_directory: The directory into which the coverage html files
+                               will be placed.
+    """
+    
+    # Ensure coverage directory exists
+    if not os.path.exists(coverage_directory):
+        os.makedirs(coverage_directory)
+    
+    # Generate exclude patterns to remove files from display
+    patterns = ['site-packages', 'Python25', r'python' + os.sep*2 + 'tests',
+                'test.py']
+    regexes = []
+    for pattern in patterns:
+        regexes.append(re.compile(pattern))
+    
+    coverage = figleaf.read_coverage(report_file)
+    figleaf.htmlizer.report_as_html(coverage, coverage_directory, regexes,
+                                    relative_paths = True, sort_by_path = False)
+
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(tests.get_suite())
+    # Remove old coverage data and start collecting a new set
+    figleaf.start()
+    
+    # Run All Tests
+    suite = gather_suites_from_package('tests')
+    
+    unittest.TextTestRunner(verbosity=2).run(suite)
+
+    figleaf.stop()
+    figleaf.write_coverage('.figleaf')
+    generate_coverage_files('.figleaf', 'coverage')

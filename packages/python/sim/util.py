@@ -53,13 +53,49 @@ class IObject(core.Interface):
         @type  child: IOjbect or string
         @param child: The actual object you wish to remove, or its name
         """
+        pass
         
-        if IObject.providedBy(child):
-            pass
+        #if IObject.providedBy(child):
+        #    pass
 
 class SimulationError (Exception):
     """ Base class for exceptions in the simulation """
     pass
+
+class Object(core.Component):
+    core.implements(IObject)
+    
+    @staticmethod
+    def assert_object_implementer(obj):
+        if not IObject.providedBy(obj):
+            raise SimulationError('Object must implement IObject interface')
+    
+    def __init__(self, parent, name):
+        if parent is not None:
+            self.assert_object_implementer(parent)
+        
+        self._children = {}
+        self.parent = parent
+        self.name = name
+        
+    def get_child(self, name):
+        if not self._children.has_key(name):
+            raise SimulationError('Object does not have child %s' % name)
+        
+        return self._children[name]
+        
+    def add_child(self, child):
+        self.assert_object_implementer(child)
+        
+        self._children[child.name] = child
+    
+    def remove_child(self, child):
+        actual_child = child
+        # If its not an implementer of IObject
+        if not IObject.providedBy(child):
+            actual_child = self.get_child(child)
+            
+        del self._children[actual_child.name]
 
 def Vector(*args, **kwargs):
     """ 

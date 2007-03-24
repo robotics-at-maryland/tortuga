@@ -1,3 +1,9 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  sim/physics.py
 
 # Library Imports
 import OgreNewt
@@ -6,6 +12,7 @@ import Ogre
 # Project Imports
 import core
 import sim.util
+from sim.serialization import IKMLLoadable
 
 class PhysicsError(sim.util.SimulationError):
     """
@@ -32,7 +39,7 @@ class IBody(sim.util.IObject):
     # TODO: Document local, global, and buoyancy forces   
     
 class Body(object):
-    core.implements(IBody)
+    core.implements(IBody, IKMLLoadable)
     
     def __init__(self, world, shape, shape_props, 
                  position = Ogre.Vector3.ZERO, 
@@ -68,6 +75,7 @@ class Body(object):
     def _make_force_pos_pair(force, pos):
         return (Ogre.Vector3(force), Ogre.Vector3(pos))
     
+    # IBody Methods
     class force(core.cls_property):
         def fget(self):
             return self._force
@@ -111,6 +119,31 @@ class Body(object):
             
     def get_buoyancy_plane(self):
         return self._buoyancy_plane
+    
+    # IKMLLoadable Methods
+    @staticmethod
+    def kml_load(node):
+        kwargs = {}
+        
+        physical_node = node['Physical']    
+        # Find shape type and its properties
+        shape_type = physical_node['Shape']['type'].lower() 
+        shape_props = {}
+        for param, value in physical_node['Shape'].iteritems():
+            if param != 'type':
+                shape_props[param] = value 
+                    
+        kwargs['shape_type'] = shape_type
+        kwargs['shape_props'] = shape_props
+                    
+        # Grab and validate Mass
+        mass = physical_node['mass']
+        if (type(mass) is not int) and (type(mass) is not float):
+            raise SimulationError('Mass must be an interger of float')
+            
+        kwargs['mass'] = mass
+        
+        return kwargs
     
 class Shape(object):
     pass
