@@ -18,10 +18,17 @@ import logging
 
 # Place all of the zope interfaces package under our current one
 from zope.interface import *
+from zope.interface.verify import *
 from zope.interface import classImplements as _classImplements
+import zope.interface.declarations as declarations
+import zope.interface.advice as advice
 
 BEGIN_INIT_MESSAGE = '* * * Beginning initialization'
 END_INIT_MESSAGE = '* * * Initialized'
+
+# --------------------------------------------------------------------------- #
+#                             L O G G I N G                                  #
+# --------------------------------------------------------------------------- #
 
 def log_init(default_config, level = logging.INFO):
     """
@@ -165,11 +172,11 @@ class Singleton(object):
 # --------------------------------------------------------------------------- #
 #                     C O M P O N E N T   S Y S T E M                         #
 # --------------------------------------------------------------------------- #
-    
+
 class ExtensionPoint(property):
     """Marker class for extension points in components."""
 
-    def __init__(self, interface):
+    def __init__(self, iface):
         """Create the extension point.
         
         @type interface: Subclass of Interface
@@ -177,25 +184,50 @@ class ExtensionPoint(property):
             for the extension point
         """
         property.__init__(self, self.extensions)
-        self.interface = interface
+        self.iface = iface
         self.__doc__ = 'List of components that implement `%s`' % \
-                       self.interface.__name__
+                       self.iface.__name__
 
     def extensions(self, component):
         """Return a list of components that declare to implement the extension
         point interface."""
-        extension_map = ComponentMeta._registry.get(self.interface, {})
-        return [interface for interface in extension_map.itervalues()]
+        extension_map = Component._registry.get(self.iface, {})
+        return [iface for iface in extension_map.itervalues()]
 
     def __repr__(self):
         """Return a textual representation of the extension point."""
-        return '<ExtensionPoint %s>' % self.interface.__name__
-    
-class ComponentMeta(type):
+        return '<ExtensionPoint %s>' % self.iface.__name__
+
+class Component(object):
     """
-    The metaclass (the class of class) for the compent class.  This takes care 
-    of registering each new component as supplying its interface in the 
-    registry.
+    The base class for all components, each subclass must implement and 
+    interface.  If it doesn't, it shouldn't be a component.
+        
+    The registry is of the form    
+        { IInterfaceOne : 
+            {'mypkg.submod.MyClass' : MyClass, 
+             'module1.OtherCls' : OtherCls },
+          IAnotherInterface : 
+              {'myotherpkg.subpkg.submod.AClass' : AClass} }
+    """
+    
+
+    _registry = {}
+
+    @staticmethod
+    def get_class(iface, class_name):
+        return Component._registry[iface][class_name]
+
+    @staticmethod
+    def create(interface, class_name, *args, **kwargs):
+        """
+        Finds and creates objects based on the interface and class names
+        """
+        return Componentget_class(interface, class_name)(*args, **kwargs)
+
+def _register_class(_class):
+    """
+    Registers the given class in the component registry
 
     This ends up with a registry of the following form:
         { IInterfaceOne : 
@@ -204,67 +236,44 @@ class ComponentMeta(type):
           IAnotherInterface : 
               {'myotherpkg.subpkg.submod.AClass' : AClass} }
     """
-    _registry = {}
-    def __new__(cls, name, bases, d):
-        """
-        Called when you do a class declaration, ie "class(object): ..." and 
-        this is that classes metaclass.  This is called after the class
-        declartion has been executed.
-        """
-        new_class = None
+
+    implemented_interfaces = [i for i in implementedBy(_class)]
+    if len(implemented_interfaces) == 0:
+        raise "Component must implement an interface"
     
-        # We not dealing with the Component base class so register the classes
-        # implemented interfaces
-        if name != 'Component':
+    # Loop over those interfaces to add them to our registry
+    for iface in implemented_interfaces:
+        # Generated the full package name of the class ie:
+        # (mypkg.submod.Myclass) and map it to the new class in the 
+        # registry.
+        
+        full_name = _class.__module__ + '.' + _class.__name__
+        Component._registry.setdefault(iface, {})[full_name] = _class
 
-            # Check for the property that holds what interfaces a class implements
-            if not d.has_key('__implements_advice_data__'):
-                raise "Component must implement an interface"
-            new_class = type.__new__(cls, name, bases, d)
+    return _class
 
-            # Loop over those interfaces to add them to our registry
-            for interface in d['__implements_advice_data__'][0]:
-                # Generated the full package name of the class ie:
-                # (mypkg.submod.Myclass) and map it to the new class in the 
-                # registry.
-
-                # Check to make sure the class fufills the interface
-                # TODO: Fix this so that it works with attributes 
-#                for required_attr in interface.names():
-#                    if not d.has_key(required_attr):
-#                        raise "%s must implement '%s' attribute of %s interface" % \
-#                            (name, required_attr, interface.getName())
-                    
-
-                full_name = d['__module__'] + '.' + name
-                ComponentMeta._registry.setdefault(interface, {})[full_name] = new_class
-
-        else:
-            # Provide the component class access to the component registry
-            d['_registry'] = ComponentMeta._registry
-            new_class = type.__new__(cls, name, bases, d)
-
-        return new_class
-
-class Component(object):
+def _verify_class(_class):
     """
-    The base class for all components, each subclass must implement and 
-    interface.  If it doesn't, it shouldn't be a component.
+    This ensures that the class properly implements all its interfaces
     """
-    __metaclass__ = ComponentMeta
-
-    @staticmethod
-    def get_class(interface, class_name):
-        return Component._registry[interface][class_name]
-
-    @staticmethod
-    def create(interface, class_name, *args, **kwargs):
-        """
-        Finds and creates objects based on the interface and class names
-        """
-        return Componentget_class(interface, class_name)(*args, **kwargs)
     
-
+    for iface in implementedBy(_class):
+        verifyClass(iface, _class)
+    return _class
+    
+def implements(*ifaces):
+    """
+    This is a slight hack, it overrides the default zope.interface implements 
+    function because it to uses the addClassAdvisor functionality to delay its
+    work till after the class is created.  So we must as well, and by placing
+    our hook in here we avoid the client having to manually add it.
+    """
+    declarations._implements("implements", ifaces, classImplements)
+    
+    # These are called after the class that
+    advice.addClassAdvisor(_register_class)
+    advice.addClassAdvisor(_verify_class)
+    
 
 def fixed_update(update_interval_attr, _elapsed_attr = None,
                   update_time_pos = 0):
