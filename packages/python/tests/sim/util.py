@@ -24,10 +24,19 @@ class TestObject(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_init(self):
+        # No Parent case
+        obj = util.Object(None, 'Bob')
+        self.assertEqual(None, obj.parent)
+
+        # Parent case
+        obj = util.Object(self.obj, 'Bob')
+        self.assertEqual(self.obj, obj.parent)
+        self.assertEqual(obj, self.obj.get_child('Bob'))
+
     def test_name(self):
         self.assertEquals('John', self.obj.name)
         
-
     def test_get_child(self):
         # Test No Children
         self.assertRaises(util.SimulationError, self.obj.get_child, 'bob')

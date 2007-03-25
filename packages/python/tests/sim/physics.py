@@ -21,7 +21,6 @@ import core
 
 # Module to test
 import sim.physics as physics
-from sim.serialization import IKMLLoadable
 
 class TestBody(unittest.TestCase):
     def setUp(self):

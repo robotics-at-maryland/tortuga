@@ -17,7 +17,8 @@ import OgreNewt
 
 # Project Imports
 import core
-from sim.util import SimulationError, ModuleLoader
+from sim.util import SimulationError
+from sim.serialization import ModuleLoader
 from core import fixed_update, log_init
 
 class SceneError(SimulationError):
@@ -91,6 +92,20 @@ class Scene(object):
         loader.load(scene_file, self)
 #        Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(self.name)
         
+
+	class scene_mgr(cls_property):
+		"""
+		The Ogre scene manager for the scene
+		"""
+		def fget(self):
+			return self._scene_manager
+		
+	class world(cls_property):
+		"""
+		The Physical world in the simulation
+		"""
+		def fget(self):
+			return self._world
 
     def update(self, time_since_last_update):
         self._update_physics(time_since_last_update)

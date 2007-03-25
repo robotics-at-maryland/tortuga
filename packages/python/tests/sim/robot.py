@@ -84,7 +84,7 @@ def get_suite():
     suites = []
     test_loader = unittest.TestLoader()
     
-    suites.append(test_loader.loadTestsFromTestCase(TestKMLRobotLoader))
+    #suites.append(test_loader.loadTestsFromTestCase(TestKMLRobotLoader))
     
     return unittest.TestSuite(suites)
     

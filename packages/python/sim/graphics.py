@@ -45,7 +45,7 @@ class Visual(sim.util.Object):
     implements(IVisual, IKMLLoadable)
     
     # TODO: Add support for sub 
-    def __init__(self, parent, name, scene_mgr, mesh, material,
+    def __init__(self, parent, name, scene, mesh, material,
                  position = Ogre.Vector3.ZERO, 
                  orientation = Ogre.Quaternion.IDENTITY,
                  scale = Ogre.Vector3(1,1,1)):
@@ -53,11 +53,11 @@ class Visual(sim.util.Object):
         sim.util.Object.__init__(parent, name)
         
         # Create the graphical representation of the object
-        entity = scene_mgr.createEntity(name, mesh)
+        entity = scene.scene_mgr.createEntity(name, mesh)
         entity.setMaterialName(material)
         
         # Attach graphical entity to a new node in the scene graph
-        self._node = scene_mgr.getRootSceneNode().createChildSceneNode()
+        self._node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
         self._node.attachObject(entity)
 
         # Apply scalling and normalized normals if object is actually scalled

@@ -38,10 +38,10 @@ class IBody(sim.util.IObject):
     
     # TODO: Document local, global, and buoyancy forces   
     
-class Body(object):
+class Body(sim.util.Object):
     core.implements(IBody, IKMLLoadable)
     
-    def __init__(self, world, shape, shape_props, 
+    def __init__(self, parent, name, scene, shape_type, shape_props, 
                  position = Ogre.Vector3.ZERO, 
                  orientation = Ogre.Quaternion.IDENTITY):
         """
@@ -62,6 +62,8 @@ class Body(object):
         self._global_force = []
         self._buoyancy_plane = None
         
+        Object.__init__(self, parent, name)
+        
         # Create Collision Object
         # TODO: Improve collision support
         col = None
@@ -69,7 +71,7 @@ class Body(object):
             size = Ogre.Vector3(shape_props['size'])
             col = OgreNewt.Box(world, size)
         
-        world.create_body(self, col, position, orientation)
+        scene.world.create_body(self, col, position, orientation)
     
     @staticmethod
     def _make_force_pos_pair(force, pos):
