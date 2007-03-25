@@ -31,7 +31,6 @@ class TestComponent(unittest.TestCase):
         class C1(core.Component):
             core.implements(I1)
             
-        print __name__
         self.assertEqual(C1, core.Component.get_class(I1, __name__ + '.C1'))
     
     def test_interface_validation(self):
