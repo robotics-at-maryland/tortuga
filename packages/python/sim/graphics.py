@@ -28,6 +28,7 @@ import event
 from core import fixed_update, Component, implements
 import sim.simulation as simulation
 from sim.input import KeyStateObserver
+from sim.serialization import IKMLLoadable
 import sim.util
 
 class GraphicsError(simulation.SimulationError):
@@ -41,13 +42,40 @@ class IVisual(sim.util.IObject):
 # TODO: Fill out the methods for the class
 
 class Visual(sim.util.Object):
-    implements(IVisual)
+    implements(IVisual, IKMLLoadable)
     
-    def __init__(self, parent, position, orietnation, mesh, material, 
-                 scale):
-        # TODO: Call object
+    # TODO: Add support for sub 
+    def __init__(self, parent, name, scene_mgr, mesh, material,
+                 position = Ogre.Vector3.ZERO, 
+                 orientation = Ogre.Quaternion.IDENTITY,
+                 scale = Ogre.Vector3(1,1,1)):
         
-        pass
+        sim.util.Object.__init__(parent, name)
+        
+        # Create the graphical representation of the object
+        entity = scene_mgr.createEntity(name, mesh)
+        entity.setMaterialName(material)
+        
+        # Attach graphical entity to a new node in the scene graph
+        self._node = scene_mgr.getRootSceneNode().createChildSceneNode()
+        self._node.attachObject(entity)
+
+        # Apply scalling and normalized normals if object is actually scalled
+        if scale != Ogre.Vector3(1,1,1):
+            self._node.setScale(scale)
+            self._node.setNormaliseNormals(True)       
+            
+    # IKMLLoadable Methods
+    @staticmethod
+    def kml_load(node):
+        kwargs = {}
+                    
+        gfx_node = node['Graphical'] 
+        kwargs['mesh'] = gfx_node['mesh']
+        kwargs['material'] = gfx_node['material']
+        kwargs['scale'] = Ogre.Vector3(gfx_node['scale'])
+        
+        return kwargs
 
 class GraphicsSystem(object):
     """
