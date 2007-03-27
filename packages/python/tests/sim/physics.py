@@ -64,13 +64,12 @@ class TestBody(unittest.TestCase):
         self.assertTrue(self.body.velocity.y < 0)
         
     def test_local_force(self):
-        self.body.add_local_force([1000,0,0], [0,0,0])
+        self.body.add_local_force([0,10,0], [1,0,0])
         
         for i in xrange(100):
             self.scene.world.update(0.05)
 
-        print self.body.omega
-        print self.body.position
+        self.assertTrue(self.body.omega.z > 0)
         
     def test_kml_load(self):
         test_rml = {
