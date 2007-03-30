@@ -28,6 +28,16 @@ _FWDT ( WDT_OFF );
 #define RW_WRITE    1
 
 
+#define BUS_TIMEOUT     100000
+#define BYTE_READ_ERROR       256
+
+#define BUS_CMD_PING        0
+#define BUS_CMD_ID          1
+#define BUS_CMD_READ_REG    2
+#define BUS_CMD_WRITE_REG   3
+
+#define NUM_SLAVES  3
+
 byte readBus()
 {
     return (PORTE & 0x3F) | (_RD0 << 6) | (_RD1 << 7);
@@ -80,12 +90,17 @@ void setReq(byte req, byte val)
 
     if(req == 1)
         _LATB1 = val;
+
+    if(req == 2)
+        _LATB2 = val;
 }
 
 /* Read a byte from a given Slave */
-byte busReadByte(byte req)
+/* Returns BUS_ERROR on error */
+unsigned int busReadByte(byte req)
 {
     byte data=0;
+    long timeout = 0;
 
     /* Set RW to read */
     LAT_RW = RW_READ;
@@ -95,7 +110,14 @@ byte busReadByte(byte req)
 
     /* Wait for AKN to go high */
     /* Need timeout to detect Slave fault */
-    while(IN_AKN == 0);
+    while(IN_AKN == 0)
+    {
+        if(timeout++ == BUS_TIMEOUT)
+        {
+            setReq(req, 0);
+            return BYTE_READ_ERROR;
+        }
+    }
 
     /* Read the data */
     data = readBus();
@@ -112,8 +134,10 @@ byte busReadByte(byte req)
 
 
 /* Write a byte to a given slave */
-void busWriteByte(byte data, byte req)
+int busWriteByte(byte data, byte req)
 {
+    long timeout=0;
+
     /* Set RW to write */
     LAT_RW = RW_WRITE;
 
@@ -125,7 +149,15 @@ void busWriteByte(byte data, byte req)
 
     /* Wait for AKN to go high */
     /* Need timeout to detect Slave fault */
-    while(IN_AKN == 0);
+    while(IN_AKN == 0)
+    {
+        if(timeout++ == BUS_TIMEOUT)
+        {
+            setReq(req, 0);
+            freeBus();
+            return BYTE_READ_ERROR;
+        }
+    }
 
     /* Release bus */
     freeBus();
@@ -136,6 +168,7 @@ void busWriteByte(byte data, byte req)
     /* Wait for Slave to release AKN */
     /* Need timeout to detect Slave fault */
     while(IN_AKN == 1);
+    return 0;
 }
 
 
@@ -166,11 +199,36 @@ void sendString(unsigned char str[])
         sendByte(str[i]);
 }
 
+/* General purpose bus receive buffer */
+byte rxBuf[30];
+
+int readDataBlock(byte req)
+{
+    int rxPtr, rxLen;
+    rxBuf[0]=0;
+    rxLen = busReadByte(req);
+
+    if(rxLen == BYTE_READ_ERROR)
+        return -1;
+
+    for(rxPtr=0; rxPtr<rxLen; rxPtr++)
+    {
+        rxBuf[rxPtr] = busReadByte(req);
+
+        if(rxBuf[rxPtr] == BYTE_READ_ERROR)
+            return -1;
+
+    }
+    rxBuf[rxLen]=0;
+    return rxLen;
+}
+
+
 int main(void)
 {
     long j=0, t=0, b=0;
     byte i;
-    byte rxBuf[30];
+
     byte tmp[60];
     byte rxPtr = 0;
     byte rxLen = 0;
@@ -192,6 +250,113 @@ int main(void)
     sendString("\n\rMaster starting...\n\r");
     for(j=0; j<100000; j++);
 
+
+    /*
+     * Key Commands:
+     * P - ping
+     * I - identify
+     *
+     */
+
+    while(1)
+    {
+        sendString("\n\r\n\r>: ");
+        byte c = waitchar();
+   //     sendByte(c);    /* Local Echo */
+
+        switch(c)
+        {
+
+            case 'P':
+            {
+                sendString("\n\rPinging all slaves");
+                for(i=0; i<NUM_SLAVES; i++)
+                {
+                    sprintf(tmp, "\n\rSlave #%d: ", i);
+                    sendString(tmp);
+
+                    if(busWriteByte(BUS_CMD_PING, i) != 0)
+                        sendString("Comm Error: TX Timeout");
+                    else
+                    {
+                        byte len = readDataBlock(i);
+
+                        switch(len)
+                        {
+                            case 0:
+                                sendString("Reply OK");
+                            break;
+
+                            case -1:
+                                sendString("Comm Error: RX Timeout");
+                            break;
+
+                            default:
+                                sendString("Unknown Reply");
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            case 'I':
+            {
+                sendString("\n\rIdentifying slaves");
+                for(i=0; i<NUM_SLAVES; i++)
+                {
+                    busWriteByte(BUS_CMD_ID, i);
+                    byte len = readDataBlock(i);
+                    sprintf(tmp, "\n\rSlave #%d replies: <", i);
+                    sendString(tmp);
+                    sendString(rxBuf);
+                    sendString(">");
+                }
+                break;
+            }
+
+            case 'R':
+            {
+                byte id = waitchar() & 0x0F;
+                byte addr = waitchar() & 0x0F;
+
+                sendString("\n\rReading config...");
+                busWriteByte(BUS_CMD_READ_REG, id);
+                busWriteByte(addr, id);
+
+                readDataBlock(id);
+
+                sprintf(tmp, "\n\rSlave #%d config register %d is <%c", id, addr, rxBuf[0]);
+                sendString(tmp);
+                sendByte('>');
+                break;
+            }
+
+            case 'W':
+            {
+                byte id = waitchar() & 0x0F;
+                byte addr = waitchar() & 0x0F;
+                byte val = waitchar();
+
+                sendString("\n\rWriting config...");
+                busWriteByte(BUS_CMD_WRITE_REG, id);
+                busWriteByte(addr, id);
+                busWriteByte(val, id);
+
+                sprintf(tmp, "\n\rSlave #%d config register %d set to <%c>", id, addr, val);
+                sendString(tmp);
+                break;
+            }
+
+            default:
+            {
+                sendString("\n\rUnknown command: ");
+                sendByte(c);
+            }
+        }
+    }
+
+/*
     while(1)
     {
         for(i=0; i<2; i++)
@@ -199,7 +364,7 @@ int main(void)
             sprintf(tmp, "\n\rReading data from PIC #%d...", i);
             sendString(tmp);
 
-            busWriteByte(0, i); /* Reset buffer on slave i */
+            busWriteByte(0, i);
             rxLen = busReadByte(i);
 
             sprintf(tmp, "\n\r\tLength is %d", rxLen);
@@ -219,9 +384,8 @@ int main(void)
             for(j=0; j<100000; j++);
         }
 
-        /* Wait a little */
         for(j=0; j<100000; j++);
     }
-
+*/
     while(1);
 }

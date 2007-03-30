@@ -31,6 +31,12 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
+#define BUS_CMD_PING        0
+#define BUS_CMD_ID          1
+#define BUS_CMD_READ_REG    2
+#define BUS_CMD_WRITE_REG   3
+
+
 /* Transmit buffer */
 #define TXBUF_LEN 30
 byte txBuf[TXBUF_LEN];
@@ -62,13 +68,86 @@ void freeBus()
 }
 
 
+byte busState = 0;
+byte nParam = 0;
+byte p1=0, p2=0;
 
+byte cfgRegs[16];
+
+#define STATE_TOP_LEVEL     0
+#define STATE_READ_CMD      1
+#define STATE_WRITE_CMD     2
 
 /* If Master writes us data, this gets called */
 void processData(byte data)
 {
-    /* No matter what the data is, reset our TX buffer position */
     txPtr = 0;
+
+    switch(busState)
+    {
+        case STATE_TOP_LEVEL:     /* New commands */
+        {
+            switch(data)
+            {
+                case BUS_CMD_PING:
+                {
+                    txBuf[0] = 0;
+                    break;
+                }
+
+                case BUS_CMD_ID:
+                {
+                    txBuf[0] = sprintf(txBuf+1, "I am temp sensor PIC.");
+                    break;
+                }
+
+                case BUS_CMD_READ_REG:
+                {
+                    busState = STATE_READ_CMD;
+                    nParam = 0;
+                    break;
+                }
+
+                case BUS_CMD_WRITE_REG:
+                {
+                    busState = STATE_WRITE_CMD;
+                    nParam = 0;
+                    break;
+                }
+            }
+        }
+        break;
+
+        case STATE_READ_CMD:
+        {
+            nParam = 0;
+            busState = STATE_TOP_LEVEL;
+            txBuf[0] = 1;
+            txBuf[1] = cfgRegs[data];
+        }
+        break;
+
+        case STATE_WRITE_CMD:
+        {
+            if(nParam == 0)
+                p1 = data;
+
+            if(nParam == 1)
+                p2 = data;
+
+            nParam++;
+
+            if(nParam == 2)
+            {
+                nParam=0;
+                busState = STATE_TOP_LEVEL;
+                cfgRegs[p1] = data;
+            }
+
+        }
+        break;
+
+    }
 }
 
 
@@ -147,11 +226,14 @@ void initBus()
 
 void main()
 {
+    byte i;
     initBus();
-    txBuf[0] = sprintf(txBuf+1, "Evil wombat wants to eat.");
 
     _TRISB0 = TRIS_OUT;
     _LATB0 = 1;
+
+    for(i=0; i<16; i++)
+        cfgRegs[i] = 65;
 
     while(1)
         checkBus();
