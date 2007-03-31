@@ -13,8 +13,13 @@ import os.path
 import optparse
 
 # Library Imports
-import figleaf
-import figleaf.htmlizer
+HAVE_FIGLEAF = False
+try:
+    import figleaf
+    import figleaf.htmlizer
+    HAVE_FIGLEAF = True
+except ImportError:
+    print 'Figleaf not found, no coverage data available'
 
 # Note This code is borrowed from Trac:
 #  Copyright (C) 2003-2006 Edgewall Software
@@ -102,6 +107,10 @@ def import_sub_modules(package_name):
     @rtype : list
     @return: This is a list containing all sub modules of the given package
     """
+    print 'Find sub:',package_name
+    # Bail out if path is not a directory
+    #if not os.path.isdir(package_name):
+    #    return
     
     # Get a files in the packages directory
     package = import_module_from_name(package_name)
@@ -117,6 +126,7 @@ def import_sub_modules(package_name):
     modules = []
     for mod_file in mod_files:
         mod_name = '%s.%s' % (package_name, mod_file)
+        print 'Importing module:',mod_name
         modules.append(import_module_from_name(mod_name))
         
     # Now recursively add sub modules excluding hidden directories
@@ -125,7 +135,10 @@ def import_sub_modules(package_name):
     
     for sub_module in sub_modules:
         mod_name = '%s.%s' % (package_name, sub_module)
-        modules.extend(import_sub_modules(mod_name))
+        print 'Locking sub modules of %s, in %s' % (package_name, mod_name)
+        new_sub_modules = import_sub_modules(mod_name)
+        if new_sub_modules is not None:
+            modules.extend(new_sub_modules)
         
     return modules
     
@@ -209,6 +222,9 @@ if __name__ == '__main__':
         unittest.TextTestRunner(verbosity=2).run(suite)
         
     if options.create_coverage:
-        test_with_coverage(run_tests)
+        if HAVE_FIGLEAF:
+            test_with_coverage(run_tests)
+        else:
+            print 'Figleaf not found, no coverage data generated'
     else:
         run_tests()

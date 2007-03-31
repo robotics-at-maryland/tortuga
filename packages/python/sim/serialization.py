@@ -11,24 +11,47 @@ This module handles the saving and loading of objects
 
 # Projects Import
 import core
+import decorator
 
-class IKMLLoadable(core.Interface):
-    """
-    Any class that implements this interface can be loaded from a KML file
-    """
-    
-    #@staticmethod
-    def kml_load(node):
+class IStorable(core.Interface):
+    def __init__(*args, **kwargs):
         """
-        @type  node: Dict like object
-        @param node: This will contain all the information needeed to generate
-                     the parameters.
-                     
-        @rtype:  Dict
-        @return: Maps __init__ parameters to there needed values for this 
-                 object.
+        This function most work with, no args, or the same set of arguments 
+        that init() takes.  This means you can either initilize and object
+        like:
+            obj = GameObject()
+            obj.init(10, 20, 'My Info')
+        or:
+            obj = GameObject(10, 20, 'My Info')
+            
+        and you will get exactly the same object.
         """
         pass
+    
+    def save(data_store):
+        """
+        Save the object to location.
+        
+        @type  data_store: Any
+        @param data_store: The object to which the data will be saved.
+        """
+        pass
+    
+    def load(data_store):
+        """
+        Load the object from given location.
+        
+        @type  data_store: Any
+        @param data_store: The object which supplies the data to load the object
+                           from.
+        """
+        pass
+
+class IKMLStorable(IStorable):
+    """
+    This is just a tag class to indicate you can store a class to KML.
+    """
+    pass
     
 class ILoader(core.Interface):    
     def can_load(file_name):
@@ -56,6 +79,45 @@ class ILoader(core.Interface):
         """
         pass
 
+def two_step_init(func):
+    """
+    This is meant to be used on the classes init method, it always call the no
+    argument __init__, method.  But if there are any arguments it also calls 
+    the 'init' method.  This allow an object to either be used with two stage
+    initialization or single.
+    
+    >>> class Obj(object):
+    ...     @two_step_init
+    ...     def __init__(self):
+    ...         print '__init__'
+    ...     def init(self, param):
+    ...         print 'init'
+    ...         self.val = param
+    ...     
+    >>> a = Obj()
+    __init__
+    >>> a.init(1)
+    init
+    >>> b = Obj(1)
+    __init__
+    init
+    >>> a.val == b.val
+    True
+    """
+    def new_init(func, self, *args, **kwargs):
+        # Call Class.__init__(self)
+        func(self)
+        # If called with any arguments, call the create method
+        if ((len(args) + len(kwargs)) > 0):
+            self.init(*args, **kwargs)
+    return decorator.decorate(func, new_init, 
+                              decorator.make_weak_signature(func))
+
+def parse_position_orientation(node):
+    position = node['position']
+    orientation = Quat(node['orientation'], axis_angle = True)
+    
+    return (position, orientation)
 
 class KMLLoader(object):
     """
@@ -65,7 +127,7 @@ class KMLLoader(object):
     def _create_object(self, node, iface, parent = None):
         
         _class = core.Component.get_class(iface, node['type'])
-        core.verifyClass(IKMLLoadable, _class)
+        core.verifyClass(IKMLStorable, _class)
  
         # Build parameters to pass to __init__ 
         kwargs = {}

@@ -101,7 +101,7 @@ class property_meta(type):
 class cls_property(object):
     """
     Uses this as such:
-        class Angle(object):
+    class Angle(object):
         def __init__(self,rad):
             self._rad = rad
     

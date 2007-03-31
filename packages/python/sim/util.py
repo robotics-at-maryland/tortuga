@@ -21,6 +21,7 @@ import imp
 import Ogre
 
 import core
+import serialization
 
 # TODO: Move these base classes somewhere a little more obvious
 class IObject(core.Interface):
@@ -60,14 +61,23 @@ class SimulationError (Exception):
     pass
 
 class Object(core.Component):
-    core.implements(IObject)
+    core.implements(IObject, serialization.IKMLStorable)
     
     @staticmethod
     def assert_object_implementer(obj):
         if not IObject.providedBy(obj):
             raise SimulationError('Object must implement IObject interface')
     
-    def __init__(self, parent, name):
+    @serialization.two_step_init
+    def __init__(self):
+        self._children = {}
+        self.parent = None
+        self.name = None
+    
+    def init(self, parent, name):
+        Object._create(self, parent, name)
+        
+    def _create(self, parent, name):
         self._children = {}
         self.parent = parent
         self.name = name
@@ -75,6 +85,18 @@ class Object(core.Component):
         if self.parent is not None:
             self.assert_object_implementer(parent)
             self.parent.add_child(self)
+            
+    # IStorable Methods
+    # IStorable Methods
+    def load(self, data_object):
+        """
+        @type  data_object: tuple
+        @param data_object: (parent, kml_node)
+        """
+        Object._create(self, parent, node['name'])
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
         
     def get_child(self, name):
         if not self._children.has_key(name):

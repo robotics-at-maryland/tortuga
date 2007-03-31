@@ -71,22 +71,22 @@ class TestBody(unittest.TestCase):
 
         self.assertTrue(self.body.omega.z > 0)
         
-    def test_kml_load(self):
-        test_rml = {
-            'Physical' : {
-               'mass' : 24.6, 
-               'Shape' : {
-                  'type' : 'box',
-                  'size': [0.3, 0.5, 0.7],
-                  }
-               },
-            }
-        
-        params = physics.Body.kml_load(test_rml)
-        
-        self.assertEquals(24.6, params['mass'])
-        self.assertEquals('box', params['shape_type'])
-        self.assertEquals({'size' : [0.3, 0.5, 0.7]}, params['shape_props'])
+#    def test_kml_load(self):
+#        test_rml = {
+#            'Physical' : {
+#               'mass' : 24.6, 
+#               'Shape' : {
+#                  'type' : 'box',
+#                  'size': [0.3, 0.5, 0.7],
+#                  }
+#               },
+#            }
+#        
+#        params = physics.Body.kml_load(test_rml)
+#        
+#        self.assertEquals(24.6, params['mass'])
+#        self.assertEquals('box', params['shape_type'])
+#        self.assertEquals({'size' : [0.3, 0.5, 0.7]}, params['shape_props'])
 
 def get_suite():
     """

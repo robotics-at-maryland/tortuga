@@ -28,7 +28,7 @@ import event
 from core import fixed_update, Component, implements
 import sim.simulation as simulation
 from sim.input import KeyStateObserver
-from sim.serialization import IKMLLoadable
+from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 import sim.util
 
 class GraphicsError(simulation.SimulationError):
@@ -42,15 +42,22 @@ class IVisual(sim.util.IObject):
 # TODO: Fill out the methods for the class
 
 class Visual(sim.util.Object):
-    implements(IVisual, IKMLLoadable)
+    implements(IVisual, IKMLStorable)
     
-    # TODO: Add support for sub 
-    def __init__(self, parent, name, scene, mesh, material,
-                 position = Ogre.Vector3.ZERO, 
-                 orientation = Ogre.Quaternion.IDENTITY,
-                 scale = Ogre.Vector3(1,1,1)):
-        
-        sim.util.Object.__init__(parent, name)
+    @two_step_init
+    def __init__(self):
+        self._node = None
+        sim.util.Object.__init__()
+
+    def init(self, parent, name, scene, mesh, material,
+            position = Ogre.Vector3.ZERO, 
+            orientation = Ogre.Quaternion.IDENTITY,
+            scale = Ogre.Vector3(1,1,1)):
+        sim.util.Object.init(parent, name)
+        Visual._create(self, scene, mesh, material, position, orientation, 
+                       scale)
+
+    def _create(self, scene, mesh, material, position, orientation, scale):
         
         # Create the graphical representation of the object
         entity = scene.scene_mgr.createEntity(name, mesh)
@@ -65,17 +72,27 @@ class Visual(sim.util.Object):
             self._node.setScale(scale)
             self._node.setNormaliseNormals(True)       
             
-    # IKMLLoadable Methods
-    @staticmethod
-    def kml_load(node):
-        kwargs = {}
-                    
-        gfx_node = node['Graphical'] 
-        kwargs['mesh'] = gfx_node['mesh']
-        kwargs['material'] = gfx_node['material']
-        kwargs['scale'] = Ogre.Vector3(gfx_node['scale'])
+    # IStorable Methods
+    def load(self, data_object):
+        """
+        @type  data_object: tuple
+        @param data_object: (scene, parent, kml_node)
+        """
+        scene, parent, node = data_object
         
-        return kwargs
+        # Load Object based values
+        Object.load(self, (parent, node))
+        
+        gfx_node = node['Graphical'] 
+        mesh = gfx_node['mesh']
+        material = gfx_node['material']
+        scale = Ogre.Vector3(gfx_node['scale'])
+        
+        position, orientation = parse_position_orientation(node)
+        Visual._create(self, scene, mesh, material, position, orientation, scale)
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
 
 class GraphicsSystem(object):
     """

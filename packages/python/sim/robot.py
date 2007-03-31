@@ -11,7 +11,7 @@ import Ogre
 # Project Impports
 import core
 from sim.util import Vector, Quat, SimulationError
-from sim.serialization import IKMLLoadable, KMLLoader
+from sim.serialization import IKMLStorable, KMLLoader
 from sim.physics import IBody, Body
 from sim.graphics import IVisual, Visual
 
@@ -51,15 +51,15 @@ class KMLRobotLoader(core.Component, KMLLoader):
     
 
     
-class Robot(Body, Visual):
-    core.implements(IRobot)
-            
-    def __init__(self, name, position, orientation, mass, shape_type,
-                 shape_props, mesh, material, scale):
-        
-        # Create 
-        Body.__init__(self, None, position, orietnation, mass, shape_type, 
-                      shape_props)
-        Visual.__init__(self, None, position, orietnation, mesh, material, 
-                        scale)
-            
+#class Robot(Body, Visual):
+#    core.implements(IRobot)
+#            
+#    def __init__(self, name, position, orientation, mass, shape_type,
+#                 shape_props, mesh, material, scale):
+#        
+#        # Create 
+#        Body.__init__(self, None, position, orietnation, mass, shape_type, 
+#                      shape_props)
+#        Visual.__init__(self, None, position, orietnation, mesh, material, 
+#                        scale)
+#            

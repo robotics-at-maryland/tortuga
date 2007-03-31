@@ -12,7 +12,7 @@ import Ogre
 # Project Imports
 import core
 import sim.util
-from sim.serialization import IKMLLoadable
+from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 
 DEFAULT_GRAVITY = Ogre.Vector3(0,-9.8,0)
 
@@ -135,11 +135,25 @@ class IBody(sim.util.IObject):
         pass
     
 class Body(sim.util.Object):
-    core.implements(IBody, IKMLLoadable)
+    core.implements(IBody, IKMLStorable)
     
-    def __init__(self, parent, name, scene, shape_type, shape_props, mass,
-                 position = Ogre.Vector3.ZERO, 
-                 orientation = Ogre.Quaternion.IDENTITY):
+    @two_step_init
+    def __init__(self):
+        """
+        If you call this, make sure to call create, before using the object
+        """
+        self._force = Ogre.Vector3(0,0,0)
+        self._gravity = DEFAULT_GRAVITY
+        self._local_force = []
+        self._global_force = []
+        self._buoyancy_plane = None
+        self._body = None
+    
+        sim.util.Object.__init__(self)
+    
+    def init(self, parent, name, scene, shape_type, shape_props, mass,
+             position = Ogre.Vector3.ZERO, 
+             orientation = Ogre.Quaternion.IDENTITY):
         """
         @type  world: sim.physics.World
         @param world: The physical simulation to create the body in
@@ -150,17 +164,14 @@ class Body(sim.util.Object):
         @type  shape_props: Dict
         @param shape_props: Maps paramater name to value for the shapes 
                             constructor.
-        """
+        """  
+        sim.util.Object.init(self, parent, name)
+        Body._create(self, scene, shape_type, shape_props, mass, position, 
+                     orientation)
         
-        self._force = Ogre.Vector3(0,0,0)
-        self._gravity = DEFAULT_GRAVITY
-        self._local_force = []
-        self._global_force = []
-        self._buoyancy_plane = None
-        self._body = None
-        
-        sim.util.Object.__init__(self, parent, name)
-        
+ 
+    def _create(self, scene, shape_type, shape_props, mass, position, 
+                orientation):
         # Create Collision Object
         # TODO: Improve collision support
         col = None
@@ -170,6 +181,37 @@ class Body(sim.util.Object):
         
         self._body = scene.world.create_body(self, col, mass, position, 
                                              orientation)
+        
+    # IStorable Methods
+    def load(self, data_object):
+        """
+        @type  data_object: tuple
+        @param data_object: (scene, parent, kml_node)
+        """
+        scene, parent, node = data_object
+        
+        # Load Object based values
+        Object.load(self, (parent, node))
+        
+        physical_node = node['Physical']    
+        # Find shape type and its properties
+        shape_type = physical_node['Shape']['type'].lower() 
+        shape_props = {}
+        for param, value in physical_node['Shape'].iteritems():
+            if param != 'type':
+                shape_props[param] = value 
+                    
+        # Grab and validate Mass
+        mass = physical_node['mass']
+        if (type(mass) is not int) and (type(mass) is not float):
+            raise SimulationError('Mass must be an interger of float')
+        
+        position, orientation = parse_position_orientation(node)
+        
+        Body._create(self, shape_type, shape_props, mass, position, orientation)
+    
+    def save(self, data_object):
+        raise "Not yet implemented"
     
     @staticmethod
     def _make_force_pos_pair(force, pos):
@@ -235,31 +277,9 @@ class Body(sim.util.Object):
             
     def get_buoyancy_plane(self):    
         return self._buoyancy_plane
-    
-    # IKMLLoadable Methods
-    @staticmethod
-    def kml_load(node):
-        kwargs = {}
-        
-        physical_node = node['Physical']    
-        # Find shape type and its properties
-        shape_type = physical_node['Shape']['type'].lower() 
-        shape_props = {}
-        for param, value in physical_node['Shape'].iteritems():
-            if param != 'type':
-                shape_props[param] = value 
-                    
-        kwargs['shape_type'] = shape_type
-        kwargs['shape_props'] = shape_props
-                    
-        # Grab and validate Mass
-        mass = physical_node['mass']
-        if (type(mass) is not int) and (type(mass) is not float):
-            raise SimulationError('Mass must be an interger of float')
             
-        kwargs['mass'] = mass
         
-        return kwargs
+        
     
 class Shape(object):
     pass

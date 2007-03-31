@@ -29,21 +29,21 @@ class TestVisual(unittest.TestCase):
     def tearDown(self):
         pass
     
-    def test_kml_load(self):
-        test_rml = {
-            'Graphical' : {
-                'mesh': 'box.mesh',
-                'material': 'metal',
-                'scale': [1,2,3]
-                }
-            }
-        
-        params = graphics.Visual.kml_load(test_rml)
-        
-        self.assertEquals('box.mesh', params['mesh'])
-        self.assertEquals('metal', params['material'])
-        self.assertEquals(Ogre.Vector3(1,2,3), params['scale'])
-    
+#    def test_kml_load(self):
+#        test_rml = {
+#            'Graphical' : {
+#                'mesh': 'box.mesh',
+#                'material': 'metal',
+#                'scale': [1,2,3]
+#                }
+#            }
+#        
+#        params = graphics.Visual.kml_load(test_rml)
+#        
+#        self.assertEquals('box.mesh', params['mesh'])
+#        self.assertEquals('metal', params['material'])
+#        self.assertEquals(Ogre.Vector3(1,2,3), params['scale'])
+#    
 
 def get_suite():
     """
