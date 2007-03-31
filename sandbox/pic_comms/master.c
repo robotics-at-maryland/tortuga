@@ -27,9 +27,24 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
-
+/*
+ * Bus Constants
+ * BUS_TIMEOUT - how many iterations to wait when waiting for AKN to change state
+ *
+ * BUS_ERROR   - AKN failed to go high when talking to Slave. Most likely indicates a
+ *               Slave fault. Can also mean that some Slave is forcibly holding AKN
+ *               low, but this is very unlikely to happen.
+ *
+ * BUS_FAILURE - A Slave is holding the AKN line high, preventing any further bus
+ *               operations. This is catastrophic failure and a Reset may be needed.
+ *               It may be possible to retry (in case Slave bus code got interrupted
+ *               in the middle of an operation, but this is extremely unlikely (and
+ *               should be avoided by disabling that interrupt anyway).
+ */
 #define BUS_TIMEOUT     100000
-#define BYTE_READ_ERROR       256
+#define BUS_ERROR       -1
+#define BUS_FAILURE     -2
+
 
 #define BUS_CMD_PING        0
 #define BUS_CMD_ID          1
@@ -38,11 +53,15 @@ _FWDT ( WDT_OFF );
 
 #define NUM_SLAVES  3
 
+
+/* Read byte from bus */
 byte readBus()
 {
     return (PORTE & 0x3F) | (_RD0 << 6) | (_RD1 << 7);
 }
 
+
+/* Take bus out of high-impedance state and write a byte to it */
 void writeBus(byte b)
 {
     TRISE = TRISE & 0xFFC0;
@@ -54,6 +73,8 @@ void writeBus(byte b)
     _LATD1 = (b & 0x80) >> 7;
 }
 
+
+/* Put bus in high-impedance state */
 void freeBus()
 {
     _TRISD1 = TRIS_IN;
@@ -61,6 +82,8 @@ void freeBus()
     TRISE = TRISE | 0x3F;
 }
 
+
+/* Wait for a byte on the serial console */
 unsigned char waitchar()
 {
     byte x;
@@ -75,6 +98,8 @@ unsigned char waitchar()
     return x & 0x7F;
 }
 
+
+/* Initialize bus */
 void initBus()
 {
     /* Put everything in high-impedance state */
@@ -83,6 +108,8 @@ void initBus()
     TRIS_AKN = TRIS_IN;
 }
 
+
+/* Set the given Slave's Req line to the given value */
 void setReq(byte req, byte val)
 {
     if(req == 0)
@@ -95,9 +122,10 @@ void setReq(byte req, byte val)
         _LATB2 = val;
 }
 
+
 /* Read a byte from a given Slave */
-/* Returns BUS_ERROR on error */
-unsigned int busReadByte(byte req)
+/* Returns BUS_ERROR or BUS_FAILURE on error */
+int busReadByte(byte req)
 {
     byte data=0;
     long timeout = 0;
@@ -115,7 +143,7 @@ unsigned int busReadByte(byte req)
         if(timeout++ == BUS_TIMEOUT)
         {
             setReq(req, 0);
-            return BYTE_READ_ERROR;
+            return BUS_ERROR;
         }
     }
 
@@ -126,14 +154,19 @@ unsigned int busReadByte(byte req)
     setReq(req, 0);
 
     /* Wait for Slave to release bus */
-    /* Need timeout to detect Slave fault */
-    while(IN_AKN == 1);
+    timeout=0;
+    while(IN_AKN == 1)
+    {
+        if(timeout++ == BUS_TIMEOUT)
+            return BUS_FAILURE;     /* We're totally screwed */
+    }
 
     return data;
 }
 
 
 /* Write a byte to a given slave */
+/* Returns BUS_ERROR or BUS_FAILURE on error */
 int busWriteByte(byte data, byte req)
 {
     long timeout=0;
@@ -155,7 +188,7 @@ int busWriteByte(byte data, byte req)
         {
             setReq(req, 0);
             freeBus();
-            return BYTE_READ_ERROR;
+            return BUS_ERROR;
         }
     }
 
@@ -165,9 +198,14 @@ int busWriteByte(byte data, byte req)
     /* Drop Req */
     setReq(req, 0);
 
-    /* Wait for Slave to release AKN */
-    /* Need timeout to detect Slave fault */
-    while(IN_AKN == 1);
+    /* Wait for Slave to release bus */
+    timeout=0;
+    while(IN_AKN == 1)
+    {
+        if(timeout++ == BUS_TIMEOUT)
+            return BUS_FAILURE;     /* We're totally screwed */
+    }
+
     return 0;
 }
 
@@ -181,6 +219,7 @@ void initUart()
     U1STAbits.UTXEN = 1;   // Enable transmit
 }
 
+
 /* Send a byte to the serial console */
 void sendByte(byte i)
 {
@@ -190,6 +229,7 @@ void sendByte(byte i)
     while(U1STAbits.UTXBF);
     for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
 }
+
 
 /* Send a string to the serial console */
 void sendString(unsigned char str[])
@@ -202,23 +242,30 @@ void sendString(unsigned char str[])
 /* General purpose bus receive buffer */
 byte rxBuf[30];
 
+
+/*
+ * Read data from bus into rxBuf and return number of bytes read.
+ * Returns BUS_ERROR or BUS_FAILURE on error
+ */
 int readDataBlock(byte req)
 {
-    int rxPtr, rxLen;
+    int rxPtr, rxLen, rxData;
     rxBuf[0]=0;
     rxLen = busReadByte(req);
 
-    if(rxLen == BYTE_READ_ERROR)
-        return -1;
+    if(rxLen < 0)
+        return rxLen;
 
     for(rxPtr=0; rxPtr<rxLen; rxPtr++)
     {
-        rxBuf[rxPtr] = busReadByte(req);
+        rxData = busReadByte(req);
 
-        if(rxBuf[rxPtr] == BYTE_READ_ERROR)
-            return -1;
+        if(rxData < 0)
+            return rxData;
 
+        rxBuf[rxPtr] = rxData;
     }
+
     rxBuf[rxLen]=0;
     return rxLen;
 }
@@ -262,7 +309,7 @@ int main(void)
     {
         sendString("\n\r\n\r>: ");
         byte c = waitchar();
-   //     sendByte(c);    /* Local Echo */
+        sendByte(c);    /* Local Echo */
 
         switch(c)
         {
@@ -275,25 +322,40 @@ int main(void)
                     sprintf(tmp, "\n\rSlave #%d: ", i);
                     sendString(tmp);
 
-                    if(busWriteByte(BUS_CMD_PING, i) != 0)
-                        sendString("Comm Error: TX Timeout");
-                    else
+
+                    switch(busWriteByte(BUS_CMD_PING, i))
                     {
-                        byte len = readDataBlock(i);
+                        case BUS_ERROR:
+                            sendString("Comm Error: TX Timeout");
+                        break;
 
-                        switch(len)
+                        case BUS_FAILURE:
+                            sendString("Catastrophic bus failure: AKN held high");
+                        break;
+
+                        case 0:
                         {
-                            case 0:
-                                sendString("Reply OK");
-                            break;
+                            byte len = readDataBlock(i);
 
-                            case -1:
-                                sendString("Comm Error: RX Timeout");
-                            break;
+                            switch(len)
+                            {
+                                case 0:
+                                    sendString("Reply OK");
+                                break;
 
-                            default:
-                                sendString("Unknown Reply");
+                                case BUS_ERROR:
+                                    sendString("Comm Error: RX Timeout");
+                                break;
+
+                                case BUS_FAILURE:
+                                    sendString("Comm Error: Bus Failure during reply");
+                                break;
+
+                                default:
+                                    sendString("Unknown Reply");
+                            }
                         }
+                        break;
                     }
                 }
 
@@ -317,8 +379,14 @@ int main(void)
 
             case 'R':
             {
+                sendString("\n\rId=");
                 byte id = waitchar() & 0x0F;
+                sendByte(id+48);
+
+                sendString("\n\rReg=");
                 byte addr = waitchar() & 0x0F;
+                sendByte(addr+48);
+
 
                 sendString("\n\rReading config...");
                 busWriteByte(BUS_CMD_READ_REG, id);
@@ -334,9 +402,17 @@ int main(void)
 
             case 'W':
             {
+                sendString("\n\rId=");
                 byte id = waitchar() & 0x0F;
+                sendByte(id+48);
+
+                sendString("\n\rReg=");
                 byte addr = waitchar() & 0x0F;
+                sendByte(addr+48);
+
+                sendString("\n\rVal=");
                 byte val = waitchar();
+                sendByte(val);
 
                 sendString("\n\rWriting config...");
                 busWriteByte(BUS_CMD_WRITE_REG, id);

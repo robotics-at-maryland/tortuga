@@ -1,5 +1,6 @@
 #include <p30fxxxx.h>
 #include <string.h>
+
 _FOSC( CSW_FSCM_OFF & FRC );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
@@ -19,6 +20,7 @@ _FWDT ( WDT_OFF );
  */
 
 /* Bus pin assignments */
+#define REQ_CN_BIT  (CNEN1bits.CN1IE)
 #define IN_REQ      _RC13
 #define TRIS_REQ    _TRISC13
 
@@ -43,40 +45,32 @@ byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
 
-byte readBus()
-{
-    return (PORTE & 0x3F) | (_RD0 << 6) | (_RD1 << 7);
-}
 
-void writeBus(byte b)
-{
-    TRISE = TRISE & 0xFFC0;
-    _TRISD1 = TRIS_OUT;
-    _TRISD0 = TRIS_OUT;
+/*
+ * Configuration Registers
+ * These are general-purpose settings registers that the Master can read and write.
+ * This could be sonar sampling rate and target frequencies, any sort of calibration
+ * values, etc.
+ */
+byte cfgRegs[16];
 
-     LATE = (LATE & 0xFFC0) | (b & 0x3F);
-    _LATD0 = (b & 0x40) >> 6;
-    _LATD1 = (b & 0x80) >> 7;
 
-}
-
-void freeBus()
-{
-    _TRISD1 = TRIS_IN;
-    _TRISD0 = TRIS_IN;
-    TRISE = TRISE | 0x3F;
-}
-
+/*
+ * Bus states
+ * Some commands from Master may have one or more arguments.
+ * 'Top Level' indicates that next incoming byte is treated as a command.
+ * Other values indicate that the next byte should be treated as an argument
+ * to a command issued earlier. Variables below are used to track how many
+ * arguments have been received, and what their values were.
+ */
+#define STATE_TOP_LEVEL     0
+#define STATE_READ_CMD      1
+#define STATE_WRITE_CMD     2
 
 byte busState = 0;
 byte nParam = 0;
 byte p1=0, p2=0;
 
-byte cfgRegs[16];
-
-#define STATE_TOP_LEVEL     0
-#define STATE_READ_CMD      1
-#define STATE_WRITE_CMD     2
 
 /* If Master writes us data, this gets called */
 void processData(byte data)
@@ -151,11 +145,39 @@ void processData(byte data)
 }
 
 
+/* Read a byte from the bus */
+byte readBus()
+{
+    return (PORTE & 0x3F) | (_RD0 << 6) | (_RD1 << 7);
+}
+
+
+/* Take bus out of high-impedance state and write a byte there */
+void writeBus(byte b)
+{
+    TRISE = TRISE & 0xFFC0;
+    _TRISD1 = TRIS_OUT;
+    _TRISD0 = TRIS_OUT;
+
+     LATE = (LATE & 0xFFC0) | (b & 0x3F);
+    _LATD0 = (b & 0x40) >> 6;
+    _LATD1 = (b & 0x80) >> 7;
+
+}
+
+
+/* Put bus in high-impedance state. */
+void freeBus()
+{
+    _TRISD1 = TRIS_IN;
+    _TRISD0 = TRIS_IN;
+    TRISE = TRISE | 0x3F;
+}
+
+
 /*
- * Checks if we have an incoming request.
- * If so, handles it.
- * Returns 0 if no request was waiting.
- * Returns 1 if request was handled.
+ * Checks if we have an incoming request. If so, handles it.
+ * Returns 0 if no request was waiting. Returns 1 if request was handled.
  */
 byte checkBus()
 {
@@ -215,6 +237,41 @@ byte checkBus()
     return 1;
 }
 
+
+/*
+ * These functions are insanely simple. But they are made anyway to prevent
+ * a race condition when the bus code tries to send back partially-written data.
+ *
+ * The names are misleading since the CN interrupt is not actually disabled, but
+ * rather the CN feature of just the Req line is turned off. Some other system on
+ * this Slave may require the use of CN so disabling it entirely is a bit extreme.
+ */
+void enableBusInterrupt()
+{
+    REQ_CN_BIT = 1; /* Turn on CN for the pin */
+}
+
+void disableBusInterrupt()
+{
+    REQ_CN_BIT = 0;    /* Turn off CN for the pin */
+}
+
+
+/* Initialize the CN interrupt to watch the Req line */
+void initCN()
+{
+    enableBusInterrupt();
+    IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
+    IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
+}
+
+
+/*
+ * Put bus in the idle state. This should be done as soon as possible to prevent
+ * pins in unknown states from interfering with bus operations. The Master should probably
+ * wait a few cycles upon power-up to allow all Slaves to release the bus before trying to
+ * use it.
+ */
 void initBus()
 {
     /* Put everything in high-impedance state */
@@ -222,7 +279,24 @@ void initBus()
     TRIS_RW = TRIS_IN;
     TRIS_REQ = TRIS_IN;
     TRIS_AKN = TRIS_IN;
+    initCN();
 }
+
+
+
+/*
+ * ISR for the CN interrupt. Req line is CN-based to minimize bus latency.
+ * Code for dealing with other CN pins should be placed here as well.
+ */
+void _ISR _CNInterrupt(void)
+{
+    IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
+
+    /* Don't check bus if its interrupt is disabled. Avoids a race condition */
+    if(REQ_CN_BIT == 1)
+        checkBus();
+}
+
 
 void main()
 {
@@ -235,6 +309,7 @@ void main()
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
 
-    while(1)
-        checkBus();
+    while(1);
+
+
 }
