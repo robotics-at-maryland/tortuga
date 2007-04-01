@@ -1,7 +1,8 @@
 #include <p30fxxxx.h>
 #include <string.h>
 
-_FOSC( CSW_FSCM_OFF & FRC );
+//_FOSC( CSW_FSCM_OFF & FRC );
+_FOSC( CSW_FSCM_OFF & XT_PLL4 );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
@@ -16,7 +17,7 @@ _FWDT ( WDT_OFF );
  * Bus = D1 D0 E5-E0
  * Req = C13
  * Akn = C14
- * RW  = C15
+ * RW  = E8
  */
 
 /* Bus pin assignments */
@@ -27,8 +28,8 @@ _FWDT ( WDT_OFF );
 #define LAT_AKN     _LATC14
 #define TRIS_AKN    _TRISC14
 
-#define IN_RW       _RC15
-#define TRIS_RW     _TRISC15
+#define IN_RW       _RE8
+#define TRIS_RW     _TRISE8
 
 #define RW_READ     0
 #define RW_WRITE    1
@@ -37,7 +38,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_ID          1
 #define BUS_CMD_READ_REG    2
 #define BUS_CMD_WRITE_REG   3
-
+#define BUS_CMD_MARKER1     4
 
 /* Transmit buffer */
 #define TXBUF_LEN 30
@@ -106,6 +107,12 @@ void processData(byte data)
                 {
                     busState = STATE_WRITE_CMD;
                     nParam = 0;
+                    break;
+                }
+
+                case BUS_CMD_MARKER1:
+                {
+                    dropMarker1();
                     break;
                 }
             }
@@ -239,6 +246,45 @@ byte checkBus()
 
 
 /*
+ * Drop the first marker. I am assuming we have multiple markers. This is
+ * really here to let me play with interrupts and learn how to use the
+ * timer module. I cannot occupy the slave while the marker drops, so
+ * marker command sets marker output to 1, and then a timer interrupt must
+ * bring it back to 0.
+ */
+void dropMarker1()
+{
+    _LATB0 = 1;     // Set output to 1. Light an LED
+
+
+    /* Timer1 is a Type A timer. Evidently there are other types
+     * The clock rate is 96MHz, after PLL. So.. it seems that:
+     * (1/96e6) * (256 prescaler) * (4 clocks per insn) * (65536 period) = 0.69 seconds.
+     * It seems the LED is lit for pretty much 4 times as long. My calculations are off
+     * by a factor of 4. Why?
+     * Oh well, 2.79 seconds of soleniod operation should be enough time to drop a
+     * marker, but I would like to know the reason for this discrepantcy.
+     */
+
+    PR1 = 65535;            /* Period */
+    TMR1 = 0;               /* Reset timer */
+    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T1IE = 1;      /* Enable interrupts */
+    T1CONbits.TCS = 0;      /* Use internal clock */
+    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T1CONbits.TON = 1;      /* Start Timer1 */
+}
+
+
+void _ISR _T1Interrupt(void)
+{
+    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T1IE = 0;      /* Disable interrupts */
+    _LATB0 = 0;         /* Turn off marker soleniod (or LED in my case) */
+    T1CONbits.TON = 0;  /* Stop Timer1 */
+}
+
+/*
  * These functions are insanely simple. But they are made anyway to prevent
  * a race condition when the bus code tries to send back partially-written data.
  *
@@ -304,7 +350,6 @@ void main()
     initBus();
 
     _TRISB0 = TRIS_OUT;
-    _LATB0 = 1;
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;

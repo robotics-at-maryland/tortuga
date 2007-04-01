@@ -1,6 +1,6 @@
 #include <p30fxxxx.h>
 
-_FOSC( CSW_FSCM_OFF & XT_PLL4 );
+_FOSC( CSW_FSCM_OFF & XT_PLL16 );
 _FWDT ( WDT_OFF );
 
 
@@ -50,6 +50,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_ID          1
 #define BUS_CMD_READ_REG    2
 #define BUS_CMD_WRITE_REG   3
+#define BUS_CMD_MARKER1     4
 
 #define NUM_SLAVES  3
 
@@ -213,7 +214,7 @@ int busWriteByte(byte data, byte req)
 void initUart()
 {
     U1MODE = 0x0000;
-    U1BRG = 311;
+    U1BRG = 155;
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
@@ -300,9 +301,12 @@ int main(void)
 
     /*
      * Key Commands:
-     * P - ping
-     * I - identify
-     *
+     * P - ping each slave
+     * I - identify each slave and print ID
+     * R - read a given config register of a given slave. Default values='A'
+     * W - write a given config register of a given slave to a given value
+     * T - send 40960 Identify commands to slave 0, read result of each. Used for testing timing.
+     * M - tell slave 0 to drop the first marker. mainly used for testing timers, but works too
      */
 
     while(1)
@@ -421,6 +425,32 @@ int main(void)
 
                 sprintf(tmp, "\n\rSlave #%d config register %d set to <%c>", id, addr, val);
                 sendString(tmp);
+                break;
+            }
+
+
+            case 'T':
+            {
+                sendString("\n\rTiming test starting now.");
+
+                for(j=0; j<40960; j++)
+                {
+
+                    // Write to slave-   1 byte
+                    // Read from slave- 22 bytes
+                    busWriteByte(BUS_CMD_ID, 0);
+                    readDataBlock(0);
+                }
+
+                sendString("\n\rDone (942080 bytes transferred)");
+                break;
+            }
+
+            case 'M':
+            {
+                sendString("\n\rDropping marker");
+                busWriteByte(BUS_CMD_MARKER1, 0);
+                sendString("\n\rDone.");
                 break;
             }
 
