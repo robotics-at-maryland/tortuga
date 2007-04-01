@@ -39,6 +39,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_READ_REG    2
 #define BUS_CMD_WRITE_REG   3
 #define BUS_CMD_MARKER1     4
+#define BUS_CMD_DEPTH       5
 
 /* Transmit buffer */
 #define TXBUF_LEN 30
@@ -72,6 +73,8 @@ byte busState = 0;
 byte nParam = 0;
 byte p1=0, p2=0;
 
+/* Average depth, as computed by ADC ISR */
+long avgDepth = 0;
 
 /* If Master writes us data, this gets called */
 void processData(byte data)
@@ -115,6 +118,15 @@ void processData(byte data)
                     dropMarker1();
                     break;
                 }
+
+                case BUS_CMD_DEPTH:
+                {
+                    txBuf[0] = 2;   /* Depth is 2 bytes */
+                    txBuf[1] = (avgDepth & 0xFF00) >> 8;
+                    txBuf[2] = avgDepth & 0xFF;
+                    break;
+                }
+
             }
         }
         break;
@@ -254,7 +266,7 @@ byte checkBus()
  */
 void dropMarker1()
 {
-    _LATB0 = 1;     // Set output to 1. Light an LED
+    _LATB1 = 1;     // Set output to 1. Light an LED
 
 
     /* Timer1 is a Type A timer. Evidently there are other types
@@ -275,14 +287,16 @@ void dropMarker1()
     T1CONbits.TON = 1;      /* Start Timer1 */
 }
 
-
+/* ISR for Timer1. Used for turning off marker soleniod after it was turned on */
 void _ISR _T1Interrupt(void)
 {
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 0;      /* Disable interrupts */
-    _LATB0 = 0;         /* Turn off marker soleniod (or LED in my case) */
+    _LATB1 = 0;         /* Turn off marker soleniod (or LED in my case) */
     T1CONbits.TON = 0;  /* Stop Timer1 */
 }
+
+
 
 /*
  * These functions are insanely simple. But they are made anyway to prevent
@@ -307,6 +321,7 @@ void disableBusInterrupt()
 void initCN()
 {
     enableBusInterrupt();
+    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 }
@@ -344,15 +359,76 @@ void _ISR _CNInterrupt(void)
 }
 
 
+int depthArray[100];
+int dp=0;
+
+void _ISR _ADCInterrupt(void)
+{
+    IFS0bits.ADIF = 0;
+    byte i=0;
+
+    long ad=0;
+
+
+    depthArray[dp++] = ADCBUF0;
+    if(dp >= 100)
+        dp=0;
+
+    ad = 0;
+    for(i=0; i<100; i++)
+        ad+= depthArray[i];
+
+    ad /= 100;
+    disableBusInterrupt();
+    avgDepth = ad;
+    enableBusInterrupt();
+}
+
+/*
+ * Initialize ADC for depth sensor. All this code really needs to be split up
+ * into different files, each one different for each slave. But for now, write
+ * and test everything in one file.
+ */
+void initADC()
+{
+    avgDepth = 0x1234;
+    ADPCFG = 0xFFFF;
+    ADPCFGbits.PCFG0 = 0;
+    _TRISB0 = TRIS_IN;
+
+    ADCON1 = 0x0000;
+    ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
+    ADCON1bits.ASAM = 1;    /* Automatic sampling enabled */
+
+    ADCON1bits.FORM = 0;    /* Plain format */
+
+    ADCHS = 0x0000;
+    ADCSSL = 0;
+    ADCON3bits.SAMC=0x1F;
+
+    ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
+          //Clear the A/D interrupt flag bit
+    IFS0bits.ADIF = 0;
+
+        //Set the A/D interrupt enable bit
+    IEC0bits.ADIE = 1;
+
+    ADCON1bits.ADON = 1;
+    ADCON1bits.SAMP = 1;    /* Start auto-sampling */
+}
+
 void main()
 {
     byte i;
-    initBus();
 
-    _TRISB0 = TRIS_OUT;
+    _TRISB1 = TRIS_OUT;
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
+
+
+    initADC();
+    initBus();
 
     while(1);
 

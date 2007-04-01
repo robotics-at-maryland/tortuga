@@ -51,6 +51,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_READ_REG    2
 #define BUS_CMD_WRITE_REG   3
 #define BUS_CMD_MARKER1     4
+#define BUS_CMD_DEPTH       5
 
 #define NUM_SLAVES  3
 
@@ -453,6 +454,20 @@ int main(void)
                 sendString("\n\rDone.");
                 break;
             }
+
+            case 'D':
+            {
+                sendString("\n\rAverage of last 100 depth measurements on Slave 0: ");
+                busWriteByte(BUS_CMD_DEPTH, 0);
+                readDataBlock(0);
+
+                int depth = (rxBuf[0]<<8) | rxBuf[1];
+                sprintf(tmp, "%u", depth);
+                sendString(tmp);
+                sendString("\n\rDone.");
+                break;
+            }
+
 
             default:
             {
