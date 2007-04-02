@@ -440,7 +440,7 @@ int main(void)
 
                     if(busWriteByte(BUS_CMD_ID, 0) != 0)
                     {
-                        sprintf(tmp, "\n\rTransmit error at iteration %u", j);
+                        sprintf(tmp, "\n\rTransmit error at iteration %i", j);
                         sendString(tmp);
                         break;
                     }
@@ -452,7 +452,7 @@ int main(void)
 
                     if(len != 21)
                     {
-                        sprintf(tmp, "\n\rWrong data length at iteration %u: read %d bytes", j, len);
+                        sprintf(tmp, "\n\rWrong data length at iteration %i: read %i bytes", j, len);
                         sendString(tmp);
                         break;
                     }

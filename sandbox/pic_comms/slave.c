@@ -379,9 +379,14 @@ void _ISR _ADCInterrupt(void)
         ad+= depthArray[i];
 
     ad /= 100;
-    disableBusInterrupt();
+
+
+    /*
+     * Why does disabling and re-enabling the CN interrupts muck up the data transfers?
+     * Maybe some interrupt bits need to be dealt with. Since average depth is only a 16-bit
+     * value, the assignment operation is atomic and there should be no data race here.
+     */
     avgDepth = ad;
-    enableBusInterrupt();
 }
 
 /*
@@ -406,6 +411,7 @@ void initADC()
     ADCSSL = 0;
     ADCON3bits.SAMC=0x1F;
 
+    ADCON3bits.ADCS = 4;        /* ADC needs so much time to convert at 30 MIPS */
     ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
           //Clear the A/D interrupt flag bit
     IFS0bits.ADIF = 0;
@@ -427,10 +433,7 @@ void main()
         cfgRegs[i] = 65;
 
 
-    /* This works but interrupts here cause bus to be very unreliable */
-    /* Depth sensor should not interrupt bus, and bus should not interrupt from ADC interrupt */
-
-//    initADC();
+    initADC();
     initBus();
 
     while(1);
