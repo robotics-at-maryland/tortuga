@@ -1,6 +1,6 @@
 #include <p30fxxxx.h>
 
-_FOSC( CSW_FSCM_OFF & XT_PLL16 );
+_FOSC( CSW_FSCM_OFF & EC_PLL8 );
 _FWDT ( WDT_OFF );
 
 
@@ -215,7 +215,7 @@ int busWriteByte(byte data, byte req)
 void initUart()
 {
     U1MODE = 0x0000;
-    U1BRG = 155;
+    U1BRG = 185;
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
@@ -275,7 +275,8 @@ int readDataBlock(byte req)
 
 int main(void)
 {
-    long j=0, t=0, b=0;
+    long j=0;
+    long t=0, b=0;
     byte i;
 
     byte tmp[60];
@@ -306,7 +307,7 @@ int main(void)
      * I - identify each slave and print ID
      * R - read a given config register of a given slave. Default values='A'
      * W - write a given config register of a given slave to a given value
-     * T - send 40960 Identify commands to slave 0, read result of each. Used for testing timing.
+     * T - send 32000 Identify commands to slave 0, read result of each. Used for testing timing.
      * M - tell slave 0 to drop the first marker. mainly used for testing timers, but works too
      */
 
@@ -374,7 +375,7 @@ int main(void)
                 {
                     busWriteByte(BUS_CMD_ID, i);
                     byte len = readDataBlock(i);
-                    sprintf(tmp, "\n\rSlave #%d replies: <", i);
+                    sprintf(tmp, "\n\rSlave #%d replies (%d bytes): <", i, len);
                     sendString(tmp);
                     sendString(rxBuf);
                     sendString(">");
@@ -433,17 +434,31 @@ int main(void)
             case 'T':
             {
                 sendString("\n\rTiming test starting now.");
-
-                for(j=0; j<40960; j++)
+                int j;
+                for(j=0; j<32000; j++)
                 {
 
-                    // Write to slave-   1 byte
-                    // Read from slave- 22 bytes
-                    busWriteByte(BUS_CMD_ID, 0);
-                    readDataBlock(0);
+                    if(busWriteByte(BUS_CMD_ID, 0) != 0)
+                    {
+                        sprintf(tmp, "\n\rTransmit error at iteration %u", j);
+                        sendString(tmp);
+                        break;
+                    }
+
+                    /* Invalidate these */
+                    rxBuf[0] = 65;
+                    rxBuf[1] = 65;
+                    byte len = readDataBlock(0);
+
+                    if(len != 21)
+                    {
+                        sprintf(tmp, "\n\rWrong data length at iteration %u: read %d bytes", j, len);
+                        sendString(tmp);
+                        break;
+                    }
                 }
 
-                sendString("\n\rDone (942080 bytes transferred)");
+                sendString("\n\rDone");
                 break;
             }
 

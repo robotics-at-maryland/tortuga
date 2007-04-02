@@ -2,7 +2,7 @@
 #include <string.h>
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & XT_PLL4 );
+_FOSC( CSW_FSCM_OFF & EC_PLL8 );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
@@ -427,7 +427,10 @@ void main()
         cfgRegs[i] = 65;
 
 
-    initADC();
+    /* This works but interrupts here cause bus to be very unreliable */
+    /* Depth sensor should not interrupt bus, and bus should not interrupt from ADC interrupt */
+
+//    initADC();
     initBus();
 
     while(1);
