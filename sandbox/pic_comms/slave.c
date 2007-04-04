@@ -309,6 +309,7 @@ void _ISR _T1Interrupt(void)
 void enableBusInterrupt()
 {
     REQ_CN_BIT = 1; /* Turn on CN for the pin */
+    checkBus();
 }
 
 void disableBusInterrupt()
@@ -386,7 +387,9 @@ void _ISR _ADCInterrupt(void)
      * Maybe some interrupt bits need to be dealt with. Since average depth is only a 16-bit
      * value, the assignment operation is atomic and there should be no data race here.
      */
+    disableBusInterrupt();
     avgDepth = ad;
+    enableBusInterrupt();
 }
 
 /*
