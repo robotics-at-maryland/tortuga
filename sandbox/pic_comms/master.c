@@ -46,12 +46,15 @@ _FWDT ( WDT_OFF );
 #define BUS_FAILURE     -2
 
 
-#define BUS_CMD_PING        0
-#define BUS_CMD_ID          1
-#define BUS_CMD_READ_REG    2
-#define BUS_CMD_WRITE_REG   3
-#define BUS_CMD_MARKER1     4
-#define BUS_CMD_DEPTH       5
+#define BUS_CMD_PING            0
+#define BUS_CMD_ID              1
+#define BUS_CMD_READ_REG        2
+#define BUS_CMD_WRITE_REG       3
+#define BUS_CMD_MARKER1         4
+#define BUS_CMD_DEPTH           5
+#define BUS_CMD_LCD_WRITE       6
+#define BUS_CMD_LCD_REFRESH     7
+
 
 #define NUM_SLAVES  3
 
@@ -320,6 +323,24 @@ int main(void)
         switch(c)
         {
 
+            case 'L':
+            {
+                sendString("\n\rWriting data to LCD");
+
+                byte data[] = "something about an evil wombat  ";
+
+                for(i=0; i<32; i++)
+                {
+                    busWriteByte(BUS_CMD_LCD_WRITE, 2);
+                    busWriteByte(i, 2);
+                    busWriteByte(data[i], 2);
+                }
+
+                busWriteByte(BUS_CMD_LCD_REFRESH, 2);
+
+                break;
+            }
+
             case 'P':
             {
                 sendString("\n\rPinging all slaves");
@@ -492,36 +513,5 @@ int main(void)
         }
     }
 
-/*
-    while(1)
-    {
-        for(i=0; i<2; i++)
-        {
-            sprintf(tmp, "\n\rReading data from PIC #%d...", i);
-            sendString(tmp);
-
-            busWriteByte(0, i);
-            rxLen = busReadByte(i);
-
-            sprintf(tmp, "\n\r\tLength is %d", rxLen);
-            sendString(tmp);
-
-            for(rxPtr=0; rxPtr<rxLen; rxPtr++)
-            {
-                rxBuf[rxPtr] = busReadByte(i);
-            }
-
-            rxBuf[rxLen]=0;
-
-            sendString("\n\r\tData is <");
-            sendString(rxBuf);
-            sendString(">\n\r");
-
-            for(j=0; j<100000; j++);
-        }
-
-        for(j=0; j<100000; j++);
-    }
-*/
     while(1);
 }

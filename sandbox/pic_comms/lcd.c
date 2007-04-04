@@ -35,12 +35,14 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
-#define BUS_CMD_PING        0
-#define BUS_CMD_ID          1
-#define BUS_CMD_READ_REG    2
-#define BUS_CMD_WRITE_REG   3
-#define BUS_CMD_MARKER1     4
-#define BUS_CMD_DEPTH       5
+#define BUS_CMD_PING            0
+#define BUS_CMD_ID              1
+#define BUS_CMD_READ_REG        2
+#define BUS_CMD_WRITE_REG       3
+#define BUS_CMD_MARKER1         4
+#define BUS_CMD_DEPTH           5
+#define BUS_CMD_LCD_WRITE       6
+#define BUS_CMD_LCD_REFRESH     7
 
 /* Transmit buffer */
 #define TXBUF_LEN 30
@@ -71,13 +73,16 @@ byte cfgRegs[16];
 #define STATE_TOP_LEVEL     0
 #define STATE_READ_CMD      1
 #define STATE_WRITE_CMD     2
+#define STATE_WRITE_LCD     3
 
 byte busState = 0;
 byte nParam = 0;
 byte p1=0, p2=0;
 
-/* Average depth, as computed by ADC ISR */
-long avgDepth = 0;
+
+
+byte lcdBuf[32];
+byte lcdUpdate = 0;
 
 /* If Master writes us data, this gets called */
 void processData(byte data)
@@ -115,9 +120,23 @@ void processData(byte data)
                     nParam = 0;
                     break;
                 }
+
+                case BUS_CMD_LCD_WRITE:
+                {
+                    busState = STATE_WRITE_LCD;
+                    nParam = 0;
+                    break;
+                }
+
+                case BUS_CMD_LCD_REFRESH:
+                {
+                    lcdUpdate++;
+                    break;
+                }
             }
+            break;
         }
-        break;
+
 
         case STATE_READ_CMD:
         {
@@ -125,8 +144,8 @@ void processData(byte data)
             busState = STATE_TOP_LEVEL;
             txBuf[0] = 1;
             txBuf[1] = cfgRegs[data];
+            break;
         }
-        break;
 
         case STATE_WRITE_CMD:
         {
@@ -144,9 +163,28 @@ void processData(byte data)
                 busState = STATE_TOP_LEVEL;
                 cfgRegs[p1] = data;
             }
-
+            break;
         }
-        break;
+
+
+        case STATE_WRITE_LCD:
+        {
+            if(nParam == 0)
+                p1 = data;
+
+            if(nParam == 1)
+                p2 = data;
+
+            nParam++;
+
+            if(nParam == 2)
+            {
+                nParam=0;
+                busState = STATE_TOP_LEVEL;
+                lcdBuf[p1] = data;
+            }
+            break;
+        }
 
     }
 }
@@ -388,11 +426,34 @@ void main()
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
 
-   // initBus();
+    initBus();
 
     initLCD();
-    byte data[] = "0123456789ABCDEF";
+    byte data1[] = "Controller Init ";
+    byte data2[] = "LCD Buffer Empty";
+
     for(i=0; i<16; i++)
-        lcdChar(data[i]);
-    while(1);
+    {
+        lcdChar(data1[i]);
+        lcdBuf[i] = data2[i];
+        lcdBuf[i+16] = data2[i];
+    }
+
+    while(1)
+    {
+        while(lcdUpdate > 0)
+        {
+            /* Dump LCD buffer to display */
+            lcdCmd(0x80);
+
+            for(i=0; i<16; i++)
+                lcdChar(lcdBuf[i]);
+
+            lcdCmd(0xC0);
+            for(i=0; i<16; i++)
+                lcdChar(lcdBuf[i+16]);
+
+            lcdUpdate--;
+        }
+    }
 }
