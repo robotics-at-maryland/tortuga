@@ -17,7 +17,7 @@ _FWDT ( WDT_OFF );
  * Bus = D1 D0 E5-E0
  * Req = C13
  * Akn = C14
- * RW  = E8
+ * RW  = C15
  */
 
 /* Bus pin assignments */
@@ -95,7 +95,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "I am temp sensor PIC.");
+                    txBuf[0] = sprintf(txBuf+1, "I am depth sensor PIC.");
                     break;
                 }
 
