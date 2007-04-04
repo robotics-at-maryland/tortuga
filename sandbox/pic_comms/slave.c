@@ -45,8 +45,9 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_LCD_LIGHT_ON    8
 #define BUS_CMD_LCD_LIGHT_OFF   9
 #define BUS_CMD_THRUSTERS_ON    10
-#define BUS_CMD_THRUSTERS_OFF    11
+#define BUS_CMD_THRUSTERS_OFF   11
 #define BUS_CMD_MARKER2         12
+#define BUS_CMD_CHECKWATER      14
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -102,7 +103,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "I am depth/marker/thruster PIC.");
+                    txBuf[0] = sprintf(txBuf+1, "I am depth/water/marker/thruster PIC.");
                     break;
                 }
 
@@ -141,6 +142,13 @@ void processData(byte data)
                 case BUS_CMD_THRUSTERS_OFF:
                 {
                     _LATB3 = 0;
+                    break;
+                }
+
+                case BUS_CMD_CHECKWATER:
+                {
+                    txBuf[0] = 1;
+                    txBuf[1] = _RB4;
                     break;
                 }
 
@@ -470,6 +478,7 @@ void main()
     _TRISB1 = TRIS_OUT; /* Marker 1 */
     _TRISB2 = TRIS_OUT; /* Marker 2 */
     _TRISB3 = TRIS_OUT; /* Thruster Safety */
+    _TRISB4 = TRIS_IN;  /* Water sensor */
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;

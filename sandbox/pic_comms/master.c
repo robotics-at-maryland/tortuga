@@ -63,6 +63,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_THRUSTERS_ON    10
 #define BUS_CMD_THRUSTERS_OFF   11
 #define BUS_CMD_MARKER2         12
+#define BUS_CMD_CHECKWATER      14
 
 #define NUM_SLAVES  3
 
@@ -327,7 +328,7 @@ int main(void)
      * (running out of meaningful letters over here!)
      * T - thruster safety on
      * t - thruster safety off
-     *
+     * w - get reading of water sensor
      */
 
     while(1)
@@ -399,6 +400,27 @@ int main(void)
             {
                 sendString("\n\rThruster safety off");
                 busWriteByte(BUS_CMD_THRUSTERS_OFF, 0);
+                break;
+            }
+
+            case 'w':
+            {
+                sendString("\n\rChecking for water: ");
+                busWriteByte(BUS_CMD_CHECKWATER, 0);
+
+                byte len = readDataBlock(0);
+
+                if(len!=1)
+                {
+                    sendString("Could not communicate, so water is probably present :)");
+                } else
+                {
+                    if(rxBuf[0] != 0)
+                        sendString("No water detected");
+                    else
+                        sendString("Water detected!");
+                }
+
                 break;
             }
 
@@ -532,7 +554,7 @@ int main(void)
                     rxBuf[1] = 65;
                     byte len = readDataBlock(0);
 
-                    if(len != 22)
+                    if(len != 37)
                     {
                         sprintf(tmp, "\n\rWrong data length at iteration %i: read %i bytes", j, len);
                         sendString(tmp);
