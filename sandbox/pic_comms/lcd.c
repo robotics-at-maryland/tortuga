@@ -197,7 +197,8 @@ void processData(byte data)
             {
                 nParam=0;
                 busState = STATE_TOP_LEVEL;
-                lcdBuf[p1] = data;
+                if(p1 < 32)
+                    lcdBuf[p1] = data;
             }
             break;
         }
@@ -446,14 +447,13 @@ void main()
     initBus();
 
     initLCD();
-    byte data1[] = "Controller Init ";
-    byte data2[] = "LCD Buffer Empty";
+    byte data1[] = "System Reset    ";
 
     for(i=0; i<16; i++)
     {
         lcdChar(data1[i]);
-        lcdBuf[i] = data2[i];
-        lcdBuf[i+16] = data2[i];
+        lcdBuf[i] = ' ';
+        lcdBuf[i+16] = ' ';
     }
 
     while(1)

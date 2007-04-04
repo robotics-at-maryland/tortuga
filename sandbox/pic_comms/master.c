@@ -327,9 +327,22 @@ int main(void)
 
             case 'L':
             {
-                sendString("\n\rWriting data to LCD");
+                sendString("\n\r\n\rEnter up to 32 characters:\n\r>");
 
-                byte data[] = "something about an evil wombat  ";
+
+                byte data[] = "                                ";
+
+                for(i=0; i<32; i++)
+                {
+                    data[i] = waitchar();
+                    sendByte(data[i]);
+                    if(data[i] =='\r')
+                    {
+                        data[i] = ' ';
+                        break;
+                    }
+                }
+                sendString("\n\r\n\rWriting data to LCD");
 
                 for(i=0; i<32; i++)
                 {
@@ -339,6 +352,8 @@ int main(void)
                 }
 
                 busWriteByte(BUS_CMD_LCD_REFRESH, 2);
+
+                sendString("\n\rDone");
 
                 break;
             }
