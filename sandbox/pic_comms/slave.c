@@ -34,15 +34,22 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
-#define BUS_CMD_PING        0
-#define BUS_CMD_ID          1
-#define BUS_CMD_READ_REG    2
-#define BUS_CMD_WRITE_REG   3
-#define BUS_CMD_MARKER1     4
-#define BUS_CMD_DEPTH       5
+#define BUS_CMD_PING            0
+#define BUS_CMD_ID              1
+#define BUS_CMD_READ_REG        2
+#define BUS_CMD_WRITE_REG       3
+#define BUS_CMD_MARKER1         4
+#define BUS_CMD_DEPTH           5
+#define BUS_CMD_LCD_WRITE       6
+#define BUS_CMD_LCD_REFRESH     7
+#define BUS_CMD_LCD_LIGHT_ON    8
+#define BUS_CMD_LCD_LIGHT_OFF   9
+#define BUS_CMD_THRUSTERS_ON    10
+#define BUS_CMD_THRUSTERS_OFF    11
+#define BUS_CMD_MARKER2         12
 
 /* Transmit buffer */
-#define TXBUF_LEN 30
+#define TXBUF_LEN 60
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
@@ -95,7 +102,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "I am depth sensor PIC.");
+                    txBuf[0] = sprintf(txBuf+1, "I am depth/marker/thruster PIC.");
                     break;
                 }
 
@@ -115,7 +122,25 @@ void processData(byte data)
 
                 case BUS_CMD_MARKER1:
                 {
-                    dropMarker1();
+                    dropMarker(0);
+                    break;
+                }
+
+                case BUS_CMD_MARKER2:
+                {
+                    dropMarker(1);
+                    break;
+                }
+
+                case BUS_CMD_THRUSTERS_ON:
+                {
+                    _LATB3 = 1;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTERS_OFF:
+                {
+                    _LATB3 = 0;
                     break;
                 }
 
@@ -264,9 +289,13 @@ byte checkBus()
  * marker command sets marker output to 1, and then a timer interrupt must
  * bring it back to 0.
  */
-void dropMarker1()
+void dropMarker(byte id)
 {
-    _LATB1 = 1;     // Set output to 1. Light an LED
+    /* Set appropriate output to 1 */
+    if(id == 0)
+        _LATB1 = 1;
+    else
+        _LATB2 = 1;
 
 
     /* Timer1 is a Type A timer. Evidently there are other types
@@ -292,7 +321,15 @@ void _ISR _T1Interrupt(void)
 {
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 0;      /* Disable interrupts */
+
+    /* This timer kills both solenoids. If one marker is dropped, and another is
+     * dropped before the first soleniod deactivates, the timer is reset and both
+     * solenids will deactivate when the timer expires.
+     */
+
     _LATB1 = 0;         /* Turn off marker soleniod (or LED in my case) */
+    _LATB2 = 0;         /* Turn off marker soleniod (or LED in my case) */
+
     T1CONbits.TON = 0;  /* Stop Timer1 */
 }
 
@@ -430,7 +467,9 @@ void main()
 {
     byte i;
 
-    _TRISB1 = TRIS_OUT;
+    _TRISB1 = TRIS_OUT; /* Marker 1 */
+    _TRISB2 = TRIS_OUT; /* Marker 2 */
+    _TRISB3 = TRIS_OUT; /* Thruster Safety */
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;

@@ -45,7 +45,11 @@ _FWDT ( WDT_OFF );
 #define BUS_ERROR       -1
 #define BUS_FAILURE     -2
 
-
+/*
+ * Commands Master can send to Slaves. Command numbers among different Slaves can overlap
+ * but common commands like Ping/Identify should be the same everywhere.
+ * Kind of obvious what order I did these in, huh?
+ */
 #define BUS_CMD_PING            0
 #define BUS_CMD_ID              1
 #define BUS_CMD_READ_REG        2
@@ -56,7 +60,9 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_LCD_REFRESH     7
 #define BUS_CMD_LCD_LIGHT_ON    8
 #define BUS_CMD_LCD_LIGHT_OFF   9
-
+#define BUS_CMD_THRUSTERS_ON    10
+#define BUS_CMD_THRUSTERS_OFF   11
+#define BUS_CMD_MARKER2         12
 
 #define NUM_SLAVES  3
 
@@ -247,7 +253,7 @@ void sendString(unsigned char str[])
 }
 
 /* General purpose bus receive buffer */
-byte rxBuf[30];
+byte rxBuf[60];
 
 
 /*
@@ -312,8 +318,16 @@ int main(void)
      * I - identify each slave and print ID
      * R - read a given config register of a given slave. Default values='A'
      * W - write a given config register of a given slave to a given value
-     * T - send 32000 Identify commands to slave 0, read result of each. Used for testing timing.
+     * S - send 15000 Identify commands to slave 0, read result of each. Used for testing timing.
      * M - tell slave 0 to drop the first marker. mainly used for testing timers, but works too
+     * m - tell slave 0 to drop the second marker. mainly used for testing timers, but works too
+     * B - turn LCD backlight on
+     * b - turn LCD backlight off
+     * L - write text to LCD
+     * (running out of meaningful letters over here!)
+     * T - thruster safety on
+     * t - thruster safety off
+     *
      */
 
     while(1)
@@ -374,6 +388,19 @@ int main(void)
                 break;
             }
 
+            case 'T':
+            {
+                sendString("\n\rThruster safety on");
+                busWriteByte(BUS_CMD_THRUSTERS_ON, 0);
+                break;
+            }
+
+            case 't':
+            {
+                sendString("\n\rThruster safety off");
+                busWriteByte(BUS_CMD_THRUSTERS_OFF, 0);
+                break;
+            }
 
             case 'P':
             {
@@ -486,11 +513,11 @@ int main(void)
             }
 
 
-            case 'T':
+            case 'S':
             {
-                sendString("\n\rTiming test starting now.");
+                sendString("\n\rSpeed test starting now.");
                 int j;
-                for(j=0; j<32000; j++)
+                for(j=0; j<15000; j++)
                 {
 
                     if(busWriteByte(BUS_CMD_ID, 0) != 0)
@@ -505,7 +532,7 @@ int main(void)
                     rxBuf[1] = 65;
                     byte len = readDataBlock(0);
 
-                    if(len != 21)
+                    if(len != 22)
                     {
                         sprintf(tmp, "\n\rWrong data length at iteration %i: read %i bytes", j, len);
                         sendString(tmp);
@@ -519,8 +546,16 @@ int main(void)
 
             case 'M':
             {
-                sendString("\n\rDropping marker");
+                sendString("\n\rDropping first marker");
                 busWriteByte(BUS_CMD_MARKER1, 0);
+                sendString("\n\rDone.");
+                break;
+            }
+
+            case 'm':
+            {
+                sendString("\n\rDropping second marker");
+                busWriteByte(BUS_CMD_MARKER2, 0);
                 sendString("\n\rDone.");
                 break;
             }
