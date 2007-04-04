@@ -43,15 +43,19 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_DEPTH           5
 #define BUS_CMD_LCD_WRITE       6
 #define BUS_CMD_LCD_REFRESH     7
+#define BUS_CMD_LCD_LIGHT_ON    8
+#define BUS_CMD_LCD_LIGHT_OFF   9
+
 
 /* Transmit buffer */
 #define TXBUF_LEN 30
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
-#define LAT_E _LATB4
-#define LAT_RS _LATB5
-
+/* Misc LCD pins */
+#define LAT_E   _LATB4
+#define LAT_RS  _LATB5
+#define LAT_BL  _LATC15
 
 /*
  * Configuration Registers
@@ -131,6 +135,18 @@ void processData(byte data)
                 case BUS_CMD_LCD_REFRESH:
                 {
                     lcdUpdate++;
+                    break;
+                }
+
+                case BUS_CMD_LCD_LIGHT_OFF:
+                {
+                    LAT_BL = 0;
+                    break;
+                }
+
+                case BUS_CMD_LCD_LIGHT_ON:
+                {
+                    LAT_BL = 1;
                     break;
                 }
             }
@@ -421,7 +437,8 @@ void main()
 {
     byte i;
 
-    _TRISB1 = TRIS_OUT;
+    _TRISC15 = TRIS_OUT;
+    _LATC15 = 0;
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;

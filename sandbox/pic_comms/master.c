@@ -54,6 +54,8 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_DEPTH           5
 #define BUS_CMD_LCD_WRITE       6
 #define BUS_CMD_LCD_REFRESH     7
+#define BUS_CMD_LCD_LIGHT_ON    8
+#define BUS_CMD_LCD_LIGHT_OFF   9
 
 
 #define NUM_SLAVES  3
@@ -340,6 +342,23 @@ int main(void)
 
                 break;
             }
+
+
+            case 'B':
+            {
+                sendString("\n\rLCD Backlight on");
+                busWriteByte(BUS_CMD_LCD_LIGHT_ON, 2);
+                break;
+            }
+
+
+            case 'b':
+            {
+                sendString("\n\rLCD Backlight off");
+                busWriteByte(BUS_CMD_LCD_LIGHT_OFF, 2);
+                break;
+            }
+
 
             case 'P':
             {
