@@ -440,6 +440,4 @@ void main()
     initBus();
 
     while(1);
-
-
 }
