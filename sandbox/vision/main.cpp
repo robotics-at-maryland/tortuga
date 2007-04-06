@@ -6,6 +6,10 @@
 #include "highgui.h"
 #include <string.h>
 
+/* Daniel Hakim
+	VISION CODE!!! 
+	DO NOT TOUCH.
+*/
 using namespace std;
 
 int distance_from_line(int avgxs[], IplImage* img);
