@@ -19,7 +19,7 @@ import time
 import logging
 
 # Library Imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 import OIS
 
 # Project Imports
@@ -29,7 +29,7 @@ from core import fixed_update, Component, implements
 import sim.simulation as simulation
 from sim.input import KeyStateObserver
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
-import sim.util
+from sim.object import IObject, Object
 
 class GraphicsError(simulation.SimulationError):
     """ Error from the graphics system """
@@ -50,9 +50,9 @@ class Visual(sim.util.Object):
         sim.util.Object.__init__()
 
     def init(self, parent, name, scene, mesh, material,
-            position = Ogre.Vector3.ZERO, 
-            orientation = Ogre.Quaternion.IDENTITY,
-            scale = Ogre.Vector3(1,1,1)):
+             position = Ogre.Vector3.ZERO, 
+             orientation = Ogre.Quaternion.IDENTITY,
+             scale = Ogre.Vector3(1,1,1)):
         sim.util.Object.init(parent, name)
         Visual._create(self, scene, mesh, material, position, orientation, 
                        scale)

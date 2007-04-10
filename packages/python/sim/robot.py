@@ -6,12 +6,12 @@
 # File:   /sim/robot.py
 
 # Library Imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Impports
 import core
 from sim.util import Vector, Quat, SimulationError
-from sim.serialization import IKMLStorable, KMLLoader
+from sim.serialization import IKMLStorable, KMLLoader, two_step_init
 from sim.physics import IBody, Body
 from sim.graphics import IVisual, Visual
 
@@ -23,7 +23,7 @@ class IPart(IBody, IVisual):
     
     robot = core.Attribute("""The robot this part belongs to""")
     
-class IRobot(IBody, IVisual):
+class IRobot(core.Interface):
     pass
     
 # TODO: Improve the documentation of this class and join it with a common 
@@ -51,15 +51,35 @@ class KMLRobotLoader(core.Component, KMLLoader):
     
 
     
-#class Robot(Body, Visual):
-#    core.implements(IRobot)
-#            
-#    def __init__(self, name, position, orientation, mass, shape_type,
-#                 shape_props, mesh, material, scale):
-#        
-#        # Create 
-#        Body.__init__(self, None, position, orietnation, mass, shape_type, 
-#                      shape_props)
-#        Visual.__init__(self, None, position, orietnation, mesh, material, 
-#                        scale)
-#            
+class Part(Body, Visual):
+    # Inherits IBody, IVisual, IKMLStorable
+    core.implements(IRobot)
+            
+    @two_step_init
+    def __init__(self):
+        self._parts = []
+        Body.__init__(self)
+        Visual.__init__(self)
+            
+            
+    def init(self, parent, name, scene, shape_type, shape_props, nass, mesh, 
+             material, position = Ogre.Vector3.ZERO, 
+             orientation = Ogre.Quaternion.IDENTITY,
+             scale = Ogre.Vector3(1,1,1)):
+        
+        Body.init(self, None, name, scene, mass, shape_type, 
+                      shape_props, position, orietnation)
+        Visual.init(self, None, name, scene, mesh, material, position, 
+                    orietnation, scale)
+        
+    def _create(self, parent, name, scene, shape_type, shape_props, nass, mesh, 
+                material, position, orientation, scale):
+        pass
+    
+    def load(self, data_object):
+        Body.load(self, data_object)
+        Visual.load(self, data_object)
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
+         

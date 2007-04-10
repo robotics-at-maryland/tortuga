@@ -20,7 +20,7 @@ import shutil
 # Library Imports
 import OIS
 import CEGUI
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imports
 import logloader

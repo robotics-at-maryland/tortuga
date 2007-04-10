@@ -14,11 +14,11 @@ activities
 #from __future__ import absolute_import
 
 # Library imports
-import Ogre
-import OIS
-import platform
+import ogre.renderer.OGRE as Ogre
+import ogre.io.OIS
 
 # Project imports
+import platform
 import event
 import logloader
 

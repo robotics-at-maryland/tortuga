@@ -4,7 +4,8 @@
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
 
-import Ogre, OgreNewt
+import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt as OgreNewt
 
 import utility
 from sim.util import gravityAndBouyancyCallback

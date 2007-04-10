@@ -18,7 +18,7 @@ import sys
 import imp
 
 # Library imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imports
 import logloader
@@ -36,7 +36,7 @@ DEFAULT_OGRE_PLUGINS = ['RenderSystem_GL', 'Plugin_ParticleFX',
                          'Plugin_OctreeSceneManager']
 
 DEFAULT_OGRE_PLUGIN_SEARCH_PATH = \
-    ['C:\Developement\Python-Ogre\Python-Ogre-0.8\plugins',
+    ['C:\Developement\PythonOgre\plugins',
      '$MRBC_SVN_ROOT/deps/local/lib/OGRE']
     
 DEFAULT_RENDER_SYSTEM = 'OpenGL'

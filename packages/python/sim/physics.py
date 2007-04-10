@@ -6,8 +6,8 @@
 # File:  sim/physics.py
 
 # Library Imports
-import OgreNewt
-import Ogre
+import ogre.physics.OgreNewt as OgreNewt
+import ogre.renderer.OGRE as Ogre
 
 # Project Imports
 import core

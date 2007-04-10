@@ -6,7 +6,7 @@ import time
 # Library Imports
 import wx
 import yaml
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imports
 import logloader

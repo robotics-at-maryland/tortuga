@@ -18,12 +18,70 @@ Robot:
             # Actual size in meters
             size: [0.2032, 0.2032, 0.6858]
                 
-     # This section describes how the object will appear
-     Graphical:
-          mesh: box.mesh
-          material: Simple/BumpyMetal
-          scale: [1,1,1]
-    
+    # This section describes how the object will appear
+    Graphical:
+         mesh: box.mesh
+         material: Simple/BumpyMetal
+         scale: [1,1,1]
+          
+    Parts:
+        # For each simulated thruster you need to give its type, relative
+        # to the body coordinate system (describe me here)
+        # Y is UP, Z comes out the front of the vehicle and when looking at
+        # vehicle from the back X comes out the right (starboard) side 
+        Thruster:
+            type: Basic
+            name: left_thruster
+            
+            # Position relative to robot
+            position: [-0.16, 0, 0]
+            orientation: [0, 1, 0, 90]
+            
+            # Thruster Properties
+            # A unit vector along which thrust will be applied
+            direction: [0, 0, -1]
+                        
+            # This section describes how the object will apear
+            Graphical:
+                mesh: cylinder.mesh
+                material: Simple/BumpyMetal
+                scale: [0.15,0.047,0.047]
+
+        Thruster:
+            type: Basic
+            name: left_thruster
+            
+            position: [0.16, 0, 0]
+            orientation: [0, 1, 0, 90]
+            direction: [0, 0, -1]
+            
+            Graphical:
+                mesh: cylinder.mesh
+                material: Simple/BumpyMetal
+                scale: [0.15,0.047,0.047]
+                    
+        ForeThruster:
+            type: Basic
+            mame: front_thruster
+            
+            position: [0, 0, 0.4]
+            orientation: [0, 0, 1, 90]
+            direction: [0, 1, 0]
+            
+            Graphical:
+                mesh: cylinder.mesh
+                material: Simple/BumpyMetal
+                scale: [0.15,0.047,0.047]
+        Thruster:
+            type: Basic            
+            name: aft_thruster
+            position: [0, 0, -0.4]
+            direction: [0, 1, 0]
+            
+            Graphical:
+                mesh: cylinder.mesh
+                material: Simple/BumpyMetal
+                scale: [0.15,0.047,0.047]
 #    Parts:
 #        
 #        # For each simulated thruster you need to give its type, relative

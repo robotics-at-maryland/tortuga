@@ -12,8 +12,8 @@ import sys
 import os.path
 
 # Library Ipmorts
-import Ogre
-import OgreNewt
+import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt as OgreNewt
 
 # Project Imports
 import core
@@ -93,14 +93,14 @@ class Scene(object):
 #        Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(self.name)
         
 
-	class scene_mgr(cls_property):
+	class scene_mgr(core.cls_property):
 		"""
 		The Ogre scene manager for the scene
 		"""
 		def fget(self):
 			return self._scene_manager
 		
-	class world(cls_property):
+	class world(core.cls_property):
 		"""
 		The Physical world in the simulation
 		"""

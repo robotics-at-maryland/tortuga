@@ -1,4 +1,5 @@
-import Ogre, OgreNewt
+import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt as OgreNewt
 
 # Used for autonaming of entities
 box_entity_count = 0
