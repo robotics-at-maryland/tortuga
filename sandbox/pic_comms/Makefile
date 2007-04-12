@@ -14,7 +14,7 @@ BIN2HEX = pic30-elf-bin2hex
 
 LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
-all: master.hex slave.hex lcd.hex
+all: master.hex slave.hex lcd.hex temp.hex
 
 slave.hex: slave.o
 	$(CC) $(LDFLAGS) $(LIBS) slave.o -o slave.elf
@@ -27,6 +27,10 @@ master.hex: master.o
 lcd.hex: lcd.o
 	$(CC) $(LDFLAGS) $(LIBS) lcd.o -o lcd.elf
 	$(BIN2HEX) lcd.elf
+
+temp.hex: temp.o
+	$(CC) $(LDFLAGS) $(LIBS) temp.o -o temp.elf
+	$(BIN2HEX) temp.elf
 
 .c.o: config.h
 	$(CC) $(CFLAGS) -Wunused-function -c $< -o $@
@@ -44,6 +48,8 @@ slave: slave.hex
 lcd: lcd.hex
 	piklab-prog -p icd2 -d 30f4011 -c program lcd.hex
 
+temp: temp.hex
+	piklab-prog -p icd2 -d 30f4011 -c program temp.hex
 
 clean:
 	rm -f *.o *.elf *.hex *~

@@ -309,8 +309,6 @@ void dropMarker(byte id)
     /* Timer1 is a Type A timer. Evidently there are other types
      * The clock rate is 96MHz, after PLL. So.. it seems that:
      * (1/96e6) * (256 prescaler) * (4 clocks per insn) * (65536 period) = 0.69 seconds.
-     * It seems the LED is lit for pretty much 4 times as long. My calculations are off
-     * by a factor of 4. Why?
      * Oh well, 2.79 seconds of soleniod operation should be enough time to drop a
      * marker, but I would like to know the reason for this discrepantcy.
      */

@@ -413,8 +413,8 @@ void initLCD()
     lcdPulse();
     lcdByte(0x2C);    /* function set (all lines, 5x7 characters) */
 
-    //lcdByte(0x0C);    /* display ON, cursor off, no blink */
-    lcdByte(0x0F);
+    lcdByte(0x0C);    /* display ON, cursor off, no blink */
+    //lcdByte(0x0F);
 
     lcdByte(0x01);    /* clear display */
     lcdByte(0x06);    /* entry mode set, increment & scroll left */

@@ -64,6 +64,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_THRUSTERS_OFF   11
 #define BUS_CMD_MARKER2         12
 #define BUS_CMD_CHECKWATER      14
+#define BUS_CMD_TEMP            15
 
 #define NUM_SLAVES  3
 
@@ -339,6 +340,32 @@ int main(void)
 
         switch(c)
         {
+            case 'G':
+            {
+                sendString("\n\rHere goes...");
+                while(1)
+                {
+                    for(j=0; j<150000; j++);
+
+                    busWriteByte(BUS_CMD_DEPTH, 0);
+                    readDataBlock(0);
+
+                    int depth = (rxBuf[0]<<8) | rxBuf[1];
+                    sprintf(tmp, "%u  ", depth);
+                //    sendString(tmp);
+
+                    for(i=0; i<5; i++)
+                    {
+                        busWriteByte(BUS_CMD_LCD_WRITE, 2);
+                        busWriteByte(i, 2);
+                        busWriteByte(tmp[i], 2);
+                    }
+
+                    busWriteByte(BUS_CMD_LCD_REFRESH, 2);
+                }
+
+                break;
+            }
 
             case 'L':
             {
@@ -389,14 +416,14 @@ int main(void)
                 break;
             }
 
-            case 'T':
+            case 'S':
             {
                 sendString("\n\rThruster safety on");
                 busWriteByte(BUS_CMD_THRUSTERS_ON, 0);
                 break;
             }
 
-            case 't':
+            case 's':
             {
                 sendString("\n\rThruster safety off");
                 busWriteByte(BUS_CMD_THRUSTERS_OFF, 0);
@@ -535,7 +562,7 @@ int main(void)
             }
 
 
-            case 'S':
+            case 'Q':
             {
                 sendString("\n\rSpeed test starting now.");
                 int j;
@@ -595,6 +622,24 @@ int main(void)
                 break;
             }
 
+            case 'T':
+            {
+                sendString("\n\rTemperature on Slave 1: ");
+                busWriteByte(BUS_CMD_TEMP, 1);
+                int len = readDataBlock(1);
+
+                sprintf(tmp, "\n\rData Received (%d bytes): ", len);
+                sendString(tmp);
+
+                for(i=0; i<len; i++)
+                {
+                    sprintf(tmp, "%u ", rxBuf[i]);
+                    sendString(tmp);
+                }
+
+                sendString("\n\rDone.");
+                break;
+            }
 
             default:
             {
