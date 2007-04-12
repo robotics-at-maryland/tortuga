@@ -101,7 +101,9 @@ byte AckI2C(void)
     I2CCONbits.ACKEN = 1;
 
     long timeout = 0;
-    while(I2CCONbits.ACKEN);
+    while(I2CCONbits.ACKEN)
+        if(timeout++ == I2C_TIMEOUT)
+            return 255;
     return 0;
 }
 
@@ -113,6 +115,9 @@ unsigned int initI2C(void)
 
     TRISFbits.TRISF2 = 1;
     TRISFbits.TRISF3 = 1;
+
+    /* Turn i2c off */
+    I2CCONbits.I2CEN = 0;
 
     //Consult the dSPIC Data Sheet for information on how to calculate the
     //Baud Rate.
@@ -152,7 +157,9 @@ byte StartI2C(void)
     //of the Start.
     long timeout=0;
     I2CCONbits.SEN = 1;        //Generate Start COndition
-    while(I2CCONbits.SEN);
+    while(I2CCONbits.SEN)
+        if(timeout++ == I2C_TIMEOUT)
+            return 255;
 
     return 0;
 
@@ -166,7 +173,9 @@ unsigned int RestartI2C(void)
     long timeout=0;
     I2CCONbits.RSEN = 1;       //Generate Restart
 
-    while(I2CCONbits.RSEN);
+    while(I2CCONbits.RSEN)
+        if(timeout++ == I2C_TIMEOUT)
+            return 255;
 
     return 0;
 
@@ -180,7 +189,9 @@ unsigned int StopI2C(void)
 
     I2CCONbits.PEN = 1;        //Generate Stop Condition
     long timeout=0;
-    while(I2CCONbits.PEN);
+    while(I2CCONbits.PEN)
+        if(timeout++ == I2C_TIMEOUT)
+            return 255;
     return 0;
 
     //return(I2C1STATbits.P);   //Optional - return status
@@ -192,7 +203,9 @@ unsigned int WriteI2C(unsigned char b)
     //while (I2C1STATbits.TRSTAT);  //Wait for bus to be idle
     I2CTRN = b;                 //Load byte to I2C1 Transmit buffer
     long timeout=0;
-    while(I2CSTATbits.TBF);
+    while(I2CSTATbits.TBF)
+        if(timeout++ == I2C_TIMEOUT)
+            return 255;
     return 0;
 }
 
