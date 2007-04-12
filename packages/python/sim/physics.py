@@ -342,6 +342,7 @@ class World(OgreNewt.World):
         newt_body.setPositionOrientation(position, orientation)
         newt_body.setCustomForceAndTorqueCallback(World._force_torque_callback, 
                                                  "")
+#        newt_body.setCustomForceAndTorqueCallback(sim.util.gravityAndBouyancyCallback,"")
         inertia = shape.calculateInertialMatrix()[0]
         newt_body.setMassMatrix(mass, inertia)
         
@@ -373,7 +374,7 @@ class World(OgreNewt.World):
         
         # Set bouyancy callback only if object is bouyant
         if body.get_buoyancy_plane() is not None:
-            newton_body.addBouyancyForce(1000, 0.03, 0.03, body.gravity, 
+            newton_body.addBouyancyForce(1000, 0.03, 0.03, body.gravity,
                                          World._buoyancy_callback, "")
         
     @staticmethod
@@ -384,3 +385,5 @@ class World(OgreNewt.World):
         # we need to copy the normals and 'd' to the plane we were passed...
         plane.normal = bplane.normal
         plane.d = bplane.d
+        
+        return True

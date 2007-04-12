@@ -7,6 +7,7 @@ import time
 import wx
 import yaml
 import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt as OgreNewt
 
 # Project Imports
 import logloader
@@ -35,9 +36,10 @@ class SimApp(wx.App):
         # Create out scene
         self.sim.create_scene('Main', self.config['Scenes']['current'],
                               self.config['Scenes']['path'])
-
+        
         # Setup the camera
         scene = self.sim._scenes['Main']
+        OgreNewt.Debugger.getSingleton().init(scene.scene_mgr)
         self.ogre.camera = scene.cameras['Main']
         
         scene._robots['Main'] = \
@@ -84,10 +86,11 @@ class SimApp(wx.App):
         #self.components = []
     def on_timer(self, timer_event):
         self.ogre._update()
+        OgreNewt.Debugger.getSingleton().showLines(self.sim._scenes['Main'].world)
         
         current_time = time.clock()
         time_since_last_iteration = current_time - self.last_time;
-        print time_since_last_iteration * 1000
+        #print time_since_last_iteration * 1000
         # Loop over all components updating them, if one returns false exit
         for component in self.components:
             component.update(time_since_last_iteration)
@@ -97,6 +100,10 @@ class SimApp(wx.App):
         self.last_time = current_time
         
     def on_close(self, close_event):
+        OgreNewt.Debugger.getSingleton().deInit()
+        del self.sim
+        del self.components
+        
         self.timer.Stop()
         close_event.GetEventObject().Destroy()
             

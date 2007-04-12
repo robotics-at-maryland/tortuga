@@ -70,7 +70,7 @@ class Visual(Object):
         # Apply scalling and normalized normals if object is actually scalled
         if scale != Ogre.Vector3(1,1,1):
             self._node.setScale(scale)
-            self._node.setNormaliseNormals(True)       
+            entity.setNormaliseNormals(True)       
             
         self._node.position = position
         self._node.orientation = orientation

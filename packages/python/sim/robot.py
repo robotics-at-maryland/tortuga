@@ -64,7 +64,7 @@ class KMLRobotLoader(core.Component, KMLLoader):
         robot.name = rbt_node['name']
         main_part = Part()
         main_part.load((scene, None, rbt_node))
-        robot._main_part = None
+        robot._main_part = main_part
 
 class Robot(core.Component):
     
