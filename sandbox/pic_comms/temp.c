@@ -101,13 +101,7 @@ byte AckI2C(void)
     I2CCONbits.ACKEN = 1;
 
     long timeout = 0;
-    while(I2CCONbits.ACKEN)
-    {
-        if(timeout++ == I2C_TIMEOUT)
-        {
-            return 1;
-        }
-    }
+    while(I2CCONbits.ACKEN);
     return 0;
 }
 
@@ -146,9 +140,7 @@ unsigned int getI2C(void)
     while(!I2CSTATbits.RBF)
     {
         if(timeout++ == I2C_TIMEOUT)
-        {
             return 255;
-        }
     }
     return(I2CRCV);                //Return data in buffer
 }
@@ -160,13 +152,8 @@ byte StartI2C(void)
     //of the Start.
     long timeout=0;
     I2CCONbits.SEN = 1;        //Generate Start COndition
-    while(I2CCONbits.SEN)
-    {
-        if(timeout++ == I2C_TIMEOUT)
-        {
-            return 255;
-        }
-    }
+    while(I2CCONbits.SEN);
+
     return 0;
 
     //return(I2C1STATbits.S);   //Optionally return status
@@ -179,13 +166,8 @@ unsigned int RestartI2C(void)
     long timeout=0;
     I2CCONbits.RSEN = 1;       //Generate Restart
 
-    while(I2CCONbits.RSEN)
-    {
-        if(timeout++ == I2C_TIMEOUT)
-        {
-            return 255;
-        }
-    }
+    while(I2CCONbits.RSEN);
+
     return 0;
 
     //return(I2C1STATbits.S);   //Optional - return status
@@ -198,13 +180,7 @@ unsigned int StopI2C(void)
 
     I2CCONbits.PEN = 1;        //Generate Stop Condition
     long timeout=0;
-    while(I2CCONbits.PEN)
-    {
-        if(timeout++ == I2C_TIMEOUT)
-        {
-            return 255;
-        }
-    }
+    while(I2CCONbits.PEN);
     return 0;
 
     //return(I2C1STATbits.P);   //Optional - return status
@@ -216,13 +192,7 @@ unsigned int WriteI2C(unsigned char b)
     //while (I2C1STATbits.TRSTAT);  //Wait for bus to be idle
     I2CTRN = b;                 //Load byte to I2C1 Transmit buffer
     long timeout=0;
-    while(I2CSTATbits.TBF)
-    {
-        if(timeout++ == I2C_TIMEOUT)
-        {
-            return 255;
-        }
-    }
+    while(I2CSTATbits.TBF);
     return 0;
 }
 
@@ -708,6 +678,13 @@ void main()
         for(l=0; l<10000; l++);
 
         /* Need a way of detecting failures here. A timer module would do. */
-        tempData[0] = readTemp(0x9E);
+
+        byte rx = readTemp(0x9E);
+
+        /* Read error */
+        if(rx == 255)
+            initI2C();
+
+        tempData[0] = rx;
     }
 }
