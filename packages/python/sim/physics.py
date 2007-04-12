@@ -308,35 +308,16 @@ class World(OgreNewt.World):
     @cvar bodies: Maps Newton body to supplied Object
     """
     
-    world_count = 0
-    world_map = {}
-    
     def __init__(self):
         OgreNewt.World.__init__(self)
-        
-        # Setup int -> world mapping
-        self._world_num = World.world_count
-        World.world_map[self._world_num ] = self
-        World.world_count += 1
-        
-        self._bodies = {}
-        
-        # This is part of the temporary body hack
-        self._body_count = 0
-        
+        self._bodies = []
+    
     def __del__(self):
         """
         Here to ensure that all body reference counts go to zero so that there 
         won't be any OgreNewt bodies without a valid world.
         """
         del self._bodies
-        
-    @staticmethod
-    def remove_world(world):
-        """
-        Remove world from the global map of worlds
-        """
-        World.world_map.pop(world._world_num)
         
     def create_body(self, body, shape, mass, position = Ogre.Vector3.ZERO, 
                     orientation = Ogre.Quaternion.IDENTITY):
@@ -356,38 +337,18 @@ class World(OgreNewt.World):
         if not IBody.providedBy(body):
             raise PhysicsError("body must implement IBody interface")
         
-        # For some reason we can't rely on the newton_body passed to the force 
-        # callback to be the same one we create here.  We can't use the userdata
-        # field, so we our just left with type.  Type is a single integer but
-        # we need to be able to determine a the world and actual body from it.
-        # So we pack the world number into the upper 8 bits, and the body number
-        # into the lower 24.
-        identity_number = self._body_count | (self._world_num << 24)
-        
-        new_body = OgreNewt.Body(self, shape, identity_number)
-        new_body.setPositionOrientation(position, orientation)
-        new_body.setCustomForceAndTorqueCallback(World._force_torque_callback, 
+        newt_body = OgreNewt.Body(self, shape)
+        newt_body.setUserData(body)
+        newt_body.setPositionOrientation(position, orientation)
+        newt_body.setCustomForceAndTorqueCallback(World._force_torque_callback, 
                                                  "")
         inertia = shape.calculateInertialMatrix()[0]
-        new_body.setMassMatrix(mass, inertia)
+        newt_body.setMassMatrix(mass, inertia)
         
         # Make the body number to our actual body object
-        self._bodies[self._body_count] = body
-        self._body_count += 1
+        self._bodies.append(body)
         
-        return new_body
-    
-    @staticmethod
-    def _get_body_from_newt_body(newton_body):
-        identity_number = newton_body.type
-        
-        # Here we need to upack out two numbers from the one number we have to 
-        # work with.  world_num is in the upper 8 bits and body_num to lower 24
-        world_num = int((0xFF000000 & identity_number) >> 24)
-        body_num = int(0x00FFFFFF & identity_number)
-
-        world = World.world_map[world_num]
-        return world._bodies[body_num]
+        return newt_body
     
     @staticmethod
     def _force_torque_callback(newton_body):
@@ -398,7 +359,7 @@ class World(OgreNewt.World):
         @type  newton_body: OgreNewt.Body
         @param newton_body: The body to add force and torque to
         """
-        body = World._get_body_from_newt_body(newton_body)
+        body = newton_body.getUserData()
         # Apply forces
         newton_body.addForce(body.force)
         for force, pos in body.get_local_forces():
@@ -417,7 +378,7 @@ class World(OgreNewt.World):
         
     @staticmethod
     def _buoyancy_callback(colID, newton_body, orient, pos, plane):
-        body = World._get_body_from_newt_body(newton_body)
+        body = newton_body.getUserData()
         bplane = body.get_buoyancy_plane()
 
         # we need to copy the normals and 'd' to the plane we were passed...
