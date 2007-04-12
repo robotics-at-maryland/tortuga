@@ -17,7 +17,7 @@ import imp
 # Projects Import
 import core
 import decorator
-from sim.util import SimulationError
+from sim.util import SimulationError, Quat
 
 class IStorable(core.Interface):
     def __init__(*args, **kwargs):

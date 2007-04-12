@@ -4,7 +4,7 @@ Robot:
     name: AUT
     
     # In the X, Y, and Z direction
-    position: [0.0, 0.0, 0.0]
+    position: [0.0, 10.0, 0.0]
     # In Axis/Angle Form (last term angle)
     orientation: [0.0, 0.0, 1.0, 0.0]
     
@@ -12,11 +12,12 @@ Robot:
     Physical:
         # In kilograms
         mass: 24.6  # About 0.5% bouyant
- 
+        #mass: 1
         Shape:
             type: box
             # Actual size in meters
             size: [0.2032, 0.2032, 0.6858]
+            #size: [1, 1, 1]
                 
     # This section describes how the object will appear
     Graphical:

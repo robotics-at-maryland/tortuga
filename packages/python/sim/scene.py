@@ -19,6 +19,7 @@ import ogre.physics.OgreNewt as OgreNewt
 import core
 from sim.util import SimulationError
 from sim.serialization import ModuleLoader
+from sim.physics import World
 from core import fixed_update, log_init
 
 class SceneError(SimulationError):
@@ -62,50 +63,53 @@ class Scene(object):
     This provides access to all objects in the scene, be they cameras, robots,
     or just obstacles.
     """
+    
     scene_loaders = core.ExtensionPoint(ISceneLoader)    
     
     #@log_init(DEFAULT_LOG_CONFIG)
-    def __init__(self, name, scene_file):
+    def __init__(self, name, scene_data):
         """
         @type name: string
         @param name: The name of scene
+        
+        @type  scene_data: Anything
+        @param scene_data: The object that will be passed to the scene loader
         """
         self.name = name
         self._objects = {}
         self._bodies = []
+        self._robots = {}
         self._physics_update_interval = 1.0 / 60
         
         # Create Ogre SceneManager and OgreNewt World
         self._scene_manager = \
             Ogre.Root.getSingleton().createSceneManager(Ogre.ST_GENERIC,
                                                         self.name)
-        self._world = OgreNewt.World()
+        self._world = World()
         
         # Search for a scene loader compatible with file format then load it
         loaders = [loader for loader in self.scene_loaders \
-                   if loader.can_load(scene_file) ]
+                   if loader.can_load(scene_data) ]
         
         if len(loaders) == 0:
             raise SceneError('No Loader found for "%s".' % scene_file)
         
         loader = loaders[0]()
-        loader.load(scene_file, self)
-#        Ogre.ResourceGroupManager.getSingleton().initialiseResourceGroup(self.name)
-        
+        loader.load(scene_data, self)
 
-	class scene_mgr(core.cls_property):
-		"""
-		The Ogre scene manager for the scene
-		"""
-		def fget(self):
-			return self._scene_manager
+    class scene_mgr(core.cls_property):
+        """
+        The Ogre scene manager for the scene
+        """
+        def fget(self):
+            return self._scene_manager
 		
-	class world(core.cls_property):
-		"""
-		The Physical world in the simulation
-		"""
-		def fget(self):
-			return self._world
+    class world(core.cls_property):
+        """
+        The Physical world in the simulation
+        """
+        def fget(self):
+            return self._world
 
     def update(self, time_since_last_update):
         self._update_physics(time_since_last_update)
@@ -122,6 +126,10 @@ class Scene(object):
         _physics_update_interval attribute of the object.
         """
         self._world.update(time_since_last_update)
+        
+    def save(self, location):
+    	raise SceneError("Save not yet implemented")
+        # TODO: Finish me
 	
     def reload(self):
         raise SceneError("Reload not yet implemented")
@@ -138,18 +146,18 @@ class Scene(object):
 		"""
         #self.logger.info('Adding resources locations')
         
-        print 'Adding resource locations'
-        print location_map
+#        print 'Adding resource locations'
+#        print location_map
         rsrc_mrg = Ogre.ResourceGroupManager.getSingleton()
         for resource_type in location_map:
-        	#self.logger.info('/tAdding resources of type: %s' % resource_type)
-        	print '\tAdding resources of type: %s' % resource_type
+#        	self.logger.info('/tAdding resources of type: %s' % resource_type)
+#        	print '\tAdding resources of type: %s' % resource_type
         	for location in location_map[resource_type]:
-        		print '\t',location_map[resource_type]
-        		print '\t\t-',location
+#        		print '\t',location_map[resource_type]
+#        		print '\t\t-',location
           		location = os.path.abspath(location)
-          		#self.logger.info('/t/tAdding location: %s' % location)
-          		print '\t\tAdding location: %s' % location
+#          		self.logger.info('/t/tAdding location: %s' % location)
+#          		print '\t\tAdding location: %s' % location
           		rsrc_mrg.addResourceLocation(location, resource_type,
 											 self.name, False)
         rsrc_mrg.initialiseResourceGroup(self.name)

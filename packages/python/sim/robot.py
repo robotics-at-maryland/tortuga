@@ -7,6 +7,7 @@
 
 # Library Imports
 import ogre.renderer.OGRE as Ogre
+import yaml
 
 # Project Impports
 import core
@@ -32,7 +33,11 @@ class IRobotLoader(core.Interface):
     """
     Loads a robot.
     """
-    pass
+    def can_load(robot_data):
+        pass
+    
+    def load(robot, scene, robot_data):
+        pass
 
 # TODO: Break some of this functionality out into a place it can be used by the 
 # scene loader
@@ -44,20 +49,63 @@ class KMLRobotLoader(core.Component, KMLLoader):
     core.implements(IRobotLoader)
     
     @staticmethod
-    def can_load(file_name):
-        if file_name.endswith('.rml') and len(file_name) > 4:
-            return True
-        return False
-    
+    def can_load(robot_data):
+        try:
+            if robot_data.endswith('.rml') and len(robot_data) > 4:
+                return True
+            return False
+        except AttributeError:
+            return False
+        
+    def load(self, robot, scene, robot_data):
+        config = yaml.load(file(robot_data))
+        rbt_node = config['Robot']
+        
+        robot.name = rbt_node['name']
+        main_part = Part()
+        main_part.load((scene, None, rbt_node))
+        robot._main_part = None
 
+class Robot(core.Component):
+    
+    robot_loaders = core.ExtensionPoint(IRobotLoader)
+    
+    def __init__(self, scene, robot_data):
+        """
+        @type name: string
+        @param name: The name of robot
+        
+        @type  robot_data: Anything
+        @param robot_data: The object that will be passed to the robot loader
+        """
+        self.name = None
+        self._main_part = None
+        
+        # Search for a scene loader compatible with file format then load it
+        loaders = [loader for loader in self.robot_loaders \
+                   if loader.can_load(robot_data) ]
+        
+        if len(loaders) == 0:
+            raise SceneError('No Loader found for "%s".' % robot_data)
+        
+        loader = loaders[0]()
+        loader.load(self, scene, robot_data)
+
+
+    def save(self, location):
+        raise SceneError("Save not yet implemented")
+        # TODO: Finish me
+    
+    def reload(self):
+        raise SceneError("Reload not yet implemented")
+        # TODO: Finish me
     
 class Part(Body, Visual):
     # Inherits IBody, IVisual, IKMLStorable
-    core.implements(IRobot)
+    #core.implements(IRobot)
             
     @two_step_init
     def __init__(self):
-        self._parts = []
         Body.__init__(self)
         Visual.__init__(self)
             
@@ -79,6 +127,9 @@ class Part(Body, Visual):
     def load(self, data_object):
         Body.load(self, data_object)
         Visual.load(self, data_object)
+        # Link body and node toghether
+        self._body.attachToNode(self._node)
+        self.set_buoyancy((0,1,0))
         
     def save(self, data_object):
         raise "Not yet implemented"

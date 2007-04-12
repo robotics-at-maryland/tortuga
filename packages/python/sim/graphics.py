@@ -20,7 +20,7 @@ import logging
 
 # Library Imports
 import ogre.renderer.OGRE as Ogre
-import OIS
+import ogre.io.OIS as OIS
 
 # Project Imports
 import logloader    
@@ -35,19 +35,19 @@ class GraphicsError(simulation.SimulationError):
     """ Error from the graphics system """
     pass
 
-class IVisual(sim.util.IObject):
+class IVisual(IObject):
     """ An object which you can see in the simulation"""
     pass
 
 # TODO: Fill out the methods for the class
 
-class Visual(sim.util.Object):
+class Visual(Object):
     implements(IVisual, IKMLStorable)
     
     @two_step_init
     def __init__(self):
         self._node = None
-        sim.util.Object.__init__()
+        Object.__init__(self)
 
     def init(self, parent, name, scene, mesh, material,
              position = Ogre.Vector3.ZERO, 
@@ -60,7 +60,7 @@ class Visual(sim.util.Object):
     def _create(self, scene, mesh, material, position, orientation, scale):
         
         # Create the graphical representation of the object
-        entity = scene.scene_mgr.createEntity(name, mesh)
+        entity = scene.scene_mgr.createEntity(self.name, mesh)
         entity.setMaterialName(material)
         
         # Attach graphical entity to a new node in the scene graph
@@ -71,6 +71,9 @@ class Visual(sim.util.Object):
         if scale != Ogre.Vector3(1,1,1):
             self._node.setScale(scale)
             self._node.setNormaliseNormals(True)       
+            
+        self._node.position = position
+        self._node.orientation = orientation
             
     # IStorable Methods
     def load(self, data_object):

@@ -313,18 +313,19 @@ def fixed_update(update_interval_attr, _elapsed_attr = None,
             # Add the time since the last update to the elapsed time
             elapsed += args[update_time_pos]
             if ((elapsed > update_interval) and (elapsed < (1.0)) ):
-                while (self.elapsed > self.update_interval):
-                    func(*args, **kwargs)
+                while (elapsed > update_interval):
+                    func(self, *args, **kwargs)
                     elapsed -= update_interval
             else:
                 if (elapsed < update_interval):
                     # not enough time has passed this loop, so ignore for now.
                     pass
                 else:
-                    func(*args, **kwargs)
+                    func(self, *args, **kwargs)
                     # reset the elapsed time so we don't become "eternally behind"
-                    self.elapsed = 0.0
+                    elapsed = 0.0
             
+            setattr(self, elapsed_attr, elapsed)
             # Save function infromation (allows nesting of dectorators)
             wrapper.__name__ = func.__name__
             wrapper.__dict__ = func.__dict__

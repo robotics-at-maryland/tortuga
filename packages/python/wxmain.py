@@ -13,11 +13,13 @@ import logloader
 import event
 
 import sim.simulation
+import sim.robot
 import gui.wxogre
 
 class SimApp(wx.App):
     def OnInit(self):
-        frame = wx.Frame(None, -1, "AUV Sim")
+        frame = wx.Frame(None, -1, "AUV Sim", wx.DefaultPosition, 
+                         wx.Size(400,400))
         
         self.config = yaml.load(file(os.path.join('..', 'sim.yml')))
         
@@ -27,37 +29,42 @@ class SimApp(wx.App):
         self.ogre = wx.Panel(frame)
         self._init_simulation()
         # Create our windows
-        self.ogre = gui.wxogre.wxOgre(None, frame)
-
-        # Now that the window is here initialize resource groups
-        #Ogre.ResourceGroupManager.getSingleton().initialiseAllResourceGroups()
+        self.ogre = gui.wxogre.wxOgre(None, frame, -1, wx.DefaultPosition, 
+                                      wx.Size(400,400))
         
         # Create out scene
         self.sim.create_scene('Main', self.config['Scenes']['current'],
                               self.config['Scenes']['path'])
 
         # Setup the camera
-        self.ogre.camera = self.sim._scenes['Main'].cameras['Main']
+        scene = self.sim._scenes['Main']
+        self.ogre.camera = scene.cameras['Main']
+        
+        scene._robots['Main'] = \
+            sim.robot.Robot(scene, os.path.join('..','data','robots','aut.rml'))
         
         #Ogre.Root.getSingleton().renderOneFrame()
         
         # Setup Update timer
-        #self.timer = wx.Timer()
-        #self.timer.Start(100)
-        #self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
+        self.timer = wx.Timer()
+        self.timer.Start(30)
+        self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
+        frame.Bind(wx.EVT_CLOSE, self.on_close)
         
         # Setup Layout on the form
         sizer_1 = wx.BoxSizer(wx.VERTICAL) 
         sizer_1.Add(self.ogre, 2, wx.EXPAND, 0)  
         frame.SetAutoLayout(True) 
         frame.SetSizer(sizer_1) 
-        sizer_1.Fit(frame) 
-        sizer_1.SetSizeHints(frame) 
+        #sizer_1.Fit(frame) 
+        #sizer_1.SetSizeHints(frame) 
         frame.Layout() 
         
         # Show the main frame
         frame.Show(True)
         self.SetTopWindow(frame)
+        
+        self.last_time = 0
         
         return True
     
@@ -71,55 +78,27 @@ class SimApp(wx.App):
         #vehicle = VehicleFactory.create(vehicle_type,
         #                                config['Vehicles'][vehicle_type])
     
-        self.sim = sim.simulation.Simulation({})
-        
-#        self.sim._ogre_root = Ogre.Root('plugins.cfg')
-#        
-#        rmgr = Ogre.ResourceGroupManager.getSingleton()
-#        rmgr.addResourceLocation("../media/packs/OgreCore.zip", "Zip",
-#                                 "Bootstrap", False)
-#        rmgr.addResourceLocation("../media/packs/cubemapsJS.zip", "Zip",
-#                                 "Bootstrap", False)
-#        rmgr.addResourceLocation("../media/models", "FileSystem",
-#                                 "Bootstrap", False)
-#        rmgr.addResourceLocation("../media/primitives", "FileSystem",
-#                                 "Bootstrap", False)
-#        rmgr.addResourceLocation("../media/materials/textures", "FileSystem",
-#                                 "Bootstrap", False)
-#        rmgr.addResourceLocation("../media/materials/scripts", "FileSystem",
-#                                 "Bootstrap", False)
-#        
-#        carryOn = self.sim._ogre_root.showConfigDialog() 
-#        if not carryOn: 
-#            sys.exit('Quit from Config Dialog')
-        
-        # Now Lets create our window
-#        size = self.ogre.GetSize()
-#        renderParameters = Ogre.NameValuePairList() 
-#        renderParameters['externalWindowHandle'] = str(self.ogre.GetHandle()) 
-#        renderWindow = self.sim._ogre_root.createRenderWindow('wxPython render window', size[0], 
-#                                               size[1], False, renderParameters) 
-#        renderWindow.active = True 
-#        self.renderWindow = renderWindow 
+        self.sim = sim.simulation.Simulation({}) 
         
         self.components = [self.sim]
         #self.components = []
     def on_timer(self, timer_event):
-        print 'Update'
-        #Ogre.Root.getSingleton().renderOneFrame()
+        self.ogre._update()
         
-        last_time = time.clock()
-        time_since_last_iteration = 0
-
+        current_time = time.clock()
+        time_since_last_iteration = current_time - self.last_time;
+        print time_since_last_iteration * 1000
         # Loop over all components updating them, if one returns false exit
         for component in self.components:
             component.update(time_since_last_iteration)
         
         event.process_events()
         
-        current_time = time.clock()
-        time_since_last_iteration = current_time - last_time;
-        last_time = current_time
+        self.last_time = current_time
+        
+    def on_close(self, close_event):
+        self.timer.Stop()
+        close_event.GetEventObject().Destroy()
             
 def main():            
     app = SimApp(0)

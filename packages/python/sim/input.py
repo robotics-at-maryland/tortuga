@@ -15,7 +15,7 @@ activities
 
 # Library imports
 import ogre.renderer.OGRE as Ogre
-import ogre.io.OIS
+import ogre.io.OIS as OIS
 
 # Project imports
 import platform
@@ -24,7 +24,7 @@ import logloader
 
 from core import fixed_update, cls_property
 from sim.util import Vector
-from sim import *
+from sim import simulation
 from sim.simulation import Simulation
 
 class InputError(simulation.SimulationError):

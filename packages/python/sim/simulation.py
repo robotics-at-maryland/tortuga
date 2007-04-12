@@ -89,11 +89,9 @@ class Simulation(Singleton):
         @type time_since_last_update: a decimal number
         @param time_since_last_update: name says it all
         """
-        print 'Update'
         if self._run:
-            print 'Update Stuff'
             #Ogre.WindowEventUtilities.messagePump()
-            self._ogre_root.renderOneFrame()
+            #self._ogre_root.renderOneFrame()
    
             for scene in self._scenes.itervalues():
                 scene.update(time_since_last_update)

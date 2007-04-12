@@ -12,6 +12,7 @@ import ogre.renderer.OGRE as Ogre
 # Project Imports
 import core
 import sim.util
+from sim.object import Object, IObject
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 
 DEFAULT_GRAVITY = Ogre.Vector3(0,-9.8,0)
@@ -21,7 +22,7 @@ class PhysicsError(sim.util.SimulationError):
     The error exception class for all PhysicsErrors
     """
 
-class IBody(sim.util.IObject):
+class IBody(IObject):
     """
     A physical body in the simulation
     """
@@ -134,7 +135,7 @@ class IBody(sim.util.IObject):
         """
         pass
     
-class Body(sim.util.Object):
+class Body(Object):
     core.implements(IBody, IKMLStorable)
     
     @two_step_init
@@ -149,7 +150,7 @@ class Body(sim.util.Object):
         self._buoyancy_plane = None
         self._body = None
     
-        sim.util.Object.__init__(self)
+        Object.__init__(self)
     
     def init(self, parent, name, scene, shape_type, shape_props, mass,
              position = Ogre.Vector3.ZERO, 
@@ -208,7 +209,8 @@ class Body(sim.util.Object):
         
         position, orientation = parse_position_orientation(node)
         
-        Body._create(self, shape_type, shape_props, mass, position, orientation)
+        Body._create(self, scene, shape_type, shape_props, mass, position, 
+                     orientation)
     
     def save(self, data_object):
         raise "Not yet implemented"
@@ -264,13 +266,13 @@ class Body(sim.util.Object):
     def get_global_forces(self):
         return self._global_force
         
-    def set_buoyancy(self, plane):
+    def set_buoyancy(self, normal):
         """
-        type  plane: Ogre.Vector3
-        param plane: The normal of the buoyancy plane. If none, the object will
+        type  normal: Ogre.Vector3
+        param normal: The normal of the buoyancy plane. If none, the object will
                      not be buoyanct
         """
-        if plane is not None:
+        if normal is not None:
             self._buoyancy_plane = Ogre.Plane(normal, (0,0,0))
         else:
             self._buoyancy_plane = None
@@ -397,7 +399,6 @@ class World(OgreNewt.World):
         @param newton_body: The body to add force and torque to
         """
         body = World._get_body_from_newt_body(newton_body)
-        
         # Apply forces
         newton_body.addForce(body.force)
         for force, pos in body.get_local_forces():
@@ -409,9 +410,9 @@ class World(OgreNewt.World):
         mass, inertia = newton_body.getMassMatrix()
         newton_body.addForce(body.gravity * mass)
         
-        # Set bouyancy callback (only if object is bouyant
+        # Set bouyancy callback only if object is bouyant
         if body.get_buoyancy_plane() is not None:
-            nowton_body.addBouyancyForce(1000, 0.03, 0.03, body.gravity, 
+            newton_body.addBouyancyForce(1000, 0.03, 0.03, body.gravity, 
                                          World._buoyancy_callback, "")
         
     @staticmethod

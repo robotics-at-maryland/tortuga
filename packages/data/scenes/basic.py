@@ -37,7 +37,7 @@ def create_scene(loader, scene):
     
     # Create Camera here
     camera = scene_mgr.createCamera('PlayerCam')
-    camera.setPosition(Ogre.Vector3( 0.0, 5.0, 5.0))
+    camera.setPosition(Ogre.Vector3( 0.0, 10.0, 35.0))
     camera.lookAt(Ogre.Vector3(0, 0, 0))
     camera.nearClipDistance = 0.5
                 

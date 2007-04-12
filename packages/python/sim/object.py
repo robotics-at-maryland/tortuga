@@ -74,6 +74,7 @@ class Object(core.Component):
         @type  data_object: tuple
         @param data_object: (parent, kml_node)
         """
+        parent, node = data_object
         Object._create(self, parent, node['name'])
         
     def save(self, data_object):
