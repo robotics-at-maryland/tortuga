@@ -7,7 +7,8 @@
 
 # Project Imports
 import core
-import serialization
+from sim.serialization import two_step_init, IKMLStorable
+from sim.util import SimulationError
 
 class IObject(core.Interface):
     """
@@ -42,14 +43,14 @@ class IObject(core.Interface):
         #    pass
 
 class Object(core.Component):
-    core.implements(IObject, serialization.IKMLStorable)
+    core.implements(IObject, IKMLStorable)
     
     @staticmethod
     def assert_object_implementer(obj):
         if not IObject.providedBy(obj):
             raise SimulationError('Object must implement IObject interface')
     
-    @serialization.two_step_init
+    @two_step_init
     def __init__(self):
         self._children = {}
         self.parent = None

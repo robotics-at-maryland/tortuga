@@ -14,7 +14,7 @@ the module is retreived with tests.sim.physics.get_suite().
 import unittest
 
 # Library Imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core
@@ -32,7 +32,6 @@ class TestBody(unittest.TestCase):
         self.body = physics.Body(None, 'Test', self.scene, 'box', {'size':[1,1,1]},1)
         
     def tearDown(self):
-        physics.World.remove_world(self.scene.world)
         del self.body
         del self.scene
     

@@ -3,34 +3,35 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  tests/sim/util.py
+# File:  tests/sim/tobject.py
 
 # Ptyhon Imports
 import unittest
 
 # Library Imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core
 
 # Module to test
 import sim.util as util
+import sim.object as tobject
 
 class TestObject(unittest.TestCase):
     def setUp(self):
-        self.obj = util.Object(None, 'John')
+        self.obj = tobject.Object(None, 'John')
 	
     def tearDown(self):
         pass
 
     def test_init(self):
         # No Parent case
-        obj = util.Object(None, 'Bob')
+        obj = tobject.Object(None, 'Bob')
         self.assertEqual(None, obj.parent)
 
         # Parent case
-        obj = util.Object(self.obj, 'Bob')
+        obj = tobject.Object(self.obj, 'Bob')
         self.assertEqual(self.obj, obj.parent)
         self.assertEqual(obj, self.obj.get_child('Bob'))
 
@@ -42,13 +43,13 @@ class TestObject(unittest.TestCase):
         self.assertRaises(util.SimulationError, self.obj.get_child, 'bob')
         
         # Add and then check
-        child_obj = util.Object(None, 'Jane')
+        child_obj = tobject.Object(None, 'Jane')
         self.obj.add_child(child_obj)
         self.assertEquals(child_obj, self.obj.get_child('Jane'))
     
     def test_add_child(self):
-        child_obj = util.Object(None, 'Jane')
-        child_obj2 = util.Object(None, 'Dick')
+        child_obj = tobject.Object(None, 'Jane')
+        child_obj2 = tobject.Object(None, 'Dick')
         
         self.obj.add_child(child_obj)
         self.assertEquals(child_obj, self.obj.get_child('Jane'))
@@ -56,8 +57,8 @@ class TestObject(unittest.TestCase):
         self.assertEquals(child_obj2, self.obj.get_child('Dick'))
     
     def test_remove_child(self):
-        child_obj = util.Object(None, 'Dick')
-        self.obj.add_child(util.Object(None, 'Jane'))
+        child_obj = tobject.Object(None, 'Dick')
+        self.obj.add_child(tobject.Object(None, 'Jane'))
         self.obj.add_child(child_obj)
         
         # Test Remove By Name

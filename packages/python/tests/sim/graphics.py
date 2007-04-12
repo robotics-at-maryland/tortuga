@@ -14,7 +14,7 @@ module is retreived with tests.sim.robot.get_suite().
 import unittest
 
 # Library Imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core

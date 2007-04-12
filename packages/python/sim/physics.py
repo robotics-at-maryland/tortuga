@@ -12,6 +12,7 @@ import ogre.renderer.OGRE as Ogre
 # Project Imports
 import core
 import sim.util
+import sim.object
 from sim.object import Object, IObject
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 
@@ -166,7 +167,7 @@ class Body(Object):
         @param shape_props: Maps paramater name to value for the shapes 
                             constructor.
         """  
-        sim.util.Object.init(self, parent, name)
+        sim.object.Object.init(self, parent, name)
         Body._create(self, scene, shape_type, shape_props, mass, position, 
                      orientation)
         
