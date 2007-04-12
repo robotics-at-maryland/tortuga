@@ -55,7 +55,6 @@ byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
 
-
 /*
  * Configuration Registers
  * These are general-purpose settings registers that the Master can read and write.

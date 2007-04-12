@@ -27,6 +27,14 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
+
+#define SLAVE_ID_WATER      0
+#define SLAVE_ID_DEPTH      0
+#define SLAVE_ID_THRUSTERS  0
+#define SLAVE_ID_MARKERS    0
+#define SLAVE_ID_TEMP       1
+#define SLAVE_ID_LCD        2
+
 /*
  * Bus Constants
  * BUS_TIMEOUT - how many iterations to wait when waiting for AKN to change state
@@ -347,8 +355,8 @@ int main(void)
                 {
                     for(j=0; j<150000; j++);
 
-                    busWriteByte(BUS_CMD_DEPTH, 0);
-                    readDataBlock(0);
+                    busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH);
+                    readDataBlock(SLAVE_ID_DEPTH);
 
                     int depth = (rxBuf[0]<<8) | rxBuf[1];
                     sprintf(tmp, "%u  ", depth);
@@ -356,12 +364,12 @@ int main(void)
 
                     for(i=0; i<5; i++)
                     {
-                        busWriteByte(BUS_CMD_LCD_WRITE, 2);
-                        busWriteByte(i, 2);
-                        busWriteByte(tmp[i], 2);
+                        busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
+                        busWriteByte(i, SLAVE_ID_LCD);
+                        busWriteByte(tmp[i], SLAVE_ID_LCD);
                     }
 
-                    busWriteByte(BUS_CMD_LCD_REFRESH, 2);
+                    busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
                 }
 
                 break;
@@ -388,12 +396,12 @@ int main(void)
 
                 for(i=0; i<32; i++)
                 {
-                    busWriteByte(BUS_CMD_LCD_WRITE, 2);
-                    busWriteByte(i, 2);
-                    busWriteByte(data[i], 2);
+                    busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
+                    busWriteByte(i, SLAVE_ID_LCD);
+                    busWriteByte(data[i], SLAVE_ID_LCD);
                 }
 
-                busWriteByte(BUS_CMD_LCD_REFRESH, 2);
+                busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
 
                 sendString("\n\rDone");
 
@@ -404,7 +412,7 @@ int main(void)
             case 'B':
             {
                 sendString("\n\rLCD Backlight on");
-                busWriteByte(BUS_CMD_LCD_LIGHT_ON, 2);
+                busWriteByte(BUS_CMD_LCD_LIGHT_ON, SLAVE_ID_LCD);
                 break;
             }
 
@@ -412,30 +420,30 @@ int main(void)
             case 'b':
             {
                 sendString("\n\rLCD Backlight off");
-                busWriteByte(BUS_CMD_LCD_LIGHT_OFF, 2);
+                busWriteByte(BUS_CMD_LCD_LIGHT_OFF, SLAVE_ID_LCD);
                 break;
             }
 
             case 'S':
             {
                 sendString("\n\rThruster safety on");
-                busWriteByte(BUS_CMD_THRUSTERS_ON, 0);
+                busWriteByte(BUS_CMD_THRUSTERS_ON, SLAVE_ID_THRUSTERS);
                 break;
             }
 
             case 's':
             {
                 sendString("\n\rThruster safety off");
-                busWriteByte(BUS_CMD_THRUSTERS_OFF, 0);
+                busWriteByte(BUS_CMD_THRUSTERS_OFF, SLAVE_ID_THRUSTERS);
                 break;
             }
 
             case 'w':
             {
                 sendString("\n\rChecking for water: ");
-                busWriteByte(BUS_CMD_CHECKWATER, 0);
+                busWriteByte(BUS_CMD_CHECKWATER, SLAVE_ID_WATER);
 
-                byte len = readDataBlock(0);
+                byte len = readDataBlock(SLAVE_ID_WATER);
 
                 if(len!=1)
                 {
@@ -596,7 +604,7 @@ int main(void)
             case 'M':
             {
                 sendString("\n\rDropping first marker");
-                busWriteByte(BUS_CMD_MARKER1, 0);
+                busWriteByte(BUS_CMD_MARKER1, SLAVE_ID_MARKERS);
                 sendString("\n\rDone.");
                 break;
             }
@@ -604,16 +612,16 @@ int main(void)
             case 'm':
             {
                 sendString("\n\rDropping second marker");
-                busWriteByte(BUS_CMD_MARKER2, 0);
+                busWriteByte(BUS_CMD_MARKER2, SLAVE_ID_MARKERS);
                 sendString("\n\rDone.");
                 break;
             }
 
             case 'D':
             {
-                sendString("\n\rAverage of last 100 depth measurements on Slave 0: ");
-                busWriteByte(BUS_CMD_DEPTH, 0);
-                readDataBlock(0);
+                sendString("\n\rAverage of last 100 depth measurements on Slave: ");
+                busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH);
+                readDataBlock(SLAVE_ID_DEPTH);
 
                 int depth = (rxBuf[0]<<8) | rxBuf[1];
                 sprintf(tmp, "%u", depth);
@@ -625,8 +633,8 @@ int main(void)
             case 'T':
             {
                 sendString("\n\rTemperature on Slave 1: ");
-                busWriteByte(BUS_CMD_TEMP, 1);
-                int len = readDataBlock(1);
+                busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP);
+                int len = readDataBlock(SLAVE_ID_TEMP);
 
                 sprintf(tmp, "\n\rData Received (%d bytes): ", len);
                 sendString(tmp);
