@@ -113,7 +113,6 @@ class Scene(object):
 
     def update(self, time_since_last_update):
         self._update_physics(time_since_last_update)
-        print self._robots['Main']._main_part.position
         
         # Update all of our objects
         for obj in self._objects.itervalues():

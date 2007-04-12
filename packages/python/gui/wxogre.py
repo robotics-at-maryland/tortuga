@@ -28,9 +28,15 @@ class wxOgre(wx.PyControl):
         self.Bind(wx.EVT_CLOSE, self._on_close)
         #self.Bind(wx.EVT_IDLE, self._update)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self._update)
-        self.Bind(wx.EVT_SIZE, self._update) 
+        self.Bind(wx.EVT_SIZE, self._update)
+        
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        #self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
         
         self._update()
+    
+    def on_key_down(self, event):
+        print event.GetKeyCode()
     
     class camera(cls_property):
         """

@@ -37,6 +37,8 @@ DEFAULT_OGRE_PLUGINS = ['RenderSystem_GL', 'Plugin_ParticleFX',
 
 DEFAULT_OGRE_PLUGIN_SEARCH_PATH = \
     ['C:\Developement\PythonOgre\plugins',
+     'C:\Libraries\PythonOgre\plugins',
+     'C:\PythonOgre\plugins',
      '$MRBC_SVN_ROOT/deps/local/lib/OGRE']
     
 DEFAULT_RENDER_SYSTEM = 'OpenGL'

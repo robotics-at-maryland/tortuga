@@ -90,7 +90,7 @@ class SimApp(wx.App):
         
         current_time = time.clock()
         time_since_last_iteration = current_time - self.last_time;
-        #print time_since_last_iteration * 1000
+
         # Loop over all components updating them, if one returns false exit
         for component in self.components:
             component.update(time_since_last_iteration)
@@ -101,6 +101,7 @@ class SimApp(wx.App):
         
     def on_close(self, close_event):
         OgreNewt.Debugger.getSingleton().deInit()
+        self.sim.delete()
         del self.sim
         del self.components
         
