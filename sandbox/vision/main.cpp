@@ -77,7 +77,7 @@ void hough(IplImage* img);
 					cout<<"Missed++"<<endl;
 			}
 			else {
-				if(line[1].y < line[0].y) {
+				if(line[0].y < line[1].y) {
 						temp = line[0].y;
 						line[0].y = line[1].y;
 						line[1].y = temp;
@@ -100,8 +100,13 @@ void hough(IplImage* img);
 		end.x/=total;
 		end.y/=total;
 		
-		angle = atan2((end.y - start.y),(end.x - start.x));
+		int xdiff = (end.x - start.x);		//deal with y's being flipped
+		int ydiff = -1*(end.y - start.y);
+		angle = atan2((ydiff),(xdiff));
+		cout<<"Xdiff: "<<xdiff<<endl;
+		cout<<"Ydiff: "<<ydiff<<endl;
 		cout<<"Angle: "<<angle<<endl; 
+		cout<<"startx: "<<start.x<<" endx: "<<end.x<<endl;
 		
 		cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
 	#endif
@@ -151,6 +156,88 @@ int mask_red(IplImage* img, bool alter_img, int threshold)
 			count+=3;
 		}
 	return pixel_count;
+}
+
+#define OUTSIZE 5
+
+void explore(IplImage* img, int x, int y, int* out, int color)
+{	
+	int width=img->width;
+	int height=img->height;
+	//int out[OUTSIZE];//{count,minx,miny,maxx,maxy} (5 elements)
+	
+	unsigned char* data=(unsigned char*)img->imageData;
+	int count=3*x+3*width*y;
+	if ((data[count]>100 && data[count+1]>100 && data[count+2]>100))
+	{
+		data[count]=0;
+		data[count+1]=0;
+		data[count+2]=color;
+	
+		int out_left[]={0,999999,999999,-999999,-999999};
+		int out_right[]={0,999999,999999,-999999,-999999};
+		int out_up[]={0,999999,999999,-999999,-999999};
+		int out_down[]={0,999999,999999,-999999,-999999};
+		
+		if (x>0)
+			explore(img,x-1,y,out_left,color);
+		if (x<width)
+			explore(img,x+1,y,out_right,color);
+		if (y>0)
+			explore(img,x,y-1,out_up,color);
+		if (y<height)
+			explore(img,x,y+1,out_down,color);
+	
+		out[0]=out_left[0]+out_right[0]+out_up[0]+out_down[0]+1;
+		out[1]=min(x,min(out_left[1],min(out_right[1],min(out_up[1],out_down[1]))));
+		out[2]=min(y,min(out_left[2],min(out_right[2],min(out_up[2],out_down[2]))));
+		out[3]=max(x,max(out_left[3],max(out_right[3],max(out_up[3],out_down[3]))));
+		out[4]=max(y,max(out_left[4],max(out_right[4],max(out_up[4],out_down[4]))));
+	}
+}
+
+bool find_flash(IplImage* img, bool display)
+{
+	int width=img->width;
+	int height=img->height;
+	unsigned char* data=(unsigned char*)img->imageData;
+	
+	int out[5];
+	int count=0;
+	int color=175;
+	for (int y=0; y<height; y++)
+		for (int x=0; x<width;x++)
+		{
+			
+			out[0]=0;
+			out[1]=999999;
+			out[2]=-999999;
+			out[3]=999999;
+			out[4]=-999999;
+
+			if (data[count]>0&&data[count+1]>0&&data[count+2]>0)
+			{
+				explore(img,x,y,out,color);
+				color+=20;
+				int w=out[3]-out[1];
+				int h=out[4]-out[2];
+
+				if (display && out[0]>25)
+				{
+					cout<<"Data from explore"<<endl<<"Count: "<<out[0]<<"min x: "<<out[1]<<"min y: "<<out[2]<<"max x: "<<out[3]<<"max y: "<<out[4]<<endl; 
+					cout<<w<<","<<h<<endl;
+				}
+				if (out[0]>25 && w>5 && w<20 && h>5 && h<20)
+				{
+					cout<<"WE FOUND IT!!!! WOOHOOOOOO!!!! Its at "<<(out[3]+out[1])/2<<","<<(out[4]+out[2])/2<<endl<<endl;
+					return false;
+				}
+				
+			}
+			
+			count+=3;
+		}
+	return false;
 }
 
 int guess_line(IplImage* img)
@@ -624,11 +711,13 @@ int main (int argc, char * const argv[]) {
 	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Testing", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Bin_go", CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
 	IplImage* frame=NULL;
 	IplImage* starterFrame=NULL;
 	IplImage* houghFrame=NULL;
 	IplImage* analysis=NULL;
 	IplImage* binFrame=NULL;
+	IplImage* flashFrame=NULL;
 	char key=0;
 	bool paused=false;
 	bool red_flag=true;
@@ -642,6 +731,7 @@ int main (int argc, char * const argv[]) {
 	bool center_line_on=true;
 	bool ratios_on=true;
 	bool hough_on=false;
+	bool show_flashing=false;
 	long frame_count=0;
 	int speed=1;
 	bool found=false;
@@ -651,6 +741,7 @@ int main (int argc, char * const argv[]) {
 	analysis=cvCreateImage(cvGetSize(frame),8,3);
 	binFrame=cvCreateImage(cvGetSize(frame),8,3);
 	houghFrame=cvCreateImage(cvGetSize(frame),8,3);
+	flashFrame=cvCreateImage(cvGetSize(frame),8,3);
 	while(true)
 	{
 		key=cvWaitKey(25);
@@ -659,6 +750,11 @@ int main (int argc, char * const argv[]) {
 		{
 			cout<<key<<" Goodbye."<<endl;
 			return 0;
+		}
+		if (key=='u')
+		{
+			show_flashing=!show_flashing;
+			cout<<key<<" Showing flashing stuff:"<<show_flashing<<endl;
 		}
 		if (key=='+')
 		{
@@ -845,11 +941,19 @@ int main (int argc, char * const argv[]) {
 					hough(houghFrame);
 				}	
 
+			if (true)
+			{
+				cvCopyImage(frame, flashFrame);
+				paused=find_flash(flashFrame, show_flashing);
+			}
+
 			if (center_line_on)
 				thin_blue_line(frame);
 			
+			
 			cvShowImage("After_Analysis",frame);
 			cvShowImage("Bin_go",binFrame);
+			cvShowImage("Flash",flashFrame);
 		}
 	}
     return 0;
