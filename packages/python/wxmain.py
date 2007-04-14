@@ -41,7 +41,8 @@ class SimApp(wx.App):
         # Setup the camera
         scene = self.sim._scenes['Main']
         OgreNewt.Debugger.getSingleton().init(scene.scene_mgr)
-        self.ogre.camera = scene.cameras['Main']
+        self.ogre.camera = scene.get_camera('Main').camera
+        
         
         scene._robots['Main'] = \
             sim.robot.Robot(scene, os.path.join('..','data','robots','aut.rml'))
@@ -76,6 +77,14 @@ class SimApp(wx.App):
     def setup_input(self):
         self._input_forwarder = gui.input.InputForwarder(self.sim.input_system)
         self._input_forwarder.forward_window(self.ogre)
+        
+        from sim.input import KC
+        self.sim.input_system.map_actions({(KC.W,0) : 'CAM_FORWARD',
+                                           (KC.A,0) : 'CAM_LEFT', 
+                                           (KC.S,0) : 'CAM_BACK', 
+                                           (KC.D,0) :'CAM_RIGHT',
+                                           (KC.Q,0) : 'CAM_UP', 
+                                           (KC.E,0) :'CAM_DOWN'})
     
     def _init_simulation(self):
         # Read in value from config file and create the right vehicle

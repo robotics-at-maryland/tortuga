@@ -80,12 +80,13 @@ class InputSystem(object):
                         meta_down):
         mod_keys = pack_mod_keys(ctrl_down, alt_down, shift_down, meta_down)
 
-        event_type = self._action_map.get((key, mod_keys), None)
-        if event_type is not None:
-            event.post(event_type, key, down, mod_keys)                         
+        event_types = self._action_map.get((key, mod_keys), None)
+        if event_types is not None:
+            for event_type in event_types:
+                event.post(event_type, key, down, mod_keys)                         
         
     
-    def _map_actions(self, action_map, action = None):
+    def map_actions(self, action_map, action = None):
         """
         TODO: Document me
         """
@@ -308,62 +309,59 @@ class InputSystem(object):
 #        event.send('KEY_RELEASED', key_event)
 #        return True
 #
-#class KeyStateObserver(object):
-#    """
-#    This keeps track of the up down state of keys based on key down and up
-#    events and automatically set attributes on the give object to reflect this.
-#    For example if it watching KC_LSHIFT, the 'lshift_down' property on the 
-#    given object will reflect whether or no the left shift key is down or not.
-#    As long as all key up and down events are passed to the object.
-#    """
-#    def __init__(self, subject, keys):
-#        """
-#        Subject is the subject to set the attribute on.  Keys is list of keys
-#        you wish to have set as attributes.  If there are any tuples in the 
-#        list first element of the tuple will be treated as the attribute and
-#        second as the list of keys you wished mapped to it.
-#        """
-#        self.subject = subject
-#        self.key_map = {}
-#     
-#        for key in keys:
-#            if type(key) is tuple:
-#                setattr(self.subject, key[0], False)
-#                for key_code in key[1]:
-#                    self.key_map[key_code] = [key[0], 0]
-#            else:
-#                attr_name = str(key).lower().split('_')[1] + '_key'
-#                setattr(self.subject, attr_name, False)
-#                self.key_map[key] = attr_name
-#            
-#            
-#    
-#    def key_pressed(self, key_event):
-#        if self.key_map.has_key(key_event.key):
-#            attr = self.key_map[key_event.key] 
-#            # If we have a list that means this multiple keys are mapped to a 
-#            # single attribute, and we have to key track of how many are down.
-#            # So that when they come up we don't set the state to false early
-#            
-#            if type(attr) is list:
-#                attribute, count = attr
-#                count += 1
-#                self.key_map[key_event.key] = [attribute, count]
-#                setattr(self.subject, attribute, True)
-#            else:
-#                setattr(self.subject, attr, True)
-#        
-#    def key_released(self, key_event):
-#        if self.key_map.has_key(key_event.key):
-#            attr = self.key_map[key_event.key] 
-#            # See above for more explanation on this
-#            if type(attr) is list:
-#                attribute, count = attr
-#                count -= 1
-#                self.key_map[key_event.key] = [attribute, count]
-#                if 0 == count:
-#                    setattr(self.subject, attribute, False)
-#            else:
-#                setattr(self.subject, attr, False)
-#        
-#    
+class ButtonStateObserver(object):
+    """
+    This keeps track of the up down state of buttons base the events it is told
+    to watch.  Then it makes sure the given attribute on its subject always
+    reflects the state of this button.  If it told to handle mutiple events,
+    for the same attribute, it makes sure the attribut is true as long as one
+    button is pressed down.
+    """
+    def __init__(self, subject, buttons):
+        """
+        @type subject: Anything
+        @param subject: The object which the attribute is set on.
+        
+        @type buttons: Dict
+        @param buttons: Maps attribute name to a list of events to watch for
+                        that attribute.
+        """
+        
+        self._attr_codes = {}
+        self._subject = subject
+        
+        handler_map = {}
+        for attr_name, event_types in buttons.iteritems():
+            # Ensure the attribute exists on the object
+            if not hasattr(subject, attr_name):
+                setattr(subject, attr_name, False)
+            self._attr_codes[attr_name] = set()
+                
+            # Generate our handler function
+            handler = self.generate_handler(attr_name)
+            
+            for event_type in event_types:
+                event.register_handlers(event_type, handler)
+      
+    def generate_handler(self, attr_name):
+        """
+        This generates a handler function to handle the given attribute.  This
+        must be a seperate function so that each handler gets its own local 
+        scope (ie its a closure !).
+        """
+        def handler(key, down, mod_keys):
+            # Key is being pressed down
+            if down:
+                # Record every key being pressed down
+                self._attr_codes[attr_name].add(key)
+                setattr(self._subject, attr_name, True)
+            # Key being release
+            else:
+                # Remove key from the set being pressed down
+                self._attr_codes[attr_name].remove(key)
+                # If there are no more keys in our set being pressed down
+                # We are done
+                if len(self._attr_codes[attr_name]) == 0:
+                    setattr(self._subject, attr_name, False)
+        return handler
+            

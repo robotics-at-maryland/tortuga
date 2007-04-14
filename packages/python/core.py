@@ -361,8 +361,8 @@ def Enum(*names):
         __slots__ = ('__value')
         def __init__(self, value): 
             self.__value = value
-            Value = property(lambda self: self.__value)
-            EnumType = property(lambda self: EnumType)
+        Value = property(lambda self: self.__value)
+        EnumType = property(lambda self: EnumType)
         def __hash__(self):        
             return hash(self.__value)
         def __cmp__(self, other):

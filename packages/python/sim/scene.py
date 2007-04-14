@@ -21,6 +21,7 @@ import sim.defaults as defaults
 from sim.util import SimulationError
 from sim.serialization import ModuleLoader
 from sim.physics import World
+from sim.graphics import Camera, CameraController
 from core import fixed_update, log_init
 
 class SceneError(SimulationError):
@@ -80,6 +81,8 @@ class Scene(object):
         self._objects = {}
         self._bodies = []
         self._robots = {}
+        self._cameras = {}
+        self._camera_controllers = []
         self._physics_update_interval = 1.0 / 60
         
         # Create Ogre SceneManager and OgreNewt World
@@ -111,6 +114,9 @@ class Scene(object):
         """
         def fget(self):
             return self._world
+           
+    def get_camera(self, name):
+     	return self._cameras.get(name, None)
 
     def update(self, time_since_last_update):
         self._update_physics(time_since_last_update)
@@ -118,7 +124,9 @@ class Scene(object):
         # Update all of our objects
         for obj in self._objects.itervalues():
            obj.update(time_since_last_update)
-        pass
+        
+        for controller in self._camera_controllers:
+        	controller.update(time_since_last_update)
     
     @fixed_update('_physics_update_interval')
     def _update_physics(self, time_since_last_update):
@@ -162,6 +170,10 @@ class Scene(object):
           		rsrc_mrg.addResourceLocation(location, resource_type,
 											 self.name, False)
         rsrc_mrg.initialiseResourceGroup(self.name)
+	
+    def create_camera(self, name, position, offset, near_clip = 0.5):
+		self._cameras[name] = Camera(name, self, position, offset, near_clip)
+		self._camera_controllers.append(CameraController(self._cameras[name]))
 	
     def create_object(self, obj_type, *args, **kwargs):
         """

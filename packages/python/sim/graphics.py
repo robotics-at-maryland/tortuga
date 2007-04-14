@@ -25,13 +25,14 @@ import ogre.io.OIS as OIS
 # Project Imports
 import logloader    
 import event
-from core import fixed_update, Component, implements
-import sim.simulation as simulation
+from core import fixed_update, Component, implements, Interface, Attribute, cls_property
+from sim.util import SimulationError
 #from sim.input import KeyStateObserver
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 from sim.object import IObject, Object
+from sim.input import ButtonStateObserver
 
-class GraphicsError(simulation.SimulationError):
+class GraphicsError(SimulationError):
     """ Error from the graphics system """
     pass
 
@@ -123,11 +124,9 @@ class GraphicsSystem(object):
     def __del__(self):
         self.logger.info('* * * Beginning shutdown')
         # Make sure the C++ based objects are deleted in the proper order
-        
-        #del self.camera_controller
-        #del self.scene_manager
+
         del self.root
-        #del self.render_window  
+
         del self.logManager
         self.logger.info('* * * Shutdown complete, closing log')
         del self.ogre_log
@@ -349,76 +348,127 @@ class GraphicsSystem(object):
         self.viewport = self.render_window.addViewport(self.camera)
         self.viewport.BackgroundColour = Ogre.ColourValue(0,0,0)
 
-event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT',
-                       'CAM_FOLLOW',       # A hack, follow the given node
-                       'CAM_INDEPENDENT']) # Return back to free floating
+class ICamera(Interface):
+    """
+    Represents a camera in the simulation
+    """
+    
+    camera = Attribute("""
+        @type: Ogre.Camera
+        @param: The wrapped Ogre Camera, set only.
+        """)
+    
+    node = Attribute("""
+        @type: Ogre.SceneNode
+        @param: The scene node controller the camera, get only.
+        """)
+    
+#    controller = core.Attribute("""
+#        @type: implements ICameraController
+#        @param: the current controller of the camera, set and get.
+#        """)
+    
+
+class Camera(Component):
+    implements(ICamera)
+    
+    def __init__(self, name, scene, position, offset, near_clip = 0.5):
+        self._camera = scene.scene_mgr.createCamera(name)
+        self._camera.position = offset
+        self._camera.lookAt((0, 0, 0))
+        self._camera.nearClipDistance = near_clip
+                
+        # Allows easier movement of camera
+        self._node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
+        self._node.position = (0,0,0)
+        self._node.attachObject(self._camera)
+        self._camera.lookAt(0, 0, 0)
+    
+        # position camera
+        self._node.position = position
+    
+    #ICamera methods
+    class camera(cls_property):
+        def fget(self):
+            return self._camera
+        
+    class node(cls_property):
+        def fget(self):
+            return self._node
+        
+#    class controller(core.cls_property):
+#        def fget(self):
+#            return self._controller
+#        def fset(self, controller):
+#            self._controller.release()
+            
 
 class CameraController(object):
     """
     Here we have our camera attached to a node, looking at then node.
     
     """
-    def __init__(self, camera, camera_node):
-        self._update_interval = 1.0 / 60;
-        
-        self.camera = camera
-        self.camera_node = camera_node
+    
+    event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT',
+                           'CAM_UP', 'CAM_DOWN',
+                           'CAM_FOLLOW',       # A hack, follow the given node
+                           'CAM_INDEPENDENT']) # Return back to free floating
+    
+    def __init__(self, camera):
+        self._camera = camera.camera
+        self._camera_node = camera.node
         self.original_parent = None
         
-        self.handler_map = {
-            'KEY_PRESSED': self._key_pressed,
-            'KEY_RELEASED': self._key_released,
-            'MOUSE_MOVED': self._mouse_moved,
-            'CAM_FOLLOW' : self._follow_node,
-            'CAM_INDEPENDENT' : self._make_independent}
+#        self.handler_map = {
+#            'CAM_FOLLOW' : self._follow_node,
+#            'CAM_INDEPENDENT' : self._make_independent}
         
-        event.register_handlers(self.handler_map)
+        #event.register_handlers(self.handler_map)
         
         # This sets up automatic setting of the key down properties
-        watched_keys = [('shift_key', [OIS.KC_LSHIFT, OIS.KC_RSHIFT]), 
-                        ('forward_key', [OIS.KC_W, OIS.KC_UP]), 
-                        ('left_key', [OIS.KC_A, OIS.KC_LEFT]), 
-                        ('back_key', [OIS.KC_DOWN, OIS.KC_S]), 
-                        ('right_key', [OIS.KC_D, OIS.KC_RIGHT]),
-                        ('up_key', [OIS.KC_Q]),
-                        ('down_key', [OIS.KC_E])]
-        self.key_observer = KeyStateObserver(self, watched_keys)
+        watched_buttons = {'_forward' : ['CAM_FORWARD'],
+                           '_backward' : ['CAM_BACK'],
+                           '_left' : ['CAM_LEFT'],
+                           '_right' : ['CAM_RIGHT'],
+                           '_down' : ['CAM_DOWN'],
+                           '_up' : ['CAM_UP']}
+
+        self.key_observer = ButtonStateObserver(self, watched_buttons)
     
     def __del__(self):
         # Make sure to remove event handlers so they are called after the 
         # object is gone
-        event.remove_handlers(self.handler_map)
+        #event.remove_handlers(self.handler_map)
+        pass
     
-    @fixed_update('_update_interval')
-    def _update(self, time_since_last_frame):
-        quat = self.camera_node.getOrientation()
+    def update(self, time_since_last_frame):
+        quat = self._camera_node.getOrientation()
         
         # A really bad way to generate the rotation vectors I want
-        vec = Ogre.Vector3(0,0,-0.2)
-        trans = quat * vec
+        trans = quat * Ogre.Vector3(0,0,-2.7) * time_since_last_frame
         trans.y = 0
         
-        vec = Ogre.Vector3(0.2,0,0)
-        strafe = quat * vec
+        strafe = quat * Ogre.Vector3(2.7,0,0) * time_since_last_frame
         strafe.y = 0
         
-        vec = Ogre.Vector3(0,0.2,0)
-        height = quat * vec
+        height = quat * Ogre.Vector3(0,2.7,0) * time_since_last_frame
         height.z = 0
         
         if self.original_parent is None:
-            if self.up_key:
-                self.camera_node.translate(height, Ogre.Node.TS_WORLD)
-            if self.down_key:
-                self.camera_node.translate(height * -1.0, Ogre.Node.TS_WORLD)
-            if self.forward_key:
-                self.camera_node.translate(trans, Ogre.Node.TS_WORLD)
-            if self.back_key:
-                self.camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
-            if self.left_key:
-                self.camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
-            if self.right_key:
-                self.camera_node.translate(strafe, Ogre.Node.TS_WORLD)
+            if self._forward:
+                self._camera_node.translate(trans, Ogre.Node.TS_WORLD)
+            if self._backward:
+                self._camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
+                
+            if self._up:
+                self._camera_node.translate(height, Ogre.Node.TS_WORLD)
+            if self._down:
+                self._camera_node.translate(height * -1.0, Ogre.Node.TS_WORLD)
+     
+            if self._left:
+                self._camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
+            if self._right:
+                self._camera_node.translate(strafe, Ogre.Node.TS_WORLD)
     
     def _mouse_moved(self, arg):
         """
@@ -428,14 +478,14 @@ class CameraController(object):
         if self.shift_key:
             ms = arg.get_state()
             # Rotate around our object
-            self.camera_node.pitch(Ogre.Radian(ms.Y.rel * -0.5))
-            self.camera_node.yaw(Ogre.Radian(ms.X.rel * -0.5), 
+            self._camera_node.pitch(Ogre.Radian(ms.Y.rel * -0.5))
+            self._camera_node.yaw(Ogre.Radian(ms.X.rel * -0.5), 
                                  Ogre.Node.TS_WORLD)
             
             # Zoom in or out of our objective
             if ms.Z.rel < 0 or ms.Z.rel > 0:
-                pos = self.camera.position
-                self.camera.setPosition(pos + (pos * ms.Z.rel * 0.002))
+                pos = self._camera.position
+                self._camera.setPosition(pos + (pos * ms.Z.rel * 0.002))
 
     def _key_pressed(self, key_event):
         # Update the state of *_key properties  
@@ -450,23 +500,23 @@ class CameraController(object):
             raise GraphicsError('Camera is already free')
         
         # Remove node from its current parent
-        self.original_parent = self.camera_node.parent
-        self.original_parent.removeChild(self.camera_node)
+        self.original_parent = self._camera_node.parent
+        self.original_parent.removeChild(self._camera_node)
         
         # Reparent node and 
-        node.addChild(self.camera_node)
-        self.camera_node.setPosition(Ogre.Vector3(0,0,0))
+        node.addChild(self._camera_node)
+        self._camera_node.setPosition(Ogre.Vector3(0,0,0))
         #self.camera_node = node
         #self.camera_node.attachObject(self.camera)
-        self.camera.lookAt(node._getDerivedPosition())
+        self._camera.lookAt(node._getDerivedPosition())
         
     def _make_independent(self):
         if self.original_parent is None:
             raise GraphicsError('Camera is already free floating')
         
-        self.camera_node.parent.removeChild(self.camera_node)
-        self.original_parent.addChild(self.camera_node)
-        self.camera.lookAt(self.camera_node._getDerivedPosition())
+        self._camera_node.parent.removeChild(self._camera_node)
+        self.original_parent.addChild(self._camera_node)
+        self._camera.lookAt(self._camera_node._getDerivedPosition())
         self.original_parent = None
 
 class Py2OgreLog(Ogre.Log):

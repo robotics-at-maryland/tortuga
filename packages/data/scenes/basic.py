@@ -36,24 +36,8 @@ def create_scene(loader, scene):
     scene.add_resource_locations(locations)
     
     # Create Camera here
-    camera = scene_mgr.createCamera('PlayerCam')
-    camera.setPosition(Ogre.Vector3( 0.0, 5.0, 10.0))
-    camera.lookAt(Ogre.Vector3(0, 0, 0))
-    camera.nearClipDistance = 0.5
-                
-    # Allows easier movement of camera
-    camera_node = scene_mgr.getRootSceneNode().createChildSceneNode()
-    camera_node.setPosition(0,0,0)
-    camera_node.attachObject(camera)
-    
-    # position camera
-    camera_node.setPosition( 0, 1, 3)
-    camera.lookAt(0, 0, 0)
-    
-    # TODO: Remove this hack, place functionality in Scene class
-    scene.cameras = {}
-    scene.cameras['Main'] = camera
-    
+    scene.create_camera('Main', ( 0, 1, 3), (0, 5, 10))
+
     create_tank()
     scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
 

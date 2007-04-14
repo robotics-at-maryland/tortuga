@@ -41,6 +41,9 @@ class IObject(core.Interface):
         
         #if IObject.providedBy(child):
         #    pass
+        
+    def update(time_since_last_update):
+        pass
 
 class Object(core.Component):
     core.implements(IObject, IKMLStorable)
@@ -58,6 +61,9 @@ class Object(core.Component):
     
     def init(self, parent, name):
         Object._create(self, parent, name)
+        
+    def update(self, time_since_last_update):
+        pass
         
     def _create(self, parent, name):
         self._children = {}
