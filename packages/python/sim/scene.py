@@ -17,6 +17,7 @@ import ogre.physics.OgreNewt as OgreNewt
 
 # Project Imports
 import core
+import sim.defaults as defaults
 from sim.util import SimulationError
 from sim.serialization import ModuleLoader
 from sim.physics import World
@@ -56,7 +57,7 @@ class ISceneLoader(core.Interface):
         """
         pass
 
-DEFAULT_LOG_CONFIG = {'name' : 'Unknown Scene', 'level': 'INFO'}
+
 
 class Scene(object):
     """
@@ -66,7 +67,7 @@ class Scene(object):
     
     scene_loaders = core.ExtensionPoint(ISceneLoader)    
     
-    #@log_init(DEFAULT_LOG_CONFIG)
+    #@log_init(defaults.sim_log_config)
     def __init__(self, name, scene_data):
         """
         @type name: string

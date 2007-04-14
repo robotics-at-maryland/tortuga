@@ -12,11 +12,10 @@ import ogre.renderer.OGRE as Ogre
 # Project Imports
 import core
 import sim.util
-import sim.object
+import sim.defaults as defaults
 from sim.object import Object, IObject
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 
-DEFAULT_GRAVITY = Ogre.Vector3(0,-9.8,0)
 
 class PhysicsError(sim.util.SimulationError):
     """
@@ -145,7 +144,7 @@ class Body(Object):
         If you call this, make sure to call create, before using the object
         """
         self._force = Ogre.Vector3(0,0,0)
-        self._gravity = DEFAULT_GRAVITY
+        self._gravity = defaults.gravity
         self._local_force = []
         self._global_force = []
         self._buoyancy_plane = None
@@ -167,7 +166,7 @@ class Body(Object):
         @param shape_props: Maps paramater name to value for the shapes 
                             constructor.
         """  
-        sim.object.Object.init(self, parent, name)
+        sim.util.Object.init(self, parent, name)
         Body._create(self, scene, shape_type, shape_props, mass, position, 
                      orientation)
         

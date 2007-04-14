@@ -23,36 +23,15 @@ import ogre.renderer.OGRE as Ogre
 # Project Imports
 import logloader
 import event
-import scene
+import sim.scene as scene
+from sim.input import InputSystem
 from sim.util import SimulationError
+import sim.defaults as defaults
 
 from core import Singleton, log, log_init
 
 # Events
 event.add_event_types('SIM_SHUTDOWN') # Called to shutdown the simulation
-
-# Default Values
-DEFAULT_OGRE_PLUGINS = ['RenderSystem_GL', 'Plugin_ParticleFX', 
-                         'Plugin_OctreeSceneManager']
-
-DEFAULT_OGRE_PLUGIN_SEARCH_PATH = \
-    ['C:\Developement\PythonOgre\plugins',
-     'C:\Libraries\PythonOgre\plugins',
-     'C:\PythonOgre\plugins',
-     '$MRBC_SVN_ROOT/deps/local/lib/OGRE']
-    
-DEFAULT_RENDER_SYSTEM = 'OpenGL'
-
-DEFAULT_RENDER_SYSTEM_OPTIONS = \
-    [('Colour Depth', '32'),
-     ('Display Frequency', 'N/A'),
-     ('FSAA', '0'),
-     ('RTT Preferred Mode', 'FBO'),
-     ('VSync', 'No')]
-
-DEFAULT_LOG_CONFIG = {'name' : 'Simulation', 'level': 'INFO'}
-
-DEFAULT_SCENE_SEARCH_PATH = 'data/scenes'
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
@@ -64,12 +43,13 @@ class Simulation(Singleton):
     'Simulation.get()' to access it.
     """
     
-    @log_init(DEFAULT_LOG_CONFIG)
+    @log_init(defaults.simulation_log_config)
     def init(self, config = {}):
         self._ogre_root = None
         self._scenes = {}
         
         self._graphics_init(config)
+        self.input_system = InputSystem()
     
         event.register_handlers('SIM_SHUTDOWN', self._shutdown)
         self._run = True
@@ -177,7 +157,7 @@ class Simulation(Singleton):
         
         # Filter out non-existant paths from search, this keeps windows paths
         # out of unix and unix paths out of windows
-        search_path = config.get('search_path', DEFAULT_OGRE_PLUGIN_SEARCH_PATH)
+        search_path = config.get('search_path', defaults.ogre_plugin_search_path)
         search_path = [p for p in search_path if os.path.exists(p)]
         if len(search_path) == 0:
             raise GraphicsError('All plugin directories do not exist')
@@ -191,7 +171,7 @@ class Simulation(Singleton):
         if 'Windows' == platform.system():
             extension = '.dll'
             
-        for plugin in config.get('plugins', DEFAULT_OGRE_PLUGINS):
+        for plugin in config.get('plugins', defaults.ogre_plugins):
             plugin_name = plugin + extension
             self.logger.info('\tSearching for: %s' % plugin_name)
             found = False
@@ -238,7 +218,7 @@ class Simulation(Singleton):
         # Attempt to find the selected renderer based on given input
         render_system = None
         try:
-            type = config.get('type', DEFAULT_RENDER_SYSTEM)
+            type = config.get('type', defaults.render_system)
             type_name = typemap[type]
             for renderer in self._ogre_root.getAvailableRenderers():
                 if type_name == renderer.getName():
@@ -254,7 +234,7 @@ class Simulation(Singleton):
         
         
         # Load our options from the custom config system
-        render_system_opts = config.get(type, DEFAULT_RENDER_SYSTEM_OPTIONS)          
+        render_system_opts = config.get(type, defaults.render_system_options)          
         for name, value in render_system_opts:
             render_system.setConfigOption(name, value)
 

@@ -27,7 +27,7 @@ import logloader
 import event
 from core import fixed_update, Component, implements
 import sim.simulation as simulation
-from sim.input import KeyStateObserver
+#from sim.input import KeyStateObserver
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 from sim.object import IObject, Object
 

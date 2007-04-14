@@ -16,6 +16,7 @@ import event
 import sim.simulation
 import sim.robot
 import gui.wxogre
+import gui.input
 
 class SimApp(wx.App):
     def OnInit(self):
@@ -62,6 +63,8 @@ class SimApp(wx.App):
         #sizer_1.SetSizeHints(frame) 
         frame.Layout() 
         
+        self.setup_input()
+        
         # Show the main frame
         frame.Show(True)
         self.SetTopWindow(frame)
@@ -69,6 +72,10 @@ class SimApp(wx.App):
         self.last_time = 0
         
         return True
+    
+    def setup_input(self):
+        self._input_forwarder = gui.input.InputForwarder(self.sim.input_system)
+        self._input_forwarder.forward_window(self.ogre)
     
     def _init_simulation(self):
         # Read in value from config file and create the right vehicle
