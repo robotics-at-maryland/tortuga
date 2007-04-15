@@ -17,8 +17,8 @@ sim module.
 import logging
 
 # Library Imports
-import OgreNewt
-import OIS
+import ogre.physics.OgreNewt as OgreNewt
+import ogre.io.OIS as OIS
 
 # Project imports
 import event

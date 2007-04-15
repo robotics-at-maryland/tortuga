@@ -1,6 +1,6 @@
 # Library Includes
 import wx
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Projects Include
 from sim import Simulation

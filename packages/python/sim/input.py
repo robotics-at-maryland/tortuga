@@ -14,8 +14,8 @@ activities
 #from __future__ import absolute_import
 
 # Library imports
-import Ogre
-import OIS
+import ogre.renderer.OGRE as Ogre
+import ogre.io.OIS as OIS
 import platform
 
 # Project imports
@@ -97,15 +97,13 @@ class InputSystem(FixedUpdater, Ogre.WindowEventListener):
         # Hook OIS up to the window created by Ogre
         windowHnd = self.render_window.getCustomAttributeInt("WINDOW")
         
+        
+        params = [('WINDOW',windowHnd)]
         if 'Linux' == platform.system():
-            params = [('WINDOW',windowHnd)]
             if config.get('debug', False):
                 self.logger.info("OIS Keyboard grab off")
                 params = params + [('x11_keyboard_grab', 'false'), 
                                    ('x11_mouse_grab','false')]
-        elif 'Windows' == platform.system():
-            params = windowHnd
-            
         
         self.input_mgr = OIS.createPythonInputSystem(params)
         # Setup Unbuffered Keyboard and Buffered Mouse Input

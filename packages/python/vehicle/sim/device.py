@@ -14,7 +14,7 @@ the vehicle.device module.
 #from __future__ import absolute_import
 
 # Library Imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imports
 from vehicle.device import IThruster, DeviceFactory

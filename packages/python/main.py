@@ -20,7 +20,8 @@ import time
 
 # Library Imports
 import yaml
-import CEGUI
+import ogre.renderer.OGRE as Ogre
+import ogre.gui.CEGUI as CEGUI
 
 # Project Imports
 import logloader
@@ -58,8 +59,8 @@ def main():
     # Pass along the subsection of the config corresponding to the vehicle
     vehicle = VehicleFactory.create(vehicle_type,
                                     config['Vehicles'][vehicle_type])
-    #controller = control.DirectVehicleController(vehicle)
-    controller = control.RandomVehicleController(vehicle)
+    controller = control.DirectVehicleController(vehicle)
+    #controller = control.RandomVehicleController(vehicle)
     
     components = [vehicle, controller]
     

@@ -13,7 +13,7 @@ Provides core fuctionality for the simulation
 #from __future__ import absolute_import
 
 # Libraries Imports
-import Ogre
+import ogre.renderer.OGRE as Ogre
 
 def Vector(*args, **kwargs):
     """ 

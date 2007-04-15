@@ -13,8 +13,8 @@ Wraps up the initialization and management of OgreNewt
 #from __future__ import absolute_import
 
 # Libraries Imports
-import Ogre
-import OgreNewt
+import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt as OgreNewt
 
 # Project Imports
 import logloader

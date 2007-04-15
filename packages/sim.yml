@@ -163,9 +163,7 @@ Vehicles:
             # indicates which Ogre RenderSystem to create and which section to
             # load the options from
             Graphics:
-                # Have the sim create its own windows
                 embedded: False
-            
                 # Shown are the default values, uncomment to change
                 #Logging:
                 #    name: Graphics
@@ -185,8 +183,7 @@ Vehicles:
                         - [Video Mode, 800 x 600]
                 Plugins:
                     # Where to search for the plugins
-                    search_path: [ 'C:\Libraries\Python-Ogre-0.7\plugins',
-                                   'C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins',
+                    search_path: [ 'C:\Developement\PythonOgre\plugins',
                                    '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
 
                     # The plugins to load

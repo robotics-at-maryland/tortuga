@@ -19,8 +19,8 @@ import time
 import logging
 
 # Library Imports
-import Ogre
-import OIS
+import ogre.renderer.OGRE as Ogre
+import ogre.io.OIS as OIS
 
 # Project Imports
 import logloader    
