@@ -252,7 +252,10 @@ class Body(Object):
         self._local_force.append(Body._make_force_pos_pair(force, pos))
         
     def set_local_force(self, force, pos):
-        self._local_force = [Body._make_force_pos_pair(force, pos)]
+        if (force is None) and (pos is None):
+            self._local_force = []
+        else:
+            self._local_force = [Body._make_force_pos_pair(force, pos)]
     
     def get_local_forces(self):
         return self._local_force
@@ -261,7 +264,10 @@ class Body(Object):
         self._global_force.append(Body._make_force_pos_pair(force, pos))
 
     def set_global_force(self, force, pos):
-        self._global_force = [Body._make_force_pos_pair(force, pos)]
+        if (force is None) and (pos is None):
+            self._global_force = []
+        else:
+            self._global_force = [Body._make_force_pos_pair(force, pos)]
         
     def get_global_forces(self):
         return self._global_force
@@ -342,7 +348,6 @@ class World(OgreNewt.World):
         newt_body.setPositionOrientation(position, orientation)
         newt_body.setCustomForceAndTorqueCallback(World._force_torque_callback, 
                                                  "")
-#        newt_body.setCustomForceAndTorqueCallback(sim.util.gravityAndBouyancyCallback,"")
         inertia = shape.calculateInertialMatrix()[0]
         newt_body.setMassMatrix(mass, inertia)
         newt_body.autoFreeze = False
@@ -362,17 +367,27 @@ class World(OgreNewt.World):
         @param newton_body: The body to add force and torque to
         """
         body = newton_body.getUserData()
+        
         # Apply forces
-        newton_body.addForce(body.force)
+        force = body.force
+        if force != (0,0,0):
+            newton_body.addForce(force)
         for force, pos in body.get_local_forces():
             newton_body.addLocalForce(force, pos)
         for force, pos in body.get_global_forces():
             newton_body.addGlobalForce(force, pos)
         
+        # Todo apply torques
+        
+        # Damping hack
+        newton_body.omega = newton_body.omega * 0.8
+        if newton_body.omega.length() < 0.001:
+            newton_body.omega = 0
+        
         # Zero force on body
         body.force = (0,0,0)
-        body.set_local_force((0,0,0),(0,0,0))
-        body.set_global_force((0,0,0),(0,0,0))
+        body.set_local_force(None, None)
+        body.set_global_force(None, None)
         
         # Apply gravity
         mass, inertia = newton_body.getMassMatrix()
@@ -380,7 +395,7 @@ class World(OgreNewt.World):
         
         # Set bouyancy callback only if object is bouyant
         if body.get_buoyancy_plane() is not None:
-            newton_body.addBouyancyForce(1000, 5 , 0, body.gravity,
+            newton_body.addBouyancyForce(1000, 0.03 , 0.03, body.gravity,
                                          World._buoyancy_callback, "")
         
     @staticmethod

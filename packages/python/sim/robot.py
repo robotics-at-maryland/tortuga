@@ -165,6 +165,10 @@ class Part(Body, Visual):
         self._body.attachToNode(self._node)
         self.set_buoyancy((0,1,0))
         
+        self._body.angularDamping = (10,10,10)
+        print self._body.angularDamping
+        #self.gravity = (0,0,0)
+        
     def save(self, data_object):
         raise "Not yet implemented"
     
@@ -201,8 +205,10 @@ class Thruster(Visual):
         if self.force > self.max_force:
             self.force = self.max_force
         
-        self.parent.add_local_force(Ogre.Vector3(self.direction) * self.force, 
-                                    self._node._getDerivedPosition())
+        force = Ogre.Vector3(self.direction) * self.force
+        position = \
+            self._node._getDerivedPosition() - self.parent._node._getDerivedPosition()
+        self.parent.add_local_force(force, position)
         
         # Redraw force lines
         self._thrust_line.beginUpdate(0)

@@ -21,54 +21,69 @@ import gui.input
 
 import event
 import sim.input
-event.add_event_types(['FORE_THRUST_UP', 'FORE_THRUST_DOWN',
-                       'LEFT_THRUST_UP', 'LEFT_THRUST_DOWN',
-                       'RIGHT_THRUST_UP', 'RIGHT_THRUST_DOWN',
-                       'BACK_THRUST_UP', 'BACK_THRUST_DOWN'])
+
+event.add_event_types(['THRUST_FORE', 'THRUST_BACK',
+                       'THRUST_LEFT', 'THRUST_RIGHT','THRUST_PITCH_DOWN',
+                       'THRUST_UP', 'THRUST_DOWN','THRUST_PITCH_UP',
+                       'THRUST_KILL'])
 
 class TestController(object):
     def __init__(self, robot):
         self.robot = robot
     
-        # This sets up automatic setting of the key down properties
-        watched_buttons = {'_fore_up' : ['FORE_THRUST_UP'],
-                           '_fore_down' : ['FORE_THRUST_DOWN'],
-                           '_left_up' : ['LEFT_THRUST_UP'],
-                           '_left_down' : ['LEFT_THRUST_DOWN'],
-                           '_right_up' : ['RIGHT_THRUST_UP'],
-                           '_right_down' : ['RIGHT_THRUST_DOWN'],
-                           '_back_up' : ['BACK_THRUST_UP'],
-                           '_back_down' : ['BACK_THRUST_DOWN']}
+        event.register_handlers('THRUST_KILL',self._thrust_kill)
+    
+        watched_buttons = {'_forward' : ['THRUST_FORE'],
+                           '_backward' : ['THRUST_BACK'],
+                           '_left' : ['THRUST_LEFT'],
+                           '_right' : ['THRUST_RIGHT'],
+                           '_up' : ['THRUST_UP'],
+                           '_down' : ['THRUST_DOWN'],
+                           '_pitch_up' : ['THRUST_PITCH_UP'],
+                           '_pitch_down' : ['THRUST_PITCH_DOWN']}
 
         self.key_observer = sim.input.ButtonStateObserver(self, watched_buttons)
     
+    def _thrust_kill(self, key, down, mod_keys):
+        if down:
+            self.robot.parts.front_thruster.force = 0
+            self.robot.parts.aft_thruster.force = 0
+            self.robot.parts.right_thruster.force = 0
+            self.robot.parts.left_thruster.force = 0
+    
     def update(self, time_since_last_frame):
-        if self._fore_up:
-            self.robot.parts.front_thruster.force += 10.0 * time_since_last_frame
-        if self._fore_down:
-            self.robot.parts.front_thruster.force -= 10.0 * time_since_last_frame
-            
-        if self._back_up:
-            self.robot.parts.aft_thruster.force += 10.0 * time_since_last_frame
-        if self._back_down:
-            self.robot.parts.aft_thruster.force -= 10.0 * time_since_last_frame
+        if self._forward:
+            self.robot.parts.right_thruster.force += (7.0 * time_since_last_frame)
+            self.robot.parts.left_thruster.force += (7.0 * time_since_last_frame)
+        if self._backward:
+            self.robot.parts.right_thruster.force -= (7.0 * time_since_last_frame)
+            self.robot.parts.left_thruster.force -= (7.0 * time_since_last_frame)
         
-        self.robot.parts.right_thruster.force = 30
-        self.robot.parts.left_thruster.force = 30
-#        if self._right_up:
-#            self.robot.parts.right_thruster.force += 10.0 * time_since_last_frame
-#        if self._right_down:
-#            self.robot.parts.right_thruster.force -= 10.0 * time_since_last_frame
-#            
-#        if self._left_up:
-#            self.robot.parts.left_thruster.force += 10.0 * time_since_last_frame
-#        if self._left_down:
-#            self.robot.parts.left_thruster.force -= 10.0 * time_since_last_frame
+        if self._left:
+            self.robot.parts.left_thruster.force -= (5 * time_since_last_frame)
+            self.robot.parts.right_thruster.force += (5 * time_since_last_frame)
+        if self._right:
+            self.robot.parts.left_thruster.force += (5 * time_since_last_frame)
+            self.robot.parts.right_thruster.force -= (5 * time_since_last_frame)
+            
+        if self._up:
+            self.robot.parts.aft_thruster.force += (7.0 * time_since_last_frame)
+            self.robot.parts.front_thruster.force += (7.0 * time_since_last_frame)
+        if self._down:
+            self.robot.parts.aft_thruster.force -= (7.0 * time_since_last_frame)
+            self.robot.parts.front_thruster.force -= (7.0 * time_since_last_frame)
+            
+        if self._pitch_up:
+            self.robot.parts.aft_thruster.force -= (5 * time_since_last_frame)
+            self.robot.parts.front_thruster.force += (5 * time_since_last_frame)
+        if self._pitch_down:
+            self.robot.parts.aft_thruster.force += (5 * time_since_last_frame)
+            self.robot.parts.front_thruster.force -= (5 * time_since_last_frame)
 
 class SimApp(wx.App):
     def OnInit(self):
         frame = wx.Frame(None, -1, "AUV Sim", wx.DefaultPosition, 
-                         wx.Size(400,400))
+                         wx.Size(600,600))
         
         self.config = yaml.load(file(os.path.join('..', 'sim.yml')))
         
@@ -79,7 +94,7 @@ class SimApp(wx.App):
         self._init_simulation()
         # Create our windows
         self.ogre = gui.wxogre.wxOgre(None, frame, -1, wx.DefaultPosition, 
-                                      wx.Size(400,400))
+                                      wx.Size(600,600))
         
         # Create out scene
         self.sim.create_scene('Main', self.config['Scenes']['current'],
@@ -94,7 +109,7 @@ class SimApp(wx.App):
         
         # Setup Update timer
         self.timer = wx.Timer()
-        self.timer.Start(30)
+        self.timer.Start(1000 / 200)
         self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
         frame.Bind(wx.EVT_CLOSE, self.on_close)
         
@@ -129,14 +144,15 @@ class SimApp(wx.App):
                                            (KC.Q,0) : 'CAM_UP', 
                                            (KC.E,0) :'CAM_DOWN',
                                            (KC.F,0) : 'CAM_TOGGLE_FOLLOW',
-                                           (KC.U,0) : 'FORE_THRUST_UP',
-                                           (KC.J,0) : 'FORE_THRUST_DOWN',
-                                           (KC.Y,0) : 'LEFT_THRUST_UP',
-                                           (KC.H,0) : 'LEFT_THRUST_DOWN',
-                                           (KC.O,0) : 'RIGHT_THRUST_UP',
-                                           (KC.L,0) : 'RIGHT_THRUST_DOWN',
-                                           (KC.I,0) : 'BACK_THRUST_UP',
-                                           (KC.K,0) : 'BACK_THRUST_DOWN'})
+                                           (KC.I,0) : 'THRUST_FORE',
+                                           (KC.K,0) : 'THRUST_BACK',
+                                           (KC.G,0) : 'THRUST_KILL',
+                                           (KC.J,0) : 'THRUST_LEFT',
+                                           (KC.L,0) : 'THRUST_RIGHT',
+                                           (KC.U,0) : 'THRUST_DOWN',
+                                           (KC.O,0) : 'THRUST_UP',
+                                           (KC.Y,0) : 'THRUST_PITCH_UP',
+                                           (KC.H,0) : 'THRUST_PITCH_DOWN'})
         
         self._test_controller = TestController(self.sim._scenes['Main']._robots['AUT'])
     

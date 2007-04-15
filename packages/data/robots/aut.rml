@@ -4,15 +4,14 @@ Robot:
     name: AUT
     
     # In the X, Y, and Z direction
-    position: [0, 0.0, -20]
+    position: [0, 0.0, 0]
     # In Axis/Angle Form (last term angle)
     orientation: [0.0, 0.0, 1.0, 0.0]
     
     # This section describes the physics of the object
     Physical:
         # In kilograms
-        mass: 24.6  # About 0.5% bouyant
-        #mass: 1.5
+        mass: 26  # About 0.5% bouyant
         Shape:
             type: box
             # Actual size in meters
@@ -34,15 +33,15 @@ Robot:
             name: left_thruster
             
             # Position relative to robot
-            position: [-1, 0, 0]
+            position: [-.16, 0, 0]
             orientation: [0, 1, 0, 90]
             
             # Thruster Properties
             # A unit vector along which thrust will be applied
             direction: [0, 0, -1]
-            # In newtons, 21.57463 N = 2.2 kgf
-            min_force: -21.57463
-            max_force: 21.57463
+            # In newtons, 9.0 N = 2 lbs of thrust
+            min_force: -25.5
+            max_force: 25.5
             
             # This section describes how the object will apear
             Graphical:
@@ -55,11 +54,11 @@ Robot:
             type: [Thruster, sim.robot.Thruster]
             name: right_thruster
             
-            position: [1, 0, 0]
+            position: [.16, 0, 0]
             orientation: [0, 1, 0, 90]
             direction: [0, 0, -1]
-            min_force: -21.57463
-            max_force: 21.57463
+            min_force: -25.5
+            max_force: 25.5
             
             Graphical:
                 mesh: cylinder.mesh
@@ -74,8 +73,8 @@ Robot:
             position: [0, 0, 0.4]
             orientation: [0, 0, 1, 90]
             direction: [0, 1, 0]
-            min_force: -21.57463
-            max_force: 21.57463
+            min_force: -25.5
+            max_force: 25.5
             
             Graphical:
                 mesh: cylinder.mesh
@@ -91,81 +90,11 @@ Robot:
             position: [0, 0, -0.4]
             orientation: [0, 0, 1, 90]
             direction: [0, 1, 0]
-            min_force: -21.57463
-            max_force: 21.57463
+            min_force: -25.5
+            max_force: 25.5
             
             Graphical:
                 mesh: cylinder.mesh
                 material: Simple/BumpyMetal
                 #scale: [0.5,0.2,0.1]
                 scale: [0.15,0.047,0.047]
-#    Parts:
-#        
-#        # For each simulated thruster you need to give its type, relative
-#        # to the body coordinate system (describe me here)
-#        # Y is UP, Z comes out the front of the vehicle and when looking at
-#        # vehicle from the back X comes out the right (starboard) side 
-#        Thruster:
-#            type: Basic
-#            name: left_thruster
-#            
-#            # Position relative to robot
-#            position: [-0.16, 0, 0]
-#            orientation: [0, 1, 0, 90]
-#            
-#            # Thruster Properties
-#            # A unit vector along which thrust will be applied
-#            direction: [0, 0, -1]
-#            # The maximum avialable thrust (in Newtons)
-#            strength: 25.5
-#            
-#            # This section describes the physics of the object
-#            Physical:
-#                mass: 0.35
-#                
-#                Shapes:
-#                    Capsule:
-#                        
-#            # This section describes how the object will apear
-#            Graphical:
-#                mesh: cylinder.mesh
-#                material: Simple/BumpyMetal
-#                scale: [0.15,0.047,0.047]
-#
-#        Thruster:
-#            type: Basic
-#            name: left_thruster
-#            
-#                position: [0.16, 0, 0]
-#                direction: [0, 0, -1]
-#                strength: 25.5
-#                
-#                Graphical:
-#                    mesh: cylinder.mesh
-#                    material: Simple/BumpyMetal
-#                    scale: [0.15,0.047,0.047]
-#                    orientation: [0, 1, 0, 90]
-#                    
-#            ForeThruster:
-#                type: SimThruster
-#                position: [0, 0, 0.4]
-#                direction: [0, 1, 0]
-#                strength: 25.5
-#                
-#                Graphical:
-#                    mesh: cylinder.mesh
-#                    material: Simple/BumpyMetal
-#                    scale: [0.15,0.047,0.047]
-#                    orientation: [0, 0, 1, 90]
-#                    
-#            AftThruster:
-#                type: SimThruster
-#                position: [0, 0, -0.4]
-#                direction: [0, 1, 0]
-#                strength: 25.5
-#                
-#                Graphical:
-#                    mesh: cylinder.mesh
-#                    material: Simple/BumpyMetal
-#                    scale: [0.15,0.047,0.047]
-#                    orientation: [0, 0, 1, 90]

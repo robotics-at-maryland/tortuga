@@ -121,7 +121,7 @@ class Scene(object):
 
     def update(self, time_since_last_update):
         self._update_physics(time_since_last_update)
-        
+
         # Update all of our objects
         for obj in self._objects.itervalues():
            obj.update(time_since_last_update)
@@ -138,7 +138,7 @@ class Scene(object):
         Updates the physics of the sim at a rate near the 
         _physics_update_interval attribute of the object.
         """
-        self._world.update(time_since_last_update)
+        self._world.update(self._physics_update_interval)
         
     def save(self, location):
     	raise SceneError("Save not yet implemented")
