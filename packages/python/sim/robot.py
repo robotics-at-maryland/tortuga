@@ -12,10 +12,10 @@ import yaml
 # Project Impports
 import core
 from sim.util import Vector, Quat, SimulationError
-from sim.serialization import IKMLStorable, KMLLoader, two_step_init
+from sim.serialization import IKMLStorable, KMLLoader, two_step_init, parse_position_orientation
 from sim.physics import IBody, Body
 from sim.graphics import IVisual, Visual
-
+from sim.object import Object
 
 class IPart(IBody, IVisual):
     """
@@ -23,7 +23,18 @@ class IPart(IBody, IVisual):
     """
     
     robot = core.Attribute("""The robot this part belongs to""")
-    
+
+class IThruster(IVisual):
+#    def __init__(part):
+#        """
+#        @type part: implements IBody
+#        @param part: The part to apply the force to
+#        """
+    force = core.Attribute("""The force the thruster is producing in Newtons""")
+    direction = core.Attribute("""The direction the thruster is applied""")
+    max_force = core.Attribute("""The maximum force the thruster can produce in Newtons""")
+    min_force = core.Attribute("""The minimum force the thruster can produce in Newtons""")
+
 class IRobot(core.Interface):
     pass
     
@@ -48,6 +59,8 @@ class KMLRobotLoader(core.Component, KMLLoader):
     
     core.implements(IRobotLoader)
     
+    iface_map = {'Thruster' : IThruster}
+    
     @staticmethod
     def can_load(robot_data):
         try:
@@ -61,11 +74,21 @@ class KMLRobotLoader(core.Component, KMLLoader):
         config = yaml.load(file(robot_data))
         rbt_node = config['Robot']
         
+        # Load main part
         robot.name = rbt_node['name']
         main_part = Part()
         main_part.load((scene, None, rbt_node))
         robot._main_part = main_part
-
+        
+        # Load child parts
+        parts = rbt_node.get('Parts', None)
+        if parts is not None:
+            for part_node in parts.itervalues():
+                iface_name, class_name = part_node['type']
+                iface = self.iface_map[iface_name]
+                part = core.Component.create(iface, class_name)
+                part.load((scene, robot._main_part, part_node))
+                
 class Robot(core.Component):
     
     robot_loaders = core.ExtensionPoint(IRobotLoader)
@@ -90,7 +113,24 @@ class Robot(core.Component):
         
         loader = loaders[0]()
         loader.load(self, scene, robot_data)
-
+    
+    # Provides Robot.<part_name> access to parts
+    class part_lookup(object):
+        def __init__(self, children):
+            self._children = children
+        def __getattr__(self, attr):
+            part = self._children.get(attr, None)
+            if part is not None:
+                return part
+            else:
+                raise AttributeError, "Robot does not have part '%s'" % attr
+    
+    class parts(core.cls_property):
+        def fget(self):
+            return Robot.part_lookup(self._main_part._children)
+        
+    def update(self, time_since_last_update):
+        self._main_part.update(time_since_last_update)
 
     def save(self, location):
         raise SceneError("Save not yet implemented")
@@ -102,15 +142,13 @@ class Robot(core.Component):
     
 class Part(Body, Visual):
     # Inherits IBody, IVisual, IKMLStorable
-    #core.implements(IRobot)
             
     @two_step_init
     def __init__(self):
         Body.__init__(self)
         Visual.__init__(self)
             
-            
-    def init(self, parent, name, scene, shape_type, shape_props, nass, mesh, 
+    def init(self, parent, name, scene, shape_type, shape_props, mass, mesh, 
              material, position = Ogre.Vector3.ZERO, 
              orientation = Ogre.Quaternion.IDENTITY,
              scale = Ogre.Vector3(1,1,1)):
@@ -119,10 +157,6 @@ class Part(Body, Visual):
                       shape_props, position, orietnation)
         Visual.init(self, None, name, scene, mesh, material, position, 
                     orietnation, scale)
-        
-    def _create(self, parent, name, scene, shape_type, shape_props, nass, mesh, 
-                material, position, orientation, scale):
-        pass
     
     def load(self, data_object):
         Body.load(self, data_object)
@@ -133,4 +167,108 @@ class Part(Body, Visual):
         
     def save(self, data_object):
         raise "Not yet implemented"
+    
+class Thruster(Visual):
+    # Inherits IBody, IVisual, IKMLStorable
+    core.implements(IThruster)
          
+    @two_step_init
+    def __init__(self):
+        self.direction = Ogre.Vector3.UNIT_Z
+        self.force = 0
+        self.max_force = 0
+        self.min_force = 0
+        Visual.__init__(self)
+            
+    def init(self, parent, name, scene, direction, min_force, max_force,
+             material, position = Ogre.Vector3.ZERO, 
+             orientation = Ogre.Quaternion.IDENTITY,
+             scale = Ogre.Vector3(1,1,1)):
+        
+        core.verifyClass(IPart, parent)
+        #Visual.init(self, parent, name, scene, mesh, material, position, 
+        #            orietnation, scale)
+        # Switch me back after the scene node issue is fixed
+        Object.init(parent, name)
+        
+        Thruster._create(self, scene, min_force, max_force, direction, mesh, 
+                         material, position, orientation, scale)
+        
+    def update(self, time_since_last_frame):
+        # Limit thrust to min and max values
+        if self.force < self.min_force:
+            self.force = self.min_force
+        if self.force > self.max_force:
+            self.force = self.max_force
+        
+        self.parent.add_local_force(Ogre.Vector3(self.direction) * self.force, 
+                                    self._node._getDerivedPosition())
+        
+        # Redraw force lines
+        self._thrust_line.beginUpdate(0)
+        self._draw_thrust_line()
+        self._thrust_line.end()
+    
+    def _draw_thrust_line(self):
+        base_pt = Ogre.Vector3(0,0,0)
+        thrust_pt = (base_pt + self._node.orientation * self.direction) * self.force
+        self._thrust_line.position(base_pt)
+        self._thrust_line.position(thrust_pt) 
+    
+    #def _create(self, direction):
+    def _create(self, scene, direction, min_force, max_force, mesh, material, 
+                position, orientation, scale):
+        self.direction = direction
+        self.min_force = min_force
+        self.max_force = max_force
+        # Uncomment when python ogre gets updated
+        # Reparent self to node
+#        parent_node = self._node.getParentSceneNode()
+#        parent_node.removeChild(self._node)
+#        self.parent._node.addChild(self._node)
+#    
+        entity = scene.scene_mgr.createEntity(self.name, mesh)
+        entity.setMaterialName(material)
+        
+        self._node = self.parent._node.createChildSceneNode()
+        self._node.attachObject(entity)
+
+        pscale = self.parent._node.scale;
+        iscale = Ogre.Vector3((1 / pscale.x),(1 / pscale.y),(1 / pscale.z))
+
+        if scale != Ogre.Vector3(1,1,1):
+            self._node.setScale(scale * iscale)
+            entity.setNormaliseNormals(True)       
+        
+        self._node.position = Ogre.Vector3(position) * iscale
+        self._node.orientation = orientation
+        
+        self._thrust_line = scene.scene_mgr.createManualObject(self.name + "manual");
+        self._thrust_line.dynamic = True
+        
+        self._thrust_line.begin("BaseRedNoLighting", Ogre.RenderOperation.OT_LINE_STRIP);
+        self._draw_thrust_line()
+        self._thrust_line.end()
+                
+        self._node.attachObject(self._thrust_line)
+        
+    def load(self, data_object):
+        #Visual.load(self, data_object)
+        # Remove me when scene node parenting issue is fixed
+        scene, parent, kml_node = data_object
+        Object.load(self, (parent, kml_node))
+        
+        gfx_node = kml_node['Graphical'] 
+        mesh = gfx_node['mesh']
+        material = gfx_node['material']
+        scale = Ogre.Vector3(gfx_node['scale'])
+        
+        position, orientation = parse_position_orientation(kml_node)
+        
+        direction = Ogre.Vector3(kml_node['direction'])
+        min_force = kml_node['min_force']
+        max_force = kml_node['max_force']
+        Thruster._create(self, scene, direction, min_force, max_force, mesh, 
+                         material, position, orientation, scale)
+
+        

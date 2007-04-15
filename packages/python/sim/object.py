@@ -63,7 +63,8 @@ class Object(core.Component):
         Object._create(self, parent, name)
         
     def update(self, time_since_last_update):
-        pass
+        for child in self._children.itervalues():
+            child.update(time_since_last_update)
         
     def _create(self, parent, name):
         self._children = {}

@@ -18,6 +18,53 @@ import sim.robot
 import gui.wxogre
 import gui.input
 
+
+import event
+import sim.input
+event.add_event_types(['FORE_THRUST_UP', 'FORE_THRUST_DOWN',
+                       'LEFT_THRUST_UP', 'LEFT_THRUST_DOWN',
+                       'RIGHT_THRUST_UP', 'RIGHT_THRUST_DOWN',
+                       'BACK_THRUST_UP', 'BACK_THRUST_DOWN'])
+
+class TestController(object):
+    def __init__(self, robot):
+        self.robot = robot
+    
+        # This sets up automatic setting of the key down properties
+        watched_buttons = {'_fore_up' : ['FORE_THRUST_UP'],
+                           '_fore_down' : ['FORE_THRUST_DOWN'],
+                           '_left_up' : ['LEFT_THRUST_UP'],
+                           '_left_down' : ['LEFT_THRUST_DOWN'],
+                           '_right_up' : ['RIGHT_THRUST_UP'],
+                           '_right_down' : ['RIGHT_THRUST_DOWN'],
+                           '_back_up' : ['BACK_THRUST_UP'],
+                           '_back_down' : ['BACK_THRUST_DOWN']}
+
+        self.key_observer = sim.input.ButtonStateObserver(self, watched_buttons)
+    
+    def update(self, time_since_last_frame):
+        if self._fore_up:
+            self.robot.parts.front_thruster.force += 10.0 * time_since_last_frame
+        if self._fore_down:
+            self.robot.parts.front_thruster.force -= 10.0 * time_since_last_frame
+            
+        if self._back_up:
+            self.robot.parts.aft_thruster.force += 10.0 * time_since_last_frame
+        if self._back_down:
+            self.robot.parts.aft_thruster.force -= 10.0 * time_since_last_frame
+        
+        self.robot.parts.right_thruster.force = 30
+        self.robot.parts.left_thruster.force = 30
+#        if self._right_up:
+#            self.robot.parts.right_thruster.force += 10.0 * time_since_last_frame
+#        if self._right_down:
+#            self.robot.parts.right_thruster.force -= 10.0 * time_since_last_frame
+#            
+#        if self._left_up:
+#            self.robot.parts.left_thruster.force += 10.0 * time_since_last_frame
+#        if self._left_down:
+#            self.robot.parts.left_thruster.force -= 10.0 * time_since_last_frame
+
 class SimApp(wx.App):
     def OnInit(self):
         frame = wx.Frame(None, -1, "AUV Sim", wx.DefaultPosition, 
@@ -42,10 +89,6 @@ class SimApp(wx.App):
         scene = self.sim._scenes['Main']
         OgreNewt.Debugger.getSingleton().init(scene.scene_mgr)
         self.ogre.camera = scene.get_camera('Main').camera
-        
-        
-        scene._robots['Main'] = \
-            sim.robot.Robot(scene, os.path.join('..','data','robots','aut.rml'))
         
         #Ogre.Root.getSingleton().renderOneFrame()
         
@@ -84,7 +127,18 @@ class SimApp(wx.App):
                                            (KC.S,0) : 'CAM_BACK', 
                                            (KC.D,0) :'CAM_RIGHT',
                                            (KC.Q,0) : 'CAM_UP', 
-                                           (KC.E,0) :'CAM_DOWN'})
+                                           (KC.E,0) :'CAM_DOWN',
+                                           (KC.F,0) : 'CAM_TOGGLE_FOLLOW',
+                                           (KC.U,0) : 'FORE_THRUST_UP',
+                                           (KC.J,0) : 'FORE_THRUST_DOWN',
+                                           (KC.Y,0) : 'LEFT_THRUST_UP',
+                                           (KC.H,0) : 'LEFT_THRUST_DOWN',
+                                           (KC.O,0) : 'RIGHT_THRUST_UP',
+                                           (KC.L,0) : 'RIGHT_THRUST_DOWN',
+                                           (KC.I,0) : 'BACK_THRUST_UP',
+                                           (KC.K,0) : 'BACK_THRUST_DOWN'})
+        
+        self._test_controller = TestController(self.sim._scenes['Main']._robots['AUT'])
     
     def _init_simulation(self):
         # Read in value from config file and create the right vehicle
@@ -111,6 +165,7 @@ class SimApp(wx.App):
         for component in self.components:
             component.update(time_since_last_iteration)
         
+        self._test_controller.update(time_since_last_iteration)
         event.process_events()
         
         self.last_time = current_time

@@ -216,14 +216,15 @@ class Component(object):
 
     @staticmethod
     def get_class(iface, class_name):
-        return Component._registry[iface][class_name]
+        classes = Component._registry[iface]
+        return classes[class_name]
 
     @staticmethod
     def create(interface, class_name, *args, **kwargs):
         """
         Finds and creates objects based on the interface and class names
         """
-        return Componentget_class(interface, class_name)(*args, **kwargs)
+        return Component.get_class(interface, class_name)(*args, **kwargs)
 
 def _register_class(_class):
     """

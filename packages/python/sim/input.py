@@ -21,6 +21,7 @@ import ogre.io.OIS as OIS
 import platform
 import event
 import logloader
+import decorator
 
 from core import fixed_update, cls_property, Enum, Interface, Component, ExtensionPoint
 from sim.util import Vector
@@ -364,4 +365,26 @@ class ButtonStateObserver(object):
                 if len(self._attr_codes[attr_name]) == 0:
                     setattr(self._subject, attr_name, False)
         return handler
-            
+    
+def toggle(event_type, start_state = False):
+    """
+    This is debounced toggle, switch.  It will only call the wrapped function
+    once per down (ie, repeat down events our ignored)
+    """
+    def wrapper(func):
+        func._switch_state = False
+        func._state = start_state
+        def debounce_switch(func, self, key, down, mod_keys):
+            # Button down, and switch not already down
+            if down and not func._switch_state:
+                func._switch_state = True
+                func._state = not func._state
+                func(self, func._state)    
+            # toggle off
+            elif not down:
+                func._switch_state = False
+                
+        decorated_func = decorator.decorate(func, debounce_switch,
+                                            decorator.make_weak_signature(func))
+        return decorated_func
+    return wrapper

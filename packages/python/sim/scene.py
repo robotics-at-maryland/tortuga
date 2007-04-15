@@ -22,6 +22,7 @@ from sim.util import SimulationError
 from sim.serialization import ModuleLoader
 from sim.physics import World
 from sim.graphics import Camera, CameraController
+from sim.robot import Robot
 from core import fixed_update, log_init
 
 class SceneError(SimulationError):
@@ -125,6 +126,9 @@ class Scene(object):
         for obj in self._objects.itervalues():
            obj.update(time_since_last_update)
         
+        for robot in self._robots.itervalues():
+        	robot.update(time_since_last_update)
+        
         for controller in self._camera_controllers:
         	controller.update(time_since_last_update)
     
@@ -184,6 +188,11 @@ class Scene(object):
         """
         kwargs['scene'] = self
         core.Component.create(obj_type, *args, **kwargs)
+        
+    def create_robot(self, config_path):
+    	robot = Robot(self, config_path)
+    	self._robots[robot.name] = robot
+    	
 	
 class ModuleSceneLoader(core.Component, ModuleLoader):
 	"""

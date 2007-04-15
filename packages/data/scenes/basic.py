@@ -4,9 +4,14 @@
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
 
+# Standar Imports
+import os.path
+
+# Library Imports
 import ogre.renderer.OGRE as Ogre
 import ogre.physics.OgreNewt as OgreNewt
 
+# Project Imports
 import utility
 from sim.util import gravityAndBouyancyCallback
 
@@ -36,7 +41,7 @@ def create_scene(loader, scene):
     scene.add_resource_locations(locations)
     
     # Create Camera here
-    scene.create_camera('Main', ( 0, 1, 3), (0, 5, 10))
+    scene.create_camera('Main', ( 0, 0, 0), (0, 1, 2))
 
     create_tank()
     scene_mgr.setSkyBox(True, "Examples/CloudyNoonSkyBox")
@@ -47,6 +52,10 @@ def create_scene(loader, scene):
     light = scene_mgr.createLight("Light1")
     light.setType(Ogre.Light.LT_POINT )
     light.setPosition(Ogre.Vector3(0.0, 100.0, 100.0))
+    
+    # Robots
+    scene.create_robot(os.path.join('..','data','robots','aut.rml'))
+    
     return bodies
 
 def add_wall(pos, norm = Ogre.Vector3.UNIT_Z, 

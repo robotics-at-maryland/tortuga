@@ -166,7 +166,7 @@ class Body(Object):
         @param shape_props: Maps paramater name to value for the shapes 
                             constructor.
         """  
-        sim.util.Object.init(self, parent, name)
+        Object.init(self, parent, name)
         Body._create(self, scene, shape_type, shape_props, mass, position, 
                      orientation)
         
@@ -345,6 +345,7 @@ class World(OgreNewt.World):
 #        newt_body.setCustomForceAndTorqueCallback(sim.util.gravityAndBouyancyCallback,"")
         inertia = shape.calculateInertialMatrix()[0]
         newt_body.setMassMatrix(mass, inertia)
+        newt_body.autoFreeze = False
         
         # Make the body number to our actual body object
         self._bodies.append(body)
@@ -367,14 +368,19 @@ class World(OgreNewt.World):
             newton_body.addLocalForce(force, pos)
         for force, pos in body.get_global_forces():
             newton_body.addGlobalForce(force, pos)
-            
+        
+        # Zero force on body
+        body.force = (0,0,0)
+        body.set_local_force((0,0,0),(0,0,0))
+        body.set_global_force((0,0,0),(0,0,0))
+        
         # Apply gravity
         mass, inertia = newton_body.getMassMatrix()
         newton_body.addForce(body.gravity * mass)
         
         # Set bouyancy callback only if object is bouyant
         if body.get_buoyancy_plane() is not None:
-            newton_body.addBouyancyForce(1000, 0.03, 0.03, body.gravity,
+            newton_body.addBouyancyForce(1000, 5 , 0, body.gravity,
                                          World._buoyancy_callback, "")
         
     @staticmethod

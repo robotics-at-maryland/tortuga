@@ -30,7 +30,9 @@ from sim.util import SimulationError
 #from sim.input import KeyStateObserver
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 from sim.object import IObject, Object
-from sim.input import ButtonStateObserver
+from sim.input import ButtonStateObserver, toggle
+
+print 'TOGGLE',toggle
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
@@ -54,12 +56,11 @@ class Visual(Object):
              position = Ogre.Vector3.ZERO, 
              orientation = Ogre.Quaternion.IDENTITY,
              scale = Ogre.Vector3(1,1,1)):
-        sim.util.Object.init(parent, name)
+        Object.init(parent, name)
         Visual._create(self, scene, mesh, material, position, orientation, 
                        scale)
 
     def _create(self, scene, mesh, material, position, orientation, scale):
-        
         # Create the graphical representation of the object
         entity = scene.scene_mgr.createEntity(self.name, mesh)
         entity.setMaterialName(material)
@@ -411,19 +412,18 @@ class CameraController(object):
     
     event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT',
                            'CAM_UP', 'CAM_DOWN',
-                           'CAM_FOLLOW',       # A hack, follow the given node
-                           'CAM_INDEPENDENT']) # Return back to free floating
+                           'CAM_TOGGLE_FOLLOW'])
     
     def __init__(self, camera):
         self._camera = camera.camera
         self._camera_node = camera.node
         self.original_parent = None
         
-#        self.handler_map = {
-#            'CAM_FOLLOW' : self._follow_node,
+        self.handler_map = {
+            'CAM_TOGGLE_FOLLOW' : self.test_follow }
 #            'CAM_INDEPENDENT' : self._make_independent}
         
-        #event.register_handlers(self.handler_map)
+        event.register_handlers(self.handler_map)
         
         # This sets up automatic setting of the key down properties
         watched_buttons = {'_forward' : ['CAM_FORWARD'],
@@ -438,20 +438,20 @@ class CameraController(object):
     def __del__(self):
         # Make sure to remove event handlers so they are called after the 
         # object is gone
-        #event.remove_handlers(self.handler_map)
+        event.remove_handlers(self.handler_map)
         pass
     
     def update(self, time_since_last_frame):
         quat = self._camera_node.getOrientation()
         
         # A really bad way to generate the rotation vectors I want
-        trans = quat * Ogre.Vector3(0,0,-2.7) * time_since_last_frame
+        trans = quat * Ogre.Vector3(0,0,-5) * time_since_last_frame
         trans.y = 0
         
-        strafe = quat * Ogre.Vector3(2.7,0,0) * time_since_last_frame
+        strafe = quat * Ogre.Vector3(5,0,0) * time_since_last_frame
         strafe.y = 0
         
-        height = quat * Ogre.Vector3(0,2.7,0) * time_since_last_frame
+        height = quat * Ogre.Vector3(0,5,0) * time_since_last_frame
         height.z = 0
         
         if self.original_parent is None:
@@ -469,6 +469,10 @@ class CameraController(object):
                 self._camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
             if self._right:
                 self._camera_node.translate(strafe, Ogre.Node.TS_WORLD)
+                
+    @toggle('CAM_TOGGLE_FOLLOW')
+    def test_follow(self, state):
+        print 'CAM_TOGGLE',state
     
     def _mouse_moved(self, arg):
         """
@@ -486,15 +490,7 @@ class CameraController(object):
             if ms.Z.rel < 0 or ms.Z.rel > 0:
                 pos = self._camera.position
                 self._camera.setPosition(pos + (pos * ms.Z.rel * 0.002))
-
-    def _key_pressed(self, key_event):
-        # Update the state of *_key properties  
-        self.key_observer.key_pressed(key_event)
-
-    def _key_released( self, key_event ):
-        # Update the state of *_key properties
-        self.key_observer.key_released(key_event)
-        
+                
     def _follow_node(self, node):
         if self.original_parent is not None:
             raise GraphicsError('Camera is already free')
