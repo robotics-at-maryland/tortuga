@@ -22,7 +22,8 @@ ogre_plugins = ['RenderSystem_GL', 'Plugin_ParticleFX',
                          'Plugin_OctreeSceneManager']
 
 ogre_plugin_search_path = \
-    ['C:\Developement\PythonOgre\plugins',
+    ['C:\Libraries\PythonOgre\plugins',
+     'C:\Developement\PythonOgre\plugins',
      '$MRBC_SVN_ROOT/deps/local/lib/OGRE']
     
 render_system = 'OpenGL'

@@ -27,6 +27,81 @@ event.add_event_types(['THRUST_FORE', 'THRUST_BACK',
                        'THRUST_UP', 'THRUST_DOWN','THRUST_PITCH_UP',
                        'THRUST_KILL'])
 
+class TestDepthController(object):
+    def __init__(self, robot):
+        self.robot = robot
+        self._desired_depth = 0;
+        self._desired_pitch = 0;
+        
+        watched_buttons = {'_forward' : ['THRUST_FORE'],
+                           '_backward' : ['THRUST_BACK'],
+                           '_left' : ['THRUST_LEFT'],
+                           '_right' : ['THRUST_RIGHT'],
+                           '_up' : ['THRUST_UP'],
+                           '_down' : ['THRUST_DOWN'],
+                           '_pitch_up' : ['THRUST_PITCH_UP'],
+                           '_pitch_down' : ['THRUST_PITCH_DOWN']}
+        self.key_observer = sim.input.ButtonStateObserver(self, watched_buttons)
+        
+    def update(self, time_since_last_frame):
+        if self._up:
+            self._desired_depth += 3 * time_since_last_frame
+            print self._desired_depth
+        elif self._down:
+            self._desired_depth -= 3 * time_since_last_frame
+            print self._desired_depth
+        
+        
+        # Simple P type controller for the depth
+        current_depth = self.robot._main_part._node.position.y
+        error = self._desired_depth - current_depth
+        force = error * 100
+        
+        self.robot.parts.aft_thruster.force = force 
+        self.robot.parts.front_thruster.force = force
+        
+#        actual_force = self.robot.parts.front_thruster.force
+#        print 'E: %5.4f D: %5.4f A: %5.4f FC: %06.4f FA: %06.4f' % \
+#            (error, self._desired_depth, current_depth, force, actual_force)
+            
+        # Simple P type controller for the pitch
+        current_pitch = self.robot._main_part.orientation.getPitch().valueDegrees()
+        error = self._desired_pitch - current_pitch
+        
+        fbefore = self.robot.parts.front_thruster.force
+        abefore = self.robot.parts.aft_thruster.force
+        
+        correction = (error * 0.005)
+        self.robot.parts.front_thruster.force *= 1 + (error * 0.01)
+        self.robot.parts.aft_thruster.force *= 1 - (error * 0.01)
+        
+        fafter = self.robot.parts.front_thruster.force
+        aafter = self.robot.parts.aft_thruster.force
+        
+        print 'E: %5.4f D: %5.4f A: %5.4f C: %6.5f | FB: %06.4f FA: %06.4f AB: %06.4f AA: %06.4f' % \
+            (error, self._desired_pitch, current_pitch, correction, fbefore, fafter, abefore, aafter)
+            
+        if self._forward:
+            self.robot.parts.right_thruster.force += (7.0 * time_since_last_frame)
+            self.robot.parts.left_thruster.force += (7.0 * time_since_last_frame)
+        if self._backward:
+            self.robot.parts.right_thruster.force -= (7.0 * time_since_last_frame)
+            self.robot.parts.left_thruster.force -= (7.0 * time_since_last_frame)
+        
+        if self._left:
+            self.robot.parts.left_thruster.force -= (5 * time_since_last_frame)
+            self.robot.parts.right_thruster.force += (5 * time_since_last_frame)
+        if self._right:
+            self.robot.parts.left_thruster.force += (5 * time_since_last_frame)
+            self.robot.parts.right_thruster.force -= (5 * time_since_last_frame)
+            
+        if self._pitch_up:
+            self.robot.parts.aft_thruster.force -= (5 * time_since_last_frame)
+            self.robot.parts.front_thruster.force += (5 * time_since_last_frame)
+        if self._pitch_down:
+            self.robot.parts.aft_thruster.force += (5 * time_since_last_frame)
+            self.robot.parts.front_thruster.force -= (5 * time_since_last_frame)
+
 class TestController(object):
     def __init__(self, robot):
         self.robot = robot
@@ -154,7 +229,7 @@ class SimApp(wx.App):
                                            (KC.Y,0) : 'THRUST_PITCH_UP',
                                            (KC.H,0) : 'THRUST_PITCH_DOWN'})
         
-        self._test_controller = TestController(self.sim._scenes['Main']._robots['AUT'])
+        self._test_controller = TestDepthController(self.sim._scenes['Main']._robots['AUT'])
     
     def _init_simulation(self):
         # Read in value from config file and create the right vehicle

@@ -179,7 +179,7 @@ class Thruster(Visual):
     @two_step_init
     def __init__(self):
         self.direction = Ogre.Vector3.UNIT_Z
-        self.force = 0
+        self._force = 0
         self.max_force = 0
         self.min_force = 0
         Visual.__init__(self)
@@ -198,14 +198,21 @@ class Thruster(Visual):
         Thruster._create(self, scene, min_force, max_force, direction, mesh, 
                          material, position, orientation, scale)
         
-    def update(self, time_since_last_frame):
-        # Limit thrust to min and max values
-        if self.force < self.min_force:
-            self.force = self.min_force
-        if self.force > self.max_force:
-            self.force = self.max_force
         
-        force = Ogre.Vector3(self.direction) * self.force
+    class force(core.cls_property):
+        def fget(self):
+            return self._force
+        def fset(self, force):
+            # Limit thrust to min and max values
+            if force < self.min_force:
+                self._force = self.min_force
+            elif force > self.max_force:
+                self._force = self.max_force 
+            else:
+                self._force = force
+                 
+    def update(self, time_since_last_frame):
+        force = Ogre.Vector3(self.direction) * self._force
         position = \
             self._node._getDerivedPosition() - self.parent._node._getDerivedPosition()
         self.parent.add_local_force(force, position)
@@ -217,7 +224,7 @@ class Thruster(Visual):
     
     def _draw_thrust_line(self):
         base_pt = Ogre.Vector3(0,0,0)
-        thrust_pt = (base_pt + self._node.orientation * self.direction) * self.force
+        thrust_pt = (base_pt + self._node.orientation * self.direction) * self._force
         self._thrust_line.position(base_pt)
         self._thrust_line.position(thrust_pt) 
     
