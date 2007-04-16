@@ -149,10 +149,12 @@ class Body(Object):
         self._global_force = []
         self._buoyancy_plane = None
         self._body = None
+        self._old_velocity = Ogre.Vector3.ZERO
     
         Object.__init__(self)
     
     def init(self, parent, name, scene, shape_type, shape_props, mass,
+             center_of_mass = Ogre.Vector3.ZERO, inertia = None,
              position = Ogre.Vector3.ZERO, 
              orientation = Ogre.Quaternion.IDENTITY):
         """
@@ -167,12 +169,12 @@ class Body(Object):
                             constructor.
         """  
         Object.init(self, parent, name)
-        Body._create(self, scene, shape_type, shape_props, mass, position, 
-                     orientation)
+        Body._create(self, scene, shape_type, shape_props, mass, center_of_mass,
+                     inertia, position, orientation)
         
  
-    def _create(self, scene, shape_type, shape_props, mass, position, 
-                orientation):
+    def _create(self, scene, shape_type, shape_props, mass, center_of_mass, 
+                inertia, position, orientation):
         # Create Collision Object
         # TODO: Improve collision support
         col = None
@@ -180,8 +182,8 @@ class Body(Object):
             size = Ogre.Vector3(shape_props['size'])
             col = OgreNewt.Box(scene.world, size)
         
-        self._body = scene.world.create_body(self, col, mass, position, 
-                                             orientation)
+        self._body = scene.world.create_body(self, col, mass, center_of_mass,
+                                             inertia, position, orientation)
         
     # IStorable Methods
     def load(self, data_object):
@@ -209,8 +211,12 @@ class Body(Object):
         
         position, orientation = parse_position_orientation(node)
         
-        Body._create(self, scene, shape_type, shape_props, mass, position, 
-                     orientation)
+        # Inertia and COM
+        center_of_mass = physical_node.get('center_of_mass',Ogre.Vector3.ZERO)
+        inertia = physical_node.get('inertia', None)
+        
+        Body._create(self, scene, shape_type, shape_props, mass, center_of_mass,
+                     inertia, position, orientation)
     
     def save(self, data_object):
         raise "Not yet implemented"
@@ -220,12 +226,6 @@ class Body(Object):
         return (Ogre.Vector3(force), Ogre.Vector3(pos))
     
     # IBody Methods
-    class force(core.cls_property):
-        def fget(self):
-            return self._force
-        def fset(self, force):
-            self._force = Ogre.Vector3(force)
-            
     class gravity(core.cls_property):
         def fget(self):
             return self._gravity
@@ -247,6 +247,17 @@ class Body(Object):
     class omega(core.cls_property):
         def fget(self):
             return self._body.getOmega()           
+    
+    class acceleration(core.cls_property):
+        def fget(self):
+            return self._old_velocity - self.velocity
+    
+    # Force Applying Methods
+    class force(core.cls_property):
+        def fget(self):
+            return self._force
+        def fset(self, force):
+            self._force = Ogre.Vector3(force)
     
     def add_local_force(self, force, pos):
         self._local_force.append(Body._make_force_pos_pair(force, pos))
@@ -325,7 +336,8 @@ class World(OgreNewt.World):
         """
         del self._bodies
         
-    def create_body(self, body, shape, mass, position = Ogre.Vector3.ZERO, 
+    def create_body(self, body, shape, mass, center_of_mass = Ogre.Vector3.ZERO, 
+                    inertia = None, position = Ogre.Vector3.ZERO, 
                     orientation = Ogre.Quaternion.IDENTITY):
         """
         Creates a new body and then keeps and internal reference to the 
@@ -348,9 +360,11 @@ class World(OgreNewt.World):
         newt_body.setPositionOrientation(position, orientation)
         newt_body.setCustomForceAndTorqueCallback(World._force_torque_callback, 
                                                  "")
-        inertia = shape.calculateInertialMatrix()[0]
+        if inertia is None:
+            inertia = shape.calculateInertialMatrix()[0]
         newt_body.setMassMatrix(mass, inertia)
         newt_body.autoFreeze = False
+        newt_body.centerOfMass = center_of_mass
         
         # Make the body number to our actual body object
         self._bodies.append(body)
@@ -367,6 +381,7 @@ class World(OgreNewt.World):
         @param newton_body: The body to add force and torque to
         """
         body = newton_body.getUserData()
+        body._old_velocity = body.velocity
         
         # Apply forces
         force = body.force
