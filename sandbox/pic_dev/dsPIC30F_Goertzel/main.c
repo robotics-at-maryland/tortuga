@@ -35,10 +35,10 @@ int main (void)
 		sendString("\n\rCircuit designed built and programmed by Scott and Steve\n\n\r");
 
 		//Delay so that start up message can be observed
-		for(i=0;i<100000;i++);for(i=0;i<100000;i++);
-		for(i=0;i<100000;i++);for(i=0;i<100000;i++);
-		for(i=0;i<100000;i++);for(i=0;i<100000;i++);
-		for(i=0;i<100000;i++);for(i=0;i<100000;i++);
+		//for(i=0;i<100000;i++);for(i=0;i<100000;i++);
+		//for(i=0;i<100000;i++);for(i=0;i<100000;i++);
+		//for(i=0;i<100000;i++);for(i=0;i<100000;i++);
+		//for(i=0;i<100000;i++);for(i=0;i<100000;i++);
 		for(i=0;i<100000;i++);for(i=0;i<100000;i++);
 		i=0;
 

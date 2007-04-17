@@ -1,11 +1,3 @@
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*
-* ADDITIONAL NOTES:
-* This file contains two functions - ADC_Init() and _ADCInterrupt().
-*
-**********************************************************************/
-
-
 #include "p30fxxxx.h"
 #define byte unsigned char
 
@@ -15,43 +7,26 @@ unsigned int ADResult1 = 0;
 unsigned int ADResult2 = 0;
 
 //Functions and Variables with Global Scope:
-void ADC_Init(void);
+void ADC_(void);
 void __attribute__((__interrupt__)) _ADCInterrupt(void);
+void initUart(void);
 
-void initUart()
-{
+
+void initUart(void){
     U1MODE = 0x0000;
-    U1BRG = 51;  // 25 for baud of 38400
+    U1BRG = 7;  // 25 for baud of 38400 //7 for baud of 230400 pll8
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
 }
 
-void sendByte(byte i)
-{
-  //  U1STAbits.OERR = 0;
-  //  U1STAbits.FERR = 0;
-  //  U1STAbits.PERR = 0;
-  //  U1STAbits.URXDA = 0;
-    while(U1STAbits.UTXBF);
-    U1TXREG = i;
-    while(U1STAbits.UTXBF);
-}
-
-void sendString(unsigned char str[])
-{
-    byte i=0;
-    for(i=0; str[i]!=0; i++)
-        sendByte(str[i]);
-}
 
 //Functions:
 //ADC_Init() is used to configure A/D to convert 16 samples of 1 input
 //channel per interrupt. The A/D is set up for a sampling rate of 1MSPS
 //Timer3 is used to provide sampling time delay.
 //The input pin being acquired and converted is AN7.
-void ADC_Init(void)
-{
+void ADC_Init(void){
         //ADCON1 Register
         //Set up A/D for Automatic Sampling
         //Use internal counter (SAMC) to provide sampling time
@@ -111,8 +86,24 @@ void ADC_Init(void)
 
 }
 
-void sendNum(unsigned int i)
-{
+
+void sendByte(byte i){
+  //  U1STAbits.OERR = 0;
+  //  U1STAbits.FERR = 0;
+  //  U1STAbits.PERR = 0;
+  //  U1STAbits.URXDA = 0;
+    while(U1STAbits.UTXBF);
+    U1TXREG = i;
+    while(U1STAbits.UTXBF);
+}
+
+void sendString(unsigned char str[]){
+    byte i=0;
+    for(i=0; str[i]!=0; i++)
+        sendByte(str[i]);
+}
+
+void sendNum(unsigned int i){
 	unsigned char tmp[10];
 	sprintf(tmp, "%u ", i);
 	sendString(tmp);
@@ -133,8 +124,34 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void)
 		result[count++] = ADResult1;
 		result[count++] = ADResult2;
 
-        if(count>=500)
-		{
+        if(count>=500){
+				int i=0;
+				byte temp;
+
+				//sendString("\n\rData: ");
+				for(i=0; i<500; i++){
+					//sendNum(result[i]);
+					temp = (byte)(result[i]>>2);
+					sendByte(temp);
+					//if(i%10==0){
+					//	sendString("\n\r");
+					//} 
+				}
+				count = 0; 
+    		
+		}
+//original code
+/*	ADResult1 = ADCBUF0;
+	ADResult2 = ADCBUF1;
+	
+        //Clear the A/D Interrupt flag bit or else the CPU will
+        //keep vectoring back to the ISR
+        IFS0bits.ADIF = 0;
+	
+		result[count++] = ADResult1;
+		result[count++] = ADResult2;
+
+        if(count>=500){
 				int i=0;
 
 				sendString("\n\rData: ");
@@ -143,5 +160,6 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void)
 				count = 0; 
     		
 		}
+*/
 }
 
