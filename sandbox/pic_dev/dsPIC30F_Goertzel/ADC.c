@@ -11,6 +11,21 @@ void ADC_(void);
 void __attribute__((__interrupt__)) _ADCInterrupt(void);
 void initUart(void);
 
+/* UART BRG "Baud" rate calculation "How To"
+Baud Rate is the same as Bits Per Second
+
+	U1BRG = (MIPS / 4 / BAUD / 16) - 1
+
+EXAMPLE...
+15MHz Oscillator with pll of 8
+MIPS = 15MMhz * pll8 = 120,000,000
+120000000/4 = 30,000,000
+30000000/BAUD(230400) = 130.208...
+130.208... / 16 - 1 = 7.138... ~~~ 7
+
+****don't forget to invert the signal coming out of the PIC
+to create a signal that most computer's serial ports will 
+interpret  */
 
 void initUart(void){
     U1MODE = 0x0000;
@@ -19,7 +34,6 @@ void initUart(void){
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
 }
-
 
 //Functions:
 //ADC_Init() is used to configure A/D to convert 16 samples of 1 input
@@ -83,10 +97,9 @@ void ADC_Init(void){
         //Turn on the A/D converter
         //This is typically done after configuring other registers
         ADCON1bits.ADON = 1;
-
 }
 
-
+//Use this function to send 1 byte to the UART
 void sendByte(byte i){
   //  U1STAbits.OERR = 0;
   //  U1STAbits.FERR = 0;
@@ -97,12 +110,16 @@ void sendByte(byte i){
     while(U1STAbits.UTXBF);
 }
 
+//Use this function to send literal strings in quotes as
+//ASCII bytes to the UART
 void sendString(unsigned char str[]){
     byte i=0;
     for(i=0; str[i]!=0; i++)
         sendByte(str[i]);
 }
 
+//Use this function to send an unsigned integer to the UART
+//as ASCII text
 void sendNum(unsigned int i){
 	unsigned char tmp[10];
 	sprintf(tmp, "%u ", i);
@@ -112,8 +129,7 @@ void sendNum(unsigned int i){
 //_ADCInterrupt() is the A/D interrupt service routine (ISR).
 //The routine must have global scope in order to be an ISR.
 //The ISR name is chosen from the device linker script.
-void __attribute__((__interrupt__)) _ADCInterrupt(void)
-{
+void __attribute__((__interrupt__)) _ADCInterrupt(void){
 	ADResult1 = ADCBUF0;
 	ADResult2 = ADCBUF1;
 	
@@ -140,7 +156,7 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void)
 				count = 0; 
     		
 		}
-//original code
+//original code from ADC interupt function for reference
 /*	ADResult1 = ADCBUF0;
 	ADResult2 = ADCBUF1;
 	
@@ -158,7 +174,6 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void)
 				for(i=0; i<500; i++)
 					sendNum(result[i]);
 				count = 0; 
-    		
 		}
 */
 }
