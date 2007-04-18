@@ -6,8 +6,10 @@ throughput of 7.3728e+6*16/4 = 29.4 MIPS(Fcy)
 ,~33.9 nanoseconds instruction cycle time(Tcy).
 _FOSC(CSW_FSCM_OFF & XT_PLL16); //this one from the sample code as is the above comment  */
 
+_FOSC(CSW_FSCM_OFF & XT_PLL16);
+
 //For the dsPIC30F4012
-_FOSC(CSW_FSCM_OFF & XT_PLL8);
+//_FOSC(CSW_FSCM_OFF & XT_PLL8);
 _FOSCSEL(PRIOSC_PLL);
 _FWDT ( WDT_OFF );				//Turn off the Watch-Dog Timer.
 _FGS(CODE_PROT_OFF);			//Disable Code Protection
