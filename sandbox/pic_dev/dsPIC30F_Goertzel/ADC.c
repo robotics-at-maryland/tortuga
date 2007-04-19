@@ -1,7 +1,7 @@
 #include "p30fxxxx.h"
 #define byte unsigned char
 
-unsigned int result[500];
+unsigned int result[900];
 unsigned int count = 0;
 unsigned int ADResult1 = 0;
 unsigned int ADResult2 = 0;
@@ -73,8 +73,8 @@ Using equaion in the Family Reference Manual we have
 	ADCS = 2*Tad/Tcy - 1  		*/
 
 //SAMC needs updating to 0b'00001' or ob'00010'
-	ADCON3bits.SAMC = 1;	//minimum sampling time  //was 0;
-	ADCON3bits.ADCS = 6;	//minimum Tad time   //was 4;
+	ADCON3bits.SAMC = 2;	//minimum sampling time  //was 0;
+	ADCON3bits.ADCS = 9;	//minimum Tad time   //was 4;
 
 /*___ADCHS Register___
 Set up A/D Channel Select Register to convert AN3 on Mux A input
@@ -141,12 +141,12 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 		result[count++] = ADResult1;
 		result[count++] = ADResult2;
 
-        if(count>=500){
+        if(count>=900){
 				int i=0;
 				byte temp;
 
 				//sendString("\n\rData: ");
-				for(i=0; i<500; i++){
+				for(i=0; i<900; i++){
 					
 					temp = (byte)(result[i]>>2);
 					sendByte(temp);

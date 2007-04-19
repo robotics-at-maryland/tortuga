@@ -56,13 +56,13 @@ Data Memory Usage
 
 section        address      alignment gaps    total length  (dec)
 -------        -------      --------------    -------------------
-.nbss            0x800                   0           0x3e8  (1000)
-.ndata           0xbe8                   0            0x22  (34)
-.ndata           0xc0a                   0            0x12  (18)
-.ndata           0xc1c                   0             0x6  (6)
-.dconst          0xc22                   0             0x8  (8)
+.nbss            0x800                   0           0x708  (1800)
+.ndata           0xf08                   0            0x22  (34)
+.ndata           0xf2a                   0            0x12  (18)
+.ndata           0xf3c                   0             0x6  (6)
+.dconst          0xf42                   0             0x8  (8)
 
-            Total data memory used (bytes):          0x42a  (1066) 52%
+            Total data memory used (bytes):          0x74a  (1866) 91%
 
 
 Dynamic Memory Usage
@@ -70,23 +70,23 @@ Dynamic Memory Usage
 region         address                      maximum length  (dec)
 ------         -------                      ---------------------
 heap                 0                                   0  (0)
-stack            0xc2a                               0x3d6  (982)
+stack            0xf4a                                0xb6  (182)
 
-            Maximum dynamic memory (bytes):          0x3d6  (982)
+            Maximum dynamic memory (bytes):           0xb6  (182)
 
 
 External Symbols in Data Memory (by address):
 
                     0x0800                  _result
-                    0x0c1c                  _count
-                    0x0c1e                  _ADResult1
-                    0x0c20                  _ADResult2
+                    0x0f3c                  _count
+                    0x0f3e                  _ADResult1
+                    0x0f40                  _ADResult2
 
 External Symbols in Data Memory (by name):
 
-                    0x0c1e                  _ADResult1
-                    0x0c20                  _ADResult2
-                    0x0c1c                  _count
+                    0x0f3e                  _ADResult1
+                    0x0f40                  _ADResult2
+                    0x0f3c                  _count
                     0x0800                  _result
 
 External Symbols in Program Memory (by address):
@@ -1277,24 +1277,24 @@ LOAD default_isr
 .const              0x8e0e          0x4
  .const             0x8e0e          0x4 C:\PICprog\dsPIC30 Goertzel\ADC.o
 
-.nbss               0x0800        0x3e8
- .nbss              0x0800        0x3e8 C:\PICprog\dsPIC30 Goertzel\ADC.o
+.nbss               0x0800        0x708
+ .nbss              0x0800        0x708 C:\PICprog\dsPIC30 Goertzel\ADC.o
                     0x0800                  result
 
-.ndata              0x0be8         0x22
- .ndata             0x0be8         0x22 C:\Program Files\Microchip\MPLAB C30\bin\..\lib\libc-coff.a(xlitob.o)
+.ndata              0x0f08         0x22
+ .ndata             0x0f08         0x22 C:\Program Files\Microchip\MPLAB C30\bin\..\lib\libc-coff.a(xlitob.o)
 
-.ndata              0x0c0a         0x12
- .ndata             0x0c0a         0x12 C:\Program Files\Microchip\MPLAB C30\bin\..\lib\libc-coff.a(xprintf.io)
+.ndata              0x0f2a         0x12
+ .ndata             0x0f2a         0x12 C:\Program Files\Microchip\MPLAB C30\bin\..\lib\libc-coff.a(xprintf.io)
 
-.ndata              0x0c1c          0x6
- .ndata             0x0c1c          0x6 C:\PICprog\dsPIC30 Goertzel\ADC.o
-                    0x0c1c                  count
-                    0x0c1e                  ADResult1
-                    0x0c20                  ADResult2
+.ndata              0x0f3c          0x6
+ .ndata             0x0f3c          0x6 C:\PICprog\dsPIC30 Goertzel\ADC.o
+                    0x0f3c                  count
+                    0x0f3e                  ADResult1
+                    0x0f40                  ADResult2
 
-.dconst             0x0c22          0x8
- .dconst            0x0c22          0x8 C:\Program Files\Microchip\MPLAB C30\bin\..\lib\libc-coff.a(xprintf.io)
+.dconst             0x0f42          0x8
+ .dconst            0x0f42          0x8 C:\Program Files\Microchip\MPLAB C30\bin\..\lib\libc-coff.a(xprintf.io)
 
 .dinit            0x000e12         0x4e
  .dinit           0x000e12         0x4e data_init
