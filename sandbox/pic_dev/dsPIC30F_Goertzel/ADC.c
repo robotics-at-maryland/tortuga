@@ -1,10 +1,11 @@
 #include "p30fxxxx.h"
 #define byte unsigned char
 
-unsigned int result[900];
+//unsigned int result[900];
+byte result[1960];
 unsigned int count = 0;
-unsigned int ADResult1 = 0;
-unsigned int ADResult2 = 0;
+//unsigned int ADResult1 = 0;
+//unsigned int ADResult2 = 0;
 
 //Functions and Variables with Global Scope:
 void ADC_(void);
@@ -131,25 +132,29 @@ void sendNum(unsigned int i){
 //The routine must have global scope in order to be an ISR.
 //The ISR name is chosen from the device linker script.
 void __attribute__((__interrupt__)) _ADCInterrupt(void){
-	ADResult1 = ADCBUF0;
-	ADResult2 = ADCBUF1;
+	//ADResult1 = ADCBUF0;
+	//ADResult2 = ADCBUF1;
 	
         //Clear the A/D Interrupt flag bit or else the CPU will
         //keep vectoring back to the ISR
         IFS0bits.ADIF = 0;
 	
-		result[count++] = ADResult1;
-		result[count++] = ADResult2;
+		//result[count++] = ADResult1;
+		//result[count++] = ADResult2;
+		result[count++] = (byte)(ADCBUF0>>2);
+		result[count++] = (byte)(ADCBUF1>>2);
 
-        if(count>=900){
+        if(count>=1950){
 				int i=0;
-				byte temp;
+				//byte temp;
 
 				//sendString("\n\rData: ");
-				for(i=0; i<900; i++){
+				for(i=0; i<1950; i++){
 					
-					temp = (byte)(result[i]>>2);
-					sendByte(temp);
+					//temp = (byte)(result[i]>>2);
+					//sendByte(temp);
+
+					sendByte(result[i]);
 
 					//sendNum(result[i]);
 					//if(i%10==0){

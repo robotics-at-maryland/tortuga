@@ -25,7 +25,7 @@ void sendString(unsigned char * s);
 void toggleinfinite(void);
 
 int main (void){
-		long i=0, j=0, t=0, b=0;
+		//long i=0, j=0, t=0, b=0;
     	initUart();
         //sendString("\n\rRunning...\n\n\r");
 		//sendString("\n\rCircuit designed built and programmed by Scott and Steve\n\n\r");

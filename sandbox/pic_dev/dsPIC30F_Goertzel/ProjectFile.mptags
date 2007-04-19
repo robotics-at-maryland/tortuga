@@ -6,34 +6,27 @@
 !_TAG_PROGRAM_VERSION	5.5.4	//
 !_TAG_REVISION_NAME	MCHPTags	//
 !_TAG_REVISION_VERSION	6.0.1	//
-ADC_	C:\PICprog\dsPIC30 Goertzel\ADC.c	10;"	p	line:10	file:	signature:(void)
-ADC_Init	C:\PICprog\dsPIC30 Goertzel\ADC.c	42;"	f	line:42	signature:(void)
-ADResult1	C:\PICprog\dsPIC30 Goertzel\ADC.c	6;"	v	line:6
-ADResult2	C:\PICprog\dsPIC30 Goertzel\ADC.c	7;"	v	line:7
+ADC_	C:\PICprog\dsPIC30 Goertzel\ADC.c	11;"	p	line:11	file:	signature:(void)
+ADC_Init	C:\PICprog\dsPIC30 Goertzel\ADC.c	43;"	f	line:43	signature:(void)
 CODE_PROT_OFF	C:\PICprog\dsPIC30 Goertzel\main.c	15;"	v	line:15
 PRIOSC_PLL	C:\PICprog\dsPIC30 Goertzel\main.c	13;"	v	line:13
 WDT_OFF	C:\PICprog\dsPIC30 Goertzel\main.c	14;"	v	line:14
 XT_PLL16	C:\PICprog\dsPIC30 Goertzel\main.c	9;"	v	line:9
-_ADCInterrupt	C:\PICprog\dsPIC30 Goertzel\ADC.c	11;"	p	line:11	file:	signature:(void)
-_ADCInterrupt	C:\PICprog\dsPIC30 Goertzel\ADC.c	133;"	f	line:133	signature:(void)
-b	C:\PICprog\dsPIC30 Goertzel\main.c	28;"	l	line:28
+_ADCInterrupt	C:\PICprog\dsPIC30 Goertzel\ADC.c	12;"	p	line:12	file:	signature:(void)
+_ADCInterrupt	C:\PICprog\dsPIC30 Goertzel\ADC.c	134;"	f	line:134	signature:(void)
 byte::unsignedchar	C:\PICprog\dsPIC30 Goertzel\ADC.c	2;"	d	line:2	file:
-count	C:\PICprog\dsPIC30 Goertzel\ADC.c	5;"	v	line:5
-i	C:\PICprog\dsPIC30 Goertzel\ADC.c	117;"	l	line:117
-i	C:\PICprog\dsPIC30 Goertzel\ADC.c	145;"	l	line:145
-i	C:\PICprog\dsPIC30 Goertzel\main.c	28;"	l	line:28
+count	C:\PICprog\dsPIC30 Goertzel\ADC.c	6;"	v	line:6
+i	C:\PICprog\dsPIC30 Goertzel\ADC.c	118;"	l	line:118
+i	C:\PICprog\dsPIC30 Goertzel\ADC.c	148;"	l	line:148
 i	C:\PICprog\dsPIC30 Goertzel\main.c	47;"	l	line:47
-initUart	C:\PICprog\dsPIC30 Goertzel\ADC.c	12;"	p	line:12	file:	signature:(void)
-initUart	C:\PICprog\dsPIC30 Goertzel\ADC.c	30;"	f	line:30	signature:(void)
-j	C:\PICprog\dsPIC30 Goertzel\main.c	28;"	l	line:28
+initUart	C:\PICprog\dsPIC30 Goertzel\ADC.c	13;"	p	line:13	file:	signature:(void)
+initUart	C:\PICprog\dsPIC30 Goertzel\ADC.c	31;"	f	line:31	signature:(void)
 main	C:\PICprog\dsPIC30 Goertzel\main.c	27;"	f	line:27	signature:(void)
-result	C:\PICprog\dsPIC30 Goertzel\ADC.c	4;"	v	line:4
-sendByte	C:\PICprog\dsPIC30 Goertzel\ADC.c	104;"	f	line:104	signature:(byte i)
-sendNum	C:\PICprog\dsPIC30 Goertzel\ADC.c	124;"	f	line:124	signature:(unsigned int i)
-sendString	C:\PICprog\dsPIC30 Goertzel\ADC.c	116;"	f	line:116	signature:(unsigned char str[])
+result	C:\PICprog\dsPIC30 Goertzel\ADC.c	5;"	v	line:5
+sendByte	C:\PICprog\dsPIC30 Goertzel\ADC.c	105;"	f	line:105	signature:(byte i)
+sendNum	C:\PICprog\dsPIC30 Goertzel\ADC.c	125;"	f	line:125	signature:(unsigned int i)
+sendString	C:\PICprog\dsPIC30 Goertzel\ADC.c	117;"	f	line:117	signature:(unsigned char str[])
 sendString	C:\PICprog\dsPIC30 Goertzel\main.c	24;"	p	line:24	file:	signature:(unsigned char * s)
-t	C:\PICprog\dsPIC30 Goertzel\main.c	28;"	l	line:28
-temp	C:\PICprog\dsPIC30 Goertzel\ADC.c	146;"	l	line:146
-tmp	C:\PICprog\dsPIC30 Goertzel\ADC.c	125;"	l	line:125
+tmp	C:\PICprog\dsPIC30 Goertzel\ADC.c	126;"	l	line:126
 toggleinfinite	C:\PICprog\dsPIC30 Goertzel\main.c	25;"	p	line:25	file:	signature:(void)
 toggleinfinite	C:\PICprog\dsPIC30 Goertzel\main.c	42;"	f	line:42
