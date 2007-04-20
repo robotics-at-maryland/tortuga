@@ -152,7 +152,12 @@ struct from_py_sequence{
             return 0;
         }
 
+        if( !PyObject_HasAttrString( py_obj, "__len__" ) ){
+            return 0;
+        }
+
         python::object py_sequence( handle<>( borrowed( py_obj ) ) );
+    
         if( tuples::length< TTuple >::value != len( py_sequence ) ){
             return 0;
         }

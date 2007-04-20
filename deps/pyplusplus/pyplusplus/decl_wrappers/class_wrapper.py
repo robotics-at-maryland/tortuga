@@ -19,7 +19,7 @@ ACCESS_TYPES = declarations.ACCESS_TYPES
 VIRTUALITY_TYPES = declarations.VIRTUALITY_TYPES
 
 class impl_details:
-    class GAEUS_VALUES: #guess always expose using scope values
+    class GUESS_VALUES: #guess always expose using scope values
         TRUE = 'true'
         FALSE = 'false'
         ALWAYS_TRUE = 'always true'
@@ -91,16 +91,16 @@ class class_common_details_t( object ):
     def guess_always_expose_using_scope_value( self ):
         if isinstance( self.indexing_suite, isuite2.indexing_suite2_t ) \
            and ( self.indexing_suite.disable_methods or self.indexing_suite.disabled_methods_groups ):
-            return impl_details.GAEUS_VALUES.ALWAYS_TRUE
+            return impl_details.GUESS_VALUES.ALWAYS_TRUE
         else:
-            return impl_details.GAEUS_VALUES.FALSE
+            return impl_details.GUESS_VALUES.FALSE
 
     def _get_always_expose_using_scope( self ):
         tmp = self.guess_always_expose_using_scope_value()
-        if tmp == impl_details.GAEUS_VALUES.ALWAYS_TRUE:
+        if tmp == impl_details.GUESS_VALUES.ALWAYS_TRUE:
             return True
         if None is self._always_expose_using_scope:
-            if impl_details.GAEUS_VALUES.TRUE == tmp:
+            if impl_details.GUESS_VALUES.TRUE == tmp:
                 self._always_expose_using_scope = True
             else:
                 self._always_expose_using_scope = False
@@ -160,6 +160,10 @@ class class_common_details_t( object ):
             return False
         except:
             return False
+    
+    @property
+    def class_var_name(self):
+        return self.alias + '_exposer'
 
 #this will only be exported if indexing suite is not None and only when needed
 class class_declaration_t( class_common_details_t
@@ -173,6 +177,12 @@ class class_declaration_t( class_common_details_t
 class class_t( class_common_details_t
                , scopedef_wrapper.scopedef_t
                , declarations.class_t):
+    
+    class EXPOSED_CLASS_TYPE:
+        DECLARED = 'declared'
+        WRAPPER = 'wrapper'
+        ALL = ( DECLARED, WRAPPER )
+        
     def __init__(self, *arguments, **keywords):
         class_common_details_t.__init__( self )
         declarations.class_t.__init__(self, *arguments, **keywords )
@@ -190,13 +200,24 @@ class class_t( class_common_details_t
         self._exception_translation_code = None
         self._properties = []
         self._redefined_funcs = None
-
+        self._require_self_reference  = False
+        self._exposed_class_type = self.EXPOSED_CLASS_TYPE.DECLARED
+        
     def _get_redefine_operators( self ):
         return self._redefine_operators
     def _set_redefine_operators( self, new_value ):
         self._redefine_operators = new_value
     redefine_operators = property( _get_redefine_operators, _set_redefine_operators
                                    , doc="tells Py++ to redefine operators from base class in this class, False by default")
+
+    def _get_exposed_class_type(self):
+        return self._exposed_class_type
+    def _set_exposed_class_type(self, class_type):
+        assert class_type in self.EXPOSED_CLASS_TYPE.ALL
+        self._class_type = class_type
+    exposed_class_type = property( _get_exposed_class_type, _set_exposed_class_type
+                          , doc="set this value to CLASS_TYPE.WRAPPER, if you need to transfer ownership of" \
+                                "polymorphic class" )
 
     def _get_held_type(self):
         return self._held_type
@@ -480,30 +501,32 @@ class class_t( class_common_details_t
         if self.copy_constructor_body:
             explanation.append( messages.W1022 )
 
-        if self.redefined_funcs():
-            explanation.append( messages.W1023 )
+        redefined_funcs = self.redefined_funcs()
+        if redefined_funcs:
+            funcs = map( lambda f: f.name, redefined_funcs )
+            explanation.append( messages.W1023 % ', '.join(funcs) )
 
         for member in self.get_exportable_members():
             if isinstance( member, declarations.destructor_t ):
                 continue
             if isinstance( member, declarations.variable_t ):
                 if member.bits:
-                    explanation.append( messages.W1024 )
+                    explanation.append( messages.W1024 % member.name )
                 if declarations.is_pointer( member.type ):
-                    explanation.append( messages.W1025 )
+                    explanation.append( messages.W1025 % member.name )
                 if declarations.is_reference( member.type ):
-                    explanation.append( messages.W1026 )
+                    explanation.append( messages.W1026 % member.name )
                 if declarations.is_array( member.type ):
-                    explanation.append( messages.W1027 )
+                    explanation.append( messages.W1027 % member.name)
             if isinstance( member, declarations.class_t ) and member.is_wrapper_needed():
-                explanation.append( messages.W1028 )
+                explanation.append( messages.W1028 % member.name)
             if isinstance( member, declarations.calldef_t ):
                 if isinstance( member, declarations.constructor_t ) and member.body:
                     explanation.append( messages.W1029 )
                 if member.virtuality != VIRTUALITY_TYPES.NOT_VIRTUAL:
-                    explanation.append( messages.W1030 )
+                    explanation.append( messages.W1030 % member.name )
                 if member.access_type in ( ACCESS_TYPES.PROTECTED, ACCESS_TYPES.PRIVATE ):
-                    explanation.append( messages.W1031 )
+                    explanation.append( messages.W1031 % member.name)
         return explanation
 
     def _readme_impl( self ):
@@ -520,5 +543,12 @@ class class_t( class_common_details_t
             return True
         #MSVC 7.1 has problem with taking reference to operator=
         if self.member_operators( is_assign, allow_empty=True, recursive=False ):
-            return impl_details.GAEUS_VALUES.ALWAYS_TRUE
+            return impl_details.GUESS_VALUES.ALWAYS_TRUE
         return super(class_t, self).guess_always_expose_using_scope_value()    
+
+    def _get_require_self_reference(self):
+        return self._require_self_reference
+    def _set_require_self_reference(self, require_self_reference):
+        self._require_self_reference = require_self_reference
+    require_self_reference = property( _get_require_self_reference, _set_require_self_reference
+                     , doc="boolean, if True the first argument to the constructor will be reference to self object" )

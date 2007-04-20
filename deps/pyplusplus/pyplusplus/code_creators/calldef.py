@@ -134,6 +134,11 @@ class calldef_t( registration_based.registration_based_t
 
         return ''.join( result )
 
+    def _get_system_headers_impl( self ):
+        files = []
+        if self.declaration.call_policies:
+            files.append( self.declaration.call_policies.header_file )
+        return files
 
 class calldef_wrapper_t( code_creator.code_creator_t
                          , declaration_based.declaration_based_t):
@@ -169,6 +174,15 @@ class calldef_wrapper_t( code_creator.code_creator_t
                 return ' throw( ' + self.PARAM_SEPARATOR.join( exceptions ) + ' )'
         else:
             return ' throw()'
+
+    def _get_system_headers_impl( self ):
+        files = []
+        if self.declaration.transformations:
+            ft = self.declaration.transformations[0]
+            files.extend( ft.required_headers() )
+        if self.declaration.call_policies:
+            files.append( self.declaration.call_policies.header_file )            
+        return files
 
 class free_function_t( calldef_t ):
     def __init__( self, function ):
@@ -260,6 +274,9 @@ class mem_fun_pv_wrapper_t( calldef_wrapper_t ):
         if not self.declaration.overridable:
             return self.unoverriden_function_body()
         template = []
+        precall_code = self.declaration.override_precall_code
+        if precall_code:
+            template.append( os.linesep.join( precall_code ) )
         template.append( '%(override)s func_%(alias)s = this->get_override( "%(alias)s" );' )
         template.append( '%(return_)sfunc_%(alias)s( %(args)s );')
         template = os.linesep.join( template )
@@ -360,10 +377,13 @@ class mem_fun_v_wrapper_t( calldef_wrapper_t ):
 
     def create_virtual_body(self):
         template = []
+        precall_code = self.declaration.override_precall_code
+        if precall_code:
+            template.append( os.linesep.join( precall_code ) )
         template.append( 'if( %(override)s func_%(alias)s = this->get_override( "%(alias)s" ) )' )
         template.append( self.indent('%(return_)sfunc_%(alias)s( %(args)s );') )
         template.append( 'else' )
-        template.append( self.indent('%(return_)s%(wrapped_class)s::%(name)s( %(args)s );') )
+        template.append( self.indent('%(return_)sthis->%(wrapped_class)s::%(name)s( %(args)s );') )
         template = os.linesep.join( template )
 
         return_ = ''
@@ -385,7 +405,11 @@ class mem_fun_v_wrapper_t( calldef_wrapper_t ):
         body = self.wrapped_class_identifier() + '::' + function_call + ';'
         if not declarations.is_void( self.declaration.return_type ):
             body = 'return ' + body
+        precall_code = self.declaration.default_precall_code
+        if precall_code:
+            body = os.linesep.join( precall_code ) + os.linesep + body
         return body
+
 
     def create_function(self):
         answer = [ self.create_declaration(self.declaration.name) + '{' ]
@@ -590,10 +614,15 @@ class mem_fun_protected_v_wrapper_t( calldef_wrapper_t ):
 
     def create_virtual_body(self):
         template = []
+        
+        precall_code = self.declaration.override_precall_code
+        if precall_code:
+            template.append( os.linesep.join( precall_code ) )
+
         template.append( 'if( %(override)s func_%(alias)s = this->get_override( "%(alias)s" ) )' )
         template.append( self.indent('%(return_)sfunc_%(alias)s( %(args)s );') )
         template.append( 'else' )
-        template.append( self.indent('%(return_)s%(wrapped_class)s::%(name)s( %(args)s );') )
+        template.append( self.indent('%(return_)sthis->%(wrapped_class)s::%(name)s( %(args)s );') )
         template = os.linesep.join( template )
 
         return_ = ''
@@ -670,6 +699,11 @@ class mem_fun_protected_pv_wrapper_t( calldef_wrapper_t ):
             return self.unoverriden_function_body()
 
         template = []
+
+        precall_code = self.declaration.override_precall_code
+        if precall_code:
+            template.append( os.linesep.join( precall_code ) )
+
         template.append( '%(override)s func_%(alias)s = this->get_override( "%(alias)s" );' )
         template.append( '%(return_)sfunc_%(alias)s( %(args)s );')
         template = os.linesep.join( template )
@@ -725,6 +759,11 @@ class mem_fun_private_v_wrapper_t( calldef_wrapper_t ):
             return self.unoverriden_function_body()
 
         template = []
+        
+        precall_code = self.declaration.override_precall_code
+        if precall_code:
+            template.append( os.linesep.join( precall_code ) )
+
         template.append( '%(override)s func_%(alias)s = this->get_override( "%(alias)s" );' )
         template.append( '%(return_)sfunc_%(alias)s( %(args)s );')
         template = os.linesep.join( template )
@@ -824,6 +863,9 @@ class static_method_t( declaration_based.declaration_based_t
     def _create_impl( self ):
         return 'staticmethod( "%s" )' % self.function_code_creator.alias
 
+    def _get_system_headers_impl( self ):
+        return []
+
 class constructor_wrapper_t( calldef_wrapper_t ):
     """
     Creates C++ code that builds wrapper arround exposed constructor.
@@ -837,8 +879,9 @@ class constructor_wrapper_t( calldef_wrapper_t ):
         result.append( self.parent.wrapper_alias )
         result.append( '(' )
         args = []
-        if not self.target_configuration.boost_python_has_wrapper_held_type:
-            args.append( 'PyObject*' )
+        if not self.target_configuration.boost_python_has_wrapper_held_type \
+           or self.declaration.parent.require_self_reference:
+            args.append( 'PyObject* self' )
         args_decl = self.args_declaration()
         if args_decl:
             args.append( args_decl )
@@ -860,8 +903,13 @@ class constructor_wrapper_t( calldef_wrapper_t ):
     def _create_impl(self):
         answer = [ self._create_declaration() ]
         answer.append( ': ' + self._create_constructor_call() )
-        answer.append( '  , ' +  self.parent.boost_wrapper_identifier + '()' )
-        answer.append( '{   // Normal constructor' )
+        answer.append( '  , ' +  self.parent.boost_wrapper_identifier + '(){' )
+        if( self.declaration.is_copy_constructor ):
+            answer.append( self.indent( '// copy constructor' ) )
+        elif not self.declaration.arguments:
+            answer.append( self.indent( '// null constructor' ) )
+        else:
+            answer.append( self.indent( '// constructor' ) )
         answer.append( self.declaration.body )
         answer.append( '}' )
         return os.linesep.join( answer )
@@ -875,17 +923,18 @@ class copy_constructor_wrapper_t( code_creator.code_creator_t
     """
     Creates wrapper class constructor from wrapped class instance.
     """
-    def __init__( self, class_inst ):
+    def __init__( self, constructor ):
         code_creator.code_creator_t.__init__( self )
-        declaration_based.declaration_based_t.__init__( self, declaration=class_inst )
+        declaration_based.declaration_based_t.__init__( self, declaration=constructor )
 
     def _create_declaration(self):
         result = []
-        result.append( self.parent.wrapper_alias )
+        result.append( self.parent.declaration.wrapper_alias )
         result.append( '(' )
-        if not self.target_configuration.boost_python_has_wrapper_held_type:
-            result.append( 'PyObject*, ' )
-        declarated = declarations.declarated_t( self.declaration )
+        if not self.target_configuration.boost_python_has_wrapper_held_type \
+           or self.declaration.parent.require_self_reference:
+            result.append( 'PyObject* self, ' )
+        declarated = declarations.declarated_t( self.declaration.parent )
         const_decl = declarations.const_t( declarated )
         const_ref_decl = declarations.reference_t( const_decl )
         identifier = algorithm.create_identifier( self, const_ref_decl.decl_string )
@@ -903,34 +952,40 @@ class copy_constructor_wrapper_t( code_creator.code_creator_t
         answer.append( ': ' + self._create_constructor_call() )
         answer.append( '  , ' +  self.parent.boost_wrapper_identifier + '(){' )
         answer.append( self.indent( '// copy constructor' ) )
-        answer.append( self.indent( self.declaration.copy_constructor_body ) )
+        answer.append( self.indent( self.parent.declaration.copy_constructor_body ) )
         answer.append( '}' )
         return os.linesep.join( answer )
 
+    def _get_system_headers_impl( self ):
+        return []
 
 class null_constructor_wrapper_t( code_creator.code_creator_t
                                   , declaration_based.declaration_based_t ):
     """
     Creates wrapper for compiler generated null constructor.
     """
-    def __init__( self, class_inst ):
+    def __init__( self, constructor ):
         code_creator.code_creator_t.__init__( self )
-        declaration_based.declaration_based_t.__init__( self, declaration=class_inst )
-
+        declaration_based.declaration_based_t.__init__( self, declaration=constructor )
+        
     def _create_constructor_call( self ):
         return algorithm.create_identifier( self, self.parent.declaration.decl_string ) + '()'
 
     def _create_impl(self):
-        answer = [ self.parent.wrapper_alias + '(' ]
-        if not self.target_configuration.boost_python_has_wrapper_held_type:
-            answer[0] = answer[0] + 'PyObject*'
+        answer = [ self.parent.declaration.wrapper_alias + '(' ]
+        if not self.target_configuration.boost_python_has_wrapper_held_type \
+           or self.declaration.parent.require_self_reference:
+            answer[0] = answer[0] + 'PyObject* self'
         answer[0] = answer[0] + ')'
         answer.append( ': ' + self._create_constructor_call() )
         answer.append( '  , ' +  self.parent.boost_wrapper_identifier + '(){' )
         answer.append( self.indent( '// null constructor' ) )
-        answer.append( self.indent( self.declaration.null_constructor_body ) )
+        answer.append( self.indent( self.parent.declaration.null_constructor_body ) )
         answer.append( '}' )
         return os.linesep.join( answer )
+
+    def _get_system_headers_impl( self ):
+        return []
 
 #in python all operators are members of class, while in C++
 #you can define operators that are not.
@@ -978,8 +1033,13 @@ class operator_t( registration_based.registration_based_t
             assert not "Unable to find out boost::python::self position. " + str( self.declaration )
 
     def _create_binary_operator(self):
-        answer = [ None, self.declaration.symbol, None ]
         self_identifier = algorithm.create_identifier( self, '::boost::python::self' )
+
+        if self.declaration.symbol == '<<':
+            str_identifier = algorithm.create_identifier( self, '::boost::python::self_ns::str' )
+            return '%s( %s )' % ( str_identifier, self_identifier )
+        
+        answer = [ None, self.declaration.symbol, None ]
         self_position = self._findout_self_position()
         if self_position == self.SELF_POSITION.FIRST:
             answer[0] = self_identifier
@@ -1008,6 +1068,9 @@ class operator_t( registration_based.registration_based_t
             code = self._create_unary_operator()
         return 'def( %s )' % code
 
+    def _get_system_headers_impl( self ):
+        return []
+
 class casting_operator_t( registration_based.registration_based_t
                           , declaration_based.declaration_based_t ):
     """
@@ -1028,6 +1091,9 @@ class casting_operator_t( registration_based.registration_based_t
         return declarations.templates.join(implicitly_convertible
                                            , [ from_arg , to_arg ] )  \
                + '();'
+
+    def _get_system_headers_impl( self ):
+        return []
 
 class casting_member_operator_t( registration_based.registration_based_t
                                  , declaration_based.declaration_based_t ):
@@ -1064,6 +1130,9 @@ class casting_member_operator_t( registration_based.registration_based_t
                             , 'doc' : doc
                }
 
+    def _get_system_headers_impl( self ):
+        return []
+
 class casting_constructor_t( registration_based.registration_based_t
                              , declaration_based.declaration_based_t ):
     """
@@ -1086,6 +1155,8 @@ class casting_constructor_t( registration_based.registration_based_t
                                            , [ from_arg , to_arg ] )  \
                + '();'
 
+    def _get_system_headers_impl( self ):
+        return []
 
 
 class calldef_overloads_class_t( code_creator.code_creator_t ):
@@ -1158,6 +1229,9 @@ class mem_fun_overloads_class_t( calldef_overloads_class_t ):
                    , 'max' : max_
                }
 
+    def _get_system_headers_impl( self ):
+        return []
+
 class free_fun_overloads_class_t( calldef_overloads_class_t ):
     def __init__( self, free_funs ):
         #precondition: all member functions belong to same class and
@@ -1175,6 +1249,9 @@ class free_fun_overloads_class_t( calldef_overloads_class_t ):
                    , 'min' : min_
                    , 'max' : max_
                }
+
+    def _get_system_headers_impl( self ):
+        return []
 
 class calldef_overloads_t( registration_based.registration_based_t ):
     def __init__( self, overloads_class ):
@@ -1213,9 +1290,11 @@ class calldef_overloads_t( registration_based.registration_based_t ):
     def create_overloads_cls( self ):
         result = [ self.overloads_class.name ]
         result.append( '( ' )
-        result.append( os.linesep + self.indent( self.create_keywords_args(), 3 ) )
+        if self.overloads_class.max_function.use_keywords:
+            result.append( os.linesep + self.indent( self.create_keywords_args(), 3 ) )
         if self.overloads_class.max_function.documentation:
-            result.append( os.linesep + self.indent( self.PARAM_SEPARATOR, 3 ) )
+            if self.overloads_class.max_function.use_keywords:
+                result.append( os.linesep + self.indent( self.PARAM_SEPARATOR, 3 ) )
             result.append( self.overloads_class.max_function.documentation )
         result.append( ' )' )
         if self.overloads_class.max_function.call_policies \
@@ -1257,6 +1336,9 @@ class calldef_overloads_t( registration_based.registration_based_t ):
             result.append( '}' )
 
         return ''.join( result )
+
+    def _get_system_headers_impl( self ):
+        return []
 
 class mem_fun_overloads_t( calldef_overloads_t ):
     def __init__( self, overloads_class ):

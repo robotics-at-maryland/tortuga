@@ -8,7 +8,12 @@ import sys
 import config
 import pygccxml.utils
 import linker
-import scanner
+
+try: #select faster xml parser
+    from etree_scanner import etree_scanner_t as scanner_t
+except:
+    from scanner import scanner_t
+
 import declarations_cache
 import patcher
 from pygccxml.declarations import *
@@ -308,19 +313,19 @@ class source_reader_t:
             return file_path
         
     def __parse_gccxml_created_file( self, gccxml_file ):
-        scanner_ = scanner.scanner_t( gccxml_file, self.__decl_factory )
+        scanner_ = scanner_t( gccxml_file, self.__decl_factory )
         scanner_.read()
         decls = scanner_.declarations()
         types = scanner_.types()
         files = {}
-        for file_id, file_path in scanner_.files().items():
+        for file_id, file_path in scanner_.files().iteritems():
             files[file_id] = self.__produce_full_file(file_path)
         linker_ = linker.linker_t( decls=decls
                                    , types=types
                                    , access=scanner_.access()
                                    , membership=scanner_.members()
                                    , files=files )
-        for type_ in list( types.itervalues() ):
+        for type_ in types.values():
             #I need this copy because internaly linker change types collection
             linker_.instance = type_
             apply_visitor( linker_, type_ )
@@ -328,16 +333,13 @@ class source_reader_t:
             linker_.instance = decl
             apply_visitor( linker_, decl )
         bind_aliases( decls.itervalues() )
-        decls = filter( lambda inst: isinstance(inst, declaration_t) and not inst.parent, decls.itervalues() )
         #some times gccxml report typedefs defined in no namespace
         #it happens for example in next situation
         #template< typename X>
-        #void ddd(){ typedef typename X::Y YY;}
+        #void ddd(){ typedef typename X::Y YY;}        
+        decls = filter( lambda inst: isinstance(inst, declaration_t) and not inst.parent
+                        , decls.itervalues() )
+        patcher.fix_decls( make_flatten( decls ) )
         decls = filter( lambda inst: isinstance( inst, namespace_t ), decls )
-        decls = patcher.patch_it( decls )
-        decls_all = make_flatten( decls )
-        for decl in decls_all:
-            if decl.location:
-                decl.location.file_name = self.__produce_full_file( decl.location.file_name )
         return ( decls, files.values() )
 

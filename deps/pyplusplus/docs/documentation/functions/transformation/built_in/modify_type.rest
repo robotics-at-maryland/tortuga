@@ -18,10 +18,11 @@ Definition
 
 New in version grater than 0.8.5.
 
-Known limits
-------------
+Pay attention!
+--------------
 
-Implicit conversion should exist between new type and the old one. 
+If implicit conversion between new type and the old one does not exist
+"reinterpret_cast" will be used.
 
 -------
 Example

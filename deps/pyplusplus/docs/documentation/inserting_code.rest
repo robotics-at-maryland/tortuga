@@ -194,7 +194,47 @@ Solution
   for cls in mb.classes( relevant classes only ):
     inject_code( cls )
 
+------------
+Header files
+------------
 
+Now, when you know how to add your code to a generated one, I think you also should
+now how to add your own set of include directives to the generated files. There
+are few ways to do this.
+
+1. The easiest and the most effective one - tell to `Py++`_ that generated code
+   for the declaration should include additional files:
+
+   .. code-block:: Python
+
+     mb = module_builder_t( ... )
+     my_class = mb.class_( ... )
+     my_class.include_files.append( "vector" )
+
+   Every declaration has ``include_files`` property. This is a list of header files,
+   you want to include from the generated file(s).
+
+2. Other approach is a little bit low level, but it allows you to add your header
+   files to every generated file:
+
+   .. code-block:: Python
+
+     mb = module_builder_t( ... )
+     ...
+     mb.build_code_creator( ... )
+     mb.code_creator.add_include( "iostream" )
+
+   You can also replace all (to be) generated header files with your own set:
+
+   .. code-block:: Python
+
+     mb.code_creator.replace_included_headers( ["stdafx.h"] )
+
+Of course you can, and may be should, use both approaches.
+
+I suggest you to spend some time and to tweak `Py++`_ to generate source code
+with as little as possible include directives. This will save you huge amount of
+time later.
 
 .. _`Py++` : ./../pyplusplus.html
 .. _`pygccxml` : ./../../pygccxml/pygccxml.html

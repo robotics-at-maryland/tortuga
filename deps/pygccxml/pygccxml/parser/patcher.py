@@ -6,32 +6,18 @@
 from pygccxml import utils
 from pygccxml import declarations
 
-class patcher_base_t(object):
-    def __init__( self, decls ):
+
+class default_argument_patcher_t( object ):
+    def __init__( self ):
         object.__init__( self )
-        self.__decls = decls   
-
-    def _get_decls(self):
-        return self.__decls
-    decls = property( _get_decls )
-
-    def patch_it(self):
-        raise NotImplementedError()
-
-class default_argument_patcher_t( patcher_base_t ):
-    def __init__( self, decls ):
-        patcher_base_t.__init__( self, decls )
-
-    def patch_it(self):
-        for decl in declarations.make_flatten( self.decls ):
-            if not isinstance( decl, declarations.calldef_t ):
+        
+    def __call__(self, decl):
+        for arg in decl.arguments:
+            if not arg.default_value:
                 continue
-            for arg in decl.arguments:
-                if not arg.default_value:
-                    continue
-                fixer = self.__find_fixer( decl, arg )
-                if fixer:
-                    arg.default_value = fixer( decl, arg )
+            fixer = self.__find_fixer( decl, arg )
+            if fixer:
+                arg.default_value = fixer( decl, arg )
 
     def __find_fixer(self, func, arg):
         if not arg.default_value:
@@ -67,7 +53,13 @@ class default_argument_patcher_t( patcher_base_t ):
 
     def __is_invalid_integral(self, func, arg):
         type_ = declarations.remove_reference( declarations.remove_cv( arg.type ) )        
-        return declarations.is_integral( type_ )
+        if not declarations.is_integral( type_ ):
+            return False
+        try:
+            int( arg.default_value )
+            return False
+        except:
+            return True
 
     def __fix_invalid_integral(self, func, arg):
         try:
@@ -110,17 +102,11 @@ class default_argument_patcher_t( patcher_base_t ):
         #this algorithm could be improved: it could take into account
         #1. unnamed namespaced
         #2. location within files
-        enums = filter( lambda decl: isinstance( decl, declarations.enumeration_t )
-                        , scope.declarations )
-        for enum_decl in enums:
-            valnames = map(lambda x: x[0], enum_decl.values)
-            valnums = map(lambda x: x[1], enum_decl.values)
-            if default_value in valnames:
-                return enum_decl
-            if default_value in valnums:
-                return enum_decl
-        else:
-            return None
+        enumeration_t = declarations.enumeration_t
+        for decl in scope.declarations:
+            if isinstance( decl, enumeration_t ) and decl.has_value_name( default_value ):
+                return decl
+        return None
 
     def __is_double_call( self, func, arg ):
         call_invocation = declarations.call_invocation
@@ -181,20 +167,21 @@ class default_argument_patcher_t( patcher_base_t ):
             
         return call_invocation.join( f_q_name, args )
 
-class fix_casting_operator_name_patcher_t( patcher_base_t ):
-    def __init__( self, decls ):
-        patcher_base_t.__init__( self, decls )
+class casting_operator_patcher_t( object ):
+    def __init__( self ):
+        object.__init__( self )
 
-    def patch_it(self):
-        for decl in declarations.make_flatten( self.decls ):
-            if not isinstance( decl, declarations.casting_operator_t):
-                continue
-            decl.name = 'operator ' + decl.return_type.decl_string
+    def __call__(self, decl):
+        decl.name = 'operator ' + decl.return_type.decl_string
 
-def patch_it(decls):
-    patcher = default_argument_patcher_t( decls )
-    patcher.patch_it()
-    patcher2 = fix_casting_operator_name_patcher_t( decls )
-    patcher2.patch_it()
-    return patcher.decls
+_default_arg_patcher_ = default_argument_patcher_t()
+_casting_oper_patcher_ = casting_operator_patcher_t()
+
+def fix_decls(decls):
+    #decls should be flat list of all declarations, you want to apply patch on
+    for decl in decls:
+        if isinstance( decl, declarations.calldef_t ):
+            _default_arg_patcher_( decl )
+        if isinstance( decl, declarations.casting_operator_t):
+            _casting_oper_patcher_( decl )
     

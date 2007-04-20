@@ -104,7 +104,7 @@ Who is using Py++?
 .. _`Python Computer Graphics Kit` : http://cgkit.sourceforge.net/
 .. _`TnFOX`: http://www.nedprod.com/TnFOX/
 .. _`PyOpenSG`: https://realityforge.vrsource.org/view/PyOpenSG/WebHome
-.. _`Python-OGRE` : http://lakin.weckers.net/index_ogre_python.html
+.. _`Python-OGRE` : http://python-ogre.python-hosting.com/
 .. _`OGRE` : http://www.ogre3d.org/index.php?option=com_content&task=view&id=19&Itemid=79
 ..
    Local Variables:

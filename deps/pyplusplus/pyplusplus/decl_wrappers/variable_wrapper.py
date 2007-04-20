@@ -20,7 +20,8 @@ class variable_t(decl_wrapper.decl_wrapper_t, declarations.variable_t):
         self._setter_call_policies = None
         self._apply_smart_ptr_wa = False
         self._is_read_only = None
-
+        self._use_make_functions = None
+    
     __call_policies_doc__ = \
     """There are usecase, when exporting member variable forces Py++ to
     create accessors functions. Sometime, those functions requires call policies.
@@ -40,6 +41,10 @@ class variable_t(decl_wrapper.decl_wrapper_t, declarations.variable_t):
                 else:
                     value_policy = call_policies.copy_non_const_reference
                 self._getter_call_policies = call_policies.return_value_policy( value_policy )
+            elif self.use_make_functions:
+                self._getter_call_policies = call_policies.return_internal_reference()
+            else:
+                pass
         return self._getter_call_policies
     def set_getter_call_policies( self, call_policies ):
         self._getter_call_policies = call_policies
@@ -48,7 +53,7 @@ class variable_t(decl_wrapper.decl_wrapper_t, declarations.variable_t):
 
     def get_setter_call_policies( self ):
         if None is self._getter_call_policies:
-            if self.apply_smart_ptr_wa:
+            if self.apply_smart_ptr_wa or self.use_make_functions:
                 self._setter_call_policies = call_policies.default_call_policies()       
         return self._setter_call_policies
     def set_setter_call_policies( self, call_policies ):
@@ -56,14 +61,35 @@ class variable_t(decl_wrapper.decl_wrapper_t, declarations.variable_t):
     setter_call_policies = property( get_setter_call_policies, set_setter_call_policies
                                      , doc=__call_policies_doc__ )
 
+    __use_make_functions_doc__ = \
+    """Generate code using make_getter and make_setter functions
+    
+    Basically you don't need to use this, untill you have one of the next use-cases:
+    * member variable is smart pointer - in this case Boost.Python has small problem
+      to expose it right. Using the functions is a work around to the problem.
+    * member variable defined custom r-value converter - may be you don't know
+      but the conversion is applied only on functions arguments. So you need to 
+      use make_getter/make_setter in order to allow user to enjoy from the
+      conversion.
+      
+    Setting "apply_smart_ptr_wa" and/or "use_make_functions" to "True" will tell
+    Py++ to generate such code.
+    """
+
     def get_apply_smart_ptr_wa( self ):
         return self._apply_smart_ptr_wa
     def set_apply_smart_ptr_wa( self, value):
         self._apply_smart_ptr_wa = value
     apply_smart_ptr_wa = property( get_apply_smart_ptr_wa, set_apply_smart_ptr_wa
-                                     , doc="" )
+                                     , doc=__use_make_functions_doc__ )
 
-
+    def get_use_make_functions( self ):
+        return self._use_make_functions
+    def set_use_make_functions( self, value ):
+        self._use_make_functions = value
+    use_make_functions = property( get_use_make_functions, set_use_make_functions
+                                   , doc=__use_make_functions_doc__)
+    
     def __find_out_is_read_only(self):
         type_ = declarations.remove_alias( self.type )
         

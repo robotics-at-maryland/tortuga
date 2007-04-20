@@ -36,3 +36,6 @@ class instruction_t(code_creator.code_creator_t):
     
     def _generate_description(self):
         raise NotImplementedError()
+    
+    def _get_system_headers_impl( self ):
+        return []

@@ -7,6 +7,7 @@ import os
 import sys
 import unittest
 import fundamental_tester_base
+from pygccxml import declarations
 from pyplusplus.module_builder import call_policies
 
 class tester_t(fundamental_tester_base.fundamental_tester_base_t):
@@ -20,6 +21,14 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
 
     def customize( self, mb ):
         mb.global_ns.exclude()
+
+        xxx = mb.class_( 'XXX' )
+        xxx.include()
+        xxx_ref = declarations.reference_t( declarations.const_t( declarations.declarated_t( xxx ) ) )
+        oper = mb.global_ns.free_operator( '<<', arg_types=[None, xxx_ref] )
+        oper.include()
+            
+        mb.class_( 'YYY' ).include()
     
         rational = mb.class_('rational<long>')
         rational.include()
@@ -78,6 +87,12 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         
         r1 = pyrational( 5, 7 )
         self.failUnless( r1.assign( 17 ) == pyrational( 17, 1 ) )
+    
+        x = module.XXX()
+        print str( x )
+        
+        y = module.YYY()
+        print str( y )
         
 def create_suite():
     suite = unittest.TestSuite()    

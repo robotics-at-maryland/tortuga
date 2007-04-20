@@ -81,4 +81,8 @@ inline set_strings_t create_set_strings(){
 
 }
 
+namespace pyplusplus{ namespace aliases{
+    typedef std::vector<indexing_suites2::item_t*> items_ptr_t;
+}}
+
 #endif//__indexing_suites2_to_be_exported_hpp__

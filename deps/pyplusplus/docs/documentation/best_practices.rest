@@ -84,6 +84,29 @@ Tips
     my_big_class = mb.class_( my_big_class )
     mb.split_module( ..., huge_classes=[my_big_class], ... )
 
+  * **Caveats**
+   
+    Consider next file layout:
+    ::
+
+      boost/
+        date_time/
+          ptime.hpp
+          time_duration.hpp
+          date_time.hpp //main header, which include all other header files
+
+    Py++ currently does not handle relative paths as input very well, so it is 
+    recommended that you use "os.path.abspath()" to transform the header file to 
+    be processed into an absolute path:
+    
+    .. code-block:: Python
+    
+      #Next code will expose nothing
+      mb = module_builder( [ 'date_time/date_time.hpp' ], ... ) 
+
+      #while this one will work as expected
+      import os
+      mb = module_builder( [ os.path.abspath('date_time/date_time.hpp') ], ... ) 
 
 .. _`this error` : http://boost.org/libs/python/doc/v2/faq.html#c1204
 .. __ : ./../../pygccxml/design.html

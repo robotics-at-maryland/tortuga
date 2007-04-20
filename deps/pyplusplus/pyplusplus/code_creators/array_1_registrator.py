@@ -62,3 +62,6 @@ class array_1_registrator_t( registration_based.registration_based_t ):
 
         fn_def = templates.join( '::'.join( [ns_name, fn_name] ), fn_def_tmpl_args )
         return call_invocation.join( fn_def, [ '"%s"' % self._create_name() ] ) + ';'
+
+    def _get_system_headers_impl( self ):
+        return [code_repository.array_1.file_name]

@@ -12,10 +12,16 @@ import python_traits
 #proxy. This can be disabled by supplying true in the NoProxy template parameter.
 #We want to disable NoProxy when we deal with immutable objects.
 
+containers = {
+    'vector' : "boost/python/suite/indexing/vector_indexing_suite.hpp"
+    , 'map' : "boost/python/suite/indexing/map_indexing_suite.hpp"
+}
+
+
 class indexing_suite1_t( object ):
     """
-    This class helps user to export STD containers, using Boost.Python
-    indexing suite V2.
+    This class helps user to export STD containers, using built-in Boost.Python
+    indexing suite.
     """
 
     def __init__( self, container_class, container_traits, no_proxy=None, derived_policies=None ):
@@ -24,6 +30,7 @@ class indexing_suite1_t( object ):
         self.__derived_policies = derived_policies
         self.__container_class = container_class
         self.__container_traits = container_traits
+        self.__include_files = None
 
     def _get_container_class( self ):
         return self.__container_class
@@ -55,3 +62,14 @@ class indexing_suite1_t( object ):
     derived_policies = property( _get_derived_policies, _set_derived_policies
                                  , doc="This proprty contains DerivedPolicies string. "
                                       +"It will be added as is to the generated code.")
+
+    @property
+    def include_files( self ):
+        """Return list of header files to be included in generated code"""
+        if self.__include_files is None:
+            name = self.container_class.name.split( '<' )[0]
+            if name not in containers:
+                self.__include_files = [] #not supported
+            else:
+                self.__include_files = [containers[ name ]]
+        return self.__include_files

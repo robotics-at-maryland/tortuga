@@ -32,6 +32,11 @@ On this page you will find my collection of the solutions to some of the problem
 
 .. _`automatic conversion` : ./automatic_conversion/automatic_conversion.html
 
+`exceptions`_
+
+  .. include:: ./exceptions/definition.rest
+
+.. _`exceptions` : ./exceptions/exceptions.html
 
 .. _`Py++` : ./../pyplusplus.html
 .. _`pygccxml` : http://www.language-binding.net/pygccxml/pygccxml.html

@@ -1,5 +1,5 @@
 =============
-Py++ feedback
+Py++ warnings
 =============
 
 .. contents:: Table of contents
@@ -19,9 +19,9 @@ Introduction
 
 
 Those goals all have something in common. In order to achieve them, `Py++`_ must
-give useful feedback to the user.  Because `Py++`_ understands the
-declarations it exports, it can scan declarations for potential problems, report
-them and in some cases provide hints about how to resolve the problem. Few examples:
+give useful feedback to the user. Because `Py++`_ understands the declarations
+it exports, it can scan declarations for potential problems, report them and in
+some cases provide hints about how to resolve the problem. Few examples:
 
 *
   .. code-block:: C++

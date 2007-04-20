@@ -28,8 +28,27 @@ source project(s) "to talk":
   The impression of Lakin Wecker, after spending 30 hours working working with
   `Py++`_: http://www.ogre3d.org/phpBB2addons/viewtopic.php?t=1478&sid=4d77585146aabbc54f4b31ec50874d86
 
-  .. _`Python-OGRE` : http://lakin.weckers.net/index_ogre_python.html
+  `Python-OGRE`_ project is reached the state, when it has all functionality 
+  provided by similar one - `PyOgre`_. `PyOgre`_ is developed using SWIG.
+  I suggest you to compare the amount of code, written by `Python-Ogre`_ 
+  developers and `PyOgre`_ ones:
+  
+  * `PyOgre`_ sources: http://svn.berlios.de/viewcvs/pyogre/trunk/pyogre/ogre/
+  
+  * `Python-Ogre`_ sources:
+  
+    http://python-ogre.python-hosting.com/browser/trunk/python-ogre/code_generators/ogre/
+     
+    http://python-ogre.python-hosting.com/browser/trunk/python-ogre/code_generators/common_utils/
+        
+    Pay attention: functionality defined in "common_utils" package is used by 
+    other scripts too. 
+  
+  .. _`Python-OGRE` : http://python-ogre.python-hosting.com/
 
+  .. _`PyOgre` : http://www.ogre3d.org/wiki/index.php/PyOgre
+  
+  
 Some other links, that compare Boost.Python, SWIG, SIP and other tools:
 
 * `Evaluation of Python/C++ interfacing packages`_

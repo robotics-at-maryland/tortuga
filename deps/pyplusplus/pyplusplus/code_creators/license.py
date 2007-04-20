@@ -20,6 +20,9 @@ class license_t(code_creator.code_creator_t):
         self._text = new_text
     text = property( _get_text, _set_text )
 
+    def _get_system_headers_impl( self ):
+        return []
+
     def _create_impl(self):
         return self.text
     

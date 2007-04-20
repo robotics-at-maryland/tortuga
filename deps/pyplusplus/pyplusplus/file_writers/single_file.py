@@ -9,9 +9,7 @@ import os
 import writer
 
 class single_file_t(writer.writer_t):
-    """
-    This class writes all code into single file.
-    """ 
+    """generates all code into single cpp file"""
 
     def __init__(self, extmodule, file_name):
         writer.writer_t.__init__(self, extmodule)
@@ -21,6 +19,10 @@ class single_file_t(writer.writer_t):
         return self.__fname
     file_name = property( _get_file_name )
     
-    def write(self):
+    def write(self):        
+        headers = self.get_user_headers( [self.extmodule] )        
+        map( lambda header: self.extmodule.add_include( header )
+             , headers )
         self.write_code_repository( os.path.split( self.file_name )[0] )
         self.write_file( self.file_name, self.extmodule.create() )
+        

@@ -24,6 +24,7 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         tg = code_creators.target_configuration_t( )
         #tg.boost_python_has_wrapper_held_type = False
         mb.build_code_creator( self.EXTENSION_NAME, target_configuration=tg )
+        mb.constructors().allow_implicit_conversion = False
     
     def run_tests(self, module):     
         i = module.integral()
@@ -31,6 +32,9 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         j = i + i
         v = module.vector( 2 ) + module.vector.one
         self.failUnless( v.x == 3 )
+        
+        call_copy_constructor = module.call_copy_constructor_t( "" )
+        call_copy_constructor2 = module.call_copy_constructor_t( call_copy_constructor )
     
 def create_suite():
     suite = unittest.TestSuite()    

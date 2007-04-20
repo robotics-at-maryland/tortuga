@@ -6,6 +6,9 @@
 //Almost all test cases have been taken
 //from boost.type_traits (http://www.boost.org) library.
 
+#include <string>
+#include <iostream>
+
 #define TYPE_PERMUTATION( BASE, NAME )                        \
     typedef BASE NAME##_t;                                     \
     typedef BASE const NAME##_const_t;                         \
@@ -15,6 +18,25 @@ struct some_struct_t{
     void do_smth();
     int member;
 };
+
+namespace is_std_ostream{
+namespace yes{
+    typedef std::ostream ostream_type;
+}
+namespace no{
+    typedef int int__;
+}
+}
+
+namespace is_std_wostream{
+namespace yes{
+    typedef std::wostream wostream_type;
+}
+namespace no{
+    typedef int int__;
+}
+}
+
 
 struct incomplete_type;
 
@@ -32,6 +54,36 @@ namespace no{
     typedef void(*function_t)();
     typedef void (some_struct_t::*member_function_t)();
 } }
+
+namespace is_noncopyable{
+
+namespace detail{
+    struct x{
+    private:
+        x( const x& );
+        x& operator=(const x& );
+    };
+    
+    struct y_type{
+        union {
+            struct {
+                float x, y, z;
+            };
+            float val[3];
+        };
+
+        static const y_type zero;
+    };
+}    
+
+namespace yes{
+    typedef detail::x x;
+}
+namespace no{
+    typedef std::string string_type;
+    typedef detail::y_type y_type;    
+}
+}
 
 namespace is_integral{
 namespace yes{   
@@ -592,8 +644,8 @@ struct x69 : public tester_t< int*, int[3], false >{};
 struct x70 : public tester_t< float, int&, false >{};
 struct x71 : public tester_t< float, const int&, true >{};
 struct x72 : public tester_t< other, void*, true >{};
-struct x73 : public tester_t< int, void*, true >{};
-struct x74 : public tester_t< fruit, void*, true >{};
+struct x73 : public tester_t< int, void*, false >{};
+struct x74 : public tester_t< fruit, void*, false >{};
 struct x75 : public tester_t< other, int*, false >{};
 struct x76 : public tester_t< other*, int*, false >{};
 struct x77 : public tester_t< fruit, int, true >{};   

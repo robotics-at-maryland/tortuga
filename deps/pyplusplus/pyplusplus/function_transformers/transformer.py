@@ -12,13 +12,14 @@ from pygccxml import declarations, parser
 return_ = -1
 #return_ is a spacial const, which represent an index of return type
 
-class transformer_t:
+class transformer_t(object):
     """Base class for a function transformer."""
     
     USE_1_BASED_INDEXING = False
         
     def __init__(self, function):
         """@param function: reference to function declaration"""
+        object.__init__( self )
         self.__function = function
 
     @property 
@@ -28,7 +29,7 @@ class transformer_t:
 
     def required_headers( self ):
         """Returns list of header files that transformer generated code depends on."""
-        return []
+        raise NotImplementedError( self.__class__.__name__ )
 
     def get_argument( self, reference ):
         """returns reference to the desired argument

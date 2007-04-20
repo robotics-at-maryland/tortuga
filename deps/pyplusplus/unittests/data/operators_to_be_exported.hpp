@@ -26,6 +26,23 @@ struct helper{
     }
 };
 
+struct XXX{
+    friend std::ostream& operator<<(std::ostream& s, XXX const& x);
+};
+
+inline std::ostream& operator<<(std::ostream& s, XXX const& x){
+    return s << "<XXX instance at " << &x << ">";
+}
+
+//Boost.Python does not support member operator<<
+struct YYY{
+    std::ostream& operator<<(std::ostream& s) const{        
+        return s;
+        //return s << "<YYY instance at " << reinterpret_cast<unsigned long>( this )<< ">";
+    }
+};
+
+
 } }
     
 

@@ -3,8 +3,7 @@
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-"""defines base class for all classes, that will keep Py++ code generator engine
-instructions."""
+"""defines base class for all code generator configuration classes"""
 
 import algorithm
 from pyplusplus import _logging_
@@ -12,15 +11,11 @@ from pygccxml import declarations
 from pyplusplus import messages
 
 class decl_wrapper_t(object):
-    SPECIAL_TYPEDEF_PICK_ANY = True
-    """Declaration interface.
-
-    This class represents the interface to the declaration tree. Its
-    main purpose is to "decorate" the nodes in the tree with
-    information about how the binding is to be created. Instances of
-    this class are never created by the user, instead they are
-    returned by the API.
+    """code generator declaration configuration base class
+    This class contains configuration that could be applied to all declarations.
     """
+    
+    SPECIAL_TYPEDEF_PICK_ANY = True
 
     def __init__(self):
         object.__init__(self)
@@ -31,10 +26,11 @@ class decl_wrapper_t(object):
         self._exportable_reason = None
         self._documentation = None
         self.__msgs_to_ignore = set()
+        self._include_files = []
 
     @property
     def logger( self ):
-        """returns reference to L{_logging_.loggers.declarations}"""
+        """reference to L{_logging_.loggers.declarations}"""
         return _logging_.loggers.declarations
 
     def _get_documentation( self ):
@@ -42,7 +38,7 @@ class decl_wrapper_t(object):
     def _set_documentation( self, value ):
         self._documentation = value
     documentation = property( _get_documentation, _set_documentation
-                             , doc="Using this property you can set documentation of the declaration." )
+                             , doc="exposed declaration Python documentation string" )
 
     def _generate_valid_name(self, name=None):
         if name == None:
@@ -88,10 +84,10 @@ class decl_wrapper_t(object):
     def _set_alias(self, alias):
         self._alias = alias
     alias = property( _get_alias, _set_alias
-                      , doc="Using this property you can easily change Python name of declaration" )
+                      , doc="the name under which, Python will know the declaration" )
 
     def rename( self, new_name ):
-        """renames the declaration name, under which it is exposed"""
+        """give new name to the declaration, under which Python will know the declaration"""
         self.alias = new_name
 
     def _get_ignore( self ):
@@ -99,28 +95,31 @@ class decl_wrapper_t(object):
     def _set_ignore( self, value ):
         self._ignore = value
     ignore = property( _get_ignore, _set_ignore
-                       ,doc="If you set ignore to True then this declaration will not be exported." )
+                       , doc="boolean flag, which says whether to export declaration to Python or not" )
 
     def _get_already_exposed_impl( self ):
         return self._already_exposed
-        
+
     def _get_already_exposed( self ):
         return self._get_already_exposed_impl()
     def _set_already_exposed( self, value ):
         self._already_exposed = value
-    already_exposed = property( _get_already_exposed, _set_already_exposed )
+    already_exposed = property( _get_already_exposed, _set_already_exposed                                , doc="boolean flag, which says whether the declaration is already exposed or not" )
 
     def exclude( self ):
-        """Exclude "self" and child declarations from being exposed."""
+        """exclude "self" and child declarations from being exposed."""
         self.ignore = True
 
     def include( self, already_exposed=False ):
-        """Include "self" and child declarations to be exposed."""
+        """include "self" and child declarations to be exposed."""
         self.ignore = False
         self.already_exposed = already_exposed
     
     def why_not_exportable( self ):
-        """returns strings that explains why this declaration could not be exported or None otherwise"""
+        """return the reason( string ) that explains why this declaration could not be exported
+        
+        If declaration could be exported, than method will return None
+        """
         if None is self._exportable_reason:
             self.get_exportable()
         return self._exportable_reason
@@ -129,8 +128,9 @@ class decl_wrapper_t(object):
         return ''
 
     def get_exportable( self ):
+        """return True if declaration could be exposed to Python, False otherwise"""
         if self._exportable is None:
-            if self.name.startswith( '__' ):
+            if self.name.startswith( '__' ) or '.' in self.name:
                 self._exportable_reason = messages.W1000
             elif self.location and self.location.file_name == "<internal>":
                 self._exportable_reason = messages.W1001
@@ -142,6 +142,10 @@ class decl_wrapper_t(object):
             self._exportable = not bool( self._exportable_reason )
         return self._exportable
     def set_exportable( self, exportable ):
+        """change "exportable" status
+        
+        This function should be use in case Py++ made a mistake and signed the 
+        declaration as unexportable."""
         self._exportable = exportable
 
     exportable = property( get_exportable, set_exportable
@@ -150,15 +154,12 @@ class decl_wrapper_t(object):
     def _readme_impl( self ):
         return []
 
-
     def readme( self, skip_ignored=True ):
-        """This function will returns some hints/tips/description of problems
-        that applied to the declarations. For example function that has argument
-        reference to some fundamental type could be exported, but could not be called
-        from Python
-        
-        @param skip_ignored: if True, messages that user asked to not reported
-                             will not be returned
+        """return important information( hints/tips/warning message ) Py++ has about
+        this declaration.
+
+        skip_ignored argument allows you to control the information reported to you.
+        For more information please read: http://www.language-binding.net/pyplusplus/documentation/warnings.html
         """
         msgs = []
         if not self.exportable:
@@ -179,12 +180,13 @@ class decl_wrapper_t(object):
 
     @property
     def disabled_messaged( self ):
+        """list of messages to ignore"""
         return self.__msgs_to_ignore
 
     def disable_messages( self, *args ):
-        """Using this method you can tell to Py++ to not report some specifiec warnings.
+        """set messages, which should not be reported to you
         
-        Usage example: decl.ignore_warnings( messages.W1001, messages.W1040 )
+        Usage example: decl.disable_messages( messages.W1001, messages.W1040 )
         """
         for msg in args:
             msg_id = messages.find_out_message_id( msg )
@@ -192,3 +194,8 @@ class decl_wrapper_t(object):
                 raise RuntimeError( "Unable to find out message id. The message is: " + msg )
             self.__msgs_to_ignore.add( msg )
     disable_warnings = disable_messages
+
+    @property
+    def include_files( self ):
+        """list of header files, to be included from the file, the generated code will be placed-in"""
+        return self._include_files

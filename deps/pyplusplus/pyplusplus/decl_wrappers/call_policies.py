@@ -3,16 +3,14 @@
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-"""
-This modules contains definition of call policies classes. Call policies names
-are same, that used in boost.python library.
+"""Contains definition of call policies classes"""
 
-For every class that implements code creation of call policies, there is a
-convinience function.
-"""
-
-from pygccxml import declarations
 import algorithm
+import python_traits
+from pygccxml import declarations
+
+#keeps file name, where Py++ defined call policies will be defined
+PYPP_CALL_POLICIES_HEADER_FILE = "__call_policies.pypp.hpp"
 
 class CREATION_POLICY:
     """Implementation details"""
@@ -20,7 +18,7 @@ class CREATION_POLICY:
     AS_TEMPLATE_ARGUMENT = 'as template argument'
 
 class call_policy_t(object):
-    """Base class for all call polices classes"""
+    """base class for all classes, which generate "call policies" code"""
     def __init__(self):
         object.__init__(self)
 
@@ -38,19 +36,32 @@ class call_policy_t(object):
             code = code + '()'
         return code
 
+    def create_type(self):
+        """return call policies class declaration as string"""
+        return self.create( None, CREATION_POLICY.AS_TEMPLATE_ARGUMENT )
+
     def create_template_arg( self, function_creator ):
+        """return call policies class declaration as string"""
         return self.create( function_creator, CREATION_POLICY.AS_TEMPLATE_ARGUMENT )
 
     def is_default( self ):
-        """Returns True is self is instance of L{default_call_policies_t} class"""
-        #Small hack that allows to write nicer code
+        """return True is self is instance of L{default_call_policies_t} class"""
         return False
+
+    def is_predefined( self ):
+        """return True if call policy is defined in Boost.Python library, False otherwise"""
+        return True
 
     def _create_impl( self, function_creator ):
         raise NotImplementedError()
 
+    @property
+    def header_file(self):
+        """return a name of the header file the call policy is defined in"""
+        return "boost/python.hpp"
+
 class default_call_policies_t(call_policy_t):
-    """implementation for ::boost::python::default_call_policies"""
+    """implements code generation for boost::python::default_call_policies"""
     def __init__( self ):
         call_policy_t.__init__( self )
 
@@ -64,11 +75,11 @@ class default_call_policies_t(call_policy_t):
         return 'default_call_policies'
 
 def default_call_policies():
-    """create ::boost::python::default_call_policies"""
+    """create ::boost::python::default_call_policies call policies code generator"""
     return default_call_policies_t()
 
 class compound_policy_t( call_policy_t ):
-    """base class for all call policies, except default one"""
+    """base class for all call policies, except the default one"""
     def __init__( self, base=None ):
         call_policy_t.__init__( self )
         self._base = base
@@ -102,7 +113,7 @@ class compound_policy_t( call_policy_t ):
         return declarations.templates.join( name, args )
 
 class return_argument_t( compound_policy_t ):
-    """implementation for ::boost::python::return_argument call policies"""
+    """implements code generation for boost::python::return_argument call policies"""
     def __init__( self, position=1, base=None):
         compound_policy_t.__init__( self, base )
         self._position = position
@@ -126,12 +137,15 @@ class return_argument_t( compound_policy_t ):
             return [ str( self.position ) ]
 
 def return_arg( arg_pos, base=None ):
+    """create boost::python::return_arg call policies code generator"""
     return return_argument_t( arg_pos, base )
 
 def return_self(base=None):
+    """create boost::python::return_self call policies code generator"""
     return return_argument_t( 1, base )
 
 class return_internal_reference_t( compound_policy_t ):
+    """implements code generation for boost::python::return_internal_reference call policies"""
     def __init__( self, position=1, base=None):
         compound_policy_t.__init__( self, base )
         self._position = position
@@ -149,9 +163,11 @@ class return_internal_reference_t( compound_policy_t ):
         return [ str( self.position ) ]
 
 def return_internal_reference( arg_pos=1, base=None):
+    """create boost::python::return_internal_reference call policies code generator"""
     return return_internal_reference_t( arg_pos, base )
 
 class with_custodian_and_ward_t( compound_policy_t ):
+    """implements code generation for boost::python::with_custodian_and_ward call policies"""
     def __init__( self, custodian, ward, base=None):
         compound_policy_t.__init__( self, base )
         self._custodian = custodian
@@ -176,9 +192,11 @@ class with_custodian_and_ward_t( compound_policy_t ):
         return [ str( self.custodian ), str( self.ward ) ]
 
 def with_custodian_and_ward( custodian, ward, base=None):
+    """create boost::python::with_custodian_and_ward call policies code generator"""    
     return with_custodian_and_ward_t( custodian, ward, base )
 
 class with_custodian_and_ward_postcall_t( with_custodian_and_ward_t ):
+    """implements code generation for boost::python::with_custodian_and_ward_postcall call policies"""
     def __init__( self, custodian, ward, base=None):
         with_custodian_and_ward_t.__init__( self, custodian, ward, base )
 
@@ -186,9 +204,11 @@ class with_custodian_and_ward_postcall_t( with_custodian_and_ward_t ):
         return '::boost::python::with_custodian_and_ward_postcall'
 
 def with_custodian_and_ward_postcall( custodian, ward, base=None):
+    """create boost::python::with_custodian_and_ward_postcall call policies code generator"""        
     return with_custodian_and_ward_postcall_t( custodian, ward, base )
 
 class return_value_policy_t( compound_policy_t ):
+    """implements code generation for boost::python::return_value_policy call policies"""    
     def __init__( self, result_converter_generator, base=None):
         compound_policy_t.__init__( self, base )
         self._result_converter_generator = result_converter_generator
@@ -210,6 +230,23 @@ class return_value_policy_t( compound_policy_t ):
         else:
             return [self.result_converter_generator]
 
+    def is_predefined( self ):
+        """Returns True if call policy is defined in Boost.Python library, False otherwise"""
+        global return_pointee_value
+        if self.result_converter_generator == return_pointee_value:
+            return False
+        else:
+            return True
+            
+    @property
+    def header_file(self):
+        """Return name of the header file to be included"""
+        if self.is_predefined():
+            return super( return_value_policy_t, self ).header_file
+        else:
+            return PYPP_CALL_POLICIES_HEADER_FILE
+
+
 copy_const_reference = '::boost::python::copy_const_reference'
 copy_non_const_reference = '::boost::python::copy_non_const_reference'
 manage_new_object = '::boost::python::manage_new_object'
@@ -219,6 +256,7 @@ return_opaque_pointer = '::boost::python::return_opaque_pointer'
 return_pointee_value = '::pyplusplus::call_policies::return_pointee_value'
 
 def return_value_policy( result_converter_generator, base=None):
+    """create boost::python::return_value_policy call policies code generator"""                        
     return return_value_policy_t( result_converter_generator, base )
 
 def is_return_opaque_pointer_policy( policy ):
@@ -226,17 +264,12 @@ def is_return_opaque_pointer_policy( policy ):
     return isinstance( policy, return_value_policy_t ) \
             and policy.result_converter_generator == return_opaque_pointer
 
-def is_return_pointee_value_policy( policy ):
-    """returns True is policy represents return_value_policy<return_pointee_value>, False otherwise"""
-    return isinstance( policy, return_value_policy_t ) \
-            and policy.result_converter_generator == return_pointee_value
-    
-
 class custom_call_policies_t(call_policy_t):
-    """implementation for user defined call policies"""
-    def __init__( self, call_policies ):
+    """implements code generation for user defined call policies"""
+    def __init__( self, call_policies, header_file=None ):
         call_policy_t.__init__( self )
         self.__call_policies = call_policies
+        self.__header_file = header_file
 
     def _create_impl(self, function_creator ):
         return str( self.__call_policies )
@@ -244,11 +277,22 @@ class custom_call_policies_t(call_policy_t):
     def __str__(self):
         return 'custom call policies'
 
-def custom_call_policies(call_policies):
-    """create custom\\user defined call policies"""
-    return custom_call_policies_t(call_policies)
+    def get_header_file( self ):
+        return self.__header_file
+    def set_header_file( self, header_file_name ):
+        self.__header_file = header_file_name
+    header_file = property( get_header_file, set_header_file
+                            , doc="""Return name of the header file to be included""" )
+
+def custom_call_policies(call_policies, header_file=None):
+    """create custom\\user defined call policies code generator"""
+    return custom_call_policies_t(call_policies, header_file)
 
 class memory_managers:
+    """implements code generation for Py++ defined memory managers
+    
+    For complete documentation and usage example see http://language-binding.net/pyplusplus/documentation/functions/call_policies.html    
+    """
     none = 'none'
     delete_ = 'delete_'
     all = [ none, delete_ ]
@@ -261,12 +305,25 @@ class memory_managers:
         return mem_manager
 
 class convert_array_to_tuple_t( compound_policy_t ):
+    """implements code generation for Py++ defined "as_tuple" value policy
+        
+    For complete documentation and usage example see http://language-binding.net/pyplusplus/documentation/functions/call_policies.html
+    """
     def __init__( self, array_size, memory_manager, make_object_call_policies=None, base=None):
         compound_policy_t.__init__( self, base )
         self._array_size = array_size
         self._memory_manager = memory_manager
         self._make_objec_call_policies = make_object_call_policies
     
+    def is_predefined( self ):
+        """Returns True if call policy is defined in Boost.Python library, False otherwise"""
+        return False
+
+    @property
+    def header_file(self):
+        """Return name of the header file to be included"""
+        return PYPP_CALL_POLICIES_HEADER_FILE
+
     def _get_array_size( self ):
         return self._array_size
     def _set_array_size( self, new_array_size):
@@ -287,7 +344,6 @@ class convert_array_to_tuple_t( compound_policy_t ):
         self._make_objec_call_policies = new_make_objec_call_policies
     make_objec_call_policies = property( _get_make_objec_call_policies, _set_make_objec_call_policies )
 
-
     def _get_name(self, function_creator):
         return '::boost::python::return_value_policy'
 
@@ -302,4 +358,67 @@ class convert_array_to_tuple_t( compound_policy_t ):
         return [ declarations.templates.join( as_tuple, as_tuple_args ) ]
     
 def convert_array_to_tuple( array_size, memory_manager, make_object_call_policies=None, base=None ):
+    """create boost::python::return_value_policy< py++::as_tuple > call policies code generator"""                        
     return convert_array_to_tuple_t( array_size, memory_manager, make_object_call_policies, base )
+
+class return_range_t( call_policy_t ):
+    """implements code generation for Py++ defined "return_range" call policies
+    
+    For complete documentation and usage example see http://language-binding.net/pyplusplus/documentation/functions/call_policies.html
+    """
+    HEADER_FILE = "__return_range.pypp.hpp"
+    def __init__( self, get_size_class, value_type, value_policies):
+        call_policy_t.__init__( self )
+        self._value_type = value_type
+        self._get_size_class = get_size_class
+        self._value_policies = value_policies
+
+    def is_predefined( self ):
+        """Returns True if call policy is defined in Boost.Python library, False otherwise"""
+        return False
+
+    @property
+    def header_file(self):
+        """Return name of the header file to be included"""
+        return self.HEADER_FILE
+
+    def _get_get_size_class( self ):
+        return self._get_size_class
+    def _set_get_size_class( self, new_get_size_class):
+        self._get_size_class = new_get_size_class
+    get_size_class = property( _get_get_size_class, _set_get_size_class )
+
+    def _get_value_type( self ):
+        return self._value_type
+    def _set_value_type( self, new_value_type):
+        self._value_type = new_value_type
+    value_type = property( _get_value_type, _set_value_type )
+
+    def _get_value_policies( self ):
+        return self._value_policies
+    def _set_value_policies( self, new_value_policies):
+        self._value_policies = new_value_policies
+    value_policies = property( _get_value_policies, _set_value_policies )
+
+    def _create_impl(self, function_creator ):
+        name = algorithm.create_identifier( function_creator, '::pyplusplus::call_policies::return_range' )
+        args = [ self.get_size_class, self.value_type.decl_string ]
+        if not self.value_policies.is_default():
+            args.append( self.value_policies.create_type() )
+        return declarations.templates.join( name, args )
+    
+def return_range( function, get_size_class, value_policies=None ):
+    """create Py++ defined return_range call policies code generator"""                            
+    r_type = function.return_type
+    if not declarations.is_pointer( r_type ):
+        raise TypeError( 'Function "%s" return type should be pointer, got "%s"'
+                         % r_type.decl_string )
+                         
+    value_type = declarations.remove_pointer( r_type )
+    if None is value_policies:
+        if python_traits.is_immutable( value_type ):
+            value_policies = default_call_policies()
+        else:
+            raise RuntimeError( "return_range call policies requieres specification of value_policies" )
+    return return_range_t( get_size_class, value_type, value_policies )
+    

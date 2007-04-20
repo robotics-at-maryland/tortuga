@@ -9,9 +9,9 @@ import code_creator
 import calldef_utils
 import class_declaration
 from pygccxml import declarations
+from pyplusplus import code_repository
 from calldef import calldef_t, calldef_wrapper_t
 import pyplusplus.function_transformers as function_transformers
-from pyplusplus import code_repository
 
 #TODO: constructors also can have transformation defined. We should use make _init
 # function for this purpose
@@ -416,3 +416,8 @@ class mem_fun_v_transformed_wrapper_t( calldef_wrapper_t ):
         
     def _create_impl(self):
         return os.linesep.join([ self.create_override(), '', self.create_default() ])
+
+    def _get_system_headers_impl( self ):
+        files = super( mem_fun_v_transformed_wrapper_t, self )._get_system_headers_impl()
+        files.append( code_repository.convenience.file_name )
+        return files

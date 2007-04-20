@@ -19,4 +19,8 @@ class opaque_type_registrator_t( code_creator.code_creator_t
 
     def _create_impl(self):
         return 'BOOST_PYTHON_OPAQUE_SPECIALIZED_TYPE_ID( %s )' % self.decl_identifier
+    
+    def _get_system_headers_impl( self ):
+        return []
+
 

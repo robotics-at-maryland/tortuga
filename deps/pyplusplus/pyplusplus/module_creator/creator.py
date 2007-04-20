@@ -9,6 +9,7 @@ import sort_algorithms
 import dependencies_manager
 import opaque_types_manager
 import call_policies_resolver
+
 from pygccxml import declarations
 from pyplusplus import decl_wrappers
 from pyplusplus import code_creators
@@ -28,25 +29,6 @@ VIRTUALITY_TYPES = declarations.VIRTUALITY_TYPES
 #           float val[4];
 #       };
 # };
-
-INDEXING_SUITE_1_CONTAINERS = {
-    'vector<' : "boost/python/suite/indexing/vector_indexing_suite.hpp"
-    , 'map<' : "boost/python/suite/indexing/map_indexing_suite.hpp"
-}
-
-INDEXING_SUITE_2_CONTAINERS = {
-      'vector<' : "boost/python/suite/indexing/vector.hpp"
-    , 'deque<' : "boost/python/suite/indexing/deque.hpp"
-    , 'list<' : "boost/python/suite/indexing/list.hpp"
-    , 'map<' : "boost/python/suite/indexing/map.hpp"
-    , 'multimap<' : "boost/python/suite/indexing/multimap.hpp"
-    , 'hash_map<' : "boost/python/suite/indexing/map.hpp"
-    , 'set<' : "boost/python/suite/indexing/set.hpp"
-    , 'hash_set<' : "boost/python/suite/indexing/set.hpp"
-    #TODO: queue, priority, stack, multimap, hash_multimap, multiset, hash_multiset
-}
-
-INDEXING_SUITE_2_MAIN_HEADER = "boost/python/suite/indexing/container_suite.hpp"
 
 class creator_t( declarations.decl_visitor_t ):
     """Creating code creators.
@@ -107,8 +89,6 @@ class creator_t( declarations.decl_visitor_t ):
             self.__types_db = types_database.types_database_t()
 
         self.__extmodule = code_creators.module_t()
-        self.__extmodule.add_system_header( "boost/python.hpp" )
-        self.__extmodule.adopt_creator( code_creators.include_t( header="boost/python.hpp" ) )
         if boost_python_ns_name:
             bp_ns_alias = code_creators.namespace_alias_t( alias=boost_python_ns_name
                                                            , full_namespace_name='::boost::python' )
@@ -122,13 +102,10 @@ class creator_t( declarations.decl_visitor_t ):
 
         self.curr_code_creator = self.__module_body
         self.curr_decl = None
-        self.__cr_array_1_included = False
         self.__array_1_registered = set() #(type.decl_string,size)
         self.__free_operators = []
         self.__exposed_free_fun_overloads = set()
         self.__opaque_types_manager = opaque_types_manager.manager_t( self.__extmodule )
-        self.__return_pointee_value_exists = False
-        
         self.__dependencies_manager = dependencies_manager.manager_t(self.decl_logger)
         
     def _prepare_decls( self, decls, doc_extractor ):
@@ -151,7 +128,6 @@ class creator_t( declarations.decl_visitor_t ):
 
             #if isinstance( decl, declarations.variable_t ):
                 #self.__types_db.update( decl )
-
             if doc_extractor and decl.exportable:
                 decl.documentation = doc_extractor( decl )
 
@@ -202,6 +178,10 @@ class creator_t( declarations.decl_visitor_t ):
             arg_type = declarations.base_type( operator.arguments[0].type )
             if isinstance( arg_type, declarations.fundamental_t ):
                 arg_type = declarations.base_type( operator.arguments[1].type )
+            elif isinstance( arg_type, declarations.declarated_t ) and arg_type.declaration.ignore:
+                arg_type = declarations.base_type( operator.arguments[1].type )
+            else:
+                pass
             assert isinstance( arg_type, declarations.declarated_t )
             found = find( lambda decl: arg_type.declaration is decl
                           , self.__extmodule.body.creators )
@@ -266,10 +246,6 @@ class creator_t( declarations.decl_visitor_t ):
             cls_creator.associated_decl_creators.extend( uc_creators )
 
     def _treat_indexing_suite( self ):
-        global INDEXING_SUITE_1_CONTAINERS
-        global INDEXING_SUITE_2_CONTAINERS
-        global INDEXING_SUITE_2_MAIN_HEADER
-
         def create_explanation(cls):
             msg = '//WARNING: the next line of code will not compile, because "%s" does not have operator== !'
             msg = msg % cls.indexing_suite.element_type.decl_string
@@ -284,32 +260,17 @@ class creator_t( declarations.decl_visitor_t ):
         if not self.__types_db.used_containers:
             return
 
-        used_headers = set()
-
         creators = []
         created_value_traits = set()
 
         cmp_by_name = lambda cls1, cls2: cmp( cls1.decl_string, cls2.decl_string )
         used_containers = list( self.__types_db.used_containers )
+        used_containers = filter( lambda cls: cls.indexing_suite.include_files
+                                  , used_containers )
         used_containers.sort( cmp_by_name )
-        for cls in used_containers:
-            container_name = cls.name.split( '<' )[0] + '<'
-
-            if isinstance( cls.indexing_suite, decl_wrappers.indexing_suite1_t ):
-                isuite = INDEXING_SUITE_1_CONTAINERS
-            else:
-                isuite = INDEXING_SUITE_2_CONTAINERS
-
-            if not isuite.has_key( container_name ):
-                continue #not supported
-
+        for cls in used_containers:            
             for msg in cls.readme():
                 self.decl_logger.warn( "%s;%s" % ( cls, msg ) )
-
-            if isuite is INDEXING_SUITE_2_CONTAINERS:
-                used_headers.add( INDEXING_SUITE_2_MAIN_HEADER )
-
-            used_headers.add( isuite[ container_name ] )
 
             cls_creator = create_cls_cc( cls )
             self.__dependencies_manager.add_exported( cls )
@@ -318,7 +279,8 @@ class creator_t( declarations.decl_visitor_t ):
                 element_type = cls.indexing_suite.element_type
             except:
                 element_type = None
-            if isuite is INDEXING_SUITE_1_CONTAINERS:
+
+            if isinstance( cls.indexing_suite, decl_wrappers.indexing_suite1_t ):
                 if not ( None is element_type ) \
                    and declarations.is_class( element_type ) \
                    and not declarations.has_public_equal( element_type ):
@@ -333,27 +295,9 @@ class creator_t( declarations.decl_visitor_t ):
                         element_type_cc = code_creators.value_traits_t( value_cls )
                         self.__extmodule.adopt_declaration_creator( element_type_cc )
                 cls_creator.adopt_creator( code_creators.indexing_suite2_t(cls) )
-
-        if INDEXING_SUITE_2_MAIN_HEADER in used_headers:
-            #I want this header to be the first one.
-            used_headers.remove( INDEXING_SUITE_2_MAIN_HEADER )
-            self.__extmodule.add_system_header( INDEXING_SUITE_2_MAIN_HEADER )
-            self.__extmodule.add_include( INDEXING_SUITE_2_MAIN_HEADER )
-
-        for header in used_headers:
-            self.__extmodule.add_system_header( header )
-            self.__extmodule.add_include( header )
-
+                
         creators.reverse()
         self.__module_body.adopt_creators( creators, 0 )
-
-    def __on_demand_include_call_policies( self, call_policy ):
-        if not self.__return_pointee_value_exists \
-           and decl_wrappers.is_return_pointee_value_policy( call_policy ):
-            self.__return_pointee_value_exists = True
-            self.__extmodule.add_include( code_repository.call_policies.file_name )            
-            self.__extmodule.add_system_header( code_repository.call_policies.file_name )
-            
 
     def create(self, decl_headers=None):
         """Create and return the module for the extension.
@@ -363,11 +307,6 @@ class creator_t( declarations.decl_visitor_t ):
         @returns: Returns the root of the code creators tree
         @rtype: L{module_t<code_creators.module_t>}
         """
-        if decl_headers is None:
-            self._create_includes()
-        else:
-            for h in decl_headers:
-                self.__extmodule.adopt_include(code_creators.include_t(header=h))
         # Invoke the appropriate visit_*() method on all decls
         for decl in self.__decls:
             self.curr_decl = decl
@@ -381,13 +320,21 @@ class creator_t( declarations.decl_visitor_t ):
             creator.target_configuration = self.__target_configuration
         #last action.
         self._append_user_code()
+        
+        add_include = self.__extmodule.add_include
+        #add system headers
+        system_headers = self.__extmodule.get_system_headers( recursive=True, unique=True )
+        map( lambda header: add_include( header, user_defined=False, system=True )
+             , system_headers )
+        #add user defined header files
+        if decl_headers is None:
+            decl_headers = declarations.declaration_files( self.__decls )        
+        map( lambda header: add_include( header, user_defined=False, system=False )
+             , decl_headers )
+        
         self.__dependencies_manager.inform_user()
+        
         return self.__extmodule
-
-    def _create_includes(self):
-        for fn in declarations.declaration_files( self.__decls ):
-            include = code_creators.include_t( header=fn )
-            self.__extmodule.adopt_include(include)
 
     def visit_member_function( self ):
         fwrapper = None
@@ -395,7 +342,6 @@ class creator_t( declarations.decl_visitor_t ):
         self.__dependencies_manager.add_exported( self.curr_decl )
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-        self.__on_demand_include_call_policies( self.curr_decl.call_policies )
         
         maker_cls, fwrapper_cls = creators_wizard.find_out_mem_fun_creator_classes( self.curr_decl )
 
@@ -422,23 +368,6 @@ class creator_t( declarations.decl_visitor_t ):
             self.curr_code_creator.adopt_creator( maker )
             self.__opaque_types_manager.register_opaque( maker, self.curr_decl )
         
-        if self.curr_decl.transformations:
-            required_headers = self.curr_decl.transformations[0].required_headers()
-            for header in required_headers:
-                # Check whether the header is already included
-                included = filter( lambda cc: isinstance(cc, code_creators.include_t) and cc.header==header
-                                   , self.__extmodule.creators)
-                if not included:
-                    self.__extmodule.adopt_include( 
-                        code_creators.include_t( header=header, user_defined=True ) )
-    
-                # Check if it is a header from the code repository
-                if header in code_repository.headers:
-                    self.__extmodule.add_system_header( header )
-                    
-                if not self.__extmodule.is_system_header( code_repository.named_tuple.file_name ):
-                    self.__extmodule.add_system_header( code_repository.named_tuple.file_name )
-                    
         if self.curr_decl.has_static:
             #static_method should be created only once.
             found = filter( lambda creator: isinstance( creator, code_creators.static_method_t )
@@ -464,7 +393,6 @@ class creator_t( declarations.decl_visitor_t ):
         maker = code_creators.constructor_t( constructor=self.curr_decl, wrapper=cwrapper )
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-        self.__on_demand_include_call_policies( self.curr_decl.call_policies )
         self.curr_code_creator.adopt_creator( maker )
 
     def visit_destructor( self ):
@@ -483,7 +411,6 @@ class creator_t( declarations.decl_visitor_t ):
         self.__dependencies_manager.add_exported( self.curr_decl )
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-        self.__on_demand_include_call_policies( self.curr_decl.call_policies )
         
         self.__types_db.update( self.curr_decl )
         if not self.curr_decl.parent.is_abstract and not declarations.is_reference( self.curr_decl.return_type ):
@@ -505,7 +432,7 @@ class creator_t( declarations.decl_visitor_t ):
                               , parent_decl.free_functions( allow_empty=True, recursive=False ) ) )
             for name in names:
                 overloads = parent_decl.free_functions( name, allow_empty=True, recursive=False )
-                overloads = filter( lambda decl: decl.use_overload_macro, overloads )
+                overloads = filter( lambda decl: decl.ignore == False and decl.use_overload_macro, overloads )
                 if not overloads:
                     continue
                 else:
@@ -515,7 +442,6 @@ class creator_t( declarations.decl_visitor_t ):
                         self.__dependencies_manager.add_exported( f )
                         if None is f.call_policies:
                             f.call_policies = self.__call_policies_resolver( f )
-                        self.__on_demand_include_call_policies( f.call_policies )
 
                     overloads_cls_creator = code_creators.free_fun_overloads_class_t( overloads )
                     self.__extmodule.adopt_declaration_creator( overloads_cls_creator )
@@ -536,7 +462,6 @@ class creator_t( declarations.decl_visitor_t ):
             self.__dependencies_manager.add_exported( self.curr_decl )
             if None is self.curr_decl.call_policies:
                 self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-            self.__on_demand_include_call_policies( self.curr_decl.call_policies )
             
             maker = None
             if self.curr_decl.transformations:
@@ -569,7 +494,8 @@ class creator_t( declarations.decl_visitor_t ):
                           , cls.member_functions( allow_empty=True, recursive=False ) ) )
         for name in names:
             overloads = cls.member_functions( name, allow_empty=True, recursive=False )
-            overloads = filter( lambda decl: decl.use_overload_macro, overloads )
+            overloads = filter( lambda decl: decl.ignore == False and decl.use_overload_macro
+                                , overloads )
             if not overloads:
                 continue
             else:
@@ -580,7 +506,6 @@ class creator_t( declarations.decl_visitor_t ):
                     self.__dependencies_manager.add_exported( f )
                     if None is f.call_policies:
                         f.call_policies = self.__call_policies_resolver( f )
-                    self.__on_demand_include_call_policies( f.call_policies )
 
                 overloads_cls_creator = code_creators.mem_fun_overloads_class_t( overloads )
                 self.__extmodule.adopt_declaration_creator( overloads_cls_creator )
@@ -613,15 +538,16 @@ class creator_t( declarations.decl_visitor_t ):
             else:
                 self.__extmodule.adopt_declaration_creator( wrapper )
             if declarations.has_trivial_copy( self.curr_decl ):
-                #I don't know but sometimes boost.python requieres
-                #to construct wrapper from wrapped classe
-                if not self.curr_decl.noncopyable:
-                    copy_constr = code_creators.copy_constructor_wrapper_t( class_inst=self.curr_decl )
-                    wrapper.adopt_creator( copy_constr )
+                #~ #I don't know but sometimes boost.python requieres
+                #~ #to construct wrapper from wrapped classe
+                copy_constr = self.curr_decl.constructor( lambda c: c.is_copy_constructor, recursive=False )
+                if not self.curr_decl.noncopyable and copy_constr.is_artificial:
+                    cccc = code_creators.copy_constructor_wrapper_t( constructor=copy_constr )
+                    wrapper.adopt_creator( cccc )
                 null_constr = declarations.find_trivial_constructor(self.curr_decl)
                 if null_constr and null_constr.is_artificial:
                     #this constructor is not going to be exposed
-                    tcons = code_creators.null_constructor_wrapper_t( class_inst=self.curr_decl )
+                    tcons = code_creators.null_constructor_wrapper_t( constructor=null_constr )
                     wrapper.adopt_creator( tcons )
 
         exposed = self.expose_overloaded_mem_fun_using_macro( cls_decl, cls_cc )
@@ -691,11 +617,6 @@ class creator_t( declarations.decl_visitor_t ):
         self.__dependencies_manager.add_exported( self.curr_decl )
         
         if declarations.is_array( self.curr_decl.type ):
-            if not self.__cr_array_1_included:
-                self.__extmodule.add_system_header( code_repository.array_1.file_name )
-                self.__extmodule.adopt_creator( code_creators.include_t( code_repository.array_1.file_name )
-                                                , self.__extmodule.first_include_index() + 1)
-                self.__cr_array_1_included = True
             if self._register_array_1( self.curr_decl.type ):
                 array_1_registrator = code_creators.array_1_registrator_t( array_type=self.curr_decl.type )
                 self.curr_code_creator.adopt_creator( array_1_registrator )
@@ -725,10 +646,8 @@ class creator_t( declarations.decl_visitor_t ):
             elif declarations.is_reference( self.curr_decl.type ):
                 if None is self.curr_decl.getter_call_policies:
                     self.curr_decl.getter_call_policies = self.__call_policies_resolver( self.curr_decl, 'get' )
-                self.__on_demand_include_call_policies( self.curr_decl.getter_call_policies )
                 if None is self.curr_decl.setter_call_policies:
                     self.curr_decl.setter_call_policies = self.__call_policies_resolver( self.curr_decl, 'set' )
-                self.__on_demand_include_call_policies( self.curr_decl.setter_call_policies )
                 wrapper = code_creators.mem_var_ref_wrapper_t( variable=self.curr_decl )
                 maker = code_creators.mem_var_ref_t( variable=self.curr_decl, wrapper=wrapper )
                 self.__opaque_types_manager.register_opaque( maker, self.curr_decl )

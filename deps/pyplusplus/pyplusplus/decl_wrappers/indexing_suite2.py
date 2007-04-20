@@ -33,6 +33,18 @@ insert_methods = method_append | method_insert | method_extend
 """
 
 
+containers = {
+      'vector' : "boost/python/suite/indexing/vector.hpp"
+    , 'deque' : "boost/python/suite/indexing/deque.hpp"
+    , 'list' : "boost/python/suite/indexing/list.hpp"
+    , 'map' : "boost/python/suite/indexing/map.hpp"
+    , 'multimap' : "boost/python/suite/indexing/multimap.hpp"
+    , 'hash_map' : "boost/python/suite/indexing/map.hpp"
+    , 'set' : "boost/python/suite/indexing/set.hpp"
+    , 'hash_set' : "boost/python/suite/indexing/set.hpp"
+    #TODO: queue, priority, stack, multimap, hash_multimap, multiset, hash_multiset
+}
+
 class indexing_suite2_t( object ):
     """
     This class helps user to export STD containers, using Boost.Python
@@ -63,6 +75,7 @@ class indexing_suite2_t( object ):
         self._disabled_groups = set()
         self._default_applied = False
         self._use_container_suite = False
+        self.__include_files = None
 
     def get_use_container_suite( self ):
         return self._use_container_suite
@@ -153,3 +166,16 @@ class indexing_suite2_t( object ):
         return self._disabled_groups
     disabled_methods_groups = property( _get_disabled_methods_groups
                                         , doc="list of all disabled methods group")
+
+    @property
+    def include_files( self ):
+        """Return list of header files to be included in generated code"""
+        if self.__include_files is None:
+            name = self.container_class.name.split( '<' )[0]
+            if name not in containers:
+                self.__include_files = [] #not supported
+            else:
+                #impl details: the order of header files is IMPORTANT        
+                self.__include_files = [ "boost/python/suite/indexing/container_suite.hpp"
+                                         , containers[ name ] ]
+        return self.__include_files

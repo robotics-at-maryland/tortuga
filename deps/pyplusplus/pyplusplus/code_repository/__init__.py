@@ -17,9 +17,10 @@ import array_1
 import gil_guard
 import named_tuple
 import convenience
+import return_range
 import call_policies
 
-all = [ array_1, gil_guard, convenience, call_policies, named_tuple ]
+all = [ array_1, gil_guard, convenience, call_policies, named_tuple, return_range ]
 
 headers = map( lambda f: f.file_name, all )
 

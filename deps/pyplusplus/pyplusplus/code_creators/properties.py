@@ -80,7 +80,6 @@ class property_t( registration_based.registration_based_t ):
             cls_name = 'exported_class_t'
         return ( 'typedef %s %s;' % ( cls_identifier, cls_name ), cls_name )
 
-
     def create_property_code( self ):
         result = []
         param_sep = ', '
@@ -146,6 +145,8 @@ class property_t( registration_based.registration_based_t ):
         result.append( '}' )
         return os.linesep.join( result )
 
+    def _get_system_headers_impl( self ):
+        return []
 
 
 

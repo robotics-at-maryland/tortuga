@@ -21,3 +21,5 @@ from pyplusplus.decl_wrappers import return_pointee_value
 from pyplusplus.decl_wrappers import custom_call_policies
 from pyplusplus.decl_wrappers import convert_array_to_tuple
 from pyplusplus.decl_wrappers import memory_managers
+from pyplusplus.decl_wrappers import return_range
+from pyplusplus.decl_wrappers import return_range_t

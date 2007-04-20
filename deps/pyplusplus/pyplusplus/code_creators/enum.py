@@ -63,3 +63,6 @@ class enum_t( registration_based.registration_based_t
         
         values = self.indent( os.linesep.join( values ) )
         return bpl_enum + os.linesep + values
+
+    def _get_system_headers_impl( self ):
+        return []

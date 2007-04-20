@@ -4,7 +4,6 @@
 # http://www.boost.org/LICENSE_1_0.txt)
 
 import os
-import types
 import custom
 import license
 import include
@@ -23,16 +22,8 @@ class module_t(compound.compound_t):
         """Constructor.
         """
         compound.compound_t.__init__(self)
-        self.__system_headers = []
-    
-    def add_system_header( self, header ):
-        normalize = include_directories.include_directories_t.normalize
-        self.__system_headers.append( normalize( header ) )
-
-    def is_system_header( self, header ):
-        normalize = include_directories.include_directories_t.normalize
-        return normalize( header ) in self.__system_headers
-    
+        self.__body = None
+            
     def _get_include_dirs(self):
         include_dirs = algorithm.creator_finder.find_by_class_instance( 
             what=include_directories.include_directories_t
@@ -60,19 +51,16 @@ class module_t(compound.compound_t):
         return include_dirs.user_defined
     user_defined_directories = property( _get_user_defined_directories )
 
-    def _get_body(self):
-        found = algorithm.creator_finder.find_by_class_instance( what=module_body.module_body_t
+    @property 
+    def body(self):
+        """Return reference to L{module_body_t} code creator"""
+        if None is self.__body:
+            found = algorithm.creator_finder.find_by_class_instance( what=module_body.module_body_t
                                                                  , where=self.creators
                                                                  , recursive=False )
-        if not found:
-            return None
-        else:
-            return found[0]
-    body = property( _get_body,
-                     doc="""A module_body_t object or None.
-                     @type: L{module_body_t}
-                     """
-                     )
+            if found:
+                self.__body = found[0]
+        return self.__body
 
     def _get_license( self ):
         if isinstance( self.creators[0], license.license_t ):
@@ -105,22 +93,7 @@ class module_t(compound.compound_t):
                 return i
         else:
             return 0
-        
-    def first_include_index(self):
-        """Return the children index of the first L{include_t} object.
 
-        An exception is raised when there is no include_t object among
-        the children creators.
-
-        @returns: Children index
-        @rtype: int
-        """
-        for i in range( len(self.creators) ):
-            if isinstance( self.creators[i], include.include_t ):
-                return i
-        else:
-            raise RuntimeError( "include_t creator has not been found." )
-    
     def replace_included_headers( self, headers, leave_system_headers=True ):
         to_be_removed = []
         for creator in self.creators:
@@ -130,7 +103,7 @@ class module_t(compound.compound_t):
                 break
         
         for creator in to_be_removed:
-            if creator.header in self.__system_headers: 
+            if creator.is_system: 
                 if not leave_system_headers:
                     self.remove_creator( creator )
             elif creator.is_user_defined:
@@ -140,7 +113,6 @@ class module_t(compound.compound_t):
         map( lambda header: self.adopt_include( include.include_t( header=header ) )
              , headers )
 
-    
     def adopt_include(self, include_creator):
         """Insert an L{include_t} object.
 
@@ -149,7 +121,15 @@ class module_t(compound.compound_t):
         @param include_creator: Include creator object
         @type include_creator: L{include_t}
         """
-        self.adopt_creator( include_creator, self.last_include_index() + 1 )
+        lii = self.last_include_index()
+        if lii == 0:
+            if not self.creators:
+                lii = -1
+            elif not isinstance( self.creators[0], include.include_t ):
+                lii = -1
+            else:
+                pass
+        self.adopt_creator( include_creator, lii + 1 )
 
     def do_include_dirs_optimization(self):
         include_dirs = self._get_include_dirs()
@@ -157,7 +137,10 @@ class module_t(compound.compound_t):
                            , self.creators )
         for include_creator in includes:
             include_creator.include_dirs_optimization = include_dirs
-    
+
+    def _get_system_headers_impl( self ):
+        return []
+
     def _create_impl(self):
         self.do_include_dirs_optimization()
         index = 0
@@ -171,8 +154,9 @@ class module_t(compound.compound_t):
         code = self.unindent(code)        
         return os.linesep.join( includes ) + 2 * os.linesep + code + os.linesep
     
-    def add_include( self, header ):
-        self.adopt_include( include.include_t( header=header, user_defined=True ) )
+    def add_include( self, header, user_defined=True, system=False ):
+        creator = include.include_t( header=header, user_defined=user_defined, system=system )
+        self.adopt_include( creator )
     
     def add_namespace_usage( self, namespace_name ):
         self.adopt_creator( namespace.namespace_using_t( namespace_name )
@@ -187,19 +171,5 @@ class module_t(compound.compound_t):
     def adopt_declaration_creator( self, creator ):
         self.adopt_creator( creator, self.creators.index( self.body ) )
 
-    def add_declaration_code( self, code, position ):
-        creator = custom.custom_text_t( code )
-        last_include = self.last_include_index()
-        pos = max( last_include + 1, position )
-        pos = min( pos, self.creators.index( self.body ) )
-        self.adopt_creator( creator, pos )
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+    def add_declaration_code( self, code, position ):        
+        self.adopt_declaration_creator( custom.custom_text_t( code ) )

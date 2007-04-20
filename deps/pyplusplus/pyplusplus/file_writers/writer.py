@@ -8,6 +8,7 @@
 import os
 import time
 from pyplusplus import _logging_
+from pyplusplus import code_creators
 from pyplusplus import code_repository
 
 class writer_t(object):
@@ -47,10 +48,14 @@ class writer_t(object):
     
     def write_code_repository(self, dir):
         """creates files defined in L{code_repository} package"""
+        system_headers = self.extmodule.get_system_headers( recursive=True )
         for cr in code_repository.all:
-            if self.__extmodule.is_system_header( cr.file_name ):
+            if cr.file_name in system_headers:
+                #check whether file from code repository is used
                 self.write_file( os.path.join( dir, cr.file_name ), cr.code )
-
+        #named_tuple.py is a special case :-(
+        self.write_file( os.path.join( dir, code_repository.named_tuple.file_name )
+                         , code_repository.named_tuple.code ) 
     @staticmethod
     def write_file( fpath, content ):
         """Write a source file.
@@ -94,4 +99,11 @@ class writer_t(object):
         f.write( fcontent_new )
         f.close()
         writer_t.logger.info( 'file "%s" - updated( %f seconds )' % ( fname, time.clock() - start_time ) )
-        
+    
+    def get_user_headers( self, creators ):
+        headers = []
+        creators = filter( lambda creator: isinstance( creator, code_creators.declaration_based_t )
+                           , creators )
+        map( lambda creator: headers.extend( creator.get_user_headers() )
+             , creators )
+        return code_creators.code_creator_t.unique_headers( headers )

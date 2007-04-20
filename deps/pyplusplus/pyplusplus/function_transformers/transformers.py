@@ -129,7 +129,10 @@ class type_modifier_t(transformer.transformer_t):
     def __configure_sealed( self, controller ):
         w_arg = controller.find_wrapper_arg( self.arg.name )
         w_arg.type = self.modifier( self.arg.type )
-
+        if not declarations.is_convertible( w_arg.type, self.arg.type ):
+            casting_code = 'reinterpret_cast< %s >( %s )' % ( self.arg.type, w_arg.name )
+            controller.modify_arg_expression(self.arg_index, casting_code)
+            
     def __configure_v_mem_fun_default( self, controller ):
         self.__configure_sealed( controller )
 
@@ -142,6 +145,9 @@ class type_modifier_t(transformer.transformer_t):
     def configure_virtual_mem_fun( self, controller ):
         self.__configure_v_mem_fun_default( controller.default_controller ) 
 
+    def required_headers( self ):
+        """Returns list of header files that transformer generated code depends on."""
+        return []
         
 # input_t
 class input_t(type_modifier_t):
@@ -222,6 +228,10 @@ class inout_t(transformer.transformer_t):
         self.__configure_v_mem_fun_override( controller.override_controller )
         self.__configure_v_mem_fun_default( controller.default_controller )
 
+    def required_headers( self ):
+        """Returns list of header files that transformer generated code depends on."""
+        return [ code_repository.convenience.file_name ]
+
 
 _seq2arr = string.Template( os.linesep.join([
               'pyplus_conv::ensure_uniform_sequence< $type >( $pylist, $array_size );'
@@ -257,7 +267,7 @@ class input_static_array_t(transformer.transformer_t):
                   % ( function, self.arg.name, self.arg.type)
 
         self.array_size = size
-        self.array_item_type = declarations.array_item_type( self.arg.type )
+        self.array_item_type = declarations.remove_const( declarations.array_item_type( self.arg.type ) )
 
     def __str__(self):
         return "input_array(%s,%d)"%( self.arg.name, self.array_size)
@@ -429,7 +439,7 @@ class input_c_buffer_t(transformer.transformer_t):
             raise ValueError( '%s\nin order to use "input_c_buffer" transformation, "size" argument %s type must be an integral type (got %s).' ) \
                   % ( function, self.size_arg.name, self.size_arg.type)
 
-        self.buffer_item_type = declarations.array_item_type( self.buffer_arg.type )
+        self.buffer_item_type = declarations.remove_const( declarations.array_item_type( self.buffer_arg.type ) )
 
     def __str__(self):
         return "input_c_buffer(buffer arg=%s, size arg=%s)" \
@@ -492,3 +502,42 @@ class input_c_buffer_t(transformer.transformer_t):
         self.__configure_v_mem_fun_override( controller.override_controller )
         self.__configure_v_mem_fun_default( controller.default_controller )
         
+
+class transfer_ownership_t(type_modifier_t):
+    """see http://boost.org/libs/python/doc/v2/faq.html#ownership
+    """
+    def __init__(self, function, arg_ref):
+        """Constructor."""
+        transformer.transformer_t.__init__( self, function )
+        self.arg = self.get_argument( arg_ref )
+        self.arg_index = self.function.arguments.index( self.arg )
+        if not declarations.is_pointer( self.arg.type ):
+            raise ValueError( '%s\nin order to use "transfer ownership" transformation, argument %s type must be a pointer (got %s).' ) \
+                  % ( function, self.arg_ref.name, arg.type)
+
+    def __str__(self):
+        return "transfer_ownership(%s)" % self.arg.name
+
+    def __configure_sealed( self, controller ):
+        w_arg = controller.find_wrapper_arg( self.arg.name )
+        naked_type = declarations.remove_pointer( self.arg.type )
+        naked_type = declarations.remove_declarated( naked_type )
+        w_arg.type = declarations.dummy_type_t( 'std::auto_ptr< %s >' % naked_type.decl_string )
+        controller.modify_arg_expression(self.arg_index, w_arg.name + '.release()' )
+            
+    def __configure_v_mem_fun_default( self, controller ):
+        self.__configure_sealed( controller )
+
+    def configure_mem_fun( self, controller ):
+        self.__configure_sealed( controller )
+        
+    def configure_free_fun(self, controller ):
+        self.__configure_sealed( controller )
+
+    def configure_virtual_mem_fun( self, controller ):
+        raise NotImplementedError()
+        
+    def required_headers( self ):
+        """Returns list of header files that transformer generated code depends on."""
+        return []
+

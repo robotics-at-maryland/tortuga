@@ -24,8 +24,7 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         mb.add_registration_code( 'bp::def( "ensure_int_sequence", &pyplusplus::convenience::ensure_uniform_sequence<int> );' )
         mb.build_code_creator( self.EXTENSION_NAME )
 
-        mb.code_creator.add_include( "__convenience.pypp.hpp" )
-        mb.code_creator.add_system_header( code_repository.convenience.file_name )
+        mb.code_creator.add_include( code_repository.convenience.file_name, system=True )
 
     def run_tests(self, module):
         self.failIfRaisesAny( module.ensure_sequence, [1,2,3], -1 )

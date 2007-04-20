@@ -20,6 +20,7 @@
 #include <boost/detail/workaround.hpp>
 #include <functional>
 #include <map>
+#include <boost/python/suite/indexing/pair.hpp>
 
 namespace boost { namespace python { namespace indexing {
   /////////////////////////////////////////////////////////////////////////
@@ -103,6 +104,12 @@ namespace boost { namespace python { namespace indexing {
     {
       ContainerTraits::visit_container_class (pyClass, policy);
       pyClass.def( "keys", &self_type::keys );        
+
+      typedef BOOST_DEDUCED_TYPENAME most_derived::container::value_type value_type;
+      mapping::register_value_type< PythonClass, value_type, Policy >( pyClass );
+      //now we can expose iterators functionality
+      pyClass.def( "__iter__", python::iterator< BOOST_DEDUCED_TYPENAME most_derived::container >() );
+        
     }  
 
   };

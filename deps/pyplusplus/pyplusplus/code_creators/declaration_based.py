@@ -51,3 +51,6 @@ class declaration_based_t:
             return ''
         return self.declaration.documentation
     
+    def get_user_headers( self, recursive=False, unique=False ):
+        """return list of user header files to be included from the generated file"""
+        return self.declaration.include_files

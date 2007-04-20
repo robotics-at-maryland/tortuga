@@ -6,6 +6,8 @@
 #ifndef __operators_bug_to_be_exported_hpp__
 #define __operators_bug_to_be_exported_hpp__
 
+#include <string>
+
 namespace operators_bug{
 
 template< typename derived_type, typename value_type >
@@ -46,6 +48,18 @@ struct vector
 };
 
 
+struct call_copy_constructor_t{
+    explicit call_copy_constructor_t( const std::string& x )
+    {}
+        
+    call_copy_constructor_t( const call_copy_constructor_t& x ){};
+        
+    call_copy_constructor_t& operator=( const call_copy_constructor_t& x ){
+        return *this;
+    }
+    
+    virtual void do_nothing(){}
+};
 }
     
 

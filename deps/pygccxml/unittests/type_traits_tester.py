@@ -101,7 +101,16 @@ class tester_t( parser_test_case.parser_test_case_t ):
 
     def test_is_fundamental(self):
         self.__test_type_category( 'is_fundamental', declarations.is_fundamental )
-        
+
+    def test_is_noncopyable(self):
+        self.__test_type_category( 'is_noncopyable', declarations.is_noncopyable )
+
+    def test_is_std_ostream(self):
+        self.__test_type_category( 'is_std_ostream', declarations.is_std_ostream )
+
+    def test_is_std_wostream(self):
+        self.__test_type_category( 'is_std_wostream', declarations.is_std_wostream )
+
     def test_has_trivial_constructor(self):
         self.__test_type_category( 'has_trivial_constructor', declarations.has_trivial_constructor )
 
@@ -203,8 +212,6 @@ class tester_t( parser_test_case.parser_test_case_t ):
         self.failUnless( declarations.is_binary_operator( operator_pe ), 'operator+= should be idenitified as binray operator' )
 
     def __is_convertible_impl( self, decl ):
-        if decl.name == 'x81':
-            i = 0
         defs = decl.bases[0].related_class.declarations
         source_type = declarations.find_declaration( defs, name='source_type' )
         target_type = declarations.find_declaration( defs, name='target_type' )
@@ -212,8 +219,8 @@ class tester_t( parser_test_case.parser_test_case_t ):
                                                        , name='expected'
                                                        , type=declarations.enumeration_t )
         expected_value = bool( expected_type.get_name2value_dict()['value'] )
-        if expected_value != declarations.is_convertible( source_type, target_type ):
-            print decl.name
+        self.failUnless( expected_value == declarations.is_convertible( source_type, target_type )
+                         , 'Check conversion failed for ' + decl.name )
         
     def test_is_convertible( self ):
         ns_is_convertible = declarations.find_declaration( self.declarations

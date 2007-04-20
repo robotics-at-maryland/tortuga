@@ -48,7 +48,11 @@ namespace boost { namespace python { namespace indexing {
     // This class provides a convenient interface to Python slice
     // objects that contain integer bound and stride values.
 
-    typedef int index_type;
+    #if PY_VERSION_HEX < 0x02050000
+        typedef int index_type;
+    #else
+        typedef Py_ssize_t index_type;
+    #endif
 
     integer_slice (slice const &, index_type length);
     // integer_slice must know how big the container is so it can

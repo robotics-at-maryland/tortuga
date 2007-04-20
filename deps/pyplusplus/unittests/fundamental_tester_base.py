@@ -65,11 +65,12 @@ class fundamental_tester_base_t( unittest.TestCase ):
     def _create_extension_source_file(self):
         global LICENSE
         
-        xml_file = os.path.split( self.__to_be_exported_header )[1]
-        xml_file = os.path.join( autoconfig.build_dir, xml_file + '.xml' )
-        xml_cached_fc = parser.create_cached_source_fc( self.__to_be_exported_header, xml_file )
+        #xml_file = os.path.split( self.__to_be_exported_header )[1]
+        #xml_file = os.path.join( autoconfig.build_dir, xml_file + '.xml' )
+        #xml_cached_fc = parser.create_cached_source_fc( self.__to_be_exported_header, xml_file )
 
-        mb = module_builder.module_builder_t( [xml_cached_fc]
+        #mb = module_builder.module_builder_t( [xml_cached_fc]
+        mb = module_builder.module_builder_t( [self.__to_be_exported_header]
                                               , gccxml_path=autoconfig.gccxml.executable
                                               , include_paths=[autoconfig.boost.include]
                                               , undefine_symbols=['__MINGW32__']

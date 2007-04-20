@@ -54,3 +54,8 @@ def input_c_buffer( *args, **keywd ):
     def creator( function ):
         return transformers.input_c_buffer_t( function, *args, **keywd )
     return creator
+
+def transfer_ownership( *args, **keywd ):
+    def creator( function ):
+        return transformers.transfer_ownership_t( function, *args, **keywd )
+    return creator

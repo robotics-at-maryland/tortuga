@@ -7,7 +7,7 @@
 #   Allen Bierbaum
 #
 
-import goodie_perf_overrides
+#import goodie_perf_overrides
 import goodie_overrides
 
 from goodie_utils import (set_recursive_default, set_allow_empty_mdecl_default,

@@ -56,9 +56,13 @@ class class_multiple_files_t(multiple_files.multiple_files_t):
         if self.extmodule.license:
             answer.append( self.extmodule.license.create() )
 
-        answer.append( self.create_include_code( [class_creator] ) )
+        creators = [class_creator]
+        if class_creator.wrapper:
+            creators.append( class_creator.wrapper )
+            
+        answer.append( self.create_include_code( creators ) )
         answer.append( '' )
-        answer.append( self.create_namespaces_code( [class_creator] ) )
+        answer.append( self.create_namespaces_code( creators ) )
 
         if class_creator.wrapper:
             answer.append( class_creator.wrapper.create() )

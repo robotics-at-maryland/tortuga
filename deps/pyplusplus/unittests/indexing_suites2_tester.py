@@ -30,7 +30,7 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         fvector.indexing_suite.disable_method( 'extend' )
         fvector.indexing_suite.disable_methods_group( 'reorder' )
         #fvector.indexing_suite.call_policies = module_builder.call_policies.default_call_policies()
-        items_ptr = generator.global_ns.typedef( 'items_ptr_t' )
+        items_ptr = generator.global_ns.typedefs( 'items_ptr_t' )[0]
         items_ptr = declarations.remove_declarated( items_ptr.type )
         self.failUnless( items_ptr.indexing_suite.call_policies.__class__
                          is module_builder.call_policies.return_internal_reference().__class__ )
@@ -50,6 +50,13 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         name2value = module.name2value_t()
         name2value[ "x" ] = "y"
         self.failUnless( "x" == module.get_first_name( name2value ) )
+        for kv in name2value:
+            self.failUnless( kv.key == "x" and kv.value == "y" )
+        for k, v in name2value:
+            self.failUnless( k == "x" and v == "y" )
+        for k, v in name2value.iteritems():
+            self.failUnless( k == "x" and v == "y" )
+            
         items_ptr = module.items_ptr_t()
         items_ptr.append( item )
         self.failUnless( items_ptr[0].value == 1977 )

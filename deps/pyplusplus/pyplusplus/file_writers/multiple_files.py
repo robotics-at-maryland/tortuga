@@ -43,6 +43,9 @@ class multiple_files_t(writer.writer_t):
         self.write_main = write_main
         self.written_files = []
         self.ref_count_creators = ( code_creators.opaque_type_registrator_t, )
+        self.__predefined_include_creators \
+            = filter( lambda creator: isinstance( creator, code_creators.include_t )
+                      , self.extmodule.creators )
 
     def write_file( self, fpath, content ):
         self.written_files.append( fpath )
@@ -143,14 +146,27 @@ class multiple_files_t(writer.writer_t):
     def create_include_code( self, creators, head_headers=None, tail_headers=None ):
         answer = []
         normalize = code_creators.include_directories_t.normalize
+        unique_headers = code_creators.code_creator_t.unique_headers
+        
         if head_headers:
             answer.extend( map( lambda header: '#include "%s"' % normalize( header )
                                 , head_headers ) )
 
-        # Include all 'global' include files...
-        includes = filter( lambda creator: isinstance( creator, code_creators.include_t )
-                           , self.extmodule.creators )
-        answer.extend( map( lambda creator: creator.create(), includes ) )
+        dependend_on_headers = []
+        for creator in creators:
+            dependend_on_headers.extend( creator.get_system_headers( recursive=True ) )
+            
+        dependend_on_headers = unique_headers( map( normalize, dependend_on_headers ) )       
+                
+        for include_cc in self.__predefined_include_creators:
+            if include_cc.is_system:                
+                if include_cc.header in dependend_on_headers:
+                    answer.append( include_cc.create() )
+            else:# user header file - always include
+                answer.append( include_cc.create() )
+
+        map( lambda user_header: answer.append( '#include "%s"' % user_header )
+             , self.get_user_headers( creators ) )
 
         for creator in creators:
             header = self.find_out_value_traits_header( creator )

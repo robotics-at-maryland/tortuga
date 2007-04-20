@@ -30,6 +30,14 @@ class member_variable_base_t( registration_based.registration_based_t
     def _set_wrapper( self, new_wrapper ):
         self._wrapper = new_wrapper
     wrapper = property( _get_wrapper, _set_wrapper )
+    
+    def _get_system_headers_impl( self ):
+        files = []
+        if self.declaration.getter_call_policies:
+            files.append( self.declaration.getter_call_policies.header_file )
+        if self.declaration.setter_call_policies:
+            files.append( self.declaration.setter_call_policies.header_file )
+        return files
 
 class member_variable_t( member_variable_base_t ):
     """
@@ -108,7 +116,7 @@ class member_variable_t( member_variable_base_t ):
 
         return result
 
-    def _generate_for_smart_ptr( self ):
+    def _generate_using_functions( self ):
         doc = ''
         add_property = ''
         make_getter = algorithm.create_identifier( self, '::boost::python::make_getter')
@@ -148,8 +156,8 @@ class member_variable_t( member_variable_base_t ):
     def _create_impl( self ):
         if declarations.is_pointer( self.declaration.type ):
             return self._generate_for_pointer()
-        elif self.declaration.apply_smart_ptr_wa:
-            return self._generate_for_smart_ptr()
+        elif self.declaration.apply_smart_ptr_wa or self.declaration.use_make_functions:
+            return self._generate_using_functions()
         else:
             return self._generate_for_none_pointer()
 
@@ -257,6 +265,9 @@ class member_variable_wrapper_t( code_creator.code_creator_t
                 , 'cls_type' : self.inst_arg_type( has_const=False ) })
         return os.linesep.join( answer )
 
+    def _get_system_headers_impl( self ):
+        return []
+
 class bit_field_t( member_variable_base_t ):
     """
     Creates boost.python code that exposes bit fields member variables
@@ -359,6 +370,9 @@ class bit_field_wrapper_t( code_creator.code_creator_t
             answer.append( self.BF_SET_TEMPLATE % substitutions )
         return os.linesep.join( answer )
 
+    def _get_system_headers_impl( self ):
+        return []
+
 class array_mv_t( member_variable_base_t ):
     """
     Creates boost.python code that exposes array member variable.
@@ -405,6 +419,10 @@ class array_mv_t( member_variable_base_t ):
         answer.append( os.linesep )
         answer.append( '}' )
         return ''.join( answer )
+    
+    def _get_system_headers_impl( self ):
+        return []
+
 
 #TODO: generated fucntion should be static and take instance of the wrapped class
 #as first argument.
@@ -468,6 +486,9 @@ class array_mv_wrapper_t( code_creator.code_creator_t
               , 'mem_var_ref' : self.declaration.name
             }
 
+    def _get_system_headers_impl( self ):
+        return [code_repository.array_1.file_name]
+    
 
 class mem_var_ref_t( member_variable_base_t ):
     """
@@ -614,3 +635,6 @@ class mem_var_ref_wrapper_t( code_creator.code_creator_t
         if self.has_setter:
             answer.append( self.SET_TEMPLATE % substitutions )
         return os.linesep.join( answer )
+
+    def _get_system_headers_impl( self ):
+        return []

@@ -32,6 +32,9 @@ class exception_translator_t( code_creator.code_creator_t
                  , 'cls_name' : self.decl_identifier
                  , 'arg_name' : self.declaration.exception_argument_name }
 
+    def _get_system_headers_impl( self ):
+        return []
+
 
 class exception_translator_register_t( registration_based.registration_based_t
                                        , declaration_based.declaration_based_t ):
@@ -49,5 +52,6 @@ class exception_translator_register_t( registration_based.registration_based_t
                % { 'register_exception_translator' : algorithm.create_identifier( self, 'boost::python::register_exception_translator' )
                    , 'cls'  : self.decl_identifier
                    , 'translator' : self.translator.translator_name }
-    
-    
+        
+    def _get_system_headers_impl( self ):
+        return []

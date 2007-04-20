@@ -85,6 +85,12 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         write_s = cls.mem_fun( 'write_s' )
         write_s.add_transformation( ft.input_c_buffer( 'buffer', 'size' ) )
         
+        resource = mb.class_( 'resources_t' )
+        resource.held_type = 'std::auto_ptr< %s >' % resource.decl_string
+        transfer_ownership_tester = mb.class_( 'transfer_ownership_tester_t' )
+        tester = transfer_ownership_tester.mem_fun( 'tester' )
+        tester.add_transformation( ft.transfer_ownership( 0 ) )
+        
     def run_tests(self, module):
         """Run the actual unit tests.
         """
@@ -238,6 +244,10 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         dummy = 11
         self.failUnless( 'hello world' == tmp.write( list( hw ), dummy ) )
         self.failUnless( 'hello world' == tmp.write_s( dummy, tuple( list( hw ) ) ) )
+
+        tmp = module.transfer_ownership_tester_t()
+        resource = tmp.resources_t();
+        tmp.tester( resource )
         
 def create_suite():
     suite = unittest.TestSuite()

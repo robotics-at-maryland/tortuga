@@ -377,7 +377,9 @@ class main_widget_ui_t(custom_frame_t):
         pass
 
 def show_demo():
-    mw = main_widget_ui_t()
+    root = Tkinter.Tk()
+    mw = main_widget_ui_t(root)
+    root.geometry("%dx%d%+d%+d" % (1024, 768, 0, 0)) # (width,height, x, y)
     mw.mainloop()
     
 if __name__ == "__main__":

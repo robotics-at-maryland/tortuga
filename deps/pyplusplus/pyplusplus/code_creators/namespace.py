@@ -10,6 +10,7 @@ class namespace_alias_t(code_creator.code_creator_t):
         code_creator.code_creator_t.__init__( self )
         self._alias = alias
         self._full_namespace_name = full_namespace_name
+        self.__created_code = None
 
     def _get_alias( self ):
         return self._alias
@@ -24,12 +25,20 @@ class namespace_alias_t(code_creator.code_creator_t):
     full_namespace_name = property( _get_full_namespace_name, _set_full_namespace_name )
        
     def _create_impl(self):
-        return 'namespace %s = %s;' % ( self.alias, self.full_namespace_name )
+        if self.__created_code:
+            return self.__created_code
+        else:
+            self.__created_code = 'namespace %s = %s;' % ( self.alias, self.full_namespace_name )
+            return self.__created_code
+
+    def _get_system_headers_impl( self ):
+        return []
 
 class namespace_using_t(code_creator.code_creator_t):
     def __init__( self, namespace_name ):
         code_creator.code_creator_t.__init__(self )
         self._namespace_name = namespace_name
+        self.__created_code = None
 
     def _get_namespace_name( self ):
         return self._namespace_name.lstrip( '::' )
@@ -38,4 +47,11 @@ class namespace_using_t(code_creator.code_creator_t):
     namespace_name = property( _get_namespace_name, _set_namespace_name )
        
     def _create_impl(self):
-        return 'using namespace %s;' % self.namespace_name
+        if self.__created_code:
+            return self.__created_code
+        else:
+            self.__created_code = 'using namespace %s;' % self.namespace_name
+            return self.__created_code
+    
+    def _get_system_headers_impl( self ):
+        return []

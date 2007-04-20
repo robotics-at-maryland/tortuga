@@ -24,6 +24,6 @@ else:
 
 Export( 'env' )
 env.SConscript( ['dev/date_time/sconscript'] )
-env.SConscript( ['dev/crc/sconscript'] )
-env.SConscript( ['dev/boost_random/sconscript'] )
-env.SConscript( ['dev/rational/sconscript'] )
+#env.SConscript( ['dev/crc/sconscript'] )
+#env.SConscript( ['dev/boost_random/sconscript'] )
+#env.SConscript( ['dev/rational/sconscript'] )

@@ -36,9 +36,9 @@ class class_declaration_t( scoped.scoped_t
         result.append( ';' )
         return ''.join( result )
 
-    def _get_class_var_name(self):
-        return self.alias + '_exposer'
-    class_var_name = property( _get_class_var_name )
+    @property
+    def class_var_name(self):
+        return self.declaration.class_var_name
 
     def is_exposed_using_scope(self):
         if self.declaration.always_expose_using_scope:
@@ -82,6 +82,8 @@ class class_declaration_t( scoped.scoped_t
         else:
             return self._generate_code_no_scope()
 
+    def _get_system_headers_impl( self ):
+        return []
 
 class class_t( scoped.scoped_t, registration_based.registration_based_t ):
     """
@@ -178,11 +180,20 @@ class class_t( scoped.scoped_t, registration_based.registration_based_t ):
 
         held_type = self._generated_held_type()
         if self.wrapper:
-            if not self.target_configuration.boost_python_has_wrapper_held_type:
-                args.append( algorithm.create_identifier( self, self.declaration.decl_string ) )
-            args.append( self.wrapper.full_name )
+            if self.declaration.exposed_class_type == self.declaration.EXPOSED_CLASS_TYPE.WRAPPER:
+                args.append( self.wrapper.full_name )
+            else:
+                if not self.target_configuration.boost_python_has_wrapper_held_type \
+                   or self.declaration.require_self_reference:
+                    args.append( algorithm.create_identifier( self, self.declaration.decl_string ) )
+                if self.declaration.require_self_reference:
+                    if not held_type:
+                        args.append( self.wrapper.full_name )
+                else:
+                    args.append( self.wrapper.full_name )
         else:
             args.append( algorithm.create_identifier( self, self.declaration.decl_string ) )
+            
         bases = self._generate_bases(base_creators)
         if bases:
             args.append( bases )
@@ -246,10 +257,10 @@ class class_t( scoped.scoped_t, registration_based.registration_based_t ):
         result.append( ';' )
         return ''.join( result )
 
-    def _get_class_var_name(self):
-        return self.alias + '_exposer'
-    class_var_name = property( _get_class_var_name )
-
+    @property
+    def class_var_name(self):
+        return self.declaration.class_var_name
+    
     @property
     def typedef_name( self ):
         return self.class_var_name + '_t'
@@ -314,6 +325,9 @@ class class_t( scoped.scoped_t, registration_based.registration_based_t ):
             return self._generate_code_with_scope()
         else:
             return self._generate_code_no_scope()
+        
+    def _get_system_headers_impl( self ):
+        return []
 
 #open question: should I put class wrapper under some specifiec namespace?
 class class_wrapper_t( scoped.scoped_t ):
@@ -386,6 +400,9 @@ class class_wrapper_t( scoped.scoped_t ):
         answer.append( '' )
         answer.append( '};' )
         return os.linesep.join( answer )
+
+    def _get_system_headers_impl( self ):
+        return []
 
 
 

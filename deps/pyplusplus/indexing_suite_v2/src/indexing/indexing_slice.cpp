@@ -61,8 +61,8 @@ boost::python::indexing::integer_slice
       boost::python::throw_error_already_set ();
     }
 
-  m_start = std::max (0, std::min (length, m_start));
-  m_stop = std::max (0, std::min (length, m_stop));
+  m_start = std::max (static_cast<index_type> (0), std::min (length, m_start));
+  m_stop = std::max (static_cast<index_type> (0), std::min (length, m_stop));
   m_direction = (m_step > 0) ? 1 : -1;
 }
 

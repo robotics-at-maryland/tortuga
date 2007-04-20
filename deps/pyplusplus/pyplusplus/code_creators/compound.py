@@ -75,3 +75,15 @@ class compound_t(code_creator.code_creator_t):
         for index in range( len( internals ) - 1):
             internals[index] = internals[index] + os.linesep
         return os.linesep.join( internals )
+        
+    def get_system_headers( self, recursive=False, unique=False ):
+        files = [ "boost/python.hpp" ]
+        files.extend( self._get_system_headers_impl() )
+        if recursive:
+            for creator in self._creators: 
+                files.extend( creator.get_system_headers(recursive, unique=False) )
+        files = filter( None, files )
+        if unique:
+            files = self.unique_headers( files )
+        return files
+    

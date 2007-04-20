@@ -3,34 +3,11 @@
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-"""Declaration decorators.
+"""Code generator configuration classes
 
-This sub-package contains the Py++ specific declaration objects
-that are the nodes of the declaration tree. In addition to the
-interface of the declarations in the pygccxml package the objects in
-this package also provide a I{decoration} interface. This interface
-allows customizing the bindings and influences the code creators that
-have to be generated in subsequent steps.
-
-Each node is derived from its corresponding node in the pygccxml
-package and from a decorator base class.
-
-You may encounter the following objects in a declaration tree:
-
-  - L{namespace_t}
-  - L{typedef_t}
-  - L{variable_t}
-  - L{enumeration_t}
-  - L{casting_operator_t}
-  - L{free_function_t}
-  - L{free_operator_t}
-  - L{class_declaration_t}
-  - L{class_t}
-  - L{constructor_t}
-  - L{destructor_t}
-  - L{member_function_t}
-  - L{member_operator_t}
-
+L{pygccxml.declarations} package contains classes, which describe C++ declarations.
+This package contains classes that derive from the L{pygccxml.declarations} classes.
+The classes in this package allow you to configure the code generator.
 """
 
 import algorithm
@@ -84,12 +61,13 @@ from call_policies import return_opaque_pointer
 from call_policies import return_value_policy
 from call_policies import return_pointee_value
 from call_policies import is_return_opaque_pointer_policy
-from call_policies import is_return_pointee_value_policy
 from call_policies import custom_call_policies_t
 from call_policies import custom_call_policies
 from call_policies import convert_array_to_tuple_t
 from call_policies import convert_array_to_tuple
 from call_policies import memory_managers
+from call_policies import return_range
+from call_policies import return_range_t
 
 from decl_wrapper_printer import decl_wrapper_printer_t
 from decl_wrapper_printer import print_declarations
@@ -109,9 +87,7 @@ from properties import name_based_recognizer_t
 import python_traits
 
 class dwfactory_t( declarations.decl_factory_t ):
-    """
-    declarations factory class
-    """
+    """declarations factory class"""
     def __init__(self):
         declarations.decl_factory_t.__init__(self)
 

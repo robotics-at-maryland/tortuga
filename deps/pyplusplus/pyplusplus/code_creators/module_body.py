@@ -21,3 +21,6 @@ class module_body_t(compound.compound_t):
         result.append( compound.compound_t.create_internal_code( self.creators ) )
         result.append( "}" )
         return os.linesep.join( result )
+    
+    def _get_system_headers_impl( self ):
+        return []

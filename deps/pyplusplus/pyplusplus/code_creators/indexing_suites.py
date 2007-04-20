@@ -49,6 +49,8 @@ class indexing_suite1_t( registration_based.registration_based_t
     def _create_impl(self):        
         return "def( %s() )" %  self._create_suite_declaration()
 
+    def _get_system_headers_impl( self ):
+        return self.configuration.include_files
 
 class indexing_suite2_t( registration_based.registration_based_t
                          , declaration_based.declaration_based_t ):
@@ -116,6 +118,9 @@ class indexing_suite2_t( registration_based.registration_based_t
             answer.append( ';' )
         return ''.join( answer )
 
+    def _get_system_headers_impl( self ):
+        return self.declaration.indexing_suite.include_files
+
 class value_traits_t( code_creator.code_creator_t
                       , declaration_based.declaration_based_t ):
     def __init__( self, value_class ):
@@ -168,15 +173,5 @@ class value_traits_t( code_creator.code_creator_t
             return ''
         return self.generate_value_traits()
 
-
-
-
-
-
-
-
-
-
-
-
-
+    def _get_system_headers_impl( self ):
+        return ['boost/python/suite/indexing/value_traits.hpp']

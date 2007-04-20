@@ -8,15 +8,18 @@ reported to user.
 """
 from warnings_ import *
 
-import re
-__RE_GET_WARNING_ID = re.compile( r'warning\s(?P<id>W(\d){4})' )
-def find_out_message_id( msg ):
-    match_obj = __RE_GET_WARNING_ID.search(msg)
-    if not match_obj:
-        return None
-    else:
-        return match_obj.group( 'id' )
+#implementation using regular expression is deprecated, I will leave it here for 
+#some time to be sure that the new one does not cause any problems.
+#import re
+#__RE_GET_WARNING_ID = re.compile( r'warning\s(?P<id>W(\d){4})' )
+#match_obj = __RE_GET_WARNING_ID.search(msg)
+# if not match_obj:
+#     return None
+# else:
+#     return match_obj.group( 'id' )
 
+def find_out_message_id( msg ):
+    return msg.identifier
 
 DISABLE_MESSAGES = [
     W1000, W1001, W1002, W1011, W1012, W1013, W1015, W1019, W1030, W1034, W1039

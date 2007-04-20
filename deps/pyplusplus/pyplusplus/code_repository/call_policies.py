@@ -7,10 +7,11 @@
 This file contains C++ code - custom call policies
 """
 
+from pyplusplus.decl_wrappers import call_policies
 
 namespace = "pyplusplus::call_policies"
 
-file_name = "__call_policies.pypp.hpp"
+file_name = call_policies.PYPP_CALL_POLICIES_HEADER_FILE
 
 code = \
 """// Copyright 2004 Roman Yakovenko.
@@ -22,7 +23,10 @@ code = \
 #define call_policies_pyplusplus_hpp__
 
 #include "boost/python.hpp"
-
+#include "boost/mpl/int.hpp"
+#include "boost/function.hpp"
+#include "boost/python/object/class_detail.hpp"
+#include "boost/type_traits/is_same.hpp"
 namespace pyplusplus{ namespace call_policies{
 
 namespace bpl = boost::python;
@@ -131,7 +135,6 @@ public:
 };
 
 } /*arrays*/
-
 
 } /*pyplusplus*/ } /*call_policies*/
 

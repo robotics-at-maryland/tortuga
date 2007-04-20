@@ -13,6 +13,7 @@ from pyplusplus import code_creators
 from pyplusplus import module_creator
 from pyplusplus import module_builder
 from pyplusplus import utils as pypp_utils
+from pyplusplus import function_transformers as ft
 
 class indent_tester_t(unittest.TestCase):
     def test( self ):
@@ -150,6 +151,15 @@ class class_multiple_files_tester_t(unittest.TestCase):
         int m_dummy;
 
         struct x_nested{};
+        
+        float* get_rate(){
+            return 0;
+        }
+        
+        virtual void get_size( int& i, int& j ){
+            i = 0;
+            j = 0;
+        }
     };
     }
     """
@@ -168,7 +178,9 @@ class class_multiple_files_tester_t(unittest.TestCase):
         mb.calldefs( 'get_opaque' ).call_policies \
           = module_builder.call_policies.return_value_policy( module_builder.call_policies.return_opaque_pointer )
         mb.class_( 'op_struct' ).exclude()
-
+        mb.mem_fun( 'get_rate' ).call_policies \
+            = module_builder.call_policies.return_value_policy( module_builder.call_policies.return_pointee_value )
+        mb.mem_fun( 'get_size' ).add_transformation( ft.output(0) )
         mb.build_code_creator('x_class_multi')
         mb.split_module( autoconfig.build_dir
                         , [ mb.class_( '::tester::x' ) ]

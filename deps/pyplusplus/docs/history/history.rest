@@ -46,7 +46,7 @@ Version 0.8.*
 
 .. line-separator
 
-2. Added exposing of copy constructors and "operator=". "operator=" is exposed 
+2. Added exposing of copy constructor and ``operator=``. ``operator=`` is exposed 
    under "assign" name. 
 
 .. line-separator
@@ -55,7 +55,8 @@ Version 0.8.*
 
 .. _`as_tuple` : ../documentation/functions/call_policies.html#as-tuple
 
-4. Added initial support for multi-module development.
+4. Added initial support for multi-module development. Now you can mark you declaration
+   as ``already_exposed``. "Py++" will not create code for it, but will
 
 .. line-separator
 

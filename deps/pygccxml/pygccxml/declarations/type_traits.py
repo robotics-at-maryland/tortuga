@@ -555,7 +555,10 @@ class __is_convertible_t:
         if is_reference( target ) and is_const( target.base ) and is_same( source, target.base.base ):
             return True #X => const X&
         if is_same( target, cpptypes.pointer_t( cpptypes.void_t() ) ):
-            return True #X => void*
+            if is_integral( source ) or is_enum( source ):
+                return False
+            else:
+                return True #X => void*
         if is_pointer( source ) and is_pointer( target ):
             if is_const( target.base ) and is_same( source.base, target.base.base ):
                 return True#X* => const X*
@@ -763,31 +766,31 @@ class __is_convertible_t:
                and not is_void( target ):
                 return True # enum could be converted to any integral type
 
-            assert isinstance( source.declaration, class_declaration.class_t )
-            source_inst = source.declaration
-            #class instance could be convertible to something else if it has operator
-            casting_operators = algorithm.find_all_declarations( source_inst.declarations
-                                                                 , type=calldef.casting_operator_t
-                                                                 , recursive=False )
-            if casting_operators:
-                for operator in casting_operators:
-                    if is_convertible( operator.return_type, target ):
-                        return True
+            if isinstance( source.declaration, class_declaration.class_t ):
+                source_inst = source.declaration
+                #class instance could be convertible to something else if it has operator
+                casting_operators = algorithm.find_all_declarations( source_inst.declarations
+                                                                     , type=calldef.casting_operator_t
+                                                                     , recursive=False )
+                if casting_operators:
+                    for operator in casting_operators:
+                        if is_convertible( operator.return_type, target ):
+                            return True
 
         #may be target is class too, so in this case we should check whether is
         #has constructor from source
         if isinstance( target, cpptypes.declarated_t ):
-            assert isinstance( target.declaration, class_declaration.class_t )
-            constructors = algorithm.find_all_declarations( target.declaration.declarations
-                                                            , type=calldef.constructor_t
-                                                            , recursive=False )
-            if constructors:
-                for constructor in constructors:
-                    if 1 != len( constructor.arguments ):
-                        continue
-                    #TODO: add test to check explicitness
-                    if is_convertible( source, constructor.arguments[0].type ):
-                        return True
+            if isinstance( target.declaration, class_declaration.class_t ):
+                constructors = algorithm.find_all_declarations( target.declaration.declarations
+                                                                , type=calldef.constructor_t
+                                                                , recursive=False )
+                if constructors:
+                    for constructor in constructors:
+                        if 1 != len( constructor.arguments ):
+                            continue
+                        #TODO: add test to check explicitness
+                        if is_convertible( source, constructor.arguments[0].type ):
+                            return True
 
         return False
 
@@ -799,6 +802,13 @@ def __is_noncopyable_single( class_ ):
     """implementation details"""
     #It is not enough to check base classes, we should also to check
     #member variables.
+    
+    if has_trivial_copy( class_ ) \
+       and has_public_constructor( class_ ) \
+       and has_public_assign( class_ ) \
+       and has_public_destructor( class_ ):
+        return False
+    
     mvars = filter( lambda x: isinstance( x, variable.variable_t )
                     , class_.declarations )
     for mvar in mvars:
@@ -820,6 +830,8 @@ def __is_noncopyable_single( class_ ):
 
 def is_noncopyable( class_ ):
     """returns True, if class is noncopyable, False otherwise"""
+    class_ = class_traits.get_declaration( class_ )
+    
     if class_.class_type == class_declaration.CLASS_TYPES.UNION:
         return False
     for base_desc in class_.recursive_bases:
@@ -836,13 +848,16 @@ def is_noncopyable( class_ ):
         if __is_noncopyable_single( base_desc.related_class ):
             return True
 
-    if not has_trivial_copy( class_ ) \
-       or not has_public_constructor( class_ )\
-       or class_.is_abstract \
-       or ( has_destructor( class_ ) and not has_public_destructor( class_ ) ):
+    if class_.is_abstract:
         return True
-
-    return __is_noncopyable_single( class_ )
+    elif not has_trivial_copy( class_ ):
+        return True
+    elif not has_public_constructor( class_ ):
+        return True
+    elif has_destructor( class_ ) and not has_public_destructor( class_ ):
+        return True
+    else:
+        return __is_noncopyable_single( class_ )
 
 
 def is_defined_in_xxx( xxx, cls ):
@@ -996,8 +1011,30 @@ def is_std_wstring( type ):
         type = remove_alias( type )
         return remove_cv( type ).decl_string in decl_strings
 
+def is_std_ostream( type ):
+    """returns True, if type represents C++ std::string, False otherwise"""
+    decl_strings = [
+        '::std::basic_ostream<char, std::char_traits<char> >'
+        , '::std::basic_ostream<char,std::char_traits<char> >'
+        , '::std::ostream' ]
+    if isinstance( type, types.StringTypes ):
+        return type in decl_strings
+    else:
+        type = remove_alias( type )
+        return remove_cv( type ).decl_string in decl_strings
+    
 
-
+def is_std_wostream( type ):
+    """returns True, if type represents C++ std::string, False otherwise"""
+    decl_strings = [
+        '::std::basic_ostream<wchar_t, std::char_traits<wchar_t> >'
+        , '::std::basic_ostream<wchar_t,std::char_traits<wchar_t> >'
+        , '::std::wostream' ]
+    if isinstance( type, types.StringTypes ):
+        return type in decl_strings
+    else:
+        type = remove_alias( type )
+        return remove_cv( type ).decl_string in decl_strings
 
 
 
