@@ -1,5 +1,0 @@
-<?xml version="1.0" ?>
-<GUIScheme Name="WindowsLook">
-	<Imageset Name="WindowsLook" Filename="../datafiles/imagesets/WindowsLook.imageset" />
-	<WindowSet Filename="CEGUIWindowsLook" />
-</GUIScheme>

@@ -896,6 +896,7 @@ class SConscriptSettableOptions:
                          'max_drift':SCons.Node.FS.default_max_drift,
                          'implicit_cache':0,
                          'clean':0,
+                         'help_msg':0,
                          'duplicate':'hard-soft-copy',
                          'diskcheck':diskcheck_all}
 
@@ -940,6 +941,8 @@ class SConscriptSettableOptions:
                 raise SCons.Errors.UserError, "Not a valid diskcheck value: %s"%v
             if not diskcheck_option_set:
                 SCons.Node.FS.set_diskcheck(value)
+        elif name == 'help_msg':
+            raise SCons.Errors.UserError, "Cannot set help_msg variable"
 
         self.settable[name] = value
     
