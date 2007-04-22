@@ -1,16 +1,21 @@
 #include "p30fxxxx.h"
 #define byte unsigned char
+#define SAMPLE_LENGTH 1900
+#define TRIGGER_POSITION 1500
+#define TRIGGER_VALUE 700
 
-//unsigned int result[900];
-byte result[1960];
+byte result[SAMPLE_LENGTH];
 unsigned int count = 0;
-//unsigned int ADResult1 = 0;
-//unsigned int ADResult2 = 0;
+byte trigger_status = 0;
+unsigned int trigger_count = 0;
+
 
 //Functions and Variables with Global Scope:
-void ADC_(void);
+void ADC_Init(void);
 void __attribute__((__interrupt__)) _ADCInterrupt(void);
 void initUart(void);
+void send_samples_over_UART_as_bytes(int start);
+void send_samples_over_UART_as_ASCII(void);
 
 /* UART BRG "Baud" rate calculation "How To"
 Baud Rate is the same as Bits Per Second
@@ -116,8 +121,9 @@ void sendByte(byte i){
 //ASCII bytes to the UART
 void sendString(unsigned char str[]){
     byte i=0;
-    for(i=0; str[i]!=0; i++)
+    for(i=0; str[i]!=0; i++){
         sendByte(str[i]);
+	}
 }
 
 //Use this function to send an unsigned integer to the UART
@@ -132,57 +138,49 @@ void sendNum(unsigned int i){
 //The routine must have global scope in order to be an ISR.
 //The ISR name is chosen from the device linker script.
 void __attribute__((__interrupt__)) _ADCInterrupt(void){
-	//ADResult1 = ADCBUF0;
-	//ADResult2 = ADCBUF1;
+	unsigned int temp = 0;
+	//Clear the A/D Interrupt flag bit or else the CPU will
+	//keep vectoring back to the ISR
+	IFS0bits.ADIF = 0;
+
+//TO DO:
+// - have the chip listen to one of the pins on startup to
+//   determine continuous or trigger operation
+	temp = ADCBUF0;
+	result[count++] = (byte)(ADCBUF0>>2);
+	result[count++] = (byte)(ADCBUF1>>2);
 	
-        //Clear the A/D Interrupt flag bit or else the CPU will
-        //keep vectoring back to the ISR
-        IFS0bits.ADIF = 0;
-	
-		//result[count++] = ADResult1;
-		//result[count++] = ADResult2;
-		result[count++] = (byte)(ADCBUF0>>2);
-		result[count++] = (byte)(ADCBUF1>>2);
+//trigger mode
+	if(trigger_status == 1) trigger_count+=2;
+	if(temp > TRIGGER_VALUE) trigger_status = 1;
+	if(trigger_count>TRIGGER_POSITION){
+		send_samples_over_UART_as_bytes(count);
+		trigger_count=0;
+		trigger_status=0;
+	}
 
-        if(count>=1950){
-				int i=0;
-				//byte temp;
-
-				//sendString("\n\rData: ");
-				for(i=0; i<1950; i++){
-					
-					//temp = (byte)(result[i]>>2);
-					//sendByte(temp);
-
-					sendByte(result[i]);
-
-					//sendNum(result[i]);
-					//if(i%10==0){
-					//	sendString("\n\r");
-					//} 
-				}
-				count = 0; 
-    		
-		}
-//original code from ADC interupt function for reference
-/*	ADResult1 = ADCBUF0;
-	ADResult2 = ADCBUF1;
-	
-        //Clear the A/D Interrupt flag bit or else the CPU will
-        //keep vectoring back to the ISR
-        IFS0bits.ADIF = 0;
-	
-		result[count++] = ADResult1;
-		result[count++] = ADResult2;
-
-        if(count>=500){
-				int i=0;
-
-				sendString("\n\rData: ");
-				for(i=0; i<500; i++)
-					sendNum(result[i]);
-				count = 0; 
-		}
-*/
+//continuous sample and display mode
+	/*if(count>=SAMPLE_LENGTH){
+		send_samples_over_UART_as_bytes(0)
+		send_samples_over_UART_as_ASCII()
+		count = 0; 
+	}*/
 }
 
+void send_samples_over_UART_as_bytes(int start){
+	int i=0;
+	for(i=0; i<SAMPLE_LENGTH; i++){
+		sendByte(result[i]);
+	}
+	for(i=0; i<SAMPLE_LENGTH; i++){
+		sendByte(result[i]);
+	}
+}
+
+void send_samples_over_UART_as_ASCII(){
+	int i=0;
+	for(i=0; i<SAMPLE_LENGTH; i++){			
+		sendNum(result[i]);
+		if(i%10==0) sendString("\n\r");
+	}
+}

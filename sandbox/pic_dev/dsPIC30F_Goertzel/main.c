@@ -21,6 +21,8 @@ _FWDT ( WDT_OFF );
 _FGS(CODE_PROT_OFF);
 */
 
+void initUart(void);
+void ADC_Init(void);
 void sendString(unsigned char * s);
 void toggleinfinite(void);
 
