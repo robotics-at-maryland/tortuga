@@ -143,7 +143,6 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 	//keep vectoring back to the ISR
 	IFS0bits.ADIF = 0;
 
-	temp = ADCBUF0;
 	result[count++] = (byte)(ADCBUF0>>2);
 	result[count++] = (byte)(ADCBUF1>>2);
 	
@@ -153,11 +152,28 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 		if(trigger_status==3){
 			trigger_status=4;
 		}else if(trigger_status==5){ //period found!
+			for(temp=0;temp<count;temp++){
+				if(trigger_status==1 && result[temp]>(TRIGGER_VALUE>>2)){
+					//break out of loop
+					break;
+				}
+				if(trigger_status==1) trigger_count++;
+				if(trigger_status==0 && result[temp]<(TRIGGER_VALUE>>2)){
+					trigger_status=1;
+					trigger_count++;
+				}
+				if(trigger_status==0) trigger_count++;
+				if(trigger_status==5 && result[temp]>(TRIGGER_VALUE>>2)){
+					trigger_status=0;
+					trigger_count++;
+				}
+			}
 			if(trigger_count>255){
 				sendByte(255);//just send max value for now
 			}else{
 				sendByte((byte)trigger_count);
 			}
+			trigger_count=0;
 			count=0;	//reset period counter
 			trigger_status=2;	//look for next period
 		}
@@ -165,7 +181,6 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 	//signal seen going below trigger
 	if(TRIGGER_VALUE>ADCBUF0 || TRIGGER_VALUE>ADCBUF1){
 		if(trigger_status==2){
-			count=0;
 			trigger_status=3;
 		}else if(trigger_status==4){
 			trigger_status=5;
