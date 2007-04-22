@@ -167,10 +167,13 @@ void wxOgre::getWindowParams(Ogre::NameValuePairList* params)
     handleStream << (unsigned long)display << ':';
 
     // Screen (returns ":display.screen")
+    /* The new Ogre GLX renderer patch removes the need for supplying the
+       screen
+
     std::string screenStr = DisplayString(display);
     int dotpos = screenStr.find(".", 0);
     screenStr = screenStr.substr(dotpos + 1, screenStr.length() - dotpos);
-    handleStream << screenStr << ':';
+    handleStream << screenStr << ':';*/
 
     // XID (typedef of an unsigned int)
     Window wid = GDK_WINDOW_XWINDOW( widget->window );
@@ -200,6 +203,7 @@ void wxOgre::onSize(wxSizeEvent& event)
         if (mCamera)
             mCamera->setAspectRatio(Ogre::Real(width) / Ogre::Real(height));
 
+        mViewport->_updateDimensions();
         update();
     }
 }
