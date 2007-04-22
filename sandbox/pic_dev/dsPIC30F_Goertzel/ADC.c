@@ -1,12 +1,12 @@
 #include "p30fxxxx.h"
 #define byte unsigned char
 #define SAMPLE_LENGTH 1900
-#define TRIGGER_POSITION 1500
-#define TRIGGER_VALUE 700
+#define TRIGGER_POSITION 1500	//0-(SAMPLE_LENGTH-1)
+#define TRIGGER_VALUE 700		//0-1023 in Volts
 
 byte result[SAMPLE_LENGTH];
 unsigned int count = 0;
-byte trigger_status = 0;
+byte trigger_status = 2;
 unsigned int trigger_count = 0;
 
 
@@ -150,14 +150,28 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 	result[count++] = (byte)(ADCBUF0>>2);
 	result[count++] = (byte)(ADCBUF1>>2);
 	
+//frequency watch mode
+//to be added	
+
 //trigger mode
+	//if trigger tripped
 	if(trigger_status == 1) trigger_count+=2;
-	if(temp > TRIGGER_VALUE) trigger_status = 1;
+	//if prog just started then fill buffer min amount
+	if(trigger_status == 2){
+		trigger_count+=2;
+		//fill buffer some minimum
+		if(trigger_count>(SAMPLE_LENGTH-TRIGGER_POSITION)){
+			trigger_status=0;//tiggering re-enabled
+			trigger_count=0;
+		}
+	}
+	if(ADCBUF0 > TRIGGER_VALUE && trigger_status!=2) trigger_status = 1; 
 	if(trigger_count>TRIGGER_POSITION){
 		send_samples_over_UART_as_bytes(count);
 		trigger_count=0;
-		trigger_status=0;
+		trigger_status=0;//watch for trigger again
 	}
+	if(count>=SAMPLE_LENGTH)count=0;
 
 //continuous sample and display mode
 	/*if(count>=SAMPLE_LENGTH){
@@ -169,10 +183,10 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 
 void send_samples_over_UART_as_bytes(int start){
 	int i=0;
-	for(i=0; i<SAMPLE_LENGTH; i++){
+	for(i=start; i<SAMPLE_LENGTH; i++){
 		sendByte(result[i]);
 	}
-	for(i=0; i<SAMPLE_LENGTH; i++){
+	for(i=0; i<start; i++){
 		sendByte(result[i]);
 	}
 }
