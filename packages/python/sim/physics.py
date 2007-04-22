@@ -412,6 +412,7 @@ class World(OgreNewt.World):
         if body.get_buoyancy_plane() is not None:
             newton_body.addBouyancyForce(1000, 0.03 , 0.03, body.gravity,
                                          World._buoyancy_callback, "")
+        return True
         
     @staticmethod
     def _buoyancy_callback(colID, newton_body, orient, pos, plane):

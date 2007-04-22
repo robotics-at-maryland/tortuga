@@ -51,7 +51,7 @@ def log_init(default_config, level = logging.INFO):
             self.logger.info(BEGIN_INIT_MESSAGE)
 
             # Now Call our actual function and log its completion
-            ret = func(self, *args, **kwargs)
+            ret = func(self, config, *args, **kwargs)
             self.logger.info(END_INIT_MESSAGE)
             
             # Save function infromation (allows nesting of dectorators)

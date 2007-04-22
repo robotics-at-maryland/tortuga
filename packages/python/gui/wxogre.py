@@ -15,26 +15,14 @@ class wxOgre(wx.PyControl):
     @ivar camera: The camera whos view is shown through the viewport
     """    
     def __init__(self, camera, parent, id = -1, pos = wx.DefaultPosition, 
-             size = wx.DefaultSize, style = 0, validator = wx.DefaultValidator, 
-             name = wx.ControlNameStr):
+                 size = wx.DefaultSize, style = 0, validator = wx.DefaultValidator, 
+                 name = wx.ControlNameStr):
         wx.PyControl.__init__(self, parent, id, pos, size, style, validator, name)
         
         self._camera = camera
         if camera is not None:
-            self._camera.setAutoAspectRatio(True)
-        self._init_ogre()
-        
-        # Setup our event handlers
-        self.Bind(wx.EVT_CLOSE, self._on_close)
-        #self.Bind(wx.EVT_IDLE, self._update)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self._update)
-        self.Bind(wx.EVT_SIZE, self._update)
-        
-        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
-        #self.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
-        
-        self._update()
-    
+            self._camera.setAutoAspectRatio(True)       
+            
     def on_key_down(self, event):
         print event.GetKeyCode()
     
@@ -66,6 +54,13 @@ class wxOgre(wx.PyControl):
         self._create_ogre_window()
         self._render_window.update()
             
+        # Setup our event handlers
+        self.Bind(wx.EVT_CLOSE, self._on_close)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self._update)
+        self.Bind(wx.EVT_SIZE, self._update)
+            
+        self._update()
+        
     def _update(self, event = None):
         """
         Handles all events that require redrawing
@@ -77,6 +72,7 @@ class wxOgre(wx.PyControl):
             if '__WXGTK__' == wx.Platform:
                 size = self.GetClientSize()
                 self._render_window.resize(size.width, size.height)
+                self._viewport._updateDimensions()
             self._render_window.windowMovedOrResized()
         
         # Redraw the window for every event
@@ -111,10 +107,27 @@ class wxOgre(wx.PyControl):
         params = Ogre.NameValuePairList()
         
         if '__WXGTK__' == wx.Platform:
-            raise Exception('Support for Linux not yet integrated')
+            from gui.util import get_window_handle_str
+            params['parentWindowHandle'] = get_window_handle_str(self)
         elif '__WXMSW__' == wx.Platform:
             params['externalWindowHandle'] = str(self.GetHandle())
         else:
             raise Exception('%s no yet supported' % wx.Platform)
         
         return params
+    
+
+class wxOgreFrame(wx.Frame):
+    """
+    This frame will call its on_activate method only once, allowing you to
+    properly handle wxWidgets + Ogre initialization in a cross platform manner.
+    """
+    def __init__(self, parent, id=-1, title = wx.EmptyString, 
+                 pos = wx.DefaultPosition, size = wx.DefaultSize, 
+                 style = wx.DEFAULT_FRAME_STYLE, name = wx.FrameNameStr):
+        wx.Frame.__init__(self, parent, id, title, pos, size, style, name)
+        self.Bind(wx.EVT_ACTIVATE, self.on_activate)
+        
+    def on_activate(self, event):
+        self.Bind(wx.EVT_ACTIVATE, None)
+        pass

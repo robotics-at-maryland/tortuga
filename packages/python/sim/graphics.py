@@ -20,7 +20,7 @@ import logging
 
 # Library Imports
 import ogre.renderer.OGRE as Ogre
-import ogre.io.OIS as OIS
+#import ogre.io.OIS as OIS
 
 # Project Imports
 import logloader    

@@ -16,6 +16,7 @@ gravity = Ogre.Vector3(0,-9.8,0)
 
 # Scene defaults
 scene_log_config = {'name' : 'Unknown Scene', 'level': 'INFO'}
+input_log_config = { 'name' : 'Input', 'level': 'INFO'}
 
 # Simulation defaults
 ogre_plugins = ['RenderSystem_GL', 'Plugin_ParticleFX', 
@@ -24,7 +25,8 @@ ogre_plugins = ['RenderSystem_GL', 'Plugin_ParticleFX',
 ogre_plugin_search_path = \
     ['C:\Libraries\PythonOgre\plugins',
      'C:\Developement\PythonOgre\plugins',
-     '$MRBC_SVN_ROOT/deps/local/lib/OGRE']
+     '$MRBC_SVN_ROOT/deps/local/lib/OGRE',
+     '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
     
 render_system = 'OpenGL'
 

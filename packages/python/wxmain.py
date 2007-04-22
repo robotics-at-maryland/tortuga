@@ -6,6 +6,7 @@ import time
 # Library Imports
 import wx
 import yaml
+print sys.path
 import ogre.renderer.OGRE as Ogre
 import ogre.physics.OgreNewt as OgreNewt
 
@@ -78,8 +79,8 @@ class TestDepthController(object):
         fafter = self.robot.parts.front_thruster.force
         aafter = self.robot.parts.aft_thruster.force
         
-        print 'E: %5.4f D: %5.4f A: %5.4f C: %6.5f | FB: %06.4f FA: %06.4f AB: %06.4f AA: %06.4f' % \
-            (error, self._desired_pitch, current_pitch, correction, fbefore, fafter, abefore, aafter)
+     #   print 'E: %5.4f D: %5.4f A: %5.4f C: %6.5f | FB: %06.4f FA: %06.4f AB: %06.4f AA: %06.4f' % \
+      #      (error, self._desired_pitch, current_pitch, correction, fbefore, fafter, abefore, aafter)
             
         if self._forward:
             self.robot.parts.right_thruster.force += (7.0 * time_since_last_frame)
@@ -155,103 +156,92 @@ class TestController(object):
             self.robot.parts.aft_thruster.force += (5 * time_since_last_frame)
             self.robot.parts.front_thruster.force -= (5 * time_since_last_frame)
 
-class SimApp(wx.App):
-    def OnInit(self):
-        frame = wx.Frame(None, -1, "AUV Sim", wx.DefaultPosition, 
-                         wx.Size(600,600))
+class MainFrame(gui.wxogre.wxOgreFrame):
+    def __init__(self, activate_callback):
+        self._activate_callback = activate_callback
+        gui.wxogre.wxOgreFrame.__init__(self, None, -1, "AUV Sim", 
+                                        wx.DefaultPosition, wx.Size(600,600))
         
-        self.config = yaml.load(file(os.path.join('..', 'sim.yml')))
-        
-        self.first = False
-        
-        # Start up simulation
-        self.ogre = wx.Panel(frame)
-        self._init_simulation()
-        # Create our windows
-        self.ogre = gui.wxogre.wxOgre(None, frame, -1, wx.DefaultPosition, 
+        self.ogre = gui.wxogre.wxOgre(None, self, -1, wx.DefaultPosition, 
                                       wx.Size(600,600))
         
-        # Create out scene
-        self.sim.create_scene('Main', self.config['Scenes']['current'],
-                              self.config['Scenes']['path'])
+        if wx.Platform == '__WXMSW__':
+            self._input_forwarder = gui.input.InputForwarder(\
+                 sim.simulation.Simulation.get().input_system)
+            self._input_forwarder.forward_window(self.ogre)
+        elif wx.Platform == '__WXGTK__':
+            # Handled in on_activate
+            pass
+        else:
+            raise "Error platform not supported"
         
-        # Setup the camera
-        scene = self.sim._scenes['Main']
-        OgreNewt.Debugger.getSingleton().init(scene.scene_mgr)
-        self.ogre.camera = scene.get_camera('Main').camera
+        # Setup Layout
+        sizer_1 = wx.BoxSizer(wx.VERTICAL) 
+        sizer_1.Add(self.ogre, 2, wx.EXPAND, 0)  
+        self.SetAutoLayout(True) 
+        self.SetSizer(sizer_1) 
+        self.Layout() 
         
-        #Ogre.Root.getSingleton().renderOneFrame()
+    def on_activate(self, event):
+        gui.wxogre.wxOgreFrame.on_activate(self, event)
+        self.ogre._init_ogre()
+        if wx.Platform == '__WXGTK__':
+            self._input_forwarder = sim.input.OISInputForwarder({}, \
+                 sim.simulation.Simulation.get().input_system,
+                 self.ogre._render_window)
+        
+        self._activate_callback()
+        
+
+class SimApp(wx.App):
+    def OnInit(self):
+        self.last_time = 0
+        self.frame = None
+        self.sim = None
+        self.components = []
+        self.timer = None
+
+        self.config = yaml.load(file(os.path.join('..', 'sim.yml')))
+        # Create simulation
+        self.sim = sim.simulation.Simulation(self.config['Simulation'])
+        self.components = [self.sim]
+        
+        # Create our main frame
+        self.frame = MainFrame(self.create_scenes)
+
+        # Show the main frame
+        self.frame.Show(True)
+        self.SetTopWindow(self.frame)
         
         # Setup Update timer
         self.timer = wx.Timer()
-        self.timer.Start(1000 / 200)
         self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
-        frame.Bind(wx.EVT_CLOSE, self.on_close)
+        self.frame.Bind(wx.EVT_CLOSE, self.on_close)
         
-        # Setup Layout on the form
-        sizer_1 = wx.BoxSizer(wx.VERTICAL) 
-        sizer_1.Add(self.ogre, 2, wx.EXPAND, 0)  
-        frame.SetAutoLayout(True) 
-        frame.SetSizer(sizer_1) 
-        #sizer_1.Fit(frame) 
-        #sizer_1.SetSizeHints(frame) 
-        frame.Layout() 
-        
-        self.setup_input()
-        
-        # Show the main frame
-        frame.Show(True)
-        self.SetTopWindow(frame)
-        
-        self.last_time = 0
-        
+
         return True
     
-    def setup_input(self):
-        self._input_forwarder = gui.input.InputForwarder(self.sim.input_system)
-        self._input_forwarder.forward_window(self.ogre)
+    def create_scenes(self):
+        self.sim.create_all_scenes()
         
-        from sim.input import KC
-        self.sim.input_system.map_actions({(KC.W,0) : 'CAM_FORWARD',
-                                           (KC.A,0) : 'CAM_LEFT', 
-                                           (KC.S,0) : 'CAM_BACK', 
-                                           (KC.D,0) :'CAM_RIGHT',
-                                           (KC.Q,0) : 'CAM_UP', 
-                                           (KC.E,0) :'CAM_DOWN',
-                                           (KC.F,0) : 'CAM_TOGGLE_FOLLOW',
-                                           (KC.I,0) : 'THRUST_FORE',
-                                           (KC.K,0) : 'THRUST_BACK',
-                                           (KC.G,0) : 'THRUST_KILL',
-                                           (KC.J,0) : 'THRUST_LEFT',
-                                           (KC.L,0) : 'THRUST_RIGHT',
-                                           (KC.U,0) : 'THRUST_DOWN',
-                                           (KC.O,0) : 'THRUST_UP',
-                                           (KC.Y,0) : 'THRUST_PITCH_UP',
-                                           (KC.H,0) : 'THRUST_PITCH_DOWN'})
+        # Setup the camera (Still a Hack, need to fix this)
+        scene = self.sim.get_scene('Main')
+        OgreNewt.Debugger.getSingleton().init(scene.scene_mgr)
+        self.frame.ogre.camera = scene.get_camera('Main').camera
         
-        self._test_controller = TestDepthController(self.sim._scenes['Main']._robots['AUT'])
+        self._test_controller = TestDepthController(scene._robots['AUT'])
+        
+        self.last_time = time.time()
+        self.timer.Start(1000.0 / 200.0)
     
-    def _init_simulation(self):
-        # Read in value from config file and create the right vehicle
-        #config = yaml.load(file(os.path.join('..', 'sim.yml')))
-        #logloader.load_loggers(config["Logging"])
-        
-        #vehicle_type = config['vehicle']
-        # Pass along the subsection of the config corresponding to the vehicle
-        #vehicle = VehicleFactory.create(vehicle_type,
-        #                                config['Vehicles'][vehicle_type])
-    
-        self.sim = sim.simulation.Simulation({}) 
-        
-        self.components = [self.sim]
-        #self.components = []
     def on_timer(self, timer_event):
-        self.ogre._update()
-        OgreNewt.Debugger.getSingleton().showLines(self.sim._scenes['Main'].world)
+        self.frame.ogre._update()
+        OgreNewt.Debugger.getSingleton().showLines(self.sim.get_scene('Main').world)
         
-        current_time = time.clock()
-        time_since_last_iteration = current_time - self.last_time;
+        current_time = time.time()
+        time_since_last_iteration = (current_time - self.last_time);
 
+        #print 'C: %f L: %f Update %f' % (current_time, self.last_time, time_since_last_iteration)
         # Loop over all components updating them, if one returns false exit
         for component in self.components:
             component.update(time_since_last_iteration)

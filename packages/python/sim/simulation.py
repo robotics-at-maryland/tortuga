@@ -31,7 +31,7 @@ import sim.defaults as defaults
 from core import Singleton, log, log_init
 
 # Events
-event.add_event_types('SIM_SHUTDOWN') # Called to shutdown the simulation
+event.add_event_types(['SIM_SHUTDOWN','SIM_UPDATE']) # Called to shutdown the simulation
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
@@ -47,9 +47,10 @@ class Simulation(Singleton):
     def init(self, config = {}):
         self._ogre_root = None
         self._scenes = {}
+        self._config = config
         
-        self._graphics_init(config)
-        self.input_system = InputSystem()
+        self._graphics_init(config.get('Graphics', {}))
+        self.input_system = InputSystem(config.get('Input', {}))
     
         event.register_handlers('SIM_SHUTDOWN', self._shutdown)
         self._run = True
@@ -72,12 +73,13 @@ class Simulation(Singleton):
         @param time_since_last_update: name says it all
         """
         if self._run:
-            #Ogre.WindowEventUtilities.messagePump()
+            Ogre.WindowEventUtilities.messagePump()
             #self._ogre_root.renderOneFrame()
    
             for scene in self._scenes.itervalues():
                 scene.update(time_since_last_update)
    
+            event.send('SIM_UPDATE', time_since_last_update)
         return self._run
     
     def create_window(self, name, width, height, params):
@@ -91,6 +93,32 @@ class Simulation(Singleton):
                                                       False, params)
             
         return new_window
+    
+    def iterscenes(self):
+        """
+        Iterate over the scenes: (name, scene)
+        """
+        for name, scene in self._scenes.iteritems():
+            yield (name, scene)
+    
+    def get_scene(self, name):
+        """
+        @type name: string
+        @param name: The name of the scene to retrive
+        
+        @rtype: None or sim.Scene
+        @return: None if scene doesn't exist
+        """
+        return self._scenes.get(name, None)
+    
+    def create_all_scenes(self):
+        """
+        This load all scenes present in the config file.
+        """
+        scene_path = self._config.get('scene_path', defaults.scene_search_path)
+
+        for name, scene_file in self._config.get('Scenes', {}).iteritems():
+            self.create_scene(name, scene_file, scene_path)
     
     def create_scene(self, name, scene_file, scene_path):
         """
