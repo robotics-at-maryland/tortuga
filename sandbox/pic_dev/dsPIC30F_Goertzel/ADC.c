@@ -143,15 +143,39 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 	//keep vectoring back to the ISR
 	IFS0bits.ADIF = 0;
 
-//TO DO:
-// - have the chip listen to one of the pins on startup to
-//   determine continuous or trigger operation
 	temp = ADCBUF0;
 	result[count++] = (byte)(ADCBUF0>>2);
 	result[count++] = (byte)(ADCBUF1>>2);
 	
 //frequency watch mode
-//to be added	
+	//signal seen going above trigger
+	/*if(TRIGGER_VALUE<ADCBUF0 || TRIGGER_VALUE<ADCBUF1){
+		if(trigger_status==3){
+			trigger_status=4;
+		}else if(trigger_status==5){ //period found!
+			if(trigger_count>255){
+				sendByte(255);//just send max value for now
+			}else{
+				sendByte((byte)trigger_count);
+			}
+			count=0;	//reset period counter
+			trigger_status=2;	//look for next period
+		}
+	}
+	//signal seen going below trigger
+	if(TRIGGER_VALUE>ADCBUF0 || TRIGGER_VALUE>ADCBUF1){
+		if(trigger_status==2){
+			count=0;
+			trigger_status=3;
+		}else if(trigger_status==4){
+			trigger_status=5;
+		}
+	}
+	if(count>=SAMPLE_LENGTH){
+		//no period found, reset buffer and status
+		count=0;
+		trigger_status=2;
+	}*/
 
 //trigger mode
 	//if trigger tripped
