@@ -137,6 +137,8 @@ class IBody(IObject):
     
 class Body(Object):
     core.implements(IBody, IKMLStorable)
+
+    _tree_mesh_hack = 0
     
     @two_step_init
     def __init__(self):
@@ -181,6 +183,21 @@ class Body(Object):
         if shape_type == 'box':
             size = Ogre.Vector3(shape_props['size'])
             col = OgreNewt.Box(scene.world, size)
+        elif shape_type == 'mesh':
+            # Fix this by later (we shouldn't need a node!!!)
+            name = 'TREE_HACK' + str(Body._tree_mesh_hack)
+            Body._tree_mesh_hack += 1
+            mesh_name = shape_props['mesh_name']
+            
+            tree_ent = scene.scene_mgr.createEntity(name, mesh_name)
+            temp_node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
+            temp_node.attachObject(tree_ent)
+            temp_node.setVisible(False)
+            
+            col = OgreNewt.TreeCollision(scene.world, temp_node, True)
+            # When this works remove and destory our node temporary node!!
+        else:
+            raise PhysicsError, '"%s" is not a valid shape type' % shape_type
         
         self._body = scene.world.create_body(self, col, mass, center_of_mass,
                                              inertia, position, orientation)
@@ -360,11 +377,12 @@ class World(OgreNewt.World):
         newt_body.setPositionOrientation(position, orientation)
         newt_body.setCustomForceAndTorqueCallback(World._force_torque_callback, 
                                                  "")
-        if inertia is None:
-            inertia = shape.calculateInertialMatrix()[0]
-        newt_body.setMassMatrix(mass, inertia)
-        newt_body.autoFreeze = False
-        newt_body.centerOfMass = center_of_mass
+        if type(shape) is not OgreNewt.TreeCollision:
+            if inertia is None:
+                inertia = shape.calculateInertialMatrix()[0]
+            newt_body.setMassMatrix(mass, inertia)
+            newt_body.autoFreeze = False
+            newt_body.centerOfMass = center_of_mass
         
         # Make the body number to our actual body object
         self._bodies.append(body)

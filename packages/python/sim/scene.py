@@ -12,6 +12,7 @@ import sys
 import os.path
 
 # Library Ipmorts
+import yaml
 import ogre.renderer.OGRE as Ogre
 import ogre.physics.OgreNewt as OgreNewt
 
@@ -19,14 +20,14 @@ import ogre.physics.OgreNewt as OgreNewt
 import core
 import sim.defaults as defaults
 from sim.util import SimulationError
-from sim.serialization import ModuleLoader
-from sim.physics import World
-from sim.graphics import Camera, CameraController
-from sim.robot import Robot
+from sim.serialization import ModuleLoader, parse_position_orientation, two_step_init, parse_orientation
+from sim.physics import World, Body
+from sim.graphics import Camera, CameraController, Visual, IVisual
+from sim.robot import Robot, IThruster
 from core import fixed_update, log_init
 
 class SceneError(SimulationError):
-	pass
+    pass
 
 
 class ISceneLoader(core.Interface):
@@ -79,8 +80,7 @@ class Scene(object):
         @param scene_data: The object that will be passed to the scene loader
         """
         self.name = name
-        self._objects = {}
-        self._bodies = []
+        self._objects = []
         self._robots = {}
         self._cameras = {}
         self._camera_controllers = []
@@ -108,7 +108,7 @@ class Scene(object):
         """
         def fget(self):
             return self._scene_manager
-		
+        
     class world(core.cls_property):
         """
         The Physical world in the simulation
@@ -117,20 +117,20 @@ class Scene(object):
             return self._world
            
     def get_camera(self, name):
-     	return self._cameras.get(name, None)
+         return self._cameras.get(name, None)
 
     def update(self, time_since_last_update):
         self._update_physics(time_since_last_update)
 
         # Update all of our objects
-        for obj in self._objects.itervalues():
+        for obj in self._objects:
            obj.update(time_since_last_update)
         
         for robot in self._robots.itervalues():
-        	robot.update(time_since_last_update)
+            robot.update(time_since_last_update)
         
         for controller in self._camera_controllers:
-        	controller.update(time_since_last_update)
+            controller.update(time_since_last_update)
     
     @fixed_update('_physics_update_interval')
     def _update_physics(self, time_since_last_update):
@@ -141,9 +141,9 @@ class Scene(object):
         self._world.update(self._physics_update_interval)
         
     def save(self, location):
-    	raise SceneError("Save not yet implemented")
+        raise SceneError("Save not yet implemented")
         # TODO: Finish me
-	
+    
     def reload(self):
         raise SceneError("Reload not yet implemented")
         # TODO: Finish me
@@ -152,33 +152,33 @@ class Scene(object):
         """
         Adds resouce location to the scene internal resource group.  This 
         resources will only be after the scene is loaded initialized.
-		
+        
         @type location_map: dict: string to string
         @param location_map: maps resource type, to its location.  Valid types
-        					 are 'Zip' and 'FileSystem'.
-		"""
+                             are 'Zip' and 'FileSystem'.
+        """
         #self.logger.info('Adding resources locations')
         
 #        print 'Adding resource locations'
 #        print location_map
         rsrc_mrg = Ogre.ResourceGroupManager.getSingleton()
         for resource_type in location_map:
-#        	self.logger.info('/tAdding resources of type: %s' % resource_type)
-#        	print '\tAdding resources of type: %s' % resource_type
-        	for location in location_map[resource_type]:
-#        		print '\t',location_map[resource_type]
-#        		print '\t\t-',location
-          		location = os.path.abspath(location)
-#          		self.logger.info('/t/tAdding location: %s' % location)
-#          		print '\t\tAdding location: %s' % location
-          		rsrc_mrg.addResourceLocation(location, resource_type,
-											 self.name, False)
+#            self.logger.info('/tAdding resources of type: %s' % resource_type)
+#            print '\tAdding resources of type: %s' % resource_type
+            for location in location_map[resource_type]:
+#                print '\t',location_map[resource_type]
+#                print '\t\t-',location
+                  location = os.path.abspath(location)
+#                  self.logger.info('/t/tAdding location: %s' % location)
+#                  print '\t\tAdding location: %s' % location
+                  rsrc_mrg.addResourceLocation(location, resource_type,
+                                             self.name, False)
         rsrc_mrg.initialiseResourceGroup(self.name)
-	
+    
     def create_camera(self, name, position, offset, near_clip = 0.5):
-		self._cameras[name] = Camera(name, self, position, offset, near_clip)
-		self._camera_controllers.append(CameraController(self._cameras[name]))
-	
+        self._cameras[name] = Camera(name, self, position, offset, near_clip)
+        self._camera_controllers.append(CameraController(self._cameras[name]))
+    
     def create_object(self, obj_type, *args, **kwargs):
         """
         Creates an object
@@ -190,27 +190,204 @@ class Scene(object):
         core.Component.create(obj_type, *args, **kwargs)
         
     def create_robot(self, config_path):
-    	robot = Robot(self, config_path)
-    	self._robots[robot.name] = robot
-    	
-	
+        robot = Robot(self, config_path)
+        self._robots[robot.name] = robot
+
+
+class ISceneObject(core.Interface):
+    pass
+
+class SceneObject(Body, Visual):
+    # Inherits IBody, IVisual, IKMLStorable
+    core.implements(ISceneObject)
+            
+    @two_step_init
+    def __init__(self):
+        Body.__init__(self)
+        Visual.__init__(self)
+            
+    def init(self, parent, name, scene, shape_type, shape_props, mass, mesh, 
+             material, position = Ogre.Vector3.ZERO, 
+             orientation = Ogre.Quaternion.IDENTITY,
+             scale = Ogre.Vector3(1,1,1)):
+        
+        Body.init(self, None, name, scene, mass, shape_type, 
+                      shape_props, position, orietnation)
+        Visual.init(self, None, name, scene, mesh, material, position, 
+                    orietnation, scale)
+    
+    def load(self, data_object):
+        Visual.load(self, data_object)
+        Body.load(self, data_object)
+        
+        # Link body and node toghether
+        self._body.attachToNode(self._node)
+        self.set_buoyancy((0,1,0))
+        
+        self._body.angularDamping = (10,10,10)
+        #print self._body.angularDamping
+        #self.gravity = (0,0,0)
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
+            
+    
 class ModuleSceneLoader(core.Component, ModuleLoader):
-	"""
-	Loads a scene by loading a python module from file and executing the
-	create_scene method.
-	
-	B{Implements:}
-	 - ISceneLoader
-	"""
-	
-	core.implements(ISceneLoader)
-	
-	# ISceneLoader Methods
-	def load(self, scene_file, scene):
-		"""
-		Uses the python imp module to load the module given the path to it.
-		"""
-		scene_mod = ModuleLoader.load(self, scene_file)
-		scene._bodies.extend(scene_mod.create_scene(self, scene))
-	
-	# End ISceneLoader Methods
+    """
+    Loads a scene by loading a python module from file and executing the
+    create_scene method.
+    
+    B{Implements:}
+     - ISceneLoader
+    """
+    
+    core.implements(ISceneLoader)
+    
+    # ISceneLoader Methods
+    def load(self, scene_file, scene):
+        """
+        Uses the python imp module to load the module given the path to it.
+        """
+        scene_mod = ModuleLoader.load(self, scene_file)
+        scene._bodies = scene_mod.create_scene(self, scene)
+    
+    # End ISceneLoader Methods
+    
+class KMLSceneLoader(core.Component):
+    core.implements(ISceneLoader)
+
+    iface_map = {'Visual' : IVisual,
+                 'SceneObject' : ISceneObject}
+
+    def __init__(self):
+        self._light_count= 0
+
+    @staticmethod
+    def can_load(scene_data):
+        try:
+            if scene_data.endswith('.sml') and len(scene_data) > 4:
+                return True
+            return False
+        except AttributeError:
+            return False
+        
+    def load(self, scene_file, scene):
+        self._scene_mgr = scene.scene_mgr
+        self._scene = scene
+        
+        try:
+            config = yaml.load(file(scene_file))
+        except yaml.YAMLError, e:
+            raise SceneError, str(e)
+        kml_node = config['Scene']
+        
+        # Load resources
+        scene.add_resource_locations(kml_node['Resources'])
+        
+        # Setup skybox
+        if kml_node.has_key('SkyBox'):
+            self._create_sky_box(kml_node['SkyBox'])
+        
+        # Load Lights
+        if kml_node.has_key('Lights'):
+            lights_node = kml_node['Lights']
+            for name, node in lights_node.iteritems():
+                node['name'] = name
+                self._create_light(node)
+        else:
+            raise SceneError, 'Scene must have lights'
+        
+#        ambient_light_colour = kml_node.get('ambient_light_colour', 
+#                                             	Ogre.ColourValue.Black)
+#        if ambient_light_colour != Ogre.ColourValue.Black:
+#        	ambient_light_colour = Ogre.ColourValue(*ambient_light_colour)
+#        self._scene_mgr.setAmbientLight(ambient_light_colour)
+        self._scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
+            
+        # Load cameras
+        if kml_node.has_key('Cameras'):
+            for name, node in kml_node['Cameras'].iteritems():
+                node['name'] = name
+                self._create_camera(node)
+        else:
+            raise SceneError, 'Scene must have cameras'
+        
+        # Load Objects
+        objects = kml_node.get('Objects', None)
+        if objects is not None:
+            for name, node in objects.iteritems():
+                iface_name, class_name = node['type']
+                iface = self.iface_map[iface_name]
+                obj = core.Component.create(iface, class_name)
+                node['name'] = name
+                obj.load((scene, None, node))
+                
+                # TODO: Put this up in the scene
+                scene._objects.append(obj)
+        
+        if kml_node.has_key('Robots'):
+            for name, path in kml_node['Robots'].iteritems():
+                scene.create_robot(path)
+                
+    def _create_sky_box(self, node):
+        """
+        Parse the needed information to create a sky box out of a kml node 
+        defaults values shown below:
+        
+        SkyBox:
+            enable: True
+            material_name: <Must Be Given>
+            distance: 5000
+            draw_first: True
+            orientation: Quaternion.Identity
+            group_name: General
+        """
+        enable = node.get('enable', True)
+        material_name = node['material_name']
+        distance = node.get('distance', 5000)
+        draw_first = node.get('draw_first', True)
+        orientation = parse_orientation(node)
+        group_name = node.get('group', Ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME,)
+            
+        self._scene_mgr.setSkyBox(enable, material_name, distance, 
+                                  draw_first, orientation, group_name)
+    
+    # TODO: Move me into object heirarchy
+    def _create_light(self, node):
+        """
+        Creates a light from a kml node
+        """
+        # Name (generate one if needed)
+        default_name = 'Light' + str(self._light_count)
+        name = node.get('name', default_name)
+        if name == default_name:
+            self._light_count += 1
+        
+        # Type (look up type based on member of Ogre.Light class
+        type = node.get('type', None)
+        if type is not None:
+            try:
+                type = Ogre.Light.__dict__[type]
+            except:
+                raise SceneError, '"%s" is not a valid light type' % type
+        else:
+            type = Ogre.Light.LT_POINT
+        
+        position = node.get('position', Ogre.Vector3.ZERO)
+        
+        # TODO: Add parsing for the rest of the parameters 
+        #       (based on the type of light given)
+        light = self._scene_mgr.createLight(name)
+        light.setType(type)
+        light.setPosition(position)
+        
+    # TODO: move me into object heirarchy    
+    def _create_camera(self, node):
+        name = node['name']
+        position = node.get('position', Ogre.Vector3.ZERO)
+        offset = node.get('offset', (0,1,0))
+        near_clip = node.get('near_clip', 0.5)
+        
+        self._scene.create_camera(name, position, offset, near_clip)
+        
+        

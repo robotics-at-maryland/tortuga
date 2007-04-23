@@ -14,6 +14,9 @@ import os
 import sys
 import imp
 
+# Library Imports
+import ogre.renderer.OGRE as Ogre
+
 # Projects Import
 import core
 import decorator
@@ -119,11 +122,16 @@ def two_step_init(func):
     return decorator.decorate(func, new_init, 
                               decorator.make_weak_signature(func))
 
+def parse_orientation(node):
+    orientation = node.get('orientation', Ogre.Quaternion.IDENTITY)
+    if orientation != Ogre.Quaternion.IDENTITY:
+        orientation = Quat(orientation, axis_angle = True)
+        
+    return orientation
+
 def parse_position_orientation(node):
-    position = node['position']
-    orientation = Quat(node['orientation'], axis_angle = True)
-    
-    return (position, orientation)
+    position = node.get('position', Ogre.Vector3.ZERO)
+    return (position, parse_orientation(node))
 
 class KMLLoader(object):
     """

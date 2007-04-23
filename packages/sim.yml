@@ -9,7 +9,8 @@ Simulation:
     Scenes:
         # Each scene must be on the given scene_path, this for example is 
         # in 'data/scenes/basic.py
-        Main: basic.py
+        #Main: basic.py
+        Main: test.sml
     
     Graphics:
         Plugins:
@@ -95,6 +96,8 @@ Logging:
             class: logging.Formatter
             
 
+# OLD STUFF
+
 # --------------------------------------------------------------------------- #
 #                             V E H I C L E S                                 #
 # --------------------------------------------------------------------------- #
@@ -102,84 +105,6 @@ Vehicles:
 
     # ------------------------- S I M U L A T E D --------------------------- #
     Simulated:
-        # In kilograms
-        mass: 26  # About 0.5% bouyant
-        # In the X, Y, and Z direction
-        # Actual size in meters
-        size: [0.2032, 0.2032, 0.6858]
-        position: [0.0, 0.0, 0.0]
-        # In Axis/Angle Form (last term angle)
-        orientation: [0.0, 0.0, 1.0, 0.0]
-
-        # This is all the devices that will be attached to the body of the sub
-        # The name of each is the type of device to create
-        Devices:
-            Name:
-                type: SimDepth
-            # For each simulated thruster you need to give its type, relative
-            # to the body coordinate system (describe me here)
-            # Y is UP, Z comes out the front of the vehicle and when looking at
-            # vehicle from the back X comes out the right (starboard) side 
-            PortThruster:
-                # The type of device to create
-                type: SimThruster
-                # Position relative to vehicle
-                position: [-0.16, 0, 0]
-                # A unit vector along which thrust will be applied
-                direction: [0, 0, -1]
-                # The maximum avialable thrust (in Newtons)
-                strength: 25.5
-                
-                Graphical:
-                    mesh: cylinder.mesh
-                    material: Simple/BumpyMetal
-                    scale: [0.15,0.047,0.047]
-                    orientation: [0, 1, 0, 90]
-                
-            StarboardThruster:
-                type: SimThruster
-                position: [0.16, 0, 0]
-                direction: [0, 0, -1]
-                strength: 25.5
-                
-                Graphical:
-                    mesh: cylinder.mesh
-                    material: Simple/BumpyMetal
-                    scale: [0.15,0.047,0.047]
-                    orientation: [0, 1, 0, 90]
-                    
-            ForeThruster:
-                type: SimThruster
-                position: [0, 0, 0.4]
-                direction: [0, 1, 0]
-                strength: 25.5
-                
-                Graphical:
-                    mesh: cylinder.mesh
-                    material: Simple/BumpyMetal
-                    scale: [0.15,0.047,0.047]
-                    orientation: [0, 0, 1, 90]
-                    
-            AftThruster:
-                type: SimThruster
-                position: [0, 0, -0.4]
-                direction: [0, 1, 0]
-                strength: 25.5
-                
-                Graphical:
-                    mesh: cylinder.mesh
-                    material: Simple/BumpyMetal
-                    scale: [0.15,0.047,0.047]
-                    orientation: [0, 0, 1, 90]
-                    
-        # This is a special case of the above logging format, basically it
-        # creates a logger which sends messages upward that have a level at
-        # or higher than it
-        # Shown are the default values, uncomment to change
-        #Logging:
-        #        name: Sim-Vehicle
-        #        level: INFO
-    
         # This describes all the general
         Simulation:
             Scenes:

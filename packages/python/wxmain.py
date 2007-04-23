@@ -6,7 +6,6 @@ import time
 # Library Imports
 import wx
 import yaml
-print sys.path
 import ogre.renderer.OGRE as Ogre
 import ogre.physics.OgreNewt as OgreNewt
 
@@ -56,15 +55,17 @@ class TestDepthController(object):
         # Simple P type controller for the depth
         current_depth = self.robot._main_part._node.position.y
         error = self._desired_depth - current_depth
-        force = error * 100
+        force = error * 10 - self.robot._main_part.acceleration.y * 10
         
         self.robot.parts.aft_thruster.force = force 
         self.robot.parts.front_thruster.force = force
         
-#        actual_force = self.robot.parts.front_thruster.force
-#        print 'E: %5.4f D: %5.4f A: %5.4f FC: %06.4f FA: %06.4f' % \
-#            (error, self._desired_depth, current_depth, force, actual_force)
-            
+        actual_force = self.robot.parts.front_thruster.force
+#        print 'E: %5.4f A: %5.4f D: %5.4f AD: %5.4f FC: %06.4f FA: %06.4f' % \
+#            (error, self.robot._main_part.acceleration.y, self._desired_depth, 
+#             current_depth, force, actual_force)
+        
+#        print 'E: %5.4f A: %5.4f' % (error, self.robot._main_part.acceleration.y)
         # Simple P type controller for the pitch
         current_pitch = self.robot._main_part.orientation.getPitch().valueDegrees()
         error = self._desired_pitch - current_pitch
@@ -72,15 +73,15 @@ class TestDepthController(object):
         fbefore = self.robot.parts.front_thruster.force
         abefore = self.robot.parts.aft_thruster.force
         
-        correction = (error * 0.005)
-        self.robot.parts.front_thruster.force *= 1 + (error * 0.01)
-        self.robot.parts.aft_thruster.force *= 1 - (error * 0.01)
+        force = (error * 5)
+        self.robot.parts.front_thruster.force -= force
+        self.robot.parts.aft_thruster.force += force
         
         fafter = self.robot.parts.front_thruster.force
         aafter = self.robot.parts.aft_thruster.force
         
-     #   print 'E: %5.4f D: %5.4f A: %5.4f C: %6.5f | FB: %06.4f FA: %06.4f AB: %06.4f AA: %06.4f' % \
-      #      (error, self._desired_pitch, current_pitch, correction, fbefore, fafter, abefore, aafter)
+#        print 'E: %5.4f D: %5.4f A: %5.4f C: %6.5f | FB: %06.4f FA: %06.4f AB: %06.4f AA: %06.4f' % \
+#            (error, self._desired_pitch, current_pitch, 0, fbefore, fafter, abefore, aafter)
             
         if self._forward:
             self.robot.parts.right_thruster.force += (7.0 * time_since_last_frame)
@@ -209,17 +210,22 @@ class SimApp(wx.App):
         # Create our main frame
         self.frame = MainFrame(self.create_scenes)
 
-        # Show the main frame
-        self.frame.Show(True)
-        self.SetTopWindow(self.frame)
-        
         # Setup Update timer
         self.timer = wx.Timer()
         self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
+
+        # Show the main frame
+        self.frame.Show(True)
+        self.SetTopWindow(self.frame)
         self.frame.Bind(wx.EVT_CLOSE, self.on_close)
-        
 
         return True
+    
+    def _get_time(self):
+        if wx.Platform == '__WXGTK__':
+            return time.time()
+        else:
+            return time.clock()
     
     def create_scenes(self):
         self.sim.create_all_scenes()
@@ -231,14 +237,14 @@ class SimApp(wx.App):
         
         self._test_controller = TestDepthController(scene._robots['AUT'])
         
-        self.last_time = time.time()
+        self.last_time = self._get_time()
         self.timer.Start(1000.0 / 200.0)
     
     def on_timer(self, timer_event):
         self.frame.ogre._update()
         OgreNewt.Debugger.getSingleton().showLines(self.sim.get_scene('Main').world)
         
-        current_time = time.time()
+        current_time = self._get_time()
         time_since_last_iteration = (current_time - self.last_time);
 
         #print 'C: %f L: %f Update %f' % (current_time, self.last_time, time_since_last_iteration)

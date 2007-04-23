@@ -32,8 +32,6 @@ from sim.serialization import IKMLStorable, two_step_init, parse_position_orient
 from sim.object import IObject, Object
 from sim.input import ButtonStateObserver, toggle
 
-print 'TOGGLE',toggle
-
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
     pass
@@ -46,6 +44,8 @@ class IVisual(IObject):
 
 class Visual(Object):
     implements(IVisual, IKMLStorable)
+    
+    _plane_count = 0
     
     @two_step_init
     def __init__(self):
@@ -91,10 +91,29 @@ class Visual(Object):
         gfx_node = node['Graphical'] 
         mesh = gfx_node['mesh']
         material = gfx_node['material']
-        scale = Ogre.Vector3(gfx_node['scale'])
+        scale = Ogre.Vector3(gfx_node.get('scale', Ogre.Vector3(1,1,1)))
         
+        # Handle special mesh generation
+        if mesh.startswith('PLANE'):
+            if ':' in mesh:
+                mesh = mesh.split(':')[1]
+            else:
+                mesh = 'Plane' + str(Visual._plane_count)
+                
+            norm = gfx_node['normal']
+            width = gfx_node['width']
+            height = gfx_node['height']
+            plane = Ogre.Plane(norm, 0 );
+            group_name = gfx_node.get('group', Ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME)
+            
+            Ogre.MeshManager.getSingletonPtr().createPlane(mesh, \
+                group_name, plane, width, height);
+            Visual._plane_count += 1
+        
+        # Orientation defaults: IDENTITY, Position: (0,0,0)
         position, orientation = parse_position_orientation(node)
-        Visual._create(self, scene, mesh, material, position, orientation, scale)
+        Visual._create(self, scene, mesh, material, position, orientation, 
+                       scale)
         
     def save(self, data_object):
         raise "Not yet implemented"

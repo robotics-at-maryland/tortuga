@@ -160,7 +160,7 @@ class InputForwarder(object):
             else:
                 keyname = "unknown (%s)" % keycode
                 
-        return self._input_sys.map_key(keyname)
+        return self._input_sys.key_string_to_key(keyname)
         
     def _on_key_up(self, key_event):
         key_code = self._map_key(key_event)
