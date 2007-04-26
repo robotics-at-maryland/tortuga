@@ -135,6 +135,12 @@ class IBody(IObject):
         """
         pass
     
+class ITrigger(IBody):
+    """
+    This is a massless body which detects when other objects go in and out of
+    its space and sends event approriately
+    """
+    
 class Body(Object):
     core.implements(IBody, IKMLStorable)
 

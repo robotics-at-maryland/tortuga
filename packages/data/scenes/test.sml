@@ -39,7 +39,19 @@ Scene:
                 Shape:
                     type: mesh
                     mesh_name: simple_terrain.mesh
-                    
+         
+        water:
+            type: [Visual, sim.graphics.Visual]
+            material:      
+            orientation: [1, 0, 0, -90]
+            
+            Graphical:
+                mesh: 'PLANE:water'
+                width: 80
+                height: 80
+                normal: [0, 0, 1]
+                material: 'Simple/Translucent'
+                
         far_wall:
             type: [SceneObject, sim.scene.SceneObject] 
             position: [0, -5, -40]

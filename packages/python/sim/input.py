@@ -29,7 +29,9 @@ from sim.util import SimulationError
 
 # Key types
 KC = Enum('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 
-          'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z') 
+          'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+          'SHIFT', 'ALT', 'CTRL') 
+MOD_KEYS = set(['SHIFT', 'ALT', 'CTRL'])
 
 
 class InputError(SimulationError):
@@ -42,6 +44,16 @@ def pack_mod_keys(ctrl, alt, shift, meta):
     """
     return (int(ctrl) << 3) | (int(alt) << 2) | (int(shift) << 1) | int(meta)
 
+def unpack_mod_keys(mod_keys):
+    keys = []
+    if mod_keys & 0x8:
+        keys.append(KC.CTRL)
+    if mod_keys & 0x4:
+        keys.append(KC.SHIFT)
+    if mod_keys & 0x2:
+        keys.append(KC.ALT)
+    return keys
+
 #class InputSource(Interface):
 #    def update():
 #        """
@@ -52,6 +64,7 @@ def pack_mod_keys(ctrl, alt, shift, meta):
 class InputSystem(object):
     def __init__(self, config):
         self._action_map = {}
+        self._down_keys = {}
         
         self._load_actions(config.get('KeyMap', {}))
     
@@ -113,10 +126,47 @@ class InputSystem(object):
                         meta_down):
         mod_keys = pack_mod_keys(ctrl_down, alt_down, shift_down, meta_down)
 
-        event_types = self._action_map.get((key, mod_keys), None)
-        if event_types is not None:
-            for event_type in event_types:
-                event.post(event_type, key, down, mod_keys)                         
+        # Find all events that are mapped to this key combination
+        key_event = (key, mod_keys)
+        event_types = self._action_map.get(key_event, set())
+        # Does yet work ...
+#        print 'EVENT:',key_event, down, event_types
+#        
+#        # If we have a key combination mapped to CTRL+A, when it is pressed all
+#        # the events will got out for that combination being pressed down. This
+#        # code resolves the issue of what happens when releases just one of the
+#        # keys at a time instead of both.
+#        
+#        # Someone has released a key
+#        if not down:
+#            print "UP",key_event
+#            # Two possibilities, normal key up, mod_key up
+#            # Retrieve all down combination which contain this key and release them
+#            if self._down_keys.has_key(key):
+#                key_events = self._down_keys.pop(key)             
+#                for key_evt in key_events:
+#                    event_types.update(self._action_map.get(key_evt, set()))
+#                    
+#        elif len(event_types) != 0:
+#            print "DOWN",key_event
+#            
+#            # Add it to the set of pressed keys
+#            key_events = self._down_keys.get(key, set())
+#            key_events.add(key_event)
+#            self._down_keys[key] = key_events
+#            
+#            if mod_keys != 0:
+#                # Add all releated mod key maps
+#                mods = unpack_mod_keys(mod_keys)
+#                for mod_key in mods:
+#                    key_events = self._down_keys.get(mod_key, set())
+#                    key_events.add(key_event)
+#                    self._down_keys[mod_key] = key_events
+#        print 'STATE',self._down_keys,'\n'
+
+        # Post all the events we need to post
+        for event_type in event_types:
+            event.post(event_type, key, down, mod_keys)                         
         
     
     def map_actions(self, action_map, action = None):
@@ -144,9 +194,9 @@ class InputSystem(object):
     
     def _map_action(self, input_event, action):
         try:
-            self._action_map[input_event].append(action)
+            self._action_map[input_event].add(action)
         except KeyError:
-            self._action_map[input_event] = [action]
+            self._action_map[input_event] = set([action])
             
 class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
     """

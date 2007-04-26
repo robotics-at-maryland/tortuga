@@ -2,12 +2,17 @@
 import os
 import sys
 import time
+import warnings
 
 # Library Imports
 import wx
 import yaml
+
+warnings.simplefilter('ignore', RuntimeWarning)
 import ogre.renderer.OGRE as Ogre
 import ogre.physics.OgreNewt as OgreNewt
+import ogre.io.OIS
+warnings.simplefilter('default', RuntimeWarning)
 
 # Project Imports
 import logloader

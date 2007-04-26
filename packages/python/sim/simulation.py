@@ -16,9 +16,13 @@ This module provides the core functionallity of the simulation
 import os
 import sys
 import imp
+import warnings
 
 # Library imports
+warnings.simplefilter('ignore', RuntimeWarning)
 import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt
+warnings.simplefilter('default', RuntimeWarning)
 
 # Project Imports
 import logloader

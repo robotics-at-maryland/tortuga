@@ -31,7 +31,7 @@ Simulation:
     
     Input:
         KeyMap:
-            W : CAM_FORWARD
+            CTRL+W : CAM_FORWARD
             A : CAM_LEFT 
             S : CAM_BACK 
             D : CAM_RIGHT

@@ -8,7 +8,7 @@
 # Libnrary Imports
 import wx
 
-# Update me as needed
+# This maps wxWidgets key values to the input system values
 keyMap = {
     wx.WXK_BACK : "WXK_BACK",
     wx.WXK_TAB : "WXK_TAB",
@@ -22,9 +22,9 @@ keyMap = {
     wx.WXK_CANCEL : "WXK_CANCEL",
     wx.WXK_MBUTTON : "WXK_MBUTTON",
     wx.WXK_CLEAR : "WXK_CLEAR",
-    wx.WXK_SHIFT : "WXK_SHIFT",
-    wx.WXK_ALT : "WXK_ALT",
-    wx.WXK_CONTROL : "WXK_CONTROL",
+    wx.WXK_SHIFT : "SHIFT",
+    wx.WXK_ALT : "ALT",
+    wx.WXK_CONTROL : "CTRL",
     wx.WXK_MENU : "WXK_MENU",
     wx.WXK_PAUSE : "WXK_PAUSE",
     wx.WXK_CAPITAL : "WXK_CAPITAL",
