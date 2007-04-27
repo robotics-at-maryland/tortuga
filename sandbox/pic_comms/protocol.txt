@@ -1,0 +1,22 @@
+Command: Ping [0x00 0x00]
+Reply: [0xBC] (Success)
+
+
+Command: System Check [0x01 0x01]
+Reply: [0xBC] (Success)
+       [0xDF] (Failure)
+
+
+Command: Get Depth [0x02 0x02]
+Reply: [0x03 MSB LSB Checksum] (Success)
+       [0xDF] (Failure)
+
+
+Command: Get water and power board status [0x04 0x04]
+Reply: [0x05 Status Checksum] (Success)
+       [0xDF] (Failure)
+
+       Status Bit 0    = Water (0=Dry, 1=Wet)
+       Status Bits 1-4 = Balancer board status lines
+
+

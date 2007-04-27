@@ -239,7 +239,7 @@ int busWriteByte(byte data, byte req)
 void initUart()
 {
     U1MODE = 0x0000;
-    U1BRG = 7;  /* 194 for 9600 */
+    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600 */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
@@ -251,9 +251,12 @@ void sendByte(byte i)
 {
     long j;
     while(U1STAbits.UTXBF);
+    while(!U1STAbits.TRMT);
     U1TXREG = i;
     while(U1STAbits.UTXBF);
-  //  for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
+    while(!U1STAbits.TRMT);
+
+    for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
 }
 
 
@@ -344,34 +347,18 @@ int main(void)
 
         byte t1, t2;
 
-
-        while(1);
-        while(1)
-        {
-                busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL);
-
-              //  byte len = readDataBlock(SLAVE_ID_POWERBOARD);
-/*
-                if(len!=1)
-                {
-                    c = 3;  // Bad comm
-                } else
-                {
-                    c = rxBuf[0]; //if(rxBuf[0] != 0)
-
-                    //else
-                     //   c = 1; // sendString("Water detected!");
-                }
-
-        */
-            busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
-            busWriteByte(0, SLAVE_ID_LCD);
-            busWriteByte(c+48, SLAVE_ID_LCD);
-            busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
-        }
-
         switch(c)
         {
+
+            case 5:
+            {
+                byte i=0;
+                for(i=0; i<32; i++)
+                    sendByte(i);
+
+                break;
+            }
+
             case HOST_CMD_PING:
             {
                 t1 = waitchar(1);
@@ -464,8 +451,8 @@ int main(void)
                 sendByte(HOST_REPLY_DEPTH);
                 sendByte(rxBuf[0]);
                 sendByte(rxBuf[1]);
-                sendByte(HOST_REPLY_DEPTH+rxBuf[0]+rxBuf[1]);
-
+                byte cs = HOST_REPLY_DEPTH+rxBuf[0]+rxBuf[1];
+                sendByte(cs);
                 break;
             }
 
