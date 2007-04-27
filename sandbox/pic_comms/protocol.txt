@@ -12,11 +12,11 @@ Reply: [0x03 MSB LSB Checksum] (Success)
        [0xDF] (Failure)
 
 
-Command: Get water and power board status [0x04 0x04]
+Command: Get water, power board, and start switch status [0x04 0x04]
 Reply: [0x05 Status Checksum] (Success)
        [0xDF] (Failure)
 
        Status Bit 0    = Water (0=Dry, 1=Wet)
+       Status Bit 1    = Start Switch (0=Off, 1=On)
        Status Bits 1-4 = Balancer board status lines
-
 

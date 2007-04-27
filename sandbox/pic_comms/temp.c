@@ -288,7 +288,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "I am temp/power/marker PIC.");
+                    txBuf[0] = sprintf(txBuf+1, "I am temp/power/water/start PIC.");
                     break;
                 }
 
@@ -309,7 +309,7 @@ void processData(byte data)
                 case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = PORTB & 0x1F;
+                    txBuf[1] = PORTB & 0x3F;
                     break;
                 }
 
@@ -333,7 +333,7 @@ void processData(byte data)
 
                 case BUS_CMD_HARDKILL:
                 {
-                    _LATB5 = 1; /* Uh oh.... master kill */
+                    _LATC15 = 1; /* Uh oh.... master kill */
                     break;
                 }
 
@@ -588,7 +588,7 @@ void _ISR _CNInterrupt(void)
 
     if(WATER_CN_BIT == 1 && _RB0 == 1)  /* WATER!!! */
     {
-        _RB5 = 1;
+        _RC15 = 1;      /* Hard Kill */
     }
 
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
@@ -607,13 +607,15 @@ void main()
 {
     byte i;
     long l;
-    _TRISB0 = TRIS_IN;  /* Water sensor */
-    _TRISB1 = TRIS_IN; /* Power board 1 */
-    _TRISB2 = TRIS_IN; /* Power board 2 */
-    _TRISB3 = TRIS_IN; /* Power board 3 */
-    _TRISB4 = TRIS_IN; /* Power board 4 */
-    _LATB5 = 0;
-    _TRISB5 = TRIS_OUT; /* Hard Kill */
+    _TRISB0 = TRIS_IN;  /* Water sensor  */
+    _TRISB1 = TRIS_IN;  /* Start Switch  */
+    _TRISB2 = TRIS_IN;  /* Power board 1 */
+    _TRISB3 = TRIS_IN;  /* Power board 2 */
+    _TRISB4 = TRIS_IN;  /* Power board 3 */
+    _TRISB5 = TRIS_IN;  /* Power board 4 */
+
+    _LATC15 = 0;
+    _TRISC15 = TRIS_OUT; /* Hard Kill */
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
