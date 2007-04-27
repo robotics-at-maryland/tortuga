@@ -1,4 +1,5 @@
 #include <p30fxxxx.h>
+#include <stdio.h>
 
 _FOSC( CSW_FSCM_OFF & EC_PLL8 );
 _FWDT ( WDT_OFF );
@@ -250,13 +251,14 @@ void initUart()
 void sendByte(byte i)
 {
     long j;
+
     while(U1STAbits.UTXBF);
     while(!U1STAbits.TRMT);
     U1TXREG = i;
     while(U1STAbits.UTXBF);
     while(!U1STAbits.TRMT);
 
-    for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
+   // for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
 }
 
 
