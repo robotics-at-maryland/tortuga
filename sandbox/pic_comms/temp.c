@@ -55,6 +55,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_MARKER2         12
 #define BUS_CMD_CHECKWATER      14
 #define BUS_CMD_TEMP            15
+#define BUS_CMD_BOARDSTATUS     16
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -269,6 +270,7 @@ long avgDepth = 0;
 void processData(byte data)
 {
     txPtr = 0;
+    txBuf[1] = 9;
 
     switch(busState)
     {
@@ -284,7 +286,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "I am temp sensor PIC.");
+                    txBuf[0] = sprintf(txBuf+1, "I am temp/power/marker PIC.");
                     break;
                 }
 
@@ -302,34 +304,10 @@ void processData(byte data)
                     break;
                 }
 
-                case BUS_CMD_MARKER1:
-                {
-                    dropMarker(0);
-                    break;
-                }
-
-                case BUS_CMD_MARKER2:
-                {
-                    dropMarker(1);
-                    break;
-                }
-
-                case BUS_CMD_THRUSTERS_ON:
-                {
-                    _LATB3 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTERS_OFF:
-                {
-                    _LATB3 = 0;
-                    break;
-                }
-
-                case BUS_CMD_CHECKWATER:
+                case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = _RB4;
+                    txBuf[1] = PORTB & 0x1F;
                     break;
                 }
 
@@ -556,7 +534,7 @@ void disableBusInterrupt()
 void initCN()
 {
     enableBusInterrupt();
-    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
+//    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 }
@@ -597,69 +575,6 @@ void _ISR _CNInterrupt(void)
 int depthArray[100];
 int dp=0;
 
-void _ISR _ADCInterrupt(void)
-{
-    IFS0bits.ADIF = 0;
-    byte i=0;
-
-    long ad=0;
-
-
-    depthArray[dp++] = ADCBUF0;
-    if(dp >= 100)
-        dp=0;
-
-    ad = 0;
-    for(i=0; i<100; i++)
-        ad+= depthArray[i];
-
-    ad /= 100;
-
-
-    /*
-     * Why does disabling and re-enabling the CN interrupts muck up the data transfers?
-     * Maybe some interrupt bits need to be dealt with. Since average depth is only a 16-bit
-     * value, the assignment operation is atomic and there should be no data race here.
-     */
-    disableBusInterrupt();
-    avgDepth = ad;
-    enableBusInterrupt();
-}
-
-/*
- * Initialize ADC for depth sensor. All this code really needs to be split up
- * into different files, each one different for each slave. But for now, write
- * and test everything in one file.
- */
-void initADC()
-{
-    avgDepth = 0x1234;
-    ADPCFG = 0xFFFF;
-    ADPCFGbits.PCFG0 = 0;
-    _TRISB0 = TRIS_IN;
-
-    ADCON1 = 0x0000;
-    ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
-    ADCON1bits.ASAM = 1;    /* Automatic sampling enabled */
-
-    ADCON1bits.FORM = 0;    /* Plain format */
-
-    ADCHS = 0x0000;
-    ADCSSL = 0;
-    ADCON3bits.SAMC=0x1F;
-
-    ADCON3bits.ADCS = 4;        /* ADC needs so much time to convert at 30 MIPS */
-    ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
-          //Clear the A/D interrupt flag bit
-    IFS0bits.ADIF = 0;
-
-        //Set the A/D interrupt enable bit
-    IEC0bits.ADIE = 1;
-
-    ADCON1bits.ADON = 1;
-    ADCON1bits.SAMP = 1;    /* Start auto-sampling */
-}
-
 
 //readTemp addr 0x9E
 
@@ -667,10 +582,12 @@ void main()
 {
     byte i;
     long l;
-    _TRISB1 = TRIS_OUT; /* Marker 1 */
-    _TRISB2 = TRIS_OUT; /* Marker 2 */
-    _TRISB3 = TRIS_OUT; /* Thruster Safety */
-    _TRISB4 = TRIS_IN;  /* Water sensor */
+    _TRISB0 = TRIS_IN;  /* Water sensor */
+    _TRISB1 = TRIS_IN; /* Power board 1 */
+    _TRISB2 = TRIS_IN; /* Power board 2 */
+    _TRISB3 = TRIS_IN; /* Power board 3 */
+    _TRISB4 = TRIS_IN; /* Power board 4 */
+
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
@@ -683,7 +600,7 @@ void main()
     /* Temp pic does not need ADC code, but keep this around if we want to combine the two */
  //   initADC();
     initBus();
-
+    ADPCFG = 0xFFFF;
 
     while(1)
     {

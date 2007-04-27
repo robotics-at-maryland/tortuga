@@ -28,7 +28,7 @@ _FWDT ( WDT_OFF );
 #define RW_WRITE    1
 
 
-#define SLAVE_ID_WATER      0
+#define SLAVE_ID_POWERBOARD 1
 #define SLAVE_ID_DEPTH      0
 #define SLAVE_ID_THRUSTERS  0
 #define SLAVE_ID_MARKERS    0
@@ -71,8 +71,9 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_THRUSTERS_ON    10
 #define BUS_CMD_THRUSTERS_OFF   11
 #define BUS_CMD_MARKER2         12
-#define BUS_CMD_CHECKWATER      14
+//#define BUS_CMD_CHECKWATER      14
 #define BUS_CMD_TEMP            15
+#define BUS_CMD_BOARDSTATUS     16
 
 #define NUM_SLAVES  3
 
@@ -107,7 +108,7 @@ void freeBus()
 
 
 /* Wait for a byte on the serial console */
-unsigned char waitchar()
+unsigned char waitchar(byte timeout)
 {
     byte x;
     U1STAbits.OERR = 0;
@@ -236,7 +237,7 @@ int busWriteByte(byte data, byte req)
 void initUart()
 {
     U1MODE = 0x0000;
-    U1BRG = 48;  /* 194 for 9600 */
+    U1BRG = 7;  /* 194 for 9600 */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
@@ -250,7 +251,7 @@ void sendByte(byte i)
     while(U1STAbits.UTXBF);
     U1TXREG = i;
     while(U1STAbits.UTXBF);
-    for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
+  //  for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
 }
 
 
@@ -322,160 +323,84 @@ int main(void)
     for(j=0; j<100000; j++);
 
 
-    /*
-     * Key Commands:
-     * P - ping each slave
-     * I - identify each slave and print ID
-     * R - read a given config register of a given slave. Default values='A'
-     * W - write a given config register of a given slave to a given value
-     * S - send 15000 Identify commands to slave 0, read result of each. Used for testing timing.
-     * M - tell slave 0 to drop the first marker. mainly used for testing timers, but works too
-     * m - tell slave 0 to drop the second marker. mainly used for testing timers, but works too
-     * B - turn LCD backlight on
-     * b - turn LCD backlight off
-     * L - write text to LCD
-     * (running out of meaningful letters over here!)
-     * T - thruster safety on
-     * t - thruster safety off
-     * w - get reading of water sensor
-     */
+    #define HOST_CMD_PING       0
+    #define HOST_REPLY_SUCCESS  188
+    #define HOST_REPLY_FAILURE  223
+
+    #define HOST_CMD_SYSCHECK         1
+
+    #define HOST_CMD_DEPTH            2
+    #define HOST_REPLY_DEPTH          3
+
+    #define HOST_CMD_BOARDSTATUS      4
+    #define HOST_REPLY_BOARDSTATUS    5
+
 
     while(1)
     {
-        sendString("\n\r\n\r>: ");
-        byte c = waitchar();
-        sendByte(c);    /* Local Echo */
+        byte c = waitchar(0);
+
+        byte t1, t2;
+
+        while(1)
+        {
+                busWriteByte(BUS_CMD_MARKER2, SLAVE_ID_MARKERS);
+
+              //  byte len = readDataBlock(SLAVE_ID_POWERBOARD);
+/*
+                if(len!=1)
+                {
+                    c = 3;  // Bad comm
+                } else
+                {
+                    c = rxBuf[0]; //if(rxBuf[0] != 0)
+
+                    //else
+                     //   c = 1; // sendString("Water detected!");
+                }
+
+        */
+            busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
+            busWriteByte(0, SLAVE_ID_LCD);
+            busWriteByte(c+48, SLAVE_ID_LCD);
+            busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
+        }
 
         switch(c)
         {
-            case 'G':
+            case HOST_CMD_PING:
             {
-                sendString("\n\rHere goes...");
-                while(1)
+                t1 = waitchar(1);
+                if(t1 == HOST_CMD_PING)
+                    sendByte(HOST_REPLY_SUCCESS);
+                else
+                    sendByte(HOST_REPLY_FAILURE);
+
+                break;
+            }
+
+
+            case HOST_CMD_SYSCHECK:
+            {
+                byte err=0;
+                t1 = waitchar(1);
+
+                if(t1 != HOST_CMD_SYSCHECK)
                 {
-                    for(j=0; j<150000; j++);
-
-                    busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH);
-                    readDataBlock(SLAVE_ID_DEPTH);
-
-                    int depth = (rxBuf[0]<<8) | rxBuf[1];
-                    sprintf(tmp, "%u  ", depth);
-                //    sendString(tmp);
-
-                    for(i=0; i<5; i++)
-                    {
-                        busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
-                        busWriteByte(i, SLAVE_ID_LCD);
-                        busWriteByte(tmp[i], SLAVE_ID_LCD);
-                    }
-
-                    busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
                 }
 
-                break;
-            }
-
-            case 'L':
-            {
-                sendString("\n\r\n\rEnter up to 32 characters:\n\r>");
-
-
-                byte data[] = "                                ";
-
-                for(i=0; i<32; i++)
-                {
-                    data[i] = waitchar();
-                    sendByte(data[i]);
-                    if(data[i] =='\r')
-                    {
-                        data[i] = ' ';
-                        break;
-                    }
-                }
-                sendString("\n\r\n\rWriting data to LCD");
-
-                for(i=0; i<32; i++)
-                {
-                    busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
-                    busWriteByte(i, SLAVE_ID_LCD);
-                    busWriteByte(data[i], SLAVE_ID_LCD);
-                }
-
-                busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
-
-                sendString("\n\rDone");
-
-                break;
-            }
-
-
-            case 'B':
-            {
-                sendString("\n\rLCD Backlight on");
-                busWriteByte(BUS_CMD_LCD_LIGHT_ON, SLAVE_ID_LCD);
-                break;
-            }
-
-
-            case 'b':
-            {
-                sendString("\n\rLCD Backlight off");
-                busWriteByte(BUS_CMD_LCD_LIGHT_OFF, SLAVE_ID_LCD);
-                break;
-            }
-
-            case 'S':
-            {
-                sendString("\n\rThruster safety on");
-                busWriteByte(BUS_CMD_THRUSTERS_ON, SLAVE_ID_THRUSTERS);
-                break;
-            }
-
-            case 's':
-            {
-                sendString("\n\rThruster safety off");
-                busWriteByte(BUS_CMD_THRUSTERS_OFF, SLAVE_ID_THRUSTERS);
-                break;
-            }
-
-            case 'w':
-            {
-                sendString("\n\rChecking for water: ");
-                busWriteByte(BUS_CMD_CHECKWATER, SLAVE_ID_WATER);
-
-                byte len = readDataBlock(SLAVE_ID_WATER);
-
-                if(len!=1)
-                {
-                    sendString("Could not communicate, so water is probably present :)");
-                } else
-                {
-                    if(rxBuf[0] != 0)
-                        sendString("No water detected");
-                    else
-                        sendString("Water detected!");
-                }
-
-                break;
-            }
-
-            case 'P':
-            {
-                sendString("\n\rPinging all slaves");
                 for(i=0; i<NUM_SLAVES; i++)
                 {
-                    sprintf(tmp, "\n\rSlave #%d: ", i);
-                    sendString(tmp);
-
-
                     switch(busWriteByte(BUS_CMD_PING, i))
                     {
                         case BUS_ERROR:
-                            sendString("Comm Error: TX Timeout");
+                            err++;
                         break;
 
                         case BUS_FAILURE:
-                            sendString("Catastrophic bus failure: AKN held high");
+                            err++;
                         break;
 
                         case 0:
@@ -485,177 +410,86 @@ int main(void)
                             switch(len)
                             {
                                 case 0:
-                                    sendString("Reply OK");
+
                                 break;
 
                                 case BUS_ERROR:
-                                    sendString("Comm Error: RX Timeout");
+                                    err++;
                                 break;
 
                                 case BUS_FAILURE:
-                                    sendString("Comm Error: Bus Failure during reply");
+                                    err++;
                                 break;
 
                                 default:
-                                    sendString("Unknown Reply");
+                                    err++;
                             }
                         }
                         break;
                     }
+
                 }
+
+                if(err == 0)
+                    sendByte(HOST_REPLY_SUCCESS);
+                else
+                    sendByte(HOST_REPLY_FAILURE);
 
                 break;
             }
 
-            case 'I':
+
+            case HOST_CMD_DEPTH:
             {
-                sendString("\n\rIdentifying slaves");
-                for(i=0; i<NUM_SLAVES; i++)
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_DEPTH)
                 {
-                    busWriteByte(BUS_CMD_ID, i);
-                    byte len = readDataBlock(i);
-                    sprintf(tmp, "\n\rSlave #%d replies (%d bytes): <", i, len);
-                    sendString(tmp);
-                    sendString(rxBuf);
-                    sendString(">");
-                }
-                break;
-            }
-
-            case 'R':
-            {
-                sendString("\n\rId=");
-                byte id = waitchar() & 0x0F;
-                sendByte(id+48);
-
-                sendString("\n\rReg=");
-                byte addr = waitchar() & 0x0F;
-                sendByte(addr+48);
-
-
-                sendString("\n\rReading config...");
-                busWriteByte(BUS_CMD_READ_REG, id);
-                busWriteByte(addr, id);
-
-                readDataBlock(id);
-
-                sprintf(tmp, "\n\rSlave #%d config register %d is <%c", id, addr, rxBuf[0]);
-                sendString(tmp);
-                sendByte('>');
-                break;
-            }
-
-            case 'W':
-            {
-                sendString("\n\rId=");
-                byte id = waitchar() & 0x0F;
-                sendByte(id+48);
-
-                sendString("\n\rReg=");
-                byte addr = waitchar() & 0x0F;
-                sendByte(addr+48);
-
-                sendString("\n\rVal=");
-                byte val = waitchar();
-                sendByte(val);
-
-                sendString("\n\rWriting config...");
-                busWriteByte(BUS_CMD_WRITE_REG, id);
-                busWriteByte(addr, id);
-                busWriteByte(val, id);
-
-                sprintf(tmp, "\n\rSlave #%d config register %d set to <%c>", id, addr, val);
-                sendString(tmp);
-                break;
-            }
-
-
-            case 'Q':
-            {
-                sendString("\n\rSpeed test starting now.");
-                int j;
-                for(j=0; j<15000; j++)
-                {
-
-                    if(busWriteByte(BUS_CMD_ID, 0) != 0)
-                    {
-                        sprintf(tmp, "\n\rTransmit error at iteration %i", j);
-                        sendString(tmp);
-                        break;
-                    }
-
-                    /* Invalidate these */
-                    rxBuf[0] = 65;
-                    rxBuf[1] = 65;
-                    byte len = readDataBlock(0);
-
-                    if(len != 37)
-                    {
-                        sprintf(tmp, "\n\rWrong data length at iteration %i: read %i bytes", j, len);
-                        sendString(tmp);
-                        break;
-                    }
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
                 }
 
-                sendString("\n\rDone");
-                break;
-            }
-
-            case 'M':
-            {
-                sendString("\n\rDropping first marker");
-                busWriteByte(BUS_CMD_MARKER1, SLAVE_ID_MARKERS);
-                sendString("\n\rDone.");
-                break;
-            }
-
-            case 'm':
-            {
-                sendString("\n\rDropping second marker");
-                busWriteByte(BUS_CMD_MARKER2, SLAVE_ID_MARKERS);
-                sendString("\n\rDone.");
-                break;
-            }
-
-            case 'D':
-            {
-                sendString("\n\rAverage of last 100 depth measurements on Slave: ");
                 busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH);
-                readDataBlock(SLAVE_ID_DEPTH);
+                int len = readDataBlock(SLAVE_ID_DEPTH);
 
-                int depth = (rxBuf[0]<<8) | rxBuf[1];
-                sprintf(tmp, "%u", depth);
-                sendString(tmp);
-                sendString("\n\rDone.");
-                break;
-            }
-
-            case 'T':
-            {
-                sendString("\n\rTemperature on Slave 1: ");
-                busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP);
-                int len = readDataBlock(SLAVE_ID_TEMP);
-
-                sprintf(tmp, "\n\rData Received (%d bytes): ", len);
-                sendString(tmp);
-
-                for(i=0; i<len; i++)
+                if(len != 2)
                 {
-                    sprintf(tmp, "%u ", rxBuf[i]);
-                    sendString(tmp);
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
                 }
 
-                sendString("\n\rDone.");
+                sendByte(HOST_REPLY_DEPTH);
+                sendByte(rxBuf[0]);
+                sendByte(rxBuf[1]);
+                sendByte(HOST_REPLY_DEPTH+rxBuf[0]+rxBuf[1]);
+
                 break;
             }
 
-            default:
+            case HOST_CMD_BOARDSTATUS:
             {
-                sendString("\n\rUnknown command: ");
-                sendByte(c);
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_BOARDSTATUS)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD);
+
+                byte len = readDataBlock(SLAVE_ID_POWERBOARD);
+
+                if(len!=1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                } else
+                {
+                    sendByte(HOST_REPLY_BOARDSTATUS);
+                    sendByte(rxBuf[0]);
+                    sendByte(HOST_REPLY_BOARDSTATUS+rxBuf[0]);
+                }
+
+                break;
             }
         }
     }
-
-    while(1);
 }

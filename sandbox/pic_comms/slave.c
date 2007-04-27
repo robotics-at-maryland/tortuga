@@ -102,7 +102,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "I am depth/water/marker/thruster PIC.");
+                    txBuf[0] = sprintf(txBuf+1, "I am depth/marker/thruster PIC.");
                     break;
                 }
 
@@ -475,7 +475,7 @@ void main()
     _TRISB1 = TRIS_OUT; /* Marker 1 */
     _TRISB2 = TRIS_OUT; /* Marker 2 */
     _TRISB3 = TRIS_OUT; /* Thruster Safety */
-    _TRISB4 = TRIS_IN;  /* Water sensor */
+
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
