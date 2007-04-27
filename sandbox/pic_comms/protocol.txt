@@ -1,22 +1,53 @@
-Command: Ping [0x00 0x00]
+A checksum is computed by adding all the bytes transmitted or recieved so far.
+Checksums are always 8 bits long, so the checksum should be computed mod 256.
+(Ie, take the last 8 bits of the result)
+
+
+Command: Ping
+Description: Test communication with sensor board
+Send:  [0x00 0x00]
 Reply: [0xBC] (Success)
 
 
-Command: System Check [0x01 0x01]
+
+Command: System Check
+Description: Ask sensor board to verify operation of all its processors.
+Send:  [0x01 0x01]
 Reply: [0xBC] (Success)
        [0xDF] (Failure)
 
 
-Command: Get Depth [0x02 0x02]
+
+Command: Get Depth
+Description: Retrieve the latest depth value.
+Send:  [0x02 0x02]
 Reply: [0x03 MSB LSB Checksum] (Success)
        [0xDF] (Failure)
 
 
-Command: Get water, power board, and start switch status [0x04 0x04]
+
+Command: Get water, power board, and start switch status
+Description: Retrieve a 1-byte status of various pins.
+Send:  [0x04 0x04]
 Reply: [0x05 Status Checksum] (Success)
        [0xDF] (Failure)
 
        Status Bit 0    = Water (0=Dry, 1=Wet)
        Status Bit 1    = Start Switch (0=Off, 1=On)
        Status Bits 1-4 = Balancer board status lines
+
+
+
+Command: Hard power kill
+Description: Ask balancer board to cut off all power.
+Send:  [0x06 0xDE 0xAD 0xBE 0xEF 0x3E]
+Reply: [0xBC] (Command was issued to slave controller)
+       [0xDF] (Command malformed)
+
+The command sequence is deliberately long and complex to prevent accidental activation.
+After issuing this command, the host should still perform various shut-down tasks, in the
+event that the hard kill command fails. 0xDF is returned if the command was NOT performed
+because a part of the 'safety sequence' was not recieved properly. A reply of 0xBC means
+that the command was received successfully, but if the host is still alive to receive this
+reply, it means that the hard kill obviously failed and other measures must be taken.
 

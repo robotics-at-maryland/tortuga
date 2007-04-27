@@ -80,6 +80,7 @@ _FWDT ( WDT_OFF );
 
 #define NUM_SLAVES  3
 
+static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 
 /* Read byte from bus */
 byte readBus()
@@ -122,7 +123,7 @@ unsigned char waitchar(byte timeout)
     while(U1STAbits.URXDA == 0);
     x = U1RXREG;
     U1STAbits.URXDA = 0;
-    return x & 0x7F;
+    return x;
 }
 
 
@@ -342,6 +343,8 @@ int main(void)
     #define HOST_CMD_BOARDSTATUS      4
     #define HOST_REPLY_BOARDSTATUS    5
 
+    #define HOST_CMD_HARDKILL         6
+
 
     while(1)
     {
@@ -483,6 +486,33 @@ int main(void)
 
                 break;
             }
+
+            case HOST_CMD_HARDKILL:
+            {
+
+                for(i=0; i<5; i++)
+                    rxBuf[i] = waitchar(1);
+
+                byte cflag=0;
+
+                for(i=0; i<5; i++)
+                {
+                    if(rxBuf[i] != hkSafety[i])
+                        cflag=1;
+                }
+
+                if(cflag == 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                } else
+                {
+                    busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL);
+                    sendByte(HOST_REPLY_SUCCESS);
+                }
+                break;
+            }
+
         }
     }
 }
