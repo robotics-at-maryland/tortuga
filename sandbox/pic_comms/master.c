@@ -34,6 +34,7 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_MARKERS    0
 #define SLAVE_ID_TEMP       1
 #define SLAVE_ID_LCD        2
+#define SLAVE_ID_HARDKILL   1
 
 /*
  * Bus Constants
@@ -74,6 +75,7 @@ _FWDT ( WDT_OFF );
 //#define BUS_CMD_CHECKWATER      14
 #define BUS_CMD_TEMP            15
 #define BUS_CMD_BOARDSTATUS     16
+#define BUS_CMD_HARDKILL        17
 
 #define NUM_SLAVES  3
 
@@ -342,9 +344,11 @@ int main(void)
 
         byte t1, t2;
 
+
+        while(1);
         while(1)
         {
-                busWriteByte(BUS_CMD_MARKER2, SLAVE_ID_MARKERS);
+                busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL);
 
               //  byte len = readDataBlock(SLAVE_ID_POWERBOARD);
 /*

@@ -28,6 +28,7 @@ _FWDT ( WDT_OFF );
 
 /* Bus pin assignments */
 #define REQ_CN_BIT  (CNEN1bits.CN1IE)
+#define WATER_CN_BIT  (CNEN1bits.CN2IE)
 #define IN_REQ      _RC13
 #define TRIS_REQ    _TRISC13
 
@@ -56,6 +57,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_CHECKWATER      14
 #define BUS_CMD_TEMP            15
 #define BUS_CMD_BOARDSTATUS     16
+#define BUS_CMD_HARDKILL        17
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -329,6 +331,12 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_HARDKILL:
+                {
+                    _LATB5 = 1; /* Uh oh.... master kill */
+                    break;
+                }
+
             }
         }
         break;
@@ -529,12 +537,24 @@ void disableBusInterrupt()
     REQ_CN_BIT = 0;    /* Turn off CN for the pin */
 }
 
+void enableWaterInterrupt()
+{
+    WATER_CN_BIT = 1; /* Turn on CN for the pin */
+    checkBus();
+}
+
+void disableWaterInterrupt()
+{
+    WATER_CN_BIT = 0;    /* Turn off CN for the pin */
+}
+
 
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
     enableBusInterrupt();
-//    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
+    enableWaterInterrupt();
+    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 }
@@ -566,6 +586,11 @@ void _ISR _CNInterrupt(void)
 {
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
 
+    if(WATER_CN_BIT == 1 && _RB0 == 1)  /* WATER!!! */
+    {
+        _RB5 = 1;
+    }
+
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
         checkBus();
@@ -587,7 +612,8 @@ void main()
     _TRISB2 = TRIS_IN; /* Power board 2 */
     _TRISB3 = TRIS_IN; /* Power board 3 */
     _TRISB4 = TRIS_IN; /* Power board 4 */
-
+    _LATB5 = 0;
+    _TRISB5 = TRIS_OUT; /* Hard Kill */
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;

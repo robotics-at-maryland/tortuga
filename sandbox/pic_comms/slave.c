@@ -48,6 +48,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_THRUSTERS_OFF   11
 #define BUS_CMD_MARKER2         12
 #define BUS_CMD_CHECKWATER      14
+#define BUS_CMD_HARDKILL        17
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
