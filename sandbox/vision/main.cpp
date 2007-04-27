@@ -16,8 +16,84 @@ int distance_from_line(int avgxs[], IplImage* img);
 int angle_from_center(int argxs[], IplImage* img);
 void hough(IplImage* img);
 
+//Light constants
+#define MINFRAMESON 3
+#define MINFRAMESOFF 3
+#define MAXFRAMESON 7
+#define MAXFRAMESOFF 7
 
 
+	//subtract two images, display the result
+	void diff(IplImage* img, IplImage* oldImg, IplImage* destination)
+	{
+		char* data=img->imageData;
+		char* data2=oldImg->imageData;
+		char* dest=destination->imageData;
+		int width=img->width;
+		
+		if (width!=oldImg->width || width!=destination->width)
+		{
+			cout<<"Error, width changed"<<endl;
+			return;
+		}
+		int height=img->height;
+		if (height!=oldImg->height || height!=destination->height)
+		{
+			cout<<"error, height changed"<<endl;
+			return;
+		}
+		
+		int	count=0;
+		int r;
+		int g;
+		int b;
+		int r2;
+		int g2;
+		int b2;
+		for (int y=0; y<height; y++)
+			for (int x=0; x<width; x++)
+			{
+				b=(data[count]+256)%256;
+				g=(data[count+1]+256)%256;
+				r=(data[count+2]+256)%256;
+				b2=(data2[count]+256)%256;
+				g2=(data2[count+1]+256)%256;
+				r2=(data2[count+2]+256)%256;
+				dest[count]=abs(b-b2);
+				dest[count+1]=abs(g-g2);
+				dest[count+2]=abs(r-r2);
+//				dest[count]=data[count]-data2[count];
+//				dest[count+1]=data[count+1]-data2[count+1];
+//				dest[count+2]=data[count+2]-data2[count+2];
+				count+=3;
+			}
+		count=0;
+		int numPerEight=0;
+			for (int x=0;x<width*height/8;x++)
+			{
+				numPerEight=0;
+				for (int z=0; z<8;z++)
+				{
+					if (dest[count]>5 && dest[count+1]>5 && dest[count+2]>5)
+					{
+						numPerEight++;
+					}
+					count+=3;
+				}
+				if (numPerEight>3)
+				
+					dest[count-24]=dest[count-23]=dest[count-22]=dest[count-21]=dest[count-20]=dest[count-19]=
+					dest[count-18]=dest[count-17]=dest[count-16]=dest[count-15]=dest[count-14]=dest[count-13]=
+					dest[count-12]=dest[count-11]=dest[count-10]=dest[count-9] =dest[count-8] =dest[count-7]=
+					dest[count-6] =dest[count-5] =dest[count-4 ]=dest[count-3] =dest[count-2] =dest[count-1]=255;
+				else
+					dest[count-24]=dest[count-23]=dest[count-22]=dest[count-21]=dest[count-20]=dest[count-19]=
+					dest[count-18]=dest[count-17]=dest[count-16]=dest[count-15]=dest[count-14]=dest[count-13]=
+					dest[count-12]=dest[count-11]=dest[count-10]=dest[count-9] =dest[count-8] =dest[count-7]=
+					dest[count-6] =dest[count-5] =dest[count-4 ]=dest[count-3] =dest[count-2] =dest[count-1]=0;
+			}
+	}
+	
 	//cvHough
 	void hough(IplImage* img)
 	{
@@ -54,10 +130,10 @@ void hough(IplImage* img);
 			CvPoint pt1, pt2;
 			double a = cos(theta), b = sin(theta);
 			double x0 = a*rho, y0 = b*rho;
-			pt1.x = cvRound(x0 + 1000*(-b));
-			pt1.y = cvRound(y0 + 1000*(a));
-			pt2.x = cvRound(x0 - 1000*(-b));
-			pt2.y = cvRound(y0 - 1000*(a));
+			pt1.x = cvRound(x0 + 4000*(-b));
+			pt1.y = cvRound(y0 + 4000*(a));
+			pt2.x = cvRound(x0 - 4000*(-b));
+			pt2.y = cvRound(y0 - 4000*(a));
 			cvLine( color_dst, pt1, pt2, CV_RGB(255,0,0), 3, CV_AA, 0 );
 		}
 	#else
@@ -196,12 +272,12 @@ void explore(IplImage* img, int x, int y, int* out, int color)
 	}
 }
 
-bool find_flash(IplImage* img, bool display)
+CvPoint find_flash(IplImage* img, bool display)
 {
 	int width=img->width;
 	int height=img->height;
 	unsigned char* data=(unsigned char*)img->imageData;
-	
+	CvPoint center;
 	int out[5];
 	int count=0;
 	int color=175;
@@ -214,30 +290,44 @@ bool find_flash(IplImage* img, bool display)
 			out[2]=-999999;
 			out[3]=999999;
 			out[4]=-999999;
+			
 
 			if (data[count]>0&&data[count+1]>0&&data[count+2]>0)
 			{
 				explore(img,x,y,out,color);
 				color+=20;
+				CvPoint bl,br,tl,tr;
+				tl.x=bl.x=out[1];
+				tr.x=br.x=out[3];
+				tl.y=tr.y=out[4];
+				bl.y=br.y=out[2];
 				int w=out[3]-out[1];
 				int h=out[4]-out[2];
-
+				center.x=(out[3]+out[1])/2;
+				center.y=(out[4]+out[2])/2;
+				
 				if (display && out[0]>25)
 				{
 					cout<<"Data from explore"<<endl<<"Count: "<<out[0]<<"min x: "<<out[1]<<"min y: "<<out[2]<<"max x: "<<out[3]<<"max y: "<<out[4]<<endl; 
-					cout<<w<<","<<h<<endl;
 				}
 				if (out[0]>25 && w>5 && w<20 && h>5 && h<20)
 				{
-					cout<<"WE FOUND IT!!!! WOOHOOOOOO!!!! Its at "<<(out[3]+out[1])/2<<","<<(out[4]+out[2])/2<<endl<<endl;
-					return false;
+
+					cvLine(img, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
+					cvLine(img, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
+					cvLine(img, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+					cvLine(img, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+					return center;
 				}
 				
 			}
 			
 			count+=3;
 		}
-	return false;
+	//Return a 0,0 point if not found
+	center.x=0;
+	center.y=0;
+	return center;
 }
 
 int guess_line(IplImage* img)
@@ -358,7 +448,7 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 void mask_with_input(IplImage* img)
 {
 	const int ORANGE='0';
-	char a=0;
+	char a='0';
 	cout<<"Select Mask Description"<<endl;
 	cout<<"0: Strict Orange"<<endl;
 	cout<<"1: Lenient Orange"<<endl;
@@ -705,19 +795,27 @@ int white_detect(IplImage* percents, IplImage* base)
 
 int main (int argc, char * const argv[]) {
 
-	CvCapture* camCapture=cvCaptureFromFile("underwater.mov");
-//	CvCapture* camCapture=cvCaptureFromCAM(0);
+//	CvCapture* camCapture=cvCaptureFromFile("underwater.mov");
+
+	CvCapture* camCapture=cvCaptureFromCAM(0);
 	cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Testing", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Bin_go", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("Movement", CV_WINDOW_AUTOSIZE);
+	IplImage* unscaledFrame=NULL;
 	IplImage* frame=NULL;
 	IplImage* starterFrame=NULL;
 	IplImage* houghFrame=NULL;
 	IplImage* analysis=NULL;
 	IplImage* binFrame=NULL;
 	IplImage* flashFrame=NULL;
+	IplImage* oldFrame=NULL;
+	IplImage* moveFrame=NULL;
+	CvPoint lightCenter;
+	lightCenter.x=0;
+	lightCenter.y=0;
 	char key=0;
 	bool paused=false;
 	bool red_flag=true;
@@ -731,17 +829,29 @@ int main (int argc, char * const argv[]) {
 	bool center_line_on=true;
 	bool ratios_on=true;
 	bool hough_on=false;
-	bool show_flashing=false;
+	bool show_flashing=true;
+	bool startCounting=false;
+	bool show_movement=true;
 	long frame_count=0;
+	int lightFramesOn=0;
+	int lightFramesOff=0;
 	int speed=1;
+	int blinks=0;
+	int spooky=0;
 	bool found=false;
+
 	int okay=cvGrabFrame(camCapture);
-	frame=cvRetrieveFrame(camCapture);
-	starterFrame=cvCreateImage(cvGetSize(frame),8,3);
+	frame=cvCreateImage(cvSize(200,200),8,3);
+	unscaledFrame=cvRetrieveFrame(camCapture);
+	cvResize(unscaledFrame,frame);
+
+	starterFrame=cvCreateImage(cvGetSize(frame),8,3);	
 	analysis=cvCreateImage(cvGetSize(frame),8,3);
 	binFrame=cvCreateImage(cvGetSize(frame),8,3);
 	houghFrame=cvCreateImage(cvGetSize(frame),8,3);
 	flashFrame=cvCreateImage(cvGetSize(frame),8,3);
+	oldFrame=cvCreateImage(cvGetSize(frame),8,3);
+	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
 	while(true)
 	{
 		key=cvWaitKey(25);
@@ -861,17 +971,19 @@ int main (int argc, char * const argv[]) {
 //			}
 //			else
 //			{
-				for (int x=0; x<speed; x++)
-				{
-					int okay=cvGrabFrame(camCapture);
-					frame=cvRetrieveFrame(camCapture);
-				}
+			for (int x=0; x<speed; x++)
+			{
+				int okay=cvGrabFrame(camCapture);
+				unscaledFrame=cvRetrieveFrame(camCapture);
+				cvResize(unscaledFrame,frame);
+			}
 			frame_count+=speed;
 //			}
 			
 
 			
-			cvCopyImage(frame,starterFrame);
+			cvCopyImage(starterFrame,oldFrame);//Put old frame into oldFrame
+			cvCopyImage(frame,starterFrame);//Put new frame into starterFrame
 
 			cvCopyImage(frame,binFrame);
 			cvShowImage("Before_Analysis", starterFrame);
@@ -941,19 +1053,119 @@ int main (int argc, char * const argv[]) {
 					hough(houghFrame);
 				}	
 
-			if (true)
+			if (show_flashing)
 			{
+				if (lightFramesOff>20)
+				{
+//					cout<<"Its been 20 frames without seeing the light-like object, maybe it was just a reflection, im starting the count over"<<endl;
+					lightFramesOn=0;
+					lightFramesOff=0;
+					blinks=0;
+					spooky=0;
+					startCounting=false;
+				}
+				if (lightFramesOn>20)
+				{
+//					cout<<"Its been 20 frames of seeing the light-like object, its not flashing, guess its just something shiny"<<endl;
+					lightFramesOn=0;
+					lightFramesOff=0;
+					blinks=0;
+					spooky=0;
+					startCounting=false;
+				}
+				if (spooky>5)
+				{
+//					cout<<"Somethings wrong, its staying off for too short/long, or staying on for too short/long, and its happened a spooky number of times, its not the light."<<endl;
+					lightFramesOn=0;
+					lightFramesOff=0;
+					blinks=0;
+					spooky=0;
+					startCounting=false;
+				}					
+				if (blinks>3)
+				{
+					cout<<"This thing has blinked "<<blinks<<" times, WE FOUND THE LIGHT GUYS!!"<<endl;
+					//paused=true;
+				}
+			
 				cvCopyImage(frame, flashFrame);
-				paused=find_flash(flashFrame, show_flashing);
+				CvPoint p=find_flash(flashFrame, show_flashing);
+				if (p.x!=0 && p.y!=0)
+				{
+					if (lightCenter.x==0 && lightCenter.y==0)
+					{
+							cout<<"I see a light-like object"<<endl;
+							startCounting=true;
+					}
+					else {
+//						if (lightCenter.x<p.x)
+//							cout<<"Its moving left"<<endl;
+//						if (lightCenter.y<p.y)
+//							cout<<"Its moving up"<<endl;
+//						if (lightCenter.x>p.x)
+//							cout<<"Its moving right"<<endl;
+//						if (lightCenter.y>p.y)
+//							cout<<"Its moving down"<<endl;
+//						if (lightCenter.x==p.x && lightCenter.y==p.y)
+//							cout<<"Its not moving... did someone put a flashing light on the sub or something... or are we stopped... uh oh..."<<endl;
+					
+					}
+					lightCenter.x=p.x;
+					lightCenter.y=p.y;
+					if (startCounting)
+					{
+						if (lightFramesOff>0)
+						{
+							blinks++;
+							cout<<"The light has been off for "<<lightFramesOff<<" frames, now its coming back on"<<endl;
+						}
+						
+						if (lightFramesOff<MINFRAMESOFF || lightFramesOff>MAXFRAMESOFF)
+						{
+							spooky++;
+						}
+						lightFramesOn++;
+						lightFramesOff=0;
+					}
+				} 
+				else
+				{
+					if (lightCenter.x!=0 && lightCenter.y!=0)
+						cout<<"Light's out"<<endl;
+
+					lightCenter.x=p.x;
+					lightCenter.y=p.y;
+
+					if (startCounting)
+					{
+						if (lightFramesOn>0)
+						{
+							cout<<"The light has been on for "<<lightFramesOn<<" frames, now its gone"<<endl;
+						}
+
+						if (lightFramesOn<MINFRAMESON || lightFramesOn>MAXFRAMESON)
+						{
+							spooky++;
+						}
+						
+						lightFramesOff++;
+						lightFramesOn=0;
+					}
+				//	paused=true;
+				}
 			}
 
 			if (center_line_on)
 				thin_blue_line(frame);
 			
+			if (show_movement)
+				diff(starterFrame,oldFrame,moveFrame);
 			
 			cvShowImage("After_Analysis",frame);
 			cvShowImage("Bin_go",binFrame);
 			cvShowImage("Flash",flashFrame);
+			if (show_movement)
+				cvShowImage("Movement",moveFrame);
 		}
 	}
     return 0;
