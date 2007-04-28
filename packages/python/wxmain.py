@@ -247,18 +247,21 @@ class SimApp(wx.App):
     
     def on_timer(self, timer_event):
         self.frame.ogre._update()
-        OgreNewt.Debugger.getSingleton().showLines(self.sim.get_scene('Main').world)
+        #OgreNewt.Debugger.getSingleton().showLines(self.sim.get_scene('Main').world)
         
         current_time = self._get_time()
         time_since_last_iteration = (current_time - self.last_time);
 
-        #print 'C: %f L: %f Update %f' % (current_time, self.last_time, time_since_last_iteration)
-        # Loop over all components updating them, if one returns false exit
-        for component in self.components:
-            component.update(time_since_last_iteration)
-        
-        self._test_controller.update(time_since_last_iteration)
-        event.process_events()
+        #print time_since_last_iteration
+        if (time_since_last_iteration < 1000.0 / 300.0):
+            #print 'RUN',time_since_last_iteration
+            #print 'C: %f L: %f Update %f' % (current_time, self.last_time, time_since_last_iteration)
+            # Loop over all components updating them, if one returns false exit
+            for component in self.components:
+                component.update(time_since_last_iteration)
+            
+            self._test_controller.update(time_since_last_iteration)
+            event.process_events()
         
         self.last_time = current_time
         

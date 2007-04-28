@@ -115,6 +115,10 @@ class Visual(Object):
         Visual._create(self, scene, mesh, material, position, orientation, 
                        scale)
         
+        # Check visibility
+        if not gfx_node.get('visible', True):
+            self._node.setVisible(False)
+        
     def save(self, data_object):
         raise "Not yet implemented"
 

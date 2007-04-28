@@ -21,7 +21,7 @@ import core
 import sim.defaults as defaults
 from sim.util import SimulationError
 from sim.serialization import ModuleLoader, parse_position_orientation, two_step_init, parse_orientation
-from sim.physics import World, Body, ITrigger
+from sim.physics import World, Body, ITrigger, IBody
 from sim.graphics import Camera, CameraController, Visual, IVisual
 from sim.robot import Robot, IThruster
 from core import fixed_update, log_init
@@ -264,7 +264,8 @@ class KMLSceneLoader(core.Component):
 
     iface_map = {'Visual' : IVisual,
                  'SceneObject' : ISceneObject,
-                 'Trigger': ITrigger}
+                 'Trigger': ITrigger,
+                 'Body' : IBody}
 
     def __init__(self):
         self._light_count= 0
@@ -305,11 +306,11 @@ class KMLSceneLoader(core.Component):
             #raise SceneError, 'Scene must have lights'
             pass
         
-#        ambient_light_colour = kml_node.get('ambient_light_colour', 
-#                                             	Ogre.ColourValue.Black)
-#        if ambient_light_colour != Ogre.ColourValue.Black:
-#        	ambient_light_colour = Ogre.ColourValue(*ambient_light_colour)
-#        self._scene_mgr.setAmbientLight(ambient_light_colour)
+        ambient_light_colour = kml_node.get('ambient_light_colour', 
+                                             None)
+        if ambient_light_colour is not None:
+            ambient_light_colour = Ogre.ColourValue(*ambient_light_colour)
+            self._scene_mgr.setAmbientLight(ambient_light_colour)
         #self._scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
             
         # Load cameras
@@ -388,6 +389,11 @@ class KMLSceneLoader(core.Component):
         light = self._scene_mgr.createLight(name)
         light.setType(type)
         light.setPosition(position)
+        
+        light_colour = node.get('colour', None)
+        if light_colour is not None:
+            light_colour = Ogre.ColourValue(*light_colour)
+            light.setDiffuseColour(light_colour)
         
     # TODO: move me into object heirarchy    
     def _create_camera(self, node):

@@ -1,0 +1,23 @@
+// Material created by Gile[s] Ogre Exporter by Walaber
+material Gile[s]_wall_white
+{
+	technique
+	{
+		pass
+		{
+			diffuse 1 1 1 1
+			specular 1 1 1 0
+			scene_blend alpha_blend
+			
+			texture_unit
+			{
+				texture construct.png
+				tex_address_mode clamp
+				filtering linear linear none
+				tex_coord_set 1
+				colour_op_ex modulate_x2 src_current src_texture
+			}
+		}
+	}
+}
+
