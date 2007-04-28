@@ -13,6 +13,7 @@ Robot:
         # In kilograms
         mass: 26  # About 0.5% bouyant
         center_of_mass: [0, -0.15, 0]
+        material: SubMat
         Shape:
             type: box
             # Actual size in meters

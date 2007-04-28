@@ -21,7 +21,7 @@ import core
 import sim.defaults as defaults
 from sim.util import SimulationError
 from sim.serialization import ModuleLoader, parse_position_orientation, two_step_init, parse_orientation
-from sim.physics import World, Body
+from sim.physics import World, Body, ITrigger
 from sim.graphics import Camera, CameraController, Visual, IVisual
 from sim.robot import Robot, IThruster
 from core import fixed_update, log_init
@@ -101,6 +101,12 @@ class Scene(object):
         
         loader = loaders[0]()
         loader.load(scene_data, self)
+    
+    def destroy(self):
+        """
+        Release all resources held by objects
+        """
+        pass
 
     class scene_mgr(core.cls_property):
         """
@@ -257,7 +263,8 @@ class KMLSceneLoader(core.Component):
     core.implements(ISceneLoader)
 
     iface_map = {'Visual' : IVisual,
-                 'SceneObject' : ISceneObject}
+                 'SceneObject' : ISceneObject,
+                 'Trigger': ITrigger}
 
     def __init__(self):
         self._light_count= 0
@@ -295,14 +302,15 @@ class KMLSceneLoader(core.Component):
                 node['name'] = name
                 self._create_light(node)
         else:
-            raise SceneError, 'Scene must have lights'
+            #raise SceneError, 'Scene must have lights'
+            pass
         
 #        ambient_light_colour = kml_node.get('ambient_light_colour', 
 #                                             	Ogre.ColourValue.Black)
 #        if ambient_light_colour != Ogre.ColourValue.Black:
 #        	ambient_light_colour = Ogre.ColourValue(*ambient_light_colour)
 #        self._scene_mgr.setAmbientLight(ambient_light_colour)
-        self._scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
+        #self._scene_mgr.setAmbientLight(Ogre.ColourValue(1,1,1))
             
         # Load cameras
         if kml_node.has_key('Cameras'):

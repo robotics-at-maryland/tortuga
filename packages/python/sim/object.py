@@ -7,8 +7,11 @@
 
 # Project Imports
 import core
+import event
 from sim.serialization import two_step_init, IKMLStorable
 from sim.util import SimulationError
+
+event.add_event_types(['GATE_ENTERED', 'GATE_EXITED'])
 
 class IObject(core.Interface):
     """

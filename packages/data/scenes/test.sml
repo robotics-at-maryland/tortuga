@@ -13,10 +13,10 @@ Scene:
     SkyBox:
         material_name: 'Examples/CloudyNoonSkyBox'
         
-    Lights:
-        light1:
-            type: LT_POINT
-            position: [0, 100, 100]
+    #Lights:
+    #    light1:
+    #        type: LT_POINT
+    #        position: [0, 100, 100]
     ambient_light_colour: [1, 1, 1]
     
     Cameras:
@@ -26,8 +26,20 @@ Scene:
     
     Robots:
         AUT: '../data/robots/aut.rml'
-        
+    
     Objects:
+        gate:
+            type: [Trigger, sim.physics.Trigger]
+            position: [0, 0, -3]
+            Physical:
+                mass: 0
+                center_of_mass: [0, -0.15, 0]
+                Shape:
+                    type: box
+                    size: [1, 1, 1]
+                contact_information:
+                    SubMat: ['GATE_ENTERED', 'GATE_EXITED']
+    
         ground:
             type: [SceneObject, sim.scene.SceneObject] 
             position: [0, -10, 0]

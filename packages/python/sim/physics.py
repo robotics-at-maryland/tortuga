@@ -11,11 +11,11 @@ import ogre.renderer.OGRE as Ogre
 
 # Project Imports
 import core
+import event
 import sim.util
 import sim.defaults as defaults
 from sim.object import Object, IObject
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
-
 
 class PhysicsError(sim.util.SimulationError):
     """
@@ -140,6 +140,24 @@ class ITrigger(IBody):
     This is a massless body which detects when other objects go in and out of
     its space and sends event approriately
     """
+    pass
+
+class IWorldUpdateListener(core.Interface):
+    """
+    Called before and after each world update.
+    """
+    
+#    def pre_update():
+#        """
+#        Call before world update
+#        """
+#        pass
+#    
+#    def post_update():
+#        """
+#        """
+#        pass
+    pass
     
 class Body(Object):
     core.implements(IBody, IKMLStorable)
@@ -157,6 +175,7 @@ class Body(Object):
         self._global_force = []
         self._buoyancy_plane = None
         self._body = None
+        self._material = None
         self._old_velocity = Ogre.Vector3.ZERO
     
         Object.__init__(self)
@@ -238,8 +257,18 @@ class Body(Object):
         center_of_mass = physical_node.get('center_of_mass',Ogre.Vector3.ZERO)
         inertia = physical_node.get('inertia', None)
         
+ 
         Body._create(self, scene, shape_type, shape_props, mass, center_of_mass,
                      inertia, position, orientation)
+        
+        # Small hack, this should be integrated integrated better
+        # I should probably reduce the number of constructor parameters as well
+        material = physical_node.get('material', None)
+        if material is not None:
+            self._material = material
+            material_id = scene.world.get_material_id(material)
+            self._body.setMaterialGroupID(material_id)
+        
     
     def save(self, data_object):
         raise "Not yet implemented"
@@ -249,6 +278,10 @@ class Body(Object):
         return (Ogre.Vector3(force), Ogre.Vector3(pos))
     
     # IBody Methods
+    class material(core.cls_property):
+        def fget(self):
+            return self._material
+    
     class gravity(core.cls_property):
         def fget(self):
             return self._gravity
@@ -320,8 +353,149 @@ class Body(Object):
     def get_buoyancy_plane(self):    
         return self._buoyancy_plane
             
+
+def gate_in(body):
+    print 'ENTERED'
+def gate_out(body):
+    print 'EXITED'
+    
+event.register_handlers({'GATE_ENTERED' : gate_in, 'GATE_EXITED' : gate_out})
+
+class Trigger(Body, OgreNewt.ContactCallback):
+    core.implements(ITrigger, IWorldUpdateListener)
+    
+    _trigger_count = 0
+    
+    @two_step_init
+    def __init__(self):
+        self._contact_events = {}
+        self._contactors = {}
+        
+        Body.__init__(self)
+        OgreNewt.ContactCallback.__init__(self)
+            
+    def init(self, parent, name, scene, contact_properties,
+             shape_type, shape_props, 
+             position = Ogre.Vector3.ZERO, 
+             orientation = Ogre.Quaternion.IDENTITY):
+        """
+        @param contact_properties: tuple (string, string, string)
+        @type contact_properties: The first item is the material to contact 
+            with the second is the enter event type, and the third item is the
+            leave event type.
+        """
+        
+        Body.init(self, None, name, scene, 0, shape_type, shape_props, 
+                  position, orietnation)
+        
+        Trigger._create(self, scene, contact_properties)
+    
+    # IWorldUpdateListener methods
+    def pre_update(self):   
+        pass
+    
+    def post_update(self):
+
+        new_contactors = []
+        for contact_info, contacting in self._contactors.iteritems():
+            if contacting:
+                new_contactors.append(contact_info)
+            else:
+                contactor, material = contact_info
+                leave_event = self._contact_events[material][1]
+                if leave_event is not None:
+                    event.post(leave_event, contactor)
+              
+        self._contactors.clear()
+        for c in new_contactors:
+            self._contactors[c] = False  
+
+
+    def _create(self, scene, contact_properties):
+        """
+        """
+        # Nobody has given us a material yet, autogenerate one
+        if self._material is None:
+            self._material = 'Trigger' + str(Trigger._trigger_count)
+            Trigger._trigger_count += 1
+            material_id = scene.world.get_material_id(self._material)
+            self._body.setMaterialGroupID(material_id)
+        
+        # Setup our selves as the callback for all the material pairs
+        # we are supposed to trigger events for
+        for material, enter_event, leave_event in contact_properties:
+            
+            # Make ourselves the contact callback for this material pair
+            pair = scene.world.get_material_pair(self.material, material)
+            pair.setContactCallback(self)
+            
+            # Store what to do when bodies enter and leave the area with this
+            # material
+            self._contact_events[material] = (enter_event, leave_event)
+            
+        # Register our self to be notified before and after phyiscs updates
+        scene.world.add_update_listener(self)
         
         
+        
+    def load(self, data_object):
+        Body.load(self, data_object)
+
+        scene, parent, node = data_object
+
+        # Extract contact information
+        physical_node = node['Physical']
+        contact_node = physical_node.get('contact_information', None)
+        if contact_node is None:
+            raise PhysicsError, "Trigger must a have 'contact_information' node"
+        
+        contact_properties = []
+        for contact_material, contact_events in contact_node.iteritems():
+            enter_event = contact_events[0]
+            leave_event = None
+            
+            #print type(contact_events)    
+            if type(contact_events) is not list:
+                raise PhysicsError, "Contact events must be a list"
+            if len(contact_events) > 1:
+                leave_event = contact_events[1]
+                
+            contact_properties.append((contact_material, enter_event, 
+                                       leave_event))
+        
+        self._create(scene, contact_properties)
+                
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
+
+    # OgreNewt.ContactCallback Method
+    def userProcess(self):
+        """
+        Extract which body is which, send off 
+        """
+        # Determin which body is the trigger, and which is the contacting object
+        me = self.m_body0.getUserData();
+        contactor = self.m_body1.getUserData();
+        
+        # Our guess was wrong
+        if ITrigger.providedBy(contactor):
+            me, contactor = contactor, me # swap values
+        
+        # Store the contact information for latter event firing
+        contact_material = contactor.material
+        contact_info = (contactor, contact_material)
+        
+        # If this is the first time we are contacting post the event
+        if not self._contactors.has_key(contact_info):
+            enter_event = self._contact_events[contact_material][0]
+            if enter_event is not None:
+                event.post(enter_event, contactor) 
+        self._contactors[contact_info] = True
+             
+        # Ignore all contacts
+        return 0
+    
     
 class Shape(object):
     pass
@@ -336,13 +510,6 @@ class World(OgreNewt.World):
               before the World object's last reference disappears.  Otherwise
               the bodies will have an invalid world and will cause a crash on 
               exit.
-    
-    @type world_count: number
-    @cvar world_count: The number of worlds created
-    
-    @type world_map: Dict
-    @cvar world_map: Maps world to int use for lookup of world from body in the
-                    force callbacks.
                     
     @type bodies: Dict
     @cvar bodies: Maps Newton body to supplied Object
@@ -351,6 +518,10 @@ class World(OgreNewt.World):
     def __init__(self):
         OgreNewt.World.__init__(self)
         self._bodies = []
+        # Maps material name to newton ID
+        self._materials = {}
+        self._material_pairs = {}
+        self._listeners = set()
     
     def __del__(self):
         """
@@ -394,6 +565,56 @@ class World(OgreNewt.World):
         self._bodies.append(body)
         
         return newt_body
+    
+    def get_material_id(self, material_str):
+        """
+        Return the newton material ID that is mapped to this string
+        """
+        try:
+            return self._materials[material_str]
+        except KeyError:
+            id = OgreNewt.MaterialID(self)
+            self._materials[material_str] = id
+            return id
+    
+    def get_material_pair(self, material_a, material_b):
+        """
+        Returns the Newton material pair representing the two strings given
+        """
+        try:
+            return self._material_pairs[(material_a, material_b)]
+        except KeyError:
+            a_id = self.get_material_id(material_a)
+            b_id = self.get_material_id(material_b)
+            pair = OgreNewt.MaterialPair(self, a_id, b_id)
+            
+            self._material_pairs[(material_a, material_b)] = pair
+            self._material_pairs[(material_b, material_a)] = pair
+            return pair
+    
+    def update(self, time_step):
+        
+        for listener in self._listeners:
+            #print dir(listener)
+            #print 'TEST:',hasattr(listener, 'pre_update')
+            listener.pre_update()
+        OgreNewt.World.update(self, time_step)
+        for listener in self._listeners:
+            listener.post_update()
+    
+    def add_update_listener(self, listener):
+        """
+        Called before and after each physics update to allow items to do book
+        keeping.
+        """
+        if IWorldUpdateListener.providedBy(listener):
+        #core.verifyClass(IWorldUpdateListener, listener)
+            self._listeners.add(listener)
+        
+    def remove_update_listener(self, listener):
+        #core.verifyClass(IWorldUpdateListener, listener)
+        if IWorldUpdateListener.providedBy(listener):
+            self._listeners.remove(listener)
     
     @staticmethod
     def _force_torque_callback(newton_body):
