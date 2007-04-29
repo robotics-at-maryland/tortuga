@@ -352,14 +352,6 @@ class Body(Object):
             
     def get_buoyancy_plane(self):    
         return self._buoyancy_plane
-            
-
-def gate_in(body):
-    print 'ENTERED'
-def gate_out(body):
-    print 'EXITED'
-    
-event.register_handlers({'GATE_ENTERED' : gate_in, 'GATE_EXITED' : gate_out})
 
 class Trigger(Body, OgreNewt.ContactCallback):
     core.implements(ITrigger, IWorldUpdateListener)
@@ -395,11 +387,10 @@ class Trigger(Body, OgreNewt.ContactCallback):
         pass
     
     def post_update(self):
-
-        new_contactors = []
+        new_contactors = {}
         for contact_info, contacting in self._contactors.iteritems():
             if contacting:
-                new_contactors.append(contact_info)
+                new_contactors[contact_info] = False
             else:
                 contactor, material = contact_info
                 leave_event = self._contact_events[material][1]
@@ -407,9 +398,7 @@ class Trigger(Body, OgreNewt.ContactCallback):
                     event.post(leave_event, contactor)
               
         self._contactors.clear()
-        for c in new_contactors:
-            self._contactors[c] = False  
-
+        self._contactors.update(new_contactors)
 
     def _create(self, scene, contact_properties):
         """
@@ -593,10 +582,7 @@ class World(OgreNewt.World):
             return pair
     
     def update(self, time_step):
-        
         for listener in self._listeners:
-            #print dir(listener)
-            #print 'TEST:',hasattr(listener, 'pre_update')
             listener.pre_update()
         OgreNewt.World.update(self, time_step)
         for listener in self._listeners:

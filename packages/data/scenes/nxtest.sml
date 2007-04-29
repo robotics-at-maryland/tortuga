@@ -27,10 +27,9 @@ Scene:
     Objects:
         gate:
             type: [Trigger, sim.physics.Trigger]
-            position: [0, 0, -3]
+            position: [5, 0, -8]
             Physical:
                 mass: 0
-                center_of_mass: [0, -0.15, 0]
                 Shape:
                     type: box
                     size: [1, 1, 1]

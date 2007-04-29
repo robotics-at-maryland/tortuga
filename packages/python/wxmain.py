@@ -6,6 +6,7 @@ import warnings
 
 # Library Imports
 import wx
+import wx.aui
 import yaml
 
 warnings.simplefilter('ignore', RuntimeWarning)
@@ -162,14 +163,43 @@ class TestController(object):
             self.robot.parts.aft_thruster.force += (5 * time_since_last_frame)
             self.robot.parts.front_thruster.force -= (5 * time_since_last_frame)
 
+class TestPanel(wx.Panel):
+    def __init__(self, parent, log):
+        self.log = log
+        wx.Panel.__init__(self, parent, -1, wx.DefaultPosition, wx.Size(100,400))
+
+        self.nb = wx.aui.AuiNotebook(self)
+        page = wx.TextCtrl(self.nb, -1, "Test", style=wx.TE_MULTILINE)
+        self.nb.AddPage(page, "Welcome")
+
+        for num in range(1, 5):
+            page = wx.TextCtrl(self.nb, -1, "This is page %d" % num ,
+                               style=wx.TE_MULTILINE)
+            self.nb.AddPage(page, "Tab Number %d" % num)
+            
+        sizer = wx.BoxSizer()
+        sizer.Add(self.nb, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+
 class MainFrame(gui.wxogre.wxOgreFrame):
     def __init__(self, activate_callback):
-        self._activate_callback = activate_callback
+        self._activate_callback = activate_callback       
         gui.wxogre.wxOgreFrame.__init__(self, None, -1, "AUV Sim", 
-                                        wx.DefaultPosition, wx.Size(600,600))
+                                        wx.DefaultPosition, wx.Size(800,600))
         
-        self.ogre = gui.wxogre.wxOgre(None, self, -1, wx.DefaultPosition, 
-                                      wx.Size(600,600))
+        
+        self._mgr = wx.aui.AuiManager()
+        self._mgr.SetManagedWindow(self)
+        
+        self.ogre = gui.wxogre.wxOgre(None, self)#, -1, wx.DefaultPosition
+                                      #wx.Size(400,400))
+        
+        self._mgr.AddPane(self.ogre, wx.aui.AuiPaneInfo().
+                          Name("test1").Caption("AUV").Center().
+                          CloseButton(True).MaximizeButton(True))
+        self._mgr.AddPane(TestPanel(self, None), wx.aui.AuiPaneInfo().
+                          Name("test2").Caption("Status").Right().
+                          CloseButton(True).MaximizeButton(True))
         
         if wx.Platform == '__WXMSW__':
             self._input_forwarder = gui.input.InputForwarder(\
@@ -181,12 +211,16 @@ class MainFrame(gui.wxogre.wxOgreFrame):
         else:
             raise "Error platform not supported"
         
+        self.SetMinSize(self.GetSize())
+        self._mgr.Update()
         # Setup Layout
-        sizer_1 = wx.BoxSizer(wx.VERTICAL) 
-        sizer_1.Add(self.ogre, 2, wx.EXPAND, 0)  
-        self.SetAutoLayout(True) 
-        self.SetSizer(sizer_1) 
-        self.Layout() 
+        #sizer_1 = wx.BoxSizer(wx.VERTICAL) 
+        #sizer_1.Add(self.ogre, 2, wx.EXPAND, 0)  
+        #self.SetAutoLayout(True) 
+        #self.SetSizer(sizer_1) 
+        #self.Layout() 
+        
+
         
     def on_activate(self, event):
         gui.wxogre.wxOgreFrame.on_activate(self, event)
@@ -206,6 +240,7 @@ class SimApp(wx.App):
         self.sim = None
         self.components = []
         self.timer = None
+        self.update_interval = (1.0 / 30.0 * 1000) # In milliseconds
 
         self.config = yaml.load(file(os.path.join('..', 'sim.yml')))
         # Create simulation
@@ -243,27 +278,29 @@ class SimApp(wx.App):
         self._test_controller = TestDepthController(scene._robots['AUT'])
         
         self.last_time = self._get_time()
-        self.timer.Start(1000.0 / 200.0)
+        self.timer.Start(self.update_interval, True)
     
-    def on_timer(self, timer_event):
-        self.frame.ogre._update()
-        #OgreNewt.Debugger.getSingleton().showLines(self.sim.get_scene('Main').world)
-        
+    def on_timer(self, timer_event): 
+
         current_time = self._get_time()
         time_since_last_iteration = (current_time - self.last_time);
 
-        #print time_since_last_iteration
-        if (time_since_last_iteration < 1000.0 / 300.0):
-            #print 'RUN',time_since_last_iteration
-            #print 'C: %f L: %f Update %f' % (current_time, self.last_time, time_since_last_iteration)
-            # Loop over all components updating them, if one returns false exit
-            for component in self.components:
-                component.update(time_since_last_iteration)
+        self.frame.ogre._update()
+        OgreNewt.Debugger.getSingleton().showLines(self.sim.get_scene('Main').world)
             
-            self._test_controller.update(time_since_last_iteration)
-            event.process_events()
+        # Loop over all components updating them, if one returns false exit
+        for component in self.components:
+            component.update(time_since_last_iteration)
+        
+        self._test_controller.update(time_since_last_iteration)
+        event.process_events()
         
         self.last_time = current_time
+        
+        update_time = self.update_interval - (self._get_time() - current_time)
+        if update_time < 0:
+            update_time = self.update_interval
+        self.timer.Start(update_time, True)
         
     def on_close(self, close_event):
         OgreNewt.Debugger.getSingleton().deInit()
