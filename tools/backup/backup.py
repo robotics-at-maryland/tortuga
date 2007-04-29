@@ -26,19 +26,35 @@ def setup_logging():
     syslog.setFormatter(formatter)
     logging.getLogger('').addHandler(syslog)
 
-def remove_path(path):
+def weekly_backup(now, src_path, dest_path):
     """
-    Remove directories and files recursively
-    Todo - replace me shutil.rmtree !!!! (why is that there)
+    type  now: datetime
+    param now: The time at the start of the backup
+
+    type  src_path: string
+    param src_path: The directory to be baced up
+
+    type  dest_path: string
+    param dset_path: The directory where the weekly backups go
     """
-    if os.path.exists(path):
-       if os.path.isdir(path):
-           #sub_dirs 
-           for d in os.listdir(path):
-               remove_path(os.path.join(path, d))
-           os.rmdir(path)
-       else:
-           os.remove(path)
+
+    # Remove all older backups
+    delta = timedelta(opts[2] * 7)
+    cutoff = now - delta;
+    remove_old(weekly_path, cutoff)
+
+    last_backup = now - timedelta(7)
+    last_backup = last_backup.strftime('%F_%T')
+
+    # Grab and sort directories (newest first)
+    backups = os.listdir(path)
+    backups.append(last_backup)
+    backups.sort(reverse=True)
+
+    # If our time one week in the past is at the head of that list it means
+    # that we haven't made a backup in 7 days, so lets do a new one
+    if (last_backup == backups[0]):
+        shutil.copytree(src_path, weekly_path + os.sep + date_name(src_path)) 
     
 def remove_old(path, date):
     """
@@ -167,14 +183,6 @@ def main(argv=None):
         incremental_path = os.path.join(path, 'incremental')
         ensure_path(weekly_path)
         ensure_path(incremental_path)
-        
-        # Roll back time the needed number of weeks
-        delta = timedelta(opts[2] * 7)
-        cutoff = now - delta;
-
-        # Weekly backup 
-        shutil.copytree(src_path, weekly_path + os.sep + date_name(src_path)) 
-        remove_old(weekly_path, cutoff)
         
         # Incremental Backup
         try:
