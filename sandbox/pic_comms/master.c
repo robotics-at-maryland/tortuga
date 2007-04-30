@@ -331,9 +331,10 @@ int main(void)
     for(j=0; j<100000; j++);
 
 
-    #define HOST_CMD_PING       0
-    #define HOST_REPLY_SUCCESS  188
-    #define HOST_REPLY_FAILURE  223
+    #define HOST_CMD_PING           0
+    #define HOST_REPLY_SUCCESS      0xBC
+    #define HOST_REPLY_FAILURE      0xDF
+    #define HOST_REPLY_BADCHKSUM    0xCC
 
     #define HOST_CMD_SYSCHECK         1
 
@@ -344,13 +345,14 @@ int main(void)
     #define HOST_REPLY_BOARDSTATUS    5
 
     #define HOST_CMD_HARDKILL         6
+    #define HOST_CMD_MARKER           7
 
 
     while(1)
     {
         byte c = waitchar(0);
 
-        byte t1, t2;
+        long t1, t2;
 
         switch(c)
         {
@@ -370,7 +372,7 @@ int main(void)
                 if(t1 == HOST_CMD_PING)
                     sendByte(HOST_REPLY_SUCCESS);
                 else
-                    sendByte(HOST_REPLY_FAILURE);
+                    sendByte(HOST_REPLY_BADCHKSUM);
 
                 break;
             }
@@ -383,7 +385,7 @@ int main(void)
 
                 if(t1 != HOST_CMD_SYSCHECK)
                 {
-                    sendByte(HOST_REPLY_FAILURE);
+                    sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
@@ -406,17 +408,10 @@ int main(void)
                             switch(len)
                             {
                                 case 0:
-
                                 break;
 
                                 case BUS_ERROR:
-                                    err++;
-                                break;
-
                                 case BUS_FAILURE:
-                                    err++;
-                                break;
-
                                 default:
                                     err++;
                             }
@@ -440,11 +435,16 @@ int main(void)
                 t1 = waitchar(1);
                 if(t1 != HOST_CMD_DEPTH)
                 {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH) != 0)
+                {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
-                busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH);
                 int len = readDataBlock(SLAVE_ID_DEPTH);
 
                 if(len != 2)
@@ -466,11 +466,15 @@ int main(void)
                 t1 = waitchar(1);
                 if(t1 != HOST_CMD_BOARDSTATUS)
                 {
-                    sendByte(HOST_REPLY_FAILURE);
+                    sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD);
+                if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
 
                 byte len = readDataBlock(SLAVE_ID_POWERBOARD);
 
@@ -503,16 +507,28 @@ int main(void)
 
                 if(cflag == 1)
                 {
-                    sendByte(HOST_REPLY_FAILURE);
+                    sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 } else
                 {
-                    busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL);
+                    if(busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL) != 0)
+                    {
+                        sendByte(HOST_REPLY_FAILURE);
+                        break;
+                    }
                     sendByte(HOST_REPLY_SUCCESS);
                 }
                 break;
             }
 
+            case HOST_CMD_MARKER:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+
+
+            }
         }
     }
 }
