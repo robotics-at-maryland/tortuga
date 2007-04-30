@@ -45,7 +45,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_LCD_REFRESH     7
 #define BUS_CMD_LCD_LIGHT_ON    8
 #define BUS_CMD_LCD_LIGHT_OFF   9
-
+#define BUS_CMD_LCD_LIGHT_FLASH 18
 
 /* Transmit buffer */
 #define TXBUF_LEN 30
@@ -141,14 +141,28 @@ void processData(byte data)
                 case BUS_CMD_LCD_LIGHT_OFF:
                 {
                     LAT_BL = 0;
+                    T1CONbits.TON = 0;  /* Stop Timer1 */
                     break;
                 }
 
                 case BUS_CMD_LCD_LIGHT_ON:
                 {
                     LAT_BL = 1;
+                    T1CONbits.TON = 0;  /* Stop Timer1 */
                     break;
                 }
+
+                case BUS_CMD_LCD_LIGHT_FLASH:
+                {
+                    PR1 = 65535;            /* Period */
+                    TMR1 = 0;               /* Reset timer */
+                    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+                    IEC0bits.T1IE = 1;      /* Enable interrupts */
+                    T1CONbits.TCS = 0;      /* Use internal clock */
+                    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
+                    T1CONbits.TON = 1;      /* Start Timer1 */
+                }
+
             }
             break;
         }
@@ -205,6 +219,16 @@ void processData(byte data)
 
     }
 }
+
+
+
+/* ISR for Timer1. Used for flashing the screen backlight */
+void _ISR _T1Interrupt(void)
+{
+    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+    LAT_BL ^= 1;
+}
+
 
 
 /* Read a byte from the bus */

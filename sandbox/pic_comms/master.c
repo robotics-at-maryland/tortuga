@@ -77,6 +77,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_TEMP            15
 #define BUS_CMD_BOARDSTATUS     16
 #define BUS_CMD_HARDKILL        17
+#define BUS_CMD_LCD_LIGHT_FLASH 18
 
 #define NUM_SLAVES  3
 
@@ -561,13 +562,16 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_BACKLIGHT != t2))
+                const static unsigned char blCommands[]=
+                        {BUS_CMD_LCD_LIGHT_OFF, BUS_CMD_LCD_LIGHT_ON, BUS_CMD_LCD_LIGHT_FLASH};
+
+                if((t1 != 0 && t1 != 1 && t1 != 2) || (t1+HOST_CMD_BACKLIGHT != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(t1==0 ? BUS_CMD_LCD_LIGHT_OFF : BUS_CMD_LCD_LIGHT_ON, SLAVE_ID_LCD) != 0)
+                if(busWriteByte(blCommands[t1], SLAVE_ID_LCD) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;

@@ -107,7 +107,9 @@ Reply: [0xBC] on success
        [0xDF] on failure
        [0xCC] on bad checksum
 
-This will turn the backlight on the display on or off. 'State' determines what to do,
-with 0 being off and 1 being on. Any other values will result in a reply of 0xCC.
+This will turn the backlight on the display on or off. 'State' determines what to do.
+A state of 0 turns the backlight off. A state of 1 turns the backlight on. A state of
+2 makes the backlight flash about once per second. Any other value of state results
+in a reply of 0xFF.
 
 
