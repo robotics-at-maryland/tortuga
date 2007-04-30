@@ -347,6 +347,9 @@ int main(void)
     #define HOST_CMD_HARDKILL       0x06
     #define HOST_CMD_MARKER         0x07
 
+    #define HOST_CMD_BACKLIGHT      0x08
+
+
     #define HOST_CMD_SYNC           0xFF
 
     while(1)
@@ -358,6 +361,7 @@ int main(void)
         switch(c)
         {
 
+            /* For testing for the link only. Remove in final version*/
             case 5:
             {
                 byte i=0;
@@ -372,6 +376,7 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
+
 
             case HOST_CMD_PING:
             {
@@ -468,6 +473,7 @@ int main(void)
                 break;
             }
 
+
             case HOST_CMD_BOARDSTATUS:
             {
                 t1 = waitchar(1);
@@ -497,6 +503,7 @@ int main(void)
 
                 break;
             }
+
 
             case HOST_CMD_HARDKILL:
             {
@@ -528,6 +535,7 @@ int main(void)
                 break;
             }
 
+
             case HOST_CMD_MARKER:
             {
                 t1 = waitchar(1);
@@ -540,6 +548,26 @@ int main(void)
                 }
 
                 if(busWriteByte(t1==0 ? BUS_CMD_MARKER1 : BUS_CMD_MARKER2, SLAVE_ID_MARKERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+            }
+
+            case HOST_CMD_BACKLIGHT:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_BACKLIGHT != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(t1==0 ? BUS_CMD_LCD_LIGHT_OFF : BUS_CMD_LCD_LIGHT_ON, SLAVE_ID_LCD) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;

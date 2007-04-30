@@ -99,3 +99,15 @@ feedback if it was actually released, or if it got stuck, or if that marker was 
 earlier.
 
 
+
+Command: Set LCD Backlight
+Description: Turn the backlight on the debugging LCD on or off
+Send:  [0x07 State Checksum]
+Reply: [0xBC] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+This will turn the backlight on the display on or off. 'State' determines what to do,
+with 0 being off and 1 being on. Any other values will result in a reply of 0xCC.
+
+
