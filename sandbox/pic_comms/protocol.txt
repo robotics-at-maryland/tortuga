@@ -53,8 +53,10 @@ Reply: [0xBC] if the command was issued to slave controller
 
 The command sequence is deliberately long and complex to prevent accidental activation.
 After issuing this command, the host should still perform various shut-down tasks, in the
-event that the hard kill command fails. 0xDF is returned if the command was NOT issued
+event that the hard kill command fails. 0xCC is returned if the command was NOT issued
 because a part of the 'safety sequence' was not received properly. A reply of 0xBC means
 that the command was received successfully, but if the host is still alive to receive this
-reply, it means that the hard kill obviously failed and other measures must be taken.
+reply, it means that the hard kill obviously failed and other measures must be taken. A
+reply of 0xDF means that the safety sequence was right, but the chip responsible for
+telling the balancer board to kill power did not respond to the request.
 
