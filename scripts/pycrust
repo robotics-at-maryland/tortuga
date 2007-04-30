@@ -1,0 +1,4 @@
+#! /usr/bin/python2.5
+
+from wx.py.PyCrust import main
+main()

@@ -1,1 +1,3 @@
-../deps/scons/scons.py
+#! /bin/sh
+
+/usr/bin/python2.5 $MRBC_SVN_ROOT/deps/scons/scons.py $*

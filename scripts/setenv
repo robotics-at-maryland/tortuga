@@ -6,7 +6,8 @@
 # and you will be all set. (Note the only works for the current shell)
 
 # Set up PYTHONPATH so imports will work properly
-export PYTHONPATH=$MRBC_SVN_ROOT/deps/local/lib/python2.4/site-packages
+alias python='python2.5'
+export PYTHONPATH=$MRBC_SVN_ROOT/deps/local/lib/python2.5/site-packages
 
 # Setup the PATH
 export PATH=$MRBC_SVN_ROOT/scripts:$MRBC_SVN_ROOT/deps/local/bin:$PATH
