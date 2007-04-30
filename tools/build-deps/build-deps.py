@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/python2.5
 
 import os
 import sys
