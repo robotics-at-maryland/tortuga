@@ -23,9 +23,6 @@ class wxOgre(wx.PyControl):
         if camera is not None:
             self._camera.setAutoAspectRatio(True)       
             
-    def on_key_down(self, event):
-        print event.GetKeyCode()
-    
     class camera(cls_property):
         """
         The camera attached to the main viewport of the window.

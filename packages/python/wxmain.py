@@ -61,7 +61,7 @@ class TestDepthController(object):
         # Simple P type controller for the depth
         current_depth = self.robot._main_part._node.position.y
         error = self._desired_depth - current_depth
-        force = error * 10 - self.robot._main_part.acceleration.y * 10
+        force = error * 100 #- self.robot._main_part.acceleration.y * 10
         
         self.robot.parts.aft_thruster.force = force 
         self.robot.parts.front_thruster.force = force

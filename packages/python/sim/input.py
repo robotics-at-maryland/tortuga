@@ -204,7 +204,7 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
     system so other parts of the system use the information.
     """
     def __init__(self, config, input_sys, window): #, keyboard):
-        self.window = window
+        self._window = window
         self._input_sys = input_sys
         
         # Call C++ Super class constructor
@@ -225,9 +225,9 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
         
     def __del__ (self ):
         #self.logger.info('* * * Beginning shutdown')
-        if self.render_window is not None:
-            self.windowClosed(self.render_window)
-            Ogre.WindowEventUtilities.removeWindowEventListener(self.render_window, self)
+        if self._window is not None:
+            self.windowClosed(self._window)
+            Ogre.WindowEventUtilities.removeWindowEventListener(self._window, self)
         #self.logger.info('* * * Shutdown complete')
         
     def _update(self, time_since_last_update):
@@ -235,17 +235,15 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
         
     def _setup_ois(self):
         # Hook OIS up to the window created by Ogre
-        windowHnd = self.window.getCustomAttributeInt("WINDOW")
+        windowHnd = self._window.getCustomAttributeInt("WINDOW")
+        params = [('WINDOW',windowHnd)]
         
         if 'Linux' == platform.system():
-            params = [('WINDOW',windowHnd)]
 #            if config.get('debug', False):
 #                self.logger.info("OIS Keyboard grab off")
-            params = params + [('x11_keyboard_grab', 'false'), 
+            params.extend([('x11_keyboard_grab', 'false'), 
                                ('x11_mouse_grab','false'),
-                                ('XAutoRepeatOn', 'true')]
-        elif 'Windows' == platform.system():
-            params = windowHnd
+                                ('XAutoRepeatOn', 'true')])
         else:
             raise InputSystem, "Platform not supposed"
             
@@ -278,12 +276,12 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
         #Only close for window that created OIS (mWindow)
         if( render_window == self._window ):
             if(self.input_mgr):
-                self.logger.info('Shutting down OIS')
+                #self.logger.info('Shutting down OIS')
                 self.input_mgr.destroyInputObjectMouse( self.mouse )
                 #self.input_mgr.destroyInputObjectKeyboard( self.keyboard )
                 OIS.InputManager.destroyInputSystem(self.input_mgr)
                 self.input_mgr = None
-                self.render_window = None
+                self._window = None
                 
     # OIS MouseListener Methods
 #    def mouseMoved(self, mouse_event):
@@ -299,7 +297,7 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
 #        return True
     
     # OIS KeyListener Methods
-    def keyPressed(self, key_event):
+    def keyPressed(self, key_event):        
         self._translate_key(key_event, True)
         return True
 
