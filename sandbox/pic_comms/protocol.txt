@@ -101,7 +101,7 @@ earlier.
 
 
 Command: Set LCD Backlight
-Description: Turn the backlight on the debugging LCD on or off
+Description: Turn the backlight on the debugging LCD on or off, or make it flash
 Send:  [0x07 State Checksum]
 Reply: [0xBC] on success
        [0xDF] on failure
