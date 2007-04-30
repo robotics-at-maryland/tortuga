@@ -526,8 +526,19 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
+                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_MARKER != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
 
+                if(busWriteByte(t1==0 ? BUS_CMD_MARKER1 : BUS_CMD_MARKER2, SLAVE_ID_MARKERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
 
+                sendByte(HOST_REPLY_SUCCESS);
             }
         }
     }

@@ -60,3 +60,20 @@ reply, it means that the hard kill obviously failed and other measures must be t
 reply of 0xDF means that the safety sequence was right, but the chip responsible for
 telling the balancer board to kill power did not respond to the request.
 
+
+
+Command: Drop marker
+Description: Ask balancer board to drop one of the markers.
+Send:  [0x07 Marker Checksum]
+Reply: [0xBC] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+This will drop the given marker. 'Marker' can be 0 or 1, corresponding to one of the two
+markers. A value of the marker byte other than 0 or 1 will result in a response of 0xCC.
+A successful reply indicates only that the command was relayed to the chip connected to
+the balancer board, and does not mean that the marker was actually dropped. There is no
+feedback if it was actually released, or if it got stuck, or if that marker was dropped
+earlier.
+
+
