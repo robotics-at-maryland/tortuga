@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   /sim/core.py
+# File:   /sim/simulation.py
 
 """
 This module provides the core functionallity of the simulation
@@ -16,18 +16,29 @@ This module provides the core functionallity of the simulation
 import os
 import sys
 import imp
+import warnings
+
+# Library imports
+warnings.simplefilter('ignore', RuntimeWarning)
+import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt
+warnings.simplefilter('default', RuntimeWarning)
 
 # Project Imports
 import logloader
 import event
+import sim.scene as scene
+from sim.input import InputSystem
+from sim.util import SimulationError
+import sim.defaults as defaults
 
-from core import Singleton, property
+from core import Singleton, log, log_init
 
 # Events
-event.add_event_types('SIM_SHUTDOWN') # Called to shutdown the simulation
+event.add_event_types(['SIM_SHUTDOWN','SIM_UPDATE']) # Called to shutdown the simulation
 
-class SimulationError (Exception):
-    """ Base class for exceptions in the simulation """
+class GraphicsError(SimulationError):
+    """ Error from the graphics system """
     pass
 
 class Simulation(Singleton):
@@ -36,78 +47,24 @@ class Simulation(Singleton):
     'Simulation.get()' to access it.
     """
     
-    class graphics_sys(property):
-        """
-        The object that handles the graphical side of the simulation
-        """
-        def fget(self):
-            return self._graphics_sys
-    
-    class physics_sys(property):
-        """
-        The object that handles the physics side of the simulation
-        """
-        def fget(self):
-            return self._physics_sys
-        
-    class input_sys(property):
-        """
-        The object that handles all user input into the simulation
-        """
-        def fget(self):
-            return self._input_sys
-    
-    def init(self, config):
-        self._components = None
-        self._scene = None
-        self._gui_sys = None
-        self._input_sys = None
-        self._physics_sys = None
-        self._graphics_sys = None
-        
-        self._setup_logging(config.get('Logging', {'name' : 'Simulation',
-                                                   'level': 'INFO'}))
-        
-        self.logger.info('* * * Beginning initialization')
-        
+    @log_init(defaults.simulation_log_config)
+    def init(self, config = {}):
+        self._ogre_root = None
+        self._scenes = {}
         self._config = config
-        self._create_components()
-        self.load_scene()
+        
+        self._graphics_init(config.get('Graphics', {}))
+        self.input_system = InputSystem(config.get('Input', {}))
+    
         event.register_handlers('SIM_SHUTDOWN', self._shutdown)
         self._run = True
         
-        self.logger.info('* * * Initialized')
-    
+    @log('* * * Beginning shutdown', '* * * Shutdown complete')
     def __del__(self):
-        self.logger.info('* * * Beginning shutdown')
-        
-        del self._components
-        del self._scene
-        del self._gui_sys
-        del self._input_sys
-        del self._physics_sys
-        del self._graphics_sys
-    
-        self.logger.info('* * * Shutdown complete')
-    
-    def _setup_logging(self, config):
-        self.logger = logloader.setup_logger(config, config)
-        
-    def _create_components(self):
-        import sim.graphics
-        import sim.input
-        import sim.gui
-        import sim.physics
-        
-        graphics_cfg = self._config.get('Graphics',{})
-        self._graphics_sys = \
-            sim.graphics.GraphicsSystem(graphics_cfg,
-                                        not graphics_cfg.get('embedded', True))
-        self._physics_sys = sim.physics.PhysicsSystem(self._config.get('Physics',{}))
-        self._input_sys = sim.input.InputSystem(self._config.get('Input',{}))
-        self._gui_sys = sim.gui.GUISystem(self._config.get('GUI',{}))
-        
-        self._components = [self._input_sys, self._physics_sys, self._graphics_sys]
+        # Ensure proper of C++ desctuctors
+        # TODO: Ensure I have to do this, I might be able to ignore this
+        del self._scenes
+        del self._ogre_root
         
     def _shutdown(self):
         self._run = False
@@ -119,58 +76,199 @@ class Simulation(Singleton):
         @type time_since_last_update: a decimal number
         @param time_since_last_update: name says it all
         """
-            
         if self._run:
-            # Update all components, drop out if one returns false
-            for component in self._components:
-                component.update(time_since_last_update)
+            Ogre.WindowEventUtilities.messagePump()
+            #self._ogre_root.renderOneFrame()
    
+            for scene in self._scenes.itervalues():
+                scene.update(time_since_last_update)
+   
+            event.send('SIM_UPDATE', time_since_last_update)
         return self._run
     
-    def load_scene(self, scene_name = None):
+    def create_window(self, name, width, height, params):
         """
-        Loads a scene based on the configuration data given to simulation on
-        start. This expects a configuration of the following format.
+        This creates a new render window.  If the post render window setup has
+        not already been done, it will be done with the creation of the first
+        window.
+        """
         
-        Scenes:  
-            current: name_of_module
-            path: path_on_which_module_exits
+        new_window = self._ogre_root.createRenderWindow(str(name), width, height, 
+                                                      False, params)
+            
+        return new_window
+    
+    def iterscenes(self):
+        """
+        Iterate over the scenes: (name, scene)
+        """
+        for name, scene in self._scenes.iteritems():
+            yield (name, scene)
+    
+    def get_scene(self, name):
+        """
+        @type name: string
+        @param name: The name of the scene to retrive
         
-        @type scene_name = string
-        @param scene_name = The name of the scene to load, must be on the scene
-            path of the configuration given to module.
+        @rtype: None or sim.Scene
+        @return: None if scene doesn't exist
+        """
+        return self._scenes.get(name, None)
+    
+    def create_all_scenes(self):
+        """
+        This load all scenes present in the config file.
+        """
+        scene_path = self._config.get('scene_path', defaults.scene_search_path)
+
+        for name, scene_file in self._config.get('Scenes', {}).iteritems():
+            self.create_scene(name, scene_file, scene_path)
+    
+    def create_scene(self, name, scene_file, scene_path):
+        """
+        @type name: string
+        @param name: The name of the scene to create
+        
+        @type scene_file: string
+        @param scene_file: the name of the scene file
+        
+        @type scene_path: list of strings
+        @param scene_path: The path to search for the scene_file on
+        """
+        
+        # Filter out non-existant paths from search, this keeps windows paths
+        # out of unix and unix paths out of windows
+        search_path = [p for p in scene_path if os.path.exists(p)]
+        if len(scene_path) == 0:
+            raise SimulationError('No valid directory found on scene path')
+        
+        self.logger.info('Loading %s on path:', scene_file)
+        for path in search_path: 
+            self.logger.info('\t%s' % path )
+        
+        found = False
+        for dir in search_path:
+            scene_path = os.path.abspath(os.path.join(dir, scene_file))
+         
+            if os.path.exists(scene_path):
+                self._scenes[name] = scene.Scene(name, scene_path)
+                found = True
+        
+        if not found:
+            raise SimulationError('Could not find scene file: %s' % scene_file)
+    
+    
+    # ----------------------------------------------------------------------- #
+    #            G R A P H I C S   I N I T I A L I Z A T I O N                #
+    # ----------------------------------------------------------------------- #
+    
+    def _graphics_init(self, config):
+        # Create Ogre.Root singleton with no default plugins
+        self._ogre_root = Ogre.Root("");
+        
+        # Start up Ogre piecewise, passing a default empty config if needed
+        self._load_ogre_plugins(config.get('Plugins', {}))
+        self._create_render_system(config.get('Rendering',{}))
+        self._ogre_root.initialise(False)
+        
+    def _load_ogre_plugins(self, config):
+        """
+        This loads the plugins Ogre needs to run based on the config file.
+        Here is an example:
+        Plugins:
+            # Where to search for the plugins
+            search_path: [ C:\Libraries\Python-Ogre-0.7\plugins,
+                           C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins]
+               
+            # The plugins to load
+            plugins: [ RenderSystem_GL, 
+                       Plugin_ParticleFX, 
+                       Plugin_OctreeSceneManager ] 
+        """
+        import platform
+        
+        # Filter out non-existant paths from search, this keeps windows paths
+        # out of unix and unix paths out of windows
+        search_path = config.get('search_path', defaults.ogre_plugin_search_path)
+        search_path = [p for p in search_path if os.path.exists(p)]
+        if len(search_path) == 0:
+            raise GraphicsError('All plugin directories do not exist')
+        
+        self.logger.info('Loadings Ogre Plugins on path:')
+        for path in search_path: 
+            self.logger.info('\t%s' % path )
+        
+        
+        extension = '.so'
+        if 'Windows' == platform.system():
+            extension = '.dll'
+            
+        for plugin in config.get('plugins', defaults.ogre_plugins):
+            plugin_name = plugin + extension
+            self.logger.info('\tSearching for: %s' % plugin_name)
+            found = False
+            
+            for dir in search_path:
+                plugin_path = os.path.join(dir, plugin_name)
+                
+                # Only the plugin once
+                if not found and os.path.exists(plugin_path):
+                    self._ogre_root.loadPlugin(plugin_path)
+                    found = True
+                
+            if not found:
+                raise GraphicsError('Could not load plugin: %s' % plugin_name)
+            
+    def _create_render_system(self, config):
+        """
+        This secion here takes over for Ogre's ogre.cfg.  The type 
+        indicates which Ogre RenderSystem to create and which section to
+        load the options from.  Example:
+        
+        Ogre:
+            RenderSystem:
+                type: GLRenderSystem
+                
+                GLRenderSystem:
+                    - [Colour Depth, '32']
+                    - [Display Frequency, 'N/A']
+                    - [FSAA, '0']
+                    - [Full Screen, 'No']
+                    - [RTT Preferred Mode, 'FBO']
+                    - [VSync, 'No']
 
         """
         
-        # Read config value, falling back to default if needed
-        scene_cfg = self._config.get('Scene', {})
-        mod_name = scene_cfg.get('current', 'basic')
-        scene_path = scene_cfg.get('path', ['../data/scenes'])
+        # Allows looser specification of RenderSystem names
+        typemap = {'GL' : 'OpenGL Rendering Subsystem',
+                   'GLRenderSystem' : 'OpenGL Rendering Subsystem',
+                   'OpenGL' : 'OpenGL Rendering Subsystem',
+                   'DirectX' : 'D3D9RenderSystem',
+                   'DirectX9' : 'D3D9RenderSystem',
+                   'Direct 3D' : 'D3D9RenderSystem'}
         
-        search_path = [os.path.abspath(p) for p in scene_path]
-        sys_path = sys.path
-        
+        # Attempt to find the selected renderer based on given input
+        render_system = None
         try:
-            # Load the modules
-            modfile, path, desc = imp.find_module(mod_name, search_path)
-            
-            # Prepend current directory to the module loading path the module can
-            # import modules in that directory
-            sys.path.insert(0, os.path.split(path)[0])
-            
-            scene = None
-            try:
-                scene = imp.load_module(mod_name, modfile, path, desc)
-            finally:
-                # Always restore path
-                sys.path = sys_path
-                # Remove file if needed
-                if modfile:
-                    modfile.close()
-                    
-            new_scene = scene.Scene()
-            new_scene.create_scene(self._graphics_sys, self._physics_sys)
-            return new_scene
-                    
-        except ImportError, e:
-            raise SimulationError('Could not load scene "%s"\n On path: %s\n Error: %s' % (mod_name, search_path, str(e)))
+            type = config.get('type', defaults.render_system)
+            type_name = typemap[type]
+            for renderer in self._ogre_root.getAvailableRenderers():
+                if type_name == renderer.getName():
+                    render_system = renderer
+                
+            if render_system is None:
+                raise GraphicsError("Could not load " + type + " make sure "
+                                    "the proper plugin is loaded")
+        except AttributeError, KeyError:
+            raise GraphicsError('"%s" is not a valid render system' % type)
+        
+        self._ogre_root.setRenderSystem(render_system)
+        
+        
+        # Load our options from the custom config system
+        render_system_opts = config.get(type, defaults.render_system_options)          
+        for name, value in render_system_opts:
+            render_system.setConfigOption(name, value)
+
+        # Give Ogre our new render system 
+        self._ogre_root.setRenderSystem(render_system)

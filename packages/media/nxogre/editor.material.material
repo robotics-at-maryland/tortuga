@@ -1,0 +1,209 @@
+material editor.material.window 
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.material.window.png
+			}
+		}
+	}
+}
+
+material editor.material.window.titlebar
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.material.window.titlebar.png
+			}
+		}
+	}
+}
+
+material editor.microtext
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.png
+			}
+		}
+	}
+}
+
+material editor.microtext.active
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.active.png
+			}
+		}
+	}
+}
+
+material editor.microtext.confirm
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.confirm.png
+			}
+		}
+	}
+}
+
+material editor.microtext.confirm.active
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.confirm.active.png
+			}
+		}
+	}
+}
+
+
+material editor.material.text
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.material.text.png
+			}
+		}
+	}
+}
+
+material editor.microtext.up
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.up.png
+			}
+		}
+	}
+}
+
+material editor.microtext.up.active
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.up.active.png
+			}
+		}
+	}
+}
+
+material editor.microtext.do
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.do.png
+			}
+		}
+	}
+}
+
+material editor.microtext.do.active
+{
+	technique
+	{
+		pass
+		{
+			lighting off
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			scene_blend alpha_blend
+			texture_unit
+			{
+				texture editor.microtext.do.active.png
+			}
+		}
+	}
+}

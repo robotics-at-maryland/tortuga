@@ -1,0 +1,37 @@
+material nx.flag
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			diffuse 1 1 1
+			specular 1 1 1 30
+			 shading phong
+				depth_bias 1
+				cull_hardware none
+				cull_software none 
+
+			texture_unit
+			{
+				texture nx.flag.png
+			}
+		}
+	}
+}
+
+material nx.rope
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 0 0
+			diffuse 0.8 0.1 0.1
+			specular 0.8 0.1 0.1 30
+			shading phong
+			cull_hardware none
+			cull_software none 
+		}
+	}
+}

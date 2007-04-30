@@ -18,8 +18,8 @@ import logging
 import shutil
 
 # Library Imports
-import ogre.io.OIS as OIS
-import ogre.gui.CEGUI as CEGUI
+import OIS
+import CEGUI
 import ogre.renderer.OGRE as Ogre
 
 # Project Imports
@@ -51,7 +51,7 @@ class GUISystem(object):
         # Grab the global simulation object and get its graphics system
         graphics_sys = Simulation.get().graphics_sys
         
-        #CEGUI.System.setDefaultXMLParserName('TinyXMLParser')
+        CEGUI.System.setDefaultXMLParserName('TinyXMLParser')
         # Create the CEGUIOgreRender with are GUI Components and CEGUI System
         self.gui_renderer = \
             CEGUI.OgreCEGUIRenderer( graphics_sys.render_window, 

@@ -33,7 +33,13 @@ from vehicle.sim.device import Thruster
 
 event.add_event_types('CAM_CHANGE')
 
-class Vehicle(IVehicle):          
+class Vehicle(IVehicle):
+    """
+    self.position is and Ogre.Vector3 that gives the position of the vehicle
+    self.attitude is and Ogre.Quaternion that gives the orientation of the 
+                            vehicle
+    """
+              
     def __init__(self, config):
         self._setup_logging(config.get('Logging', {'name' : 'SimVehicle',
                                                    'level': 'INFO'}))

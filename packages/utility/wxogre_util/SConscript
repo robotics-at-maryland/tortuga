@@ -1,0 +1,42 @@
+import os
+import platform
+from subprocess import Popen, PIPE
+
+Import('env')
+envl = env.Clone()
+
+
+# Find all c files in the source directory
+base_dir = envl['base_dir']
+src_dir = os.path.join(base_dir, 'src')
+sources = [os.path.join('src',f) for f in os.listdir(src_dir) 
+           if f.endswith('.cpp')]
+
+# Ensure proper wx-widgets setup
+try:
+    version_str = Popen(["wx-config", "--version"], stdout=PIPE).communicate()[0]
+except OSError:
+    print 'Error executing or finding wx-config please check you wxidgets'
+    print 'installation and try again'
+    Exit(1)
+    
+if not version_str.startswith('2.8.'):
+    print version_str[:-1],'is not not the proper version, please use 2.8.x'
+    Exit(1)
+
+# Use wx-config to get flags
+envl.MergeFlags(['!wx-config --cflags --libs'])
+    
+if not env.GetOption('clean'):
+    conf = envl.Configure()
+    if not conf.CheckCXXHeader(["wx/wx.h"]):
+        print 'Could not find wx.h, please make sure wxwidgets is properly'
+        print 'installed'
+        Exit(1)
+    envl = conf.Finish()
+
+# If on linux we need gtk
+if platform.system() == 'Linux':
+    envl.MergeFlags(['!pkg-config --libs --cflags gtk+-2.0'])
+
+envl.SharedLibrary(target = 'wxogre_util', source = sources)

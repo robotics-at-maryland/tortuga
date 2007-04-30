@@ -15,6 +15,23 @@ Provides core fuctionality for the simulation
 # Libraries Imports
 import ogre.renderer.OGRE as Ogre
 
+class SimulationError (Exception):
+    """ Base class for exceptions in the simulation """
+    pass
+
+def _pvec(vec):
+    return '(%f,%f,%f)' % (vec.x,vec.y,vec.z)
+
+def _pquat(quat):
+    return '(%f,%f,%f,%f)' % (quat.w,quat.x,quat.y,quat.z)
+
+Ogre.Vector3.__str__ = _pvec
+Ogre.Vector3.__repr__ = _pvec
+
+Ogre.Quaternion.__str__ = _pquat
+Ogre.Quaternion.__repr__ = _pquat
+
+
 def Vector(*args, **kwargs):
     """ 
     Converts Lists and Tuples to Ogre.Vector2/3/4, this is just a place holder
@@ -51,6 +68,32 @@ def Quat(*args, **kwargs):
         return Ogre.Quaternion( Ogre.Degree(d = values[3]), Vector(values, length = 3))
     else:
         return Ogre.Quaternion(values[0], values[1], values[2], values[3])
-        
     
-        
+    
+def gravityAndBouyancyCallback(me):
+    mass, inertia = me.getMassMatrix()
+
+    gravity = Ogre.Vector3(0, -9.8, 0) * mass
+    me.addForce(gravity)
+
+    # also don't forget buoyancy force.
+    # just pass the acceleration due to gravity, not the force (accel * mass)! 
+    me.addBouyancyForce(1000, 0.03, 0.03, Ogre.Vector3(0.0,-9.8,0.0), 
+                        buoyancyCallback, "")
+    
+def buoyancyCallback(colID, me, orient, pos, plane):
+    """
+    Here we need to create an Ogre::Plane object representing the surface of 
+    the liquid.  In our case, we're just assuming a completely flat plane of 
+    liquid, however you could use this function to retrieve the plane
+    equation for an animated sea, etc.
+    """
+    plane1 = Ogre.Plane( Ogre.Vector3(0,1,0), Ogre.Vector3(0,0,0) )
+    
+    # we need to copy the normals and 'd' to the plane we were passed...
+    plane.normal = plane1.normal
+    plane.d = plane1.d
+    
+    # pos = Ogre.Vector3(0,0,0)
+   
+    return True 
