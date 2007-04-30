@@ -5,11 +5,30 @@ Checksums are always 8 bits long, so the checksum should be computed mod 256.
 'on bad checksum' means the checksum for the command did not properly verify
 'on failure' means the command was not completed due to internal error of the board
 
+
 Command: Ping
 Description: Test communication with sensor board
 Send:  [0x00 0x00]
 Reply: [0xBC] on success
        [0xCC] on bad checksum
+
+
+
+Command: Synchronize
+Description: Checks that sensor board command entry is in top-level state
+Send:  [0xFF]
+Reply: [0xBC] on success
+
+The only command without a checksum, this command can be used to return the board
+to a known state. If several commands in a row fail with checksum errors, this is
+a very good indication of a frameshift (that is, the command code of one command is
+being treated as a parameter to another command due to earlier disruption of
+communication). If this happens, the proper framing can be restored by sending one
+or more Synchronize commands until a reply of success is recieved. It is possible
+that during the course of sending Sync commands for a failure or a bad checksum
+reply to be issued, but these are in response to whatever command may have been
+offset by the communication error. A success reply to the Synchronize command means
+that the next value sent to the sensor board will be interpreted as a command.
 
 
 
@@ -28,6 +47,9 @@ Send:  [0x02 0x02]
 Reply: [0x03 MSB LSB Checksum] on success
        [0xDF] on failure
        [0xCC] on bad checksum
+
+Actual depth value is (MSB<<8)|(LSB) or MSB*256 + LSB.
+It will be a number between 0 and 1023.
 
 
 

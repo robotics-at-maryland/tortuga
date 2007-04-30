@@ -336,17 +336,18 @@ int main(void)
     #define HOST_REPLY_FAILURE      0xDF
     #define HOST_REPLY_BADCHKSUM    0xCC
 
-    #define HOST_CMD_SYSCHECK         1
+    #define HOST_CMD_SYSCHECK       0x01
 
-    #define HOST_CMD_DEPTH            2
-    #define HOST_REPLY_DEPTH          3
+    #define HOST_CMD_DEPTH          0x02
+    #define HOST_REPLY_DEPTH        0x03
 
-    #define HOST_CMD_BOARDSTATUS      4
-    #define HOST_REPLY_BOARDSTATUS    5
+    #define HOST_CMD_BOARDSTATUS    0x04
+    #define HOST_REPLY_BOARDSTATUS  0x05
 
-    #define HOST_CMD_HARDKILL         6
-    #define HOST_CMD_MARKER           7
+    #define HOST_CMD_HARDKILL       0x06
+    #define HOST_CMD_MARKER         0x07
 
+    #define HOST_CMD_SYNC           0xFF
 
     while(1)
     {
@@ -363,6 +364,12 @@ int main(void)
                 for(i=0; i<32; i++)
                     sendByte(i);
 
+                break;
+            }
+
+            case HOST_CMD_SYNC:
+            {
+                sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
 
