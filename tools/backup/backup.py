@@ -184,6 +184,9 @@ def main(argv=None):
         ensure_path(weekly_path)
         ensure_path(incremental_path)
         
+        # Weekly backup
+        weekly_backup(now, src_path, weekly_path)
+        
         # Incremental Backup
         try:
             subprocess.call(['rdiff-backup', src_path, incremental_path])
