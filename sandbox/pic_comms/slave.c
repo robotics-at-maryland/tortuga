@@ -31,6 +31,17 @@ _FWDT ( WDT_OFF );
 #define IN_RW       _RE8
 #define TRIS_RW     _TRISE8
 
+/* Thurster Safety Pins */
+#define TRIS_TK1    _TRISB3
+#define TRIS_TK2    _TRISB4
+#define TRIS_TK3    _TRISB5
+#define TRIS_TK4    _TRISC15
+#define LAT_TK1     _LATB3
+#define LAT_TK2     _LATB4
+#define LAT_TK3     _LATB5
+#define LAT_TK4     _LATC15
+
+
 #define RW_READ     0
 #define RW_WRITE    1
 
@@ -49,6 +60,17 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_MARKER2         12
 #define BUS_CMD_CHECKWATER      14
 #define BUS_CMD_HARDKILL        17
+
+#define BUS_CMD_THRUSTER1_OFF   19
+#define BUS_CMD_THRUSTER2_OFF   20
+#define BUS_CMD_THRUSTER3_OFF   21
+#define BUS_CMD_THRUSTER4_OFF   22
+
+#define BUS_CMD_THRUSTER1_ON    23
+#define BUS_CMD_THRUSTER2_ON    24
+#define BUS_CMD_THRUSTER3_ON    25
+#define BUS_CMD_THRUSTER4_ON    26
+
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -157,6 +179,53 @@ void processData(byte data)
                     txBuf[0] = 2;   /* Depth is 2 bytes */
                     txBuf[1] = (avgDepth & 0xFF00) >> 8;
                     txBuf[2] = avgDepth & 0xFF;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER1_OFF:
+                {
+                    LAT_TK1 = 0;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER2_OFF:
+                {
+                    LAT_TK2 = 0;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER3_OFF:
+                {
+                    LAT_TK3 = 0;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER4_OFF:
+                {
+                    LAT_TK4 = 0;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER1_ON:
+                {
+                    LAT_TK1 = 1;
+                    break;
+                }
+                case BUS_CMD_THRUSTER2_ON:
+                {
+                    LAT_TK2 = 1;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER3_ON:
+                {
+                    LAT_TK3 = 1;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER4_ON:
+                {
+                    LAT_TK4 = 1;
                     break;
                 }
 
@@ -475,7 +544,16 @@ void main()
 
     _TRISB1 = TRIS_OUT; /* Marker 1 */
     _TRISB2 = TRIS_OUT; /* Marker 2 */
-    _TRISB3 = TRIS_OUT; /* Thruster Safety */
+
+    LAT_TK1 = 0;
+    LAT_TK2 = 0;
+    LAT_TK3 = 0;
+    LAT_TK4 = 0;
+
+    TRIS_TK1 = TRIS_OUT;
+    TRIS_TK2 = TRIS_OUT;
+    TRIS_TK3 = TRIS_OUT;
+    TRIS_TK4 = TRIS_OUT;
 
 
     for(i=0; i<16; i++)

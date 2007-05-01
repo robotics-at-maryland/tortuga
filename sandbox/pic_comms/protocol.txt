@@ -113,3 +113,22 @@ A state of 0 turns the backlight off. A state of 1 turns the backlight on. A sta
 in a reply of 0xFF.
 
 
+
+
+Command: Set Thruster Safety
+Description: Set the state of the thruster safety pins
+Send:  [0x09 0xB1 0xD0 0x23 0x7A 0x69 Thruster Checksum]
+Reply: [0xBC] on success
+       [0xDF] on hardware failure
+       [0xCC] on bad checksum or malformed command
+
+This changes the values of the thruster safety pins. 'Thruster' can take on the values
+between 0 and 7, with the following encoding:
+       Thruster bits 0 and 1 specify the thruster number (0-3)
+       Thruster bit 2 determines the new pin state, that is, 1 is on and 0 is off
+The checksum applies over the entire command (safety sequence and parameter).
+This is an example of a valid command: [0x09 0xB1 0xD0 0x23 0x7A 0x69 0x04 0x94]
+It has a valid checksum and would turn on the first thruster safety pin. What it means
+for the pins to be on or off... I don't know. It could be enabling or disabling the
+thrusters, depending on how that hardware is set up. All that is known is that the
+four pins are initialized to all 0s on power-on.
