@@ -555,6 +555,7 @@ int main(void)
                 }
 
                 sendByte(HOST_REPLY_SUCCESS);
+                break;
             }
 
             case HOST_CMD_BACKLIGHT:
@@ -578,6 +579,7 @@ int main(void)
                 }
 
                 sendByte(HOST_REPLY_SUCCESS);
+                break;
             }
         }
     }
