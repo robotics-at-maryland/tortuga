@@ -576,6 +576,7 @@ int main(void)
                 break;
             }
 
+
             case HOST_CMD_BACKLIGHT:
             {
                 t1 = waitchar(1);
@@ -599,6 +600,7 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
+
 
             case HOST_CMD_THRUSTERS:
             {
@@ -646,6 +648,7 @@ int main(void)
                 break;
             }
 
+
             case HOST_CMD_TEMPERATURE:
             {
                 t1 = waitchar(1);
@@ -682,6 +685,7 @@ int main(void)
                 sendByte(cs + HOST_REPLY_TEMPERATURE);
                 break;
             }
+
 
             case HOST_CMD_PRINTTEXT:
             {
