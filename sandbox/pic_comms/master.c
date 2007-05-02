@@ -369,6 +369,7 @@ int main(void)
     #define HOST_CMD_TEMPERATURE    0x0A
     #define HOST_REPLY_TEMPERATURE  0x0B
 
+    #define HOST_CMD_PRINTTEXT      0x0C
 
     while(1)
     {
@@ -681,6 +682,45 @@ int main(void)
                 sendByte(cs + HOST_REPLY_TEMPERATURE);
                 break;
             }
+
+            case HOST_CMD_PRINTTEXT:
+            {
+                t1 = waitchar(1);
+                byte cs=HOST_CMD_PRINTTEXT+t1;
+
+                for(i=0; i<16; i++)
+                {
+                    rxBuf[i] = waitchar(1);
+                    cs += rxBuf[i];
+                }
+                t2 = waitchar(1);
+
+                if(t2 != cs || t1 > 1)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                int err=0;
+
+                for(i=0; i<16 && err==0; i++)
+                {
+                    err+=busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
+                    err+=busWriteByte(t1*16+i, SLAVE_ID_LCD);
+                    err+=busWriteByte(rxBuf[i], SLAVE_ID_LCD);
+                }
+
+                err+=busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
+
+                if(err != 0)
+                    sendByte(HOST_REPLY_FAILURE);
+                else
+                    sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
+
 
         }
     }
