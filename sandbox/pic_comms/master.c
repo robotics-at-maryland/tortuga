@@ -366,6 +366,8 @@ int main(void)
 
     #define HOST_CMD_THRUSTERS      0x09
 
+    #define HOST_CMD_TEMPERATURE    0x0A
+    #define HOST_REPLY_TEMPERATURE  0x0B
 
 
     while(1)
@@ -640,6 +642,43 @@ int main(void)
                     }
                 }
                 sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_TEMPERATURE:
+            {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_TEMPERATURE)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                int len = readDataBlock(SLAVE_ID_TEMP);
+
+                if(len != 4)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_TEMPERATURE);
+
+                byte cs=0;
+
+                for(i=0; i<4; i++)
+                {
+                    cs += rxBuf[i];
+                    sendByte(rxBuf[i]);
+                }
+
+                sendByte(cs + HOST_REPLY_TEMPERATURE);
                 break;
             }
 

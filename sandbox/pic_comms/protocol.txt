@@ -132,3 +132,23 @@ It has a valid checksum and would turn on the first thruster safety pin. What it
 for the pins to be on or off... I don't know. It could be enabling or disabling the
 thrusters, depending on how that hardware is set up. All that is known is that the
 four pins are initialized to all 0s on power-on.
+
+
+
+
+Command: Get Temperature Readings - THIS COMMAND WILL CHANGE IN THE FUTURE
+Description: Retrieve the temperature readings of the board's temperature sensors
+Send:  [0x0A 0x0A]
+Reply: [0x0B T0 T1 T2 T3 Checksum]
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+The bytes T0 - T3 are individual temperature readings, in degrees Celcius. A value
+of 0xFF (255) indicates that a particular temperature sensor has failed to report a
+reading, possibly due to I2C bus noise or something similar, so another reading can
+probably be taken if this happens (though it shouldn't happen in production). Note:
+The number of temperature readings that are returned WILL change, as we will definitely
+have more than 4 temperature sensors! Also, there are other temperature sensors to
+worry about; these are just the readings made by the sensor board. The computer has
+several internal temperature sensors, as does its power supply. The specific physical
+areas associated with each sensor reading are yet to be determined.
