@@ -110,7 +110,7 @@ Reply: [0xBC] on success
 This will turn the backlight on the display on or off. 'State' determines what to do.
 A state of 0 turns the backlight off. A state of 1 turns the backlight on. A state of
 2 makes the backlight flash about once per second. Any other value of state results
-in a reply of 0xFF.
+in a reply of 0xCC.
 
 
 
