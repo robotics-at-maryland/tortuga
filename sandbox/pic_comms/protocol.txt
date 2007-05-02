@@ -152,3 +152,19 @@ have more than 4 temperature sensors! Also, there are other temperature sensors 
 worry about; these are just the readings made by the sensor board. The computer has
 several internal temperature sensors, as does its power supply. The specific physical
 areas associated with each sensor reading are yet to be determined.
+
+
+
+
+Command: Display Text
+Description: Upload a line of text to the LCD
+Send:  [0x0C Line D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 D14 D15 Checksum]
+Reply: [0xBC] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum or invalid input
+
+This command sends a line of text to the LCD. 'Line' can be 0 or 1, with 0 being the
+top line and 1 being the bottom line. D0-D15 are ASCII characters forming a string of
+text 16 bytes in length. This command takes longer to complete than the other commands
+so it should probably be used sparingly. Refresh the display maybe once a second if
+needed but definitely don't upload new text every iteration of the control loop.
