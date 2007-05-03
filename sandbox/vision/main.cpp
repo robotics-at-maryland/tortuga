@@ -795,9 +795,9 @@ int white_detect(IplImage* percents, IplImage* base)
 
 int main (int argc, char * const argv[]) {
 
-//	CvCapture* camCapture=cvCaptureFromFile("underwater.mov");
+	CvCapture* camCapture=cvCaptureFromFile("underwater.mov");
 
-	CvCapture* camCapture=cvCaptureFromCAM(0);
+	//	CvCapture* camCapture=cvCaptureFromCAM(0);
 	cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Testing", CV_WINDOW_AUTOSIZE );
