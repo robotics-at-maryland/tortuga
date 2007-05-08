@@ -242,7 +242,7 @@ class SimApp(wx.App):
         self.timer = None
         self.update_interval = (1.0 / 30.0 * 1000) # In milliseconds
 
-        self.config = yaml.load(file(os.path.join('..', 'sim.yml')))
+        self.config = yaml.load(file(os.path.join('data', 'config','sim.yml')))
         # Create simulation
         self.sim = sim.simulation.Simulation(self.config['Simulation'])
         self.components = [self.sim]
