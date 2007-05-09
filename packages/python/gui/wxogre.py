@@ -74,7 +74,7 @@ class wxOgre(wx.PyControl):
         
         # Redraw the window for every event
         self._render_window.update()
-        #Ogre.Root.getSingleton().renderOneFrame()
+        
         if event is not None:
             event.Skip()
             

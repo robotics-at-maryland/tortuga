@@ -7,12 +7,16 @@
 # Standard python imports
 import ctypes as __ctypes
 import os.path as __path
+import os as __os
+
+
 
 # Library Imports
 import wx as __wx
 
 # Load library
-__lib_path = __path.join('..','build','utility','wxogre_util','libwxogre_util.so')
+__lib_path = __path.join(__os.environ['MRBC_SVN_ROOT'],'packages','build',
+                         'extensions','wxogre','lib_wxogre.so')
 __lib = __ctypes.cdll.LoadLibrary(__path.abspath(__lib_path))
 # Look up function
 __get_window_handle_str = __lib.get_window_handle_str

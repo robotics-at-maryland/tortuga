@@ -10,23 +10,10 @@
 them.
 """
 
-# Vehicle Creation Classes
-class VehicleFactory(object):
-    """
-    Break out into a common base class, or meta class?
-    """
-    createFunc = {};
-
-    @staticmethod    
-    def create(type, *args, **kwargs):
-        return apply(VehicleFactory.createFunc[type], args, kwargs)
-    
-    @staticmethod
-    def register(type, function):
-        VehicleFactory.createFunc[type] = function
+import core
 
 # Definition of the vehicle interface
-class IVehicle(object):
+class IVehicle(core.Interface):
     """
     Needed properties: Heading, Depth, possibly some accelerations,
     incorperate other vehicle models and plans here.
@@ -38,7 +25,8 @@ class IVehicle(object):
     The attitude and position attributes hold the current attitude and position
     of the vehicle.  These are currently Ogre Vectors, and Quaternions
     """
-    
+
+    # Possible add this to and "IUpdatedable" interface
     def update(self, timestep):
         """
         Update the vehicle for a certain timestep (uses non threaded 
@@ -46,14 +34,43 @@ class IVehicle(object):
         """
         pass
 
-    def startUpdate(self):
+    def start_continuous_update(self):
         """
         Start automatic update (this would utilize threads and locking to keep
         everything up to date)
         """
         pass
 
-    def getDevice(self, name):
+    def stop_continuous_update(self):
         """
+        Stops what ever current background update system there is.
         """
         pass
+
+
+    def get_device(self, name):
+        """
+        Gets the current device associated with the given name
+
+        @type  name: string
+        @param name: The name of the device.
+
+        @rtype : IDevice implementer, or None
+        @return: The requested device, None happens on failure.
+        """
+        pass
+
+
+    def linear_acceleration():
+        pass
+
+    def angular_acceleration():
+        pass
+
+    def angular_velocity():
+        pass
+
+    # TODO: Add stuff to deal with power, temps, and water leakage
+    
+
+    

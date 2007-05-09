@@ -22,7 +22,7 @@ Help(opts.GenerateHelpText(env))
 # --------------------------------------------------------------------------- #
 install = False
 
-dirs_to_build = [os.path.join('utility', 'wxogre_util')]
+dirs_to_build = [os.path.join('extensions', 'wxogre')]
 
 # Our build subdirectory
 buildDir = 'build'

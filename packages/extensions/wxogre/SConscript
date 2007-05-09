@@ -39,4 +39,4 @@ if not env.GetOption('clean'):
 if platform.system() == 'Linux':
     envl.MergeFlags(['!pkg-config --libs --cflags gtk+-2.0'])
 
-envl.SharedLibrary(target = 'wxogre_util', source = sources)
+envl.SharedLibrary(target = '_wxogre', source = sources)

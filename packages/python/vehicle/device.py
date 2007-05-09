@@ -10,38 +10,22 @@
 create them.
 """
 
-from core import property
+from core import Interface, Attribute
 
-# Device Creation Classes
-class DeviceFactory(object):
-    """
-    Break out into a common base class, or meta class?
-    """
-    createFunc = {};
-
-    @staticmethod    
-    def create(type, *args, **kwargs):
-        # apply calls the given function with args, as the list of arugments
-        # and the dict as the set of keyword arguments
-        return apply(DeviceFactory.createFunc[type], args, kwargs)
     
-    @staticmethod
-    def register(type, function):
-        DeviceFactory.createFunc[type] = function
-    
-class IDevice(object):
+class IDevice(Interface):
     """
     Represents a physical object on the vehicle like thrusters, sensors,
     actuators, etc.
     """
     
-    def update(self, timestep):
+    def update(timestep):
         """
         Update the device, the timestep value may not be needed
         """
         pass
 
-    def start_update(self):
+    def start_update():
         """
         Start automatic update (this would utilize threads and locking to keep
         the vehicle up to date)
@@ -52,10 +36,16 @@ class IThruster(IDevice):
     """
     A non rotating thruster that can have its powerlevel set from -100 to 100
     """
-    class power(property):
-        '''The angle in radians'''
-        def fget(self):
-            return self._power
-        def fset(self,power):
-            if  (power >= -1) and (power <= 1):
-                self._power = power
+    
+    min_force = Attribute(\
+        """
+        The minimum force the thruster can apply (ie max reverse force)
+        """)
+
+    max_force  = Attribute(\
+        """
+        The maximum force the thruster can apply (ie max forward force)
+        """)
+
+      
+        
