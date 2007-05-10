@@ -162,6 +162,9 @@ class Singleton(object):
         singleton.init(*args, **kwds)
         return singleton
     
+    def __init__(self, *args, **kwargs):
+        pass
+    
     def init(self, *args, **kwds):
         """
         Overide the 'init' method instead of the normal '__init__' for the
@@ -205,7 +208,12 @@ class Component(object):
         
     The registry is of the form    
         { IInterfaceOne : 
-            {'mypkg.submod.MyClass' : MyClass, 
+            {'mypkg.submod.My
+        # Determine the name of attributes
+        if _elapsed_attr is None:
+            elapsed_attr = '%s_%s' %(func.__name__, 'elapsed')
+            setattr(func, elapsed_attr, 0)
+        Class' : MyClass, 
              'module1.OtherCls' : OtherCls },
           IAnotherInterface : 
               {'myotherpkg.subpkg.submod.AClass' : AClass} }
@@ -224,7 +232,8 @@ class Component(object):
         """
         Finds and creates objects based on the interface and class names
         """
-        return Component.get_class(interface, class_name)(*args, **kwargs)
+        _class = Component.get_class(interface, class_name)
+        return _class(*args, **kwargs)
 
 def _register_class(_class):
     """
@@ -235,7 +244,13 @@ def _register_class(_class):
             {'mypkg.submod.MyClass' : MyClass, 
              'module1.OtherCls' : OtherCls },
           IAnotherInterface : 
+              {'myotherpkg.subpkg.submod.AClass' : AClass} 
+          'mod.IInterfaceOne' : 
+            {'mypkg.submod.MyClass' : MyClass, 
+             'module1.OtherCls' : OtherCls },
+          'othermod.IAnotherInterface' : 
               {'myotherpkg.subpkg.submod.AClass' : AClass} }
+              
     """
 
     implemented_interfaces = [i for i in implementedBy(_class)]
@@ -249,7 +264,10 @@ def _register_class(_class):
         # registry.
         
         full_name = _class.__module__ + '.' + _class.__name__
+        iface_name = iface.__module__ + '.' + iface.__name__
+        
         Component._registry.setdefault(iface, {})[full_name] = _class
+        Component._registry.setdefault(iface_name, {})[full_name] = _class
 
     return _class
 
