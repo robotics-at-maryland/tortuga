@@ -17,12 +17,13 @@ env = Environment(ENV=os.environ, options = opts)
 Help(opts.GenerateHelpText(env))
 
 
+
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
 # --------------------------------------------------------------------------- #
 install = False
 
-dirs_to_build = [os.path.join('extensions', 'wxogre')]
+dirs_to_build = [os.path.join('packages','extensions', 'wxogre')]
 
 # Our build subdirectory
 buildDir = 'build'
