@@ -61,13 +61,19 @@ class IVehicle(core.Interface):
         pass
 
 
-    def linear_acceleration():
+    def acceleration():
         pass
 
     def angular_acceleration():
         pass
 
     def angular_velocity():
+        pass
+
+    def depth():
+        pass
+    
+    def orientation():
         pass
 
     # TODO: Add stuff to deal with power, temps, and water leakage

@@ -46,6 +46,11 @@ class IThruster(IDevice):
         """
         The maximum force the thruster can apply (ie max forward force)
         """)
+    
+    force = Attribute(\
+      """
+      The force the thruster is currently applying.
+      """)
 
       
         
