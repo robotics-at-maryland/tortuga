@@ -163,23 +163,23 @@ class TestController(object):
             self.robot.parts.aft_thruster.force += (5 * time_since_last_frame)
             self.robot.parts.front_thruster.force -= (5 * time_since_last_frame)
 
+
 class TestPanel(wx.Panel):
     def __init__(self, parent, log):
+        event.register_handlers('MODULE_START',self.on_module_start)
         self.log = log
         wx.Panel.__init__(self, parent, -1, wx.DefaultPosition, wx.Size(100,400))
 
         self.nb = wx.aui.AuiNotebook(self)
-        page = wx.TextCtrl(self.nb, -1, "Test", style=wx.TE_MULTILINE)
-        self.nb.AddPage(page, "Welcome")
+        self.page = wx.TextCtrl(self.nb, -1, "Test", style=wx.TE_MULTILINE)
+        self.nb.AddPage(self.page, "Welcome")
 
-        for num in range(1, 5):
-            page = wx.TextCtrl(self.nb, -1, "This is page %d" % num ,
-                               style=wx.TE_MULTILINE)
-            self.nb.AddPage(page, "Tab Number %d" % num)
-            
         sizer = wx.BoxSizer()
         sizer.Add(self.nb, 1, wx.EXPAND)
         self.SetSizer(sizer)
+        
+    def on_module_start(self, mod):
+        self.page.write('\nModule: %s of type: "%s" started\n' % (mod.name, type(mod)))
 
 class MainFrame(gui.wxogre.wxOgreFrame):
     def __init__(self, activate_callback):

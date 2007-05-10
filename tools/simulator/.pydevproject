@@ -8,4 +8,7 @@
 <path>/home/jlisee/projects/mrbc/trunk/deps/local/lib/python2.5/site-packages</path>
 <path>/home/jlisee/projects/mrbc/trunk/packages/python</path>
 </pydev_pathproperty>
+<pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
+<path>/Simulator</path>
+</pydev_pathproperty>
 </pydev_project>
