@@ -5,6 +5,7 @@ import ogre.renderer.OGRE as Ogre
 # Projects Include
 from sim.simulation import Simulation
 from core import cls_property
+import event
 
 class wxOgre(wx.PyControl):
     """
@@ -19,6 +20,7 @@ class wxOgre(wx.PyControl):
                  name = wx.ControlNameStr):
         wx.PyControl.__init__(self, parent, id, pos, size, style, validator, name)
         
+        self._viewport = None
         self._camera = camera
         if camera is not None:
             self._camera.setAutoAspectRatio(True)       
@@ -69,7 +71,8 @@ class wxOgre(wx.PyControl):
             if '__WXGTK__' == wx.Platform:
                 size = self.GetClientSize()
                 self._render_window.resize(size.width, size.height)
-                self._viewport._updateDimensions()
+                if self._viewport is not None:
+                    self._viewport._updateDimensions()
             self._render_window.windowMovedOrResized()
         
         # Redraw the window for every event
@@ -85,10 +88,13 @@ class wxOgre(wx.PyControl):
     def _create_ogre_window(self):
         size = self.GetClientSize()
         params = self._get_window_params()
+        name = str(self.GetName())
         
-        self._render_window = \
-            Simulation.get().create_window(self.GetName(), size.width, 
-                                           size.height, params)
+        self._render_window = Ogre.Root.getSingleton().createRenderWindow(name, 
+                                                                 size.width, 
+                                                                 size.height, 
+                                                                 False, params)
+            
             
         self._render_window.active = True
         # You can only create a camera after you have made the first render

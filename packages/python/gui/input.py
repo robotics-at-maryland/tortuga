@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  gui/wxevent.py
+# File:  packages/python/gui/input.py
 
 # Libnrary Imports
 import wx
