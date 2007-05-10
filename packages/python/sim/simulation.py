@@ -32,22 +32,25 @@ from sim.input import InputSystem
 from sim.util import SimulationError
 import sim.defaults as defaults
 
-from core import Singleton, log, log_init
+from core import Singleton, log, log_init, implements, Component
+from module import Module, IModule
 
 # Events
-event.add_event_types(['SIM_SHUTDOWN','SIM_UPDATE']) # Called to shutdown the simulation
+event.add_event_types(['SIM_UPDATE',
+                       'OGRE_RENDERER_CREATED']) 
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """
     pass
 
-class Simulation(Singleton):
+class Simulation(Singleton, Module):
     """
     The root object of the simulation, this is a singleton object just use
     'Simulation.get()' to access it.
     """
+    implements(IModule)
     
-    @log_init(defaults.simulation_log_config)
+    #@log_init(defaults.simulation_log_config)
     def init(self, config = {}):
         self._ogre_root = None
         self._scenes = {}
@@ -55,19 +58,20 @@ class Simulation(Singleton):
         
         self._graphics_init(config.get('Graphics', {}))
         self.input_system = InputSystem(config.get('Input', {}))
+
+        Module.__init__(self, 'Simulation', 'MainSim')
     
-        event.register_handlers('SIM_SHUTDOWN', self._shutdown)
-        self._run = True
-        
-    @log('* * * Beginning shutdown', '* * * Shutdown complete')
-    def __del__(self):
-        # Ensure proper of C++ desctuctors
-        # TODO: Ensure I have to do this, I might be able to ignore this
+#    def __del__(self):
+#        # Ensure proper of C++ desctuctors
+#        # TODO: Ensure I have to do this, I might be able to ignore this
+#        del self._scenes
+#        del self._ogre_root
+   
+    #@log('* * * Beginning shutdown', '* * * Shutdown complete') 
+    def shutdown(self):
+        self.pause()
         del self._scenes
         del self._ogre_root
-        
-    def _shutdown(self):
-        self._run = False
         
     def update(self, time_since_last_update):
         """
@@ -76,7 +80,7 @@ class Simulation(Singleton):
         @type time_since_last_update: a decimal number
         @param time_since_last_update: name says it all
         """
-        if self._run:
+        if self._running:
             Ogre.WindowEventUtilities.messagePump()
             #self._ogre_root.renderOneFrame()
    
@@ -84,19 +88,7 @@ class Simulation(Singleton):
                 scene.update(time_since_last_update)
    
             event.send('SIM_UPDATE', time_since_last_update)
-        return self._run
-    
-    def create_window(self, name, width, height, params):
-        """
-        This creates a new render window.  If the post render window setup has
-        not already been done, it will be done with the creation of the first
-        window.
-        """
-        
-        new_window = self._ogre_root.createRenderWindow(str(name), width, height, 
-                                                      False, params)
-            
-        return new_window
+        return self._running
     
     def iterscenes(self):
         """
@@ -194,9 +186,9 @@ class Simulation(Singleton):
         if len(search_path) == 0:
             raise GraphicsError('All plugin directories do not exist')
         
-        self.logger.info('Loadings Ogre Plugins on path:')
-        for path in search_path: 
-            self.logger.info('\t%s' % path )
+        #self.logger.info('Loadings Ogre Plugins on path:')
+        #for path in search_path: 
+        #    self.logger.info('\t%s' % path )
         
         
         extension = '.so'
@@ -205,7 +197,7 @@ class Simulation(Singleton):
             
         for plugin in config.get('plugins', defaults.ogre_plugins):
             plugin_name = plugin + extension
-            self.logger.info('\tSearching for: %s' % plugin_name)
+            #self.logger.info('\tSearching for: %s' % plugin_name)
             found = False
             
             for dir in search_path:
@@ -272,3 +264,6 @@ class Simulation(Singleton):
 
         # Give Ogre our new render system 
         self._ogre_root.setRenderSystem(render_system)
+        
+        event.send('OGRE_RENDERER_CREATED')
+
