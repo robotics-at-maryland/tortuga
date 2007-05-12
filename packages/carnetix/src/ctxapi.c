@@ -242,3 +242,8 @@ int ctxPriOff(usb_dev_handle * hDev)
 }
 
 
+void ctxClose(usb_dev_handle * hDev)
+{
+    if(hDev)
+        usb_close(hDev);
+}

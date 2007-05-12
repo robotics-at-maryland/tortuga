@@ -53,5 +53,8 @@ int main(int argc, char ** argv)
     ctxReadParams(hDev, &prm);
     ctxPrintParams(&prm);
 
+    ctxClose(hDev);
+
+
     return 0;
 }

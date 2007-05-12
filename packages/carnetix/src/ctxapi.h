@@ -33,4 +33,4 @@ int ctxReadValues(usb_dev_handle * hDev, struct ctxValues * val);
 int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm);
 int ctxPriOn(usb_dev_handle * hDev);
 int ctxPriOff(usb_dev_handle * hDev);
-
+void ctxClose(usb_dev_handle * hDev);
