@@ -26,6 +26,7 @@ extern "C"
 
 // Platform specific includes
 #ifdef __WXGTK__
+#include <wx/glcanvas.h>
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 #endif
@@ -48,19 +49,21 @@ char* get_window_handle_str(void* _window)
     // Display
     Display* display = GDK_WINDOW_XDISPLAY( widget->window );
     handleStream << (unsigned long)display << ':';
-  
-  // Screen (returns ":display.screen")
-  /* The new Ogre GLX renderer patch removes this need
-     
+/*  
+    // Screen (returns ":display.screen   ")
     std::string screenStr = DisplayString(display);
     int dotpos = screenStr.find(".", 0);
     screenStr = screenStr.substr(dotpos + 1, screenStr.length() - dotpos);
-    handleStream << screenStr << ':';*/
-
+    handleStream << screenStr << ':';
+*/
     // XID (typedef of an unsigned int)
     Window wid = GDK_WINDOW_XWINDOW( widget->window );
     handleStream << wid;
-  
+
+    // Now lets get our XVisualInfo
+/*    void* vi = wxGLCanvas::ChooseGLVisual(NULL);
+    handleStream << (unsigned long)vi;*/
+    
     handle = handleStream.str();
 #else
 #error External/Parent Window handle not supported on this platform

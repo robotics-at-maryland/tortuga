@@ -25,6 +25,10 @@ class wxOgre(wx.PyControl):
         if camera is not None:
             self._camera.setAutoAspectRatio(True)       
             
+    def Reparent(self, parent):
+        raise "ERROR"
+        wx.PyControl.Reparent(self, parent)
+            
     class camera(cls_property):
         """
         The camera attached to the main viewport of the window.
@@ -68,11 +72,13 @@ class wxOgre(wx.PyControl):
         if type(event) is wx.SizeEvent:
             # On GTK we let Ogre create its own child window, so we have to
             # manually resize it match its parent, this control
-            if '__WXGTK__' == wx.Platform:
-                size = self.GetClientSize()
-                self._render_window.resize(size.width, size.height)
-                if self._viewport is not None:
-                    self._viewport._updateDimensions()
+#            if '__WXGTK__' == wx.Platform:
+#                size = self.GetClientSize()
+#                self._render_window.resize(size.width, size.height)
+#                #self._render_window.resize(100,100)
+#                if self._viewport is not None:
+#                    self._viewport._updateDimensions()
+#                pass
             self._render_window.windowMovedOrResized()
         
         # Redraw the window for every event

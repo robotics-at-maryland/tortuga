@@ -29,26 +29,36 @@ class SimPanelProvider(Component):
         return False
     
     def get_panels(self, mod, parent):
-        dummy = wxOgre(None, parent, -1, wx.DefaultPosition, wx.Size(1,1))
+        dummy = wxOgre(None, parent, -1, wx.DefaultPosition, wx.Size(300,300))
         dummy.SetName("dummy")
         dummy._init_ogre()
-        dummy_info = wx.aui.AuiPaneInfo().Name("dummy").Caption("Dummy").Hide()
+        dummy_info = wx.aui.AuiPaneInfo().Name("dummy").Caption("Dummy").Left()
         
-        main = wxOgre(None, parent)
+        main = wxOgre(None, parent, -1)
         main.SetName("main")
         main._init_ogre()
         main_info = wx.aui.AuiPaneInfo().Name("main").Caption("Simulation").Center()
+        
+#        test = wxOgre(None, parent, -1)
+#        test.SetName("test")
+#        test._init_ogre()
+#        test_info = wx.aui.AuiPaneInfo().Name("test").Caption("test2").Left()
     
         # Setup the input system dependent on platform
-        if wx.Platform == '__WXMSW__':
-            main._input_forwarder = InputForwarder(Simulation.get().input_system)
-            main._input_forwarder.forward_window(main)
-        elif wx.Platform == '__WXGTK__':
-            main._input_forwarder = OISInputForwarder({}, \
-                                              Simulation.get().input_system, 
-                                              main._render_window)
-        else:
-            raise "Error platform not supported"
-        
-        return [(dummy_info, dummy), (main_info, main)]
+#        if wx.Platform == '__WXMSW__':
+#            main._input_forwarder = InputForwarder(Simulation.get().input_system)
+#            main._input_forwarder.forward_window(main)
+#        elif wx.Platform == '__WXGTK__':
+#            main._input_forwarder = OISInputForwarder({}, \
+#                                              Simulation.get().input_system, 
+#                                              main._render_window)
+#        else:
+#            raise "Error platform not supported"
+#        
+        return [(main_info, main), (dummy_info, dummy)]
+#        main_info = wx.aui.AuiPaneInfo().Name("main").Caption("Simulation").Center()
+#        main = wx.TextCtrl(parent, -1, "This is page 1" ,
+#                               style=wx.TE_MULTILINE)
+#        
+#        return [(main_info, main)]
     
