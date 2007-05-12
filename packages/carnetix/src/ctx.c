@@ -15,6 +15,20 @@ int ctxPrintValues(struct ctxValues * val)
     printf("LED Status  : 0x%04X\nState: %d\n\n", val->ledValue, val->state);
 }
 
+int ctxPrintParams(struct ctxParams * prm)
+{
+    if(!prm)
+        return -1;
+
+    printf("SD_DELAY : %.1f sec\n", prm->sd_dly);
+    printf("DMT      : %.1f hr\n", prm->dmt);
+    printf("DLYON    : %.1f hr\n", prm->dlyon);
+    printf("BU_LO    : %.1f sec\n", prm->bu_lo);
+    printf("SD_LO    : %.1f sec\n", prm->sd_lo);
+    printf("LOBATT   : %.1f V\n", prm->lobatt);
+    printf("Jumpers  : 0x%02X\n", prm->softJumpers);
+}
+
 int main(int argc, char ** argv)
 {
     unsigned char buf[25];
@@ -30,10 +44,14 @@ int main(int argc, char ** argv)
     }
 
     struct ctxValues val;
+    struct ctxParams prm;
 
     printf("\n");
     ctxReadValues(hDev, &val);
     ctxPrintValues(&val);
+
+    ctxReadParams(hDev, &prm);
+    ctxPrintParams(&prm);
 
     return 0;
 }

@@ -138,6 +138,9 @@ int ctxReadValues(usb_dev_handle * hDev, struct ctxValues * val)
     unsigned char getValCmd[]={0x40, 0x17};
     unsigned char buf[23];
 
+    if(!hDev)
+        return -1;
+
     if(!val)
         return -1;
 
@@ -164,3 +167,78 @@ int ctxReadValues(usb_dev_handle * hDev, struct ctxValues * val)
     val->state = buf[18];
     return 0;
 }
+
+
+int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm)
+{
+    unsigned char getPrmCmd[]={0x44, 0x13};
+    unsigned char buf[15];
+
+    if(!hDev)
+        return -1;
+
+    if(!prm)
+        return -1;
+
+    if(ctxWrite(hDev, getPrmCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    if(ctxRead(hDev, buf, 15, SHORT_TIMEOUT) != 15)
+        return -1;
+
+    if(buf[0] != 0x44 || buf[1] != 0x13)
+        return -1;
+
+    prm->sd_dly = ((buf[3]<<8) | buf[2]) * 0.1;
+    prm->dmt    = ((buf[5]<<8) | buf[4]) * 0.1;
+    prm->dlyon  = ((buf[7]<<8) | buf[6]) * 0.1;
+    prm->bu_lo  = ((buf[9]<<8) | buf[8]) * 0.1;
+    prm->sd_lo  = ((buf[11]<<8) | buf[10]) * 0.1;
+    prm->lobatt = ((buf[13]<<8) | buf[12]) * 0.0321;
+    prm->softJumpers = buf[14];
+
+    return 0;
+}
+
+
+int ctxPriOn(usb_dev_handle * hDev)
+{
+    unsigned char ctxPriOnCmd[]={0x41, 0x03};
+    unsigned char buf[3];
+
+    if(!hDev)
+        return -1;
+
+    if(ctxWrite(hDev, ctxPriOnCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    if(ctxRead(hDev, buf, 3, SHORT_TIMEOUT) != 3)
+        return -1;
+
+    if(buf[0] != 0x41 || buf[1] != 0x03 || buf[2] != 0xFF)
+        return -1;
+
+    return 0;
+}
+
+int ctxPriOff(usb_dev_handle * hDev)
+{
+    unsigned char ctxPriOffCmd[]={0x42, 0x03};
+    unsigned char buf[3];
+
+    if(!hDev)
+        return -1;
+
+    if(ctxWrite(hDev, ctxPriOffCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    if(ctxRead(hDev, buf, 3, SHORT_TIMEOUT) != 3)
+        return -1;
+
+    if(buf[0] != 0x42 || buf[1] != 0x03 || buf[2] != 0x00)
+        return -1;
+
+    return 0;
+}
+
+
