@@ -33,6 +33,7 @@ struct ctxParams
 };
 
 usb_dev_handle * ctxInit();
+int ctxGetFWVersion(usb_dev_handle * hDev, char * buf, int len);
 int ctxReadValues(usb_dev_handle * hDev, struct ctxValues * val);
 int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm);
 int ctxWriteParams(usb_dev_handle * hDev, struct ctxParams * prm);

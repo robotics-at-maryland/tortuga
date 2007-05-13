@@ -51,7 +51,12 @@ int main(int argc, char ** argv)
     struct ctxValues val;
     struct ctxParams prm;
 
-    printf("\n");
+
+    printf("\nYou should probably upgrage to Firmware 1.8 if you haven't already done so.\n\n");
+
+    ctxGetFWVersion(hDev, buf, 25);
+    printf("Firmware Version is: %s\n", buf);
+
     ctxReadValues(hDev, &val);
     ctxPrintValues(&val);
 

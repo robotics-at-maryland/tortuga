@@ -385,6 +385,35 @@ int ctxP5VOn(usb_dev_handle * hDev)
     return 0;
 }
 
+int ctxGetFWVersion(usb_dev_handle * hDev, char * vbuf, int len)
+{
+    unsigned char ctxVerCmd[]={0x00, 0x03};
+    unsigned char buf[15];
+
+    if(!hDev || len < 12 || !vbuf)
+        return -1;
+
+    if(ctxWrite(hDev, ctxVerCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    int rlen = ctxRead(hDev, buf, 5, SHORT_TIMEOUT);
+
+    if(len < 4)
+        return -1;
+
+    if(buf[0] != 0x00 || buf[1] != 0x03)
+        return -1;
+
+    sprintf(vbuf, "??");
+
+    if(rlen == 4)    /* Old FW, reports XX.xx */
+        sprintf(vbuf, "%d.%d", buf[3], buf[2]);
+
+    if(rlen == 5)
+        sprintf(vbuf, "%d.%d.%d", buf[3], buf[2], buf[4]);
+    return 0;
+}
+
 
 void ctxClose(usb_dev_handle * hDev)
 {
