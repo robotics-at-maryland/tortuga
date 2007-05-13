@@ -35,6 +35,7 @@ struct ctxParams
 usb_dev_handle * ctxInit();
 int ctxReadValues(usb_dev_handle * hDev, struct ctxValues * val);
 int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm);
+int ctxWriteParams(usb_dev_handle * hDev, struct ctxParams * prm);
 int ctxPriOn(usb_dev_handle * hDev);
 int ctxPriOff(usb_dev_handle * hDev);
 int ctxSecOn(usb_dev_handle * hDev);

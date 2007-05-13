@@ -189,7 +189,7 @@ int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm)
     if(buf[0] != 0x44 || buf[1] != 0x15)
         return -1;
 
-    prm->sd_dly = ((buf[3]<<8) | buf[2]) * 0.1;
+    prm->sd_dly = ((buf[3]<<8) | buf[2]);
     prm->dmt    = ((buf[5]<<8) | buf[4]) * 0.1;
     prm->dlyon  = ((buf[7]<<8) | buf[6]) * 0.1;
     prm->bu_lo  = ((buf[9]<<8) | buf[8]) * 0.1;
@@ -200,6 +200,66 @@ int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm)
     prm->acpiDelay = ((buf[16]<<8) | buf[15]) * 0.1;
     prm->acpiDuration = ((buf[18]<<8) | buf[17]) * 0.1;
     prm->lowTemp = (((buf[20]<<8) | buf[19])-124) * 0.403;
+    return 0;
+}
+
+
+int ctxWriteParams(usb_dev_handle * hDev, struct ctxParams * prm)
+{
+    unsigned char buf[23];
+    unsigned char reply[3];
+
+    if(!hDev)
+        return -1;
+
+    if(!prm)
+        return -1;
+
+    buf[0] = 0x43;
+    buf[1] = 0x03;
+
+
+    buf[2] =  ((int)(prm->sd_dly)) & 0xFF;
+    buf[3] = (((int)(prm->sd_dly)) >> 8 ) & 0xFF;
+
+    buf[4] =  ((int)(prm->dmt * 10)) & 0xFF;
+    buf[5] = (((int)(prm->dmt * 10)) >> 8 ) & 0xFF;
+
+    buf[6] =  ((int)(prm->dlyon * 10)) & 0xFF;
+    buf[7] = (((int)(prm->dlyon * 10)) >> 8 ) & 0xFF;
+
+    buf[8] =  ((int)(prm->bu_lo * 10)) & 0xFF;
+    buf[9] = (((int)(prm->bu_lo * 10)) >> 8 ) & 0xFF;
+
+    buf[10] =  ((int)(prm->sd_lo * 10)) & 0xFF;
+    buf[11] = (((int)(prm->sd_lo * 10)) >> 8 ) & 0xFF;
+
+    buf[12] =  ((int)(prm->lobatt / 0.0321)) & 0xFF;
+    buf[13] = (((int)(prm->lobatt / 0.0321)) >> 8 ) & 0xFF;
+
+    buf[14] = prm->softJumpers & 0xF7;  /* Always keep fan on */
+
+    buf[15] =  ((int)(prm->acpiDelay * 10)) & 0xFF;
+    buf[16] = (((int)(prm->acpiDelay * 10)) >> 8 ) & 0xFF;
+
+
+    buf[17] =  ((int)(prm->acpiDuration * 10)) & 0xFF;
+    buf[18] = (((int)(prm->acpiDuration * 10)) >> 8 ) & 0xFF;
+
+    buf[19] =  ((int)(prm->lowTemp / 0.403)+124) & 0xFF;
+    buf[20] = (((int)(prm->lowTemp / 0.403)+124) >> 8 ) & 0xFF;
+
+    buf[21] = 0;
+    buf[22] = 0;
+
+    if(ctxWrite(hDev, buf, 23, SHORT_TIMEOUT) != 23)
+        return -1;
+
+    if(ctxRead(hDev, reply, 3, SHORT_TIMEOUT) != 3)
+        return -1;
+
+    if(reply[0] != 0x43 || reply[1] != 0x03 || reply[2] != 0xff)
+        return -1;
 
     return 0;
 }
