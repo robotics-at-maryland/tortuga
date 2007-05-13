@@ -21,7 +21,7 @@ struct ctxParams
 {
     double sd_dly;   /* in seconds */
     double dmt;     /* in hours */
-    double dlyon;   /* in hours ?? */
+    double dlyon;   /* in seconds */
     double bu_lo;   /* in seconds */
     double sd_lo;   /* in seconds */
     double lobatt;  /* in volts */

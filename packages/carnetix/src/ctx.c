@@ -22,7 +22,7 @@ int ctxPrintParams(struct ctxParams * prm)
 
     printf("SD_DELAY : %.1f sec\n", prm->sd_dly);
     printf("DMT      : %.1f hr\n", prm->dmt);
-    printf("DLYON    : %.1f hr\n", prm->dlyon);
+    printf("DLYON    : %.1f sec\n", prm->dlyon);
     printf("BU_LO    : %.1f sec\n", prm->bu_lo);
     printf("SD_LO    : %.1f sec\n", prm->sd_lo);
     printf("LOBATT   : %.1f V\n", prm->lobatt);
