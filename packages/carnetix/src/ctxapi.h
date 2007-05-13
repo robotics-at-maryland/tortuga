@@ -26,6 +26,10 @@ struct ctxParams
     double sd_lo;   /* in seconds */
     double lobatt;  /* in volts */
     unsigned char softJumpers;
+
+    double acpiDelay;   /* in seconds */
+    double acpiDuration; /* in seconds */
+    double lowTemp;     /* in degrees C */
 };
 
 usb_dev_handle * ctxInit();

@@ -171,8 +171,8 @@ int ctxReadValues(usb_dev_handle * hDev, struct ctxValues * val)
 
 int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm)
 {
-    unsigned char getPrmCmd[]={0x44, 0x13};
-    unsigned char buf[15];
+    unsigned char getPrmCmd[]={0x44, 0x15};
+    unsigned char buf[21];
 
     if(!hDev)
         return -1;
@@ -183,10 +183,10 @@ int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm)
     if(ctxWrite(hDev, getPrmCmd, 2, SHORT_TIMEOUT) != 2)
         return -1;
 
-    if(ctxRead(hDev, buf, 15, SHORT_TIMEOUT) != 15)
+    if(ctxRead(hDev, buf, 21, SHORT_TIMEOUT) != 21)
         return -1;
 
-    if(buf[0] != 0x44 || buf[1] != 0x13)
+    if(buf[0] != 0x44 || buf[1] != 0x15)
         return -1;
 
     prm->sd_dly = ((buf[3]<<8) | buf[2]) * 0.1;
@@ -196,6 +196,10 @@ int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm)
     prm->sd_lo  = ((buf[11]<<8) | buf[10]) * 0.1;
     prm->lobatt = ((buf[13]<<8) | buf[12]) * 0.0321;
     prm->softJumpers = buf[14];
+
+    prm->acpiDelay = ((buf[16]<<8) | buf[15]) * 0.1;
+    prm->acpiDuration = ((buf[18]<<8) | buf[17]) * 0.1;
+    prm->lowTemp = (((buf[20]<<8) | buf[19])-124) * 0.403;
 
     return 0;
 }

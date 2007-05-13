@@ -27,6 +27,11 @@ int ctxPrintParams(struct ctxParams * prm)
     printf("SD_LO    : %.1f sec\n", prm->sd_lo);
     printf("LOBATT   : %.1f V\n", prm->lobatt);
     printf("Jumpers  : 0x%02X\n", prm->softJumpers);
+
+    printf("ACPI Dly : %.1f sec\n", prm->acpiDelay);
+    printf("ACPI Dur : %.1f sec\n", prm->acpiDuration);
+    printf("Low Temp : %.1f C\n", prm->lowTemp);
+
 }
 
 int main(int argc, char ** argv)
