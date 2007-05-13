@@ -58,11 +58,6 @@ int main(int argc, char ** argv)
     ctxReadParams(hDev, &prm);
     ctxPrintParams(&prm);
 
-
-    ctxSecOn(hDev);
-
     ctxClose(hDev);
-
-
     return 0;
 }
