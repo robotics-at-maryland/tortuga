@@ -246,6 +246,88 @@ int ctxPriOff(usb_dev_handle * hDev)
 }
 
 
+int ctxSecOff(usb_dev_handle * hDev)
+{
+    unsigned char ctxPriOffCmd[]={0x46, 0x03};
+    unsigned char buf[3];
+
+    if(!hDev)
+        return -1;
+
+    if(ctxWrite(hDev, ctxPriOffCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    if(ctxRead(hDev, buf, 3, SHORT_TIMEOUT) != 3)
+        return -1;
+
+    if(buf[0] != 0x46 || buf[1] != 0x03 || buf[2] != 0x00)
+        return -1;
+
+    return 0;
+}
+
+int ctxSecOn(usb_dev_handle * hDev)
+{
+    unsigned char ctxPriOffCmd[]={0x45, 0x03};
+    unsigned char buf[3];
+
+    if(!hDev)
+        return -1;
+
+    if(ctxWrite(hDev, ctxPriOffCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    if(ctxRead(hDev, buf, 3, SHORT_TIMEOUT) != 3)
+        return -1;
+
+    if(buf[0] != 0x45 || buf[1] != 0x03 || buf[2] != 0xFF)
+        return -1;
+
+    return 0;
+}
+
+
+int ctxP5VOff(usb_dev_handle * hDev)
+{
+    unsigned char ctxPriOffCmd[]={0x48, 0x03};
+    unsigned char buf[3];
+
+    if(!hDev)
+        return -1;
+
+    if(ctxWrite(hDev, ctxPriOffCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    if(ctxRead(hDev, buf, 3, SHORT_TIMEOUT) != 3)
+        return -1;
+
+    if(buf[0] != 0x48 || buf[1] != 0x03 || buf[2] != 0x00)
+        return -1;
+
+    return 0;
+}
+
+int ctxP5VOn(usb_dev_handle * hDev)
+{
+    unsigned char ctxPriOffCmd[]={0x47, 0x03};
+    unsigned char buf[3];
+
+    if(!hDev)
+        return -1;
+
+    if(ctxWrite(hDev, ctxPriOffCmd, 2, SHORT_TIMEOUT) != 2)
+        return -1;
+
+    if(ctxRead(hDev, buf, 3, SHORT_TIMEOUT) != 3)
+        return -1;
+
+    if(buf[0] != 0x47 || buf[1] != 0x03 || buf[2] != 0xFF)
+        return -1;
+
+    return 0;
+}
+
+
 void ctxClose(usb_dev_handle * hDev)
 {
     if(hDev)
