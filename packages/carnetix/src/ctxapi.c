@@ -218,7 +218,6 @@ int ctxWriteParams(usb_dev_handle * hDev, struct ctxParams * prm)
     buf[0] = 0x43;
     buf[1] = 0x03;
 
-
     buf[2] =  ((int)(prm->sd_dly)) & 0xFF;
     buf[3] = (((int)(prm->sd_dly)) >> 8 ) & 0xFF;
 
@@ -241,7 +240,6 @@ int ctxWriteParams(usb_dev_handle * hDev, struct ctxParams * prm)
 
     buf[15] =  ((int)(prm->acpiDelay * 10)) & 0xFF;
     buf[16] = (((int)(prm->acpiDelay * 10)) >> 8 ) & 0xFF;
-
 
     buf[17] =  ((int)(prm->acpiDuration * 10)) & 0xFF;
     buf[18] = (((int)(prm->acpiDuration * 10)) >> 8 ) & 0xFF;

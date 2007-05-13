@@ -58,20 +58,6 @@ int main(int argc, char ** argv)
     ctxReadParams(hDev, &prm);
     ctxPrintParams(&prm);
 
-    prm.sd_dly = 11.0;
-    prm.dmt = 22.0;
-    prm.dlyon = 33.0;
-    prm.bu_lo = 44.0;
-    prm.sd_lo = 55.0;
-    prm.lobatt = 12.3;
-    prm.softJumpers = 0;
-
-    prm.acpiDelay = 5.0;
-    prm.acpiDuration = 6.0;
-    prm.lowTemp = -3.0;
-
-    printf("\n\nStatus: %d\n", ctxWriteParams(hDev, &prm));
-
     ctxClose(hDev);
     return 0;
 }
