@@ -25,7 +25,11 @@
 					<Add library="wx_baseud_xml-2.6" />
 					<Add library="wx_baseud_net-2.6" />
 					<Add library="wx_baseud-2.6" />
+					<Add library="wx_gtk2ud_gl-2.6" />
 				</Linker>
+				<Environment>
+					<Variable name="TEST" value="TEST" />
+				</Environment>
 			</Target>
 			<Target title="Release">
 				<Option output="../bin/release/wxOgre" prefix_auto="1" extension_auto="1" />

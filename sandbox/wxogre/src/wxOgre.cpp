@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstdio>
 
 // wxWidgets includes
 #include <wx/event.h>
@@ -18,8 +19,12 @@
 
 // Platform specific includes
 #ifdef __WXGTK__
+// Needed for random GTK/GDK macros and functions
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
+
+// Needed for crazy GTK_PIZZA stuff
+#include <wx/gtk/win_gtk.h>
 #endif
 
 // For the wxWidget RTTI system
@@ -28,7 +33,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxOgre, wxControl)
 // Sets up callback function for wxWidgets events
 BEGIN_EVENT_TABLE(wxOgre, wxControl)
 	EVT_SIZE(wxOgre::onSize)
-	// EVT_PAINT(wxOgre::OnPaint) // Produces flickers and runs too fast!
+	//EVT_PAINT(wxOgre::onPaint) // Produces flickers and runs too fast!
 	EVT_ERASE_BACKGROUND( wxOgre::onEraseBackground )
 END_EVENT_TABLE()
 
@@ -60,7 +65,8 @@ bool wxOgre::Create(Ogre::Camera* camera, wxWindow* parent, wxWindowID id,
     mCamera = camera;
 
     // Create wxWidgets superclass
-    wxControl::Create(parent, id, pos, size, style, wxDefaultValidator, name);
+    wxControl::Create(parent, id, pos, size, style | wxFULL_REPAINT_ON_RESIZE,
+                      wxDefaultValidator, name);
 
     return true;
 }
@@ -158,29 +164,39 @@ void wxOgre::getWindowParams(Ogre::NameValuePairList* params)
 	(*params)["externalWindowHandle"] = handle;
 
 #elif defined(__WXGTK__)
+    // Should help reduce flickering
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     std::stringstream handleStream;
-    GtkWidget* widget =  GetHandle();
+
+    // wxWidgets uses serverl internal GtkWidgets, the GetHandle method returns
+    // a different one then this, but wxWidgets GLCanvas uses this one to
+    // interact with GLX with, so we will do the same.
+    GtkWidget* private_handle =  m_wxwindow;
+
+    // Prevents flicker
+    gtk_widget_set_double_buffered( private_handle, FALSE );
+
+    // Grabs the window for use in the below macros
+    GdkWindow *window = GTK_PIZZA(private_handle)->bin_window;
+    Display* display = GDK_WINDOW_XDISPLAY(window);
+    Window wid = GDK_WINDOW_XWINDOW(window);
 
     // Display
-    Display* display = GDK_WINDOW_XDISPLAY( widget->window );
     handleStream << (unsigned long)display << ':';
 
-    // Screen (returns ":display.screen")
-    /* The new Ogre GLX renderer patch removes the need for supplying the
-       screen
-
+/*#if OGRE_PATCH_VERSION == 0
+    // Screen (returns ":display.screen   ")
     std::string screenStr = DisplayString(display);
     int dotpos = screenStr.find(".", 0);
     screenStr = screenStr.substr(dotpos + 1, screenStr.length() - dotpos);
-    handleStream << screenStr << ':';*/
-
+    handleStream << screenStr << ':';
+#endif
+*/
     // XID (typedef of an unsigned int)
-    Window wid = GDK_WINDOW_XWINDOW( widget->window );
     handleStream << wid;
 
     handle = handleStream.str();
-    (*params)["parentWindowHandle"] = handle;
+    (*params)["externalWindowHandle"] = handle;
 #else
 	#error External/Parent Window handle not supported on this platform
 #endif
@@ -195,22 +211,19 @@ void wxOgre::onSize(wxSizeEvent& event)
         int height;
 
         GetClientSize(&width, &height);
-        mRenderWindow->resize( width, height );
-        // Letting Ogre know the window has been resized;
         mRenderWindow->windowMovedOrResized();
 
         // Set the aspect ratio for the new size;
         if (mCamera)
             mCamera->setAspectRatio(Ogre::Real(width) / Ogre::Real(height));
 
-        mViewport->_updateDimensions();
         update();
     }
 }
 
 void wxOgre::onPaint(wxPaintEvent& event)
 {
-//	update(); // Produces flickers and runs too fast!
+	update(); // Produces flickers and runs too fast!
 }
 void wxOgre::onEraseBackground( wxEraseEvent& )
 {

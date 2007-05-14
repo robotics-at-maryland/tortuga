@@ -90,15 +90,19 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
         Ogre::Root::getSingleton().createSceneManager(Ogre::ST_GENERIC,
                                                       "ExampleSceneManager");
 
+    //glcanvas = new wxGLCanvas(this);
     mWxOgre = new wxOgre(0, this, wxID_ANY, wxDefaultPosition,
-                                wxSize(400,400), 0, wxT("OgreWindow"));
-
-    /*new MyTestControl(this, wxID_ANY, wxDefaultPosition,
-                      wxSize(400,400), 0, wxT("OgreWindow"));*/
+                               wxDefaultSize);
 }
+
+void FBConfigToString (Display *dpy, GLXFBConfig config);
 
 void MyFrame::onActivate(wxActivateEvent& event)
 {
+
+    //FBConfigToString(GDK_WINDOW_XDISPLAY( GetHandle()->window ),
+    //                *glcanvas->m_fbc);
+
     if (!mWxOgre->initialized())
     {
         mWxOgre->initOgre();
@@ -116,3 +120,57 @@ void MyFrame::onActivate(wxActivateEvent& event)
         sceneMgr->getRootSceneNode()->createChildSceneNode()->attachObject(cam);
     }
 }
+
+void FBConfigToString (Display *dpy, GLXFBConfig config)
+{
+        int configID, visualID, bufferSize, level, drawableType, caveat;
+        int doubleBuffer, stereo, auxBuffers, renderType, depthSize, stencilSize;
+        int redSize, greenSize, blueSize, alphaSize;
+        int accumRedSize, accumGreenSize, accumBlueSize, accumAlphaSize;
+        int maxPBufferWidth, maxPBufferHeight, maxPBufferPixels;
+        int sampleBuffers, samples;
+
+        glXGetFBConfigAttrib (dpy, config, GLX_FBCONFIG_ID, &configID);
+        glXGetFBConfigAttrib (dpy, config, GLX_VISUAL_ID, &visualID);
+        glXGetFBConfigAttrib (dpy, config, GLX_BUFFER_SIZE, &bufferSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_LEVEL, &level);
+        glXGetFBConfigAttrib (dpy, config, GLX_DOUBLEBUFFER, &doubleBuffer);
+        glXGetFBConfigAttrib (dpy, config, GLX_STEREO, &stereo);
+        glXGetFBConfigAttrib (dpy, config, GLX_AUX_BUFFERS, &auxBuffers);
+        glXGetFBConfigAttrib (dpy, config, GLX_RENDER_TYPE, &renderType);
+        glXGetFBConfigAttrib (dpy, config, GLX_RED_SIZE, &redSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_GREEN_SIZE, &greenSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_BLUE_SIZE, &blueSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_ALPHA_SIZE, &alphaSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_DEPTH_SIZE, &depthSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_STENCIL_SIZE, &stencilSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_ACCUM_RED_SIZE, &accumRedSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_ACCUM_GREEN_SIZE, &accumGreenSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_ACCUM_BLUE_SIZE, &accumBlueSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_ACCUM_ALPHA_SIZE, &accumAlphaSize);
+        glXGetFBConfigAttrib (dpy, config, GLX_DRAWABLE_TYPE, &drawableType);
+        glXGetFBConfigAttrib (dpy, config, GLX_CONFIG_CAVEAT, &caveat);
+        glXGetFBConfigAttrib (dpy, config, GLX_MAX_PBUFFER_WIDTH, &maxPBufferWidth);
+        glXGetFBConfigAttrib (dpy, config, GLX_MAX_PBUFFER_HEIGHT, &maxPBufferHeight);
+        glXGetFBConfigAttrib (dpy, config, GLX_MAX_PBUFFER_PIXELS, &maxPBufferPixels);
+        glXGetFBConfigAttrib (dpy, config, GLX_SAMPLE_BUFFERS_ARB, &sampleBuffers);
+        glXGetFBConfigAttrib (dpy, config, GLX_SAMPLES_ARB, &samples);
+
+        //char buff [400];
+
+        printf (
+                  "ConfigID:0x%02x VisualID:0x%02x bufferSize:%d level:%d doubleBuffer:%d "
+                  "stereo:%d caveat:%d renderType:%d drawableType:%d auxBuffers:%d "
+                  "depth bits:%d stencil bits:%d R/G/B/A bits:%d/%d/%d/%d "
+                  "Accum R/G/B/A bits:%d/%d/%d/%d Max PBuffer W/H/Size:%d/%d/%d "
+                  "Sample buffers/samples:%d/%d\n",
+                  configID, visualID, bufferSize, level, doubleBuffer, stereo,
+                  caveat & ~GLX_NONE, renderType, drawableType, auxBuffers,
+                  depthSize, stencilSize,
+                  redSize, greenSize, blueSize, alphaSize,
+                  accumRedSize, accumGreenSize, accumBlueSize, accumAlphaSize,
+                  maxPBufferWidth, maxPBufferHeight, maxPBufferPixels,
+                  sampleBuffers, samples);
+
+}
+

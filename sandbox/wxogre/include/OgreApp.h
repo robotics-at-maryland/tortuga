@@ -3,6 +3,7 @@
 
 // wxWidgets Includes
 #include <wx/wx.h>
+#include <wx/glcanvas.h>
 
 class wxOgre;
 
@@ -32,6 +33,7 @@ private:
     void onActivate(wxActivateEvent& event);
 
     wxOgre* mWxOgre;
+    //wxGLCanvas* glcanvas;
 
 	DECLARE_EVENT_TABLE()
 };
