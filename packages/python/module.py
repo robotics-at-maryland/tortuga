@@ -112,7 +112,7 @@ class Module(Component):
         
     def pause(self):
         self._running = False
-        event.send('MODULE_STOP', self)
+        event.send('MODULE_PAUSE', self)
         
     def update(self, time_since_last_update):
         pass

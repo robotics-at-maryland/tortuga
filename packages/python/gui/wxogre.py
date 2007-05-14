@@ -23,11 +23,9 @@ class wxOgre(wx.PyControl):
         self._viewport = None
         self._camera = camera
         if camera is not None:
-            self._camera.setAutoAspectRatio(True)       
+            self._camera.setAutoAspectRatio(True)    
             
-    def Reparent(self, parent):
-        raise "ERROR"
-        wx.PyControl.Reparent(self, parent)
+        self._init_ogre()
             
     class camera(cls_property):
         """
@@ -43,23 +41,22 @@ class wxOgre(wx.PyControl):
                 self._viewport = self._render_window.addViewport(camera)
             else:
                 self._viewport.setCamera(camera)
+                
             self._camera = camera
             # Refresh the window
             self._update()
     
     def _init_ogre(self):
         """
-        Hook ogre up to the control.  On Linux this must be called after your
-        top level frame has recived its first activate event, or after its
-        contructor has finished. I suggest you do so for all platforms for 
-        simplicity.
+        Hook ogre up to the control.  On Linus you must have called "Show()" on 
+        your main frame before creating any wxOgre widgets!.
         """
         self._create_ogre_window()
         self._render_window.update()
             
         # Setup our event handlers
         self.Bind(wx.EVT_CLOSE, self._on_close)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self._update)
+        #self.Bind(wx.EVT_ERASE_BACKGROUND, self._update)
         self.Bind(wx.EVT_SIZE, self._update)
             
         self._update()
@@ -70,17 +67,13 @@ class wxOgre(wx.PyControl):
         """
         # Resize the window on resize
         if type(event) is wx.SizeEvent:
-            # On GTK we let Ogre create its own child window, so we have to
-            # manually resize it match its parent, this control
-#            if '__WXGTK__' == wx.Platform:
+            self._render_window.windowMovedOrResized()         
+
+            if '__WXGTK__' == wx.Platform:
 #                size = self.GetClientSize()
-#                self._render_window.resize(size.width, size.height)
-#                #self._render_window.resize(100,100)
-#                if self._viewport is not None:
-#                    self._viewport._updateDimensions()
-#                pass
-            self._render_window.windowMovedOrResized()
-        
+                 if self._viewport is not None:
+                    self._viewport._updateDimensions()
+    
         # Redraw the window for every event
         self._render_window.update()
         
@@ -96,13 +89,14 @@ class wxOgre(wx.PyControl):
         params = self._get_window_params()
         name = str(self.GetName())
         
-        self._render_window = Ogre.Root.getSingleton().createRenderWindow(name, 
-                                                                 size.width, 
-                                                                 size.height, 
-                                                                 False, params)
+        root = Ogre.Root.getSingleton()
+        self._render_window = root.createRenderWindow(name, size.width, 
+                                                      size.height, False, 
+                                                      params)
             
             
         self._render_window.active = True
+        
         # You can only create a camera after you have made the first render
         # window, so check to see if we are given a camera
         if self._camera is not None:
@@ -117,7 +111,7 @@ class wxOgre(wx.PyControl):
         
         if '__WXGTK__' == wx.Platform:
             from gui.util import get_window_handle_str
-            params['parentWindowHandle'] = get_window_handle_str(self)
+            params['externalWindowHandle'] = get_window_handle_str(self)
         elif '__WXMSW__' == wx.Platform:
             params['externalWindowHandle'] = str(self.GetHandle())
         else:

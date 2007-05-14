@@ -69,9 +69,10 @@ class Simulation(Singleton, Module):
    
     #@log('* * * Beginning shutdown', '* * * Shutdown complete') 
     def shutdown(self):
-        self.pause()
+        print 'Beginning shutdown'
+        Module.pause(self)
         del self._scenes
-        del self._ogre_root
+        self._ogre_root.shutdown()
         
     def update(self, time_since_last_update):
         """
@@ -134,9 +135,9 @@ class Simulation(Singleton, Module):
         if len(scene_path) == 0:
             raise SimulationError('No valid directory found on scene path')
         
-        self.logger.info('Loading %s on path:', scene_file)
-        for path in search_path: 
-            self.logger.info('\t%s' % path )
+        #self.logger.info('Loading %s on path:', scene_file)
+        #for path in search_path: 
+        #    self.logger.info('\t%s' % path )
         
         found = False
         for dir in search_path:
