@@ -47,7 +47,7 @@ class MainFrame(wx.Frame):
         self._mgr.SetManagedWindow(self)
        
         for mod in ModuleManager.get().itermodules():
-            self._add_module(mod)
+            self._add_module(mod, True)
         
         self.SetMinSize(self.GetSize())
         self._mgr.Update()
@@ -66,7 +66,9 @@ class MainFrame(wx.Frame):
         
         del self._panels[mod]
             
-    def _add_module(self, mod):
+    def _add_module(self, mod, batch = False):
+        changed = False
+        
         # Check every provider to see if its supports this module
         for provider_type in self.panel_providers:
             provider = provider_type()
@@ -79,5 +81,9 @@ class MainFrame(wx.Frame):
                 for pane_info, panel in provider.get_panels(mod, self):
                     self._mgr.AddPane(panel, pane_info)
                     panels.append(panel)
+                    changed = True
                     
                 self._panels[mod] = panels
+                
+        if changed and not batch:
+            self._mgr.Update()

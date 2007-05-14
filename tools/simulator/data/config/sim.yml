@@ -14,43 +14,43 @@ Modules:
             #Main: basic.py
             Main: nxtest.sml
         
-            Graphics:
-                Plugins:
-                    search_path: ['C:\Libraries\PythonOgre\plugins',
-                    'C:\Developement\PythonOgre\plugins',
-                    '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
-
+        Graphics:
+            Plugins:
+                search_path: ['C:\Libraries\PythonOgre\plugins',
+                'C:\Developement\PythonOgre\plugins',
+                '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
+                
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
                 'Plugin_OctreeSceneManager']
                        
-                RenderSystem:
-                    type: OpenGL
+            RenderSystem:
+                type: OpenGL
+                
+                OpenGL:
+                    - [Colour Depth, '32']
+                    - [FSAA, '0']
+                    - [RTT Preferred Mode, 'FBO']
+                    - [VSync, 'No']
                     
-                    OpenGL:
-                        - [Colour Depth, '32']
-                        - [FSAA, '0']
-                        - [RTT Preferred Mode, 'FBO']
-                        - [VSync, 'No']
-    
-                Input:
-                    KeyMap:
-                        W : CAM_FORWARD
-                        A : CAM_LEFT 
-                        S : CAM_BACK 
-                        D : CAM_RIGHT
-                        Q : CAM_UP 
-                        E : CAM_DOWN
-                        F : CAM_TOGGLE_FOLLOW
-                        
-                        I : THRUST_FORE
-                        K : THRUST_BACK
-                        G : THRUST_KILL
-                        J : THRUST_LEFT
-                        L : THRUST_RIGHT
-                        U : THRUST_DOWN
-                        O : THRUST_UP
-                        Y : THRUST_PITCH_UP
-                        H : THRUST_PITCH_DOWN
+            Input:
+                KeyMap:
+                    W : CAM_FORWARD
+                    A : CAM_LEFT 
+                    S : CAM_BACK 
+                    D : CAM_RIGHT
+                    Q : CAM_UP 
+                    E : CAM_DOWN
+                    F : CAM_TOGGLE_FOLLOW
+                    
+                    I : THRUST_FORE
+                    K : THRUST_BACK
+                    G : THRUST_KILL
+                    J : THRUST_LEFT
+                    L : THRUST_RIGHT
+                    U : THRUST_DOWN
+                    O : THRUST_UP
+                    Y : THRUST_PITCH_UP
+                    H : THRUST_PITCH_DOWN
 
 
 
