@@ -12,7 +12,7 @@ int ctxPrintValues(struct ctxValues * val)
     printf("Pri Voltage : %f V\nPri Current : %f A\n\n", val->priVoltage, val->priCurrent);
     printf("Sec Voltage : %f V\nSec Current : %f A\n\n", val->secVoltage, val->secCurrent);
     printf("Temperature : %f C\n\n", val->temperature);
-    printf("LED Status  : 0x%04X\nState: %d\n\n", val->ledValue, val->state);
+    printf("LED Status  : 0x%04X\nState: %d [%s]\n\n", val->ledValue, val->state, ctxStateNames[val->state]);
 }
 
 int ctxPrintParams(struct ctxParams * prm)
@@ -31,7 +31,6 @@ int ctxPrintParams(struct ctxParams * prm)
     printf("ACPI Dly : %.1f sec\n", prm->acpiDelay);
     printf("ACPI Dur : %.1f sec\n", prm->acpiDuration);
     printf("Low Temp : %.1f C\n", prm->lowTemp);
-
 }
 
 int main(int argc, char ** argv)
