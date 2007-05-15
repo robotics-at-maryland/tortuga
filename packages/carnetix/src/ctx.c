@@ -11,8 +11,41 @@ int ctxPrintValues(struct ctxValues * val)
     printf("Batt Voltage: %f V\nBatt Current: %f A\n\n", val->battVoltage, val->battCurrent);
     printf("Pri Voltage : %f V\nPri Current : %f A\n\n", val->priVoltage, val->priCurrent);
     printf("Sec Voltage : %f V\nSec Current : %f A\n\n", val->secVoltage, val->secCurrent);
-    printf("Temperature : %f C\n\n", val->temperature);
-    printf("LED Status  : 0x%04X\nState: %d [%s]\n\n", val->ledValue, val->state, ctxStateNames[val->state]);
+    printf("Temperature : %f C\n", val->temperature);
+    printf("State: %d (%s)\n", val->state, ctxStateNames[val->state]);
+    printf("\nLED State (0x%04X):\n", val->ledValue);
+    if(val->ledValue & LED_IGNITION)
+        printf("\tIgnition\n");
+
+    if(val->ledValue & LED_PULSESTART)
+        printf("\tPulse Start\n");
+
+    if(val->ledValue & LED_FANFAULT)
+        printf("\tFan Fault\n");
+
+    if(val->ledValue & LED_DELAYON)
+        printf("\tDelay On\n");
+
+    if(val->ledValue & LED_ACPI)
+        printf("\tACPI\n");
+
+    if(val->ledValue & LED_POWERGOOD)
+        printf("\tPower Good\n");
+
+    if(val->ledValue & LED_PS_ON)
+        printf("\tPower Supply On\n");
+
+    if(val->ledValue & LED_FANON)
+        printf("\tFan On\n");
+
+    if(val->ledValue & LED_VOLTAGE_OK)
+        printf("\tBattery Voltage OK\n");
+
+    if(val->ledValue & LED_PRICUR_OK)
+        printf("\tPrimary Current OK\n");
+
+    if(val->ledValue & LED_SECCUR_OK)
+        printf("\tSecondary Current OK\n");
 }
 
 int ctxPrintParams(struct ctxParams * prm)
@@ -57,9 +90,13 @@ int main(int argc, char ** argv)
     printf("Firmware Version is: %s\n", buf);
 
     ctxReadValues(hDev, &val);
+
+    printf("\nPower Supply Readings:\n");
     ctxPrintValues(&val);
 
     ctxReadParams(hDev, &prm);
+
+    printf("\nPower Supply Configuration:\n");
     ctxPrintParams(&prm);
 
     ctxClose(hDev);
