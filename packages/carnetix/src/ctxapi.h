@@ -63,7 +63,7 @@ struct ctxValues
 #define JUMPER_SHUTDOWN_MODE_LAPTOP        0x80
 
 
-static const unsigned char * ctxStateNames[] =
+static const char * ctxStateNames[] =
 {
     "Idle", "Power PSU", "Power PC", "Bootup Lockout", "Run PC", "Shutdown Delay",
     "ACPI Pulse", "Shutdown Lockout", "Standby/Sleep", "Forced Shutdown", "Initialization"
