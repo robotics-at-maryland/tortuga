@@ -162,13 +162,18 @@ class InputForwarder(object):
                 
         return self._input_sys.key_string_to_key(keyname)
         
+    def _meta_down(self, key_event):
+        if wx.Platform == '__WXGTK__':
+            return False
+        return key_event.MetaDown()
+        
     def _on_key_up(self, key_event):
         key_code = self._map_key(key_event)
         if key_code is not None:
             self._input_sys.key_released(key_code, key_event.ControlDown(), 
                                          key_event.AltDown(), 
                                          key_event.ShiftDown(),
-                                         key_event.MetaDown())
+                                         self._meta_down(key_event))
     
     def _on_key_down(self, key_event):
         key_code = self._map_key(key_event)
@@ -176,4 +181,4 @@ class InputForwarder(object):
             self._input_sys.key_pressed(key_code, key_event.ControlDown(), 
                                         key_event.AltDown(), 
                                         key_event.ShiftDown(),
-                                        key_event.MetaDown())
+                                        self._meta_down(key_event))
