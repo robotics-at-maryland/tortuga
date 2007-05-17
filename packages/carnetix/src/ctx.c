@@ -1,3 +1,28 @@
+/*****************************************************************************
+ * Steve Moskovchenko  (aka evil wombat)                                     *
+ * University of Maryland                                                    *
+ * stevenm86 at gmail dot com                                                *
+ *                                                                           *
+ * Linux and Mac OS API for the Carnetix P2140 power supply.                 *
+ * The program uses libusb, which works on Mac OS X, Linux, and Windows.     *
+ *                                                                           *
+ * Released under the BSD License.                                           *
+ *                                                                           *
+ *                                                                           *
+ * If you get compile errors about missing libusb symbols, make sure you     *
+ * have -lusb in your compile flags.                                         *
+ *                                                                           *
+ * Enjoy!                                                                    *
+ *                                                                           *
+ ****************************************************************************/
+
+/*
+ * This is just a small demo of the API. It just gets the values and parameters,
+ * and prints them to the console. All the really important stuff is in ctxapi.c
+ * and ctxapi.h. ctxapi.h also contains the documentation for all the functions.
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <usb.h>

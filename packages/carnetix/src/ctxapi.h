@@ -175,12 +175,47 @@ int ctxReadParams(usb_dev_handle * hDev, struct ctxParams * prm);
 int ctxWriteParams(usb_dev_handle * hDev, struct ctxParams * prm);
 
 
+/*
+ * Given the supply's device handle, turns on the Primary supply. Returns 0
+ * on success and -1 on failure.
+ */
 int ctxPriOn(usb_dev_handle * hDev);
+
+
+/*
+ * Given the supply's device handle, turns off the Primary supply. Returns 0
+ * on success and -1 on failure.
+ */
 int ctxPriOff(usb_dev_handle * hDev);
+
+
+/*
+ * Given the supply's device handle, turns on the Secondary supply. Returns 0
+ * on success and -1 on failure.
+ */
 int ctxSecOn(usb_dev_handle * hDev);
+
+
+/*
+ * Given the supply's device handle, turns off the Secondary supply. Returns 0
+ * on success and -1 on failure.
+ */
 int ctxSecOff(usb_dev_handle * hDev);
+
+
+/*
+ * Given the supply's device handle, turns on the P5V regulator. Returns 0
+ * on success and -1 on failure.
+ */
 int ctxP5VOn(usb_dev_handle * hDev);
+
+
+/*
+ * Given the supply's device handle, turns off the P5V regulator. Returns 0
+ * on success and -1 on failure.
+ */
 int ctxP5VOff(usb_dev_handle * hDev);
+
 
 /*
  * Closes the given device handle, disconnecting from the power supply.

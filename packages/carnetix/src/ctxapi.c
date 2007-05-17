@@ -1,3 +1,23 @@
+/*****************************************************************************
+ * Steve Moskovchenko  (aka evil wombat)                                     *
+ * University of Maryland                                                    *
+ * stevenm86 at gmail dot com                                                *
+ *                                                                           *
+ * Linux and Mac OS API for the Carnetix P2140 power supply.                 *
+ * The program uses libusb, which works on Mac OS X, Linux, and Windows.     *
+ *                                                                           *
+ * Released under the BSD License.                                           *
+ *                                                                           *
+ *                                                                           *
+ * If you get compile errors about missing libusb symbols, make sure you     *
+ * have -lusb in your compile flags.                                         *
+ *                                                                           *
+ * Enjoy!                                                                    *
+ *                                                                           *
+ ****************************************************************************/
+
+/* For API Documentation, see ctxapi.h */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <usb.h>
@@ -31,7 +51,7 @@ void debug(char *format, ...)
 
 
 
-/* This code is based on pv2fetch, the program to download pictures from a disposable CVS camera */
+/* This function is based on pv2fetch, the program to download pictures from a disposable CVS camera */
 usb_dev_handle * ctxInit()
 {
     struct usb_bus *p_bus;
