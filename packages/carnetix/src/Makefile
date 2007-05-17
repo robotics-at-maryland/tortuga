@@ -1,6 +1,6 @@
 $(CC)=gcc
 LDFLAGS=lusb
-
+CFLAGS=-g
 all: ctx consolemon
 
 clean:
@@ -10,7 +10,7 @@ ctx.o: ctxapi.h
 ctxapi.o: ctxapi.h
 
 ctx: ctxapi.o ctx.o ctxapi.h
-	gcc -lusb ctx.o ctxapi.o -o ctx
+	gcc -lusb ctx.o ctxapi.o -g -o ctx
 
 consolemon: ctxapi.o ctxapi.h consolemon.o
-	gcc -lusb consolemon.o ctxapi.o -o consolemon
+	gcc -lusb consolemon.o ctxapi.o -g -o consolemon 

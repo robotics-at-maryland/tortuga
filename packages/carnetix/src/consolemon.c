@@ -9,7 +9,7 @@
  *                                                                           *
  * Released under the BSD License. See License.txt for info.                 *
  *                                                                           *
- * Version 0.1. Enjoy!                                                       *
+ * Version 0.2. Enjoy!                                                       *
  *                                                                           *
  ****************************************************************************/
 

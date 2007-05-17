@@ -9,7 +9,7 @@
  *                                                                           *
  * Released under the BSD License. See License.txt for info.                 *
  *                                                                           *
- * Version 0.1. Enjoy!                                                       *
+ * Version 0.2. Enjoy!                                                       *
  *                                                                           *
  ****************************************************************************/
 
@@ -113,7 +113,10 @@ usb_dev_handle * ctxInit()
     usb_dev_handle * hDev = usb_open(pdev);
 
     if(!hDev)
+    {
+    	printf("\nusb_open returns null\n");
         return NULL;
+    }
 
     if (usb_set_configuration(hDev, DEFAULT_CONFIGURATION) >= 0)
     {
@@ -121,7 +124,7 @@ usb_dev_handle * ctxInit()
         {
             if (usb_set_altinterface(hDev, DEFAULT_ALT_INTERFACE) < 0)
             {
-                usb_release_interface(hDev, DEFAULT_INTERFACE);
+            
                 usb_close(hDev);
                 return NULL;
             }
@@ -143,13 +146,16 @@ usb_dev_handle * ctxInit()
 
 int ctxRead(usb_dev_handle * hDev, unsigned char* p_buffer, unsigned int length, int timeout)
 {
-    return usb_bulk_read(hDev, READ_ENDPOINT, (char*)p_buffer, length, timeout);
+    int ret = usb_interrupt_read(hDev, READ_ENDPOINT, (char*)p_buffer, length, timeout);
+    return ret;
 }
 
 int ctxWrite(usb_dev_handle * hDev, unsigned char* p_buffer, unsigned int length, int timeout)
 {
-    return usb_bulk_write(hDev, WRITE_ENDPOINT, (char*)p_buffer, length, timeout);
+    int ret = usb_interrupt_write(hDev, WRITE_ENDPOINT, (char*)p_buffer, length, timeout);
+    return ret;
 }
+
 
 int ctxReadValues(usb_dev_handle * hDev, struct ctxValues * val)
 {

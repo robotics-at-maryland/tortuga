@@ -9,7 +9,7 @@
  *                                                                           *
  * Released under the BSD License. See License.txt for info.                 *
  *                                                                           *
- * Version 0.1. Enjoy!                                                       *
+ * Version 0.2. Enjoy!                                                       *
  *                                                                           *
  ****************************************************************************/
 
@@ -116,10 +116,16 @@ int main(int argc, char ** argv)
     ctxGetFWVersion(hDev, buf, 25);
     printf("Firmware Version is: %s\n", buf);
 
-    ctxReadValues(hDev, &val);
-
-    printf("\nPower Supply Readings:\n");
-    ctxPrintValues(&val);
+    if(ctxReadValues(hDev, &val) == 0)
+    {
+    	printf("\nPower Supply Readings:\n");
+    	ctxPrintValues(&val);
+    } else
+    {
+        printf("Error reading values.\n");
+	ctxClose(hDev);
+	return -1;
+    }
 
     ctxReadParams(hDev, &prm);
 
