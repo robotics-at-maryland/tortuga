@@ -2,19 +2,17 @@
  * Steve Moskovchenko  (aka evil wombat)                                     *
  * University of Maryland                                                    *
  * stevenm86 at gmail dot com                                                *
+ * http://wam.umd.edu/~stevenm/carnetix.html                                 *
  *                                                                           *
  * Linux and Mac OS API for the Carnetix P2140 power supply.                 *
  * The program uses libusb, which works on Mac OS X, Linux, and Windows.     *
  *                                                                           *
- * Released under the BSD License.                                           *
+ * Released under the BSD License. See License.txt for info.                 *
  *                                                                           *
- *                                                                           *
- * If you get compile errors about missing libusb symbols, make sure you     *
- * have -lusb in your compile flags.                                         *
- *                                                                           *
- * Enjoy!                                                                    *
+ * Version 0.1. Enjoy!                                                       *
  *                                                                           *
  ****************************************************************************/
+
 
 /* For API Documentation, see ctxapi.h */
 

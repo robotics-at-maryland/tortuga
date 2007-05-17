@@ -14,9 +14,8 @@
  ****************************************************************************/
 
 /*
- * This is just a small demo of the API. It just gets the values and parameters,
- * and prints them to the console. All the really important stuff is in ctxapi.c
- * and ctxapi.h. ctxapi.h also contains the documentation for all the functions.
+ * This is a very small and very simple monitoring program. It runs in a console
+ * and prints the supply values every second.
  */
 
 
@@ -116,15 +115,26 @@ int main(int argc, char ** argv)
     ctxGetFWVersion(hDev, buf, 25);
     printf("Firmware Version is: %s\n", buf);
 
-    ctxReadValues(hDev, &val);
+    while(1)
+    {
+        if(ctxReadValues(hDev, &val) == 0)
+        {
+            printf("\n\n***********************************************************\n");
+            printf("\nPower Supply Readings:\n");
+            ctxPrintValues(&val);
+            printf("\nPress Ctrl-C to Exit\n");
+        } else
+        {
+            printf("\nCould not read values! Trying to reconnect...\n");
+            ctxClose(hDev);
 
-    printf("\nPower Supply Readings:\n");
-    ctxPrintValues(&val);
+            hDev = ctxInit();
 
-    ctxReadParams(hDev, &prm);
-
-    printf("\nPower Supply Configuration:\n");
-    ctxPrintParams(&prm);
+            if(hDev)
+                printf("Reconnected OK\n");
+        }
+        sleep(1);
+    }
 
     ctxClose(hDev);
     return 0;
