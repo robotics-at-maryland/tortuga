@@ -224,6 +224,15 @@ class Component(object):
 
     @staticmethod
     def get_class(iface, class_name):
+        """
+        @type  iface: str or Interface
+        @param iface: The actual interface class or its complete name in string
+                      form (ie mod.submod.IFace).
+                      
+        @type  class_name: str
+        @param class_name: The complete name of the class ie: mod.submod.MyClass
+        """
+        
         classes = Component._registry[iface]
         return classes[class_name]
 
@@ -262,7 +271,6 @@ def _register_class(_class):
         # Generated the full package name of the class ie:
         # (mypkg.submod.Myclass) and map it to the new class in the 
         # registry.
-        
         full_name = _class.__module__ + '.' + _class.__name__
         iface_name = iface.__module__ + '.' + iface.__name__
         

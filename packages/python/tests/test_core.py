@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  tests/core.py
+# File:  packages/python/tests/core.py
 
 """
 This module contains all the tests for sim.robot module.  The TestSuite for the

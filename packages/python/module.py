@@ -25,6 +25,7 @@ class IModule(Interface):
     """
     A module can be started and stopped.
     """
+
     def start():
         """
         If threaded this will cause the module to call there update function
@@ -95,9 +96,10 @@ def register_module(module_name):
 class Module(Component):
     implements(IModule)
     
-    def __init__(self, _type, name):
+    def __init__(self, _type, name, log_config = {}):
         self.name = name
         self.type = _type
+        self._depends = []
         self._running = False
         
         event.send('MODULE_CREATED', self)
@@ -126,7 +128,6 @@ class ModuleManager(Singleton):
     def init(self, config = None):
         self._registry = {}
         self._mod_type_reg = {}
-        #self._registry_mod = {}
         
         if config is not None:
             self.load_modules(config)
@@ -137,16 +138,55 @@ class ModuleManager(Singleton):
         @param config: The section of the configuration containing the modules
         """
         print 'loading modules'
-        # Current does not dependency checking, just loads the modules in a 
-        # random order
+        
         mod_nodes = config.get('Modules', None)
+        # Maps module -> modules it dependens on
+        mod_depends = {}
+        # Maps module -> module which depend on it
+        mod_dependees = {}
+        
+        # Iterate over nodes and build dependency list
         if mod_nodes is not None:
-            for name, node in mod_nodes.iteritems():
-                class_name = node['type']
-                print 'Loading Module of type',class_name
-                # Note we don't register the object now becase the objects own
-                # constructor does that
-                Component.create(IModule, class_name, node)
+            for name, config_node in mod_nodes.iteritems():
+                class_name = config_node['type']
+                config_node['name'] = name
+                
+                # TODO: some kind of error checking
+                mod_type = Component.get_class(IModule, class_name)
+                
+                # Add this module to the list of dependees for each each module
+                # type it depends on
+                depends = config_node.get('depends_on', [])
+                for dep in depends:
+                    # TODO: Put some error handling in here
+                    class_name = mod_nodes[dep]['type']
+                    dep_mod_type = Component.get_class(IModule, class_name)
+                    mod_dependees.set_default(dep_mod_type, []).append(mod_type)
+                # Set dependents for this module
+                mod_depends[mod_type] = (depends,config_node)
+        
+        while len(mod_depends) != 0:
+            # Assume we have a cycle
+            cycle = True
+        
+            for mod_type, (depends,config_node) in mod_depends.items():
+                # If its a free standing module load it
+                if len(depends) == 0:
+                    # Create module (registration done by Module constructor)
+                    mod_type(config_node)
+                    
+                    # Update all the dependents lists to remove this module
+                    for dependent in mod_dependees.get(mod_type, []):
+                        mod_depends[dependent].remove(mod_type)
+
+                    # Remove module from list
+                    del mod_depends[mod_type]
+                    
+                    cycle = False
+
+            # Raise error on cycle
+            if cycle:
+                raise "Cycle found in module dependencies"
                 
         
     def register(self, mod):
@@ -158,8 +198,7 @@ class ModuleManager(Singleton):
         print 'Registory',type(mod),type(mod.name)
 
         self._registry[mod.name] = mod
-        #self._registry_mod[mod] = mod.name
-        self._mod_type_reg.setdefault(mod.type,[]).append(mod)
+        self._mod_type_reg.setdefault(type(mod),[]).append(mod)
         mod.start()
         
     def unregister(self, mod):
@@ -167,16 +206,25 @@ class ModuleManager(Singleton):
         Unregisters the moduile and tells it to shudown.
         """       
         del self._registry[mod.name]
-        #del self._registry_mod[mod]
-        self._mod_type_reg[mod.type].remove(mod)
+        self._mod_type_reg[type(mod)].remove(mod)
         
         mod.shutdown()
         
     def get_module(self, name):
         """
-        Returns the module with the given name, or None
+        Returns the module with the given name/type, or None
+        
+        @type  name: str or type
+        @param name: The given name of the module, or its type (ie class)
+        
+        @rtype:  IModule or [IModule]
+        @return: If given a name it will be a single module or none, if given
+                 a type it will be a (possible empty) list.
         """
-        return self._registry.get(name, None)
+        if type is type(name):
+            return self._mod_type_reg.get(name, [])
+        else:
+            return self._registry.get(name, None)
         
     def itermodules(self):
         for mod in self._registry.itervalues():
