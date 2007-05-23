@@ -63,7 +63,7 @@ Reply: [0x05 Status Checksum] on success
        Status Bit 0    = Water (0=Dry, 1=Wet)
        Status Bit 1    = Start Switch (0=Off, 1=On)
        Status Bits 2-5 = Balancer board status lines
-
+       Status Bit 6    = Kill Switch Value
 
 
 Command: Hard power kill

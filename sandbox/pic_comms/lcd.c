@@ -18,7 +18,7 @@ _FWDT ( WDT_OFF );
  * Bus = D1 D0 E5-E0
  * Req = C13
  * Akn = C14
- * RW  = C15
+ * RW  = E8
  */
 
 /* Bus pin assignments */
