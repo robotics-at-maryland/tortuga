@@ -1,0 +1,27 @@
+# This sets up the environment for use of our software
+# The file is generated from a template which creates a 'setenv' file in the
+# scripts/setenv'
+# to the location of the source tree. Then in your shell type 'source setenv'
+# and you will be all set. (Note the only works for the current shell)
+
+RAM_ROOT_DIR=%(ram_environ_root)s
+SVN_TRUNK_DIR=%(local_svn_dir)s
+
+# Set up PYTHONPATH so imports will work properly
+alias python=%(py_version_str)s
+export PYTHONPATH=$RAM_ROOT_DIR/local/lib/%(py_version_str)s/site-packages:$PYTHONPATH
+
+# Setup the PATH to include scripts in trunk and are custom environment
+export PATH=$SVN_TRUNK_DIR/scripts:$RAM_ROOT_DIR/local/bin:$PATH
+
+# Setup the LD_LIBRARY_PATH so our executables can find libraries like opencv
+export LD_LIBRARY_PATH=$RAM_ROOT_DIR/local/lib:$LD_LIBRARY_PATH
+
+# Probably not needed, but this controls the dynamically loaded .so file path
+# in Mac OS X.
+#if [ `uname` == "Darwin" ]; then
+#    export DYLD_LIBRARY_PATH=$RAM_ROOT_DIR/local/lib:$DYLD_LIBRARY_PATH
+#fi
+
+# Setup path for pkgconfig (so it can find our local libraries)
+export PKG_CONFIG_PATH=$RAM_ROOT_DIR/local/lib/pkgconfig:$PKG_CONFIG_PATH
