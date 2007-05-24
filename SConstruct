@@ -16,19 +16,16 @@ opts.Add('CXX', 'The C++ compiler to use', 'g++-4.0')
 env = Environment(ENV=os.environ, options = opts)
 Help(opts.GenerateHelpText(env))
 
-
-
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
 # --------------------------------------------------------------------------- #
 install = False
 
-dirs_to_build = [os.path.join('packages','extensions', 'wxogre')]
-
 # Our build subdirectory
 buildDir = 'build'
 
-for directory in dirs_to_build:
+from buildfiles import dirs_to_build
+for directory in dirs_to_build.get_dirs():
     # Pass down which directory the script is building from
     env['base_dir'] = os.path.abspath(directory)
     Export('env')

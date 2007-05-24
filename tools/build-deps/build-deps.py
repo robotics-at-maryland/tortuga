@@ -1,9 +1,10 @@
-#! /usr/bin/python2.5
+#! /usr/bin/env python
 
 import os
 import sys
 import logging
 import subprocess
+import platform
 from configobj import ConfigObj
 from optparse import OptionParser
 
@@ -107,8 +108,10 @@ def run_location(location, config, options, mode='file'):
     os.chdir(location_path)
     
     # Set current location so it can be expanded in the config file
-    proc_lines = file('/proc/cpuinfo').readlines()
-    cpus = len([line for line in proc_lines if line.startswith('processor')])
+    cpus = 1
+    if platform.system() == "Linux":
+        proc_lines = file('/proc/cpuinfo').readlines()
+        cpus = len([line for line in proc_lines if line.startswith('processor')])
     variables = {'deps' : deps_dir, 'cpus': str(cpus), 'j' : str(cpus + 1),
                  'root' : os.environ['MRBC_SVN_ROOT']}
     config[location[0]]['DEFAULT'] = variables
