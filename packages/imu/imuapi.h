@@ -2,20 +2,19 @@
 
 struct imuMeasurements
 {
-    int devID;
     int messageID;
     int sampleTimer;
-    int gyroX;
-    int gyroY;
-    int gyroZ;
-    int accelX;
-    int accelY;
-    int accelZ;
-    int magX;
-    int magY;
-    int magZ;
-    int tempX;
-    int tempY;
-    int tempZ;
+    double gyroX;
+    double gyroY;
+    double gyroZ;
+    double accelX;
+    double accelY;
+    double accelZ;
+    double magX;
+    double magY;
+    double magZ;
+    double tempX;
+    double tempY;
+    double tempZ;
     int checksumValid;
 };
