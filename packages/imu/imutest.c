@@ -9,29 +9,19 @@
 #include "imuapi.h"
 
 
-
-
-
-
-
 int main(int argc, char ** argv)
 {
-    int fd = open("/dev/ttyUSB0", O_RDWR); // | O_NDELAY | O_NOCTTY);
+    int fd = open("/dev/ttyUSB0", O_RDWR);
 
     struct imuMeasurements imuData;
 
     while(1)
     {
-      //  printf("\nWaiting for sync...\n");
         waitSync(fd);
         readIMUData(fd, &imuData);
-        printf("%9f %9f %9f\n", imuData.accelX, imuData.accelY, imuData.accelZ);
+        printf("%9f %9f %9f %11f %11f %11f  %11f %11f %11f  \n", imuData.accelX, imuData.accelY, imuData.accelZ, imuData.gyroX, imuData.gyroY, imuData.gyroZ, imuData.magX, imuData.magY, imuData.magZ);
 //        printf("%11f %11f %11f\n", imuData.gyroX, imuData.gyroY, imuData.gyroZ);
 //        printf("%9f\n", imuData.gyroX);
     }
-
-
-
-    printf("\nIMU Test\n");
     return 0;
 }
