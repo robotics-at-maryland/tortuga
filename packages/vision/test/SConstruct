@@ -1,0 +1,19 @@
+import os
+
+EnsureSConsVersion(0, 96, 93)
+
+env = Environment(ENV=os.environ)
+
+# Find all c files in the source directory
+# TODO: move this to a common module in the furture
+#base_dir = envl['base_dir']
+#src_dir = os.path.join(base_dir, 'src')
+#sources = [os.path.join('src',f) for f in os.listdir(src_dir) 
+#           if f.endswith('.cpp')]
+
+# Pull in the OpenCV library (move this into buildfiles)
+env.MergeFlags(['!pkg-config opencv --libs --cflags'])
+#env.Append(CCFLAGS = ['-g'])
+#env.Append(LIBFLAGS = ['-g'])
+
+env.Program(target = 'cvcam_test', source = 'src/cvcam_test.c')
