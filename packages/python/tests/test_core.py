@@ -48,7 +48,7 @@ class TestComponent(unittest.TestCase):
                 def my_func(self, arg1):
                     pass
                 
-        self.assertRaises(core.BrokenImplementation, missing_func)
+        self.assertRaises(core.ComponentError, missing_func)
         self.assertRaises(core.BrokenMethodImplementation, missing_arg)
         
 def get_suite():

@@ -96,9 +96,9 @@ def register_module(module_name):
 class Module(Component):
     implements(IModule)
     
-    def __init__(self, _type, name, log_config = {}):
-        self.name = name
-        self.type = _type
+    def __init__(self, config):
+        self.name = config['name']
+        self.type = type(self)
         self._depends = []
         self._running = False
         
@@ -157,30 +157,34 @@ class ModuleManager(Singleton):
                 # Add this module to the list of dependees for each each module
                 # type it depends on
                 depends = config_node.get('depends_on', [])
+                if type(depends) is not list:
+                    raise TypeError, "'depends_on' must be a list not %s" % type(depends)
                 for dep in depends:
                     # TODO: Put some error handling in here
-                    class_name = mod_nodes[dep]['type']
-                    dep_mod_type = Component.get_class(IModule, class_name)
-                    mod_dependees.set_default(dep_mod_type, []).append(mod_type)
+                    if not mod_nodes.has_key(dep):
+                        raise KeyError, 'No module called "%s" could be found' % dep
+                    mod_dependees.setdefault(dep, []).append(name)
                 # Set dependents for this module
-                mod_depends[mod_type] = (depends,config_node)
+                mod_depends[name] = (depends, config_node, mod_type)
         
         while len(mod_depends) != 0:
             # Assume we have a cycle
             cycle = True
         
-            for mod_type, (depends,config_node) in mod_depends.items():
+            for name, (depends, config_node, mod_type) in mod_depends.items():
                 # If its a free standing module load it
                 if len(depends) == 0:
                     # Create module (registration done by Module constructor)
                     mod_type(config_node)
                     
                     # Update all the dependents lists to remove this module
-                    for dependent in mod_dependees.get(mod_type, []):
-                        mod_depends[dependent].remove(mod_type)
+                    for dependent in mod_dependees.get(name, []):
+                        deps, conf_node, mod_type = mod_depends[dependent]
+                        deps.remove(name)
+                        mod_depends[dependent] = (deps, conf_node, mod_type)
 
                     # Remove module from list
-                    del mod_depends[mod_type]
+                    del mod_depends[name]
                     
                     cycle = False
 

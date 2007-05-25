@@ -176,6 +176,10 @@ class Singleton(object):
 #                     C O M P O N E N T   S Y S T E M                         #
 # --------------------------------------------------------------------------- #
 
+class ComponentError(Exception):
+    """Base class for simulation errors"""
+    pass
+
 class ExtensionPoint(property):
     """Marker class for extension points in components."""
 
@@ -285,7 +289,11 @@ def _verify_class(_class):
     """
     
     for iface in implementedBy(_class):
-        verifyClass(iface, _class)
+        try:
+            verifyClass(iface, _class)
+        # Catch an rethrow the error to increase readability
+        except BrokenImplementation, e:
+            raise ComponentError(str(e).replace('An object', str(_class)))
     return _class
     
 def implements(*ifaces):

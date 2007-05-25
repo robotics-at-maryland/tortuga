@@ -21,6 +21,7 @@ class PhysicsError(sim.util.SimulationError):
     """
     The error exception class for all PhysicsErrors
     """
+    pass
 
 class IBody(IObject):
     """
