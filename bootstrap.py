@@ -15,6 +15,7 @@ DEFAULT_ENVIRON_ROOT = '/opt/ram'
 
 # Check Python Version, ensure 2.5.x
 python_version = sys.version_info[0:2]
+python_version_str = 'python%d.%d' % python_version
 # assert (2,5) == python_version
 
 root_dir = os.path.abspath(sys.path[0])
@@ -50,14 +51,15 @@ def ensure_directory_structure(environ_root, test = False):
     process.
     """
     print 'Setting up dependency directories in:', environ_root
-    print 'Warning: you will need root access to do this'
+    print 'WARNING: you will need root access to do this'
 
-    py_directory = 'python%d.%d' % python_version
-    directories = [os.path.join('local', 'lib', py_directory, 'site-packages'),
+    directories = [os.path.join('local', 'lib', python_version_str, 
+				'site-packages'),
                    os.path.join('local', 'lib', 'pkgconfig'),
                    os.path.join('local', 'include'),
                    os.path.join('local', 'bin'),
                    os.path.join('local', 'man')]
+
     for dir in directories:
         dir = os.path.join(environ_root, dir)
         print 'Making directory:',dir
@@ -70,8 +72,17 @@ def install_packages(packages, environ_root, test = False):
     Installs all the needed python packages to the ram specfic python directory
     """
     print 'Installing local python packages'
+    print 'WARNING: you will need root access to do this'
 
     prefix_dir = os.path.abspath(os.path.join(environ_root, 'local'))
+
+    # The install directory must be on the python path, so we just place it
+    # There temporarly
+    py_lib_dir = os.path.join(prefix_dir, 'lib', python_version_str, 
+			      'site-packages')
+
+    old_pythonpath = os.environ.get('PYTHONPATH', '')
+    os.environ['PYTHONPATH'] = py_lib_dir + ':' + old_pythonpath
 
     cwd = os.getcwd()
     for package in packages:
@@ -81,15 +92,22 @@ def install_packages(packages, environ_root, test = False):
         os.chdir(package_dir)
 
         # Run setup.py for that package
-        command_str = 'python setup.py install --prefix=%s' % prefix_dir
+        command_str = '%s setup.py install --prefix=%s' % (python_version_str, 
+							   prefix_dir)
         if test:
             print 'Install command:',command_str
         else:
             os.system(command_str)
-        
+    
+    # Restore original PYTHONPATH
+    if old_pythonpath != '':
+	os.environ['PYTHONPATH'] = old_pythonpath
+    
     # Change back to original directory
     print 'Returning to',cwd
     os.chdir(cwd)
+
+    
 
 def create_environ_script(environ_root, test = False):
     """
@@ -108,7 +126,7 @@ def create_environ_script(environ_root, test = False):
     template_parameters = {
         'ram_environ_root' : environ_root,
         'local_svn_dir' : root_dir,
-        'py_version_str' : 'python%d.%d' % python_version
+        'py_version_str' : python_version_str
         }
 
     # Read in template file as a big string then expand template values into it
