@@ -23,7 +23,12 @@ class communicator:
         self.response_commands = {"success":[0xbc],"checksum_fail":[0xcc],"failure":[0xdf],"depth":[0x03],"synchronize":[0xbc],"status":[0x05]}
         self.response_lengths = {"depth":4,"check":1,"ping":1,"depth":4,"synchronize":1,"status":3,"hardkill":1,"marker":1,"display":1,"thruster":1}
         print "Initializing a sensor board communicator"
-        self.ser = serial.Serial("/dev/cu.usbserial-A1000q7T",115200,timeout=1)
+        try:
+            self.ser = serial.Serial("/dev/cu.usbserial-A1000q7T",115200,timeout=1)
+            self.init = True
+        except:
+            print "Error initializing the serial port connection"
+            self.init = False
     def write(self,command):
         self.ser.write(command)
     def time(self):
@@ -136,9 +141,3 @@ class communicator:
         if num == 2:
             self.send_byte_message(self.commands["thruster2on"])
             response = self.read_byte_message(self.response_lengths["thruster"])
-               
-comm = communicator()
-comm.thruster_on(2)
-#comm.write_to_lcd("top", "bottom")
-comm.write_to_lcd("bottom", "ah hah!")
-comm.display_blink()
