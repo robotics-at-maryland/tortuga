@@ -11,7 +11,7 @@
 
 int main(int argc, char ** argv)
 {
-    int fd = open("/dev/ttyUSB0", O_RDWR);
+    int fd = open("/dev/imu", O_RDWR);
 
     struct imuMeasurements imuData;
 
