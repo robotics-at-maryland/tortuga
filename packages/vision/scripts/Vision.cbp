@@ -19,6 +19,18 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../include/BasicImage.h" />
+		<Unit filename="../include/Camera.h" />
+		<Unit filename="../include/Common.h" />
+		<Unit filename="../include/Image.h" />
+		<Unit filename="../include/ImageSource.h" />
+		<Unit filename="../src/BasicImage.cpp" />
+		<Unit filename="../src/Camera.cpp" />
+		<Unit filename="../src/ImageSource.cpp" />
+		<Unit filename="../test/SConstruct" />
+		<Unit filename="../test/src/cvcam_test.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 		</Extensions>

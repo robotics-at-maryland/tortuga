@@ -1,0 +1,18 @@
+import os
+
+EnsureSConsVersion(0, 96, 93)
+
+Import('env')
+envl = env.Clone()
+
+# Find all c files in the source directory
+# TODO: Place some of this in common modules
+base_dir = envl['base_dir']
+src_dir = os.path.join(base_dir, 'src')
+sources = [os.path.join('src',f) for f in os.listdir(src_dir) 
+           if f.endswith('.cpp')]
+
+# Pull in opencv
+envl.MergeFlags(['!pkg-config opencv --libs --cflags'])
+
+envl.SharedLibrary(target = 'ram_vision', source = sources)
