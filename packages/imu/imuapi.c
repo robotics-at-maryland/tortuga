@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <errno.h>
 #include "imuapi.h"
 
 unsigned char waitByte(int fd)
@@ -35,6 +40,8 @@ double convertData(unsigned char msb, unsigned char lsb, double range)
 int readIMUData(int fd, struct imuMeasurements * imu)
 {
     unsigned char imuData[34];
+
+    waitSync(fd);
 
     int len = 0;
     int i=0, sum=0;
@@ -77,4 +84,12 @@ int readIMUData(int fd, struct imuMeasurements * imu)
     imu->angleAccZ=(atan2(imu->accelX, imu->accelZ)*(180.0/M_PI));
 
     return imu->checksumValid;
+}
+
+
+int openIMU(const char * devName)
+{
+    int fd = open("/dev/ttyUSB0", O_RDWR);
+
+    return fd;
 }

@@ -11,13 +11,13 @@
 
 int main(int argc, char ** argv)
 {
-    int fd = open("/dev/imu", O_RDWR);
+    int fd = openIMU("/dev/ttyUSB0");
 
     struct imuMeasurements imuData;
 
     while(1)
     {
-        waitSync(fd);
+
         readIMUData(fd, &imuData);
         //printf("%9f %9f %9f %11f %11f %11f  %11f %11f %11f  \n", imuData.accelX, imuData.accelY, imuData.accelZ, imuData.gyroX, imuData.gyroY, imuData.gyroZ, imuData.magX, imuData.magY, imuData.magZ);
 

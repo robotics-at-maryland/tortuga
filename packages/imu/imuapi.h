@@ -15,7 +15,7 @@ struct imuMeasurements
     double tempY;
     double tempZ;
     int checksumValid;
-    
+
     /*all the following angles are in terms of degrees
     different axes in the variable names tell which axis the angle of the sub
      is measured with respect to*/
@@ -26,3 +26,8 @@ struct imuMeasurements
     double angleMagY;
     double angleMagZ;
 };
+
+
+
+int openIMU(const char * devName);
+int readIMUData(int fd, struct imuMeasurements * imu);
