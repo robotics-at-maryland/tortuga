@@ -19,7 +19,10 @@ int main(int argc, char ** argv)
     {
         waitSync(fd);
         readIMUData(fd, &imuData);
-        printf("%9f %9f %9f %11f %11f %11f  %11f %11f %11f  \n", imuData.accelX, imuData.accelY, imuData.accelZ, imuData.gyroX, imuData.gyroY, imuData.gyroZ, imuData.magX, imuData.magY, imuData.magZ);
+        //printf("%9f %9f %9f %11f %11f %11f  %11f %11f %11f  \n", imuData.accelX, imuData.accelY, imuData.accelZ, imuData.gyroX, imuData.gyroY, imuData.gyroZ, imuData.magX, imuData.magY, imuData.magZ);
+
+
+        printf("%11f %11f %11f  %11f %11f %11f  \n", imuData.angleMagX, imuData.angleMagY, imuData.angleMagZ, imuData.angleAccX, imuData.angleAccY, imuData.angleAccZ);
 //        printf("%11f %11f %11f\n", imuData.gyroX, imuData.gyroY, imuData.gyroZ);
 //        printf("%9f\n", imuData.gyroX);
     }
