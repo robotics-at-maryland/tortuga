@@ -28,16 +28,18 @@ unsigned char waitByte(int fd)
 int waitSync(int fd)
 {
     int fs=0;
-    int crap=0;
+    int syncLen=0;
     while(fs != 4)
     {
         if(waitByte(fd) == 0xFF)
             fs++;
         else
             fs=0;
-        crap++;
+        syncLen++;
     }
-    printf("%d  ", crap);
+
+    if(syncLen > 4)
+        printf("Warning! IMU sync sequence took longer than 4 bytes!!\n");
 }
 
 int convert16(unsigned char msb, unsigned char lsb)
@@ -87,7 +89,6 @@ int readIMUData(int fd, struct imuMeasurements * imu)
 
     imu->checksumValid = (imuData[33] == (sum&0xFF));
 
-/*
     imu->angleMagX=(atan2(imu->magY, imu->magX)*(180.0/M_PI));
     imu->angleMagY=(atan2(imu->magZ, imu->magY)*(180.0/M_PI));
     imu->angleMagZ=(atan2(imu->magX, imu->magZ)*(180.0/M_PI));
@@ -95,7 +96,9 @@ int readIMUData(int fd, struct imuMeasurements * imu)
     imu->angleAccX=(atan2(imu->accelY, imu->accelX)*(180.0/M_PI));
     imu->angleAccY=(atan2(imu->accelZ, imu->accelY)*(180.0/M_PI));
     imu->angleAccZ=(atan2(imu->accelX, imu->accelZ)*(180.0/M_PI));
-*/
+
+    if(!imu->checksumValid)
+        printf("WARNING! IMU Checksum Bad!\n");
 
     return imu->checksumValid;
 }
