@@ -2,18 +2,21 @@ struct imuMeasurements
 {
     int messageID;
     int sampleTimer;
-    double gyroX;
-    double gyroY;
-    double gyroZ;
-    double accelX;
-    double accelY;
-    double accelZ;
-    double magX;
-    double magY;
-    double magZ;
-    double tempX;
-    double tempY;
-    double tempZ;
+    double gyroX;   /* Degrees per second */
+    double gyroY;   /* Degrees per second */
+    double gyroZ;   /* Degrees per second */
+
+    double accelX;  /* Gs   */
+    double accelY;  /* Gs   */
+    double accelZ;  /* Gs   */
+
+    double magX;    /* Gauss */
+    double magY;    /* Gauss */
+    double magZ;    /* Gauss */
+
+    double tempX;   /* Degrees C */
+    double tempY;   /* Degrees C */
+    double tempZ;   /* Degrees C */
     int checksumValid;
 
     /*all the following angles are in terms of degrees
