@@ -1,23 +1,27 @@
-# This is a library of commands that can be reused during our build out
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  buildfiles/common/commands.py
+
+"""
+This is a library of commands that can be reused during our build out
+"""
 
 import os
 import sys
 import time
 import platform
-import subprocess
+import os
+import os.path
 from StringIO import StringIO
 from urllib2 import urlopen
 
-class CommandError(Exception):
-    pass
+from util import CommandError, safe_system
 
-def safe_system(command):
-    retcode = subprocess.call(command, shell=True)
-    if retcode != 0:   
-        raise CommandError, "Command '%s' with status %d" % \
-             (command, retcode)
-         
-       
+__all__ = ['Download', 'Template', 'UpdatePkgConfig', 'Mkdir', 'Archive', 
+           'UnArchive']  
 
 class Download(object):
     """
@@ -125,6 +129,53 @@ class Download(object):
                 pass
     check = represent
 
+class Template(object):
+    def __init__(self, in_filename, out_filename, **kwargs):
+        """
+        Templates a file using the python keyword subsitution formating. Note
+        this changes the user to the same as the containing directory.
+        """
+        self.in_filename = in_filename
+        self.out_filename = out_filename
+        self.parameters = kwargs
+        
+    def represent(self, task):
+        ret = 'Templating: "%s" to "%s" with paramters:\n' % \
+            (task.interpolate(self.in_filename), 
+             task.interpolate(self.out_filename))
+
+        for k,v in self.parameters.iteritems():
+            ret += '\t%s : %s\n' % (k, task.interpolate(v))
+            
+        return ret
+    
+    def check(self, task):
+        self.represent(task)
+        
+    def execute(self, task):
+        if task is not None:
+            self.in_filename = task.interpolate(self.in_filename)
+            self.out_filename = task.interpolate(self.out_filename)
+
+            for k,v in self.parameters.items():
+                self.parameters[k] = task.interpolate(v)
+        
+        # Read file into memory
+        in_file = file(self.in_filename, 'r')
+        template = ''.join(in_file.readlines())
+        in_file.close()
+        
+        # Replace parameters and write results
+        output_text = template % self.parameters
+        out_file = file(self.out_filename, 'w')
+        out_file.write(output_text)
+        out_file.close()
+        
+        # Make user same as containing directory
+        dir_info = os.stat(os.path.dirname(self.out_filename))
+        os.chown(self.out_filename, dir_info.st_uid, dir_info.st_gid)
+        
+
 class UpdatePkgConfig(object):
     """
     This changes the prefix line in pkgconfig files to point to given location
@@ -156,7 +207,7 @@ class UpdatePkgConfig(object):
             (self.pkg_file_path, self.prefix)
 
     def execute(self, task = None):
-	if task is not None:
+        if task is not None:
             # Make sure variables are properly interpolated
             self.represent(task)
 
@@ -191,6 +242,44 @@ class UpdatePkgConfig(object):
         else:
             return line
 
+
+class Mkdir(object):
+    """ 
+    Takes a single string or a list which will be joined with os.join
+    
+    creates missing directories for the given path and
+    returns a normalized absolute version of the path.
+
+    - if the given path already exists in the filesystem
+      the filesystem is not modified.
+
+    - otherwise makepath creates directories along the given path
+      using the dirname() of the path. You may append
+      a '/' to the path if you want it to be a directory path.
+
+    from holger@trillke.net 2002/03/18
+    """
+    def __init__(self, path):
+        if type(path) is list:
+            self.path = str(os.sep).join(item)
+        else:
+            self.path = path
+        
+    def represent(self, task):
+        return 'Making directory: %s' % task.interpolate(self.path)
+    
+    def check(self, task):
+        self.represent(task)
+        
+    def execute(self, task):
+        filepath = self.path
+        if task is not None:
+            filepath = task.interpolate(self.path)
+        
+        path = os.path.expanduser(filepath)
+        dpath = os.path.normpath(os.path.dirname(path))
+        if not os.path.exists(dpath): 
+            os.makedirs(dpath)
 
 class ArchiveBase(object):
 
