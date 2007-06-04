@@ -1,3 +1,0 @@
-#! /bin/bash
-
-PYTHONPATH=$MRBC_SVN_ROOT/deps/configobj:$PYTHONPATH $MRBC_SVN_ROOT/tools/build-deps/build-deps.py $*
