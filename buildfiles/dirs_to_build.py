@@ -14,6 +14,7 @@ def get_dirs():
     Returns the directories to build for the current platform, uses pythons 
     platform.system() function.
     """
+    dirs = []
     dirs.extend(COMMON_DIRS)
 
     if platform.system() == 'Linux':
