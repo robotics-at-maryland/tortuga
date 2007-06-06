@@ -30,7 +30,7 @@ def main(argv=None):
                       help = 'Bootstrap tasks to run')
     parser.add_option('-p','--prefix', nargs = 1,    
                       help = 'The prefix to install all packages into'
-                             ' [default: %s]' % DEFAULT_PREFIX)
+                             ' [default: %default]')
     (options, args) = parser.parse_args()
 
     # Buildit imports

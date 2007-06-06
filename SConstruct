@@ -1,5 +1,5 @@
 import os
-import os.path
+import sys
 
 EnsureSConsVersion(0, 96, 93)
 
@@ -7,10 +7,13 @@ EnsureSConsVersion(0, 96, 93)
 #                              S E T U P                                      #
 # --------------------------------------------------------------------------- #
 
+# Add the buildfiles dir to the path
+sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
+
 # Options either come from command line of config file
 opts = Options('configure.py')
-opts.Add('CC', 'The C compiler to use','gcc-4.0')
-opts.Add('CXX', 'The C++ compiler to use', 'g++-4.0')
+opts.Add('CC', 'The C compiler to use','gcc')
+opts.Add('CXX', 'The C++ compiler to use', 'g++')
 
 # Setup the build environment
 env = Environment(ENV=os.environ, options = opts)
@@ -26,8 +29,6 @@ buildDir = 'build'
 
 from buildfiles import dirs_to_build
 for directory in dirs_to_build.get_dirs():
-    # Pass down which directory the script is building from
-    env['base_dir'] = os.path.abspath(directory)
     Export('env')
     
     # Build seperate directories (this calls our file in the sub directory)
