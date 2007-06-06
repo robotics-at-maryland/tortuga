@@ -2,10 +2,11 @@ import os
 import platform
 
 COMMON_DIRS = [
-   os.path.join('packages','pattern')]
+    os.path.join('packages', 'vision'),
+    os.path.join('packages','pattern')]
 
 LINUX_DIRS = [
-  os.path.join('packages','extensions', 'wxogre')]
+    os.path.join('packages','extensions', 'wxogre')]
 
 MAC_DIRS = []
 

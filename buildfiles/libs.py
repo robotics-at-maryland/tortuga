@@ -20,7 +20,7 @@ import subprocess
 def __get_lib_map():
     return {
     'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 'wx-config'),
-    'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['opencv/cv.h']),
+    'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
     'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 'gdk/gdk.h']),
     'Boost' : BoostLibrary('Boost', (1,35), [])
     }
@@ -257,7 +257,7 @@ class BoostLibrary(Library):
 
         version_str = '%d_%d' % (self.major_ver, self.minor_ver)
         include_path = os.path.join(os.environ['RAM_ROOT_DIR'], 'include',
-                                    version_str)
+                                    'boost_' + version_str)
         
         Library.__init__(self, name, version_str, headers, libraries,
                          CPPPATH = [include_path])
