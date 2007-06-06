@@ -16,7 +16,7 @@
 namespace ram {
 namespace vision {
 
-BasicImage() :
+BasicImage::BasicImage() :
     m_data(0),
     m_height(0),
     m_width(0),
@@ -24,7 +24,7 @@ BasicImage() :
 {
 }
 
-BasicImage(unsigned char* data, int width, int height,
+BasicImage::BasicImage(unsigned char* data, int width, int height,
            Image::PixelFormat format) :
     m_data(data),
     m_height(width),
@@ -33,12 +33,12 @@ BasicImage(unsigned char* data, int width, int height,
 {
 }
 
-virtual ~BasicImage()
+BasicImage::~BasicImage()
 {
-    delete data;
+    delete m_data;
 }
 
-unsigned char* data BasicImage::setData(unsigned char* data)
+unsigned char* BasicImage::setData(unsigned char* data)
 {
     unsigned char* tmp = m_data;
     m_data = data;
@@ -62,6 +62,6 @@ void BasicImage::setPixelFormat(Image::PixelFormat format)
     assert((PF_START > format) && (format < PF_END) && "Invalid pixel format");
     m_format = format;
 }
-
+    
 } // namespace vision
 } // namespace ram

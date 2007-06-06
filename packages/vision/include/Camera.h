@@ -11,7 +11,7 @@
 #define RAM_VISION_CAMERA_H_05_23_2007
 
 // Vision Includes
-#include "packages/vision/include/common.h"
+#include "vision/include/Common.h"
 
 namespace ram {
 namespace vision {

@@ -1,18 +1,16 @@
-import os
+# Build system imports
+import libs
 
-EnsureSConsVersion(0, 96, 93)
-
+# Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
-# Find all c files in the source directory
-# TODO: Place some of this in common modules
-base_dir = envl['base_dir']
-src_dir = os.path.join(base_dir, 'src')
-sources = [os.path.join('src',f) for f in os.listdir(src_dir) 
-           if f.endswith('.cpp')]
+sources = ['src/BasicImage.cpp',
+           'src/Camera.cpp']
 
 # Pull in opencv
-envl.MergeFlags(['!pkg-config opencv --libs --cflags'])
+libs.add_external('OpenCV', envl)
 
+# Base Vision Library
 envl.SharedLibrary(target = 'ram_vision', source = sources)
+envl.Program('main.cpp')

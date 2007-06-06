@@ -43,7 +43,7 @@ public:
     virtual size_t getHeight() { return m_height; };
 
     /** Pixel format of the image */
-    virtual Image::PixelFormat getPixelFormat() { return m_format };
+    virtual Image::PixelFormat getPixelFormat() { return m_format; };
 
     /** Change Image data.
      *
@@ -53,6 +53,15 @@ public:
      */
     virtual unsigned char* setData(unsigned char* data);
 
+    /** Set width of image in pixels */
+    virtual void setWidth(int pixels) = 0;
+
+    /** Set height of image in pixels */
+    virtual void setHeight(int pixels) = 0;
+
+    /** Set pixel format of the image */
+    virtual void setPixelFormat(Image::PixelFormat format) = 0;
+    
 private:
     unsigned char* m_data;
     size_t m_width;

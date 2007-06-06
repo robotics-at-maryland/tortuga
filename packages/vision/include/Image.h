@@ -10,8 +10,11 @@
 #ifndef RAM_VISION_IMAGE_H_05_29_2007
 #define RAM_VISION_IMAGE_H_05_29_2007
 
+// STD Includes
+#include <cstddef>
+
 // Project Includes
-#include "packages/vision/include/common.h"
+#include "vision/include/Common.h"
 
 namespace ram {
 namespace vision {
@@ -24,6 +27,14 @@ namespace vision {
 class Image
 {
 public:
+    /** Describes the pixels format of our images */
+    enum PixelFormat
+    {
+        PF_START, /** Sentinal Value */
+        PF_RGB_8, /** Red Green Blue, 8 bits per channel */
+        PF_END,   /** Sentinal Value */
+    };
+    
     /** The raw image data */
     virtual unsigned char* getData() = 0;
 
@@ -37,24 +48,16 @@ public:
     virtual Image::PixelFormat getPixelFormat() = 0;
 
     /** Change Image data */
-    virtual void setData(unsigned char* data) = 0;
+    virtual unsigned char* setData(unsigned char* data) = 0;
 
     /** Set width of image in pixels */
-    virtual void getWidth(size_t pixels) = 0;
+    virtual void setWidth(int pixels) = 0;
 
     /** Set height of image in pixels */
-    virtual void setHeight(size_t pixels) = 0;
+    virtual void setHeight(int pixels) = 0;
 
     /** Set pixel format of the image */
     virtual void setPixelFormat(Image::PixelFormat format) = 0;
-
-    /** Describes the pixels format of our images */
-    enum PixelFormat
-    {
-        PF_START, /** Sentinal Value */
-        PF_RGB_8, /** Red Green Blue, 8 bits per channel */
-        PF_END,   /** Sentinal Value */
-    }
 };
 
 } // namespace vision
