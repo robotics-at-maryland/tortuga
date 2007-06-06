@@ -1,21 +1,13 @@
-/*!
-$Id: subject.cpp 1142 2006-09-22 21:54:02Z jlisee $
- 
-    (c) Copyright 2006
-	Space Systems Laboratory, University of Maryland, College Park, MD 20742
- 
-	@file 
-        Contains the implementation for the Subject class.
- 
-	HISTORY
-    20-Jul-2006 J Lisee     Imported into ssl::foundation::pattern library.
-*/
+/*
+ *  (c) Copyright 2006
+ *	Space Systems Laboratory, University of Maryland, College Park, MD 20742
+ */
 
-#include "rtsx/foundation/pattern/h/subject.h"
-#include "rtsx/foundation/pattern/h/observer.h"
+// Pattern Includes
+#include "pattern/include/subject.h"
+#include "pattern/include/observer.h"
 
-namespace ssl {
-namespace foundation {
+namespace ram {
 namespace pattern {
 
 Subject::Subject() :
@@ -93,5 +85,4 @@ void Subject::setChanged()
 }
 
 } // namespace pattern
-} // namespace foundation
-} // namespace ssl
+} // namespace ram

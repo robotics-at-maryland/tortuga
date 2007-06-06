@@ -1,24 +1,15 @@
-/*!
-$Id: singleton.h 973 2006-08-28 20:33:24Z jlisee $
- 
-	(c) Copyright 2006
-	Space Systems Laboratory, University of Maryland, College Park, MD 20742
- 
-	@file 
-        Contains the delcation for the Singleton class.
- 
-	HISTORY
-    28-Aug-2006 J Lisee     Created
-*/
+/*
+ *  (c) Copyright 2006
+ *	Space Systems Laboratory, University of Maryland, College Park, MD 20742
+ */
 
-#ifndef __SINGLETON_H
-#define __SINGLETON_H
+#ifndef RAM_PATTERN_SINGLETON_H_05_30_2007
+#define RAM_PATTERN_SINGLETON_H_05_30_2007
 
 // STD Includes
 #include <cassert>
 
-namespace ssl {
-namespace foundation {
+namespace ram {
 namespace pattern {
 
 /* Original version Copyright (C) Scott Bilas, 2000.
@@ -154,7 +145,6 @@ public:
 };
     
 } // namespace pattern
-} // namespace foundation
-} // namespace ssl
+} // namespace ram
     
-#endif // __SINGLETON_H
+#endif // RAM_PATTERN_SINGLETON_H_05_30_2007

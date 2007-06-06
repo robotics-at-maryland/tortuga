@@ -1,25 +1,15 @@
-/*!
-$Id: common.h 747 2006-08-09 14:54:26Z jlisee $
- 
-	(c) Copyright 2006
-	Space Systems Laboratory, University of Maryland, College Park, MD 20742
- 
-	@file Contains foward declarations, typedefs, defines, and enums for all 
-          classes in the ssl::foundation::pattern namespace.  It also contains 
-          all needed STL and/or Boost includes for those typedefs.
- 
-	HISTORY
-	24-Jul-2006 J Lisee     Created.
+/*
+ *  (c) Copyright 2006
+ *	Space Systems Laboratory, University of Maryland, College Park, MD 20742
  */
 
-#ifndef __SSL_FOUNDATION_PATTERN_COMMON_H
-#define __SSL_FOUNDATION_PATTERN_COMMON_H
+#ifndef RAM_PATTERN_COMMON_H_05_30_2007
+#define RAM_PATTERN_COMMON_H_05_30_2007
 
 // Boost Includes
 #include <boost/ptr_container/ptr_vector.hpp>
 
-namespace ssl {
-namespace foundation {
+namespace ram {
 namespace pattern {
 
 class Subject;
@@ -38,8 +28,7 @@ typedef boost::ptr_vector<Subject> SubjectList;
 /*! Typedef defining a generic iterator for a list of Subject pointers */ 
 typedef boost::ptr_vector<Subject>::iterator SubjectListIter;
 
-} // namespace ssl
-} // namespace foundation
 } // namespace pattern
+} // namespace ram
 
-#endif // __SSL_FOUNDATION_PATTERN_COMMON_H
+#endif // RAM_PATTERN_COMMON_H_05_30_2007

@@ -1,22 +1,13 @@
-/*!
-$Id: subjectmanager.cpp 1142 2006-09-22 21:54:02Z jlisee $
- 
-    (c) Copyright 2006
-	Space Systems Laboratory, University of Maryland, College Park, MD 20742
- 
-	@file 
-        Contains the implementation for the SubjectManager class.
- 
-	HISTORY
-    20-Jul-2006 J Lisee     Imported into ssl::foundation::pattern library.
-    25-Feb-2006 J Lisee     Created.
-*/
+/*
+ *  (c) Copyright 2006
+ *	Space Systems Laboratory, University of Maryland, College Park, MD 20742
+ */
 
-#include "rtsx/foundation/pattern/h/subjectmanager.h"
-#include "rtsx/foundation/pattern/h/subject.h"
+// Pattern Includes
+#include "pattern/include/subjectmanager.h"
+#include "pattern/include/subject.h"
 
-namespace ssl {
-namespace foundation {
+namespace ram {
 namespace pattern {
 
 SubjectManager::SubjectManager() :
@@ -37,12 +28,10 @@ void SubjectManager::addSubject(Subject *subject)
         mSubjects.push_back(subject);
 }
 
-
 int SubjectManager::countSubjects()
 {
     return mSubjects.size();
 }
-
 
 void SubjectManager::removeSubject(Subject *subject)
 {
@@ -74,5 +63,4 @@ void SubjectManager::notifySubjects()
 }
 
 } // namespace pattern
-} // namespace foundation
-} // namespace ssl
+} // namespace ram

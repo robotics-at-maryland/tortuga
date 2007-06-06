@@ -1,27 +1,15 @@
-/*!
-$Id: subject.h 1211 2006-09-28 15:36:27Z roderick $
- 
-	(c) Copyright 2006
-	Space Systems Laboratory, University of Maryland, College Park, MD 20742
- 
-	@file 
-        Contains the delcation for the Subject class.
-    @note 
-        The interface and some of the comments come from Sun's Observable class
- 
-	HISTORY
-    20-Jul-2006 J Lisee     Imported into ssl::foundation::pattern library.
-*/
+/*
+ *  (c) Copyright 2006
+ *	Space Systems Laboratory, University of Maryland, College Park, MD 20742
+ */
 
-
-#ifndef __SUBJECT_H
-#define __SUBJECT_H
+#ifndef RAM_PATTERN_SUBJECT_H_05_30_2007
+#define RAM_PATTERN_SUBJECT_H_05_30_2007
 
 // Fonudation includes (gets forward declaration or Observer)
-#include "foundation/pattern/h/common.h"
+#include "pattern/include/common.h"
 
-namespace ssl {
-namespace foundation {
+namespace ram {
 namespace pattern {
     
 /*! This class represents an Subject object, or "data" in the model-view 
@@ -135,6 +123,6 @@ protected:
 };
 
 } // namespace pattern
-} // namespace foundation
-} // namespace ssl
-#endif // __SUBJECT_H
+} // namespace ram
+
+#endif // RAM_PATTERN_SUBJECT_H_05_30_2007

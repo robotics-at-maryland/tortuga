@@ -1,28 +1,18 @@
-/*!
-$Id: subjectmanager.h 1142 2006-09-22 21:54:02Z jlisee $
- 
-    (c) Copyright 2006
-	Space Systems Laboratory, University of Maryland, College Park, MD 20742
- 
-	@file 
-        Contains the delcation for the SubjectManager class.
- 
-	HISTORY
-    20-Jul-2006 J Lisee     Imported into ssl::foundation::pattern library.
-    25-Fed-2006 J Lisee     Created.
-*/
+/*
+ *  (c) Copyright 2006
+ *	Space Systems Laboratory, University of Maryland, College Park, MD 20742
+ */
 
-#ifndef __SUBJECTMANAGER_H
-#define __SUBJECTMANAGER_H
+#ifndef RAM_PATTERN_SUBJECTMANAGER_H_05_30_2007
+#define RAM_PATTERN_SUBJECTMANAGER_H_05_30_2007
 
 // Boost Includes
 #include <boost/utility.hpp>
 
-// Fonudation includes (gets forward declaration of Subject)
-#include "rtsx/foundation/pattern/h/common.h"
+// Pattern includes (gets forward declaration of Subject)
+#include "pattern/include/common.h"
 
-namespace ssl {
-namespace foundation {
+namespace ram {
 namespace pattern {
 
 class Subject;
@@ -81,7 +71,6 @@ protected:
 };
     
 } // namespace pattern
-} // namespace foundation
-} // namespace ssl
+} // namespace ram
 
-#endif // __SUBJECTMANAGER_H
+#endif // RAM_PATTERN_SUBJECTMANAGER_H_05_30_2007
