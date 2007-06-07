@@ -32,6 +32,7 @@ public:
     {
         PF_START, /** Sentinal Value */
         PF_RGB_8, /** Red Green Blue, 8 bits per channel */
+		PF_BGR_8, /** Blue Green Red, 8 bits*/
         PF_END,   /** Sentinal Value */
     };
     

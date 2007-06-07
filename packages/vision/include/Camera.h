@@ -19,9 +19,6 @@ namespace vision {
 class Camera
 {
 public:
-    Camera();
-    ~Camera();
-
     Image* getImage() = 0;
 };
 

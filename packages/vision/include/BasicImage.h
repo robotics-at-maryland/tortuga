@@ -20,7 +20,7 @@ namespace vision {
 class BasicImage : public Image
 {
 public:
-    /** Defualt constructor */
+    /** Default constructor */
     BasicImage();
 
     /** Full Constructor.
