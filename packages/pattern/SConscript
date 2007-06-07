@@ -1,12 +1,15 @@
-import os
+# Build System Imports
+import libs
+import helpers
 
+# Pull in build environment from parent SConstruct
 Import('env')
 envl = env.Clone()
 
 # Find all cpp files in the source directory
-base_dir = envl['base_dir']
-src_dir = os.path.join(base_dir, 'src')
-sources = [os.path.join('src',f) for f in os.listdir(src_dir) 
-           if f.endswith('.cpp')]
+sources = helpers.glob(env, 'src', '*.cpp')
+
+# Grab Boost
+libs.add_external('Boost', envl)
 
 envl.SharedLibrary(target = 'ram_pattern', source = sources)
