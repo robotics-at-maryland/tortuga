@@ -20,7 +20,7 @@ DEFULT_TASKS = ['setup_directories',
                 'install_python_modules', 
                 'gen_setenv']
 
-DEFAULT_PREFIX = '/opt/local/ram'
+DEFAULT_PREFIX = '/opt/ram/local'
 
 def main(argv=None):
     # Parse Arguments
