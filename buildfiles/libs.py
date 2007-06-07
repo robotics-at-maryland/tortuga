@@ -257,7 +257,7 @@ class BoostLibrary(Library):
 
         version_str = '%d_%d' % (self.major_ver, self.minor_ver)
         include_path = os.path.join(os.environ['RAM_ROOT_DIR'], 'include',
-                                    'boost_' + version_str)
+                                    'boost-' + version_str)
         
         Library.__init__(self, name, version_str, headers, libraries,
                          CPPPATH = [include_path])
