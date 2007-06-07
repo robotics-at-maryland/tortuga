@@ -6,11 +6,12 @@ Import('env')
 envl = env.Clone()
 
 sources = ['src/BasicImage.cpp',
-           'src/Camera.cpp']
+           'src/OpenCVCamera.cpp',
+           'src/OpenCVImage.cpp']
 
 # Pull in opencv
 libs.add_external('OpenCV', envl)
 
 # Base Vision Library
 envl.SharedLibrary(target = 'ram_vision', source = sources)
-envl.Program('main.cpp')
+#envl.Program('main.cpp')

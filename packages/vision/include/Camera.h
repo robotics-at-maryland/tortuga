@@ -19,7 +19,7 @@ namespace vision {
 class Camera
 {
 public:
-    Image* getImage() = 0;
+    virtual Image* getImage() = 0;
 };
 
 } // namespace vision
