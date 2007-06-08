@@ -1,17 +1,35 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vision/include/BasicImage.h
+
 # Build system imports
 import libs
+import helpers
 
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
+# Sources
 sources = ['src/BasicImage.cpp',
            'src/OpenCVCamera.cpp',
            'src/OpenCVImage.cpp']
 
-# Pull in opencv
-libs.add_external('OpenCV', envl)
+# Libraries
+libs.add_external(envl, 'OpenCV')
 
-# Base Vision Library
-envl.SharedLibrary(target = 'ram_vision', source = sources)
-#envl.Program('main.cpp')
+# Build Procducts (library will be called 'libram_vision.so')
+helpers.SharedLibrary(envl, 'vision',  source = sources)
+
+
+# Testing
+envt = env.Clone()
+
+# Build simple camera test program and make sure vision library is intalled
+helpers.Program(envt, 'test/src/AdvCvTest.cpp',
+                int_deps = 'vision')
+
+envt.Program('test/src/BasicCvTest.c')

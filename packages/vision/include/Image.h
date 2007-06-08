@@ -32,7 +32,7 @@ public:
     {
         PF_START, /** Sentinal Value */
         PF_RGB_8, /** Red Green Blue, 8 bits per channel */
-		PF_BGR_8, /** Blue Green Red, 8 bits*/
+        PF_BGR_8, /** Blue Green Red, 8 bits*/
         PF_END,   /** Sentinal Value */
     };
     
@@ -48,17 +48,21 @@ public:
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat() = 0;
 
-    /** Change Image data */
-    virtual unsigned char* setData(unsigned char* data) = 0;
+    /** Change Image data (only free if ownership = true) */
+    virtual unsigned char* setData(unsigned char* data,
+                                   bool ownership = true) = 0;
 
     /** Set width of image in pixels */
     virtual void setWidth(int pixels) = 0;
 
     /** Set height of image in pixels */
     virtual void setHeight(int pixels) = 0;
-
+  
     /** Set pixel format of the image */
     virtual void setPixelFormat(Image::PixelFormat format) = 0;
+
+    /** All images should be castable to IplImage for OpenCV compatibility */
+    virtual operator IplImage*() = 0;
 };
 
 } // namespace vision

@@ -14,10 +14,10 @@ envl = env.Clone()
 sources = helpers.glob(env, 'src', '*.cpp')
 
 # Grab wxWidgets
-libs.add_external('wxWidgets', envl)
+libs.add_external(envl, 'wxWidgets')
 
 # If on linux we need gtk
 if platform.system() == 'Linux':
-    libs.add_external('GTK+ 2.0', envl)
+    libs.add_external(envl, 'GTK+ 2.0')
 
 envl.SharedLibrary(target = '_wxogre', source = sources)

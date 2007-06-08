@@ -29,6 +29,7 @@ public:
       *  yourself.
       */
     BasicImage(unsigned char* data, int width, int height,
+               bool ownership = true,
                Image::PixelFormat format = Image::PF_RGB_8);
 
     virtual ~BasicImage();
@@ -51,7 +52,8 @@ public:
      *
      *  @return You are responsible for deleting this buffer.
      */
-    virtual unsigned char* setData(unsigned char* data);
+    virtual unsigned char* setData(unsigned char* data,
+                                   bool ownership = true);
 
     /** Set width of image in pixels */
     virtual void setWidth(int pixels) = 0;
@@ -61,12 +63,27 @@ public:
 
     /** Set pixel format of the image */
     virtual void setPixelFormat(Image::PixelFormat format) = 0;
+
+    operator IplImage* ();
     
 private:
+    /** Raw Image Buffer */
     unsigned char* m_data;
+    
+    /** Do we own the buffer */
+    bool m_own;
+    
+    /** Width of image */
     size_t m_width;
+    
+    /** Height of Image */
     size_t m_height;
+    
+    /** Pixel Format of Image */
     Image::PixelFormat m_format;
+    
+    /** Used to store IPL Image for casting */
+    IplImage* m_iplimage;
 };
 
 } // namespace vision

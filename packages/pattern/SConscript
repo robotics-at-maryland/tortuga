@@ -10,6 +10,6 @@ envl = env.Clone()
 sources = helpers.glob(env, 'src', '*.cpp')
 
 # Grab Boost
-libs.add_external('Boost', envl)
+libs.add_external(envl, 'Boost')
 
 envl.SharedLibrary(target = 'ram_pattern', source = sources)

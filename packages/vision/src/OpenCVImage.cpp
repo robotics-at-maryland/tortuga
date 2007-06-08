@@ -17,7 +17,8 @@
 namespace ram {
 namespace vision {
 
-OpenCVImage::OpenCVImage(IplImage* image) :
+OpenCVImage::OpenCVImage(IplImage* image, bool ownership) :
+    m_own(ownership),
     m_img(image)
 {
 }
@@ -29,9 +30,15 @@ OpenCVImage::OpenCVImage()
 
 OpenCVImage::~OpenCVImage()
 {
-    cvReleaseImage(&m_img);
+    if (m_own)
+        cvReleaseImage(&m_img);
 }
 
+unsigned char* OpenCVImage::getData()
+{
+    return (unsigned char*)(m_img->imageData);
+}
+    
 size_t OpenCVImage::getWidth()
 {
     return cvGetSize(m_img).width;
@@ -48,24 +55,30 @@ Image::PixelFormat OpenCVImage::getPixelFormat()
     return PF_BGR_8;
 }
 
-unsigned char* OpenCVImage::setData(unsigned char* data)
+unsigned char* OpenCVImage::setData(unsigned char* data, bool ownership)
 {
+    m_own = ownership;
     cvSetImageData(m_img, data, cvGetSize(m_img).width * 3);
 }
 
-void setWidth(int pixels)
+void  OpenCVImage::setWidth(int pixels)
 {
     assert(false && "Not implemented");
 }
 
-void setHeight(int pixels)
+void  OpenCVImage::setHeight(int pixels)
 {
     assert(false && "Not implemented");
 }
 
-void setPixelFormat(Image::PixelFormat format)
+void  OpenCVImage::setPixelFormat(Image::PixelFormat format)
 {
     assert(false && "Not implemented");
+}
+
+OpenCVImage::operator IplImage* ()
+{
+    return m_img;
 }
 
 } // namespace vision

@@ -12,16 +12,13 @@
 
 #include "vision/include/Image.h"
 
-struct _IplImage;
-typedef struct _IplImage IplImage;
-
 namespace ram {
 namespace vision {
 
 class OpenCVImage : public Image
 {
 public:
-    OpenCVImage(IplImage*);
+    OpenCVImage(IplImage*, bool ownership = true);
     ~OpenCVImage();
 
     /** The raw image data */
@@ -37,7 +34,8 @@ public:
     virtual Image::PixelFormat getPixelFormat();
 
     /** Change Image data */
-    virtual unsigned char* setData(unsigned char* data);
+    virtual unsigned char* setData(unsigned char* data,
+                                   bool ownership = true);
 
     /** Set width of image in pixels */
     virtual void setWidth(int pixels);
@@ -47,8 +45,11 @@ public:
 
     /** Set pixel format of the image */
     virtual void setPixelFormat(Image::PixelFormat format);
-		
+  
+  virtual operator IplImage*();
+  
 private:
+    bool m_own;
     IplImage* m_img;
     
     /** Default constructor Private so it can't be called */

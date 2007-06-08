@@ -17,31 +17,56 @@ import subprocess
 #                        L I B R A R Y   I N F O                              #
 # --------------------------------------------------------------------------- #
 
-def __get_lib_map():
-    return {
+def _get_external_lib(name):
+    """
+    Maps public library with the information need to build it
+    """
+    libs = {
     'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 'wx-config'),
     'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
     'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 'gdk/gdk.h']),
     'Boost' : BoostLibrary('Boost', (1,35), [])
     }
 
+    if libs.has_key(name):
+        return libs[name]
+    else:
+        print 'Could not find external library named: "%s"' % name
+        sys.exit(1)
+
+def _get_internal_lib(name):
+    """
+    Maps internal library name with the information needed to build it
+    """
+    libs = {
+        'vision' : InternalLibrary('vision', [], ['OpenCV'])
+    }
+
+    if libs.has_key(name):
+        return libs[name]
+    else:
+        print 'Could not find internal library named: "%s"' % name
+        sys.exit(1)
+
 # --------------------------------------------------------------------------- #
 #                     P U B L I C  I N T E R F A C E                          #
 # --------------------------------------------------------------------------- #
 
-def add_external(name, env):
+def add_external(env, name):
     """
     Add an external library to the given environment and make sure its properly
     installed and configured.
     """
     # Don't do anything if we are cleaning
-    lib_map = __get_lib_map()
     if not env.GetOption('clean'):
-        if lib_map.has_key(name):
-            lib_map[name].setup_environment(env)
-        else:
-            print 'Could not find library name: "%s"' % name
-            sys.exit(1)
+        _get_external_lib(name).setup_environment(env)
+
+def add_internal(env, name):
+    """
+    Adds the flags need to build and link against one of our internal libraries
+    """
+    if not env.GetOption('clean'):
+        _get_internal_lib(name).setup_environment(env)
 
 
 # --------------------------------------------------------------------------- #
@@ -133,6 +158,38 @@ class Library(object):
         
         env = conf.Finish()
 
+class InternalLibrary(Library):
+    def __init__(self, name, int_deps, ext_deps, strict_version = False):
+        """
+        This allows easy inclusion of internal libraries, it automatically pulls
+        in all needed settings for libraries it dependends on.
+
+        @todo Maybe move dep. stuff into main library class as keyword args
+        @todo Maybe include CPPPATH, etc in this class
+        
+        See Library.__init__ for the rest of the parameters
+        
+        @type  int_deps: list of strings
+        @param int_deps: Names of internal libraries this library depends on.
+
+        @type  ext_deps: list of strings
+        @paraq ext_deps: Names of external libraries this library depends on.
+        """
+        Library.__init__(self, name, '', [], [],
+                         strict_version = strict_version)
+
+        # Get the libraries which correspond to the given names
+        self.int_deps = [_get_internal_lib(d) for d in int_deps]
+        self.ext_deps = [_get_external_lib(d) for d in ext_deps]
+
+    def setup_environment(self, env):
+        # Include self in library list
+        env.Append(LIBS = ['ram_' + self.name])
+
+        # Add information for all dependents
+        for lib in self.int_deps + self.ext_deps:
+            print 'Setting up:',lib.name
+            lib.setup_environment(env)
 
 class ConfigLibrary(Library):
     """

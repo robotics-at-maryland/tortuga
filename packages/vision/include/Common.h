@@ -16,9 +16,14 @@ namespace vision {
 // Forware declaration of all classes
 class Camera;
 class Image;
-
+class OpenCVImage;
+class OpenCVCamera;
 
 } // namespace vision
 } // namespace ram
+
+// Forward declared to avoid OpenCV Header
+struct _IplImage;
+typedef struct _IplImage IplImage;
 
 #endif // RAM_VISION_COMMON_H_05_29_2007

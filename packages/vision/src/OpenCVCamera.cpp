@@ -28,11 +28,19 @@ OpenCVCamera::OpenCVCamera(int camNum)
     assert(m_camCapture && "Error creating camera");
 }
 
+OpenCVCamera::~OpenCVCamera()
+{
+    cvReleaseCapture(&m_camCapture);
+}
+
 Image* OpenCVCamera::getImage()
 {
     if (cvGrabFrame(m_camCapture))
     {
-        return new OpenCVImage(cvRetrieveFrame(m_camCapture));
+        // Create a new image and return it, image does not! own the wrapped
+        // IplImage and thus will not detele it
+        return new OpenCVImage(cvRetrieveFrame(m_camCapture),
+                               false);
     }
     else
     {
