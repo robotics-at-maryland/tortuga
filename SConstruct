@@ -20,7 +20,11 @@ env = Environment(ENV=os.environ, options = opts)
 Help(opts.GenerateHelpText(env))
 
 # Add Root Includes Directory
+env.Append(BUILD_DIR = os.path.join(env.Dir('.').abspath, 'build'))
+env.Append(LIB_DIR = os.path.join(env['BUILD_DIR'], 'lib'))
+env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 env.Append(CPPPATH = [os.path.join(env.Dir('.').abspath, 'packages')])
+env.Append(LIBPATH = [env['LIB_DIR']])
 
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
