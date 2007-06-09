@@ -2,14 +2,25 @@
 
 typedef struct
 {
-  int a;
-  int b;
-  int c;
-  int d;
-  int e;
-  int f;
-  int g;
-} MyInts;
+  int frameNum;
+  int width;
+  int height;
+
+  int redLightx;
+  int redLighty;
+
+  int distFromVertical;
+  double angle;
+
+  int binx;
+  int biny;
+
+  ///Tells you what is visible
+  bool lightVisible;
+  bool pipeVisible;
+  bool binVisible;
+  int frameNumCheck;
+}VisionData;
 
 static MyInts unsafe;
 static MyInts** safe;
