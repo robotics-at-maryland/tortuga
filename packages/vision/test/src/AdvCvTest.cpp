@@ -24,9 +24,14 @@ int main() {
     // Show the image captured from the camera in the window and repeat
     while( 1 ) {
         ram::vision::Image* frame = camera->getImage();
-        
-        cvShowImage( "Raw Camera Image", frame );
-        // Do not release the frame!
+
+        // The case is need because cvShowImage basically takes a void*,
+        // otherwise you would just need (*frame)
+        cvShowImage( "Raw Camera Image", (IplImage*)(*frame) );
+
+        // This is ok because the camera handles whether or not the image
+        // actually deletes the underlying buffer
+        delete frame;
         
         //If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
         //remove higher bits  using AND operator
@@ -35,6 +40,6 @@ int main() {
 
   // Release the capture device housekeeping
   delete camera;
-  cvDestroyWindow( "mywindow" );
+  cvDestroyWindow("Raw Camera Image");
   return 0;
 }

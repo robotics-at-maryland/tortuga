@@ -22,7 +22,7 @@ namespace vision {
 
 OpenCVCamera::OpenCVCamera(int camNum)
 {
-    CvCapture* m_camCapture = cvCaptureFromCAM(camNum);
+    m_camCapture = cvCaptureFromCAM(camNum);
 
     /// TODO: Handle the more gracefully
     assert(m_camCapture && "Error creating camera");

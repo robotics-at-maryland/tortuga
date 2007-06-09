@@ -37,6 +37,6 @@ int main() {
 
   // Release the capture device housekeeping
   cvReleaseCapture( &capture );
-  cvDestroyWindow( "mywindow" );
+  cvDestroyWindow( "Raw Camera Image" );
   return 0;
 }
