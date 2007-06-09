@@ -15,7 +15,7 @@ export PYTHONPATH=$RAM_ROOT_DIR/lib/%(py_version_str)s/site-packages:$PYTHONPATH
 export PATH=$RAM_SVN_DIR/scripts:$RAM_ROOT_DIR/bin:$PATH
 
 # Setup the LD_LIBRARY_PATH so our executables can find libraries like opencv
-export LD_LIBRARY_PATH=$RAM_ROOT_DIR/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$RAM_SVN_DIR/build/lib:$RAM_ROOT_DIR/lib:$LD_LIBRARY_PATH
 
 # Probably not needed, but this controls the dynamically loaded .so file path
 # in Mac OS X.
