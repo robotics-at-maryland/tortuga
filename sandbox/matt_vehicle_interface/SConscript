@@ -1,0 +1,5 @@
+Import('env')
+envl = env.Clone()
+
+envl.SharedLibrary(target = 'foo', source = "foo.c")
+envl.SharedLibrary(target = 'matt', source = "matt.c")

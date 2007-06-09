@@ -34,7 +34,11 @@ class communicator:
     def time(self):
         return self.timer.time()
     def read_byte(self):
-        return self.ser.read(1)
+        try:
+            byte = self.ser.read(1)
+            return byte
+        except:
+            return "error"
     def write_to_lcd(self,position,text):
         if position == "top":
             message = self.commands["lcdtop"]
@@ -58,15 +62,21 @@ class communicator:
             message = self.read_byte()
         return struct.unpack('B',message)
     def send_byte_message(self,message):
-        for element in message:
-            self.write(self.pack_byte(element))
+        try:
+            for element in message:
+                self.write(self.pack_byte(element))
+        except:
+            return "error"
     def read_byte_message(self,length):
-        code_string = ""
-        for i in range(length):
-            code_string += "B"
-        message = self.ser.read(length)
-        unpacked = struct.unpack(code_string,message)
-        return unpacked
+        try:
+            code_string = ""
+            for i in range(length):
+                code_string += "B"
+            message = self.ser.read(length)
+            unpacked = struct.unpack(code_string,message)
+            return unpacked
+        except:
+            return "error"
     def ping(self):
         self.send_byte_message(self.commands["ping"])
         response = self.read_byte_message(self.response_lengths["ping"])
