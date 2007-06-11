@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 
 typedef struct
 {
@@ -63,13 +64,14 @@ MyInts* captureSnapshot(int tries)
       guaranteed.f=(buffer->f);
       guaranteed.g=(buffer->g);
       
-      if (guaranteed.a==guaranteed.g)
-	return &guaranteed;
+	  if (guaranteed.a==guaranteed.g)
+		return &guaranteed;
     }
-  return *safe;
+  //return *safe;
+  return NULL;
 }	
 
-int main()
+int run()
 {
   MyInts  duplicateMe;
   MyInts *buffer1,*buffer2;
@@ -117,13 +119,13 @@ int main()
 	}
       else if (swapper==2)
 	{
-	  buffer1->a=buffer2->a+1;
-	  buffer1->b=buffer2->b+1;
-	  buffer1->c=buffer2->c+1;
-	  buffer1->d=buffer2->d+1;
-	  buffer1->e=buffer2->e+1;
-	  buffer1->f=buffer2->f+1;
-	  buffer1->g=buffer2->g+1;
+	  buffer2->a=buffer1->a+1;
+	  buffer2->b=buffer1->b+1;
+	  buffer2->c=buffer1->c+1;
+	  buffer2->d=buffer1->d+1;
+	  buffer2->e=buffer1->e+1;
+	  buffer2->f=buffer1->f+1;
+	  buffer2->g=buffer1->g+1;
 	  swapper=1;
 	  safe=&buffer2;
 	}
