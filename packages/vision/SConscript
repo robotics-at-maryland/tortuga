@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/vision/include/BasicImage.h
+# File:  packages/vision/SConscript
 
 # Build system imports
 import libs
