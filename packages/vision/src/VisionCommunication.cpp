@@ -1,142 +1,62 @@
 #include <stdlib.h>
+#include "VisionData.h"
+#include "vision/include/VisionCommunication.cpp"
 
-typedef struct
+VisionData* VisionCommunication::getDummy()
 {
-  int frameNum;
-  int width;
-  int height;
-
-  int redLightx;
-  int redLighty;
-
-  int distFromVertical;
-  double angle;
-
-  int binx;
-  int biny;
-
-  ///Tells you what is visible
-  bool lightVisible;
-  bool pipeVisible;
-  bool binVisible;
-  int frameNumCheck;
-}VisionData;
-
-static MyInts unsafe;
-static MyInts** safe;
-static MyInts guaranteed;
-static MyInts dummyCheck;
-
-static int startGet=0;
-static int endGet=0;
-
-MyInts* getDummy()
-{
-  dummyCheck.a=1;
-  dummyCheck.b=1;
-  dummyCheck.c=2;
-  dummyCheck.d=3;
-  dummyCheck.e=5;
-  dummyCheck.f=8;
-  dummyCheck.g=13;
+  dummyCheck.frameNum=2;
+  dummyCheck.width=3;
+  dummyCheck.height=5;
+  dummyCheck.redLightx=7;
+  dummyCheck.redLighty=11;
+  dummyCheck.distFromVertical=13;
+  dummyCheck.angle=17;
+  dummyCheck.binx=19;
+  dummyCheck.biny=23;
+  dummyCheck.lightVisible=29;
+  dummyCheck.pipeVisible=31;
+  dummyCheck.binVisible=37;
+  dummyCheck.frameNumCheck=41;
   
   return &dummyCheck;
 }
 
-MyInts* getUnsafe()
+VisionData* VisionCommunication::getUnsafe()
 {
   return &unsafe;
 }
  
-MyInts** getSafe()
+VisionData** VisionCommunication::getSafe()
 {
   return safe;
 }
 
-MyInts* captureSnapshot(int);
-
-MyInts* getData()
+VisionData* VisionCommunication::getData()
 {
   return captureSnapshot(10);
 }
 
-MyInts* captureSnapshot(int tries)
+VisionData* VisionCommunication::captureSnapshot(int tries)
 {
   int x=0;
   for(x=0;x<tries;x++)
     {
-      MyInts* buffer=*safe;
-      guaranteed.a=(buffer->a);
-      guaranteed.b=(buffer->b);
-      guaranteed.c=(buffer->c);
-      guaranteed.d=(buffer->d);
-      guaranteed.e=(buffer->e);
-      guaranteed.f=(buffer->f);
-      guaranteed.g=(buffer->g);
-      
-	  if (guaranteed.a==guaranteed.g)
-		return &guaranteed;
+      VisionData* buffer=*safe;
+      guaranteed.frameNum=(buffer->frameNum);
+      guaranteed.width=(buffer->width);
+      guaranteed.height=(buffer->height);
+      guaranteed.redLightx=(buffer->redLightx);
+      guaranteed.redLighty=(buffer->redLighty);
+      guaranteed.distFromVertical=(buffer->distFromVertical);
+      guaranteed.angle=(buffer->angle);
+      guaranteed.binx=(buffer->binx);
+      guaranteed.biny=(buffer->biny);
+      guaranteed.lightVisible=(buffer->lightVisible);
+      guaranteed.pipeVisible=(buffer->pipeVisible);
+      guaranteed.binVisible=(buffer->binVisible);
+      guaranteed.frameNumCheck=(buffer->binVisible);
+      if (guaranteed.frameNum==guaranteed.frameNumCheck)
+	return &guaranteed;
     }
-  return *safe;
+  return NULL;
 }	
-
-int run()
-{
-  MyInts  duplicateMe;
-  MyInts *buffer1,*buffer2;
-
-  buffer1=malloc(sizeof(MyInts));
-  buffer2=calloc(1,sizeof(MyInts));
-  
-  int swapper=2;
-  unsafe.a=0;
-  unsafe.b=0;
-  unsafe.c=0;
-  unsafe.d=0;
-  unsafe.e=0;
-  unsafe.f=0;
-  unsafe.g=0;
-
-  buffer1->a=0;
-  buffer1->b=0;
-  buffer1->c=0;
-  buffer1->d=0;
-  buffer1->e=0;
-  buffer1->f=0;
-  buffer1->g=0;
-
-  while(1)
-    {
-      unsafe.a++;
-      unsafe.b++;
-      unsafe.c++;
-      unsafe.d++;
-      unsafe.e++;
-      unsafe.f++;
-      unsafe.g++;
-      if (swapper==1)
-	{
-	  buffer1->a=buffer2->a+1;
-	  buffer1->b=buffer2->b+1;
-	  buffer1->c=buffer2->c+1;
-	  buffer1->d=buffer2->d+1;
-	  buffer1->e=buffer2->e+1;
-	  buffer1->f=buffer2->f+1;
-	  buffer1->g=buffer2->g+1;
-	  swapper=2;
-	  safe=&buffer1;
-	}
-      else if (swapper==2)
-	{
-	  buffer2->a=buffer1->a+1;
-	  buffer2->b=buffer1->b+1;
-	  buffer2->c=buffer1->c+1;
-	  buffer2->d=buffer1->d+1;
-	  buffer2->e=buffer1->e+1;
-	  buffer2->f=buffer1->f+1;
-	  buffer2->g=buffer1->g+1;
-	  swapper=1;
-	  safe=&buffer2;
-	}
-    }
-}
