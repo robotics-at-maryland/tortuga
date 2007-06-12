@@ -1,0 +1,33 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vehicle/SConscript
+
+# Build system imports
+import libs
+import helpers
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Sources
+sources = []
+
+# Libraries
+#libs.add_external(envl, 'OpenCV')
+
+# Build Procducts (library will be called 'libram_vision.so')
+#helpers.SharedLibrary(envl, 'vehicle',  source = sources)
+
+
+# Testing
+#envt = env.Clone()
+
+# Build simple camera test program and make sure vision library is intalled
+#helpers.Program(envt, 'test/src/AdvCvTest.cpp',
+#                int_deps = 'vision')
+
+#envt.Program('test/src/BasicCvTest.c')
