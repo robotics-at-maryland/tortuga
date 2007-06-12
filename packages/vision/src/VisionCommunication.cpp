@@ -1,6 +1,20 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim
+ * File:  packages/vision/src/VisionCommunication.cpp
+ */
+
+// STD Includes
 #include <stdlib.h>
-#include "VisionData.h"
-#include "vision/include/VisionCommunication.cpp"
+
+// Project Includes
+#include "vision/include/VisionCommunication.h"
+
+namespace ram {
+namespace vision {
 
 VisionData* VisionCommunication::getDummy()
 {
@@ -60,3 +74,6 @@ VisionData* VisionCommunication::captureSnapshot(int tries)
     }
   return NULL;
 }	
+
+} // namespace vision
+} // namespace ram

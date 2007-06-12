@@ -16,7 +16,9 @@ envl = env.Clone()
 # Sources
 sources = ['src/BasicImage.cpp',
            'src/OpenCVCamera.cpp',
-           'src/OpenCVImage.cpp']
+           'src/OpenCVImage.cpp',
+           'src/VisionCommunication.cpp',
+           'src/ProcessList.cpp']
 
 # Libraries
 libs.add_external(envl, 'OpenCV')
