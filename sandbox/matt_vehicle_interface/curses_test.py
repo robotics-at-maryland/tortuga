@@ -24,6 +24,7 @@ file = open("matt.txt",'w')
 class CursesController:
     def __init__(self,vehicle):
         self.stdscr = curses.initscr()
+        self.vehicle = vehicle
         self.thrusters = vehicle.thrusters
         curses.noecho()    #Dont show keypresses
         curses.cbreak()    #Allow instantaneous Key Processing
@@ -42,12 +43,17 @@ class CursesController:
         quit = 0
         self.print_string(0,0,"Thruster Information",curses.A_UNDERLINE)
         self.print_thrusters(self.thrusters)
-        print self.thrusters
+        depth = self.vehicle.depth()
+        self.print_string(8,57,"Depth",curses.A_REVERSE)
+        self.print_string(9,60,str(depth),curses.A_BOLD)
         while(quit != 1):
             char = self.stdscr.getch()
             quit = self.handle_input(char)
             self.print_thrusters(self.thrusters)
             self.print_string(0,0,"Thruster Information",curses.A_UNDERLINE)
+            depth = self.vehicle.depth()
+            self.print_string(8,57,"Depth",curses.A_REVERSE)
+            self.print_string(9,60,str(depth),curses.A_BOLD)
         self.close()
             
                 

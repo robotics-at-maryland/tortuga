@@ -18,4 +18,10 @@ class Thruster():
 class AbstractController():
     def __init__(self):
         print "Creating a new abstract controller"
+        
+class DepthSensor():
+    def __init__(self,sc):
+        self.sensor_comm = sc
+    def depth(self):
+        return self.sensor_comm.depth()
     

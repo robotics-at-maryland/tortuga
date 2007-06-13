@@ -42,7 +42,7 @@ class communicator:
             byte = self.ser.read(1)
             return byte
         except:
-            return "error"
+            return [-1]
     def write_to_lcd(self,position,text):
         if position == "top":
             message = self.commands["lcdtop"]
@@ -70,7 +70,7 @@ class communicator:
             for element in message:
                 self.write(self.pack_byte(element))
         except:
-            return "error"
+            return [-1]
     def read_byte_message(self,length):
         try:
             code_string = ""
@@ -80,7 +80,7 @@ class communicator:
             unpacked = struct.unpack(code_string,message)
             return unpacked
         except:
-            return "error"
+            return [-1]
     def ping(self):
         self.send_byte_message(self.commands["ping"])
         response = self.read_byte_message(self.response_lengths["ping"])
@@ -96,7 +96,7 @@ class communicator:
         for i in range(length-1):
             sum = sum + message[i]
         check_sum = (message[length-1]%256) 
-        return check_sum == sum
+        return check_sum == sum%256          #True means the checksum is alright
     
     def get_checksum(self,message):
         sum = 0
@@ -107,11 +107,16 @@ class communicator:
     def depth(self):
         self.send_byte_message(self.commands["depth"])
         response = self.read_byte_message(self.response_lengths["depth"])
-        return self.check_message(response)
+        depth = response[1]*256 + response[2]
+        if self.check_message(response):
+            return depth
+        else:
+            return "Error!"
     def status(self):
         self.send_byte_message(self.commands["status"])
         response = self.read_byte_message(self.response_lengths["status"])
-        return self.check_message(response)
+        if not self.check_message(response):
+            return response
     def kill(self):
         self.send_byte_message(self.commands["hardkill"])
         response = self.read_byte_message(self.response_lengths["hardkill"])
@@ -155,3 +160,4 @@ class communicator:
         if num == 2:
             self.send_byte_message(self.commands["thruster2on"])
             response = self.read_byte_message(self.response_lengths["thruster"])
+            
