@@ -16,18 +16,23 @@ class communicator:
         try:     
             self.ser.write("W01 28 400 \r\n")
         except:
-            print "W01 28 400 \r\n"
+            pass
         
-    def set_power(self,thruster,power):
-        command = "C0" + str(thruster) + " " + str(power) + "\r\n"
-        print command
+    def set_power(self,thruster):
+        address = thruster.address
+        power = thruster.power
+        command = "C0" + str(address) + " " + str(power) + "\r\n"
         try:
             self.ser.write(command)
         except:
-            print command
-    def close(self):
-        self.set_power(1,0)
-        self.set_power(2,0)
-        self.set_power(3,0)
-        self.set_power(4,0)
-        self.ser.close()
+            pass
+            
+    def close(self,thrusters):
+        for thruster in thrusters:
+            print "Shutting off thruster " + str(thruster.address)
+            thruster.power = 0
+            self.set_power(thruster)
+        try:
+            self.ser.close()
+        except:
+            pass

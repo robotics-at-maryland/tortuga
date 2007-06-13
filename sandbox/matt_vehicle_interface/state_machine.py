@@ -1,3 +1,5 @@
+import time,curses_test
+
 class state_machine:
         
     def __init__(self,environment):
@@ -9,13 +11,12 @@ class state_machine:
     def vehicle(self):
         return self.environment.vehicle
     def time(self):
-        return self.environment.timer.time()
-        
+        return self.environment.timer.time() 
     '''
     Defines the state table, where state names are mapped to operation functions.
     '''
     def define_state_table(self):
-        self.state_table = {"initializing":self.initializing,"starting":self.starting,"halting":self.halting,"operating":self.operating}
+        self.state_table = {"initializing":self.initializing,"starting":self.starting,"halting":self.halting,"operating":self.operating,"testing thrusters":self.testing_thrusters,"curses operation":self.curses_operation}
     
     def operate(self):
         function = self.state_table[self.state]
@@ -33,10 +34,29 @@ class state_machine:
         print "starting the robot..."
         error = self.vehicle.start_vision_system()
         if error:
-            self.change_state("halting")
+            self.change_state("curses operation")
         else:
             self.change_state("operating")
-
+            
+    def curses_operation(self):
+        window = curses_test.CursesController(self.vehicle)
+        window.run()
+        self.change_state("halting")
+        
+    def testing_thrusters(self):
+        for thruster in self.vehicle.thrusters:
+            print "Cycling Thruster " + str(thruster.address)
+            for i in range(0,10,1):
+                pow = i/10.0
+                self.vehicle.set_thruster_power(thruster,pow)
+            for i in range(10,-10,-1):
+                pow = i/10.0
+                self.vehicle.set_thruster_power(thruster,pow)
+            for i in range(-10,0,1):
+                pow = i/10.0
+                self.vehicle.set_thruster_power(thruster,pow)
+        self.change_state("halting")
+        
     def operating(self):
         print "operating the robot..."
         vs = self.vehicle.get_vision_structure()
@@ -54,4 +74,5 @@ class state_machine:
         
     def halting(self):
         print "halting robot operation..."
+        self.vehicle.shutdown()
         self.change_state("finished")
