@@ -1,4 +1,5 @@
 import curses
+import paths
 import curses.wrapper
 from paths import *
 
@@ -14,8 +15,8 @@ L = 106
 
 ESC = 27
 
-increment = 0.05
-decrement = -0.05
+increment = paths.increment
+decrement = paths.decrement
 
 file = open("matt.txt",'w')
 

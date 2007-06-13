@@ -2,6 +2,7 @@ import serial
 import time
 import struct
 import timer
+import paths
 
 def toHex(s):
     lst = []
@@ -24,13 +25,16 @@ class communicator:
         self.response_lengths = {"depth":4,"check":1,"ping":1,"depth":4,"synchronize":1,"status":3,"hardkill":1,"marker":1,"display":1,"thruster":1}
         print "Initializing a sensor board communicator"
         try:
-            self.ser = serial.Serial("/dev/cu.usbserial-A1000q7T",115200,timeout=1)
+            self.ser = serial.Serial(paths.sensor_address,115200,timeout=1)
             self.init = True
         except:
             print "Error initializing the serial port connection"
             self.init = False
     def write(self,command):
-        self.ser.write(command)
+        try:
+		self.ser.write(command)
+	except:
+		pass
     def time(self):
         return self.timer.time()
     def read_byte(self):
