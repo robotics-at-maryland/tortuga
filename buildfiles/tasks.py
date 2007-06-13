@@ -5,10 +5,16 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  buildfiles/tasks.py
 
+# Python Imports
+import os
 import sys
+import platform
 
-from common.commands import *
+# Library Imports
 from buildit.task import Task
+
+# Project Imports
+from common.commands import *
 
 # Setup basic directory structure
 setup_directories = Task(
@@ -96,6 +102,22 @@ install_python_modules = Task(
     )
 
 # Generate Environment File
+
+def get_wx_prefix():
+    if platform.system() == 'Darwin':
+        if os.path.exists('/usr/local/lib'):
+            for dir in os.listdir('/usr/local/lib'):
+                if dir.startswith('wxPython-unicode-2.8'):
+                    return os.path.abspath(os.path.join('/usr','local','lib',dir))
+
+        print 'Please install wxPython 2.8.x from http://www.wxpython.org'
+        sys.exit(1)
+        
+    else:
+        return ''
+  
+WX_PREFIX = get_wx_prefix()
+
 gen_setenv = Task(
       'Generate setenv',
       namespaces = 'bootstrap',
@@ -105,5 +127,7 @@ gen_setenv = Task(
                            '${buildoutdir}/scripts/setenv',
                            ram_environ_root = '${ram_prefix}',
                            local_svn_dir = '${buildoutdir}',
-                           py_version_str = '${python_version_str}')],
+                           py_version_str = '${python_version_str}',
+                           wx_bin_dir = WX_PREFIX + os.sep + 'bin',
+                           wx_lib_dir = WX_PREFIX + os.sep + 'lib')]
    )

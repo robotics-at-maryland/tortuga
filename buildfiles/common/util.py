@@ -18,6 +18,20 @@ def safe_system(command):
         raise CommandError, "Command '%s' with status %d" % \
              (command, retcode)
 
+    
+def run_shell_cmd(command, error_msg):
+    """
+    Run the given shell command return the stdout result
+    """
+    if type(command) is not list:
+        command = command.split()
+    try:
+        proc = subprocess.Popen(command, stdout=subprocess.PIPE)
+        return proc.communicate()[0]
+    except OSError:
+        print error_msg
+        sys.exit(1)
+
 def ensure_buildit_installed(root_dir, py_version_str, prefix_dir):
     config_path = os.path.join(root_dir, 'buildfiles', 'root.ini')    
         

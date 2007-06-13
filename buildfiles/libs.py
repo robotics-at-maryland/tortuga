@@ -9,9 +9,14 @@
 This module allows easy inclusion of libraries with there required files.
 """
 
+# Python imports
 import os
 import sys
 import subprocess
+
+# Project Imports
+from common.util import run_shell_cmd
+
 
 # --------------------------------------------------------------------------- #
 #                        L I B R A R Y   I N F O                              #
@@ -333,16 +338,3 @@ class BoostLibrary(Library):
         { return 0; }""" % {'ver' : ver_num}, 'cpp')
         
         env = conf.Finish()
-    
-def run_shell_cmd(command, error_msg):
-    """
-    Run the given shell command return the stdout result
-    """
-    if type(command) is not list:
-        command = command.split()
-    try:
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE)
-        return proc.communicate()[0]
-    except OSError:
-        print error_msg
-        sys.exit(1)
