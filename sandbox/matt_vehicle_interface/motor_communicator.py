@@ -4,13 +4,15 @@ import serial,paths,time
 "W01 28 400 \r\n"
 #1024 to -1024
 
+file = open("matt.txt",'w')
+
 class communicator:
     def __init__(self):
         try:
             self.ser = serial.Serial(paths.motor_communicator,19200)
             self.ser.setTimeout(1)
         except:
-            pass
+            print "Init failed"
     
     def set_amps_limit(self):
         try:     
@@ -21,11 +23,17 @@ class communicator:
     def set_power(self,thruster):
         address = thruster.address
         power = thruster.power
-        command = "C0" + str(address) + " " + str(power) + "\r\n"
-        try:
+	pow_command = int(power*1024)
+	if pow_command > 1024:
+	    pow_command = 1024
+ 	elif pow_command < -1024:
+	    pow_command = -1024
+        command = "C0" + str(address) + " " + str(pow_command) + "\r\n"
+	file.write(command)
+	try:
             self.ser.write(command)
         except:
-            pass
+	    print "Problem sending serial command"
             
     def close(self,thrusters):
         for thruster in thrusters:

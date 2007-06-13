@@ -105,13 +105,16 @@ class communicator:
         return sum%256
     
     def depth(self):
-        self.send_byte_message(self.commands["depth"])
-        response = self.read_byte_message(self.response_lengths["depth"])
-        depth = response[1]*256 + response[2]
-        if self.check_message(response):
-            return depth
-        else:
-            return "Error!"
+	try:
+        	self.send_byte_message(self.commands["depth"])
+        	response = self.read_byte_message(self.response_lengths["depth"])
+        	depth = response[1]*256 + response[2]
+        	if self.check_message(response):
+            		return depth
+        	else:
+            		return "Error!"
+	except:
+		return "Error!"
     def status(self):
         self.send_byte_message(self.commands["status"])
         response = self.read_byte_message(self.response_lengths["status"])

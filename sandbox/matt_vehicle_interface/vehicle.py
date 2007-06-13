@@ -24,6 +24,10 @@ class main_vehicle:
         print "Thruster " + str(thruster.address) + ": " + str(power)
         self.motor_comm.set_power(thruster)
     
+    #updates the thruster with whatever its settings are in real life
+    def update_thruster(self,thruster):
+	self.motor_comm.set_power(thruster)
+
     #prints out the thruster powers in a readable format
     def print_thruster_powers(self):
         for thruster in self.thruster:

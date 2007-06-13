@@ -1,5 +1,6 @@
 import curses
 import paths
+import math
 import curses.wrapper
 from paths import *
 
@@ -34,10 +35,10 @@ class CursesController:
         self.stdscr.addstr(x,y,str,mode)
         
     def print_thrusters(self,thrusters):
-        self.print_string(2,10,"Fore: " + str(thrusters[0].power),curses.A_STANDOUT)
-        self.print_string(22,10,"Aft: " + str(thrusters[1].power),curses.A_STANDOUT)
-        self.print_string(11,30,"Starboard: " + str(thrusters[2].power),curses.A_STANDOUT)
-        self.print_string(11,0,"Port: " + str(thrusters[3].power),curses.A_STANDOUT)
+        self.print_string(2,10,"Fore: " + str((thrusters[0].power*100)),curses.A_STANDOUT)
+        self.print_string(22,10,"Aft: " + str((thrusters[1].power*100)),curses.A_STANDOUT)
+        self.print_string(11,30,"Starboard: " + str((thrusters[2].power*100)),curses.A_STANDOUT)
+        self.print_string(11,0,"Port: " + str((thrusters[3].power*100)),curses.A_STANDOUT)
         
     def run(self):
         quit = 0
@@ -62,20 +63,28 @@ class CursesController:
                 return 1
         elif c == W:
             self.thrusters[aft].power_up(increment)
+	    self.vehicle.update_thruster(self.thrusters[aft])
         elif c == S:
             self.thrusters[aft].power_up(decrement)
+	    self.vehicle.update_thruster(self.thrusters[aft])
         elif c == A:
             self.thrusters[port].power_up(increment)
+	    self.vehicle.update_thruster(self.thrusters[port])
         elif c == D:
             self.thrusters[port].power_up(decrement)
+	    self.vehicle.update_thruster(self.thrusters[port])
         elif c == I:
             self.thrusters[fore].power_up(increment)
+	    self.vehicle.update_thruster(self.thrusters[fore])
         elif c == K:
             self.thrusters[fore].power_up(decrement)
+	    self.vehicle.update_thruster(self.thrusters[fore])
         elif c == J:
             self.thrusters[starboard].power_up(increment)
+   	    self.vehicle.update_thruster(self.thrusters[starboard])
         elif c == L:
             self.thrusters[starboard].power_up(decrement)
+	    self.vehicle.update_thruster(self.thrusters[starboard])
         return 0
             
     def close(self):
