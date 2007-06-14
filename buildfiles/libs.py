@@ -30,7 +30,10 @@ def _get_external_lib(name):
     'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 'wx-config'),
     'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
     'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 'gdk/gdk.h']),
-    'Boost' : BoostLibrary('Boost', (1,35), [])
+    'Boost' : BoostLibrary('Boost', (1,35), [])#,
+#    'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
+#                                  ['boost_python-gcc'])#, ext_deps = ['Python']),
+    #'Python' : LibPython('2.5')
     }
 
     if libs.has_key(name):
@@ -44,7 +47,8 @@ def _get_internal_lib(name):
     Maps internal library name with the information needed to build it
     """
     libs = {
-        'vision' : InternalLibrary('vision', [], ['OpenCV'])
+        'vision' : InternalLibrary('vision', [], ['OpenCV']),
+        'pattern' : InternalLibrary('pattern', [], ['Boost'])
     }
 
     if libs.has_key(name):
@@ -80,7 +84,8 @@ def add_internal(env, name):
 
 class Library(object):
     def __init__(self, name, version, headers, libnames, CPPPATH = [],
-                 CPPFLAGS = [], LINKFLAGS = [], strict_version = False):
+                 CPPFLAGS = [], LINKFLAGS = [], strict_version = False,
+                 ext_deps = []):
         """
         @type  name: string
         @param name: The name of the library
@@ -107,6 +112,18 @@ class Library(object):
         self.CPPFLAGS = CPPFLAGS
         self.strict_version = strict_version
 
+        # Pervent basic errors with cycles
+        if ext_deps.count(self.name) != 0:
+            print 'Error, library: "%s" cannot depend on its self' % self.name
+            sys.exit(1)
+
+        # Store names for loading apon first request
+        self._ext_deps_name = ext_deps
+        self.ext_deps = None
+        
+        # This is here to prevent a recursion error
+        self._adding_ext_depends = False
+        
     def setup_environment(self, env):
         """
         This merges in the libraries to flag to the given environment and then
@@ -118,7 +135,28 @@ class Library(object):
         env.Append(LINKFLAGS = self.LINKFLAGS)
         env.Append(CPPPATH = self.CPPPATH)
 
+        self.setup_dependents(env)
+        
         self.check_environment(env)
+
+    def setup_dependents(self, env):
+        """
+        Brings in settings for dependent libraries
+        """
+
+        if self._adding_ext_depends:
+            print 'Error cycle in library dependencies for "%s"' % self.name
+            print '\tDependents:',self.ext_deps
+            sys.exit(1)
+
+        # Setup dependent libraries if it isn't already done
+        if self.ext_deps is None:
+            self.ext_deps = [_get_external_lib(lib) for lib in self._ext_deps_name]
+
+        self._adding_ext_depends = True
+        for lib in self.ext_deps:
+            lib.setup_environment(env)
+        self._adding_ext_depends = False
 
     def check_environment(self, env):
         self.check_version(env)
@@ -141,8 +179,11 @@ class Library(object):
         for header in self.headers:
             if not conf.CheckCXXHeader(header, '<>'):
                 print '\nERROR:'
-                print '\tCould not find the "%s" header' % header
-                print '\tPlease make sure %s is installed properly\n' % self.name
+                print '\tCould not find the "%s" header:' % header
+                print '\tHeader Search Path:'
+                for path in env['CPPPATH']:
+                    print '\t\t',path
+                print '\n\tPlease make sure %s is installed properly\n' % self.name
                 sys.exit(1)
         
         env = conf.Finish()
@@ -157,8 +198,12 @@ class Library(object):
         for lib in self.libraries:
             if not conf.CheckLib(lib, language='C++', autoadd=1):
                 print '\nERROR:'
-                print '\tCould not link to the "%s" library' % lib
-                print '\tPlease make sure %s is installed properly\n' % self.name
+                print '\tCould not link to the "%s" library on:' % lib
+                print '\tLibrary Search Path:'
+                for path in env['LIBPATH']:
+                    print '\t\t',path
+                print '\tLinker flags:',env.subst(' '.join(env['LINKFLAGS']))
+                print '\n\tPlease make sure %s is installed properly\n' % self.name
                 sys.exit(1)
         
         env = conf.Finish()
@@ -181,19 +226,44 @@ class InternalLibrary(Library):
         @paraq ext_deps: Names of external libraries this library depends on.
         """
         Library.__init__(self, name, '', [], [],
-                         strict_version = strict_version)
+                         strict_version = strict_version,
+                         ext_deps = ext_deps)
 
-        # Get the libraries which correspond to the given names
-        self.int_deps = [_get_internal_lib(d) for d in int_deps]
-        self.ext_deps = [_get_external_lib(d) for d in ext_deps]
+        
+        # Pervent basic errors with cycles
+        if int_deps.count(self.name) != 0:
+            print 'Error, library: "%s" cannot depend on its self' % self.name
+            sys.exit(1)
+
+        # Store names for loading apon first request
+        self._int_deps_name = int_deps
+        self.int_deps = None
+        
+        # This is here to prevent a recursion error
+        self._adding_int_depends = False
 
     def setup_environment(self, env):
         # Include self in library list
         env.Append(LIBS = ['ram_' + self.name])
 
+        self.setup_dependents(env)
+
+        if self._adding_int_depends:
+            print 'Error cycle in library dependencies for "%s"' % self.name
+            print '\tDependents:',self.ext_deps
+            sys.exit(1)
+
+        # Setup dependent libraries if it isn't already done
+        if self.int_deps is None:
+            self.int_deps = [_get_internal_lib(lib) for lib in self._int_deps_name]
+        # Setup the environment for out internal dependedcies
+        self._adding_int_depends = True
+        for lib in self.int_deps:
+            lib.setup_environment(env)
+        self._adding_int_depends = False
+
         # Add information for all dependents
-        for lib in self.int_deps + self.ext_deps:
-            print 'Setting up:',lib.name
+        for lib in self.int_deps:
             lib.setup_environment(env)
 
 class ConfigLibrary(Library):
@@ -245,6 +315,9 @@ class ConfigLibrary(Library):
         setup_cmd = '!%s %s %s' % (self.tool_name, self.cflag, self.libflag)
         env.MergeFlags([setup_cmd])
 
+        # Make sure settings for dependent libraries are set
+        self.setup_dependents(env)
+
         # Determine which libraries were added so we can check that they
         # link properly
         # Disabled because this is a bit excessive
@@ -274,7 +347,6 @@ class ConfigLibrary(Library):
                   (self.version, self.name, version_str)
             sys.exit(1)
 
-
 class PkgConfigLibrary(ConfigLibrary):
     """
     Provides a specialization of the generic config class to make pkg-config
@@ -286,7 +358,7 @@ class PkgConfigLibrary(ConfigLibrary):
                                strict_version = strict_version)
 
 class BoostLibrary(Library):
-    def __init__(self, name, version, headers, libraries = []):
+    def __init__(self, name, version, headers, libraries = [], ext_deps = []):
         """
         @type  version: (numbers)
         @param version: A tuple of major, minor and patch version numbers.  If
@@ -297,8 +369,6 @@ class BoostLibrary(Library):
         @param libaries: A list of the boost libraries that this library
                          instance represents.
         """
-    def __init__(self, name, version, headers, libraries = []):
-
         # Determine Major, Minor and Patch versions from given tuple
         assert (len(version) == 3) or (len(version) == 2)
 
@@ -322,7 +392,7 @@ class BoostLibrary(Library):
                                     'boost-' + version_str)
         
         Library.__init__(self, name, version_str, headers, libraries,
-                         CPPPATH = [include_path])
+                         CPPPATH = [include_path], ext_deps = ext_deps)
         
     def check_version(self, env):
         conf = env.Configure()
@@ -338,3 +408,4 @@ class BoostLibrary(Library):
         { return 0; }""" % {'ver' : ver_num}, 'cpp')
         
         env = conf.Finish()
+

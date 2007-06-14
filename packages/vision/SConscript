@@ -23,7 +23,7 @@ sources = ['src/BasicImage.cpp',
 # Libraries
 libs.add_external(envl, 'OpenCV')
 
-# Build Procducts (library will be called 'libram_vision.so')
+# Build Library (will be called 'libram_vision.so')
 helpers.SharedLibrary(envl, 'vision',  source = sources)
 
 
