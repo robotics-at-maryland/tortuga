@@ -9,24 +9,3 @@ sources = ['src/Vehicle.cpp', 'src/PSU.cpp']
 vehicle_lib = env.SharedLibrary(target = 'vehicle', source = sources)
 
 
-# Clone environment and build the extension module
-env = env.Clone()
-
-# Setup paths for Boost.Python and and Python
-root_dir = os.environ['RAM_ROOT_DIR']
-env.Append(CPPPATH = [os.path.join(root_dir,'include','boost-1_35'),
-                      distutils.sysconfig.get_python_inc(),
-                      '.'])
-env.Append(LIBPATH = [os.path.join(root_dir,'lib'), '.'])
-
-# Add out extra libraries (and some python ldflags)
-env.Append(LIBS = ['boost_python-gcc', 'vehicle'])
-env.MergeFlags(['!python-config --ldflags'])
-
-# Now some flags for python
-env.Append(CFLAGS = ['-fno-strict-aliasing'])
-env.Append(CPPDEFINES = ['NDEBUG'])
-
-vehicle_wrapper = env.SharedLibrary(target = 'vehicle_wrapper',
-                                    source = 'wrappers/generated.cpp')
-env.InstallAs(target = 'vehicle.so', source = vehicle_wrapper)
