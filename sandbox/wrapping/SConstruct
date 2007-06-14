@@ -1,7 +1,6 @@
 import os
 
 tpath = os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles','tools')
-print tpath
 env = Environment(ENV=os.environ, tools = ['default', 'gccxml'],
                   toolpath = [tpath])
 env.Append(CPPPATH = [ 'include'])
