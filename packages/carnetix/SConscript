@@ -1,0 +1,33 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/carnetix/SConscript
+
+# Build system imports
+import libs
+import helpers
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Sources
+sources = ['src/ctx.c']
+
+# Libraries
+libs.add_external(envl, 'USB')
+
+# Build Library (will be called 'libram_carnetix.so')
+helpers.SharedLibrary(envl, 'carnetix',  source = ['src/ctx.c'])
+
+# Testing and Demo Programs
+envt = env.Clone()
+
+# Build the ctx and consolemon
+helpers.Program(envt, target = 'ctx', source = 'test/src/ctx.c',
+                int_deps = 'carnetix')
+
+helpers.Program(envt, target = 'consolemon', source = 'test/src/consolemon.c',
+                int_deps = 'carnetix')
