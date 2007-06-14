@@ -4,16 +4,21 @@
 #include <string>
 #include <map>
 
-class Device;
+namespace vehicle {
+namespace device {
+    class Device;
+}
 
 class Vehicle
 {
 public:
     Vehicle();
     
-    Device* getDevices(std::string name);
+    device::Device* getDevices(std::string name);
 private:
-    std::map<std::string, Device*> m_devices;
+    std::map<std::string, device::Device*> m_devices;
 };
 
+}
+    
 #endif // TEST_VEHICLE_H

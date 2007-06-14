@@ -3,6 +3,9 @@
 
 #include "Device.h"
 
+namespace vehicle {
+namespace device {
+
 class PSU : public Device
 {
 public:
@@ -11,4 +14,7 @@ public:
     double getVoltage();
 };
 
+}
+}
+    
 #endif // TEST_PSU_H

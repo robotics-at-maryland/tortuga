@@ -3,10 +3,16 @@
 
 #include <string>
 
+namespace vehicle {
+namespace device {
+
 class Device
 {
 public:
     virtual std::string getName() = 0;
 };
 
+}
+}
+    
 #endif // TEST_DEVICE_H

@@ -1,13 +1,17 @@
 #include "Vehicle.h"
-#include "PSU.h"
+#include "device/PSU.h"
+
+namespace vehicle {
 
 Vehicle::Vehicle()
 {
-    Device* dev = new PSU();
+    device::Device* dev = new device::PSU();
     m_devices[dev->getName()] = dev;
 }
 
-Device* Vehicle::getDevices(std::string name)
+device::Device* Vehicle::getDevices(std::string name)
 {
     return m_devices[name];
+}
+
 }

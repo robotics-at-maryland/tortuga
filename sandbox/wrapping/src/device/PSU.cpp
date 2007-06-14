@@ -1,4 +1,7 @@
-#include "PSU.h"
+#include "device/PSU.h"
+
+namespace vehicle {
+namespace device {
 
 std::string PSU::getName()
 {
@@ -8,4 +11,7 @@ std::string PSU::getName()
 double PSU::getVoltage()
 {
     return 8.73;
+}
+
+}
 }
