@@ -10,7 +10,7 @@
 #include <boost/utility.hpp>
 
 // Pattern includes (gets forward declaration of Subject)
-#include "pattern/include/common.h"
+#include "pattern/include/Common.h"
 
 namespace ram {
 namespace pattern {

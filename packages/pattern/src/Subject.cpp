@@ -4,8 +4,8 @@
  */
 
 // Pattern Includes
-#include "pattern/include/subject.h"
-#include "pattern/include/observer.h"
+#include "pattern/include/Subject.h"
+#include "pattern/include/Observer.h"
 
 namespace ram {
 namespace pattern {

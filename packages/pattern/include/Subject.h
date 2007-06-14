@@ -7,7 +7,7 @@
 #define RAM_PATTERN_SUBJECT_H_05_30_2007
 
 // Fonudation includes (gets forward declaration or Observer)
-#include "pattern/include/common.h"
+#include "pattern/include/Common.h"
 
 namespace ram {
 namespace pattern {

@@ -12,4 +12,5 @@ sources = helpers.glob(env, 'src', '*.cpp')
 # Grab Boost
 libs.add_external(envl, 'Boost')
 
-envl.SharedLibrary(target = 'ram_pattern', source = sources)
+# Build Library (will be called 'libram_pattern.so')
+helpers.SharedLibrary(envl, 'pattern', source = sources)
