@@ -371,6 +371,41 @@ int main(void)
 
     #define HOST_CMD_PRINTTEXT      0x0C
 
+
+    #if 0
+        while(1)
+        {
+            for(j=0; j<150000; j++);
+
+        /*
+            busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH);
+            readDataBlock(SLAVE_ID_DEPTH);
+
+            int depth = (rxBuf[0]<<8) | rxBuf[1];
+            sprintf(tmp, "%u  ", depth);
+            */
+
+            busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP);
+            readDataBlock(SLAVE_ID_TEMP);
+
+
+                sprintf(tmp, "%u %u %u %u         ", rxBuf[0], rxBuf[1], rxBuf[2], rxBuf[3]);
+
+
+        //    sendString(tmp);
+
+            for(i=0; i<16; i++)
+            {
+                busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
+                busWriteByte(i, SLAVE_ID_LCD);
+                busWriteByte(tmp[i], SLAVE_ID_LCD);
+            }
+
+            busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
+        }
+
+#endif
+
     while(1)
     {
         byte c = waitchar(0);

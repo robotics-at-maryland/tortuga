@@ -125,7 +125,8 @@ unsigned int initI2C(void)
     //Consult the dSPIC Data Sheet for information on how to calculate the
     //Baud Rate.
 
-    I2CBRG = 0x004f;
+   // I2CBRG = 0x004f;
+    I2CBRG = 0x054f;
 
     //Now we will initialise the I2C peripheral for Master Mode, No Slew Rate
     //Control, and leave the peripheral switched off.
@@ -645,5 +646,18 @@ void main()
             initI2C();
 
         tempData[0] = rx;
+
+
+        rx = readTemp(0x6E);
+        if(rx == 255) initI2C();
+        tempData[1] = rx;
+
+        rx = readTemp(0xEA);
+        if(rx == 255) initI2C();
+        tempData[2] = rx;
+
+        rx = readTemp(0xEE);
+        if(rx == 255) initI2C();
+        tempData[3] = rx;
     }
 }
