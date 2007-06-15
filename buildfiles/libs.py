@@ -176,6 +176,11 @@ class Library(object):
         Uses the scons functionality to make sure that the headers for the given
         library exist
         """
+
+        # Bail is we aren't checking
+        if env['check'].lower() != 'yes':
+            return
+
         conf = env.Configure()
 
         for header in self.headers:
@@ -195,29 +200,33 @@ class Library(object):
         Check the validity of any libraries here if desired and add them after
         a succesfull check.
         """
-        # Create a special test environment without any of our libraries
-        libs = env.get('LIBS', [])
-        external_libs = [l for l in libs if not l.startswith('ram_')]
-        internal_libs = [l for l in libs  if l.startswith('ram_')]
-        env.Replace(LIBS = external_libs)
 
-        conf = env.Configure()
+        if env['check'].lower() == 'yes':
+            # Create a special test environment without any of our libraries
+            libs = env.get('LIBS', [])
+            external_libs = [l for l in libs if not l.startswith('ram_')]
+            internal_libs = [l for l in libs  if l.startswith('ram_')]
+            env.Replace(LIBS = external_libs)
 
-        for lib in self.libraries:
-            if not conf.CheckLib(lib, language='C++', autoadd=1):
-                print '\nERROR:'
-                print '\tCould not link to the "%s" library on:' % lib
-                print '\tLibrary Search Path:'
-                for path in env['LIBPATH']:
-                    print '\t\t',path
-                print '\tLinker flags:',env.subst(' '.join(env['LINKFLAGS']))
-                print '\tOther libraries:',env.subst(' '.join(env['LIBS']))
-                print '\n\tPlease make sure %s is installed properly\n' % self.name
-                sys.exit(1)
+            conf = env.Configure()
+            
+            for lib in self.libraries:
+                if not conf.CheckLib(lib, language='C++', autoadd=1):
+                    print '\nERROR:'
+                    print '\tCould not link to the "%s" library on:' % lib
+                    print '\tLibrary Search Path:'
+                    for path in env['LIBPATH']:
+                        print '\t\t',path
+                    print '\tLinker flags:',env.subst(' '.join(env['LINKFLAGS']))
+                    print '\tOther libraries:',env.subst(' '.join(env['LIBS']))
+                    print '\n\tPlease make sure %s is installed properly\n' % self.name
+                    sys.exit(1)
 
-        # Add back in internal libs
-        env.Append(LIBS =  internal_libs)
-        env = conf.Finish()
+            # Add back in internal libs
+            env.AppendUnique(LIBS =  internal_libs)
+            env = conf.Finish()
+        else:
+            env.AppendUnique(LIBS = self.libraries)
 
 class InternalLibrary(Library):
     def __init__(self, name, int_deps, ext_deps, strict_version = False):
@@ -317,14 +326,24 @@ class ConfigLibrary(Library):
         self.cflag = compiler_flag
         self.libflag = lib_flag
 
+        self._config_cmd_output = None
+
     def setup_environment(self, env):
         """
         This runs the config tool and merges its result flags into the given
         environment.  It will then check library version and headers.
         """
         old_libs = set(env.get('LIBS', []))
-        setup_cmd = '!%s %s %s' % (self.tool_name, self.cflag, self.libflag)
-        env.MergeFlags([setup_cmd])
+
+        # Cache the run of the shell command
+        if self._config_cmd_output is None:
+            setup_cmd = '%s %s %s' % (self.tool_name, self.cflag, self.libflag)
+            self._config_cmd_output = ' '
+            
+            for cmd in setup_cmd.split(';'):
+                self._config_cmd_output += ' '+ run_shell_cmd(cmd, "Error")
+        
+        env.MergeFlags([self._config_cmd_output])
 
         # Make sure settings for dependent libraries are set
         self.setup_dependents(env)
@@ -377,14 +396,15 @@ class PythonLib(ConfigLibrary):
                                lib_flag = ' ; python-config --libs',
                                version_flag = '--includes')
 
-    def setup_enviornment(self, env):
+    def setup_environment(self, env):
         ConfigLibrary.setup_environment(self, env)
 
         # Here we have to remove and non-valid C++ flags
-        clfags = env['CFLAGS']
+        cflags = env['CCFLAGS']
         if cflags.count('-Wstrict-prototypes'):
             cflags.remove('-Wstrict-prototypes')
-        env.Replace(CFLAGS = cflags)
+        env.Replace(CCFLAGS = cflags)
+
 
     def check_version(self, env):
         version_cmd = '%s %s' % (self.tool_name, self.version_flag)
