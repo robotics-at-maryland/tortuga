@@ -109,7 +109,6 @@ class Generator(object):
         self.mod_name = mod_name
         self.includes = headers
         self.output_dir = output_dir
-       # print '\n\n',extra_includes,'\n\n'
         self.extra_includes = extra_includes
 
     def __call__(self, target = None, source = None, env = None):
@@ -125,27 +124,8 @@ def setup_environ(env):
     envw = env.Clone(tools = ['gccxml'])
     envw.AppendUnique(XMLCPPPATH = [env['CPPPATH']])
 
-    # Boost.Python inclusion and check seems to be broken
-    #libs.add_external(envw, 'Python')
-    #libs.add_external(envw, 'Boost.Python')
-
+    libs.add_external(envw, 'Boost.Python')
     
-    # Setup paths for Boost.Python and and Python
-    root_dir = os.environ['RAM_ROOT_DIR']
-    envw.Append(CPPPATH = [os.path.join(root_dir,'include','boost-1_35'),
-                          distutils.sysconfig.get_python_inc(),
-                          '.'])
-    envw.Append(LIBPATH = [os.path.join(root_dir,'lib'), '.'])
-    
-    # Add out extra libraries (and some python ldflags)
-    envw.Append(LIBS = ['boost_python-gcc'])
-    envw.MergeFlags(['!python-config --ldflags'])
-
-    # Now some flags for python
-    envw.Append(CFLAGS = ['-fno-strict-aliasing'])
-    envw.Append(CPPDEFINES = ['NDEBUG'])
-
-    #return envw
     return envw
 
 def import_wrapping_mod(gen_mod, src_dir):

@@ -31,10 +31,10 @@ def _get_external_lib(name):
     'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
     'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 'gdk/gdk.h']),
     'Boost' : BoostLibrary('Boost', (1,35), []),
-    'USB': Library('libusb', '0.1', ['usb.h'], ['usb'])
-#    'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
-#                                  ['boost_python-gcc'])#, ext_deps = ['Python']),
-    #'Python' : LibPython('2.5')
+    'USB': Library('libusb', '0.1', ['usb.h'], ['usb']),
+    'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
+                                  ['boost_python-gcc'], ext_deps = ['Python']),
+    'Python' : PythonLib('2.5')
     }
 
     if libs.has_key(name):
@@ -367,6 +367,40 @@ class PkgConfigLibrary(ConfigLibrary):
         ConfigLibrary.__init__(self, name, version, headers,
                                'pkg-config ' + name,'--modversion',
                                strict_version = strict_version)
+
+ 
+
+class PythonLib(ConfigLibrary):
+    def __init__(self, version):
+        ConfigLibrary.__init__(self, 'Python', version, ['Python.h'],
+                               'python-config',
+                               lib_flag = ' ; python-config --libs',
+                               version_flag = '--includes')
+
+    def setup_enviornment(self, env):
+        ConfigLibrary.setup_environment(self, env)
+
+        # Here we have to remove and non-valid C++ flags
+        clfags = env['CFLAGS']
+        if cflags.count('-Wstrict-prototypes'):
+            cflags.remove('-Wstrict-prototypes')
+        env.Replace(CFLAGS = cflags)
+
+    def check_version(self, env):
+        version_cmd = '%s %s' % (self.tool_name, self.version_flag)
+        error_msg = 'Error executing "' + version_cmd + '", please make sure' \
+                    '%s and %s are installed' % (self.name, self.tool_name)
+                    
+        version_str = run_shell_cmd(version_cmd, error_msg).strip()
+
+        correct_version = False
+        if version_str.endswith(self.version):
+            correct_version = True
+
+        if not correct_version:
+            print 'Need version: %s of %s, not version: %s' % \
+                  (self.version, self.name, version_str)
+            sys.exit(1)
 
 class BoostLibrary(Library):
     def __init__(self, name, version, headers, libraries = [], ext_deps = []):
