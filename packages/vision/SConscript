@@ -18,7 +18,8 @@ sources = ['src/BasicImage.cpp',
            'src/OpenCVCamera.cpp',
            'src/OpenCVImage.cpp',
            'src/VisionCommunication.cpp',
-           'src/ProcessList.cpp']
+           'src/ProcessList.cpp',
+           'src/main.cpp']
 
 # Libraries
 libs.add_external(envl, 'OpenCV')
@@ -34,4 +35,5 @@ envt = env.Clone()
 helpers.Program(envt, 'test/src/AdvCvTest.cpp',
                 int_deps = 'vision')
 
+# Basic camera test
 envt.Program('test/src/BasicCvTest.c')
