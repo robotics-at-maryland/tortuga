@@ -1,28 +1,52 @@
-import time,curses_test
+import time,key_controller
+
+'''
+This is the state machine, the guts of the A.I of the system. A state machine has states, which are strings.
+States map to functions. First, the start state is initialized. Then, the function that
+this state maps to is executed. At the end of this function, the change_state function is called, changing
+the state to another mapped state. This state is then executed. This cycle continues until the state
+"finished" is reached.
+'''
+
 
 class state_machine:
         
     def __init__(self,environment):
         print "Initializing the state machine"
         self.state = "initializing"             #set the start state
-        self.define_state_table()
+        self.define_state_table()               #load the state table
         self.environment = environment
         self.vehicle = self.environment.vehicle
+    '''
+    An accessor for the vehicle, just a shortcut
+    '''
     def vehicle(self):
         return self.environment.vehicle
+    '''
+    A simple way to get the current operating time from the clock
+    '''
     def time(self):
         return self.environment.timer.time() 
+    
     '''
     Defines the state table, where state names are mapped to operation functions.
     '''
     def define_state_table(self):
         self.state_table = {"initializing":self.initializing,"starting":self.starting,"halting":self.halting,"operating":self.operating,"testing thrusters":self.testing_thrusters,"curses operation":self.curses_operation}
     
+    '''
+    This is the bulk of state machine operation. Function mapped to by current state is fetched
+    from the state_table dictionary. Next, the function is executed. Finally, the new state 
+    (whatever was changed into) is returned.
+    '''
     def operate(self):
         function = self.state_table[self.state]
         function()
         return self.state
             
+    '''
+    Simple function that 
+    '''
     def change_state(self,new_state):
         self.state = new_state
         
@@ -39,7 +63,7 @@ class state_machine:
             self.change_state("operating")
             
     def curses_operation(self):
-        window = curses_test.CursesController(self.vehicle)
+        window = key_controller.CursesController(self.vehicle)
         window.run()
         self.change_state("halting")
         

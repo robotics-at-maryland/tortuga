@@ -30,10 +30,10 @@ class communicator:
 	    pow_command = -1024
         command = "C0" + str(address) + " " + str(pow_command) + "\r\n"
 	file.write(command)
-	try:
-            self.ser.write(command)
-        except:
-	    print "Problem sending serial command"
+    try:
+        self.ser.write(command)
+    except:
+        pass
             
     def close(self,thrusters):
         for thruster in thrusters:
