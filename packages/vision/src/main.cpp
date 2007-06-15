@@ -25,8 +25,14 @@ using namespace ram::vision;
 #define MAXFRAMESON 7
 #define MAXFRAMESOFF 7
 
+extern "C"{
+  int giveMeFive();
+}
+int giveMeFive(){
+  return 5;
+}
 	
-	int main(int argc, char** argv)
+	int runVision(int argc, char** argv)
 	{
 		cvNamedWindow("test",CV_WINDOW_AUTOSIZE);
 		ProcessList* pl=new ProcessList();
@@ -831,20 +837,26 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 	return min(total,total2);
 }
 
-static VisionCommunication communication;
+extern "C"{
+  VisionCommunication* getCommunicator();
+}
 
+extern VisionCommunication* vc;
 VisionCommunication* getCommunicator()
 {
-	return &communication;
+	return vc;
 }
 
 int main2(int argc, char * const argv[]) {
 
-	CvCapture* camCapture=cvCaptureFromFile("underwater.mov");
+	CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 	
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
-	
+
+	vc=(VisionCommunication*)(malloc(sizeof(VisionCommunication)));
+	vc->safe=NULL;
+
 	buffer1=new VisionData();
 	buffer2=new VisionData();
 	

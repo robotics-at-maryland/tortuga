@@ -16,61 +16,64 @@
 namespace ram {
 namespace vision {
 
-VisionData* VisionCommunication::getDummy()
+  extern "C"{
+    VisionCommunication* vc;
+  }
+VisionData* getDummy()
 {
-  dummyCheck.frameNum=2;
-  dummyCheck.width=3;
-  dummyCheck.height=5;
-  dummyCheck.redLightx=7;
-  dummyCheck.redLighty=11;
-  dummyCheck.distFromVertical=13;
-  dummyCheck.angle=17;
-  dummyCheck.binx=19;
-  dummyCheck.biny=23;
-  dummyCheck.lightVisible=29;
-  dummyCheck.pipeVisible=31;
-  dummyCheck.binVisible=37;
-  dummyCheck.frameNumCheck=41;
+  vc->dummyCheck.frameNum=2;
+  vc->dummyCheck.width=3;
+  vc->dummyCheck.height=5;
+  vc->dummyCheck.redLightx=7;
+  vc->dummyCheck.redLighty=11;
+  vc->dummyCheck.distFromVertical=13;
+  vc->dummyCheck.angle=17;
+  vc->dummyCheck.binx=19;
+  vc->dummyCheck.biny=23;
+  vc->dummyCheck.lightVisible=29;
+  vc->dummyCheck.pipeVisible=31;
+  vc->dummyCheck.binVisible=37;
+  vc->dummyCheck.frameNumCheck=41;
   
-  return &dummyCheck;
+  return &(vc->dummyCheck);
 }
 
-VisionData* VisionCommunication::getUnsafe()
+VisionData* getUnsafe()
 {
-  return &unsafe;
+  return &(vc->unsafe);
 }
  
-VisionData** VisionCommunication::getSafe()
+VisionData** getSafe()
 {
-  return safe;
+  return (vc->safe);
 }
 
-VisionData* VisionCommunication::getData()
+VisionData* getData()
 {
   return captureSnapshot(10);
 }
 
-VisionData* VisionCommunication::captureSnapshot(int tries)
+VisionData* captureSnapshot(int tries)
 {
   int x=0;
   for(x=0;x<tries;x++)
     {
-      VisionData* buffer=*safe;
-      guaranteed.frameNum=(buffer->frameNum);
-      guaranteed.width=(buffer->width);
-      guaranteed.height=(buffer->height);
-      guaranteed.redLightx=(buffer->redLightx);
-      guaranteed.redLighty=(buffer->redLighty);
-      guaranteed.distFromVertical=(buffer->distFromVertical);
-      guaranteed.angle=(buffer->angle);
-      guaranteed.binx=(buffer->binx);
-      guaranteed.biny=(buffer->biny);
-      guaranteed.lightVisible=(buffer->lightVisible);
-      guaranteed.pipeVisible=(buffer->pipeVisible);
-      guaranteed.binVisible=(buffer->binVisible);
-      guaranteed.frameNumCheck=(buffer->binVisible);
-      if (guaranteed.frameNum==guaranteed.frameNumCheck)
-	return &guaranteed;
+      VisionData* buffer=*(vc->safe);
+      vc->guaranteed.frameNum=(buffer->frameNum);
+      vc->guaranteed.width=(buffer->width);
+      vc->guaranteed.height=(buffer->height);
+      vc->guaranteed.redLightx=(buffer->redLightx);
+      vc->guaranteed.redLighty=(buffer->redLighty);
+      vc->guaranteed.distFromVertical=(buffer->distFromVertical);
+      vc->guaranteed.angle=(buffer->angle);
+      vc->guaranteed.binx=(buffer->binx);
+      vc->guaranteed.biny=(buffer->biny);
+      vc->guaranteed.lightVisible=(buffer->lightVisible);
+      vc->guaranteed.pipeVisible=(buffer->pipeVisible);
+      vc->guaranteed.binVisible=(buffer->binVisible);
+      vc->guaranteed.frameNumCheck=(buffer->binVisible);
+      if (vc->guaranteed.frameNum==vc->guaranteed.frameNumCheck)
+	return &(vc->guaranteed);
     }
   return NULL;
 }	
