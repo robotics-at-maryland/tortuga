@@ -15,21 +15,21 @@
 namespace ram {
 namespace vision {
 
-class VisionCommunication
+  VisionData* getDummy();
+  VisionData* getUnsafe();
+  VisionData** getSafe();
+  VisionData* getData();
+  VisionData* captureSnapshot(int tries);
+
+typedef struct
 {
- public:
+// public:
   VisionData unsafe;
   VisionData** safe;
   VisionData guaranteed;
   VisionData dummyCheck;
   
-  VisionData* getDummy();
-  VisionData* getUnsafe();
-  VisionData** getSafe();
-  VisionData* getData();
- private:
-  VisionData* captureSnapshot(int tries);
-};
+}VisionCommunication;
 
 } // namespace vision
 } // namespae ram

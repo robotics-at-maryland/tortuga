@@ -23,16 +23,14 @@ typedef StringList::iterator StringListIterator;
 
 class ProcessList
 {
-public:
-    ProcessList();
-    void addStep(std::string);
-    void run();
-//	                void	lookup(std::string);
-    StringList toCall;
-private:
+ public:
+  ProcessList();
+  void	addStep(std::string);
+  StringList toCall;
+ private:
 };
-
 } // namespace vision
 } // namespace ram
     
 #endif // RAM_VISION_PROCESS_LIST_H_06_11_2007
+
