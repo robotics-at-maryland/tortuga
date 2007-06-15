@@ -4,6 +4,7 @@ import platform
 COMMON_DIRS = [
     os.path.join('packages', 'vision'),
     os.path.join('packages', 'pattern'),
+    os.path.join('packages', 'carnetix'),
     os.path.join('wrappers', 'pattern')]
 
 LINUX_DIRS = [

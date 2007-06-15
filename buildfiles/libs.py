@@ -30,7 +30,8 @@ def _get_external_lib(name):
     'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 'wx-config'),
     'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
     'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 'gdk/gdk.h']),
-    'Boost' : BoostLibrary('Boost', (1,35), [])#,
+    'Boost' : BoostLibrary('Boost', (1,35), []),
+    'USB': Library('libusb', '0.1', ['usb.h'], ['usb'])
 #    'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
 #                                  ['boost_python-gcc'])#, ext_deps = ['Python']),
     #'Python' : LibPython('2.5')
@@ -48,7 +49,8 @@ def _get_internal_lib(name):
     """
     libs = {
         'vision' : InternalLibrary('vision', [], ['OpenCV']),
-        'pattern' : InternalLibrary('pattern', [], ['Boost'])
+        'pattern' : InternalLibrary('pattern', [], ['Boost']),
+        'carnetix' : InternalLibrary('carnetix', [], ['USB'])
     }
 
     if libs.has_key(name):
@@ -193,6 +195,12 @@ class Library(object):
         Check the validity of any libraries here if desired and add them after
         a succesfull check.
         """
+        # Create a special test environment without any of our libraries
+        libs = env.get('LIBS', [])
+        external_libs = [l for l in libs if not l.startswith('ram_')]
+        internal_libs = [l for l in libs  if l.startswith('ram_')]
+        env.Replace(LIBS = external_libs)
+
         conf = env.Configure()
 
         for lib in self.libraries:
@@ -203,9 +211,12 @@ class Library(object):
                 for path in env['LIBPATH']:
                     print '\t\t',path
                 print '\tLinker flags:',env.subst(' '.join(env['LINKFLAGS']))
+                print '\tOther libraries:',env.subst(' '.join(env['LIBS']))
                 print '\n\tPlease make sure %s is installed properly\n' % self.name
                 sys.exit(1)
-        
+
+        # Add back in internal libs
+        env.Append(LIBS =  internal_libs)
         env = conf.Finish()
 
 class InternalLibrary(Library):
