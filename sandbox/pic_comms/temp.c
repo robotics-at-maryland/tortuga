@@ -66,7 +66,7 @@ byte txPtr = 0;
 
 
 /* Temp = Temperature */
-#define TEMP_DATA_SIZE 4
+#define TEMP_DATA_SIZE 5
 byte tempData[TEMP_DATA_SIZE];
 
 /*
@@ -659,5 +659,9 @@ void main()
         rx = readTemp(0xEE);
         if(rx == 255) initI2C();
         tempData[3] = rx;
+
+        rx = readTemp(0xE8);
+        if(rx == 255) initI2C();
+        tempData[4] = rx;
     }
 }

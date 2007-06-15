@@ -701,7 +701,7 @@ int main(void)
 
                 int len = readDataBlock(SLAVE_ID_TEMP);
 
-                if(len != 4)
+                if(len != 5)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -711,7 +711,7 @@ int main(void)
 
                 byte cs=0;
 
-                for(i=0; i<4; i++)
+                for(i=0; i<5; i++)
                 {
                     cs += rxBuf[i];
                     sendByte(rxBuf[i]);
