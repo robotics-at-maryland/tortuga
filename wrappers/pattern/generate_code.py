@@ -14,10 +14,7 @@ def generate_pattern(name, global_ns, local_ns):
     local_ns: is the namespace that coresponds to the given namespace
     """
     local_ns.class_('Observer').include()
-
-    # Set the call policy so Python doesn't take control of the returned object
-#    mem_fun = local_ns.class_('Vehicle').member_function('getDevices')
-#    mem_fun.call_policies = module_builder.call_policies.return_internal_reference()
+    local_ns.class_('Subject').include()
 
 def generate_code(module_name, files, output_dir, include_files,
                   extra_includes = []):
