@@ -847,8 +847,11 @@ VisionCommunication* getCommunicator()
 	return vc;
 }
 
-int main2(int argc, char * const argv[]) {
-
+extern "C" {
+  int visionStart();
+}
+int visionStart()
+{
 	CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 	
 	VisionData  duplicateMe;
