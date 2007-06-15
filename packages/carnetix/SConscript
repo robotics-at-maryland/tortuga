@@ -20,10 +20,14 @@ sources = ['src/ctx.c']
 libs.add_external(envl, 'USB')
 
 # Build Library (will be called 'libram_carnetix.so')
-helpers.SharedLibrary(envl, 'carnetix',  source = ['src/ctx.c'])
+envl.Append(CPPPATH = ['include'])
+helpers.SharedLibrary(envl, 'carnetix',  source = ['src/ctxapi.c'])
 
 # Testing and Demo Programs
 envt = env.Clone()
+
+# Freaking build system is broken, shouldn't need this lib hack
+envt.Append(CPPPATH = ['include'])
 
 # Build the ctx and consolemon
 helpers.Program(envt, target = 'ctx', source = 'test/src/ctx.c',
