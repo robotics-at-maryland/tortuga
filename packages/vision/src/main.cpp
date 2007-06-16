@@ -39,6 +39,122 @@ extern "C"{
 void killVision(){
   goVision=0;
 }
+
+int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
+{
+	char* data=percents->imageData;
+	char* data2=base->imageData;
+	int width=percents->width;
+	int height=percents->height;
+
+	int* columnCounts=(int*) calloc(sizeof(int),width);
+	int count=0;
+	int pixel_count=0;
+	int r=0;
+	int g=0;
+	int b=0;
+	int r2=0;
+	int g2=0;
+	int b2=0;
+	int total=0;
+	int total2=0;
+	
+	int whitex=0;
+	int whitey=0;
+	
+	int xdist=0;
+	int ydist=0;
+	int minx=999999;
+	int maxx=0;
+	int miny=999999;
+	int maxy=0;
+	for (int y=2; y<height-2; y++)
+	{
+		count=3*2+3*width*y;
+		for (int x=2; x<width-2; x++)
+		{
+			b=(data[count]+256)%256;
+			g=(data[count+1]+256)%256;
+			r=(data[count+2]+256)%256;
+			b2=(data2[count]+256)%256;
+			g2=(data2[count+1]+256)%256;
+			r2=(data2[count+2]+256)%256;
+			if (b>25 && g>25 && r>25)
+			{
+				if (b2>100 && g2>100 && r2>100)
+				{
+					data2[count]=255;
+					data2[count+1]=255;
+					data2[count+2]=255;
+					whitex+=x;
+					whitey+=y;
+					total++;
+					minx=min(x,minx);
+					maxx=max(x,maxx);
+					miny=min(y,miny);
+					maxy=max(y,maxy);
+					++columnCounts[x];
+				}
+				else
+					data2[count]=data2[count+1]=data2[count+2]=0;
+			}
+			else
+				data2[count]=data2[count+1]=data2[count+2]=0;
+			count+=3;
+		}
+	}
+		whitex/=total;
+		whitey/=total;
+		
+		if (total>500)
+		{
+			int indexR;
+			int indexL;
+			*gatex=whitex;
+			*gatey=whitey;
+			int testCol=columnCounts[whitex];
+			int state=0;
+			for (indexR=whitex;indexR<width;indexR++)
+			{
+				if (columnCounts[indexR]>2*testCol)
+					state++;
+				else
+					state=0;
+				if (state==5)
+					break;
+			}
+			if (state==5)
+			{
+				for (indexL=whitex;indexL>0;indexL--)
+				{
+					if (columnCounts[indexL]>2*testCol)
+						state++;
+					else
+						state=0;
+					if (state==5)
+						break;
+				}
+			}
+			if (state!=5)
+			{
+				//No gate here
+				whitex=whitey=-1;
+			}
+			else
+			{
+				count=3*indexL+3*width*whitey;
+				for (int x=indexL; x<indexR;x++)
+				{
+					data2[count]=data2[count+2]=0;
+					data2[count+1]=255;
+					count+=3;
+				}
+			}
+		}
+	free(columnCounts);
+	return whitex!=-1;
+	}
+
 	int runVision(int argc, char** argv)
 	{
 		cvNamedWindow("test",CV_WINDOW_AUTOSIZE);
@@ -892,7 +1008,7 @@ extern "C" {
 int visionStart()
 {
   goVision=1;
-  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
+//  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 	
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
@@ -903,13 +1019,14 @@ int visionStart()
 	
 	int swapper=2;	
 	
-	//CvCapture* camCapture=cvCaptureFromCAM(0);
+	CvCapture* camCapture=cvCaptureFromCAM(0);
 	//cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
-	//cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
+	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
 	//cvNamedWindow("Hough", CV_WINDOW_AUTOSIZE );
 	//cvNamedWindow("Bin_go", CV_WINDOW_AUTOSIZE);
 	//cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
 	//cvNamedWindow("Movement", CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("Gate",CV_WINDOW_AUTOSIZE);
 	IplImage* unscaledFrame=NULL;
 	IplImage* frame=NULL;
 	IplImage* starterFrame=NULL;
@@ -919,6 +1036,7 @@ int visionStart()
 	IplImage* flashFrame=NULL;
 	IplImage* oldFrame=NULL;
 	IplImage* moveFrame=NULL;
+	IplImage* gateFrame=NULL;
 	CvPoint lightCenter;
 	lightCenter.x=0;
 	lightCenter.y=0;
@@ -938,6 +1056,7 @@ int visionStart()
 	bool show_flashing=true;
 	bool startCounting=false;
 	bool show_movement=true;
+	bool show_gate=true;
 	long frame_count=0;
 	int lightFramesOn=0;
 	int lightFramesOff=0;
@@ -954,15 +1073,22 @@ int visionStart()
 	starterFrame=cvCreateImage(cvGetSize(frame),8,3);	
 	analysis=cvCreateImage(cvGetSize(frame),8,3);
 	binFrame=cvCreateImage(cvGetSize(frame),8,3);
+	gateFrame=cvCreateImage(cvGetSize(frame),8,3);
 	houghFrame=cvCreateImage(cvGetSize(frame),8,3);
 	flashFrame=cvCreateImage(cvGetSize(frame),8,3);
 	oldFrame=cvCreateImage(cvGetSize(frame),8,3);
 	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
 	while(goVision)
 	{
-	  /*
+	  
 	    key=cvWaitKey(25);
-	    //Start of input checking
+	  /*
+		  //Start of input checking
+		if (key=='a')
+		{
+			show_gate=!show_gate;
+			cout<<key<<"Gate detection:"<<show_gate<<endl;
+		}
 		if (key=='q')
 		{
 			cout<<key<<" Goodbye."<<endl;
@@ -1103,12 +1229,27 @@ int visionStart()
 		    cvCopyImage(frame,starterFrame);//Put new frame into starterFrame
 		    
 		    cvCopyImage(frame,binFrame);
-		    //cvShowImage("Before_Analysis", starterFrame);
+		    cvCopyImage(frame,gateFrame);
+			cvShowImage("Before_Analysis", starterFrame);
 		    
 		    if (ratios_on)
-		      {
-			int binCount=0;
-			to_ratios(frame);
+			{
+				int binCount=0;
+				to_ratios(frame);
+
+				if (show_gate)
+				{
+					int gatex;
+					int gatey;
+					bool gateFound=gateDetect(frame,gateFrame,&gatex,&gatey);
+					if (gateFound==true)
+						cout<<"Gate Found!\n"<<gatex<<" "<<gatey<<endl;
+						else
+						cout<<"No gate"<<endl;
+					cvShowImage("Gate",gateFrame);
+				}
+
+
 			if (found==true || frame_count>0)
 			  {
 			    int binX=0;
@@ -1246,9 +1387,9 @@ int visionStart()
 			else
 			  {
 			    if (swapper==1)
-			      buffer1->lightVisible=true;
+			      buffer1->lightVisible=false;
 			    else //swapper==2
-			      buffer2->lightVisible=true;
+			      buffer2->lightVisible=false;
 			  }
 			cvCopyImage(frame, flashFrame);
 			CvPoint p=find_flash(flashFrame, show_flashing);
