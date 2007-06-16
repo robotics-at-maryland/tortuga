@@ -1138,9 +1138,9 @@ int visionStart()
 			      {
 				int orange_count=mask_orange(frame,1,0);
 				int left_or_right;
-				if ((left_or_right=guess_line(frame))>20)
+				if ((left_or_right=guess_line(frame))>20){}
 				  //cout<<"go right"<<endl;
-				else if (left_or_right<-20)
+				else if (left_or_right<-20){}
 				  //cout<<"go left"<<endl;
 				
 				if (orange_count<250)
@@ -1298,7 +1298,7 @@ int visionStart()
 		    //cvShowImage("After_Analysis",frame);
 		    //cvShowImage("Bin_go",binFrame);
 		    //cvShowImage("Flash",flashFrame);
-		    if (show_movement)
+		    if (show_movement){}
 		      //cvShowImage("Movement",moveFrame);
 		    
 		    
@@ -1438,11 +1438,17 @@ void run (ProcessList *pl) {
 				guess_line(result);
 					int left_or_right;
 				if ((left_or_right=guess_line(result))>20)
+				{
 					//cout<<"go right"<<endl;
+				}
 				else if (left_or_right<-20)
+				{
 					//cout<<"go left"<<endl;
+				}
 				else
+				{
 					//cout<<"go straight"<<endl;
+				}
 			}	
 			else if (*i=="mask_orange")
 			{
@@ -1479,6 +1485,7 @@ void run (ProcessList *pl) {
 				//cout<<white_detect(binFrame,result,&ignoreBinx,&ignoreBiny)<<endl;
 			}
 			else
+			{}
 				//cout<<"Unrecognized function"<<endl;
 		}
 	}
@@ -1577,11 +1584,17 @@ void walk(IplImage *img, ProcessList *pl) {
 			guess_line(img);
 				int left_or_right;
 			if ((left_or_right=guess_line(img))>20)
+			{
 					//cout<<"go right"<<endl;
+			}
 			else if (left_or_right<-20)
+			{
 				//cout<<"go left"<<endl;
+			}
 			else
-				//cout<<"go straight"<<endl;
+			{
+			//cout<<"go straight"<<endl;
+			}
 		}
 		else if (*i=="mask_orange")
 		{
@@ -1618,7 +1631,9 @@ void walk(IplImage *img, ProcessList *pl) {
 			//cout<<white_detect(binFrame,img,&binx,&biny)<<endl;
 		}
 		else
+		{
 			//cout<<"Unrecognized function"<<endl;
+		}
 	}
 	return;
 }
