@@ -32,6 +32,9 @@ env.AppendUnique(CPPPATH = [env['PACKAGE_DIR']])
 env.AppendUnique(LIBPATH = [env['LIB_DIR'],
                             os.path.join(os.environ['RAM_ROOT_DIR'],'lib')])
 
+# Add debug flags
+env.AppendUnique(CCFLAGS = ['-g'])
+
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
 # --------------------------------------------------------------------------- #

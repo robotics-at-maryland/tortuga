@@ -7,7 +7,7 @@ typedef VisionData* (*visFunction)();
 int main()
 {
   void* myFunc;
-  void* handle=dlopen("./vision.so",RTLD_NOW);
+  void* handle=dlopen("/Users/matbak87/robots/ram_code/build/lib/libram_vision.dylib",RTLD_NOW);
   if (handle==NULL)
     {
       printf("%s\n",dlerror());

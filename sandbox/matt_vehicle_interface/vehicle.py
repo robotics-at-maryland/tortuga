@@ -28,14 +28,13 @@ class main_vehicle:
     #thruster is an actual thruster object, not just an address number
     def set_thruster_power(self,thruster,power):
         thruster.power = power
-        print "Thruster " + str(thruster.address) + ": " + str(power)
-        self.motor_comm.set_power(thruster)
+        self.motor_comm.set_power(thruster.address,thruster.power)
     
     #updates the motor communicator with the power setting for the thruster device.
     #if for some reason the "code" thruster got a power setting that the motor communicator
     #didn't send to the motor controllers, this function does the job
     def update_thruster(self,thruster):
-	self.motor_comm.set_power(thruster)
+	self.motor_comm.set_power(thruster.address,thruster.power)
 
     #prints out the thruster powers in a readable format
     def print_thruster_powers(self):

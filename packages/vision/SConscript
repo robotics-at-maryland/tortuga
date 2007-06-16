@@ -35,5 +35,7 @@ envt = env.Clone()
 helpers.Program(envt, 'test/src/AdvCvTest.cpp',
                 int_deps = 'vision')
 
+helpers.Program(envt, 'src/test.cpp',int_deps = 'vision')
+
 # Basic camera test
 envt.Program('test/src/BasicCvTest.c')

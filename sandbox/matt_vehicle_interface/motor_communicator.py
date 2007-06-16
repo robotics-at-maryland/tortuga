@@ -19,27 +19,38 @@ class communicator:
             self.ser.write("W01 28 400 \r\n")
         except:
             pass
-        
-    def set_power(self,thruster):
+      
+    def set_power(self,address,power):
+        pow_command = int(power*1024)
+        if pow_command > 1024:
+            pow_command = 1024
+        elif pow_command < -1024:
+            pow_command = -1024
+        command = "C0" + str(address) + " " + str(pow_command) + "\r\n"
+        try:
+            self.ser.write(command)
+        except:
+            pass
+      
+    def set_thruster_power(self,thruster):
         address = thruster.address
         power = thruster.power
-	pow_command = int(power*1024)
-	if pow_command > 1024:
-	    pow_command = 1024
- 	elif pow_command < -1024:
-	    pow_command = -1024
-        command = "C0" + str(address) + " " + str(pow_command) + "\r\n"
-	file.write(command)
-    try:
-        self.ser.write(command)
-    except:
-        pass
+    	pow_command = int(power*1024)
+    	if pow_command > 1024:
+    	    pow_command = 1024
+     	elif pow_command < -1024:
+    	    pow_command = -1024
+            command = "C0" + str(address) + " " + str(pow_command) + "\r\n"
+        try:
+            self.ser.write(command)
+        except:
+            pass
             
     def close(self,thrusters):
         for thruster in thrusters:
             print "Shutting off thruster " + str(thruster.address)
             thruster.power = 0
-            self.set_power(thruster)
+            self.set_power(thruster.address,thruster.power)
         try:
             self.ser.close()
         except:

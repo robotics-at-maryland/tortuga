@@ -30,7 +30,7 @@ class vision_comm:
             self.exit = False
         def run(self):
             try:
-                comm.lib.visionStart()
+                self.comm.lib.visionStart()
                 print "Vision thread running along"
             except:
                 print "problem running vision library main function"
@@ -62,7 +62,10 @@ class vision_comm:
     def prepare(self):
         try:
             self.getData = self.lib.getData
+            self.giveMeFive = self.lib.giveMeFive
+            self.getDummy = self.lib.getDummy
             self.getData.restype = POINTER(VISIONSTRUCT)
+            self.getDummy.restype = POINTER(VISIONSTRUCT)
         except:
             print "problem loading the vision library"
             return False
@@ -73,3 +76,33 @@ class vision_comm:
         except:
             print "Problem accessing the vision system"
             return False
+    def get_dummy(self):
+        return self.getDummy().contents
+    def get_five(self,file):
+        data = self.giveMeFive()
+        print data
+        file.write(str(data))
+         
+
+'''
+file = open("test.txt",'w')
+vc = vision_comm(paths.vision_lib)
+vc.start_vision_thread()
+time.sleep(5)
+vc.get_five(file)
+print "operating the robot..."
+while(True):
+    vs = vc.get_dummy()
+    print "Frame Num:",vs.frameNum
+    print "Width:",vs.width
+    print "Height:",vs.height
+    print "Red Light Location: (",vs.redLightx,",",vs.redLighty,")"
+    print "Distance From Vertical:",vs.distFromVertical
+    print "Angle:",vs.angle
+    print "Bin Location: (",vs.binx,",",vs.biny,")"
+    print "Light Visible:",vs.lightVisible
+    print "Pipe Visible:",vs.pipeVisible
+    print "Bin Visible",vs.binVisible
+    time.sleep(1)
+'''
+
