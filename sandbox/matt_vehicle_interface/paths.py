@@ -4,7 +4,7 @@ fore = 1
 starboard = 2
 port = 3
 
-vision_lib = "/Users/matbak87/robots/ram_code/build/sandbox/matt_vehicle_interface/libvision.dylib"
+vision_lib = "/Users/matbak87/robots/ram_code/build/lib/libram_vision"
 motor_communicator = "/dev/ttyUSB0"
 sensor_address = "/dev/sensor"
 
