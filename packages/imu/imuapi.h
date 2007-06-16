@@ -19,7 +19,7 @@ struct imuMeasurements
     double tempZ;   /* Degrees C */
     int checksumValid;
 
-    /*all the following angles are in terms of degrees
+    /*all the following angles IN RADIANS
     different axes in the variable names tell which axis the angle of the sub
      is measured with respect to*/
     double angleAccX;

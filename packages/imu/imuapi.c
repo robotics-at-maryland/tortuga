@@ -89,13 +89,13 @@ int readIMUData(int fd, struct imuMeasurements * imu)
 
     imu->checksumValid = (imuData[33] == (sum&0xFF));
 
-    imu->angleMagX=(atan2(imu->magY, imu->magX)*(180.0/M_PI));
-    imu->angleMagY=(atan2(imu->magZ, imu->magY)*(180.0/M_PI));
-    imu->angleMagZ=(atan2(imu->magX, imu->magZ)*(180.0/M_PI));
+    imu->angleMagX=atan2(imu->magY, imu->magX);
+    imu->angleMagY=atan2(imu->magZ, imu->magY);
+    imu->angleMagZ=atan2(imu->magX, imu->magZ);
 
-    imu->angleAccX=(atan2(imu->accelY, imu->accelX)*(180.0/M_PI));
-    imu->angleAccY=(atan2(imu->accelZ, imu->accelY)*(180.0/M_PI));
-    imu->angleAccZ=(atan2(imu->accelX, imu->accelZ)*(180.0/M_PI));
+    imu->angleAccX=atan2(imu->accelY, imu->accelX);
+    imu->angleAccY=atan2(imu->accelZ, imu->accelY);
+    imu->angleAccZ=atan2(imu->accelX, imu->accelZ);
 
     if(!imu->checksumValid)
         printf("WARNING! IMU Checksum Bad!\n");
