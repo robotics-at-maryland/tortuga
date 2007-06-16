@@ -31,7 +31,14 @@ extern "C"{
 int giveMeFive(){
   return 5;
 }
-	
+
+static int goVision=1;
+extern "C"{
+  void killVision();
+}
+void killVision(){
+  goVision=0;
+}
 	int runVision(int argc, char** argv)
 	{
 		cvNamedWindow("test",CV_WINDOW_AUTOSIZE);
@@ -884,7 +891,8 @@ extern "C" {
 }
 int visionStart()
 {
-	CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
+  goVision=1;
+  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 	
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
@@ -892,7 +900,7 @@ int visionStart()
 	buffer1=new VisionData();
 	buffer2=new VisionData();
 	vc->safe=&buffer1;
-
+	
 	int swapper=2;	
 	
 	//CvCapture* camCapture=cvCaptureFromCAM(0);
@@ -950,7 +958,7 @@ int visionStart()
 	flashFrame=cvCreateImage(cvGetSize(frame),8,3);
 	oldFrame=cvCreateImage(cvGetSize(frame),8,3);
 	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
-	while(true)
+	while(goVision)
 	{
 	  /*
 	    key=cvWaitKey(25);
@@ -1333,7 +1341,6 @@ int visionStart()
 		    
 		    
 		  }
-	}
 	if (swapper==1)
 	  {
 	    getCommunicator()->safe=&buffer1;
@@ -1344,7 +1351,10 @@ int visionStart()
 	    getCommunicator()->safe=&buffer2;
 	    swapper=1;
 	  }
-	return 0;
+	}
+	
+	return goVision;
+
 }
 
 void run (ProcessList *pl) {
