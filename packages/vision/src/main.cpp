@@ -856,10 +856,11 @@ int visionStart()
 	
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
-
+	
 	buffer1=new VisionData();
 	buffer2=new VisionData();
-	
+	vc->safe=&buffer1;
+
 	int swapper=2;	
 	
 	//	CvCapture* camCapture=cvCaptureFromCAM(0);
