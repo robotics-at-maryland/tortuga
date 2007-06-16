@@ -15,11 +15,14 @@
 namespace ram {
 namespace vision {
 
-  VisionData* getDummy();
-  VisionData* getUnsafe();
-  VisionData** getSafe();
-  VisionData* getData();
-  VisionData* captureSnapshot(int tries);
+  extern "C"
+  {
+    VisionData* getDummy();
+    VisionData* getUnsafe();
+    VisionData** getSafe();
+    VisionData* getData();
+    VisionData* captureSnapshot(int tries);
+  }
 
 typedef struct
 {
