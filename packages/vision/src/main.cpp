@@ -65,13 +65,13 @@ int giveMeFive(){
 		
 		if (width!=oldImg->width || width!=destination->width)
 		{
-			cout<<"Error, width changed"<<endl;
+			//cout<<"Error, width changed"<<endl;
 			return;
 		}
 		int height=img->height;
 		if (height!=oldImg->height || height!=destination->height)
 		{
-			cout<<"error, height changed"<<endl;
+			//cout<<"error, height changed"<<endl;
 			return;
 		}
 		
@@ -182,7 +182,7 @@ int giveMeFive(){
 			if (((line[0].x < 5)&&(line[1].x < 5)) || ((line[0].x > color_dst->width-5)&&(line[1].x > color_dst->width-5)) 
 				|| ((line[0].y < 5)&&(line[1].y < 5)) || ((line[0].y > color_dst->height-5)&&(line[1].y > color_dst->height-5))) {
 					missed++;
-					cout<<"Missed++"<<endl;
+					//cout<<"Missed++"<<endl;
 			}
 			else {
 				if(line[0].y < line[1].y) {
@@ -212,10 +212,10 @@ int giveMeFive(){
 			int xdiff = (end.x - start.x);		//deal with y's being flipped
 			int ydiff = -1*(end.y - start.y);
 			angle = atan2((ydiff),(xdiff));
-			cout<<"Xdiff: "<<xdiff<<endl;
-			cout<<"Ydiff: "<<ydiff<<endl;
-			cout<<"Angle: "<<angle<<endl; 
-			cout<<"startx: "<<start.x<<" endx: "<<end.x<<endl;
+			//cout<<"Xdiff: "<<xdiff<<endl;
+			//cout<<"Ydiff: "<<ydiff<<endl;
+			//cout<<"Angle: "<<angle<<endl; 
+			//cout<<"startx: "<<start.x<<" endx: "<<end.x<<endl;
 		
 			cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
 		}
@@ -344,7 +344,7 @@ CvPoint find_flash(IplImage* img, bool display)
 				
 				if (display && out[0]>25)
 				{
-					cout<<"Data from explore"<<endl<<"Count: "<<out[0]<<"min x: "<<out[1]<<"min y: "<<out[2]<<"max x: "<<out[3]<<"max y: "<<out[4]<<endl; 
+					//cout<<"Data from explore"<<endl<<"Count: "<<out[0]<<"min x: "<<out[1]<<"min y: "<<out[2]<<"max x: "<<out[3]<<"max y: "<<out[4]<<endl; 
 				}
 				if (out[0]>25 && w>5 && w<20 && h>5 && h<20)
 				{
@@ -427,7 +427,7 @@ int guess_line(IplImage* img)
 	distance_from_line(avgxs,img);
 	angle_from_center(avgxs, img);
 	goRight/=countOfx;
-	cout<<endl<<goRight<<endl;
+	//cout<<endl<<goRight<<endl;
 	return goRight;
 }
 		
@@ -466,7 +466,7 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 			r=(data[count+2]+256)%256;
 			
 			if (b<0 || g<0 || r<0 || b>255 ||g>255||r>255)
-				cout<<"WTF?!?!?!?!?!"<<g <<endl;
+				//cout<<"WTF?!?!?!?!?!"<<g <<endl;
 			if (r>r_over_g_min*g && r_over_g_max*g>r && b_over_r_max*r > b)
 			{
 				if (alter_img)
@@ -485,10 +485,10 @@ void mask_with_input(IplImage* img)
 {
 	const int ORANGE='0';
 	char a='0';
-	cout<<"Select Mask Description"<<endl;
-	cout<<"0: Strict Orange"<<endl;
-	cout<<"1: Lenient Orange"<<endl;
-	cout<<"More coming someday... one might hope"<<endl;
+	//cout<<"Select Mask Description"<<endl;
+	//cout<<"0: Strict Orange"<<endl;
+	//cout<<"1: Lenient Orange"<<endl;
+	//cout<<"More coming someday... one might hope"<<endl;
 	a=cvWaitKey(-1);
 	
 	if (a=='0')
@@ -528,7 +528,7 @@ int distance_from_line(int avgxs[], IplImage* img) {
 	for(int i=0;i<height/2;i++) {
 		sum_of_abs += abs(half_avgxs[i]);
 	}
-	cout<<sum_of_abs<<endl;
+	//cout<<sum_of_abs<<endl;
 	return sum_of_abs;
 }
 
@@ -539,7 +539,7 @@ int angle_from_center(int argxs[], IplImage* img) {
 	startx = argxs[(int)starty];
 	endy = height/2;
 	endx = argxs[(int)endy];
-	cout<<atan((endx-endy)/(endy-starty));
+	//cout<<atan((endx-endy)/(endy-starty));
 	return atan((endx-endy)/(endy-starty));
 }
 	
@@ -586,7 +586,7 @@ void correct(IplImage* img)
 	b=b-r;	
 	r=0;
 
-	cout<<"Color of water:" <<r << " "<<g<<" "<< b<<endl;
+	//cout<<"Color of water:" <<r << " "<<g<<" "<< b<<endl;
 	int r2;
 	int g2;
 	int b2;
@@ -818,13 +818,13 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 	
 	
 		float distance=sqrt(xdist*xdist+ydist*ydist);
-		cout<<"White Center:"<<whitex<<","<<whitey<<endl;
-		cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
-		cout<<distance<<endl;
+		//cout<<"White Center:"<<whitex<<","<<whitey<<endl;
+		//cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
+		//cout<<distance<<endl;
 		
 		if (distance<30)
 		{
-			cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;
+			//cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;
 			*binx=(whitex+blackx)/2;
 			*biny=(whitey+blacky)/2;
 		}
@@ -866,12 +866,12 @@ int visionStart()
 	int swapper=2;	
 	
 	//	CvCapture* camCapture=cvCaptureFromCAM(0);
-	cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
-	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
-	cvNamedWindow("Hough", CV_WINDOW_AUTOSIZE );
-	cvNamedWindow("Bin_go", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("Movement", CV_WINDOW_AUTOSIZE);
+	//cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
+	//cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
+	//cvNamedWindow("Hough", CV_WINDOW_AUTOSIZE );
+	//cvNamedWindow("Bin_go", CV_WINDOW_AUTOSIZE);
+	//cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
+	//cvNamedWindow("Movement", CV_WINDOW_AUTOSIZE);
 	IplImage* unscaledFrame=NULL;
 	IplImage* frame=NULL;
 	IplImage* starterFrame=NULL;
@@ -922,8 +922,9 @@ int visionStart()
 	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
 	while(true)
 	{
-		key=cvWaitKey(25);
-		//Start of input checking
+	  /*
+	    key=cvWaitKey(25);
+	    //Start of input checking
 		if (key=='q')
 		{
 			cout<<key<<" Goodbye."<<endl;
@@ -1006,7 +1007,7 @@ int visionStart()
 			redraw=true;
 		}
 		//End of input checking
-
+		*/
 
 		if (paused && redraw)
 		{
@@ -1087,7 +1088,7 @@ int visionStart()
 			      }
 			  }
 			int pipe_count=red_blue(frame,2.0);
-			cout<<pipe_count<<endl;
+			//cout<<pipe_count<<endl;
 			if (pipe_count>10000)
 			  {
 			    found=true;
@@ -1101,7 +1102,7 @@ int visionStart()
 			  }
 			if (binCount>500)
 			  {
-			    cout<<"WE FOUND THE BIN!!! DROP THE MARKER!!!"<<endl;
+			    //cout<<"WE FOUND THE BIN!!! DROP THE MARKER!!!"<<endl;
 			    if (swapper==1)
 			      buffer1->binVisible=1;
 			    else //swapper==2
@@ -1125,7 +1126,7 @@ int visionStart()
 				int orange_count=mask_orange(frame,0,true);
 				if (orange_count>1000)
 				  {
-				    cout<<orange_count<<endl;
+				    //    cout<<orange_count<<endl;
 				    found=1;
 				  }
 				else
@@ -1138,9 +1139,9 @@ int visionStart()
 				int orange_count=mask_orange(frame,1,0);
 				int left_or_right;
 				if ((left_or_right=guess_line(frame))>20)
-				  cout<<"go right"<<endl;
+				  //cout<<"go right"<<endl;
 				else if (left_or_right<-20)
-				  cout<<"go left"<<endl;
+				  //cout<<"go left"<<endl;
 				
 				if (orange_count<250)
 				  found=0;
@@ -1197,7 +1198,7 @@ int visionStart()
 			  }					
 			if (blinks>3)
 			  {
-			    cout<<"This thing has blinked "<<blinks<<" times, WE FOUND THE LIGHT GUYS!!"<<endl;
+			    //cout<<"This thing has blinked "<<blinks<<" times, WE FOUND THE LIGHT GUYS!!"<<endl;
 			    if (swapper==1)
 			      buffer1->lightVisible=true;
 			    else //swapper==2
@@ -1227,7 +1228,7 @@ int visionStart()
 			      }	
 			    if (lightCenter.x==0 && lightCenter.y==0)
 			      {
-				cout<<"I see a light-like object"<<endl;
+				//	cout<<"I see a light-like object"<<endl;
 				startCounting=true;
 			      }
 			    else {
@@ -1250,7 +1251,7 @@ int visionStart()
 				if (lightFramesOff>0)
 				  {
 				    blinks++;
-				    cout<<"The light has been off for "<<lightFramesOff<<" frames, now its coming back on"<<endl;
+				    //  cout<<"The light has been off for "<<lightFramesOff<<" frames, now its coming back on"<<endl;
 				  }
 				
 				if (lightFramesOff<MINFRAMESOFF || lightFramesOff>MAXFRAMESOFF)
@@ -1264,7 +1265,7 @@ int visionStart()
 			else
 			  {
 			    if (lightCenter.x!=0 && lightCenter.y!=0)
-			      cout<<"Light's out"<<endl;
+			      //cout<<"Light's out"<<endl;
 			    
 			    lightCenter.x=p.x;
 			    lightCenter.y=p.y;
@@ -1273,7 +1274,7 @@ int visionStart()
 			      {
 				if (lightFramesOn>0)
 				  {
-				    cout<<"The light has been on for "<<lightFramesOn<<" frames, now its gone"<<endl;
+				    //cout<<"The light has been on for "<<lightFramesOn<<" frames, now its gone"<<endl;
 				  }
 				
 				if (lightFramesOn<MINFRAMESON || lightFramesOn>MAXFRAMESON)
@@ -1294,11 +1295,11 @@ int visionStart()
 		    if (show_movement)
 		      diff(starterFrame,oldFrame,moveFrame);
 		    
-		    cvShowImage("After_Analysis",frame);
-		    cvShowImage("Bin_go",binFrame);
-		    cvShowImage("Flash",flashFrame);
+		    //cvShowImage("After_Analysis",frame);
+		    //cvShowImage("Bin_go",binFrame);
+		    //cvShowImage("Flash",flashFrame);
 		    if (show_movement)
-			  cvShowImage("Movement",moveFrame);
+		      //cvShowImage("Movement",moveFrame);
 		    
 		    
 		  }
@@ -1437,11 +1438,11 @@ void run (ProcessList *pl) {
 				guess_line(result);
 					int left_or_right;
 				if ((left_or_right=guess_line(result))>20)
-					cout<<"go right"<<endl;
+					//cout<<"go right"<<endl;
 				else if (left_or_right<-20)
-					cout<<"go left"<<endl;
+					//cout<<"go left"<<endl;
 				else
-					cout<<"go straight"<<endl;
+					//cout<<"go straight"<<endl;
 			}	
 			else if (*i=="mask_orange")
 			{
@@ -1475,10 +1476,10 @@ void run (ProcessList *pl) {
 			  int ignoreBinx,ignoreBiny;
 				cvCopyImage(result,binFrame);
 				to_ratios(binFrame);
-				cout<<white_detect(binFrame,result,&ignoreBinx,&ignoreBiny)<<endl;
+				//cout<<white_detect(binFrame,result,&ignoreBinx,&ignoreBiny)<<endl;
 			}
 			else
-				cout<<"Unrecognized function"<<endl;
+				//cout<<"Unrecognized function"<<endl;
 		}
 	}
 	return;
@@ -1561,7 +1562,7 @@ void walk(IplImage *img, ProcessList *pl) {
 		}
 		else if (*i=="diff")
 		{
-			cout<<"No prev image, dumbass"<<endl;
+			//cout<<"No prev image, dumbass"<<endl;
 		}
 		else if (*i=="mask_red")
 		{
@@ -1576,11 +1577,11 @@ void walk(IplImage *img, ProcessList *pl) {
 			guess_line(img);
 				int left_or_right;
 			if ((left_or_right=guess_line(img))>20)
-					cout<<"go right"<<endl;
+					//cout<<"go right"<<endl;
 			else if (left_or_right<-20)
-				cout<<"go left"<<endl;
+				//cout<<"go left"<<endl;
 			else
-				cout<<"go straight"<<endl;
+				//cout<<"go straight"<<endl;
 		}
 		else if (*i=="mask_orange")
 		{
@@ -1614,10 +1615,10 @@ void walk(IplImage *img, ProcessList *pl) {
 		  int binx, biny;
 			cvCopyImage(img,binFrame);
 			to_ratios(binFrame);
-			cout<<white_detect(binFrame,img,&binx,&biny)<<endl;
+			//cout<<white_detect(binFrame,img,&binx,&biny)<<endl;
 		}
 		else
-			cout<<"Unrecognized function"<<endl;
+			//cout<<"Unrecognized function"<<endl;
 	}
 	return;
 }
