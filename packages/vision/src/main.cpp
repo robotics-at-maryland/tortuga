@@ -291,14 +291,14 @@ void explore(IplImage* img, int x, int y, int* out, int color)
 		int out_up[]={0,999999,999999,-999999,-999999};
 		int out_down[]={0,999999,999999,-999999,-999999};
 		
-		if (x>0)
-			explore(img,x-1,y,out_left,color);
-		if (x<width)
-			explore(img,x+1,y,out_right,color);
-		if (y>0)
-			explore(img,x,y-1,out_up,color);
-		if (y<height)
-			explore(img,x,y+1,out_down,color);
+//		if (x>0)
+//			explore(img,x-1,y,out_left,color);
+//		if (x<width)
+//			explore(img,x+1,y,out_right,color);
+//		if (y>0)
+//			explore(img,x,y-1,out_up,color);
+//		if (y<height)
+//			explore(img,x,y+1,out_down,color);
 	
 		out[0]=out_left[0]+out_right[0]+out_up[0]+out_down[0]+1;
 		out[1]=min(x,min(out_left[1],min(out_right[1],min(out_up[1],out_down[1]))));
