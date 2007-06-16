@@ -50,6 +50,8 @@ VisionData** getSafe()
 
 VisionData* getData()
 {
+  if (vc->safe==NULL)
+    return NULL;
   return captureSnapshot(10);
 }
 
