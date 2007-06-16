@@ -1,7 +1,8 @@
 #include <dlfcn.h>
 #include <stdio.h>
+#include "../include/VisionData.h"
 
-typedef int (*intFunction)();
+typedef VisionData* (*visFunction)();
 
 int main()
 {
@@ -12,7 +13,7 @@ int main()
       printf("%s\n",dlerror());
     }
   else
-    myFunc=dlsym(handle,"visionStart");
+    myFunc=dlsym(handle,"getDummy");
 
   if (myFunc==NULL)
     {
@@ -21,10 +22,10 @@ int main()
   else
     {
       printf("%p\n",myFunc);
-      intFunction func=(intFunction) myFunc;
-      int x=func();
+      visFunction func=(visFunction) myFunc;
+      VisionData* x=func();
 
-      printf("x=%d\n",x);
+      printf("x=%d\n%d\n%d\n%d\n%d\n%d\n%f\n%d\n%d\n%d\n%d\n%d\n%d\n",x->frameNum,x->width,x->height,x->redLightx,x->redLighty,x->distFromVertical,x->angle,x->binx,x->biny,x->lightVisible,x->pipeVisible,x->binVisible,x->frameNumCheck);
     }
 
   return 1;

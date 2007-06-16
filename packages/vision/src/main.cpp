@@ -857,9 +857,6 @@ int visionStart()
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
 
-	vc=(VisionCommunication*)(malloc(sizeof(VisionCommunication)));
-	vc->safe=NULL;
-
 	buffer1=new VisionData();
 	buffer2=new VisionData();
 	
