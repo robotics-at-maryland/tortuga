@@ -271,43 +271,75 @@ int mask_red(IplImage* img, bool alter_img, int threshold)
 }
 
 #define OUTSIZE 5
+typedef struct
+{
+	int x;
+	int y;
+}Pos;
+typedef std::list<Pos> PosList;
 
 void explore(IplImage* img, int x, int y, int* out, int color)
 {	
+	PosList toExplore;
 	int width=img->width;
 	int height=img->height;
-	//int out[OUTSIZE];//{count,minx,miny,maxx,maxy} (5 elements)
-	
 	unsigned char* data=(unsigned char*)img->imageData;
-	int count=3*x+3*width*y;
-	if ((data[count]>100 && data[count+1]>100 && data[count+2]>100))
+	out[0]=0;
+	out[1]=999999;
+	out[2]=999999;
+	out[3]=-999999;
+	out[4]=-999999;
+	
+	Pos start,temp;
+	start.x=x;
+	start.y=y;
+	toExplore.push_back(start);
+	while (!(toExplore.empty()))
 	{
-		data[count]=0;
-		data[count+1]=0;
-		data[count+2]=color;
-	
-		int out_left[]={0,999999,999999,-999999,-999999};
-		int out_right[]={0,999999,999999,-999999,-999999};
-		int out_up[]={0,999999,999999,-999999,-999999};
-		int out_down[]={0,999999,999999,-999999,-999999};
-		
-		if (x>0)
-			explore(img,x-1,y,out_left,color);
-		if (x<width)
-			explore(img,x+1,y,out_right,color);
-		if (y>0)
-			explore(img,x,y-1,out_up,color);
-		if (y<height)
-			explore(img,x,y+1,out_down,color);
-	
-		out[0]=out_left[0]+out_right[0]+out_up[0]+out_down[0]+1;
-		out[1]=min(x,min(out_left[1],min(out_right[1],min(out_up[1],out_down[1]))));
-		out[2]=min(y,min(out_left[2],min(out_right[2],min(out_up[2],out_down[2]))));
-		out[3]=max(x,max(out_left[3],max(out_right[3],max(out_up[3],out_down[3]))));
-		out[4]=max(y,max(out_left[4],max(out_right[4],max(out_up[4],out_down[4]))));
+		Pos &p=toExplore.back();
+		x=p.x;
+		y=p.x;
+		toExplore.pop_back();
+		int count=3*x+3*width*y;
+		if ((data[count]>100 && data[count+1]>100 && data[count+2]>100))
+		{
+			out[0]++;
+			out[1]=min(out[1],x);
+			out[2]=min(out[2],y);
+			out[3]=max(out[3],x);
+			out[4]=max(out[4],y);
+			
+			data[count]=0;
+			data[count+1]=0;
+			data[count+2]=color;
+			
+			if (x>0)
+			{
+				temp.x=x-1;
+				temp.y=y;
+				toExplore.push_back(temp);
+			}
+			if (x<width-1)
+			{
+				temp.x=x+1;
+				temp.y=y;
+				toExplore.push_back(temp);
+			}
+			if (y>0)
+			{
+				temp.x=x;
+				temp.y=y-1;
+				toExplore.push_back(temp);
+			}
+			if (y<height-1)
+			{
+				temp.x=x;
+				temp.y=y+1;
+				toExplore.push_back(temp);
+			}
+		}
 	}
 }
-
 CvPoint find_flash(IplImage* img, bool display)
 {
 	int width=img->width;
@@ -863,7 +895,7 @@ int visionStart()
 
 	int swapper=2;	
 	
-	//	CvCapture* camCapture=cvCaptureFromCAM(0);
+	//CvCapture* camCapture=cvCaptureFromCAM(0);
 	//cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
 	//cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
 	//cvNamedWindow("Hough", CV_WINDOW_AUTOSIZE );
@@ -907,7 +939,7 @@ int visionStart()
 	bool found=false;
 
 	int okay=cvGrabFrame(camCapture);
-	frame=cvCreateImage(cvSize(50,50),8,3);
+	frame=cvCreateImage(cvSize(200,200),8,3);
 	unscaledFrame=cvRetrieveFrame(camCapture);
 	cvResize(unscaledFrame,frame);
 
@@ -1025,7 +1057,7 @@ int visionStart()
 			{
 				mask_with_input(analysis);
 			}
-			cvShowImage("After_Analysis",analysis);
+			//cvShowImage("After_Analysis",analysis);
 		}
 				
 		if (!paused)
@@ -1063,7 +1095,7 @@ int visionStart()
 		    cvCopyImage(frame,starterFrame);//Put new frame into starterFrame
 		    
 		    cvCopyImage(frame,binFrame);
-		    cvShowImage("Before_Analysis", starterFrame);
+		    //cvShowImage("Before_Analysis", starterFrame);
 		    
 		    if (ratios_on)
 		      {
@@ -1402,7 +1434,7 @@ void run (ProcessList *pl) {
 		{
 			if (*i=="show")
 			{
-				ostringstream os;
+			        ostringstream os;
 				os<<"Results"<<windowCount;
 				string windowName=os.str();
 				cvShowImage(windowName.c_str(),result);
