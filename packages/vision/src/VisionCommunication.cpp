@@ -21,7 +21,6 @@ namespace vision {
   }
 VisionData* getDummy()
 {
-  printf("returning a dummy variable filled with primes\n");
   vc->dummyCheck.frameNum=2;
   vc->dummyCheck.width=3;
   vc->dummyCheck.height=5;
