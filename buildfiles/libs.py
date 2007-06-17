@@ -48,7 +48,7 @@ def _get_internal_lib(name):
     Maps internal library name with the information needed to build it
     """
     libs = {
-        'vision' : InternalLibrary('vision', [], ['OpenCV']),
+        'vision' : InternalLibrary('vision', ['pattern'], ['OpenCV']),
         'pattern' : InternalLibrary('pattern', [], ['Boost']),
         'carnetix' : InternalLibrary('carnetix', [], ['USB'])
     }
@@ -57,6 +57,7 @@ def _get_internal_lib(name):
         return libs[name]
     else:
         print 'Could not find internal library named: "%s"' % name
+        print 'Please update "_get_instal_lib" in "buildfiles/libs.py"'
         sys.exit(1)
 
 # --------------------------------------------------------------------------- #
@@ -262,9 +263,10 @@ class InternalLibrary(Library):
         # This is here to prevent a recursion error
         self._adding_int_depends = False
 
-    def setup_environment(self, env):
+    def setup_environment(self, env, building_self = False):
         # Include self in library list
-        env.Append(LIBS = ['ram_' + self.name])
+        if not building_self:
+            env.Append(LIBS = ['ram_' + self.name])
 
         self.setup_dependents(env)
 
