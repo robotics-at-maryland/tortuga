@@ -12,14 +12,25 @@
 
 // Project Includes
 #include "vehicle/include/Common.h"
+#include "vehicle/include/IUpdatable.h"
 
-class IVehicle
+namespace ram {
+namespace vehicle {
+
+class IVehicle : public IUpdatable
 {
 public:
-    Device* getDevice(std::string name) = 0;
+    /** Gets the device associated with the given name */
+    device::Device* getDevice(std::string name) = 0;
+
+    /** Gets the list of current temperatures */
+    TemperatureMap getTemperatures() = 0;
     
 private:
     std::map<std::string, Device*> m_devices;
 };
 
+} // namespace vehicle
+} // namespace ram
+    
 #endif // RAM_VEHICLE_VEHICLE_06_11_2006

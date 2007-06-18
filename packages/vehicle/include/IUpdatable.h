@@ -10,6 +10,9 @@
 #ifndef RAM_VEHICLE_UPDATABLE_06_11_2006
 #define RAM_VEHICLE_UPDATABLE_06_11_2006
 
+namespace ram {
+namespace vehicle {
+
 /** Reprsents and object which can be updated, asyncronously or sequentially.
  */
 class IUpdatable
@@ -29,7 +32,10 @@ public:
 
     /**  Stops what ever current background update system there is.
      */
-    void stop_continuous_update() = 0;
+    void stopContinuousUpdate() = 0;
 };
+
+} // namespace vehicle
+} // namespace ram
 
 #endif // RAM_VEHICLE_UPDATABLE_06_11_2006
