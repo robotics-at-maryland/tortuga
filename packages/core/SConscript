@@ -1,0 +1,18 @@
+# Build System Imports
+import helpers
+
+# Pull in build environment from parent SConstruct
+Import('env')
+envl = env.Clone()
+
+# Find all cpp files in the source directory
+sources = helpers.glob(env, 'src', '*.cpp')
+
+# Build Library (will be called 'libram_core.so')
+# Build flags for dependencies automaticallly added based on buildfiles/libs.py
+helpers.SharedLibrary(envl, 'core', source = sources)
+
+# Build our little demo program
+envt = env.Clone()
+helpers.Program(envt, target = 'QueueTest',
+                source = ['test/src/QueueTest.cpp'], int_deps = 'core')

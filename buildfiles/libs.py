@@ -34,6 +34,8 @@ def _get_external_lib(name):
     'USB': Library('libusb', '0.1', ['usb.h'], ['usb']),
     'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
                                   ['boost_python-gcc'], ext_deps = ['Python']),
+    'Boost.Thread' : BoostLibrary('Boost.Thread', (1,35), [],
+                                  ['boost_thread-gcc-mt']),
     'Python' : PythonLib('2.5')
     }
 
@@ -50,6 +52,7 @@ def _get_internal_lib(name):
     libs = {
         'vision' : InternalLibrary('vision', ['pattern'], ['OpenCV']),
         'pattern' : InternalLibrary('pattern', [], ['Boost']),
+        'core' : InternalLibrary('core', [], ['Boost.Thread']),
         'carnetix' : InternalLibrary('carnetix', [], ['USB'])
     }
 
@@ -208,7 +211,7 @@ class Library(object):
             external_libs = [l for l in libs if not l.startswith('ram_')]
             internal_libs = [l for l in libs  if l.startswith('ram_')]
             env.Replace(LIBS = external_libs)
-
+            
             conf = env.Configure()
             
             for lib in self.libraries:
@@ -456,10 +459,16 @@ class BoostLibrary(Library):
 
         version_str = '%d_%d' % (self.major_ver, self.minor_ver)
         include_path = os.path.join(os.environ['RAM_ROOT_DIR'], 'include',
+
                                     'boost-' + version_str)
-        
-        Library.__init__(self, name, version_str, headers, libraries,
-                         CPPPATH = [include_path], ext_deps = ext_deps)
+        # Currently check for boost libraries seem to fail
+        # TODO: fix me
+        #Library.__init__(self, name, version_str, headers, libraries,
+        #                 CPPPATH = [include_path], ext_deps = ext_deps)
+        linkflags = ' -l' + ' -l'.join(libraries)
+        Library.__init__(self, name, version_str, headers, [],
+                         CPPPATH = [include_path], LINKFLAGS = linkflags,
+                         ext_deps = ext_deps)
         
     def check_version(self, env):
         conf = env.Configure()
