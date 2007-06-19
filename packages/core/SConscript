@@ -16,3 +16,7 @@ helpers.SharedLibrary(envl, 'core', source = sources)
 envt = env.Clone()
 helpers.Program(envt, target = 'QueueTest',
                 source = ['test/src/QueueTest.cpp'], int_deps = 'core')
+
+# Test for updatable class
+helpers.Program(envt, target = 'UpdatableTest',
+                source = ['test/src/UpdatableTest.cpp'], int_deps = 'core')

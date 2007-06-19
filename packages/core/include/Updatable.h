@@ -11,6 +11,7 @@
 #define RAM_CORE_UPDATABLE_06_11_2006
 
 // Library Includes
+#include <boost/utility.hpp>
 #include <boost/thread/mutex.hpp>
 
 namespace ram {
@@ -21,9 +22,11 @@ namespace core {
  *  All you have to do to use it is subclass and implement the update() method,
  *  will be called the given interval in a background thread.
  */
-class Updatable
+class Updatable : boost::noncopyable
 {
 public:
+    Updatable();
+    
     /** Updates the Object.
      *
      *  @param timestep  The time since the last update.

@@ -12,17 +12,27 @@
 
 // Library Includes
 #include <boost/thread/thread.hpp>
+#include <boost/thread/xtime.hpp>
 #include <boost/bind.hpp>
 
 // Project Includes
 #include "core/include/TimeVal.h"
 #include "core/include/Updatable.h"
 
-const static int USEC_PER_MILLISEC = 1000;
+#include <iostream>
+
+const static long USEC_PER_MILLISEC = 1000;
+const static long NSEC_PER_MILLISEC = 1000000;
 
 namespace ram {
 namespace core {
 
+Updatable::Updatable() :
+    m_backgrounded(0),
+    m_interval(100)
+{
+}
+    
 void Updatable::background(int interval)
 {
     bool startThread = false;
@@ -87,7 +97,7 @@ void Updatable::loop()
         }
 
         // Trun the ms interval into TimeVal
-        TimeVal updateInterval(interval * USEC_PER_MILLISEC);
+        TimeVal updateInterval(0, interval * USEC_PER_MILLISEC);
         
         if (in_background)
         {
@@ -108,14 +118,19 @@ void Updatable::loop()
 
             // Ensure that we don't go negative (ie the update took to
             // longer that the its updateInterval)
-            if (sleepTime.get_double() < 0)
+            // if (sleepTime.get_double() < 0)
                 sleepTime = updateInterval;
 
             // Save beginning time of this loop for timestep calculation
             last = current;
 
             // Finally sleep
-            usleep(sleepTime.microseconds());
+            std::cout << "Sleeping for " << sleepTime.get_double() << std::endl;
+            boost::xtime xt;
+            xt.sec = 0;
+            xt.nsec = 1000 * m_interval;
+            boost::thread::sleep(xt);
+            //usleep(sleepTime.microseconds());
         }
         // Time to quit
         else
