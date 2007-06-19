@@ -13,51 +13,81 @@ This module allows easy inclusion of libraries with there required files.
 import os
 import sys
 import subprocess
+import platform
 
 # Project Imports
 from common.util import run_shell_cmd
 
 
+# Constants
+if platform.system() == 'Darwin':
+    BOOST_PYTHON_LIB = 'boost_python-1_35'
+    BOOST_THREAD_LIB = 'boost_thread-1_35'
+else:
+    BOOST_PYTHON_LIB = 'boost_python-gcc'
+    BOOST_THREAD_LIB = 'boost_thread-gcc-mt'
+
 # --------------------------------------------------------------------------- #
 #                        L I B R A R Y   I N F O                              #
 # --------------------------------------------------------------------------- #
+
+EXTERNAL_LIBS = None
 
 def _get_external_lib(name):
     """
     Maps public library with the information need to build it
     """
-    libs = {
-    'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 'wx-config'),
-    'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
-    'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 'gdk/gdk.h']),
-    'Boost' : BoostLibrary('Boost', (1,35), []),
-    'USB': Library('libusb', '0.1', ['usb.h'], ['usb']),
-    'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
-                                  ['boost_python-gcc'], ext_deps = ['Python']),
-    'Boost.Thread' : BoostLibrary('Boost.Thread', (1,35), [],
-                                  ['boost_thread-gcc-mt']),
-    'Python' : PythonLib('2.5')
-    }
 
-    if libs.has_key(name):
-        return libs[name]
+    # This delays creation of these until after the module is loaded so the 
+    # classes can be at the bottom of the file
+    global EXTERNAL_LIBS
+    if EXTERNAL_LIBS is None:
+        EXTERNAL_LIBS = {
+            'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
+                                        'wx-config'),
+            'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
+
+            'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 
+                                                            'gdk/gdk.h']),
+            'Boost' : BoostLibrary('Boost', (1,35), []),
+
+            'USB': Library('libusb', '0.1', ['usb.h'], ['usb']),
+
+            'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
+                                          [BOOST_PYTHON_LIB], 
+                                          ext_deps = ['Python']),
+
+            'Boost.Thread' : BoostLibrary('Boost.Thread', (1,35), [],
+                                          [BOOST_THREAD_LIB]),
+
+            'Python' : PythonLib('2.5')
+            }
+
+    if EXTERNAL_LIBS.has_key(name):
+        return EXTERNAL_LIBS[name]
     else:
         print 'Could not find external library named: "%s"' % name
         sys.exit(1)
+
+INTERNAL_LIBS = None
 
 def _get_internal_lib(name):
     """
     Maps internal library name with the information needed to build it
     """
-    libs = {
-        'vision' : InternalLibrary('vision', ['pattern'], ['OpenCV']),
-        'pattern' : InternalLibrary('pattern', [], ['Boost']),
-        'core' : InternalLibrary('core', [], ['Boost.Thread']),
-        'carnetix' : InternalLibrary('carnetix', [], ['USB'])
-    }
+    # This delays creation of these until after the module is loaded so the 
+    # classes can be at the bottom of the file
+    global INTERNAL_LIBS
+    if INTERNAL_LIBS is None:
+        INTERNAL_LIBS = {
+            'vision' : InternalLibrary('vision', ['pattern'], ['OpenCV']),
+            'pattern' : InternalLibrary('pattern', [], ['Boost']),
+            'core' : InternalLibrary('core', [], ['Boost.Thread']),
+            'carnetix' : InternalLibrary('carnetix', [], ['USB'])
+            }
 
-    if libs.has_key(name):
-        return libs[name]
+    if INTERNAL_LIBS.has_key(name):
+        return INTERNAL_LIBS[name]
     else:
         print 'Could not find internal library named: "%s"' % name
         print 'Please update "_get_instal_lib" in "buildfiles/libs.py"'
@@ -88,7 +118,13 @@ def add_internal(env, name):
 #                      I M P L E M E N T A T I O N                            #
 # --------------------------------------------------------------------------- #
 
+
+
 class Library(object):
+    # Allows us to skip checking if we have already done it once with the 
+    # scons run
+    CHECKED_LIBS = set()
+
     def __init__(self, name, version, headers, libnames, CPPPATH = [],
                  CPPFLAGS = [], LINKFLAGS = [], strict_version = False,
                  ext_deps = []):
@@ -165,9 +201,17 @@ class Library(object):
         self._adding_ext_depends = False
 
     def check_environment(self, env):
-        self.check_version(env)
-        self.check_headers(env)
+        # Only perform the check once
+        if self not in Library.CHECKED_LIBS:
+            self.check_version(env)
+            self.check_headers(env)
+            
+            # Record the fact that we have been run
+            Library.CHECKED_LIBS.add(self)
+
+        # Add libraries does its own check
         self.add_libs(env)
+  
 
     def check_version(self, env):
         """
@@ -205,7 +249,7 @@ class Library(object):
         a succesfull check.
         """
 
-        if env['check'].lower() == 'yes':
+        if env['check'].lower() == 'yes' or (self in Library.CHECKED_LIBS):
             # Create a special test environment without any of our libraries
             libs = env.get('LIBS', [])
             external_libs = [l for l in libs if not l.startswith('ram_')]
@@ -269,7 +313,7 @@ class InternalLibrary(Library):
     def setup_environment(self, env, building_self = False):
         # Include self in library list
         if not building_self:
-            env.Append(LIBS = ['ram_' + self.name])
+            env.AppendUnique(LIBS = ['ram_' + self.name])
 
         self.setup_dependents(env)
 
@@ -349,6 +393,7 @@ class ConfigLibrary(Library):
                 error_cmd = 'Error running:', cmd
                 self._config_cmd_output += ' '+ run_shell_cmd(cmd, error_cmd)
         
+        # Merge actuall command output
         env.MergeFlags([self._config_cmd_output])
 
         # Make sure settings for dependent libraries are set
@@ -399,18 +444,30 @@ class PythonLib(ConfigLibrary):
     def __init__(self, version):
         ConfigLibrary.__init__(self, 'Python', version, ['Python.h'],
                                'python2.5-config',
-                               lib_flag = ' ; python2.5-config --libs',
+                               lib_flag = ' ; python2.5-config --ldflags',
                                version_flag = '--includes')
 
     def setup_environment(self, env):
         ConfigLibrary.setup_environment(self, env)
 
         # Here we have to remove and non-valid C++ flags
-        cflags = env['CCFLAGS']
+        cflags = env.get('CCFLAGS', [])
         if cflags.count('-Wstrict-prototypes'):
             cflags.remove('-Wstrict-prototypes')
+        if cflags.count(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk')):
+            cflags.remove(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk'))
+        #print 'Python CC Flags', env['CCFLAGS']
+        #print 'Python LD Flags', env['LINKFLAGS']
         env.Replace(CCFLAGS = cflags)
 
+        # If we are on Mac, remove the special arch flags, we are going native
+        ldflags = env.get('LINKFLAGS', [])
+        if ldflags.count(('-arch', 'ppc')):
+            ldflags.remove(('-arch', 'ppc'))
+        if ldflags.count(('-arch', 'i386')):
+            ldflags.remove(('-arch', 'i386'))
+        if ldflags.count(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk')):
+            ldflags.remove(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk'))
 
     def check_version(self, env):
         version_cmd = '%s %s' % (self.tool_name, self.version_flag)
