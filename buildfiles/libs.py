@@ -346,7 +346,8 @@ class ConfigLibrary(Library):
             self._config_cmd_output = ' '
             
             for cmd in setup_cmd.split(';'):
-                self._config_cmd_output += ' '+ run_shell_cmd(cmd, "Error")
+                error_cmd = 'Error running:', cmd
+                self._config_cmd_output += ' '+ run_shell_cmd(cmd, error_cmd)
         
         env.MergeFlags([self._config_cmd_output])
 
@@ -397,8 +398,8 @@ class PkgConfigLibrary(ConfigLibrary):
 class PythonLib(ConfigLibrary):
     def __init__(self, version):
         ConfigLibrary.__init__(self, 'Python', version, ['Python.h'],
-                               'python-config',
-                               lib_flag = ' ; python-config --libs',
+                               'python2.5-config',
+                               lib_flag = ' ; python2.5-config --libs',
                                version_flag = '--includes')
 
     def setup_environment(self, env):
@@ -466,6 +467,9 @@ class BoostLibrary(Library):
         #Library.__init__(self, name, version_str, headers, libraries,
         #                 CPPPATH = [include_path], ext_deps = ext_deps)
         linkflags = ' -l' + ' -l'.join(libraries)
+        if len(libraries) == 0:
+            linkflags = []
+            
         Library.__init__(self, name, version_str, headers, [],
                          CPPPATH = [include_path], LINKFLAGS = linkflags,
                          ext_deps = ext_deps)
