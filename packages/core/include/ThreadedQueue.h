@@ -32,6 +32,7 @@ public:
         m_itemAvailable.notify_one();
     }
 
+    /** Waits until new data is queue */
     DataT popWait()
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
@@ -39,6 +40,21 @@ public:
         if(m_queue.empty())
         {
             m_itemAvailable.wait(lock);
+        }
+
+        DataT temp(m_queue.front());
+        m_queue.pop();
+        return temp;
+    }
+
+    /** Waits until new data is in the queue or the timer runs out */
+    DataT popTimedWait(const boost::xtime &xt)
+    {
+        boost::mutex::scoped_lock lock(m_monitorMutex);
+
+        if(m_queue.empty())
+        {
+            m_itemAvailable.timed_wait(lock, xt);
         }
 
         DataT temp(m_queue.front());
