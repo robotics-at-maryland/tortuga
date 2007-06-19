@@ -125,12 +125,13 @@ void Updatable::loop()
             last = current;
 
             // Finally sleep
-            std::cout << "Sleeping for " << sleepTime.get_double() << std::endl;
-            boost::xtime xt;
-            xt.sec = 0;
-            xt.nsec = 1000 * m_interval;
-            boost::thread::sleep(xt);
-            //usleep(sleepTime.microseconds());
+            std::cout << "Sleeping for " << sleepTime.get_double()
+                      << " seconds and " << sleepTime.microseconds() << " us" <<std::endl;
+            // boost::xtime xt;
+            // xt.sec = 0;
+            // xt.nsec = 1000 * m_interval;
+            // boost::thread::sleep(xt);
+            usleep(sleepTime.microseconds());
         }
         // Time to quit
         else
