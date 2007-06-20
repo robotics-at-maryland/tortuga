@@ -68,7 +68,18 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	int maxx=0;
 	int miny=999999;
 	int maxy=0;
-	for (int y=2; y<height-2; y++)
+
+//Not necessary to black out the image, just ignore this piece of it
+//	count=0;
+//	for (int y=0; y<height/4; y++)
+//		for (int x=0; x<width;x++)
+//		{
+//			data2[count+2]=data2[count+1]=data2[count]=0;
+//			count+=3;
+//		}
+//	
+
+	for (int y=height/2; y<height-2; y++)
 	{
 		count=3*2+3*width*y;
 		for (int x=2; x<width-2; x++)
@@ -103,57 +114,61 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 			count+=3;
 		}
 	}
-		whitex/=total;
-		whitey/=total;
+	whitex/=total;
+	whitey/=total;
 		
-		if (total>500)
+	if (total>500)
+	{
+		int indexR;
+		int indexL;
+		*gatex=whitex;
+		*gatey=whitey;
+		int testCol=columnCounts[whitex];
+		int state=0;
+		for (indexR=whitex;indexR<width;indexR++)
 		{
-			int indexR;
-			int indexL;
-			*gatex=whitex;
-			*gatey=whitey;
-			int testCol=columnCounts[whitex];
-			int state=0;
-			for (indexR=whitex;indexR<width;indexR++)
+			if (columnCounts[indexR]>2*testCol)
+				state++;
+			else
+				state=0;
+			if (state==5)
+				break;
+		}
+		if (state==5)
+		{
+			for (indexL=whitex;indexL>0;indexL--)
 			{
-				if (columnCounts[indexR]>2*testCol)
+				if (columnCounts[indexL]>2*testCol)
 					state++;
 				else
 					state=0;
 				if (state==5)
 					break;
 			}
-			if (state==5)
+		}
+		if (state!=5)
+		{
+			//No gate here
+			whitex=whitey=-1;
+		}
+		else
+		{
+			count=3*indexL+3*width*whitey;
+			for (int x=indexL; x<indexR;x++)
 			{
-				for (indexL=whitex;indexL>0;indexL--)
-				{
-					if (columnCounts[indexL]>2*testCol)
-						state++;
-					else
-						state=0;
-					if (state==5)
-						break;
-				}
-			}
-			if (state!=5)
-			{
-				//No gate here
-				whitex=whitey=-1;
-			}
-			else
-			{
-				count=3*indexL+3*width*whitey;
-				for (int x=indexL; x<indexR;x++)
-				{
-					data2[count]=data2[count+2]=0;
-					data2[count+1]=255;
-					count+=3;
-				}
+				data2[count]=data2[count+2]=0;
+				data2[count+1]=255;
+				count+=3;
 			}
 		}
+	}
+	else
+	{
+		whitex=whitey=-1;
+	}
 	free(columnCounts);
 	return whitex!=-1;
-	}
+}
 
 	int runVision(int argc, char** argv)
 	{
@@ -421,7 +436,7 @@ void explore(IplImage* img, int x, int y, int* out, int color)
 	{
 		Pos &p=toExplore.back();
 		x=p.x;
-		y=p.x;
+		y=p.y;
 		toExplore.pop_back();
 		int count=3*x+3*width*y;
 		if ((data[count]>100 && data[count+1]>100 && data[count+2]>100))
@@ -1008,7 +1023,7 @@ extern "C" {
 int visionStart()
 {
   goVision=1;
-//  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
+  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 	
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
@@ -1019,12 +1034,20 @@ int visionStart()
 	
 	int swapper=2;	
 	
-	CvCapture* camCapture=cvCaptureFromCAM(0);
+//	CvCapture* camCapture=cvCaptureFromCAM(0);
+	CvVideoWriter *writer = 0;
+	int isColor = 1;
+	int fps     = 25;  // or 30
+	int frameW  = 640; // 744 for firewire cameras
+	int frameH  = 480; // 480 for firewire cameras
+	writer=cvCreateVideoWriter("out.avi",CV_FOURCC('P','I','M','1'),
+                           fps,cvSize(frameW,frameH),isColor);
+	
 	//cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
 	//cvNamedWindow("Hough", CV_WINDOW_AUTOSIZE );
 	//cvNamedWindow("Bin_go", CV_WINDOW_AUTOSIZE);
-	//cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
 	//cvNamedWindow("Movement", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("Gate",CV_WINDOW_AUTOSIZE);
 	IplImage* unscaledFrame=NULL;
@@ -1082,7 +1105,7 @@ int visionStart()
 	{
 	  
 	    key=cvWaitKey(25);
-	  /*
+	  
 		  //Start of input checking
 		if (key=='a')
 		{
@@ -1092,8 +1115,9 @@ int visionStart()
 		if (key=='q')
 		{
 			cout<<key<<" Goodbye."<<endl;
-			return 0;
+			goVision=false;
 		}
+	/*
 		if (key=='u')
 		{
 			show_flashing=!show_flashing;
@@ -1476,7 +1500,7 @@ int visionStart()
 		    
 		    //cvShowImage("After_Analysis",frame);
 		    //cvShowImage("Bin_go",binFrame);
-		    //cvShowImage("Flash",flashFrame);
+		    cvShowImage("Flash",flashFrame);
 		    if (show_movement){}
 		      //cvShowImage("Movement",moveFrame);
 		    
@@ -1492,10 +1516,13 @@ int visionStart()
 	    getCommunicator()->safe=&buffer2;
 	    swapper=1;
 	  }
+	  
+		cvWriteFrame(writer,starterFrame);      // add the frame to the file
 	}
-	
-	return goVision;
 
+
+	cvReleaseVideoWriter(&writer);
+	return goVision;
 }
 
 void run (ProcessList *pl) {
