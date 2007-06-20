@@ -38,4 +38,5 @@ helpers.Program(envt, 'test/src/AdvCvTest.cpp',
 helpers.Program(envt, 'src/test.cpp',int_deps = 'vision')
 
 # Basic camera test
+envt.AppendUnique(CCFLAGS = '-Wno-unused')
 envt.Program('test/src/BasicCvTest.c')
