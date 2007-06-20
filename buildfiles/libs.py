@@ -201,8 +201,8 @@ class Library(object):
         self._adding_ext_depends = False
 
     def check_environment(self, env):
-        # Only perform the check once
-        if self not in Library.CHECKED_LIBS:
+        # Only perform the check once and don't do it we are cleaning a build
+        if self.do_check(env):
             self.check_version(env)
             self.check_headers(env)
             
@@ -224,11 +224,6 @@ class Library(object):
         Uses the scons functionality to make sure that the headers for the given
         library exist
         """
-
-        # Bail is we aren't checking
-        if env['check'].lower() != 'yes':
-            return
-
         conf = env.Configure()
 
         for header in self.headers:
@@ -249,7 +244,7 @@ class Library(object):
         a succesfull check.
         """
 
-        if env['check'].lower() == 'yes' or (self in Library.CHECKED_LIBS):
+        if self.do_check(env):
             # Create a special test environment without any of our libraries
             libs = env.get('LIBS', [])
             external_libs = [l for l in libs if not l.startswith('ram_')]
@@ -273,9 +268,26 @@ class Library(object):
             # Add back in internal libs
             env.AppendUnique(LIBS =  internal_libs)
             env = conf.Finish()
+
+            # Place self in CHECKED_LIBS
+            Library.CHECKED_LIBS.add(self)
         else:
             env.AppendUnique(LIBS = self.libraries)
 
+    def do_check(self, env):
+        """
+        Whether or not to perform the configure type checks on the libraries
+        """
+         
+        if self in Library.CHECKED_LIBS:
+            return False
+        if env.GetOption('clean'):
+            return False
+        if env['check'].lower() != 'yes':
+            return False
+
+        return True
+     
 class InternalLibrary(Library):
     def __init__(self, name, int_deps, ext_deps, strict_version = False):
         """
