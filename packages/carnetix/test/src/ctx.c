@@ -36,7 +36,7 @@ int ctxPrintValues(struct ctxValues * val)
     printf("Pri Voltage : %f V\nPri Current : %f A\n\n", val->priVoltage, val->priCurrent);
     printf("Sec Voltage : %f V\nSec Current : %f A\n\n", val->secVoltage, val->secCurrent);
     printf("Temperature : %f C\n", val->temperature);
-    printf("State: %d (%s)\n", val->state, ctxStateNames[val->state]);
+    printf("State: %d (%s)\n", val->state, ctxStateNameToText(val->state));
     printf("\nLED State (0x%04X):\n", val->ledValue);
     if(val->ledValue & LED_IGNITION)
         printf("\tIgnition\n");
@@ -70,6 +70,8 @@ int ctxPrintValues(struct ctxValues * val)
 
     if(val->ledValue & LED_SECCUR_OK)
         printf("\tSecondary Current OK\n");
+
+    return 0;
 }
 
 
@@ -90,6 +92,8 @@ int ctxPrintParams(struct ctxParams * prm)
     printf("ACPI Dly : %.1f sec\n", prm->acpiDelay);
     printf("ACPI Dur : %.1f sec\n", prm->acpiDuration);
     printf("Low Temp : %f C\n", prm->lowTemp);
+
+    return 0;
 }
 
 

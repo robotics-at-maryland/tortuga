@@ -31,6 +31,23 @@
 #define DEFAULT_ALT_INTERFACE       0
 #define SHORT_TIMEOUT           3000
 
+/* Names of the states for the state field. These also came from the C# API */
+static const char * ctxStateNames[] =
+{
+    "Idle",
+    "Power PSU",
+    "Power PC",
+    "Bootup Lockout",
+    "Run PC",
+    "Shutdown Delay",
+    "ACPI Pulse",
+    "Shutdown Lockout",
+    "Standby/Sleep",
+    "Forced Shutdown",
+    "Initialization"
+};
+
+
 unsigned short m_product_id;
 unsigned short m_vendor_id;
 
@@ -443,4 +460,9 @@ void ctxClose(usb_dev_handle * hDev)
 {
     if(hDev)
         usb_close(hDev);
+}
+
+const char* ctxStateNameToText(int state)
+{
+    return ctxStateNames[state];
 }
