@@ -23,10 +23,83 @@
 
 const static long USEC_PER_MILLISEC = 1000;
 const static long NSEC_PER_MILLISEC = 1000000;
+const static long NSEC_PER_USEC = 1000;
 
 namespace ram {
 namespace core {
 
+
+typedef int64_t Usec;
+
+// Adapted from the avahi library, under LPGL
+int timeval_compare(const struct timeval *a, const struct timeval *b) {
+    assert(a);
+    assert(b);
+
+    if (a->tv_sec < b->tv_sec)
+        return -1;
+
+    if (a->tv_sec > b->tv_sec)
+        return 1;
+
+    if (a->tv_usec < b->tv_usec)
+        return -1;
+
+    if (a->tv_usec > b->tv_usec)
+        return 1;
+
+    return 0;
+}
+
+Usec timeval_diff(const struct timeval *a, const struct timeval *b) {
+    assert(a);
+    assert(b);
+
+    if (timeval_compare(a, b) < 0)
+        return - timeval_diff(b, a);
+
+    return ((Usec) a->tv_sec - b->tv_sec)*1000000 + a->tv_usec - b->tv_usec;
+}
+
+struct timeval* timeval_add(struct timeval *a, Usec usec) {
+    Usec u;
+    assert(a);
+
+    u = usec + a->tv_usec;
+
+    if (u < 0) {
+        a->tv_usec = (long) (1000000 + (u % 1000000));
+        a->tv_sec += (long) (-1 + (u / 1000000));
+    } else {
+        a->tv_usec = (long) (u % 1000000);
+        a->tv_sec += (long) (u / 1000000);
+    }
+
+    return a;
+}
+
+Usec age(const struct timeval *a) {
+    struct timeval now;
+    
+    assert(a);
+
+    gettimeofday(&now, NULL);
+
+    return timeval_diff(&now, a);
+}
+
+struct timeval *elapse_time(struct timeval *tv, unsigned msec, unsigned jitter) {
+    assert(tv);
+
+    gettimeofday(tv, NULL);
+
+    if (msec)
+        timeval_add(tv, (Usec) msec*1000);
+        
+    return tv;
+}
+
+    
 Updatable::Updatable() :
     m_backgrounded(0),
     m_interval(100)
@@ -76,15 +149,27 @@ bool Updatable::backgrounded()
 
 void Updatable::loop()
 {
-    TimeVal current;
-    TimeVal last;
-    TimeVal diff;
-    TimeVal sleepTime;
+    struct timeval last;
+    struct timeval start;
+    Usec sleep_time;
+    Usec offset;
+    struct timespec sleep = {0, 0};
+    struct timespec act_sleep = {0, 0};
+
+
+    // This call determines the time it takes for a gettimeofday call
+    // This makes the calls more accurate
+    gettimeofday(&last, NULL);
+    gettimeofday(&start, NULL);
+    offset = timeval_diff(&start, &last);
+
+    // Zero last so we can check
+    last.tv_usec = 0;
     
     while (1)
-    {   
-        // Set current time to now
-        current.now();
+    {
+        // Grab current time
+        gettimeofday(&start, NULL);
 
         // Grab our running state
         bool in_background = false;
@@ -95,43 +180,33 @@ void Updatable::loop()
             in_background = m_backgrounded;
             interval = m_interval;
         }
-
-        // Trun the ms interval into TimeVal
-        TimeVal updateInterval(0, interval * USEC_PER_MILLISEC);
         
         if (in_background)
         {
-            // If we are on the first interation, we just say we had the
-            // perfect time since the last iteration, other wise we
-            // compute it
-            if (last.get_double() == 0)
-                diff.add(m_interval * USEC_PER_MILLISEC);
-            else    
-                diff = (current - last);
+            // On the first loop through, set the step to ideal
+            double diff = interval *(double)1000;
+            if (0 != last.tv_usec)
+                diff = (timeval_diff(&start, &last) + offset);
 
-            // Now run our timed function
-            update(diff.get_double());
+            // Call our update function
+            update(diff / (double)1000000);
+            
+            // Determine next time to awake
+            struct timeval next = start;
+            timeval_add(&next, (Usec)interval * USEC_PER_MILLISEC);
+            
+            // Sleep for the rest for the remainder of our time
+            sleep_time = -age(&next);
 
-            // Now compute how long to sleep untill the next iteration
-            // (timeOfDay - current) == time to run update()
-            sleepTime = updateInterval - (TimeVal::timeOfDay() - current);
-
-            // Ensure that we don't go negative (ie the update took to
-            // longer that the its updateInterval)
-            // if (sleepTime.get_double() < 0)
-                sleepTime = updateInterval;
-
-            // Save beginning time of this loop for timestep calculation
-            last = current;
-
-            // Finally sleep
-            std::cout << "Sleeping for " << sleepTime.get_double()
-                      << " seconds and " << sleepTime.microseconds() << " us" <<std::endl;
-            // boost::xtime xt;
-            // xt.sec = 0;
-            // xt.nsec = 1000 * m_interval;
-            // boost::thread::sleep(xt);
-            usleep(sleepTime.microseconds());
+            // Handle overrun
+            if (sleep_time < 0)
+                sleep.tv_nsec = interval * NSEC_PER_MILLISEC;
+            else
+                sleep.tv_nsec = sleep_time * NSEC_PER_USEC;
+            
+            last = start;
+            printf("Sleeping for (ms): %f\n", sleep.tv_nsec / (double)1000000);
+            nanosleep(&sleep, &act_sleep);
         }
         // Time to quit
         else

@@ -26,6 +26,8 @@ class Updatable : boost::noncopyable
 {
 public:
     Updatable();
+    virtual ~Updatable() {};
+
     
     /** Updates the Object.
      *

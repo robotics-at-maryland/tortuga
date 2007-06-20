@@ -12,12 +12,14 @@
 // STD Includes
 #include <iostream>
 #include <cassert>
+#include <cstdio>
+#include <cmath>
 
 // Project Includes
 #include "core/include/Updatable.h"
 #include "core/include/TimeVal.h"
 
-static const int INTERVAL = 100; // 10 Hz
+static const int INTERVAL = 250; // 100 Hz
 
 using ram::core::TimeVal;
 
@@ -36,19 +38,28 @@ public:
     {
         m_lastTime.now();
     }
+
+    virtual ~Printer() {};
     
     virtual void update(double timestep)
     {
         TimeVal current = TimeVal::timeOfDay();
         TimeVal delta = current - m_lastTime;
-        std::cout << "Step: " << timestep << " Calc Delt: "
-                  << timestep - (double)m_updateInterval/1000
-                  << " Act Delt: " << delta.get_double() << std::endl;
+        double current_error = fabs(delta.get_double() -
+                                    (double)m_updateInterval/(double)1000) * 1000;
+        printf("Step(ms): %-5.2f DStep: %d AStep: %-5.2f CError: %-5.2f"
+               " AError: %-5.2f\n", timestep * 1000, m_updateInterval,
+               delta.get_double() * 1000,
+               (timestep - (double)m_updateInterval/1000) * 1000,
+               current_error);
+
         count++;
+        error += current_error;
         m_lastTime = current;
     }
 
     int count;
+    double error;
 };
 
 int main()
@@ -68,7 +79,7 @@ int main()
     assert(false == up->backgrounded());
 
     std::cout << "Update rate (updates/sec): " << up->count / (double)3
-              << " Expected: " << 1000 / (double)INTERVAL << std::endl;
-    
+              << " Expected: " << 1000 / (double)INTERVAL
+              << " Average Error: " << up->error / up->count << std::endl;
     return 0;
 }
