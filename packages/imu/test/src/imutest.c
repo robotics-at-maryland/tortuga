@@ -11,7 +11,7 @@
 
 int main(int argc, char ** argv)
 {
-    int fd = openIMU("/dev/ttyUSB0");
+    int fd = openIMU("/dev/imu");
 
     if(fd == -1)
     {
