@@ -15,13 +15,17 @@ export PYTHONPATH=$RAM_ROOT_DIR/lib/%(py_version_str)s/site-packages:$PYTHONPATH
 export PATH=$RAM_SVN_DIR/scripts:$RAM_ROOT_DIR/bin:%(wx_bin_dir)s:$PATH
 
 # Setup the LD_LIBRARY_PATH so our executables can find libraries like opencv
-export LD_LIBRARY_PATH=$RAM_SVN_DIR/build/lib:$RAM_ROOT_DIR/lib:%(wx_lib_dir)s:$LD_LIBRARY_PATH
+RAM_LIBRARY_PATH=$RAM_SVN_DIR/build/lib:$RAM_ROOT_DIR/lib
+export LD_LIBRARY_PATH=$RAM_LIBRARY_PATh:$LD_LIBRARY_PATH
 
 # Probably not needed, but this controls the dynamically loaded .so file path
 # in Mac OS X.
-#if [ `uname` == "Darwin" ]; then
-#    export DYLD_LIBRARY_PATH=$RAM_ROOT_DIR/lib:$DYLD_LIBRARY_PATH
-#fi
+if [ `uname` == "Darwin" ]; then
+   # When on Mac we need the special wxWidgets dir because we use the wxPython
+   # Libraries, so we add it now
+   export LD_LIBRARY_PATH=%(wx_lib_dir)s:$LD_LIBRARY_PATH
+   export DYLD_LIBRARY_PATH=$RAM_LIBRARY_PATH:$DYLD_LIBRARY_PATH
+fi
 
 # Setup path for pkgconfig (so it can find our local libraries)
 export PKG_CONFIG_PATH=$RAM_ROOT_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
