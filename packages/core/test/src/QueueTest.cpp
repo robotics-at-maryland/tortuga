@@ -20,7 +20,7 @@ using namespace ram::core;
 // Our global shared object
 ThreadedQueue<char> producedChars;
 // Number of chars to produce
-const int NUM_CHARS = 10000;
+unsigned long NUM_CHARS = 10000;
 
 // Function declarations for producer and consumer
 void dataProducer();
@@ -61,7 +61,7 @@ void dataProducer()
 
         // Print out what we just made in a thread safe manner
         {
-            //boost::mutex::scoped_lock lock(io_mutex);
+            boost::mutex::scoped_lock lock(io_mutex);
             std::cout << "Produced: " << (char)out << std::endl;
         }
     }
@@ -80,7 +80,7 @@ void dataConsumer()
 
         // Print out what we just made in a thread safe manner
         {
-            //  boost::mutex::scoped_lock lock(io_mutex);
+            boost::mutex::scoped_lock lock(io_mutex);
             std::cout << "Consumed: " << got << std::endl;
         }
     }

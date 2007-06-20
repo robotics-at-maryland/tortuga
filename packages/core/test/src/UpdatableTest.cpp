@@ -19,7 +19,7 @@
 #include "core/include/Updatable.h"
 #include "core/include/TimeVal.h"
 
-static const int INTERVAL = 250; // 100 Hz
+static const int INTERVAL = 10; // 100 Hz
 
 using ram::core::TimeVal;
 
@@ -80,6 +80,7 @@ int main()
 
     std::cout << "Update rate (updates/sec): " << up->count / (double)3
               << " Expected: " << 1000 / (double)INTERVAL
-              << " Average Error: " << up->error / up->count << std::endl;
+              << " Average Error(ms): " << up->error / up->count * 1000
+              << std::endl;
     return 0;
 }

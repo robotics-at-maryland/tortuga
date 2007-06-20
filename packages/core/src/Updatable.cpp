@@ -205,7 +205,6 @@ void Updatable::loop()
                 sleep.tv_nsec = sleep_time * NSEC_PER_USEC;
             
             last = start;
-            printf("Sleeping for (ms): %f\n", sleep.tv_nsec / (double)1000000);
             nanosleep(&sleep, &act_sleep);
         }
         // Time to quit
