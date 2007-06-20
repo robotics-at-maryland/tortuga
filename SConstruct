@@ -14,9 +14,14 @@ sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
 print 'ARGS:',ARGUMENTS
 # Options either come from command line of config file
 opts = Options('configure.py')
-opts.Add('CC', 'The C compiler to use','gcc')
-opts.Add('CXX', 'The C++ compiler to use', 'g++')
-opts.Add('check', 'Runs checks on dependent libraries to ensure a proper installation', 'yes')
+opts.AddOptions(
+     ('CC', 'The C compiler to use','gcc'),
+     ('CXX', 'The C++ compiler to use', 'g++'),
+     ('check', 'Runs checks on dependent libraries to ensure a proper installation',
+      'yes'),
+     BoolOption('quiet', "Simplifies buildout and logs all commands to 'build.log')",
+                False)
+     )
 
 # Setup the build environment
 tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
@@ -32,8 +37,21 @@ env.AppendUnique(CPPPATH = [env['PACKAGE_DIR']])
 env.AppendUnique(LIBPATH = [env['LIB_DIR'],
                             os.path.join(os.environ['RAM_ROOT_DIR'],'lib')])
 
+# Setup printing
+def print_cmd_line(s, target, src, env):
+     if env['quiet']:
+          
+          sys.stdout.write("Making: %s...\n" %(' and '.join([str(x) for x in target])))
+          # Save real cmd to log file
+          open(env['CMD_LOGFILE'], 'a').write("%s\n"%s)
+     else:
+          sys.stdout.write("%s\n"%s);
+          
+env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
+env['CMD_LOGFILE'] = 'build.log'
+
 # Add debug flags
-env.AppendUnique(CCFLAGS = ['-g'])
+env.AppendUnique(CCFLAGS = ['-g', '-Wall'])
 
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
