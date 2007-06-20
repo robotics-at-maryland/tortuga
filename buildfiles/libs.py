@@ -51,7 +51,7 @@ def _get_external_lib(name):
                                                             'gdk/gdk.h']),
             'Boost' : BoostLibrary('Boost', (1,35), []),
 
-            'USB': Library('libusb', '0.1', ['usb.h'], ['usb']),
+            'USB': PkgConfigLibrary('libusb', '0.1', ['usb.h']),
 
             'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
                                           [BOOST_PYTHON_LIB], 
