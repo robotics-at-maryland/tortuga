@@ -12,23 +12,17 @@ class state_machine:
     "finished" is reached.
     '''
         
-    def __init__(self,environment):
+    def __init__(self,vehicle):
         print "Initializing the state machine"
         self.state = "initializing"             #set the start state
         self.define_state_table()               #load the state table
-        self.environment = environment
-        self.vehicle = self.environment.vehicle
+        self.vehicle = vehicle
     '''
     An accessor for the vehicle, just a shortcut
     '''
     def vehicle(self):
-        return self.environment.vehicle
-    '''
-    A simple way to get the current operating time from the clock
-    '''
-    def time(self):
-        return self.environment.timer.time() 
-    
+        return vehicle
+
     '''
     Defines the state table, where state names are mapped to operation functions.
     '''
