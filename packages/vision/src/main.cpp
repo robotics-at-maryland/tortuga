@@ -3,6 +3,7 @@
 #include <math.h>
 #include <cstdlib>
 #include <unistd.h>
+#include <stdio.h>
 #include "cv.h"
 #include "highgui.h"
 #include <string>
@@ -1023,7 +1024,7 @@ extern "C" {
 int visionStart()
 {
   goVision=1;
-  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
+//  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 	
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
@@ -1034,12 +1035,14 @@ int visionStart()
 	
 	int swapper=2;	
 	
-//	CvCapture* camCapture=cvCaptureFromCAM(0);
+	CvCapture* camCapture=cvCaptureFromCAM(0);
 	CvVideoWriter *writer = 0;
 	int isColor = 1;
 	int fps     = 25;  // or 30
 	int frameW  = 640; // 744 for firewire cameras
 	int frameH  = 480; // 480 for firewire cameras
+	FILE* video=fopen("out.avi","w");
+	fclose(video);
 	writer=cvCreateVideoWriter("out.avi",CV_FOURCC('P','I','M','1'),
                            fps,cvSize(frameW,frameH),isColor);
 	
@@ -1107,17 +1110,17 @@ int visionStart()
 	    key=cvWaitKey(25);
 	  
 		  //Start of input checking
-		if (key=='a')
-		{
-			show_gate=!show_gate;
-			cout<<key<<"Gate detection:"<<show_gate<<endl;
-		}
 		if (key=='q')
 		{
 			cout<<key<<" Goodbye."<<endl;
 			goVision=false;
 		}
 	/*
+		if (key=='a')
+		{
+			show_gate=!show_gate;
+			cout<<key<<"Gate detection:"<<show_gate<<endl;
+		}	
 		if (key=='u')
 		{
 			show_flashing=!show_flashing;
@@ -1520,7 +1523,7 @@ int visionStart()
 		cvWriteFrame(writer,starterFrame);      // add the frame to the file
 	}
 
-
+	cvReleaseCapture(&camCapture);
 	cvReleaseVideoWriter(&writer);
 	return goVision;
 }
