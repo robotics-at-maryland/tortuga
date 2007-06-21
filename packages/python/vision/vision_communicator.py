@@ -1,6 +1,5 @@
 from ctypes import *
 from threading import *
-import paths
 import time
 
 '''
@@ -82,27 +81,3 @@ class vision_comm:
         data = self.giveMeFive()
         print data
         file.write(str(data))
-         
-
-'''
-file = open("test.txt",'w')
-vc = vision_comm(paths.vision_lib)
-vc.start_vision_thread()
-time.sleep(5)
-vc.get_five(file)
-print "operating the robot..."
-while(True):
-    vs = vc.get_dummy()
-    print "Frame Num:",vs.frameNum
-    print "Width:",vs.width
-    print "Height:",vs.height
-    print "Red Light Location: (",vs.redLightx,",",vs.redLighty,")"
-    print "Distance From Vertical:",vs.distFromVertical
-    print "Angle:",vs.angle
-    print "Bin Location: (",vs.binx,",",vs.biny,")"
-    print "Light Visible:",vs.lightVisible
-    print "Pipe Visible:",vs.pipeVisible
-    print "Bin Visible",vs.binVisible
-    time.sleep(1)
-'''
-

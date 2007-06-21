@@ -3,7 +3,7 @@ The entry point for the robot operation. This module creates all the controllers
 are necessary for robot operation, and then starts the state machine.
 '''
 
-import vehicle,model,state_machine,timer,vision_communicator,paths,motor_communicator
+import vehicle,model,state_machine,timer,vision_communicator,motor_communicator
 import sensor_comm
 import time
 
@@ -11,7 +11,7 @@ import time
 clock = timer.timer()
 init_time = clock.init_time
 #starts the module that communicates with the C vision libraries
-vision_communicator = vision_communicator.vision_comm(paths.vision_lib)
+vision_communicator = vision_communicator.vision_comm()
 #start the motor controller interface, the window to the thrusters
 motor_controller = motor_communicator.communicator()
 #start the sensor_communicator interface for communicating with steves board

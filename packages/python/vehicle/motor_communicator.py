@@ -1,4 +1,4 @@
-import serial,paths,time
+import serial
 
 "C01 500 \r\n"
 "W01 28 400 \r\n"
@@ -7,9 +7,9 @@ import serial,paths,time
 file = open("matt.txt",'w')
 
 class communicator:
-    def __init__(self):
+    def __init__(self,serial_device):
         try:
-            self.ser = serial.Serial(paths.motor_communicator,19200)
+            self.ser = serial.Serial(serial_device,19200)
             self.ser.setTimeout(1)
         except:
             print "Init failed"

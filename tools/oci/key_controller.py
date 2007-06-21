@@ -1,8 +1,6 @@
 import curses
-import paths
 import math
 import curses.wrapper
-from paths import *
 
 W = 119
 S = 115
@@ -16,11 +14,13 @@ L = 106
 
 ESC = 27
 
-increment = paths.increment
-decrement = paths.decrement
+aft = 0
+fore = 1
+starboard = 2
+port = 3
 
-file = open("matt.txt",'w')
-
+increment = 0.05
+decrement = -0.05
 
 class CursesController:
     def __init__(self,vehicle):

@@ -1,15 +1,16 @@
 import time,key_controller
 
-'''
-This is the state machine, the guts of the A.I of the system. A state machine has states, which are strings.
-States map to functions. First, the start state is initialized. Then, the function that
-this state maps to is executed. At the end of this function, the change_state function is called, changing
-the state to another mapped state. This state is then executed. This cycle continues until the state
-"finished" is reached.
-'''
+
 
 
 class state_machine:
+    '''
+    This is the state machine, the guts of the A.I of the system. A state machine has states, which are strings.
+    States map to functions. First, the start state is initialized. Then, the function that
+    this state maps to is executed. At the end of this function, the change_state function is called, changing
+    the state to another mapped state. This state is then executed. This cycle continues until the state
+    "finished" is reached.
+    '''
         
     def __init__(self,environment):
         print "Initializing the state machine"
