@@ -12,6 +12,14 @@ int main() {
     return -1;
   }
 
+  printf("Camera Capture Properties:\n");
+  printf("\tWidth:  %f\n", cvGetCaptureProperty(capture,
+                                                CV_CAP_PROP_FRAME_WIDTH));
+  printf("\tHeight: %f\n", cvGetCaptureProperty(capture,
+                                                CV_CAP_PROP_FRAME_HEIGHT));
+  printf("\tFPS:    %f\n", cvGetCaptureProperty(capture,
+                                                CV_CAP_PROP_FPS));
+  
   // Create a window in which the captured images will be presented
   cvNamedWindow( "Raw Camera Image", CV_WINDOW_AUTOSIZE );
 //  cvNamedWindow( "Processed", CV_WINDOW_AUTOSIZE );

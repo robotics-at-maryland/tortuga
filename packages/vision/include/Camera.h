@@ -32,6 +32,9 @@ public:
     enum ObserverFlags {
         IMAGE_CAPTURED
     };
+
+    Camera();
+    virtual ~Camera();
     
     /** Retrieves the latest image from the camera
      *

@@ -13,6 +13,9 @@
 // STD Includes
 #include <cstddef>
 
+// Library Includes
+#include <boost/utility.hpp>
+
 // Project Includes
 #include "vision/include/Common.h"
 
@@ -24,7 +27,7 @@ namespace vision {
  * This class provides a uniform interface to images comming from a variety of
  * places.
  */
-class Image
+class Image : public boost::noncopyable
 {
 public:
     virtual ~Image() {};
@@ -37,9 +40,12 @@ public:
         PF_BGR_8, /** Blue Green Red, 8 bits*/
         PF_END,   /** Sentinal Value */
     };
+
+    /** Copies data from the given image to the src */
+    virtual void copyFrom (const Image* src) = 0;
     
     /** The raw image data */
-    virtual unsigned char* getData() = 0;
+    virtual unsigned char* getData() const = 0;
 
     /** Width of image in pixels */
     virtual size_t getWidth() const = 0;
@@ -50,6 +56,9 @@ public:
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat() = 0;
 
+    /** Determines whether or not to release the image buffer */
+    virtual bool getOwnership() const = 0;
+    
     /** Change Image data (only free if ownership = true) */
     virtual unsigned char* setData(unsigned char* data,
                                    bool ownership = true) = 0;

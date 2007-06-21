@@ -37,6 +37,7 @@ void OpenCVCamera::update(double timestep)
 {
     if (cvGrabFrame(m_camCapture))
     {
+        // printf("Update\n");
         // Create a new image and return it, image does not own the wrapped
         // IplImage and thus will not detele it!
         Image* newImage = new OpenCVImage(cvRetrieveFrame(m_camCapture),

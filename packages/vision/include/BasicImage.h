@@ -34,18 +34,23 @@ public:
 
     virtual ~BasicImage();
 
+    virtual void copyFrom(const Image* src) = 0;
+    
     /** The raw image data */
-    virtual unsigned char* getData() { return m_data; };
+    virtual unsigned char* getData() const { return m_data; };
 
     /** Width of image in pixels */
-    virtual size_t getWidth() { return m_width; };
+    virtual size_t getWidth() const { return m_width; };
 
     /** Height of image in pixels */
-    virtual size_t getHeight() { return m_height; };
+    virtual size_t getHeight() const { return m_height; };
 
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat() { return m_format; };
 
+    /** Determines whether or not to release the image buffer */
+    virtual bool getOwnership() const;
+    
     /** Change Image data.
      *
      *  @note This transfers ownership of the exisint data buffer to the caller.

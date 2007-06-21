@@ -7,6 +7,8 @@
  * File:  packages/vision/include/CvCamera.h
  */
 
+#include <cstdio>
+
 // Library Includes
 /// TODO: Limit this to just the needed headers if possible
 #include "cv.h" // OpenCV Functions
@@ -22,10 +24,12 @@ OpenCVImage::OpenCVImage(int width, int height) :
     m_img(0)
     
 {
-    assert(width >= 0 && "Image can't have a negative width");
-    assert(height >= 0 && "Image can't have a negative height");
+    assert(width >= 1 && "Image can't have a negative or 0 width");
+    assert(height >= 1 && "Image can't have a negative or 0 height");
     
     m_img = cvCreateImage(cvSize(width, height), 8, 3);
+
+    assert(m_img && "Error creating OpenCV Image");
 }
     
 OpenCVImage::OpenCVImage(IplImage* image, bool ownership) :
@@ -33,34 +37,36 @@ OpenCVImage::OpenCVImage(IplImage* image, bool ownership) :
     m_img(image)
 {
 }
-
-OpenCVImage::OpenCVImage()
+    
+void OpenCVImage::copyFrom (const Image* src)
 {
-    assert(false && "Should not be called");
-}
-
-OpenCVImage& OpenCVImage::operator= (const OpenCVImage& src)
-{
-    // Handle self assignment
-    if (this == &src)
-        return *this;
+    // Handle self copy
+    if (this == src)
+        return;
+    
+    // Create temporaty OpenCV image to smooth the copy process
+    IplImage* tmp_img = cvCreateImageHeader(cvSize(src->getWidth(),
+                                                   src->getHeight()), 8, 3);
+    cvSetData(tmp_img, src->getData(), src->getWidth() * 3);
 
     // Resize image if needed (also copy)
-    if ((getWidth() != src.getWidth()) ||
-        (getHeight() != src.getHeight()) )
+    if ((getWidth() != src->getWidth()) ||
+        (getHeight() != src->getHeight()) )
     {
-        cvResize(src.m_img, m_img);
+        //printf("OpenCV Resize Image\n");
+        cvResize(tmp_img, m_img);
     }
     else
     {
+        //printf("OpenCV Copy Image\n");
         // Copy the internal image data over
-        cvCopy(src.m_img, m_img);
+        cvCopy(tmp_img, m_img);
     }
 
-    // Copy Other members
-    m_own = src.m_own;
+    cvReleaseImageHeader(&tmp_img);
     
-    return *this;
+    // Copy Other members
+    m_own = src->getOwnership();
 }
     
 OpenCVImage::~OpenCVImage()
@@ -69,7 +75,7 @@ OpenCVImage::~OpenCVImage()
         cvReleaseImage(&m_img);
 }
 
-unsigned char* OpenCVImage::getData()
+unsigned char* OpenCVImage::getData() const
 {
     return (unsigned char*)(m_img->imageData);
 }
@@ -90,6 +96,11 @@ Image::PixelFormat OpenCVImage::getPixelFormat()
     return PF_BGR_8;
 }
 
+bool OpenCVImage::getOwnership() const
+{
+    return m_own;
+}
+    
 unsigned char* OpenCVImage::setData(unsigned char* data, bool ownership)
 {
     m_own = ownership;

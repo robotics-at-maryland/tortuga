@@ -75,6 +75,11 @@ void BasicImage::setPixelFormat(Image::PixelFormat format)
     m_format = format;
 }
 
+bool BasicImage::getOwnership() const
+{
+    return m_own;
+}
+    
 BasicImage::operator IplImage* ()
 {
     // Create an IplImage with the proper size and give it our data

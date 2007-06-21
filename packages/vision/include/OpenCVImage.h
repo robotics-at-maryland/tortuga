@@ -22,10 +22,10 @@ public:
     OpenCVImage(IplImage*, bool ownership = true);
     ~OpenCVImage();
 
-    OpenCVImage& operator= (const OpenCVImage& src);;
-  
+    virtual void copyFrom (const Image* src);
+    
     /** The raw image data */
-    virtual unsigned char* getData();
+    virtual unsigned char* getData() const;
 
     /** Width of image in pixels */
     virtual size_t getWidth() const;
@@ -36,6 +36,9 @@ public:
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat();
 
+    /** Determines whether or not to release the image buffer */
+    virtual bool getOwnership() const;
+    
     /** Change Image data */
     virtual unsigned char* setData(unsigned char* data,
                                    bool ownership = true);
@@ -51,9 +54,6 @@ public:
 private:
     bool m_own;
     IplImage* m_img;
-    
-    /** Default constructor Private so it can't be called */
-    OpenCVImage();
 };
 
 } // namespace vision

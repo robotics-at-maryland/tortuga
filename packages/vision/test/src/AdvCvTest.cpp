@@ -20,8 +20,9 @@ const static int FPS = 10;
 int main() {
     ram::vision::OpenCVCamera* camera = new ram::vision::OpenCVCamera();
     ram::vision::Image* frame = \
-        new ram::vision::OpenCVImage(camera->width(), camera->height());
-
+        //      new ram::vision::OpenCVImage(camera->width(), camera->height());
+        new ram::vision::OpenCVImage(640, 480);
+        
     // Start camera updating in background
     //camera->background(1000 / FPS); (Not tested yet)
     
@@ -34,14 +35,10 @@ int main() {
         camera->update(0);
         // Copy frame to our local image
         camera->getImage(frame);
-
+ 
         // The case is need because cvShowImage basically takes a void*,
         // otherwise you would just need (*frame)
         cvShowImage( "Raw Camera Image", (IplImage*)(*frame) );
-
-        // This is ok because the camera handles whether or not the image
-        // actually deletes the underlying buffer
-        delete frame;
         
         //If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
         //remove higher bits  using AND operator
@@ -49,7 +46,8 @@ int main() {
     }
 
   // Release the capture device housekeeping
-  delete camera;
-  cvDestroyWindow("Raw Camera Image");
-  return 0;
+    delete frame;
+    delete camera;
+    cvDestroyWindow("Raw Camera Image");
+    return 0;
 }
