@@ -3,7 +3,7 @@
  * Copyright (C) 2007 Daniel Hakim
  * All rights reserved.
  *
- * Author: Daniel Hakim
+ * Author: Daniel Hakim and Joseph Lisee
  * File:  packages/vision/include/OpenCVCamera.h
  */
 
@@ -26,7 +26,12 @@ public:
     OpenCVCamera(int camNum =0);
     ~OpenCVCamera();
 
-    virtual Image* getImage();
+    /** This grabs the new image, and then stores it for Camera::getImage */
+    virtual void update(double timestep);
+
+    virtual size_t width();
+    
+    virtual size_t height();
 
 private:
     CvCapture* m_camCapture;

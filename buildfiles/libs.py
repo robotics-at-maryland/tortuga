@@ -80,10 +80,18 @@ def _get_internal_lib(name):
     global INTERNAL_LIBS
     if INTERNAL_LIBS is None:
         INTERNAL_LIBS = {
-            'vision' : InternalLibrary('vision', ['pattern'], ['OpenCV']),
-            'pattern' : InternalLibrary('pattern', [], ['Boost']),
-            'core' : InternalLibrary('core', [], ['Boost.Thread']),
-            'carnetix' : InternalLibrary('carnetix', [], ['USB'])
+            'vision' : InternalLibrary('vision',
+                                       int_deps = ['pattern', 'core'],
+                                       ext_deps = ['OpenCV', 'Boost.Thread']),
+            
+            'pattern' : InternalLibrary('pattern', int_deps = [],
+                                        ext_deps = ['Boost']),
+            
+            'core' : InternalLibrary('core', int_deps = [],
+                                     ext_deps = ['Boost.Thread']),
+            
+            'carnetix' : InternalLibrary('carnetix', int_deps = [],
+                                         ext_deps = ['USB'])
             }
 
     if INTERNAL_LIBS.has_key(name):

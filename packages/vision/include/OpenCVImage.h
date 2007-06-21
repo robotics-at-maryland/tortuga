@@ -18,17 +18,20 @@ namespace vision {
 class OpenCVImage : public Image
 {
 public:
+    OpenCVImage(int width, int height);
     OpenCVImage(IplImage*, bool ownership = true);
     ~OpenCVImage();
 
+    OpenCVImage& operator= (const OpenCVImage& src);;
+  
     /** The raw image data */
     virtual unsigned char* getData();
 
     /** Width of image in pixels */
-    virtual size_t getWidth();
+    virtual size_t getWidth() const;
 
     /** Height of image in pixels */
-    virtual size_t getHeight();
+    virtual size_t getHeight() const;
 
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat();
@@ -37,11 +40,8 @@ public:
     virtual unsigned char* setData(unsigned char* data,
                                    bool ownership = true);
 
-    /** Set width of image in pixels */
-    virtual void setWidth(int pixels);
-
-    /** Set height of image in pixels */
-    virtual void setHeight(int pixels);
+    /** Set width and height of image in pixels */
+    virtual void setSize(int width, int height);
 
     /** Set pixel format of the image */
     virtual void setPixelFormat(Image::PixelFormat format);

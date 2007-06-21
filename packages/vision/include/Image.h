@@ -27,6 +27,8 @@ namespace vision {
 class Image
 {
 public:
+    virtual ~Image() {};
+    
     /** Describes the pixels format of our images */
     enum PixelFormat
     {
@@ -40,10 +42,10 @@ public:
     virtual unsigned char* getData() = 0;
 
     /** Width of image in pixels */
-    virtual size_t getWidth() = 0;
+    virtual size_t getWidth() const = 0;
 
     /** Height of image in pixels */
-    virtual size_t getHeight() = 0;
+    virtual size_t getHeight() const = 0;
 
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat() = 0;
@@ -52,11 +54,8 @@ public:
     virtual unsigned char* setData(unsigned char* data,
                                    bool ownership = true) = 0;
 
-    /** Set width of image in pixels */
-    virtual void setWidth(int pixels) = 0;
-
-    /** Set height of image in pixels */
-    virtual void setHeight(int pixels) = 0;
+    /** Set width and height of image in pixels */
+    virtual void setSize(int width, int height) = 0;
   
     /** Set pixel format of the image */
     virtual void setPixelFormat(Image::PixelFormat format) = 0;

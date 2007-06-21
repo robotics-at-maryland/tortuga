@@ -22,8 +22,8 @@ namespace vision {
 BasicImage::BasicImage() :
     m_data(0),
     m_own(true),
-    m_height(0),
     m_width(0),
+    m_height(0),
     m_format(Image::PF_RGB_8),
     m_iplimage(0)
 {
@@ -33,9 +33,10 @@ BasicImage::BasicImage(unsigned char* data, int width, int height,
                        bool ownership, Image::PixelFormat format) :
     m_data(data),
     m_own(ownership),
-    m_height(width),
     m_width(height),
-    m_format(Image::PF_RGB_8)
+    m_height(width),
+    m_format(Image::PF_RGB_8),
+    m_iplimage(0)
 {
 }
     

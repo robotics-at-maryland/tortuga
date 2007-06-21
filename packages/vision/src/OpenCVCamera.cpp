@@ -33,21 +33,33 @@ OpenCVCamera::~OpenCVCamera()
     cvReleaseCapture(&m_camCapture);
 }
 
-Image* OpenCVCamera::getImage()
+void OpenCVCamera::update(double timestep)
 {
     if (cvGrabFrame(m_camCapture))
     {
-        // Create a new image and return it, image does not! own the wrapped
-        // IplImage and thus will not detele it
-        return new OpenCVImage(cvRetrieveFrame(m_camCapture),
-                               false);
+        // Create a new image and return it, image does not own the wrapped
+        // IplImage and thus will not detele it!
+        Image* newImage = new OpenCVImage(cvRetrieveFrame(m_camCapture),
+                                          false);
+
+        // Move         
+        capturedImage(newImage);
     }
     else
     {
         /// TODO: handle gracefully
         assert(false && "Cam Capture Failed");
     }
-	
+}
+
+size_t OpenCVCamera::width()
+{
+    return (size_t)cvGetCaptureProperty(m_camCapture, CV_CAP_PROP_FRAME_WIDTH);
+}
+
+size_t OpenCVCamera::height()
+{
+    return (size_t)cvGetCaptureProperty(m_camCapture, CV_CAP_PROP_FRAME_HEIGHT);
 }
 
 } // namespace vision

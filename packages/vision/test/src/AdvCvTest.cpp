@@ -12,18 +12,28 @@
 
 // Project Includes
 #include "vision/include/OpenCVCamera.h"
-#include "vision/include/Image.h"
+#include "vision/include/OpenCVImage.h"
+
+const static int FPS = 10;
 
 // A Simple OpenCV based test of the Vision System
 int main() {
     ram::vision::OpenCVCamera* camera = new ram::vision::OpenCVCamera();
+    ram::vision::Image* frame = \
+        new ram::vision::OpenCVImage(camera->width(), camera->height());
 
+    // Start camera updating in background
+    //camera->background(1000 / FPS); (Not tested yet)
+    
     // Create a window in which the captured images will be presented
     cvNamedWindow( "Raw Camera Image", CV_WINDOW_AUTOSIZE );
 
     // Show the image captured from the camera in the window and repeat
     while( 1 ) {
-        ram::vision::Image* frame = camera->getImage();
+        // Manually Force camera to grab frame
+        camera->update(0);
+        // Copy frame to our local image
+        camera->getImage(frame);
 
         // The case is need because cvShowImage basically takes a void*,
         // otherwise you would just need (*frame)

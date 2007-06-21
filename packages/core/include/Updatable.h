@@ -31,6 +31,8 @@ public:
     
     /** Updates the Object.
      *
+     *  This is called in the background once the object has been backgrounded.
+     *
      *  @param timestep  The time since the last update.
      */
     virtual void update(double timestep) = 0;
@@ -40,22 +42,28 @@ public:
      * This runs a background thread and calls update in a loop at the given
      * interval.
      *
-     * @interval   The time between calls in milliseconds.
+     * @interval   The time between calls in milliseconds, a negative number
+     *             means the object runs at its own pace.  This can be full out
+     *             or waiting on incoming events.
      */
-    void background(int interval);
+    virtual void background(int interval = -1);
 
     /** Stops background update.
      */
-    void unbackground();
+    virtual void unbackground();
 
     /** Returns true if the thread is running in the background false if not.
      */
-    bool backgrounded();
+    virtual bool backgrounded();
 
-private:
+protected:
     /** The function which runs the update function in a loop */
-    void loop();
+    virtual void loop();
 
+    /** Gets copies of the internal state */
+    void _getState(bool& backgrouned, int& interval);
+    
+private:
     /** Guard the interval and background */
     boost::mutex m_stateMutex;
     bool m_backgrounded;

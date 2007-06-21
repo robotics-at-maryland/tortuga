@@ -15,18 +15,16 @@ envl = env.Clone()
 
 # Sources
 sources = ['src/BasicImage.cpp',
+           'src/Camera.cpp',
            'src/OpenCVCamera.cpp',
            'src/OpenCVImage.cpp',
            'src/VisionCommunication.cpp',
            'src/ProcessList.cpp',
            'src/main.cpp']
 
-# Libraries
-libs.add_external(envl, 'OpenCV')
-
 # Build Library (will be called 'libram_vision.so')
+# All build settings for the library are stored in buildfiles/libs.py
 helpers.SharedLibrary(envl, 'vision',  source = sources)
-
 
 # Testing
 envt = env.Clone()
