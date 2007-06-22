@@ -4,22 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/core/include/Updatable.h
+ * File:  packages/core/include/IUpdatable.h
  */
 
-#ifndef RAM_CORE_UPDATABLE_06_11_2006
-#define RAM_CORE_UPDATABLE_06_11_2006
-
-// Library Includes
-#include <boost/utility.hpp>
-#include <boost/thread/mutex.hpp>
-
-// Forward declare boost::thread
-namespace boost { class thread; }
-
-// Project Includes
-#include "core/include/IUpdatable.h"
-#include "core/include/CountDownLatch.h"
+#ifndef RAM_CORE_IUPDATABLE_06_22_2006
+#define RAM_CORE_IUPDATABLE_06_22_2006
 
 namespace ram {
 namespace core {
@@ -29,11 +18,10 @@ namespace core {
  *  All you have to do to use it is subclass and implement the update() method,
  *  will be called the given interval in a background thread.
  */
-class Updatable : public IUpdatable, boost::noncopyable
+class IUpdatable
 {
 public:
-    Updatable();
-    virtual ~Updatable();
+    virtual ~IUpdatable() {};
 
     
     /** Updates the Object.
@@ -54,46 +42,21 @@ public:
      *             means the object runs at its own pace.  This can be full out
      *             or waiting on incoming events.
      */
-    virtual void background(int interval = -1);
+    virtual void background(int interval = -1) = 0;
 
     /** Stops background update.
      *
      * @join  If true the function won't return until the background thread has
      *        stopped and been joined.
      */
-    virtual void unbackground(bool join = false);
+    virtual void unbackground(bool join = false) = 0;
 
     /** Returns true if the thread is running in the background false if not.
      */
-    virtual bool backgrounded();
-
-protected:
-    /** Gets copies of the internal state */
-    void getState(bool& backgrounded, int& interval);
-    
-    /** The function which runs the update function in a loop */
-    virtual void loop();
-    
-private:
-    /** Joins and delete's the background thread */
-    void cleanUpBackgroundThread();
-    
-    /** The current backgrond thread */
-    boost::thread* m_backgroundThread;
-    
-    /** Guard the interval and background */
-    boost::mutex m_stateMutex;
-
-    /** Whether or not the thread is running in the background */
-    bool m_backgrounded;
-
-    /** Number of milliseconds between updates */
-    int m_interval;
-
-    CountDownLatch m_threadStopped;
+    virtual bool backgrounded() = 0;
 };
 
 } // namespace core
 } // namespace ram
 
-#endif // RAM_CORE_UPDATABLE_06_11_2006
+#endif // RAM_CORE_IUPDATABLE_06_22_2006
