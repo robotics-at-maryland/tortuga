@@ -57,11 +57,11 @@ public:
     virtual bool backgrounded();
 
 protected:
+    /** Gets copies of the internal state */
+    void getState(bool& backgrounded, int& interval);
+    
     /** The function which runs the update function in a loop */
     virtual void loop();
-
-    /** Gets copies of the internal state */
-    void _getState(bool& backgrouned, int& interval);
     
 private:
     /** Guard the interval and background */

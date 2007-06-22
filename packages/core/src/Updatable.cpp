@@ -147,6 +147,13 @@ bool Updatable::backgrounded()
     return m_backgrounded;
 }
 
+void Updatable::getState(bool& backgrounded, int& interval)
+{
+    boost::mutex::scoped_lock lock(m_stateMutex);
+    backgrounded = m_backgrounded;
+    interval = m_interval;
+}
+    
 void Updatable::loop()
 {
     struct timeval last;
@@ -155,7 +162,6 @@ void Updatable::loop()
     Usec offset;
     struct timespec sleep = {0, 0};
     struct timespec act_sleep = {0, 0};
-
 
     // This call determines the time it takes for a gettimeofday call
     // This makes the calls more accurate
@@ -174,12 +180,7 @@ void Updatable::loop()
         // Grab our running state
         bool in_background = false;
         int interval = 10;
-
-        {
-            boost::mutex::scoped_lock lock(m_stateMutex);
-            in_background = m_backgrounded;
-            interval = m_interval;
-        }
+        getState(in_background, interval);
         
         if (in_background)
         {
@@ -188,24 +189,30 @@ void Updatable::loop()
             if (0 != last.tv_usec)
                 diff = (timeval_diff(&start, &last) + offset);
 
+            // Record time for next run 
+            last = start;
+            
             // Call our update function
             update(diff / (double)1000000);
-            
-            // Determine next time to awake
-            struct timeval next = start;
-            timeval_add(&next, (Usec)interval * USEC_PER_MILLISEC);
-            
-            // Sleep for the rest for the remainder of our time
-            sleep_time = -age(&next);
 
-            // Handle overrun
-            if (sleep_time < 0)
-                sleep.tv_nsec = interval * NSEC_PER_MILLISEC;
-            else
-                sleep.tv_nsec = sleep_time * NSEC_PER_USEC;
+            // Only sleep if we aren't running all out
+            if (interval > 0)
+            {
+                // Determine next time to awake
+                struct timeval next = start;
+                timeval_add(&next, (Usec)interval * USEC_PER_MILLISEC);
             
-            last = start;
-            nanosleep(&sleep, &act_sleep);
+                // Sleep for the rest for the remainder of our time
+                sleep_time = -age(&next);
+
+                // Handle overrun
+                if (sleep_time < 0)
+                    sleep.tv_nsec = interval * NSEC_PER_MILLISEC;
+                else
+                    sleep.tv_nsec = sleep_time * NSEC_PER_USEC;
+            
+                nanosleep(&sleep, &act_sleep);
+            }
         }
         // Time to quit
         else

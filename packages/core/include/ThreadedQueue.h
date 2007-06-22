@@ -48,18 +48,24 @@ public:
     }
 
     /** Waits until new data is in the queue or the timer runs out */
-    DataT popTimedWait(const boost::xtime &xt)
+    bool popTimedWait(const boost::xtime &xt, DataA& data)
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
-
+        bool success = true;
+        
         if(m_queue.empty())
         {
-            m_itemAvailable.timed_wait(lock, xt);
+            success = m_itemAvailable.timed_wait(lock, xt);
         }
 
-        DataT temp(m_queue.front());
-        m_queue.pop();
-        return temp;
+        if (success)
+        {
+            data = m_queue.front();
+            m_queue.pop();
+            return true;
+        }
+        
+        return false;
     }
 
 private:

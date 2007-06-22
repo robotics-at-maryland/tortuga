@@ -80,7 +80,7 @@ int main()
 
     std::cout << "Update rate (updates/sec): " << up->count / (double)3
               << " Expected: " << 1000 / (double)INTERVAL
-              << " Average Error(ms): " << up->error / up->count * 1000
+              << " Average Error(ms): " << up->error / up->count
               << std::endl;
     return 0;
 }
