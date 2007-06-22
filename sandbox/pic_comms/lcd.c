@@ -396,9 +396,9 @@ void lcdPulse()
 {
     long i;
     LAT_E = 1;
-    for(i=0; i<2500; i++);
+    for(i=0; i<1200; i++);
     LAT_E = 0;
-    for(i=0; i<2500; i++);
+    for(i=0; i<1200; i++);
 }
 
 
