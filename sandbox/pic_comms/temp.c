@@ -639,7 +639,7 @@ void main()
 
         /* Need a way of detecting failures here. A timer module would do. */
 
-        byte rx = readTemp(0x9E);
+        byte rx = readTemp(0x90);
 
         /* Read error */
         if(rx == 255)
