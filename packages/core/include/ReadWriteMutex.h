@@ -74,8 +74,8 @@ private: // internal locking functions
 
     /**
      * @warning  This function is currently not exception-safe:
-     *               if the wait calls throw, m_pendingWriter can be left in an
-     *               inconsistent state
+     *           if the wait calls throw, m_pendingWriter can be left in an
+     *           inconsistent state
      */
     void acquireWriteLock();
     

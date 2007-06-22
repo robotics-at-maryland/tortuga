@@ -24,17 +24,18 @@ int main() {
         new ram::vision::OpenCVImage(640, 480);
         
     // Start camera updating in background
-    //camera->background(1000 / FPS); (Not tested yet)
+    camera->background(); // Run as fast as the camera provides images
     
     // Create a window in which the captured images will be presented
     cvNamedWindow( "Raw Camera Image", CV_WINDOW_AUTOSIZE );
 
     // Show the image captured from the camera in the window and repeat
     while( 1 ) {
-        // Manually Force camera to grab frame
-        camera->update(0);
-        // Copy frame to our local image
-        camera->getImage(frame);
+        // Waits for the background thread to grab and image, then gets the
+        // image
+        camera->waitForImage(frame);
+        //camera->update(0);
+        //camera->getImage(frame);
  
         // The case is need because cvShowImage basically takes a void*,
         // otherwise you would just need (*frame)
@@ -45,7 +46,7 @@ int main() {
         if( (cvWaitKey(10) & 255) == 27 ) break;
     }
 
-  // Release the capture device housekeeping
+    // Release the capture device housekeeping
     delete frame;
     delete camera;
     cvDestroyWindow("Raw Camera Image");

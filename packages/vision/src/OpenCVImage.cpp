@@ -53,12 +53,10 @@ void OpenCVImage::copyFrom (const Image* src)
     if ((getWidth() != src->getWidth()) ||
         (getHeight() != src->getHeight()) )
     {
-        //printf("OpenCV Resize Image\n");
         cvResize(tmp_img, m_img);
     }
     else
     {
-        //printf("OpenCV Copy Image\n");
         // Copy the internal image data over
         cvCopy(tmp_img, m_img);
     }

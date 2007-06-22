@@ -48,7 +48,7 @@ public:
     }
 
     /** Waits until new data is in the queue or the timer runs out */
-    bool popTimedWait(const boost::xtime &xt, DataA& data)
+    bool popTimedWait(const boost::xtime &xt, DataT& data)
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
         bool success = true;

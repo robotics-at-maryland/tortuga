@@ -30,6 +30,8 @@ OpenCVCamera::OpenCVCamera(int camNum)
 
 OpenCVCamera::~OpenCVCamera()
 {
+    // Have to stop background capture before we release the capture!
+    cleanup();
     cvReleaseCapture(&m_camCapture);
 }
 
@@ -37,13 +39,12 @@ void OpenCVCamera::update(double timestep)
 {
     if (cvGrabFrame(m_camCapture))
     {
-        // printf("Update\n");
         // Create a new image and return it, image does not own the wrapped
         // IplImage and thus will not detele it!
         Image* newImage = new OpenCVImage(cvRetrieveFrame(m_camCapture),
                                           false);
 
-        // Move         
+        // Copy image to public side of the interface        
         capturedImage(newImage);
     }
     else

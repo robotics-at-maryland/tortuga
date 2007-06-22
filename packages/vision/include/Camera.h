@@ -14,6 +14,7 @@
 #include "pattern/include/Subject.h"
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/CountDownLatch.h"
 
 #include "vision/include/Common.h"
 
@@ -36,13 +37,23 @@ public:
     Camera();
     virtual ~Camera();
     
-    /** Retrieves the latest image from the camera
+    /** Retrieves the latest image from the camera.
      *
      *  @current  The current image is copied into the given image
      *            and that pointer is returned.
      */
-    virtual void getImage(Image* current);
+    void getImage(Image* current);
 
+    /** Retrieves the next image from the camera.
+     *
+     *  This will block until the next image is grabed from the camera then call
+     *  getImage.
+     *
+     *  @current  The current image is copied into the given image
+     *            and that pointer is returned.
+     */
+    void waitForImage(Image* current);
+    
     /** Grabs an image from the camera and saves it to the internal buffer*/
     virtual void update(double timestep) = 0;
 
@@ -56,6 +67,14 @@ public:
     //virtual size_t fps() = 0;
     
 protected:
+    /** This must be called in the destructor of all subclasses
+     *
+     * @warning  This has to be called <b>BEFORE</b> releasing any object
+     *           related to image capture.  If this is not done the background
+     *           capture thread will still try and grab images.
+     */
+    void cleanup();
+    
     /** Notifies all observers that an image has been captured
      *
      * @param newImage  This image is copied to the public image in a thread
@@ -67,8 +86,14 @@ private:
     /** Protects access to the public image */
     core::ReadWriteMutex m_imageMutex;
 
+    /** Latch to release threads waiting on a new image */
+    core::CountDownLatch m_imageLatch;
+    
     /** Image returned from get image*/
     Image* m_publicImage;
+
+    /** Recoreds whether or not the cleanup */
+    bool m_cleanedUp;
 };
 
 } // namespace vision

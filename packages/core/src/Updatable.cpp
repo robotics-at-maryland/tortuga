@@ -101,9 +101,17 @@ struct timeval *elapse_time(struct timeval *tv, unsigned msec, unsigned jitter) 
 
     
 Updatable::Updatable() :
+    m_backgroundThread(0),
     m_backgrounded(0),
-    m_interval(100)
+    m_interval(100),
+    m_threadStopped(1)
 {
+}
+
+Updatable::~Updatable()
+{
+    // Join and delete background thread if its still running
+    cleanUpBackgroundThread();
 }
     
 void Updatable::background(int interval)
@@ -127,18 +135,33 @@ void Updatable::background(int interval)
 
     if (startThread)
     {
+        // Join and delete background thread if it exists, if it does exist
+        // wait for it to stop before starting a new one
+        cleanUpBackgroundThread();
+
+        // Reset the latch count
+        if (0 == m_threadStopped.getCount())
+            m_threadStopped.resetCount(1);
+        
         // Create out background thread
-        boost::thread thread(boost::bind(&Updatable::loop, this));
+        m_backgroundThread = new boost::thread(boost::bind(&Updatable::loop,
+                                                           this));
     }
 }
 
-void Updatable::unbackground()
+void Updatable::unbackground(bool join)
 {
-    boost::mutex::scoped_lock lock(m_stateMutex);
+    {
+        boost::mutex::scoped_lock lock(m_stateMutex);
 
-    // The run loop check this value to determine whether it should keep
-    // running, next loop through it will stop.
-    m_backgrounded = false;
+        // The run loop check this value to determine whether it should keep
+        // running, next loop through it will stop.
+        m_backgrounded = false;
+    }
+
+    // Wait for background thread to stop runnig and the delete it
+    if (join)
+        cleanUpBackgroundThread();
 }
 
 bool Updatable::backgrounded()
@@ -220,7 +243,26 @@ void Updatable::loop()
             break;
         }
     }
+
+    // Release an threads waiting on
+    m_threadStopped.countDown();
+}
+
+void Updatable::cleanUpBackgroundThread()
+{
+    if (0 != m_backgroundThread)
+    {
+        // Wait for the background thread to stop
+        if (m_threadStopped.getCount() != 0)
+        {
+            m_threadStopped.await();
+            m_backgroundThread->join();
+        }
+
+        delete m_backgroundThread;
+        m_backgroundThread = 0;
+    }
 }
     
-} // namespace core
+} // namespace core     
 } // namespace ram

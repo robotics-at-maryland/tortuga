@@ -16,6 +16,7 @@ namespace ram {
 namespace vision {
 
 Camera::Camera() :
+    m_imageLatch(1),
     m_publicImage(0)
 {
     /// TODO: Make me a basic image, and check that copying work properly
@@ -24,18 +25,34 @@ Camera::Camera() :
 
 Camera::~Camera()
 {
-    delete m_publicImage;
+    assert(m_cleanedUp && "You must call Camera::cleanup before you destruct"
+                          "anything");
 }
-    
+
 void Camera::getImage(Image* current)
 {
     assert(current && "Can't copy into a null image");
     
     core::ReadWriteMutex::ScopedReadLock lock(m_imageMutex);
 
-    // printf("Copying public image to given image\n");
     // Copy over the image (uses copy assignment operator)
     current->copyFrom(m_publicImage);
+}
+
+void Camera::waitForImage(Image* current)
+{
+    // Wait for the next capturedImage call
+    m_imageLatch.await();
+
+    // Grab the image
+    getImage(current);
+}
+
+void Camera::cleanup()
+{
+    unbackground(true);
+    delete m_publicImage;
+    m_cleanedUp = true;
 }
     
 void Camera::capturedImage(Image* newImage)
@@ -46,7 +63,6 @@ void Camera::capturedImage(Image* newImage)
         core::ReadWriteMutex::ScopedWriteLock lock(m_imageMutex);
 
         // Copy over the image data to the public image
-        // printf("Copying to public image\n");
         m_publicImage->copyFrom(newImage);
     }
     
@@ -55,6 +71,11 @@ void Camera::capturedImage(Image* newImage)
 
     // Tell all the observers about it
     notifyObservers(0, IMAGE_CAPTURED);
+
+    // Now release all waiting threads
+    m_imageLatch.countDown();
+    // Reset count to one
+    m_imageLatch.resetCount(1);
 }
     
 } // namespace vision

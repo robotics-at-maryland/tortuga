@@ -14,6 +14,12 @@
 #include <boost/utility.hpp>
 #include <boost/thread/mutex.hpp>
 
+// Forward declare boost::thread
+namespace boost { class thread; }
+
+// Project Includes
+#include "core/include/CountDownLatch.h"
+
 namespace ram {
 namespace core {
 
@@ -26,7 +32,7 @@ class Updatable : boost::noncopyable
 {
 public:
     Updatable();
-    virtual ~Updatable() {};
+    virtual ~Updatable();
 
     
     /** Updates the Object.
@@ -40,6 +46,7 @@ public:
     /**  Starts automatic background update.
      *
      * This runs a background thread and calls update in a loop at the given
+     * interval. If the thread is already running it will just change its update
      * interval.
      *
      * @interval   The time between calls in milliseconds, a negative number
@@ -49,8 +56,11 @@ public:
     virtual void background(int interval = -1);
 
     /** Stops background update.
+     *
+     * @join  If true the function won't return until the background thread has
+     *        stopped and been joined.
      */
-    virtual void unbackground();
+    virtual void unbackground(bool join = false);
 
     /** Returns true if the thread is running in the background false if not.
      */
@@ -64,10 +74,22 @@ protected:
     virtual void loop();
     
 private:
+    /** Joins and delete's the background thread */
+    void cleanUpBackgroundThread();
+    
+    /** The current backgrond thread */
+    boost::thread* m_backgroundThread;
+    
     /** Guard the interval and background */
     boost::mutex m_stateMutex;
+
+    /** Whether or not the thread is running in the background */
     bool m_backgrounded;
+
+    /** Number of milliseconds between updates */
     int m_interval;
+
+    CountDownLatch m_threadStopped;
 };
 
 } // namespace core
