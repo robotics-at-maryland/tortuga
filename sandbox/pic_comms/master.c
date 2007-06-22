@@ -1,7 +1,7 @@
 #include <p30fxxxx.h>
 #include <stdio.h>
 
-_FOSC( CSW_FSCM_OFF & EC_PLL8 );
+_FOSC( CSW_FSCM_OFF & EC_PLL4 );
 _FWDT ( WDT_OFF );
 
 
@@ -254,7 +254,8 @@ int busWriteByte(byte data, byte req)
 void initUart()
 {
     U1MODE = 0x0000;
-    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600 */
+//    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
+    U1BRG = 7;  /* 7 for 115200 at 15 MIPS */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit

@@ -8,7 +8,7 @@
 #include <string.h>
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & EC_PLL8 );
+_FOSC( CSW_FSCM_OFF & EC_PLL4 );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
