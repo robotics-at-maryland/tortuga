@@ -19,13 +19,6 @@
 using namespace std;
 using namespace ram::vision;
 
-
-//Light constants
-#define MINFRAMESON 3
-#define MINFRAMESOFF 3
-#define MAXFRAMESON 7
-#define MAXFRAMESOFF 7
-
 extern "C"{
   int testRecord();
 }
@@ -1061,8 +1054,8 @@ extern "C" {
 int visionStart()
 {
   goVision=1;
-  //CvCapture* camCapture=cvCaptureFromFile("starcraft.avi");
-	
+  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
+
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
 	
@@ -1072,7 +1065,7 @@ int visionStart()
 	
 	int swapper=2;	
 	
-	CvCapture* camCapture=cvCaptureFromCAM(0);
+	//CvCapture* camCapture=cvCaptureFromCAM(0);
 	CvVideoWriter *writer = 0;
 	int isColor = 1;
 	int fps     = 30;  // or 30

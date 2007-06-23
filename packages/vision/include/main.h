@@ -3,6 +3,12 @@
 
 #include "ProcessList.h"
 
+//Light constants
+#define MINFRAMESON 3
+#define MINFRAMESOFF 3
+#define MAXFRAMESON 7
+#define MAXFRAMESOFF 7
+
 int distance_from_line(int avgxs[], IplImage* img);
 int angle_from_center(int argxs[], IplImage* img);
 double hough(IplImage* img);
