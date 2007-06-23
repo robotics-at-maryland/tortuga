@@ -13,6 +13,8 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	blinks=0;
 	spooky=0;
 	startCounting=false;
+	lightCenter.x=0;
+	lightCenter.y=0;
 }
 
 RedLightDetector::~RedLightDetector()
@@ -24,6 +26,7 @@ void RedLightDetector::update()
 {
 	cam->waitForImage(frame);
 	IplImage* image =(IplImage*)(*frame);
+	IplImage* flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
 
 	if (lightFramesOff>20)
 	{
@@ -60,8 +63,8 @@ void RedLightDetector::update()
 	{
 
 	}
-	cvCopyImage(frame, flashFrame);
-	CvPoint p=find_flash(flashFrame, show_flashing);
+	cvCopyImage(image, flashFrame);
+	CvPoint p=find_flash(flashFrame, true);
 	if (p.x!=0 && p.y!=0)
 	{
 		if (lightCenter.x==0 && lightCenter.y==0)

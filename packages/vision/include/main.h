@@ -24,7 +24,8 @@ void correct(IplImage* img);
 void filter(IplImage* img, bool red_flag, bool green_flag, bool blue_flag);
 void to_ratios(IplImage* img);
 int red_blue(IplImage* img, float ratio);
-int white_detect(IplImage* percents, IplImage* base,int* binx, int* biny);
+int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny);
+int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 void run(ram::vision::ProcessList* pl);
 void walk(IplImage* img, ram::vision::ProcessList* pl);
 #endif

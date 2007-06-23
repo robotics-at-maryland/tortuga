@@ -30,19 +30,24 @@
 namespace ram { namespace vision {
 	class RedLightDetector
 	{
-		bool found;
+		public:
+			bool found;
+			RedLightDetector(OpenCVCamera*);
+			~RedLightDetector();
+			void update();
+
+		private:
 		int lightFramesOff;
 		int lightFramesOn;
 		int blinks;
 		int spooky;
 		bool startCounting;
-		RedLightDetector(OpenCVCamera*);
-		~RedLightDetector();
-		update();
+		CvPoint lightCenter;
+		
 	
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
-	}
+	};
 	
 }}//ram::vision
 

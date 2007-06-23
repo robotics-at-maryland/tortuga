@@ -7,7 +7,7 @@
  *
  */
 
-#include "OrangePipeDetector.h"
+#include "vision/include/OrangePipeDetector.h"
 
 using namespace std;
 using namespace ram::vision;
@@ -33,7 +33,7 @@ void OrangePipeDetector::update()
 	//arbitrary blob until we know its of a large size and the right shade of orange.  
 	//If the pipeline is found, the angle found by hough is reported.  
 	
-	//Mask orange takes frame, then alter image, then strictness
+	//Mask orange takes frame, then alter image, then strictness (true=more strict, false=more lenient)
 	cam->waitForImage(frame);
 	IplImage* image =(IplImage*)(*frame);
 	if (!found)
@@ -50,7 +50,7 @@ void OrangePipeDetector::update()
 	}
 	else if (found)
 	{
-		int orange_count=mask_orange(image,1,false);
+		int orange_count=mask_orange(image,true,false);
 		//int left_or_right=guess_line(image);//Left is negative, right is positive, magnitude is num pixels from center line
 		
 		if (orange_count<250)
@@ -58,5 +58,5 @@ void OrangePipeDetector::update()
 	}
 	
 	if (found)
-		angle=hough(houghFrame);
+		angle=hough(image);
 }

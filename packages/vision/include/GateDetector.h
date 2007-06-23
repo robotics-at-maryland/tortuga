@@ -30,16 +30,19 @@
 namespace ram { namespace vision {
 	class GateDetector
 	{
-		bool found;
+		public:
+			bool found;
+			GateDetector(ram::vision::OpenCVCamera*);
+			~GateDetector();
+			void update();
+
+		private:
 		int gateX;
 		int gateY;
-		GateDetector(ram::vision::OpenCVCamera*);
-		~GateDetector();
-		void update();
 	
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
-	}
+	};
 	
 }}//ram::vision
 

@@ -28,7 +28,7 @@ void BinDetector::update()
 	IplImage* binFrame =cvCreateImage(cvGetSize(frame),8,3);
 	cvCopyImage(image,binFrame);
 	
-	toRatios(image)
+	to_ratios(image);
 	binX=-1;
 	binY=-1;
 	binCount=white_detect(image,binFrame,&binX,&binY);

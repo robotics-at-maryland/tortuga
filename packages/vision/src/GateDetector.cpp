@@ -24,6 +24,6 @@ void GateDetector::update()
 	IplImage* gateFrame =cvCreateImage(cvGetSize(frame),8,3);
 	cvCopyImage(image,gateFrame);
 
-	toRatios(image);
+	to_ratios(image);
 	found=gateDetect(image,gateFrame,&gateX,&gateY);
 }

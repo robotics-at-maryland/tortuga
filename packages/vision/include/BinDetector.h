@@ -30,17 +30,20 @@
 namespace ram { namespace vision {
 	class BinDetector
 	{
-		int found;
+		public:
+			bool found;
+			BinDetector(ram::vision::OpenCVCamera*);
+			~BinDetector();
+			void update();
+
+		private:
 		int binX;
 		int binY;
 		int binCount;
-		BinDetector(ram::vision::OpenCVCamera*);
-		~BinDetector();
-		void update();
 	
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
-	}
+	};
 	
 }}//ram::vision
 

@@ -30,15 +30,19 @@
 namespace ram { namespace vision {
 	class OrangePipeDetector
 	{
+		public:
+			bool found;
+			OrangePipeDetector(OpenCVCamera*);
+			~OrangePipeDetector();
+			void update();
+
+		private:
+
 		double angle;
-		int found;
-		OrangePipeDetector(OpenCVCamera*);
-		~OrangePipeDetector();
-		update();
 	
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
-	}
+	};
 	
 }}//ram::vision
 
