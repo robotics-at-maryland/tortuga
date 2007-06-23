@@ -63,13 +63,13 @@ int syncBoard(int fd)
     {
         unsigned char b[1];
         b[0] = 0xFF;
-        writeData(fd, &b, 1);
+        writeData(fd, b, 1);
         miniSleep();
 
         b[0]=0;
 
         if(hasData(fd))
-            readData(fd, &b, 1);
+            readData(fd, b, 1);
 
         miniSleep();
 
@@ -81,11 +81,148 @@ int syncBoard(int fd)
 }
 
 
+
 int pingBoard(int fd)
 {
-
+    unsigned char buf[2]={HOST_CMD_PING, HOST_CMD_PING};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] == 0xBC)
+        return SB_OK;
+    return SB_HWFAIL;
 }
 
+
+
+
+int checkBoard(int fd)
+{
+    unsigned char buf[2]={HOST_CMD_CHECK, HOST_CMD_CHECK};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    return SB_ERROR;
+}
+
+
+
+
+int readDepth(int fd)
+{
+    unsigned char buf[5]={HOST_CMD_DEPTH, HOST_CMD_DEPTH};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] != 0x03)
+        return SB_ERROR;
+
+    readData(fd, buf, 3);
+
+    if( ((0x03 + buf[0] + buf[1]) & 0xFF) == buf[2])
+        return buf[0]<<8 | buf[1];
+
+    return SB_ERROR;
+}
+
+
+
+int readStatus(int fd)
+{
+    unsigned char buf[5]={HOST_CMD_STATUS, HOST_CMD_STATUS};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] != 0x05)
+        return SB_ERROR;
+
+    readData(fd, buf, 2);
+
+    if( ((0x05 + buf[0]) & 0xFF) == buf[1])
+        return buf[0];
+
+    return SB_ERROR;
+}
+
+
+
+int hardKill(int fd)
+{
+    unsigned char buf[6]={0x06, 0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
+    writeData(fd, buf, 6);
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+
+
+int dropMarker(int fd, int markerNum)
+{
+    if(markerNum != 0 && markerNum != 1)
+        return -255;
+
+    unsigned char buf[3]={0x07, 0x00, 0x00};
+
+    buf[1] = markerNum;
+    buf[2] = markerNum + 0x07;
+
+
+    writeData(fd, buf, 3);
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+
+int lcdBacklight(int fd, int state)
+{
+    if(state != LCD_BL_OFF && state != LCD_BL_ON && state != LCD_BL_FLASH)
+        return -255;
+
+    unsigned char buf[3]={0x08, 0x00, 0x00};
+
+    buf[1] = state;
+    buf[2] = state + 0x08;
+
+
+    writeData(fd, buf, 3);
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
 
 
 /* Some code from cutecom, which in turn may have come from minicom */

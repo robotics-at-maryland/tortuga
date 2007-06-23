@@ -14,9 +14,19 @@ int main(int argc, char ** argv)
 
     write(fd, &buf, 2);
 
-    printf("\nSyncBoard says: %d\n", syncBoard(fd));
+    printf("\nSyncBoard says: %d", syncBoard(fd));
+    printf("\nPing says: %d", pingBoard(fd));
+    printf("\nCheck says: %d", checkBoard(fd));
+    printf("\nDepth says: %d", readDepth(fd));
+    printf("\nStatus says: %d", readStatus(fd));
+    printf("\nHard Kill says: %d", hardKill(fd));
 
+    printf("\nDrop Marker 0: %d", dropMarker(fd, 0));
+    printf("\nDrop Marker 1: %d", dropMarker(fd, 1));
+
+
+
+    printf("\n");
     return 0;
-
 }
 
