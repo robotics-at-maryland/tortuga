@@ -4,12 +4,12 @@ import platform
 COMMON_DIRS = set([
     os.path.join('packages', 'vision'),
     os.path.join('packages', 'pattern'),
-    os.path.join('packages', 'core'),
-    os.path.join('wrappers', 'pattern')])
+    os.path.join('packages', 'core')])#,
+#    os.path.join('wrappers', 'pattern')])
 
 LINUX_DIRS = set([
-    os.path.join('packages','extensions', 'wxogre'),
-    os.path.join('packages', 'carnetix'),])
+#    os.path.join('packages','extensions', 'wxogre'),
+    os.path.join('packages', 'carnetix')])
 
 MAC_DIRS = set([])
 
