@@ -154,7 +154,7 @@ void processData(byte data)
 
                 case BUS_CMD_LCD_LIGHT_FLASH:
                 {
-                    PR1 = 65535;            /* Period */
+                    PR1 = 32000;            /* Period */
                     TMR1 = 0;               /* Reset timer */
                     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
                     IEC0bits.T1IE = 1;      /* Enable interrupts */
@@ -471,7 +471,7 @@ void main()
     initBus();
 
     initLCD();
-    byte data1[] = "System Reset    ";
+    byte data1[] = "Powering Up...  ";
 
     for(i=0; i<16; i++)
     {
