@@ -27,6 +27,42 @@ using namespace ram::vision;
 #define MAXFRAMESOFF 7
 
 extern "C"{
+  int testRecord();
+}
+
+int testRecord()
+{
+
+  CvCapture* camCapture=cvCaptureFromFile("starcraft.avi");
+  
+  CvVideoWriter *writer = 0;
+  int isColor = 1;
+  int fps     = 10;  // or 30
+  int frameW  = 1024; // 744 for firewire cameras
+  int frameH  = 436; // 480 for firewire cameras
+  //  FILE* video=fopen("out.avi","w");
+  //  fclose(video);
+  writer=cvCreateVideoWriter("out.avi",CV_FOURCC('D','I','V','X'),
+                             fps,cvSize(frameW,frameH),1);
+  IplImage* frame=NULL;
+			     
+  char key=' ';
+  int count=0;
+  while (key!='q' && count<500)
+    {
+      key=cvWaitKey(25);
+      int okay=cvGrabFrame(camCapture);
+      frame=cvRetrieveFrame(camCapture);
+      cvWriteFrame(writer,frame);
+      printf("Frame %d\n",++count);
+    }
+  
+  cvReleaseVideoWriter(&writer);
+
+  return 7;
+}
+
+extern "C"{
   int giveMeFive();
 }
 int giveMeFive(){
@@ -115,11 +151,10 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 			count+=3;
 		}
 	}
-	whitex/=total;
-	whitey/=total;
-		
 	if (total>500)
-	{
+	  {
+	        whitex/=total;
+	        whitey/=total;       
 		int indexR;
 		int indexL;
 		*gatex=whitex;
@@ -192,6 +227,8 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 		run(pl);
 		cvWaitKey(0);
 		delete pl;
+
+		return 0;
 	}
 	
 	//subtract two images, display the result
@@ -1024,7 +1061,7 @@ extern "C" {
 int visionStart()
 {
   goVision=1;
-//  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
+  //CvCapture* camCapture=cvCaptureFromFile("starcraft.avi");
 	
 	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
@@ -1038,14 +1075,14 @@ int visionStart()
 	CvCapture* camCapture=cvCaptureFromCAM(0);
 	CvVideoWriter *writer = 0;
 	int isColor = 1;
-	int fps     = 25;  // or 30
+	int fps     = 30;  // or 30
 	int frameW  = 640; // 744 for firewire cameras
 	int frameH  = 480; // 480 for firewire cameras
 	FILE* video=fopen("out.avi","w");
-	fclose(video);
-	writer=cvCreateVideoWriter("out.avi",CV_FOURCC('P','I','M','1'),
-                           fps,cvSize(frameW,frameH),isColor);
-	
+	fclose(video),
+	writer=cvCreateVideoWriter("out.avi",CV_FOURCC('D','I','V','X'),
+                           fps,cvSize(frameW,frameH),1);
+
 	//cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
 	//cvNamedWindow("Hough", CV_WINDOW_AUTOSIZE );
@@ -1094,6 +1131,9 @@ int visionStart()
 	int okay=cvGrabFrame(camCapture);
 	frame=cvCreateImage(cvSize(200,200),8,3);
 	unscaledFrame=cvRetrieveFrame(camCapture);
+	
+
+	
 	cvResize(unscaledFrame,frame);
 
 	starterFrame=cvCreateImage(cvGetSize(frame),8,3);	
@@ -1236,7 +1276,12 @@ int visionStart()
 		    for (int x=0; x<speed; x++)
 		      {
 			int okay=cvGrabFrame(camCapture);
-			unscaledFrame=cvRetrieveFrame(camCapture);
+		        unscaledFrame=cvRetrieveFrame(camCapture);
+	  			
+
+			printf("\nSize=%dx%d\n", cvGetSize(unscaledFrame).width, cvGetSize(unscaledFrame).height);
+			
+			cvWriteFrame(writer,unscaledFrame);      // add the frame to the file
 			cvResize(unscaledFrame,frame);
 		      }
 		    
@@ -1520,8 +1565,9 @@ int visionStart()
 	    swapper=1;
 	  }
 	  
-		cvWriteFrame(writer,starterFrame);      // add the frame to the file
 	}
+
+	printf("\nBYEBYEBYE\n");
 
 	cvReleaseCapture(&camCapture);
 	cvReleaseVideoWriter(&writer);
