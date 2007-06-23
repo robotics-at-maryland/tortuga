@@ -14,7 +14,7 @@ int main(int argc, char ** argv)
         return -1;
     }
 
-    int fd = openSensorBoard("/dev/ttyUSB0");
+    int fd = openSensorBoard("/dev/sensor");
 
 
     if(strcmp(argv[1], "-bloff") == 0)
