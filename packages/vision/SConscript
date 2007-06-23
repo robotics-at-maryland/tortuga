@@ -37,4 +37,7 @@ helpers.Program(envt, 'src/test.cpp',int_deps = 'vision')
 
 # Basic camera test
 envt.AppendUnique(CCFLAGS = '-Wno-unused')
-envt.Program('test/src/BasicCvTest.c')
+envt.Program(target = 'BasicCvTest', source = 'test/src/BasicCvTest.c')
+
+# Basic record test
+envt.Program(target = 'RecordTest', source = 'test/src/CvRecordVideoTest.c')
