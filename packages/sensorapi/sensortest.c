@@ -12,7 +12,7 @@ int main(int argc, char ** argv)
     buf[0]=0x0A;
     buf[1]=0x0A;
 
-    write(fd, &buf, 2);
+    write(fd, &buf, 1);
 
     printf("\nSyncBoard says: %d", syncBoard(fd));
     printf("\nPing says: %d", pingBoard(fd));

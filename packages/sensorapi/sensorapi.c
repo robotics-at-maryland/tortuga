@@ -32,7 +32,7 @@ int hasData(int fd)
 
 void miniSleep()
 {
-    usleep(100 * 1000);
+    usleep(20 * 1000);
 }
 
 int writeData(int fd, unsigned char * buf, int nbytes)
