@@ -24,6 +24,16 @@ int main(int argc, char ** argv)
     printf("\nDrop Marker 0: %d", dropMarker(fd, 0));
     printf("\nDrop Marker 1: %d", dropMarker(fd, 1));
 
+    printf("\nLCD Backlight Off: %d", lcdBacklight(fd, 0));
+
+    printf("\nThruster safety 0: %d", thrusterSafety(fd, 0));
+    printf("\nThruster safety 1: %d", thrusterSafety(fd, 1));
+    printf("\nThruster safety 2: %d", thrusterSafety(fd, 2));
+    printf("\nThruster safety 3: %d", thrusterSafety(fd, 3));
+
+    printf("\nSet text: %d", displayText(fd, 0, "Evil Wombat"));
+    printf("\nSet text: %d", displayText(fd, 1, "Want Attitude"));
+
 
 
     printf("\n");

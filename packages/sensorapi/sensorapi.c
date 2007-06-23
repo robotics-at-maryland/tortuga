@@ -225,6 +225,78 @@ int lcdBacklight(int fd, int state)
 }
 
 
+int thrusterSafety(int fd, int state)
+{
+    if(state<0 || state>7)
+        return -255;
+
+    unsigned char buf[8]={0x09, 0xB1, 0xD0, 0x23, 0x7A, 0x69, 0, 0};
+
+    buf[6] = state;
+
+    int i;
+
+    for(i=0; i<7; i++)
+        buf[7] += buf[i];
+
+
+    writeData(fd, buf, 8);
+
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+
+
+int displayText(int fd, int line, char * text)
+{
+    if(line!=0 && line!=1)
+        return -255;
+
+    if(!text)
+        return 0;
+
+    unsigned char buf[20]={0x0C, 0,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0 };
+
+    buf[1] = line;
+
+    int i;
+
+    for(i=0; text[i]!=0 && i<16; i++)
+        buf[i+2]=text[i];
+
+    for(i=0; i<18; i++)
+        buf[18] += buf[i];
+
+
+    writeData(fd, buf, 19);
+
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+
+
 /* Some code from cutecom, which in turn may have come from minicom */
 /* FUGLY but it does what I want */
 int openSensorBoard(const char * devName)

@@ -23,3 +23,6 @@ int readDepth(int fd);
 int hardKill(int fd);
 int dropMarker(int fd, int markerNum);
 int lcdBacklight(int fd, int state);
+int thrusterSafety(int fd, int state);
+int displayText(int fd, int line, char * text);
+
