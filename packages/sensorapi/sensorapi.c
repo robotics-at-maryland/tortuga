@@ -18,14 +18,14 @@
 
 #define USEC_PER_MSEC 1000
 
-int hasData(int fd)
+int hasData(int fd, int timeout)
 {
     struct pollfd pfd;
     pfd.fd = fd;
     pfd.events = POLLIN;
     pfd.revents = 0;
 
-    poll(&pfd, 1, 0);
+    poll(&pfd, 1, timeout);
 
     return pfd.revents & POLLIN;
 }
@@ -38,11 +38,14 @@ void miniSleep()
 int writeData(int fd, unsigned char * buf, int nbytes)
 {
     int ret = write(fd, buf, nbytes);
-    if(ret
+    return ret;
 }
 
 int readData(int fd, unsigned char * buf, int nbytes)
 {
+  //  if(!hasData(fd, 0))
+    //    return SB_IOERROR;
+
     return read(fd, buf, nbytes);
 }
 
@@ -51,11 +54,8 @@ int syncBoard(int fd)
 {
     unsigned char buf[5];
 
-    usleep(100 * 1000);
-
-
     /* Eat the incoming buffer */
-    while(hasData(fd))
+    while(hasData(fd, 0))
         read(fd, buf, 1);
 
     int i;
@@ -65,16 +65,13 @@ int syncBoard(int fd)
         unsigned char b[1];
         b[0] = 0xFF;
         writeData(fd, b, 1);
-        miniSleep();
 
         b[0]=0;
 
-        if(hasData(fd))
+        if(hasData(fd, IO_TIMEOUT))
             readData(fd, b, 1);
 
-        miniSleep();
-
-        if(!hasData(fd) && b[0]==0xBC)
+        if(!hasData(fd, IO_TIMEOUT) && b[0]==0xBC)
             return 0;
     }
 
