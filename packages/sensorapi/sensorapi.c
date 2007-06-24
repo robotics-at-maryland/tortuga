@@ -37,7 +37,8 @@ void miniSleep()
 
 int writeData(int fd, unsigned char * buf, int nbytes)
 {
-    return write(fd, buf, nbytes);
+    int ret = write(fd, buf, nbytes);
+    if(ret
 }
 
 int readData(int fd, unsigned char * buf, int nbytes)

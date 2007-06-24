@@ -12,6 +12,7 @@
 #define LCD_BL_FLASH  2
 
 #define SB_OK        0
+#define SB_IOERROR  -4
 #define SB_BADCC    -3
 #define SB_HWFAIL   -2
 #define SB_ERROR    -1

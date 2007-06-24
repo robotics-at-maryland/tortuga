@@ -9,11 +9,10 @@ int main(int argc, char ** argv)
     int fd = openSensorBoard("/dev/sensor");
 
     unsigned char buf[3];
-    buf[0]=0x0A;
+    buf[0]=0x06;
     buf[1]=0x0A;
 
     write(fd, &buf, 1);
-
     printf("\nSyncBoard says: %d", syncBoard(fd));
     printf("\nPing says: %d", pingBoard(fd));
     printf("\nCheck says: %d", checkBoard(fd));
@@ -31,9 +30,32 @@ int main(int argc, char ** argv)
     printf("\nThruster safety 2: %d", thrusterSafety(fd, 2));
     printf("\nThruster safety 3: %d", thrusterSafety(fd, 3));
 
-    printf("\nSet text: %d", displayText(fd, 0, "Evil Wombat"));
-    printf("\nSet text: %d", displayText(fd, 1, "Want Attitude"));
 
+    write(fd, &buf, 1);
+
+    printf("\nBad sync text returned: %d",    dropMarker(fd, 0)); //displayText(fd, 0, "Angry Midget"));
+    fflush(stdout);
+    int i=0;
+
+
+
+    printf("\n");
+    return 0;
+    while(1)
+    {
+    	int ret=0;
+	    unsigned char bah[32];
+	    sprintf(bah, "%d  ", i);
+            ret= displayText(fd, 1, bah);
+
+	    if(ret == SB_ERROR)
+	    {
+		    close(fd);
+		    fd = openSensorBoard("/dev/sensor");
+	    }
+	    sleep(1);
+	    i++;
+    }
 
 
     printf("\n");
