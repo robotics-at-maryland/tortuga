@@ -6,7 +6,7 @@ int main(int argc, char ** argv)
 {
     printf("\nHello World\n");
 
-    int fd = openSensorBoard("/dev/ttyUSB0");
+    int fd = openSensorBoard("/dev/sensor");
 
     unsigned char buf[3];
     buf[0]=0x0A;
