@@ -43,8 +43,8 @@ int writeData(int fd, unsigned char * buf, int nbytes)
 
 int readData(int fd, unsigned char * buf, int nbytes)
 {
-  //  if(!hasData(fd, 0))
-    //    return SB_IOERROR;
+    if(!hasData(fd, IO_TIMEOUT))
+        return SB_IOERROR;
 
     return read(fd, buf, nbytes);
 }
