@@ -19,9 +19,9 @@ GateDetector::~GateDetector()
 
 void GateDetector::update()
 {	
-	cam->waitForImage(frame);
+	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
-	IplImage* gateFrame =cvCreateImage(cvGetSize(frame),8,3);
+	IplImage* gateFrame =cvCreateImage(cvGetSize(image),8,3);
 	cvCopyImage(image,gateFrame);
 
 	to_ratios(image);

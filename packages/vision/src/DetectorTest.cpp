@@ -16,14 +16,20 @@ using namespace ram::vision;
 int main()
 {
 	OpenCVCamera* camera = new OpenCVCamera();
+	OpenCVImage* frame = new OpenCVImage(640,480);
 	camera->background(); //Silliness
 	OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
 	GateDetector* gDetect=new GateDetector(camera);
 	BinDetector* bDetect=new BinDetector(camera);
 	RedLightDetector* rlDetect=new RedLightDetector(camera);
-	
-	while (true)
+	char key=' ';
+	cvNamedWindow("Detector Test");
+	while (key!='q')
 	{
+		camera->getImage(frame);
+		IplImage* image =(IplImage*)(*frame);
+		cvShowImage("Detector Test",image);
+		key=cvWaitKey(25);
 		cout<<"Running Orange Pipeline Detection..."<<endl;
 		opDetect->update();
 		if (opDetect->found)
@@ -54,5 +60,6 @@ int main()
 	}
 	
 	delete camera;
+	delete frame;
     return 0;
 } 

@@ -22,10 +22,10 @@ BinDetector::~BinDetector()
 void BinDetector::update()
 {
 	/*First argument to white_detect is a ratios frame, then a regular one*/
-	cam->waitForImage(frame);
+	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
 
-	IplImage* binFrame =cvCreateImage(cvGetSize(frame),8,3);
+	IplImage* binFrame =cvCreateImage(cvGetSize(image),8,3);
 	cvCopyImage(image,binFrame);
 	
 	to_ratios(image);

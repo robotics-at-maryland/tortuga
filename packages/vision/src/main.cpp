@@ -25,7 +25,6 @@ extern "C"{
 
 int testRecord()
 {
-
   CvCapture* camCapture=cvCaptureFromFile("starcraft.avi");
   
   CvVideoWriter *writer = 0;
@@ -33,8 +32,8 @@ int testRecord()
   int fps     = 10;  // or 30
   int frameW  = 1024; // 744 for firewire cameras
   int frameH  = 436; // 480 for firewire cameras
-  //  FILE* video=fopen("out.avi","w");
-  //  fclose(video);
+  FILE* video=fopen("out.avi","w");
+  fclose(video),
   writer=cvCreateVideoWriter("out.avi",CV_FOURCC('D','I','V','X'),
                              fps,cvSize(frameW,frameH),1);
   IplImage* frame=NULL;
@@ -189,6 +188,7 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 				data2[count+1]=255;
 				count+=3;
 			}
+			whitex=(indexL+indexR)/2;
 		}
 	}
 	else
@@ -447,6 +447,183 @@ typedef struct
 }Pos;
 typedef std::list<Pos> PosList;
 
+int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
+{
+	char* data=percents->imageData;
+	char* data2=base->imageData;
+	int width=percents->width;
+	int height=percents->height;
+
+	int count=0;
+	int pixel_count=0;
+	int r=0;
+	int g=0;
+	int b=0;
+	int r2=0;
+	int g2=0;
+	int b2=0;
+	int total=0;
+	int total2=0;
+	
+	int xdist=0;
+	int ydist=0;
+	int minx=999999;
+	int maxx=0;
+	int miny=999999;
+	int maxy=0;
+	int rx;
+	int ry;
+
+	for (int y=0; y<height; y++)
+	{
+		for (int x=0; x<width; x++)
+		{
+			b=(data[count]+256)%256;
+			g=(data[count+1]+256)%256;
+			r=(data[count+2]+256)%256;
+			b2=(data2[count]+256)%256;
+			g2=(data2[count+1]+256)%256;
+			r2=(data2[count+2]+256)%256;
+			if (b>15 && g>15 && r>35)
+			{
+				if (b2>70 && g2>70 && r2>150)
+				{
+					data2[count]=255;
+					data2[count+1]=255;
+					data2[count+2]=255;
+					rx+=x;
+					ry+=y;
+					total++;
+					minx=min(x,minx);
+					maxx=max(x,maxx);
+					miny=min(y,miny);
+					maxy=max(y,maxy);
+				}
+				else
+					data2[count]=data2[count+1]=data2[count+2]=0;
+			}
+			else if (b>20 && g>20 && r>30)
+			{
+				//These pixels are whiter
+				if (b2>150 && g2>150 && r2>150)
+				{
+					data2[count]=1;
+					data2[count+1]=0;
+					data2[count+2]=255;
+					//Dont change anything else, just show that its white and ignore it
+					//this change will allow the center of red to be whitish, as on a really bright light.
+				}
+				else
+					data2[count]=data2[count+1]=data2[count+2]=0;
+			}
+			else
+				data2[count]=data2[count+1]=data2[count+2]=0;
+			count+=3;
+		}
+	}
+	if (total>250)
+	{
+		rx/=total;
+		ry/=total;
+		int right=0;
+		int top=0;
+		int bottom=0;
+		count=3*(rx)+3*width*(ry);
+		//State represents count of pixels that were not found to be red
+		int state=0;
+		int left=0;
+		for (left=rx;left>minx;left--)
+		{
+			if (data2[count]==0)
+				state++;
+			else
+				state=0;
+				
+			if (state==3)
+				break;
+			count-=3;
+		}
+		state=0;
+		count=3*(rx)+3*width*(ry);
+		for (right=(rx);right<maxx;right++)
+		{
+			if (data2[count]==0)
+				state++;
+			else
+				state=0;
+								
+			if (state==3)
+				break;
+			count+=3;
+		}
+		state=0;
+		count=3*(rx)+3*width*(ry);
+		for (bottom=(ry);bottom<maxy;bottom++)
+		{
+			if (data2[count]==0)
+				state++;
+			else
+				state=0;
+				
+			if (state==3)
+				break;
+			count+=3*width;
+		}
+		state=0;
+		count=3*(rx)+3*width*(ry);
+		for (top=(ry);top>miny;top--)
+		{
+			if (data2[count]==0)
+				state++;
+			else
+				state=0;
+				
+			if (state==3)
+				break;
+			count-=3*width;
+		}
+		
+		//Remember, bottom > top, because y increases as you move downwards on the image
+		
+		if (bottom-top>10 && right-left>10)
+		{
+			CvPoint tl;
+			CvPoint tr;
+			CvPoint bl;
+			CvPoint br;
+			bl.x=tl.x=left;
+			br.x=tr.x=right;
+			bl.y=br.y=bottom;
+			tl.y=tr.y=top;
+			cvLine(base, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
+			cvLine(base, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
+			cvLine(base, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+			cvLine(base, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+			rx=(right+left)/2;
+			ry=(top+bottom)/2;
+			*redx=rx;
+			*redy=ry;
+			return total;
+		}
+		else
+		{
+			// Its not big enough to be the light, its nto even 10 by 10.
+			// Either that or theres lots of other red found in the image.
+			rx=ry=-1;
+			*redx=rx;
+			*redy=ry;
+			return -1;
+		}
+	}
+	else//total is less than 250 pixels
+	{
+		rx=ry=-1;
+		*redx=rx;
+		*redy=ry;
+		return -1;
+	}
+}
+
 void explore(IplImage* img, int x, int y, int* out, int color)
 {	
 	PosList toExplore;
@@ -521,7 +698,6 @@ CvPoint find_flash(IplImage* img, bool display)
 	for (int y=0; y<height; y++)
 		for (int x=0; x<width;x++)
 		{
-			
 			out[0]=0;
 			out[1]=999999;
 			out[2]=-999999;
@@ -547,7 +723,7 @@ CvPoint find_flash(IplImage* img, bool display)
 				{
 					//cout<<"Data from explore"<<endl<<"Count: "<<out[0]<<"min x: "<<out[1]<<"min y: "<<out[2]<<"max x: "<<out[3]<<"max y: "<<out[4]<<endl; 
 				}
-				if (out[0]>25 && w>5 && w<20 && h>5 && h<20)
+				if (out[0]>25 && w>5 && w<200 && h>5 && h<200)
 				{
 
 					cvLine(img, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
@@ -556,14 +732,12 @@ CvPoint find_flash(IplImage* img, bool display)
 					cvLine(img, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
 					return center;
 				}
-				
 			}
-			
 			count+=3;
 		}
-	//Return a 0,0 point if not found
-	center.x=0;
-	center.y=0;
+	//Return a -1,-1 point if not found
+	center.x=-1;
+	center.y=-1;
 	return center;
 }
 
@@ -1093,6 +1267,7 @@ int visionStart()
 	IplImage* oldFrame=NULL;
 	IplImage* moveFrame=NULL;
 	IplImage* gateFrame=NULL;
+	IplImage* percentsFrame=NULL;
 	CvPoint lightCenter;
 	lightCenter.x=0;
 	lightCenter.y=0;
@@ -1137,6 +1312,7 @@ int visionStart()
 	flashFrame=cvCreateImage(cvGetSize(frame),8,3);
 	oldFrame=cvCreateImage(cvGetSize(frame),8,3);
 	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
+	percentsFrame=cvCreateImage(cvGetSize(frame),8,3);
 	while(goVision)
 	{
 	  
@@ -1301,7 +1477,7 @@ int visionStart()
 			{
 				int binCount=0;
 				to_ratios(frame);
-
+				
 				if (show_gate)
 				{
 					int gatex;
@@ -1309,107 +1485,107 @@ int visionStart()
 					bool gateFound=gateDetect(frame,gateFrame,&gatex,&gatey);
 					if (gateFound==true)
 						cout<<"Gate Found!\n"<<gatex<<" "<<gatey<<endl;
-						else
+					else
 						cout<<"No gate"<<endl;
 					cvShowImage("Gate",gateFrame);
 				}
-
-
-			if (found==true || frame_count>0)
-			  {
-			    int binX=0;
-			    int binY=0;
-			    binCount=white_detect(frame,binFrame,&binX,&binY);
-			    if (swapper==1)
-			      {
-				buffer1->binx=binX;
-				buffer1->biny=binY;
-			      }
-			    else //swapper==2
-			      {
-				buffer2->binx=binX;
-				buffer2->biny=binY;
-			      }
-			  }
-			int pipe_count=red_blue(frame,2.0);
-			//cout<<pipe_count<<endl;
-			if (pipe_count>10000)
-			  {
-			    found=true;
-			    if (frame_count<0)
-			      frame_count=0;
-			  }
-			else
-			  {
-			    found=false;
-			    frame_count-=speed*2;
-			  }
-			if (binCount>500)
-			  {
-			    //cout<<"WE FOUND THE BIN!!! DROP THE MARKER!!!"<<endl;
-			    if (swapper==1)
-			      buffer1->binVisible=1;
-			    else //swapper==2
-			      buffer2->binVisible=1;
-			  }
-			else
-			  {
-			    if (swapper==1)
-			      buffer1->binVisible=0;
-			    else //swapper==2
-			      buffer2->binVisible=0;
-			  }
-		      }
-		    else
-		      {
-			if (orange_pipe_detect)
-			  {
-			    if (!found && frame_count>10)
-			      {
-				frame_count=0;
-				int orange_count=mask_orange(frame,0,true);
-				if (orange_count>1000)
-				  {
-				    //    cout<<orange_count<<endl;
-				    found=1;
-				  }
+				
+				
+				if (found==true || frame_count>0)
+				{
+					int binX=0;
+					int binY=0;
+					binCount=white_detect(frame,binFrame,&binX,&binY);
+					if (swapper==1)
+					{
+						buffer1->binx=binX;
+						buffer1->biny=binY;
+					}
+					else //swapper==2
+					{
+						buffer2->binx=binX;
+						buffer2->biny=binY;
+					}
+				}
+				int pipe_count=red_blue(frame,2.0);
+				//cout<<pipe_count<<endl;
+				if (pipe_count>10000)
+				{
+					found=true;
+					if (frame_count<0)
+						frame_count=0;
+				}
 				else
-				  {
-				    found=0;
-				  }
-			      }
-			    else if (found)
-			      {
-				int orange_count=mask_orange(frame,1,0);
-				int left_or_right;
-				if ((left_or_right=guess_line(frame))>20){}
-				  //cout<<"go right"<<endl;
-				else if (left_or_right<-20){}
-				  //cout<<"go left"<<endl;
-				
-				if (orange_count<250)
-				  found=0;
-				
-				if (swapper==1)
-				  buffer1->distFromVertical=left_or_right;
-				else //swapper==2
-				  buffer2->distFromVertical=left_or_right;
-			      }
-			    
-			    if (swapper==1)
-			      buffer1->pipeVisible=found;
-			    else //swapper==2
-			      buffer2->frameNum=found;
-			  }
-		      }
+				{
+					found=false;
+					frame_count-=speed*2;
+				}
+				if (binCount>500)
+				{
+					//cout<<"WE FOUND THE BIN!!! DROP THE MARKER!!!"<<endl;
+					if (swapper==1)
+						buffer1->binVisible=1;
+					else //swapper==2
+						buffer2->binVisible=1;
+				}
+				else
+				{
+					if (swapper==1)
+						buffer1->binVisible=0;
+					else //swapper==2
+						buffer2->binVisible=0;
+				}
+			}
+		    else
+			{
+				if (orange_pipe_detect)
+				{
+					if (!found && frame_count>10)
+					{
+						frame_count=0;
+						int orange_count=mask_orange(frame,0,true);
+						if (orange_count>1000)
+						{
+							//    cout<<orange_count<<endl;
+							found=1;
+						}
+						else
+						{
+							found=0;
+						}
+					}
+					else if (found)
+					{
+						int orange_count=mask_orange(frame,1,0);
+						int left_or_right;
+						if ((left_or_right=guess_line(frame))>20){}
+						//cout<<"go right"<<endl;
+						else if (left_or_right<-20){}
+						//cout<<"go left"<<endl;
+						
+						if (orange_count<250)
+							found=0;
+						
+						if (swapper==1)
+							buffer1->distFromVertical=left_or_right;
+						else //swapper==2
+							buffer2->distFromVertical=left_or_right;
+					}
+					
+					if (swapper==1)
+						buffer1->pipeVisible=found;
+					else //swapper==2
+						buffer2->frameNum=found;
+				}
+			}
 		    if (hough_on)
-		      {
-			cvCopyImage(frame,houghFrame);
-			if (swapper==1)
-			  buffer1->angle=hough(houghFrame);
-			else
-			  buffer2->angle=hough(houghFrame);
-		      }	
+			{
+				cvCopyImage(frame,houghFrame);
+				if (swapper==1)
+					buffer1->angle=hough(houghFrame);
+				else
+					buffer2->angle=hough(houghFrame);
+			}	
 		    
 		    if (show_flashing)
 		      {
@@ -1456,9 +1632,14 @@ int visionStart()
 			    else //swapper==2
 			      buffer2->lightVisible=false;
 			  }
-			cvCopyImage(frame, flashFrame);
-			CvPoint p=find_flash(flashFrame, show_flashing);
-			if (p.x!=0 && p.y!=0)
+			cvCopyImage(starterFrame, flashFrame);
+			cvCopyImage(starterFrame, percentsFrame);
+			to_ratios(percentsFrame);
+			CvPoint p;//=find_flash(flashFrame, show_flashing);
+			
+			int redPixelCount=redDetect(percentsFrame,flashFrame,&p.x,&p.y);
+
+			if (p.x!=-1 && p.y!=-1)
 			  {
 			    if (swapper==1)
 			      {
@@ -1470,7 +1651,7 @@ int visionStart()
 				buffer2->redLightx=p.x;
 				buffer2->redLighty=p.y;
 			      }	
-			    if (lightCenter.x==0 && lightCenter.y==0)
+			    if (lightCenter.x==-1 && lightCenter.y==-1)
 			      {
 				//	cout<<"I see a light-like object"<<endl;
 				startCounting=true;
@@ -1508,7 +1689,7 @@ int visionStart()
 			  } 
 			else
 			  {
-			    if (lightCenter.x!=0 && lightCenter.y!=0)
+			    if (lightCenter.x!=-1 && lightCenter.y!=-1)
 			      //cout<<"Light's out"<<endl;
 			    
 			    lightCenter.x=p.x;

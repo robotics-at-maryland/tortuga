@@ -15,19 +15,22 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	startCounting=false;
 	lightCenter.x=0;
 	lightCenter.y=0;
+	cvNamedWindow("Flash",CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("raw",CV_WINDOW_AUTOSIZE);
 }
 
 RedLightDetector::~RedLightDetector()
 {
 	delete frame;
+	
 }
 
 void RedLightDetector::update()
 {
-	cam->waitForImage(frame);
+	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
+	cvShowImage("raw", image);
 	IplImage* flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-
 	if (lightFramesOff>20)
 	{
 		//					cout<<"Its been 20 frames without seeing the light-like object, maybe it was just a reflection, im starting the count over"<<endl;
@@ -64,8 +67,11 @@ void RedLightDetector::update()
 
 	}
 	cvCopyImage(image, flashFrame);
-	CvPoint p=find_flash(flashFrame, true);
-	if (p.x!=0 && p.y!=0)
+	to_ratios(image);
+	CvPoint p;
+	int redPixelCount=redDetect(image,flashFrame,&p.x,&p.y);
+
+	if (p.x!=-1 && p.y!=-1)
 	{
 		if (lightCenter.x==0 && lightCenter.y==0)
 		{
@@ -105,7 +111,7 @@ void RedLightDetector::update()
 	} 
 	else
 	{
-//		if (lightCenter.x!=0 && lightCenter.y!=0)
+//		if (lightCenter.x!=-1 && lightCenter.y!=-1)
 //			cout<<"Light's out"<<endl;			
 		lightCenter.x=p.x;
 		lightCenter.y=p.y;
@@ -127,4 +133,7 @@ void RedLightDetector::update()
 		}
 		//	paused=true;
 	}
+	
+	cvShowImage("Flash",flashFrame);
+
 }

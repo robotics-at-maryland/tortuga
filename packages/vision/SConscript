@@ -22,15 +22,21 @@ sources = ['src/BasicImage.cpp',
            'src/ProcessList.cpp',
            'src/main.cpp']
 
+detectorSources = ['src/GateDetector.cpp',
+		   'src/BinDetector.cpp',
+		   'src/RedLightDetector.cpp',
+		   'src/OrangePipeDetector.cpp',
+		   'src/DetectorTest.cpp']
+	
 # Build Library (will be called 'libram_vision.so')
 # All build settings for the library are stored in buildfiles/libs.py
 helpers.SharedLibrary(envl, 'vision',  source = sources)
-
 # Testing
 envt = env.Clone()
 
 # Build simple camera test program and make sure vision library is intalled
-helpers.Program(envt, 'test/src/AdvCvTest.cpp',
+helpers.Program(envt, target='AdvCvTest', 
+		source = 'test/src/AdvCvTest.cpp',
                 int_deps = 'vision')
 
 helpers.Program(envt, 'src/test.cpp',int_deps = 'vision')
@@ -41,3 +47,8 @@ envt.Program(target = 'BasicCvTest', source = 'test/src/BasicCvTest.c')
 
 # Basic record test
 envt.Program(target = 'RecordTest', source = 'test/src/CvRecordVideoTest.c')
+
+# Detector Test
+envt = env.Clone()
+helpers.Program(envt, target = 'DetectorTest', 
+		source=detectorSources, int_deps = ['vision'])
