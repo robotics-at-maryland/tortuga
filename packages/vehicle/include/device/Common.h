@@ -7,27 +7,17 @@
  * File:  packages/vision/include/Common.h
  */
 
-#ifndef RAM_VEHICLE_COMMON_06_11_2006
-#define RAM_VEHICLE_COMMON_06_11_2006
-
-// STD Includes
-#include <string>
-#include <map>
-
-// Project Includes
-#include "vehicle/include/device/Common.h"
+#ifndef RAM_VEHICLE_DEVICE_COMMON_06_11_2006
+#define RAM_VEHICLE_DEVICE_COMMON_06_11_2006
 
 namespace ram {
 namespace vehicle {
-
+namespace device {
+    
 // Forward Declartions
-class IVehicle;
-class Vehicle;
+class IDevice;
 
-// Typedefs
-typedef std::map<std::string, device::IDevice*> NameDeviceMap;
-
-
+} // namespace device
 } // namespace vehicle
 } // namespace ram
     

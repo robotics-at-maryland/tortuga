@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/core/include/IUpdatable.h
+ * File:  packages/core/include/IDevice.h
  */
 
-#ifndef RAM_CORE_IUPDATABLE_06_22_2006
-#define RAM_CORE_IUPDATABLE_06_22_2006
+#ifndef RAM_CORE_IDEVICE_06_22_2006
+#define RAM_CORE_IDEVICE_06_22_2006
 
 namespace ram {
 namespace core {
@@ -18,8 +18,10 @@ class IDevice : public IUpdatable
 public:
     virtual ~IDevice() {};
 
-    virtual std::string get_name();
+    virtual std::string getName();
 };
 
 } // namespace vehicle
 } // namespace ram
+
+#endif // RAM_CORE_IDEVICE_06_22_2006

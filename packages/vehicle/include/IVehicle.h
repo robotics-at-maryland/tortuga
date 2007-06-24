@@ -7,30 +7,35 @@
  * File:  packages/vision/include/Vehicle.h
  */
 
-#ifndef RAM_VEHICLE_VEHICLE_06_11_2006
-#define RAM_VEHICLE_VEHICLE_06_11_2006
+#ifndef RAM_VEHICLE_IVEHICLE_06_23_2006
+#define RAM_VEHICLE_IVEHICLE_06_23_2006
 
 // Project Includes
 #include "vehicle/include/Common.h"
-#include "vehicle/include/IUpdatable.h"
+#include "core/include/IUpdatable.h"
+#include "math/include/Math.h"
 
 namespace ram {
 namespace vehicle {
 
-class IVehicle : public IUpdatable
+class IVehicle : public core::IUpdatable
 {
 public:
     /** Gets the device associated with the given name */
-    device::Device* getDevice(std::string name) = 0;
-
-    /** Gets the list of current temperatures */
-    TemperatureMap getTemperatures() = 0;
+    virtual device::IDevice* getDevice(std::string name) = 0;
     
-private:
-    std::map<std::string, Device*> m_devices;
-};
+    virtual math::Vector3 getLinearAcceleration() = 0;
 
+    virtual math::Vector3 getAngularRate() = 0;
+
+    virtual math::Quaternion getOrientation() = 0;
+
+    virtual double getDepth() = 0;
+
+    virtual double getVoltage() = 0;
+};
+    
 } // namespace vehicle
 } // namespace ram
     
-#endif // RAM_VEHICLE_VEHICLE_06_11_2006
+#endif // RAM_VEHICLE_IVEHICLE_06_23_2006

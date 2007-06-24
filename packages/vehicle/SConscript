@@ -14,13 +14,11 @@ Import('env')
 envl = env.Clone()
 
 # Sources
-sources = []
-
-# Libraries
-#libs.add_external(envl, 'OpenCV')
+sources = helpers.glob(env, 'src', '*.cpp')
+sources.extend(helpers.glob(env, 'src/devices', '*.cpp'))
 
 # Build Procducts (library will be called 'libram_vision.so')
-#helpers.SharedLibrary(envl, 'vehicle',  source = sources)
+helpers.SharedLibrary(envl, 'vehicle',  source = sources)
 
 
 # Testing
