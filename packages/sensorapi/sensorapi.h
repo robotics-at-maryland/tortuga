@@ -1,7 +1,7 @@
 #define MAX_SYNC_ATTEMPTS 20
 
 /* In msec */
-#define IO_TIMEOUT  50
+#define IO_TIMEOUT  100
 
 
 #define HOST_CMD_PING    0x00

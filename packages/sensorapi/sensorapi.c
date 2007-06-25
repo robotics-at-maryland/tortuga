@@ -65,11 +65,13 @@ int syncBoard(int fd)
         unsigned char b[1];
         b[0] = 0xFF;
         writeData(fd, b, 1);
+	miniSleep();
 
         b[0]=0;
 
         if(hasData(fd, IO_TIMEOUT))
             readData(fd, b, 1);
+	miniSleep();
 
         if(!hasData(fd, IO_TIMEOUT) && b[0]==0xBC)
             return 0;
