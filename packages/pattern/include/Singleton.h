@@ -34,10 +34,10 @@ namespace pattern {
     @remarks
         There are some caveats, you must new, and the delete the class yourself
         but this allows you to control the the order of creation when you have
-        multiple singletons.  These the allocation and clean up of the object
-        must occur, after and before any getSingleton calls.
+        multiple singletons.  The allocation and clean up of the singleton
+        object must occur, after and before any getSingleton calls.
     @par
-        To use this class you just inherite from a while specify your class as
+        To use this class you just inherit from it while specifing your class as
         the template parameter for the class. You must also have the following 
         line at the top of you implementation file (ie. your cpp file):
         @code 
@@ -50,14 +50,14 @@ namespace pattern {
         @code
         #include "foundation/pattern/h/singleton.h"
     
-        namespace ssl {
+        namespace ram {
         
-        class MyClass : public foundation::pattern::Singleton<MyClass>
+        class MyClass : public pattern::Singleton<MyClass>
         {
         public:
             MyClass();
-            static MyManager& getSingleton(void);
-            static MyManager* getSingletonPtr(void);
+            static MyManager& getSingleton();
+            static MyManager* getSingletonPtr();
             // ... your method declarations here
         };
             
@@ -70,7 +70,7 @@ namespace pattern {
         namespace ssl {
             
         template<> MyClass* 
-            foundation::pattern::Singleton<MyClass>::ms_Singleton = 0;
+            pattern::Singleton<MyClass>::ms_Singleton = 0;
     
         MyClass& MyClass::getSingleton()
         {  
@@ -135,7 +135,7 @@ public:
     }
     
     /*! A non-asserting way to access the Singleton instance
-        @remakrs
+        @remarks
             This lets you check for the existance.
     */
     static T* getSingletonPtr()
