@@ -73,6 +73,9 @@ protected:
     
     /** The function which runs the update function in a loop */
     virtual void loop();
+
+    /** This function executes the wait for next frame */
+    virtual void waitForUpdate(long microseconds);
     
 private:
     /** Joins and delete's the background thread */

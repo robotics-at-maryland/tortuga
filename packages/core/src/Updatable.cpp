@@ -25,6 +25,9 @@ const static long USEC_PER_MILLISEC = 1000;
 const static long NSEC_PER_MILLISEC = 1000000;
 const static long NSEC_PER_USEC = 1000;
 
+// How close do we try to get to actual sleep time (in usec)
+const static long SLEPP_THRESHOLD = 500;
+
 namespace ram {
 namespace core {
 
@@ -183,8 +186,6 @@ void Updatable::loop()
     struct timeval start;
     Usec sleep_time;
     Usec offset;
-    struct timespec sleep = {0, 0};
-    struct timespec act_sleep = {0, 0};
 
     // This call determines the time it takes for a gettimeofday call
     // This makes the calls more accurate
@@ -230,11 +231,14 @@ void Updatable::loop()
 
                 // Handle overrun
                 if (sleep_time < 0)
-                    sleep.tv_nsec = interval * NSEC_PER_MILLISEC;
-                else
-                    sleep.tv_nsec = sleep_time * NSEC_PER_USEC;
-            
-                nanosleep(&sleep, &act_sleep);
+                    sleep_time = interval * USEC_PER_MILLISEC;
+
+                // If the wait ends early keep waiting
+                while(sleep_time > SLEEP_THRESHOLD)
+                {
+                    waitForUpdate(sleep_time);
+                    sleep_time = -age(&next);
+                }
             }
         }
         // Time to quit
@@ -248,6 +252,15 @@ void Updatable::loop()
     m_threadStopped.countDown();
 }
 
+void Updatable::waitForUpdate(long microseconds)
+{
+    struct timespec sleep = {0, 0};
+    struct timespec act_sleep = {0, 0};
+    
+    sleep.tv_nsec = microseconds * NSEC_PER_USEC;        
+    nanosleep(&sleep, &act_sleep);  
+}
+    
 void Updatable::cleanUpBackgroundThread()
 {
     if (0 != m_backgroundThread)
