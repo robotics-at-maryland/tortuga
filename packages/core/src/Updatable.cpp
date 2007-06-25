@@ -26,7 +26,7 @@ const static long NSEC_PER_MILLISEC = 1000000;
 const static long NSEC_PER_USEC = 1000;
 
 // How close do we try to get to actual sleep time (in usec)
-const static long SLEPP_THRESHOLD = 500;
+const static long SLEEP_THRESHOLD = 500;
 
 namespace ram {
 namespace core {

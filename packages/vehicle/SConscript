@@ -15,8 +15,9 @@ envl = env.Clone()
 
 # Sources
 sources = helpers.glob(env, 'src', '*.cpp')
-sources.extend(helpers.glob(env, 'src/devices', '*.cpp'))
+sources.extend(helpers.glob(env, 'src/device', '*.cpp'))
 
+#print 'Sources:'source
 # Build Procducts (library will be called 'libram_vision.so')
 helpers.SharedLibrary(envl, 'vehicle',  source = sources)
 

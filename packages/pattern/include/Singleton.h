@@ -76,7 +76,7 @@ namespace pattern {
         {  
             assert(ms_Singleton && 
                    "Singleton instance or MyClass not created");  
-            ms_Singleton = 0;    
+            return *ms_Singleton;
         }
         MyClass* MyClass::getSingletonPtr()
         {

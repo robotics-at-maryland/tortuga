@@ -16,7 +16,9 @@ namespace device {
     
 // Forward Declartions
 class IDevice;
-
+class Thruster;
+class ThrusterCommand;
+    
 } // namespace device
 } // namespace vehicle
 } // namespace ram
