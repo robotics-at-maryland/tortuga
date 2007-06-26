@@ -34,7 +34,8 @@ public:
     Printer(int interval) :
         ram::core::Updatable(),
         m_updateInterval(interval),
-        count(0)
+        count(0),
+        error(0)
     {
         m_lastTime.now();
     }
