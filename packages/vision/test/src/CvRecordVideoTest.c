@@ -12,9 +12,12 @@ int main() {
     return -1;
   }
 
-  CvVideoWriter *writer = 0;
+  //cvSetCaptureProperty(capture, CV_CAP_PROP_FOURCC, CV_CAP_PROP_FOURCC_YUV411);
+  //cvSetCaptureProperty(capture, CV_CAP_PROP_FPS, 30);
+
+CvVideoWriter *writer = 0;
   int isColor = 1;
-  int fps     = 10;  // or 30
+  int fps     = 30;  // or 30
   int frameW  = 640; // 744 for firewire cameras
   int frameH  = 480; // 480 for firewire cameras
   
@@ -45,7 +48,7 @@ int main() {
       break;
     }
     
-    cvShowImage( "Raw Camera Image", frame );
+//    cvShowImage( "Raw Camera Image", frame );
 
     cvWriteFrame(writer,frame);
 
