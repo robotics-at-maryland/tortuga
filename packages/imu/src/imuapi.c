@@ -66,7 +66,7 @@ double convertData(unsigned char msb, unsigned char lsb, double range)
     return convert16(msb, lsb) * ((range/2.0)*1.5) / 32768.0;
 }
 
-int readIMUData(int fd, struct imuMeasurements * imu)
+int readIMUData(int fd, RawIMUData* imu)
 {
     unsigned char imuData[34];
 
@@ -144,7 +144,7 @@ int openIMU(const char * devName)
 
 
 /* Some code from cutecom, which in turn may have come from minicom */
-int openIMU(const char * devName)
+int openIMU(const char* devName)
 {
    int fd = open(devName, O_RDWR, O_ASYNC); // | O_ASYNC); //, O_RDWR, O_NONBLOCK);
 

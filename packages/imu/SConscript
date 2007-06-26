@@ -21,7 +21,7 @@ helpers.SharedLibrary(envl, 'imu',  source = ['src/imuapi.c'])
 envt = env.Clone()
 
 # Needed because of steves include pattern
-envt.Append(CPPPATH = ['include'])
+envt.AppendUnique(LIBS = ['m'])
 
 # Build the ctx and consolemon
 helpers.Program(envt, target = 'imutest', source = 'test/src/imutest.c',

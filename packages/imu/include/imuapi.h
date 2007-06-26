@@ -10,10 +10,11 @@
 #ifndef RAM_IMUAPI_H_06_25_2007
 #define RAM_IMUAPI_H_06_25_2007
 
-struct imuMeasurements
+typedef struct _RawIMUData
 {
     int messageID;
     int sampleTimer;
+
     double gyroX;   /* Radians per second */
     double gyroY;   /* Radians per second */
     double gyroZ;   /* Radians per second */
@@ -30,7 +31,7 @@ struct imuMeasurements
     double tempY;   /* Degrees C */
     double tempZ;   /* Degrees C */
     int checksumValid;
-};
+} RawIMUData;
 
 /** Opens a serial channel to the imu using the given devices
  *
@@ -44,6 +45,6 @@ int openIMU(const char * devName);
  *
  *  @param fd  The device file returned by openIMU
  */
-int readIMUData(int fd, struct imuMeasurements * imu);
+int readIMUData(int fd, RawIMUData * imu);
 
 #endif // RAM_IMUAPI_H_06_25_2007

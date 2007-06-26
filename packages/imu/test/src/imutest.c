@@ -1,13 +1,19 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/imu/test/src/imutest.c
+ */
+
+// STD Includes
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-#include "imuapi.h"
+#include <math.h>
 
+// Project Includes
+#include "imu/include/imuapi.h"
 
 int main(int argc, char ** argv)
 {
@@ -19,11 +25,11 @@ int main(int argc, char ** argv)
         exit(1);
     }
 
-    struct imuMeasurements imuData;
+    RawIMUData imuData;
 
     while(1)
     {
-        // Calculate angles (taken out of the IMU api)
+        // Calculate angles (taken out of the IMU api)  
         double angleMagX = atan2(imuData.magY, imuData.magX);
  	double angleMagY = atan2(imuData.magZ, imuData.magY);
  	double angleMagZ = atan2(imuData.magX, imuData.magZ);
