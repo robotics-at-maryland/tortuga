@@ -91,7 +91,14 @@ def _get_internal_lib(name):
                                      ext_deps = ['Boost.Thread']),
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
-                                         ext_deps = ['USB'])
+                                         ext_deps = ['USB']),
+
+            'imu' : InternalLibrary('imu', int_deps = [], ext_deps = [],
+                                    libraries = ['m']),
+
+            'vehicle' : InternalLibrary('vehicle',
+                                        int_deps = ['core', 'imu'],
+                                        ext_deps = [])
             }
 
     if INTERNAL_LIBS.has_key(name):
@@ -133,9 +140,9 @@ class Library(object):
     # scons run
     CHECKED_LIBS = set()
 
-    def __init__(self, name, version, headers, libnames, CPPPATH = [],
-                 CPPFLAGS = [], LINKFLAGS = [], strict_version = False,
-                 ext_deps = []):
+    def __init__(self, name, version, headers, libnames, CPPPATH = None,
+                 CPPFLAGS = None, LINKFLAGS = None, strict_version = False,
+                 ext_deps = None):
         """
         @type  name: string
         @param name: The name of the library
@@ -152,6 +159,11 @@ class Library(object):
                                recieved one must match exactly, otherwise they
                                recieved string must start with the given string.
         """
+        if CPPPATH is None: CPPPATH = []
+        if CPPFLAGS is None: CPPFLAGS = []
+        if LINKFLAGS is None: LINKFLAGS = []
+        if ext_deps is None: ext_deps = []
+        
         self.name = name
         self.version = version.strip()
         self.headers = headers
@@ -260,7 +272,7 @@ class Library(object):
             env.Replace(LIBS = external_libs)
             
             conf = env.Configure()
-            
+
             for lib in self.libraries:
                 if not conf.CheckLib(lib, language='C++', autoadd=1):
                     print '\nERROR:'
@@ -280,8 +292,9 @@ class Library(object):
             # Place self in CHECKED_LIBS
             Library.CHECKED_LIBS.add(self)
         else:
-            env.AppendUnique(LIBS = self.libraries)
-
+            if 0 != len(self.libraries):
+                env.AppendUnique(LIBS = self.libraries)
+            
     def do_check(self, env):
         """
         Whether or not to perform the configure type checks on the libraries
@@ -297,7 +310,8 @@ class Library(object):
         return True
      
 class InternalLibrary(Library):
-    def __init__(self, name, int_deps, ext_deps, strict_version = False):
+    def __init__(self, name, int_deps, ext_deps, strict_version = False,
+                 libraries = None):
         """
         This allows easy inclusion of internal libraries, it automatically pulls
         in all needed settings for libraries it dependends on.
@@ -313,7 +327,9 @@ class InternalLibrary(Library):
         @type  ext_deps: list of strings
         @paraq ext_deps: Names of external libraries this library depends on.
         """
-        Library.__init__(self, name, '', [], [],
+        if libraries is None: libraries = []
+        
+        Library.__init__(self, name, '', [], libraries,
                          strict_version = strict_version,
                          ext_deps = ext_deps)
 
@@ -354,6 +370,9 @@ class InternalLibrary(Library):
         # Add information for all dependents
         for lib in self.int_deps:
             lib.setup_environment(env)
+
+        # Add my libaries
+        self.add_libs(env);
 
 class ConfigLibrary(Library):
     """
@@ -506,7 +525,8 @@ class PythonLib(ConfigLibrary):
             sys.exit(1)
 
 class BoostLibrary(Library):
-    def __init__(self, name, version, headers, libraries = [], ext_deps = []):
+    def __init__(self, name, version, headers, libraries = None,
+                 ext_deps = None):
         """
         @type  version: (numbers)
         @param version: A tuple of major, minor and patch version numbers.  If
@@ -517,6 +537,9 @@ class BoostLibrary(Library):
         @param libaries: A list of the boost libraries that this library
                          instance represents.
         """
+        if libraries is None: libraries = []
+        if ext_deps is None: ext_deps = []
+        
         # Determine Major, Minor and Patch versions from given tuple
         assert (len(version) == 3) or (len(version) == 2)
 
