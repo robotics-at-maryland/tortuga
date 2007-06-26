@@ -13,9 +13,6 @@
 // STD Includes
 #include <string>
 
-// Library Includes
-#include <boost/utility.hpp>
-
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
 
@@ -23,7 +20,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class Device : public IDevice, boost::noncopyable
+class Device : public IDevice // boost::noncopyable
 {
 public:
     Device(std::string name);

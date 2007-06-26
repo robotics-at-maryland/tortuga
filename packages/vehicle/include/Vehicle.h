@@ -26,7 +26,7 @@ public:
     
     virtual ~Vehicle() {}
     
-    /** Gets the device associated with the given name */
+    /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevice* getDevice(std::string name);
     
     virtual math::Vector3 getLinearAcceleration();
@@ -40,7 +40,7 @@ public:
     virtual double getVoltage();
 
     /** This is <b>NOT</b> thread safe */
-    virtual void _addDevice(std::string name, device::IDevice* device);
+    virtual void _addDevice(device::IDevice* device);
 
 private:
     struct VehicleState

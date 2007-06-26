@@ -10,6 +10,9 @@
 #ifndef RAM_VEHICLE_DEVICE_IDEVICE_06_22_2007
 #define RAM_VEHICLE_DEVICE_IDEVICE_06_22_2007
 
+// Library Includes
+#include <boost/utility.hpp>
+
 // Project Includes
 #include "core/include/IUpdatable.h"
 
@@ -17,7 +20,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class IDevice : public core::IUpdatable
+class IDevice : public core::IUpdatable, boost::noncopyable
 {
 public:
     virtual ~IDevice() {};

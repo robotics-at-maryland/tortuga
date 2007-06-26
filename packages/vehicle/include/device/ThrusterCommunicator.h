@@ -25,12 +25,13 @@ namespace vehicle {
 namespace device{
     
 class ThrusterCommunicator : public pattern::Singleton<ThrusterCommunicator>,
-                             core::Updatable
+                             public core::Updatable
                                  
 {
 public:
     ThrusterCommunicator();
-
+    ~ThrusterCommunicator();
+    
     /** Grab reference to singleton object (asserts if singleton not present) */
     static ThrusterCommunicator& getSingleton();
     /** Grab pointer to singleton object (can be NULL) */

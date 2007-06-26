@@ -34,6 +34,25 @@ ThrusterCommunicator* ThrusterCommunicator::getSingletonPtr()
     return ms_Singleton;
 }  
 
+ThrusterCommunicator::ThrusterCommunicator()
+{
+    // Open and store my serial port FD here
+    std::cout << "Thruster Communicator Created" << std::endl;
+
+    // Start up background thread automatically
+    // currently it wakes up every 100 ms, it currently just process messages
+    // then goes back to waiting, but in the future periodic tasks will be
+    // done there
+    background(100);
+}
+
+ThrusterCommunicator::~ThrusterCommunicator()
+{
+    unbackground(true);
+    // close my serial port FD here
+    std::cout << "Thruster Communicator Shutdown" << std::endl;
+}
+    
 void ThrusterCommunicator::registerThruster(Thruster* thruster)
 {
     if (0 == ThrusterCommunicator::getSingletonPtr())

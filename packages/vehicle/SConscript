@@ -18,15 +18,14 @@ sources = helpers.glob(env, 'src', '*.cpp')
 sources.extend(helpers.glob(env, 'src/device', '*.cpp'))
 
 #print 'Sources:'source
-# Build Procducts (library will be called 'libram_vision.so')
+# Build Procducts (library will be called 'libram_vehicle.so')
 helpers.SharedLibrary(envl, 'vehicle',  source = sources)
 
 
 # Testing
-#envt = env.Clone()
+envt = env.Clone()
 
 # Build simple camera test program and make sure vision library is intalled
-#helpers.Program(envt, 'test/src/AdvCvTest.cpp',
-#                int_deps = 'vision')
-
-#envt.Program('test/src/BasicCvTest.c')
+helpers.Program(envt, target = 'ThrusterDemo', 
+                source = 'test/src/ThrusterDemo.cpp',
+                int_deps = 'vehicle')

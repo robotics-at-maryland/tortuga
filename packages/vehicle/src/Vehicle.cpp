@@ -9,6 +9,7 @@
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
+#include "vehicle/include/device/IDevice.h"
 
 namespace ram {
 namespace vehicle {
@@ -62,6 +63,11 @@ void Vehicle::setState(Vehicle::VehicleState* state)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_state_mutex);
     m_state = *state;
+}
+
+void Vehicle::_addDevice(device::IDevice* device)
+{
+    m_devices[device->getName()] = device;
 }
     
 } // namespace vehicle
