@@ -53,8 +53,8 @@ private:
     };
     
 protected:
-    void getState(Vehicle::VehicleState* state);
-    void setState(Vehicle::VehicleState* state);
+    void getState(Vehicle::VehicleState& state);
+    void setState(const Vehicle::VehicleState& state);
     
 private:
     core::ReadWriteMutex m_state_mutex;

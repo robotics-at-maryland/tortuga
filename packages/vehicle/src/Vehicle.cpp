@@ -53,16 +53,16 @@ double Vehicle::getVoltage()
     return m_state.depth;
 }
 
-void Vehicle::getState(Vehicle::VehicleState* state)
+void Vehicle::getState(Vehicle::VehicleState& state)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    *state = m_state;
+    state = m_state;
 }
 
-void Vehicle::setState(Vehicle::VehicleState* state)
+void Vehicle::setState(const Vehicle::VehicleState& state)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_state_mutex);
-    m_state = *state;
+    m_state = state;
 }
 
 void Vehicle::_addDevice(device::IDevice* device)
