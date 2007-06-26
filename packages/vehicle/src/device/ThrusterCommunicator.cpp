@@ -51,7 +51,7 @@ void ThrusterCommunicator::unRegisterThruster(Thruster* thruster)
     ThrusterCommunicator::getSingleton().removeThruster(thruster);
 }
 
-void ThrusterCommunicator::addThrusterCmd(ThrusterCommand* cmd)
+void ThrusterCommunicator::sendThrusterCommand(ThrusterCommand* cmd)
 {
     m_commandQueue.push(cmd);
 }
@@ -114,7 +114,7 @@ void ThrusterCommunicator::runCommand(ThrusterCommand* command)
     std::stringstream ss;
 
     ss << command->getCommandType() << command->getAddress()
-       << " " << command->getArgs() << "\n\r";
+       << command->getArgs() << "\n\r";
     
     /// TODO: Send string over serial
     std::cout << "Thruster command: " << ss.str() << std::endl;

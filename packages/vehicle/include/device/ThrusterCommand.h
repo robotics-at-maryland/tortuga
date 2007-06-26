@@ -15,7 +15,7 @@
 
 namespace ram {
 namespace vehicle {
-namespace device{
+namespace device {
 
 class ThrusterCommand
 {
@@ -23,7 +23,7 @@ public:
     /** Creates a command to be run on the thruster
      */
     ThrusterCommand(std::string address, std::string commandType,
-                    std::string args);
+                    std::string args = "");
 
     std::string getAddress();
     std::string getCommandType();

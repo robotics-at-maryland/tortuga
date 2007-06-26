@@ -7,8 +7,8 @@
  * File:  packages/vision/include/Vehicle.h
  */
 
-#ifndef RAM_VEHICLE_VEHICLE_06_11_2006
-#define RAM_VEHICLE_VEHICLE_06_11_2006
+#ifndef RAM_VEHICLE_VEHICLE_06_11_2007
+#define RAM_VEHICLE_VEHICLE_06_11_2007
 
 // Project Includes
 #include "core/include/ReadWriteMutex.h"
@@ -66,4 +66,4 @@ private:
 } // namespace vehicle
 } // namespace ram
     
-#endif // RAM_VEHICLE_VEHICLE_06_11_2006
+#endif // RAM_VEHICLE_VEHICLE_06_11_2007

@@ -7,21 +7,26 @@
  * File:  packages/core/include/IDevice.h
  */
 
-#ifndef RAM_CORE_IDEVICE_06_22_2006
-#define RAM_CORE_IDEVICE_06_22_2006
+#ifndef RAM_VEHICLE_DEVICE_IDEVICE_06_22_2007
+#define RAM_VEHICLE_DEVICE_IDEVICE_06_22_2007
+
+// Project Includes
+#include "core/include/IUpdatable.h"
 
 namespace ram {
-namespace core {
+namespace vehicle {
+namespace device {
 
-class IDevice : public IUpdatable
+class IDevice : public core::IUpdatable
 {
 public:
     virtual ~IDevice() {};
 
-    virtual std::string getName();
+    virtual std::string getName() = 0;
 };
 
+} // namespace device
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_CORE_IDEVICE_06_22_2006
+#endif // RAM_VEHICLE_DEVICE_IDEVICE_06_22_2007

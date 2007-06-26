@@ -50,7 +50,7 @@ public:
      *
      *  Ownership of the ThrusteCommand passes to the ThrusterCommunicator.
      */
-    void addThrusterCmd(ThrusterCommand* cmd);
+    void sendThrusterCommand(ThrusterCommand* cmd);
 
     /** Run in the background at a fixed rate */
     virtual void update(double timestep);
