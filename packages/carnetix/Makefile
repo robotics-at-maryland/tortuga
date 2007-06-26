@@ -3,7 +3,7 @@ CC = gcc
 LD = gcc
 AR = ar
 
-LDFLAGS= -lusb -lctx -Lbin -g -L/opt/local/lib
+LDFLAGS= -lusb -Lbin -g -L/opt/local/lib
 CFLAGS= -g -Iinclude -I/opt/local/include
 
 all: bin/libctx.a ctx consolemon
@@ -30,13 +30,13 @@ test/bin:
 bin/ctx.o: test/src/ctx.c include/ctxapi.h
 	$(CC) $(CFLAGS) -c test/src/ctx.c -o bin/ctx.o 
 
-ctx: bin/libctx.a bin/ctx.o
+ctx: bin/ctx.o bin/ctxapi.o
 	$(CC) $(LDFLAGS)  bin/ctx.o -o ctx
 
 # Demo Program
-bin/consolemon.o: test/src/consolemon.c include/ctxapi.h
+bin/consolemon.o: test/src/consolemon.c include/ctxapi.h bin/ctxapi.o
 	$(CC) $(CFLAGS) -c test/src/consolemon.c -o bin/consolemon.o
 
 
-consolemon: bin/libctx.a bin/consolemon.o
-	$(CC) $(LDFLAGS) bin/consolemon.o bin/ctxapi.o -o consolemon 
+consolemon: bin/ctxapi.o bin/consolemon.o
+	$(CC) $(LDFLAGS) bin/consolemon.o bin/ctx.o bin/ctxapi.o -o consolemon 

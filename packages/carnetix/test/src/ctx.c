@@ -115,7 +115,7 @@ int main(int argc, char ** argv)
     }
 
 
-    ctxPriOff(hDev);
+    //ctxPriOff(hDev);
 
     printf("\nYou should probably upgrage to Firmware 1.8+ if you haven't already done so.\n\n");
 
