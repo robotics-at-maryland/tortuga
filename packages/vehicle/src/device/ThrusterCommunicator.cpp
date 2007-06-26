@@ -11,6 +11,12 @@
 #include <sstream>
 #include <iostream>
 
+// UNIX Includes (needed for serial stuff)
+#include <unistd.h>
+#include <termios.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+
 // Project Includes
 #include "vehicle/include/device/ThrusterCommunicator.h"
 #include "vehicle/include/device/ThrusterCommand.h"
@@ -19,6 +25,11 @@ namespace ram {
 namespace vehicle {
 namespace device{
 
+static const char* MOTOR_CONTROLLER_DEV_FILE = "/dev/motor";
+    
+// Open the serial port and do some maybe needed linux foo
+int openSerialPort(const char* devname);
+    
 template<> ThrusterCommunicator* 
     pattern::Singleton<ThrusterCommunicator>::ms_Singleton = 0;
     
@@ -34,20 +45,23 @@ ThrusterCommunicator* ThrusterCommunicator::getSingletonPtr()
     return ms_Singleton;
 }  
 
-ThrusterCommunicator::ThrusterCommunicator()
+ThrusterCommunicator::ThrusterCommunicator() :
+    m_serialFD(-1)
 {
     // Open and store my serial port FD here
-    std::cout << "Thruster Communicator Created" << std::endl;
+    m_serialFD = openSerialPort(MOTOR_CONTROLLER_DEV_FILE);
 
-    // Start up background thread automatically
-    // currently it wakes up every 100 ms, it currently just process messages
-    // then goes back to waiting, but in the future periodic tasks will be
-    // done there
-    background(100);
+    if (m_serialFD < 0)
+        std::cout << "Could not open serial port" << std::endl;
+    
+    std::cout << "Thruster Communicator Created" << std::endl;
 }
 
 ThrusterCommunicator::~ThrusterCommunicator()
 {
+    // Process all pending messages, then shutdown message thread
+    processCommands();
+    
     unbackground(true);
     // close my serial port FD here
     std::cout << "Thruster Communicator Shutdown" << std::endl;
@@ -119,26 +133,116 @@ void ThrusterCommunicator::removeThruster(Thruster* thruster)
 
 void ThrusterCommunicator::processCommands()
 {
+    
     ThrusterCommand* nextCommand;
 
-    // Runs every command untill the queue is empty
-    while(m_commandQueue.popNoWait(nextCommand))
+    // Only process commands if the port is actually open
+    if (m_serialFD >= 0)
     {
-        runCommand(nextCommand);
+        // Runs every command untill the queue is empty
+        while(m_commandQueue.popNoWait(nextCommand))
+        {
+            runCommand(nextCommand);
+        }
+    }
+    // Port not open, attempt to open it up and reprocess commands, or just
+    // drop them
+    else
+    {
+        m_serialFD = openSerialPort(MOTOR_CONTROLLER_DEV_FILE);
+
+        // Good connection, run commands
+        if (m_serialFD >= 0)
+        {
+            processCommands();
+        }
+        // Bad connection, drop all commands
+        else
+        {
+            while(m_commandQueue.popNoWait(nextCommand))
+            {
+                delete nextCommand;
+            }   
+        }
     }
 }
     
 void ThrusterCommunicator::runCommand(ThrusterCommand* command)
 {
-    std::stringstream ss;
+    // Only run serial command if port is open
+    if (m_serialFD >= 0)
+    {
+        std::stringstream ss;
 
-    ss << command->getCommandType() << command->getAddress()
-       << command->getArgs() << "\n\r";
+        ss << command->getCommandType() << command->getAddress()
+           << command->getArgs() << "\n\r";
     
-    /// TODO: Send string over serial
-    std::cout << "Thruster command: " << ss.str() << std::endl;
+        std::cout << "Thruster command: " << ss.str() << std::endl;
+
+        /// TODO: figure out what to do with a bad return type
+        std::string cmd(ss.str());
+        write(m_serialFD, cmd.c_str(), cmd.length() + 1);
+    }
     
     delete command;
+}
+
+
+/* Some code from cutecom, which in turn may have come from minicom */
+int openSerialPort(const char* devName)
+{
+   int fd = open(devName, O_RDWR, O_ASYNC); // | O_ASYNC); //, O_RDWR, O_NONBLOCK);
+
+    if(fd == -1)
+        return -1;
+
+    printf("FD=%d\n", fd);
+    struct termios newtio;
+    if (tcgetattr(fd, &newtio)!=0)
+        printf("\nFirst stuff failed\n");
+
+    unsigned int _baud=B115200;
+    cfsetospeed(&newtio, _baud);
+    cfsetispeed(&newtio, _baud);
+
+
+    newtio.c_cflag = (newtio.c_cflag & ~CSIZE) | CS8;
+    newtio.c_cflag |= CLOCAL | CREAD;
+    newtio.c_cflag &= ~(PARENB | PARODD);
+
+    newtio.c_cflag &= ~CRTSCTS;
+    newtio.c_cflag &= ~CSTOPB;
+
+    newtio.c_iflag=IGNBRK;
+    newtio.c_iflag &= ~(IXON|IXOFF|IXANY);
+
+    newtio.c_lflag=0;
+
+    newtio.c_oflag=0;
+
+
+    newtio.c_cc[VTIME]=1;
+    newtio.c_cc[VMIN]=60;
+
+//   tcflush(m_fd, TCIFLUSH);
+    if (tcsetattr(fd, TCSANOW, &newtio)!=0)
+        printf("tsetaddr1 failed!\n");
+
+    int mcs=0;
+
+    ioctl(fd, TIOCMGET, &mcs);
+    mcs |= TIOCM_RTS;
+    ioctl(fd, TIOCMSET, &mcs);
+
+    if (tcgetattr(fd, &newtio)!=0)
+        printf("tcgetattr() 4 failed\n");
+
+    newtio.c_cflag &= ~CRTSCTS;
+
+    if (tcsetattr(fd, TCSANOW, &newtio)!=0)
+      printf("tcsetattr() 2 failed\n");
+
+    return fd;
 }
     
 } // namespace device

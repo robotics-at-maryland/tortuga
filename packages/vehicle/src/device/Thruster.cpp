@@ -38,6 +38,11 @@ Thruster::Thruster(std::string name, std::string address,
 
 Thruster::~Thruster()
 {
+    // Preform a soft reset to make sure the power dies to the thruster
+    ThrusterCommand* cmd = new ThrusterCommand(m_address, SOFT_RESET);
+    ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
+
+    // Unregister from communicator so it will no when to destory itself
     ThrusterCommunicator::unRegisterThruster(this);
 }
     

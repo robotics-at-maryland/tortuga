@@ -83,6 +83,9 @@ private:
 
     /** ThreadQueue of incomming commands */
     core::ThreadedQueue<ThrusterCommand*> m_commandQueue;
+
+    /** file descriptor of the serial device file*/
+    int m_serialFD;
 };
 
 } // namespace device
