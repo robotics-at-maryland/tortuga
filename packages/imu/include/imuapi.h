@@ -10,6 +10,11 @@
 #ifndef RAM_IMUAPI_H_06_25_2007
 #define RAM_IMUAPI_H_06_25_2007
 
+// If we are compiling as C++ code we need to use extern "C" linkage
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 typedef struct _RawIMUData
 {
     int messageID;
@@ -37,14 +42,19 @@ typedef struct _RawIMUData
  *
  *  @param  devName  Device filename
  *
- *  @return  The file descriptor of the device file.
+ *  @return  The file descriptor of the device file, -1 on error.
  */
 int openIMU(const char * devName);
 
 /** Read the latest IMU measurements into the given structure
  *
- *  @param fd  The device file returned by openIMU
+ *  @param fd  The device file returned by openIMUb
  */
 int readIMUData(int fd, RawIMUData * imu);
 
+// If we are compiling as C++ code we need to use extern "C" linkage
+#ifdef __cplusplus
+} // extern "C"
+#endif // __cplusplus
+    
 #endif // RAM_IMUAPI_H_06_25_2007
