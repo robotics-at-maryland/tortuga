@@ -1,22 +1,36 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/imu/src/imuapi.c
+ */
+
+// STD Includes
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 #include <math.h>
+
+// UNIX Includes
+#include <unistd.h>
+#include <termios.h>
 #include <fcntl.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <errno.h>
-#include <termios.h>
-#include <unistd.h>
-#include <string.h>
-#include <linux/serial.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-#include <unistd.h>
 #include <bits/types.h>
-//#include <bits/termios.h>
+
+// Linux Includes
+#include <linux/serial.h>
+
+// Project Includes
 #include "imuapi.h"
 
+static const double DEGS_TO_RADIANS = M_PI / 180;
 
 unsigned char waitByte(int fd)
 {
@@ -25,7 +39,7 @@ unsigned char waitByte(int fd)
     return rxb[0];
 }
 
-int waitSync(int fd)
+void waitSync(int fd)
 {
     int fs=0;
     int syncLen=0;
@@ -66,9 +80,9 @@ int readIMUData(int fd, struct imuMeasurements * imu)
     imu->messageID = imuData[0];
     imu->sampleTimer = (imuData[3]<<8) | imuData[4];
 
-    imu->gyroX = convertData(imuData[9], imuData[10], 600);
-    imu->gyroY = convertData(imuData[11], imuData[12], 600);
-    imu->gyroZ = convertData(imuData[13], imuData[14], 600);
+    imu->gyroX = convertData(imuData[9], imuData[10], 600) * DEGS_TO_RADIANS;
+    imu->gyroY = convertData(imuData[11], imuData[12], 600) * DEGS_TO_RADIANS;
+    imu->gyroZ = convertData(imuData[13], imuData[14], 600) * DEGS_TO_RADIANS;
 
     imu->accelX = convertData(imuData[15], imuData[16], 4);
     imu->accelY = convertData(imuData[17], imuData[18], 4);
@@ -88,14 +102,6 @@ int readIMUData(int fd, struct imuMeasurements * imu)
     sum += 0xFF * 4;
 
     imu->checksumValid = (imuData[33] == (sum&0xFF));
-
-    imu->angleMagX=atan2(imu->magY, imu->magX);
-    imu->angleMagY=atan2(imu->magZ, imu->magY);
-    imu->angleMagZ=atan2(imu->magX, imu->magZ);
-
-    imu->angleAccX=atan2(imu->accelY, imu->accelX);
-    imu->angleAccY=atan2(imu->accelZ, imu->accelY);
-    imu->angleAccZ=atan2(imu->accelX, imu->accelZ);
 
     if(!imu->checksumValid)
         printf("WARNING! IMU Checksum Bad!\n");

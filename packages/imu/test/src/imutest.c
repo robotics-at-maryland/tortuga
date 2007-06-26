@@ -23,9 +23,22 @@ int main(int argc, char ** argv)
 
     while(1)
     {
+        // Calculate angles (taken out of the IMU api)
+        double angleMagX = atan2(imuData.magY, imuData.magX);
+ 	double angleMagY = atan2(imuData.magZ, imuData.magY);
+ 	double angleMagZ = atan2(imuData.magX, imuData.magZ);
+ 	
+        double angleAccX = atan2(imuData.accelY, imuData.accelX);
+ 	double angleAccY = atan2(imuData.accelZ, imuData.accelY);
+ 	double angleAccZ = atan2(imuData.accelX, imuData.accelZ);
+ 	
 
         readIMUData(fd, &imuData);
-        printf("%9f %9f %9f %11f %11f %11f  %11f %11f %11f %11f %11f %11f %11f %11f %11f; \n", imuData.accelX, imuData.accelY, imuData.accelZ, imuData.gyroX, imuData.gyroY, imuData.gyroZ, imuData.magX, imuData.magY, imuData.magZ, imuData.angleAccX, imuData.angleAccY, imuData.angleAccZ, imuData.angleMagX, imuData.angleMagY, imuData.angleMagZ);
+        printf("%9f %9f %9f %11f %11f %11f  %11f %11f %11f %11f %11f %11f"
+               " %11f %11f %11f; \n", imuData.accelX, imuData.accelY,
+               imuData.accelZ, imuData.gyroX, imuData.gyroY, imuData.gyroZ,
+               imuData.magX, imuData.magY, imuData.magZ, angleAccX,
+               angleAccY, angleAccZ, angleMagX, angleMagY, angleMagZ);
 
 
         //printf("%11f %11f %11f  %11f %11f %11f  \n", imuData.angleMagX, imuData.angleMagY, imuData.angleMagZ, imuData.angleAccX, imuData.angleAccY, imuData.angleAccZ);

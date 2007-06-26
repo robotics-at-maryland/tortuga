@@ -1,10 +1,22 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/imu/include/imuapi.h
+ */
+
+#ifndef RAM_IMUAPI_H_06_25_2007
+#define RAM_IMUAPI_H_06_25_2007
+
 struct imuMeasurements
 {
     int messageID;
     int sampleTimer;
-    double gyroX;   /* Degrees per second */
-    double gyroY;   /* Degrees per second */
-    double gyroZ;   /* Degrees per second */
+    double gyroX;   /* Radians per second */
+    double gyroY;   /* Radians per second */
+    double gyroZ;   /* Radians per second */
 
     double accelX;  /* Gs   */
     double accelY;  /* Gs   */
@@ -18,19 +30,20 @@ struct imuMeasurements
     double tempY;   /* Degrees C */
     double tempZ;   /* Degrees C */
     int checksumValid;
-
-    /*all the following angles IN RADIANS
-    different axes in the variable names tell which axis the angle of the sub
-     is measured with respect to*/
-    double angleAccX;
-    double angleAccY;
-    double angleAccZ;
-    double angleMagX;
-    double angleMagY;
-    double angleMagZ;
 };
 
-
-
+/** Opens a serial channel to the imu using the given devices
+ *
+ *  @param  devName  Device filename
+ *
+ *  @return  The file descriptor of the device file.
+ */
 int openIMU(const char * devName);
+
+/** Read the latest IMU measurements into the given structure
+ *
+ *  @param fd  The device file returned by openIMU
+ */
 int readIMUData(int fd, struct imuMeasurements * imu);
+
+#endif // RAM_IMUAPI_H_06_25_2007

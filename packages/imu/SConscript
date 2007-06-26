@@ -15,14 +15,14 @@ envl = env.Clone()
 
 # Build Library (will be called 'libram_carnetix.so')
 envl.Append(CPPPATH = ['include'])
-helpers.SharedLibrary(envl, 'imu',  source = ['src/ctxapi.c'])
+helpers.SharedLibrary(envl, 'imu',  source = ['src/imuapi.c'])
 
 # Testing and Demo Programs
 envt = env.Clone()
 
-# Freaking build system is broken, shouldn't need this lib hack
+# Needed because of steves include pattern
 envt.Append(CPPPATH = ['include'])
 
 # Build the ctx and consolemon
 helpers.Program(envt, target = 'imutest', source = 'test/src/imutest.c',
-                int_deps = 'carnetix')
+                int_deps = 'imu')
