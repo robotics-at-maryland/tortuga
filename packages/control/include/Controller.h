@@ -7,4 +7,7 @@
  * File:  packages/control/include/Controller.h
  */
 
-// Put structures and function prototypes here! 
+// Put structures and function prototypes here!
+
+
+void translationalController();

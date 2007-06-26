@@ -8,3 +8,7 @@
  */
 
 // Put actual functions here
+
+void translationalController()
+{
+}
