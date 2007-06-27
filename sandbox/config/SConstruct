@@ -1,0 +1,32 @@
+import os
+
+tpath = os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles','tools')
+env = Environment(ENV=os.environ, tools = ['default', 'gccxml'],
+                  toolpath = [tpath])
+env.Append(CPPPATH = ['.'])
+
+# Compile are Test Library
+sources = ['src/Config.cpp']
+config_lib = env.SharedLibrary(target = 'build/config', source = sources)
+
+install_file = os.path.join('lib', os.path.basename(str(config_lib[0])))
+env.InstallAs(target = install_file, source = config_lib)
+
+
+# Compile Test Program
+envt = env.Clone()
+envt.Append(LIBS = 'config')
+envt.Append(LIBPATH = 'lib')
+envt.Program(target = 'TestConfig', source = 'test/src/TestConfig.cpp')
+
+# Generate out wrapper
+#import helpers
+
+#envw = env.Clone()
+
+#envw.Append(LIBS = ['vehicle'])
+#envw.Append(LIBPATH = ['lib'])
+
+#headers_to_wrap = ['include/Vehicle.h', 'include/device/Device.h',
+#                   'include/device/PSU.h']
+#helpers.wrap_headers(envw, 'vehicle', headers_to_wrap)
