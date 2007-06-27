@@ -4,6 +4,7 @@
 
 ConfigNode::ConfigNode()
 //ConfigNode::ConfigNode(py::object pyobj)
+//    : m_node(pyobj)
 {
     tmp_int = 5;
     tmp_double = 26.3;
@@ -18,20 +19,20 @@ ConfigNode::ConfigNode()
     str_int_map["Joe"] =  30;
 }
 
-ConfigNode ConfigNode::operator[](int index)
+IConfigNodePtr ConfigNode::idx(int index)
 {
-    ConfigNode newNode;
-    newNode.tmp_int = int_list[index];
+    ConfigNode*  newNode = new ConfigNode();
+    newNode->tmp_int = int_list[index];
     
-    return newNode;
+    return IConfigNodePtr(newNode);
 }
 
-ConfigNode ConfigNode::operator[](std::string val)
+IConfigNodePtr ConfigNode::map(std::string val)
 {
-    ConfigNode newNode;
-    newNode.tmp_int = str_int_map[val];
+    ConfigNode* newNode = new ConfigNode();
+    newNode->tmp_int = str_int_map[val];
     
-    return newNode;
+    return IConfigNodePtr(newNode);
 }
 
 

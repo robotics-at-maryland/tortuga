@@ -9,29 +9,54 @@
 #include <map>
 
 // Library Includes
+#include <boost/shared_ptr.hpp>
 //#include <boost/python.hpp>
-//namespace py = boost::python;
+///namespace py = boost::python;
 
-class ConfigNode
+class IConfigNode;
+typedef boost::shared_ptr<IConfigNode> IConfigNodePtr;
+
+class IConfigNode
+{
+public:
+    /** Grab a section of the config like an array */
+    virtual IConfigNodePtr idx(int index) = 0;
+
+    /** Grab a sub node with the same name */
+    virtual IConfigNodePtr map(std::string map) = 0;
+
+    /** Convert the node to a string value */
+    virtual std::string asString() = 0;
+
+    /** Convert the node to a double */
+    virtual double asDouble() = 0;
+
+    /** Convert the node to an int */
+    virtual int asInt() = 0;
+};
+
+
+
+class ConfigNode : public IConfigNode
 {
 public:
     ConfigNode();
-//    ConfigNode(bp::object pyobj);
+//    ConfigNode(by::object pyobj);
 
     /** Grab a section of the config like an array */
-    ConfigNode operator[](int index);
+    virtual IConfigNodePtr idx(int index);
 
     /** Grab a sub node with the same name */
-    ConfigNode operator[](std::string map);
+    virtual IConfigNodePtr map(std::string map);
 
     /** Convert the node to a string value */
-    std::string asString();
+    virtual std::string asString();
 
     /** Convert the node to a double */
-    double asDouble();
+    virtual double asDouble();
 
     /** Convert the node to an int */
-    int asInt();
+    virtual int asInt();
 
 private:
     //   enum MyType{
@@ -39,7 +64,9 @@ private:
 //    };
 
     //  ConfigNode::MyType type;
-        
+
+
+//    py::object m_node;
     int tmp_int;
     double tmp_double;
     std::string tmp_string;
