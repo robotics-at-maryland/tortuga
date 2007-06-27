@@ -1,5 +1,6 @@
 function mat = J(q)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% mat = J(q)
 %
 % function J.m is used to find a matrix required for the calculation of the
 % derivative of a quaternion
@@ -12,8 +13,8 @@ function mat = J(q)
 % June 22 2007
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if(length(a)~=4)
-    disp('argument not 3x1')
+if(length(q)~=4)
+    disp('argument not 4x1')
 else
     mat=(1/2)*[q(4)*eye(3)+S(q(1:3));  -q(1:3)'];%4x4skew-symm matrix
 end

@@ -1,7 +1,9 @@
 function thrusterForces=computeThrusterForces(translationalForces,rotationalTorques)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% function computeThrusterForces.m is a function 
+% thrusterForces=computeThrusterForces(translationalForces,rotationalTorques)
+%
+% output: thrusterForces = [FPort; FStarboard; FFore; FAft];
 %
 % WARNING!!!! trans and rot sloppily thrown together!!! fix later!!!
 %
@@ -36,9 +38,9 @@ rFore = 0.3366;
 rAft = 0.3366;
 
 %todo: make this code not shitty
-FPort = translationalForces(1)-rotationalTorques(3)/rPort;
-FStarboard = translationalForces(1)+rotationalTorques(3)/rStarboard;
-FFore = translationalForces(3)+rotationalTorques(2)/rFore;
-FAft = translationalForces(3)-rotationalTorques(2)/rAft;
+FPort = translationalForces(1)/2-0.5*rotationalTorques(3)/rPort;
+FStarboard = translationalForces(1)/2+0.5*rotationalTorques(3)/rStarboard;
+FFore = translationalForces(3)/2+0.5*rotationalTorques(2)/rFore;
+FAft = translationalForces(3)/2-0.5*rotationalTorques(2)/rAft;
 
 thrusterForces = [FPort; FStarboard; FFore; FAft];

@@ -1,5 +1,8 @@
-function rotationalTorques=rotationalController(MeasuredState,DesiredState,ControllerState,dt)
+function [rotationalTorques aHatNew]=rotationalController(MeasuredState,DesiredState,ControllerState,dt)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% [rotationalTorques
+% aHatNew]=rotationalController(MeasuredState,DesiredState,ControllerState,dt)
 %
 % function rotationalController.m is an encapsulation of the
 % rotational controller
@@ -13,8 +16,11 @@ function rotationalTorques=rotationalController(MeasuredState,DesiredState,Contr
 % 
 % NOTE: this function changes the inertia estimate (as it should!!!)
 %
-% returns rotationalTorques, the torques used to rotate the vehicle as
-% written in the vehicle's coord frame.  torques are in Newton*meters
+% returns 
+%           - rotationalTorques, the torques used to rotate the vehicle as
+%             written in the vehicle's coord frame.  torques are in Newton*meters
+%           - aHatNew, the new estimate of the adaptation parameters
+%
 %
 % written by Joseph Gland
 % June 22 2007
@@ -48,13 +54,19 @@ Y=[-qTildeDot(1) -qTildeDot(2) -qTildeDot(3) 0 0 0;
    0 -qTildeDot(1) 0 -qTildeDot(2) -qTildeDot(3) 0;
    0 0 -qTildeDot(1) 0 -qTildeDot(2) -qTildeDot(3)];
 
-%control law
-rotationalTorques=-Kd*s+Y*aHat;
-    
+%adaptive control law
+%rotationalTorques=-Kd*s+Y*aHat;
+%boring PD control law, adaptive law freaking out
+rotationalTorques=-Kd*s;    
+
 %find derivatives of adaptive parameters
 %gamma
 %Y
 %s
 aHatDot = -gamma*Y'*s;
 %integrate
-ControllerState.inertiaEstimate = aHat + aHat*dt;
+%code that I WANT to put in, but matlab has permission issues with structs
+%ControllerState.inertiaEstimate = aHat + aHat*dt;
+%ControllerState.inertiaEstimate
+%stupid code I have to use (blegh!)
+aHatNew = aHat + aHat*dt;
