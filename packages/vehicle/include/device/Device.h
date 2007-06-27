@@ -8,7 +8,7 @@
  */
 
 #ifndef RAM_VEHICLE_DEVICE_DEVICE_06_25_2007
-#define RAM_VEHICLE_DEVICE_DEVICE__06_25_2007
+#define RAM_VEHICLE_DEVICE_DEVICE_06_25_2007
 
 // STD Includes
 #include <string>
@@ -36,4 +36,4 @@ private:
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_DEVICE__06_25_2007
+#endif // RAM_VEHICLE_DEVICE_DEVICE_06_25_2007
