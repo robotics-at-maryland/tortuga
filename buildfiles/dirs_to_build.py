@@ -2,7 +2,6 @@ import os
 import platform
 
 COMMON_DIRS = set([
-    os.path.join('packages', 'vehicle'),
     os.path.join('packages', 'vision'),
     os.path.join('packages', 'pattern'),
     os.path.join('packages', 'core'),
@@ -10,6 +9,8 @@ COMMON_DIRS = set([
 
 LINUX_DIRS = set([
 #    os.path.join('packages','extensions', 'wxogre'),
+    os.path.join('packages', 'vehicle'),
+    os.path.join('wrappers', 'vehicle'),
     os.path.join('packages', 'carnetix'),
     os.path.join('packages', 'imu')])
 

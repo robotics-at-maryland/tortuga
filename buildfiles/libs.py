@@ -1,4 +1,4 @@
-# Copyright (C) 2007 Maryland Robotics Club
+9# Copyright (C) 2007 Maryland Robotics Club
 # Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
 # All rights reserved.
 #
@@ -97,7 +97,7 @@ def _get_internal_lib(name):
                                     libraries = ['m']),
 
             'vehicle' : InternalLibrary('vehicle',
-                                        int_deps = ['core', 'imu'],
+                                        int_deps = ['core', 'imu', 'pattern'],
                                         ext_deps = [])
             }
 
@@ -273,6 +273,7 @@ class Library(object):
             
             conf = env.Configure()
 
+            self.libraries.reverse()
             for lib in self.libraries:
                 if not conf.CheckLib(lib, language='C++', autoadd=1):
                     print '\nERROR:'
