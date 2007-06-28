@@ -175,10 +175,13 @@ for index=2:1:numSimPoints
     %gyroscopic term of dynamic simulation
     gyroTerm=S(realInertia*storedAngularRate(:,index-1))*storedAngularRate(:,index-1);
     %buoyant term of dynamic simulation (constants are magic numbers based
-    %off SCAMP data, replace with real numbers later)
+    %off SCAMP data, replace with real numbers later)  IS THIS IN INERTIAL
+    %FRAME...?
     buoyancyTerm=[-0.3*sin(rollPitchYaw(1)-0);
-                  -0.3*sin(rollPitchYaw(2)-5*pi/180);
+                  -0.3*sin(rollPitchYaw(2)-45*pi/180);
                   0];
+              
+    buoyancyTerm=rotationMatrixFromQuaternion(storedQuaternion(:,index-1))*buoyancyTerm;
     %drag term of dynamic simulation (constants are magic numbers based off
     %SCAMP data, replace with real numbers late)
     dragTerm=(-1)*[0.5*storedAngularRate(1,index-1)*abs(storedAngularRate(1,index-1));
