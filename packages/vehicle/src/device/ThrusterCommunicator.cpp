@@ -10,12 +10,14 @@
 // STD Includes
 #include <sstream>
 #include <iostream>
+#include <cstdio>
 
 // UNIX Includes (needed for serial stuff)
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <poll.h>
 
 // Project Includes
 #include "vehicle/include/device/ThrusterCommunicator.h"
@@ -23,12 +25,15 @@
 
 namespace ram {
 namespace vehicle {
-namespace device{
+namespace device {
 
+static const int MOTOR_CMD_TIMEOUT = 1000;
 static const char* MOTOR_CONTROLLER_DEV_FILE = "/dev/motor";
     
 // Open the serial port and do some maybe needed linux foo
 int openSerialPort(const char* devname);
+
+int hasData(int fd, int timeout);
     
 template<> ThrusterCommunicator* 
     pattern::Singleton<ThrusterCommunicator>::ms_Singleton = 0;
@@ -175,18 +180,61 @@ void ThrusterCommunicator::runCommand(ThrusterCommand* command)
         std::stringstream ss;
 
         ss << command->getCommandType() << command->getAddress()
-           << command->getArgs() << "\n\r";
+           << command->getArgs() << " \r\n";
     
         std::cout << "Thruster command: " << ss.str() << std::endl;
-
         /// TODO: figure out what to do with a bad return type
         std::string cmd(ss.str());
-        write(m_serialFD, cmd.c_str(), cmd.length() + 1);
+        int ret = write(m_serialFD, cmd.c_str(), cmd.length());
+	if (ret < 0)
+	  std::cout << "Write failure" << std::endl;
+
+        usleep(100 * 1000);
+/*	if(!hasData(m_serialFD, MOTOR_CMD_TIMEOUT))
+	{
+	    std::cout << "Motor controller not responding!!" << std::endl;
+        }
+        else
+	{
+	    int i;
+            unsigned char buf[5]={0,0,0,0,0};
+	  
+	  
+            for(i=0; i<4; i++)
+	    {
+                if(hasData(m_serialFD, MOTOR_CMD_TIMEOUT))
+		{
+                    int ret = read(m_serialFD, buf+i, 1);
+		}
+                else
+                {
+                    std::cout << "MC Not Responding" << std::endl;
+                }
+	    }
+
+            std::cout << "Response: " << (const char*)&buf[0] << std::endl;
+
+	  // Check buffer contains OK\n\r
+
+        }
+*/
     }
     
     delete command;
 }
 
+/** Checks for data waiting on the file descriptor  */
+int hasData(int fd, int timeout)
+{
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+
+    poll(&pfd, 1, timeout);
+
+    return pfd.revents & POLLIN;
+}
 
 /* Some code from cutecom, which in turn may have come from minicom */
 int openSerialPort(const char* devName)
@@ -196,12 +244,12 @@ int openSerialPort(const char* devName)
     if(fd == -1)
         return -1;
 
-    printf("FD=%d\n", fd);
+    //printf("FD=%d\n", fd);
     struct termios newtio;
     if (tcgetattr(fd, &newtio)!=0)
         printf("\nFirst stuff failed\n");
 
-    unsigned int _baud=B115200;
+    unsigned int _baud=B19200;
     cfsetospeed(&newtio, _baud);
     cfsetispeed(&newtio, _baud);
 

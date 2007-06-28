@@ -45,8 +45,8 @@ int main()
     for (size_t i = 0; i < list.size(); ++i)
     {
         cout << "Sending: \"" << list[i]->getName() << " 1 newton" << endl;
-        list[i]->setForce(1);
-        usleep(500 * 1000);
+        list[i]->setForce(250);
+        usleep(2000 * 1000);
 
         cout << "Stopping" << endl;
         list[i]->setForce(0);
