@@ -2,9 +2,75 @@
 
 #include "include/Config.h"
 
+
+ConfigNode ConfigNode::operator[](int index)
+{
+    return ConfigNode(m_impl->idx(index));
+}
+
+ConfigNode ConfigNode::operator[](std::string key)
+{
+    return ConfigNode(m_impl->map(key));
+}
+
+std::string ConfigNode::asString()
+{
+    return m_impl->asString();
+}
+
+double ConfigNode::asDouble()
+{
+    return m_impl->asDouble();
+}
+
+int ConfigNode::asInt()
+{
+    return m_impl->asInt();
+}
+
+ConfigNode ConfigNode::construct(std::string type)
+{
+    if (type == "Test")
+    {
+        return ConfigNode(ConfigNodeImpPtr(new TestConfigNodeImp()));
+    }
+
+    assert(false && "Wrong type of config node");
+    return ConfigNode(ConfigNodeImpPtr());
+}
+
+
+ConfigNode::ConfigNode(ConfigNodeImpPtr impl) :
+    m_impl(impl)
+{
+}
+
 ConfigNode::ConfigNode()
-//ConfigNode::ConfigNode(py::object pyobj)
-//    : m_node(pyobj)
+{
+    assert(false && "ConfigNode() Should not be called");
+}
+
+ConfigNode::ConfigNode(const ConfigNode& configNode)
+{
+    m_impl = configNode.m_impl;
+//    assert(false && "ConfigNode(const ConfigNode* configNode)");
+}
+
+ConfigNode::ConfigNode& ConfigNode::operator=(const ConfigNode& that)
+{
+    // make sure not same object
+    if (this != &that)
+    {  
+        m_impl = that.m_impl;
+    }
+    return *this;    // Return ref for multiple assignment
+}
+
+// ------------------------------------------------------------------------- //
+//                T E S T   C O N F I G   N O D E   I M P                    //
+// ------------------------------------------------------------------------- //
+
+TestConfigNodeImp::TestConfigNodeImp()
 {
     tmp_int = 5;
     tmp_double = 26.3;
@@ -19,36 +85,34 @@ ConfigNode::ConfigNode()
     str_int_map["Joe"] =  30;
 }
 
-IConfigNodePtr ConfigNode::idx(int index)
+
+ConfigNodeImpPtr TestConfigNodeImp::idx(int index)
 {
-    ConfigNode*  newNode = new ConfigNode();
+    TestConfigNodeImp*  newNode = new TestConfigNodeImp();
     newNode->tmp_int = int_list[index];
     
-    return IConfigNodePtr(newNode);
+    return ConfigNodeImpPtr(newNode);
 }
 
-IConfigNodePtr ConfigNode::map(std::string val)
+ConfigNodeImpPtr TestConfigNodeImp::map(std::string key)
 {
-    ConfigNode* newNode = new ConfigNode();
-    newNode->tmp_int = str_int_map[val];
+    TestConfigNodeImp*  newNode = new TestConfigNodeImp();
+    newNode->tmp_int = str_int_map[key];
     
-    return IConfigNodePtr(newNode);
+    return ConfigNodeImpPtr(newNode);
 }
 
-
-std::string ConfigNode::asString()
+std::string TestConfigNodeImp::asString()
 {
     return tmp_string;
 }
 
-
-double ConfigNode::asDouble()
+double TestConfigNodeImp::asDouble()
 {
     return tmp_double;
 }
 
-
-int ConfigNode::asInt()
+int TestConfigNodeImp::asInt()
 {
     return tmp_int;
-}                       
+}

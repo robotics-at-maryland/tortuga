@@ -13,17 +13,54 @@
 //#include <boost/python.hpp>
 ///namespace py = boost::python;
 
-class IConfigNode;
-typedef boost::shared_ptr<IConfigNode> IConfigNodePtr;
 
-class IConfigNode
+class ConfigNodeImp;
+typedef boost::shared_ptr<ConfigNodeImp> ConfigNodeImpPtr;
+
+class ConfigNode
 {
 public:
+    ConfigNode(const ConfigNode& configNode);
+    
     /** Grab a section of the config like an array */
-    virtual IConfigNodePtr idx(int index) = 0;
+    ConfigNode operator[](int index);
 
     /** Grab a sub node with the same name */
-    virtual IConfigNodePtr map(std::string map) = 0;
+    ConfigNode operator[](std::string map);
+
+    /** Convert the node to a string value */
+    std::string asString();
+
+    /** Convert the node to a double */
+    double asDouble();
+
+    /** Convert the node to an int */
+    int asInt();
+
+    static ConfigNode construct(std::string type);
+private:
+    ConfigNode();
+    ConfigNode& operator=(const ConfigNode& that);
+    
+    ConfigNode(ConfigNodeImpPtr impl);
+
+    
+    ConfigNodeImpPtr m_impl;
+};
+
+
+
+class ConfigNodeImp
+{
+public:
+//    ConfigNode();
+//    ConfigNode(by::object pyobj);
+
+    /** Grab a section of the config like an array */
+    virtual ConfigNodeImpPtr idx(int index) = 0;
+
+    /** Grab a sub node with the same name */
+    virtual ConfigNodeImpPtr map(std::string key) = 0;
 
     /** Convert the node to a string value */
     virtual std::string asString() = 0;
@@ -35,19 +72,16 @@ public:
     virtual int asInt() = 0;
 };
 
-
-
-class ConfigNode : public IConfigNode
+class TestConfigNodeImp : public ConfigNodeImp
 {
 public:
-    ConfigNode();
-//    ConfigNode(by::object pyobj);
-
+    TestConfigNodeImp();
+    
     /** Grab a section of the config like an array */
-    virtual IConfigNodePtr idx(int index);
+    virtual ConfigNodeImpPtr idx(int index);
 
     /** Grab a sub node with the same name */
-    virtual IConfigNodePtr map(std::string map);
+    virtual ConfigNodeImpPtr map(std::string key);
 
     /** Convert the node to a string value */
     virtual std::string asString();
@@ -57,16 +91,7 @@ public:
 
     /** Convert the node to an int */
     virtual int asInt();
-
 private:
-    //   enum MyType{
-    //  INT, DOUBLE, STRING, NODE
-//    };
-
-    //  ConfigNode::MyType type;
-
-
-//    py::object m_node;
     int tmp_int;
     double tmp_double;
     std::string tmp_string;

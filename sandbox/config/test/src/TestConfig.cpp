@@ -7,11 +7,11 @@
 using namespace std;
 int main()
 {
-    IConfigNode* cf = new ConfigNode();
+    ConfigNode cf(ConfigNode::construct("Test"));
 
-    cout << "Test Mapping: " << cf->map("John")->map("Larry")->asInt() << endl;
-    cout << "Test String: " << cf->asString() << endl;
-    cout << "Test Indexing: " << cf->idx(2)->asInt() << endl;
+    cout << "Test Mapping: " << cf["John"]["Larry"].asInt() << endl;
+    cout << "Test String: " << cf.asString() << endl;
+    cout << "Test Indexing: " << cf[2].asInt() << endl;
 
     return 0;
 }
