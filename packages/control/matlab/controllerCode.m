@@ -28,10 +28,13 @@ e(3)*sin(phi/2);
 cos(phi/2)];
 
 %set measured state
+%
+% assume starting at rest conditions
+%
 MeasuredState.depth = 12;
 MeasuredState.linearAcceleration = [-1 -1 -1]';
 MeasuredState.quaternion = qMeasured;
-MeasuredState.angularRate = [0.5 2 2]';
+MeasuredState.angularRate = [0 0 0]';
 
 %generate a desired quaternion
 %euler parameters
@@ -81,8 +84,8 @@ rAft = 0.3366;%m
 
 %set up timing array
 startTime=0;
-stopTime=50;
-numSimPoints=2000;
+stopTime=200;
+numSimPoints=4000;
 time=linspace(startTime,stopTime,numSimPoints);
 dt=time(2)-time(1);
 
@@ -95,9 +98,6 @@ storedAngularRate=zeros(3,numSimPoints);
 storedEstimatedParameters=zeros(6,numSimPoints);
 
 %initialize storage arrays for plotting
-%
-% assume starting at rest conditions
-%
 storedPosition(3,1)=MeasuredState.depth;
 storedQuaternion(:,1)=MeasuredState.quaternion;
 storedAngularRate(:,1)=MeasuredState.angularRate;
@@ -166,7 +166,6 @@ for index=2:1:numSimPoints
     %outputTorques=rotationalTorques;
     
     %implement control torques into dynamic model of vehicle
-    %TODO: add buoyant moment and drag terms here time permitting
     %grab quaternion from last interation
     q=storedQuaternion(:,index-1);
     %convert to roll pitch yaw
@@ -175,7 +174,23 @@ for index=2:1:numSimPoints
                   atan2(2*(q(4)*q(3)+q(1)*q(2)),(1-2*(q(2)^2+q(3)^2)))];
     %gyroscopic term of dynamic simulation
     gyroTerm=S(realInertia*storedAngularRate(:,index-1))*storedAngularRate(:,index-1);
-    w_dot = inv(realInertia)*(outputTorques+gyroTerm);
+    %buoyant term of dynamic simulation (constants are magic numbers based
+    %off SCAMP data, replace with real numbers later)
+    buoyancyTerm=[-0.3*sin(rollPitchYaw(1)-0);
+                  -0.3*sin(rollPitchYaw(2)-5*pi/180);
+                  0];
+    %drag term of dynamic simulation (constants are magic numbers based off
+    %SCAMP data, replace with real numbers late)
+    dragTerm=(-1)*[0.5*storedAngularRate(1,index-1)*abs(storedAngularRate(1,index-1));
+              0.5*storedAngularRate(2,index-1)*abs(storedAngularRate(2,index-1));
+              0.5*storedAngularRate(3,index-1)*abs(storedAngularRate(3,index-1))];
+    %incorporate all dynamic sim components into angular acceleration equation
+    %outputTorques
+    %gyroTerm
+    %buoyancyTerm
+    %dragTerm
+    %w_dot = inv(realInertia)*(outputTorques+gyroTerm+buoyancyTerm+dragTerm);
+    w_dot = inv(realInertia)*(gyroTerm+buoyancyTerm+dragTerm);
     %integrate
     w_new=storedAngularRate(:,index-1)+w_dot*dt;
     %save the new point in the trajectory for plotting
@@ -200,7 +215,7 @@ subplot(4,1,3)
 plot(time,storedQuaternion(3,:))
 ylabel('q_3')
 subplot(4,1,4)
-plot(time,storedQuaternion(4,:),time,1,':')
+plot(time,storedQuaternion(4,:))
 ylabel('q_4')
 xlabel('time (s)')
 
@@ -216,24 +231,24 @@ plot(time,storedAngularRate(3,:))
 ylabel('\omega_3 (rad/s)')
 xlabel('time (s)')
 
-figure(3)
-subplot(3,2,1)
-plot(time,storedEstimatedParameters(1,:))
-ylabel('a_1')
-subplot(3,2,2)
-plot(time,storedEstimatedParameters(2,:))
-ylabel('a_2')
-subplot(3,2,3)
-plot(time,storedEstimatedParameters(3,:))
-ylabel('a_3')
-subplot(3,2,4)
-plot(time,storedEstimatedParameters(4,:))
-ylabel('a_4')
-subplot(3,2,5)
-plot(time,storedEstimatedParameters(5,:))
-ylabel('a_5')
-xlabel('time (s)')
-subplot(3,2,6)
-plot(time,storedEstimatedParameters(6,:))
-ylabel('a_6')
-xlabel('time (s)')
+% figure(3)
+% subplot(3,2,1)
+% plot(time,storedEstimatedParameters(1,:))
+% ylabel('a_1')
+% subplot(3,2,2)
+% plot(time,storedEstimatedParameters(2,:))
+% ylabel('a_2')
+% subplot(3,2,3)
+% plot(time,storedEstimatedParameters(3,:))
+% ylabel('a_3')
+% subplot(3,2,4)
+% plot(time,storedEstimatedParameters(4,:))
+% ylabel('a_4')
+% subplot(3,2,5)
+% plot(time,storedEstimatedParameters(5,:))
+% ylabel('a_5')
+% xlabel('time (s)')
+% subplot(3,2,6)
+% plot(time,storedEstimatedParameters(6,:))
+% ylabel('a_6')
+% xlabel('time (s)')
