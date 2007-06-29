@@ -310,7 +310,10 @@ void processData(byte data)
                 case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = PORTB & 0x7F;
+                    txBuf[1] = PORTB & 0x7D;
+
+                    if(_RD3)
+                        txBuf[1] |= 2;
                     break;
                 }
 
@@ -615,6 +618,8 @@ void main()
     _TRISB4 = TRIS_IN;  /* Power board 3 */
     _TRISB5 = TRIS_IN;  /* Power board 4 */
     _TRISB6 = TRIS_IN;  /* Power board 4 */
+
+    _TRISD3 = TRIS_IN;  /* Start switch for real */
 
     _LATC15 = 0;
     _TRISC15 = TRIS_OUT; /* Hard Kill */

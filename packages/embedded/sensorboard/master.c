@@ -94,6 +94,7 @@ _FWDT ( WDT_OFF );
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
+static const unsigned char cdSafety[]={0xBA, 0xDB, 0xEE, 0xEF, 0x4A};
 
 /* Read byte from bus */
 byte readBus()
@@ -317,6 +318,112 @@ int readDataBlock(byte req)
 }
 
 
+void showString(unsigned char str[], int line)
+{
+    int i=0;
+    for(i=0; i<str[i]!=0; i++)
+    {
+        busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
+        busWriteByte(line*16+i, SLAVE_ID_LCD);
+        busWriteByte(str[i], SLAVE_ID_LCD);
+    }
+    busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
+}
+
+byte pollStatus()
+{
+    if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD) != 0)
+    {
+        showString("STA FAIL", 1);
+        while(1);
+    }
+
+    byte len = readDataBlock(SLAVE_ID_POWERBOARD);
+
+    if(len!=1)
+    {
+        showString("STA FAIL", 1);
+        while(1);
+    }
+    return rxBuf[0];
+}
+
+void showDiag(int mode)
+{
+    unsigned char tmp[16];
+    if(mode == 0)
+    {
+        sprintf(tmp, "Status: %02X      ", pollStatus());
+        showString(tmp, 1);
+    }
+
+    if(mode == 1)
+    {
+
+        if(busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH) != 0)
+        {
+            showString("DEPTH FAIL", 1);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_DEPTH);
+
+        if(len != 2)
+        {
+            showString("DEPTH LEN FAIL", 1);
+            return;
+        }
+
+        sprintf(tmp, "Depth: %02X %02X ", rxBuf[0], rxBuf[1]);
+        showString(tmp, 1);
+    }
+
+    if(mode == 2)
+    {
+
+        if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
+        {
+            showString("TEMP FAIL       ", 1);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_TEMP);
+
+        if(len != 5)
+        {
+            showString("TEMP LEN FAIL   ", 1);
+            return;
+        }
+
+        sprintf(tmp, "T:%02X %02X %02X %02X %02X", rxBuf[0], rxBuf[1], rxBuf[2], rxBuf[3], rxBuf[4]);
+        showString(tmp, 1);
+    }
+}
+
+void diagMode()
+{
+    byte mode=0;
+    unsigned char tmp[16];
+
+    showString("Diagnostic Mode", 0);
+    while(pollStatus() & 0x02);
+
+    while(1)
+    {
+        if(pollStatus() & 0x02)
+        {
+            mode++;
+            if(mode == 3)
+                mode = 0;
+
+            showDiag(mode);
+            while(pollStatus() & 0x02);
+        }
+        showDiag(mode);
+    }
+}
+
+
 int main(void)
 {
     long j=0;
@@ -372,41 +479,26 @@ int main(void)
 
     #define HOST_CMD_PRINTTEXT      0x0C
 
+    #define HOST_CMD_COUNTDOWN      0x0D
 
-    #if 0
-        while(1)
-        {
-            for(j=0; j<150000; j++);
+    unsigned char emptyLine[]="                ";
 
-        /*
-            busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH);
-            readDataBlock(SLAVE_ID_DEPTH);
+    showString(emptyLine, 0);
+    showString(emptyLine, 1);
 
-            int depth = (rxBuf[0]<<8) | rxBuf[1];
-            sprintf(tmp, "%u  ", depth);
-            */
+    for(j=0; j<100000; j++);
 
-            busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP);
-            readDataBlock(SLAVE_ID_TEMP);
+    showString("Diagnostic?", 0);
 
+#if 1
+    for(j=0; j<100000; j++)
+    {
+        if(pollStatus() & 0x02)
+            diagMode();
+    }
 
-                sprintf(tmp, "%u %u %u %u         ", rxBuf[0], rxBuf[1], rxBuf[2], rxBuf[3]);
-
-
-        //    sendString(tmp);
-
-            for(i=0; i<16; i++)
-            {
-                busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
-                busWriteByte(i, SLAVE_ID_LCD);
-                busWriteByte(tmp[i], SLAVE_ID_LCD);
-            }
-
-            busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
-        }
-
+    showString("Starting up...", 0);
 #endif
-
     while(1)
     {
         byte c = waitchar(0);
@@ -415,17 +507,6 @@ int main(void)
 
         switch(c)
         {
-
-            /* For testing for the link only. Remove in final version*/
-            case 5:
-            {
-                byte i=0;
-                for(i=0; i<32; i++)
-                    sendByte(i);
-
-                break;
-            }
-
             case HOST_CMD_SYNC:
             {
                 sendByte(HOST_REPLY_SUCCESS);
@@ -760,6 +841,39 @@ int main(void)
                 break;
             }
 
+
+            case HOST_CMD_COUNTDOWN:
+            {
+
+                for(i=0; i<5; i++)
+                    rxBuf[i] = waitchar(1);
+
+                byte cflag=0;
+
+                for(i=0; i<5; i++)
+                {
+                    if(rxBuf[i] != cdSafety[i])
+                        cflag=1;
+                }
+
+                byte t = waitchar(1);
+                byte cs = waitchar(1);
+
+                if(cflag == 1)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                } else
+                {
+                    if(busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL) != 0)
+                    {
+                        sendByte(HOST_REPLY_FAILURE);
+                        break;
+                    }
+                    sendByte(HOST_REPLY_SUCCESS);
+                }
+                break;
+            }
 
 
         }
