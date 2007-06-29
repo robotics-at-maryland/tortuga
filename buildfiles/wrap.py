@@ -144,6 +144,9 @@ def import_wrapping_mod(gen_mod, src_dir):
 
     return mod
 
+# Prevent warning about mutliple installs
+EXT_DIR_INSTALLED = False
+
 def wrap_headers(env, mod_name, headers,
                  namespace_prefix = '',
                  output_root = 'generated',
@@ -244,8 +247,12 @@ def wrap_headers(env, mod_name, headers,
         # Create init files for importing
         install_dir = os.path.join(env['BUILD_DIR'], install_dir)
         init_file = os.path.join(install_dir, '__init__.py')
-        envw.Command(install_dir, '', SCons.Defaults.Mkdir(install_dir))
-        envw.Command(init_file, '', SCons.Defaults.Touch(init_file))
+        
+        global EXT_DIR_INSTALLED
+        if EXT_DIR_INSTALLED:
+            envw.Command(install_dir, '', SCons.Defaults.Mkdir(install_dir))
+            envw.Command(init_file, '', SCons.Defaults.Touch(init_file))
+            EXT_DIR_INSTALLED = True
 
         # Now the one for our module
         install_path = os.path.join(install_dir,

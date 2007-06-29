@@ -93,8 +93,7 @@ def _get_internal_lib(name):
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
                                          ext_deps = ['USB']),
 
-            'imu' : InternalLibrary('imu', int_deps = [], ext_deps = [],
-                                    libraries = ['m']),
+            'imu' : InternalLibrary('imu', int_deps = [], ext_deps = []),
 
             'vehicle' : InternalLibrary('vehicle',
                                         int_deps = ['core', 'imu', 'pattern'],
