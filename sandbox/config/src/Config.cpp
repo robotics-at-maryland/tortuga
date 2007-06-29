@@ -1,7 +1,7 @@
 #include <utility>
 
 #include "include/Config.h"
-
+#include "include/PyConfig.h"
 
 ConfigNode ConfigNode::operator[](int index)
 {
@@ -28,11 +28,16 @@ int ConfigNode::asInt()
     return m_impl->asInt();
 }
 
-ConfigNode ConfigNode::construct(std::string type)
+ConfigNode ConfigNode::construct(std::string type, boost::any values)
 {
     if (type == "Test")
     {
         return ConfigNode(ConfigNodeImpPtr(new TestConfigNodeImp()));
+    }
+    if (type == "Python")
+    {
+//        py::object dict = 
+        return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(boost::any_cast<py::dict>(values))));
     }
 
     assert(false && "Wrong type of config node");
@@ -115,4 +120,68 @@ double TestConfigNodeImp::asDouble()
 int TestConfigNodeImp::asInt()
 {
     return tmp_int;
+}
+
+// ------------------------------------------------------------------------- //
+//               P Y T H O N   C O N F I G   N O D E   I M P                 //
+// ------------------------------------------------------------------------- //
+
+PythonConfigNodeImp::PythonConfigNodeImp(py::object pyobj) :
+    m_pyobj(pyobj)
+{
+}
+
+
+ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
+{
+    return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[index]));
+}
+
+ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
+{   
+    return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key]));
+}
+
+std::string PythonConfigNodeImp::asString()
+{
+    return std::string(py::extract<char*>(m_pyobj));
+}
+
+double PythonConfigNodeImp::asDouble()
+{
+    return py::extract<double>(m_pyobj);
+}
+
+int PythonConfigNodeImp::asInt()
+{
+    return py::extract<int>(m_pyobj);
+}
+
+boost::any testDict()
+{
+    Py_Initialize();
+    
+    py::dict Controller;
+//    py::long_ test(5l);
+//    Controller["Param"] = py::object(py::handle<>(PyInt_FromLong(10)));
+    Controller["Param"] = 5;
+    Controller["Param2"] = 10;
+
+    py::list params;
+    params.append(1);
+    params.append(2);
+    params.append(3);
+
+    py::dict Thrusters;
+    Thrusters["params"] = params;
+    Thrusters["name"] = "Port";
+
+    py::dict Modules;
+    Modules["Controller"] = Controller;
+    Modules["Thrusters"] = Thrusters;
+
+    py::dict base;
+    base["Modules"]= Modules;
+    
+    return boost::any(base);
 }

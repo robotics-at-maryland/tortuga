@@ -10,12 +10,14 @@
 
 // Library Includes
 #include <boost/shared_ptr.hpp>
-//#include <boost/python.hpp>
-///namespace py = boost::python;
-
+#include <boost/any.hpp>
 
 class ConfigNodeImp;
 typedef boost::shared_ptr<ConfigNodeImp> ConfigNodeImpPtr;
+
+
+// Generate a test python dict
+boost::any testDict();
 
 class ConfigNode
 {
@@ -37,7 +39,9 @@ public:
     /** Convert the node to an int */
     int asInt();
 
-    static ConfigNode construct(std::string type);
+    static ConfigNode construct(std::string type, boost::any);
+//    static ConfigNode construct(ConfigNodeImpPtr imp);
+    
 private:
     ConfigNode();
     ConfigNode& operator=(const ConfigNode& that);
@@ -53,8 +57,6 @@ private:
 class ConfigNodeImp
 {
 public:
-//    ConfigNode();
-//    ConfigNode(by::object pyobj);
 
     /** Grab a section of the config like an array */
     virtual ConfigNodeImpPtr idx(int index) = 0;

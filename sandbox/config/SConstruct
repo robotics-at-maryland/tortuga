@@ -1,4 +1,5 @@
 import os
+import distutils.sysconfig
 
 tpath = os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles','tools')
 env = Environment(ENV=os.environ, tools = ['default', 'gccxml'],
@@ -6,17 +7,36 @@ env = Environment(ENV=os.environ, tools = ['default', 'gccxml'],
 env.Append(CPPPATH = ['.'])
 
 # Compile are Test Library
+envl = env.Clone()
+
+# Setup paths for Boost.Python and and Python
+root_dir = os.environ['RAM_ROOT_DIR']
+envl.Append(CPPPATH = [os.path.join(root_dir,'include','boost-1_35'),
+                       distutils.sysconfig.get_python_inc(),
+                       '.'])
+envl.Append(LIBPATH = [os.path.join(root_dir,'lib'), '.'])
+
+# Add out extra libraries (and some python ldflags)
+envl.Append(LIBS = ['boost_python-gcc'])
+envl.MergeFlags(['!python2.5-config --ldflags'])
+
+# Now some flags for python
+envl.Append(CCFLAGS = ['-fno-strict-aliasing', '-g'])
+envl.Append(CPPDEFINES = ['NDEBUG'])
+
+
 sources = ['src/Config.cpp']
-config_lib = env.SharedLibrary(target = 'build/config', source = sources)
+config_lib = envl.SharedLibrary(target = 'build/config', source = sources)
 
 install_file = os.path.join('lib', os.path.basename(str(config_lib[0])))
-env.InstallAs(target = install_file, source = config_lib)
+envl.InstallAs(target = install_file, source = config_lib)
 
 
 # Compile Test Program
 envt = env.Clone()
-envt.Append(LIBS = 'config')
-envt.Append(LIBPATH = 'lib')
+envt.Append(LIBS = ['config'])
+envt.Append(LIBPATH = ['lib'])
+envt.Append(CCFLAGS = ['-g'])
 envt.Program(target = 'TestConfig', source = 'test/src/TestConfig.cpp')
 
 # Generate out wrapper
