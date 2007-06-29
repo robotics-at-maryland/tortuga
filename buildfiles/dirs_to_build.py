@@ -8,7 +8,7 @@ COMMON_DIRS = set([
     os.path.join('wrappers', 'pattern')])
 
 LINUX_DIRS = set([
-#    os.path.join('packages','extensions', 'wxogre'),
+    os.path.join('packages','extensions', 'wxogre'),
     os.path.join('packages', 'vehicle'),
     os.path.join('wrappers', 'vehicle'),
     os.path.join('packages', 'carnetix'),
