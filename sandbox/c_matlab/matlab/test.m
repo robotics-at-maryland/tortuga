@@ -20,7 +20,7 @@ desiredState = CppDesiredState(DesiredState,1);
 desiredStatePtr = libpointer('DesiredState', desiredState);
 calllib('C_Matlab', 'testDesired', desiredStatePtr);
 
-desired = get(desiredStatePtr, 'Value')
+desired = CppDesiredState(get(desiredStatePtr, 'Value'),0)
 
 
 % Test Measured State
@@ -31,4 +31,15 @@ measuredState = CppMeasuredState(MeasuredState,1);
 measuredStatePtr = libpointer('MeasuredState', measuredState);
 calllib('C_Matlab', 'testMeasured', measuredStatePtr);
 
-measured = get(measuredStatePtr, 'Value')
+measured = CppMeasuredState(get(measuredStatePtr, 'Value'),0)
+
+% Test Controller State
+ControllerState = struct('inertiaEstimate',[1 2 3 4 5 6]', ...
+    'adaptationGain',[1 0 0; 0 1 0; 0 0 1], ...
+    'angularGain',[1 2 3; 4 5 6; 7 8 9], 'depthPGain',1,'speedPGain',1);
+                      
+controllerState = CppControllerState(ControllerState,1);
+controllerStatePtr = libpointer('ControllerState', controllerState);
+calllib('C_Matlab', 'testController', controllerStatePtr);
+
+controller = CppControllerState(get(controllerStatePtr, 'Value'),0)

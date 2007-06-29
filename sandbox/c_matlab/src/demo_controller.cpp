@@ -43,13 +43,13 @@ void testController(ControllerState* controllerState)
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
-            controllerState->adaptationGain[i][j] = i * j * 3;
+            controllerState->adaptationGain[i][j] = i + j * 1;
     }
 
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
-            controllerState->angularGain[i][j] = i * j * 17;
+            controllerState->angularGain[i][j] = i + j * 2;
     }
 
     controllerState->depthPGain = 87;
