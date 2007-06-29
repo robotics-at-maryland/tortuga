@@ -55,9 +55,13 @@ Y=[-qTildeDot(1) -qTildeDot(2) -qTildeDot(3) 0 0 0;
    0 0 -qTildeDot(1) 0 -qTildeDot(2) -qTildeDot(3)];
 
 %adaptive control law
-%rotationalTorques=-Kd*s+Y*aHat;
-%boring PD control law, adaptive law freaking out
-rotationalTorques=-Kd*s;    
+%Kd
+%s
+%Y
+%aHat
+rotationalTorques=-Kd*s+Y*aHat;
+%use this boring PD control law as a sanity check since adaptive law freaking out
+%rotationalTorques=-Kd*s;    
 
 %find derivatives of adaptive parameters
 %gamma

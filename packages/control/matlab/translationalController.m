@@ -17,14 +17,15 @@ function translationalForces = translationalController(MeasuredState,DesiredStat
 
 
 
-%for depth control, assume vehicle is correctly oriented
+translationalForces=[0 0 0]';
 
 %TODO: figure out how to fire thrusters for depth in crazy orientations
 
-%depth component
-upDownTranslation=-(ControllerState.depthPGain)*((DesiredState.depth)-(MeasuredState.depth));
+%depth component first calculated in inertial frame 
+depthComponent=[0 0 -(ControllerState.depthPGain)*((DesiredState.depth)-(MeasuredState.depth))]';
+translationalForces = rotationMatrixFromQuaternion(MeasuredState.quaternion)*depthComponent;
 
-%speed component
+%speed component calculated in vehicle frame
 foreAftTranslation=(ControllerState.speedPGain)*(DesiredState.speed);
 
-translationalForces = [foreAftTranslation; 0; upDownTranslation];
+translationalForces = [foreAftTranslation 0 0]' + translationalForces;
