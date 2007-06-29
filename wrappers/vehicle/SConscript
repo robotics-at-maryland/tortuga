@@ -32,7 +32,8 @@ wrapped_headers = ['Vehicle.h', 'IVehicle.h',
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 wrap.wrap_headers(envl, 'vehicle',
-                  wrapped_headers)
+                  wrapped_headers,
+		  gen_mod = 'gen_vehicle')
 
 
 # Manual

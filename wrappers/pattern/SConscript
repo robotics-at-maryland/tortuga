@@ -29,4 +29,5 @@ wrapped_headers = ['Observer.h', 'Subject.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 wrap.wrap_headers(envl, 'pattern',
-                  wrapped_headers)
+                  wrapped_headers,
+		  gen_mod = 'gen_pattern')
