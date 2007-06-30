@@ -19,7 +19,7 @@ from pygccxml import parser
 import libs
 
 def generate_code(module_name, files, output_dir, include_files,
-                  extra_includes, module_map):
+                  extra_includes, module_map, insert_map = {}):
     
     # If we calling from SCons we get file node objects, so we have to translate
     # them to strings
@@ -53,12 +53,14 @@ def generate_code(module_name, files, output_dir, include_files,
 
     # This has to be done because py++ is not smart about includes and doesn't
     # autotmatically include the needed header file for each class!
-    #print "********ADDING INCLUDES"
     for include in include_files:
         mb.code_creator.add_include(include)
     for include in extra_includes:
-        #print '************Adding extra include:',include
         mb.code_creator.add_include(include)
+
+    # The insert code step
+    if insert_map.has_key(module_name):
+        insert_map[module_name](mb)
 
     #And finally we can write code to the disk
     return mb.split_module(output_dir)
@@ -241,6 +243,13 @@ def wrap_headers(env, mod_name, headers,
         sources = [i for i in src_set]
 
         envw.AppendUnique(CPPPATH = [os.environ['RAM_SVN_DIR']])
+
+        # Remove -Wall if present
+        flags = envw['CCFLAGS']
+        if flags.count('-Wall') > 0:
+            flags.remove('-Wall')
+            envw.Replace(CCFLAGS = flags)
+            
         lib = envw.SharedLibrary(target = os.path.join(output_dir, name),
                                  source = sources, SHLIBPREFIX = '')
 
@@ -254,15 +263,8 @@ def wrap_headers(env, mod_name, headers,
             envw.Command(init_file, '', SCons.Defaults.Touch(init_file))
             EXT_DIR_INSTALLED = True
 
-        # Now the one for our module
-        install_path = os.path.join(install_dir,
-                                    str(os.sep).join(full_dot_name.split('::')))
-
-        init_file = os.path.join(install_path, '__init__.py')
-        envw.Command(install_path, '', SCons.Defaults.Mkdir(install_path))
-        envw.Command(init_file, '', SCons.Defaults.Touch(init_file))
         # Create the extra depends on the output files and generate code files
         # Setup the install command
         lib_name = os.path.basename(str(lib[0]))
-        envw.InstallAs(target = os.path.join(install_path, lib_name),
+        envw.InstallAs(target = os.path.join(install_dir, lib_name),
                        source = lib)
