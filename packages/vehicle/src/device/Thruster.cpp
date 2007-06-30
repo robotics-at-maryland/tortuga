@@ -45,6 +45,12 @@ Thruster::~Thruster()
     // Unregister from communicator so it will no when to destory itself
     ThrusterCommunicator::unRegisterThruster(this);
 }
+
+ThrusterPtr Thruster::construct(std::string name, std::string address,
+                                double calibrationFactor)
+{
+    return ThrusterPtr(new Thruster(name, address, calibrationFactor));
+}
     
 void Thruster::setForce(double force)
 {

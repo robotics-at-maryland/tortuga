@@ -28,9 +28,25 @@ typedef boost::shared_ptr<Thruster> ThrusterPtr;
 
 class ThrusterCommand;
 typedef boost::shared_ptr<ThrusterCommand> ThrusterCommandPtr;
+
+
+namespace details {
+/** To expose things to GCC-XML */
+inline int instantiate()
+{
+    int a = 0;
+    a += sizeof(boost::shared_ptr<IDevice>);
+    a += sizeof(boost::shared_ptr<IDevice>);
+    a += sizeof(boost::shared_ptr<Thruster>);
+    a += sizeof(boost::shared_ptr<ThrusterCommand>);
+    return a;
+}
+}
     
 } // namespace device
 } // namespace vehicle
 } // namespace ram
-    
+
+
+
 #endif // RAM_VEHICLE_DEVICE_COMMON_06_11_2007

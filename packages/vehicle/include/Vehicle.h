@@ -40,9 +40,9 @@ public:
     virtual double getVoltage();
 
     /** This is <b>NOT</b> thread safe */
-    virtual void _addDevice(device::IDevicePtr device);
+    virtual void _addDevice(device::IDevice* device);
 
-private:
+protected:
     struct VehicleState
     {
         math::Vector3 linear_acceleration;
@@ -52,7 +52,6 @@ private:
         double voltage;
     };
     
-protected:
     void getState(Vehicle::VehicleState& state);
     void setState(const Vehicle::VehicleState& state);
     

@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "core/include/IUpdatable.h"
+#include "vehicle/include/device/Common.h" // For GCC-XML
 
 namespace ram {
 namespace vehicle {
@@ -27,9 +28,11 @@ public:
 
     virtual std::string getName() = 0;
 };
-
+    
 } // namespace device
 } // namespace vehicle
 } // namespace ram
+
+//sizeof(boost::shared_ptr<ram::vehicle::device::IDevice>);
 
 #endif // RAM_VEHICLE_DEVICE_IDEVICE_06_22_2007

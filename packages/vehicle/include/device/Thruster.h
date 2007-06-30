@@ -32,6 +32,10 @@ public:
     Thruster(std::string name, std::string address,
              double calibrationFactor);
 
+    /** Creats a new object */
+    static ThrusterPtr construct(std::string name, std::string address,
+                                 double calibrationFactor);
+    
     virtual ~Thruster();
     
     /** Sets the current thruster force of the thrusters */

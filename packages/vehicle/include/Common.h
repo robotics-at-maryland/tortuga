@@ -34,6 +34,17 @@ typedef boost::shared_ptr<Vehicle> VehiclePtr;
 typedef std::map<std::string, device::IDevicePtr> NameDeviceMap;
 
 
+// Needed for GCCXML to see the types
+namespace details {
+inline int instantiate()
+{
+    int a = 0;
+    a += sizeof(boost::shared_ptr<IVehicle>);
+    a += sizeof(boost::shared_ptr<Vehicle>);
+    return a;
+}
+}
+    
 } // namespace vehicle
 } // namespace ram
     
