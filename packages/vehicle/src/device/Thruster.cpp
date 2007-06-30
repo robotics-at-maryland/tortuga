@@ -32,14 +32,14 @@ Thruster::Thruster(std::string name, std::string address,
     ThrusterCommunicator::registerThruster(this);
 
     // Preform a soft reset just to be safe
-    ThrusterCommand* cmd = new ThrusterCommand(m_address, SOFT_RESET);
+    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SOFT_RESET));
     ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
 }
 
 Thruster::~Thruster()
 {
     // Preform a soft reset to make sure the power dies to the thruster
-    ThrusterCommand* cmd = new ThrusterCommand(m_address, SOFT_RESET);
+    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SOFT_RESET));
     ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
 
     // Unregister from communicator so it will no when to destory itself
@@ -53,7 +53,7 @@ void Thruster::setForce(double force)
 
     std::stringstream ss;
     ss << " " << (int)force;
-    ThrusterCommand* cmd = new ThrusterCommand(m_address, SET_FORCE, ss.str());
+    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SOFT_RESET));
     ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
 }
 

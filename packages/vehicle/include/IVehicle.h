@@ -22,7 +22,7 @@ class IVehicle : public core::IUpdatable
 {
 public:
     /** Gets the device associated with the given name */
-    virtual device::IDevice* getDevice(std::string name) = 0;
+    virtual device::IDevicePtr getDevice(std::string name) = 0;
     
     virtual math::Vector3 getLinearAcceleration() = 0;
 

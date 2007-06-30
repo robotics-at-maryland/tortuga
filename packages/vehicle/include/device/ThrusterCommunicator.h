@@ -23,7 +23,12 @@
 namespace ram {
 namespace vehicle {
 namespace device{
-    
+
+typedef std::set<Thruster*> ThrusterSet;
+typedef ThrusterSet::iterator ThrusterSetIter;
+
+typedef core::ThreadedQueue<ThrusterCommandPtr> ThrusterCommandQueue;
+
 class ThrusterCommunicator : public pattern::Singleton<ThrusterCommunicator>,
                              public core::Updatable
                                  
@@ -51,7 +56,7 @@ public:
      *
      *  Ownership of the ThrusteCommand passes to the ThrusterCommunicator.
      */
-    void sendThrusterCommand(ThrusterCommand* cmd);
+    void sendThrusterCommand(ThrusterCommandPtr cmd);
 
     /** Run in the background at a fixed rate */
     virtual void update(double timestep);
@@ -76,13 +81,13 @@ private:
     void processCommands();
 
     /** Runs the given thruster command, and checks the return code */
-    void runCommand(ThrusterCommand* command);
+    void runCommand(ThrusterCommandPtr command);
 
     /** List of Internal Thrusters*/
-    std::set<Thruster*> m_thrusters;
+    ThrusterSet m_thrusters;
 
     /** ThreadQueue of incomming commands */
-    core::ThreadedQueue<ThrusterCommand*> m_commandQueue;
+    ThrusterCommandQueue m_commandQueue;
 
     /** file descriptor of the serial device file*/
     int m_serialFD;

@@ -22,6 +22,7 @@
 // Project Includes
 #include "vehicle/include/device/ThrusterCommunicator.h"
 #include "vehicle/include/device/ThrusterCommand.h"
+#include "vehicle/include/device/Thruster.h"
 
 namespace ram {
 namespace vehicle {
@@ -89,7 +90,7 @@ void ThrusterCommunicator::unRegisterThruster(Thruster* thruster)
     ThrusterCommunicator::getSingleton().removeThruster(thruster);
 }
 
-void ThrusterCommunicator::sendThrusterCommand(ThrusterCommand* cmd)
+void ThrusterCommunicator::sendThrusterCommand(ThrusterCommandPtr cmd)
 {
     m_commandQueue.push(cmd);
 }
@@ -110,7 +111,7 @@ void ThrusterCommunicator::waitForUpdate(long microseconds)
     xtime.nsec = microseconds * 1000;
 
     // Wait for a new message
-    ThrusterCommand* newCommand;
+    ThrusterCommandPtr newCommand;
     if(m_commandQueue.popTimedWait(xtime, newCommand))
     {
         // Run the current command then process the rest
@@ -126,7 +127,7 @@ void ThrusterCommunicator::addThruster(Thruster* thruster)
 
 void ThrusterCommunicator::removeThruster(Thruster* thruster)
 {
-    std::set<Thruster*>::iterator iter = m_thrusters.find(thruster);
+    ThrusterSetIter iter = m_thrusters.find(thruster);
 
     assert(iter != m_thrusters.end() && "Thruster not registered");
     m_thrusters.erase(iter);
@@ -138,8 +139,7 @@ void ThrusterCommunicator::removeThruster(Thruster* thruster)
 
 void ThrusterCommunicator::processCommands()
 {
-    
-    ThrusterCommand* nextCommand;
+    ThrusterCommandPtr nextCommand;
 
     // Only process commands if the port is actually open
     if (m_serialFD >= 0)
@@ -164,15 +164,12 @@ void ThrusterCommunicator::processCommands()
         // Bad connection, drop all commands
         else
         {
-            while(m_commandQueue.popNoWait(nextCommand))
-            {
-                delete nextCommand;
-            }   
+            while(m_commandQueue.popNoWait(nextCommand)) {}
         }
     }
 }
     
-void ThrusterCommunicator::runCommand(ThrusterCommand* command)
+void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
 {
     // Only run serial command if port is open
     if (m_serialFD >= 0)
@@ -219,8 +216,6 @@ void ThrusterCommunicator::runCommand(ThrusterCommand* command)
         }
 */
     }
-    
-    delete command;
 }
 
 /** Checks for data waiting on the file descriptor  */

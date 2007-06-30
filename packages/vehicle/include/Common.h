@@ -14,6 +14,9 @@
 #include <string>
 #include <map>
 
+// Library Includes
+#include <boost/shared_ptr.hpp>
+
 // Project Includes
 #include "vehicle/include/device/Common.h"
 
@@ -22,10 +25,13 @@ namespace vehicle {
 
 // Forward Declartions
 class IVehicle;
+typedef boost::shared_ptr<IVehicle> IVehiclePtr;
+    
 class Vehicle;
-
+typedef boost::shared_ptr<Vehicle> VehiclePtr;
+    
 // Typedefs
-typedef std::map<std::string, device::IDevice*> NameDeviceMap;
+typedef std::map<std::string, device::IDevicePtr> NameDeviceMap;
 
 
 } // namespace vehicle

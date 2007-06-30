@@ -7,8 +7,10 @@
  * File:  packages/vision/include/Common.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_COMMON_06_11_2006
-#define RAM_VEHICLE_DEVICE_COMMON_06_11_2006
+#ifndef RAM_VEHICLE_DEVICE_COMMON_06_11_2007
+#define RAM_VEHICLE_DEVICE_COMMON_06_11_2007
+
+#include <boost/shared_ptr.hpp>
 
 namespace ram {
 namespace vehicle {
@@ -16,11 +18,19 @@ namespace device {
     
 // Forward Declartions
 class IDevice;
+typedef boost::shared_ptr<IDevice> IDevicePtr;
+
+class Device;
+typedef boost::shared_ptr<Device> DevicePtr;
+
 class Thruster;
+typedef boost::shared_ptr<Thruster> ThrusterPtr;
+
 class ThrusterCommand;
+typedef boost::shared_ptr<ThrusterCommand> ThrusterCommandPtr;
     
 } // namespace device
 } // namespace vehicle
 } // namespace ram
     
-#endif // RAM_VEHICLE_COMMON_06_11_2006
+#endif // RAM_VEHICLE_DEVICE_COMMON_06_11_2007

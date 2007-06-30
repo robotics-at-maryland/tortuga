@@ -18,7 +18,7 @@ Vehicle::Vehicle()
 {
 }
 
-device::IDevice* Vehicle::getDevice(std::string name)
+device::IDevicePtr Vehicle::getDevice(std::string name)
 {
     return m_devices[name];
 }
@@ -65,7 +65,7 @@ void Vehicle::setState(const Vehicle::VehicleState& state)
     m_state = state;
 }
 
-void Vehicle::_addDevice(device::IDevice* device)
+void Vehicle::_addDevice(device::IDevicePtr device)
 {
     m_devices[device->getName()] = device;
 }
