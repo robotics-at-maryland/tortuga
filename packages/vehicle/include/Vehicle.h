@@ -40,7 +40,7 @@ public:
     virtual double getVoltage();
 
     /** This is <b>NOT</b> thread safe */
-    virtual void _addDevice(device::IDevice* device);
+    virtual void _addDevice(device::IDevicePtr device);
 
 protected:
     struct VehicleState

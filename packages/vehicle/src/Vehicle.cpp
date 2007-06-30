@@ -65,9 +65,9 @@ void Vehicle::setState(const Vehicle::VehicleState& state)
     m_state = state;
 }
 
-void Vehicle::_addDevice(device::IDevice* device)
+void Vehicle::_addDevice(device::IDevicePtr device)
 {
-    m_devices[device->getName()] = device::IDevicePtr(device);
+    m_devices[device->getName()] = device;
 }
     
 } // namespace vehicle
