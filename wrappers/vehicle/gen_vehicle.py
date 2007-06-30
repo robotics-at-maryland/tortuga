@@ -50,6 +50,8 @@ def generate_vehicle_device(name, global_ns, local_ns):
 def insert_code(mb):
     mb.add_registration_code("""
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::IDevice> >();
+    bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::Device> >();
+    bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::Thruster> >();
     """)
 
 def generate_code(module_name, files, output_dir, include_files,
@@ -57,5 +59,5 @@ def generate_code(module_name, files, output_dir, include_files,
     wrap.generate_code(module_name, files, output_dir, include_files,
                        extra_includes,
                        {'vehicle' : generate_vehicle,
-                        'vehicle::device' : generate_vehicle_device,
-                        'insert_code' : insert_code})
+                        'vehicle::device' : generate_vehicle_device},
+                       {'vehicle::device' : insert_code})
