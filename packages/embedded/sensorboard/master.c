@@ -334,16 +334,16 @@ byte pollStatus()
 {
     if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD) != 0)
     {
-        showString("STA FAIL", 1);
-        while(1);
+        showString("STA FAIL   ", 1);
+        return 0;
     }
 
     byte len = readDataBlock(SLAVE_ID_POWERBOARD);
 
     if(len!=1)
     {
-        showString("STA FAIL", 1);
-        while(1);
+        showString("STA FAIL   ", 1);
+        return 0;
     }
     return rxBuf[0];
 }
@@ -362,7 +362,7 @@ void showDiag(int mode)
 
         if(busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH) != 0)
         {
-            showString("DEPTH FAIL", 1);
+            showString("DEPTH FAIL      ", 1);
             return;
         }
 
@@ -380,7 +380,6 @@ void showDiag(int mode)
 
     if(mode == 2)
     {
-
         if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
         {
             showString("TEMP FAIL       ", 1);
@@ -404,6 +403,7 @@ void diagMode()
 {
     byte mode=0;
     unsigned char tmp[16];
+    long j=0;
 
     showString("Diagnostic Mode", 0);
     while(pollStatus() & 0x02);
@@ -417,7 +417,16 @@ void diagMode()
                 mode = 0;
 
             showDiag(mode);
-            while(pollStatus() & 0x02);
+
+            j=0;
+            while(pollStatus() & 0x02)
+            {
+                j++;
+                if(j == 25000)
+                {
+                    return;
+                }
+            }
         }
         showDiag(mode);
     }
@@ -490,15 +499,15 @@ int main(void)
 
     showString("Diagnostic?", 0);
 
-#if 1
-    for(j=0; j<100000; j++)
-    {
-        if(pollStatus() & 0x02)
-            diagMode();
-    }
+    for(j=0; j<100000 && ((pollStatus() & 0x02) == 0); j++);
 
-    showString("Starting up...", 0);
-#endif
+    if(pollStatus() & 0x02)
+        diagMode();
+
+
+    showString("Starting up...  ", 0);
+    showString("                ", 1);
+
     while(1)
     {
         byte c = waitchar(0);
