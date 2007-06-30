@@ -84,7 +84,7 @@ rAft = 0.3366;%m
 
 %set up timing array
 startTime=0;
-stopTime=20;
+stopTime=70;
 numSimPoints=2000;
 time=linspace(startTime,stopTime,numSimPoints);
 dt=time(2)-time(1);
@@ -182,7 +182,7 @@ for index=2:1:numSimPoints
     %off SCAMP data, replace with real numbers later)  THIS IS IN INERTIAL
     %FRAME
     buoyancyTerm=[-5*sin(rollPitchYaw(1)-0);
-                  -0.3*sin(rollPitchYaw(2)-1*pi/180);
+                  -0.3*sin(rollPitchYaw(2)-5*pi/180);
                   0];
     %rotate buoyancy term to put in body frame
     buoyancyTerm=rotationMatrixFromQuaternion(storedQuaternion(:,index-1))*buoyancyTerm;

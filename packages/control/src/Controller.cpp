@@ -9,6 +9,11 @@
 
 // Put actual functions here
 
-void translationalController()
+void rotationalController(MeasuredState* measuredState,
+                          DesiredState* desiredState,
+                          ControllerState* controllerState,
+                          double dt,
+                          double* translationalForces)
 {
+    // Put my controller here!!!!
 }
