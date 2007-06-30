@@ -27,6 +27,10 @@ int red_blue(IplImage* img, float ratio);
 int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny);
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
+void redMask(IplImage* percents, IplImage* base);
 void run(ram::vision::ProcessList* pl);
 void walk(IplImage* img, ram::vision::ProcessList* pl);
+int histogram(IplImage* img, int* centerx, int* centery);
+int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy);
+
 #endif

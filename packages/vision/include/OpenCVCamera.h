@@ -9,6 +9,7 @@
 
 #ifndef RAM_VISION_OPENCVCAMERA_H_06_06_2007
 #define RAM_VISION_OPENCVCAMERA_H_06_06_2007
+#include <string>
 
 // Project Includes
 #include "vision/include/Common.h"
@@ -24,6 +25,7 @@ class OpenCVCamera : public Camera
 {
 public:
     OpenCVCamera(int camNum =0);
+	OpenCVCamera(std::string movieName);
     ~OpenCVCamera();
 
     /** This grabs the new image, and then stores it for Camera::getImage */

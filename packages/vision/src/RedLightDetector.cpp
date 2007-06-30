@@ -15,8 +15,10 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	startCounting=false;
 	lightCenter.x=0;
 	lightCenter.y=0;
-	cvNamedWindow("Flash",CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("raw",CV_WINDOW_AUTOSIZE);
+//	cvNamedWindow("Flash",CV_WINDOW_AUTOSIZE);
+//	cvNamedWindow("raw",CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("LightFinder",CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("masked",CV_WINDOW_AUTOSIZE);
 }
 
 RedLightDetector::~RedLightDetector()
@@ -29,7 +31,10 @@ void RedLightDetector::update()
 {
 	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
-	cvShowImage("raw", image);
+	IplImage* raw=cvCreateImage(cvGetSize(image),8,3);
+	cvCopyImage(image, raw);
+//	cvShowImage("raw", raw);
+	
 	IplImage* flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
 	if (lightFramesOff>20)
 	{
@@ -60,17 +65,41 @@ void RedLightDetector::update()
 	}					
 	if (blinks>3)
 	{
+//		found=true;
 		//cout<<"This thing has blinked "<<blinks<<" times, WE FOUND THE LIGHT GUYS!!"<<endl;
 	}
 	else
 	{
-
+//		found=false;
 	}
 	cvCopyImage(image, flashFrame);
 	to_ratios(image);
 	CvPoint p;
-	int redPixelCount=redDetect(image,flashFrame,&p.x,&p.y);
-
+	redMask(image,flashFrame);
+	cvShowImage("masked",flashFrame);
+	int redPixelCount=histogram(flashFrame,&p.x,&p.y);
+	//Draw a box if its big enough for us to consider it a light
+	if (redPixelCount<75)
+	{
+		p.x=p.y=-1;
+		found=false; //Completely ignoring the state machine for the time being.
+	}	
+	else
+	{
+//		cout<<"p.x:"<<p.x<<"p.y"<<p.y<<endl;
+		found=true; //completely ignoring the state machine for the time being.
+		CvPoint tl,tr,bl,br;
+		tl.x=bl.x=max(p.x-4,0);
+		tr.x=br.x=min(p.x+4,raw->width-1);
+		tl.y=tr.y=min(p.y+4,raw->height-1);
+		br.y=bl.y=max(p.y-4,0);
+		
+		cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
+		cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
+		cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+		cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+	}
+	
 	if (p.x!=-1 && p.y!=-1)
 	{
 		if (lightCenter.x==0 && lightCenter.y==0)
@@ -89,7 +118,6 @@ void RedLightDetector::update()
 			//	cout<<"Its moving down"<<endl;
 			//if (lightCenter.x==p.x && lightCenter.y==p.y)
 			//	cout<<"Its not moving... did someone put a flashing light on the sub or something... or are we stopped... uh oh..."<<endl;
-			
 		}
 		lightCenter.x=p.x;
 		lightCenter.y=p.y;
@@ -134,6 +162,8 @@ void RedLightDetector::update()
 		//	paused=true;
 	}
 	
-	cvShowImage("Flash",flashFrame);
+//	cvShowImage("Flash",flashFrame);
+	cvShowImage("LightFinder", raw);
+
 
 }

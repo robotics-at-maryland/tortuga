@@ -15,7 +15,7 @@ using namespace std;
 using namespace ram::vision;
 int main()
 {
-	OpenCVCamera* camera = new OpenCVCamera();
+	OpenCVCamera* camera = new OpenCVCamera("out.avi");
 	OpenCVImage* frame = new OpenCVImage(640,480);
 	camera->background(); //Silliness
 	OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
@@ -30,26 +30,26 @@ int main()
 		IplImage* image =(IplImage*)(*frame);
 		cvShowImage("Detector Test",image);
 		key=cvWaitKey(25);
-		cout<<"Running Orange Pipeline Detection..."<<endl;
-		opDetect->update();
-		if (opDetect->found)
-			cout<<"Orange Pipeline Found!"<<endl;
-		else
-			cout<<"No Orange Pipeline Found."<<endl;
-
-		cout<<"Running Gate Detection..."<<endl;
-		gDetect->update();
-		if (gDetect->found)
-			cout<<"Gate Found!"<<endl;
-		else
-			cout<<"No Gate Found."<<endl;
-	
-		cout<<"Running Bin Detection..."<<endl;
-		bDetect->update();
-		if (bDetect->found)
-			cout<<"Bin Found!"<<endl;
-		else
-			cout<<"No Bin Found."<<endl;
+//		cout<<"Running Orange Pipeline Detection..."<<endl;
+//		opDetect->update();
+//		if (opDetect->found)
+//			cout<<"Orange Pipeline Found!"<<endl;
+//		else
+//			cout<<"No Orange Pipeline Found."<<endl;
+//
+//		cout<<"Running Gate Detection..."<<endl;
+//		gDetect->update();
+//		if (gDetect->found)
+//			cout<<"Gate Found!"<<endl;
+//		else
+//			cout<<"No Gate Found."<<endl;
+//	
+//		cout<<"Running Bin Detection..."<<endl;
+//		bDetect->update();
+//		if (bDetect->found)
+//			cout<<"Bin Found!"<<endl;
+//		else
+//			cout<<"No Bin Found."<<endl;
 
 		cout<<"Running Red Light Detection..."<<endl;
 		rlDetect->update();

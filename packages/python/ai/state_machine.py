@@ -2,7 +2,6 @@ import time,key_controller
 
 
 
-
 class state_machine:
     '''
     This is the state machine, the guts of the A.I of the system. A state machine has states, which are strings.

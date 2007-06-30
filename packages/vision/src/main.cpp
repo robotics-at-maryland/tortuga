@@ -447,6 +447,84 @@ typedef struct
 }Pos;
 typedef std::list<Pos> PosList;
 
+void redMask(IplImage* percents, IplImage* base)
+{
+	char* data=percents->imageData;
+	char* data2=base->imageData;
+	int width=percents->width;
+	int height=percents->height;
+	int r;
+	int r2;
+	int count=0;
+	for (int y=0; y<height; y++)
+	{
+		for (int x=0; x<width; x++)
+		{
+			r=(data[count+2]+256)%256;
+			r2=(data2[count+2]+256)%256;
+			if (r>35 && r2>100)
+			{
+				data2[count]=255;
+				data2[count+1]=255;
+				data2[count+2]=255;
+			}
+			else
+				data2[count]=data2[count+1]=data2[count+2]=0;
+
+//			if (b>10 && g>10 && r>35)
+//			{
+//				if (b2>50 && g2>50 && r2>125)
+//				{
+//					data2[count]=255;
+//					data2[count+1]=255;
+//					data2[count+2]=255;
+//				}
+//				else
+//					data2[count]=data2[count+1]=data2[count+2]=0;
+//			}
+//			else
+//				data2[count]=data2[count+1]=data2[count+2]=0;
+			count+=3;
+		}
+	}
+}
+
+//returns size and fills redx and redy.
+int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy)
+{
+	char* data=percents->imageData;
+	char* data2=base->imageData;
+	int width=percents->width;
+	int height=percents->height;
+	int r,g,b;
+	int r2,g2,b2;
+	int count=0;
+	for (int y=0; y<height; y++)
+	{
+		for (int x=0; x<width; x++)
+		{
+			b=(data[count]+256)%256;
+			g=(data[count+1]+256)%256;
+			r=(data[count+2]+256)%256;
+			b2=(data2[count]+256)%256;
+			g2=(data2[count+1]+256)%256;
+			r2=(data2[count+2]+256)%256;
+			if (r>35 && r2>100)
+			{
+				data2[count]=255;
+				data2[count+1]=255;
+				data2[count+2]=255;
+			}
+			else
+				data2[count]=data2[count+1]=data2[count+2]=0;
+
+			count+=3;
+		}
+	}
+	
+	return histogram(base, redx, redy);
+}
+
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 {
 	char* data=percents->imageData;
@@ -508,8 +586,8 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 				if (b2>150 && g2>150 && r2>150)
 				{
 					data2[count]=1;
-					data2[count+1]=0;
-					data2[count+2]=255;
+					data2[count+1]=1;
+					data2[count+2]=1;
 					//Dont change anything else, just show that its white and ignore it
 					//this change will allow the center of red to be whitish, as on a really bright light.
 				}
@@ -585,7 +663,7 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 		
 		//Remember, bottom > top, because y increases as you move downwards on the image
 		
-		if (bottom-top>10 && right-left>10)
+		if (bottom-top>3 && right-left>3)
 		{
 			CvPoint tl;
 			CvPoint tr;
@@ -622,6 +700,124 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 		*redy=ry;
 		return -1;
 	}
+}
+
+//-1 on failure from too many distinct pieces, 0 if nothing at all was found,
+//otherwise returns number of pixels in the largest connected white splotch in the image
+//and fills centerX and centerY with its center.
+int histogram(IplImage* img, int* centerX, int* centerY)
+{
+//	cout<<"starting histogram, beware."<<endl;
+	int width=img->width;
+	int height=img->height;
+	unsigned char* data=(unsigned char*)img->imageData;
+	int* pixelCounts=(int*) calloc(254,sizeof(int));
+	//Might need longs for these two if we increase image size above 1024x1024, otherwise a full white image might overflow
+	int* totalX=(int*) calloc(254,sizeof(int));
+	int* totalY=(int*) calloc(254,sizeof(int));
+	unsigned char* joins=(unsigned char*) malloc(254*sizeof(unsigned char));
+	for (unsigned char i=0; i<254; i++)
+		joins[i]=i;
+	joins[0]=255;
+	
+	int index=1;
+	int count=0;
+	for (int x=0;x<width;x++)
+	{
+		data[count]=data[count+1]=data[count+2]=0;
+		count+=3;
+	}
+	count=0;
+	for (int y=0;y<height;y++)
+	{
+		data[count]=data[count+1]=data[count+2]=0;
+		count+=3*width;
+	}
+	count=0;
+	for (int y=0; y<height;y++)
+	{
+		for (int x=0; x<width;x++)
+		{
+			if (data[count]>0)
+			{
+				unsigned char above=data[count-3*width];
+				unsigned char left=data[count-3];
+				if (above==0 && left==0)
+				{
+					pixelCounts[index]=1;
+					totalX[index]=x;
+					totalY[index]=y;
+					data[count]=index++;
+//					cout<<index<<endl;				
+					if (index==254)
+					{
+						free(pixelCounts);
+						free(totalX);
+						free(totalY);
+						free(joins);
+						return -1;
+					}
+				}
+				else 
+				{
+//					cout<<"I'm in part 2"<<endl;
+					unsigned char above2=above;
+					unsigned char left2=left;
+					if (above2==0)
+						above2=255;
+					else
+					{
+					while (above2!=joins[above2])
+						above2=joins[above2];
+					}
+					if (left2==0)
+						left2=255;
+					else
+					{
+						while (left2!=joins[left2])
+							left2=joins[left2];
+					}
+					
+					data[count]=joins[above]=joins[left]=min(left2,above2);
+					totalX[data[count]]+=x;
+					totalY[data[count]]+=y;
+					++pixelCounts[data[count]];
+//					cout<<"end of part 2"<<endl;
+				}
+			}
+			count+=3;
+		}
+	}
+//	cout<<"Made it through image, now creating useful data from arrays"<<endl;
+	int maxCount=0;
+	
+	for (int i=index-1;i>0;i--)
+	{
+		if (joins[i]!=i)
+		{
+			totalX[joins[i]]+=totalX[i];
+			totalY[joins[i]]+=totalY[i];
+			pixelCounts[joins[i]]+=pixelCounts[i];
+			pixelCounts[i]=0;
+		}
+		else
+		{
+			if (maxCount<pixelCounts[i])
+			{
+				maxCount=pixelCounts[i];
+				(*centerX)=totalX[i]/maxCount;
+				(*centerY)=totalY[i]/maxCount;
+			}
+		}
+	}
+
+	//Deallocate arrays
+	free(pixelCounts);
+	free(totalX);
+	free(totalY);
+	free(joins);
+//	cout<<"Happily reaching the end of histogram"<<endl;
+	return maxCount;
 }
 
 void explore(IplImage* img, int x, int y, int* out, int color)
@@ -725,7 +921,6 @@ CvPoint find_flash(IplImage* img, bool display)
 				}
 				if (out[0]>25 && w>5 && w<200 && h>5 && h<200)
 				{
-
 					cvLine(img, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
 					cvLine(img, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
 					cvLine(img, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );

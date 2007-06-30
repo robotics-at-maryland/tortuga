@@ -24,7 +24,7 @@ int main( int argc, char** argv )
 //        img_yuv, y, noise;
 //    CvRNG rng = cvRNG(-1);
 //
-	CvImage img=cvLoadImage("stopsign.jpg",0);
+	CvImage img=cvLoadImage("screen13.jpg",0);
     if( !img.data() ) // check if the image has been loaded properly
         return -1;
 

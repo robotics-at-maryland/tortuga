@@ -28,6 +28,12 @@ OpenCVCamera::OpenCVCamera(int camNum)
     assert(m_camCapture && "Error creating camera");
 }
 
+OpenCVCamera::OpenCVCamera(std::string filename)
+{
+	m_camCapture = cvCaptureFromFile(filename.c_str());
+	assert(m_camCapture && "error creating camera from file");
+}
+
 OpenCVCamera::~OpenCVCamera()
 {
     // Have to stop background capture before we release the capture!
