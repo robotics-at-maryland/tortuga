@@ -20,6 +20,12 @@
 #define SB_HWFAIL   -2
 #define SB_ERROR    -1
 
+
+/* Bits of the status command */
+#define STATUS_WATER    0x01
+#define STATUS_START    0x02
+
+
 int openSensorBoard(const char * devName);
 int syncBoard(int fd);
 int pingBoard(int fd);
