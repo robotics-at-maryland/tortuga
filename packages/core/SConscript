@@ -20,3 +20,7 @@ helpers.Program(envt, target = 'QueueTest',
 # Test for updatable class
 helpers.Program(envt, target = 'UpdatableTest',
                 source = ['test/src/UpdatableTest.cpp'], int_deps = 'core')
+
+envt = env.Clone()
+helpers.Program(envt, target = 'AvgQueueTest',
+		source = ['test/src/AvgTest.cpp'], int_deps = 'core')
