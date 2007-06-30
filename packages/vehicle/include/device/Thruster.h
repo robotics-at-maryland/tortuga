@@ -41,6 +41,12 @@ public:
     /** Sets the current thruster force of the thrusters */
     void setForce(double newtons);
 
+    /** Return the current force the thrusters are outputing in newtons */
+    double getForce();
+
+    /** Gets the current motor count */
+    int getMotorCount();
+    
     /** Kills all thruster power to ALL thrusters */
     //void kill();
 
@@ -69,7 +75,15 @@ public:
     
 private:
     std::string m_address;
+
+    /** Experimentally determined calibration factor */
     double m_calibrationFactor;
+
+    /** Current output force of motor */
+    double m_force;
+    
+    /** Current motor count */
+    int m_motorCount;
 };
     
 } // namespace device

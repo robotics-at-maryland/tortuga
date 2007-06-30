@@ -54,15 +54,36 @@ ThrusterPtr Thruster::construct(std::string name, std::string address,
     
 void Thruster::setForce(double force)
 {
+    m_force = force;
+    double b = 0; // Not currently used
+    int motorCount;
+    
     // Convert force here (using calibration factor)
+    motorCount = (int)((m_force / m_calibrationFactor - b) * 1023) / 27;
 
+    // Clamp the values
+    if (motorCount > 1024)
+        motorCount = 1023;
+    else if (motorCount < -1024)
+        motorCount = -1023;
+    m_motorCount = motorCount;
 
     std::stringstream ss;
-    ss << " " << (int)force;
-    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SOFT_RESET));
+    ss << " " << m_motorCount;
+    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SET_FORCE, ss.str()));
     ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
 }
 
+double Thruster::getForce()
+{
+    return m_force;
+}
+
+int Thruster::getMotorCount()
+{
+    return m_motorCount;
+}
+    
 void Thruster::update(double timestep)
 {
     ThrusterCommunicator::getSingleton().update(timestep);
