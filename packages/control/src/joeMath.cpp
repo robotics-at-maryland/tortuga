@@ -418,3 +418,28 @@ double getDistance(double a[3], double b[3]){
     dist = sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2]));
     return dist;
 }
+
+/*
+computes matrix for use in quaternion error equation
+*/
+void getQuaternionErrorMatrix(double q[4], double * pMatrix){
+    *(pMatrix) = q[3];
+    *(pMatrix+1) = q[2];
+    *(pMatrix+2) = -q[1];
+    *(pMatrix+3) = -q[0];
+
+    *(pMatrix+4) = -q[2];
+    *(pMatrix+5) = q[3];
+    *(pMatrix+6) = q[0];
+    *(pMatrix+7) = -q[1];
+
+    *(pMatrix+8) = q[1];
+    *(pMatrix+9) = -q[0];
+    *(pMatrix+10) = q[3];
+    *(pMatrix+11) = -q[2];
+
+    *(pMatrix+12) = q[0];
+    *(pMatrix+13) = q[1];
+    *(pMatrix+14) = q[2];
+    *(pMatrix+15) = q[3];
+}

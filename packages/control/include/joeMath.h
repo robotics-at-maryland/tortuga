@@ -30,6 +30,6 @@ void findErrorQuaternion(double qc[4], double q[4], double * pqe);
 void rotationMatrixFromQuaternion(double q[4], double * pRot);
 void invert3x3(double mat[3][3], double * pInverted);
 double getDistance(double a[3], double b[3]);
-
+void getQuaternionErrorMatrix(double q[4], double * pMatrix);
 
 #endif // JOEMATH_H_INCLUDED

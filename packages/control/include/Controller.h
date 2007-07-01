@@ -18,35 +18,32 @@ extern "C" {
 //                       'depth',1,
 //                       'quaternion',[1 2 3 4]',
 //                       'angularRate',[1 2 3]');
-typedef struct
-{
+struct DesiredState{
     double speed;
     double depth;
     double quaternion[4];
     double angularRate[3];
-} DesiredState;
+};
 
 // MeasuredState = struct('depth',1,
 //                        'linearAcceleration',[1 2 3]',
 //                        'quaternion',[1 2 3 4]',
 //                        'angularRate',[1 2 3]');
-typedef struct
-{
+struct MeasuredState{
     double depth;
     double linearAcceleration[3];
     double quaternion[4];
     double angularRate[3];
-} MeasuredState;
+};
 
 
-typedef struct
-{
+struct ControllerState{
     double angularPGain;
     double angularDGain;
     double inertiaEstimate[3][3];
     double depthPGain;
     double speedPGain;
-} ControllerState;
+};
 
 void rotationalController(MeasuredState* measuredState,
                           DesiredState* desiredState,
