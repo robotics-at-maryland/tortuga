@@ -33,7 +33,9 @@
 			<Add directory="..\include" />
 		</Compiler>
 		<Unit filename="..\include\Controller.h" />
+		<Unit filename="..\include\joeMath.h" />
 		<Unit filename="..\src\Controller.cpp" />
+		<Unit filename="..\src\joeMath.cpp" />
 		<Unit filename="..\test\src\test.cpp" />
 		<Extensions>
 			<code_completion />

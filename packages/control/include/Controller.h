@@ -52,7 +52,14 @@ void rotationalController(MeasuredState* measuredState,
                           DesiredState* desiredState,
                           ControllerState* controllerState,
                           double dt,
-                          double* translationalForces);
+                          double* rotationalTorques);
+
+void translationalController(MeasuredState* measuredState,
+                             DesiredState* desiredState,
+                             ControllerState* controllerState,
+                             double dt,
+                             double* translationalForces);
+
 
 #ifdef __cplusplus
 } // extern "C"
