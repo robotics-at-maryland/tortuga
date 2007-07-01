@@ -19,8 +19,6 @@ function translationalForces = translationalController(MeasuredState,DesiredStat
 
 translationalForces=[0 0 0]';
 
-%TODO: figure out how to fire thrusters for depth in crazy orientations
-
 %depth component first calculated in inertial frame 
 depthComponent=[0 0 -(ControllerState.depthPGain)*((DesiredState.depth)-(MeasuredState.depth))]';
 translationalForces = rotationMatrixFromQuaternion(MeasuredState.quaternion)*depthComponent;

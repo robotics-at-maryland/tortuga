@@ -1,30 +1,30 @@
 function [rotationalTorques aHatNew]=BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 % [rotationalTorques
 % aHatNew]=BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt)
-%
+% 
 % function BongWiePDControl.m is an encapsulation of the
 % rotational controller
-%
+% 
 % assumes the quaternion is written as 
-%
+% 
 % q = [e(0)*sin(phi/2); e(1)*sin(phi/2); e(2)*sin(phi/2); cos(phi/2)]
-%
+% 
 % for simplicity assumes desired angular velocity is zero
-%
+% 
 % 
 % NOTE: this function changes the inertia estimate (as it should!!!)
-%
+% 
 % returns 
 %           - rotationalTorques, the torques used to rotate the vehicle as
 %             written in the vehicle's coord frame.  torques are in Newton*meters
 %           - aHatNew, the new estimate of the adaptation parameters
-%
-%
+% 
+% 
 % written by Joseph Gland
 % June 22 2007
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %unpack data from states for legibility
 %measured quaternion

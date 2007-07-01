@@ -265,7 +265,7 @@ for index=1:1:length(time)
     rollPitchYaw(:,index)=(180/pi)*rollPitchYawFromQuaternion(storedQuaternion(:,index));
 end
 
-figure(4)
+figure(5)
 subplot(3,1,1)
 plot(time,rollPitchYaw(1,:))
 ylabel('roll (\phi) in deg')
