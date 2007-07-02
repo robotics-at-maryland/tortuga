@@ -418,6 +418,7 @@ void showIdent()
 
     for(i=0; i<3; i++)
     {
+        while(!(pollStatus() & 0x80));
         sprintf(tmp, "Ident IRQ%d:    ", i);
         showString(tmp, 0);
 
