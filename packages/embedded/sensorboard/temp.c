@@ -266,9 +266,6 @@ long readTemp(byte addr)
 
 
 
-/* Average depth, as computed by ADC ISR */
-long avgDepth = 0;
-
 /* If Master writes us data, this gets called */
 void processData(byte data)
 {
@@ -310,20 +307,13 @@ void processData(byte data)
                 case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = PORTB & 0x7D;
+                    txBuf[1] = PORTB & 0x7F;
 
                     if(_RD3)
-                        txBuf[1] |= 2;
+                        txBuf[1] |= 0x80;
                     break;
                 }
 
-                case BUS_CMD_DEPTH:
-                {
-                    txBuf[0] = 2;   /* Depth is 2 bytes */
-                    txBuf[1] = (avgDepth & 0xFF00) >> 8;
-                    txBuf[2] = avgDepth & 0xFF;
-                    break;
-                }
 
                 case BUS_CMD_TEMP:
                 {
@@ -632,8 +622,6 @@ void main()
 
     initI2C();
 
-    /* Temp pic does not need ADC code, but keep this around if we want to combine the two */
- //   initADC();
     initBus();
     ADPCFG = 0xFFFF;
 

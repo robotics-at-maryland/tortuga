@@ -353,7 +353,19 @@ void showDiag(int mode)
     unsigned char tmp[16];
     if(mode == 0)
     {
-        sprintf(tmp, "Status: %02X      ", pollStatus());
+        //sprintf(tmp, "Status: %02X      ", pollStatus());
+
+        byte sta = pollStatus();
+        sprintf(tmp, "Sta: %02X %c%c%c%c%c%c%c%c", sta,
+            (sta & 0x80) ? 'S' : '-',
+            (sta & 0x40) ? '?' : '-',
+            (sta & 0x20) ? '1' : '-',
+            (sta & 0x10) ? '2' : '-',
+            (sta & 0x08) ? '3' : '-',
+            (sta & 0x04) ? '4' : '-',
+            (sta & 0x02) ? 'K' : '-',
+            (sta & 0x01) ? 'W' : '-');
+
         showString(tmp, 1);
     }
 
@@ -399,27 +411,64 @@ void showDiag(int mode)
     }
 }
 
+void showIdent()
+{
+    byte i=0, j=0;
+    unsigned char tmp[16];
+
+    for(i=0; i<3; i++)
+    {
+        sprintf(tmp, "Ident IRQ%d:    ", i);
+        showString(tmp, 0);
+
+        /* Don't mix the strings */
+        for(j=0; j<17; j++)
+            rxBuf[j]=0;
+
+        if(busWriteByte(BUS_CMD_ID, i) != 0)
+        {
+            showString("<Write Fail>    ", 1);
+        } else
+        {
+            byte len = readDataBlock(i);
+
+            if(len > 0)
+            {
+                showString(rxBuf, 1);
+            } else
+            {
+                showString("<Read Fail>     ", 1);
+            }
+        }
+
+        while(pollStatus() & 0x80);
+    }
+    showString("Diagnostic Mode ", 0);
+}
+
 void diagMode()
 {
     byte mode=0;
     unsigned char tmp[16];
     long j=0;
 
-    showString("Diagnostic Mode", 0);
-    while(pollStatus() & 0x02);
+    showString("Diagnostic Mode ", 0);
+    while(pollStatus() & 0x80);
 
     while(1)
     {
-        if(pollStatus() & 0x02)
+        if(pollStatus() & 0x80)
         {
             mode++;
             if(mode == 3)
+            {
+                showIdent();
                 mode = 0;
-
+            }
             showDiag(mode);
 
             j=0;
-            while(pollStatus() & 0x02)
+            while(pollStatus() & 0x80)
             {
                 j++;
                 if(j == 25000)
@@ -499,9 +548,9 @@ int main(void)
 
     showString("Diagnostic?", 0);
 
-    for(j=0; j<100000 && ((pollStatus() & 0x02) == 0); j++);
+    for(j=0; j<100000 && ((pollStatus() & 0x80) == 0); j++);
 
-    if(pollStatus() & 0x02)
+    if(pollStatus() & 0x80)
         diagMode();
 
 
