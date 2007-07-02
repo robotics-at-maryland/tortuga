@@ -17,14 +17,21 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-Device::Device(std::string name) :
-    m_name(name)
+Device::Device(VehiclePtr vehicle, std::string name) :
+    m_name(name),
+    m_vehicle(vehicle)
 {
 }
 
 std::string Device::getName()
 {
     return m_name;
+}
+
+
+VehiclePtr Device::getVehicle()
+{
+    return m_vehicle;
 }
     
 } // namespace device

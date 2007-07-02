@@ -19,11 +19,11 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-IMU::IMU(std::string name, std::string devfile) :
-    Device(name),
+IMU::IMU(VehiclePtr vehicle, core::ConfigNode config) :
+    Device(vehicle, config["name"].asString()),
     Updatable(),
     Subject(),
-    m_devfile(devfile),
+    m_devfile(config["devfile"].asString()),
     m_serialFD(-1),
     m_rawState(0)
 {

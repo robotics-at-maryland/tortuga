@@ -15,7 +15,7 @@
 
 // Project Includes
 #include "core/include/IUpdatable.h"
-#include "vehicle/include/device/Common.h" // For GCC-XML
+#include "vehicle/include/Common.h"
 
 namespace ram {
 namespace vehicle {
@@ -27,6 +27,8 @@ public:
     virtual ~IDevice() {};
 
     virtual std::string getName() = 0;
+
+    virtual VehiclePtr getVehicle() = 0;
 };
     
 } // namespace device

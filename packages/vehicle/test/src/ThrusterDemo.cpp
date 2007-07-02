@@ -19,19 +19,41 @@
 
 // Project Includes
 #include "vehicle/include/device/Thruster.h"
+#include "core/include/PythonConfigNodeImp.h"
 
 using namespace std;
 namespace ba = boost::assign;
+using namespace ram;
+using namespace ram::core;
 using namespace ram::vehicle::device;
 
+static const std::string PORT_CONFIG("{'name' : 'PortThruster',"
+                                     " 'address' : '01',"
+                                     " 'calibration_factor': 0.9 }");
+static const std::string STAR_CONFIG("{'name' : 'StarboardThruster',"
+                                     " 'address' : '02',"
+                                     " 'calibration_factor': 0.9 }");
+static const std::string FORE_CONFIG("{'name' : 'ForeThruster',"
+                                     " 'address' : '03',"
+                                     " 'calibration_factor': 0.4 }");
+static const std::string AFT_CONFIG("{'name' : 'AftThruster',"
+                                    " 'address' : '04',"
+                                    " 'calibration_factor': 0.4 }");
+//                                       calibration_factor
 int main()
 {
+    // Create config for each thruster
+    ConfigNode port_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(PORT_CONFIG)));
+    ConfigNode star_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(STAR_CONFIG)));
+    ConfigNode fore_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(FORE_CONFIG)));
+    ConfigNode aft_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(AFT_CONFIG)));
+    
     // Create each thruster and add them to a list
     cout << "Creating all four thrusters" << endl;
-    Thruster port("PortThruster", "01", 0.9);
-    Thruster starboard("StarboardThruster", "02", 0.9);
-    Thruster fore("ForeThruster", "03", 0.9);
-    Thruster aft("AftThruster", "04", 0.9);
+    Thruster port(vehicle::VehiclePtr(), port_cfg);
+    Thruster starboard(vehicle::VehiclePtr(), star_cfg);
+    Thruster fore(vehicle::VehiclePtr(), fore_cfg);
+    Thruster aft(vehicle::VehiclePtr(), aft_cfg);
 
     std::vector<Thruster*> list = ba::list_of(&port)(&starboard)(&fore)(&aft);
 

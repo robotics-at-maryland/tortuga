@@ -22,11 +22,10 @@ namespace device {
 const std::string Thruster::SOFT_RESET = std::string("Y");
 const std::string Thruster::SET_FORCE = std::string("C");
     
-Thruster::Thruster(std::string name, std::string address,
-                   double calibrationFactor) :
-    Device(name),
-    m_address(address),
-    m_calibrationFactor(calibrationFactor)
+Thruster::Thruster(VehiclePtr vehicle, core::ConfigNode config) :
+    Device(vehicle, config["name"].asString()),
+    m_address(config["address"].asString()),
+    m_calibrationFactor(config["calibration_factor"].asDouble())
 {
     // Register thruster
     ThrusterCommunicator::registerThruster(this);
@@ -46,10 +45,9 @@ Thruster::~Thruster()
     ThrusterCommunicator::unRegisterThruster(this);
 }
 
-ThrusterPtr Thruster::construct(std::string name, std::string address,
-                                double calibrationFactor)
+ThrusterPtr Thruster::construct(VehiclePtr vehicle, core::ConfigNode config)
 {
-    return ThrusterPtr(new Thruster(name, address, calibrationFactor));
+    return ThrusterPtr(new Thruster(vehicle, config));
 }
     
 void Thruster::setForce(double force)

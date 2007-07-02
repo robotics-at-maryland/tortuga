@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
+#include "core/include/ConfigNode.h"
 
 namespace ram {
 namespace vehicle {
@@ -29,14 +30,12 @@ public:
     static const std::string SET_FORCE; // ("C");
     
     /** Create a thruster with the given address */
-    Thruster(std::string name, std::string address,
-             double calibrationFactor);
-
-    /** Creats a new object */
-    static ThrusterPtr construct(std::string name, std::string address,
-                                 double calibrationFactor);
+    Thruster(VehiclePtr vehicle, core::ConfigNode config);
     
     virtual ~Thruster();
+
+    /** Creats a new object */
+    static ThrusterPtr construct(VehiclePtr vehicle, core::ConfigNode config);
     
     /** Sets the current thruster force of the thrusters */
     void setForce(double newtons);

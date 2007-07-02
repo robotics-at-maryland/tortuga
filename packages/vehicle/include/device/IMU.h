@@ -18,6 +18,7 @@
 
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/ConfigNode.h"
 #include "pattern/include/Subject.h"
 
 // Forward declare structure from imuapi.h
@@ -39,7 +40,7 @@ public:
     };
     
     /** Create an IMU with the given device file */
-    IMU(std::string name, std::string devfile);
+    IMU(VehiclePtr vehicle, core::ConfigNode config);
 
     virtual ~IMU();
 
