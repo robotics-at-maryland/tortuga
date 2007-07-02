@@ -27,7 +27,7 @@
 // Linux Includes
 #include <linux/serial.h>
 
-
+#include <poll.h>
 
 
 /* Some code from cutecom, which in turn may have come from minicom */
@@ -90,11 +90,34 @@ int openPort(const char* devName)
 }
 
 
+int hasData(int fd, int timeout)
+{
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+    poll(&pfd, 1, timeout);
+    return pfd.revents & POLLIN;
+}
+
+
+void clearBuf(int fd)
+{
+	unsigned char buf[2];
+	usleep(20 * 1000);
+	
+	while(hasData(fd, 100))
+	{
+		read(fd, buf, 1);
+		printf("%c", buf[0]);
+		fflush(stdout);
+	}
+}
+
 
 int main(int argc, char ** argv)
 {
 	int fd = openPort("/dev/motor");
-
 	if(fd == -1)
 	{
 		printf("\nCould not find device!\n");
@@ -102,15 +125,21 @@ int main(int argc, char ** argv)
 	}
 
 
+	int i;
 
-	write(fd, "\n\r", 2);
+	printf("\nWR: %d\n", write(fd, "Y01\r\n", 5));
+	clearBuf(fd);
+	fsync(fd);
+	printf("\nWR: %d\n", write(fd, "Y02\r\n", 5));
+	clearBuf(fd);
+	fsync(fd);
+	printf("\nWR: %d\n", write(fd, "Y03\r\n", 5));
+	clearBuf(fd);
+	fsync(fd);
+	printf("\nWR: %d\n", write(fd, "Y04\r\n", 5));
+	clearBuf(fd);
 
 
-	write(fd, "Y01\n\r",5);
-	write(fd, "Y02\n\r",5);
-	write(fd, "Y03\n\r",5);
-	write(fd, "Y04\n\r",5);
-
-	sleep(1);
+	fsync(fd);
 	return 0;
 }
