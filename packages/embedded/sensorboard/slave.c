@@ -125,7 +125,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "I am depth/marker/thruster PIC.");
+                    txBuf[0] = sprintf(txBuf+1, "DEP MRK THR");
                     break;
                 }
 
