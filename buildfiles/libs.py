@@ -88,7 +88,8 @@ def _get_internal_lib(name):
                                         ext_deps = ['Boost']),
             
             'core' : InternalLibrary('core', int_deps = [],
-                                     ext_deps = ['Boost.Thread']),
+                                     ext_deps = ['Boost.Thread',
+                                                 'Boost.Python']),
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
                                          ext_deps = ['USB']),
