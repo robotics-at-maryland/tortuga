@@ -320,7 +320,7 @@ int readDataBlock(byte req)
 
 void showString(unsigned char str[], int line)
 {
-    int i=0;
+    int i;
     for(i=0; i<str[i]!=0; i++)
     {
         busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
@@ -386,7 +386,7 @@ void showDiag(int mode)
             return;
         }
 
-        sprintf(tmp, "Depth: %02X %02X ", rxBuf[0], rxBuf[1]);
+        sprintf(tmp, "Depth: %02X %02X     ", rxBuf[0], rxBuf[1]);
         showString(tmp, 1);
     }
 
@@ -413,13 +413,15 @@ void showDiag(int mode)
 
 void showIdent()
 {
-    byte i=0, j=0;
+    byte i=0;
+    long j=0;
     unsigned char tmp[16];
+
+    while(!(pollStatus() & 0x80));
 
     for(i=0; i<3; i++)
     {
-        while(!(pollStatus() & 0x80));
-        sprintf(tmp, "Ident IRQ%d:    ", i);
+        sprintf(tmp, "Ident IRQ %d:    ", i);
         showString(tmp, 0);
 
         /* Don't mix the strings */
@@ -435,6 +437,9 @@ void showIdent()
 
             if(len > 0)
             {
+                for(j=len; j<16; j++)
+                    rxBuf[j]=32;
+
                 showString(rxBuf, 1);
             } else
             {
@@ -443,6 +448,7 @@ void showIdent()
         }
 
         while(pollStatus() & 0x80);
+        while(!(pollStatus() & 0x80));
     }
     showString("Diagnostic Mode ", 0);
 }
