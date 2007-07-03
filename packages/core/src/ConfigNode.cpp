@@ -10,6 +10,7 @@
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/ConfigNodeImp.h"
+#include "core/include/PythonConfigNodeImp.h"
 
 namespace ram {
 namespace core {
@@ -39,6 +40,11 @@ int ConfigNode::asInt()
     return m_impl->asInt();
 }
 
+ConfigNode ConfigNode::fromString(std::string data)
+{
+    return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(data)));
+}
+    
 ConfigNode::ConfigNode(ConfigNodeImpPtr impl) :
     m_impl(impl)
 {

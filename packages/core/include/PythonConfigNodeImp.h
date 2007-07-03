@@ -14,6 +14,7 @@
 #include <boost/python.hpp>
 
 // Project Includes
+#include "core/include/ConfigNode.h"
 #include "core/include/ConfigNodeImp.h"
 
 namespace ram {
@@ -27,10 +28,13 @@ class PythonConfigNodeImp : public ConfigNodeImp
 {
 public:
     /** A config node from the given python dict like object */
-    PythonConfigNodeImp(boost::python::object m_pyobj);
+    PythonConfigNodeImp(boost::python::object pyobj);
     /** Create a python config node from the given python string */
     PythonConfigNodeImp(std::string pythonString);
 
+    /** Allows easier wrapping when joined with the shared pointers */
+    ConfigNode construct(boost::python::object pyobj);
+    
     virtual ~PythonConfigNodeImp() {};
     
     /** Grab a section of the config like an array */

@@ -42,6 +42,9 @@ public:
 
     /** Convert the node to an int */
     int asInt();
+
+    /** Builds a config node from the given string, this uses the python ver. */
+    static ConfigNode fromString(std::string data);
     
 private:
     ConfigNode();

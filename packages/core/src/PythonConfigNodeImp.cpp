@@ -45,6 +45,11 @@ PythonConfigNodeImp::PythonConfigNodeImp(std::string pythonString)
         PyErr_Print();
     }
 }
+
+ConfigNode PythonConfigNodeImp::construct(py::object pyobj)
+{
+    return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(pyobj)));
+}
     
 ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
 {

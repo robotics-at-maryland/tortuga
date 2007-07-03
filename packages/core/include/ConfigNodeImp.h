@@ -10,6 +10,9 @@
 #ifndef RAM_CORE_CONFIGNODEIMP_06_30_2006
 #define RAM_CORE_CONFIGNODEIMP_06_30_2006
 
+// STD Includes
+#include <string>
+
 // Project Includes
 #include "core/include/Common.h"
 
