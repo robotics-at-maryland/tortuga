@@ -9,5 +9,15 @@ import ext.vehicle_device as Device
 #import ext.vehicle.vehicle as Vehicle
 
 veh = Vehicle.Vehicle()
-star = Device.Thruster.construct("Starboard", "01", 0.9)
+star = Device.Thruster.pyconstruct(veh, {'name' : 'Star', 'address' : '01',
+                                         'calibration_factor' : 0.4})
+#star.test = "TestValue"
 veh._addDevice(star)
+
+print "Trying pointers"
+print "Py:",star
+print "Veh:",veh.getDevice("Starboard")
+
+#print "Trying props"
+#print star.test
+#print veh.getDevice("Starboard").test

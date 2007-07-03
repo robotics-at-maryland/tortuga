@@ -7,6 +7,17 @@ import wrap
 
 from pyplusplus import module_builder
 
+CONSTRUCT_TEMPLATE = """
+#include \"core/include/PythonConfigNodeImp.h\"
+
+::ram::vehicle::device::%(TYPE)sPtr pyconstruct (::ram::vehicle::VehiclePtr vehicle,
+                          boost::python::object obj)
+{
+    ::ram::core::ConfigNode cfg(::ram::core::ConfigNodeImpPtr(new ::ram::core::PythonConfigNodeImp(obj)));
+    return ::ram::vehicle::device::%(TYPE)sPtr(new ::ram::vehicle::device::%(TYPE)s(vehicle, cfg));
+}
+"""
+
 def generate_vehicle(name, global_ns, local_ns):
     """
     name: is the name of the module being wrapped (in name::space::form)
@@ -22,7 +33,8 @@ def generate_vehicle(name, global_ns, local_ns):
     local_ns.typedef('NameDeviceMap').exclude()
 
     # Handle IVehicle class
-    local_ns.class_('IVehicle').include()
+    ivehicle_cls = local_ns.class_('IVehicle')
+    ivehicle_cls.include()
 
     # Make things already exposed
     local_ns.typedef('IDevicePtr').already_exposed = True
@@ -34,23 +46,32 @@ def generate_vehicle_device(name, global_ns, local_ns):
     local_ns: is the namespace that coresponds to the given namespace
     """
     
-    local_ns.class_('Device').include()
+    #local_ns.class_('Device').include()
     local_ns.class_('IDevice').include()
-    local_ns.class_('Thruster').include()
 
-    local_ns.typedef('DevicePtr').include()
+    # Wrap the thruster class
+    thruster = local_ns.class_('Thruster')
+    thruster.include()
+#    thruster.constructors().exclude()
+#    thruster.add_declaration_code(CONSTRUCT_TEMPLATE % {'TYPE' : 'Thruster'})
+#    thruster.add_registration_code( 'Thruster_exposer.def( "pyconstruct", &::pyconstruct ); Thruster_exposer.staticmethod("pycrustruct");',
+ #                                   works_on_instance = False )
+
+
     local_ns.typedef('IDevicePtr').include()
     local_ns.typedef('ThrusterPtr').include()
 
     # Remove this to prevent mutiple declarations
     # This still causes pure virtual calls, but it can be fixed
     local_ns.class_('Device').member_function('getName').exclude()
+    local_ns.class_('Device').member_function('getVehicle').exclude()
 
+  #  local_ns.class_
+    
 
 def insert_code(mb):
     mb.add_registration_code("""
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::IDevice> >();
-    bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::Device> >();
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::Thruster> >();
     """)
 

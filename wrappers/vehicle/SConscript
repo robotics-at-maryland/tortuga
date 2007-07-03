@@ -27,7 +27,7 @@ envl.Append(CPPPATH = base_dir)
 # Headers we are currently wrapping
 wrapped_headers = ['Vehicle.h', 'IVehicle.h',
                    'device/IDevice.h',
-                   'device/Device.h',
+#                   'device/Device.h',
                    'device/Thruster.h']#, 
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
