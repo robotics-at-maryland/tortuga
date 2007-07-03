@@ -6,17 +6,7 @@
 import wrap
 
 from pyplusplus import module_builder
-
-CONSTRUCT_TEMPLATE = """
-#include \"core/include/PythonConfigNodeImp.h\"
-
-::ram::vehicle::device::%(TYPE)sPtr pyconstruct (::ram::vehicle::VehiclePtr vehicle,
-                          boost::python::object obj)
-{
-    ::ram::core::ConfigNode cfg(::ram::core::ConfigNodeImpPtr(new ::ram::core::PythonConfigNodeImp(obj)));
-    return ::ram::vehicle::device::%(TYPE)sPtr(new ::ram::vehicle::device::%(TYPE)s(vehicle, cfg));
-}
-"""
+from pyplusplus.module_builder import call_policies
 
 def generate_vehicle(name, global_ns, local_ns):
     """
@@ -39,40 +29,42 @@ def generate_vehicle(name, global_ns, local_ns):
     # Make things already exposed
     local_ns.typedef('IDevicePtr').already_exposed = True
 
+def expose_device(local_ns, name, remove = True):
+    print 'NAME:',name
+    device = local_ns.class_(name)
+    device.include()
+
+    if remove:
+        device.member_function('getVehicle').call_policies = \
+            call_policies.return_internal_reference()
+        
+    local_ns.typedef(name + 'Ptr').include()
+
+    return device
+
 def generate_vehicle_device(name, global_ns, local_ns):
     """
     name: is the name of the module being wrapped (in name::space::form)
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
-    
-    #local_ns.class_('Device').include()
-    local_ns.class_('IDevice').include()
+
+    # Wrap IDevice Class
+    expose_device(local_ns, 'IDevice');
 
     # Wrap the thruster class
-    thruster = local_ns.class_('Thruster')
-    thruster.include()
-#    thruster.constructors().exclude()
-#    thruster.add_declaration_code(CONSTRUCT_TEMPLATE % {'TYPE' : 'Thruster'})
-#    thruster.add_registration_code( 'Thruster_exposer.def( "pyconstruct", &::pyconstruct ); Thruster_exposer.staticmethod("pycrustruct");',
- #                                   works_on_instance = False )
+    expose_device(local_ns, 'Thruster', False);
 
-
-    local_ns.typedef('IDevicePtr').include()
-    local_ns.typedef('ThrusterPtr').include()
-
-    # Remove this to prevent mutiple declarations
-    # This still causes pure virtual calls, but it can be fixed
-    local_ns.class_('Device').member_function('getName').exclude()
-    local_ns.class_('Device').member_function('getVehicle').exclude()
-
-  #  local_ns.class_
+    # Wrap IMU class
+    device = expose_device(local_ns, 'IMU', False);
+    device.include_files.append( "imu/include/imuapi.h" )
     
 
 def insert_code(mb):
     mb.add_registration_code("""
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::IDevice> >();
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::Thruster> >();
+    bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::IMU> >();
     """)
 
 def generate_code(module_name, files, output_dir, include_files,
