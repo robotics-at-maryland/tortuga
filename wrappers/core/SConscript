@@ -25,7 +25,7 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-wrapped_headers = ['ConfigNode.h', 'PythonConfigNodeImp.h']
+wrapped_headers = ['ConfigNode.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 wrap.wrap_headers(envl, 'core',
