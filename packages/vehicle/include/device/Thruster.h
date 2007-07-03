@@ -30,12 +30,12 @@ public:
     static const std::string SET_FORCE; // ("C");
     
     /** Create a thruster with the given address */
-    Thruster(VehiclePtr vehicle, core::ConfigNode config);
+    Thruster(Vehicle* vehicle, core::ConfigNode config);
     
     virtual ~Thruster();
 
     /** Creats a new object */
-    static ThrusterPtr construct(VehiclePtr vehicle, core::ConfigNode config);
+    static ThrusterPtr construct(Vehicle* vehicle, core::ConfigNode config);
     
     /** Sets the current thruster force of the thrusters */
     void setForce(double newtons);

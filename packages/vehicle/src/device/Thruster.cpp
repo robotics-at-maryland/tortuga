@@ -22,7 +22,7 @@ namespace device {
 const std::string Thruster::SOFT_RESET = std::string("Y");
 const std::string Thruster::SET_FORCE = std::string("C");
     
-Thruster::Thruster(VehiclePtr vehicle, core::ConfigNode config) :
+Thruster::Thruster(Vehicle* vehicle, core::ConfigNode config) :
     Device(vehicle, config["name"].asString()),
     m_address(config["address"].asString()),
     m_calibrationFactor(config["calibration_factor"].asDouble())
@@ -45,7 +45,7 @@ Thruster::~Thruster()
     ThrusterCommunicator::unRegisterThruster(this);
 }
 
-ThrusterPtr Thruster::construct(VehiclePtr vehicle, core::ConfigNode config)
+ThrusterPtr Thruster::construct(Vehicle* vehicle, core::ConfigNode config)
 {
     return ThrusterPtr(new Thruster(vehicle, config));
 }

@@ -19,7 +19,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-IMU::IMU(VehiclePtr vehicle, core::ConfigNode config) :
+IMU::IMU(Vehicle* vehicle, core::ConfigNode config) :
     Device(vehicle, config["name"].asString()),
     Updatable(),
     Subject(),
@@ -41,6 +41,11 @@ IMU::~IMU()
         close(m_serialFD);
 
     delete m_rawState;
+}
+
+IMUPtr IMU::construct(Vehicle* vehicle, core::ConfigNode config)
+{
+    return IMUPtr(new IMU(vehicle, config));
 }
     
 void IMU::update(double timestep)

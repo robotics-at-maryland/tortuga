@@ -29,7 +29,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class IMU : public Device, // For getName
+class IMU : public Device,          // For getName
             public core::Updatable, // for update
             public pattern::Subject // so other objects can watch
             // boost::noncopyable
@@ -40,13 +40,28 @@ public:
     };
     
     /** Create an IMU with the given device file */
-    IMU(VehiclePtr vehicle, core::ConfigNode config);
+    IMU(Vehicle* vehicle, core::ConfigNode config);
 
+    /** Creats a new object */
+    static IMUPtr construct(Vehicle* vehicle, core::ConfigNode config);
+    
     virtual ~IMU();
 
     /** This is called at the desired interval to read data from the IMU */
     virtual void update(double timestep);
 
+    
+    virtual void background(int interval) {
+        Updatable::background(interval);
+    };
+    
+    virtual void unbackground(bool join = false) {
+        Updatable::unbackground(join);
+    };
+    virtual bool backgrounded() {
+        return Updatable::backgrounded();
+    };
+    
     /** Grabs the raw IMU state */
     void getRawState(RawIMUData& imuState);
     

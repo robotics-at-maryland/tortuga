@@ -23,16 +23,16 @@ namespace device {
 class Device : public IDevice // boost::noncopyable
 {
 public:
-    Device(VehiclePtr vehicle, std::string name);
+    Device(Vehicle* vehicle, std::string name);
     virtual ~Device() {};
 
     virtual std::string getName();
 
-    virtual VehiclePtr getVehicle();
+    virtual Vehicle* getVehicle();
     
 private:
     std::string m_name;
-    VehiclePtr m_vehicle;
+    Vehicle* m_vehicle;
 };
     
 } // namespace device

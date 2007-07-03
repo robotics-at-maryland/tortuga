@@ -29,6 +29,9 @@ typedef boost::shared_ptr<Thruster> ThrusterPtr;
 class ThrusterCommand;
 typedef boost::shared_ptr<ThrusterCommand> ThrusterCommandPtr;
 
+class IMU;
+typedef boost::shared_ptr<IMU> IMUPtr;
+
 
 namespace details {
 /** To expose things to GCC-XML */
@@ -39,6 +42,7 @@ inline int instantiate()
     a += sizeof(boost::shared_ptr<IDevice>);
     a += sizeof(boost::shared_ptr<Thruster>);
     a += sizeof(boost::shared_ptr<ThrusterCommand>);
+    a += sizeof(boost::shared_ptr<IMU>);
     return a;
 }
 }
