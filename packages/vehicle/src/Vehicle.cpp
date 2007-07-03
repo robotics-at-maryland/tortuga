@@ -18,6 +18,11 @@ Vehicle::Vehicle()
 {
 }
 
+/*Vehicle::~Vehicle()
+{
+    m_devices.clear();
+    }*/
+    
 device::IDevicePtr Vehicle::getDevice(std::string name)
 {
     return m_devices[name];

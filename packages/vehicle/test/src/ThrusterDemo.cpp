@@ -19,7 +19,7 @@
 
 // Project Includes
 #include "vehicle/include/device/Thruster.h"
-#include "core/include/PythonConfigNodeImp.h"
+#include "core/include/ConfigNode.h"
 
 using namespace std;
 namespace ba = boost::assign;
@@ -42,18 +42,13 @@ static const std::string AFT_CONFIG("{'name' : 'AftThruster',"
 //                                       calibration_factor
 int main()
 {
-    // Create config for each thruster
-    ConfigNode port_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(PORT_CONFIG)));
-    ConfigNode star_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(STAR_CONFIG)));
-    ConfigNode fore_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(FORE_CONFIG)));
-    ConfigNode aft_cfg(ConfigNodeImpPtr(new PythonConfigNodeImp(AFT_CONFIG)));
-    
     // Create each thruster and add them to a list
     cout << "Creating all four thrusters" << endl;
-    Thruster port(vehicle::VehiclePtr(), port_cfg);
-    Thruster starboard(vehicle::VehiclePtr(), star_cfg);
-    Thruster fore(vehicle::VehiclePtr(), fore_cfg);
-    Thruster aft(vehicle::VehiclePtr(), aft_cfg);
+    Thruster port(vehicle::VehiclePtr(), ConfigNode::fromString(PORT_CONFIG));
+    Thruster starboard(vehicle::VehiclePtr(),
+                       ConfigNode::fromString(STAR_CONFIG));
+    Thruster fore(vehicle::VehiclePtr(), ConfigNode::fromString(FORE_CONFIG));
+    Thruster aft(vehicle::VehiclePtr(), ConfigNode::fromString(AFT_CONFIG));
 
     std::vector<Thruster*> list = ba::list_of(&port)(&starboard)(&fore)(&aft);
 
