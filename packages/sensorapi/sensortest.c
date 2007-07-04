@@ -30,6 +30,10 @@ int main(int argc, char ** argv)
     printf("\nThruster safety 2: %d", thrusterSafety(fd, 2));
     printf("\nThruster safety 3: %d", thrusterSafety(fd, 3));
 
+    unsigned char tempData[6];
+
+    printf("\nTemperature: %d", readTemp(fd, tempData));
+
 
     write(fd, &buf, 1);
 

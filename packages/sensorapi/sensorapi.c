@@ -150,6 +150,32 @@ int readStatus(int fd)
 }
 
 
+int readTemp(int fd, unsigned char * tempData)
+{
+    unsigned char buf[5]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
+    int i;
+    for(i=0; i<NUM_TEMP_SENSORS; i++)
+        tempData[i]=0;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] != 0x0B)
+        return SB_ERROR;
+
+    readData(fd, tempData, NUM_TEMP_SENSORS);
+    readData(fd, buf, 1);
+
+    unsigned char sum = 0x0B;
+
+    for(i=0; i<NUM_TEMP_SENSORS; i++)
+        sum = (sum+tempData[i]) & 0xFF;
+
+    if(sum == buf[0])
+        return 0;
+
+    return SB_ERROR;
+}
+
 
 int hardKill(int fd)
 {

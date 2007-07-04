@@ -8,7 +8,7 @@
 #define HOST_CMD_CHECK   0x01
 #define HOST_CMD_DEPTH   0x02
 #define HOST_CMD_STATUS  0x04
-
+#define HOST_CMD_TEMPERATURE 0x0A
 
 #define LCD_BL_OFF    0
 #define LCD_BL_ON     1
@@ -21,9 +21,13 @@
 #define SB_ERROR    -1
 
 
+#define NUM_TEMP_SENSORS 6
+
 /* Bits of the status command */
-#define STATUS_WATER    0x01
-#define STATUS_START    0x02
+/* Use these constants. The values can, and most likely will, change. */
+#define STATUS_WATER      0x01
+#define STATUS_KILLSW	  0x02
+#define STATUS_STARTSW    0x80
 
 
 int openSensorBoard(const char * devName);
@@ -35,4 +39,5 @@ int dropMarker(int fd, int markerNum);
 int lcdBacklight(int fd, int state);
 int thrusterSafety(int fd, int state);
 int displayText(int fd, int line, char * text);
+int getTemp(int fd, unsigned char * tempData);
 
