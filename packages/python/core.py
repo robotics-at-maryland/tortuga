@@ -27,7 +27,7 @@ BEGIN_INIT_MESSAGE = '* * * Beginning initialization'
 END_INIT_MESSAGE = '* * * Initialized'
 
 # --------------------------------------------------------------------------- #
-#                             L O G G I N G                                  #
+#                             L O G G I N G                                   #
 # --------------------------------------------------------------------------- #
 
 def log_init(default_config, level = logging.INFO):
@@ -303,12 +303,34 @@ def implements(*ifaces):
     work till after the class is created.  So we must as well, and by placing
     our hook in here we avoid the client having to manually add it.
     """
-    declarations._implements("implements", ifaces, classImplements)
+    declarations._implements("implements", ifaces, _classImplements)
 
     # These are called after the class that
     advice.addClassAdvisor(_register_class)
     advice.addClassAdvisor(_verify_class)
 
+def classImplements(cls, *implements):
+    """
+    Declare additional interfaces implemented for instances of a class
+    
+    The arguments after the class are one or more interfaces or
+    interface specifications (``IDeclaration`` objects).
+    
+    The interfaces given (including the interfaces in the specifications)
+    are added to any interfaces previously declared.
+    """
+    
+    # Call the normal zope.interface function
+    _classImplements(cls, *implements)
+    
+    # Now register in our system
+    _verify_class(cls)
+    _register_class(cls)
+        
+
+# --------------------------------------------------------------------------- #
+#                                M I S C                                      #
+# --------------------------------------------------------------------------- #
 
 def fixed_update(update_interval_attr, _elapsed_attr = None,
                   update_time_pos = 0):

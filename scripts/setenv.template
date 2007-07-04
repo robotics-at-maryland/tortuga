@@ -9,7 +9,7 @@ RAM_SVN_DIR=%(local_svn_dir)s
 
 # Set up PYTHONPATH so imports will work properly
 alias python=%(py_version_str)s
-export PYTHONPATH=$RAM_SVN_DIR/packages/python:$RAM_ROOT_DIR/lib/%(py_version_str)s/site-packages:$PYTHONPATH
+export PYTHONPATH=$RAM_SVN_DIR/build/lib:$RAM_SVN_DIR/packages/python:$RAM_ROOT_DIR/lib/%(py_version_str)s/site-packages:$PYTHONPATH
 
 # Setup the PATH to include scripts in trunk and are custom environment
 export PATH=$RAM_SVN_DIR/scripts:$RAM_ROOT_DIR/bin:%(wx_bin_dir)s:$PATH

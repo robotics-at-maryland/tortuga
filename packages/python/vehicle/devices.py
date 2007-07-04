@@ -1,39 +1,30 @@
-'''
-This module stores device objects. Devices include things like sensors, thrusters etc.
-A vehicle has devices.
-'''
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  vehicle/devices.py
 
-'''
-This is a thruster object. A thruster has a power setting between -1.0 and 1.0, and an address.
-The object, remember, is a solely software thing. Only a vehicle can communicate with the motor controller
-to actually set a thruster power.
-'''
-class Thruster():
-    def __init__(self,power,address):
-        self.power = power
-        self.address = address
-    def set_power(self,power):
-        self.power = power
-	if self.power > 1.0:
-	    self.power = 1.0
-	elif self.power < -1.0:
-	    self.power = -1.0
-	elif self.power * 1000 < 0.1 and self.power > 0.0:   #bad check for the float zero problem
-	    self.power = 0.0
-	elif self.power * 1000 > -0.1 and self.power < 0.0:
-	    self.power = 0.0
-    def power_up(self,increment):
-        new_pow = self.power + increment
-	self.set_power(new_pow)
+# Project Imports
+import ext.vehicle_device as _device # Import C++ Devices
+from core import Interface, classImplements
 
-'''
-This is a depth sensor object. The depth sensor is actually passed a sensor communicator, so
-it is capable of actually getting a value from the sensor board. It returns this value when 
-anyone asks for it.
-'''        
-class DepthSensor():
-    def __init__(self,sc):
-        self.sensor_comm = sc
-    def depth(self):
-        return self.sensor_comm.depth()
+# Bring C++ Devices into scope
+from ext.vehicle_device import Thruster
+from ext.vehicle_device import IMU
     
+class IDevice(Interface):
+    """
+    The base interface that all devices must meet
+    """
+    
+    def getName():
+        """
+        Gets the name of the device
+        """
+        pass
+    
+    
+# Put C++ classes in the interface system
+classImplements(Thruster, IDevice)
+classImplements(IMU, IDevice)
