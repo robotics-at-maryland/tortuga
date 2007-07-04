@@ -40,7 +40,7 @@ else
             c = 0.25*(DCM(2,3)+DCM(3,2))/b;
             d = 0.25*(DCM(1,3)-DCM(3,1))/b;
         else
-            a = 0.5*sqrt(DCM(1,1)-DCM(2,2)+DCM(3,3)+1);
+            a = 0.5*sqrt(DCM(1,1)-DCM(2,2)-DCM(3,3)+1);
             b = 0.25*(DCM(1,2)+DCM(2,1))/a;
             c = 0.25*(DCM(1,3)-DCM(3,1))/a;
             d = 0.25*(DCM(3,2)-DCM(2,3))/a;
