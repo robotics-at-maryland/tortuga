@@ -16,14 +16,20 @@
 // Project Includes
 #include "vehicle/include/device/Device.h"
 #include "core/include/ConfigNode.h"
+#include "pattern/include/Subject.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
 
-class Thruster : public Device // boost::noncopyable
+class Thruster : public Device, // boost::noncopyable
+                 public pattern::Subject
 {
 public:
+    enum UpdateEvents {
+        FORCE_UPDATE
+    };
+    
     /** Reset thruster, clear registers and sets power to zero */
     static const std::string SOFT_RESET; // ("Y");
     /** Sets the thruster output force */

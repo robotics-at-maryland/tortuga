@@ -70,6 +70,10 @@ void Thruster::setForce(double force)
     ss << " " << m_motorCount;
     ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SET_FORCE, ss.str()));
     ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
+
+    // Notify observers
+    setChanged();
+    notifyObservers(0, FORCE_UPDATE);
 }
 
 double Thruster::getForce()
