@@ -85,7 +85,7 @@ def _get_internal_lib(name):
                                        ext_deps = ['OpenCV', 'Boost.Thread']),
             
             'pattern' : InternalLibrary('pattern', int_deps = [],
-                                        ext_deps = ['Boost']),
+                                        ext_deps = ['Boost', 'Boost.Thread']),
             
             'core' : InternalLibrary('core', int_deps = [],
                                      ext_deps = ['Boost.Thread',

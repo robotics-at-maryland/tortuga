@@ -15,6 +15,7 @@ def generate_pattern(name, global_ns, local_ns):
     """
     local_ns.class_('Observer').include()
     local_ns.class_('Subject').include()
+    local_ns.class_('CachedObserver').include()
 
 def generate_code(module_name, files, output_dir, include_files,
                   extra_includes = []):

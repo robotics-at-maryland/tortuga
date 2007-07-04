@@ -16,7 +16,12 @@
 namespace ram {
 namespace pattern {
 
-CachedObserver::CachedObserver()
+boost::mutex CachedObserver::s_listMutex;
+CachedObserverSet CachedObserver::s_cachedObservers;
+    
+CachedObserver::CachedObserver(bool ignoreData) :
+    m_cached(true),
+    m_ignoreData(ignoreData)
 {
     CachedObserver::registerCachedObserver(this);
 }
@@ -25,7 +30,6 @@ CachedObserver::~CachedObserver()
 {
     CachedObserver::unregisterCachedObserver(this);
 }
-
 
 void CachedObserver::cacheUpdates(bool yes, bool release)
 {   
@@ -53,7 +57,6 @@ void CachedObserver::cacheUpdates(bool yes, bool release)
     }    
 }
 
-
 void CachedObserver::releaseUpdates()
 {
     if (m_cached)
@@ -63,8 +66,17 @@ void CachedObserver::releaseUpdates()
         while (0 != m_cache.size())
         {
             UpdateListIter cur = m_cache.begin();
-            cachedUpdate(boost::get<0>(*cur), boost::get<1>(*cur),
-                         boost::get<2>(*cur));
+
+            if (m_ignoreData)
+            {
+                cachedUpdate(boost::get<0>(*cur), boost::get<2>(*cur));
+            }
+            else
+            {
+                cachedUpdate(boost::get<0>(*cur), boost::get<1>(*cur),
+                             boost::get<2>(*cur));
+            }
+            
             m_cache.erase(cur);
         }   
     }
@@ -75,7 +87,9 @@ void CachedObserver::releaseAllUpdates()
 {
     boost::mutex::scoped_lock lock(s_listMutex);
 
-    for(CachedObserverSetIter iter; iter != s_cachedObservers.end(); iter++)
+    CachedObserverSetIter end = s_cachedObservers.end();
+    for(CachedObserverSetIter iter = s_cachedObservers.begin();
+        iter != end; iter++)
     {
         const_cast<CachedObserver*>(*iter)->releaseUpdates();
     }
@@ -91,7 +105,10 @@ void CachedObserver::update(Subject *o, void* data, long flag)
     }
     else
     {
-        cachedUpdate(o, data, flag);
+        if (m_ignoreData)
+            cachedUpdate(o, flag);
+        else
+            cachedUpdate(o, data, flag);
     }
 }
 

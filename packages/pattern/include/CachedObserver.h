@@ -14,13 +14,13 @@
 #include <set>
 #include <list>
 
-// Project Include
+// Library Includes
 #include "boost/tuple/tuple.hpp"
 #include "boost/tuple/tuple_comparison.hpp"
 #include "boost/thread/mutex.hpp"
 
-// Fonudation includes (gets forward declaration of Subject)
-#include "pattern/include/Common.h"
+// Project includes (gets forward declaration of Subject)
+#include "pattern/include/Observer.h"
 
 namespace ram {
 namespace pattern {
@@ -39,10 +39,10 @@ typedef CachedObserverSet::iterator CachedObserverSetIter;
  *  or only for the current observer certain object.  This <b>is</b> thread
  *  safe.
  */
-class CachedObserver
+class CachedObserver : public Observer
 {
 public:
-    CachedObserver();
+    CachedObserver(bool ignoreData = false);
     
     virtual ~CachedObserver();
 
@@ -65,12 +65,18 @@ public:
     /** Called when the updates are releaesd  */
     virtual void cachedUpdate(Subject* o, void* data, long flag) = 0;
 
+    /** Called when we don't care about the data */
+    virtual void cachedUpdate(Subject* o, long flag) = 0;
+    
 private:
     static void registerCachedObserver(CachedObserver* observer);
     static void unregisterCachedObserver(CachedObserver* observer);
     
     /** Whether or not to cache updates */
     bool m_cached;
+
+    /** Whether or not to pass the data onto the subject */
+    bool m_ignoreData;
     
     /** Protects access to cache */
     boost::mutex m_cacheMutex;
