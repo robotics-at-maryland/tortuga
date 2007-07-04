@@ -5,8 +5,35 @@
 
 import wrap
 
+from pygccxml import declarations
+from pyplusplus import decl_wrappers
+from pyplusplus import messages
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
+
+def make_already_exposed(global_ns, namespace_name, classes, class_decs = None):
+    if type(classes) is not list:
+        classes = [classes]
+
+    if class_decs is None:
+        class_decs = []
+
+    ns = global_ns
+    for name in namespace_name.split('::'):
+        print 'Going into namespace',name
+        ns = ns.namespace(name)
+
+    for class_name in classes:
+        print 'Marking class',class_name
+        class_ = ns.class_(class_name)
+        class_.include()
+        class_.already_exposed = True
+
+    for class_dec in class_decs:
+        print 'Marking class dec',class_dec
+        class_dec = ns.decl(name = 'Vehicle' ,
+                            decl_type = declarations.class_declaration_t)
+        class_dec.already_exposed = True
 
 def generate_vehicle(name, global_ns, local_ns):
     """
@@ -14,6 +41,9 @@ def generate_vehicle(name, global_ns, local_ns):
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
+
+    make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])
+    make_already_exposed(global_ns, 'ram::math', ['Vector3', 'Quaternion'])
 
     # Include vehicle class and handle special cases
     vehicle_cls = local_ns.class_('Vehicle')
@@ -27,7 +57,9 @@ def generate_vehicle(name, global_ns, local_ns):
     ivehicle_cls.include()
 
     # Make things already exposed
-    local_ns.typedef('IDevicePtr').already_exposed = True
+    IDevicePtr = local_ns.typedef('IDevicePtr')
+    IDevicePtr.include()
+    IDevicePtr.already_exposed = True
 
 def expose_device(local_ns, name, remove = True):
     print 'NAME:',name
@@ -38,9 +70,12 @@ def expose_device(local_ns, name, remove = True):
         device.member_function('getVehicle').call_policies = \
             call_policies.return_internal_reference()
         
+    device.disable_warnings(messages.W1023)
+        
     local_ns.typedef(name + 'Ptr').include()
 
     return device
+
 
 def generate_vehicle_device(name, global_ns, local_ns):
     """
@@ -56,9 +91,13 @@ def generate_vehicle_device(name, global_ns, local_ns):
     expose_device(local_ns, 'Thruster', False);
 
     # Wrap IMU class
-    device = expose_device(local_ns, 'IMU', False);
-    device.include_files.append( "imu/include/imuapi.h" )
-    
+    IMU = expose_device(local_ns, 'IMU', False);
+    IMU.include_files.append( "imu/include/imuapi.h" )
+
+
+    make_already_exposed(global_ns, 'ram::pattern', 'Subject')
+    make_already_exposed(global_ns, 'ram::core', ['ConfigNode', 'IUpdatable',
+                                                  'Updatable'])
 
 def insert_code(mb):
     mb.add_registration_code("""
