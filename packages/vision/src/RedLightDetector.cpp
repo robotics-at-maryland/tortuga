@@ -6,7 +6,7 @@ using namespace ram::vision;
 RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 {
 	cam = camera;
-    frame = new ram::vision::OpenCVImage(640, 480);
+    frame = new ram::vision::OpenCVImage(cam->width(),cam->height());
 	found=false;
 	lightFramesOff=0;
 	lightFramesOn=0;
@@ -15,8 +15,11 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	startCounting=false;
 	lightCenter.x=0;
 	lightCenter.y=0;
-//	cvNamedWindow("Flash",CV_WINDOW_AUTOSIZE);
-//	cvNamedWindow("raw",CV_WINDOW_AUTOSIZE);
+	image=cvCreateImage(cvSize(cam->height(),cam->width()),8,3);
+	raw=cvCreateImage(cvGetSize(image),8,3);
+	
+	cvNamedWindow("Flash",CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("raw",CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("LightFinder",CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("masked",CV_WINDOW_AUTOSIZE);
 }
@@ -24,16 +27,29 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 RedLightDetector::~RedLightDetector()
 {
 	delete frame;
-	
+	cvReleaseImage(&image);
+	cvReleaseImage(&raw);
+}
+
+double RedLightDetector::getX()
+{
+	return redLightCenterX;
+}
+
+double RedLightDetector::getY()
+{
+	return redLightCenterY;
 }
 
 void RedLightDetector::update()
 {
 	cam->getImage(frame);
-	IplImage* image =(IplImage*)(*frame);
+	IplImage* sideways =(IplImage*)(*frame);
+	IplImage* image=cvCreateImage(cvSize(cvGetSize(sideways).height,cvGetSize(sideways).width),8,3);
 	IplImage* raw=cvCreateImage(cvGetSize(image),8,3);
-	cvCopyImage(image, raw);
-//	cvShowImage("raw", raw);
+	rotate90Deg(sideways,image);
+	cvCopyImage(image,raw);//Now both are rotated 90 degrees
+	cvShowImage("raw", raw);
 	
 	IplImage* flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
 	if (lightFramesOff>20)
@@ -162,8 +178,12 @@ void RedLightDetector::update()
 		//	paused=true;
 	}
 	
+	
+	redLightCenterX=lightCenter.x;
+	redLightCenterY=lightCenter.y;
+	redLightCenterX/=image->width;
+	redLightCenterY/=image->height;
 //	cvShowImage("Flash",flashFrame);
+
 	cvShowImage("LightFinder", raw);
-
-
 }

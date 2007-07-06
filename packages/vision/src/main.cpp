@@ -54,6 +54,115 @@ int testRecord()
   return 7;
 }
 
+void rotate90Deg(IplImage* src, IplImage* dest)
+{
+	char* data=src->imageData;
+	char* data2=dest->imageData;
+	int width=src->width;
+	int height=src->height;
+	if (width!=dest->height || height!=dest->width)
+	{
+		cout<<"Wrong dimensions of destination image in rotation, should be transpose of src image"<<endl;
+		exit(-1);
+	}
+	int count=0;
+	int count2=0;
+	for (int y=0; y<height;y++)
+	{
+		count2=3*height*width+y*3;
+		for (int x=0; x<width;x++)
+		{
+			count2-=(3*height);
+			data2[count2]=data[count];
+			data2[count2+1]=data[count+1];
+			data2[count2+2]=data[count+2];
+			count+=3;
+		}
+	}
+}
+
+int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
+{
+	int numImages=1;
+	int i, j;
+	// 8 bit image:
+	IplImage* image8 = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+	
+	for(i = 0; i < image8->width; i++)
+		for(j = 0; j < image8->height; j++)
+			CV_IMAGE_ELEM(image8, uchar, j, i) = CV_IMAGE_ELEM(image, float, j, i);
+	IplImage* temp = cvCreateImage(cvGetSize(image),IPL_DEPTH_8U, 1);
+	
+	int cornerCount;
+	CvMemStorage* storage=cvCreateMemStorage();
+
+	cout<<"Guessing chessboard corners"<<endl;
+	int okay = cvFindChessBoardCornerGuesses(image8, temp, storage, cvSize(6,6), array, &cornerCount); 
+	cout<<"Finished guessing chessboard corners"<<endl;
+	cvReleaseMemStorage(&storage);
+	
+	CvTermCriteria termcrit;
+	termcrit.type=CV_TERMCRIT_ITER;
+	termcrit.max_iter=5;
+	cout<<"calling subPix"<<endl;
+	cvFindCornerSubPix(image8, array, cornerCount, 
+		cvSize(5,5), cvSize(-1,-1), termcrit); 
+	cout<<"Finished subPix"<<endl;
+
+	cvReleaseImage(&image8);
+
+	return cornerCount;
+}
+
+void calibrateCamera(IplImage* image, IplImage* dest)//, int numImages)
+{
+	cvNamedWindow("Distorted");
+	cvNamedWindow("Undistorted");
+	cvShowImage("Distorted",image);
+	const int numImages=5;
+	CvPoint2D32f array[36*numImages];
+	int goodImages=0;
+	int arrayIndex=0;
+	int cornerCountsArray[numImages];
+	while (goodImages<numImages)
+	{
+		int cornerCount=findCorners(image,&array[arrayIndex]);
+		if (cornerCount>=25)
+		{
+			cornerCountsArray[goodImages]=cornerCount;
+			arrayIndex+=cornerCount;
+			goodImages++;
+			cout<<goodImages<<endl;
+		}
+	}
+	cout<<"whats going on here?"<<endl;
+	
+	//Multiply all these by number of images
+	CvPoint3D32f buffer[36*numImages];
+	for (int x=0; x<arrayIndex;x++)
+	{
+		buffer[x].x=array[x].x;
+		buffer[x].y=array[x].y;
+		buffer[x].z=0;
+	}
+	float distortion[4*numImages];
+	float cameraMatrix[9*numImages];
+	float transVects[3*numImages];
+	float rotMat[9*numImages];
+	cout<<"Starting calibration"<<endl;
+	cvCalibrateCamera( /*int numImages*/numImages, /*int* numPoints*/cornerCountsArray,/*CvSize imageSize*/cvGetSize(image),
+		/*CvPoint2D32f* imagePoints32f*/array, /*CvPoint3D32f* objectPoints32f*/buffer,
+		distortion, cameraMatrix,
+		transVects, rotMat,
+		/*Intrinsic guess*/ 0 );
+	cvUnDistortOnce( image, dest,
+                      cameraMatrix,
+                      distortion,
+                      1 );
+					  
+	cvShowImage("Undistorted",dest);
+}
+
 extern "C"{
   int giveMeFive();
 }
@@ -296,103 +405,110 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	}
 	
 	//cvHough
-	double hough(IplImage* img)
-	{
-	    IplImage* color_dst =img;//cvLoadImage("DSC00099.jpg", 0 );
-		IplImage* src = cvCreateImage(cvGetSize(img), 8, 1);
-		cvCvtColor(img,src,CV_BGR2GRAY);
-
-		IplImage* dst;
-
-		CvMemStorage* storage = cvCreateMemStorage(0);
-		CvSeq* lines = 0;
-		int i;
+	//this returns an angle, or -10 (HOUGH_ERROR) on error
+double hough(IplImage* img, int* linex, int* liney)
+{
+	IplImage* color_dst =img;//cvLoadImage("DSC00099.jpg", 0 );
+	IplImage* src = cvCreateImage(cvGetSize(img), 8, 1);
+	cvCvtColor(img,src,CV_BGR2GRAY);
 	
-		//if( !src )
-		//	return;
-		
-		dst = cvCreateImage( cvGetSize(src), 8, 1 );
-//		color_dst = cvCreateImage( cvGetSize(src), 8, 3 );
-
-//		IplConvKernel* element = cvCreateStructuringElementEx(2*2+1, 2*2+1, 2, 2, CV_SHAPE_RECT, 0 );
-//		cvDilate(dst,dst,element);
-//		cvCvtColor( dst, color_dst, CV_GRAY2BGR );	
-		cvCanny( src, dst, 50, 200, 3 );
-//		cvShowImage("Hough",dst);
-
-	#if 0
-		lines = cvHoughLines2( dst, storage, CV_HOUGH_STANDARD, 1, CV_PI/180, 10, 0, 0 );
-
-		for( i = 0; i < MIN(lines->total,100); i++ )
-		{
-			float* line = (float*)cvGetSeqElem(lines,i);
-			float rho = line[0];
-			float theta = line[1];
-			CvPoint pt1, pt2;
-			double a = cos(theta), b = sin(theta);
-			double x0 = a*rho, y0 = b*rho;
-			pt1.x = cvRound(x0 + 4000*(-b));
-			pt1.y = cvRound(y0 + 4000*(a));
-			pt2.x = cvRound(x0 - 4000*(-b));
-			pt2.y = cvRound(y0 - 4000*(a));
-			cvLine( color_dst, pt1, pt2, CV_RGB(255,0,0), 3, CV_AA, 0 );
-		}
-	#else
-		lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 50, 10 );
-		CvPoint start,end;
-		
-		start.x=start.y=end.x=end.y=0;
-		int missed = 0;
-		int temp;
-		double angle;
-		for( i = 0; i < lines->total; i++ )
-		{
-			CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
-			if (((line[0].x < 5)&&(line[1].x < 5)) || ((line[0].x > color_dst->width-5)&&(line[1].x > color_dst->width-5)) 
-				|| ((line[0].y < 5)&&(line[1].y < 5)) || ((line[0].y > color_dst->height-5)&&(line[1].y > color_dst->height-5))) {
-					missed++;
-					//cout<<"Missed++"<<endl;
-			}
-			else {
-				if(line[0].y < line[1].y) {
-						temp = line[0].y;
-						line[0].y = line[1].y;
-						line[1].y = temp;
-						temp = line[0].x;
-						line[0].x = line[1].x;
-						line[1].x = temp;
-				}
-				start.x += line[0].x;
-				start.y += line[0].y;
-				end.x += line[1].x;
-				end.y += line[1].y;
-			}
-			
-			cvLine( color_dst, line[0], line[1], CV_RGB(255,0,0), 3, CV_AA, 0 );
-		}
-		int total = lines->total - missed;
-		if (total>0)
-		{
-			start.x/=total;
-			start.y/=total;
-			end.x/=total;
-			end.y/=total;
-		
-			int xdiff = (end.x - start.x);		//deal with y's being flipped
-			int ydiff = -1*(end.y - start.y);
-			angle = atan2((ydiff),(xdiff));
-			//cout<<"Xdiff: "<<xdiff<<endl;
-			//cout<<"Ydiff: "<<ydiff<<endl;
-			//cout<<"Angle: "<<angle<<endl; 
-			//cout<<"startx: "<<start.x<<" endx: "<<end.x<<endl;
-		
-			cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
-		}
-	#endif
-	return angle;
-
-//		cvShowImage( "Hough", color_dst );
+	IplImage* dst;
+	
+	CvMemStorage* storage = cvCreateMemStorage(0);
+	CvSeq* lines = 0;
+	int i;
+	
+	//if( !src )
+	//	return;
+	
+	dst = cvCreateImage( cvGetSize(src), 8, 1 );
+	//		color_dst = cvCreateImage( cvGetSize(src), 8, 3 );
+	
+	//		IplConvKernel* element = cvCreateStructuringElementEx(2*2+1, 2*2+1, 2, 2, CV_SHAPE_RECT, 0 );
+	//		cvDilate(dst,dst,element);
+	//		cvCvtColor( dst, color_dst, CV_GRAY2BGR );	
+	cvCanny( src, dst, 50, 200, 3 );
+	//		cvShowImage("Hough",dst);
+	
+#if 0
+	lines = cvHoughLines2( dst, storage, CV_HOUGH_STANDARD, 1, CV_PI/180, 10, 0, 0 );
+	
+	for( i = 0; i < MIN(lines->total,100); i++ )
+	{
+		float* line = (float*)cvGetSeqElem(lines,i);
+		float rho = line[0];
+		float theta = line[1];
+		CvPoint pt1, pt2;
+		double a = cos(theta), b = sin(theta);
+		double x0 = a*rho, y0 = b*rho;
+		pt1.x = cvRound(x0 + 4000*(-b));
+		pt1.y = cvRound(y0 + 4000*(a));
+		pt2.x = cvRound(x0 - 4000*(-b));
+		pt2.y = cvRound(y0 - 4000*(a));
+		cvLine( color_dst, pt1, pt2, CV_RGB(255,0,0), 3, CV_AA, 0 );
 	}
+#else
+	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 50, 10 );
+	CvPoint start,end;
+	
+	start.x=start.y=end.x=end.y=0;
+	int missed = 0;
+	int temp;
+	double angle;
+	for( i = 0; i < lines->total; i++ )
+	{
+		CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+		if (((line[0].x < 5)&&(line[1].x < 5)) || ((line[0].x > color_dst->width-5)&&(line[1].x > color_dst->width-5)) 
+			|| ((line[0].y < 5)&&(line[1].y < 5)) || ((line[0].y > color_dst->height-5)&&(line[1].y > color_dst->height-5))) 
+		{
+			missed++;
+			//cout<<"Missed++"<<endl;
+		}
+		else 
+		{
+			if(line[0].y < line[1].y)
+			{
+				temp = line[0].y;
+				line[0].y = line[1].y;
+				line[1].y = temp;
+				temp = line[0].x;
+				line[0].x = line[1].x;
+				line[1].x = temp;
+			}
+			start.x += line[0].x;
+			start.y += line[0].y;
+			end.x += line[1].x;
+			end.y += line[1].y;
+		}
+		
+		cvLine( color_dst, line[0], line[1], CV_RGB(255,0,0), 3, CV_AA, 0 );
+	}
+	int total = lines->total - missed;
+	if (total>0)
+	{
+		start.x/=total;
+		start.y/=total;
+		end.x/=total;
+		end.y/=total;
+		
+		int xdiff = (end.x - start.x);		//deal with y's being flipped
+		int ydiff = -1*(end.y - start.y);
+		angle = atan2((ydiff),(xdiff));
+		//cout<<"Xdiff: "<<xdiff<<endl;
+		//cout<<"Ydiff: "<<ydiff<<endl;
+		//cout<<"Angle: "<<angle<<endl; 
+		//cout<<"startx: "<<start.x<<" endx: "<<end.x<<endl;
+		
+		*linex=(start.x+end.x)/2;
+		*liney=(start.y+end.y)/2;
+		
+		cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
+		return angle;
+	}
+#endif
+	return HOUGH_ERROR;
+	//		cvShowImage( "Hough", color_dst );
+}
 
 
 //Only meant for use on images after correct has been called on them.
@@ -456,7 +572,14 @@ void redMask(IplImage* percents, IplImage* base)
 	int r;
 	int r2;
 	int count=0;
-	for (int y=0; y<height; y++)
+	for (int y=0; y<height/2;y++)
+		for (int x=0;x<width;x++)
+		{
+			data2[count]=data2[count+1]=data2[count+2]=0;
+			count+=3;
+		}
+			
+	for (int y=height/2; y<height; y++)
 	{
 		for (int x=0; x<width; x++)
 		{
@@ -551,7 +674,7 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 	int maxy=0;
 	int rx;
 	int ry;
-
+	
 	for (int y=0; y<height; y++)
 	{
 		for (int x=0; x<width; x++)
@@ -1015,17 +1138,18 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 	float r_over_g_min;
 	float r_over_g_max;
 	float b_over_r_max;
+	int acceptable=0;
 	
 	if (!strict)
 	{
-		r_over_g_min=.6;
-		r_over_g_max=.95;
+		r_over_g_min=1.5;
+		r_over_g_max=2.5;
 		b_over_r_max=.5;
 	}
 	else
 	{
-		r_over_g_min=.75;
-		r_over_g_max=.85;
+		r_over_g_min=1.7;
+		r_over_g_max=2.3;
 		b_over_r_max=.4;
 	}
 	for (int y=0; y<height; y++)
@@ -1035,9 +1159,16 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 			g=(data[count+1]+256)%256;
 			r=(data[count+2]+256)%256;
 			
-			if (b<0 || g<0 || r<0 || b>255 ||g>255||r>255)
+			//if (b<0 || g<0 || r<0 || b>255 ||g>255||r>255)
 				//cout<<"WTF?!?!?!?!?!"<<g <<endl;
-			if (r>r_over_g_min*g && r_over_g_max*g>r && b_over_r_max*r > b)
+			acceptable=0;
+			if (r>r_over_g_min*g)
+				++acceptable;
+			if (r_over_g_max*g>r)
+				++acceptable;
+			if ( b_over_r_max*r>b)
+				++acceptable;
+			if (acceptable>=2+(int)strict)
 			{
 				if (alter_img)
 					data[count]=data[count+1]=data[count+2]=255;
@@ -1323,9 +1454,9 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 			b2=(data2[count]+256)%256;
 			g2=(data2[count+1]+256)%256;
 			r2=(data2[count+2]+256)%256;
-			if (b>25 && g>25 && r>25)
+			if (b>28 && g>28 && r>28)
 			{
-				if (b2>100 && g2>100 && r2>100)
+				if (b2>200 && g2>200 && r2>200)
 				{
 					data2[count]=0;
 					data2[count+1]=0;
@@ -1775,11 +1906,12 @@ int visionStart()
 			}
 		    if (hough_on)
 			{
+				int houghx,houghy;
 				cvCopyImage(frame,houghFrame);
 				if (swapper==1)
-					buffer1->angle=hough(houghFrame);
+					buffer1->angle=hough(houghFrame,&houghx,&houghy);
 				else
-					buffer2->angle=hough(houghFrame);
+					buffer2->angle=hough(houghFrame,&houghx,&houghy);
 			}	
 		    
 		    if (show_flashing)
@@ -2040,7 +2172,8 @@ void run (ProcessList *pl) {
 				return;
  			else if (*i=="hough")
 			{
-				hough(result);
+				int houghx,houghy;
+				hough(result,&houghx,&houghy);
 			}
 			else if (*i=="reset")
 			{
@@ -2187,7 +2320,8 @@ void walk(IplImage *img, ProcessList *pl) {
 			return;
 		else if (*i=="hough")
 		{
-			hough(img);
+			int houghx,houghy;
+			hough(img,&houghx,&houghy);
 		}
 		else if (*i=="reset")
 		{

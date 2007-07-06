@@ -8,10 +8,11 @@
 #define MINFRAMESOFF 3
 #define MAXFRAMESON 7
 #define MAXFRAMESOFF 7
+#define HOUGH_ERROR -10
 
 int distance_from_line(int avgxs[], IplImage* img);
 int angle_from_center(int argxs[], IplImage* img);
-double hough(IplImage* img);
+double hough(IplImage* img, int* x, int* y);
 void diff(IplImage* img, IplImage* oldImg, IplImage* destination);
 int mask_red(IplImage* img, bool alter_img, int threshold);
 void explore(IplImage* img, int x, int y, int* out, int color);
@@ -32,5 +33,7 @@ void run(ram::vision::ProcessList* pl);
 void walk(IplImage* img, ram::vision::ProcessList* pl);
 int histogram(IplImage* img, int* centerx, int* centery);
 int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy);
+void rotate90Deg(IplImage* image, IplImage* dest);
+void calibrateCamera(IplImage* image, IplImage* dest);
 
 #endif

@@ -35,15 +35,21 @@ namespace ram { namespace vision {
 			RedLightDetector(OpenCVCamera*);
 			~RedLightDetector();
 			void update();
+			double getX();
+			double getY();
 
 		private:
-		int lightFramesOff;
-		int lightFramesOn;
-		int blinks;
-		int spooky;
-		bool startCounting;
+			int lightFramesOff;
+			int lightFramesOn;
+			int blinks;
+			int spooky;
+			bool startCounting;
+			double redLightCenterX;
+			double redLightCenterY;
+			IplImage* image;
+			IplImage* raw;
+
 		CvPoint lightCenter;
-		
 	
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;

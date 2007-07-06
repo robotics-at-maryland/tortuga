@@ -18,6 +18,23 @@ OrangePipeDetector::OrangePipeDetector(OpenCVCamera* camera)
 	angle=0;
 	cam = camera;
     frame = new ram::vision::OpenCVImage(640, 480);
+	cvNamedWindow("Orange Mask");
+	lineX=lineY=0;
+}
+
+double OrangePipeDetector::getX()
+{
+	return lineX;
+}
+
+double OrangePipeDetector::getY()
+{
+	return lineY;
+}
+
+double OrangePipeDetector::getAngle()
+{
+	return angle;
 }
 
 OrangePipeDetector::~OrangePipeDetector()
@@ -57,6 +74,25 @@ void OrangePipeDetector::update()
 			found=0;
 	}
 	
+	int linex,liney;
 	if (found)
-		angle=hough(image);
+	{
+		angle=hough(image,&linex,&liney);
+		if (angle==HOUGH_ERROR)
+		{
+			lineX=-1;
+			lineY=-1;
+		}
+		else
+		{
+			//lineX and lineY are fields, both are doubles
+			lineX=linex;
+			lineX/=image->width;
+			lineY=liney;
+			lineY/=image->height;
+			cout<<"(x,y):"<<"("<<lineX<<","<<lineY<<")"<<endl;
+		}
+	}
+
+	cvShowImage("Orange Mask",image);
 }

@@ -34,12 +34,18 @@ namespace ram { namespace vision {
 			bool found;
 			OrangePipeDetector(OpenCVCamera*);
 			~OrangePipeDetector();
+			//get normalized center of line.
+			double getX();
+			double getY();
+			double getAngle();
 			void update();
 
 		private:
 
 		double angle;
-	
+		double lineX;
+		double lineY;
+		
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
 	};

@@ -35,10 +35,15 @@ namespace ram { namespace vision {
 			GateDetector(ram::vision::OpenCVCamera*);
 			~GateDetector();
 			void update();
+			double getX();
+			double getY();
 
 		private:
 		int gateX;
 		int gateY;
+		double gateXNorm;
+		double gateYNorm;
+		IplImage* gateFrame;
 	
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
