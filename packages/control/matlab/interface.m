@@ -5,15 +5,12 @@ ival={cell(1,0)}; % change 0 to the actual number of functions to preallocate th
 fcns=struct('name',ival,'calltype',ival,'LHS',ival,'RHS',ival,'alias',ival);
 structs=[];enuminfo=[];fcnNum=1;
 %  void translationalController(MeasuredState* measuredState, DesiredState* desiredState, ControllerState* controllerState, double dt, double* translationalForces); 
-fcns.name{fcnNum}='translationalController'; fcns.calltype{fcnNum}='cdecl'; fcns.LHS{fcnNum}=[]; fcns.RHS{fcnNum}={'MeasuredStatePtr', 'DesiredStatePtr', 'ControllerStatePtr', 'double', 'doublePtr'};fcnNum=fcnNum+1;
-%  void testMeasured(MeasuredState* measuredState); 
-fcns.name{fcnNum}='testMeasured'; fcns.calltype{fcnNum}='cdecl'; fcns.LHS{fcnNum}=[]; fcns.RHS{fcnNum}={'MeasuredStatePtr'};fcnNum=fcnNum+1;
-%  void testDesired(DesiredState* desiredState); 
-fcns.name{fcnNum}='testDesired'; fcns.calltype{fcnNum}='cdecl'; fcns.LHS{fcnNum}=[]; fcns.RHS{fcnNum}={'DesiredStatePtr'};fcnNum=fcnNum+1;
-%  void testController(ControllerState* controllerState); 
-fcns.name{fcnNum}='testController'; fcns.calltype{fcnNum}='cdecl'; fcns.LHS{fcnNum}=[]; fcns.RHS{fcnNum}={'ControllerStatePtr'};fcnNum=fcnNum+1;
-%  void testStruct(TestStruct* test); 
-fcns.name{fcnNum}='testStruct'; fcns.calltype{fcnNum}='cdecl'; fcns.LHS{fcnNum}=[]; fcns.RHS{fcnNum}={'TestStructPtr'};fcnNum=fcnNum+1;
+fcns.name{fcnNum}='rotationalController'; ... 
+    fcns.calltype{fcnNum}='cdecl'; ...
+    fcns.LHS{fcnNum}=[]; ...
+    fcns.RHS{fcnNum}={'MeasuredStatePtr', 'DesiredStatePtr', ...
+                      'ControllerStatePtr', 'double', 'doublePtr'};fcnNum=fcnNum+1;
+
 structs.DesiredState.packing=8;
 structs.DesiredState.members=struct('speed', 'double', 'depth', 'double', ...
    'q0', 'double', 'q1', 'double', 'q2', 'double', 'q3', 'double',  ...

@@ -84,9 +84,9 @@ double det2x2(double a[2][2]){
 */
 double det3x3(double a[3][3]){
     double det;
-    double A[2][2]={a[1][1],a[1][2],a[2][1],a[2][2]};
-    double B[2][2]={a[1][0],a[1][2],a[2][0],a[2][2]};
-    double C[2][2]={a[1][0],a[1][1],a[2][0],a[2][1]};
+    double A[2][2]={{a[1][1],a[1][2]},{a[2][1],a[2][2]}};
+    double B[2][2]={{a[1][0],a[1][2]},{a[2][0],a[2][2]}};
+    double C[2][2]={{a[1][0],a[1][1]},{a[2][0],a[2][1]}};
 
     det = a[0][0]*det2x2(A)-a[0][1]*det2x2(B)+a[0][2]*det2x2(C);
 
@@ -353,7 +353,7 @@ void rotationMatrixFromQuaternion(double q[4], double * pRot){
 */
 void invert3x3(double mat[3][3], double * pInverted){
     double detMat = det3x3(mat);
-    double coFactor[2][2]={mat[1][1],mat[1][2],mat[2][1],mat[2][2]};
+    double coFactor[2][2]={{mat[1][1],mat[1][2]},{mat[2][1],mat[2][2]}};
     *(pInverted) = det2x2(coFactor)/detMat;
     coFactor[0][0] = mat[0][1];
     coFactor[0][1] = mat[0][2];
