@@ -32,14 +32,14 @@ _FWDT ( WDT_OFF );
 #define TRIS_RW     _TRISE8
 
 /* Thurster Safety Pins */
-#define TRIS_TK1    _TRISB3
-#define TRIS_TK2    _TRISB4
-#define TRIS_TK3    _TRISB5
-#define TRIS_TK4    _TRISC15
-#define LAT_TK1     _LATB3
-#define LAT_TK2     _LATB4
-#define LAT_TK3     _LATB5
-#define LAT_TK4     _LATC15
+#define TRIS_TK4    _TRISB3
+#define TRIS_TK3    _TRISB4
+#define TRIS_TK2    _TRISB5
+#define TRIS_TK1    _TRISC15
+#define LAT_TK4     _LATB3
+#define LAT_TK3     _LATB4
+#define LAT_TK2     _LATB5
+#define LAT_TK1     _LATC15
 
 
 #define RW_READ     0

@@ -107,7 +107,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "LCD");
+                    txBuf[0] = sprintf(txBuf+1, "LCD Controller");
                     break;
                 }
 
@@ -471,7 +471,7 @@ void main()
     initBus();
 
     initLCD();
-    byte data1[] = "Powering Up...  ";
+    byte data1[] = "IC1 FAIL        ";
 
     for(i=0; i<16; i++)
     {

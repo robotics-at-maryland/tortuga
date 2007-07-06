@@ -38,6 +38,8 @@ temp.hex: temp.o
 run:
 	piklab-prog -p icd2 -d 30f4011 -c run
 
+stop:
+	piklab-prog -p icd2 -d 30f4011 -c stop
 
 master: master.hex
 	piklab-prog -p icd2 -d 30f4011 -c program master.hex

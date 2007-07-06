@@ -330,7 +330,6 @@ void processData(byte data)
                     _LATC15 = 1; /* Uh oh.... master kill */
                     break;
                 }
-
             }
         }
         break;
