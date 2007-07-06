@@ -26,6 +26,7 @@ detectorSources = ['src/GateDetector.cpp',
 		   'src/BinDetector.cpp',
 		   'src/RedLightDetector.cpp',
 		   'src/OrangePipeDetector.cpp',
+		   'src/Calibration.cpp',
 		   'src/DetectorTest.cpp']
 	
 # Build Library (will be called 'libram_vision.so')

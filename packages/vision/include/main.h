@@ -34,6 +34,7 @@ void walk(IplImage* img, ram::vision::ProcessList* pl);
 int histogram(IplImage* img, int* centerx, int* centery);
 int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy);
 void rotate90Deg(IplImage* image, IplImage* dest);
-void calibrateCamera(IplImage* image, IplImage* dest);
-
+void calibrateCamera(int width, int height, int* cornerCounts, float* distortion, float* cameraMatrix, float* transVects, float* rotMat, int numImages,  CvPoint2D32f* array, CvPoint3D32f* buffer);
+int findCorners(IplImage* image, CvPoint2D32f* array);
+void undistort(IplImage* image, IplImage* dest, float* cameraMatrix, float* distortion);
 #endif

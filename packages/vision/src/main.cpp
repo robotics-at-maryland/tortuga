@@ -114,53 +114,25 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 	return cornerCount;
 }
 
-void calibrateCamera(IplImage* image, IplImage* dest)//, int numImages)
+
+//	float distortion[4];
+//	float cameraMatrix[9];
+//	float transVects[3];
+//	float rotMat[9];
+void calibrateCamera(int width, int height, int* cornerCountsArray, float* distortion, float* cameraMatrix, float* transVects, float* rotMat, int numImages, CvPoint2D32f* array, CvPoint3D32f* buffer)
 {
-	cvNamedWindow("Distorted");
-	cvNamedWindow("Undistorted");
-	cvShowImage("Distorted",image);
-	const int numImages=5;
-	CvPoint2D32f array[36*numImages];
-	int goodImages=0;
-	int arrayIndex=0;
-	int cornerCountsArray[numImages];
-	while (goodImages<numImages)
-	{
-		int cornerCount=findCorners(image,&array[arrayIndex]);
-		if (cornerCount>=25)
-		{
-			cornerCountsArray[goodImages]=cornerCount;
-			arrayIndex+=cornerCount;
-			goodImages++;
-			cout<<goodImages<<endl;
-		}
-	}
-	cout<<"whats going on here?"<<endl;
-	
-	//Multiply all these by number of images
-	CvPoint3D32f buffer[36*numImages];
-	for (int x=0; x<arrayIndex;x++)
-	{
-		buffer[x].x=array[x].x;
-		buffer[x].y=array[x].y;
-		buffer[x].z=0;
-	}
-	float distortion[4*numImages];
-	float cameraMatrix[9*numImages];
-	float transVects[3*numImages];
-	float rotMat[9*numImages];
-	cout<<"Starting calibration"<<endl;
-	cvCalibrateCamera( /*int numImages*/numImages, /*int* numPoints*/cornerCountsArray,/*CvSize imageSize*/cvGetSize(image),
-		/*CvPoint2D32f* imagePoints32f*/array, /*CvPoint3D32f* objectPoints32f*/buffer,
+	cvCalibrateCamera(numImages, cornerCountsArray,cvSize(width,height),
+		array, buffer,
 		distortion, cameraMatrix,
-		transVects, rotMat,
-		/*Intrinsic guess*/ 0 );
+		transVects, rotMat, 0);
+}
+
+void undistort(IplImage* image, IplImage* dest, float* cameraMatrix, float* distortion)
+{
 	cvUnDistortOnce( image, dest,
                       cameraMatrix,
                       distortion,
-                      1 );
-					  
-	cvShowImage("Undistorted",dest);
+                      1);
 }
 
 extern "C"{

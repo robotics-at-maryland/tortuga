@@ -9,6 +9,7 @@
 #include "vision/include/GateDetector.h"
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
+#include "vision/include/Calibration.h"
 #include <iostream>
 
 using namespace std;
@@ -17,20 +18,27 @@ using namespace ram::vision;
 
 int main(int argc, char** argv)
 {
+	Calibration* cal;
 	OpenCVCamera* camera=NULL;
 	if (argc==2)
 		camera=new OpenCVCamera(argv[1]);
 	else
+	{
 		camera = new OpenCVCamera();
+		if (!camera)
+		{
+			cout<<"No Camera"<<endl;
+			return -1;
+		}
+	}
 	OpenCVImage* frame = new OpenCVImage(640,480);
 	IplImage* dest=cvCreateImage(cvSize(480,640),8,3);
 
-	if (!camera)
-	{
-		cout<<"No Camera/Movie Found."<<endl;
-		return -1;
-	}
 	camera->background(); //Silliness
+
+	cal=new Calibration(camera);
+	cal->printCalibrations();
+
 	OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
 	GateDetector* gDetect=new GateDetector(camera);
 	BinDetector* bDetect=new BinDetector(camera);
