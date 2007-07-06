@@ -606,9 +606,16 @@ void main()
     _TRISB3 = TRIS_IN;  /* Power board 2 */
     _TRISB4 = TRIS_IN;  /* Power board 3 */
     _TRISB5 = TRIS_IN;  /* Power board 4 */
-    _TRISB6 = TRIS_IN;  /* Power board 4 */
+    _TRISB6 = TRIS_IN;  /* Power board ?? */
 
     _TRISD3 = TRIS_IN;  /* Start switch for real */
+
+    /* CN4-CN7 internal pull-ups */
+    CNPU1bits.CN4PUE = 1;
+    CNPU1bits.CN5PUE = 1;
+    CNPU1bits.CN6PUE = 1;
+    CNPU1bits.CN7PUE = 1;
+
 
     _LATC15 = 0;
     _TRISC15 = TRIS_OUT; /* Hard Kill */
