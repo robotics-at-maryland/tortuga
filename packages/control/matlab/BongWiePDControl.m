@@ -1,4 +1,4 @@
-function [rotationalTorques aHatNew]=BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt)
+function rotationalTorques = BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % [rotationalTorques
@@ -34,14 +34,11 @@ qDesired=DesiredState.quaternion;
 %measured angular velocity
 w=MeasuredState.angularRate;
 %inertia estimates
-aHat=ControllerState.inertiaEstimate;
-estimatedInertia=[aHat(1) aHat(2) aHat(3);
-                  aHat(2) aHat(4) aHat(5);
-                  aHat(3) aHat(2) aHat(6)];
+inertiaEstimate=ControllerState.inertiaEstimate;
 %proportional controller gain matrix
-PGain=1*estimatedInertia;
+PGain=ControllerState.angularPGain*inertiaEstimate;
 %derivative controller gain matrix
-DGain=1*estimatedInertia;
+DGain=ControllerState.angularDGain*inertiaEstimate;
 
 %QUATERNION is NOT a quaternion, rather it is a matrix composed of
 %parts of a quaternion.  it is later used to find the difference
@@ -64,10 +61,7 @@ wError=w-[0 0 0]';
 
 %controller
 %gyro
-rotationalTorques=-DGain*wError-PGain*qError(1:3)+wTilde*estimatedInertia*w; %compute control torques
+rotationalTorques=-DGain*wError-PGain*qError(1:3)+wTilde*inertiaEstimate*w; %compute control torques
 %no gyro
 %rotationalTorques=-DGain*wError-PGain*qError(1:3); %compute control torques
-
-%to conform with function definition
-aHatNew = aHat;
 

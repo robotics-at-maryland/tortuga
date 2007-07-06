@@ -7,10 +7,22 @@ function storedValues = SimulateController(TESTCPP)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %define structs 
-DesiredState = struct('speed',1,'depth',1,'quaternion',[1 2 3 4]','angularRate',[1 2 3]');
-MeasuredState = struct('depth',1,'linearAcceleration',[1 2 3]','quaternion',[1 2 3 4]','angularRate',[1 2 3]');
-ControllerState = struct('inertiaEstimate',[1 2 3 4 5 6]','adaptationGain',[1 0 0; 0 1 0; 0 0 1],'angularGain',[1 2 3; 4 5 6; 7 8 9],'depthPGain',1,'speedPGain',1);
-
+DesiredState = struct('speed',1,'depth',1,'quaternion',[1 2 3 4]', ...
+                      'angularRate',[1 2 3]');
+MeasuredState = struct('depth',1,'linearAcceleration',[1 2 3]', ...
+                        'quaternion',[1 2 3 4]','angularRate',[1 2 3]');
+                    
+%messed up                        
+% ControllerState = struct('inertiaEstimate',[1 2 3 4 5 6]', ...
+%                          'adaptationGain',[1 0 0; 0 1 0; 0 0 1], ...
+%                          'angularGain',[1 2 3; 4 5 6; 7 8 9], ...
+%                          'depthPGain',1,'speedPGain',1);
+ControllerState=struct('angularPGain',1,...
+                       'angularDGain',1,...
+                       'inertiaEstimate',[1 0 0; 0 1 0; 0 0 1],...
+                       'depthPGain',1,...
+                       'speedPGain',1);
+                         
 %generate a measured quaternion for STARTING POSITION
 %euler parameters
 e=[1; 0; 0];
@@ -49,9 +61,9 @@ DesiredState.quaternion = qDesired;
 DesiredState.angularRate = [0 0 0]';
 
 %set controller state
-ControllerState.inertiaEstimate = [0.2 0 0 1.3 0 1.3]';
-ControllerState.adaptationGain = eye(6);
-ControllerState.angularGain = [1 0 0; 0 1 0; 0 0 1];
+ControllerState.angularPGain=1;
+ControllerState.angularDGain=1;
+ControllerState.inertiaEstimate = [0.2 0 0; 0 1.3 0; 0 0 1.3]';
 ControllerState.depthPGain = 4;
 ControllerState.speedPGain = 1;
 
@@ -96,7 +108,7 @@ storedEstimatedParameters=zeros(6,numSimPoints);
 storedPosition(3,1)=MeasuredState.depth;
 storedQuaternion(:,1)=MeasuredState.quaternion;
 storedAngularRate(:,1)=MeasuredState.angularRate;
-storedEstimatedParameters(:,1)=ControllerState.inertiaEstimate;
+%storedEstimatedParameters(:,1)=ControllerState.inertiaEstimate;
 
 %%%%%%%
 %%%%%Setup data storage
@@ -128,10 +140,16 @@ for index=2:1:numSimPoints
     %rotationalTorques=rotationalController(MeasuredState,DesiredState,ControllerState,dt);
     %how matlab forced me to use the rotationalController command
     %[rotationalTorques aHatNew]=rotationalController(MeasuredState,DesiredState,ControllerState,dt);
-    [rotationalTorques aHatNew]=BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt);
-    ControllerState.inertiaEstimate = aHatNew;
-    %store the new estimates of the adaptation parameters
-    storedEstimatedParameters(:,index) = aHatNew;
+    if TESTCPP == 0
+        rotationalTorques =BongWiePDControl(MeasuredState, ...
+                                    DesiredState,ControllerState,dt);
+    else
+        rotationalTorques =CppBongWiePDControl(MeasuredState, ...
+                                    DesiredState,ControllerState,dt);
+    end
+%     ControllerState.inertiaEstimate = aHatNew;
+%     %store the new estimates of the adaptation parameters
+%     storedEstimatedParameters(:,index) = aHatNew;
     
     %format control signals for thrusters
     thrusterForces=computeThrusterForces(translationalForces,rotationalTorques);
@@ -204,9 +222,17 @@ for index=2:1:numSimPoints
     
 end
 
-storedValues = struct('position', storedPosition, 'velocity', storedVelocity, ...
+storedValues = struct('position', storedPosition, ...
+                      'velocity', storedVelocity, ...
                       'quaternion', storedQuaternion, ...
                       'acceleration', storedAcceleration, ... 
                       'angularRate', storedAngularRate, ...
-                      'estimatedParameters', storedEstimatedParameters, ...
                       'time', time)
+
+% storedValues = struct('position', storedPosition, ...
+%                       'velocity', storedVelocity, ...
+%                       'quaternion', storedQuaternion, ...
+%                       'acceleration', storedAcceleration, ... 
+%                       'angularRate', storedAngularRate, ...
+%                       'estimatedParameters', storedEstimatedParameters, ...
+%                       'time', time)
