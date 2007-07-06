@@ -8,6 +8,7 @@ Calibration::Calibration(OpenCVCamera* camera)
 	cam=camera;
 	calibrated=false;
 	frame = new ram::vision::OpenCVImage(cam->width(),cam->height());
+	cvNamedWindow("Calibration");
 }
 
 Calibration::~Calibration()
@@ -31,6 +32,7 @@ void Calibration::calculateCalibrations()
 	{
 		cam->getImage(frame);
 		IplImage* image =(IplImage*)(*frame);
+		cvShowImage("Calibration",image);
 		int cornerCount=findCorners(image,&array[arrayIndex]);
 
 		if (cornerCount>=25)
