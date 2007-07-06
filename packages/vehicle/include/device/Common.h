@@ -10,6 +10,11 @@
 #ifndef RAM_VEHICLE_DEVICE_COMMON_06_11_2007
 #define RAM_VEHICLE_DEVICE_COMMON_06_11_2007
 
+// STD Includes
+#include <vector>
+#include <string>
+
+// Library Includes
 #include <boost/shared_ptr.hpp>
 
 namespace ram {
@@ -32,7 +37,15 @@ typedef boost::shared_ptr<ThrusterCommand> ThrusterCommandPtr;
 class IMU;
 typedef boost::shared_ptr<IMU> IMUPtr;
 
+class PSU;
+typedef boost::shared_ptr<PSU> PSUPtr;
 
+typedef std::vector<double> DoubleList;
+typedef DoubleList VoltageList;
+typedef DoubleList WattageList;
+typedef DoubleList CurrentList;
+typedef std::vector<std::string> StringList;
+    
 namespace details {
 /** To expose things to GCC-XML */
 inline int instantiate()

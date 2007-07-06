@@ -13,7 +13,9 @@
  *                                                                           *
  ****************************************************************************/
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
  /* Structure that holds the status and voltage/current readings
   * Counter and Fault Code are missing as of right now, since I do
@@ -109,7 +111,6 @@ struct ctxParams
     double acpiDuration; /* in seconds */
     double lowTemp;     /* in degrees C */
 };
-
 
 /**
  * Opens the device and returns a device handle. If the supply was not found
@@ -217,3 +218,7 @@ void ctxClose(usb_dev_handle * hDev);
  *  Translates state name to text
  */
 const char* ctxStateNameToText(int state);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif // __cplusplus

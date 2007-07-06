@@ -59,7 +59,7 @@ void IMU::update(double timestep)
         {
             {
                 // Thread safe copy of good imu data
-                core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+                core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
                 *m_rawState = newState;
             }
 
