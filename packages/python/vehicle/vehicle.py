@@ -9,44 +9,55 @@
 import warnings
 
 # Project Imports
+import event
 from devices import IDevice
 from core import Component, implements
-from module import IModule, Component
+from module import IModule, Module, Component, ModuleManager
 
 warnings.simplefilter('ignore', RuntimeWarning)
 from ext.vehicle import Vehicle as _Vehicle # Import C++ Vehicle
 from ext.core import ConfigNode as _ConfigNode
 warnings.simplefilter('default', RuntimeWarning)
 
-class Vehicle(_Vehicle, Module, Component):
+class Vehicle(_Vehicle, Component):
     implements(IModule)
     
     def __init__(self, config):
         # Create C++ super class
-        _Vehicle.__init__(self)
+        _Vehicle.__init__(self, _ConfigNode.fromString(str(config)))
+        
+        # Module variabls
+        self.name = config['name']
+        self.type = type(self)
+        self._depends = []
+        self._running = False
         
         self._config = config
         
         # Create the devices
+        print 'Creating devices'
         self._create_devices()
+        print 'Done'
         
         # Create module base class, send off events
-        Module.__init__(self, config)
+        print 'Initing'
+        event.send('MODULE_CREATED', self)
+        ModuleManager.get().register(self)
+        print 'Done'
         
     def start(self):
         self.background(self._config['update_interval'])
         event.send('MODULE_START', self)
         
-    def running(self):
-        self.backgrounded()
-        
     def pause(self):
         self.unbackground()
+        self._running = False
         event.send('MODULE_PAUSE', self)
         
     def shutdown(self):
         self.pause()
         # Put more shutdown stuff here
+        
         event.send('MODULE_SHUTDOWN',self)
         
     def _create_devices(self):

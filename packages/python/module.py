@@ -110,7 +110,7 @@ class Module(Component):
         event.send('MODULE_START', self)
         
     def backgrounded(self):
-        return False
+        self._running
         
     def pause(self):
         self._running = False
@@ -154,18 +154,20 @@ class ModuleManager(Singleton):
                 # TODO: some kind of error checking
                 mod_type = Component.get_class(IModule, class_name)
                 
-                # Add this module to the list of dependees for each each module
-                # type it depends on
-                depends = config_node.get('depends_on', [])
-                if type(depends) is not list:
-                    raise TypeError, "'depends_on' must be a list not %s" % type(depends)
-                for dep in depends:
-                    # TODO: Put some error handling in here
-                    if not mod_nodes.has_key(dep):
-                        raise KeyError, 'No module called "%s" could be found' % dep
-                    mod_dependees.setdefault(dep, []).append(name)
-                # Set dependents for this module
-                mod_depends[name] = (depends, config_node, mod_type)
+                if not self._mod_type_reg.has_key(mod_type):
+                    # Add this module to the list of dependees for each each module
+                    # type it depends on
+                    depends = config_node.get('depends_on', [])
+                    if type(depends) is not list:
+                        raise TypeError, "'depends_on' must be a list not %s" % type(depends)
+                    for dep in depends:
+                        # TODO: Put some error handling in here
+                        if not mod_nodes.has_key(dep):
+                            raise KeyError, 'No module called "%s" could be found' % dep
+                        mod_dependees.setdefault(dep, []).append(name)
+                    # Set dependents for this module
+                    mod_depends[name] = (depends, config_node, mod_type)
+        
         
         while len(mod_depends) != 0:
             # Assume we have a cycle
@@ -203,7 +205,7 @@ class ModuleManager(Singleton):
 
         self._registry[mod.name] = mod
         self._mod_type_reg.setdefault(type(mod),[]).append(mod)
-        mod.start()
+        #mod.start()
         
     def unregister(self, mod):
         """

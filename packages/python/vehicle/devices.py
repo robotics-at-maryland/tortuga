@@ -9,13 +9,16 @@
 import warnings
 
 # Project Imports
-import ext.vehicle_device as _device # Import C++ Devices
 from core import Interface, classImplements
 
 # Bring C++ Devices into scope
 warnings.simplefilter('ignore', RuntimeWarning)
+import ext.pattern
+import ext.core
+import ext.vehicle_device as _device # Import C++ Devices
 from ext.vehicle_device import Thruster
 from ext.vehicle_device import IMU
+from ext.vehicle_device import PSU
 warnings.simplefilter('default', RuntimeWarning)
     
 class IDevice(Interface):
@@ -33,3 +36,4 @@ class IDevice(Interface):
 # Put C++ classes in the interface system
 classImplements(Thruster, IDevice)
 classImplements(IMU, IDevice)
+classImplements(PSU, IDevice)
