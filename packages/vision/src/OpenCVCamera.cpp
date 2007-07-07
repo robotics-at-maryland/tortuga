@@ -61,13 +61,19 @@ void OpenCVCamera::update(double timestep)
 }
 
 size_t OpenCVCamera::width()
-{
-    return (size_t)cvGetCaptureProperty(m_camCapture, CV_CAP_PROP_FRAME_WIDTH);
+{	
+	int width;
+    if (!(width=(size_t)cvGetCaptureProperty(m_camCapture, CV_CAP_PROP_FRAME_WIDTH)))
+		return 640;
+	return width;
 }
 
 size_t OpenCVCamera::height()
 {
-    return (size_t)cvGetCaptureProperty(m_camCapture, CV_CAP_PROP_FRAME_HEIGHT);
+	int width;
+    if (!(width=(size_t)cvGetCaptureProperty(m_camCapture, CV_CAP_PROP_FRAME_WIDTH)))
+		return 480;
+	return width;
 }
 
 } // namespace vision

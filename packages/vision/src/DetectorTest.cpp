@@ -45,6 +45,7 @@ int main(int argc, char** argv)
 	RedLightDetector* rlDetect=new RedLightDetector(camera);
 	char key=' ';
 	cvNamedWindow("Detector Test");
+	cvNamedWindow("Undistorted");
 	while (key!='q')
 	{
 		camera->getImage(frame);
@@ -52,102 +53,103 @@ int main(int argc, char** argv)
 		cvShowImage("Detector Test", image);
 		
 		//Distortion Correction
-//		IplImage* undistorted=cvCreateImage(cvGetSize(image),8,3);
-//		cout<<"Attempting to calibrate"<<endl;
-//		calibrateCamera(image, undistorted);
-//		cout<<"Finished Calibration"<<endl;
-//		cvShowImage("Detector Test",image);
+		IplImage* undistorted=cvCreateImage(cvGetSize(image),8,3);
+		cout<<"Attempting to undistort"<<endl;
+		cal->calibrateImage(image, undistorted);
+		cout<<"Finished correcting distortion"<<endl;
+		cvShowImage("Detector Test",image);
+		cvShowImage("Undistorted",undistorted);
 		
 		key=cvWaitKey(25);
 		//Orange pipeline
-		if (SHOW_OUTPUT)
-			cout<<"Running Orange Pipeline Detection..."<<endl;
-
-		opDetect->update();
-		if (opDetect->found && opDetect->getAngle()!=-10)
-		{
-			//Found in this case refers to the finding of a thresholded number of pixels
-			//Angle will be equal to -10 if those pixels do not form pipeline shaped objects
-			//center will be -1 -1 whenever angle is -10
-			if (SHOW_OUTPUT)
-			{
-				cout<<"Orange Pipeline Found!"<<endl;
-				cout<<"Useful Data:"<<endl;
-				cout<<"Angle:"<<opDetect->getAngle()<<endl;
-				cout<<"Center(X,Y):"<<"("<<opDetect->getX()<<","<<opDetect->getY()<<")"<<endl<<endl;
-			}
-		}
-		else
-		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"No Orange Pipeline Found."<<endl<<endl;
-			}
-		}
-		
-		//Gate Detection
-		if (SHOW_OUTPUT)
-			cout<<"Running Gate Detection..."<<endl;
-		
-		gDetect->update();
-		if (gDetect->found)
-		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"Gate Found!"<<endl;
-				cout<<"Useful Data:"<<endl;
-				cout<<"Center(X,Y):"<<"("<<gDetect->getX()<<","<<gDetect->getY()<<")"<<endl<<endl;
-			}
-		}
-		else
-		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"No Gate Found."<<endl;
-			}
-		}
-		
-		//Bin Detection
-		if (SHOW_OUTPUT)
-			cout<<"Running Bin Detection..."<<endl;
-		bDetect->update();
-		if (bDetect->found)
-		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"Bin Found!"<<endl;
-				cout<<"Useful Data:"<<endl;
-				cout<<"Center(X,Y):"<<"("<<bDetect->getX()<<","<<bDetect->getY()<<")"<<endl<<endl;
-			}
-		}
-		else
-		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"No Bin Found."<<endl;
-			}
-		}
-		
-		//Red Light Detection
-		if (SHOW_OUTPUT)
-			cout<<"Running Red Light Detection..."<<endl;
-		rlDetect->update();
-		if (rlDetect->found)
-		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"Red Light Found!"<<endl;
-				cout<<"Useful Data:"<<endl;
-				cout<<"Center(X,Y):"<<"("<<rlDetect->getX()<<","<<rlDetect->getY()<<")"<<endl<<endl;
-			}
-		}
-		else
-		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"No Red Light Found."<<endl;
-			}
-		}
+//		if (SHOW_OUTPUT)
+//			cout<<"Running Orange Pipeline Detection..."<<endl;
+//
+//		opDetect->update();
+//		if (opDetect->found && opDetect->getAngle()!=-10)
+//		{
+//			//Found in this case refers to the finding of a thresholded number of pixels
+//			//Angle will be equal to -10 if those pixels do not form pipeline shaped objects
+//			//center will be -1 -1 whenever angle is -10
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"Orange Pipeline Found!"<<endl;
+//				cout<<"Useful Data:"<<endl;
+//				cout<<"Angle:"<<opDetect->getAngle()<<endl;
+//				cout<<"Center(X,Y):"<<"("<<opDetect->getX()<<","<<opDetect->getY()<<")"<<endl<<endl;
+//			}
+//		}
+//		else
+//		{
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"No Orange Pipeline Found."<<endl<<endl;
+//			}
+//		}
+//		
+//		//Gate Detection
+//		if (SHOW_OUTPUT)
+//			cout<<"Running Gate Detection..."<<endl;
+//		
+//		gDetect->update();
+//		if (gDetect->found)
+//		{
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"Gate Found!"<<endl;
+//				cout<<"Useful Data:"<<endl;
+//				cout<<"Center(X,Y):"<<"("<<gDetect->getX()<<","<<gDetect->getY()<<")"<<endl<<endl;
+//			}
+//		}
+//		else
+//		{
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"No Gate Found."<<endl;
+//			}
+//		}
+//		
+//		//Bin Detection
+//		if (SHOW_OUTPUT)
+//			cout<<"Running Bin Detection..."<<endl;
+//		bDetect->update();
+//		if (bDetect->found)
+//		{
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"Bin Found!"<<endl;
+//				cout<<"Useful Data:"<<endl;
+//				cout<<"Center(X,Y):"<<"("<<bDetect->getX()<<","<<bDetect->getY()<<")"<<endl<<endl;
+//			}
+//		}
+//		else
+//		{
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"No Bin Found."<<endl;
+//			}
+//		}
+//		
+//		//Red Light Detection
+//		if (SHOW_OUTPUT)
+//			cout<<"Running Red Light Detection..."<<endl;
+//		rlDetect->update();
+//		if (rlDetect->found)
+//		{
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"Red Light Found!"<<endl;
+//				cout<<"Useful Data:"<<endl;
+//				cout<<"Center(X,Y):"<<"("<<rlDetect->getX()<<","<<rlDetect->getY()<<")"<<endl<<endl;
+//			}
+//		}
+//		else
+//		{
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"No Red Light Found."<<endl;
+//			}
+//		}
 	}
 	delete camera;
 	delete frame;

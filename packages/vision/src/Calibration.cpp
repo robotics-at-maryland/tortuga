@@ -7,7 +7,7 @@ Calibration::Calibration(OpenCVCamera* camera)
 {
 	cam=camera;
 	calibrated=false;
-	frame = new ram::vision::OpenCVImage(cam->width(),cam->height());
+	frame = new ram::vision::OpenCVImage(640,480);
 	cvNamedWindow("Calibration");
 }
 
@@ -52,7 +52,7 @@ void Calibration::calculateCalibrations()
 		buffer[x].y=array[x].y;
 		buffer[x].z=0;
 	}
-	calibrateCamera(cam->width(), cam->height(), cornerCountsArray, distortion,cameraMatrix,transVects,rotMat,NUMIMAGES,array,buffer);
+	calibrateCamera(640, 480, cornerCountsArray, distortion,cameraMatrix,transVects,rotMat,NUMIMAGES,array,buffer);
 	calibrated=true;
 	cout<<"Calibration Complete"<<endl;
 }

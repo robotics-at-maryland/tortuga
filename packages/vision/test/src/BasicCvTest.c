@@ -19,7 +19,7 @@ int main() {
                                                 CV_CAP_PROP_FRAME_HEIGHT));
   printf("\tFPS:    %f\n", cvGetCaptureProperty(capture,
                                                CV_CAP_PROP_FPS));
-  printf("\tGUID: %llx YAY\n", (long long)cvGetCaptureProperty(capture, CV_CAP_PROP_GUID));
+//  printf("\tGUID: %llx YAY\n", (long long)cvGetCaptureProperty(capture, CV_CAP_PROP_GUID));
 
 
   // Create a window in which the captured images will be presented
