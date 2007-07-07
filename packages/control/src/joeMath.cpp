@@ -1,5 +1,4 @@
 #include "joeMath.h"
-#include <iostream>
 
 /*
 * normalizes a 3x1 vector
@@ -509,21 +508,16 @@ q - a quaternion with the parameterization:
 */
 void quaternionFromDCM(double DCM[3][3], double * pQ){
 
-    std::cout << std::endl;
-
     double a, b, c, d;
 
     d = 0.5*sqrt(DCM[0][0]+DCM[1][1]+DCM[2][2]+1);
-    std::cout << "d = " << d << std::endl;
     if (fabs(d) >= 0.125){
         a = 0.25*(DCM[2][1]-DCM[1][2])/d;
         b = 0.25*(DCM[0][2]-DCM[2][0])/d;
         c = 0.25*(DCM[1][0]-DCM[0][1])/d;
-        std::cout << "{a,b,c,d} = " << a << " " << b << " " << c << " " << d << std::endl;
     }
     else{
         c = 0.5*sqrt(-DCM[0][0]-DCM[1][1]+DCM[2][2]+1);
-        std::cout << "c = " << c << std::endl;
         if (fabs(c) >= 0.125){
             a = 0.25*(DCM[0][2]-DCM[2][0])/c;
             b = 0.25*(DCM[1][2]+DCM[2][1])/c;
@@ -531,7 +525,6 @@ void quaternionFromDCM(double DCM[3][3], double * pQ){
         }
         else{
             b = 0.5*sqrt(-DCM[0][0]+DCM[1][1]-DCM[2][2]+1);
-            std::cout << "b = " << b << std::endl;
             if (fabs(b) >= 0.125){
                 a = 0.25*(DCM[0][1]+DCM[1][0])/b;
                 c = 0.25*(DCM[1][2]+DCM[2][1])/b;
@@ -539,7 +532,6 @@ void quaternionFromDCM(double DCM[3][3], double * pQ){
             }
             else{
                 a = 0.5*sqrt(DCM[0][0]-DCM[1][1]-DCM[2][2]+1);
-                std::cout << "a = " << a << std::endl;
                 b = 0.25*(DCM[0][1]+DCM[1][0])/a;
                 c = 0.25*(DCM[0][2]-DCM[2][0])/a;
                 d = 0.25*(DCM[2][1]-DCM[1][2])/a;

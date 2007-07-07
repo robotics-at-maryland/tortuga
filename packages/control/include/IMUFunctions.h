@@ -21,6 +21,7 @@ void quaternionFromIMU(double mag[3],
                        double magneticPitch,
                        double * pQ);
 
+void IMUToVehicleRotationMatrix(double * pRotationMatrix);
 
 // defines for this program only, for real code these are parameters or internal variables
 #define CONSTANTmagneticPitchAngle 66

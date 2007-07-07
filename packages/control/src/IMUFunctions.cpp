@@ -10,10 +10,29 @@
 
 #include "IMUFunctions.h"
 #include "joeMath.h"
-#include <iostream>
+
+/*******************************************************************************
+generates a rotation matrix to convert from IMU coordinate frame to vehicle
+coordinate frame
+
+all magic numbers generated from Matlab
+{vehicle frame} = rotationYaw(pi/2)*rotationRoll(pi/2)*{IMU term}
+*/
+void IMUToVehicleRotationMatrix(double * pRotationMatrix){
+    *(pRotationMatrix) = 0;
+    *(pRotationMatrix+1) = 0;
+    *(pRotationMatrix+2) = 1;
+
+    *(pRotationMatrix+3) = -1;
+    *(pRotationMatrix+4) = 0;
+    *(pRotationMatrix+5) = 0;
+
+    *(pRotationMatrix+6) = 0;
+    *(pRotationMatrix+7) = -1;
+    *(pRotationMatrix+8) = 0;
+}
 
 
-//write function here that goes from IMU coord frame to vehicle coord frame
 
 /*******************************************************************************
 extracts a quaternion from IMU data
@@ -51,8 +70,6 @@ void quaternionFromIMU(double mag[3],
     //normalize
     normalize3x1(xComponent);
 
-    std::cout << "xComponent = " << xComponent[0] << " " << xComponent[1] << " " << xComponent[2] << std::endl;
-
     //find yComponent
     //first normalize accel
     temp[0] = accel[0];
@@ -64,29 +81,12 @@ void quaternionFromIMU(double mag[3],
     //normalize the yComponent
     normalize3x1(yComponent);
 
-    std::cout << "yComponent = " << yComponent[0] << " " << yComponent[1] << " " << yComponent[2] << std::endl;
-
     //find zComponent
     crossProduct3x1by3x1(xComponent,yComponent,zComponent);
     //normalize just for shits and giggles
     normalize3x1(zComponent);
 
-    std::cout << "zComponent = " << zComponent[0] << " " << zComponent[1] << " " << zComponent[2] << std::endl;
-
     //place x, y, and z components in the direction cosine matrix
-  /*  double * pDCM = &DCM[0][0];
-
-    *(pDCM) = xComponent[0];
-    *(pDCM+1) = xComponent[1];
-    *(pDCM+2) = xComponent[2];
-    *(pDCM+3) = yComponent[0];
-    *(pDCM+4) = yComponent[1];
-    *(pDCM+5) = yComponent[2];
-    *(pDCM+6) = zComponent[0];
-    *(pDCM+7) = zComponent[1];
-    *(pDCM+8) = zComponent[2];*/
-
-
     DCM[0][0] = xComponent[0];
     DCM[0][1] = xComponent[1];
     DCM[0][2] = xComponent[2];
@@ -97,28 +97,13 @@ void quaternionFromIMU(double mag[3],
     DCM[2][1] = zComponent[1];
     DCM[2][2] = zComponent[2];
 
-    std::cout << "DCM = " << std::endl << "|" << DCM[0][0] << " " << DCM[0][1] << " " << DCM[0][2] << "|" << std::endl;
-    std::cout << "|" << DCM[1][0] << " " << DCM[1][1] << " " << DCM[1][2] << "|" << std::endl;
-    std::cout << "|" << DCM[2][0] << " " << DCM[2][1] << " " << DCM[2][2] << "|" << std::endl;
-
     //find rotation matrix to pitch axes to account for magnetic inclination
     rotationPitch(magneticPitch,&rotationMatrix[0][0]);
-
-    std::cout << "rotationMatrix = " << std::endl << "|" << rotationMatrix[0][0] << " " << rotationMatrix[0][1] << " " << rotationMatrix[0][2] << "|" << std::endl;
-    std::cout << "|" << rotationMatrix[1][0] << " " << rotationMatrix[1][1] << " " << rotationMatrix[1][2] << "|" << std::endl;
-    std::cout << "|" << rotationMatrix[2][0] << " " << rotationMatrix[2][1] << " " << rotationMatrix[2][2] << "|" << std::endl;
 
     //rotate DCM
     double DCMrotated[3][3];
     matrixMult3x3by3x3(rotationMatrix,DCM,&DCMrotated[0][0]);
-    std::cout << "DCM rotated= " << std::endl << "|" << DCMrotated[0][0] << " " << DCMrotated[0][1] << " " << DCMrotated[0][2] << "|" << std::endl;
-    std::cout << "|" << DCMrotated[1][0] << " " << DCMrotated[1][1] << " " << DCMrotated[1][2] << "|" << std::endl;
-    std::cout << "|" << DCMrotated[2][0] << " " << DCMrotated[2][1] << " " << DCMrotated[2][2] << "|" << std::endl;
 
     //extract quaternion from DCM
-    std::cout << "pre dcm quaternion = " << quaternion[0] << " " << quaternion[1]
-                << " " << quaternion[2] << " " << quaternion[3] << std::endl;
     quaternionFromDCM(DCMrotated, &quaternion[0]);
-    std::cout << "aftr dcm quaternion = " << quaternion[0] << " " << quaternion[1]
-                << " " << quaternion[2] << " " << quaternion[3] << std::endl;
 }
