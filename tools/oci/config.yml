@@ -16,33 +16,38 @@ Modules:
 
             # This entry creates a thruster
             StarboardThruster:
+                # serial: 147
+                
                 # Notice this is from the 'ext' package, this package contains
                 # all the wrapped C++ classes
                 type: ext.vehicle_device.Thruster
                 # String representing the address of the thruster
                 address: "01"
                 # Number determined by testing
-                calibration_factor: 0.45
+                calibration_factor: 0.3652
                 # Number used to flip thruster forces (if thruster is reversed
                 # on the vehicle)
                 direction: 1
 
             PortThruster:
+                # serial: 149
                 type: ext.vehicle_device.Thruster
                 address: "02"
-                calibration_factor: 0.45
+                calibration_factor: 0.4146
                 direction: 1
 
             ForeThruster:
+                # serial: 146
                 type: ext.vehicle_device.Thruster
                 address: "03"
-                calibration_factor: 0.45
+                calibration_factor: 0.4368
                 direction: 1
 
             AftThruster:
+                # Serial 148
                 type: ext.vehicle_device.Thruster
                 address: "04"
-                calibration_factor: 0.45
+                calibration_factor: 0.3612
                 direction: 1
 
         
