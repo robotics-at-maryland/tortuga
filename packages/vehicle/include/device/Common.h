@@ -56,6 +56,12 @@ inline int instantiate()
     a += sizeof(boost::shared_ptr<Thruster>);
     a += sizeof(boost::shared_ptr<ThrusterCommand>);
     a += sizeof(boost::shared_ptr<IMU>);
+    a += sizeof(boost::shared_ptr<PSU>);
+    a += sizeof(DoubleList);
+    a += sizeof(VoltageList);
+    a += sizeof(WattageList);
+    a += sizeof(CurrentList);
+    a += sizeof(StringList);
     return a;
 }
 }
