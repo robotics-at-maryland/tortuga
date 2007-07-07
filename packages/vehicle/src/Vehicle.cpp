@@ -7,6 +7,9 @@
  * File:  packages/vision/src/Vehicle.cpp
  */
 
+// STD Includes
+#include <iostream>
+
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IDevice.h"
@@ -14,15 +17,11 @@
 namespace ram {
 namespace vehicle {
 
-Vehicle::Vehicle()
+Vehicle::Vehicle(core::ConfigNode config) :
+    m_config(config)
 {
 }
 
-/*Vehicle::~Vehicle()
-{
-    m_devices.clear();
-    }*/
-    
 device::IDevicePtr Vehicle::getDevice(std::string name)
 {
     return m_devices[name];
@@ -73,6 +72,11 @@ void Vehicle::setState(const Vehicle::VehicleState& state)
 void Vehicle::_addDevice(device::IDevicePtr device)
 {
     m_devices[device->getName()] = device;
+}
+
+void Vehicle::update(double timestep)
+{
+    std::cout << "Step: " << timestep << std::endl;
 }
     
 } // namespace vehicle
