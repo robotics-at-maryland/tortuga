@@ -94,6 +94,20 @@ def generate_vehicle_device(name, global_ns, local_ns):
     IMU = expose_device(local_ns, 'IMU', False);
     IMU.include_files.append( "imu/include/imuapi.h" )
 
+    # Wrap PSU class
+    PSU = expose_device(local_ns, 'PSU', False);
+    PSU.include_files.append( "carnetix/include/ctxapi.h" )
+
+    # Fix these damn things
+    PSU.member_function('getBatteryVoltage').exclude()
+    PSU.member_function('getBatteryCurrent').exclude()
+    PSU.member_function('getTotalWattage').exclude()
+    PSU.member_function('getVoltages').exclude()
+    PSU.member_function('getCurrents').exclude()
+    PSU.member_function('getWattages').exclude()
+    PSU.member_function('getSupplyNames').exclude()
+
+    #local_ns.class_('StringList').exclude()
 
     make_already_exposed(global_ns, 'ram::pattern', 'Subject')
     make_already_exposed(global_ns, 'ram::core', ['ConfigNode', 'IUpdatable',
@@ -104,6 +118,7 @@ def insert_code(mb):
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::IDevice> >();
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::Thruster> >();
     bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::IMU> >();
+    bp::register_ptr_to_python<boost::shared_ptr<ram::vehicle::device::PSU> >();
     """)
 
 def generate_code(module_name, files, output_dir, include_files,
