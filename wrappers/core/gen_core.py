@@ -18,7 +18,8 @@ def generate_core(name, global_ns, local_ns):
     ConfigNode.include()
     ConfigNode.constructors().exclude()
 
-#    local_ns.class_('IUpdatable').include()
+    local_ns.class_('Updatable').include()
+    local_ns.class_('IUpdatable').include()
     
 #    local_ns.class_('ConfigNode').include()
 #    local_ns.class_('ConfigNodeImp').include()
