@@ -6,8 +6,12 @@ int main(int argc, char ** argv)
 {
     printf("\nHello World\n");
 
-    int fd = openSensorBoard("/dev/sensor");
+    int fd = openSensorBoard("/dev/ttyUSB0");
+    printf("\nSyncBoard says: %d", syncBoard(fd));
+    //printf("\nThruster safety 0: %d", thrusterSafety(fd, CMD_THRUSTER1_OFF));
 
+    printf("\nHard Kill says: %d", hardKill(fd));
+/*
     unsigned char buf[3];
     buf[0]=0x06;
     buf[1]=0x0A;
@@ -23,7 +27,7 @@ int main(int argc, char ** argv)
     printf("\nDrop Marker 0: %d", dropMarker(fd, 0));
     printf("\nDrop Marker 1: %d", dropMarker(fd, 1));
 
-    printf("\nLCD Backlight Off: %d", lcdBacklight(fd, 0));
+    printf("\nLCD Backlight Off: %d", lcdBacklight(fd, 1));
 
     printf("\nThruster safety 0: %d", thrusterSafety(fd, 0));
     printf("\nThruster safety 1: %d", thrusterSafety(fd, 1));
@@ -60,7 +64,7 @@ int main(int argc, char ** argv)
 	    sleep(1);
 	    i++;
     }
-
+*/
 
     printf("\n");
     return 0;

@@ -21,12 +21,30 @@
 #define SB_ERROR    -1
 
 
+#define CMD_THRUSTER1_OFF     0
+#define CMD_THRUSTER2_OFF     1
+#define CMD_THRUSTER3_OFF     2
+#define CMD_THRUSTER4_OFF     3
+#define CMD_THRUSTER1_ON      4
+#define CMD_THRUSTER2_ON      5
+#define CMD_THRUSTER3_ON      6
+#define CMD_THRUSTER4_ON      7
+
+
 #define NUM_TEMP_SENSORS 6
 
 /* Bits of the status command */
 /* Use these constants. The values can, and most likely will, change. */
 #define STATUS_WATER      0x01
 #define STATUS_KILLSW	  0x02
+
+#define STATUS_BATT1      0x04
+#define STATUS_BATT2      0x08
+#define STATUS_BATT3      0x10
+#define STATUS_BATT4      0x20
+
+#define STATUS_MYSTERYBIT 0x40
+
 #define STATUS_STARTSW    0x80
 
 
