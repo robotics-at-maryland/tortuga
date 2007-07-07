@@ -46,11 +46,20 @@ public:
     /** Convert the node to a string value */
     virtual std::string asString();
 
+    /** Attempts conversion to string, if it fails return def */
+    virtual std::string asString(const std::string& def);
+    
     /** Convert the node to a double */
     virtual double asDouble();
 
+    /** Attempts conversion to string, if it fails return def */
+    virtual double asDouble(const double def);
+
     /** Convert the node to an int */
     virtual int asInt();
+
+    /** Attempts conversion to int, if it fails return def */
+    virtual int asInt(const int def);
 
 private:
     boost::python::object m_pyobj;

@@ -30,16 +30,31 @@ std::string ConfigNode::asString()
     return m_impl->asString();
 }
 
+std::string ConfigNode::asString(const std::string& def)
+{
+    return m_impl->asString(def);
+}
+
 double ConfigNode::asDouble()
 {
     return m_impl->asDouble();
 }
 
+double ConfigNode::asDouble(const double def)
+{
+    return m_impl->asDouble(def);
+}
+    
 int ConfigNode::asInt()
 {
     return m_impl->asInt();
 }
 
+int ConfigNode::asInt(const int def)
+{
+    return m_impl->asInt(def);
+}
+    
 ConfigNode ConfigNode::fromString(std::string data)
 {
     return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(data)));

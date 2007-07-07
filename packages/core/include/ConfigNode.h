@@ -37,12 +37,21 @@ public:
     /** Convert the node to a string value */
     std::string asString();
 
+    /** Attempts conversion to string, if it fails return def */
+    std::string asString(const std::string& def);
+    
     /** Convert the node to a double */
     double asDouble();
+
+    /** Attempts conversion to string, if it fails return def */
+    double asDouble(const double def);
 
     /** Convert the node to an int */
     int asInt();
 
+    /** Attempts conversion to int, if it fails return def */
+    int asInt(const int def);
+    
     /** Builds a config node from the given string, this uses the python ver. */
     static ConfigNode fromString(std::string data);
     

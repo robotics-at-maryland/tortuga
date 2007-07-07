@@ -36,11 +36,20 @@ public:
     /** Convert the node to a string value */
     virtual std::string asString() = 0;
 
+    /** Attempts conversion to string, if it fails return def */
+    virtual std::string asString(const std::string& def) = 0;
+    
     /** Convert the node to a double */
     virtual double asDouble() = 0;
 
+    /** Attempts conversion to string, if it fails return def */
+    virtual double asDouble(const double def) = 0;
+
     /** Convert the node to an int */
     virtual int asInt() = 0;
+
+    /** Attempts conversion to int, if it fails return def */
+    virtual int asInt(const int def) = 0;
 };
 
 } // namespace core

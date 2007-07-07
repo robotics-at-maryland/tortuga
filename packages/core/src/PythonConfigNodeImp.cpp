@@ -90,6 +90,17 @@ std::string PythonConfigNodeImp::asString()
     return "ERROR";
 }
 
+std::string PythonConfigNodeImp::asString(const std::string& def)
+{
+    try {
+        return std::string(py::extract<char*>(py::str(m_pyobj)));
+    } catch(py::error_already_set err) {
+        return def;
+    }
+
+    return "ERROR";
+}
+    
 double PythonConfigNodeImp::asDouble()
 {
     try {
@@ -103,6 +114,17 @@ double PythonConfigNodeImp::asDouble()
     return -999999;
 }
 
+double PythonConfigNodeImp::asDouble(const double def)
+{
+    try {
+        return py::extract<double>(m_pyobj);
+    } catch(py::error_already_set err ) {
+        return def;
+    }
+    
+    return -999999;
+}
+    
 int PythonConfigNodeImp::asInt()
 {
     try {
@@ -111,6 +133,17 @@ int PythonConfigNodeImp::asInt()
         PyErr_Print();
 
         throw err;
+    }
+
+    return -9999;
+}
+
+int PythonConfigNodeImp::asInt(const int def)
+{
+    try {
+        return py::extract<int>(m_pyobj);
+    } catch(py::error_already_set err ) {
+        return def;
     }
 
     return -9999;
