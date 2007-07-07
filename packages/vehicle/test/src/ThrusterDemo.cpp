@@ -29,16 +29,16 @@ using namespace ram::vehicle::device;
 
 static const std::string PORT_CONFIG("{'name' : 'PortThruster',"
                                      " 'address' : '01',"
-                                     " 'calibration_factor': 0.9 }");
+                                     " 'calibration_factor': 0.3652 }");
 static const std::string STAR_CONFIG("{'name' : 'StarboardThruster',"
                                      " 'address' : '02',"
-                                     " 'calibration_factor': 0.9 }");
+                                     " 'calibration_factor': 0.4146 }");
 static const std::string FORE_CONFIG("{'name' : 'ForeThruster',"
                                      " 'address' : '03',"
-                                     " 'calibration_factor': 0.4 }");
+                                     " 'calibration_factor': 0.4368 }");
 static const std::string AFT_CONFIG("{'name' : 'AftThruster',"
                                     " 'address' : '04',"
-                                    " 'calibration_factor': 0.4 }");
+                                    " 'calibration_factor': 0.3612 }");
 //                                       calibration_factor
 int main()
 {
