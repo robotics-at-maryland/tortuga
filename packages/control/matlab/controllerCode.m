@@ -7,11 +7,13 @@
 % June 22 2007
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Only does something on the first call
+LoadCppController() 
+
 % Run matlab version
-storedValues = SimulateController(0)
+storedValues = SimulateController(0);
 PlotTestValues(storedValues,'b');
 
 % Run cpp version
-LoadCppController() % Only does something on the first call
-cppStoredValues = SimulateController(1)
+cppStoredValues = SimulateController(1);
 PlotTestValues(cppStoredValues,'r');

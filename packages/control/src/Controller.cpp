@@ -96,6 +96,7 @@ void rotationalController(MeasuredState* measuredState,
     double PGain[3][3];
     matrixMult3x3byScalar(controllerState->inertiaEstimate,
                           controllerState->angularPGain,&PGain[0][0]);
+
     //generate derivative controller gain matrix
     double DGain[3][3];
     matrixMult3x3byScalar(controllerState->inertiaEstimate,

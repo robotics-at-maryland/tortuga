@@ -139,30 +139,6 @@ void matrixMult4x1byScalar(double vec[4], double scalar, double* const presult){
 * multiplies a 3x3 matrix with a scalar
 *
 */
-/*
-void matrixMult3x3byScalar(double matrix[3][3], double scalar, double* const presult){
-    *(presult) = scalar*matrix[0][0];
-    *(presult+1) = scalar*matrix[0][1];
-    *(presult+2) = scalar*matrix[0][2];
-    *(presult+3) = scalar*matrix[1][0];
-    *(presult+4) = scalar*matrix[1][1];
-    *(presult+5) = scalar*matrix[1][2];
-    *(presult+6) = scalar*matrix[2][0];
-    *(presult+7) = scalar*matrix[2][1];
-    *(presult+8) = scalar*matrix[2][2];
-}*/
-/*
-void matrixMult3x3byScalar(double * const pmatrix, double scalar, double* const presult){
-    *(presult) = *(pmatrix)*scalar;
-    *(presult+1) = *(pmatrix+1)*scalar;
-    *(presult+2) = *(pmatrix+2)*scalar;
-    *(presult+3) = *(pmatrix+3)*scalar;
-    *(presult+4) = *(pmatrix+4)*scalar;
-    *(presult+5) = *(pmatrix+5)*scalar;
-    *(presult+6) = *(pmatrix+6)*scalar;
-    *(presult+7) = *(pmatrix+7)*scalar;
-    *(presult+8) = *(pmatrix+8)*scalar;
-}*/
 void matrixMult3x3byScalar(double matrix[3][3], double scalar, double* const presult){
     *(presult) = matrix[0][0]*scalar;
     *(presult+1) = matrix[0][1]*scalar;
@@ -215,10 +191,29 @@ void matrixMult4x4by4x1(double big[4][4], double little[4], double* const presul
     *(presult+3) = big[3][0]*little[0]+big[3][1]*little[1]+big[3][2]*little[2]+big[3][3]*little[3];
 }
 
+/*
+implementation of the vector cross product of a and b  (result = a x b)
+*/
+void crossProduct3x1by3x1(double a[3], double b[3], double * presult){
+    *(presult) = a[1]*b[2]-a[2]*b[1];
+    *(presult+1) = a[2]*b[0]-a[0]*b[2];
+    *(presult+2) = a[0]*b[1]-a[1]*b[0];
+}
 
 /*
 * converts an euler axis and an euler angle into a quaternion
-*
+
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et
+
+
 */
 void eulerAxisToQuaternion(double e[3], double phi, double* const pq){
     normalize3x1(e);
@@ -238,7 +233,18 @@ void eulerAxisToQuaternion(double e[3], double phi, double* const pq){
 
 /*
 * converts a quaternionan into an euler axis and an euler angle
-*
+
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et
+
+
 */
 void quaternionToEulerAxis(double q[4], double* pphi, double* pe){
     //normalize4x1(q);
@@ -298,6 +304,16 @@ double sign(double variable){
 * used in the quaternion differential equation:
 * q_dot = .5*OMEGA*q
 *
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et
+
 */
 void createOmega(double w[3], double * pOMEGA){
     *(pOMEGA) = 0;
@@ -319,8 +335,17 @@ void createOmega(double w[3], double * pOMEGA){
 }
 
 /*
-* finds the error quaternion between a commanded quaternion (qc) and an actual quaternion (q)
-*
+finds the error quaternion between a commanded quaternion (qc) and an actual quaternion (q)
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et
+
 */
 void findErrorQuaternion(double qc[4], double q[4], double * pqe){
     *(pqe) = qc[3]*q[0]+qc[2]*q[1]-qc[1]*q[2]-qc[0]*q[3];
@@ -332,8 +357,16 @@ void findErrorQuaternion(double qc[4], double q[4], double * pqe){
 
 /*
 * creates a rotation matrix given the current quaternion
-*
-*
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et
+
 */
 void rotationMatrixFromQuaternion(double q[4], double * pRot){
     *(pRot) = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3];
@@ -421,6 +454,15 @@ double getDistance(double a[3], double b[3]){
 
 /*
 computes matrix for use in quaternion error equation
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et
 */
 void getQuaternionErrorMatrix(double q[4], double * pMatrix){
     *(pMatrix) = q[3];
@@ -442,4 +484,112 @@ void getQuaternionErrorMatrix(double q[4], double * pMatrix){
     *(pMatrix+13) = q[1];
     *(pMatrix+14) = q[2];
     *(pMatrix+15) = q[3];
+}
+
+/*
+finds quaternion given a direction cosine matrix
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et
+*/
+void quaternionFromDCM(double DCM[3][3], double * pQ){
+    double a, b, c, d;
+
+    d = 0.5*sqrt(DCM[0][0]+DCM[1][1]+DCM[2][2]+1);
+    if (fabs(d) >= 0.125){
+        a = 0.25*(DCM[2][1]-DCM[1][2])/d;
+        b = 0.25*(DCM[0][2]-DCM[2][0])/d;
+        c = 0.25*(DCM[1][0]-DCM[0][1])/d;
+    }
+    else{
+        c = 0.5*sqrt(-DCM[0][0]-DCM[1][1]+DCM[2][2]+1);
+        if (fabs(c) >= 0.125){
+            a = 0.25*(DCM[0][2]-DCM[2][0])/c;
+            b = 0.25*(DCM[1][2]+DCM[2][1])/c;
+            d = 0.25*(DCM[1][0]-DCM[0][1])/c;
+        }
+        else{
+            b = 0.5*sqrt(-DCM[0][0]+DCM[1][1]-DCM[2][2]+1);
+            if (fabs(b) >= 0.125){
+                a = 0.25*(DCM[0][1]+DCM[1][0])/b;
+                c = 0.25*(DCM[1][2]+DCM[2][1])/b;
+                d = 0.25*(DCM[0][2]-DCM[2][0])/b;
+            }
+            else{
+                a = 0.5*sqrt(DCM[0][0]-DCM[1][1]-DCM[2][2]+1);
+                b = 0.25*(DCM[0][1]+DCM[1][0])/a;
+                c = 0.25*(DCM[0][2]-DCM[2][0])/a;
+                d = 0.25*(DCM[2][1]-DCM[1][2])/a;
+            }
+        }
+    }
+
+    if (d<0){
+        a = -a;
+        b = -b;
+        c = -c;
+        d = -d;
+    }
+
+    *(pQ) = a;
+    *(pQ+1) = b;
+    *(pQ+2) = c;
+    *(pQ+3) = d;
+}
+
+/*
+computes a rotation matrix for a given roll
+*/
+void rotationRoll(double phi, double * pMatrix){
+    *(pMatrix) = 1;
+    *(pMatrix+1) = 0;
+    *(pMatrix+2) = 0;
+
+    *(pMatrix+3) = 0;
+    *(pMatrix+4) = cos(phi);
+    *(pMatrix+5) = sin(phi);
+
+    *(pMatrix+6) = 0;
+    *(pMatrix+7) = -sin(phi);
+    *(pMatrix+8) = cos(phi);
+}
+
+/*
+computes a rotation matrix for a given pitch
+*/
+void rotationPitch(double theta, double * pMatrix){
+    *(pMatrix) = cos(theta);
+    *(pMatrix+1) = 0;
+    *(pMatrix+2) = -sin(theta);
+
+    *(pMatrix+3) = 0;
+    *(pMatrix+4) = 1;
+    *(pMatrix+5) = 0;
+
+    *(pMatrix+6) = sin(theta);
+    *(pMatrix+7) = 0;
+    *(pMatrix+8) = cos(theta);
+}
+
+/*
+computes a rotation matrix for a given yaw
+*/
+void rotationYaw(double psi, double * pMatrix){
+    *(pMatrix) = cos(psi);
+    *(pMatrix+1) = sin(psi);
+    *(pMatrix+2) = 0;
+
+    *(pMatrix+3) = -sin(psi);
+    *(pMatrix+4) = cos(psi);
+    *(pMatrix+5) = 0;
+
+    *(pMatrix+6) = 0;
+    *(pMatrix+7) = 0;
+    *(pMatrix+8) = 1;
 }

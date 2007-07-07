@@ -27,16 +27,34 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="Control">
+				<Option output="Control.dll" prefix_auto="1" extension_auto="1" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add directory="..\include" />
 		</Compiler>
-		<Unit filename="..\include\Controller.h" />
-		<Unit filename="..\include\joeMath.h" />
+		<Unit filename="..\include\Controller.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="..\include\IMUFunctions.h" />
+		<Unit filename="..\include\joeMath.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="..\src\Controller.cpp" />
+		<Unit filename="..\src\IMUFunctions.cpp" />
 		<Unit filename="..\src\joeMath.cpp" />
-		<Unit filename="..\test\src\test.cpp" />
+		<Unit filename="..\test\src\test.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 		</Extensions>
