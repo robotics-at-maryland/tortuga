@@ -1,4 +1,20 @@
-#include "joeMath.h"
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Joseph Lisee <jlisee@umd.edu>
+ * File:  packages/math/src/Helpers.cpp
+ */
+
+// STD Includes
+#include <cmath>
+
+// Project Includes
+#include "math/include/Helpers.h"
+
+namespace math {
+namespace ram {
 
 /*
 * normalizes a 3x1 vector
@@ -602,3 +618,6 @@ void rotationYaw(double psi, double * pMatrix){
     *(pMatrix+7) = 0;
     *(pMatrix+8) = 1;
 }
+
+} // namespace math
+} // namespace ram
