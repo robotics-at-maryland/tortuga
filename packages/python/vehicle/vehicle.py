@@ -5,13 +5,22 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  vehicle/sim/vehicle.py
 
+# Python Imports
+import warnings
+
 # Project Imports
 from devices import IDevice
-from core import Component
+from core import Component, implements
+from module import IModule, Component
+
+warnings.simplefilter('ignore', RuntimeWarning)
 from ext.vehicle import Vehicle as _Vehicle # Import C++ Vehicle
 from ext.core import ConfigNode as _ConfigNode
+warnings.simplefilter('default', RuntimeWarning)
 
-class Vehicle(_Vehicle):
+class Vehicle(_Vehicle, Module, Component):
+    implements(IModule)
+    
     def __init__(self, config):
         # Create C++ super class
         _Vehicle.__init__(self)
@@ -20,6 +29,25 @@ class Vehicle(_Vehicle):
         
         # Create the devices
         self._create_devices()
+        
+        # Create module base class, send off events
+        Module.__init__(self, config)
+        
+    def start(self):
+        self.background(self._config['update_interval'])
+        event.send('MODULE_START', self)
+        
+    def running(self):
+        self.backgrounded()
+        
+    def pause(self):
+        self.unbackground()
+        event.send('MODULE_PAUSE', self)
+        
+    def shutdown(self):
+        self.pause()
+        # Put more shutdown stuff here
+        event.send('MODULE_SHUTDOWN',self)
         
     def _create_devices(self):
         device_nodes = self._config.get('Devices', None)

@@ -5,13 +5,18 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  vehicle/devices.py
 
+# Python Imports
+import warnings
+
 # Project Imports
 import ext.vehicle_device as _device # Import C++ Devices
 from core import Interface, classImplements
 
 # Bring C++ Devices into scope
+warnings.simplefilter('ignore', RuntimeWarning)
 from ext.vehicle_device import Thruster
 from ext.vehicle_device import IMU
+warnings.simplefilter('default', RuntimeWarning)
     
 class IDevice(Interface):
     """
