@@ -18,7 +18,8 @@ int main()
     double magReading[3] = {-0.0764, -0.0043, -0.1848};
     double accelReading[3] = {0, -0.1736, -0.9848};
     double quaternion[4];
-    quaternionFromIMU(magReading,accelReading,-CONSTANTmagneticPitchAngle,quaternion);
+    quaternionFromIMU(magReading,accelReading,-CONSTANTmagneticPitchAngle*PI/180,
+                      &quaternion[0]);
 
     std::cout << "quaternion = " << quaternion[0] << " " << quaternion[1]
                 << " " << quaternion[2] << " " << quaternion[3] << std::endl;

@@ -1,5 +1,5 @@
 #include "joeMath.h"
-
+#include <iostream>
 
 /*
 * normalizes a 3x1 vector
@@ -167,7 +167,7 @@ void matrixMult3x1by3x3(double bigMatrix[3][3], double littleMatrix[3], double* 
 * note - this function takes in the result array as a pointer to the first element of that array
 */
 void matrixMult3x3by3x3(double a[3][3], double b[3][3], double* presult){
-    double prod;
+    /*double prod;
     int i,j,k;
     for(i = 0; i < 3; i++){
         for(j = 0; j < 3; j++){
@@ -177,7 +177,16 @@ void matrixMult3x3by3x3(double a[3][3], double b[3][3], double* presult){
             }
             *(presult+3*i+j) = prod;
         }
-    }
+    }*/
+    *(presult) = a[0][0]*b[0][0]+a[0][1]*b[1][0]+a[0][2]*b[2][0];
+    *(presult+1) = a[0][0]*b[0][1]+a[0][1]*b[1][1]+a[0][2]*b[2][1];
+    *(presult+2) = a[0][0]*b[0][2]+a[0][1]*b[1][2]+a[0][2]*b[2][2];
+    *(presult+3) = a[1][0]*b[0][0]+a[1][1]*b[1][0]+a[1][2]*b[2][0];
+    *(presult+4) = a[1][0]*b[0][1]+a[1][1]*b[1][1]+a[1][2]*b[2][1];
+    *(presult+5) = a[1][0]*b[0][2]+a[1][1]*b[1][2]+a[1][2]*b[2][2];
+    *(presult+6) = a[2][0]*b[0][0]+a[2][1]*b[1][0]+a[2][2]*b[2][0];
+    *(presult+7) = a[2][0]*b[0][1]+a[2][1]*b[1][1]+a[2][2]*b[2][1];
+    *(presult+8) = a[2][0]*b[0][2]+a[2][1]*b[1][2]+a[2][2]*b[2][2];
 }
 
 /*
@@ -491,24 +500,30 @@ finds quaternion given a direction cosine matrix
 
 q - a quaternion with the parameterization:
 
-                   [q1] = [e1*sin(et/2)]
-               q = |q2|   |e2*sin(et/2)|
-                   |q3|   |e3*sin(et/2)|
-                   [q4]   [  cos(et/2) ]
+                   [q1]   [a]   [e1*sin(et/2)]
+               q = |q2| = |b| = |e2*sin(et/2)|
+                   |q3|   |c|   |e3*sin(et/2)|
+                   [q4]   [d]   [  cos(et/2) ]
 
                where euler axis = [e1,e2,e3] and euler angle = et
 */
 void quaternionFromDCM(double DCM[3][3], double * pQ){
+
+    std::cout << std::endl;
+
     double a, b, c, d;
 
     d = 0.5*sqrt(DCM[0][0]+DCM[1][1]+DCM[2][2]+1);
+    std::cout << "d = " << d << std::endl;
     if (fabs(d) >= 0.125){
         a = 0.25*(DCM[2][1]-DCM[1][2])/d;
         b = 0.25*(DCM[0][2]-DCM[2][0])/d;
         c = 0.25*(DCM[1][0]-DCM[0][1])/d;
+        std::cout << "{a,b,c,d} = " << a << " " << b << " " << c << " " << d << std::endl;
     }
     else{
         c = 0.5*sqrt(-DCM[0][0]-DCM[1][1]+DCM[2][2]+1);
+        std::cout << "c = " << c << std::endl;
         if (fabs(c) >= 0.125){
             a = 0.25*(DCM[0][2]-DCM[2][0])/c;
             b = 0.25*(DCM[1][2]+DCM[2][1])/c;
@@ -516,6 +531,7 @@ void quaternionFromDCM(double DCM[3][3], double * pQ){
         }
         else{
             b = 0.5*sqrt(-DCM[0][0]+DCM[1][1]-DCM[2][2]+1);
+            std::cout << "b = " << b << std::endl;
             if (fabs(b) >= 0.125){
                 a = 0.25*(DCM[0][1]+DCM[1][0])/b;
                 c = 0.25*(DCM[1][2]+DCM[2][1])/b;
@@ -523,6 +539,7 @@ void quaternionFromDCM(double DCM[3][3], double * pQ){
             }
             else{
                 a = 0.5*sqrt(DCM[0][0]-DCM[1][1]-DCM[2][2]+1);
+                std::cout << "a = " << a << std::endl;
                 b = 0.25*(DCM[0][1]+DCM[1][0])/a;
                 c = 0.25*(DCM[0][2]-DCM[2][0])/a;
                 d = 0.25*(DCM[2][1]-DCM[1][2])/a;
