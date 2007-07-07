@@ -17,5 +17,5 @@ envl = env.Clone()
 sources = helpers.glob(env, 'src', '*.cpp')
 
 # Build Procducts (library will be called 'libram_vehicle.so')
-helpers.SharedLibrary(envl, 'control',  source = sources)
+helpers.SharedLibrary(envl, 'math',  source = sources)
 

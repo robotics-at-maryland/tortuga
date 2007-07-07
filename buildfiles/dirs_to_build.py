@@ -6,6 +6,7 @@ COMMON_DIRS = set([
     os.path.join('packages', 'pattern'),
     os.path.join('packages', 'core'),
     os.path.join('packages', 'math'),
+    os.path.join('packages', 'control'),
     os.path.join('wrappers', 'pattern'),
     os.path.join('wrappers', 'core')])
 
