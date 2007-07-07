@@ -37,15 +37,17 @@ int main(int argc, char** argv)
 	camera->background(); //Silliness
 
 	cal=new Calibration(camera);
-	cal->printCalibrations();
-
-	OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
+	//cal->setCalibrationGarbage();
+    cal->printCalibrations();
+    OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
 	GateDetector* gDetect=new GateDetector(camera);
 	BinDetector* bDetect=new BinDetector(camera);
 	RedLightDetector* rlDetect=new RedLightDetector(camera);
 	char key=' ';
 	cvNamedWindow("Detector Test");
 	cvNamedWindow("Undistorted");
+    IplImage* undistorted=cvCreateImage(cvSize(640,480),8,3);
+    IplImage* differenceImage=cvCreateImage(cvSize(640,480),8,3);
 	while (key!='q')
 	{
 		camera->getImage(frame);
@@ -53,14 +55,13 @@ int main(int argc, char** argv)
 		cvShowImage("Detector Test", image);
 		
 		//Distortion Correction
-		IplImage* undistorted=cvCreateImage(cvGetSize(image),8,3);
 		cout<<"Attempting to undistort"<<endl;
 		cal->calibrateImage(image, undistorted);
 		cout<<"Finished correcting distortion"<<endl;
 		cvShowImage("Detector Test",image);
 		cvShowImage("Undistorted",undistorted);
 		
-		key=cvWaitKey(25);
+		key=cvWaitKey(5);
 		//Orange pipeline
 //		if (SHOW_OUTPUT)
 //			cout<<"Running Orange Pipeline Detection..."<<endl;

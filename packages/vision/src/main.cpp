@@ -83,6 +83,7 @@ void rotate90Deg(IplImage* src, IplImage* dest)
 
 int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 {
+    cvNamedWindow("Damn.");
 	int numImages=1;
 	int i, j;
 	// 8 bit image:
@@ -94,23 +95,28 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 	IplImage* temp = cvCreateImage(cvGetSize(image),IPL_DEPTH_8U, 1);
 	
 	int cornerCount;
-	CvMemStorage* storage=cvCreateMemStorage();
 
 	cout<<"Guessing chessboard corners"<<endl;
-	int okay = cvFindChessBoardCornerGuesses(image8, temp, storage, cvSize(6,6), array, &cornerCount); 
+    int okay = cvFindChessboardCorners(image8, cvSize(6,6), array, &cornerCount);
+    cvDrawChessboardCorners(image8,cvSize(6,6),array,cornerCount,okay);
+    cvShowImage("Damn.",image8);
+    cout<<"Was it okay?:"<<okay<<endl;
 	cout<<"Finished guessing chessboard corners"<<endl;
-	cvReleaseMemStorage(&storage);
-	
-	CvTermCriteria termcrit;
-	termcrit.type=CV_TERMCRIT_ITER;
-	termcrit.max_iter=5;
-	cout<<"calling subPix"<<endl;
-	cvFindCornerSubPix(image8, array, cornerCount, 
-		cvSize(5,5), cvSize(-1,-1), termcrit); 
-	cout<<"Finished subPix"<<endl;
 
-	cvReleaseImage(&image8);
+	if (okay)
+    {
+        CvTermCriteria termcrit;
+        termcrit.type=CV_TERMCRIT_ITER;
+        termcrit.max_iter=5;
+        cout<<"calling subPix"<<endl;
+        cvFindCornerSubPix(image8, array, cornerCount, 
+                           cvSize(5,5), cvSize(-1,-1), termcrit); 
+        cout<<"Finished subPix"<<endl;
 
+        cvReleaseImage(&image8);
+    }
+    else
+        return -1;
 	return cornerCount;
 }
 
@@ -349,31 +355,31 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 //				dest[count+2]=data[count+2]-data2[count+2];
 				count+=3;
 			}
-		count=0;
-		int numPerEight=0;
-			for (int x=0;x<width*height/8;x++)
-			{
-				numPerEight=0;
-				for (int z=0; z<8;z++)
-				{
-					if (dest[count]>5 && dest[count+1]>5 && dest[count+2]>5)
-					{
-						numPerEight++;
-					}
-					count+=3;
-				}
-				if (numPerEight>3)
-				
-					dest[count-24]=dest[count-23]=dest[count-22]=dest[count-21]=dest[count-20]=dest[count-19]=
-					dest[count-18]=dest[count-17]=dest[count-16]=dest[count-15]=dest[count-14]=dest[count-13]=
-					dest[count-12]=dest[count-11]=dest[count-10]=dest[count-9] =dest[count-8] =dest[count-7]=
-					dest[count-6] =dest[count-5] =dest[count-4 ]=dest[count-3] =dest[count-2] =dest[count-1]=255;
-				else
-					dest[count-24]=dest[count-23]=dest[count-22]=dest[count-21]=dest[count-20]=dest[count-19]=
-					dest[count-18]=dest[count-17]=dest[count-16]=dest[count-15]=dest[count-14]=dest[count-13]=
-					dest[count-12]=dest[count-11]=dest[count-10]=dest[count-9] =dest[count-8] =dest[count-7]=
-					dest[count-6] =dest[count-5] =dest[count-4 ]=dest[count-3] =dest[count-2] =dest[count-1]=0;
-			}
+//		count=0;
+//		int numPerEight=0;
+//			for (int x=0;x<width*height/8;x++)
+//			{
+//				numPerEight=0;
+//				for (int z=0; z<8;z++)
+//				{
+//					if (dest[count]>5 && dest[count+1]>5 && dest[count+2]>5)
+//					{
+//						numPerEight++;
+//					}
+//					count+=3;
+//				}
+//				if (numPerEight>3)
+//				
+//					dest[count-24]=dest[count-23]=dest[count-22]=dest[count-21]=dest[count-20]=dest[count-19]=
+//					dest[count-18]=dest[count-17]=dest[count-16]=dest[count-15]=dest[count-14]=dest[count-13]=
+//					dest[count-12]=dest[count-11]=dest[count-10]=dest[count-9] =dest[count-8] =dest[count-7]=
+//					dest[count-6] =dest[count-5] =dest[count-4 ]=dest[count-3] =dest[count-2] =dest[count-1]=255;
+//				else
+//					dest[count-24]=dest[count-23]=dest[count-22]=dest[count-21]=dest[count-20]=dest[count-19]=
+//					dest[count-18]=dest[count-17]=dest[count-16]=dest[count-15]=dest[count-14]=dest[count-13]=
+//					dest[count-12]=dest[count-11]=dest[count-10]=dest[count-9] =dest[count-8] =dest[count-7]=
+//					dest[count-6] =dest[count-5] =dest[count-4 ]=dest[count-3] =dest[count-2] =dest[count-1]=0;
+//			}
 	}
 	
 	//cvHough

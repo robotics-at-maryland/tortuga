@@ -38,6 +38,7 @@ namespace vision{
 			void printCalibrations();
 			void calibrateImage(IplImage* src, IplImage* dest);
 			void setCalibrationManual(float* distortion, float* cameraMatrix, float* rotMat, float* transVects);
+            void setCalibrationGarbage();
 
 		private:
 			ram::vision::Image* frame;
