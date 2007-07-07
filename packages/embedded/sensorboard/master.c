@@ -543,8 +543,7 @@ int main(void)
     #define HOST_REPLY_TEMPERATURE  0x0B
 
     #define HOST_CMD_PRINTTEXT      0x0C
-
-    #define HOST_CMD_COUNTDOWN      0x0D
+    #define HOST_CMD_DIAGNOSTIC     0x0D
 
     unsigned char emptyLine[]="                ";
 
@@ -906,41 +905,14 @@ int main(void)
                 break;
             }
 
-
-            case HOST_CMD_COUNTDOWN:
+/*
+            case HOST_CMD_DIAGNOSTIC:
             {
-
-                for(i=0; i<5; i++)
-                    rxBuf[i] = waitchar(1);
-
-                byte cflag=0;
-
-                for(i=0; i<5; i++)
-                {
-                    if(rxBuf[i] != cdSafety[i])
-                        cflag=1;
-                }
-
-                byte t = waitchar(1);
-                byte cs = waitchar(1);
-
-                if(cflag == 1)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                } else
-                {
-                    if(busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL) != 0)
-                    {
-                        sendByte(HOST_REPLY_FAILURE);
-                        break;
-                    }
-                    sendByte(HOST_REPLY_SUCCESS);
-                }
-                break;
+                diagMode();
+                showString("Completed...    ", 0);
+                showString("                ", 1);
             }
-
-
+*/
         }
     }
 }

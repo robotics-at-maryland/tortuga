@@ -327,7 +327,7 @@ void processData(byte data)
 
                 case BUS_CMD_HARDKILL:
                 {
-                    _LATC15 = 1; /* Uh oh.... master kill */
+                    _LATC15 = 0; /* Uh oh.... master kill */
                     break;
                 }
             }
@@ -581,7 +581,7 @@ void _ISR _CNInterrupt(void)
 
     if(WATER_CN_BIT == 1 && _RB0 == 1)  /* WATER!!! */
     {
-        _RC15 = 1;      /* Hard Kill */
+        _LATC15 = 0;      /* Hard Kill */
     }
 
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
@@ -600,6 +600,10 @@ void main()
 {
     byte i;
     long l;
+    _LATC15 = 1;
+    _TRISC15 = TRIS_OUT; /* Hard Kill */
+
+
     _TRISB0 = TRIS_IN;  /* Water sensor  */
     _TRISB1 = TRIS_IN;  /* Start Switch  */
     _TRISB2 = TRIS_IN;  /* Power board 1 */
@@ -615,10 +619,6 @@ void main()
     CNPU1bits.CN5PUE = 1;
     CNPU1bits.CN6PUE = 1;
     CNPU1bits.CN7PUE = 1;
-
-
-    _LATC15 = 0;
-    _TRISC15 = TRIS_OUT; /* Hard Kill */
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
