@@ -55,6 +55,7 @@ public:
 
     /** Preforms a cast to the desired type */
     static IMUPtr castTo(IDevicePtr ptr);
+//    static IMU* castTo(IDevice* ptr);
     
     virtual ~IMU();
 

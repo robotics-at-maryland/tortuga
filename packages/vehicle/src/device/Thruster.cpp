@@ -54,6 +54,11 @@ ThrusterPtr Thruster::castTo(IDevicePtr ptr)
 {
     return boost::dynamic_pointer_cast<Thruster>(ptr);
 }
+/*
+Thruster* Thruster::castTo(IDevice* ptr)
+{
+    return dynamic_cast<Thruster*>(ptr);
+    }*/
     
 void Thruster::setForce(double force)
 {

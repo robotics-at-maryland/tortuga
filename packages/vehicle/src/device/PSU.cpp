@@ -53,6 +53,11 @@ PSUPtr PSU::castTo(IDevicePtr ptr)
 {
     return boost::dynamic_pointer_cast<PSU>(ptr);
 }
+/*
+PSU* PSU::castTo(IDevice* ptr)
+{
+    return dynamic_cast<PSU*>(ptr);
+    }*/
     
 void PSU::update(double timestep)
 {

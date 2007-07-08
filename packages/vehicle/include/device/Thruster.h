@@ -45,6 +45,7 @@ public:
 
     /** Preforms a cast to the desired type */
     static ThrusterPtr castTo(IDevicePtr ptr);
+//    static Thruster* castTo(IDevice* ptr);
     
     /** Sets the current thruster force of the thrusters */
     void setForce(double newtons);

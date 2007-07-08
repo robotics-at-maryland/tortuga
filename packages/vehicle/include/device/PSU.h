@@ -49,6 +49,7 @@ public:
 
     /** Preforms a cast to the desired type */
     static PSUPtr castTo(IDevicePtr ptr);
+//    static PSU* castTo(IDevice* ptr);
     
     virtual ~PSU();
 

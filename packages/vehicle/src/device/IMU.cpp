@@ -82,7 +82,12 @@ IMUPtr IMU::castTo(IDevicePtr ptr)
 {
     return boost::dynamic_pointer_cast<IMU>(ptr);
 }
-    
+/*
+IMU* IMU::castTo(IDevice* ptr)
+{
+    return dynamic_cast<IMU*>(ptr);
+}
+*/ 
 void IMU::update(double timestep)
 {
     // Only grab data on valid fd
