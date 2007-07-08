@@ -85,7 +85,7 @@ private:
     boost::thread* m_backgroundThread;
     
     /** Guard the interval and background */
-    boost::mutex m_stateMutex;
+    boost::mutex m_upStateMutex;
 
     /** Whether or not the thread is running in the background */
     bool m_backgrounded;

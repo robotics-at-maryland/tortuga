@@ -122,7 +122,7 @@ void Updatable::background(int interval)
     bool startThread = false;
 
     {
-        boost::mutex::scoped_lock lock(m_stateMutex);
+        boost::mutex::scoped_lock lock(m_upStateMutex);
 
         // Set state
         m_interval = interval;
@@ -155,7 +155,7 @@ void Updatable::background(int interval)
 void Updatable::unbackground(bool join)
 {
     {
-        boost::mutex::scoped_lock lock(m_stateMutex);
+        boost::mutex::scoped_lock lock(m_upStateMutex);
 
         // The run loop check this value to determine whether it should keep
         // running, next loop through it will stop.
@@ -169,13 +169,13 @@ void Updatable::unbackground(bool join)
 
 bool Updatable::backgrounded()
 {
-    boost::mutex::scoped_lock lock(m_stateMutex);
+    boost::mutex::scoped_lock lock(m_upStateMutex);
     return m_backgrounded;
 }
 
 void Updatable::getState(bool& backgrounded, int& interval)
 {
-    boost::mutex::scoped_lock lock(m_stateMutex);
+    boost::mutex::scoped_lock lock(m_upStateMutex);
     backgrounded = m_backgrounded;
     interval = m_interval;
 }
