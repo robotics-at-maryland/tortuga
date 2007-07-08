@@ -102,7 +102,8 @@ def _get_internal_lib(name):
             'math' : InternalLibrary('math', int_deps = [],
                                        ext_deps = []),
 
-            'control' : InternalLibrary('control', int_deps = ['math'],
+            'control' : InternalLibrary('control',
+                                        int_deps = ['math', 'core', 'vehicle'],
                                         ext_deps = []),
 
             'vehicle' : InternalLibrary('vehicle',
@@ -203,11 +204,11 @@ class Library(object):
         preforms the required checks to make sure the library is properly
         installed and has the right version.
         """
-        print 'LINK',self.LINKFLAGS
+#        print 'LINK',self.LINKFLAGS
         env.AppendUnique(CPPFLAGS = self.CPPFLAGS)
         env.AppendUnique(LINKFLAGS = self.LINKFLAGS)
         env.AppendUnique(CPPPATH = self.CPPPATH)
-        print 'AFTER:',env['LINKFLAGS']
+#        print 'AFTER:',env['LINKFLAGS']
     
         self.setup_dependents(env)
         
