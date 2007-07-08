@@ -46,6 +46,9 @@ public:
 
     /** Creats a new object */
     static PSUPtr construct(Vehicle* vehicle, core::ConfigNode config);
+
+    /** Preforms a cast to the desired type */
+    static PSUPtr castTo(IDevicePtr ptr);
     
     virtual ~PSU();
 

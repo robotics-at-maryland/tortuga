@@ -47,6 +47,11 @@ IMUPtr IMU::construct(Vehicle* vehicle, core::ConfigNode config)
 {
     return IMUPtr(new IMU(vehicle, config));
 }
+
+IMUPtr IMU::castTo(IDevicePtr ptr)
+{
+    return boost::dynamic_pointer_cast<IMU>(ptr);
+}
     
 void IMU::update(double timestep)
 {

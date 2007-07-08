@@ -42,6 +42,9 @@ public:
 
     /** Creats a new object */
     static ThrusterPtr construct(Vehicle* vehicle, core::ConfigNode config);
+
+    /** Preforms a cast to the desired type */
+    static ThrusterPtr castTo(IDevicePtr ptr);
     
     /** Sets the current thruster force of the thrusters */
     void setForce(double newtons);

@@ -49,6 +49,11 @@ ThrusterPtr Thruster::construct(Vehicle* vehicle, core::ConfigNode config)
 {
     return ThrusterPtr(new Thruster(vehicle, config));
 }
+
+ThrusterPtr Thruster::castTo(IDevicePtr ptr)
+{
+    return boost::dynamic_pointer_cast<Thruster>(ptr);
+}
     
 void Thruster::setForce(double force)
 {

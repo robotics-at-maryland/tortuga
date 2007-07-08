@@ -47,6 +47,9 @@ public:
 
     /** Creats a new object */
     static IMUPtr construct(Vehicle* vehicle, core::ConfigNode config);
+
+    /** Preforms a cast to the desired type */
+    static IMUPtr castTo(IDevicePtr ptr);
     
     virtual ~IMU();
 

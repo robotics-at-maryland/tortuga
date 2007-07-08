@@ -48,6 +48,11 @@ PSUPtr PSU::construct(Vehicle* vehicle, core::ConfigNode config)
 {
     return PSUPtr(new PSU(vehicle, config));
 }
+
+PSUPtr PSU::castTo(IDevicePtr ptr)
+{
+    return boost::dynamic_pointer_cast<PSU>(ptr);
+}
     
 void PSU::update(double timestep)
 {
