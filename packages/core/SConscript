@@ -22,5 +22,5 @@ helpers.Program(envt, target = 'UpdatableTest',
                 source = ['test/src/UpdatableTest.cpp'], int_deps = 'core')
 
 envt = env.Clone()
-helpers.Program(envt, target = 'AvgQueueTest',
+helpers.Program(envt, target = 'AvgFilterTest',
 		source = ['test/src/AvgTest.cpp'], int_deps = 'core')

@@ -1,0 +1,57 @@
+ 
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim
+ * File:  packages/core/include/AveragingFilter.h
+ */
+
+#ifndef RAM_CORE_AVERAGINGFILTER_H_06_30_2007
+#define RAM_CORE_AVERAGINGFILTER_H_06_30_2007
+
+namespace ram {
+namespace core {
+
+/** Computes the running average of the given data
+ */
+template <class T, int SIZE>
+class AveragingFilter
+{
+public:
+    AveragingFilter() : size(0), maxSize(SIZE), start(0), total(0) {};
+
+    /** Put a new value into the filter (throws the oldest off) */
+    void addValue(T newValue)
+    {
+        total -= array[start];
+        array[start] = newValue;
+        total += newValue;
+        
+        ++start;
+        ++size;
+        if (start==maxSize)
+            start=0;
+    }
+    
+    /** Gets the value of the fitler */
+    T getValue()
+    {
+        if (size<maxSize)
+            return total/size;
+        else
+            return total/maxSize;
+    }
+    
+private:
+    int size;
+    int maxSize;
+    int start;
+    T total;
+    T array[SIZE];
+};
+
+} // namespace core
+} // namespace ram
+
+#endif // RAM_CORE_AVERAGINGFILTER_H_06_30_2007
