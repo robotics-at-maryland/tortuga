@@ -5,6 +5,7 @@ import baseapp
 import vehicle.vehicle
 import vehicle.devices
 from vehicle.vehicle import Vehicle
+from module import ModuleManager
 from ext.core import ConfigNode as _ConfigNode
 
 class OCIApp(baseapp.AppBase):
@@ -13,6 +14,7 @@ class OCIApp(baseapp.AppBase):
         
         # Load up all of our modules
         self._load_modules()
+        ModuleManager.get().load_modules(self._config)
         
     def _load_modules(self):
         mod_config = self._config['Modules']

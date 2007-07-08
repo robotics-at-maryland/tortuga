@@ -41,14 +41,14 @@ class Vehicle(_Vehicle, Component):
         print 'Done'
         
         # Create module base class, send off events
-        print 'Initing'
+        print 'Initing'    
         event.send('MODULE_CREATED', self)
         ModuleManager.get().register(self)
         print 'Done'
         
     def start(self):
         self.background(self._config['update_interval'])
-        event.send('MODULE_START', self)
+        event.send('MODULE_START', self)    
         
     def pause(self):
         self.unbackground()

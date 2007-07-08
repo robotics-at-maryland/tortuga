@@ -50,6 +50,9 @@ Modules:
                 calibration_factor: 0.3612
                 direction: 1
 
+    Controller:
+        type: ext.control.BWPDController
+
         
         
     
