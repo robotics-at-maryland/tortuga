@@ -41,7 +41,6 @@ struct MeasuredState{
     double angularRate[3];
 };
 
-
 struct ControllerState{
     double angularPGain;
     double angularDGain;
@@ -50,17 +49,17 @@ struct ControllerState{
     double speedPGain;
 };
 
-void rotationalController(MeasuredState* measuredState,
-                          DesiredState* desiredState,
-                          ControllerState* controllerState,
-                          double dt,
-                          double* rotationalTorques);
+void translationalController(MeasuredState* measuredState,
+                             DesiredState* desiredState,
+                             ControllerState* controllerState,
+                             double dt,
+                             double* translationalForces);
 
 void BongWiePDRotationalController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
                                    double dt,
-                                   double* translationalForces);
+                                   double* rotationalTorques);
 
 
 #ifdef __cplusplus

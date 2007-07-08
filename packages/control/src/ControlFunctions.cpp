@@ -113,7 +113,8 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
 
     //compute quaternion error
     double qError[4];
-    findErrorQuaternion(desiredState->quaternion,measuredState->quaternion,&qError[0]);
+    findErrorQuaternion(desiredState->quaternion,
+                        measuredState->quaternion,&qError[0]);
 
     //angular rate error assumed to be measured angular rate
     double wError[3];

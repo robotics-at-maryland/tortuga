@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2007 Robotics at Maryland
  * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
@@ -11,13 +12,13 @@
 #define RAM_CONTROL_ICONTROL_07_03_2007
 
 // Project Includes
-#include "vehicle/include/Common.h"
+#include "core/include/IUpdatable.h"
 #include "pattern/include/Subject.h"
 
 namespace ram {
 namespace control {
 
-class IController : public pattern::Subject
+class IController : public pattern::Subject, public core::IUpdatable
 {
 public:
     enum UPDATE_EVENTS {
@@ -35,13 +36,10 @@ public:
     /** Sets the current depth of the sub in meters */
     virtual void setDepth(double depth) = 0;
 
-    /** Set the current speed, clamped between -5 and 5 */
     virtual int getSpeed() = 0;
 
-    /** Sets the current heading in degrees off north */
     virtual double getHeading() = 0;
 
-    /** Sets the current depth of the sub in meters */
     virtual double getDepth() = 0;    
 };
     
