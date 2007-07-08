@@ -21,6 +21,8 @@ computed as 90 degrees minus the above calculated angle between m and g.
 written by Joseph Gland  2007-07-07
 */
 
+double findRowAverageOf3xN(double * pData, int row, int columns);
+
 int main (){
   //warn user to not move sub
   std::cout << "Magnetic Inclination Finder" << std::endl;
@@ -41,9 +43,44 @@ int main (){
   double accel[3][numPoints];
   
   //collect the data
-  for(int index=1; index<numPoints; index++){
-    
+  for(int index=0; index < numPoints-1; index++){
+    //read IMU
+    readIMUData(fd, &imuData);
+    //save to arrays
+    mag[0][index] = imuData.magX;
+    mag[1][index] = imuData.magY;
+    mag[2][index] = imuData.magZ;
+    accel[0][index] = imuData.accelX;
+    accel[1][index] = imuData.accelY;
+    accel[2][index] = imuData.accelZ;
   }
   
+  //average the data
+  double averagedMag[3];
+  double averagedAccel[3];
+  averagedMag[0] = findRowAverageOf3xN(&mag[0][0],0,numPoints);
+  averagedMag[1] = findRowAverageOf3xN(&mag[0][0],1,numPoints);
+  averagedMag[2] = findRowAverageOf3xN(&mag[0][0],2,numPoints);
+  averagedAccel[0] = findRowAverageOf3xN(&accel[0][0],0,numPoints);
+  averagedAccel[1] = findRowAverageOf3xN(&accel[0][0],1,numPoints);
+  averagedAccel[2] = findRowAverageOf3xN(&accel[0][0],2,numPoints);
+
+  
+
   return 0;
+}
+
+
+/*
+
+*/
+double findRowAverageOf3xN(double * pData, int row, int columns){
+  double sum;
+  double* rowPtr = pData + row;
+  
+  for(int i = 0; i < columns; i++){
+    sum = sum + *(pData+i);
+  }
+
+  return sum/columns;
 }
