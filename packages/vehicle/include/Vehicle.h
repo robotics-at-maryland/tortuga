@@ -30,16 +30,8 @@ public:
     
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevicePtr getDevice(std::string name);
-    
-    virtual math::Vector3 getLinearAcceleration();
-
-    virtual math::Vector3 getAngularRate();
-
-    virtual math::Quaternion getOrientation();
 
     virtual double getDepth();
-
-    virtual double getVoltage();
         
     /** This is <b>NOT</b> thread safe */
     virtual void _addDevice(device::IDevicePtr device);
@@ -61,11 +53,7 @@ public:
 protected:
     struct VehicleState
     {
-        math::Vector3 linear_acceleration;
-        math::Vector3 angular_rate;
-        math::Quaternion orientation;
         double depth;
-        double voltage;
     };
     
     void getState(Vehicle::VehicleState& state);

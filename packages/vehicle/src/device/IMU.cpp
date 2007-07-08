@@ -67,7 +67,8 @@ void IMU::update(double timestep)
             setChanged();
             notifyObservers(0, DataUpdate);
         }
-        
+
+        // Find orientation here
     }
     // We didn't connect, try to reconnect
     else
@@ -76,6 +77,26 @@ void IMU::update(double timestep)
     }
 }
 
+math::Vector3 IMU::getLinearAcceleration()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return math::Vector3(m_rawState->accelX, m_rawState->accelY,
+                         m_rawState->accelZ);
+}
+
+math::Vector3 IMU::getAngularRate()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return math::Vector3(m_rawState->gyroX, m_rawState->gyroY,
+                         m_rawState->gyroZ);
+}
+
+math::Quaternion IMU::getOrientation()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_orientationMutex);
+    return m_orientation;
+}
+    
 void IMU::getRawState(RawIMUData& imuState)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);

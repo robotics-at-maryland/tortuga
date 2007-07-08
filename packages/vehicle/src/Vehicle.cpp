@@ -27,31 +27,7 @@ device::IDevicePtr Vehicle::getDevice(std::string name)
     return m_devices[name];
 }
 
-math::Vector3 Vehicle::getLinearAcceleration()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    return m_state.linear_acceleration;
-}
-
-math::Vector3 Vehicle::getAngularRate()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    return m_state.angular_rate;
-}
-
-math::Quaternion Vehicle::getOrientation()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    return m_state.orientation;
-}
-
 double Vehicle::getDepth()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    return m_state.depth;
-}
-
-double Vehicle::getVoltage()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
     return m_state.depth;

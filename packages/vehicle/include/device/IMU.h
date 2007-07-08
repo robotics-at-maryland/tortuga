@@ -19,6 +19,9 @@
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/ConfigNode.h"
+
+#include "math/include/Math.h"
+
 #include "pattern/include/Subject.h"
 
 // Forward declare structure from imuapi.h
@@ -61,6 +64,12 @@ public:
     virtual bool backgrounded() {
         return Updatable::backgrounded();
     };
+
+    math::Vector3 getLinearAcceleration();
+
+    math::Vector3 getAngularRate();
+
+    math::Quaternion getOrientation();
     
     /** Grabs the raw IMU state */
     void getRawState(RawIMUData& imuState);
@@ -72,6 +81,10 @@ private:
     /** File descriptor for the serial device file once open */
     int m_serialFD;
 
+    /** Protects acces to public state */
+    core::ReadWriteMutex m_orientationMutex;
+    math::Quaternion m_orientation;
+    
     /** Protects access to raw state */
     core::ReadWriteMutex m_rawStateMutex;
     /** The raw data read back from the IMU */

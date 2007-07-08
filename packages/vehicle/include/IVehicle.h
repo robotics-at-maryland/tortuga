@@ -23,16 +23,8 @@ class IVehicle : public core::IUpdatable
 public:
     /** Gets the device associated with the given name */
     virtual device::IDevicePtr getDevice(std::string name) = 0;
-    
-    virtual math::Vector3 getLinearAcceleration() = 0;
-
-    virtual math::Vector3 getAngularRate() = 0;
-
-    virtual math::Quaternion getOrientation() = 0;
 
     virtual double getDepth() = 0;
-
-    virtual double getVoltage() = 0;
 };
     
 } // namespace vehicle
