@@ -83,9 +83,10 @@ void rotate90Deg(IplImage* src, IplImage* dest)
 
 int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 {
-    cvNamedWindow("Damn.");
-	int numImages=1;
+    cout<<"Starting findCorners"<<endl;
+	cvNamedWindow("Damn.");
 	int i, j;
+	
 	// 8 bit image:
 	IplImage* image8 = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
 	cvCvtColor(image,image8,CV_BGR2GRAY);
@@ -96,6 +97,7 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
     int okay = cvFindChessboardCorners(image8, cvSize(6,6), array, &cornerCount);
  
     cvShowImage("Damn.",image8);
+	cvWaitKey(50);
     cout<<"Was it okay?:"<<okay<<endl;
     cout<<"Finished guessing chessboard corners"<<endl;
     if (okay)
@@ -109,10 +111,10 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
       }
     else
       {
-	cornerCount=-1;
+		cornerCount=-1;
       }
-    //    cvDrawChessboardCorners( image, cvSize(6,6),
-    //                             array, cornerCount, okay);
+		cvDrawChessboardCorners( image, cvSize(6,6),
+								array, cornerCount, okay);
     return cornerCount;
 }
 

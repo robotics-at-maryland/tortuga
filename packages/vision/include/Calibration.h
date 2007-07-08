@@ -26,6 +26,7 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Image.h"
 #include "vision/include/Camera.h"
+#define NUMIMAGES_CALIBRATE 10
 
 namespace ram{
 namespace vision{
@@ -46,8 +47,8 @@ namespace vision{
 			bool calibrated;
 			float distortion[4];
 			float cameraMatrix[9];
-			float transVects[3];
-			float rotMat[9];
+			float transVects[3*NUMIMAGES_CALIBRATE];
+			float rotMat[9*NUMIMAGES_CALIBRATE];
 			IplImage* dest;
 	};
 }
