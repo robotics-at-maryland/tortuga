@@ -7,6 +7,8 @@
  * File:  packages/control/src/BWPDController.cpp
  */
 
+#include <cstdio>
+
 // Project Includes
 #include "control/include/BWPDController.h"
 #include "control/include/ControlFunctions.h"
@@ -30,6 +32,8 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     m_rFore(0),
     m_rAft(0)
 {
+    printf("Creating controller\n");
+    
     // Allocate state structures
     m_desiredState = new DesiredState();
     m_measuredState = new MeasuredState();
@@ -85,7 +89,19 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
         config["AftThrusterName"].asString("AftThruster")));
 
     m_imu = vehicle::device::IMU::castTo(vehicle->getDevice(
-        config["IMUName"].asString("IMU")));
+         config["IMUName"].asString("IMU")));
+    
+/*    m_starboardThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
+        config["StarboardThrusterName"].asString("StarboardThruster")));
+    m_portThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
+        config["PortThrusterName"].asString("PortThruster")));
+    m_portThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
+        config["ForeThrusterName"].asString("ForeThruster")));
+    m_aftThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
+        config["AftThrusterName"].asString("AftThruster")));
+    
+    m_imu = dynamic_cast<vehicle::device::IMU*>(vehicle->getDevice(
+         config["IMUName"].asString("IMU")));*/
 }
 
 BWPDController::~BWPDController()
