@@ -15,4 +15,4 @@ envl = env.Clone()
 # Build the ctx and consolemon
 helpers.Program(envl, target = 'MagInclination', 
 		source = 'src/MagInclination.cpp',
-                int_deps = 'imu')
+                int_deps = ['imu','math'])
