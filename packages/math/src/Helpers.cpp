@@ -13,8 +13,8 @@
 // Project Includes
 #include "math/include/Helpers.h"
 
-namespace math {
 namespace ram {
+namespace math {
 
 /*
 * normalizes a 3x1 vector

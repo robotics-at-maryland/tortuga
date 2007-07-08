@@ -19,6 +19,7 @@
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/AveragingFilter.h"
 
 #include "math/include/Math.h"
 
@@ -32,6 +33,10 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
+const static int FILTER_SIZE = 10;
+
+typedef RawIMUData FilteredIMUData;
+    
 class IMU : public Device,          // For getName
             public core::Updatable, // for update
             public pattern::Subject // so other objects can watch
@@ -78,11 +83,20 @@ public:
     void getRawState(RawIMUData& imuState);
     
 private:
+    void rotateAndFilterData(RawIMUData* newState);
+    
+    void quaternionFromIMU(double mag[3], double accel[3],
+                           double* quaternion);
+    
     /** Name of the serial device file */
     std::string m_devfile;
     
     /** File descriptor for the serial device file once open */
     int m_serialFD;
+
+    /** Rotates data from the IMU to the Vehicle frame */
+    double m_IMUToVehicleFrame[3][3];
+    double m_localMagneticPitch;
 
     /** Protects acces to public state */
     core::ReadWriteMutex m_orientationMutex;
@@ -93,8 +107,23 @@ private:
     /** The raw data read back from the IMU */
     RawIMUData* m_rawState;
 
+    /** Filterd and rotated IMU data */
+    FilteredIMUData* m_filteredState;
+    
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredAccelX; 
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredAccelY;
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredAccelZ; 
+
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredGyroX; 
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredGyroY;
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredGyroZ;
+
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredMagX; 
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredMagY;
+    core::AveragingFilter<double, FILTER_SIZE> m_filteredMagZ; 
+    
     /** Protects access to derived state */
-    core::ReadWriteMutex m_stateMutex;
+
 };
     
 } // namespace device
