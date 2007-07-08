@@ -67,7 +67,16 @@ ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
 ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
 {
     try {
-        return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key]));
+        if (m_pyobj.attr("has_key")(key))
+        {
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key]));
+        }
+        else
+        {
+            py::object newObject;
+            m_pyobj[key] = newObject;
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key]));
+        }    
     } catch(py::error_already_set err) {
         PyErr_Print();
 
