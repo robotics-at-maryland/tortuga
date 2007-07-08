@@ -203,10 +203,12 @@ class Library(object):
         preforms the required checks to make sure the library is properly
         installed and has the right version.
         """
-        env.Append(CPPFLAGS = self.CPPFLAGS)
-        env.Append(LINKFLAGS = self.LINKFLAGS)
-        env.Append(CPPPATH = self.CPPPATH)
-
+        print 'LINK',self.LINKFLAGS
+        env.AppendUnique(CPPFLAGS = self.CPPFLAGS)
+        env.AppendUnique(LINKFLAGS = self.LINKFLAGS)
+        env.AppendUnique(CPPPATH = self.CPPPATH)
+        print 'AFTER:',env['LINKFLAGS']
+    
         self.setup_dependents(env)
         
         self.check_environment(env)
@@ -578,9 +580,11 @@ class BoostLibrary(Library):
         #Library.__init__(self, name, version_str, headers, libraries,
         #                 CPPPATH = [include_path], ext_deps = ext_deps)
         linkflags = ' -l' + ' -l'.join(libraries)
+        linkflags = linkflags.split()
         if len(libraries) == 0:
             linkflags = []
             
+        print 'BOOST:',linkflags
         Library.__init__(self, name, version_str, headers, [],
                          CPPPATH = [include_path], LINKFLAGS = linkflags,
                          ext_deps = ext_deps)
