@@ -15,7 +15,8 @@ LINUX_DIRS = set([
     os.path.join('packages', 'vehicle'),
     os.path.join('wrappers', 'vehicle'),
     os.path.join('packages', 'carnetix'),
-    os.path.join('packages', 'imu')])
+    os.path.join('packages', 'imu'),
+    os.path.join('tools', 'MagInclination')])
 
 MAC_DIRS = set([])
 
