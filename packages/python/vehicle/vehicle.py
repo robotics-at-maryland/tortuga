@@ -31,6 +31,7 @@ class Vehicle(_Vehicle, Component):
         self.type = type(self)
         self._depends = []
         self._running = False
+        self._devices = {}
         
         self._config = config
         
@@ -57,8 +58,18 @@ class Vehicle(_Vehicle, Component):
     def shutdown(self):
         self.pause()
         # Put more shutdown stuff here
+
+        # Make sure to get rid of reference loops
+        del self._devices
         
         event.send('MODULE_SHUTDOWN',self)
+
+    def getDevice(self, name):
+        return self._devices[name]
+
+    def _addDevice(self, device):
+        self._devices[device.getName()] = device
+        self._cpp_addDevice(device)
         
     def _create_devices(self):
         device_nodes = self._config.get('Devices', None)
@@ -81,6 +92,10 @@ class Vehicle(_Vehicle, Component):
                 device = device_class(self, config_node)
 
                 self._addDevice(device)
+                # Add the device to the C++ side of things
+#                self._cpp_addDevice(device)
+#                # Store the device for python
+ #               self._devices[name] = device
                 
     
 

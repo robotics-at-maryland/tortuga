@@ -56,8 +56,6 @@ def generate_vehicle(name, global_ns, local_ns):
 
     # Handle IVehicle class
     ivehicle_cls = local_ns.class_('IVehicle')
-    ivehicle_cls.member_function('getDevice').call_policies = \
-        call_policies.return_internal_reference()
     ivehicle_cls.include()
 
     # Make things already exposed

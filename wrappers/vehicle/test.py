@@ -5,18 +5,21 @@ import warnings
 sys.path.insert(0, os.environ['RAM_SVN_DIR'] + '/build/lib')
 
 #print sys.path
-warnings.simplefilter('ignore', RuntimeWarning)
+import vehicle.vehicle as Vehicle
+import vehicle.devices as Device
 from ext.core import ConfigNode
 from ext.pattern import CachedObserver
-import ext.vehicle as Vehicle
-import ext.vehicle_device as Device
-warnings.simplefilter('default', RuntimeWarning)
-#import ext.vehicle.vehicle as Vehicle
+from module import ModuleManager
 
-veh = Vehicle.Vehicle(ConfigNode.fromString(str({})))
-cfg = ConfigNode.fromString(str({'name' : 'Star', 'address' : '01',
-                                       'calibration_factor' : 0.4}))
-star = Device.Thruster.construct(veh, cfg)
+# Create singleton module manager
+ModuleManager()
+
+veh = Vehicle.Vehicle({'name' : 'Vehicle'})
+cfg = {'name' : 'Star',
+       'address' : '01',
+       'calibration_factor' : 0.4}
+star = Device.Thruster.construct(veh, ConfigNode.fromString(str(cfg)))
+
 #star.test = "TestValue"
 veh._addDevice(star)
 
