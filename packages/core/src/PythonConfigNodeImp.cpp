@@ -42,6 +42,7 @@ PythonConfigNodeImp::PythonConfigNodeImp(std::string pythonString)
 
         m_pyobj = obj;
     } catch( py::error_already_set ) {
+        printf("ConfigNode (constructor) Error:\n");
         PyErr_Print();
     }
 }
@@ -54,8 +55,18 @@ ConfigNode PythonConfigNodeImp::construct(py::object pyobj)
 ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
 {
     try {
-        return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[index]));
+        if ((m_pyobj.ptr() != Py_None) &&
+            PyObject_HasAttrString (m_pyobj.ptr(), "__getitem__"))
+        {
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[index]));
+        }
+        else
+        {
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object()));
+        }
     } catch(py::error_already_set err) {
+        //return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[index]));
+        printf("ConfigNode (Index) Error:\n");
         PyErr_Print();
 
         throw err;
@@ -67,17 +78,20 @@ ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
 ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
 {
     try {
-        if (m_pyobj.attr("has_key")(key))
+        if ((m_pyobj.ptr() != Py_None) &&
+            PyObject_HasAttrString (m_pyobj.ptr(), "has_key")
+            && (m_pyobj.attr("has_key")(key)))
         {
             return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key]));
         }
         else
         {
-            py::object newObject;
-            m_pyobj[key] = newObject;
-            return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key]));
+            //py::object newObject;
+            //m_pyobj[key] = newObject;
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object()));
         }    
     } catch(py::error_already_set err) {
+        printf("ConfigNode (map) Error:\n");
         PyErr_Print();
 
         throw err;
@@ -91,6 +105,7 @@ std::string PythonConfigNodeImp::asString()
     try {
         return std::string(py::extract<char*>(py::str(m_pyobj)));
     } catch(py::error_already_set err) {
+        printf("ConfigNode (asString) Error:\n");
         PyErr_Print();
 
         throw err;
@@ -102,7 +117,11 @@ std::string PythonConfigNodeImp::asString()
 std::string PythonConfigNodeImp::asString(const std::string& def)
 {
     try {
-        return std::string(py::extract<char*>(py::str(m_pyobj)));
+        if (m_pyobj.ptr() == Py_None)
+            return def;
+        else
+            return std::string(py::extract<char*>(py::str(m_pyobj)));
+        
     } catch(py::error_already_set err) {
         return def;
     }
@@ -115,6 +134,7 @@ double PythonConfigNodeImp::asDouble()
     try {
         return py::extract<double>(m_pyobj);
     } catch(py::error_already_set err ) {
+        printf("ConfigNode (asDouble) Error:\n");
         PyErr_Print();
 
         throw err;
@@ -126,7 +146,10 @@ double PythonConfigNodeImp::asDouble()
 double PythonConfigNodeImp::asDouble(const double def)
 {
     try {
-        return py::extract<double>(m_pyobj);
+        if (m_pyobj.ptr() == Py_None)
+            return def;
+        else
+            return py::extract<double>(m_pyobj);
     } catch(py::error_already_set err ) {
         return def;
     }
@@ -139,6 +162,7 @@ int PythonConfigNodeImp::asInt()
     try {
         return py::extract<int>(m_pyobj);
     } catch(py::error_already_set err ) {
+        printf("ConfigNode (asInt) Error:\n");
         PyErr_Print();
 
         throw err;
@@ -150,7 +174,10 @@ int PythonConfigNodeImp::asInt()
 int PythonConfigNodeImp::asInt(const int def)
 {
     try {
-        return py::extract<int>(m_pyobj);
+        if (m_pyobj.ptr() == Py_None)
+            return def;
+        else
+            return py::extract<int>(m_pyobj);
     } catch(py::error_already_set err ) {
         return def;
     }
