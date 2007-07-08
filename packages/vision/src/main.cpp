@@ -88,36 +88,32 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 	int i, j;
 	// 8 bit image:
 	IplImage* image8 = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-	
-	for(i = 0; i < image8->width; i++)
-		for(j = 0; j < image8->height; j++)
-			CV_IMAGE_ELEM(image8, uchar, j, i) = CV_IMAGE_ELEM(image, float, j, i);
-	IplImage* temp = cvCreateImage(cvGetSize(image),IPL_DEPTH_8U, 1);
+	cvCvtColor(image,image8,CV_BGR2GRAY);
 	
 	int cornerCount;
 
-	cout<<"Guessing chessboard corners"<<endl;
+    cout<<"Guessing chessboard corners"<<endl;
     int okay = cvFindChessboardCorners(image8, cvSize(6,6), array, &cornerCount);
-    cvDrawChessboardCorners(image8,cvSize(6,6),array,cornerCount,okay);
+ 
     cvShowImage("Damn.",image8);
     cout<<"Was it okay?:"<<okay<<endl;
-	cout<<"Finished guessing chessboard corners"<<endl;
-
-	if (okay)
-    {
-        CvTermCriteria termcrit;
-        termcrit.type=CV_TERMCRIT_ITER;
-        termcrit.max_iter=5;
+    cout<<"Finished guessing chessboard corners"<<endl;
+    if (okay)
+      {
         cout<<"calling subPix"<<endl;
         cvFindCornerSubPix(image8, array, cornerCount, 
-                           cvSize(5,5), cvSize(-1,-1), termcrit); 
-        cout<<"Finished subPix"<<endl;
-
+                           cvSize(6,6), cvSize(-1,-1), cvTermCriteria(CV_TERMCRIT_ITER, 100, 0.1));  
+       cout<<"Finished subPix"<<endl;
+	
         cvReleaseImage(&image8);
-    }
+      }
     else
-        return -1;
-	return cornerCount;
+      {
+	cornerCount=-1;
+      }
+    //    cvDrawChessboardCorners( image, cvSize(6,6),
+    //                             array, cornerCount, okay);
+    return cornerCount;
 }
 
 

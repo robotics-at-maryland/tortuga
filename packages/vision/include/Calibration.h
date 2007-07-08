@@ -48,6 +48,7 @@ namespace vision{
 			float cameraMatrix[9];
 			float transVects[3];
 			float rotMat[9];
+			IplImage* dest;
 	};
 }
 }

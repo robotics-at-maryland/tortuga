@@ -8,7 +8,8 @@ Calibration::Calibration(OpenCVCamera* camera)
 	cam=camera;
 	calibrated=false;
 	frame = new ram::vision::OpenCVImage(640,480);
-	cvNamedWindow("Calibration");
+	cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
+	dest=cvCreateImage(cvSize(480,640),8,3);
 }
 
 Calibration::~Calibration()
@@ -18,7 +19,7 @@ Calibration::~Calibration()
 
 void Calibration::calculateCalibrations()
 {
-	const int NUMIMAGES=10;
+	const int NUMIMAGES=20;
 
 	if (calibrated)
 		cout<<"Warning: This calibration is already set up.  Are you recalibrating before undistorting each image?"<<endl;
@@ -30,28 +31,44 @@ void Calibration::calculateCalibrations()
 	
 	while (goodImages<NUMIMAGES)
 	{
+		cvWaitKey(25);
 		cam->getImage(frame);
 		IplImage* image =(IplImage*)(*frame);
-		cvShowImage("Calibration",image);
+     		rotate90Deg(image,dest);
 		int cornerCount=findCorners(image,&array[arrayIndex]);
+		cvShowImage("Calibration",image);
 
-		if (cornerCount>=25)
+		if (cornerCount==36)
 		{
-			cornerCountsArray[goodImages]=cornerCount;
-			arrayIndex+=cornerCount;
+			cornerCountsArray[goodImages]=36;
+			arrayIndex+=36;
 			goodImages++;
 			cout<<goodImages<<endl;
 		}
+		else
+		  {
+		    if (cornerCount!=-1)
+		      cout<<"Total failure, corner count set incorrectly"<<endl;
+		  }
 	}
 	
 	//Multiply all these by number of images
 	CvPoint3D32f buffer[36*NUMIMAGES];
-	for (int x=0; x<arrayIndex;x++)
-	{
-		buffer[x].x=array[x].x;
-		buffer[x].y=array[x].y;
-		buffer[x].z=0;
-	}
+        for( int i = 0 ; i < NUMIMAGES ; ++i ) { 
+	  for( int j = 0 ; j < 6 ; ++j ) { 
+	    for( int k = 0 ; k < 6 ; ++k ) { 
+	      buffer[ ( ( i * 6 + j ) * 6 + k ) ] = 
+		cvPoint3D32f( j * 25.4, k * 25.4, 0 ); 
+	    } 
+	  } 
+        } 
+
+	//	for (int x=0; x<arrayIndex;x++)
+	//{
+	//	buffer[x].x=array[x].x;
+	//	buffer[x].y=array[x].y;
+	//	buffer[x].z=0;
+	//}
 	calibrateCamera(640, 480, cornerCountsArray, distortion,cameraMatrix,transVects,rotMat,NUMIMAGES,array,buffer);
 	calibrated=true;
 	cout<<"Calibration Complete"<<endl;
@@ -134,18 +151,18 @@ void Calibration::setCalibrationGarbage()
     // Quadratic dependence, k1.  A point in the original image a distance r 
     // from the center maps k1*r^2 away from the center in the final image.
     // Units unknown.
-    distortion[0]=-100000.0;
+    distortion[0]=-.4;
     
     // Quartic dependence, k2.  A point in the original image a distance r 
     // from the center maps k2*r^4 away from the center in the final image.
     // Units unknown.
-    distortion[1]=0;
+    distortion[1]=-.01;
     
     // Presumably, these two parameters translate the origin of the distortion.
     // That would make these the p1 and p2 from OpenCV's documentation.
     // Possibly in pixels.
-    distortion[2]=0;
-    distortion[3]=0;
+    distortion[2]=.63;
+    distortion[3]=.024;
     
     
     // CAMERA PARAMETERS
@@ -153,15 +170,15 @@ void Calibration::setCalibrationGarbage()
     // to be slightly elliptical, and offset on the image.
     
     // Focal length, x-axis, units unknown
-    cameraMatrix[0]=100000.0;
+    cameraMatrix[0]=169;
     cameraMatrix[1]=0;
     // x-translation of camera's focus, relative to left of image, in pixels
-    cameraMatrix[2]=320;
+    cameraMatrix[2]=342;
     cameraMatrix[3]=0;
     // Focal length, y-axis, units unknown
-    cameraMatrix[4]=100000.0;
+    cameraMatrix[4]=90;
     // y-translation of camera's focus, relative to top of image, in pixels
-    cameraMatrix[5]=240;
+    cameraMatrix[5]=-158;
     cameraMatrix[6]=0;
     cameraMatrix[7]=0;
     cameraMatrix[8]=1;

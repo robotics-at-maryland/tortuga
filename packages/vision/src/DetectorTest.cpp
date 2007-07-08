@@ -32,36 +32,36 @@ int main(int argc, char** argv)
 		}
 	}
 	OpenCVImage* frame = new OpenCVImage(640,480);
-	IplImage* dest=cvCreateImage(cvSize(480,640),8,3);
-
 	camera->background(); //Silliness
-
 	cal=new Calibration(camera);
+	cvWaitKey(0);
+
 	//cal->setCalibrationGarbage();
-    cal->printCalibrations();
-    OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
-	GateDetector* gDetect=new GateDetector(camera);
-	BinDetector* bDetect=new BinDetector(camera);
-	RedLightDetector* rlDetect=new RedLightDetector(camera);
+	cal->printCalibrations();
+	//	OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
+	//	GateDetector* gDetect=new GateDetector(camera);
+	//	BinDetector* bDetect=new BinDetector(camera);
+	//      RedLightDetector* rlDetect=new RedLightDetector(camera);
 	char key=' ';
-	cvNamedWindow("Detector Test");
+	cvNamedWindow("Detector Test", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("Undistorted");
-    IplImage* undistorted=cvCreateImage(cvSize(640,480),8,3);
-    IplImage* differenceImage=cvCreateImage(cvSize(640,480),8,3);
+	IplImage* rotated=cvCreateImage(cvSize(480,640),8,3);
+	IplImage* undistorted=cvCreateImage(cvSize(640,480),8,3);
+	IplImage* differenceImage=cvCreateImage(cvSize(640,480),8,3);
 	while (key!='q')
 	{
 		camera->getImage(frame);
 		IplImage* image =(IplImage*)(*frame);
 		cvShowImage("Detector Test", image);
-		
+
+		//rotate90Deg(image,rotated);
 		//Distortion Correction
 		cout<<"Attempting to undistort"<<endl;
 		cal->calibrateImage(image, undistorted);
 		cout<<"Finished correcting distortion"<<endl;
-		cvShowImage("Detector Test",image);
-		cvShowImage("Undistorted",undistorted);
-		
-		key=cvWaitKey(5);
+		if (undistorted->width==640 && undistorted->height==480)
+		  cvShowImage("Undistorted",undistorted);
+		key=cvWaitKey(0);
 		//Orange pipeline
 //		if (SHOW_OUTPUT)
 //			cout<<"Running Orange Pipeline Detection..."<<endl;

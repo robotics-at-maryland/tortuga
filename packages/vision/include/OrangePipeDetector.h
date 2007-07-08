@@ -53,3 +53,4 @@ namespace ram { namespace vision {
 }}//ram::vision
 
 #endif // RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
+

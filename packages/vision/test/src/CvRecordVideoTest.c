@@ -6,6 +6,7 @@
 int main() {
 
   CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+  //capture = cvCaptureFromCAM(CV_CAP_ANY+1);
   if( !capture ) {
     fprintf( stderr, "ERROR: capture is NULL \n" );
     getchar();
@@ -48,7 +49,7 @@ CvVideoWriter *writer = 0;
       break;
     }
     
-//    cvShowImage( "Raw Camera Image", frame );
+    //cvShowImage( "Raw Camera Image", frame );
 
     cvWriteFrame(writer,frame);
 
