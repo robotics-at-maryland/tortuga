@@ -99,13 +99,9 @@ void IMU::update(double timestep)
         {
             {
                 // Thread safe copy of good imu data
-                core::ReadWriteMutex::ScopedWriteLock lock(m_rawStateMutex);
+                core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
                 *m_rawState = newState;
             }
-
-            // Nofity observers
-            setChanged();
-            notifyObservers(0, DataUpdate);
 
             // Rotate into vehicle frame and filter data
             rotateAndFilterData(&newState);
@@ -132,6 +128,10 @@ void IMU::update(double timestep)
                 quaternionFromIMU(magnetometer, linearAcceleration,
                                   (double*)&m_orientation);
             }
+
+            // Nofity observers
+            setChanged();
+            notifyObservers(0, DataUpdate);
         }
     }
     // We didn't connect, try to reconnect
@@ -143,14 +143,14 @@ void IMU::update(double timestep)
     
 math::Vector3 IMU::getLinearAcceleration()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_rawStateMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return math::Vector3(m_rawState->accelX, m_rawState->accelY,
                          m_rawState->accelZ);
 }
 
 math::Vector3 IMU::getAngularRate()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_rawStateMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return math::Vector3(m_rawState->gyroX, m_rawState->gyroY,
                          m_rawState->gyroZ);
 }
@@ -163,8 +163,14 @@ math::Quaternion IMU::getOrientation()
     
 void IMU::getRawState(RawIMUData& imuState)
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_rawStateMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     imuState = *m_rawState;
+}
+
+void IMU::getFilteredState(FilteredIMUData& filteredState)
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    filteredState= *m_filteredState;
 }
 
 void IMU::rotateAndFilterData(RawIMUData* newState)
@@ -214,17 +220,20 @@ void IMU::rotateAndFilterData(RawIMUData* newState)
     m_filteredGyroZ.addValue(rotatedGyro[2]);
 
     // Place filterd state into accel structure
-    m_filteredState->accelX = m_filteredAccelX.getValue();
-    m_filteredState->accelY = m_filteredAccelY.getValue();
-    m_filteredState->accelZ = m_filteredAccelZ.getValue();
-            
-    m_filteredState->magX = m_filteredMagX.getValue();
-    m_filteredState->magY = m_filteredMagY.getValue();
-    m_filteredState->magZ = m_filteredMagZ.getValue();
-            
-    m_filteredState->gyroX= m_filteredGyroX.getValue();
-    m_filteredState->gyroX= m_filteredGyroY.getValue();
-    m_filteredState->gyroX = m_filteredGyroZ.getValue();
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_filteredState->accelX = m_filteredAccelX.getValue();
+        m_filteredState->accelY = m_filteredAccelY.getValue();
+        m_filteredState->accelZ = m_filteredAccelZ.getValue();
+        
+        m_filteredState->magX = m_filteredMagX.getValue();
+        m_filteredState->magY = m_filteredMagY.getValue();
+        m_filteredState->magZ = m_filteredMagZ.getValue();
+        
+        m_filteredState->gyroX= m_filteredGyroX.getValue();
+        m_filteredState->gyroX= m_filteredGyroY.getValue();
+        m_filteredState->gyroX = m_filteredGyroZ.getValue();
+    }
 }
 
 void IMU::quaternionFromIMU(double mag[3], double accel[3], double *quaternion)

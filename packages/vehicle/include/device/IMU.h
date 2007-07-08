@@ -82,6 +82,8 @@ public:
     
     /** Grabs the raw IMU state */
     void getRawState(RawIMUData& imuState);
+    /** Grab filtered state */
+    void getFilteredState(FilteredIMUData& filteredState);
     
 private:
     void rotateAndFilterData(RawIMUData* newState);
@@ -104,7 +106,7 @@ private:
     math::Quaternion m_orientation;
     
     /** Protects access to raw state */
-    core::ReadWriteMutex m_rawStateMutex;
+    core::ReadWriteMutex m_stateMutex;
     /** The raw data read back from the IMU */
     RawIMUData* m_rawState;
 
