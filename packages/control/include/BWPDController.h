@@ -43,6 +43,9 @@ public:
     /** Sets the current heading in degrees off north */
     virtual void setHeading(double degrees);
 
+    /** Changes the desired quaternion by a desired angle in degrees (ugh!)*/
+    virtual void yawDesiredQuaternion(double degrees);
+
     /** Sets the current depth of the sub in meters */
     virtual void setDepth(double depth);
 
