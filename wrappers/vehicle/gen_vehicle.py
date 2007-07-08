@@ -50,10 +50,14 @@ def generate_vehicle(name, global_ns, local_ns):
     vehicle_cls.include()
     vehicle_cls.member_function('getState').exclude()
     vehicle_cls.member_function('setState').exclude()
+    vehicle_cls.member_function('getDevice').alias = '_cpp_getDevice'
+    vehicle_cls.member_function('_addDevice').alias = '_cpp_addDevice'
     local_ns.typedef('NameDeviceMap').exclude()
 
     # Handle IVehicle class
     ivehicle_cls = local_ns.class_('IVehicle')
+    ivehicle_cls.member_function('getDevice').call_policies = \
+        call_policies.return_internal_reference()
     ivehicle_cls.include()
 
     # Make things already exposed
@@ -61,7 +65,7 @@ def generate_vehicle(name, global_ns, local_ns):
     IDevicePtr.include()
     IDevicePtr.already_exposed = True
 
-def expose_device(local_ns, name, remove = True):
+def expose_device(local_ns, name, remove = True, cast = True):
     print 'NAME:',name
     device = local_ns.class_(name)
     device.include()
@@ -69,7 +73,11 @@ def expose_device(local_ns, name, remove = True):
     if remove:
         device.member_function('getVehicle').call_policies = \
             call_policies.return_internal_reference()
-        
+
+#    if cast:
+#        device.member_function('castTo').call_policies = \
+#            call_policies.return_internal_reference()
+    
     device.disable_warnings(messages.W1023)
         
     local_ns.typedef(name + 'Ptr').include()
@@ -85,7 +93,7 @@ def generate_vehicle_device(name, global_ns, local_ns):
     """
 
     # Wrap IDevice Class
-    expose_device(local_ns, 'IDevice');
+    expose_device(local_ns, 'IDevice', cast = False);
 
     # Wrap the thruster class
     expose_device(local_ns, 'Thruster', False);
