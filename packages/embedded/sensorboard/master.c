@@ -92,7 +92,7 @@ _FWDT ( WDT_OFF );
 
 #define BUS_CMD_SONAR		27
 
-#define NUM_SLAVES  3
+#define NUM_SLAVES  4
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
@@ -164,6 +164,9 @@ void setReq(byte req, byte val)
 
     if(req == 2)
         _LATB2 = val;
+
+    if(req == 3)
+        _LATB3 = val;
 }
 
 
@@ -421,7 +424,7 @@ void showIdent()
 
     while(!(pollStatus() & 0x80));
 
-    for(i=0; i<3; i++)
+    for(i=0; i<NUM_SLAVES; i++)
     {
         sprintf(tmp, "Ident IRQ %d:    ", i);
         showString(tmp, 0);
@@ -503,9 +506,8 @@ int main(void)
 
     initBus();
 
-    setReq(0, 0);
-    setReq(1, 0);
-    setReq(2, 0);
+    for(i=0; i<NUM_SLAVES; i++)
+        setReq(i, 0);
     initUart();
 
     ADPCFG = 0xFFFF;

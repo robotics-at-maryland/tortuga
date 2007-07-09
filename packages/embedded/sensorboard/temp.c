@@ -307,7 +307,7 @@ void processData(byte data)
                 case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = PORTB & 0x7F;
+                    txBuf[1] = (PORTB & 0x7F) ^ 0x01;
 
                     if(_RD3)
                         txBuf[1] |= 0x80;
@@ -579,7 +579,7 @@ void _ISR _CNInterrupt(void)
 {
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
 
-    if(WATER_CN_BIT == 1 && _RB0 == 1)  /* WATER!!! */
+    if(WATER_CN_BIT == 1 && _RB0 == 0)  /* WATER!!! */
     {
         _LATC15 = 0;      /* Hard Kill */
     }
@@ -615,6 +615,8 @@ void main()
     _TRISD3 = TRIS_IN;  /* Start switch for real */
 
     /* CN4-CN7 internal pull-ups */
+//    CNPU1bits.CN2PUE = 1;
+
     CNPU1bits.CN4PUE = 1;
     CNPU1bits.CN5PUE = 1;
     CNPU1bits.CN6PUE = 1;
