@@ -184,7 +184,7 @@ void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
         std::string cmd(ss.str());
         int ret = write(m_serialFD, cmd.c_str(), cmd.length());
 	if (ret < 0)
-	  std::cout << "Write failure" << std::endl;
+            std::cout << "Write failure" << std::endl;
 
         usleep(100 * 1000);
 /*	if(!hasData(m_serialFD, MOTOR_CMD_TIMEOUT))

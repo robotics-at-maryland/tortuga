@@ -32,7 +32,13 @@ public:
     virtual device::IDevicePtr getDevice(std::string name);
 
     virtual double getDepth();
-        
+
+    /** Truns <b>ON</b> the thruster safety */
+    virtual void safeThruster();
+
+    /** Turns <b>OFF</b> the thruster safety */
+    virtual void unsafeThrusters();
+    
     /** This is <b>NOT</b> thread safe */
     virtual void _addDevice(device::IDevicePtr device);
 
@@ -61,6 +67,7 @@ protected:
     
 private:
     core::ConfigNode m_config;
+    int m_sensorFD;
     
     core::ReadWriteMutex m_state_mutex;
     VehicleState m_state;
