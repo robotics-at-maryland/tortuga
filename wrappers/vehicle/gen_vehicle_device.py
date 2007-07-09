@@ -28,10 +28,11 @@ def expose_device(local_ns, name, remove = True, cast = True):
     
     device.disable_warnings(messages.W1023)
 
+    #wrap.add_needed_includes(device)
     device.include_files.append( "vehicle/include/Vehicle.h" )
         
     local_ns.typedef(name + 'Ptr').include()
-
+  
     return device
 
 

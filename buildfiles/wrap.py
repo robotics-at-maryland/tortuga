@@ -14,6 +14,7 @@ import distutils.sysconfig
 import SCons
 from pyplusplus import module_builder
 from pygccxml import parser
+from pygccxml import declarations as decls_package
 
 # Build System Imports
 import libs
@@ -42,6 +43,23 @@ def make_already_exposed(global_ns, namespace_name, classes,
         class_dec = ns.decl(name = 'Vehicle' ,
                             decl_type = declarations.class_declaration_t)
         class_dec.already_exposed = True
+
+def add_needed_includes(decl):
+    includes = set()
+
+    try:
+        for cls in decl.decls(decl_type=decls_package.class_t, recurisve = True):
+            filename = cls.location.file_name
+            print 'INCLUDE',filename
+            if filename.startswith(os.environ['RAM_SVN_DIR']):
+                includes.add(filename)
+
+        # Add needed includes
+        print 'Adding includes',includes
+        cls.include_files.extend(includes)
+        
+    except RuntimeError:
+        pass
 
 def generate_code(module_name, files, output_dir, include_files,
                   extra_includes, module_map, insert_map = {}):
