@@ -405,6 +405,25 @@ void rotationMatrixFromQuaternion(double q[4], double * pRot){
 }
 
 /*
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et (radians!)
+
+*/
+void quaternionFromEulerAxis(double e[3], double et, double * pQ){
+  *(pQ) = e[0]*sin(et/2);
+  *(pQ+1) = e[1]*sin(et/2);
+  *(pQ+2) = e[2]*sin(et/2);
+  *(pQ+3) = cos(et/2);
+}
+
+
+/*
 * inverts a 3x3 matrix
 *
 */
