@@ -126,8 +126,11 @@ class module_builder_t(object):
         if indexing_suite_version != 1:
             for cls in global_ns.classes():
                 cls.indexing_suite_version = indexing_suite_version
-            for cls in global_ns.decls(decl_type=decls_package.class_declaration_t):
-                cls.indexing_suite_version = indexing_suite_version
+            try:                                                                
+                for cls in global_ns.decls(decl_type=decls_package.class_declaration_t):                                                                       
+                    cls.indexing_suite_version = indexing_suite_version         
+            except RuntimeError:                                                
+                pass
 
         start_time = time.clock()
         self.__apply_decls_defaults(decls)
