@@ -151,7 +151,7 @@ int openIMU(const char* devName)
     if(fd == -1)
         return -1;
 
-    printf("FD=%d\n", fd);
+//    printf("FD=%d\n", fd);
     struct termios newtio;
     if (tcgetattr(fd, &newtio)!=0)
         printf("\nFirst stuff failed\n");
