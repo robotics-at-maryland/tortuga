@@ -51,7 +51,7 @@ Modules:
                 direction: 1
 
     Controller:
-        type: ext.control.BWPDController
+        type: control.bwpdcontrol.BWPDController
 
         
         
