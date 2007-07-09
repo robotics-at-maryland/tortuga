@@ -30,6 +30,9 @@ public:
         
         ++start;
         ++size;
+		//This check is required, as otherwise size will spin around become negative, and we'll start spewing garbage values
+		if (size>maxSize)
+			size=maxSize;
         if (start==maxSize)
             start=0;
     }
@@ -44,8 +47,8 @@ public:
     }
     
 private:
-    int size;
-    int maxSize;
+	int size; 
+	int maxSize;
     int start;
     T total;
     T array[SIZE];
