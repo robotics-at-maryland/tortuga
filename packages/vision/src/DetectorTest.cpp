@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 	camera->background(); //Silliness
 
 	cal=new Calibration(camera);
-	//cal->setCalibrationGarbage();
+	cal->setCalibration(true);
     //cal->printCalibrations();
     OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
 	GateDetector* gDetect=new GateDetector(camera);

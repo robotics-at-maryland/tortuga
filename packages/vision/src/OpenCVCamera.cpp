@@ -16,12 +16,17 @@
 // Project incldues
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/OpenCVImage.h"
-
+#include "vision/include/Calibration.h"
 namespace ram {
 namespace vision {
 
 OpenCVCamera::OpenCVCamera(int camNum)
 {
+	const bool FORWARD=true;
+	const bool DOWNWARD=false;
+	//What does camnum say about which camera this is??
+	m_calibration=new Calibration(this);
+	m_calibration->setCalibration(FORWARD);
     m_camCapture = cvCaptureFromCAM(camNum);
 
     /// TODO: Handle the more gracefully
@@ -39,6 +44,15 @@ OpenCVCamera::~OpenCVCamera()
     // Have to stop background capture before we release the capture!
     cleanup();
     cvReleaseCapture(&m_camCapture);
+}
+
+void OpenCVCamera::getCalibratedImage(Image* undistorted)
+{
+	assert(undistorted && "Can't calibrate into a null image");
+	core::ReadWriteMutex::ScopedReadLock lock(m_imageMutex);
+	
+	// Copy over the image (uses copy assignment operator)
+    m_calibration->calibrateImage(((IplImage*)(m_publicImage)),((IplImage*)undistorted));
 }
 
 void OpenCVCamera::update(double timestep)

@@ -30,12 +30,21 @@ public:
 
     /** This grabs the new image, and then stores it for Camera::getImage */
     virtual void update(double timestep);
+	
+	/** Retrieves the latest image from camera and undistorts it into undistorted
+	*	@undistorted the image to be undistorted
+	*/
+	void getCalibratedImage(Image* undistorted);
+
 
     virtual size_t width();
     
     virtual size_t height();
 
 private:
+	/*A Calibration with parameters that can be set for this camera*/
+	Calibration* m_calibration;
+
     CvCapture* m_camCapture;
 };
 

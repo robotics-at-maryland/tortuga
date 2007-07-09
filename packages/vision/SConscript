@@ -20,13 +20,14 @@ sources = ['src/BasicImage.cpp',
            'src/OpenCVImage.cpp',
            'src/VisionCommunication.cpp',
            'src/ProcessList.cpp',
+           'src/GateDetector.cpp',
+           'src/BinDetector.cpp',
+           'src/RedLightDetector.cpp',
+           'src/OrangePipeDetector.cpp',
+           'src/Calibration.cpp',
            'src/main.cpp']
 
-detectorSources = ['src/GateDetector.cpp',
-		   'src/BinDetector.cpp',
-		   'src/RedLightDetector.cpp',
-		   'src/OrangePipeDetector.cpp',
-		   'src/Calibration.cpp',
+detectorSources = [
 		   'src/DetectorTest.cpp']
 	
 # Build Library (will be called 'libram_vision.so')

@@ -1,5 +1,4 @@
 #include "vision/include/Calibration.h"
-
 using namespace std;
 using namespace ram::vision; 
 
@@ -151,8 +150,9 @@ void Calibration::setCalibrationManual(float* distortion2, float* cameraMatrix2,
 	calibrated=true;
 }
 
-void Calibration::setCalibrationGarbage()
+void Calibration::setCalibration(bool forward)
 {
+	//Note that we are currently ignoring the boolean, the distortion parameters are set for the forward facing camera at the moment.
     /*
      I hate OpenCV.  These fucking parameters aren't fucking documented, and don't
      fucking correspond to any physical model in any textbook or web site that I 

@@ -81,17 +81,19 @@ protected:
      *                  safe manner. The public image is access by getImage.
      */
     virtual void capturedImage(Image* newImage);
-    
-private:
+
     /** Protects access to the public image */
     core::ReadWriteMutex m_imageMutex;
+
+    /** Image returned from get image*/
+    Image* m_publicImage;
+    
+private:
 
     /** Latch to release threads waiting on a new image */
     core::CountDownLatch m_imageLatch;
     
-    /** Image returned from get image*/
-    Image* m_publicImage;
-
+	
     /** Recoreds whether or not the cleanup */
     bool m_cleanedUp;
 };

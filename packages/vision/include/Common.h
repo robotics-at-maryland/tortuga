@@ -18,6 +18,7 @@ class Camera;
 class Image;
 class OpenCVImage;
 class OpenCVCamera;
+class Calibration;
 
 } // namespace vision
 } // namespace ram
