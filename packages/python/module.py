@@ -208,7 +208,7 @@ class ModuleManager(Singleton):
 
         self._registry[mod.name] = mod
         self._mod_type_reg.setdefault(type(mod),[]).append(mod)
-        #mod.start()
+        mod.start()
         
     def unregister(self, mod):
         """
