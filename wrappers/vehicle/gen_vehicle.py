@@ -6,7 +6,9 @@
 import wrap
 from wrap import make_already_exposed
 
+
 from pygccxml import declarations
+from pygccxml import declarations as decls_package
 from pyplusplus import decl_wrappers
 from pyplusplus import messages
 from pyplusplus import module_builder
@@ -19,9 +21,10 @@ def generate_vehicle(name, global_ns, local_ns):
     local_ns: is the namespace that coresponds to the given namespace
     """
 
-#    for cls in local_ns.decls(decl_type=decls_package.class_declaration_t):
-#        cls.include()
-#        cls.already_exposed = True
+    # Remove all those pesky warnings about only pointed to types!
+    for cls in local_ns.decls(decl_type=decls_package.class_declaration_t):
+        cls.include()
+        cls.already_exposed = True
 
     make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])
 

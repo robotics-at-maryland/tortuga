@@ -7,6 +7,7 @@ import wrap
 from wrap import make_already_exposed
 
 from pygccxml import declarations
+from pygccxml import declarations as decls_package
 from pyplusplus import decl_wrappers
 from pyplusplus import messages
 from pyplusplus import module_builder
@@ -40,6 +41,11 @@ def generate_vehicle_device(name, global_ns, local_ns):
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
+    
+    # Remove all those pesky warnings about only pointed to types!
+    for cls in local_ns.decls(decl_type=decls_package.class_declaration_t):
+        cls.include()
+        cls.already_exposed = True
 
     # Wrap IDevice Class
     expose_device(local_ns, 'IDevice', cast = False);
