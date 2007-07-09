@@ -6,11 +6,11 @@ int main(int argc, char ** argv)
 {
     printf("\nHello World\n");
 
-    int fd = openSensorBoard("/dev/ttyUSB0");
+    int fd = openSensorBoard("/dev/sensor");
     printf("\nSyncBoard says: %d", syncBoard(fd));
     //printf("\nThruster safety 0: %d", thrusterSafety(fd, CMD_THRUSTER1_OFF));
 
-    printf("\nHard Kill says: %d", hardKill(fd));
+//    printf("\nHard Kill says: %d", hardKill(fd));
 /*
     unsigned char buf[3];
     buf[0]=0x06;
@@ -28,12 +28,12 @@ int main(int argc, char ** argv)
     printf("\nDrop Marker 1: %d", dropMarker(fd, 1));
 
     printf("\nLCD Backlight Off: %d", lcdBacklight(fd, 1));
-
-    printf("\nThruster safety 0: %d", thrusterSafety(fd, 0));
-    printf("\nThruster safety 1: %d", thrusterSafety(fd, 1));
-    printf("\nThruster safety 2: %d", thrusterSafety(fd, 2));
-    printf("\nThruster safety 3: %d", thrusterSafety(fd, 3));
-
+*/
+    printf("\nThruster safety 0: %d", thrusterSafety(fd, 4));
+    printf("\nThruster safety 1: %d", thrusterSafety(fd, 5));
+    printf("\nThruster safety 2: %d", thrusterSafety(fd, 6));
+    printf("\nThruster safety 3: %d", thrusterSafety(fd, 7));
+/*
     unsigned char tempData[6];
 
     printf("\nTemperature: %d", readTemp(fd, tempData));

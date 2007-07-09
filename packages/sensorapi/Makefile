@@ -16,4 +16,5 @@ sensortest: sensorapi.o sensortest.o
 	gcc sensorapi.o sensortest.o -o sensortest
 
 lcdshow: lcdshow.o sensorapi.o include/sensorapi.h
-	gcc lcdshow.o sensorapi.o -o sensortest
+	gcc lcdshow.o sensorapi.o -o lcdshow
+	
