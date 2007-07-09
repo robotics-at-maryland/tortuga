@@ -7,7 +7,7 @@ BinDetector::BinDetector(OpenCVCamera* camera)
 {
 	cam = camera;
 	frame = new ram::vision::OpenCVImage(640, 480);
-	binFrame =cvCreateImage(cvSize(cam->width(),cam->height()),8,3);
+	binFrame =cvCreateImage(cvSize(640,480),8,3);
 
 	found=0;
 	binX=-1;

@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 
 	cal=new Calibration(camera);
 	//cal->setCalibrationGarbage();
-    cal->printCalibrations();
+    //cal->printCalibrations();
     OrangePipeDetector* opDetect=new OrangePipeDetector(camera);
 	GateDetector* gDetect=new GateDetector(camera);
 	BinDetector* bDetect=new BinDetector(camera);
@@ -56,11 +56,11 @@ int main(int argc, char** argv)
 		cvShowImage("Detector Test", image);
 		
 		//Distortion Correction
-		cout<<"Attempting to undistort"<<endl;
-		cal->calibrateImage(image, undistorted);
-		cout<<"Finished correcting distortion"<<endl;
-		cvShowImage("Detector Test",image);
-		cvShowImage("Undistorted",undistorted);
+//		cout<<"Attempting to undistort"<<endl;
+//		cal->calibrateImage(image, undistorted);
+//		cout<<"Finished correcting distortion"<<endl;
+//		cvShowImage("Detector Test",image);
+//		cvShowImage("Undistorted",undistorted);
 		
 		key=cvWaitKey(5);
 		//Orange pipeline
@@ -112,25 +112,25 @@ int main(int argc, char** argv)
 //		}
 //		
 //		//Bin Detection
-//		if (SHOW_OUTPUT)
-//			cout<<"Running Bin Detection..."<<endl;
-//		bDetect->update();
-//		if (bDetect->found)
-//		{
-//			if (SHOW_OUTPUT)
-//			{
-//				cout<<"Bin Found!"<<endl;
-//				cout<<"Useful Data:"<<endl;
-//				cout<<"Center(X,Y):"<<"("<<bDetect->getX()<<","<<bDetect->getY()<<")"<<endl<<endl;
-//			}
-//		}
-//		else
-//		{
-//			if (SHOW_OUTPUT)
-//			{
-//				cout<<"No Bin Found."<<endl;
-//			}
-//		}
+		if (SHOW_OUTPUT)
+			cout<<"Running Bin Detection..."<<endl;
+		bDetect->update();
+		if (bDetect->found)
+		{
+			if (SHOW_OUTPUT)
+			{
+				cout<<"Bin Found!"<<endl;
+				cout<<"Useful Data:"<<endl;
+				cout<<"Center(X,Y):"<<"("<<bDetect->getX()<<","<<bDetect->getY()<<")"<<endl<<endl;
+			}
+		}
+		else
+		{
+			if (SHOW_OUTPUT)
+			{
+				cout<<"No Bin Found."<<endl;
+			}
+		}
 //		
 //		//Red Light Detection
 //		if (SHOW_OUTPUT)
