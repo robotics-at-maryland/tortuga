@@ -36,6 +36,7 @@ are necessary for robot operation, and then starts the state machine.
 # Python Imports
 import os
 import sys
+import time
     
 # Library Imports
 import yaml
@@ -45,6 +46,9 @@ import ociapp
 
 def main():            
     app = ociapp.OCIApp('config.yml')
+    app._modules[1].background(20)
+    while(1):
+        pass
 
 if __name__ == '__main__':
     try:

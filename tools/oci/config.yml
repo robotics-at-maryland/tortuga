@@ -50,6 +50,10 @@ Modules:
                 calibration_factor: 0.3612
                 direction: 1
 
+            IMU:
+                type: ext.vehicle_device.IMU
+                update_interval: 19     
+
     Controller:
         type: control.bwpdcontrol.BWPDController
         update_interval: 20
