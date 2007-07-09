@@ -44,6 +44,9 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     memset(m_measuredState, 0, sizeof(MeasuredState));
     memset(m_controllerState, 0, sizeof(ControllerState));
 
+    // Set desired state
+    m_desiredState->quaternion[3] = 1;
+
     // Set controller state from config file (defaults hard coded)
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
