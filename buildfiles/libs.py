@@ -108,7 +108,8 @@ def _get_internal_lib(name):
 
             'vehicle' : InternalLibrary('vehicle',
                                         int_deps = ['core', 'imu', 'pattern',
-                                                    'carnetix', 'math'],
+                                                    'carnetix', 'math',
+                                                    'sensor'],
                                         ext_deps = [])
             }
 

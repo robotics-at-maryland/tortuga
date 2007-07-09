@@ -21,8 +21,9 @@ helpers.SharedLibrary(envl, 'sensor',  source = ['src/sensorapi.c'])
 envt = env.Clone()
 
 # Needed because of steves include pattern
-#envt.AppendUnique(LIBS = ['m'])
+envt.AppendUnique(CPPPATH = ['include'])
 
 # Build the ctx and consolemon
-helpers.Program(envt, target = 'sensortest', source = 'test/src/sensortest.c',
+helpers.Program(envt, target = 'sensortest', 
+                source = 'test/src/sensortest.c',
                 int_deps = 'sensor')
