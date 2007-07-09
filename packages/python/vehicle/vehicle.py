@@ -86,16 +86,17 @@ class Vehicle(_Vehicle, Component):
                 # If we are in the 'ext' module we are a C++ class and need the
                 # special config node wrapper
                 if class_name.startswith('ext.'):
-                    config_node = _ConfigNode.fromString(str(config_node))
+                    cfg = _ConfigNode.fromString(str(config_node))
                     device_class = device_class.construct
+                else:
+                    cfg = config_node
                     
-                device = device_class(self, config_node)
+                device = device_class(self, cfg)
 
                 self._addDevice(device)
-                # Add the device to the C++ side of things
-#                self._cpp_addDevice(device)
-#                # Store the device for python
- #               self._devices[name] = device
+
+                if config_node.has_key('update_interval'):
+                    device.background(config_node['update_interval'])
                 
     
 
