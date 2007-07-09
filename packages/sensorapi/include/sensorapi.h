@@ -52,9 +52,14 @@
 extern "C" {
 #endif // __cplusplus
 
+/** Returns the file*/
 int openSensorBoard(const char * devName);
+
+/** Syncs the communication protocol between the board and vehicle */
 int syncBoard(int fd);
+    
 int pingBoard(int fd);
+
 int readDepth(int fd);
 int hardKill(int fd);
 int dropMarker(int fd, int markerNum);
