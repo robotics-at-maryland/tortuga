@@ -24,7 +24,9 @@ Vehicle::Vehicle(core::ConfigNode config) :
 {
     std::string devfile =
         m_config["sensor_board_file"].asString("/dev/sensor");
+
     m_sensorFD = openSensorBoard(devfile.c_str());
+    syncBoard(m_sensorFD);
 
     if (m_sensorFD < -1)
         std::cout << "Could not open sensor board\n";
@@ -82,7 +84,11 @@ void Vehicle::_addDevice(device::IDevicePtr device)
 
 void Vehicle::update(double timestep)
 {
-    std::cout << "Step: " << timestep << std::endl;
+    if (m_sensorFD >= 0)
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_state_mutex);
+        m_state.depth = readDepth(m_sensorFD);
+    }
 }
     
 } // namespace vehicle
