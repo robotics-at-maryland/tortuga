@@ -102,6 +102,11 @@ private:
     double m_IMUToVehicleFrame[3][3];
     double m_localMagneticPitch;
 
+    /** Bias based on vehicles local mag field */
+    double m_magXBias;
+    double m_magYBias;
+    double m_magZBias;
+    
     /** Protects acces to public state */
     core::ReadWriteMutex m_orientationMutex;
     math::Quaternion m_orientation;

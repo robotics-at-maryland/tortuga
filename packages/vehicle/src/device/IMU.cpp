@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <iostream>
+#include <cstdio>
 
 // UNIX Includes
 #include <unistd.h>  // for open()
@@ -31,6 +32,10 @@ IMU::IMU(Vehicle* vehicle, core::ConfigNode config) :
     Subject(),
     m_devfile(config["devfile"].asString("/dev/imu")),
     m_serialFD(-1),
+    m_localMagneticPitch(0),
+    m_magXBias(0),
+    m_magYBias(0),
+    m_magZBias(0),
     m_rawState(0),
     m_filteredState(0)
 {
@@ -61,6 +66,10 @@ IMU::IMU(Vehicle* vehicle, core::ConfigNode config) :
         config["imuToVehicleRotMatrix"][2][2].asDouble(0);
 
     m_localMagneticPitch = config["localMagneticPitch"].asDouble(66);
+
+    m_magXBias = config["magXBias"].asDouble(-0.187370068075);
+    m_magYBias = config["magYBias"].asDouble(-0.104584741532);
+    m_magZBias = config["magZBias"].asDouble(-0.240427112585);
 }
 
 IMU::~IMU()
@@ -93,7 +102,7 @@ IMU* IMU::castTo(IDevice* ptr)
 */ 
 void IMU::update(double timestep)
 {
-    std::cout << "IMU update" << std::endl;
+//    std::cout << "IMU update" << std::endl;
     // Only grab data on valid fd
     if (m_serialFD >= 0)
     {
@@ -106,7 +115,19 @@ void IMU::update(double timestep)
                 core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
                 *m_rawState = newState;
             }
+            
+            printf("MB: %7.4f %7.4f %7.4f \n", newState.magX, newState.magY,
+                   newState.magZ);
 
+            newState.magX = newState.magX - m_magXBias;
+            newState.magY = newState.magY - m_magYBias;
+            newState.magZ = newState.magZ - m_magZBias;
+            
+            printf("MA: %7.4f %7.4f %7.4f \n", newState.magX, newState.magY,
+                   newState.magZ);
+
+            
+            
             // Rotate into vehicle frame and filter data
             rotateAndFilterData(&newState);
 
@@ -131,7 +152,13 @@ void IMU::update(double timestep)
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
                 quaternionFromIMU(magnetometer, linearAcceleration,
                                   (double*)&m_orientation);
+
+                printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.q1,
+                       m_orientation.q2, m_orientation.q3,
+                       m_orientation.q4);
             }
+
+
 
             // Nofity observers
             setChanged();
@@ -141,7 +168,7 @@ void IMU::update(double timestep)
     // We didn't connect, try to reconnect
     else
     {
-        m_serialFD = openIMU(m_devfile.c_str());
+//        m_serialFD = openIMU(m_devfile.c_str());
     }
 }
     

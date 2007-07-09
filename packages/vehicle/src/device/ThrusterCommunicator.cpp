@@ -92,7 +92,7 @@ void ThrusterCommunicator::unRegisterThruster(Thruster* thruster)
 
 void ThrusterCommunicator::sendThrusterCommand(ThrusterCommandPtr cmd)
 {
-    std::cout << "Thrusting" << std::endl;
+//    std::cout << "Thrusting" << std::endl;
     m_commandQueue.push(cmd);
 }
 
@@ -172,6 +172,7 @@ void ThrusterCommunicator::processCommands()
     
 void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
 {
+//    std::cout << "Running thruster command: " << command->getCommandType() << std::endl;
     // Only run serial command if port is open
     if (m_serialFD >= 0)
     {
@@ -180,15 +181,15 @@ void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
         ss << command->getCommandType() << command->getAddress()
            << command->getArgs() << " \r\n";
     
-        std::cout << "Thruster command: " << ss.str();;
+        //      std::cout << "Thruster command: " << ss.str();;
         /// TODO: figure out what to do with a bad return type
         std::string cmd(ss.str());
         int ret = write(m_serialFD, cmd.c_str(), cmd.length());
 	if (ret < 0)
             std::cout << "Write failure" << std::endl;
 
-        std::cout << "Waiting " << command->getSleepTime() << "(ms)"
-                  << std::endl;
+//        std::cout << "Waiting " << command->getSleepTime() << "(ms)"
+//                  << std::endl;
         usleep(command->getSleepTime() * 1000);
         clearReadBuffer();
 /*	if(!hasData(m_serialFD, MOTOR_CMD_TIMEOUT))

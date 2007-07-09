@@ -29,7 +29,8 @@ const std::string Thruster::SET_FORCE = std::string("C");
 Thruster::Thruster(Vehicle* vehicle, core::ConfigNode config) :
     Device(vehicle, config["name"].asString()),
     m_address(config["address"].asString()),
-    m_calibrationFactor(config["calibration_factor"].asDouble())
+    m_calibrationFactor(config["calibration_factor"].asDouble()),
+    m_direction(config["direction"].asInt(1))
 {
     // Register thruster
     ThrusterCommunicator::registerThruster(this);
@@ -75,6 +76,9 @@ void Thruster::setForce(double force)
     // Convert force here (using calibration factor)
     motorCount = (int)((m_force / m_calibrationFactor - b) * 1023) / 27;
 
+    // Take into acount motor direction
+    motorCount = motorCount * m_direction;
+    
     // Clamp the values
     if (motorCount > 1024)
         motorCount = 1023;
@@ -85,7 +89,7 @@ void Thruster::setForce(double force)
     std::stringstream ss;
     ss << " " << m_motorCount;
     ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SET_FORCE, ss.str(),
-                                               5));
+                                               4));
     ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
 
     // Notify observers

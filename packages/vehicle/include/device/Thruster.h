@@ -95,6 +95,9 @@ private:
     
     /** Current motor count */
     int m_motorCount;
+
+    /** Directional bias for motor */
+    int m_direction;
 };
     
 } // namespace device
