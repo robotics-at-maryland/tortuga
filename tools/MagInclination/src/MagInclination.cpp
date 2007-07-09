@@ -1,4 +1,8 @@
+
+// STD Includes
 #include <iostream>
+#include <cmath>
+#include <unistd.h>
 
 // Project Includes
 #include "imu/include/imuapi.h"
@@ -53,6 +57,8 @@ int main (){
     accel[0][index] = imuData.accelX;
     accel[1][index] = imuData.accelY;
     accel[2][index] = imuData.accelZ;
+    //sleep for 20 ms
+    usleep(20000);
   }
   
   //average the data
@@ -65,8 +71,30 @@ int main (){
   averagedAccel[1] = findRowAverageOf3xN(&accel[0][0],1,numPoints);
   averagedAccel[2] = findRowAverageOf3xN(&accel[0][0],2,numPoints);
 
-  
+  //normalize mag and accel vectors
+  normalize3x1(averagedMag);
+  normalize3x1(averagedAccel);
 
+  //now use  |m x g| = |m||g|sin(theta)
+  double crossed[3];
+  crossProduct3x1by3x1(averagedMag, averagedAccel, crossed);
+  double magnitudeM;
+  magnitudeM = magnitude3x1(averagedMag);
+  double magnitudeG;
+  magnitudeG = magnitude3x1(averagedAccel);
+  double magnitudeCross;
+  magnitudeCross = magnitude3x1(crossed);
+  double theta;
+  theta = asin((magnitudeCross)/(magnitudeM*magnitudeG))*180/M_PI;
+
+  //now go from horizontal plane
+  theta = 90 - theta;
+  
+  //print output to user
+  std::cout << "The local magnetic inclination was calculated to be ";
+  std::cout << theta << " degrees." << std::endl;
+
+  
   return 0;
 }
 
