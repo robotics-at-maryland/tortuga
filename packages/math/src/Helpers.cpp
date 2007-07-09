@@ -405,6 +405,8 @@ void rotationMatrixFromQuaternion(double q[4], double * pRot){
 }
 
 /*
+generates a quaternion given an euler axis & angle representation
+
 q - a quaternion with the parameterization:
 
                    [q1] = [e1*sin(et/2)]
@@ -420,6 +422,49 @@ void quaternionFromEulerAxis(double e[3], double et, double * pQ){
   *(pQ+1) = e[1]*sin(et/2);
   *(pQ+2) = e[2]*sin(et/2);
   *(pQ+3) = cos(et/2);
+}
+
+/*
+a 4 dimensional cross product used for quaternions.  this has the effect
+of rotating the second quaternion (q2) by the first quaternion (q1)
+
+this function implements  pQ = q1 x q2
+
+q - a quaternion with the parameterization:
+
+                   [q1] = [e1*sin(et/2)]
+               q = |q2|   |e2*sin(et/2)|
+                   |q3|   |e3*sin(et/2)|
+                   [q4]   [  cos(et/2) ]
+
+               where euler axis = [e1,e2,e3] and euler angle = et (radians!)
+
+*/
+void quaternionCrossProduct(double q1[4], double q2[4],  double * pQ){
+  //generate quaternion cross product matrix
+  double qRotMatrix[4][4];
+  *(qRotMatrix) = q1[3];
+  *(qRotMatrix+1) = -q1[2];
+  *(qRotMatrix+1) = q1[1];
+  *(qRotMatrix+1) = q1[0];
+
+  *(qRotMatrix+1) = q1[2];
+  *(qRotMatrix+1) = q1[3];
+  *(qRotMatrix+1) = -q1[0];
+  *(qRotMatrix+1) = q1[1];
+
+  *(qRotMatrix+1) = -q1[1];
+  *(qRotMatrix+1) = q1[0];
+  *(qRotMatrix+1) = q1[3];
+  *(qRotMatrix+1) = q1[2];
+  
+  *(qRotMatrix+1) = -q1[0];
+  *(qRotMatrix+1) = -q1[1];
+  *(qRotMatrix+1) = -q1[2];
+  *(qRotMatrix+1) = q1[3];
+
+  //matrix multiply!!!
+  matrixMult4x4by4x1(qRotMatrix,q2,pQ);
 }
 
 
