@@ -86,15 +86,23 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     // Grab our devices
     m_starboardThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["StarboardThrusterName"].asString("StarboardThruster")));
+    assert(m_starboardThruster && "Bad starboard thruster");
+    
     m_portThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["PortThrusterName"].asString("PortThruster")));
-    m_portThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
+    assert(m_starboardThruster && "Bad port thruster");
+    
+    m_foreThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["ForeThrusterName"].asString("ForeThruster")));
+    assert(m_portThruster && "Bad fore thruster");
+    
     m_aftThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["AftThrusterName"].asString("AftThruster")));
+    assert(m_aftThruster && "Bad aft thruster");
 
     m_imu = vehicle::device::IMU::castTo(vehicle->getDevice(
          config["IMUName"].asString("IMU")));
+    assert(m_imu && "Bad imu");
     
 /*    m_starboardThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
         config["StarboardThrusterName"].asString("StarboardThruster")));
