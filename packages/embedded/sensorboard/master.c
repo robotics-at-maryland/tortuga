@@ -36,6 +36,7 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_TEMP       1
 #define SLAVE_ID_LCD        2
 #define SLAVE_ID_HARDKILL   1
+#define SLAVE_ID_SONAR	    3
 
 /*
  * Bus Constants
@@ -89,6 +90,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_THRUSTER3_ON    25
 #define BUS_CMD_THRUSTER4_ON    26
 
+#define BUS_CMD_SONAR		27
 
 #define NUM_SLAVES  3
 
