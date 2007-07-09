@@ -25,16 +25,18 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-wrapped_headers = ['Vehicle.h', 'IVehicle.h',
-                   'device/IDevice.h',
-                   'device/IMU.h',
-                   'device/Thruster.h',
-                   'device/PSU.h'] 
-wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
+veh_wrapped_headers = ['Vehicle.h', 'IVehicle.h']
+
+dev_wrapped_headers = ['device/IDevice.h',
+                       'device/IMU.h',
+                       'device/Thruster.h',
+                       'device/PSU.h']
 
 wrap.wrap_headers(envl, 'vehicle',
-                  wrapped_headers,
+                  [os.path.join(header_dir, h) for h in veh_wrapped_headers],
 		  gen_mod = 'gen_vehicle')
 
 
-# Manual
+wrap.wrap_headers(envl, 'vehicle',
+                  [os.path.join(header_dir, h) for h in dev_wrapped_headers],
+		  gen_mod = 'gen_vehicle_device')
