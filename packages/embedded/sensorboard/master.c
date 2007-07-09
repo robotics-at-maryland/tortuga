@@ -547,7 +547,10 @@ int main(void)
     #define HOST_REPLY_TEMPERATURE  0x0B
 
     #define HOST_CMD_PRINTTEXT      0x0C
+
     #define HOST_CMD_SONAR          0x0D
+    #define HOST_REPLY_SONAR        0x0E
+
 
     unsigned char emptyLine[]="                ";
 
@@ -923,6 +926,26 @@ int main(void)
 		{
 			sendByte(HOST_REPLY_FAILURE);
 			break;							                }
+
+
+                int len = readDataBlock(SLAVE_ID_SONAR);
+                if(len != 5)
+		{
+			sendByte(HOST_REPLY_FAILURE);
+			break;
+		}
+                
+		sendByte(HOST_REPLY_SONAR);
+                
+		cs=0;
+                for(i=0; i<5; i++)
+                {
+        	        cs += rxBuf[i];
+	                sendByte(rxBuf[i]);
+		}
+		
+		sendByte(cs + HOST_REPLY_SONAR);
+		break;
             }
         }
     }
