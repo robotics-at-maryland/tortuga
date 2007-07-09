@@ -66,16 +66,10 @@ int main()
     {
         cout << "Sending: \"" << list[i]->getName() << " 3 newtons" << endl;
         list[i]->setForce(3);
-        usleep(10000 * 1000);
+        usleep(5000 * 1000);
         cout << "Stopping" << endl;
         list[i]->setForce(0);
     }
-
-    cout << "Sending: \"" << list[0]->getName() << " 3 newtons" << endl;
-    list[0]->setForce(3);
-    usleep(10000 * 1000);
-    cout << "Stopping" << endl;
-    list[0]->setForce(0);
     
     
     // When the thrusters all are desctruted they shutdown the communicator,

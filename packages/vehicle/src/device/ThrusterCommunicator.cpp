@@ -33,7 +33,6 @@ static const char* MOTOR_CONTROLLER_DEV_FILE = "/dev/motor";
     
 // Open the serial port and do some maybe needed linux foo
 int openSerialPort(const char* devname);
-
 int hasData(int fd, int timeout);
     
 template<> ThrusterCommunicator* 
@@ -222,15 +221,27 @@ void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
     }
 }
 
+
+
 void ThrusterCommunicator::clearReadBuffer()
 {
-    if (m_serialFD >= 0)
+    if (m_serialFD >= 0 && hasData(m_serialFD, 0))
     {
         char trashBuffer[100];
         read(m_serialFD, &trashBuffer[0], 100);
     }
 }
 
+
+int hasData(int fd, int timeout)
+{
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+    poll(&pfd, 1, timeout);
+    return pfd.revents & POLLIN;
+}
 
 /* Some code from cutecom, which in turn may have come from minicom */
 int openSerialPort(const char* devName)
