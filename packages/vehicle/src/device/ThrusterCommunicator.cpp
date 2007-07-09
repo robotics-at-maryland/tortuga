@@ -52,7 +52,8 @@ ThrusterCommunicator* ThrusterCommunicator::getSingletonPtr()
 }  
 
 ThrusterCommunicator::ThrusterCommunicator() :
-    m_serialFD(-1)
+    m_serialFD(-1),
+    m_captureOutput(true)
 {
     // Open and store my serial port FD here
     m_serialFD = openSerialPort(MOTOR_CONTROLLER_DEV_FILE);
@@ -179,14 +180,17 @@ void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
         ss << command->getCommandType() << command->getAddress()
            << command->getArgs() << " \r\n";
     
-        std::cout << "Thruster command: " << ss.str() << std::endl;
+        std::cout << "Thruster command: " << ss.str();;
         /// TODO: figure out what to do with a bad return type
         std::string cmd(ss.str());
         int ret = write(m_serialFD, cmd.c_str(), cmd.length());
 	if (ret < 0)
             std::cout << "Write failure" << std::endl;
 
-        usleep(100 * 1000);
+        std::cout << "Waiting " << command->getSleepTime() << "(ms)"
+                  << std::endl;
+        usleep(command->getSleepTime() * 1000);
+        clearReadBuffer();
 /*	if(!hasData(m_serialFD, MOTOR_CMD_TIMEOUT))
 	{
 	    std::cout << "Motor controller not responding!!" << std::endl;
@@ -218,28 +222,25 @@ void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
     }
 }
 
-/** Checks for data waiting on the file descriptor  */
-int hasData(int fd, int timeout)
+void ThrusterCommunicator::clearReadBuffer()
 {
-    struct pollfd pfd;
-    pfd.fd = fd;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-
-    poll(&pfd, 1, timeout);
-
-    return pfd.revents & POLLIN;
+    if (m_serialFD >= 0)
+    {
+        char trashBuffer[100];
+        read(m_serialFD, &trashBuffer[0], 100);
+    }
 }
+
 
 /* Some code from cutecom, which in turn may have come from minicom */
 int openSerialPort(const char* devName)
 {
-   int fd = open(devName, O_RDWR, O_ASYNC); // | O_ASYNC); //, O_RDWR, O_NONBLOCK);
+    int fd = open(devName, O_RDWR, O_NONBLOCK); // | O_ASYNC); //, O_RDWR, O_NONBLOCK);
 
     if(fd == -1)
         return -1;
 
-    //printf("FD=%d\n", fd);
+    printf("FD=%d\n", fd);
     struct termios newtio;
     if (tcgetattr(fd, &newtio)!=0)
         printf("\nFirst stuff failed\n");
@@ -267,7 +268,7 @@ int openSerialPort(const char* devName)
     newtio.c_cc[VTIME]=1;
     newtio.c_cc[VMIN]=60;
 
-//   tcflush(m_fd, TCIFLUSH);
+    //   tcflush(m_fd, TCIFLUSH);
     if (tcsetattr(fd, TCSANOW, &newtio)!=0)
         printf("tsetaddr1 failed!\n");
 
@@ -283,7 +284,9 @@ int openSerialPort(const char* devName)
     newtio.c_cflag &= ~CRTSCTS;
 
     if (tcsetattr(fd, TCSANOW, &newtio)!=0)
-      printf("tcsetattr() 2 failed\n");
+        printf("tcsetattr() 2 failed\n");
+
+
 
     return fd;
 }

@@ -23,16 +23,18 @@ public:
     /** Creates a command to be run on the thruster
      */
     ThrusterCommand(std::string address, std::string commandType,
-                    std::string args = "");
+                    std::string args = "", int sleepTime = 1);
 
     std::string getAddress();
     std::string getCommandType();
     std::string getArgs();
+    int getSleepTime();
     
 private:
     std::string m_address;
     std::string m_commandType;
     std::string m_args;
+    int m_sleepTime;
 };
     
 } // namespace device

@@ -64,13 +64,20 @@ int main()
     // Loop through each thruster and send it two commands.
     for (size_t i = 0; i < list.size(); ++i)
     {
-        cout << "Sending: \"" << list[i]->getName() << " 1 newton" << endl;
+        cout << "Sending: \"" << list[i]->getName() << " 3 newtons" << endl;
         list[i]->setForce(3);
         usleep(10000 * 1000);
         cout << "Stopping" << endl;
         list[i]->setForce(0);
     }
 
+    cout << "Sending: \"" << list[0]->getName() << " 3 newtons" << endl;
+    list[0]->setForce(3);
+    usleep(10000 * 1000);
+    cout << "Stopping" << endl;
+    list[0]->setForce(0);
+    
+    
     // When the thrusters all are desctruted they shutdown the communicator,
     // which in turns shuts down the background threadxb
     

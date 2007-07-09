@@ -15,10 +15,11 @@ namespace vehicle {
 namespace device{
 
 ThrusterCommand::ThrusterCommand(std::string address, std::string commandType,
-                                 std::string args) :
+                                 std::string args, int sleepTime) :
     m_address(address),
     m_commandType(commandType),
-    m_args(args)
+    m_args(args),
+    m_sleepTime(sleepTime)
 {
 }
 
@@ -35,6 +36,12 @@ std::string ThrusterCommand::getCommandType()
 std::string ThrusterCommand::getArgs()
 {
     return m_args;
+}
+
+
+int ThrusterCommand::getSleepTime()
+{
+    return m_sleepTime;
 }
 
 } // namespace device
