@@ -47,6 +47,10 @@
 
 #define STATUS_STARTSW    0x80
 
+// If we are compiling as C++ code we need to use extern "C" linkage
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
 int openSensorBoard(const char * devName);
 int syncBoard(int fd);
@@ -59,3 +63,7 @@ int thrusterSafety(int fd, int state);
 int displayText(int fd, int line, char * text);
 int getTemp(int fd, unsigned char * tempData);
 
+// If we are compiling as C++ code we need to use extern "C" linkage
+#ifdef __cplusplus
+} // extern "C"
+#endif // __cplusplus
