@@ -84,7 +84,7 @@ void rotate90Deg(IplImage* src, IplImage* dest)
 int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 {
     cout<<"Starting findCorners"<<endl;
-	cvNamedWindow("Damn.");
+//	cvNamedWindow("Damn.");
 	int i, j;
 	
 	// 8 bit image:
@@ -95,26 +95,29 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 
     cout<<"Guessing chessboard corners"<<endl;
     int okay = cvFindChessboardCorners(image8, cvSize(6,6), array, &cornerCount);
- 
-    cvShowImage("Damn.",image8);
-	cvWaitKey(50);
+	cvDrawChessboardCorners( image, cvSize(6,6),
+							array, cornerCount, okay);
+
+//    cvShowImage("Damn.",image8);
+//	cvWaitKey(50);
     cout<<"Was it okay?:"<<okay<<endl;
     cout<<"Finished guessing chessboard corners"<<endl;
     if (okay)
       {
-        cout<<"calling subPix"<<endl;
-        cvFindCornerSubPix(image8, array, cornerCount, 
-                           cvSize(6,6), cvSize(-1,-1), cvTermCriteria(CV_TERMCRIT_ITER, 100, 0.1));  
-       cout<<"Finished subPix"<<endl;
-	
-        cvReleaseImage(&image8);
+			cout<<"calling subPix"<<endl;
+			cvFindCornerSubPix(image8, array, cornerCount, 
+				cvSize(4,4), cvSize(5,5), cvTermCriteria(CV_TERMCRIT_ITER, 20, 0.025));  
+			cvDrawChessboardCorners( image, cvSize(6,6),
+						array, cornerCount, okay);
+
+			cout<<"Finished subPix"<<endl;
       }
     else
       {
 		cornerCount=-1;
       }
-		cvDrawChessboardCorners( image, cvSize(6,6),
-								array, cornerCount, okay);
+	cvReleaseImage(&image8);
+	cout<<"CornerCount:"<<cornerCount<<endl;
     return cornerCount;
 }
 
