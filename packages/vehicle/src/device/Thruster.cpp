@@ -14,6 +14,10 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/ThrusterCommunicator.h"
 #include "vehicle/include/device/ThrusterCommand.h"
+// Project Includes
+#include "vehicle/include/device/Thruster.h"
+#include "vehicle/include/device/ThrusterCommunicator.h"
+#include "vehicle/include/device/ThrusterCommand.h"
 
 namespace ram {
 namespace vehicle {

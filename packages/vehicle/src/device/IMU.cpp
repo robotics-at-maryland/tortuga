@@ -7,6 +7,9 @@
  * File:  packages/vehicle/src/device/IMU.cpp
  */
 
+// STD Includes
+#include <iostream>
+
 // UNIX Includes
 #include <unistd.h>  // for open()
 
@@ -90,6 +93,7 @@ IMU* IMU::castTo(IDevice* ptr)
 */ 
 void IMU::update(double timestep)
 {
+    std::cout << "IMU update" << std::endl;
     // Only grab data on valid fd
     if (m_serialFD >= 0)
     {

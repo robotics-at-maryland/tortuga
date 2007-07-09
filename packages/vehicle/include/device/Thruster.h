@@ -18,6 +18,8 @@
 #include "core/include/ConfigNode.h"
 #include "pattern/include/Subject.h"
 
+//#include "core/include/ReadWriteMutex.h"
+
 namespace ram {
 namespace vehicle {
 namespace device {

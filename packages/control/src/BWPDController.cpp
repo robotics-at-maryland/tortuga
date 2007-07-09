@@ -10,6 +10,7 @@
 // STD Includes
 #include <cmath>
 #include <cstdio>
+#include <iostream>
 
 // Project Includes
 #include "control/include/BWPDController.h"
@@ -279,6 +280,8 @@ void BWPDController::update(double timestep)
 void BWPDController::applyForcesAndTorques(double* translationalForces,
                                            double* rotationalTorques)
 {
+    std::cout << "Applying forces" << std::endl;
+    
     m_starboardThruster->setForce(translationalForces[0] / 2 +
                                   0.5 * rotationalTorques[2] / m_rStarboard);
 

@@ -92,6 +92,7 @@ void ThrusterCommunicator::unRegisterThruster(Thruster* thruster)
 
 void ThrusterCommunicator::sendThrusterCommand(ThrusterCommandPtr cmd)
 {
+    std::cout << "Thrusting" << std::endl;
     m_commandQueue.push(cmd);
 }
 
