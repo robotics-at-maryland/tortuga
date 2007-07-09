@@ -194,6 +194,9 @@ class ModuleManager(Singleton):
             if cycle:
                 raise "Cycle found in module dependencies"
                 
+    
+    #def _load_module(self, mod_config):
+        
         
     def register(self, mod):
         """

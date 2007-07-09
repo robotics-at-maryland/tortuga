@@ -10,6 +10,9 @@
 import yaml
 
 # Project Imports
+import vehicle.vehicle
+import vehicle.devices
+import control.bwpdcontrol
 import event
 from module import ModuleManager
 
