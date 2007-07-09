@@ -547,7 +547,7 @@ int main(void)
     #define HOST_REPLY_TEMPERATURE  0x0B
 
     #define HOST_CMD_PRINTTEXT      0x0C
-    #define HOST_CMD_DIAGNOSTIC     0x0D
+    #define HOST_CMD_SONAR          0x0D
 
     unsigned char emptyLine[]="                ";
 
@@ -909,14 +909,21 @@ int main(void)
                 break;
             }
 
-/*
-            case HOST_CMD_DIAGNOSTIC:
+
+            case HOST_CMD_SONAR:
             {
-                diagMode();
-                showString("Completed...    ", 0);
-                showString("                ", 1);
+                t1 = waitchar(1);
+		byte cs=HOST_CMD_SONAR+t1;
+		if(t1 != HOST_CMD_SONAR)
+		{
+			sendByte(HOST_REPLY_BADCHKSUM);
+			break;								        }
+		
+		if(busWriteByte(BUS_CMD_SONAR, SLAVE_ID_SONAR) != 0)
+		{
+			sendByte(HOST_REPLY_FAILURE);
+			break;							                }
             }
-*/
         }
     }
 }
