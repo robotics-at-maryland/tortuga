@@ -18,6 +18,8 @@ Modules:
             StarboardThruster:
                 # serial: 147
                 
+                update_interval: 100
+
                 # Notice this is from the 'ext' package, this package contains
                 # all the wrapped C++ classes
                 type: ext.vehicle_device.Thruster
