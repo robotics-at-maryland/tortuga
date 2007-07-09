@@ -13,7 +13,6 @@
 // Project Includes
 #include "vehicle/include/Common.h"
 #include "core/include/IUpdatable.h"
-#include "math/include/Math.h"
 
 namespace ram {
 namespace vehicle {

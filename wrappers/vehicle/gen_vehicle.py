@@ -19,8 +19,11 @@ def generate_vehicle(name, global_ns, local_ns):
     local_ns: is the namespace that coresponds to the given namespace
     """
 
+#    for cls in local_ns.decls(decl_type=decls_package.class_declaration_t):
+#        cls.include()
+#        cls.already_exposed = True
+
     make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])
-    make_already_exposed(global_ns, 'ram::math', ['Vector3', 'Quaternion'])
 
     # Include vehicle class and handle special cases
     vehicle_cls = local_ns.class_('Vehicle')
@@ -30,7 +33,7 @@ def generate_vehicle(name, global_ns, local_ns):
     vehicle_cls.member_function('getDevice').alias = '_cpp_getDevice'
     vehicle_cls.member_function('_addDevice').alias = '_cpp_addDevice'
     local_ns.typedef('NameDeviceMap').exclude()
-
+    
     # Handle IVehicle class
     ivehicle_cls = local_ns.class_('IVehicle')
     ivehicle_cls.include()

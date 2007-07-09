@@ -6,18 +6,19 @@ COMMON_DIRS = set([
     os.path.join('packages', 'pattern'),
     os.path.join('packages', 'core'),
     os.path.join('packages', 'math'),
-    os.path.join('packages', 'control'),
     os.path.join('wrappers', 'pattern'),
     os.path.join('wrappers', 'core'),
-    os.path.join('wrappers', 'control')])
+    os.path.join('wrappers', 'math')])
 
 LINUX_DIRS = set([
     os.path.join('packages','extensions', 'wxogre'),
     os.path.join('packages', 'vehicle'),
     os.path.join('packages', 'sensorapi'),
-    os.path.join('wrappers', 'vehicle'),
     os.path.join('packages', 'carnetix'),
     os.path.join('packages', 'imu'),
+    os.path.join('packages', 'control'),
+    os.path.join('wrappers', 'control'),
+    os.path.join('wrappers', 'vehicle'),
     os.path.join('tools', 'MagInclination')])
 
 MAC_DIRS = set([])

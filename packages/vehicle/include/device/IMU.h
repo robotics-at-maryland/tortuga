@@ -21,7 +21,8 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/AveragingFilter.h"
 
-#include "math/include/Math.h"
+#include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
 
 #include "pattern/include/Subject.h"
 

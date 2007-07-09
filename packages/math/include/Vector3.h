@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/math/include/Math.h
+ * File:  packages/math/include/Vector3.h
  */
 
-#ifndef RAM_MATH_MATH_06_22_2006
-#define RAM_MATH_MATH_06_22_2006
+#ifndef RAM_MATH_VECTOR3_07_09_2007
+#define RAM_MATH_VECTOR3_07_09_2007
 
 namespace ram {
 namespace math {
@@ -23,20 +23,8 @@ public:
     double e2;
     double e3;
 };
-
-class Quaternion
-{
-public:
-    Quaternion(double _q1 = 0, double _q2 = 0, double _q3 = 0, double _q4 = 0) :
-        q1(_q1), q2(_q2), q3(_q3), q4(_q4) {}
-
-    double q1;
-    double q2;
-    double q3;
-    double q4;
-};
     
 } // namespace math
 } // namespace ram
     
-#endif // RAM_MATH_MATH_06_22_2006
+#endif // RAM_MATH_VECTOR3_07_09_2007
