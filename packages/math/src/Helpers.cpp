@@ -443,25 +443,46 @@ q - a quaternion with the parameterization:
 void quaternionCrossProduct(double q1[4], double q2[4],  double * pQ){
   //generate quaternion cross product matrix
   double qRotMatrix[4][4];
-  *(qRotMatrix) = q1[3];
+
+  /*  *(qRotMatrix) = q1[3];
   *(qRotMatrix+1) = -q1[2];
-  *(qRotMatrix+1) = q1[1];
-  *(qRotMatrix+1) = q1[0];
+  *(qRotMatrix+2) = q1[1];
+  *(qRotMatrix+3) = q1[0];
 
-  *(qRotMatrix+1) = q1[2];
-  *(qRotMatrix+1) = q1[3];
-  *(qRotMatrix+1) = -q1[0];
-  *(qRotMatrix+1) = q1[1];
+  *(qRotMatrix+4) = q1[2];
+  *(qRotMatrix+5) = q1[3];
+  *(qRotMatrix+6) = -q1[0];
+  *(qRotMatrix+7) = q1[1];
 
-  *(qRotMatrix+1) = -q1[1];
-  *(qRotMatrix+1) = q1[0];
-  *(qRotMatrix+1) = q1[3];
-  *(qRotMatrix+1) = q1[2];
+  *(qRotMatrix+8) = -q1[1];
+  *(qRotMatrix+9) = q1[0];
+  *(qRotMatrix+10) = q1[3];
+  *(qRotMatrix+11) = q1[2];
   
-  *(qRotMatrix+1) = -q1[0];
-  *(qRotMatrix+1) = -q1[1];
-  *(qRotMatrix+1) = -q1[2];
-  *(qRotMatrix+1) = q1[3];
+  *(qRotMatrix+12) = -q1[0];
+  *(qRotMatrix+13) = -q1[1];
+  *(qRotMatrix+14) = -q1[2];
+  *(qRotMatrix+15) = q1[3];*/
+
+  qRotMatrix[0][0] = q1[3];
+  qRotMatrix[0][1] = -q1[2];
+  qRotMatrix[0][2] = q1[1];
+  qRotMatrix[0][3] = q1[0];
+
+  qRotMatrix[1][0] = q1[2];
+  qRotMatrix[1][1] = q1[3];
+  qRotMatrix[1][2] = -q1[0];
+  qRotMatrix[1][3] = q1[1];
+
+  qRotMatrix[2][0] = -q1[1];
+  qRotMatrix[2][1] = q1[0];
+  qRotMatrix[2][2] = q1[3];
+  qRotMatrix[2][3] = q1[2];
+  
+  qRotMatrix[3][0] = -q1[0];
+  qRotMatrix[3][1] = -q1[1];
+  qRotMatrix[3][2] = -q1[2];
+  qRotMatrix[3][3] = q1[3];
 
   //matrix multiply!!!
   matrixMult4x4by4x1(qRotMatrix,q2,pQ);
