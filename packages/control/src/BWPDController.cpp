@@ -7,6 +7,8 @@
  * File:  packages/control/src/BWPDController.cpp
  */
 
+// STD Includes
+#include <cmath>
 #include <cstdio>
 
 // Project Includes
@@ -15,7 +17,7 @@
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IMU.h"
 #include "vehicle/include/device/Thruster.h"
-
+#include "math/include/Helpers.h"
 
 namespace ram {
 namespace control {
@@ -132,6 +134,85 @@ void BWPDController::setDepth(double depth)
     core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
     m_desiredState->depth = depth;
 }
+
+void BWPDController::rollVehicle(double degrees)
+{
+  //use Helpers.cpp
+  using namespace ram::math;
+
+  //fetch old desired quaternion
+  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+
+  //create rotation quaternion based on user input
+  double rotationQuaternion[4];
+  double rollAxis[3] = {1,0,0};
+  quaternionFromEulerAxis(rollAxis,degrees*M_PI/180,rotationQuaternion);
+  
+  //rotate the quaternion and store in a new place
+  double newQuaternion[4];
+  quaternionCrossProduct(rotationQuaternion, m_desiredState->quaternion,
+			 newQuaternion);
+
+  //store the new quaternion as the new desired quaternion
+  m_desiredState->quaternion[0] = newQuaternion[0];
+  m_desiredState->quaternion[1] = newQuaternion[1];
+  m_desiredState->quaternion[2] = newQuaternion[2];
+  m_desiredState->quaternion[3] = newQuaternion[3];
+    
+}
+
+void BWPDController::pitchVehicle(double degrees)
+{
+  //use Helpers.cpp
+  using namespace ram::math;
+
+  //fetch old desired quaternion
+  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+
+  //create rotation quaternion based on user input
+  double rotationQuaternion[4];
+  double rollAxis[3] = {0,1,0};
+  quaternionFromEulerAxis(rollAxis,degrees*M_PI/180,rotationQuaternion);
+  
+  //rotate the quaternion and store in a new place
+  double newQuaternion[4];
+  quaternionCrossProduct(rotationQuaternion, m_desiredState->quaternion,
+			 newQuaternion);
+
+  //store the new quaternion as the new desired quaternion
+  m_desiredState->quaternion[0] = newQuaternion[0];
+  m_desiredState->quaternion[1] = newQuaternion[1];
+  m_desiredState->quaternion[2] = newQuaternion[2];
+  m_desiredState->quaternion[3] = newQuaternion[3];
+
+}
+
+void BWPDController::yawVehicle(double degrees)
+{
+  //use Helpers.cpp
+  using namespace ram::math;
+
+  //fetch old desired quaternion
+  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+
+  //create rotation quaternion based on user input
+  double rotationQuaternion[4];
+  double rollAxis[3] = {0,0,1};
+  quaternionFromEulerAxis(rollAxis,degrees*M_PI/180,rotationQuaternion);
+  
+  //rotate the quaternion and store in a new place
+  double newQuaternion[4];
+  quaternionCrossProduct(rotationQuaternion, m_desiredState->quaternion,
+			 newQuaternion);
+
+  //store the new quaternion as the new desired quaternion
+  m_desiredState->quaternion[0] = newQuaternion[0];
+  m_desiredState->quaternion[1] = newQuaternion[1];
+  m_desiredState->quaternion[2] = newQuaternion[2];
+  m_desiredState->quaternion[3] = newQuaternion[3];
+
+}
+
 
 int BWPDController::getSpeed()
 {

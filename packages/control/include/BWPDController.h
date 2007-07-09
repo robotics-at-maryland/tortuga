@@ -31,8 +31,8 @@ public:
         SPEED_UPDATE,
         HEADING_UPDATE,
         DEPTH_UPDATE
-    };
 
+    };
     BWPDController(vehicle::Vehicle* vehicle, core::ConfigNode config);
 
     virtual ~BWPDController();
@@ -43,11 +43,24 @@ public:
     /** Sets the current heading in degrees off north */
     virtual void setHeading(double degrees);
 
-    /** Changes the desired quaternion by a desired angle in degrees (ugh!)*/
-    virtual void yawDesiredQuaternion(double degrees);
-
     /** Sets the current depth of the sub in meters */
     virtual void setDepth(double depth);
+
+    /** Rolls the desired quaternion by a desired angle in degress (ugh!)
+	a positive angle makes the vehicle barrel roll clockwise as seen
+	by the fore camera
+    */
+    virtual void rollVehicle(double degrees);
+
+    /** Pitch the desired quaternion by a desired angle in degrees (ugh!)
+	a positive angle makes the vehicle spin down as seen by the fore camera
+    */
+    virtual void pitchVehicle(double degrees);
+    
+    /** Yaws the desired quaternion by a desired angle in degrees (ugh!)
+	a positive angle makes the vehicle spin left as seen by the fore camera
+    */
+    virtual void yawVehicle(double degrees);
 
     virtual int getSpeed();
 
