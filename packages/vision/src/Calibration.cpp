@@ -21,14 +21,17 @@ void Calibration::calculateCalibrations()
 	if (calibrated)
 		cout<<"Warning: This calibration is already set up.  Are you recalibrating before undistorting each image?"<<endl;
 	
-	int bufferzone1=0;
 	CvPoint2D32f array[36*NUMIMAGES_CALIBRATE];
+	int outofboundstop[20];
+	CvPoint2D32f tmpArray[36];
+	int outofboundsbottom[20];
+	for (int test=0; test<20;test++)
+		outofboundstop[test]=outofboundsbottom[test]=-27;
 	for (int index=0;index<36*NUMIMAGES_CALIBRATE;index++)
 	{
 		CvPoint2D32f* zeroMe=&(array[index]);
 		zeroMe->x=zeroMe->y=0;
 	}
-	int bufferzone2=0;
 	int goodImages=0;
 	int arrayIndex=0;
 	int cornerCountsArray[NUMIMAGES_CALIBRATE];
@@ -38,7 +41,14 @@ void Calibration::calculateCalibrations()
 		cam->getImage(frame);
 		IplImage* image =(IplImage*)(*frame);
 		cout<<"Printing image"<<endl;
-		int cornerCount=findCorners(image,&(array[arrayIndex]));
+		int cornerCount=findCorners(image,tmpArray);
+		for (int test=0; test<20;test++)
+			if (outofboundstop[test]!=-27 || outofboundsbottom[test]!=-27)
+			{
+				cout<<"findCorners is fucking with memory outside the array.  I'm terminating"<<endl;
+				exit(-27);
+			}
+
 		cvShowImage("Calibration",image);
 
 		if (cornerCount==36)//This version of find corners returns -1 if the chessboard was not completely found
@@ -46,13 +56,8 @@ void Calibration::calculateCalibrations()
 			cout<<cornerCount<<endl;
 			cout<<arrayIndex<<endl;
 			cornerCountsArray[goodImages]=36;
-			arrayIndex+=36;
-			CvPoint2D32f* betterBeZero=&(array[arrayIndex]);
-			if (betterBeZero->x!=0 || betterBeZero->y!=0)
-				cout<<"ERROR GIGANTICUS"<<endl;
-			betterBeZero--;
-			if (betterBeZero->x==0 && betterBeZero->y==0)
-				cout<<"ERROR MAGNIFICENTO"<<cornerCount<<endl;
+			for (int copier=0;copier<36;copier++)
+				array[arrayIndex++]=tmpArray[copier];
 			goodImages++;
 			cout<<goodImages<<endl;
 		}
@@ -62,8 +67,6 @@ void Calibration::calculateCalibrations()
 		}
 		else
 			cout<<"ERROR!!!!"<<endl;
-		cout<<"BUFFERZONE1:"<<bufferzone1<<endl;
-		cout<<"BUFFERZONE2:"<<bufferzone2<<endl;
 	}
 	
 	CvPoint3D32f buffer[36*NUMIMAGES_CALIBRATE];

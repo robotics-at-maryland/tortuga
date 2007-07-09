@@ -48,7 +48,6 @@ namespace vision{
 			ram::vision::Image* frame;
 			ram::vision::Camera* cam;
 			bool calibrated;
-			int bufferZoneAmIScrewed[100];
 			float transVects[3*NUMIMAGES_CALIBRATE];//should be 3
 			float rotMat[9*NUMIMAGES_CALIBRATE];//should be 9
 			IplImage* dest;
