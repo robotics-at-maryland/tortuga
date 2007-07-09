@@ -27,6 +27,8 @@ int main(int argc, char ** argv)
 
     RawIMUData imuData;
 
+	int i=0;
+
     while(1)
     {
         // Calculate angles (taken out of the IMU api)  
@@ -40,13 +42,17 @@ int main(int argc, char ** argv)
  	
 
         readIMUData(fd, &imuData);
-        printf("%9f %9f %9f %11f %11f %11f  %11f %11f %11f %11f %11f %11f"
-               " %11f %11f %11f; \n", imuData.accelX, imuData.accelY,
-               imuData.accelZ, imuData.gyroX, imuData.gyroY, imuData.gyroZ,
-               imuData.magX, imuData.magY, imuData.magZ, angleAccX,
-               angleAccY, angleAccZ, angleMagX, angleMagY, angleMagZ);
 
+	i++;
 
+//	if(i == 10)
+	{
+		printf("Accel: %11f %11f %11f      Mag: %11f %11f %11f;\n",
+               imuData.accelX, imuData.accelY,
+               imuData.accelZ,
+               imuData.magX, imuData.magY, imuData.magZ);
+		i=0;
+	}
         //printf("%11f %11f %11f  %11f %11f %11f  \n", imuData.angleMagX, imuData.angleMagY, imuData.angleMagZ, imuData.angleAccX, imuData.angleAccY, imuData.angleAccZ);
 //        printf("%11f %11f %11f\n", imuData.gyroX, imuData.gyroY, imuData.gyroZ);
 //        printf("%9f\n", imuData.gyroX);

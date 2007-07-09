@@ -75,7 +75,7 @@ int readIMUData(int fd, RawIMUData* imu)
     int len = 0;
     int i=0, sum=0;
     while(len < 34)
-        len += read(fd, imuData+len, 1);
+        len += read(fd, imuData+len, 34-len);
 
     imu->messageID = imuData[0];
     imu->sampleTimer = (imuData[3]<<8) | imuData[4];
