@@ -36,6 +36,7 @@ IMU::IMU(Vehicle* vehicle, core::ConfigNode config) :
     m_magXBias(0),
     m_magYBias(0),
     m_magZBias(0),
+    m_orientation(0,0,0,1),
     m_rawState(0),
     m_filteredState(0)
 {
@@ -116,15 +117,15 @@ void IMU::update(double timestep)
                 *m_rawState = newState;
             }
             
-            printf("MB: %7.4f %7.4f %7.4f \n", newState.magX, newState.magY,
-                   newState.magZ);
+//            printf("MB: %7.4f %7.4f %7.4f ", newState.magX, newState.magY,
+//                   newState.magZ);
 
             newState.magX = newState.magX - m_magXBias;
             newState.magY = newState.magY - m_magYBias;
             newState.magZ = newState.magZ - m_magZBias;
             
-            printf("MA: %7.4f %7.4f %7.4f \n", newState.magX, newState.magY,
-                   newState.magZ);
+//            printf("MA: %7.4f %7.4f %7.4f ", newState.magX, newState.magY,
+//                   newState.magZ);
 
             
             
@@ -132,9 +133,8 @@ void IMU::update(double timestep)
             rotateAndFilterData(&newState);
 
             // Use filtered data to get quaternion
-            double linearAcceleration[3];
-            double magnetometer[3];
-            double gyro[3];
+            double linearAcceleration[3] = {0,0,0};
+            double magnetometer[3] = {0,0,0};
             
             linearAcceleration[0] = m_filteredAccelX.getValue();
             linearAcceleration[1] = m_filteredAccelY.getValue();
@@ -143,15 +143,20 @@ void IMU::update(double timestep)
             magnetometer[0] = m_filteredMagX.getValue();
             magnetometer[1] = m_filteredMagY.getValue();
             magnetometer[2] = m_filteredMagZ.getValue();
-            
-            gyro[0] = m_filteredGyroX.getValue();
-            gyro[1] = m_filteredGyroY.getValue();
-            gyro[2] = m_filteredGyroZ.getValue();
+
+            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
+                   magnetometer[1], magnetometer[2]);
 
             {
+                double quaternion[4] = {0,0,0,1};
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
-                quaternionFromIMU(magnetometer, linearAcceleration,
-                                  (double*)&m_orientation);
+                
+                quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
+
+                m_orientation.q1 = quaternion[0];
+                m_orientation.q2 = quaternion[1];
+                m_orientation.q3 = quaternion[2];
+                m_orientation.q4 = quaternion[3];
 
                 printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.q1,
                        m_orientation.q2, m_orientation.q3,
@@ -237,6 +242,9 @@ void IMU::rotateAndFilterData(RawIMUData* newState)
     math::matrixMult3x1by3x3(m_IMUToVehicleFrame, gyro,
                              rotatedGyro);
 
+    printf("MR: %7.4f %7.4f %7.4f", rotatedMagnetometer[0],
+           rotatedMagnetometer[1], rotatedMagnetometer[2]);
+    
     // Filter data
     m_filteredAccelX.addValue(rotatedLinearAcceleration[0]);
     m_filteredAccelY.addValue(rotatedLinearAcceleration[1]);
