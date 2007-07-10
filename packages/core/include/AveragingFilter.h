@@ -19,7 +19,11 @@ template <class T, int SIZE>
 class AveragingFilter
 {
 public:
-    AveragingFilter() : size(0), maxSize(SIZE), start(0), total(0) {};
+    AveragingFilter() : size(0), maxSize(SIZE), start(0), total(0)
+        {
+            for (int i = 0; i < maxSize; ++i)
+                array[i] = 0;
+        };
 
     /** Put a new value into the filter (throws the oldest off) */
     void addValue(T newValue)
@@ -47,8 +51,8 @@ public:
     }
     
 private:
-	int size; 
-	int maxSize;
+    int size; 
+    int maxSize;
     int start;
     T total;
     T array[SIZE];

@@ -283,19 +283,28 @@ void BWPDController::update(double timestep)
 void BWPDController::applyForcesAndTorques(double* translationalForces,
                                            double* rotationalTorques)
 {
-    std::cout << "Applying forces" << std::endl;
+//    std::cout << "Applying forces" << std::endl;
+
+    double star = translationalForces[0] / 2 +
+        0.5 * rotationalTorques[2] / m_rStarboard;
+    double port = translationalForces[0] / 2 -
+        0.5 * rotationalTorques[2] / m_rPort;
+    double fore = translationalForces[2] / 2 +
+        0.5 * rotationalTorques[1] / m_rFore;
+    double aft = translationalForces[2]/2 -
+        0.5 * rotationalTorques[1] / m_rAft;
+
+    std::cout << "Force S: " << star << " P: " << port << " F: "
+              << fore << " A: " << aft << std::endl;
     
-    m_starboardThruster->setForce(translationalForces[0] / 2 +
-                                  0.5 * rotationalTorques[2] / m_rStarboard);
+    
+    m_starboardThruster->setForce(star);
 
-    m_portThruster->setForce(translationalForces[0] / 2 -
-                             0.5 * rotationalTorques[2] / m_rPort);
+    m_portThruster->setForce(port);
 
-    m_foreThruster->setForce(translationalForces[2] / 2 +
-                             0.5 * rotationalTorques[1] / m_rFore);
+    m_foreThruster->setForce(fore);
 
-    m_aftThruster->setForce(translationalForces[2]/2 -
-                            0.5 * rotationalTorques[1] / m_rAft);
+    m_aftThruster->setForce(aft);
 }
     
 } // namespace control
