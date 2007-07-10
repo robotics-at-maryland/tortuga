@@ -70,6 +70,10 @@ ThrusterCommunicator::ThrusterCommunicator() :
 
 ThrusterCommunicator::~ThrusterCommunicator()
 {
+    close(m_serialFD);
+    m_cmdLog.close();
+    m_retLog.close();
+    
     // Process all pending messages, then shutdown message thread
     processCommands();
     

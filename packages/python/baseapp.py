@@ -66,10 +66,18 @@ class AppBase(object):
             if not mod.running():
                 mod.update(time_since_last_update)
             
+    def _load_mod(self, name, config_node):
+        class_name = config_node['type']
+        config_node['name'] = name
+        print 'Loading',name,' of type ',class_name
+        mod_type = Component.get_class(IModule, class_name)
+        mod_type(self.vehicle, config_node)
+            
     def main_loop(self):
         """
         Run the main module specified from the config file
         """
+        
         main_name = self._config['main']
         
         # Find main module
@@ -77,6 +85,11 @@ class AppBase(object):
         if len(possible) > 0:
             raise "Error multiple modules with name: '%s' found" % main_name
         main_mod = possible[0]
+        
+        # Start Everything but the main module
+        mod_config = self._config['Modules']
+        
+        
         
         # Grab update interval
         update_interval = self._config['Modules'][main_name]['update_interval']
