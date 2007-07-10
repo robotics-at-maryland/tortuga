@@ -19,6 +19,9 @@
 #include <sys/ioctl.h>
 #include <poll.h>
 
+// Library Includes
+#include <boost/algorithm/string.hpp>
+
 // Project Includes
 #include "vehicle/include/device/ThrusterCommunicator.h"
 #include "vehicle/include/device/ThrusterCommand.h"
@@ -180,11 +183,14 @@ void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
 
         ss << command->getCommandType() << command->getAddress()
            << command->getArgs() << " \r\n";
-    
-        //      std::cout << "Thruster command: " << ss.str();;
+
+        //unescaped = ss.str()
+        std::cout << "Thruster command: " << ss.str();;
         /// TODO: figure out what to do with a bad return type
         std::string cmd(ss.str());
         int ret = write(m_serialFD, cmd.c_str(), cmd.length());
+        fsync(m_serialFD);
+        
 	if (ret < 0)
             std::cout << "Write failure" << std::endl;
 
