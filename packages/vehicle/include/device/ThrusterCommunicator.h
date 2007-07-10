@@ -11,6 +11,7 @@
 #define RAM_CORE_THRUSTERCOMMUNICATOR_06_24_2006
 
 // STD Includes
+#include <fstream>
 #include <set>
 
 // Project Includes
@@ -94,8 +95,14 @@ private:
 
     /** file descriptor of the serial device file*/
     int m_serialFD;
-
+    
     bool m_captureOutput;
+
+    /** Logs all outgoing commands */
+    std::ofstream m_cmdLog;
+
+    /** Logs all returns from the controllers */
+    std::ofstream m_retLog;
 };
 
 } // namespace device

@@ -55,7 +55,9 @@ ThrusterCommunicator* ThrusterCommunicator::getSingletonPtr()
 
 ThrusterCommunicator::ThrusterCommunicator() :
     m_serialFD(-1),
-    m_captureOutput(true)
+    m_captureOutput(true),
+    m_cmdLog("cmdlog.txt", std::ios::out),
+    m_retLog("retlog.txt", std::ios::out)
 {
     // Open and store my serial port FD here
     m_serialFD = openSerialPort(MOTOR_CONTROLLER_DEV_FILE);
@@ -194,6 +196,10 @@ void ThrusterCommunicator::runCommand(ThrusterCommandPtr command)
 	if (ret < 0)
             std::cout << "Write failure" << std::endl;
 
+
+        // Logging output commands
+        m_cmdLog << ss.str();
+        
 //        std::cout << "Waiting " << command->getSleepTime() << "(ms)"
 //                  << std::endl;
         usleep(command->getSleepTime() * 1000);
@@ -235,8 +241,11 @@ void ThrusterCommunicator::clearReadBuffer()
 {
     if (m_serialFD >= 0 && hasData(m_serialFD, 0))
     {
-        char trashBuffer[100];
+        char trashBuffer[100] = {0};
         read(m_serialFD, &trashBuffer[0], 100);
+
+        // Log Return
+        m_retLog << trashBuffer;
     }
 }
 
