@@ -5,10 +5,14 @@
 #include <unistd.h>
 
 // Project Includes
-#include "imu/include/imuapi.h"
+#include "vehicle/include/device/IMU.h"
+#include "core/include/ConfigNode.h"
 #include "math/include/Helpers.h"
-using namespace ram::math;
+#include "imu/include/imuapi.h"
 
+using namespace ram::math;
+using namespace ram::core;
+using namespace ram::vehicle::device;  
 
 /*
 
@@ -25,20 +29,21 @@ computed as 90 degrees minus the above calculated angle between m and g.
 written by Joseph Gland  2007-07-07
 */
 
+
 double findRowAverageOf3xN(double * pData, int row, int columns);
 
 int main (){
   //warn user to not move sub
   std::cout << "Magnetic Inclination Finder" << std::endl;
   std::cout << "\n!!! Don't move the robot !!!\n" << std::endl;
+  
+  // Create IMU Device
+  IMU imu(0, ConfigNode::fromString("{}"));
 
-  //create IMU object
-  int fd = openIMU("/dev/imu");
-  if(fd == -1){
-    printf("Could not find the IMU\n");
-    exit(1);
-  }
-  RawIMUData imuData;
+  // Start IMU running in the background
+  imu.background(5); 
+  
+  FilteredIMUData imuData;
 
   //set number of data points to collect
   int numPoints = 2000;
@@ -49,7 +54,7 @@ int main (){
   //collect the data
   for(int index=0; index < numPoints-1; index++){
     //read IMU
-    readIMUData(fd, &imuData);
+    imu.getFilteredState(imuData);
     //save to arrays
     mag[0][index] = imuData.magX;
     mag[1][index] = imuData.magY;
@@ -107,7 +112,7 @@ double findRowAverageOf3xN(double * pData, int row, int columns){
   double* rowPtr = pData + row;
   
   for(int i = 0; i < columns; i++){
-    sum = sum + *(rowPtr+i); 
+    sum = sum + *(rowPtr+i);
   }
 
   return sum/columns;

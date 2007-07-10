@@ -16,3 +16,7 @@ envl = env.Clone()
 helpers.Program(envl, target = 'MagInclination', 
 		source = 'src/MagInclination.cpp',
                 int_deps = ['imu','math'])
+
+helpers.Program(envl, target = 'MagInclinationTest', 
+		source = 'src/MagInclinationTest.cpp',
+                int_deps = ['vehicle','math'])
