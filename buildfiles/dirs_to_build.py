@@ -20,6 +20,7 @@ LINUX_DIRS = set([
     os.path.join('packages', 'control'),
     os.path.join('wrappers', 'control'),
     os.path.join('wrappers', 'vehicle'),
+    os.path.join('tools', 'thrusterstop'),
     os.path.join('tools', 'MagInclination')])
 
 MAC_DIRS = set([])
