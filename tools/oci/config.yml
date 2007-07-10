@@ -54,11 +54,14 @@ Modules:
 
             IMU:
                 type: ext.vehicle_device.IMU
-                update_interval: 19     
+                update_interval: 5
 
     Controller:
         type: control.bwpdcontrol.BWPDController
-        update_interval: 20
+        update_interval: 100
+        angularPGain: 3
+        angularDGain: 1
+        desiredQuaternion: [ -0.278, 0.911, 0.025, 0.301]
 
         
         
