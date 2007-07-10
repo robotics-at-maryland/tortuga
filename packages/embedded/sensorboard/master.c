@@ -90,7 +90,7 @@ _FWDT ( WDT_OFF );
 #define BUS_CMD_THRUSTER3_ON    25
 #define BUS_CMD_THRUSTER4_ON    26
 
-#define BUS_CMD_SONAR		27
+#define BUS_CMD_SONAR	    	27
 
 #define NUM_SLAVES  4
 
@@ -916,36 +916,39 @@ int main(void)
             case HOST_CMD_SONAR:
             {
                 t1 = waitchar(1);
-		byte cs=HOST_CMD_SONAR+t1;
-		if(t1 != HOST_CMD_SONAR)
-		{
-			sendByte(HOST_REPLY_BADCHKSUM);
-			break;								        }
-		
-		if(busWriteByte(BUS_CMD_SONAR, SLAVE_ID_SONAR) != 0)
-		{
-			sendByte(HOST_REPLY_FAILURE);
-			break;							                }
+		        byte cs=HOST_CMD_SONAR+t1;
+
+                if(t1 != HOST_CMD_SONAR)
+		        {
+			        sendByte(HOST_REPLY_BADCHKSUM);
+			        break;
+                }
+
+		        if(busWriteByte(BUS_CMD_SONAR, SLAVE_ID_SONAR) != 0)
+		        {
+			        sendByte(HOST_REPLY_FAILURE);
+        			break;
+                }
 
 
                 int len = readDataBlock(SLAVE_ID_SONAR);
                 if(len != 5)
-		{
-			sendByte(HOST_REPLY_FAILURE);
-			break;
-		}
-                
-		sendByte(HOST_REPLY_SONAR);
-                
-		cs=0;
+		        {
+			        sendByte(HOST_REPLY_FAILURE);
+			        break;
+		        }
+
+		        sendByte(HOST_REPLY_SONAR);
+
+		        cs=0;
                 for(i=0; i<5; i++)
                 {
-        	        cs += rxBuf[i];
+                    cs += rxBuf[i];
 	                sendByte(rxBuf[i]);
-		}
-		
-		sendByte(cs + HOST_REPLY_SONAR);
-		break;
+		        }
+
+		        sendByte(cs + HOST_REPLY_SONAR);
+		        break;
             }
         }
     }
