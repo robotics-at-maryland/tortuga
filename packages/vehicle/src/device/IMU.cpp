@@ -144,8 +144,8 @@ void IMU::update(double timestep)
             magnetometer[1] = m_filteredMagY.getValue();
             magnetometer[2] = m_filteredMagZ.getValue();
 
-            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
-                   magnetometer[1], magnetometer[2]);
+//            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
+//                   magnetometer[1], magnetometer[2]);
 
             {
                 double quaternion[4] = {0,0,0,1};
@@ -242,8 +242,8 @@ void IMU::rotateAndFilterData(RawIMUData* newState)
     math::matrixMult3x1by3x3(m_IMUToVehicleFrame, gyro,
                              rotatedGyro);
 
-    printf("MR: %7.4f %7.4f %7.4f", rotatedMagnetometer[0],
-           rotatedMagnetometer[1], rotatedMagnetometer[2]);
+//    printf("MR: %7.4f %7.4f %7.4f", rotatedMagnetometer[0],
+//           rotatedMagnetometer[1], rotatedMagnetometer[2]);
     
     // Filter data
     m_filteredAccelX.addValue(rotatedLinearAcceleration[0]);
