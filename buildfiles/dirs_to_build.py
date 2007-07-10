@@ -8,7 +8,8 @@ COMMON_DIRS = set([
     os.path.join('packages', 'math'),
     os.path.join('wrappers', 'pattern'),
     os.path.join('wrappers', 'core'),
-    os.path.join('wrappers', 'math')])
+    os.path.join('wrappers', 'math'),
+    os.path.join('wrappers', 'vision')])
 
 LINUX_DIRS = set([
     os.path.join('packages','extensions', 'wxogre'),
