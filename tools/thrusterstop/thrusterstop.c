@@ -124,9 +124,6 @@ int main(int argc, char ** argv)
 		return 0;
 	}
 
-
-	int i;
-
 	printf("\nWR: %d\n", write(fd, "Y01\r\n", 5));
 	clearBuf(fd);
 	fsync(fd);

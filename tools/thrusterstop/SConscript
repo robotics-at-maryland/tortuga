@@ -1,0 +1,17 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/carnetix/SConscript
+
+# Build system imports
+import helpers
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Build the ctx and consolemon
+envl.Program(target = 'thrusterstop', source = 'thrusterstop.c')
+        
