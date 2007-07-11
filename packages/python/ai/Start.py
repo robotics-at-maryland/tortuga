@@ -19,6 +19,7 @@ class GoGate():
         
     def initialize(self):
         self.vision.forward.gateDetectOn()
+        self.controller.setDepth(10)
         self.controller.setSpeed(5)
         self.ai.stateMachine.change_state("pollVision")
         
