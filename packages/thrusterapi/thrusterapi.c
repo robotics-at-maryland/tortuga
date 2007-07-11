@@ -169,26 +169,6 @@ int multiCmd(int fd, int cmd, int addr, unsigned char * data, int len, int timeo
 
 
 
-/* Internal use */
-int sendMultiCmd(int fd, int cmd, int addr, unsigned char * data, int len)
-{
-    unsigned char txData[]={0, 0, 0, 0, 0, 0, 0, 0};
-    int i=0;
-
-    txData[0] = cmd;
-    txData[1] = addr;
-    for(i=0; i<len; i++)
-        txData[i+2] = data[i];
-
-    for(i=0; i<len+2; i++)
-        txData[len+2] = (txData[len+2] + txData[i]) & 0xFF;
-
-    writeData(fd, txData, len+3);
-    fsync(fd);
-    usleep(20*1000);
-//    usleep(10*1000);
-}
-
 
 int recvMultiCmd(int fd, int timeout)
 {
@@ -198,28 +178,36 @@ int recvMultiCmd(int fd, int timeout)
     return resp != 0x06;
 }
 
+int prepareCmd(unsigned char * tmp, int addr, int speed)
+{
+    tmp[0] = 0x14;
+    tmp[1] = addr;
+    tmp[2] = speed & 0xFF;
+    tmp[3] = (speed >> 8) & 0xFF;
+    tmp[4] = (tmp[0]+tmp[1]+tmp[2]+tmp[3]) & 0xFF;
+}
+
 int setSpeeds(int fd, int s1, int s2, int s3, int s4)
 {
-    unsigned char tmp[2];
+    unsigned char tmp[20];
     clearBuf(fd);
-    tmp[0] = s1 & 0xFF;
-    tmp[1] = (s1 >> 8) & 0xFF;
-    sendMultiCmd(fd, 0x14, 1, tmp, 2);
+    int i;
 
-    tmp[0] = s2 & 0xFF;
-    tmp[1] = (s2 >> 8) & 0xFF;
-    sendMultiCmd(fd, 0x14, 2, tmp, 2);
+    prepareCmd(tmp, 1, s1);
+    prepareCmd(tmp+5, 2, s2);
+    prepareCmd(tmp+10, 3, s3);
+    prepareCmd(tmp+15, 4, s4);
 
-    tmp[0] = s3 & 0xFF;
-    tmp[1] = (s3 >> 8) & 0xFF;
-    sendMultiCmd(fd, 0x14, 3, tmp, 2);
+    write(fd, tmp, 20);
+    fsync(fd);
+    usleep(10*1000);
 
-    tmp[0] = s4 & 0xFF;
-    tmp[1] = (s4 >> 8) & 0xFF;
-    sendMultiCmd(fd, 0x14, 4, tmp, 2);
+    printf("\n");
+    for(i=0; i<20; i++)
+        printf("%02x ", tmp[i]);
 
-
-    int i=0, resp=0;
+    printf("\n");
+    int resp=0;
     for(i=0; i<4; i++)
         resp += recvMultiCmd(fd, 100);
 

@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
 
 
     for(i=0; i<100; i++)
-        printf("\nResult = %d\n", err+=setSpeeds(fd, 0, 0, 0, 0));
+        printf("\nResult = %d\n", err+=setSpeeds(fd, 763, 763, 763, 763));
 
 /*
 
