@@ -43,6 +43,7 @@ PythonConfigNodeImp::PythonConfigNodeImp(std::string pythonString)
         m_pyobj = obj;
     } catch( py::error_already_set ) {
         printf("ConfigNode (constructor) Error:\n");
+        printf("\tTrying to parse: %s", pythonString.c_str());
         PyErr_Print();
     }
 }
