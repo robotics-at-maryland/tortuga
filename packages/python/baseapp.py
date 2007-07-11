@@ -30,18 +30,12 @@ class AppBase(object):
         # them back out into the proper files
         self._config = yaml.load(file(config_file_path))
         
-        print 'Loading modules'
-        if load_modules:
-            # Create Singleton Module manager, automatically creates all modules
-            # based on the config file
-            ModuleManager(self._config )
-            
-            # Gather up all modules that need updating (ie arn't running there own
-            # background threads)
-            self._modules = [mod for mod in ModuleManager.get().itermodules()
-                             if mod.backgrounded() == False]
-        else:
-            ModuleManager()
+        self._create_module_manager()
+        
+        # Gather up all modules that need updating (ie arn't running there own
+        # background threads)
+        self._modules = [mod for mod in ModuleManager.get().itermodules()
+                         if mod.backgrounded() == False]
         
         # Now register register for module events, so we can keep that
         # list up to data
@@ -50,6 +44,10 @@ class AppBase(object):
         
         print 'Loading finished'
         
+    def _create_module_manager(self):
+        if not ModuleManager.singletonCreated():
+            ModuleManager(self._config)
+        
     def _remove_module(self, mod):
         if self._modules.count(mod) > 0:
             self._modules.remove(mod)
@@ -57,39 +55,19 @@ class AppBase(object):
     def _add_module(self, mod):
         if mod.backgrounded() == False:
             self._modules.append(mod)
-           
-    def update(self, time_since_last_update):
-        """
-        Updates all modules that need to be updated
-        """
-        for mod in self._modules:
-            if not mod.running():
-                mod.update(time_since_last_update)
-            
-    def _load_mod(self, name, config_node):
-        class_name = config_node['type']
-        config_node['name'] = name
-        print 'Loading',name,' of type ',class_name
-        mod_type = Component.get_class(IModule, class_name)
-        mod_type(self.vehicle, config_node)
             
     def main_loop(self):
         """
         Run the main module specified from the config file
         """
         
-        main_name = self._config['main']
-        
-        # Find main module
-        possible = [m for m in self._modules if m.name == main_name]
-        if len(possible) > 0:
-            raise "Error multiple modules with name: '%s' found" % main_name
-        main_mod = possible[0]
+        # TODO: Error handling
+        main_mod = ModuleManager.get().get_module(self._config['main'])
         
         # Start Everything but the main module
         mod_config = self._config['Modules']
-        
-        
+        for name in mod_config.keys:
+            ModuleManager.get().get_module(name).start()
         
         # Grab update interval
         update_interval = self._config['Modules'][main_name]['update_interval']

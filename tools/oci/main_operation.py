@@ -46,6 +46,7 @@ import ociapp
 
 def main():            
     app = ociapp.OCIApp('config.yml')
+    print 'Test'
     app._modules[1].background(20)
     while(1):
         pass

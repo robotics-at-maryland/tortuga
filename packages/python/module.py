@@ -125,10 +125,26 @@ class Module(Component):
 
 class ModuleManager(Singleton):
     
-    def init(self, config = None):
+    def init(self, config = None, load_func = None):
+        """
+        @type  config: dict like
+        @param config: Contains a module section, with information on how to
+                       create the different modules of the system.
+                       
+        @type  load_func: function
+        @param load_func: Called to load every module, first arg mod class,
+                          second is the config section
+                          
+        @ivar _registry: A dict which maps module name to module instances
+        """
         self._registry = {}
         self._mod_type_reg = {}
         
+        if load_func is None:
+            self._load_func = self._load_module
+        else:
+            self._load_func = load_func
+            
         if config is not None:
             self.load_modules(config)
         
@@ -153,8 +169,9 @@ class ModuleManager(Singleton):
                 
                 # TODO: some kind of error checking
                 mod_type = Component.get_class(IModule, class_name)
-                
-                if not self._mod_type_reg.has_key(mod_type):
+        
+                # Do not load module if we have already loaded it
+                if not self._registry.has_key(name):
                     # Add this module to the list of dependees for each each module
                     # type it depends on
                     depends = config_node.get('depends_on', [])
@@ -177,7 +194,7 @@ class ModuleManager(Singleton):
                 # If its a free standing module load it
                 if len(depends) == 0:
                     # Create module (registration done by Module constructor)
-                    mod_type(config_node)
+                    self._load_func(mod_type, config_node)
                     
                     # Update all the dependents lists to remove this module
                     for dependent in mod_dependees.get(name, []):
@@ -195,20 +212,22 @@ class ModuleManager(Singleton):
                 raise "Cycle found in module dependencies"
                 
     
-    #def _load_module(self, mod_config):
+    def _load_module(self, mod_type, mod_config):
+        """
+        Default module loading function
+        """
+        mod_type(mod_config)
         
         
     def register(self, mod):
         """
-        Registers the module and tells is to start operation.
+        Registers the module.
         """
         
         verifyClass(IModule, type(mod))
-        print 'Registory',type(mod),type(mod.name)
 
         self._registry[mod.name] = mod
         self._mod_type_reg.setdefault(type(mod),[]).append(mod)
-        mod.start()
         
     def unregister(self, mod):
         """

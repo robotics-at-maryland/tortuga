@@ -112,6 +112,25 @@ class TestModuleManager(unittest.TestCase):
         super_mod = self.mod_mgr.get_module(SuperModule)[0]
         self.assertEqual('Manager', super_mod.name)
         self.assertEqual(10 , super_mod.config['test'])
+        
+    def test_load_func(self):
+        test_config = {
+           'Modules': {
+               'Manager' :
+                   {'type' : 'tests.test_module.SuperModule',
+                    'test' : 10 }
+                   }
+           }
+        
+        types = []
+        def test_load(mod_type, mod_config):
+            mod_type(mod_config)
+            types.append(mod_type)
+        
+        self.mod_mgr._load_func = test_load
+        self.mod_mgr.load_modules(test_config)
+        
+        self.assertEqual([SuperModule], types)
     
 def get_suite():
     """

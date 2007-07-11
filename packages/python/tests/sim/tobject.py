@@ -9,14 +9,14 @@
 import unittest
 
 # Library Imports
-import ogre.renderer.OGRE as Ogre
+#import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core
 
 # Module to test
-import sim.util as util
-import sim.object as tobject
+#import sim.util as util
+#import sim.object as tobject
 
 class TestObject(unittest.TestCase):
     def setUp(self):
@@ -76,7 +76,7 @@ def get_suite():
 	suites = []
 	test_loader = unittest.TestLoader()
 	
-	suites.append(test_loader.loadTestsFromTestCase(TestObject))
+	#suites.append(test_loader.loadTestsFromTestCase(TestObject))
 	
 	return unittest.TestSuite(suites)
 	

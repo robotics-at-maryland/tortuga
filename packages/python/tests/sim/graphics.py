@@ -14,13 +14,13 @@ module is retreived with tests.sim.robot.get_suite().
 import unittest
 
 # Library Imports
-import ogre.renderer.OGRE as Ogre
+#import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core
 
 # Module to test
-import sim.graphics as graphics
+#import sim.graphics as graphics
 
 class TestVisual(unittest.TestCase):
     def setUp(self):
@@ -52,7 +52,7 @@ def get_suite():
     suites = []
     test_loader = unittest.TestLoader()
     
-    suites.append(test_loader.loadTestsFromTestCase(TestVisual))
+    #suites.append(test_loader.loadTestsFromTestCase(TestVisual))
     
     return unittest.TestSuite(suites)
     

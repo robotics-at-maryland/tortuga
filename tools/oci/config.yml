@@ -57,6 +57,7 @@ Modules:
                 update_interval: 5
 
     Controller:
+        depends_on: ["Vehicle"]
         type: control.bwpdcontrol.BWPDController
         update_interval: 100
         angularPGain: 3

@@ -14,13 +14,13 @@ module is retreived with tests.sim.robot.get_suite().
 import unittest
 
 # Library Imports
-import ogre.renderer.OGRE as Ogre
+#import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core
 
 # Module to test
-import sim.robot as robot
+#import sim.robot as robot
 
 class TestKMLRobotLoader(unittest.TestCase):
     def setUp(self):

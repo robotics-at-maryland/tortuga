@@ -14,14 +14,14 @@ the module is retreived with tests.sim.physics.get_suite().
 import unittest
 
 # Library Imports
-import ogre.renderer.OGRE as Ogre
+#import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core
 from test import Mock
 
 # Module to test
-import sim.physics as physics
+#import sim.physics as physics
 
 class TestBody(unittest.TestCase):
     # TODO: Some basic math to determine better values for position and 
@@ -94,7 +94,7 @@ def get_suite():
     suites = []
     test_loader = unittest.TestLoader()
     
-    suites.append(test_loader.loadTestsFromTestCase(TestBody))
+    #suites.append(test_loader.loadTestsFromTestCase(TestBody))
     
     return unittest.TestSuite(suites)
     

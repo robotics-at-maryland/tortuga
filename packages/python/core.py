@@ -154,6 +154,14 @@ class Singleton(object):
             else:
                 return cls.__singleton__
 
+        @staticmethod
+        def singletonCreated():
+            """Returns true is the singleton has been created, false if not"""
+            if cls.__singleton__ is None:
+                return False
+            else:
+                return True
+
         cls.delete = delete
         cls.get = get
 
