@@ -184,6 +184,9 @@ int sendMultiCmd(int fd, int cmd, int addr, unsigned char * data, int len)
         txData[len+2] = (txData[len+2] + txData[i]) & 0xFF;
 
     writeData(fd, txData, len+3);
+    fsync(fd);
+    usleep(20*1000);
+//    usleep(10*1000);
 }
 
 
@@ -214,8 +217,7 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4)
     tmp[0] = s4 & 0xFF;
     tmp[1] = (s4 >> 8) & 0xFF;
     sendMultiCmd(fd, 0x14, 4, tmp, 2);
-    fsync(fd);
-    usleep(500);
+
 
     int i=0, resp=0;
     for(i=0; i<4; i++)

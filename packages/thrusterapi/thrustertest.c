@@ -29,7 +29,16 @@ int main(int argc, char ** argv)
 
     int err=0;
     int e1=0, e2=0, e3=0, e4=0;
-//    printf("\nResult = %d\n", setSpeeds(fd, 0, 0, 0, 0));
+    setReg(fd, 1, REG_TIMER, 1);
+    setReg(fd, 2, REG_TIMER, 1);
+    setReg(fd, 3, REG_TIMER, 1);
+    setReg(fd, 4, REG_TIMER, 1);
+
+
+    for(i=0; i<100; i++)
+        printf("\nResult = %d\n", err+=setSpeeds(fd, 0, 0, 0, 0));
+
+/*
 
     for(i=0; i<100; i++)
     {
@@ -45,7 +54,7 @@ int main(int argc, char ** argv)
     printf("\ne2=%d\n", e2);
     printf("\ne3=%d\n", e3);
     printf("\ne4=%d\n", e4);
-
+*/
     printf("\nerr=%d\n", err);
 
     fsync(fd);
