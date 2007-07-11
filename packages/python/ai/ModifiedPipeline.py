@@ -8,7 +8,6 @@ class GoPipeLight():
         orangeStates={"initialize":self.initialize,
                       "scan":self.scan,
                       "done":self.done,
-                      "makeSureBinFound":self.makeSureBinFound,
                       "chaseLight": self.chaseLight,
                       "pollVision":self.pollVision,
                       "waitForReadyThenScan":self.waitForReadyThenScan,
@@ -98,10 +97,10 @@ class GoPipeLight():
             self.ai.stateMachine.change_state("pollVision")
         elif (self.lostPipeCountDown==0):
             self.countOfTimesPipeLost+=1
-            if (countOfTimesPipeLost==5):#Its like we're just running off the edge over and over, maybe we got turned around?
-                countOfTimesPipeLost=0
+            if (self.countOfTimesPipeLost==5):#Its like we're just running off the edge over and over, maybe we got turned around?
+                self.countOfTimesPipeLost=0
                 self.controller.yawVehicle(180)
-                self.ai.stateMachine.change_state("initialize")
+                self.ai.stateMachine.change_state("initialize")#flip around and start searching again.
             else:
                 self.lostPipeCountDown=40
                 self.controller.setSpeed(2)

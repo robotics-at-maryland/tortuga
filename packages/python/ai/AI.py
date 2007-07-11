@@ -3,7 +3,10 @@ import ai.state_machine as StateMachine
 import module.ModuleManager as ModuleManager
 import ai.Start.GoGate as Gate
 import Pipeline.GoPipeline as Pipeline
-
+import ModifiedPipeline.GoPipeLight as ModifiedPipeline
+import Bin.GoBin as Bin
+import SpiralToBin.GoCoveredBin as Bin2
+import Treasure.GoTreasure as Treasure
 class AI(Module):
     def __init__(self, config):
         self.aiStates={
@@ -13,7 +16,8 @@ class AI(Module):
                      "toBin1":self.toBin1,
                      "toPipelineAndLight":self.toPipelineAndLight,
                      "toBin2":self.toBin2,
-                     "toTreasure":self.toTreasure
+                     "toTreasure":self.toTreasure,
+                     "missionComplete":self.missionComplete
                      }
         self.state="toGate"
         self.stateMachine=StateMachine(vehicle)
@@ -231,6 +235,8 @@ class AI(Module):
             self.state="toBin2"
         elif (self.state=="toBin2"):
             self.state="toTreasure"
+        if (self.state=="toTreasure"):
+            self.state="missionComplete"
             
     def update(self,timeStep):
         self.stateMachine.operate()
@@ -259,5 +265,14 @@ class AI(Module):
         
     def toPipelineAndLight(self):
         pipeLight=ModifiedPipeline()
+        
+    def toBin2(self):
+        bin2=CoveredBin()
+        
+    def toTreasure(self):
+        treasure=Treasure()
+    
+    def missionComplete(self):
+        self.vehicle.turnOff() #hehe or just crash if this is unimplemented, same difference
         
     
