@@ -28,7 +28,6 @@ envl.Append(CPPPATH = base_dir)
 wrapped_headers = ['Vector3.h','Quaternion.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
-print 'HEADERS:',wrapped_headers
 wrap.wrap_headers(envl, 'math',
                   wrapped_headers,
 		  gen_mod = 'gen_math')

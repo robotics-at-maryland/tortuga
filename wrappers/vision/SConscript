@@ -33,7 +33,6 @@ wrapped_headers = ['Camera.h',
                    'OrangePipeDetector.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
-print 'HEADERS:',wrapped_headers
 wrap.wrap_headers(envl, 'vision',
                   wrapped_headers,
 		  gen_mod = 'gen_vision')

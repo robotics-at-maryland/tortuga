@@ -586,7 +586,6 @@ class BoostLibrary(Library):
         if len(libraries) == 0:
             linkflags = []
             
-        print 'BOOST:',linkflags
         Library.__init__(self, name, version_str, headers, [],
                          CPPPATH = [include_path], LINKFLAGS = linkflags,
                          ext_deps = ext_deps)
