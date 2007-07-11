@@ -168,56 +168,6 @@ int multiCmd(int fd, int cmd, int addr, unsigned char * data, int len, int timeo
 }
 
 
-
-
-int recvMultiCmd(int fd, int timeout)
-{
-    unsigned char resp = 255;
-    if(waitForData(fd, &resp, 1, timeout) != 1)
-        return TH_TIMEOUTERROR;
-    return resp != 0x06;
-}
-
-int prepareCmd(unsigned char * tmp, int addr, int speed)
-{
-    tmp[0] = 0x14;
-    tmp[1] = addr;
-    tmp[2] = speed & 0xFF;
-    tmp[3] = (speed >> 8) & 0xFF;
-    tmp[4] = (tmp[0]+tmp[1]+tmp[2]+tmp[3]) & 0xFF;
-}
-
-int setSpeeds(int fd, int s1, int s2, int s3, int s4)
-{
-    unsigned char tmp[20];
-    clearBuf(fd);
-    int i;
-
-    prepareCmd(tmp, 1, s1);
-    prepareCmd(tmp+5, 2, s2);
-    prepareCmd(tmp+10, 3, s3);
-    prepareCmd(tmp+15, 4, s4);
-
-    write(fd, tmp, 20);
-    fsync(fd);
-    usleep(10*1000);
-
-    printf("\n");
-    for(i=0; i<20; i++)
-        printf("%02x ", tmp[i]);
-
-    printf("\n");
-    int resp=0;
-    for(i=0; i<4; i++)
-        resp += recvMultiCmd(fd, 100);
-
-    return resp;
-}
-
-
-
-
-
 /* Some code from cutecom, which in turn may have come from minicom */
 /* FUGLY but it does what I want */
 int openThrusters(const char * devName)

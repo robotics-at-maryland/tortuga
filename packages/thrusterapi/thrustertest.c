@@ -36,11 +36,6 @@ int main(int argc, char ** argv)
 
 
     for(i=0; i<100; i++)
-        printf("\nResult = %d\n", err+=setSpeeds(fd, 763, 763, 763, 763));
-
-/*
-
-    for(i=0; i<100; i++)
     {
         printf("\n");
         printf("\nResult 1 is: %d\n", e1+=setSpeed(fd, 1, 0));
@@ -54,7 +49,7 @@ int main(int argc, char ** argv)
     printf("\ne2=%d\n", e2);
     printf("\ne3=%d\n", e3);
     printf("\ne4=%d\n", e4);
-*/
+
     printf("\nerr=%d\n", err);
 
     fsync(fd);
