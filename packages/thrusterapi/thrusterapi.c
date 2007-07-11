@@ -92,7 +92,7 @@ int setSpeed(int fd, int addr, int speed)
     unsigned char tmp[2];
     tmp[0] = speed & 0xFF;
     tmp[1] = (speed >> 8) & 0xFF;
-    return multiCmd(fd, 0x14, addr, tmp, 2, 15);
+    return multiCmd(fd, 0x14, addr, tmp, 2, 200);
 }
 
 
@@ -102,7 +102,7 @@ int setVelocityLimit(int fd, int addr, int limit)
     tmp[0] = 1; /* Vel Limit */
     tmp[1] = (limit & 0xFF);
     tmp[2] = (limit >> 8) & 0xFF;
-    return multiCmd(fd, 0x18, addr, tmp, 3, 20);
+    return multiCmd(fd, 0x18, addr, tmp, 3, 200);
 }
 
 
@@ -112,7 +112,7 @@ int writeVelocityLimit(int fd, int addr, int limit)
     tmp[0] = 1; /* Vel Limit */
     tmp[1] = (limit & 0xFF);
     tmp[2] = (limit >> 8) & 0xFF;
-    return multiCmd(fd, 0x19, addr, tmp, 3, 60);
+    return multiCmd(fd, 0x19, addr, tmp, 3, 200);
 }
 
 
@@ -121,7 +121,7 @@ int setReg(int fd, int addr, int reg, int val)
     unsigned char tmp[3];
     tmp[0] = reg;
     tmp[1] = val;
-    return multiCmd(fd, 0x18, addr, tmp, 2, 20);
+    return multiCmd(fd, 0x18, addr, tmp, 2, 200);
 }
 
 
@@ -130,7 +130,7 @@ int writeReg(int fd, int addr, int reg, int val)
     unsigned char tmp[3];
     tmp[0] = reg;
     tmp[1] = val;
-    return multiCmd(fd, 0x19, addr, tmp, 2, 60);
+    return multiCmd(fd, 0x19, addr, tmp, 2, 200);
 }
 
 
@@ -157,13 +157,73 @@ int multiCmd(int fd, int cmd, int addr, unsigned char * data, int len, int timeo
         txData[len+2] = (txData[len+2] + txData[i]) & 0xFF;
 
     writeData(fd, txData, len+3);
+    fsync(fd);
 
-    unsigned char resp = 0;
+    unsigned char resp = 255;
     if(waitForData(fd, &resp, 1, timeout) != 1)
         return TH_TIMEOUTERROR;
-
+    fsync(fd);
+    usleep(500); /* Don't even think about it. This cannot be any lower. */
     return resp != 0x06;
 }
+
+
+
+/* Internal use */
+int sendMultiCmd(int fd, int cmd, int addr, unsigned char * data, int len)
+{
+    unsigned char txData[]={0, 0, 0, 0, 0, 0, 0, 0};
+    int i=0;
+
+    txData[0] = cmd;
+    txData[1] = addr;
+    for(i=0; i<len; i++)
+        txData[i+2] = data[i];
+
+    for(i=0; i<len+2; i++)
+        txData[len+2] = (txData[len+2] + txData[i]) & 0xFF;
+
+    writeData(fd, txData, len+3);
+}
+
+
+int recvMultiCmd(int fd, int timeout)
+{
+    unsigned char resp = 255;
+    if(waitForData(fd, &resp, 1, timeout) != 1)
+        return TH_TIMEOUTERROR;
+    return resp != 0x06;
+}
+
+int setSpeeds(int fd, int s1, int s2, int s3, int s4)
+{
+    unsigned char tmp[2];
+    clearBuf(fd);
+    tmp[0] = s1 & 0xFF;
+    tmp[1] = (s1 >> 8) & 0xFF;
+    sendMultiCmd(fd, 0x14, 1, tmp, 2);
+
+    tmp[0] = s2 & 0xFF;
+    tmp[1] = (s2 >> 8) & 0xFF;
+    sendMultiCmd(fd, 0x14, 2, tmp, 2);
+
+    tmp[0] = s3 & 0xFF;
+    tmp[1] = (s3 >> 8) & 0xFF;
+    sendMultiCmd(fd, 0x14, 3, tmp, 2);
+
+    tmp[0] = s4 & 0xFF;
+    tmp[1] = (s4 >> 8) & 0xFF;
+    sendMultiCmd(fd, 0x14, 4, tmp, 2);
+    fsync(fd);
+    usleep(500);
+
+    int i=0, resp=0;
+    for(i=0; i<4; i++)
+        resp += recvMultiCmd(fd, 100);
+
+    return resp;
+}
+
 
 
 
@@ -172,7 +232,7 @@ int multiCmd(int fd, int cmd, int addr, unsigned char * data, int len, int timeo
 /* FUGLY but it does what I want */
 int openThrusters(const char * devName)
 {
-   int fd = open(devName, O_RDWR, O_ASYNC); // | O_ASYNC); //, O_RDWR, O_NONBLOCK);
+   int fd = open(devName, O_RDWR); //, O_ASYNC); // | O_ASYNC); //, O_RDWR, O_NONBLOCK);
 
     if(fd == -1)
         return -1;
