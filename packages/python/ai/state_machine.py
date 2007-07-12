@@ -10,16 +10,9 @@ class state_machine:
     "finished" is reached.
     '''
         
-    def __init__(self,vehicle):
+    def __init__(self):
         print "Initializing the state machine"
         self.state = "initializing"             #set the start state
-        self.define_state_table()               #load the state table
- 
-    '''
-    Defines the state table, where state names are mapped to operation functions.
-    '''
-    def define_state_table(self):
-        self.state_table = {"initializing":self.initializing,"starting":self.starting,"halting":self.halting,"operating":self.operating,"testing thrusters":self.testing_thrusters,"curses operation":self.curses_operation}
     
     def set_states(self,states):
         self.state_table = states

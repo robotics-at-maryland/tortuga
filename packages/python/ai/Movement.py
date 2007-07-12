@@ -1,17 +1,17 @@
-import ai.AIModel as AIModel
+from ai.AIModel import model as AIModel
 
 class control:
-	def __init__(self):
-		self.model = AIModel()
-		self.controller = self.model.controller
-		self.vehicle = self.model.vehicle
-	
-	def navigateAbove(self, x, y, angle):
+    def __init__(self):
+        self.model = AIModel()
+        self.controller = self.model.controller
+        self.vehicle = self.model.vehicle
+    
+    def navigateAbove(self, x, y, angle):
         #angle should be a number from 0 to pi for normal operation
         #y will be used to determine speed settings
         #x and angle will be combined to determine how to yaw the vehicle.
 
-        if (x<0 or y<0 or x>1 or y>1):
+        if x<0 or y<0 or x>1 or y>1:
             print "NavigateAbove is being called with out of range x or y coordinates, this is an error, they should be 0.0 to 1.0 in image coordinates from the DOWNWARD FACING CAMERA ONLY"
             return 
 
@@ -77,11 +77,11 @@ class control:
             guessChange-=3
 
         self.controller.yawVehicle(guessChange)
-	
-	def navigateToward(self, x, y):
+    
+    def navigateToward(self, x, y):
         #yawVehicle(double degrees) Positive is left, negative is right
        
- 		if (not self.controller.isReady()):
+        if (not self.controller.isReady()):
             return
 
         if (x<0 or y<0):
@@ -127,8 +127,8 @@ class control:
             self.controller.setDepth(self.controller.getDepth()+.2)#positive is downwards, this sets us to go deeper
         else:
             self.controller.setDepth(10.0)#This better be feet
-			
-	def navigateAboveBin(self,x,y):
+            
+    def navigateAboveBin(self,x,y):
         #aim for x and y between .48 and .52, may have to aim differently
         #depending on where the marker droppers are located.
         if (not self.controller.isReady()):
@@ -152,7 +152,7 @@ class control:
             self.controller.setSpeed(0)
             depth=self.controller.getDepth()
             if (depth<11):
-                self.controller.setDepth(depth+.2)	#move down a little bit, make sure we're directly above whatever it is we're lookin at, Its supposed to be a bin
+                self.controller.setDepth(depth+.2)    #move down a little bit, make sure we're directly above whatever it is we're lookin at, Its supposed to be a bin
         elif (y<.6):
             self.controller.setSpeed(-1)
         elif (y<.7):
@@ -165,9 +165,9 @@ class control:
             self.controller.setSpeed(-3)
             depth = self.controller.getDepth()
             if (depth>8):
-                self.controller.setDepth(depth-.2)	#move up a little bit to increase our field of view, hopefully preventing us from losing this thing
+                self.controller.setDepth(depth-.2)    #move up a little bit to increase our field of view, hopefully preventing us from losing this thing
 
-        if (not self.controller.isReady()):	#don't mess with angles while we're trying to turn.
+        if (not self.controller.isReady()):    #don't mess with angles while we're trying to turn.
             return
 
         guessChange=0.0       
