@@ -1,15 +1,12 @@
-from module import Module, IModule
-from core import implements
-from ai.state_machine import state_machine as StateMachine
+import module.Module as Module
+import ai.state_machine as StateMachine
 import ai.Movement as Movement
 import time
 
 import ai.AIModel as AIModel
 
 class AI(Module):
-    implements(IModule)
-    
-    def __init__(self, veh, config):
+    def __init__(self,config):
         self.startState = "shutdown"
         self.aiStates = {
                     "shutdown":self.shutdown,
@@ -59,17 +56,16 @@ class AI(Module):
 
         self.stateMachine = StateMachine()
         self.stateMachine.state = "waitForStart"
-        self.stateMachine.set_states(self.aiStates)
+        self.stateMachine.set_states = self.aiStates
         self.model = AIModel.model()
-        self.vehicle = veh
-        #self.vision = model.vision
-        self.controller = self.model.controller
+        self.vehicle = model.vehicle
+        self.vision = model.vision
+        self.controller = self.model.controllerler
         self.complexControl = Movement.control()
         
         Module.__init__(self,config)
         
     def update(self,time):
-        print 'AI Step',time
         self.time = time
         self.stateMachine.operate()
     
@@ -79,7 +75,6 @@ class AI(Module):
     def waitForStart(self):
         start = self.vehicle.startStatus()
         self.vehicle.printLine(0,"Waiting to start...")
-        print 'Waiting for start'
         if start == 1:
             self.change_state(self.startState)
             self.vehicle.printLine(0,"Starting!")
@@ -90,7 +85,13 @@ class AI(Module):
         self.vehicle.safeThrusters()
     
     #                                                              #
-    ###############################################################    
+    ############################################################### 
+    
+    ###############################################################        
+    ##                        General States                    ##
+      
+    #                                                              #
+    ###############################################################  
     
     ###############################################################        
     ##                        Simple Gate                        ##
