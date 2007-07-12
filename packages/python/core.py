@@ -164,6 +164,7 @@ class Singleton(object):
 
         cls.delete = delete
         cls.get = get
+        cls.singletonCreated = singletonCreated
 
         cls.__singleton__ = singleton = object.__new__(cls)
         # TODO: Fix this so I can pass no arguments

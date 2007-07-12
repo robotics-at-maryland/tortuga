@@ -36,15 +36,15 @@ class Vehicle(_Vehicle, Component):
         self._config = config
         
         # Create the devices
-        print 'Creating devices'
+        #print 'Creating devices'
         self._create_devices()
-        print 'Done'
+        #print 'Done'
         
         # Create module base class, send off events
-        print 'Initing'    
+        #print 'Initing'    
         event.send('MODULE_CREATED', self)
         ModuleManager.get().register(self)
-        print 'Done'
+        #print 'Done'
         
     def start(self):
         self.background(self._config['update_interval'])
@@ -95,6 +95,7 @@ class Vehicle(_Vehicle, Component):
 
                 self._addDevice(device)
 
+                #print 'Background device:',name
                 if config_node.has_key('update_interval'):
                     device.background(config_node['update_interval'])
                 

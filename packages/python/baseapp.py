@@ -6,6 +6,10 @@
 # File:   tools/simulator/baseapp.py
 
 
+# Python Imports
+import time
+import sys
+
 # Library Imports
 import yaml
 
@@ -24,6 +28,8 @@ class AppBase(object):
     """
     def __init__(self, config_file_path, load_modules = True):
         self._modules = []
+        self._quit = 0
+        self.main_mod = None
         
         # Load our config file, in the future this will be custom class that is
         # able to import config files into other config files and still save
@@ -42,13 +48,29 @@ class AppBase(object):
         event.register_handlers({'MODULE_SHUTDOWN' : self._remove_module,
                                  'MODULE_CREATED' : self._add_module} )
         
-        print 'Loading finished'
+        #print 'Loading finished'
         
     def _create_module_manager(self):
-        if not ModuleManager.singletonCreated():
-            ModuleManager(self._config)
+        
+        #if not ModuleManager.singletonCreated():
+        # Define custom loader ModuleManager that passes the vehicle to each
+        # module
+        def load_func(mod_type, mod_config):
+            #print 'Creating Module',mod_config['name']
+            if mod_config['name'] != 'Vehicle':
+                vehicle = ModuleManager.get().get_module('Vehicle')
+                assert vehicle is not None
+                mod_type(vehicle, mod_config)
+            else:
+                mod_type(mod_config)
+        
+        ModuleManager(self._config, load_func)
+        #ModuleManager(self._config)
         
     def _remove_module(self, mod):
+        if mod == self.main_mod:
+            self._quit = True
+        
         if self._modules.count(mod) > 0:
             self._modules.remove(mod)
             
@@ -62,24 +84,32 @@ class AppBase(object):
         """
         
         # TODO: Error handling
-        main_mod = ModuleManager.get().get_module(self._config['main'])
+        main_name = self._config['main_module']
+        self.main_mod = ModuleManager.get().get_module(main_name)
         
         # Start Everything but the main module
         mod_config = self._config['Modules']
-        for name in mod_config.keys:
-            ModuleManager.get().get_module(name).start()
+        for name in mod_config.keys():
+            if name != main_name:
+                ModuleManager.get().get_module(name).start()
         
         # Grab update interval
-        update_interval = self._config['Modules'][main_name]['update_interval']
-        
+        update_interval = 1000.0 / self._config['Modules'][main_name]['update_interval'] / 1000.0
         self._last_time = time.time()
         
+        
+        #print 'Interval',update_interval
         while(1):
+            # Quit if the main module has shutdown
+            if self._quit:
+                break;
+            
             current_time = time.time()
             time_since_last_iteration = (current_time - self._last_time);
 
             # Update main iteration
-            main_mod.update(time_since_last_iteration)
+            #print 'Running: ',time_since_last_iteration
+            self.main_mod.update(time_since_last_iteration)
             
             # Store old time
             self._last_time = current_time
@@ -89,5 +119,6 @@ class AppBase(object):
             if sleep_time < 0:
                 sleep_time = update_interval
                 
+            #print 'Sleeping for',sleep_time
             time.sleep(sleep_time)
         

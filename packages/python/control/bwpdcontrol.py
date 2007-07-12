@@ -37,10 +37,10 @@ class BWPDController(_BWPDController, Component):
         self._config = config
     
         # Create module base class, send off events
-        print 'Initing'    
+        #print 'Initing'    
         event.send('MODULE_CREATED', self)
         ModuleManager.get().register(self)
-        print 'Done'
+        #print 'Done'
         
     def start(self):
         self.background(self._config['update_interval'])

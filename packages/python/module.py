@@ -153,7 +153,7 @@ class ModuleManager(Singleton):
         @type  config: dict like
         @param config: The section of the configuration containing the modules
         """
-        print 'loading modules'
+        #print 'loading modules'
         
         mod_nodes = config.get('Modules', None)
         # Maps module -> modules it dependens on
