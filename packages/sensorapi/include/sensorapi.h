@@ -61,11 +61,21 @@ int syncBoard(int fd);
 int pingBoard(int fd);
 
 int readDepth(int fd);
+
+/** Read the status bit back from the board */
+int readStatus(int fd);
+    
 int hardKill(int fd);
+
+/** Releases marker, only takes 0 or 1 */
 int dropMarker(int fd, int markerNum);
+    
 int lcdBacklight(int fd, int state);
+    
 int thrusterSafety(int fd, int state);
-int displayText(int fd, int line, char * text);
+    
+int displayText(int fd, int line, const char* text);
+
 int getTemp(int fd, unsigned char * tempData);
 
 // If we are compiling as C++ code we need to use extern "C" linkage

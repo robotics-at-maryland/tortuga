@@ -284,7 +284,7 @@ int thrusterSafety(int fd, int state)
 
 
 
-int displayText(int fd, int line, char * text)
+int displayText(int fd, int line, const char* text)
 {
     if(line!=0 && line!=1)
         return -255;
