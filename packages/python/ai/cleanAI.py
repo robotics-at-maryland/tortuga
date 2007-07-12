@@ -7,7 +7,7 @@ import ai.AIModel as AIModel
 
 class AI(Module):
     def __init__(self,config):
-        self.startState = "toGate"
+        self.startState = "shutdown"
         self.aiStates = {
                     "shutdown":self.shutdown,
                     "testFunctionality":self.testFunctionality,
