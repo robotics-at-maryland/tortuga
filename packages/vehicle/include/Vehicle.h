@@ -10,6 +10,9 @@
 #ifndef RAM_VEHICLE_VEHICLE_06_11_2007
 #define RAM_VEHICLE_VEHICLE_06_11_2007
 
+// STD Includes
+#include <string>
+
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
@@ -37,7 +40,16 @@ public:
     virtual void safeThruster();
 
     /** Turns <b>OFF</b> the thruster safety */
-    virtual void unsafeThrusters();
+    virtual void unsafeThrusters(); 
+
+    /** Drops one of the two markers */
+    virtual void dropMarker();
+
+    /** Returns 1 if the start switch is down 0 if its up */
+    virtual int startStatus();
+
+    /** Prints a line to the vehicle LCD screen */
+    virtual void printLine(int line, std::string text);
     
     /** This is <b>NOT</b> thread safe */
     virtual void _addDevice(device::IDevicePtr device);
@@ -60,14 +72,20 @@ protected:
     struct VehicleState
     {
         double depth;
+        bool startSwitch;
     };
     
     void getState(Vehicle::VehicleState& state);
     void setState(const Vehicle::VehicleState& state);
     
 private:
+    
     core::ConfigNode m_config;
+
+    /** syncs access to the sensor api */
+    boost::mutex m_sensorBoardMutex;
     int m_sensorFD;
+    int m_markerNum;
     
     core::ReadWriteMutex m_state_mutex;
     VehicleState m_state;

@@ -20,7 +20,8 @@ namespace vehicle {
 
 Vehicle::Vehicle(core::ConfigNode config) :
     m_config(config),
-    m_sensorFD(-1)
+    m_sensorFD(-1),
+    m_markerNum(0)
 {
     std::string devfile =
         m_config["sensor_board_file"].asString("/dev/sensor");
@@ -45,6 +46,8 @@ double Vehicle::getDepth()
 
 void Vehicle::safeThruster()
 {
+    boost::mutex::scoped_lock lock(m_sensorBoardMutex);
+    
     if (m_sensorFD >= 0)
     {
         thrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
@@ -56,6 +59,8 @@ void Vehicle::safeThruster()
 
 void Vehicle::unsafeThrusters()
 {
+    boost::mutex::scoped_lock lock(m_sensorBoardMutex);
+    
     if (m_sensorFD >= 0)
     {
         thrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
@@ -65,6 +70,27 @@ void Vehicle::unsafeThrusters()
     }
 }
 
+void Vehicle::dropMarker()
+{
+    boost::mutex::scoped_lock lock(m_sensorBoardMutex);
+    ::dropMarker(m_sensorFD, m_markerNum);
+}
+
+int Vehicle::startStatus()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
+    return m_state.startSwitch;   
+}
+
+void Vehicle::printLine(int line, std::string text)
+{
+    if (m_sensorFD >= 0)
+    {
+        boost::mutex::scoped_lock lock(m_sensorBoardMutex);
+        displayText(m_sensorFD, line, text.c_str());
+    }
+}
+    
 void Vehicle::getState(Vehicle::VehicleState& state)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
@@ -86,8 +112,15 @@ void Vehicle::update(double timestep)
 {
     if (m_sensorFD >= 0)
     {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_state_mutex);
+        core::ReadWriteMutex::ScopedWriteLock lockState(m_state_mutex);
+        boost::mutex::scoped_lock lockSensor(m_sensorBoardMutex);
+
+        // Depth
         m_state.depth = readDepth(m_sensorFD);
+
+        // Status register
+        int status = readStatus(m_sensorFD);
+        m_state.startSwitch = status && STATUS_STARTSW;
     }
 }
     

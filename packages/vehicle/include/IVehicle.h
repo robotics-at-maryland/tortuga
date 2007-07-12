@@ -30,6 +30,15 @@ public:
 
     /** Turns <b>OFF</b> the thruster safety */
     virtual void unsafeThrusters() = 0;
+    
+    /** Release Marker */
+    virtual void dropMarker() = 0;
+
+    /** Returns 1 if the start switch is down 0 if its up */
+    virtual int startStatus() = 0;
+
+    /** Prints a line to the vehicle LCD screen */
+    virtual void printLine(int line, std::string text) = 0;
 };
     
 } // namespace vehicle
