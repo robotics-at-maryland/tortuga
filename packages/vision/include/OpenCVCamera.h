@@ -24,18 +24,22 @@ namespace vision {
 class OpenCVCamera : public Camera
 {
 public:
-    OpenCVCamera(int camNum =0);
+	OpenCVCamera();
+    OpenCVCamera(int camNum, bool forward);
 	OpenCVCamera(std::string movieName);
     ~OpenCVCamera();
 
     /** This grabs the new image, and then stores it for Camera::getImage */
     virtual void update(double timestep);
 	
+	virtual void getUncalibratedImage(Image* distorted);
+	
+	virtual void getImage(Image* undistorted);
+	
 	/** Retrieves the latest image from camera and undistorts it into undistorted
 	*	@undistorted the image to be undistorted
 	*/
 	void getCalibratedImage(Image* undistorted);
-
 
     virtual size_t width();
     
@@ -44,7 +48,6 @@ public:
 private:
 	/*A Calibration with parameters that can be set for this camera*/
 	Calibration* m_calibration;
-
     CvCapture* m_camCapture;
 };
 

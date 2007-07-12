@@ -9,24 +9,32 @@
 
 // STD Includes
 #include <cassert>
-
+#include <iostream>
 // Library Includes
 #include "highgui.h"
 
-// Project incldues
+// Project includes
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Calibration.h"
+
 namespace ram {
 namespace vision {
 
-OpenCVCamera::OpenCVCamera(int camNum)
+OpenCVCamera::OpenCVCamera()
 {
-	const bool FORWARD=true;
-	const bool DOWNWARD=false;
-	//What does camnum say about which camera this is??
+	m_calibration=NULL;
+	m_camCapture=cvCaptureFromCAM(0);
+	assert(m_camCapture && "Error creating camera (default constructor)");
+}
+
+//forward=true;
+//downward=false;
+OpenCVCamera::OpenCVCamera(int camNum, bool forward)
+{
+	//What does camnum say about which camera this is?
 	m_calibration=new Calibration(this);
-	m_calibration->setCalibration(FORWARD);
+	m_calibration->setCalibration(forward);
     m_camCapture = cvCaptureFromCAM(camNum);
 
     /// TODO: Handle the more gracefully
@@ -36,6 +44,7 @@ OpenCVCamera::OpenCVCamera(int camNum)
 OpenCVCamera::OpenCVCamera(std::string filename)
 {
 	m_camCapture = cvCaptureFromFile(filename.c_str());
+	m_calibration=NULL;
 	assert(m_camCapture && "error creating camera from file");
 }
 
@@ -46,13 +55,35 @@ OpenCVCamera::~OpenCVCamera()
     cvReleaseCapture(&m_camCapture);
 }
 
+//make the returning of calibrated images invisible to the vision code
+void OpenCVCamera::getImage(Image* undistorted)
+{
+	std::cout<<"Image width and height"<<undistorted->getWidth()<<" "<<undistorted->getHeight()<<"\n";
+	if (m_calibration!=NULL)
+		getCalibratedImage(undistorted);
+	else
+		Camera::getImage(undistorted);
+}
+
+void OpenCVCamera::getUncalibratedImage(Image* distorted)
+{
+	Camera::getImage(distorted);
+}
+
 void OpenCVCamera::getCalibratedImage(Image* undistorted)
 {
+	std::cout<<"Image width and height"<<undistorted->getWidth()<<" "<<undistorted->getHeight()<<"\n";
+	std::cout<<"CImag width and height"<<m_publicImage->getWidth()<<" "<<m_publicImage->getHeight()<<"\n";
+	
 	assert(undistorted && "Can't calibrate into a null image");
 	core::ReadWriteMutex::ScopedReadLock lock(m_imageMutex);
-	
+
+	std::cout<<"Image width and height"<<undistorted->getWidth()<<" "<<undistorted->getHeight()<<"\n";
+	std::cout<<"CImag width and height"<<m_publicImage->getWidth()<<" "<<m_publicImage->getHeight()<<"\n";
+
+	std::cout<<((IplImage*)(m_publicImage))->width<<" and "<<((IplImage*)(m_publicImage))->height<<"\n\n";
 	// Copy over the image (uses copy assignment operator)
-    m_calibration->calibrateImage(((IplImage*)(m_publicImage)),((IplImage*)undistorted));
+    m_calibration->calibrateImage(((IplImage*)(*m_publicImage)),((IplImage*)*undistorted));
 }
 
 void OpenCVCamera::update(double timestep)

@@ -25,10 +25,15 @@ sources = ['src/BasicImage.cpp',
            'src/RedLightDetector.cpp',
            'src/OrangePipeDetector.cpp',
            'src/Calibration.cpp',
-           'src/main.cpp']
+           'src/main.cpp',
+	   'src/DetectorTest.cpp',
+	   'src/VisionRunner.cpp']
 
 detectorSources = [
-		   'src/DetectorTest.cpp']
+		   'src/DetectorTest.cpp',
+		   'src/VisionRunner.cpp'
+		  ]
+
 	
 # Build Library (will be called 'libram_vision.so')
 # All build settings for the library are stored in buildfiles/libs.py

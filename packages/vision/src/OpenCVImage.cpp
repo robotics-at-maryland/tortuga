@@ -8,6 +8,7 @@
  */
 
 #include <cstdio>
+#include <iostream>
 
 // Library Includes
 /// TODO: Limit this to just the needed headers if possible
@@ -120,6 +121,7 @@ void  OpenCVImage::setPixelFormat(Image::PixelFormat format)
 
 OpenCVImage::operator IplImage* ()
 {
+	std::cout<<"Inside the IplImage* cast"<<m_img->width<<" "<<m_img->height<<"\n";
     return m_img;
 }
 

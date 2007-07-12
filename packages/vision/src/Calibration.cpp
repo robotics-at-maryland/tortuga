@@ -37,7 +37,7 @@ void Calibration::calculateCalibrations()
 	
 	while (goodImages<NUMIMAGES_CALIBRATE)
 	{
-		cam->getImage(frame);
+		cam->getUncalibratedImage(frame);
 		IplImage* image =(IplImage*)(*frame);
 		cout<<"Printing image"<<endl;
 		int cornerCount=findCorners(image,tmpArray);
@@ -84,7 +84,9 @@ void Calibration::calculateCalibrations()
 
 void Calibration::calibrateImage(IplImage* src, IplImage* dest)
 {
+	cout<<src->width<<" "<<src->height<<" "<<dest->width<<" "<<dest->height<<endl;
 	undistort(src, dest, cameraMatrix, distortion);
+	cout<<"Successfully undistorted"<<endl;
 }
 
 void Calibration::printCalibrations()
@@ -179,8 +181,9 @@ void Calibration::setCalibration(bool forward)
 	//
 	//
 	
-	
-    // DISTORTION VALUES, presumably for exchangeable lens
+	if (forward)
+	{
+	// DISTORTION VALUES, presumably for exchangeable lens
     
     // Quadratic dependence, k1.  A point in the original image a distance r 
     // from the center maps k1*r^2 away from the center in the final image.
@@ -216,5 +219,40 @@ void Calibration::setCalibration(bool forward)
     cameraMatrix[6]=0;
     cameraMatrix[7]=0;
     cameraMatrix[8]=1;
+	}
+	else//downward
+	{
+	    distortion[0]=-0.109878;
+    
+    // Quartic dependence, k2.  A point in the original image a distance r 
+    // from the center maps k2*r^4 away from the center in the final image.
+    // Units unknown.
+    distortion[1]=-1.166973;
+    
+    // Presumably, these two parameters translate the origin of the distortion.
+    // That would make these the p1 and p2 from OpenCV's documentation.
+    // Possibly in pixels.
+    distortion[2]=-0.001312;
+    distortion[3]=-0.008959;
+    
+    
+    // CAMERA PARAMETERS
+    // It appears that these parameters allow the camera's "intrinsic" optics
+    // to be slightly elliptical, and offset on the image.
+    
+    // Focal length, x-axis, units unknown
+    cameraMatrix[0]=938.460815;
+    cameraMatrix[1]=0;
+    // x-translation of camera's focus, relative to left of image, in pixels
+    cameraMatrix[2]=365.139343;
+    cameraMatrix[3]=0;
+    // Focal length, y-axis, units unknown
+    cameraMatrix[4]=965.857849;
+    // y-translation of camera's focus, relative to top of image, in pixels
+    cameraMatrix[5]=265.445618;
+    cameraMatrix[6]=0;
+    cameraMatrix[7]=0;
+    cameraMatrix[8]=1;
+	}
     calibrated=true;
 }

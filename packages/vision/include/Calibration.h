@@ -46,7 +46,7 @@ namespace vision{
 			float distortion[4];
 			float cameraMatrix[9];
 			ram::vision::Image* frame;
-			ram::vision::Camera* cam;
+			ram::vision::OpenCVCamera* cam;
 			bool calibrated;
 			float transVects[3*NUMIMAGES_CALIBRATE];//should be 3
 			float rotMat[9*NUMIMAGES_CALIBRATE];//should be 9

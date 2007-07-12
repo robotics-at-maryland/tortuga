@@ -39,14 +39,14 @@ namespace ram { namespace vision {
 			double getY();
 
 		private:
-		int gateX;
-		int gateY;
-		double gateXNorm;
-		double gateYNorm;
-		IplImage* gateFrame;
+			int gateX;
+			int gateY;
+			double gateXNorm;
+			double gateYNorm;
+			IplImage* gateFrame;
 	
-		ram::vision::Image* frame;
-		ram::vision::Camera* cam;
+			ram::vision::Image* frame;
+			ram::vision::Camera* cam;
 	};
 	
 }}//ram::vision

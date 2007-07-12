@@ -42,7 +42,7 @@ public:
      *  @current  The current image is copied into the given image
      *            and that pointer is returned.
      */
-    void getImage(Image* current);
+    virtual void getImage(Image* current);
 
     /** Retrieves the next image from the camera.
      *
