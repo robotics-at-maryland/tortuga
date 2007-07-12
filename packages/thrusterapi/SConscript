@@ -1,0 +1,29 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/thrusterapi/SConscript
+
+# Build system imports
+import libs
+import helpers
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Build Library (will be called 'libram_carnetix.so')
+envl.Append(CPPPATH = ['include'])
+helpers.SharedLibrary(envl, 'thruster',  source = ['src/thrusterapi.c'])
+
+# Testing and Demo Programs
+envt = env.Clone()
+
+# Needed because of steves include pattern
+envt.AppendUnique(CPPPATH = ['include'])
+
+# Build the ctx and consolemon
+helpers.Program(envt, target = 'thrustertest', 
+                source = 'test/src/thrustertest.c',
+                int_deps = 'thruster')

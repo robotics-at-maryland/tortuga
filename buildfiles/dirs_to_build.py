@@ -15,6 +15,7 @@ LINUX_DIRS = set([
     os.path.join('packages','extensions', 'wxogre'),
     os.path.join('packages', 'vehicle'),
     os.path.join('packages', 'sensorapi'),
+    os.path.join('packages', 'thrusterapi'),
     os.path.join('packages', 'carnetix'),
     os.path.join('packages', 'imu'),
     os.path.join('packages', 'control'),

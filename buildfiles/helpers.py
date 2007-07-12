@@ -7,6 +7,7 @@
 
 # STD Imports
 import os
+import sys
 import glob as _glob
 
 # Build System imports
@@ -35,11 +36,22 @@ def add_int_deps(env, int_deps):
     for dep in int_deps:
         libs.add_internal(env, dep)
 
+# Keeps track of created libraries to provide better warnings
+CREATED_LIBRARIES = set()
+
 def SharedLibrary(env, name, *args, **kwargs):
     """
     Simple helper function to all easier building of shared libraries that
     integrate with the rest of the build system.
     """
+
+    global CREATED_LIBRARIES
+    if name in CREATED_LIBRARIES:
+        print 'Already created library: "%s"' % name
+        print 'Please fix: %s', env.GetBuildPath('SConscript')
+        sys.exit(1)
+    else:
+        CREATED_LIBRARIES.add(name)
 
     # Setup environment to build library based on info in libs.py
     my_lib = libs._get_internal_lib(name)
