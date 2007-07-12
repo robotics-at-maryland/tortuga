@@ -77,7 +77,8 @@ class AI(Module):
         self.vehicle.printLine(0,"Waiting to start...")
         if start == 1:
             self.change_state(self.startState)
-            
+            self.vehicle.printLine(0,"Starting!")
+
     def shutdown(self):
         self.controller.setDepth(1)
         self.controller.setSpeed(0)
