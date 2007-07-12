@@ -81,6 +81,33 @@ void rotate90Deg(IplImage* src, IplImage* dest)
 	}
 }
 
+void rotate90DegClockwise(IplImage* src, IplImage* dest)
+{
+	char* data=src->imageData;
+	char* data2=dest->imageData;
+	int width=src->width;
+	int height=src->height;
+	if (width!=dest->height || height!=dest->width)
+	{
+		cout<<"Wrong dimensions of destination image in rotation, should be transpose of src image"<<endl;
+		exit(-1);
+	}
+	int count=0;
+	int count2=0;
+	for (int y=0; y<height;y++)
+	{
+		count2=-3-3*y;
+		for (int x=0; x<width;x++)
+		{
+			count2+=(3*height);
+			data2[count2]=data[count];
+			data2[count2+1]=data[count+1];
+			data2[count2+2]=data[count+2];
+			count+=3;
+		}
+	}
+}	
+
 int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 {
     cout<<"Starting findCorners"<<endl;
