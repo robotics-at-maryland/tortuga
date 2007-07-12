@@ -81,6 +81,7 @@ void rotate90Deg(IplImage* src, IplImage* dest)
 	}
 }
 
+//This goes clockwise, rotate90Deg goes counterclockwise.
 void rotate90DegClockwise(IplImage* src, IplImage* dest)
 {
 	char* data=src->imageData;
