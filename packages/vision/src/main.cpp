@@ -161,6 +161,8 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	int width=percents->width;
 	int height=percents->height;
 
+	cout<<"width="<<width<<"height="<<height<<endl;
+
 	int* columnCounts=(int*) calloc(sizeof(int),width);
 	int count=0;
 	int pixel_count=0;

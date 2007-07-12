@@ -45,7 +45,7 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	}
 	frame = new OpenCVImage(640,480);
 	dest=cvCreateImage(cvSize(480,640),8,3);
-//	camera->background(); //Silliness	
+	camera->background(); //Silliness	
 }
 
 DetectorTest::DetectorTest(string movie)
@@ -75,7 +75,7 @@ DetectorTest::DetectorTest(string movie)
 		cout<<"No Movie"<<endl;
 		return;
 	}
-	//camera->background(); //Silliness	
+	camera->background(); //Silliness	
 }
 
 DetectorTest::~DetectorTest()
@@ -120,10 +120,9 @@ void DetectorTest::binDetectOff()
 
 void DetectorTest::update(double timestep)
 {
-	camera->update(timestep);
 	char key=' ';
 	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
-	camera->getCalibratedImage(frame);
+	camera->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
 	if (SHOW_OUTPUT)
 		cvShowImage("Detector Test", image);

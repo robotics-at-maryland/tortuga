@@ -44,9 +44,10 @@ namespace ram { namespace vision {
 			double gateXNorm;
 			double gateYNorm;
 			IplImage* gateFrame;
+			IplImage* gateFrameRatios;
 	
 			ram::vision::Image* frame;
-			ram::vision::Camera* cam;
+			ram::vision::OpenCVCamera* cam;
 	};
 	
 }}//ram::vision

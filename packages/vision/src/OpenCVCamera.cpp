@@ -72,16 +72,8 @@ void OpenCVCamera::getUncalibratedImage(Image* distorted)
 
 void OpenCVCamera::getCalibratedImage(Image* undistorted)
 {
-	std::cout<<"Image width and height"<<undistorted->getWidth()<<" "<<undistorted->getHeight()<<"\n";
-	std::cout<<"CImag width and height"<<m_publicImage->getWidth()<<" "<<m_publicImage->getHeight()<<"\n";
-	
 	assert(undistorted && "Can't calibrate into a null image");
 	core::ReadWriteMutex::ScopedReadLock lock(m_imageMutex);
-
-	std::cout<<"Image width and height"<<undistorted->getWidth()<<" "<<undistorted->getHeight()<<"\n";
-	std::cout<<"CImag width and height"<<m_publicImage->getWidth()<<" "<<m_publicImage->getHeight()<<"\n";
-
-	std::cout<<((IplImage*)(m_publicImage))->width<<" and "<<((IplImage*)(m_publicImage))->height<<"\n\n";
 	// Copy over the image (uses copy assignment operator)
     m_calibration->calibrateImage(((IplImage*)(*m_publicImage)),((IplImage*)*undistorted));
 }

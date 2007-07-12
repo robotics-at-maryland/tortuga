@@ -84,7 +84,6 @@ bool BasicImage::getOwnership() const
 BasicImage::operator IplImage* ()
 {
     // Create an IplImage with the proper size and give it our data
-	std::cout<<"Calling BasicImage's IplImage* cast operator\n\n";
     CvSize size;
     size.width = m_width;
     size.height = m_height;
