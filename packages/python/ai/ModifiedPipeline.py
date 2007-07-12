@@ -9,7 +9,9 @@ class GoPipeLight():
                       "scan":self.scan,
                       "done":self.done,
                       "chaseLight": self.chaseLight,
+					  "searchStraight": self.searchStraight,
                       "pollVision":self.pollVision,
+					  ""
                       "waitForReadyThenScan":self.waitForReadyThenScan,
                      }
         self.ai.stateMachine.set_states(orangeStates)
@@ -65,32 +67,32 @@ class GoPipeLight():
                 self.ai.change_state("done")
             
     def pollVision(self):
-        orangeDetector=self.vision.downward.OrangeDetector
-        redDetector=self.vision.forward.RedLightDetector
+        orangeDetector = self.vision.downward.OrangeDetector
+        redDetector = self.vision.forward.RedLightDetector
         
         if (redDetector.found()):
-            self.lightFoundCount+=1
+            self.lightFoundCount += 1
             self.ai.navigateTowards(redDetector.getX(),redDetector.getY())
-            if (self.lightFoundCount==5):
-                self.lightFoundCount=0
+            if (self.lightFoundCount == 5):
+                self.lightFoundCount = 0
                 self.ai.stateMachine.change_state("chaseLight")
         elif (orangeDetector.found()):
-            self.orangeCount+=1
-            if (orangeCount>15):
-                orangeCount=15
+            self.orangeCount += 1
+            if (self.orangeCount > 15):
+                self.orangeCount = 15
             self.ai.navigateAbove(orangeDetector.getX(),orangeDetector.getY(),orangeDetector.getAngle())
-        elif (orangeCount<=5):
+        elif (self.orangeCount <= 5):
             self.ai.stateMachine.change_state("scan")
         else:
-            self.countDown-=1
-            if (self.countDown==0):
-                self.countDown=15
+            self.countDown -= 1
+            if (self.countDown == 0):
+                self.countDown = 15
                 self.controller.setSpeed(-5)
                 self.ai.stateMachine.change_state("lostPipe")
                 
     def lostPipe(self):
-        orangeDetector=self.vision.downward.OrangeDetector
-        self.lostPipeCountDown-=1
+        orangeDetector = self.vision.downward.OrangeDetector
+        self.lostPipeCountDown -= 1
         if (orangeDetector.found() and (not orangeDetector.getAngle()==-10)):
             self.controller.setSpeed(0)
             self.ai.navigateAbove(orangeDetector.getX(),orangeDetector.getY(),orangeDetector.getAngle())

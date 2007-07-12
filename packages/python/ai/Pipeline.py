@@ -70,10 +70,10 @@ class GoPipeline():
             self.ai.stateMachine.change_state("makeSureBinFound")
         elif (orangeDetector.found()):
             self.orangeCount+=1
-            if (orangeCount>15):
-                orangeCount=15
+            if (self.orangeCount>15):
+                self.orangeCount=15
             self.ai.navigateAbove(orangeDetector.getX(),orangeDetector.getY(),orangeDetector.getAngle())
-        elif (orangeCount<=5):
+        elif (self.orangeCount<=5):
             self.ai.stateMachine.change_state("scan")
         else:
             self.countDown-=1

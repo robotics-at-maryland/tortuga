@@ -127,3 +127,70 @@ class control:
             self.controller.setDepth(self.controller.getDepth()+.2)#positive is downwards, this sets us to go deeper
         else:
             self.controller.setDepth(10.0)#This better be feet
+			
+	def navigateAboveBin(self,x,y):
+        #aim for x and y between .48 and .52, may have to aim differently
+        #depending on where the marker droppers are located.
+        if (not self.controller.isReady()):
+            return
+
+        if (x<0 or y<0 or x>1 or y>1):
+            print "NavigateAboveBin is being called with out of range x or y coordinates, this is an error, they should be 0.0 to 1.0 in image coordinates from the DOWNWARD FACING CAMERA ONLY"
+            return 
+
+        if (y<.1):
+            self.controller.setSpeed(5)
+        elif (y<.2):
+            self.controller.setSpeed(4)
+        elif (y<.3):
+            self.controller.setSpeed(3)
+        elif (y<.4):
+            self.controller.setSpeed(2)
+        elif (y<.48):
+            self.controller.setSpeed(1)            
+        elif (y<.52):
+            self.controller.setSpeed(0)
+            depth=self.controller.getDepth()
+            if (depth<11):
+                self.controller.setDepth(depth+.2)	#move down a little bit, make sure we're directly above whatever it is we're lookin at, Its supposed to be a bin
+        elif (y<.6):
+            self.controller.setSpeed(-1)
+        elif (y<.7):
+            self.controller.setSpeed(-2)
+        elif (y<.8):
+            self.controller.setSpeed(-2)
+        elif (y<.9):
+            self.controller.setSpeed(-2)
+        elif (y<=1.0):
+            self.controller.setSpeed(-3)
+            depth = self.controller.getDepth()
+            if (depth>8):
+                self.controller.setDepth(depth-.2)	#move up a little bit to increase our field of view, hopefully preventing us from losing this thing
+
+        if (not self.controller.isReady()):	#don't mess with angles while we're trying to turn.
+            return
+
+        guessChange=0.0       
+        if (x<.1):
+            guessChange+=3
+        if (x<.2):
+            guessChange+=2
+        if (x<.3):
+            guessChange+=2
+        if (x<.4):
+            guessChange+=2
+        if (x<.48):
+            guessChange+=.5
+
+        if (x>.52):
+            guessChange-=.5
+        if (x>.6):
+            guessChange-=2
+        if (x>.7):
+            guessChange-=2
+        if (x>.8):
+            guessChange-=2
+        if (x>.9):
+            guessChange-=3
+
+        self.controller.yawVehicle(guessChange)    

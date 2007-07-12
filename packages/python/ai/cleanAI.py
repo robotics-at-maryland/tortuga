@@ -213,33 +213,153 @@ class AI(Module):
 	def binFound(self):
 		self.vision.downward.orangeDetectOff()
         #self.vision.downward.binDetectOff() #not turning it off because binDetection is next anyway
-        self.stateMachine.change_state("afterBinFound")
+        self.stateMachine.change_state("binAimInitializer")
 
 	#																#
 	#################################################################
 	
+	###############################################################		
+	##						Bin Aiming					     	 ##
 	
+	def binAimInitialize(self):
+		self.countDownToLost = 20
+		#We should only enter the bin states once we have already
+        #found the bin (at least for bin1).  All this needs to do
+        #is navigate to the bin.  If we lose it, well... unfortunate
+        #but also too bad.  Best we can do is drop marker and move on
+        self.controller.setSpeed(0)
+        self.controller.setDepth(10)
+        self.vision.downward.binDetectOn()
+        self.stateMachine.change_state("aimForBin")
 	
+	def aimForBin(self):
+		binDetector=self.vision.downward.BinDetector
+        if (binDetector.found()):
+            x = binDetector.getX()
+            y = binDetector.getY()
+            if (x>.48 and x<.52 and y>.48 and y<.52):
+                self.vehicle.dropMarker()
+                self.stateMachine.change_state("doneWithBin1")
+            else:
+                self.countDownToLost = 20
+                self.complexControl.navigateAboveBin(x,y)
+        else:
+            self.countDownToLost -= 1
+            if self.countDownToLost<=0:	#if we lose the bin for 10 tries frames, start heading upwards
+                depth = self.controller.getDepth()
+                if (depth > 6):
+                    self.controller.setDepth(depth - .2)
+                else:
+                    #we're as high as I'm willing to risk, the bins just gone, lets drop marker and move on
+                    self.controller.setDepth(10)
+                    self.stateMachine.change_state("doneWithBin1")
+					
+	def doneWithBin1(self):
+		self.vision.downward.binDetectOff()
+		self.stateMachine.change_state("after bin")
 	
+	#																#
+	#################################################################
 	
+	###############################################################		
+	##						Pipe with Light					     ##
 	
-	def pointTowardsBin(self,x,y):
-		max_search_speed = 5
-		center_resolution = 0.1
+	def intializePipeLight(self):
+		self.orangex = -1.0
+        self.orangey = -1.0
+        self.scanCount = 0
+        self.scanDegrees = 5
+        self.binCount = 0
+        self.orangeCount = 0
+        self.countDown = 15
+        self.lostPipeCountDown = 40
+        self.countOfTimesPipeLost = 0
+        self.lightFoundCount = 0
+        self.lightLostCount = 0
+        self.chaseCount = 0
 		
-		if x < 0 or y < 0 or x > 1 or y > 1:
-			print "Get Above Bin called with arguments that are out of range, this is an error"
-			return
+		self.vision.downward.orangeDetectOn()
+        self.vision.forward.redLightDetectOn()
+        self.controller.setSpeed(4)
+        self.controller.yawVehicle(-60)
+        self.stateMachine.change_state("waitThenPipeLight")
 		
-		offset_x = x - 0.5	#if offset_x is positive location is left of center target
-		offset_y = y - 0.5	#if offset_y is positive location is below center target
-		
-		angle = math.atan(offset_y/offset_x)
-		
+	def waitThenPipeLight(self):
 		if self.controller.isReady():
-			pass
-			#do something	
-				
-		
-    
-    
+	           self.stateMachine.change_state("scanPipeLight")
+	
+	def scanPipeLight(self):
+		if self.controller.isReady():
+            self.controller.yawVehicle(self.scanDegrees)
+            self.scanCount += 1
+            if self.scanCount == 24:
+                self.scanDegrees = -1*scanDegrees
+                self.scanCount = 0
+        self.stateMachine.change_state("findPipeLight")
+
+	def findPipeLight(self):
+        orangeDetector = self.vision.downward.OrangeDetector
+        redDetector = self.vision.forward.RedLightDetector
+
+        if redDetector.found():
+            self.lightFoundCount += 1
+            self.complexControl.navigateTowards(redDetector.getX(),redDetector.getY())
+            if (self.lightFoundCount == 5):
+                self.lightFoundCount = 0
+                self.stateMachine.change_state("chaseLight")
+        elif (orangeDetector.found()):
+            self.orangeCount += 1
+            if (self.orangeCount > 15):
+                self.orangeCount = 15
+            self.complexControl.navigateAbove(orangeDetector.getX(),orangeDetector.getY(),orangeDetector.getAngle())
+        elif (self.orangeCount <= 5):
+            self.stateMachine.change_state("scanPipeLight")
+        else:
+            self.countDown -= 1
+            if (self.countDown == 0):
+                self.countDown = 15
+                self.controller.setSpeed(-5)
+                self.ai.stateMachine.change_state("lostPipeLight")
+
+	def lostPipeLight(self):
+        orangeDetector = self.vision.downward.OrangeDetector
+        self.lostPipeCountDown -= 1
+        if orangeDetector.found() and (not orangeDetector.getAngle() == -10):
+            self.controller.setSpeed(0)
+            self.complexControl.navigateAbove(orangeDetector.getX(),orangeDetector.getY(),orangeDetector.getAngle())
+            self.stateMachine.change_state("findPipeLight")
+        elif (self.lostPipeCountDown == 0):
+            self.countOfTimesPipeLost += 1
+            if (self.countOfTimesPipeLost == 5):	#Its like we're just running off the edge over and over, maybe we got turned around?
+                self.countOfTimesPipeLost = 0
+                self.controller.yawVehicle(180)
+                self.stateMachine.change_state("initializePipeLight")	#flip around and start searching again.
+            else:
+                self.lostPipeCountDown = 40
+                self.controller.setSpeed(2)
+                self.stateMachine.change_state("scanPipeLight")
+
+	def chaseLight(self):
+        self.chaseCount += 1	#start slow, then speed up
+        if (self.chaseCount > 80):
+            self.chaseCount = 80 
+        redDetector = self.vision.forward.RedLightDetector
+        self.controller.setSpeed(chaseCount/10)		#smash hard.... but not TOO hard...
+        if (redDetector.found()):
+            self.lightLostCount=0
+            self.complexControl.navigateTowards(redDetector.getX(),redDetector.getY())
+        else:
+            self.lightLostCount+=1
+            if (lightLostCount==20):
+                #Its gone, lets hope we hit it and find that bin
+                self.controller.setSpeed(0)
+                self.change_state("donePipeLight")
+
+	def donePipeLight(self):
+        self.vision.downward.orangeDetectOff()
+        self.vision.forward.redLightDetectOff()
+        self.stateMachine.change_state("after pipe light")
+
+	#																#
+	#################################################################
+	

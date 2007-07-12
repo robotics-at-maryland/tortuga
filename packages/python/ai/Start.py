@@ -1,11 +1,11 @@
 class GoGate():
     def __init__(self):
-        self.vehicle=ModuleManager.get().get_module("Vehicle")
-        self.controller=ModuleManager.get().get_module("Controller")
-        self.vision=ModuleManager.get().get_module("Vision")
-        self.ai=ModuleManager.get().get_module("AI")
+        self.vehicle = ModuleManager.get().get_module("Vehicle")
+        self.controller = ModuleManager.get().get_module("Controller")
+        self.vision = ModuleManager.get().get_module("Vision")
+        self.ai = ModuleManager.get().get_module("AI")
         
-        gateStates={"initialize":self.initialize,
+        gateStates = {"initialize":self.initialize,
                      "done":self.done,
                      "pollVision":self.pollVision,
                      "changeHeading":self.changeHeading
@@ -25,18 +25,18 @@ class GoGate():
         
     def pollVision(self):
         #WRITE THIS CODE HURRY HURRY!
-        gateDetector=self.vision.forward.gateDetector
+        gateDetector = self.vision.forward.gateDetector
         if (gateDetector.found()):
-            self.gateCount=self.gateCount+1
-            self.gateOffCount=0
-            gatex=gateDetector.getX()
-            gatey=gateDetector.getY()
+            self.gateCount = self.gateCount+1
+            self.gateOffCount = 0
+            gatex = gateDetector.getX()
+            gatey = gateDetector.getY()
             self.ai.stateMachine.change_state("changeHeading")
         else:
             if (self.gateCount>3):
                 self.gateOffCount=self.gateOffCount+1
-            gatex=-1.0
-            gatey=-1.0
+            gatex = -1.0
+            gatey = -1.0
             self.ai.stateMachine.change_state("pollVision")
         
         if (self.gateOffCount > 7):

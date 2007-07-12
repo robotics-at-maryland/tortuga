@@ -7,6 +7,7 @@ import ModifiedPipeline.GoPipeLight as ModifiedPipeline
 import Bin.GoBin as Bin
 import SpiralToBin.GoCoveredBin as Bin2
 import Treasure.GoTreasure as Treasure
+
 class AI(Module):
     def __init__(self, config):
         self.aiStates={
