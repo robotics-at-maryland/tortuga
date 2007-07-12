@@ -8,9 +8,13 @@ int main (int argc, char * const argv[]) {
     char buf[4096];
     
     int ocu_ip_last_octet = 1;
-    int vehicle_ip_last_octet = 2;
+    int vehicle_ip_last_octet = 100;
     
-    std::ifstream fin("./test_packet.dat", std::ios::in);
+    if (argc < 2) {
+        std::cerr << "You must pass the path of a raw data file to this program." << std::endl;
+    }
+    
+    std::ifstream fin(argv[1], std::ios::in);
     if (!fin) {
         std::cerr << "Could not read test file." << std::endl;
         return -1;

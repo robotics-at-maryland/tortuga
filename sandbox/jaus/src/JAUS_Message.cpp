@@ -99,5 +99,5 @@ JAUS_Message::~JAUS_Message() {
 }
 
 JAUS_ushort JAUS_Message::pack_ushort(char field1, char field2) {
-    return (((JAUS_ushort) field1) << 8) | ((JAUS_ushort) field2);
+    return (((JAUS_ushort) field2) << 8) | ((JAUS_ushort) field1);
 }

@@ -1,7 +1,7 @@
 
 all: jaus_test
 
-JAUS_helpers.o: src/JAUS_helpers.h
+JAUS_helpers.o: src/JAUS_helpers.h src/JAUS_helpers.cpp
 	g++ -c src/JAUS_helpers.cpp -o JAUS_helpers.o
 
 JAUS_Message.o: src/JAUS_Message.cpp src/JAUS_helpers.h
