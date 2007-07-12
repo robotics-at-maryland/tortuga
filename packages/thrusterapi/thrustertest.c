@@ -38,10 +38,10 @@ int main(int argc, char ** argv)
     for(i=0; i<100; i++)
     {
         printf("\n");
-        printf("\nResult 1 is: %d\n", e1+=setSpeed(fd, 1, 0));
-        printf("\nResult 2 is: %d\n", e2+=setSpeed(fd, 2, 0));
-        printf("\nResult 3 is: %d\n", e3+=setSpeed(fd, 3, 0));
-        printf("\nResult 4 is: %d\n", e4+=setSpeed(fd, 4, 0));
+        printf("\nResult 1 is: %d\n", e1 += setSpeed(fd, 1, 0));
+        printf("\nResult 2 is: %d\n", e2 += setSpeed(fd, 2, 0));
+        printf("\nResult 3 is: %d\n", e3 += setSpeed(fd, 3, 0));
+        printf("\nResult 4 is: %d\n", e4 += setSpeed(fd, 4, 0));
         err += e1+e2+e3+e4;
     }
 
