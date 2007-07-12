@@ -90,6 +90,7 @@ int setSpeedOld(int fd, int addr, int speed)
 int setSpeed(int fd, int addr, int speed)
 {
     unsigned char tmp[2];
+    usleep(3*1000);
     tmp[0] = speed & 0xFF;
     tmp[1] = (speed >> 8) & 0xFF;
     return multiCmd(fd, 0x14, addr, tmp, 2, 200);

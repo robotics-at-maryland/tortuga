@@ -27,3 +27,8 @@ envt.AppendUnique(CPPPATH = ['include'])
 helpers.Program(envt, target = 'thrustertest', 
                 source = 'test/src/thrustertest.c',
                 int_deps = 'thruster')
+
+
+helpers.Program(envt, target = 'thrusterstop',
+                source = 'src/thrusterstop.c',
+                int_deps = 'thruster')
