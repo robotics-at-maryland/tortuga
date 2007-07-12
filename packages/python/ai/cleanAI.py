@@ -1,26 +1,30 @@
+import module.Module as Module
 import ai.state_machine as StateMachine
 import ai.Movement as Movement
 
 import ai.AIModel as AIModel
 
 class AI(Module):
-    def __init__(self, config):
+    def __init__(self,config):
 	
        	self.startState = "toGate"
 
  		self.aiStates = {
-                     	"toGate":Start.initialize
-                     	"toRedLight1":self.toRedLight1,
-                     	"toPipeline":self.toPipeline,
-                     	"toBin1":self.toBin1,
-                     	"toPipelineAndLight":self.toPipelineAndLight,
-                     	"toBin2":self.toBin2,
-                     	"toTreasure":self.toTreasure,
-                     	"missionComplete":self.missionComplete
+                     	"shutdown":self.shutdown,
+						"testFunctionality":self.testFunctionality,
+						"testSpeed":self.testSpeed,
+						"spin360":self.spin360,
+						"spin90":self.spin90,
+						"testDepth":self.testDepth,
+						"initToGate":self.initToGate,
+						"toGate":self.toGate,
+						"headAtGate":self.headAtGate,
+						"gateFound":self.gateFound
                      	}
 
         self.stateMachine = StateMachine()
 		self.stateMachine.state = self.startState
+		self.stateMachine.set_states = self.aiStates
 		self.model = AIModel.model()
 		self.vehicle = model.vehicle
 		self.vision = model.vision
@@ -29,18 +33,88 @@ class AI(Module):
 		
 	
         Module.__init__(self,config)
- 	
+
+	def update(self,time):
+		self.time = time
+ 		self.stateMachine.operate()
+	
+	###############################################################		
+	##						Test Code							 ##
+	
+	def shutdown(self):
+		self.controller.setDepth(1)
+		self.controller.setSpeed(0)
+		self.vehicle.safeThrusters()
+	
+	#															  #
+	###############################################################	
+	
+	###############################################################		
+	##						Test Code							 ##
+	
+	def testFunctionality(self):
+		self.speed = 0
+		self.direction = 1
+		self.speedDone = 0
+		self.counter1 = 0
+		self.counter2 = 0
+		
+	def testSpeed(self):
+		self.controller.setSpeed(self.speed)
+		self.speed += self.direction*1
+		if self.speed >= 5:
+			self.direction = -1
+		elif self.speed <= -5:
+			self.speedDone = 1
+			self.direction = 1
+		if self.speed == 0 and self.speedDone == 1:
+			self.stateMachine.change_state("testSpin")
+	
+	def spin360(self):
+		self.controller.yawVehicle(360)
+		self.change_state("spin90")
+	
+	def spin90(self):
+		if self.counter1 == 0:
+			self.controller.yawVehicle(90)
+		elif self.counter1 == 1:
+			self.controller.yawVehicle(-90)
+		elif self.counter1 == 2:
+			self.controller.yawVehicle(-90)
+		elif self.counter1 == 3:
+			self.controller.yawVehicle(90)
+		self.counter1+=1
+		if self.counter1 >= 4:
+			self.stateMachine.change_state("testDepth")
+			
+	def testDepth(self):
+		if self.counter2 == 0:
+			self.controller.setDepth(-6)
+		elif self.counter2 == 1:
+			self.controller.setDepth(-3)
+		elif self.counter2 == 2:
+			self.controller.setDepth(-8)
+		elif self.counter2 == 3:
+			self.controller.setDepth(-1)
+		self.counter1 += 1
+		if self.counter1 >= 4:
+			self.stateMachine.change_state("shutdown")
+	
+	#															  #
+	###############################################################
+	
+
 	###############################################################		
 	##						Gate Code							 ##
 	def initToGate(self):
 		self.vision.forward.gateDetectOn()
 		self.controller.setDepth(10)
 		self.controller.setSpeed(5)
-		self.stateMachine.change_state("toGate")
 		self.gateCount = 0
 		self.gateX = 0
 		self.gateY = 0
 		self.gateNotSeen = 0
+		self.stateMachine.change_state("toGate")
 	
 	def toGate(self):
 		gateDetector = self.vision.forward.gateDetector
@@ -63,7 +137,8 @@ class AI(Module):
 	
 	def gateFound(self):
 		self.vision.forward.gateDetectOff()
-		self.change_state("initFirstRedLight")
+		self.change_state("shutdown")	#currently lets just leave it at that, shall we?
+		#self.change_state("initFirstRedLight")
 	#																#
 	#################################################################
 	
