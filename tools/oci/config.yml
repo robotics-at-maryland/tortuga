@@ -1,5 +1,8 @@
 # Config for the vehicle
 
+# This module is run in the main python thread
+main_module: CLI
+
 # Each module is a seperate system that needs to be started up
 Modules:
     # Object that creates the vehicle interface
@@ -24,7 +27,7 @@ Modules:
                 # all the wrapped C++ classes
                 type: ext.vehicle_device.Thruster
                 # String representing the address of the thruster
-                address: "02"
+                address: 2
                 # Number determined by testing
                 calibration_factor: 0.3652
                 # Number used to flip thruster forces (if thruster is reversed
@@ -34,21 +37,21 @@ Modules:
             PortThruster:
                 # serial: 149
                 type: ext.vehicle_device.Thruster
-                address: "03"
+                address: 3
                 calibration_factor: 0.4146
                 direction: -1
 
             ForeThruster:
                 # serial: 146
                 type: ext.vehicle_device.Thruster
-                address: "04"
+                address: 4
                 calibration_factor: 0.4368
                 direction: 1
 
             AftThruster:
                 # Serial 148
                 type: ext.vehicle_device.Thruster
-                address: "01"
+                address: 1
                 calibration_factor: 0.3612
                 direction: -1
 
@@ -63,9 +66,8 @@ Modules:
         angularPGain: 3
         angularDGain: 1
         desiredQuaternion: [ -0.278, 0.911, 0.025, 0.301]
-
         
-        
-    
-    
-    
+    CLI:
+        depends_on: ["Vehicle"]
+        update_interval: 100
+        type: cli.CLI
