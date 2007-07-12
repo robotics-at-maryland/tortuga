@@ -13,6 +13,12 @@
 // STD Includes
 #include <string>
 
+// Library Includes
+#include <boost/any.hpp>
+
+// Project Includes
+#include "vehicle/include/device/Common.h"
+
 namespace ram {
 namespace vehicle {
 namespace device {
@@ -20,21 +26,24 @@ namespace device {
 class ThrusterCommand
 {
 public:
+    enum COMMAND_TYPE {
+        RESET,
+        SPEED
+    };
+    
     /** Creates a command to be run on the thruster
      */
-    ThrusterCommand(std::string address, std::string commandType,
-                    std::string args = "", int sleepTime = 1);
+    ThrusterCommand(int address, int command_type, boost::any args);
 
-    std::string getAddress();
-    std::string getCommandType();
-    std::string getArgs();
-    int getSleepTime();
+    static ThrusterCommandPtr construct(int address, int command_type,
+                                        boost::any args = 0);
+    
+    int run(int thrusterFD);
     
 private:
-    std::string m_address;
-    std::string m_commandType;
-    std::string m_args;
-    int m_sleepTime;
+    int m_address;
+    int m_commandType;
+    boost::any m_args;
 };
     
 } // namespace device

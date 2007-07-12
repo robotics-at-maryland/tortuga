@@ -9,39 +9,45 @@
 
 // Project Includes
 #include "vehicle/include/device/ThrusterCommand.h"
+#include "thrusterapi/include/thrusterapi.h"
 
 namespace ram {
 namespace vehicle {
 namespace device{
 
-ThrusterCommand::ThrusterCommand(std::string address, std::string commandType,
-                                 std::string args, int sleepTime) :
+ThrusterCommand::ThrusterCommand(int address, int commandType,
+                                 boost::any args) :
     m_address(address),
     m_commandType(commandType),
-    m_args(args),
-    m_sleepTime(sleepTime)
+    m_args(args)
 {
 }
 
-std::string ThrusterCommand::getAddress()
+ThrusterCommandPtr ThrusterCommand::construct(int address, int commandType,
+                                              boost::any args)
 {
-    return m_address;
-}
-
-std::string ThrusterCommand::getCommandType()
-{
-    return m_commandType;
+    return ThrusterCommandPtr(new ThrusterCommand(address, commandType, args));
 }
     
-std::string ThrusterCommand::getArgs()
+int ThrusterCommand::run(int thrusterFD)
 {
-    return m_args;
-}
-
-
-int ThrusterCommand::getSleepTime()
-{
-    return m_sleepTime;
+    switch (m_commandType)
+    {
+        case ThrusterCommand::RESET:
+        {
+            // Fill me in
+        }
+        break;
+            
+        case ThrusterCommand::SPEED:
+        {
+            return setSpeed(thrusterFD, m_address,
+                            boost::any_cast<int>(m_args));
+        }
+        break;
+    }
+    
+    return -1;
 }
 
 } // namespace device

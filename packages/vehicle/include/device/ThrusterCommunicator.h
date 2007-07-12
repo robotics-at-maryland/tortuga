@@ -83,9 +83,6 @@ private:
 
     /** Runs the given thruster command, and checks the return code */
     void runCommand(ThrusterCommandPtr command);
-
-    /** Clears read buffer */
-    void clearReadBuffer();
     
     /** List of Internal Thrusters*/
     ThrusterSet m_thrusters;
@@ -95,14 +92,6 @@ private:
 
     /** file descriptor of the serial device file*/
     int m_serialFD;
-    
-    bool m_captureOutput;
-
-    /** Logs all outgoing commands */
-    std::ofstream m_cmdLog;
-
-    /** Logs all returns from the controllers */
-    std::ofstream m_retLog;
 };
 
 } // namespace device

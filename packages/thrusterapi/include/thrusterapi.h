@@ -10,7 +10,8 @@ extern "C" {
 /** Returns the file*/
 int openThrusters(const char * devName);
 int setSpeed(int fd, int addr, int speed);
-int multiCmd(int fd, int cmd, int addr, unsigned char * data, int len, int timeout);
+int multiCmd(int fd, int cmd, int addr, unsigned char * data, int len,
+             int timeout);
 
 
 #define TH_IOERROR -1

@@ -32,11 +32,6 @@ public:
         FORCE_UPDATE
     };
     
-    /** Reset thruster, clear registers and sets power to zero */
-    static const std::string SOFT_RESET; // ("Y");
-    /** Sets the thruster output force */
-    static const std::string SET_FORCE; // ("C");
-    
     /** Create a thruster with the given address */
     Thruster(Vehicle* vehicle, core::ConfigNode config);
     
@@ -85,7 +80,7 @@ public:
     virtual bool backgrounded();
     
 private:
-    std::string m_address;
+    int m_address;
 
     /** Experimentally determined calibration factor */
     double m_calibrationFactor;

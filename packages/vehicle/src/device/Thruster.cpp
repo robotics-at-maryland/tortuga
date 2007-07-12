@@ -23,12 +23,9 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-const std::string Thruster::SOFT_RESET = std::string("Y");
-const std::string Thruster::SET_FORCE = std::string("C");
-    
 Thruster::Thruster(Vehicle* vehicle, core::ConfigNode config) :
     Device(vehicle, config["name"].asString()),
-    m_address(config["address"].asString()),
+    m_address(config["address"].asInt()),
     m_calibrationFactor(config["calibration_factor"].asDouble()),
     m_direction(config["direction"].asInt(1))
 {
@@ -36,17 +33,15 @@ Thruster::Thruster(Vehicle* vehicle, core::ConfigNode config) :
     ThrusterCommunicator::registerThruster(this);
 
     // Preform a soft reset just to be safe
-    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SOFT_RESET, "",
-                                               500));
-    ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
+    ThrusterCommunicator::getSingleton().sendThrusterCommand(
+        ThrusterCommand::construct(m_address, ThrusterCommand::RESET));
 }
 
 Thruster::~Thruster()
 {
     // Preform a soft reset to make sure the power dies to the thruster
-    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SOFT_RESET, "",
-                                               500));
-    ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
+    ThrusterCommunicator::getSingleton().sendThrusterCommand(
+        ThrusterCommand::construct(m_address, ThrusterCommand::RESET));
 
     // Unregister from communicator so it will no when to destory itself
     ThrusterCommunicator::unRegisterThruster(this);
@@ -86,11 +81,10 @@ void Thruster::setForce(double force)
         motorCount = -1023;
     m_motorCount = motorCount;
 
-    std::stringstream ss;
-    ss << " " << m_motorCount;
-    ThrusterCommandPtr cmd(new ThrusterCommand(m_address, SET_FORCE, ss.str(),
-                                               4));
-    ThrusterCommunicator::getSingleton().sendThrusterCommand(cmd);
+
+    ThrusterCommunicator::getSingleton().sendThrusterCommand(
+        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,
+                                   m_motorCount));
 
     // Notify observers
     setChanged();
