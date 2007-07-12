@@ -6,6 +6,15 @@ class control:
         self.controller = self.model.controller
         self.vehicle = self.model.vehicle
     
+    def zigZag(self,lastZag,zagTime,zazAngle,turn):
+        currTime = time.time()
+        timeDiff = currTime - lastZag
+        if timeDiff >= zagTime:
+            self.controller.yawVehicle(zagAngle*turn)
+            return (currTime,turn*-1)
+        else:
+            return (zagTime,turn)
+            
     def navigateAbove(self, x, y, angle):
         #angle should be a number from 0 to pi for normal operation
         #y will be used to determine speed settings

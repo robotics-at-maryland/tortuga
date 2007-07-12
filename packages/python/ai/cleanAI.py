@@ -52,8 +52,8 @@ class AI(Module):
                     "lostPipeLight":self.lostPipeLight,
                     "chaseLight":self.chaseLight,
                     "donePipeLight":self.donePipeLight,
-                    "zigZagSearchInit":self.zigZagSearchInit,
-                    "zigZagSearch":self.zigZagSearch
+                    "zigZagSearchTimeInit":self.zigZagSearchTimeInit,
+                    "zigZagSearchTime":self.zigZagSearchTime
                     }
 
         self.stateMachine = StateMachine()
@@ -92,23 +92,26 @@ class AI(Module):
     ###############################################################        
     ##                        Search Patterns                    ##
     
-    def zigZagSearchInit(self):
+    def zigZagSearchTimeInit(self):
+        self.searchForTime = 50
+        
         self.zagTime = 10   #time per zag in seconds  
         self.zagAngle = 45  #zag angle in degrees
         self.searchSpeed = 3
         self.lastZag = time.time()
-        self.lastTurn = 1
+        self.startZagTime = self.lastZag
+        self.turn = 1
         
-        self.controller.setSpeed(searchSpeed)
-        self.stateMachine.change_state("zigZagSearch")
-    
-      def zigZagSearch(self):
-          time = time.time()
-          timeDiff = time - lastZag
-          if timeDiff >= zagTime:
-              self.controller.yawVehicle(self.zagAngle * self.lastTurn)
-              self.lastTurn = self.lastTurn * -1
-              self.lastZag = time
+        self.controller.setSpeed(self.searchSpeed)
+        self.stateMachine.change_state("zigZagSearchTime")
+        
+    def zigZagSearch(self):
+        if (time.time() - self.startZagTime) >= self.searchForTime:
+            self.change_state("shutdown")
+        else:
+            results = self.complexControl.zigZag(self.lastZag,self.zagTime,self.zazAngle,self.turn)
+            self.lastZag = results[0]
+            self.turn = results[1]
         
       
     #                                                              #
