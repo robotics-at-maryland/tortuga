@@ -1,4 +1,4 @@
-function rotationalTorques = BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt)
+function [rotationalTorques qError]= BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 % [rotationalTorques
@@ -54,7 +54,8 @@ wTilde = [0 -w(3) w(2); w(3) 0 -w(1); -w(2) w(1) 0];
 %an error quaternion, it is SORT of like the difference between the
 %desired and actual quaternion, but quaternions can't simply be added
 %and subtracted from one another
-qError=QUATERNION*q; 
+qError=QUATERNION*q;
+
 %angular velocity error, simply the difference between the desired and
 %actual angular position
 wError=w-[0 0 0]'; 

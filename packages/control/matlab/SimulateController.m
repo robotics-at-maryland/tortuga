@@ -1,4 +1,4 @@
-function storedValues = SimulateController(TESTCPP)
+function [storedValues storedErrorQuaternion]= SimulateController(TESTCPP)
 % choose to simulate w/ or w/o cpp implementation
 % 1 = with,   0 = without
 
@@ -103,12 +103,14 @@ storedAcceleration=zeros(3,numSimPoints);
 storedQuaternion=[zeros(3,numSimPoints); ones(1,numSimPoints)];
 storedAngularRate=zeros(3,numSimPoints);
 storedEstimatedParameters=zeros(6,numSimPoints);
+storedErrorQuaternion=zeros(3,numSimPoints);
 
 %initialize storage arrays for plotting
 storedPosition(3,1)=MeasuredState.depth;
 storedQuaternion(:,1)=MeasuredState.quaternion;
 storedAngularRate(:,1)=MeasuredState.angularRate;
 %storedEstimatedParameters(:,1)=ControllerState.inertiaEstimate;
+storedErrorQuaternion(:,1)=[0 0 0]';
 
 %%%%%%%
 %%%%%Setup data storage
@@ -141,8 +143,9 @@ for index=2:1:numSimPoints
     %how matlab forced me to use the rotationalController command
     %[rotationalTorques aHatNew]=rotationalController(MeasuredState,DesiredState,ControllerState,dt);
     if TESTCPP == 0
-        rotationalTorques =BongWiePDControl(MeasuredState, ...
+        [rotationalTorques qError]=BongWiePDControl(MeasuredState, ...
                                     DesiredState,ControllerState,dt);
+        storedErrorQuaternion(:,index) = qError(1:3);
     else
         rotationalTorques =CppBongWiePDControl(MeasuredState, ...
                                     DesiredState,ControllerState,dt);
@@ -217,7 +220,7 @@ for index=2:1:numSimPoints
     %integrate
     w_new=storedAngularRate(:,index-1)+w_dot*dt;
     %save the new point in the trajectory for plotting
-    storedAngularRate(:,index)=w_new;
+    storedAngularRate(:,index) = w_new;
     
     
 end
