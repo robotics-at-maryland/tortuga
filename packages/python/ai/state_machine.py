@@ -14,13 +14,7 @@ class state_machine:
         print "Initializing the state machine"
         self.state = "initializing"             #set the start state
         self.define_state_table()               #load the state table
-        self.vehicle = vehicle
-    '''
-    An accessor for the vehicle, just a shortcut
-    '''
-    def vehicle(self):
-        return vehicle
-
+ 
     '''
     Defines the state table, where state names are mapped to operation functions.
     '''
@@ -29,7 +23,6 @@ class state_machine:
     
     def set_states(self,states):
         self.state_table = states
-        self.state="None"
     
     '''
     This is the bulk of state machine operation. Function mapped to by current state is fetched
@@ -46,59 +39,10 @@ class state_machine:
             print self.state
         return self.state
             
-    '''
-    Simple function that 
-    '''
+	'''
+	simple function that changes state of the state machine
+	'''
     def change_state(self,new_state):
         self.state = new_state
         
-    def initializing(self):
-        print "still initializing..."
-        self.change_state("starting")
-        
-    def starting(self):
-        print "starting the robot..."
-        error = self.vehicle.start_vision_system()
-        if error:
-            self.change_state("curses operation")
-        else:
-            self.change_state("operating")
-            
-    def curses_operation(self):
-        window = key_controller.CursesController(self.vehicle)
-        window.run()
-        self.change_state("halting")
-        
-    def testing_thrusters(self):
-        for thruster in self.vehicle.thrusters:
-            print "Cycling Thruster " + str(thruster.address)
-            for i in range(0,10,1):
-                pow = i/10.0
-                self.vehicle.set_thruster_power(thruster,pow)
-            for i in range(10,-10,-1):
-                pow = i/10.0
-                self.vehicle.set_thruster_power(thruster,pow)
-            for i in range(-10,0,1):
-                pow = i/10.0
-                self.vehicle.set_thruster_power(thruster,pow)
-        self.change_state("halting")
-        
-    def operating(self):
-        print "operating the robot..."
-        vs = self.vehicle.get_vision_structure()
-        print "Frame Num:",vs.frameNum
-        print "Width:",vs.width
-        print "Height:",vs.height
-        print "Red Light Location: (",vs.redLightx,",",vs.redLighty,")"
-        print "Distance From Vertical:",vs.distFromVertical
-        print "Angle:",vs.angle
-        print "Bin Location: (",binx,",",biny,")"
-        print "Light Visible:",vs.lightVisible
-        print "Pipe Visible:",vs.pipeVisible
-        print "Bin Visible",vs.binVisible
-        self.change_state("operating")
-        
-    def halting(self):
-        print "halting robot operation..."
-        self.vehicle.shutdown()
-        self.change_state("finished")
+    
