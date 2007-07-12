@@ -1,6 +1,7 @@
 import module.Module as Module
 import ai.state_machine as StateMachine
 import ai.Movement as Movement
+import time
 
 import ai.AIModel as AIModel
 
@@ -86,7 +87,30 @@ class AI(Module):
     ###############################################################    
     
     ###############################################################        
-    ##                        Test Code                             ##
+    ##                        Simple Gate                        ##
+    
+    driveSpeed = 5
+    driveTime = 15
+    
+    def simpleGate(self):
+        self.controller.setDepth(5)
+        self.stateMachine.change_state("simpleGateWait")
+    
+    def simpleGateWait(self):
+        if self.controller.isReady():
+            self.stateMachine.change_state("driveThroughGate")
+            self.startDriveTime = time.time()
+    
+    def driveThroughGate(self):
+        self.controller.setSpeed(driveSpeed)
+        currentTime = time.time()
+        if (currentTime - self.startDriveTime) > driveTime:
+            self.stateMachine.change_state("shutdown")
+    #                                                             #
+    ###############################################################
+        
+    ###############################################################        
+    ##                        Test Code                          ##
     
     def testFunctionality(self):
         self.speed = 0
