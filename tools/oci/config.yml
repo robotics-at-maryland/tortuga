@@ -66,7 +66,7 @@ Modules:
         depends_on: ["Vehicle"]
         type: control.bwpdcontrol.BWPDController
         update_interval: 100
-        angularPGain: 3
+        angularPGain: 20
         angularDGain: 1
         desiredQuaternion: [ -0.278, 0.911, 0.025, 0.301]
         

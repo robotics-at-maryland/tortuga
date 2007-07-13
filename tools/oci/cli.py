@@ -68,13 +68,24 @@ class CLI(Module):
         self.stdscr.addstr(x,y,str,mode)
         
     def print_thrusters(self,thrusters):
-        self.print_string(2,10,"Fore: " + str((thrusters[0].getForce()*100)),
+        self.print_string(2,10,"Fore: " + str((thrusters[0].getForce())),
                           curses.A_STANDOUT)
-        self.print_string(22,10,"Aft: " + str((thrusters[1].getForce()*100)),
+        self.print_string(3,10,"Count: " + str((thrusters[0].getMotorCount())) + "    ",
                           curses.A_STANDOUT)
-        self.print_string(11,30,"Starboard: " + str((thrusters[2].getForce()*100)),
+
+        self.print_string(22,10,"Aft: " + str((thrusters[1].getForce())),
                           curses.A_STANDOUT)
-        self.print_string(11,0,"Port: " + str((thrusters[3].getForce()*100)),
+        self.print_string(23,10,"Count: " + str((thrusters[1].getMotorCount())) + "    ",
+                          curses.A_STANDOUT)
+
+        self.print_string(11,30,"Starboard: " + str((thrusters[2].getForce())),
+                          curses.A_STANDOUT)
+        self.print_string(12,30,"Count: " + str((thrusters[2].getMotorCount())) + "    ",
+                          curses.A_STANDOUT)
+
+        self.print_string(11,0,"Port: " + str((thrusters[3].getForce())),
+                          curses.A_STANDOUT)
+        self.print_string(12,0,"Count: " + str((thrusters[3].getMotorCount())) + "    ",
                           curses.A_STANDOUT)
         
     def update(self, timestep):
