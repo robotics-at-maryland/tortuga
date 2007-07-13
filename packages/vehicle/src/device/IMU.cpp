@@ -275,8 +275,8 @@ void IMU::rotateAndFilterData(RawIMUData* newState)
         m_filteredState->magZ = m_filteredMagZ.getValue();
         
         m_filteredState->gyroX= m_filteredGyroX.getValue();
-        m_filteredState->gyroX= m_filteredGyroY.getValue();
-        m_filteredState->gyroX = m_filteredGyroZ.getValue();
+        m_filteredState->gyroY= m_filteredGyroY.getValue();
+        m_filteredState->gyroZ= m_filteredGyroZ.getValue();
     }
 }
 
