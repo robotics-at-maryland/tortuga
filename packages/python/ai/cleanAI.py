@@ -93,11 +93,11 @@ class AI(Module):
             self.vehicle.printLine(1," ")
             if time.time() - self.pushTime >= 5:
                 self.vehicle.printLine(0,"Vehicle Operating!")
+                self.vehicle.unsafeThrusters()
                 self.stateMachine.change_state(self.startState)
-            
-            
 
     def shutdown(self):
+        self.vehicle.printLine(0,"Shutting down vehicle...")
         self.controller.setDepth(1)
         self.controller.setSpeed(0)
         self.vehicle.safeThrusters()
