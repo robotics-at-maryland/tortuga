@@ -21,11 +21,13 @@ namespace vehicle {
 Vehicle::Vehicle(core::ConfigNode config) :
     m_config(config),
     m_sensorFD(-1),
-    m_markerNum(0)
+    m_markerNum(0),
+    m_depthCalibSlope(m_config["depthCalibSlope"].asDouble()),
+    m_depthCalibIntercept(m_config["depthCalibIntercept"].asDouble())
 {
     std::string devfile =
         m_config["sensor_board_file"].asString("/dev/sensor");
-
+    
     m_sensorFD = openSensorBoard(devfile.c_str());
     syncBoard(m_sensorFD);
 
@@ -116,8 +118,9 @@ void Vehicle::update(double timestep)
         boost::mutex::scoped_lock lockSensor(m_sensorBoardMutex);
 
         // Depth
-        m_state.depth = readDepth(m_sensorFD);
-
+        double rawDepth = readDepth(m_sensorFD);
+        m_state.depth = (rawDepth - m_depthCalibIntercept) / m_depthCalibSlope;
+        //m_state.depth = rawDepth;
         // Status register
         int status = readStatus(m_sensorFD);
         m_state.startSwitch = status & STATUS_STARTSW;

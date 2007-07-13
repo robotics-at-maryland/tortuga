@@ -86,6 +86,9 @@ private:
     boost::mutex m_sensorBoardMutex;
     int m_sensorFD;
     int m_markerNum;
+
+    double m_depthCalibSlope;
+    double m_depthCalibIntercept;
     
     core::ReadWriteMutex m_state_mutex;
     VehicleState m_state;
