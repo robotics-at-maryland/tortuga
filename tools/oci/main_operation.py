@@ -25,7 +25,7 @@ import yaml
 import ociapp
 
 def main():            
-    app = ociapp.OCIApp('config.yml')
+    app = ociapp.OCIApp('controltest.yml')
     print 'Test'
     app.main_loop()
 
