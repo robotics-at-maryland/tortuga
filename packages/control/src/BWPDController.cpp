@@ -52,6 +52,7 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     m_desiredState->quaternion[1] = config["desiredQuaternion"][1].asDouble(0);
     m_desiredState->quaternion[2] = config["desiredQuaternion"][2].asDouble(0);
     m_desiredState->quaternion[3] = config["desiredQuaternion"][3].asDouble(1);
+    m_desiredState->speed = config["desiredSpeed"].asInt(0);
     
     // Set controller state from config file (defaults hard coded)
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
@@ -267,9 +268,9 @@ void BWPDController::update(double timestep)
         core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
         
         // Not working right now because we don't have depth
-        /*translationalController(m_measuredState, m_desiredState,
-                                m_controllerState, timestep,
-                                rotationalTorques);*/
+        translationalController(m_measuredState, m_desiredState,
+        	                m_controllerState, timestep,
+                                translationalForces);
         
         BongWiePDRotationalController(m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
@@ -302,9 +303,9 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
 
     m_portThruster->setForce(port);
 
-    m_foreThruster->setForce(fore);
+//    m_foreThruster->setForce(fore);
 
-    m_aftThruster->setForce(aft);
+//    m_aftThruster->setForce(aft);
 }
     
 } // namespace control

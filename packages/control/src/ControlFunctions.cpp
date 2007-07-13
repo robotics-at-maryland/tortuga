@@ -142,7 +142,7 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
     matrixMult3x1by3x3(wTilde,gyroscopicSignal,&gyroscopicSignal[0]);
     //sum the components
     matrixAdd3x1and3x1(proportionalSignal,differentialSignal,&controlSignal[0]);
-    matrixAdd3x1and3x1(controlSignal,gyroscopicSignal,&controlSignal[0]);
+//    matrixAdd3x1and3x1(controlSignal,gyroscopicSignal,&controlSignal[0]);
     //save to memory
     *(rotationalTorques)=controlSignal[0];
     *(rotationalTorques+1)=controlSignal[1];
