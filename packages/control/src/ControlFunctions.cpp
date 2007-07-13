@@ -42,7 +42,10 @@ void translationalController(MeasuredState* measuredState,
     //depth component first calculated in inertial frame for a single axis
     //first find depth error (proportional component)
     double depthError;
-    depthError = (desiredState->depth)-(measuredState->depth);
+    
+    // Flipped based on testing
+    depthError = (measuredState->depth) - (desiredState->depth);
+//    depthError = (desiredState->depth)-(measuredState->depth);
 
     //second implement depth error in single axis control law
     double depthControlSignal;

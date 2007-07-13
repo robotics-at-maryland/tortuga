@@ -48,16 +48,20 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     memset(m_controllerState, 0, sizeof(ControllerState));
 
     // Set desired state
-    m_desiredState->quaternion[0] = config["desiredQuaternion"][0].asDouble(0);
-    m_desiredState->quaternion[1] = config["desiredQuaternion"][1].asDouble(0);
-    m_desiredState->quaternion[2] = config["desiredQuaternion"][2].asDouble(0);
-    m_desiredState->quaternion[3] = config["desiredQuaternion"][3].asDouble(1);
+    m_desiredState->quaternion[0] = config["desiredQuaternion"][0].asDouble();
+    m_desiredState->quaternion[1] = config["desiredQuaternion"][1].asDouble();
+    m_desiredState->quaternion[2] = config["desiredQuaternion"][2].asDouble();
+    m_desiredState->quaternion[3] = config["desiredQuaternion"][3].asDouble();
+
     m_desiredState->speed = config["desiredSpeed"].asInt(0);
+    m_desiredState->depth = config["desiredDepth"].asDouble();
     
     // Set controller state from config file (defaults hard coded)
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
-
+    m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
+    m_controllerState->speedPGain = config["speedPGain"].asDouble(1);
+    
     m_controllerState->inertiaEstimate[0][0] =
         config["inertia"][0][0].asDouble(0.201);
     m_controllerState->inertiaEstimate[0][1] =
@@ -78,9 +82,6 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
         config["inertia"][2][1].asDouble(0);
     m_controllerState->inertiaEstimate[2][2] =
         config["inertia"][2][2].asDouble(1.288);
-    
-    m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
-    m_controllerState->speedPGain = config["speedPGain"].asDouble(1);
 
     // Grab thruster combining constants
     m_rStarboard = config["rStarboard"].asDouble(0.1905);
@@ -259,6 +260,8 @@ void BWPDController::update(double timestep)
     math::Vector3 angularRate(m_imu->getAngularRate());
     memcpy(&m_measuredState->linearAcceleration[0],
            &linearAcceleration, sizeof(double) * 3);
+
+    m_measuredState->depth = m_vehicle->getDepth();
     
     // Calculate new forces
     double translationalForces[3] = {0,0,0};
@@ -267,11 +270,11 @@ void BWPDController::update(double timestep)
     {
         core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
         
-        // Not working right now because we don't have depth
         translationalController(m_measuredState, m_desiredState,
         	                m_controllerState, timestep,
                                 translationalForces);
-        
+
+        // Doesn't currently handle pitch
         BongWiePDRotationalController(m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
                                       rotationalTorques);
@@ -290,11 +293,18 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
         0.5 * rotationalTorques[2] / m_rStarboard;
     double port = translationalForces[0] / 2 -
         0.5 * rotationalTorques[2] / m_rPort;
-    double fore = translationalForces[2] / 2 +
+/*    double fore = translationalForces[2] / 2 +
         0.5 * rotationalTorques[1] / m_rFore;
     double aft = translationalForces[2]/2 -
-        0.5 * rotationalTorques[1] / m_rAft;
+    0.5 * rotationalTorques[1] / m_rAft;*/
 
+    // Igrnore rotational control on these thrusters
+    // These multipliers are temporary because we have no pitch control
+    double fore = translationalForces[2] * 1.1;
+    double aft = translationalForces[2] * 0.9;
+//    double fore = 0;
+//    double aft = 0;
+    
 //    std::cout << "Force S: " << star << " P: " << port << " F: "
 //              << fore << " A: " << aft << std::endl;
     
@@ -303,9 +313,9 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
 
     m_portThruster->setForce(port);
 
-//    m_foreThruster->setForce(fore);
+    m_foreThruster->setForce(fore);
 
-//    m_aftThruster->setForce(aft);
+    m_aftThruster->setForce(aft);
 }
     
 } // namespace control
