@@ -33,6 +33,11 @@ int main(int argc, char ** argv)
     printf("\nThruster safety 1: %d", thrusterSafety(fd, 5));
     printf("\nThruster safety 2: %d", thrusterSafety(fd, 6));
     printf("\nThruster safety 3: %d", thrusterSafety(fd, 7));
+
+    int ang=0, dist=0, pingNum=0;
+
+    printf("\nSonar: %d\n", getSonarData(fd, &ang, &dist, &pingNum));
+
 /*
     unsigned char tempData[6];
 

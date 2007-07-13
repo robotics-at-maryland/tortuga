@@ -65,13 +65,13 @@ int syncBoard(int fd)
         unsigned char b[1];
         b[0] = 0xFF;
         writeData(fd, b, 1);
-	miniSleep();
+	    miniSleep();
 
         b[0]=0;
 
         if(hasData(fd, IO_TIMEOUT))
             readData(fd, b, 1);
-	miniSleep();
+	    miniSleep();
 
         if(!hasData(fd, IO_TIMEOUT) && b[0]==0xBC)
             return 0;
@@ -174,6 +174,44 @@ int readTemp(int fd, unsigned char * tempData)
         return 0;
 
     return SB_ERROR;
+}
+
+
+int getSonarData(int fd, int * angle, int * distance, int * pingNumber)
+{
+    unsigned char buf[5]={HOST_CMD_SONAR, HOST_CMD_SONAR};
+    int i;
+    unsigned char rawSonar[5] = {0,0,0,0,0};
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != 0x0E)
+        return SB_ERROR;
+
+    readData(fd, rawSonar, 5);
+    readData(fd, buf, 1);
+
+    unsigned char sum = 0x0E;
+
+    for(i=0; i<5; i++)
+        sum = (sum+rawSonar[i]) & 0xFF;
+
+    if(sum != buf[0])
+        return SB_ERROR;
+
+    printf("\nDebug: Received data from sonar board: < ");
+    for(i=0; i<5; i++)
+        printf("0x%02X ", rawSonar[i]);
+
+    printf(">\n");
+
+    *angle = 0;
+    *distance = 0;
+    *pingNumber = rawSonar[5];
+
+
+    return SB_OK;
 }
 
 

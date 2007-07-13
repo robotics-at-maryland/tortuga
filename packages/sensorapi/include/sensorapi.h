@@ -9,6 +9,7 @@
 #define HOST_CMD_DEPTH   0x02
 #define HOST_CMD_STATUS  0x04
 #define HOST_CMD_TEMPERATURE 0x0A
+#define HOST_CMD_SONAR 0x0D
 
 #define LCD_BL_OFF    0
 #define LCD_BL_ON     1
@@ -57,26 +58,28 @@ int openSensorBoard(const char * devName);
 
 /** Syncs the communication protocol between the board and vehicle */
 int syncBoard(int fd);
-    
+
 int pingBoard(int fd);
 
 int readDepth(int fd);
 
 /** Read the status bit back from the board */
 int readStatus(int fd);
-    
+
 int hardKill(int fd);
 
 /** Releases marker, only takes 0 or 1 */
 int dropMarker(int fd, int markerNum);
-    
+
 int lcdBacklight(int fd, int state);
-    
+
 int thrusterSafety(int fd, int state);
-    
+
 int displayText(int fd, int line, const char* text);
 
 int getTemp(int fd, unsigned char * tempData);
+
+int getSonarData(int fd, int * angle, int * distance, int * pingNumber);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
