@@ -52,6 +52,6 @@ class scheduler:
             else:
                 time.sleep(sleepTime)
             currTime = time.time()
-            print "Sytem Time:",currTime - self.startTime
+#            print "Sytem Time:",currTime - self.startTime
             element.object.update(currTime - element.lastUpdated)
             element.lastUpdated = currTime

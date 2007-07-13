@@ -114,7 +114,7 @@ class AppBase(object):
         sched = scheduler.scheduler(objects);
         
         # Start up
-        sched.operate()
+        sched.sleepOperate()
         
             
     def _multi_main_loop(self):
