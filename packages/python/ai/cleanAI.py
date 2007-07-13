@@ -1,12 +1,15 @@
-import module.Module as Module
-import ai.state_machine as StateMachine
+from module import Module, IModule
+from core import implements
+from ai.state_machine import state_machine as StateMachine
 import ai.Movement as Movement
 import time
 
 import ai.AIModel as AIModel
 
 class AI(Module):
-    def __init__(self,config):
+    implements(IModule)
+    
+    def __init__(self, veh, config):
         self.startState = "shutdown"
         self.aiStates = {
                     "shutdown":self.shutdown,
@@ -58,11 +61,11 @@ class AI(Module):
 
         self.stateMachine = StateMachine()
         self.stateMachine.state = "waitForStart"
-        self.stateMachine.set_states = self.aiStates
+        self.stateMachine.set_states(self.aiStates)
         self.model = AIModel.model()
-        self.vehicle = model.vehicle
-        self.vision = model.vision
-        self.controller = self.model.controllerler
+        self.vehicle = veh
+        #self.vision = self.model.vision
+        self.controller = self.model.controller
         self.complexControl = Movement.control()
         
         Module.__init__(self,config)
@@ -105,7 +108,7 @@ class AI(Module):
         self.controller.setSpeed(self.searchSpeed)
         self.stateMachine.change_state("zigZagSearchTime")
         
-    def zigZagSearch(self):
+    def zigZagSearchTime(self):
         if (time.time() - self.startZagTime) >= self.searchForTime:
             self.change_state("shutdown")
         else:

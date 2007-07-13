@@ -10,8 +10,6 @@ EnsureSConsVersion(0, 96, 93)
 # Add the buildfiles dir to the path
 sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
 
-
-print 'ARGS:',ARGUMENTS
 # Options either come from command line of config file
 opts = Options('configure.py')
 opts.AddOptions(

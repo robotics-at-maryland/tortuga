@@ -294,8 +294,8 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
     double aft = translationalForces[2]/2 -
         0.5 * rotationalTorques[1] / m_rAft;
 
-    std::cout << "Force S: " << star << " P: " << port << " F: "
-              << fore << " A: " << aft << std::endl;
+//    std::cout << "Force S: " << star << " P: " << port << " F: "
+//              << fore << " A: " << aft << std::endl;
     
     
     m_starboardThruster->setForce(star);
