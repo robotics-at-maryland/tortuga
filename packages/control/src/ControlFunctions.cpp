@@ -7,6 +7,9 @@
  * File:  packages/control/src/ControlFunctions.cpp
  */
 
+//STD Includes
+#include <cmath>
+
 // Project Includes
 #include "control/include/ControlFunctions.h"
 #include "math/include/Helpers.h"
@@ -152,7 +155,71 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
     *(rotationalTorques+2)=controlSignal[2];
 }
 
+
+/************************************************************************
+HackedPDRotationalController(MeasuredState,DesiredState,ControllerState,dt,rotationalTorques)
+
+function HackedPDRotationalController is a SISO yaw controller.  it discards everything I know about coupled dynamics and control as a dirty hack to get something working at the competition.  I am shamed to write this function.
+
+This function exclusively controls the yaw axis of the vehicle.  It assumes that pitch and roll are controlled passively through the stabilization of the sub.  This controller does NOT account for any roll or pitch whatsoever.
+
+*/
+/*
+void HackedPDRotationalController(MeasuredState* measuredState,
+                                   DesiredState* desiredState,
+                                   ControllerState* controllerState,
+                                   double dt,
+                                   double* rotationalTorques){
+    
+  //gather bullshit data from the IMU
+
+  //pester Joe about getting this later
+  //grab m vector from IMU
+  double mag[3];
+  //grab angular rate from IMU
+  double omega;//assume only interested in yaw
+  omega=measuredState->angularRate[2];
+
+  double yawDesired=0;//get Joe to help implement this
+  
+  //assume the vehicle is perfectly upright
+  mag[0] = mag[0];
+  mag[1] = mag[1];
+  mag[2] = 0;//loose the vertical component of the magnetic field
+
+  //now normalize the field
+  normalize3x1(mag);
+
+  //"calculate" yaw
+  double yawMeasured;
+  yawMeasured = atan2(mag[1],mag[0]);
+
+  //calculate yaw error
+  double yawError;
+  if yaw < 0                yaw = yaw+2*pi;
+  if yaw > 2*M_PI           yaw = yaw - 2*M_PI;
+  if yawDesired < 0         yaw = yaw+2*M_PI;
+  if yawDesired > 2*M_PI;   yaw = yaw-2*M_PI;
+
+  if yaw-yawDesired > M_PI      yaw = yaw-2*M_PI;
+  if yawDesired-yaw > M_pi     yaw = yaw+2*M_PI;
+
+
+  //control law
+  double yawTorque;
+  yawTorque=-(controllerState->angularPGain)*(yawDesired-yawMeasured)
+    -(controllerState->angularDGain)*(0-omega);
+
+  //save to memory
+    *(rotationalTorques)=0;
+    *(rotationalTorques+1)=0;
+    *(rotationalTorques+2)=yawTorque;
+}
+
+*/
+
 #ifndef RAM_MATLAB_CONTROL_TEST
 } // namespace control
 } // namespace ram
 #endif // RAM_MATLAB_CONTROL_TEST
+

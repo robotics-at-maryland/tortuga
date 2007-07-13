@@ -33,7 +33,8 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     m_rStarboard(0),
     m_rPort(0),
     m_rFore(0),
-    m_rAft(0)
+    m_rAft(0),
+    m_hackedPitchGain(0)
 {
     printf("Creating controller\n");
     
@@ -61,6 +62,9 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
     m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
     m_controllerState->speedPGain = config["speedPGain"].asDouble(1);
+
+    // HACK!! /// TODO: Remove me
+    m_hackedPitchGain = config["hackedPitchGain"].asDouble();
     
     m_controllerState->inertiaEstimate[0][0] =
         config["inertia"][0][0].asDouble(0.201);
@@ -266,6 +270,7 @@ void BWPDController::update(double timestep)
     // Calculate new forces
     double translationalForces[3] = {0,0,0};
     double rotationalTorques[3] = {0,0,0};
+    double pitchHack = 0;
 
     {
         core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
@@ -278,9 +283,17 @@ void BWPDController::update(double timestep)
         BongWiePDRotationalController(m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
                                       rotationalTorques);
+
+	pitchHack = HackedPDPitchControl(m_measuredState, 
+					 m_desiredState,
+					 m_controllerState, m_hackedPitchGain);
     }
 
     // Actually set motor values
+
+    // Hacking torques get pitch control
+    rotationalTorques[1] = pitchHack;
+
     applyForcesAndTorques(translationalForces, rotationalTorques);
 }
 
@@ -293,15 +306,15 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
         0.5 * rotationalTorques[2] / m_rStarboard;
     double port = translationalForces[0] / 2 -
         0.5 * rotationalTorques[2] / m_rPort;
-/*    double fore = translationalForces[2] / 2 +
+    double fore = translationalForces[2] / 2 +
         0.5 * rotationalTorques[1] / m_rFore;
     double aft = translationalForces[2]/2 -
-    0.5 * rotationalTorques[1] / m_rAft;*/
+      0.5 * rotationalTorques[1] / m_rAft;
 
     // Igrnore rotational control on these thrusters
     // These multipliers are temporary because we have no pitch control
-    double fore = translationalForces[2] * 1.1;
-    double aft = translationalForces[2] * 0.9;
+    //    double fore = translationalForces[2] * 1.1;
+    //    double aft = translationalForces[2] * 0.9;
 //    double fore = 0;
 //    double aft = 0;
     

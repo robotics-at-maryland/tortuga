@@ -62,6 +62,18 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
                                    double* rotationalTorques);
 
 
+double  HackedPDPitchControl(MeasuredState* measuredState,
+                             DesiredState* desiredState,
+                             ControllerState* controllerState
+			     double hackedPitchGain);
+
+  /*void HackedPDRotationalController(MeasuredState* measuredState,
+                                   DesiredState* desiredState,
+                                   ControllerState* controllerState,
+                                   double dt,
+                                   double* rotationalTorques);*/
+
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

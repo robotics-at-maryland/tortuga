@@ -124,6 +124,9 @@ private:
     vehicle::device::ThrusterPtr m_aftThruster;
 
     vehicle::device::IMUPtr m_imu;
+
+    /* Pitch hack gain */
+    double m_hackedPitchGain;
 };
     
 } // namespace control
