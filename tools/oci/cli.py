@@ -40,7 +40,8 @@ class CLI(Module):
     
     def __init__(self, vehicle, config):
         #print 'CLI Created'
-        #self.stdscr = curses.initscr()
+        self.stdscr = curses.initscr()
+        self.stdscr.nodelay(1)
         self.vehicle = vehicle
         self.thrusters = [vehicle.getDevice('ForeThruster'),
                           vehicle.getDevice('AftThruster'),
@@ -54,17 +55,17 @@ class CLI(Module):
     def start(self):
         #print 'Starting CLI'
         # Dont show keypresses
-        #curses.noecho()
+        curses.noecho()
         # Allow instantaneous Key Processing    
-        #curses.cbreak()
+        curses.cbreak()
         # Enable the keypad     
-        #self.stdscr.keypad(1) 
+        self.stdscr.keypad(1) 
         
         Module.start(self)
         
     def print_string(self,x,y,str,mode):
-        print str
-        #self.stdscr.addstr(x,y,str,mode)
+        #print str
+        self.stdscr.addstr(x,y,str,mode)
         
     def print_thrusters(self,thrusters):
         self.print_string(2,10,"Fore: " + str((thrusters[0].getForce()*100)),
@@ -82,8 +83,10 @@ class CLI(Module):
         self.print_string(0,0,"Thruster Information",curses.A_UNDERLINE)
         self.print_thrusters(self.thrusters)
         
-        #char = self.stdscr.getch()
-        #quit = self.handle_input(char)
+        char = self.stdscr.getch()
+        quit = self.handle_input(char)
+        
+        self.print_string(1, 0, str(timestep), curses.A_UNDERLINE)
         
         #depth = self.vehicle.getDepth()
         #self.print_string(8,57,"Depth",curses.A_REVERSE)
@@ -91,6 +94,7 @@ class CLI(Module):
          
         if quit:
             self.shutdown()
+            sys.exit(1)
                 
     def handle_input(self,c):
         if c == ESC:
@@ -122,9 +126,9 @@ class CLI(Module):
         return 0
             
     def shutdown(self):
-        #curses.nocbreak()
-        #self.stdscr.keypad(0)
-        #curses.echo()
-        #curses.endwin()
+        curses.nocbreak()
+        self.stdscr.keypad(0)
+        curses.echo()
+        curses.endwin()
         
         Module.shutdown(self)

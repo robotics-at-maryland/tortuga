@@ -19,6 +19,6 @@ class scheduler:
             for element in self.objects:
                 lastUpdated = element.lastUpdated
                 if currTime - lastUpdated >= element.updateInterval:
-                    print "Sytem Time:",currTime - self.startTime
+                    #print "Sytem Time:",currTime - self.startTime
                     element.object.update(currTime - lastUpdated)
                     element.lastUpdated = currTime
