@@ -76,10 +76,12 @@ Modules:
         angularDGain: 1
         speedPGain: 3
         depthPGain: 40
+
+        # Currently does nothing!!!
         hackedPitchGain: 1
 
         desiredSpeed: 5
-        desiredDepth: 1
+        desiredDepth: 0.7
         desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
 
 
