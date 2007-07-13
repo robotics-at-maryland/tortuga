@@ -19,6 +19,7 @@ import vehicle.devices
 import control.bwpdcontrol
 import event
 from module import ModuleManager
+import scheduler
 
 
 # TODO: Move me somewhere more global
@@ -79,6 +80,31 @@ class AppBase(object):
             self._modules.append(mod)
             
     def main_loop(self, singlethreaded = False):
+        if singlethreaded:
+            self._single_main_loop()
+        else:
+            self._multi_main_loop()
+            
+    def _single_main_loop(self):
+        
+        # Build list of objects for the schedules
+        objects = []
+        
+        mod_config = self._config['Modules']
+        for name in mod_config.keys():
+            cfg = mod_config[name]
+            mod = ModuleManager.get().get_module(name)
+            info = scheduler.updatableInformation(mod, cfg["update_interval"]/1000.0)
+            objects.append(info)
+            
+        # Scheduler object
+        sched = scheduler.scheduler(objects);
+        
+        # Start up
+        sched.operate()
+        
+            
+    def _multi_main_loop(self):
         """
         Run the main module specified from the config file
         """
@@ -89,10 +115,9 @@ class AppBase(object):
         
         # Start Everything but the main module
         mod_config = self._config['Modules']
-        if not singlethreaded:
-            for name in mod_config.keys():
-                if name != main_name:
-                    ModuleManager.get().get_module(name).start()
+        for name in mod_config.keys():
+            if name != main_name:
+                ModuleManager.get().get_module(name).start()
         
         # Grab update interval
         update_interval = 1000.0 / self._config['Modules'][main_name]['update_interval'] / 1000.0
@@ -110,11 +135,7 @@ class AppBase(object):
 
             # Update main iteration
             #print 'Running: ',time_since_last_iteration
-            if singlethreaded:
-                for name in mod_config.keys():
-                    ModuleManager.get().get_module(name).update(time_since_last_iteration)
-            else:
-                self.main_mod.update(time_since_last_iteration)
+            self.main_mod.update(time_since_last_iteration)
             
             # Store old time
             self._last_time = current_time

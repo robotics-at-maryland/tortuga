@@ -1,6 +1,5 @@
 #list of objects that all have an update method that takes a time step
 
-from simpleUpdatable import updatable
 import time
 
 class updatableInformation:
@@ -23,16 +22,3 @@ class scheduler:
                     print "Sytem Time:",currTime - self.startTime
                     element.object.update(currTime - lastUpdated)
                     element.lastUpdated = currTime
-                    
-a = updatable("a")
-b = updatable("b")
-c = updatable("c")
-                
-aInfo = updatableInformation(a,1)
-bInfo = updatableInformation(b,4)
-cInfo = updatableInformation(c,7)
-
-objects = [aInfo,bInfo,cInfo]
-
-sched = scheduler(objects)
-sched.operate()
