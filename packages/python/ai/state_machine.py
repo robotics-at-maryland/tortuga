@@ -12,7 +12,6 @@ class state_machine:
         
     def __init__(self):
         print "Initializing the state machine"
-        self.state = "initializing"             #set the start state
     
     def set_states(self,states):
         self.state_table = states
