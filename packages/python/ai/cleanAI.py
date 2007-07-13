@@ -79,10 +79,11 @@ class AI(Module):
     
     def waitForStart(self):
         start = self.vehicle.startStatus()
+	print "start status:",start
         self.vehicle.printLine(0,"Waiting to start...")
         if start == 1:
-            self.change_state(self.startState)
-            self.vehicle.printLine(0,"Starting!")
+            self.stateMachine.change_state(self.startState)
+            self.vehicle.printLine(0,"Fuck you Steve!")
 
     def shutdown(self):
         self.controller.setDepth(1)
