@@ -5,18 +5,26 @@
 // A Simple Camera Capture Framework
 int main() {
 
-  CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+  CvCapture* capture = cvCaptureFromCAM(300);
+  CvCapture* captureDown = cvCaptureFromCAM(301);
+  
   //capture = cvCaptureFromCAM(CV_CAP_ANY+1);
   if( !capture ) {
     fprintf( stderr, "ERROR: capture is NULL \n" );
     getchar();
     return -1;
   }
-
+  if (!captureDown)
+	{
+		fprintf( stderr, "ERROR: capture is NULL \n" );
+		getchar();
+		return -1;
+	}
   //cvSetCaptureProperty(capture, CV_CAP_PROP_FOURCC, CV_CAP_PROP_FOURCC_YUV411);
   //cvSetCaptureProperty(capture, CV_CAP_PROP_FPS, 30);
 
 CvVideoWriter *writer = 0;
+CvVideoWriter *writeDown =NULL;
   int isColor = 1;
   int fps     = 30;  // or 30
   int frameW  = 640; // 744 for firewire cameras
@@ -24,9 +32,15 @@ CvVideoWriter *writer = 0;
   
   /* Creates a file if none exists, also crashes without the comma*/
   FILE* video=fopen("out.avi","w");
-  fclose(video),
+  fclose(video);
+  FILE* video2=fopen("out2.avi","w");
+  fclose(video2),
   writer=cvCreateVideoWriter("out.avi",CV_FOURCC('D','I','V','X'),
                              fps,cvSize(frameW,frameH),1);
+
+	writeDown=cvCreateVideoWriter("out2.avi",CV_FOURCC('D','I','V','X'),
+							fps,cvSize(frameW,frameH),1);
+
 
   printf("Camera Capture Properties:\n");
   printf("\tWidth:  %f\n", cvGetCaptureProperty(capture,
@@ -37,7 +51,7 @@ CvVideoWriter *writer = 0;
                                                 CV_CAP_PROP_FPS));
   
   // Create a window in which the captured images will be presented
-  cvNamedWindow( "Raw Camera Image", CV_WINDOW_AUTOSIZE );
+  //cvNamedWindow( "Raw Camera Image", CV_WINDOW_AUTOSIZE );
 
   // Show the image captured from the camera in the window and repeat
   while( 1 ) {
@@ -48,10 +62,16 @@ CvVideoWriter *writer = 0;
       getchar();
       break;
     }
-    
-    //cvShowImage( "Raw Camera Image", frame );
+	IplImage* frameDown=cvQueryFrame(captureDown);
+	if (!frameDown) {
+	  fprintf( stderr, "ERROR: frameDown is null...\n" );
+      getchar();
+      break;
+    }
+	//cvShowImage( "Raw Camera Image", frame );
 
     cvWriteFrame(writer,frame);
+	cvWriteFrame(writeDown,frameDown);
 
     // Do not release the frame!
 
@@ -62,7 +82,9 @@ CvVideoWriter *writer = 0;
 
   // Release the capture device housekeeping
   cvReleaseCapture( &capture );
+  cvReleaseCapture( &captureDown);
   cvReleaseVideoWriter(&writer);
-  cvDestroyWindow( "Raw Camera Image" );
+  cvReleaseVideoWriter(&writeDown);
+//  cvDestroyWindow( "Raw Camera Image" );
   return 0;
 }
