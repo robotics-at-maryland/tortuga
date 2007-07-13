@@ -68,9 +68,12 @@ IMU::IMU(Vehicle* vehicle, core::ConfigNode config) :
 
     m_localMagneticPitch = config["localMagneticPitch"].asDouble(66);
 
-    m_magXBias = config["magXBias"].asDouble(-0.187370068075);
-    m_magYBias = config["magYBias"].asDouble(-0.104584741532);
-    m_magZBias = config["magZBias"].asDouble(-0.240427112585);
+    m_magXBias = config["magXBias"].asDouble(0);
+    m_magYBias = config["magYBias"].asDouble(0);
+    m_magZBias = config["magZBias"].asDouble(0);
+
+    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
+	   m_magYBias, m_magZBias);
 }
 
 IMU::~IMU()
@@ -120,12 +123,14 @@ void IMU::update(double timestep)
 //            printf("MB: %7.4f %7.4f %7.4f ", newState.magX, newState.magY,
 //                   newState.magZ);
 
-            newState.magX = newState.magX - m_magXBias;
+	    // Account for magnetic fields of the frame (ie the thrusters)
+	    newState.magX = newState.magX - m_magXBias;
             newState.magY = newState.magY - m_magYBias;
             newState.magZ = newState.magZ - m_magZBias;
             
-//            printf("MA: %7.4f %7.4f %7.4f ", newState.magX, newState.magY,
-//                   newState.magZ);
+	    printf("IMU F. Bias Raw: %7.4f %7.4f %7.4f\n", newState.magX, 
+		   newState.magY,
+                   newState.magZ);
 
             
             
@@ -158,9 +163,9 @@ void IMU::update(double timestep)
                 m_orientation.q3 = quaternion[2];
                 m_orientation.q4 = quaternion[3];
 
-                printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.q1,
-                       m_orientation.q2, m_orientation.q3,
-                       m_orientation.q4);
+                //printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.q1,
+                //       m_orientation.q2, m_orientation.q3,
+                //       m_orientation.q4);
             }
 
 
@@ -242,8 +247,8 @@ void IMU::rotateAndFilterData(RawIMUData* newState)
     math::matrixMult3x1by3x3(m_IMUToVehicleFrame, gyro,
                              rotatedGyro);
 
-//    printf("MR: %7.4f %7.4f %7.4f", rotatedMagnetometer[0],
-//           rotatedMagnetometer[1], rotatedMagnetometer[2]);
+    //    printf("MR: %7.4f %7.4f %7.4f\n", rotatedMagnetometer[0],
+    //           rotatedMagnetometer[1], rotatedMagnetometer[2]);
     
     // Filter data
     m_filteredAccelX.addValue(rotatedLinearAcceleration[0]);
