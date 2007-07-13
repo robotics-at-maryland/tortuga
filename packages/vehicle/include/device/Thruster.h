@@ -16,9 +16,8 @@
 // Project Includes
 #include "vehicle/include/device/Device.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/ReadWriteMutex.h"
 #include "pattern/include/Subject.h"
-
-//#include "core/include/ReadWriteMutex.h"
 
 namespace ram {
 namespace vehicle {
@@ -85,6 +84,7 @@ private:
     /** Experimentally determined calibration factor */
     double m_calibrationFactor;
 
+    core::ReadWriteMutex m_forceMutex;
     /** Current output force of motor */
     double m_force;
     
