@@ -79,12 +79,23 @@ class AI(Module):
     ##                        General States                         ##
     
     def waitForStart(self):
+        self.pushed == 0
         start = self.vehicle.startStatus()
-	print "start status:",start
-        self.vehicle.printLine(0,"Waiting to start...")
+        self.vehicle.printLine(0,"Ready to operate...")
+        self.vehicle.printLine(1,"Use start wand to engage")
         if start == 1:
-            self.stateMachine.change_state(self.startState)
-            self.vehicle.printLine(0,"Fuck you Steve!")
+            self.pushed = 1
+            self.pushTime = time.time()
+        if self.pushed == 1:
+            time = int(time.time() - self.pushTime)
+            message = "Starting in " + str()
+            self.vehicle.printLine(0,message)
+            self.vehicle.printLine(1," ")
+            if time.time() - self.pushTime >= 5:
+                self.vehicle.printLine(0,"Vehicle Operating!")
+                self.stateMachine.change_state(self.startState)
+            
+            
 
     def shutdown(self):
         self.controller.setDepth(1)
