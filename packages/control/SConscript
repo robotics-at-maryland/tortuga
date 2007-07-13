@@ -19,3 +19,10 @@ sources = helpers.glob(env, 'src', '*.cpp')
 # Build Procducts (library will be called 'libram_vehicle.so')
 helpers.SharedLibrary(envl, 'control',  source = sources)
 
+# Test Control Program
+envt = env.Clone()
+envt.Append(LIBS = ['boost_program_options-gcc'])
+helpers.Program(envt, target = 'ControlTest', 
+                source = 'test/src/ControlTest.cpp',
+                int_deps = ['vehicle', 'control']),
+#                ext_deps = ['Boost.ProgramOptions'])
