@@ -93,9 +93,22 @@ class AppBase(object):
         mod_config = self._config['Modules']
         for name in mod_config.keys():
             cfg = mod_config[name]
-            mod = ModuleManager.get().get_module(name)
+            mod = ModuleManager.get().get_module(name)            
             info = scheduler.updatableInformation(mod, cfg["update_interval"]/1000.0)
             objects.append(info)
+            
+            if name == 'Vehicle':
+                dev_cfg = cfg['Devices']
+                starboardThruster = mod.getDevice('StarboardThruster')
+                starboardThruster.background(dev_cfg['StarboardThruster']['update_interval'])
+                
+                imu = mod.getDevice('IMU')
+                interval = dev_cfg['IMU']['update_interval'] / 1000.0
+                info = scheduler.updatableInformation(imu, interval)
+            
+        # Grab the vehicle and add the proper devices to the scheduler
+        veh = ModuleManager.get().get_module('Vehicle')
+        
             
         # Scheduler object
         sched = scheduler.scheduler(objects);
