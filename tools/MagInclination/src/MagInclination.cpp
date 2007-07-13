@@ -7,8 +7,10 @@
 // Project Includes
 #include "imu/include/imuapi.h"
 #include "math/include/Helpers.h"
-using namespace ram::math;
+#include "core/include/AveragingFilter.h"
 
+using namespace ram::math;
+using namespace ram::core;
 
 /*
 
@@ -24,6 +26,8 @@ computed as 90 degrees minus the above calculated angle between m and g.
 
 written by Joseph Gland  2007-07-07
 */
+
+static const int POINT_COUNT = 2000;
 
 double findRowAverageOf3xN(double * pData, int row, int columns);
 
@@ -43,33 +47,40 @@ int main (){
   //set number of data points to collect
   int numPoints = 2000;
   //create storage arrays
-  double mag[3][numPoints];
-  double accel[3][numPoints];
-  
+  AveragingFilter<double, POINT_COUNT> magX;
+  AveragingFilter<double, POINT_COUNT> magY;
+  AveragingFilter<double, POINT_COUNT> magZ;
+  AveragingFilter<double, POINT_COUNT> accelX;
+  AveragingFilter<double, POINT_COUNT> accelY;
+  AveragingFilter<double, POINT_COUNT> accelZ;
+
   //collect the data
   for(int index=0; index < numPoints-1; index++){
     //read IMU
     readIMUData(fd, &imuData);
     //save to arrays
-    mag[0][index] = imuData.magX;
-    mag[1][index] = imuData.magY;
-    mag[2][index] = imuData.magZ;
-    accel[0][index] = imuData.accelX;
-    accel[1][index] = imuData.accelY;
-    accel[2][index] = imuData.accelZ;
+    
+    magX.addValue(imuData.magX);
+    magY.addValue(imuData.magY);
+    magZ.addValue(imuData.magZ);
+
+    accelX.addValue(imuData.accelX);
+    accelY.addValue(imuData.accelY);
+    accelZ.addValue(imuData.accelZ);
+
     //sleep for 20 ms
     usleep(20000);
   }
-  
+
   //average the data
   double averagedMag[3];
   double averagedAccel[3];
-  averagedMag[0] = findRowAverageOf3xN(&mag[0][0],0,numPoints);
-  averagedMag[1] = findRowAverageOf3xN(&mag[0][0],1,numPoints);
-  averagedMag[2] = findRowAverageOf3xN(&mag[0][0],2,numPoints);
-  averagedAccel[0] = findRowAverageOf3xN(&accel[0][0],0,numPoints);
-  averagedAccel[1] = findRowAverageOf3xN(&accel[0][0],1,numPoints);
-  averagedAccel[2] = findRowAverageOf3xN(&accel[0][0],2,numPoints);
+  averagedMag[0] = magX.getValue();
+  averagedMag[1] = magY.getValue();
+  averagedMag[2] = magZ.getValue();
+  averagedAccel[0] = accelX.getValue();
+  averagedAccel[1] = accelY.getValue();
+  averagedAccel[2] = accelZ.getValue();
 
   //normalize mag and accel vectors
   normalize3x1(averagedMag);
@@ -93,8 +104,12 @@ int main (){
   //print output to user
   std::cout << "The local magnetic inclination was calculated to be ";
   std::cout << theta << " degrees." << std::endl;
-
   
+  //print mag and accel input
+  std::cout << "Average mag (IMU Frame) = " << averagedMag[0] << " " << averagedMag[1];
+  std::cout << " " << averagedMag[2] << std::endl;
+  std::cout << "Average accel (IMU Frame) = " << averagedAccel[0] << " " << averagedAccel[1];
+  std::cout << " " << averagedAccel[2] << std::endl;
   return 0;
 }
 
