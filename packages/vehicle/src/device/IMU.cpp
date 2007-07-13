@@ -66,14 +66,14 @@ IMU::IMU(Vehicle* vehicle, core::ConfigNode config) :
     m_IMUToVehicleFrame[2][2] =
         config["imuToVehicleRotMatrix"][2][2].asDouble(0);
 
-    m_localMagneticPitch = config["localMagneticPitch"].asDouble(66);
+    m_localMagneticPitch = config["localMagneticPitch"].asDouble();
 
-    m_magXBias = config["magXBias"].asDouble(0);
-    m_magYBias = config["magYBias"].asDouble(0);
-    m_magZBias = config["magZBias"].asDouble(0);
+    m_magXBias = config["magXBias"].asDouble();
+    m_magYBias = config["magYBias"].asDouble();
+    m_magZBias = config["magZBias"].asDouble();
 
-    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
-	   m_magYBias, m_magZBias);
+    //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
+    //	   m_magYBias, m_magZBias);
 }
 
 IMU::~IMU()
@@ -128,9 +128,9 @@ void IMU::update(double timestep)
             newState.magY = newState.magY - m_magYBias;
             newState.magZ = newState.magZ - m_magZBias;
             
-	    printf("IMU F. Bias Raw: %7.4f %7.4f %7.4f\n", newState.magX, 
+	    /*	    printf("IMU F. Bias Raw: %7.4f %7.4f %7.4f\n", newState.magX, 
 		   newState.magY,
-                   newState.magZ);
+                   newState.magZ);*/
 
             
             
