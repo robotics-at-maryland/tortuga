@@ -18,12 +18,14 @@ namespace py = boost::python;
 namespace ram {
 namespace core {
 
-PythonConfigNodeImp::PythonConfigNodeImp(py::object pyobj) :
-    m_pyobj(pyobj)
-{
-}
+PythonConfigNodeImp::PythonConfigNodeImp(py::object pyobj,
+					 std::string debugPath) :
+    m_pyobj(pyobj),
+    m_debugPath(debugPath)
+{}
 
-PythonConfigNodeImp::PythonConfigNodeImp(std::string pythonString)
+PythonConfigNodeImp::PythonConfigNodeImp(std::string pythonString) :
+    m_debugPath("ROOT")
 {
     // Make sure python is initialized
     if (!Py_IsInitialized())
@@ -56,14 +58,19 @@ ConfigNode PythonConfigNodeImp::construct(py::object pyobj)
 ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
 {
     try {
+         std::stringstream ss;
+         ss << m_debugPath << "[" << index << "]";
+
         if ((m_pyobj.ptr() != Py_None) &&
             PyObject_HasAttrString (m_pyobj.ptr(), "__getitem__"))
         {
-            return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[index]));
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[index],
+							    ss.str()));
         }
         else
         {
-            return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object()));
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object(),
+							    ss.str()));
         }
     } catch(py::error_already_set err) {
         //return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[index]));
@@ -79,17 +86,19 @@ ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
 ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
 {
     try {
+        std::string debugPath(m_debugPath + "." + key);
+
         if ((m_pyobj.ptr() != Py_None) &&
             PyObject_HasAttrString (m_pyobj.ptr(), "has_key")
             && (m_pyobj.attr("has_key")(key)))
         {
-            return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key]));
+	    return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key], debugPath));
         }
         else
         {
             //py::object newObject;
             //m_pyobj[key] = newObject;
-            return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object()));
+            return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object(), debugPath));
         }    
     } catch(py::error_already_set err) {
         printf("ConfigNode (map) Error:\n");
@@ -106,7 +115,7 @@ std::string PythonConfigNodeImp::asString()
     try {
         return std::string(py::extract<char*>(py::str(m_pyobj)));
     } catch(py::error_already_set err) {
-        printf("ConfigNode (asString) Error:\n");
+        printf("ConfigNode \"%s\"(asString) Error:\n", m_debugPath.c_str());
         PyErr_Print();
 
         throw err;
@@ -135,7 +144,7 @@ double PythonConfigNodeImp::asDouble()
     try {
         return py::extract<double>(m_pyobj);
     } catch(py::error_already_set err ) {
-        printf("ConfigNode (asDouble) Error:\n");
+        printf("ConfigNode \"%s\"(asDouble) Error:\n", m_debugPath.c_str());
         PyErr_Print();
 
         throw err;
@@ -163,7 +172,7 @@ int PythonConfigNodeImp::asInt()
     try {
         return py::extract<int>(m_pyobj);
     } catch(py::error_already_set err ) {
-        printf("ConfigNode (asInt) Error:\n");
+        printf("ConfigNode \"%s\"(asInt) Error:\n", m_debugPath.c_str());
         PyErr_Print();
 
         throw err;

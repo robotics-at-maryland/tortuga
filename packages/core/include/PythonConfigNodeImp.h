@@ -28,7 +28,8 @@ class PythonConfigNodeImp : public ConfigNodeImp
 {
 public:
     /** A config node from the given python dict like object */
-    PythonConfigNodeImp(boost::python::object pyobj);
+    PythonConfigNodeImp(boost::python::object pyobj, 
+			std::string debugPath = "ROOT");
     /** Create a python config node from the given python string */
     PythonConfigNodeImp(std::string pythonString);
 
@@ -63,6 +64,8 @@ public:
 
 private:
     boost::python::object m_pyobj;
+
+    std::string m_debugPath;
 };
 
 } // namespace core
