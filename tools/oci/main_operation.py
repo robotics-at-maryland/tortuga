@@ -27,7 +27,7 @@ import ociapp
 def main():            
     app = ociapp.OCIApp('controltest.yml')
     print 'Test'
-    app.main_loop()
+    app.main_loop(True)
 
 if __name__ == '__main__':
     try:
