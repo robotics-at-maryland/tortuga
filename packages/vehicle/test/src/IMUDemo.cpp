@@ -18,13 +18,16 @@
 #include "vehicle/include/device/IMU.h"
 #include "core/include/ConfigNode.h"
 #include "imu/include/imuapi.h"
+#include "math/include/Quaternion.h"
 
+using namespace ram::math;
 using namespace ram::core;
 using namespace ram::vehicle::device;
 
 static const std::string BIASED_CFG = "{ 'magXBias' : -0.21305,"
                                       "'magYBias' : -0.139574,"
-                                      "'magZBias' : -0.282475}";
+                                      "'magZBias' : -0.282475,"
+                                      "'localMagneticPitch' : 60}";
 
 static const std::string EMPTY_CFG = "{}";
 
@@ -41,12 +44,14 @@ int main()
 
     while(1)
     {
-      imu.getRawState(rawData);
-      imu.getFilteredState(filtData);
-	
-      printf("IMU F. No Bias, Raw:: %7.4f %7.4f %7.4f\n", // Rot. & Filt. Mag: %7.4f %7.4f %7.4f\n",
+        imu.getRawState(rawData);
+        imu.getFilteredState(filtData);
+	Quaternion orientation(imu.getOrientation());
+
+
+      /*      printf("IMU F. No Bias, Raw:: %7.4f %7.4f %7.4f\n", // Rot. & Filt. Mag: %7.4f %7.4f %7.4f\n",
 	     rawData.magX, rawData.magY, rawData.magZ);
-	     //	     filtData.magX, filtData.magY, filtData.magZ);
+	     //	     filtData.magX, filtData.magY, filtData.magZ);*/
 	//      std::cout << "Raw Mag " << imuData.magX << " " << imuData.magY 
 	//		<< " " << imuData.magZ;
 
@@ -57,8 +62,13 @@ int main()
 	//	magnitude = sqrt(magnitude);
 
 	//	std::cout << " " << magnitude << std::endl;
+
+         printf("%7.4f %7.4f %7.4f %7.4f;\n", orientation.q1,
+		orientation.q2, orientation.q3,
+		orientation.q4);
+
 	
-	usleep(500 * 1000);
+	usleep(50 * 1000);
     }
     return 0;
 }
