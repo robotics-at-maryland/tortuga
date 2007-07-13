@@ -34,14 +34,14 @@ Thruster::Thruster(Vehicle* vehicle, core::ConfigNode config) :
 
     // Preform a soft reset just to be safe
     ThrusterCommunicator::getSingleton().sendThrusterCommand(
-        ThrusterCommand::construct(m_address, ThrusterCommand::RESET));
+        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,0));
 }
 
 Thruster::~Thruster()
 {
     // Preform a soft reset to make sure the power dies to the thruster
     ThrusterCommunicator::getSingleton().sendThrusterCommand(
-        ThrusterCommand::construct(m_address, ThrusterCommand::RESET));
+        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED, 0));
 
     // Unregister from communicator so it will no when to destory itself
     ThrusterCommunicator::unRegisterThruster(this);
