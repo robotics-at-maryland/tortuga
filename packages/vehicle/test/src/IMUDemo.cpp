@@ -17,6 +17,7 @@
 // Project Includes
 #include "vehicle/include/device/IMU.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/AveragingFilter.h"
 #include "imu/include/imuapi.h"
 #include "math/include/Quaternion.h"
 
@@ -31,10 +32,19 @@ static const std::string BIASED_CFG = "{ 'magXBias' : -0.21305,"
 
 static const std::string EMPTY_CFG = "{}";
 
+static const int POINT_COUNT = 2000;
+static const int MS_SLEEP_TIME = 20;
+
 int main()
 {
     // Create IMU Device
     IMU imu(0, ConfigNode::fromString(BIASED_CFG));
+
+
+    AveragingFilter<double, POINT_COUNT> quat1;
+    AveragingFilter<double, POINT_COUNT> quat2;
+    AveragingFilter<double, POINT_COUNT> quat3;
+    AveragingFilter<double, POINT_COUNT> quat4;
 
 
     FilteredIMUData filtData;
@@ -42,12 +52,16 @@ int main()
     // Start IMU running in the background
     imu.background(5);
 
-    while(1)
+    for (int i = 0; i < POINT_COUNT; ++i)
     {
         imu.getRawState(rawData);
         imu.getFilteredState(filtData);
 	Quaternion orientation(imu.getOrientation());
 
+	quat1.addValue(orientation.q1);
+	quat2.addValue(orientation.q2);
+	quat3.addValue(orientation.q3);
+	quat4.addValue(orientation.q4);
 
       /*      printf("IMU F. No Bias, Raw:: %7.4f %7.4f %7.4f\n", // Rot. & Filt. Mag: %7.4f %7.4f %7.4f\n",
 	     rawData.magX, rawData.magY, rawData.magZ);
@@ -63,12 +77,19 @@ int main()
 
 	//	std::cout << " " << magnitude << std::endl;
 
-         printf("%7.4f %7.4f %7.4f %7.4f;\n", orientation.q1,
+	/*&         printf("%7.4f %7.4f %7.4f %7.4f;\n", orientation.q1,
 		orientation.q2, orientation.q3,
-		orientation.q4);
+		orientation.q4);*/
 
 	
-	usleep(50 * 1000);
+	usleep(MS_SLEEP_TIME * 1000);
     }
+
+
+    std::cout << "Averaged Quat: [" << quat1.getValue() << ", " 
+	      << quat2.getValue() << ", " 
+	      << quat3.getValue() << ", " 
+	      << quat4.getValue() << "]" << std::endl;
+
     return 0;
 }
