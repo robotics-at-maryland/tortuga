@@ -27,16 +27,18 @@ using namespace ram;
 using namespace ram::core;
 using namespace ram::vehicle::device;
 
+static const int FORCE = 6;
+
 static const std::string PORT_CONFIG("{'name' : 'PortThruster',"
                                      " 'address' : 3,"
                                      " 'calibration_factor': 0.3652,"
                                      " 'direction' : -1}");
 static const std::string STAR_CONFIG("{'name' : 'StarboardThruster',"
-                                     " 'address' : 2,"
+                                     " 'address' : 4,"
                                      " 'calibration_factor': 0.4146,"
                                      " 'direction' : -1}");
 static const std::string FORE_CONFIG("{'name' : 'ForeThruster',"
-                                     " 'address' : 4,"
+                                     " 'address' : 2,"
                                      " 'calibration_factor': 0.4368,"
                                      " 'direction' : 1}");
 static const std::string AFT_CONFIG("{'name' : 'AftThruster',"
@@ -64,12 +66,16 @@ int main()
     // Loop through each thruster and send it two commands.
     for (size_t i = 0; i < list.size(); ++i)
     {
-        cout << "Sending: \"" << list[i]->getName() << " 3 newtons" << endl;
-        list[i]->setForce(3);
+        cout << "Sending: \"" << list[i]->getName() << " " << FORCE
+             << " newtons" << endl;
+        list[i]->setForce(FORCE);
         usleep(5000 * 1000);
         cout << "Stopping" << endl;
         list[i]->setForce(0);
     }
+
+    for (size_t i = 0; i < list.size(); ++i)
+        list[i]->setForce(FORCE);
     
     
     // When the thrusters all are desctruted they shutdown the communicator,
