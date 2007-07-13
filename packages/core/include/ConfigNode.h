@@ -54,6 +54,13 @@ public:
     
     /** Builds a config node from the given string, this uses the python ver. */
     static ConfigNode fromString(std::string data);
+
+    /** Attempts to load the config from file, the extension determines the
+     backend used (NOT YET!!! - see below)
+
+     @warning: This currently assume yml files and python yaml library 
+    */
+    static ConfigNode fromFile(std::string fileName);
     
 private:
     ConfigNode();

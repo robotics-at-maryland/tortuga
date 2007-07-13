@@ -62,6 +62,8 @@ public:
     /** Attempts conversion to int, if it fails return def */
     virtual int asInt(const int def);
 
+    /** Open a file using the python Yaml parser */
+    static ConfigNodeImpPtr fromYamlFile(std::string filename);
 private:
     boost::python::object m_pyobj;
 

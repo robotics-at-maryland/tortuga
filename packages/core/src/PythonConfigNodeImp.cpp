@@ -43,13 +43,40 @@ PythonConfigNodeImp::PythonConfigNodeImp(std::string pythonString) :
                                                   main_namespace.ptr())));
 
         m_pyobj = obj;
-    } catch( py::error_already_set ) {
+    } catch(py::error_already_set err) {
         printf("ConfigNode (constructor) Error:\n");
         printf("\tTrying to parse: %s", pythonString.c_str());
         PyErr_Print();
+
+        /// TODO: fix me with real throws and Python to C++ exception handling
+        throw err;
     }
 }
 
+ConfigNodeImpPtr PythonConfigNodeImp::fromYamlFile(std::string filename)
+{
+    // Make sure python is initialized
+    if (!Py_IsInitialized())
+        Py_Initialize();
+
+    try {
+        // Create our file object
+        py::object file(py::handle<>(PyFile_FromString((char*)filename.c_str(),
+                                                       "r")));
+        py::object yaml = py::import("yaml");
+
+        return ConfigNodeImpPtr(new PythonConfigNodeImp(yaml.attr("load")(file)));
+    } catch(py::error_already_set err) {
+        printf("ConfigNode (fromYamlFile) Error:\n");
+        PyErr_Print();
+
+        /// TODO: fix me with real throws and Python to C++ exception handling
+        throw err;
+    }
+
+    return ConfigNodeImpPtr();
+}
+    
 ConfigNode PythonConfigNodeImp::construct(py::object pyobj)
 {
     return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(pyobj)));
