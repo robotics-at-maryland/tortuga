@@ -10,7 +10,8 @@ class AI(Module):
     implements(IModule)
     
     def __init__(self, veh, config):
-        self.startState = "shutdown"
+        self.startState = "shutdown"    #state that the vehicle enters after waiting to start
+        
         self.aiStates = {
                     "shutdown":self.shutdown,
                     "testFunctionality":self.testFunctionality,

@@ -13,7 +13,7 @@ class scheduler:
         self.objects = objects
         self.startTime = time.time()
         
-    def operate(self):
+    def busyOperate(self):
         while True:
             currTime = time.time()
             for element in self.objects:
@@ -42,7 +42,7 @@ class scheduler:
                 minElement = obj
         return (minElement,minWait)
     
-    def complexOperate(self):
+    def sleepOperate(self):
         while True:
             next = self.nextUp()
             element = next[0]
