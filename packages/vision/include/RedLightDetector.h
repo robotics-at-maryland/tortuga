@@ -48,6 +48,7 @@ namespace ram { namespace vision {
 			double redLightCenterY;
 			IplImage* image;
 			IplImage* raw;
+			IplImage* flashFrame;
 
 		CvPoint lightCenter;
 	

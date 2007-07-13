@@ -509,9 +509,11 @@ double hough(IplImage* img, int* linex, int* liney)
 		*liney=(start.y+end.y)/2;
 		
 		cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
+		cvReleaseImage(&src);
 		return angle;
 	}
 #endif
+	cvReleaseImage(&src);
 	return HOUGH_ERROR;
 	//		cvShowImage( "Hough", color_dst );
 }

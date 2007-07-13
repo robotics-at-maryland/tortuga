@@ -18,6 +18,7 @@ namespace vision
 using namespace std;
 int main()
 {
+	usleep(10000000);
 	ram::vision::DetectorTest forward(0,true);
 	forward.background(30);
 	while (true)

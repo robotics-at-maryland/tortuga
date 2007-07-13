@@ -89,6 +89,7 @@ void OpenCVCamera::update(double timestep)
 
         // Copy image to public side of the interface        
         capturedImage(newImage);
+		delete newImage;
     }
     else
     {
