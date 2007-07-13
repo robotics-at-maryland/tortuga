@@ -98,10 +98,13 @@ class CLI(Module):
         quit = self.handle_input(char)
         
         self.print_string(1, 0, str(timestep), curses.A_UNDERLINE)
+
+#        self.print_string(10,10, "D
         
-        #depth = self.vehicle.getDepth()
-        #self.print_string(8,57,"Depth",curses.A_REVERSE)
-        #self.print_string(9,60,str(depth),curses.A_BOLD)            
+        depth = self.vehicle.getDepth()
+        self.print_string(8,57,"Depth",curses.A_REVERSE)
+        self.print_string(9,60, "                    ",curses.A_BOLD)            
+        self.print_string(9,60,str(depth),curses.A_BOLD)            
          
         if quit:
             self.shutdown()
