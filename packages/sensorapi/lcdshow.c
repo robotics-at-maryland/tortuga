@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "sensorapi.h"
+#include "include/sensorapi.h"
 
 int main(int argc, char ** argv)
 {
@@ -11,7 +11,9 @@ int main(int argc, char ** argv)
         printf("\nlcdshow -bloff (backlight on)\n");
         printf("\nlcdshow -blon  (backlight off)\n");
         printf("\nlcdshow -blfl  (backlight flash)\n");
-        return -1;
+        printf("\nlcdshow -s  (start sequence)\n");
+
+	return -1;
     }
 
     int fd = openSensorBoard("/dev/sensor");
@@ -44,6 +46,18 @@ int main(int argc, char ** argv)
         displayText(fd, 1, "");
         close(fd);
         return 0;
+    }
+
+
+
+    if(strcmp(argv[1], "-s") == 0)
+    {
+    	displayText(fd, 1, "");
+	displayText(fd, 0, "Ready to start");
+	while((readStatus(fd) & STATUS_STARTSW) == 0);
+	displayText(fd, 0, "Running...");
+	close(fd);
+	return 0;
     }
 
 
