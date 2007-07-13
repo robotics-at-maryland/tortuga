@@ -156,6 +156,22 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
 }
 
 
+  double HackedPDPitchControl(MeasuredState* measuredState,
+                             DesiredState* desiredState,
+			      ControllerState* controllerState,
+			      double hackedPitchGain){
+    double accel1=measuredState->linearAcceleration[0];
+    double accel3=measuredState->linearAcceleration[2];
+    double thetaMeas=atan2(accel3,accel1);
+    double thetaDes=-1.5708;
+    double pitchTorque=hackedPitchGain*(thetaMeas-thetaDes);
+
+    return pitchTorque;
+    
+  }
+
+
+
 /************************************************************************
 HackedPDRotationalController(MeasuredState,DesiredState,ControllerState,dt,rotationalTorques)
 

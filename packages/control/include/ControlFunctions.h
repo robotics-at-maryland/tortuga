@@ -64,7 +64,7 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
 
 double  HackedPDPitchControl(MeasuredState* measuredState,
                              DesiredState* desiredState,
-                             ControllerState* controllerState
+                             ControllerState* controllerState,
 			     double hackedPitchGain);
 
   /*void HackedPDRotationalController(MeasuredState* measuredState,
