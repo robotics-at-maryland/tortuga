@@ -58,6 +58,9 @@ Modules:
             IMU:
                 type: ext.vehicle_device.IMU
                 update_interval: 5
+                magXBias: -0.21305
+                mabYBias: -0.139574
+                magZBias: -0.282475
 
     Controller:
         depends_on: ["Vehicle"]
