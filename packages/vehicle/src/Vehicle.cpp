@@ -120,7 +120,7 @@ void Vehicle::update(double timestep)
 
         // Status register
         int status = readStatus(m_sensorFD);
-        m_state.startSwitch = status && STATUS_STARTSW;
+        m_state.startSwitch = status & STATUS_STARTSW;
     }
 }
     
