@@ -49,6 +49,7 @@ void translationalController(MeasuredState* measuredState,
     
     // Flipped based on testing
     depthError = (measuredState->depth) - (desiredState->depth);
+    printf("D: %7.4f DE %7.4f\n", measuredState->depth, depthError);
 //    depthError = (desiredState->depth)-(measuredState->depth);
 
     //second implement depth error in single axis control law
@@ -62,11 +63,15 @@ void translationalController(MeasuredState* measuredState,
     depthComponent[2]=depthControlSignal;
 
     //now rotate depth control component to the vehicle's coordinate frame
-    double rotationMatrix[3][3];
+    // Quaternion is bogus doing it manually
+/*    double rotationMatrix[3][3];
     rotationMatrixFromQuaternion(measuredState->quaternion,&rotationMatrix[0][0]);
     matrixMult3x1by3x3(rotationMatrix,depthComponent,&translationControlSignal[0]);
-
-
+*/
+    translationControlSignal[0] = 0;
+    translationControlSignal[1] = 0;
+    translationControlSignal[2] = -depthControlSignal;
+            
     //fore-aft control (open loop, not really control) done in vehicle coordinates
     double foreAftComponent[3];
     foreAftComponent[0] = (controllerState->speedPGain)*(desiredState->speed);
@@ -185,12 +190,12 @@ double HackedPDPitchControl(MeasuredState* measuredState,
 //  printf("E: %5.3f A1: %5.3f A2: %5.3f\n", thetaError, accel1, accel3);
   //I need a minus sign in front of the gain, right...?
   //this is P control for pitch (no you don't)
-  double pitchTorque= hackedPitchGain*thetaError;
+//  double pitchTorque= hackedPitchGain*thetaError;
 
   //a better line to run:
   //this is PD control for pitch
-  //  double pitchTorque=(-1)*hackedPitchGain*thetaError
-  //  +(-1)*controllerState->angularDGain*(measuredState->angularRate[1]-0);
+   double pitchTorque= hackedPitchGain*thetaError
+       + (-1)*controllerState->angularDGain*(measuredState->angularRate[1]-0);
   return pitchTorque;  
 }
 
