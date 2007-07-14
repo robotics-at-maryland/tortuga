@@ -197,11 +197,14 @@ class AI(Module):
     toCenterAngle = 45
     toMiddleTime = 30
     spiralAngle = 3
+    gateDepth = 4
+    spiralDepth = 10
+    lookDepth = 14
         
     def driveAndSpiral(self):
-        self.controller.setDepth(4)
+        self.controller.setDepth(gateDepth)
         if self.controller.isReady():
-	    self.controller.setSpeed(7)
+	    self.controller.setSpeed(driveSpeed)
 	    self.changeTime = clock.time()
 	    self.stateMachine.change_state("waitThroughGate")
 	
@@ -213,7 +216,7 @@ class AI(Module):
 	
     def headToMiddle(self):
 	self.controller.yawVehicle(toCenterAngle)
-	self.controller.setDepth(10)
+	self.controller.setDepth(spiralDepth)
 	if self.controller.isReady():
 	    self.controller.setSpeed(driveSpeed)
 	    self.changeTime = clock.time()
@@ -245,7 +248,30 @@ class AI(Module):
             self.controller.setSpeed(8)
             
         if clock.time() - self.vehicleStartTime > operateTime:
-            self.stateMachine.change_state("shutdown")    
+            self.controller.setSpeed(0)
+            self.iter = 0
+            self.depth = lookDepth
+	    self.controller.setDepth(lookDepth)
+            self.stateMachine.change_state("lookAround")
+
+    def lookAround(self):
+        if self.controller.isReady():
+            if self.depth == 0:
+                self.stateMachine.change_state("shutdown")
+	    else:
+                self.controller.yawVehicle(lookAngle)
+                self.iter += 1
+            if self.iter >= 360/lookAngle:
+	        self.stateMachine.change_state("rise")
+
+    def rise(self):
+        if self.depth == 0:
+            self.stateMachine.change_state("shutdown")
+        elif self.controller.isReady():
+            self.controller.setDepth(self.depth - 2)
+            self.depth = self.depth - 2
+            self.iter = 0
+	    self.stateMachine.changeState("lookAround")
 	    
     ###############################################################        
     ##                        General States                         ##
