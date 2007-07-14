@@ -14,7 +14,8 @@ Modules:
         update_interval: 100
 
         # Pressure tranducer calibration 
-        depthCalibSlope: 175.65
+        depthCalibSlope: 33.01
+#        depthCalibSlope: 175.65
         depthCalibIntercept: 94
 
         # The list of devices to create for the vehicle
@@ -74,20 +75,22 @@ Modules:
 
         angularPGain: 5
         angularDGain: 1
+#        speedPGain: 0
         speedPGain: 3
-        depthPGain: 40
+        # For testing pitch control
+        depthPGain: 20
 
         # Currently does nothing!!!
-        hackedPitchGain: 1
+        hackedPitchGain: 12
 
-        desiredSpeed: 1
-        desiredDepth: 0.3
+        desiredSpeed: 3
+        desiredDepth: 0.1
 
 
         # West Side pool
-        desiredQuaternion: [0.568811, 0.480366, 0.536147, 0.395881]
+#        desiredQuaternion: [0.568811, 0.480366, 0.536147, 0.395881]
         # East side of pool to starting gate
-#        desiredQuaternion: [-0.563619, 0.596134, -0.39374, 0.414523]
+        desiredQuaternion: [-0.563619, 0.596134, -0.39374, 0.414523]
 
 #        desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
 #        desiredQuaternion: [-.744, 0.4398, -0.4371, 0.247]
@@ -102,8 +105,7 @@ Modules:
         depends_on: ["Vehicle"]
         update_interval: 100
         type: cli.CLI
-    AI:
-        depends_on: ["Vehicle", "Controller"]
-        type: ai.cleanAI.AI
-        update_interval: 100
-        start_state: hang
+#    AI:
+#        depends_on: ["Vehicle", "Controller"]
+#        type: ai.cleanAI.AI
+#        update_interval: 100
