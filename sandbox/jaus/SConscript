@@ -1,0 +1,24 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/carnetix/SConscript
+
+# Build system imports
+import helpers
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+envl.Append(CPPPATH = 'src')
+
+sources = ['src/JAUS_helpers.cpp',
+           'src/JAUS_Message.cpp',
+           'src/JAUS_active_demo.cpp']
+
+# Build the ctx and consolemon
+helpers.Program(envl, target = 'JAUSDemo', 
+		source = sources,
+                int_deps = ['thruster'])
