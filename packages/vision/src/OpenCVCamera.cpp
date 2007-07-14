@@ -82,8 +82,9 @@ void OpenCVCamera::update(double timestep)
 {
     if (cvGrabFrame(m_camCapture))
     {
-        // Create a new image and return it, image does not own the wrapped
-        // IplImage and thus will not detele it!
+      std::cout<<"Grabbed Frame\n";
+      // Create a new image and return it, image does not own the wrapped
+      // IplImage and thus will not detele it!
         Image* newImage = new OpenCVImage(cvRetrieveFrame(m_camCapture),
                                           false);
 
@@ -93,6 +94,7 @@ void OpenCVCamera::update(double timestep)
     }
     else
     {
+      std::cout<<"Failed to grab frame\n";
         /// TODO: handle gracefully
         assert(false && "Cam Capture Failed");
     }

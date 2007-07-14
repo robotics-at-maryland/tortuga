@@ -82,7 +82,7 @@ DetectorTest::DetectorTest(string movie)
 		cout<<"No Movie"<<endl;
 		return;
 	}
-	camera->background(); //Silliness	
+
 }
 
 DetectorTest::~DetectorTest()
