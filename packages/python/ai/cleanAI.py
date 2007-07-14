@@ -58,12 +58,16 @@ class AI(Module):
                     "zigZagSearchTimeInit":self.zigZagSearchTimeInit,
                     "zigZagSearchTime":self.zigZagSearchTime,
                     "reset":self.reset,
-		    "countDown":self.countDown,
-		    "hang":self.hang,
-		    "confirmReset":self.confirmReset,
-		    "diveAndGo":self.diveAndGo,
-		    "waitForDive":self.waitForDive,
-		    "driveStraight":self.driveStraight
+		            "countDown":self.countDown,
+		            "hang":self.hang,
+		            "confirmReset":self.confirmReset,
+		            "diveAndGo":self.diveAndGo,
+		            "waitForDive":self.waitForDive,
+		            "driveStraight":self.driveStraight,
+		            "prepareScout":self.prepareScout
+		            "pointIn":self.pointIn,
+		            "spiralTillDeath":self.spiralTillDeath,
+		            "driveToMiddle":self.driveToMiddle
                     }
 	
         self.stateMachine = StateMachine()
@@ -71,7 +75,7 @@ class AI(Module):
         self.stateMachine.state = "waitForStart"
         self.stateMachine.set_states(self.aiStates)
         self.model = AIModel.model()
-        self.vehicle = veh
+        self.vehicle = self.model.vehicle
         #self.vision = self.model.vision
         self.controller = self.model.controller
         self.complexControl = Movement.control()
@@ -88,6 +92,117 @@ class AI(Module):
             self.stateMachine.operate()
         else:
             self.stateMachine.change_state("reset")
+	    
+	###############################################################        
+    ##                        Simple Gate                        ##
+    
+    operateTime = 5 * 60
+    
+    driveSpeed = 5
+    driveTime = 15
+    searchForTime = 50
+    zagTime = 10
+    zagAngle = 45
+    searchSpeed = 3
+    
+    pointAngle = 45
+    
+    def simpleGate(self):
+        self.vehicle.startDriveTime = clock.time()
+        self.controller.setDepth(5)
+        self.stateMachine.change_state("simpleGateWait")
+    
+    def simpleGateWait(self):
+        if self.controller.isReady():
+            self.stateMachine.change_state("driveThroughGate")
+            self.startDriveTime = clock.time()
+    
+    def driveThroughGate(self):
+        self.controller.setSpeed(driveSpeed)
+        currentTime = clock.time()
+        if (currentTime - self.startDriveTime) > driveTime:
+            self.stateMachine.change_state("scout")
+            
+    def prepareScout(self):
+        self.controller.yawVehicle(zagAngle/2)
+        self.controller.setDepth(10)
+        if self.controller.isReady():
+            self.controller.setSpeed(searchSpeed)
+            self.stateMachine.change_state("zigZagSearchTimeInit")
+            
+    def zigZagSearchTimeInit(self):
+        self.lastZag = time.time()
+        self.startZagTime = self.lastZag
+        self.turn = 1
+        
+        self.controller.setSpeed(searchSpeed)
+        self.stateMachine.change_state("zigZagSearchTime")
+        
+    def zigZagSearchTime(self):
+        if (time.time() - self.startZagTime) >= searchForTime:
+            self.stateMachine.change_state("pointIn")
+        else:
+            results = self.complexControl.zigZag(self.lastZag,zagTime,zagAngle,self.turn)
+            self.lastZag = results[0]
+            self.turn = results[1]
+            
+    def pointIn(self):
+        self.controller.yawVehicle(45)
+        if self.controller.isReady():
+            self.controller.setSpeed(driveSpeed)
+            self.startDriveTime = clock.time()
+            self.vehicle.change_state(driveToMiddle)
+            
+    def driveToMiddle(self):
+        currentTime = clock.time()
+        elapsed = currentTime - self.startDriveTime
+        if elapsed > 15:
+            self.stateMachine.change_state("spiralTillDeath")
+            self.startDriveTime = clock.time()
+            
+    def spiralTillDeath(self):
+        spiralTime = clock.time() - self.startDriveTime
+        self.controller.yawVehicle(5)
+        if spiralTime < 10:
+            self.controller.setSpeed(3)
+        elif spiralTime < 20:
+            self.controller.setSpeed(4)
+        elif spiralTime < 30:
+            self.controller.setSpeed(5)
+        elif spiralTime < 40:
+            self.controller.setSpeed(6)
+        elif spiralTime < 50:
+            self.controller.setSpeed(7)
+        elif spiralTime < 60:
+            self.controller.setSpeed(8)
+        else:
+            self.controller.setSpeed(8)
+            
+        if clock.time() - self.vehicleStartTime > operateTime:
+            self.stateMachine.change_state("shutdown")
+        
+        
+    
+    
+            
+    
+    
+        
+
+    #                                                             #
+    ###############################################################
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
 	    
     ###############################################################        
     ##                        General States                         ##
@@ -143,27 +258,6 @@ class AI(Module):
     ###############################################################        
     ##                        Search Patterns                    ##
     
-    def zigZagSearchTimeInit(self):
-        self.searchForTime = 50
-        
-        self.zagTime = 10   #time per zag in seconds  
-        self.zagAngle = 45  #zag angle in degrees
-        self.searchSpeed = 3
-        self.lastZag = time.time()
-        self.startZagTime = self.lastZag
-        self.turn = 1
-        
-        self.controller.setSpeed(self.searchSpeed)
-        self.stateMachine.change_state("zigZagSearchTime")
-        
-    def zigZagSearchTime(self):
-        if (time.time() - self.startZagTime) >= self.searchForTime:
-            self.change_state("shutdown")
-        else:
-            results = self.complexControl.zigZag(self.lastZag,self.zagTime,self.zazAngle,self.turn)
-            self.lastZag = results[0]
-            self.turn = results[1]
-
     def diveAndGo(self):
 	self.wantedDepth = 2
 	self.controller.setDepth(self.wantedDepth)
@@ -183,33 +277,11 @@ class AI(Module):
         elapsed = clock.time() - self.startDriveTime
 	if elapsed > driveForTime:
 	    self.stateMachine.change_state("hang") 
+	    
+	
       
     #                                                              #
     ###############################################################  
-    
-    ###############################################################        
-    ##                        Simple Gate                        ##
-    
-    driveSpeed = 5
-    driveTime = 15
-    
-    def simpleGate(self):
-        self.controller.setDepth(5)
-        self.stateMachine.change_state("simpleGateWait")
-    
-    def simpleGateWait(self):
-        if self.controller.isReady():
-            self.stateMachine.change_state("driveThroughGate")
-            self.startDriveTime = clock.time()
-    
-    def driveThroughGate(self):
-        self.controller.setSpeed(driveSpeed)
-        currentTime = clock.time()
-        if (currentTime - self.startDriveTime) > driveTime:
-            self.stateMachine.change_state("zigZagSearchTimeInit")
-
-    #                                                             #
-    ###############################################################
         
     ###############################################################        
     ##                        Test Code                          ##
