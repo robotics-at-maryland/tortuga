@@ -80,11 +80,16 @@ Modules:
         # Currently does nothing!!!
         hackedPitchGain: 1
 
-        desiredSpeed: 5
-        desiredDepth: 0.7
-        desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
+        desiredSpeed: 1
+        desiredDepth: 0.3
 
 
+        # West Side pool
+        desiredQuaternion: [0.568811, 0.480366, 0.536147, 0.395881]
+        # East side of pool to starting gate
+#        desiredQuaternion: [-0.563619, 0.596134, -0.39374, 0.414523]
+
+#        desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
 #        desiredQuaternion: [-.744, 0.4398, -0.4371, 0.247]
 #        desiredQuaternion: [-0.2274, 0.7034, -0.2008, 0.6428]
 #        desiredQuaternion: [-0.2274,  0.7034, -0.2008, 0.6428]
