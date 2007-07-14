@@ -67,7 +67,12 @@ class AI(Module):
 		            "prepareScout":self.prepareScout
 		            "pointIn":self.pointIn,
 		            "spiralTillDeath":self.spiralTillDeath,
-		            "driveToMiddle":self.driveToMiddle
+		            "driveToMiddle":self.driveToMiddle,
+		            "driveThenSpiral":self.driveThenSpiral,
+		            "waitThroughGate":self.waitThroughGate,
+		            "headToMidle":self.headToMiddle,
+		            "waitToMiddle":self.waitToMiddle,
+		            "spiralPattern":self.spiralPattern
                     }
 	
         self.stateMachine = StateMachine()
@@ -180,21 +185,68 @@ class AI(Module):
             
         if clock.time() - self.vehicleStartTime > operateTime:
             self.stateMachine.change_state("shutdown")
-        
-        
-    
-    
-            
-    
-    
-        
-
     #                                                             #
     ###############################################################
+	
+	###############################################################        
+    ##                        Drive then Spiral                  ##
 	    
+	operateTime = 5 * 60    #operate for 5 minutes
 	    
+	driveSpeed = 7
+	throughGateTime = 30
+	toCenterAngle = 45
+	toMiddleTime = 30
+	spiralAngle = 3
 	    
-	    
+	def driveThenSpiral(self):
+	    self.controller.setDepth(4)
+	    if self.controller.isReady():
+	        self.controller.setSpeed(7)
+	        self.changeTime = clock.time()
+	        self.stateMachine.change_state("waitThroughGate")
+	
+	def waitThroughGate(self):
+	    elapsed = clock.time() - self.changeTime
+	    if elapsed > throughGateTime:
+	        self.stateMachine.change_state("headToMiddle")
+	        self.controller.setSpeed(0)
+	
+	def headToMiddle(self):
+	    self.controller.yawVehicle(toCenterAngle)
+	    self.controller.setDepth(10)
+	    if self.controller.isReady():
+	        self.controller.setSpeed(driveSpeed)
+	        self.changeTime = clock.time()
+	        self.stateMachine.change_state("waitToMiddle")
+	        
+	def waitToMiddle(self):
+	    elapsed = clock.time() - self.changeTime
+	    if elapsed > toMiddleTime:
+	        self.controller.setSpeed(0)
+	        self.changeTime = clock.time()
+	        self.stateMachine.change_state("spiralPattern")
+	        
+	def spiralPattern(self):
+	    spiralTime = clock.time() - self.changeTime
+        self.controller.yawVehicle(spiralAngle)
+        if spiralTime < 10:
+            self.controller.setSpeed(3)
+        elif spiralTime < 20:
+            self.controller.setSpeed(4)
+        elif spiralTime < 30:
+            self.controller.setSpeed(5)
+        elif spiralTime < 40:
+            self.controller.setSpeed(6)
+        elif spiralTime < 50:
+            self.controller.setSpeed(7)
+        elif spiralTime < 60:
+            self.controller.setSpeed(8)
+        else:
+            self.controller.setSpeed(8)
+            
+        if clock.time() - self.vehicleStartTime > operateTime:
+            self.stateMachine.change_state("shutdown")
 	    
 	    
 	    
