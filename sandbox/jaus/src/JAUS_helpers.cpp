@@ -58,8 +58,7 @@ int receiveJAUS(int vehicle_ip_last_octet) {
     
     JAUS_Message mesg(buf_string);
 	
-    int ocu_ip_last_octet = (ntohl(*((int*)(&clientaddr.sin_addr))) & 0xFF);
-	std::cout << "OCU IP Last Octet:" << ocu_ip_last_octet << std::endl;
+    int ocu_ip_last_octet = (ntohl(*((long*)(&clientaddr.sin_addr))) & 0xFF);
 
     if (isPacketForUs(mesg, ocu_ip_last_octet, vehicle_ip_last_octet)) {
         if (mesg.field_CommandCode == JAUS_CMD_RESUME) {

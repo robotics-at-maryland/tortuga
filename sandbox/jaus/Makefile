@@ -24,7 +24,7 @@ jaus_receiver: JAUS_Message.o JAUS_helpers.o JAUS_receiver.o
 send_packet: src/send_packet.c
 	gcc src/send_packet.c -o send_packet
 
-jaus_active_demo: JAUS_active_demo.o
+jaus_active_demo: JAUS_active_demo.o JAUS_helpers.o JAUS_Message.o
 	g++ JAUS_Message.o JAUS_helpers.o JAUS_active_demo.o -o jaus_active_demo
 
 clean:
