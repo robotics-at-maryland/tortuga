@@ -19,6 +19,7 @@ OrangePipeDetector::OrangePipeDetector(OpenCVCamera* camera)
 	angle=0;
 	cam = camera;
     frame = new ram::vision::OpenCVImage(640, 480);
+	rotated = cvCreateImage(cvSize(480,640),8,3);
 	if (show_output)
 		cvNamedWindow("Orange Mask");
 	lineX=lineY=0;
@@ -42,6 +43,7 @@ double OrangePipeDetector::getAngle()
 OrangePipeDetector::~OrangePipeDetector()
 {
 	delete frame;
+	cvReleaseImage(&rotated);
 }
 
 void OrangePipeDetector::update()
@@ -55,6 +57,8 @@ void OrangePipeDetector::update()
 	//Mask orange takes frame, then alter image, then strictness (true=more strict, false=more lenient)
 	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
+	rotate90DegClockwise(image,rotated);
+	image=rotated;
 	if (!found)
 	{
 		int orange_count=mask_orange(image,true,true);

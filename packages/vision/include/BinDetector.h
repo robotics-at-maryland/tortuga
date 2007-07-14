@@ -43,6 +43,7 @@ namespace ram { namespace vision {
 			double binY;
 			int binCount;
 			IplImage* binFrame;
+			IplImage* rotated;
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
 	};

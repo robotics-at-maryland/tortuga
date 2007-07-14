@@ -45,7 +45,7 @@ namespace ram { namespace vision {
 		double angle;
 		double lineX;
 		double lineY;
-		
+		IplImage* rotated;
 		ram::vision::Image* frame;
 		ram::vision::Camera* cam;
 	};

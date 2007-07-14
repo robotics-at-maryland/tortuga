@@ -8,7 +8,7 @@ BinDetector::BinDetector(OpenCVCamera* camera)
 	cam = camera;
 	frame = new ram::vision::OpenCVImage(640, 480);
 	binFrame =cvCreateImage(cvSize(640,480),8,3);
-
+	rotated = cvCreateImage(cvSize(480,640),8,3);
 	found=0;
 	binX=-1;
 	binY=-1;
@@ -21,6 +21,7 @@ BinDetector::~BinDetector()
 {
 	delete frame;
 	cvReleaseImage(&binFrame);
+	cvReleaseImage(&rotated);
 }
 
 void BinDetector::update()
@@ -30,6 +31,8 @@ void BinDetector::update()
 	/*First argument to white_detect is a ratios frame, then a regular one*/
 	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
+	rotate90DegClockwise(image,rotated);
+	image=rotated;
 
 	cvCopyImage(image,binFrame);
 	
