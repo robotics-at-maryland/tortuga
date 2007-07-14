@@ -291,6 +291,7 @@ class AI(Module):
             self.iter = 0
 	    self.stateMachine.changeState("lookAround")
 	    
+	    
     ###############################################################        
     ##                        General States                         ##
     
@@ -307,10 +308,10 @@ class AI(Module):
     def countDown(self):
         tillTime = int(clock.time() - self.pushTime)
         message = "Starting in " + str(5 - tillTime)
-	if message != self.lastMessage:
+	    if message != self.lastMessage:
             self.vehicle.printLine(0,message)
 	    self.vehicle.printLine(1,"please wait...")
-	self.lastMessage = message
+	    self.lastMessage = message
         if clock.time() - self.pushTime >= 5:
             self.vehicle.printLine(0,"Vehicle Operating!")
             self.vehicle.unsafeThrusters()
@@ -328,19 +329,19 @@ class AI(Module):
         
     def reset(self):
         self.controller.setSpeed(0)
-	self.vehicle.printLine(0,"Reset engaged")
+	    self.vehicle.printLine(0,"Reset engaged")
         self.stateMachine.change_state("confirmReset")
 
     def confirmReset(self):
-	self.ignoreReset = True
+	    self.ignoreReset = True
     	self.vehicle.printLine(0,"Tap wand to")
-	self.vehicle.printLine(1,"confirm reset")
-	if self.vehicle.startStatus() == 1:
-	    self.stateMachine.change_state("waitForStart")
+	    self.vehicle.printLine(1,"confirm reset")
+	    if self.vehicle.startStatus() == 1:
+	        self.stateMachine.change_state("waitForStart")
 
     def hang(self):
-	self.vehicle.printLine(0,"hanging...")
-	self.vehicle.printLine(1,"")
+	    self.vehicle.printLine(0,"hanging...")
+	    self.vehicle.printLine(1,"")
 	
     #                                                              #
     ############################################################### 
