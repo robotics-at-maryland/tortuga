@@ -45,7 +45,7 @@ namespace ram { namespace vision {
 			IplImage* binFrame;
 			IplImage* rotated;
 		ram::vision::Image* frame;
-		ram::vision::Camera* cam;
+		ram::vision::OpenCVCamera* cam;
 	};
 	
 }}//ram::vision

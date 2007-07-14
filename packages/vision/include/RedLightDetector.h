@@ -54,7 +54,7 @@ namespace ram { namespace vision {
 		CvPoint lightCenter;
 	
 		ram::vision::Image* frame;
-		ram::vision::Camera* cam;
+		ram::vision::OpenCVCamera* cam;
 	};
 	
 }}//ram::vision

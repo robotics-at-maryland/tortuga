@@ -1,5 +1,5 @@
 /*
- *  OrangePipeDetector.h
+ *  BinDetector.h
  *  
  *
  *  Created by Daniel Hakim on 6/22/07.
@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
-#define RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
+#ifndef RAM_RECORDER_H_06_24_2007
+#define RAM_RECORDER_H_06_24_2007
 
 #include <iostream>
 #include <sstream>
@@ -26,31 +26,25 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Image.h"
 #include "vision/include/Camera.h"
-
+ 
 namespace ram { namespace vision {
-	class OrangePipeDetector
+	class Recorder
 	{
 		public:
-			bool found;
-			OrangePipeDetector(OpenCVCamera*);
-			~OrangePipeDetector();
-			//get normalized center of line.
-			double getX();
-			double getY();
-			double getAngle();
+			Recorder(ram::vision::OpenCVCamera*, const char* filename);
+			~Recorder();
 			void update();
-
+			void writeFrame(IplImage* img);
+			CvVideoWriter *writer;
+			int isColor;
+			int fps;  // or 30
+			int frameW; // 744 for firewire cameras
+			int frameH; // 480 for firewire cameras
 		private:
-		bool show_output;
-		double angle;
-		double lineX;
-		double lineY;
-		IplImage* rotated;
-		ram::vision::Image* frame;
-		ram::vision::OpenCVCamera* cam;
+			ram::vision::Image* frame;
+			ram::vision::Camera* cam;
 	};
 	
 }}//ram::vision
 
-#endif // RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
-
+#endif // RAM_RECORDER_H_06_24_2007
