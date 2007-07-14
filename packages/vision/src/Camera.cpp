@@ -63,7 +63,8 @@ void Camera::capturedImage(Image* newImage)
         core::ReadWriteMutex::ScopedWriteLock lock(m_imageMutex);
 
         // Copy over the image data to the public image
-        m_publicImage->copyFrom(newImage);
+	if (newImage)//Silently ignore a new image if the new image is null.
+	  m_publicImage->copyFrom(newImage);
     }
     
     // Our state has changed
