@@ -72,7 +72,11 @@ class AI(Module):
 		    "waitThroughGate":self.waitThroughGate,
 		    "headToMidle":self.headToMiddle,
 		    "waitToMiddle":self.waitToMiddle,
-		    "spiralPattern":self.spiralPattern
+		    "spiralPattern":self.spiralPattern,
+                    "init":self.init,
+                    "rise":self.rise,
+                    "lookAround":self.lookAround,
+                    "driveThenRed":self.driveThenRed
                     }
 	
         self.stateMachine = StateMachine()
@@ -97,6 +101,30 @@ class AI(Module):
             self.stateMachine.operate()
         else:
             self.stateMachine.change_state("reset")
+
+
+    ################################
+
+    def init(self):
+        try:
+            self.count
+        except:
+            self.count = 0
+            self.sum = 0
+        self.count += self.vehicle.getDepth()
+        if self.count >= 10:
+            average = self.count / 10
+            self.controller.depthZero(average)
+            self.stateMachine.changeState(self.startState)
+
+    #################################
+
+
+    def driveThenRed(self):
+	self.setDepth(4)
+	self.setSpeed(6)
+	self.change_state("waitForRedGate")
+	self.redTime = clock.time()
 	    
     ###############################################################        
     ##                        Simple Gate                        ##
@@ -191,15 +219,15 @@ class AI(Module):
     ###############################################################        
     ##                        Drive then Spiral                  ##
 	    
-    operateTime = 5 * 60    #operate for 5 minutes    
-    driveSpeed = 7
-    throughGateTime = 30
-    toCenterAngle = 45
-    toMiddleTime = 30
-    spiralAngle = 3
-    gateDepth = 4
-    spiralDepth = 10
-    lookDepth = 14
+    operateTime = int(config["operateTime"])    
+    driveSpeed = int(config["driveSpeed"])
+    throughGateTime = int(config["throughGateTime"])
+    toCenterAngle = int(config["toCenterAngle"])
+    toMiddleTime = int(config["toMiddleTime"])
+    spiralAngle = int(config["spiralAngle"])
+    gateDepth = int(config["gateDepth"])
+    spiralDepth = int(config["spiralDepth"])
+    lookDepth = int(config["lookDepth"])
         
     def driveAndSpiral(self):
         self.controller.setDepth(gateDepth)
@@ -296,7 +324,10 @@ class AI(Module):
         if clock.time() - self.pushTime >= 5:
             self.vehicle.printLine(0,"Vehicle Operating!")
             self.vehicle.unsafeThrusters()
-            self.stateMachine.change_state(self.startState)
+            if config["init"] = "yes":
+            	self.stateMachine.change_state("init")
+            else:
+                self.stateMachine.change_state(self.startState)
             self.ignoreReset = False
 
     def shutdown(self):
@@ -441,7 +472,7 @@ class AI(Module):
     def gateFound(self):
         self.vision.forward.gateDetectOff()
         self.change_state("shutdown")    #currently lets just leave it at that, shall we?
-        #self.change_state("initFirstRedLight")
+        self.change_state("initFirstRedLight")
     #                                                                #
     #################################################################
     
@@ -456,7 +487,7 @@ class AI(Module):
         self.seenLight = 0
         self.vision.forward.redLightDetectOn()
         self.vision.downward.orangeDetectOn()
-        self.controller.setSpeed(2)
+        self.controller.setSpeed(6)
         self.controller.yawVehicle(-45)    #45 degrees to the right
         self.stateMachine.change_state("waitForReadyThenScan")
     
