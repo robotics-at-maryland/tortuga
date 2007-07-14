@@ -48,7 +48,7 @@ void Calibration::calculateCalibrations()
 				exit(-27);
 			}
 
-		cvShowImage("Calibration",image);
+//		cvShowImage("Calibration",image);
 
 		if (cornerCount==36)//This version of find corners returns -1 if the chessboard was not completely found
 		{
