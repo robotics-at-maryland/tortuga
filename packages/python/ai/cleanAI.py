@@ -2,7 +2,7 @@ from module import Module, IModule
 from core import implements
 from ai.state_machine import state_machine as StateMachine
 import ai.Movement as Movement
-import time
+import time as clock
 
 import ai.AIModel as AIModel
 
@@ -10,7 +10,7 @@ class AI(Module):
     implements(IModule)
     
     def __init__(self, veh, config):
-        self.startState = "shutdown"    #state that the vehicle enters after waiting to start
+        self.startState = "hang"    #state that the vehicle enters after waiting to start
         
         self.aiStates = {
                     "shutdown":self.shutdown,
@@ -35,7 +35,6 @@ class AI(Module):
                     "headAtGate":self.headAtGate,
                     "gateFound":self.gateFound,
                     "initFirstRedLight":self.initFirstRedLight,
-                    "waitForReadyThenScan":self.waitForReadyThenScan,
                     "firstLightScan":self.firstLightScan,
                     "findRedLight":self.findRedLight,
                     "foundFirstRedLight":self.foundFirstRedLight,
@@ -58,60 +57,83 @@ class AI(Module):
                     "donePipeLight":self.donePipeLight,
                     "zigZagSearchTimeInit":self.zigZagSearchTimeInit,
                     "zigZagSearchTime":self.zigZagSearchTime,
-                    "reset":self.reset
+                    "reset":self.reset,
+		    "countDown":self.countDown,
+		    "hang":self.hang,
+		    "confirmReset":self.confirmReset
                     }
-
+	
         self.stateMachine = StateMachine()
         
         self.stateMachine.state = "waitForStart"
-        
         self.stateMachine.set_states(self.aiStates)
         self.model = AIModel.model()
         self.vehicle = veh
         #self.vision = self.model.vision
         self.controller = self.model.controller
         self.complexControl = Movement.control()
-        
+	
+	self.vehicle.printLine(0," ")
+	self.vehicle.printLine(1," ")
+	self.ignoreReset = True
+	        
         Module.__init__(self,config)
         
-    def update(self,time):
-        self.time = time
-        if not self.vehicle.startStatus() == 1:
+    def update(self,timeStep):
+        self.timeStep = timeStep
+	if self.vehicle.startStatus() == 0 or self.ignoreReset == True:
             self.stateMachine.operate()
         else:
             self.stateMachine.change_state("reset")
-    
+	    
     ###############################################################        
     ##                        General States                         ##
     
     def waitForStart(self):
-        self.pushed == 0
+	self.ignoreReset = True
         start = self.vehicle.startStatus()
         self.vehicle.printLine(0,"Ready to operate...")
-        self.vehicle.printLine(1,"Use start wand to engage")
+        self.vehicle.printLine(1,"Tap start wand!")
         if start == 1:
-            self.pushed = 1
-            self.pushTime = time.time()
-        if self.pushed == 1:
-            time = int(time.time() - self.pushTime)
-            message = "Starting in " + str()
+            self.stateMachine.change_state("countDown")
+            self.pushTime = clock.time()
+            self.lastMessage = ""
+
+    def countDown(self):
+        tillTime = int(clock.time() - self.pushTime)
+        message = "Starting in " + str(5 - tillTime)
+	if message != self.lastMessage:
             self.vehicle.printLine(0,message)
-            self.vehicle.printLine(1," ")
-            if time.time() - self.pushTime >= 5:
-                self.vehicle.printLine(0,"Vehicle Operating!")
-                self.vehicle.unsafeThrusters()
-                self.stateMachine.change_state(self.startState)
+	    self.vehicle.printLine(1,"please wait...")
+	self.lastMessage = message
+        if clock.time() - self.pushTime >= 5:
+            self.vehicle.printLine(0,"Vehicle Operating!")
+            self.vehicle.unsafeThrusters()
+            self.stateMachine.change_state(self.startState)
+            self.ignoreReset = False
 
     def shutdown(self):
-        self.vehicle.printLine(0,"Shutting down vehicle...")
+        self.vehicle.printLine(0,"halting vehicle")
         self.controller.setDepth(1)
         self.controller.setSpeed(0)
         self.vehicle.safeThrusters()
         
     def reset(self):
         self.controller.setSpeed(0)
-        self.change_state("waitForStart")
-    
+	self.vehicle.printLine(0,"Reset engaged")
+        self.stateMachine.change_state("confirmReset")
+
+    def confirmReset(self):
+	self.ignoreReset = True
+    	self.vehicle.printLine(0,"Tap wand to")
+	self.vehicle.printLine(1,"confirm reset")
+	if self.vehicle.startStatus() == 1:
+	    self.stateMachine.change_state("waitForStart")
+
+    def hang(self):
+	self.vehicle.printLine(0,"hanging...")
+	self.vehicle.printLine(1,"")
+
     #                                                              #
     ############################################################### 
     

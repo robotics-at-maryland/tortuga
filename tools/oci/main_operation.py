@@ -20,12 +20,18 @@ import time
     
 # Library Imports
 import yaml
+import sys
 
 # Project Imports
 import ociapp
 
-def main():            
-    app = ociapp.OCIApp('controltest.yml')
+def main():
+    args = sys.argv
+    print args
+    if len(args) == 1:            
+    	app = ociapp.OCIApp('controltest.yml')
+    else:
+	app = ociapp.OCIApp(args[1])
     print 'Test'
     app.main_loop(True)
 
