@@ -58,21 +58,21 @@ class AI(Module):
                     "zigZagSearchTimeInit":self.zigZagSearchTimeInit,
                     "zigZagSearchTime":self.zigZagSearchTime,
                     "reset":self.reset,
-		            "countDown":self.countDown,
-		            "hang":self.hang,
-		            "confirmReset":self.confirmReset,
-		            "diveAndGo":self.diveAndGo,
-		            "waitForDive":self.waitForDive,
-		            "driveStraight":self.driveStraight,
-		            "prepareScout":self.prepareScout
-		            "pointIn":self.pointIn,
-		            "spiralTillDeath":self.spiralTillDeath,
-		            "driveToMiddle":self.driveToMiddle,
-		            "driveThenSpiral":self.driveThenSpiral,
-		            "waitThroughGate":self.waitThroughGate,
-		            "headToMidle":self.headToMiddle,
-		            "waitToMiddle":self.waitToMiddle,
-		            "spiralPattern":self.spiralPattern
+		    "countDown":self.countDown,
+		    "hang":self.hang,
+                    "confirmReset":self.confirmReset,
+                    "diveAndGo":self.diveAndGo,
+		    "waitForDive":self.waitForDive,
+		    "driveStraight":self.driveStraight,
+		    "prepareScout":self.prepareScout,
+		    "pointIn":self.pointIn,
+		    "spiralTillDeath":self.spiralTillDeath,
+		    "driveToMiddle":self.driveToMiddle,
+		    "driveAndSpiral":self.driveAndSpiral,
+		    "waitThroughGate":self.waitThroughGate,
+		    "headToMidle":self.headToMiddle,
+		    "waitToMiddle":self.waitToMiddle,
+		    "spiralPattern":self.spiralPattern
                     }
 	
         self.stateMachine = StateMachine()
@@ -98,7 +98,7 @@ class AI(Module):
         else:
             self.stateMachine.change_state("reset")
 	    
-	###############################################################        
+    ###############################################################        
     ##                        Simple Gate                        ##
     
     operateTime = 5 * 60
@@ -188,47 +188,46 @@ class AI(Module):
     #                                                             #
     ###############################################################
 	
-	###############################################################        
+    ###############################################################        
     ##                        Drive then Spiral                  ##
 	    
-	operateTime = 5 * 60    #operate for 5 minutes
-	    
-	driveSpeed = 7
-	throughGateTime = 30
-	toCenterAngle = 45
-	toMiddleTime = 30
-	spiralAngle = 3
-	    
-	def driveThenSpiral(self):
-	    self.controller.setDepth(4)
-	    if self.controller.isReady():
-	        self.controller.setSpeed(7)
-	        self.changeTime = clock.time()
-	        self.stateMachine.change_state("waitThroughGate")
+    operateTime = 5 * 60    #operate for 5 minutes    
+    driveSpeed = 7
+    throughGateTime = 30
+    toCenterAngle = 45
+    toMiddleTime = 30
+    spiralAngle = 3
+        
+    def driveAndSpiral(self):
+        self.controller.setDepth(4)
+        if self.controller.isReady():
+	    self.controller.setSpeed(7)
+	    self.changeTime = clock.time()
+	    self.stateMachine.change_state("waitThroughGate")
 	
-	def waitThroughGate(self):
-	    elapsed = clock.time() - self.changeTime
-	    if elapsed > throughGateTime:
-	        self.stateMachine.change_state("headToMiddle")
-	        self.controller.setSpeed(0)
+    def waitThroughGate(self):
+	elapsed = clock.time() - self.changeTime
+	if elapsed > throughGateTime:
+	    self.stateMachine.change_state("headToMiddle")
+	    self.controller.setSpeed(0)
 	
-	def headToMiddle(self):
-	    self.controller.yawVehicle(toCenterAngle)
-	    self.controller.setDepth(10)
-	    if self.controller.isReady():
-	        self.controller.setSpeed(driveSpeed)
-	        self.changeTime = clock.time()
-	        self.stateMachine.change_state("waitToMiddle")
+    def headToMiddle(self):
+	self.controller.yawVehicle(toCenterAngle)
+	self.controller.setDepth(10)
+	if self.controller.isReady():
+	    self.controller.setSpeed(driveSpeed)
+	    self.changeTime = clock.time()
+	    self.stateMachine.change_state("waitToMiddle")
 	        
-	def waitToMiddle(self):
-	    elapsed = clock.time() - self.changeTime
-	    if elapsed > toMiddleTime:
-	        self.controller.setSpeed(0)
-	        self.changeTime = clock.time()
-	        self.stateMachine.change_state("spiralPattern")
+    def waitToMiddle(self):
+	elapsed = clock.time() - self.changeTime
+	if elapsed > toMiddleTime:
+	    self.controller.setSpeed(0)
+	    self.changeTime = clock.time()
+	    self.stateMachine.change_state("spiralPattern")
 	        
-	def spiralPattern(self):
-	    spiralTime = clock.time() - self.changeTime
+    def spiralPattern(self):
+	spiralTime = clock.time() - self.changeTime
         self.controller.yawVehicle(spiralAngle)
         if spiralTime < 10:
             self.controller.setSpeed(3)
@@ -246,15 +245,7 @@ class AI(Module):
             self.controller.setSpeed(8)
             
         if clock.time() - self.vehicleStartTime > operateTime:
-            self.stateMachine.change_state("shutdown")
-	    
-	    
-	    
-	    
-	    
-	    
-	    
-	    
+            self.stateMachine.change_state("shutdown")    
 	    
     ###############################################################        
     ##                        General States                         ##

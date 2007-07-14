@@ -106,3 +106,4 @@ Modules:
         depends_on: ["Vehicle", "Controller"]
         type: ai.cleanAI.AI
         update_interval: 100
+        start_state: hang
