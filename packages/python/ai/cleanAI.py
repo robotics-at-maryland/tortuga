@@ -57,11 +57,14 @@ class AI(Module):
                     "chaseLight":self.chaseLight,
                     "donePipeLight":self.donePipeLight,
                     "zigZagSearchTimeInit":self.zigZagSearchTimeInit,
-                    "zigZagSearchTime":self.zigZagSearchTime
+                    "zigZagSearchTime":self.zigZagSearchTime,
+                    "reset":self.reset
                     }
 
         self.stateMachine = StateMachine()
+        
         self.stateMachine.state = "waitForStart"
+        
         self.stateMachine.set_states(self.aiStates)
         self.model = AIModel.model()
         self.vehicle = veh
@@ -73,7 +76,10 @@ class AI(Module):
         
     def update(self,time):
         self.time = time
-        self.stateMachine.operate()
+        if not self.vehicle.startStatus() == 1:
+            self.stateMachine.operate()
+        else:
+            self.stateMachine.change_state("reset")
     
     ###############################################################        
     ##                        General States                         ##
@@ -101,6 +107,10 @@ class AI(Module):
         self.controller.setDepth(1)
         self.controller.setSpeed(0)
         self.vehicle.safeThrusters()
+        
+    def reset(self):
+        self.controller.setSpeed(0)
+        self.change_state("waitForStart")
     
     #                                                              #
     ############################################################### 
