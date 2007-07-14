@@ -39,6 +39,7 @@ namespace ram { namespace vision {
 			double getY();
 
 		private:
+			bool show_output;
 			int lightFramesOff;
 			int lightFramesOn;
 			int blinks;

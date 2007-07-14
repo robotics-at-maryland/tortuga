@@ -11,12 +11,13 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/Calibration.h"
+#include "vision/include/Recorder.h"
 #include <string>
 #include <iostream>
 
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 1
+#define SHOW_OUTPUT 0
 
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
@@ -30,8 +31,13 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	gDetect=new GateDetector(camera);
 	bDetect=new BinDetector(camera);
 	rlDetect=new RedLightDetector(camera);
+	if (forward)
+		recorder=new Recorder(camera, "forward.avi");
+	else
+		recorder=new Recorder(camera, "downward.avi");
 	undistorted=cvCreateImage(cvSize(640,480),8,3);
     differenceImage=cvCreateImage(cvSize(640,480),8,3);
+	cout<<"Detector test being created, forward:"<<forward;
 	if (SHOW_OUTPUT)
 	{
 		cvNamedWindow("Detector Test");
@@ -58,6 +64,7 @@ DetectorTest::DetectorTest(string movie)
 	frame = new OpenCVImage(640,480);
 	dest=cvCreateImage(cvSize(480,640),8,3);
 	camera->background();
+	recorder=NULL;
 	opDetect=new OrangePipeDetector(camera);
 	gDetect=new GateDetector(camera);
 	bDetect=new BinDetector(camera);
@@ -70,7 +77,7 @@ DetectorTest::DetectorTest(string movie)
 		cvNamedWindow("Calibration");
 	}
 	
-		if (!camera)
+	if (!camera)
 	{
 		cout<<"No Movie"<<endl;
 		return;
@@ -82,6 +89,11 @@ DetectorTest::~DetectorTest()
 {
 	delete camera;
 	delete frame;
+	delete opDetect;
+	delete gDetect;
+	delete bDetect;
+	delete rlDetect;
+	delete recorder;
 	unbackground(true);
 }
 
@@ -126,7 +138,13 @@ void DetectorTest::update(double timestep)
 	IplImage* image =(IplImage*)(*frame);
 	if (SHOW_OUTPUT)
 		cvShowImage("Detector Test", image);
-	//Orange pipeline
+
+	//Recording
+	if (recorder!=NULL)
+	{
+		recorder->update();
+	}
+	//Orange pipeline	
 	if (orangeOn)
 	{
 		if (SHOW_OUTPUT)

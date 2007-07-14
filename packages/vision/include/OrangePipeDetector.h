@@ -41,7 +41,7 @@ namespace ram { namespace vision {
 			void update();
 
 		private:
-
+		bool show_output;
 		double angle;
 		double lineX;
 		double lineY;

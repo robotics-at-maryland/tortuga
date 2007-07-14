@@ -1,13 +1,28 @@
 #include "cv.h"
 #include "highgui.h"
+#include <unistd.h>
+#include <signal.h>
 #include <stdio.h>
+  CvCapture* capture =NULL;
+  CvCapture* captureDown=NULL;
+
+void handler(int x)
+{
+	printf("Releasing Cameras");
+	if (capture)
+		cvReleaseCapture(&capture);
+	if (captureDown)
+		cvReleaseCapture(&captureDown);
+	exit(0);
+}
 
 // A Simple Camera Capture Framework
 int main() {
 
-  CvCapture* capture = cvCaptureFromCAM(300);
-  CvCapture* captureDown = cvCaptureFromCAM(301);
+  capture = cvCaptureFromCAM(300);
+  captureDown = cvCaptureFromCAM(301);
   
+  signal(SIGINT,handler);
   //capture = cvCaptureFromCAM(CV_CAP_ANY+1);
   if( !capture ) {
     fprintf( stderr, "ERROR: capture is NULL \n" );

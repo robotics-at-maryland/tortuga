@@ -38,6 +38,7 @@ namespace ram { namespace vision {
 			double getX();
 			double getY();
 		private:
+			bool show_output;
 			double binX;
 			double binY;
 			int binCount;

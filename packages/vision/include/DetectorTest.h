@@ -7,6 +7,7 @@
 #include "vision/include/GateDetector.h"
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
+#include "vision/include/Recorder.h"
 
 namespace ram{
 	namespace vision{
@@ -37,9 +38,11 @@ namespace ram{
 			GateDetector* gDetect;
 			BinDetector* bDetect;
 			RedLightDetector* rlDetect;
+			Recorder* recorder;
 			IplImage* undistorted;
 			IplImage* differenceImage;
 			IplImage* dest;
+			
 	};
 }
 }//ram::vision

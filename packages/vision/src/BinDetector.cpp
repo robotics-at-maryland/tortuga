@@ -2,9 +2,9 @@
 
 using namespace std;
 using namespace ram::vision;
-
 BinDetector::BinDetector(OpenCVCamera* camera)
 {
+	show_output=false;
 	cam = camera;
 	frame = new ram::vision::OpenCVImage(640, 480);
 	binFrame =cvCreateImage(cvSize(640,480),8,3);
@@ -13,7 +13,8 @@ BinDetector::BinDetector(OpenCVCamera* camera)
 	binX=-1;
 	binY=-1;
 	binCount=0;
-	cvNamedWindow("bin");
+	if (show_output)
+		cvNamedWindow("bin");
 }
 
 BinDetector::~BinDetector()
@@ -34,7 +35,10 @@ void BinDetector::update()
 	
 	to_ratios(image);
 	binCount=white_detect(image,binFrame,&binx,&biny);
-	cvShowImage("bin",binFrame);
+	if (show_output)
+	{
+		cvShowImage("bin",binFrame);
+	}
 	if (biny!=-1 && binx!=-1)
 	{
 		binX=binx;
