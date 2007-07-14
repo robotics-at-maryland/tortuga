@@ -201,6 +201,27 @@ double HackedPDPitchControl(MeasuredState* measuredState,
 
 
 
+  //TODO: implement this function
+  /*  bool isAtDepth(){
+
+  }*/
+
+  //TODO: implement this function
+bool doIsOriented(MeasuredState* measuredState,
+                DesiredState* desiredState){
+  bool amIOriented;
+  double qError[4];
+  findErrorQuaternion(desiredState->quaternion,
+		      measuredState->quaternion,&qError[0]);
+  if(qError[2]>0.15){
+    amIOriented = false;
+  }else{
+    amIOriented = true;
+  }
+  return amIOriented;
+}
+
+
 /************************************************************************
 HackedPDRotationalController(MeasuredState,DesiredState,ControllerState,dt,rotationalTorques)
 

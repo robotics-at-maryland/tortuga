@@ -61,6 +61,12 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
                                    double dt,
                                    double* rotationalTorques);
 
+  //TODO: implement this function
+  //  bool isAtDepth();
+
+//TODO: implement this function
+  bool doIsOriented(MeasuredState* measuredState,
+                DesiredState* desiredState);
 
 double  HackedPDPitchControl(MeasuredState* measuredState,
                              DesiredState* desiredState,

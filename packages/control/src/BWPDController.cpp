@@ -133,6 +133,12 @@ BWPDController::~BWPDController()
     delete m_measuredState;
     delete m_controllerState;
 }
+
+bool BWPDController::isOriented()
+{
+    return doIsOriented(m_measuredState, m_desiredState);
+}
+
     
 void BWPDController::setSpeed(int speed)
 {

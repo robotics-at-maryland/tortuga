@@ -62,6 +62,8 @@ public:
     */
     virtual void yawVehicle(double degrees);
 
+    virtual bool isOriented();
+
     virtual int getSpeed();
 
     virtual double getHeading();
