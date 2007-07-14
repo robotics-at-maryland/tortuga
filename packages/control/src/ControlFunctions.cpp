@@ -156,19 +156,41 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
 }
 
 
-  double HackedPDPitchControl(MeasuredState* measuredState,
-                             DesiredState* desiredState,
-			      ControllerState* controllerState,
-			      double hackedPitchGain){
-    double accel1=measuredState->linearAcceleration[0];
-    double accel3=measuredState->linearAcceleration[2];
-    double thetaMeas=atan2(accel3,accel1);
-    double thetaDes=-1.5708;
-    double pitchTorque=hackedPitchGain*(thetaMeas-thetaDes);
+/************************************************************************
+HackedPDPitchControl
 
-    return pitchTorque;
-    
+Incredibly dirty implementation of a SISO PD controller for pitch control
+only.  The controller uses the rotated and filtered values from the 
+accelerometer, along with an assumption that the vehicle isn't rolling, to 
+create an estimate of the pitch.
+*/
+
+double HackedPDPitchControl(MeasuredState* measuredState,
+                           DesiredState* desiredState,
+			   ControllerState* controllerState,
+			   double hackedPitchGain){
+  double accel1=measuredState->linearAcceleration[0];
+  double accel3=measuredState->linearAcceleration[2];
+  double thetaMeas=atan2(accel3,accel1);
+  double thetaDes=-1.5708;
+  double thetaError = thetaMeas-thetaDes;
+
+  // For conditions when pitch is so large the gravity vector flips 
+  // (pitch > 90)
+  if (thetaMeas>3.14){
+    thetaError=thetaError-2*M_PI;
   }
+		
+  //I need a minus sign in front of the gain, right...?
+  //this is P control for pitch
+  double pitchTorque=-(1)*hackedPitchGain*thetaError;
+
+  //a better line to run:
+  //this is PD control for pitch
+  //  double pitchTorque=(-1)*hackedPitchGain*thetaError
+  //  +(-1)*controllerState->angularDGain*(measuredState->angularRate[1]-0);
+  return pitchTorque;  
+}
 
 
 
