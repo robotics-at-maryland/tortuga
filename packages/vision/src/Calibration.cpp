@@ -7,7 +7,7 @@ Calibration::Calibration(OpenCVCamera* camera)
 	cam=camera;
 	calibrated=false;
 	frame = new ram::vision::OpenCVImage(640,480);
-	cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
+	//cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
 }
 
 Calibration::~Calibration()
