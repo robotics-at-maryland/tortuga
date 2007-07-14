@@ -105,7 +105,19 @@ Modules:
         depends_on: ["Vehicle"]
         update_interval: 100
         type: cli.CLI
-#    AI:
-#        depends_on: ["Vehicle", "Controller"]
-#        type: ai.cleanAI.AI
-#        update_interval: 100
+
+    AI:
+        depends_on: ["Vehicle", "Controller"]
+        type: ai.cleanAI.AI
+        update_interval: 100
+        start_state: spiralAndCenter
+        operateTime: 300
+        driveSpeed: 7
+        throughGateTime: 30
+        toCenterAngle: 45
+        toMiddleTime: 30
+        spiralAngle: 3
+        gateDepth: 4
+        spiralDepth: 10
+        lookDepth: 14
+        init: no

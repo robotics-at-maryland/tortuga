@@ -111,4 +111,4 @@ Modules:
         gateDepth: 4
         spiralDepth: 10
         lookDepth: 14
-        init: yes
+        init: 0

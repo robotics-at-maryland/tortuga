@@ -80,8 +80,8 @@ Modules:
         # Currently does nothing!!!
         hackedPitchGain: 1
 
-        desiredSpeed: 5
-        desiredDepth: 0.7
+        desiredSpeed: 0
+        desiredDepth: 0.1
         desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
 
 
@@ -101,4 +101,14 @@ Modules:
         depends_on: ["Vehicle", "Controller"]
         type: ai.cleanAI.AI
         update_interval: 100
-        start_state: spiralAndCenter
+        start_state: simpleTest
+        operateTime: 300
+        driveSpeed: 7
+        throughGateTime: 30
+        toCenterAngle: 45
+        toMiddleTime: 30
+        spiralAngle: 3
+        gateDepth: 4
+        spiralDepth: 10
+        lookDepth: 14
+        init: 0

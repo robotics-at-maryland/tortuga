@@ -76,12 +76,14 @@ class AI(Module):
                     "init":self.init,
                     "rise":self.rise,
                     "lookAround":self.lookAround,
-                    "driveThenRed":self.driveThenRed
+                    "driveThenRed":self.driveThenRed,
+		    "simpleTest":self.simpleTest,
+	            "simpleTest2":self.simpleTest2
                     }
 	
         self.stateMachine = StateMachine()
         
-        self.stateMachine.state = "waitForStart"
+        self.stateMachine.state = self.startState
         self.stateMachine.set_states(self.aiStates)
         self.model = AIModel.model()
         self.vehicle = self.model.vehicle
@@ -92,6 +94,23 @@ class AI(Module):
 	self.vehicle.printLine(0," ")
 	self.vehicle.printLine(1," ")
 	self.ignoreReset = True
+
+       #                                                             #
+        ###############################################################
+	
+       ###############################################################        
+       ##                        Drive then Spiral                  ##
+ 	    
+        self.operateTime = int(config["operateTime"])    
+        self.driveSpeed = int(config["driveSpeed"])
+        self.throughGateTime = int(config["throughGateTime"])
+        self.toCenterAngle = int(config["toCenterAngle"])
+        self.toMiddleTime = int(config["toMiddleTime"])
+        self.spiralAngle = int(config["spiralAngle"])
+        self.gateDepth = int(config["gateDepth"])
+        self.spiralDepth = int(config["spiralDepth"])
+        self.lookDepth = int(config["lookDepth"])
+        
 	        
         Module.__init__(self,config)
         
@@ -125,20 +144,6 @@ class AI(Module):
 	self.setSpeed(6)
 	self.change_state("waitForRedGate")
 	self.redTime = clock.time()
-	    
-    ###############################################################        
-    ##                        Simple Gate                        ##
-    
-    operateTime = 5 * 60
-    
-    driveSpeed = 5
-    driveTime = 15
-    searchForTime = 50
-    zagTime = 10
-    zagAngle = 45
-    searchSpeed = 3
-    
-    pointAngle = 45
     
     def simpleGate(self):
         self.vehicle.startDriveTime = clock.time()
@@ -151,7 +156,7 @@ class AI(Module):
             self.startDriveTime = clock.time()
     
     def driveThroughGate(self):
-        self.controller.setSpeed(driveSpeed)
+        self.controller.setSpeed(self.driveSpeed)
         currentTime = clock.time()
         if (currentTime - self.startDriveTime) > driveTime:
             self.stateMachine.change_state("scout")
@@ -182,7 +187,7 @@ class AI(Module):
     def pointIn(self):
         self.controller.yawVehicle(45)
         if self.controller.isReady():
-            self.controller.setSpeed(driveSpeed)
+            self.controller.setSpeed(self.driveSpeed)
             self.startDriveTime = clock.time()
             self.vehicle.change_state(driveToMiddle)
             
@@ -211,55 +216,40 @@ class AI(Module):
         else:
             self.controller.setSpeed(8)
             
-        if clock.time() - self.vehicleStartTime > operateTime:
+        if clock.time() - self.vehicleStartTime > self.operateTime:
             self.stateMachine.change_state("shutdown")
-    #                                                             #
-    ###############################################################
-	
-    ###############################################################        
-    ##                        Drive then Spiral                  ##
-	    
-    operateTime = int(config["operateTime"])    
-    driveSpeed = int(config["driveSpeed"])
-    throughGateTime = int(config["throughGateTime"])
-    toCenterAngle = int(config["toCenterAngle"])
-    toMiddleTime = int(config["toMiddleTime"])
-    spiralAngle = int(config["spiralAngle"])
-    gateDepth = int(config["gateDepth"])
-    spiralDepth = int(config["spiralDepth"])
-    lookDepth = int(config["lookDepth"])
-        
+
     def driveAndSpiral(self):
-        self.controller.setDepth(gateDepth)
+        self.controller.setDepth(self.gateDepth)
         if self.controller.isReady():
-	    self.controller.setSpeed(driveSpeed)
+	    self.controller.setSpeed(self.driveSpeed)
 	    self.changeTime = clock.time()
 	    self.stateMachine.change_state("waitThroughGate")
 	
     def waitThroughGate(self):
 	elapsed = clock.time() - self.changeTime
-	if elapsed > throughGateTime:
+	if elapsed > self.throughGateTime:
 	    self.stateMachine.change_state("headToMiddle")
 	    self.controller.setSpeed(0)
 	
     def headToMiddle(self):
-	self.controller.yawVehicle(toCenterAngle)
-	self.controller.setDepth(spiralDepth)
-	if self.controller.isReady():
-	    self.controller.setSpeed(driveSpeed)
+	self.controller.yawVehicle(self.toCenterAngle)
+	self.controller.setDepth(self.spiralDepth)
+	if self.controller.isOriented():
+	    self.controller.setSpeed(self.driveSpeed)
 	    self.changeTime = clock.time()
 	    self.stateMachine.change_state("waitToMiddle")
 	        
     def waitToMiddle(self):
 	elapsed = clock.time() - self.changeTime
-	if elapsed > toMiddleTime:
+	if elapsed > self.toMiddleTime:
 	    self.controller.setSpeed(0)
 	    self.changeTime = clock.time()
 	    self.stateMachine.change_state("spiralPattern")
 	        
     def spiralPattern(self):
 	spiralTime = clock.time() - self.changeTime
-        self.controller.yawVehicle(spiralAngle)
+        self.controller.yawVehicle(self.spiralAngle)
         if spiralTime < 10:
             self.controller.setSpeed(3)
         elif spiralTime < 20:
@@ -275,15 +265,15 @@ class AI(Module):
         else:
             self.controller.setSpeed(8)
             
-        if clock.time() - self.vehicleStartTime > operateTime:
+        if clock.time() - self.vehicleStartTime > self.operateTime:
             self.controller.setSpeed(0)
             self.iter = 0
-            self.depth = lookDepth
-	    self.controller.setDepth(lookDepth)
+            self.depth = self.lookDepth
+	    self.controller.setDepth(self.lookDepth)
             self.stateMachine.change_state("lookAround")
 
     def lookAround(self):
-        if self.controller.isReady():
+        if self.controller.isOriented():
             if self.depth == 0:
                 self.stateMachine.change_state("shutdown")
 	    else:
@@ -295,7 +285,7 @@ class AI(Module):
     def rise(self):
         if self.depth == 0:
             self.stateMachine.change_state("shutdown")
-        elif self.controller.isReady():
+        elif self.controller.isOriented():
             self.controller.setDepth(self.depth - 2)
             self.depth = self.depth - 2
             self.iter = 0
@@ -324,7 +314,7 @@ class AI(Module):
         if clock.time() - self.pushTime >= 5:
             self.vehicle.printLine(0,"Vehicle Operating!")
             self.vehicle.unsafeThrusters()
-            if config["init"] = "yes":
+            if config["init"]:
             	self.stateMachine.change_state("init")
             else:
                 self.stateMachine.change_state(self.startState)
@@ -386,6 +376,18 @@ class AI(Module):
     ###############################################################        
     ##                        Test Code                          ##
     
+    def simpleTest(self):
+	self.vehicle.printLine(0,"testing ai")
+	self.vehicle.printLine(1," ")
+	self.controller.yawVehicle(180)
+	if controller.isOriented():
+	    self.change_state("simpletest2")
+
+    def simpleTest2(self):
+	self.controller.yawVehicle(180)
+	if controller.isOriented():
+	    self.change_state("testFunctionality")
+
     def testFunctionality(self):
         self.speed = 0
         self.direction = 1
@@ -492,11 +494,11 @@ class AI(Module):
         self.stateMachine.change_state("waitForReadyThenScan")
     
     def waitForReadyThenScan(self):
-        if self.controller.isReady():
+        if self.controller.isOriented():
             self.stateMachine.change_state("firstLightScan")
             
     def firstLightScan(self):
-        if self.controller.isReady():
+        if self.controller.isOriented():
             self.controller.yawVehicle(self.scanDegrees)
             self.scanCount += 1
             if self.scanCount == 18:
@@ -551,11 +553,11 @@ class AI(Module):
         self.stateMachine.change_state("waitThenPipeScan")
     
     def waitThenPipeScan(self):
-        if self.controller.isReady():
+        if self.controller.isOriented():
             self.stateMachine.change_state("pipeScan")
 
     def pipeScan(self):
-        if self.controller.isReady():
+        if self.controller.isOriented():
             self.controller.yawVehicle(scanDegrees)
             self.scanCount = scanCount + 1
             if self.scanCount == 12:
@@ -694,11 +696,11 @@ class AI(Module):
         self.stateMachine.change_state("waitThenPipeLight")
         
     def waitThenPipeLight(self):
-        if self.controller.isReady():
+        if self.controller.isOriented():
                self.stateMachine.change_state("scanPipeLight")
     
     def scanPipeLight(self):
-        if self.controller.isReady():
+        if self.controller.isOriented():
             self.controller.yawVehicle(self.scanDegrees)
             self.scanCount += 1
             if self.scanCount == 24:
