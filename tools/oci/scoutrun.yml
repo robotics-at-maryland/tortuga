@@ -1,0 +1,114 @@
+# Config for the vehicle
+
+# This module is run in the main python thread
+main_module: CLI
+
+# Each module is a seperate system that needs to be started up
+Modules:
+    # Object that creates the vehicle interface
+    Vehicle:
+        # The full name of the class to instantiate in this case its a wrapper
+        # for the base C++ vehicle
+        type: vehicle.vehicle.Vehicle
+        # Time between updates in ms
+        update_interval: 100
+
+        # Pressure tranducer calibration 
+        depthCalibSlope: 33.01
+        depthCalibIntercept: 94
+
+        # The list of devices to create for the vehicle
+        Devices:
+            # NOTE: All current numbers here are BS and need to updated
+
+            # This entry creates a thruster
+            StarboardThruster:
+                # serial: 147
+                
+                update_interval: 100
+
+                # Notice this is from the 'ext' package, this package contains
+                # all the wrapped C++ classes
+                type: ext.vehicle_device.Thruster
+                # String representing the address of the thruster
+                address: 4
+                # Number determined by testing
+                calibration_factor: 0.3652
+                # Number used to flip thruster forces (if thruster is reversed
+                # on the vehicle)
+                direction: -1
+
+            PortThruster:
+                # serial: 149
+                type: ext.vehicle_device.Thruster
+                address: 3
+                calibration_factor: 0.4146
+                direction: -1
+
+            ForeThruster:
+                # serial: 146
+                type: ext.vehicle_device.Thruster
+                address: 2
+                calibration_factor: 0.4368
+                direction: 1
+
+            AftThruster:
+                # Serial 148
+                type: ext.vehicle_device.Thruster
+                address: 1
+                calibration_factor: 0.3612
+                direction: -1
+
+            IMU:
+                type: ext.vehicle_device.IMU
+                update_interval: 5
+                magXBias: -0.21305
+                magYBias: -0.139574
+                magZBias: -0.282475
+                localMagneticPitch: 60
+
+    Controller:
+        depends_on: ["Vehicle"]
+        type: control.bwpdcontrol.BWPDController
+        update_interval: 100
+
+        angularPGain: 5
+        angularDGain: 1
+        speedPGain: 3
+        depthPGain: 40
+
+        # Currently does nothing!!!
+        hackedPitchGain: 1
+
+        desiredSpeed: 5
+        desiredDepth: 0.7
+        desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
+
+
+#        desiredQuaternion: [-.744, 0.4398, -0.4371, 0.247]
+#        desiredQuaternion: [-0.2274, 0.7034, -0.2008, 0.6428]
+#        desiredQuaternion: [-0.2274,  0.7034, -0.2008, 0.6428]
+#        desiredQuaternion: [0.2715,  0.6534,  0.3006,  0.6395]
+#        desiredQuaternion: [0.8460,  0.2139,  0.4681,  0.1392]
+#        desiredQuaternion: [-0.0318, 0.2014, -0.4520, 0.0713]
+#        desiredQuaternion: [ -0.278, 0.911, 0.025, 0.301]
+        
+    CLI:
+        depends_on: ["Vehicle"]
+        update_interval: 100
+        type: cli.CLI
+    AI:
+        depends_on: ["Vehicle", "Controller"]
+        type: ai.cleanAI.AI
+        update_interval: 100
+        start_state: spiralAndCenter
+        operateTime: 300
+        driveSpeed: 7
+        throughGateTime: 30
+        toCenterAngle: 45
+        toMiddleTime: 30
+        spiralAngle: 3
+        gateDepth: 4
+        spiralDepth: 10
+        lookDepth: 14
+        init: yes
