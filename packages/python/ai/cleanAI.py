@@ -392,13 +392,13 @@ class AI(Module):
             
     def testDepth(self):
         if self.counter2 == 0:
-            self.controller.setDepth(6)
+            self.controller.setDepth(2)
         elif self.counter2 == 1:
-            self.controller.setDepth(3)
-        elif self.counter2 == 2:
-            self.controller.setDepth(8)
-        elif self.counter2 == 3:
             self.controller.setDepth(1)
+        elif self.counter2 == 2:
+            self.controller.setDepth(.5)
+        elif self.counter2 == 3:
+            self.controller.setDepth(0)
         self.counter1 += 1
         if self.counter1 >= 4:
             self.stateMachine.change_state("shutdown")
