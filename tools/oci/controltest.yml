@@ -14,7 +14,7 @@ Modules:
         update_interval: 100
 
         # Pressure tranducer calibration 
-        depthCalibSlope: 33.01
+        depthCalibSlope: 175.65
         depthCalibIntercept: 94
 
         # The list of devices to create for the vehicle
