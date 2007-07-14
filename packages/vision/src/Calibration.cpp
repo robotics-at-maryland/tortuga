@@ -7,7 +7,7 @@ Calibration::Calibration(OpenCVCamera* camera)
 	cam=camera;
 	calibrated=false;
 	frame = new ram::vision::OpenCVImage(640,480);
-	//cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
+	//	cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
 }
 
 Calibration::~Calibration()
@@ -48,7 +48,7 @@ void Calibration::calculateCalibrations()
 				exit(-27);
 			}
 
-//		cvShowImage("Calibration",image);
+		//cvShowImage("Calibration",image);
 
 		if (cornerCount==36)//This version of find corners returns -1 if the chessboard was not completely found
 		{

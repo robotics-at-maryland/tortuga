@@ -2,6 +2,7 @@
 #include "vision/include/VisionRunner.h"
 #include <highgui.h>
 #include <iostream>
+#include <signal.h>
 namespace ram{
 namespace vision
 {
@@ -16,14 +17,26 @@ namespace vision
 }
 
 using namespace std;
+char key=' '; //cvWaitKey(25);
+
+void handler(int x)
+{
+  key='q';
+}
+
 int main()
 {
-	usleep(10000000);
+  //	usleep(10000000);
 	ram::vision::DetectorTest forward(0,true);
 	forward.background(30);
+	forward.orangeDetectOn();
+	forward.lightDetectOn();
+	forward.binDetectOn();
+	forward.gateDetectOn();
+	signal(SIGINT,handler);
 	while (true)
 	{
-		char key=cvWaitKey(25);
+
 		if (key =='q')
 		{
 			forward.unbackground(true);
