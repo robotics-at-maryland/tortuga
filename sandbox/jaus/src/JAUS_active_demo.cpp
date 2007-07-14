@@ -1,3 +1,9 @@
+/**
+ * Simple starter code for JAUS Challenge
+ * NOTE: the vehicle's IP address MUST be 192.168.128.100
+ * and the judge's IP address MUST be 192.168.128.1.
+ */
+
 #include <iostream>
 
 #include "JAUS_helpers.h"
