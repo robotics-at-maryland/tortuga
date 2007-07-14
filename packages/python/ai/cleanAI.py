@@ -61,7 +61,9 @@ class AI(Module):
 		    "countDown":self.countDown,
 		    "hang":self.hang,
 		    "confirmReset":self.confirmReset,
-		    "diveAndGo":self.diveAndGo
+		    "diveAndGo":self.diveAndGo,
+		    "waitForDive":self.waitForDive,
+		    "driveStraight":self.driveStraight
                     }
 	
         self.stateMachine = StateMachine()
@@ -163,9 +165,24 @@ class AI(Module):
             self.turn = results[1]
 
     def diveAndGo(self):
-	self.controller.setDepth(2)
-	self.controller.setSpeed(7)
-        
+	self.wantedDepth = 2
+	self.controller.setDepth(self.wantedDepth)
+	self.stateMachine.change_state("waitForDive")
+
+    def waitForDive(self):
+	depth = self.vehicle.getDepth()
+	if depth > self.wantedDepth - 0.2 and depth < self.wantedDepth + 0.2:
+	    self.controller.setSpeed(7)
+	    self.startDriveTime = clock.time()
+	    self.stateMachine.change_state("driveStraight")
+
+    def driveStraight(self):
+	
+	driveForTime = 10 
+
+        elapsed = clock.time() - self.startDriveTime
+	if elapsed > driveForTime:
+	    self.stateMachine.change_state("hang") 
       
     #                                                              #
     ###############################################################  
@@ -183,13 +200,14 @@ class AI(Module):
     def simpleGateWait(self):
         if self.controller.isReady():
             self.stateMachine.change_state("driveThroughGate")
-            self.startDriveTime = time.time()
+            self.startDriveTime = clock.time()
     
     def driveThroughGate(self):
         self.controller.setSpeed(driveSpeed)
-        currentTime = time.time()
+        currentTime = clock.time()
         if (currentTime - self.startDriveTime) > driveTime:
-            self.stateMachine.change_state("shutdown")
+            self.stateMachine.change_state("zigZagSearchTimeInit")
+
     #                                                             #
     ###############################################################
         
@@ -233,13 +251,13 @@ class AI(Module):
             
     def testDepth(self):
         if self.counter2 == 0:
-            self.controller.setDepth(-6)
+            self.controller.setDepth(6)
         elif self.counter2 == 1:
-            self.controller.setDepth(-3)
+            self.controller.setDepth(3)
         elif self.counter2 == 2:
-            self.controller.setDepth(-8)
+            self.controller.setDepth(8)
         elif self.counter2 == 3:
-            self.controller.setDepth(-1)
+            self.controller.setDepth(1)
         self.counter1 += 1
         if self.counter1 >= 4:
             self.stateMachine.change_state("shutdown")
