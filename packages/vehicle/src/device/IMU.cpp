@@ -185,15 +185,15 @@ void IMU::update(double timestep)
 math::Vector3 IMU::getLinearAcceleration()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return math::Vector3(m_rawState->accelX, m_rawState->accelY,
-                         m_rawState->accelZ);
+    return math::Vector3(m_filteredState->accelX, m_filteredState->accelY,
+                         m_filteredState->accelZ);
 }
 
 math::Vector3 IMU::getAngularRate()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return math::Vector3(m_rawState->gyroX, m_rawState->gyroY,
-                         m_rawState->gyroZ);
+    return math::Vector3(m_filteredState->gyroX, m_filteredState->gyroY,
+                         m_filteredState->gyroZ);
 }
 
 math::Quaternion IMU::getOrientation()

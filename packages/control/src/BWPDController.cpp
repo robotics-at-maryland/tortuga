@@ -54,7 +54,7 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     m_desiredState->quaternion[2] = config["desiredQuaternion"][2].asDouble();
     m_desiredState->quaternion[3] = config["desiredQuaternion"][3].asDouble();
 
-    m_desiredState->speed = config["desiredSpeed"].asInt(0);
+    m_desiredState->speed = config["desiredSpeed"].asDouble(0);
     m_desiredState->depth = config["desiredDepth"].asDouble();
     
     // Set controller state from config file (defaults hard coded)
@@ -283,7 +283,7 @@ void BWPDController::update(double timestep)
         BongWiePDRotationalController(m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
                                       rotationalTorques);
-
+        
 	pitchHack = HackedPDPitchControl(m_measuredState, 
 					 m_desiredState,
 					 m_controllerState, m_hackedPitchGain);
