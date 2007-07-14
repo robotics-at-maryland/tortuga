@@ -14,7 +14,7 @@ envl = env.Clone()
 
 envl.Append(CPPPATH = 'src')
 
-sources = ['src/JAUS_helpers.cpp',
+sources = ['src/JAUSxx_helpers.cpp',
            'src/JAUS_Message.cpp',
            'src/JAUS_active_demo.cpp']
 
