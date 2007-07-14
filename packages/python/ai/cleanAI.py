@@ -10,7 +10,7 @@ class AI(Module):
     implements(IModule)
     
     def __init__(self, veh, config):
-        self.startState = "hang"    #state that the vehicle enters after waiting to start
+        self.startState = config["start_state"]    #state that the vehicle enters after waiting to start
         
         self.aiStates = {
                     "shutdown":self.shutdown,
@@ -60,7 +60,8 @@ class AI(Module):
                     "reset":self.reset,
 		    "countDown":self.countDown,
 		    "hang":self.hang,
-		    "confirmReset":self.confirmReset
+		    "confirmReset":self.confirmReset,
+		    "diveAndGo":self.diveAndGo
                     }
 	
         self.stateMachine = StateMachine()
@@ -133,7 +134,7 @@ class AI(Module):
     def hang(self):
 	self.vehicle.printLine(0,"hanging...")
 	self.vehicle.printLine(1,"")
-
+	
     #                                                              #
     ############################################################### 
     
@@ -160,6 +161,10 @@ class AI(Module):
             results = self.complexControl.zigZag(self.lastZag,self.zagTime,self.zazAngle,self.turn)
             self.lastZag = results[0]
             self.turn = results[1]
+
+    def diveAndGo(self):
+	self.controller.setDepth(2)
+	self.controller.setSpeed(7)
         
       
     #                                                              #
