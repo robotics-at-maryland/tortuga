@@ -41,6 +41,8 @@ class buoyMachine(aiStateMachine):
         if self.lightDetector.found():
             self.changeState(self.redOn)
             
+    ########### active seek code ###########
+            
     def initPointAtRed(self,args,interFuncs,interStates):
         x = self.lightDetector.getX()
         self.lastX = x
