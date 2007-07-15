@@ -3,8 +3,11 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
-  CvCapture* capture =NULL;
-  CvCapture* captureDown=NULL;
+	CvCapture* capture =NULL;
+	CvCapture* captureDown=NULL;
+	
+	CvVideoWriter *writer = NULL;
+	CvVideoWriter *writeDown =NULL;
 
 void handler(int x)
 {
@@ -13,6 +16,11 @@ void handler(int x)
 		cvReleaseCapture(&capture);
 	if (captureDown)
 		cvReleaseCapture(&captureDown);
+	if (writer)
+		cvReleaseVideoWriter(&writer);
+	if (writeDown)
+		cvReleaseVideoWriter(&writeDown);
+
 	exit(0);
 }
 
