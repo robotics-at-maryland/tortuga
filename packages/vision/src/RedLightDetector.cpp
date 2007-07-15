@@ -16,7 +16,7 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	startCounting=false;
 	lightCenter.x=0;
 	lightCenter.y=0;
-	image=cvCreateImage(cvSize(640,480),8,3);
+	image=cvCreateImage(cvSize(480,640),8,3);
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
 
