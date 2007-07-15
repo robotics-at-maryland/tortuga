@@ -7,10 +7,13 @@ peakAngle = 45
 
 class buoyMachine(aiStateMachine):
     def __init__(self):
-        aiStateMachine.__init__(self,None,[self.seeingRed],[self.foundRed])
+        aiStateMachine.__init__(self)
         self.vision.forward.redLightDetectOn()
     
     def startState(self,args,interFuncs,interStates):
+        self.changeState(self.go,None,[self.seeingRed],[self.foundRed])
+        
+    def go(self,args,interFuncs,interStates):
         self.controller.setDepth(startDepth)
         self.changeState(self.waitAndDrive,None,[self.seeingRed],[self.foundRed])
         
@@ -55,8 +58,6 @@ class buoyMachine(aiStateMachine):
             self.changeState(self.firstLook,None,[self.seeingRed],[self.foundRed])
          
     def foundRed(self,args,interFuncs,interStates):
-        self.lightx = lightDetector.getX()
-        self.lighty = lightDetector.getY()
         bouy = buoyChaseMachine()
         self.branch(bouy,self.end)
         
@@ -69,4 +70,6 @@ class buoyMachine(aiStateMachine):
         lightDetector = self.vision.forward.RedLightDetector
         if lightDetector.found():
             return True
+        else:
+            return False
             
