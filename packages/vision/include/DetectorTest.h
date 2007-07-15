@@ -32,6 +32,10 @@ namespace ram{
 			void gateDetectOff();
 			void binDetectOff();
 			void update(double);
+			OrangePipeDetector* getOrangeDetector();
+			GateDetector* getGateDetector();
+			BinDetector* getBinDetector();
+			RedLightDetector* getRedDetector();
 		private:
 			OpenCVImage* frame;
 			OrangePipeDetector* opDetect;

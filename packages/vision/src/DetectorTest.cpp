@@ -130,6 +130,23 @@ void DetectorTest::binDetectOff()
 	binOn=false;
 }
 
+OrangePipeDetector* DetectorTest::getOrangeDetector()
+{
+	return opDetect;
+}
+GateDetector* DetectorTest::getGateDetector()
+{
+	return gDetect;
+}
+BinDetector* DetectorTest::getBinDetector()
+{
+	return bDetect;
+}
+RedLightDetector* DetectorTest::getRedDetector()
+{
+	return rlDetect;
+}
+
 void DetectorTest::update(double timestep)
 {
 	char key=' ';
