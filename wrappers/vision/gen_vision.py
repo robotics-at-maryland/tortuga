@@ -22,19 +22,21 @@ def generate_vision(name, global_ns, local_ns):
     """
 
     # Base classes
-    Camera = local_ns.class_('Camera')
-    Camera.include()
-    Camera.member_function('getImage').exclude()
-    Camera.member_function('waitForImage').exclude()
-    Camera.member_function('capturedImage').exclude()
+#    Camera = local_ns.class_('Camera')
+#    Camera.include()
+#    Camera.member_function('getImage').exclude()
+#    Camera.member_function('waitForImage').exclude()
+#    Camera.member_function('capturedImage').exclude()
     
-    OpenCVCamera = local_ns.class_('OpenCVCamera')
-    OpenCVCamera.include()
+#    OpenCVCamera = local_ns.class_('OpenCVCamera')
+#    OpenCVCamera.include()
 #    OpenCVCamera.member_function('getImage').exclude()
 #    OpenCVCamera.member_function('waitForImage').exclude()
 
 
     # Pull in decector classes
+    local_ns.class_('DetectorTest').include()
+    local_ns.class_('VisionRunner').include()
     local_ns.class_('GateDetector').include()
     local_ns.class_('BinDetector').include()
     local_ns.class_('RedLightDetector').include()
