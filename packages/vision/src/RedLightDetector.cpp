@@ -73,6 +73,7 @@ void RedLightDetector::update()
 	else
 	{
 		found=true; //completely ignoring the state machine for the time being.
+		cout<<"FOUND RED LIGHT"<<endl;
 		CvPoint tl,tr,bl,br;
 		tl.x=bl.x=max(p.x-4,0);
 		tr.x=br.x=min(p.x+4,raw->width-1);
