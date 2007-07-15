@@ -7,7 +7,7 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 {
 	show_output=false;
 	cam = camera;
-    frame = new ram::vision::OpenCVImage(cam->width(),cam->height());
+    frame = new ram::vision::OpenCVImage(640,480);
 	found=false;
 	lightFramesOff=0;
 	lightFramesOn=0;
