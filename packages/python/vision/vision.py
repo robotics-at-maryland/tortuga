@@ -42,11 +42,11 @@ class Vision(_Vision, Component):
         print 'Done'
         
     def start(self):
-        self.background(self._config['update_interval'])
+ #       self.background(self._config['update_interval'])
         event.send('MODULE_START', self)    
         
     def pause(self):
-        self.unbackground()
+#        self.unbackground()
         self._running = False
         event.send('MODULE_PAUSE', self)
         
