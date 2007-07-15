@@ -163,6 +163,45 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
 
 
 /************************************************************************
+HackedPDYawControl
+
+Incredibly dirty implementation of a SISO PD controller for yaw control
+only.  The controller uses the rotated and filtered values from the 
+accelerometer, along with an assumption that the vehicle isn't rolling, to 
+create an estimate of the yaw.
+*/
+  double HackedPDYawControl(MeasuredState* measuredState,
+                        DesiredState* desiredState,
+			   ControllerState* controllerState,
+			   double hackedYawGain){
+  double mag1=measuredState->magneticField[0];
+  double mag2=measuredState->magneticField[1];
+  /////////////start from here
+  double psiMeas=atan2(accel3,accel1);
+  double psiDes=-1.5708;
+  double psiError = thetaMeas-thetaDes;
+
+  // For conditions when pitch is so large the gravity vector flips 
+  // (pitch > 90)
+  if (thetaMeas>3.14){
+    thetaError=thetaError-2*M_PI;
+  }
+
+//  printf("E: %5.3f A1: %5.3f A2: %5.3f\n", thetaError, accel1, accel3);
+  //I need a minus sign in front of the gain, right...?
+  //this is P control for pitch (no you don't)
+//  double pitchTorque= hackedPitchGain*thetaError;
+
+  //a better line to run:
+  //this is PD control for pitch
+   double pitchTorque= hackedPitchGain*thetaError
+       + (-1)*controllerState->angularDGain*(measuredState->angularRate[1]-0);
+  return pitchTorque;  
+}
+
+
+
+/************************************************************************
 HackedPDPitchControl
 
 Incredibly dirty implementation of a SISO PD controller for pitch control

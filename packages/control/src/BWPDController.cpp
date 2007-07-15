@@ -34,7 +34,8 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
     m_rPort(0),
     m_rFore(0),
     m_rAft(0),
-    m_hackedPitchGain(0)
+    m_hackedPitchGain(0),
+    m_hackedYawGain(0)
 {
     printf("Creating controller\n");
     
@@ -65,6 +66,7 @@ BWPDController::BWPDController(vehicle::Vehicle* vehicle,
 
     // HACK!! /// TODO: Remove me
     m_hackedPitchGain = config["hackedPitchGain"].asDouble();
+    m_hackedYawGain = config["hackedYawGain"].asDouble();
     
     m_controllerState->inertiaEstimate[0][0] =
         config["inertia"][0][0].asDouble(0.201);
@@ -270,6 +272,12 @@ void BWPDController::update(double timestep)
     math::Vector3 angularRate(m_imu->getAngularRate());
     memcpy(&m_measuredState->linearAcceleration[0],
            &linearAcceleration, sizeof(double) * 3);
+
+    vehicle::device::FilteredState state;
+    m_imu->getFilteredState(&state);
+    m_measuredState->magneticField[0] = m_imu->magX;
+    m_measuredState->magneticField[1] = m_imu->magY;
+    m_measuredState->magneticField[2] = m_imu->magZ;
 
     m_measuredState->depth = m_vehicle->getDepth();
     

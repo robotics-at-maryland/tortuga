@@ -37,6 +37,7 @@ struct DesiredState{
 struct MeasuredState{
     double depth;
     double linearAcceleration[3];
+    double magneticField[3];
     double quaternion[4];
     double angularRate[3];
 };
@@ -72,6 +73,12 @@ double  HackedPDPitchControl(MeasuredState* measuredState,
                              DesiredState* desiredState,
                              ControllerState* controllerState,
 			     double hackedPitchGain);
+
+double  HackedPDYawControl(MeasuredState* measuredState,
+                             DesiredState* desiredState,
+                             ControllerState* controllerState,
+			     double hackedYawGain);
+
 
   /*void HackedPDRotationalController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
