@@ -31,7 +31,7 @@ void BinDetector::update()
 	/*First argument to white_detect is a ratios frame, then a regular one*/
 	cam->getUncalibratedImage(frame);
 	IplImage* image =(IplImage*)(*frame);
-	rotate90DegClockwise(image,rotated);
+	rotate90Deg(image,rotated);
 	image=rotated;
 
 	cvCopyImage(image,binFrame);

@@ -57,7 +57,7 @@ void OrangePipeDetector::update()
 	//Mask orange takes frame, then alter image, then strictness (true=more strict, false=more lenient)
 	cam->getUncalibratedImage(frame);
 	IplImage* image =(IplImage*)(*frame);
-	rotate90DegClockwise(image,rotated);
+	rotate90Deg(image,rotated);
 	image=rotated;
 	if (!found)
 	{
