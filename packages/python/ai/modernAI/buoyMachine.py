@@ -9,67 +9,62 @@ class buoyMachine(aiStateMachine):
     def __init__(self):
         aiStateMachine.__init__(self)
         self.vision.forward.redLightDetectOn()
+        self.redInterrupts = {
+                            self.seeingRed:self.foundRed
+                            }
     
-    def startState(self,args,interFuncs,interStates):
-        self.changeState(self.simpleGo,None,[self.seeingRed],[self.foundRed])
+    def startState(self,args,interrupts):
+        self.changeState(self.go,None,self.redInterrupts)
         
-    def go(self,args,interFuncs,interStates):
+    def go(self,args,interrupts):
         self.controller.setDepth(startDepth)
-        self.changeState(self.waitAndDrive,None,[self.seeingRed],[self.foundRed])
+        self.changeState(self.waitAndDrive,None,self.redInterrupts)
         
-    def simpleGo(self,args,interFuncs,interStates):
-        self.controller.setDepth(startDepth)
-        self.controller.setSpeed(2)
-        self.changeState(self.drive,[clock.time()],[self.seeingRed],[self.foundRed])
-        
-    def drive(self,args,interFuncs,interStates):
-        pass
-        
-    def waitAndDrive(self,args,interFuncs,interStates):
+    def waitAndDrive(self,args,interrupts):
         if self.controller.isOriented():
             self.controller.setSpeed(driveSpeed)
             self.movingDepth = startDepth
-            self.changeState(self.diveSequence,None,[self.seeingRed],[self.foundRed])
+            self.changeState(self.diveSequence,None,self.redInterrupts)
             
-    def diveSequence(self,args,interFuncs,interStates):
+    def diveSequence(self,args,interrupts):
         newDepth = depth + self.movingDepth
         if self.controller.isOriented():
             if self.movingDepth >= buoyDepth:
-                self.changeState(self.firstLook,None,[self.seeingRed],[self.foundRed])
+                self.changeState(self.firstLook,None,self.redInterrupts)
             else:
                 self.controller.setDepth(newDepth)
                 self.movingDepth = newDepth
     
-    def firstLook(self,args,interFuncs,interStates):
+    def firstLook(self,args,interrupts):
         self.controller.setSpeed(0)
         self.controller.yawVehicle(peakAngle/2)
-        self.changeState(self.lookAround,None,[self.seeingRed],[self.foundRed])
+        self.changeState(self.lookAround,None,self.redInterrupts)
         
-    def lookLeft(self,args,interFuncs,interStates):
+    def lookLeft(self,args,interrupts):
         if self.controller.isOriented():
             self.controller.yawVehicle(peakAngle)
-            self.changeState(self.lookRight,None,[self.seeingRed],[self.foundRed])
+            self.changeState(self.lookRight,None,self.redInterrupts)
             
-    def lookRight(self,args,interFuncs,interStates):
+    def lookRight(self,args,interrupts):
         if self.controller.isOriented():
             self.controller.yawVehicle(-1 * peakAngle)
-            self.changeState(self.lookBack,None,[self.seeingRed],[self.foundRed])
+            self.changeState(self.lookBack,None,self.redInterrupts)
             
-    def lookBack(self,args,interFuncs,interStates):
+    def lookBack(self,args,interrupts):
         if self.controller.isOriented():
             self.controller.yawVehicle(peakAngle/2)
-            self.changeState(self.creep,None,[self.seeingRed],[self.foundRed])
+            self.changeState(self.creep,None,self.redInterrupts)
             
-    def creep(self,args,interFuncs,interStates):
+    def creep(self,args,interrupts):
         if self.controller.isOriented():
             self.controller.setSpeed(driveSpeed)
-            self.changeState(self.firstLook,None,[self.seeingRed],[self.foundRed])
+            self.changeState(self.firstLook,None,self.redInterrupts)
          
-    def foundRed(self,args,interFuncs,interStates):
+    def foundRed(self,args,interrupts):
         bouy = buoyChaseMachine()
         self.branch(bouy,self.end)
         
-    def end(self,args,interFuncs,interStates):
+    def end(self,args,interrupts):
         self.setDepth(0)
         self.setSpeed(0)
         self.exit()

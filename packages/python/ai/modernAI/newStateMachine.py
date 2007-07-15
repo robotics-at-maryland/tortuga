@@ -1,5 +1,5 @@
 class stateMachine():     
-	def __init__(self,args = None,interFuncs = None,interStates = None):
+	def __init__(self,args = None,interrupts = None):
 	    self.changeState(self.startState,args,interFuncs,interStates)
 	    self.controllingMachine = self
 	    self.complete = False
@@ -7,8 +7,8 @@ class stateMachine():
 	def operate(self):    
 		if self.controllingMachine == self:
 		    state = self.currentState()
-		    state(self.stateArgs,self.interFuncs,self.interStates)
-		    self.checkInterrupt(self.interFuncs,self.interStates)
+		    state(self.stateArgs,self.interrupts)
+		    self.checkInterrupt(self.interrupts)
 		    return self.complete
 		else:
 		    complete = self.controllingMachine.operate()
@@ -22,18 +22,21 @@ class stateMachine():
 	def currentState(self):
 		return self.state
 		
-	def changeState(self,newState,args = None,interFuncs = None,interStates = None):
+	def changeState(self,newState,args = None,interrupts = None):
 	    self.state = newState
 	    self.stateArgs = args
-	    self.interFuncs = interFuncs
-	    self.interStates = interStates
+	    self.interrupts = interrupts
 	    
-	def checkInterrupt(self,funcs,states):
+	def setArgs(self,args):
+	    self.stateArgs = args
+	    
+	def checkInterrupt(self,interrupts):
 	    i = 0
+	    funcs = interrupts.keys()
 	    if funcs != None:
 	        for func in funcs:
 	            if func():
-	                self.changeState(states[i])
+	                self.changeState(interrupts[func])
 	            else:
 	                i += 1
 	            
@@ -41,6 +44,7 @@ class stateMachine():
 	    self.complete = True
 	    print "State machine complete"
 	    
-	def branch(self,machine,reentryFunc):
+	def branch(self,machine,reentryFunc,args):
 	    self.controllingMachine = machine
+	    machine.setArgs(args)
 	    self.reentryFunc = reentryFunc

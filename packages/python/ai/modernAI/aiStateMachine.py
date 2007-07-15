@@ -1,13 +1,16 @@
 from ai.modernAI.newStateMachine import stateMachine
 from module import Module,ModuleManager
+from movementMachine import movementMachine
 
 class aiStateMachine(stateMachine):
-    def __init__(self,args = None,interFuncs = None,interStates = None):
+    def __init__(self,args = None,interrupts = None):
         self.controller = ModuleManager.get().get_module("Controller")
         self.vehicle = ModuleManager.get().get_module("Vehicle")
         self.vision = ModuleManager.get().get_module("Vision")
 
-        stateMachine.__init__(self,args,interFuncs,interStates)
+        self.movementMachine = movementMachine()
+
+        stateMachine.__init__(self,args,interrupts)
     
-    def startState(self,args,interFuncs,interStates):
+    def startState(self,args,interrupts):
         raise Exception("start state needs to be defined")

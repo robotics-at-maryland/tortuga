@@ -5,36 +5,36 @@ class gateMachine(aiStateMachine):
     def __init__(self):
         aiStateMachine.__init__(self)
 
-    def startState(self,args,interFuncs,interStates):
+    def startState(self,args,interrupts):
         print "diving and goin!"
         diveDistance = 6
-        args = [diveDistance]
+        args = {"diveDistance":diveDistance}
         self.changeState(self.dive,args)
     
-    def dive(self,args,interFuncs,interStates):
-        diveDistance = args[0]
+    def dive(self,args,interrupts):
+        diveDistance = args["diveDistance"]
         self.controller.setDepth(diveDistance)
         self.changeState(self.waitForDive)
         
-    def waitForDive(self,args,interFuncs,interStates):
+    def waitForDive(self,args,interrupts):
         if self.controller.isAtDepth():
             driveSpeed = 5
             driveTime = 35
-            args = [driveSpeed,driveTime]
-            self.changeState(self.drive)
+            args = {"driveSpeed":driveSpeed,"driveTime":driveTime}
+            self.changeState(self.drive,args)
             
-    def drive(self,args,interFuncs,interStates):
-        driveSpeed = args[0]
-        driveTime = args[1]
+    def drive(self,args,interrupts):
+        driveSpeed = args["driveSpeed"]
+        driveTime = args["driveTime"]
         self.controller.setSpeed(driveSpeed)
         startTime = clock.time()
-        args = [startTime,driveTime,self.end]
+        args = {"startTime":startTime,"driveTime":driveTime,"afterState":self.end}
         self.changeState(self.waitForTime,args)
         
-    def waitForTime(self,args,interFuncs,interStates):
-        startTime = args[0]
-        waitTime = args[1]
-        afterState = args[2]
+    def waitForTime(self,args,interrupts):
+        startTime = args["startTime"]
+        waitTime = args["waitTime"]
+        afterState = args["afterState"]
         elapsed = clock.time() - startTime
         if elapsed >= waitTime:
             self.changeState(afterState)

@@ -11,11 +11,14 @@ class buoyMachine(aiStateMachine):
         aiStateMachine.__init__(self)
         self.vision.forward.redLightDetectOn()
         self.lightDetector = self.vision.forward.RedLightDetector
+        self.redInterrupts = {
+                            self.noRed:self.redLost
+                            }
         
-    def startState(self,args,interFuncs,interStates):
-        self.changeState(self.moveIn,None,[self.noRed],[self.redLost])
+    def startState(self,args,interrupts):
+        self.changeState(self.moveIn,None,self.redInterrupts)
         
-    def moveIn(self,args,interFuncs,interStates):
+    def moveIn(self,args,interrupts):
         x = lightDetector.getX()
         y = lightDetector.getY()       
     
@@ -63,23 +66,23 @@ class buoyMachine(aiStateMachine):
         else:
             self.controller.setDepth(10.0)#This better be feet
         
-    def initPointAtRed(self,args,interFuncs,interStates):
+    def initPointAtRed(self,args,interrupts):
         x = lightDetector.getX()
         self.lastX = x
         self.direction = 1
-        self.changeState(self.pointAtRed,None,[self.noRed],[self.redLost])
+        self.changeState(self.pointAtRed,None,self.redInterrupts)
         self.controller.setSpeed(creepSpeed)
         
-    def pointAtRed(self,args,interFuncs,interStates):
+    def pointAtRed(self,args,interrupts):
         x = lightDetector.getX()
         if x < 0.4:
             self.controller.yawVehicle(searchAngle)
         elif x > 0.6:
             self.controller.yawVehicle(-1 * searchAngle)
         else:
-            self.changeState(self.redDepth,None,[self.noRed],[self.redLost])
+            self.changeState(self.redDepth,None,self.redInterrupts)
             
-    def redDepth(self,args,interFuncs,interStates):
+    def redDepth(self,args,interrupts):
         y = lightDetector.getY()
         depth = self.controller.getDepth()
         if y < 0.4:
@@ -94,7 +97,7 @@ class buoyMachine(aiStateMachine):
     def redLost(self):
         self.lostCount += 1
         if self.lightDetector.found():
-            self.changeState(self.pointAtRed,None,[self.noRed],[self.redLost])
+            self.changeState(self.pointAtRed,None,self.redInterrupts)
         else:
             self.count += 1
         if self.lostCount >= framesChecked:
