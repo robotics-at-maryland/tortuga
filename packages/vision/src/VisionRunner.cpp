@@ -44,7 +44,6 @@ int main(int argc, char** argv)
 	signal(SIGINT,handler);
 	while (true)
 	{
-		cvWaitKey(25);
 		if (key =='q')
 		{
 			std::cout<<"Quitting Normally"<<endl;
