@@ -1,4 +1,4 @@
-from aiStateMachine import aiStateMachine
+from ai.modernAI.aiStateMachine import aiStateMachine
 import time as clock
 import math
 

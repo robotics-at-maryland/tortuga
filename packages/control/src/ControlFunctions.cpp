@@ -253,7 +253,7 @@ bool doIsOriented(MeasuredState* measuredState,
   double qError[4];
   findErrorQuaternion(desiredState->quaternion,
 		      measuredState->quaternion,&qError[0]);
-  if(qError[2]>0.15){
+  if(qError[2]>0.05){
     amIOriented = false;
   }else{
     amIOriented = true;

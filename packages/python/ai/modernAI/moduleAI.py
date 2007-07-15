@@ -10,11 +10,12 @@ class AI(Module):
         self.controller = ModuleManager.get().get_module("Controller")
         
         self.stateMachine = aiInitMachine()
-        
+        self.complete = False
         Module.__init__(self,config)
         
     def update(self,timeStep):
-        complete = self.stateMachine.operate()
-        if complete:
-            print "AI module is complete"
-            self.shutdown()
+        if not self.complete:
+            self.complete = self.stateMachine.operate()
+            if self.complete:
+                "Shutting down AI module"
+                self.shutdown()

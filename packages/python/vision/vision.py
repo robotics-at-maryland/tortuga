@@ -9,8 +9,7 @@
 import warnings
 
 # Project Imports
-import event
-from devices import IDevice
+import event	
 from core import Component, implements
 from module import IModule, Module, Component, ModuleManager
 
@@ -18,7 +17,7 @@ warnings.simplefilter('ignore', RuntimeWarning)
 from ext.vision import VisionRunner as _Vision # Import C++ Vision
 warnings.simplefilter('default', RuntimeWarning)
 
-class Vision(_Vision, Component):
+class VisionRunner(_Vision, Component):
     implements(IModule)
     
     def __init__(self, vehicle, config):
@@ -50,6 +49,12 @@ class Vision(_Vision, Component):
         self._running = False
         event.send('MODULE_PAUSE', self)
         
+    def backgrounded(self):
+	return True
+
+    def update(self, timestep):
+        pass
+
     def shutdown(self):
         self.pause()
         # Put more shutdown stuff here

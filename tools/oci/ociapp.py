@@ -10,6 +10,7 @@ import baseapp
 from vehicle.vehicle import Vehicle
 import cli
 import ai.modernAI.moduleAI
+import vision.vision
 
 class OCIApp(baseapp.AppBase):
     def __init__(self, config_path):     

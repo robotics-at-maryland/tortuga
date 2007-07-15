@@ -35,7 +35,19 @@ def generate_vision(name, global_ns, local_ns):
 
 
     # Pull in decector classes
-    local_ns.class_('DetectorTest').include()
+    DetectorTest = local_ns.class_('DetectorTest')
+    DetectorTest.include()
+    DetectorTest.member_function("getOrangeDetector").call_policies = \
+        call_policies.return_internal_reference()
+    DetectorTest.member_function("getGateDetector").call_policies = \
+        call_policies.return_internal_reference()
+    DetectorTest.member_function("getBinDetector").call_policies = \
+        call_policies.return_internal_reference()
+    DetectorTest.member_function("getRedDetector").call_policies = \
+        call_policies.return_internal_reference()
+    
+
+
     local_ns.class_('VisionRunner').include()
     local_ns.class_('GateDetector').include()
     local_ns.class_('BinDetector').include()

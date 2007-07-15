@@ -69,7 +69,7 @@ class buoyMachine(aiStateMachine):
         self.setSpeed(0)
         self.exit()
         
-     def seeingRed(self):
+    def seeingRed(self):
         lightDetector = self.vision.forward.RedLightDetector
         if lightDetector.found():
             return True

@@ -1,12 +1,12 @@
-from aiStateMachine import aiStateMachine
+from ai.modernAI.aiStateMachine import aiStateMachine
 import time as clock
 
-class buoyMachine(aiStateMachine):
+class visionTestMachine(aiStateMachine):
     def __init__(self):
         aiStateMachine.__init__(self)
-        self.vision.forward.redLightDetectOn()
-        self.lightDetector = self.vision.forward.RedLightDetector
-        
+	self.vision.forward.lightDetectOn()
+        self.lightDetector = self.vision.forward.getRedDetector()
+    
     def startState(self,args,interrupts):
         self.vehicle.printLine(0,"Starting vision")
         self.vehicle.printLine(1,"test routine")
@@ -24,7 +24,7 @@ class buoyMachine(aiStateMachine):
     
     def redOn(self,args,interrupts):
         elapsed = clock.time() - self.writeTime
-        if self.lightDetector.found()
+        if self.lightDetector.found():
             if elapsed >= 0.5:
                 x = lightDetector.getX()
                 y = lightDetector.getY() 

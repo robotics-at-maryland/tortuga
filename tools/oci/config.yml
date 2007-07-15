@@ -72,16 +72,17 @@ Modules:
         type: control.bwpdcontrol.BWPDController
         update_interval: 100
 
-        angularPGain: 5
+        angularPGain: 10
         angularDGain: 1
         speedPGain: 3
-        depthPGain: 40
+        depthPGain: 20
 
         # Currently does nothing!!!
-        hackedPitchGain: 1
+        hackedPitchGain: 12
+        hackedYawGain: 0
 
-        desiredSpeed: 5
-        desiredDepth: 0.7
+        desiredSpeed: 0
+        desiredDepth: 0
         desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
 
 
@@ -93,11 +94,17 @@ Modules:
 #        desiredQuaternion: [-0.0318, 0.2014, -0.4520, 0.0713]
 #        desiredQuaternion: [ -0.278, 0.911, 0.025, 0.301]
         
-    CLI:
-        depends_on: ["Vehicle"]
-        update_interval: 100
-        type: cli.CLI
+#    CLI:
+#        depends_on: ["Vehicle"]
+#        update_interval: 100
+#        type: cli.CLI
+
     AI:
-        depends_on: ["Vehicle", "Controller"]
+        depends_on: ["Vehicle", "Controller", "Vision"]
         type: ai.modernAI.moduleAI.AI
+        update_interval: 100
+
+    Vision:
+        depends_on: ["Vehicle"]
+        type: vision.vision.VisionRunner
         update_interval: 100
