@@ -99,5 +99,5 @@ Modules:
         type: cli.CLI
     AI:
         depends_on: ["Vehicle", "Controller"]
-        type: ai.cleanAI.AI
+        type: ai.modernAI.moduleAI.AI
         update_interval: 100

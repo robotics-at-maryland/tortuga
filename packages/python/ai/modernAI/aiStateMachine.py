@@ -1,6 +1,5 @@
-from newStateMachine import stateMachine
-import module.Module as Module
-import module.ModuleManager as ModuleManager
+from ai.modernAI.newStateMachine import stateMachine
+from module import Module,ModuleManager
 
 class aiStateMachine(stateMachine):
     def __init__(self,args = None,interFuncs = None,interStates = None):

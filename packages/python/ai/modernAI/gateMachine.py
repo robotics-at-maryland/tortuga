@@ -39,5 +39,5 @@ class gateMachine(aiStateMachine):
         if elapsed >= waitTime:
             self.changeState(afterState)
             
-    def self.end(self,args,interFuncs,interStates):
+    def end(self,args,interFuncs,interStates):
         self.exit()

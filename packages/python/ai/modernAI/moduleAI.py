@@ -1,15 +1,15 @@
-import module.Module as Module
-import module.ModuleManager as ModuleManager
-from aiInitMachine impot initMachine
+from module import Module,ModuleManager,IModule
+from core import implements
+from aiInitMachine import aiInitMachine
 
-class AI(module):
+class AI(Module):
     implements(IModule)
     
     def __init__(self,veh, config):
         self.vehicle = veh
         self.controller = ModuleManager.get().get_module("Controller")
         
-        self.stateMachine = initMachine()
+        self.stateMachine = aiInitMachine()
         
         Module.__init__(self,config)
         
