@@ -49,6 +49,17 @@ public:
         else
             return total/maxSize;
     }
+
+    int getSize()
+    {
+        return size;
+    }
+
+    /** Clears all values in the filter */
+    void clear()
+    {
+        size = 0;
+    }
     
 private:
     int size; 

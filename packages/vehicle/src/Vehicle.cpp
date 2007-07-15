@@ -23,7 +23,9 @@ Vehicle::Vehicle(core::ConfigNode config) :
     m_sensorFD(-1),
     m_markerNum(0),
     m_depthCalibSlope(m_config["depthCalibSlope"].asDouble()),
-    m_depthCalibIntercept(m_config["depthCalibIntercept"].asDouble())
+    m_depthCalibIntercept(m_config["depthCalibIntercept"].asDouble()),
+    m_calibratedDepth(false),
+    m_depthOffset(0)
 {
     std::string devfile =
         m_config["sensor_board_file"].asString("/dev/sensor");
@@ -119,12 +121,33 @@ void Vehicle::update(double timestep)
 
         // Depth
         double rawDepth = readDepth(m_sensorFD);
-        m_state.depth = (rawDepth - m_depthCalibIntercept) / m_depthCalibSlope;
+        m_state.depth = (rawDepth - m_depthCalibIntercept) /
+            m_depthCalibSlope - m_depthOffset;;
+
+        // If we aren't calibrated, take values
+        if (!m_calibratedDepth)
+        {
+            m_depthFilter.addValue(m_state.depth);
+
+            // After five values, take the reading
+            if (5 == m_depthFilter.getSize())
+            {
+                m_calibratedDepth = true;
+                m_depthOffset = m_depthFilter.getValue();
+            }
+        }
+        
         //m_state.depth = rawDepth;
         // Status register
         int status = readStatus(m_sensorFD);
         m_state.startSwitch = status & STATUS_STARTSW;
     }
+}
+
+void Vehicle::calibrateDepth()
+{
+    m_depthFilter.clear();
+    m_calibratedDepth = false;
 }
     
 } // namespace vehicle

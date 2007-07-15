@@ -17,6 +17,7 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/Updatable.h"
+#include "core/include/AveragingFilter.h"
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
@@ -67,6 +68,9 @@ public:
 
     /** Currently just manually grabs depth */
     virtual void update(double timestep);
+
+    /** Records the next 5 depths readings and sets it as the offset */
+    void calibrateDepth();
     
 protected:
     struct VehicleState
@@ -77,6 +81,7 @@ protected:
     
     void getState(Vehicle::VehicleState& state);
     void setState(const Vehicle::VehicleState& state);
+
     
 private:
     
@@ -94,6 +99,10 @@ private:
     VehicleState m_state;
     
     NameDeviceMap m_devices;
+
+    bool m_calibratedDepth;
+    core::AveragingFilter<double, 5> m_depthFilter;
+    double m_depthOffset;
 };
     
 } // namespace vehicle
