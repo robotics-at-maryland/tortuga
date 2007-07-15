@@ -11,7 +11,7 @@ class buoyMachine(aiStateMachine):
         self.vision.forward.redLightDetectOn()
     
     def startState(self,args,interFuncs,interStates):
-        self.changeState(self.go,None,[self.seeingRed],[self.foundRed])
+        self.changeState(self.simpleGo,None,[self.seeingRed],[self.foundRed])
         
     def go(self,args,interFuncs,interStates):
         self.controller.setDepth(startDepth)
