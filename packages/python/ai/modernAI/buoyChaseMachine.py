@@ -72,23 +72,23 @@ class buoyMachine(aiStateMachine):
         
     def pointAtRed(self,args,interFuncs,interStates):
         x = lightDetector.getX()
-        if x < 0.5:
+        if x < 0.4:
             self.controller.yawVehicle(searchAngle)
-        else if x > 0.5:
+        elif x > 0.6:
             self.controller.yawVehicle(-1 * searchAngle)
-        else if x == 0.5:
+        else:
             self.changeState(self.redDepth,None,[self.noRed],[self.redLost])
             
     def redDepth(self,args,interFuncs,interStates):
         y = lightDetector.getY()
         depth = self.controller.getDepth()
-        if y < 0.5:
+        if y < 0.4:
             newDepth = depth - depthChanges
             self.controller.setDepth(newDepth)
-        else if y > 0.5:
+        elif y > 0.6:
             newDept = depth + depthChanges
             self.controller.setDepth(newDepth)
-        else if x == 0.5:
+        else:
             self.exit()
         
     def redLost(self):
