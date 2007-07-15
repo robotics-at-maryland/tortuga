@@ -73,18 +73,22 @@ Modules:
         type: control.bwpdcontrol.BWPDController
         update_interval: 100
 
-        angularPGain: 7
+        # Used to be 10, but got ossiclation
+        angularPGain: 5
         angularDGain: 1
 #        speedPGain: 0
         speedPGain: 3
         # For testing pitch control
+#        depthPGain: 0
         depthPGain: 20
 
         # Currently does nothing!!!
+#        hackedPitchGain: 0
         hackedPitchGain: 12
+        hackedYawGain: 0
 
         desiredSpeed: 3
-        desiredDepth: 1.5
+        desiredDepth: 0.5
 
 
         # West Side pool
@@ -108,19 +112,3 @@ Modules:
         depends_on: ["Vehicle"]
         update_interval: 100
         type: cli.CLI
-
-#    AI:
-#        depends_on: ["Vehicle", "Controller"]
-#        type: ai.cleanAI.AI
-#        update_interval: 100
-#        start_state: spiralAndCenter
-        operateTime: 300
-        driveSpeed: 7
-        throughGateTime: 30
-        toCenterAngle: 45
-        toMiddleTime: 30
-        spiralAngle: 3
-        gateDepth: 4
-        spiralDepth: 10
-        lookDepth: 14
-        init: no

@@ -13,7 +13,7 @@ import curses.wrapper
 
 # Project Imports
 from core import implements
-from module import Module, IModule
+from module import Module, IModule, ModuleManager
 
 W = 119
 S = 115
@@ -47,6 +47,7 @@ class CLI(Module):
                           vehicle.getDevice('AftThruster'),
                           vehicle.getDevice('StarboardThruster'),
                           vehicle.getDevice('PortThruster')]
+        self.controller = ModuleManager.get().get_module('Controller')
         
         Module.__init__(self, config)
         
@@ -114,11 +115,9 @@ class CLI(Module):
         if c == ESC:
             return 1
 #        elif c == W:
-#            self.thrusters[aft].power_up(increment)
-#            self.vehicle.update_thruster(self.thrusters[aft])
+#            self.controller.setDepth(self.vehicle.getDepth() + 0.1)
 #        elif c == S:
-#            self.thrusters[aft].power_up(decrement)
-#            self.vehicle.update_thruster(self.thrusters[aft])
+#            self.controller.setDepth(self.vehicle.getDepth() - 0.1)
 #        elif c == A:
 #            self.thrusters[port].power_up(increment)
 #            self.vehicle.update_thruster(self.thrusters[port])
