@@ -17,6 +17,14 @@ class buoyMachine(aiStateMachine):
         self.controller.setDepth(startDepth)
         self.changeState(self.waitAndDrive,None,[self.seeingRed],[self.foundRed])
         
+    def simpleGo(self,args,interFuncs,interStates):
+        self.controller.setDepth(startDepth)
+        self.controller.setSpeed(2)
+        self.changeState(self.drive,[clock.time()],[self.seeingRed],[self.foundRed])
+        
+    def drive(self,args,interFuncs,interStates):
+        pass
+        
     def waitAndDrive(self,args,interFuncs,interStates):
         if self.controller.isOriented():
             self.controller.setSpeed(driveSpeed)
