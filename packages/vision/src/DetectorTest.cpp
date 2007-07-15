@@ -51,7 +51,7 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	}
 	frame = new OpenCVImage(640,480);
 	dest=cvCreateImage(cvSize(480,640),8,3);
-	camera->background(); //Silliness	
+	camera->background(30); //Silliness	
 }
 
 DetectorTest::DetectorTest(string movie)

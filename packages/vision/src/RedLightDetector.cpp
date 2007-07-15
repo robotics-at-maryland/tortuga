@@ -49,7 +49,7 @@ double RedLightDetector::getY()
 
 void RedLightDetector::update()
 {
-	cam->getCalibratedImage(frame);
+	cam->getImage(frame);
 	IplImage* sideways =(IplImage*)(*frame);
 	rotate90Deg(sideways,image);
 	cvCopyImage(image,raw);//Now both are rotated 90 degrees

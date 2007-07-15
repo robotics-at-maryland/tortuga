@@ -3,6 +3,7 @@
 #include <highgui.h>
 #include <iostream>
 #include <signal.h>
+#include <string>
 namespace ram{
 namespace vision
 {
@@ -10,8 +11,8 @@ namespace vision
 		forward(300,true),
 		downward(301,false)
 	{
-		forward.background();
-		downward.background();
+		forward.background(25);
+		downward.background(25);
 	}
 }
 }
@@ -24,68 +25,77 @@ void handler(int x)
   key='q';
 }
 
-int main()
+int main(int argc, char** argv)
 {
-  //	usleep(10000000);
-	ram::vision::DetectorTest forward(0,true);
-	forward.background(30);
-	forward.orangeDetectOn();
-	forward.lightDetectOn();
-	forward.binDetectOn();
-	forward.gateDetectOn();
+	ram::vision::DetectorTest* forward;
+	if (argc==2)
+	{
+		string moviename=argv[1];
+		cout<<moviename<<endl;
+		forward=new ram::vision::DetectorTest(moviename);
+	}
+	else
+		forward=new ram::vision::DetectorTest(0,true);
+	forward->background(25);
+	forward->orangeDetectOn();
+//	forward->lightDetectOn();
+//	forward->binDetectOn();
+//	forward->gateDetectOn();
 	signal(SIGINT,handler);
 	while (true)
 	{
-
+		cvWaitKey(25);
 		if (key =='q')
 		{
-			forward.unbackground(true);
+			std::cout<<"Quitting Normally"<<endl;
+			forward->unbackground(true);
+			delete forward;
 			return 0;
 		}
 		else if (key == '1')
 		{
-			if (forward.orangeOn)
+			if (forward->orangeOn)
 			{
-				forward.orangeDetectOff();
+				forward->orangeDetectOff();
 			}
 			else
 			{
 				std::cout<<"ORANGE ON"<<endl;
-				forward.orangeDetectOn();
+				forward->orangeDetectOn();
 			}
 		}
 		else if (key == '2')
 		{
-			if (forward.lightOn)
+			if (forward->lightOn)
 			{
-				forward.lightDetectOff();
+				forward->lightDetectOff();
 			}
 			else
 			{
-				forward.lightDetectOn();
+				forward->lightDetectOn();
 				std::cout<<"LIGHT ON"<<endl;
 
 			}
 		}
 		else if (key == '3')
 		{
-			if (forward.binOn)
+			if (forward->binOn)
 			{
-				forward.binDetectOff();
+				forward->binDetectOff();
 			}
 			else
 			{
-				forward.binDetectOn();
+				forward->binDetectOn();
 				std::cout<<"BIN ON"<<endl;
 			}
 		}
 		else if (key == '4')
 		{
-			if (forward.gateOn)
-				forward.gateDetectOff();
+			if (forward->gateOn)
+				forward->gateDetectOff();
 			else
 			{
-				forward.gateDetectOn();
+				forward->gateDetectOn();
 				std::cout<<"Gate On"<<endl;
 			}
 		}

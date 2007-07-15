@@ -1150,14 +1150,14 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 	
 	if (!strict)
 	{
-		r_over_g_min=1.5;
+		r_over_g_min=1.0;
 		r_over_g_max=2.5;
 		b_over_r_max=.5;
 	}
 	else
 	{
-		r_over_g_min=1.7;
-		r_over_g_max=2.3;
+		r_over_g_min=1.2;
+		r_over_g_max=2.0;
 		b_over_r_max=.4;
 	}
 	for (int y=0; y<height; y++)

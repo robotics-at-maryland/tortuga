@@ -37,7 +37,7 @@ double GateDetector::getY()
 
 void GateDetector::update()
 {	
-	cam->getCalibratedImage(frame);
+	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
 	rotate90Deg(image,gateFrame);//Rotate image into gateFrame, so that it will be vertical.
 	rotate90Deg(image,gateFrameRatios);
