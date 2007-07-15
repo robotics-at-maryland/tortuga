@@ -59,14 +59,17 @@ int main (int argc, char * const argv[]) {
             case RECEIVE_JAUS_RESUME:
             {
                 std::cout << "resume" << std::endl;
-		setMotors(mcFD, 300);
+                setSpeed(mcFD, 3, -900);
+                setSpeed(mcFD, 4, -900);
+//		setMotors(mcFD, 300);
             }
             break;
             
             case RECEIVE_JAUS_STANDBY:
             {
                 std::cout << "standby" << std::endl;
-		setMotors(mcFD, 0);
+                setSpeed(mcFD, 3, 0);
+                setSpeed(mcFD, 4, 0);
             }
             break;
         }
