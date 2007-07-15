@@ -174,7 +174,7 @@ create an estimate of the yaw.
                         DesiredState* desiredState,
 			   ControllerState* controllerState,
 			   double hackedYawGain){
-  double mag1=measuredState->magneticField[0];
+    /*  double mag1=measuredState->magneticField[0];
   double mag2=measuredState->magneticField[1];
   /////////////start from here
   double psiMeas=atan2(accel3,accel1);
@@ -196,7 +196,7 @@ create an estimate of the yaw.
   //this is PD control for pitch
    double pitchTorque= hackedPitchGain*thetaError
        + (-1)*controllerState->angularDGain*(measuredState->angularRate[1]-0);
-  return pitchTorque;  
+       return pitchTorque;  */
 }
 
 

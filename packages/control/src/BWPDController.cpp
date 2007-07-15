@@ -15,10 +15,13 @@
 // Project Includes
 #include "control/include/BWPDController.h"
 #include "control/include/ControlFunctions.h"
+
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IMU.h"
 #include "vehicle/include/device/Thruster.h"
+
 #include "math/include/Helpers.h"
+#include "imu/include/imuapi.h"
 
 namespace ram {
 namespace control {
@@ -273,11 +276,11 @@ void BWPDController::update(double timestep)
     memcpy(&m_measuredState->linearAcceleration[0],
            &linearAcceleration, sizeof(double) * 3);
 
-    vehicle::device::FilteredState state;
-    m_imu->getFilteredState(&state);
-    m_measuredState->magneticField[0] = m_imu->magX;
-    m_measuredState->magneticField[1] = m_imu->magY;
-    m_measuredState->magneticField[2] = m_imu->magZ;
+    vehicle::device::FilteredIMUData state;
+    m_imu->getFilteredState(state);
+    m_measuredState->magneticField[0] = state.magX;
+    m_measuredState->magneticField[1] = state.magY;
+    m_measuredState->magneticField[2] = state.magZ;
 
     m_measuredState->depth = m_vehicle->getDepth();
     

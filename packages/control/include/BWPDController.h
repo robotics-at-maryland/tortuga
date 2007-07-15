@@ -129,6 +129,7 @@ private:
 
     /* Pitch hack gain */
     double m_hackedPitchGain;
+    double m_hackedYawGain;
 };
     
 } // namespace control
