@@ -1,5 +1,5 @@
 from aiStateMachine import aiStateMachine
-from gateMachine import gateMachine
+from controlTestMachine import controlTestMachine
 
 class aiInitMachine(aiStateMachine):
     def __init__(self):
@@ -7,7 +7,7 @@ class aiInitMachine(aiStateMachine):
         
     def startState(self,args,interFuncs,interStates):
         print "Initializing the AI..."
-        firstMachine = gateMachine()
+        firstMachine = controlTestMachine()
         self.branch(firstMachine,self.end)
         
     def end(self,args,interFuncs,interStates):
