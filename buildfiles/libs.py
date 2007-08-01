@@ -1,5 +1,4 @@
-9# Copyright (C) 2007 Maryland Robotics Club
-# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+9# Copyright (C) 2007 Maryland Robotics Club# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
@@ -23,9 +22,11 @@ from common.util import run_shell_cmd
 if platform.system() == 'Darwin':
     BOOST_PYTHON_LIB = 'boost_python-1_35'
     BOOST_THREAD_LIB = 'boost_thread-1_35'
+    BOOST_PROGOPT_LIB = 'boost_program_options-1_35'
 else:
     BOOST_PYTHON_LIB = 'boost_python-gcc'
     BOOST_THREAD_LIB = 'boost_thread-gcc-mt'
+    BOOST_PROGOPT_LIB = 'boost_program_options-gcc'
 
 # --------------------------------------------------------------------------- #
 #                        L I B R A R Y   I N F O                              #
@@ -60,7 +61,13 @@ def _get_external_lib(name):
             'Boost.Thread' : BoostLibrary('Boost.Thread', (1,35), [],
                                           [BOOST_THREAD_LIB]),
 
-            'Python' : PythonLib('2.5')
+            'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
+                                                  (1,35), [],
+                                                  [BOOST_PROGOPT_LIB]),
+            'Python' : PythonLib('2.5'),
+
+            'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
+                                            ['UnitTest++/UnitTest++.h'])
             }
 
     if EXTERNAL_LIBS.has_key(name):

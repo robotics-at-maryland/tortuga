@@ -14,13 +14,16 @@ helpers.SharedLibrary(envl, 'core', source = sources)
 
 # Build our little demo program
 envt = env.Clone()
-helpers.Program(envt, target = 'QueueTest',
+envt.RAMProgram(target = 'QueueTest',
                 source = ['test/src/QueueTest.cpp'], int_deps = 'core')
 
 # Test for updatable class
-helpers.Program(envt, target = 'UpdatableTest',
+envt.RAMProgram(target = 'UpdatableTest',
                 source = ['test/src/UpdatableTest.cpp'], int_deps = 'core')
 
+envt.RAMProgram(target = 'AvgFilterTest',
+                source = ['test/src/AvgTest.cpp'], int_deps = 'core')
+
+# Unit Tests
 envt = env.Clone()
-helpers.Program(envt, target = 'AvgFilterTest',
-		source = ['test/src/AvgTest.cpp'], int_deps = 'core')
+envt.Tests(int_deps = 'core')

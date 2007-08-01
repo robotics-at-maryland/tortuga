@@ -9,6 +9,7 @@
 import os
 import sys
 import glob as _glob
+import subprocess
 
 # Build System imports
 import libs
@@ -24,17 +25,27 @@ def glob(env, path, pattern):
     results = []
     for p in _glob.glob(directory + '/' + pattern):
         results.append(p.replace(base_dir + '/', ''))
-        
+
     return results
+
+def _ensure_list(possible_list):
+    if type(possible_list) is not list:
+        possible_list = [possible_list]
+    return possible_list
 
 def add_int_deps(env, int_deps):
     """
     Add internal dependencies 
     """
-    if type(int_deps) is not list:
-        int_deps = [int_deps]
-    for dep in int_deps:
+    for dep in _ensure_list(int_deps):
         libs.add_internal(env, dep)
+
+def add_ext_deps(env, ext_deps):
+    """
+    Add internal dependencies 
+    """
+    for dep in _ensure_list(ext_deps):
+        libs.add_external(env, dep)
 
 # Keeps track of created libraries to provide better warnings
 CREATED_LIBRARIES = set()
@@ -68,7 +79,32 @@ def Program(env, *args, **kwargs):
     """
 
     # Make sure settings for dependent libaries is included
-    int_deps = kwargs.get('int_deps', [])
-    add_int_deps(env, int_deps)
+    add_int_deps(env, kwargs.get('int_deps', []))
+    add_ext_deps(env, kwargs.get('ext_deps', []))
     
-    prog = env.Program(*args, **kwargs)
+    return env.Program(*args, **kwargs)
+
+def Tests(env, _target, _source, **kwargs):
+    # Add 'UnitTest++' to the list of ext_deps
+    ext_deps = _ensure_list(kwargs.get('ext_deps', []))
+    ext_deps.append('UnitTest++')
+    kwargs['ext_deps'] = ext_deps
+
+    # Allow the user to over ride the test name and/or sources
+    if _target is None:
+        _target = ['test/Tests']
+    if _source is None:
+        _source = glob(env, 'test/src', '*.cxx')
+
+    prog = Program(env, target = _target, source = _source, **kwargs)
+
+    def run_test(env, target, source):
+        if not subprocess.call(str(source[0].abspath)):
+            open(str(target[0]), 'w').write("PASSED\n")
+
+    env.Command(_target[0] + '.successful', prog, run_test)
+
+def add_helpers_to_env(env):
+    env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary
+    env['BUILDERS']['RAMProgram'] = Program
+    env['BUILDERS']['Tests'] = Tests

@@ -9,6 +9,7 @@ EnsureSConsVersion(0, 96, 93)
 
 # Add the buildfiles dir to the path
 sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
+import helpers
 
 # Options either come from command line of config file
 opts = Options('configure.py')
@@ -50,6 +51,9 @@ env['CMD_LOGFILE'] = 'build.log'
 
 # Add debug flags
 env.AppendUnique(CCFLAGS = ['-g', '-Wall'])
+
+# Add out helper functions to the environment
+helpers.add_helpers_to_env(env)
 
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
