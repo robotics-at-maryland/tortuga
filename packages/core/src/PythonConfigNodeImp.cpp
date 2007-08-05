@@ -7,6 +7,8 @@
  * File:  packages/core/src/PythonConfigNodeImp.cpp
  */
 
+#include <iostream>
+
 // Library Includes
 #include <boost/python.hpp>
 //#include <Python.h>
@@ -60,12 +62,23 @@ ConfigNodeImpPtr PythonConfigNodeImp::fromYamlFile(std::string filename)
         Py_Initialize();
 
     try {
-        // Create our file object
-        py::object file(py::handle<>(PyFile_FromString((char*)filename.c_str(),
-                                                       "r")));
-        py::object yaml = py::import("yaml");
+        py::object main_module((py::handle<>(py::borrowed(
+             PyImport_AddModule("__main__")))));
 
-        return ConfigNodeImpPtr(new PythonConfigNodeImp(yaml.attr("load")(file)));
+        py::object main_namespace = main_module.attr("__dict__");
+//        py::object yaml = py::import("yaml");
+//        main_namespace["yaml"] = yaml;
+
+        std::stringstream ss;
+        ss << "import yaml\nconfig = yaml.load(file(\"" << filename << "\"))";
+        
+        py::handle<> ignored(PyRun_String(ss.str().c_str(),
+                                          Py_file_input,
+                                          main_namespace.ptr(),
+                                          main_namespace.ptr()));
+        py::object obj(main_namespace["config"]);
+    
+        return ConfigNodeImpPtr(new PythonConfigNodeImp(obj));
     } catch(py::error_already_set err) {
         printf("ConfigNode (fromYamlFile) Error:\n");
         PyErr_Print();
