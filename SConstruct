@@ -18,7 +18,7 @@ opts.AddOptions(
      ('CXX', 'The C++ compiler to use', 'g++'),
      ('check', 'Runs checks on dependent libraries to ensure a proper installation',
       'yes'),
-     BoolOption('quiet', "Simplifies buildout and logs all commands to 'build.log')",
+     BoolOption('verbose', "Shows full command line build, normally recored to 'build.log'",
                 False)
      )
 
@@ -38,13 +38,14 @@ env.AppendUnique(LIBPATH = [env['LIB_DIR'],
 
 # Setup printing
 def print_cmd_line(s, target, src, env):
-     if env['quiet']:
-          
-          sys.stdout.write("Making: %s...\n" %(' and '.join([str(x) for x in target])))
+    if env['verbose']:
+        sys.stdout.write("%s\n"%s);
+    else:
+          sys.stdout.write("Making: %s...\n" %(' and '.join([str(x) for x in
+                                                             target])))
           # Save real cmd to log file
           open(env['CMD_LOGFILE'], 'a').write("%s\n"%s)
-     else:
-          sys.stdout.write("%s\n"%s);
+
           
 env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
 env['CMD_LOGFILE'] = 'build.log'

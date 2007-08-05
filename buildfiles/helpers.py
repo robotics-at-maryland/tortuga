@@ -10,6 +10,7 @@ import os
 import sys
 import glob as _glob
 import subprocess
+import SCons
 
 # Build System imports
 import libs
@@ -101,8 +102,15 @@ def Tests(env, _target, _source, **kwargs):
     def run_test(env, target, source):
         if not subprocess.call(str(source[0].abspath)):
             open(str(target[0]), 'w').write("PASSED\n")
+            return 0
 
-    env.Command(_target[0] + '.successful', prog, run_test)
+        # Failure
+        return 1
+
+    message = 'Running Tests in: ' + \
+              os.path.dirname(env.GetBuildPath('SConscript'))
+    env.Command(_target[0] + '.successful', prog,
+                SCons.Action.Action(run_test, message))
 
 def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary
