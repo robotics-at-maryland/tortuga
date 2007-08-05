@@ -26,11 +26,13 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#include "OgreStableHeaders.h"
-#include "OgreVector4.h"
-#include "OgreMath.h"
 
-namespace Ogre
-{
+// Project Includes
+#include "packages/math/include/Vector3.h"
+#include "packages/math/include/Math.h"
+
+namespace ram {
+namespace math {
     const Vector4 Vector4::ZERO( 0, 0, 0, 0 );
-}
+} // namespace math
+} // namespace ram

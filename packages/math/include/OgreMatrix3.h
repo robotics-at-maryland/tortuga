@@ -26,12 +26,10 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#ifndef __Matrix3_H__
-#define __Matrix3_H__
+#ifndef RAM_MATH_MATRIX3_H_08_05_2007
+#define RAM_MATH_MATRIX3_H_08_05_2007
 
-#include "OgrePrerequisites.h"
-
-#include "OgreVector3.h"
+#include "packages/math/include/Vector3.h"
 
 // NB All code adapted from Wild Magic 0.2 Matrix math (free source code)
 // http://www.geometrictools.com/
@@ -51,8 +49,13 @@ Torus Knot Software Ltd.
 //           0       0       1
 // where t > 0 indicates a counterclockwise rotation in the xy-plane.
 
-namespace Ogre
-{
+
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
+
     /** A 3x3 matrix which can represent rotations around axes.
         @note
             <b>All the code is adapted from the Wild Magic 0.2 Matrix
@@ -60,7 +63,7 @@ namespace Ogre
         @par
             The coordinate system is assumed to be <b>right-handed</b>.
     */
-    class _OgreExport Matrix3
+    class  Matrix3
     {
     public:
         /** Default constructor.
@@ -126,14 +129,14 @@ namespace Ogre
         Vector3 operator* (const Vector3& rkVector) const;
 
         // vector * matrix [1x3 * 3x3 = 1x3]
-        _OgreExport friend Vector3 operator* (const Vector3& rkVector,
+         friend Vector3 operator* (const Vector3& rkVector,
             const Matrix3& rkMatrix);
 
         // matrix * scalar
         Matrix3 operator* (Real fScalar) const;
 
         // scalar * matrix
-        _OgreExport friend Matrix3 operator* (Real fScalar, const Matrix3& rkMatrix);
+         friend Matrix3 operator* (Real fScalar, const Matrix3& rkMatrix);
 
         // utilities
         Matrix3 Transpose () const;
@@ -299,6 +302,25 @@ namespace Ogre
         static const Matrix3 ZERO;
         static const Matrix3 IDENTITY;
 
+        /** Function for writing to a stream.
+        */
+        inline  friend std::ostream& operator <<
+            ( std::ostream& o, const Matrix4& m )
+        {
+            o << "Matrix3(";
+			for (size_t i = 0; i < 3; ++i)
+            {
+                o << " row" << (unsigned)i << "{";
+                for(size_t j = 0; j < 3; ++j)
+                {
+                    o << m[i][j] << " ";
+                }
+                o << "}";
+            }
+            o << ")";
+            return o;
+        }
+        
     protected:
         // support for eigensolver
         void Tridiagonal (Real afDiag[3], Real afSubDiag[3]);
@@ -320,5 +342,11 @@ namespace Ogre
         // for faster access
         friend class Matrix4;
     };
-}
-#endif
+
+} // namespace math
+} // namespace ram
+
+// Removal of "Real" hack
+#undef Real
+
+#endif // RAM_MATH_MATRIX3_H_08_05_2007

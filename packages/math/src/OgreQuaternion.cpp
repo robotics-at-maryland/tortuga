@@ -26,7 +26,6 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#include "OgreStableHeaders.h"
 // NOTE THAT THIS FILE IS BASED ON MATERIAL FROM:
 
 // Magic Software, Inc.
@@ -41,13 +40,18 @@ Torus Knot Software Ltd.
 // FREE SOURCE CODE
 // http://www.geometrictools.com/License/WildMagic3License.pdf
 
-#include "OgreQuaternion.h"
 
-#include "OgreMath.h"
-#include "OgreMatrix3.h"
-#include "OgreVector3.h"
+// Project Includes
+#include "packages/math/include/Quaternion.h"
+#include "packages/math/include/Math.h"
+#include "packages/math/include/Matrix3.h"
+#include "packages/math/include/Vector3.h"
 
-namespace Ogre {
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
 
     const Real Quaternion::ms_fEpsilon = 1e-03;
     const Quaternion Quaternion::ZERO(0.0,0.0,0.0,0.0);
@@ -613,4 +617,6 @@ namespace Ogre {
         result.normalise();
         return result;
     }
-}
+
+} // namespace math
+} // namespace ram

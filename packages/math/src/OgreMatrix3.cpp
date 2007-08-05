@@ -33,8 +33,12 @@ Torus Knot Software Ltd.
 
 // Adapted from Matrix math by Wild Magic http://www.geometrictools.com/
 
-namespace Ogre
-{
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
+
     const Real Matrix3::EPSILON = 1e-06;
     const Matrix3 Matrix3::ZERO(0,0,0,0,0,0,0,0,0);
     const Matrix3 Matrix3::IDENTITY(1,0,0,0,1,0,0,0,1);
@@ -1509,4 +1513,6 @@ namespace Ogre
         }
     }
     //-----------------------------------------------------------------------
-}
+
+} // namespace math
+} // namespace ram

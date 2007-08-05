@@ -26,13 +26,15 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#ifndef __Math_H__
-#define __Math_H__
+#ifndef RAM_MATH_MATH_H_08_05_2007
+#define RAM_MATH_MATH_H_08_05_2007
 
-#include "OgrePrerequisites.h"
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
 
-namespace Ogre
-{
+namespace ram {
+namespace math {
+
     /** Wrapper class which indicates a given angle value is in Radians.
     @remarks
         Radian values are interchangeable with Degree values, and conversions
@@ -168,7 +170,7 @@ namespace Ogre
             <br>This is based on MgcMath.h from
             <a href="http://www.geometrictools.com/">Wild Magic</a>.
     */
-    class _OgreExport Math 
+    class Math 
     {
    public:
        /** The angular units used by the API. This functionality is now deprecated in favor
@@ -369,8 +371,8 @@ namespace Ogre
                 If the point is outside the triangle, <b>false</b> is
                 returned.
         */
-        static bool pointInTri2D(const Vector2& p, const Vector2& a, 
-			const Vector2& b, const Vector2& c);
+/*        static bool pointInTri2D(const Vector2& p, const Vector2& a, 
+          const Vector2& b, const Vector2& c);*/
 
        /** Checks whether a given 3D point is inside a triangle.
        @remarks
@@ -396,17 +398,17 @@ namespace Ogre
             If the point is outside the triangle, <b>false</b> is
             returned.
         */
-        static bool pointInTri3D(const Vector3& p, const Vector3& a, 
-			const Vector3& b, const Vector3& c, const Vector3& normal);
+/*        static bool pointInTri3D(const Vector3& p, const Vector3& a, 
+          const Vector3& b, const Vector3& c, const Vector3& normal);*/
         /** Ray / plane intersection, returns boolean result and distance. */
-        static std::pair<bool, Real> intersects(const Ray& ray, const Plane& plane);
+//        static std::pair<bool, Real> intersects(const Ray& ray, const Plane& plane);
 
         /** Ray / sphere intersection, returns boolean result and distance. */
-        static std::pair<bool, Real> intersects(const Ray& ray, const Sphere& sphere, 
-            bool discardInside = true);
+        /*      static std::pair<bool, Real> intersects(const Ray& ray, const Sphere& sphere, 
+                bool discardInside = true);*/
         
         /** Ray / box intersection, returns boolean result and distance. */
-        static std::pair<bool, Real> intersects(const Ray& ray, const AxisAlignedBox& box);
+//        static std::pair<bool, Real> intersects(const Ray& ray, const AxisAlignedBox& box);
 
         /** Ray / box intersection, returns boolean result and two intersection distance.
         @param
@@ -430,8 +432,8 @@ namespace Ogre
             If the ray isn't intersects the box, <b>false</b> is returned, and
             <i>d1</i> and <i>d2</i> is unmodified.
         */
-        static bool intersects(const Ray& ray, const AxisAlignedBox& box,
-            Real* d1, Real* d2);
+/*        static bool intersects(const Ray& ray, const AxisAlignedBox& box,
+          Real* d1, Real* d2);*/
 
         /** Ray / triangle intersection, returns boolean result and distance.
         @param
@@ -457,9 +459,9 @@ namespace Ogre
             If the ray isn't intersects the triangle, a pair of <b>false</b> and
             <b>0</b> returned.
         */
-        static std::pair<bool, Real> intersects(const Ray& ray, const Vector3& a,
+/*        static std::pair<bool, Real> intersects(const Ray& ray, const Vector3& a,
             const Vector3& b, const Vector3& c, const Vector3& normal,
-            bool positiveSide = true, bool negativeSide = true);
+            bool positiveSide = true, bool negativeSide = true);*/
 
         /** Ray / triangle intersection, returns boolean result and distance.
         @param
@@ -481,37 +483,37 @@ namespace Ogre
             If the ray isn't intersects the triangle, a pair of <b>false</b> and
             <b>0</b> returned.
         */
-        static std::pair<bool, Real> intersects(const Ray& ray, const Vector3& a,
+/*        static std::pair<bool, Real> intersects(const Ray& ray, const Vector3& a,
             const Vector3& b, const Vector3& c,
-            bool positiveSide = true, bool negativeSide = true);
+            bool positiveSide = true, bool negativeSide = true);*/
 
         /** Sphere / box intersection test. */
-        static bool intersects(const Sphere& sphere, const AxisAlignedBox& box);
+//        static bool intersects(const Sphere& sphere, const AxisAlignedBox& box);
 
         /** Plane / box intersection test. */
-        static bool intersects(const Plane& plane, const AxisAlignedBox& box);
+//        static bool intersects(const Plane& plane, const AxisAlignedBox& box);
 
         /** Ray / convex plane list intersection test. 
         @param ray The ray to test with
         @param plaeList List of planes which form a convex volume
         @param normalIsOutside Does the normal point outside the volume
         */
-        static std::pair<bool, Real> intersects(
+/*        static std::pair<bool, Real> intersects(
             const Ray& ray, const std::vector<Plane>& planeList, 
-            bool normalIsOutside);
+            bool normalIsOutside);*/
         /** Ray / convex plane list intersection test. 
         @param ray The ray to test with
         @param plaeList List of planes which form a convex volume
         @param normalIsOutside Does the normal point outside the volume
         */
-        static std::pair<bool, Real> intersects(
+/*        static std::pair<bool, Real> intersects(
             const Ray& ray, const std::list<Plane>& planeList, 
-            bool normalIsOutside);
+            bool normalIsOutside);*/
 
         /** Sphere / plane intersection test. 
         @remarks NB just do a plane.getDistance(sphere.getCenter()) for more detail!
         */
-        static bool intersects(const Sphere& sphere, const Plane& plane);
+//        static bool intersects(const Sphere& sphere, const Plane& plane);
 
         /** Compare 2 reals, using tolerance for inaccuracies.
         */
@@ -519,25 +521,25 @@ namespace Ogre
             Real tolerance = std::numeric_limits<Real>::epsilon());
 
         /** Calculates the tangent space vector for a given set of positions / texture coords. */
-        static Vector3 calculateTangentSpaceVector(
+/*        static Vector3 calculateTangentSpaceVector(
             const Vector3& position1, const Vector3& position2, const Vector3& position3,
-            Real u1, Real v1, Real u2, Real v2, Real u3, Real v3);
+            Real u1, Real v1, Real u2, Real v2, Real u3, Real v3);*/
 
         /** Build a reflection matrix for the passed in plane. */
-        static Matrix4 buildReflectionMatrix(const Plane& p);
+//        static Matrix4 buildReflectionMatrix(const Plane& p);
         /** Calculate a face normal, including the w component which is the offset from the origin. */
-        static Vector4 calculateFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3);
+//        static Vector4 calculateFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3);
         /** Calculate a face normal, no w-information. */
-        static Vector3 calculateBasicFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3);
+//        static Vector3 calculateBasicFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3);
         /** Calculate a face normal without normalize, including the w component which is the offset from the origin. */
-        static Vector4 calculateFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3);
+//        static Vector4 calculateFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3);
         /** Calculate a face normal without normalize, no w-information. */
-        static Vector3 calculateBasicFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3);
+//        static Vector3 calculateBasicFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3);
 
 		/** Generates a value based on the gaussian (normal) distribution function
 			with the given offset and scale parameters.
 		*/
-		static Real gaussianDistribution(Real x, Real offset = 0.0f, Real scale = 1.0f);
+//		static Real gaussianDistribution(Real x, Real offset = 0.0f, Real scale = 1.0f);
 
         static const Real POS_INFINITY;
         static const Real NEG_INFINITY;
@@ -602,5 +604,10 @@ namespace Ogre
 		return Degree ( a / b.valueDegrees() );
 	}
 
-}
-#endif
+} // namespace math
+} // namespace ram
+
+// Removal of "Real" hack
+#undef Real
+
+#endif // RAM_MATH_MATH_H_08_05_2007

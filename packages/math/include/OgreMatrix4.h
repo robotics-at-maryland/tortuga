@@ -26,18 +26,19 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#ifndef __Matrix4__
-#define __Matrix4__
+#ifndef RAM_MATH_MATRIX4_H_08_05_2007
+#define RAM_MATH_MATRIX4_H_08_05_2007
 
-// Precompiler options
-#include "OgrePrerequisites.h"
+#include "packages/math/include/Vector3.h"
+#include "packages/math/include/Matrix3.h"
+#include "packages/math/include/Vector4.h"
 
-#include "OgreVector3.h"
-#include "OgreMatrix3.h"
-#include "OgreVector4.h"
-#include "OgrePlane.h"
-namespace Ogre
-{
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
+
     /** Class encapsulating a standard 4x4 homogenous matrix.
         @remarks
             OGRE uses column vectors when applying matrix multiplications,
@@ -70,7 +71,7 @@ namespace Ogre
                 [ m[3][0]  m[3][1]  m[3][2]  m[3][3] ]   {1}
             </pre>
     */
-    class _OgreExport Matrix4
+    class  Matrix4
     {
     protected:
         /// The matrix entries, indexed by [row][col].
@@ -207,7 +208,7 @@ namespace Ogre
                 m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3] * v.w
                 );
         }
-        inline Plane operator * (const Plane& p) const
+/*        inline Plane operator * (const Plane& p) const
         {
             Plane ret;
 			Matrix4 invTrans = inverse().transpose();
@@ -219,7 +220,7 @@ namespace Ogre
 			ret.d = v4.w / ret.normal.normalise();
 
             return ret;
-        }
+            }*/
 
 
         /** Matrix addition.
@@ -490,7 +491,7 @@ namespace Ogre
 
         /** Function for writing to a stream.
         */
-        inline _OgreExport friend std::ostream& operator <<
+        inline  friend std::ostream& operator <<
             ( std::ostream& o, const Matrix4& m )
         {
             o << "Matrix4(";
@@ -616,5 +617,10 @@ namespace Ogre
             );
     }
 
-}
-#endif
+} // namespace math
+} // namespace ram
+
+// Removal of "Real" hack
+#undef Real
+
+#endif // RAM_MATH_MATRIX4_H_08_05_2007

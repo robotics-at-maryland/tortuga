@@ -26,21 +26,19 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#include "OgreStableHeaders.h"
 
-#include "OgreMath.h"
-#include "asm_math.h"
-#include "OgreVector2.h"
-#include "OgreVector3.h"
-#include "OgreVector4.h"
-#include "OgreRay.h"
-#include "OgreSphere.h"
-#include "OgreAxisAlignedBox.h"
-#include "OgrePlane.h"
+// Library Includes
+#include "packages/math/include/Math.h"
+#include "packages/math/include/Vector2.h"
+#include "packages/math/include/Vector3.h"
+#include "packages/math/include/Vector4.h"
 
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
 
-namespace Ogre
-{
+namespace ram {
+namespace math {
+
 
     const Real Math::POS_INFINITY = std::numeric_limits<Real>::infinity();
     const Real Math::NEG_INFINITY = -std::numeric_limits<Real>::infinity();
@@ -232,7 +230,7 @@ namespace Ogre
     }
 
     //-----------------------------------------------------------------------
-	bool Math::pointInTri2D(const Vector2& p, const Vector2& a, 
+/*	bool Math::pointInTri2D(const Vector2& p, const Vector2& a, 
 		const Vector2& b, const Vector2& c)
     {
 		// Winding must be consistent from all edges for point to be inside
@@ -278,9 +276,9 @@ namespace Ogre
 
 
 		return true;
-    }
+    }*/
 	//-----------------------------------------------------------------------
-	bool Math::pointInTri3D(const Vector3& p, const Vector3& a, 
+/*	bool Math::pointInTri3D(const Vector3& p, const Vector3& a, 
 		const Vector3& b, const Vector3& c, const Vector3& normal)
 	{
         // Winding must be consistent from all edges for point to be inside
@@ -326,7 +324,7 @@ namespace Ogre
 
 
         return true;
-	}
+	}*/
     //-----------------------------------------------------------------------
     bool Math::RealEqual( Real a, Real b, Real tolerance )
     {
@@ -337,7 +335,7 @@ namespace Ogre
     }
 
     //-----------------------------------------------------------------------
-    std::pair<bool, Real> Math::intersects(const Ray& ray, const Plane& plane)
+/*    std::pair<bool, Real> Math::intersects(const Ray& ray, const Plane& plane)
     {
 
         Real denom = plane.normal.dotProduct(ray.getDirection());
@@ -353,9 +351,9 @@ namespace Ogre
             return std::pair<bool, Real>(t >= 0, t);
         }
         
-    }
+    }*/
     //-----------------------------------------------------------------------
-    std::pair<bool, Real> Math::intersects(const Ray& ray, 
+/*    std::pair<bool, Real> Math::intersects(const Ray& ray, 
         const std::vector<Plane>& planes, bool normalIsOutside)
     {
         std::vector<Plane>::const_iterator planeit, planeitend;
@@ -398,9 +396,9 @@ namespace Ogre
         }
 
         return ret;
-    }
+    }*/
     //-----------------------------------------------------------------------
-    std::pair<bool, Real> Math::intersects(const Ray& ray, 
+/*    std::pair<bool, Real> Math::intersects(const Ray& ray, 
         const std::list<Plane>& planes, bool normalIsOutside)
     {
         std::list<Plane>::const_iterator planeit, planeitend;
@@ -443,9 +441,9 @@ namespace Ogre
         }
 
         return ret;
-    }
+    }*/
     //-----------------------------------------------------------------------
-    std::pair<bool, Real> Math::intersects(const Ray& ray, const Sphere& sphere, 
+/*    std::pair<bool, Real> Math::intersects(const Ray& ray, const Sphere& sphere, 
         bool discardInside)
     {
         const Vector3& raydir = ray.getDirection();
@@ -485,9 +483,9 @@ namespace Ogre
         }
 
 
-    }
+    }*/
     //-----------------------------------------------------------------------
-	std::pair<bool, Real> Math::intersects(const Ray& ray, const AxisAlignedBox& box)
+/*	std::pair<bool, Real> Math::intersects(const Ray& ray, const AxisAlignedBox& box)
 	{
 		if (box.isNull()) return std::pair<bool, Real>(false, 0);
 		if (box.isInfinite()) return std::pair<bool, Real>(true, 0);
@@ -613,9 +611,9 @@ namespace Ogre
 
 		return std::pair<bool, Real>(hit, lowt);
 
-	} 
+                } */
     //-----------------------------------------------------------------------
-    bool Math::intersects(const Ray& ray, const AxisAlignedBox& box,
+/*    bool Math::intersects(const Ray& ray, const AxisAlignedBox& box,
         Real* d1, Real* d2)
     {
         if (box.isNull())
@@ -701,9 +699,9 @@ namespace Ogre
         if (d2) *d2 = end;
 
         return true;
-    }
+        }*/
     //-----------------------------------------------------------------------
-    std::pair<bool, Real> Math::intersects(const Ray& ray, const Vector3& a,
+/*    std::pair<bool, Real> Math::intersects(const Ray& ray, const Vector3& a,
         const Vector3& b, const Vector3& c, const Vector3& normal,
         bool positiveSide, bool negativeSide)
     {
@@ -794,17 +792,17 @@ namespace Ogre
         }
 
         return std::pair<bool, Real>(true, t);
-    }
+        }*/
     //-----------------------------------------------------------------------
-    std::pair<bool, Real> Math::intersects(const Ray& ray, const Vector3& a,
+/*    std::pair<bool, Real> Math::intersects(const Ray& ray, const Vector3& a,
         const Vector3& b, const Vector3& c,
         bool positiveSide, bool negativeSide)
     {
         Vector3 normal = calculateBasicFaceNormalWithoutNormalize(a, b, c);
         return intersects(ray, a, b, c, normal, positiveSide, negativeSide);
-    }
+        }*/
     //-----------------------------------------------------------------------
-    bool Math::intersects(const Sphere& sphere, const AxisAlignedBox& box)
+/*    bool Math::intersects(const Sphere& sphere, const AxisAlignedBox& box)
     {
         if (box.isNull()) return false;
         if (box.isInfinite()) return true;
@@ -832,21 +830,21 @@ namespace Ogre
 		}
 		return d <= radius * radius;
 
-    }
+                }*/
     //-----------------------------------------------------------------------
-    bool Math::intersects(const Plane& plane, const AxisAlignedBox& box)
+/*    bool Math::intersects(const Plane& plane, const AxisAlignedBox& box)
     {
         return (plane.getSide(box) == Plane::BOTH_SIDE);
-    }
+        }*/
     //-----------------------------------------------------------------------
-    bool Math::intersects(const Sphere& sphere, const Plane& plane)
+/*    bool Math::intersects(const Sphere& sphere, const Plane& plane)
     {
         return (
             Math::Abs(plane.getDistance(sphere.getCenter()))
             <= sphere.getRadius() );
-    }
+            }*/
     //-----------------------------------------------------------------------
-    Vector3 Math::calculateTangentSpaceVector(
+/*    Vector3 Math::calculateTangentSpaceVector(
         const Vector3& position1, const Vector3& position2, const Vector3& position3,
         Real u1, Real v1, Real u2, Real v2, Real u3, Real v3)
     {
@@ -882,45 +880,45 @@ namespace Ogre
 
         return tangent;
 
-    }
+        }*/
     //-----------------------------------------------------------------------
-    Matrix4 Math::buildReflectionMatrix(const Plane& p)
+/*    Matrix4 Math::buildReflectionMatrix(const Plane& p)
     {
         return Matrix4(
             -2 * p.normal.x * p.normal.x + 1,   -2 * p.normal.x * p.normal.y,       -2 * p.normal.x * p.normal.z,       -2 * p.normal.x * p.d, 
             -2 * p.normal.y * p.normal.x,       -2 * p.normal.y * p.normal.y + 1,   -2 * p.normal.y * p.normal.z,       -2 * p.normal.y * p.d, 
             -2 * p.normal.z * p.normal.x,       -2 * p.normal.z * p.normal.y,       -2 * p.normal.z * p.normal.z + 1,   -2 * p.normal.z * p.d, 
             0,                                  0,                                  0,                                  1);
-    }
+            }*/
     //-----------------------------------------------------------------------
-    Vector4 Math::calculateFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3)
+/*    Vector4 Math::calculateFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3)
     {
         Vector3 normal = calculateBasicFaceNormal(v1, v2, v3);
         // Now set up the w (distance of tri from origin
         return Vector4(normal.x, normal.y, normal.z, -(normal.dotProduct(v1)));
-    }
+        }*/
     //-----------------------------------------------------------------------
-    Vector3 Math::calculateBasicFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3)
+/*    Vector3 Math::calculateBasicFaceNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3)
     {
         Vector3 normal = (v2 - v1).crossProduct(v3 - v1);
         normal.normalise();
         return normal;
-    }
+        }*/
     //-----------------------------------------------------------------------
-    Vector4 Math::calculateFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3)
+/*    Vector4 Math::calculateFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3)
     {
         Vector3 normal = calculateBasicFaceNormalWithoutNormalize(v1, v2, v3);
         // Now set up the w (distance of tri from origin)
         return Vector4(normal.x, normal.y, normal.z, -(normal.dotProduct(v1)));
-    }
+        }*/
     //-----------------------------------------------------------------------
-    Vector3 Math::calculateBasicFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3)
+/*    Vector3 Math::calculateBasicFaceNormalWithoutNormalize(const Vector3& v1, const Vector3& v2, const Vector3& v3)
     {
         Vector3 normal = (v2 - v1).crossProduct(v3 - v1);
         return normal;
-    }
+        }*/
 	//-----------------------------------------------------------------------
-	Real Math::gaussianDistribution(Real x, Real offset, Real scale)
+/*	Real Math::gaussianDistribution(Real x, Real offset, Real scale)
 	{
 		Real nom = Math::Exp(
 			-Math::Sqr(x - offset) / (2 * Math::Sqr(scale)));
@@ -928,5 +926,6 @@ namespace Ogre
 
 		return nom / denom;
 
-	}
-}
+                }*/
+} // namespace math
+} // namespace ram
