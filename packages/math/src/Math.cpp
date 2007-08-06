@@ -28,10 +28,9 @@ Torus Knot Software Ltd.
 */
 
 // Library Includes
-#include "packages/math/include/Math.h"
-#include "packages/math/include/Vector2.h"
-#include "packages/math/include/Vector3.h"
-#include "packages/math/include/Vector4.h"
+#include "math/include/Math.h"
+#include "math/include/Vector3.h"
+#include "math/include/Vector4.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
@@ -163,12 +162,14 @@ namespace math {
 	//-----------------------------------------------------------------------
 	Real Math::InvSqrt(Real fValue)
 	{
-		return Real(asm_rsq(fValue));
+		return 1.0 / sqrt(fValue);
+//		return Real(asm_rsq(fValue));
 	}
     //-----------------------------------------------------------------------
     Real Math::UnitRandom ()
     {
-        return asm_rand() / asm_rand_max();
+        return rand() / float(RAND_MAX);
+//        return asm_rand() / asm_rand_max();
     }
     
     //-----------------------------------------------------------------------

@@ -42,10 +42,10 @@ Torus Knot Software Ltd.
 
 
 // Project Includes
-#include "packages/math/include/Quaternion.h"
-#include "packages/math/include/Math.h"
-#include "packages/math/include/Matrix3.h"
-#include "packages/math/include/Vector3.h"
+#include "math/include/Quaternion.h"
+#include "math/include/Math.h"
+#include "math/include/Matrix3.h"
+#include "math/include/Vector3.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double

@@ -29,7 +29,7 @@ Torus Knot Software Ltd.
 #ifndef RAM_MATH_VECTOR4_H_08_05_2007
 #define RAM_MATH_VECTOR4_H_08_05_2007 
 
-#include "packages/math/include/Vector3.h"
+#include "math/include/Vector3.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double

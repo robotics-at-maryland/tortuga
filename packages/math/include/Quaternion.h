@@ -43,7 +43,13 @@ Torus Knot Software Ltd.
 #ifndef RAM_MATH_QUATERNION_H_08_05_2007
 #define RAM_MATH_QUATERNION_H_08_05_2007
 
-#include "packages/math/include/Math.h"
+// STD Includes
+#include <cassert>
+#include <cstddef>
+#include <ostream>
+
+// Project Includes
+#include "math/include/Math.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
@@ -51,6 +57,9 @@ Torus Knot Software Ltd.
 namespace ram {
 namespace math {
 
+    class Matrix3;
+    class Vector3;
+    
     /** Implementation of a Quaternion, i.e. a rotation around an axis.
     */
     class Quaternion

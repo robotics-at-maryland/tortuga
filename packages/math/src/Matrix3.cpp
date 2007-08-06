@@ -26,10 +26,10 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#include "OgreStableHeaders.h"
-#include "OgreMatrix3.h"
 
-#include "OgreMath.h"
+// Project Includes
+#include "math/include/Matrix3.h"
+#include "math/include/Math.h"
 
 // Adapted from Matrix math by Wild Magic http://www.geometrictools.com/
 

@@ -29,9 +29,9 @@ Torus Knot Software Ltd.
 #ifndef RAM_MATH_MATRIX4_H_08_05_2007
 #define RAM_MATH_MATRIX4_H_08_05_2007
 
-#include "packages/math/include/Vector3.h"
-#include "packages/math/include/Matrix3.h"
-#include "packages/math/include/Vector4.h"
+#include "math/include/Vector3.h"
+#include "math/include/Matrix3.h"
+#include "math/include/Vector4.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double

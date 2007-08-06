@@ -29,7 +29,11 @@ Torus Knot Software Ltd.
 #ifndef RAM_MATH_MATRIX3_H_08_05_2007
 #define RAM_MATH_MATRIX3_H_08_05_2007
 
-#include "packages/math/include/Vector3.h"
+// STD Includes
+#include <ostream>
+
+// Project Includes
+#include "math/include/Vector3.h"
 
 // NB All code adapted from Wild Magic 0.2 Matrix math (free source code)
 // http://www.geometrictools.com/
@@ -305,7 +309,7 @@ namespace math {
         /** Function for writing to a stream.
         */
         inline  friend std::ostream& operator <<
-            ( std::ostream& o, const Matrix4& m )
+            ( std::ostream& o, const Matrix3& m )
         {
             o << "Matrix3(";
 			for (size_t i = 0; i < 3; ++i)

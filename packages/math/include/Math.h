@@ -29,12 +29,18 @@ Torus Knot Software Ltd.
 #ifndef RAM_MATH_MATH_H_08_05_2007
 #define RAM_MATH_MATH_H_08_05_2007
 
+// STD Includes
+#include <limits>
+#include <cmath>
+
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 
 namespace ram {
 namespace math {
 
+    class Degree;
+    
     /** Wrapper class which indicates a given angle value is in Radians.
     @remarks
         Radian values are interchangeable with Degree values, and conversions
