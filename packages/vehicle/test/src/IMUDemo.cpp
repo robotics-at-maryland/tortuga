@@ -58,10 +58,10 @@ int main()
         imu.getFilteredState(filtData);
 	Quaternion orientation(imu.getOrientation());
 
-	quat1.addValue(orientation.q1);
-	quat2.addValue(orientation.q2);
-	quat3.addValue(orientation.q3);
-	quat4.addValue(orientation.q4);
+	quat1.addValue(orientation.w);
+	quat2.addValue(orientation.x);
+	quat3.addValue(orientation.y);
+	quat4.addValue(orientation.z);
 
       /*      printf("IMU F. No Bias, Raw:: %7.4f %7.4f %7.4f\n", // Rot. & Filt. Mag: %7.4f %7.4f %7.4f\n",
 	     rawData.magX, rawData.magY, rawData.magZ);

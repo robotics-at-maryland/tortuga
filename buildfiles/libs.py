@@ -454,8 +454,16 @@ class ConfigLibrary(Library):
             self._config_cmd_output = ' '
             
             for cmd in setup_cmd.split(';'):
-                error_cmd = 'Error running:', cmd
-                self._config_cmd_output += ' '+ run_shell_cmd(cmd, error_cmd)
+                error_cmd = 'Error running: ' + cmd
+                result, returncode = run_shell_cmd(cmd, error_cmd)
+
+                if returncode != 0:
+                    print "\tError:"
+                    print "\tCould not find '%s' with tool: '%s'" \
+                          % (self.name, self.tool_name)
+                    sys.exit(1)
+                
+                self._config_cmd_output += ' '+ result
         
         # Merge actuall command output
         env.MergeFlags([self._config_cmd_output])
@@ -479,7 +487,8 @@ class ConfigLibrary(Library):
         error_msg = 'Error executing "' + version_cmd + '", please make sure' \
                     '%s and %s are installed' % (self.name, self.tool_name)
                     
-        version_str = run_shell_cmd(version_cmd, error_msg).strip()
+        version_str, return_code = run_shell_cmd(version_cmd, error_msg)
+        version_str = version_str.strip()
 
         correct_version = False
         if self.strict_version and (self.version == version_str):
@@ -538,7 +547,8 @@ class PythonLib(ConfigLibrary):
         error_msg = 'Error executing "' + version_cmd + '", please make sure' \
                     '%s and %s are installed' % (self.name, self.tool_name)
                     
-        version_str = run_shell_cmd(version_cmd, error_msg).strip()
+        version_str, return_code = run_shell_cmd(version_cmd, error_msg)
+        version_str = version_str.strip()
 
         correct_version = False
         if version_str.endswith(self.version):

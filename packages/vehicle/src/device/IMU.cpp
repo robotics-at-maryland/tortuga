@@ -158,10 +158,10 @@ void IMU::update(double timestep)
                 
                 quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
 
-                m_orientation.q1 = quaternion[0];
-                m_orientation.q2 = quaternion[1];
-                m_orientation.q3 = quaternion[2];
-                m_orientation.q4 = quaternion[3];
+                m_orientation.w = quaternion[0];
+                m_orientation.x = quaternion[1];
+                m_orientation.y = quaternion[2];
+                m_orientation.z = quaternion[3];
 
                 //printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.q1,
                 //       m_orientation.q2, m_orientation.q3,

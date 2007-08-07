@@ -17,7 +17,6 @@ def safe_system(command):
     if retcode != 0:   
         raise CommandError, "Command '%s' with status %d" % \
              (command, retcode)
-
     
 def run_shell_cmd(command, error_msg):
     """
@@ -27,7 +26,8 @@ def run_shell_cmd(command, error_msg):
         command = command.split()
     try:
         proc = subprocess.Popen(command, stdout=subprocess.PIPE)
-        return proc.communicate()[0]
+        result = proc.communicate()
+        return result[0], proc.returncode
     except OSError:
         print error_msg
         sys.exit(1)
