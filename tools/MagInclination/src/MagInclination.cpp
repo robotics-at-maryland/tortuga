@@ -61,7 +61,7 @@ int main (){
 
   //average the data
   Vector3 averagedMag(mag.getValue());
-  Vector3 averagedAccel(mag.getValue());
+  Vector3 averagedAccel(accel.getValue());
 
   //normalize mag and accel vectors
   averagedMag.normalise();
@@ -83,9 +83,7 @@ int main (){
   std::cout << theta << " degrees." << std::endl;
   
   //print mag and accel input
-  std::cout << "Average mag (IMU Frame) = " << averagedMag[0] << " " << averagedMag[1];
-  std::cout << " " << averagedMag[2] << std::endl;
-  std::cout << "Average accel (IMU Frame) = " << averagedAccel[0] << " " << averagedAccel[1];
-  std::cout << " " << averagedAccel[2] << std::endl;
+  std::cout << "Average mag (IMU Frame) = " << averagedMag << std::endl;
+  std::cout << "Average accel (IMU Frame) = " << averagedAccel << std::endl;
   return 0;
 }
