@@ -32,12 +32,12 @@ public:
     };
     
     /** Create a thruster with the given address */
-    Thruster(Vehicle* vehicle, core::ConfigNode config);
+    Thruster(IVehicle* vehicle, core::ConfigNode config);
     
     virtual ~Thruster();
 
     /** Creats a new object */
-    static ThrusterPtr construct(Vehicle* vehicle, core::ConfigNode config);
+    static ThrusterPtr construct(IVehicle* vehicle, core::ConfigNode config);
 
     /** Preforms a cast to the desired type */
     static ThrusterPtr castTo(IDevicePtr ptr);

@@ -14,6 +14,7 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/ThrusterCommunicator.h"
 #include "vehicle/include/device/ThrusterCommand.h"
+
 // Project Includes
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/ThrusterCommunicator.h"
@@ -23,7 +24,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-Thruster::Thruster(Vehicle* vehicle, core::ConfigNode config) :
+Thruster::Thruster(IVehicle* vehicle, core::ConfigNode config) :
     Device(vehicle, config["name"].asString()),
     m_address(config["address"].asInt()),
     m_calibrationFactor(config["calibration_factor"].asDouble()),
@@ -47,7 +48,7 @@ Thruster::~Thruster()
     ThrusterCommunicator::unRegisterThruster(this);
 }
 
-ThrusterPtr Thruster::construct(Vehicle* vehicle, core::ConfigNode config)
+ThrusterPtr Thruster::construct(IVehicle* vehicle, core::ConfigNode config)
 {
     return ThrusterPtr(new Thruster(vehicle, config));
 }

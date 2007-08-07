@@ -26,7 +26,7 @@ namespace device {
 
 using namespace ram::math;
     
-IMU::IMU(Vehicle* vehicle, core::ConfigNode config) :
+IMU::IMU(IVehicle* vehicle, core::ConfigNode config) :
     Device(vehicle, config["name"].asString()),
     Updatable(),
     Subject(),
@@ -89,7 +89,7 @@ IMU::~IMU()
     delete m_filteredState;
 }
 
-IMUPtr IMU::construct(Vehicle* vehicle, core::ConfigNode config)
+IMUPtr IMU::construct(IVehicle* vehicle, core::ConfigNode config)
 {
     return IMUPtr(new IMU(vehicle, config));
 }

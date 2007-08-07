@@ -16,7 +16,7 @@
 #include "control/include/BWPDController.h"
 #include "control/include/ControlFunctions.h"
 
-#include "vehicle/include/Vehicle.h"
+#include "vehicle/include/IVehicle.h"
 #include "vehicle/include/device/IMU.h"
 #include "vehicle/include/device/Thruster.h"
 
@@ -26,7 +26,7 @@
 namespace ram {
 namespace control {
 
-BWPDController::BWPDController(vehicle::Vehicle* vehicle,
+BWPDController::BWPDController(vehicle::IVehicle* vehicle,
                                core::ConfigNode config) :
     m_vehicle(vehicle),
     m_config(config),

@@ -49,10 +49,10 @@ public:
     };
     
     /** Create an IMU with the given device file */
-    IMU(Vehicle* vehicle, core::ConfigNode config);
+    IMU(IVehicle* vehicle, core::ConfigNode config);
 
     /** Creats a new object */
-    static IMUPtr construct(Vehicle* vehicle, core::ConfigNode config);
+    static IMUPtr construct(IVehicle* vehicle, core::ConfigNode config);
 
     /** Preforms a cast to the desired type */
     static IMUPtr castTo(IDevicePtr ptr);

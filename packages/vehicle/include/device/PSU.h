@@ -42,10 +42,10 @@ public:
     };
     
     /** Create an IMU with the given device file */
-    PSU(Vehicle* vehicle, core::ConfigNode config);
+    PSU(IVehicle* vehicle, core::ConfigNode config);
 
     /** Creats a new object */
-    static PSUPtr construct(Vehicle* vehicle, core::ConfigNode config);
+    static PSUPtr construct(IVehicle* vehicle, core::ConfigNode config);
 
     /** Preforms a cast to the desired type */
     static PSUPtr castTo(IDevicePtr ptr);

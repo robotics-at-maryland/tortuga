@@ -28,7 +28,7 @@ public:
 
     virtual std::string getName() = 0;
 
-    virtual Vehicle* getVehicle() = 0;
+    virtual IVehicle* getVehicle() = 0;
 };
     
 } // namespace device

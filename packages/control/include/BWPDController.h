@@ -13,8 +13,11 @@
 // Project Includes
 #include "control/include/Common.h"
 #include "control/include/IController.h"
+
 #include "vehicle/include/Common.h"
+
 #include "pattern/include/Subject.h"
+
 #include "core/include/ConfigNode.h"
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
@@ -33,7 +36,7 @@ public:
         DEPTH_UPDATE
 
     };
-    BWPDController(vehicle::Vehicle* vehicle, core::ConfigNode config);
+    BWPDController(vehicle::IVehicle* vehicle, core::ConfigNode config);
 
     virtual ~BWPDController();
     
@@ -97,7 +100,7 @@ private:
                                double* rotationalForces);
     
     /** Out Vehicle */
-    vehicle::Vehicle* m_vehicle;
+    vehicle::IVehicle* m_vehicle;
     
     /** Contains settings for the controller */
     core::ConfigNode m_config;
