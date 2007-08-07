@@ -67,7 +67,7 @@ TEST_FIXTURE(TestPythonConfigNode, map)
 
 TEST_FIXTURE(TestPythonConfigNode, fromFile)
 {
-    std::string base = std::string(getenv("MRBC_SVN_ROOT")) + "/packages/core/";
+    std::string base = std::string(getenv("RAM_SVN_DIR")) + "/packages/core/";
     ConfigNode node(ConfigNode::fromFile(base + "test/data/test.yml"));
 
     CHECK_EQUAL(100, node["Node"]["count"].asInt());

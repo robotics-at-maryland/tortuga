@@ -6,7 +6,7 @@
 
 // Project Includes
 #include "imu/include/imuapi.h"
-#include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
 #include "core/include/AveragingFilter.h"
 
 using namespace ram::math;
@@ -29,8 +29,6 @@ written by Joseph Gland  2007-07-07
 
 static const int POINT_COUNT = 2000;
 
-double findRowAverageOf3xN(double * pData, int row, int columns);
-
 int main (){
   //warn user to not move sub
   std::cout << "Magnetic Inclination Finder" << std::endl;
@@ -44,59 +42,38 @@ int main (){
   }
   RawIMUData imuData;
 
-  //set number of data points to collect
-  int numPoints = 2000;
   //create storage arrays
-  AveragingFilter<double, POINT_COUNT> magX;
-  AveragingFilter<double, POINT_COUNT> magY;
-  AveragingFilter<double, POINT_COUNT> magZ;
-  AveragingFilter<double, POINT_COUNT> accelX;
-  AveragingFilter<double, POINT_COUNT> accelY;
-  AveragingFilter<double, POINT_COUNT> accelZ;
+  AveragingFilter<Vector3, POINT_COUNT> mag(Vector3::ZERO);
+  AveragingFilter<Vector3, POINT_COUNT> accel(Vector3::ZERO);
 
   //collect the data
-  for(int index=0; index < numPoints-1; index++){
+  for(int index = 0; index < POINT_COUNT; index++){
     //read IMU
     readIMUData(fd, &imuData);
     //save to arrays
     
-    magX.addValue(imuData.magX);
-    magY.addValue(imuData.magY);
-    magZ.addValue(imuData.magZ);
-
-    accelX.addValue(imuData.accelX);
-    accelY.addValue(imuData.accelY);
-    accelZ.addValue(imuData.accelZ);
+    mag.addValue(Vector3(imuData.magX, imuData.magX, imuData.magX));
+    accel.addValue(Vector3(imuData.accelX, imuData.accelX, imuData.accelX));
 
     //sleep for 20 ms
     usleep(20000);
   }
 
   //average the data
-  double averagedMag[3];
-  double averagedAccel[3];
-  averagedMag[0] = magX.getValue();
-  averagedMag[1] = magY.getValue();
-  averagedMag[2] = magZ.getValue();
-  averagedAccel[0] = accelX.getValue();
-  averagedAccel[1] = accelY.getValue();
-  averagedAccel[2] = accelZ.getValue();
+  Vector3 averagedMag(mag.getValue());
+  Vector3 averagedAccel(mag.getValue());
 
   //normalize mag and accel vectors
-  normalize3x1(averagedMag);
-  normalize3x1(averagedAccel);
+  averagedMag.normalise();
+  averagedAccel.normalise();
 
   //now use  |m x g| = |m||g|sin(theta)
-  double crossed[3];
-  crossProduct3x1by3x1(averagedMag, averagedAccel, crossed);
-  double magnitudeM;
-  magnitudeM = magnitude3x1(averagedMag);
-  double magnitudeG;
-  magnitudeG = magnitude3x1(averagedAccel);
-  double magnitudeCross;
-  magnitudeCross = magnitude3x1(crossed);
-  double theta;
-  theta = asin((magnitudeCross)/(magnitudeM*magnitudeG))*180/M_PI;
+  Vector3 crossed(averagedMag.crossProduct(averagedAccel));
+  
+  double magnitudeM = averagedMag.length();
+  double magnitudeG = averagedAccel.length();
+  double magnitudeCross = crossed.length();
+  double theta = asin((magnitudeCross)/(magnitudeM*magnitudeG))*180/M_PI;
 
   //now go from horizontal plane
   theta = 90 - theta;
@@ -111,19 +88,4 @@ int main (){
   std::cout << "Average accel (IMU Frame) = " << averagedAccel[0] << " " << averagedAccel[1];
   std::cout << " " << averagedAccel[2] << std::endl;
   return 0;
-}
-
-
-/*
-
-*/
-double findRowAverageOf3xN(double * pData, int row, int columns){
-  double sum;
-  double* rowPtr = pData + row;
-  
-  for(int i = 0; i < columns; i++){
-    sum = sum + *(rowPtr+i); 
-  }
-
-  return sum/columns;
 }

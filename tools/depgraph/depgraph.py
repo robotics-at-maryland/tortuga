@@ -22,8 +22,8 @@ class DepGraph(pydepgraphdot):
     def use(self, s, type):
         if s.startswith('email.'):
             return 0
-        #if s in ('logging.handlers', 'urllib', 'httplib'):
-        #    return 0
+        if s in ('logging.handlers', 'urllib', 'httplib'):
+            return 0
         return pydepgraphdot.use(self, s, type)
 
     def get_output_file(self):

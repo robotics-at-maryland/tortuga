@@ -40,17 +40,29 @@ Torus Knot Software Ltd.
 // FREE SOURCE CODE
 // http://www.geometrictools.com/License/WildMagic3License.pdf
 
-#ifndef __Quaternion_H__
-#define __Quaternion_H__
+#ifndef RAM_MATH_QUATERNION_H_08_05_2007
+#define RAM_MATH_QUATERNION_H_08_05_2007
 
-#include "OgrePrerequisites.h"
-#include "OgreMath.h"
+// STD Includes
+#include <cassert>
+#include <cstddef>
+#include <ostream>
 
-namespace Ogre {
+// Project Includes
+#include "math/include/Math.h"
 
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
+
+    class Matrix3;
+    class Vector3;
+    
     /** Implementation of a Quaternion, i.e. a rotation around an axis.
     */
-    class _OgreExport Quaternion
+    class Quaternion
     {
     public:
         inline Quaternion (
@@ -171,7 +183,7 @@ namespace Ogre {
         Quaternion operator- (const Quaternion& rkQ) const;
         Quaternion operator* (const Quaternion& rkQ) const;
         Quaternion operator* (Real fScalar) const;
-        _OgreExport friend Quaternion operator* (Real fScalar,
+         friend Quaternion operator* (Real fScalar,
             const Quaternion& rkQ);
         Quaternion operator- () const;
         inline bool operator== (const Quaternion& rhs) const
@@ -260,7 +272,7 @@ namespace Ogre {
         /** Function for writing to a stream. Outputs "Quaternion(w, x, y, z)" with w,x,y,z
             being the member values of the quaternion.
         */
-        inline _OgreExport friend std::ostream& operator <<
+        inline friend std::ostream& operator <<
             ( std::ostream& o, const Quaternion& q )
         {
             o << "Quaternion(" << q.w << ", " << q.x << ", " << q.y << ", " << q.z << ")";
@@ -269,9 +281,11 @@ namespace Ogre {
 
     };
 
-}
 
+} // namespace math
+} // namespace ram
 
+// Removal of "Real" hack
+#undef Real
 
-
-#endif 
+#endif // RAM_MATH_QUATERNION_H_08_05_2007

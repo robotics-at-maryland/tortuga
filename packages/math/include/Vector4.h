@@ -26,18 +26,20 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#ifndef __Vector4_H__
-#define __Vector4_H__
+#ifndef RAM_MATH_VECTOR4_H_08_05_2007
+#define RAM_MATH_VECTOR4_H_08_05_2007 
 
-#include "OgrePrerequisites.h"
-#include "OgreVector3.h"
+#include "math/include/Vector3.h"
 
-namespace Ogre
-{
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
 
     /** 4-dimensional homogenous vector.
     */
-    class _OgreExport Vector4
+    class  Vector4
     {
     public:
         Real x, y, z, w;
@@ -382,7 +384,7 @@ namespace Ogre
         }
         /** Function for writing to a stream.
         */
-        inline _OgreExport friend std::ostream& operator <<
+        inline  friend std::ostream& operator <<
             ( std::ostream& o, const Vector4& v )
         {
             o << "Vector4(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
@@ -392,5 +394,12 @@ namespace Ogre
         static const Vector4 ZERO;
     };
 
-}
-#endif
+
+} // namespace math
+} // namespace ram
+
+// Removal of "Real" hack
+#undef Real
+
+#endif // RAM_MATH_VECTOR4_H_08_05_2007
+

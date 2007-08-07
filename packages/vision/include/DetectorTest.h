@@ -10,7 +10,7 @@
 #include "vision/include/Recorder.h"
 
 namespace ram{
-	namespace vision{
+namespace vision{
 	
 	class DetectorTest : public core::Updatable
 	{
@@ -48,6 +48,7 @@ namespace ram{
 			IplImage* dest;
 			
 	};
-}
-}//ram::vision
-#endif
+} // namespace vision
+} // namespace ram
+
+#endif // RAM_DETECTOR_TEST_H_07_11_2007

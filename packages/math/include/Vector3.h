@@ -26,15 +26,17 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#ifndef __Vector3_H__
-#define __Vector3_H__
+#ifndef RAM_MATH_VECTOR3_H_08_05_2007
+#define RAM_MATH_VECTOR3_H_08_05_2007
 
-#include "OgrePrerequisites.h"
-#include "OgreMath.h"
-#include "OgreQuaternion.h"
+#include "math/include/Math.h"
+#include "math/include/Quaternion.h"
 
-namespace Ogre
-{
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
 
     /** Standard 3-dimensional vector.
         @remarks
@@ -43,7 +45,7 @@ namespace Ogre
             scaling factors can be represented by a vector, depending on how
             you interpret the values.
     */
-    class _OgreExport Vector3
+    class Vector3
     {
     public:
 		Real x, y, z;
@@ -757,7 +759,7 @@ namespace Ogre
 
         /** Function for writing to a stream.
         */
-        inline _OgreExport friend std::ostream& operator <<
+        inline friend std::ostream& operator <<
             ( std::ostream& o, const Vector3& v )
         {
             o << "Vector3(" << v.x << ", " << v.y << ", " << v.z << ")";
@@ -765,5 +767,10 @@ namespace Ogre
         }
     };
 
-}
-#endif
+} // namespace math
+} // namespace ram
+
+// Removal of "Real" hack
+#undef Real
+
+#endif // RAM_MATH_VECTOR3_H_08_05_2007

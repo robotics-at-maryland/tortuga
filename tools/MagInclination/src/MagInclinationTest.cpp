@@ -108,7 +108,7 @@ int main (){
 
 */
 double findRowAverageOf3xN(double * pData, int row, int columns){
-  double sum;
+  double sum = 0;
   double* rowPtr = pData + row;
   
   for(int i = 0; i < columns; i++){

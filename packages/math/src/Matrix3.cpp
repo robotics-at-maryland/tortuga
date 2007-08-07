@@ -26,15 +26,19 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#include "OgreStableHeaders.h"
-#include "OgreMatrix3.h"
 
-#include "OgreMath.h"
+// Project Includes
+#include "math/include/Matrix3.h"
+#include "math/include/Math.h"
 
 // Adapted from Matrix math by Wild Magic http://www.geometrictools.com/
 
-namespace Ogre
-{
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
+
     const Real Matrix3::EPSILON = 1e-06;
     const Matrix3 Matrix3::ZERO(0,0,0,0,0,0,0,0,0);
     const Matrix3 Matrix3::IDENTITY(1,0,0,0,1,0,0,0,1);
@@ -1509,4 +1513,6 @@ namespace Ogre
         }
     }
     //-----------------------------------------------------------------------
-}
+
+} // namespace math
+} // namespace ram

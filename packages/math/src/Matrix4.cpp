@@ -26,14 +26,17 @@ the OGRE Unrestricted License provided you have obtained such a license from
 Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
-#include "OgreStableHeaders.h"
-#include "OgreMatrix4.h"
 
-#include "OgreVector3.h"
-#include "OgreMatrix3.h"
+// Project Includes
+#include "math/include/Matrix4.h"
+#include "math/include/Vector3.h"
+#include "math/include/Matrix3.h"
 
-namespace Ogre
-{
+// Slight hack to allow easier folding in of changes from Ogre
+#define Real double
+
+namespace ram {
+namespace math {
 
     const Matrix4 Matrix4::ZERO(
         0, 0, 0, 0,
@@ -250,4 +253,5 @@ namespace Ogre
         m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
     }
 
-}
+} // namespace math
+} // namespace ram
