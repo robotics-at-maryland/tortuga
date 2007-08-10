@@ -14,3 +14,7 @@ libs.add_external(envl, 'Boost')
 
 # Build Library (will be called 'libram_pattern.so')
 helpers.SharedLibrary(envl, 'pattern', source = sources)
+
+# Unit Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'pattern')
