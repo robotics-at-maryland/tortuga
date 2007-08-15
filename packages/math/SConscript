@@ -19,3 +19,6 @@ sources = helpers.glob(env, 'src', '*.cpp')
 # Build Procducts (library will be called 'libram_math.so')
 helpers.SharedLibrary(envl, 'math',  source = sources)
 
+# Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'math')
