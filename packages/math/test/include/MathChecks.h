@@ -7,7 +7,8 @@
  * File:  packages/math/test/include/MathChecks.h
  */
 
-#include <cstdio>
+#ifndef RAM_MATH_TEST_MATCHCHECKS_H_08_14_2007
+#define RAM_MATH_TEST_MATCHCHECKS_H_08_14_2007
 
 // Library Includes
 #include "UnitTest++/Checks.h"
@@ -62,3 +63,5 @@ namespace UnitTest {
     }
     
 } // namespace UnitTest
+
+#endif // RAM_MATH_TEST_MATCHCHECKS_H_08_14_2007
