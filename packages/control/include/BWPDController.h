@@ -25,6 +25,9 @@
 namespace ram {
 namespace control {
 
+/** Tolerance for at Depth (1 foot in meters) */
+static const double DEPTH_TOLERANCE = 0.3048;
+    
 /** Implements a PD Controller, based on a paper by Bong Wie  */
 class BWPDController : public IController,
                        public core::Updatable
@@ -40,14 +43,22 @@ public:
 
     virtual ~BWPDController();
     
-    /** Set the current speed, clamped between -5 and 5 */
+    /** @copydoc IController::setSpeed() */
     virtual void setSpeed(int speed);
 
     /** Sets the current heading in degrees off north */
     virtual void setHeading(double degrees);
 
-    /** Sets the current depth of the sub in meters */
+    /** @copydoc IController::setDepth() */
     virtual void setDepth(double depth);
+
+    /** @copydoc IController::getSpeed() */
+    virtual int getSpeed();
+
+    virtual double getHeading();
+
+    /** @copydoc IController::getDepth() */
+    virtual double getDepth();
 
     /** Rolls the desired quaternion by a desired angle in degress (ugh!)
 	a positive angle makes the vehicle barrel roll clockwise as seen
@@ -59,20 +70,16 @@ public:
 	a positive angle makes the vehicle spin down as seen by the fore camera
     */
     virtual void pitchVehicle(double degrees);
-    
-    /** Yaws the desired quaternion by a desired angle in degrees (ugh!)
-	a positive angle makes the vehicle spin left as seen by the fore camera
-    */
-    virtual void yawVehicle(double degrees);
 
+    /** @copydoc IController::yawVehicle() */
+    virtual void yawVehicle(double degrees);
+    
+    /** @copydoc IController::isOriented() */
     virtual bool isOriented();
 
-    virtual int getSpeed();
-
-    virtual double getHeading();
-
-    virtual double getDepth();
-
+    /** @copydoc IController::atDepth() */
+    virtual bool atDepth();
+    
     virtual void background(int interval) {
         Updatable::background(interval);
     };

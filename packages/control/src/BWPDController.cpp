@@ -138,12 +138,6 @@ BWPDController::~BWPDController()
     delete m_measuredState;
     delete m_controllerState;
 }
-
-bool BWPDController::isOriented()
-{
-    return doIsOriented(m_measuredState, m_desiredState);
-}
-
     
 void BWPDController::setSpeed(int speed)
 {
@@ -164,6 +158,24 @@ void BWPDController::setDepth(double depth)
     m_desiredState->depth = depth;
 }
 
+int BWPDController::getSpeed()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+    return (int)m_desiredState->speed;
+}
+
+double BWPDController::getHeading()
+{
+    //core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+    return 0;
+}
+
+double BWPDController::getDepth()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+    return m_desiredState->depth;
+}
+    
 void BWPDController::rollVehicle(double degrees)
 {
   //use Helpers.cpp
@@ -239,28 +251,22 @@ void BWPDController::yawVehicle(double degrees)
   m_desiredState->quaternion[1] = newQuaternion[1];
   m_desiredState->quaternion[2] = newQuaternion[2];
   m_desiredState->quaternion[3] = newQuaternion[3];
-
 }
 
-
-int BWPDController::getSpeed()
+    
+bool BWPDController::isOriented()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
-    return (int)m_desiredState->speed;
+    return doIsOriented(m_measuredState, m_desiredState);
 }
 
-double BWPDController::getHeading()
+bool BWPDController::atDepth()
 {
-    //core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
-    return 0;
+    double actual = m_measuredState->depth;
+    double expected = m_desiredState->depth;
+    return (actual >= (expected - DEPTH_TOLERANCE)) &&
+        (actual <= (expected + DEPTH_TOLERANCE));
 }
-
-double BWPDController::getDepth()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
-    return m_desiredState->depth;
-}
-
+    
 void BWPDController::update(double timestep)
 {
     // Grab latest state (preform small hack to copy it over for the controller)
@@ -273,8 +279,8 @@ void BWPDController::update(double timestep)
            &orientation, sizeof(double) * 4);
 
     math::Vector3 angularRate(m_imu->getAngularRate());
-    memcpy(&m_measuredState->linearAcceleration[0],
-           &linearAcceleration, sizeof(double) * 3);
+    memcpy(&m_measuredState->angularRate[0],
+           &angularRate, sizeof(double) * 3);
 
     vehicle::device::FilteredIMUData state;
     m_imu->getFilteredState(state);

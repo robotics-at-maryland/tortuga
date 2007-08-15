@@ -18,7 +18,7 @@
 namespace ram {
 namespace control {
 
-class IController : public pattern::Subject, public core::IUpdatable
+class IController : public core::IUpdatable, public pattern::Subject
 {
 public:
     enum UPDATE_EVENTS {
@@ -31,16 +31,28 @@ public:
     virtual void setSpeed(int speed) = 0;
 
     /** Sets the current heading in degrees off north */
-    virtual void setHeading(double degrees) = 0;
+//    virtual void setHeading(double degrees) = 0;
 
-    /** Sets the current depth of the sub in meters */
+    /** Sets the desired depth of the sub in meters */
     virtual void setDepth(double depth) = 0;
 
+    /** Gets the current speed, a value between -5 and 5 */
     virtual int getSpeed() = 0;
 
-    virtual double getHeading() = 0;
+    /** The current heading of th*/
+//    virtual double getHeading() = 0;
 
-    virtual double getDepth() = 0;    
+    /** Current desired depth of the sub in meters */
+    virtual double getDepth() = 0;
+
+    /** Yaws the desired vehicle state by the desired number of degrees */
+    virtual void yawVehicle(double degrees) = 0;
+
+    /** Returns true if the vehicle is at the desired orientation */
+    virtual bool isOriented() = 0;
+
+    /** Returns true if the vehicle is at the desired depth */
+    virtual bool atDepth() = 0;
 };
     
 } // namespace control
