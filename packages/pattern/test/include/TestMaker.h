@@ -38,7 +38,7 @@ public:
     double value;
 };
 
-// A 
+// Extracts the key from the iostream
 struct StreamKeyExtractor
 {
     static std::string extractKey(std::iostream& param)
@@ -48,13 +48,14 @@ struct StreamKeyExtractor
         return key;
     }
 };
- 
+
+// A more verbose but simpler approach to using the pattern
+
 typedef Maker<Number*,            // The type of object created by the maker
               std::iostream&,     // The parameter used to create the object
               std::string,        // The type of key used to register makers
               StreamKeyExtractor> // Gets the key from the paramters
 NumberMaker;
-
 
 class IntMaker : public NumberMaker
 {
@@ -65,7 +66,6 @@ public:
     {
         int value;
         param >> value;
-        
         return new Int(value);
     }
 private:
@@ -81,11 +81,39 @@ public:
     {
         double value;
         param >> value;
-        
         return new Double(value);
     }
 private:
     static DoubleMaker registerThis;
+};
+
+
+// A More complex but less typing intensive method, this also lessens the
+// amount a user of the system needs to know about its workings
+
+template<class PrimType, class NumType>
+struct NumberMakerTemplate : public NumberMaker
+{
+    NumberMakerTemplate(std::string makerName) : NumberMaker(makerName);
+    
+    virtual Number* makeObject(std::iostream& param)
+    {
+        PrimType number;
+        param >> number;
+        return new NumType(number);
+    }
+};
+
+class DoubleMakerVer2 : public NumberMakerTemplate<double, Double>
+{
+    static DoubleMakerVer2 registerThis;
+    DoubleMakerVer2() : NumberMakerTemplate<double, Double>("DoubleVer2") {};
+};
+
+class IntMakerVer2 : public NumberMakerTemplate<int, Int>
+{
+    static IntMakerVer2 registerThis;
+    IntMakerVer2() : NumberMakerTemplate<int, Int>("IntVer2") {};
 };
 
 #endif // RAM_PATTERN_TESTMAKER_H_08_10_2007

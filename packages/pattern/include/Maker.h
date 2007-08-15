@@ -33,8 +33,14 @@ struct DefaultMakerLookup
 
 /** Default ObjectMaker policy. Uses virtual makeObject method on maker objects.
  */
+template<class Object, class Param>
 struct DefaultObjectMaker
 {
+    virtual ~DefaultObjectMaker() {};
+
+    /** Implemented by the subclasses of the Maker, creates the actual object */
+    virtual Object makeObject(Param param) = 0;
+    
     template<class Maker>
     static typename Maker::ObjectType createObject(Maker* maker,
         typename Maker::ParamType param)
@@ -99,7 +105,7 @@ IntMaker IntMaker::registerThis;
 template<class Object, class Param, class Key,
          class KeyExtract,
          class MakerLookup = DefaultMakerLookup,
-         class ObjectCreate = DefaultObjectMaker>
+         class ObjectCreate = DefaultObjectMaker<Object, Param> >
 
 class Maker : public KeyExtract,
               public MakerLookup,
@@ -181,11 +187,9 @@ public:
 
         // TODO: raise an exception here
         assert(maker && "Could not find object to match given key");
+//        return ObjectCreate<Object, Param>::createObject(maker, param);
         return ObjectCreate::createObject(maker, param);
     }
-
-    /** Implemented by the subclasses of the Maker, creates the actual object */
-    virtual Object makeObject(Param param) = 0;
 };
 /*
 struct BasicKeyExtractor

@@ -18,11 +18,35 @@
 IntMaker IntMaker::registerThis;
 DoubleMaker DoubleMaker::registerThis;
 
+IntMakerVer2 IntMakerVer2::registerThis;
+DoubleMakerVer2 DoubleMakerVer2::registerThis;
+
+
 // See TestMaker.h for an example of how to create classes which use the maker
 // pattern
 TEST(basics)
 {
     std::stringstream test("Double 28.3 Int 10");
+    
+    Number* newNum = NumberMaker::newObject(test);
+    Double* dbl = dynamic_cast<Double*>(newNum);
+    // Wrong object created
+    CHECK(dbl);
+    // Double not converted properly
+    CHECK_EQUAL(28.3, dbl->value);
+
+    newNum = NumberMaker::newObject(test);
+    Int* integer = dynamic_cast<Int*>(newNum);
+
+    // Wrong object created
+    CHECK(integer);
+    // Integer not converted properly
+    CHECK_EQUAL(10, integer->value);
+}
+
+TEST(basicsVer2)
+{
+    std::stringstream test("DoubleVer2 28.3 IntVer2 10");
     
     Number* newNum = NumberMaker::newObject(test);
     Double* dbl = dynamic_cast<Double*>(newNum);
