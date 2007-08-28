@@ -52,7 +52,7 @@ JAUS_Message::JAUS_Message(std::string message) : raw(message) {
     
     std::string required_prefix_string(JAUS_PREFIX_STRING);
     int prefix_strlen = required_prefix_string.length();
-    int min_header_strlen = prefix_strlen + JAUS_HEADER_LENGTH;
+    size_t min_header_strlen = prefix_strlen + JAUS_HEADER_LENGTH;
     
     if (raw.length() < min_header_strlen) {
         error_code = JAUSERR_HEADER_TOO_SHORT;
@@ -88,7 +88,7 @@ JAUS_Message::JAUS_Message(std::string message) : raw(message) {
             error_code = JAUSERR_DATA_LENGTH_OVER_LIMIT;
         }
         
-        if (message_data.length() != dataControl_dataSize) {
+        if ((int)message_data.length() != dataControl_dataSize) {
             error_code = JAUSERR_WRONG_DATA_LENGTH;
         }
     }

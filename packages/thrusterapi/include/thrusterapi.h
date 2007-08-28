@@ -12,7 +12,7 @@ int openThrusters(const char * devName);
 int setSpeed(int fd, int addr, int speed);
 int multiCmd(int fd, int cmd, int addr, unsigned char * data, int len,
              int timeout);
-
+int setReg(int fd, int addr, int reg, int val);
 
 #define TH_IOERROR -1
 #define TH_TIMEOUTERROR -1

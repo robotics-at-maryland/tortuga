@@ -16,8 +16,8 @@ namespace ram {
 namespace vision {
 
 Camera::Camera() :
-    m_imageLatch(1),
-    m_publicImage(0)
+    m_publicImage(0),
+    m_imageLatch(1)
 {
     /// TODO: Make me a basic image, and check that copying work properly
     m_publicImage = new OpenCVImage(640, 480);

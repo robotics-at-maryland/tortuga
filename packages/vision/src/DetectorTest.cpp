@@ -149,7 +149,7 @@ RedLightDetector* DetectorTest::getRedDetector()
 
 void DetectorTest::update(double timestep)
 {
-	char key=' ';
+//	char key=' ';
 	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
 	camera->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);

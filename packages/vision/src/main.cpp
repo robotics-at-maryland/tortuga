@@ -28,7 +28,7 @@ int testRecord()
   CvCapture* camCapture=cvCaptureFromFile("starcraft.avi");
   
   CvVideoWriter *writer = 0;
-  int isColor = 1;
+//  int isColor = 1;
   int fps     = 10;  // or 30
   int frameW  = 1024; // 744 for firewire cameras
   int frameH  = 436; // 480 for firewire cameras
@@ -43,7 +43,8 @@ int testRecord()
   while (key!='q' && count<500)
     {
       key=cvWaitKey(25);
-      int okay=cvGrabFrame(camCapture);
+//      int okay=cvGrabFrame(camCapture);
+      cvGrabFrame(camCapture);
       frame=cvRetrieveFrame(camCapture);
       cvWriteFrame(writer,frame);
       printf("Frame %d\n",++count);
@@ -112,7 +113,7 @@ void rotate90DegClockwise(IplImage* src, IplImage* dest)
 int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 {
     cout<<"Starting findCorners"<<endl;
-	int i, j;
+//	int i, j;
 	
 	// 8 bit image:
 	IplImage* image8 = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
@@ -193,7 +194,7 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 
 	int* columnCounts=(int*) calloc(sizeof(int),width);
 	int count=0;
-	int pixel_count=0;
+//	int pixel_count=0;
 	int r=0;
 	int g=0;
 	int b=0;
@@ -201,13 +202,13 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	int g2=0;
 	int b2=0;
 	int total=0;
-	int total2=0;
+//	int total2=0;
 	
 	int whitex=0;
 	int whitey=0;
 	
-	int xdist=0;
-	int ydist=0;
+//	int xdist=0;
+//	int ydist=0;
 	int minx=999999;
 	int maxx=0;
 	int miny=999999;
@@ -666,7 +667,7 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 	int height=percents->height;
 
 	int count=0;
-	int pixel_count=0;
+//	int pixel_count=0;
 	int r=0;
 	int g=0;
 	int b=0;
@@ -674,16 +675,16 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 	int g2=0;
 	int b2=0;
 	int total=0;
-	int total2=0;
+//	int total2=0;
 	
-	int xdist=0;
-	int ydist=0;
+//	int xdist=0;
+//	int ydist=0;
 	int minx=999999;
 	int maxx=0;
 	int miny=999999;
 	int maxy=0;
-	int rx;
-	int ry;
+	int rx = 0;
+	int ry = 0;
 	
 	for (int y=0; y<height; y++)
 	{
@@ -1076,13 +1077,13 @@ int guess_line(IplImage* img)
 	int height=img->height;
 
 	int avgxs[height];
-	int r=0;
-	int g=0;
+//	int r=0;
+//	int g=0;
 	int b=0;
 	int count=0;
-	int minx=0;
-	int maxx=0;
-	int miny=0;
+//	int minx=0;
+//	int maxx=0;
+//	int miny=0;
 	int avgx=0;
 	int countOfx=0;
 	int temp;
@@ -1194,7 +1195,7 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 
 void mask_with_input(IplImage* img)
 {
-	const int ORANGE='0';
+//	const int ORANGE='0';
 	char a='0';
 	//cout<<"Select Mask Description"<<endl;
 	//cout<<"0: Strict Orange"<<endl;
@@ -1251,7 +1252,7 @@ int angle_from_center(int argxs[], IplImage* img) {
 	endy = height/2;
 	endx = argxs[(int)endy];
 	//cout<<atan((endx-endy)/(endy-starty));
-	return atan((endx-endy)/(endy-starty));
+	return static_cast<int>(atan((endx-endy)/(endy-starty)));
 }
 	
 void correct(IplImage* img)
@@ -1375,7 +1376,7 @@ void to_ratios(IplImage* img)
 	int width=img->width;
 	int height=img->height;
 	int count=0;
-	int pixel_count=0;
+//	int pixel_count=0;
 	int r=0;
 	int g=0;
 	int b=0;
@@ -1386,9 +1387,9 @@ void to_ratios(IplImage* img)
 			b=(data[count]+256)%256;
 			g=(data[count+1]+256)%256;
 			r=(data[count+2]+256)%256;
-			data[count]=(double)(b)/(b+g+r) *100;
-			data[count+1]=(double)(g)/(b+g+r) *100;
-			data[count+2]=(double)(r)/(b+g+r) *100;
+			data[count]=static_cast<char>((double)(b)/(b+g+r) *100);
+			data[count+1]=static_cast<char>((double)(g)/(b+g+r) *100);
+			data[count+2]=static_cast<char>((double)(r)/(b+g+r) *100);
 			count+=3;
 		}
 }
@@ -1399,7 +1400,7 @@ int red_blue(IplImage* img, float ratio)
 	int width=img->width;
 	int height=img->height;
 	int count=0;
-	int pixel_count=0;
+//	int pixel_count=0;
 	int r=0;
 	int g=0;
 	int b=0;
@@ -1413,10 +1414,10 @@ int red_blue(IplImage* img, float ratio)
 			for (float z=1.0;z>=.7;z-=.1)
 				if (r>ratio*b*z)
 				{
-					data[count]=255*z;
-					data[count+1]=255*z;
-					data[count+2]=255*z;
-					total+=10*z;
+                                    data[count]=static_cast<char>(255*z);
+                                    data[count+1]=static_cast<char>(255*z);
+                                    data[count+2]=static_cast<char>(255*z);
+                                    total+=static_cast<char>(10*z);
 					break;
 				}
 			count+=3;
@@ -1432,7 +1433,7 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 	int width=percents->width;
 	int height=percents->height;
 	int count=0;
-	int pixel_count=0;
+//	int pixel_count=0;
 	int r=0;
 	int g=0;
 	int b=0;
@@ -1566,7 +1567,7 @@ int visionStart()
   goVision=1;
   CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 
-	VisionData  duplicateMe;
+//	VisionData  duplicateMe;
 	VisionData *buffer1,*buffer2;
 	
 	buffer1=new VisionData();
@@ -1577,7 +1578,7 @@ int visionStart()
 	
 	//CvCapture* camCapture=cvCaptureFromCAM(0);
 	CvVideoWriter *writer = 0;
-	int isColor = 1;
+//	int isColor = 1;
 	int fps     = 30;  // or 30
 	int frameW  = 640; // 744 for firewire cameras
 	int frameH  = 480; // 480 for firewire cameras
@@ -1632,7 +1633,8 @@ int visionStart()
 	int spooky=0;
 	bool found=false;
 
-	int okay=cvGrabFrame(camCapture);
+//	int okay=cvGrabFrame(camCapture);
+        cvGrabFrame(camCapture);
 	frame=cvCreateImage(cvSize(200,200),8,3);
 	unscaledFrame=cvRetrieveFrame(camCapture);
 	
@@ -1780,7 +1782,8 @@ int visionStart()
 		    
 		    for (int x=0; x<speed; x++)
 		      {
-			int okay=cvGrabFrame(camCapture);
+//			int okay=cvGrabFrame(camCapture);
+                          cvGrabFrame(camCapture);
 		        unscaledFrame=cvRetrieveFrame(camCapture);
 	  			
 
@@ -1974,7 +1977,8 @@ int visionStart()
 			to_ratios(percentsFrame);
 			CvPoint p;//=find_flash(flashFrame, show_flashing);
 			
-			int redPixelCount=redDetect(percentsFrame,flashFrame,&p.x,&p.y);
+//			int redPixelCount=redDetect(percentsFrame,flashFrame,&p.x,&p.y);
+                        redDetect(percentsFrame,flashFrame,&p.x,&p.y);
 
 			if (p.x!=-1 && p.y!=-1)
 			  {
@@ -2096,7 +2100,7 @@ void run (ProcessList *pl) {
 	IplImage* analysis=NULL;
 	IplImage* binFrame=NULL;
 	IplImage* flashFrame=NULL;
-	IplImage* oldFrame=NULL;
+//	IplImage* oldFrame=NULL;
 	IplImage* moveFrame=NULL;
 	IplImage* result=NULL;
 	CvPoint lightCenter;
@@ -2107,26 +2111,27 @@ void run (ProcessList *pl) {
 	bool red_flag=true;
 	bool green_flag=true;
 	bool blue_flag=true;
-	bool redraw=false;
-	bool mask_on=false;
-	bool filter_on=true;
-	bool correct_on=false;
-	bool orange_pipe_detect=true;
-	bool center_line_on=true;
-	bool ratios_on=true;
-	bool hough_on=false;
+//	bool redraw=false;
+//	bool mask_on=false;
+//	bool filter_on=true;
+//	bool correct_on=false;
+//	bool orange_pipe_detect=true;
+//	bool center_line_on=true;
+//	bool ratios_on=true;
+//	bool hough_on=false;
 	bool show_flashing=true;
-	bool startCounting=false;
-	bool show_movement=true;
+//	bool startCounting=false;
+//	bool show_movement=true;
 	long frame_count=0;
-	int lightFramesOn=0;
-	int lightFramesOff=0;
+//	int lightFramesOn=0;
+//	int lightFramesOff=0;
 	int speed=1;
-	int blinks=0;
-	int spooky=0;
-	bool found=false;
+//	int blinks=0;
+//	int spooky=0;
+//	bool found=false;
 
-	int okay=cvGrabFrame(camCapture);
+//	int okay=cvGrabFrame(camCapture);
+        cvGrabFrame(camCapture);
 	frame=cvCreateImage(cvSize(200,200),8,3);
 	unscaledFrame=cvRetrieveFrame(camCapture);
 	cvResize(unscaledFrame,frame);
@@ -2159,7 +2164,8 @@ void run (ProcessList *pl) {
 		{			
 			for (int x=0; x<speed; x++)
 				{
-					int okay=cvGrabFrame(camCapture);
+//					int okay=cvGrabFrame(camCapture);
+                                    cvGrabFrame(camCapture);
 					unscaledFrame=cvRetrieveFrame(camCapture);
 					cvResize(unscaledFrame,frame);
 				}
@@ -2221,7 +2227,8 @@ void run (ProcessList *pl) {
 			}	
 			else if (*i=="mask_orange")
 			{
-				int orange_count=mask_orange(result,1,0);
+//				int orange_count=mask_orange(result,1,0);
+                            mask_orange(result,1,0);
 			}
 			else if (*i=="mask_with_input")
 			{
@@ -2244,11 +2251,12 @@ void run (ProcessList *pl) {
 			}
 			else if (*i=="red_blue")
 			{
-				int pipe_count=red_blue(result,2.0);
+//				int pipe_count=red_blue(result,2.0);
+                            red_blue(result,2.0);
 			}
 			else if (*i=="white_detect")
 			{
-			  int ignoreBinx,ignoreBiny;
+//			  int ignoreBinx,ignoreBiny;
 				cvCopyImage(result,binFrame);
 				to_ratios(binFrame);
 				//cout<<white_detect(binFrame,result,&ignoreBinx,&ignoreBiny)<<endl;
@@ -2263,42 +2271,42 @@ void run (ProcessList *pl) {
 
 void walk(IplImage *img, ProcessList *pl) {
 
-	IplImage* unscaledFrame=NULL;
+//	IplImage* unscaledFrame=NULL;
 	IplImage* frame=NULL;
-	IplImage* starterFrame=NULL;
-	IplImage* houghFrame=NULL;
-	IplImage* analysis=NULL;
+//	IplImage* starterFrame=NULL;
+//	IplImage* houghFrame=NULL;
+//	IplImage* analysis=NULL;
 	IplImage* binFrame=NULL;
-	IplImage* flashFrame=NULL;
-	IplImage* oldFrame=NULL;
-	IplImage* moveFrame=NULL;
-	IplImage* result=img;
+//	IplImage* flashFrame=NULL;
+//	IplImage* oldFrame=NULL;
+//	IplImage* moveFrame=NULL;
+//	IplImage* result=img;
 	CvPoint lightCenter;
 	lightCenter.x=0;
 	lightCenter.y=0;
-	char key=0;
-	bool paused=false;
+//	char key=0;
+//	bool paused=false;
 	bool red_flag=true;
 	bool green_flag=true;
 	bool blue_flag=true;
-	bool redraw=false;
-	bool mask_on=false;
-	bool filter_on=true;
-	bool correct_on=false;
-	bool orange_pipe_detect=true;
-	bool center_line_on=true;
-	bool ratios_on=true;
-	bool hough_on=false;
+//	bool redraw=false;
+//	bool mask_on=false;
+//	bool filter_on=true;
+//	bool correct_on=false;
+//	bool orange_pipe_detect=true;
+//	bool center_line_on=true;
+//	bool ratios_on=true;
+//	bool hough_on=false;
 	bool show_flashing=true;
-	bool startCounting=false;
-	bool show_movement=true;
-	long frame_count=0;
-	int lightFramesOn=0;
-	int lightFramesOff=0;
-	int speed=1;
-	int blinks=0;
-	int spooky=0;
-	bool found=false;
+//	bool startCounting=false;
+//	bool show_movement=true;
+//	long frame_count=0;
+//	int lightFramesOn=0;
+//	int lightFramesOff=0;
+//	int speed=1;
+//	int blinks=0;
+//	int spooky=0;
+//	bool found=false;
 
 	int windowCount=0;
 	for (StringListIterator i=pl->toCall.begin();*i!="end";i++)
@@ -2368,7 +2376,8 @@ void walk(IplImage *img, ProcessList *pl) {
 		}
 		else if (*i=="mask_orange")
 		{
-			int orange_count=mask_orange(img,1,0);
+//			int orange_count=mask_orange(img,1,0);
+                    mask_orange(img,1,0);
 		}
 		else if (*i=="mask_with_input")
 		{
@@ -2391,11 +2400,12 @@ void walk(IplImage *img, ProcessList *pl) {
 		}
 		else if (*i=="red_blue")
 		{
-			int pipe_count=red_blue(img,2.0);
+//			int pipe_count=red_blue(img,2.0);
+                    red_blue(img,2.0);
 		}
 		else if (*i=="white_detect")
 		{
-		  int binx, biny;
+//		  int binx, biny;
 			cvCopyImage(img,binFrame);
 			to_ratios(binFrame);
 			//cout<<white_detect(binFrame,img,&binx,&biny)<<endl;

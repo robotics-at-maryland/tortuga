@@ -32,13 +32,13 @@ int main(int argc, char ** argv)
     while(1)
     {
         // Calculate angles (taken out of the IMU api)  
-        double angleMagX = atan2(imuData.magY, imuData.magX);
+/*        double angleMagX = atan2(imuData.magY, imuData.magX);
  	double angleMagY = atan2(imuData.magZ, imuData.magY);
  	double angleMagZ = atan2(imuData.magX, imuData.magZ);
  	
         double angleAccX = atan2(imuData.accelY, imuData.accelX);
  	double angleAccY = atan2(imuData.accelZ, imuData.accelY);
- 	double angleAccZ = atan2(imuData.accelX, imuData.accelZ);
+ 	double angleAccZ = atan2(imuData.accelX, imuData.accelZ);*/
  	
 
         readIMUData(fd, &imuData);

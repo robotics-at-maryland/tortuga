@@ -7,7 +7,7 @@ typedef int (*intFunction)();
 
 int main()
 {
-  void* myFunc;
+  void* myFunc = NULL;
   void* handle=dlopen("vision.so",RTLD_NOW);
   if (handle==NULL)
     {

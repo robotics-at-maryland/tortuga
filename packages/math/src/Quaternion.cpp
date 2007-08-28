@@ -532,7 +532,7 @@ namespace math {
 		{
 			// roll = atan2(localx.y, localx.x)
 			// pick parts of xAxis() implementation that we need
-			Real fTx  = 2.0*x;
+			//Real fTx  = 2.0*x;
 			Real fTy  = 2.0*y;
 			Real fTz  = 2.0*z;
 			Real fTwz = fTz*w;
@@ -558,7 +558,7 @@ namespace math {
 			// pitch = atan2(localy.z, localy.y)
 			// pick parts of yAxis() implementation that we need
 			Real fTx  = 2.0*x;
-			Real fTy  = 2.0*y;
+			//Real fTy  = 2.0*y;
 			Real fTz  = 2.0*z;
 			Real fTwx = fTx*w;
 			Real fTxx = fTx*x;
