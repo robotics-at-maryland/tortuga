@@ -94,7 +94,7 @@ private:
 template<class PrimType, class NumType>
 struct NumberMakerTemplate : public NumberMaker
 {
-    NumberMakerTemplate(std::string makerName) : NumberMaker(makerName);
+    NumberMakerTemplate(std::string makerName) : NumberMaker(makerName) {};
     
     virtual Number* makeObject(std::iostream& param)
     {
