@@ -51,7 +51,7 @@ env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
 env['CMD_LOGFILE'] = 'build.log'
 
 # Add debug flags
-env.AppendUnique(CCFLAGS = ['-g', '-Wall'])
+env.AppendUnique(CCFLAGS = ['-g', '-Wall','-Werror'])
 
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)

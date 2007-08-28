@@ -28,6 +28,31 @@ else:
     BOOST_THREAD_LIB = 'boost_thread-gcc-mt'
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc'
 
+def remove_item(env, key, items):
+    """
+    Remove given items from the array stored at the key in the given
+    environment. It returns the list of removed items.
+    """
+
+    removed = []
+    if type(items) is not list:
+        items = [items]
+
+    # Grab current set of values
+    values = env[key]
+
+    # Remove the items if they are presnet
+    for item in items:
+        if values.count(item):
+            values.remove(item)
+            removed.append(item)
+
+    # Reset the value
+    args = {key : values}
+    env.Replace(**args)
+
+    return removed
+
 # --------------------------------------------------------------------------- #
 #                        L I B R A R Y   I N F O                              #
 # --------------------------------------------------------------------------- #
@@ -521,26 +546,19 @@ class PythonLib(ConfigLibrary):
                                version_flag = '--includes')
 
     def setup_environment(self, env):
+        removed = remove_item(env, 'CCFLAGS', ['-Wall','-Werror'])
         ConfigLibrary.setup_environment(self, env)
+        env.Append(CCFLAGS = removed)
 
         # Here we have to remove and non-valid C++ flags
-        cflags = env.get('CCFLAGS', [])
-        if cflags.count('-Wstrict-prototypes'):
-            cflags.remove('-Wstrict-prototypes')
-        if cflags.count(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk')):
-            cflags.remove(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk'))
-        #print 'Python CC Flags', env['CCFLAGS']
-        #print 'Python LD Flags', env['LINKFLAGS']
-        env.Replace(CCFLAGS = cflags)
+        remove_item(env, 'CCFLAGS', ['-Wstrict-prototypes',
+                                     ('-isysroot',
+                                      '/Developer/SDKs/MacOSX10.4u.sdk')])
 
         # If we are on Mac, remove the special arch flags, we are going native
-        ldflags = env.get('LINKFLAGS', [])
-        if ldflags.count(('-arch', 'ppc')):
-            ldflags.remove(('-arch', 'ppc'))
-        if ldflags.count(('-arch', 'i386')):
-            ldflags.remove(('-arch', 'i386'))
-        if ldflags.count(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk')):
-            ldflags.remove(('-isysroot', '/Developer/SDKs/MacOSX10.4u.sdk'))
+        remove_item(env, 'LINKFLAGS', [('-arch', 'ppc'), ('-arch', 'i386'),
+                                       ('-isysroot',
+                                        '/Developer/SDKs/MacOSX10.4u.sdk')])
 
     def check_version(self, env):
         version_cmd = '%s %s' % (self.tool_name, self.version_flag)
