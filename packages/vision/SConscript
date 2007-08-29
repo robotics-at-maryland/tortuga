@@ -42,6 +42,11 @@ helpers.SharedLibrary(envl, 'vision',  source = sources)
 # Testing
 envt = env.Clone()
 
+# Optical Flow Demo
+#envt=env.Clone()
+helpers.Program(envt, target = 'OpticalFlowTest',
+		source = 'test/src/OpticalFlow.cpp')
+
 # Build simple camera test program and make sure vision library is intalled
 helpers.Program(envt, target='AdvCvTest', 
 		source = 'test/src/AdvCvTest.cpp',
