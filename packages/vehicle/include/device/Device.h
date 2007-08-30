@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/device/Device.h
+ * File:  packages/vehicle/include/device/Device.h
  */
 
 #ifndef RAM_VEHICLE_DEVICE_DEVICE_06_25_2007
@@ -15,24 +15,22 @@
 
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/Common.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
 
-class Device : public IDevice // boost::noncopyable
+class Device
 {
 public:
     Device(IVehicle* vehicle, std::string name);
     virtual ~Device() {};
 
     virtual std::string getName();
-
-    virtual IVehicle* getVehicle();
     
 private:
     std::string m_name;
-    IVehicle* m_vehicle;
 };
     
 } // namespace device

@@ -29,7 +29,7 @@ namespace core {
  *  All you have to do to use it is subclass and implement the update() method,
  *  will be called the given interval in a background thread.
  */
-class Updatable : boost::noncopyable
+class Updatable : public IUpdatable, boost::noncopyable
 {
 public:
     Updatable();
