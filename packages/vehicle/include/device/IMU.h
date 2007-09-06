@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
+#include "vehicle/include/device/IIMU.h"
 
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
@@ -24,7 +25,6 @@
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
-#include "pattern/include/Subject.h"
 
 // Forward declare structure from imuapi.h
 struct _RawIMUData;
@@ -38,15 +38,17 @@ const static int FILTER_SIZE = 10;
 
 typedef RawIMUData FilteredIMUData;
     
-class IMU : public Device,          // For getName
-            public core::Updatable, // for update
-            public pattern::Subject // so other objects can watch
+class IMU : public IIMU,
+            public Device, // for getName
+            public core::Updatable // for update
             // boost::noncopyable
 {
 public:
     enum UpdateEvents {
         DataUpdate
     };
+
+    virtual std::string getName() { return Device::getName(); }
     
     /** Create an IMU with the given device file */
     IMU(IVehicle* vehicle, core::ConfigNode config);

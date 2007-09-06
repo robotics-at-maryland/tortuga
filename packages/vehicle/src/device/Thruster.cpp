@@ -25,7 +25,7 @@ namespace vehicle {
 namespace device {
     
 Thruster::Thruster(IVehicle* vehicle, core::ConfigNode config) :
-    Device(vehicle, config["name"].asString()),
+    Device(config["name"].asString()),
     m_address(config["address"].asInt()),
     m_calibrationFactor(config["calibration_factor"].asDouble()),
     m_direction(config["direction"].asInt(1))

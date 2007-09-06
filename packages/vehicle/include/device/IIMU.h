@@ -7,8 +7,8 @@
  * File:  packages/vision/include/device/IMU.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_IMU_06_25_2007
-#define RAM_VEHICLE_DEVICE_IMU_06_25_2007
+#ifndef RAM_VEHICLE_DEVICE_IIMU_06_25_2007
+#define RAM_VEHICLE_DEVICE_IIMU_06_25_2007
 
 // STD Includesb
 #include <string>
@@ -25,9 +25,9 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-class IMU : public IDevice,          // For getName
-            public pattern::Subject // so other objects can watch
-            // boost::noncopyable
+class IIMU : public IDevice,         // For getName
+             public pattern::Subject // so other objects can watch
+             // boost::noncopyable
 {
 public:
     enum UpdateEvents {
@@ -43,4 +43,4 @@ public:
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_IMU_06_25_2007
+#endif // RAM_VEHICLE_DEVICE_IIMU_06_25_2007

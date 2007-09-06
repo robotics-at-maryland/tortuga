@@ -21,10 +21,10 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class Device
+class Device //: public IDevice
 {
 public:
-    Device(IVehicle* vehicle, std::string name);
+    Device(std::string name);
     virtual ~Device() {};
 
     virtual std::string getName();

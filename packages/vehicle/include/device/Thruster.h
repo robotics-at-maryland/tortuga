@@ -15,21 +15,25 @@
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
+#include "vehicle/include/device/IThruster.h"
+
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
-#include "pattern/include/Subject.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
 
-class Thruster : public Device, // boost::noncopyable
-                 public pattern::Subject
+class Thruster : public Device, // for getName
+                 public IThruster
+                 // boost::noncopyable
 {
 public:
     enum UpdateEvents {
         FORCE_UPDATE
     };
+
+    virtual std::string getName() { return Device::getName(); }
     
     /** Create a thruster with the given address */
     Thruster(IVehicle* vehicle, core::ConfigNode config);

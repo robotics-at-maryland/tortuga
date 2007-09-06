@@ -27,9 +27,8 @@ namespace device {
 using namespace ram::math;
     
 IMU::IMU(IVehicle* vehicle, core::ConfigNode config) :
-    Device(vehicle, config["name"].asString()),
+    Device(config["name"].asString()),
     Updatable(),
-    Subject(),
     m_devfile(config["devfile"].asString("/dev/imu")),
     m_serialFD(-1),
     m_localMagneticPitch(0),

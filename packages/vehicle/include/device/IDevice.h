@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/core/include/IDevice.h
+ * File:  packages/vehicle/include/device/IDevice.h
  */
 
 #ifndef RAM_VEHICLE_DEVICE_IDEVICE_06_22_2007
@@ -15,7 +15,6 @@
 
 // Project Includes
 #include "core/include/IUpdatable.h"
-#include "vehicle/include/Common.h"
 
 namespace ram {
 namespace vehicle {
@@ -27,8 +26,6 @@ public:
     virtual ~IDevice() {};
 
     virtual std::string getName() = 0;
-
-    virtual IVehicle* getVehicle() = 0;
 };
     
 } // namespace device

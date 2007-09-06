@@ -7,8 +7,8 @@
  * File:  packages/vision/include/device/IMU.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_PSU_07_06_2007
-#define RAM_VEHICLE_DEVICE_PSU_07_06_2007
+#ifndef RAM_VEHICLE_DEVICE_IPSU_07_06_2007
+#define RAM_VEHICLE_DEVICE_IPSU_07_06_2007
 
 // STD Includesb
 #include <string>
@@ -60,4 +60,4 @@ public:
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_PSU_07_06_2007
+#endif // RAM_VEHICLE_DEVICE_IPSU_07_06_2007

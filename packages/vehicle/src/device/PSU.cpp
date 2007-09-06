@@ -21,9 +21,8 @@ namespace vehicle {
 namespace device {
 
 PSU::PSU(IVehicle* vehicle, core::ConfigNode config) :
-    Device(vehicle, config["name"].asString()),
+    Device(config["name"].asString()),
     Updatable(),
-    Subject(),
     m_config(config),
     m_ctxValues(0),
     m_deviceHandle(0)
