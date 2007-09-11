@@ -39,6 +39,9 @@ namespace ram { namespace vision {
 			double getY();
 			double getAngle();
 			void update();
+			void show(char* window);
+			IplImage* getAnalyzedImage();
+
 
 		private:
 		bool show_output;

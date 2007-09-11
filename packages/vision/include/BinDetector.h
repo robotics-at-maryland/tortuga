@@ -37,6 +37,8 @@ namespace ram { namespace vision {
 			void update();
 			double getX();
 			double getY();
+			IplImage* getAnalyzedImage();
+
 		private:
 			bool show_output;
 			double binX;

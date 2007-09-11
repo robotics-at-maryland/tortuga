@@ -46,6 +46,7 @@ namespace vision{
 			IplImage* undistorted;
 			IplImage* differenceImage;
 			IplImage* dest;
+			IplImage* dataMove;
 			
 	};
 } // namespace vision
