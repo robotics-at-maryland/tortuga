@@ -12,16 +12,19 @@
 #include "vision/include/BinDetector.h"
 #include "vision/include/Calibration.h"
 #include "vision/include/Recorder.h"
+#include "vision/include/VisionDemo.h"
 #include <string>
 #include <iostream>
 
 using namespace std;
 using namespace ram::vision;
 #define SHOW_OUTPUT 0
-
+#define DEMO 1
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
 {
+	cout<<"I am compiled"<<endl;
+
 	orangeOn=false;
 	lightOn=false;
 	gateOn=false;
@@ -51,6 +54,7 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	}
 	frame = new OpenCVImage(640,480);
 	dest=cvCreateImage(cvSize(480,640),8,3);
+	dataMove=cvCreateImage(cvSize(256,256),8,3);
 	camera->background(30); //Silliness	
 }
 
@@ -99,18 +103,22 @@ DetectorTest::~DetectorTest()
 
 void DetectorTest::orangeDetectOn()
 {
+	cout<<"Turning On Orange Detection"<<endl;
 	orangeOn=true;
 }
 void DetectorTest::lightDetectOn()
 {
+	cout<<"Turning On Light Detection"<<endl;
 	lightOn=true;
 }
 void DetectorTest::gateDetectOn()
 {
+	cout<<"Turning on Gate Detection"<<endl;
 	gateOn=true;
 }
 void DetectorTest::binDetectOn()
 {
+	cout<<"Turning on Bin Detection"<<endl;
 	binOn=true;
 }
 void DetectorTest::orangeDetectOff()
@@ -129,7 +137,6 @@ void DetectorTest::binDetectOff()
 {
 	binOn=false;
 }
-
 OrangePipeDetector* DetectorTest::getOrangeDetector()
 {
 	return opDetect;
@@ -149,10 +156,12 @@ RedLightDetector* DetectorTest::getRedDetector()
 
 void DetectorTest::update(double timestep)
 {
-//	char key=' ';
+	cout<<"I am compiled"<<endl;
+	cout<<orangeOn<<" "<<binOn<<" "<<lightOn<<" "<<gateOn<<endl;
+	//char key=' ';
 	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
 	camera->getImage(frame);
-	IplImage* image =(IplImage*)(*frame);
+	IplImage* image=(IplImage*)(*frame);
 	if (SHOW_OUTPUT)
 		cvShowImage("Detector Test", image);
 
@@ -190,7 +199,7 @@ void DetectorTest::update(double timestep)
 		}
 	}
 	
-	//		//Gate Detection
+	//Gate Detection
 	if (gateOn)
 	{
 		if (SHOW_OUTPUT)
@@ -215,7 +224,7 @@ void DetectorTest::update(double timestep)
 		}
 	}
 	
-	//		//Bin Detection
+	//Bin Detection
 	if (binOn)
 	{
 		if (SHOW_OUTPUT)
@@ -238,7 +247,7 @@ void DetectorTest::update(double timestep)
 			}
 		}
 	}
-	//		//Red Light Detection
+	//Red Light Detection
 	if (lightOn)
 	{
 		if (SHOW_OUTPUT)
@@ -260,6 +269,32 @@ void DetectorTest::update(double timestep)
 				cout<<"No Red Light Found."<<endl;
 			}
 		}
+	}
+	
+	if (DEMO)
+	{
+		IplImage* ptr=NULL;
+		if (orangeOn)
+		{
+			ptr=opDetect->getAnalyzedImage();
+		}
+		else if (gateOn)
+		{
+			ptr=gDetect->getAnalyzedImage();
+		}
+		else if (binOn)
+		{
+			ptr=bDetect->getAnalyzedImage();
+		}
+		else if (lightOn)
+		{
+			ptr=rlDetect->getAnalyzedImage();
+		}
+		else
+			ptr=image;
+		cout<<"Sending to dataCopy"<<endl;
+		cvResize(ptr,dataMove);
+		dataCopy((unsigned char*)(dataMove->imageData),dataMove->width,dataMove->height);
 	}
 	return;
 } 

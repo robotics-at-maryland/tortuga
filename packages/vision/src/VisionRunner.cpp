@@ -14,6 +14,12 @@ namespace vision
 		forward.background(25);
 		downward.background(25);
 	}
+	
+	void dataCopy(unsigned char* a, int b, int c)
+	{
+		printf("%s","WHY IS THIS BEING CALLED?  TURN OFF DEMO IN DETECTORTEST IF YOURE GOING TO RUN WITH VISION RUNNER!!\n");
+		//Just here to make the compiling happy, this is only needed for VisionDemo
+	}
 }
 }
 
@@ -24,6 +30,7 @@ void handler(int x)
 {
   key='q';
 }
+
 
 int main(int argc, char** argv)
 {

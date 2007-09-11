@@ -47,6 +47,18 @@ double RedLightDetector::getY()
 	return redLightCenterY;
 }
 
+void RedLightDetector::show(char* window)
+{
+	cvShowImage(window,((IplImage*)(raw)));
+}
+
+
+IplImage* RedLightDetector::getAnalyzedImage()
+{
+	return (IplImage*)(raw);
+}
+
+
 void RedLightDetector::update()
 {
 	cam->getImage(frame);

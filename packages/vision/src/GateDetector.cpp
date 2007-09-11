@@ -35,6 +35,16 @@ double GateDetector::getY()
 	return gateYNorm;
 }
 
+void GateDetector::show(char* window)
+{
+	cvShowImage(window,((IplImage*)(gateFrame)));
+}
+
+IplImage* GateDetector::getAnalyzedImage()
+{
+	return (IplImage*)(gateFrame);
+}
+
 void GateDetector::update()
 {	
 	cam->getImage(frame);

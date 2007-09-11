@@ -59,6 +59,11 @@ void BinDetector::update()
 	
 }
 
+IplImage* BinDetector::getAnalyzedImage()
+{
+	return (IplImage*)(binFrame);
+}
+
 double BinDetector::getX()
 {
 	return binX;

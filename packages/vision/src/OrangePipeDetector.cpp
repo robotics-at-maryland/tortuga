@@ -46,6 +46,16 @@ OrangePipeDetector::~OrangePipeDetector()
 	cvReleaseImage(&rotated);
 }
 
+void OrangePipeDetector::show(char* window)
+{
+	cvShowImage(window,((IplImage*)(*frame)));
+}
+
+IplImage* OrangePipeDetector::getAnalyzedImage()
+{
+	return (IplImage*)(*frame);
+}
+
 void OrangePipeDetector::update()
 {
 	//Plan is:  Search out orange with a strict orange filter, as soon as we see a good deal of orange
