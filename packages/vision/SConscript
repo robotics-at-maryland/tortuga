@@ -55,10 +55,10 @@ helpers.Program(envt, target='AdvCvTest',
                 int_deps = 'vision')
 
 # Gui Demo
-envq = env.Clone()
-helpers.Program(envq, target = 'VisionDemo',
-		source = demoSources,
-		int_deps = 'vision')
+#envq = env.Clone()
+#helpers.Program(envq, target = 'VisionDemo',
+#		source = demoSources,
+#		int_deps = 'vision')
 
 # A test
 helpers.Program(envt, 'src/test.cpp',int_deps = 'vision')
