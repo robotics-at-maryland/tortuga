@@ -86,7 +86,7 @@ DetectorTest::DetectorTest(string movie)
 		cout<<"No Movie"<<endl;
 		return;
 	}
-
+	dataMove=cvCreateImage(cvSize(256,256),8,3);
 }
 
 DetectorTest::~DetectorTest()
@@ -295,6 +295,7 @@ void DetectorTest::update(double timestep)
 		cout<<"Sending to dataCopy"<<endl;
 		cvResize(ptr,dataMove);
 		dataCopy((unsigned char*)(dataMove->imageData),dataMove->width,dataMove->height);
+		cout<<"Done sending to dataCopy"<<endl;
 	}
 	return;
 } 

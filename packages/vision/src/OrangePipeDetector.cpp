@@ -53,7 +53,7 @@ void OrangePipeDetector::show(char* window)
 
 IplImage* OrangePipeDetector::getAnalyzedImage()
 {
-	return (IplImage*)(*frame);
+	return (IplImage*)(rotated);
 }
 
 void OrangePipeDetector::update()

@@ -17,8 +17,16 @@ namespace vision{
 
 void VisionDemo::startup(int cameraOrMovie)
 {
-	forward=new ram::vision::DetectorTest(0,true);
-	forward->background(25);
+	if (0)
+	{
+		forward=new ram::vision::DetectorTest(0,true);
+		forward->background(25);
+	}
+	else
+	{
+		forward=new ram::vision::DetectorTest("/Applications/underwater.avi");
+		forward->background(10);
+	}
 }
 
 void VisionDemo::setOperation(int operation)
@@ -26,9 +34,10 @@ void VisionDemo::setOperation(int operation)
 	cout<<"Setting Operation "<<operation<<endl;
 	
 	if (forward==NULL)
+	{
 		cout<<"no camera set"<<endl;
 		return;
-		
+	}	
 	if (operation==0)
 	{
 		forward->lightDetectOff();
@@ -95,10 +104,22 @@ int imageWidth = 1024;
 int imageHeight = 1024;
 unsigned char image[1024*1024*3];
 
+float rotateAmount = 180;
+
+bool useFlipTex = false;
+
 void createTexture(void* data, int w, int h, int texNum)
 {
 //	Rendering::image[9]='\0';
 //	printf("%s",Rendering::image);
+	if (useFlipTex)
+	{
+		texNum = 1;
+	}
+	else
+	{
+		texNum = 0;
+	}
 	glBindTexture(GL_TEXTURE_2D, textures[texNum]);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, 256, 256, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
@@ -135,7 +156,10 @@ void flip()
 	flipStatus += 5;
 
 	if (flipStatus == 100)
+	{
+		useFlipTex = !useFlipTex;
 		flipped = !flipped;
+		}
 
 	if (flipStatus < 100.0f)
 		quadZ = flipStatus/100.0f;
@@ -154,12 +178,16 @@ void flip()
 
 void drawQuad(float fSize)
 {
+	if (flipStatus >= 100)
+		glScalef(-1,1,1);
 	  fSize /= 2.0;
 	  glBegin(GL_QUADS);
-	  glVertex3f(-fSize, -fSize, 0);    glTexCoord2f (0, 0);
-	  glVertex3f(fSize, -fSize, 0);     glTexCoord2f (1, 0);
-	  glVertex3f(fSize, fSize, 0);      glTexCoord2f (1, 1);
-	  glVertex3f(-fSize, fSize, 0);     glTexCoord2f (0, 1);
+
+		glVertex3f(-fSize, -fSize, 0);    glTexCoord2f (0, 0);
+		glVertex3f(fSize, -fSize, 0);     glTexCoord2f (1, 0);
+		glVertex3f(fSize, fSize, 0);      glTexCoord2f (1, 1);
+		glVertex3f(-fSize, fSize, 0);     glTexCoord2f (0, 1);
+
 	  glEnd();
 }
 
@@ -184,6 +212,7 @@ void display()
 		glBindTexture(GL_TEXTURE_2D, textures[1]);
 	}
 	glTranslatef(0,0,quadZ * howFar);
+	glRotatef(rotateAmount, 0,0,1);
 	glRotatef(quadRot, 0, 1, 0);
 	drawQuad(10.0);
 	glPushMatrix();
@@ -241,6 +270,7 @@ void keyboard(unsigned char key, int x, int y)
 		  flipping = true;
 		  flipStatus = 0;
 		  Rendering::v->setOperation(0);
+		  rotateAmount=90;
 	  }
 	break;
 		case '1':
@@ -249,6 +279,7 @@ void keyboard(unsigned char key, int x, int y)
 		  flipping = true;
 		  flipStatus = 0;
 		  Rendering::v->setOperation(1);
+		  rotateAmount = 180;
 	  }
 	break;
 		case '2':
@@ -257,6 +288,7 @@ void keyboard(unsigned char key, int x, int y)
 		  flipping = true;
 		  flipStatus = 0;
 		  Rendering::v->setOperation(2);
+		  rotateAmount = 180;
 	  }
 	break;
 		case '3':
@@ -265,6 +297,7 @@ void keyboard(unsigned char key, int x, int y)
 		  flipping = true;
 		  flipStatus = 0;
 		  Rendering::v->setOperation(3);
+		  rotateAmount = 180;
 	  }
 	break;
 		case '4':
@@ -273,6 +306,7 @@ void keyboard(unsigned char key, int x, int y)
 		  flipping = true;
 		  flipStatus = 0;
 		  Rendering::v->setOperation(4);
+		  rotateAmount =180;
 	  }
 	break;
   }
@@ -285,13 +319,13 @@ int main(int argc, char** argv)
 {
   cout<<"Initializing OpenGL"<<endl;
   Rendering::v=new ram::vision::VisionDemo();
-  Rendering::v->startup(27);
+  Rendering::v->startup(1);
   Rendering::v->setOperation(1);
   glutInit (&argc, argv);
   glutInitWindowSize (Rendering::g_Width, Rendering::g_Height);
   glutInitDisplayMode ( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutCreateWindow ("OGL DEMO");
-  //glutFullScreen();
+  glutFullScreen();
   Rendering::init();
   glutDisplayFunc (Rendering::display);
   glutReshapeFunc (Rendering::reshape);

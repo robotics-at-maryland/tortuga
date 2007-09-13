@@ -7,7 +7,7 @@
 #include <highgui.h>
 #include <math.h>
 
-#define	max_number_of_features 80
+#define	max_number_of_features 10
 
 static const double pi = 3.14159265358979323846;
 

@@ -1150,19 +1150,33 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 	float r_over_g_max;
 	float b_over_r_max;
 	int acceptable=0;
-	
+
 	if (!strict)
 	{
-		r_over_g_min=1.0;
-		r_over_g_max=2.5;
-		b_over_r_max=.5;
+		r_over_g_min=.7;
+		r_over_g_max=1.4;
+		b_over_r_max=.6;
 	}
 	else
 	{
-		r_over_g_min=1.2;
-		r_over_g_max=2.0;
+		r_over_g_min=.8;
+		r_over_g_max=1.2;
 		b_over_r_max=.4;
 	}
+
+//Competition Values	
+//	if (!strict)
+//	{
+//		r_over_g_min=1.0;
+//		r_over_g_max=2.5;
+//		b_over_r_max=.5;
+//	}
+//	else
+//	{
+//		r_over_g_min=1.2;
+//		r_over_g_max=2.0;
+//		b_over_r_max=.4;
+//	}
 	for (int y=0; y<height; y++)
 		for (int x=0; x<width; x++)
 		{
@@ -1465,9 +1479,9 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 			b2=(data2[count]+256)%256;
 			g2=(data2[count+1]+256)%256;
 			r2=(data2[count+2]+256)%256;
-			if (b>28 && g>28 && r>28)
+			if (b>26 && g>26 && r>26)
 			{
-				if (b2>200 && g2>200 && r2>200)
+				if (b2>150 && g2>150 && r2>150)
 				{
 					data2[count]=0;
 					data2[count+1]=0;
