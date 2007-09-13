@@ -51,7 +51,7 @@ void quaternionCrossProduct(double q1[4], double q2[4], double * pQ);
 
 double getDistance(double a[3], double b[3]);
 void getQuaternionErrorMatrix(double q[4], double * pMatrix);
-void quaternionFromDCM(double DCM[3][3], double * pQ);
+void quaternionFromnCb(double nCb[3][3], double * pQ);
 
 void rotationRoll(double phi, double * pMatrix);
 void rotationPitch(double theta, double * pMatrix);

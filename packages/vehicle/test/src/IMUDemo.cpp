@@ -38,7 +38,7 @@ static const int MS_SLEEP_TIME = 20;
 int main()
 {
     // Create IMU Device
-    IMU imu(0, ConfigNode::fromString(BIASED_CFG));
+    IMU imu(ConfigNode::fromString(BIASED_CFG));
 
 
     AveragingFilter<double, POINT_COUNT> quat1;

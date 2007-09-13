@@ -33,3 +33,7 @@ helpers.Program(envt, target = 'ThrusterDemo',
 helpers.Program(envt, target = 'IMUDemo', 
                 source = 'test/src/IMUDemo.cpp',
                 int_deps = 'vehicle')
+
+# Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'vehicle')

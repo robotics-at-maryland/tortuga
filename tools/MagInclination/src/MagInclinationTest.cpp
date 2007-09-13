@@ -38,7 +38,7 @@ int main (){
   std::cout << "\n!!! Don't move the robot !!!\n" << std::endl;
   
   // Create IMU Device
-  IMU imu(0, ConfigNode::fromString("{}"));
+  IMU imu(ConfigNode::fromString("{}"));
 
   // Start IMU running in the background
   imu.background(5); 

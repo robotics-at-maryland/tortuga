@@ -17,6 +17,8 @@
 // Project Includes
 #include "vehicle/include/device/IMU.h"
 #include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
+#include "math/include/Matrix3.h"
 
 #include "imu/include/imuapi.h"
     
@@ -26,7 +28,7 @@ namespace device {
 
 using namespace ram::math;
     
-IMU::IMU(IVehicle* vehicle, core::ConfigNode config) :
+IMU::IMU(core::ConfigNode config) :
     Device(config["name"].asString()),
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/imu")),
@@ -88,9 +90,9 @@ IMU::~IMU()
     delete m_filteredState;
 }
 
-IMUPtr IMU::construct(IVehicle* vehicle, core::ConfigNode config)
+IMUPtr IMU::construct(core::ConfigNode config)
 {
-    return IMUPtr(new IMU(vehicle, config));
+    return IMUPtr(new IMU(config));
 }
 
 IMUPtr IMU::castTo(IDevicePtr ptr)
@@ -279,59 +281,29 @@ void IMU::rotateAndFilterData(RawIMUData* newState)
     }
 }
 
-void IMU::quaternionFromIMU(double mag[3], double accel[3], double *quaternion)
+void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
+                            double *quaternion)
 {
-    double xComponent[3];//top row of DCM
-    double yComponent[3];//middle row of DCM
-    double zComponent[3];//bottom row of DCM
-    double temp[3];
-    double rotationMatrix[3][3];//used to account for magnetic inclination
-    double DCM[3][3];//direction cosine matrix
+    Vector3 mag(_mag);
+    Vector3 accel(_accel);
+    
+    Vector3 n3 = accel * -1;
+    n3.normalise();
+    
+    Vector3 n2 = mag.crossProduct(accel);
+    n2.normalise();
+    
+    Vector3 n1 = n2.crossProduct(n3);
+    n1.normalise();
 
-    //set xComponent equal to the normalized magnetometer reading
-    //load the values
-    xComponent[0] = mag[0];
-    xComponent[1] = mag[1];
-    xComponent[2] = mag[2];
-    //normalize
-    normalize3x1(xComponent);
+    Matrix3 bCn;
+    bCn.SetColumn(0, n1);
+    bCn.SetColumn(1, n2);
+    bCn.SetColumn(2, n3);
+    
+    Matrix3 nCb = bCn.Transpose();
 
-    //find yComponent
-    //first normalize accel
-    temp[0] = accel[0];
-    temp[1] = accel[1];
-    temp[2] = accel[2];
-    normalize3x1(temp);
-    //cross product m x g
-    crossProduct3x1by3x1(xComponent, temp, yComponent);
-    //normalize the yComponent
-    normalize3x1(yComponent);
-
-    //find zComponent
-    crossProduct3x1by3x1(xComponent, yComponent, zComponent);
-    //normalize just for shits and giggles
-    normalize3x1(zComponent);
-
-    //place x, y, and z components in the direction cosine matrix
-    DCM[0][0] = xComponent[0];
-    DCM[0][1] = xComponent[1];
-    DCM[0][2] = xComponent[2];
-    DCM[1][0] = yComponent[0];
-    DCM[1][1] = yComponent[1];
-    DCM[1][2] = yComponent[2];
-    DCM[2][0] = zComponent[0];
-    DCM[2][1] = zComponent[1];
-    DCM[2][2] = zComponent[2];
-
-    //find rotation matrix to pitch axes to account for magnetic inclination
-    rotationPitch(m_localMagneticPitch, &rotationMatrix[0][0]);
-
-    //rotate DCM
-    double DCMrotated[3][3];
-    matrixMult3x3by3x3(rotationMatrix, DCM, &DCMrotated[0][0]);
-
-    //extract quaternion from DCM
-    quaternionFromDCM(DCMrotated, &quaternion[0]);
+    quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
 }
     
 } // namespace device

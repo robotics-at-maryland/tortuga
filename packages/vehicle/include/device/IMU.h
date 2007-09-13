@@ -51,10 +51,10 @@ public:
     virtual std::string getName() { return Device::getName(); }
     
     /** Create an IMU with the given device file */
-    IMU(IVehicle* vehicle, core::ConfigNode config);
+    IMU(core::ConfigNode config);
 
     /** Creats a new object */
-    static IMUPtr construct(IVehicle* vehicle, core::ConfigNode config);
+    static IMUPtr construct(core::ConfigNode config);
 
     /** Preforms a cast to the desired type */
     static IMUPtr castTo(IDevicePtr ptr);
@@ -91,8 +91,8 @@ public:
 private:
     void rotateAndFilterData(RawIMUData* newState);
     
-    void quaternionFromIMU(double mag[3], double accel[3],
-                           double* quaternion);
+    static void quaternionFromIMU(double mag[3], double accel[3],
+                                  double* quaternion);
     
     /** Name of the serial device file */
     std::string m_devfile;
