@@ -26,3 +26,6 @@ helpers.SharedLibrary(envl, 'control',  source = sources)
 #                source = 'test/src/ControlTest.cpp',
 #                int_deps = ['vehicle', 'control']),
 #                ext_deps = ['Boost.ProgramOptions'])
+
+envt = env.Clone()
+envt.Tests(int_deps = 'control')

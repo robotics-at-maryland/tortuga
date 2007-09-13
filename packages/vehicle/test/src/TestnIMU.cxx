@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/math/test/src/TestChecks.h
+ * File:  packages/packages/vehicle/test/src/TestnIMU.cxx
  */
 
 // Library Includes
