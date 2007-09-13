@@ -67,7 +67,8 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
 
 //TODO: implement this function
   bool doIsOriented(MeasuredState* measuredState,
-                DesiredState* desiredState);
+                    DesiredState* desiredState,
+                    double threshold);
 
 double  HackedPDPitchControl(MeasuredState* measuredState,
                              DesiredState* desiredState,

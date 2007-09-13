@@ -10,10 +10,12 @@
 //STD Includes
 #include <cmath>
 #include <cstdio>
+#include <iostream>
 
 // Project Includes
 #include "control/include/ControlFunctions.h"
 #include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
 
 #ifndef RAM_MATLAB_CONTROL_TEST
 namespace ram {
@@ -22,6 +24,8 @@ namespace control {
 
 // Brings ram::math Helper functions into scope
 using namespace ram::math;
+
+using namespace std;
     
 /********************************************************************
 function translationalController.m is a decoupled controller for vertical and
@@ -248,14 +252,21 @@ double HackedPDPitchControl(MeasuredState* measuredState,
 
   //TODO: implement this function
 bool doIsOriented(MeasuredState* measuredState,
-                DesiredState* desiredState){
+                  DesiredState* desiredState,
+                  double threshold){
   bool amIOriented;
   double qError[4];
   findErrorQuaternion(desiredState->quaternion,
-		      measuredState->quaternion,&qError[0]);
-  if(qError[2]>0.05){
+		      measuredState->quaternion,
+                      &qError[0]);
+
+  // This does the sqrt of the sum of the squares for the first three elements
+  Vector3 tmp(qError);
+//  cout << "Q: " << tmp << " 4th: " <<  qError[3] << " Mag: " << tmp.length()
+//       << endl;
+  if(tmp.length() > threshold) {
     amIOriented = false;
-  }else{
+  } else {
     amIOriented = true;
   }
   return amIOriented;

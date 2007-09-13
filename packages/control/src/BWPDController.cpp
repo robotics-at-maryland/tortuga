@@ -256,7 +256,8 @@ void BWPDController::yawVehicle(double degrees)
     
 bool BWPDController::isOriented()
 {
-    return doIsOriented(m_measuredState, m_desiredState);
+    return doIsOriented(m_measuredState, m_desiredState,
+                        ORIENTATION_THRESHOLD);
 }
 
 bool BWPDController::atDepth()

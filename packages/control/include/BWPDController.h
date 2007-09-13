@@ -27,6 +27,8 @@ namespace control {
 
 /** Tolerance for at Depth (1 foot in meters) */
 static const double DEPTH_TOLERANCE = 0.3048;
+
+static const double ORIENTATION_THRESHOLD = 0.015;
     
 /** Implements a PD Controller, based on a paper by Bong Wie  */
 class BWPDController : public IController,
