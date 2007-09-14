@@ -39,7 +39,7 @@ def remove_item(env, key, items):
         items = [items]
 
     # Grab current set of values
-    values = env[key]
+    values = env.get(key,[])
 
     # Remove the items if they are presnet
     for item in items:
@@ -164,9 +164,9 @@ def add_external(env, name):
     Add an external library to the given environment and make sure its properly
     installed and configured.
     """
-    # Don't do anything if we are cleaning
     if not env.GetOption('clean'):
         _get_external_lib(name).setup_environment(env)
+    remove_item(env, 'CPPDEFINES', 'NDEBUG')
 
 def add_internal(env, name):
     """
@@ -551,7 +551,8 @@ class PythonLib(ConfigLibrary):
         env.Append(CCFLAGS = removed)
 
         # Here we have to remove and non-valid C++ flags
-        remove_item(env, 'CCFLAGS', ['-Wstrict-prototypes',
+        remove_item(env, 'CCFLAGS', ['-DNDEBUG',
+                                      '-Wstrict-prototypes',
                                      ('-isysroot',
                                       '/Developer/SDKs/MacOSX10.4u.sdk')])
 
@@ -559,6 +560,9 @@ class PythonLib(ConfigLibrary):
         remove_item(env, 'LINKFLAGS', [('-arch', 'ppc'), ('-arch', 'i386'),
                                        ('-isysroot',
                                         '/Developer/SDKs/MacOSX10.4u.sdk')])
+        remove_item(env, 'CPPDEFINES', 'NDEBUG')
+
+        
 
     def check_version(self, env):
         version_cmd = '%s %s' % (self.tool_name, self.version_flag)
