@@ -50,10 +50,10 @@ int main()
 {
     // Create each thruster and add them to a list
     cout << "Creating all four thrusters" << endl;
-    Thruster port(0, ConfigNode::fromString(PORT_CONFIG));
-    Thruster starboard(0, ConfigNode::fromString(STAR_CONFIG));
-    Thruster fore(0, ConfigNode::fromString(FORE_CONFIG));
-    Thruster aft(0, ConfigNode::fromString(AFT_CONFIG));
+    Thruster port(ConfigNode::fromString(PORT_CONFIG));
+    Thruster starboard(ConfigNode::fromString(STAR_CONFIG));
+    Thruster fore(ConfigNode::fromString(FORE_CONFIG));
+    Thruster aft(ConfigNode::fromString(AFT_CONFIG));
 
     std::vector<Thruster*> list = ba::list_of(&port)(&starboard)(&fore)(&aft);
 
