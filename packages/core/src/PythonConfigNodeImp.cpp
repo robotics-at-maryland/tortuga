@@ -234,6 +234,18 @@ int PythonConfigNodeImp::asInt(const int def)
 
     return -9999;
 }
-    
+
+void PythonConfigNodeImp::set(std::string key, std::string str)
+{
+    try {
+        m_pyobj[key] = py::str(str);
+    } catch(py::error_already_set err) {
+        printf("ConfigNode (map) Error:\n");
+        PyErr_Print();
+
+        throw err;
+    }
+}
+
 } // namespace core
 } // namespace ram

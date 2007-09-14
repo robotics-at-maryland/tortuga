@@ -51,7 +51,10 @@ public:
 
     /** Attempts conversion to int, if it fails return def */
     int asInt(const int def);
-    
+
+    /** Map a value to the the give string inside a config node */
+    void set(std::string key, std::string str);
+             
     /** Builds a config node from the given string, this uses the python ver. */
     static ConfigNode fromString(std::string data);
 

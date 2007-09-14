@@ -50,6 +50,9 @@ public:
 
     /** Attempts conversion to int, if it fails return def */
     virtual int asInt(const int def) = 0;
+
+    /** Map a key to a given value */
+    virtual void set(std::string key, std::string str) = 0;
 };
 
 } // namespace core

@@ -65,6 +65,16 @@ TEST_FIXTURE(TestPythonConfigNode, map)
     CHECK_EQUAL("F", configNode["Map"]["C"].asString());
 }
 
+TEST_FIXTURE(TestPythonConfigNode, set)
+{
+    // Ensure value is not there
+    CHECK_EQUAL("NotHere", configNode["Map"]["TestSet"].asString("NotHere"));
+
+    // Set value and make sure it stuck
+    configNode["Map"].set("TestSet", "MyVal");
+    CHECK_EQUAL("MyVal", configNode["Map"]["TestSet"].asString());
+}
+
 TEST_FIXTURE(TestPythonConfigNode, fromFile)
 {
     std::string base = std::string(getenv("RAM_SVN_DIR")) + "/packages/core/";

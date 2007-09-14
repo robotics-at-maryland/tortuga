@@ -62,6 +62,9 @@ public:
     /** Attempts conversion to int, if it fails return def */
     virtual int asInt(const int def);
 
+    /** Map a key to a given value */
+    virtual void set(std::string key, std::string str);
+    
     /** Open a file using the python Yaml parser */
     static ConfigNodeImpPtr fromYamlFile(std::string filename);
 private:

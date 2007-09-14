@@ -54,7 +54,12 @@ int ConfigNode::asInt(const int def)
 {
     return m_impl->asInt(def);
 }
-    
+
+void ConfigNode::set(std::string key, std::string str)
+{
+    m_impl->set(key, str);
+}
+
 ConfigNode ConfigNode::fromString(std::string data)
 {
     return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(data)));
