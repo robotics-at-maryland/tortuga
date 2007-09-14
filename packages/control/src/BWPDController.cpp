@@ -21,6 +21,7 @@
 #include "vehicle/include/device/Thruster.h"
 
 #include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
 #include "imu/include/imuapi.h"
 
 using namespace std;
@@ -307,9 +308,9 @@ void BWPDController::update(double timestep)
     {
         core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
         
-//        translationalController(m_measuredState, m_desiredState,
-//        	                m_controllerState, timestep,
-//                                translationalForces);
+        translationalController(m_measuredState, m_desiredState,
+        	                m_controllerState, timestep,
+                                translationalForces);
 
         // Doesn't currently handle pitch
         BongWiePDRotationalController(m_measuredState, m_desiredState,
@@ -332,6 +333,8 @@ void BWPDController::update(double timestep)
 void BWPDController::applyForcesAndTorques(double* translationalForces,
                                            double* rotationalTorques)
 {
+    std::cout << "Rot Torq: " << math::Vector3(rotationalTorques) << std::endl;
+    std::cout << "Speed " << translationalForces[0] << " Depth " << translationalForces[2] << std::endl;
 //    std::cout << "Applying forces" << std::endl;
 
     double star = translationalForces[0] / 2 +
@@ -350,8 +353,8 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
 //    double fore = 0;
 //    double aft = 0;
     
-//    std::cout << "Force S: " << star << " P: " << port << " F: "
-//              << fore << " A: " << aft
+    std::cout << "Force S: " << star << " P: " << port << " F: "
+              << fore << " A: " << aft << std::endl;
 //    std::cout << "Torque: " << math::Vector3(rotationalTorques) << std::endl;
     
     

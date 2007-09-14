@@ -144,8 +144,8 @@ void IMU::update(double timestep)
             magnetometer[1] = m_filteredMagY.getValue();
             magnetometer[2] = m_filteredMagZ.getValue();
 
-            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
-                   magnetometer[1], magnetometer[2]);
+//            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
+//                   magnetometer[1], magnetometer[2]);
 
             {
                 double quaternion[4] = {0,0,0,1};
@@ -159,9 +159,9 @@ void IMU::update(double timestep)
                 m_orientation.z = quaternion[2];
                 m_orientation.w = quaternion[3];
 
-                printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.x,
-                       m_orientation.y, m_orientation.z,
-                       m_orientation.w);
+//                printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.x,
+//                       m_orientation.y, m_orientation.z,
+//                       m_orientation.w);
             }
 
 

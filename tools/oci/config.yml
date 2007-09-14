@@ -50,14 +50,14 @@ Modules:
                 type: ext.vehicle_device.Thruster
                 address: 2
                 calibration_factor: 0.4368
-                direction: 1
+                direction: -1
 
             AftThruster:
                 # Serial 148
                 type: ext.vehicle_device.Thruster
                 address: 1
                 calibration_factor: 0.3612
-                direction: -1
+                direction: 1
 
             IMU:
                 type: ext.vehicle_device.IMU
@@ -82,14 +82,15 @@ Modules:
         angularPGain: 10
         angularDGain: 1
         speedPGain: 3
-        depthPGain: 20
+        # Should not be negative
+        depthPGain: -20
 
         # Currently does nothing!!!
         hackedPitchGain: 12
         hackedYawGain: 0
 
-        desiredSpeed: 0
-        desiredDepth: 0
+        desiredSpeed: 1
+        desiredDepth: 2
         desiredQuaternion: [0, 0, 0, 1]
 
 

@@ -40,11 +40,11 @@ static const std::string STAR_CONFIG("{'name' : 'StarboardThruster',"
 static const std::string FORE_CONFIG("{'name' : 'ForeThruster',"
                                      " 'address' : 2,"
                                      " 'calibration_factor': 0.4368,"
-                                     " 'direction' : 1}");
+                                     " 'direction' : -1}");
 static const std::string AFT_CONFIG("{'name' : 'AftThruster',"
                                     " 'address' : 1,"
                                     " 'calibration_factor': 0.3612,"
-                                    " 'direction' : -1}");
+                                    " 'direction' : 1}");
 //                                       calibration_factor
 int main()
 {
