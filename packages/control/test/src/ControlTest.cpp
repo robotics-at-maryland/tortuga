@@ -201,6 +201,8 @@ int main(int argc, char** argv)
 					{
 						if(controller.getSpeed() < MAX_SPEED)
 							controller.setSpeed(controller.getSpeed()+SPEED_ENC);
+
+						printf("\nNEW SPEED:  %d\n", controller.getSpeed());
 						break;
 					}
 
@@ -209,6 +211,7 @@ int main(int argc, char** argv)
                                                 if(controller.getSpeed() > MIN_SPEED)
 							controller.setSpeed(controller.getSpeed()-SPEED_ENC);
 
+						printf("\nNEW SPEED:  %d\n", controller.getSpeed());
 						break;
 					}
 
