@@ -197,6 +197,12 @@ int main(int argc, char** argv)
 			{
 				switch(num)	/* Which button? */
 				{
+					case 11:
+					{
+						return 1;
+						break;
+					}
+
 					case BTN_UP:
 					{
 						if(controller.getSpeed() < MAX_SPEED)
