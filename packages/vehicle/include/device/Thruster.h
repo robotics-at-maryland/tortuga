@@ -36,12 +36,12 @@ public:
     virtual std::string getName() { return Device::getName(); }
     
     /** Create a thruster with the given address */
-    Thruster(IVehicle* vehicle, core::ConfigNode config);
+    Thruster(core::ConfigNode config);
     
     virtual ~Thruster();
 
     /** Creats a new object */
-    static ThrusterPtr construct(IVehicle* vehicle, core::ConfigNode config);
+    static ThrusterPtr construct(core::ConfigNode config);
 
     /** Preforms a cast to the desired type */
     static ThrusterPtr castTo(IDevicePtr ptr);

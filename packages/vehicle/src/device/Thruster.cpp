@@ -24,7 +24,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-Thruster::Thruster(IVehicle* vehicle, core::ConfigNode config) :
+Thruster::Thruster(core::ConfigNode config) :
     Device(config["name"].asString()),
     m_address(config["address"].asInt()),
     m_calibrationFactor(config["calibration_factor"].asDouble()),
@@ -48,9 +48,9 @@ Thruster::~Thruster()
     ThrusterCommunicator::unRegisterThruster(this);
 }
 
-ThrusterPtr Thruster::construct(IVehicle* vehicle, core::ConfigNode config)
+ThrusterPtr Thruster::construct(core::ConfigNode config)
 {
-    return ThrusterPtr(new Thruster(vehicle, config));
+    return ThrusterPtr(new Thruster(config));
 }
 
 ThrusterPtr Thruster::castTo(IDevicePtr ptr)
