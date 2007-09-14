@@ -23,6 +23,8 @@
 #include "math/include/Helpers.h"
 #include "imu/include/imuapi.h"
 
+using namespace std;
+
 namespace ram {
 namespace control {
 
@@ -99,25 +101,26 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     m_rAft = config["rAft"].asDouble(0.3366);
     
     // Grab our devices
+    cout << "Name: " << config["StarboardThrusterName"].asString("StarboardThruster") << endl;
     m_starboardThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["StarboardThrusterName"].asString("StarboardThruster")));
-    assert(m_starboardThruster && "Bad starboard thruster");
+    assert(m_starboardThruster.get() && "Bad starboard thruster");
     
     m_portThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["PortThrusterName"].asString("PortThruster")));
-    assert(m_starboardThruster && "Bad port thruster");
+    assert(m_starboardThruster.get() && "Bad port thruster");
     
     m_foreThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["ForeThrusterName"].asString("ForeThruster")));
-    assert(m_portThruster && "Bad fore thruster");
+    assert(m_portThruster.get() && "Bad fore thruster");
     
     m_aftThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
         config["AftThrusterName"].asString("AftThruster")));
-    assert(m_aftThruster && "Bad aft thruster");
+    assert(m_aftThruster.get() && "Bad aft thruster");
 
     m_imu = vehicle::device::IMU::castTo(vehicle->getDevice(
          config["IMUName"].asString("IMU")));
-    assert(m_imu && "Bad imu");
+    assert(m_imu.get() && "Bad imu");
     
 /*    m_starboardThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
         config["StarboardThrusterName"].asString("StarboardThruster")));

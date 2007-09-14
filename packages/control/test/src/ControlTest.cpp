@@ -22,6 +22,7 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IMU.h"
 
+using namespace std;
 using namespace ram;
 namespace po = boost::program_options;
 
@@ -61,19 +62,33 @@ int main(int argc, char** argv)
     core::ConfigNode veh_cfg(modules["Vehicle"]);
     vehicle::Vehicle vehicle(veh_cfg);
     core::ConfigNode dev_cfg(veh_cfg["Devices"]);
+
+    // Set all the device names
+    dev_cfg["StarboardThruster"].set("name", "StarboardThruster");
+    dev_cfg["ForeThruster"].set("name", "ForeThruster");
+    dev_cfg["AftThruster"].set("name", "AftThruster");
+    dev_cfg["PortThruster"].set("name", "PortThruster");
+    dev_cfg["IMU"].set("name", "IMU");
+    
+//    vehicle::device::ThrusterPtr thruster =
+//        vehicle::device::Thruster::construct(dev_cfg["StarboardThruster"]);
+
+//    cout << "Name: " << thruster->getName() << endl;
+//    vehicle._addDevice(thruster);
+//    cout << "Test " << vehicle.getDevice("StarboardThruster")->getName() << endl;
     vehicle._addDevice(vehicle::device::Thruster::construct(
-                                          dev_cfg["StarboardThruster"]));
+                           dev_cfg["StarboardThruster"]));
     vehicle._addDevice(vehicle::device::Thruster::construct(
-                                          dev_cfg["PortThruster"]));
+                                          dev_cfg["ForeThruster"]));
     vehicle._addDevice(vehicle::device::Thruster::construct(
                                           dev_cfg["AftThruster"]));
     vehicle._addDevice(vehicle::device::Thruster::construct(
                                           dev_cfg["PortThruster"]));
     vehicle._addDevice(vehicle::device::IMU::construct(dev_cfg["IMU"]));
 
-//    int thrustUpdate = dev_cfg["StarboardThruster"]["update_interval"].asInt();
-//    int vehicleUpdate = dev_cfg["IMU"]["update_interval"].asInt();
-//    int imuUpdate = dev_cfg["IMU"]["update_interval"].asInt();
+    int thrustUpdate = dev_cfg["StarboardThruster"]["update_interval"].asInt();
+    int vehicleUpdate = dev_cfg["IMU"]["update_interval"].asInt();
+    int imuUpdate = dev_cfg["IMU"]["update_interval"].asInt();
         
     // Create our controller
     core::ConfigNode ctrl_cfg(modules["Controller"]);
@@ -81,9 +96,9 @@ int main(int argc, char** argv)
     controller.background(ctrl_cfg["update_interval"].asInt());
 
     // Start up the devices in the background
-    //vehicle.getDevice("StarboardThruster")->background(thrustUpdate);
-    //vehicle.getDevice("IMU")->background(imuUpdate);
-    //vehicle.background(vehicleUpdate);
+    vehicle.getDevice("StarboardThruster")->background(thrustUpdate);
+    vehicle.getDevice("IMU")->background(imuUpdate);
+    vehicle.background(vehicleUpdate);
 
     // Sleep for fifteen minutes
     sleep(15 * 60);

@@ -13,11 +13,14 @@ import helpers
 Import('env')
 envl = env.Clone()
 
+
+
 # Sources
 sources = helpers.glob(env, 'src', '*.cpp')
 
 # Build Procducts (library will be called 'libram_vehicle.so')
 helpers.SharedLibrary(envl, 'control',  source = sources)
+print '**** Control CCFLAGS',envl['CPPFLAGS']
 
 # Test Control Program
 envt = env.Clone()
