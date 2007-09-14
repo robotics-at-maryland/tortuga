@@ -183,11 +183,11 @@ int main(int argc, char** argv)
 #define BTN_SHALLOW 9
 #define BTN_DEEP 5
 
-#define MAX_DEPTH 4
+#define MAX_DEPTH 5
 
-#define MIN_DEPTH -4
+#define MIN_DEPTH 0
 
-#define DEPTH_ENC 1
+#define DEPTH_ENC 0.25
 #define TURN_ENC 10
 #define SPEED_ENC 1
 #define MIN_SPEED -5
