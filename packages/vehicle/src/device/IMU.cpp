@@ -33,7 +33,6 @@ IMU::IMU(core::ConfigNode config) :
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/imu")),
     m_serialFD(-1),
-    m_localMagneticPitch(0),
     m_magXBias(0),
     m_magYBias(0),
     m_magZBias(0),
@@ -66,8 +65,6 @@ IMU::IMU(core::ConfigNode config) :
         config["imuToVehicleRotMatrix"][2][1].asDouble(-1);
     m_IMUToVehicleFrame[2][2] =
         config["imuToVehicleRotMatrix"][2][2].asDouble(0);
-
-    m_localMagneticPitch = config["localMagneticPitch"].asDouble();
 
     m_magXBias = config["magXBias"].asDouble();
     m_magYBias = config["magYBias"].asDouble();
@@ -124,10 +121,7 @@ void IMU::update(double timestep)
 //            printf("MB: %7.4f %7.4f %7.4f ", newState.magX, newState.magY,
 //                   newState.magZ);
 
-	    // Account for magnetic fields of the frame (ie the thrusters)
-	    newState.magX = newState.magX - m_magXBias;
-            newState.magY = newState.magY - m_magYBias;
-            newState.magZ = newState.magZ - m_magZBias;
+
             
 	    /*	    printf("IMU F. Bias Raw: %7.4f %7.4f %7.4f\n", newState.magX, 
 		   newState.magY,
@@ -150,8 +144,8 @@ void IMU::update(double timestep)
             magnetometer[1] = m_filteredMagY.getValue();
             magnetometer[2] = m_filteredMagZ.getValue();
 
-//            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
-//                   magnetometer[1], magnetometer[2]);
+            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
+                   magnetometer[1], magnetometer[2]);
 
             {
                 double quaternion[4] = {0,0,0,1};
@@ -159,14 +153,15 @@ void IMU::update(double timestep)
                 
                 quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
 
-                m_orientation.w = quaternion[0];
-                m_orientation.x = quaternion[1];
-                m_orientation.y = quaternion[2];
-                m_orientation.z = quaternion[3];
 
-                //printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.q1,
-                //       m_orientation.q2, m_orientation.q3,
-                //       m_orientation.q4);
+                m_orientation.x = quaternion[0];
+                m_orientation.y = quaternion[1];
+                m_orientation.z = quaternion[2];
+                m_orientation.w = quaternion[3];
+
+                printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.x,
+                       m_orientation.y, m_orientation.z,
+                       m_orientation.w);
             }
 
 
@@ -256,9 +251,10 @@ void IMU::rotateAndFilterData(RawIMUData* newState)
     m_filteredAccelY.addValue(rotatedLinearAcceleration[1]);
     m_filteredAccelZ.addValue(rotatedLinearAcceleration[2]);
 
-    m_filteredMagX.addValue(rotatedMagnetometer[0]);
-    m_filteredMagY.addValue(rotatedMagnetometer[1]);
-    m_filteredMagZ.addValue(rotatedMagnetometer[2]);
+    // Account for magnetic fields of the frame (ie the thrusters)
+    m_filteredMagX.addValue(rotatedMagnetometer[0] - m_magXBias);
+    m_filteredMagY.addValue(rotatedMagnetometer[1] - m_magYBias);
+    m_filteredMagZ.addValue(rotatedMagnetometer[2] - m_magZBias);
 
     m_filteredGyroX.addValue(rotatedGyro[0]);
     m_filteredGyroY.addValue(rotatedGyro[1]);

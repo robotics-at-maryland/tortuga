@@ -66,8 +66,7 @@ namespace math {
     {
     public:
         inline Quaternion (
-            Real fW = 1.0,
-            Real fX = 0.0, Real fY = 0.0, Real fZ = 0.0)
+            Real fX = 0.0, Real fY = 0.0, Real fZ = 0.0, Real fW = 1.0)
 		{
 			w = fW;
 			x = fX;
@@ -267,7 +266,7 @@ namespace math {
         static const Quaternion ZERO;
         static const Quaternion IDENTITY;
 
-		Real w, x, y, z;
+		Real x, y, z, w;
 
         /** Function for writing to a stream. Outputs "Quaternion(w, x, y, z)" with w,x,y,z
             being the member values of the quaternion.
@@ -275,7 +274,7 @@ namespace math {
         inline friend std::ostream& operator <<
             ( std::ostream& o, const Quaternion& q )
         {
-            o << "Quaternion(" << q.w << ", " << q.x << ", " << q.y << ", " << q.z << ")";
+            o << "Quaternion(" << q.x << ", " << q.y << ", " << q.z << ", " << q.w << ")";
             return o;
         }
 

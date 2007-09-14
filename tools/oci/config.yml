@@ -62,9 +62,10 @@ Modules:
             IMU:
                 type: ext.vehicle_device.IMU
                 update_interval: 5
-                magXBias: -0.313119
-                magYBias: 0.264319
-                magZBias: 0.181478
+                # These are in VEHICLE FRAME
+                magXBias: -0.3053
+                magYBias: 0.2663
+                magZBias: 0.1884
 #                magXBias: 0.0
 #                magYBias: 0.0
 #                magZBias: 0.0

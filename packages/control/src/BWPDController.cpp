@@ -278,14 +278,19 @@ void BWPDController::update(double timestep)
     memcpy(&m_measuredState->linearAcceleration[0],
            &linearAcceleration, sizeof(double) * 3);
 
+//    std::cout << "A: " << linearAcceleration << std::endl;
     math::Quaternion orientation(m_imu->getOrientation());
     memcpy(&m_measuredState->quaternion[0],
            &orientation, sizeof(double) * 4);
 
+//    std::cout << "O: " << orientation << std::endl;
+    
     math::Vector3 angularRate(m_imu->getAngularRate());
     memcpy(&m_measuredState->angularRate[0],
            &angularRate, sizeof(double) * 3);
 
+//    std::cout << "W: " << angularRate << std::endl;
+    
     vehicle::device::FilteredIMUData state;
     m_imu->getFilteredState(state);
     m_measuredState->magneticField[0] = state.magX;
@@ -297,29 +302,29 @@ void BWPDController::update(double timestep)
     // Calculate new forces
     double translationalForces[3] = {0,0,0};
     double rotationalTorques[3] = {0,0,0};
-    double pitchHack = 0;
+//    double pitchHack = 0;
 
     {
         core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
         
-        translationalController(m_measuredState, m_desiredState,
-        	                m_controllerState, timestep,
-                                translationalForces);
+//        translationalController(m_measuredState, m_desiredState,
+//        	                m_controllerState, timestep,
+//                                translationalForces);
 
         // Doesn't currently handle pitch
         BongWiePDRotationalController(m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
                                       rotationalTorques);
         
-	pitchHack = HackedPDPitchControl(m_measuredState, 
-					 m_desiredState,
-					 m_controllerState, m_hackedPitchGain);
+//	pitchHack = HackedPDPitchControl(m_measuredState, 
+//					 m_desiredState,
+//					 m_controllerState, m_hackedPitchGain);
     }
 
     // Actually set motor values
 
     // Hacking torques get pitch control
-    rotationalTorques[1] = pitchHack;
+//    rotationalTorques[1] = pitchHack;
 
     applyForcesAndTorques(translationalForces, rotationalTorques);
 }
@@ -346,7 +351,8 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
 //    double aft = 0;
     
 //    std::cout << "Force S: " << star << " P: " << port << " F: "
-//              << fore << " A: " << aft << std::endl;
+//              << fore << " A: " << aft
+//    std::cout << "Torque: " << math::Vector3(rotationalTorques) << std::endl;
     
     
     m_starboardThruster->setForce(star);

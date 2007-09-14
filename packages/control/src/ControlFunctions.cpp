@@ -231,7 +231,7 @@ double HackedPDPitchControl(MeasuredState* measuredState,
     thetaError=thetaError-2*M_PI;
   }
 
-  printf("E: %5.3f A1: %5.3f A2: %5.3f\n", thetaError, accel1, accel3);
+//  printf("E: %5.3f A1: %5.3f A2: %5.3f\n", thetaError, accel1, accel3);
   //I need a minus sign in front of the gain, right...?
   //this is P control for pitch (no you don't)
 //  double pitchTorque= hackedPitchGain*thetaError;

@@ -1,4 +1,3 @@
-
 // STD Includes
 #include <cstdlib>
 #include <iostream>
@@ -7,6 +6,7 @@
 
 // UNIX Includes
 #include <signal.h>
+#include <unistd.h>
 
 // Project Includes
 #include "vehicle/include/device/IMU.h"
@@ -53,15 +53,18 @@ int main (){
   
   // Create IMU Device
   IMU imu(ConfigNode::fromString("{'name' : 'IMU',"
-                                 "'magXBias' : 0,"
-                                 "'magYBias' : 0,"
-                                 "'magZBias' : 0}"));
+                                 "'magXBias' : -0.3053,"
+                                 "'magYBias' : 0.2663,"
+                                 "'magZBias' : 0.1884}"));
 
   // Start IMU running in the background
   imu.background(5);
 
-  FilteredIMUData imuData;  
-  while(true)
+  std::cout << "array = [0 0 0;" << std::endl;
+  
+  FilteredIMUData imuData;
+  for (int i = 0; i < 48000; i++)
+//  while(true)
   {
       // Read IMU
       imu.getFilteredState(imuData);
@@ -81,7 +84,15 @@ int main (){
           minY = imuData.magY;
       if (imuData.magZ < minZ)
           minZ = imuData.magZ;
+
+      std::cout << imuData.magX << " " << imuData.magY << " "
+                << imuData.magZ << ";" << std::endl;
+      
+      usleep(100000);
   }
+
+  std::cout << "];"<< std::endl;
+  
   
   return 0;
 }

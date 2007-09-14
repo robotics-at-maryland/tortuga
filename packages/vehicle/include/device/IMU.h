@@ -102,7 +102,6 @@ private:
 
     /** Rotates data from the IMU to the Vehicle frame */
     double m_IMUToVehicleFrame[3][3];
-    double m_localMagneticPitch;
 
     /** Bias based on vehicles local mag field */
     double m_magXBias;
