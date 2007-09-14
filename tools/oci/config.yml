@@ -62,9 +62,15 @@ Modules:
             IMU:
                 type: ext.vehicle_device.IMU
                 update_interval: 5
-                magXBias: -0.21305
-                magYBias: -0.139574
-                magZBias: -0.282475
+                magXBias: -0.313119
+                magYBias: 0.264319
+                magZBias: 0.181478
+#                magXBias: 0.0
+#                magYBias: 0.0
+#                magZBias: 0.0
+#                magXBias: -0.21305
+#                magYBias: -0.139574
+#                magZBias: -0.282475
                 localMagneticPitch: 60
 
     Controller:
@@ -83,7 +89,7 @@ Modules:
 
         desiredSpeed: 0
         desiredDepth: 0
-        desiredQuaternion: [-0.482, 0.637, -0.376, 0.469]
+        desiredQuaternion: [0, 0, 0, 1]
 
 
 #        desiredQuaternion: [-.744, 0.4398, -0.4371, 0.247]

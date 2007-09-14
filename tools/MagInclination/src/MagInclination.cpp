@@ -52,8 +52,8 @@ int main (){
     readIMUData(fd, &imuData);
     //save to arrays
     
-    mag.addValue(Vector3(imuData.magX, imuData.magX, imuData.magX));
-    accel.addValue(Vector3(imuData.accelX, imuData.accelX, imuData.accelX));
+    mag.addValue(Vector3(imuData.magX, imuData.magY, imuData.magZ));
+    accel.addValue(Vector3(imuData.accelX, imuData.accelY, imuData.accelZ));
 
     //sleep for 20 ms
     usleep(20000);
