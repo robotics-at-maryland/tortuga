@@ -217,29 +217,29 @@ int main(int argc, char** argv)
 
 					case BTN_LEFT:
 					{
-						controller.yawVehicle(-TURN_ENC);
+						controller.yawVehicle(TURN_ENC);
 						break;
 					}
 
 
                                        case BTN_RIGHT:
                                        {
-	                                       controller.yawVehicle(TURN_ENC);
+	                                       controller.yawVehicle(-TURN_ENC);
 	                                       break;
 	                               }
 
 
-                                       case BTN_SHALLOW:
+                                       case BTN_DEEP:
 				       {
 					       if(controller.getDepth() < MAX_DEPTH)
 						       controller.setDepth(controller.getDepth()+DEPTH_ENC);
 						break;
 					}
 
-					case BTN_DEEP:
+					case BTN_SHALLOW:
                                        {
-				               if(controller.getDepth() < MAX_DEPTH)
-				                       controller.setDepth(controller.getDepth()+DEPTH_ENC);
+				               if(controller.getDepth() > MIN_DEPTH)
+				                       controller.setDepth(controller.getDepth()-DEPTH_ENC);
 				               break;
 				       }
 
