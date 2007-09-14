@@ -1,4 +1,5 @@
 from aiStateMachine import aiStateMachine
+from movementMachine import movementMachine
 import time as clock
 
 class controlTestMachine(aiStateMachine):
