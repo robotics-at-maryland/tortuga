@@ -380,14 +380,18 @@ class AI(Module):
     def simpleTest(self):
 	self.vehicle.printLine(0,"testing ai")
 	self.vehicle.printLine(1," ")
+        print "Depth", self.vehicle.getDepth()
+        print "Depth " + str(self.vehicle.getDepth())
+        self.controller.setDepth(1)
 	self.controller.yawVehicle(180)
-	if controller.isOriented():
-	    self.change_state("simpletest2")
+	if self.controller.isOriented():
+	    self.stateMachine.change_state("simpleTest2")
 
     def simpleTest2(self):
+        self.vehicle.printLine(0,"Another Simple")
 	self.controller.yawVehicle(180)
-	if controller.isOriented():
-	    self.change_state("testFunctionality")
+	if self.controller.isOriented():
+	    self.stateMachine.change_state("testFunctionality")
 
     def testFunctionality(self):
         self.speed = 0
