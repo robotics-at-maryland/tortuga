@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 			recv(fd, &num, 1, 0);
 			recv(fd, &val, 2, 0);   /* We're both Intel, so who cares about byte order */
 
-			printf("%d %d: %d\n", type, num, val);
+//			printf("%d %d: %d\n", type, num, val);
 #define BTN_UP 2
 #define BTN_DOWN 3
 #define BTN_LEFT 0
@@ -239,6 +239,8 @@ int main(int argc, char** argv)
 				       {
 					       if(controller.getDepth() < MAX_DEPTH)
 						       controller.setDepth(controller.getDepth()+DEPTH_ENC);
+						
+						printf("\nNEW DEPTH: %f\n", controller.getDepth());
 						break;
 					}
 
@@ -246,7 +248,10 @@ int main(int argc, char** argv)
                                        {
 				               if(controller.getDepth() > MIN_DEPTH)
 				                       controller.setDepth(controller.getDepth()-DEPTH_ENC);
-				               break;
+				               
+					       
+						printf("\nNEW DEPTH: %f\n", controller.getDepth());
+					       break;
 				       }
 
 				}

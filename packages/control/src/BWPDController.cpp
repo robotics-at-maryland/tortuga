@@ -333,8 +333,8 @@ void BWPDController::update(double timestep)
 void BWPDController::applyForcesAndTorques(double* translationalForces,
                                            double* rotationalTorques)
 {
-    std::cout << "Rot Torq: " << math::Vector3(rotationalTorques) << std::endl;
-    std::cout << "Speed " << translationalForces[0] << " Depth " << translationalForces[2] << std::endl;
+//    std::cout << "Rot Torq: " << math::Vector3(rotationalTorques) << std::endl;
+//    std::cout << "Speed " << translationalForces[0] << " Depth " << translationalForces[2] << std::endl;
 //    std::cout << "Applying forces" << std::endl;
 
     double star = translationalForces[0] / 2 +
@@ -353,8 +353,8 @@ void BWPDController::applyForcesAndTorques(double* translationalForces,
 //    double fore = 0;
 //    double aft = 0;
     
-    std::cout << "Force S: " << star << " P: " << port << " F: "
-              << fore << " A: " << aft << std::endl;
+//    std::cout << "Force S: " << star << " P: " << port << " F: "
+//              << fore << " A: " << aft << std::endl;
 //    std::cout << "Torque: " << math::Vector3(rotationalTorques) << std::endl;
     
     

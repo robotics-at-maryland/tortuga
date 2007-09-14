@@ -89,8 +89,8 @@ Modules:
         hackedPitchGain: 12
         hackedYawGain: 0
 
-        desiredSpeed: 1
-        desiredDepth: 2
+        desiredSpeed: 0
+        desiredDepth: 0
         desiredQuaternion: [0, 0, 0, 1]
 
 
