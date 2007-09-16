@@ -47,9 +47,9 @@ namespace po = boost::program_options;
 int main(int argc, char** argv)
 {
     std::string configPath;
-    po::options_description desc("Allowed options");    
-    po::variables_map vm;        
-    
+    po::options_description desc("Allowed options");
+    po::variables_map vm;
+
     try
     {
         desc.add_options()
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
         ;
 
         po::store(po::parse_command_line(argc, argv, desc), vm);
-        po::notify(vm);    
+        po::notify(vm);
     }
     catch(std::exception& e)
     {
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     dev_cfg["AftThruster"].set("name", "AftThruster");
     dev_cfg["PortThruster"].set("name", "PortThruster");
     dev_cfg["IMU"].set("name", "IMU");
-    
+
 //    vehicle::device::ThrusterPtr thruster =
 //        vehicle::device::Thruster::construct(dev_cfg["StarboardThruster"]);
 
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
     int thrustUpdate = dev_cfg["StarboardThruster"]["update_interval"].asInt();
     int vehicleUpdate = dev_cfg["IMU"]["update_interval"].asInt();
     int imuUpdate = dev_cfg["IMU"]["update_interval"].asInt();
-        
+
     // Create our controller
     core::ConfigNode ctrl_cfg(modules["Controller"]);
     control::BWPDController controller(&vehicle, ctrl_cfg);
@@ -157,10 +157,10 @@ int main(int argc, char** argv)
                perror("accept");
                continue;
         }
-    
+
         printf("server: got connection\n");
         {
-		int fd = new_fd;        
+		int fd = new_fd;
 		//unsigned char buf[64];
 		unsigned char type = 0;
 	    	unsigned char num = 0;
@@ -177,8 +177,8 @@ int main(int argc, char** argv)
 //			printf("%d %d: %d\n", type, num, val);
 #define BTN_UP 2
 #define BTN_DOWN 3
-#define BTN_LEFT 0
-#define BTN_RIGHT 1
+#define BTN_LEFT 8
+#define BTN_RIGHT 6
 
 #define BTN_SHALLOW 9
 #define BTN_DEEP 5
@@ -239,7 +239,7 @@ int main(int argc, char** argv)
 				       {
 					       if(controller.getDepth() < MAX_DEPTH)
 						       controller.setDepth(controller.getDepth()+DEPTH_ENC);
-						
+
 						printf("\nNEW DEPTH: %f\n", controller.getDepth());
 						break;
 					}
@@ -248,8 +248,8 @@ int main(int argc, char** argv)
                                        {
 				               if(controller.getDepth() > MIN_DEPTH)
 				                       controller.setDepth(controller.getDepth()-DEPTH_ENC);
-				               
-					       
+
+
 						printf("\nNEW DEPTH: %f\n", controller.getDepth());
 					       break;
 				       }
@@ -257,7 +257,7 @@ int main(int argc, char** argv)
 				}
 			}
 		}
-	
+
 		exit(0);
         }
         close(new_fd);  /* parent doesn't need this */
