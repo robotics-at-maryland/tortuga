@@ -1,0 +1,307 @@
+(* Content-type: application/mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 6.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       145,          7]
+NotebookDataLength[     10209,        298]
+NotebookOptionsPosition[      9742,        278]
+NotebookOutlinePosition[     10116,        294]
+CellTagsIndexPosition[     10073,        291]
+WindowFrame->Normal
+ContainsDynamic->False*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Passive Sonar", "Title",
+ CellChangeTimes->{{3.398901076414988*^9, 3.398901098834732*^9}, {
+  3.3989012444062157`*^9, 3.398901249793654*^9}}],
+
+Cell["An interactive demonstration", "Subtitle",
+ CellChangeTimes->{{3.39890111123167*^9, 3.398901115602694*^9}}],
+
+Cell["\<\
+A passive sonar array can determine both the range and relative bearing for \
+an acoustic source.  The time delay on arrival (TDOA) from each pair of \
+hydrophones determines a hyperbola along which the source point lies.  By \
+finding the intersection point of all three hyperbolae, one can find the \
+location of the source point.\
+\>", "Text",
+ CellChangeTimes->{{3.398901515788356*^9, 3.3989015718936357`*^9}, {
+  3.398901615546527*^9, 3.398901740777482*^9}, {3.398901790451921*^9, 
+  3.398901826548386*^9}, {3.3989018647258263`*^9, 3.3989019049004087`*^9}, {
+  3.398902548146331*^9, 3.39890255040676*^9}}],
+
+Cell["\<\
+Evaluate the following cell to display an interactive demonstration of a \
+3-element sonar array.\
+\>", "Text",
+ CellChangeTimes->{{3.398901181092383*^9, 3.3989012293676243`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"range", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "3"}], ",", "3"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "3"}], ",", "3"}], "}"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"srcx", "=", "0.61"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"srcy", "=", 
+   RowBox[{"-", "0.12"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"w", "=", "0.5"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"c", "=", 
+   FractionBox["w", "2"]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"hydrophonevertices", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"c", ",", 
+       RowBox[{"c", 
+        FractionBox[
+         SqrtBox["3"], "3"]}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "c"}], ",", 
+       RowBox[{"c", 
+        FractionBox[
+         SqrtBox["3"], "3"]}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", 
+       RowBox[{
+        RowBox[{"-", "c"}], " ", 
+        FractionBox[
+         RowBox[{"2", 
+          SqrtBox["3"]}], "3"]}]}], "}"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"hydrophoneplot", "=", 
+   RowBox[{"ListPlot", "[", 
+    RowBox[{"hydrophonevertices", ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"Gray", ",", 
+        RowBox[{"PointSize", "[", "Medium", "]"}]}], "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dist1", ":=", 
+   SqrtBox[
+    RowBox[{
+     SuperscriptBox[
+      RowBox[{"(", 
+       RowBox[{"srcx", "-", "c"}], ")"}], "2"], "+", 
+     SuperscriptBox[
+      RowBox[{"(", 
+       RowBox[{"srcy", "-", 
+        RowBox[{"c", 
+         FractionBox[
+          SqrtBox["3"], "3"]}]}], ")"}], "2"]}]]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dist2", ":=", 
+   SqrtBox[
+    RowBox[{
+     SuperscriptBox[
+      RowBox[{"(", 
+       RowBox[{"srcx", "+", "c"}], ")"}], "2"], "+", 
+     SuperscriptBox[
+      RowBox[{"(", 
+       RowBox[{"srcy", "-", 
+        RowBox[{"c", 
+         FractionBox[
+          SqrtBox["3"], "3"]}]}], ")"}], "2"]}]]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dist3", ":=", 
+   SqrtBox[
+    RowBox[{
+     SuperscriptBox["srcx", "2"], "+", 
+     SuperscriptBox[
+      RowBox[{"(", 
+       RowBox[{"srcy", "+", 
+        RowBox[{"c", " ", 
+         FractionBox[
+          RowBox[{"2", 
+           SqrtBox["3"]}], "3"]}]}], ")"}], "2"]}]]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tdif1", ":=", 
+   RowBox[{"dist2", "-", "dist1"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tdif2", ":=", 
+   RowBox[{"dist3", "-", "dist2"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"tdif3", ":=", 
+   RowBox[{"dist1", "-", "dist3"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"HyperbolaParametric", "[", 
+    RowBox[{"a_", ",", "b_", ",", "\[Phi]_"}], "]"}], ":=", 
+   RowBox[{
+    RowBox[{"RotationMatrix", "[", "\[Phi]", "]"}], ".", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"a", " ", 
+       RowBox[{"Cosh", "[", "t", "]"}]}], ",", 
+      RowBox[{
+       RowBox[{"b", " ", 
+        RowBox[{"Sinh", "[", "t", "]"}]}], "+", 
+       RowBox[{"c", 
+        FractionBox[
+         SqrtBox["3"], "3"]}]}]}], "}"}]}]}], ";", 
+  RowBox[{
+   RowBox[{"PlotHyperbola", "[", 
+    RowBox[{"a_", ",", "b_", ",", "\[Phi]_", ",", "color_"}], "]"}], ":=", 
+   RowBox[{"ParametricPlot", "[", 
+    RowBox[{
+     RowBox[{"HyperbolaParametric", "[", 
+      RowBox[{"a", ",", "b", ",", "\[Phi]"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"t", ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], "\[Pi]"}], ",", 
+       RowBox[{"2", "\[Pi]"}]}], "}"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", 
+      RowBox[{"{", "color", "}"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Magnify", "[", 
+  RowBox[{
+   RowBox[{"Grid", "[", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"VerticalSlider", "[", 
+         RowBox[{
+          RowBox[{"Dynamic", "[", "srcy", "]"}], ",", 
+          RowBox[{"range", "[", 
+           RowBox[{"[", "2", "]"}], "]"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Dynamic", "[", 
+         RowBox[{"Show", "[", 
+          RowBox[{"hydrophoneplot", ",", 
+           RowBox[{"ListPlot", "[", 
+            RowBox[{
+             RowBox[{"{", 
+              RowBox[{"{", 
+               RowBox[{"srcx", ",", "srcy"}], "}"}], "}"}], ",", 
+             RowBox[{"PlotStyle", "\[Rule]", 
+              RowBox[{"{", 
+               RowBox[{
+                RowBox[{"PointSize", "\[Rule]", "Large"}], ",", "Black"}], 
+               "}"}]}]}], "]"}], ",", "\[IndentingNewLine]", 
+           RowBox[{"PlotHyperbola", "[", 
+            RowBox[{
+             RowBox[{"tdif1", "/", "2"}], ",", 
+             SqrtBox[
+              RowBox[{
+               SuperscriptBox["c", "2"], "-", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{"tdif1", "/", "2"}], ")"}], "2"]}]], ",", "0", ",", 
+             "Red"}], "]"}], ",", "\[IndentingNewLine]", 
+           RowBox[{"PlotHyperbola", "[", 
+            RowBox[{
+             RowBox[{"tdif2", "/", "2"}], ",", 
+             SqrtBox[
+              RowBox[{
+               SuperscriptBox["c", "2"], "-", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{"tdif2", "/", "2"}], ")"}], "2"]}]], ",", 
+             RowBox[{"2", 
+              RowBox[{"\[Pi]", "/", "3"}]}], ",", "Green"}], "]"}], ",", 
+           "\[IndentingNewLine]", 
+           RowBox[{"PlotHyperbola", "[", 
+            RowBox[{
+             RowBox[{"tdif3", "/", "2"}], ",", 
+             SqrtBox[
+              RowBox[{
+               SuperscriptBox["c", "2"], "-", 
+               SuperscriptBox[
+                RowBox[{"(", 
+                 RowBox[{"tdif3", "/", "2"}], ")"}], "2"]}]], ",", 
+             RowBox[{"4", 
+              RowBox[{"\[Pi]", "/", "3"}]}], ",", "Blue"}], "]"}], ",", 
+           "\[IndentingNewLine]", 
+           RowBox[{"PlotRange", "\[Rule]", "range"}], ",", 
+           RowBox[{"AxesOrigin", "\[Rule]", 
+            RowBox[{"{", 
+             RowBox[{"0", ",", "0"}], "}"}]}], ",", 
+           RowBox[{"AspectRatio", "\[Rule]", "1"}], ",", 
+           RowBox[{"Axes", "\[Rule]", "False"}]}], "]"}], "]"}]}], "}"}], ",",
+       "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{"\"\< \>\"", ",", 
+        RowBox[{"Slider", "[", 
+         RowBox[{
+          RowBox[{"Dynamic", "[", "srcx", "]"}], ",", 
+          RowBox[{"range", "[", 
+           RowBox[{"[", "1", "]"}], "]"}]}], "]"}]}], "}"}]}], "}"}], "]"}], 
+   ",", "3"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.398813879052253*^9, 3.398813905966729*^9}, {
+   3.3988215151893578`*^9, 3.39882152542033*^9}, {3.398822438010593*^9, 
+   3.398822645372501*^9}, {3.3988226766436872`*^9, 3.3988228353027277`*^9}, {
+   3.398822989917665*^9, 3.39882304851124*^9}, {3.398823104967453*^9, 
+   3.3988231067568274`*^9}, {3.3988232085935163`*^9, 3.398823212125083*^9}, {
+   3.398823255028183*^9, 3.398823288332896*^9}, {3.398823347678831*^9, 
+   3.398823352539474*^9}, {3.398823871805777*^9, 3.3988238734519157`*^9}, {
+   3.3988977724187*^9, 3.398897784910954*^9}, {3.3988978167676287`*^9, 
+   3.398897867164282*^9}, {3.398898603389948*^9, 3.39889861086067*^9}, {
+   3.398898913699044*^9, 3.398898916941614*^9}, {3.398898957792267*^9, 
+   3.398899020267541*^9}, {3.398899431722756*^9, 3.398899436215757*^9}, {
+   3.398899503270014*^9, 3.398899772530785*^9}, {3.398899815926285*^9, 
+   3.3988998182033367`*^9}, 3.3988998834921417`*^9, {3.3988999540300007`*^9, 
+   3.398899960231555*^9}, {3.398901974903817*^9, 3.398902017764998*^9}, {
+   3.398902076747761*^9, 3.398902077919911*^9}, {3.3989021176492643`*^9, 
+   3.3989021708150806`*^9}, {3.398902202893518*^9, 3.398902223303671*^9}, {
+   3.398902302863863*^9, 3.398902307318246*^9}, {3.3989023666858273`*^9, 
+   3.398902369073299*^9}}]
+}, Open  ]]
+},
+AutoGeneratedPackage->Automatic,
+WindowSize->{937, 821},
+WindowMargins->{{42, Automatic}, {Automatic, 62}},
+FrontEndVersion->"6.0 for Mac OS X PowerPC (32-bit) (April 20, 2007)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[590, 23, 147, 2, 76, "Title"],
+Cell[740, 27, 113, 1, 46, "Subtitle"],
+Cell[856, 30, 620, 10, 41, "Text"],
+Cell[1479, 42, 189, 4, 26, "Text"],
+Cell[1671, 48, 8055, 227, 642, "Input"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
