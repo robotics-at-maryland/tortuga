@@ -370,9 +370,9 @@ void dropMarker(byte id)
 {
     /* Set appropriate output to 1 */
     if(id == 0)
-        _LATB1 = 1;
+        _LATB1 = 0;
     else
-        _LATB2 = 1;
+        _LATB2 = 0;
 
 
     /* Timer1 is a Type A timer. Evidently there are other types
@@ -382,7 +382,7 @@ void dropMarker(byte id)
      * marker, but I would like to know the reason for this discrepantcy.
      */
 
-    PR1 = 65535;            /* Period */
+    PR1 = 30000;            /* Period */
     TMR1 = 0;               /* Reset timer */
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 1;      /* Enable interrupts */
@@ -402,8 +402,8 @@ void _ISR _T1Interrupt(void)
      * solenids will deactivate when the timer expires.
      */
 
-    _LATB1 = 0;         /* Turn off marker soleniod (or LED in my case) */
-    _LATB2 = 0;         /* Turn off marker soleniod (or LED in my case) */
+    _LATB1 = 1;         /* Turn off marker soleniod (or LED in my case) */
+    _LATB2 = 1;         /* Turn off marker soleniod (or LED in my case) */
 
     T1CONbits.TON = 0;  /* Stop Timer1 */
 }
@@ -542,6 +542,8 @@ void main()
 {
     byte i;
 
+    _LATB1 = 1;
+    _LATB2 = 1;
     _TRISB1 = TRIS_OUT; /* Marker 1 */
     _TRISB2 = TRIS_OUT; /* Marker 2 */
 
