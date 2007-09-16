@@ -125,9 +125,10 @@ int main(int argc, char** argv)
     struct sockaddr_in their_addr; /*connector's address information */
     int sin_size;
     int ret;
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-           perror("socket");
-           exit(1);
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        perror("socket");
+        exit(1);
     }
 
     memset((void *)&my_addr,0,sizeof(my_addr)); /*zero*/
@@ -189,9 +190,24 @@ int main(int argc, char** argv)
 
 #define DEPTH_ENC 0.25
 #define TURN_ENC 10
-#define SPEED_ENC 1
 #define MIN_SPEED -5
 #define MAX_SPEED 5
+
+
+#warning THE FOLLOWING BLOCK OF CODE HAS NOT YET BEEN TESTED ON THE VEHICLE
+            if(type == 0 && num == 1) // First stick, vertical axis
+            {
+                int newSpeed = val / (32768 / MAX_SPEED);
+
+                if(newSpeed != controller.getSpeed())
+                {
+                    printf("NEW SPEED:  %d\n", newSpeed);
+                    controller.setSpeed(newSpeed);
+                }
+            }
+
+
+
 
 			if(type == 1 && val == 1) // A button press
 			{
@@ -202,7 +218,7 @@ int main(int argc, char** argv)
 						return 1;
 						break;
 					}
-
+/*
 					case BTN_UP:
 					{
 						if(controller.getSpeed() < MAX_SPEED)
@@ -220,7 +236,7 @@ int main(int argc, char** argv)
 						printf("\nNEW SPEED:  %d\n", controller.getSpeed());
 						break;
 					}
-
+*/
 					case BTN_LEFT:
 					{
 						controller.yawVehicle(TURN_ENC);
@@ -228,31 +244,31 @@ int main(int argc, char** argv)
 					}
 
 
-                                       case BTN_RIGHT:
-                                       {
-	                                       controller.yawVehicle(-TURN_ENC);
-	                                       break;
-	                               }
+                    case BTN_RIGHT:
+                    {
+	                    controller.yawVehicle(-TURN_ENC);
+	                    break;
+	                }
 
 
-                                       case BTN_DEEP:
-				       {
-					       if(controller.getDepth() < MAX_DEPTH)
-						       controller.setDepth(controller.getDepth()+DEPTH_ENC);
+                    case BTN_DEEP:
+				    {
+					    if(controller.getDepth() < MAX_DEPTH)
+						    controller.setDepth(controller.getDepth()+DEPTH_ENC);
 
-						printf("\nNEW DEPTH: %f\n", controller.getDepth());
+						printf("NEW DEPTH: %f\n", controller.getDepth());
 						break;
 					}
 
 					case BTN_SHALLOW:
-                                       {
-				               if(controller.getDepth() > MIN_DEPTH)
-				                       controller.setDepth(controller.getDepth()-DEPTH_ENC);
+                    {
+				        if(controller.getDepth() > MIN_DEPTH)
+				            controller.setDepth(controller.getDepth()-DEPTH_ENC);
 
 
-						printf("\nNEW DEPTH: %f\n", controller.getDepth());
-					       break;
-				       }
+						printf("NEW DEPTH: %f\n", controller.getDepth());
+					    break;
+				    }
 
 				}
 			}
