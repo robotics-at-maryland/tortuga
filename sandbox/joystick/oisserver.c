@@ -20,6 +20,8 @@
     Value          (2 bytes signed) new value
 */
 
+#define MAX_SPEED 5
+
 void runInput(int fd)
 {
     unsigned char buf[64];
@@ -35,7 +37,12 @@ void runInput(int fd)
         recv(fd, &num, 1, 0);
         recv(fd, &val, 2, 0);   /* We're both Intel, so who cares about byte order */
 
-        printf("%d %d: %d\n", type, num, val);
+       // printf("%d %d: %d\n", type, num, val);
+
+       if(type == 0 && num == 1)
+       {
+            printf("NEW SPEED: %d\n", val / (32768/MAX_SPEED));
+       }
     }
 }
 
