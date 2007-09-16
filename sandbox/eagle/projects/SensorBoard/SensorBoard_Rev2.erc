@@ -1,0 +1,55 @@
+EAGLE Version 4.16r1 Copyright (c) 1988-2006 CadSoft
+
+Electrical Rule Check for /opt/eagle/projects/SensorBoard/SensorBoard_Rev2.sch at  5/31/2007 14:40:53 
+
+WARNING: Sheet 1/1: POWER Pin IC1 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC1 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC1 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC1 AVDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC1 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC1 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC1 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC1 AVSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC2 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC2 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC2 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC2 AVDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC2 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC2 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC2 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC2 AVSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC3 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC3 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC3 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC3 AVDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC3 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC3 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC3 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC3 AVSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC4 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC4 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC4 VDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC4 AVDD connected to VCC
+WARNING: Sheet 1/1: POWER Pin IC4 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC4 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC4 VSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC4 AVSS connected to GND
+WARNING: Sheet 1/1: POWER Pin IC5 VCCIO connected to N$14
+WARNING: Sheet 1/1: POWER Pin IC5 VCC connected to N$14
+ERROR: Sheet 1/1: unconnected INPUT Pin: IC5 OSCI
+ERROR: Sheet 1/1: unconnected INPUT Pin: IC5 _CTS
+ERROR: Sheet 1/1: unconnected INPUT Pin: IC5 _DTR
+ERROR: Sheet 1/1: unconnected INPUT Pin: IC5 _DSR
+ERROR: Sheet 1/1: unconnected INPUT Pin: IC5 _DCD
+ERROR: Sheet 1/1: unconnected INPUT Pin: IC5 _RI
+WARNING: Sheet 1/1: POWER Pin IC5 AGND connected to GND
+ERROR: Sheet 1/1: unconnected INPUT Pin: X1 5
+WARNING: Sheet 1/1: POWER Pin TMP48 P$4 connected to GND
+WARNING: Sheet 1/1: POWER Pin TMP48 P$8 connected to VCC
+WARNING: Sheet 1/1, Net GND: missing Junction at (9.1 1.3)
+WARNING: Sheet 1/1, Net GND: missing Junction at (9.2 1.3)
+
+Board and schematic are consistent
+
+    7 errors
+   39 warnings

@@ -1,0 +1,47 @@
+Photoplotter Info File: /opt/eagle/projects/SensorBoard/SensorBoard_Rev3-2.gpi
+
+ Date              :  6/04/2007 22:02:26 
+ Plotfile          : /opt/eagle/projects/SensorBoard/SensorBoard_Rev3-2.sts
+ Apertures         : generated: 
+ Device            : Gerber photoplotter with RS-274-X aperture generation
+
+Parameter settings:
+
+ Emulate Apertures : no
+ Emulate Thermal   : no
+ Emulate Annulus   : no
+ Tolerance Draw  + :  0.00 %
+ Tolerance Draw  - :  0.00 %
+ Tolerance Flash + :  0.00 %
+ Tolerance Flash - :  0.00 %
+ Rotate            : no
+ Mirror            : yes
+ Optimize          : yes
+ Auto fit          : yes
+ OffsetX           : 0inch
+ OffsetY           : 0inch
+
+Plotfile Info:
+
+ Coordinate Format : 2.4
+ Coordinate Units  : Inch
+ Data Mode         : Absolute
+ Zero Suppression  : None
+ End Of Block      : *
+
+Apertures used:
+
+ Code     Shape     Size                  used
+
+ D10      draw      0.0010inch             809
+ D11      round     0.1182inch               3
+ D12      oval      0.0680inch x 0.1280inch     6
+ D13      round     0.0600inch               4
+ D14      round     0.0434inch               2
+ D15      oval      0.0640inch x 0.1200inch     8
+ D16      oval      0.1200inch x 0.0640inch    17
+ D17      octagon   0.0640inch              74
+ D18      octagon   0.0600inch               6
+ D19      oval      0.1070inch x 0.2060inch     2
+ D20      round     0.0340inch             279
+
