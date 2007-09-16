@@ -74,10 +74,10 @@ int syncBoard(int fd)
 	    miniSleep();
 
         if(!hasData(fd, IO_TIMEOUT) && b[0]==0xBC)
-            return 0;
+            return SB_OK;
     }
 
-    return -1;
+    return SB_ERROR;
 }
 
 
@@ -171,7 +171,7 @@ int readTemp(int fd, unsigned char * tempData)
         sum = (sum+tempData[i]) & 0xFF;
 
     if(sum == buf[0])
-        return 0;
+        return SB_OK;
 
     return SB_ERROR;
 }

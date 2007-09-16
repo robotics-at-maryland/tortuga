@@ -59,6 +59,9 @@ int openSensorBoard(const char * devName);
 /** Syncs the communication protocol between the board and vehicle */
 int syncBoard(int fd);
 
+int checkBoard(int fd);
+
+
 int pingBoard(int fd);
 
 int readDepth(int fd);
@@ -77,7 +80,7 @@ int thrusterSafety(int fd, int state);
 
 int displayText(int fd, int line, const char* text);
 
-int getTemp(int fd, unsigned char * tempData);
+int readTemp(int fd, unsigned char * tempData);
 
 int getSonarData(int fd, int * angle, int * distance, int * pingNumber);
 
