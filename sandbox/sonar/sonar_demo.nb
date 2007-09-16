@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[     10209,        298]
-NotebookOptionsPosition[      9742,        278]
-NotebookOutlinePosition[     10116,        294]
-CellTagsIndexPosition[     10073,        291]
+NotebookDataLength[     10178,        280]
+NotebookOptionsPosition[      9711,        260]
+NotebookOutlinePosition[     10085,        276]
+CellTagsIndexPosition[     10042,        273]
 WindowFrame->Normal
 ContainsDynamic->False*)
 
@@ -41,10 +41,10 @@ location of the source point.\
   3.398902548146331*^9, 3.39890255040676*^9}}],
 
 Cell["\<\
-Evaluate the following cell to display an interactive demonstration of a \
-3-element sonar array.\
+\[CapitalEAcute]valuate the following cell to start the demonstration.\
 \>", "Text",
- CellChangeTimes->{{3.398901181092383*^9, 3.3989012293676243`*^9}}],
+ CellChangeTimes->{{3.398901181092383*^9, 3.3989012293676243`*^9}, 
+   3.39895828663883*^9, {3.398961575744877*^9, 3.398961583668751*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -59,15 +59,10 @@ Cell[BoxData[{
        RowBox[{"-", "3"}], ",", "3"}], "}"}]}], "}"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"srcx", "=", "0.61"}], ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"srcy", "=", 
-   RowBox[{"-", "0.12"}]}], ";"}], "\[IndentingNewLine]", 
- RowBox[{
   RowBox[{"w", "=", "0.5"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"c", "=", 
-   FractionBox["w", "2"]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"w", "/", "2"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"hydrophonevertices", "=", 
    RowBox[{"{", 
@@ -75,21 +70,20 @@ Cell[BoxData[{
      RowBox[{"{", 
       RowBox[{"c", ",", 
        RowBox[{"c", 
-        FractionBox[
-         SqrtBox["3"], "3"]}]}], "}"}], ",", 
+        RowBox[{
+         SqrtBox["3"], "/", "3"}]}]}], "}"}], ",", 
      RowBox[{"{", 
       RowBox[{
        RowBox[{"-", "c"}], ",", 
        RowBox[{"c", 
-        FractionBox[
-         SqrtBox["3"], "3"]}]}], "}"}], ",", 
+        RowBox[{
+         SqrtBox["3"], "/", "3"}]}]}], "}"}], ",", 
      RowBox[{"{", 
       RowBox[{"0", ",", 
        RowBox[{
-        RowBox[{"-", "c"}], " ", 
-        FractionBox[
-         RowBox[{"2", 
-          SqrtBox["3"]}], "3"]}]}], "}"}]}], "}"}]}], 
+        RowBox[{"-", "c"}], " ", "2", 
+        RowBox[{
+         SqrtBox["3"], "/", "3"}]}]}], "}"}]}], "}"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"hydrophoneplot", "=", 
@@ -101,59 +95,51 @@ Cell[BoxData[{
         RowBox[{"PointSize", "[", "Medium", "]"}]}], "}"}]}]}], "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"dist1", ":=", 
-   SqrtBox[
+  RowBox[{
+   RowBox[{"dist1", "[", "src_", "]"}], ":=", 
+   RowBox[{"EuclideanDistance", "[", 
     RowBox[{
-     SuperscriptBox[
-      RowBox[{"(", 
-       RowBox[{"srcx", "-", "c"}], ")"}], "2"], "+", 
-     SuperscriptBox[
-      RowBox[{"(", 
-       RowBox[{"srcy", "-", 
-        RowBox[{"c", 
-         FractionBox[
-          SqrtBox["3"], "3"]}]}], ")"}], "2"]}]]}], 
+     RowBox[{"hydrophonevertices", "[", 
+      RowBox[{"[", "1", "]"}], "]"}], ",", "src"}], "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"dist2", ":=", 
-   SqrtBox[
+  RowBox[{
+   RowBox[{"dist2", "[", "src_", "]"}], ":=", 
+   RowBox[{"EuclideanDistance", "[", 
     RowBox[{
-     SuperscriptBox[
-      RowBox[{"(", 
-       RowBox[{"srcx", "+", "c"}], ")"}], "2"], "+", 
-     SuperscriptBox[
-      RowBox[{"(", 
-       RowBox[{"srcy", "-", 
-        RowBox[{"c", 
-         FractionBox[
-          SqrtBox["3"], "3"]}]}], ")"}], "2"]}]]}], 
+     RowBox[{"hydrophonevertices", "[", 
+      RowBox[{"[", "2", "]"}], "]"}], ",", "src"}], "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"dist3", ":=", 
-   SqrtBox[
+  RowBox[{
+   RowBox[{"dist3", "[", "src_", "]"}], ":=", 
+   RowBox[{"EuclideanDistance", "[", 
     RowBox[{
-     SuperscriptBox["srcx", "2"], "+", 
-     SuperscriptBox[
-      RowBox[{"(", 
-       RowBox[{"srcy", "+", 
-        RowBox[{"c", " ", 
-         FractionBox[
-          RowBox[{"2", 
-           SqrtBox["3"]}], "3"]}]}], ")"}], "2"]}]]}], 
+     RowBox[{"hydrophonevertices", "[", 
+      RowBox[{"[", "3", "]"}], "]"}], ",", "src"}], "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"tdif1", ":=", 
-   RowBox[{"dist2", "-", "dist1"}]}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"tdif1", "[", "src_", "]"}], ":=", 
+   RowBox[{
+    RowBox[{"dist2", "[", "src", "]"}], "-", 
+    RowBox[{"dist1", "[", "src", "]"}]}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"tdif2", ":=", 
-   RowBox[{"dist3", "-", "dist2"}]}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"tdif2", "[", "src_", "]"}], ":=", 
+   RowBox[{
+    RowBox[{"dist3", "[", "src", "]"}], "-", 
+    RowBox[{"dist2", "[", "src", "]"}]}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"tdif3", ":=", 
-   RowBox[{"dist1", "-", "dist3"}]}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"tdif3", "[", "src_", "]"}], ":=", 
+   RowBox[{
+    RowBox[{"dist1", "[", "src", "]"}], "-", 
+    RowBox[{"dist3", "[", "src", "]"}]}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"HyperbolaParametric", "[", 
-    RowBox[{"a_", ",", "b_", ",", "\[Phi]_"}], "]"}], ":=", 
+    RowBox[{"a_", ",", "b_", ",", "\[Phi]_"}], "]"}], "=", 
    RowBox[{
     RowBox[{"RotationMatrix", "[", "\[Phi]", "]"}], ".", 
     RowBox[{"{", 
@@ -164,98 +150,83 @@ Cell[BoxData[{
        RowBox[{"b", " ", 
         RowBox[{"Sinh", "[", "t", "]"}]}], "+", 
        RowBox[{"c", 
-        FractionBox[
-         SqrtBox["3"], "3"]}]}]}], "}"}]}]}], ";", 
-  RowBox[{
-   RowBox[{"PlotHyperbola", "[", 
-    RowBox[{"a_", ",", "b_", ",", "\[Phi]_", ",", "color_"}], "]"}], ":=", 
-   RowBox[{"ParametricPlot", "[", 
-    RowBox[{
-     RowBox[{"HyperbolaParametric", "[", 
-      RowBox[{"a", ",", "b", ",", "\[Phi]"}], "]"}], ",", 
-     RowBox[{"{", 
-      RowBox[{"t", ",", 
-       RowBox[{
-        RowBox[{"-", "2"}], "\[Pi]"}], ",", 
-       RowBox[{"2", "\[Pi]"}]}], "}"}], ",", 
-     RowBox[{"PlotStyle", "\[Rule]", 
-      RowBox[{"{", "color", "}"}]}]}], "]"}]}], 
+        RowBox[{
+         SqrtBox["3"], "/", "3"}]}]}]}], "}"}]}]}], 
   ";"}], "\[IndentingNewLine]", 
- RowBox[{"Magnify", "[", 
+ RowBox[{"Manipulate", "[", 
   RowBox[{
-   RowBox[{"Grid", "[", 
-    RowBox[{"{", 
-     RowBox[{
-      RowBox[{"{", 
-       RowBox[{
-        RowBox[{"VerticalSlider", "[", 
-         RowBox[{
-          RowBox[{"Dynamic", "[", "srcy", "]"}], ",", 
-          RowBox[{"range", "[", 
-           RowBox[{"[", "2", "]"}], "]"}]}], "]"}], ",", 
-        "\[IndentingNewLine]", 
-        RowBox[{"Dynamic", "[", 
-         RowBox[{"Show", "[", 
-          RowBox[{"hydrophoneplot", ",", 
-           RowBox[{"ListPlot", "[", 
+   RowBox[{"Show", "[", 
+    RowBox[{"hydrophoneplot", ",", "\[IndentingNewLine]", 
+     RowBox[{"ParametricPlot", "[", 
+      RowBox[{
+       RowBox[{"{", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"HyperbolaParametric", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"tdif1", "[", "src", "]"}], "/", "2"}], ",", 
+           SqrtBox[
             RowBox[{
-             RowBox[{"{", 
-              RowBox[{"{", 
-               RowBox[{"srcx", ",", "srcy"}], "}"}], "}"}], ",", 
-             RowBox[{"PlotStyle", "\[Rule]", 
-              RowBox[{"{", 
+             SuperscriptBox["c", "2"], "-", 
+             SuperscriptBox[
+              RowBox[{"(", 
                RowBox[{
-                RowBox[{"PointSize", "\[Rule]", "Large"}], ",", "Black"}], 
-               "}"}]}]}], "]"}], ",", "\[IndentingNewLine]", 
-           RowBox[{"PlotHyperbola", "[", 
+                RowBox[{"tdif1", "[", "src", "]"}], "/", "2"}], ")"}], 
+              "2"]}]], ",", "0"}], "]"}], ",", "\[IndentingNewLine]", 
+         RowBox[{"HyperbolaParametric", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"tdif2", "[", "src", "]"}], "/", "2"}], ",", 
+           SqrtBox[
             RowBox[{
-             RowBox[{"tdif1", "/", "2"}], ",", 
-             SqrtBox[
-              RowBox[{
-               SuperscriptBox["c", "2"], "-", 
-               SuperscriptBox[
-                RowBox[{"(", 
-                 RowBox[{"tdif1", "/", "2"}], ")"}], "2"]}]], ",", "0", ",", 
-             "Red"}], "]"}], ",", "\[IndentingNewLine]", 
-           RowBox[{"PlotHyperbola", "[", 
+             SuperscriptBox["c", "2"], "-", 
+             SuperscriptBox[
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"tdif2", "[", "src", "]"}], "/", "2"}], ")"}], 
+              "2"]}]], ",", 
+           RowBox[{"2", 
+            RowBox[{"\[Pi]", "/", "3"}]}]}], "]"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{"HyperbolaParametric", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"tdif3", "[", "src", "]"}], "/", "2"}], ",", 
+           SqrtBox[
             RowBox[{
-             RowBox[{"tdif2", "/", "2"}], ",", 
-             SqrtBox[
-              RowBox[{
-               SuperscriptBox["c", "2"], "-", 
-               SuperscriptBox[
-                RowBox[{"(", 
-                 RowBox[{"tdif2", "/", "2"}], ")"}], "2"]}]], ",", 
-             RowBox[{"2", 
-              RowBox[{"\[Pi]", "/", "3"}]}], ",", "Green"}], "]"}], ",", 
-           "\[IndentingNewLine]", 
-           RowBox[{"PlotHyperbola", "[", 
-            RowBox[{
-             RowBox[{"tdif3", "/", "2"}], ",", 
-             SqrtBox[
-              RowBox[{
-               SuperscriptBox["c", "2"], "-", 
-               SuperscriptBox[
-                RowBox[{"(", 
-                 RowBox[{"tdif3", "/", "2"}], ")"}], "2"]}]], ",", 
-             RowBox[{"4", 
-              RowBox[{"\[Pi]", "/", "3"}]}], ",", "Blue"}], "]"}], ",", 
-           "\[IndentingNewLine]", 
-           RowBox[{"PlotRange", "\[Rule]", "range"}], ",", 
-           RowBox[{"AxesOrigin", "\[Rule]", 
-            RowBox[{"{", 
-             RowBox[{"0", ",", "0"}], "}"}]}], ",", 
-           RowBox[{"AspectRatio", "\[Rule]", "1"}], ",", 
-           RowBox[{"Axes", "\[Rule]", "False"}]}], "]"}], "]"}]}], "}"}], ",",
-       "\[IndentingNewLine]", 
-      RowBox[{"{", 
-       RowBox[{"\"\< \>\"", ",", 
-        RowBox[{"Slider", "[", 
+             SuperscriptBox["c", "2"], "-", 
+             SuperscriptBox[
+              RowBox[{"(", 
+               RowBox[{
+                RowBox[{"tdif3", "[", "src", "]"}], "/", "2"}], ")"}], 
+              "2"]}]], ",", 
+           RowBox[{"4", 
+            RowBox[{"\[Pi]", "/", "3"}]}]}], "]"}]}], "\[IndentingNewLine]", 
+        "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"t", ",", 
          RowBox[{
-          RowBox[{"Dynamic", "[", "srcx", "]"}], ",", 
-          RowBox[{"range", "[", 
-           RowBox[{"[", "1", "]"}], "]"}]}], "]"}]}], "}"}]}], "}"}], "]"}], 
-   ",", "3"}], "]"}]}], "Input",
+          RowBox[{"-", "2"}], "\[Pi]"}], ",", 
+         RowBox[{"2", "\[Pi]"}]}], "}"}], ",", 
+       RowBox[{"PlotStyle", "\[Rule]", 
+        RowBox[{"{", 
+         RowBox[{"Red", ",", "Green", ",", "Blue"}], "}"}]}]}], "]"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"PlotRange", "\[Rule]", "range"}], ",", 
+     RowBox[{"AxesOrigin", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "0"}], "}"}]}], ",", 
+     RowBox[{"AspectRatio", "\[Rule]", "1"}], ",", 
+     RowBox[{"Axes", "\[Rule]", "False"}], ",", 
+     RowBox[{"Frame", "\[Rule]", "True"}]}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"src", ",", 
+       RowBox[{"{", 
+        RowBox[{"0.61", ",", 
+         RowBox[{"-", "0.12"}]}], "}"}]}], "}"}], ",", "Locator"}], "}"}]}], 
+  "]"}]}], "Input",
  CellChangeTimes->{{3.398813879052253*^9, 3.398813905966729*^9}, {
    3.3988215151893578`*^9, 3.39882152542033*^9}, {3.398822438010593*^9, 
    3.398822645372501*^9}, {3.3988226766436872`*^9, 3.3988228353027277`*^9}, {
@@ -273,12 +244,23 @@ Cell[BoxData[{
    3.398902076747761*^9, 3.398902077919911*^9}, {3.3989021176492643`*^9, 
    3.3989021708150806`*^9}, {3.398902202893518*^9, 3.398902223303671*^9}, {
    3.398902302863863*^9, 3.398902307318246*^9}, {3.3989023666858273`*^9, 
-   3.398902369073299*^9}}]
+   3.398902369073299*^9}, {3.398956163718141*^9, 3.3989562012160254`*^9}, {
+   3.398956331657526*^9, 3.398956406649117*^9}, {3.3989564375835114`*^9, 
+   3.398956596199499*^9}, {3.3989566640940228`*^9, 3.3989566997074413`*^9}, {
+   3.398956771770321*^9, 3.398956821521994*^9}, {3.3989568593195467`*^9, 
+   3.398956919006034*^9}, {3.398956998323737*^9, 3.398957004140109*^9}, {
+   3.39895703622281*^9, 3.398957036499992*^9}, {3.39895712431502*^9, 
+   3.398957180677507*^9}, {3.398957232083405*^9, 3.3989572492488823`*^9}, {
+   3.398957298473907*^9, 3.398957356391829*^9}, {3.398957437080614*^9, 
+   3.398957471820611*^9}, {3.398957618674213*^9, 3.39895780451446*^9}, {
+   3.398957843452351*^9, 3.398957990962042*^9}, {3.398958068103662*^9, 
+   3.3989581507461987`*^9}, {3.398958250028265*^9, 3.398958250936331*^9}, {
+   3.398958293071672*^9, 3.398958299697689*^9}}]
 }, Open  ]]
 },
 AutoGeneratedPackage->Automatic,
 WindowSize->{937, 821},
-WindowMargins->{{42, Automatic}, {Automatic, 62}},
+WindowMargins->{{90, Automatic}, {14, Automatic}},
 FrontEndVersion->"6.0 for Mac OS X PowerPC (32-bit) (April 20, 2007)",
 StyleDefinitions->"Default.nb"
 ]
@@ -297,8 +279,8 @@ Cell[CellGroupData[{
 Cell[590, 23, 147, 2, 76, "Title"],
 Cell[740, 27, 113, 1, 46, "Subtitle"],
 Cell[856, 30, 620, 10, 41, "Text"],
-Cell[1479, 42, 189, 4, 26, "Text"],
-Cell[1671, 48, 8055, 227, 642, "Input"]
+Cell[1479, 42, 233, 4, 26, "Text"],
+Cell[1715, 48, 7980, 209, 441, "Input"]
 }, Open  ]]
 }
 ]
