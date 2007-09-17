@@ -329,7 +329,7 @@ byte pollStatus()
     if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD) != 0)
     {
         showString("STA FAIL   ", 1);
-        return 0;
+        return 255;
     }
 
     byte len = readDataBlock(SLAVE_ID_POWERBOARD);
@@ -337,7 +337,7 @@ byte pollStatus()
     if(len!=1)
     {
         showString("STA FAIL   ", 1);
-        return 0;
+        return 255;
     }
     return rxBuf[0];
 }
@@ -376,14 +376,52 @@ void processRuntimeDiag()
 
     if(tsValue != t)    /* A change */
     {
-        sprintf(tmp, "TS: %c%c%c%c%c",
-            (t & 0x10) ? 'K' : '-',
-            (t & 0x08) ? '4' : '-',
-            (t & 0x04) ? '3' : '-',
-            (t & 0x02) ? '2' : '-',
-            (t & 0x01) ? '1' : '-');
 
-        showString(tmp, 1);
+        switch(t)
+        {
+            case 0x00:
+            {
+                showString("Vehicle Safe    ", 1);
+                break;
+            }
+
+            case 0x1F:  /* Thrusters enabled and magnet attached */
+            {
+                showString("Vehicle Enabled ", 1);
+                break;
+            }
+
+            case 0x0F:  /* Thrusters enabled by sensor board, but no magnet */
+            {
+                showString("No Kill Switch  ", 1);
+                break;
+            }
+
+            case 0x10:  /* Magnet attached but thrusters disabled by sensor board */
+            {
+                showString("Safe only in SW ", 1);
+                break;
+            }
+
+
+            default:
+            {
+                sprintf(tmp, "TS: %c%c%c%c%c       ",
+                    (t & 0x10) ? 'K' : '-',
+                    (t & 0x08) ? '1' : '-',
+                    (t & 0x04) ? '2' : '-',
+                    (t & 0x02) ? '3' : '-',
+                    (t & 0x01) ? '4' : '-');
+
+                if(t & 0x10)
+                {
+                    sprintf(tmp+10, "UNSAFE");
+                }
+
+                showString(tmp, 1);
+            }
+
+        }
 
         tsValue=t;
     }
