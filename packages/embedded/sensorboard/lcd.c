@@ -1,5 +1,6 @@
 #include <p30fxxxx.h>
 #include <string.h>
+#include "buscodes.h"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & EC_PLL4 );
@@ -35,17 +36,7 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
-#define BUS_CMD_PING            0
-#define BUS_CMD_ID              1
-#define BUS_CMD_READ_REG        2
-#define BUS_CMD_WRITE_REG       3
-#define BUS_CMD_MARKER1         4
-#define BUS_CMD_DEPTH           5
-#define BUS_CMD_LCD_WRITE       6
-#define BUS_CMD_LCD_REFRESH     7
-#define BUS_CMD_LCD_LIGHT_ON    8
-#define BUS_CMD_LCD_LIGHT_OFF   9
-#define BUS_CMD_LCD_LIGHT_FLASH 18
+
 
 /* Transmit buffer */
 #define TXBUF_LEN 30

@@ -16,23 +16,13 @@ LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
 all: master.hex slave.hex lcd.hex temp.hex
 
-slave.hex: slave.o
-	$(CC) $(LDFLAGS) $(LIBS) slave.o -o slave.elf
-	$(BIN2HEX) slave.elf
+%.hex : %.elf
+	$(BIN2HEX) $<
 
-master.hex: master.o
-	$(CC) $(LDFLAGS) $(LIBS) master.o -o master.elf
-	$(BIN2HEX) master.elf
+%.elf : %.o
+	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
 
-lcd.hex: lcd.o
-	$(CC) $(LDFLAGS) $(LIBS) lcd.o -o lcd.elf
-	$(BIN2HEX) lcd.elf
-
-temp.hex: temp.o
-	$(CC) $(LDFLAGS) $(LIBS) temp.o -o temp.elf
-	$(BIN2HEX) temp.elf
-
-.c.o: config.h
+%.o : %.c buscodes.h
 	$(CC) $(CFLAGS) -Wunused-function -c $< -o $@
 
 run:
