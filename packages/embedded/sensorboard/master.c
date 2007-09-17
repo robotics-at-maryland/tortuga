@@ -26,6 +26,11 @@ _FWDT ( WDT_OFF );
 #define LAT_RW      _LATE8
 
 
+#define IN_KS       _RF0
+#define TRIS_KS     _TRISF0
+
+
+
 #define RW_READ     0
 #define RW_WRITE    1
 
@@ -57,6 +62,7 @@ _FWDT ( WDT_OFF );
 #define BUS_ERROR       -1
 #define BUS_FAILURE     -2
 
+#define DIAG_TIMEOUT     100000
 
 
 #define NUM_SLAVES  4
@@ -64,6 +70,9 @@ _FWDT ( WDT_OFF );
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
 static const unsigned char cdSafety[]={0xBA, 0xDB, 0xEE, 0xEF, 0x4A};
+
+
+void processRuntimeDiag();
 
 /* Read byte from bus */
 byte readBus()
@@ -93,17 +102,30 @@ void freeBus()
     TRISE = TRISE | 0x3F;
 }
 
+byte diagMsg=1;
 
 /* Wait for a byte on the serial console */
 unsigned char waitchar(byte timeout)
 {
+    long waitTime=0;
     byte x;
+
+
+
     U1STAbits.OERR = 0;
     U1STAbits.FERR = 0;
     U1STAbits.PERR = 0;
     U1STAbits.URXDA = 0;
 
-    while(U1STAbits.URXDA == 0);
+    while(U1STAbits.URXDA == 0)
+    {
+        if(diagMsg && waitTime++ == DIAG_TIMEOUT)
+        {
+            processRuntimeDiag();
+            waitTime=0;
+        }
+    }
+
     x = U1RXREG;
     U1STAbits.URXDA = 0;
     return x;
@@ -320,7 +342,56 @@ byte pollStatus()
     return rxBuf[0];
 }
 
-void showDiag(int mode)
+
+byte pollThrusterState()
+{
+    if(busWriteByte(BUS_CMD_THRUSTER_STATE, SLAVE_ID_THRUSTERS) != 0)
+    {
+        showString("TSTA FAIL  ", 1);
+        return 0;
+    }
+
+    byte len = readDataBlock(SLAVE_ID_THRUSTERS);
+
+    if(len!=1)
+    {
+        showString("TSTA FAIL  ", 1);
+        return 0;
+    }
+
+    if(IN_KS == 1)
+        rxBuf[0] |= 0x10;
+
+    return rxBuf[0];
+}
+
+byte tsValue=255;
+
+/* Run a bit of the run-time diagnostic message system */
+void processRuntimeDiag()
+{
+    byte t;
+    unsigned char tmp[16];
+    t = pollThrusterState();
+
+    if(tsValue != t)    /* A change */
+    {
+        sprintf(tmp, "TS: %c%c%c%c%c",
+            (t & 0x10) ? 'K' : '-',
+            (t & 0x08) ? '4' : '-',
+            (t & 0x04) ? '3' : '-',
+            (t & 0x02) ? '2' : '-',
+            (t & 0x01) ? '1' : '-');
+
+        showString(tmp, 1);
+
+        tsValue=t;
+    }
+
+}
+
+
+void showBootDiag(int mode)
 {
     unsigned char tmp[16];
     if(mode == 0)
@@ -425,7 +496,7 @@ void showIdent()
     showString("Diagnostic Mode ", 0);
 }
 
-void diagMode()
+void diagBootMode()
 {
     byte mode=0;
     unsigned char tmp[16];
@@ -444,7 +515,7 @@ void diagMode()
                 showIdent();
                 mode = 0;
             }
-            showDiag(mode);
+            showBootDiag(mode);
 
             j=0;
             while(pollStatus() & 0x80)
@@ -456,7 +527,7 @@ void diagMode()
                 }
             }
         }
-        showDiag(mode);
+        showBootDiag(mode);
     }
 }
 
@@ -470,6 +541,8 @@ int main(void)
     byte tmp[60];
     byte rxPtr = 0;
     byte rxLen = 0;
+
+    TRIS_KS = TRIS_IN;
 
     initBus();
 
@@ -531,7 +604,7 @@ int main(void)
     for(j=0; j<100000 && ((pollStatus() & 0x80) == 0); j++);
 
     if(pollStatus() & 0x80)
-        diagMode();
+        diagBootMode();
 
 
     showString("Starting up...  ", 0);
