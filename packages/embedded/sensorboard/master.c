@@ -629,6 +629,7 @@ int main(void)
     #define HOST_CMD_SONAR          0x0D
     #define HOST_REPLY_SONAR        0x0E
 
+    #define HOST_CMD_RUNTIMEDIAG    0x0F
 
     unsigned char emptyLine[]="                ";
 
@@ -1028,6 +1029,29 @@ int main(void)
 		        sendByte(cs + HOST_REPLY_SONAR);
 		        break;
             }
+
+            case HOST_CMD_RUNTIMEDIAG:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_RUNTIMEDIAG != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                diagMsg=t1;
+
+                if(t1==0)
+                    showString("Runtime Diag Off", 1);
+                else
+                    showString("Runtime Diag On ", 1);
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
         }
     }
 }
