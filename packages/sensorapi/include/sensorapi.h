@@ -84,6 +84,9 @@ int readTemp(int fd, unsigned char * tempData);
 
 int getSonarData(int fd, int * angle, int * distance, int * pingNumber);
 
+int setDiagnostics(int fd, int state);
+
+
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 } // extern "C"

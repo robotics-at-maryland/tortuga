@@ -361,6 +361,34 @@ int displayText(int fd, int line, const char* text)
 
 
 
+int setDiagnostics(int fd, int state)
+{
+    if(state != 0 && state != 1)
+        return -255;
+
+    unsigned char buf[3]={0x0F, 0x00, 0x00};
+
+    buf[1] = state;
+    buf[2] = state + 0x0F;
+
+
+    writeData(fd, buf, 3);
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+
+
 /* Some code from cutecom, which in turn may have come from minicom */
 /* FUGLY but it does what I want */
 int openSensorBoard(const char * devName)

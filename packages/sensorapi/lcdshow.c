@@ -6,17 +6,34 @@ int main(int argc, char ** argv)
 {
     if(argc < 2)
     {
-        printf("\nlcdshow -t line1 line2\n");
-        printf("\nlcdshow -c  (clear screen)\n");
-        printf("\nlcdshow -bloff (backlight on)\n");
-        printf("\nlcdshow -blon  (backlight off)\n");
-        printf("\nlcdshow -blfl  (backlight flash)\n");
-        printf("\nlcdshow -s  (start sequence)\n");
+        printf("lcdshow -t line1 line2\n");
+        printf("lcdshow -c  (clear screen)\n");
+        printf("lcdshow -bloff (backlight on)\n");
+        printf("lcdshow -blon  (backlight off)\n");
+        printf("lcdshow -blfl  (backlight flash)\n");
+        printf("lcdshow -diagon  (runtime diagnostics on)\n");
+        printf("lcdshow -diagoff (runtime diagnostics off)\n");
+        printf("lcdshow -s  (begin start sequence)\n");
 
-	return -1;
+	    return -1;
     }
 
     int fd = openSensorBoard("/dev/sensor");
+
+
+    if(strcmp(argv[1], "-diagon") == 0)
+    {
+        setDiagnostics(fd, 1);
+        close(fd);
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-diagoff") == 0)
+    {
+        setDiagnostics(fd, 0);
+        close(fd);
+        return 0;
+    }
 
 
     if(strcmp(argv[1], "-bloff") == 0)
