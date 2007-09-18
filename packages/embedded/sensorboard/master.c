@@ -2,7 +2,7 @@
 #include "buscodes.h"
 #include <stdio.h>
 
-_FOSC( CSW_FSCM_OFF & EC_PLL4 );
+_FOSC( CSW_FSCM_OFF & EC );
 _FWDT ( WDT_OFF );
 
 
@@ -58,11 +58,11 @@ _FWDT ( WDT_OFF );
  *               in the middle of an operation, but this is extremely unlikely (and
  *               should be avoided by disabling that interrupt anyway).
  */
-#define BUS_TIMEOUT     100000
+#define BUS_TIMEOUT     25000
 #define BUS_ERROR       -1
 #define BUS_FAILURE     -2
 
-#define DIAG_TIMEOUT     100000
+#define DIAG_TIMEOUT     25000
 
 
 #define NUM_SLAVES  4
@@ -250,7 +250,7 @@ void initUart()
 {
     U1MODE = 0x0000;
 //    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
-    U1BRG = 7;  /* 7 for 115200 at 15 MIPS */
+    U1BRG = 1;  /* 7 for 115200 at 15 MIPS */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
@@ -596,7 +596,7 @@ int main(void)
     initUart();
 
     sendString("\n\rMaster starting...\n\r");
-    for(j=0; j<100000; j++);
+    for(j=0; j<25000; j++);
 
 
     #define HOST_CMD_SYNC           0xFF
@@ -636,11 +636,11 @@ int main(void)
     showString(emptyLine, 0);
     showString(emptyLine, 1);
 
-    for(j=0; j<100000; j++);
+    for(j=0; j<25000; j++);
 
     showString("Diagnostic?", 0);
 
-    for(j=0; j<100000 && ((pollStatus() & 0x80) == 0); j++);
+    for(j=0; j<25000 && ((pollStatus() & 0x80) == 0); j++);
 
     if(pollStatus() & 0x80)
         diagBootMode();

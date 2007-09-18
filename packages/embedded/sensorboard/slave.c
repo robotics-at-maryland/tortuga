@@ -3,7 +3,7 @@
 #include "buscodes.h"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & EC_PLL4 );
+_FOSC( CSW_FSCM_OFF & EC );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
@@ -369,7 +369,7 @@ void dropMarker(byte id)
      * marker, but I would like to know the reason for this discrepantcy.
      */
 
-    PR1 = 30000;            /* Period */
+    PR1 = 7500;            /* Period */
     TMR1 = 0;               /* Reset timer */
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 1;      /* Enable interrupts */
