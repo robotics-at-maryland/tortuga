@@ -415,7 +415,7 @@ void initLCD()
     TRISB = 0;
 
     lcdWrite (0x00);
-    for(i=0; i<50000; i++);
+    for(i=0; i<25000; i++);
     LAT_RS = 0;
     lcdWrite(0x03);   /* init with specific nibbles to start 4-bit mode */
 
