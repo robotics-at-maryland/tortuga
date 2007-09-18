@@ -3,7 +3,7 @@
 #include "buscodes.h"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & EC_PLL4 );
+_FOSC( CSW_FSCM_OFF & ECIO );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
@@ -145,7 +145,7 @@ void processData(byte data)
 
                 case BUS_CMD_LCD_LIGHT_FLASH:
                 {
-                    PR1 = 32000;            /* Period */
+                    PR1 = 8000;            /* Period */
                     TMR1 = 0;               /* Reset timer */
                     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
                     IEC0bits.T1IE = 1;      /* Enable interrupts */
@@ -387,9 +387,9 @@ void lcdPulse()
 {
     long i;
     LAT_E = 1;
-    for(i=0; i<1200; i++);
+    for(i=0; i<300; i++);
     LAT_E = 0;
-    for(i=0; i<1200; i++);
+    for(i=0; i<300; i++);
 }
 
 
@@ -414,9 +414,8 @@ void initLCD()
     LATB = 0;
     TRISB = 0;
 
-
     lcdWrite (0x00);
-    for(i=0; i<100000; i++);
+    for(i=0; i<50000; i++);
     LAT_RS = 0;
     lcdWrite(0x03);   /* init with specific nibbles to start 4-bit mode */
 
