@@ -12,14 +12,35 @@ int main(int argc, char ** argv)
         printf("lcdshow -blon  (backlight off)\n");
         printf("lcdshow -blfl  (backlight flash)\n");
         printf("lcdshow -diagon  (runtime diagnostics on)\n");
+        printf("lcdshow -safe (disable thrusters)\n");
+        printf("lcdshow -unsafe (enable thrusters)\n");
         printf("lcdshow -diagoff (runtime diagnostics off)\n");
-        printf("lcdshow -s  (begin start sequence)\n");
+	printf("lcdshow -s  (begin start sequence)\n");
 
 	    return -1;
     }
 
     int fd = openSensorBoard("/dev/sensor");
 
+    if(strcmp(argv[1], "-safe") == 0)
+    {
+        thrusterSafety(fd, 0);
+        thrusterSafety(fd, 1);
+        thrusterSafety(fd, 2);
+        thrusterSafety(fd, 3);
+        close(fd);
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-unsafe") == 0)
+    {
+        thrusterSafety(fd, 4);
+        thrusterSafety(fd, 5);
+        thrusterSafety(fd, 6);
+        thrusterSafety(fd, 7);
+        close(fd);
+        return 0;
+    }
 
     if(strcmp(argv[1], "-diagon") == 0)
     {
@@ -27,7 +48,7 @@ int main(int argc, char ** argv)
         close(fd);
         return 0;
     }
-
+    
     if(strcmp(argv[1], "-diagoff") == 0)
     {
         setDiagnostics(fd, 0);

@@ -20,23 +20,23 @@ int main(int argc, char ** argv)
     printf("\nSyncBoard says: %d", syncBoard(fd));
     printf("\nPing says: %d", pingBoard(fd));
     printf("\nCheck says: %d", checkBoard(fd));
-    printf("\nDepth says: %d", readDepth(fd));
-    printf("\nStatus says: %d", readStatus(fd));
+*/
+printf("\nDepth says: %d", readDepth(fd));
+/*    printf("\nStatus says: %d", readStatus(fd));
     printf("\nHard Kill says: %d", hardKill(fd));
-
+*/
     printf("\nDrop Marker 0: %d", dropMarker(fd, 0));
     printf("\nDrop Marker 1: %d", dropMarker(fd, 1));
 
-    printf("\nLCD Backlight Off: %d", lcdBacklight(fd, 1));
-*/
+//    printf("\nLCD Backlight Off: %d", lcdBacklight(fd, 1));
+
     printf("\nThruster safety 0: %d", thrusterSafety(fd, 4));
     printf("\nThruster safety 1: %d", thrusterSafety(fd, 5));
     printf("\nThruster safety 2: %d", thrusterSafety(fd, 6));
     printf("\nThruster safety 3: %d", thrusterSafety(fd, 7));
 
-    int ang=0, dist=0, pingNum=0;
 
-    printf("\nSonar: %d\n", getSonarData(fd, &ang, &dist, &pingNum));
+    //printf("\nSonar: %d\n", getSonarData(fd, &ang, &dist, &pingNum));
 
 /*
     unsigned char tempData[6];
