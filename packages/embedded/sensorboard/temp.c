@@ -9,7 +9,7 @@
 #include "buscodes.h"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & EC );
+_FOSC( CSW_FSCM_OFF & ECIO );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);

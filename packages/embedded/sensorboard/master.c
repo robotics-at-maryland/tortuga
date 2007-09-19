@@ -2,7 +2,7 @@
 #include "buscodes.h"
 #include <stdio.h>
 
-_FOSC( CSW_FSCM_OFF & EC );
+_FOSC( CSW_FSCM_OFF & ECIO );
 _FWDT ( WDT_OFF );
 
 
