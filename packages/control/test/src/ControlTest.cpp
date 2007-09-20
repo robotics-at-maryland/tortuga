@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 #define MAX_SPEED 5
 
 
-#warning THE FOLLOWING BLOCK OF CODE HAS NOT YET BEEN TESTED ON THE VEHICLE
+//#warning THE FOLLOWING BLOCK OF CODE HAS NOT YET BEEN TESTED ON THE VEHICLE
             if(type == 0 && num == 1) // First stick, vertical axis
             {
                 int newSpeed = val / (32768 / MAX_SPEED);

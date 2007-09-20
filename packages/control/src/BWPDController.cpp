@@ -134,10 +134,13 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     
     m_imu = dynamic_cast<vehicle::device::IMU*>(vehicle->getDevice(
          config["IMUName"].asString("IMU")));*/
+
+    m_logfile.open("control_log.txt");
 }
 
 BWPDController::~BWPDController()
 {
+    m_logfile.close();
     delete m_desiredState;
     delete m_measuredState;
     delete m_controllerState;
@@ -328,6 +331,24 @@ void BWPDController::update(double timestep)
 //    rotationalTorques[1] = pitchHack;
 
     applyForcesAndTorques(translationalForces, rotationalTorques);
+    m_logfile << m_measuredState->quaternion[0] << " "
+         << m_measuredState->quaternion[1] << " "
+         << m_measuredState->quaternion[2] << " "
+         << m_measuredState->quaternion[3] << " "
+         << m_measuredState->depth << " "
+         << m_desiredState->quaternion[0] << " "
+         << m_desiredState->quaternion[1] << " "
+         << m_desiredState->quaternion[2] << " "
+         << m_desiredState->quaternion[3] << " "
+         << m_desiredState->depth << " "
+         << m_desiredState->speed << " "
+         << rotationalTorques[0] << " "
+         << rotationalTorques[1] << " "
+         << rotationalTorques[2] << " "
+         << translationalForces[0] << " "
+         << translationalForces[1] << " "
+         << translationalForces[2] << std::endl;
+        
 }
 
 void BWPDController::applyForcesAndTorques(double* translationalForces,
