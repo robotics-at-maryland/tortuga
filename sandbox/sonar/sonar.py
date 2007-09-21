@@ -1,5 +1,22 @@
+#
+# Copyright (C) 2007 Robotics@Maryland
+# Copyright (C) 2007 Leo Singer <aronnax@umd.edu>
+# All rights reserved.
+#
+# 
+# Based on the paper
+#  "Passive Acoustic Source Localization for Video Camera Steering,"
+#  by Yiteng Huang
+#
+#
+# Computes the coordinates of an acoustic source given times-of-arrival
+# from an array of hydrophones
+#
+
+
 from numpy import *
 from numpy.linalg import *
+
 
 class SonarLocator:
     def __init__(self, sensor_positions):
@@ -20,20 +37,26 @@ class SonarLocator:
     def getArrivalTimes(self,source_point):
         return sqrt(sum((self.sensor_positions-source_point)**2,1)) / self.speed_of_sound
 
+
+
 unitTetrahedron = zeros((4,3))
 unitTetrahedron[0] = [0,0,0]
 unitTetrahedron[1] = [0,sqrt(3)/3,sqrt(2.0/3)]
 unitTetrahedron[2] = [0.5,-sqrt(3)/6,sqrt(2.0/3)]
 unitTetrahedron[3] = [-0.5,-sqrt(3)/6,sqrt(2.0/3)]
 
+
+# A minimum of five hydrophones is required to uniquely determine the coordinates of the source in three dimensions.
 unitDoubleTetrahedron = resize(unitTetrahedron,(5,3))
 unitDoubleTetrahedron[4] = [0,0,2*sqrt(2.0/3)]
 
-hydrophones = unitTetrahedron
+
+hydrophones = unitDoubleTetrahedron
 s = SonarLocator(hydrophones)
-source_point = random.random(3)
+source_point = random.random(3) * 20
 signal_frequency = 30000 # hertz
 signal_wavelength = s.speed_of_sound / signal_frequency
+
 
 print "Hydrophone locations:"
 print hydrophones
@@ -43,8 +66,8 @@ print s.speed_of_sound
 print "Wavelength for 30 kHz signal:"
 print s.speed_of_sound / 30000
 
-print ""
 
+print ""
 print "Source Point:"
 print source_point
 arrival_times = s.getArrivalTimes(source_point)
@@ -56,11 +79,9 @@ print x
 
 
 print ""
-
-print "Adding noise to arrival times"
-arrival_times = arrival_times + (random.random(shape(arrival_times)) - 0.5) * 2 / 2 * (1.0/30000/2)
+print "Adding noise to arrival times:"
+arrival_times = arrival_times + (random.random(shape(arrival_times)) - 0.5) * 2 * (1.0/signal_frequency/16)
 print arrival_times
 print "Localization Results:"
 x, resid, rank, sing = s.getSourcePoint(arrival_times)
 print x
-
