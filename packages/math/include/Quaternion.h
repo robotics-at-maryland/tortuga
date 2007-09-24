@@ -109,7 +109,7 @@ namespace math {
 		/// Construct a quaternion from 4 manual w/x/y/z values
 		inline Quaternion(Real* valptr)
 		{
-			memcpy(&w, valptr, sizeof(Real)*4);
+			memcpy(&x, valptr, sizeof(Real)*4);
 		}
 
 		/// Array accessor operator
@@ -131,13 +131,13 @@ namespace math {
 		/// Pointer accessor for direct copying
 		inline Real* ptr()
 		{
-			return &w;
+			return &x;
 		}
 
 		/// Pointer accessor for direct copying
 		inline const Real* ptr() const
 		{
-			return &w;
+			return &x;
 		}
 
 		void FromRotationMatrix (const Matrix3& kRot);
