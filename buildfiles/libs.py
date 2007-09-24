@@ -20,13 +20,13 @@ from common.util import run_shell_cmd
 
 # Constants
 if platform.system() == 'Darwin':
-    BOOST_PYTHON_LIB = 'boost_python-1_35'
-    BOOST_THREAD_LIB = 'boost_thread-1_35'
-    BOOST_PROGOPT_LIB = 'boost_program_options-1_35'
+    BOOST_PYTHON_LIB = 'boost_python-1_34'
+    BOOST_THREAD_LIB = 'boost_thread-1_34'
+    BOOST_PROGOPT_LIB = 'boost_program_options-1_34'
 else:
-    BOOST_PYTHON_LIB = 'boost_python-gcc'
-    BOOST_THREAD_LIB = 'boost_thread-gcc-mt'
-    BOOST_PROGOPT_LIB = 'boost_program_options-gcc'
+    BOOST_PYTHON_LIB = 'boost_python-gcc41'
+    BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
+    BOOST_PROGOPT_LIB = 'boost_program_options-gcc41'
 
 def remove_item(env, key, items):
     """
@@ -75,15 +75,15 @@ def _get_external_lib(name):
 
             'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 
                                                             'gdk/gdk.h']),
-            'Boost' : BoostLibrary('Boost', (1,35), []),
+            'Boost' : BoostLibrary('Boost', (1,34,1), []),
 
             'USB': PkgConfigLibrary('libusb', '0.1', ['usb.h']),
 
-            'Boost.Python' : BoostLibrary('Boost.Python', (1,35), [],
+            'Boost.Python' : BoostLibrary('Boost.Python', (1,34,1), [],
                                           [BOOST_PYTHON_LIB], 
                                           ext_deps = ['Python']),
 
-            'Boost.Thread' : BoostLibrary('Boost.Thread', (1,35), [],
+            'Boost.Thread' : BoostLibrary('Boost.Thread', (1,34,1), [],
                                           [BOOST_THREAD_LIB]),
 
             'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
@@ -615,7 +615,8 @@ class BoostLibrary(Library):
         else:
             self.libraries = libraries
 
-        version_str = '%d_%d' % (self.major_ver, self.minor_ver)
+        version_str = '%d_%d_%d' % (self.major_ver, self.minor_ver,
+                                    self.patch_ver)
         include_path = os.path.join(os.environ['RAM_ROOT_DIR'], 'include',
 
                                     'boost-' + version_str)
