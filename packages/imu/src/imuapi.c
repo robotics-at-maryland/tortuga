@@ -22,10 +22,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <bits/types.h>
 
-// Linux Includes
-#include <linux/serial.h>
+// Linux Includes (Not Sure If These Are needed)
+#ifdef RAM_LINUX
+  #include <bits/types.h>
+  #include <linux/serial.h>
+#endif // RAM_LINUX
 
 // Project Includes
 #include "imuapi.h"
@@ -196,8 +198,6 @@ int openIMU(const char* devName)
 
     if (tcsetattr(fd, TCSANOW, &newtio)!=0)
       printf("tcsetattr() 2 failed\n");
-
-
-
+    
     return fd;
 }

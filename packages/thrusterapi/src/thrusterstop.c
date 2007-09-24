@@ -1,20 +1,20 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/thrusterapi/src/thrusterstop.c
+ */
+
+// STD Includes
 #include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-#include <termios.h>
+
+// Unix Includes
 #include <unistd.h>
-#include <string.h>
-#include <linux/serial.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-#include <unistd.h>
-#include <bits/types.h>
+
+// Project Includes
 #include "thrusterapi.h"
-#include <poll.h>
 
 int main(int argc, char ** argv)
 {

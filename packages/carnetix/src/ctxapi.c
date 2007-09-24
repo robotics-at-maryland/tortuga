@@ -48,8 +48,8 @@ static const char * ctxStateNames[] =
 };
 
 
-unsigned short m_product_id;
-unsigned short m_vendor_id;
+static unsigned short m_product_id;
+static unsigned short m_vendor_id;
 
 
 

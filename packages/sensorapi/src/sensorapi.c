@@ -1,20 +1,36 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/sensorapi/src/sensorapi.c
+ */
+
+// STD Includes
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
+// UNIX Includes
+#include <unistd.h>
+#include <termios.h>
 #include <fcntl.h>
+#include <poll.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <errno.h>
-#include <termios.h>
-#include <unistd.h>
-#include <string.h>
-#include <linux/serial.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-#include <unistd.h>
-#include <bits/types.h>
+
+// Linux Includes (Not Sure If These Are needed)
+#ifdef RAM_LINUX
+  #include <bits/types.h>
+  #include <linux/serial.h>
+#endif // RAM_LINUX
+
+// Project Includes
 #include "sensorapi.h"
-#include <poll.h>
 
 #define USEC_PER_MSEC 1000
 
