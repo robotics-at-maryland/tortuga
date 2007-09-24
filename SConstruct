@@ -1,3 +1,10 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  SConstruct
+
 import os
 import sys
 
@@ -10,6 +17,7 @@ EnsureSConsVersion(0, 96, 93)
 # Add the buildfiles dir to the path
 sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
 import helpers
+import platfrm
 
 # Options either come from command line of config file
 opts = Options('configure.py')
@@ -26,6 +34,9 @@ opts.AddOptions(
 tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
 env = Environment(ENV=os.environ, options=opts, toolpath = [tpath])
 Help(opts.GenerateHelpText(env))
+
+# Add platform Specifc setup
+platfrm.setup_environment(env)
 
 # Set directories
 env.Append(BUILD_DIR = os.path.join(env.Dir('.').abspath, 'build'))

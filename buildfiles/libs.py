@@ -20,9 +20,9 @@ from common.util import run_shell_cmd
 
 # Constants
 if platform.system() == 'Darwin':
-    BOOST_PYTHON_LIB = 'boost_python-1_34'
-    BOOST_THREAD_LIB = 'boost_thread-1_34'
-    BOOST_PROGOPT_LIB = 'boost_program_options-1_34'
+    BOOST_PYTHON_LIB = 'boost_python-1_34_1'
+    BOOST_THREAD_LIB = 'boost_thread-mt-1_34_1'
+    BOOST_PROGOPT_LIB = 'boost_program_options-1_34_1'
 else:
     BOOST_PYTHON_LIB = 'boost_python-gcc41'
     BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
@@ -546,21 +546,31 @@ class PythonLib(ConfigLibrary):
                                version_flag = '--includes')
 
     def setup_environment(self, env):
-        removed = remove_item(env, 'CCFLAGS', ['-Wall','-Werror'])
-        ConfigLibrary.setup_environment(self, env)
-        env.Append(CCFLAGS = removed)
+#        removed = remove_item(env, 'CCFLAGS', ['-Wall','-Werror'])
+
+        includes, return_code = \
+            run_shell_cmd(self.tool_name + ' --includes', 
+                          "Could not execute python2.5-config")
+
+        ldflags, return_code = \
+            run_shell_cmd(self.tool_name + ' --ldflags', 
+                          "Could not execute python2.5-config")
+ 
+        env.MergeFlags([ldflags, includes])
+#        ConfigLibrary.setup_environment(self, env)
+#        env.Append(CCFLAGS = removed)
 
         # Here we have to remove and non-valid C++ flags
-        remove_item(env, 'CCFLAGS', ['-DNDEBUG',
-                                      '-Wstrict-prototypes',
-                                     ('-isysroot',
-                                      '/Developer/SDKs/MacOSX10.4u.sdk')])
+#        remove_item(env, 'CCFLAGS', ['-DNDEBUG',
+#                                      '-Wstrict-prototypes',
+#                                     ('-isysroot',
+#                                      '/Developer/SDKs/MacOSX10.4u.sdk')])
 
         # If we are on Mac, remove the special arch flags, we are going native
-        remove_item(env, 'LINKFLAGS', [('-arch', 'ppc'), ('-arch', 'i386'),
-                                       ('-isysroot',
-                                        '/Developer/SDKs/MacOSX10.4u.sdk')])
-        remove_item(env, 'CPPDEFINES', 'NDEBUG')
+#        remove_item(env, 'LINKFLAGS', [('-arch', 'ppc'), ('-arch', 'i386'),
+#                                       ('-isysroot',
+#                                        '/Developer/SDKs/MacOSX10.4u.sdk')])
+#        remove_item(env, 'CPPDEFINES', 'NDEBUG')
 
         
 
