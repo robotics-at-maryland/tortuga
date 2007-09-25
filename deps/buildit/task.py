@@ -1,5 +1,6 @@
 import UserDict
 import os
+import os.path
 import warnings
 import sys
 import resolver
@@ -296,7 +297,11 @@ class Task:
             for target in self.getTargets():
                if target is not FALSE_CONDITION:
                    # touch the target file
-                   os.utime(target, None)
+                   if os.name == 'nt' and os.path.isdir(target):
+                       # This works around a bug in Python, hopefully its fixed soon
+                       pass
+                   else:
+                       os.utime(target, None)
                    
         return not self.needsCompletion()
 

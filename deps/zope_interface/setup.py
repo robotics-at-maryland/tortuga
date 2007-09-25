@@ -77,10 +77,10 @@ setup(name='zope.interface',
                 "zope.interface.tests",
                ],
       package_dir = {'': 'src'},
-      ext_package='zope.interface',
-      ext_modules=[Extension("_zope_interface_coptimizations",
-                             [os.path.join('src', 'zope', 'interface',
-                                           "_zope_interface_coptimizations.c")
-                              ]),
-                   ],
+      #ext_package='zope.interface',
+      #ext_modules=[Extension("_zope_interface_coptimizations",
+      #                       [os.path.join('src', 'zope', 'interface',
+      #                                     "_zope_interface_coptimizations.c")
+      #                        ]),
+      #             ],
       **extra)

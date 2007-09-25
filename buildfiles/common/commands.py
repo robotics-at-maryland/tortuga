@@ -171,9 +171,10 @@ class Template(object):
         out_file.write(output_text)
         out_file.close()
         
-        # Make user same as containing directory
-        dir_info = os.stat(os.path.dirname(self.out_filename))
-        os.chown(self.out_filename, dir_info.st_uid, dir_info.st_gid)
+        if os.name == 'posix':
+            # Make user same as containing directory
+            dir_info = os.stat(os.path.dirname(self.out_filename))
+            os.chown(self.out_filename, dir_info.st_uid, dir_info.st_gid)
         
 
 class UpdatePkgConfig(object):

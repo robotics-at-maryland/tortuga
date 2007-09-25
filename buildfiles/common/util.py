@@ -32,11 +32,9 @@ def run_shell_cmd(command, error_msg):
         print error_msg
         sys.exit(1)
 
-def ensure_buildit_installed(root_dir, py_version_str, prefix_dir):
+def ensure_buildit_installed(root_dir, site_package_dir, prefix_dir):
     config_path = os.path.join(root_dir, 'buildfiles', 'root.ini')    
         
-    site_package_dir = os.path.join(prefix_dir, 'lib', py_version_str, 
-                                 'site-packages')
     build_install_dir = os.path.join(site_package_dir, 'buildit')
     
     # Check to see if Buildit is installed
@@ -44,7 +42,7 @@ def ensure_buildit_installed(root_dir, py_version_str, prefix_dir):
         print 'Could not find buildit attempting install...'
         # Install buidit
         package_dir = os.path.join(root_dir, 'deps', 'buildit')   
-        install_buildit(package_dir, prefix_dir, py_version_str)
+        install_buildit(package_dir, prefix_dir)
     
     # Check to make the sitepackage directory is on the path
     try:
@@ -53,14 +51,14 @@ def ensure_buildit_installed(root_dir, py_version_str, prefix_dir):
         print 'Could not find "%s" on the python path, adding it' % site_package_dir
         sys.path.insert(1, site_package_dir)
         
-def install_buildit(package_dir, prefix_dir, py_version_str):
+def install_buildit(package_dir, prefix_dir):
     print 'Changing into:',package_dir
     cwd = os.getcwd()
     os.chdir(package_dir)
 
-    # Run setup.py for that package
+    # Run setup.py for that package    
     command_str = '%s setup.py install --prefix=%s' % \
-        (py_version_str, prefix_dir) 
+        (sys.executable, prefix_dir) 
     safe_system(command_str)
     
     # Change back to original directory

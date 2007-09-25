@@ -20,7 +20,17 @@ DEFULT_TASKS = ['setup_directories',
                 'install_python_modules', 
                 'gen_setenv']
 
-DEFAULT_PREFIX = '/opt/ram/local'
+DEFAULT_PREFIX = None
+PYTHON_LIB_DIR = None
+if os.name == 'posix':
+    DEFAULT_PREFIX = '/opt/ram/local'
+    PYTHON_LIB_DIR = 'lib'
+elif os.name == 'nt':
+    DEFAULT_PREFIX = r'C:\RAM'
+    PYTHON_LIB_DIR = 'Lib'
+else:
+    print 'OS "%s" Not Supported' % os.name
+	
 
 def main(argv=None):
     # Parse Arguments
@@ -33,8 +43,16 @@ def main(argv=None):
                              ' [default: %default]')
     (options, args) = parser.parse_args()
 
+    site_package_dir = options.prefix
+    if os.name == 'nt':
+        site_package_dir = os.path.join(site_package_dir, PYTHON_LIB_DIR, 
+                                        'site-packages')
+    else:
+        site_package_dir = os.path.join(site_package_dir, PYTHON_LIB_DIR, 
+                                        PYTHON_VERSION_STR, 'site-packages')
+    
     # Buildit imports
-    util.ensure_buildit_installed(ROOT_DIR, PYTHON_VERSION_STR, options.prefix)
+    util.ensure_buildit_installed(ROOT_DIR, site_package_dir, options.prefix)
     from buildit.context import Context
     from buildit.context import Software
 
@@ -45,10 +63,8 @@ def main(argv=None):
     context = Context(os.path.join(ROOT_DIR, 'buildfiles', 'root.ini'))
     context.globals['ram_prefix'] = options.prefix
     context.globals['python_version_str'] = PYTHON_VERSION_STR
-    context.globals['py_site_packages'] = \
-        os.path.join(options.prefix, 'lib', PYTHON_VERSION_STR, 'site-packages')
+    context.globals['py_site_packages'] = site_package_dir
         
-    print options.prefix
 
     # Determing and run build tasks
     if len(args) > 0:
@@ -57,6 +73,7 @@ def main(argv=None):
         tasks = DEFULT_TASKS
 
     for task_name in tasks:
+        print 'Attempting Task',task_name
         task = getattr(build_tasks, task_name)
         software = Software(task, context)
         software.install()

@@ -1,6 +1,5 @@
 import re
 import os
-import pwd
 import sys
 import logging
 
@@ -53,9 +52,16 @@ class Context:
             modulename = caller_globals.get('__file__', sys.argv[0])
             buildoutdir = os.path.abspath(os.path.dirname(modulename))
 
+        username = None
+        if os.name == 'nt':
+            username = os.environ['USERNAME']
+        else:
+            import pwd
+            username = pwd.getpwuid(os.getuid())[0]
+            
         builtins = {
             'cwd':os.path.abspath(os.getcwd()),
-            'username':pwd.getpwuid(os.getuid())[0],
+            'username': username,
             'buildoutdir':buildoutdir,
             'platform':platform
             }
