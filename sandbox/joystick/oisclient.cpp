@@ -30,6 +30,8 @@
 #define TYPE_BTN  1
 
 
+int curSpeed=0;
+
 ////////////////////////////////////Needed Windows Headers////////////
 #if defined OIS_WIN32_PLATFORM
 #  define WIN32_LEAN_AND_MEAN
@@ -69,15 +71,120 @@ ForceFeedback* g_ff[4] = {0,0,0,0};//Array to hold ff interface for each joy
 #endif
 
 
+#define CMD_NOTHING     0
+
+#define CMD_TURNLEFT    1
+#define CMD_TURNRIGHT   2
+
+#define CMD_ASCEND      3
+#define CMD_DESCEND     4
+
+#define CMD_INCSPEED    5
+#define CMD_DECSPEED    6
+
+#define CMD_ZEROSPEED   7
+#define CMD_EMERGSTOP   8
+
+#define CMD_NOTHING     0
+
+#define CMD_TURNLEFT    1
+#define CMD_TURNRIGHT   2
+
+#define CMD_ASCEND      3
+#define CMD_DESCEND     4
+
+#define CMD_INCSPEED    5
+#define CMD_DECSPEED    6
+
+#define CMD_ZEROSPEED   7
+#define CMD_EMERGSTOP   8
+
 int sockfd=0;
 
 
-void sendEvent(int fd, unsigned char type, unsigned char num, signed short val)
+void sendCmd(int fd, unsigned char cmd)
 {
-    send(fd, &type, 1, 0);
-    send(fd, &num, 1, 0);
-    send(fd, &val, 2, 0);
+    send(fd, &cmd, 1, 0);
 }
+
+/* Button mappings for Steve's Xbox controller and kernel */
+
+#define BTN_INCSPEED  2
+#define BTN_DECSPEED  3
+#define BTN_TURNLEFT  8
+#define BTN_TURNRIGHT 6
+
+#define BTN_ASCEND  9
+#define BTN_DESCEND 5
+
+#define BTN_EMERGSTOP 11
+#define BTN_ZEROSPEED 4
+
+
+void processButtonPress(int fd, int btn)
+{
+    switch(btn)
+    {
+        case BTN_INCSPEED:
+        {
+            printf("Increase speed\n");
+            sendCmd(fd, CMD_INCSPEED);
+            break;
+        }
+
+        case BTN_DECSPEED:
+        {
+            printf("Decrease speed\n");
+            sendCmd(fd, CMD_DECSPEED);
+            break;
+        }
+
+        case BTN_ZEROSPEED:
+        {
+            printf("Zero speed\n");
+            sendCmd(fd, CMD_ZEROSPEED);
+            break;
+        }
+
+        case BTN_EMERGSTOP:
+        {
+            printf("Emergency stop\n");
+            sendCmd(fd, CMD_EMERGSTOP);
+            break;
+        }
+
+        case BTN_ASCEND:
+        {
+            printf("Ascend\n");
+            sendCmd(fd, CMD_ASCEND);
+            break;
+        }
+
+        case BTN_DESCEND:
+        {
+            printf("Descend\n");
+            sendCmd(fd, CMD_DESCEND);
+            break;
+        }
+
+        case BTN_TURNLEFT:
+        {
+            printf("Turn left\n");
+            sendCmd(fd, CMD_TURNLEFT);
+            break;
+        }
+
+        case BTN_TURNRIGHT:
+        {
+            printf("Turn right\n");
+            sendCmd(fd, CMD_TURNRIGHT);
+            break;
+        }
+
+    }
+}
+
+
 
 //////////// Common Event handler class ////////
 class EventHandler : public KeyListener, public MouseListener, public JoyStickListener
@@ -86,76 +193,50 @@ public:
 	EventHandler() {}
 	~EventHandler() {}
 	bool keyPressed( const KeyEvent &arg ) {
-		std::cout << "\nKeyPressed {" << arg.key
-			<< ", " << ((Keyboard*)(arg.device))->getAsString(arg.key)
-			<< "} || Character (" << (char)arg.text << ")" << std::endl;
 		return true;
 	}
+
 	bool keyReleased( const KeyEvent &arg ) {
-		if( arg.key == KC_ESCAPE || arg.key == KC_Q )
-			appRunning = false;
 		return true;
 	}
+
 	bool mouseMoved( const MouseEvent &arg ) {
-		const OIS::MouseState& s = arg.state;
-		std::cout << "\nMouseMoved: Abs("
-				  << s.X.abs << ", " << s.Y.abs << ", " << s.Z.abs << ") Rel("
-				  << s.X.rel << ", " << s.Y.rel << ", " << s.Z.rel << ")";
 		return true;
 	}
+
 	bool mousePressed( const MouseEvent &arg, MouseButtonID id ) {
-		const OIS::MouseState& s = arg.state;
-		std::cout << "\nMouse button #" << id << " pressed. Abs("
-				  << s.X.abs << ", " << s.Y.abs << ", " << s.Z.abs << ") Rel("
-				  << s.X.rel << ", " << s.Y.rel << ", " << s.Z.rel << ")";
 		return true;
 	}
+
 	bool mouseReleased( const MouseEvent &arg, MouseButtonID id ) {
-		const OIS::MouseState& s = arg.state;
-		std::cout << "\nMouse button #" << id << " released. Abs("
-				  << s.X.abs << ", " << s.Y.abs << ", " << s.Z.abs << ") Rel("
-				  << s.X.rel << ", " << s.Y.rel << ", " << s.Z.rel << ")";
 		return true;
 	}
+
 	bool buttonPressed( const JoyStickEvent &arg, int button )
     {
-		std::cout << "\n* Joy ButtonPressed: " << button;
+		std::cout << "* Joy ButtonPressed: " << button<<"\n";
 
-        sendEvent(sockfd, TYPE_BTN, button, 1);
-
+        processButtonPress(sockfd, button);
 		return true;
 	}
+
 	bool buttonReleased( const JoyStickEvent &arg, int button ) {
-        std::cout << "\n* Joy ButtonReleased: " << button;
-        sendEvent(sockfd, TYPE_BTN, button, 0);
+        std::cout << "* Joy ButtonReleased: " << button<<"\n";
+     //   sendEvent(sockfd, TYPE_BTN, button, 0);
 		return true;
 	}
+
 	bool axisMoved( const JoyStickEvent &arg, int axis )
 	{
 		//Provide a little dead zone
-		if( arg.state.mAxes[axis].abs > 2500 || arg.state.mAxes[axis].abs < -2500 )
-			std::cout << "\nJoy Axis #: " << axis << " Value: " << arg.state.mAxes[axis].abs;
-
-        sendEvent(sockfd, TYPE_AXIS, axis, arg.state.mAxes[axis].abs);
+//		if( arg.state.mAxes[axis].abs > 2500 || arg.state.mAxes[axis].abs < -2500 )
+			std::cout << "Joy Axis #: " << axis << " Value: " << arg.state.mAxes[axis].abs<<"\n";
 
 		return true;
 	}
+
 	bool povMoved( const JoyStickEvent &arg, int pov )
 	{
-		std::cout << "\nJoy POV" << pov << " ";
-
-		if( arg.state.mPOV[pov].direction & Pov::North ) //Going up
-			std::cout << "North";
-		else if( arg.state.mPOV[pov].direction & Pov::South ) //Going down
-			std::cout << "South";
-
-		if( arg.state.mPOV[pov].direction & Pov::East ) //Going right
-			std::cout << "East";
-		else if( arg.state.mPOV[pov].direction & Pov::West ) //Going left
-			std::cout << "West";
-
-		if( arg.state.mPOV[pov].direction == Pov::Centered ) //stopped/centered out
-			std::cout << "Centered";
 		return true;
 	}
 };

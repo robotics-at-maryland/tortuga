@@ -22,27 +22,99 @@
 
 #define MAX_SPEED 5
 
+#define CMD_NOTHING     0
+
+#define CMD_TURNLEFT    1
+#define CMD_TURNRIGHT   2
+
+#define CMD_ASCEND      3
+#define CMD_DESCEND     4
+
+#define CMD_INCSPEED    5
+#define CMD_DECSPEED    6
+
+#define CMD_ZEROSPEED   7
+#define CMD_EMERGSTOP   8
+
+#define CMD_NOTHING     0
+
+#define CMD_TURNLEFT    1
+#define CMD_TURNRIGHT   2
+
+#define CMD_ASCEND      3
+#define CMD_DESCEND     4
+
+#define CMD_INCSPEED    5
+#define CMD_DECSPEED    6
+
+#define CMD_ZEROSPEED   7
+#define CMD_EMERGSTOP   8
+
+
+
 void runInput(int fd)
 {
     unsigned char buf[64];
-    unsigned char type = 0;
-    unsigned char num = 0;
-    signed short val = 0;
+    unsigned char cmd = 0;
 
     while(1)
     {
-        if(recv(fd, &type, 1, 0) != 1)
+        if(recv(fd, &cmd, 1, 0) != 1)
+        {
+            system("lcdshow -safe");
             exit(1);
+        }
 
-        recv(fd, &num, 1, 0);
-        recv(fd, &val, 2, 0);   /* We're both Intel, so who cares about byte order */
+        switch(cmd)
+        {
+            case CMD_EMERGSTOP:
+            {
+                printf("Emergency stop\n");
+                break;
+            }
 
-       // printf("%d %d: %d\n", type, num, val);
+            case CMD_TURNLEFT:
+            {
+                printf("Yaw left\n");
+                break;
+            }
 
-       if(type == 0 && num == 1)
-       {
-            printf("NEW SPEED: %d\n", val / (32768/MAX_SPEED));
-       }
+            case CMD_TURNRIGHT:
+            {
+                printf("Yaw right\n");
+                break;
+            }
+
+            case CMD_INCSPEED:
+            {
+                printf("Inc Speed\n");
+                break;
+            }
+
+            case CMD_DECSPEED:
+            {
+                printf("Dec speed\n");
+                break;
+            }
+
+            case CMD_DESCEND:
+            {
+                printf("Descend\n");
+                break;
+            }
+
+            case CMD_ASCEND:
+            {
+                printf("Ascend\n");
+                break;
+            }
+
+            case CMD_ZEROSPEED:
+            {
+                printf("Zero speed\n");
+                break;
+            }
+        }
     }
 }
 

@@ -161,28 +161,17 @@ int main(int argc, char** argv)
 
         printf("server: got connection\n");
         {
-		int fd = new_fd;
-		//unsigned char buf[64];
-		unsigned char type = 0;
-	    	unsigned char num = 0;
-	        signed short val = 0;
+		    int fd = new_fd;
+		    //unsigned char buf[64];
+		    unsigned char cmd = 0;
 
-		while(1)
-		{
-			if(recv(fd, &type, 1, 0) != 1)
-				exit(1);
-
-			recv(fd, &num, 1, 0);
-			recv(fd, &val, 2, 0);   /* We're both Intel, so who cares about byte order */
-
-//			printf("%d %d: %d\n", type, num, val);
-#define BTN_UP 2
-#define BTN_DOWN 3
-#define BTN_LEFT 8
-#define BTN_RIGHT 6
-
-#define BTN_SHALLOW 9
-#define BTN_DEEP 5
+		    while(1)
+		    {
+			    if(recv(fd, &cmd, 1, 0) != 1)
+                {
+                    system("lcdshow -safe");
+				    exit(1);
+                }
 
 #define MAX_DEPTH 5
 
@@ -194,87 +183,93 @@ int main(int argc, char** argv)
 #define MAX_SPEED 5
 
 
-//#warning THE FOLLOWING BLOCK OF CODE HAS NOT YET BEEN TESTED ON THE VEHICLE
-            if(type == 0 && num == 1) // First stick, vertical axis
-            {
-                int newSpeed = val / (32768 / MAX_SPEED);
+#define CMD_NOTHING     0
 
-                if(newSpeed != controller.getSpeed())
+#define CMD_TURNLEFT    1
+#define CMD_TURNRIGHT   2
+
+#define CMD_ASCEND      3
+#define CMD_DESCEND     4
+
+#define CMD_INCSPEED    5
+#define CMD_DECSPEED    6
+
+#define CMD_ZEROSPEED   7
+#define CMD_EMERGSTOP   8
+
+#warning THIS CODE HAS NOT YET BEEN TESTED ON VEHICLE  (or compiled, for that matter)
+                switch(cmd)
                 {
-                    printf("NEW SPEED:  %d\n", newSpeed);
-                    controller.setSpeed(newSpeed);
+                    case CMD_EMERGSTOP:
+                    {
+                        system("lcdshow -safe");
+                        exit(1);
+                        break;
+                    }
+
+                    case CMD_TURNLEFT:
+                    {
+                        printf("Yaw left\n");
+                        controller.yawVehicle(TURN_ENC);
+                        break;
+                    }
+
+                    case CMD_TURNRIGHT:
+                    {
+                        printf("Yaw right\n");
+                        controller.yawVehicle(-TURN_ENC);
+                        break;
+                    }
+
+                    case CMD_INCSPEED:
+                    {
+                        if(controller.getSpeed() < MAX_SPEED)
+                            controller.setSpeed(controller.getSpeed()+SPEED_ENC);
+
+                        printf("\nNEW SPEED:  %d\n", controller.getSpeed());
+                        break;
+                    }
+
+                    case CMD_DECSPEED:
+                    {
+                        if(controller.getSpeed() > MIN_SPEED)
+                            controller.setSpeed(controller.getSpeed()-SPEED_ENC);
+
+                        printf("\nNEW SPEED:  %d\n", controller.getSpeed());
+                        break;
+                    }
+
+                    case CMD_DESCEND:
+                    {
+                        if(controller.getDepth() < MAX_DEPTH)
+                            controller.setDepth(controller.getDepth()+DEPTH_ENC);
+
+                        printf("NEW DEPTH: %f\n", controller.getDepth());
+                        break;
+                    }
+
+                    case CMD_ASCEND:
+                    {
+                        if(controller.getDepth() > MIN_DEPTH)
+                            controller.setDepth(controller.getDepth()-DEPTH_ENC);
+
+
+                        printf("NEW DEPTH: %f\n", controller.getDepth());
+                        break;
+                    }
+
+                    case CMD_ZEROSPEED:
+                    {
+                        controller.setSpeed(0);
+                        printf("\nNEW SPEED:  %d\n", controller.getSpeed());
+                        break;
+                    }
                 }
-            }
 
 
+		    }
 
-
-			if(type == 1 && val == 1) // A button press
-			{
-				switch(num)	/* Which button? */
-				{
-					case 11:
-					{
-						return 1;
-						break;
-					}
-/*
-					case BTN_UP:
-					{
-						if(controller.getSpeed() < MAX_SPEED)
-							controller.setSpeed(controller.getSpeed()+SPEED_ENC);
-
-						printf("\nNEW SPEED:  %d\n", controller.getSpeed());
-						break;
-					}
-
-					case BTN_DOWN:
-					{
-                                                if(controller.getSpeed() > MIN_SPEED)
-							controller.setSpeed(controller.getSpeed()-SPEED_ENC);
-
-						printf("\nNEW SPEED:  %d\n", controller.getSpeed());
-						break;
-					}
-*/
-					case BTN_LEFT:
-					{
-						controller.yawVehicle(TURN_ENC);
-						break;
-					}
-
-
-                    case BTN_RIGHT:
-                    {
-	                    controller.yawVehicle(-TURN_ENC);
-	                    break;
-	                }
-
-
-                    case BTN_DEEP:
-				    {
-					    if(controller.getDepth() < MAX_DEPTH)
-						    controller.setDepth(controller.getDepth()+DEPTH_ENC);
-
-						printf("NEW DEPTH: %f\n", controller.getDepth());
-						break;
-					}
-
-					case BTN_SHALLOW:
-                    {
-				        if(controller.getDepth() > MIN_DEPTH)
-				            controller.setDepth(controller.getDepth()-DEPTH_ENC);
-
-
-						printf("NEW DEPTH: %f\n", controller.getDepth());
-					    break;
-				    }
-
-				}
-			}
-		}
-
-		exit(0);
+		    exit(0);
         }
         close(new_fd);  /* parent doesn't need this */
         while(waitpid(-1,NULL,WNOHANG) > 0); /*clean up child proc*/
