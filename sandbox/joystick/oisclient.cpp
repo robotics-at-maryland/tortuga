@@ -221,7 +221,7 @@ public:
 	}
 
 	bool buttonReleased( const JoyStickEvent &arg, int button ) {
-        std::cout << "* Joy ButtonReleased: " << button<<"\n";
+ //       std::cout << "* Joy ButtonReleased: " << button<<"\n";
      //   sendEvent(sockfd, TYPE_BTN, button, 0);
 		return true;
 	}
@@ -230,7 +230,7 @@ public:
 	{
 		//Provide a little dead zone
 //		if( arg.state.mAxes[axis].abs > 2500 || arg.state.mAxes[axis].abs < -2500 )
-			std::cout << "Joy Axis #: " << axis << " Value: " << arg.state.mAxes[axis].abs<<"\n";
+	//		std::cout << "Joy Axis #: " << axis << " Value: " << arg.state.mAxes[axis].abs<<"\n";
 
 		return true;
 	}
@@ -307,7 +307,8 @@ int main(int argc, char ** argv)
 			  }
 			#elif defined OIS_LINUX_PLATFORM
 			  checkX11Events();
-			  usleep( 500 );
+			  usleep( 250 );
+              sendCmd(sockfd, CMD_NOTHING);
 			#endif
 /*
 			if( g_kb )

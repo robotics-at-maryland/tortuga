@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #define MYPORT 9219 /*YOUR PORT HERE*/
                 /* the port users will be connecting to */
@@ -50,12 +51,19 @@
 #define CMD_ZEROSPEED   7
 #define CMD_EMERGSTOP   8
 
-
+void sigalrmHandler(int i)
+{
+    printf("\nKeep-alive timer expired!\n");
+    system("lcdshow -safe");
+    exit(1);
+}
 
 void runInput(int fd)
 {
     unsigned char buf[64];
     unsigned char cmd = 0;
+
+    alarm(1);
 
     while(1)
     {
@@ -64,6 +72,7 @@ void runInput(int fd)
             system("lcdshow -safe");
             exit(1);
         }
+        alarm(1);
 
         switch(cmd)
         {
@@ -114,6 +123,12 @@ void runInput(int fd)
                 printf("Zero speed\n");
                 break;
             }
+
+            case CMD_NOTHING:
+            {
+                printf("Keep-alive\n");
+                break;
+            }
         }
     }
 }
@@ -151,6 +166,7 @@ main()
         return ret;
     }
 
+    signal(SIGALRM, sigalrmHandler);
 
 
 /* put the correct code segments HERE in the correct order */
