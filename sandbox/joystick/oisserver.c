@@ -126,7 +126,8 @@ void runInput(int fd)
 
             case CMD_NOTHING:
             {
-                printf("Keep-alive\n");
+             //   printf("Keep-alive\n");
+
                 break;
             }
         }

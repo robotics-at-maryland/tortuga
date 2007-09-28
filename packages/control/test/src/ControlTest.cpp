@@ -30,6 +30,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #define MYPORT 9219 /*YOUR PORT HERE*/
                 /* the port users will be connecting to */
@@ -43,6 +44,13 @@
 using namespace std;
 using namespace ram;
 namespace po = boost::program_options;
+
+void sigalrmHandler(int i)
+{
+    printf("\nKeep-alive timer expired!\n");
+    system("lcdshow -safe");
+    exit(1);
+}
 
 int main(int argc, char** argv)
 {
@@ -149,6 +157,7 @@ int main(int argc, char** argv)
          return ret;
     }
 
+    signal(SIGALRM, sigalrmHandler);
 
     while(1)
     {  /* main accept() loop */
@@ -165,10 +174,13 @@ int main(int argc, char** argv)
 		    //unsigned char buf[64];
 		    unsigned char cmd = 0;
 
+            alarm(1);
+
 		    while(1)
 		    {
 			    if(recv(fd, &cmd, 1, 0) != 1)
                 {
+                    printf("Error reading from network\n");
                     system("lcdshow -safe");
 				    exit(1);
                 }
@@ -198,10 +210,12 @@ int main(int argc, char** argv)
 #define CMD_EMERGSTOP   8
 
 #warning THIS CODE HAS NOT YET BEEN TESTED ON VEHICLE  (or compiled, for that matter)
+                alarm(1);
                 switch(cmd)
                 {
                     case CMD_EMERGSTOP:
                     {
+                        printf("Emergency stop received\n");
                         system("lcdshow -safe");
                         exit(1);
                         break;
