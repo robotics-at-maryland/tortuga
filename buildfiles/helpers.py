@@ -25,7 +25,7 @@ def glob(env, path, pattern):
 
     results = []
     for p in _glob.glob(directory + '/' + pattern):
-        results.append(p.replace(base_dir + '/', ''))
+        results.append(p.replace(base_dir + os.path.sep, ''))
 
     return results
 
@@ -86,6 +86,10 @@ def Program(env, *args, **kwargs):
     return env.Program(*args, **kwargs)
 
 def Tests(env, _target, _source, **kwargs):
+    if os.name == 'nt':
+        print 'Warning skipping test'
+        return
+
     # Add 'UnitTest++' to the list of ext_deps
     ext_deps = _ensure_list(kwargs.get('ext_deps', []))
     ext_deps.append('UnitTest++')

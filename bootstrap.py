@@ -21,17 +21,25 @@ DEFULT_TASKS = ['setup_directories',
                 'gen_setenv']
 
 DEFAULT_PREFIX = None
-PYTHON_LIB_DIR = None
+PYTHON_SITE_PACKAGE_SUFFIX = None
 if os.name == 'posix':
     DEFAULT_PREFIX = '/opt/ram/local'
-    PYTHON_LIB_DIR = 'lib'
+    PYTHON_SITE_PACKAGE_SUFFIX = os.path.join('lib',PYTHON_VERSION_STR,
+                                              'site-packages')
 elif os.name == 'nt':
     DEFAULT_PREFIX = r'C:\RAM'
-    PYTHON_LIB_DIR = 'Lib'
+    PYTHON_SITE_PACKAGE_SUFFIX = os.path.join('Lib','site-packages')
 else:
     print 'OS "%s" Not Supported' % os.name
-	
+    
 
+# For MSYS compatibility
+#def fix_path(path):
+#    if os.name == 'nt':
+#        path = path.replace('C:\\', '/c/')
+#        return path.replace('\\'. '/')
+#    return path
+    
 def main(argv=None):
     # Parse Arguments
     parser = OptionParser()
@@ -43,19 +51,16 @@ def main(argv=None):
                              ' [default: %default]')
     (options, args) = parser.parse_args()
 
-    site_package_dir = options.prefix
-    if os.name == 'nt':
-        site_package_dir = os.path.join(site_package_dir, PYTHON_LIB_DIR, 
-                                        'site-packages')
-    else:
-        site_package_dir = os.path.join(site_package_dir, PYTHON_LIB_DIR, 
-                                        PYTHON_VERSION_STR, 'site-packages')
+    site_package_dir = os.path.join(options.prefix, PYTHON_SITE_PACKAGE_SUFFIX)
     
     # Buildit imports
     util.ensure_buildit_installed(ROOT_DIR, site_package_dir, options.prefix)
     from buildit.context import Context
     from buildit.context import Software
 
+    print 'Site',site_package_dir
+    print 'Test',PYTHON_SITE_PACKAGE_SUFFIX
+    
     # Task information
     import buildfiles.tasks as build_tasks
 
@@ -64,6 +69,8 @@ def main(argv=None):
     context.globals['ram_prefix'] = options.prefix
     context.globals['python_version_str'] = PYTHON_VERSION_STR
     context.globals['py_site_packages'] = site_package_dir
+    context.globals['py_site_packages_suffix'] = PYTHON_SITE_PACKAGE_SUFFIX
+    context.globals['python_executable'] = sys.executable
         
 
     # Determing and run build tasks

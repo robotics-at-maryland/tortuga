@@ -29,12 +29,15 @@ Torus Knot Software Ltd.
 #ifndef RAM_MATH_MATRIX4_H_08_05_2007
 #define RAM_MATH_MATRIX4_H_08_05_2007
 
+// Project Includes
+#include "core/include/Platform.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix3.h"
 #include "math/include/Vector4.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
+#define OGRE_FORCE_ANGLE_TYPES
 
 namespace ram {
 namespace math {
@@ -71,7 +74,7 @@ namespace math {
                 [ m[3][0]  m[3][1]  m[3][2]  m[3][3] ]   {1}
             </pre>
     */
-    class  Matrix4
+    class RAMExport Matrix4
     {
     protected:
         /// The matrix entries, indexed by [row][col].

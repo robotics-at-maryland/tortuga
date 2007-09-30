@@ -48,14 +48,14 @@ namespace math {
     //-----------------------------------------------------------------------
     Vector3 Matrix3::GetColumn (size_t iCol) const
     {
-        assert( 0 <= iCol && iCol < 3 );
+        assert( iCol < 3 );
         return Vector3(m[0][iCol],m[1][iCol],
             m[2][iCol]);
     }
     //-----------------------------------------------------------------------
     void Matrix3::SetColumn(size_t iCol, const Vector3& vec)
     {
-        assert( 0 <= iCol && iCol < 3 );
+        assert( iCol < 3 );
         m[0][iCol] = vec.x;
         m[1][iCol] = vec.y;
         m[2][iCol] = vec.z;
@@ -369,7 +369,7 @@ namespace math {
             }
             else
             {
-                for (int iRow = 0; iRow < 3; iRow++)
+                for (size_t iRow = 0; iRow < 3; iRow++)
                 {
                     Real fTmp0 = kL[iRow][1];
                     Real fTmp1 = kL[iRow][2];
@@ -627,7 +627,7 @@ namespace math {
             for (iCol = 0; iCol < 3; iCol++)
             {
                 m[iRow][iCol] = 0.0;
-                for (int iMid = 0; iMid < 3; iMid++)
+                for (size_t iMid = 0; iMid < 3; iMid++)
                     m[iRow][iCol] += kL[iRow][iMid]*kTmp[iMid][iCol];
             }
         }
@@ -925,7 +925,7 @@ namespace math {
             else
             {
                 // angle is PI
-                float fHalfInverse;
+                Real fHalfInverse;
                 if ( m[0][0] >= m[1][1] )
                 {
                     // r00 >= r11

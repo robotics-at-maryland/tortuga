@@ -29,17 +29,20 @@ Torus Knot Software Ltd.
 #ifndef RAM_MATH_VECTOR4_H_08_05_2007
 #define RAM_MATH_VECTOR4_H_08_05_2007 
 
+// Project Includes
+#include "core/include/Platform.h"
 #include "math/include/Vector3.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
+#define OGRE_FORCE_ANGLE_TYPES
 
 namespace ram {
 namespace math {
 
     /** 4-dimensional homogenous vector.
     */
-    class  Vector4
+    class RAMExport Vector4
     {
     public:
         Real x, y, z, w;

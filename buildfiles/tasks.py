@@ -7,6 +7,7 @@
 
 # Python Imports
 import os
+import os.path
 import sys
 import platform
 
@@ -127,7 +128,33 @@ gen_setenv = Task(
                            '${buildoutdir}/scripts/setenv',
                            ram_environ_root = '${ram_prefix}',
                            local_svn_dir = '${buildoutdir}',
-                           py_version_str = '${python_version_str}',
+                           python_executable = '${python_executable}',
+                           py_site_packages_suffix = '${py_site_packages_suffix}',
+                           S = os.path.pathsep,
+                           D = os.path.sep,
                            wx_bin_dir = WX_PREFIX + os.sep + 'bin',
                            wx_lib_dir = WX_PREFIX + os.sep + 'lib')]
    )
+
+   
+def set_windows_environment(listvars, standalone):
+    for key,val in listvars.iteritems():
+        EditEnvironment(key, val, mode = EditEnvironment.PREPEND).execute()
+    
+    for key, val in standalone.iteritems():
+        EditEnvironment(key, val, mode = EditEnvironment.OVERWRITE).execute()
+
+    # Sections to add to the windows path
+    #path = [r'%RAM_SVN_DIR%\build\lib', r'%RAM_ROOT_DIR%\Lib', 
+    #        r'%RAM_ROOT_DIR%\Scripts']
+    # Sections to add to the python path
+    #pythonpath = [r'%RAM_SVN_DIR%\build\lib', r'%RAM_SVN_DIR%\packages\python', 
+    #              r'%RAM_ROOT_DIR%\Lib\site-packages']
+
+def rollbak_windows_envrionment(listvars, standalone):
+    # Remove all placed variables
+    for key, val in listvars.iteritems():
+        EditEnvironment(key, val, None, mode = EditEnvironment.REPLACE).execute()
+    
+    for key, val in standalone.iteritems():
+        EditEnvironment(key, None, mode = EditEnvironment.OVERWRITE).execute()

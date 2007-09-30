@@ -33,6 +33,7 @@ Torus Knot Software Ltd.
 #include <ostream>
 
 // Project Includes
+#include "core/include/Platform.h"
 #include "math/include/Vector3.h"
 
 // NB All code adapted from Wild Magic 0.2 Matrix math (free source code)
@@ -56,6 +57,7 @@ Torus Knot Software Ltd.
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
+#define OGRE_FORCE_ANGLE_TYPES
 
 namespace ram {
 namespace math {
@@ -67,7 +69,7 @@ namespace math {
         @par
             The coordinate system is assumed to be <b>right-handed</b>.
     */
-    class  Matrix3
+    class RAMExport Matrix3
     {
     public:
         /** Default constructor.

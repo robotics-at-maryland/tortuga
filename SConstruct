@@ -22,13 +22,16 @@ import platfrm
 # Options either come from command line of config file
 opts = Options('configure.py')
 opts.AddOptions(
-     ('CC', 'The C compiler to use','gcc'),
-     ('CXX', 'The C++ compiler to use', 'g++'),
      ('check', 'Runs checks on dependent libraries to ensure a proper installation',
       'yes'),
      BoolOption('verbose', "Shows full command line build, normally recored to 'build.log'",
                 False)
      )
+     
+if os.name == 'posix':
+    opts.AddOptions(
+        ('CC', 'The C compiler to use','gcc'),
+        ('CXX', 'The C++ compiler to use', 'g++'))
 
 # Setup the build environment
 tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
@@ -64,8 +67,18 @@ env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
 env['CMD_LOGFILE'] = 'build.log'
 
 # Add debug flags
-env.AppendUnique(CCFLAGS = ['-g', '-Wall','-Werror'])
-
+if os.name == 'posix':
+    env.AppendUnique(CCFLAGS = ['-g', '-Wall','-Werror'])
+else:
+    # All Warnings, Warnings as Erros, Multithreaded DLL, 
+    # Structured Expection handling, C++ RTTI
+    env.AppendUnique(CCFLAGS = ['/Wall', '/WX', '/MD', '/EHa', '/GR'])
+    
+    # These Warnings are disabled from the command line because the cause 
+    # problems with STD headers (!)
+    # 4820 = Had to add pading to structures
+    env.AppendUnique(CCFLAGS = ['/wd4820'])
+    
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)
 
@@ -82,8 +95,10 @@ for directory in dirs_to_build.get_dirs():
 
     print 'Dir:',os.path.join(buildDir,directory)
     # Build seperate directories (this calls our file in the sub directory)
+#    env.BuildDir(os.path.join(buildDir, directory), directory, duplicate=0)
     env.SConscript(os.path.join(directory, 'SConscript'), 
                    build_dir = os.path.join(buildDir, directory), 
+ #                  src_dir = directory, 
                    duplicate = 0)
 
 

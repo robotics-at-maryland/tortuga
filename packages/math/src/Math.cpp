@@ -59,11 +59,11 @@ namespace math {
     {
         msAngleUnit = AU_DEGREE;
 
-        mTrigTableSize = trigTableSize;
+        mTrigTableSize = (int)trigTableSize;
         mTrigTableFactor = mTrigTableSize / Math::TWO_PI;
 
-        mSinTable = new Real[mTrigTableSize];
-        mTanTable = new Real[mTrigTableSize];
+        mSinTable = new Real[(unsigned int)mTrigTableSize];
+        mTanTable = new Real[(unsigned int)mTrigTableSize];
 
         buildTrigTables();
     }

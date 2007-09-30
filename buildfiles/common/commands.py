@@ -23,6 +23,13 @@ from util import CommandError, safe_system
 __all__ = ['Download', 'Template', 'UpdatePkgConfig', 'Mkdir', 'Archive', 
            'UnArchive']  
 
+# If On Windows import modules to update registry
+if os.name == 'nt':
+    import _winreg
+    import win32gui
+    import win32con
+    __all__.append('EditEnvironment')
+           
 class Download(object):
     """
     This is downloads a given url to a filename.  urllib.urlretrieve can replace
@@ -45,18 +52,18 @@ class Download(object):
 
     def represent(self, task):
         """
-    	Called by builtit to report the command we are running
-    	"""
-    	self.filename = task.interpolate(self.filename)
-    	self.url = task.interpolate(self.url)
-    	return "Download %s to %s" % (self.url, self.filename)
+        Called by builtit to report the command we are running
+        """
+        self.filename = task.interpolate(self.filename)
+        self.url = task.interpolate(self.url)
+        return "Download %s to %s" % (self.url, self.filename)
 
     def execute(self, task = None):
-	"""
-	Runs the command
-	"""
-	if task is not None:
-	    self.represent(task)
+        """
+        Runs the command
+        """
+        if task is not None:
+            self.represent(task)
 
         try:
             # Open up remote and local file
@@ -204,8 +211,8 @@ class UpdatePkgConfig(object):
         """
         self.pkg_file_path = task.interpolate(self.pkg_file_path)
         self.prefix = task.interpolate(self.prefix)
-	return 'Updating pkg-config file: %s to use prefix: "%s"' % \
-            (self.pkg_file_path, self.prefix)
+        return 'Updating pkg-config file: %s to use prefix: "%s"' % \
+                (self.pkg_file_path, self.prefix)
 
     def execute(self, task = None):
         if task is not None:
@@ -285,19 +292,19 @@ class Mkdir(object):
 class ArchiveBase(object):
 
     def __init__(self, compressing = True):
-	cmd = 'a'
-	if not compressing:
-	    cmd = 'x'
-	self.archive_cmd = '%s %s ' % (ArchiveBase.get_7zip_name(), cmd)
+        cmd = 'a'
+        if not compressing:
+            cmd = 'x'
+        self.archive_cmd = '%s %s ' % (ArchiveBase.get_7zip_name(), cmd)
 
     @staticmethod
     def get_7zip_name():
-	if platform.system() == 'Linux':
-	    return '7zr'
-	elif platform.system() == 'Darwin':
-	    return '7za'
-	else:
-	    return '7ZIP_FIXME'
+        if platform.system() == 'Linux':
+            return '7zr'
+        elif platform.system() == 'Darwin':
+            return '7za'
+        else:
+            return '7ZIP_FIXME'
 
 
 class Archive(ArchiveBase):
@@ -331,7 +338,7 @@ class Archive(ArchiveBase):
         if task is not None:
             self.check(task)
         safe_system(self.getcmd())
-			     
+                 
     def getcmd(self):
         return '%s %s %s' % (self.archive_cmd, self.filename, self.files)
     
@@ -361,3 +368,127 @@ class UnArchive(ArchiveBase):
                  
     def getcmd(self):
         return '%s %s' % (self.archive_cmd, self.filename)
+
+if os.name == 'nt':
+    class EditEnvironment(object):
+        APPEND = 1
+        """Append to a list like environment variable"""
+        PREPEND = 2
+        """Prepend to a list like environment variable"""
+        REPLACE = 3
+        """Replaces the given value from a list like environment variable, 
+           passing None will remove it from the list"""
+        OVERWRITE = 4
+        """Fully replace the enviornment variable with the given value, None
+        will delete the variable completely.
+        """
+    
+        def __init__(self, key, value = None, value2 = None, 
+                     mode = APPEND):
+            """
+            @type  key: string
+            @param key: The key you wish to edit
+            
+            @type  value: string
+            @param value: The value you wish to relate to the key
+            
+            @type  mode: int
+            @param mode: One of the modes specified by the class. 
+            """
+            
+            self.key = key
+            self.value = value
+            self.value2 = value2
+            self.mode = mode
+            
+        def represent(self, task):
+            """
+            Called by builtit to report the command we are running
+            """
+            self.key = task.interpolate(self.key)
+            self.value = task.interpolate(self.value)
+            self.value2 = task.interpolate(self.value2)
+            
+            actions = {
+                EditEnvironment.APPEND : 
+                    "Appending environment variable '%(key)s' with '%(val)s'",
+                EditEnvironment.PREPEND : 
+                    "Prepending environment variable '%(key)s' with '%(val)s'",
+                EditEnvironment.REPLACE : 
+                    "Replacing '%(val)s' in environment variable '%(key)s' with '%(val2)s'",
+                EditEnvironment.OVERWRITE : 
+                    "Overwriting environment variable '%(key)s' with '%(val)s'"
+            }
+            return actions[self.mode] % {'key' : self.key, 'val' : self.value,
+                                         'val2' : self.value2}
+        
+        def queryValue(self, key, name):
+            try:
+                value, type_id = _winreg.QueryValueEx(key, name)
+            except WindowsError, e:
+                if 2 == e.winerror:
+                    return ''
+                raise e
+            return value
+        
+        def setValue(self, key, name, value):
+            _winreg.SetValueEx(key, name, 0, REG_EXPAND_SZ, value)
+            print 'For regkey "%s" setting "%s" to "%s"' % (str(key), name, value)
+        
+        def deleteValue(self, key, name):
+            _winreg.DeleteValue(regkey, self.key)
+            print 'For regkey "%s" removing "%s"' % (str(key), name)
+        
+        def execute(self, task = None):
+            """
+            Runs the command
+            """
+            if task is not None:
+                self.represent(task)
+            
+            regkey = None
+            registry = None
+            try:
+                regpath = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+                registry = _winreg.ConnectRegistry(None, _winreg.HKEY_LOCAL_MACHINE)
+                regkey = _winreg.OpenKey(registry, regpath, 0, _winreg.KEY_ALL_ACCESS)
+                
+                # Handles setting the whole value
+                if self.mode == EditEnvironment.OVERWRITE:
+                    if self.value is None:
+                        self.deleteValue(regkey, self.key)
+                    else:
+                        self.setValue(regkey, self.key, self.value)
+                        
+                # Works with manipulating the value in list form
+                else:
+                    current_value = self.queryValue(regkey, self.key)
+                    value_list = current_value.split(os.path.pathsep)
+                    
+                
+                    if self.mode == EditEnvironment.APPEND:
+                        value_list.append(self.value)
+                    elif self.mode == EditEnvironment.PREPEND:
+                        value_list.insert(0, self.value)
+                    else:
+                        # Either remove or replace every instance of the value
+                        while value_list.count(self.value) != 0:
+                            if self.value2 == None:                            
+                                value_list.remove(self.value)
+                            else:
+                                index = value_list.index(self.value)
+                                value_list[index] = self.value2
+                                
+                    # Join the values back into a single string
+                    new_value = os.path.pathsep.join(value_list).strip(';')
+                    self.setValue(regkey, self.key, new_value)
+
+                # Notify the rest of the OS about the settings change
+                win32gui.SendMessage(win32con.HWND_BROADCAST, win32con.WM_SETTINGCHANGE, 0, 'Environment')
+                                    
+            finally:
+                if registry is not None:
+                    _winreg.CloseKey(registry)
+                if registry is not None:
+                    _winreg.CloseKey(regkey)   
+                

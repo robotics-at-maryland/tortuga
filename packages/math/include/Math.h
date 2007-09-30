@@ -33,8 +33,12 @@ Torus Knot Software Ltd.
 #include <limits>
 #include <cmath>
 
+// Project Includes
+#include "core/include/Platform.h"
+
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
+#define OGRE_FORCE_ANGLE_TYPES
 
 namespace ram {
 namespace math {
@@ -46,7 +50,7 @@ namespace math {
         Radian values are interchangeable with Degree values, and conversions
         will be done automatically between them.
     */
-	class Radian
+	class RAMExport Radian
 	{
 		Real mRad;
 
@@ -90,7 +94,7 @@ namespace math {
         Degree values are interchangeable with Radian values, and conversions
         will be done automatically between them.
     */
-	class Degree
+	class RAMExport Degree
 	{
 		Real mDeg; // if you get an error here - make sure to define/typedef 'Real' first
 
@@ -135,7 +139,7 @@ namespace math {
         Angle values will be automatically converted between radians and degrees,
         as appropriate.
     */
-	class Angle
+	class RAMExport Angle
 	{
 		Real mAngle;
 	public:
@@ -176,7 +180,7 @@ namespace math {
             <br>This is based on MgcMath.h from
             <a href="http://www.geometrictools.com/">Wild Magic</a>.
     */
-    class Math 
+    class RAMExport Math 
     {
    public:
        /** The angular units used by the API. This functionality is now deprecated in favor

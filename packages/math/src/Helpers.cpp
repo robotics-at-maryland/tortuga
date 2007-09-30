@@ -6,11 +6,12 @@
  * Author: Joseph Gland <jgland@ssl.umd.edu>
  * File:  packages/math/src/Helpers.cpp
  */
-
+ 
 // STD Includes
 #include <cmath>
 
 // Project Includes
+#include "core/include/Platform.h"
 #include "math/include/Helpers.h"
 
 namespace ram {
