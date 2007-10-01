@@ -69,6 +69,9 @@ def SharedLibrary(env, name, *args, **kwargs):
     my_lib = libs._get_internal_lib(name)
     my_lib.setup_environment(env, building_self = True)
 
+    # Needed for DLL symbol export on windows
+    env.AppendUnique(CPPDEFINES = ['RAM_PKG_' + name.upper()])
+    
     target_name = 'ram_' + name
     lib = env.SharedLibrary(target = target_name, *args, **kwargs)
     env.Install(dir = env['LIB_DIR'], source = lib)
@@ -86,10 +89,6 @@ def Program(env, *args, **kwargs):
     return env.Program(*args, **kwargs)
 
 def Tests(env, _target, _source, **kwargs):
-    if os.name == 'nt':
-        print 'Warning skipping test'
-        return
-
     # Add 'UnitTest++' to the list of ext_deps
     ext_deps = _ensure_list(kwargs.get('ext_deps', []))
     ext_deps.append('UnitTest++')
@@ -120,3 +119,18 @@ def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary
     env['BUILDERS']['RAMProgram'] = Program
     env['BUILDERS']['Tests'] = Tests
+    
+def setup_printing(env):
+    def print_cmd_line(s, target, src, env):
+        if env['verbose']:
+            sys.stdout.write("%s\n"%s);
+        else:
+            sys.stdout.write("Making: %s...\n" %(' and '.join([str(x) for x in
+                                                             target])))
+            # Save real cmd to log file
+            open(env['CMD_LOGFILE'], 'a').write("%s\n"%s)
+
+          
+    env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
+    env['CMD_LOGFILE'] = 'build.log'  
+

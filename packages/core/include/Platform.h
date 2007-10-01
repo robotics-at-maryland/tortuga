@@ -11,11 +11,13 @@
 #define RAM_PLATFORM_H_09_29_2007
 
 // Must be placed infront of classes and  functions that you wish to be 
-// excisble out side of there DLL.
+// excesible outside of there DLL.
 #if defined(RAM_WINDOWS) && !defined ( __MINGW32__ )
-#   define RAMExport __declspec( dllexport )
+#   define RAM_DLL_EXPORT __declspec( dllexport ) // When building
+#   define RAM_DLL_IMPORT __declspec( dllimport ) // For linking
 #else
-#   define RAMExport
+#   define RAM_DLL_EXPORT
+#   define RAM_DLL_IMPORT
 #endif
 
 // Handle MSVC Compiler warnings

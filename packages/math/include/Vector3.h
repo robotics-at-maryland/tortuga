@@ -30,13 +30,15 @@ Torus Knot Software Ltd.
 #define RAM_MATH_VECTOR3_H_08_05_2007
 
 // Project Includes
-#include "core/include/Platform.h"
 #include "math/include/Math.h"
 #include "math/include/Quaternion.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
+
+// Must Be Included last
+#include "math/include/Export.h"
 
 namespace ram {
 namespace math {
@@ -48,7 +50,7 @@ namespace math {
             scaling factors can be represented by a vector, depending on how
             you interpret the values.
     */
-    class RAMExport Vector3
+    class RAM_EXPORT Vector3
     {
     public:
 		Real x, y, z;

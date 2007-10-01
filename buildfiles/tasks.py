@@ -130,8 +130,6 @@ gen_setenv = Task(
                            local_svn_dir = '${buildoutdir}',
                            python_executable = '${python_executable}',
                            py_site_packages_suffix = '${py_site_packages_suffix}',
-                           S = os.path.pathsep,
-                           D = os.path.sep,
                            wx_bin_dir = WX_PREFIX + os.sep + 'bin',
                            wx_lib_dir = WX_PREFIX + os.sep + 'lib')]
    )

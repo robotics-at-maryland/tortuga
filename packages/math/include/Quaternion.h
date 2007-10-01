@@ -49,12 +49,14 @@ Torus Knot Software Ltd.
 #include <ostream>
 
 // Project Includes
-#include "core/include/Platform.h"
 #include "math/include/Math.h"
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
+
+// Must Be Included last
+#include "math/include/Export.h"
 
 namespace ram {
 namespace math {
@@ -64,7 +66,7 @@ namespace math {
     
     /** Implementation of a Quaternion, i.e. a rotation around an axis.
     */
-    class RAMExport Quaternion
+    class RAM_EXPORT Quaternion
     {
     public:
         inline Quaternion (

@@ -94,6 +94,13 @@ def _get_external_lib(name):
             'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
                                             ['UnitTest++/UnitTest++.h'])
             }
+            
+        if os.name == 'nt':
+            EXTERNAL_LIBS = {
+                'UnitTest++' : Library('UnitTest++', '1.3',
+                                       ['UnitTest++/UnitTest++.h'],
+                                       'UnitTest++.vsnet2005')
+            }
 
     if EXTERNAL_LIBS.has_key(name):
         return EXTERNAL_LIBS[name]
@@ -179,8 +186,6 @@ def add_internal(env, name):
 # --------------------------------------------------------------------------- #
 #                      I M P L E M E N T A T I O N                            #
 # --------------------------------------------------------------------------- #
-
-
 
 class Library(object):
     # Allows us to skip checking if we have already done it once with the 
@@ -358,6 +363,35 @@ class Library(object):
             return False
 
         return True
+     
+# class WindowsLibrary(object):
+    # def __init__(self, name, version, headers, libnames, CPPPATH = None,
+                 # CPPFLAGS = None, LINKFLAGS = None, strict_version = False,
+                 # ext_deps = None):
+        # Library.__init__(self, name, version, headers, libnames, 
+                         # CPPPATH = CPPPATH, LINKFLAGS = LINKFLAGS, 
+                         # ext_deps = ext_deps)
+                 
+    # def setup_environment(self, env):
+        # """
+        # This merges in the libraries to flag to the given environment and then
+        # calls check_environment to make everything then
+        # preforms the required checks to make sure the library is properly
+        # installed and has the right version.
+        # """
+#       print 'LINK',self.LINKFLAGS
+#        Slight hack Because we control the windows deps
+        # env.AppendUnique(CPPPATH = os.path.join(os.environ['RAM_ROOT_DIR'],'include'))
+        # env.AppendUnique(LIBPATH = os.path.join(os.enviorn['RAM_ROOT_DIR'],'lib'))
+        
+        # env.AppendUnique(CPPFLAGS = self.CPPFLAGS)
+        # env.AppendUnique(LINKFLAGS = self.LINKFLAGS)
+        # env.AppendUnique(CPPPATH = self.CPPPATH)
+#       print 'AFTER:',env['LINKFLAGS']
+    
+        # self.setup_dependents(env)
+        
+        # self.check_environment(env)
      
 class InternalLibrary(Library):
     def __init__(self, name, int_deps, ext_deps, strict_version = False,

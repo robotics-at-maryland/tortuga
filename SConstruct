@@ -49,35 +49,33 @@ env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 
 # Add to base compiler and linker paths
 env.AppendUnique(CPPPATH = [env['PACKAGE_DIR']])
+if os.name == 'nt':
+    env.AppendUnique(CPPPATH = [os.path.join(os.environ['RAM_ROOT_DIR'],'include')])
 env.AppendUnique(LIBPATH = [env['LIB_DIR'],
                             os.path.join(os.environ['RAM_ROOT_DIR'],'lib')])
 
-# Setup printing
-def print_cmd_line(s, target, src, env):
-    if env['verbose']:
-        sys.stdout.write("%s\n"%s);
-    else:
-          sys.stdout.write("Making: %s...\n" %(' and '.join([str(x) for x in
-                                                             target])))
-          # Save real cmd to log file
-          open(env['CMD_LOGFILE'], 'a').write("%s\n"%s)
+helpers.setup_printing(env)
 
-          
-env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
-env['CMD_LOGFILE'] = 'build.log'
-
-# Add debug flags
+# Add flags
+# TODO: Factor me out into a variant module 
+# (ie, 'debug', 'release', 'release-dbg', 'profile')
 if os.name == 'posix':
-    env.AppendUnique(CCFLAGS = ['-g', '-Wall','-Werror'])
+    env.AppendUnique(CCFLAGS = ['-g',       # Debugging symbols
+                                '-Wall',    # All Warnings
+                                '-Werror']) # Warnings as Errors
 else:
-    # All Warnings, Warnings as Erros, Multithreaded DLL, 
-    # Structured Expection handling, C++ RTTI
-    env.AppendUnique(CCFLAGS = ['/Wall', '/WX', '/MD', '/EHa', '/GR'])
+    env.AppendUnique(CCFLAGS = ['/Wall', # All Warnings
+                                '/WX',   # Warnings as Errors
+                                '/MD',   # Multithreaded runtime
+                                '/EHa',  # Structured Exception Handling
+                                '/GR'])  # C++ RTTI
     
     # These Warnings are disabled from the command line because the cause 
-    # problems with STD headers (!)
-    # 4820 = Had to add pading to structures
-    env.AppendUnique(CCFLAGS = ['/wd4820'])
+    # problems with STD headers and are just too pedantic (!)
+    # 4820 = Had to add pading to structure/class
+    # 4625 = Copy constructor not accesible in base class
+    # 4626 = Assignement Operator is not accisble in base class
+    env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626'])
     
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)
@@ -95,10 +93,8 @@ for directory in dirs_to_build.get_dirs():
 
     print 'Dir:',os.path.join(buildDir,directory)
     # Build seperate directories (this calls our file in the sub directory)
-#    env.BuildDir(os.path.join(buildDir, directory), directory, duplicate=0)
     env.SConscript(os.path.join(directory, 'SConscript'), 
                    build_dir = os.path.join(buildDir, directory), 
- #                  src_dir = directory, 
                    duplicate = 0)
 
 
