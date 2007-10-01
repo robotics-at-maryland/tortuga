@@ -191,9 +191,10 @@ int main(int argc, char** argv)
 
 #define DEPTH_ENC 0.25
 #define TURN_ENC 10
+
 #define MIN_SPEED -5
 #define MAX_SPEED 5
-
+#define SPEED_ENC 1
 
 #define CMD_NOTHING     0
 
@@ -209,7 +210,7 @@ int main(int argc, char** argv)
 #define CMD_ZEROSPEED   7
 #define CMD_EMERGSTOP   8
 
-#warning THIS CODE HAS NOT YET BEEN TESTED ON VEHICLE  (or compiled, for that matter)
+//#warning THIS CODE HAS NOT YET BEEN TESTED ON VEHICLE  (or compiled, for that matter)
                 alarm(1);
                 switch(cmd)
                 {

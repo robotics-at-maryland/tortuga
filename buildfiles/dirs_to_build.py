@@ -2,31 +2,32 @@ import os
 import platform
 
 COMMON_DIRS = set([
-#    os.path.join('packages', 'vision'),
-#    os.path.join('packages', 'pattern'),
-#    os.path.join('packages', 'core'),
     os.path.join('packages', 'math'),
-#    os.path.join('packages', 'imu'),
-#    os.path.join('packages', 'sensorapi'),
-#    os.path.join('packages', 'thrusterapi'),
-#    os.path.join('packages', 'carnetix'),
-#    os.path.join('packages', 'vehicle'),
-#    os.path.join('packages', 'control'),
-#    os.path.join('tools', 'MagInclination'),
-#    os.path.join('tools', 'BiasFinder'),
+    ])
+
+POSIX_DIRS = set([
+    os.path.join('packages', 'vision'),
+    os.path.join('packages', 'pattern'),
+    os.path.join('packages', 'core'),
+    os.path.join('packages', 'imu'),
+    os.path.join('packages', 'sensorapi'),
+    os.path.join('packages', 'thrusterapi'),
+    os.path.join('packages', 'carnetix'),
+    os.path.join('packages', 'vehicle'),
+    os.path.join('packages', 'control'),
+    os.path.join('tools', 'MagInclination'),
+    os.path.join('tools', 'BiasFinder'),
 #    os.path.join('wrappers', 'pattern'),
 #    os.path.join('wrappers', 'core'),
 #    os.path.join('wrappers', 'math'),
 #    os.path.join('wrappers', 'vision'),
 #    os.path.join('wrappers', 'control'),
 #    os.path.join('wrappers', 'vehicle'),
-#    os.path.join('sandbox', 'jaus'),
+    os.path.join('sandbox', 'jaus'),
     ])
 
 LINUX_DIRS = set([
     os.path.join('packages','extensions', 'wxogre')])
-
-
 
 MAC_DIRS = set([])
 
@@ -37,6 +38,13 @@ def get_dirs():
     """
     dirs = set()
     dirs.update(COMMON_DIRS)
+
+    if os.name == 'posix':
+        intersection = dirs.intersection(POSIX_DIRS)
+        if 0 != len(intersection):
+            print 'WARNING duplicate directories:',' '.join(intersection)
+            print 'Please edit buildfiles/dirs_to_build.py'
+        dirs.update(POSIX_DIRS)
 
     # Add directories based on platform (to be changed later)
     added_dirs = set()
