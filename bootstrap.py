@@ -32,14 +32,6 @@ elif os.name == 'nt':
 else:
     print 'OS "%s" Not Supported' % os.name
     
-
-# For MSYS compatibility
-#def fix_path(path):
-#    if os.name == 'nt':
-#        path = path.replace('C:\\', '/c/')
-#        return path.replace('\\'. '/')
-#    return path
-    
 def main(argv=None):
     # Parse Arguments
     parser = OptionParser()
@@ -57,15 +49,13 @@ def main(argv=None):
     util.ensure_buildit_installed(ROOT_DIR, site_package_dir, options.prefix)
     from buildit.context import Context
     from buildit.context import Software
-
-    print 'Site',site_package_dir
-    print 'Test',PYTHON_SITE_PACKAGE_SUFFIX
     
     # Task information
     import buildfiles.tasks as build_tasks
 
     # Create and check buildit context
-    context = Context(os.path.join(ROOT_DIR, 'buildfiles', 'root.ini'))
+    context = Context(os.path.join(ROOT_DIR, 'buildfiles', 'bootstrap',
+                                   'root.ini'))
     context.globals['ram_prefix'] = options.prefix
     context.globals['python_version_str'] = PYTHON_VERSION_STR
     context.globals['py_site_packages'] = site_package_dir

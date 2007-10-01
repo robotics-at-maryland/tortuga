@@ -15,7 +15,7 @@ import platform
 from buildit.task import Task
 
 # Project Imports
-from common.commands import *
+from buildfiles.common.commands import *
 
 # Setup basic directory structure
 setup_directories = Task(
