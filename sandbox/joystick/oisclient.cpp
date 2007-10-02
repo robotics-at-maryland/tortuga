@@ -107,19 +107,36 @@ void sendCmd(int fd, unsigned char cmd)
     send(fd, &cmd, 1, 0);
 }
 
+#ifdef SAITEK
+/* Z trigger - Emergency stop
+ * POV Hat - Inc/Dec speed and turn
+ * Middle button under POV hat - zero speed
+ * F3/F4 - ascend/descend
+ */
+	#define BTN_INCSPEED  10
+	#define BTN_DECSPEED  13
+	#define BTN_TURNLEFT  11
+	#define BTN_TURNRIGHT 12
+	
+	#define BTN_ASCEND  6
+	#define BTN_DESCEND 7
+	
+	#define BTN_EMERGSTOP 0
+	#define BTN_ZEROSPEED 2
+#else
+
 /* Button mappings for Steve's Xbox controller and kernel */
-
-#define BTN_INCSPEED  2
-#define BTN_DECSPEED  3
-#define BTN_TURNLEFT  8
-#define BTN_TURNRIGHT 6
-
-#define BTN_ASCEND  9
-#define BTN_DESCEND 5
-
-#define BTN_EMERGSTOP 11
-#define BTN_ZEROSPEED 4
-
+	#define BTN_INCSPEED  2
+	#define BTN_DECSPEED  3
+	#define BTN_TURNLEFT  8
+	#define BTN_TURNRIGHT 6
+	
+	#define BTN_ASCEND  9
+	#define BTN_DESCEND 5
+	
+	#define BTN_EMERGSTOP 11
+	#define BTN_ZEROSPEED 4
+#endif	
 
 void processButtonPress(int fd, int btn)
 {
@@ -247,6 +264,11 @@ EventHandler handler;
 int main(int argc, char ** argv)
 {
 
+#ifdef SAITEK
+    printf("Using Saitek mapping\n\tF3-Ascend\n\tF4-Descend\n\tPOV Hat - Fwd/Back, Turn\n\tZ trigger- Emergency stop\n\tButton under POV Hat - zer speed to 0\n");
+#else
+    printf("Using XBox mapping\n");
+#endif
     if(argc < 2)
     {
         printf("\nNeed hostname\n");
