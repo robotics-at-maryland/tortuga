@@ -99,12 +99,18 @@ ForceFeedback* g_ff[4] = {0,0,0,0};//Array to hold ff interface for each joy
 #define CMD_ZEROSPEED   7
 #define CMD_EMERGSTOP   8
 
+#define CMD_SETSPEED    9
+
 int sockfd=0;
 
 
-void sendCmd(int fd, unsigned char cmd)
+void sendCmd(int fd, unsigned char cmd, signed char param)
 {
-    send(fd, &cmd, 1, 0);
+    signed char buf[2];
+    buf[0]=cmd;
+    buf[1]=param;
+
+    send(fd, buf, 2, 0);
 }
 
 #ifdef SAITEK
@@ -117,26 +123,57 @@ void sendCmd(int fd, unsigned char cmd)
 	#define BTN_DECSPEED  13
 	#define BTN_TURNLEFT  11
 	#define BTN_TURNRIGHT 12
-	
+
 	#define BTN_ASCEND  6
 	#define BTN_DESCEND 7
-	
+
 	#define BTN_EMERGSTOP 0
 	#define BTN_ZEROSPEED 2
+
+    #error No speed axis defined for Saitek yet.
 #else
 
 /* Button mappings for Steve's Xbox controller and kernel */
-	#define BTN_INCSPEED  2
-	#define BTN_DECSPEED  3
-	#define BTN_TURNLEFT  8
-	#define BTN_TURNRIGHT 6
-	
-	#define BTN_ASCEND  9
-	#define BTN_DESCEND 5
-	
-	#define BTN_EMERGSTOP 11
-	#define BTN_ZEROSPEED 4
-#endif	
+	#define BTN_INCSPEED    2
+	#define BTN_DECSPEED    3
+	#define BTN_TURNLEFT    8
+	#define BTN_TURNRIGHT   6
+
+	#define BTN_ASCEND      9
+	#define BTN_DESCEND     5
+
+	#define BTN_EMERGSTOP   11
+	#define BTN_ZEROSPEED   4
+
+    #define AXIS_SPEED      1
+#endif
+
+/* Speeds to send.. ie, -SPEED_RANGE to +SPEED_RANGE */
+#define SPEED_RANGE 5
+
+/* Don't send same speed twice */
+int lastAxisSpeed=0;
+
+void processAxis(int fd, int axis, int val)
+{
+    switch(axis)
+    {
+        case AXIS_SPEED:
+        {
+            val = SPEED_RANGE * val / 32767;
+            if(val != lastAxisSpeed)
+            {
+                printf("New speed: %d\n", val);
+                lastAxisSpeed = val;
+                sendCmd(fd, CMD_SETSPEED, val);
+            }
+            break;
+        }
+
+    };
+
+}
+
 
 void processButtonPress(int fd, int btn)
 {
@@ -145,56 +182,56 @@ void processButtonPress(int fd, int btn)
         case BTN_INCSPEED:
         {
             printf("Increase speed\n");
-            sendCmd(fd, CMD_INCSPEED);
+            sendCmd(fd, CMD_INCSPEED, 0);
             break;
         }
 
         case BTN_DECSPEED:
         {
             printf("Decrease speed\n");
-            sendCmd(fd, CMD_DECSPEED);
+            sendCmd(fd, CMD_DECSPEED, 0);
             break;
         }
 
         case BTN_ZEROSPEED:
         {
             printf("Zero speed\n");
-            sendCmd(fd, CMD_ZEROSPEED);
+            sendCmd(fd, CMD_ZEROSPEED, 0);
             break;
         }
 
         case BTN_EMERGSTOP:
         {
             printf("Emergency stop\n");
-            sendCmd(fd, CMD_EMERGSTOP);
+            sendCmd(fd, CMD_EMERGSTOP, 0);
             break;
         }
 
         case BTN_ASCEND:
         {
             printf("Ascend\n");
-            sendCmd(fd, CMD_ASCEND);
+            sendCmd(fd, CMD_ASCEND, 0);
             break;
         }
 
         case BTN_DESCEND:
         {
             printf("Descend\n");
-            sendCmd(fd, CMD_DESCEND);
+            sendCmd(fd, CMD_DESCEND, 0);
             break;
         }
 
         case BTN_TURNLEFT:
         {
             printf("Turn left\n");
-            sendCmd(fd, CMD_TURNLEFT);
+            sendCmd(fd, CMD_TURNLEFT, 0);
             break;
         }
 
         case BTN_TURNRIGHT:
         {
             printf("Turn right\n");
-            sendCmd(fd, CMD_TURNRIGHT);
+            sendCmd(fd, CMD_TURNRIGHT, 0);
             break;
         }
 
@@ -248,7 +285,7 @@ public:
 		//Provide a little dead zone
 //		if( arg.state.mAxes[axis].abs > 2500 || arg.state.mAxes[axis].abs < -2500 )
 	//		std::cout << "Joy Axis #: " << axis << " Value: " << arg.state.mAxes[axis].abs<<"\n";
-
+        processAxis(sockfd, axis, arg.state.mAxes[axis].abs);
 		return true;
 	}
 
@@ -330,7 +367,7 @@ int main(int argc, char ** argv)
 			#elif defined OIS_LINUX_PLATFORM
 			  checkX11Events();
 			  usleep( 250 );
-              sendCmd(sockfd, CMD_NOTHING);
+              sendCmd(sockfd, CMD_NOTHING, 0);
 			#endif
 /*
 			if( g_kb )

@@ -171,19 +171,24 @@ int main(int argc, char** argv)
         printf("server: got connection\n");
         {
 		    int fd = new_fd;
-		    //unsigned char buf[64];
+		    signed char buf[2];
 		    unsigned char cmd = 0;
+            signed char param=0;
+
 
             alarm(1);
 
 		    while(1)
 		    {
-			    if(recv(fd, &cmd, 1, 0) != 1)
+			    if(recv(fd, buf, 2, 0) != 2)
                 {
                     printf("Error reading from network\n");
                     system("lcdshow -safe");
 				    exit(1);
                 }
+
+                cmd = buf[0];
+                param = buf[1];
 
 #define MAX_DEPTH 5
 
@@ -210,7 +215,9 @@ int main(int argc, char** argv)
 #define CMD_ZEROSPEED   7
 #define CMD_EMERGSTOP   8
 
-//#warning THIS CODE HAS NOT YET BEEN TESTED ON VEHICLE  (or compiled, for that matter)
+#define CMD_SETSPEED   8
+
+#warning this code has STILL not been tested on the vehicle, or even compiled on it.
                 alarm(1);
                 switch(cmd)
                 {
@@ -278,6 +285,18 @@ int main(int argc, char** argv)
                         controller.setSpeed(0);
                         printf("\nNEW SPEED:  %d\n", controller.getSpeed());
                         break;
+                    }
+
+                    case CMD_SETSPEED:
+                    {
+                        if(param <= MAX_SPEED && param >= MIN_SPEED)
+                        {
+                            controller.setSpeed(param);
+                            printf("\nNEW SPEED:  %d\n", controller.getSpeed());
+                        } else
+                        {
+                            printf("\nINVALID NEW SPEED: %d\n", param);
+                        }
                     }
                 }
 

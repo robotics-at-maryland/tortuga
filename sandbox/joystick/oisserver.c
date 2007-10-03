@@ -51,6 +51,9 @@
 #define CMD_ZEROSPEED   7
 #define CMD_EMERGSTOP   8
 
+
+#define CMD_SETSPEED    9
+
 void sigalrmHandler(int i)
 {
     printf("\nKeep-alive timer expired!\n");
@@ -60,19 +63,24 @@ void sigalrmHandler(int i)
 
 void runInput(int fd)
 {
-    unsigned char buf[64];
+    signed char buf[2];
     unsigned char cmd = 0;
+    signed char param=0;
+
 
     alarm(1);
 
     while(1)
     {
-        if(recv(fd, &cmd, 1, 0) != 1)
+        if(recv(fd, buf, 2, 0) != 2)
         {
             system("lcdshow -safe");
             exit(1);
         }
         alarm(1);
+
+        cmd = buf[0];
+        param = buf[1];
 
         switch(cmd)
         {
@@ -122,6 +130,11 @@ void runInput(int fd)
             {
                 printf("Zero speed\n");
                 break;
+            }
+
+            case CMD_SETSPEED:
+            {
+                printf("New speed: %d\n", param);
             }
 
             case CMD_NOTHING:
