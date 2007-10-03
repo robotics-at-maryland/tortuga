@@ -215,7 +215,7 @@ int main(int argc, char** argv)
 #define CMD_ZEROSPEED   7
 #define CMD_EMERGSTOP   8
 
-#define CMD_SETSPEED   8
+#define CMD_SETSPEED    9
 
 #warning this code has STILL not been tested on the vehicle, or even compiled on it.
                 alarm(1);
