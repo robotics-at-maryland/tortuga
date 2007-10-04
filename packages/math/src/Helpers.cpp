@@ -641,12 +641,14 @@ void quaternionFromnCb(double nCb[3][3], double * pQ){
         }
     }
 
+    //this makes the quaternion error function go nuts
+    /*
     if (d<0){
         a = -a;
         b = -b;
         c = -c;
         d = -d;
-    }
+	}*/
 
     *(pQ) = a;
     *(pQ+1) = b;
