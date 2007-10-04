@@ -487,6 +487,8 @@ void quaternionCrossProduct(double q1[4], double q2[4],  double * pQ){
 
   //matrix multiply!!!
   matrixMult4x4by4x1(qRotMatrix,q2,pQ);
+  //normalize to ensure no computational drift
+  normalize4x1(pQ);
 }
 
 
