@@ -16,10 +16,13 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/xtime.hpp>
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
-class CountDownLatch : public boost::noncopyable
+class RAM_EXPORT CountDownLatch : public boost::noncopyable
 {
 public:
     /** */

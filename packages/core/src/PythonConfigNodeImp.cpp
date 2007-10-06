@@ -9,13 +9,13 @@
 
 #include <iostream>
 
-// Library Includes
-#include <boost/python.hpp>
+// Library Includea
 //#include <Python.h>
-namespace py = boost::python;
 
 // Project Includes
 #include "core/include/PythonConfigNodeImp.h"
+
+namespace py = boost::python;
 
 namespace ram {
 namespace core {
@@ -87,7 +87,7 @@ ConfigNodeImpPtr PythonConfigNodeImp::fromYamlFile(std::string filename)
         throw err;
     }
 
-    return ConfigNodeImpPtr();
+    // return ConfigNodeImpPtr();
 }
     
 ConfigNode PythonConfigNodeImp::construct(py::object pyobj)
@@ -120,7 +120,7 @@ ConfigNodeImpPtr PythonConfigNodeImp::idx(int index)
         throw err;
     }
 
-    return ConfigNodeImpPtr();
+    // return ConfigNodeImpPtr();
 }
 
 ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
@@ -147,7 +147,7 @@ ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
         throw err;
     }
 
-    return ConfigNodeImpPtr();
+    // return ConfigNodeImpPtr();
 }
 
 std::string PythonConfigNodeImp::asString()
@@ -161,7 +161,7 @@ std::string PythonConfigNodeImp::asString()
         throw err;
     }
 
-    return "ERROR";
+    // return "ERROR";
 }
 
 std::string PythonConfigNodeImp::asString(const std::string& def)
@@ -176,7 +176,7 @@ std::string PythonConfigNodeImp::asString(const std::string& def)
         return def;
     }
 
-    return "ERROR";
+    // return "ERROR";
 }
     
 double PythonConfigNodeImp::asDouble()
@@ -190,7 +190,7 @@ double PythonConfigNodeImp::asDouble()
         throw err;
     }
     
-    return -999999;
+    // return -999999;
 }
 
 double PythonConfigNodeImp::asDouble(const double def)
@@ -204,7 +204,7 @@ double PythonConfigNodeImp::asDouble(const double def)
         return def;
     }
     
-    return -999999;
+    // return -999999;
 }
     
 int PythonConfigNodeImp::asInt()
@@ -218,7 +218,7 @@ int PythonConfigNodeImp::asInt()
         throw err;
     }
 
-    return -9999;
+    // return -9999;
 }
 
 int PythonConfigNodeImp::asInt(const int def)
@@ -232,7 +232,7 @@ int PythonConfigNodeImp::asInt(const int def)
         return def;
     }
 
-    return -9999;
+    // return -9999;
 }
 
 void PythonConfigNodeImp::set(std::string key, std::string str)

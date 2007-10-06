@@ -7,17 +7,22 @@
  * File:  packages/core/src/Updatable.cpp
  */
 
-// UNIX Includes
-#include <unistd.h>
-
 // Library Includes
-#include <boost/thread/thread.hpp>
+#include <boost/cstdint.hpp>
 #include <boost/thread/xtime.hpp>
+#include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 
 // Project Includes
 #include "core/include/TimeVal.h"
 #include "core/include/Updatable.h"
+
+// System Includes
+#ifdef RAM_POSIX
+#include <unistd.h>
+#else
+#include <windows.h> // For Sleep()
+#endif // RAM_POSIX
 
 #include <iostream>
 
@@ -32,7 +37,7 @@ namespace ram {
 namespace core {
 
 
-typedef int64_t Usec;
+typedef boost::int64_t Usec;
 
 // Adapted from the avahi library, under LPGL
 int timeval_compare(const struct timeval *a, const struct timeval *b) {
@@ -91,7 +96,7 @@ Usec age(const struct timeval *a) {
     return timeval_diff(&now, a);
 }
 
-struct timeval *elapse_time(struct timeval *tv, unsigned msec, unsigned jitter) {
+struct timeval *elapse_time(struct timeval *tv, unsigned msec) {
     assert(tv);
 
     gettimeofday(tv, NULL);
@@ -209,9 +214,9 @@ void Updatable::loop()
         if (in_background)
         {
             // On the first loop through, set the step to ideal
-            double diff = interval *(double)1000;
+            double diff = (double)(interval *(double)1000);
             if (0 != last.tv_usec)
-                diff = (timeval_diff(&start, &last) + offset);
+                diff = (double)(timeval_diff(&start, &last) + offset);
 
             // Record time for next run 
             last = start;
@@ -236,7 +241,7 @@ void Updatable::loop()
                 // If the wait ends early keep waiting
                 while(sleep_time > SLEEP_THRESHOLD)
                 {
-                    waitForUpdate(sleep_time);
+                    waitForUpdate((long)sleep_time);
                     sleep_time = -age(&next);
                 }
             }
@@ -254,11 +259,15 @@ void Updatable::loop()
 
 void Updatable::waitForUpdate(long microseconds)
 {
+#ifdef RAM_POSIX
     struct timespec sleep = {0, 0};
     struct timespec act_sleep = {0, 0};
     
     sleep.tv_nsec = microseconds * NSEC_PER_USEC;        
     nanosleep(&sleep, &act_sleep);  
+#else
+    Sleep(microseconds / USEC_PER_MILLISEC);
+#endif
 }
     
 void Updatable::cleanUpBackgroundThread()

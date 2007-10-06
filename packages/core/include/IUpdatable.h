@@ -10,6 +10,9 @@
 #ifndef RAM_CORE_IUPDATABLE_06_22_2006
 #define RAM_CORE_IUPDATABLE_06_22_2006
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
@@ -18,7 +21,7 @@ namespace core {
  *  All you have to do to use it is subclass and implement the update() method,
  *  will be called the given interval in a background thread.
  */
-class IUpdatable
+class RAM_EXPORT IUpdatable
 {
 public:
     virtual ~IUpdatable() {};

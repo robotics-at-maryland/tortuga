@@ -110,7 +110,7 @@ def setup_windows_libs():
                                
         'Boost' : Library('Boost', '1.34.1', ['boost/config.hpp'], [], 
                           CPPPATH = ram_include + '/boost-1_34_1',
-                          CPPFLAGS = ['/wd4668', '/wd4365', '/wd4619'])
+                          CPPFLAGS = ['/wd4668', '/wd4365', '/wd4619']),
                           
         'Boost.Python' : Library('Boost.Python', '1.34.1',
                                  ['boost/python.hpp'], [BOOST_PYTHON_LIB], 
@@ -121,8 +121,9 @@ def setup_windows_libs():
                                  ext_deps = ['Boost']),
                                       
         'Python' : Library('Python', '2.5', ['Python.h'],
-                           'python2.5', CPPPATH = sysconfig.get_python_inc(),
-                           LINKFLAGS = ['/LIBPATH:'+python_lib_path]),  
+                           'python25', CPPPATH = sysconfig.get_python_inc(),
+                           LINKFLAGS = ['/LIBPATH:'+python_lib_path],
+                           CPPFLAGS = ['/wd4826']),  
     }                               
         
 def _get_external_lib(name):

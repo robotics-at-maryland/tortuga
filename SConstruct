@@ -79,7 +79,7 @@ else:
     # 4512 = assignment operator could not be generated
     # 4127 = conditional expression is constant
     env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
-                                '/wd4512', '/wd4127'])
+                                '/wd4512', '/wd4127', '/wd4640', '/wd4061'])
     
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)

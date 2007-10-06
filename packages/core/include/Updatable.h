@@ -21,6 +21,9 @@ namespace boost { class thread; }
 #include "core/include/IUpdatable.h"
 #include "core/include/CountDownLatch.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
@@ -29,7 +32,7 @@ namespace core {
  *  All you have to do to use it is subclass and implement the update() method,
  *  will be called the given interval in a background thread.
  */
-class Updatable : public IUpdatable, boost::noncopyable
+class RAM_EXPORT Updatable : public IUpdatable, boost::noncopyable
 {
 public:
     Updatable();

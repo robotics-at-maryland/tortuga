@@ -16,13 +16,13 @@
 // Project Includes
 #include "core/include/Common.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
-// STD Includes
-#include <string>
-
-class ConfigNodeImp
+class RAM_EXPORT ConfigNodeImp
 {
 public:
     virtual ~ConfigNodeImp() {};

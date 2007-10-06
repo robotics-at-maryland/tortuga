@@ -70,11 +70,11 @@ int main()
     up->background(INTERVAL);
 
     // Print for 3 seconds
-    sleep(3);
+    TimeVal::sleep(3);
 
     // Stop printer and wait for it to shutdown
     up->unbackground();
-    sleep(1);
+    TimeVal::sleep(1);
 
     // Verify shutdown
     assert(false == up->backgrounded());

@@ -16,10 +16,13 @@
 // Project Includes
 #include "core/include/Common.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
-class ConfigNode
+class RAM_EXPORT ConfigNode
 {
 public:
     /** Use the given implementation */

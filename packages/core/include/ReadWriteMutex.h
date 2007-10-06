@@ -14,6 +14,9 @@
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
@@ -22,7 +25,7 @@ namespace core {
   *  It allows multiple clients may read simultaneously but write access is
  *  exclusive, writers are favoured over readers.
  */
-class ReadWriteMutex : boost::noncopyable
+class RAM_EXPORT ReadWriteMutex : boost::noncopyable
 {
 public:
     ReadWriteMutex();

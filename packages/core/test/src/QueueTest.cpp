@@ -44,7 +44,7 @@ boost::mutex io_mutex;
 void dataProducer()
 {
     unsigned char c = 'A';
-    for(uint i = 0; i < NUM_CHARS;)
+    for(size_t i = 0; i < NUM_CHARS;)
     {
         char out = 0;
         if((c >= 'A' && c <= 'Z'))

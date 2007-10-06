@@ -25,8 +25,56 @@
 // Project Includes
 #include "core/include/TimeVal.h"
 
+// On windows we need our own gettimeofday
+#ifdef RAM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <time.h>
+
+#define EPOCHFILETIME (116444736000000000LL)
+#else 
+#include <unistd.h> // for sleep
+#endif // RAM_WINDOWS
+
 namespace ram {
 namespace core {
+  
+#ifdef RAM_WINDOWS  
+__inline int gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+    FILETIME        ft;
+    LARGE_INTEGER   li;
+    __int64         t;
+    static int      tzflag;
+
+    if (tv)
+    {
+        GetSystemTimeAsFileTime(&ft);
+        li.LowPart  = ft.dwLowDateTime;
+        li.HighPart = ft.dwHighDateTime;
+        t  = li.QuadPart;       /* In 100-nanosecond intervals */
+        t -= EPOCHFILETIME;     /* Offset to the Epoch time */
+        t /= 10;                /* In microseconds */
+        tv->tv_sec  = (long)(t / 1000000);
+        tv->tv_usec = (long)(t % 1000000);
+    }
+
+    if (tz)
+    {
+        if (!tzflag)
+        {
+            _tzset();
+            tzflag++;
+        }
+        long timezone = 0;
+        _get_timezone(&timezone);
+        tz->tz_minuteswest = (int)(timezone / 60);
+         _get_daylight(&tz->tz_dsttime);
+    }
+
+    return 0;
+}
+#endif // RAM_WINDOWS
     
 // Adapted from the avahi library, under LPGL (replace g_time_val_add)
 struct timeval* time_val_add(struct timeval *a, long usec) {
@@ -86,6 +134,15 @@ TimeVal TimeVal::timeOfDay()
 void TimeVal::now()
 {
     gettimeofday(time_val(), NULL);
+}
+    
+void TimeVal::sleep(long seconds)
+{
+#ifdef RAM_POSIX
+    sleep(seconds);
+#else
+    Sleep(seconds * 1000);
+#endif
 }
     
 inline bool

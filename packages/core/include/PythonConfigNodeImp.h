@@ -11,11 +11,22 @@
 #define RAM_CORE_PYTHONCONFIGNODEIMP_06_27_2007
 
 // Library Includes
+// disable this warning, because the boost code is not confromat at /W4
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#pragma warning( push )
+#pragma warning( disable : 4640 4244 )
+#endif
 #include <boost/python.hpp>
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#pragma warning( pop )
+#endif
 
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/ConfigNodeImp.h"
+
+// Must Be Included last
+#include "core/include/Export.h"
 
 namespace ram {
 namespace core {
@@ -24,7 +35,7 @@ namespace core {
  * Implements the ConfigNodeImp based upon a python dict
  *
  */
-class PythonConfigNodeImp : public ConfigNodeImp
+class RAM_EXPORT PythonConfigNodeImp : public ConfigNodeImp
 {
 public:
     /** A config node from the given python dict like object */

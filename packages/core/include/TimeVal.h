@@ -29,11 +29,28 @@
 #ifndef RAM_CORE_TIMEVAL_06_18_2007
 #define RAM_CORE_TIMEVAL_06_18_2007
 
+#ifdef RAM_POSIX
 // UNIX Includes
 #include <sys/time.h>
+#else
+#include <winsock2.h> // for struct timeval
+
+// Need the declration because windows doesn't have it
+struct timezone {
+    int tz_minuteswest; /* minutes W of Greenwich */
+    int tz_dsttime;     /* type of dst correction */
+};
+#endif // RAM_POSIX
+
+// Must Be Included last
+#include "core/include/Export.h"
 
 namespace ram {
 namespace core {
+
+#ifdef RAM_WINDOWS
+__inline int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
 
 static const long USEC_PER_SEC = 1000000;
     
@@ -43,7 +60,7 @@ static const long USEC_PER_SEC = 1000000;
 /// TimeVal represents a time expressed in seconds and microseconds.
 /// TimeVal uses default copy, assignment and destruction.
 
-class TimeVal
+class RAM_EXPORT TimeVal
 {
 	struct timeval timeval_;
 
@@ -187,6 +204,8 @@ public:
 	///< @param other Another TimeVal object.
 	///< @return A reference to the time value.
 
+    /** Sleep for the requested number of seconds */
+    static void sleep(long seconds);
 /// @}
 };
 

@@ -86,7 +86,7 @@ ConfigNode::ConfigNode(const ConfigNode& configNode)
 //    assert(false && "ConfigNode(const ConfigNode* configNode)");
 }
 
-ConfigNode::ConfigNode& ConfigNode::operator=(const ConfigNode& that)
+ConfigNode& ConfigNode::operator=(const ConfigNode& that)
 {
     // make sure not same object
     if (this != &that)
