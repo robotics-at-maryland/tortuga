@@ -5,32 +5,27 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/vehicle/SConscript
 
-# Build system imports
-import libs
-import helpers
-
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 # Sources
-sources = helpers.glob(env, 'src', '*.cpp')
-sources.extend(helpers.glob(env, 'src/device', '*.cpp'))
+sources = env.Glob('src', '*.cpp')
+sources.extend(env.Glob('src/device', '*.cpp'))
 
-#print 'Sources:'source
 # Build Procducts (library will be called 'libram_vehicle.so')
-helpers.SharedLibrary(envl, 'vehicle',  source = sources)
+envl.RAMSharedLibrary('vehicle',  source = sources)
 
 
 # Testing
 envt = env.Clone()
 
 # Build simple camera test program and make sure vision library is intalled
-helpers.Program(envt, target = 'ThrusterDemo', 
+envt.RAMProgram(target = 'ThrusterDemo', 
                 source = 'test/src/ThrusterDemo.cpp',
                 int_deps = 'vehicle')
 
-helpers.Program(envt, target = 'IMUDemo', 
+envt.RAMProgram(target = 'IMUDemo', 
                 source = 'test/src/IMUDemo.cpp',
                 int_deps = 'vehicle')
 

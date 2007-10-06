@@ -359,7 +359,7 @@ class Library(object):
             return False
         if env.GetOption('clean'):
             return False
-        if env['check'].lower() != 'yes':
+        if not env['check']:
             return False
 
         return True

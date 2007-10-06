@@ -5,24 +5,19 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/vehicle/SConscript
 
-# Build system imports
-import libs
-import helpers
-
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 # Sources
-sources = helpers.glob(env, 'src', '*.cpp')
+sources = envl.Glob('src', '*.cpp')
 
 # Build Procducts (library will be called 'libram_vehicle.so')
-helpers.SharedLibrary(envl, 'control',  source = sources)
+envl.RAMSharedLibrary('control',  source = sources)
 
 # Test Control Program
 envt = env.Clone()
-#envt.Append(LIBS = ['boost_program_options-gcc'])
-helpers.Program(envt, target = 'ControlTest', 
+envt.RAMProgram(target = 'ControlTest', 
                 source = 'test/src/ControlTest.cpp',
                 int_deps = ['vehicle', 'control'],
                 ext_deps = ['Boost.ProgramOptions'])

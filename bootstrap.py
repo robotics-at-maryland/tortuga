@@ -51,7 +51,7 @@ def main(argv=None):
     from buildit.context import Software
     
     # Task information
-    import buildfiles.tasks as build_tasks
+    import buildfiles.bootstrap.tasks as build_tasks
 
     # Create and check buildit context
     context = Context(os.path.join(ROOT_DIR, 'buildfiles', 'bootstrap',

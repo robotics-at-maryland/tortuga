@@ -51,12 +51,20 @@ def add_ext_deps(env, ext_deps):
 # Keeps track of created libraries to provide better warnings
 CREATED_LIBRARIES = set()
 
-def SharedLibrary(env, name, *args, **kwargs):
+def SharedLibrary(env, name, _source, **kwargs):
     """
     Simple helper function to all easier building of shared libraries that
     integrate with the rest of the build system.
     """
-
+    
+    if type(name) is list:
+        if len(name) != 1:
+            print 'Library name cannot be a list'
+            print 'Please fix: %s', env.GetBuildPath('SConscript')
+            sys.exit(1)
+        name = name[0]
+    
+    # Keep track off all created libraries so we don't make the same one twice
     global CREATED_LIBRARIES
     if name in CREATED_LIBRARIES:
         print 'Already created library: "%s"' % name
@@ -73,8 +81,10 @@ def SharedLibrary(env, name, *args, **kwargs):
     env.AppendUnique(CPPDEFINES = ['RAM_PKG_' + name.upper()])
     
     target_name = 'ram_' + name
-    lib = env.SharedLibrary(target = target_name, *args, **kwargs)
+    lib = env.SharedLibrary(target = target_name, source = _source, **kwargs)
     env.Install(dir = env['LIB_DIR'], source = lib)
+    
+    return lib
 
 def Program(env, *args, **kwargs):
     """
@@ -119,7 +129,9 @@ def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary
     env['BUILDERS']['RAMProgram'] = Program
     env['BUILDERS']['Tests'] = Tests
-    
+    from SCons.Script.SConscript import SConsEnvironment # just do this once
+    SConsEnvironment.Glob = glob
+
 def setup_printing(env):
     def print_cmd_line(s, target, src, env):
         if env['verbose']:

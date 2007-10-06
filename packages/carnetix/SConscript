@@ -5,17 +5,13 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/carnetix/SConscript
 
-# Build system imports
-import libs
-import helpers
-
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 # Build Library (will be called 'libram_carnetix.so')
 envl.Append(CPPPATH = ['include'])
-helpers.SharedLibrary(envl, 'carnetix',  source = ['src/ctxapi.c'])
+envl.RAMSharedLibrary('carnetix',  source = ['src/ctxapi.c'])
 
 # Testing and Demo Programs
 envt = env.Clone()
@@ -24,8 +20,8 @@ envt = env.Clone()
 envt.Append(CPPPATH = ['include'])
 
 # Build the ctx and consolemon
-helpers.Program(envt, target = 'ctx', source = 'test/src/ctx.c',
+envt.RAMProgram(target = 'ctx', source = 'test/src/ctx.c',
                 int_deps = 'carnetix')
 
-helpers.Program(envt, target = 'consolemon', source = 'test/src/consolemon.c',
+envt.RAMProgram(target = 'consolemon', source = 'test/src/consolemon.c',
                 int_deps = 'carnetix')

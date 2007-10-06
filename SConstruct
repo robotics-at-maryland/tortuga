@@ -20,10 +20,10 @@ import helpers
 import platfrm
 
 # Options either come from command line of config file
-opts = Options('configure.py')
+opts = Options('options.py')
 opts.AddOptions(
-     ('check', 'Runs checks on dependent libraries to ensure a proper installation',
-      'yes'),
+     BoolOption('check', 'Runs checks on dependent libraries to ensure a proper installation',
+      True),
      BoolOption('verbose', "Shows full command line build, normally recored to 'build.log'",
                 False)
      )

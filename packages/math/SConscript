@@ -5,19 +5,15 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/vehicle/SConscript
 
-# Build system imports
-import libs
-import helpers
-
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 # Sources
-sources = helpers.glob(env, 'src', '*.cpp')
+sources = envl.Glob('src', '*.cpp')
 
 # Build Procducts (library will be called 'libram_math.so')
-helpers.SharedLibrary(envl, 'math',  source = sources)
+envl.RAMSharedLibrary('math',  source = sources)
 
 # Tests
 envt = env.Clone()
