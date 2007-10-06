@@ -4,8 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/pattern/test/include/Maker.h
+ * File:  packages/pattern/include/Maker.h
  */
+
+#ifndef RAM_PATTERN_MAKER_H_10_06_2007
+#define RAM_PATTERN_MAKER_H_10_06_2007
 
 // STD Includes
 #include <map>
@@ -13,11 +16,20 @@
 #include <iostream>
 #include <cassert>
 
+// Project Includes
+#include "core/include/Platform.h"
+
 /*
  This pattern is based on the  "Industrial Strength Pluggable Factories"
  article by Timothy R. Culp (with an added dose of policy based design)
 */
 
+
+// In this cast the static variable is safe
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#  pragma warning( push )
+#  pragma warning( disable : 4640 )
+#endif
 
 /** Default MakerLookup policy.  Returns first maker which maps to the given key.
  */
@@ -73,7 +85,20 @@ struct StreamKeyExtractor
     }
 };
  
- 
+class Number
+{
+public:
+    virtual ~Number() {};
+};
+    
+class Int : public Number
+{
+public:
+    Int(int _val) : value(_val) {};
+    
+    int value;
+};
+
 typedef Maker<Number*,            // The type of object created by the maker
               std::iostream&,     // The parameter used to create the object
               std::string,        // The type of key used to register makers
@@ -127,19 +152,9 @@ private:
      */
     static MakerMap* getRegistry()
     {
-        // In this cast the static variable is safe
-#if RAM_COMPILER == RAM_COMPILER_MSVC
-#pragma warning( push )
-#pragma warning( disable : 4640 )
-#endif
-    
         // This line is run only once, avoids static initialization order issue
         static MakerMap* reg = new MakerMap();
         return reg;
-        
-#if RAM_COMPILER == RAM_COMPILER_MSVC
-#pragma warning( pop )
-#endif
     }
    
 public:
@@ -197,69 +212,12 @@ public:
 
         // TODO: raise an exception here
         assert(maker && "Could not find object to match given key");
-//        return ObjectCreate<Object, Param>::createObject(maker, param);
         return ObjectCreate::createObject(maker, param);
     }
 };
-/*
-struct BasicKeyExtractor
-{
-    static string extractKey(stringstream& param)
-    {
-        string key;
-        param >> key;
-        return key;
-    }
-};
 
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#  pragma warning( pop )
+#endif
 
-// Our new policy based maker
-typedef Maker<int, stringstream&, string,
-              BasicKeyExtractor,
-              BasicMakerLookup,
-              BasicObjectMaker> TestMaker;
-*/
-// Now we must make the linker happy
-//template<>
-//TestMaker::MakerMap* TestMaker::registry = 0;
-
-/*template <const char* TypeName>
-class STest
-{
-public:
-    STest() : m_type(TypeName) {};
-    
-    string m_type;
-};
-
-extern char* name = "Test";*/
-/*
-template <const char *str>
-struct xyz { // ...
-  string p;
-  xyz() : p(str) { }
-  void print() { cout << str << std::endl; }
-  void print2() { cout << p << std::endl; }
-};
-
-char Comeau[] = "Comeau C++";
-
-int main()
-{
-    TestMaker maker("Bob");
-    stringstream params("Hello World");
-    
-    cout << maker.testGetKey(params) << endl;
-    cout << maker.testMakerLookup("Bob")->getKey() << endl;
-
-    stringstream param("Bob");
-    delete TestMaker::newObject(param);
-
-//    STest<name> test;
-//    cout << test.m_type << endl;
-    xyz<Comeau> x;
-    x.print();
-    
-    return 0;
-}
-*/
+#endif // RAM_PATTERN_MAKER_H_10_06_2007

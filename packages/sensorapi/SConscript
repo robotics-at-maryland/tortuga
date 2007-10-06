@@ -5,17 +5,13 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/carnetix/SConscript
 
-# Build system imports
-import libs
-import helpers
-
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 # Build Library (will be called 'libram_carnetix.so')
 envl.Append(CPPPATH = ['include'])
-helpers.SharedLibrary(envl, 'sensor',  source = ['src/sensorapi.c'])
+envl.RAMSharedLibrary('sensor',  source = ['src/sensorapi.c'])
 
 # Testing and Demo Programs
 envt = env.Clone()
@@ -24,6 +20,6 @@ envt = env.Clone()
 envt.AppendUnique(CPPPATH = ['include'])
 
 # Build the ctx and consolemon
-helpers.Program(envt, target = 'sensortest', 
+envt.RAMProgram(target = 'sensortest', 
                 source = 'test/src/sensortest.c',
                 int_deps = 'sensor')

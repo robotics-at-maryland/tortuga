@@ -5,17 +5,13 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/carnetix/SConscript
 
-# Build system imports
-import libs
-import helpers
-
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 # Build Library (will be called 'libram_carnetix.so')
 envl.Append(CPPPATH = ['include'])
-helpers.SharedLibrary(envl, 'imu',  source = ['src/imuapi.c'])
+envl.RAMSharedLibrary('imu',  source = ['src/imuapi.c'])
 
 # Testing and Demo Programs
 envt = env.Clone()
@@ -24,5 +20,5 @@ envt = env.Clone()
 envt.AppendUnique(LIBS = ['m'])
 
 # Build the ctx and consolemon
-helpers.Program(envt, target = 'imutest', source = 'test/src/imutest.c',
+envt.RAMProgram(target = 'imutest', source = 'test/src/imutest.c',
                 int_deps = 'imu')

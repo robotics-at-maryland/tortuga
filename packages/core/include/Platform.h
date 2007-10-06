@@ -33,9 +33,11 @@
 #define RAM_COMPILER_GNUC 2
 
 #ifdef _MSC_VER
-#define RAM_COMPILER RAM_COMPILER_MSVC
+#  define RAM_COMPILER RAM_COMPILER_MSVC
+#elif defined(__GNUC__)
+#  define RAM_COMPILER RAM_COMPILER_GNUC
 #else
-#define RAM_COMPILER RAM_COMPILER_GNUC
+#  error "Unsupported compiler"
 #endif // _MSC_VER
 
 #endif // RAM_PLATFORM_H_09_29_2007
