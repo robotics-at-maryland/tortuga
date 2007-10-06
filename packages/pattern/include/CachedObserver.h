@@ -22,24 +22,27 @@
 // Project includes (gets forward declaration of Subject)
 #include "pattern/include/Observer.h"
 
+// Must Be Included last
+#include "pattern/include/Export.h"
+
 namespace ram {
 namespace pattern {
 
-class CachedObserver;
+class RAM_EXPORT CachedObserver;
 
 typedef boost::tuple<Subject*, void*, long> UpdateItem;
 typedef std::list<UpdateItem> UpdateList;
 typedef UpdateList::iterator UpdateListIter;
 typedef std::set<CachedObserver*> CachedObserverSet;
 typedef CachedObserverSet::iterator CachedObserverSetIter;
-    
+
 /** Implements the observer interface but stores updates for later release.
  *
  *  It uses a static cache that allows global release of all updates
  *  or only for the current observer certain object.  This <b>is</b> thread
  *  safe.
  */
-class CachedObserver : public Observer
+class RAM_EXPORT CachedObserver : public Observer
 {
 public:
     CachedObserver(bool ignoreData = false);

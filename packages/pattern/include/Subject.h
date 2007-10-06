@@ -9,6 +9,9 @@
 // Fonudation includes (gets forward declaration or Observer)
 #include "pattern/include/Common.h"
 
+// Must Be Included last
+#include "pattern/include/Export.h"
+
 namespace ram {
 namespace pattern {
     
@@ -39,7 +42,7 @@ namespace pattern {
         empty. Two observers are considered the same if and only if the
         equals method returns true for them. @n
  */
-class Subject
+class RAM_EXPORT Subject
 {
 public:
     Subject();

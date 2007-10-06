@@ -75,7 +75,11 @@ else:
     # 4820 = Had to add pading to structure/class
     # 4625 = Copy constructor not accesible in base class
     # 4626 = Assignement Operator is not accisble in base class
-    env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626'])
+    # 4710 = inline was requested but not preformed
+    # 4512 = assignment operator could not be generated
+    # 4127 = conditional expression is constant
+    env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
+                                '/wd4512', '/wd4127'])
     
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)

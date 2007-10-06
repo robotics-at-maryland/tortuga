@@ -25,6 +25,17 @@
 #pragma warning( disable : 4514 ) // Uncalled inline function removed
 #pragma warning( disable : 4820 ) // Padding added to struct
 #pragma warning( disable : 4710 ) // Function not inlined after request
+#pragma warning( disable : 4251 ) // Disable warning about template exports
 #endif
- 
+
+// Determine our current compiler
+#define RAM_COMPILER_MSVC 1
+#define RAM_COMPILER_GNUC 2
+
+#ifdef _MSC_VER
+#define RAM_COMPILER RAM_COMPILER_MSVC
+#else
+#define RAM_COMPILER RAM_COMPILER_GNUC
+#endif // _MSC_VER
+
 #endif // RAM_PLATFORM_H_09_29_2007

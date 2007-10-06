@@ -13,7 +13,7 @@ sources = helpers.glob(env, 'src', '*.cpp')
 libs.add_external(envl, 'Boost')
 
 # Build Library (will be called 'libram_pattern.so')
-helpers.SharedLibrary(envl, 'pattern', source = sources)
+envl.RAMSharedLibrary('pattern', source = sources)
 
 # Unit Tests
 envt = env.Clone()

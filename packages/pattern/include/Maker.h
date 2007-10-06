@@ -127,9 +127,19 @@ private:
      */
     static MakerMap* getRegistry()
     {
+        // In this cast the static variable is safe
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#pragma warning( push )
+#pragma warning( disable : 4640 )
+#endif
+    
         // This line is run only once, avoids static initialization order issue
         static MakerMap* reg = new MakerMap();
         return reg;
+        
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#pragma warning( pop )
+#endif
     }
    
 public:

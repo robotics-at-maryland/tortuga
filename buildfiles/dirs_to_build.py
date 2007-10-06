@@ -3,11 +3,11 @@ import platform
 
 COMMON_DIRS = set([
     os.path.join('packages', 'math'),
+    os.path.join('packages', 'pattern'),
     ])
 
 POSIX_DIRS = set([
     os.path.join('packages', 'vision'),
-    os.path.join('packages', 'pattern'),
     os.path.join('packages', 'core'),
     os.path.join('packages', 'imu'),
     os.path.join('packages', 'sensorapi'),

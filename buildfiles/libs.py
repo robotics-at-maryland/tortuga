@@ -17,16 +17,22 @@ import platform
 # Project Imports
 from common.util import run_shell_cmd
 
-
 # Constants
 if platform.system() == 'Darwin':
-    BOOST_PYTHON_LIB = 'boost_python-1_34_1'
+    BOOST_PYTHON_LIB = 'boost_python-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-mt-1_34_1'
-    BOOST_PROGOPT_LIB = 'boost_program_options-1_34_1'
-else:
-    BOOST_PYTHON_LIB = 'boost_python-gcc41'
+    BOOST_PROGOPT_LIB = 'boost_program_options-mt-1_34_1'
+elif platform.system() == 'Linux':
+    BOOST_PYTHON_LIB = 'boost_python-gcc41-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
-    BOOST_PROGOPT_LIB = 'boost_program_options-gcc41'
+    BOOST_PROGOPT_LIB = 'boost_program_options-gcc41-mt'
+elif platform.system() == 'Windows':
+    BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
+    BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'
+    BOOST_PROGOPT_LIB = 'boost_program_options-vc80-mt-1_34_1'
+else:
+    print '"%s" is an unsupported platform' % platform.system()
+    sys.exit(1)
 
 def remove_item(env, key, items):
     """
@@ -59,6 +65,66 @@ def remove_item(env, key, items):
 
 EXTERNAL_LIBS = None
 
+def setup_posix_libs():
+    global EXTERNAL_LIBS
+    EXTERNAL_LIBS = {
+        'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
+                                    'wx-config'),
+        'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
+
+        'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 
+                                                        'gdk/gdk.h']),
+        'Boost' : BoostLibrary('Boost', (1,34,1), []),
+
+        'USB': PkgConfigLibrary('libusb', '0.1', ['usb.h']),
+
+        'Boost.Python' : BoostLibrary('Boost.Python', (1,34,1), [],
+                                      [BOOST_PYTHON_LIB], 
+                                      ext_deps = ['Python']),
+
+        'Boost.Thread' : BoostLibrary('Boost.Thread', (1,34,1), [],
+                                      [BOOST_THREAD_LIB]),
+
+        'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
+                                              (1,35), [],
+                                             [BOOST_PROGOPT_LIB]),
+        'Python' : PythonLib('2.5'),
+
+        'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
+                                        ['UnitTest++/UnitTest++.h'])
+        }
+
+def setup_windows_libs():
+    global EXTERNAL_LIBS
+    from distutils import sysconfig
+    getvar = sysconfig.get_config_var
+    
+    python_lib_path = os.path.join(sysconfig.get_config_var('prefix'),'libs')
+    
+    ram_root = os.environ['RAM_ROOT_DIR']
+    ram_include = ram_root + '/include'
+    
+    EXTERNAL_LIBS = {
+        'UnitTest++' : Library('UnitTest++', '1.3', ['UnitTest++/UnitTest++.h'],
+                               'UnitTest++.vsnet2005'),   
+                               
+        'Boost' : Library('Boost', '1.34.1', ['boost/config.hpp'], [], 
+                          CPPPATH = ram_include + '/boost-1_34_1',
+                          CPPFLAGS = ['/wd4668', '/wd4365', '/wd4619'])
+                          
+        'Boost.Python' : Library('Boost.Python', '1.34.1',
+                                 ['boost/python.hpp'], [BOOST_PYTHON_LIB], 
+                                 ext_deps = ['Python', 'Boost']),
+                                      
+        'Boost.Thread' : Library('Boost.Python', '1.34.1',
+                                 ['boost/thread.hpp'], [BOOST_THREAD_LIB], 
+                                 ext_deps = ['Boost']),
+                                      
+        'Python' : Library('Python', '2.5', ['Python.h'],
+                           'python2.5', CPPPATH = sysconfig.get_python_inc(),
+                           LINKFLAGS = ['/LIBPATH:'+python_lib_path]),  
+    }                               
+        
 def _get_external_lib(name):
     """
     Maps public library with the information need to build it
@@ -68,39 +134,10 @@ def _get_external_lib(name):
     # classes can be at the bottom of the file
     global EXTERNAL_LIBS
     if EXTERNAL_LIBS is None:
-        EXTERNAL_LIBS = {
-            'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
-                                        'wx-config'),
-            'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
-
-            'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 
-                                                            'gdk/gdk.h']),
-            'Boost' : BoostLibrary('Boost', (1,34,1), []),
-
-            'USB': PkgConfigLibrary('libusb', '0.1', ['usb.h']),
-
-            'Boost.Python' : BoostLibrary('Boost.Python', (1,34,1), [],
-                                          [BOOST_PYTHON_LIB], 
-                                          ext_deps = ['Python']),
-
-            'Boost.Thread' : BoostLibrary('Boost.Thread', (1,34,1), [],
-                                          [BOOST_THREAD_LIB]),
-
-            'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
-                                                  (1,35), [],
-                                                  [BOOST_PROGOPT_LIB]),
-            'Python' : PythonLib('2.5'),
-
-            'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
-                                            ['UnitTest++/UnitTest++.h'])
-            }
-            
-        if os.name == 'nt':
-            EXTERNAL_LIBS = {
-                'UnitTest++' : Library('UnitTest++', '1.3',
-                                       ['UnitTest++/UnitTest++.h'],
-                                       'UnitTest++.vsnet2005')
-            }
+        if os.name == 'posix':
+            setup_posix_libs()
+        else:
+            setup_windows_libs()
 
     if EXTERNAL_LIBS.has_key(name):
         return EXTERNAL_LIBS[name]

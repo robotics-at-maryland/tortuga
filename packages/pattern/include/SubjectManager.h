@@ -12,6 +12,9 @@
 // Pattern includes (gets forward declaration of Subject)
 #include "pattern/include/Common.h"
 
+// Must Be Included last
+#include "pattern/include/Export.h"
+
 namespace ram {
 namespace pattern {
 
@@ -20,7 +23,7 @@ class Subject;
 /*! This class allows a set of obersable object to be update all at once witout
     the users haveing to be aware of every object that is needs to notify.
  */
-class SubjectManager : private boost::noncopyable
+class RAM_EXPORT SubjectManager : private boost::noncopyable
 {
 public:
     /*! Constructor */

@@ -9,13 +9,16 @@
 // Fonudation includes (gets forward declaration of Subject)
 #include "pattern/include/Common.h"
 
+// Must Be Included last
+#include "pattern/include/Export.h"
+
 namespace ram {
 namespace pattern {
 
 /*! A class can implement the Observer interface when it wants to be informed
     of changes in Subject objects. Thi9 class is pure abstract.
 */
-class Observer
+class RAM_EXPORT Observer
 {
 public:
     virtual ~Observer() {};
