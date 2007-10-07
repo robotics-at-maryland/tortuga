@@ -3,15 +3,14 @@ import os
 import platform
 
 # Build System Importsx
-import libs
-import helpers
+import buildfiles.libs as libs
 
 # Pull in build environment from parent SConstruct
 Import('env')
 envl = env.Clone()
 
 # Find all cpp files in the source directory
-sources = helpers.glob(env, 'src', '*.cpp')
+sources = env.Glob('src', '*.cpp')
 
 # Grab wxWidgets
 libs.add_external(envl, 'wxWidgets')

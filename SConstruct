@@ -15,9 +15,9 @@ EnsureSConsVersion(0, 96, 93)
 # --------------------------------------------------------------------------- #
 
 # Add the buildfiles dir to the path
-sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
-import helpers
-import platfrm
+#sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
+import buildfiles.helpers as helpers
+import buildfiles.platfrm as platfrm
 
 # Options either come from command line of config file
 opts = Options('options.py')
@@ -53,8 +53,6 @@ if os.name == 'nt':
     env.AppendUnique(CPPPATH = [os.path.join(os.environ['RAM_ROOT_DIR'],'include')])
 env.AppendUnique(LIBPATH = [env['LIB_DIR'],
                             os.path.join(os.environ['RAM_ROOT_DIR'],'lib')])
-
-helpers.setup_printing(env)
 
 # Add flags
 # TODO: Factor me out into a variant module 

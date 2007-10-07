@@ -1,16 +1,16 @@
-# Build System Imports
-import libs
-import helpers
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/pattern/SConscript
 
 # Pull in build environment from parent SConstruct
 Import('env')
 envl = env.Clone()
 
 # Find all cpp files in the source directory
-sources = helpers.glob(env, 'src', '*.cpp')
-
-# Grab Boost
-libs.add_external(envl, 'Boost')
+sources = env.Glob('src', '*.cpp')
 
 # Build Library (will be called 'libram_pattern.so')
 envl.RAMSharedLibrary('pattern', source = sources)

@@ -5,14 +5,11 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/tools/FindBias/SConscript
 
-# Build system imports
-import helpers
-
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 # Build the ctx and consolemon
-helpers.Program(envl, target = 'BiasFinder', 
+envl.RAMProgram(target = 'BiasFinder', 
 		source = 'src/FindBias.cpp',
                 int_deps = ['vehicle','math'])
