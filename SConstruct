@@ -50,7 +50,9 @@ env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 # Add to base compiler and linker paths
 env.AppendUnique(CPPPATH = [env['PACKAGE_DIR']])
 if os.name == 'nt':
-    env.AppendUnique(CPPPATH = [os.path.join(os.environ['RAM_ROOT_DIR'],'include')])
+    env.AppendUnique(CPPPATH = [os.path.join(os.environ['RAM_ROOT_DIR'],'include'),
+                                r'C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include'])
+    env.AppendUnique(LIBPATH = [r'C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Lib'])
 env.AppendUnique(LIBPATH = [env['LIB_DIR'],
                             os.path.join(os.environ['RAM_ROOT_DIR'],'lib')])
 
