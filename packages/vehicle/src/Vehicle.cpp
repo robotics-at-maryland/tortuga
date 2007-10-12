@@ -41,6 +41,13 @@ Vehicle::Vehicle(core::ConfigNode config) :
 
 Vehicle::~Vehicle()
 {
+    // Remove all references to the devices, will cause them to be destructed
+    // this will cause the Thruster objects to be deleted and set the 
+    // thrusters to nuetral.  The lone problem here is that these objects are
+    // reference counted, so we can't be sure that there are not any 
+    // references  floating around keeping the object from being destoryed.
+    m_devices.clear();
+
     safeThrusters();
 }
     
