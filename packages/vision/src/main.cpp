@@ -19,10 +19,12 @@
 using namespace std;
 using namespace ram::vision;
 
+//Allow testRecord to be called easily from within a dynamically linked library
 extern "C"{
   int testRecord();
 }
 
+//A test function for writing to an avi file
 int testRecord()
 {
   CvCapture* camCapture=cvCaptureFromFile("starcraft.avi");
@@ -55,6 +57,7 @@ int testRecord()
   return 7;
 }
 
+//Rotate counterclockwise 90 degrees, hopefully unnecessary if our cameras aren't on sideways
 void rotate90Deg(IplImage* src, IplImage* dest)
 {
 	char* data=src->imageData;
@@ -110,6 +113,8 @@ void rotate90DegClockwise(IplImage* src, IplImage* dest)
 	}
 }	
 
+//Used for camera calibration, this finds corners on a chessboard
+//Currently expecting a 6 by 6 chessboard
 int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 {
     cout<<"Starting findCorners"<<endl;
@@ -122,6 +127,7 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 	int cornerCount;
 
     cout<<"Guessing chessboard corners"<<endl;
+	//The cvSize(6,6) refers to the size of the chessboard
     int okay = cvFindChessboardCorners(image8, cvSize(6,6), array, &cornerCount);
 	cvDrawChessboardCorners( image, cvSize(6,6),
 							array, cornerCount, okay);
@@ -148,6 +154,7 @@ int findCorners(IplImage* image, CvPoint2D32f* array/*size 36*/)
 }
 
 
+//  Calibrate the camera, see the openCV manual, this just hands it off
 //	float distortion[4];
 //	float cameraMatrix[9];
 //	float transVects[3];
@@ -160,6 +167,8 @@ void calibrateCamera(int width, int height, int* cornerCountsArray, float* disto
 		transVects, rotMat, 0);
 }
 
+//  Undistorts the image using undistort, in theory we should use cvUndistort to calculate the distortion matrix
+//  This calculates the distortion matrix every time we want to undistort an image.
 void undistort(IplImage* image, IplImage* dest, float* cameraMatrix, float* distortion)
 {
 	cvUnDistortOnce( image, dest,
@@ -168,13 +177,16 @@ void undistort(IplImage* image, IplImage* dest, float* cameraMatrix, float* dist
                       1);
 }
 
+//Allow giveMeFive to be called from within dynamically linked library more easily
 extern "C"{
   int giveMeFive();
 }
+//A simple function to test out dynamically linked libraries.
 int giveMeFive(){
   return 5;
 }
 
+//A way to kill the vision loop, at least in theory, in fact this only controls the visionStart function
 static int goVision=1;
 extern "C"{
   void killVision();
@@ -183,6 +195,9 @@ void killVision(){
   goVision=0;
 }
 
+//Detect a gate, cut off the top half of the image, then go through the image counting up
+//the number of white pixels in each column of the image.  If there are a set of consecutive columns with high pixel counts
+//This implies one pipe of the gate is in the image, if there is an area with a pipe on each side, it means we're facing the center of the gate.
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 {
 	char* data=percents->imageData;
