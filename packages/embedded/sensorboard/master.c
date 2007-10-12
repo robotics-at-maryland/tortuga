@@ -339,6 +339,14 @@ byte pollStatus()
         showString("STA FAIL   ", 1);
         return 255;
     }
+
+    rxBuf[0] &= 0xFD;   /* Clear the reported kill switch bit */
+
+
+    /* We report the kill switch our own way */
+    if(IN_KS == 1)
+        rxBuf[0] |= 0x02;
+
     return rxBuf[0];
 }
 
@@ -782,6 +790,13 @@ int main(void)
                     sendByte(HOST_REPLY_FAILURE);
                 } else
                 {
+
+                    rxBuf[0] &= 0xFD; /* Clear kill switch bit */
+
+                    /* Set kill switch bit based on the GPIO kill input */
+                    if(IN_KS == 1)
+                        rxBuf[0] |= 0x02;
+
                     sendByte(HOST_REPLY_BOARDSTATUS);
                     sendByte(rxBuf[0]);
                     sendByte(HOST_REPLY_BOARDSTATUS+rxBuf[0]);
