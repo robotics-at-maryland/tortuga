@@ -330,6 +330,8 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	return whitex!=-1;
 }
 
+//An example test function for the shortlived attempt at a way to write lists of commands to Vision
+//A process list allows you to send a list of steps to a vision processing loop, but 
 	int runVision(int argc, char** argv)
 	{
 		cvNamedWindow("test",CV_WINDOW_AUTOSIZE);
