@@ -136,7 +136,7 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
          config["IMUName"].asString("IMU")));*/
 
     m_logfile.open("control_log.txt");
-    m_logfile << "M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
+    m_logfile << "% M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
               << std::endl;
         
 }
