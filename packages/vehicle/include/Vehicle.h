@@ -30,7 +30,7 @@ class Vehicle : public IVehicle, public core::Updatable
 public:
     Vehicle(core::ConfigNode config);
     
-    virtual ~Vehicle() {}
+    virtual ~Vehicle();
     
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevicePtr getDevice(std::string name);
@@ -38,7 +38,7 @@ public:
     virtual double getDepth();
 
     /** Truns <b>ON</b> the thruster safety */
-    virtual void safeThruster();
+    virtual void safeThrusters();
 
     /** Turns <b>OFF</b> the thruster safety */
     virtual void unsafeThrusters(); 

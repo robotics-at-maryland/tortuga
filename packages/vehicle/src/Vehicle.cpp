@@ -35,8 +35,15 @@ Vehicle::Vehicle(core::ConfigNode config) :
 
     if (m_sensorFD < -1)
         std::cout << "Could not open sensor board\n";
+    else
+        unsafeThrusters();
 }
 
+Vehicle::~Vehicle()
+{
+    safeThrusters();
+}
+    
 device::IDevicePtr Vehicle::getDevice(std::string name)
 {
     return m_devices[name];
@@ -48,16 +55,17 @@ double Vehicle::getDepth()
     return m_state.depth;
 }
 
-void Vehicle::safeThruster()
+void Vehicle::safeThrusters()
 {
     boost::mutex::scoped_lock lock(m_sensorBoardMutex);
     
     if (m_sensorFD >= 0)
     {
-        thrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
+        // Todo, check whether these succeed
+        thrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
     }
 }
 
@@ -67,10 +75,11 @@ void Vehicle::unsafeThrusters()
     
     if (m_sensorFD >= 0)
     {
-        thrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
+        // todo check whether these succeed
+        thrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
     }
 }
 

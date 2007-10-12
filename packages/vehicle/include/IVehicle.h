@@ -26,7 +26,7 @@ public:
     virtual double getDepth() = 0;
 
     /** Truns <b>ON</b> the thruster safety */
-    virtual void safeThruster() = 0;
+    virtual void safeThrusters() = 0;
 
     /** Turns <b>OFF</b> the thruster safety */
     virtual void unsafeThrusters() = 0;
