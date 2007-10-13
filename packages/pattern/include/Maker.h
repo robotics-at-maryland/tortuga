@@ -24,12 +24,14 @@
  article by Timothy R. Culp (with an added dose of policy based design)
 */
 
-
 // In this cast the static variable is safe
 #if RAM_COMPILER == RAM_COMPILER_MSVC
 #  pragma warning( push )
 #  pragma warning( disable : 4640 )
 #endif
+
+namespace ram {
+namespace pattern {
 
 /** Default MakerLookup policy.  Returns first maker which maps to the given key.
  */
@@ -216,8 +218,12 @@ public:
     }
 };
 
+
 #if RAM_COMPILER == RAM_COMPILER_MSVC
 #  pragma warning( pop )
 #endif
+
+} // namespace pattern
+} // namespace ram
 
 #endif // RAM_PATTERN_MAKER_H_10_06_2007

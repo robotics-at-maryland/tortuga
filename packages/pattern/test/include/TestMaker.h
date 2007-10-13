@@ -15,6 +15,9 @@
 #include <iostream>
 #include <string>
 
+// Project Includes
+#include "pattern/include/Maker.h"
+
 // A simple example set of class we wish to make dynamically
 class Number
 {
@@ -51,7 +54,7 @@ struct StreamKeyExtractor
 
 // A more verbose but simpler approach to using the pattern
 
-typedef Maker<Number*,            // The type of object created by the maker
+typedef ram::pattern::Maker<Number*, // The type of object created by the maker
               std::iostream&,     // The parameter used to create the object
               std::string,        // The type of key used to register makers
               StreamKeyExtractor> // Gets the key from the paramters
