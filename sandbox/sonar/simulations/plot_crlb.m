@@ -21,11 +21,7 @@ levels = 0.01:0.02:10;
 for k = 1:length(depthticks)
     subplot(prows,pcols,k);
     [C,h] = contour(X(:,:,1),Y(:,:,1),V(:,:,k),levels);
+    axis square;
     title(sprintf('Depth: %d meters',depthticks(k)));
 end
-colorbar('east');
-
-
-% xlabel('x (meters)');
-% ylabel('y (meters)');
-% zlabel('Minimum std. deviation for source position (meters)');
+set(h,'ShowText','on','TextStep',2);

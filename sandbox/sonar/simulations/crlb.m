@@ -46,7 +46,7 @@ dist0 = sqrt(dot(source_pos, source_pos));
 ddoas = dists - dist0;
 sigma_x = phase_rez/2/pi * lambda;
 
-% Computing the gradient %
+% Computing the Jacobian matrix %
 % d(d10,d20,...,dm0,x1,y1,z1,x2,y2,z2,...,xm,ym,zm)
 % -------------------------------------------------
 %    d(xs,ys,zs,x1,y1,z1,x2,y2,z2,...,xm,ym,zm)
