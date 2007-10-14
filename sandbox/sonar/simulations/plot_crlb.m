@@ -1,18 +1,31 @@
-function plot_crlb(filename)
-posticks = -100:10:100;
-depth = 0.1;
-[X,Y]=meshgrid(posticks,posticks);
-Z = zeros(length(posticks));
+function [X,Y,Z,V] = plot_crlb(filename)
+posticks = -100:20:100;
+depthticks = -10:4:10;
+[X,Y,Z]=meshgrid(posticks,posticks,depthticks);
+Z = zeros(length(posticks),length(posticks),length(depthticks));
 load(filename,'hydro_pos');
 
 for i = 1:length(posticks)
     for j = 1:length(posticks)
-        Z(i,j) = crlb([posticks(i),posticks(j),depth], hydro_pos);
+        for k = 1:length(depthticks)
+           V(i,j,k) = crlb([posticks(i),posticks(j),depthticks(k)], hydro_pos);
+        end
     end
 end
 
-mesh(X,Y,Z);
-xlabel('x (meters)');
-ylabel('y (meters)');
-zlabel('Minimum std. deviation for source position (meters)');
-% plot(X(1,:),Z(10,:));
+m = length(depthticks);
+prows = floor(sqrt(m));
+pcols = ceil(m/prows);
+
+levels = 0.01:0.02:10;
+for k = 1:length(depthticks)
+    subplot(prows,pcols,k);
+    [C,h] = contour(X(:,:,1),Y(:,:,1),V(:,:,k),levels);
+    title(sprintf('Depth: %d meters',depthticks(k)));
+end
+colorbar('east');
+
+
+% xlabel('x (meters)');
+% ylabel('y (meters)');
+% zlabel('Minimum std. deviation for source position (meters)');
