@@ -1,5 +1,5 @@
-snr = logspace(-1,4,30);
-freq_sample = logspace(5,8,30);
+snr = logspace(-1,4,10);
+freq_sample = logspace(5,7,10);
 phase_rez = zeros(length(snr),length(freq_sample));
 [X,Y] = meshgrid(snr, freq_sample);
 
@@ -15,10 +15,10 @@ levels = 10.^(-10:0);
 figure(1);
 axes('XScale','log');
 axes('YScale','log');
-axes('XTick',snr);
-axes('YTick',freq_sample);
-axes('XTickMode','manual');
-axes('YTickMode','manual');
+%axes('XTick',snr);
+%axes('YTick',freq_sample);
+%axes('XTickMode','manual');
+%axes('YTickMode','manual');
 [C,h] = contour(X,Y,phase_rez,levels);
 set(h,'ShowText','on');
 xlabel('Signal-to-noise ratio (unitless)');
