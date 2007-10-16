@@ -26,7 +26,7 @@ elif platform.system() == 'Linux':
     BOOST_PYTHON_LIB = 'boost_python-gcc41-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc41-mt'
-elif platform.system() == 'Windows':
+elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-vc80-mt-1_34_1'

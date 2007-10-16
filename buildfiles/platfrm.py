@@ -34,7 +34,7 @@ def check_supported_os(env):
 
     # Check OS
     os_kind = platform.system()
-    if not (os_kind in ['Linux', 'Darwin', 'Windows']):
+    if not (os_kind in ['Linux', 'Darwin', 'Windows', 'Microsoft']):
         print 'ERROR: OS "%s" not supported' % os_kind
         sys.exit(1)
 

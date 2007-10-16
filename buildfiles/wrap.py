@@ -210,6 +210,7 @@ def wrap_headers(env, mod_name, headers,
     envw = setup_environ(env)
 
     base_files = []
+    xml_files = []
     # Build XML reprsentation of headers
     for header in headers:
         target = header_dir_name + header.split(header_dir_name)[1]
@@ -223,91 +224,92 @@ def wrap_headers(env, mod_name, headers,
         base_files.append(target)
         t = os.path.join(output_root, target)
         s = os.path.join(os.environ['RAM_SVN_DIR'],header)
-        #print 'XML: %s Header: %s' % (t,s)
-        envw.XMLHeader(target = t,
-                       source = s)
+        print 'XML: %s Header: %s' % (t,s)
+        xml_files.append(envw.XMLHeader(target = t,
+                                        source = s))
 
+    
     # Import out module which generates the code
-    generate_module = import_wrapping_mod(gen_mod, src_dir)
+#    generate_module = import_wrapping_mod(gen_mod, src_dir)
 
-    mod_infos = get_modules(mod_name, base_files)
+#    mod_infos = get_modules(mod_name, base_files)
 
     #from pprint import pprint
     #pprint(mod_infos)
 
     # Strip leading output dir
-    for short_name, full_dot_name, bfiles in mod_infos:
-        name = '_'.join(full_dot_name.split('::'))
-        output_path = os.path.join(str(os.sep).join(full_dot_name.split('::')[1:]))
-        output_dir = os.path.join(output_root, output_path)
-        
+#    for short_name, full_dot_name, bfiles in mod_infos:
+#        name = '_'.join(full_dot_name.split('::'))
+#        output_path = os.path.join(str(os.sep).join(full_dot_name.split('::')[1:]))
+#        output_dir = os.path.join(output_root, output_path)
+#        
         # Make an educated guess at the output files
-        output_files = []
-        include_files = []
-        xml_files = []
-        for f in bfiles:
+#        output_files = []
+#        include_files = []
+#        xml_files = []
+#      for f in bfiles:
             # Py++ generates a .pypp.cpp/hpp for every class, we assume one
             # class per header
-            output_files.append(os.path.join(output_root, f + '.pypp.cpp'))
-            output_files.append(os.path.join(output_root, f + '.pypp.hpp'))
+#            output_files.append(os.path.join(output_root, f + '.pypp.cpp'))
+#            output_files.append(os.path.join(output_root, f + '.pypp.hpp'))
 
             # Rebuild original include directories for that directory
-            include_files.append(os.path.join(header_dir_name,
-                                              f + header_suffix))
-            xml_files.append(os.path.join(output_root, f + '.xml'))
+#            include_files.append(os.path.join(header_dir_name,
+#                                              f + header_suffix))
+#            xml_files.append(os.path.join(output_root, f + '.xml'))
                                  
-        output_files.append(os.path.join(output_dir, name + '.main.cpp'))
+#        output_files.append(os.path.join(output_dir, name + '.main.cpp'))
 
         #print 'XML     :',xml_files
         #print 'Output  :',output_files
         #print 'Includes:',include_files
         
-        dot_name = full_dot_name
-        if len(namespace_prefix) > 0:
-            dot_name = namespace_prefix + '::' + dot_name
+#        dot_name = full_dot_name
+#        if len(namespace_prefix) > 0:
+#            dot_name = namespace_prefix + '::' + dot_name
                                                         
         #print 'Root',output_root
         #print 'Output dir', output_dir
-        gen = Generator(generate_module, dot_name,
-                        os.path.join(build_dir, output_dir), headers,
-                        extra_includes)
+#        gen = Generator(generate_module, dot_name,
+#                        os.path.join(build_dir, output_dir), headers,
+#                        extra_includes)
         # Generate a custom action which calls the right generate_code
         #print 'Output dir',output_dir
-        envw.Command(output_files, xml_files, SCons.Action.Action(gen))
+#        envw.Command(output_files, xml_files, SCons.Action.Action(gen))
         
         # Setup extra depends with the generate_code module
-        envw.Depends(output_files, gen_mod + '.py')
+#        envw.Depends(output_files, gen_mod + '.py')
         
         # Create the shared library (This doesn't handle extra classes)
-        src_set = set([f for f in output_files if f.endswith('.cpp')])
-        if os.path.exists(output_dir):
-            [src_set.add(os.path.join(output_dir, f)) for f in
-             os.listdir(output_dir) if f.endswith('.cpp')]
-        sources = [i for i in src_set]
+#        src_set = set([f for f in output_files if f.endswith('.cpp')])
+#        if os.path.exists(output_dir):
+#            [src_set.add(os.path.join(output_dir, f)) for f in
+#             os.listdir(output_dir) if f.endswith('.cpp')]
+#        sources = [i for i in src_set]
 
-        envw.AppendUnique(CPPPATH = [os.environ['RAM_SVN_DIR']])
+#        envw.AppendUnique(CPPPATH = [os.environ['RAM_SVN_DIR']])
 
         # Remove -Wall if present
-        flags = envw['CCFLAGS']
-        if flags.count('-Wall') > 0:
-            flags.remove('-Wall')
-            envw.Replace(CCFLAGS = flags)
+#        flags = envw['CCFLAGS']
+#        if flags.count('-Wall') > 0:
+#            flags.remove('-Wall')
+#            envw.Replace(CCFLAGS = flags)
             
-        lib = envw.SharedLibrary(target = os.path.join(output_dir, name),
-                                 source = sources, SHLIBPREFIX = '')
+#        lib = envw.SharedLibrary(target = os.path.join(output_dir, name),
+#                                 source = sources, SHLIBPREFIX = '')
 
         # Create init files for importing
-        install_dir = os.path.join(env['BUILD_DIR'], install_dir)
-        init_file = os.path.join(install_dir, '__init__.py')
+#        install_dir = os.path.join(env['BUILD_DIR'], install_dir)
+#        init_file = os.path.join(install_dir, '__init__.py')
         
-        global EXT_DIR_INSTALLED
-        if EXT_DIR_INSTALLED:
-            envw.Command(install_dir, '', SCons.Defaults.Mkdir(install_dir))
-            envw.Command(init_file, '', SCons.Defaults.Touch(init_file))
-            EXT_DIR_INSTALLED = True
+#        global EXT_DIR_INSTALLED
+#        if EXT_DIR_INSTALLED:
+#            envw.Command(install_dir, '', SCons.Defaults.Mkdir(install_dir))
+#            envw.Command(init_file, '', SCons.Defaults.Touch(init_file))
+#            EXT_DIR_INSTALLED = True
 
         # Create the extra depends on the output files and generate code files
         # Setup the install command
-        lib_name = os.path.basename(str(lib[0]))
-        envw.InstallAs(target = os.path.join(install_dir, lib_name),
-                       source = lib)
+#        lib_name = os.path.basename(str(lib[0]))
+#        envw.InstallAs(target = os.path.join(install_dir, lib_name),
+#                       source = lib)
