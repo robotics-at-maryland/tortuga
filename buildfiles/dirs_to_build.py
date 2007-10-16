@@ -19,7 +19,7 @@ POSIX_DIRS = set([
     os.path.join('tools', 'BiasFinder'),
 #    os.path.join('wrappers', 'pattern'),
 #    os.path.join('wrappers', 'core'),
-    os.path.join('wrappers', 'math'),
+#    os.path.join('wrappers', 'math'),
 #    os.path.join('wrappers', 'vision'),
 #    os.path.join('wrappers', 'control'),
 #    os.path.join('wrappers', 'vehicle'),
