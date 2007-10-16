@@ -46,7 +46,14 @@ def add_platform_defines(env):
     env.Append(CPPDEFINES = ['RAM_%s' % os.name.upper()])
     
     # Define Specific OS
-    env.Append(CPPDEFINES = ['RAM_%s' % platform.system().upper()])
+    system_map = {
+        'Linux' : 'Linux',
+        'Darwin' : 'Darwin',
+        'Windows' : 'Windows',
+        'Microsoft' : 'Windows'
+        }
+    
+    env.Append(CPPDEFINES = ['RAM_%s' % system_map[platform.system()].upper()])
 
 def add_scons_variables(env):
     env['RAM_PLATFORM'] = os.name.lower()
