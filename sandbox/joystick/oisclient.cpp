@@ -129,8 +129,8 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 
 	#define BTN_EMERGSTOP 0
 	#define BTN_ZEROSPEED 2
-
-    #error No speed axis defined for Saitek yet.
+	#define AXIS_SPEED 1
+//    #error No speed axis defined for Saitek yet.
 #else
 
 /* Button mappings for Steve's Xbox controller and kernel */
@@ -149,7 +149,7 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 #endif
 
 /* Speeds to send.. ie, -SPEED_RANGE to +SPEED_RANGE */
-#define SPEED_RANGE 5
+#define SPEED_RANGE 3
 
 /* Don't send same speed twice */
 int lastAxisSpeed=0;
@@ -284,7 +284,7 @@ public:
 	{
 		//Provide a little dead zone
 //		if( arg.state.mAxes[axis].abs > 2500 || arg.state.mAxes[axis].abs < -2500 )
-	//		std::cout << "Joy Axis #: " << axis << " Value: " << arg.state.mAxes[axis].abs<<"\n";
+			//std::cout << "Joy Axis #: " << axis << " Value: " << arg.state.mAxes[axis].abs<<"\n";
         processAxis(sockfd, axis, arg.state.mAxes[axis].abs);
 		return true;
 	}
