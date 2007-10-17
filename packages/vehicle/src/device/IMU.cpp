@@ -72,6 +72,10 @@ IMU::IMU(core::ConfigNode config) :
 
     //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
     //	   m_magYBias, m_magZBias);
+
+    m_logfile.open("imu_log.txt");
+    m_logfile << "% Accel Mag Accel-Raw Mag-Raw Quat"
+              << std::endl;
 }
 
 IMU::~IMU()
@@ -85,6 +89,7 @@ IMU::~IMU()
 
     delete m_rawState;
     delete m_filteredState;
+    m_logfile.close();
 }
 
 IMUPtr IMU::construct(core::ConfigNode config)
@@ -123,14 +128,24 @@ void IMU::update(double timestep)
 
 
             
-	    /*	    printf("IMU F. Bias Raw: %7.4f %7.4f %7.4f\n", newState.magX, 
-		   newState.magY,
-                   newState.magZ);*/
-
+	    //	    printf("IMU F. Bias Raw: %7.4f %7.4f %7.4f\n", newState.magX, 
+	//	   newState.magY,
+          //         newState.magZ);
+	    
             
             
             // Rotate into vehicle frame and filter data
             rotateAndFilterData(&newState);
+
+	    m_logfile << m_filteredAccelX.getValue() << " "
+		      << m_filteredAccelY.getValue() << " "
+		      << m_filteredAccelZ.getValue() << " "
+		      << m_filteredMagX.getValue() << " "
+		      << m_filteredMagY.getValue() << " "
+		      << m_filteredMagZ.getValue() << " ";
+	    m_logfile << newState.accelX << " " << newState.accelY << " "
+		      << newState.accelZ << " " << newState.magX << " " 
+		      << newState.magY << " " << newState.magZ << " ";
 
             // Use filtered data to get quaternion
             double linearAcceleration[3] = {0,0,0};
@@ -153,6 +168,9 @@ void IMU::update(double timestep)
                 
                 quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
 
+
+		m_logfile << quaternion[0] << " " << quaternion[1] << " " 
+			  << quaternion[2] << " " << quaternion[3] << std::endl;
 
                 m_orientation.x = quaternion[0];
                 m_orientation.y = quaternion[1];

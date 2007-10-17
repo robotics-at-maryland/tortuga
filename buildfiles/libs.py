@@ -23,9 +23,9 @@ if platform.system() == 'Darwin':
     BOOST_THREAD_LIB = 'boost_thread-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-mt-1_34_1'
 elif platform.system() == 'Linux':
-    BOOST_PYTHON_LIB = 'boost_python-gcc41-mt'
-    BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
-    BOOST_PROGOPT_LIB = 'boost_program_options-gcc41-mt'
+    BOOST_PYTHON_LIB = 'boost_python-gcc-mt'
+    BOOST_THREAD_LIB = 'boost_thread-gcc-mt'
+    BOOST_PROGOPT_LIB = 'boost_program_options-gcc-mt'
 elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'

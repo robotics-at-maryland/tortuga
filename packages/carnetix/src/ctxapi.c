@@ -55,6 +55,7 @@ static unsigned short m_vendor_id;
 
 void debug(char *format, ...)
 {
+	return;
     va_list ap;
     char logmessage[2048];
     memset(logmessage,0,sizeof(logmessage));

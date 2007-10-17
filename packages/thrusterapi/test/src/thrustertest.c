@@ -29,10 +29,10 @@ int main(int argc, char ** argv)
 
     int err=0;
     int e1=0, e2=0, e3=0, e4=0;
-    setReg(fd, 1, REG_TIMER, 0);
-    setReg(fd, 2, REG_TIMER, 0);
-    setReg(fd, 3, REG_TIMER, 0);
-    setReg(fd, 4, REG_TIMER, 0);
+//    setReg(fd, 1, REG_TIMER, 0);
+//    setReg(fd, 2, REG_TIMER, 0);
+//    setReg(fd, 3, REG_TIMER, 0);
+//    setReg(fd, 4, REG_TIMER, 0);
 
 
     for(i=0; i<200; i++)

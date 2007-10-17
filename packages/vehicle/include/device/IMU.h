@@ -10,8 +10,9 @@
 #ifndef RAM_VEHICLE_DEVICE_IMU_06_25_2007
 #define RAM_VEHICLE_DEVICE_IMU_06_25_2007
 
-// STD Includesb
+// STD Includes
 #include <string>
+#include <fstream>
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
@@ -133,7 +134,7 @@ private:
     core::AveragingFilter<double, FILTER_SIZE> m_filteredMagZ; 
     
     /** Protects access to derived state */
-
+    std::ofstream m_logfile;
 };
     
 } // namespace device

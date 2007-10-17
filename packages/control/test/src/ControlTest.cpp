@@ -45,11 +45,17 @@ using namespace std;
 using namespace ram;
 namespace po = boost::program_options;
 
+
+int teleopFD = 0;
+
 void sigalrmHandler(int i)
 {
     printf("\nKeep-alive timer expired!\n");
-    system("lcdshow -safe");
+    close(teleopFD);
+//    system("thrusterstop");
+//    sleep(1);
     exit(1);
+    alarm(0);
 }
 
 int main(int argc, char** argv)
@@ -159,6 +165,9 @@ int main(int argc, char** argv)
 
     signal(SIGALRM, sigalrmHandler);
 
+
+controller.yawVehicle(5);
+
     while(1)
     {  /* main accept() loop */
         sin_size = sizeof(struct sockaddr_in);
@@ -174,21 +183,24 @@ int main(int argc, char** argv)
 		    signed char buf[2];
 		    unsigned char cmd = 0;
             signed char param=0;
+		teleopFD = fd;
 
-
-            alarm(1);
+            alarm(2);
 
 		    while(1)
 		    {
 			    if(recv(fd, buf, 2, 0) != 2)
                 {
                     printf("Error reading from network\n");
-                    system("lcdshow -safe");
-				    exit(1);
+//                    system("lcdshow -safe");
+			//	    exit(1);
+			return 0;
                 }
 
                 cmd = buf[0];
                 param = buf[1];
+
+		//printf("RX: %d %d\n", cmd, param);
 
 #define MAX_DEPTH 5
 
@@ -217,15 +229,15 @@ int main(int argc, char** argv)
 
 #define CMD_SETSPEED    9
 
-#warning this code has STILL not been tested on the vehicle, or even compiled on it.
-                alarm(1);
+//#warning this code has STILL not been tested on the vehicle, or even compiled on it.
+                alarm(2);
                 switch(cmd)
                 {
                     case CMD_EMERGSTOP:
                     {
                         printf("Emergency stop received\n");
-                        system("lcdshow -safe");
-                        exit(1);
+//                        system("lcdshow -safe");
+                        return 0;
                         break;
                     }
 
