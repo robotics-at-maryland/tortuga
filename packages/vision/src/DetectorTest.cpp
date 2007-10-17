@@ -18,8 +18,8 @@
 
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 0
-#define DEMO 1
+#define SHOW_OUTPUT 1
+#define DEMO 0
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
 {
@@ -34,6 +34,7 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	gDetect=new GateDetector(camera);
 	bDetect=new BinDetector(camera);
 	rlDetect=new RedLightDetector(camera);
+	recorder=NULL;
 	if (forward)
 		recorder=new Recorder(camera, "forward.avi");
 	else
@@ -44,8 +45,6 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	if (SHOW_OUTPUT)
 	{
 		cvNamedWindow("Detector Test");
-		cvNamedWindow("Undistorted");
-		cvNamedWindow("Calibration");
 	}
 	if (!camera)
 	{
@@ -77,8 +76,6 @@ DetectorTest::DetectorTest(string movie)
 	if (SHOW_OUTPUT)
 	{
 		cvNamedWindow("Detector Test");
-		cvNamedWindow("Undistorted");
-		cvNamedWindow("Calibration");
 	}
 	
 	if (!camera)
@@ -104,21 +101,34 @@ DetectorTest::~DetectorTest()
 void DetectorTest::orangeDetectOn()
 {
 	cout<<"Turning On Orange Detection"<<endl;
+	lightOn=false;
+	gateOn=false;
+	binOn=false;
 	orangeOn=true;
+	//Turn off others
 }
 void DetectorTest::lightDetectOn()
 {
 	cout<<"Turning On Light Detection"<<endl;
+	gateOn=false;
+	binOn=false;
+	orangeOn=false;
 	lightOn=true;
 }
 void DetectorTest::gateDetectOn()
 {
 	cout<<"Turning on Gate Detection"<<endl;
+	lightOn=false;
+	binOn=false;
+	orangeOn=false;
 	gateOn=true;
 }
 void DetectorTest::binDetectOn()
 {
 	cout<<"Turning on Bin Detection"<<endl;
+	lightOn=false;
+	gateOn=false;
+	orangeOn=false;
 	binOn=true;
 }
 void DetectorTest::orangeDetectOff()
@@ -162,7 +172,7 @@ void DetectorTest::update(double timestep)
 	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
 	camera->getImage(frame);
 	IplImage* image=(IplImage*)(*frame);
-	if (SHOW_OUTPUT)
+	if (!orangeOn && !lightOn && !gateOn && !binOn)
 		cvShowImage("Detector Test", image);
 
 	//Recording
@@ -177,6 +187,7 @@ void DetectorTest::update(double timestep)
 			cout<<"Running Orange Pipeline Detection..."<<endl;
 			
 		opDetect->update();
+		opDetect->show("Detector Test");
 		if (opDetect->found && opDetect->getAngle()!=-10)
 		{
 			//Found in this case refers to the finding of a thresholded number of pixels
@@ -206,6 +217,8 @@ void DetectorTest::update(double timestep)
 			cout<<"Running Gate Detection..."<<endl;
 		
 		gDetect->update();
+		gDetect->show("Detector Test");
+
 		if (gDetect->found)
 		{
 			if (SHOW_OUTPUT)
@@ -230,6 +243,8 @@ void DetectorTest::update(double timestep)
 		if (SHOW_OUTPUT)
 			cout<<"Running Bin Detection..."<<endl;
 		bDetect->update();
+		bDetect->show("Detector Test");
+
 		if (bDetect->found)
 		{
 			if (SHOW_OUTPUT)
@@ -253,6 +268,8 @@ void DetectorTest::update(double timestep)
 		if (SHOW_OUTPUT)
 			cout<<"Running Red Light Detection..."<<endl;
 		rlDetect->update();
+		rlDetect->show("Detector Test");
+
 		if (rlDetect->found)
 		{
 			if (SHOW_OUTPUT)

@@ -44,7 +44,6 @@ namespace ram { namespace vision {
 
 
 		private:
-		bool show_output;
 		double angle;
 		double lineX;
 		double lineY;

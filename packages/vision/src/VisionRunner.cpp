@@ -23,8 +23,9 @@ namespace vision
 }
 }
 
-using namespace std;
 char key=' '; //cvWaitKey(25);
+
+using namespace std;
 
 void handler(int x)
 {
@@ -43,14 +44,15 @@ int main(int argc, char** argv)
 	}
 	else
 		forward=new ram::vision::DetectorTest(0,true);
-	forward->background(25);
 //	forward->orangeDetectOn();
-	forward->lightDetectOn();
+//	forward->lightDetectOn();
 //	forward->binDetectOn();
 //	forward->gateDetectOn();
 	signal(SIGINT,handler);
 	while (true)
 	{
+		key=cvWaitKey(50);
+		forward->update(0);
 		if (key =='q')
 		{
 			std::cout<<"Quitting Normally"<<endl;
@@ -105,7 +107,5 @@ int main(int argc, char** argv)
 				std::cout<<"Gate On"<<endl;
 			}
 		}
-//		else
-//			std::cout<<"Welcome to the new detector tester, type keys 1 through 4 to enable/disable filters, and type q to quit. \n 1: Orange, 2: Light, 3: Bin, 4: Gate, q: Quit\n\n";
 	}
 }

@@ -35,12 +35,12 @@ namespace ram { namespace vision {
 			BinDetector(ram::vision::OpenCVCamera*);
 			~BinDetector();
 			void update();
+			void show(char* window);
 			double getX();
 			double getY();
 			IplImage* getAnalyzedImage();
 
 		private:
-			bool show_output;
 			double binX;
 			double binY;
 			int binCount;

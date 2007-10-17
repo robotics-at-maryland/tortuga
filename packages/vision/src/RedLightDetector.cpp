@@ -5,7 +5,6 @@ using namespace ram::vision;
 
 RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 {
-	show_output=false;
 	cam = camera;
     frame = new ram::vision::OpenCVImage(640,480);
 	found=false;
@@ -19,14 +18,6 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	image=cvCreateImage(cvSize(480,640),8,3);
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-
-	if (show_output)
-	{
-		cvNamedWindow("Flash",CV_WINDOW_AUTOSIZE);
-		cvNamedWindow("raw",CV_WINDOW_AUTOSIZE);
-		cvNamedWindow("LightFinder",CV_WINDOW_AUTOSIZE);
-		cvNamedWindow("masked",CV_WINDOW_AUTOSIZE);
-	}
 }
 
 RedLightDetector::~RedLightDetector()
@@ -65,15 +56,11 @@ void RedLightDetector::update()
 	IplImage* sideways =(IplImage*)(*frame);
 	rotate90Deg(sideways,image);
 	cvCopyImage(image,raw);//Now both are rotated 90 degrees
-	if (show_output)
-		cvShowImage("raw", raw);
 	cvCopyImage(image, flashFrame);
 	
 	to_ratios(image);
 	CvPoint p;
 	redMask(image,flashFrame);
-	if (show_output)
-		cvShowImage("masked",flashFrame);
 
 	int redPixelCount=histogram(flashFrame,&p.x,&p.y);
 
@@ -102,6 +89,4 @@ void RedLightDetector::update()
 	redLightCenterY=lightCenter.y;
 	redLightCenterX/=image->width;
 	redLightCenterY/=image->height;
-	if (show_output)
-		cvShowImage("LightFinder", raw);
 }

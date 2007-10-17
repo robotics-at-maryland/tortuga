@@ -40,7 +40,6 @@ namespace ram { namespace vision {
 			void show(char* window);
 			IplImage* getAnalyzedImage();
 		private:
-			bool show_output;
 			int lightFramesOff;
 			int lightFramesOn;
 			int blinks;

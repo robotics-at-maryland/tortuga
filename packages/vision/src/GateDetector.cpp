@@ -5,7 +5,6 @@ using namespace ram::vision;
 
 GateDetector::GateDetector(OpenCVCamera* camera)
 {
-	show_output=false;
 	cam = camera;
 	frame = new ram::vision::OpenCVImage(640,480);
 	gateX=0;
@@ -14,8 +13,6 @@ GateDetector::GateDetector(OpenCVCamera* camera)
 	//This frame will be a copy of the original rotated 90¼ counterclockwise.
 	gateFrame =cvCreateImage(cvSize(480,640),8,3);
 	gateFrameRatios = cvCreateImage(cvSize(480,640),8,3);
-	if (show_output)
-		cvNamedWindow("Gate");
 }
 
 GateDetector::~GateDetector()
@@ -53,8 +50,6 @@ void GateDetector::update()
 	rotate90Deg(image,gateFrameRatios);
 	to_ratios(gateFrameRatios);
 	found=gateDetect(gateFrameRatios,gateFrame,&gateX,&gateY);
-	if (show_output)
-		cvShowImage("Gate",gateFrame);
 	gateXNorm=gateX;
 	gateYNorm=gateY;
 	gateXNorm/=image->width;

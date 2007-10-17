@@ -41,7 +41,6 @@ namespace ram { namespace vision {
 			IplImage* getAnalyzedImage();
 
 		private:
-			bool show_output;
 			int gateX;
 			int gateY;
 			double gateXNorm;

@@ -14,14 +14,11 @@ using namespace ram::vision;
 
 OrangePipeDetector::OrangePipeDetector(OpenCVCamera* camera)
 {
-	show_output=false;
 	found=0;
 	angle=0;
 	cam = camera;
     frame = new ram::vision::OpenCVImage(640, 480);
 	rotated = cvCreateImage(cvSize(480,640),8,3);
-	if (show_output)
-		cvNamedWindow("Orange Mask");
 	lineX=lineY=0;
 }
 
@@ -109,6 +106,4 @@ void OrangePipeDetector::update()
 			cout<<"(x,y):"<<"("<<lineX<<","<<lineY<<")"<<endl;
 		}
 	}
-	if (show_output)
-		cvShowImage("Orange Mask",image);
 }
