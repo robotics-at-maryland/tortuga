@@ -8,7 +8,7 @@ load(filename,'hydro_pos');
 for i = 1:length(posticks)
     for j = 1:length(posticks)
         for k = 1:length(depthticks)
-           V(i,j,k) = crlb([posticks(i),posticks(j),depthticks(k)], hydro_pos);
+           V(i,j,k) = range_error([posticks(i),posticks(j),depthticks(k)], hydro_pos);
         end
     end
 end

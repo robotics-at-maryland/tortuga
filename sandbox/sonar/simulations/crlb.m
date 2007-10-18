@@ -1,4 +1,4 @@
-function pos_error = crlb(source_pos, hydro_pos)
+function cr_lowerbound = crlb(source_pos, hydro_pos)
 % Acoustic Properties %
 
 snr  = 10000;   % signal to noise ratio, unitless
@@ -77,5 +77,4 @@ cov(m+1:end,m+1:end) = eye(3*m) * sigma_s^2;
 % Computing the Cramer-Rao lower bound
 
 cr_lowerbound = inv(transpose(deriv)*inv(cov)*deriv);
-subcr = cr_lowerbound(1:3,1:3);
-pos_error = sqrt(dot(diag(subcr),diag(subcr)));
+cr_lowerbound = cr_lowerbound(1:3,1:3);
