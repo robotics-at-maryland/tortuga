@@ -59,7 +59,8 @@ envt.RAMProgram(target='AdvCvTest',
 #		int_deps = 'vision')
 
 # Basic camera test
-# envt.AppendUnique(CCFLAGS = '-Wno-unused')
+if platform.system() in ['Linux', 'Darwin']:
+    envt.AppendUnique(CCFLAGS = '-Wno-unused')
 envt.Program(target = 'BasicCvTest', source = 'test/src/BasicCvTest.c')
 
 # Basic record test
