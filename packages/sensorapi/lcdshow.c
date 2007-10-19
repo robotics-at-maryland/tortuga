@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include "include/sensorapi.h"
 
+/*
+ * Sensor Board Utility, Revision $rev$
+ *
+ */
+
+
 int main(int argc, char ** argv)
 {
     if(argc < 2)
