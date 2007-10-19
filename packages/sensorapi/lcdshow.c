@@ -3,7 +3,7 @@
 #include "include/sensorapi.h"
 
 /*
- * Sensor Board Utility, Revision $rev$
+ * Sensor Board Utility, Revision $rev:$
  *
  */
 
@@ -12,21 +12,29 @@ int main(int argc, char ** argv)
 {
     if(argc < 2)
     {
-        printf("lcdshow -t line1 line2\n");
-        printf("lcdshow -c  (clear screen)\n");
-        printf("lcdshow -bloff (backlight on)\n");
-        printf("lcdshow -blon  (backlight off)\n");
-        printf("lcdshow -blfl  (backlight flash)\n");
-        printf("lcdshow -diagon  (runtime diagnostics on)\n");
-        printf("lcdshow -safe (disable thrusters)\n");
-        printf("lcdshow -unsafe (enable thrusters)\n");
-        printf("lcdshow -diagoff (runtime diagnostics off)\n");
-	printf("lcdshow -s  (begin start sequence)\n");
+        printf("LCD-related Commands:\n");
+        printf("\tlcdshow -c  (clear screen)\n");
+        printf("\tlcdshow -t line1 line2\n");
+        printf("\tlcdshow -bloff (backlight on)\n");
+        printf("\tlcdshow -blon  (backlight off)\n");
+        printf("\tlcdshow -blfl  (backlight flash)\n");
+
+
+        printf("\nSafety commands:\n");
+        printf("\tlcdshow -safe (disable thrusters)\n");
+        printf("\tlcdshow -unsafe (enable thrusters)\n");
+        printf("\tlcdshow -diagon  (runtime diagnostics on)\n");
+        printf("\tlcdshow -diagoff (runtime diagnostics off)\n");
+
+        printf("\nOther commands:\n");
+        printf("\tlcdshow -check (crude system check)\n");
+        printf("\tlcdshow -status (show sensor readings)\n");
+        printf("\tlcdshow -s  (begin start sequence)\n");
 
 	    return -1;
     }
 
-    int fd = openSensorBoard("/dev/sensor");
+    int fd = openSensorBoard("/dev/ttyUSB0");
 
 
     if(fd == -1)
@@ -41,6 +49,99 @@ int main(int argc, char ** argv)
         printf("\nCould not sync with board!\n");
         close(fd);
     }
+
+#define STATUS_WATER      0x01
+#define STATUS_KILLSW     0x02
+
+#define STATUS_BATT1      0x04
+#define STATUS_BATT2      0x08
+#define STATUS_BATT3      0x10
+#define STATUS_BATT4      0x20
+
+#define STATUS_MYSTERYBIT 0x40
+
+#define STATUS_STARTSW    0x80
+
+    if(strcmp(argv[1], "-status") == 0)
+    {
+        int ret;
+        unsigned char temp[NUM_TEMP_SENSORS];
+        ret = readDepth(fd);
+
+        if(ret == SB_ERROR)
+            printf("Error reading depth!\n");
+        else
+            printf("Depth :   %d (%s)\n", ret, (ret > 50) ? "Seems OK" : "Check Sensor");
+
+        ret = readTemp(fd, temp);
+        if(ret == SB_ERROR)
+            printf("Error reading temperature!\n");
+        else
+        {
+            int i;
+            printf("Temperature (C): ");
+
+            for(i=0; i<NUM_TEMP_SENSORS; i++)
+                if(temp[i] == 255)
+                    printf("?? ");
+                else
+                    printf("%d ", temp[i]);
+            printf("\n");
+        }
+
+        ret = readStatus(fd);
+        if(ret == SB_ERROR)
+            printf("Error reading board status!\n");
+        else
+        {
+            printf("\nStatus: 0x%02X\n", ret);
+            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
+                (ret & STATUS_WATER) ? "Water present" : "No water detected.",
+                (ret & STATUS_STARTSW) ? "Start switch on" : "Start switch off",
+                (ret & STATUS_KILLSW) ? "Kill magnet present" : "No kill magnet",
+                (ret & STATUS_BATT1) ? "Battery 1 active" : "Battery 1 inactive",
+                (ret & STATUS_BATT2) ? "Battery 2 active" : "Battery 2 inactive",
+                (ret & STATUS_BATT3) ? "Battery 3 active" : "Battery 3 inactive",
+                (ret & STATUS_BATT4) ? "Battery 4 active" : "Battery 4 inactive");
+        }
+
+        ret = readThrusterState(fd, temp);
+        if(ret == SB_ERROR)
+            printf("Error reading thruster state!\n");
+        else
+        {
+            printf("\nThruster state: 0x%02X\n", ret);
+            printf("\t%s\n\t%s\n\t%s\n\t%s\n",
+            (ret & 0x08) ? "Thruster 1 enabled" : "Thruster 1 disabled",
+            (ret & 0x04) ? "Thruster 2 enabled" : "Thruster 2 disabled",
+            (ret & 0x02) ? "Thruster 3 enabled" : "Thruster 3 disabled",
+            (ret & 0x01) ? "Thruster 4 enabled" : "Thruster 4 disabled");
+
+        }
+    }
+
+
+    if(strcmp(argv[1], "-check") == 0)
+    {
+        int ret = pingBoard(fd);
+
+        if(ret == SB_OK)
+            printf("Ping: OK\n");
+        else
+            printf("Ping: Error (Code %d)\n", ret);
+
+        ret = checkBoard(fd);
+
+        if(ret == SB_OK)
+            printf("Self-test: OK\n");
+        else
+            printf("Self-test: Error (Code %d)\n", ret);
+
+        close(fd);
+        return 0;
+    }
+
+
 
     if(strcmp(argv[1], "-safe") == 0)
     {

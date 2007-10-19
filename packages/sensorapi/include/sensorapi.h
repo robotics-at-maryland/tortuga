@@ -10,6 +10,8 @@
 #define HOST_CMD_STATUS  0x04
 #define HOST_CMD_TEMPERATURE 0x0A
 #define HOST_CMD_SONAR 0x0D
+#define HOST_CMD_THRUSTERSTATE 0x10
+
 
 #define LCD_BL_OFF    0
 #define LCD_BL_ON     1
@@ -32,7 +34,7 @@
 #define CMD_THRUSTER4_ON      7
 
 
-#define NUM_TEMP_SENSORS 6
+#define NUM_TEMP_SENSORS 5
 
 /* Bits of the status command */
 /* Use these constants. The values can, and most likely will, change. */
