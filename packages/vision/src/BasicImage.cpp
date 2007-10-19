@@ -36,7 +36,7 @@ BasicImage::BasicImage(unsigned char* data, int width, int height,
     m_own(ownership),
     m_width(height),
     m_height(width),
-    m_format(Image::PF_RGB_8),
+    m_format(format),
     m_iplimage(0)
 {
 }

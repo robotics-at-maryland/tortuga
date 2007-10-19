@@ -10,11 +10,12 @@
 #ifndef RAM_RECORDER_H_06_24_2007
 #define RAM_RECORDER_H_06_24_2007
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <sstream>
 #include <math.h>
 #include <cstdlib>
-#include <unistd.h>
 #include <stdio.h>
 #include "cv.h"
 #include "highgui.h"
@@ -26,9 +27,10 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Image.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Export.h"
  
 namespace ram { namespace vision {
-	class Recorder
+	class RAM_EXPORT Recorder
 	{
 		public:
 			Recorder(ram::vision::OpenCVCamera*, const char* filename);

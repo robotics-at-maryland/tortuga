@@ -11,20 +11,12 @@
 #define RAM_VISION_VISIONCOMMUNICATION_H_06_11_2007
 
 #include "vision/include/VisionData.h"
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
 
-  extern "C"
-  {
-    VisionData* getDummy();
-    VisionData* getUnsafe();
-    VisionData** getSafe();
-    VisionData* getData();
-    VisionData* captureSnapshot(int tries);
-  }
-
-typedef struct
+struct RAM_EXPORT VisionCommunication
 {
 // public:
   VisionData unsafe;
@@ -32,7 +24,17 @@ typedef struct
   VisionData guaranteed;
   VisionData dummyCheck;
   
-}VisionCommunication;
+};
+
+ extern "C"
+  {
+    VisionData* getDummy();
+    VisionData* getUnsafe();
+    VisionData** getSafe();
+    VisionData* getData();
+    VisionData* captureSnapshot(int tries);
+	VisionCommunication* getCommunicator();
+  }
 
 } // namespace vision
 } // namespae ram

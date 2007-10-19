@@ -1,6 +1,5 @@
 #include "cv.h"
 #include "highgui.h"
-#include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
 	CvCapture* capture =NULL;

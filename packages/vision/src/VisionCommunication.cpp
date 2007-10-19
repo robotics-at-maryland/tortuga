@@ -19,6 +19,11 @@ namespace vision {
   extern "C"{
     VisionCommunication* vc=(VisionCommunication*) malloc(sizeof(VisionCommunication));
   }
+
+  VisionCommunication* getCommunicator()
+  {
+	  return vc;
+  }
 VisionData* getDummy()
 {
   vc->dummyCheck.frameNum=2;

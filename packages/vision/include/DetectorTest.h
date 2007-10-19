@@ -8,6 +8,7 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/Recorder.h"
+#include "vision/include/Export.h"
 
 namespace ram{
 namespace vision{

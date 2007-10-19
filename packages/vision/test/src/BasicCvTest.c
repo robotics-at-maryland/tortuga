@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 // A Simple Camera Capture Framework
-int main() {
+int main(void) {
 
   CvCapture* capture = cvCaptureFromCAM( CV_CAP_ANY );
   if( !capture ) {

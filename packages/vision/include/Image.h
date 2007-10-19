@@ -18,6 +18,7 @@
 
 // Project Includes
 #include "vision/include/Common.h"
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
@@ -27,7 +28,7 @@ namespace vision {
  * This class provides a uniform interface to images comming from a variety of
  * places.
  */
-class Image : public boost::noncopyable
+class RAM_EXPORT Image : public boost::noncopyable
 {
 public:
     virtual ~Image() {};

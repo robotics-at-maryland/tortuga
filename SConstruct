@@ -78,8 +78,12 @@ else:
     # 4710 = inline was requested but not preformed
     # 4512 = assignment operator could not be generated
     # 4127 = conditional expression is constant
+    # 4514 = unreferenced inline function has been removed
+    # 4100 = unreferenced formal parameter
+    # 4255 = no function prototype given: converting '()' to '(void)'
     env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
-                                '/wd4512', '/wd4127', '/wd4640', '/wd4061'])
+                                '/wd4512', '/wd4127', '/wd4640', '/wd4061', 
+                                '/wd4514', '/wd4100', '/wd4255'])
     
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)

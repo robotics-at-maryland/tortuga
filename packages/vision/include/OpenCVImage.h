@@ -11,11 +11,12 @@
 #define RAM_VISION_OPENCVIMAGE_H_06_06_2007
 
 #include "vision/include/Image.h"
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
 
-class OpenCVImage : public Image
+class RAM_EXPORT OpenCVImage : public Image
 {
 public:
     OpenCVImage(int width, int height);

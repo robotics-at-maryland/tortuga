@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 	signal(SIGINT,handler);
 	while (true)
 	{
-		key=cvWaitKey(50);
+		key=(char)cvWaitKey(50);
 		forward->update(0);
 		if (key =='q')
 		{

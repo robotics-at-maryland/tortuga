@@ -14,6 +14,7 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Export.h"
 
 // Forward Declartions
 struct CvCapture; // For OpenCV
@@ -21,7 +22,7 @@ struct CvCapture; // For OpenCV
 namespace ram {
 namespace vision {
 
-class OpenCVCamera : public Camera
+class RAM_EXPORT OpenCVCamera : public Camera
 {
 public:
 	OpenCVCamera();

@@ -108,6 +108,7 @@ void Calibration::printCalibrations()
 		cout<<endl;
 	}
 	
+
 	FILE* handle=fopen("calibrations.out","w+");
 	{
 		for (i=0; i<4; i++)
@@ -188,18 +189,18 @@ void Calibration::setCalibration(bool forward)
     // Quadratic dependence, k1.  A point in the original image a distance r 
     // from the center maps k1*r^2 away from the center in the final image.
     // Units unknown.
-    distortion[0]=-0.109878;
+    distortion[0]=-0.109878f;
     
     // Quartic dependence, k2.  A point in the original image a distance r 
     // from the center maps k2*r^4 away from the center in the final image.
     // Units unknown.
-    distortion[1]=-1.166973;
+    distortion[1]=-1.166973f;
     
     // Presumably, these two parameters translate the origin of the distortion.
     // That would make these the p1 and p2 from OpenCV's documentation.
     // Possibly in pixels.
-    distortion[2]=-0.001312;
-    distortion[3]=-0.008959;
+    distortion[2]=-0.001312f;
+    distortion[3]=-0.008959f;
     
     
     // CAMERA PARAMETERS
@@ -207,33 +208,33 @@ void Calibration::setCalibration(bool forward)
     // to be slightly elliptical, and offset on the image.
     
     // Focal length, x-axis, units unknown
-    cameraMatrix[0]=938.460815;
-    cameraMatrix[1]=0;
+    cameraMatrix[0]=938.460815f;
+    cameraMatrix[1]=0.0f;
     // x-translation of camera's focus, relative to left of image, in pixels
-    cameraMatrix[2]=365.139343;
-    cameraMatrix[3]=0;
+    cameraMatrix[2]=365.139343f;
+    cameraMatrix[3]=0.0f;
     // Focal length, y-axis, units unknown
-    cameraMatrix[4]=965.857849;
+    cameraMatrix[4]=965.857849f;
     // y-translation of camera's focus, relative to top of image, in pixels
-    cameraMatrix[5]=265.445618;
-    cameraMatrix[6]=0;
-    cameraMatrix[7]=0;
-    cameraMatrix[8]=1;
+    cameraMatrix[5]=265.445618f;
+    cameraMatrix[6]=0.0f;
+    cameraMatrix[7]=0.0f;
+    cameraMatrix[8]=1.0f;
 	}
 	else//downward
 	{
-	    distortion[0]=-0.109878;
+	    distortion[0]=-0.109878f;
     
     // Quartic dependence, k2.  A point in the original image a distance r 
     // from the center maps k2*r^4 away from the center in the final image.
     // Units unknown.
-    distortion[1]=-1.166973;
+    distortion[1]=-1.166973f;
     
     // Presumably, these two parameters translate the origin of the distortion.
     // That would make these the p1 and p2 from OpenCV's documentation.
     // Possibly in pixels.
-    distortion[2]=-0.001312;
-    distortion[3]=-0.008959;
+    distortion[2]=-0.001312f;
+    distortion[3]=-0.008959f;
     
     
     // CAMERA PARAMETERS
@@ -241,18 +242,18 @@ void Calibration::setCalibration(bool forward)
     // to be slightly elliptical, and offset on the image.
     
     // Focal length, x-axis, units unknown
-    cameraMatrix[0]=938.460815;
-    cameraMatrix[1]=0;
+    cameraMatrix[0]=938.460815f;
+    cameraMatrix[1]=0.0f;
     // x-translation of camera's focus, relative to left of image, in pixels
-    cameraMatrix[2]=365.139343;
-    cameraMatrix[3]=0;
+    cameraMatrix[2]=365.139343f;
+    cameraMatrix[3]=0.0f;
     // Focal length, y-axis, units unknown
-    cameraMatrix[4]=965.857849;
+    cameraMatrix[4]=965.857849f;
     // y-translation of camera's focus, relative to top of image, in pixels
-    cameraMatrix[5]=265.445618;
-    cameraMatrix[6]=0;
-    cameraMatrix[7]=0;
-    cameraMatrix[8]=1;
+    cameraMatrix[5]=265.445618f;
+    cameraMatrix[6]=0.0f;
+    cameraMatrix[7]=0.0f;
+    cameraMatrix[8]=1.0f;
 	}
     calibrated=true;
 }

@@ -1,12 +1,14 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <sstream>
 #include <math.h>
 #include <cstdlib>
-#include <unistd.h>
 #include <stdio.h>
 #include "cv.h"
 #include "highgui.h"
 #include <string>
+#include <time.h>
 #include "vision/include/main.h"
 #include "vision/include/ProcessList.h"
 #include "vision/include/VisionCommunication.h"
@@ -14,7 +16,7 @@
 /* 
 	Daniel Hakim
 	VISION CODE!!! 
-	DO NOT TOUCH.
+	PLEASE TOUCH ME.
 */
 using namespace std;
 using namespace ram::vision;
@@ -42,9 +44,9 @@ int testRecord()
 			     
   char key=' ';
   int count=0;
-  while (key!='q' && count<500)
+  while (key!=(char)'q' && count<500)
     {
-      key=cvWaitKey(25);
+      key=(char)cvWaitKey((char)25);
 //      int okay=cvGrabFrame(camCapture);
       cvGrabFrame(camCapture);
       frame=cvRetrieveFrame(camCapture);
@@ -200,8 +202,8 @@ void killVision(){
 //This implies one pipe of the gate is in the image, if there is an area with a pipe on each side, it means we're facing the center of the gate.
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 {
-	char* data=percents->imageData;
-	char* data2=base->imageData;
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
 	int width=percents->width;
 	int height=percents->height;
 
@@ -278,8 +280,8 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	  {
 	        whitex/=total;
 	        whitey/=total;       
-		int indexR;
-		int indexL;
+		int indexR = 0;
+		int indexL  =0;
 		*gatex=whitex;
 		*gatey=whitey;
 		int testCol=columnCounts[whitex];
@@ -393,9 +395,9 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 				b2=(data2[count]+256)%256;
 				g2=(data2[count+1]+256)%256;
 				r2=(data2[count+2]+256)%256;
-				dest[count]=abs(b-b2);
-				dest[count+1]=abs(g-g2);
-				dest[count+2]=abs(r-r2);
+				dest[count]=(char)abs(b-b2);
+				dest[count+1]=(char)abs(g-g2);
+				dest[count+2]=(char)abs(r-r2);
 //				dest[count]=data[count]-data2[count];
 //				dest[count+1]=data[count+1]-data2[count+1];
 //				dest[count+2]=data[count+2]-data2[count+2];
@@ -517,7 +519,7 @@ double hough(IplImage* img, int* linex, int* liney)
 		
 		int xdiff = (end.x - start.x);		//deal with y's being flipped
 		int ydiff = -1*(end.y - start.y);
-		angle = atan2((ydiff),(xdiff));
+		angle = atan2((double)(ydiff),(double)(xdiff));
 		//cout<<"Xdiff: "<<xdiff<<endl;
 		//cout<<"Ydiff: "<<ydiff<<endl;
 		//cout<<"Angle: "<<angle<<endl; 
@@ -540,7 +542,7 @@ double hough(IplImage* img, int* linex, int* liney)
 //Only meant for use on images after correct has been called on them.
 int mask_red(IplImage* img, bool alter_img, int threshold)
 {
-	char* data=img->imageData;
+	unsigned char* data=(unsigned char*)img->imageData;
 	int width=img->width;
 	int height=img->height;
 	int count=0;
@@ -591,8 +593,8 @@ typedef std::list<Pos> PosList;
 
 void redMask(IplImage* percents, IplImage* base)
 {
-	char* data=percents->imageData;
-	char* data2=base->imageData;
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
 	int width=percents->width;
 	int height=percents->height;
 	int r;
@@ -643,8 +645,8 @@ void redMask(IplImage* percents, IplImage* base)
 //returns size and fills redx and redy.
 int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy)
 {
-	char* data=percents->imageData;
-	char* data2=base->imageData;
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
 	int width=percents->width;
 	int height=percents->height;
 	int r,g,b;
@@ -678,8 +680,8 @@ int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy
 
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 {
-	char* data=percents->imageData;
-	char* data2=base->imageData;
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
 	int width=percents->width;
 	int height=percents->height;
 
@@ -898,7 +900,7 @@ int histogram(IplImage* img, int* centerX, int* centerY)
 					pixelCounts[index]=1;
 					totalX[index]=x;
 					totalY[index]=y;
-					data[count]=index++;
+					data[count]=(unsigned char)(index++);
 //					cout<<index<<endl;				
 					if (index==254)
 					{
@@ -1004,7 +1006,7 @@ void explore(IplImage* img, int x, int y, int* out, int color)
 			
 			data[count]=0;
 			data[count+1]=0;
-			data[count+2]=color;
+			data[count+2]=(unsigned char)color;
 			
 			if (x>0)
 			{
@@ -1093,7 +1095,10 @@ int guess_line(IplImage* img)
 	int width=img->width;
 	int height=img->height;
 
-	int avgxs[height];
+	//What??
+	//int avgxs[height];
+	int *avgxs = new int[height];
+
 //	int r=0;
 //	int g=0;
 	int b=0;
@@ -1149,13 +1154,14 @@ int guess_line(IplImage* img)
 	angle_from_center(avgxs, img);
 	goRight/=countOfx;
 	//cout<<endl<<goRight<<endl;
+	delete avgxs;
 	return goRight;
 }
 		
 
 int mask_orange(IplImage* img, bool alter_img, bool strict)
 {
-	char* data=img->imageData;
+	unsigned char* data=(unsigned char*)img->imageData;
 	int width=img->width;
 	int height=img->height;
 	int count=0;
@@ -1170,15 +1176,15 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 
 	if (!strict)
 	{
-		r_over_g_min=.7;
-		r_over_g_max=1.4;
-		b_over_r_max=.6;
+		r_over_g_min=0.7f;
+		r_over_g_max=1.4f;
+		b_over_r_max=0.6f;
 	}
 	else
 	{
-		r_over_g_min=.8;
-		r_over_g_max=1.2;
-		b_over_r_max=.4;
+		r_over_g_min=0.8f;
+		r_over_g_max=1.2f;
+		b_over_r_max=0.4f;
 	}
 
 //Competition Values	
@@ -1232,7 +1238,7 @@ void mask_with_input(IplImage* img)
 	//cout<<"0: Strict Orange"<<endl;
 	//cout<<"1: Lenient Orange"<<endl;
 	//cout<<"More coming someday... one might hope"<<endl;
-	a=cvWaitKey(-1);
+	a=(char)cvWaitKey(-1);
 	
 	if (a=='0')
 	{
@@ -1246,7 +1252,7 @@ void mask_with_input(IplImage* img)
 
 void thin_blue_line(IplImage* img)
 {
-	char* data=img->imageData;
+	unsigned char* data=(unsigned char*)img->imageData;
 	int width=img->width;
 	int height=img->height;
 	int half_width=width/2;
@@ -1262,7 +1268,7 @@ void thin_blue_line(IplImage* img)
 
 int distance_from_line(int avgxs[], IplImage* img) {
 	int height = img->height;
-	int half_avgxs[height/2];
+	int *half_avgxs = new int[height/2];
 	int count = 0;
 	int sum_of_abs = 0;
 	for(int i=height/2;i<height;i++) {
@@ -1272,6 +1278,7 @@ int distance_from_line(int avgxs[], IplImage* img) {
 		sum_of_abs += abs(half_avgxs[i]);
 	}
 	//cout<<sum_of_abs<<endl;
+	delete half_avgxs;
 	return sum_of_abs;
 }
 
@@ -1288,11 +1295,11 @@ int angle_from_center(int argxs[], IplImage* img) {
 	
 void correct(IplImage* img)
 {
-	char* data=img->imageData;
+	unsigned char* data=(unsigned char*)img->imageData;
 	int width=img->width;
 	int height=img->height;
 	
-	srand ( time(NULL) );
+	srand ( (unsigned int)time(NULL) );
 	
 	int red_sum=0;
 	int green_sum=0;
@@ -1364,17 +1371,17 @@ void correct(IplImage* img)
 				if (diffb<=0)
 					data[count]=0;
 				else
-					data[count]=diffb;
+					data[count]=(char)diffb;
 			
 				if (diffg<=0)
 					data[count+1]=0;
 				else
-					data[count+1]=diffg;
+					data[count+1]=(char)diffg;
 			
 				if (diffr<=0)
 					data[count+2]=0;
 				else
-					data[count+2]=diffr;
+					data[count+2]=(char)diffr;
 			}
 			count+=3;
 		}
@@ -1442,7 +1449,7 @@ int red_blue(IplImage* img, float ratio)
 			b=(data[count]+256)%256;
 			g=(data[count+1]+256)%256;
 			r=(data[count+2]+256)%256;
-			for (float z=1.0;z>=.7;z-=.1)
+			for (float z=1.0f;z>=0.7f;z-=0.1f)
 				if (r>ratio*b*z)
 				{
                                     data[count]=static_cast<char>(255*z);
@@ -1459,8 +1466,8 @@ int red_blue(IplImage* img, float ratio)
 
 int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 {
-	char* data=percents->imageData;
-	char* data2=base->imageData;
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
 	int width=percents->width;
 	int height=percents->height;
 	int count=0;
@@ -1560,7 +1567,7 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 		ydist=blacky-whitey;
 	
 	
-		float distance=sqrt(xdist*xdist+ydist*ydist);
+		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
 		//cout<<"White Center:"<<whitex<<","<<whitey<<endl;
 		//cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
 		//cout<<distance<<endl;
@@ -1580,16 +1587,6 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 	return min(total,total2);
 }
 
-extern "C"{
-  VisionCommunication* getCommunicator();
-}
-
-extern VisionCommunication* vc;
-VisionCommunication* getCommunicator()
-{
-	return vc;
-}
-
 extern "C" {
   int visionStart();
 }
@@ -1603,7 +1600,7 @@ int visionStart()
 	
 	buffer1=new VisionData();
 	buffer2=new VisionData();
-	vc->safe=&buffer1;
+	getCommunicator()->safe=&buffer1;
 	
 	int swapper=2;	
 	
@@ -1685,7 +1682,7 @@ int visionStart()
 	while(goVision)
 	{
 	  
-	    key=cvWaitKey(25);
+	    key=(char)cvWaitKey(25);
 	  
 		  //Start of input checking
 		if (key=='q')
@@ -1852,7 +1849,7 @@ int visionStart()
 				{
 					int gatex;
 					int gatey;
-					bool gateFound=gateDetect(frame,gateFrame,&gatex,&gatey);
+					bool gateFound=(gateDetect(frame,gateFrame,&gatex,&gatey) > 0);
 					if (gateFound==true)
 						cout<<"Gate Found!\n"<<gatex<<" "<<gatey<<endl;
 					else
@@ -2189,7 +2186,7 @@ void run (ProcessList *pl) {
 	
 	while (true)
 	{
-		key=cvWaitKey(25);
+		key=(char)cvWaitKey(25);
 		int windowCount=0;
 		if (!paused)
 		{			
@@ -2237,7 +2234,8 @@ void run (ProcessList *pl) {
 			}
 			else if (*i=="find_flash")
 			{
-				CvPoint p=find_flash(result, show_flashing);
+				//CvPoint p=
+				find_flash(result, show_flashing);
 			} 
 			else if (*i=="guess_line")
 			{
@@ -2386,7 +2384,8 @@ void walk(IplImage *img, ProcessList *pl) {
 		}
 		else if (*i=="find_flash")
 		{
-			CvPoint p=find_flash(img, show_flashing);
+			//CvPoint p=
+			find_flash(img, show_flashing);
 		} 
 		else if (*i=="guess_line")
 		{

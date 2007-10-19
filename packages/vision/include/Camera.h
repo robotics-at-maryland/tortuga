@@ -17,6 +17,7 @@
 #include "core/include/CountDownLatch.h"
 
 #include "vision/include/Common.h"
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
@@ -26,7 +27,7 @@ namespace vision {
  *  The only thing needed is to implement the update function and save the
  *  internal image to to m_privateImage;
  */
-class Camera : public pattern::Subject, public core::Updatable
+class RAM_EXPORT Camera : public pattern::Subject, public core::Updatable
 {
 public:
     /** The flags passed to observers */

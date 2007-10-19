@@ -14,7 +14,6 @@
 #include <sstream>
 #include <math.h>
 #include <cstdlib>
-#include <unistd.h>
 #include <stdio.h>
 #include "cv.h"
 #include "highgui.h"
@@ -26,9 +25,10 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Image.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Export.h"
 
 namespace ram { namespace vision {
-	class GateDetector
+	class RAM_EXPORT GateDetector
 	{
 		public:
 			bool found;

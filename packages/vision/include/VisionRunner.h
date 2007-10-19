@@ -10,6 +10,7 @@
 #define RAM_VISION_RUNNER_H_07_11_2007
 
 #include "vision/include/DetectorTest.h"
+#include "vision/include/Export.h"
 
 namespace ram{ namespace vision{
 class VisionRunner{

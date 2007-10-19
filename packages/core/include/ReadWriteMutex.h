@@ -29,10 +29,11 @@ class RAM_EXPORT ReadWriteMutex : boost::noncopyable
 {
 public:
     ReadWriteMutex();
+	~ReadWriteMutex();
 
     /** Lock for Readers, follows the Boost.Thread scoped lock pattern.
      */
-    class ScopedReadLock : boost::noncopyable
+    class RAM_EXPORT ScopedReadLock : boost::noncopyable
     {
     public:
         ScopedReadLock(ReadWriteMutex& rwLock);
@@ -46,7 +47,7 @@ public:
     
     /** Lock for Writers, follows the Boost.Thread scoped lock pattern.
      */
-    class ScopedWriteLock : boost::noncopyable
+    class RAM_EXPORT ScopedWriteLock : boost::noncopyable
     {
     public:
         ScopedWriteLock(ReadWriteMutex& rwLock);

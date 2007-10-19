@@ -5,6 +5,8 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/vision/SConscript
 
+import platform
+
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
@@ -56,15 +58,15 @@ envt.RAMProgram(target='AdvCvTest',
 #		source = demoSources,
 #		int_deps = 'vision')
 
-# A test
-envt.RAMProgram('src/test.cpp',int_deps = 'vision')
-
 # Basic camera test
-envt.AppendUnique(CCFLAGS = '-Wno-unused')
+# envt.AppendUnique(CCFLAGS = '-Wno-unused')
 envt.Program(target = 'BasicCvTest', source = 'test/src/BasicCvTest.c')
 
 # Basic record test
-envt.Program(target = 'RecordTest', source = 'test/src/CvRecordVideoTest.c')
+if platform.system() in ['Linux', 'Darwin']:
+    envt.Program(target = 'RecordTest', source = 'test/src/CvRecordVideoTest.c')
+    # A test
+    envt.RAMProgram('src/test.cpp',int_deps = 'vision')
 
 # Detector Test
 envt = env.Clone()

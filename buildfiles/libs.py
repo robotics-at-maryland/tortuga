@@ -123,7 +123,8 @@ def setup_windows_libs():
         'Python' : Library('Python', '2.5', ['Python.h'],
                            'python25', CPPPATH = sysconfig.get_python_inc(),
                            LINKFLAGS = ['/LIBPATH:'+python_lib_path],
-                           CPPFLAGS = ['/wd4826']),  
+                           CPPFLAGS = ['/wd4826']),
+        'OpenCV' : Library('OpenCV', '1.0', ['opencv/cv.h'], ['cv', 'cxcore','highgui','cxts','cvaux','ml'], CPPPATH = 'opencv')
     }                               
         
 def _get_external_lib(name):

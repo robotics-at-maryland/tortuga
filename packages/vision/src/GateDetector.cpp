@@ -49,7 +49,7 @@ void GateDetector::update()
 	rotate90Deg(image,gateFrame);//Rotate image into gateFrame, so that it will be vertical.
 	rotate90Deg(image,gateFrameRatios);
 	to_ratios(gateFrameRatios);
-	found=gateDetect(gateFrameRatios,gateFrame,&gateX,&gateY);
+	found=gateDetect(gateFrameRatios,gateFrame,&gateX,&gateY) ? 1 : 0;
 	gateXNorm=gateX;
 	gateYNorm=gateY;
 	gateXNorm/=image->width;

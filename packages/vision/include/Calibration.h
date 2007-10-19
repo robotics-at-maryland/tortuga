@@ -10,11 +10,11 @@
 #ifndef RAM_CALIBRATION_H_07_05_2007
 #define RAM_CALIBRATION_H_07_05_2007
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <sstream>
 #include <math.h>
 #include <cstdlib>
-#include <unistd.h>
 #include <stdio.h>
 #include "cv.h"
 #include "highgui.h"
@@ -26,12 +26,13 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Image.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Export.h"
 
 #define NUMIMAGES_CALIBRATE 50
 
 namespace ram{
 namespace vision{
-	class Calibration
+	class RAM_EXPORT Calibration
 	{
 		public:
 			Calibration(ram::vision::OpenCVCamera* camera);

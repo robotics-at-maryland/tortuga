@@ -14,6 +14,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
@@ -21,7 +22,7 @@ namespace vision {
 typedef std::list<std::string> StringList;
 typedef StringList::iterator StringListIterator;
 
-class ProcessList
+class RAM_EXPORT ProcessList
 {
  public:
   ProcessList();

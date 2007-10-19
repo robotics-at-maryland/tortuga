@@ -19,6 +19,10 @@ ReadWriteMutex::ReadWriteMutex() :
     m_currentWriter(false)
 {}
 
+ReadWriteMutex::~ReadWriteMutex()
+{
+}
+
 void ReadWriteMutex::acquireReadLock()
 {
     boost::mutex::scoped_lock lock(m_mutex);

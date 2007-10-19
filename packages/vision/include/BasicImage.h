@@ -12,12 +12,13 @@
 
 // Vision Includes
 #include "vision/include/Image.h"
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
 
 /** A simple implementation of the Image Interface */
-class BasicImage : public Image
+class RAM_EXPORT BasicImage : public Image
 {
 public:
     /** Default constructor */
