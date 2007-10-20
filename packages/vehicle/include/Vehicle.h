@@ -35,18 +35,25 @@ public:
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevicePtr getDevice(std::string name);
 
+    /** @copydoc IVehicle::getDepth() */
     virtual double getDepth();
 
-    /** Truns <b>ON</b> the thruster safety */
+    /** @copydoc IVehicle::getTemperatureNames() */
+    virtual std::vector<std::string> getTemperatureNames();
+
+    /** @copydoc IVehicle::getTemperatures() */
+    virtual std::vector<int> getTemperatures();
+    
+    /** @copydoc IVehicle::safeThrusters() */
     virtual void safeThrusters();
 
-    /** Turns <b>OFF</b> the thruster safety */
+    /** @copydoc IVehicle::unsafeThrusters */
     virtual void unsafeThrusters(); 
 
-    /** Drops one of the two markers */
+    /** @copydoc IVehicle::dropMaker */
     virtual void dropMarker();
 
-    /** Returns 1 if the start switch is down 0 if its up */
+    /** @copydoc IVehicle::startStatus */
     virtual int startStatus();
 
     /** Prints a line to the vehicle LCD screen */
@@ -77,6 +84,7 @@ protected:
     {
         double depth;
         bool startSwitch;
+        std::vector<int> temperatures;
     };
     
     void getState(Vehicle::VehicleState& state);

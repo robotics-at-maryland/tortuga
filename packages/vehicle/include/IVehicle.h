@@ -10,6 +10,12 @@
 #ifndef RAM_VEHICLE_IVEHICLE_06_23_2006
 #define RAM_VEHICLE_IVEHICLE_06_23_2006
 
+// STD Includes
+#include <string>
+
+// Boost Includes
+#include <boost/array.hpp>
+
 // Project Includes
 #include "vehicle/include/Common.h"
 #include "core/include/IUpdatable.h"
@@ -23,8 +29,15 @@ public:
     /** Gets the device associated with the given name */
     virtual device::IDevicePtr getDevice(std::string name) = 0;
 
+    /** Return the current vehicle depth in feet */
     virtual double getDepth() = 0;
 
+    /** Returns an array of temperature sensor names */
+    virtual std::vector<std::string> getTemperatureNames() = 0;
+
+    /** Returns the array of temperature sensor values */
+    virtual std::vector<int> getTemperatures() = 0;
+    
     /** Truns <b>ON</b> the thruster safety */
     virtual void safeThrusters() = 0;
 

@@ -82,6 +82,17 @@ int thrusterSafety(int fd, int state);
 
 int displayText(int fd, int line, const char* text);
 
+/**  Reads the values from the board's temperature
+
+     @param fd
+         The file descriptor returned by openSensorBoard()
+     @param tempData
+         Where the sensor data is written. The array must be at least
+         NUM_TEMP_SENSORS elements long. The temperatures are specified in
+         degrees C. A value of 255 indicates a missing or malfunctioning
+         sensor.
+     @return SB_OK upon success or SB_ERROR.
+**/
 int readTemp(int fd, unsigned char * tempData);
 
 int getSonarData(int fd, int * angle, int * distance, int * pingNumber);

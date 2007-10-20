@@ -10,6 +10,9 @@
 // STD Includes
 #include <iostream>
 
+// Library Includes
+#include <boost/foreach.hpp>
+
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IDevice.h"
@@ -37,6 +40,9 @@ Vehicle::Vehicle(core::ConfigNode config) :
         std::cout << "Could not open sensor board\n";
     else
         unsafeThrusters();
+
+    // Allocate space for temperate readings
+    m_state.temperatures.reserve(NUM_TEMP_SENSORS);
 }
 
 Vehicle::~Vehicle()
@@ -62,6 +68,23 @@ double Vehicle::getDepth()
     return m_state.depth;
 }
 
+std::vector<std::string> Vehicle::getTemperatureNames()
+{
+    std::vector<std::string> names;
+
+    // No current way to get actual sensor names
+    for (int i = 0; i < NUM_TEMP_SENSORS; ++i)
+        names.push_back("Unknown");
+    
+    return names;
+}
+
+std::vector<int> Vehicle::getTemperatures()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
+    return m_state.temperatures;
+}
+    
 void Vehicle::safeThrusters()
 {
     boost::mutex::scoped_lock lock(m_sensorBoardMutex);
@@ -119,7 +142,7 @@ void Vehicle::getState(Vehicle::VehicleState& state)
 
 void Vehicle::setState(const Vehicle::VehicleState& state)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_state_mutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
     m_state = state;
 }
 
@@ -157,6 +180,14 @@ void Vehicle::update(double timestep)
         // Status register
         int status = readStatus(m_sensorFD);
         m_state.startSwitch = status & STATUS_STARTSW;
+
+        // Temperatures
+        unsigned char temps[NUM_TEMP_SENSORS];
+        readTemp(m_sensorFD, temps);
+
+        // Copy the contents of temps into the temperature state
+        std::copy(temps, &temps[NUM_TEMP_SENSORS - 1] + 1,
+                  m_state.temperatures.begin());
     }
 }
 
