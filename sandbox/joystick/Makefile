@@ -1,3 +1,6 @@
+OIS_ROOT=/usr
+CFLAGS=
+
 all: oisserver oisclient
 
 
@@ -5,7 +8,7 @@ oisserver: oisserver.c
 
 
 oisclient: oisclient.cpp
-	g++ oisclient.cpp -lOIS -I /usr/include/OIS/ -o oisclient -g
+	g++ oisclient.cpp -lOIS $(CFLAGS) -L$(OIS_ROOT)/lib -I$(OIS_ROOT)/include/OIS/ -o oisclient -g
 
 clean:
 	rm -f oisclient oisserver *.o *~ 
