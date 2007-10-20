@@ -35,3 +35,42 @@
 #define BUS_CMD_SONAR           27
 
 #define BUS_CMD_THRUSTER_STATE  28
+
+
+
+
+#define HOST_CMD_SYNC               0xFF
+
+#define HOST_CMD_PING               0x00
+#define HOST_REPLY_SUCCESS          0xBC
+#define HOST_REPLY_FAILURE          0xDF
+#define HOST_REPLY_BADCHKSUM        0xCC
+
+#define HOST_CMD_SYSCHECK           0x01
+
+#define HOST_CMD_DEPTH              0x02
+#define HOST_REPLY_DEPTH            0x03
+
+#define HOST_CMD_BOARDSTATUS        0x04
+#define HOST_REPLY_BOARDSTATUS      0x05
+
+#define HOST_CMD_HARDKILL           0x06
+#define HOST_CMD_MARKER             0x07
+
+#define HOST_CMD_BACKLIGHT          0x08
+
+#define HOST_CMD_THRUSTERS          0x09
+
+#define HOST_CMD_TEMPERATURE        0x0A
+#define HOST_REPLY_TEMPERATURE      0x0B
+
+#define HOST_CMD_PRINTTEXT          0x0C
+
+#define HOST_CMD_SONAR              0x0D
+#define HOST_REPLY_SONAR            0x0E
+
+#define HOST_CMD_RUNTIMEDIAG        0x0F
+
+#define HOST_CMD_THRUSTERSTATE      0x10
+#define HOST_REPLY_THRUSTERSTATE    0x11
+

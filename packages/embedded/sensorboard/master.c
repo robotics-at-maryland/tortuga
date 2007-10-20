@@ -65,7 +65,8 @@ _FWDT ( WDT_OFF );
 #define DIAG_TIMEOUT     25000
 
 
-#define NUM_SLAVES  4
+/* No sonar? */
+#define NUM_SLAVES  3
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
@@ -607,38 +608,6 @@ int main(void)
     for(j=0; j<25000; j++);
 
 
-    #define HOST_CMD_SYNC           0xFF
-
-    #define HOST_CMD_PING           0x00
-    #define HOST_REPLY_SUCCESS      0xBC
-    #define HOST_REPLY_FAILURE      0xDF
-    #define HOST_REPLY_BADCHKSUM    0xCC
-
-    #define HOST_CMD_SYSCHECK       0x01
-
-    #define HOST_CMD_DEPTH          0x02
-    #define HOST_REPLY_DEPTH        0x03
-
-    #define HOST_CMD_BOARDSTATUS    0x04
-    #define HOST_REPLY_BOARDSTATUS  0x05
-
-    #define HOST_CMD_HARDKILL       0x06
-    #define HOST_CMD_MARKER         0x07
-
-    #define HOST_CMD_BACKLIGHT      0x08
-
-    #define HOST_CMD_THRUSTERS      0x09
-
-    #define HOST_CMD_TEMPERATURE    0x0A
-    #define HOST_REPLY_TEMPERATURE  0x0B
-
-    #define HOST_CMD_PRINTTEXT      0x0C
-
-    #define HOST_CMD_SONAR          0x0D
-    #define HOST_REPLY_SONAR        0x0E
-
-    #define HOST_CMD_RUNTIMEDIAG    0x0F
-
     unsigned char emptyLine[]="                ";
 
     showString(emptyLine, 0);
@@ -763,6 +732,36 @@ int main(void)
                 sendByte(rxBuf[0]);
                 sendByte(rxBuf[1]);
                 byte cs = HOST_REPLY_DEPTH+rxBuf[0]+rxBuf[1];
+                sendByte(cs);
+                break;
+            }
+
+            case HOST_CMD_THRUSTERSTATE:
+            {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_THRUSTERSTATE)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_THRUSTER_STATE, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                int len = readDataBlock(SLAVE_ID_THRUSTERS);
+
+                if(len != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_THRUSTERSTATE);
+                sendByte(rxBuf[0]);
+                byte cs = HOST_REPLY_THRUSTERSTATE+rxBuf[0];
                 sendByte(cs);
                 break;
             }
