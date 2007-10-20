@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
 	    return -1;
     }
 
-    int fd = openSensorBoard("/dev/ttyUSB0");
+    int fd = openSensorBoard("/dev/sensor");
 
 
     if(fd == -1)
@@ -49,18 +49,6 @@ int main(int argc, char ** argv)
         printf("\nCould not sync with board!\n");
         close(fd);
     }
-
-#define STATUS_WATER      0x01
-#define STATUS_KILLSW     0x02
-
-#define STATUS_BATT1      0x04
-#define STATUS_BATT2      0x08
-#define STATUS_BATT3      0x10
-#define STATUS_BATT4      0x20
-
-#define STATUS_MYSTERYBIT 0x40
-
-#define STATUS_STARTSW    0x80
 
     if(strcmp(argv[1], "-status") == 0)
     {
