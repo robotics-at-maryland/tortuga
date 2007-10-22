@@ -246,8 +246,16 @@ int busWriteByte(byte data, byte req)
     return 0;
 }
 
+/* Must be a power of 2 */
+#define U2TXBUF_SIZE 32
 
-void initMasterUart()
+unsigned char U2TXBuffer[U2TXBUF_SIZE];
+unsigned char U2RXBuffer[32];
+unsigned char U2TXReadPtr;
+unsigned char U2TXWritePtr;
+unsigned char U2TXSize;
+unsigned char U2RXPtr;
+void initUarts()
 {
     U1MODE = 0x0000;
 //    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
@@ -258,16 +266,58 @@ void initMasterUart()
 
 
     U2MODE = 0x0000;
-//    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
     U2BRG = 1;  /* 7 for 115200 at 15 MIPS */
     U2MODEbits.ALTIO = 0;   // Use alternate IO
     U2MODEbits.UARTEN = 1;
     U2STAbits.UTXEN = 1;   // Enable transmit
 
+    U2TXReadPtr=0;
+    U2TXWritePtr=0;
+    U2TXSize=0;
 
+
+    U2STAbits.UTXISEL=1;    /* Generate interrupt only when buffer is empty */
+    U2STAbits.URXISEL=0;    /* Generate interrupt when a byte comes in */
+
+    IEC1bits.U2TXIE = 1;    /* Enable TX interrupt */
+    IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
 
 }
 
+
+
+
+void _ISR _U2RXInterrupt(void)
+{
+    IFS1bits.U2RXIF = 0;    /* Clear RX interrupt */
+}
+
+void _ISR _U2TXInterrupt(void)
+{
+    IFS1bits.U2TXIF = 0;    /* Clear TX interrupt */
+    while(U2STAbits.UTXBF == 0 && U2TXSize > 0)
+    {
+        U2TXREG = U2TXBuffer[U2TXReadPtr];
+        U2TXReadPtr = (U2TXReadPtr+1) & (U2TXBUF_SIZE-1);
+        U2TXSize--;
+    }
+}
+
+unsigned char U2CanWrite()
+{
+    return U2TXSize < (U2TXBUF_SIZE-1);
+}
+
+
+void U2WriteByte(unsigned char b)
+{
+    IEC1bits.U2TXIE = 0;    /* Disable TX interrupt */
+    U2TXBuffer[U2TXWritePtr] = b;
+    U2TXWritePtr = (U2TXWritePtr+1) & (U2TXBUF_SIZE-1);
+    U2TXSize++;
+    IEC1bits.U2TXIE = 1;    /* Enable TX interrupt */
+    IFS1bits.U2TXIF = 1;    /* Force TX interrupt */
+}
 
 /* Send a byte to the serial console */
 void sendByte(byte i)
@@ -275,20 +325,17 @@ void sendByte(byte i)
     while(U1STAbits.UTXBF);
     while(!U1STAbits.TRMT);
     U1TXREG = i;
-    U2TXREG = i;
     while(U1STAbits.UTXBF);
     while(!U1STAbits.TRMT);
-
-   // for(j=0; j<10000; j++); /* This line can be removed, but my uart was being weird. */
 }
 
 
 /* Send a string to the serial console */
-void sendString(unsigned char str[])
+void U2SendString(unsigned char str[])
 {
     byte i=0;
     for(i=0; str[i]!=0; i++)
-        sendByte(str[i]);
+        U2WriteByte(str[i]);
 }
 
 /* General purpose bus receive buffer */
@@ -605,16 +652,17 @@ int main(void)
 
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
-    initMasterUart();
+    initUarts();
 
     ADPCFG = 0xFFFF;
     LATB = 0;
     TRISB = 0;
 
 
-    initMasterUart();
+    initUarts();
 
-    sendString("\n\rMaster starting...\n\r");
+    U2SendString("im in ur interruptz, writin ur regz\n\n");
+
     for(j=0; j<25000; j++);
 
 
@@ -800,9 +848,9 @@ int main(void)
                 } else
                 {
 
-                    rxBuf[0] &= 0xFD; /* Clear kill switch bit */
+                    rxBuf[0] &= 0xFD; // Clear kill switch bit
 
-                    /* Set kill switch bit based on the GPIO kill input */
+                    // Set kill switch bit based on the GPIO kill input
                     if(IN_KS == 1)
                         rxBuf[0] |= 0x02;
 
@@ -904,7 +952,7 @@ int main(void)
                 byte cflag=0;
                 byte cs=0;
 
-                /* Check the special sequence */
+                // Check the special sequence
                 for(i=0; i<5; i++)
                 {
                     cs += rxBuf[i];
