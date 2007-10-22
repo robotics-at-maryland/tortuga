@@ -247,7 +247,7 @@ int busWriteByte(byte data, byte req)
 }
 
 
-void initUart()
+void initMasterUart()
 {
     U1MODE = 0x0000;
 //    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
@@ -255,17 +255,27 @@ void initUart()
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
+
+
+    U2MODE = 0x0000;
+//    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
+    U2BRG = 1;  /* 7 for 115200 at 15 MIPS */
+    U2MODEbits.ALTIO = 0;   // Use alternate IO
+    U2MODEbits.UARTEN = 1;
+    U2STAbits.UTXEN = 1;   // Enable transmit
+
+
+
 }
 
 
 /* Send a byte to the serial console */
 void sendByte(byte i)
 {
-    long j;
-
     while(U1STAbits.UTXBF);
     while(!U1STAbits.TRMT);
     U1TXREG = i;
+    U2TXREG = i;
     while(U1STAbits.UTXBF);
     while(!U1STAbits.TRMT);
 
@@ -546,7 +556,7 @@ void showIdent()
 void diagBootMode()
 {
     byte mode=0;
-    unsigned char tmp[16];
+//    unsigned char tmp[16];
     long j=0;
 
     showString("Diagnostic Mode ", 0);
@@ -582,12 +592,12 @@ void diagBootMode()
 int main(void)
 {
     long j=0;
-    long t=0, b=0;
+//    long t=0, b=0;
     byte i;
 
-    byte tmp[60];
-    byte rxPtr = 0;
-    byte rxLen = 0;
+//    byte tmp[60];
+//    byte rxPtr = 0;
+//    byte rxLen = 0;
 
     TRIS_KS = TRIS_IN;
 
@@ -595,14 +605,14 @@ int main(void)
 
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
-    initUart();
+    initMasterUart();
 
     ADPCFG = 0xFFFF;
     LATB = 0;
     TRISB = 0;
 
 
-    initUart();
+    initMasterUart();
 
     sendString("\n\rMaster starting...\n\r");
     for(j=0; j<25000; j++);
