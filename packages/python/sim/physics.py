@@ -585,6 +585,7 @@ class World(OgreNewt.World):
     def update(self, time_step):
         for listener in self._listeners:
             listener.pre_update()
+
         OgreNewt.World.update(self, time_step)
         for listener in self._listeners:
             listener.post_update()
@@ -629,7 +630,7 @@ class World(OgreNewt.World):
         # Damping hack
         newton_body.omega = newton_body.omega * 0.8
         if newton_body.omega.length() < 0.001:
-            newton_body.omega = 0
+            newton_body.omega = (0,0,0)
         
         # Zero force on body
         body.force = (0,0,0)

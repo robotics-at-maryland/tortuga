@@ -23,7 +23,8 @@ import sim.simulation
 import sim.robot
 import gui.wxogre
 import gui.input
-
+import module
+import competition
 
 import event
 import sim.input
@@ -224,7 +225,6 @@ class MainFrame(gui.wxogre.wxOgreFrame):
         
     def on_activate(self, event):
         gui.wxogre.wxOgreFrame.on_activate(self, event)
-        self.ogre._init_ogre()
         if wx.Platform == '__WXGTK__':
             self._input_forwarder = sim.input.OISInputForwarder({}, \
                  sim.simulation.Simulation.get().input_system,
@@ -244,13 +244,14 @@ class SimApp(wx.App):
 
         self.config = yaml.load(file(os.path.join('data', 'config','sim.yml')))
         # Create simulation
-        self.sim = sim.simulation.Simulation(self.config['Simulation'])
+        self.sim = sim.simulation.Simulation(self.config['Modules']['Simulation'])
         self.components = [self.sim]
         
         # Create our main frame
         self.frame = MainFrame(self.create_scenes)
 
         # Setup Update timer
+        self.sim.start()
         self.timer = wx.Timer()
         self.Bind(wx.EVT_TIMER, self.on_timer, self.timer)
 
@@ -258,6 +259,11 @@ class SimApp(wx.App):
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
         self.frame.Bind(wx.EVT_CLOSE, self.on_close)
+        
+        temp = competition.StartingGate()
+        event.add_event_types(['GATE_ENTERED', 'GATE_EXITED'])
+        event.register_handlers({'GATE_ENTERED' : temp._entered_gate,
+                                 'GATE_EXITED' : temp._left_gate })
 
         return True
     
@@ -281,7 +287,6 @@ class SimApp(wx.App):
         self.timer.Start(self.update_interval, True)
     
     def on_timer(self, timer_event): 
-
         current_time = self._get_time()
         time_since_last_iteration = (current_time - self.last_time);
 
@@ -311,7 +316,8 @@ class SimApp(wx.App):
         self.timer.Stop()
         close_event.GetEventObject().Destroy()
             
-def main():            
+def main():
+    m = module.ModuleManager()            
     app = SimApp(0)
     app.MainLoop()
 

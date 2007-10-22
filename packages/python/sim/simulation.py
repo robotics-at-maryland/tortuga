@@ -59,7 +59,8 @@ class Simulation(Singleton, Module):
         self._graphics_init(config.get('Graphics', {}))
         self.input_system = InputSystem(config.get('Input', {}))
 
-        Module.__init__(self, type(self), config.get('name','Simulation'))
+        config['name'] = 'Simulation'
+        Module.__init__(self, config)
     
 #    def __del__(self):
 #        # Ensure proper of C++ desctuctors
