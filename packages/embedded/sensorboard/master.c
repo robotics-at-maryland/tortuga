@@ -248,13 +248,16 @@ int busWriteByte(byte data, byte req)
 
 /* Must be a power of 2 */
 #define U2TXBUF_SIZE 32
+#define U2RXBUF_SIZE 32
 
 unsigned char U2TXBuffer[U2TXBUF_SIZE];
-unsigned char U2RXBuffer[32];
+unsigned char U2RXBuffer[U2RXBUF_SIZE];
 unsigned char U2TXReadPtr;
 unsigned char U2TXWritePtr;
 unsigned char U2TXSize;
-unsigned char U2RXPtr;
+unsigned char U2RXReadPtr;
+unsigned char U2RXWritePtr;
+unsigned char U2RXSize;
 void initUarts()
 {
     U1MODE = 0x0000;
@@ -275,6 +278,10 @@ void initUarts()
     U2TXWritePtr=0;
     U2TXSize=0;
 
+    U2RXWritePtr=0;
+    U2RXReadPtr=0;
+    U2RXSize=0;
+
 
     U2STAbits.UTXISEL=1;    /* Generate interrupt only when buffer is empty */
     U2STAbits.URXISEL=0;    /* Generate interrupt when a byte comes in */
@@ -290,6 +297,17 @@ void initUarts()
 void _ISR _U2RXInterrupt(void)
 {
     IFS1bits.U2RXIF = 0;    /* Clear RX interrupt */
+    U1STAbits.OERR = 0;
+    U1STAbits.FERR = 0;
+    U1STAbits.PERR = 0;
+    U1STAbits.URXDA = 0;
+
+    while(U2STAbits.URXDA == 1)
+    {
+        U2RXBuffer[U2RXWritePtr] = U2RXREG;
+        U2RXWritePtr = (U2RXWritePtr + 1) & (U2RXBUF_SIZE-1);
+        U2RXSize++;
+    }
 }
 
 void _ISR _U2TXInterrupt(void)
@@ -308,6 +326,10 @@ unsigned char U2CanWrite()
     return U2TXSize < (U2TXBUF_SIZE-1);
 }
 
+unsigned char U2CanRead()
+{
+    return U2RXSize;
+}
 
 void U2WriteByte(unsigned char b)
 {
@@ -317,6 +339,17 @@ void U2WriteByte(unsigned char b)
     U2TXSize++;
     IEC1bits.U2TXIE = 1;    /* Enable TX interrupt */
     IFS1bits.U2TXIF = 1;    /* Force TX interrupt */
+}
+
+unsigned char U2ReadByte()
+{
+    unsigned char b;
+    IEC1bits.U2RXIE = 0;    /* Disable RX interrupt */
+    U2RXSize--;
+    b = U2RXBuffer[U2RXReadPtr];
+    U2RXReadPtr = (U2RXReadPtr+1) & (U2RXBUF_SIZE-1);
+    IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
+    return b;
 }
 
 /* Send a byte to the serial console */
@@ -337,6 +370,7 @@ void U2SendString(unsigned char str[])
     for(i=0; str[i]!=0; i++)
         U2WriteByte(str[i]);
 }
+
 
 /* General purpose bus receive buffer */
 byte rxBuf[60];
@@ -660,8 +694,22 @@ int main(void)
 
 
     initUarts();
-
+/*
     U2SendString("im in ur interruptz, writin ur regz\n\n");
+
+
+    while(1)
+    {
+        if(U2CanRead())
+        {
+            unsigned char b;
+            b = U2ReadByte();
+            U2WriteByte('<');
+            U2WriteByte(b);
+            U2WriteByte('>');
+
+        }
+    }*/
 
     for(j=0; j<25000; j++);
 
