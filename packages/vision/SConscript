@@ -63,6 +63,10 @@ if platform.system() in ['Linux', 'Darwin']:
     envt.AppendUnique(CCFLAGS = '-Wno-unused')
 envt.Program(target = 'BasicCvTest', source = 'test/src/BasicCvTest.c')
 
+# Basic video test
+# envt.AppendUnique(CCFLAGS = '-Wno-unused')
+envt.Program(target = 'BasicVideoTest', source = 'test/src/BasicVideoTest.c')
+
 # Basic record test
 if platform.system() in ['Linux', 'Darwin']:
     envt.Program(target = 'RecordTest', source = 'test/src/CvRecordVideoTest.c')
