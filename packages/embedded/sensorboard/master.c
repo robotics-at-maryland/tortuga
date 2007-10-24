@@ -1,7 +1,9 @@
 #include <p30fxxxx.h>
 #include "buscodes.h"
-#include "uart.h"
 #include <stdio.h>
+
+#define SENSORBOARD_IC1
+#include "uart.c"
 
 _FOSC( CSW_FSCM_OFF & ECIO );
 _FWDT ( WDT_OFF );
@@ -248,28 +250,18 @@ int busWriteByte(byte data, byte req)
 }
 
 
-
-extern unsigned char U2TXBuffer[U2TXBUF_SIZE];
-extern unsigned char U2RXBuffer[U2RXBUF_SIZE];
-extern unsigned char U2TXReadPtr;
-extern unsigned char U2TXWritePtr;
-extern unsigned char U2TXSize;
-extern unsigned char U2RXReadPtr;
-extern unsigned char U2RXWritePtr;
-extern unsigned char U2RXSize;
-
 void initUarts()
 {
     U1MODE = 0x0000;
 //    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
-    U1BRG = 1;  /* 7 for 115200 at 15 MIPS */
+    U1BRG = IC1_U1_BRG;  /* 7 for 115200 at 15 MIPS */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
 
 
     U2MODE = 0x0000;
-    U2BRG = 1;  /* 7 for 115200 at 15 MIPS */
+    U2BRG = IC1_U2_BRG;  /* 7 for 115200 at 15 MIPS */
     U2MODEbits.ALTIO = 0;   // Use alternate IO
     U2MODEbits.UARTEN = 1;
     U2STAbits.UTXEN = 1;   // Enable transmit
@@ -277,7 +269,6 @@ void initUarts()
     U2TXReadPtr=0;
     U2TXWritePtr=0;
     U2TXSize=0;
-
     U2RXWritePtr=0;
     U2RXReadPtr=0;
     U2RXSize=0;
@@ -288,7 +279,6 @@ void initUarts()
 
     IEC1bits.U2TXIE = 1;    /* Enable TX interrupt */
     IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
-
 }
 
 

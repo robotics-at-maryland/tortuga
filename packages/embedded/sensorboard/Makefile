@@ -21,8 +21,8 @@ all: master.hex slave.hex lcd.hex temp.hex
 %.hex : %.elf
 	$(BIN2HEX) $<
 
-%.elf : %.o uart.o uart.h
-	$(CC) $(LDFLAGS) $(LIBS) $< uart.o -o $@
+%.elf : %.o uart.c
+	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
 
 %.o : %.c buscodes.h uart.h
 	$(CC) $(CFLAGS) -Wunused-function -c $< -o $@

@@ -46,7 +46,7 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
-
+void dropMarker(byte id);
 
 
 /* Transmit buffer */
