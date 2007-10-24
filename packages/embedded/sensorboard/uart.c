@@ -4,7 +4,6 @@
 //#define HAS_U2
 
 #ifdef SENSORBOARD_IC1
-#define HAS_U1
     #define HAS_U2
 #endif
 
