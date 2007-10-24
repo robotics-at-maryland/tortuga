@@ -8,7 +8,9 @@ CFLAGS = -mcpu=30F4011 -Wunused-function -mpa=5 -I/home/steve/dspicc/c30/support
 
 ASLAGS = -I/home/steve/dspicc/c30/include
 
-LDFLAGS = -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f4011.gld,--heap=0,-lp30F4011-elf,--report-mem
+LDFLAGS = -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f4011.gld,--heap=0,-lp30F4011-elf
+
+#,--report-mem
 
 BIN2HEX = pic30-elf-bin2hex
 
@@ -19,10 +21,10 @@ all: master.hex slave.hex lcd.hex temp.hex
 %.hex : %.elf
 	$(BIN2HEX) $<
 
-%.elf : %.o
-	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
+%.elf : %.o uart.o uart.h
+	$(CC) $(LDFLAGS) $(LIBS) $< uart.o -o $@
 
-%.o : %.c buscodes.h
+%.o : %.c buscodes.h uart.h
 	$(CC) $(CFLAGS) -Wunused-function -c $< -o $@
 
 run:
