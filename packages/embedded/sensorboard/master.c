@@ -47,6 +47,18 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_HARDKILL   1
 #define SLAVE_ID_SONAR	    3
 
+#define SLAVE_ID_MM1        0
+#define SLAVE_ID_MM2        2
+#define SLAVE_ID_MM3        2
+
+#define SLAVE_MM1_WRITE_CMD BUS_CMD_SETSPEED_U1
+#define SLAVE_MM2_WRITE_CMD BUS_CMD_SETSPEED_U2
+#define SLAVE_MM3_WRITE_CMD BUS_CMD_SETSPEED_U1
+
+#define SLAVE_MM1_READ_CMD  BUS_CMD_GETREPLY_U1
+#define SLAVE_MM2_READ_CMD  BUS_CMD_GETREPLY_U2
+#define SLAVE_MM3_READ_CMD  BUS_CMD_GETREPLY_U1
+
 /*
  * Bus Constants
  * BUS_TIMEOUT - how many iterations to wait when waiting for AKN to change state
@@ -1066,36 +1078,44 @@ int main(void)
                 break;
             }
 
-
             case HOST_CMD_SETSPEED:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                t1 = 0; /* Error counter */
 
-                busWriteByte(BUS_CMD_SETSPEED_U1, SLAVE_ID_LCD);
-                busWriteByte(t1, SLAVE_ID_LCD);
-                busWriteByte(t2, SLAVE_ID_LCD);
+                /* 8 bytes of speed, plus checksum */
+                for(i=0; i<9; i++)
+                    rxBuf[i] = waitchar(1);
 
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                for(i=0; i<8; i++)
+                    t1 += rxBuf[i];
 
-                busWriteByte(BUS_CMD_SETSPEED_U2, SLAVE_ID_LCD);
-                busWriteByte(t1, SLAVE_ID_LCD);
-                busWriteByte(t2, SLAVE_ID_LCD);
+                t1 += HOST_CMD_SETSPEED;
 
-                t1 = waitchar(1);
-                t2 = waitchar(1);
-                busWriteByte(BUS_CMD_SETSPEED_U1, SLAVE_ID_DEPTH);
-                busWriteByte(t1, SLAVE_ID_DEPTH);
-                busWriteByte(t2, SLAVE_ID_DEPTH);
+                if(rxBuf[8] != (t1 & 0xFF))
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                else
+                {
+                    t1 = 0;
+                    if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
+                    if(busWriteByte(rxBuf[0], SLAVE_ID_MM1) != 0) t1++;
+                    if(busWriteByte(rxBuf[1], SLAVE_ID_MM1) != 0) t1++;
 
-                t1 = waitchar(1);
-                t2 = waitchar(1);
 
-                U2ClearRXBuffer();
-                UARTSendSpeed(U2_MM_ADDR, t1, t2, 1);
+                    if(busWriteByte(SLAVE_MM2_WRITE_CMD, SLAVE_ID_MM2) != 0) t1++;
+                    if(busWriteByte(rxBuf[2], SLAVE_ID_MM2) != 0) t1++;
+                    if(busWriteByte(rxBuf[3], SLAVE_ID_MM2) != 0) t1++;
 
-                sendByte(HOST_REPLY_SUCCESS);
+                    if(busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3) != 0) t1++;
+                    if(busWriteByte(rxBuf[4], SLAVE_ID_MM3) != 0) t1++;
+                    if(busWriteByte(rxBuf[5], SLAVE_ID_MM3) != 0) t1++;
+
+                    UARTSendSpeed(U2_MM_ADDR, rxBuf[6], rxBuf[7], 1);
+
+                    if(t1 == 0)
+                        sendByte(HOST_REPLY_SUCCESS);
+                    else
+                        sendByte(HOST_REPLY_FAILURE);
+                }
                 break;
            }
 
