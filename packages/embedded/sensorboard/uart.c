@@ -1,3 +1,39 @@
+/*
+
+Motor controller connections:
+It's ASCII-tacular. Use a fixed pitch font
+
+    (Sensor Board Rev 01)
+     _________________________________________
+    |[USB]               ......             * |
+    |                    .. ... :::::::     * |
+    |..                                       |
+    |.. <- MC 4 (Row 7)       . <- MC 3 (PGM) |
+    |..                       :               |
+    |..                                       |
+    |..                                    .. |
+    |..                                    .. |
+    |                                      .. |
+    |                                         |
+    | .                                    .. |
+    | :                                    .. |
+    |                      (Row 3) MC 2 -> .. |
+    |            : :                       .. |
+    |                                      .. |
+    | ** ::::::  ::      (PGM) MC 1 -> ...    |
+    |_________________________________________|
+
+MC1: JP11, pins 2 and 3 (3 = TX)
+MC2: JP14, row 3 (outer = TX)
+MC3: JP10, pins 2 and 3 (3 = TX)
+MC4: JP14, row 3 (outer = TX)
+
+(ie, the receive pin always is towards the middle of the board)
+
+The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
+*/
+
+
 #define MASTER_U1_BRG 1
 #define byte unsigned char
 
@@ -10,6 +46,8 @@
     /* JP13 Row 7, outer = tx */
     #define HAS_U2
 
+
+    #define U2_MM_ADDR 0x04
     #define U2_BRG 11
 #endif
 
@@ -23,6 +61,9 @@
 
     #define U1_BRG 11
     #define U2_BRG 11
+
+    #define U1_MM_ADDR 0x03
+    #define U2_MM_ADDR 0x02
 #endif
 
 /* Temp */
@@ -36,6 +77,7 @@
     /* PGD and PGC, pin 3 = tx */
     #define HAS_U1
     #define U1_BRG 11
+    #define U1_MM_ADDR 0x01
     /* U2 available, but not conveliently placed */
 #endif
 

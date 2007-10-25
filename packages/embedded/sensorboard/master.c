@@ -1105,7 +1105,11 @@ int main(void)
                 busWriteByte(t1, SLAVE_ID_DEPTH);
                 busWriteByte(t2, SLAVE_ID_DEPTH);
 
+                t1 = waitchar(1);
+                t2 = waitchar(1);
 
+                U2ClearRXBuffer();
+                UARTSendSpeed(U2_MM_ADDR, t1, t2, 1);
 /*
                 if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_MARKER != t2))
                 {
