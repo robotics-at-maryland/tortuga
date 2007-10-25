@@ -90,3 +90,4 @@
 #define HOST_CMD_THRUSTERSTATE      0x10
 #define HOST_REPLY_THRUSTERSTATE    0x11
 
+#define HOST_CMD_SETSPEED           0x12

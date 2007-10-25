@@ -10,7 +10,7 @@
     /* JP13 Row 7, outer = tx */
     #define HAS_U2
 
-    #define U2_BRG 1
+    #define U2_BRG 11
 #endif
 
 /* LCD */
@@ -21,8 +21,8 @@
     /* JP14 Row 3, outer = tx */
     #define HAS_U2
 
-    #define U1_BRG 1
-    #define U2_BRG 1
+    #define U1_BRG 11
+    #define U2_BRG 11
 #endif
 
 /* Temp */
@@ -35,7 +35,7 @@
 #ifdef SENSORBOARD_IC4
     /* PGD and PGC, pin 3 = tx */
     #define HAS_U1
-    #define U1_BRG 1
+    #define U1_BRG 11
     /* U2 available, but not conveliently placed */
 #endif
 
