@@ -2,6 +2,11 @@
 #include <string.h>
 #include "buscodes.h"
 
+
+#define SENSORBOARD_IC2
+#include "uart.c"
+
+
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & ECIO );
 //_FOSC( FRC_LO_RANGE);
@@ -461,6 +466,7 @@ void main()
     initBus();
 
     initLCD();
+    initInterruptUarts();
     byte data1[] = "IC1 FAIL        ";
 
     for(i=0; i<16; i++)

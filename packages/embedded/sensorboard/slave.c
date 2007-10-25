@@ -2,6 +2,9 @@
 #include <string.h>
 #include "buscodes.h"
 
+#define SENSORBOARD_IC4
+#include "uart.c"
+
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & ECIO );
 //_FOSC( FRC_LO_RANGE);
@@ -551,6 +554,7 @@ void main()
 
     initADC();
     initBus();
+    initInterruptUarts();
 
     while(1);
 }

@@ -250,35 +250,14 @@ int busWriteByte(byte data, byte req)
 }
 
 
-void initUarts()
+void initMasterUart()
 {
     U1MODE = 0x0000;
 //    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
-    U1BRG = IC1_U1_BRG;  /* 7 for 115200 at 15 MIPS */
+    U1BRG = MASTER_U1_BRG;  /* 7 for 115200 at 15 MIPS */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
-
-
-    U2MODE = 0x0000;
-    U2BRG = IC1_U2_BRG;  /* 7 for 115200 at 15 MIPS */
-    U2MODEbits.ALTIO = 0;   // Use alternate IO
-    U2MODEbits.UARTEN = 1;
-    U2STAbits.UTXEN = 1;   // Enable transmit
-
-    U2TXReadPtr=0;
-    U2TXWritePtr=0;
-    U2TXSize=0;
-    U2RXWritePtr=0;
-    U2RXReadPtr=0;
-    U2RXSize=0;
-
-
-    U2STAbits.UTXISEL=1;    /* Generate interrupt only when buffer is empty */
-    U2STAbits.URXISEL=0;    /* Generate interrupt when a byte comes in */
-
-    IEC1bits.U2TXIE = 1;    /* Enable TX interrupt */
-    IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
 }
 
 
@@ -616,14 +595,15 @@ int main(void)
 
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
-    initUarts();
 
     ADPCFG = 0xFFFF;
     LATB = 0;
     TRISB = 0;
 
 
-    initUarts();
+    initMasterUart();
+    initInterruptUarts();
+
 /*
     U2SendString("im in ur interruptz, writin ur regz\n\n");
 

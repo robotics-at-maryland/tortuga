@@ -1,11 +1,41 @@
-#define IC1_U1_BRG 1
-#define IC1_U2_BRG 1
+#define MASTER_U1_BRG 1
 
-//#define HAS_U2
-
+/* Master */
 #ifdef SENSORBOARD_IC1
+    /* JP13 Row 7, outer = tx */
     #define HAS_U2
+
+    #define U2_BRG 1
 #endif
+
+/* LCD */
+#ifdef SENSORBOARD_IC2
+    /* PGD and PGC, pin 3 = tx */
+    #define HAS_U1
+
+    /* JP14 Row 3, outer = tx */
+    #define HAS_U2
+
+    #define U1_BRG 1
+    #define U2_BRG 1
+#endif
+
+/* Temp */
+#ifdef SENSORBOARD_IC3
+    /* U1 multiplexed to I2C. U1Alt multiplexed to bus */
+    /* U2 is available but TX/RX not conveliently placed */
+#endif
+
+/* Depth (slave.c) */
+#ifdef SENSORBOARD_IC4
+    /* PGD and PGC, pin 3 = tx */
+    #define HAS_U1
+    #define U1_BRG 1
+    /* U2 available, but not conveliently placed */
+#endif
+
+
+
 
 
 
@@ -47,6 +77,53 @@ unsigned char U2RXWritePtr;
 unsigned char U2RXSize;
 
 #endif
+
+
+void initInterruptUarts()
+{
+
+#ifdef HAS_U1
+    U1MODE = 0x0000;
+    U1BRG = U1_BRG;  /* 7 for 115200 at 15 MIPS */
+    U1MODEbits.ALTIO = 0;   // Use alternate IO
+    U1MODEbits.UARTEN = 1;
+    U1STAbits.UTXEN = 1;   // Enable transmit
+
+    U1TXReadPtr=0;
+    U1TXWritePtr=0;
+    U1TXSize=0;
+    U1RXWritePtr=0;
+    U1RXReadPtr=0;
+    U1RXSize=0;
+
+    U1STAbits.UTXISEL=1;    /* Generate interrupt only when buffer is empty */
+    U1STAbits.URXISEL=0;    /* Generate interrupt when a byte comes in */
+    IEC0bits.U1TXIE = 1;    /* Enable TX interrupt */
+    IEC0bits.U1RXIE = 1;    /* Enable RX interrupt */
+#endif
+
+#ifdef HAS_U2
+    U2MODE = 0x0000;
+    U2BRG = U2_BRG;  /* 7 for 115200 at 15 MIPS */
+    U2MODEbits.ALTIO = 0;   // Use alternate IO
+    U2MODEbits.UARTEN = 1;
+    U2STAbits.UTXEN = 1;   // Enable transmit
+
+    U2TXReadPtr=0;
+    U2TXWritePtr=0;
+    U2TXSize=0;
+    U2RXWritePtr=0;
+    U2RXReadPtr=0;
+    U2RXSize=0;
+
+    U2STAbits.UTXISEL=1;    /* Generate interrupt only when buffer is empty */
+    U2STAbits.URXISEL=0;    /* Generate interrupt when a byte comes in */
+    IEC1bits.U2TXIE = 1;    /* Enable TX interrupt */
+    IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
+#endif
+}
+
+
 
 
 #ifdef HAS_U1
@@ -108,6 +185,13 @@ unsigned char U1ReadByte()
     return b;
 }
 
+void U1ClearRXBuffer()
+{
+    IEC0bits.U1RXIE = 0;    /* Disable RX interrupt */
+    U1RXSize=0;
+    IEC0bits.U1RXIE = 1;    /* Enable RX interrupt */
+}
+
 #endif
 
 #ifdef HAS_U2
@@ -167,6 +251,13 @@ unsigned char U2ReadByte()
     U2RXReadPtr = (U2RXReadPtr+1) & (U2RXBUF_SIZE-1);
     IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
     return b;
+}
+
+void U2ClearRXBuffer()
+{
+    IEC1bits.U2RXIE = 0;    /* Disable RX interrupt */
+    U2RXSize=0;
+    IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
 }
 
 #endif

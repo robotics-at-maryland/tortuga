@@ -8,6 +8,10 @@
 #include <string.h>
 #include "buscodes.h"
 
+
+#define SENSORBOARD_IC3
+#include "uart.c"
+
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & ECIO );
 //_FOSC( FRC_LO_RANGE);
@@ -614,8 +618,8 @@ void main()
         tempData[i] = 0;
 
     initI2C();
-
     initBus();
+    initInterruptUarts();
     ADPCFG = 0xFFFF;
 
     while(1)
