@@ -1099,6 +1099,13 @@ int main(void)
                 busWriteByte(t1, SLAVE_ID_LCD);
                 busWriteByte(t2, SLAVE_ID_LCD);
 
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+                busWriteByte(BUS_CMD_SETSPEED_U1, SLAVE_ID_DEPTH);
+                busWriteByte(t1, SLAVE_ID_DEPTH);
+                busWriteByte(t2, SLAVE_ID_DEPTH);
+
+
 /*
                 if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_MARKER != t2))
                 {
