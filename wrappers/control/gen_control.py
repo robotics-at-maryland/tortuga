@@ -11,8 +11,8 @@ from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
 # Project Imports
-import wrap
-from wrap import make_already_exposed
+import buildfiles.wrap
+from buildfiles.wrap import make_already_exposed
 
 def generate_control(name, global_ns, local_ns):
     """
@@ -42,3 +42,4 @@ def generate_code(module_name, files, output_dir, include_files,
     wrap.generate_code(module_name, files, output_dir, include_files,
                        extra_includes,
                        {'control' : generate_control})
+

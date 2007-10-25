@@ -8,8 +8,8 @@
 import os
 
 # Build System imports
-import wrap
-import libs
+import buildfiles.wrap as wrap
+import buildfiles.libs as libs
 
 Import('env')
 envl = env.Clone()
@@ -25,7 +25,8 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-wrapped_headers = ['Vector3.h','Quaternion.h']
+wrapped_headers = ['Vector3.h','Vector4.h', 'Matrix3.h', 'Matrix4.h',
+                   'Quaternion.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 wrap.wrap_headers(envl, 'math',

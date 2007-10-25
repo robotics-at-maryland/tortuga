@@ -8,8 +8,8 @@
 import os
 
 # Build System imports
-import wrap
-import libs
+import buildfiles.wrap as wrap
+import buildfiles.libs as libs
 
 Import('env')
 envl = env.Clone()
@@ -28,9 +28,14 @@ envl.Append(CPPPATH = base_dir)
 wrapped_headers = ['IController.h', 'BWPDController.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
-wrap.wrap_headers(envl, 'control',
-                  wrapped_headers,
-		  gen_mod = 'gen_control')
+#print 'Wrapped headers', wrapped_headers
+
+
+envl.Pypp('control', wrapped_headers,
+          module = 'gen_control.py')
+#wrap.wrap_headers(envl, 'control',
+#                  wrapped_headers,
+#		  gen_mod = 'gen_control')
 
 
 # Manual

@@ -35,7 +35,8 @@ if os.name == 'posix':
 
 # Setup the build environment
 tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
-env = Environment(ENV=os.environ, options=opts, toolpath = [tpath])
+env = Environment(ENV=os.environ, options=opts,
+                  tools = ['default', 'gccxml','pypp'], toolpath = [tpath])
 Help(opts.GenerateHelpText(env))
 
 # Add platform Specifc setup
@@ -87,6 +88,7 @@ else:
     
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)
+helpers.setup_printing(env)
 
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #

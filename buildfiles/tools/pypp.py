@@ -39,9 +39,9 @@ def generate_code(env, target, source):
         else:
             xmlfiles.append(s.abspath)
 
-    print 'Module', mod
-    print 'XMLFiles', xmlfiles
-    print 'Target', target[0].abspath
+#    print 'Module', mod
+#    print 'XMLFiles', xmlfiles
+#    print 'Target', target[0].abspath
 
     output_dir = os.path.split(target[0].abspath)[0]
     output_dir = os.path.join(output_dir, 'generated')
@@ -103,25 +103,17 @@ def build_module(env, target, source): #, actual_target = None):
                for f in srclist.readlines()]
 
     # Add extra depends
-    for s in sources:
-        env.Depends(source, s)
+#    for s in sources:
+#        env.Depends(source, s)
 
     sources = [hack_srcnode(s) for s in sources]
 
-
-    src_dir = os.path.split(source.abspath)[0]
-    print 'BLD DIR',src_dir
-
-    envc = env.Copy()
-
-    # Another hack needed, SCons seems to have lost track of the build dir so
-    # we hack it in here
-    envc['SHLINKCOM'] = env['SHLINKCOM'].replace('$TARGET', src_dir +'/$TARGET')
-    extension_mod = envc.SharedLibrary(target_base + '_ext', sources)
+    bld_dir = env['BUILD_DIR'] + '_ext/'
+    extension_mod = env.SharedLibrary(bld_dir + target_base + '_ext', sources)
 
     # Set depedencies here
-    envc.Depends(extension_mod, '#' + target_base + '_dummy')
-    envc.Alias('TopLevelAlias', extension_mod)
+    env.Depends(extension_mod, '#' + target_base + '_dummy')
+    env.Alias('TopLevelAlias', extension_mod)
 
 def run_pypp(env, target, source, module):
     """
@@ -133,14 +125,9 @@ def run_pypp(env, target, source, module):
     @param module: the python module to call to generate the cpp code
     """
 
-#    if not env.has_key('module'):
-#        raise Exception("Must give the Pypp build a python 'module' which generates code")
-#    module = env['module']
     # Add CPPPATH to XMLCPPPATH (so GCC-XML can find our headers)
     env.AppendUnique(XMLCPPPATH = [env['CPPPATH']])
 
-    #print 'XML BUILD'
-    #print env.Dir('.').abspath
     # Build XML files
     xmlfiles = []
     for f in source:
@@ -151,17 +138,10 @@ def run_pypp(env, target, source, module):
         # Build the file and add the output to our results
         xmlfiles.extend(env.XMLHeader(target = target_file, source = f))
 
-
-    #print 'xmlfiles', [f.abspath for f in xmlfiles]
-#    print 'Path', env.Dir('.')
-#    module = env.File(module)
-#    print 'MOD', module.abspath
     # Runs the code generation module using Py++
     sources = xmlfiles
     sources.append(env.File(module))
-    #print 'sources', sources
-    #srclist_file = os.path.join('generated', 'sources.txt')
-#    print 'DIR',env.Dir('generated')
+
     commands = [generate_code]
     print 'Checking for:',env.Dir('generated').abspath
     if not os.path.exists(env.Dir('generated').abspath):
@@ -188,27 +168,15 @@ def check_modules(env):
         print 'and on your PYTHONPATH'
         env.Exit(1)
 
-#PyppBuilder = SCons.Builder.Builder(action = run_pypp);
+
+
 PyppBuilderHelper = SCons.Builder.Builder(action = build_module);
-
-def test_build2(env, target, source):
-    print 'TEST_DIR2',env.Dir('.').abspath
-
-def test_build(env, target, source, module):
-    print 'TEST_DIR',env.Dir('.').abspath
-#    env.Command(SCons.Defaults.Touch('bob')
-    SCons.Defaults.Touch(env.File('jhon').abspath)
-    env.PyppHelper('bob','jhon')
         
 def generate(env):
     check_modules(env)
         
-    # Added the builder to the given environment
-#    env.Append(BUILDERS = {'Pypp' : test_build,
-#                           'PyppHelper' : SCons.Builder.Builder(action = test_build2)})
-    env.Append(BUILDERS = {'Pypp' : run_pypp,#PyppBuilder,
+    env.Append(BUILDERS = {'Pypp' : run_pypp,
                            'PyppHelper' : PyppBuilderHelper})
-
 
 def exists(env):
     here = True
