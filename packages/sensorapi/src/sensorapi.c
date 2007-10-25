@@ -392,6 +392,44 @@ int displayText(int fd, int line, const char* text)
 }
 
 
+// MSB LSB !! (big endian)
+int setSpeeds(int fd, int s1, int s2, int s3, int s4)
+{
+    int i=0;
+    unsigned char buf[10]={0x12, 0,0, 0,0, 0,0, 0,0, 0x00};
+
+    buf[1] = (s1 >> 8);
+    buf[2] = (s1 & 0xFF);
+
+    buf[3] = (s2 >> 8);
+    buf[4] = (s2 & 0xFF);
+
+    buf[5] = (s3 >> 8);
+    buf[6] = (s3 & 0xFF);
+
+    buf[7] = (s4 >> 8);
+    buf[8] = (s4 & 0xFF);
+
+    buf[9] = 0;
+
+    for(i=0; i<9; i++)
+        buf[9]+=buf[i];
+
+    writeData(fd, buf, 10);
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
 
 int setDiagnostics(int fd, int state)
 {

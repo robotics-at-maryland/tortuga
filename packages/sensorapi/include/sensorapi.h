@@ -99,6 +99,7 @@ int getSonarData(int fd, int * angle, int * distance, int * pingNumber);
 
 int setDiagnostics(int fd, int state);
 
+int setSpeeds(int fd, int s1, int s2, int s3, int s4);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
