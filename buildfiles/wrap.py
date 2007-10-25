@@ -166,7 +166,7 @@ def setup_environ(env):
     Setup our custom extension buidling environment (will be replaced
      with simpler code later)
     """
-    envw = env.Clone(tools = ['gccxml'])
+    envw = env.Clone(tools = ['gccxml', 'pypp'])
     envw.AppendUnique(XMLCPPPATH = [env['CPPPATH']])
 
     libs.add_external(envw, 'Boost.Python')
@@ -224,11 +224,12 @@ def wrap_headers(env, mod_name, headers,
         base_files.append(target)
         t = os.path.join(output_root, target)
         s = os.path.join(os.environ['RAM_SVN_DIR'],header)
-        print 'XML: %s Header: %s' % (t,s)
+#        print 'XML: %s Header: %s' % (t,s)
         xml_files.append(envw.XMLHeader(target = t,
                                         source = s))
 
-    
+
+    envw.Pypp('control', xml_files, module=gen_mod)
     # Import out module which generates the code
 #    generate_module = import_wrapping_mod(gen_mod, src_dir)
 
