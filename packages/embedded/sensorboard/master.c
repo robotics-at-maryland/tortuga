@@ -1092,75 +1092,82 @@ int main(void)
                 t1 += HOST_CMD_SETSPEED;
 
                 if(rxBuf[8] != (t1 & 0xFF))
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                else
                 {
-                    t1 = 0;
-                    if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
-                    if(busWriteByte(rxBuf[0], SLAVE_ID_MM1) != 0) t1++;
-                    if(busWriteByte(rxBuf[1], SLAVE_ID_MM1) != 0) t1++;
-
-
-                    if(busWriteByte(SLAVE_MM2_WRITE_CMD, SLAVE_ID_MM2) != 0) t1++;
-                    if(busWriteByte(rxBuf[2], SLAVE_ID_MM2) != 0) t1++;
-                    if(busWriteByte(rxBuf[3], SLAVE_ID_MM2) != 0) t1++;
-
-                    if(busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3) != 0) t1++;
-                    if(busWriteByte(rxBuf[4], SLAVE_ID_MM3) != 0) t1++;
-                    if(busWriteByte(rxBuf[5], SLAVE_ID_MM3) != 0) t1++;
-
-                    UARTSendSpeed(U2_MM_ADDR, rxBuf[6], rxBuf[7], 1);
-
-                    if(t1 == 0)
-                        sendByte(HOST_REPLY_SUCCESS);
-                    else
-                        sendByte(HOST_REPLY_FAILURE);
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
                 }
+
+                t1 = 0;
+                if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
+                if(busWriteByte(rxBuf[0], SLAVE_ID_MM1) != 0) t1++;
+                if(busWriteByte(rxBuf[1], SLAVE_ID_MM1) != 0) t1++;
+
+
+                if(busWriteByte(SLAVE_MM2_WRITE_CMD, SLAVE_ID_MM2) != 0) t1++;
+                if(busWriteByte(rxBuf[2], SLAVE_ID_MM2) != 0) t1++;
+                if(busWriteByte(rxBuf[3], SLAVE_ID_MM2) != 0) t1++;
+
+                if(busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3) != 0) t1++;
+                if(busWriteByte(rxBuf[4], SLAVE_ID_MM3) != 0) t1++;
+                if(busWriteByte(rxBuf[5], SLAVE_ID_MM3) != 0) t1++;
+
+                UARTSendSpeed(U2_MM_ADDR, rxBuf[6], rxBuf[7], 1);
+
+                if(t1 == 0)
+                    sendByte(HOST_REPLY_SUCCESS);
+                else
+                    sendByte(HOST_REPLY_FAILURE);
                 break;
            }
 
            case HOST_CMD_MOTOR_READ:
            {
+                unsigned char resp[4];
                 t1 = waitchar(1);
+
+
                 if(t1 != HOST_CMD_MOTOR_READ)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                sendByte(HOST_CMD_MOTOR_REPLY);
+                t1 = 0;
 
-                busWriteByte(BUS_CMD_GETREPLY_U1, SLAVE_ID_DEPTH);
-                if(readDataBlock(SLAVE_ID_DEPTH) != 1)
-                    sendByte(0xDF);
-                else
-                    sendByte(rxBuf[0]);
+                if(busWriteByte(SLAVE_MM1_READ_CMD, SLAVE_ID_MM1) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM1) != 1) t1++;
+                resp[0] = rxBuf[0];
 
+                if(busWriteByte(SLAVE_MM2_READ_CMD, SLAVE_ID_MM2) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM2) != 1) t1++;
+                resp[1] = rxBuf[0];
 
-                busWriteByte(BUS_CMD_GETREPLY_U1, SLAVE_ID_LCD);
-
-                if(readDataBlock(SLAVE_ID_LCD) != 1)
-                    sendByte(0xDF);
-                else
-                    sendByte(rxBuf[0]);
-
-                busWriteByte(BUS_CMD_GETREPLY_U2, SLAVE_ID_LCD);
-
-                if(readDataBlock(SLAVE_ID_LCD) != 1)
-                    sendByte(0xDF);
-                else
-                    sendByte(rxBuf[0]);
+                if(busWriteByte(SLAVE_MM3_READ_CMD, SLAVE_ID_MM3) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM3) != 1) t1++;
+                resp[2] = rxBuf[0];
 
                 if(U2CanRead())
-                    sendByte(U2ReadByte());
+                    resp[3] = U2ReadByte();
                 else
-                    sendByte(0xFF);
+                    resp[3] = 0xFF;
 
+
+                if(t1 != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_CMD_MOTOR_REPLY);
+                sendByte(resp[0]);
+                sendByte(resp[1]);
+                sendByte(resp[2]);
+                sendByte(resp[3]);
+
+                sendByte(HOST_CMD_MOTOR_REPLY + resp[0] + resp[1] + resp[2] + resp[3]);
 
                 break;
             }
-
-
         }
     }
 }
