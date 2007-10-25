@@ -81,7 +81,7 @@ byte cfgRegs[16];
 
 byte busState = 0;
 byte nParam = 0;
-byte p1=0, p2=0;
+byte p1=0;
 
 /* Average depth, as computed by ADC ISR */
 long avgDepth = 0;
@@ -236,9 +236,6 @@ void processData(byte data)
         {
             if(nParam == 0)
                 p1 = data;
-
-            if(nParam == 1)
-                p2 = data;
 
             nParam++;
 

@@ -84,7 +84,7 @@ byte cfgRegs[16];
 
 byte busState = 0;
 byte nParam = 0;
-byte p1=0, p2=0;
+byte p1=0;
 
 
 byte AckI2C(void)
@@ -127,6 +127,7 @@ unsigned int initI2C(void)
     //Now we can enable the peripheral
 
     I2CCON = 0x9200;
+    return 0;
 }
 
 unsigned int getI2C(void)
@@ -336,9 +337,6 @@ void processData(byte data)
         {
             if(nParam == 0)
                 p1 = data;
-
-            if(nParam == 1)
-                p2 = data;
 
             nParam++;
 
@@ -585,7 +583,7 @@ int dp=0;
 
 //readTemp addr 0x9E
 
-void main()
+int main()
 {
     byte i;
     long l;
@@ -619,7 +617,9 @@ void main()
 
     initI2C();
     initBus();
+    #ifdef HAS_UART
     initInterruptUarts();
+    #endif
     ADPCFG = 0xFFFF;
 
     while(1)

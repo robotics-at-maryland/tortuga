@@ -1,4 +1,9 @@
 #define MASTER_U1_BRG 1
+#define byte unsigned char
+
+/* Motor controller addresses */
+#define U1_MM_ADDR 0x01
+#define U2_MM_ADDR 0x01
 
 /* Master */
 #ifdef SENSORBOARD_IC1
@@ -34,6 +39,14 @@
     /* U2 available, but not conveliently placed */
 #endif
 
+
+#ifdef HAS_U1
+    #define HAS_UART
+#endif
+
+#ifdef HAS_U2
+    #define HAS_UART
+#endif
 
 
 
@@ -79,6 +92,7 @@ unsigned char U2RXSize;
 #endif
 
 
+#ifdef HAS_UART
 void initInterruptUarts()
 {
 
@@ -122,8 +136,7 @@ void initInterruptUarts()
     IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
 #endif
 }
-
-
+#endif
 
 
 #ifdef HAS_U1
@@ -261,3 +274,45 @@ void U2ClearRXBuffer()
 }
 
 #endif
+
+
+
+#ifdef HAS_UART
+void UARTWriteByte(byte b, byte destUart)
+{
+    if(destUart == 0)
+    {
+        #ifdef HAS_U1
+        U1WriteByte(b);
+        #endif
+    }
+    else
+    {
+        #ifdef HAS_U2
+        U2WriteByte(b);
+        #endif
+    }
+}
+
+void UARTSendSpeed(byte addr, byte msb, byte lsb, byte destUart)
+{
+    if(destUart == 0)
+    {
+        #ifdef HAS_U1
+        U1ClearRXBuffer();
+        #endif
+    }
+    else
+    {
+        #ifdef HAS_U2
+        U2ClearRXBuffer();
+        #endif
+    }
+    UARTWriteByte(0x14, destUart); /* Set speed  */
+    UARTWriteByte(addr, destUart); /* MM address */
+    UARTWriteByte(lsb, destUart);
+    UARTWriteByte(msb, destUart);
+    UARTWriteByte((0x14 + addr + msb + lsb) & 0xFF, destUart);
+}
+#endif
+

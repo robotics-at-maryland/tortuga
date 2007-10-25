@@ -31,10 +31,26 @@
 #define BUS_CMD_THRUSTER2_ON    24
 #define BUS_CMD_THRUSTER3_ON    25
 #define BUS_CMD_THRUSTER4_ON    26
+#define BUS_CMD_THRUSTER_STATE  28
 
 #define BUS_CMD_SONAR           27
 
-#define BUS_CMD_THRUSTER_STATE  28
+#define BUS_CMD_CLEARU1RX       29
+#define BUS_CMD_CLEARU2RX       30
+
+/* Followed by 2 parameters. MSB, LSB
+ * Command goes out when LSB comes in.
+ */
+#define BUS_CMD_SETSPEED_U1     31
+#define BUS_CMD_SETSPEED_U2     32
+
+/* Returns 1 byte length followed by 1st byte of response
+ * TODO: This should be better, but right now, motor controllers
+ * only reply with 06 or nothing
+ */
+#define BUS_CMD_GETREPLY_U1     33
+#define BUS_CMD_GETREPLY_U2     34
+
 
 
 
