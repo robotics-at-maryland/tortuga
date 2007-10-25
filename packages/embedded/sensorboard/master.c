@@ -604,22 +604,6 @@ int main(void)
     initMasterUart();
     initInterruptUarts();
 
-/*
-    U2SendString("im in ur interruptz, writin ur regz\n\n");
-
-
-    while(1)
-    {
-        if(U2CanRead())
-        {
-            unsigned char b;
-            b = U2ReadByte();
-            U2WriteByte('<');
-            U2WriteByte(b);
-            U2WriteByte('>');
-
-        }
-    }*/
 
     for(j=0; j<25000; j++);
 
@@ -1110,22 +1094,53 @@ int main(void)
 
                 U2ClearRXBuffer();
                 UARTSendSpeed(U2_MM_ADDR, t1, t2, 1);
-/*
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_MARKER != t2))
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+           }
+
+           case HOST_CMD_MOTOR_READ:
+           {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_MOTOR_READ)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(t1==0 ? BUS_CMD_MARKER1 : BUS_CMD_MARKER2, SLAVE_ID_MARKERS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-*/
-                sendByte(HOST_REPLY_SUCCESS);
+                sendByte(HOST_CMD_MOTOR_REPLY);
+
+                busWriteByte(BUS_CMD_GETREPLY_U1, SLAVE_ID_DEPTH);
+                if(readDataBlock(SLAVE_ID_DEPTH) != 1)
+                    sendByte(0xDF);
+                else
+                    sendByte(rxBuf[0]);
+
+
+                busWriteByte(BUS_CMD_GETREPLY_U1, SLAVE_ID_LCD);
+
+                if(readDataBlock(SLAVE_ID_LCD) != 1)
+                    sendByte(0xDF);
+                else
+                    sendByte(rxBuf[0]);
+
+                busWriteByte(BUS_CMD_GETREPLY_U2, SLAVE_ID_LCD);
+
+                if(readDataBlock(SLAVE_ID_LCD) != 1)
+                    sendByte(0xDF);
+                else
+                    sendByte(rxBuf[0]);
+
+                if(U2CanRead())
+                    sendByte(U2ReadByte());
+                else
+                    sendByte(0xFF);
+
+
                 break;
             }
+
+
         }
     }
 }

@@ -137,7 +137,29 @@ void processData(byte data)
                     break;
                 }
 
+#ifdef HAS_U1
+                case BUS_CMD_GETREPLY_U1:
+                {
+                    txBuf[0] = 1;
+                    if(U1CanRead())
+                        txBuf[1] = U1ReadByte();
+                    else
+                        txBuf[1] = 0xFF;
+                    break;
+                }
+#endif
 
+#ifdef HAS_U2
+                case BUS_CMD_GETREPLY_U2:
+                {
+                    txBuf[0] = 1;
+                    if(U2CanRead())
+                        txBuf[1] = U2ReadByte();
+                    else
+                        txBuf[1] = 0xFF;
+                    break;
+                }
+#endif
                 case BUS_CMD_LCD_WRITE:
                 {
                     busState = STATE_WRITE_LCD;

@@ -194,7 +194,9 @@ void _ISR _U1RXInterrupt(void)
     {
         U1RXBuffer[U1RXWritePtr] = U1RXREG;
         U1RXWritePtr = (U1RXWritePtr + 1) & (U1RXBUF_SIZE-1);
-        U1RXSize++;
+
+        if(U1RXSize < U1RXBUF_SIZE-1)
+            U1RXSize++;
     }
 }
 
@@ -244,6 +246,7 @@ void U1ClearRXBuffer()
 {
     IEC0bits.U1RXIE = 0;    /* Disable RX interrupt */
     U1RXSize=0;
+    U1RXReadPtr = U1RXWritePtr;
     IEC0bits.U1RXIE = 1;    /* Enable RX interrupt */
 }
 
@@ -262,7 +265,8 @@ void _ISR _U2RXInterrupt(void)
     {
         U2RXBuffer[U2RXWritePtr] = U2RXREG;
         U2RXWritePtr = (U2RXWritePtr + 1) & (U2RXBUF_SIZE-1);
-        U2RXSize++;
+        if(U2RXSize < U2RXBUF_SIZE-1)
+            U2RXSize++;
     }
 }
 
@@ -312,6 +316,7 @@ void U2ClearRXBuffer()
 {
     IEC1bits.U2RXIE = 0;    /* Disable RX interrupt */
     U2RXSize=0;
+    U2RXReadPtr = U2RXWritePtr;
     IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
 }
 
