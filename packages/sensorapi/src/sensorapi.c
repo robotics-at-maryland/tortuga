@@ -430,6 +430,39 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4)
     return SB_ERROR;
 }
 
+// 14 xx xx xx xx CS
+int readSpeedResponses(int fd)
+{
+    unsigned char buf[6]={0x13, 0x13};
+    int i;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != 0x14)
+        return SB_ERROR;
+
+    readData(fd, buf+1, 5);
+
+    unsigned char sum = 0;
+
+    for(i=0; i<5; i++)
+        sum = (sum+buf[i]) & 0xFF;
+
+    if(sum != buf[5])
+        return SB_ERROR;
+
+
+    /* HACK HACK HACK
+    This only looks at one motor controller because I only have one attached at the moment
+    */
+
+    if(buf[2] == 0x06)
+        return SB_OK;
+
+    return SB_ERROR;
+}
+
 
 int setDiagnostics(int fd, int state)
 {
