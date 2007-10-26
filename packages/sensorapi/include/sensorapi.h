@@ -71,6 +71,8 @@ int readDepth(int fd);
 /** Read the status bit back from the board */
 int readStatus(int fd);
 
+int readThrusterState(int fd);
+    
 int hardKill(int fd);
 
 /** Releases marker, only takes 0 or 1 */

@@ -1,5 +1,11 @@
+
+// STD Includes
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+// Project Includes
 #include "include/sensorapi.h"
 
 /*
@@ -93,7 +99,7 @@ int main(int argc, char ** argv)
                 (ret & STATUS_BATT4) ? "Battery 4 active" : "Battery 4 inactive");
         }
 
-        ret = readThrusterState(fd, temp);
+        ret = readThrusterState(fd);
         if(ret == SB_ERROR)
             printf("Error reading thruster state!\n");
         else
