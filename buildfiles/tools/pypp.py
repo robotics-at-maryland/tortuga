@@ -9,14 +9,17 @@
 This module contains a custom Py++ tool for SCons
 """
 
+# STD Imports
+import imp
 import os.path
 import types
 
+# Library Imports
 import SCons.Builder
 import SCons.Tool
 import SCons.Defaults
 
-def generate_code(env, target, source):
+def generate_code_base(env, target, source, module):
     """
     The builder which actually calls Py++.
     
@@ -27,51 +30,55 @@ def generate_code(env, target, source):
     """
 
     # Seperate out the modules and xmlfiles
-    mod = None
+    mod_path = None
     xmlfiles = []
     for s in source:
         if s.abspath.endswith('.py'):
-            if not mod is None:
+            if not mod_path is None:
                 print "Error only one python module can be used to generate"
                 print "code"
                 env.Exit(1)
-            mod = s.abspath
+            mod_path = s.abspath
         else:
             xmlfiles.append(s.abspath)
-
-#    print 'Module', mod
-#    print 'XMLFiles', xmlfiles
-#    print 'Target', target[0].abspath
-
-    output_dir = os.path.split(target[0].abspath)[0]
-    output_dir = os.path.join(output_dir, 'generated')
-
-    f = open(target[0].abspath, 'w')
-    f.write("Bob.cpp\nJohn.cpp")
-    f.close()
-
-    print 'Output',os.path.join(output_dir,"Bob.cpp")
-    f = open(os.path.join(output_dir,"Bob.cpp"), "w")
-    f.write("int test(int a, int b) { return a + b; }\n")
-    f.close();
-
-    f = open(os.path.join(output_dir, "John.cpp"), "w")
-    f.write("int test2(int a, int b) { return a - b; }\n")
-    f.close();
     
     # Import module
-    #mod = __import__(source.abspath)
+    (search_path, name) = os.path.split(mod_path)
+    # Stip '.py' from the end
+    name = name[:-3]
+    (f, pathname, decs) = imp.find_module(name, [search_path])
+    mod = imp.load_module(name, f, pathname, decs)
 
-    # Create our module builder
-    # not done yet...
-    #if isinstance(files[0], SCons.Node.FS.File):
-    #    files = [f.abspath for f in files]
-    #xml_files = [parser.create_gccxml_fc(f) for f in files]
-    #mb = module_builder.module_builder_t(files = xml_files,
-    #                                     indexing_suite_version = 2)
+    # Tramsform files into so that pygccxml now they are already xml
+    import pygccxml
+    from pyplusplus import module_builder
+    xmlfiles = [pygccxml.parser.create_gccxml_fc(f) for f in xmlfiles]
+    mb = module_builder.module_builder_t(files = xmlfiles,
+                                         indexing_suite_version = 2)
+
+    # Exclude everything by default, then include just the classes we want
+    mb.global_ns.exclude()
+    local_ns = mb.global_ns.namespace(module)
+    
     # Call entry point
-    #mod.generate(target.abspath, mb)
+    mod.generate(local_ns, mb.global_ns)
 
+    # Now lets build the code
+    mb.build_code_creator( module_name= module)
+
+    # And finally we can write code to the disk
+    (output_dir, name) = os.path.split(target[0].abspath)
+    output_dir = os.path.join(output_dir, 'generated')
+    files_created = mb.split_module(output_dir)
+
+    # Create list of files
+    cpp_files = [os.path.split(f)[1] for f in files_created
+                 if f.endswith('.cpp')]
+    output_file = open(target[0].abspath, 'w')
+    for cpp_file in cpp_files:
+        output_file.write(cpp_file + '\n')
+    output_file.close()
+        
 def build_module(env, target, source): #, actual_target = None):
     if type(source) is types.ListType:
         if len(source) > 1:
@@ -108,10 +115,10 @@ def build_module(env, target, source): #, actual_target = None):
 
     sources = [hack_srcnode(s) for s in sources]
 
-    bld_dir = env['BUILD_DIR'] + '_ext/'
-    extension_mod = env.SharedLibrary(bld_dir + target_base + '_ext', sources)
+    target_name = env['BUILD_DIR'] + '_ext/ext/' + target_base
+    extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='')
 
-    # Set depedencies here
+    # Set depedencies and install
     env.Depends(extension_mod, '#' + target_base + '_dummy')
     env.Alias('TopLevelAlias', extension_mod)
 
@@ -142,16 +149,17 @@ def run_pypp(env, target, source, module):
     sources = xmlfiles
     sources.append(env.File(module))
 
+    target_str = str(target[0])
+
+    def generate_code(env, target, source):
+        generate_code_base(env, target, source, target_str)
     commands = [generate_code]
-    print 'Checking for:',env.Dir('generated').abspath
     if not os.path.exists(env.Dir('generated').abspath):
-        print 'Not found'
         commands.insert(0, SCons.Defaults.Mkdir(env.Dir('generated').abspath))
     
     
     srclist = env.Command('generated-sources.txt', sources, commands)
 
-    target_str = str(target[0])
     # The special builder for our module
     dummy = env.PyppHelper('#' + target_str + '_dummy', srclist,
                            target_base = target_str)
