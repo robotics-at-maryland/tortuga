@@ -11,6 +11,8 @@ of the system at one time.
 """
 
 import os
+import types
+import SCons.Node.Python
 
 # --------------------------------------------------------------------------- #
 #                            F E A T U R E S                                  #
@@ -47,12 +49,13 @@ def get_features():
         add_feature('control', dirs = ['packages/control'],
                     deps = ['math', 'core', 'vehicle'])
 
-        add_feature('calib_tools', dirs = ['tools/MagInclination',
-                                           'tools/BiasFinder'])
-
         add_feature('vehicle', dirs = ['packages/vehicle'],
                     deps = ['math', 'core', 'pattern', 'drivers'])
 
+        add_feature('wrappers', opt_dirs = {'control' : ['wrappers/control']})
+
+        add_feature('calib_tools', dirs = ['tools/MagInclination',
+                                           'tools/BiasFinder'])
 
         add_feature('jaus', dirs = ['sandbox/jaus'])
     return FEATURES
@@ -73,8 +76,8 @@ def available():
 def setup_environment(env):
     """
     Apply the nesesary changes to given environment to enable use of the rest
-    of the feature system. This add the RAM_WITH_<feature> defines, and the
-    'HasFeature' function.
+    of the feature system. This adds a Features.h file the RAM_WITH_<feature>
+    defines, and the 'HasFeature' function.
 
     You must have env['FEATURES'] set to a list of strings of the selected
     features.
@@ -116,14 +119,16 @@ def setup_environment(env):
     features.extend(added)
     env['features'] = features
 
-    # Place defines in the environement
-    env.AppendUnique(CPPDEFINES = ['RAM_WITH' + f for f in env['features']])
-
     # Place Feature list in the envrionment
     features = {}
     for f in env['features']:
         features[f] = FEATURES[f]
     env['FEATURES'] = features
+
+    # Generate Feature.h file
+    env.Command('packages/core/include/Feature.h',
+                SCons.Node.Python.Value(env['features']),
+                write_feature_h)
 
     # Place 'HasFeature function in the enviornment
     from SCons.Script.SConscript import SConsEnvironment # just do this once
@@ -148,18 +153,29 @@ def dirs_to_build(env):
 # --------------------------------------------------------------------------- #
 
 class Feature(object):
-    def __init__(self, name, dirs, deps = []):
+    def __init__(self, name, dirs, deps = [], opt_dirs = {}):
+        """
+        See documentation for 'add_feature' below
+        """
         self.name = name
         self.dirs = dirs
         self.deps = deps
+        self.opt_dirs = opt_dirs
 
     def get_dirs(self, selected_features):
-        return self.dirs
+        dirs = self.dirs
+
+        # Only add optionaly dirs if the needed features are present
+        for f in selected_features:
+            if self.opt_dirs.has_key(f):
+                dirs.extend(self.opt_dirs[f])
+
+        return dirs
 
     def all_deps(self, added, feature_map):
         for dep_f in self.deps:
-            new = True
             # Ensure we aren't in a recursive loop
+            new = True
             if dep_f in added:
                 new = False
             
@@ -168,7 +184,26 @@ class Feature(object):
                 added.update(feature_map[dep_f].all_deps(added, feature_map))
         return added
 
-def add_feature(name, dirs, deps = []):
+def write_feature_h(env, target, source):
+    f = open(target[0].abspath, 'w')
+    f.write('// DO NOT EDIT, This is generated header\n')
+    f.write('#ifndef RAM_CORE_FEATURES\n#define RAM_CORE_FEATURES\n')
+
+    # Make sure we only have one source
+    if type(source) is types.ListType:
+        source = source[0]
+        
+    features = source.get_contents()
+    # Make sure we have a list
+    if not type(source) is types.ListType:
+        features = [features]
+
+    for feature in features:
+        f.write('#define RAM_WITH_%s\n' % feature.upper())
+    
+    f.write('#endif RAM_CORE_FEATURES\n\n')
+
+def add_feature(name, dirs = [], deps = [], opt_dirs = {}):
     """
     @type  name: string
     @param name: The name of the feature
@@ -178,9 +213,12 @@ def add_feature(name, dirs, deps = []):
 
     @type  deps: list of strings
     @param deps: The features this feature depends on
+
+    @type  opt_dirs: string to string list map
+    @param opt_dirs: options directories to build if a feature is selected
     """
     global FEATURES
-    FEATURES[name] = Feature(name, dirs, deps)
+    FEATURES[name] = Feature(name, dirs, deps, opt_dirs)
 
 def ensure_feature_map(env):
     """
