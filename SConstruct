@@ -18,16 +18,27 @@ EnsureSConsVersion(0, 96, 93)
 #sys.path.insert(1, os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles'))
 import buildfiles.helpers as helpers
 import buildfiles.platfrm as platfrm
+import buildfiles.features as features
 
 # Options either come from command line of config file
 opts = Options('options.py')
+
+# Platform independent options
 opts.AddOptions(
-     BoolOption('check', 'Runs checks on dependent libraries to ensure a proper installation',
-      True),
-     BoolOption('verbose', "Shows full command line build, normally recored to 'build.log'",
-                False)
+     BoolOption('check',
+                'Runs checks on dependent libraries to ensure a proper installation',
+                True),
+     BoolOption('verbose',
+                "Shows full command line build, normally recored to 'build.log'",
+                False),
+     ListOption('with_features', 'This list of features to build', 'all',
+                features.available()),
+     ListOption('without_features',
+                'This list of features to exclude from the  build', 'none',
+                features.available())
      )
-     
+
+# Platform specific options
 if os.name == 'posix':
     opts.AddOptions(
         ('CC', 'The C compiler to use','gcc'),
@@ -41,6 +52,7 @@ Help(opts.GenerateHelpText(env))
 
 # Add platform Specifc setup
 platfrm.setup_environment(env)
+features.setup_environment(env)
 
 # Set directories
 env.Append(BUILD_DIR = os.path.join(env.Dir('.').abspath, 'build'))
@@ -97,14 +109,19 @@ helpers.setup_printing(env)
 # Our build subdirectory
 buildDir = 'build'
 
-from buildfiles import dirs_to_build
-for directory in dirs_to_build.get_dirs():
-    Export('env')
+def has_help():
+    if sys.argv.count('--help') or sys.argv.count('-h'):
+        return True
+    return False
 
-    print 'Dir:',os.path.join(buildDir,directory)
-    # Build seperate directories (this calls our file in the sub directory)
-    env.SConscript(os.path.join(directory, 'SConscript'), 
-                   build_dir = os.path.join(buildDir, directory), 
-                   duplicate = 0)
+if not has_help():
+    for directory in features.dirs_to_build(env):
+        Export('env')
+
+        print 'Dir:',os.path.join(buildDir,directory)
+        # Build seperate directories (this calls our file in the sub directory)
+        env.SConscript(os.path.join(directory, 'SConscript'), 
+                       build_dir = os.path.join(buildDir, directory), 
+                       duplicate = 0)
 
 
