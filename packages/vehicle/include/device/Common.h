@@ -28,15 +28,27 @@ typedef boost::shared_ptr<IDevice> IDevicePtr;
 class Device;
 typedef boost::shared_ptr<Device> DevicePtr;
 
+    
+class IThruster;
+typedef boost::shared_ptr<IThruster> IThrusterPtr;
+    
 class Thruster;
 typedef boost::shared_ptr<Thruster> ThrusterPtr;
-
+    
 class ThrusterCommand;
 typedef boost::shared_ptr<ThrusterCommand> ThrusterCommandPtr;
 
+    
+class IIMU;
+typedef boost::shared_ptr<IIMU> IIMUPtr;
+    
 class IMU;
 typedef boost::shared_ptr<IMU> IMUPtr;
 
+    
+class IPSU;
+typedef boost::shared_ptr<IPSU> IPSUPtr;
+    
 class PSU;
 typedef boost::shared_ptr<PSU> PSUPtr;
 
@@ -52,7 +64,7 @@ inline int instantiate()
 {
     int a = 0;
     a += sizeof(boost::shared_ptr<IDevice>);
-    a += sizeof(boost::shared_ptr<IDevice>);
+    a += sizeof(boost::shared_ptr<Device>);
     a += sizeof(boost::shared_ptr<Thruster>);
     a += sizeof(boost::shared_ptr<ThrusterCommand>);
     a += sizeof(boost::shared_ptr<IMU>);
