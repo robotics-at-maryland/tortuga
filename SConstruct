@@ -6,6 +6,7 @@
 # File:  SConstruct
 
 import os
+import os.path
 import sys
 
 EnsureSConsVersion(0, 96, 93)
@@ -123,5 +124,3 @@ if not has_help():
         env.SConscript(os.path.join(directory, 'SConscript'), 
                        build_dir = os.path.join(buildDir, directory), 
                        duplicate = 0)
-
-

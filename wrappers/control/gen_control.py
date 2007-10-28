@@ -7,10 +7,15 @@
 
 import os
 
+import buildfiles.wrap as wrap
+
 def generate(local_ns, global_ns):
 
     # Include controller classes
     IController = local_ns.class_('IController')
     IController.include()
-    IController.include_files.append(os.environ['RAM_SVN_DIR'] + '/packages/control/include/IController.h')
+    IController.include_files.append(os.environ['RAM_SVN_DIR'] +
+                                     '/packages/control/include/IController.h')
 
+#    wrap.make_already_exposed(global_ns, 'ram::pattern', 'Subject')
+#    wrap.make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])

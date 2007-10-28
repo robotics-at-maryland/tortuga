@@ -8,8 +8,7 @@
 import os
 
 # Build System imports
-import wrap
-import libs
+import buildfiles.libs as libs
 
 Import('env')
 envl = env.Clone()
@@ -22,12 +21,12 @@ base_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'packages', 'pattern')
 header_dir = os.path.join(base_dir, 'include')
 
 # Need for because Py++ has so odd include paths
-envl.Append(CPPPATH = base_dir)
+#envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
 wrapped_headers = ['Observer.h', 'Subject.h', 'CachedObserver.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
-wrap.wrap_headers(envl, 'pattern',
-                  wrapped_headers,
-		  gen_mod = 'gen_pattern')
+libs.add_external(envl, 'Boost.Python')
+envl.Pypp('pattern', wrapped_headers,
+          module = 'gen_pattern.py')

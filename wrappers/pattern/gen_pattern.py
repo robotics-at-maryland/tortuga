@@ -1,24 +1,29 @@
-# Copyright 2004 Roman Yakovenko.
-# Distributed under the Boost Software License, Version 1.0. (See
-# accompanying file LICENSE_1_0.txt or copy at
-# http://www.boost.org/LICENSE_1_0.txt)
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  wrappers/control/gen_pattern.py
 
-import wrap
+import os
 
-from pyplusplus import module_builder
+def include(decl):
+    decl.include()
+    decl.include_files.append(decl.location.file_name)
+    return decl
 
-def generate_pattern(name, global_ns, local_ns):
+def generate(global_ns, local_ns):
     """
-    name: is the name of the module being wrapped (in name::space::form)
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
-    local_ns.class_('Observer').include()
-    local_ns.class_('Subject').include()
-    local_ns.class_('CachedObserver').include()
 
-def generate_code(module_name, files, output_dir, include_files,
-                  extra_includes = []):
-    wrap.generate_code(module_name, files, output_dir, include_files,
-                       extra_includes, {'pattern' : generate_pattern})
+    include_base = os.environ['RAM_SVN_DIR'] + '/packages/pattern/include'
+    
+    Observer = include(local_ns.class_('Observer'))
+    Subject = include(local_ns.class_('Subject'))
+    CachedObserver = include(local_ns.class_('CachedObserver'))
 
+    Observer.include_files.append(Subject.location.file_name)
+    CachedObserver.include_files.append(Subject.location.file_name)
+    Subject.include_files.append(Observer.location.file_name)

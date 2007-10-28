@@ -89,6 +89,10 @@ def build_module(env, target, source): #, actual_target = None):
         raise Exception("Must give the Py++ helpder 'build_module' a target'")
     target_base = env['target_base']
 
+    if not env.has_key('tester'):
+        raise Exception("Must give the Py++ helpder 'tester' a target'")
+    tester = env['tester']
+
     # All paths in the file are relative to the directory of the source list 
     srclist_dir = os.path.join(os.path.split(source.abspath)[0], 'generated')
 
@@ -115,14 +119,28 @@ def build_module(env, target, source): #, actual_target = None):
 
     sources = [hack_srcnode(s) for s in sources]
 
-    target_name = env['BUILD_DIR'] + '_ext/ext/' + target_base
+    target_dir = os.path.join('build_ext','ext')
+    target_name = target_dir + '/' + target_base
     extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='')
 
+    # Run the tests
+    if not tester is None:
+        output = os.path.join(target_dir, target_base + 'Tests.success')
+        tester(env, output, deps = [target_name + '.so'])
+
+    # Setup init file
+    if not os.path.exists(target_dir):
+        env.Execute(SCons.Defaults.Mkdir(target_dir))
+    
+    init_file = os.path.join(target_dir, '__init__.py')
+    if not os.path.exists(init_file):
+        env.Execute(SCons.Defaults.Touch(init_file))
+
     # Set depedencies and install
-    env.Depends(extension_mod, '#' + target_base + '_dummy')
+    env.Depends(extension_mod, '#' + target_base + '_wrapper')
     env.Alias('TopLevelAlias', extension_mod)
 
-def run_pypp(env, target, source, module):
+def run_pypp(env, target, source, module, tester = None):
     """
     The root Py++ builder
     
@@ -161,8 +179,9 @@ def run_pypp(env, target, source, module):
     srclist = env.Command('generated-sources.txt', sources, commands)
 
     # The special builder for our module
-    dummy = env.PyppHelper('#' + target_str + '_dummy', srclist,
-                           target_base = target_str)
+    dummy = env.PyppHelper('#' + target_str + '_wrapper', srclist,
+                           target_base = target_str,
+                           tester = tester)
     env.AlwaysBuild(dummy)
     env.Alias('TopLevelAlias', dummy)
     

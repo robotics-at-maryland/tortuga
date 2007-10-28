@@ -98,7 +98,25 @@ def Program(env, *args, **kwargs):
     
     return env.Program(*args, **kwargs)
 
-def Tests(env, _target, _source, **kwargs):
+def run_tests(env, output, prog, message = None, deps = None):
+    def run_test(env, target, source):
+        if not subprocess.call(str(source[0].abspath)):
+            open(str(target[0]), 'w').write("PASSED\n")
+            return 0
+
+        # Failure
+        return 1
+
+    msg = 'Runnting Tests'
+    if not message is None:
+        msg = message
+    inputs = [prog]
+    if not deps is None:
+        inputs.extend(deps)
+    return env.Command(output, inputs,
+                       SCons.Action.Action(run_test, msg))    
+
+def Tests(env, _target, _source, run = True, **kwargs):
     # Add 'UnitTest++' to the list of ext_deps
     ext_deps = _ensure_list(kwargs.get('ext_deps', []))
     ext_deps.append('UnitTest++')
@@ -112,18 +130,20 @@ def Tests(env, _target, _source, **kwargs):
 
     prog = Program(env, target = _target, source = _source, **kwargs)
 
-    def run_test(env, target, source):
-        if not subprocess.call(str(source[0].abspath)):
-            open(str(target[0]), 'w').write("PASSED\n")
-            return 0
 
-        # Failure
-        return 1
 
-    message = 'Running Tests in: ' + \
-              os.path.dirname(env.GetBuildPath('SConscript'))
-    env.Command(_target[0] + '.successful', prog,
-                SCons.Action.Action(run_test, message))
+    if run:
+        cmd = run_tests(env, _target[0] + '.successful', prog,
+                        'Running Tests in: ' + \
+                        os.path.dirname(env.GetBuildPath('SConscript')))
+
+        return (prog, cmd)
+    else:
+        def test_runner(env, output, message = None, deps = None):
+            run_tests(env, output, prog, message, deps)
+        
+        return (prog, test_runner)
+    
 
 def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary

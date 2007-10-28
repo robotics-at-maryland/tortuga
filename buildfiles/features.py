@@ -52,7 +52,9 @@ def get_features():
         add_feature('vehicle', dirs = ['packages/vehicle'],
                     deps = ['math', 'core', 'pattern', 'drivers'])
 
-        add_feature('wrappers', opt_dirs = {'control' : ['wrappers/control']})
+        add_feature('wrappers', opt_dirs =
+                    {'control' : ['wrappers/control'],
+                     'pattern' : ['wrappers/pattern']})
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',
                                            'tools/BiasFinder'])
