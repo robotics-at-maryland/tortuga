@@ -36,7 +36,11 @@ public:
         
     virtual ~IIMU() {};
 
-    math::Quaternion getOrientation();
+    virtual math::Vector3 getLinearAcceleration() = 0;
+
+    virtual math::Vector3 getAngularRate() = 0;
+    
+    virtual math::Quaternion getOrientation() = 0;
 };
     
 } // namespace device

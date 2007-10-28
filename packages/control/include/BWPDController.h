@@ -101,16 +101,6 @@ public:
     virtual void update(double timestep);
     
 private:
-    /** Combines the given force and torque into motor forces the applies them
-
-        @note   All force in <b>NEWTONS</b>
-        
-        @param  translationalForces  3D Array
-        @param  rotationalForces   3D Array
-     */
-    void applyForcesAndTorques(double* translationalForces,
-                               double* rotationalForces);
-    
     /** Out Vehicle */
     vehicle::IVehicle* m_vehicle;
     
@@ -128,19 +118,6 @@ private:
 
     /** Internal State of the controller */
     ControllerState* m_controllerState;
-
-    /** Values needed for thruster combination */
-    double m_rStarboard;
-    double m_rPort;
-    double m_rFore;
-    double m_rAft;
-
-    vehicle::device::ThrusterPtr m_starboardThruster;
-    vehicle::device::ThrusterPtr m_portThruster;
-    vehicle::device::ThrusterPtr m_foreThruster;
-    vehicle::device::ThrusterPtr m_aftThruster;
-
-    vehicle::device::IMUPtr m_imu;
 
     /* Pitch hack gain */
     double m_hackedPitchGain;

@@ -27,12 +27,9 @@ namespace vehicle {
 class IVehicle;
 typedef boost::shared_ptr<IVehicle> IVehiclePtr;
     
-class Vehicle;
-typedef boost::shared_ptr<Vehicle> VehiclePtr;
-    
 // Typedefs
 typedef std::map<std::string, device::IDevicePtr> NameDeviceMap;
-
+typedef NameDeviceMap::iterator NameDeviceMapIter;
 
 // Needed for GCCXML to see the types
 namespace details {
@@ -40,7 +37,6 @@ inline int instantiate()
 {
     int a = 0;
     a += sizeof(boost::shared_ptr<IVehicle>);
-    a += sizeof(boost::shared_ptr<Vehicle>);
     return a;
 }
 }

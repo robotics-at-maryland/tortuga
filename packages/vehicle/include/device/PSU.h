@@ -31,6 +31,9 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
+class PSU;
+typedef boost::shared_ptr<PSU> PSUPtr;
+    
 class PSU : public IPSU,
             public Device,         // For getName
             public core::Updatable // for update

@@ -16,7 +16,11 @@
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/device/IThruster.h"
+#include "vehicle/include/device/IIMU.h"
 #include "sensorapi/include/sensorapi.h"
+
+using namespace ram::vehicle::device;
 
 namespace ram {
 namespace vehicle {
@@ -28,7 +32,12 @@ Vehicle::Vehicle(core::ConfigNode config) :
     m_depthCalibSlope(m_config["depthCalibSlope"].asDouble()),
     m_depthCalibIntercept(m_config["depthCalibIntercept"].asDouble()),
     m_calibratedDepth(false),
-    m_depthOffset(0)
+    m_depthOffset(0),
+    m_rStarboard(0),
+    m_rPort(0),
+    m_rFore(0),
+    m_rAft(0),
+    m_imu(device::IIMUPtr())
 {
     std::string devfile =
         m_config["sensor_board_file"].asString("/dev/sensor");
@@ -41,6 +50,24 @@ Vehicle::Vehicle(core::ConfigNode config) :
     else
         unsafeThrusters();
 
+    // Get the thruster names
+    m_starboardThruster =
+        config["StarboardThrusterName"].asString("StarboardThruster");
+    m_portThruster =
+        config["PortThrusterName"].asString("PortThruster");
+    m_foreThruster =
+        config["ForeThrusterName"].asString("ForeThruster");
+    m_aftThruster =
+        config["AftThrusterName"].asString("AftThruster");
+
+    m_imuName = config["IMUName"].asString("IMU");
+    
+    // Grab thruster combining constants
+    m_rStarboard = config["rStarboard"].asDouble(0.1905);
+    m_rPort = config["rPort"].asDouble(0.1905);
+    m_rFore= config["rFore"].asDouble(0.3366);
+    m_rAft = config["rAft"].asDouble(0.3366);
+    
     // Allocate space for temperate readings
     m_state.temperatures.reserve(NUM_TEMP_SENSORS);
 }
@@ -59,7 +86,9 @@ Vehicle::~Vehicle()
     
 device::IDevicePtr Vehicle::getDevice(std::string name)
 {
-    return m_devices[name];
+    NameDeviceMapIter iter = m_devices.find(name);
+    assert(iter != m_devices.end() && "Error Device not found");
+    return (*iter).second;
 }
 
 double Vehicle::getDepth()
@@ -83,6 +112,21 @@ std::vector<int> Vehicle::getTemperatures()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
     return m_state.temperatures;
+}
+
+math::Vector3 Vehicle::getLinearAcceleration()
+{
+    return getIMU()->getLinearAcceleration();
+}
+    
+math::Vector3 Vehicle::getAngularRate()
+{
+    return getIMU()->getAngularRate();
+}
+    
+math::Quaternion Vehicle::getOrientation()
+{
+    return getIMU()->getOrientation();
 }
     
 void Vehicle::safeThrusters()
@@ -132,6 +176,29 @@ void Vehicle::printLine(int line, std::string text)
         boost::mutex::scoped_lock lock(m_sensorBoardMutex);
         displayText(m_sensorFD, line, text.c_str());
     }
+}
+
+
+void Vehicle::applyForcesAndTorques(math::Vector3& translationalForces,
+                                    math::Vector3& rotationalTorques)
+{
+    double star = translationalForces[0] / 2 +
+        0.5 * rotationalTorques[2] / m_rStarboard;
+    double port = translationalForces[0] / 2 -
+        0.5 * rotationalTorques[2] / m_rPort;
+    double fore = translationalForces[2] / 2 +
+        0.5 * rotationalTorques[1] / m_rFore;
+    double aft = translationalForces[2]/2 -
+      0.5 * rotationalTorques[1] / m_rAft;
+
+    device::IDevice::castTo<device::IThruster>(
+        getDevice(m_starboardThruster))->setForce(star);
+    device::IDevice::castTo<device::IThruster>(
+        getDevice(m_portThruster))->setForce(port);
+    device::IDevice::castTo<device::IThruster>(
+        getDevice(m_foreThruster))->setForce(fore);
+    device::IDevice::castTo<device::IThruster>(
+        getDevice(m_aftThruster))->setForce(aft);
 }
     
 void Vehicle::getState(Vehicle::VehicleState& state)
@@ -195,6 +262,13 @@ void Vehicle::calibrateDepth()
 {
     m_depthFilter.clear();
     m_calibratedDepth = false;
+}
+
+device::IIMUPtr Vehicle::getIMU()
+{
+    if (0 == m_imu.get())
+        m_imu = device::IDevice::castTo<device::IIMU>(getDevice(m_imuName));
+    return m_imu;
 }
     
 } // namespace vehicle

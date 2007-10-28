@@ -35,6 +35,9 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
+class IMU;
+typedef boost::shared_ptr<IMU> IMUPtr;
+    
 const static int FILTER_SIZE = 10;
 
 typedef RawIMUData FilteredIMUData;
@@ -78,11 +81,11 @@ public:
         return Updatable::backgrounded();
     };
 
-    math::Vector3 getLinearAcceleration();
+    virtual math::Vector3 getLinearAcceleration();
 
-    math::Vector3 getAngularRate();
+    virtual math::Vector3 getAngularRate();
 
-    math::Quaternion getOrientation();
+    virtual math::Quaternion getOrientation();
     
     /** Grabs the raw IMU state */
     void getRawState(RawIMUData& imuState);
@@ -136,6 +139,7 @@ private:
     /** Protects access to derived state */
     std::ofstream m_logfile;
 };
+
     
 } // namespace device
 } // namespace vehicle

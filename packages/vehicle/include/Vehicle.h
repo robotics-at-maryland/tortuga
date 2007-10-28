@@ -43,6 +43,12 @@ public:
 
     /** @copydoc IVehicle::getTemperatures() */
     virtual std::vector<int> getTemperatures();
+
+    math::Vector3 getLinearAcceleration();
+
+    math::Vector3 getAngularRate();
+    
+    math::Quaternion getOrientation();
     
     /** @copydoc IVehicle::safeThrusters() */
     virtual void safeThrusters();
@@ -58,7 +64,11 @@ public:
 
     /** Prints a line to the vehicle LCD screen */
     virtual void printLine(int line, std::string text);
-    
+
+    /** @copydoc IVehicle::applyForcesAndTorques */
+    virtual void applyForcesAndTorques(math::Vector3& force,
+                                       math::Vector3& torque);
+
     /** This is <b>NOT</b> thread safe */
     virtual void _addDevice(device::IDevicePtr device);
 
@@ -90,6 +100,8 @@ protected:
     void getState(Vehicle::VehicleState& state);
     void setState(const Vehicle::VehicleState& state);
 
+    /** Grabs the IMU from the current list of devices */
+    device::IIMUPtr getIMU();
     
 private:
     
@@ -111,6 +123,20 @@ private:
     bool m_calibratedDepth;
     core::AveragingFilter<double, 5> m_depthFilter;
     double m_depthOffset;
+
+    /** Values needed for thruster combination */
+    double m_rStarboard;
+    double m_rPort;
+    double m_rFore;
+    double m_rAft;
+
+    std::string m_starboardThruster;
+    std::string m_portThruster;
+    std::string m_foreThruster;
+    std::string m_aftThruster;
+
+    std::string m_imuName;
+    vehicle::device::IIMUPtr m_imu;
 };
     
 } // namespace vehicle

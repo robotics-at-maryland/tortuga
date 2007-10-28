@@ -17,8 +17,6 @@
 #include "control/include/ControlFunctions.h"
 
 #include "vehicle/include/IVehicle.h"
-#include "vehicle/include/device/IMU.h"
-#include "vehicle/include/device/Thruster.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
@@ -36,10 +34,6 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     m_desiredState(0),
     m_measuredState(0),
     m_controllerState(0),
-    m_rStarboard(0),
-    m_rPort(0),
-    m_rFore(0),
-    m_rAft(0),
     m_hackedPitchGain(0),
     m_hackedYawGain(0)
 {
@@ -94,46 +88,6 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
         config["inertia"][2][1].asDouble(0);
     m_controllerState->inertiaEstimate[2][2] =
         config["inertia"][2][2].asDouble(1.288);
-
-    // Grab thruster combining constants
-    m_rStarboard = config["rStarboard"].asDouble(0.1905);
-    m_rPort = config["rPort"].asDouble(0.1905);
-    m_rFore= config["rFore"].asDouble(0.3366);
-    m_rAft = config["rAft"].asDouble(0.3366);
-    
-    // Grab our devices
-    cout << "Name: " << config["StarboardThrusterName"].asString("StarboardThruster") << endl;
-    m_starboardThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
-        config["StarboardThrusterName"].asString("StarboardThruster")));
-    assert(m_starboardThruster.get() && "Bad starboard thruster");
-    
-    m_portThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
-        config["PortThrusterName"].asString("PortThruster")));
-    assert(m_starboardThruster.get() && "Bad port thruster");
-    
-    m_foreThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
-        config["ForeThrusterName"].asString("ForeThruster")));
-    assert(m_portThruster.get() && "Bad fore thruster");
-    
-    m_aftThruster = vehicle::device::Thruster::castTo(vehicle->getDevice(
-        config["AftThrusterName"].asString("AftThruster")));
-    assert(m_aftThruster.get() && "Bad aft thruster");
-
-    m_imu = vehicle::device::IMU::castTo(vehicle->getDevice(
-         config["IMUName"].asString("IMU")));
-    assert(m_imu.get() && "Bad imu");
-    
-/*    m_starboardThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
-        config["StarboardThrusterName"].asString("StarboardThruster")));
-    m_portThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
-        config["PortThrusterName"].asString("PortThruster")));
-    m_portThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
-        config["ForeThrusterName"].asString("ForeThruster")));
-    m_aftThruster = dynamic_cast<vehicle::device::Thruster*>(vehicle->getDevice(
-        config["AftThrusterName"].asString("AftThruster")));
-    
-    m_imu = dynamic_cast<vehicle::device::IMU*>(vehicle->getDevice(
-         config["IMUName"].asString("IMU")));*/
 
     m_logfile.open("control_log.txt");
     m_logfile << "% M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
@@ -281,34 +235,34 @@ bool BWPDController::atDepth()
 void BWPDController::update(double timestep)
 {
     // Grab latest state (preform small hack to copy it over for the controller)
-    math::Vector3 linearAcceleration(m_imu->getLinearAcceleration());
+    math::Vector3 linearAcceleration(m_vehicle->getLinearAcceleration());
     memcpy(&m_measuredState->linearAcceleration[0],
            &linearAcceleration, sizeof(double) * 3);
 
 //    std::cout << "A: " << linearAcceleration << std::endl;
-    math::Quaternion orientation(m_imu->getOrientation());
+    math::Quaternion orientation(m_vehicle->getOrientation());
     memcpy(&m_measuredState->quaternion[0],
            &orientation, sizeof(double) * 4);
 
 //    std::cout << "O: " << orientation << std::endl;
     
-    math::Vector3 angularRate(m_imu->getAngularRate());
+    math::Vector3 angularRate(m_vehicle->getAngularRate());
     memcpy(&m_measuredState->angularRate[0],
            &angularRate, sizeof(double) * 3);
 
 //    std::cout << "W: " << angularRate << std::endl;
     
-    vehicle::device::FilteredIMUData state;
+/*    vehicle::device::FilteredIMUData state;
     m_imu->getFilteredState(state);
     m_measuredState->magneticField[0] = state.magX;
     m_measuredState->magneticField[1] = state.magY;
     m_measuredState->magneticField[2] = state.magZ;
 
-    m_measuredState->depth = m_vehicle->getDepth();
+    m_measuredState->depth = m_vehicle->getDepth();*/
     
     // Calculate new forces
-    double translationalForces[3] = {0,0,0};
-    double rotationalTorques[3] = {0,0,0};
+    math::Vector3 translationalForce(0,0,0);
+    math::Vector3 rotationalTorque(0,0,0);
 //    double pitchHack = 0;
 
     {
@@ -316,12 +270,12 @@ void BWPDController::update(double timestep)
         
         translationalController(m_measuredState, m_desiredState,
         	                m_controllerState, timestep,
-                                translationalForces);
+                                translationalForce.ptr());
 
         // Doesn't currently handle pitch
         BongWiePDRotationalController(m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
-                                      rotationalTorques);
+                                      rotationalTorque.ptr());
         
 //	pitchHack = HackedPDPitchControl(m_measuredState, 
 //					 m_desiredState,
@@ -333,7 +287,7 @@ void BWPDController::update(double timestep)
     // Hacking torques get pitch control
 //    rotationalTorques[1] = pitchHack;
 
-    applyForcesAndTorques(translationalForces, rotationalTorques);
+    m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
     m_logfile << m_measuredState->quaternion[0] << " "
          << m_measuredState->quaternion[1] << " "
          << m_measuredState->quaternion[2] << " "
@@ -345,50 +299,13 @@ void BWPDController::update(double timestep)
          << m_desiredState->quaternion[3] << " "
          << m_desiredState->depth << " "
          << m_desiredState->speed << " "
-         << rotationalTorques[0] << " "
-         << rotationalTorques[1] << " "
-         << rotationalTorques[2] << " "
-         << translationalForces[0] << " "
-         << translationalForces[1] << " "
-         << translationalForces[2] << std::endl;
+         << rotationalTorque[0] << " "
+         << rotationalTorque[1] << " "
+         << rotationalTorque[2] << " "
+         << translationalForce[0] << " "
+         << translationalForce[1] << " "
+         << translationalForce[2] << std::endl;
         
-}
-
-void BWPDController::applyForcesAndTorques(double* translationalForces,
-                                           double* rotationalTorques)
-{
-//    std::cout << "Rot Torq: " << math::Vector3(rotationalTorques) << std::endl;
-//    std::cout << "Speed " << translationalForces[0] << " Depth " << translationalForces[2] << std::endl;
-//    std::cout << "Applying forces" << std::endl;
-
-    double star = translationalForces[0] / 2 +
-        0.5 * rotationalTorques[2] / m_rStarboard;
-    double port = translationalForces[0] / 2 -
-        0.5 * rotationalTorques[2] / m_rPort;
-    double fore = translationalForces[2] / 2 +
-        0.5 * rotationalTorques[1] / m_rFore;
-    double aft = translationalForces[2]/2 -
-      0.5 * rotationalTorques[1] / m_rAft;
-
-    // Igrnore rotational control on these thrusters
-    // These multipliers are temporary because we have no pitch control
-    //    double fore = translationalForces[2] * 1.1;
-    //    double aft = translationalForces[2] * 0.9;
-//    double fore = 0;
-//    double aft = 0;
-    
-//    std::cout << "Force S: " << star << " P: " << port << " F: "
-//              << fore << " A: " << aft << std::endl;
-//    std::cout << "Torque: " << math::Vector3(rotationalTorques) << std::endl;
-    
-    
-    m_starboardThruster->setForce(star);
-
-    m_portThruster->setForce(port);
-
-    m_foreThruster->setForce(fore);
-
-    m_aftThruster->setForce(aft);
 }
     
 } // namespace control

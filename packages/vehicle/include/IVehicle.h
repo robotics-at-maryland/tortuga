@@ -19,6 +19,7 @@
 // Project Includes
 #include "vehicle/include/Common.h"
 #include "core/include/IUpdatable.h"
+#include "math/include/Vector3.h"
 
 namespace ram {
 namespace vehicle {
@@ -37,6 +38,12 @@ public:
 
     /** Returns the array of temperature sensor values */
     virtual std::vector<int> getTemperatures() = 0;
+
+    virtual math::Vector3 getLinearAcceleration() = 0;
+
+    virtual math::Vector3 getAngularRate() = 0;
+    
+    virtual math::Quaternion getOrientation() = 0;
     
     /** Truns <b>ON</b> the thruster safety */
     virtual void safeThrusters() = 0;
@@ -52,6 +59,16 @@ public:
 
     /** Prints a line to the vehicle LCD screen */
     virtual void printLine(int line, std::string text) = 0;
+
+    /** Combines the given force and torque into motor forces the applies them
+
+        @note   All force in <b>NEWTONS</b>
+        
+        @param  force   Translation force vector
+        @param  torque  Rotational torque vector
+     */
+    virtual void applyForcesAndTorques(math::Vector3& force,
+                                       math::Vector3& torque) = 0;
 };
     
 } // namespace vehicle

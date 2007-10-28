@@ -25,10 +25,7 @@ namespace device {
 class IDevice;
 typedef boost::shared_ptr<IDevice> IDevicePtr;
 
-class Device;
-typedef boost::shared_ptr<Device> DevicePtr;
 
-    
 class IThruster;
 typedef boost::shared_ptr<IThruster> IThrusterPtr;
     
@@ -42,15 +39,10 @@ typedef boost::shared_ptr<ThrusterCommand> ThrusterCommandPtr;
 class IIMU;
 typedef boost::shared_ptr<IIMU> IIMUPtr;
     
-class IMU;
-typedef boost::shared_ptr<IMU> IMUPtr;
-
     
 class IPSU;
 typedef boost::shared_ptr<IPSU> IPSUPtr;
     
-class PSU;
-typedef boost::shared_ptr<PSU> PSUPtr;
 
 typedef std::vector<double> DoubleList;
 typedef DoubleList VoltageList;
@@ -64,11 +56,8 @@ inline int instantiate()
 {
     int a = 0;
     a += sizeof(boost::shared_ptr<IDevice>);
-    a += sizeof(boost::shared_ptr<Device>);
     a += sizeof(boost::shared_ptr<Thruster>);
     a += sizeof(boost::shared_ptr<ThrusterCommand>);
-    a += sizeof(boost::shared_ptr<IMU>);
-    a += sizeof(boost::shared_ptr<PSU>);
     a += sizeof(DoubleList);
     a += sizeof(VoltageList);
     a += sizeof(WattageList);
