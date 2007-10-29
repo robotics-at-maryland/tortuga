@@ -21,11 +21,11 @@ class MockVehicle : public ram::vehicle::IVehicle
 {
 public:
 //    virtual ~MockVehicle {};
-/*    
-    virtual ram::device::IDevicePtr getDevice(std::string name)
+    
+    virtual ram::vehicle::device::IDevicePtr getDevice(std::string name)
     {
         assert(false && "Method not implemented");
-        return ram::device::IDevicePtr();
+        return ram::vehicle::device::IDevicePtr();
     }
 
     virtual double getDepth()  { return depth; }
@@ -39,14 +39,14 @@ public:
     virtual std::vector<int> getTemperatures()
     {
         assert(false && "Method not implemented");
-        return std::vector<std::string>();
+        return std::vector<int>();
     }
 
-    virtual math::Vector3 getLinearAcceleration() { return linearAcceleration;}
+    virtual ram::math::Vector3 getLinearAcceleration() { return linearAcceleration;}
      
-    virtual math::Vector3 getAngularRate() { return angularRate; }
+    virtual ram::math::Vector3 getAngularRate() { return angularRate; }
     
-    virtual math::Quaternion getOrientation() { return orientation; }
+    virtual ram::math::Quaternion getOrientation() { return orientation; }
     
     virtual void safeThrusters() { assert(false && "Method not implemented"); }
 
@@ -65,24 +65,24 @@ public:
         assert(false && "Method not implemented");
     }
 
-    virtual void applyForcesAndTorques(math::Vector3& force_,
-                                       math::Vector3& torque_)
+    virtual void applyForcesAndTorques(ram::math::Vector3& force_,
+                                       ram::math::Vector3& torque_)
     {
         force = force_;
         torque = torque_;
     }
-*/
+
     virtual void update(double) {};
     virtual void background(int) {};
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
-/*
+
     double depth;
-    math::Vector3 linearAcceleration;
-    math::Vector3 angularRate;
-    math::Quaternion orientation;
-    math::Vector3 force;
-    math::Vector3 torque;*/
+    ram::math::Vector3 linearAcceleration;
+    ram::math::Vector3 angularRate;
+    ram::math::Quaternion orientation;
+    ram::math::Vector3 force;
+    ram::math::Vector3 torque;
 };
     
 #endif // RAM_VEHICLE_MOCKVEHICLE_10_28_2007

@@ -20,13 +20,13 @@ struct Fixture
 {
     Fixture() : controller(&vehicle,
                            core::ConfigNode::fromString(
-                               "{ angularPGain: 10"
-                               "angularDGain: 1"
-                               "desiredQuaternion: [0, 0, 0, 1] }"))
+                               "{ 'angularPGain' : 10,"
+                               "'angularDGain' : 1,"
+                               "'desiredQuaternion' : [0, 0, 0, 1] }"))
     {}
 
     MockVehicle vehicle;
-    control::IController controller;
+    control::BWPDController controller;
 };
 
 TEST_FIXTURE(Fixture, BWPDController)
@@ -82,7 +82,7 @@ TEST_FIXTURE(Fixture, BWPDController)
     control::BongWiePDRotationalController(&measured3, &desired, &state,
                                            1, act_rotTorques);
                                            CHECK_ARRAY_CLOSE(exp_rotTorques3, act_rotTorques, 3, 0.0001);*/
-    CHECK(true)
+    CHECK(true);
 }
 
 TEST_FIXTURE(Fixture, doIsOriented)
