@@ -20,7 +20,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-PSU::PSU(IVehicle* vehicle, core::ConfigNode config) :
+PSU::PSU(core::ConfigNode config) :
     Device(config["name"].asString()),
     Updatable(),
     m_config(config),
@@ -43,9 +43,9 @@ PSU::~PSU()
     delete m_ctxValues;
 }
 
-PSUPtr PSU::construct(IVehicle* vehicle, core::ConfigNode config)
+PSUPtr PSU::construct(core::ConfigNode config)
 {
-    return PSUPtr(new PSU(vehicle, config));
+    return PSUPtr(new PSU(config));
 }
 
 PSUPtr PSU::castTo(IDevicePtr ptr)

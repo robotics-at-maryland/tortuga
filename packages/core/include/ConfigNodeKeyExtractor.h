@@ -23,7 +23,7 @@ namespace core {
 struct ConfigNodeKeyExtractor
 {
     static std::string extractKey(ConfigNode& node) {
-        return node["name"].asString();
+        return node["type"].asString();
     }
 };
     

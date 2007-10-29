@@ -104,7 +104,7 @@ protected:
     device::IIMUPtr getIMU();
     
 private:
-    
+            
     core::ConfigNode m_config;
 
     /** syncs access to the sensor api */

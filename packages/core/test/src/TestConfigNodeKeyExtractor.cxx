@@ -19,7 +19,7 @@
 namespace ram {
 namespace core {
 
-const std::string CFG = "{'name' : 'TestName'}";
+const std::string CFG = "{'type' : 'TestName'}";
     
 TEST(TestConfigNodeKeyExtractor)
 {
@@ -29,6 +29,7 @@ TEST(TestConfigNodeKeyExtractor)
         ConfigNodeKeyExtractor::extractKey(node);
 
     CHECK_EQUAL("TestName", name);
+    
 }
   
 } // namespace core

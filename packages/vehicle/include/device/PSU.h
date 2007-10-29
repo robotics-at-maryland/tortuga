@@ -47,10 +47,10 @@ public:
     virtual std::string getName() { return Device::getName(); }
     
     /** Create an IMU with the given device file */
-    PSU(IVehicle* vehicle, core::ConfigNode config);
+    PSU(core::ConfigNode config);
 
     /** Creats a new object */
-    static PSUPtr construct(IVehicle* vehicle, core::ConfigNode config);
+    static PSUPtr construct(core::ConfigNode config);
 
     /** Preforms a cast to the desired type */
     static PSUPtr castTo(IDevicePtr ptr);

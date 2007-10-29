@@ -12,31 +12,13 @@
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
-#include "vehicle/include/device/Device.h"
-#include "vehicle/include/device/IDevice.h"
 #include "core/include/ConfigNode.h"
-
+#include "vehicle/test/include/MockDevice.h"
 
 using namespace ram;
 
 static const std::string CONFIG("{'depthCalibSlope' : 33.01,"
                                 " 'depthCalibIntercept' : 94}");
-
-class MockDevice : public vehicle::device::IDevice,
-                   public vehicle::device::Device
-{
-public:
-    MockDevice(std::string name) : Device(name) {}
-
-    virtual std::string getName() {
-        return vehicle::device::Device::getName();
-    }
-
-    virtual void update(double) {}
-    virtual void background(int) {}
-    virtual void unbackground(bool) {}
-    virtual bool backgrounded() { return false; }
-};
 
 struct VehicleFixture
 

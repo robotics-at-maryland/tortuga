@@ -23,7 +23,6 @@ Device::Device(std::string name) :
     m_name(name)
 {
     assert("None" != name && "Name cannot be 'None'");
-    std::cout << "Name: " << name << std::endl;
 }
 
 std::string Device::getName()

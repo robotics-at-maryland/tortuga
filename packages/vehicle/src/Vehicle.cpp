@@ -9,6 +9,9 @@
 
 // STD Includes
 #include <iostream>
+#ifdef RAM_POSIX
+    #include <unistd.h>
+#endif
 
 // Library Includes
 #include <boost/foreach.hpp>
@@ -43,13 +46,17 @@ Vehicle::Vehicle(core::ConfigNode config) :
         m_config["sensor_board_file"].asString("/dev/sensor");
     
     m_sensorFD = openSensorBoard(devfile.c_str());
-    syncBoard(m_sensorFD);
 
-    if (m_sensorFD < -1)
+    if (m_sensorFD < 0)
+    {
         std::cout << "Could not open sensor board\n";
+    }
     else
+    {    
+        syncBoard(m_sensorFD);
         unsafeThrusters();
-
+    }
+    
     // Get the thruster names
     m_starboardThruster =
         config["StarboardThrusterName"].asString("StarboardThruster");
@@ -82,6 +89,9 @@ Vehicle::~Vehicle()
     m_devices.clear();
 
     safeThrusters();
+    
+    if (m_sensorFD >= 0)
+        close(m_sensorFD);
 }
     
 device::IDevicePtr Vehicle::getDevice(std::string name)
