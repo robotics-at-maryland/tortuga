@@ -119,10 +119,6 @@ private:
     /** Internal State of the controller */
     ControllerState* m_controllerState;
 
-    /* Pitch hack gain */
-    double m_hackedPitchGain;
-    double m_hackedYawGain;
-
     std::ofstream m_logfile;
 };
     

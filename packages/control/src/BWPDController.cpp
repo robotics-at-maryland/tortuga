@@ -33,9 +33,7 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     m_config(config),
     m_desiredState(0),
     m_measuredState(0),
-    m_controllerState(0),
-    m_hackedPitchGain(0),
-    m_hackedYawGain(0)
+    m_controllerState(0)
 {
     printf("Creating controller\n");
     
@@ -56,7 +54,7 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     m_desiredState->quaternion[3] = config["desiredQuaternion"][3].asDouble();
 
     m_desiredState->speed = config["desiredSpeed"].asDouble(0);
-    m_desiredState->depth = config["desiredDepth"].asDouble();
+    m_desiredState->depth = config["desiredDepth"].asDouble(0);
     
     // Set controller state from config file (defaults hard coded)
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
@@ -64,9 +62,6 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
     m_controllerState->speedPGain = config["speedPGain"].asDouble(1);
 
-    // HACK!! /// TODO: Remove me
-    m_hackedPitchGain = config["hackedPitchGain"].asDouble();
-    m_hackedYawGain = config["hackedYawGain"].asDouble();
     
     m_controllerState->inertiaEstimate[0][0] =
         config["inertia"][0][0].asDouble(0.201);
@@ -252,18 +247,10 @@ void BWPDController::update(double timestep)
 
 //    std::cout << "W: " << angularRate << std::endl;
     
-/*    vehicle::device::FilteredIMUData state;
-    m_imu->getFilteredState(state);
-    m_measuredState->magneticField[0] = state.magX;
-    m_measuredState->magneticField[1] = state.magY;
-    m_measuredState->magneticField[2] = state.magZ;
-
-    m_measuredState->depth = m_vehicle->getDepth();*/
     
     // Calculate new forces
     math::Vector3 translationalForce(0,0,0);
     math::Vector3 rotationalTorque(0,0,0);
-//    double pitchHack = 0;
 
     {
         core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
@@ -272,21 +259,12 @@ void BWPDController::update(double timestep)
         	                m_controllerState, timestep,
                                 translationalForce.ptr());
 
-        // Doesn't currently handle pitch
         BongWiePDRotationalController(m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
                                       rotationalTorque.ptr());
-        
-//	pitchHack = HackedPDPitchControl(m_measuredState, 
-//					 m_desiredState,
-//					 m_controllerState, m_hackedPitchGain);
     }
 
     // Actually set motor values
-
-    // Hacking torques get pitch control
-//    rotationalTorques[1] = pitchHack;
-
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
     m_logfile << m_measuredState->quaternion[0] << " "
          << m_measuredState->quaternion[1] << " "
