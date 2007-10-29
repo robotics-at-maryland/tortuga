@@ -11,6 +11,7 @@
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
+#include "math/test/include/MathChecks.h"
 #include "vehicle/test/include/MockVehicle.h"
 #include "control/include/BWPDController.h"
 
@@ -29,80 +30,31 @@ struct Fixture
     control::BWPDController controller;
 };
 
-TEST_FIXTURE(Fixture, BWPDController)
+TEST_FIXTURE(Fixture, YawControl)
 {
     // First is north along horizontal (desired)
     // Rotated 32 degrees from north to the west in horizontal (actual)
-
-    /*
+    vehicle.orientation = math::Quaternion(0, 0, 0.2756, 0.9613);
     
-    // Quat = 0,0,0,1 and everything else zero
-    control::DesiredState desired = {0, // speed
-                                     0, // depth
-                                     {0, 0, 0, 1}, // quat
-                                     {0} // angularRate
-    };
-
-    control::MeasuredState measured = {0,// depth
-                              {0},  // Accel
-                              {0}, // Mag
-                              {0, 0, 0.2756, 0.9613}, // Quat
-                              {0}}; // Ang Rate
-    
-    control::ControllerState state = {10, // angP gain
-                                1, // angD gain
-                                {{0.201, 0, 0}, // inertia estimates
-                                 {0, 1.288, 0},
-                                 {0, 0, 1.288}},
-                                0, // depthP gain (not used)
-                                0};// speedP gain (not used)
-
-    // Testing Yaw Control
-    double exp_rotTorques[3] = {0, 0, -3.5497};
-    double act_rotTorques[3] = {0};
-    control::BongWiePDRotationalController(&measured, &desired, &state,
-                                           1, act_rotTorques);
-    CHECK_ARRAY_CLOSE(exp_rotTorques, act_rotTorques, 3, 0.0001);
-
-
-    // Testing pitch Control
-    double exp_rotTorques2[3] = {0, -2.7872, 0};
-    control::MeasuredState measured2 = {0, {0}, {0}, 
-                                       {0, 0.2164, 0, 0.9763},
-                                       {0}};
-    control::BongWiePDRotationalController(&measured2, &desired, &state,
-                                           1, act_rotTorques);
-    CHECK_ARRAY_CLOSE(exp_rotTorques2, act_rotTorques, 3, 0.0001);
-
-    // Testing Roll Control
-    double exp_rotTorques3[3] = {0.7692, 0, 0};
-    control::MeasuredState measured3 = {0, {0}, {0}, 
-                                        {-0.3827, 0, 0, 0.9239},
-                                       {0}};
-    control::BongWiePDRotationalController(&measured3, &desired, &state,
-                                           1, act_rotTorques);
-                                           CHECK_ARRAY_CLOSE(exp_rotTorques3, act_rotTorques, 3, 0.0001);*/
-    CHECK(true);
+    math::Vector3 exp_rotTorque(0, 0, -3.5497);
+    controller.update(1);
+    CHECK_CLOSE(exp_rotTorque, vehicle.torque, 0.0001);
 }
 
-TEST_FIXTURE(Fixture, doIsOriented)
+TEST_FIXTURE(Fixture, PitchControl)
 {
-    CHECK(true);
-    /*
-    // Not matching
-    control::DesiredState desiredBad = {0, 0, {0.0872, 0, 0, 0.9962}, {0}};
+    math::Vector3 exp_rotTorque(0, -2.7872, 0);
+    vehicle.orientation = math::Quaternion(0, 0.2164, 0, 0.9763);
 
-    control::MeasuredState measuredBad = {0, {0}, {0},
-                                          {0.2588, 0, 0, 0.9659},
-                                          {0}};
+    controller.update(1);
+    CHECK_CLOSE(exp_rotTorque, vehicle.torque, 0.0001);
+}
 
-    CHECK_EQUAL(false, doIsOriented(&measuredBad, &desiredBad, 0.15));
+TEST_FIXTURE(Fixture, RollControl)
+{
+    math::Vector3 exp_rotTorque(0.7692, 0, 0);
+    vehicle.orientation = math::Quaternion(-0.3827, 0, 0, 0.9239);
 
-    // Matching
-    control::DesiredState desiredGood = {0, 0, {0.0872, 0, 0, 0.9962}, {0}};
-    control::MeasuredState measuredGood = {0, {0}, {0},
-                                           {0.173, 0.0858, -0.0151, 0.9811},
-                                          {0}};
-    
-                                          CHECK_EQUAL(true, doIsOriented(&measuredGood, &desiredGood, 0.15));*/
+    controller.update(1);
+    CHECK_CLOSE(exp_rotTorque, vehicle.torque, 0.0001);
 }

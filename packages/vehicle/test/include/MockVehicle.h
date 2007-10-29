@@ -20,6 +20,15 @@
 class MockVehicle : public ram::vehicle::IVehicle
 {
 public:
+    MockVehicle() :
+        depth(0),
+        linearAcceleration(0, 0, 0),
+        angularRate(0, 0, 0),
+        orientation(0,0,0,1),
+        force(0,0,0),
+        torque(0,0,0)
+    {};
+                
 //    virtual ~MockVehicle {};
     
     virtual ram::vehicle::device::IDevicePtr getDevice(std::string name)

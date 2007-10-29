@@ -34,9 +34,7 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     m_desiredState(0),
     m_measuredState(0),
     m_controllerState(0)
-{
-    printf("Creating controller\n");
-    
+{   
     // Allocate state structures
     m_desiredState = new DesiredState();
     m_measuredState = new MeasuredState();
