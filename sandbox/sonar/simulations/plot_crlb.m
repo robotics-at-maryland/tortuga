@@ -3,12 +3,14 @@ posticks = -30:3:30;
 depthticks = -30:20:30;
 [X,Y,Z]=meshgrid(posticks,posticks,depthticks);
 V = zeros(length(posticks),length(posticks),length(depthticks));
+config;
 load(filename,'hydro_pos');
+hydro_pos = hydro_pos * lambda;
 
 for i = 1:length(posticks)
     for j = 1:length(posticks)
         for k = 1:length(depthticks)
-           V(i,j,k) = range_error([posticks(i),posticks(j),depthticks(k)], hydro_pos);
+           V(i,j,k) = range_error([posticks(i),posticks(j),depthticks(k)], hydro_pos, hydro_pos_accuracy, tdoa_accuracy);
         end
     end
 end

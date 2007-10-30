@@ -1,39 +1,50 @@
-function cr_lowerbound = crlb(source_pos, hydro_pos)
-% Acoustic Properties %
+function cr_lowerbound = crlb(source_pos, hydro_pos, hydro_pos_accuracy, tdoa_accuracy)
+% CRLB Cramer-Rao lower bound on covariance of source coordinates
+%   M = crlb(source_pos, hydro_pos, hydro_pos_accuracy, tdoa_accuracy);
+%     Returns the best possible 3x3 covariance matrix between x_s, y_s,
+%     and z_s, for a maximum likelihood estimator
+%
+%   source_pos is a row vector representing the actual coordinates of the
+%   source.
+%
+%   Example:
+%     source_pos = [1,1,1];
+%
+%   hydro_pos is a matrix whose rows each represent the rectangular
+%   coordinates of the hydrophones.
+%
+%   There is always a hydrophone at (0,0,0), but it is not listed.
+%   If the first row of hydro_pos is filled with zeros, it will be
+%   stripped out.
+%   
+%   Example:
+%     hydro_pos = [
+%         0, sqrt(3)/3, sqrt(2/3);
+%         0.5, -sqrt(3)/6, sqrt(2/3);
+%         -0.5, -sqrt(3)/6, sqrt(2/3);
+%         0, 0, 2*sqrt(2/3)
+%     ];  % a unit double tetrahedron
+%   
+%   hydro_pos_accuracy is the machining tolerance of the hydrophone
+%   mounts.
+%   
+%   Example:
+%     hydro_pos_accuracy = 0.0000635;
+%        % Machining tolerance of hydrophone mounts in meters
+%        % 0.0000635 is 2.5 mils (thousandths of an inch)
+%
+%  tdoa_accuracy represents the accuracy with which the distance
+%  difference between hydrophones and the receiver can be determined.
+%
+%  Example:
+%    tdoa_accuracy = 0.01 / (2*pi) * 1500 / 30e3;
+%    % A phase resolution of 0.01 radians, with a sound velocity of 1500
+%    % meters per second, and a frequency of 30 kHz 
 
-snr  = 10000;   % signal to noise ratio, unitless
-freq = 30000;  % pinger frequency, in hertz
-vs   = 1400;   % speed of sound in water, in meters per second
-
-% DSP Properties %
-
-freq_sample = 1000000; % sample rate, in samples per second
-sample_size = 1024; % length of sample
-phase_rez = 0.01; % phase resolution in radians
-
-% Physical Properties
-
-lambda = vs / freq; % wavelength of the sound, in meters
-
-% There is always a hydrophone at (0,0,0), but it is not listed.
-% hydro_pos = [
-%     0, sqrt(3)/3, sqrt(2/3);
-%     0.5, -sqrt(3)/6, sqrt(2/3);
-%     -0.5, -sqrt(3)/6, sqrt(2/3);
-%     0, 0, 2*sqrt(2/3)
-% ] * lambda;
-hydro_pos = hydro_pos * lambda;
-
-% source_pos = [1,1,1]; % Rectangular coordinate of pinger, in meters
-
-sigma_s = 0.0000635;  % Machining tolerance of hydrophone mounts, in meters
-% 0.0000635 is 2.5 mils (thousandths of an inch)
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%
-% Begin simulation here %
-%%%%%%%%%%%%%%%%%%%%%%%%%
+% If the matrix begins with a zero-filled row, strip it out
+if all(hydro_pos(1,:)==[0,0,0])
+  hydro_pos = hydro_pos(2:end,:);
+end
 
 m = size(hydro_pos);
 m = m(1);
@@ -44,7 +55,8 @@ hydro_to_source_vec = hydro_pos - repmat(source_pos, m, 1);
 dists = sqrt(dot(hydro_to_source_vec, hydro_to_source_vec, 2));
 dist0 = sqrt(dot(source_pos, source_pos));
 ddoas = dists - dist0;
-sigma_x = phase_rez/2/pi * lambda;
+sigma_x = tdoa_accuracy;
+sigma_s = hydro_pos_accuracy;
 
 % Computing the Jacobian matrix %
 % d(d10,d20,...,dm0,x1,y1,z1,x2,y2,z2,...,xm,ym,zm)
