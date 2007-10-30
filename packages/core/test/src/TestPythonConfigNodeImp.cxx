@@ -70,6 +70,19 @@ TEST_FIXTURE(TestPythonConfigNode, asDouble)
     CHECK_EQUAL(17.6, configNode["NotThere"].asDouble(17.6));
 }
 
+TEST_FIXTURE(TestPythonConfigNode, subNodes)
+{
+    NodeNameList subnodes = configNode["Map"].subNodes();
+    NodeNameListIter result;
+
+    // Ensure we got the right size
+    CHECK_EQUAL(3u, subnodes.size());
+    
+    CHECK(subnodes.end() != subnodes.find("A"));
+    CHECK(subnodes.end() != subnodes.find("B"));
+    CHECK(subnodes.end() != subnodes.find("C"));
+}
+
 TEST_FIXTURE(TestPythonConfigNode, index)
 {
     CHECK_EQUAL(4, configNode["Array"][0].asInt());

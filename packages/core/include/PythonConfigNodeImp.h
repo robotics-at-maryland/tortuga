@@ -75,6 +75,9 @@ public:
     /** Attempts conversion to int, if it fails return def */
     virtual int asInt(const int def);
 
+    /** Returns the list of sub nodes of the current config node */
+    virtual NodeNameList subNodes();
+    
     /** Map a key to a given value */
     virtual void set(std::string key, std::string str);
     

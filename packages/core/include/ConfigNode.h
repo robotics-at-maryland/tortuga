@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <string>
+#include <set>
 
 // Project Includes
 #include "core/include/Common.h"
@@ -21,6 +22,9 @@
 
 namespace ram {
 namespace core {
+    
+typedef std::set<std::string> NodeNameList ;
+typedef NodeNameList::iterator NodeNameListIter;
 
 class RAM_EXPORT ConfigNode
 {
@@ -55,6 +59,9 @@ public:
     /** Attempts conversion to int, if it fails return def */
     int asInt(const int def);
 
+    /** Returns the list of sub nodes of the current config node */
+    NodeNameList subNodes();
+    
     /** Map a value to the the give string inside a config node */
     void set(std::string key, std::string str);
              

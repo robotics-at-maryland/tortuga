@@ -235,6 +235,27 @@ int PythonConfigNodeImp::asInt(const int def)
     // return -9999;
 }
 
+NodeNameList PythonConfigNodeImp::subNodes()
+{
+    try {
+        NodeNameList subnodes;
+        py::object nodes(m_pyobj.attr("keys")());
+        size_t size = py::len(nodes);
+        
+        for (size_t i = 0; i < size; ++i)
+        {
+            subnodes.insert(py::extract<std::string>(nodes[i]));
+        }
+        return subnodes;
+    } catch(py::error_already_set err ) {
+        printf("ConfigNode \"%s\"(asInt) Error:\n", m_debugPath.c_str());
+        PyErr_Print();
+
+        throw err;
+    }
+}
+
+
 void PythonConfigNodeImp::set(std::string key, std::string str)
 {
     try {

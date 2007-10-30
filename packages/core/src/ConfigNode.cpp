@@ -55,6 +55,11 @@ int ConfigNode::asInt(const int def)
     return m_impl->asInt(def);
 }
 
+NodeNameList ConfigNode::subNodes()
+{
+    return m_impl->subNodes();
+}
+
 void ConfigNode::set(std::string key, std::string str)
 {
     m_impl->set(key, str);
