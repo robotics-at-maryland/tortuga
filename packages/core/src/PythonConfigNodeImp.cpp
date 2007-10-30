@@ -6,14 +6,15 @@
  * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/core/src/PythonConfigNodeImp.cpp
  */
-
 #include <iostream>
 
 // Library Includea
 //#include <Python.h>
 
 // Project Includes
+#pragma warning( disable : 4121 )
 #include "core/include/PythonConfigNodeImp.h"
+
 
 namespace py = boost::python;
 

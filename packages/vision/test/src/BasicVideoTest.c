@@ -1,12 +1,13 @@
 
 
-#include "cv.h"
+#include <cv.h>
 #include "highgui.h"
 #include <stdio.h>
 
 
 // A Simple Camera Capture Framework
 int main(int argc, char** argv) {
+    CvCapture* capture = 0;
 
     if (2 != argc)
     {
@@ -14,7 +15,7 @@ int main(int argc, char** argv) {
         return -1;
     }
     
-    CvCapture* capture = cvCaptureFromFile( argv[1]);
+    capture = cvCaptureFromFile( argv[1]);
     if( !capture )
     {
         fprintf(stderr, argv[1] );

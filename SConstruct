@@ -8,6 +8,7 @@
 import os
 import os.path
 import sys
+import platform
 
 EnsureSConsVersion(0, 96, 93)
 
@@ -46,9 +47,13 @@ if os.name == 'posix':
         ('CXX', 'The C++ compiler to use', 'g++'))
 
 # Setup the build environment
+tools = ['default']
+if platform.system() in ['Linux', 'Darwin']:
+    tools.extend(['gccxml','pypp'])
+
 tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
 env = Environment(ENV=os.environ, options=opts,
-                  tools = ['default', 'gccxml','pypp'], toolpath = [tpath])
+                  tools = tools, toolpath = [tpath])
 Help(opts.GenerateHelpText(env))
 
 # Add platform Specifc setup
