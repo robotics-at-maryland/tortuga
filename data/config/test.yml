@@ -1,8 +1,5 @@
 # Config for the vehicle
 
-# This module is run in the main python thread
-main_module: CLI
-
 # Each module is a seperate system that needs to be started up
 Modules:
     # Object that creates the vehicle interface
@@ -24,12 +21,9 @@ Modules:
             # This entry creates a thruster
             StarboardThruster:
                 # serial: 147
-                
+                type: Thruster
                 update_interval: 100
 
-                # Notice this is from the 'ext' package, this package contains
-                # all the wrapped C++ classes
-                type: ext.vehicle_device.Thruster
                 # String representing the address of the thruster
                 address: 4
                 # Number determined by testing
@@ -40,27 +34,27 @@ Modules:
 
             PortThruster:
                 # serial: 149
-                type: ext.vehicle_device.Thruster
+                type: Thruster
                 address: 3
                 calibration_factor: 0.4146
                 direction: -1
 
             ForeThruster:
+                type: Thruster
                 # serial: 146
-                type: ext.vehicle_device.Thruster
                 address: 2
                 calibration_factor: 0.4368
                 direction: -1
 
             AftThruster:
                 # Serial 148
-                type: ext.vehicle_device.Thruster
+                type: Thruster
                 address: 1
                 calibration_factor: 0.3612
                 direction: 1
 
             IMU:
-                type: ext.vehicle_device.IMU
+                type: IMU
                 update_interval: 5
                 # These are in VEHICLE FRAME
                 magXBias: -0.3053
@@ -85,34 +79,8 @@ Modules:
         # Should not be negative
         depthPGain: -20
 
-        # Currently does nothing!!!
-        hackedPitchGain: 12
-        hackedYawGain: 0
 
         desiredSpeed: 0
         desiredDepth: 0
         desiredQuaternion: [0, 0, 0, 1]
 
-
-#        desiredQuaternion: [-.744, 0.4398, -0.4371, 0.247]
-#        desiredQuaternion: [-0.2274, 0.7034, -0.2008, 0.6428]
-#        desiredQuaternion: [-0.2274,  0.7034, -0.2008, 0.6428]
-#        desiredQuaternion: [0.2715,  0.6534,  0.3006,  0.6395]
-#        desiredQuaternion: [0.8460,  0.2139,  0.4681,  0.1392]
-#        desiredQuaternion: [-0.0318, 0.2014, -0.4520, 0.0713]
-#        desiredQuaternion: [ -0.278, 0.911, 0.025, 0.301]
-        
-#    CLI:
-#        depends_on: ["Vehicle"]
-#        update_interval: 100
-#        type: cli.CLI
-
-    AI:
-        depends_on: ["Vehicle", "Controller", "Vision"]
-        type: ai.modernAI.moduleAI.AI
-        update_interval: 100
-
-    Vision:
-        depends_on: ["Vehicle"]
-        type: vision.vision.VisionRunner
-        update_interval: 100

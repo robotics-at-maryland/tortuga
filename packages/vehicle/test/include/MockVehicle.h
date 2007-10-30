@@ -74,8 +74,8 @@ public:
         assert(false && "Method not implemented");
     }
 
-    virtual void applyForcesAndTorques(ram::math::Vector3& force_,
-                                       ram::math::Vector3& torque_)
+    virtual void applyForcesAndTorques(const ram::math::Vector3& force_,
+                                       const ram::math::Vector3& torque_)
     {
         force = force_;
         torque = torque_;

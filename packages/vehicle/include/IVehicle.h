@@ -67,8 +67,8 @@ public:
         @param  force   Translation force vector
         @param  torque  Rotational torque vector
      */
-    virtual void applyForcesAndTorques(math::Vector3& force,
-                                       math::Vector3& torque) = 0;
+    virtual void applyForcesAndTorques(const math::Vector3& force,
+                                       const math::Vector3& torque) = 0;
 };
     
 } // namespace vehicle

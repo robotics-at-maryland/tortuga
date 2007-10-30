@@ -90,6 +90,8 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
 
 BWPDController::~BWPDController()
 {
+	unbackground(true);
+	
     m_logfile.close();
     delete m_desiredState;
     delete m_measuredState;

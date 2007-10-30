@@ -66,8 +66,8 @@ public:
     virtual void printLine(int line, std::string text);
 
     /** @copydoc IVehicle::applyForcesAndTorques */
-    virtual void applyForcesAndTorques(math::Vector3& force,
-                                       math::Vector3& torque);
+    virtual void applyForcesAndTorques(const math::Vector3& force,
+                                       const math::Vector3& torque);
 
     /** This is <b>NOT</b> thread safe */
     virtual void _addDevice(device::IDevicePtr device);

@@ -10,6 +10,17 @@
 // STD Includes
 #include <iostream>
 
+// Networking includes
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <signal.h>
+
 // Library Includes
 #include <boost/program_options.hpp>
 
@@ -22,23 +33,42 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IMU.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
-#include <signal.h>
+
 
 #define MYPORT 9219 /*YOUR PORT HERE*/
                 /* the port users will be connecting to */
 
 #define BACKLOG 10  /* how many pending connections queue will hold */
 
+#define DEADMAN_WAIT 2
 
+// Setting for the hand control inputs
+#define MAX_DEPTH 5
 
+#define MIN_DEPTH 0
+
+#define DEPTH_ENC 0.25
+#define TURN_ENC 10
+
+#define MIN_SPEED -5
+#define MAX_SPEED 5
+#define SPEED_ENC 1
+
+#define CMD_NOTHING     0
+
+#define CMD_TURNLEFT    1
+#define CMD_TURNRIGHT   2
+
+#define CMD_ASCEND      3
+#define CMD_DESCEND     4
+
+#define CMD_INCSPEED    5
+#define CMD_DECSPEED    6
+
+#define CMD_ZEROSPEED   7
+#define CMD_EMERGSTOP   8
+
+#define CMD_SETSPEED    9
 
 
 using namespace std;
@@ -46,17 +76,37 @@ using namespace ram;
 namespace po = boost::program_options;
 
 
-int teleopFD = 0;
+/// Global File Descriptor for current comms socket
+int g_teleopFD = 0;
 
-void sigalrmHandler(int i)
-{
-    printf("\nKeep-alive timer expired!\n");
-    close(teleopFD);
-//    system("thrusterstop");
-//    sleep(1);
-    exit(1);
-    alarm(0);
-}
+/// Global status of the run loop
+bool g_running = true;
+
+/** This handles shutdown of the system by a signal
+ * 
+ * This is ever called network comms have stopped for too long, or if the user
+ * has pressed CTRL-C at the command line.
+ * */
+void shutdownHandler(int i);
+
+/** Sets up the networking based on the setting defined above
+ * 
+ * @return  A socket file descriptor to listen on, if < 0 there was an error.
+ */
+int setupNetworking(struct sockaddr_in& my_addr);
+
+/** Enters an continous run loop which exits upon emergency shutdown, or CTRL-C
+ * 
+ * @param controller  The conntroller we are commanding
+ */
+void networkLoop(control::IController* controller);
+
+/** Process the incomming network messages
+ * 
+ * @return If false it means an emergency shutdown command was sent
+ */
+bool processMessage(control::IController* controller, unsigned char cmd, 
+					signed char param=0);
 
 int main(int argc, char** argv)
 {
@@ -93,236 +143,236 @@ int main(int argc, char** argv)
     // Create vehicle and devices
     core::ConfigNode veh_cfg(modules["Vehicle"]);
     vehicle::Vehicle vehicle(veh_cfg);
-    core::ConfigNode dev_cfg(veh_cfg["Devices"]);
-
-    // Set all the device names
-    dev_cfg["StarboardThruster"].set("name", "StarboardThruster");
-    dev_cfg["ForeThruster"].set("name", "ForeThruster");
-    dev_cfg["AftThruster"].set("name", "AftThruster");
-    dev_cfg["PortThruster"].set("name", "PortThruster");
-    dev_cfg["IMU"].set("name", "IMU");
-
-//    vehicle::device::ThrusterPtr thruster =
-//        vehicle::device::Thruster::construct(dev_cfg["StarboardThruster"]);
-
-//    cout << "Name: " << thruster->getName() << endl;
-//    vehicle._addDevice(thruster);
-//    cout << "Test " << vehicle.getDevice("StarboardThruster")->getName() << endl;
-    vehicle._addDevice(vehicle::device::Thruster::construct(
-                           dev_cfg["StarboardThruster"]));
-    vehicle._addDevice(vehicle::device::Thruster::construct(
-                                          dev_cfg["ForeThruster"]));
-    vehicle._addDevice(vehicle::device::Thruster::construct(
-                                          dev_cfg["AftThruster"]));
-    vehicle._addDevice(vehicle::device::Thruster::construct(
-                                          dev_cfg["PortThruster"]));
-    vehicle._addDevice(vehicle::device::IMU::construct(dev_cfg["IMU"]));
-
-    int thrustUpdate = dev_cfg["StarboardThruster"]["update_interval"].asInt();
-    int vehicleUpdate = dev_cfg["IMU"]["update_interval"].asInt();
-    int imuUpdate = dev_cfg["IMU"]["update_interval"].asInt();
 
     // Create our controller
     core::ConfigNode ctrl_cfg(modules["Controller"]);
     control::BWPDController controller(&vehicle, ctrl_cfg);
     controller.background(ctrl_cfg["update_interval"].asInt());
 
-    // Start up the devices in the background
-    vehicle.getDevice("StarboardThruster")->background(thrustUpdate);
-    vehicle.getDevice("IMU")->background(imuUpdate);
-    vehicle.background(vehicleUpdate);
-
-
-
-    int sockfd, new_fd;/*listen on sock_fd, new connection on new_fd */
-    struct sockaddr_in my_addr;    /*my address information */
-    struct sockaddr_in their_addr; /*connector's address information */
-    int sin_size;
-    int ret;
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        perror("socket");
-        exit(1);
-    }
-
-    memset((void *)&my_addr,0,sizeof(my_addr)); /*zero*/
-    my_addr.sin_family = AF_INET;      /* host byte order */
-    my_addr.sin_port = htons(MYPORT);  /* short, network byte order */
-    my_addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP */
-
-    ret = bind(sockfd,(struct sockaddr *)&my_addr,sizeof(struct sockaddr));
-    if (ret < 0)
-    {
-        perror("bind");
-        return ret;
-    }
-    ret = listen(sockfd, BACKLOG);
-    if (ret < 0)
-    {
-         perror("listen");
-         return ret;
-    }
-
-    signal(SIGALRM, sigalrmHandler);
-
-
-controller.yawVehicle(5);
-
-    while(1)
-    {  /* main accept() loop */
-        sin_size = sizeof(struct sockaddr_in);
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, (socklen_t *) &sin_size);
-        if (new_fd < 0) {
-               perror("accept");
-               continue;
-        }
-
-        printf("server: got connection\n");
-        {
-		    int fd = new_fd;
-		    signed char buf[2];
-		    unsigned char cmd = 0;
-            signed char param=0;
-		teleopFD = fd;
-
-            alarm(2);
-
-		    while(1)
-		    {
-			    if(recv(fd, buf, 2, 0) != 2)
-                {
-                    printf("Error reading from network\n");
-//                    system("lcdshow -safe");
-			//	    exit(1);
-			return 0;
-                }
-
-                cmd = buf[0];
-                param = buf[1];
-
-		//printf("RX: %d %d\n", cmd, param);
-
-#define MAX_DEPTH 5
-
-#define MIN_DEPTH 0
-
-#define DEPTH_ENC 0.25
-#define TURN_ENC 10
-
-#define MIN_SPEED -5
-#define MAX_SPEED 5
-#define SPEED_ENC 1
-
-#define CMD_NOTHING     0
-
-#define CMD_TURNLEFT    1
-#define CMD_TURNRIGHT   2
-
-#define CMD_ASCEND      3
-#define CMD_DESCEND     4
-
-#define CMD_INCSPEED    5
-#define CMD_DECSPEED    6
-
-#define CMD_ZEROSPEED   7
-#define CMD_EMERGSTOP   8
-
-#define CMD_SETSPEED    9
-
-//#warning this code has STILL not been tested on the vehicle, or even compiled on it.
-                alarm(2);
-                switch(cmd)
-                {
-                    case CMD_EMERGSTOP:
-                    {
-                        printf("Emergency stop received\n");
-//                        system("lcdshow -safe");
-                        return 0;
-                        break;
-                    }
-
-                    case CMD_TURNLEFT:
-                    {
-                        printf("Yaw left\n");
-                        controller.yawVehicle(TURN_ENC);
-                        break;
-                    }
-
-                    case CMD_TURNRIGHT:
-                    {
-                        printf("Yaw right\n");
-                        controller.yawVehicle(-TURN_ENC);
-                        break;
-                    }
-
-                    case CMD_INCSPEED:
-                    {
-                        if(controller.getSpeed() < MAX_SPEED)
-                            controller.setSpeed(controller.getSpeed()+SPEED_ENC);
-
-                        printf("\nNEW SPEED:  %d\n", controller.getSpeed());
-                        break;
-                    }
-
-                    case CMD_DECSPEED:
-                    {
-                        if(controller.getSpeed() > MIN_SPEED)
-                            controller.setSpeed(controller.getSpeed()-SPEED_ENC);
-
-                        printf("\nNEW SPEED:  %d\n", controller.getSpeed());
-                        break;
-                    }
-
-                    case CMD_DESCEND:
-                    {
-                        if(controller.getDepth() < MAX_DEPTH)
-                            controller.setDepth(controller.getDepth()+DEPTH_ENC);
-
-                        printf("NEW DEPTH: %f\n", controller.getDepth());
-                        break;
-                    }
-
-                    case CMD_ASCEND:
-                    {
-                        if(controller.getDepth() > MIN_DEPTH)
-                            controller.setDepth(controller.getDepth()-DEPTH_ENC);
-
-
-                        printf("NEW DEPTH: %f\n", controller.getDepth());
-                        break;
-                    }
-
-                    case CMD_ZEROSPEED:
-                    {
-                        controller.setSpeed(0);
-                        printf("\nNEW SPEED:  %d\n", controller.getSpeed());
-                        break;
-                    }
-
-                    case CMD_SETSPEED:
-                    {
-                        if(param <= MAX_SPEED && param >= MIN_SPEED)
-                        {
-                            controller.setSpeed(param);
-                            printf("\nNEW SPEED:  %d\n", controller.getSpeed());
-                        } else
-                        {
-                            printf("\nINVALID NEW SPEED: %d\n", param);
-                        }
-                    }
-                }
-
-
-		    }
-
-		    exit(0);
-        }
-        close(new_fd);  /* parent doesn't need this */
-        while(waitpid(-1,NULL,WNOHANG) > 0); /*clean up child proc*/
-    }
-
-
-
-    // Sleep for fifteen minutes
-    sleep(15 * 60);
+    // Start the vehicle running in the background
+    vehicle.background(veh_cfg["update_interval"].asInt());
+    
+    // Got into networking loop
+    networkLoop(&controller);
 };
+
+void shutdownHandler(int i)
+{
+	if (SIGALRM == i)
+		printf("\nKeep-alive timer expired!\n");
+	else
+		printf("\nCtrl-C Pressed, shutting down\n");
+    g_running = false;
+    close(g_teleopFD);
+    
+    // Turn off the alarm signal handler
+    signal(SIGALRM, SIG_DFL);
+}
+
+
+int setupNetworking(struct sockaddr_in& my_addr)
+{
+	// listen on sock_fd
+	int sockfd;
+
+	// Grab socket to listen on
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+	    perror("socket");
+	    return sockfd;
+	}
+
+	// Setup my address information
+	memset((void *)&my_addr,0,sizeof(my_addr)); /*zero*/
+	my_addr.sin_family = AF_INET;      /* host byte order */
+	my_addr.sin_port = htons(MYPORT);  /* short, network byte order */
+	my_addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP */
+
+	// Bind the socket to the address
+	int ret = bind(sockfd,(struct sockaddr *)&my_addr,sizeof(struct sockaddr));
+	if (ret < 0)
+	{
+		perror("bind");
+	    return ret;
+	}
+	
+	// Prepare socket for to accept incomming connections
+	ret = listen(sockfd, BACKLOG);
+	if (ret < 0)
+	{
+		perror("listen");
+		return ret;
+	}
+
+	return sockfd;
+}
+
+void networkLoop(control::IController* controller)
+{
+	struct sockaddr_in my_addr;
+	int sockfd = setupNetworking(my_addr);
+	if (sockfd < 0)
+	{
+		printf("Error setting up networking\n");
+		return;
+	}
+	
+	// Setup deadman timer and CTRL-C handler
+	signal(SIGALRM, shutdownHandler);
+	signal(SIGINT, shutdownHandler);
+	
+    while(g_running)
+    {
+    	struct sockaddr_in their_addr;
+    
+    	printf("server: waiting for connections...\n");
+    	
+    	// Recored the FD to allow external shutdown
+    	g_teleopFD = sockfd;
+    	
+    	// Wait for a connection
+        int sin_size = sizeof(struct sockaddr_in);
+        int new_fd = accept(sockfd, (struct sockaddr *)&their_addr, (socklen_t *) &sin_size);
+        
+        // Error with connection, try again
+        if (new_fd < 0) {
+              perror("accept");
+              continue;
+        }
+        
+        printf("server: got connection\n");
+
+        // Activate deadman timer
+        alarm(DEADMAN_WAIT);
+        
+    	// Got connection, jump into recive loop
+    	while(g_running)
+    	{
+    		// Record the current waited on FD to allow us to drop out of 'recv'
+    		g_teleopFD = new_fd;
+    		
+    		// Wait for command packet
+    		signed char buf[2];
+            if(recv(new_fd, buf, 2, 0) != 2)
+            {
+            	 // If error from network drop out of receive loop
+                 printf("Error reading from network\n");
+                 break;
+            }
+            
+            unsigned char cmd = buf[0];
+            signed char param = buf[1];
+
+        	// Reset the deadman timer
+        	alarm(DEADMAN_WAIT);
+            
+    		// Process Packet (If quit message drop out of loop, stop running)
+            g_running = processMessage(controller, cmd, param);
+    	}
+    	
+    	// Close old fd
+    	close(new_fd);
+ 
+    	printf("server: lost connection\n");
+    }
+}
+
+
+bool processMessage(control::IController* controller, unsigned char cmd, 
+					signed char param)
+{
+	switch(cmd)
+	{
+		case CMD_EMERGSTOP:
+		{
+			printf("Emergency stop received\n");
+			// Return false to stop the main network loop
+			return false;
+			break;
+		}
+	
+		case CMD_TURNLEFT:
+		{
+			printf("Yaw left\n");
+			controller->yawVehicle(TURN_ENC);
+			break;
+		}
+	
+		case CMD_TURNRIGHT:
+		{
+			printf("Yaw right\n");
+			controller->yawVehicle(-TURN_ENC);
+			break;
+		}
+	
+		case CMD_INCSPEED:
+		{
+			if(controller->getSpeed() < MAX_SPEED)
+				controller->setSpeed(controller->getSpeed()+SPEED_ENC);
+	
+			printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+			break;
+		}
+	
+		case CMD_DECSPEED:
+		{
+			if(controller->getSpeed() > MIN_SPEED)
+				controller->setSpeed(controller->getSpeed()-SPEED_ENC);
+	
+			printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+			break;
+		}
+	
+		case CMD_DESCEND:
+		{
+			if(controller->getDepth() < MAX_DEPTH)
+				controller->setDepth(controller->getDepth()+DEPTH_ENC);
+	
+			printf("NEW DEPTH: %f\n", controller->getDepth());
+			break;
+		}
+	
+		case CMD_ASCEND:
+		{
+			if(controller->getDepth() > MIN_DEPTH)
+				controller->setDepth(controller->getDepth()-DEPTH_ENC);
+	
+	
+			printf("NEW DEPTH: %f\n", controller->getDepth());
+			break;
+		}
+	
+		case CMD_ZEROSPEED:
+		{
+			controller->setSpeed(0);
+			printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+			break;
+		}
+	
+		case CMD_SETSPEED:
+		{
+			if(param <= MAX_SPEED && param >= MIN_SPEED)
+			{
+				controller->setSpeed(param);
+				printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+			} else
+			{
+				printf("\nINVALID NEW SPEED: %d\n", param);
+			}
+		}
+		
+		case CMD_NOTHING:
+		{
+			// Ignore, just sent to keep the connection alive
+			break;
+		}
+		
+		default:
+		{
+			printf("Invalide network command type: %c\n", cmd);
+		}
+	}
+	
+	// Return true to keep running
+	return true;
+}

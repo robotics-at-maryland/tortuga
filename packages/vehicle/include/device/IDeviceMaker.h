@@ -47,7 +47,7 @@ struct NAME ## IDeviceMaker : \
 { \
     static NAME ## IDeviceMaker registerThis; \
     NAME ## IDeviceMaker () : \
-        ram::vehicle::device::IDeviceMakerTemplate<TYPE>(# TYPE) {}; \
+        ram::vehicle::device::IDeviceMakerTemplate<TYPE>(# NAME) {}; \
 }; \
 NAME ## IDeviceMaker NAME ## IDeviceMaker::registerThis;
 

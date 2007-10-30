@@ -89,6 +89,8 @@ Vehicle::Vehicle(core::ConfigNode config) :
 	    {
 	    	core::ConfigNode node(config["Devices"][nodeName]);
 	    	node.set("name", nodeName);
+	    	std::cout << "Creating device " << node["name"].asString()
+	    		<< " of type: " << node["type"].asString() << std::endl;
 	    	device::IDevicePtr device(device::IDeviceMaker::newObject(node));
 	    	_addDevice(device);
 	    }
@@ -213,8 +215,8 @@ void Vehicle::printLine(int line, std::string text)
 }
 
 
-void Vehicle::applyForcesAndTorques(math::Vector3& translationalForces,
-                                    math::Vector3& rotationalTorques)
+void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
+                                    const math::Vector3& rotationalTorques)
 {
     double star = translationalForces[0] / 2 +
         0.5 * rotationalTorques[2] / m_rStarboard;
@@ -225,14 +227,17 @@ void Vehicle::applyForcesAndTorques(math::Vector3& translationalForces,
     double aft = translationalForces[2]/2 -
       0.5 * rotationalTorques[1] / m_rAft;
 
-    device::IDevice::castTo<device::IThruster>(
-        getDevice(m_starboardThruster))->setForce(star);
-    device::IDevice::castTo<device::IThruster>(
-        getDevice(m_portThruster))->setForce(port);
-    device::IDevice::castTo<device::IThruster>(
-        getDevice(m_foreThruster))->setForce(fore);
-    device::IDevice::castTo<device::IThruster>(
-        getDevice(m_aftThruster))->setForce(aft);
+    if (m_devices.end() != m_devices.find(m_starboardThruster))
+    {
+	    device::IDevice::castTo<device::IThruster>(
+	        getDevice(m_starboardThruster))->setForce(star);
+	    device::IDevice::castTo<device::IThruster>(
+	        getDevice(m_portThruster))->setForce(port);
+	    device::IDevice::castTo<device::IThruster>(
+	        getDevice(m_foreThruster))->setForce(fore);
+	    device::IDevice::castTo<device::IThruster>(
+	        getDevice(m_aftThruster))->setForce(aft);
+    }
 }
     
 void Vehicle::getState(Vehicle::VehicleState& state)
