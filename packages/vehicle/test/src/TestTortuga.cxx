@@ -11,9 +11,11 @@
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
+//#include "math/test/include/MathChecks.h"
 #include "vehicle/include/Vehicle.h"
 #include "core/include/ConfigNode.h"
 #include "vehicle/test/include/MockDevice.h"
+#include "vehicle/test/include/MockIMU.h"
 
 using namespace ram;
 
@@ -45,6 +47,24 @@ TEST(DeviceCreation)
 	
 	CHECK_EQUAL("IMU", veh->getDevice("IMU")->getName());
 	CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
+}
+
+TEST_FIXTURE(VehicleFixture, IMU)
+{
+	MockIMU* imu = new MockIMU("IMU");
+    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    
+    math::Vector3 accel(1,2,3);
+    math::Vector3 angularRate(4,5,6);
+    math::Quaternion orientation(7,8,9,10);
+    
+    imu->linearAcceleration = accel;
+    imu->angularRate = angularRate;
+    imu->orientation = orientation;
+    
+    CHECK_EQUAL(accel, veh->getLinearAcceleration());
+    CHECK_EQUAL(angularRate, veh->getAngularRate());
+    CHECK_EQUAL(orientation, veh->getOrientation());
 }
 
 TEST_FIXTURE(VehicleFixture, _addDevice)
