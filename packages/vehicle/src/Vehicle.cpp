@@ -55,6 +55,8 @@ Vehicle::Vehicle(core::ConfigNode config) :
     else
     {    
         syncBoard(m_sensorFD);
+        /// @TODO Check to see if we are already unsafed, and if we are don't 
+        // try to unsafe again.  If we aren't unsafe, and sleep.
         unsafeThrusters();
     }
     
@@ -94,7 +96,11 @@ Vehicle::Vehicle(core::ConfigNode config) :
 }
 
 Vehicle::~Vehicle()
-{
+{	
+	// For safeties sake send a zero torque and force command which will kill
+	// any current thruster power
+	applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+	
     // Remove all references to the devices, will cause them to be destructed
     // this will cause the Thruster objects to be deleted and set the 
     // thrusters to nuetral.  The lone problem here is that these objects are
@@ -102,10 +108,14 @@ Vehicle::~Vehicle()
     // references  floating around keeping the object from being destoryed.
     m_devices.clear();
 
-    safeThrusters();
+    //safeThrusters();
+    
+	// Stop all background threads (does not include device background threads)
+	unbackground(true);
     
     if (m_sensorFD >= 0)
         close(m_sensorFD);
+    
 }
     
 device::IDevicePtr Vehicle::getDevice(std::string name)
@@ -280,6 +290,29 @@ void Vehicle::update(double timestep)
         std::copy(temps, &temps[NUM_TEMP_SENSORS - 1] + 1,
                   m_state.temperatures.begin());
     }
+}
+
+void Vehicle::background(int interval) 
+{
+	BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+	{
+		device::IDevicePtr device(pair.second);
+		core::ConfigNode devCfg(m_config["Devices"][device->getName()]);
+		if (devCfg.exists("update_intervale"))
+			device->background(devCfg["update_interval"].asInt());
+	}
+	
+    Updatable::background(interval);
+}
+ 
+void Vehicle::unbackground(bool join) 
+{
+	BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+	{
+		pair.second->unbackground(join);
+	}
+
+    Updatable::unbackground(join);
 }
 
 void Vehicle::calibrateDepth()

@@ -72,13 +72,10 @@ public:
     /** This is <b>NOT</b> thread safe */
     virtual void _addDevice(device::IDevicePtr device);
 
-    virtual void background(int interval) {
-        Updatable::background(interval);
-    };
+    virtual void background(int interval);
     
-    virtual void unbackground(bool join = false) {
-        Updatable::unbackground(join);
-    };
+    virtual void unbackground(bool join = false);
+    
     virtual bool backgrounded() {
         return Updatable::backgrounded();
     };

@@ -86,8 +86,8 @@ void Thruster::setForce(double force)
 
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_forceMutex);
-	m_force = force;
-	m_motorCount = motorCount;
+        m_force = force;
+        m_motorCount = motorCount;
     }
 
 

@@ -63,15 +63,17 @@ ThrusterCommunicator::ThrusterCommunicator() :
 }
 
 ThrusterCommunicator::~ThrusterCommunicator()
-{
-    close(m_serialFD);
-    
+{   
     // Process all pending messages, then shutdown message thread
     processCommands();
     
     unbackground(true);
     // close my serial port FD here
     std::cout << "Thruster Communicator Shutdown" << std::endl;
+    
+    // Finally shutdown the device
+    if (m_serialFD >= 0)
+    	close(m_serialFD);
 }
     
 void ThrusterCommunicator::registerThruster(Thruster* thruster)
