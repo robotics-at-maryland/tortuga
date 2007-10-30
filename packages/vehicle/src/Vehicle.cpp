@@ -19,6 +19,7 @@
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/include/device/IThruster.h"
 #include "vehicle/include/device/IIMU.h"
 #include "sensorapi/include/sensorapi.h"
@@ -77,6 +78,19 @@ Vehicle::Vehicle(core::ConfigNode config) :
     
     // Allocate space for temperate readings
     m_state.temperatures.reserve(NUM_TEMP_SENSORS);
+    
+    // Create devices
+    if (config.exists("Devices"))
+    {
+	    core::NodeNameList subnodes = config["Devices"].subNodes();
+	    BOOST_FOREACH(std::string nodeName, subnodes)
+	    {
+	    	core::ConfigNode node(config["Devices"][nodeName]);
+	    	node.set("name", nodeName);
+	    	device::IDevicePtr device(device::IDeviceMaker::newObject(node));
+	    	_addDevice(device);
+	    }
+    }
 }
 
 Vehicle::~Vehicle()

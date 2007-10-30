@@ -33,6 +33,20 @@ struct VehicleFixture
     vehicle::Vehicle* veh;
 };
 
+TEST(DeviceCreation)
+{
+	std::string config =  "{'depthCalibSlope':33.01,'depthCalibIntercept':94,"
+			"'Devices' : {"
+				"'IMU' : {'type' : 'MockDevice'},"
+				"'PSU' : {'type' : 'MockDevice'}"
+			"} }";
+	vehicle::IVehicle* veh = 
+		new vehicle::Vehicle(core::ConfigNode::fromString(config));
+	
+	CHECK_EQUAL("IMU", veh->getDevice("IMU")->getName());
+	CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
+}
+
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {
     boost::shared_ptr<MockDevice> mockDevice(new MockDevice("TestName"));
