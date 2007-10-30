@@ -36,7 +36,7 @@
 
 
 #define MYPORT 9219 /*YOUR PORT HERE*/
-                /* the port users will be connecting to */
+/* the port users will be connecting to */
 
 #define BACKLOG 10  /* how many pending connections queue will hold */
 
@@ -106,7 +106,7 @@ void networkLoop(control::IController* controller);
  * @return If false it means an emergency shutdown command was sent
  */
 bool processMessage(control::IController* controller, unsigned char cmd, 
-					signed char param=0);
+        signed char param=0);
 
 int main(int argc, char** argv)
 {
@@ -117,10 +117,10 @@ int main(int argc, char** argv)
     try
     {
         desc.add_options()
-            ("help", "produce help message")
-            ("configpath", po::value<std::string>(&configPath)->default_value("config.yml"),
-             "config file path")
-        ;
+        ("help", "produce help message")
+        ("configpath", po::value<std::string>(&configPath)->default_value("config.yml"),
+                "config file path")
+                ;
 
         po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
@@ -151,20 +151,20 @@ int main(int argc, char** argv)
 
     // Start the vehicle running in the background
     vehicle.background(veh_cfg["update_interval"].asInt());
-    
+
     // Got into networking loop
     networkLoop(&controller);
 };
 
 void shutdownHandler(int i)
 {
-	if (SIGALRM == i)
-		printf("\nKeep-alive timer expired!\n");
-	else
-		printf("\nCtrl-C Pressed, shutting down\n");
+    if (SIGALRM == i)
+        printf("\nKeep-alive timer expired!\n");
+    else
+        printf("\nCtrl-C Pressed, shutting down\n");
     g_running = false;
     close(g_teleopFD);
-    
+
     // Turn off the alarm signal handler
     signal(SIGALRM, SIG_DFL);
 }
@@ -172,207 +172,207 @@ void shutdownHandler(int i)
 
 int setupNetworking(struct sockaddr_in& my_addr)
 {
-	// listen on sock_fd
-	int sockfd;
+    // listen on sock_fd
+    int sockfd;
 
-	// Grab socket to listen on
-	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	{
-	    perror("socket");
-	    return sockfd;
-	}
+    // Grab socket to listen on
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        perror("socket");
+        return sockfd;
+    }
 
-	// Setup my address information
-	memset((void *)&my_addr,0,sizeof(my_addr)); /*zero*/
-	my_addr.sin_family = AF_INET;      /* host byte order */
-	my_addr.sin_port = htons(MYPORT);  /* short, network byte order */
-	my_addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP */
+    // Setup my address information
+    memset((void *)&my_addr,0,sizeof(my_addr)); /*zero*/
+    my_addr.sin_family = AF_INET;      /* host byte order */
+    my_addr.sin_port = htons(MYPORT);  /* short, network byte order */
+    my_addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP */
 
-	// Bind the socket to the address
-	int ret = bind(sockfd,(struct sockaddr *)&my_addr,sizeof(struct sockaddr));
-	if (ret < 0)
-	{
-		perror("bind");
-	    return ret;
-	}
-	
-	// Prepare socket for to accept incomming connections
-	ret = listen(sockfd, BACKLOG);
-	if (ret < 0)
-	{
-		perror("listen");
-		return ret;
-	}
+    // Bind the socket to the address
+    int ret = bind(sockfd,(struct sockaddr *)&my_addr,sizeof(struct sockaddr));
+    if (ret < 0)
+    {
+        perror("bind");
+        return ret;
+    }
 
-	return sockfd;
+    // Prepare socket for to accept incomming connections
+    ret = listen(sockfd, BACKLOG);
+    if (ret < 0)
+    {
+        perror("listen");
+        return ret;
+    }
+
+    return sockfd;
 }
 
 void networkLoop(control::IController* controller)
 {
-	struct sockaddr_in my_addr;
-	int sockfd = setupNetworking(my_addr);
-	if (sockfd < 0)
-	{
-		printf("Error setting up networking\n");
-		return;
-	}
-	
-	// Setup deadman timer and CTRL-C handler
-	signal(SIGALRM, shutdownHandler);
-	signal(SIGINT, shutdownHandler);
-	
+    struct sockaddr_in my_addr;
+    int sockfd = setupNetworking(my_addr);
+    if (sockfd < 0)
+    {
+        printf("Error setting up networking\n");
+        return;
+    }
+
+    // Setup deadman timer and CTRL-C handler
+    signal(SIGALRM, shutdownHandler);
+    signal(SIGINT, shutdownHandler);
+
     while(g_running)
     {
-    	struct sockaddr_in their_addr;
-    
-    	printf("server: waiting for connections...\n");
-    	
-    	// Recored the FD to allow external shutdown
-    	g_teleopFD = sockfd;
-    	
-    	// Wait for a connection
+        struct sockaddr_in their_addr;
+
+        printf("server: waiting for connections...\n");
+
+        // Recored the FD to allow external shutdown
+        g_teleopFD = sockfd;
+
+        // Wait for a connection
         int sin_size = sizeof(struct sockaddr_in);
         int new_fd = accept(sockfd, (struct sockaddr *)&their_addr, (socklen_t *) &sin_size);
-        
+
         // Error with connection, try again
         if (new_fd < 0) {
-              perror("accept");
-              continue;
+            perror("accept");
+            continue;
         }
-        
+
         printf("server: got connection\n");
 
         // Activate deadman timer
         alarm(DEADMAN_WAIT);
-        
-    	// Got connection, jump into recive loop
-    	while(g_running)
-    	{
-    		// Record the current waited on FD to allow us to drop out of 'recv'
-    		g_teleopFD = new_fd;
-    		
-    		// Wait for command packet
-    		signed char buf[2];
+
+        // Got connection, jump into recive loop
+        while(g_running)
+        {
+            // Record the current waited on FD to allow us to drop out of 'recv'
+            g_teleopFD = new_fd;
+
+            // Wait for command packet
+            signed char buf[2];
             if(recv(new_fd, buf, 2, 0) != 2)
             {
-            	 // If error from network drop out of receive loop
-                 printf("Error reading from network\n");
-                 break;
+                // If error from network drop out of receive loop
+                printf("Error reading from network\n");
+                break;
             }
-            
+
             unsigned char cmd = buf[0];
             signed char param = buf[1];
 
-        	// Reset the deadman timer
-        	alarm(DEADMAN_WAIT);
-            
-    		// Process Packet (If quit message drop out of loop, stop running)
+            // Reset the deadman timer
+            alarm(DEADMAN_WAIT);
+
+            // Process Packet (If quit message drop out of loop, stop running)
             g_running = processMessage(controller, cmd, param);
-    	}
-    	
-    	// Close old fd
-    	close(new_fd);
- 
-    	printf("server: lost connection\n");
+        }
+
+        // Close old fd
+        close(new_fd);
+
+        printf("server: lost connection\n");
     }
 }
 
 
 bool processMessage(control::IController* controller, unsigned char cmd, 
-					signed char param)
+        signed char param)
 {
-	switch(cmd)
-	{
-		case CMD_EMERGSTOP:
-		{
-			printf("Emergency stop received\n");
-			// Return false to stop the main network loop
-			return false;
-			break;
-		}
-	
-		case CMD_TURNLEFT:
-		{
-			printf("Yaw left\n");
-			controller->yawVehicle(TURN_ENC);
-			break;
-		}
-	
-		case CMD_TURNRIGHT:
-		{
-			printf("Yaw right\n");
-			controller->yawVehicle(-TURN_ENC);
-			break;
-		}
-	
-		case CMD_INCSPEED:
-		{
-			if(controller->getSpeed() < MAX_SPEED)
-				controller->setSpeed(controller->getSpeed()+SPEED_ENC);
-	
-			printf("\nNEW SPEED:  %d\n", controller->getSpeed());
-			break;
-		}
-	
-		case CMD_DECSPEED:
-		{
-			if(controller->getSpeed() > MIN_SPEED)
-				controller->setSpeed(controller->getSpeed()-SPEED_ENC);
-	
-			printf("\nNEW SPEED:  %d\n", controller->getSpeed());
-			break;
-		}
-	
-		case CMD_DESCEND:
-		{
-			if(controller->getDepth() < MAX_DEPTH)
-				controller->setDepth(controller->getDepth()+DEPTH_ENC);
-	
-			printf("NEW DEPTH: %f\n", controller->getDepth());
-			break;
-		}
-	
-		case CMD_ASCEND:
-		{
-			if(controller->getDepth() > MIN_DEPTH)
-				controller->setDepth(controller->getDepth()-DEPTH_ENC);
-	
-	
-			printf("NEW DEPTH: %f\n", controller->getDepth());
-			break;
-		}
-	
-		case CMD_ZEROSPEED:
-		{
-			controller->setSpeed(0);
-			printf("\nNEW SPEED:  %d\n", controller->getSpeed());
-			break;
-		}
-	
-		case CMD_SETSPEED:
-		{
-			if(param <= MAX_SPEED && param >= MIN_SPEED)
-			{
-				controller->setSpeed(param);
-				printf("\nNEW SPEED:  %d\n", controller->getSpeed());
-			} else
-			{
-				printf("\nINVALID NEW SPEED: %d\n", param);
-			}
-		}
-		
-		case CMD_NOTHING:
-		{
-			// Ignore, just sent to keep the connection alive
-			break;
-		}
-		
-		default:
-		{
-			printf("Invalide network command type: %c\n", cmd);
-		}
-	}
-	
-	// Return true to keep running
-	return true;
+    switch(cmd)
+    {
+        case CMD_EMERGSTOP:
+        {
+            printf("Emergency stop received\n");
+            // Return false to stop the main network loop
+            return false;
+            break;
+        }
+    
+        case CMD_TURNLEFT:
+        {
+            printf("Yaw left\n");
+            controller->yawVehicle(TURN_ENC);
+            break;
+        }
+    
+        case CMD_TURNRIGHT:
+        {
+            printf("Yaw right\n");
+            controller->yawVehicle(-TURN_ENC);
+            break;
+        }
+    
+        case CMD_INCSPEED:
+        {
+            if(controller->getSpeed() < MAX_SPEED)
+                controller->setSpeed(controller->getSpeed()+SPEED_ENC);
+    
+            printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+            break;
+        }
+    
+        case CMD_DECSPEED:
+        {
+            if(controller->getSpeed() > MIN_SPEED)
+                controller->setSpeed(controller->getSpeed()-SPEED_ENC);
+    
+            printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+            break;
+        }
+    
+        case CMD_DESCEND:
+        {
+            if(controller->getDepth() < MAX_DEPTH)
+                controller->setDepth(controller->getDepth()+DEPTH_ENC);
+    
+            printf("NEW DEPTH: %f\n", controller->getDepth());
+            break;
+        }
+    
+        case CMD_ASCEND:
+        {
+            if(controller->getDepth() > MIN_DEPTH)
+                controller->setDepth(controller->getDepth()-DEPTH_ENC);
+    
+    
+            printf("NEW DEPTH: %f\n", controller->getDepth());
+            break;
+        }
+    
+        case CMD_ZEROSPEED:
+        {
+            controller->setSpeed(0);
+            printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+            break;
+        }
+    
+        case CMD_SETSPEED:
+        {
+            if(param <= MAX_SPEED && param >= MIN_SPEED)
+            {
+                controller->setSpeed(param);
+                printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+            } else
+            {
+                printf("\nINVALID NEW SPEED: %d\n", param);
+            }
+        }
+    
+        case CMD_NOTHING:
+        {
+            // Ignore, just sent to keep the connection alive
+            break;
+        }
+    
+        default:
+        {
+            printf("Invalide network command type: %c\n", cmd);
+        }
+    }
+
+    // Return true to keep running
+    return true;
 }

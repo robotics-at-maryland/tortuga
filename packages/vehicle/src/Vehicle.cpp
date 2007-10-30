@@ -84,25 +84,25 @@ Vehicle::Vehicle(core::ConfigNode config) :
     // Create devices
     if (config.exists("Devices"))
     {
-	    core::NodeNameList subnodes = config["Devices"].subNodes();
-	    BOOST_FOREACH(std::string nodeName, subnodes)
-	    {
-	    	core::ConfigNode node(config["Devices"][nodeName]);
-	    	node.set("name", nodeName);
-	    	std::cout << "Creating device " << node["name"].asString()
-	    		<< " of type: " << node["type"].asString() << std::endl;
-	    	device::IDevicePtr device(device::IDeviceMaker::newObject(node));
-	    	_addDevice(device);
-	    }
+        core::NodeNameList subnodes = config["Devices"].subNodes();
+        BOOST_FOREACH(std::string nodeName, subnodes)
+        {
+            core::ConfigNode node(config["Devices"][nodeName]);
+            node.set("name", nodeName);
+            std::cout << "Creating device " << node["name"].asString()
+                << " of type: " << node["type"].asString() << std::endl;
+            device::IDevicePtr device(device::IDeviceMaker::newObject(node));
+            _addDevice(device);
+        }
     }
 }
 
 Vehicle::~Vehicle()
-{	
-	// For safeties sake send a zero torque and force command which will kill
-	// any current thruster power
-	applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
-	
+{    
+    // For safeties sake send a zero torque and force command which will kill
+    // any current thruster power
+    applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+    
     // Remove all references to the devices, will cause them to be destructed
     // this will cause the Thruster objects to be deleted and set the 
     // thrusters to nuetral.  The lone problem here is that these objects are
@@ -112,8 +112,8 @@ Vehicle::~Vehicle()
 
     //safeThrusters();
     
-	// Stop all background threads (does not include device background threads)
-	unbackground(true);
+    // Stop all background threads (does not include device background threads)
+    unbackground(true);
     
     if (m_sensorFD >= 0)
         close(m_sensorFD);
@@ -229,14 +229,14 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 
     if (m_devices.end() != m_devices.find(m_starboardThruster))
     {
-	    device::IDevice::castTo<device::IThruster>(
-	        getDevice(m_starboardThruster))->setForce(star);
-	    device::IDevice::castTo<device::IThruster>(
-	        getDevice(m_portThruster))->setForce(port);
-	    device::IDevice::castTo<device::IThruster>(
-	        getDevice(m_foreThruster))->setForce(fore);
-	    device::IDevice::castTo<device::IThruster>(
-	        getDevice(m_aftThruster))->setForce(aft);
+        device::IDevice::castTo<device::IThruster>(
+            getDevice(m_starboardThruster))->setForce(star);
+        device::IDevice::castTo<device::IThruster>(
+            getDevice(m_portThruster))->setForce(port);
+        device::IDevice::castTo<device::IThruster>(
+            getDevice(m_foreThruster))->setForce(fore);
+        device::IDevice::castTo<device::IThruster>(
+            getDevice(m_aftThruster))->setForce(aft);
     }
 }
     
@@ -299,23 +299,23 @@ void Vehicle::update(double timestep)
 
 void Vehicle::background(int interval) 
 {
-	BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
-	{
-		device::IDevicePtr device(pair.second);
-		core::ConfigNode devCfg(m_config["Devices"][device->getName()]);
-		if (devCfg.exists("update_intervale"))
-			device->background(devCfg["update_interval"].asInt());
-	}
-	
+    BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+    {
+        device::IDevicePtr device(pair.second);
+        core::ConfigNode devCfg(m_config["Devices"][device->getName()]);
+        if (devCfg.exists("update_intervale"))
+            device->background(devCfg["update_interval"].asInt());
+    }
+    
     Updatable::background(interval);
 }
  
 void Vehicle::unbackground(bool join) 
 {
-	BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
-	{
-		pair.second->unbackground(join);
-	}
+    BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+    {
+        pair.second->unbackground(join);
+    }
 
     Updatable::unbackground(join);
 }
