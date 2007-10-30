@@ -60,6 +60,13 @@ NodeNameList ConfigNode::subNodes()
     return m_impl->subNodes();
 }
 
+bool ConfigNode::exists(std::string name)
+{
+	NodeNameList nodes = subNodes();
+	NodeNameListIter result = nodes.find(name);
+	return (nodes.end() != result);
+}
+
 void ConfigNode::set(std::string key, std::string str)
 {
     m_impl->set(key, str);

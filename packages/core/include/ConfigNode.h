@@ -62,6 +62,9 @@ public:
     /** Returns the list of sub nodes of the current config node */
     NodeNameList subNodes();
     
+    /** Whether or not a subnode actually exists */
+    bool exists(std::string name);
+    
     /** Map a value to the the give string inside a config node */
     void set(std::string key, std::string str);
              
