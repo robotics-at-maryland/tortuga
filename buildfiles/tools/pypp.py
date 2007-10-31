@@ -121,7 +121,13 @@ def build_module(env, target, source): #, actual_target = None):
 
     target_dir = os.path.join('build_ext','ext')
     target_name = target_dir + '/' + target_base
-    extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='')
+    
+    suffix = '.dll'
+    if os.name == 'posix':
+        suffix = '.so'
+
+    extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='',
+                                      SHLIBSUFFIX = suffix)
 
     # Run the tests
     if not tester is None:

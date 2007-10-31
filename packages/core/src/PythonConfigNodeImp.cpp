@@ -12,7 +12,9 @@
 //#include <Python.h>
 
 // Project Includes
+#ifdef RAM_WINDOWS
 #pragma warning( disable : 4121 )
+#endif 
 #include "core/include/PythonConfigNodeImp.h"
 
 
