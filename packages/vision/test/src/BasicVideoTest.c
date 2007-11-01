@@ -1,6 +1,6 @@
 
 
-#include <cv.h>
+#include "cv.h"
 #include "highgui.h"
 #include <stdio.h>
 
@@ -8,13 +8,30 @@
 // A Simple Camera Capture Framework
 int main(int argc, char** argv) {
     CvCapture* capture = 0;
+	IplImage* image = 0;
+	CvVideoWriter* writer = 0;
 
     if (2 != argc)
     {
         fprintf(stderr, "Argument error\nUsage: BasicVideoTest <video_file>\n");
         return -1;
     }
-    
+
+	image = cvLoadImage(argv[1], 1);
+    if (image)
+	{
+		int i = 0;
+		fprintf(stderr, "Creating video from image." );
+		writer = cvCreateVideoWriter("out.avi", -1, 24, cvGetSize(image), 1);
+		for (i=0;i<24*3;i++)
+		{
+			cvWriteFrame(writer, image);
+		}
+		cvReleaseVideoWriter(&writer);
+		fprintf(stderr, "Done." );
+		return 0;
+	}
+
     capture = cvCaptureFromFile( argv[1]);
     if( !capture )
     {
@@ -32,8 +49,8 @@ int main(int argc, char** argv) {
     printf("\tFPS:    %f\n", cvGetCaptureProperty(capture,
                                                   CV_CAP_PROP_FPS));
     // Create a window in which the captured images will be p     resented
-    cvNamedWindow( "Raw Camera Image", CV_WINDOW_AUTOSIZE );
-    // cvNamedWindow( "Processed", CV_WINDOW_AUTOSIZE );  
+    
+    cvNamedWindow( "Raw Camera Image", CV_WINDOW_AUTOSIZE );  
     
     //     Show the image captured from the camera in the window and repeat
     while(1) {
