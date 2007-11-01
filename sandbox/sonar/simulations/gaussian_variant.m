@@ -1,5 +1,6 @@
-function pos = gaussian_variant(source_pos, hydro_pos, hydro_pos_accuracy, tdoa_accuracy)
-% Localize using noisy hydrophone positions and TDOA estimates
+function tdoas = gaussian_variant(source_pos, hydro_pos, hydro_pos_accuracy, tdoa_accuracy)
+% GAUSSIAN_VARIANT
+%    Return simulated noisy TDOAs
 
 % If the matrix begins with a zero-filled row, strip it out
 if all(hydro_pos(1,:)==[0,0,0])
@@ -18,5 +19,4 @@ range = sqrt(dot(range,range,2));
 range0 = range0 + randn_renormalized(0, tdoa_accuracy, 1);
 range = range + randn_renormalized(0, tdoa_accuracy, [m,1]);
 tdoas = range - range0;
-
-pos = localize(hydro_pos, tdoas);
+tdoas = tdoas';

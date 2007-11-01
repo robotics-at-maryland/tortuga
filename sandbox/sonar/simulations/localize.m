@@ -12,6 +12,6 @@ m = m(1);
 
 A(1:m,1:3) = hydro_pos;
 A(1:m,4) = tdoas;
-b = 0.5 * (dot(hydro_pos, hydro_pos, 2) - tdoas .^2);
+b = 0.5 * (dot(hydro_pos, hydro_pos, 2) - tdoas' .^2);
 x = pinv(A)*b;
-pos = x(1:3);
+pos = (x(1:3))';
