@@ -4,6 +4,12 @@
 
 #include "sensorapi.h"
 
+/*
+ Depth
+// Temp
+
+
+ */
 int main(int argc, char ** argv)
 {
     printf("\nHello World\n");
@@ -13,18 +19,31 @@ int main(int argc, char ** argv)
     printf("\n");
 
     int ret = 0, err=0, i=0;
-
-    for(i=0; i<500; i++)
+/*
+    for(i=0; i<1000; i++)
     {
+        printf("Depth: %d\n", readDepth(fd));
+    }
+    */
 
-        ret = setSpeeds(fd, 0,i,0,0);
-        printf("Speed result = %d\n", ret);
-        usleep(15 * 1000);
+    for(i=0; i<1000; i++)
+    {
+        //printf("MC result = %d\n", ret);
 
+        ret = setSpeeds(fd, 0,0,0,0);
+
+        ret = readDepth(fd);
+        printf("Depth: %d\n", ret);
+
+//        usleep(15 * 1000);
+    //    printf("Speed result = %d\n", ret);
+
+
+        //usleep(12 * 1000);
+        usleep(8500);
         ret = readSpeedResponses(fd);
         if(ret != 0)
             err++;
-        printf("MC result = %d\n", ret);
     }
 
     usleep(15 * 1000);

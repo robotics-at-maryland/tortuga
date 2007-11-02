@@ -457,10 +457,28 @@ int readSpeedResponses(int fd)
     This only looks at one motor controller because I only have one attached at the moment
     */
 
-    if(buf[2] == 0x06)
-        return SB_OK;
+    int errCount=0;
 
-    return SB_ERROR;
+    if(buf[1] != 0x06)
+        errCount++;
+
+    if(buf[2] != 0x06)
+        errCount++;
+
+    if(buf[3] != 0x06)
+        errCount++;
+
+    if(buf[4] != 0x06)
+        errCount++;
+
+    if(errCount != 0)
+    {
+        printf("\t Got: %02x %02x %02x %02x\n", buf[1], buf[2], buf[3], buf[4]);
+        return SB_ERROR;
+    }
+
+    return SB_OK;
+
 }
 
 
