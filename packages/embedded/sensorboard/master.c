@@ -1,7 +1,7 @@
 #include <p30fxxxx.h>
 #include "buscodes.h"
 #include <stdio.h>
-
+  
 #define SENSORBOARD_IC1
 #include "uart.c"
 

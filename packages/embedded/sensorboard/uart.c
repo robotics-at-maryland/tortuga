@@ -76,6 +76,8 @@ The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
 #ifdef SENSORBOARD_IC4
     /* PGD and PGC, pin 3 = tx */
     #define HAS_U1
+
+                    // 48 for PLL4
     #define U1_BRG 11
     #define U1_MM_ADDR 0x01
     /* U2 available, but not conveliently placed */

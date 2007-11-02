@@ -6,7 +6,7 @@
 #include "uart.c"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & ECIO );
+_FOSC( CSW_FSCM_OFF & ECIO); //EC_PLL4); //ECIO );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
@@ -479,7 +479,9 @@ void disableBusInterrupt()
 void initCN()
 {
     enableBusInterrupt();
-    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
+//    IPC2bits.U1TXIP = 7;
+//    IPC2bits.U1RXIP = 7;
+    IPC3bits.CNIP = 1;      /* Raise CN interrupt priority above ADC */
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 }
