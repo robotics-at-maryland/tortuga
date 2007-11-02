@@ -1,4 +1,5 @@
 function [X,Y,Z,V] = plot_crlb(filename)
+config;
 posticks = -30:3:30;
 depthticks = -30:20:30;
 [X,Y,Z]=meshgrid(posticks,posticks,depthticks);
