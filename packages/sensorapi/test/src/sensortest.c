@@ -26,11 +26,11 @@ int main(int argc, char ** argv)
     }
     */
 
-    for(i=0; i<1000; i++)
+    for(i=0; i<1000; i+=2)
     {
         //printf("MC result = %d\n", ret);
 
-        ret = setSpeeds(fd, 0,0,0,0);
+        ret = setSpeeds(fd, i/3,i/3,i/3,i/3);
 
         ret = readDepth(fd);
         printf("Depth: %d\n", ret);
