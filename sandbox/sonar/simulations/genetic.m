@@ -19,7 +19,7 @@ hydro_actual(4,2) = hydro_old(4,2) + y0;
 hydro_actual
 hydro_new = hydro_old;
 z0 = 0; y0 =0;
-iterations = 200;
+iterations = 500;
 save_matrix_test = 1;
 save_num = 1;
 %the save_matrix stores not only hydro_actual, but also the implicit (0,0,0)
