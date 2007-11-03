@@ -40,6 +40,7 @@ int main(int argc, char ** argv)
 	    return -1;
     }
 
+//    int fd = openSensorBoard("/dev/sensor");
     int fd = openSensorBoard("/dev/sensor");
 
 
@@ -89,14 +90,15 @@ int main(int argc, char ** argv)
         else
         {
             printf("\nStatus: 0x%02X\n", ret);
-            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
+            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
                 (ret & STATUS_WATER) ? "Water present" : "No water detected.",
                 (ret & STATUS_STARTSW) ? "Start switch on" : "Start switch off",
                 (ret & STATUS_KILLSW) ? "Kill magnet present" : "No kill magnet",
                 (ret & STATUS_BATT1) ? "Battery 1 active" : "Battery 1 inactive",
                 (ret & STATUS_BATT2) ? "Battery 2 active" : "Battery 2 inactive",
                 (ret & STATUS_BATT3) ? "Battery 3 active" : "Battery 3 inactive",
-                (ret & STATUS_BATT4) ? "Battery 4 active" : "Battery 4 inactive");
+                (ret & STATUS_BATT4) ? "Battery 4 active" : "Battery 4 inactive",
+                (ret & STATUS_MYSTERYBIT) ? "Mystery bit set" : "Mystery bit cleared");
         }
 
         ret = readThrusterState(fd);
