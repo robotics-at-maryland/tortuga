@@ -1,6 +1,6 @@
 function pos = localize_iterative(hydro_pos, tdoas)
 % Find source position by one-step least squares algorithm, based on
-% Huang's paper.
+% Ho's paper.
 
 near_field = true;
 num_iters = 2;
@@ -48,7 +48,7 @@ B2 = 2 * diag(th1);
 
 h2 = th1 .^ 2;
 
-W2 = inv(B2 * covth1 * B2');
+W2 = inv(B2*covth1*B2');
 
 % can be precomputed
 G2 = eye(3);
