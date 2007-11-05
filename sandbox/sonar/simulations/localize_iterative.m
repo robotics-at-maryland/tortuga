@@ -37,7 +37,7 @@ if near_field
   for i = 1:num_iters
     dists = hydro_pos - repmat(th1(1:3)',m,1);
     B1 = 2 * diag(sqrt(dot(dists,dists,2)));
-    W1 = inv(B1*Q*B1');
+    W1 = inv(B1*Q*B1);
     th1 = inv(G1'*W1*G1)*G1'*W1*h1;
   end
 end
@@ -48,7 +48,7 @@ B2 = 2 * diag(th1);
 
 h2 = th1 .^ 2;
 
-W2 = inv(B2*covth1*B2');
+W2 = inv(B2*covth1*B2);
 
 % can be precomputed
 G2 = eye(3);
@@ -66,7 +66,7 @@ if near_field
   for i = 1:num_iters
     B2 = 2 * diag(th);
     B2(4,4) = 2 * sqrt(dot(th,th));
-    W2 = inv(B2*covth1*B2');
+    W2 = inv(B2*covth1*B2);
     th2 = inv(G2'*W2*G2)*G2'*W2*h2;
     % get rid of imaginary components
     th2 = max(th2,0);
@@ -78,6 +78,7 @@ B3 = B2(1:3,1:3);
 
 covth2 = inv(G2'*W2*G2);
 
-covth = inv(B3)*covth2*inv(B3');
+invB3 = inv(B3);
+covth = invB3*covth2*invB3;
 
 pos = th';
