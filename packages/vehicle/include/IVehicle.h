@@ -62,7 +62,9 @@ public:
 
     /** Combines the given force and torque into motor forces the applies them
 
-        @note   All force in <b>NEWTONS</b>
+        @note   All force in <b>NEWTONS</b> and applied in Vehicle's local
+                coordinate frame.  This means, a force of [1,0,0] will cause
+                produce positive thrust on port and starboard thrusters.
         
         @param  force   Translation force vector
         @param  torque  Rotational torque vector
