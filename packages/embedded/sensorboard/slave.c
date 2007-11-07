@@ -478,8 +478,6 @@ void disableBusInterrupt()
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
-
-// #error this has not been tested on hardware
     enableBusInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
