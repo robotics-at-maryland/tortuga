@@ -479,7 +479,7 @@ void disableBusInterrupt()
 void initCN()
 {
 
-#error this has not been tested on hardware
+// #error this has not been tested on hardware
     enableBusInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
@@ -523,7 +523,7 @@ void _ISR _CNInterrupt(void)
 }
 
 
-int depthArray[10];
+int depthArray[100];
 int dp=0;
 
 void _ISR _ADCInterrupt(void)
@@ -535,14 +535,14 @@ void _ISR _ADCInterrupt(void)
 
 
     depthArray[dp++] = ADCBUF0;
-    if(dp >= 10)
+    if(dp >= 100)
         dp=0;
 
     ad = 0;
-    for(i=0; i<10; i++)
+    for(i=0; i<100; i++)
         ad+= depthArray[i];
 
-    ad /= 10;
+    ad /= 100;
 
 
     /*

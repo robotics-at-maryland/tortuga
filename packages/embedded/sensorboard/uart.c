@@ -79,6 +79,7 @@ The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
 
                     // 48 for PLL4
     #define U1_BRG 11
+//     #define U1_MM_ADDR 0x03
     #define U1_MM_ADDR 0x01
     /* U2 available, but not conveliently placed */
 #endif

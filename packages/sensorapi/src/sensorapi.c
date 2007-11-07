@@ -461,7 +461,7 @@ int readSpeedResponses(int fd)
 
     if(buf[1] != 0x06)
         errCount++;
-
+/*
     if(buf[2] != 0x06)
         errCount++;
 
@@ -470,7 +470,7 @@ int readSpeedResponses(int fd)
 
     if(buf[4] != 0x06)
         errCount++;
-
+*/
     if(errCount != 0)
     {
         printf("\t Got: %02x %02x %02x %02x\n", buf[1], buf[2], buf[3], buf[4]);

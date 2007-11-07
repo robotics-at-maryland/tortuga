@@ -1,8 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h> // for usleep
+#include <time.h>
+#include <sys/time.h>
 
 #include "sensorapi.h"
+
+
+
 
 /*
  Depth
@@ -14,9 +19,13 @@ int main(int argc, char ** argv)
 {
     printf("\nHello World\n");
 
-    int fd = openSensorBoard("/dev/sensor");
+    int fd = openSensorBoard("/dev/ttyUSB0");
     printf("\nSyncBoard says: %d", syncBoard(fd));
     printf("\n");
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
 
     int ret = 0, err=0, i=0;
 /*
@@ -26,7 +35,7 @@ int main(int argc, char ** argv)
     }
     */
 
-    for(i=0; i<1000; i+=2)
+    for(i=0; i<1000; i++)
     {
         //printf("MC result = %d\n", ret);
 
@@ -38,9 +47,16 @@ int main(int argc, char ** argv)
 //        usleep(15 * 1000);
     //    printf("Speed result = %d\n", ret);
 
+        gettimeofday(&tv, NULL);
+        int stv = tv.tv_usec;
 
-        //usleep(12 * 1000);
-        usleep(8500);
+        usleep(12 * 1000);
+
+        gettimeofday(&tv, NULL);
+//         printf("Actually slept for %ld usec\n", tv.tv_usec - stv);
+
+
+       // usleep(8500);
         ret = readSpeedResponses(fd);
         if(ret != 0)
             err++;

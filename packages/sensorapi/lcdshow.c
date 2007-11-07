@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
     }
 
 //    int fd = openSensorBoard("/dev/sensor");
-    int fd = openSensorBoard("/dev/sensor");
+    int fd = openSensorBoard("/dev/ttyUSB0");
 
 
     if(fd == -1)
