@@ -478,10 +478,14 @@ void disableBusInterrupt()
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
+
+#error this has not been tested on hardware
     enableBusInterrupt();
-//    IPC2bits.U1TXIP = 7;
-//    IPC2bits.U1RXIP = 7;
-    IPC3bits.CNIP = 1;      /* Raise CN interrupt priority above ADC */
+    IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
+    IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
+    IPC3bits.CNIP = 4;      /* Bus at priority 4 */
+    IPC2bits.ADIP = 2;      /* ADC at priority 2 */
+
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 }
@@ -519,7 +523,7 @@ void _ISR _CNInterrupt(void)
 }
 
 
-int depthArray[100];
+int depthArray[10];
 int dp=0;
 
 void _ISR _ADCInterrupt(void)
@@ -531,14 +535,14 @@ void _ISR _ADCInterrupt(void)
 
 
     depthArray[dp++] = ADCBUF0;
-    if(dp >= 100)
+    if(dp >= 10)
         dp=0;
 
     ad = 0;
-    for(i=0; i<100; i++)
+    for(i=0; i<10; i++)
         ad+= depthArray[i];
 
-    ad /= 100;
+    ad /= 10;
 
 
     /*
@@ -546,9 +550,9 @@ void _ISR _ADCInterrupt(void)
      * Maybe some interrupt bits need to be dealt with. Since average depth is only a 16-bit
      * value, the assignment operation is atomic and there should be no data race here.
      */
-    disableBusInterrupt();
+//     disableBusInterrupt();
     avgDepth = ad;
-    enableBusInterrupt();
+//     enableBusInterrupt();
 }
 
 /*
