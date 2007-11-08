@@ -3,46 +3,35 @@
 #include <unistd.h> // for usleep
 #include <time.h>
 #include <sys/time.h>
-
 #include "sensorapi.h"
 
 
-
-
-/*
- Depth
-// Temp
-
-
- */
 int main(int argc, char ** argv)
 {
-    printf("\nHello World\n");
+    unsigned char temp[NUM_TEMP_SENSORS];
+    int stv=0, ftv=0, fd=0;
+    int ret = 0, err=0, i=0;
+    long tst = 0;
+    struct timeval tv;
 
-    int stv=0, ftv=0;
-    int fd = openSensorBoard("/dev/sensor");
+    gettimeofday(&tv, NULL);
+    fd = openSensorBoard("/dev/sensor");
+
+    if(fd == -1)
+    {
+        printf("Connection error\n");
+        return -1;
+    }
+
     printf("\nSyncBoard says: %d", syncBoard(fd));
     printf("\n");
 
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-
-    int ret = 0, err=0, i=0;
-/*
-    for(i=0; i<1000; i++)
-    {
-        printf("Depth: %d\n", readDepth(fd));
-    }
-    */
-
-    long tst = 0;
 
     for(i=0; i<1000; i++)
     {
-        //printf("MC result = %d\n", ret);
-
         ret = setSpeeds(fd, i/3,i/3,i/3,i/3);
+        if(ret == SB_ERROR)
+            err++;
 
         ret = readDepth(fd);
         if(ret == SB_ERROR)
@@ -50,10 +39,7 @@ int main(int argc, char ** argv)
 
         printf("Depth: %d\n", ret);
 
-
-        unsigned char temp[NUM_TEMP_SENSORS];
         ret = readTemp(fd, temp);
-
         if(ret == SB_ERROR)
             err++;
 
@@ -82,10 +68,8 @@ int main(int argc, char ** argv)
     }
 
     usleep(15 * 1000);
-    ret = setSpeeds(fd, i, i, i, i); //0,0,0,0);
-    printf("Speed result = %d\n", ret);
-    usleep(15 * 1000);
-
+    ret = setSpeeds(fd, 0,0,0,0);
+    printf("Last speed result = %d\n", ret);
     printf("Error count: %d\n", err);
     printf("Average downtime delay: %ld usec\n", tst/1000);
     return 0;
