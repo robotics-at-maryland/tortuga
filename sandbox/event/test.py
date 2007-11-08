@@ -3,6 +3,7 @@ import unittest
 
 # Project Imports
 import event
+import props
 
 class Reciever(object):
     def __init__(self):
@@ -119,6 +120,39 @@ class TestQueuedEventManager(unittest.TestCase):
         self.assertEquals(10, recv.args.a)
         self.assertEquals(self, recv.sender)
         
+class PropClass(props.PropertyClass):
+    def __init__(self, myProp, myReadOnly):
+        props.PropertyClass.__init__(self)
+
+        self.myProp = myProp
+        self.myReadOnly = myReadOnly
+
+        self.addProperty('MyProp', self.getMyProp, self.setMyProp)
+        self.addProperty('ReadOnly', self.getMyReadOnly)
+
+    def getMyProp(self):
+        return self.myProp
+    
+    def setMyProp(self, myProp):
+        self.myProp = myProp
+        
+    def getMyReadOnly(self):
+        return self.myReadOnly
+
+
+class TestProperty(unittest.TestCase):
+    def testBasic(self):
+        obj = PropClass(10, "John")
+
+        self.assertEquals(10, obj.getProperty('MyProp').value())
+        self.assertEquals('John', obj.getProperty('ReadOnly').value())
+
+        myProp = obj.getProperty('MyProp')
+        self.assertEquals(10, myProp.value())
+        myProp.set(287)
+        self.assertEqual(287, myProp.value())
+        self.assertEqual(287, obj.getProperty('MyProp').value())
+        self.assertEqual(287, obj.myProp)
 
 if __name__ == '__main__':
     unittest.main()
