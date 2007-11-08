@@ -7,10 +7,7 @@ num_iters = 2;
 config;
 varargin
 
-% If the matrix begins with a zero-filled row, strip it out
-if all(hydro_pos(1,:)==[0,0,0])
-  hydro_pos = hydro_pos(2:end,:);
-end
+hydro_pos = strip_first_zeros(hydro_pos);
 
 % can be precomputed
 m = size(hydro_pos);

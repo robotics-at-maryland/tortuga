@@ -41,10 +41,7 @@ function cr_lowerbound = crlb(source_pos, hydro_pos, hydro_pos_accuracy, tdoa_ac
 %    % A phase resolution of 0.01 radians, with a sound velocity of 1500
 %    % meters per second, and a frequency of 30 kHz 
 
-% If the matrix begins with a zero-filled row, strip it out
-if all(hydro_pos(1,:)==[0,0,0])
-  hydro_pos = hydro_pos(2:end,:);
-end
+hydro_pos = strip_first_zeros(hydro_pos);
 
 m = size(hydro_pos);
 m = m(1);

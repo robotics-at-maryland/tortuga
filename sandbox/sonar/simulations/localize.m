@@ -2,10 +2,7 @@ function pos = localize(hydro_pos, tdoas)
 % Find source position by one-step least squares algorithm, based on
 % Huang's paper.
 
-% If the matrix begins with a zero-filled row, strip it out
-if all(hydro_pos(1,:)==[0,0,0])
-  hydro_pos = hydro_pos(2:end,:);
-end
+hydro_pos = strip_first_zeros(hydro_pos);
 
 m = size(hydro_pos);
 m = m(1);
