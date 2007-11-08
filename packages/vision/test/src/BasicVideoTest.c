@@ -1,9 +1,6 @@
-
-
 #include "cv.h"
 #include "highgui.h"
 #include <stdio.h>
-
 
 // A Simple Camera Capture Framework
 int main(int argc, char** argv) {

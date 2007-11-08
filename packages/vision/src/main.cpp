@@ -613,9 +613,9 @@ void redMask(IplImage* percents, IplImage* base)
 	{
 		for (int x=0; x<width; x++)
 		{
-			r=(data[count+2]+256)%256;
-			r2=(data2[count+2]+256)%256;
-			if (r>35 && r2>100)
+			r=(data[count+2]+256)%256;//r = percent red in the image
+			r2=(data2[count+2]+256)%256;//r2 = intensity of red in the image
+			if (r>35 && r2>100) //Change these values if red light in tank is not being detected.
 			{
 				data2[count]=255;
 				data2[count+1]=255;

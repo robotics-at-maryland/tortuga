@@ -35,8 +35,15 @@ inline static void allocateOnDemand( IplImage **img, CvSize size, int depth, int
 
 int main(void)
 {
+	bool CAMERA=false;
+
 	/* Create an object that decodes the input video stream. */
-	CvCapture *capture = cvCaptureFromCAM( CV_CAP_ANY );
+	/*	CvCapture *capture = cvCaptureFromCAM( CV_CAP_ANY );
+	*/
+	CvCapture *capture = cvCaptureFromFile(
+			"/Users/Dan/Desktop/KillerRobot.mov"
+		);
+
 	if (capture == NULL)
 	{
 		/* Either the video didn't exist OR it uses a codec OpenCV
@@ -53,16 +60,19 @@ int main(void)
                                                 CV_CAP_PROP_FRAME_HEIGHT));
 
 	/* Determine the number of frames in the AVI. */
-	long number_of_frames=99999999;//This is a camera
+	long number_of_frames=999999;//If its a camera, there are infinite frames
 	
 //	
 //	/* Go to the end of the AVI (ie: the fraction is "1") */
-//	cvSetCaptureProperty( input_video, CV_CAP_PROP_POS_AVI_RATIO, 1. );
-//	/* Now that we're at the end, read the AVI position in frames */
-//	number_of_frames = (int) cvGetCaptureProperty( input_video, CV_CAP_PROP_POS_FRAMES );
-//	/* Return to the beginning */
-//	cvSetCaptureProperty( input_video, CV_CAP_PROP_POS_FRAMES, 0. );
-//
+//if (!CAMERA)
+//{
+//	cvSetCaptureProperty( capture, CV_CAP_PROP_POS_AVI_RATIO, 1. );
+////	/* Now that we're at the end, read the AVI position in frames */
+//	number_of_frames = (int) cvGetCaptureProperty( capture, CV_CAP_PROP_POS_FRAMES );
+////	/* Return to the beginning */
+//	cvSetCaptureProperty( capture, CV_CAP_PROP_POS_FRAMES, 0. );
+////
+//}
 	/* Create a window called "Optical Flow" for visualizing the output.
 	 * Have the window automatically change its size to match the output.
 	 */
@@ -91,6 +101,24 @@ int main(void)
 		 * The solution is to make a copy of the cvQueryFrame() output.
 		 */
 		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		frame = cvQueryFrame( capture );
+		 //Skip first frames. --Dan
+
+		frame = cvQueryFrame( capture );
 		CvSize frame_size=cvGetSize(frame);
 		if (frame == NULL)
 		{
@@ -107,14 +135,14 @@ int main(void)
 		 * AND flip the image vertically.  Flip is a shameless hack.  OpenCV reads
 		 * in AVIs upside-down by default.  (No comment :-))
 		 */
-		cvConvertImage(frame, frame1_1C/*, CV_CVTIMG_FLIP*/);//Dan says Don't Flip.
+		cvConvertImage(frame, frame1_1C, CV_CVTIMG_FLIP);//Dan says Don't Flip.
 		/* We'll make a full color backup of this frame so that we can draw on it.
 		 * (It's not the best idea to draw on the static memory space of cvQueryFrame().)
 		 */
 		allocateOnDemand( &frame1, frame_size, IPL_DEPTH_8U, 3 );
 		printf("Now I am here\n");
 
-		cvConvertImage(frame, frame1/*, CV_CVTIMG_FLIP*/);//Dan says Don't Flip.
+		cvConvertImage(frame, frame1, CV_CVTIMG_FLIP);//Dan says Don't Flip.
 		printf("Now I am also here\n");
 
 		/* Get the second frame of video.  Same principles as the first. */
@@ -155,8 +183,10 @@ int main(void)
 		 * "frame1_features" will contain the feature points.
 		 * "max_number_of_features" will be set to a value <= 400 indicating the number of feature points found.
 		 */
+		 printf("Am I about to crash?\n");
 		 int number_of_features=max_number_of_features;
 		cvGoodFeaturesToTrack(frame1_1C, eig_image, temp_image, frame1_features, &number_of_features, .01, .01, NULL);
+		 printf("Nope\n");
 
 		/* Pyramidal Lucas Kanade Optical Flow! */
 
@@ -204,7 +234,16 @@ int main(void)
 		 * "optical_flow_termination_criteria" is as described above (how long the algorithm should look).
 		 * "0" means disable enhancements.  (For example, the second array isn't pre-initialized with guesses.)
 		 */
+		 
+//		 cvNamedWindow("Dan's Tester");
+//		 cvShowImage("Dan's Tester",frame1_1C);
+//		 cvWaitKey(0);
+//		 cvShowImage("Dan's Tester",frame2_1C);
+//		 cvWaitKey(0);
+		 
+		 printf("How about now\n");
 		cvCalcOpticalFlowPyrLK(frame1_1C, frame2_1C, pyramid1, pyramid2, frame1_features, frame2_features, number_of_features, optical_flow_window, 5, optical_flow_found_feature, optical_flow_feature_error, optical_flow_termination_criteria, 0 );
+		 printf("Yep\n");
 		
 		/* For fun (and debugging :)), let's draw the flow field. */
 		CvPoint totalP,totalQ;
@@ -258,11 +297,11 @@ int main(void)
 			/* Now draw the tips of the arrow.  I do some scaling so that the
 			 * tips look proportional to the main line of the arrow.
 			 */			
-			p.x = (int) (q.x + 9 * cos(angle + pi / 4));
-			p.y = (int) (q.y + 9 * sin(angle + pi / 4));
+			p.x = (int) (q.x + 5 * cos(angle + pi / 4));
+			p.y = (int) (q.y + 5 * sin(angle + pi / 4));
 			cvLine( frame1, p, q, line_color, line_thickness, CV_AA, 0 );
-			p.x = (int) (q.x + 9 * cos(angle - pi / 4));
-			p.y = (int) (q.y + 9 * sin(angle - pi / 4));
+			p.x = (int) (q.x + 5 * cos(angle - pi / 4));
+			p.y = (int) (q.y + 5 * sin(angle - pi / 4));
 			cvLine( frame1, p, q, line_color, line_thickness, CV_AA, 0 );
 		}
 		if (number_of_features!=0)

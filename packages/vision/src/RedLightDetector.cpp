@@ -40,6 +40,9 @@ double RedLightDetector::getY()
 
 void RedLightDetector::show(char* window)
 {
+	//Chris:  If you want to see an image other than the raw image with a box drawn if light found
+	//You need to change the IplImage* being drawn here.  To see the effects of the red mask you want to change this line to flashFrame.
+	//To see the mask calibrations being used for the red mask, you need to open up main.cpp  and find redMask.
 	cvShowImage(window,((IplImage*)(raw)));
 }
 

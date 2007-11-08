@@ -32,7 +32,7 @@ void handler(int x)
   key='q';
 }
 
-
+//To run this program with a movie, send it command line arguments
 int main(int argc, char** argv)
 {
 	ram::vision::DetectorTest* forward;
