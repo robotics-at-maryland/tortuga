@@ -4,6 +4,7 @@ import unittest
 # Project Imports
 import event
 import props
+import state
 
 class Reciever(object):
     def __init__(self):
@@ -155,43 +156,102 @@ class TestProperty(unittest.TestCase):
         self.assertEqual(287, obj.myProp)
 
 # Test States (Consider Magic base class to take care of the init method)
-class Start(object):
-
+class TrackedState(state.State):
     def __init__(self, machine):
-        statemachine.State.__init__(self, machine)
-        self.entered = False
-        self.exit = False
-        self.etype = None
+        state.State.__init__(self, machine)
+
+    def enter(self):
+        self.entered = True
+
+    def exit(self):
+        self.exited = True
+
+class Start(TrackedState):
+    def __init__(self, machine):
+        TrackedState.__init__(self, machine)
         self.sender = None
         self.func = None
         
-    @classmethod
+    @staticmethod
     def transitions():
-        return { "Started" : End }
+        return { "Start" : End,
+                 "Change" : Simple,
+                 "LoopBack" : LoopBack }
 
-    def enter(self):
-        self.entered = True
-
-    def exit(self):
-        self.exit = True
-
-    def onStarted(self, etype, sender, func):
-        self.etype = etype
+    def Start(self, sender, args):
         self.sender = sender
-        self.func = func
+        self.args = args
 
-class End(object):
+class Simple(state.State):
+    pass
 
+class LoopBack(TrackedState):
     def __init__(self, machine):
-        statemachine.State.__init__(self, machine)
-        self.entered = False
-        self.exit = False
-       
-    def enter(self):
-        self.entered = True
+        TrackedState.__init__(self, machine)
+        self.count = 0
+        'MYSTATS',dir(self)
 
-    def exit(self):
-        self.exit = True
+    @staticmethod
+    def transitions():
+        return { "Update" : LoopBack }
+
+    def Update(self, sender, args):
+        self.count += 1
+
+class End(TrackedState):
+    pass
+
+class TestStateMachine(unittest.TestCase):
+    def setUp(self):
+        self.machine = state.Machine(Start)
+
+    def testbasic(self):
+        # Check to make sure we get the default
+        cstate = self.machine.currentState()
+        self.assertEquals(Start, type(cstate))
+
+    def testStart(self):
+        self.machine.start()
+        cstate = self.machine.currentState()
+        self.assert_(cstate.entered)
+        
+    def testInjectEvent(self):
+        startState = self.machine.currentState()
+
+        self.machine.injectEvent("Start", self, 1)
+        cstate = self.machine.currentState()
+
+        # Check to me sure we left the start state
+        self.assert_(startState.exited)
+
+        # Check to make sure we reached the proper state
+        self.assertEquals(End, type(cstate))
+        self.assert_(cstate)
+
+        # Make sure the transition function was called
+        self.assertEquals(startState.sender, self)
+        self.assertEquals(startState.args, 1)
+
+    def testSimple(self):
+        self.machine.injectEvent("Change", self, 1)
+        cstate = self.machine.currentState()
+        self.assertEquals(Simple, type(cstate))
+
+    def testLoop(self):
+        self.machine.injectEvent("LoopBack", self, 0)
+        cstate = self.machine.currentState()
+        self.assertEquals(LoopBack, type(cstate))
+
+        cstate = self.machine.currentState()
+        self.assert_(cstate.entered)
+
+        # Make  A Loopback
+#        self.machine.injectEvent("Update", self, 0)
+#        cstate = self.machine.currentState()
+#        self.assertEquals(LoopBack, type(cstate))
+#        print 'TEST',dir(cstate)
+#        self.assert_(cstate.exited)
+
 
 if __name__ == '__main__':
     unittest.main()
