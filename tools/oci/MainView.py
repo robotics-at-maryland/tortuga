@@ -1,4 +1,8 @@
-
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Jon Speiser <jspeiser@umd.edu>
+# All rights reserved.
+#
+# Author: Jon Speiser <jspeiser@umd.edu>
 import wx
 import wx.aui
 import DisplayPanels
@@ -11,12 +15,17 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
                                           title="UMD Robotics",
                                           size=(640,480),
                                           style=wx.DEFAULT_FRAME_STYLE)
-        self.OnOpenRot(None)
-        self.OnOpenThrust(None)
+        
         mb = self.MakeMenuBar()
         self.SetMenuBar(mb)
         self.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME))
         self.CreateStatusBar()
+        
+        thrustChild = ChildFrame(self, "Thrust")    
+        rotChild = ChildFrame(self, "Rotation")
+
+        self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
+
 
     def MakeMenuBar(self):
         mb = wx.MenuBar()
@@ -29,6 +38,12 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
         self.Bind(wx.EVT_MENU, self.OnDoClose, item)
         mb.Append(menu, "&File")
         return mb
+    
+    # --- Events ---
+    def onCloseWindow(self, event):
+        #self._mgr.UnInit()        
+        # delete the frame
+        self.Destroy()
         
     def OnOpenThrust(self, evt):
         thrustChild = ChildFrame(self, "Thrust")
@@ -41,15 +56,12 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
 
     def OnDoClose(self, evt):
         self.Close()
-        self.Parent.Close()
         
-
 #----------------------------------------------------------------------
 
 class ChildFrame(wx.aui.AuiMDIChildFrame):
     def __init__(self, parent, name):
        
-            
         wx.aui.AuiMDIChildFrame.__init__(self, parent, -1,name)
         mb = parent.MakeMenuBar()
         menu = wx.Menu()
@@ -63,9 +75,7 @@ class ChildFrame(wx.aui.AuiMDIChildFrame):
             
         else:
             p = DisplayPanels.ThrusterPanel(self)
-            p.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME))
-
-            
+            p.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
 
         
         sizer = wx.BoxSizer()
@@ -80,9 +90,11 @@ class ChildFrame(wx.aui.AuiMDIChildFrame):
 class MainWindow(wx.Frame):
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, wx.DefaultPosition)
-        pf = ParentFrame(self)
-        pf.Show()
-        
+        self.pf = ParentFrame(self)
+        self.pf.Show()
+
+
+
         
 class MyApp(wx.App):
     def OnInit(self):
