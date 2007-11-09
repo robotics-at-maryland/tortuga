@@ -234,19 +234,19 @@ void BWPDController::update(double timestep)
     memcpy(&m_measuredState->linearAcceleration[0],
            &linearAcceleration, sizeof(double) * 3);
 
-//    std::cout << "A: " << linearAcceleration << std::endl;
+    //std::cout << "A: " << linearAcceleration << std::endl;
     math::Quaternion orientation(m_vehicle->getOrientation());
     memcpy(&m_measuredState->quaternion[0],
            &orientation, sizeof(double) * 4);
 
-//    std::cout << "O: " << orientation << std::endl;
+    //std::cout << "O: " << orientation << std::endl;
     
     math::Vector3 angularRate(m_vehicle->getAngularRate());
     memcpy(&m_measuredState->angularRate[0],
            &angularRate, sizeof(double) * 3);
 
-//    std::cout << "W: " << angularRate << std::endl;
-    
+    //std::cout << "W: " << angularRate << std::endl;
+    m_measuredState->depth = m_vehicle->getDepth();
     
     // Calculate new forces
     math::Vector3 translationalForce(0,0,0);

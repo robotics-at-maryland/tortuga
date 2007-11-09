@@ -40,7 +40,7 @@
 
 #define BACKLOG 10  /* how many pending connections queue will hold */
 
-#define DEADMAN_WAIT 2
+#define DEADMAN_WAIT 4
 
 // Setting for the hand control inputs
 #define MAX_DEPTH 5
@@ -154,6 +154,9 @@ int main(int argc, char** argv)
 
     // Got into networking loop
     networkLoop(&controller);
+
+    // Sleep To Allow thrusters to stop
+    sleep(1);
 };
 
 void shutdownHandler(int i)
