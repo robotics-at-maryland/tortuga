@@ -397,7 +397,9 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4)
 {
     int i=0;
     unsigned char buf[10]={0x12, 0,0, 0,0, 0,0, 0,0, 0x00};
+//    printf("Sending speeds: %d %d %d %d\n", s1, s2, s3, s4);
 
+    
     buf[1] = (s1 >> 8);
     buf[2] = (s1 & 0xFF);
 

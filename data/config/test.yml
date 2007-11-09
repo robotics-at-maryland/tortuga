@@ -8,7 +8,7 @@ Modules:
         # for the base C++ vehicle
         type: vehicle.vehicle.Vehicle
         # Time between updates in ms
-        update_interval: 100
+        update_interval: 25
 
         # Pressure tranducer calibration 
         depthCalibSlope: 33.01
@@ -71,7 +71,7 @@ Modules:
     Controller:
         depends_on: ["Vehicle"]
         type: control.bwpdcontrol.BWPDController
-        update_interval: 100
+        update_interval: 10
 
         angularPGain: 10
         angularDGain: 1
