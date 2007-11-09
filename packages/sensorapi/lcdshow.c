@@ -31,6 +31,8 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -unsafe (enable thrusters)\n");
         printf("\tlcdshow -diagon  (runtime diagnostics on)\n");
         printf("\tlcdshow -diagoff (runtime diagnostics off)\n");
+	printf("\tlcdshow -tstop (send zero speed command)\n");
+
 
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
@@ -174,13 +176,21 @@ int main(int argc, char ** argv)
         return 0;
     }
 
+
+    if(strcmp(argv[1], "-tstop") == 0)
+    {
+        setSpeeds(fd, 0, 0, 0, 0);
+        close(fd);
+        return 0;
+    }
+
     if(strcmp(argv[1], "-diagon") == 0)
     {
         setDiagnostics(fd, 1);
         close(fd);
         return 0;
     }
-
+    
     if(strcmp(argv[1], "-diagoff") == 0)
     {
         setDiagnostics(fd, 0);
