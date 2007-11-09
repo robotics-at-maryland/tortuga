@@ -103,6 +103,8 @@ Vehicle::~Vehicle()
     // For safeties sake send a zero torque and force command which will kill
     // any current thruster power
     applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+    update(0);
+    usleep(15 * 1000);
     
     // Remove all references to the devices, will cause them to be destructed
     // this will cause the Thruster objects to be deleted and set the 
@@ -230,6 +232,8 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 
     if (m_devices.end() != m_devices.find(m_starboardThruster))
     {
+//        std::cout << "Force: " << star << " " << port << " " << fore
+//                  << " " << aft << std::endl;
         device::IDevice::castTo<device::IThruster>(
             getDevice(m_starboardThruster))->setForce(star);
         device::IDevice::castTo<device::IThruster>(
@@ -271,24 +275,31 @@ void Vehicle::update(double timestep)
         std::map<int, int> addressSpeedMap;
 
         // Gather speeds, map
-        ThrusterPtr thruster = device::IDevice::castTo<device::Thruster>(
-            getDevice(m_starboardThruster));
-        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
-        
-        thruster = device::IDevice::castTo<device::Thruster>(
-            getDevice(m_portThruster));
-        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
-
-        thruster = device::IDevice::castTo<device::Thruster>(
-            getDevice(m_foreThruster));
-        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
-
-        thruster = device::IDevice::castTo<device::Thruster>(
-            getDevice(m_aftThruster));
-        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
-        
-        setSpeeds(m_sensorFD, addressSpeedMap[1], addressSpeedMap[2],
-                  addressSpeedMap[3], addressSpeedMap[4]);
+        if (m_devices.end() != m_devices.find(m_starboardThruster))
+        {
+            ThrusterPtr thruster = device::IDevice::castTo<device::Thruster>(
+                getDevice(m_starboardThruster));
+            addressSpeedMap[thruster->getAddress()] =
+                thruster->getMotorCount();
+            
+            thruster = device::IDevice::castTo<device::Thruster>(
+                getDevice(m_portThruster));
+            addressSpeedMap[thruster->getAddress()] =
+                thruster->getMotorCount();
+            
+            thruster = device::IDevice::castTo<device::Thruster>(
+                getDevice(m_foreThruster));
+            addressSpeedMap[thruster->getAddress()] =
+                thruster->getMotorCount();
+            
+            thruster = device::IDevice::castTo<device::Thruster>(
+                getDevice(m_aftThruster));
+            addressSpeedMap[thruster->getAddress()] =
+                thruster->getMotorCount();
+            
+            setSpeeds(m_sensorFD, addressSpeedMap[1], addressSpeedMap[2],
+                      addressSpeedMap[3], addressSpeedMap[4]);
+        }
 
 
         {
@@ -337,7 +348,7 @@ void Vehicle::background(int interval)
     {
         device::IDevicePtr device(pair.second);
         core::ConfigNode devCfg(m_config["Devices"][device->getName()]);
-        if (devCfg.exists("update_intervale"))
+        if (devCfg.exists("update_interval"))
             device->background(devCfg["update_interval"].asInt());
     }
     

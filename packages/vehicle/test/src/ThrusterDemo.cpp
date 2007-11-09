@@ -32,6 +32,8 @@ using namespace ram::core;
 using namespace ram::vehicle::device;
 
 static const int FORCE = 6;
+static const int APPLY_SLEEP = 10;
+static const int POST_CMD_SLEEP = 1;
 
 int main(int argc, char** argv)
 {
@@ -74,18 +76,24 @@ int main(int argc, char** argv)
     vehicle.applyForcesAndTorques(math::Vector3(FORCE, 0, 0),
                                   math::Vector3::ZERO);
     vehicle.update(0);
-    sleep(3);
+    sleep(APPLY_SLEEP);
+    std::cout << "Stoping thrusters" << std::endl;
     vehicle.applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
     vehicle.update(0);
-
+    sleep(POST_CMD_SLEEP);
+    std::cout << "Thrusters stopped" << std::endl;
+    
     // Apply a forward force
     std::cout << "Applying upward force" << std::endl;
     vehicle.applyForcesAndTorques(math::Vector3(0, 0, FORCE),
                                   math::Vector3::ZERO);
     vehicle.update(0);
-    sleep(3);
+    sleep(APPLY_SLEEP);
+    std::cout << "Stoping thrusters" << std::endl;
     vehicle.applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
     vehicle.update(0);
-
+    sleep(POST_CMD_SLEEP);
+    std::cout << "Thrusters stopped" << std::endl;
+    
     return 0;
 }

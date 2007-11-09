@@ -25,9 +25,15 @@ using namespace ram::math;
 using namespace ram::core;
 using namespace ram::vehicle::device;
 
-static const std::string BIASED_CFG = "{ 'magXBias' : -0.21305,"
-                                      "'magYBias' : -0.139574,"
-                                      "'magZBias' : -0.282475,"
+/*static const std::string BIASED_CFG = "{ 'name' : 'IMU',"
+                                      "'magXBias' : 0,"
+                                      "'magYBias' : 0,"
+                                      "'magZBias' : 0,"
+                                      "'localMagneticPitch' : 60}";*/
+static const std::string BIASED_CFG = "{ 'name' : 'IMU',"
+                                      " 'magXBias' : -0.3053,"
+                                      "'magYBias' : 0.2663,"
+                                      "'magZBias' : 0.1884,"
                                       "'localMagneticPitch' : 60}";
 
 static const std::string EMPTY_CFG = "{}";
@@ -58,11 +64,13 @@ int main()
         imu.getFilteredState(filtData);
 	Quaternion orientation(imu.getOrientation());
 
-	quat1.addValue(orientation.w);
-	quat2.addValue(orientation.x);
-	quat3.addValue(orientation.y);
-	quat4.addValue(orientation.z);
+	quat1.addValue(orientation.x);
+	quat2.addValue(orientation.y);
+	quat3.addValue(orientation.z);
+	quat4.addValue(orientation.w);
 
+        std::cout << orientation.x << " " << orientation.y << " " << orientation.z
+                  << " " << orientation.w << std::endl;
       /*      printf("IMU F. No Bias, Raw:: %7.4f %7.4f %7.4f\n", // Rot. & Filt. Mag: %7.4f %7.4f %7.4f\n",
 	     rawData.magX, rawData.magY, rawData.magZ);
 	     //	     filtData.magX, filtData.magY, filtData.magZ);*/
