@@ -21,6 +21,7 @@
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/include/device/IThruster.h"
+#include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IIMU.h"
 #include "sensorapi/include/sensorapi.h"
 
@@ -261,27 +262,59 @@ void Vehicle::update(double timestep)
 {
     if (m_sensorFD >= 0)
     {
-        core::ReadWriteMutex::ScopedWriteLock lockState(m_state_mutex);
+
         boost::mutex::scoped_lock lockSensor(m_sensorBoardMutex);
 
-        // Depth
-        double rawDepth = readDepth(m_sensorFD);
-        m_state.depth = (rawDepth - m_depthCalibIntercept) /
-            m_depthCalibSlope - m_depthOffset;;
+        // Send off thruster commands
+        readThrusterState(m_sensorFD);
+        // Maps thruster address to motor count
+        std::map<int, int> addressSpeedMap;
 
-        // If we aren't calibrated, take values
-        if (!m_calibratedDepth)
+        // Gather speeds, map
+        ThrusterPtr thruster = device::IDevice::castTo<device::Thruster>(
+            getDevice(m_starboardThruster));
+        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
+        
+        thruster = device::IDevice::castTo<device::Thruster>(
+            getDevice(m_portThruster));
+        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
+
+        thruster = device::IDevice::castTo<device::Thruster>(
+            getDevice(m_foreThruster));
+        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
+
+        thruster = device::IDevice::castTo<device::Thruster>(
+            getDevice(m_aftThruster));
+        addressSpeedMap[thruster->getAddress()] = thruster->getMotorCount();
+        
+        setSpeeds(m_sensorFD, addressSpeedMap[1], addressSpeedMap[2],
+                  addressSpeedMap[3], addressSpeedMap[4]);
+
+
         {
-            m_depthFilter.addValue(m_state.depth);
+            core::ReadWriteMutex::ScopedWriteLock lockState(m_state_mutex);
+            
+            // Depth
+            double rawDepth = readDepth(m_sensorFD);
+            m_state.depth = (rawDepth - m_depthCalibIntercept) /
+                m_depthCalibSlope - m_depthOffset;;
 
-            // After five values, take the reading
-            if (5 == m_depthFilter.getSize())
+            // If we aren't calibrated, take values
+            if (!m_calibratedDepth)
             {
-                m_calibratedDepth = true;
-                m_depthOffset = m_depthFilter.getValue();
+                m_depthFilter.addValue(m_state.depth);
+                
+                // After five values, take the reading
+                if (5 == m_depthFilter.getSize())
+                {
+                    m_calibratedDepth = true;
+                    m_depthOffset = m_depthFilter.getValue();
+                }
             }
         }
         
+        // Currently turned off inorder because they are not tested
+        /*
         //m_state.depth = rawDepth;
         // Status register
         int status = readStatus(m_sensorFD);
@@ -294,6 +327,7 @@ void Vehicle::update(double timestep)
         // Copy the contents of temps into the temperature state
         std::copy(temps, &temps[NUM_TEMP_SENSORS - 1] + 1,
                   m_state.temperatures.begin());
+        */
     }
 }
 

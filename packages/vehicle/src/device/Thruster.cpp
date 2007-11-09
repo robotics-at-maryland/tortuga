@@ -30,22 +30,23 @@ Thruster::Thruster(core::ConfigNode config) :
     m_calibrationFactor(config["calibration_factor"].asDouble()),
     m_direction(config["direction"].asInt(1))
 {
+    /*
     // Register thruster
     ThrusterCommunicator::registerThruster(this);
 
     // Preform a soft reset just to be safe
     ThrusterCommunicator::getSingleton().sendThrusterCommand(
-        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,0));
+    ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,0));*/
 }
 
 Thruster::~Thruster()
-{
+{/*
     // Preform a soft reset to make sure the power dies to the thruster
     ThrusterCommunicator::getSingleton().sendThrusterCommand(
         ThrusterCommand::construct(m_address, ThrusterCommand::SPEED, 0));
 
     // Unregister from communicator so it will no when to destory itself
-    ThrusterCommunicator::unRegisterThruster(this);
+    ThrusterCommunicator::unRegisterThruster(this);*/
 }
 
 ThrusterPtr Thruster::construct(core::ConfigNode config)
@@ -80,9 +81,9 @@ void Thruster::setForce(double force)
     else if (motorCount < -1024)
         motorCount = -1023;
 
-    ThrusterCommunicator::getSingleton().sendThrusterCommand(
+/*    ThrusterCommunicator::getSingleton().sendThrusterCommand(
         ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,
-                                   motorCount));
+        motorCount));*/
 
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_forceMutex);
@@ -110,22 +111,23 @@ int Thruster::getMotorCount()
     
 void Thruster::update(double timestep)
 {
-    ThrusterCommunicator::getSingleton().update(timestep);
+//    ThrusterCommunicator::getSingleton().update(timestep);
 }
     
 void Thruster::background(int interval)
 {
-    ThrusterCommunicator::getSingleton().background(interval);
+//    ThrusterCommunicator::getSingleton().background(interval);
 }
 
 void Thruster::unbackground(bool join)
 {
-    ThrusterCommunicator::getSingleton().unbackground(join);
+//    ThrusterCommunicator::getSingleton().unbackground(join);
 }
 
 bool Thruster::backgrounded()
 {
-    return ThrusterCommunicator::getSingleton().backgrounded();
+    return false;
+//    return ThrusterCommunicator::getSingleton().backgrounded();
 }
     
 } // namespace device

@@ -15,71 +15,77 @@
 #include <vector>
 
 // Library Includes
+#include <boost/program_options.hpp>
 #include <boost/assign/list_of.hpp> // for 'list_of()'
 
 // Project Includes
+#include "math/include/Vector3.h"
+#include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/Thruster.h"
 #include "core/include/ConfigNode.h"
 
 using namespace std;
 namespace ba = boost::assign;
+namespace po = boost::program_options;
 using namespace ram;
 using namespace ram::core;
 using namespace ram::vehicle::device;
 
 static const int FORCE = 6;
 
-static const std::string PORT_CONFIG("{'name' : 'PortThruster',"
-                                     " 'address' : 3,"
-                                     " 'calibration_factor': 0.3652,"
-                                     " 'direction' : -1}");
-static const std::string STAR_CONFIG("{'name' : 'StarboardThruster',"
-                                     " 'address' : 4,"
-                                     " 'calibration_factor': 0.4146,"
-                                     " 'direction' : -1}");
-static const std::string FORE_CONFIG("{'name' : 'ForeThruster',"
-                                     " 'address' : 2,"
-                                     " 'calibration_factor': 0.4368,"
-                                     " 'direction' : -1}");
-static const std::string AFT_CONFIG("{'name' : 'AftThruster',"
-                                    " 'address' : 1,"
-                                    " 'calibration_factor': 0.3612,"
-                                    " 'direction' : 1}");
-//                                       calibration_factor
-int main()
+int main(int argc, char** argv)
 {
-    // Create each thruster and add them to a list
-    cout << "Creating all four thrusters" << endl;
-    Thruster port(ConfigNode::fromString(PORT_CONFIG));
-    Thruster starboard(ConfigNode::fromString(STAR_CONFIG));
-    Thruster fore(ConfigNode::fromString(FORE_CONFIG));
-    Thruster aft(ConfigNode::fromString(AFT_CONFIG));
+    std::string configPath;
+    po::options_description desc("Allowed options");
+    po::variables_map vm;
 
-    std::vector<Thruster*> list = ba::list_of(&port)(&starboard)(&fore)(&aft);
-
-    // Start up the background thread to send off commands to the Motor Ctrl.
-    // currently it wakes up every 100 ms, it currently just process messages
-    // then goes back to waiting, but in the future periodic tasks will be
-    // done there
-    port.background(100);
-    
-    // Loop through each thruster and send it two commands.
-    for (size_t i = 0; i < list.size(); ++i)
+    try
     {
-        cout << "Sending: \"" << list[i]->getName() << " " << FORCE
-             << " newtons" << endl;
-        list[i]->setForce(FORCE);
-        usleep(5000 * 1000);
-        cout << "Stopping" << endl;
-        list[i]->setForce(0);
+        desc.add_options()
+        ("help", "produce help message")
+        ("configpath", po::value<std::string>(&configPath)->default_value("config.yml"),
+                "config file path")
+                ;
+
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+    }
+    catch(std::exception& e)
+    {
+        std::cerr << "error: " << e.what() << std::endl;
+        return 1;
     }
 
-    for (size_t i = 0; i < list.size(); ++i)
-        list[i]->setForce(FORCE);
-    
-    
-    // When the thrusters all are desctruted they shutdown the communicator,
-    // which in turns shuts down the background threadxb
-    
+    if (vm.count("help")) {
+        std::cout << desc << std::endl;
+        return 1;
+    }
+
+    // Parse Some config stuff
+    core::ConfigNode root = core::ConfigNode::fromFile(configPath);
+    core::ConfigNode modules(root["Modules"]);
+
+    // Create vehicle and devices
+    core::ConfigNode veh_cfg(modules["Vehicle"]);
+    vehicle::Vehicle vehicle(veh_cfg);
+
+    // Apply a forward force
+    std::cout << "Applying forward force" << std::endl;
+    vehicle.applyForcesAndTorques(math::Vector3(FORCE, 0, 0),
+                                  math::Vector3::ZERO);
+    vehicle.update(0);
+    sleep(3);
+    vehicle.applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+    vehicle.update(0);
+
+    // Apply a forward force
+    std::cout << "Applying upward force" << std::endl;
+    vehicle.applyForcesAndTorques(math::Vector3(0, 0, FORCE),
+                                  math::Vector3::ZERO);
+    vehicle.update(0);
+    sleep(3);
+    vehicle.applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+    vehicle.update(0);
+
     return 0;
 }

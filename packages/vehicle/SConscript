@@ -23,7 +23,8 @@ envt = env.Clone()
 # Build simple camera test program and make sure vision library is intalled
 envt.RAMProgram(target = 'ThrusterDemo', 
                 source = 'test/src/ThrusterDemo.cpp',
-                int_deps = 'vehicle')
+                int_deps = 'vehicle',
+                ext_deps = ['Boost.ProgramOptions'])
 
 envt.RAMProgram(target = 'IMUDemo', 
                 source = 'test/src/IMUDemo.cpp',

@@ -81,6 +81,9 @@ public:
      *  @note  It will return the same value for all thrusters.
      */
     virtual bool backgrounded();
+
+    /** Returns the address of the thruster */
+    int getAddress() { return m_address; }
     
 private:
     int m_address;
