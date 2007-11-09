@@ -21,6 +21,12 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+/* timing includes */
+#include <time.h>
+#include <sys/time.h>
+
+
+
 // Library Includes
 #include <boost/program_options.hpp>
 
@@ -83,29 +89,29 @@ int g_teleopFD = 0;
 bool g_running = true;
 
 /** This handles shutdown of the system by a signal
- * 
+ *
  * This is ever called network comms have stopped for too long, or if the user
  * has pressed CTRL-C at the command line.
  * */
 void shutdownHandler(int i);
 
 /** Sets up the networking based on the setting defined above
- * 
+ *
  * @return  A socket file descriptor to listen on, if < 0 there was an error.
  */
 int setupNetworking(struct sockaddr_in& my_addr);
 
 /** Enters an continous run loop which exits upon emergency shutdown, or CTRL-C
- * 
+ *
  * @param controller  The conntroller we are commanding
  */
 void networkLoop(control::IController* controller);
 
 /** Process the incomming network messages
- * 
+ *
  * @return If false it means an emergency shutdown command was sent
  */
-bool processMessage(control::IController* controller, unsigned char cmd, 
+bool processMessage(control::IController* controller, unsigned char cmd,
         signed char param=0);
 
 int main(int argc, char** argv)
@@ -269,8 +275,25 @@ void networkLoop(control::IController* controller)
             // Reset the deadman timer
             alarm(DEADMAN_WAIT);
 
+
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+
+            int startTime=0, endTime=0;
+
+            startTime = tv.tv_usec;
+
             // Process Packet (If quit message drop out of loop, stop running)
             g_running = processMessage(controller, cmd, param);
+
+            gettimeofday(&tv, NULL);
+            endTime = tv.tv_usec;
+
+            if(startTime > endTime) /* Wraparound offset */
+                endTime += 1048576;
+
+            printf("processMessage took %d usec\n", endTime - startTime);
+
         }
 
         // Close old fd
@@ -281,7 +304,7 @@ void networkLoop(control::IController* controller)
 }
 
 
-bool processMessage(control::IController* controller, unsigned char cmd, 
+bool processMessage(control::IController* controller, unsigned char cmd,
         signed char param)
 {
     switch(cmd)
@@ -293,65 +316,65 @@ bool processMessage(control::IController* controller, unsigned char cmd,
             return false;
             break;
         }
-    
+
         case CMD_TURNLEFT:
         {
             printf("Yaw left\n");
             controller->yawVehicle(TURN_ENC);
             break;
         }
-    
+
         case CMD_TURNRIGHT:
         {
             printf("Yaw right\n");
             controller->yawVehicle(-TURN_ENC);
             break;
         }
-    
+
         case CMD_INCSPEED:
         {
             if(controller->getSpeed() < MAX_SPEED)
                 controller->setSpeed(controller->getSpeed()+SPEED_ENC);
-    
+
             printf("\nNEW SPEED:  %d\n", controller->getSpeed());
             break;
         }
-    
+
         case CMD_DECSPEED:
         {
             if(controller->getSpeed() > MIN_SPEED)
                 controller->setSpeed(controller->getSpeed()-SPEED_ENC);
-    
+
             printf("\nNEW SPEED:  %d\n", controller->getSpeed());
             break;
         }
-    
+
         case CMD_DESCEND:
         {
             if(controller->getDepth() < MAX_DEPTH)
                 controller->setDepth(controller->getDepth()+DEPTH_ENC);
-    
+
             printf("NEW DEPTH: %f\n", controller->getDepth());
             break;
         }
-    
+
         case CMD_ASCEND:
         {
             if(controller->getDepth() > MIN_DEPTH)
                 controller->setDepth(controller->getDepth()-DEPTH_ENC);
-    
-    
+
+
             printf("NEW DEPTH: %f\n", controller->getDepth());
             break;
         }
-    
+
         case CMD_ZEROSPEED:
         {
             controller->setSpeed(0);
             printf("\nNEW SPEED:  %d\n", controller->getSpeed());
             break;
         }
-    
+
         case CMD_SETSPEED:
         {
             if(param <= MAX_SPEED && param >= MIN_SPEED)
@@ -363,13 +386,13 @@ bool processMessage(control::IController* controller, unsigned char cmd,
                 printf("\nINVALID NEW SPEED: %d\n", param);
             }
         }
-    
+
         case CMD_NOTHING:
         {
             // Ignore, just sent to keep the connection alive
             break;
         }
-    
+
         default:
         {
             printf("Invalide network command type: %c\n", cmd);
