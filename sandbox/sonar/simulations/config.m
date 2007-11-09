@@ -7,3 +7,4 @@ hydro_pos_accuracy = 0.0000635; % machining tolerance in meters
 ping_duration      = 1.3e-3;    % ping duration in seconds
 f_s                = 1e6;       % sample rate in samples per second
 tdoa_accuracy      = lambda/100;% TDOA resolution in meters
+depth_accuracy     = 2*lambda;  % depth sensor resolution in meters
