@@ -154,6 +154,45 @@ class TestProperty(unittest.TestCase):
         self.assertEqual(287, obj.getProperty('MyProp').value())
         self.assertEqual(287, obj.myProp)
 
+# Test States (Consider Magic base class to take care of the init method)
+class Start(object):
+
+    def __init__(self, machine):
+        statemachine.State.__init__(self, machine)
+        self.entered = False
+        self.exit = False
+        self.etype = None
+        self.sender = None
+        self.func = None
+        
+    @classmethod
+    def transitions():
+        return { "Started" : End }
+
+    def enter(self):
+        self.entered = True
+
+    def exit(self):
+        self.exit = True
+
+    def onStarted(self, etype, sender, func):
+        self.etype = etype
+        self.sender = sender
+        self.func = func
+
+class End(object):
+
+    def __init__(self, machine):
+        statemachine.State.__init__(self, machine)
+        self.entered = False
+        self.exit = False
+       
+    def enter(self):
+        self.entered = True
+
+    def exit(self):
+        self.exit = True
+
 if __name__ == '__main__':
     unittest.main()
 
