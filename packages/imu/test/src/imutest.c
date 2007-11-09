@@ -47,9 +47,8 @@ int main(int argc, char ** argv)
 
 //	if(i == 10)
 	{
-		printf("Accel: %11f %11f %11f      Mag: %11f %11f %11f;\n",
-               imuData.accelX, imuData.accelY,
-               imuData.accelZ,
+		printf("%11f %11f %11f;\n",
+//               imuData.accelX, imuData.accelY, imuData.accelZ,
                imuData.magX, imuData.magY, imuData.magZ);
 		i=0;
 	}
