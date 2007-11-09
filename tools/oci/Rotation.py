@@ -97,18 +97,3 @@ class Rotation(wx.Panel):
         circle = gc.CreatePath()
         circle.AddCircle(0,0,radius)
         gc.StrokePath(circle)
-           
-    """
-    def DoGetBestSize(self):
-        print "HELLO"
-        width, height = self.GetSize()
-        if (float(width)/height < .58):
-            print "bad!", width,height
-            best = wx.Size(width, height)
-        else:
-            best = wx.Size(width, height)
-        # Cache the best size so it doesn't need to be calculated again,
-        # at least until some properties of the window change
-        self.CacheBestSize(best)
-        return best  
-    """
