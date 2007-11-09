@@ -102,9 +102,12 @@ Vehicle::~Vehicle()
 {    
     // For safeties sake send a zero torque and force command which will kill
     // any current thruster power
-    applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
-    update(0);
-    usleep(15 * 1000);
+    for (int i = 0; i < 2; ++i) 
+    {
+        applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+        update(0);
+        usleep(30 * 1000);
+    }
     
     // Remove all references to the devices, will cause them to be destructed
     // this will cause the Thruster objects to be deleted and set the 

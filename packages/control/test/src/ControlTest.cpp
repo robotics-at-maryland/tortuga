@@ -46,7 +46,7 @@
 
 #define BACKLOG 10  /* how many pending connections queue will hold */
 
-#define DEADMAN_WAIT 4
+#define DEADMAN_WAIT 1
 
 // Setting for the hand control inputs
 #define MAX_DEPTH 5
@@ -291,8 +291,9 @@ void networkLoop(control::IController* controller)
 
             if(startTime > endTime) /* Wraparound offset */
                 endTime += 1048576;
-
-            printf("processMessage took %d usec\n", endTime - startTime);
+		
+	    if(cmd != CMD_NOTHING)
+	       printf("processMessage took %d usec\n", endTime - startTime);
 
         }
 
