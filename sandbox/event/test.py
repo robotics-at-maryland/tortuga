@@ -159,6 +159,8 @@ class TestProperty(unittest.TestCase):
 class TrackedState(state.State):
     def __init__(self, machine):
         state.State.__init__(self, machine)
+        self.entered = False
+        self.exited = False
 
     def enter(self):
         self.entered = True
@@ -188,15 +190,19 @@ class Simple(state.State):
 class LoopBack(TrackedState):
     def __init__(self, machine):
         TrackedState.__init__(self, machine)
-        self.count = 0
-        'MYSTATS',dir(self)
+        self.transCount = 0
+        self.enterCount = 0
+
+    def enter(self):
+        TrackedState.enter(self)
+        self.enterCount += 1
 
     @staticmethod
     def transitions():
         return { "Update" : LoopBack }
 
     def Update(self, sender, args):
-        self.count += 1
+        self.transCount += 1
 
 class End(TrackedState):
     pass
@@ -214,6 +220,7 @@ class TestStateMachine(unittest.TestCase):
         self.machine.start()
         cstate = self.machine.currentState()
         self.assert_(cstate.entered)
+        self.assertFalse(cstate.exited)
         
     def testInjectEvent(self):
         startState = self.machine.currentState()
@@ -240,19 +247,30 @@ class TestStateMachine(unittest.TestCase):
     def testLoop(self):
         self.machine.injectEvent("LoopBack", self, 0)
         cstate = self.machine.currentState()
-        self.assertEquals(LoopBack, type(cstate))
 
-        cstate = self.machine.currentState()
+        # Ensure we got into are looping state
+        self.assertEquals(LoopBack, type(cstate))
         self.assert_(cstate.entered)
 
         # Make  A Loopback
-#        self.machine.injectEvent("Update", self, 0)
-#        cstate = self.machine.currentState()
-#        self.assertEquals(LoopBack, type(cstate))
-#        print 'TEST',dir(cstate)
-#        self.assert_(cstate.exited)
+        self.machine.injectEvent("Update", self, 0)
+        newstate = self.machine.currentState()
+
+        self.assertEquals(LoopBack, type(newstate))
+        self.assertFalse(newstate.exited)
+        self.assertEquals(1, newstate.transCount)
+        self.assertEquals(1, newstate.enterCount)
+        self.assertEquals(newstate, cstate)
+
+        # Repated loopbacks
+        for i in xrange(1,5):
+            self.machine.injectEvent("Update", self, 0)
+        self.assertEquals(5, cstate.transCount)
+        self.assertFalse(newstate.exited)
+        self.assertEquals(1, newstate.enterCount)
 
 
 if __name__ == '__main__':
     unittest.main()
 
+    
