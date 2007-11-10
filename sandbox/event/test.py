@@ -179,10 +179,14 @@ class Start(TrackedState):
         return { "Start" : End,
                  "Change" : Simple,
                  "LoopBack" : LoopBack }
+ #                "Stuck" : state.PushState(Unstick) }
 
     def Start(self, sender, args):
         self.sender = sender
         self.args = args
+
+#class Unstick(TrackedState):
+#    
 
 class Simple(state.State):
     pass
@@ -209,7 +213,9 @@ class End(TrackedState):
 
 class TestStateMachine(unittest.TestCase):
     def setUp(self):
-        self.machine = state.Machine(Start)
+        self.emgr = event.EventManager()
+        self.machine = state.Machine(None, [self.emgr])
+        self.machine.start(Start)
 
     def testbasic(self):
         # Check to make sure we get the default
@@ -217,7 +223,6 @@ class TestStateMachine(unittest.TestCase):
         self.assertEquals(Start, type(cstate))
 
     def testStart(self):
-        self.machine.start()
         cstate = self.machine.currentState()
         self.assert_(cstate.entered)
         self.assertFalse(cstate.exited)
@@ -268,7 +273,29 @@ class TestStateMachine(unittest.TestCase):
         self.assertEquals(5, cstate.transCount)
         self.assertFalse(newstate.exited)
         self.assertEquals(1, newstate.enterCount)
+        
+    def testEvents(self):
+        enterRecv = Reciever()
+        exitRecv = Reciever()
+        self.emgr.subscribe(state.Machine.STATE_ENTERED, enterRecv)
+        self.emgr.subscribe(state.Machine.STATE_EXITED, exitRecv)
 
+        startState = self.machine.currentState()
+        self.machine.injectEvent("Start")
+        nextState = self.machine.currentState()
+
+        # Check enter event
+        self.assertEquals(state.Machine.STATE_ENTERED, enterRecv.eventType)
+        self.assertEquals(self.machine, enterRecv.sender)
+        self.assertEquals(nextState, enterRecv.args.state)
+
+        # Check exit event
+        self.assertEquals(state.Machine.STATE_EXITED, exitRecv.eventType)
+        self.assertEquals(self.machine, exitRecv.sender)
+        self.assertEquals(startState, exitRecv.args.state)
+        
+        
+        
 
 if __name__ == '__main__':
     unittest.main()
