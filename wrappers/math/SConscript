@@ -10,6 +10,7 @@ import os
 # Build System imports
 import buildfiles.wrap as wrap
 import buildfiles.libs as libs
+import buildfiles.helpers as helpers
 
 Import('env')
 envl = env.Clone()
@@ -25,10 +26,18 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-wrapped_headers = ['Vector3.h','Vector4.h', 'Matrix3.h', 'Matrix4.h',
-                   'Quaternion.h']
+#wrapped_headers = ['Vector3.h','Vector4.h', 'Matrix3.h', 'Matrix4.h',
+#                   'Quaternion.h']
+wrapped_headers = ['Math.h', 'Vector3.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
-wrap.wrap_headers(envl, 'math',
-                  wrapped_headers,
-		  gen_mod = 'gen_math')
+# Tests
+envt = env.Clone()
+test_prog, runner = envt.Tests(int_deps = 'math', ext_deps = 'Boost.Python',
+                               run = False)
+
+# Wrappers
+libs.add_external(envl, 'Boost.Python')
+envl.Pypp('math', wrapped_headers,
+          module = 'gen_math.py',
+          tester = runner)
