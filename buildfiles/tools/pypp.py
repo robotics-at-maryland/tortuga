@@ -13,6 +13,7 @@ This module contains a custom Py++ tool for SCons
 import imp
 import os.path
 import types
+import logging
 
 # Library Imports
 import SCons.Builder
@@ -51,7 +52,14 @@ def generate_code_base(env, target, source, module):
 
     # Tramsform files into so that pygccxml now they are already xml
     import pygccxml
+    import pyplusplus
     from pyplusplus import module_builder
+
+    # Turn off logging (for normal builds)
+#    pygccxml.utils.loggers.gccxml.setLevel(logging.ERROR)
+    pyplusplus._logging_.loggers.module_builder.setLevel(logging.ERROR)
+    pyplusplus._logging_.loggers.declarations.setLevel(logging.ERROR)
+    
     xmlfiles = [pygccxml.parser.create_gccxml_fc(f) for f in xmlfiles]
     mb = module_builder.module_builder_t(files = xmlfiles,
                                          indexing_suite_version = 2)

@@ -28,7 +28,7 @@ envl.Append(CPPPATH = base_dir)
 # Headers we are currently wrapping
 #wrapped_headers = ['Vector3.h','Vector4.h', 'Matrix3.h', 'Matrix4.h',
 #                   'Quaternion.h']
-wrapped_headers = ['Math.h', 'Vector3.h']
+wrapped_headers = ['Math.h', 'Vector3.h', 'Quaternion.h', 'Matrix3.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 # Tests

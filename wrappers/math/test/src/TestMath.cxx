@@ -19,28 +19,32 @@
 
 namespace py = boost::python;
 
+struct MathFixture
+{
+    MathFixture() :
+        main_module(py::import("__main__")),
+        main_namespace(main_module.attr("__dict__")),
+        eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
+    {
+        main_namespace["math"] = py::import("ext.math");
+    }
+
+    py::object main_module;
+    py::object main_namespace;
+    boost::function<py::object (py::str)> eval;
+};
 
 TEST(MathImport)
 {
     py::import("ext.math");
 }
 
-TEST(Radian)
+TEST_FIXTURE(MathFixture, Radian)
 {
     try {
-        // Create out namespace for the python code to operate in
-        py::object main_module = py::import("__main__");
-        py::object main_namespace = main_module.attr("__dict__");
-        main_namespace["math"] = py::import("ext.math");
-        
-        // Create simple eval function
-        boost::function<py::object (py::str)> eval =
-            boost::bind(py::exec, _1, main_namespace, main_namespace);
-
-    
-        eval("d = math.Degree(45);\n"
-             "deg = d.valueDegrees();\n"
-             "rad    = d.valueRadians();\n");
+        eval("d = math.Degree(45)\n"
+             "deg = d.valueDegrees()\n"
+             "rad    = d.valueRadians()\n");
         
         double value = py::extract<double>(main_namespace["deg"]);
         CHECK_EQUAL(45, value);
@@ -48,20 +52,39 @@ TEST(Radian)
         CHECK_CLOSE(M_PI/4, value, 0.1);
         
         
-        eval("import math as m;\n"
-             "r = math.Radian(m.pi);\n"
-             "deg = r.valueDegrees();\n"
-             "rad = r.valueRadians();\n");
-
+        eval("import math as m\n"
+             "r = math.Radian(m.pi)\n"
+             "deg = r.valueDegrees()\n"
+             "rad = r.valueRadians()\n");
     
         value = py::extract<double>(main_namespace["deg"]);
         CHECK_CLOSE(180, value, 0.1);
         value = py::extract<double>(main_namespace["rad"]);
         CHECK_CLOSE(M_PI, value, 0.1);
-    } catch(py::error_already_set err) {
-        PyErr_Print();
-        throw err;
-    }
+
+
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
+}
+
+TEST_FIXTURE(MathFixture, Matrix3)
+{
+    try  {
+        eval("M = math.Matrix3(1,2,3,4,5,6,7,8,9)\n"
+             "elem21 = M[2][1]");
+        double value = py::extract<double>(main_namespace["elem21"]);
+        CHECK_EQUAL(8, value);
+        
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
+}
+
+TEST_FIXTURE(MathFixture, __str__)
+{
+    try {
+        eval("vset = str(math.Vector3(1,2,3))");
+
+        std::string str = py::extract<std::string>(main_namespace["vset"]);
+        CHECK_EQUAL("Vector3(1, 2, 3)", str);
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
 
 int main()

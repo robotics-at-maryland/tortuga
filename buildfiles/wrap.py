@@ -19,14 +19,40 @@ import distutils.sysconfig
 
 # Library Imports
 import SCons
+import pyplusplus
 from pyplusplus import module_builder
 from pygccxml import parser
 from pygccxml import declarations
 
+# Setup logger tied into py++
+decl_logger = pyplusplus._logging_.loggers.declarations
+
 # Build System Imports
 import libs
 
+def str_from_ostream(ns):
+    """
+    Finds all free operators, then exposes only the ones with classes currently exposed then Py++
+    can do the rest.
+    """
+    for oper in ns.free_operators( '<<' ):
+        rtype = declarations.remove_declarated(
+            declarations.remove_reference( oper.return_type ) )
+        type_or_decl = declarations.remove_declarated(
+            declarations.remove_const(
+            declarations.remove_reference( oper.arguments[1].type)))
+        
+        if not isinstance( type_or_decl, declarations.declaration_t ):
+            continue
+        if type_or_decl.ignore == False:
+            decl_logger.info("Exposing operator<<: " + str(oper))
+            oper.include()
+
 def set_implicit_conversions (classes = None, state = False):
+    """
+    Implicit conversions can cause trouble in some cases, so lets you easily turn them on and off.
+    Currently they just add a lot of header depenencies to the main.cpp file.
+    """
     if classes is None:
         classes = []
     
@@ -63,7 +89,7 @@ def add_needed_includes(classes):
             pass
         
         # Add needed includes
-        print 'Adding includes',includes
+        decl_logger.info('Adding includes %s' % includes)
         cls.include_files.extend(includes)
 
 def fix_pointer_returns (classes, pointee_types = None, ignore_names = None):
@@ -90,13 +116,13 @@ def fix_pointer_returns (classes, pointee_types = None, ignore_names = None):
                 for i in pointee_types:
                     if fun.return_type.decl_string.startswith ( i ) and not fun.documentation:
                         if not fun.name in ignore_names:
-                            print "Excluding (function):", fun, "as it returns (pointer)", i
+                            decl_logger.info("Excluding (function): %s as it returns (pointer) %s" % (fun, i))
                         fun.exclude()
         for fun in cls.member_operators( allow_empty = True ):
             if declarations.is_pointer (fun.return_type) and not fun.documentation:
                 for i in pointee_types:
                     if fun.return_type.decl_string.startswith ( i ) and not fun.documentation:
-                        print "Excluding (operator):", fun
+                        decl_logger.info("Excluding (operator): %s" % fun)
                         fun.exclude()
 
 def fix_pointer_args(classes, pointee_types = None, ignore_names = None):
@@ -119,6 +145,13 @@ def fix_pointer_args(classes, pointee_types = None, ignore_names = None):
             fix_void_ptr_fun(fun)
             fix_ptr_fun(fun, pointee_types, None, Exclude = True)
 
+def docit ( general, i, o ):
+    docs = "\"Modified Function Call\\n" + general +"\\n"
+    docs = docs + "Input: " + i + "\\n"
+    docs = docs + "Output: " + o + "\\n\\\n\""
+    return docs
+
+
 def fix_void_ptr_fun(fun):
     arg_position = 0
     trans=[]
@@ -129,12 +162,16 @@ def fix_void_ptr_fun(fun):
             desc = desc +"Argument: "+arg.name+ "( pos:" + str(arg_position) +") takes a CTypes.addressof(xx). "
         arg_position +=1
     if trans:
-        print "Tranformation applied to ", fun, desc
+        decl_logger.info("Tranformation applied to %s %s" % (fun, desc))
         fun.add_transformation ( * trans , **{"alias":fun.name}  )
         fun.documentation = docit ("Modified Input Argument to work with CTypes",
                                    desc, "...")
         
 def fix_ptr_fun(fun, pointee_types = None, ignore_names = None, Exclude = False):
+    """
+    Allows to exclude or mark with a warning functions which take pointers as arguments
+    It ignores already documented functions, because those have been fixed elsewhere
+    """
     if pointee_types is None:
         pointee_types = []
     if ignore_names is None:
@@ -153,11 +190,13 @@ def fix_ptr_fun(fun, pointee_types = None, ignore_names = None, Exclude = False)
             for i in pointee_types:
                 if arg.type.decl_string.startswith(i):
                     if Exclude: 
-                        print "Excluding:", fun," due to pointer argument", arg.type.decl_string
+                        decl_logger.info("Excluding: %s due to pointer argument %s" %
+                                         (fun, arg.type.decl_string))
                         fun.exclude()
                         return
                     else:
-                        print "Function has pointer argument: ", fun, arg.type.decl_string
+                        decl_logger.info("Function has pointer argument: %s %s" %
+                                         (fun, arg.type.decl_string))
                         fun.documentation=docit("SUSPECT - MAYBE BROKEN due to pointer argument", "....", "...")
                         return
         
