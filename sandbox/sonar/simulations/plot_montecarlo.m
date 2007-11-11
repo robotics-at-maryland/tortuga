@@ -1,6 +1,6 @@
-function cov_mat = plot_montecarlo(source_pos, hydro_pos, ...
+function plot_montecarlo(source_pos, hydro_pos, ...
                                    hydro_pos_accuracy, tdoa_accuracy, ...
-                                   algorithm, num_trials)
+                                   algorithm, num_trials, varargin)
 % Determine covariance of x_s, y_s, and z_s, for a particular source
 % position and hydrophone configuration, by using the Monte Carlo method.
 
@@ -15,7 +15,6 @@ end
 scaled_hydro_pos = hydro_pos * 20;
 fov = 30;
 
-%cov_mat = cov(pos);
 av = mean(pos);
 hold on;
 cla;
@@ -26,9 +25,11 @@ plot(scaled_hydro_pos(:,1),scaled_hydro_pos(:,2),'dk','MarkerFaceColor','k','Mar
 plot(source_pos(1),source_pos(2),'ob','MarkerFaceColor','b');
 plot(av(1),av(2),'or','MarkerFaceColor','r');
 hold off;
+if length(varargin) == 1 && strcmp(varargin(1),'interactive')
 source_pos(1:2) = ginput(1);
 if any(abs(source_pos(1:2))>fov)
   return;
 end
-cov_mat = plot_montecarlo(source_pos,hydro_pos,hydro_pos_accuracy, ...
-                          tdoa_accuracy,algorithm,num_trials);
+plot_montecarlo(source_pos,hydro_pos,hydro_pos_accuracy, ...
+                tdoa_accuracy,algorithm,num_trials,'interactive');
+end
