@@ -21,10 +21,16 @@ cla;
 axis([-fov, fov, -fov, fov]);
 axis square;
 plot(pos(:,1),pos(:,2),'.r','MarkerSize',5);
-plot(scaled_hydro_pos(:,1),scaled_hydro_pos(:,2),'dk','MarkerFaceColor','k','MarkerSize',6);
+plot(scaled_hydro_pos(:,1),scaled_hydro_pos(:,2),'dk', ...
+     'MarkerFaceColor','k','MarkerSize',6);
 plot(source_pos(1),source_pos(2),'ob','MarkerFaceColor','b');
 plot(av(1),av(2),'or','MarkerFaceColor','r');
 hold off;
+xlabel('x (meters)');
+ylabel('y (meters)');
+title('Multilateration solutions: systematic and random errors');
+legend('Location estimate','Hydrophone (enlarged)', ...
+       'Actual pinger location','Mean estimate');
 if length(varargin) == 1 && strcmp(varargin(1),'interactive')
 source_pos(1:2) = ginput(1);
 if any(abs(source_pos(1:2))>fov)
