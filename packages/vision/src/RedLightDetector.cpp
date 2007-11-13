@@ -15,7 +15,7 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	startCounting=false;
 	lightCenter.x=0;
 	lightCenter.y=0;
-	image=cvCreateImage(cvSize(480,640),8,3);
+	image=cvCreateImage(cvSize(640,480),8,3);//480 by 640 if we put the camera on sideways again...
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
 }
@@ -56,8 +56,9 @@ IplImage* RedLightDetector::getAnalyzedImage()
 void RedLightDetector::update()
 {
 	cam->getImage(frame);
-	IplImage* sideways =(IplImage*)(*frame);
-	rotate90Deg(sideways,image);
+//	IplImage* sideways =(IplImage*)(*frame);
+//	rotate90Deg(sideways,image);  Don't do this unless we put the cameras on sideways again...
+	image=(IplImage*)(*frame);
 	cvCopyImage(image,raw);//Now both are rotated 90 degrees
 	cvCopyImage(image, flashFrame);
 	

@@ -6,8 +6,8 @@ BinDetector::BinDetector(OpenCVCamera* camera)
 {
 	cam = camera;
 	frame = new ram::vision::OpenCVImage(640, 480);
-	binFrame =cvCreateImage(cvSize(480,640),8,3);
-	rotated = cvCreateImage(cvSize(480,640),8,3);
+	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
+	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
 	found=0;
 	binX=-1;
 	binY=-1;
@@ -28,9 +28,15 @@ void BinDetector::update()
 	/*First argument to white_detect is a ratios frame, then a regular one*/
 	cam->getUncalibratedImage(frame);
 	IplImage* image =(IplImage*)(*frame);
-	rotate90Deg(image,rotated);
-	image=rotated;
+	
+	//This is only right if the camera is on sideways... again.
+	//rotate90Deg(image,rotated);
 
+	//Else just copy
+	cvCopyImage(image,rotated);
+	image=rotated;//rotated is poorly named when camera is on correctly... oh well.
+	//Set image to a newly copied space so we don't write over opencv's private memory space...
+	//since opencv has a bad habit of making assumptions about what I want to do. :)
 	cvCopyImage(image,binFrame);
 	
 	to_ratios(image);

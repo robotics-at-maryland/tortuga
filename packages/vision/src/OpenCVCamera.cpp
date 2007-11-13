@@ -84,7 +84,7 @@ void OpenCVCamera::update(double timestep)
     {
       std::cout<<"Grabbed Frame\n";
       // Create a new image and return it, image does not own the wrapped
-      // IplImage and thus will not detele it!
+      // IplImage and thus will not delete it!
         Image* newImage = new OpenCVImage(cvRetrieveFrame(m_camCapture),
                                           false);
 

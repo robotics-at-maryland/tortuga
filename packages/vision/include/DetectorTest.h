@@ -44,6 +44,7 @@ namespace vision{
 			BinDetector* bDetect;
 			RedLightDetector* rlDetect;
 			Recorder* recorder;
+			bool fromMovie;
 			IplImage* undistorted;
 			IplImage* differenceImage;
 			IplImage* dest;

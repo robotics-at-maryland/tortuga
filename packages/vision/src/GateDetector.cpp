@@ -10,9 +10,11 @@ GateDetector::GateDetector(OpenCVCamera* camera)
 	gateX=0;
 	gateY=0;
 	found=false;
-	//This frame will be a copy of the original rotated 90¼ counterclockwise.
-	gateFrame =cvCreateImage(cvSize(480,640),8,3);
-	gateFrameRatios = cvCreateImage(cvSize(480,640),8,3);
+	//This frame will be a copy of the original rotated 90¼ counterclockwise.  
+	//But only if the camera is on sideways, otherwise we do 640 by 480 like usual.
+	//ie 640 by 480 if cameras on right (Or completely upsidedown!... sigh), else 480 by 640.
+	gateFrame =cvCreateImage(cvSize(640,480),8,3);
+	gateFrameRatios = cvCreateImage(cvGetSize(gateFrame),8,3);
 }
 
 GateDetector::~GateDetector()
@@ -46,8 +48,19 @@ void GateDetector::update()
 {	
 	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
-	rotate90Deg(image,gateFrame);//Rotate image into gateFrame, so that it will be vertical.
-	rotate90Deg(image,gateFrameRatios);
+//  These lines are correct only if the camera is on sideways again.
+//	rotate90Deg(image,gateFrame);//Rotate image into gateFrame, so that it will be vertical.
+//	rotate90Deg(image,gateFrameRatios); 
+
+// Otherwise just copy like this:
+	
+	//Could just say gateFrame=(IplImage*)(*frame), 
+	//but I've heard openCV gets angry if you write pixels 
+	//to image when it is getting images from a camera.
+	//TODO: Before changing this, check the Camera class to see if it automatically copies anyway.
+	cvCopyImage(image,gateFrame);
+	cvCopyImage(gateFrame, gateFrameRatios);
+
 	to_ratios(gateFrameRatios);
 	found=gateDetect(gateFrameRatios,gateFrame,&gateX,&gateY) ? 1 : 0;
 	gateXNorm=gateX;

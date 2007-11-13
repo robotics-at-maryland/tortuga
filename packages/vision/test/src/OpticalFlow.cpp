@@ -7,7 +7,7 @@
 #include <highgui.h>
 #include <math.h>
 
-#define	max_number_of_features 10
+#define	max_number_of_features 400
 
 static const double pi = 3.14159265358979323846;
 
@@ -35,14 +35,18 @@ inline static void allocateOnDemand( IplImage **img, CvSize size, int depth, int
 
 int main(void)
 {
-	bool CAMERA=false;
+	bool CAMERA=true;
 
 	/* Create an object that decodes the input video stream. */
-	/*	CvCapture *capture = cvCaptureFromCAM( CV_CAP_ANY );
-	*/
+//	CvCapture *capture = cvCaptureFromCAM( CV_CAP_ANY );
+	
 	CvCapture *capture = cvCaptureFromFile(
-			"/Users/Dan/Desktop/KillerRobot.mov"
+		"/run1-2clipped.mov"
 		);
+	for (int i=0; i<300;i++)
+		cvQueryFrame( capture );
+		//Skip some frames in case video starts out all white
+
 
 	if (capture == NULL)
 	{
@@ -100,23 +104,6 @@ int main(void)
 		 * will result in (frame1 == frame2 && frame2 == frame3) being true.
 		 * The solution is to make a copy of the cvQueryFrame() output.
 		 */
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		frame = cvQueryFrame( capture );
-		 //Skip first frames. --Dan
 
 		frame = cvQueryFrame( capture );
 		CvSize frame_size=cvGetSize(frame);
@@ -183,10 +170,10 @@ int main(void)
 		 * "frame1_features" will contain the feature points.
 		 * "max_number_of_features" will be set to a value <= 400 indicating the number of feature points found.
 		 */
-		 printf("Am I about to crash?\n");
+//		 printf("Am I about to crash?\n");
 		 int number_of_features=max_number_of_features;
 		cvGoodFeaturesToTrack(frame1_1C, eig_image, temp_image, frame1_features, &number_of_features, .01, .01, NULL);
-		 printf("Nope\n");
+//		 printf("Nope\n");
 
 		/* Pyramidal Lucas Kanade Optical Flow! */
 
@@ -235,15 +222,7 @@ int main(void)
 		 * "0" means disable enhancements.  (For example, the second array isn't pre-initialized with guesses.)
 		 */
 		 
-//		 cvNamedWindow("Dan's Tester");
-//		 cvShowImage("Dan's Tester",frame1_1C);
-//		 cvWaitKey(0);
-//		 cvShowImage("Dan's Tester",frame2_1C);
-//		 cvWaitKey(0);
-		 
-		 printf("How about now\n");
 		cvCalcOpticalFlowPyrLK(frame1_1C, frame2_1C, pyramid1, pyramid2, frame1_features, frame2_features, number_of_features, optical_flow_window, 5, optical_flow_found_feature, optical_flow_feature_error, optical_flow_termination_criteria, 0 );
-		 printf("Yep\n");
 		
 		/* For fun (and debugging :)), let's draw the flow field. */
 		CvPoint totalP,totalQ;
@@ -340,7 +319,7 @@ int main(void)
 		 * The return value is the key the user pressed.
 		 */
 		int key_pressed;
-		key_pressed = cvWaitKey(20);
+		key_pressed = cvWaitKey(0);
 
 		/* If the users pushes "b" or "B" go back one frame.
 		 * Otherwise go forward one frame.

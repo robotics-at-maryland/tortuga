@@ -252,9 +252,9 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 			b2=(data2[count]+256)%256;
 			g2=(data2[count+1]+256)%256;
 			r2=(data2[count+2]+256)%256;
-			if (b>25 && g>25 && r>25)
+			if (b>20 && g>20 && r>15)
 			{
-				if (b2>100 && g2>100 && r2>100)
+				if (b2>100 && g2>100 && r2>50)
 				{
 					data2[count]=255;
 					data2[count+1]=255;
@@ -1180,7 +1180,7 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 		r_over_g_max=1.4f;
 		b_over_r_max=0.6f;
 	}
-	else
+	else//(strict)
 	{
 		r_over_g_min=0.8f;
 		r_over_g_max=1.2f;
@@ -1216,6 +1216,9 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 				++acceptable;
 			if ( b_over_r_max*r>b)
 				++acceptable;
+			//A new test because dark black squares shouldn't be orange.
+			if (r+g+b<100)//100 seems like a good value, but should probably be in a config file somewheres.
+				acceptable=0;
 			if (acceptable>=2+(int)strict)
 			{
 				if (alter_img)

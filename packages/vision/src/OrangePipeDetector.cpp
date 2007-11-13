@@ -18,7 +18,7 @@ OrangePipeDetector::OrangePipeDetector(OpenCVCamera* camera)
 	angle=0;
 	cam = camera;
     frame = new ram::vision::OpenCVImage(640, 480);
-	rotated = cvCreateImage(cvSize(480,640),8,3);
+	rotated = cvCreateImage(cvSize(640,480),8,3);//480 by 640 if camera is on sideways, else 640 by 480.
 	lineX=lineY=0;
 }
 
@@ -45,7 +45,7 @@ OrangePipeDetector::~OrangePipeDetector()
 
 void OrangePipeDetector::show(char* window)
 {
-	cvShowImage(window,((IplImage*)(*frame)));
+	cvShowImage(window,rotated);
 }
 
 IplImage* OrangePipeDetector::getAnalyzedImage()
@@ -64,12 +64,14 @@ void OrangePipeDetector::update()
 	//Mask orange takes frame, then alter image, then strictness (true=more strict, false=more lenient)
 	cam->getUncalibratedImage(frame);
 	IplImage* image =(IplImage*)(*frame);
-	rotate90Deg(image,rotated);
+
+//	rotate90Deg(image,rotated);//Only do this if the camera is attached sideways again.
+	cvCopyImage(image,rotated);//Poorly named if the cameras not on sideways... oh well.
 	image=rotated;
 	if (!found)
 	{
 		int orange_count=mask_orange(image,true,true);
-		if (orange_count>1000)
+		if (orange_count>1000)//this number is in pixels.
 		{
 			found=1;
 		}

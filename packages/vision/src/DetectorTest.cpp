@@ -23,8 +23,7 @@ using namespace ram::vision;
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
 {
-	cout<<"I am compiled"<<endl;
-
+	fromMovie=false;
 	orangeOn=false;
 	lightOn=false;
 	gateOn=false;
@@ -54,11 +53,17 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	frame = new OpenCVImage(640,480);
 	dest=cvCreateImage(cvSize(480,640),8,3);
 	dataMove=cvCreateImage(cvSize(256,256),8,3);
-	camera->background(30); //Silliness	
+	camera->background(30);//Camera is backgrounded when dealing with a camera such that each detector when it queries the camera, deals only with the latest image.
+	//I really think that each detector should simply ask the camera for the latest image when it starts... but instead we are taking every image from the camera, 
+	//spending the time to copy it, and then dumping most of them.  If more than this class were dealing with the camera then maybe this is correct, as something could record
+	//the run, but this still seems wrong when this is the only class dealing with the camera.  Honestly if the camera should be backgrounded, it shouldn't be backgrounded here.
+	//Unfortunately, if we don't do it here, and no one else does it either, then this class has to call update on the camera before getting new frames to analyze,
+	//And then if someone else backgrounds the camera, it all screws up...  yay threads.
 }
 
 DetectorTest::DetectorTest(string movie)
 {
+	fromMovie=true;
 	orangeOn=false;
 	lightOn=false;
 	gateOn=false;
@@ -66,8 +71,8 @@ DetectorTest::DetectorTest(string movie)
 	camera = new OpenCVCamera(movie);
 	frame = new OpenCVImage(640,480);
 	dest=cvCreateImage(cvSize(480,640),8,3);
-	camera->background();
 	recorder=NULL;
+	recorder=new Recorder(camera, "analysis.avi");
 	opDetect=new OrangePipeDetector(camera);
 	gDetect=new GateDetector(camera);
 	bDetect=new BinDetector(camera);
@@ -84,6 +89,8 @@ DetectorTest::DetectorTest(string movie)
 		return;
 	}
 	dataMove=cvCreateImage(cvSize(256,256),8,3);
+	//camera->background();//There is NO valid reason to background the camera when dealing with a movie, we will just skip frames!
+	//Instead we should call camera->update directly at the start of the update call.  
 }
 
 DetectorTest::~DetectorTest()
@@ -170,16 +177,28 @@ void DetectorTest::update(double timestep)
 	cout<<orangeOn<<" "<<binOn<<" "<<lightOn<<" "<<gateOn<<endl;
 	//char key=' ';
 	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
+	
+	if (fromMovie)
+	{	
+		printf("Acquiring Next Frame\n");
+		camera->update(timestep);//When running on a movie, the camera is not constantly grabbing frames, analyze each frame by itself.
+	}
 	camera->getImage(frame);
 	IplImage* image=(IplImage*)(*frame);
 	if (!orangeOn && !lightOn && !gateOn && !binOn)
 		cvShowImage("Detector Test", image);
 
 	//Recording
-	if (recorder!=NULL)
+	//If we're on a camera, just record a movie of it for later analysis.
+	//If we're on a movie, record the analyzed results of the movie.
+	if (!fromMovie)
 	{
-		recorder->update();
+		if (recorder!=NULL)
+		{
+			recorder->update();//We could just background recorder itself, but then we get a movie where frames recorded don't match up with frames analyzed.
+		}
 	}
+	
 	//Orange pipeline	
 	if (orangeOn)
 	{
@@ -188,6 +207,8 @@ void DetectorTest::update(double timestep)
 			
 		opDetect->update();
 		opDetect->show("Detector Test");
+		if (fromMovie && recorder!=NULL)
+			recorder->writeFrame(opDetect->getAnalyzedImage());
 		if (opDetect->found && opDetect->getAngle()!=-10)
 		{
 			//Found in this case refers to the finding of a thresholded number of pixels
@@ -218,6 +239,8 @@ void DetectorTest::update(double timestep)
 		
 		gDetect->update();
 		gDetect->show("Detector Test");
+		if (fromMovie && recorder!=NULL)
+			recorder->writeFrame(gDetect->getAnalyzedImage());
 
 		if (gDetect->found)
 		{
@@ -244,6 +267,8 @@ void DetectorTest::update(double timestep)
 			cout<<"Running Bin Detection..."<<endl;
 		bDetect->update();
 		bDetect->show("Detector Test");
+		if (fromMovie && recorder!=NULL)
+			recorder->writeFrame(bDetect->getAnalyzedImage());
 
 		if (bDetect->found)
 		{
@@ -269,6 +294,8 @@ void DetectorTest::update(double timestep)
 			cout<<"Running Red Light Detection..."<<endl;
 		rlDetect->update();
 		rlDetect->show("Detector Test");
+		if (fromMovie && recorder!=NULL)
+			recorder->writeFrame(rlDetect->getAnalyzedImage());
 
 		if (rlDetect->found)
 		{
