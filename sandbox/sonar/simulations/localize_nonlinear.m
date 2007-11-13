@@ -1,4 +1,4 @@
-function pos = localize_nonlinear(hydro_pos, tdoas)
+function pos = localize_nonlinear(hydro_pos, tdoas, varargin)
 % Find source position using MATLAB's nonlinear minimization algorithms.
 
 hydro_pos = strip_first_zeros(hydro_pos);

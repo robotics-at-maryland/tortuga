@@ -1,11 +1,10 @@
-function pos = localize_iterative(hydro_pos, tdoas)
+function pos = localize_iterative(hydro_pos, tdoas, varargin)
 % Find source position by one-step least squares algorithm, based on
 % Ho's paper.
 
 near_field = true;
 num_iters = 2;
 config;
-varargin
 
 hydro_pos = strip_first_zeros(hydro_pos);
 
