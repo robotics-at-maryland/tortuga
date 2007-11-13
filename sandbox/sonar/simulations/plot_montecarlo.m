@@ -6,13 +6,17 @@ function plot_montecarlo(source_pos, hydro_pos, ...
 
 pos = zeros(num_trials,3);
 
+m = size(hydro_pos);
+m = m(1);
+
 for i = 1:num_trials
   tdoas = gaussian_variant(source_pos, hydro_pos, hydro_pos_accuracy, ...
                            tdoa_accuracy);
   pos(i,1:3) = feval(algorithm, hydro_pos, tdoas);
 end
 
-scaled_hydro_pos = hydro_pos * 20;
+scaled_hydro_pos = zeros(m+1,3);
+scaled_hydro_pos(2:end,:) = hydro_pos * 20;
 fov = 30;
 
 av = mean(pos);
