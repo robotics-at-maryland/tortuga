@@ -1,5 +1,10 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Jon Speiser <jspeiser@umd.edu>
+# All rights reserved.
+#
+# Author: Jon Speiser <jspeiser@umd.edu>
 import wx
-from math import radians,sqrt,pow
+from math import radians,sqrt
 
 class Rotation(wx.Panel):
     def __init__(self, parent,label="[Default]"):
@@ -35,7 +40,7 @@ class Rotation(wx.Panel):
         self.Refresh()
         
     def Draw(self,gc):
-        #todo: change pen color to correspond to degrees rotated?
+        #TODO: change pen color to correspond to degrees rotated?
         width,height = self.GetSize()
         gc.SetPen(wx.Pen("black", 3))
         gc.SetBrush(wx.Brush("black"))
@@ -82,12 +87,17 @@ class Rotation(wx.Panel):
         trianglePath.CloseSubpath()
         
         """ Move to the middle """
-        if originalWidth <> None:    
-            gc.Translate(originalWidth/2,yCenter*2)
-        elif originalHeight <> None:
-            gc.Translate(xCenter*2, originalHeight/2)
+        #if originalWidth <> None:    
+        #    gc.Translate(originalWidth/2,yCenter*2)
+        #elif originalHeight <> None:
+        #    gc.Translate(xCenter*2, originalHeight/2)
+        #else:
+        #    gc.Translate(xCenter*2,yCenter*2)
+        if originalWidth <> None: 
+            gc.Translate(originalWidth/2,radius+5)
         else:
-            gc.Translate(xCenter*2,yCenter*2)
+            gc.Translate(xCenter*2,radius+5)
+
             
         """ Rotate on origin triangle """
         gc.Rotate(radians(self.rotVal))
