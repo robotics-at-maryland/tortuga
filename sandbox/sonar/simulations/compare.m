@@ -27,6 +27,6 @@ semilogy(ranges,cramerb,ranges,uncert(:,1),ranges,uncert(:,2),ranges,uncert(:,3)
 h = legend('CRLB',func2str(algs{1}),func2str(algs{2}),func2str(algs{3}),func2str(algs{4}));
 set(h, 'Interpreter', 'none');
 xlabel('Range (meters)');
-ylabel('Range uncertainty (meters - log scale)');
-title('Range accuracy of two localizers compared');
-% print -r600 -depsc compare.eps
+ylabel('Range std. dev. (meters from real pinger - log scale)');
+title('Range accuracy of multilateration solvers compared');
+print -r600 -depsc compare.eps
