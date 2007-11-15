@@ -7,7 +7,7 @@ algs = {@localize,@localize_simpleiterative,@localize_iterative, ...
 
 nalgs = length(algs);
 
-cramerb = zeros(length(ranges));
+cramerb = zeros(length(ranges),1);
 uncert = zeros(length(ranges),length(algs));
 
 hydro_pos_depth = hydro_pos(1:3,:);
