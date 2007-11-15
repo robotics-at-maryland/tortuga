@@ -58,3 +58,27 @@ TEST_FIXTURE(Fixture, RollControl)
     controller.update(1);
     CHECK_CLOSE(exp_rotTorque, vehicle.torque, 0.0001);
 }
+
+TEST_FIXTURE(Fixture, DepthControl)
+{
+    math::Vector3 exp_tranForce(0, 0, 0);
+
+    // Test at correct depth response
+    controller.setDepth(0);
+    vehicle.depth = 0;
+    controller.update(1);
+    CHECK_CLOSE(exp_tranForce, vehicle.force, 0.0001);
+
+    controller.setDepth(3);
+    vehicle.depth = 3;    
+    controller.update(1);
+    CHECK_CLOSE(exp_tranForce, vehicle.force, 0.0001);
+
+    // Test we need to dive response
+    exp_tranForce = math::Vector3(0,0,-5);
+    
+    controller.setDepth(5);
+    vehicle.depth = 0;
+    controller.update(1);
+    CHECK_CLOSE(exp_tranForce, vehicle.force, 0.0001);
+}
