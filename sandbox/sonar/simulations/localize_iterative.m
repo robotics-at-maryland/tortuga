@@ -13,7 +13,8 @@ m = size(hydro_pos);
 m = m(1);
 
 % can be precomputed
-Q = eye(m) * tdoa_accuracy^2 + 0.5 * (1 - eye(m)) * tdoa_accuracy^2;
+Qa = eye(m) * tdoa_accuracy^2 + 0.5 * (1 - eye(m)) * tdoa_accuracy^2;
+Qb = tdoa_accuracy;
 
 % can be precomputed
 Rsq = dot(hydro_pos,hydro_pos,2);
@@ -25,7 +26,7 @@ G1 = -2 * G1;
 h1 = tdoas' .^2 - Rsq;
 
 % can be precomputed
-W1 = inv(Q);
+W1 = inv(Qa);
 
 th1 = inv(G1'*W1*G1)*G1'*W1*h1;
 
@@ -33,7 +34,14 @@ if near_field
   for i = 1:num_iters
     dists = hydro_pos - repmat(th1(1:3)',m,1);
     B1 = 2 * diag(sqrt(dot(dists,dists,2)));
-    W1 = inv(B1*Q*B1);
+    
+    D1(1:m,1:3) = repmat(th1(1:3)',m,1);
+    for j = 2:m
+      D1(j-1,3*j-2:3*j) = th1(1:3)' - hydro_pos(j,:);
+    end
+    
+    W1 = inv(B1*Qa*B1+D1*Qb*D1');
+    
     th1 = inv(G1'*W1*G1)*G1'*W1*h1;
   end
 end
@@ -42,9 +50,13 @@ covth1 = inv(G1'*W1*G1);
 
 B2 = 2 * diag(th1);
 
+D2 = zeros(4,3*m);
+D2(4,1:3) = 2 * th1(1:3)';
+
 h2 = th1 .^ 2;
 
-W2 = inv(B2*covth1*B2);
+W2 = inv(B2*covth1*B2 + D2*Qb*D2'+B2*inv(G1'*W1*G1)*G1'*W1*D1*Qb*D2'+...
+         D2*Qb*D1'*W1*G1*inv(G1'*W1*G1)*B2');
 
 % can be precomputed
 G2 = eye(3);
@@ -62,7 +74,12 @@ if near_field
   for i = 1:num_iters
     B2 = 2 * diag(th);
     B2(4,4) = 2 * sqrt(dot(th,th));
-    W2 = inv(B2*covth1*B2);
+    
+    D2(4,1:3) = 2 * th';
+    
+    W2 = inv(B2*covth1*B2 + D2*Qb*D2'+B2*inv(G1'*W1*G1)*G1'*W1*D1*Qb*D2'+ ...
+             D2*Qb*D1'*W1*G1*inv(G1'*W1*G1)*B2');
+    
     th2 = inv(G2'*W2*G2)*G2'*W2*h2;
     % get rid of imaginary components
     th2 = max(th2,0);
