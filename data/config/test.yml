@@ -44,14 +44,14 @@ Modules:
                 # serial: 146
                 address: 2
                 calibration_factor: 0.4368
-                direction: -1
+                direction: 1
 
             AftThruster:
                 # Serial 148
                 type: Thruster
                 address: 1
                 calibration_factor: 0.3612
-                direction: 1
+                direction: -1
 
             IMU:
                 type: IMU
@@ -77,7 +77,7 @@ Modules:
         angularDGain: 1
         speedPGain: 3
         # Should not be negative
-        depthPGain: -20
+        depthPGain: 20
 
 
         desiredSpeed: 0
