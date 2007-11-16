@@ -1,6 +1,6 @@
 import wx
 class ThrusterBar(wx.PyControl):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+    def __init__(self, parent, innerBorder=0, id=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.NO_BORDER, validator=wx.DefaultValidator,name="valbar"):
         wx.PyControl.__init__(self, parent, id, pos, size, style, validator, name)
         self.parent = parent
@@ -9,6 +9,8 @@ class ThrusterBar(wx.PyControl):
         """ The max/min values of the bar """
         self.maxValue = 100
         self.minValue = -100
+        
+        self.innerBorder=innerBorder 
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
@@ -35,7 +37,7 @@ class ThrusterBar(wx.PyControl):
     def Draw(self,gc):
         width,height = self.GetSize()
         """ Draw the rectangle to represent the value """
-        pen = wx.Pen("green", 3)
+        pen = wx.Pen("green", 1)
         brush = wx.Brush("green")
         if self.barValue > 0:
             gc.SetPen(pen)
@@ -50,29 +52,23 @@ class ThrusterBar(wx.PyControl):
         percent = float(self.barValue) / (self.maxValue*2) 
         heightScale = -height*percent
         
-        path.AddRectangle(0, height/2, width, heightScale)
-
+        path.AddRectangle(0+self.innerBorder, height/2, width-(self.innerBorder*2), heightScale) #innerBorder
         gc.DrawPath(path)
-        #gc.SetPen(wx.Pen("black", 3))
+        
         pen.SetColour("black")
-        pen.SetWidth(3)
+        pen.SetWidth(2)
+        
         gc.SetPen(pen)
+        
         gc.StrokeLine(0,height/2,width,height/2)
         
+        brush.SetStyle(wx.TRANSPARENT)
+        gc.SetBrush(brush)
         border = gc.CreatePath()
         border.AddRectangle(0, 0, width, height)
-        gc.StrokePath(border)      
+        gc.DrawPath(border)      
              
-    """
-    def DoGetBestSize(self):
-        width, height = self.GetClientSize()
-        best = wx.Size(width/6, height)
-        # Cache the best size so it doesn't need to be calculated again,
-        # at least until some properties of the window change
-        self.CacheBestSize(best)
-        return best
-    """
-    
+
     def OnEraseBackground(self, event):
         """ Handles the wx.EVT_ERASE_BACKGROUND event. """
         pass
