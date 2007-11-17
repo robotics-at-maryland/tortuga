@@ -300,6 +300,43 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
 {
     Vector3 mag(_mag);
     Vector3 accel(_accel);
+/*
+    mag.normalise();
+    accel.normalise();
+        
+    
+    // Point accel down, and normalize
+    mag.normalise();
+    
+    accel = accel * -1;
+    accel.normalise();
+
+    Vector3 localY = mag.crossProduct(accel);
+    localY.normalise();
+    
+    std::cout << "Local Y " << localY << std::endl;
+    Vector3 localX = accel.crossProduct(localY);
+    localX.normalise();
+    
+    std::cout << "Local X " << localX << std::endl;
+    std::cout << "UNIT X " << Vector3::UNIT_X << std::endl;
+    // Determine the angle we have rotated relative to that
+    Radian angle(Math::ACos(Vector3::UNIT_X.dotProduct(localX)));
+    std::cout << "Angle " << angle.valueDegrees() << std::endl;
+    
+    // Transform the axis-angle to a quaternion
+    Matrix3 mat;
+    mat.FromAxisAngle(localY, angle);
+    
+    Quaternion result;
+    result.FromRotationMatrix(mat);
+//    result.normalise();
+
+    quaternion[0] = result.w;
+    quaternion[1] = result.x;
+    quaternion[2] = result.y;
+    quaternion[3] = result.z;
+*/
     
     Vector3 n3 = accel * -1;
     n3.normalise();
@@ -317,7 +354,14 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
     
     Matrix3 nCb = bCn.Transpose();
 
+    Quaternion result;
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
+/*    result.normalise();
+    
+    quaternion[0] = result.x;
+    quaternion[1] = result.y;
+    quaternion[2] = result.z;
+    quaternion[3] = result.w;*/
 }
     
 } // namespace device

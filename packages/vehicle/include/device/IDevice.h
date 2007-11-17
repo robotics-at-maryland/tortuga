@@ -38,6 +38,14 @@ public:
         assert(ptr && "Failed to cast IDevice pointer");
         return ptr;
     }
+    
+    template<class T>
+    static T* castTo(IDevice* device)
+    {
+        T* ptr = dynamic_cast<T*>(device);
+        assert(ptr && "Failed to cast IDevice pointer");
+        return ptr;
+    }
 };
     
 } // namespace device

@@ -31,10 +31,10 @@ public:
                 
 //    virtual ~MockVehicle {};
     
-    virtual ram::vehicle::device::IDevicePtr getDevice(std::string name)
+    virtual ram::vehicle::device::IDevice* getDevice(std::string name)
     {
         assert(false && "Method not implemented");
-        return ram::vehicle::device::IDevicePtr();
+        return 0;
     }
 
     virtual double getDepth()  { return depth; }

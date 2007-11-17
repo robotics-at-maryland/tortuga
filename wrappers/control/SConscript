@@ -34,6 +34,7 @@ envt = env.Clone()
 test_prog, runner = envt.Tests(int_deps = 'control', ext_deps = 'Boost.Python',
                        run = False)
 
+# Wrapper
 envl.Pypp('control', wrapped_headers,
           module = 'gen_control.py',
           tester = runner)

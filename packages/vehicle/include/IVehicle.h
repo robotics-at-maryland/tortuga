@@ -23,21 +23,21 @@
 
 namespace ram {
 namespace vehicle {
-
+    
 class IVehicle : public core::IUpdatable
 {
 public:
     /** Gets the device associated with the given name */
-    virtual device::IDevicePtr getDevice(std::string name) = 0;
+    virtual device::IDevice* getDevice(std::string name) = 0;
 
     /** Return the current vehicle depth in feet */
     virtual double getDepth() = 0;
 
     /** Returns an array of temperature sensor names */
-    virtual std::vector<std::string> getTemperatureNames() = 0;
+    virtual TempNameList getTemperatureNames() = 0;
 
     /** Returns the array of temperature sensor values */
-    virtual std::vector<int> getTemperatures() = 0;
+    virtual TempList getTemperatures() = 0;
 
     virtual math::Vector3 getLinearAcceleration() = 0;
 

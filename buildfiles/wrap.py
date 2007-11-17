@@ -30,10 +30,33 @@ decl_logger = pyplusplus._logging_.loggers.declarations
 # Build System Imports
 import libs
 
+def find_out_container_traits( cls ):
+    for ct in declarations.all_container_traits:
+        if ct.is_my_case( cls ):
+            return ct
+    else:
+        return None
+
+def mangle_container_names(namespace):
+    for cls in namespace.classes():
+        # Check to see if we are really a container
+        for ct in declarations.all_container_traits:
+            if ct.is_my_case( cls ):
+                # Mangle name with the string hash function
+                mangled_name = 'm' + str(str(cls).__hash__()).replace('-','n')
+                cls.rename(mangled_name)
+                # Drop out of the inner loop
+                break
+
+
+def exclude_member_functions(cls, members):
+    for m in members:
+        cls.member_function(m).exclude()
+
 def str_from_ostream(ns):
     """
-    Finds all free operators, then exposes only the ones with classes currently exposed then Py++
-    can do the rest.
+    Finds all free operators, then exposes only the ones with classes
+    currently exposed then Py++ can do the rest.
     """
     for oper in ns.free_operators( '<<' ):
         rtype = declarations.remove_declarated(
@@ -50,8 +73,9 @@ def str_from_ostream(ns):
 
 def set_implicit_conversions (classes = None, state = False):
     """
-    Implicit conversions can cause trouble in some cases, so lets you easily turn them on and off.
-    Currently they just add a lot of header depenencies to the main.cpp file.
+    Implicit conversions can cause trouble in some cases, so lets you easily
+    turn them on and off. Currently they just add a lot of header depenencies
+    to the main.cpp file.
     """
     if classes is None:
         classes = []

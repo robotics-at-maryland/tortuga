@@ -8,8 +8,7 @@
 import os
 
 # Build System imports
-import wrap
-import libs
+import buildfiles.libs as libs
 
 Import('env')
 envl = env.Clone()
@@ -25,18 +24,26 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-veh_wrapped_headers = ['Vehicle.h', 'IVehicle.h']
+veh_wrapped_headers = ['IVehicle.h']
 
 dev_wrapped_headers = ['device/IDevice.h',
                        'device/IMU.h',
                        'device/Thruster.h',
                        'device/PSU.h']
 
-wrap.wrap_headers(envl, 'vehicle',
-                  [os.path.join(header_dir, h) for h in veh_wrapped_headers],
-		  gen_mod = 'gen_vehicle')
 
+# Tests
+envt = env.Clone()
+test_prog, runner = envt.Tests(int_deps = 'vehicle', ext_deps = 'Boost.Python',
+                               run = False)
 
-wrap.wrap_headers(envl, 'vehicle',
-                  [os.path.join(header_dir, h) for h in dev_wrapped_headers],
-		  gen_mod = 'gen_vehicle_device')
+# Wrapper
+envl.Pypp('vehicle',
+          [os.path.join(header_dir, h) for h in veh_wrapped_headers],
+          module = 'gen_vehicle.py',
+          tester = runner)
+
+#envl.Pypp('vehicle_device',
+#          [os.path.join(header_dir, h) for h in dev_wrapped_headers],
+#          module = 'gen_vehicle.py',
+#          tester = runner)

@@ -50,8 +50,8 @@ typedef DoubleList WattageList;
 typedef DoubleList CurrentList;
 typedef std::vector<std::string> StringList;
     
-namespace details {
-/** To expose things to GCC-XML */
+/*namespace details {
+// To expose things to GCC-XML
 inline int instantiate()
 {
     int a = 0;
@@ -66,6 +66,7 @@ inline int instantiate()
     return a;
 }
 }
+*/
     
 } // namespace device
 } // namespace vehicle

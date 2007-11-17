@@ -55,7 +55,8 @@ def get_features():
         add_feature('wrappers', opt_dirs =
                     {'control' : ['wrappers/control'],
                      'pattern' : ['wrappers/pattern'],
-                     'math' : ['wrappers/math'] })
+                     'math' : ['wrappers/math'],
+                     'vehicle' : ['wrappers/vehicle']})
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',
                                            'tools/BiasFinder'])

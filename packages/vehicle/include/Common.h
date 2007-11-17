@@ -30,13 +30,16 @@ typedef boost::shared_ptr<IVehicle> IVehiclePtr;
 // Typedefs
 typedef std::map<std::string, device::IDevicePtr> NameDeviceMap;
 typedef NameDeviceMap::iterator NameDeviceMapIter;
-
+typedef std::vector<std::string> TempNameList;
+typedef std::vector<int> TempList;
+    
 // Needed for GCCXML to see the types
 namespace details {
 inline int instantiate()
 {
-    int a = 0;
-    a += sizeof(boost::shared_ptr<IVehicle>);
+    int a = sizeof(boost::shared_ptr<IVehicle>);
+    a += sizeof(std::vector<std::string>);
+    a += sizeof(std::vector<int>);
     return a;
 }
 }

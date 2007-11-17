@@ -42,7 +42,7 @@ Vehicle::Vehicle(core::ConfigNode config) :
     m_rPort(0),
     m_rFore(0),
     m_rAft(0),
-    m_imu(device::IIMUPtr())
+    m_imu(0)
 {
     std::string devfile =
         m_config["sensor_board_file"].asString("/dev/sensor");
@@ -126,11 +126,11 @@ Vehicle::~Vehicle()
     
 }
     
-device::IDevicePtr Vehicle::getDevice(std::string name)
+device::IDevice* Vehicle::getDevice(std::string name)
 {
     NameDeviceMapIter iter = m_devices.find(name);
     assert(iter != m_devices.end() && "Error Device not found");
-    return (*iter).second;
+    return (*iter).second.get();
 }
 
 double Vehicle::getDepth()
@@ -280,7 +280,7 @@ void Vehicle::update(double timestep)
         // Gather speeds, map
         if (m_devices.end() != m_devices.find(m_starboardThruster))
         {
-            ThrusterPtr thruster = device::IDevice::castTo<device::Thruster>(
+            Thruster* thruster = device::IDevice::castTo<device::Thruster>(
                 getDevice(m_starboardThruster));
             addressSpeedMap[thruster->getAddress()] =
                 thruster->getMotorCount();
@@ -374,9 +374,9 @@ void Vehicle::calibrateDepth()
     m_calibratedDepth = false;
 }
 
-device::IIMUPtr Vehicle::getIMU()
+device::IIMU* Vehicle::getIMU()
 {
-    if (0 == m_imu.get())
+    if (0 == m_imu)
         m_imu = device::IDevice::castTo<device::IIMU>(getDevice(m_imuName));
     return m_imu;
 }

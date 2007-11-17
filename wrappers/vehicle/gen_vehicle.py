@@ -1,12 +1,16 @@
-# Copyright 2004 Roman Yakovenko.
-# Distributed under the Boost Software License, Version 1.0. (See
-# accompanying file LICENSE_1_0.txt or copy at
-# http://www.boost.org/LICENSE_1_0.txt)
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  wrappers/control/gen_vehicle.py
 
-import wrap
-from wrap import make_already_exposed
+import os
 
+import buildfiles.wrap as wrap
+from buildfiles.wrap import make_already_exposed
 
+import pygccxml
 from pygccxml import declarations
 from pygccxml import declarations as decls_package
 from pyplusplus import decl_wrappers
@@ -14,40 +18,63 @@ from pyplusplus import messages
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
-def generate_vehicle(name, global_ns, local_ns):
+def find_out_container_traits( cls ):
+    for ct in declarations.all_container_traits:
+        if ct.is_my_case( cls ):
+            return ct
+    else:
+        return None
+
+def rename_containers( cls ):
+     class_trait = None
+
+     # check there are really some map containers
+     if cls.name.startswith("map"):
+         print cls.name
+
+#     for ct in declarations.all_container_traits:
+#         if ct.is_my_case( cls ):
+#             class_trait = ct
+
+#     if not (class_trait or declarations.templates.is_instantiation(cls.decl_string)):
+#         return
+
+     # no map container ever makes it here - vector does!
+     print cls.name
+#     cls.rename(TemplateAlias(cls.decl_string))
+
+def generate(local_ns, global_ns):
     """
     name: is the name of the module being wrapped (in name::space::form)
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
 
+
+
     # Remove all those pesky warnings about only pointed to types!
     for cls in local_ns.decls(decl_type=decls_package.class_declaration_t):
         cls.include()
         cls.already_exposed = True
 
-    make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])
+#    wrap.make_already_exposed(global_ns, 'ram::math',
+#                              ['Vector3', 'Quaternion'])
+#    make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])
 
-    # Include vehicle class and handle special cases
-    vehicle_cls = local_ns.class_('Vehicle')
-    vehicle_cls.include()
-    vehicle_cls.member_function('getState').exclude()
-    vehicle_cls.member_function('setState').exclude()
-    vehicle_cls.member_function('getDevice').alias = '_cpp_getDevice'
-    vehicle_cls.member_function('_addDevice').alias = '_cpp_addDevice'
-    local_ns.typedef('NameDeviceMap').exclude()
-    
-    # Handle IVehicle class
-    ivehicle_cls = local_ns.class_('IVehicle')
-    ivehicle_cls.include()
+    # Include IVehicle class and handle special cases
+    IVehicle = local_ns.class_('IVehicle')
+    IVehicle.include()
 
-    # Make things already exposed
-    IDevicePtr = local_ns.typedef('IDevicePtr')
-    IDevicePtr.include()
-    IDevicePtr.already_exposed = True
+    # Fix overley long std::container names
+    wrap.mangle_container_names(global_ns)
 
-def generate_code(module_name, files, output_dir, include_files,
-                  extra_includes = []):
-    wrap.generate_code(module_name, files, output_dir, include_files,
-                       extra_includes,
-                       {'vehicle' : generate_vehicle})
+    # Need to tell Boost.Python what the ownership policy for the raw pointer
+    IVehicle.member_function('getDevice').call_policies = \
+        call_policies.return_internal_reference()
+
+    # Added the needed includes
+    wrap.add_needed_includes([IVehicle])
+    IVehicle.include_files.append(os.environ['RAM_SVN_DIR'] +
+                                  '/packages/vehicle/include/device/IDevice.h')
+
+

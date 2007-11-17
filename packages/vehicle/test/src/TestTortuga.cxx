@@ -11,6 +11,7 @@
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
+// Why can't I include you?
 //#include "math/test/include/MathChecks.h"
 #include "vehicle/include/Vehicle.h"
 #include "core/include/ConfigNode.h"
@@ -37,11 +38,12 @@ struct VehicleFixture
 
 TEST(DeviceCreation)
 {
-	std::string config =  "{'depthCalibSlope':33.01,'depthCalibIntercept':94,"
-			"'Devices' : {"
-				"'IMU' : {'type' : 'MockDevice'},"
-				"'PSU' : {'type' : 'MockDevice'}"
-			"} }";
+	std::string config =
+            "{'depthCalibSlope':33.01,'depthCalibIntercept':94,"
+            "'Devices' : {"
+            "    'IMU' : {'type' : 'MockDevice'},"
+            "    'PSU' : {'type' : 'MockDevice'}"
+            "} }";
 	vehicle::IVehicle* veh = 
 		new vehicle::Vehicle(core::ConfigNode::fromString(config));
 	
@@ -51,7 +53,7 @@ TEST(DeviceCreation)
 
 TEST_FIXTURE(VehicleFixture, IMU)
 {
-	MockIMU* imu = new MockIMU("IMU");
+    MockIMU* imu = new MockIMU("IMU");
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
     
     math::Vector3 accel(1,2,3);
@@ -61,7 +63,6 @@ TEST_FIXTURE(VehicleFixture, IMU)
     imu->linearAcceleration = accel;
     imu->angularRate = angularRate;
     imu->orientation = orientation;
-    
     CHECK_EQUAL(accel, veh->getLinearAcceleration());
     CHECK_EQUAL(angularRate, veh->getAngularRate());
     CHECK_EQUAL(orientation, veh->getOrientation());
@@ -69,9 +70,9 @@ TEST_FIXTURE(VehicleFixture, IMU)
 
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {
-    boost::shared_ptr<MockDevice> mockDevice(new MockDevice("TestName"));
-    veh->_addDevice(mockDevice);
+    MockDevice* mockDevice = new MockDevice("TestName");
+    veh->_addDevice(vehicle::device::IDevicePtr(mockDevice));
 
-    CHECK_EQUAL(mockDevice.get(), veh->getDevice("TestName").get());
+    CHECK_EQUAL(mockDevice, veh->getDevice("TestName"));
     CHECK_EQUAL("TestName", veh->getDevice("TestName")->getName());
 }
