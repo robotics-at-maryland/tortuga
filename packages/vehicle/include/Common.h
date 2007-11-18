@@ -37,9 +37,8 @@ typedef std::vector<int> TempList;
 namespace details {
 inline int instantiate()
 {
-    int a = sizeof(boost::shared_ptr<IVehicle>);
-    a += sizeof(std::vector<std::string>);
-    a += sizeof(std::vector<int>);
+    int a = sizeof(TempList);
+    a += sizeof(TempNameList);
     return a;
 }
 }

@@ -18,39 +18,12 @@ from pyplusplus import messages
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
-def find_out_container_traits( cls ):
-    for ct in declarations.all_container_traits:
-        if ct.is_my_case( cls ):
-            return ct
-    else:
-        return None
-
-def rename_containers( cls ):
-     class_trait = None
-
-     # check there are really some map containers
-     if cls.name.startswith("map"):
-         print cls.name
-
-#     for ct in declarations.all_container_traits:
-#         if ct.is_my_case( cls ):
-#             class_trait = ct
-
-#     if not (class_trait or declarations.templates.is_instantiation(cls.decl_string)):
-#         return
-
-     # no map container ever makes it here - vector does!
-     print cls.name
-#     cls.rename(TemplateAlias(cls.decl_string))
-
 def generate(local_ns, global_ns):
     """
     name: is the name of the module being wrapped (in name::space::form)
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
-
-
 
     # Remove all those pesky warnings about only pointed to types!
     for cls in local_ns.decls(decl_type=decls_package.class_declaration_t):
@@ -65,8 +38,16 @@ def generate(local_ns, global_ns):
     IVehicle = local_ns.class_('IVehicle')
     IVehicle.include()
 
+    global_ns.typedef('TempNameList').include()
+    global_ns.typedef('TempList').include()
+
+    # Fix TempNameList (the include does stick)
+    t = global_ns.class_(function =
+                         lambda x: x.name.startswith('vector<std::string'))
+    t.alias = 'TempNameList'
+
     # Fix overley long std::container names
-    wrap.mangle_container_names(global_ns)
+    #wrap.mangle_container_names(local_ns)
 
     # Need to tell Boost.Python what the ownership policy for the raw pointer
     IVehicle.member_function('getDevice').call_policies = \

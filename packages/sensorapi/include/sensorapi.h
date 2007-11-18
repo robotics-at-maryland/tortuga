@@ -101,8 +101,31 @@ int getSonarData(int fd, int * angle, int * distance, int * pingNumber);
 
 int setDiagnostics(int fd, int state);
 
+/** Set the speed of the thrusters
+
+    This command takes about 2 ms to execute.  You must call
+    readSpeedResponses before this command, or about 15 ms after this call is
+    made.
+    
+    @param fd
+         The file descriptor returned by openSensorBoard()
+         
+    @param s1
+         The speed of thruster with address one
+    @param s2
+         The speed of thruster with address two
+    @param s3
+         The speed of thruster with address three
+    @param s4
+         The speed of thruster with address four
+ */
 int setSpeeds(int fd, int s1, int s2, int s3, int s4);
 
+/** Reads back the on the board from the motor controller
+
+    This is basically a house cleaning command, seee setSpeeds for information
+    on its use.
+ */
 int readSpeedResponses(int fd);
 
 int readThrusterState(int fd);

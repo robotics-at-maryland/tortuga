@@ -15,7 +15,7 @@ import subprocess
 import platform
 
 # Project Imports
-from common.util import run_shell_cmd
+from buildfiles.common.util import run_shell_cmd
 
 # Constants
 if platform.system() == 'Darwin':
@@ -87,7 +87,8 @@ def setup_posix_libs():
 
         'Boost.Thread' : BoostLibrary('Boost.Thread', (1,34,1), [],
                                       [BOOST_THREAD_LIB]),
-        'Boost.Signals' : BoostLibrary('Boost.Signals', (1,34,1), [],
+
+        'Boost.Signals' : BoostLibrary('Boost.Signal', (1,34,1), [],
                                       [BOOST_SIGNALS_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
@@ -129,7 +130,10 @@ def setup_windows_libs():
                            'python25', CPPPATH = sysconfig.get_python_inc(),
                            LINKFLAGS = ['/LIBPATH:'+python_lib_path],
                            CPPFLAGS = ['/wd4826']),
-        'OpenCV' : Library('OpenCV', '1.0', ['opencv/cv.h'], ['cv', 'cxcore','highgui','cxts','cvaux','ml'], CPPPATH = 'opencv')
+        
+        'OpenCV' : Library('OpenCV', '1.0', ['opencv/cv.h'],
+                           ['cv', 'cxcore','highgui','cxts','cvaux','ml'],
+                           CPPPATH = 'opencv')
     }                               
         
 def _get_external_lib(name):
