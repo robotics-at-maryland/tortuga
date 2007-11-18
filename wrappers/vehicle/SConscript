@@ -27,23 +27,27 @@ envl.Append(CPPPATH = base_dir)
 veh_wrapped_headers = ['IVehicle.h']
 
 dev_wrapped_headers = ['device/IDevice.h',
-                       'device/IMU.h',
-                       'device/Thruster.h',
-                       'device/PSU.h']
-
+                       'device/IThruster.h']
 
 # Tests
 envt = env.Clone()
-test_prog, runner = envt.Tests(int_deps = 'vehicle', ext_deps = 'Boost.Python',
-                               run = False)
+test_veh, veh_runner = envt.Tests(target = 'TestVehicle',
+                                  source = 'test/src/TestIVehicle.cxx',
+                                  int_deps = 'vehicle',
+                                  ext_deps = 'Boost.Python', run = False)
+
+test_dev, dev_runner = envt.Tests(target = 'TestDevices',
+                                  source = 'test/src/TestIDevices.cxx',
+                                  int_deps = 'vehicle',
+                                  ext_deps = 'Boost.Python', run = False)
 
 # Wrapper
 envl.Pypp('vehicle',
           [os.path.join(header_dir, h) for h in veh_wrapped_headers],
           module = 'gen_vehicle.py',
-          tester = runner)
+          tester = veh_runner)
 
-#envl.Pypp('vehicle_device',
-#          [os.path.join(header_dir, h) for h in dev_wrapped_headers],
-#          module = 'gen_vehicle.py',
-#          tester = runner)
+envl.Pypp('vehicle::device',
+          [os.path.join(header_dir, h) for h in dev_wrapped_headers],
+          module = 'gen_vehicle_device.py',
+          tester = dev_runner)

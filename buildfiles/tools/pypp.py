@@ -57,8 +57,8 @@ def generate_code_base(env, target, source, module):
 
     # Turn off logging (for normal builds)
 #    pygccxml.utils.loggers.gccxml.setLevel(logging.ERROR)
-    pyplusplus._logging_.loggers.module_builder.setLevel(logging.ERROR)
-    pyplusplus._logging_.loggers.declarations.setLevel(logging.ERROR)
+#    pyplusplus._logging_.loggers.module_builder.setLevel(logging.ERROR)
+#    pyplusplus._logging_.loggers.declarations.setLevel(logging.ERROR)
     
     xmlfiles = [pygccxml.parser.create_gccxml_fc(f) for f in xmlfiles]
     mb = module_builder.module_builder_t(files = xmlfiles,
@@ -66,18 +66,21 @@ def generate_code_base(env, target, source, module):
 
     # Exclude everything by default, then include just the classes we want
     mb.global_ns.exclude()
-    local_ns = mb.global_ns.namespace(module)
+    local_ns = mb.global_ns
+    for ns in module.replace("::","_").split("_"):
+        local_ns = local_ns.namespace(ns)
     
     # Call entry point
     mod.generate(local_ns, mb.global_ns)
 
     # Now lets build the code
-    mb.build_code_creator( module_name= module)
+    mb.build_code_creator( module_name= module.replace("::","_"))
 
     # And finally we can write code to the disk
     (output_dir, name) = os.path.split(target[0].abspath)
     output_dir = os.path.join(output_dir, 'generated')
-    files_created = mb.split_module(output_dir)
+    files_created = mb.split_module(output_dir,
+                                    on_unused_file_found = lambda x: x)
 
     # Create list of files
     cpp_files = [os.path.split(f)[1] for f in files_created
@@ -190,9 +193,12 @@ def run_pypp(env, target, source, module, tester = None):
         commands.insert(0, SCons.Defaults.Mkdir(env.Dir('generated').abspath))
     
     
-    srclist = env.Command('generated-sources.txt', sources, commands)
+    srclist = env.Command(target_str + '_gen-sources.txt',
+                          sources, commands)
 
     # The special builder for our module
+    # Needed to handled nested module case
+    target_str = target_str.replace("::","_") 
     dummy = env.PyppHelper('#' + target_str + '_wrapper', srclist,
                            target_base = target_str,
                            tester = tester)

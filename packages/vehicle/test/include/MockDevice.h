@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/packages/vehicle/test/include/MockDevice.cxx
+ * File:  packages/packages/vehicle/test/include/MockDevice.h
  */
 
 #ifndef RAM_VEHICLE_MOCKDEVICE_10_29_2007

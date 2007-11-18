@@ -33,8 +33,9 @@ public:
     
     virtual ram::vehicle::device::IDevice* getDevice(std::string name)
     {
-        assert(false && "Method not implemented");
-        return 0;
+        ram::vehicle::NameDeviceMapIter iter = devices.find(name);
+        assert(iter != devices.end() && "Error Device not found");
+        return (*iter).second.get();
     }
 
     virtual double getDepth()  { return depth; }
@@ -92,6 +93,7 @@ public:
     ram::math::Quaternion orientation;
     ram::math::Vector3 force;
     ram::math::Vector3 torque;
+    ram::vehicle::NameDeviceMap devices;
 };
     
 #endif // RAM_VEHICLE_MOCKVEHICLE_10_28_2007

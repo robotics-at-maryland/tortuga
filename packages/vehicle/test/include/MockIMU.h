@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/packages/vehicle/test/include/MockDevice.cxx
+ * File:  packages/packages/vehicle/test/include/MockIMU.h
  */
 
 #ifndef RAM_VEHICLE_MOCKIMU_10_29_2007
@@ -18,7 +18,7 @@ class MockIMU : public ram::vehicle::device::IIMU,
                 public ram::vehicle::device::Device                
 {
 public:
-	MockIMU(std::string name) : Device(name) {}
+    MockIMU(std::string name) : Device(name) {}
 	
     virtual ram::math::Vector3 getLinearAcceleration() 
     	{ return linearAcceleration; }
@@ -32,6 +32,7 @@ public:
     ram::math::Vector3 linearAcceleration;
     ram::math::Vector3 angularRate;
     ram::math::Quaternion orientation;
+
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
