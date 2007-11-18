@@ -29,6 +29,7 @@ namespace control {
 
 BWPDController::BWPDController(vehicle::IVehicle* vehicle,
                                core::ConfigNode config) :
+    IController(config["name"].asString()),
     m_vehicle(vehicle),
     m_config(config),
     m_desiredState(0),

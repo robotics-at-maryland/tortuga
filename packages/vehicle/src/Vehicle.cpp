@@ -30,7 +30,8 @@ using namespace ram::vehicle::device;
 namespace ram {
 namespace vehicle {
 
-Vehicle::Vehicle(core::ConfigNode config) :
+Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList) :
+    IVehicle(config["name"].asString()),
     m_config(config),
     m_sensorFD(-1),
     m_markerNum(0),

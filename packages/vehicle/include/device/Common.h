@@ -49,15 +49,13 @@ typedef DoubleList VoltageList;
 typedef DoubleList WattageList;
 typedef DoubleList CurrentList;
 typedef std::vector<std::string> StringList;
-    
-/*namespace details {
+
 // To expose things to GCC-XML
+namespace details {
 inline int instantiate()
 {
-    int a = 0;
-    a += sizeof(boost::shared_ptr<IDevice>);
-    a += sizeof(boost::shared_ptr<Thruster>);
-    a += sizeof(boost::shared_ptr<ThrusterCommand>);
+    int a = sizeof(boost::shared_ptr<IDevice>);
+    a += sizeof(boost::shared_ptr<IThruster>);
     a += sizeof(DoubleList);
     a += sizeof(VoltageList);
     a += sizeof(WattageList);
@@ -66,7 +64,6 @@ inline int instantiate()
     return a;
 }
 }
-*/
     
 } // namespace device
 } // namespace vehicle

@@ -4,9 +4,10 @@
 Modules:
     # Object that creates the vehicle interface
     Vehicle:
+        name: Vehicle
         # The full name of the class to instantiate in this case its a wrapper
         # for the base C++ vehicle
-        type: vehicle.vehicle.Vehicle
+        type: Vehicle
         # Time between updates in ms
         update_interval: 25
 
@@ -69,8 +70,9 @@ Modules:
                 localMagneticPitch: 60
 
     Controller:
+        name: Controller
         depends_on: ["Vehicle"]
-        type: control.bwpdcontrol.BWPDController
+        type: BWPDController
         update_interval: 10
 
         angularPGain: 10

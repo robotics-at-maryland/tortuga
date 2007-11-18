@@ -12,13 +12,13 @@
 #define RAM_CONTROL_ICONTROL_07_03_2007
 
 // Project Includes
-#include "core/include/IUpdatable.h"
+#include "core/include/Subsystem.h"
 #include "pattern/include/Subject.h"
 
 namespace ram {
 namespace control {
 
-class IController : public core::IUpdatable, public pattern::Subject
+class IController : public core::Subsystem, public pattern::Subject
 {
 public:
     enum UPDATE_EVENTS {
@@ -53,6 +53,10 @@ public:
 
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
+    
+protected:
+	IController(std::string name) : Subsystem(name) {}
+	
 };
     
 } // namespace control

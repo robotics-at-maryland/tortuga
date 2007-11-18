@@ -22,6 +22,8 @@
 class MockController : public ram::control::IController
 {
 public:
+	MockController(std::string name) : IController(name) {}
+	
     virtual void setSpeed(int speed_) { speed = speed_; }
 
     virtual void setDepth(double depth_) { depth = depth_; }
@@ -51,7 +53,7 @@ public:
 
 TEST(MockController)
 {
-    MockController* mockController = new MockController();
+    MockController* mockController = new MockController("Controller");
     ram::control::IController* controller = mockController;
 
     controller->setSpeed(5);
@@ -82,7 +84,7 @@ TEST(ControllerWrapping)
 {
     // Create MockController and wrap it in smart point to allow python to
     // handle it
-    MockController* mockController = new MockController();
+    MockController* mockController = new MockController("Controller");
     boost::shared_ptr<ram::control::IController> controllerPtr(mockController);
 
     // Create out namespace for the python code to operate in

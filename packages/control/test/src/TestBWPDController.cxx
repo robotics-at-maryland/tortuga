@@ -8,12 +8,15 @@
  */
 
 // Library Includes
+#include <iostream>
 #include <UnitTest++/UnitTest++.h>
+//#include <boost/lambda.hpp>
 
 // Project Includes
 #include "math/test/include/MathChecks.h"
 #include "vehicle/test/include/MockVehicle.h"
 #include "control/include/BWPDController.h"
+#include "control/test/include/ControllerTests.h"
 
 using namespace ram;
 
@@ -21,7 +24,8 @@ struct Fixture
 {
     Fixture() : controller(&vehicle,
                            core::ConfigNode::fromString(
-                               "{ 'angularPGain' : 10,"
+                               "{ 'name' : 'TestController',"
+                        	   "'angularPGain' : 10,"
                                "'angularDGain' : 1,"
                                "'desiredQuaternion' : [0, 0, 0, 1] }"))
     {}

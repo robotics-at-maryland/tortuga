@@ -21,6 +21,7 @@
 using namespace ram;
 
 static const std::string CONFIG("{'depthCalibSlope' : 33.01,"
+                                "'name' : 'TestVehicle',"
                                 " 'depthCalibIntercept' : 94}");
 
 struct VehicleFixture
@@ -38,17 +39,18 @@ struct VehicleFixture
 
 TEST(DeviceCreation)
 {
-	std::string config =
+    std::string config =
             "{'depthCalibSlope':33.01,'depthCalibIntercept':94,"
+            "'name' : 'TestVehicle',"
             "'Devices' : {"
             "    'IMU' : {'type' : 'MockDevice'},"
             "    'PSU' : {'type' : 'MockDevice'}"
             "} }";
-	vehicle::IVehicle* veh = 
-		new vehicle::Vehicle(core::ConfigNode::fromString(config));
-	
-	CHECK_EQUAL("IMU", veh->getDevice("IMU")->getName());
-	CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
+    vehicle::IVehicle* veh = 
+        new vehicle::Vehicle(core::ConfigNode::fromString(config));
+    
+    CHECK_EQUAL("IMU", veh->getDevice("IMU")->getName());
+    CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
 }
 
 TEST_FIXTURE(VehicleFixture, IMU)

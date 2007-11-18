@@ -19,9 +19,9 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-typedef ram::pattern::Maker<ram::vehicle::device::IDevice*, // The type of object created by the maker
+typedef ram::pattern::Maker<IDevice*, // The type of object created by the maker
               ram::core::ConfigNode,  // The parameter used to create the object
-              std::string,        // The type of key used to register makers
+              std::string,            // The type of key used to register makers
               ram::core::ConfigNodeKeyExtractor> // Gets the key from the paramters
 IDeviceMaker;
 

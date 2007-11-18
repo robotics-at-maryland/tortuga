@@ -51,7 +51,7 @@ TEST_FIXTURE(VehicleFixture, Vehicle)
         // and stand in for a "real" vehicle
         eval("class Vehicle(vehicle.IVehicle):\n"
              "     def __init__(self):\n"
-             "          vehicle.IVehicle.__init__(self)\n"
+             "          vehicle.IVehicle.__init__(self, 'Test')\n"
              "          self.depth = 11\n"
              "          self.orien = math.Quaternion(8,9,10,11)\n"
              "          self.linAccel = math.Vector3(1,2,3)\n"

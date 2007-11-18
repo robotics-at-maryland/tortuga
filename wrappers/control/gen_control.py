@@ -14,6 +14,7 @@ def generate(local_ns, global_ns):
     # Include controller classes
     IController = local_ns.class_('IController')
     IController.include()
+    
     IController.include_files.append(os.environ['RAM_SVN_DIR'] +
                                      '/packages/control/include/IController.h')
 

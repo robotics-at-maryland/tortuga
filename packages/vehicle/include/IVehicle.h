@@ -18,13 +18,14 @@
 
 // Project Includes
 #include "vehicle/include/Common.h"
-#include "core/include/IUpdatable.h"
+//#include "core/include/IUpdatable.h"
+#include "core/include/Subsystem.h"
 #include "math/include/Vector3.h"
 
 namespace ram {
 namespace vehicle {
     
-class IVehicle : public core::IUpdatable
+class IVehicle : public core::Subsystem
 {
 public:
     /** Gets the device associated with the given name */
@@ -71,6 +72,8 @@ public:
      */
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque) = 0;
+protected:
+    IVehicle(std::string name) : Subsystem(name) {}
 };
     
 } // namespace vehicle

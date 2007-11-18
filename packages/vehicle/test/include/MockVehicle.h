@@ -21,6 +21,7 @@ class MockVehicle : public ram::vehicle::IVehicle
 {
 public:
     MockVehicle() :
+        IVehicle("MockVehicle"),
         depth(0),
         linearAcceleration(0, 0, 0),
         angularRate(0, 0, 0),
