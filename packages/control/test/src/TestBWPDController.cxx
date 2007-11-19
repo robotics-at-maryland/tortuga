@@ -16,7 +16,7 @@
 #include "math/test/include/MathChecks.h"
 #include "vehicle/test/include/MockVehicle.h"
 #include "control/include/BWPDController.h"
-#include "control/test/include/ControllerTests.h"
+//#include "control/test/include/ControllerTests.h"
 
 using namespace ram;
 
