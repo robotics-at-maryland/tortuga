@@ -31,5 +31,6 @@ class RobotModel:
     vdotp = self.vx + (self.px - self.pingerx) + self.vy * (self.py - self.pingery)
     return vdotp/self._getPingerRange()
 
-
-
+  def getRelativeBearing():
+    bearing = atan((self.py - self.pingery)/(self.px-self.pingerx))
+    return bearing - self.theta
