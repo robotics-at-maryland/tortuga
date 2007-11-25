@@ -7,8 +7,14 @@
  * File:  packages/packages/vehicle/test/src/TestTortuga.cxx
  */
 
+// STD Includes
+#include <set>
+#include <iostream>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/foreach.hpp>
+#include <boost/assign/list_of.hpp>
 
 // Project Includes
 // Why can't I include you?
@@ -51,6 +57,19 @@ TEST(DeviceCreation)
     
     CHECK_EQUAL("IMU", veh->getDevice("IMU")->getName());
     CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
+
+    // Check to make sure the list of names matches
+    std::set<std::string> expNames = boost::assign::list_of("IMU")("PSU");
+    std::set<std::string> givenNames;
+    std::vector<std::string> names = veh->getDeviceNames();
+
+    BOOST_FOREACH(std::string name, names)
+    {
+        givenNames.insert(name);
+    }
+
+    CHECK_EQUAL(2u, givenNames.size());
+    CHECK(expNames == givenNames);
 }
 
 TEST_FIXTURE(VehicleFixture, IMU)

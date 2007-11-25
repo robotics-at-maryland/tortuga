@@ -61,10 +61,13 @@ def generate_code_base(env, target, source, module):
 #    pygccxml.utils.loggers.gccxml.setLevel(logging.ERROR)
     pyplusplus._logging_.loggers.module_builder.setLevel(logging.ERROR)
     pyplusplus._logging_.loggers.declarations.setLevel(logging.ERROR)
-    
+
+    # Create the module builder
+    cache_file = pygccxml.parser.file_cache_t(target[0].abspath + '.cache')
     xmlfiles = [pygccxml.parser.create_gccxml_fc(f) for f in xmlfiles]
     mb = module_builder.module_builder_t(files = xmlfiles,
-                                         indexing_suite_version = 2)
+                                         indexing_suite_version = 2,
+                                         cache = cache_file)
 
     # Exclude everything by default, then include just the classes we want
     mb.global_ns.exclude()
@@ -89,9 +92,15 @@ def generate_code_base(env, target, source, module):
                                     on_unused_file_found = lambda x: x)
 
     # Create list of files
+    fpath = target[0].abspath
+
+    # Remove the file if it already exists
+    if os.path.exists(fpath):
+        os.remove(fpath)
+    
     cpp_files = [os.path.split(f)[1] for f in files_created
                  if f.endswith('.cpp')]
-    output_file = open(target[0].abspath, 'w')
+    output_file = open(fpath, 'w')
     for cpp_file in cpp_files:
         output_file.write(cpp_file + '\n')
     output_file.close()

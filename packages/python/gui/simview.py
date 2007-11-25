@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/python/gui/view.py
+# File:  packages/python/gui/simview.py
 
 # Library Imports
 import wx
@@ -23,12 +23,7 @@ from gui.input import InputForwarder
 class SimPanelProvider(Component):
     implements(IPanelProvider)
     
-    def supports_module(self, mod):
-        if isinstance(mod, Simulation):
-            return True
-        return False
-    
-    def get_panels(self, mod, parent):
+    def get_panels(self, subsystems, parent):
         # This dummy window holds the rendering context to make sure the user
         # doesn't close the window containing it
         dummy = wxOgre(None, parent, -1, wx.DefaultPosition, wx.DefaultSize, 0, 

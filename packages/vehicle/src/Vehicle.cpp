@@ -134,6 +134,17 @@ device::IDevice* Vehicle::getDevice(std::string name)
     return (*iter).second.get();
 }
 
+std::vector<std::string> Vehicle::getDeviceNames()
+{
+    std::vector<std::string> names;
+    BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+    {
+        names.push_back(pair.first);
+    }
+
+    return names;
+}
+    
 double Vehicle::getDepth()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);

@@ -24,13 +24,9 @@ def expose_device(local_ns, name, remove = True, cast = False):
 #    if remove:
 #        device.member_function('getVehicle').call_policies = \
 #            call_policies.return_internal_reference()
-
-
     
 #    device.disable_warnings(messages.W1023)
 
-
-        
 #    local_ns.typedef(name + 'Ptr').include()
   
     return device

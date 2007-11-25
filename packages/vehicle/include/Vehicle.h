@@ -36,6 +36,9 @@ public:
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevice* getDevice(std::string name);
 
+    /** @copydoc IVehilce::getDeviceNames() */
+    virtual std::vector<std::string> getDeviceNames();
+    
     /** @copydoc IVehicle::getDepth() */
     virtual double getDepth();
 

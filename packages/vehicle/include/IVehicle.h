@@ -31,6 +31,9 @@ public:
     /** Gets the device associated with the given name */
     virtual device::IDevice* getDevice(std::string name) = 0;
 
+    /** The name of all current devices of the vehicle */
+    virtual std::vector<std::string> getDeviceNames() = 0;
+    
     /** Return the current vehicle depth in feet */
     virtual double getDepth() = 0;
 

@@ -57,4 +57,3 @@ def generate(local_ns, global_ns):
     IVehicle.include_files.append(os.environ['RAM_SVN_DIR'] +
                                   '/packages/vehicle/include/device/IDevice.h')
 
-

@@ -123,8 +123,6 @@ def generate(local_ns, global_ns):
 
     wrap.add_needed_includes(classes)
 
-
-
     #local_ns.class_('Updatable').include()
     #local_ns.class_('IUpdatable').include()
     

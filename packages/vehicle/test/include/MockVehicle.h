@@ -13,6 +13,9 @@
 // STD Includes
 #include <cassert>
 
+// Library Includes
+#include <boost/foreach.hpp>
+
 // Project Includes
 #include "vehicle/include/IVehicle.h"
 #include "vehicle/include/device/IDevice.h"
@@ -39,6 +42,17 @@ public:
         return (*iter).second.get();
     }
 
+    std::vector<std::string> getDeviceNames()
+        {
+            std::vector<std::string> names;
+            BOOST_FOREACH(ram::vehicle::NameDeviceMap::value_type pair, devices)
+            {
+                names.push_back(pair.first);
+            }
+
+            return names;
+        }
+    
     virtual double getDepth()  { return depth; }
 
     virtual std::vector<std::string> getTemperatureNames()
