@@ -41,7 +41,9 @@ struct DefaultMakerLookup
     static typename MapType::mapped_type lookupMaker(MapType* registry,
         typename MapType::key_type key)
     {
-        return registry->find(key)->second;
+        typename MapType::iterator iter = registry->find(key);
+        assert(iter != registry->end() && "Could not find maker");
+        return iter->second;
     }
 };
 
@@ -176,7 +178,7 @@ public:
     {
         // Grab the registry (first use creates it on the heap)
         MakerMap* registry = getRegistry();
-        
+
         // Register Self
         registry->insert(make_pair(key, this));
     }
@@ -190,7 +192,7 @@ public:
     virtual ~Maker()
     {
         MakerMap* registry = getRegistry();
-        
+
         // Remove self from registry
         registry->erase(m_key);
 

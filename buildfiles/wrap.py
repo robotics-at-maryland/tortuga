@@ -92,6 +92,10 @@ def add_needed_includes(classes):
     
     includes = set()
 
+    #newCls = []
+    #for cls in classes:
+    #    if isinstance 
+
     for cls in classes:
         filename = cls.location.file_name
         if filename.startswith(os.environ['RAM_SVN_DIR']):
@@ -248,3 +252,22 @@ def make_already_exposed(global_ns, namespace_name, classes,
         class_dec = ns.decl(name = 'Vehicle' ,
                             decl_type = declarations.class_declaration_t)
         class_dec.already_exposed = True
+
+def add_castTo(cls, from_cls, smart_ptr = False):
+    """
+    Creates a function which cast from the given class to the current class
+    """
+    
+    if smart_ptr:
+        raise "ERROR SMART PTR NOT SUPPORTED"
+
+    args = {'cls_type' : declarations.algorithm.full_name(cls).strip("::")+'*',
+            'from_type' : from_cls + '*'}
+    cls.add_declaration_code("""
+    %(cls_type)s castTo(%(from_type)s from) {
+        return dynamic_cast<%(cls_type)s>(from);
+    }""" % args)
+    cls.add_registration_code("""
+        def(\"castTo\", (%(cls_type)s (*)(%(from_type)s))(&::castTo),
+            boost::python::return_internal_reference<1>())
+    .staticmethod(\"castTo\")""" % args)

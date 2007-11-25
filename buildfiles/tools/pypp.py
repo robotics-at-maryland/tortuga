@@ -11,9 +11,11 @@ This module contains a custom Py++ tool for SCons
 
 # STD Imports
 import imp
+import os
 import os.path
 import types
 import logging
+import shutil
 
 # Library Imports
 import SCons.Builder
@@ -57,8 +59,8 @@ def generate_code_base(env, target, source, module):
 
     # Turn off logging (for normal builds)
 #    pygccxml.utils.loggers.gccxml.setLevel(logging.ERROR)
-#    pyplusplus._logging_.loggers.module_builder.setLevel(logging.ERROR)
-#    pyplusplus._logging_.loggers.declarations.setLevel(logging.ERROR)
+    pyplusplus._logging_.loggers.module_builder.setLevel(logging.ERROR)
+    pyplusplus._logging_.loggers.declarations.setLevel(logging.ERROR)
     
     xmlfiles = [pygccxml.parser.create_gccxml_fc(f) for f in xmlfiles]
     mb = module_builder.module_builder_t(files = xmlfiles,
@@ -71,10 +73,14 @@ def generate_code_base(env, target, source, module):
         local_ns = local_ns.namespace(ns)
     
     # Call entry point
-    mod.generate(local_ns, mb.global_ns)
+    include_files = mod.generate(local_ns, mb.global_ns)
+    if include_files is None:
+        include_files = []
 
     # Now lets build the code
     mb.build_code_creator( module_name= module.replace("::","_"))
+    for include in include_files:
+        mb.code_creator.add_include(include)
 
     # And finally we can write code to the disk
     (output_dir, name) = os.path.split(target[0].abspath)
@@ -89,6 +95,11 @@ def generate_code_base(env, target, source, module):
     for cpp_file in cpp_files:
         output_file.write(cpp_file + '\n')
     output_file.close()
+
+def get_from_env(env, name):
+    if not env.has_key(name):
+        raise Exception("Must give the Py++ helper a '%s'" % name)
+    return env[name]
         
 def build_module(env, target, source): #, actual_target = None):
     if type(source) is types.ListType:
@@ -96,13 +107,11 @@ def build_module(env, target, source): #, actual_target = None):
             raise Exception("Can't have more than one generated source list")
         source = source[0]
 
-    if not env.has_key('target_base'):
-        raise Exception("Must give the Py++ helpder 'build_module' a target'")
-    target_base = env['target_base']
+    target_base = get_from_env(env, 'target_base')
+    tester = get_from_env(env, 'tester')
+    extra_sources = get_from_env(env, 'extra_sources')
+    dep_wrappers = get_from_env(env, 'dep_wrappers')
 
-    if not env.has_key('tester'):
-        raise Exception("Must give the Py++ helpder 'tester' a target'")
-    tester = env['tester']
 
     # All paths in the file are relative to the directory of the source list 
     srclist_dir = os.path.join(os.path.split(source.abspath)[0], 'generated')
@@ -124,9 +133,17 @@ def build_module(env, target, source): #, actual_target = None):
     sources = [env.File(srclist_dir + '/' + f.strip())
                for f in srclist.readlines()]
 
-    # Add extra depends
-#    for s in sources:
-#        env.Depends(source, s)
+    # Copy in the extra sources into the generated directory
+    for f in extra_sources:
+        # Create the new name for the file
+        dir, fname = os.path.split(f)
+        newName = os.path.join(srclist_dir, fname)
+
+        shutil.copy(f, newName)
+
+        # Add it to our list of sources
+        sources.append(env.File(newName))
+
 
     sources = [hack_srcnode(s) for s in sources]
 
@@ -143,7 +160,13 @@ def build_module(env, target, source): #, actual_target = None):
     # Run the tests
     if not tester is None:
         output = os.path.join(target_dir, target_base + 'Tests.success')
-        tester(env, output, deps = [target_name + '.so'])
+        test = tester(env, output, deps = [target_name + '.so'])
+
+        # Make the tests dependent on the right modules, otherwise the modules
+        # will try and modules that have not been build yet
+        for dep in dep_wrappers:
+            env.Depends(test, os.environ['RAM_SVN_DIR'] + '/build_ext/ext/' +
+                        dep + suffix)
 
     # Setup init file
     if not os.path.exists(target_dir):
@@ -157,15 +180,33 @@ def build_module(env, target, source): #, actual_target = None):
     env.Depends(extension_mod, '#' + target_base + '_wrapper')
     env.Alias('TopLevelAlias', extension_mod)
 
-def run_pypp(env, target, source, module, tester = None):
+def run_pypp(env, target, source, module, tester = None, extra_sources = None,
+             dep_wrappers = None):
     """
     The root Py++ builder
     
     @param target: the output library name
+    
     @param source: the xml files to process
+    
     @param env: the construction environment
+    
     @param module: the python module to call to generate the cpp code
+    
+    @param tester: Generates the scons Command to call the test programs
+    
+    @param extra_sources: Extra sources that you wish to have compiled into the
+                          wrapping module
+
+    @param dep_wrappers: The wrappers modules which have to be compiled before
+                         this one.
     """
+
+    if extra_sources is None:
+        extra_sources = []
+
+    if dep_wrappers is None:
+        dep_wrappers = []
 
     # Add CPPPATH to XMLCPPPATH (so GCC-XML can find our headers)
     env.AppendUnique(XMLCPPPATH = [env['CPPPATH']])
@@ -173,10 +214,9 @@ def run_pypp(env, target, source, module, tester = None):
     # Build XML files
     xmlfiles = []
     for f in source:
-        #print 'START',f
         # Remove directory and extension from the filename
         target_file = os.path.splitext(os.path.split(f)[1])[0]
-        #print 'TARGET',target_file
+
         # Build the file and add the output to our results
         xmlfiles.extend(env.XMLHeader(target = target_file, source = f))
 
@@ -201,7 +241,9 @@ def run_pypp(env, target, source, module, tester = None):
     target_str = target_str.replace("::","_") 
     dummy = env.PyppHelper('#' + target_str + '_wrapper', srclist,
                            target_base = target_str,
-                           tester = tester)
+                           tester = tester,
+                           extra_sources = extra_sources,
+                           dep_wrappers = dep_wrappers)
     env.AlwaysBuild(dummy)
     env.Alias('TopLevelAlias', dummy)
     

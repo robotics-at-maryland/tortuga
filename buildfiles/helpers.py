@@ -7,10 +7,12 @@
 
 # STD Imports
 import os
+import imp
 import sys
 import glob as _glob
 import subprocess
 import SCons
+import unittest
 
 # Build System imports
 import libs
@@ -98,23 +100,68 @@ def Program(env, *args, **kwargs):
     
     return env.Program(*args, **kwargs)
 
-def run_tests(env, output, prog, message = None, deps = None):
-    def run_test(env, target, source):
-        if not subprocess.call(str(source[0].abspath)):
-            open(str(target[0]), 'w').write("PASSED\n")
-            return 0
+def run_tests(env, output, inputs, message = None, deps = None):    
+    def run_tests(env, target, source):
+        """
+        Runs both C++ tests (executables) and Python unittest.TestCase's located
+        in the given modules
 
-        # Failure
-        return 1
+        @rtype : int
+        @return: A 0 on success and 1 on failure
+        """
+        # Split tests by type
+        pytests = []
+        cpptests = []
+        for f in source:
+            fpath = f.abspath
+            if fpath.endswith('.py'):
+                pytests.append(fpath)
+            elif 0 == fpath.count('.'):
+                cpptests.append(fpath)
 
+        # Run the C++ Tests
+        for cpptest in cpptests:
+            result = subprocess.call(str(cpptest))
+            if result:
+                return 1 # Failure
+
+        # Handle the python tests
+        testLoader = unittest.TestLoader()
+        suite = unittest.TestSuite()
+
+        for mod_path in pytests:
+            # Import Test Module
+            (search_path, name) = os.path.split(mod_path)
+            # Stip '.py' from the end
+            name = name[:-3]
+            (f, pathname, decs) = imp.find_module(name, [search_path])
+            mod = imp.load_module(name, f, pathname, decs)
+
+            # Load all the tests from the file into a single suite
+            suite.addTest(testLoader.loadTestsFromModule(mod))
+
+        if len(pytests) > 0:
+            # Run the tests
+            result = unittest.TextTestRunner().run(suite)
+
+            # Quit now if the test fail
+            if not result.wasSuccessful():
+                return 1 # Failure
+
+        # Record the test success to the file
+        open(str(target[0]), 'w').write("PASSED\n")
+
+        # Success
+        return 0
+
+        #print 'START',f
     msg = 'Runnting Tests'
     if not message is None:
         msg = message
-    inputs = [prog]
     if not deps is None:
         inputs.extend(deps)
     return env.Command(output, inputs,
-                       SCons.Action.Action(run_test, msg))    
+                       SCons.Action.Action(run_tests, msg))
 
 def Tests(env, _target, _source, run = True, **kwargs):
     # Add 'UnitTest++' to the list of ext_deps
@@ -128,19 +175,27 @@ def Tests(env, _target, _source, run = True, **kwargs):
     if _source is None:
         _source = glob(env, 'test/src', '*.cxx')
 
+    # Create the Test Program
     prog = Program(env, target = _target, source = _source, **kwargs)
 
-
-
+    # Gather Up the C++ and Python based tests
+    tests = [prog]
+    root = os.path.dirname(env.GetBuildPath('SConscript'))
+    pytests = glob(env, 'test/src', '*.py')
+    for pytest in pytests:
+        # Need the full path here for python's 'imp' module later
+        tests.append(os.path.join(root, pytest))
+    
     if run:
-        cmd = run_tests(env, _target[0] + '.successful', prog,
+        cmd = run_tests(env, _target[0] + '.successful', tests,
                         'Running Tests in: ' + \
                         os.path.dirname(env.GetBuildPath('SConscript')))
 
         return (prog, cmd)
+    
     else:
         def test_runner(env, output, message = None, deps = None):
-            run_tests(env, output, prog, message, deps)
+            return run_tests(env, output, tests, message, deps)
         
         return (prog, test_runner)
     

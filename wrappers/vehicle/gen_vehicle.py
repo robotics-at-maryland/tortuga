@@ -30,9 +30,8 @@ def generate(local_ns, global_ns):
         cls.include()
         cls.already_exposed = True
 
-#    wrap.make_already_exposed(global_ns, 'ram::math',
-#                              ['Vector3', 'Quaternion'])
-#    make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])
+    wrap.make_already_exposed(global_ns, 'ram::core',
+                              ['Subsystem'])
 
     # Include IVehicle class and handle special cases
     IVehicle = local_ns.class_('IVehicle')

@@ -7,9 +7,14 @@
  * File:  packages/core/include/Event.h
  */
 
+#ifndef RAM_CORE_EVENT_H_11_19_2007
+#define RAM_CORE_EVENT_H_11_19_2007
+
+// STD Includes
+#include <string>
+
 // Library Includes
 #include <boost/shared_ptr.hpp>
-
 
 namespace ram {
 namespace core {
@@ -25,6 +30,14 @@ struct Event
 };
 
 typedef boost::shared_ptr<Event> EventPtr;
+
+/*namespace details {
+int instantiateEvent() {
+    return sizeof(EventPtr);
+}
+}*/
     
 } // namespace core
 } // namespace ram
+
+#endif // RAM_CORE_EVENT_H_11_19_2007

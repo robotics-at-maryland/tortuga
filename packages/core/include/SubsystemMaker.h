@@ -25,30 +25,43 @@ typedef std::pair<ConfigNode, SubsystemList> SubsystemMakerParamType;
 
 struct SubsystemKeyExtractor
 {
-	static std::string extractKey(SubsystemMakerParamType& params)
-	{
-		return ConfigNodeKeyExtractor::extractKey(params.first);
-	}
+    static std::string extractKey(SubsystemMakerParamType& params)
+    {
+        return ConfigNodeKeyExtractor::extractKey(params.first);
+    }
 };
 
-typedef ram::pattern::Maker<Subsystem*, // The type of object created by the maker
-			  SubsystemMakerParamType,  // The parameter used to create the object
+typedef ram::pattern::Maker<SubsystemPtr, // The type of object created by the maker
+              SubsystemMakerParamType,  // The parameter used to create the object
               std::string,        // The type of key used to register makers
               SubsystemKeyExtractor> // Gets the key from the paramters
 SubsystemMaker;
-
+    
 template<class SubsystemType>
 struct SubsystemMakerTemplate : public SubsystemMaker
 {
     SubsystemMakerTemplate(std::string subsystemType) : 
-    	SubsystemMaker(subsystemType) {};
+        SubsystemMaker(subsystemType) {};
     
-    virtual Subsystem* makeObject(
-    		SubsystemMakerParamType params)
+    virtual SubsystemPtr makeObject(
+            SubsystemMakerParamType params)
     {
-        return new SubsystemType(params.first, params.second);
+        return SubsystemPtr(new SubsystemType(params.first, params.second));
     }
 };
+
+/// Need this to fix and odd duplicate address space fix
+SubsystemPtr addressSpaceFix();
+    
+// So GCCXML see's our typedef
+namespace details {
+inline int instantiate()
+{
+    int a = sizeof(SubsystemMaker);
+    a += sizeof(SubsystemList);
+    return a;
+}
+}
 
 } // namespace core
 } // namespace ram

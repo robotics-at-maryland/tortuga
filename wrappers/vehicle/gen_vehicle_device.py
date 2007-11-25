@@ -13,18 +13,19 @@ from pyplusplus import messages
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
-def expose_device(local_ns, name, remove = True, cast = True):
+def expose_device(local_ns, name, remove = True, cast = False):
     print 'NAME:',name
     device = local_ns.class_(name)
     device.include()
+
+    if cast:
+        wrap.add_castTo(device, 'ram::vehicle::device::IDevice')
 
 #    if remove:
 #        device.member_function('getVehicle').call_policies = \
 #            call_policies.return_internal_reference()
 
-#    if cast:
-#        device.member_function('castTo').call_policies = \
-#            call_policies.return_internal_reference()
+
     
 #    device.disable_warnings(messages.W1023)
 
@@ -50,9 +51,9 @@ def generate(global_ns, local_ns):
     IDevice = expose_device(local_ns, 'IDevice')#, #cast = False);
 
     # Wrap the thruster class
-    IThruster = expose_device(local_ns, 'IThruster')#, False);
-    IThruster.member_function('castTo').call_policies = \
-        call_policies.return_internal_reference()
+    IThruster = expose_device(local_ns, 'IThruster', cast = True);
+    print 'TYPE',IThruster
+
 
     wrap.add_needed_includes([IDevice, IThruster])
     # Wrap IMU class

@@ -22,16 +22,16 @@ TEST(SubsystemMaker)
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
             "{ 'name' : 'Mock', 'type' : 'MockSubsystem' }"));
     ram::core::SubsystemList deps;
-    deps.push_back((ram::core::Subsystem*)5);
+    deps.push_back(ram::core::SubsystemPtr());
     
-    ram::core::Subsystem* subsystem =
+    ram::core::SubsystemPtr subsystem =
         ram::core::SubsystemMaker::newObject(std::make_pair(config, deps));
-    MockSubsystem* mockSubsystem = dynamic_cast<MockSubsystem*>(subsystem);
+    MockSubsystem* mockSubsystem =
+        dynamic_cast<MockSubsystem*>(subsystem.get());
     
     CHECK(mockSubsystem);
     CHECK_EQUAL("Mock", subsystem->getName());
     CHECK_EQUAL(1u, mockSubsystem->dependents.size());
-    CHECK_EQUAL(((ram::core::Subsystem*)5), mockSubsystem->dependents[0]);
 }
 
 

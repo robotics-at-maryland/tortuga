@@ -14,6 +14,9 @@
 #include <string>
 #include <vector>
 
+// Library Includes
+#include <boost/shared_ptr.hpp>
+
 // Project Includes
 #include "core/include/IUpdatable.h"
 
@@ -21,8 +24,10 @@ namespace ram {
 namespace core {
 
 class Subsystem;
-typedef std::vector<Subsystem*> SubsystemList;
+typedef boost::shared_ptr<Subsystem> SubsystemPtr;
+typedef std::vector<SubsystemPtr> SubsystemList;
 
+    
 /** Reprsents a major part of the overall system
 
     This is a class mainly a marker class, used to provide a uniform start up
@@ -36,14 +41,14 @@ public:
     std::string getName() { return m_name; }
 
     template<typename T>
-    static Subsystem* getSubsystemOfType(SubsystemList list) 
+    static boost::shared_ptr<T> getSubsystemOfType(SubsystemList list) 
     {
-    	Subsystem* result = 0;
+        boost::shared_ptr<T> result = boost::shared_ptr<T>();
     	for (size_t i = 0; i < list.size(); ++i) 
     	{
-    		result = dynamic_cast<T*>(list[i]);
-    		if (0 != result)
-    			return result;
+                result = boost::dynamic_pointer_cast<T>(list[i]);
+    		if (result)
+                    return result;
     	}
     	
     	return result;
@@ -55,6 +60,16 @@ protected:
 private:
     std::string m_name;
 };
+
+
+namespace details {
+inline int instantiateA()
+{
+    int a = sizeof(SubsystemList);
+    a += sizeof(SubsystemPtr);
+    return a;
+}
+}
     
 } // namespace core
 } // namespace ram

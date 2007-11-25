@@ -30,6 +30,7 @@ struct DeviceFixture
         main_namespace(main_module.attr("__dict__")),
         eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
     {
+        main_namespace["core"] = py::import("ext.core");
         main_namespace["vdev"] = py::import("ext.vehicle_device");
     }
 
@@ -40,6 +41,7 @@ struct DeviceFixture
 
 TEST(DeviceImport)
 {
+    py::import("ext.core");
     py::import("ext.vehicle_device");
 }
 

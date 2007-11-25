@@ -18,6 +18,7 @@
 #include <boost/python.hpp>
 
 // Project Includes
+#include "core/include/Subsystem.h"
 #include "vehicle/include/IVehicle.h"
 
 namespace py = boost::python;
@@ -29,6 +30,7 @@ struct VehicleFixture
         main_namespace(main_module.attr("__dict__")),
         eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
     {
+        main_namespace["core"] = py::import("ext.core");
         main_namespace["vehicle"] = py::import("ext.vehicle");
     }
 
@@ -39,6 +41,7 @@ struct VehicleFixture
 
 TEST(VehicleImport)
 {
+    py::import("ext.core");
     py::import("ext.vehicle");
 }
 
@@ -92,6 +95,11 @@ TEST_FIXTURE(VehicleFixture, Vehicle)
         CHECK_EQUAL(force, result);
         result = py::extract<ram::math::Vector3>(main_namespace["torque"]);
         CHECK_EQUAL(torque, result);
+
+        // Make sure we qualify as a "Subsystem"
+        ram::core::Subsystem* subsystem =
+            py::extract<ram::core::Subsystem*>(main_namespace["veh"]);
+        CHECK_EQUAL(vehicle, subsystem);
         
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }

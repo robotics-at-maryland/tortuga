@@ -31,10 +31,6 @@ public:
     
     virtual ~IThruster() {};
 
-    static IThruster* castTo(IDevice* device) {
-        return dynamic_cast<IThruster*>(device);
-    }
-    
     /** Sets the current thruster force of the thrusters */
     virtual void setForce(double newtons) = 0;
 

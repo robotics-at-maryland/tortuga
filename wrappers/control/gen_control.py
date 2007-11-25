@@ -11,6 +11,8 @@ import buildfiles.wrap as wrap
 
 def generate(local_ns, global_ns):
 
+    wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem'])
+
     # Include controller classes
     IController = local_ns.class_('IController')
     IController.include()
@@ -19,4 +21,4 @@ def generate(local_ns, global_ns):
                                      '/packages/control/include/IController.h')
 
 #    wrap.make_already_exposed(global_ns, 'ram::pattern', 'Subject')
-#    wrap.make_already_exposed(global_ns, 'ram::core', ['IUpdatable'])
+

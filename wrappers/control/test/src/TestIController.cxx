@@ -61,11 +61,11 @@ TEST(MockController)
 }
 
 
-
 namespace py = boost::python;
 
 TEST(Emedding)
 {
+    try {
     py::object main_module = py::import("__main__");
     py::object main_namespace = main_module.attr("__dict__");
     py::object ignored = py::exec("result = 5 ** 2", main_namespace,
@@ -73,15 +73,21 @@ TEST(Emedding)
     int five_squared = py::extract<int>(main_namespace["result"]);
 
     CHECK_EQUAL(25, five_squared);
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
 
 TEST(ControlImport)
 {
+    try {
+    py::import("ext.core");
     py::import("ext.control");
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
 
 TEST(ControllerWrapping)
 {
+    try {
+    
     // Create MockController and wrap it in smart point to allow python to
     // handle it
     MockController* mockController = new MockController("Controller");
@@ -92,6 +98,7 @@ TEST(ControllerWrapping)
     py::object main_namespace = main_module.attr("__dict__");
 
     // Import our module to test and inject the controller object
+    main_namespace["core"] = py::import("ext.core");
     main_namespace["control"] = py::import("ext.control");
     main_namespace["controller"] = controllerPtr;
 
@@ -106,7 +113,8 @@ TEST(ControllerWrapping)
     eval("speed = controller.getSpeed()");
     int speed = py::extract<int>(main_namespace["speed"]);
     CHECK_EQUAL(3, speed);
-
+    
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
 
 int main()

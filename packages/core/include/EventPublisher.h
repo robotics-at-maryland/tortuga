@@ -7,6 +7,8 @@
  * File:  packages/core/include/EventPublisher.h
  */
 
+#ifndef RAM_CORE_EVENTPUBLISHER_H_11_19_2007
+#define RAM_CORE_EVENTPUBLISHER_H_11_19_2007
 
 // Library Includes
 #include <boost/signal.hpp>
@@ -42,3 +44,4 @@ private:
 } // namespace core
 } // namespace ram
     
+#endif // RAM_CORE_EVENTPUBLISHER_H_11_19_2007

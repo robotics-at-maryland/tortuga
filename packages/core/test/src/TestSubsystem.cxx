@@ -26,40 +26,46 @@ struct MockSub3 : public MockSubsystem
 		MockSubsystem(config, ram::core::SubsystemList()) {}
 };
 
+
 TEST(getName)
 {
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
             "{ 'name' : 'Mock' }"));
-	
-	MockSubsystem mock(config, ram::core::SubsystemList());
-	CHECK_EQUAL("Mock", mock.getName());
+    
+    MockSubsystem mock(config, ram::core::SubsystemList());
+    CHECK_EQUAL("Mock", mock.getName());
 }
 
 TEST(GetSubsystem)
 {
 	ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
 	            "{ 'name' : 'Mock1' }"));
-	MockSubsystem mock1(config, ram::core::SubsystemList());
+	MockSubsystem* mock1 =
+            new MockSubsystem(config, ram::core::SubsystemList());
 	
 	config.set("name", "Mock2");
-	MockSub2 mock2(config);
+	MockSub2* mock2 = new MockSub2(config);
 	
 	config.set("name", "Mock3");
-	MockSub3 mock3(config);
+	MockSub3* mock3 = new MockSub3(config);
 	
-	ram::core::SubsystemList subsystemList = 
-		boost::assign::list_of(&mock1)(&mock2)(&mock3);
-	
-	ram::core::Subsystem* sub = 
-		ram::core::Subsystem::getSubsystemOfType<MockSub2>(subsystemList);
-	CHECK_EQUAL(&mock2, sub);
-	CHECK_EQUAL("Mock2", sub->getName());
-	
-	sub = ram::core::Subsystem::getSubsystemOfType<MockSub3>(subsystemList);
-	CHECK_EQUAL(&mock3, sub);
-	CHECK_EQUAL("Mock3", sub->getName());
-	
-	sub = ram::core::Subsystem::getSubsystemOfType<MockSubsystem>(subsystemList);
-	CHECK_EQUAL(&mock1, sub);
+	ram::core::SubsystemList subsystemList = boost::assign::list_of(
+            ram::core::SubsystemPtr(mock1))
+            (ram::core::SubsystemPtr(mock2))
+            (ram::core::SubsystemPtr(mock3));
+
+        ram::core::SubsystemPtr sub2 =
+            ram::core::Subsystem::getSubsystemOfType<MockSub2>(subsystemList);
+	CHECK_EQUAL(mock2, sub2.get());
+	CHECK_EQUAL("Mock2", sub2->getName());
+
+        ram::core::SubsystemPtr sub3 =
+            ram::core::Subsystem::getSubsystemOfType<MockSub3>(subsystemList);
+	CHECK_EQUAL(mock3, sub3.get());
+	CHECK_EQUAL("Mock3", sub3->getName());
+
+        ram::core::SubsystemPtr sub =
+            ram::core::Subsystem::getSubsystemOfType<MockSubsystem>(subsystemList);
+	CHECK_EQUAL(mock1, sub.get());
 	CHECK_EQUAL("Mock1", sub->getName());
 }
