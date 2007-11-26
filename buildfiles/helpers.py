@@ -7,12 +7,10 @@
 
 # STD Imports
 import os
-import imp
 import sys
 import glob as _glob
 import subprocess
 import SCons
-import unittest
 
 # Build System imports
 import libs
@@ -119,33 +117,20 @@ def run_tests(env, output, inputs, message = None, deps = None):
             elif 0 == fpath.count('.'):
                 cpptests.append(fpath)
 
-        # Run the C++ Tests
+        # Run the C++ Testsls
         for cpptest in cpptests:
             result = subprocess.call(str(cpptest))
             if result:
                 return 1 # Failure
 
-        # Handle the python tests
-        testLoader = unittest.TestLoader()
-        suite = unittest.TestSuite()
-
-        for mod_path in pytests:
-            # Import Test Module
-            (search_path, name) = os.path.split(mod_path)
-            # Stip '.py' from the end
-            name = name[:-3]
-            (f, pathname, decs) = imp.find_module(name, [search_path])
-            mod = imp.load_module(name, f, pathname, decs)
-
-            # Load all the tests from the file into a single suite
-            suite.addTest(testLoader.loadTestsFromModule(mod))
-
+        # Run Python Tests
         if len(pytests) > 0:
-            # Run the tests
-            result = unittest.TextTestRunner().run(suite)
-
-            # Quit now if the test fail
-            if not result.wasSuccessful():
+            testerpath = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
+                                      'pytester.py')
+            tests = ' '.join(pytests)
+            cmd_str = '%s %s %s' % (sys.executable, testerpath, tests)
+            result = subprocess.call(cmd_str, shell = True)
+            if result:
                 return 1 # Failure
 
         # Record the test success to the file

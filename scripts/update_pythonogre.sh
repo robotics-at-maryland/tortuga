@@ -1,6 +1,6 @@
 PYPLUSPLUS_ROOT=https://pygccxml.svn.sourceforge.net/svnroot/pygccxml
 MRBC_VENDOR_SVN=https://ram.umd.edu/svn/mrbc/vendor
-PYTHON_OGRE_SVN=https://svn.python-ogre.org/trunk/python-ogre 
+PYTHON_OGRE_SVN=https://python-ogre.svn.sourceforge.net/svnroot/trunk/python-ogre 
 
 # Grab Revision
 PYPP_VER_DIR=/tmp/pyverchk

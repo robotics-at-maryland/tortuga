@@ -10,100 +10,17 @@ This module contains a custom Py++ tool for SCons
 """
 
 # STD Imports
-import imp
 import os
+import sys
 import os.path
 import types
-import logging
 import shutil
+import subprocess
 
 # Library Imports
 import SCons.Builder
 import SCons.Tool
 import SCons.Defaults
-
-def generate_code_base(env, target, source, module):
-    """
-    The builder which actually calls Py++.
-    
-    @param target: A file which lists the generated sources
-    @param source: A list of input xml files and *one* python file.
-                   The python file will be imported as module, and given the
-                   list of xmlfiles, and an output dir.
-    """
-
-    # Seperate out the modules and xmlfiles
-    mod_path = None
-    xmlfiles = []
-    for s in source:
-        if s.abspath.endswith('.py'):
-            if not mod_path is None:
-                print "Error only one python module can be used to generate"
-                print "code"
-                env.Exit(1)
-            mod_path = s.abspath
-        else:
-            xmlfiles.append(s.abspath)
-    
-    # Import module
-    (search_path, name) = os.path.split(mod_path)
-    # Stip '.py' from the end
-    name = name[:-3]
-    (f, pathname, decs) = imp.find_module(name, [search_path])
-    mod = imp.load_module(name, f, pathname, decs)
-
-    # Tramsform files into so that pygccxml now they are already xml
-    import pygccxml
-    import pyplusplus
-    from pyplusplus import module_builder
-
-    # Turn off logging (for normal builds)
-#    pygccxml.utils.loggers.gccxml.setLevel(logging.ERROR)
-    pyplusplus._logging_.loggers.module_builder.setLevel(logging.ERROR)
-    pyplusplus._logging_.loggers.declarations.setLevel(logging.ERROR)
-
-    # Create the module builder
-    cache_file = pygccxml.parser.file_cache_t(target[0].abspath + '.cache')
-    xmlfiles = [pygccxml.parser.create_gccxml_fc(f) for f in xmlfiles]
-    mb = module_builder.module_builder_t(files = xmlfiles,
-                                         indexing_suite_version = 2,
-                                         cache = cache_file)
-
-    # Exclude everything by default, then include just the classes we want
-    mb.global_ns.exclude()
-    local_ns = mb.global_ns
-    for ns in module.replace("::","_").split("_"):
-        local_ns = local_ns.namespace(ns)
-    
-    # Call entry point
-    include_files = mod.generate(local_ns, mb.global_ns)
-    if include_files is None:
-        include_files = []
-
-    # Now lets build the code
-    mb.build_code_creator( module_name= module.replace("::","_"))
-    for include in include_files:
-        mb.code_creator.add_include(include)
-
-    # And finally we can write code to the disk
-    (output_dir, name) = os.path.split(target[0].abspath)
-    output_dir = os.path.join(output_dir, 'generated')
-    files_created = mb.split_module(output_dir,
-                                    on_unused_file_found = lambda x: x)
-
-    # Create list of files
-    fpath = target[0].abspath
-
-    # Remove the file if it already exists
-    if os.path.exists(fpath):
-        os.remove(fpath)
-    
-    cpp_files = [os.path.split(f)[1] for f in files_created
-                 if f.endswith('.cpp')]
-    output_file = open(fpath, 'w')
-    for cpp_file in cpp_files:
-        output_file.write(cpp_file + '\n')
-    output_file.close()
 
 def get_from_env(env, name):
     if not env.has_key(name):
@@ -231,15 +148,24 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
 
     # Runs the code generation module using Py++
     sources = xmlfiles
-    sources.append(env.File(module))
+    sources.append(env.File(os.path.join(
+        os.path.dirname(env.GetBuildPath('SConscript')), module)))
 
-    target_str = str(target[0])
+    target_str = str(target[0]).replace("::","_")
 
-    def generate_code(env, target, source):
-        generate_code_base(env, target, source, target_str)
-    commands = [generate_code]
-    if not os.path.exists(env.Dir('generated').abspath):
-        commands.insert(0, SCons.Defaults.Mkdir(env.Dir('generated').abspath))
+    # Generate the command line call to our py++ script
+    slist = ' '.join([s.abspath for s in sources])
+    prog_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts', 'pypp.py')
+    outfile_path = env.File(target_str + '_gen-sources.txt').abspath
+    cmd_str = '%s %s -t %s -m %s %s' % (sys.executable, prog_path,
+                                        outfile_path, target_str, slist)
+    commands = [cmd_str]
+
+    # The command to create the output file directory
+    dir_path = 'generated' + '-'.join(str(target[0]).split('::')[1:])
+    dir_path = env.Dir(dir_path).abspath
+    if not os.path.exists(dir_path):
+        commands.insert(0, SCons.Defaults.Mkdir(dir_path))
     
     
     srclist = env.Command(target_str + '_gen-sources.txt',
