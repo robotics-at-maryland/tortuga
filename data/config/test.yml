@@ -1,7 +1,7 @@
 # Config for the vehicle
 
 # Each module is a seperate system that needs to be started up
-Modules:
+Subsystems:
     # Object that creates the vehicle interface
     Vehicle:
         name: Vehicle

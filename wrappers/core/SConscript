@@ -24,7 +24,7 @@ envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
 wrapped_headers = ['Subsystem.h', 'SubsystemMaker.h', 'ConfigNode.h',
-                   'EventPublisher.h', 'Event.h']
+                   'EventPublisher.h', 'Event.h', 'Application.h']
 #'SubsystemMaker.h', 'ConfigNode.h']
 #, 'Updatable.h', 'IUpdatable.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]

@@ -20,3 +20,24 @@
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::IMU, IMU);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::PSU, PSU);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::Thruster, Thruster);
+
+// In this case the static variable is safe
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#  pragma warning( disable : 4640 )
+#endif
+
+namespace ram {
+namespace pattern {
+
+template<>
+vehicle::device::IDeviceMaker::MakerMap*
+vehicle::device::IDeviceMaker::getRegistry()
+{
+    // This line is run only once, avoids static initialization order issue
+    static vehicle::device::IDeviceMaker::MakerMap* reg =
+        new vehicle::device::IDeviceMaker::MakerMap();
+    return reg;
+}
+
+} // namespace pattern
+} // namespace ram

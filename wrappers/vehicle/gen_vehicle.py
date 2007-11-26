@@ -37,13 +37,13 @@ def generate(local_ns, global_ns):
     IVehicle = local_ns.class_('IVehicle')
     IVehicle.include()
 
-    global_ns.typedef('TempNameList').include()
+    global_ns.typedef('TempNameList').type.declaration.already_exposed = True
     global_ns.typedef('TempList').include()
 
     # Fix TempNameList (the include does stick)
     t = global_ns.class_(function =
                          lambda x: x.name.startswith('vector<std::string'))
-    t.alias = 'TempNameList'
+    t.already_exposed = True
 
     # Fix overley long std::container names
     #wrap.mangle_container_names(local_ns)

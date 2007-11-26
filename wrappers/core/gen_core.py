@@ -121,6 +121,13 @@ def generate(local_ns, global_ns):
     # Can't seem to find this function for some reason
     #print SubsystemMaker.member_function('makeObject').exclude()
 
+    # Application
+    Application = local_ns.class_('Application')
+    Application.include()
+    classes.append(Application)
+    wrap.set_implicit_conversions([Application], False)
+
+
     wrap.add_needed_includes(classes)
 
     #local_ns.class_('Updatable').include()

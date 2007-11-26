@@ -24,13 +24,17 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IIMU.h"
 #include "sensorapi/include/sensorapi.h"
+#include "core/include/SubsystemMaker.h"
+
+// Register vehicle into the maker subsystem
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
 
 using namespace ram::vehicle::device;
 
 namespace ram {
 namespace vehicle {
 
-Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList) :
+Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     IVehicle(config["name"].asString()),
     m_config(config),
     m_sensorFD(-1),

@@ -18,16 +18,21 @@
 
 #include "vehicle/include/IVehicle.h"
 
+#include "core/include/SubsystemMaker.h"
+
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
 #include "imu/include/imuapi.h"
+
+// Register controller in subsystem maker system
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::BWPDController, BWPDController);
 
 using namespace std;
 
 namespace ram {
 namespace control {
 
-BWPDController::BWPDController(vehicle::IVehicle* vehicle,
+BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
                                core::ConfigNode config) :
     IController(config["name"].asString()),
     m_vehicle(vehicle),
@@ -36,62 +41,24 @@ BWPDController::BWPDController(vehicle::IVehicle* vehicle,
     m_measuredState(0),
     m_controllerState(0)
 {   
-    // Allocate state structures
-    m_desiredState = new DesiredState();
-    m_measuredState = new MeasuredState();
-    m_controllerState = new ControllerState();
-
-    // Zero all the structs
-    memset(m_desiredState, 0, sizeof(DesiredState));
-    memset(m_measuredState, 0, sizeof(MeasuredState));
-    memset(m_controllerState, 0, sizeof(ControllerState));
-
-    // Set desired state
-    m_desiredState->quaternion[0] = config["desiredQuaternion"][0].asDouble();
-    m_desiredState->quaternion[1] = config["desiredQuaternion"][1].asDouble();
-    m_desiredState->quaternion[2] = config["desiredQuaternion"][2].asDouble();
-    m_desiredState->quaternion[3] = config["desiredQuaternion"][3].asDouble();
-
-    m_desiredState->speed = config["desiredSpeed"].asDouble(0);
-    m_desiredState->depth = config["desiredDepth"].asDouble(0);
-    
-    // Set controller state from config file (defaults hard coded)
-    m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
-    m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
-    m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
-    m_controllerState->speedPGain = config["speedPGain"].asDouble(1);
-
-    
-    m_controllerState->inertiaEstimate[0][0] =
-        config["inertia"][0][0].asDouble(0.201);
-    m_controllerState->inertiaEstimate[0][1] =
-        config["inertia"][0][1].asDouble(0);
-    m_controllerState->inertiaEstimate[0][2] =
-        config["inertia"][0][2].asDouble(0);
-    
-    m_controllerState->inertiaEstimate[1][0] =
-        config["inertia"][1][0].asDouble(0);
-    m_controllerState->inertiaEstimate[1][1] =
-        config["inertia"][1][1].asDouble(1.288);
-    m_controllerState->inertiaEstimate[1][2] =
-        config["inertia"][1][2].asDouble(0);
-    
-    m_controllerState->inertiaEstimate[2][0] =
-        config["inertia"][2][0].asDouble(0);
-    m_controllerState->inertiaEstimate[2][1] =
-        config["inertia"][2][1].asDouble(0);
-    m_controllerState->inertiaEstimate[2][2] =
-        config["inertia"][2][2].asDouble(1.288);
-
-    m_logfile.open("control_log.txt");
-    m_logfile << "% M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
-              << std::endl;
-        
+    init(config); 
 }
 
+BWPDController::BWPDController(core::ConfigNode config,
+                               core::SubsystemList deps) :
+    IController(config["name"].asString()),
+    m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),
+    m_config(config),
+    m_desiredState(0),
+    m_measuredState(0),
+    m_controllerState(0)
+{
+    init(config);
+}
+    
 BWPDController::~BWPDController()
 {
-	unbackground(true);
+    unbackground(true);
 	
     m_logfile.close();
     delete m_desiredState;
@@ -285,6 +252,60 @@ void BWPDController::update(double timestep)
          << translationalForce[1] << " "
          << translationalForce[2] << std::endl;
         
+}
+
+void BWPDController::init(core::ConfigNode config)
+{
+    // Allocate state structures
+    m_desiredState = new DesiredState();
+    m_measuredState = new MeasuredState();
+    m_controllerState = new ControllerState();
+
+    // Zero all the structs
+    memset(m_desiredState, 0, sizeof(DesiredState));
+    memset(m_measuredState, 0, sizeof(MeasuredState));
+    memset(m_controllerState, 0, sizeof(ControllerState));
+
+    // Set desired state
+    m_desiredState->quaternion[0] = config["desiredQuaternion"][0].asDouble();
+    m_desiredState->quaternion[1] = config["desiredQuaternion"][1].asDouble();
+    m_desiredState->quaternion[2] = config["desiredQuaternion"][2].asDouble();
+    m_desiredState->quaternion[3] = config["desiredQuaternion"][3].asDouble();
+
+    m_desiredState->speed = config["desiredSpeed"].asDouble(0);
+    m_desiredState->depth = config["desiredDepth"].asDouble(0);
+    
+    // Set controller state from config file (defaults hard coded)
+    m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
+    m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
+    m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
+    m_controllerState->speedPGain = config["speedPGain"].asDouble(1);
+
+    
+    m_controllerState->inertiaEstimate[0][0] =
+        config["inertia"][0][0].asDouble(0.201);
+    m_controllerState->inertiaEstimate[0][1] =
+        config["inertia"][0][1].asDouble(0);
+    m_controllerState->inertiaEstimate[0][2] =
+        config["inertia"][0][2].asDouble(0);
+    
+    m_controllerState->inertiaEstimate[1][0] =
+        config["inertia"][1][0].asDouble(0);
+    m_controllerState->inertiaEstimate[1][1] =
+        config["inertia"][1][1].asDouble(1.288);
+    m_controllerState->inertiaEstimate[1][2] =
+        config["inertia"][1][2].asDouble(0);
+    
+    m_controllerState->inertiaEstimate[2][0] =
+        config["inertia"][2][0].asDouble(0);
+    m_controllerState->inertiaEstimate[2][1] =
+        config["inertia"][2][1].asDouble(0);
+    m_controllerState->inertiaEstimate[2][2] =
+        config["inertia"][2][2].asDouble(1.288);
+
+    m_logfile.open("control_log.txt");
+    m_logfile << "% M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
+              << std::endl;    
 }
     
 } // namespace control

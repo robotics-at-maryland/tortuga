@@ -29,7 +29,7 @@ class Vehicle : public IVehicle, public core::Updatable
 {
 public:
     Vehicle(core::ConfigNode config, 
-            core::SubsystemList = core::SubsystemList());
+            core::SubsystemList deps = core::SubsystemList());
         
     virtual ~Vehicle();
     

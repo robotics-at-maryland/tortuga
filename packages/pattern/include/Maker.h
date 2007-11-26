@@ -24,12 +24,6 @@
  article by Timothy R. Culp (with an added dose of policy based design)
 */
 
-// In this cast the static variable is safe
-#if RAM_COMPILER == RAM_COMPILER_MSVC
-#  pragma warning( push )
-#  pragma warning( disable : 4640 )
-#endif
-
 namespace ram {
 namespace pattern {
 
@@ -124,8 +118,26 @@ private:
     // Calls constructor to register the maker
     static IntMaker registerThis;
 };
+
 // Needs to be in a cpp file to actually invoke the constructor
 IntMaker IntMaker::registerThis;
+
+// This also needs to be in a cpp file, it makes sure there is only on instance
+// of the static registry.  Having this in a header, will created multiple
+// instances, and much hair pulling.
+namespace ram {
+namespace patter {
+
+static NumberMaker::MakerMap* getRegistry();
+{
+    static NumberMaker::MakerMap* reg = new NumberMaker::MakerMap();
+    return reg;
+}
+
+} // namespace pattern
+} // namespace ram
+
+
 };
 
  *  @endcode
@@ -153,13 +165,26 @@ private:
 
     /** Returns the global registry for this maker
      *
+     *  You must implment this method once in a cpp file (not a header) for
+     *  each version of this template you create.
+     *
+     *  @code
+// Assumes MakerType is a typedef of this template
+namespace ram {
+namespace patter {
+
+static MakerType::MakerMap* getRegistry();
+{
+    static MakerType::MakerMap* reg = new MakerType::MakerMap();
+    return reg;
+}
+
+} // namespace pattern
+} // namespace ram
+     *  @endcode
      */
-    static MakerMap* getRegistry()
-    {
-        // This line is run only once, avoids static initialization order issue
-        static MakerMap* reg = new MakerMap();
-        return reg;
-    }
+    static MakerMap* getRegistry();
+
    
 public:
 
@@ -219,11 +244,6 @@ public:
         return ObjectCreate::createObject(maker, param);
     }
 };
-
-
-#if RAM_COMPILER == RAM_COMPILER_MSVC
-#  pragma warning( pop )
-#endif
 
 } // namespace pattern
 } // namespace ram

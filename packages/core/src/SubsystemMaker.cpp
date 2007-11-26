@@ -10,19 +10,24 @@
 // Project Includes
 #include "core/include/SubsystemMaker.h"
 
+// In this case the static variable is safe
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#  pragma warning( disable : 4640 )
+#endif
+
+// This must be here so that there is only static registry, otherwise each
+// include of the SubsystemMaker.h header will result in a different registry
 namespace ram {
-namespace core {
+namespace pattern {
 
-SubsystemPtr addressSpaceFix()
+template<>
+core::SubsystemMaker::MakerMap* core::SubsystemMaker::getRegistry()
 {
-    ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
-      "{ 'name' : 'Mock', 'type' : 'MockSubsystem' }"));
-    ram::core::SubsystemList deps;
-    deps.push_back(ram::core::SubsystemPtr());
-
-    // It appears, that this call is the key
-    return ram::core::SubsystemMaker::newObject(std::make_pair(config, deps));
+    // This line is run only once, avoids static initialization order issue
+    static core::SubsystemMaker::MakerMap* reg =
+        new core::SubsystemMaker::MakerMap();
+    return reg;
 }
 
-} // namespace core
+} // namespace pattern
 } // namespace ram

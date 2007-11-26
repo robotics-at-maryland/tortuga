@@ -21,6 +21,25 @@ DoubleMaker DoubleMaker::registerThis;
 IntMakerVer2 IntMakerVer2::registerThis;
 DoubleMakerVer2 DoubleMakerVer2::registerThis;
 
+// In this case the static variable is safe
+#if RAM_COMPILER == RAM_COMPILER_MSVC
+#  pragma warning( disable : 4640 )
+#endif
+
+// Needed to prevent ea chclient from have there own static registry
+namespace ram {
+namespace pattern {
+
+template<>
+NumberMaker::MakerMap* NumberMaker::getRegistry()
+{
+    // This line is run only once, avoids static initialization order issue
+    static NumberMaker::MakerMap* reg = new NumberMaker::MakerMap();
+    return reg;
+}
+
+} // namespace pattern
+} // namespace ram
 
 // See TestMaker.h for an example of how to create classes which use the maker
 // pattern

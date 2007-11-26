@@ -43,15 +43,16 @@ public:
     }
 
     std::vector<std::string> getDeviceNames()
+    {
+        std::vector<std::string> names;
+        BOOST_FOREACH(ram::vehicle::NameDeviceMap::value_type pair,
+                      devices)
         {
-            std::vector<std::string> names;
-            BOOST_FOREACH(ram::vehicle::NameDeviceMap::value_type pair, devices)
-            {
-                names.push_back(pair.first);
-            }
-
-            return names;
+            names.push_back(pair.first);
         }
+        
+        return names;
+    }
     
     virtual double getDepth()  { return depth; }
 

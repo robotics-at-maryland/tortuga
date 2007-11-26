@@ -44,7 +44,10 @@ public:
         DEPTH_UPDATE
 
     };
-    BWPDController(vehicle::IVehicle* vehicle, core::ConfigNode config);
+    BWPDController(vehicle::IVehiclePtr vehicle, core::ConfigNode config);
+
+    BWPDController(core::ConfigNode config,
+                   core::SubsystemList deps = core::SubsystemList());
 
     virtual ~BWPDController();
     
@@ -101,8 +104,10 @@ public:
     virtual void update(double timestep);
     
 private:
+    void init(core::ConfigNode config);
+    
     /** Out Vehicle */
-    vehicle::IVehicle* m_vehicle;
+    vehicle::IVehiclePtr m_vehicle;
     
     /** Contains settings for the controller */
     core::ConfigNode m_config;

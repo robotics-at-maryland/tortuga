@@ -31,14 +31,8 @@
 #include <boost/program_options.hpp>
 
 // Project Includes
-#include "control/include/BWPDController.h"
-
-#include "core/include/ConfigNode.h"
-
-#include "vehicle/include/Vehicle.h"
-#include "vehicle/include/device/Thruster.h"
-#include "vehicle/include/device/IMU.h"
-
+#include "core/include/Application.h"
+#include "control/include/IController.h"
 
 
 #define MYPORT 9219 /*YOUR PORT HERE*/
@@ -142,24 +136,14 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // Parse Some config stuff
-    core::ConfigNode root = core::ConfigNode::fromFile(configPath);
-    core::ConfigNode modules(root["Modules"]);
-
-    // Create vehicle and devices
-    core::ConfigNode veh_cfg(modules["Vehicle"]);
-    vehicle::Vehicle vehicle(veh_cfg);
-
-    // Create our controller
-    core::ConfigNode ctrl_cfg(modules["Controller"]);
-    control::BWPDController controller(&vehicle, ctrl_cfg);
-    controller.background(ctrl_cfg["update_interval"].asInt());
-
-    // Start the vehicle running in the background
-    vehicle.background(veh_cfg["update_interval"].asInt());
-
-    // Got into networking loop
-    networkLoop(&controller);
+    ram::core::Application app(configPath);
+    
+    {
+        ram::core::SubsystemPtr controller = app.getSubsystem("Controller");
+        
+        // Got into networking loop
+        networkLoop(dynamic_cast<ram::control::IController*>(controller.get()));
+    }
 
     // Sleep To Allow thrusters to stop
     sleep(1);

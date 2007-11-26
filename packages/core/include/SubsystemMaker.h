@@ -50,8 +50,6 @@ struct SubsystemMakerTemplate : public SubsystemMaker
     }
 };
 
-/// Need this to fix and odd duplicate address space fix
-SubsystemPtr addressSpaceFix();
     
 // So GCCXML see's our typedef
 namespace details {
