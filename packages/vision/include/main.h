@@ -2,7 +2,7 @@
 #define main_h
 
 #include "ProcessList.h"
-
+#include "vision/include/Export.h"
 //Light constants
 #define MINFRAMESON 3
 #define MINFRAMESOFF 3
@@ -10,7 +10,7 @@
 #define MAXFRAMESOFF 7
 #define HOUGH_ERROR -10
 
-int distance_from_line(int avgxs[], IplImage* img);
+int distance_from_line(int avgxs[], IplImage* img); 
 int angle_from_center(int argxs[], IplImage* img);
 double hough(IplImage* img, int* x, int* y);
 void diff(IplImage* img, IplImage* oldImg, IplImage* destination);
@@ -31,7 +31,7 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 void redMask(IplImage* percents, IplImage* base);
 void run(ram::vision::ProcessList* pl);
 void walk(IplImage* img, ram::vision::ProcessList* pl);
-int histogram(IplImage* img, int* centerx, int* centery);
+int RAM_EXPORT histogram(IplImage* img, int* centerx, int* centery);
 int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy);
 void rotate90Deg(IplImage* image, IplImage* dest);
 void rotate90DegClockwise(IplImage* src, IplImage* dest);
