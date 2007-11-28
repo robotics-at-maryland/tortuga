@@ -19,11 +19,14 @@ class SonarChunk {
 public:
 	SonarChunk(adcsampleindex_t startIndex);
 	~SonarChunk();
-	adcdata_t *sample;
-	int length;
-	const static int maxlength = 2048;
+	const static int capacity = 2048;
 	adcsampleindex_t startIndex;
 	bool append(adcdata_t);
+	int size() const;
+	const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const;
+private:
+	int length;
+	adcdata_t *sample;
 };
 
 adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a, 

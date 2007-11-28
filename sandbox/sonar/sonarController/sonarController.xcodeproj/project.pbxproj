@@ -29,7 +29,6 @@
 		A4BB03E80CFDC4A40008AA74 /* SonarChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */; };
 		A4BB03E90CFDC4A40008AA74 /* crosscorrelation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BB03DD0CFDC4570008AA74 /* crosscorrelation.cpp */; };
 		A4BB03EC0CFDC4A40008AA74 /* adc.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F7D438D0CFCF4EE00C27E9B /* adc.dat */; };
-		A4BB04B80CFDCCF10008AA74 /* Sonar.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = A4BB04B70CFDCCF10008AA74 /* Sonar.h */; };
 		A4BD378B0CFA52DD00A10962 /* SonarController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BD37890CFA52DD00A10962 /* SonarController.cpp */; };
 		A4D5AE5D0CFD2699006BF690 /* SonarSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */; };
 		A4D5AE780CFD2FB3006BF690 /* SonarChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */; };
@@ -60,7 +59,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				5F7D438E0CFCF4EE00C27E9B /* adc.dat in CopyFiles */,
-				A4BB04B80CFDCCF10008AA74 /* Sonar.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

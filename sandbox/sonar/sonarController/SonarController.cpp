@@ -13,8 +13,8 @@
 #include <iostream>
 #include <string.h>
 
-SonarController::SonarController(int numSensors) {
-	this->numSensors = numSensors;
+SonarController::SonarController(int ns) : sc(ns) {
+	numSensors = ns;
 	samprate = 1000000;
 	targetfreq = 30000;
 	bufferlength = samprate * PINGDURATION * 3;
@@ -100,6 +100,7 @@ void SonarController::receiveSample(adcdata_t *sample) {
 		} else {
 			if (buffer[i][bufidx] > threshold) {
 				insidePulse[i] = true;
+				sc.newChunk(i, bufidx);
 			}
 		}
 	}

@@ -15,8 +15,8 @@
 
 SonarChunk::SonarChunk(adcsampleindex_t si) {
 	startIndex = si;
-	sample = new adcdata_t[maxlength];
-	memset(sample, 0, sizeof(adcdata_t) * maxlength);
+	sample = new adcdata_t[capacity];
+	length = 0;
 }
 
 SonarChunk::~SonarChunk() {
@@ -24,7 +24,7 @@ SonarChunk::~SonarChunk() {
 }
 
 bool SonarChunk::append(adcdata_t datum) {
-	if (length <= maxlength) {
+	if (length <= capacity) {
 		sample[length++] = datum;
 		return true;
 	} else {
@@ -33,14 +33,22 @@ bool SonarChunk::append(adcdata_t datum) {
 
 }
 
+int SonarChunk::size() const {
+	return length;
+}
+
+const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const {
+	return sample[i];
+}
+
 adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a,
 										   const SonarChunk &b) {
 	adcmath_t max = 0, accum = 0;
 	int maxindex = 0;
-	for (int i = 0 ; i < a.length ; i ++) {
+	for (int i = 0 ; i < a.size() ; i ++) {
 		accum = 0;
-		for (int j = i ; j < std::min(a.length, i + b.length) ; j ++) {
-			accum += (adcmath_t) a.sample[j] * b.sample[j - i];
+		for (int j = i ; j < std::min(a.size(), i + b.size()) ; j ++) {
+			accum += (adcmath_t) a[j] * b[j - i];
 		}
 		if (accum > max) {
 			max = accum;

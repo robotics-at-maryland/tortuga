@@ -19,11 +19,13 @@
 
 class SonarSequencer {
 public:
-	SonarSequencer();
+	SonarSequencer(int numSensors);
 	~SonarSequencer();
-	SonarChunk &newChunk(adcsampleindex_t sampleIndex);
+	SonarChunk *newChunk(int channel, adcsampleindex_t sampleIndex);
 private:
+	int numSensors;
 	std::list<SonarChunk> chunks;
+	SonarChunk **currentChunks;
 };
 
 #endif

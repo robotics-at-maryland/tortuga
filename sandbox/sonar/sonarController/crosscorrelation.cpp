@@ -28,11 +28,10 @@ int main (int argc, char * const argv[]) {
 			std::cerr << "Could not open file." << std::endl;
 			return -1;
 		}
-		while (!feof(f) && numsamples < SonarChunk::maxlength) {
+		while (!feof(f) && numsamples < SonarChunk::capacity) {
 			fread(sample, sizeof(adcdata_t), NUM_SENSORS, f);
 			a.append(sample[0]);
 			b.append(sample[1]);
-			std::cout << std::endl;
 			numsamples ++;
 		}
 		fclose(f);

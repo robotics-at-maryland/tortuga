@@ -9,14 +9,19 @@
 
 #include "SonarSequencer.h"
 
-SonarSequencer::SonarSequencer() {
+SonarSequencer::SonarSequencer(int ns) {
+	numSensors = ns;
+	currentChunks = new SonarChunk*[numSensors];
+	for (int i = 0 ; i < numSensors ; i ++)
+		newChunk(i, 0);
 }
 
 SonarSequencer::~SonarSequencer() {
+	delete [] currentChunks;
 }
 
-SonarChunk &SonarSequencer::newChunk(adcsampleindex_t sampleIndex) {
-	SonarChunk *sc = new SonarChunk(sampleIndex);
-	chunks.push_back(*sc);
-	return *sc;
+SonarChunk *SonarSequencer::newChunk(int channel,adcsampleindex_t sampleIndex) {
+	currentChunks[channel] = new SonarChunk(sampleIndex);
+	chunks.push_back(*currentChunks[channel]);
+	return currentChunks[channel];
 }

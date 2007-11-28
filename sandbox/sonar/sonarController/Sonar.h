@@ -20,6 +20,5 @@ typedef uint32_t adcsampleindex_t;
 
 #define BITS_ADCCOEFF 8
 #define PINGDURATION 1.3e-3
-#define MAXCHUNKSIZE 2048
 
 #endif
