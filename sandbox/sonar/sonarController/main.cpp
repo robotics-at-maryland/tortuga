@@ -1,3 +1,12 @@
+/*
+ *  main.cpp
+ *  sonarController
+ *
+ *  Created by Leo Singer on 11/28/07.
+ *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ *
+ */
+
 #include <iostream>
 #include <stdio.h>
 

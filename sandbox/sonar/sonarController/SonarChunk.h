@@ -2,8 +2,8 @@
  *  SonarChunk.h
  *  sonarController
  *
- *  Created by Lady 3Jane Marie-France Tessier-Ashpool on 11/28/07.
- *  Copyright 2007 __MyCompanyName__. All rights reserved.
+ *  Created by Leo Singer on 11/28/07.
+ *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
  */
 
