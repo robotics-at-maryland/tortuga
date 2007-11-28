@@ -25,3 +25,7 @@ SonarChunk *SonarSequencer::newChunk(int channel,adcsampleindex_t sampleIndex) {
 	chunks.push_back(*currentChunks[channel]);
 	return currentChunks[channel];
 }
+
+bool addSample(int channel, adcdata_t datum, adcmath_t fourieramp) {
+	//	insert code here
+}

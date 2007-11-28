@@ -22,6 +22,7 @@ public:
 	SonarSequencer(int numSensors);
 	~SonarSequencer();
 	SonarChunk *newChunk(int channel, adcsampleindex_t sampleIndex);
+	bool addSample(int channel, adcdata_t datum, adcmath_t fourieramp);
 private:
 	int numSensors;
 	std::list<SonarChunk> chunks;

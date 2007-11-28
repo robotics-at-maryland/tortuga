@@ -23,10 +23,13 @@ public:
 	adcsampleindex_t startIndex;
 	bool append(adcdata_t);
 	int size() const;
+	adcdata_t getPeak() const;
 	const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const;
+	void purge();
 private:
 	int length;
 	adcdata_t *sample;
+	adcdata_t peak;
 };
 
 adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a, 

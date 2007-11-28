@@ -16,7 +16,7 @@
 SonarChunk::SonarChunk(adcsampleindex_t si) {
 	startIndex = si;
 	sample = new adcdata_t[capacity];
-	length = 0;
+	purge();
 }
 
 SonarChunk::~SonarChunk() {
@@ -26,19 +26,29 @@ SonarChunk::~SonarChunk() {
 bool SonarChunk::append(adcdata_t datum) {
 	if (length <= capacity) {
 		sample[length++] = datum;
+		if (abs(datum) > peak)
+			peak = datum;
 		return true;
 	} else {
 		return false;
 	}
-
 }
 
 int SonarChunk::size() const {
 	return length;
 }
 
+adcdata_t SonarChunk::getPeak() const {
+	return peak;
+}
+
 const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const {
 	return sample[i];
+}
+
+void SonarChunk::purge() {
+	length = 0;
+	peak = 0;
 }
 
 adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a,
