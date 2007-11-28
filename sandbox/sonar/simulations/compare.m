@@ -1,4 +1,4 @@
-function compare_depthaugmented(unit_source_pos, hydro_pos, num_trials)
+function compare(unit_source_pos, hydro_pos, num_trials)
 config;
 ranges = 1:0.5:20;
 
