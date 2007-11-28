@@ -2,8 +2,8 @@
  *  SonarController.cpp
  *  sonarController
  *
- *  Created by Lady 3Jane Marie-France Tessier-Ashpool on 11/25/07.
- *  Copyright 2007 __MyCompanyName__. All rights reserved.
+ *  Created by Leo Singer on 11/25/07.
+ *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
  */
 
@@ -11,6 +11,7 @@
 
 #include <math.h>
 #include <iostream>
+#include <string.h>
 
 SonarController::SonarController(int numSensors) {
 	this->numSensors = numSensors;
@@ -20,6 +21,8 @@ SonarController::SonarController(int numSensors) {
 	nearestperiod = round(samprate / targetfreq);
 	numPeriods = 6;
 	windowlength = nearestperiod * numPeriods;
+	threshold = ((1 << (BITS_ADCCOEFF + 8 * sizeof(adcdata_t) - 2)) 
+				 * windowlength) >> 3;
 	setupCoefficients();
 	setupWindow();
 }
@@ -27,6 +30,10 @@ SonarController::SonarController(int numSensors) {
 SonarController::~SonarController() {
 	delete [] coefreal;
 	delete [] coefimag;
+	delete [] sumreal;
+	delete [] sumimag;
+	delete [] mag;
+	delete [] insidePulse;
 	for (int i = 0 ; i < numSensors ; i ++) {
 		delete [] windowreal[i];
 		delete [] windowimag[i];
@@ -52,6 +59,7 @@ void SonarController::setupWindow() {
 	sumreal = new adcmath_t[numSensors];
 	sumimag = new adcmath_t[numSensors];
 	mag = new adcmath_t[numSensors];
+	insidePulse = new bool[numSensors];
 	for (int i = 0 ; i < numSensors ; i ++) {
 		buffer[i] = new adcdata_t[bufferlength];
 		windowreal[i] = new adcmath_t[windowlength];
@@ -61,12 +69,14 @@ void SonarController::setupWindow() {
 }
 
 void SonarController::purge() {
+	memset(sumreal, 0, sizeof(*sumreal) * numSensors);
+	memset(sumimag, 0, sizeof(*sumimag) * numSensors);
+	memset(mag, 0, sizeof(*mag) * numSensors);
+	memset(insidePulse, 0, sizeof(*insidePulse) * numSensors);
 	for (int i = 0 ; i < numSensors ; i ++) {
-		for (int j = 0 ; j < windowlength ; j ++)
-			windowreal[i][j] = windowimag[i][j] = 0;
-		for (int j = 0 ; j < bufferlength ; j ++)
-			buffer[i][j] = 0;
-		sumreal[i] = sumimag[i] = mag[i] = 0;
+		memset(windowreal[i], 0, sizeof(**windowreal) * windowlength);
+		memset(windowimag[i], 0, sizeof(**windowimag) * windowlength);
+		memset(buffer[i], 0, sizeof(**buffer) * bufferlength);
 	}
 	curidx = bufidx = 0;
 }
@@ -83,6 +93,15 @@ void SonarController::receiveSample(adcdata_t *sample) {
 		sumimag[i] += windowimag[i][curidx] - windowimag[i][firstidx];
 		mag[i] = abs(sumreal[i]) + abs(sumimag[i]);
 		buffer[i][bufidx] = sample[i];
+		if (insidePulse[i]) {
+			if (buffer[i][bufidx] < threshold) {
+				insidePulse[i] = false;
+			}
+		} else {
+			if (buffer[i][bufidx] > threshold) {
+				insidePulse[i] = true;
+			}
+		}
 	}
 }
 

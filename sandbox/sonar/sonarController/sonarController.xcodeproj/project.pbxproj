@@ -6,11 +6,51 @@
 	objectVersion = 42;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		A4BB04770CFDC9900008AA74 /* Build All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = A4BB047E0CFDC9CB0008AA74 /* Build configuration list for PBXAggregateTarget "Build All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				A4BB04790CFDC99A0008AA74 /* PBXTargetDependency */,
+				A4BB047B0CFDC99F0008AA74 /* PBXTargetDependency */,
+			);
+			name = "Build All";
+			productName = Untitled;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		5F7D438E0CFCF4EE00C27E9B /* adc.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F7D438D0CFCF4EE00C27E9B /* adc.dat */; };
 		8DD76F650486A84900D96B5E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
+		A4BB03E60CFDC4A40008AA74 /* SonarController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BD37890CFA52DD00A10962 /* SonarController.cpp */; };
+		A4BB03E70CFDC4A40008AA74 /* SonarSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */; };
+		A4BB03E80CFDC4A40008AA74 /* SonarChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */; };
+		A4BB03E90CFDC4A40008AA74 /* crosscorrelation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BB03DD0CFDC4570008AA74 /* crosscorrelation.cpp */; };
+		A4BB03EC0CFDC4A40008AA74 /* adc.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F7D438D0CFCF4EE00C27E9B /* adc.dat */; };
+		A4BB04B80CFDCCF10008AA74 /* Sonar.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = A4BB04B70CFDCCF10008AA74 /* Sonar.h */; };
 		A4BD378B0CFA52DD00A10962 /* SonarController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BD37890CFA52DD00A10962 /* SonarController.cpp */; };
+		A4D5AE5D0CFD2699006BF690 /* SonarSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */; };
+		A4D5AE780CFD2FB3006BF690 /* SonarChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A4BB04780CFDC99A0008AA74 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DD76F620486A84900D96B5E /* sonarController */;
+			remoteInfo = sonarController;
+		};
+		A4BB047A0CFDC99F0008AA74 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A4BB03E30CFDC4A40008AA74 /* crosscorrelation */;
+			remoteInfo = crosscorrelation;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		8DD76F690486A84900D96B5E /* CopyFiles */ = {
@@ -20,6 +60,17 @@
 			dstSubfolderSpec = 16;
 			files = (
 				5F7D438E0CFCF4EE00C27E9B /* adc.dat in CopyFiles */,
+				A4BB04B80CFDCCF10008AA74 /* Sonar.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4BB03EB0CFDC4A40008AA74 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+				A4BB03EC0CFDC4A40008AA74 /* adc.dat in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -29,12 +80,26 @@
 		08FB7796FE84155DC02AAC07 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		5F7D438D0CFCF4EE00C27E9B /* adc.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = adc.dat; sourceTree = "<group>"; };
 		8DD76F6C0486A84900D96B5E /* sonarController */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sonarController; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4BB03DD0CFDC4570008AA74 /* crosscorrelation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crosscorrelation.cpp; sourceTree = "<group>"; };
+		A4BB03F20CFDC4A40008AA74 /* crosscorrelation */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = crosscorrelation; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4BB04B70CFDCCF10008AA74 /* Sonar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sonar.h; sourceTree = "<group>"; };
 		A4BD37880CFA52DD00A10962 /* SonarController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonarController.h; sourceTree = "<group>"; };
 		A4BD37890CFA52DD00A10962 /* SonarController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SonarController.cpp; sourceTree = "<group>"; };
+		A4D5AE5A0CFD2699006BF690 /* SonarSequencer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonarSequencer.h; sourceTree = "<group>"; };
+		A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SonarSequencer.cpp; sourceTree = "<group>"; };
+		A4D5AE750CFD2FB3006BF690 /* SonarChunk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonarChunk.h; sourceTree = "<group>"; };
+		A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SonarChunk.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		8DD76F660486A84900D96B5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4BB03EA0CFDC4A40008AA74 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -57,9 +122,15 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				A4D5AE750CFD2FB3006BF690 /* SonarChunk.h */,
+				A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */,
+				A4D5AE5A0CFD2699006BF690 /* SonarSequencer.h */,
+				A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */,
 				A4BD37880CFA52DD00A10962 /* SonarController.h */,
 				A4BD37890CFA52DD00A10962 /* SonarController.cpp */,
 				08FB7796FE84155DC02AAC07 /* main.cpp */,
+				A4BB03DD0CFDC4570008AA74 /* crosscorrelation.cpp */,
+				A4BB04B70CFDCCF10008AA74 /* Sonar.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -69,6 +140,7 @@
 			children = (
 				5F7D438D0CFCF4EE00C27E9B /* adc.dat */,
 				8DD76F6C0486A84900D96B5E /* sonarController */,
+				A4BB03F20CFDC4A40008AA74 /* crosscorrelation */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -101,6 +173,24 @@
 			productReference = 8DD76F6C0486A84900D96B5E /* sonarController */;
 			productType = "com.apple.product-type.tool";
 		};
+		A4BB03E30CFDC4A40008AA74 /* crosscorrelation */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4BB03EF0CFDC4A40008AA74 /* Build configuration list for PBXNativeTarget "crosscorrelation" */;
+			buildPhases = (
+				A4BB03E40CFDC4A40008AA74 /* Sources */,
+				A4BB03EA0CFDC4A40008AA74 /* Frameworks */,
+				A4BB03EB0CFDC4A40008AA74 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = crosscorrelation;
+			productInstallPath = "$(HOME)/bin";
+			productName = sonarController;
+			productReference = A4BB03F20CFDC4A40008AA74 /* crosscorrelation */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -111,7 +201,9 @@
 			mainGroup = 08FB7794FE84155DC02AAC07 /* sonarController */;
 			projectDirPath = "";
 			targets = (
+				A4BB04770CFDC9900008AA74 /* Build All */,
 				8DD76F620486A84900D96B5E /* sonarController */,
+				A4BB03E30CFDC4A40008AA74 /* crosscorrelation */,
 			);
 		};
 /* End PBXProject section */
@@ -123,10 +215,36 @@
 			files = (
 				8DD76F650486A84900D96B5E /* main.cpp in Sources */,
 				A4BD378B0CFA52DD00A10962 /* SonarController.cpp in Sources */,
+				A4D5AE5D0CFD2699006BF690 /* SonarSequencer.cpp in Sources */,
+				A4D5AE780CFD2FB3006BF690 /* SonarChunk.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4BB03E40CFDC4A40008AA74 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4BB03E60CFDC4A40008AA74 /* SonarController.cpp in Sources */,
+				A4BB03E70CFDC4A40008AA74 /* SonarSequencer.cpp in Sources */,
+				A4BB03E80CFDC4A40008AA74 /* SonarChunk.cpp in Sources */,
+				A4BB03E90CFDC4A40008AA74 /* crosscorrelation.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A4BB04790CFDC99A0008AA74 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8DD76F620486A84900D96B5E /* sonarController */;
+			targetProxy = A4BB04780CFDC99A0008AA74 /* PBXContainerItemProxy */;
+		};
+		A4BB047B0CFDC99F0008AA74 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A4BB03E30CFDC4A40008AA74 /* crosscorrelation */;
+			targetProxy = A4BB047A0CFDC99F0008AA74 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1DEB923208733DC60010E9CD /* Debug */ = {
@@ -177,6 +295,56 @@
 			};
 			name = Release;
 		};
+		A4BB03F00CFDC4A40008AA74 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = "$(HOME)/bin";
+				PRODUCT_NAME = crosscorrelation;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A4BB03F10CFDC4A40008AA74 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = "$(HOME)/bin";
+				PRODUCT_NAME = crosscorrelation;
+			};
+			name = Release;
+		};
+		A4BB047F0CFDC9CB0008AA74 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = Untitled;
+			};
+			name = Debug;
+		};
+		A4BB04800CFDC9CB0008AA74 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				PRODUCT_NAME = Untitled;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -194,6 +362,24 @@
 			buildConfigurations = (
 				1DEB923608733DC60010E9CD /* Debug */,
 				1DEB923708733DC60010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4BB03EF0CFDC4A40008AA74 /* Build configuration list for PBXNativeTarget "crosscorrelation" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4BB03F00CFDC4A40008AA74 /* Debug */,
+				A4BB03F10CFDC4A40008AA74 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4BB047E0CFDC9CB0008AA74 /* Build configuration list for PBXAggregateTarget "Build All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4BB047F0CFDC9CB0008AA74 /* Debug */,
+				A4BB04800CFDC9CB0008AA74 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

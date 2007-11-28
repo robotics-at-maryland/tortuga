@@ -2,8 +2,8 @@
  *  SonarController.h
  *  sonarController
  *
- *  Created by Lady 3Jane Marie-France Tessier-Ashpool on 11/25/07.
- *  Copyright 2007 __MyCompanyName__. All rights reserved.
+ *  Created by Leo Singer on 11/25/07.
+ *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
  */
 
@@ -12,11 +12,8 @@
 
 #include <stdint.h>
 
-typedef int8_t adcdata_t;
-typedef int32_t adcmath_t;
-
-#define BITS_ADCCOEFF 8
-#define PINGDURATION 1.3e-3
+#include "Sonar.h"
+#include "SonarSequencer.h"
 
 class SonarController {
 public:
@@ -24,6 +21,7 @@ public:
 	~SonarController();
 	void receiveSample(adcdata_t*);
 	adcmath_t getMag(int channel) const;
+	SonarSequencer sc;
 private:
 	void setupCoefficients();
 	void setupWindow();
@@ -32,6 +30,9 @@ private:
 	adcmath_t **windowreal, **windowimag;
 	adcmath_t *sumreal, *sumimag, *mag;
 	adcdata_t **buffer;
+	adcmath_t threshold;
+	bool *insidePulse;
+	int *riseEdgeIndices;
 	int curidx;
 	int bufidx;
 	int numSensors;
