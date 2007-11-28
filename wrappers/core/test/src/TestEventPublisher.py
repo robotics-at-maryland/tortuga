@@ -7,6 +7,11 @@ import sys
 # Project Imports
 import ext.core as core
 
+class PythonEvent(core.Event):
+    def __init__(self):
+        core.Event.__init__(self)
+        self.someValue = 10
+
 class Reciever(object):
     def __init__(self):
         self.etype = None
@@ -50,6 +55,15 @@ class TestEventPublisher(unittest.TestCase):
 
         # Run a second event to make sure the events aren't cross fed
 #        self.epub.publish("AnotherEvent", self, bob = "John")
+    def testPythonEvent(self):
+        reciever = Reciever()
+        self.epub.subscribe("TestEvent", reciever)
+        pyEvent = PythonEvent()
+        self.epub.publish("TestEvent", pyEvent)
+        self.assert_(reciever.called)
+        self.assertEquals(1, reciever.calls)
+        self.assertEquals("TestEvent", reciever.etype)
+        self.assertEquals(10,reciever.args.someValue)
 
     def testMultiple(self):       
 #        self.senders = set()
@@ -99,3 +113,5 @@ class TestEventPublisher(unittest.TestCase):
 #        self.assertEquals("TestEvent", recv.eventType)
 #        self.assertEquals(10, recv.args.a)
 #        self.assertEquals(self, recv.sender)
+if __name__ == '__main__':
+    unittest.main()
