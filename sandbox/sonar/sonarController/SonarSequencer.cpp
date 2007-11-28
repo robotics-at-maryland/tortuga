@@ -28,4 +28,5 @@ SonarChunk *SonarSequencer::newChunk(int channel,adcsampleindex_t sampleIndex) {
 
 bool addSample(int channel, adcdata_t datum, adcmath_t fourieramp) {
 	//	insert code here
+    return true;
 }
