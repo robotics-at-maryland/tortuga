@@ -5,6 +5,8 @@
  *  Created by Leo Singer on 11/28/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
+ *  Common typedefs and constants
+ *
  */
 
 #ifndef SONAR_H

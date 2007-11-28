@@ -5,6 +5,8 @@
  *  Created by Leo Singer on 11/27/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
+ *  Store, catalog, and analyze chunks of acoustic data
+ *
  */
 
 #ifndef SONARSEQUENCER_H

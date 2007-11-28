@@ -5,6 +5,9 @@
  *  Created by Leo Singer on 11/28/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
+ *  Time-stamped container for ping samples.
+ *  Also includes cross-correlation algorithm.
+ *
  */
 
 #ifndef SONARCHUNK_H

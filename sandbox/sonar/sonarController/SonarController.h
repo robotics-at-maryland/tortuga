@@ -5,6 +5,9 @@
  *  Created by Leo Singer on 11/25/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
+ *  Acquire samples from ADCs, compute a single-band, sliding DFT, and 
+ *  detect edges.
+ *
  */
 
 #ifndef SONARCONTROLLER_H
