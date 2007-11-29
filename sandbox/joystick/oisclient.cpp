@@ -155,6 +155,8 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 /* Don't send same speed twice */
 int lastAxisSpeed=0;
 
+
+#ifndef SAITEK
 void processAxis(int fd, int axis, int val)
 {
     switch(axis)
@@ -172,8 +174,37 @@ void processAxis(int fd, int axis, int val)
         }
 
     };
-
 }
+#else
+
+void processAxis(int fd, int axis, int val)
+{
+    switch(axis)
+    {
+        case AXIS_SPEED:
+        {
+
+			val += 6811;	   
+// 	    	printf("%d\n", val);
+
+			if(val < 0)	/* Forward, range up to 15677 */
+            	val = SPEED_RANGE * val / -14000;
+			else
+				val = SPEED_RANGE * val / -15000;
+         
+
+
+			if(val != lastAxisSpeed)
+			{
+				printf("New speed: %d\n", val);
+                lastAxisSpeed = val;
+                sendCmd(fd, CMD_SETSPEED, val);
+            }
+            break;
+        }
+    };
+}
+#endif
 
 
 void processButtonPress(int fd, int btn)
@@ -338,6 +369,8 @@ int main(int argc, char ** argv)
     their_addr.sin_port = htons(PORT);  /* short, network byte order */
     their_addr.sin_addr = *((struct in_addr *)he->h_addr);
 
+
+    printf("Connecting...\n");
 
     if (connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) < 0)
     {
@@ -512,7 +545,7 @@ void doStartup()
 
         if (numSticks == 0)
             std::cout << "Warning" << std::endl;
-        
+
 	for( int i = 0; i < numSticks; ++i )
 	{
 		g_joys[i] = (JoyStick*)g_InputManager->createInputObject( OISJoyStick, true );

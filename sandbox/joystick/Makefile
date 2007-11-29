@@ -1,5 +1,5 @@
 OIS_ROOT=/usr
-CFLAGS=
+CFLAGS=-DSAITEK
 
 all: oisserver oisclient
 

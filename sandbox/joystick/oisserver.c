@@ -173,6 +173,9 @@ main()
           return ret;
     }
 
+
+    printf("Listening...\n");
+
     ret = listen(sockfd, BACKLOG);
     if (ret < 0)
     {
