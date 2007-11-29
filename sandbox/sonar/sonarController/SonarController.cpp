@@ -27,7 +27,7 @@ SonarController::SonarController(int ns) : oldChunks()
 	windowlength = nearestperiod * numPeriods;
 	threshold = ((1 << (BITS_ADCCOEFF + 8 * sizeof(adcdata_t) - 2)) 
 				 * windowlength) >> 3;
-	maxSamplesTDOA = 1.25 * MAX_TDOA * samprate;
+	maxSamplesTDOA = 1.25 * MAX_TDOA * samprate + PINGDURATION * samprate;
 	setupCoefficients();
 	setupWindow();
 	sampleCount = indexOfLastPing = 0;
@@ -213,7 +213,10 @@ void SonarController::captureSample(int channel)
 {
 	assert(getChannelState(channel) == SONAR_CHANNEL_CAPTURING);
 	if (!currentChunks[channel]->append(sample[channel]))
+	{
+		assert(printf("Channel %d full\n", channel) || true);
 		stopCapture(channel);
+	}
 }
 
 

@@ -74,16 +74,16 @@ adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a, const SonarChunk
 {
 	adcmath_t max = 0, accum = 0;
 	int maxindex = 0;
-	for (int i = 0 ; i < a.size() ; i ++)
+	for (int k = -b.size() ; k < a.size() ; k ++)
 	{
 		accum = 0;
-		for (int j = i ; j < std::min(a.size(), i + b.size()) ; j ++)
-			accum += (adcmath_t) a[j] * b[j - i];
+		for (int i = std::max(0, std::min(k, a.size())) ; i < std::min(a.size(), k + b.size()) ; i ++)
+			accum += a[i] + b[i + k];
 		if (accum > max)
 		{
 			max = accum;
-			maxindex = i;
+			maxindex = k;
 		}
-	}
-	return maxindex + b.startIndex - a.startIndex;
+	}	
+	return maxindex - a.startIndex + b.startIndex;
 }
