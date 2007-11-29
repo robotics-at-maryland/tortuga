@@ -26,7 +26,7 @@ SonarController::SonarController(int ns) : oldChunks()
 	numPeriods = 6;
 	windowlength = nearestperiod * numPeriods;
 	threshold = ((1 << (BITS_ADCCOEFF + 8 * sizeof(adcdata_t) - 2)) 
-				 * windowlength) >> 3;
+				 * windowlength) >> 5;
 	maxSamplesTDOA = 1.25 * MAX_TDOA * samprate + PINGDURATION * samprate;
 	setupCoefficients();
 	setupWindow();
@@ -191,7 +191,7 @@ bool SonarController::exceedsThreshold(int channel) const
 void SonarController::startCapture(int channel)
 {
 	assert(getChannelState(channel) == SONAR_CHANNEL_LISTENING);
-	assert(printf("Starting capture on channel %d\n", channel) || true);
+	assert(printf("Starting capture on channel %d at sample %d\n", channel, sampleCount) || true);
 	currentChunks[channel] = new SonarChunk(sampleCount);
 	sonarchannelstate[channel] = SONAR_CHANNEL_CAPTURING;
 	indexOfLastPing = sampleCount;
@@ -202,7 +202,7 @@ void SonarController::stopCapture(int channel)
 {
 	if (getChannelState(channel) == SONAR_CHANNEL_CAPTURING)
 	{
-		assert(printf("Stopping capture on channel %d\n", channel) || true);
+		assert(printf("Stopping capture on channel %d with %d samples\n", channel, currentChunks[channel]->size()) || true);
 		oldChunks.push_back(currentChunks[channel]);
 		sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
 	}
