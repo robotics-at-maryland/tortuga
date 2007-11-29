@@ -75,9 +75,11 @@ private:
 	int windowlength, nearestperiod;
 	int samprate;
 	int targetfreq;
+	adcsampleindex_t maxSamplesTDOA;
 	adcsampleindex_t sampleCount;
 	sonarstate_t sonarstate;
 	sonarchannelstate_t  *sonarchannelstate;
+	adcsampleindex_t indexOfLastPing;
 	
 };
 

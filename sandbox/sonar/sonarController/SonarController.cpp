@@ -27,9 +27,10 @@ SonarController::SonarController(int ns)
 	windowlength = nearestperiod * numPeriods;
 	threshold = ((1 << (BITS_ADCCOEFF + 8 * sizeof(adcdata_t) - 2)) 
 				 * windowlength) >> 3;
+	maxSamplesTDOA = 1.25 * MAX_TDOA * samprate;
 	setupCoefficients();
 	setupWindow();
-	sampleCount = 0;
+	sampleCount = indexOfLastPing = 0;
 	sonarchannelstate = new sonarchannelstate_t[numSensors];
 	for (int i = 0 ; i < numSensors ; i ++)
 		sonarchannelstate[i] = SONAR_CHANNEL_LISTENING;
@@ -86,6 +87,7 @@ void SonarController::setupWindow() {
 	purge();
 }
 
+
 void SonarController::purge()
 {
 	memset(sumreal, 0, sizeof(*sumreal) * numSensors);
@@ -100,49 +102,45 @@ void SonarController::purge()
 	curidx = 0;
 }
 
+
 void SonarController::receiveSample(adcdata_t *newdata)
 {
 	sampleCount ++;
 	if (getState() == SONAR_LISTENING)
 	{
-		if (listenTimeIsUp())
+		memcpy(sample, newdata, sizeof(*sample) *  numSensors);
+		int awakeChannelCount = 0, captureChannelCount = 0;
+		updateSlidingDFT();
+		for (int channel = 0 ; channel < numSensors ; channel ++)
+		{
+			switch (getChannelState(channel))
+			{
+				case SONAR_CHANNEL_LISTENING:
+					if (exceedsThreshold(channel))
+					{
+						startCapture(channel);
+						captureSample(channel);
+						captureChannelCount ++;
+					}
+					awakeChannelCount ++;
+					break;
+				case SONAR_CHANNEL_CAPTURING:
+					if (exceedsThreshold(channel))
+					{
+						captureSample(channel);
+						awakeChannelCount ++;
+						captureChannelCount ++;
+					}
+					else
+					{
+						stopCapture(channel);
+					}
+					break;
+			}
+		}
+		if (awakeChannelCount == 0 || (captureChannelCount == 0 && listenTimeIsUp()))
 		{
 			goToSleep();
-		}
-		else
-		{
-			memcpy(sample, newdata, sizeof(*sample) *  numSensors);
-			int awakeChannelCount = 0;
-			updateSlidingDFT();
-			for (int channel = 0 ; channel < numSensors ; channel ++)
-			{
-				switch (getChannelState(channel))
-				{
-					case SONAR_CHANNEL_LISTENING:
-						if (exceedsThreshold(channel))
-						{
-							startCapture(channel);
-							captureSample(channel);
-						}
-						awakeChannelCount ++;
-						break;
-					case SONAR_CHANNEL_CAPTURING:
-						if (exceedsThreshold(channel))
-						{
-							captureSample(channel);
-							awakeChannelCount ++;
-						}
-						else
-						{
-							stopCapture(channel);
-						}
-						break;
-				}
-			}
-			if (awakeChannelCount == 0)
-			{
-				goToSleep();
-			}
 		}
 	}
 }
@@ -166,8 +164,7 @@ void SonarController::updateSlidingDFT()
 
 bool SonarController::listenTimeIsUp() const
 {
-	//	TODO insert code here
-	return false;
+	return (sampleCount - indexOfLastPing) > maxSamplesTDOA;
 }
 
 
@@ -194,6 +191,7 @@ void SonarController::startCapture(int channel)
 	assert(printf("Starting capture on channel %d\n", channel) || true);
 	currentChunks[channel] = new SonarChunk(sampleCount);
 	sonarchannelstate[channel] = SONAR_CHANNEL_CAPTURING;
+	indexOfLastPing = sampleCount;
 }
 
 

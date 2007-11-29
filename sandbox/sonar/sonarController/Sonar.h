@@ -24,6 +24,9 @@ typedef uint32_t adcsampleindex_t;
 
 #define BITS_ADCCOEFF 8
 #define PINGDURATION 1.3e-3
+#define MAX_SENSOR_SEPARATION 0.5
+#define SPEED_OF_SOUND 1500
+#define MAX_TDOA (MAX_SENSOR_SEPARATION / SPEED_OF_SOUND)
 
 
 template<class T>
