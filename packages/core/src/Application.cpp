@@ -70,8 +70,9 @@ Application::~Application()
 {
     // Go through subsystems in the reverse order of contrustuction and shut
     // them down
-    BOOST_FOREACH(std::string name, m_order)
+    for (int i = (((int)m_order.size()) - 1); i >= 0; --i)
     {
+        std::string name(m_order[i]);
         SubsystemPtr subsystem = m_subsystems[name];
         subsystem->unbackground(true);
 
