@@ -53,6 +53,9 @@ public:
 
     /** Returns the list of sub nodes of the current config node */
     virtual NodeNameList subNodes() = 0;
+
+    /** The number of elements in an array or map node */
+    virtual size_t size() = 0;
     
     /** Map a key to a given value */
     virtual void set(std::string key, std::string str) = 0;

@@ -22,16 +22,22 @@ if platform.system() == 'Darwin':
     BOOST_PYTHON_LIB = 'boost_python-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-mt-1_34_1'
     BOOST_SIGNALS_LIB = 'boost_signals-mt-1_34_1'
+    BOOST_GRAPH_LIB = 'boost_graph-mt-1_34_1'
+    BOOST_FILESYSTEM_LIB = 'boost_filesystem-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-mt-1_34_1'
 elif platform.system() == 'Linux':
     BOOST_PYTHON_LIB = 'boost_python-gcc41-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
     BOOST_SIGNALS_LIB = 'boost_signals-gcc41-mt'
+    BOOST_GRAPH_LIB = 'boost_graph-gcc41-mt'
+    BOOST_FILESYSTEM_LIB = 'boost_filesystem-gcc41-mt'
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc41-mt'
 elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'
     BOOST_SIGNALS_LIB = 'boost_signals-vc80-mt-1_34_1'
+    BOOST_GRAPH_LIB = 'boost_graph-vc80-mt-1_34_1'
+    BOOST_FILESYSTEM_LIB = 'boost_filesystem-vc80-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-vc80-mt-1_34_1'
 else:
     print '"%s" is an unsupported platform' % platform.system()
@@ -88,7 +94,13 @@ def setup_posix_libs():
         'Boost.Thread' : BoostLibrary('Boost.Thread', (1,34,1), [],
                                       [BOOST_THREAD_LIB]),
 
-        'Boost.Signals' : BoostLibrary('Boost.Signal', (1,34,1), [],
+        'Boost.Signals' : BoostLibrary('Boost.Signals', (1,34,1), [],
+                                      [BOOST_SIGNALS_LIB]),
+        
+        'Boost.Graph' : BoostLibrary('Boost.Graph', (1,34,1), [],
+                                       [BOOST_GRAPH_LIB]),
+        
+        'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,34,1), [],
                                       [BOOST_SIGNALS_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
@@ -177,7 +189,8 @@ def _get_internal_lib(name):
             'core' : InternalLibrary('core', int_deps = [],
                                      ext_deps = ['Boost.Thread',
                                                  'Boost.Python',
-                                                 'Boost.Signals']),
+                                                 'Boost.Signals',
+                                                 'Boost.Filesystem']),
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
                                          ext_deps = ['USB']),

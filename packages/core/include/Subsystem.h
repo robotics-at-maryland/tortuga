@@ -12,7 +12,7 @@
 
 // STD Includes
 #include <string>
-#include <vector>
+#include <set>
 
 // Library Includes
 #include <boost/shared_ptr.hpp>
@@ -25,7 +25,8 @@ namespace core {
 
 class Subsystem;
 typedef boost::shared_ptr<Subsystem> SubsystemPtr;
-typedef std::vector<SubsystemPtr> SubsystemList;
+typedef std::set<SubsystemPtr> SubsystemList;
+typedef SubsystemList::iterator SubsystemListIter;
 
     
 /** Reprsents a major part of the overall system
@@ -44,9 +45,11 @@ public:
     static boost::shared_ptr<T> getSubsystemOfType(SubsystemList list) 
     {
         boost::shared_ptr<T> result = boost::shared_ptr<T>();
-    	for (size_t i = 0; i < list.size(); ++i) 
+        SubsystemListIter iter = list.begin();
+        SubsystemListIter end = list.end();
+    	for (; iter != end; ++iter) 
     	{
-                result = boost::dynamic_pointer_cast<T>(list[i]);
+                result = boost::dynamic_pointer_cast<T>(*iter);
     		if (result)
                     return result;
     	}

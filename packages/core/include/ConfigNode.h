@@ -59,8 +59,11 @@ public:
     /** Attempts conversion to int, if it fails return def */
     int asInt(const int def);
 
-    /** Returns the list of sub nodes of the current config node */
+    /** Returns the list of sub nodes of the current config node (must be map)*/
     NodeNameList subNodes();
+
+    /** If an array, returns the number of sub elements */
+    size_t size();
     
     /** Whether or not a subnode actually exists */
     bool exists(std::string name);

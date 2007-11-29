@@ -83,10 +83,16 @@ TEST_FIXTURE(TestPythonConfigNode, subNodes)
     CHECK(subnodes.end() != subnodes.find("C"));
 }
 
+TEST_FIXTURE(TestPythonConfigNode, size)
+{
+    CHECK_EQUAL(3u, configNode["Array"].size());
+    CHECK_EQUAL(3u, configNode["Map"].size());
+}
+    
 TEST_FIXTURE(TestPythonConfigNode, exists)
 {
-	CHECK(false == configNode.exists("Bob"));
-	CHECK(configNode.exists("Map"));
+    CHECK(false == configNode.exists("Bob"));
+    CHECK(configNode.exists("Map"));
 }
 
 TEST_FIXTURE(TestPythonConfigNode, index)

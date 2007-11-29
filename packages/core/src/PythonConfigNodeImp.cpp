@@ -258,7 +258,18 @@ NodeNameList PythonConfigNodeImp::subNodes()
     }
 }
 
+size_t PythonConfigNodeImp::size()
+{
+    try {
+        return py::len(m_pyobj);
+    } catch(py::error_already_set err ) {
+        printf("ConfigNode \"%s\"(asInt) Error:\n", m_debugPath.c_str());
+        PyErr_Print();
 
+        throw err;
+    }
+}
+    
 void PythonConfigNodeImp::set(std::string key, std::string str)
 {
     try {

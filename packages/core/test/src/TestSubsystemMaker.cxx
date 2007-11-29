@@ -22,7 +22,7 @@ TEST(SubsystemMaker)
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
             "{ 'name' : 'Mock', 'type' : 'MockSubsystem' }"));
     ram::core::SubsystemList deps;
-    deps.push_back(ram::core::SubsystemPtr());
+    deps.insert(ram::core::SubsystemPtr());
     
     ram::core::SubsystemPtr subsystem =
         ram::core::SubsystemMaker::newObject(std::make_pair(config, deps));

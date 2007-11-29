@@ -4,7 +4,6 @@
 Subsystems:
     # Object that creates the vehicle interface
     Vehicle:
-        name: Vehicle
         # The full name of the class to instantiate in this case its a wrapper
         # for the base C++ vehicle
         type: Vehicle
@@ -70,7 +69,6 @@ Subsystems:
                 localMagneticPitch: 60
 
     Controller:
-        name: Controller
         depends_on: ["Vehicle"]
         type: BWPDController
         update_interval: 10

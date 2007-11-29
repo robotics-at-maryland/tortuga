@@ -102,7 +102,7 @@ def generate(local_ns, global_ns):
         {
             ram::core::SubsystemPtr subsystem =
                 boost::python::extract<ram::core::SubsystemPtr>(subsystems[i]);
-            deps.push_back(subsystem);
+            deps.insert(subsystem);
         }
 
         // Create the ConfigNode
@@ -124,6 +124,8 @@ def generate(local_ns, global_ns):
     # Application
     Application = local_ns.class_('Application')
     Application.include()
+    # Don't have ofstream wrapped properly
+    Application.member_function('writeDependencyGraph').exclude()
     classes.append(Application)
     wrap.set_implicit_conversions([Application], False)
 

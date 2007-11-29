@@ -60,6 +60,11 @@ NodeNameList ConfigNode::subNodes()
     return m_impl->subNodes();
 }
 
+size_t ConfigNode::size()
+{
+    return m_impl->size();
+}
+
 bool ConfigNode::exists(std::string name)
 {
 	NodeNameList nodes = subNodes();

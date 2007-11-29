@@ -14,6 +14,12 @@
 // Project Includes
 #include "core/test/include/MockSubsystem.h"
 
+struct MockSub1 : public MockSubsystem 
+{
+	MockSub1(ram::core::ConfigNode config) : 
+		MockSubsystem(config, ram::core::SubsystemList()) {}
+};
+
 struct MockSub2 : public MockSubsystem 
 {
 	MockSub2(ram::core::ConfigNode config) : 
@@ -40,8 +46,7 @@ TEST(GetSubsystem)
 {
 	ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
 	            "{ 'name' : 'Mock1' }"));
-	MockSubsystem* mock1 =
-            new MockSubsystem(config, ram::core::SubsystemList());
+	MockSub1* mock1 = new MockSub1(config);
 	
 	config.set("name", "Mock2");
 	MockSub2* mock2 = new MockSub2(config);
@@ -65,7 +70,7 @@ TEST(GetSubsystem)
 	CHECK_EQUAL("Mock3", sub3->getName());
 
         ram::core::SubsystemPtr sub =
-            ram::core::Subsystem::getSubsystemOfType<MockSubsystem>(subsystemList);
+            ram::core::Subsystem::getSubsystemOfType<MockSub1>(subsystemList);
 	CHECK_EQUAL(mock1, sub.get());
 	CHECK_EQUAL("Mock1", sub->getName());
 }
