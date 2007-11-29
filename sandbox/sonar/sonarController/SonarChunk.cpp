@@ -85,5 +85,5 @@ adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a, const SonarChunk
 			maxindex = i;
 		}
 	}
-	return maxindex + a.startIndex;
+	return maxindex + b.startIndex - a.startIndex;
 }

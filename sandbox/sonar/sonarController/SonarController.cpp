@@ -17,7 +17,7 @@
 #include <stdio.h>
 
 
-SonarController::SonarController(int ns)
+SonarController::SonarController(int ns) : oldChunks()
 {
 	numSensors = ns;
 	samprate = 1000000;
@@ -176,6 +176,7 @@ void SonarController::goToSleep()
 		stopCapture(channel);
 	}
 	sonarstate = SONAR_SLEEPING;
+	analyzeChunks();
 }
 
 
@@ -211,6 +212,19 @@ void SonarController::captureSample(int channel)
 	assert(getChannelState(channel) == SONAR_CHANNEL_CAPTURING);
 	if (!currentChunks[channel]->append(sample[channel]))
 		stopCapture(channel);
+}
+
+
+void SonarController::analyzeChunks()
+{
+	for (int i = 0 ; i < oldChunks.size() - 1 ; i ++)
+	{
+		for (int j = i + 1 ; j < oldChunks.size() ; j ++)
+		{
+			adcsampleindex_t tomc = timeOfMaxCrossCorrelation(oldChunks[i] , oldChunks[j]);
+			printf("TDOA between chunks %d and %d of %d samples\n", i, j, tomc);
+		}
+	}
 }
 
 

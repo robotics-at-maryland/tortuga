@@ -16,7 +16,7 @@
 
 
 #include <stdint.h>
-#include <list>
+#include <vector>
 
 
 #include "Sonar.h"
@@ -65,7 +65,7 @@ private:
 	adcmath_t *sumreal, *sumimag, *mag;
 	adcdata_t *sample; 
 	SonarChunk **currentChunks;
-	std::list<SonarChunk> oldChunks;
+	std::vector<SonarChunk> oldChunks;
 	
 	adcmath_t threshold;
 	int curidx;
