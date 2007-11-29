@@ -65,7 +65,7 @@ private:
 	adcmath_t *sumreal, *sumimag, *mag;
 	adcdata_t *sample; 
 	SonarChunk **currentChunks;
-	std::vector<SonarChunk> oldChunks;
+	std::vector<SonarChunk*> oldChunks;
 	
 	adcmath_t threshold;
 	int curidx;

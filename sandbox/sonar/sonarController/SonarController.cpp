@@ -55,6 +55,8 @@ SonarController::~SonarController()
 	delete [] windowimag;
 	delete [] sonarchannelstate;
 	delete [] currentChunks;
+	for (int i = 0 ; i < oldChunks.size() ; i ++)
+		delete oldChunks[i];
 }
 
 
@@ -201,7 +203,7 @@ void SonarController::stopCapture(int channel)
 	if (getChannelState(channel) == SONAR_CHANNEL_CAPTURING)
 	{
 		assert(printf("Stopping capture on channel %d\n", channel) || true);
-		oldChunks.push_back(*currentChunks[channel]);
+		oldChunks.push_back(currentChunks[channel]);
 		sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
 	}
 }
@@ -221,7 +223,7 @@ void SonarController::analyzeChunks()
 	{
 		for (int j = i + 1 ; j < oldChunks.size() ; j ++)
 		{
-			adcsampleindex_t tomc = timeOfMaxCrossCorrelation(oldChunks[i] , oldChunks[j]);
+			adcsampleindex_t tomc = timeOfMaxCrossCorrelation(*oldChunks[i] , *oldChunks[j]);
 			printf("TDOA between chunks %d and %d of %d samples\n", i, j, tomc);
 		}
 	}
