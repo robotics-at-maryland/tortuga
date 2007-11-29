@@ -7,43 +7,52 @@
  *
  */
 
-#include <iostream>
+
 #include <stdio.h>
+
 
 #include "SonarController.h"
 
+
 #define NUM_SENSORS 5
 
-int main (int argc, char * const argv[]) {
+
+int main (int argc, char * const argv[])
+{
 	FILE *f;
 	SonarController sc(NUM_SENSORS);
 	adcdata_t sample[NUM_SENSORS];
 	int numsamples = 0;
-	int numstars = 0;
-	if (argc >= 2) {
+	if (argc >= 2)
+	{
 		f = fopen(argv[1], "rb");
-		if (f == NULL) {
-			std::cerr << "Could not open file." << std::endl;
+		if (f == NULL)
+		{
+			fprintf(stderr,"Could not open file.");
 			return -1;
 		}
-		while (!feof(f)) {
+		while (!feof(f))
+		{
 			fread(sample, sizeof(adcdata_t), NUM_SENSORS, f);
 			sc.receiveSample(sample);
+			/*
 			for (int sensor = 0 ; sensor < NUM_SENSORS ; sensor ++) {
-				numstars = sc.getMag(sensor) / (1500000 / 12);
+				int numstars = sc.getMag(sensor) / (1500000 / 12);
 				for (int i = 0 ; i < numstars ; i++)
-					std::cout << '#';
+					putchar('#');
 				for (int i = numstars - 1 ; i < 12 ; i ++)
-					std::cout << ' ';
+					putchar(' ');
 			}
-			std::cout << std::endl;
+			putchar('\n');
+			*/
 			numsamples ++;
 		}
 		fclose(f);
-		std::cout << "Read " << numsamples << " samples from " 
-			<< NUM_SENSORS << " sensors." << std::endl;
-	} else {
-		std::cerr << "No file specified." << std::endl;
+		printf("Read %d samples from %d sensors.\n", numsamples, NUM_SENSORS);
+	}
+	else
+	{
+		fprintf(stderr,"No file specified.\n");
 		return -1;
 	}
     return 0;

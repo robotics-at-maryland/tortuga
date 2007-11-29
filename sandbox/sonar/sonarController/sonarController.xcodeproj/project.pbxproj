@@ -24,7 +24,6 @@
 
 /* Begin PBXBuildFile section */
 		09545D2B0CFDFBB1002FD1D2 /* SonarChunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */; settings = {ATTRIBUTES = (Public, ); }; };
-		09545D2C0CFDFBB3002FD1D2 /* SonarSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */; settings = {ATTRIBUTES = (Public, ); }; };
 		09545D2D0CFDFBB5002FD1D2 /* SonarController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BD37890CFA52DD00A10962 /* SonarController.cpp */; settings = {ATTRIBUTES = (Public, ); }; };
 		09545D440CFDFC1F002FD1D2 /* libSonarCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */; };
 		09545D450CFDFC21002FD1D2 /* libSonarCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */; };
@@ -32,6 +31,7 @@
 		8DD76F650486A84900D96B5E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
 		A4BB03E90CFDC4A40008AA74 /* crosscorrelation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BB03DD0CFDC4570008AA74 /* crosscorrelation.cpp */; };
 		A4BB03EC0CFDC4A40008AA74 /* adc.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F7D438D0CFCF4EE00C27E9B /* adc.dat */; };
+		A4D9ED620CFE928D00F5548D /* Sonar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4D9ED610CFE928D00F5548D /* Sonar.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,7 +39,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 09545D290CFDFB9A002FD1D2 /* SonarCommon */;
+			remoteGlobalIDString = 09545D290CFDFB9A002FD1D2;
 			remoteInfo = SonarCommon;
 		};
 		A4BB04780CFDC99A0008AA74 /* PBXContainerItemProxy */ = {
@@ -91,10 +91,9 @@
 		A4BB04B70CFDCCF10008AA74 /* Sonar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sonar.h; sourceTree = "<group>"; };
 		A4BD37880CFA52DD00A10962 /* SonarController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonarController.h; sourceTree = "<group>"; };
 		A4BD37890CFA52DD00A10962 /* SonarController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SonarController.cpp; sourceTree = "<group>"; };
-		A4D5AE5A0CFD2699006BF690 /* SonarSequencer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonarSequencer.h; sourceTree = "<group>"; };
-		A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SonarSequencer.cpp; sourceTree = "<group>"; };
 		A4D5AE750CFD2FB3006BF690 /* SonarChunk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SonarChunk.h; sourceTree = "<group>"; };
 		A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SonarChunk.cpp; sourceTree = "<group>"; };
+		A4D9ED610CFE928D00F5548D /* Sonar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Sonar.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,10 +136,9 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				A4D9ED610CFE928D00F5548D /* Sonar.cpp */,
 				A4D5AE750CFD2FB3006BF690 /* SonarChunk.h */,
 				A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */,
-				A4D5AE5A0CFD2699006BF690 /* SonarSequencer.h */,
-				A4D5AE5B0CFD2699006BF690 /* SonarSequencer.cpp */,
 				A4BD37880CFA52DD00A10962 /* SonarController.h */,
 				A4BD37890CFA52DD00A10962 /* SonarController.cpp */,
 				08FB7796FE84155DC02AAC07 /* main.cpp */,
@@ -258,8 +256,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				09545D2D0CFDFBB5002FD1D2 /* SonarController.cpp in Sources */,
-				09545D2C0CFDFBB3002FD1D2 /* SonarSequencer.cpp in Sources */,
 				09545D2B0CFDFBB1002FD1D2 /* SonarChunk.cpp in Sources */,
+				A4D9ED620CFE928D00F5548D /* Sonar.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

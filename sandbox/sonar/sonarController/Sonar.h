@@ -9,16 +9,29 @@
  *
  */
 
+
 #ifndef SONAR_H
 #define SONAR_H
 
+
 #include "stdint.h"
+
 
 typedef int8_t adcdata_t;
 typedef int32_t adcmath_t;
 typedef uint32_t adcsampleindex_t;
 
+
 #define BITS_ADCCOEFF 8
 #define PINGDURATION 1.3e-3
+
+
+template<class T>
+int8_t compare(T a, T b);
+
+
+template<class T>
+int8_t sign(T);
+
 
 #endif
