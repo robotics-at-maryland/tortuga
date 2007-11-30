@@ -3,14 +3,12 @@ from Thruster import Thruster
 from math import cos, sin, radians
 import thread,time
 class ThrusterPanel(wx.Panel):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent,listIn, *args, **kwargs):
         """Create the Control Panel."""
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        self.thrusterList = []
-        for i in xrange(1,7):
-            self.thrusterList.append(Thruster(nameIn="Thruster "+str(i)))
+        self.thrusterList = listIn
         
         """ Implement Thrusters Dynamically """
 
@@ -42,11 +40,6 @@ class ThrusterPanel(wx.Panel):
             self.Refresh()
             time.sleep(1)  
     
-
-        
-    """For Test Purposes Only!"""
-
-
 
 class RotationPanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):

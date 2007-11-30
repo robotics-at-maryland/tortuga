@@ -6,8 +6,9 @@
 import wx
 import wx.aui
 import DisplayPanels
+from Thruster import Thruster
+import thread,time
 #----------------------------------------------------------------------
-
 
 class ParentFrame(wx.aui.AuiMDIParentFrame):
     def __init__(self, parent):
@@ -21,12 +22,12 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
         self.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME))
         self.CreateStatusBar()
         
-        thrustChild = ChildFrame(self, "Thrust")    
-        rotChild = ChildFrame(self, "Rotation")
+        self.thrustChild = ChildFrame(self, "Thrust")    
+        self.rotChild = ChildFrame(self, "Rotation")
 
-        self.Bind(wx.EVT_CLOSE, self.onCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.onCloseWindow)        
 
-
+    
     def MakeMenuBar(self):
         mb = wx.MenuBar()
         menu = wx.Menu()
@@ -34,25 +35,27 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
         self.Bind(wx.EVT_MENU, self.OnOpenThrust, item)
         item = menu.Append(-1, "Rotation\tCtrl-R")
         self.Bind(wx.EVT_MENU, self.OnOpenRot, item)
-        item = menu.Append(-1, "Close parent")
+        item = menu.Append(-1, "Exit\tCtrl-Q")
         self.Bind(wx.EVT_MENU, self.OnDoClose, item)
         mb.Append(menu, "&File")
         return mb
     
     # --- Events ---
     def onCloseWindow(self, event):
-        #self._mgr.UnInit()        
-        # delete the frame
+        """ Close the AUI MDI window and the dummy window """
         self.Destroy()
+        self.GetParent().Destroy()
         
     def OnOpenThrust(self, evt):
-        thrustChild = ChildFrame(self, "Thrust")
-        thrustChild.Show()
-        
+        if self.thrustChild == None:
+            self.thrustChild = ChildFrame(self, "Thrust")
+        self.thrustChild.Show()
         
     def OnOpenRot(self, evt):
-        rotChild = ChildFrame(self, "Rotation")
-        rotChild.Show()
+        #rotChild = ChildFrame(self, "Rotation")
+        if self.rotChild == None:
+            self.rotChild = ChildFrame(self, "Rotation")
+        self.rotChild.Show()
 
     def OnDoClose(self, evt):
         self.Close()
@@ -68,22 +71,31 @@ class ChildFrame(wx.aui.AuiMDIChildFrame):
         item = menu.Append(-1, "Menu for " + name)
         mb.Append(menu, "&Child")
         self.SetMenuBar(mb)
+        self.name=name
+        self.parent = parent
         
         if name == "Rotation":
-            p = DisplayPanels.RotationPanel(self)
-            p.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
-            
+            self.panel = DisplayPanels.RotationPanel(self)
+            self.panel.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
         else:
-            p = DisplayPanels.ThrusterPanel(self)
-            p.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
-
+            thrusterList= []
+            for i in xrange(1,7):
+                thrusterList.append(Thruster(nameIn="Thruster "+str(i)))
+            self.panel = DisplayPanels.ThrusterPanel(self,thrusterList)
+            self.panel.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME))   
         
         sizer = wx.BoxSizer()
-        sizer.Add(p, 1, wx.EXPAND)
+        sizer.Add(self.panel, 1, wx.EXPAND)
         self.SetSizer(sizer)
         
         wx.CallAfter(self.Layout)
         
+    def __del__(self):
+        if self.name == "Thrust":
+            self.parent.thrustChild = None
+        else:
+            self.parent.rotChild = None
+    
         
 #----------------------------------------------------------------------
 """ Dummy window launch aui """
@@ -92,9 +104,6 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, wx.DefaultPosition)
         self.pf = ParentFrame(self)
         self.pf.Show()
-
-
-
         
 class MyApp(wx.App):
     def OnInit(self):

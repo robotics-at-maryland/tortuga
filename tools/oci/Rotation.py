@@ -27,17 +27,17 @@ class Rotation(wx.Panel):
         self.rotVal=val
         self.Refresh()
         
+    def Rotate(self,degrees=15):
+        self.rotVal+=degrees
+        self.Refresh()
+    
+    def OnEraseBackground(self, event):
+        pass
+    
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
         gc = wx.GraphicsContext.Create(dc)
         self.Draw(gc)
-        
-    def OnEraseBackground(self, event):
-        pass
-        
-    def Rotate(self,degrees=15):
-        self.rotVal+=degrees
-        self.Refresh()
         
     def Draw(self,gc):
         #TODO: change pen color to correspond to degrees rotated?
@@ -65,8 +65,8 @@ class Rotation(wx.Panel):
         yCenter = height / 4     
         
         """ Use the distance formula to get the length of the sides """
-        a = abs(sqrt( (-xCenter-xCenter) **2 + (-yCenter-yCenter)**2 ))
-        b = abs(sqrt( (xCenter-0)**2 + (-yCenter-yCenter)**2 ))
+        a = sqrt( (-xCenter-xCenter)**2 + (-yCenter-yCenter)**2 )
+        b = sqrt( (xCenter-0)**2 + (-yCenter-yCenter)**2 )
 
         """ Radius Calculation
         
