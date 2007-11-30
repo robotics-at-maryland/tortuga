@@ -1,4 +1,10 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Jon Speiser <jspeiser@umd.edu>
+# All rights reserved.
+#
+# Author: Jon Speiser <jspeiser@umd.edu>
 import wx
+
 class ThrusterBar(wx.PyControl):
     def __init__(self, parent, innerBorder=0, id=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.NO_BORDER, validator=wx.DefaultValidator,name="valbar"):
@@ -9,11 +15,11 @@ class ThrusterBar(wx.PyControl):
         """ The max/min values of the bar """
         self.maxValue = 100
         self.minValue = -100
-        
         self.innerBorder=innerBorder 
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+      
 
     def increment(self, step=1):
         self.setVal(self.barValue+step)
