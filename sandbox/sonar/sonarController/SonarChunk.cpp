@@ -18,9 +18,9 @@
 
 SonarChunk::SonarChunk(adcsampleindex_t si)
 {
+	purge();
 	startIndex = si;
 	sample = new adcdata_t[capacity];
-	purge();
 }
 
 SonarChunk::~SonarChunk()
@@ -67,13 +67,14 @@ void SonarChunk::purge()
 {
 	length = 0;
 	peak = 0;
+	startIndex = 0;
 }
 
 
-int timeOfMaxCrossCorrelation(const SonarChunk &a, const SonarChunk &b)
+adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a, const SonarChunk &b)
 {
 	long int max = 0, accum = 0;
-	int maxindex = 0;
+	adcsampleindex_t maxindex = 0;
 	for (int k = -b.size() ; k < a.size() ; k ++)
 	{
 		accum = 0;
@@ -85,5 +86,5 @@ int timeOfMaxCrossCorrelation(const SonarChunk &a, const SonarChunk &b)
 			maxindex = k;
 		}
 	}	
-	return maxindex - (int) a.startIndex + (int) b.startIndex;
+	return maxindex - a.startIndex + b.startIndex;
 }

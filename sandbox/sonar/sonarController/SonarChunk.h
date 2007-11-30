@@ -39,7 +39,7 @@ private:
 };
 
 
-int timeOfMaxCrossCorrelation(const SonarChunk &a, 
+adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a, 
 										   const SonarChunk &b);
 
 

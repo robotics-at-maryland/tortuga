@@ -19,7 +19,7 @@
 
 typedef int8_t adcdata_t;
 typedef int32_t adcmath_t;
-typedef uint32_t adcsampleindex_t;
+typedef int32_t adcsampleindex_t;
 
 
 #define BITS_ADCCOEFF 8
