@@ -8,6 +8,7 @@ function phaseExp(delayBetweenPlots,inverseNoiseLevel,loopLength);
 %   negative and positive Fourier components or using the atan2 function found
 %   in C's <math.h> and other languages.
 
+clf;
 number_of_samples=64;
 signal_frequency=30; %in kHz
 sample_rate=500; %in kHz
