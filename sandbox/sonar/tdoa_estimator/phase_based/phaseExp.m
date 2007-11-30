@@ -20,17 +20,17 @@ for loop=1:loopLength
 	phaseB(loop)=(180/pi)*atan(imag(ffty(desiredBin2))/real(ffty(desiredBin2)));
 	
 	%plot signal with FFT result on left plot
-	subplot(1,2,1); hold off; plot(k,5.*y,'.-'); hold on
-	plot(k,real(ffty),'or'); plot(k,imag(ffty),'.r')
+	subplot(1,2,1); hold off; plot(k,5.*y,'.-'); hold on;
+	plot(k,real(ffty),'or'); plot(k,imag(ffty),'.r');
 	axis([0 64 -35 35])
 	title('input signal in blue, FFT in red (circles:real dots:imag')
 
 	%plot phase over time on the right side plot
 	subplot(1,2,2); hold on;
 	plot(1:loop,phaseA,'b.'); 
-	plot(1:loop,phaseB,'r.')
-	plot(1:loop,phase1,'ko')
-	plot(1:loop,phase2,'go')
+	plot(1:loop,phaseB,'r.');
+	plot(1:loop,phase1,'ko');
+	plot(1:loop,phase2,'go');
 	plot(1:loop,(phase1-phase2)/2,'c^')
 	axis([1 loopLength -180 180])
 	title('different attempts to compute phase and plot in time')
