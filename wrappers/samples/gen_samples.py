@@ -44,9 +44,5 @@ def generate(local_ns, global_ns):
     wrap.add_needed_includes([CodeInject])
     wrap.set_implicit_conversions([CodeInject], False)
 
-    print 'Member Functions'
-    for func in CodeInject.member_functions():
-        print func
-
     return ['include/SharedPtrVector.h']
 

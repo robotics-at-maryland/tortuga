@@ -12,6 +12,7 @@
 #endif
  
 // STD Includes
+#include <iostream>
 #include <string>
 #include <cstdlib>
 
@@ -135,7 +136,7 @@ TEST_FIXTURE(TestPythonConfigNode, fromFile)
     
 int main()
 {
-    return UnitTest::RunAllTests();
+    return UnitTest::RunAllTests();;
 }
 
     

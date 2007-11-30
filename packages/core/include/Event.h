@@ -16,13 +16,14 @@
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
+// Project Includes
+#include "core/include/Forward.h"
+
 // Must Be Included last
 #include "core/include/Export.h"
 
 namespace ram {
 namespace core {
-
-class EventPublisher;
     
 struct RAM_EXPORT Event
 {
@@ -31,8 +32,6 @@ struct RAM_EXPORT Event
     EventType type;
     EventPublisher* sender;
 };
-
-typedef boost::shared_ptr<Event> EventPtr;
 
 /*namespace details {
 int instantiateEvent() {

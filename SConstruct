@@ -110,10 +110,16 @@ else:
 	# 4275 = needs to have dll interface
     # 4244 = conversion from one type to another
     # 4121 = alignment issue
+    # 4347 = odd template vs. normal function issue
+    # 4350 = behaviour change
     env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
                                 '/wd4512', '/wd4127', '/wd4640', '/wd4061', 
                                 '/wd4514', '/wd4100', '/wd4255', '/wd4686',
-								'/wd4251', '/wd4275', '/wd4244', '/wd4121'])
+								'/wd4251', '/wd4275', '/wd4244', '/wd4121',
+                                '/wd4347', '/wd4350', '/wd4928'])
+                                
+    # Make sure to embed our manifestes
+    
     
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)

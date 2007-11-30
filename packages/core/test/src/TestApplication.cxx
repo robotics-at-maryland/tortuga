@@ -7,8 +7,13 @@
  * File:  packages/core/test/src/TestApplication.cxx
  */
 
+#ifdef RAM_WINDOWS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+ 
 // STD Includes
 #include <sstream>
+#include <cstdlib>
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>

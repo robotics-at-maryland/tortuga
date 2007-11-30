@@ -17,10 +17,14 @@ import pygccxml
 import pyplusplus
 from pyplusplus import module_builder
 
+# Ensure proper python path
+if 0 == sys.path.count(os.environ['RAM_SVN_DIR']):
+    sys.path.insert(0, os.environ['RAM_SVN_DIR'])
+
 def main(argv = None):
     if argv is None:
         argv = sys.argv
-
+           
     parser = optparse.OptionParser()
     parser.add_option('-m', '--module',
                       help = 'Name of python module to produce')

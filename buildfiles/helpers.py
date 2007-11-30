@@ -99,7 +99,7 @@ def Program(env, *args, **kwargs):
     return env.Program(*args, **kwargs)
 
 def run_tests(env, output, inputs, message = None, deps = None):    
-    def run_tests(env, target, source):
+    def run_test_imp(env, target, source):
         """
         Runs both C++ tests (executables) and Python unittest.TestCase's located
         in the given modules
@@ -107,15 +107,21 @@ def run_tests(env, output, inputs, message = None, deps = None):
         @rtype : int
         @return: A 0 on success and 1 on failure
         """
-        # Split tests by type
+        
+        # Split tests by type 
         pytests = []
         cpptests = []
         for f in source:
             fpath = f.abspath
             if fpath.endswith('.py'):
                 pytests.append(fpath)
-            elif 0 == fpath.count('.'):
+            elif os.name == 'posix' and 0 == fpath.count('.'):
                 cpptests.append(fpath)
+            elif os.name != 'posix' and fpath.endswith('.exe'):
+                cpptests.append(fpath)
+            else:
+                pass
+                #raise Exception('Coult not determine type of test file: ' + fpath)
 
         # Run the C++ Testsls
         for cpptest in cpptests:
@@ -127,8 +133,8 @@ def run_tests(env, output, inputs, message = None, deps = None):
         if len(pytests) > 0:
             testerpath = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
                                       'pytester.py')
-            tests = ' '.join(pytests)
-            cmd_str = '%s %s %s' % (sys.executable, testerpath, tests)
+            tests = '"' + '" "'.join(pytests) + '"'
+            cmd_str = '%s "%s" %s' % (sys.executable, testerpath, tests)
             result = subprocess.call(cmd_str, shell = True)
             if result:
                 return 1 # Failure
@@ -139,14 +145,13 @@ def run_tests(env, output, inputs, message = None, deps = None):
         # Success
         return 0
 
-        #print 'START',f
     msg = 'Runnting Tests'
     if not message is None:
         msg = message
     if not deps is None:
         inputs.extend(deps)
     return env.Command(output, inputs,
-                       SCons.Action.Action(run_tests, msg))
+                       SCons.Action.Action(run_test_imp, msg))
 
 def Tests(env, _target, _source, run = True, **kwargs):
     # Add 'UnitTest++' to the list of ext_deps

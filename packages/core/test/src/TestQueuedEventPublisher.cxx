@@ -20,6 +20,7 @@
 
 // Project Includes
 #include "core/include/QueuedEventPublisher.h"
+#include "core/include/EventConnection.h"
 
 struct Reciever
 {
@@ -61,7 +62,7 @@ TEST_FIXTURE(QueuedEventPublisherFixture, QueuePublish)
         publisher.publish("Type", event);
     }
 
-    // Make sure the message has not arrived
+     // Make sure the message has not arrived
     CHECK_EQUAL(0, recv.calls);
 
     // Release the message

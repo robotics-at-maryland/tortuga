@@ -19,6 +19,7 @@
 
 // Project Includes
 #include "core/include/EventPublisher.h"
+#include "core/include/EventConnection.h"
 
 struct Reciever
 {

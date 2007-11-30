@@ -21,6 +21,9 @@
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNode.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
@@ -29,7 +32,7 @@ typedef NameSubsystemMap::iterator NameSubsystemMapIter;
     
 /** Handles orderly subsystem creation, and destruction
  */
-class Application
+class RAM_EXPORT Application
 {
 public:
     /** Starts up the application with the Subsystem definied in the given

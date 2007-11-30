@@ -10,17 +10,17 @@
 #ifndef RAM_CORE_QUEUEDEVENTPUBLISHER_H_11_24_2007
 #define RAM_CORE_QUEUEDEVENTPUBLISHER_H_11_24_2007
 
-// STD Includes
-#include <map>
-
 // Project Includes
 #include "core/include/EventPublisher.h"
-#include "core/include/ThreadedQueue.h"
+#include "core/include/Forward.h"
+
+// Must Be Included last
+#include "core/include/Export.h"
 
 namespace ram {
 namespace core {
 
-class QueuedEventPublisher : public EventPublisher
+class RAM_EXPORT QueuedEventPublisher : public EventPublisher // noncopyable
 {
 public:
     /** Create a QueuedEventPublisher connected to the given EventPublisher
@@ -45,7 +45,7 @@ public:
      *  @return         The connection object, needed for disconnection.
      */
     virtual EventConnectionPtr subscribe(Event::EventType type,
-                                         EventSlot handler);
+                                         boost::function<void (EventPtr)>  handler);
     
     /** Publish the event to the internal queue */
     virtual void publish(Event::EventType type, EventPtr event);
@@ -54,54 +54,14 @@ public:
         @return The number of events published
      */
     int publishEvents();
-
-
+    
     /** Waits for the next event, then publishs all queued Events
         @return The number of events published
     */
     int waitAndPublishEvents();
-protected:
-
     
 private:
-    typedef std::pair<int, EventConnectionPtr> EventRecord;
-    typedef std::map<Event::EventType, EventRecord> ConnectionsMap;
-    typedef ConnectionsMap::iterator ConnectionsMapIter;
-    
-    class Connection : public EventConnection
-    {
-    public:
-        virtual Event::EventType getType();
-        virtual void disconnect();
-        
-    private:
-        // So it can be constructed
-        friend class QueuedEventPublisher;
-        
-        Connection(EventConnectionPtr internal,
-                   QueuedEventPublisher* publisher);
-
-        EventConnectionPtr m_internal;
-        QueuedEventPublisher* m_publisher;
-    };
-    friend class Connection;
-
-    void unSubscribe(Event::EventType type);
-    
-    /** Places all recieved events on the internal queue */
-    void queueEvent(EventPtr event);
-
-    /** The source of events we are queueing */
-    EventPublisher* m_parent;
-
-    /** Thread safe queue for events */
-    ThreadedQueue<EventPtr> m_eventQueue;
-
-    /** Protects access to map of types->signals */
-    ReadWriteMutex m_connectionsMutex;
-    
-    /** Makes sure we only subscribe once for each event type */
-    ConnectionsMap m_connectionTypes;
+    QueuedEventPublisherBasePtr m_imp;
 };
 
 } // namespace core

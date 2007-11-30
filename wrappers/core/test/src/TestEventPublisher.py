@@ -46,15 +46,6 @@ class TestEventPublisher(unittest.TestCase):
         self.assertEquals(1, reciever.calls)
         self.assertEquals("TestEvent", reciever.etype)
 
-        # Send message to that function
-#        self.epub.publish("TestEvent", self, testArg = 5, other = "A");
-
-        # Make sure the event got through
-        #self.assertEquals(5, reciever.args.
-        #self.assertEquals("A", reciever.args.other)
-
-        # Run a second event to make sure the events aren't cross fed
-#        self.epub.publish("AnotherEvent", self, bob = "John")
     def testPythonEvent(self):
         reciever = Reciever()
         self.epub.subscribe("TestEvent", reciever)
@@ -66,19 +57,13 @@ class TestEventPublisher(unittest.TestCase):
         self.assertEquals(10,reciever.args.someValue)
 
     def testMultiple(self):       
-#        self.senders = set()
         self.etypes = set()
-#        self.args = set()
         self.aCalled = False
         self.bCalled = False
         
         def factory(signal):
             def recieve(event):
                 self.etypes.add(event.type)
-                #self.senders.add(event.sender)
-                #self.args.add(args_)
-                # Ensure that each makes a unique action, so we can be sure
-                # we have two distinct functions
                 setattr(self, signal, True)
             return recieve
             
@@ -87,9 +72,7 @@ class TestEventPublisher(unittest.TestCase):
         self.epub.publish("TestEvent", core.Event())
         self.epub.publish("AnotherEvent", core.Event())
 
-#        self.assertEquals(self.senders, set([self]))
         self.assertEquals(self.etypes, set(["TestEvent"]))
-#        self.assertEquals(self.args, set([event.EventArgs(test = 1984)]))
         self.assert_(self.aCalled)
         self.assert_(self.bCalled)
 

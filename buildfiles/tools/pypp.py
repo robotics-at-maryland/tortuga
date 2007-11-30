@@ -56,8 +56,9 @@ def build_module(env, target, source): #, actual_target = None):
         node.srcnode = hacked_srcnode
         return node
 
+    filelines = srclist.readlines()
     sources = [env.File(srclist_dir + '/' + f.strip())
-               for f in srclist.readlines()]
+               for f in filelines]
 
     # Copy in the extra sources into the generated directory
     for f in extra_sources:
@@ -78,16 +79,16 @@ def build_module(env, target, source): #, actual_target = None):
     
     suffix = '.pyd'
     if os.name == 'posix':
-        print 'TEST2'
         suffix = '.so'
     else:
-        print 'TEST'
-        print env['CCFLAGS']
         env.AppendUnique(CCFLAGS = ['/wd4244'])
-        print env['CCFLAGS']
     extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='',
                                       SHLIBSUFFIX = suffix)
 
+                                      
+    if os.name != 'posix':
+        env.AddPostAction(extension_mod, 
+        'mt.exe -nologo -manifest /outputresource:"$TARGET;#2" /manifest "${TARGET}.manifest"')
     # Run the tests
     if not tester is None:
         output = os.path.join(target_dir, target_base + 'Tests.success')
@@ -162,10 +163,10 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
     target_str = str(target[0]).replace("::","_")
 
     # Generate the command line call to our py++ script
-    slist = ' '.join([s.abspath for s in sources])
+    slist = '"' + '" "'.join([s.abspath for s in sources]) + '"'
     prog_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts', 'pypp.py')
     outfile_path = env.File(target_str + '_gen-sources.txt').abspath
-    cmd_str = '%s %s -t %s -m %s %s' % (sys.executable, prog_path,
+    cmd_str = '%s "%s" -t "%s" -m "%s" %s' % (sys.executable, prog_path,
                                         outfile_path, target_str, slist)
     commands = [cmd_str]
 

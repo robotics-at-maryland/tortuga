@@ -9,67 +9,34 @@
 
 // Project Includes
 #include "core/include/EventPublisher.h"
+#include "core/include/EventPublisherBase.h"
 
 namespace ram {
 namespace core {
 
-EventPublisher::Connection::Connection(Event::EventType type,
-                                       EventPublisher* publisher,
-                                       boost::signals::connection connection) :
-    m_type(type),
-    m_publisher(publisher),
-    m_connection(connection)
+EventPublisher::EventPublisher() :
+    m_imp(new EventPublisherBase())
 {
 }
 
-Event::EventType EventPublisher::Connection::getType()
+EventConnectionPtr EventPublisher::subscribe(
+    Event::EventType type,
+    boost::function<void (EventPtr)> handler)
 {
-    return m_type;
+    return m_imp->subscribe(type, handler);
 }
-    
-void EventPublisher::Connection::disconnect()
-{
-    m_publisher->unSubscribe(m_type, m_connection);
-}
-    
-EventConnectionPtr EventPublisher::subscribe(Event::EventType type,
-                                                     EventSlot handler)
-{
-    ReadWriteMutex::ScopedWriteLock lock(m_signalMapMutex);
-    return EventConnectionPtr(
-        new EventPublisher::Connection(type, this,
-                                       m_signals[type].connect(handler)));
-}
-    
+
 void EventPublisher::publish(Event::EventType type, EventPtr event)
 {
-    doPublish(type, this, event);
+    m_imp->publish(type, this, event);
 }
 
 void EventPublisher::doPublish(Event::EventType type, EventPublisher* sender,
                                EventPtr event)
 {
-    // Set event property
-    event->type = type;
-    event->sender = sender;
-
-    {
-        ReadWriteMutex::ScopedReadLock mapLock(m_signalMapMutex);
-        boost::mutex::scoped_lock lock(m_signalMutexes[type]);
-
-        // Call subscribers
-        m_signals[type](event);
-    }
+    m_imp->publish(type, sender, event);
 }
 
-void EventPublisher::unSubscribe(Event::EventType type,
-                                 boost::signals::connection connection)
-{
-    ReadWriteMutex::ScopedWriteLock mapLock(m_signalMapMutex);
-    boost::mutex::scoped_lock lock(m_signalMutexes[type]);
-    connection.disconnect();
-}
-    
 } // namespace core
 } // namespace ram
 

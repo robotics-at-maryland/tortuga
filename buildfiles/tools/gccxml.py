@@ -32,9 +32,10 @@ def generate(env):
     gccxml_dir = os.path.dirname(gccxml_path)
     extra = ''
     if os.name != 'posix':
-        extra = '--gccxml-config=' + os.path.abspath(os.path.join(gccxml_dir, 'gccxml_config'))
+        extra = '--gccxml-config "' + os.path.abspath(os.path.join(gccxml_dir, 'gccxml_config')) +'"'
+        extra += ' --gccxml-cxxflags " /DWIN32 /D_WINDOWS /W3 /Zm1000 /EHsc /GR /MT" '
     env['GCCXML_EXTRA_FLAGS'] = extra
-    env['GCCXML_EXTRA_FLAGS'] = ''
+    #env['GCCXML_EXTRA_FLAGS'] = ''
     
     # These variables hold the expanded form of the include and defines lists
     env['_XML_CPPINCFLAGS'] = '$( ${_concat(INCPREFIX, XMLCPPPATH, INCSUFFIX, __env__, RDirs)} $)'

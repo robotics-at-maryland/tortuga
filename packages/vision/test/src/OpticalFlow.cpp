@@ -35,7 +35,7 @@ inline static void allocateOnDemand( IplImage **img, CvSize size, int depth, int
 
 int main(void)
 {
-	bool CAMERA=true;
+	//bool CAMERA=true;
 
 	/* Create an object that decodes the input video stream. */
 //	CvCapture *capture = cvCaptureFromCAM( CV_CAP_ANY );

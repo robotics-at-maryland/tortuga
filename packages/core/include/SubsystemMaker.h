@@ -21,6 +21,11 @@
 // Must Be Included last
 #include "core/include/Export.h"
 
+// Need to disable this on windows, could cause hard to solve link errors
+#ifdef RAM_WINDOWS
+#pragma warning( disable : 4661 ) 
+#endif
+
 namespace ram {
 namespace core {
 
@@ -40,6 +45,15 @@ typedef ram::pattern::Maker<SubsystemPtr, // The type of object created by the m
               SubsystemKeyExtractor> // Gets the key from the paramters
 SubsystemMaker;
     
+// Needed to keep the linker/compiler happy
+#ifdef RAM_WINDOWS
+template class RAM_EXPORT ram::pattern::Maker<SubsystemPtr, 
+                                              SubsystemMakerParamType,  
+                                              std::string,        
+                                              SubsystemKeyExtractor>;
+#endif
+
+
 template<class SubsystemType>
 struct SubsystemMakerTemplate : public SubsystemMaker
 {
@@ -53,7 +67,7 @@ struct SubsystemMakerTemplate : public SubsystemMaker
     }
 };
 
-    
+
 // So GCCXML see's our typedef
 namespace details {
 inline int instantiate()
