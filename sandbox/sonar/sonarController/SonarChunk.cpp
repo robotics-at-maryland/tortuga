@@ -71,7 +71,7 @@ void SonarChunk::purge()
 }
 
 
-adcsampleindex_t timeOfMaxCrossCorrelation(const SonarChunk &a, const SonarChunk &b)
+adcsampleindex_t tdoa_xcorr(const SonarChunk &a, const SonarChunk &b)
 {
 	long int max = 0, accum = 0;
 	adcsampleindex_t maxindex = 0;

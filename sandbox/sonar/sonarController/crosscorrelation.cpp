@@ -5,7 +5,7 @@
  *  Created by Leo Singer on 11/28/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  Simple test program for timeOfMaxCrossCorrelation(a,b)
+ *  Simple test program for tdoa_xcorr(a,b)
  *
  */
 
@@ -43,8 +43,7 @@ int main (int argc, char * const argv[])
 		}
 		fclose(f);
 		printf("Read %d samples from %d sensors.\n", numsamples, NUM_SENSORS);
-		printf("Index of  maximum cross correlation: %d\n", 
-			   timeOfMaxCrossCorrelation(a,b));
+		printf("Index of  maximum cross correlation: %d\n", tdoa_xcorr(a,b));
 	}
 	else
 	{

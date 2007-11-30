@@ -226,7 +226,7 @@ void SonarController::analyzeChunks()
 	{
 		for (int j = i + 1 ; j < oldChunks.size() ; j ++)
 		{
-			adcsampleindex_t tomc = timeOfMaxCrossCorrelation(*oldChunks[i] , *oldChunks[j]);
+			adcsampleindex_t tomc = tdoa_xcorr(*oldChunks[i] , *oldChunks[j]);
 			printf("TDOA between chunks %d and %d of %d samples\n", i, j, tomc);
 		}
 	}
