@@ -10,6 +10,7 @@ class Thruster(vdev.IThruster,core.EventPublisher):
         self.name = nameIn
         self.stepVal = 0
         self.PYFORCEUPDATE = str(self.FORCE_UPDATE)
+        self.bar = None 
         
     def getName(self):
         return self.name
@@ -30,6 +31,16 @@ class Thruster(vdev.IThruster,core.EventPublisher):
         pyEvent.force = self.force
         self.publish(self.PYFORCEUPDATE, pyEvent)
         
+    def handlerForceUpdate(self, event):
+        self.etype = event.type
+        self.sender = event.sender
+        self.args = event
+        self.forceVal = event.force
+        self.called = True
+        tmp =int(self.forceVal*100)
+        self.bar.setVal(tmp)
+        #self.Refresh()
+"""       
 class Reciever(object):
     def __init__(self,panel):
         self.etype = None
@@ -39,14 +50,4 @@ class Reciever(object):
         self.called = False
         self.forceVal = 0
         self.panel=panel
-    
-    def __call__(self, event):
-        self.etype = event.type
-        self.sender = event.sender
-        self.args = event
-        self.calls += 1
-        self.forceVal = event.force
-        self.called = True
-        tmp =int(self.forceVal*100)
-        self.panel.setVals(tmp)
-        print "pong",tmp
+"""
