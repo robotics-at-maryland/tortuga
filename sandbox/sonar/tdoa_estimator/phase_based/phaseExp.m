@@ -2,7 +2,7 @@ function phaseExp(delayBetweenPlots,inverseNoiseLevel,loopLength);
 % PHASEXP A visualization of the phase properties of a monochromatic signal
 %   Illustrates the relationship between the positive and negative Fourier 
 %   components of a purely real, monochromatic signal rotated through a phase
-%   shift.  Demonstrates that atan(re(X_k)/im(X_k)) does not provide enough
+%   shift.  Demonstrates that atan(im(X_k)/re(X_k)) does not provide enough
 %   information to uniquely determine the phase angle of the original signal
 %   in the range -pi:pi.  Fixes include computing and comparing both the 
 %   negative and positive Fourier components or using the atan2 function found
