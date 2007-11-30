@@ -38,6 +38,7 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
         item = menu.Append(-1, "Exit\tCtrl-Q")
         self.Bind(wx.EVT_MENU, self.OnDoClose, item)
         mb.Append(menu, "&File")
+        
         return mb
     
     # --- Events ---
