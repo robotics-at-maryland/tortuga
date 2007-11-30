@@ -1,7 +1,7 @@
 import ext.core as core
 import ext.vehicle_device as vdev
 from math import sin, pi
-import thread,time
+
 class Thruster(vdev.IThruster,core.EventPublisher):
     def __init__(self,forceIn=0,nameIn="AftThruster"):
         vdev.IThruster.__init__(self)
@@ -40,14 +40,3 @@ class Thruster(vdev.IThruster,core.EventPublisher):
         tmp =int(self.forceVal*100)
         self.bar.setVal(tmp)
         #self.Refresh()
-"""       
-class Reciever(object):
-    def __init__(self,panel):
-        self.etype = None
-        self.sender = None
-        self.args = None
-        self.calls = 0
-        self.called = False
-        self.forceVal = 0
-        self.panel=panel
-"""
