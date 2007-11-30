@@ -148,18 +148,83 @@ void SonarController::receiveSample(adcdata_t *newdata)
 }
 
 
+/** Update the one selected Fourier amplitude using a sliding DFT
+ */
 void SonarController::updateSlidingDFT()
 {
+	/*	curidx represents the index into the circular buffers 
+	 *	windowreal[channel] and windowimag[channel] at which the just-received
+	 *	sample will be added to the DFT sum.
+	 */
+	
 	curidx = (curidx + 1) % windowlength;
+	
+	/*	coefidx is an index into the circular buffers coefreal (sampled cosine)
+	 *	and coefimag (sampled sine) that corresponds to curidx.  We apply the 
+	 *	modulus operation because the coefficient buffers may be the same size
+	 *	as or smaller than the window buffers, provided that the window length
+	 *	is an integer multiple of the coefficient buffer length.
+	 */
+	
 	int coefidx = curidx % nearestperiod;
+	
+	/*	firstidx is an index that points to the oldest element of windowreal and
+	 *	windowimag.
+	 */
+	
 	int firstidx = (curidx + 1) % windowlength;
-	for (int i = 0 ; i < numSensors ; i ++)
+	
+	for (int channel = 0 ; channel < numSensors ; channel ++)
 	{
-		windowreal[i][curidx] = coefreal[coefidx] * sample[i];
-		windowimag[i][curidx] = coefimag[coefidx] * sample[i];
-		sumreal[i] += windowreal[i][curidx] - windowreal[i][firstidx];
-		sumimag[i] += windowimag[i][curidx] - windowimag[i][firstidx];
-		mag[i] = abs(sumreal[i]) + abs(sumimag[i]);
+		
+		/*	For each sample we receive, we only need to compute one new term in
+		 *	the DFT sum.  These two lines together compute 
+		 *
+		 *		f(N-1) x cos(2 pi k (N - 1) / N) 
+		 *
+		 *	and
+		 *
+		 *		f(N-1) x sin(2 pi k (N - 1) / N)
+		 *
+		 *	which are, respectively, the real and imaginary parts of 
+		 *	
+		 *		f(N-1) x exp(2 pi i k (N - 1) / N)
+		 *	
+		 *	which is simply the last term of the sum for F(k).
+		 */
+		
+		windowreal[channel][curidx] = coefreal[coefidx] * sample[channel];
+		windowimag[channel][curidx] = coefimag[coefidx] * sample[channel];
+		
+		/*	The next two lines update the real and imaginary part of the complex
+		 *	output amplitude.
+		 *	
+		 *	We add window____[channel][curidx] to sum____[channel] because all 
+		 *	of the previous N-1 terms of F(k), numbered 0,1,...,N-3,N-2, were 
+		 *	calculated and summed during previous iterations of this function - 
+		 *	hence the name "sliding DFT".
+		 *	
+		 *	We subtract window____[channel][firstidx] because both windowreal[i]
+		 *	and windowimag[i] are circular buffers.  On the next call of this 
+		 *	function, window____[channel][firstidx] will be overwritten with 
+		 *	computations from the next sample.
+		 *	
+		 *	Technically, we should do whatever we want with the amplitude --
+		 *	finding its magnitude or its phase -- after adding 
+		 *	the curidx term but before subtracting the firstidx term, but that 
+		 *	would slightly complicate this function.
+		 */
+		
+		sumreal[i] += windowreal[channel][curidx] - windowreal[channel][firstidx];
+		sumimag[i] += windowimag[channel][curidx] - windowimag[channel][firstidx];
+		
+		/*	We compute the L1 norm (|a|+|b|) instead of the L2 norm 
+		 *	sqrt(a^2+b^2) in order to aovid integer overflow.  Since we are only
+		 *	using the magnitude for thresholding, this is an acceptable 
+		 *	approximation.
+		 */
+		
+		mag[i] = abs(sumreal[channel]) + abs(sumimag[channel]);
 	}
 }
 
