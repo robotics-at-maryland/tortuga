@@ -16,12 +16,15 @@
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
 class EventPublisher;
     
-struct Event
+struct RAM_EXPORT Event
 {
     typedef std::string EventType;
     

@@ -183,7 +183,12 @@ static MakerType::MakerMap* getRegistry();
 } // namespace ram
      *  @endcode
      */
-    static MakerMap* getRegistry();
+   // static MakerMap* getRegistry()
+static MakerMap* getRegistry()
+{
+    static MakerMap* reg = new MakerMap();
+    return reg;
+}
 
    
 public:

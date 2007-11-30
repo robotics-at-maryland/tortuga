@@ -134,10 +134,18 @@ def setup_windows_libs():
                                  ['boost/python.hpp'], [BOOST_PYTHON_LIB], 
                                  ext_deps = ['Python', 'Boost']),
                                       
-        'Boost.Thread' : Library('Boost.Python', '1.34.1',
+        'Boost.Thread' : Library('Boost.Thread', '1.34.1',
                                  ['boost/thread.hpp'], [BOOST_THREAD_LIB], 
                                  ext_deps = ['Boost']),
                                       
+		'Boost.Signals' : Library('Boost.Signals', '1.34.1',
+                                 [], [BOOST_SIGNALS_LIB], 
+                                 ext_deps = ['Boost']),
+                                 
+        'Boost.Filesystem' : Library('Boost.Filesystem', '1.34.1',
+                                 [], [BOOST_FILESYSTEM_LIB], 
+                                 ext_deps = ['Boost']),                         
+
         'Python' : Library('Python', '2.5', ['Python.h'],
                            'python25', CPPPATH = sysconfig.get_python_inc(),
                            LINKFLAGS = ['/LIBPATH:'+python_lib_path],

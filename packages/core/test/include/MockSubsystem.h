@@ -16,6 +16,9 @@
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNode.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 class MockSubsystem : public ram::core::Subsystem
 {
 public:

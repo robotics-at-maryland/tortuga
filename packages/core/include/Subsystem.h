@@ -20,6 +20,9 @@
 // Project Includes
 #include "core/include/IUpdatable.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
@@ -34,7 +37,7 @@ typedef SubsystemList::iterator SubsystemListIter;
     This is a class mainly a marker class, used to provide a uniform start up
     framework.
  */
-class Subsystem : public IUpdatable
+class RAM_EXPORT Subsystem : public IUpdatable
 {
 public:
     virtual ~Subsystem() {};

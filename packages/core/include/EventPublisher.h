@@ -18,13 +18,16 @@
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/Event.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
 typedef boost::signal<void (EventPtr)>  EventSignal;
 typedef EventSignal::slot_type EventSlot;
     
-class EventPublisher
+class RAM_EXPORT EventPublisher
 {
 public:
     void subscribe(Event::EventType type, EventSlot handler);

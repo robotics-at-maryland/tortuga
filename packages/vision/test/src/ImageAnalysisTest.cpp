@@ -21,7 +21,7 @@ char* makeOut(char* description, int size)
 	char* outStarter="out-";
 	char* outEnder=".jpg";
 	clear(outName,size);
-	snprintf(outName,size,"%s%s%s",outStarter,description,outEnder);
+	sprintf(outName,"%s%s%s",outStarter,description,outEnder);
 	return outName;
 }
 

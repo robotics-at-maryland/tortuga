@@ -2,27 +2,41 @@
 #include "highgui.h"
 #include <stdio.h>
 
+
 // A Simple Camera Capture Framework
 int main(int argc, char** argv) {
     CvCapture* capture = 0;
 	IplImage* image = 0;
+	IplImage* drawing = 0;
 	CvVideoWriter* writer = 0;
 
     if (2 != argc)
     {
         fprintf(stderr, "Argument error\nUsage: BasicVideoTest <video_file>\n");
-        return -1;
+       // return -1;
     }
 
 	image = cvLoadImage(argv[1], 1);
+	drawing = cvCreateImage(cvGetSize(image), 8, 3);
     if (image)
 	{
+		double x, y;
 		int i = 0;
 		fprintf(stderr, "Creating video from image." );
 		writer = cvCreateVideoWriter("out.avi", -1, 24, cvGetSize(image), 1);
+		x = 50;
+		y = 50;
 		for (i=0;i<24*3;i++)
 		{
-			cvWriteFrame(writer, image);
+			CvPoint p1, p2;
+			cvCopyImage(image, drawing);
+			p1.x = (int)x;
+			p1.y = (int)y;
+			p2.x = (int)x + 500;
+			p2.y = (int)y+500;
+			cvLine(drawing, p1, p2, CV_RGB(255, 0, 0), 10, CV_AA, 0);
+			cvWriteFrame(writer, drawing);
+			y += 3;
 		}
 		cvReleaseVideoWriter(&writer);
 		fprintf(stderr, "Done." );

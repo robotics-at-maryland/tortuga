@@ -48,8 +48,8 @@ if os.name == 'posix':
 
 # Setup the build environment
 tools = ['default']
-if platform.system() in ['Linux', 'Darwin']:
-    tools.extend(['gccxml','pypp'])
+#if platform.system() in ['Linux', 'Darwin']:
+tools.extend(['gccxml','pypp'])
 
 tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
 env = Environment(ENV=os.environ, options=opts,
@@ -67,8 +67,9 @@ env.Append(LIB_DIR = os.path.join(env['BUILD_DIR'], 'lib'))
 env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 
 # For gathering header include stats
-#env.Append(CPPFLAGS = ['-H'])
-env.Append(CCFLAGS = ['-fmessage-length=0'])
+if os.name == 'posix':
+	#env.Append(CPPFLAGS = ['-H'])
+	env.Append(CCFLAGS = ['-fmessage-length=0'])
 
 # Add to base compiler and linker paths
 env.AppendUnique(CPPPATH = [env['PACKAGE_DIR']])
@@ -104,9 +105,15 @@ else:
     # 4514 = unreferenced inline function has been removed
     # 4100 = unreferenced formal parameter
     # 4255 = no function prototype given: converting '()' to '(void)'
+	# 4686 = possible change in behavious with FOREACH
+	# 4251 = needs to have dll interface
+	# 4275 = needs to have dll interface
+    # 4244 = conversion from one type to another
+    # 4121 = alignment issue
     env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
                                 '/wd4512', '/wd4127', '/wd4640', '/wd4061', 
-                                '/wd4514', '/wd4100', '/wd4255'])
+                                '/wd4514', '/wd4100', '/wd4255', '/wd4686',
+								'/wd4251', '/wd4275', '/wd4244', '/wd4121'])
     
 # Add out helper functions to the environment
 helpers.add_helpers_to_env(env)

@@ -76,17 +76,22 @@ def build_module(env, target, source): #, actual_target = None):
     target_dir = os.path.join('build_ext','ext')
     target_name = target_dir + '/' + target_base
     
-    suffix = '.dll'
+    suffix = '.pyd'
     if os.name == 'posix':
+        print 'TEST2'
         suffix = '.so'
-
+    else:
+        print 'TEST'
+        print env['CCFLAGS']
+        env.AppendUnique(CCFLAGS = ['/wd4244'])
+        print env['CCFLAGS']
     extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='',
                                       SHLIBSUFFIX = suffix)
 
     # Run the tests
     if not tester is None:
         output = os.path.join(target_dir, target_base + 'Tests.success')
-        test = tester(env, output, deps = [target_name + '.so'])
+        test = tester(env, output, deps = [target_name + suffix])
 
         # Make the tests dependent on the right modules, otherwise the modules
         # will try and modules that have not been build yet
@@ -135,7 +140,10 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
         dep_wrappers = []
 
     # Add CPPPATH to XMLCPPPATH (so GCC-XML can find our headers)
+    #print 'Path',env['CPPPATH']
     env.AppendUnique(XMLCPPPATH = [env['CPPPATH']])
+    #print 'XMLPath',env['XMLCPPPATH']
+    #print 'TEST',env['_CPPINCFLAGS']
 
     # Build XML files
     xmlfiles = []

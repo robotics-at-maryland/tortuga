@@ -18,6 +18,9 @@
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 

@@ -78,5 +78,5 @@ envt.RAMProgram(target = 'DetectorTest',
                 source=detectorSources, int_deps = ['vision'])
 
 # Image Analysis Test
-envt.Program(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
+envt.RAMProgram(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
 
