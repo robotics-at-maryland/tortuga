@@ -94,24 +94,25 @@ class TestEventPublisher(unittest.TestCase):
         self.assert_(self.bCalled)
 
 
-#class TestQueuedEventPublisher(unittest.TestCase):
-#    def test(self):
-#        emgr = event.EventPublisher()
-#        recv = Reciever()
+class TestQueuedEventPublisher(unittest.TestCase):
+    def test(self):
+        epub = core.EventPublisher()
+        recv = Reciever()
 
         # Create a queued event manager to listen queue up recieved events
-#        qemgr = event.QueuedEventPublisher(emgr)
-#        qemgr.subscribe("TestEvent", recv)
+        qepub = core.QueuedEventPublisher(epub)
+        qepub.subscribe("TestEvent", recv)
 
-        # Publish a message and make sure its not recieved
-#        emgr.publish("TestEvent", self, a = 10)
-#        self.assertEquals(False, recv.called)
+
+        # Test Basic event publishing
+        epub.publish("TestEvent", core.Event())
+        self.assertEquals(0, recv.calls)
 
         # Release all messages
-#        qemgr.processMessages()
-
-#        self.assertEquals("TestEvent", recv.eventType)
-#        self.assertEquals(10, recv.args.a)
-#        self.assertEquals(self, recv.sender)
+        qepub.publishEvents()
+        
+        self.assertEquals(1, recv.calls)
+        self.assertEquals("TestEvent", recv.etype)
+        
 if __name__ == '__main__':
     unittest.main()

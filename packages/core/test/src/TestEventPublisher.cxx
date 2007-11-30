@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/core/test/src/EventPublisher.cxx
+ * File:  packages/core/test/src/TestEventPublisher.cxx
  */
 
 // STD Includes
@@ -34,17 +34,18 @@ struct Reciever
     std::vector<ram::core::EventPtr> events;
 };
 
-TEST(Subscribe)
-{
+struct EventPublisherFixture {
     Reciever recv;
     ram::core::EventPublisher publisher;
+};
+
+TEST_FIXTURE(EventPublisherFixture, Subscribe)
+{
     publisher.subscribe("Type", boost::bind(&Reciever::handler, &recv, _1));
 }
 
-TEST(Publish)
+TEST_FIXTURE(EventPublisherFixture, Publish)
 {
-    Reciever recv;
-    ram::core::EventPublisher publisher;
     publisher.subscribe("Type", boost::bind(&Reciever::handler, &recv, _1));
 
     ram::core::EventPtr event(new ram::core::Event());
@@ -56,17 +57,30 @@ TEST(Publish)
     CHECK_EQUAL(&publisher, recv.events[0]->sender);
 }
 
-TEST(EmptyPublish)
+TEST_FIXTURE(EventPublisherFixture, EmptyPublish)
 {
-    ram::core::EventPublisher publisher;
     publisher.publish("Type", ram::core::EventPtr(new ram::core::Event()));
 }
 
-TEST(MultipleSubscribers)
+TEST_FIXTURE(EventPublisherFixture, disconnect)
 {
-    Reciever recv;
-    ram::core::EventPublisher publisher;
+    ram::core::EventConnectionPtr connection(
+        publisher.subscribe("Type", boost::bind(&Reciever::handler, &recv,
+                                                _1)) );
 
+    // Standard publish
+    ram::core::EventPtr event(new ram::core::Event());
+    publisher.publish("Type", event);
+    CHECK_EQUAL(1, recv.calls);
+
+    // Unsubscribe then publish
+    connection->disconnect();
+    publisher.publish("Type", event);
+    CHECK_EQUAL(1, recv.calls);
+}
+
+TEST_FIXTURE(EventPublisherFixture, MultipleSubscribers)
+{
     // Bind Many
     publisher.subscribe("Type", boost::bind(&Reciever::handler, &recv, _1));
     publisher.subscribe("Type", boost::bind(&Reciever::handler, &recv, _1));
@@ -84,11 +98,10 @@ TEST(MultipleSubscribers)
     CHECK_EQUAL(&publisher, recv.events[1]->sender);
 }
 
-TEST(MultipleEventTypes)
+TEST_FIXTURE(EventPublisherFixture, MultipleEventTypes)
 {
     Reciever recvA;
     Reciever recvB;
-    ram::core::EventPublisher publisher;
 
     // Bind Many
     publisher.subscribe("TypeA", boost::bind(&Reciever::handler, &recvA, _1));
@@ -126,9 +139,8 @@ void threadCount(int* calls, ram::core::EventPtr event)
     *calls = (*calls) + 1;
 }
 
-TEST(Threads)
+TEST_FIXTURE(EventPublisherFixture, Threads)
 {
-    ram::core::EventPublisher publisher;
     boost::barrier barrier(3);
     int calls = 0;
     

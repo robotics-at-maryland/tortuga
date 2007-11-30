@@ -20,6 +20,24 @@ def export_typedef(ns, typedef):
     cls.include()
     return cls
 
+def expose_publisher(local_ns, cls_name):
+    ePublisher = local_ns.class_(cls_name)
+    ePublisher.include()
+
+    # Replace 'subscribe' method
+    ePublisher.member_function('subscribe').exclude()
+    ePublisher.add_declaration_code("""
+    void pysubscribe(ram::core::%s & epub, std::string type,
+                     boost::python::object pyFunction)
+    {
+        epub.subscribe(type, EventFunctor(pyFunction));
+    }
+    """ % (cls_name))
+    ePublisher.add_registration_code(
+        'def("subscribe", &::pysubscribe)', works_on_instance = True )
+    ePublisher.include_files.append('include/EventFunctor.h')
+    return ePublisher
+
 def generate(local_ns, global_ns):
     """
     local_ns: is the namespace that coresponds to the given namespace
@@ -35,32 +53,11 @@ def generate(local_ns, global_ns):
     classes.append(ConfigNode)
 
     # Event Subsystem
-    EventPublisher = local_ns.class_('EventPublisher')
-    EventPublisher.include()
-
-    # Replace 'subscribe' method
-    EventPublisher.member_function('subscribe').exclude()
-    EventPublisher.add_declaration_code("""
-    struct EventFunctor {
-        EventFunctor(boost::python::object pyObject) : pyFunction(pyObject) {}
-    
-        void operator()(ram::core::EventPtr event)
-        {
-            pyFunction(event);
-        }
-
-        boost::python::object pyFunction;
-    };
-    
-    void pysubscribe(ram::core::EventPublisher& epub, std::string type,
-                     boost::python::object pyFunction)
-    {
-        epub.subscribe(type, EventFunctor(pyFunction));
-    }
-    """)
-    EventPublisher.add_registration_code(
-        'def("subscribe", &::pysubscribe)', works_on_instance = True )
+    EventPublisher = expose_publisher(local_ns, 'EventPublisher')
     classes.append(EventPublisher)
+
+    QueuedEventPublisher = expose_publisher(local_ns, 'QueuedEventPublisher')
+    classes.append(QueuedEventPublisher)
     
     Event = local_ns.class_('Event')
     Event.include()
@@ -127,7 +124,7 @@ def generate(local_ns, global_ns):
     # Don't have ofstream wrapped properly
     Application.member_function('writeDependencyGraph').exclude()
     classes.append(Application)
-    wrap.set_implicit_conversions([Application], False)
+    wrap.set_implicit_conversions([Application, QueuedEventPublisher], False)
 
 
     wrap.add_needed_includes(classes)

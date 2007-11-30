@@ -12,6 +12,11 @@ import buildfiles.libs as libs
 Import('env')
 envl = env.Clone()
 
+# Find all cpp files in the source directory
+extra_sources = envl.Glob('src', '*.cpp')
+extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'core')
+envl.Append(CPPPATH = os.path.join(extra_dir))
+
 # Link to libram_pattern.so library
 libs.add_internal(envl, 'core')
 
@@ -24,7 +29,8 @@ envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
 wrapped_headers = ['Subsystem.h', 'SubsystemMaker.h', 'ConfigNode.h',
-                   'EventPublisher.h', 'Event.h', 'Application.h']
+                   'EventPublisher.h', 'Event.h', 'Application.h',
+                   'QueuedEventPublisher.h']
 #'SubsystemMaker.h', 'ConfigNode.h']
 #, 'Updatable.h', 'IUpdatable.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
@@ -35,4 +41,5 @@ test, runner = envt.Tests(int_deps = 'core', ext_deps = 'Boost.Python',
                           run = False)
 
 envl.Pypp('core', [os.path.join(header_dir, h) for h in wrapped_headers],
-          module = 'gen_core.py', tester = runner)
+          module = 'gen_core.py', tester = runner,
+          extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])

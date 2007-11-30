@@ -25,7 +25,7 @@ header_dir = os.path.join(base_dir, 'include')
 
 # Need for because Py++ has so odd include paths
 envl.Append(CPPPATH = base_dir)
-envl.AppendUnique(CCFLAGS = ['/wd4244'])
+#envl.AppendUnique(CCFLAGS = ['/wd4244'])
 # Headers we are currently wrapping
 wrapped_headers = ['SharedPtrVector.h', 'CodeInject.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
@@ -36,6 +36,6 @@ test, runner = envt.Tests(int_deps = 'core', ext_deps = 'Boost.Python',
                           run = False)
 
 envl.Pypp('samples', [os.path.join(header_dir, h) for h in wrapped_headers],
-                module = 'gen_samples.py',
-                extra_sources = [os.path.join(base_dir, s) for s in extra_sources],
-                tester = runner)
+          module = 'gen_samples.py',
+          extra_sources = [os.path.join(base_dir, s) for s in extra_sources],
+          tester = runner)

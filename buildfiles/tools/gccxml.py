@@ -37,8 +37,8 @@ def generate(env):
     env['GCCXML_EXTRA_FLAGS'] = ''
     
     # These variables hold the expanded form of the include and defines lists
-    env['_XML_CPPINCFLAGS'] = '$( ${_concat(-I, XMLCPPPATH, INCSUFFIX, __env__, RDirs)} $)'
-    env['_XML_CPPDFFFLAGS'] = '${_defines(-D, XMLCPPDEFINES, CPPDEFSUFFIX, __env__)}'
+    env['_XML_CPPINCFLAGS'] = '$( ${_concat(INCPREFIX, XMLCPPPATH, INCSUFFIX, __env__, RDirs)} $)'
+    env['_XML_CPPDFFFLAGS'] = '${_defines(CPPDEFPREFIX, XMLCPPDEFINES, CPPDEFSUFFIX, __env__)}'
 
     
     if os.name != 'posix':
