@@ -16,10 +16,10 @@
 namespace ram {
 namespace core {
 
-/** Reprsents and object which can be updated, asyncronously or sequentially.
+/** Represents an object which can be updated, asyncronously or sequentially.
  *
  *  All you have to do to use it is subclass and implement the update() method,
- *  will be called the given interval in a background thread.
+ *  will be called at the given interval in a background thread.
  */
 class RAM_EXPORT IUpdatable
 {
