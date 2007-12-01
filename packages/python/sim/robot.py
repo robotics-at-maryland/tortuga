@@ -179,6 +179,7 @@ class Thruster(Visual):
     @two_step_init
     def __init__(self):
         self.direction = Ogre.Vector3.UNIT_Z
+        self._force_pos = Ogre.Vector3.ZERO
         self._force = 0
         self.max_force = 0
         self.min_force = 0
@@ -213,9 +214,7 @@ class Thruster(Visual):
                  
     def update(self, time_since_last_frame):
         force = Ogre.Vector3(self.direction) * self._force
-        position = \
-            self._node._getDerivedPosition() - self.parent._node._getDerivedPosition()
-        self.parent.add_local_force(force, position)
+        self.parent.add_local_force(force, self._force_pos)
         
         # Redraw force lines
         self._thrust_line.beginUpdate(0)
@@ -277,6 +276,7 @@ class Thruster(Visual):
         scale = Ogre.Vector3(gfx_node['scale'])
         
         position, orientation = parse_position_orientation(kml_node)
+        self._force_pos = position
         
         direction = Ogre.Vector3(kml_node['direction'])
         min_force = kml_node['min_force']
