@@ -215,8 +215,11 @@ void SonarController::updateSlidingDFT()
 		 *	would slightly complicate this function.
 		 */
 		
-		sumreal[i] += windowreal[channel][curidx] - windowreal[channel][firstidx];
-		sumimag[i] += windowimag[channel][curidx] - windowimag[channel][firstidx];
+		sumreal[channel] += windowreal[channel][curidx] 
+			- windowreal[channel][firstidx];
+		
+		sumimag[channel] += windowimag[channel][curidx] 
+			- windowimag[channel][firstidx];
 		
 		/*	We compute the L1 norm (|a|+|b|) instead of the L2 norm 
 		 *	sqrt(a^2+b^2) in order to aovid integer overflow.  Since we are only
@@ -224,7 +227,7 @@ void SonarController::updateSlidingDFT()
 		 *	approximation.
 		 */
 		
-		mag[i] = abs(sumreal[channel]) + abs(sumimag[channel]);
+		mag[channel] = abs(sumreal[channel]) + abs(sumimag[channel]);
 	}
 }
 
