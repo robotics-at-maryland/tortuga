@@ -7,6 +7,8 @@
  *
  *  Common typedefs and constants
  *
+ *  All physical constants, dimensions, and times in this header file are in SI
+ *  units.
  */
 
 
@@ -26,7 +28,8 @@ typedef int32_t adcsampleindex_t;
 #define PINGDURATION 1.3e-3
 #define MAX_SENSOR_SEPARATION 0.5
 #define SPEED_OF_SOUND 1500
-#define MAX_TDOA (MAX_SENSOR_SEPARATION / SPEED_OF_SOUND)
+#define NOMINAL_PING_DELAY 2
+#define MAXIMUM_SPEED 3
 
 
 template<class T>

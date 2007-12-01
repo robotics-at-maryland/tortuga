@@ -110,12 +110,13 @@ class SonarController
 {
 	
 public:
-	SonarController(int numSensors);
+	SonarController(int numberOfChannels);
 	~SonarController();
 	void receiveSample(adcdata_t*);
 	adcmath_t getMag(int channel) const;
 	sonarstate_t getState() const;
 	sonarchannelstate_t getChannelState(int channel) const;
+	void go();
 	
 private:
 	void setstate(sonarstate_t);
@@ -125,8 +126,13 @@ private:
 	
 	void updateSlidingDFT();
 	bool listenTimeIsUp() const;
-	void goToSleep();
+	
+	void wake();
+	void sleep();
+	
 	bool exceedsThreshold(int channel) const;
+	void wakeChannel(int channel);
+	void sleepChannel(int channel);
 	void startCapture(int channel);
 	void stopCapture(int channel);
 	void captureSample(int channel);
@@ -143,16 +149,20 @@ private:
 	adcmath_t threshold;
 	int curidx;
 	int bufidx;
-	int numSensors;
+	int nchannels;
 	int numPeriods;
 	int windowlength, nearestperiod;
 	int samprate;
 	int targetfreq;
-	adcsampleindex_t maxSamplesTDOA;
-	adcsampleindex_t sampleCount;
+	int sleepingChannelCount, listeningChannelCount, captureChannelCount;
+	adcsampleindex_t 
+		maxSamplesTDOA, 
+		minSamplesBetweenPings, 
+		maxSamplesToWaitForFirstPing;
+	adcsampleindex_t sampleIndex;
 	sonarstate_t sonarstate;
 	sonarchannelstate_t  *sonarchannelstate;
-	adcsampleindex_t indexOfLastPing;
+	adcsampleindex_t indexOfLastRisingEdge, indexOfLastWake;
 	
 };
 

@@ -19,7 +19,7 @@
 
 SonarController::SonarController(int ns) : oldChunks()
 {
-	numSensors = ns;
+	nchannels = ns;
 	samprate = 1000000;
 	targetfreq = 30000;
 	nearestperiod = round(samprate / targetfreq);
@@ -27,14 +27,48 @@ SonarController::SonarController(int ns) : oldChunks()
 	windowlength = nearestperiod * numPeriods;
 	threshold = ((1 << (BITS_ADCCOEFF + 8 * sizeof(adcdata_t) - 2)) 
 				 * windowlength) >> 5;
-	maxSamplesTDOA = 1.25 * MAX_TDOA * samprate + PINGDURATION * samprate;
+	
+	/**	Minimum number of samples to wait before listening for the next set of
+	 *	pings.
+	 */
+	
+	minSamplesBetweenPings = 
+		(NOMINAL_PING_DELAY - ((float) MAXIMUM_SPEED * NOMINAL_PING_DELAY 
+		+ MAX_SENSOR_SEPARATION)/ SPEED_OF_SOUND) * samprate;
+	
+	/** Maximum number of samples to listen past minSamplesBetweenPings before 
+	 *	going back to sleep
+	 */
+	
+	maxSamplesToWaitForFirstPing = 
+		((float) 2 * MAXIMUM_SPEED * NOMINAL_PING_DELAY 
+		 + 2 * MAX_SENSOR_SEPARATION) / SPEED_OF_SOUND * samprate;
+	
+	/** Maximum number of samples past the rising edge of the last receipt of 
+	 *	the current ping to wait for the next rising edge on the next hydrophone
+	 */
+	
+	maxSamplesTDOA = 1.25 * MAX_SENSOR_SEPARATION / SPEED_OF_SOUND * samprate;
+	
+	printf("%d\n%d\n%d\n\n", minSamplesBetweenPings, maxSamplesToWaitForFirstPing, maxSamplesTDOA);
+	
+	/** Set up sampled cosine and sampled sine for sliding DFT */
+	
 	setupCoefficients();
+	
+	/** Set up buffers */
+	
 	setupWindow();
-	sampleCount = indexOfLastPing = 0;
-	sonarchannelstate = new sonarchannelstate_t[numSensors];
-	for (int i = 0 ; i < numSensors ; i ++)
-		sonarchannelstate[i] = SONAR_CHANNEL_LISTENING;
-	sonarstate = SONAR_LISTENING;
+	
+	sampleIndex = indexOfLastRisingEdge = indexOfLastWake = 0;
+	sonarchannelstate = new sonarchannelstate_t[nchannels];
+	
+	
+	sleepingChannelCount = ns;
+	listeningChannelCount = captureChannelCount = 0;
+	for (int i = 0 ; i < nchannels ; i ++)
+		sonarchannelstate[i] = SONAR_CHANNEL_SLEEPING;
+	sonarstate = SONAR_SLEEPING;
 }
 
 
@@ -46,7 +80,7 @@ SonarController::~SonarController()
 	delete [] sumimag;
 	delete [] mag;
 	delete [] sample;
-	for (int i = 0 ; i < numSensors ; i ++)
+	for (int i = 0 ; i < nchannels ; i ++)
 	{
 		delete [] windowreal[i];
 		delete [] windowimag[i];
@@ -74,29 +108,29 @@ void SonarController::setupCoefficients()
 
 
 void SonarController::setupWindow() {
-	windowreal = new adcmath_t*[numSensors];
-	windowimag = new adcmath_t*[numSensors];
-	sumreal = new adcmath_t[numSensors];
-	sumimag = new adcmath_t[numSensors];
-	mag = new adcmath_t[numSensors];
-	sample = new adcdata_t[numSensors];
-	for (int i = 0 ; i < numSensors ; i ++)
+	windowreal = new adcmath_t*[nchannels];
+	windowimag = new adcmath_t*[nchannels];
+	sumreal = new adcmath_t[nchannels];
+	sumimag = new adcmath_t[nchannels];
+	mag = new adcmath_t[nchannels];
+	sample = new adcdata_t[nchannels];
+	for (int i = 0 ; i < nchannels ; i ++)
 	{
 		windowreal[i] = new adcmath_t[windowlength];
 		windowimag[i] = new adcmath_t[windowlength];
 	}
-	currentChunks = new SonarChunk*[numSensors];
+	currentChunks = new SonarChunk*[nchannels];
 	purge();
 }
 
 
 void SonarController::purge()
 {
-	memset(sumreal, 0, sizeof(*sumreal) * numSensors);
-	memset(sumimag, 0, sizeof(*sumimag) * numSensors);
-	memset(mag, 0, sizeof(*mag) * numSensors);
-	memset(sample, 0, sizeof(*sample) * numSensors);
-	for (int i = 0 ; i < numSensors ; i ++)
+	memset(sumreal, 0, sizeof(*sumreal) * nchannels);
+	memset(sumimag, 0, sizeof(*sumimag) * nchannels);
+	memset(mag, 0, sizeof(*mag) * nchannels);
+	memset(sample, 0, sizeof(*sample) * nchannels);
+	for (int i = 0 ; i < nchannels ; i ++)
 	{
 		memset(windowreal[i], 0, sizeof(**windowreal) * windowlength);
 		memset(windowimag[i], 0, sizeof(**windowimag) * windowlength);
@@ -107,13 +141,12 @@ void SonarController::purge()
 
 void SonarController::receiveSample(adcdata_t *newdata)
 {
-	sampleCount ++;
+	sampleIndex ++;
 	if (getState() == SONAR_LISTENING)
 	{
-		memcpy(sample, newdata, sizeof(*sample) *  numSensors);
-		int awakeChannelCount = 0, captureChannelCount = 0;
+		memcpy(sample, newdata, sizeof(*sample) * nchannels);
 		updateSlidingDFT();
-		for (int channel = 0 ; channel < numSensors ; channel ++)
+		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
 			switch (getChannelState(channel))
 			{
@@ -122,28 +155,19 @@ void SonarController::receiveSample(adcdata_t *newdata)
 					{
 						startCapture(channel);
 						captureSample(channel);
-						captureChannelCount ++;
 					}
-					awakeChannelCount ++;
 					break;
 				case SONAR_CHANNEL_CAPTURING:
 					if (exceedsThreshold(channel))
-					{
 						captureSample(channel);
-						awakeChannelCount ++;
-						captureChannelCount ++;
-					}
 					else
-					{
 						stopCapture(channel);
-					}
 					break;
 			}
 		}
-		if (awakeChannelCount == 0 || (captureChannelCount == 0 && listenTimeIsUp()))
-		{
-			goToSleep();
-		}
+		if (listeningChannelCount + captureChannelCount == 0 || 
+			(captureChannelCount == 0 && listenTimeIsUp()))
+			sleep();
 	}
 }
 
@@ -174,7 +198,7 @@ void SonarController::updateSlidingDFT()
 	
 	int firstidx = (curidx + 1) % windowlength;
 	
-	for (int channel = 0 ; channel < numSensors ; channel ++)
+	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
 		
 		/*	For each sample we receive, we only need to compute one new term in
@@ -234,17 +258,31 @@ void SonarController::updateSlidingDFT()
 
 bool SonarController::listenTimeIsUp() const
 {
-	return (sampleCount - indexOfLastPing) > maxSamplesTDOA;
+	if (listeningChannelCount == nchannels 
+		&& (sampleIndex - indexOfLastWake) > maxSamplesToWaitForFirstPing)
+		return true;
+	
+	return (sampleIndex - indexOfLastRisingEdge) > maxSamplesTDOA;
 }
 
 
-void SonarController::goToSleep()
+void SonarController::wake()
 {
+	assert(getState() == SONAR_SLEEPING);
+	assert(printf("Wake up\n") || true);
+	for (int channel = 0 ; channel < nchannels ; channel ++)
+		wakeChannel(channel);
+	indexOfLastWake = sampleIndex;
+	sonarstate = SONAR_LISTENING;
+}
+
+
+void SonarController::sleep()
+{
+	assert(getState() == SONAR_LISTENING);
 	assert(printf("Sleep\n") || true);
-	for (int channel = 0 ; channel < numSensors ; channel ++)
-	{
+	for (int channel = 0 ; channel < nchannels ; channel ++)
 		stopCapture(channel);
-	}
 	sonarstate = SONAR_SLEEPING;
 	analyzeChunks();
 }
@@ -256,23 +294,52 @@ bool SonarController::exceedsThreshold(int channel) const
 }
 
 
+void SonarController::wakeChannel(int channel)
+{
+	assert(getChannelState(channel) == SONAR_CHANNEL_SLEEPING);
+	assert(printf("Waking channel %d\n", channel) || true);
+	sonarchannelstate[channel] = SONAR_CHANNEL_LISTENING;
+	sleepingChannelCount --;
+	listeningChannelCount ++;
+}
+
+
+void SonarController::sleepChannel(int channel)
+{
+	stopCapture(channel);
+}
+
+
 void SonarController::startCapture(int channel)
 {
 	assert(getChannelState(channel) == SONAR_CHANNEL_LISTENING);
-	assert(printf("Starting capture on channel %d at sample %d\n", channel, sampleCount) || true);
-	currentChunks[channel] = new SonarChunk(sampleCount);
+	assert(printf("Starting capture on channel %d at sample %d\n", channel, sampleIndex) || true);
+	currentChunks[channel] = new SonarChunk(sampleIndex);
 	sonarchannelstate[channel] = SONAR_CHANNEL_CAPTURING;
-	indexOfLastPing = sampleCount;
+	listeningChannelCount --;
+	captureChannelCount ++;
+	indexOfLastRisingEdge = sampleIndex;
 }
 
 
 void SonarController::stopCapture(int channel)
 {
-	if (getChannelState(channel) == SONAR_CHANNEL_CAPTURING)
+	switch (getChannelState(channel))
 	{
-		assert(printf("Stopping capture on channel %d with %d samples\n", channel, currentChunks[channel]->size()) || true);
-		oldChunks.push_back(currentChunks[channel]);
-		sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
+		case SONAR_CHANNEL_CAPTURING:
+			assert(printf("Sleeping channel %d with %d samples captured\n", channel, currentChunks[channel]->size()) || true);
+			oldChunks.push_back(currentChunks[channel]);
+			sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
+			captureChannelCount --;
+			sleepingChannelCount ++;
+			break;
+			
+		case SONAR_CHANNEL_LISTENING:
+			assert(printf("Sleeping channel %d with no samples captured\n", channel, currentChunks[channel]->size()) || true);
+			sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
+			listeningChannelCount --;
+			sleepingChannelCount ++;
+			break;
 	}
 }
 
@@ -316,4 +383,10 @@ sonarstate_t SonarController::getState() const
 sonarchannelstate_t SonarController::getChannelState(int channel) const
 {
 	return sonarchannelstate[channel];
+}
+
+
+void SonarController::go()
+{
+	wake();
 }

@@ -29,12 +29,18 @@ public:
 	const static int capacity = 2048;
 	adcdata_t getPeak() const;
 	const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const;
+	void setFourierComponents(adcmath_t re, adcmath_t img);
+	adcmath_t getFourierAmpReal() const;
+	adcmath_t getFourierAmpImag() const;
+	float getPhase() const;
 	void purge();
 	
 private:
 	int length;
 	adcdata_t *sample;
 	adcdata_t peak;
+	adcmath_t fourierAmpReal, fourierAmpImag;
+	float phase;
 	
 };
 

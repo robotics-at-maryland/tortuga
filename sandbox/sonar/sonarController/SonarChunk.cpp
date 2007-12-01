@@ -63,11 +63,39 @@ const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const
 }
 
 
+void SonarChunk::setFourierComponents(adcmath_t re, adcmath_t im)
+{
+	fourierAmpReal = re;
+	fourierAmpImag = im;
+	phase = atan2f(im, re);
+}
+
+
+adcmath_t SonarChunk::getFourierAmpReal() const
+{
+	return fourierAmpReal;
+}
+
+
+adcmath_t SonarChunk::getFourierAmpImag() const
+{
+	return fourierAmpImag;
+}
+
+
+float SonarChunk::getPhase() const
+{
+	return phase;
+}
+
+
 void SonarChunk::purge()
 {
 	length = 0;
 	peak = 0;
 	startIndex = 0;
+	phase = 0;
+	setFourierComponents(0, 0);
 }
 
 
@@ -87,4 +115,10 @@ adcsampleindex_t tdoa_xcorr(const SonarChunk &a, const SonarChunk &b)
 		}
 	}	
 	return maxindex - a.startIndex + b.startIndex;
+}
+
+adcsampleindex_t tdoa_phase(const SonarChunk &a, const SonarChunk &b)
+{
+	//	TODO insert code here
+	return 0;
 }
