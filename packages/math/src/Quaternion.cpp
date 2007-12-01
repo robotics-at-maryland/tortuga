@@ -55,7 +55,7 @@ namespace math {
 
     const Real Quaternion::ms_fEpsilon = 1e-03;
     const Quaternion Quaternion::ZERO(0.0,0.0,0.0,0.0);
-    const Quaternion Quaternion::IDENTITY(1.0,0.0,0.0,0.0);
+    const Quaternion Quaternion::IDENTITY(0.0,0.0,0.0,1.0);
 
     //-----------------------------------------------------------------------
     void Quaternion::FromRotationMatrix (const Matrix3& kRot)
@@ -279,12 +279,12 @@ namespace math {
     //-----------------------------------------------------------------------
     Quaternion Quaternion::operator+ (const Quaternion& rkQ) const
     {
-        return Quaternion(w+rkQ.w,x+rkQ.x,y+rkQ.y,z+rkQ.z);
+        return Quaternion(x+rkQ.x,y+rkQ.y,z+rkQ.z, w+rkQ.w);
     }
     //-----------------------------------------------------------------------
     Quaternion Quaternion::operator- (const Quaternion& rkQ) const
     {
-        return Quaternion(w-rkQ.w,x-rkQ.x,y-rkQ.y,z-rkQ.z);
+        return Quaternion(x-rkQ.x,y-rkQ.y,z-rkQ.z, w-rkQ.w);
     }
     //-----------------------------------------------------------------------
     Quaternion Quaternion::operator* (const Quaternion& rkQ) const
@@ -294,27 +294,27 @@ namespace math {
 
         return Quaternion
         (
-            w * rkQ.w - x * rkQ.x - y * rkQ.y - z * rkQ.z,
             w * rkQ.x + x * rkQ.w + y * rkQ.z - z * rkQ.y,
             w * rkQ.y + y * rkQ.w + z * rkQ.x - x * rkQ.z,
-            w * rkQ.z + z * rkQ.w + x * rkQ.y - y * rkQ.x
+            w * rkQ.z + z * rkQ.w + x * rkQ.y - y * rkQ.x,
+            w * rkQ.w - x * rkQ.x - y * rkQ.y - z * rkQ.z
         );
     }
     //-----------------------------------------------------------------------
     Quaternion Quaternion::operator* (Real fScalar) const
     {
-        return Quaternion(fScalar*w,fScalar*x,fScalar*y,fScalar*z);
+        return Quaternion(fScalar*x,fScalar*y,fScalar*z,fScalar*w);
     }
     //-----------------------------------------------------------------------
     Quaternion operator* (Real fScalar, const Quaternion& rkQ)
     {
-        return Quaternion(fScalar*rkQ.w,fScalar*rkQ.x,fScalar*rkQ.y,
-            fScalar*rkQ.z);
+        return Quaternion(fScalar*rkQ.x,fScalar*rkQ.y,
+                          fScalar*rkQ.z,fScalar*rkQ.w);
     }
     //-----------------------------------------------------------------------
     Quaternion Quaternion::operator- () const
     {
-        return Quaternion(-w,-x,-y,-z);
+        return Quaternion(-x,-y,-z,-w);
     }
     //-----------------------------------------------------------------------
     Real Quaternion::Dot (const Quaternion& rkQ) const
@@ -333,7 +333,7 @@ namespace math {
         if ( fNorm > 0.0 )
         {
             Real fInvNorm = 1.0/fNorm;
-            return Quaternion(w*fInvNorm,-x*fInvNorm,-y*fInvNorm,-z*fInvNorm);
+            return Quaternion(-x*fInvNorm,-y*fInvNorm,-z*fInvNorm,w*fInvNorm);
         }
         else
         {
@@ -345,7 +345,7 @@ namespace math {
     Quaternion Quaternion::UnitInverse () const
     {
         // assert:  'this' is unit length
-        return Quaternion(w,-x,-y,-z);
+        return Quaternion(-x,-y,-z,w);
     }
     //-----------------------------------------------------------------------
     Quaternion Quaternion::Exp () const
@@ -526,7 +526,7 @@ namespace math {
         return len;
     }
     //-----------------------------------------------------------------------
-	Radian Quaternion::getRoll(bool reprojectAxis) const
+	Radian Quaternion::getYaw(bool reprojectAxis) const
 	{
 		if (reprojectAxis)
 		{
@@ -551,7 +551,7 @@ namespace math {
 		}
 	}
     //-----------------------------------------------------------------------
-	Radian Quaternion::getPitch(bool reprojectAxis) const
+	Radian Quaternion::getRoll(bool reprojectAxis) const
 	{
 		if (reprojectAxis)
 		{
@@ -575,7 +575,7 @@ namespace math {
 		}
 	}
     //-----------------------------------------------------------------------
-	Radian Quaternion::getYaw(bool reprojectAxis) const
+	Radian Quaternion::getPitch(bool reprojectAxis) const
 	{
 		if (reprojectAxis)
 		{
