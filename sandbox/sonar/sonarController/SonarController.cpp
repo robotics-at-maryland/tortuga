@@ -53,8 +53,6 @@ SonarController::SonarController(int ns) : oldChunks()
 	
 	maxSamplesTDOA = 1.25 * MAX_SENSOR_SEPARATION / SPEED_OF_SOUND * samprate;
 	
-	printf("%d\n%d\n%d\n\n", minSamplesBetweenPings, maxSamplesToWaitForFirstPing, maxSamplesTDOA);
-	
 	/** Set up sampled cosine and sampled sine for sliding DFT */
 	
 	setupCoefficients();
@@ -365,8 +363,8 @@ void SonarController::analyzeChunks()
 	{
 		for (int j = i + 1 ; j < oldChunks.size() ; j ++)
 		{
-			adcsampleindex_t tomc = tdoa_xcorr(*oldChunks[i] , *oldChunks[j]);
-			printf("TDOA between chunks %d and %d of %d samples\n", i, j, tomc);
+			adcsampleindex_t tdoac = tdoa_xcorr(*oldChunks[i] , *oldChunks[j]);
+			printf("TDOA between chunks %d and %d of %d samples\n", i, j, tdoac);
 		}
 	}
 }

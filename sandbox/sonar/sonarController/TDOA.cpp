@@ -36,6 +36,5 @@ adcsampleindex_t tdoa_xcorr(const SonarChunk &a, const SonarChunk &b)
 
 adcsampleindex_t tdoa_phase(const SonarChunk &a, const SonarChunk &b)
 {
-	//	TODO insert code here
-	return 0;
+	return (a.getPhase() - b.getPhase()) / M_PI * 33 - a.startIndex + b.startIndex;
 }
