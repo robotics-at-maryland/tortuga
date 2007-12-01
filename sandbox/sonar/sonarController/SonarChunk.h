@@ -45,7 +45,4 @@ private:
 };
 
 
-adcsampleindex_t tdoa_xcorr(const SonarChunk &a, const SonarChunk &b);
-
-
 #endif

@@ -11,6 +11,9 @@
 #include "SonarController.h"
 
 
+#include "TDOA.h"
+
+
 #include <math.h>
 #include <string.h>
 #include <assert.h>
@@ -328,6 +331,7 @@ void SonarController::stopCapture(int channel)
 	{
 		case SONAR_CHANNEL_CAPTURING:
 			assert(printf("Sleeping channel %d with %d samples captured\n", channel, currentChunks[channel]->size()) || true);
+			currentChunks[channel]->setFourierComponents(sumreal[channel], sumimag[channel]);
 			oldChunks.push_back(currentChunks[channel]);
 			sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
 			captureChannelCount --;
