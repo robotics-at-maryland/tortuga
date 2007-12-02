@@ -28,7 +28,7 @@ public:
 	int size() const;
 	const static int capacity = 2048;
 	adcdata_t getPeak() const;
-	const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const;
+	const adcdata_t &operator[](adcsampleindex_t i) const;
 	void setFourierComponents(adcmath_t re, adcmath_t img);
 	adcmath_t getFourierAmpReal() const;
 	adcmath_t getFourierAmpImag() const;
