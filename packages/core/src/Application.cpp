@@ -40,6 +40,7 @@ Application::Application(std::string configPath)
         ConfigNode sysConfig(rootCfg["Subsystems"]);
         NodeNameList subnodes = sysConfig.subNodes();
 
+        // Properly fills m_order, and m_subsystemDeps
         determineStartupOrder(subnodes, sysConfig);
         
         // Create all the subsystems
@@ -53,9 +54,11 @@ Application::Application(std::string configPath)
             SubsystemList deps;
             BOOST_FOREACH(std::string depName, m_subsystemDeps[subsystemName])
                 deps.insert(getSubsystem(depName));
-            
+
+            // Create out new subsystem and store it
             SubsystemPtr subsystem(SubsystemMaker::newObject(
                 std::make_pair(config, deps) ));
+            
             m_subsystems[subsystemName] = subsystem;            
         }
 

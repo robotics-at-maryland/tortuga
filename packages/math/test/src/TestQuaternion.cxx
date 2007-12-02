@@ -34,16 +34,28 @@ TEST(normalise)
                    0.18257418583505536);
     
     CHECK_EQUAL(30, quat.normalise());
-    CHECK_EQUAL(exp, quat);
+    CHECK_ARRAY_CLOSE(exp.ptr(), quat.ptr(), 4, 0.0001);
+}
+
+TEST(FromAngleAxis)
+{
+    Matrix3 mat;
+    Quaternion expected;
+    mat.FromAxisAngle(ram::math::Vector3::UNIT_X, ram::math::Degree(90));    
+    expected.FromRotationMatrix(mat);
+
+    Quaternion actual;
+    actual.FromAngleAxis(Degree(90), Vector3::UNIT_X);
+    CHECK_ARRAY_CLOSE(expected.ptr(), actual.ptr(), 4, 0.0001);
+
+    Quaternion actualConstructed(Degree(90), Vector3::UNIT_X);
+    CHECK_ARRAY_CLOSE(expected.ptr(), actualConstructed.ptr(), 4, 0.0001);    
 }
 
 TEST(getRoll)
 {
     // In our reference frame, roll is about the X axis
-    ram::math::Matrix3 mat;
-    mat.FromAxisAngle(ram::math::Vector3::UNIT_X, ram::math::Degree(53));    
-    ram::math::Quaternion quat;
-    quat.FromRotationMatrix(mat);
+    Quaternion quat(Degree(53), Vector3::UNIT_X);
 
     CHECK_CLOSE(0, quat.getYaw().valueDegrees(), 0.0001);
     CHECK_CLOSE(53, quat.getRoll().valueDegrees(), 0.0001);
@@ -53,10 +65,7 @@ TEST(getRoll)
 TEST(getPitch)
 {
     // In our reference frame, pitch is about the Y axis
-    ram::math::Matrix3 mat;
-    mat.FromAxisAngle(ram::math::Vector3::UNIT_Y, ram::math::Degree(53));    
-    ram::math::Quaternion quat;
-    quat.FromRotationMatrix(mat);
+    Quaternion quat(Degree(53), Vector3::UNIT_Y);
 
     CHECK_CLOSE(0, quat.getYaw().valueDegrees(), 0.0001);
     CHECK_CLOSE(0, quat.getRoll().valueDegrees(), 0.0001);
@@ -66,12 +75,10 @@ TEST(getPitch)
 TEST(getYaw)
 {
     // In our reference frame, yaw is about the Z axis
-    ram::math::Matrix3 mat;
-    mat.FromAxisAngle(ram::math::Vector3::UNIT_Z, ram::math::Degree(53));    
-    ram::math::Quaternion quat;
-    quat.FromRotationMatrix(mat);
+    Quaternion quat(Degree(53), Vector3::UNIT_Z);
 
     CHECK_CLOSE(53, quat.getYaw().valueDegrees(), 0.0001);
     CHECK_CLOSE(0, quat.getRoll().valueDegrees(), 0.0001);
     CHECK_CLOSE(0, quat.getPitch().valueDegrees(), 0.0001);
 }
+

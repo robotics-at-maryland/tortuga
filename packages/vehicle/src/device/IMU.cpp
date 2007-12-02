@@ -300,44 +300,44 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
 {
     Vector3 mag(_mag);
     Vector3 accel(_accel);
-/*
-    mag.normalise();
-    accel.normalise();
-        
-    
+
     // Point accel down, and normalize
     mag.normalise();
-    
     accel = accel * -1;
     accel.normalise();
 
-    Vector3 localY = mag.crossProduct(accel);
-    localY.normalise();
-    
-    std::cout << "Local Y " << localY << std::endl;
-    Vector3 localX = accel.crossProduct(localY);
-    localX.normalise();
-    
-    std::cout << "Local X " << localX << std::endl;
-    std::cout << "UNIT X " << Vector3::UNIT_X << std::endl;
-    // Determine the angle we have rotated relative to that
-    Radian angle(Math::ACos(Vector3::UNIT_X.dotProduct(localX)));
-    std::cout << "Angle " << angle.valueDegrees() << std::endl;
-    
-    // Transform the axis-angle to a quaternion
-    Matrix3 mat;
-    mat.FromAxisAngle(localY, angle);
-    
-    Quaternion result;
-    result.FromRotationMatrix(mat);
-//    result.normalise();
+    // Find the Y vector of vehicle coordinate frame: use the direction of the
+    // accelerometer and only use the magnetometer determine rotation about
+    // that direction
+    Vector3 vehicleY = mag.crossProduct(accel);
+    vehicleY.normalise();
 
-    quaternion[0] = result.w;
-    quaternion[1] = result.x;
-    quaternion[2] = result.y;
-    quaternion[3] = result.z;
-*/
+    // Our accelerometer vector is the Z vector, its positive by default and
+    // we flipped it above, so we have to flip it back to positive here.
+    Vector3 vehicleZ = accel * -1;
+
+    // We have standard orthonormal coordinate system, so we just drive the
+    // X from the other values
+    Vector3 vehicleX = vehicleY.crossProduct(vehicleZ);
+    vehicleX.normalise();
     
+    //std::cout << "Vehicle X " << vehicleX << std::endl;
+    //std::cout << "Vehicle Y " << vehicleY << std::endl;
+    //std::cout << "Vehicle Z " << vehicleZ << std::endl;
+
+    Quaternion result(vehicleX, vehicleY, vehicleZ);
+    result.normalise();
+    // We have to inverse because this appears that constructor appears
+    // do the opposite of what I think it should
+    result = result.UnitInverse();
+    //std::cout << "Result: " << result << std::endl;
+
+    quaternion[0] = result.x;
+    quaternion[1] = result.y;
+    quaternion[2] = result.z;
+    quaternion[3] = result.w;
+/*
+ 
     Vector3 n3 = accel * -1;
     n3.normalise();
     
@@ -354,14 +354,9 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
     
     Matrix3 nCb = bCn.Transpose();
 
-    Quaternion result;
+
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
-/*    result.normalise();
-    
-    quaternion[0] = result.x;
-    quaternion[1] = result.y;
-    quaternion[2] = result.z;
-    quaternion[3] = result.w;*/
+*/
 }
     
 } // namespace device
