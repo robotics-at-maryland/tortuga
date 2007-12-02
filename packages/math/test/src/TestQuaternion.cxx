@@ -82,3 +82,14 @@ TEST(getYaw)
     CHECK_CLOSE(0, quat.getPitch().valueDegrees(), 0.0001);
 }
 
+TEST(getRollPitchYaw)
+{
+    // Yawed 53 degrees, pitched 15, and rolled 10
+    Quaternion quat(Degree(53), Vector3::UNIT_Z);
+    quat = quat * Quaternion(Degree(15), Vector3::UNIT_Y);
+    quat = quat * Quaternion(Degree(10), Vector3::UNIT_X);
+
+    CHECK_CLOSE(53, quat.getYaw().valueDegrees(), 0.0001);
+    CHECK_CLOSE(10, quat.getRoll(false).valueDegrees(), 0.0001);
+    CHECK_CLOSE(15, quat.getPitch(false).valueDegrees(), 0.0001);
+}

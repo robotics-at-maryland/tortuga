@@ -300,7 +300,7 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
 {
     Vector3 mag(_mag);
     Vector3 accel(_accel);
-
+//*
     // Point accel down, and normalize
     mag.normalise();
     accel = accel * -1;
@@ -336,8 +336,8 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
     quaternion[1] = result.y;
     quaternion[2] = result.z;
     quaternion[3] = result.w;
-/*
- 
+    /*/
+    mag.normalise();
     Vector3 n3 = accel * -1;
     n3.normalise();
     
@@ -356,7 +356,7 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
 
 
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
-*/
+//*/
 }
     
 } // namespace device
