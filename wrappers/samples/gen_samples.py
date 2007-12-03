@@ -3,8 +3,11 @@
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-import buildfiles.wrap as wrap
+# Library Imports
+from pygccxml import declarations
 
+# Project Imports
+import buildfiles.wrap as wrap
 
 def generate(local_ns, global_ns):
     """
@@ -13,7 +16,11 @@ def generate(local_ns, global_ns):
     """
     local_ns.include()
 
+    # Free function which deals with a std::vector<boost::shared_ptr<T> >
+    f = local_ns.free_fun( 'funcVectorShared' )
+    wrap.fix_shared_ptr_vector(declarations.remove_declarated(f.return_type))
 
+    # CodeInject Class
     CodeInject = local_ns.class_('CodeInject')
 
     # Return type only function

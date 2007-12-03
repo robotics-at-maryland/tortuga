@@ -27,7 +27,7 @@ boost::shared_ptr<A> func();
 
 std::vector<A> funcVector();
     
-//std::vector<boost::shared_ptr<A> > funcVectorShared();
+std::vector<boost::shared_ptr<A> > funcVectorShared();
 
 }
 

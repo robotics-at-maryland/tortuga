@@ -120,6 +120,12 @@ def add_needed_includes(classes):
         decl_logger.info('Adding includes %s' % includes)
         cls.include_files.extend(includes)
 
+def fix_shared_ptr_vector(cls):
+    cls.indexing_suite.disable_method('sort')
+    cls.indexing_suite.disable_method('count')
+    cls.indexing_suite.disable_method('index')
+    cls.indexing_suite.disable_method('contains') 
+
 def fix_pointer_returns (classes, pointee_types = None, ignore_names = None):
     """
     Change out functions that return a variety of pointer to base types and
