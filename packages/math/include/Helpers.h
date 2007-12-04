@@ -10,6 +10,9 @@
 #ifndef RAM_MATH_H_07_07_2007
 #define RAM_MATH_H_07_07_2007
 
+// Must Be Included last
+#include "math/include/Export.h"
+
 namespace ram {
 namespace math {
 
@@ -51,7 +54,7 @@ void quaternionCrossProduct(double q1[4], double q2[4], double * pQ);
 
 double getDistance(double a[3], double b[3]);
 void getQuaternionErrorMatrix(double q[4], double * pMatrix);
-void quaternionFromnCb(double nCb[3][3], double * pQ);
+void RAM_EXPORT quaternionFromnCb(double nCb[3][3], double * pQ);
 
 void rotationRoll(double phi, double * pMatrix);
 void rotationPitch(double theta, double * pMatrix);

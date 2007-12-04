@@ -160,8 +160,3 @@ TEST_FIXTURE(IMU, quaternionFromIMU)
     CHECK_ARRAY_CLOSE(quat_exp2, quat_res, 4, 0.0001);
 */
 }
-
-int main()
-{
-    return UnitTest::RunAllTests();
-}

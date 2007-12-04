@@ -20,6 +20,9 @@
 #include "vehicle/include/IVehicle.h"
 #include "vehicle/include/device/IDevice.h"
 
+// Must Be Included last
+//#include "vehicle/include/Export.h"
+
 class MockVehicle : public ram::vehicle::IVehicle
 {
 public:

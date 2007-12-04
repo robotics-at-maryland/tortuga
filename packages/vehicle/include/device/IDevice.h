@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <cassert>
+#include <string>
 
 // Library Includes
 #include <boost/utility.hpp>
@@ -20,11 +21,14 @@
 // Project Includes
 #include "core/include/IUpdatable.h"
 
+// Must Be Included last
+#include "vehicle/include/Export.h"
+
 namespace ram {
 namespace vehicle {
 namespace device {
 
-class IDevice : public core::IUpdatable, boost::noncopyable
+class RAM_EXPORT IDevice : public core::IUpdatable, boost::noncopyable
 {
 public:
     virtual ~IDevice() {};

@@ -14,17 +14,17 @@
 #include <string>
 
 // Project Includes
-#include "pattern/include/Subject.h"
-
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/Common.h"
+
+// Must Be Included last
+#include "vehicle/include/Export.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
 
-class IPSU : public IDevice,          // For getName
-            public pattern::Subject // so other objects can watch
+class RAM_EXPORT IPSU : public IDevice          // For getName
             // boost::noncopyable
 {
 public:

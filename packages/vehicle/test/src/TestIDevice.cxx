@@ -51,3 +51,8 @@ TEST(castTo)
     //boost::shared_ptr<DeviceB> ptrB =
     //    ram::vehicle::device::IDevice::castTo<DeviceB>(deviceA);
 }
+
+int main()
+{
+    return UnitTest::RunAllTests();
+}

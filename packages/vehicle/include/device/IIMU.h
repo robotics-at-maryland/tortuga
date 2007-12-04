@@ -15,18 +15,16 @@
 
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
-
 #include "math/include/Quaternion.h"
 
-#include "pattern/include/Subject.h"
-
+// Must Be Included last
+#include "vehicle/include/Export.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
     
-class IIMU : public IDevice,         // For getName
-             public pattern::Subject // so other objects can watch
+class RAM_EXPORT IIMU : public IDevice         // For getName
              // boost::noncopyable
 {
 public:

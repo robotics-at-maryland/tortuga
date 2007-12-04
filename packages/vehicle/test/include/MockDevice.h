@@ -15,6 +15,9 @@
 #include "vehicle/include/device/IDevice.h"
 #include "core/include/ConfigNode.h"
 
+// Must Be Included last
+//#include "vehicle/include/Export.h"
+
 class MockDevice : public ram::vehicle::device::IDevice,
                    public ram::vehicle::device::Device
 {

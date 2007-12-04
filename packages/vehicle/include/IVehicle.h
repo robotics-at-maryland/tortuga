@@ -22,12 +22,17 @@
 #include "core/include/Subsystem.h"
 #include "math/include/Vector3.h"
 
+// Must Be Included last
+#include "vehicle/include/Export.h"
+
 namespace ram {
 namespace vehicle {
     
-class IVehicle : public core::Subsystem
+class RAM_EXPORT IVehicle : public core::Subsystem
 {
 public:
+    virtual ~IVehicle(); //{}
+
     /** Gets the device associated with the given name */
     virtual device::IDevice* getDevice(std::string name) = 0;
 
@@ -76,7 +81,7 @@ public:
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque) = 0;
 protected:
-    IVehicle(std::string name) : Subsystem(name) {}
+    IVehicle(std::string name);// : Subsystem(name) {}
 };
     
 } // namespace vehicle

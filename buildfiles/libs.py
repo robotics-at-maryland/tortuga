@@ -144,8 +144,11 @@ def setup_windows_libs():
                                  
         'Boost.Filesystem' : Library('Boost.Filesystem', '1.34.1',
                                  [], [BOOST_FILESYSTEM_LIB], 
-                                 ext_deps = ['Boost']),                         
-
+                                 ext_deps = ['Boost']),     
+                                 
+        'Boost.ProgramOptions' : Library('Boost.ProgramOptions','1.34.1', [],
+                                         [BOOST_PROGOPT_LIB]),
+                                 
         'Python' : Library('Python', '2.5', ['Python.h'],
                            'python25', CPPPATH = sysconfig.get_python_inc(),
                            LINKFLAGS = ['/LIBPATH:'+python_lib_path],
@@ -178,10 +181,14 @@ def _get_external_lib(name):
 
 INTERNAL_LIBS = None
 
-def _get_internal_lib(name):
+def _get_internal_lib(env, name):
     """
     Maps internal library name with the information needed to build it
     """
+    vehicle_int_deps = ['core', 'pattern','math']
+    if env.HasFeature('drivers'):
+        vehcile_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster'])
+    
     # This delays creation of these until after the module is loaded so the 
     # classes can be at the bottom of the file
     global INTERNAL_LIBS
@@ -219,9 +226,7 @@ def _get_internal_lib(name):
                                         ext_deps = []),
 
             'vehicle' : InternalLibrary('vehicle',
-                                        int_deps = ['core', 'imu', 'pattern',
-                                                    'carnetix', 'math',
-                                                    'sensor', 'thruster'],
+                                        int_deps = vehicle_int_deps,
                                         ext_deps = [])
             }
 
@@ -250,7 +255,7 @@ def add_internal(env, name):
     Adds the flags need to build and link against one of our internal libraries
     """
     if not env.GetOption('clean'):
-        _get_internal_lib(name).setup_environment(env)
+        _get_internal_lib(env, name).setup_environment(env)
 
 
 # --------------------------------------------------------------------------- #
@@ -514,7 +519,7 @@ class InternalLibrary(Library):
 
         # Setup dependent libraries if it isn't already done
         if self.int_deps is None:
-            self.int_deps = [_get_internal_lib(lib) for lib in self._int_deps_name]
+            self.int_deps = [_get_internal_lib(env, lib) for lib in self._int_deps_name]
         # Setup the environment for out internal dependedcies
         self._adding_int_depends = True
         for lib in self.int_deps:

@@ -91,10 +91,10 @@ void Thruster::setForce(double force)
         m_motorCount = motorCount;
     }
 
-
+    // TODO: Replace me with an event
     // Notify observers
-    setChanged();
-    notifyObservers(0, FORCE_UPDATE);
+    //etChanged();
+    //notifyObservers(0, FORCE_UPDATE);
 }
 
 double Thruster::getForce()

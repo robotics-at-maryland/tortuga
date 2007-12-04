@@ -15,6 +15,14 @@
 #include "pattern/include/Maker.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
         
+// Must Be Included last
+#include "vehicle/include/Export.h"
+
+// Need to disable this on windows, could cause hard to solve link errors
+#ifdef RAM_WINDOWS
+#pragma warning( disable : 4661 ) 
+#endif
+        
 namespace ram {
 namespace vehicle {
 namespace device {
@@ -24,6 +32,14 @@ typedef ram::pattern::Maker<IDevice*, // The type of object created by the maker
               std::string,            // The type of key used to register makers
               ram::core::ConfigNodeKeyExtractor> // Gets the key from the paramters
 IDeviceMaker;
+
+// Needed to keep the linker/compiler happy
+#ifdef RAM_WINDOWS
+template class RAM_EXPORT ram::pattern::Maker<IDevice*,
+    ram::core::ConfigNode,
+    std::string,
+    ram::core::ConfigNodeKeyExtractor>;
+#endif
 
 template<class DeviceType>
 struct IDeviceMakerTemplate : public IDeviceMaker

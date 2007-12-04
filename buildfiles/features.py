@@ -39,7 +39,10 @@ def get_features():
     add_feature('math', dirs = ['packages/math'])
     add_feature('vision', dirs = ['packages/vision'],
                 deps = ['pattern', 'core'])
-				
+	
+    add_feature('vehicle', dirs = ['packages/vehicle'],
+                    deps = ['math', 'core', 'pattern'])
+    
     add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
                     {'control' : ['wrappers/control'],
                      'math' : ['wrappers/math'],
@@ -54,9 +57,6 @@ def get_features():
         
         add_feature('control', dirs = ['packages/control'],
                     deps = ['math', 'core', 'vehicle'])
-
-        add_feature('vehicle', dirs = ['packages/vehicle'],
-                    deps = ['math', 'core', 'pattern', 'drivers'])
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',
                                            'tools/BiasFinder'])
@@ -101,18 +101,20 @@ def setup_environment(env):
                         ' not both at the same time')
 
     # Determine list of actual features
-    features = env['with_features']
+    feature_list = env['with_features']
+    if 'all' == str(feature_list):
+        feature_list = available()
     if has_without:
-        features = available()
+        feature_list = available()
         for f in env['without_features']:
-            features.remove(f)
+            feature_list.remove(f)
 
     # Find and add the extra features needed by deps
     global FEATURES
-    current = set(features)
+    current = set(feature_list)
     added = set()
 
-    for f in features:
+    for f in current:
         added.update(FEATURES[f].all_deps(added, FEATURES))
     added = added.difference(current)
 
@@ -120,18 +122,18 @@ def setup_environment(env):
         print '\nWarning: the following features were added because the were'
         print 'needed by the selected features: "' + '", "'.join(added) + '"\n'
 
-    features.extend(added)
-    env['features'] = features
+    feature_list.extend(added)
+    env['features'] = feature_list
 
     # Place Feature list in the envrionment
-    features = {}
+    feature_map = {}
     for f in env['features']:
-        features[f] = FEATURES[f]
-    env['FEATURES'] = features
+        feature_map[f] = FEATURES[f]
+    env['FEATURES'] = feature_map
 
     # Generate Feature.h file
     env.Command('packages/core/include/Feature.h',
-                SCons.Node.Python.Value(env['features']),
+                SCons.Node.Python.Value(feature_list),
                 write_feature_h)
 
     # Place 'HasFeature function in the enviornment
@@ -190,22 +192,23 @@ class Feature(object):
 
 def write_feature_h(env, target, source):
     f = open(target[0].abspath, 'w')
-    f.write('// DO NOT EDIT, This is generated header\n')
-    f.write('#ifndef RAM_CORE_FEATURES\n#define RAM_CORE_FEATURES\n')
+    f.write('// DO NOT EDIT, This is a generated header\n')
+    f.write('#ifndef RAM_CORE_FEATURES\n#define RAM_CORE_FEATURES\n\n')
 
     # Make sure we only have one source
     if type(source) is types.ListType:
         source = source[0]
-        
-    features = source.get_contents()
+    
     # Make sure we have a list
     if not type(source) is types.ListType:
-        features = [features]
+        # For some reason this is a string, need to eval it
+        features = eval(source.get_contents())
+    #    features = [features]
 
     for feature in features:
         f.write('#define RAM_WITH_%s\n' % feature.upper())
     
-    f.write('#endif RAM_CORE_FEATURES\n\n')
+    f.write('\n#endif RAM_CORE_FEATURES\n\n')
 
 def add_feature(name, dirs = [], deps = [], opt_dirs = {}):
     """

@@ -25,7 +25,11 @@ def glob(env, path, pattern):
 
     results = []
     for p in _glob.glob(directory + '/' + pattern):
-        results.append(p.replace(base_dir + os.path.sep, ''))
+        # Place the path into OS standard format
+        p = os.path.normpath(p.replace(base_dir + os.path.sep, ''))
+        # Now make it an OS independent '/' path
+        results.append(p.replace(os.path.sep,'/'))
+        
 
     return results
 
@@ -74,7 +78,7 @@ def SharedLibrary(env, name, _source, **kwargs):
         CREATED_LIBRARIES.add(name)
 
     # Setup environment to build library based on info in libs.py
-    my_lib = libs._get_internal_lib(name)
+    my_lib = libs._get_internal_lib(env, name)
     my_lib.setup_environment(env, building_self = True)
 
     # Needed for DLL symbol export on windows
@@ -154,6 +158,7 @@ def run_tests(env, output, inputs, message = None, deps = None):
                        SCons.Action.Action(run_test_imp, msg))
 
 def Tests(env, _target, _source, run = True, **kwargs):
+    exclude_list = _ensure_list(kwargs.get('exclude', []))
     # Add 'UnitTest++' to the list of ext_deps
     ext_deps = _ensure_list(kwargs.get('ext_deps', []))
     ext_deps.append('UnitTest++')
@@ -164,7 +169,8 @@ def Tests(env, _target, _source, run = True, **kwargs):
         _target = ['test/Tests']
     if _source is None:
         _source = glob(env, 'test/src', '*.cxx')
-
+    for exclude in exclude_list:
+        _source.remove(exclude)
     # Create the Test Program
     prog = Program(env, target = _target, source = _source, **kwargs)
 

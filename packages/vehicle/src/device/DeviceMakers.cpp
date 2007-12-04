@@ -11,15 +11,23 @@
 // the factory system to a minimum
 
 // Project Includes
+#include "core/include/Feature.h"
+
 #include "vehicle/include/device/IDeviceMaker.h"
-#include "vehicle/include/device/IMU.h"
-#include "vehicle/include/device/PSU.h"
 #include "vehicle/include/device/Thruster.h"
 
+#ifdef RAM_WITH_DRIVERS
+#include "vehicle/include/device/IMU.h"
+#include "vehicle/include/device/PSU.h"
+#endif
+
 // Register each device with the factor system
+#ifdef RAM_WITH_DRIVERS
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::IMU, IMU);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::PSU, PSU);
+#endif
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::Thruster, Thruster);
+
 
 // In this case the static variable is safe
 #if RAM_COMPILER == RAM_COMPILER_MSVC

@@ -63,6 +63,7 @@ class TestDepthController(object):
         current_depth = self.robot._main_part._node.position.y
         error = self._desired_depth - current_depth
         force = error * 100 #- self.robot._main_part.acceleration.y * 10
+        #print 'Depth Force',force
         
         self.robot.parts.aft_thruster.force = force 
         self.robot.parts.front_thruster.force = force
@@ -96,7 +97,7 @@ class TestDepthController(object):
         if self._backward:
             self.robot.parts.right_thruster.force -= (7.0 * time_since_last_frame)
             self.robot.parts.left_thruster.force -= (7.0 * time_since_last_frame)
-        
+
         if self._left:
             self.robot.parts.left_thruster.force -= (5 * time_since_last_frame)
             self.robot.parts.right_thruster.force += (5 * time_since_last_frame)

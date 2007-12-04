@@ -15,14 +15,15 @@
 
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
-#include "pattern/include/Subject.h"
+
+// Must Be Included last
+#include "vehicle/include/Export.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
 
-class IThruster : public IDevice, // boost::noncopyable
-                  public pattern::Subject
+class RAM_EXPORT IThruster : public IDevice // boost::noncopyable
 {
 public:
     enum UpdateEvents {

@@ -17,11 +17,14 @@
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/Common.h"
 
+// Must Be Included last
+#include "vehicle/include/Export.h"
+
 namespace ram {
 namespace vehicle {
 namespace device {
 
-class Device //: public IDevice
+class RAM_EXPORT Device //: public IDevice
 {
 public:
     Device(std::string name);
