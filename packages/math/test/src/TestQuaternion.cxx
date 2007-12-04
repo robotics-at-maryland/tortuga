@@ -89,7 +89,9 @@ TEST(getRollPitchYaw)
     quat = quat * Quaternion(Degree(15), Vector3::UNIT_Y);
     quat = quat * Quaternion(Degree(10), Vector3::UNIT_X);
 
-    CHECK_CLOSE(53, quat.getYaw().valueDegrees(), 0.0001);
+    // False is need to return the "intuitive" result other wise you get the
+    // shortest yaw needed
+    CHECK_CLOSE(53, quat.getYaw(false).valueDegrees(), 0.0001);
     CHECK_CLOSE(10, quat.getRoll(false).valueDegrees(), 0.0001);
     CHECK_CLOSE(15, quat.getPitch(false).valueDegrees(), 0.0001);
 }
