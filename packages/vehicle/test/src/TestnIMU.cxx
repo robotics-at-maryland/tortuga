@@ -7,6 +7,8 @@
  * File:  packages/packages/vehicle/test/src/TestnIMU.cxx
  */
 
+#include <iostream>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
@@ -108,6 +110,16 @@ TEST_FIXTURE(IMU, quaternionFromIMU)
     TEST_UTILITY_FUNC(quatIMU)(expVehicleMag, expVehicleAccel,
                                magAccelRotation);
 
+    // 180 Degree right yaw (ie south)
+    // This means vehicle frame Mag + Accel vectors will be 180 degrees left
+    expVehicleMag = Vector3(-0.1813, 0, 0.0845);
+    expVehicleAccel = Vector3(0, 0, 1);
+    // Build a quaternion which rotates them 180 degees left
+    magAccelRotation.FromAngleAxis(Degree(180), Vector3::UNIT_Z);
+
+    TEST_UTILITY_FUNC(quatIMU)(expVehicleMag, expVehicleAccel,
+                               magAccelRotation);
+
     // Vehicle 90 Pitch up
     // This means vehicle frame Mag + Accel vectors will be 90 degrees down
     expVehicleMag = Vector3(0.0845, 0, -0.1813);
@@ -128,8 +140,8 @@ TEST_FIXTURE(IMU, quaternionFromIMU)
 
     // These next ones aren't derived manually, I just combine some odd
     // rotations to try and break the method
-    magAccelRotation = Quaternion(Degree(45), Vector3::UNIT_X) *
-        Quaternion(Degree(45), Vector3::UNIT_Z);
+    magAccelRotation = Quaternion(Degree(21), Vector3::UNIT_X) *
+        Quaternion(Degree(87), Vector3::UNIT_Z);
     TEST_UTILITY_FUNC(quatIMU)(Vector3::ZERO, Vector3::ZERO, magAccelRotation);
 
     magAccelRotation.FromAngleAxis(Degree(33),
