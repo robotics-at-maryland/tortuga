@@ -198,11 +198,14 @@ def write_feature_h(env, target, source):
     # Make sure we only have one source
     if type(source) is types.ListType:
         source = source[0]
-    
+
     # Make sure we have a list
     if not type(source) is types.ListType:
         # For some reason this is a string, need to eval it
-        features = eval(source.get_contents())
+        if os.name == 'posix':
+            features = source.get_contents().split(',')
+        else:
+            features = eval(source.get_contents())
     #    features = [features]
 
     for feature in features:

@@ -183,10 +183,10 @@ void IMU::update(double timestep)
             }
 
 
-
+            // TODO: Make me events
             // Nofity observers
-            setChanged();
-            notifyObservers(0, DataUpdate);
+	    //            setChanged();
+	    //            notifyObservers(0, DataUpdate);
         }
     }
     // We didn't connect, try to reconnect

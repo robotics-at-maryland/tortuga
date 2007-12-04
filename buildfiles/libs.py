@@ -187,7 +187,7 @@ def _get_internal_lib(env, name):
     """
     vehicle_int_deps = ['core', 'pattern','math']
     if env.HasFeature('drivers'):
-        vehcile_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster'])
+        vehicle_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster'])
     
     # This delays creation of these until after the module is loaded so the 
     # classes can be at the bottom of the file
