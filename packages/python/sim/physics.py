@@ -65,7 +65,7 @@ class IBody(IObject):
         @param: The current velocity vector of the body
         """) 
     
-    omege = core.Attribute(
+    omega = core.Attribute(
         """
         @type: Ogre.Vector
         @param: The current angular velocity vector of the body
@@ -171,6 +171,7 @@ class Body(Object):
         If you call this, make sure to call create, before using the object
         """
         self._force = Ogre.Vector3(0,0,0)
+        self._omega = Ogre.Vector3(0,0,0)
         self._gravity = defaults.gravity
         self._local_force = []
         self._global_force = []
@@ -178,6 +179,7 @@ class Body(Object):
         self._body = None
         self._material = None
         self._old_velocity = Ogre.Vector3.ZERO
+        self._previous_Omega = Ogre.Vector3.ZERO
     
         Object.__init__(self)
     
@@ -302,12 +304,18 @@ class Body(Object):
             return self._body.getVelocity()
             
     class omega(core.cls_property):
+        def fset(self, torque):
+            self._omega = Ogre.Vector3(torque)
         def fget(self):
-            return self._body.getOmega()           
+            return self._omega          
     
     class acceleration(core.cls_property):
         def fget(self):
             return self._old_velocity - self.velocity
+    
+    class angular_Accel(core.cls_property):
+        def fget(self):
+            return self._previous_Omega - self.omega
     
     # Force Applying Methods
     class force(core.cls_property):
@@ -615,6 +623,7 @@ class World(OgreNewt.World):
         """
         body = newton_body.getUserData()
         body._old_velocity = body.velocity
+        body._previous_Omega = body.omega
         
         # Apply forces
         force = body.force
@@ -626,11 +635,16 @@ class World(OgreNewt.World):
             newton_body.addGlobalForce(force, pos)
         
         # Todo apply torques
-        
+        omega = body.omega
+#        print omega
+        if omega != (0,0,0):
+            print 'Torque', omega
+            newton_body.addTorque(omega)
+            
         # Damping hack
-        newton_body.omega = newton_body.omega * 0.8
-        if newton_body.omega.length() < 0.001:
-            newton_body.omega = (0,0,0)
+        #newton_body.omega = newton_body.omega * 0.8
+        #if newton_body.omega.length() < 0.001:
+        #    newton_body.omega = (0,0,0)
         
         # Zero force on body
         body.force = (0,0,0)

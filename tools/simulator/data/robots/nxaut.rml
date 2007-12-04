@@ -11,7 +11,11 @@ Robot:
     # This section describes the physics of the object
     Physical:
         # In kilograms
+#<<<<<<< .mine
+#        mass: 28  # About 0.5% bouyant
+#=======
         mass: 28.175262359039998  # About 0.5% bouyant
+#>>>>>>> .r1688
         center_of_mass: [0, -0.15, 0]
         material: SubMat
         Shape:

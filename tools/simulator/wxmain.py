@@ -34,11 +34,59 @@ event.add_event_types(['THRUST_FORE', 'THRUST_BACK',
                        'THRUST_UP', 'THRUST_DOWN','THRUST_PITCH_UP',
                        'THRUST_KILL'])
 
-class TestDepthController(object):
+class Vehicle(object):
     def __init__(self, robot):
         self.robot = robot
+    
+    def getDepth(self):
+        return self.robot._main_part._node.position.y
+    
+    def getOrientation(self):
+        return self.robot._main_part._node.orientation
+    
+    def acceleration(self):
+        return self.robot._main_part.acceleration
+    
+    def angularAcceleration(self):
+        return self.robot._main_part.angular_Accel
+    
+#    Implement:
+#    def getForce(self):
+#        return 
+    
+    def applyForcesAndTorque(self, force, torque):
+        star = force[2] / 2 + 0.5 * torque[1] #/ 0.1905
+        port = force[2] / 2 - 0.5 * torque[1] #/ 0.1905
+        fore = force[1] / 2 + 0.5 * torque[0] #/ 0.3366
+        aft = force[1] / 2 - 0.5 * torque[0] #/ 0.3366
+  
+        #print 'Port;', port , ' Star;', star
+          
+#        hor_force_difference = 0
+#        if star < port:
+#            hor_force_difference = (port - star)
+#            port += hor_force_difference * 4
+#        elif star > port:
+#            hor_force_difference = (star - port)
+#            port -= hor_force_difference * 4
+        
+            
+        self.robot.parts.right_thruster.force = star
+        self.robot.parts.left_thruster.force = port
+        self.robot.parts.front_thruster.force = fore
+        self.robot.parts.aft_thruster.force = aft
+        
+
+#        self.robot.parts.right_thruster.force = 10
+#        self.robot.parts.left_thruster.force = -10
+
+class TestDepthController(object):
+    def __init__(self, robot):
+        #self.robot = robot
+        self.vehicle = Vehicle(robot) #vehicle declaration
         self._desired_depth = 0;
         self._desired_pitch = 0;
+        self._desired_yaw = 0;
         
         watched_buttons = {'_forward' : ['THRUST_FORE'],
                            '_backward' : ['THRUST_BACK'],
@@ -56,61 +104,102 @@ class TestDepthController(object):
             print self._desired_depth
         elif self._down:
             self._desired_depth -= 3 * time_since_last_frame
-            print self._desired_depth
         
         
         # Simple P type controller for the depth
-        current_depth = self.robot._main_part._node.position.y
+        current_depth = self.vehicle.getDepth()
         error = self._desired_depth - current_depth
-        force = error * 100 #- self.robot._main_part.acceleration.y * 10
+#        print 'Current Depth: ', current_depth, ' Desired: ', self._desired_depth, ' Error: ', error
+        depth_force = error * 50 #- self.robot._main_part.acceleration.y * 10
         #print 'Depth Force',force
         
-        self.robot.parts.aft_thruster.force = force 
-        self.robot.parts.front_thruster.force = force
+        force = Ogre.Vector3(0,depth_force,0)
         
-        actual_force = self.robot.parts.front_thruster.force
+        
+        if self._left:
+            self._desired_yaw += 5 * time_since_last_frame
+        elif self._right:
+            self._desired_yaw -= 5 * time_since_last_frame
+        current_yaw = self.vehicle.getOrientation().getYaw().valueDegrees()
+        yaw_error = self._desired_yaw - current_yaw
+        print 'Desired', self._desired_yaw
+        print 'Current', current_yaw
+        
+        
+        current_pitch = self.vehicle.getOrientation().getPitch().valueDegrees()
+        error = self._desired_pitch - current_pitch
+        torque = Ogre.Vector3(error,yaw_error,0)
+        
+        
+        if self._forward:
+            force += Ogre.Vector3(0,0,10) 
+        if self._backward:       
+            force -= Ogre.Vector3(0,0,10)
+#<<<<<<< .mine
+#            self.robot.parts.right_thruster.force += (7.0 * time_since_last_frame)
+#            self.robot.parts.left_thruster.force += (7.0 * time_since_last_frame)
+#        if self._backward:
+#            self.robot.parts.right_thruster.force -= (7.0 * time_since_last_frame)
+#            self.robot.parts.left_thruster.force -= (7.0 * time_since_last_frame)
+#
+#        if self._left:
+#            self.robot.parts.left_thruster.force -= (5 * time_since_last_frame)
+#            self.robot.parts.right_thruster.force += (5 * time_since_last_frame)
+#        if self._right:
+#            self.robot.parts.left_thruster.force += (5 * time_since_last_frame)
+#            self.robot.parts.right_thruster.force -= (5 * time_since_last_frame)
+#>>>>>>> .r1688
+#            
+        if self._left:
+            torque += Ogre.Vector3(0,5,0)
+        if self._right:
+            torque -= Ogre.Vector3(0,5,0)
+        print force[1]
+        self.vehicle.applyForcesAndTorque(force, torque)
+
+        
 #        print 'E: %5.4f A: %5.4f D: %5.4f AD: %5.4f FC: %06.4f FA: %06.4f' % \
 #            (error, self.robot._main_part.acceleration.y, self._desired_depth, 
 #             current_depth, force, actual_force)
         
 #        print 'E: %5.4f A: %5.4f' % (error, self.robot._main_part.acceleration.y)
         # Simple P type controller for the pitch
-        current_pitch = self.robot._main_part.orientation.getPitch().valueDegrees()
-        error = self._desired_pitch - current_pitch
-        
-        fbefore = self.robot.parts.front_thruster.force
-        abefore = self.robot.parts.aft_thruster.force
-        
-        force = (error * 5)
-        self.robot.parts.front_thruster.force -= force
-        self.robot.parts.aft_thruster.force += force
-        
-        fafter = self.robot.parts.front_thruster.force
-        aafter = self.robot.parts.aft_thruster.force
-        
-#        print 'E: %5.4f D: %5.4f A: %5.4f C: %6.5f | FB: %06.4f FA: %06.4f AB: %06.4f AA: %06.4f' % \
-#            (error, self._desired_pitch, current_pitch, 0, fbefore, fafter, abefore, aafter)
-            
-        if self._forward:
-            self.robot.parts.right_thruster.force += (7.0 * time_since_last_frame)
-            self.robot.parts.left_thruster.force += (7.0 * time_since_last_frame)
-        if self._backward:
-            self.robot.parts.right_thruster.force -= (7.0 * time_since_last_frame)
-            self.robot.parts.left_thruster.force -= (7.0 * time_since_last_frame)
-
-        if self._left:
-            self.robot.parts.left_thruster.force -= (5 * time_since_last_frame)
-            self.robot.parts.right_thruster.force += (5 * time_since_last_frame)
-        if self._right:
-            self.robot.parts.left_thruster.force += (5 * time_since_last_frame)
-            self.robot.parts.right_thruster.force -= (5 * time_since_last_frame)
-            
-        if self._pitch_up:
-            self.robot.parts.aft_thruster.force -= (5 * time_since_last_frame)
-            self.robot.parts.front_thruster.force += (5 * time_since_last_frame)
-        if self._pitch_down:
-            self.robot.parts.aft_thruster.force += (5 * time_since_last_frame)
-            self.robot.parts.front_thruster.force -= (5 * time_since_last_frame)
+#        current_pitch = self.vehicle.getOrientation().getPitch().valueDegrees()
+#        error = self._desired_pitch - current_pitch
+#        
+#        fbefore = self.robot.parts.front_thruster.force
+#        abefore = self.robot.parts.aft_thruster.force
+#        
+#        force = (error * 5)
+#        self.robot.parts.front_thruster.force -= force
+#        self.robot.parts.aft_thruster.force += force
+#        
+#        fafter = self.robot.parts.front_thruster.force
+#        aafter = self.robot.parts.aft_thruster.force
+#        
+##        print 'E: %5.4f D: %5.4f A: %5.4f C: %6.5f | FB: %06.4f FA: %06.4f AB: %06.4f AA: %06.4f' % \
+##            (error, self._desired_pitch, current_pitch, 0, fbefore, fafter, abefore, aafter)
+#            
+#        if self._forward:
+#            self.robot.parts.right_thruster.force += (7.0 * time_since_last_frame)
+#            self.robot.parts.left_thruster.force += (7.0 * time_since_last_frame)
+#        if self._backward:
+#            self.robot.parts.right_thruster.force -= (7.0 * time_since_last_frame)
+#            self.robot.parts.left_thruster.force -= (7.0 * time_since_last_frame)
+#        
+#        if self._left:
+#            self.robot.parts.left_thruster.force -= (5 * time_since_last_frame)
+#            self.robot.parts.right_thruster.force += (5 * time_since_last_frame)
+#        if self._right:
+#            self.robot.parts.left_thruster.force += (5 * time_since_last_frame)
+#            self.robot.parts.right_thruster.force -= (5 * time_since_last_frame)
+#            
+#        if self._pitch_up:
+#            self.robot.parts.aft_thruster.force -= (5 * time_since_last_frame)
+#            self.robot.parts.front_thruster.force += (5 * time_since_last_frame)
+#        if self._pitch_down:
+#            self.robot.parts.aft_thruster.force += (5 * time_since_last_frame)
+#            self.robot.parts.front_thruster.force -= (5 * time_since_last_frame)
 
 class TestController(object):
     def __init__(self, robot):

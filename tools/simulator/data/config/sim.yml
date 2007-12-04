@@ -17,7 +17,7 @@ Modules:
         Graphics:
             Plugins:
                 search_path: ['C:\Libraries\PythonOgre\plugins',
-                'C:\Developement\PythonOgre\plugins',
+                'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
                 '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
                 
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
