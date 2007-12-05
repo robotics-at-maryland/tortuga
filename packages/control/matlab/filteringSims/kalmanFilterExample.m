@@ -7,31 +7,42 @@ alpha=0.5;
 error = 15;
 
 %y = x + vt + .5at^2
+% global sim;
+% sim.x0 = 150;
+% sim.v0 = 0;
+% sim.a = -9.8;
 
-x0 = 150;
-v0 = 0;
-a = -9.8;
-time = [];
-x = [];%true measurements
-measured = [];%noisy measurements
-t2 = [];
 sample_rate = .1;
 
-%noise variance is error*variance_randn = error*1
-noiseVariance=error*1;
-R=sqrt(noiseVariance);
+
+%initial conditions (starts the true position
+x=[150 0]'; %x=[position velocity]';
+t0=0;
+
+time = [0];
+%x = [];%true measurements
+measured = [151]';%noisy measurements
+t2 = [];
+
+
+%first make sure global variable Kalman is cleared
+clear global Kalman;
+%create a fresh copy of global variable Kalman
+global Kalman;
+Kalman.noiseVariance=error*1;
+Kalman.R=sqrt(Kalman.noiseVariance);
 %assume no process noise
-Q=zeros(2);
+Kalman.Q=zeros(2);
 %discrete time system model
-F=[1 .1; 0 1];
-G=[.05; .1];
-H=[1 0];
-u=-9.8;%input is always 9.8 m/s^2
+Kalman.F=[1 .1; 0 1];
+Kalman.G=[.05; .1];
+Kalman.H=[1 0];
+Kalman.u=-9.8;%input is always 9.8 m/s^2
 %initial condition (at k=1)
-x_hat_minus=[x0; v0];
-x_hat=[];
+Kalman.x_hat_minus=[x(1,1); x(2,1)];
+Kalman.x_hat=[Kalman.x_hat_minus];
 %initial covariance estimate (at k=1)
-P_minus=[10 0; 0 1];
+Kalman.P_minus=[10 0; 0 1];
 
 
 % for t = 0:.1:5
@@ -41,40 +52,43 @@ P_minus=[10 0; 0 1];
 %    t = t + .2;
 % end
 
-for t = 0:sample_rate:5
+for t = t0+sample_rate:sample_rate:5
     
     %Create Time Array
     time(end+1) = t;
 
     %simulate actual dynamics
-    y0 = [x0 v0];
-    [time2,y] = ode45('makex',[0:sample_rate:(time(end)+.1)],y0);
-    x(end+1) = y(end,1);
+    %[time2,y] = ode45('makex',[0:sample_rate:(time(end)+.1)],x(end,:);
+    [time_int,x_int]=ode45('makex',[time(end-1) time(end)],x(:,end));
+    x(:,end+1) = x_int(end,:)';
 
     %make noisy measurement
-    measured(end+1) = x(end) + (error*randn);
-
+    measured(end+1) = x(1,end) + (error*randn);
+    
+    Kalman.measured = measured;%gets recreated each time
+    step_kalman%function to actually perform the kalman filter
+    
     %iterate through data
     %for k=1:length(time)
         %compute kalman gain
-        K=P_minus*H'*inv(H*P_minus*H'+R);
+        %K=Kalman.P_minus*Kalman.H'*inv(Kalman.H*Kalman.P_minus*Kalman.H'+Kalman.R);
         %update state estimate
-        x_hat(:,end+1)=x_hat_minus+K*(measured(end)-H*x_hat_minus);
+        %Kalman.x_hat(:,end+1)=Kalman.x_hat_minus+K*(measured(end)-Kalman.H*Kalman.x_hat_minus);
         %update error covariance
-        P=(eye(2)-K*H)*P_minus;
+        %P=(eye(2)-K*Kalman.H)*Kalman.P_minus;
         %project state estimate
-        x_hat_minus=F*x_hat(:,end)+G*u;
+        %Kalman.x_hat_minus=Kalman.F*Kalman.x_hat(:,end)+Kalman.G*Kalman.u;
         %project coraviance estimate
-        P_minus=F*P*F'+Q;
+        %Kalman.P_minus=Kalman.F*P*Kalman.F'+Kalman.Q;
 
     %end
 end
 
-plot(time, x, ':g');
+plot(time, x(1,:), ':g', 'linewidth', 2);
 hold on;
 plot(time, measured, '.r');
 
-plot(time, x_hat(1,:), '.b');
+plot(time, Kalman.x_hat(1,:), '.b');
 xlabel('Time');
 ylabel('Position');
 legend('True', 'Measured', 'Estimated');
