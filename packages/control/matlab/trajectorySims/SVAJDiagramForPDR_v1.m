@@ -4,19 +4,17 @@ clc;
 
 act_depth = input('Please input the current depth: ');
 des_depth = input('Please inpute the desired depth: ');
-% vel_max = input('Please inpute the desired max vel: ');
+
 
 %----Later this will be the update time of the controller------
      deltat = .1;
 %--------------------------------------------------------------
+    total_time = 30;
 
-vel_max = .7291;
-
-[s v] = SVAJ_generator(deltat,act_depth,des_depth,vel_max);
+[s v] = SVAJ_generator(deltat,act_depth,des_depth,total_time);
 hold on;
-s;
-v(150)
-
+s
+v;
 
 
   subplot(2,1,1); plot(s,'.');
