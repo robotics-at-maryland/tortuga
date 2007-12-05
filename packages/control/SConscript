@@ -5,6 +5,8 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/vehicle/SConscript
 
+import os
+
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
@@ -17,10 +19,12 @@ envl.RAMSharedLibrary('control',  source = sources)
 
 # Test Control Program
 envt = env.Clone()
-envt.RAMProgram(target = 'ControlTest', 
-                source = 'test/src/ControlTest.cpp',
-                int_deps = ['vehicle', 'control'],
-                ext_deps = ['Boost.ProgramOptions'])
+
+if os.name == 'posix':
+    envt.RAMProgram(target = 'ControlTest', 
+                    source = 'test/src/ControlTest.cpp',
+                    int_deps = ['vehicle', 'control'],
+                    ext_deps = ['Boost.ProgramOptions'])
 
 envt = env.Clone()
 envt.Tests(int_deps = 'control')

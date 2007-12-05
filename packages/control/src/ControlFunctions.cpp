@@ -12,6 +12,10 @@
 #include <cstdio>
 #include <iostream>
 
+#ifdef RAM_WINDOWS
+#define M_PI 3.14159265358979323846
+#endif
+
 // Project Includes
 #include "control/include/ControlFunctions.h"
 #include "math/include/Helpers.h"

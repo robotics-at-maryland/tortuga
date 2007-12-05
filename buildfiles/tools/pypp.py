@@ -81,7 +81,7 @@ def build_module(env, target, source): #, actual_target = None):
     if os.name == 'posix':
         suffix = '.so'
     else:
-        env.AppendUnique(CCFLAGS = ['/wd4244'])
+        env.AppendUnique(CCFLAGS = ['/wd4244','/wd4245'])
     extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='',
                                       SHLIBSUFFIX = suffix)
 

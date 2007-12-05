@@ -11,9 +11,15 @@
 #define RAM_CONTROL_CONTROLFUNCTIONS_H_06_30_2007
 
 #ifndef RAM_MATLAB_CONTROL_TEST
+
+// Must Be Included last
+#include "control/include/Export.h"
+
 namespace ram {
 namespace control {
-#endif // RAM_MATLAB_CONTROL_TEST
+#else // RAM_MATLAB_CONTROL_TEST
+#define RAM_EXPORT
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +29,7 @@ extern "C" {
 //                       'depth',1,
 //                       'quaternion',[1 2 3 4]',
 //                       'angularRate',[1 2 3]');
-struct DesiredState{
+struct RAM_EXPORT DesiredState{
     double speed;
     double depth;
     double quaternion[4];
@@ -34,7 +40,7 @@ struct DesiredState{
 //                        'linearAcceleration',[1 2 3]',
 //                        'quaternion',[1 2 3 4]',
 //                        'angularRate',[1 2 3]');
-struct MeasuredState{
+struct RAM_EXPORT MeasuredState{
     double depth;
     double linearAcceleration[3];
     double magneticField[3];
@@ -42,7 +48,7 @@ struct MeasuredState{
     double angularRate[3];
 };
 
-struct ControllerState{
+struct RAM_EXPORT ControllerState{
     double angularPGain;
     double angularDGain;
     double inertiaEstimate[3][3];
@@ -50,13 +56,13 @@ struct ControllerState{
     double speedPGain;
 };
 
-void translationalController(MeasuredState* measuredState,
+void RAM_EXPORT translationalController(MeasuredState* measuredState,
                              DesiredState* desiredState,
                              ControllerState* controllerState,
                              double dt,
                              double* translationalForces);
 
-void BongWiePDRotationalController(MeasuredState* measuredState,
+void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
                                    double dt,
@@ -66,16 +72,16 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
   //  bool isAtDepth();
 
 //TODO: implement this function
-  bool doIsOriented(MeasuredState* measuredState,
+  bool RAM_EXPORT doIsOriented(MeasuredState* measuredState,
                     DesiredState* desiredState,
                     double threshold);
 
-double  HackedPDPitchControl(MeasuredState* measuredState,
+double RAM_EXPORT HackedPDPitchControl(MeasuredState* measuredState,
                              DesiredState* desiredState,
                              ControllerState* controllerState,
 			     double hackedPitchGain);
 
-double  HackedPDYawControl(MeasuredState* measuredState,
+double RAM_EXPORT HackedPDYawControl(MeasuredState* measuredState,
                              DesiredState* desiredState,
                              ControllerState* controllerState,
 			     double hackedYawGain);

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007 Robotics at Maryland
  * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
@@ -11,21 +10,21 @@
 #ifndef RAM_CONTROL_ICONTROL_07_03_2007
 #define RAM_CONTROL_ICONTROL_07_03_2007
 
+// STD Includes
+#include <string>
+
 // Project Includes
 #include "core/include/Subsystem.h"
-#include "pattern/include/Subject.h"
+
+// Must Be Included last
+#include "control/include/Export.h"
 
 namespace ram {
 namespace control {
 
-class IController : public core::Subsystem, public pattern::Subject
+class RAM_EXPORT IController : public core::Subsystem
 {
 public:
-    enum UPDATE_EVENTS {
-        SPEED_UPDATE,
-        HEADING_UPDATE,
-        DEPTH_UPDATE
-    };
     
     /** Set the current speed, clamped between -5 and 5 */
     virtual void setSpeed(int speed) = 0;
@@ -55,7 +54,7 @@ public:
     virtual bool atDepth() = 0;
     
 protected:
-	IController(std::string name) : Subsystem(name) {}
+	IController(std::string name);
 	
 };
     

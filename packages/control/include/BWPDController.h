@@ -25,6 +25,9 @@
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 
+// Must Be Included last
+#include "control/include/Export.h"
+
 namespace ram {
 namespace control {
 
@@ -34,8 +37,8 @@ static const double DEPTH_TOLERANCE = 0.3048;
 static const double ORIENTATION_THRESHOLD = 0.015;
     
 /** Implements a PD Controller, based on a paper by Bong Wie  */
-class BWPDController : public IController,
-                       public core::Updatable
+class RAM_EXPORT BWPDController : public IController,
+                                  public core::Updatable
 {
 public:
     enum UPDATE_EVENTS {

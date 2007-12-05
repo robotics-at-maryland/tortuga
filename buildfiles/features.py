@@ -43,6 +43,9 @@ def get_features():
     add_feature('vehicle', dirs = ['packages/vehicle'],
                     deps = ['math', 'core', 'pattern'])
     
+    add_feature('control', dirs = ['packages/control'],
+                    deps = ['math', 'core', 'vehicle'])
+    
     add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
                     {'control' : ['wrappers/control'],
                      'math' : ['wrappers/math'],
@@ -54,9 +57,6 @@ def get_features():
                                        'packages/thrusterapi',
                                        'packages/imu',
                                        'packages/carnetix'])
-        
-        add_feature('control', dirs = ['packages/control'],
-                    deps = ['math', 'core', 'vehicle'])
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',
                                            'tools/BiasFinder'])
