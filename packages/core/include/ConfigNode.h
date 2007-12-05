@@ -29,6 +29,9 @@ typedef NodeNameList::iterator NodeNameListIter;
 class RAM_EXPORT ConfigNode
 {
 public:
+    /** <b>DO NOT USE THIS</b> */
+    ConfigNode();
+    
     /** Use the given implementation */
     ConfigNode(ConfigNodeImpPtr impl);
 
@@ -80,9 +83,9 @@ public:
      @warning: This currently assume yml files and python yaml library 
     */
     static ConfigNode fromFile(std::string fileName);
-    
+
 private:
-    ConfigNode();
+
     ConfigNode& operator=(const ConfigNode& that);
     
     ConfigNodeImpPtr m_impl;

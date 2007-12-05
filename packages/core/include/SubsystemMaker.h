@@ -74,6 +74,7 @@ inline int instantiate()
 {
     int a = sizeof(SubsystemMaker);
     a += sizeof(SubsystemList);
+    a += sizeof(SubsystemMakerParamType);
     return a;
 }
 }

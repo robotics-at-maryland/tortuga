@@ -61,7 +61,9 @@ TEST_FIXTURE(SubsystemMakerFixture, newObject)
 {
     try {
     eval("cfg = { 'name' : 'Mock', 'type' : 'MockSubsystem' }\n"
-         "subsystem = core.SubsystemMaker.newObject(cfg, [])");
+         "cfg = core.ConfigNode.fromString(str(cfg))\n"
+         "args = core.SubsystemMakerArgs(cfg, core.SubsystemList())\n"
+         "subsystem = core.SubsystemMaker.newObject(args)");
 
     ram::core::SubsystemPtr subsystem =
         py::extract<ram::core::SubsystemPtr>(main_namespace["subsystem"]);

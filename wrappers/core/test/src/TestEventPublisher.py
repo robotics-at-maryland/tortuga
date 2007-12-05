@@ -1,10 +1,22 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File: wrapper/core/test/src/TestEventPublisher.py
+
 # STD Imports
 import unittest
 import os
 import os.path
 import sys
+import warnings
 
 # Project Imports
+warnings.simplefilter('ignore', RuntimeWarning)
+import ext.core as core
+warnings.simplefilter('default', RuntimeWarning)
+
 import ext.core as core
 
 class PythonEvent(core.Event):

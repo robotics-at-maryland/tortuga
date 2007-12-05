@@ -31,6 +31,13 @@ TEST(quaternionFromnCb)
     
     quaternionFromnCb((double (*)[3])(mat[0]), result.ptr());
     CHECK_ARRAY_CLOSE(expected.ptr(), result.ptr(), 4, 0.0001);
+
+    // Full rotation
+    mat.FromAxisAngle(ram::math::Vector3::UNIT_Z, ram::math::Degree(180));    
+    expected.FromRotationMatrix(mat);
+    
+    quaternionFromnCb((double (*)[3])(mat[0]), result.ptr());
+    CHECK_ARRAY_CLOSE(expected.ptr(), result.ptr(), 4, 0.0001);
     
     // Rotation around a "complex" axis
     Vector3 axis(87, 9, 28);
@@ -49,6 +56,8 @@ TEST(quaternionFromnCb)
 
     quaternionFromnCb((double (*)[3])(mat[0]), result.ptr());
     CHECK_ARRAY_CLOSE(expected.ptr(), result.ptr(), 4, 0.0001);
+
+    
 
     // Result: this appears to do this same thing as "FromRotationMatrix"
 }

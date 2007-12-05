@@ -212,7 +212,7 @@ def write_feature_h(env, target, source):
     for feature in features:
         f.write('#define RAM_WITH_%s\n' % feature.upper())
     
-    f.write('\n#endif RAM_CORE_FEATURES\n\n')
+    f.write('\n#endif // RAM_CORE_FEATURES\n\n')
 
 def add_feature(name, dirs = [], deps = [], opt_dirs = {}):
     """

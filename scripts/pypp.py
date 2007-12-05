@@ -102,8 +102,8 @@ def main(argv = None):
     if os.path.exists(fpath):
         os.remove(fpath)
     
-    cpp_files = [os.path.split(f)[1] for f in files_created
-                 if f.endswith('.cpp')]
+    cpp_files = set([os.path.split(f)[1] for f in files_created
+                     if f.endswith('.cpp')])
 
     output_file = open(fpath, 'w')
     for cpp_file in cpp_files:

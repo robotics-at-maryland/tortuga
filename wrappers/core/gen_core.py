@@ -65,14 +65,19 @@ def generate(local_ns, global_ns):
 
     export_typedef(local_ns, 'EventPtr')
 
-    # Subsystem
+    # Subsystemx
 #    SubsystemPtr = local_ns.typedef('SubsystemPtr').type.declaration
 #    SubsystemPtr.rename('SubsystemPtr')
 #    SubsystemPtr.include()
 
-#    SubsystemList = local_ns.typedef('SubsystemList').type.declaration
-#    SubsystemList.alias = 'SubsystemList'
-#    SubsystemList.include()
+    SubsystemList = local_ns.typedef('SubsystemList').type.declaration
+    SubsystemList.alias = 'SubsystemList'
+    wrap.fix_shared_ptr_vector(SubsystemList)
+    SubsystemList.include()
+    SubsystemList.include_files.append('core/include/Subsystem.h')
+    SubsystemList.include_files.append('boost/python/indexing/value_traits.hpp')
+#    classes.append(SubsystemList)
+    
 
     Subsystem = local_ns.class_('Subsystem')
     Subsystem.include()
@@ -84,39 +89,13 @@ def generate(local_ns, global_ns):
     SubsystemMaker.include()
     SubsystemMaker.include_files.append('core/include/SubsystemMaker.h')
     SubsystemMaker.include_files.append('iostream')
-    
-    # Handle newObject
-    SubsystemMaker.member_function('newObject').exclude()
-    SubsystemMaker.add_declaration_code("""
-    ram::core::SubsystemPtr pynewObject(boost::python::object cfg,
-                                        boost::python::object subsystems)
-    {
-        // Build the list of subsystems
-        ram::core::SubsystemList deps;
 
-        int size = boost::python::len(subsystems);
-        for (int i = 0; i < size; ++i)
-        {
-            ram::core::SubsystemPtr subsystem =
-                boost::python::extract<ram::core::SubsystemPtr>(subsystems[i]);
-            deps.insert(subsystem);
-        }
-
-        // Create the ConfigNode
-        std::string cfg_str = boost::python::extract<std::string>(
-            boost::python::str(cfg));
-
-        std::pair<ram::core::ConfigNode, ram::core::SubsystemList>
-            params(ram::core::ConfigNode::fromString(cfg_str), deps);
-
-        return ram::core::SubsystemMaker::newObject(params);
-    }
-    """)
-    SubsystemMaker.add_registration_code(
-        'def("newObject", &::pynewObject).staticmethod("newObject")',)
-            
-    # Can't seem to find this function for some reason
-    #print SubsystemMaker.member_function('makeObject').exclude()
+    SubsystemMakerParamType = \
+        local_ns.typedef('SubsystemMakerParamType').type.declaration
+    SubsystemMakerParamType.alias = 'SubsystemMakerArgs'
+    SubsystemMakerParamType.include()
+    SubsystemMakerParamType.include_files.append(
+        'core/include/SubsystemMaker.h')
 
     # Application
     Application = local_ns.class_('Application')
