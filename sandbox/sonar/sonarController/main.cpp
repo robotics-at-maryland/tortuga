@@ -14,7 +14,7 @@
 #include "SonarController.h"
 
 
-#define NUM_SENSORS 5
+#define NUM_SENSORS 4
 
 
 int main (int argc, char * const argv[])

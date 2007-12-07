@@ -385,6 +385,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = ppc;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;

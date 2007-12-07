@@ -337,7 +337,7 @@ void SonarController::stopCapture(int channel)
 			break;
 			
 		case SONAR_CHANNEL_LISTENING:
-			assert(printf("Sleeping channel %d with no samples captured\n", channel, currentChunks[channel]->size()) || true);
+			assert(printf("Sleeping channel %d with no samples captured\n", channel) || true);
 			sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
 			listeningChannelCount --;
 			sleepingChannelCount ++;
