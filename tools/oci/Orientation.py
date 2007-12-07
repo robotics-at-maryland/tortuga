@@ -23,11 +23,13 @@ class Orientation(core.EventPublisher):
             
         def setAngle(self, val):
             self.angle = val
-            
+        
+        #Pretty random at the moment
         def step(self):
             #self.qVal *= math.Quaternion(math.Radian(pi/12), math.Vector3.UNIT_Y) #Pitch
-            self.quat *= math.Quaternion(math.Radian(pi/6), math.Vector3.UNIT_X) #Roll
-                       
+            self.quat = math.Quaternion(math.Radian(pi/6), math.Vector3.UNIT_X) * self.quat #Roll
+            self.quat = math.Quaternion(math.Radian(pi/4), math.Vector3.UNIT_Y) * self.quat
+
         def update(self):
             self.step()     
             pyEvent = core.Event()
