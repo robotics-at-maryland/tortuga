@@ -7,7 +7,6 @@ import wx
 import wx.aui
 import DisplayPanels
 from Thruster import Thruster
-import thread,time
 #----------------------------------------------------------------------
 
 class ParentFrame(wx.aui.AuiMDIParentFrame):
@@ -16,29 +15,36 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
                                           title="UMD Robotics",
                                           size=(640,480),
                                           style=wx.DEFAULT_FRAME_STYLE)
-        
         mb = self.MakeMenuBar()
         self.SetMenuBar(mb)
         self.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME))
         self.CreateStatusBar()
-        
-        self.thrustChild = ChildFrame(self, "Thrust")    
         self.rotChild = ChildFrame(self, "Rotation")
-
+        self.thrustChild = ChildFrame(self, "Thrust") 
+        self.depthChild = ChildFrame(self,"Depth")   
         self.Bind(wx.EVT_CLOSE, self.onCloseWindow)        
-
     
     def MakeMenuBar(self):
         mb = wx.MenuBar()
         menu = wx.Menu()
+        
         item = menu.Append(-1, "Thrusters\tCtrl-T")
         self.Bind(wx.EVT_MENU, self.OnOpenThrust, item)
+        
         item = menu.Append(-1, "Rotation\tCtrl-R")
         self.Bind(wx.EVT_MENU, self.OnOpenRot, item)
+        
+        item = menu.Append(-1, "Depth\tCtrl-D")
+        self.Bind(wx.EVT_MENU, self.OnOpenDepth, item)
+        
+        
         item = menu.Append(-1, "Exit\tCtrl-Q")
         self.Bind(wx.EVT_MENU, self.OnDoClose, item)
-        mb.Append(menu, "&File")
         
+        item = menu.Append(wx.ID_ABOUT, "About...")
+        self.Bind(wx.EVT_MENU, self.OnAbout, item)
+        
+        mb.Append(menu, "&File")
         return mb
     
     # --- Events ---
@@ -52,20 +58,26 @@ class ParentFrame(wx.aui.AuiMDIParentFrame):
             self.thrustChild = ChildFrame(self, "Thrust")
         self.thrustChild.Show()
         
+    def OnOpenDepth(self, evt):
+        if self.depthChild == None:
+            self.depthChild = ChildFrame(self, "Depth")
+        self.depthChild.Show()
+        
     def OnOpenRot(self, evt):
         #rotChild = ChildFrame(self, "Rotation")
         if self.rotChild == None:
             self.rotChild = ChildFrame(self, "Rotation")
         self.rotChild.Show()
-
+       
+    def OnAbout(self,evt):
+        wx.MessageBox("Copyright (C) 2007 Maryland Robotics Club","UMD Robotics GUI")
+       
     def OnDoClose(self, evt):
         self.Close()
         
 #----------------------------------------------------------------------
-
 class ChildFrame(wx.aui.AuiMDIChildFrame):
     def __init__(self, parent, name):
-       
         wx.aui.AuiMDIChildFrame.__init__(self, parent, -1,name)
         mb = parent.MakeMenuBar()
         menu = wx.Menu()
@@ -74,8 +86,10 @@ class ChildFrame(wx.aui.AuiMDIChildFrame):
         self.SetMenuBar(mb)
         self.name=name
         self.parent = parent
-        
-        if name == "Rotation":
+        if name == "Depth":
+            self.panel = DisplayPanels.DepthPanel(self)
+            self.panel.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
+        elif name == "Rotation":
             self.panel = DisplayPanels.RotationPanel(self)
             self.panel.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
         else:
@@ -83,21 +97,20 @@ class ChildFrame(wx.aui.AuiMDIChildFrame):
             for i in xrange(1,7):
                 thrusterList.append(Thruster(nameIn="Thruster "+str(i)))
             self.panel = DisplayPanels.ThrusterPanel(self,thrusterList)
-            self.panel.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME))   
-        
+            self.panel.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME))     
         sizer = wx.BoxSizer()
         sizer.Add(self.panel, 1, wx.EXPAND)
-        self.SetSizer(sizer)
-        
+        self.SetSizer(sizer)  
         wx.CallAfter(self.Layout)
-        
+         
     def __del__(self):
-        if self.name == "Thrust":
+        if self.name == "Depth":
+            self.parent.depthChild = None
+        elif self.name == "Thrust":
             self.parent.thrustChild = None
         else:
             self.parent.rotChild = None
     
-        
 #----------------------------------------------------------------------
 """ Dummy window launch aui """
 class MainWindow(wx.Frame):
@@ -105,6 +118,7 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, wx.DefaultPosition)
         self.pf = ParentFrame(self)
         self.pf.Show()
+       
         
 class MyApp(wx.App):
     def OnInit(self):
