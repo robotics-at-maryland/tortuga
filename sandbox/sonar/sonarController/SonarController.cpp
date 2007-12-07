@@ -23,7 +23,7 @@
 SonarController::SonarController(int ns) : oldChunks()
 {
 	nchannels = ns;
-	samprate = 1000000;
+	samprate = SAMPRATE;
 	targetfreq = 30000;
 	nearestperiod = round(samprate / targetfreq);
 	numPeriods = 6;

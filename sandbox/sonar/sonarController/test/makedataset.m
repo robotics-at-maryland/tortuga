@@ -12,6 +12,8 @@ for tping = tfirstping:pingrate:duration
   adcdata(:,startindex:(startindex+m(2)-1)) = oneping;
 end
 
+clear('oneping');
+
 adcdata = adcdata(:,1:numsamples);
 adcdata = adcdata + signal_amplitude / snr * 2 * (0.5-rand(size(adcdata)));
 adcdata = uint8(round(adcdata / adc_amplitude * 2^adc_bits / 2));
@@ -26,21 +28,21 @@ function adcdata = getOnePing(tping, duration, envtype)
 config;
 omega = 2 * pi * f;
 
-% Cause the robot to follow a "spira mirabilis," a logarithmic spiral in
-% the plane z = 0, parameterized for constant speed.  A logarithmic spiral
-% has the special property that the angle form ed between the tangent line
-% (the velocity) and the raidal line from the origin is constant, and equal
-% to arctan(1/b).
+% Cause the robot to wait for (trainingtime) seconds and follow a
+% "spira mirabilis," a logarithmic spiral in the plane z = 0,
+% parameterized for constant speed.  A logarithmic spiral has the
+% special property that the angle formed between the tangent line
+% (the velocity) and the raidal line from the origin is constant, 
+% and equal to arctan(1/b).
 v = max_speed;
 A = max_range;
-b = 1;
+b = tan(bearing);
 T_s = 1/f_s;
 t = tping + (0:T_s:duration);
-tau = - log(1 - b * t * v / A ./ sqrt(b^2 + 1)) / b;
-x = A * cos(tau) .* exp(-b * tau);
-y = A * sin(tau) .* exp(-b * tau);
+tau = - log(1 - b * (t - trainingtime) * v / A ./ sqrt(b^2 + 1)) / b;
+x = A * cos(tau) .* exp(-b * tau) .* (t > trainingtime);
+y = A * sin(tau) .* exp(-b * tau) .* (t > trainingtime);
 z = 0 * t;
-bearing = atan(1/b);
 
 hydroRotationMatrix = [cos(bearing),sin(bearing),0;-sin(bearing),cos(bearing),0;0,0,1];
 hydro_pos = zeros(4,3);

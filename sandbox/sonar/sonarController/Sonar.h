@@ -30,6 +30,7 @@ typedef int32_t adcsampleindex_t;
 #define SPEED_OF_SOUND 1500
 #define NOMINAL_PING_DELAY 2
 #define MAXIMUM_SPEED 3
+#define SAMPRATE 1000000
 
 
 template<class T>
