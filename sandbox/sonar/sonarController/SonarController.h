@@ -104,37 +104,27 @@ typedef enum sonarchannelstate_e {
 } sonarchannelstate_t;
 
 
-/** Collects, manages, and analyzes acoustic samples to find TDOAs.
- *  
- *  At the moment, SonarController is set up to do a single shot:
- *  it records a single set of pings and computes the TDOAs between all of them,
- *  then permanently goes to sleep.
- */
-class SonarController
-{
-	
-public:
-	SonarController(int numberOfChannels);
-	~SonarController();
-	void receiveSample(adcdata_t*);
-	adcmath_t getMag(int channel) const;
-	sonarstate_t getState() const;
-	sonarchannelstate_t getChannelState(int channel) const;
-	void go();
-	
-private:
+void init(int numberOfChannels);
+void destroy();
+void receiveSample(adcdata_t*);
+adcmath_t getMag(int channel);
+sonarstate_t getState();
+sonarchannelstate_t getChannelState(int channel);
+void go();
+
+namespace /* internal */ {
 	void setstate(sonarstate_t);
 	void setupCoefficients();
 	void setupWindow();
 	void purge();
 	
 	void updateSlidingDFT();
-	bool listenTimeIsUp() const;
+	bool listenTimeIsUp();
 	
 	void wake();
 	void sleep();
 	
-	bool exceedsThreshold(int channel) const;
+	bool exceedsThreshold(int channel);
 	void wakeChannel(int channel);
 	void sleepChannel(int channel);
 	void startCapture(int channel);
@@ -167,8 +157,7 @@ private:
 	sonarstate_t sonarstate;
 	sonarchannelstate_t  *sonarchannelstate;
 	adcsampleindex_t indexOfLastRisingEdge, indexOfLastWake;
-	
-};
+}
 
 
 } // namespace sonar

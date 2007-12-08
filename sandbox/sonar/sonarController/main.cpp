@@ -23,7 +23,7 @@ int main (int argc, char * const argv[])
 {
 	FILE *f;
 	clock_t clock_run, clock_input;
-	ram::sonar::SonarController sc(NUM_SENSORS);
+	ram::sonar::init(NUM_SENSORS);
 	ram::sonar::adcdata_t sample[NUM_SENSORS];
 	int numsamples = 0;
 	if (argc >= 2)
@@ -34,12 +34,12 @@ int main (int argc, char * const argv[])
 			fprintf(stderr,"Could not open file.");
 			return -1;
 		}
-		sc.go();
+		ram::sonar::go();
 		clock_run = clock();
 		while (!feof(f))
 		{
 			fread(sample, sizeof(ram::sonar::adcdata_t), NUM_SENSORS, f);
-			sc.receiveSample(sample);
+			ram::sonar::receiveSample(sample);
 			numsamples ++;
 		}
 		clock_run = clock() - clock_run;
@@ -54,6 +54,7 @@ int main (int argc, char * const argv[])
 			   (float) clock_input / CLOCKS_PER_SEC);
 		printf("  ==> Analysis took approx. %f seconds.\n",
 			   (float) (clock_run - clock_input) / CLOCKS_PER_SEC);
+		ram::sonar::destroy();
 	}
 	else
 	{
