@@ -11,6 +11,10 @@
 #include "Sonar.h"
 
 
+namespace ram {
+namespace sonar {
+
+
 template<class T>
 int8_t compare(T a, T b)
 {
@@ -27,3 +31,7 @@ int8_t sign(T a)
 {
 	return compare(a, 0);
 }
+
+
+} // namespace sonar
+} // namespace ram

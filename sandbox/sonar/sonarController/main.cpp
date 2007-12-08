@@ -23,8 +23,8 @@ int main (int argc, char * const argv[])
 {
 	FILE *f;
 	clock_t clock_run, clock_input;
-	SonarController sc(NUM_SENSORS);
-	adcdata_t sample[NUM_SENSORS];
+	ram::sonar::SonarController sc(NUM_SENSORS);
+	ram::sonar::adcdata_t sample[NUM_SENSORS];
 	int numsamples = 0;
 	if (argc >= 2)
 	{
@@ -38,7 +38,7 @@ int main (int argc, char * const argv[])
 		clock_run = clock();
 		while (!feof(f))
 		{
-			fread(sample, sizeof(adcdata_t), NUM_SENSORS, f);
+			fread(sample, sizeof(ram::sonar::adcdata_t), NUM_SENSORS, f);
 			sc.receiveSample(sample);
 			numsamples ++;
 		}
@@ -46,7 +46,7 @@ int main (int argc, char * const argv[])
 		fclose(f);
 		printf("Read %d samples from %d sensors.\n", numsamples, NUM_SENSORS);
 		printf("Processed %f seconds of ADC data in %f seconds.\n",
-			   (float) numsamples / SAMPRATE,
+			   (float) numsamples / ram::sonar::SAMPRATE,
 			   (float) clock_run / CLOCKS_PER_SEC);
 		printf("Clocking I/O...\n");
 		clock_input = clock_io(argv[1]);
@@ -68,7 +68,7 @@ clock_t clock_io(char * fname)
 {
 	FILE *f;
 	clock_t clock_run;
-	adcdata_t sample[NUM_SENSORS];
+	ram::sonar::adcdata_t sample[NUM_SENSORS];
 	int numsamples = 0;
 	f = fopen(fname, "rb");
 	if (f == NULL)
@@ -79,7 +79,7 @@ clock_t clock_io(char * fname)
 	clock_run = clock();
 	while (!feof(f))
 	{
-		fread(sample, sizeof(adcdata_t), NUM_SENSORS, f);
+		fread(sample, sizeof(ram::sonar::adcdata_t), NUM_SENSORS, f);
 		numsamples ++;
 	}
 	clock_run = clock() - clock_run;

@@ -16,6 +16,10 @@
 #include <algorithm>
 
 
+namespace ram {
+namespace sonar {
+
+
 SonarChunk::SonarChunk(adcsampleindex_t si)
 {
 	purge();
@@ -97,3 +101,7 @@ void SonarChunk::purge()
 	phase = 0;
 	setFourierComponents(0, 0);
 }
+
+
+} // namespace sonar
+} // namespace ram

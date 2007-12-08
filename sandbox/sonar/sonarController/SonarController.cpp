@@ -20,6 +20,10 @@
 #include <stdio.h>
 
 
+namespace ram {
+namespace sonar {
+		
+		
 SonarController::SonarController(int ns) : oldChunks()
 {
 	nchannels = ns;
@@ -392,3 +396,7 @@ void SonarController::go()
 {
 	wake();
 }
+
+
+} // namespace sonar
+} // namespace ram

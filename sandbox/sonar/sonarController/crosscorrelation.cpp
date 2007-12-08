@@ -23,9 +23,9 @@
 int main (int argc, char * const argv[])
 {
 	FILE *f;
-	adcdata_t sample[NUM_SENSORS];
+	ram::sonar::adcdata_t sample[NUM_SENSORS];
 	int numsamples = 0;
-	SonarChunk a(0), b(0);
+	ram::sonar::SonarChunk a(0), b(0);
 	if (argc >= 2)
 	{
 		f = fopen(argv[1], "rb");
@@ -34,16 +34,17 @@ int main (int argc, char * const argv[])
 			fprintf(stderr,"Could not open file.\n");
 			return -1;
 		}
-		while (!feof(f) && numsamples < SonarChunk::capacity)
+		while (!feof(f) && numsamples < ram::sonar::SonarChunk::capacity)
 		{
-			fread(sample, sizeof(adcdata_t), NUM_SENSORS, f);
+			fread(sample, sizeof(ram::sonar::adcdata_t), NUM_SENSORS, f);
 			a.append(sample[0]);
 			b.append(sample[1]);
 			numsamples ++;
 		}
 		fclose(f);
 		printf("Read %d samples from %d sensors.\n", numsamples, NUM_SENSORS);
-		printf("Index of  maximum cross correlation: %d\n", tdoa_xcorr(a,b));
+		printf("Index of  maximum cross correlation: %d\n", 
+			   ram::sonar::tdoa_xcorr(a,b));
 	}
 	else
 	{

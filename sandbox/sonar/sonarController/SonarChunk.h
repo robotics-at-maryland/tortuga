@@ -18,6 +18,10 @@
 #include "Sonar.h"
 
 
+namespace ram {
+namespace sonar {
+
+
 class SonarChunk {
 	
 public:
@@ -43,6 +47,10 @@ private:
 	float phase;
 	
 };
+
+
+} // namespace sonar
+} // namespace ram
 
 
 #endif

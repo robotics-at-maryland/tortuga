@@ -15,6 +15,10 @@
 #include <math.h>
 
 
+namespace ram {
+namespace sonar {
+
+
 adcsampleindex_t tdoa_xcorr(const SonarChunk &a, const SonarChunk &b)
 {
 	long int max = 0, accum = 0;
@@ -44,3 +48,7 @@ adcsampleindex_t tdoa_phaseonly(const SonarChunk &a, const SonarChunk &b)
 {
 	return (a.getPhase() - b.getPhase()) / M_PI * 33;
 }
+
+
+} // namespace sonar
+} // namespace ram

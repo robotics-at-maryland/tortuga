@@ -15,9 +15,17 @@
 #include "SonarChunk.h"
 
 
+namespace ram {
+namespace sonar {
+
+
 adcsampleindex_t tdoa_xcorr(const SonarChunk &a, const SonarChunk &b);
 adcsampleindex_t tdoa_phase(const SonarChunk &a, const SonarChunk &b);
 adcsampleindex_t tdoa_phaseonly(const SonarChunk &a, const SonarChunk &b);
+
+
+} // namespace sonar
+} // namespace ram
 
 
 #endif

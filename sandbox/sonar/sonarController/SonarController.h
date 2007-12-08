@@ -23,6 +23,10 @@
 #include "SonarChunk.h"
 
 
+namespace ram {
+namespace sonar {
+
+
 /** Describes the state of the entire SONAR system.
  */
 typedef enum sonarstate_e {
@@ -165,6 +169,10 @@ private:
 	adcsampleindex_t indexOfLastRisingEdge, indexOfLastWake;
 	
 };
+
+
+} // namespace sonar
+} // namespace ram
 
 
 #endif
