@@ -316,7 +316,6 @@ void sleep()
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 		stopCapture(channel);
 	sonarstate = SONAR_SLEEPING;
-	analyzeChunks();
 }
 
 
