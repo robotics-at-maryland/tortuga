@@ -285,11 +285,14 @@ void updateSlidingDFT()
 
 bool listenTimeIsUp()
 {
+	assert(getState() == SONAR_LISTENING);
 	if (listeningChannelCount == nchannels 
 		&& (sampleIndex - indexOfLastWake) > maxSamplesToWaitForFirstPing)
 		return true;
-	
-	return (sampleIndex - indexOfLastRisingEdge) > maxSamplesTDOA;
+	else if (listeningChannelCount < nchannels && (sampleIndex - indexOfLastRisingEdge) > maxSamplesTDOA)
+		return true;
+	else
+		return false;
 }
 
 
