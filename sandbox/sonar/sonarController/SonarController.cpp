@@ -208,13 +208,6 @@ void purge()
  */
 void updateSlidingDFT()
 {
-	/*	curidx represents the index into the circular buffers 
-	 *	windowreal[channel] and windowimag[channel] at which the just-received
-	 *	sample will be added to the DFT sum.
-	 */
-	
-	curidx = (curidx + 1) % windowlength;
-	
 	/*	coefidx is an index into the circular buffers coefreal (sampled cosine)
 	 *	and coefimag (sampled sine) that corresponds to curidx.  We apply the 
 	 *	modulus operation because the coefficient buffers may be the same size
@@ -223,12 +216,6 @@ void updateSlidingDFT()
 	 */
 	
 	int coefidx = curidx % nearestperiod;
-	
-	/*	firstidx is an index that points to the oldest element of windowreal and
-	 *	windowimag.
-	 */
-	
-	int firstidx = (curidx + 1) % windowlength;
 	
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
@@ -259,23 +246,10 @@ void updateSlidingDFT()
 		 *	of the previous N-1 terms of F(k), numbered 0,1,...,N-3,N-2, were 
 		 *	calculated and summed during previous iterations of this function - 
 		 *	hence the name "sliding DFT".
-		 *	
-		 *	We subtract window____[channel][firstidx] because both windowreal[i]
-		 *	and windowimag[i] are circular buffers.  On the next call of this 
-		 *	function, window____[channel][firstidx] will be overwritten with 
-		 *	computations from the next sample.
-		 *	
-		 *	Technically, we should do whatever we want with the amplitude --
-		 *	finding its magnitude or its phase -- after adding 
-		 *	the curidx term but before subtracting the firstidx term, but that 
-		 *	would slightly complicate this function.
 		 */
 		
-		sumreal[channel] += windowreal[channel][curidx] 
-			- windowreal[channel][firstidx];
-		
-		sumimag[channel] += windowimag[channel][curidx] 
-			- windowimag[channel][firstidx];
+		sumreal[channel] += windowreal[channel][curidx];
+		sumimag[channel] += windowimag[channel][curidx];
 		
 		/*	We compute the L1 norm (|a|+|b|) instead of the L2 norm 
 		 *	sqrt(a^2+b^2) in order to aovid integer overflow.  Since we are only
@@ -284,6 +258,27 @@ void updateSlidingDFT()
 		 */
 		
 		mag[channel] = abs(sumreal[channel]) + abs(sumimag[channel]);
+	}
+	
+	/*	curidx represents the index into the circular buffers 
+	 *	windowreal[channel] and windowimag[channel] at which the just-received
+	 *	sample will be added to the DFT sum.
+	 */
+	
+	++curidx;
+	if (curidx == windowlength)
+		curidx = 0;
+	
+	for (int channel = 0 ; channel < nchannels ; channel ++)
+	{
+		/*	We subtract window____[channel][firstidx] because both windowreal[i]
+		 *	and windowimag[i] are circular buffers.  On the next call of this 
+		 *	function, window____[channel][firstidx] will be overwritten with 
+		 *	computations from the next sample.
+		 */
+		
+		sumreal[channel] -= windowreal[channel][curidx];
+		sumimag[channel] -= windowimag[channel][curidx];
 	}
 }
 
