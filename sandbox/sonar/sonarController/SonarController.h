@@ -119,6 +119,7 @@ namespace /* internal */ {
 	void purge();
 	
 	void updateSlidingDFT();
+	bool sleepTimeIsUp();
 	bool listenTimeIsUp();
 	
 	void wake();

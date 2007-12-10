@@ -41,7 +41,7 @@ void init(int ns)
 	
 	minSamplesBetweenPings = 
 		(NOMINAL_PING_DELAY - ((float) MAXIMUM_SPEED * NOMINAL_PING_DELAY 
-		+ MAX_SENSOR_SEPARATION)/ SPEED_OF_SOUND) * samprate;
+		+ 3 * MAX_SENSOR_SEPARATION)/ SPEED_OF_SOUND) * samprate;
 	
 	/** Maximum number of samples to listen past minSamplesBetweenPings before 
 	 *	going back to sleep
@@ -102,6 +102,10 @@ void destroy()
 void receiveSample(adcdata_t *newdata)
 {
 	sampleIndex ++;
+	if (getState() == SONAR_SLEEPING)
+		if (sleepTimeIsUp())
+			wake();
+	
 	if (getState() == SONAR_LISTENING)
 	{
 		memcpy(sample, newdata, sizeof(*sample) * nchannels);
@@ -283,6 +287,13 @@ void updateSlidingDFT()
 }
 
 
+bool sleepTimeIsUp()
+{
+	assert(getState() == SONAR_SLEEPING);
+	return (sampleIndex - indexOfLastWake) > minSamplesBetweenPings;
+}
+
+
 bool listenTimeIsUp()
 {
 	assert(getState() == SONAR_LISTENING);
@@ -342,7 +353,8 @@ void sleepChannel(int channel)
 void startCapture(int channel)
 {
 	assert(getChannelState(channel) == SONAR_CHANNEL_LISTENING);
-	assert(printf("Starting capture on channel %d at sample %d\n", channel, sampleIndex) || true);
+	assert(printf("Starting capture on channel %d at sample %d\n", 
+				  channel, sampleIndex) || true);
 	currentChunks[channel] = new SonarChunk(sampleIndex);
 	sonarchannelstate[channel] = SONAR_CHANNEL_CAPTURING;
 	listeningChannelCount --;
@@ -356,7 +368,8 @@ void stopCapture(int channel)
 	switch (getChannelState(channel))
 	{
 		case SONAR_CHANNEL_CAPTURING:
-			assert(printf("Sleeping channel %d with %d samples captured\n", channel, currentChunks[channel]->size()) || true);
+			assert(printf("Sleeping channel %d with %d samples captured\n", 
+						  channel, currentChunks[channel]->size()) || true);
 			currentChunks[channel]->setFourierComponents(sumreal[channel], sumimag[channel]);
 			oldChunks.push_back(currentChunks[channel]);
 			sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
@@ -365,7 +378,8 @@ void stopCapture(int channel)
 			break;
 			
 		case SONAR_CHANNEL_LISTENING:
-			assert(printf("Sleeping channel %d with no samples captured\n", channel) || true);
+			assert(printf("Sleeping channel %d with no samples captured\n", 
+						  channel) || true);
 			sonarchannelstate[channel] = SONAR_CHANNEL_SLEEPING;
 			listeningChannelCount --;
 			sleepingChannelCount ++;
