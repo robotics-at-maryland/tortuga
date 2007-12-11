@@ -12,8 +12,6 @@ from pyplusplus import module_builder
 # Project Imports
 import buildfiles.wrap as wrap
 
-
-
 def export_typedef(ns, typedef):
     cls = ns.typedef(typedef).type.declaration
     cls.rename(typedef)
@@ -38,7 +36,7 @@ def expose_publisher(local_ns, cls_name):
     ePublisher.include_files.append('include/EventFunctor.h')
     return ePublisher
 
-def generate(local_ns, global_ns):
+def generate(module_builder, local_ns, global_ns):
     """
     local_ns: is the namespace that coresponds to the given namespace
     global_ns: is the module builder for the entire library
@@ -63,39 +61,16 @@ def generate(local_ns, global_ns):
     Event.include()
     classes.append(Event)
 
-    export_typedef(local_ns, 'EventPtr')
+    #export_typedef(local_ns, 'EventPtr')
 
     # Subsystemx
 #    SubsystemPtr = local_ns.typedef('SubsystemPtr').type.declaration
 #    SubsystemPtr.rename('SubsystemPtr')
 #    SubsystemPtr.include()
 
-    SubsystemList = local_ns.typedef('SubsystemList').type.declaration
-    SubsystemList.alias = 'SubsystemList'
-    wrap.fix_shared_ptr_vector(SubsystemList)
-    SubsystemList.include()
-    SubsystemList.include_files.append('core/include/Subsystem.h')
-    SubsystemList.include_files.append('boost/python/indexing/value_traits.hpp')
-#    classes.append(SubsystemList)
-    
-
     Subsystem = local_ns.class_('Subsystem')
     Subsystem.include()
     classes.append(Subsystem)
-
-    # SubsystemMaker
-    SubsystemMaker = local_ns.typedef('SubsystemMaker').type.declaration
-    SubsystemMaker.rename('SubsystemMaker')
-    SubsystemMaker.include()
-    SubsystemMaker.include_files.append('core/include/SubsystemMaker.h')
-    SubsystemMaker.include_files.append('iostream')
-
-    SubsystemMakerParamType = \
-        local_ns.typedef('SubsystemMakerParamType').type.declaration
-    SubsystemMakerParamType.alias = 'SubsystemMakerArgs'
-    SubsystemMakerParamType.include()
-    SubsystemMakerParamType.include_files.append(
-        'core/include/SubsystemMaker.h')
 
     # Application
     Application = local_ns.class_('Application')
@@ -103,10 +78,15 @@ def generate(local_ns, global_ns):
     # Don't have ofstream wrapped properly
     Application.member_function('writeDependencyGraph').exclude()
     classes.append(Application)
+
+    # Add registrations functions for hand wrapped classes
+    module_builder.add_registration_code("registerSubsystemList();");
+    module_builder.add_registration_code("registerSubsystemMakerClass();");
+
+    # Do class wide items
     wrap.set_implicit_conversions([Application, QueuedEventPublisher], False)
-
-
     wrap.add_needed_includes(classes)
+    return ['include/RegisterFunctions.h']
 
     #local_ns.class_('Updatable').include()
     #local_ns.class_('IUpdatable').include()
@@ -114,19 +94,3 @@ def generate(local_ns, global_ns):
 #    local_ns.class_('ConfigNode').include()
 #    local_ns.class_('ConfigNodeImp').include()
 #    local_ns.class_('PythonConfigNodeImp').include()
-
-    #local_ns.typedef('ConfigNodeImpPtr').already_exposed = True
-#    global_ns.class_('boost::shared_ptr<ram::core::ConfigNodeImp>').already_exposed = True
-
-#def insert_code(mb):
-#    mb.add_registration_code("""
-#    bp::register_ptr_to_python<boost::shared_ptr<ram::core::ConfigNodeImpPtr> >();
-#    """)
-
-#def generate_code(module_name, files, output_dir, include_files,
-#                  extra_includes = []):
-#    wrap.generate_code(module_name, files, output_dir, include_files,
-#                       extra_includes,
-#                       {'core' : generate_core})#,
-#                       {'vehicle' : insert_code})
-#

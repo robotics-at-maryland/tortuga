@@ -9,7 +9,7 @@ import os
 
 import buildfiles.wrap as wrap
 
-def generate(local_ns, global_ns):
+def generate(module_builder, local_ns, global_ns):
 
     wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem'])
 

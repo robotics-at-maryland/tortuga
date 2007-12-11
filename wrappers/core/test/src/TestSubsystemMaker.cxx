@@ -45,7 +45,7 @@ TEST(SubsystemMaker)
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
             "{ 'name' : 'Mock', 'type' : 'MockSubsystem' }"));
     ram::core::SubsystemList deps;
-    deps.insert(ram::core::SubsystemPtr());
+    deps.push_back(ram::core::SubsystemPtr());
     
     ram::core::SubsystemPtr subsystem = //ram::core::makeMock();
         ram::core::SubsystemMaker::newObject(std::make_pair(config, deps));
@@ -62,8 +62,7 @@ TEST_FIXTURE(SubsystemMakerFixture, newObject)
     try {
     eval("cfg = { 'name' : 'Mock', 'type' : 'MockSubsystem' }\n"
          "cfg = core.ConfigNode.fromString(str(cfg))\n"
-         "args = core.SubsystemMakerArgs(cfg, core.SubsystemList())\n"
-         "subsystem = core.SubsystemMaker.newObject(args)");
+         "subsystem = core.SubsystemMaker.newObject(cfg, core.SubsystemList())");
 
     ram::core::SubsystemPtr subsystem =
         py::extract<ram::core::SubsystemPtr>(main_namespace["subsystem"]);

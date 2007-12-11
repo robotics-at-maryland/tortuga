@@ -22,8 +22,8 @@ class SubsystemMaker(core.SubsystemMaker):
         self.args = None
         self._createClass = createClass
 
-    def makeObject(self, args):
-        return self._createClass(args.first, args.second)
+    def makeObject(self, config, deps):
+        return self._createClass(config, deps)
 
     @staticmethod
     def register(name, cls):
@@ -42,11 +42,10 @@ class TestSubsystemMaker(unittest.TestCase):
     def test(self):
         cfg = { 'name' : 'Test', 'type' : 'PythonSubsystem' }
         cfg = core.ConfigNode.fromString(str(cfg))
-        args = core.SubsystemMakerArgs(cfg, core.SubsystemList())
-        obj = SubsystemMaker.newObject(args)
+        obj = SubsystemMaker.newObject(cfg, core.SubsystemList())
 
         self.assertEquals('Test', obj.getName())
-        self.assertEquals(0, obj.deps.size())
+        self.assertEquals(0, len(obj.deps))
         self.assert_(isinstance(obj, Subsystem))
         
 

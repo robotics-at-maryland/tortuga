@@ -15,7 +15,7 @@ from pygccxml import declarations
 # Project Imports
 import buildfiles.wrap as wrap
 
-def generate(local_ns, global_ns):
+def generate(module_builder, local_ns, global_ns):
     """
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace

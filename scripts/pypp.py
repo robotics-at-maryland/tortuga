@@ -79,7 +79,7 @@ def main(argv = None):
         local_ns = local_ns.namespace(ns)
     
     # Call entry point
-    include_files = mod.generate(local_ns, mb.global_ns)
+    include_files = mod.generate(mb, local_ns, mb.global_ns)
     if include_files is None:
         include_files = []
 

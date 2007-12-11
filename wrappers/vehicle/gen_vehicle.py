@@ -18,7 +18,7 @@ from pyplusplus import messages
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
-def generate(local_ns, global_ns):
+def generate(module_builder, local_ns, global_ns):
     """
     name: is the name of the module being wrapped (in name::space::form)
     global_ns: is the module builder for the entire library
