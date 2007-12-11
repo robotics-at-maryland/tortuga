@@ -4,7 +4,7 @@
 #
 # Author: Jon Speiser <jspeiser@umd.edu>
 import wx
-from math import radians,sqrt
+from math import radians,sqrt,pi
 
 import ext.core as core
 import ext.math as math
@@ -45,9 +45,10 @@ class RotationCtrl(wx.Panel):
            
     def draw(self,gc):
         #TODO: change pen color to correspond to degrees rotated?
+        #TODO: clean up the code!
         width,height = self.GetSize()
         gc.SetPen(wx.Pen("black", 3))
-        gc.SetBrush(wx.Brush("black"))
+        gc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 98)))
         """ Keep track of window width/height for centering """
         originalWidth, originalHeight = None, None   
         """ Ensure shapes are drawn appropriately
@@ -74,19 +75,26 @@ class RotationCtrl(wx.Panel):
         where a and b are two sides and K is the area
         
         """
-        radius = (a**2 *b) / (4 * (.5 * a * b))           
+        radius = (a**2 *b) / (4 * (.5 * a * b)) 
         #Note that for simplicity this triangle has its origin at 0,0 
+        #Rounding
+        xCenter = int(xCenter+.5)
+        yCenter = int(yCenter+.5)
+        radius = int(radius+.5)
+        
         trianglePath = gc.CreatePath()
         trianglePath.MoveToPoint(-xCenter, -yCenter)
         trianglePath.AddLineToPoint(xCenter, -yCenter)
-        trianglePath.MoveToPoint(xCenter,-yCenter)
+        #trianglePath.MoveToPoint(xCenter,-yCenter)
         trianglePath.AddLineToPoint(0, radius)
-        trianglePath.MoveToPoint(0, radius)
+        #trianglePath.MoveToPoint(0, radius)
         trianglePath.AddLineToPoint(-xCenter, -yCenter)
         trianglePath.CloseSubpath()
-        trianglePath.AddCircle(0,radius,3)
-
         
+        directionCircle = gc.CreatePath()
+        directionCircle.AddCircle(0,radius,3)
+        directionCircle.CloseSubpath()
+
         """ Move to the middle """
         #if originalWidth <> None:    
         #    gc.Translate(originalWidth/2,yCenter*2)
@@ -101,7 +109,34 @@ class RotationCtrl(wx.Panel):
         """ Rotate on origin triangle """
         gc.Rotate(self.rotVal) #Assumes radians!
         gc.DrawPath(trianglePath)
+        gc.DrawPath(directionCircle)
+
         """ Draw the circle that circumscribes the triangle """
         circle = gc.CreatePath()
         circle.AddCircle(0,0,radius)
         gc.StrokePath(circle)
+        
+        """
+        Create a copy of the triangle path to display desired orientation
+        work on rotating independently
+        """
+        desiredPath = gc.CreatePath()
+        #linepts = [(-xCenter,-yCenter),(xCenter,-yCenter),(0, radius+20),(-xCenter, -yCenter)]
+        #print self.label, linepts
+        desiredPath.AddPath(trianglePath)
+        desiredPath.AddPath(directionCircle)
+        desiredPath.CloseSubpath()
+        xform = gc.CreateMatrix()
+        xform.Rotate(pi/6)
+        desiredPath.Transform(xform)
+        
+        pen = wx.Pen(wx.Colour(0, 0, 0, 128),3)
+        
+        #pen.SetWidth(4)
+        #pen.SetStyle(wx.DOT)
+        gc.SetPen(pen)
+        brush = wx.Brush(wx.Colour(0, 255, 0, 90))
+        gc.SetBrush(brush)
+        gc.DrawPath(desiredPath)
+        #gc.StrokePath(desiredPath)
+        #gc.FillPath(desiredPath)
