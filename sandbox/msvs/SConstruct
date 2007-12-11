@@ -1,0 +1,58 @@
+
+def make_objs(srcs, env, suffix = ''):
+    """
+    Helper function to create the unique object file names needed for each
+    version of the exacutables.  This is not needed if you use seperate build
+    directories for each version.
+    """
+    results = []
+    for src in srcs:
+        obj_name = src.split('.')[0]
+        results.append(env.StaticObject(target = obj_name + suffix, 
+                                        source = src))
+    return results
+
+env = Environment()
+env.AppendUnique(CCFLAGS = ['/EHa',  # Structured Exception Handling
+                            '/GR',]) # C++ RTTI
+                              
+                            
+envd = env.Clone()
+
+# Debug flags
+envd.AppendUnique(CPPDEFINES = ['_DEBUG'], 
+                  CCFLAGS = ['/MDd', '/DEBUG', '/Z7'],
+                  LINKFLAGS = ['/DEBUG'])
+
+# Release flags
+env.AppendUnique(CCFLAGS = ['/MD', '/DNDEBUG'])
+                  
+# Build our first program                        
+src_hello = ['src/helloworld.cpp']
+hello = env.Program('bin/helloworld', make_objs(src_hello, env))
+hello_d = envd.Program('bin/helloworld_d', make_objs(src_hello, envd, '_d'))
+
+# Create a project file which contains both version of the program
+hello_proj = env.MSVSProject(target = 'HelloWorld' + env['MSVSPROJECTSUFFIX'],
+                             srcs = src_hello,
+                             buildtarget = [hello[0], hello_d[0]],
+                             variant = ['Release', 'Debug'],
+                             auto_build_solution = 0)
+           
+           
+# Build our second program (same way as the first)
+src_bye = ['src/byeworld.cpp']
+bye = env.Program('bin/byeworld', make_objs(src_bye, env))
+bye_d = envd.Program('bin/byeworld_d', make_objs(src_bye, envd, '_d'))
+
+bye_proj = env.MSVSProject(target = 'ByeWorld' + env['MSVSPROJECTSUFFIX'],
+                           srcs = src_bye,
+                           buildtarget = [bye[0], bye_d[0]],
+                           variant = ['Release', 'Debug'],
+                           auto_build_solution = 0)
+ 
+ 
+ 
+env.MSVSSolution(target = 'All' + env['MSVSSOLUTIONSUFFIX'],
+                 projects = [bye_proj[0], hello_proj[0]],
+                 variant = ['Release', 'Debug'])
