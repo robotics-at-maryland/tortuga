@@ -13,7 +13,9 @@
 #endif
  
 // STD Includes
+#include <iostream>
 #include <utility>
+#include <algorithm>
 
 // Library Includes
 #include <boost/foreach.hpp>
@@ -53,7 +55,7 @@ Application::Application(std::string configPath)
             // Build list of dependencies
             SubsystemList deps;
             BOOST_FOREACH(std::string depName, m_subsystemDeps[subsystemName])
-                deps.insert(getSubsystem(depName));
+                deps.push_back(getSubsystem(depName));
 
             // Create out new subsystem and store it
             SubsystemPtr subsystem(SubsystemMaker::newObject(
@@ -198,13 +200,28 @@ void Application::determineStartupOrder(NodeNameList& subnodes,
                 subsystemVertex = vertexMapPos->second;
             }
             
+            // The config list of subsystems this depends on
             ram::core::ConfigNode depsCfg(config["depends_on"]);
             NameList depNames;
             size_t length =  depsCfg.size();
+            
             for(size_t i = 0; i < length; ++i)
             {
                 std::string dependencyName(depsCfg[i].asString());
-                depNames.push_back(dependencyName);
+                
+                // I know this is O(n^2), but the n should be quite small
+                if (depNames.end() != std::find(depNames.begin(),
+                                                depNames.end(), 
+                                                dependencyName)) 
+                {
+                    std::cout << "Duplicate '" << dependencyName 
+                              << "' found in dependency list for Subsystem: '" 
+                              << subsystemName << "'" << std::endl;
+                }
+                else
+                {                
+                    depNames.push_back(dependencyName);
+                }
                 
                 // If it has dependants its part of the graph
                 inGraph[dependencyName] = true;

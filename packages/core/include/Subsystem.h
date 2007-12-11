@@ -12,7 +12,7 @@
 
 // STD Includes
 #include <string>
-#include <set>
+#include <vector>
 
 // Library Includes
 #include <boost/shared_ptr.hpp>
@@ -28,7 +28,7 @@ namespace core {
 
 class Subsystem;
 typedef boost::shared_ptr<Subsystem> SubsystemPtr;
-typedef std::set<SubsystemPtr> SubsystemList;
+typedef std::vector<SubsystemPtr> SubsystemList;
 typedef SubsystemList::iterator SubsystemListIter;
 
     
@@ -50,34 +50,45 @@ public:
         boost::shared_ptr<T> result = boost::shared_ptr<T>();
         SubsystemListIter iter = list.begin();
         SubsystemListIter end = list.end();
-    	for (; iter != end; ++iter) 
-    	{
-                result = boost::dynamic_pointer_cast<T>(*iter);
-    		if (result)
+        for (; iter != end; ++iter) 
+        {
+            result = boost::dynamic_pointer_cast<T>(*iter);
+            if (result)
                     return result;
-    	}
-    	
-    	return result;
+        }
+        
+        return result;
     }
     
 protected:
     Subsystem(std::string name) : m_name(name) {}
-	
+    
 private:
     std::string m_name;
 };
-
-
-namespace details {
-inline int instantiateA()
-{
-    int a = sizeof(SubsystemList);
-    a += sizeof(SubsystemPtr);
-    return a;
-}
-}
     
 } // namespace core
 } // namespace ram
+
+
+// Magic namespace to clean up names
+namespace pyplusplus { 
+namespace aliases {
+
+typedef ram::core::SubsystemList SubsystemList;
+typedef ram::core::SubsystemPtr SubsystemPtr;
+
+}
+}
+
+// So GCC-XML can see our typedef
+namespace details {
+inline int instantiateSubsystem()
+{
+    int a = sizeof(ram::core::SubsystemList);
+    a += sizeof(ram::core::SubsystemPtr);
+    return a;
+}
+}
 
 #endif // RAM_CORE_SUBSYSTEM_09_29_2007

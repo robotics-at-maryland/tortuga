@@ -67,18 +67,6 @@ struct SubsystemMakerTemplate : public SubsystemMaker
     }
 };
 
-
-// So GCCXML see's our typedef
-namespace details {
-inline int instantiate()
-{
-    int a = sizeof(SubsystemMaker);
-    a += sizeof(SubsystemList);
-    a += sizeof(SubsystemMakerParamType);
-    return a;
-}
-}
-
 } // namespace core
 } // namespace ram
 
@@ -92,5 +80,25 @@ struct NAME ## SubsytsemMaker : \
         ram::core::SubsystemMakerTemplate<TYPE>(# NAME) {}; \
 }; \
 NAME ## SubsytsemMaker NAME ## SubsytsemMaker::registerThis
+
+// Magic namespace to clean up names
+namespace pyplusplus { 
+namespace aliases {
+
+typedef ram::core::SubsystemMaker SubsystemMaker;
+typedef ram::core::SubsystemMakerParamType SubsystemMakerParamType;
+
+}
+}
+
+// So GCCXML see's our typedef
+namespace details {
+inline int instantiateSubsystemMaker()
+{
+    int a = sizeof(ram::core::SubsystemMaker);
+    a += sizeof(ram::core::SubsystemMakerParamType);
+    return a;
+}
+}
 
 #endif // RAM_CORE_SUBSYSTEMMAKER_09_29_2007

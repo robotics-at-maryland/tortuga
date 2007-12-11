@@ -32,6 +32,8 @@ public:
     /** <b>DO NOT USE THIS</b> */
     ConfigNode();
     
+    ConfigNode& operator=(const ConfigNode& that);
+    
     /** Use the given implementation */
     ConfigNode(ConfigNodeImpPtr impl);
 
@@ -86,7 +88,7 @@ public:
 
 private:
 
-    ConfigNode& operator=(const ConfigNode& that);
+
     
     ConfigNodeImpPtr m_impl;
 };
