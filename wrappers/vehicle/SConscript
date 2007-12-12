@@ -43,13 +43,22 @@ test_dev, dev_runner = envt.Tests(target = 'TestDevices',
 
 # Wrapper
 envw = envl.Clone()
-envw.Pypp('vehicle',
+envw.Pypp('_vehicle',
           [os.path.join(header_dir, h) for h in veh_wrapped_headers],
           module = 'gen_vehicle.py',
-          tester = veh_runner, dep_wrappers = ['math', 'core'])
+          tester = veh_runner, dep_wrappers = ['math', '_core'])
 
 envw = envl.Clone()
-envw.Pypp('vehicle::device',
+envw.Pypp('_vehicle::device',
           [os.path.join(header_dir, h) for h in dev_wrapped_headers],
           module = 'gen_vehicle_device.py',
-          tester = dev_runner, dep_wrappers = ['vehicle'])
+          tester = dev_runner, dep_wrappers = ['_vehicle'])
+
+# Python sources
+py_sources = env.Glob(os.path.join('python','vehicle'), '*.py')
+output_dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext/vehicle'
+
+py_install = env.Install(dir = output_dir, source = py_sources)
+
+env.Depends(test_veh, py_install)
+env.Depends(test_dev, py_install)

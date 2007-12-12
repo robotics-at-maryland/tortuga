@@ -30,8 +30,7 @@ struct DeviceFixture
         main_namespace(main_module.attr("__dict__")),
         eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
     {
-        main_namespace["core"] = py::import("ext.core");
-        main_namespace["vdev"] = py::import("ext.vehicle_device");
+        main_namespace["vdev"] = py::import("ext.vehicle.device");
     }
 
     py::object main_module;
@@ -41,15 +40,12 @@ struct DeviceFixture
 
 TEST(DeviceImport)
 {
-    py::import("ext.core");
-    py::import("ext.vehicle_device");
+    py::import("ext.vehicle.device");
 }
 
 TEST_FIXTURE(DeviceFixture, Vehicle)
 {
     try {
-        py::import("ext.vehicle");
-
         // Create vehicle and add it the python environment
         MockVehicle* vehicle = new MockVehicle;
         boost::shared_ptr<ram::vehicle::IVehicle> vehiclePtr(vehicle);

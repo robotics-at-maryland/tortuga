@@ -30,7 +30,6 @@ struct VehicleFixture
         main_namespace(main_module.attr("__dict__")),
         eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
     {
-        main_namespace["core"] = py::import("ext.core");
         main_namespace["vehicle"] = py::import("ext.vehicle");
     }
 
@@ -41,7 +40,6 @@ struct VehicleFixture
 
 TEST(VehicleImport)
 {
-    py::import("ext.core");
     py::import("ext.vehicle");
 }
 

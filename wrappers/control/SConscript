@@ -35,5 +35,12 @@ test_prog, runner = envt.Tests(int_deps = 'control', ext_deps = 'Boost.Python',
                        run = False)
 
 # Wrapper
-envl.Pypp('control', wrapped_headers, module = 'gen_control.py',
-          tester = runner, dep_wrappers = ['core','math','vehicle'])
+envl.Pypp('_control', wrapped_headers, module = 'gen_control.py',
+          tester = runner, dep_wrappers = ['_core','math','_vehicle'])
+
+# Python sources
+py_sources = envl.Glob('python', '*.py')
+py_install = env.Install(dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext',
+                         source = py_sources)
+
+env.Depends(test_prog, py_install)

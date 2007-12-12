@@ -79,7 +79,6 @@ TEST(Emedding)
 TEST(ControlImport)
 {
     try {
-    py::import("ext.core");
     py::import("ext.control");
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
@@ -98,7 +97,6 @@ TEST(ControllerWrapping)
     py::object main_namespace = main_module.attr("__dict__");
 
     // Import our module to test and inject the controller object
-    main_namespace["core"] = py::import("ext.core");
     main_namespace["control"] = py::import("ext.control");
     main_namespace["controller"] = controllerPtr;
 

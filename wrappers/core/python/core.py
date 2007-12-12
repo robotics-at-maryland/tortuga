@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  wrappers/pattern/python/core.py
+# File:  wrappers/core/python/core.py
 
 # STD Imports
 import warnings

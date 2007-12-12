@@ -32,7 +32,7 @@ def expose_device(local_ns, name, remove = True, cast = False):
     return device
 
 
-def generate(global_ns, local_ns):
+def generate(module_builder, global_ns, local_ns):
     """
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
