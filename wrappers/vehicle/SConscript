@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  wrappers/pattern/SConscript
+# File:  wrappers/vehicle/SConscript
 
 import os
 
@@ -41,12 +41,23 @@ test_dev, dev_runner = envt.Tests(target = 'TestDevices',
                                   int_deps = 'vehicle',
                                   ext_deps = 'Boost.Python', run = False)
 
+# Python sources
+py_sources = env.Glob(os.path.join('python','vehicle'), '*.py')
+py_sources = [os.path.abspath(s) for s in py_sources]
+output_dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext/vehicle'
+def extras(env, output, message = None, deps = None):
+    tester = veh_runner(env, output, message, deps)
+    py_install = env.Install(dir = output_dir, source = py_sources)
+
+    env.Depends(tester, py_install)    
+    return tester
+                                  
 # Wrapper
 envw = envl.Clone()
 envw.Pypp('_vehicle',
           [os.path.join(header_dir, h) for h in veh_wrapped_headers],
           module = 'gen_vehicle.py',
-          tester = veh_runner, dep_wrappers = ['math', '_core'])
+          tester = extras, dep_wrappers = ['math', '_core'])
 
 envw = envl.Clone()
 envw.Pypp('_vehicle::device',
@@ -54,11 +65,3 @@ envw.Pypp('_vehicle::device',
           module = 'gen_vehicle_device.py',
           tester = dev_runner, dep_wrappers = ['_vehicle'])
 
-# Python sources
-py_sources = env.Glob(os.path.join('python','vehicle'), '*.py')
-output_dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext/vehicle'
-
-py_install = env.Install(dir = output_dir, source = py_sources)
-
-env.Depends(test_veh, py_install)
-env.Depends(test_dev, py_install)

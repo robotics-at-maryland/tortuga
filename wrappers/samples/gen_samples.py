@@ -18,7 +18,9 @@ def generate(module_builder, local_ns, global_ns):
 
     # Free function which deals with a std::vector<boost::shared_ptr<T> >
     f = local_ns.free_fun( 'funcVectorShared' )
-    wrap.fix_shared_ptr_vector(declarations.remove_declarated(f.return_type))
+    AList = declarations.remove_declarated(f.return_type)
+    wrap.fix_shared_ptr_vector(AList)
+    AList.alias = 'AList'
 
     # CodeInject Class
     CodeInject = local_ns.class_('CodeInject')

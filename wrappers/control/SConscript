@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  wrappers/pattern/SConscript
+# File:  wrappers/control/SConscript
 
 import os
 
@@ -34,13 +34,16 @@ envt = env.Clone()
 test_prog, runner = envt.Tests(int_deps = 'control', ext_deps = 'Boost.Python',
                        run = False)
 
+py_sources = [os.path.abspath(s) for s in envl.Glob('python', '*.py')]
+def extras(env, output, message = None, deps = None):
+    tester = runner(env, output, message, deps)
+    py_install = env.Install(dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext',
+                             source = py_sources)
+
+    env.Depends(tester, py_install)    
+    return tester
+                       
 # Wrapper
 envl.Pypp('_control', wrapped_headers, module = 'gen_control.py',
-          tester = runner, dep_wrappers = ['_core','math','_vehicle'])
-
-# Python sources
-py_sources = envl.Glob('python', '*.py')
-py_install = env.Install(dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext',
-                         source = py_sources)
-
-env.Depends(test_prog, py_install)
+          tester = extras, dep_wrappers = ['_core','math','_vehicle'])
+          

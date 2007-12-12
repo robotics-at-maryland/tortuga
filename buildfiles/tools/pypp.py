@@ -166,8 +166,12 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
     slist = '"' + '" "'.join([s.abspath for s in sources]) + '"'
     prog_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts', 'pypp.py')
     outfile_path = env.File(target_str + '_gen-sources.txt').abspath
-    cmd_str = '%s "%s" -t "%s" -m "%s" %s' % (sys.executable, prog_path,
-                                        outfile_path, target_str, slist)
+    verbose = ''
+    if env['verbose']:
+        verbose = '--verbose'
+    cmd_str = '%s "%s" -t "%s" -m "%s" %s %s' % (sys.executable, prog_path,
+                                        outfile_path, target_str, slist, 
+                                        verbose)
     commands = [cmd_str]
 
     # The command to create the output file directory
