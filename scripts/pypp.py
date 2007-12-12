@@ -75,7 +75,7 @@ def main(argv = None):
     # Exclude everything by default, then include just the classes we want
     mb.global_ns.exclude()
     local_ns = mb.global_ns
-    for ns in module.replace("::","_").split("_"):
+    for ns in module.replace("::","_").strip("_").split("_"):
         local_ns = local_ns.namespace(ns)
     
     # Call entry point
@@ -90,7 +90,7 @@ def main(argv = None):
 
     # And finally we can write code to the disk
     (output_dir, name) = os.path.split(target)
-    dir_path = 'generated' + '-'.join(module.split('::')[1:])
+    dir_path = 'generated' + '-'.join(module.strip("_").split('::')[1:])
     output_dir = os.path.join(output_dir, dir_path)
     files_created = mb.split_module(output_dir,
                                     on_unused_file_found = lambda x: x)

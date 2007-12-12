@@ -5,48 +5,32 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File: wrapper/core/test/src/TestSubsytemMaker.py
 
-import warnings
+# STD Imports
 import unittest
 
-warnings.simplefilter('ignore', RuntimeWarning)
+# Library Imports
+import zope.interface.advice as advice
+
+# Project Imports
 import ext.core as core
-warnings.simplefilter('default', RuntimeWarning)
 
-
-class SubsystemMaker(core.SubsystemMaker):
-    """
-    A helper class to registery subsystem makers
-    """
-    def __init__(self, name, createClass):
-        core.SubsystemMaker.__init__(self, name)
-        self.args = None
-        self._createClass = createClass
-
-    def makeObject(self, config, deps):
-        return self._createClass(config, deps)
-
-    @staticmethod
-    def register(name, cls):
-        return SubsystemMaker(name, cls)
-        
-class Subsystem(core.Subsystem):
+class TestSubsystem(core.Subsystem):
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config['name'].asString())
         self.config = config
         self.deps = deps
-
-maker = SubsystemMaker.register('PythonSubsystem', Subsystem)
-
+        
+core.SubsystemMaker.registerSubsystem('TestSubsystem', TestSubsystem)
 
 class TestSubsystemMaker(unittest.TestCase):
     def test(self):
-        cfg = { 'name' : 'Test', 'type' : 'PythonSubsystem' }
+        cfg = { 'name' : 'Test', 'type' : 'TestSubsystem' }
         cfg = core.ConfigNode.fromString(str(cfg))
-        obj = SubsystemMaker.newObject(cfg, core.SubsystemList())
+        obj = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
 
         self.assertEquals('Test', obj.getName())
         self.assertEquals(0, len(obj.deps))
-        self.assert_(isinstance(obj, Subsystem))
+        self.assert_(isinstance(obj, core.Subsystem))
         
 
 if __name__ == '__main__':

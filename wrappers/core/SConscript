@@ -1,8 +1,9 @@
+# Copyright (C) 2007 Maryland Robotics Club
 # Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  wrappers/pattern/SConscript
+# File:  wrappers/core/SConscript
 
 import os
 
@@ -40,6 +41,13 @@ envt = env.Clone()
 test, runner = envt.Tests(int_deps = 'core', ext_deps = 'Boost.Python',
                           run = False)
 
-envl.Pypp('core', [os.path.join(header_dir, h) for h in wrapped_headers],
+envl.Pypp('_core', [os.path.join(header_dir, h) for h in wrapped_headers],
           module = 'gen_core.py', tester = runner,
           extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])
+
+# Python sources
+py_sources = envl.Glob('python', '*.py')
+py_install = env.Install(dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext',
+                         source = py_sources)
+
+env.Depends(test, py_install)

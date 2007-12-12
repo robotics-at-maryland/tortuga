@@ -158,7 +158,7 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
     # Runs the code generation module using Py++
     sources = xmlfiles
     sources.append(env.File(os.path.join(
-        os.path.dirname(env.GetBuildPath('SConscript')), module)))
+        os.path.dirname(env.GetBuildPath('SConscript')), module.strip("_"))))
 
     target_str = str(target[0]).replace("::","_")
 
