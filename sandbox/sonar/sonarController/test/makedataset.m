@@ -16,7 +16,7 @@ clear('oneping');
 
 adcdata = adcdata(:,1:numsamples);
 adcdata = adcdata + signal_amplitude / snr * 2 * (0.5-rand(size(adcdata)));
-adcdata = uint8(round(adcdata / adc_amplitude * 2^adc_bits / 2));
+adcdata = uint8(round((adcdata + signal_amplitude) / adc_amplitude * 2^adc_bits / 2));
 
 f = fopen(filename, 'wb');
 fwrite(f, adcdata, 'uint8');
