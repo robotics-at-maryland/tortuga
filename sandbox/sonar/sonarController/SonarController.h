@@ -21,6 +21,7 @@
 
 #include "Sonar.h"
 #include "SonarChunk.h"
+#include "SlidingDFT/SimpleSlidingDFT.h"
 
 
 namespace ram {
@@ -113,12 +114,13 @@ sonarchannelstate_t getChannelState(int channel);
 void go();
 
 namespace /* internal */ {
+	
+	typedef SimpleSlidingDFT CONTROLLER_DFT_IMPL;
+	
 	void setstate(sonarstate_t);
-	void setupCoefficients();
 	void setupWindow();
 	void purge();
 	
-	void updateSlidingDFT();
 	bool sleepTimeIsUp();
 	bool listenTimeIsUp();
 	
@@ -134,19 +136,14 @@ namespace /* internal */ {
 	
 	void analyzeChunks();
 	
-	adcmath_t *coefreal, *coefimag;
-	adcmath_t **windowreal, **windowimag;
-	adcmath_t *sumreal, *sumimag, *mag;
+	CONTROLLER_DFT_IMPL *dft;
+	
 	adcdata_t *sample; 
 	SonarChunk **currentChunks;
 	std::vector<SonarChunk*> oldChunks;
 	
 	adcmath_t threshold;
-	int curidx;
-	int bufidx;
 	int nchannels;
-	int numPeriods;
-	int windowlength, nearestperiod;
 	int samprate;
 	int targetfreq;
 	int sleepingChannelCount, listeningChannelCount, captureChannelCount;

@@ -16,6 +16,7 @@
 				09545D4C0CFDFC51002FD1D2 /* PBXTargetDependency */,
 				A4BB04790CFDC99A0008AA74 /* PBXTargetDependency */,
 				A4BB047B0CFDC99F0008AA74 /* PBXTargetDependency */,
+				A46599FA0D146A2F006B02F0 /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = Untitled;
@@ -29,6 +30,14 @@
 		09545D450CFDFC21002FD1D2 /* libSonarCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */; };
 		5F7D438E0CFCF4EE00C27E9B /* adc.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F7D438D0CFCF4EE00C27E9B /* adc.dat */; };
 		8DD76F650486A84900D96B5E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
+		A405045F0D10A721009B83D2 /* SlidingDFT.h in Headers */ = {isa = PBXBuildFile; fileRef = A405045D0D10A721009B83D2 /* SlidingDFT.h */; };
+		A40504820D10AE39009B83D2 /* SimpleSlidingDFT.h in Headers */ = {isa = PBXBuildFile; fileRef = A40504810D10AE39009B83D2 /* SimpleSlidingDFT.h */; };
+		A40504840D10AE43009B83D2 /* SimpleSlidingDFT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A40504830D10AE43009B83D2 /* SimpleSlidingDFT.cpp */; };
+		A46599F00D1469C0006B02F0 /* libSonarCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */; };
+		A46599F80D146A25006B02F0 /* dfttest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A46599E50D1462E5006B02F0 /* dfttest.cpp */; };
+		A4659ABE0D1481EC006B02F0 /* Trigger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4659ABC0D1481EB006B02F0 /* Trigger.cpp */; };
+		A4659ABF0D1481EC006B02F0 /* Trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = A4659ABD0D1481EB006B02F0 /* Trigger.h */; };
+		A4659B690D1490F0006B02F0 /* dfttest.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = A4659B640D149029006B02F0 /* dfttest.dat */; };
 		A4BB03E90CFDC4A40008AA74 /* crosscorrelation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BB03DD0CFDC4570008AA74 /* crosscorrelation.cpp */; };
 		A4BB03EC0CFDC4A40008AA74 /* adc.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F7D438D0CFCF4EE00C27E9B /* adc.dat */; };
 		A4BFB0160D00FA740013EB30 /* TDOA.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BFAFF20D00F9590013EB30 /* TDOA.cpp */; };
@@ -42,6 +51,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 09545D290CFDFB9A002FD1D2;
 			remoteInfo = SonarCommon;
+		};
+		A46599F90D146A2F006B02F0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A46599EC0D1469C0006B02F0 /* dfttest */;
+			remoteInfo = dfttest;
 		};
 		A4BB04780CFDC99A0008AA74 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -70,6 +86,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A46599F10D1469C0006B02F0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+				A4659B690D1490F0006B02F0 /* dfttest.dat in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A4BB03EB0CFDC4A40008AA74 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -87,6 +113,17 @@
 		09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSonarCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F7D438D0CFCF4EE00C27E9B /* adc.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = adc.dat; sourceTree = "<group>"; };
 		8DD76F6C0486A84900D96B5E /* sonarController */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sonarController; sourceTree = BUILT_PRODUCTS_DIR; };
+		A405045D0D10A721009B83D2 /* SlidingDFT.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SlidingDFT.h; sourceTree = "<group>"; };
+		A40504810D10AE39009B83D2 /* SimpleSlidingDFT.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SimpleSlidingDFT.h; sourceTree = "<group>"; };
+		A40504830D10AE43009B83D2 /* SimpleSlidingDFT.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = SimpleSlidingDFT.cpp; sourceTree = "<group>"; };
+		A46599E00D146268006B02F0 /* config.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = config.m; path = test/config.m; sourceTree = "<group>"; };
+		A46599E10D146268006B02F0 /* makedataset.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = makedataset.m; path = test/makedataset.m; sourceTree = "<group>"; };
+		A46599E20D146268006B02F0 /* plotadcdata.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = plotadcdata.m; path = test/plotadcdata.m; sourceTree = "<group>"; };
+		A46599E50D1462E5006B02F0 /* dfttest.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = dfttest.cpp; path = test/dfttest.cpp; sourceTree = "<group>"; };
+		A46599F60D1469C0006B02F0 /* dfttest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dfttest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4659ABC0D1481EB006B02F0 /* Trigger.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Trigger.cpp; path = Trigger/Trigger.cpp; sourceTree = "<group>"; };
+		A4659ABD0D1481EB006B02F0 /* Trigger.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Trigger.h; path = Trigger/Trigger.h; sourceTree = "<group>"; };
+		A4659B640D149029006B02F0 /* dfttest.dat */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = dfttest.dat; path = ../test/dfttest.dat; sourceTree = "<group>"; };
 		A4BB03DD0CFDC4570008AA74 /* crosscorrelation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crosscorrelation.cpp; sourceTree = "<group>"; };
 		A4BB03F20CFDC4A40008AA74 /* crosscorrelation */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = crosscorrelation; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4BB04B70CFDCCF10008AA74 /* Sonar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sonar.h; sourceTree = "<group>"; };
@@ -115,6 +152,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A46599EF0D1469C0006B02F0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A46599F00D1469C0006B02F0 /* libSonarCommon.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A4BB03EA0CFDC4A40008AA74 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -139,6 +184,9 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				A4659AC00D1481F5006B02F0 /* Trigger */,
+				A46599E30D146272006B02F0 /* test */,
+				A405045B0D10A721009B83D2 /* SlidingDFT */,
 				A4D9ED610CFE928D00F5548D /* Sonar.cpp */,
 				A4D5AE750CFD2FB3006BF690 /* SonarChunk.h */,
 				A4D5AE760CFD2FB3006BF690 /* SonarChunk.cpp */,
@@ -160,8 +208,48 @@
 				8DD76F6C0486A84900D96B5E /* sonarController */,
 				A4BB03F20CFDC4A40008AA74 /* crosscorrelation */,
 				09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */,
+				A46599F60D1469C0006B02F0 /* dfttest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A405045B0D10A721009B83D2 /* SlidingDFT */ = {
+			isa = PBXGroup;
+			children = (
+				A46599E60D1462E9006B02F0 /* test */,
+				A405045D0D10A721009B83D2 /* SlidingDFT.h */,
+				A40504830D10AE43009B83D2 /* SimpleSlidingDFT.cpp */,
+				A40504810D10AE39009B83D2 /* SimpleSlidingDFT.h */,
+			);
+			path = SlidingDFT;
+			sourceTree = "<group>";
+		};
+		A46599E30D146272006B02F0 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				A46599E00D146268006B02F0 /* config.m */,
+				A46599E10D146268006B02F0 /* makedataset.m */,
+				A46599E20D146268006B02F0 /* plotadcdata.m */,
+			);
+			name = test;
+			sourceTree = "<group>";
+		};
+		A46599E60D1462E9006B02F0 /* test */ = {
+			isa = PBXGroup;
+			children = (
+				A4659B640D149029006B02F0 /* dfttest.dat */,
+				A46599E50D1462E5006B02F0 /* dfttest.cpp */,
+			);
+			name = test;
+			sourceTree = "<group>";
+		};
+		A4659AC00D1481F5006B02F0 /* Trigger */ = {
+			isa = PBXGroup;
+			children = (
+				A4659ABC0D1481EB006B02F0 /* Trigger.cpp */,
+				A4659ABD0D1481EB006B02F0 /* Trigger.h */,
+			);
+			name = Trigger;
 			sourceTree = "<group>";
 		};
 		C6859E8C029090F304C91782 /* Documentation */ = {
@@ -178,6 +266,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A405045F0D10A721009B83D2 /* SlidingDFT.h in Headers */,
+				A40504820D10AE39009B83D2 /* SimpleSlidingDFT.h in Headers */,
+				A4659ABF0D1481EC006B02F0 /* Trigger.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,6 +310,24 @@
 			productReference = 8DD76F6C0486A84900D96B5E /* sonarController */;
 			productType = "com.apple.product-type.tool";
 		};
+		A46599EC0D1469C0006B02F0 /* dfttest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A46599F30D1469C0006B02F0 /* Build configuration list for PBXNativeTarget "dfttest" */;
+			buildPhases = (
+				A46599ED0D1469C0006B02F0 /* Sources */,
+				A46599EF0D1469C0006B02F0 /* Frameworks */,
+				A46599F10D1469C0006B02F0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = dfttest;
+			productInstallPath = "$(HOME)/bin";
+			productName = sonarController;
+			productReference = A46599F60D1469C0006B02F0 /* dfttest */;
+			productType = "com.apple.product-type.tool";
+		};
 		A4BB03E30CFDC4A40008AA74 /* crosscorrelation */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A4BB03EF0CFDC4A40008AA74 /* Build configuration list for PBXNativeTarget "crosscorrelation" */;
@@ -250,6 +359,7 @@
 				A4BB04770CFDC9900008AA74 /* Build All */,
 				8DD76F620486A84900D96B5E /* sonarController */,
 				A4BB03E30CFDC4A40008AA74 /* crosscorrelation */,
+				A46599EC0D1469C0006B02F0 /* dfttest */,
 				09545D290CFDFB9A002FD1D2 /* SonarCommon */,
 			);
 		};
@@ -264,6 +374,8 @@
 				09545D2D0CFDFBB5002FD1D2 /* SonarController.cpp in Sources */,
 				09545D2B0CFDFBB1002FD1D2 /* SonarChunk.cpp in Sources */,
 				A4D9ED620CFE928D00F5548D /* Sonar.cpp in Sources */,
+				A40504840D10AE43009B83D2 /* SimpleSlidingDFT.cpp in Sources */,
+				A4659ABE0D1481EC006B02F0 /* Trigger.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +384,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				8DD76F650486A84900D96B5E /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A46599ED0D1469C0006B02F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A46599F80D146A25006B02F0 /* dfttest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,6 +410,11 @@
 			isa = PBXTargetDependency;
 			target = 09545D290CFDFB9A002FD1D2 /* SonarCommon */;
 			targetProxy = 09545D4B0CFDFC51002FD1D2 /* PBXContainerItemProxy */;
+		};
+		A46599FA0D146A2F006B02F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A46599EC0D1469C0006B02F0 /* dfttest */;
+			targetProxy = A46599F90D146A2F006B02F0 /* PBXContainerItemProxy */;
 		};
 		A4BB04790CFDC99A0008AA74 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -387,9 +512,47 @@
 				ARCHS = ppc;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_PEDANTIC = NO;
+				GCC_WARN_SIGN_COMPARE = NO;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Release;
+		};
+		A46599F40D1469C0006B02F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = ppc;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = "$(HOME)/bin";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+				);
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/build/Release\"";
+				PRODUCT_NAME = crosscorrelation;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A46599F50D1469C0006B02F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = ppc;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = "$(HOME)/bin";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+				);
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/build/Release\"";
+				PRODUCT_NAME = dfttest;
 			};
 			name = Release;
 		};
@@ -477,6 +640,15 @@
 			buildConfigurations = (
 				1DEB923608733DC60010E9CD /* Debug */,
 				1DEB923708733DC60010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A46599F30D1469C0006B02F0 /* Build configuration list for PBXNativeTarget "dfttest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A46599F40D1469C0006B02F0 /* Debug */,
+				A46599F50D1469C0006B02F0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

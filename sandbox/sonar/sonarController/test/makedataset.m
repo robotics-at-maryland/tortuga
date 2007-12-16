@@ -16,7 +16,9 @@ clear('oneping');
 
 adcdata = adcdata(:,1:numsamples);
 adcdata = adcdata + signal_amplitude / snr * 2 * (0.5-rand(size(adcdata)));
-adcdata = uint8(round((adcdata + signal_amplitude) / adc_amplitude * 2^adc_bits / 2));
+% warning: if the noise level or signal level is set too high, then
+% the following operation could overflow
+adcdata = uint8(round((adcdata) / adc_amplitude * 2^adc_bits));
 
 f = fopen(filename, 'wb');
 fwrite(f, adcdata, 'uint8');

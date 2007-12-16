@@ -11,8 +11,21 @@
 #include "Sonar.h"
 
 
+#include <assert.h>
+
+
 namespace ram {
 namespace sonar {
+
+
+int gcd(int a, int b)
+{
+	assert(a > 0 && b > 0);
+	if (b == 0)
+		return a;
+	else
+		return gcd(b, a % b);
+}
 
 
 template<class T>
