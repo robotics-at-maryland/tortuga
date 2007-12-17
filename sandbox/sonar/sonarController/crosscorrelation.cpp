@@ -25,7 +25,7 @@ int main (int argc, char * const argv[])
 	FILE *f;
 	ram::sonar::adcdata_t sample[NUM_SENSORS];
 	int numsamples = 0;
-	ram::sonar::SonarChunk a(0), b(0);
+	ram::sonar::SonarChunk a, b;
 	if (argc >= 2)
 	{
 		f = fopen(argv[1], "rb");

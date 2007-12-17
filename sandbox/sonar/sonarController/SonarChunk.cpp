@@ -20,12 +20,15 @@ namespace ram {
 namespace sonar {
 
 
-SonarChunk::SonarChunk(adcsampleindex_t si)
+std::list<SonarChunk*> SonarChunk::pool;
+
+
+SonarChunk::SonarChunk()
 {
-	purge();
-	startIndex = si;
 	sample = new adcdata_t[capacity];
+	purge();
 }
+
 
 SonarChunk::~SonarChunk()
 {
@@ -99,7 +102,46 @@ void SonarChunk::purge()
 	peak = 0;
 	startIndex = 0;
 	phase = 0;
+	startIndex = 0;
 	setFourierComponents(0, 0);
+}
+
+
+void SonarChunk::recycle()
+{
+	purge();
+	pool.push_front(this);
+}
+
+
+SonarChunk *SonarChunk::newInstance()
+{
+	if (SonarChunk::pool.empty())
+	{
+		return new SonarChunk();
+	}
+	else
+	{
+		SonarChunk *nextInstance = pool.front();
+		pool.pop_front();
+		return nextInstance;
+	}
+}
+
+
+void SonarChunk::emptyPool()
+{
+	emptyPool(0);
+}
+
+
+void SonarChunk::emptyPool(int numToRemain)
+{
+	while (pool.size() > numToRemain)
+	{
+		delete pool.front();
+		pool.pop_front();
+	}
 }
 
 

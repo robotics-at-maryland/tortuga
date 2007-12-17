@@ -223,7 +223,8 @@ void startCapture(int channel)
 	assert(getChannelState(channel) == SONAR_CHANNEL_LISTENING);
 	assert(printf("Starting capture on channel %d at sample %d\n", 
 				  channel, sampleIndex) || true);
-	currentChunks[channel] = new SonarChunk(sampleIndex);
+	currentChunks[channel] = SonarChunk::newInstance();
+	currentChunks[channel]->startIndex = sampleIndex;
 	sonarchannelstate[channel] = SONAR_CHANNEL_CAPTURING;
 	listeningChannelCount --;
 	captureChannelCount ++;
