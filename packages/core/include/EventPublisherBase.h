@@ -7,6 +7,7 @@
  * File:  packages/core/include/EventPublisherBase.h
  */
 
+
 #ifndef RAM_CORE_EVENTPUBLISHERBASE_H_11_30_2007
 #define RAM_CORE_EVENTPUBLISHERBASE_H_11_30_2007
 
@@ -25,41 +26,53 @@
 
 namespace ram {
 namespace core {
-    
+
 class EventPublisherBase
 {
 public:
-    virtual ~EventPublisherBase() {};
+    virtual ~EventPublisherBase() {}
+};
+
+template<typename T>
+class EventPublisherBaseTemplate :
+    public EventPublisherBase
+{
+public:
+    virtual ~EventPublisherBaseTemplate() {};
 
     virtual EventConnectionPtr subscribe(
-        Event::EventType type,
+        T type,
         boost::function<void (EventPtr)> handler);
     
-    virtual void publish(Event::EventType type, EventPublisher* sender,
+    virtual void publish(T type, EventPublisher* sender,
                          EventPtr event);
+
+    /** Casts the raw pointer to the type */
+    static EventPublisherBaseTemplate*
+    asType(EventPublisherBasePtr basePtr);
     
 private:
     /** Remove handler from recieving particular event types */
-    void unSubscribe(Event::EventType type,
+    void unSubscribe(T type,
                      boost::signals::connection connection);
 
     /// Implements the abstract connection class
     class Connection : public EventConnection
     {
     public:
-        Connection(Event::EventType type,
-                   EventPublisherBase* publisher,
+        Connection(T type,
+                   EventPublisherBaseTemplate<T>* publisher,
                    boost::signals::connection connection);
     
-        virtual Event::EventType getType();
+        virtual T getType();
         
         virtual void disconnect();
     private:
         /** Type of the event */
-        Event::EventType m_type;
+        T m_type;
         
         /** Publisher to which the event is connection */
-        EventPublisherBase* m_publisher;
+        EventPublisherBaseTemplate* m_publisher;
 
         /** The underlying boost connection */
         boost::signals::connection m_connection;
@@ -72,13 +85,85 @@ private:
     ReadWriteMutex m_signalMapMutex;
 
     /// Protects access to each signal (they are not thread safe)
-    boost::ptr_map<Event::EventType, boost::mutex> m_signalMutexes;
+    boost::ptr_map<T, boost::mutex> m_signalMutexes;
 
     typedef boost::signal<void (EventPtr)>  EventSignal;
     /// Maps types -> signals
-    boost::ptr_map<Event::EventType, EventSignal>  m_signals;
+    boost::ptr_map<T, EventSignal>  m_signals;
 };
+
+// Implementation of the template functions
     
+template<typename T>
+EventConnectionPtr EventPublisherBaseTemplate<T>::subscribe(
+    T type,
+    boost::function<void (EventPtr)> handler)
+{
+    ReadWriteMutex::ScopedWriteLock lock(m_signalMapMutex);
+    return EventConnectionPtr(
+        new typename EventPublisherBaseTemplate<T>::Connection(type, this,
+            m_signals[type].connect(handler)));
+}
+
+template<typename T>
+void EventPublisherBaseTemplate<T>::publish(T type, EventPublisher* sender,
+                                            EventPtr event)
+{
+    // Set event property
+    event->type = type;
+    event->sender = sender;
+        
+    {
+        ReadWriteMutex::ScopedReadLock mapLock(m_signalMapMutex);
+        boost::mutex::scoped_lock lock(m_signalMutexes[type]);
+        
+        // Call subscribers
+        m_signals[type](event);
+    }
+}
+
+template<typename T>
+EventPublisherBaseTemplate<T>*
+EventPublisherBaseTemplate<T>::asType(EventPublisherBasePtr basePtr)
+{
+    EventPublisherBase* base = basePtr.get();
+    EventPublisherBaseTemplate* type =
+        dynamic_cast<EventPublisherBaseTemplate*>(base);
+    assert(type != 0 && "EventPublisher not of proper type");
+    return type;
+}
+
+template<typename T>
+void EventPublisherBaseTemplate<T>::unSubscribe(T type,
+    boost::signals::connection connection)
+{
+    ReadWriteMutex::ScopedWriteLock mapLock(m_signalMapMutex);
+    boost::mutex::scoped_lock lock(m_signalMutexes[type]);
+    connection.disconnect();
+}
+
+template<typename T>
+EventPublisherBaseTemplate<T>::Connection::Connection(T type,
+                   EventPublisherBaseTemplate<T>* publisher,
+                   boost::signals::connection connection) :
+    m_type(type),
+    m_publisher(publisher),
+    m_connection(connection)
+{
+}
+
+template<typename T>
+T EventPublisherBaseTemplate<T>::Connection::getType()
+{
+    return m_type;
+}
+
+template<typename T>
+void EventPublisherBaseTemplate<T>::Connection::disconnect()
+{
+    m_publisher->unSubscribe(m_type, m_connection);
+}
+
 } // namespace core
 } // namespace ram
     

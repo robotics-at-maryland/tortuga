@@ -22,7 +22,8 @@
 namespace ram {
 namespace core {
 
-class QueuedEventPublisherBase : public EventPublisherBase
+class QueuedEventPublisherBase :
+        public EventPublisherBaseTemplate<Event::EventType>
 {
 public:
     QueuedEventPublisherBase(EventPublisher* parent);

@@ -74,8 +74,9 @@ EventConnectionPtr QueuedEventPublisherBase::subscribe(
     }
 
     // Subscribe to the internal publisher
-    EventConnectionPtr internalConnection(EventPublisherBase::subscribe(type,
-                                                                        handler));
+    EventConnectionPtr internalConnection(
+        EventPublisherBaseTemplate<Event::EventType>::subscribe(type,
+                                                                handler));
     return EventConnectionPtr(
         new QueuedEventPublisherBase::Connection(internalConnection,
                                              this));
@@ -96,7 +97,9 @@ int QueuedEventPublisherBase::publishEvents()
     int published = 0;
     while(m_eventQueue.popNoWait(event))
     {
-        EventPublisherBase::publish(event->type, event->sender, event);
+        EventPublisherBaseTemplate<Event::EventType>::publish(event->type,
+                                                              event->sender,
+                                                              event);
         published++;
     }
     return published;
@@ -106,7 +109,9 @@ int QueuedEventPublisherBase::waitAndPublishEvents()
 {
     // Wait for events and publish the new event
     EventPtr event = m_eventQueue.popWait();
-    EventPublisherBase::publish(event->type, event->sender, event);
+    EventPublisherBaseTemplate<Event::EventType>::publish(event->type,
+                                                          event->sender,
+                                                          event);
     
     return 1 + publishEvents();
 }
