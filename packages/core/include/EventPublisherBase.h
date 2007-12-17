@@ -47,10 +47,6 @@ public:
     virtual void publish(T type, EventPublisher* sender,
                          EventPtr event);
 
-    /** Casts the raw pointer to the type */
-    static EventPublisherBaseTemplate*
-    asType(EventPublisherBasePtr basePtr);
-    
 private:
     /** Remove handler from recieving particular event types */
     void unSubscribe(T type,
@@ -120,17 +116,6 @@ void EventPublisherBaseTemplate<T>::publish(T type, EventPublisher* sender,
         // Call subscribers
         m_signals[type](event);
     }
-}
-
-template<typename T>
-EventPublisherBaseTemplate<T>*
-EventPublisherBaseTemplate<T>::asType(EventPublisherBasePtr basePtr)
-{
-    EventPublisherBase* base = basePtr.get();
-    EventPublisherBaseTemplate* type =
-        dynamic_cast<EventPublisherBaseTemplate*>(base);
-    assert(type != 0 && "EventPublisher not of proper type");
-    return type;
 }
 
 template<typename T>

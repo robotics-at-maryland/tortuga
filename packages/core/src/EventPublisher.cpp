@@ -14,6 +14,18 @@
 namespace ram {
 namespace core {
 
+typedef EventPublisherBaseTemplate<Event::EventType> EventPublisherType;
+    
+static EventPublisherType*
+asType(EventPublisherBasePtr basePtr)
+{
+    EventPublisherBase* base = basePtr.get();
+    EventPublisherType* type =
+        dynamic_cast<EventPublisherType*>(base);
+    assert(type != 0 && "EventPublisher not of proper type");
+    return type; 
+}
+    
 EventPublisher::EventPublisher() :
     m_imp(new EventPublisherBaseTemplate<Event::EventType>())
 {
@@ -23,21 +35,18 @@ EventConnectionPtr EventPublisher::subscribe(
     Event::EventType type,
     boost::function<void (EventPtr)> handler)
 {
-    return EventPublisherBaseTemplate<Event::EventType>::asType(m_imp)->
-        subscribe(type, handler);
+    return asType(m_imp)->subscribe(type, handler);
 }
 
 void EventPublisher::publish(Event::EventType type, EventPtr event)
 {
-    return EventPublisherBaseTemplate<Event::EventType>::asType(m_imp)->
-        publish(type, this, event);
+    asType(m_imp)->publish(type, this, event);
 }
 
 void EventPublisher::doPublish(Event::EventType type, EventPublisher* sender,
                                EventPtr event)
 {
-    return EventPublisherBaseTemplate<Event::EventType>::asType(m_imp)->
-        publish(type, sender, event);
+    asType(m_imp)->publish(type, sender, event);
 }
 
 } // namespace core
