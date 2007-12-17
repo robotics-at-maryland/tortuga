@@ -97,8 +97,11 @@ def build_module(env, target, source): #, actual_target = None):
         # Make the tests dependent on the right modules, otherwise the modules
         # will try and modules that have not been build yet
         for dep in dep_wrappers:
+            name = dep
+            if dep.count(".") == 0:
+                name += suffix
             env.Depends(test, os.environ['RAM_SVN_DIR'] + '/build_ext/ext/' +
-                        dep + suffix)
+                        name)
 
     # Setup init file
     if not os.path.exists(target_dir):

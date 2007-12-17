@@ -45,5 +45,6 @@ def extras(env, output, message = None, deps = None):
                        
 # Wrapper
 envl.Pypp('_control', wrapped_headers, module = 'gen_control.py',
-          tester = extras, dep_wrappers = ['_core','math','_vehicle'])
+          tester = extras, dep_wrappers = ['_core', 'core.py','math',
+                                           '_vehicle', 'vehicle/__init__.py'])
           
