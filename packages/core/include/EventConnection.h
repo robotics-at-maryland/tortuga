@@ -31,7 +31,6 @@ class RAM_EXPORT EventConnection : boost::noncopyable
 {
 public:
     virtual ~EventConnection() {}
-    virtual Event::EventType getType() = 0;
     virtual void disconnect() = 0;
 protected:
     EventConnection() {}

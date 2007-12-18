@@ -42,6 +42,8 @@ def generate(module_builder, local_ns, global_ns):
     global_ns: is the module builder for the entire library
     """
 
+    local_ns.exclude()
+
     classes = []
 
     # ConfigNode
@@ -52,10 +54,16 @@ def generate(module_builder, local_ns, global_ns):
 
     # Event Subsystem
     EventPublisher = expose_publisher(local_ns, 'EventPublisher')
+    EventPublisher.include_files.append('core/include/EventHub.h')
     classes.append(EventPublisher)
 
     QueuedEventPublisher = expose_publisher(local_ns, 'QueuedEventPublisher')
     classes.append(QueuedEventPublisher)
+
+    #EventHub = expose_publisher(local_ns, 'EventHub')
+#    EventHub = local_ns.class_('EventHub')
+#    EventHub.include()
+#    classes.append(EventHub)
     
     Event = local_ns.class_('Event')
     Event.include()
@@ -84,7 +92,8 @@ def generate(module_builder, local_ns, global_ns):
     module_builder.add_registration_code("registerSubsystemMakerClass();");
 
     # Do class wide items
-    wrap.set_implicit_conversions([Application, QueuedEventPublisher], False)
+    wrap.set_implicit_conversions([Application, QueuedEventPublisher,
+                                   EventPublisher], False)
     wrap.add_needed_includes(classes)
     return ['include/RegisterFunctions.h']
 

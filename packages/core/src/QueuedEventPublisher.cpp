@@ -40,7 +40,7 @@ EventConnectionPtr QueuedEventPublisher::subscribe(
     
 void QueuedEventPublisher::publish(Event::EventType type, EventPtr event)
 {
-    asType(m_imp)->publish(type, this, event);
+    asType(m_imp)->publish(type, type, this, event);
 };
 
 int QueuedEventPublisher::publishEvents()

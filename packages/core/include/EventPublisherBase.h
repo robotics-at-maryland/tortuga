@@ -19,6 +19,7 @@
 // Project Includes
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/EventConnection.h"
+#include "core/include/EventHub.h"
 #include "core/include/Forward.h"
 
 // Must Be Included last
@@ -38,20 +39,19 @@ class EventPublisherBaseTemplate :
     public EventPublisherBase
 {
 public:
+    EventPublisherBaseTemplate(EventHubPtr hub = EventHubPtr());
+    
     virtual ~EventPublisherBaseTemplate() {};
 
     virtual EventConnectionPtr subscribe(
         T type,
         boost::function<void (EventPtr)> handler);
     
-    virtual void publish(T type, EventPublisher* sender,
-                         EventPtr event);
 
-private:
-    /** Remove handler from recieving particular event types */
-    void unSubscribe(T type,
-                     boost::signals::connection connection);
+    virtual void publish(T subscribeType, Event::EventType etype,
+                         EventPublisher* sender, EventPtr event);
 
+protected:
     /// Implements the abstract connection class
     class Connection : public EventConnection
     {
@@ -74,8 +74,18 @@ private:
         boost::signals::connection m_connection;
     };
 
+    typedef boost::shared_ptr<Connection> ConnectionPtr;
+    
+private:
+    /** Remove handler from recieving particular event types */
+    void unSubscribe(T type,
+                     boost::signals::connection connection);
+    
     // So it can call unSubscribe
     friend class Connection;
+
+    /// The hub to which all messages are puslished
+    EventHubPtr m_hub;
     
     /// Protects access to map of types->signals
     ReadWriteMutex m_signalMapMutex;
@@ -88,7 +98,15 @@ private:
     boost::ptr_map<T, EventSignal>  m_signals;
 };
 
-// Implementation of the template functions
+// ------------------------------------------------------------------------- //
+//             T E M P L A T E   I M P L E M E N T A T I O N                 //
+// ------------------------------------------------------------------------- // 
+    
+template<typename T>
+EventPublisherBaseTemplate<T>::EventPublisherBaseTemplate(EventHubPtr hub) :
+    m_hub(hub)
+{
+}
     
 template<typename T>
 EventConnectionPtr EventPublisherBaseTemplate<T>::subscribe(
@@ -102,20 +120,25 @@ EventConnectionPtr EventPublisherBaseTemplate<T>::subscribe(
 }
 
 template<typename T>
-void EventPublisherBaseTemplate<T>::publish(T type, EventPublisher* sender,
+void EventPublisherBaseTemplate<T>::publish(T subscribeType,
+                                            Event::EventType etype,
+                                            EventPublisher* sender,
                                             EventPtr event)
 {
     // Set event property
-    event->type = type;
+    event->type = etype;
     event->sender = sender;
         
     {
         ReadWriteMutex::ScopedReadLock mapLock(m_signalMapMutex);
-        boost::mutex::scoped_lock lock(m_signalMutexes[type]);
+        boost::mutex::scoped_lock lock(m_signalMutexes[subscribeType]);
         
         // Call subscribers
-        m_signals[type](event);
+        m_signals[subscribeType](event);
     }
+
+    if (m_hub)
+        m_hub->publish(event);
 }
 
 template<typename T>

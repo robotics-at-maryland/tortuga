@@ -21,6 +21,9 @@ typedef boost::shared_ptr<Event> EventPtr;
 
 class EventConnection;
 typedef boost::shared_ptr<EventConnection> EventConnectionPtr;
+
+class EventHub;
+typedef boost::shared_ptr<EventHub> EventHubPtr;
     
 class EventPublisher;
     

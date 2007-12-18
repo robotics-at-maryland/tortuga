@@ -20,20 +20,8 @@
 // Project Includes
 #include "core/include/EventPublisher.h"
 #include "core/include/EventConnection.h"
+#include "core/test/include/Reciever.h"
 
-struct Reciever
-{
-    Reciever() : calls(0) {}
-
-    void handler(ram::core::EventPtr event_)
-     {
-         calls++;
-         events.push_back(event_);
-     }
-    
-    int calls;
-    std::vector<ram::core::EventPtr> events;
-};
 
 struct EventPublisherFixture {
     Reciever recv;

@@ -43,14 +43,17 @@ public:
     virtual EventConnectionPtr subscribe(T type,
         boost::function<void (EventPtr)>  handler);
     
-    virtual void publish(T type, EventPublisher* sender,
+    virtual void publish(T subscribeType, Event::EventType etype,
+                         EventPublisher* sender,
                          EventPtr event);
 
     int publishEvents();
     
     int waitAndPublishEvents();
     
-private:
+protected:
+    typedef typename EventPublisherBaseTemplate<T>::ConnectionPtr
+        EventPublisherConnectionPtr;
     typedef std::pair<int, EventConnectionPtr> EventRecord;
     typedef std::map<T, EventRecord> ConnectionsMap;
     typedef typename ConnectionsMap::iterator ConnectionsMapIter;
@@ -58,17 +61,20 @@ private:
     class Connection : public EventConnection
     {
     public:
-        Connection(EventConnectionPtr internal,
-                   QueuedEventPublisherBaseTemplate<T>* publisher);
+        Connection(
+            EventPublisherConnectionPtr internal,
+            QueuedEventPublisherBaseTemplate<T>* publisher);
     
         virtual T getType();
         virtual void disconnect();
         
     private:
 
-        EventConnectionPtr m_internal;
+        EventPublisherConnectionPtr m_internal;
         QueuedEventPublisherBaseTemplate* m_publisher;
     };
+    
+private:
     friend class Connection;
 
     void unSubscribe(T type);
@@ -89,10 +95,14 @@ private:
     ConnectionsMap m_connectionTypes;
 };
 
-// Template Implementation
+    
+// ------------------------------------------------------------------------- //
+//              C O N N E C T I O N   I M P L E M E N T A T I O N            //
+// ------------------------------------------------------------------------- //
+    
 template<typename T>
 QueuedEventPublisherBaseTemplate<T>::Connection::Connection(
-    EventConnectionPtr internal,
+    EventPublisherConnectionPtr internal,
     QueuedEventPublisherBaseTemplate<T>* publisher) :
     m_internal(internal),
     m_publisher(publisher)
@@ -115,6 +125,10 @@ void QueuedEventPublisherBaseTemplate<T>::Connection::disconnect()
     m_internal->disconnect();
 }
 
+    
+// ------------------------------------------------------------------------- //
+// Q U E U E D   E V E N T   P U B L I S H E R   I M P L E M E N T A T I O N //
+// ------------------------------------------------------------------------- // 
 
 template<typename T>
 QueuedEventPublisherBaseTemplate<T>::QueuedEventPublisherBaseTemplate(
@@ -149,9 +163,12 @@ EventConnectionPtr QueuedEventPublisherBaseTemplate<T>::subscribe(
     }
 
     // Subscribe to the internal publisher
-    EventConnectionPtr internalConnection(
-        EventPublisherBaseTemplate<T>::subscribe(type,
-                                                 handler));
+    EventConnectionPtr iConnection(EventPublisherBaseTemplate<T>::subscribe(
+        type,
+        handler));
+    EventPublisherConnectionPtr internalConnection(
+        boost::dynamic_pointer_cast<typename EventPublisherBaseTemplate<T>::Connection>(iConnection));
+    
     return EventConnectionPtr(
         new typename QueuedEventPublisherBaseTemplate<T>::Connection(
             internalConnection,
@@ -159,12 +176,13 @@ EventConnectionPtr QueuedEventPublisherBaseTemplate<T>::subscribe(
 }
 
 template<typename T>
-void QueuedEventPublisherBaseTemplate<T>::publish(T type,
+void QueuedEventPublisherBaseTemplate<T>::publish(T subscribeType,
+                                                  Event::EventType etype,
                                                   EventPublisher* sender,
                                                   EventPtr event)
 {
     // Queue event internally
-    event->type = type;
+    event->type = etype;
     event->sender = sender;
     queueEvent(event);
 };
@@ -177,6 +195,7 @@ int QueuedEventPublisherBaseTemplate<T>::publishEvents()
     while(m_eventQueue.popNoWait(event))
     {
         EventPublisherBaseTemplate<T>::publish(event->type,
+                                               event->type,
                                                event->sender,
                                                event);
         published++;
@@ -190,6 +209,7 @@ int QueuedEventPublisherBaseTemplate<T>::waitAndPublishEvents()
     // Wait for events and publish the new event
     EventPtr event = m_eventQueue.popWait();
     EventPublisherBaseTemplate<T>::publish(event->type,
+                                           event->type,
                                            event->sender,
                                            event);
     

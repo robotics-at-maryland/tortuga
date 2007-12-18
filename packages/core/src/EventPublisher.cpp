@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/core/include/EventPublisher.h
+ * File:  packages/core/src/EventPublisher.cpp
  */
 
 // Project Includes
@@ -26,8 +26,8 @@ asType(EventPublisherBasePtr basePtr)
     return type; 
 }
     
-EventPublisher::EventPublisher() :
-    m_imp(new EventPublisherBaseTemplate<Event::EventType>())
+EventPublisher::EventPublisher(EventHubPtr eventHub) :
+    m_imp(new EventPublisherBaseTemplate<Event::EventType>(eventHub))
 {
 }
 
@@ -40,14 +40,14 @@ EventConnectionPtr EventPublisher::subscribe(
 
 void EventPublisher::publish(Event::EventType type, EventPtr event)
 {
-    asType(m_imp)->publish(type, this, event);
+    asType(m_imp)->publish(type, type, this, event);
 }
-
+/*
 void EventPublisher::doPublish(Event::EventType type, EventPublisher* sender,
                                EventPtr event)
 {
     asType(m_imp)->publish(type, sender, event);
-}
+    }*/
 
 } // namespace core
 } // namespace ram

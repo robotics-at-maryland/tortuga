@@ -40,8 +40,9 @@ static Vector3 interialAccel(0, 0, 1);
 /*
   Given the inertial magnetometer "IM" and accelerometer vectors "IA", and a
   quaternion "R".  If you rotate IM (getting "VM") and IA (getting "VA") by R
-  then quaternionFromIMU function should feed you inverse of R, "IR".  Then if
-  you rotate VM, and VA with IR you get back the original IM, and IA vectors.
+  then quaternionFromIMU function should feed you inverse of R, "IR" when given
+  IM and IA.  Then if you rotate VM, and VA with IR you get back the original
+  IM, and IA vectors.
 */
 TEST_UTILITY(quatIMU, (Vector3 expVehicleMag, Vector3 expVehicleAccel,
                        Quaternion magAccelRotation))

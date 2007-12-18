@@ -74,6 +74,7 @@ class Simulation(Singleton, Module):
         Module.pause(self)
         del self._scenes
         self._ogre_root.shutdown()
+        del self._ogre_root
         
     def update(self, time_since_last_update):
         """

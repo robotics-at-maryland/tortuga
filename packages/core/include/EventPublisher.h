@@ -17,6 +17,7 @@
 
 // Project Includes
 #include "core/include/Event.h"
+#include "core/include/Forward.h"
 
 // Must Be Included last
 #include "core/include/Export.h"
@@ -27,7 +28,13 @@ namespace core {
 class RAM_EXPORT EventPublisher : public boost::noncopyable
 {
 public:
-    EventPublisher();
+    /** Create an EventPublisher
+     *
+     *  @param eventHub  If non zero, the EventPublisher will publish all
+     *      events it recievers there as well as to its own subscribers.
+     *
+     */
+    EventPublisher(EventHubPtr eventHub = EventHubPtr());
 
     virtual ~EventPublisher() {};
 
@@ -46,10 +53,10 @@ public:
     /** Call all handlers of the given type with the given event */
     virtual void publish(Event::EventType type, EventPtr event);
     
-protected:
+//protected:
     /** Publishes the message with the desired sender */
-    void doPublish(Event::EventType type, EventPublisher* sender,
-                   EventPtr event);
+//    void doPublish(Event::EventType type, EventPublisher* sender,
+//                   EventPtr event);
     
 private:
     EventPublisherBasePtr m_imp;
