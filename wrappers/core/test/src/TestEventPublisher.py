@@ -7,16 +7,8 @@
 
 # STD Imports
 import unittest
-import os
-import os.path
-import sys
-import warnings
 
 # Project Imports
-warnings.simplefilter('ignore', RuntimeWarning)
-import ext.core as core
-warnings.simplefilter('default', RuntimeWarning)
-
 import ext.core as core
 
 class PythonEvent(core.Event):

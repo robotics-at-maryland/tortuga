@@ -5,15 +5,10 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  wrappers/core/python/core.py
 
-# STD Imports
-import warnings
 
-# Import everything (filter out warnings from double wrapping of classes)
-warnings.simplefilter('ignore', RuntimeWarning)
+# Project Imports
 import ext._core as _core
 from ext._core import *
-warnings.simplefilter('default', RuntimeWarning)
-
 
 # Create some nice wrappers for the Subsystem and Maker systems
 class SubsystemMaker(_core.SubsystemMaker):
@@ -40,4 +35,20 @@ def registerSubsystem(name, cls):
 
 SubsystemMaker.registerSubsystem = staticmethod(registerSubsystem)
 
+
+class Subsystem(_core.Subsystem):
+    def __init__(self, name):
+        _core.Subsystem.__init__(self, name)
+        
+    def background(self, interval = -1):
+        pass
+
+    def backgrounded(self):
+        pass
+    
+    def unbackground(self, join = False):
+        pass
+
+    def update(self, timestep):
+        pass
         

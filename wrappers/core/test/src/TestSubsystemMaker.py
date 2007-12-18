@@ -8,9 +8,6 @@
 # STD Imports
 import unittest
 
-# Library Imports
-import zope.interface.advice as advice
-
 # Project Imports
 import ext.core as core
 
