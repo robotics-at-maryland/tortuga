@@ -12,5 +12,6 @@
 
 void registerSubsystemList();
 void registerSubsystemMakerClass();
+void registerEventHubClass();
 
 #endif // RAM_CORE_WRAP_REGISTERFUNCTIONS_H_12_11_2007

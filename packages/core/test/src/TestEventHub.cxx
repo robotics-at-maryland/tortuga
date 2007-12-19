@@ -33,37 +33,7 @@ struct EventHubFixture {
     {}
 };
 
-TEST_FIXTURE(EventHubFixture, subscribeType)
-{
-    ram::core::EventConnectionPtr connection =
-        eventHub->subscribe("Type", boost::bind(&Reciever::handler, &recv, _1));
-    CHECK_EQUAL(0, recv.calls);    
-    
-    // Make sure messages from the first publisher gets through
-    publisherA.publish("Type", ram::core::EventPtr(new ram::core::Event()));
-    CHECK_EQUAL(1, recv.calls);
-    CHECK_EQUAL("Type", recv.events[0]->type);
-    CHECK_EQUAL(&publisherA, recv.events[0]->sender);
-    
-    // Make sure messages from the second publisher gets through
-    publisherB.publish("Type", ram::core::EventPtr(new ram::core::Event()));
-    CHECK_EQUAL(2, recv.calls);
-    CHECK_EQUAL("Type", recv.events[1]->type);
-    CHECK_EQUAL(&publisherB, recv.events[1]->sender);
-
-    // Now for disconnection
-    connection->disconnect();
-    
-    // Make sure messages from the first publisher don't get through
-    publisherA.publish("Type", ram::core::EventPtr(new ram::core::Event()));
-    CHECK_EQUAL(2, recv.calls);
-    
-    // Make sure messages from the second publisher don't get through
-    publisherB.publish("Type", ram::core::EventPtr(new ram::core::Event()));
-    CHECK_EQUAL(2, recv.calls);
-}
-
-TEST_FIXTURE(EventHubFixture, subscribeTypeAndPublisher)
+TEST_FIXTURE(EventHubFixture, subscribe)
 {
     Reciever recvB;
 
@@ -113,6 +83,43 @@ TEST_FIXTURE(EventHubFixture, subscribeTypeAndPublisher)
     publisherB.publish("Type", ram::core::EventPtr(new ram::core::Event()));
     CHECK_EQUAL(1, recv.calls);
     CHECK_EQUAL(2, recvB.calls);
+}
+
+TEST_FIXTURE(EventHubFixture, subscribeToType)
+{
+    ram::core::EventConnectionPtr connection =
+        eventHub->subscribeToType("Type",
+                                  boost::bind(&Reciever::handler, &recv, _1));
+    CHECK_EQUAL(0, recv.calls);    
+    
+    // Make sure messages from the first publisher gets through
+    publisherA.publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(1, recv.calls);
+    CHECK_EQUAL("Type", recv.events[0]->type);
+    CHECK_EQUAL(&publisherA, recv.events[0]->sender);
+    
+    // Make sure messages from the second publisher gets through
+    publisherB.publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(2, recv.calls);
+    CHECK_EQUAL("Type", recv.events[1]->type);
+    CHECK_EQUAL(&publisherB, recv.events[1]->sender);
+
+    publisherA.publish("AnotherType",
+                       ram::core::EventPtr(new ram::core::Event()));
+    publisherB.publish("AnotherType",
+                       ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(2, recv.calls);
+    
+    // Now for disconnection
+    connection->disconnect();
+    
+    // Make sure messages from the first publisher don't get through
+    publisherA.publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(2, recv.calls);
+    
+    // Make sure messages from the second publisher don't get through
+    publisherB.publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(2, recv.calls);
 }
 
 TEST_FIXTURE(EventHubFixture, subscribeToAll)

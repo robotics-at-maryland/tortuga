@@ -36,21 +36,6 @@ public:
 
     virtual ~EventHub() {};
 
-    /** Subscribe to recieve events of the given type from all publishers
-     *
-     *  The given function will be called any every time an event of the
-     *  given type is publihsed, regardless of what EventPublisher published
-     *  it.
-     *
-     *  @param type     The kind of event to listen for
-     *  @param handler  A void(EventPtr) function object to recieve the event
-     *
-     *  @return         The connection object, needed for disconnection.
-     */
-    virtual EventConnectionPtr subscribe(
-        Event::EventType type,
-        boost::function<void (EventPtr)> handler);
-
     /** Subscribe to recieve events of the given type from a certain Publisher
      *
      *  The given function will be called any every time an event of the given
@@ -65,6 +50,21 @@ public:
     virtual EventConnectionPtr subscribe(
         Event::EventType type,
         EventPublisher* publisher,
+        boost::function<void (EventPtr)> handler);
+    
+    /** Subscribe to recieve events of the given type from all publishers
+     *
+     *  The given function will be called any every time an event of the
+     *  given type is publihsed, regardless of what EventPublisher published
+     *  it.
+     *
+     *  @param type     The kind of event to listen for
+     *  @param handler  A void(EventPtr) function object to recieve the event
+     *
+     *  @return         The connection object, needed for disconnection.
+     */
+    virtual EventConnectionPtr subscribeToType(
+        Event::EventType type,
         boost::function<void (EventPtr)> handler);
 
     /** Subscribe to recieve all events published to this EventHub

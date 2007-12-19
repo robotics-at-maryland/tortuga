@@ -5,10 +5,21 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  wrappers/core/python/core.py
 
+# STD Imports
+import sys
+import StringIO
 
-# Project Imports
-import ext._core as _core
-from ext._core import *
+# Capture stderr, to suppress unwanted warnings
+stderr = sys.stderr
+sys.stderr = StringIO.StringIO()
+
+try:
+    # Project Imports
+    import ext._core as _core
+    from ext._core import *
+
+finally:
+    sys.stderr = stderr
 
 # Create some nice wrappers for the Subsystem and Maker systems
 class SubsystemMaker(_core.SubsystemMaker):

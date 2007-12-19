@@ -51,15 +51,6 @@ EventHub::EventHub(ConfigNode config, SubsystemList deps) :
 
 EventConnectionPtr EventHub::subscribe(
     Event::EventType type,
-    boost::function<void (EventPtr)> handler)
-{
-    // Subscribe to the internal event publisher which handles subscribes
-    // to a specific event type
-    return asType<TypeEventPublisherType>(m_impType)->subscribe(type, handler);
-}
-
-EventConnectionPtr EventHub::subscribe(
-    Event::EventType type,
     EventPublisher* publisher,
     boost::function<void (EventPtr)> handler)
 {
@@ -70,6 +61,16 @@ EventConnectionPtr EventHub::subscribe(
         subscribe(pair, handler);
 }
 
+EventConnectionPtr EventHub::subscribeToType(
+    Event::EventType type,
+    boost::function<void (EventPtr)> handler)
+{
+    // Subscribe to the internal event publisher which handles subscribes
+    // to a specific event type
+    return asType<TypeEventPublisherType>(m_impType)->subscribe(type, handler);
+}
+
+    
 EventConnectionPtr EventHub::subscribeToAll(
     boost::function<void (EventPtr)> handler)
 {

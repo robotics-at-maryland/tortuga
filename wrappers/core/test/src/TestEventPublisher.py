@@ -36,6 +36,9 @@ class TestEventPublisher(unittest.TestCase):
     def setUp(self):
         self.epub = core.EventPublisher()
 
+    def testNotCallable(self):
+        self.assertRaises(TypeError, self.epub.subscribe, "Test", 1)
+
     def testSend(self):
         # Handler for the function
         reciever = Reciever()
@@ -49,6 +52,20 @@ class TestEventPublisher(unittest.TestCase):
         self.assert_(reciever.called)
         self.assertEquals(1, reciever.calls)
         self.assertEquals("TestEvent", reciever.etype)
+
+    def testConnections(self):
+        # Handler for the function
+        reciever = Reciever()
+
+        # Register function to recieve the event
+        connection = self.epub.subscribe("TestEvent", reciever)
+
+        self.epub.publish("TestEvent", core.Event())
+        self.assertEquals(1, reciever.calls)
+
+        # Remove connection then make sure we get no more events
+        connection.disconnect();
+        self.assertEquals(1, reciever.calls)
 
     def testPythonEvent(self):
         reciever = Reciever()

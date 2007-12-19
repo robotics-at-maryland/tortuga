@@ -25,15 +25,17 @@ def expose_publisher(local_ns, cls_name):
     # Replace 'subscribe' method
     ePublisher.member_function('subscribe').exclude()
     ePublisher.add_declaration_code("""
-    void pysubscribe(ram::core::%s & epub, std::string type,
-                     boost::python::object pyFunction)
+    ram::core::EventConnectionPtr pysubscribe(ram::core::%s & epub,
+                                              std::string type,
+                                              boost::python::object pyFunction)
     {
-        epub.subscribe(type, EventFunctor(pyFunction));
+        return epub.subscribe(type, EventFunctor(pyFunction));
     }
     """ % (cls_name))
     ePublisher.add_registration_code(
         'def("subscribe", &::pysubscribe)', works_on_instance = True )
     ePublisher.include_files.append('include/EventFunctor.h')
+    ePublisher.include_files.append('core/include/EventConnection.h')
     return ePublisher
 
 def generate(module_builder, local_ns, global_ns):
@@ -60,10 +62,10 @@ def generate(module_builder, local_ns, global_ns):
     QueuedEventPublisher = expose_publisher(local_ns, 'QueuedEventPublisher')
     classes.append(QueuedEventPublisher)
 
-    #EventHub = expose_publisher(local_ns, 'EventHub')
-#    EventHub = local_ns.class_('EventHub')
-#    EventHub.include()
-#    classes.append(EventHub)
+    # EventConnection
+    EventConnection = local_ns.class_('EventConnection')
+    EventConnection.include()
+    EventConnection.include_files.append('core/include/EventConnection.h')
     
     Event = local_ns.class_('Event')
     Event.include()
@@ -88,8 +90,14 @@ def generate(module_builder, local_ns, global_ns):
     classes.append(Application)
 
     # Add registrations functions for hand wrapped classes
-    module_builder.add_registration_code("registerSubsystemList();");
-    module_builder.add_registration_code("registerSubsystemMakerClass();");
+
+    # This one has to be first because Py++ is too stupid to actually put it
+    # before these!!
+    module_builder.add_registration_code("register_Subsystem_class();")
+    module_builder.add_registration_code("registerSubsystemList();")
+    module_builder.add_registration_code("registerSubsystemMakerClass();")
+    module_builder.add_registration_code("registerEventHubClass();")
+
 
     # Do class wide items
     wrap.set_implicit_conversions([Application, QueuedEventPublisher,
