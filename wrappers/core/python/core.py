@@ -39,7 +39,7 @@ class SubsystemMaker(_core.SubsystemMaker):
         self._createClass = createClass
 
     def makeObject(self, config, deps):
-        return self._createClass(config, deps)
+        return self._createClass(eval(config.toString()), deps)
 
 def registerSubsystem(name, cls):
     cls.maker = SubsystemMaker(name, cls)

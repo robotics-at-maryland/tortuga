@@ -82,6 +82,11 @@ ConfigNode ConfigNode::fromString(std::string data)
     return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(data)));
 }
 
+std::string ConfigNode::toString()
+{
+    return m_impl->toString();
+}
+
 ConfigNode ConfigNode::fromFile(std::string data)
 {
     return ConfigNode(PythonConfigNodeImp::fromYamlFile(data));

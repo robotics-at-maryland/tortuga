@@ -79,6 +79,9 @@ public:
     /** Builds a config node from the given string, this uses the python ver. */
     static ConfigNode fromString(std::string data);
 
+    /** Returns the config file in a python evalable format */
+    std::string toString();
+
     /** Attempts to load the config from file, the extension determines the
      backend used (NOT YET!!! - see below)
 

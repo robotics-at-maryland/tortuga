@@ -50,6 +50,13 @@ struct TestPythonConfigNode
     ConfigNode configNode;
 };
 
+TEST_FIXTURE(TestPythonConfigNode, toString)
+{
+    std::string config("{'Test': 10}");
+    ConfigNode node(ConfigNode::fromString(config));
+    CHECK_EQUAL(config, node.toString());
+}
+    
 TEST_FIXTURE(TestPythonConfigNode, asString)
 {
     CHECK_EQUAL("Str", configNode["TestStr"].asString());

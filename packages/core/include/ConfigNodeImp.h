@@ -59,6 +59,9 @@ public:
     
     /** Map a key to a given value */
     virtual void set(std::string key, std::string str) = 0;
+
+    /** Returns the config file in a python evalable format */
+    virtual std::string toString() = 0;
 };
 
 } // namespace core

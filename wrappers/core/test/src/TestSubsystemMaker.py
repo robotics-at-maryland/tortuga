@@ -13,7 +13,7 @@ import ext.core as core
 
 class TestSubsystem(core.Subsystem):
     def __init__(self, config, deps):
-        core.Subsystem.__init__(self, config['name'].asString())
+        core.Subsystem.__init__(self, config['name'])
         self.config = config
         self.deps = deps
         

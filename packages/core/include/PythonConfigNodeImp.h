@@ -86,6 +86,8 @@ public:
     
     /** Open a file using the python Yaml parser */
     static ConfigNodeImpPtr fromYamlFile(std::string filename);
+
+    virtual std::string toString();
 private:
     boost::python::object m_pyobj;
 

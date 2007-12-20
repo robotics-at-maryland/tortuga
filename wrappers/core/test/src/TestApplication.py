@@ -20,7 +20,7 @@ def getConfigRoot():
 # Test subsystems
 class SubsystemBase(core.Subsystem):
     def __init__(self, config, deps):
-        core.Subsystem.__init__(self, config['name'].asString())
+        core.Subsystem.__init__(self, config['name'])
         self.config = config
         self.deps = deps
 
@@ -29,7 +29,7 @@ class SubsystemA(SubsystemBase):
         SubsystemBase.__init__(self, config, deps)
 
     def funcA(self):
-        return self.config["AData"].asInt()
+        return self.config["AData"]
 
 core.SubsystemMaker.registerSubsystem('SubsystemA', SubsystemA)
 
@@ -38,7 +38,7 @@ class SubsystemB(SubsystemBase):
         SubsystemBase.__init__(self, config, deps)
 
     def funcB(self):
-        return self.config["BData"].asInt()
+        return self.config["BData"]
         
 core.SubsystemMaker.registerSubsystem('SubsystemB', SubsystemB)
 
