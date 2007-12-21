@@ -23,6 +23,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topological_sort.hpp>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "core/include/Application.h"
@@ -34,7 +35,8 @@ namespace core {
 
 Application::Application(std::string configPath)
 {
-    ConfigNode rootCfg = core::ConfigNode::fromFile(configPath);
+    boost::filesystem::path path(configPath);
+    ConfigNode rootCfg = core::ConfigNode::fromFile(path.string());
 
     
     if (rootCfg.exists("Subsystems"))
