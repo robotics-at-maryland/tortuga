@@ -10,6 +10,7 @@ import math
 
 # Project Imports
 import ext.core as core
+import ext._vehicle_device as vdev
 
 class DemoPower(core.Subsystem, core.EventPublisher):
     """
@@ -51,6 +52,27 @@ class DemoPower(core.Subsystem, core.EventPublisher):
 # Register Subsystem so it can be created from a config file
 core.SubsystemMaker.registerSubsystem('DemoPower', DemoPower)
 
+class Thruster(core.Subsystem, core.EventPublisher, vdev.IThruster):
+    THRUSTER_UPDATE = str(vdev.IThruster.FORCE_UPDATE)
+    
+    def __init__(self, config, deps):
+        core.Subsystem.__init__(self, config['name'])
+        core.EventPublisher.__init__(self)
+        vdev.IThruster.__init__(self)
+        
+        self.force = 0
+        self._currentTime = 0.0
+                
+    def update(self, timestep):
+        self._currentTime += timestep
+        self.force = 100 * math.sin(self._currentTime)
+        
+        event = core.Event()
+        event.force = self.force
+        self.publish(Thruster.THRUSTER_UPDATE, event)
+        
+core.SubsystemMaker.registerSubsystem('Thruster', Thruster)
+
 class Depth(core.Subsystem,core.EventPublisher):
     """
     A depth sensor subsystem with a single value that measures the current
@@ -78,6 +100,8 @@ class Depth(core.Subsystem,core.EventPublisher):
         self.publish(Depth.DEPTH_UPDATE, event)
         
 core.SubsystemMaker.registerSubsystem('Depth', Depth)
+
+
 
         
 class DemoSonar(core.Subsystem, core.EventPublisher):

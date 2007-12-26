@@ -56,7 +56,7 @@ class Application(wx.App):
         if len(options.configPath) > 0:
             config = yaml.load(file(options.configPath))
         
-        # Creat our C++ app
+        # Create our C++ app
         self._app = ext.core.Application(options.configPath)
 
         # Build a list of subsystems
@@ -122,7 +122,14 @@ class Application(wx.App):
         subsystemIter = (self._app.getSubsystem(name) for name in 
                          self._app.getSubsystemNames())
         for subsystem in subsystemIter:
-            subsystem.update(timeSinceLastIteration)
+            try:
+                subsystem.update(timeSinceLastIteration)
+            except wx.PyDeadObjectError,e: 
+                """
+                 An exception here means the panel has been destroyed and there is no longer any reason to update this subsystem
+                 Perhaps it would be better to have the onclose of the panels remove the subsystem from the subsystemiter
+                """
+                pass
         
         self._lastTime = currentTime
         

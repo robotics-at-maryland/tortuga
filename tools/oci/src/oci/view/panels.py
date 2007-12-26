@@ -6,7 +6,7 @@ import wx
 # Project Imports
 from core import Component, implements
 from gui.view import IPanelProvider
-from oci.view.controls import DepthBar
+from oci.view.controls import DepthBar, ThrusterBar
 
 import oci.model.subsystem as subsystemMod
 def getSubsystemOfType(subsystems, subsystemType):
@@ -15,50 +15,52 @@ def getSubsystemOfType(subsystems, subsystemType):
             return subsystem
     return None
 
-class DepthPanel(wx.Panel):
+
+class ThrusterPanel(wx.Panel):
     implements(IPanelProvider)
-    def __init__(self, parent, depth, *args, **kwargs):
-        """Create the Control Panel"""
-        wx.Panel.__init__(self, parent, *args, **kwargs)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        
-        self._connections = []
-        layout =  wx.GridBagSizer(10, 10)
-               
-        label = wx.StaticText(self,-1,"Depth")    
-        self._depthbar = DepthBar(self)
     
-        layout.Add(label, (0,0),flag=wx.ALIGN_CENTER_HORIZONTAL)
-        layout.Add(self._depthbar, (1,0),flag=wx.EXPAND)
-        layout.AddGrowableCol(0)
+    def __init__(self, parent, thruster, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        self._connections = []
+        self._thrusterList = []
+        self._thrusterList.append(thruster)
+        self._thrusterList.append(thruster)
 
-        conn = depth.subscribe(subsystemMod.Depth.DEPTH_UPDATE, self._update)
-        self._connections.append(conn)
-
+        
+        layout =  wx.GridBagSizer(10, 10)
+        
+        pos = 0
+        for item in self._thrusterList:
+            label = wx.StaticText(self,-1,"Thruster ")
+            bar = ThrusterBar(self)           
+            layout.Add(label, (0,pos),flag = wx.ALIGN_CENTER_HORIZONTAL)
+            layout.Add(bar, (1,pos), flag = wx.EXPAND)
+            layout.AddGrowableCol(pos)
+            conn = item.subscribe(subsystemMod.Thruster.THRUSTER_UPDATE, self._update(bar))
+            self._connections.append(conn)
+            pos+=1
+        
         layout.AddGrowableRow(1)
         self.SetSizerAndFit(layout)
-        self.SetSizeHints(0,0,100,-1)
         
-    def _update(self,event):
-        self._depthbar.setVal(event.depth)
-
-    """Deconstructor ends the threads """
-    def _onClose(self, event):
-        try:
-            for conn in self._connections:
-                conn.disconnect()
-        except wx.PyDeadObjectError,e:
-            pass # Panel was closed & threads terminated, do nothing
-
+    def _update(self, bar):
+        def handler(event):
+            bar.setVal(event.force)
+        return handler
+    
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+    
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        depth = getSubsystemOfType(subsystems, subsystemMod.Depth)
+        thruster = getSubsystemOfType(subsystems, subsystemMod.Thruster)
         
-        paneInfo = wx.aui.AuiPaneInfo().Name("Depth")
-        paneInfo = paneInfo.Caption("Depth").Left()
-        
-        return [(paneInfo, DepthPanel(parentFunc(), depth), [depth])]
+        paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
+        paneInfo = paneInfo.Caption("Thrusters").Left()
+
+        return [(paneInfo, ThrusterPanel(parentFunc(), thruster), [thruster])]
+
     
 class DemoPowerPanel(wx.Panel):
     implements(IPanelProvider)
@@ -184,3 +186,46 @@ class DemoSonarPanel(wx.Panel):
         paneInfo = paneInfo.Caption("Demo Sonar").Left()
         
         return [(paneInfo, DemoSonarPanel(parentFunc(), sonar), [sonar])]
+    
+class DepthPanel(wx.Panel):
+    implements(IPanelProvider)
+    def __init__(self, parent, depth, *args, **kwargs):
+        """Create the Control Panel"""
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+        self._connections = []
+        
+        layout =  wx.GridBagSizer(10, 10)        
+        label = wx.StaticText(self,-1,"Depth")    
+        self._depthbar = DepthBar(self)
+    
+        layout.Add(label, (0,0),flag=wx.ALIGN_CENTER_HORIZONTAL)
+        layout.Add(self._depthbar, (1,0),flag=wx.EXPAND)
+        
+        layout.AddGrowableCol(0)
+        layout.AddGrowableRow(1)
+        
+        self.SetSizerAndFit(layout)
+        self.SetSizeHints(0,0,100,-1)
+        
+        conn = depth.subscribe(subsystemMod.Depth.DEPTH_UPDATE, self._update)
+        self._connections.append(conn)
+        
+    def _update(self,event):
+        self._depthbar.setVal(event.depth)
+
+    """Deconstructor ends the threads """
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+       
+    @staticmethod
+    def getPanels(subsystems, parentFunc):
+        depth = getSubsystemOfType(subsystems, subsystemMod.Depth)
+        
+        paneInfo = wx.aui.AuiPaneInfo().Name("Depth")
+        paneInfo = paneInfo.Caption("Depth").Left()
+        
+        return [(paneInfo, DepthPanel(parentFunc(), depth), [depth])]

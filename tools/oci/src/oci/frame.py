@@ -71,7 +71,7 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
     def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems):
         mdiFrame = panel.GetParent()
         mdiFrame.SetTitle(paneInfo.caption)
-        
+        mdiFrame.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
         # Put the panel in a sizer which streches the panel over the entire 
         # AuiMDIChildFrame
         sizer = wx.BoxSizer()
@@ -79,3 +79,4 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
         mdiFrame.SetSizer(sizer)  
         sizer.Fit(panel) 
         mdiFrame.SetMinSize(sizer.GetMinSize())
+        
