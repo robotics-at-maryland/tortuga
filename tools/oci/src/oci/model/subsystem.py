@@ -51,6 +51,34 @@ class DemoPower(core.Subsystem, core.EventPublisher):
 # Register Subsystem so it can be created from a config file
 core.SubsystemMaker.registerSubsystem('DemoPower', DemoPower)
 
+class Depth(core.Subsystem,core.EventPublisher):
+    """
+    A depth sensor subsystem with a single value that measures the current
+    depth of the vehicle (in?).
+    
+    @type DEPTH_UPDATE: string
+    @ivar DEPTH_UPDATE: Event type of event through when power updated
+    """
+    DEPTH_UPDATE = "DEPTH_UPDATE"
+    
+    def __init__(self,config,deps):
+        core.Subsystem.__init__(self, config['name'])
+        core.EventPublisher.__init__(self)
+        
+        self.depth = 0
+        self._currentTime = 0.0
+
+                
+    def update(self, timestep):
+        self._currentTime += timestep    
+        self.depth = 50.0 * math.sin(self._currentTime) + 50.0
+
+        event = core.Event()
+        event.depth = self.depth
+        self.publish(Depth.DEPTH_UPDATE, event)
+        
+core.SubsystemMaker.registerSubsystem('Depth', Depth)
+
         
 class DemoSonar(core.Subsystem, core.EventPublisher):
     """

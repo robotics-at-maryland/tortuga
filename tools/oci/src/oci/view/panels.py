@@ -6,15 +6,60 @@ import wx
 # Project Imports
 from core import Component, implements
 from gui.view import IPanelProvider
+from oci.view.controls import DepthBar
 
 import oci.model.subsystem as subsystemMod
-
 def getSubsystemOfType(subsystems, subsystemType):
     for subsystem in subsystems:
         if isinstance(subsystem, subsystemType):
             return subsystem
     return None
 
+class DepthPanel(wx.Panel):
+    implements(IPanelProvider)
+    def __init__(self, parent, depth, *args, **kwargs):
+        """Create the Control Panel"""
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+        self._connections = []
+        layout =  wx.GridBagSizer(10, 10)
+               
+        label = wx.StaticText(self,-1,"Depth")    
+        self._depthbar = DepthBar(self)
+    
+        layout.Add(label, (0,0),flag=wx.ALIGN_CENTER_HORIZONTAL)
+        layout.Add(self._depthbar, (1,0),flag=wx.EXPAND)
+        layout.AddGrowableCol(0)
+
+        conn = depth.subscribe(subsystemMod.Depth.DEPTH_UPDATE, self._update)
+        self._connections.append(conn)
+
+        layout.AddGrowableRow(1)
+        self.SetSizerAndFit(layout)
+        self.SetSizeHints(0,0,100,-1)
+        
+    def _update(self,event):
+        self._depthbar.setVal(event.depth)
+
+    """Deconstructor ends the threads """
+    def _onClose(self, event):
+        try:
+            for conn in self._connections:
+                conn.disconnect()
+        except wx.PyDeadObjectError,e:
+            pass # Panel was closed & threads terminated, do nothing
+
+    @staticmethod
+    def getPanels(subsystems, parentFunc):
+        depth = getSubsystemOfType(subsystems, subsystemMod.Depth)
+        
+        paneInfo = wx.aui.AuiPaneInfo().Name("Depth")
+        paneInfo = paneInfo.Caption("Depth").Left()
+        
+        return [(paneInfo, DepthPanel(parentFunc(), depth), [depth])]
+    
 class DemoPowerPanel(wx.Panel):
     implements(IPanelProvider)
     
