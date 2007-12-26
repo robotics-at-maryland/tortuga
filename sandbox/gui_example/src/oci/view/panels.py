@@ -60,7 +60,7 @@ class DemoPowerPanel(wx.Panel):
         self._gauge.SetValue(event.power)
         
     @staticmethod
-    def getPanels(subsystems, parent):
+    def getPanels(subsystems, parentFunc):
         """
         Creates 
         """
@@ -69,7 +69,7 @@ class DemoPowerPanel(wx.Panel):
         paneInfo = wx.aui.AuiPaneInfo().Name("Demo Power")
         paneInfo = paneInfo.Caption("Demo Power").Left()
         
-        return [(paneInfo, DemoPowerPanel(parent, power), [power])]
+        return [(paneInfo, DemoPowerPanel(parentFunc(), power), [power])]
     
 
 class DemoSonarPanel(wx.Panel):
@@ -132,10 +132,10 @@ class DemoSonarPanel(wx.Panel):
         self._yText.SetValue(str(event.y))
 
     @staticmethod
-    def getPanels(subsystems, parent):
+    def getPanels(subsystems, parentFunc):
         sonar = getSubsystemOfType(subsystems, subsystemMod.DemoSonar)
         
         paneInfo = wx.aui.AuiPaneInfo().Name("Demo Sonar")
         paneInfo = paneInfo.Caption("Demo Sonar").Left()
         
-        return [(paneInfo, DemoSonarPanel(parent, sonar), [sonar])]
+        return [(paneInfo, DemoSonarPanel(parentFunc(), sonar), [sonar])]

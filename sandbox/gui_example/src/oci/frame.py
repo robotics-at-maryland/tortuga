@@ -16,7 +16,7 @@ import ext.core as core
 
 import oci.view.panels  # Import needed for registration of IPanelProviders
 
-class MainFrame(wx.Frame):
+class MainFrame(wx.aui.AuiMDIParentFrame):
     """
     @type panel_providers: iterable
     @cvar panel_providers: A list of all classes which can provide panels for 
@@ -41,23 +41,13 @@ class MainFrame(wx.Frame):
         position = wx.DefaultPosition
         size = wx.Size(800,600)
         title = 'OCI'
-        wx.Frame.__init__(self, None, wx.ID_ANY, title, position, size)
-
-        # Set wxAUI
-        self._mgr = wx.aui.AuiManager()
-        self._mgr.SetManagedWindow(self)
+        wx.aui.AuiMDIParentFrame.__init__(self, None, wx.ID_ANY, title, 
+                                          position, size)
 
         # Add panels for all the current subsystems
         self._addSubsystemPanels(subsystems)
-        #for mod in ModuleManager.get().itermodules():
-        #    self._add_module(mod, True)
         
         self.SetMinSize(self.GetSize())
-        self._mgr.Update()
-        
-        # Register module event handlers so we are aware of any future changes
-        #event.register_handlers({'MODULE_SHUTDOWN' : self._remove_module,
-        #                         'MODULE_CREATED' : self._add_module} )
         
     def _remove_module(self, mod):    
         """
@@ -68,16 +58,24 @@ class MainFrame(wx.Frame):
             panel.Close()
         
         del self._panels[mod]
-
+        
+    def _createMDIChild(self):
+        return wx.aui.AuiMDIChildFrame(self, wx.ID_ANY, 'ERROR')
+        
     def _addSubsystemPanels(self, subsystems):
         for provider in self.panelProviders:
-            for paneInfo, panel, sys in provider.getPanels(subsystems, self):
-                self._addSubsystemPanel(paneInfo, panel, sys, True)
+            panelInfos = provider.getPanels(subsystems, self._createMDIChild)
+            for paneInfo, panel, sys in panelInfos:
+                self._addSubsystemPanel(paneInfo, panel, sys)
 
-    def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems,
-                           batch = False):
+    def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems):
+        mdiFrame = panel.GetParent()
+        mdiFrame.SetTitle(paneInfo.caption)
         
-        self._mgr.AddPane(panel, paneInfo)
-
-        if not batch:
-            self._mgr.Update()
+        # Put the panel in a sizer which streches the panel over the entire 
+        # AuiMDIChildFrame
+        sizer = wx.BoxSizer()
+        sizer.Add(panel, proportion = 1, flag = wx.EXPAND)
+        mdiFrame.SetSizer(sizer)  
+        sizer.Fit(panel) 
+        mdiFrame.SetMinSize(sizer.GetMinSize())
