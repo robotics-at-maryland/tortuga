@@ -6,7 +6,8 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
 <path>/home/jlisee/projects/mrbc/trunk/packages/python</path>
 <path>/home/jlisee/projects/mrbc/trunk/build/lib</path>
-<path>/home/jlisee/ram-local/lib/python2.5/site-packages</path>
+<path>/opt/ram/local/lib/python2.5/site-packages</path>
+<path>/home/jlisee/projects/mrbc/trunk/build_ext</path>
 </pydev_pathproperty>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/OCI</path>
