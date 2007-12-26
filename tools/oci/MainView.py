@@ -5,8 +5,8 @@
 # Author: Jon Speiser <jspeiser@umd.edu>
 import wx
 import wx.aui
-import DisplayPanels
-from Thruster import Thruster
+import view.panels
+#from Thruster import Thruster
 #----------------------------------------------------------------------
 
 class ParentFrame(wx.aui.AuiMDIParentFrame):

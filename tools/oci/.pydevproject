@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <?eclipse-pydev version="1.0"?>
 
 <pydev_project>
@@ -8,6 +8,9 @@
 <path>/home/jlisee/projects/mrbc/trunk/build/lib</path>
 <path>/opt/ram/local/lib/python2.5/site-packages</path>
 <path>/home/jlisee/projects/mrbc/trunk/build_ext</path>
+<path>/opt/ram/source/ram_code/packages/python</path>
+<path>/opt/ram/source/ram_code/build/lib</path>
+<path>/opt/ram/local/lib/python2.5/site-packages</path>
 </pydev_pathproperty>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/OCI</path>
