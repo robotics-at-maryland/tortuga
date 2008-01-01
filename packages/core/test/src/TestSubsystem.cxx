@@ -10,9 +10,12 @@
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/assign/list_of.hpp>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "core/test/include/MockSubsystem.h"
+#include "core/test/include/Reciever.h"
+#include "core/include/EventHub.h"
 
 struct MockSub1 : public MockSubsystem 
 {
@@ -73,4 +76,39 @@ TEST(GetSubsystem)
             ram::core::Subsystem::getSubsystemOfType<MockSub1>(subsystemList);
 	CHECK_EQUAL(mock1, sub.get());
 	CHECK_EQUAL("Mock1", sub->getName());
+}
+
+TEST(Events)
+{
+    // Create a subsystem and give it an event hub
+    ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
+	            "{ 'name' : 'Mock1' }"));
+    ram::core::EventHubPtr eventHub(new ram::core::EventHub());
+    ram::core::SubsystemList subsystemList = boost::assign::list_of(eventHub);
+    MockSubsystem mock(config, subsystemList);
+
+    // Test Normal Events
+    Reciever recvA;
+    mock.subscribe("Type", boost::bind(&Reciever::handler, &recvA, _1));
+
+    ram::core::EventPtr eventA(new ram::core::Event());
+    mock.publish("Type", eventA);
+
+    CHECK_EQUAL(1, recvA.calls);
+    CHECK_EQUAL(eventA, recvA.events[0]);
+    CHECK_EQUAL("Type", recvA.events[0]->type);
+    CHECK_EQUAL(&mock, recvA.events[0]->sender);
+
+    // Make sure the event hub is properly working
+    Reciever recvB;
+    eventHub->subscribeToType("Type",
+                              boost::bind(&Reciever::handler, &recvB, _1));
+
+    ram::core::EventPtr eventB(new ram::core::Event());
+    mock.publish("Type", eventB);
+
+    CHECK_EQUAL(1, recvB.calls);
+    CHECK_EQUAL(eventB, recvB.events[0]);
+    CHECK_EQUAL("Type", recvB.events[0]->type);
+    CHECK_EQUAL(&mock, recvB.events[0]->sender);
 }

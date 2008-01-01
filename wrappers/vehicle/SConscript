@@ -13,6 +13,11 @@ import buildfiles.libs as libs
 Import('env')
 envl = env.Clone()
 
+# Find all cpp files in the source directory
+extra_sources = envl.Glob('src', '*.cpp')
+extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'vehicle')
+#envl.Append(CPPPATH = os.path.join(extra_dir))
+
 # Link to libram_pattern.so library
 libs.add_internal(envl, 'vehicle')
 
@@ -57,7 +62,9 @@ envw = envl.Clone()
 envw.Pypp('_vehicle',
           [os.path.join(header_dir, h) for h in veh_wrapped_headers],
           module = 'gen_vehicle.py',
-          tester = extras, dep_wrappers = ['math', '_core','core.py'])
+          tester = extras, dep_wrappers = ['math', '_core','core.py'],
+          dont_build = ['SubsystemList.pypp.cpp'],
+          extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])
 
 envw = envl.Clone()
 envw.Pypp('_vehicle::device',

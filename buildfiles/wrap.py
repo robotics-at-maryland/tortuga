@@ -243,9 +243,10 @@ def make_already_exposed(global_ns, namespace_name, classes,
         class_decs = []
 
     ns = global_ns
-    for name in namespace_name.split('::'):
-        print 'Going into namespace',name
-        ns = ns.namespace(name)
+    if len(namespace_name):
+        for name in namespace_name.split('::'):
+            print 'Going into namespace',name
+            ns = ns.namespace(name)
 
     for class_name in classes:
         print 'Marking class',class_name

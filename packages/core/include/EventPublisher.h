@@ -25,7 +25,7 @@
 namespace ram {
 namespace core {
     
-class RAM_EXPORT EventPublisher : public boost::noncopyable
+class RAM_EXPORT EventPublisher //: public boost::noncopyable
 {
 public:
     /** Create an EventPublisher

@@ -15,6 +15,11 @@ import buildfiles.helpers as helpers
 Import('env')
 envl = env.Clone()
 
+# Find all cpp files in the source directory
+extra_sources = envl.Glob('src', '*.cpp')
+extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'control')
+#envl.Append(CPPPATH = os.path.join(extra_dir))
+
 # Link to libram_pattern.so library
 libs.add_internal(envl, 'control')
 
@@ -45,6 +50,9 @@ def extras(env, output, message = None, deps = None):
                        
 # Wrapper
 envl.Pypp('_control', wrapped_headers, module = 'gen_control.py',
-          tester = extras, dep_wrappers = ['_core', 'core.py','math',
-                                           '_vehicle', 'vehicle/__init__.py'])
+          tester = extras,
+          dep_wrappers = ['_core', 'core.py','math', '_vehicle',
+                          'vehicle/__init__.py'],
+          dont_build = ['SubsystemList.pypp.cpp'],
+          extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])
           

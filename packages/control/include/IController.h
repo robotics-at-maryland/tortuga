@@ -54,8 +54,7 @@ public:
     virtual bool atDepth() = 0;
     
 protected:
-	IController(std::string name);
-	
+    IController(std::string name);
 };
     
 } // namespace control

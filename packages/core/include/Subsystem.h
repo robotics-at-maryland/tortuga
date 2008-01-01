@@ -19,6 +19,7 @@
 
 // Project Includes
 #include "core/include/IUpdatable.h"
+#include "core/include/EventPublisher.h"
 
 // Must Be Included last
 #include "core/include/Export.h"
@@ -37,13 +38,17 @@ typedef SubsystemList::iterator SubsystemListIter;
     This is a class mainly a marker class, used to provide a uniform start up
     framework.
  */
-class RAM_EXPORT Subsystem : public IUpdatable
+class RAM_EXPORT Subsystem : public IUpdatable, public EventPublisher
 {
 public:
-    virtual ~Subsystem() {};
+    virtual ~Subsystem();
     
-    std::string getName() { return m_name; }
+    std::string getName();
 
+    /** Finds the first Subsystem of the desired type in the list
+     *
+     *  @return A shared_ptr of the desired type, null if not found.
+     */
     template<typename T>
     static boost::shared_ptr<T> getSubsystemOfType(SubsystemList list) 
     {
@@ -54,14 +59,16 @@ public:
         {
             result = boost::dynamic_pointer_cast<T>(*iter);
             if (result)
-                    return result;
+                return result;
         }
         
         return result;
     }
     
 protected:
-    Subsystem(std::string name) : m_name(name) {}
+    Subsystem(std::string name, EventHubPtr eventHub = EventHubPtr());
+
+    Subsystem(std::string name, SubsystemList list);
     
 private:
     std::string m_name;
@@ -75,7 +82,7 @@ private:
 namespace pyplusplus { 
 namespace aliases {
 
-typedef ram::core::SubsystemList SubsystemList;
+//typedef ram::core::SubsystemList SubsystemList;
 typedef ram::core::SubsystemPtr SubsystemPtr;
 
 }
@@ -85,8 +92,9 @@ typedef ram::core::SubsystemPtr SubsystemPtr;
 namespace details {
 inline int instantiateSubsystem()
 {
-    int a = sizeof(ram::core::SubsystemList);
-    a += sizeof(ram::core::SubsystemPtr);
+//    int a = sizeof(ram::core::SubsystemList);
+//    a += sizeof(ram::core::SubsystemPtr);
+    int a = sizeof(ram::core::SubsystemPtr);
     return a;
 }
 }

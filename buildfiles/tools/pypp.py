@@ -37,6 +37,7 @@ def build_module(env, target, source): #, actual_target = None):
     tester = get_from_env(env, 'tester')
     extra_sources = get_from_env(env, 'extra_sources')
     dep_wrappers = get_from_env(env, 'dep_wrappers')
+    dont_build = get_from_env(env, 'dont_build')
 
 
     # All paths in the file are relative to the directory of the source list 
@@ -56,9 +57,10 @@ def build_module(env, target, source): #, actual_target = None):
         node.srcnode = hacked_srcnode
         return node
 
+    # Gather the list of files, and exclude the desired ones
     filelines = srclist.readlines()
     sources = [env.File(srclist_dir + '/' + f.strip())
-               for f in filelines]
+               for f in filelines if 0 == dont_build.count(f.strip())]
 
     # Copy in the extra sources into the generated directory
     for f in extra_sources:
@@ -116,7 +118,7 @@ def build_module(env, target, source): #, actual_target = None):
     env.Alias('TopLevelAlias', extension_mod)
 
 def run_pypp(env, target, source, module, tester = None, extra_sources = None,
-             dep_wrappers = None):
+             dep_wrappers = None, dont_build = None):
     """
     The root Py++ builder
     
@@ -142,6 +144,10 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
 
     if dep_wrappers is None:
         dep_wrappers = []
+
+    if dont_build is None:
+        dont_build = []
+        
 
     # Add CPPPATH to XMLCPPPATH (so GCC-XML can find our headers)
     #print 'Path',env['CPPPATH']
@@ -194,7 +200,8 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
                            target_base = target_str,
                            tester = tester,
                            extra_sources = extra_sources,
-                           dep_wrappers = dep_wrappers)
+                           dep_wrappers = dep_wrappers,
+                           dont_build = dont_build)
     env.AlwaysBuild(dummy)
     env.Alias('TopLevelAlias', dummy)
     

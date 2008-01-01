@@ -23,8 +23,8 @@ class MockSubsystem : public ram::core::Subsystem
 {
 public:
     MockSubsystem(ram::core::ConfigNode config_, 
-    			  ram::core::SubsystemList dependents_) :
-    	ram::core::Subsystem(config_["name"].asString()),
+                  ram::core::SubsystemList dependents_) :
+    	ram::core::Subsystem(config_["name"].asString(), dependents_),
         config(config_),
         dependents(dependents_),
         inBackground(false),

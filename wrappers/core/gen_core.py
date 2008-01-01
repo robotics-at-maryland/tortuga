@@ -45,7 +45,6 @@ def generate(module_builder, local_ns, global_ns):
     """
 
     local_ns.exclude()
-
     classes = []
 
     # ConfigNode
@@ -71,16 +70,10 @@ def generate(module_builder, local_ns, global_ns):
     Event.include()
     classes.append(Event)
 
-    #export_typedef(local_ns, 'EventPtr')
-
-    # Subsystemx
-#    SubsystemPtr = local_ns.typedef('SubsystemPtr').type.declaration
-#    SubsystemPtr.rename('SubsystemPtr')
-#    SubsystemPtr.include()
-
-    Subsystem = local_ns.class_('Subsystem')
-    Subsystem.include()
-    classes.append(Subsystem)
+    # IUpdatable
+    IUpdatable = local_ns.class_('IUpdatable')
+    IUpdatable.include()
+    classes.append(IUpdatable)
 
     # Application
     Application = local_ns.class_('Application')
@@ -93,10 +86,11 @@ def generate(module_builder, local_ns, global_ns):
 
     # This one has to be first because Py++ is too stupid to actually put it
     # before these!!
-    module_builder.add_registration_code("register_Subsystem_class();")
+    module_builder.add_registration_code("registerSubsystemClass();")
     module_builder.add_registration_code("registerSubsystemList();")
     module_builder.add_registration_code("registerSubsystemMakerClass();")
     module_builder.add_registration_code("registerEventHubClass();")
+    module_builder.add_registration_code("registerQueuedEventHubClass();")
 
 
     # Do class wide items

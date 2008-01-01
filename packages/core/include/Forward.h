@@ -10,11 +10,11 @@
 #ifndef RAM_CORE_FORWARD_H_11_30_2007
 #define RAM_CORE_FORWARD_H_11_30_2007
 
-namespace ram {
-namespace core {
-
 // Library Includes
 #include <boost/shared_ptr.hpp>
+
+namespace ram {
+namespace core {
 
 struct Event;
 typedef boost::shared_ptr<Event> EventPtr;
@@ -24,6 +24,12 @@ typedef boost::shared_ptr<EventConnection> EventConnectionPtr;
 
 class EventHub;
 typedef boost::shared_ptr<EventHub> EventHubPtr;
+
+class QueuedEventHub;
+typedef boost::shared_ptr<QueuedEventHub> QueuedEventHubPtr;
+
+class QueuedEventHubImp;
+typedef boost::shared_ptr<QueuedEventHubImp> QueuedEventHubImpPtr;
     
 class EventPublisher;
     
@@ -50,7 +56,7 @@ typedef ram::core::QueuedEventPublisherBasePtr QueuedEventPublisherBasePtr;
 
 // So GCCXML see's our typedef
 namespace details {
-inline int instantiateSubsystemMaker()
+inline int instantiateForward()
 {
     int a = sizeof(ram::core::EventPtr);
     a += sizeof(ram::core::EventConnectionPtr);
