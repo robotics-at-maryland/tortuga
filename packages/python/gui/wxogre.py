@@ -133,4 +133,3 @@ class wxOgreFrame(wx.Frame):
         
     def on_activate(self, event):
         self.Bind(wx.EVT_ACTIVATE, None)
-        pass

@@ -521,11 +521,15 @@ class World(OgreNewt.World):
         self._material_pairs = {}
         self._listeners = set()
     
-    def __del__(self):
+    def shutdown(self):
         """
         Here to ensure that all body reference counts go to zero so that there 
         won't be any OgreNewt bodies without a valid world.
         """
+        print 'Removing references to all bodies'
+        del self._material_pairs
+        del self._materials
+        del self._listeners
         del self._bodies
         
     def create_body(self, body, shape, mass, center_of_mass = Ogre.Vector3.ZERO, 

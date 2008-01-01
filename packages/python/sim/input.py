@@ -223,12 +223,17 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
 #        mouse.setEventCallback(self)
         self.keyboard.setEventCallback(self)
         
-    def __del__ (self ):
-        #self.logger.info('* * * Beginning shutdown')
+    def shutdown(self):
         if self._window is not None:
             self.windowClosed(self._window)
             Ogre.WindowEventUtilities.removeWindowEventListener(self._window, self)
-        #self.logger.info('* * * Shutdown complete')
+
+    #def __del__ (self ):
+        #self.logger.info('* * * Beginning shutdown')
+    #    if self._window is not None:
+    #        self.windowClosed(self._window)
+    #        Ogre.WindowEventUtilities.removeWindowEventListener(self._window, self)
+    #    #self.logger.info('* * * Shutdown complete')
         
     def _update(self, time_since_last_update):
         self.keyboard.capture()
@@ -277,7 +282,7 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
         if( render_window == self._window ):
             if(self.input_mgr):
                 #self.logger.info('Shutting down OIS')
-                self.input_mgr.destroyInputObjectMouse( self.mouse )
+                #self.input_mgr.destroyInputObjectMouse( self.mouse )
                 #self.input_mgr.destroyInputObjectKeyboard( self.keyboard )
                 OIS.InputManager.destroyInputSystem(self.input_mgr)
                 self.input_mgr = None

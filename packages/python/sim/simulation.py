@@ -72,7 +72,16 @@ class Simulation(Singleton, Module):
     def shutdown(self):
         print 'Beginning shutdown'
         Module.pause(self)
+        
+        # Close all scenes
+        print 'Destoying Scenes'
+        for scene in self._scenes.itervalues():
+            scene.destroy()
+        
+        # Release references then shutdown
+        print 'Releasing scene references'
         del self._scenes
+        print 'Shutting down Ogre'
         self._ogre_root.shutdown()
         del self._ogre_root
         
@@ -85,7 +94,7 @@ class Simulation(Singleton, Module):
         """
         if self._running:
             Ogre.WindowEventUtilities.messagePump()
-            #self._ogre_root.renderOneFrame()
+            self._ogre_root.renderOneFrame()
    
             for scene in self._scenes.itervalues():
                 scene.update(time_since_last_update)

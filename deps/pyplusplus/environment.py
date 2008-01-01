@@ -26,16 +26,16 @@ scons.cmd_build = 'scons --file=%s'
 scons.cmd_clean = 'scons --clean --file=%s'
 
 if platform.system() == 'Linux':
-    prefix = os.path.join(os.environ['MRBC_SVN_ROOT'], 'deps', 'local')
+    prefix = os.path.join(os.environ['RAM_ROOT_DIR'])
     lib = os.path.join(prefix, 'lib')
     include = os.path.join(prefix, 'include')
     
     scons.suffix = '.so'
-    scons.compiler = 'g++-3.4'
+    scons.compiler = 'g++'
     
     boost.libs = [lib]
-    boost.include = os.path.join(include, 'boost-1_35')
-    python.include = '/usr/include/python2.4'
+    boost.include = os.path.join(include, 'boost-1_34_1')
+    python.include = '/usr/include/python2.5'
     gccxml.executable = os.path.join(prefix, 'bin','gccxml')
 else:
     raise "Environment Not Configured"

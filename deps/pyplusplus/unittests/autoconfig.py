@@ -19,7 +19,7 @@ sys.path.append( os.path.join( os.curdir, '..' ) )
 from environment import scons, boost, python, gccxml
 
 class scons_config:
-    libs = ['boost_python']
+    libs = ['boost_python-gcc41']
     libpath = [ python.libs ] + boost.libs
     cpppath = [ boost.include, python.include ]
     include_dirs = cpppath + [data_directory]

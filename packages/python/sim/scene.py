@@ -106,7 +106,21 @@ class Scene(object):
         """
         Release all resources held by objects
         """
-        pass
+        
+        # Release all references
+        print 'Release references to scene objects'
+        del self._objects
+        del self._robots
+        del self._cameras
+        del self._camera_controllers
+        
+        # Shutdown the world
+        self._world.shutdown()
+        
+        print 'Release reference to world object'
+        # Not deleting this here seems to work out properly?
+        #del self._world
+        print 'Done'
 
     class scene_mgr(core.cls_property):
         """
