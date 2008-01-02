@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/python/tests/core.py
+# File:  packages/python/ram/test/module.py
 
 # Ptyhon Imports
 import unittest
@@ -89,18 +89,18 @@ class TestModuleManager(unittest.TestCase):
         test_config = {
            'Modules': {
                'Manager' :
-                   {'type' : 'module.SuperModule',
+                   {'type' : __name__ + '.SuperModule',
                     'test' : 10 }, 
                'Servant1' :
-                   {'type' : 'module.Sub1Module',
+                   {'type' : __name__ + '.Sub1Module',
                     'depends_on' : ['Manager'],
                     'test' : 5 } ,
                'Servant2' :
-                   {'type' : 'module.Sub2Module',
+                   {'type' : __name__ + '.Sub2Module',
                     'depends_on' : ['Manager'],
                     'test' : 3 },
                'SubServant' :
-                   {'type' : 'module.SubSubModule',
+                   {'type' : __name__ + '.SubSubModule',
                     'depends_on' : ['Servant1', 'Servant2'],
                     'test' : 11 }
                }
@@ -116,7 +116,7 @@ class TestModuleManager(unittest.TestCase):
         test_config = {
            'Modules': {
                'Manager' :
-                   {'type' : 'module.SuperModule',
+                   {'type' : __name__ + '.SuperModule',
                     'test' : 10 }
                    }
            }

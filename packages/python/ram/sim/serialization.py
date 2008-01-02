@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   sim/serialization.py
+# File:   packages/python/ram/sim/serialization.py
 
 """
 This module handles the saving and loading of objects

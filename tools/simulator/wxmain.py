@@ -20,7 +20,6 @@ import logloader
 import event
 
 import ram.sim.simulation
-import sim.robot
 import gui.wxogre
 import gui.input
 import ram.module as module

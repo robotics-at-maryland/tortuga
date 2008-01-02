@@ -11,11 +11,7 @@ Robot:
     # This section describes the physics of the object
     Physical:
         # In kilograms
-#<<<<<<< .mine
-#        mass: 28  # About 0.5% bouyant
-#=======
         mass: 28.175262359039998  # About 0.5% bouyant
-#>>>>>>> .r1688
         center_of_mass: [0, -0.15, 0]
         material: SubMat
         Shape:
@@ -35,7 +31,7 @@ Robot:
         # Y is UP, Z comes out the front of the vehicle and when looking at
         # vehicle from the back X comes out the right (starboard) side 
         LeftThruster:
-            type: [Thruster, sim.robot.Thruster] 
+            type: [Thruster, ram.sim.robot.Thruster] 
             name: left_thruster
             
             # Position relative to robot
@@ -57,7 +53,7 @@ Robot:
                 scale: [0.15,0.047,0.047]
 
         RightThruster:
-            type: [Thruster, sim.robot.Thruster]
+            type: [Thruster, ram.sim.robot.Thruster]
             name: right_thruster
             
             position: [.16, 0, 0]
@@ -73,7 +69,7 @@ Robot:
                 scale: [0.15,0.047,0.047]
                     
         FrontThruster:
-            type: [Thruster, sim.robot.Thruster]
+            type: [Thruster, ram.sim.robot.Thruster]
             name: front_thruster
             
             position: [0, 0, 0.4]
@@ -90,7 +86,7 @@ Robot:
                 scale: [0.15,0.047,0.047]
                 
         AftThruster:
-            type: [Thruster, sim.robot.Thruster]            
+            type: [Thruster, ram.sim.robot.Thruster]            
             name: aft_thruster
             
             position: [0, 0, -0.4]

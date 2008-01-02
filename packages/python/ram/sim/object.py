@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   sim/object.py
+# File:   packages/python/ram/sim/object.py
 
 # Project Imports
 import core

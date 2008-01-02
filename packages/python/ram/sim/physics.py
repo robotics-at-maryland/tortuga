@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  sim/physics.py
+# File:  packages/python/ram/sim/physics.py
 
 # Library Imports
 import ogre.renderer.OGRE as Ogre

@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   /sim/robot.py
+# File:   packages/python/ram/sim/robot.py
 
 # Library Imports
 import ogre.renderer.OGRE as Ogre

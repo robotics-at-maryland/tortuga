@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   sim/util.py
+# File:   packages/python/ram/sim/util.py
 
 """
 Provides core fuctionality for the simulation

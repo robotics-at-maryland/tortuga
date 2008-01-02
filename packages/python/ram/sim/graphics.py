@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  sim/graphics.py
+# File:  packages/python/ram/sim/graphics.py
 
 """
 Wraps up the initialization and management of CEGUI and GUI activites

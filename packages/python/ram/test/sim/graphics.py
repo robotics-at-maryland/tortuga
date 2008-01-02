@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  tests/sim/graphics.py
+# File:  packages/python/ram/test/sim/graphics.py
 
 """
 This module contains all the tests for sim.robot module.  The TestSuite for the

@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  sim/defs.py
+# File:  packages/python/ram/sim/defaults.py
 
 """
 Constains default values for things settings the simulation

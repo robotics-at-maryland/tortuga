@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  vehicle/sim/input.py
+# File:  packages/python/ram/sim/input.py
 
 """
     Wraps up the initialization and management of OIS and other input releated

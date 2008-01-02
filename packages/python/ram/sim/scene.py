@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   /sim/scene.py
+# File:   packages/python/ram/sim/scene.py
 
 
 # Python imports
@@ -23,7 +23,7 @@ from ram.sim.util import SimulationError
 from ram.sim.serialization import ModuleLoader, parse_position_orientation, two_step_init, parse_orientation
 from ram.sim.physics import World, Body, ITrigger, IBody
 from ram.sim.graphics import Camera, CameraController, Visual, IVisual
-from sim.robot import Robot, IThruster
+from ram.sim.robot import Robot, IThruster
 from core import fixed_update, log_init
 
 class SceneError(SimulationError):

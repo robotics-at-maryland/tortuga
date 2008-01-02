@@ -3,13 +3,10 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  tests/sim/tobject.py
+# File:  packages/python/ram/test/sim/object.py
 
 # Ptyhon Imports
 import unittest
-
-# Library Imports
-#import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core

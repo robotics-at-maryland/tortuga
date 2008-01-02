@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  tests/sim/physics.py
+# File:  packages/python/ram/test/sim/physics.py
 
 """
 This module contains all the tests for sim.physics module.  The TestSuite for 

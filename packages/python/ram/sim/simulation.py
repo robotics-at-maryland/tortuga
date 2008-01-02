@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:   /sim/simulation.py
+# File:   packages/python/ram/sim/simulation.py
 
 """
 This module provides the core functionallity of the simulation

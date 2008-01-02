@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  module.py
+# File:  packages/python/ram/module.py
 
 """
 This encapsulates the module system.  It allows seperate parts of the program
