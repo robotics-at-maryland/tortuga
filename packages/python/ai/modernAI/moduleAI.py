@@ -1,4 +1,4 @@
-from module import Module,ModuleManager,IModule
+from ram.module import Module,ModuleManager,IModule
 from core import implements
 from aiInitMachine import aiInitMachine
 

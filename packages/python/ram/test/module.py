@@ -11,8 +11,7 @@ import sys
 
 # Project Import
 import core
-import module
-
+import ram.module as module
 
 #class DummyModule():
 #    def start(self):
@@ -90,18 +89,18 @@ class TestModuleManager(unittest.TestCase):
         test_config = {
            'Modules': {
                'Manager' :
-                   {'type' : 'tests.test_module.SuperModule',
+                   {'type' : 'module.SuperModule',
                     'test' : 10 }, 
                'Servant1' :
-                   {'type' : 'tests.test_module.Sub1Module',
+                   {'type' : 'module.Sub1Module',
                     'depends_on' : ['Manager'],
                     'test' : 5 } ,
                'Servant2' :
-                   {'type' : 'tests.test_module.Sub2Module',
+                   {'type' : 'module.Sub2Module',
                     'depends_on' : ['Manager'],
                     'test' : 3 },
                'SubServant' :
-                   {'type' : 'tests.test_module.SubSubModule',
+                   {'type' : 'module.SubSubModule',
                     'depends_on' : ['Servant1', 'Servant2'],
                     'test' : 11 }
                }
@@ -117,7 +116,7 @@ class TestModuleManager(unittest.TestCase):
         test_config = {
            'Modules': {
                'Manager' :
-                   {'type' : 'tests.test_module.SuperModule',
+                   {'type' : 'module.SuperModule',
                     'test' : 10 }
                    }
            }
@@ -132,16 +131,5 @@ class TestModuleManager(unittest.TestCase):
         
         self.assertEqual([SuperModule], types)
     
-def get_suite():
-    """
-    Returns all TestSuites in this module
-    """
-    suites = []
-    test_loader = unittest.TestLoader()
-    
-    suites.append(test_loader.loadTestsFromTestCase(TestModuleManager))
-    
-    return unittest.TestSuite(suites)
-    
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(get_suite())
+    unittest.main() #TextTestRunner(verbosity=2).run(get_suite())

@@ -11,7 +11,7 @@ import warnings
 # Project Imports
 import event	
 from core import Component, implements
-from module import IModule, Module, Component, ModuleManager
+from ram.module import IModule, Module, Component, ModuleManager
 
 warnings.simplefilter('ignore', RuntimeWarning)
 from ext.vision import VisionRunner as _Vision # Import C++ Vision

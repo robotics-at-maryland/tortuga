@@ -33,7 +33,7 @@ from sim.util import SimulationError
 import sim.defaults as defaults
 
 from core import Singleton, log, log_init, implements, Component
-from module import Module, IModule
+from ram.module import Module, IModule
 
 # Events
 event.add_event_types(['SIM_UPDATE',

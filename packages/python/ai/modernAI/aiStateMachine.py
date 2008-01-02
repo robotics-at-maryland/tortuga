@@ -1,5 +1,5 @@
 from ai.modernAI.newStateMachine import stateMachine
-from module import Module,ModuleManager
+from ram.module import Module,ModuleManager
 
 class aiStateMachine(stateMachine):
     def __init__(self,args = None,interrupts = None):

@@ -1,5 +1,4 @@
-from module import Module
-from module import ModuleManager
+from aim.module import Module, ModuleManager
 
 class model:
     def __init__(self):

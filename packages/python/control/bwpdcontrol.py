@@ -10,7 +10,7 @@ import warnings
 
 # Project Imports
 from core import Component, implements
-from module import IModule, ModuleManager
+from ram.module import IModule, ModuleManager
 import event
 
 warnings.simplefilter('ignore', RuntimeWarning)

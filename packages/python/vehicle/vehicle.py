@@ -12,7 +12,7 @@ import warnings
 import event
 from devices import IDevice
 from core import Component, implements
-from module import IModule, Module, Component, ModuleManager
+from ram.module import IModule, Module, Component, ModuleManager
 
 warnings.simplefilter('ignore', RuntimeWarning)
 from ext.vehicle import Vehicle as _Vehicle # Import C++ Vehicle

@@ -18,7 +18,7 @@ import vehicle.vehicle
 import vehicle.devices
 import control.bwpdcontrol
 import event
-from module import ModuleManager
+from ram.module import ModuleManager
 import scheduler
 
 

@@ -23,7 +23,7 @@ warnings.simplefilter('default', RuntimeWarning)
 # Project Imports
 import logloader
 import event
-import module
+import ram.module as module
 
 import sim.simulation
 import sim.input
@@ -71,7 +71,7 @@ def main(args = None):
     
     # Create Window so that we may load resources
     root = Ogre.Root.getSingleton()
-    window = root.createRenderWindow("Woot", 800, 600, False)
+    window = root.createRenderWindow("Simulator", 800, 600, False)
     
     # Create all the scenes (this loads the resources)
     simulation.create_all_scenes()

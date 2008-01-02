@@ -9,5 +9,7 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
 <path>/home/jlisee/ram-local/lib/python2.5/site-packages/buildit</path>
 <path>/home/jlisee/projects/mrbc/trunk/packages/python</path>
+<path>/home/jlisee/projects/mrbc/trunk/build_ext</path>
+<path>/opt/ram/local/lib/python2.5/site-packages</path>
 </pydev_pathproperty>
 </pydev_project>

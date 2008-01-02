@@ -1,4 +1,4 @@
-from module import Module, IModule
+from ram.module import Module, IModule
 from core import implements
 from ai.state_machine import state_machine as StateMachine
 import ai.Movement as Movement

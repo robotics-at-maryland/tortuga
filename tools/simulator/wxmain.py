@@ -23,7 +23,7 @@ import sim.simulation
 import sim.robot
 import gui.wxogre
 import gui.input
-import module
+import ram.module as module
 import competition
 
 import event
