@@ -26,7 +26,7 @@ import ogre.renderer.OGRE as Ogre
 import logloader    
 import event
 from core import fixed_update, Component, implements, Interface, Attribute, cls_property
-from sim.util import SimulationError
+from ram.sim.util import SimulationError
 #from sim.input import KeyStateObserver
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 from sim.object import IObject, Object

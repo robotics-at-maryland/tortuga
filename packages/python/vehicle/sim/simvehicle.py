@@ -24,7 +24,7 @@ import ogre.io.OIS as OIS
 import event
 import logloader
 
-from sim.util import Vector, Quat
+from ram.sim.util import Vector, Quat
 from sim.simulation import Simulation
 from sim.physics import buoyancyCallback
 from vehicle.vehicle import VehicleFactory, IVehicle

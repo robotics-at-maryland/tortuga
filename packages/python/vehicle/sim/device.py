@@ -19,7 +19,7 @@ import ogre.renderer.OGRE as Ogre
 # Project Imports
 from vehicle.device import IThruster, DeviceFactory
 from sim.simulation import SimulationError, Simulation
-from sim.util import Vector, Quat
+from ram.sim.util import Vector, Quat
 
 class Thruster(IThruster):
     """

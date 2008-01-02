@@ -20,7 +20,7 @@ import ogre.renderer.OGRE as Ogre
 # Projects Import
 import core
 import decorator
-from sim.util import SimulationError, Quat
+from ram.sim.util import SimulationError, Quat
 
 class IStorable(core.Interface):
     def __init__(*args, **kwargs):

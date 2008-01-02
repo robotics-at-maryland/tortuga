@@ -11,7 +11,7 @@ import yaml
 
 # Project Impports
 import core
-from sim.util import Vector, Quat, SimulationError
+from ram.sim.util import Vector, Quat, SimulationError
 from sim.serialization import IKMLStorable, KMLLoader, two_step_init, parse_position_orientation
 from sim.physics import IBody, Body
 from sim.graphics import IVisual, Visual

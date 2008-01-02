@@ -6,7 +6,7 @@
 # File:  sim/defs.py
 
 """
-Constains default values things in the simulation
+Constains default values for things settings the simulation
 """
 
 import ogre.renderer.OGRE as Ogre
@@ -17,6 +17,9 @@ gravity = Ogre.Vector3(0,-9.8,0)
 # Scene defaults
 scene_log_config = {'name' : 'Unknown Scene', 'level': 'INFO'}
 input_log_config = { 'name' : 'Input', 'level': 'INFO'}
+
+# Ogre Defaults
+camera_up_vector = Ogre.Vector3()
 
 # Simulation defaults
 ogre_plugins = ['RenderSystem_GL', 'Plugin_ParticleFX', 

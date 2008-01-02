@@ -9,7 +9,7 @@
 import core
 import event
 from sim.serialization import two_step_init, IKMLStorable
-from sim.util import SimulationError
+from ram.sim.util import SimulationError
 
 class IObject(core.Interface):
     """

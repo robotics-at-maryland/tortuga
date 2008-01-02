@@ -29,8 +29,8 @@ import logloader
 import event
 import sim.scene as scene
 from sim.input import InputSystem
-from sim.util import SimulationError
-import sim.defaults as defaults
+from ram.sim.util import SimulationError
+import ram.sim.defaults as defaults
 
 from core import Singleton, log, log_init, implements, Component
 from ram.module import Module, IModule

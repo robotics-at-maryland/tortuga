@@ -24,8 +24,8 @@ import logloader
 import decorator
 
 from core import fixed_update, cls_property, Enum, Interface, Component, ExtensionPoint
-from sim.util import Vector
-from sim.util import SimulationError
+from ram.sim.util import Vector
+from ram.sim.util import SimulationError
 
 # Key types
 KC = Enum('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 

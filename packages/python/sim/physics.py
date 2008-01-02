@@ -12,12 +12,12 @@ import ogre.renderer.OGRE as Ogre
 # Project Imports
 import core
 import event
-import sim.util
-import sim.defaults as defaults
+import ram.sim.util as util
+import ram.sim.defaults as defaults
 from sim.object import Object, IObject
 from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 
-class PhysicsError(sim.util.SimulationError):
+class PhysicsError(util.SimulationError):
     """
     The error exception class for all PhysicsErrors
     """
