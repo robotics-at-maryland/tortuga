@@ -27,7 +27,7 @@ import ram.module as module
 import competition
 
 import event
-import sim.input
+import ram.sim.input
 
 event.add_event_types(['THRUST_FORE', 'THRUST_BACK',
                        'THRUST_LEFT', 'THRUST_RIGHT','THRUST_PITCH_DOWN',
@@ -96,7 +96,7 @@ class TestDepthController(object):
                            '_down' : ['THRUST_DOWN'],
                            '_pitch_up' : ['THRUST_PITCH_UP'],
                            '_pitch_down' : ['THRUST_PITCH_DOWN']}
-        self.key_observer = sim.input.ButtonStateObserver(self, watched_buttons)
+        self.key_observer = ram.sim.input.ButtonStateObserver(self, watched_buttons)
         
     def update(self, time_since_last_frame):
         if self._up:
@@ -216,7 +216,7 @@ class TestController(object):
                            '_pitch_up' : ['THRUST_PITCH_UP'],
                            '_pitch_down' : ['THRUST_PITCH_DOWN']}
 
-        self.key_observer = sim.input.ButtonStateObserver(self, watched_buttons)
+        self.key_observer = ram.sim.input.ButtonStateObserver(self, watched_buttons)
     
     def _thrust_kill(self, key, down, mod_keys):
         if down:
@@ -316,7 +316,7 @@ class MainFrame(gui.wxogre.wxOgreFrame):
     def on_activate(self, event):
         gui.wxogre.wxOgreFrame.on_activate(self, event)
         if wx.Platform == '__WXGTK__':
-            self._input_forwarder = sim.input.OISInputForwarder({}, \
+            self._input_forwarder = ram.sim.input.OISInputForwarder({}, \
                  sim.simulation.Simulation.get().input_system,
                  self.ogre._render_window)
         

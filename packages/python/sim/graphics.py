@@ -27,10 +27,10 @@ import logloader
 import event
 from core import fixed_update, Component, implements, Interface, Attribute, cls_property
 from ram.sim.util import SimulationError
-#from sim.input import KeyStateObserver
-from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
-from sim.object import IObject, Object
-from sim.input import ButtonStateObserver, toggle
+#from ram.sim.input import KeyStateObserver
+from ram.sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
+from ram.sim.object import IObject, Object
+from ram.sim.input import ButtonStateObserver, toggle
 
 class GraphicsError(SimulationError):
     """ Error from the graphics system """

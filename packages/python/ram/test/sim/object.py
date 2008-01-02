@@ -15,23 +15,23 @@ import unittest
 import core
 
 # Module to test
-#import sim.util as util
-#import sim.object as tobject
+import ram.sim.util as util
+import ram.sim.object as object
 
 class TestObject(unittest.TestCase):
     def setUp(self):
-        self.obj = tobject.Object(None, 'John')
+        self.obj = object.Object(None, 'John')
 	
     def tearDown(self):
         pass
 
     def test_init(self):
         # No Parent case
-        obj = tobject.Object(None, 'Bob')
+        obj = object.Object(None, 'Bob')
         self.assertEqual(None, obj.parent)
 
         # Parent case
-        obj = tobject.Object(self.obj, 'Bob')
+        obj = object.Object(self.obj, 'Bob')
         self.assertEqual(self.obj, obj.parent)
         self.assertEqual(obj, self.obj.get_child('Bob'))
 
@@ -43,13 +43,13 @@ class TestObject(unittest.TestCase):
         self.assertRaises(util.SimulationError, self.obj.get_child, 'bob')
         
         # Add and then check
-        child_obj = tobject.Object(None, 'Jane')
+        child_obj = object.Object(None, 'Jane')
         self.obj.add_child(child_obj)
         self.assertEquals(child_obj, self.obj.get_child('Jane'))
     
     def test_add_child(self):
-        child_obj = tobject.Object(None, 'Jane')
-        child_obj2 = tobject.Object(None, 'Dick')
+        child_obj = object.Object(None, 'Jane')
+        child_obj2 = object.Object(None, 'Dick')
         
         self.obj.add_child(child_obj)
         self.assertEquals(child_obj, self.obj.get_child('Jane'))
@@ -57,8 +57,8 @@ class TestObject(unittest.TestCase):
         self.assertEquals(child_obj2, self.obj.get_child('Dick'))
     
     def test_remove_child(self):
-        child_obj = tobject.Object(None, 'Dick')
-        self.obj.add_child(tobject.Object(None, 'Jane'))
+        child_obj = object.Object(None, 'Dick')
+        self.obj.add_child(object.Object(None, 'Jane'))
         self.obj.add_child(child_obj)
         
         # Test Remove By Name
@@ -69,16 +69,5 @@ class TestObject(unittest.TestCase):
         self.obj.remove_child(child_obj)
         self.assertRaises(util.SimulationError, self.obj.get_child, child_obj)
 
-def get_suite():
-	"""
-	Returns all TestSuites in this module
-	"""
-	suites = []
-	test_loader = unittest.TestLoader()
-	
-	#suites.append(test_loader.loadTestsFromTestCase(TestObject))
-	
-	return unittest.TestSuite(suites)
-	
 if __name__ == '__main__':
-	unittest.TextTestRunner(verbosity=2).run(get_suite())
+    unittest.main()

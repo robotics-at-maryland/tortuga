@@ -27,8 +27,8 @@ warnings.simplefilter('default', RuntimeWarning)
 # Project Imports
 import logloader
 import event
-import sim.scene as scene
-from sim.input import InputSystem
+import ram.sim.scene as scene
+from ram.sim.input import InputSystem
 from ram.sim.util import SimulationError
 import ram.sim.defaults as defaults
 

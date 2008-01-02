@@ -132,4 +132,4 @@ class TestModuleManager(unittest.TestCase):
         self.assertEqual([SuperModule], types)
     
 if __name__ == '__main__':
-    unittest.main() #TextTestRunner(verbosity=2).run(get_suite())
+    unittest.main()

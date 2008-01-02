@@ -11,5 +11,6 @@
 <path>/home/jlisee/projects/mrbc/trunk/packages/python</path>
 <path>/home/jlisee/projects/mrbc/trunk/build_ext</path>
 <path>/opt/ram/local/lib/python2.5/site-packages</path>
+<path>/home/jlisee/tmp/python-ogre-snapshot/packages_2.5</path>
 </pydev_pathproperty>
 </pydev_project>

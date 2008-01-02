@@ -8,7 +8,7 @@
 # Project Imports
 import core
 import event
-from sim.serialization import two_step_init, IKMLStorable
+from ram.sim.serialization import two_step_init, IKMLStorable
 from ram.sim.util import SimulationError
 
 class IObject(core.Interface):

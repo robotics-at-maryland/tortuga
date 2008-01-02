@@ -13,7 +13,7 @@ import wx.aui
 from core import Component, implements
 
 from sim.simulation import Simulation
-from sim.input import OISInputForwarder
+from ram.sim.input import OISInputForwarder
 
 from gui.view import IPanelProvider
 from gui.wxogre import wxOgre

@@ -26,7 +26,7 @@ import event
 import ram.module as module
 
 import sim.simulation
-import sim.input
+import ram.sim.input
 
 def getTime():
     if os.name == 'posix':
@@ -83,8 +83,8 @@ def main(args = None):
     viewport._updateDimensions()
     
     # Setup Input System
-    inputForwarder = sim.input.OISInputForwarder({}, simulation.input_system, 
-                                                 window)
+    inputForwarder = ram.sim.input.OISInputForwarder({}, simulation.input_system, 
+                                                     window)
     
     # Place main loop here
     simulation.start()

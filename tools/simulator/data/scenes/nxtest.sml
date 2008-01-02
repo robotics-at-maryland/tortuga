@@ -37,7 +37,7 @@ Scene:
                     SubMat: ['GATE_ENTERED', 'GATE_EXITED']
     
         ground:
-            type: [SceneObject, sim.scene.SceneObject] 
+            type: [SceneObject, ram.sim.scene.SceneObject] 
             position: [0, -5, 0]
             Graphical:
                 mesh: nx.floor2.mesh
@@ -61,7 +61,7 @@ Scene:
         #        material: 'Simple/Translucent'
                 
         far_wall:
-            type: [SceneObject, sim.scene.SceneObject] 
+            type: [SceneObject, ram.sim.scene.SceneObject] 
             position: [0, -5, -40]
             
             Graphical:
@@ -79,7 +79,7 @@ Scene:
                     mesh_name: far_wall
         
         rear_wall:
-            type: [SceneObject, sim.scene.SceneObject]
+            type: [SceneObject, ram.sim.scene.SceneObject]
             position: [0, -5, 40]
             
             Graphical:
@@ -98,7 +98,7 @@ Scene:
         
                 
         right_wall:
-            type: [SceneObject, sim.scene.SceneObject]
+            type: [SceneObject, ram.sim.scene.SceneObject]
             position: [40, -5, 0]
             orientation: [0, 1, 0, -90]
             
@@ -118,7 +118,7 @@ Scene:
         
         
         left_wall:
-            type: [SceneObject, sim.scene.SceneObject]
+            type: [SceneObject, ram.sim.scene.SceneObject]
             position: [-40, -5, 0]
             orientation: [0, 1, 0, 90]
             

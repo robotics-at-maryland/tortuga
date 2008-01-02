@@ -14,8 +14,8 @@ import core
 import event
 import ram.sim.util as util
 import ram.sim.defaults as defaults
-from sim.object import Object, IObject
-from sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
+from ram.sim.object import Object, IObject
+from ram.sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 
 class PhysicsError(util.SimulationError):
     """

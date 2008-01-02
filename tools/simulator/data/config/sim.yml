@@ -19,7 +19,8 @@ Modules:
                 search_path: ['C:\Libraries\PythonOgre\plugins',
                 'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
                 '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE',
-                '/home/jlisee/projects/pogre/PythonOgre/lib/OGRE']
+                '/home/jlisee/projects/pogre/PythonOgre/lib/OGRE',
+                '/home/jlisee/tmp/python-ogre-snapshot/plugins']
                 
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
                 'Plugin_OctreeSceneManager']

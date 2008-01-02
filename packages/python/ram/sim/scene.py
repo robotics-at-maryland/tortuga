@@ -20,7 +20,7 @@ import ogre.physics.OgreNewt as OgreNewt
 import core
 import ram.sim.defaults as defaults
 from ram.sim.util import SimulationError
-from sim.serialization import ModuleLoader, parse_position_orientation, two_step_init, parse_orientation
+from ram.sim.serialization import ModuleLoader, parse_position_orientation, two_step_init, parse_orientation
 from sim.physics import World, Body, ITrigger, IBody
 from sim.graphics import Camera, CameraController, Visual, IVisual
 from sim.robot import Robot, IThruster
