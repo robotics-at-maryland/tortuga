@@ -20,7 +20,7 @@ import event
 import frame
 from module import ModuleManager
 from baseapp import AppBase
-from sim.simulation import Simulation
+from ram.sim.simulation import Simulation
             
 class Application(wx.App, AppBase):
     

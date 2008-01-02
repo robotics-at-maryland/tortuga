@@ -6,8 +6,9 @@
 # File:  sim/physics.py
 
 # Library Imports
-import ogre.physics.OgreNewt as OgreNewt
 import ogre.renderer.OGRE as Ogre
+import ogre.physics.OgreNewt as OgreNewt
+
 
 # Project Imports
 import core
@@ -172,6 +173,7 @@ class Body(Object):
         """
         self._force = Ogre.Vector3(0,0,0)
         self._omega = Ogre.Vector3(0,0,0)
+        self._torque = Ogre.Vector3(0,0,0)
         self._gravity = defaults.gravity
         self._local_force = []
         self._global_force = []
@@ -179,7 +181,7 @@ class Body(Object):
         self._body = None
         self._material = None
         self._old_velocity = Ogre.Vector3.ZERO
-        self._previous_Omega = Ogre.Vector3.ZERO
+        self._previous_omega = Ogre.Vector3.ZERO
     
         Object.__init__(self)
     
@@ -304,18 +306,16 @@ class Body(Object):
             return self._body.getVelocity()
             
     class omega(core.cls_property):
-        def fset(self, torque):
-            self._omega = Ogre.Vector3(torque)
         def fget(self):
-            return self._omega          
+            return self._body.getOmega()        
     
     class acceleration(core.cls_property):
         def fget(self):
             return self._old_velocity - self.velocity
     
-    class angular_Accel(core.cls_property):
+    class angular_accel(core.cls_property):
         def fget(self):
-            return self._previous_Omega - self.omega
+            return self._previous_omega - self.omega
     
     # Force Applying Methods
     class force(core.cls_property):
@@ -347,6 +347,14 @@ class Body(Object):
         
     def get_global_forces(self):
         return self._global_force
+    
+    # Apply Torque
+    class torque(core.cls_property):
+        def fget(self):
+            return self._torque
+        def fset(self, torque):
+            self._torque = Ogre.Vector3(torque)
+    
         
     def set_buoyancy(self, normal):
         """
@@ -627,7 +635,7 @@ class World(OgreNewt.World):
         """
         body = newton_body.getUserData()
         body._old_velocity = body.velocity
-        body._previous_Omega = body.omega
+        body._previous_omega = body.omega
         
         # Apply forces
         force = body.force
@@ -638,12 +646,10 @@ class World(OgreNewt.World):
         for force, pos in body.get_global_forces():
             newton_body.addGlobalForce(force, pos)
         
-        # Todo apply torques
-        omega = body.omega
-#        print omega
-        if omega != (0,0,0):
-            print 'Torque', omega
-            newton_body.addTorque(omega)
+        # Apply torques
+        torque = body.torque
+        if torque != (0,0,0):
+            newton_body.addTorque(torque)
             
         # Damping hack
         #newton_body.omega = newton_body.omega * 0.8

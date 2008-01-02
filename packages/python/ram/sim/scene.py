@@ -21,8 +21,8 @@ import core
 import ram.sim.defaults as defaults
 from ram.sim.util import SimulationError
 from ram.sim.serialization import ModuleLoader, parse_position_orientation, two_step_init, parse_orientation
-from sim.physics import World, Body, ITrigger, IBody
-from sim.graphics import Camera, CameraController, Visual, IVisual
+from ram.sim.physics import World, Body, ITrigger, IBody
+from ram.sim.graphics import Camera, CameraController, Visual, IVisual
 from sim.robot import Robot, IThruster
 from core import fixed_update, log_init
 

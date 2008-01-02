@@ -12,7 +12,7 @@ import wx.aui
 # Project Imports
 from core import Component, implements
 
-from sim.simulation import Simulation
+from ram.sim.simulation import Simulation
 from ram.sim.input import OISInputForwarder
 
 from gui.view import IPanelProvider

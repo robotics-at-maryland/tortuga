@@ -25,8 +25,8 @@ import event
 import logloader
 
 from ram.sim.util import Vector, Quat
-from sim.simulation import Simulation
-from sim.physics import buoyancyCallback
+from ram.sim.simulation import Simulation
+from ram.sim.physics import buoyancyCallback
 from vehicle.vehicle import VehicleFactory, IVehicle
 from vehicle.device import DeviceFactory
 from vehicle.sim.device import Thruster

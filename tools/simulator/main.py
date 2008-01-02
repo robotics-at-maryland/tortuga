@@ -25,7 +25,7 @@ import logloader
 import event
 import ram.module as module
 
-import sim.simulation
+import ram.sim.simulation
 import ram.sim.input
 
 def getTime():
@@ -67,7 +67,7 @@ def main(args = None):
     moduleManager = module.ModuleManager()
     
     config = yaml.load(file(os.path.join('data', 'config','sim.yml')))
-    simulation = sim.simulation.Simulation(config['Modules']['Simulation'])
+    simulation = ram.sim.simulation.Simulation(config['Modules']['Simulation'])
     
     # Create Window so that we may load resources
     root = Ogre.Root.getSingleton()

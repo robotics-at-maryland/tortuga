@@ -19,7 +19,7 @@ warnings.simplefilter('default', RuntimeWarning)
 import logloader
 import event
 
-import sim.simulation
+import ram.sim.simulation
 import sim.robot
 import gui.wxogre
 import gui.input
@@ -48,7 +48,7 @@ class Vehicle(object):
         return self.robot._main_part.acceleration
     
     def angularAcceleration(self):
-        return self.robot._main_part.angular_Accel
+        return self.robot._main_part.angular_accel
     
 #    Implement:
 #    def getForce(self):
@@ -294,7 +294,7 @@ class MainFrame(gui.wxogre.wxOgreFrame):
         
         if wx.Platform == '__WXMSW__':
             self._input_forwarder = gui.input.InputForwarder(\
-                 sim.simulation.Simulation.get().input_system)
+                 ram.sim.simulation.Simulation.get().input_system)
             self._input_forwarder.forward_window(self.ogre)
         elif wx.Platform == '__WXGTK__':
             # Handled in on_activate
@@ -317,7 +317,7 @@ class MainFrame(gui.wxogre.wxOgreFrame):
         gui.wxogre.wxOgreFrame.on_activate(self, event)
         if wx.Platform == '__WXGTK__':
             self._input_forwarder = ram.sim.input.OISInputForwarder({}, \
-                 sim.simulation.Simulation.get().input_system,
+                 ram.sim.simulation.Simulation.get().input_system,
                  self.ogre._render_window)
         
         self._activate_callback()
@@ -334,7 +334,7 @@ class SimApp(wx.App):
 
         self.config = yaml.load(file(os.path.join('data', 'config','sim.yml')))
         # Create simulation
-        self.sim = sim.simulation.Simulation(self.config['Modules']['Simulation'])
+        self.sim = ram.sim.simulation.Simulation(self.config['Modules']['Simulation'])
         self.components = [self.sim]
         
         # Create our main frame

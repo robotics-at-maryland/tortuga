@@ -14,14 +14,14 @@ the module is retreived with tests.sim.physics.get_suite().
 import unittest
 
 # Library Imports
-#import ogre.renderer.OGRE as Ogre
+import ogre.renderer.OGRE as Ogre
 
 # Project Imporst
 import core
 from test import Mock
 
 # Module to test
-#import sim.physics as physics
+import ram.sim.physics as physics
 
 class TestBody(unittest.TestCase):
     # TODO: Some basic math to determine better values for position and 
@@ -33,11 +33,12 @@ class TestBody(unittest.TestCase):
         
     def tearDown(self):
         del self.body
+        self.scene.world.shutdown()
         del self.scene
     
     def test_position(self):
         self.assertEqual(Ogre.Vector3(0,0,0), self.body.position)
-        
+           
     def test_orientation(self):
         self.assertEqual(Ogre.Quaternion(1,0,0,0), self.body.orientation)
         
@@ -63,12 +64,22 @@ class TestBody(unittest.TestCase):
         self.assertTrue(self.body.velocity.y < 0)
         
     def test_local_force(self):
-        self.body.add_local_force([0,10,0], [1,0,0])
+        # Generate a torque around the z axis
+        self.body.add_local_force([10,0,0], [0,1,0])
         
         for i in xrange(100):
             self.scene.world.update(0.05)
 
-        #self.assertTrue(self.body.omega.z > 0)
+        self.assertNotEqual(self.body.omega.z, 0)
+        
+    def test_torque(self):
+        # Apply a torque around the z axis
+        self.body.torque = (0,0,10)
+        
+        for i in xrange(100):
+            self.scene.world.update(0.05)
+
+        self.assertNotEqual(self.body.omega.z, 0)
         
 #    def test_kml_load(self):
 #        test_rml = {
@@ -87,16 +98,5 @@ class TestBody(unittest.TestCase):
 #        self.assertEquals('box', params['shape_type'])
 #        self.assertEquals({'size' : [0.3, 0.5, 0.7]}, params['shape_props'])
 
-def get_suite():
-    """
-    Returns all TestSuites in this module
-    """
-    suites = []
-    test_loader = unittest.TestLoader()
-    
-    #suites.append(test_loader.loadTestsFromTestCase(TestBody))
-    
-    return unittest.TestSuite(suites)
-    
 if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(get_suite())
+    unittest.main()

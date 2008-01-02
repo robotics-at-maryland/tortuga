@@ -13,8 +13,8 @@ import yaml
 import core
 from ram.sim.util import Vector, Quat, SimulationError
 from ram.sim.serialization import IKMLStorable, KMLLoader, two_step_init, parse_position_orientation
-from sim.physics import IBody, Body
-from sim.graphics import IVisual, Visual
+from ram.sim.physics import IBody, Body
+from ram.sim.graphics import IVisual, Visual
 from ram.sim.object import Object
 
 class IPart(IBody, IVisual):

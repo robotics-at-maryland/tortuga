@@ -3,7 +3,7 @@ import wx
 import ogre.renderer.OGRE as Ogre
 
 # Projects Include
-from sim.simulation import Simulation
+from ram.sim.simulation import Simulation
 from core import cls_property
 import event
 

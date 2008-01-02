@@ -26,7 +26,7 @@ Scene:
     
     Objects:
         gate:
-            type: [Trigger, sim.physics.Trigger]
+            type: [Trigger, ram.sim.physics.Trigger]
             position: [5, 0, -8]
             Physical:
                 mass: 0
@@ -49,7 +49,7 @@ Scene:
                     mesh_name: nx.floor2.mesh
          
         #water:
-        #    type: [Visual, sim.graphics.Visual]
+        #    type: [Visual, ram.sim.graphics.Visual]
         #    material:      
         #    orientation: [1, 0, 0, -90]
             
