@@ -11,6 +11,8 @@ import yaml
 
 # Project Impports
 import core
+
+import ram.sim.defaults as defaults 
 from ram.sim.util import Vector, Quat, SimulationError
 from ram.sim.serialization import IKMLStorable, KMLLoader, two_step_init, parse_position_orientation
 from ram.sim.physics import IBody, Body
@@ -163,7 +165,8 @@ class Part(Body, Visual):
         Visual.load(self, data_object)
         # Link body and node toghether
         self._body.attachToNode(self._node)
-        self.set_buoyancy((0,1,0))
+        buoyantPlaneUp = defaults.gravity.normalisedCopy() * -1;
+        self.set_buoyancy(buoyantPlaneUp)
         
         self._body.angularDamping = (10,10,10)
         print self._body.angularDamping

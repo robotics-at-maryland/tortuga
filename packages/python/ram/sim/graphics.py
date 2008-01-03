@@ -230,16 +230,19 @@ class CameraController(object):
         
         if self.original_parent is None:
             if self._forward:
+                #print 'F',trans
                 self._camera_node.translate(trans, Ogre.Node.TS_WORLD)
             if self._backward:
                 self._camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
                 
             if self._up:
+                #print 'U',height
                 self._camera_node.translate(height, Ogre.Node.TS_WORLD)
             if self._down:
                 self._camera_node.translate(height * -1.0, Ogre.Node.TS_WORLD)
      
             if self._left:
+                #print 'L',strafe
                 self._camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
             if self._right:
                 self._camera_node.translate(strafe, Ogre.Node.TS_WORLD)

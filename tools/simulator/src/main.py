@@ -15,8 +15,8 @@ import warnings
 import yaml
 
 warnings.simplefilter('ignore', RuntimeWarning)
-import ogre.renderer.OGRE as Ogre
-#import ogre.physics.OgreNewt as OgreNewt
+import ogre.renderer.OGRE as ogre
+import ogre.physics.OgreNewt as ogrenewt
 #import ogre.io.OIS
 warnings.simplefilter('default', RuntimeWarning)
 
@@ -41,7 +41,7 @@ def mainLoop(components, window):
     
     # We have to pump it once here so the isClosed and isActive return proper
     # values
-    Ogre.WindowEventUtilities.messagePump()
+    ogre.WindowEventUtilities.messagePump()
     while run and not window.isClosed():
         if window.isActive():
             # Loop over all components updating them, if one returns false exit
@@ -50,14 +50,16 @@ def mainLoop(components, window):
                         
             event.process_events()
             
+            sim = components[0]
+            ogrenewt.Debugger.getSingleton().showLines(sim.get_scene('Main').world)
             current_time = getTime()
             time_since_last_iteration = current_time - last_time;
             last_time = current_time
         else:
             # we got minimized or de-focused, so slow it down and stop
             # rendering until we get focus back
-            time.sleep(1)
-            Ogre.WindowEventUtilities.messagePump()
+            time.sleep(0.1)
+            ogre.WindowEventUtilities.messagePump()
 
 def main(args = None):
     if args is None:
@@ -70,11 +72,14 @@ def main(args = None):
     simulation = ram.sim.simulation.Simulation(config['Modules']['Simulation'])
     
     # Create Window so that we may load resources
-    root = Ogre.Root.getSingleton()
+    root = ogre.Root.getSingleton()
     window = root.createRenderWindow("Simulator", 800, 600, False)
     
     # Create all the scenes (this loads the resources)
     simulation.create_all_scenes()
+    
+    # Debugging
+    ogrenewt.Debugger.getSingleton().init(simulation.get_scene('Main').scene_mgr)
     
     # Setup viewport
     camera = simulation.get_scene('Main').get_camera('Main').camera    
