@@ -12,8 +12,7 @@ Constains default values for things settings the simulation
 import ogre.renderer.OGRE as Ogre
 
 # Physics Defaults
-gravity = Ogre.Vector3(0,-9.8,0)
-#gravity = Ogre.Vector3(0,0,-9.8)
+gravity = Ogre.Vector3(0, 0, -9.8)
 
 # Scene defaults
 scene_log_config = {'name' : 'Unknown Scene', 'level': 'INFO'}

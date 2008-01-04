@@ -103,11 +103,16 @@ class Visual(Object):
             norm = gfx_node['normal']
             width = gfx_node['width']
             height = gfx_node['height']
+            upvec = gfx_node.get('upvec',Ogre.Vector3.UNIT_Y)
+            utile = gfx_node.get('utile', 1)
+            vtile = gfx_node.get('vtile', 1)
+            
             plane = Ogre.Plane(norm, 0 );
             group_name = gfx_node.get('group', Ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME)
             
             Ogre.MeshManager.getSingletonPtr().createPlane(mesh, \
-                group_name, plane, width, height);
+                group_name, plane, width, height, upVector = upvec,
+                uTile = utile, vTile = vtile)
             Visual._plane_count += 1
         
         # Orientation defaults: IDENTITY, Position: (0,0,0)
@@ -155,9 +160,13 @@ class Camera(Component):
                 
         # Allows easier movement of camera
         self._node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
-        self._node.position = (0,0,0)
+        self._node.position = (0, 0, 0)
         self._node.attachObject(self._camera)
         self._camera.lookAt(0, 0, 0)
+    
+        # Account for the odd up vector difference between our and Ogre's 
+        # default coordinate systems
+        self._camera.roll(Ogre.Degree(-90))
     
         # position camera
         self._node.position = position
@@ -185,8 +194,9 @@ class CameraController(object):
     """
     
     event.add_event_types(['CAM_FORWARD', 'CAM_LEFT', 'CAM_BACK', 'CAM_RIGHT',
-                           'CAM_UP', 'CAM_DOWN',
-                           'CAM_TOGGLE_FOLLOW'])
+                           'CAM_UP', 'CAM_DOWN', 'CAM_PITCH_DOWN', 'CAM_PITCH_UP',
+                           'CAM_TOGGLE_FOLLOW', 'CAM_ZOOM_IN', 'CAM_ZOOM_OUT',
+                           'CAM_YAW_LEFT', 'CAM_YAW_RIGHT'])
     
     def __init__(self, camera):
         self._camera = camera.camera
@@ -205,7 +215,13 @@ class CameraController(object):
                            '_left' : ['CAM_LEFT'],
                            '_right' : ['CAM_RIGHT'],
                            '_down' : ['CAM_DOWN'],
-                           '_up' : ['CAM_UP']}
+                           '_up' : ['CAM_UP'],
+                           '_pitch_up' : ['CAM_PITCH_UP'],
+                           '_pitch_down' : ['CAM_PITCH_DOWN'],
+                           '_zoom_in' : ['CAM_ZOOM_IN'],
+                           '_zoom_out' : ['CAM_ZOOM_OUT'],
+                           '_yaw_left' : ['CAM_YAW_LEFT'],
+                           '_yaw_right' : ['CAM_YAW_RIGHT']}
 
         self.key_observer = ButtonStateObserver(self, watched_buttons)
     
@@ -217,35 +233,54 @@ class CameraController(object):
     
     def update(self, time_since_last_frame):
         quat = self._camera_node.getOrientation()
+        moveUnit = 5 * time_since_last_frame
         
-        # A really bad way to generate the rotation vectors I want
-        trans = quat * Ogre.Vector3(0,0,-5) * time_since_last_frame
+        # A really bad way to generate the rotation vectors I wants
+        
+        # Moves us in the Z (up/down direction)
+        height = quat * Ogre.Vector3(0, 0, moveUnit)
+        height.y = 0
+
+        # Moves us in the X (Forward/back direction)        
+        trans = quat * Ogre.Vector3(moveUnit, 0, 0)
         trans.y = 0
         
-        strafe = quat * Ogre.Vector3(5,0,0) * time_since_last_frame
-        strafe.y = 0
+        # Moves us in the Y (Left/Right direction)
+        strafe = quat * Ogre.Vector3(0, -moveUnit, 0)
+        strafe.z = 0
         
-        height = quat * Ogre.Vector3(0,5,0) * time_since_last_frame
-        height.z = 0
         
         if self.original_parent is None:
             if self._forward:
-                #print 'F',trans
                 self._camera_node.translate(trans, Ogre.Node.TS_WORLD)
             if self._backward:
                 self._camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
                 
             if self._up:
-                #print 'U',height
                 self._camera_node.translate(height, Ogre.Node.TS_WORLD)
             if self._down:
                 self._camera_node.translate(height * -1.0, Ogre.Node.TS_WORLD)
      
             if self._left:
-                #print 'L',strafe
                 self._camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
             if self._right:
                 self._camera_node.translate(strafe, Ogre.Node.TS_WORLD)
+                
+            pos = self._camera.position
+            if self._zoom_in:
+                 self._camera.setPosition(pos + (pos * -moveUnit / 3))
+            if self._zoom_out:
+                 self._camera.setPosition(pos + (pos * moveUnit / 3))
+                
+            if self._pitch_up:
+                self._camera_node.yaw(Ogre.Degree(moveUnit * 4))
+            if self._pitch_down:
+                self._camera_node.yaw(Ogre.Degree(-moveUnit * 4))
+                
+            if self._yaw_left:
+                self._camera_node.roll(Ogre.Degree(-moveUnit * 4))
+            if self._yaw_right:
+                self._camera_node.roll(Ogre.Degree(moveUnit * 4))
                 
     @toggle('CAM_TOGGLE_FOLLOW')
     def test_follow(self, state):

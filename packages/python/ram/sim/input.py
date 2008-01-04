@@ -28,9 +28,10 @@ from ram.sim.util import Vector
 from ram.sim.util import SimulationError
 
 # Key types
-KC = Enum('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 
-          'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-          'SHIFT', 'ALT', 'CTRL') 
+UPPER_CASE_LETTERS = [chr(i) for i in xrange(65,65+26)]
+NUMPAD_NUMBERS = ['NUMPAD' + chr(i) for i in xrange(48,48+10)]
+KC = Enum(*(UPPER_CASE_LETTERS + NUMPAD_NUMBERS + \
+          ['SHIFT', 'ALT', 'CTRL', 'ADD', 'SUBTRACT'])) 
 MOD_KEYS = set(['SHIFT', 'ALT', 'CTRL'])
 
 
@@ -311,8 +312,9 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
         return True
     
     def _translate_key(self, key_event, down):
+        print 'KEY',key_event.key
         key = self._input_sys.key_string_to_key(str(key_event.key)[3:])
-            
+        
         if key is not None:
             mod_keys = {'ctrl_down' : self.keyboard.isModifierDown(OIS.Keyboard.Ctrl), 
                         'alt_down' : self.keyboard.isModifierDown(OIS.Keyboard.Alt), 

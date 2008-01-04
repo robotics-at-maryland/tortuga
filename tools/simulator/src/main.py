@@ -96,6 +96,7 @@ def main(args = None):
     mainLoop([simulation], window)
     
     # Now shutdown
+    ogrenewt.Debugger.getSingleton().deInit()
     inputForwarder.shutdown()
     simulation.shutdown()
     window.removeAllViewports()

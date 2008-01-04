@@ -50,7 +50,7 @@ material Simple/BumpyMetal
 	{
 		pass
 		{
-			//ambient 0 0 0
+			ambient 1 1 1
 			texture_unit
 			{
 				texture BumpyMetal.jpg
@@ -59,6 +59,20 @@ material Simple/BumpyMetal
 	}
 }
 
+material Simple/FlatMetal
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture murcim001.jpg
+			}
+		}
+	}
+}
 
 material ConveyorBelt1
 {

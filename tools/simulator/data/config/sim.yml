@@ -42,7 +42,22 @@ Modules:
                 D : CAM_RIGHT
                 Q : CAM_UP 
                 E : CAM_DOWN
-                F : CAM_TOGGLE_FOLLOW
+                R : CAM_ZOOM_IN
+                F : CAM_ZOOM_OUT
+                V : CAM_TOGGLE_FOLLOW
+                
+                NUMPAD8 : CAM_FORWARD
+                NUMPAD4 : CAM_LEFT 
+                NUMPAD5 : CAM_BACK 
+                NUMPAD6 : CAM_RIGHT
+                NUMPAD7 : CAM_UP 
+                NUMPAD9 : CAM_DOWN
+                ADD : CAM_ZOOM_IN
+                SUBTRACT : CAM_ZOOM_OUT
+                NUMPAD2 : CAM_PITCH_UP
+                NUMPAD0 : CAM_PITCH_DOWN
+                NUMPAD1 : CAM_YAW_LEFT
+                NUMPAD3 : CAM_YAW_RIGHT
                 
                 I : THRUST_FORE
                 K : THRUST_BACK
