@@ -15,6 +15,8 @@
 #include <utility>
 #include <iostream>
 #include <cassert>
+#include <vector>
+#include <algorithm>
 
 // Project Includes
 #include "core/include/Platform.h"
@@ -225,6 +227,31 @@ public:
             delete registry;
     }
 
+    /** Returns the sorted set of Keys for all registered makers
+     *
+     *  This function is for debugging purposes.  It lets you see what is
+     *  really regiserted inside the Maker.
+     *
+     *  @return The set of keys sorted in alphabetical order
+     */
+    static std::vector<Key> getRegisteredKeys()
+    {
+        MakerMap* registry = getRegistry();
+        MakerMapIter iter = registry->begin();
+        std::vector<Key> results;
+        
+        while(registry->end() != iter)
+        {
+            results.push_back(iter->first);
+            iter++;
+        }
+
+        // Sort results
+        std::sort(results.begin(), results.end());
+        
+        return results;
+    }
+    
     /** Creates a new object based on the given parameters
      *
      *  This uses the KeyExtract policy to pull the key from the parameters.

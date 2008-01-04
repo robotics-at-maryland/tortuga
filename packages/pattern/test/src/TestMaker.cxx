@@ -7,8 +7,12 @@
  * File:  packages/pattern/test/src/TestMaker.cxx
  */
 
+// STD Includes
+#include <vector>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/assign/list_of.hpp>
 
 // Test Includes
 #include "pattern/include/Maker.h"
@@ -81,6 +85,15 @@ TEST(basicsVer2)
     CHECK(integer);
     // Integer not converted properly
     CHECK_EQUAL(10, integer->value);
+}
+
+TEST(getRegisteredKeys)
+{
+    std::vector<std::string> expected = boost::assign::list_of
+        ("Double")("DoubleVer2")("Int")("IntVer2");
+
+    std::vector<std::string> result = NumberMaker::getRegisteredKeys();
+    CHECK(expected == result);
 }
 
 int main()
