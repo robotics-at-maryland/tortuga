@@ -16,7 +16,7 @@ envl = env.Clone()
 # Find all cpp files in the source directory
 extra_sources = envl.Glob('src', '*.cpp')
 extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'vehicle')
-#envl.Append(CPPPATH = os.path.join(extra_dir))
+envl.Append(CPPPATH = os.path.join(extra_dir))
 
 # Link to libram_pattern.so library
 libs.add_internal(envl, 'vehicle')

@@ -45,5 +45,23 @@ inline int instantiate()
     
 } // namespace vehicle
 } // namespace ram
-    
+
+// Magic namespace to clean up names
+namespace pyplusplus { 
+namespace aliases {
+
+typedef ram::vehicle::IVehiclePtr IVehiclePtr;
+
+}
+}
+
+// Needed for GCCXML to see the types
+namespace details {
+inline int instantiateVehicleCommon()
+{
+    int a = sizeof(ram::vehicle::IVehiclePtr);
+    return a;
+}
+}
+
 #endif // RAM_VEHICLE_COMMON_06_11_2006

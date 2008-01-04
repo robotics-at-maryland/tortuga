@@ -3,7 +3,7 @@
 
 
 # All new config file stuff here
-Modules:
+Subsystems:
     Simulation:
         type: sim.simulation.Simulation
         scene_path: ['data/scenes']
@@ -36,6 +36,7 @@ Modules:
                     
         Input:
             KeyMap:
+                # Camera Controls
                 W : CAM_FORWARD
                 A : CAM_LEFT 
                 S : CAM_BACK 
@@ -59,157 +60,30 @@ Modules:
                 NUMPAD1 : CAM_YAW_LEFT
                 NUMPAD3 : CAM_YAW_RIGHT
                 
+                # Vehicle Controls
                 I : THRUST_FORE
                 K : THRUST_BACK
                 G : THRUST_KILL
-                J : THRUST_LEFT
-                L : THRUST_RIGHT
-                U : THRUST_DOWN
-                O : THRUST_UP
+                J : TURN_LEFT
+                L : TURN_RIGHT
+                U : SURFACE
+                O : DIVE
                 Y : THRUST_PITCH_UP
                 H : THRUST_PITCH_DOWN
+       
+    Controller:
+        #depends_on: ["Vehicle"]
+        type: BWPDController
+        #update_interval: 10
+
+        angularPGain: 10
+        angularDGain: 1
+        speedPGain: 3
+        # Should not be negative
+        depthPGain: 20
 
 
-
-# --------------------------------------------------------------------------- #
-#                     G E N E R A L   O P T I O N S                           #
-# --------------------------------------------------------------------------- #
-
-# This the vehicle that wish to create (see below for the options)
-vehicle: Simulated
-
-Logging:
-    # Loggers are organized in a tree and message propgate upward by default
-    # and are passed to every handler they find along the way until they hit
-    # the root logger, or a logger which has "propgate: 0"
-    Loggers:
-        Root:
-            level: INFO
-            #handlers: [Console, File]
-            handlers: [Console]
-
-        Event:
-            level: WARNING
-            name: event
-
-    # The handlers are what output the actual the log messages and they are 
-    # attached to the loggers
-    Handlers:
-        Console:
-            class: StreamHandler
-            level: INFO
-            formatter: Console
-            args: (sys.stdout,)
-        #File:
-        #    class: FileHandler
-        #    level: INFO
-        #    formatter: File
-        #    args: ('../logs/log.txt', 'w')
-
-    # Called on every log messages by the handler before output            
-    Formatters:
-        Console:
-            format: '%(name)-12s- %(message)s'
-            class: logging.Formatter
-        File:
-            format: '%(asctime)s %(name)-12s %(levelname) -8s %(message)s'
-            class: logging.Formatter
-            
-
-# OLD STUFF
-
-# --------------------------------------------------------------------------- #
-#                             V E H I C L E S                                 #
-# --------------------------------------------------------------------------- #
-Vehicles:
-
-    # ------------------------- S I M U L A T E D --------------------------- #
-    Simulated:
-        # This describes all the general
-        Simulation:
-            Scenes:
-                # The curren scene to load, must be a python module on the given
-                # scene_path, this for example is 'data/scenes/basic.py
-                current: basic
-            
-                # Searh path for scene files
-                path: ['../data/scenes']
-        
-            Input:
-                debug: False
-
-                # Number of time persecond you wished to have the physics updated
-                update_rate: 60 # Default, uncomment and set to change
-            
-                # Shown are the default values, uncomment to change
-                #Logging:
-                #    name: Input
-                #    level: INFO
-        
-            #Physics:
-                # Number of time persecond you wished to have the physics updated
-                # update_rate: 60 # Default, uncomment and set to change
-            
-                # Shown are the default values, uncomment to change
-                #Logging:
-                #    name: Physics
-                #    level: INFO
-        
-            # This secion here takes over for Ogre's ogre.cfg.  The type 
-            # indicates which Ogre RenderSystem to create and which section to
-            # load the options from
-            Graphics:
-                embedded: False
-                # Shown are the default values, uncomment to change
-                #Logging:
-                #    name: Graphics
-                #    level: INFO
-        
-
-                RenderSystem:
-                    type: GLRenderSystem
-                
-                    GLRenderSystem:
-                       # - [Colour Depth, '32']
-                       # - [Display Frequency, 'N/A']
-                        - [FSAA, '0']
-                        - [Full Screen, 'No']
-                        - [RTT Preferred Mode, 'PBuffer']
-                       # - [VSync, 'No']
-                        - [Video Mode, 800 x 600]
-                Plugins:
-                    # Where to search for the plugins
-                    search_path: [ 'C:\Developement\PythonOgre\plugins',
-                                   '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE']
-
-                    # The plugins to load
-                    plugins: [ RenderSystem_GL, 
-                               Plugin_ParticleFX, 
-                               Plugin_OctreeSceneManager ]
-            
-                # This replaces Ogre's resources.cfg, Each node under resources
-                # is a group and each node under that is an archive type, with a 
-                # list of directories to load for that type
-                Resources:
-                    General:
-                        Zip: ['../media/packs/OgreCore.zip',
-                              '../media/packs/cubemapsJS.zip']
-                        FileSystem: ['../media/models',
-                                     '../media/primitives',
-                                     '../media/materials/textures',
-                                     '../media/materials/scripts']
-
-                    GUI:
-                         FileSystem: ['../data/gui/',
-                                      '../data/gui/schemes',
-                                      '../data/gui/fonts']
-            
-            GUI:
-                Logging:
-                    name: GUI
-                    level: INFO
-        
-                # These settings are used by the underlying GUI toolkit (CEGUI)
-                scheme: TaharezLookSkin.scheme
-                look: TaharezLook
-                font: BlueHighway-12
+        desiredSpeed: 0
+        desiredDepth: 1
+        desiredQuaternion: [0, 0, 0, 1]
+       

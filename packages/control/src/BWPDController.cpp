@@ -86,6 +86,8 @@ void BWPDController::setHeading(double degrees)
 void BWPDController::setDepth(double depth)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+    if (depth < 0)
+        depth = 0;
     m_desiredState->depth = depth;
 }
 

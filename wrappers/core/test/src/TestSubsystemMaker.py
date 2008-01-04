@@ -28,6 +28,14 @@ class TestSubsystemMaker(unittest.TestCase):
         self.assertEquals('Test', obj.getName())
         self.assertEquals(0, len(obj.deps))
         self.assert_(isinstance(obj, core.Subsystem))
+
+    def testGetRegisteredKeys(self):
+        expected = ['SubsystemA', 'SubsystemB', 'TestSubsystem']
+        keys = core.SubsystemMaker.getRegisteredKeys()
+        
+        self.assertEquals(len(expected), len(keys))
+        for exp,act in zip(expected, keys):
+            self.assertEquals(exp, act)
         
 
 if __name__ == '__main__':

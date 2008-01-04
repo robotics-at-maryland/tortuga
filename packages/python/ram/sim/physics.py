@@ -667,7 +667,7 @@ class World(OgreNewt.World):
         
         # Set bouyancy callback only if object is bouyant
         if body.get_buoyancy_plane() is not None:
-            newton_body.addBouyancyForce(1000, 0.03 , 0.03, body.gravity,
+            newton_body.addBouyancyForce(1000, 0.10 , 0.10, body.gravity,
                                          World._buoyancy_callback, "")
         return True
         

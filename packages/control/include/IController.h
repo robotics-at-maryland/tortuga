@@ -13,6 +13,9 @@
 // STD Includes
 #include <string>
 
+// Library Includes
+#include <boost/shared_ptr.hpp>
+
 // Project Includes
 #include "core/include/Subsystem.h"
 
@@ -22,6 +25,9 @@
 namespace ram {
 namespace control {
 
+class IController;
+typedef boost::shared_ptr<IController> IControllerPtr;
+    
 class RAM_EXPORT IController : public core::Subsystem
 {
 public:

@@ -47,7 +47,7 @@ def generate(module_builder, local_ns, global_ns):
 
     # Fix overley long std::container names
     #wrap.mangle_container_names(local_ns)
-
+    
     # Need to tell Boost.Python what the ownership policy for the raw pointer
     IVehicle.member_function('getDevice').call_policies = \
         call_policies.return_internal_reference()
@@ -57,3 +57,8 @@ def generate(module_builder, local_ns, global_ns):
     IVehicle.include_files.append(os.environ['RAM_SVN_DIR'] +
                                   '/packages/vehicle/include/device/IDevice.h')
 
+    # Add a castTo
+    wrap.add_castTo(IVehicle, 'ram::core::Subsystem', smart_ptr = True)
+
+    module_builder.add_registration_code("registerIVehiclePtrs();")
+    return ['include/RegisterFunctions.h']

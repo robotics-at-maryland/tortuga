@@ -28,6 +28,12 @@ import ram.module as module
 import ram.sim.simulation
 import ram.sim.input
 
+import sim.vehicle
+import sim.control
+
+import ext.core
+import ext.control
+
 def getTime():
     if os.name == 'posix':
         return time.time()
@@ -61,6 +67,23 @@ def mainLoop(components, window):
             time.sleep(0.1)
             ogre.WindowEventUtilities.messagePump()
 
+def setupVehicleController(scene, subSysConfig):
+    """
+    This function is a stand in for the Application class
+    """
+    vehicle = sim.vehicle.Vehicle(scene._robots['AUT'])
+    
+    # List of dependents
+    dependents = ext.core.SubsystemList()
+    dependents.append(vehicle)
+    
+    cfg = ext.core.ConfigNode.fromString(str(subSysConfig['Controller']))
+    controller = ext.core.SubsystemMaker.newObject(cfg, dependents)
+    controller = ext.control.IController.castTo(controller)
+    
+    return (vehicle, controller)
+    
+
 def main(args = None):
     if args is None:
         args = sys.argv
@@ -69,7 +92,8 @@ def main(args = None):
     moduleManager = module.ModuleManager()
     
     config = yaml.load(file(os.path.join('data', 'config','sim.yml')))
-    simulation = ram.sim.simulation.Simulation(config['Modules']['Simulation'])
+    subSysCfg = config['Subsystems']
+    simulation = ram.sim.simulation.Simulation(subSysCfg['Simulation'])
     
     # Create Window so that we may load resources
     root = ogre.Root.getSingleton()
@@ -91,9 +115,15 @@ def main(args = None):
     inputForwarder = ram.sim.input.OISInputForwarder({}, simulation.input_system, 
                                                      window)
     
+    # Setup the vehicle and controller
+    vehicle, controller = setupVehicleController(simulation.get_scene('Main'), 
+                                                 subSysCfg)
+    
     # Place main loop here
     simulation.start()
-    mainLoop([simulation], window)
+    controller.setSpeed(1)
+    keyController = sim.control.KeyboardController({}, [controller])
+    mainLoop([simulation, controller, keyController], window)
     
     # Now shutdown
     ogrenewt.Debugger.getSingleton().deInit()

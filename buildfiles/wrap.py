@@ -266,15 +266,29 @@ def add_castTo(cls, from_cls, smart_ptr = False):
     """
     
     if smart_ptr:
-        raise "ERROR SMART PTR NOT SUPPORTED"
+        cls_type = declarations.algorithm.full_name(cls).strip("::")
+        args = {
+            'cls_type' : cls_type,
+            'cls_ptr_type' : cls_type + 'Ptr',
+            'from_type' : from_cls + 'Ptr'}
 
-    args = {'cls_type' : declarations.algorithm.full_name(cls).strip("::")+'*',
-            'from_type' : from_cls + '*'}
-    cls.add_declaration_code("""
-    %(cls_type)s castTo(%(from_type)s from) {
+        #print args
+        cls.add_declaration_code("""
+        %(cls_ptr_type)s castTo(%(from_type)s from) {
+        return boost::dynamic_pointer_cast<%(cls_type)s>(from);
+        }""" % args)
+        cls.add_registration_code("""
+        def(\"castTo\", castTo)
+        .staticmethod(\"castTo\")""" % args)
+        #raise "ERROR SMART PTR NOT SUPPORTED"
+    else:
+        args = {'cls_type' : declarations.algorithm.full_name(cls).strip("::")+'*',
+                'from_type' : from_cls + '*'}
+        cls.add_declaration_code("""
+        %(cls_type)s castTo(%(from_type)s from) {
         return dynamic_cast<%(cls_type)s>(from);
-    }""" % args)
-    cls.add_registration_code("""
+        }""" % args)
+        cls.add_registration_code("""
         def(\"castTo\", (%(cls_type)s (*)(%(from_type)s))(&::castTo),
             boost::python::return_internal_reference<1>())
-    .staticmethod(\"castTo\")""" % args)
+        .staticmethod(\"castTo\")""" % args)

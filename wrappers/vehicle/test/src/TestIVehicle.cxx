@@ -98,6 +98,14 @@ TEST_FIXTURE(VehicleFixture, Vehicle)
         ram::core::Subsystem* subsystem =
             py::extract<ram::core::Subsystem*>(main_namespace["veh"]);
         CHECK_EQUAL(vehicle, subsystem);
+
+        main_namespace["core"] = py::import("ext.core");
+        eval("dependents = core.SubsystemList()\n"
+             "dependents.append(veh)\n"
+             "depth = dependents[0].getDepth()\n"
+             "print dependents[0]");
+        double depth = py::extract<double>(main_namespace["depth"]);
+        CHECK_EQUAL(11, depth);
         
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }

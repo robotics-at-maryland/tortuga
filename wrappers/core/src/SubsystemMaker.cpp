@@ -47,11 +47,16 @@ void registerSubsystemMakerClass(){
         .def( 
             "newObject"
             , &SubsystemMakerWrapper::newObject
-            , ( bp::arg("config"), bp::arg("deps") ) )    
+            , ( bp::arg("config"), bp::arg("deps") ) )
+        .def( 
+            "getRegisteredKeys"
+            , &SubsystemMakerWrapper::getRegisteredKeys)    
         .def( 
             "makeObject"
             , bp::pure_virtual( &SubsystemMakerWrapper::makeObject )
-            , ( bp::arg("params") ) )    
-        .staticmethod( "newObject" );
+            , ( bp::arg("params") ) )
+        .staticmethod( "newObject" )
+        .staticmethod( "getRegisteredKeys" );
+    
 
 }
