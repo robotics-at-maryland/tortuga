@@ -5,6 +5,11 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  tools/simulator/src/sim/control.py
 
+"""
+This module uses the ram.sim.input package to turn key events into commands to
+an for an IController.
+"""
+
 # Project Imports
 import ext.core as core
 import ext.control as control
@@ -32,11 +37,19 @@ class KeyboardController(core.Subsystem):
         self.key_observer = input.ButtonStateObserver(self, watched_buttons)
         
     def update(self, time_since_last_frame):
+        # Turn Control
         if self._left:
             self._controller.yawVehicle(30 * time_since_last_frame)
         elif self._right:
             self._controller.yawVehicle(-30 * time_since_last_frame)
         
+        
+        # Speed Control
+        if self._desiredSpeed > 5:
+            self._desiredSpeed = 5
+        elif self._desiredSpeed < -5:
+            self._desiredSpeed = -5
+            
         if self._forward:
             self._desiredSpeed += 2 * time_since_last_frame
             self._controller.setSpeed(int(self._desiredSpeed))
@@ -44,8 +57,8 @@ class KeyboardController(core.Subsystem):
             self._desiredSpeed -= 2 * time_since_last_frame
             self._controller.setSpeed(int(self._desiredSpeed))
             
+        # Depth Control
         currentDepth = self._controller.getDepth()
-        print 'current_depth',currentDepth
         if self._dive:
             currentDepth += 2 * time_since_last_frame
             self._controller.setDepth(currentDepth)

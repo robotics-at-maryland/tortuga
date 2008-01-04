@@ -121,7 +121,6 @@ def main(args = None):
     
     # Place main loop here
     simulation.start()
-    controller.setSpeed(1)
     keyController = sim.control.KeyboardController({}, [controller])
     mainLoop([simulation, controller, keyController], window)
     

@@ -273,14 +273,14 @@ class CameraController(object):
                  self._camera.setPosition(pos + (pos * moveUnit / 3))
                 
             if self._pitch_up:
-                self._camera_node.yaw(Ogre.Degree(moveUnit * 4))
+                self._camera_node.yaw(Ogre.Degree(moveUnit * 6))
             if self._pitch_down:
-                self._camera_node.yaw(Ogre.Degree(-moveUnit * 4))
+                self._camera_node.yaw(Ogre.Degree(-moveUnit * 6))
                 
             if self._yaw_left:
-                self._camera_node.roll(Ogre.Degree(-moveUnit * 4))
+                self._camera_node.roll(Ogre.Degree(-moveUnit * 6), Ogre.Node.TS_WORLD)
             if self._yaw_right:
-                self._camera_node.roll(Ogre.Degree(moveUnit * 4))
+                self._camera_node.roll(Ogre.Degree(moveUnit * 6), Ogre.Node.TS_WORLD)
                 
     @toggle('CAM_TOGGLE_FOLLOW')
     def test_follow(self, state):

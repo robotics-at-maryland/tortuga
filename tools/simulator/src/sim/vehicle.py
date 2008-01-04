@@ -47,8 +47,6 @@ class Vehicle(vehicle.IVehicle):
                                 self.robot._main_part.angular_accel)
     
     def applyForcesAndTorques(self, force, torque):
-        print 'F',force,'T',torque
-        
         self.robot._main_part.set_local_force(
             convertToVector3(ogre.Vector3, force), (0,0,0))
         self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)

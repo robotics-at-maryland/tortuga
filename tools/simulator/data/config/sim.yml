@@ -84,6 +84,6 @@ Subsystems:
 
 
         desiredSpeed: 0
-        desiredDepth: 1
+        desiredDepth: 0.25
         desiredQuaternion: [0, 0, 0, 1]
        

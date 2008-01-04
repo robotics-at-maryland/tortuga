@@ -312,7 +312,6 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
         return True
     
     def _translate_key(self, key_event, down):
-        print 'KEY',key_event.key
         key = self._input_sys.key_string_to_key(str(key_event.key)[3:])
         
         if key is not None:

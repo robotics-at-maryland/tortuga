@@ -72,6 +72,12 @@ BWPDController::~BWPDController()
     
 void BWPDController::setSpeed(int speed)
 {
+    // Clamp speed
+    if (speed > 5)
+        speed = 5;
+    else if (speed < -5)
+        speed = -5;
+    
     core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
     m_desiredState->speed = speed;
 }
