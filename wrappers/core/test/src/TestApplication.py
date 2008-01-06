@@ -42,6 +42,19 @@ class SubsystemB(SubsystemBase):
         
 core.SubsystemMaker.registerSubsystem('SubsystemB', SubsystemB)
 
+class LoopSubsystem(SubsystemBase):
+    STOP = 'LOOPSUBSYSTEM_STOP'
+    def __init__(self, config, deps):
+        SubsystemBase.__init__(self, config, deps)
+        self.iterations = config.get('iterations', 10)
+
+    def update(self, timeSinceLastUpdate):
+        if 0 == self.iterations:
+            self.publish(LoopSubsystem.STOP, core.Event())
+        self.iterations -= 1
+
+core.SubsystemMaker.registerSubsystem('LoopSubsystem', LoopSubsystem)
+
 class TestApplication(unittest.TestCase):
     def testGetSubsytem(self):
         configPath = os.path.join(getConfigRoot(), 'simpleSubsystem.yml')
@@ -54,6 +67,21 @@ class TestApplication(unittest.TestCase):
         subsystemB = app.getSubsystem("SystemB")
         self.assertEquals("SystemB", subsystemB.getName())
         self.assertEquals(5, subsystemB.funcB())
+
+    def testMainLoop(self):
+        configPath = os.path.join(getConfigRoot(), 'loopSubsystems.yml')
+        app = core.Application(configPath)
+
+        def stop(event):
+            app.stopMainLoop()
+
+        app.getSubsystem('A').subscribe(LoopSubsystem.STOP,  stop)
+        app.mainLoop()
+
+        subsystemIter = (app.getSubsystem(name) for name in 
+                         app.getSubsystemNames())
+        for subsystem in subsystemIter:
+            self.assertEquals(-1, subsystem.iterations)
         
 if __name__ == '__main__':
     unittest.main()

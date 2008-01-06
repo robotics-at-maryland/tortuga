@@ -26,13 +26,14 @@ def convertToQuaternion(qType, quat):
 
 
 class Vehicle(vehicle.IVehicle):
-    def __init__(self, robot):
-        vehicle.IVehicle.__init__(self, "SimVehicle")
-        self.robot = robot
+    def __init__(self, config, deps):
+        vehicle.IVehicle.__init__(self, config.get('name', 'SimVehicle'))
+        sim = deps[0]
+        self.robot = sim.scene._robots['AUT']
     
     def getDepth(self):
-        #print 'Depth',self.robot._main_part._node.position.z
-        return -self.robot._main_part._node.position.z
+        # Down is positive for depth
+        return -1 * self.robot._main_part._node.position.z
     
     def getOrientation(self):
         return convertToQuaternion(math.Quaternion,
@@ -61,5 +62,11 @@ class Vehicle(vehicle.IVehicle):
 #        self.robot.parts.left_thruster.force = port
 #        self.robot.parts.front_thruster.force = fore
 #        self.robot.parts.aft_thruster.force = aft
+        
+    def backgrounded(self):
+        return False
+    
+    def update(self, time):
+        pass
 
 core.SubsystemMaker.registerSubsystem('SimVehicle', Vehicle)

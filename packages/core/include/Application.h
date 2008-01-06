@@ -20,6 +20,7 @@
 // Project Includes
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/TimeVal.h"
 
 // Must Be Included last
 #include "core/include/Export.h"
@@ -51,6 +52,18 @@ public:
 
     /** Writes the dependency graph in Graphviz dot format */
     void writeDependencyGraph(std::ostream& file);
+
+    /** Starts updating non-backgrounded Subsystems in a blocking fashion
+     *
+     *  Every Subsystem which returns false from backgrounded(), will be
+     *  updated in a continous loop, as fast as possible.  It will stop when
+     *  stopMainLoop() is called.
+     *  
+     */
+    void mainLoop();
+
+    /** Stops the loop started by the mainLoop() */
+    void stopMainLoop();
     
 private:
     typedef std::vector<std::string> NameList;
@@ -58,7 +71,11 @@ private:
     /** Does all the work to determine in what order we should start up
      subsystems using a topological sort and BGL */
     void determineStartupOrder(NodeNameList& subnodes, ConfigNode sysConfig);
+
+    /** Whether or not the main loop is running*/
+    bool m_running;
     
+    /** Stores subsystems, referened by name */
     NameSubsystemMap m_subsystems;
     
     /** The order the systems are created in */
@@ -66,6 +83,9 @@ private:
 
     /** The names of which subsystem by each subsystem  */
     std::map<std::string, NameList> m_subsystemDeps;
+
+    /** Records when the the subsystem was last updated */
+    std::map<std::string, TimeVal> m_lastUpdate;
 };
 
 } // namespace core

@@ -30,7 +30,8 @@ class TestSubsystemMaker(unittest.TestCase):
         self.assert_(isinstance(obj, core.Subsystem))
 
     def testGetRegisteredKeys(self):
-        expected = ['SubsystemA', 'SubsystemB', 'TestSubsystem']
+        expected = ['LoopSubsystem', 'SubsystemA', 'SubsystemB',
+                    'TestSubsystem']
         keys = core.SubsystemMaker.getRegisteredKeys()
         
         self.assertEquals(len(expected), len(keys))

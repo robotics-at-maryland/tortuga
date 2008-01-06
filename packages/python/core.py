@@ -9,6 +9,8 @@
 Offers core functionallity
 """
 
+import os
+
 # TODO: Split this off into a util and core module
 
 real_property = property
@@ -455,3 +457,10 @@ def Enum(*names):
     constants = tuple(constants)
     EnumType = EnumClass()
     return EnumType
+
+def environmentSub(str):
+    """
+    Does string replacement using pythons '%(<var_name>)s syntax with 
+    environment variables.  Where <var_name> can be any envionment variable.
+    """
+    return str % os.environ

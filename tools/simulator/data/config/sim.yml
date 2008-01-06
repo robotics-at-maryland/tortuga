@@ -4,8 +4,32 @@
 
 # All new config file stuff here
 Subsystems:
+    Vehicle:
+        type: SimVehicle
+        depends_on: ["Simulation"]
+
+    Controller:
+        depends_on: ["Vehicle"]
+        type: BWPDController
+        #update_interval: 10
+
+        angularPGain: 10
+        angularDGain: 1
+        speedPGain: 3
+        # Should not be negative
+        depthPGain: 20
+
+
+        desiredSpeed: 0
+        desiredDepth: 0.25
+        desiredQuaternion: [0, 0, 0, 1]
+
+    KeyboardController:
+        depends_on: ["Controller"]
+        type: KeyboardController
+
     Simulation:
-        type: sim.simulation.Simulation
+        type: Simulation
         scene_path: ['data/scenes']
         
         Scenes:
@@ -20,7 +44,8 @@ Subsystems:
                 'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
                 '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE',
                 '/home/jlisee/projects/pogre/PythonOgre/lib/OGRE',
-                '/home/jlisee/tmp/python-ogre-snapshot/plugins']
+                '/home/jlisee/tmp/python-ogre-snapshot/plugins',
+                '/home/jlisee/projects/pogre/python-ogre-snapshot/plugins']
                 
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
                 'Plugin_OctreeSceneManager']
@@ -70,20 +95,4 @@ Subsystems:
                 O : DIVE
                 Y : THRUST_PITCH_UP
                 H : THRUST_PITCH_DOWN
-       
-    Controller:
-        #depends_on: ["Vehicle"]
-        type: BWPDController
-        #update_interval: 10
-
-        angularPGain: 10
-        angularDGain: 1
-        speedPGain: 3
-        # Should not be negative
-        depthPGain: 20
-
-
-        desiredSpeed: 0
-        desiredDepth: 0.25
-        desiredQuaternion: [0, 0, 0, 1]
        

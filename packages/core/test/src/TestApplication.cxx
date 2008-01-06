@@ -20,14 +20,19 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "core/test/include/MockSubsystem.h"
+#include "core/test/include/LoopSubsystem.h"
 #include "core/include/Application.h"
+#include "core/include/SubsystemMaker.h"
 
 namespace ba = boost::assign;
 namespace bf = boost::filesystem;
 
+const std::string LoopSubsystem::STOP("CORE_TEST_LOOPSUBSYSTEM");
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(LoopSubsystem, LoopSubsystem);
 
 bf::path getConfigRoot()
 {
@@ -129,4 +134,39 @@ TEST(writeDependencyGraph)
         "}\n";
 
     CHECK_EQUAL(expected, ss.str());
+}
+
+void stopLoop(ram::core::Application* app, ram::core::EventPtr)
+{
+    app->stopMainLoop();
+}
+
+TEST(mainLoop)
+{
+    bf::path path(getConfigRoot() / "loopSubsystems.yml");
+    ram::core::Application app(path.string());
+
+    // Bind to the stop event so we don't have an event loop
+    app.getSubsystem("SubsystemA")->subscribe(LoopSubsystem::STOP,
+                                              boost::bind(stopLoop, &app, _1));
+
+    // Run the main loop
+    app.mainLoop();
+
+    // Check results
+    BOOST_FOREACH(std::string name, app.getSubsystemNames())
+    {
+        ram::core::SubsystemPtr subsystem = app.getSubsystem(name);
+        LoopSubsystem* loopSubsystem =
+            dynamic_cast<LoopSubsystem*>(subsystem.get());
+
+        CHECK_EQUAL(loopSubsystem->actualUpdates.size(),
+                    loopSubsystem->expectedUpdates.size());
+
+        for (size_t i = 0; i < loopSubsystem->actualUpdates.size(); ++i)
+        {
+            CHECK_CLOSE(loopSubsystem->actualUpdates[i],
+                        loopSubsystem->expectedUpdates[i], 0.001);
+        }
+    }
 }

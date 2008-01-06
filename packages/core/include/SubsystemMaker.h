@@ -63,7 +63,8 @@ struct SubsystemMakerTemplate : public SubsystemMaker
     virtual SubsystemPtr makeObject(
             SubsystemMakerParamType params)
     {
-        return SubsystemPtr(new SubsystemType(params.first, params.second));
+        return boost::shared_ptr<SubsystemType>(
+            new SubsystemType(params.first, params.second));
     }
 };
 

@@ -33,7 +33,8 @@
 namespace ram {
 namespace core {
 
-Application::Application(std::string configPath)
+Application::Application(std::string configPath) :
+    m_running(false)
 {
     boost::filesystem::path path(configPath);
     ConfigNode rootCfg = core::ConfigNode::fromFile(path.string());
@@ -270,6 +271,38 @@ void Application::determineStartupOrder(NodeNameList& subnodes,
 
     BOOST_FOREACH(Vertex vertex, creationOrder)
         m_order.push_back(vertexToName[vertex]);
+}
+
+
+void Application::mainLoop()
+{
+    m_running = true;
+    
+    typedef std::pair<std::string, SubsystemPtr> Pair;
+    TimeVal now;
+
+    // Run until stopMainLoop is called
+    while (m_running)
+    {
+        // Update each subsystem which isn't backgrounded
+        BOOST_FOREACH(Pair item, m_subsystems)
+        {
+            SubsystemPtr subsystem = item.second;
+
+            if (!subsystem->backgrounded())
+            {
+                now.now();
+                TimeVal timeSinceLastUpdate(now - m_lastUpdate[item.first]);
+                subsystem->update(timeSinceLastUpdate.get_double());
+                m_lastUpdate[item.first] = now;
+            }
+        }
+    }
+}
+
+void Application::stopMainLoop()
+{
+    m_running = false;
 }
     
 } // namespace core

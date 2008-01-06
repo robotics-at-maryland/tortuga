@@ -94,7 +94,6 @@ class Simulation(Singleton, Module):
         """
         if self._running:
             Ogre.WindowEventUtilities.messagePump()
-            self._ogre_root.renderOneFrame()
    
             for scene in self._scenes.itervalues():
                 scene.update(time_since_last_update)

@@ -36,6 +36,9 @@ class KeyboardController(core.Subsystem):
                            '_surface' : ['SURFACE']}
         self.key_observer = input.ButtonStateObserver(self, watched_buttons)
         
+    def backgrounded(self):
+        return False
+    
     def update(self, time_since_last_frame):
         # Turn Control
         if self._left:

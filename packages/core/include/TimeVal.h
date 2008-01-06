@@ -30,9 +30,9 @@
 #define RAM_CORE_TIMEVAL_06_18_2007
 
 #ifdef RAM_POSIX
-// UNIX Includes
 #include <sys/time.h>
-#else
+#else // RAM_POSIX
+
 #include <winsock2.h> // for struct timeval
 
 // Need the declration because windows doesn't have it
@@ -40,6 +40,7 @@ struct timezone {
     int tz_minuteswest; /* minutes W of Greenwich */
     int tz_dsttime;     /* type of dst correction */
 };
+
 #endif // RAM_POSIX
 
 // Must Be Included last
