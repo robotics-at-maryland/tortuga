@@ -13,8 +13,13 @@
 namespace ram {
 namespace vehicle {
 
-IVehicle::IVehicle(std::string name):
-    core::Subsystem(name)
+RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, ORIENTATION_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, LINEAR_ACCEL_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, ANGULAR_RATE_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, DEPTH_UPDATE);
+    
+IVehicle::IVehicle(std::string name, core::EventHubPtr eventHub) :
+    core::Subsystem(name, eventHub)
 {
 }
 

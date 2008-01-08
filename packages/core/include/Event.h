@@ -32,14 +32,13 @@ struct RAM_EXPORT Event
     EventType type;
     EventPublisher* sender;
 };
-
-/*namespace details {
-int instantiateEvent() {
-    return sizeof(EventPtr);
-}
-}*/
     
 } // namespace core
 } // namespace ram
+
+#define RAM_CORE_EVENT_STR(S) # S
+#define RAM_CORE_EVENT_TYPE(_class, name) \
+    const ram::core::Event::EventType _class  :: name  \
+    (std::string(__FILE__) + RAM_CORE_EVENT_STR(name))
 
 #endif // RAM_CORE_EVENT_H_11_19_2007

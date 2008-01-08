@@ -8,12 +8,9 @@
 # STD Imports
 import os
 import sys
-import warnings
 
 # Library Imports
-warnings.simplefilter('ignore', RuntimeWarning)
-import ogre.renderer.OGRE as ogre
-warnings.simplefilter('default', RuntimeWarning)
+import yaml
 
 # Project Imports
 import ram.module as module

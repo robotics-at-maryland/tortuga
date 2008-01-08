@@ -46,9 +46,14 @@ class Application(wx.App):
         self._heartBeat = 0
         
         # Parse command line options
+        defaultConfigPath = os.path.abspath(
+            os.path.join(os.environ['RAM_SVN_DIR'], 'tools', 'oci', 'data', 
+                         'test.yml'))
+        
         parser = OptionParser()
-        parser.add_option("-c", "--config", dest="configPath", default='',
-                          help="The path to the config file")
+        parser.add_option("-c", "--config", dest = "configPath", 
+                          default = defaultConfigPath,
+                          help = "The path to the config file")
         (options, args) = parser.parse_args()
 
         # Create config file
@@ -62,8 +67,8 @@ class Application(wx.App):
         # Build a list of subsystems
         subsystems = []
         names = self._app.getSubsystemNames()
-        for name in names:
-            subsystems.append(self._app.getSubsystem(name))
+        for i in xrange(0, len(names)):
+            subsystems.append(self._app.getSubsystem(names[i]))
 
         # Create the Main Frame
         subCfg = config.get('Subsystems', {})
@@ -119,15 +124,19 @@ class Application(wx.App):
         timeSinceLastIteration = (currentTime - self._lastTime)
         
         # Update each subsystem with the time since the last update
-        subsystemIter = (self._app.getSubsystem(name) for name in 
-                         self._app.getSubsystemNames())
+        names = self._app.getSubsystemNames()
+        subsystemIter = (self._app.getSubsystem(names[i]) for i in 
+                         xrange(0, len(names)) )
         for subsystem in subsystemIter:
             try:
-                subsystem.update(timeSinceLastIteration)
+                if not subsystem.backgrounded():
+                    subsystem.update(timeSinceLastIteration)
             except wx.PyDeadObjectError,e: 
                 """
-                 An exception here means the panel has been destroyed and there is no longer any reason to update this subsystem
-                 Perhaps it would be better to have the onclose of the panels remove the subsystem from the subsystemiter
+                An exception here means the panel has been destroyed and there 
+                is no longer any reason to update this subsystem
+                Perhaps it would be better to have the onclose of the panels 
+                remove the subsystem from the subsystemiter
                 """
                 pass
         

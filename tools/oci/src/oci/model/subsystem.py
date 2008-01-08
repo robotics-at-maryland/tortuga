@@ -9,8 +9,81 @@
 import math
 
 # Project Imports
+import ext.math
 import ext.core as core
-import ext._vehicle_device as vdev
+import ext.vehicle as vehicle
+import ext.vehicle.device as device
+
+
+class Vehicle(vehicle.IVehicle):
+    def __init__(self, config, deps):
+        vehicle.IVehicle.__init__(self, config["name"])
+        self._devices = {}
+        self._currentTime = 0.0
+        self._depth = 0.0
+        self._orientation = ext.math.Quaternion(0, 0, 0, 0)
+
+        self._addThruster('PortThruster', 1)
+        self._addThruster('StartboardThruster', 2)
+        self._addThruster('AftThruster', 3)
+        self._addThruster('ForeThruster', 4)
+
+    def _addThruster(self, name, offset):
+        self._devices[name] = Thruster(name, offset)
+
+    def backgrounded(self):
+        return False
+
+    def getDevice(self, name):
+        return self._devices[name]
+    
+    def getDeviceNames(self):
+        return self._devices.keys()
+
+    def update(self, timestep):
+        self._currentTime += timestep  
+        
+        # Depth
+        self.depth = 50.0 * math.sin(self._currentTime) + 50.0
+        event = core.Event()
+        event.depth = self.depth
+        self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
+        
+        # Orientation
+        self._orientation.x = 1.0 * math.sin(self._currentTime) + 1.0
+        self._orientation.y = 1.0 * math.sin(self._currentTime + 5) + 1.0
+        self._orientation.z = 1.0 * math.sin(self._currentTime + 10) + 1.0
+        self._orientation.w = 1.0 * math.sin(self._currentTime + 15) + 1.0
+        event = core.Event()
+        event.orientation = self._orientation
+        self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
+        
+        # Update Devices
+        for device in self._devices.itervalues():
+            device.update(timestep)
+
+core.SubsystemMaker.registerSubsystem('DemoVehicle', Vehicle)
+
+class Thruster(core.EventPublisher, device.IThruster):    
+    def __init__(self, name, offset):
+        core.EventPublisher.__init__(self)
+        device.IThruster.__init__(self)
+        
+        self.force = 0
+        self._currentTime = 0.0
+        self._offset = offset
+        self._name = name
+                
+    def getName(self):
+        return self._name
+                
+    def update(self, timestep):
+        self._currentTime += timestep
+        self.force = 100 * math.sin(self._currentTime + self._offset)
+        
+        event = core.Event()
+        event.force = self.force
+        self.publish(str(device.IThruster.FORCE_UPDATE), event)
 
 class DemoPower(core.Subsystem, core.EventPublisher):
     """
@@ -51,58 +124,6 @@ class DemoPower(core.Subsystem, core.EventPublisher):
         
 # Register Subsystem so it can be created from a config file
 core.SubsystemMaker.registerSubsystem('DemoPower', DemoPower)
-
-class Thruster(core.Subsystem, core.EventPublisher, vdev.IThruster):
-    THRUSTER_UPDATE = str(vdev.IThruster.FORCE_UPDATE)
-    
-    def __init__(self, config, deps):
-        core.Subsystem.__init__(self, config['name'])
-        core.EventPublisher.__init__(self)
-        vdev.IThruster.__init__(self)
-        
-        self.force = 0
-        self._currentTime = 0.0
-                
-    def update(self, timestep):
-        self._currentTime += timestep
-        self.force = 100 * math.sin(self._currentTime)
-        
-        event = core.Event()
-        event.force = self.force
-        self.publish(Thruster.THRUSTER_UPDATE, event)
-        
-core.SubsystemMaker.registerSubsystem('Thruster', Thruster)
-
-class Depth(core.Subsystem,core.EventPublisher):
-    """
-    A depth sensor subsystem with a single value that measures the current
-    depth of the vehicle (in?).
-    
-    @type DEPTH_UPDATE: string
-    @ivar DEPTH_UPDATE: Event type of event through when power updated
-    """
-    DEPTH_UPDATE = "DEPTH_UPDATE"
-    
-    def __init__(self,config,deps):
-        core.Subsystem.__init__(self, config['name'])
-        core.EventPublisher.__init__(self)
-        
-        self.depth = 0
-        self._currentTime = 0.0
-
-                
-    def update(self, timestep):
-        self._currentTime += timestep    
-        self.depth = 50.0 * math.sin(self._currentTime) + 50.0
-
-        event = core.Event()
-        event.depth = self.depth
-        self.publish(Depth.DEPTH_UPDATE, event)
-        
-core.SubsystemMaker.registerSubsystem('Depth', Depth)
-
-
-
         
 class DemoSonar(core.Subsystem, core.EventPublisher):
     """

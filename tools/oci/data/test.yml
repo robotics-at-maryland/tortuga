@@ -3,9 +3,9 @@ test: 10
 Subsystems:
     Sonar:
         type: DemoSonar
+        
     Power:
         type: DemoPower
-    Depth:
-        type: Depth
-    Thruster:
-        type: Thruster
+        
+    Vehicle:
+        type: DemoVehicle

@@ -20,6 +20,7 @@
 #include "vehicle/include/Common.h"
 //#include "core/include/IUpdatable.h"
 #include "core/include/Subsystem.h"
+#include "core/include/Event.h"
 #include "math/include/Vector3.h"
 
 // Must Be Included last
@@ -31,6 +32,11 @@ namespace vehicle {
 class RAM_EXPORT IVehicle : public core::Subsystem
 {
 public:
+    static const core::Event::EventType ORIENTATION_UPDATE;
+    static const core::Event::EventType LINEAR_ACCEL_UPDATE;
+    static const core::Event::EventType ANGULAR_RATE_UPDATE;
+    static const core::Event::EventType DEPTH_UPDATE;
+    
     virtual ~IVehicle(); //{}
 
     /** Gets the device associated with the given name */
@@ -81,7 +87,8 @@ public:
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque) = 0;
 protected:
-    IVehicle(std::string name);// : Subsystem(name) {}
+    IVehicle(std::string name,
+             core::EventHubPtr eventHub = core::EventHubPtr());
 };
     
 } // namespace vehicle
