@@ -20,17 +20,17 @@ namespace math {
 class OrientationEvent : public core::Event
 {
     Quaternion orientation;
-}
+};
 
 class Vector3Event : public core::Event
 {
     Vector vector;
-}
+};
 
 class NumericEvent : public core::Event
 {
     double value;
-}
+};
     
 } // namespace math
 } // namespace ram
