@@ -25,5 +25,5 @@ def generate(module_builder, local_ns, global_ns):
 
 #    wrap.make_already_exposed(global_ns, 'ram::pattern', 'Subject')
     module_builder.add_registration_code("registerIControllerPtrs();")
-    return ['include/RegisterFunctions.h']
+    return ['wrappers/control/include/RegisterFunctions.h']
 

@@ -56,8 +56,12 @@ TEST_FIXTURE(DeviceFixture, Vehicle)
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
 
+// Slight Hack, to pull in event functor test module
+// extern "C" void initevent_functor();
+
 int main()
 {
+//    PyImport_AppendInittab("event_functor", initevent_functor);
     Py_Initialize();
     return UnitTest::RunAllTests();
 }

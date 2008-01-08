@@ -62,6 +62,9 @@ class Vehicle(vehicle.IVehicle):
         for device in self._devices.itervalues():
             device.update(timestep)
 
+    def unbackground(self, join):
+        pass
+
 core.SubsystemMaker.registerSubsystem('DemoVehicle', Vehicle)
 
 class Thruster(core.EventPublisher, device.IThruster):    

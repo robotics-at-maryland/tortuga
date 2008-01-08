@@ -14,7 +14,7 @@
 #include "core/include/EventHub.h"
 #include "core/include/EventPublisher.h"
 #include "core/include/EventConnection.h"
-#include "include/EventFunctor.h"
+#include "wrappers/core/include/EventFunctor.h"
 
 namespace bp = boost::python;
 

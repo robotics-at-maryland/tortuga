@@ -61,4 +61,4 @@ def generate(module_builder, local_ns, global_ns):
     wrap.add_castTo(IVehicle, 'ram::core::Subsystem', smart_ptr = True)
 
     module_builder.add_registration_code("registerIVehiclePtrs();")
-    return ['include/RegisterFunctions.h']
+    return ['wrappers/vehicle/include/RegisterFunctions.h']

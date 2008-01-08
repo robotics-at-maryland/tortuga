@@ -31,7 +31,7 @@ def main(args = None):
     path = os.path.abspath(os.path.join('data', 'config','sim.yml'))
     print 'PATH',path
     app = ext.core.Application(path)
-    
+
     # Hook into stop event to stop main loop
     global APPLICATION
     APPLICATION = app

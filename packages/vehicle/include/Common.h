@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/Common.h
+ * File:  packages/vehicle/include/Common.h
  */
 
 #ifndef RAM_VEHICLE_COMMON_06_11_2006

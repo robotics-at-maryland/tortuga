@@ -34,7 +34,7 @@ def expose_publisher(local_ns, cls_name):
     """ % (cls_name))
     ePublisher.add_registration_code(
         'def("subscribe", &::pysubscribe)', works_on_instance = True )
-    ePublisher.include_files.append('include/EventFunctor.h')
+    ePublisher.include_files.append('wrappers/core/include/EventFunctor.h')
     ePublisher.include_files.append('core/include/EventConnection.h')
     return ePublisher
 
@@ -97,7 +97,7 @@ def generate(module_builder, local_ns, global_ns):
     wrap.set_implicit_conversions([Application, QueuedEventPublisher,
                                    EventPublisher], False)
     wrap.add_needed_includes(classes)
-    return ['include/RegisterFunctions.h']
+    return ['wrappers/core/include/RegisterFunctions.h']
 
     #local_ns.class_('Updatable').include()
     #local_ns.class_('IUpdatable').include()

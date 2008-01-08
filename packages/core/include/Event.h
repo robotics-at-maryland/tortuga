@@ -27,6 +27,8 @@ namespace core {
     
 struct RAM_EXPORT Event
 {
+    virtual ~Event() {};
+    
     typedef std::string EventType;
     
     EventType type;
