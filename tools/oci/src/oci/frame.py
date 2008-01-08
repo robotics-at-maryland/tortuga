@@ -31,7 +31,7 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
     panelProviders = ExtensionPoint(IPanelProvider)
     
     def __init__(self, config, subsystems):
-        self._panels = {}
+        self._panels = []
     
         # Instantiate super class based on configuration settings
         #gui_node = config.get('GUI', {})
@@ -48,16 +48,24 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
         self._addSubsystemPanels(subsystems)
         
         self.SetMinSize(self.GetSize())
+    
+        self.Bind(wx.EVT_CLOSE,self._onClose)
+    
+    def _onClose(self, event):
+        # TODO: Update this list based on whether the close or not
+        for panel in self._panels:
+            panel._onClose(wx.CloseEvent())
+        event.Skip()
         
-    def _remove_module(self, mod):    
-        """
-        Close all panes attached to a module
-        """
-        for panel in self._panels[mod]:
-            self._mgr.DetachPane(panel)
-            panel.Close()
-        
-        del self._panels[mod]
+#    def _remove_module(self, mod):    
+#        """
+#        Close all panes attached to a module
+#        """
+#        for panel in self._panels[mod]:
+#            self._mgr.DetachPane(panel)
+#            panel.Close()
+#        
+#        del self._panels[mod]
         
     def _createMDIChild(self):
         return wx.aui.AuiMDIChildFrame(self, wx.ID_ANY, 'ERROR')
@@ -66,6 +74,7 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
         for provider in self.panelProviders:
             panelInfos = provider.getPanels(subsystems, self._createMDIChild)
             for paneInfo, panel, sys in panelInfos:
+                self._panels.append(panel)
                 self._addSubsystemPanel(paneInfo, panel, sys)
 
     def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems):

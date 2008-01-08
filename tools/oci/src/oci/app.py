@@ -71,8 +71,8 @@ class Application(wx.App):
             subsystems.append(self._app.getSubsystem(names[i]))
 
         # Create the Main Frame
-        subCfg = config.get('Subsystems', {})
-        frame = oci.frame.MainFrame(subCfg.get('GUI',[]), subsystems)
+        guiCfg = config.get('Subsystems', {}).get('GUI', {})
+        frame = oci.frame.MainFrame(guiCfg, subsystems)
                                       
         frame.Show(True)
         self.SetTopWindow(frame)
@@ -81,7 +81,7 @@ class Application(wx.App):
         self.timer = wx.Timer()
         self.Bind(wx.EVT_TIMER, self._onTimer, self.timer)
     
-        self._updateInterval = 1000.0 / config.get('updateRate', 10)
+        self._updateInterval = 1000.0 / guiCfg.get('updateRate', 10)
         self._lastTime = self._getTime()
         self.timer.Start(self._updateInterval, True)
         
@@ -92,6 +92,7 @@ class Application(wx.App):
         self.timer.Stop()
         
         # Make sure we don't keep around any references to C++ objects
+        # Seems to cause a crash
         del self._app
         
         return 0
@@ -128,17 +129,8 @@ class Application(wx.App):
         subsystemIter = (self._app.getSubsystem(names[i]) for i in 
                          xrange(0, len(names)) )
         for subsystem in subsystemIter:
-            try:
-                if not subsystem.backgrounded():
-                    subsystem.update(timeSinceLastIteration)
-            except wx.PyDeadObjectError,e: 
-                """
-                An exception here means the panel has been destroyed and there 
-                is no longer any reason to update this subsystem
-                Perhaps it would be better to have the onclose of the panels 
-                remove the subsystem from the subsystemiter
-                """
-                pass
+            if not subsystem.backgrounded():
+                subsystem.update(timeSinceLastIteration)
         
         self._lastTime = currentTime
         

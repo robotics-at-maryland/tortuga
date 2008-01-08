@@ -52,9 +52,10 @@ class ThrusterPanel(wx.Panel):
         return handler
     
     def _onClose(self, closeEvent):
-        print 'Closed Vehicle'
         for conn in self._connections:
             conn.disconnect()
+        
+        closeEvent.Skip()
     
     @staticmethod
     def getPanels(subsystems, parentFunc):
@@ -108,10 +109,11 @@ class DepthPanel(wx.Panel):
         self._depthbar.setVal(event.depth)
 
     def _onClose(self, closeEvent):
-        print 'Closed Depth'
         for conn in self._connections:
             conn.disconnect()
        
+        closeEvent.Skip()
+        
     @staticmethod
     def getPanels(subsystems, parentFunc):
         vehicle = getSubsystemOfType(subsystems, ext.vehicle.IVehicle)
@@ -128,8 +130,8 @@ class RotationPanel(wx.Panel):
     implements(IPanelProvider)
     
     def __init__(self, parent, vehicle, *args, **kwargs):
-        """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
+        self._connections = []
       
         # Create Rotational Controls
         values = [('Roll', RotationCtrl.ROLL), 
@@ -158,11 +160,15 @@ class RotationPanel(wx.Panel):
         
         # Subscribe to events
         self.Bind(wx.EVT_CLOSE,self._onClose)
-        vehicle.subscribe(str(ext.vehicle.IVehicle.ORIENTATION_UPDATE), 
-                          self._onOrientationUpdate)
+        conn = vehicle.subscribe(str(ext.vehicle.IVehicle.ORIENTATION_UPDATE), 
+                                 self._onOrientationUpdate)
+        self._connections.append(conn)
         
-    def _onClose(self,event):
-        pass
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+        closeEvent.Skip()
     
     def _onOrientationUpdate(self, event):
         quat = event.orientation
@@ -293,6 +299,8 @@ class DemoSonarPanel(wx.Panel):
         """
         for conn in self._connections:
             conn.disconnect()
+            
+        closeEvent.Skip()
             
     def _update(self, event):
         """
