@@ -121,48 +121,52 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
                                    double dt,
                                    double* rotationalTorques){
 
-    //generate proportional controller gain matrix
+    // Generate proportional controller gain matrix
     double PGain[3][3];
     matrixMult3x3byScalar(controllerState->inertiaEstimate,
                           controllerState->angularPGain,&PGain[0][0]);
 
-    //generate derivative controller gain matrix
+    // Generate derivative controller gain matrix
     double DGain[3][3];
     matrixMult3x3byScalar(controllerState->inertiaEstimate,
                           controllerState->angularDGain,&DGain[0][0]);
 
-    //compute quaternion error
+    // Compute quaternion error
     double qError[4];
     findErrorQuaternion(desiredState->quaternion,
                         measuredState->quaternion,&qError[0]);
-
-    //angular rate error assumed to be measured angular rate
+    // Use the scalar term of error quaternion to eliminate sign flipping
+    double scalarTermSign = qError[3] / fabs(qError[3]);
+    matrixMult4x1byScalar(&qError[0], scalarTermSign, &qError[0]);
+    
+    // Angular rate error assumed to be measured angular rate
     double wError[3];
     wError[0]=measuredState->angularRate[0];
     wError[1]=measuredState->angularRate[1];
     wError[2]=measuredState->angularRate[2];
 
-    //final control law
+    // Final control law
     double controlSignal[3];
     double proportionalSignal[3];
     double differentialSignal[3];
     double gyroscopicSignal[3];
     double wTilde[3][3];
-    //proprotional component (yes, we're only taking the first three numbers
-    //the quaternion error, the fourth number is redundant)
+    
+    // Proprotional component, only the first three numbers are used here, the
+    // forth (scalar) term is used above to correct a sign flipping error
     matrixMult3x1by3x3(PGain,qError,&proportionalSignal[0]);
     matrixMult3x1byScalar(proportionalSignal,-1,&proportionalSignal[0]);
-    //differential component
+    // Differential component
     matrixMult3x1by3x3(DGain,wError,&differentialSignal[0]);
     matrixMult3x1byScalar(differentialSignal,-1,&differentialSignal[0]);
-    //gyroscopic component
+    // Gyroscopic component
     tilde(measuredState->angularRate,&wTilde[0][0]);
     matrixMult3x1by3x3(controllerState->inertiaEstimate,
                         measuredState->angularRate,&gyroscopicSignal[0]);
     matrixMult3x1by3x3(wTilde,gyroscopicSignal,&gyroscopicSignal[0]);
-    //sum the components
+    // Sum the components
     matrixAdd3x1and3x1(proportionalSignal,differentialSignal,&controlSignal[0]);
-//    matrixAdd3x1and3x1(controlSignal,gyroscopicSignal,&controlSignal[0]);
+    matrixAdd3x1and3x1(controlSignal,gyroscopicSignal,&controlSignal[0]);
     //save to memory
     *(rotationalTorques)=controlSignal[0];
     *(rotationalTorques+1)=controlSignal[1];
