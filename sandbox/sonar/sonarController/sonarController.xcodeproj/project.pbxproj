@@ -13,6 +13,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				5F2D94FE0D34536E00712D46 /* PBXTargetDependency */,
 				09545D4C0CFDFC51002FD1D2 /* PBXTargetDependency */,
 				A4BB04790CFDC99A0008AA74 /* PBXTargetDependency */,
 				A4BB047B0CFDC99F0008AA74 /* PBXTargetDependency */,
@@ -28,6 +29,38 @@
 		09545D2D0CFDFBB5002FD1D2 /* SonarController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4BD37890CFA52DD00A10962 /* SonarController.cpp */; settings = {ATTRIBUTES = (Public, ); }; };
 		09545D440CFDFC1F002FD1D2 /* libSonarCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */; };
 		09545D450CFDFC21002FD1D2 /* libSonarCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */; };
+		5F2D93A80D3437E900712D46 /* SampleDelay.h in Headers */ = {isa = PBXBuildFile; fileRef = 5F2D93A60D3437E900712D46 /* SampleDelay.h */; };
+		5F2D93A90D3437E900712D46 /* SampleDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F2D93A70D3437E900712D46 /* SampleDelay.cpp */; };
+		5F2D940F0D344C1700712D46 /* libSonarCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */; };
+		5F2D94170D344C5B00712D46 /* TestSampleDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F2D94020D34481600712D46 /* TestSampleDelay.cpp */; };
+		5F2D94180D344C5B00712D46 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F2D94050D34490D00712D46 /* Test.cpp */; };
+		5F2D94930D344EF700712D46 /* AssertException.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94760D344EF700712D46 /* AssertException.h */; };
+		5F2D94940D344EF700712D46 /* CheckMacros.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94770D344EF700712D46 /* CheckMacros.h */; };
+		5F2D94950D344EF700712D46 /* Checks.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94780D344EF700712D46 /* Checks.h */; };
+		5F2D94960D344EF700712D46 /* Config.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94790D344EF700712D46 /* Config.h */; };
+		5F2D94970D344EF700712D46 /* DeferredTestReporter.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D947A0D344EF700712D46 /* DeferredTestReporter.h */; };
+		5F2D94980D344EF700712D46 /* DeferredTestResult.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D947B0D344EF700712D46 /* DeferredTestResult.h */; };
+		5F2D94990D344EF700712D46 /* ExecuteTest.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D947C0D344EF700712D46 /* ExecuteTest.h */; };
+		5F2D949A0D344EF700712D46 /* MemoryOutStream.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D947D0D344EF700712D46 /* MemoryOutStream.h */; };
+		5F2D949B0D344EF700712D46 /* SignalTranslator.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D947F0D344EF700712D46 /* SignalTranslator.h */; };
+		5F2D949C0D344EF700712D46 /* TimeHelpers.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94800D344EF700712D46 /* TimeHelpers.h */; };
+		5F2D949D0D344EF700712D46 /* ReportAssert.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94810D344EF700712D46 /* ReportAssert.h */; };
+		5F2D949E0D344EF700712D46 /* Test.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94820D344EF700712D46 /* Test.h */; };
+		5F2D949F0D344EF700712D46 /* TestDetails.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94830D344EF700712D46 /* TestDetails.h */; };
+		5F2D94A00D344EF700712D46 /* TestList.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94840D344EF700712D46 /* TestList.h */; };
+		5F2D94A10D344EF700712D46 /* TestMacros.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94850D344EF700712D46 /* TestMacros.h */; };
+		5F2D94A20D344EF700712D46 /* TestReporter.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94860D344EF700712D46 /* TestReporter.h */; };
+		5F2D94A30D344EF700712D46 /* TestReporterStdout.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94870D344EF700712D46 /* TestReporterStdout.h */; };
+		5F2D94A40D344EF700712D46 /* TestResults.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94880D344EF700712D46 /* TestResults.h */; };
+		5F2D94A50D344EF700712D46 /* TestRunner.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94890D344EF700712D46 /* TestRunner.h */; };
+		5F2D94A60D344EF700712D46 /* TestSuite.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D948A0D344EF700712D46 /* TestSuite.h */; };
+		5F2D94A70D344EF700712D46 /* TimeConstraint.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D948B0D344EF700712D46 /* TimeConstraint.h */; };
+		5F2D94A80D344EF700712D46 /* TimeHelpers.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D948C0D344EF700712D46 /* TimeHelpers.h */; };
+		5F2D94A90D344EF700712D46 /* UnitTest++.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D948D0D344EF700712D46 /* UnitTest++.h */; };
+		5F2D94AA0D344EF700712D46 /* XmlTestReporter.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D948E0D344EF700712D46 /* XmlTestReporter.h */; };
+		5F2D94AB0D344EF700712D46 /* libUnitTest++.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F2D94900D344EF700712D46 /* libUnitTest++.a */; };
+		5F2D94AC0D344EF700712D46 /* UnitTest++.pc in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F2D94920D344EF700712D46 /* UnitTest++.pc */; };
+		5F2D94AD0D344F0400712D46 /* libUnitTest++.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F2D94900D344EF700712D46 /* libUnitTest++.a */; };
 		5F7D438E0CFCF4EE00C27E9B /* adc.dat in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5F7D438D0CFCF4EE00C27E9B /* adc.dat */; };
 		8DD76F650486A84900D96B5E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
 		A405045F0D10A721009B83D2 /* SlidingDFT.h in Headers */ = {isa = PBXBuildFile; fileRef = A405045D0D10A721009B83D2 /* SlidingDFT.h */; };
@@ -52,11 +85,18 @@
 			remoteGlobalIDString = 09545D290CFDFB9A002FD1D2;
 			remoteInfo = SonarCommon;
 		};
+		5F2D94FD0D34536E00712D46 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5F2D940B0D344C1700712D46 /* unittest */;
+			remoteInfo = unittest;
+		};
 		A46599F90D146A2F006B02F0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A46599EC0D1469C0006B02F0 /* dfttest */;
+			remoteGlobalIDString = A46599EC0D1469C0006B02F0;
 			remoteInfo = dfttest;
 		};
 		A4BB04780CFDC99A0008AA74 /* PBXContainerItemProxy */ = {
@@ -76,6 +116,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		5F2D94100D344C1700712D46 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8DD76F690486A84900D96B5E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -83,6 +132,31 @@
 			dstSubfolderSpec = 16;
 			files = (
 				5F7D438E0CFCF4EE00C27E9B /* adc.dat in CopyFiles */,
+				5F2D94930D344EF700712D46 /* AssertException.h in CopyFiles */,
+				5F2D94940D344EF700712D46 /* CheckMacros.h in CopyFiles */,
+				5F2D94950D344EF700712D46 /* Checks.h in CopyFiles */,
+				5F2D94960D344EF700712D46 /* Config.h in CopyFiles */,
+				5F2D94970D344EF700712D46 /* DeferredTestReporter.h in CopyFiles */,
+				5F2D94980D344EF700712D46 /* DeferredTestResult.h in CopyFiles */,
+				5F2D94990D344EF700712D46 /* ExecuteTest.h in CopyFiles */,
+				5F2D949A0D344EF700712D46 /* MemoryOutStream.h in CopyFiles */,
+				5F2D949B0D344EF700712D46 /* SignalTranslator.h in CopyFiles */,
+				5F2D949C0D344EF700712D46 /* TimeHelpers.h in CopyFiles */,
+				5F2D949D0D344EF700712D46 /* ReportAssert.h in CopyFiles */,
+				5F2D949E0D344EF700712D46 /* Test.h in CopyFiles */,
+				5F2D949F0D344EF700712D46 /* TestDetails.h in CopyFiles */,
+				5F2D94A00D344EF700712D46 /* TestList.h in CopyFiles */,
+				5F2D94A10D344EF700712D46 /* TestMacros.h in CopyFiles */,
+				5F2D94A20D344EF700712D46 /* TestReporter.h in CopyFiles */,
+				5F2D94A30D344EF700712D46 /* TestReporterStdout.h in CopyFiles */,
+				5F2D94A40D344EF700712D46 /* TestResults.h in CopyFiles */,
+				5F2D94A50D344EF700712D46 /* TestRunner.h in CopyFiles */,
+				5F2D94A60D344EF700712D46 /* TestSuite.h in CopyFiles */,
+				5F2D94A70D344EF700712D46 /* TimeConstraint.h in CopyFiles */,
+				5F2D94A80D344EF700712D46 /* TimeHelpers.h in CopyFiles */,
+				5F2D94A90D344EF700712D46 /* UnitTest++.h in CopyFiles */,
+				5F2D94AA0D344EF700712D46 /* XmlTestReporter.h in CopyFiles */,
+				5F2D94AC0D344EF700712D46 /* UnitTest++.pc in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,6 +185,37 @@
 /* Begin PBXFileReference section */
 		08FB7796FE84155DC02AAC07 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSonarCommon.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F2D93A60D3437E900712D46 /* SampleDelay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SampleDelay.h; sourceTree = "<group>"; };
+		5F2D93A70D3437E900712D46 /* SampleDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SampleDelay.cpp; sourceTree = "<group>"; };
+		5F2D94020D34481600712D46 /* TestSampleDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = TestSampleDelay.cpp; path = test/src/TestSampleDelay.cpp; sourceTree = "<group>"; };
+		5F2D94050D34490D00712D46 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Test.cpp; path = test/src/Test.cpp; sourceTree = "<group>"; };
+		5F2D94150D344C1700712D46 /* unittest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = unittest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F2D94760D344EF700712D46 /* AssertException.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AssertException.h; sourceTree = "<group>"; };
+		5F2D94770D344EF700712D46 /* CheckMacros.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = CheckMacros.h; sourceTree = "<group>"; };
+		5F2D94780D344EF700712D46 /* Checks.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Checks.h; sourceTree = "<group>"; };
+		5F2D94790D344EF700712D46 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
+		5F2D947A0D344EF700712D46 /* DeferredTestReporter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DeferredTestReporter.h; sourceTree = "<group>"; };
+		5F2D947B0D344EF700712D46 /* DeferredTestResult.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DeferredTestResult.h; sourceTree = "<group>"; };
+		5F2D947C0D344EF700712D46 /* ExecuteTest.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ExecuteTest.h; sourceTree = "<group>"; };
+		5F2D947D0D344EF700712D46 /* MemoryOutStream.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = MemoryOutStream.h; sourceTree = "<group>"; };
+		5F2D947F0D344EF700712D46 /* SignalTranslator.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SignalTranslator.h; sourceTree = "<group>"; };
+		5F2D94800D344EF700712D46 /* TimeHelpers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TimeHelpers.h; sourceTree = "<group>"; };
+		5F2D94810D344EF700712D46 /* ReportAssert.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ReportAssert.h; sourceTree = "<group>"; };
+		5F2D94820D344EF700712D46 /* Test.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Test.h; sourceTree = "<group>"; };
+		5F2D94830D344EF700712D46 /* TestDetails.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestDetails.h; sourceTree = "<group>"; };
+		5F2D94840D344EF700712D46 /* TestList.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestList.h; sourceTree = "<group>"; };
+		5F2D94850D344EF700712D46 /* TestMacros.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestMacros.h; sourceTree = "<group>"; };
+		5F2D94860D344EF700712D46 /* TestReporter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestReporter.h; sourceTree = "<group>"; };
+		5F2D94870D344EF700712D46 /* TestReporterStdout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestReporterStdout.h; sourceTree = "<group>"; };
+		5F2D94880D344EF700712D46 /* TestResults.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestResults.h; sourceTree = "<group>"; };
+		5F2D94890D344EF700712D46 /* TestRunner.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestRunner.h; sourceTree = "<group>"; };
+		5F2D948A0D344EF700712D46 /* TestSuite.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TestSuite.h; sourceTree = "<group>"; };
+		5F2D948B0D344EF700712D46 /* TimeConstraint.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TimeConstraint.h; sourceTree = "<group>"; };
+		5F2D948C0D344EF700712D46 /* TimeHelpers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TimeHelpers.h; sourceTree = "<group>"; };
+		5F2D948D0D344EF700712D46 /* UnitTest++.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = "UnitTest++.h"; sourceTree = "<group>"; };
+		5F2D948E0D344EF700712D46 /* XmlTestReporter.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = XmlTestReporter.h; sourceTree = "<group>"; };
+		5F2D94900D344EF700712D46 /* libUnitTest++.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libUnitTest++.a"; sourceTree = "<group>"; };
+		5F2D94920D344EF700712D46 /* UnitTest++.pc */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = "UnitTest++.pc"; sourceTree = "<group>"; };
 		5F7D438D0CFCF4EE00C27E9B /* adc.dat */ = {isa = PBXFileReference; lastKnownFileType = file; path = adc.dat; sourceTree = "<group>"; };
 		8DD76F6C0486A84900D96B5E /* sonarController */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sonarController; sourceTree = BUILT_PRODUCTS_DIR; };
 		A405045D0D10A721009B83D2 /* SlidingDFT.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SlidingDFT.h; sourceTree = "<group>"; };
@@ -144,11 +249,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5F2D940E0D344C1700712D46 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F2D94AD0D344F0400712D46 /* libUnitTest++.a in Frameworks */,
+				5F2D940F0D344C1700712D46 /* libSonarCommon.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8DD76F660486A84900D96B5E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				09545D440CFDFC1F002FD1D2 /* libSonarCommon.a in Frameworks */,
+				5F2D94AB0D344EF700712D46 /* libUnitTest++.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -174,6 +289,8 @@
 		08FB7794FE84155DC02AAC07 /* sonarController */ = {
 			isa = PBXGroup;
 			children = (
+				5F2D94740D344EF700712D46 /* include */,
+				5F2D948F0D344EF700712D46 /* lib */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				C6859E8C029090F304C91782 /* Documentation */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
@@ -184,6 +301,8 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				5F2D93A60D3437E900712D46 /* SampleDelay.h */,
+				5F2D93A70D3437E900712D46 /* SampleDelay.cpp */,
 				A4659AC00D1481F5006B02F0 /* Trigger */,
 				A46599E30D146272006B02F0 /* test */,
 				A405045B0D10A721009B83D2 /* SlidingDFT */,
@@ -209,8 +328,82 @@
 				A4BB03F20CFDC4A40008AA74 /* crosscorrelation */,
 				09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */,
 				A46599F60D1469C0006B02F0 /* dfttest */,
+				5F2D94150D344C1700712D46 /* unittest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		5F2D93C60D34479700712D46 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				5F2D94020D34481600712D46 /* TestSampleDelay.cpp */,
+				5F2D94050D34490D00712D46 /* Test.cpp */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		5F2D94740D344EF700712D46 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				5F2D94750D344EF700712D46 /* UnitTest++ */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		5F2D94750D344EF700712D46 /* UnitTest++ */ = {
+			isa = PBXGroup;
+			children = (
+				5F2D94760D344EF700712D46 /* AssertException.h */,
+				5F2D94770D344EF700712D46 /* CheckMacros.h */,
+				5F2D94780D344EF700712D46 /* Checks.h */,
+				5F2D94790D344EF700712D46 /* Config.h */,
+				5F2D947A0D344EF700712D46 /* DeferredTestReporter.h */,
+				5F2D947B0D344EF700712D46 /* DeferredTestResult.h */,
+				5F2D947C0D344EF700712D46 /* ExecuteTest.h */,
+				5F2D947D0D344EF700712D46 /* MemoryOutStream.h */,
+				5F2D947E0D344EF700712D46 /* Posix */,
+				5F2D94810D344EF700712D46 /* ReportAssert.h */,
+				5F2D94820D344EF700712D46 /* Test.h */,
+				5F2D94830D344EF700712D46 /* TestDetails.h */,
+				5F2D94840D344EF700712D46 /* TestList.h */,
+				5F2D94850D344EF700712D46 /* TestMacros.h */,
+				5F2D94860D344EF700712D46 /* TestReporter.h */,
+				5F2D94870D344EF700712D46 /* TestReporterStdout.h */,
+				5F2D94880D344EF700712D46 /* TestResults.h */,
+				5F2D94890D344EF700712D46 /* TestRunner.h */,
+				5F2D948A0D344EF700712D46 /* TestSuite.h */,
+				5F2D948B0D344EF700712D46 /* TimeConstraint.h */,
+				5F2D948C0D344EF700712D46 /* TimeHelpers.h */,
+				5F2D948D0D344EF700712D46 /* UnitTest++.h */,
+				5F2D948E0D344EF700712D46 /* XmlTestReporter.h */,
+			);
+			path = "UnitTest++";
+			sourceTree = "<group>";
+		};
+		5F2D947E0D344EF700712D46 /* Posix */ = {
+			isa = PBXGroup;
+			children = (
+				5F2D947F0D344EF700712D46 /* SignalTranslator.h */,
+				5F2D94800D344EF700712D46 /* TimeHelpers.h */,
+			);
+			path = Posix;
+			sourceTree = "<group>";
+		};
+		5F2D948F0D344EF700712D46 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				5F2D94900D344EF700712D46 /* libUnitTest++.a */,
+				5F2D94910D344EF700712D46 /* pkgconfig */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		5F2D94910D344EF700712D46 /* pkgconfig */ = {
+			isa = PBXGroup;
+			children = (
+				5F2D94920D344EF700712D46 /* UnitTest++.pc */,
+			);
+			path = pkgconfig;
 			sourceTree = "<group>";
 		};
 		A405045B0D10A721009B83D2 /* SlidingDFT */ = {
@@ -227,6 +420,7 @@
 		A46599E30D146272006B02F0 /* test */ = {
 			isa = PBXGroup;
 			children = (
+				5F2D93C60D34479700712D46 /* src */,
 				A46599E00D146268006B02F0 /* config.m */,
 				A46599E10D146268006B02F0 /* makedataset.m */,
 				A46599E20D146268006B02F0 /* plotadcdata.m */,
@@ -269,6 +463,7 @@
 				A405045F0D10A721009B83D2 /* SlidingDFT.h in Headers */,
 				A40504820D10AE39009B83D2 /* SimpleSlidingDFT.h in Headers */,
 				A4659ABF0D1481EC006B02F0 /* Trigger.h in Headers */,
+				5F2D93A80D3437E900712D46 /* SampleDelay.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +486,24 @@
 			productName = SonarCommon;
 			productReference = 09545D2A0CFDFB9A002FD1D2 /* libSonarCommon.a */;
 			productType = "com.apple.product-type.library.static";
+		};
+		5F2D940B0D344C1700712D46 /* unittest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5F2D94120D344C1700712D46 /* Build configuration list for PBXNativeTarget "unittest" */;
+			buildPhases = (
+				5F2D940C0D344C1700712D46 /* Sources */,
+				5F2D940E0D344C1700712D46 /* Frameworks */,
+				5F2D94100D344C1700712D46 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = unittest;
+			productInstallPath = "$(HOME)/bin";
+			productName = sonarController;
+			productReference = 5F2D94150D344C1700712D46 /* unittest */;
+			productType = "com.apple.product-type.tool";
 		};
 		8DD76F620486A84900D96B5E /* sonarController */ = {
 			isa = PBXNativeTarget;
@@ -361,6 +574,7 @@
 				A4BB03E30CFDC4A40008AA74 /* crosscorrelation */,
 				A46599EC0D1469C0006B02F0 /* dfttest */,
 				09545D290CFDFB9A002FD1D2 /* SonarCommon */,
+				5F2D940B0D344C1700712D46 /* unittest */,
 			);
 		};
 /* End PBXProject section */
@@ -376,6 +590,16 @@
 				A4D9ED620CFE928D00F5548D /* Sonar.cpp in Sources */,
 				A40504840D10AE43009B83D2 /* SimpleSlidingDFT.cpp in Sources */,
 				A4659ABE0D1481EC006B02F0 /* Trigger.cpp in Sources */,
+				5F2D93A90D3437E900712D46 /* SampleDelay.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5F2D940C0D344C1700712D46 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F2D94170D344C5B00712D46 /* TestSampleDelay.cpp in Sources */,
+				5F2D94180D344C5B00712D46 /* Test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,6 +635,11 @@
 			target = 09545D290CFDFB9A002FD1D2 /* SonarCommon */;
 			targetProxy = 09545D4B0CFDFC51002FD1D2 /* PBXContainerItemProxy */;
 		};
+		5F2D94FE0D34536E00712D46 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5F2D940B0D344C1700712D46 /* unittest */;
+			targetProxy = 5F2D94FD0D34536E00712D46 /* PBXContainerItemProxy */;
+		};
 		A46599FA0D146A2F006B02F0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A46599EC0D1469C0006B02F0 /* dfttest */;
@@ -432,6 +661,7 @@
 		09545D340CFDFC04002FD1D2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = ppc;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -448,6 +678,7 @@
 		09545D350CFDFC04002FD1D2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = ppc;
 				COPY_PHASE_STRIP = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -472,8 +703,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/build/Release\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/lib\"";
 				PRODUCT_NAME = sonarController;
 				ZERO_LINK = YES;
 			};
@@ -489,8 +722,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
 				);
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/build/Release\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/lib\"";
 				PRODUCT_NAME = sonarController;
 			};
 			name = Release;
@@ -498,7 +733,7 @@
 		1DEB923608733DC60010E9CD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = ppc;
+				ARCHS = i386;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
@@ -509,7 +744,7 @@
 		1DEB923708733DC60010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = ppc;
+				ARCHS = i386;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_PEDANTIC = NO;
@@ -517,6 +752,54 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Release;
+		};
+		5F2D94130D344C1700712D46 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = ppc;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					include,
+				);
+				INSTALL_PATH = "$(HOME)/bin";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+				);
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/build/Release\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/lib\"";
+				PRODUCT_NAME = unittest;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		5F2D94140D344C1700712D46 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = ppc;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					include,
+				);
+				INSTALL_PATH = "$(HOME)/bin";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_1)",
+					"$(LIBRARY_SEARCH_PATHS_QUOTED_2)",
+				);
+				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/build/Release\"";
+				LIBRARY_SEARCH_PATHS_QUOTED_2 = "\"$(SRCROOT)/lib\"";
+				PRODUCT_NAME = unittest;
 			};
 			name = Release;
 		};
@@ -640,6 +923,15 @@
 			buildConfigurations = (
 				1DEB923608733DC60010E9CD /* Debug */,
 				1DEB923708733DC60010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5F2D94120D344C1700712D46 /* Build configuration list for PBXNativeTarget "unittest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5F2D94130D344C1700712D46 /* Debug */,
+				5F2D94140D344C1700712D46 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
