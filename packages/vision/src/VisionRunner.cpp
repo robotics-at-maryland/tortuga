@@ -20,6 +20,11 @@ namespace vision
 		printf("%s","WHY IS THIS BEING CALLED?  TURN OFF DEMO IN DETECTORTEST IF YOURE GOING TO RUN WITH VISION RUNNER!!\n");
 		//Just here to make the compiling happy, this is only needed for VisionDemo
 	}
+
+	void VisionRunner::captureEvent(ram::core::EventPtr e)
+	{
+		printf("\n\nHOO HOO!!\n\n");
+	}
 }
 }
 
@@ -30,6 +35,13 @@ using namespace std;
 void handler(int x)
 {
   key='q';
+}
+
+void myImageEventHandler(ram::core::EventPtr e)
+{
+	boost::shared_ptr<ram::vision::ImageEvent> imageEvent = 
+	    boost::dynamic_pointer_cast<ram::vision::ImageEvent>(e);
+	printf("\n\nHOOHOO!! X: %f Y: %f \n\n", imageEvent->x,imageEvent->y);
 }
 
 //To run this program with a movie, send it command line arguments
@@ -45,13 +57,14 @@ int main(int argc, char** argv)
 	else
 		forward=new ram::vision::DetectorTest(0,true);
 //	forward->orangeDetectOn();
-//	forward->lightDetectOn();
+	forward->lightDetectOn();
 //	forward->binDetectOn();
 //	forward->gateDetectOn();
 	signal(SIGINT,handler);
+	forward->subscribe(ram::vision::DetectorTest::LIGHT_FOUND,myImageEventHandler);
 	while (true)
 	{
-		key=(char)cvWaitKey(50);
+//		key=(char)cvWaitKey(50);
 		forward->update(0);
 		if (key =='q')
 		{
@@ -105,6 +118,16 @@ int main(int argc, char** argv)
 			{
 				forward->gateDetectOn();
 				std::cout<<"Gate On"<<endl;
+			}
+		}
+		else if (key == '5')
+		{
+			if (forward->featureOn)
+				forward->featureDetectOff();
+			else
+			{
+				forward->featureDetectOn();
+				std::cout<<"Feature Detection On"<<endl;
 			}
 		}
 	}

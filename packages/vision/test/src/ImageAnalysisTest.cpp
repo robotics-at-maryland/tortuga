@@ -4,6 +4,8 @@
 #include "vision/include/main.h"
 #include <string.h>
 #include <iostream>
+#include "cv.h"
+
 #define MAX_FILENAME_LEN 32
 
 using namespace std;
@@ -31,9 +33,342 @@ void clear(char* str, int size)
 		str[i]='\0';
 }
 
+void copyAndMask(IplImage* gray, IplImage* bnw)
+{
+	if (gray->width != bnw->width || gray->height != bnw->height)
+	{
+		cerr<<"Image sizes don't match, can't copy and mask!"<<endl;
+		return;
+	}
+	
+	int width=gray->width;
+	int height=gray->height;
+	unsigned char* data = (unsigned char*)gray->imageData;
+	unsigned char* data2 = (unsigned char*)bnw->imageData;
+	int count=0;
+	
+	for (int y=0; y<height; y++)
+		for (int x=0; x<width; x++)
+		{
+			data2[count]=(data[count]<=128)*255;
+			count++;
+		}
+}
+
+void closeDoors(IplImage* shortLines, IplImage* stretchedLines)
+{
+	if ((shortLines->width != stretchedLines->width) || (shortLines->height != stretchedLines->height))
+	{
+		cerr<<"Image sizes don't match, can't copy and mask!"<<endl;
+		return;
+	}
+
+	int width=shortLines->width;
+	int height=shortLines->height;
+	unsigned char* data = (unsigned char*) shortLines->imageData;
+	unsigned char* data2 = (unsigned char*) stretchedLines->imageData;
+
+	int gapsClosed[100];
+	for (int i=0; i<100; i++)
+		gapsClosed[i]=0;
+		
+	int doorCount=0;
+		
+	int count=0;
+	int stretch=0;
+	int pixelsInARow=0;
+	const int minPixelsInWall=7;
+	for (int y=0; y<height; y++)
+	{
+		stretch=0;
+		pixelsInARow=0;
+		
+		for (int x=0; x<width; x++)
+		{
+			if (data[count]==0)
+			{
+				if (stretch>0)//door closed
+				{
+					if (stretch>100)
+						cout<<"stretch too big too fit"<<endl;
+					else
+					{
+						gapsClosed[stretch]++;
+						doorCount++;
+					}
+					stretch=0;
+				}
+				data2[count]=0;
+				pixelsInARow++;
+			}
+			else if (pixelsInARow >= minPixelsInWall)
+			{
+				stretch++;
+				pixelsInARow=0;
+				data2[count]=255;
+			}
+			else if (stretch > 0)
+			{
+//				data2[count]=128;
+				data2[count]=255;
+				stretch++;
+			}
+			else
+			{
+				data2[count]=255;
+				pixelsInARow=0;
+			}
+				
+			count++;
+		}
+	}
+	
+	count--; //Set count to last element of imagedata. and go backwards
+	for (int y=height-1; y>=0; y--)
+	{
+		stretch=0;
+		pixelsInARow=0;
+		
+		for (int x=width-1; x>=0; x--)
+		{
+			if (data[count]==0)
+			{
+				if (stretch>0)//door closed
+				{
+					if (stretch>100)
+						cout<<"stretch too big too fit"<<endl;
+					else
+					{
+						gapsClosed[stretch]++;
+						doorCount++;
+					}
+					stretch=0;
+				}
+				data2[count]=0;
+				pixelsInARow++;
+			}
+			else if (pixelsInARow >= minPixelsInWall)
+			{
+				stretch++;
+				pixelsInARow=0;
+				data2[count]=255;
+			}
+			else if (stretch > 0)
+			{
+//				data2[count]=128;
+				data2[count]=255;
+				stretch++;
+			}
+			else
+			{
+				data2[count]=255;
+				pixelsInARow=0;
+			}
+			
+			count--;
+		}
+	}
+	
+	for (int i=0; i<100; i++)
+		cout<<i<<" : "<<gapsClosed[i]<<endl;
+
+	cout<<"Total Doors"<<doorCount<<endl;
+		
+	float percent=0;
+	int doorLength=0;
+	for (int i=1; i<100; i++)
+	{
+		gapsClosed[i]=gapsClosed[i-1]+gapsClosed[i];
+		percent=(gapsClosed[i]/(float)doorCount*100.0);
+		cout<<i<<" : " <<gapsClosed[i]<<"   " << percent<<endl;
+		if (percent>50)
+		{
+			cout<<"Guessing " << i << " pixels is approximate door length."<<endl;
+			doorLength=i;
+			break;
+		}
+	}
+	
+	//Now shut these doors!
+	/////////////////////////////////////////
+	for (int y=0; y<height; y++)
+	{
+		stretch=0;
+		pixelsInARow=0;
+		
+		for (int x=0; x<width; x++)
+		{
+			if (data[count]==0)
+			{
+				if (stretch>0)//door closed
+				{
+					if (stretch <= doorLength)
+						for (int z=stretch; z>=0; z--)
+							data2[count-z]=128;
+					stretch=0;
+				}
+				data2[count]=0;
+				pixelsInARow++;
+			}
+			else if (pixelsInARow >= minPixelsInWall)
+			{
+				stretch++;
+				pixelsInARow=0;
+				data2[count]=255;
+			}
+			else if (stretch > 0 )
+			{
+				data2[count]=255;
+				stretch++;
+			}
+			else
+			{
+				data2[count]=255;
+				pixelsInARow=0;
+			}
+				
+			count++;
+		}
+	}
+	
+	count--; //Set count to last element of imagedata. and go backwards
+	for (int y=height-1; y>=0; y--)
+	{
+		stretch=0;
+		pixelsInARow=0;
+		
+		for (int x=width-1; x>=0; x--)
+		{
+			if (data[count]==0)
+			{
+				if (stretch>0)//door closed
+				{
+					if (stretch <= doorLength)
+						for (int z=stretch; z>=0; z--)
+							data2[count+z]=128;
+					stretch=0;
+				}
+				data2[count]=0;
+				pixelsInARow++;
+			}
+			else if (pixelsInARow >= minPixelsInWall)
+			{
+				stretch++;
+				pixelsInARow=0;
+				data2[count]=255;
+			}
+			else if (stretch > 0 )
+			{
+				data2[count]=255;
+				stretch++;
+			}
+			else
+			{
+				data2[count]=255;
+				pixelsInARow=0;
+			}
+				
+			count--;
+		}
+	}
+}
+
+void stretch(IplImage* shortLines, IplImage* stretchedLines)
+{
+	if ((shortLines->width != stretchedLines->width) || (shortLines->height != stretchedLines->height))
+	{
+		cerr<<"Image sizes don't match, can't copy and mask!"<<endl;
+		return;
+	}
+
+	int width=shortLines->width;
+	int height=shortLines->height;
+	unsigned char* data = (unsigned char*) shortLines->imageData;
+	unsigned char* data2 = (unsigned char*) stretchedLines->imageData;
+	
+	int count=0;
+	int stretch=0;
+	
+	const int stretchCap=3;
+	
+	const int pixelsPerStretch=5;
+	int pixelsInARow=0;
+	for (int y=0; y<height; y++)
+	{
+		stretch=0;
+		pixelsInARow=0;
+		
+		for (int x=0; x<width; x++)
+		{
+			if (data[count]==0)
+			{
+				data2[count]=0;
+				pixelsInARow++;
+				if (pixelsInARow==pixelsPerStretch)
+				{
+					stretch++;
+					if (stretch>stretchCap)
+						stretch=stretchCap;
+					pixelsInARow=0;
+				}
+			}
+			else if (stretch > 0)
+			{
+				pixelsInARow=0;
+				data2[count]=0;
+				stretch--;
+			}
+			else
+			{
+				data2[count]=255;
+				pixelsInARow=0;
+			}
+				
+			count++;
+		}
+	}
+	
+	count--; //Set count to last element of imagedata.
+	for (int y=height-1; y>=0; y--)
+	{
+		stretch=0;
+		pixelsInARow=0;
+		
+		for (int x=width-1; x>=0; x--)
+		{
+			if (data[count]==0)
+			{
+				data2[count]=0;
+				pixelsInARow++;
+				if (pixelsInARow==pixelsPerStretch)
+				{
+					stretch++;
+					if (stretch>stretchCap)
+						stretch=stretchCap;
+
+					pixelsInARow=0;
+				}
+			}
+			else if (stretch > 0)
+			{
+				pixelsInARow=0;
+				data2[count]=0;
+				stretch--;
+			}
+			else
+			{
+				data2[count]=255;
+				pixelsInARow=0;
+			}
+				
+			count--;
+		}
+	}
+}
+
 // A Simple Camera Capture Framework
 int main(int argc, char** argv) {
-	cvNamedWindow("raw");
+	cvNamedWindow("Display");
 
 	IplImage* inputImage = NULL;
 	
@@ -43,7 +378,7 @@ int main(int argc, char** argv) {
 		return -1;
     }
 	
-	inputImage = cvLoadImage(argv[1],-1);//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
+	inputImage = cvLoadImage(argv[1],0);//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
 	
 	
 	if (inputImage==NULL)
@@ -84,47 +419,99 @@ int main(int argc, char** argv) {
   |-- char colorModel[4]; // Color model - ignored by OpenCV
 */
 
-	cvShowImage("raw",inputImage);
+	cvShowImage("Display",inputImage);
+	cvWaitKey(0);
+	
+	IplImage* blackAndWhite=cvCreateImage(cvGetSize(inputImage),8,1);
+	IplImage* colorVersion =cvCreateImage(cvGetSize(inputImage),8,3);
+	cvConvertImage(inputImage, colorVersion, CV_GRAY2BGR);
+	
+	copyAndMask(inputImage, blackAndWhite);
+	
+//	cvShowImage("Display",blackAndWhite);
+//	cvWaitKey(0);
+//	
+//	stretch(blackAndWhite,inputImage);
+//	cvShowImage("Display",inputImage);
+//	cvWaitKey(0);
+//	
+//	closeDoors(inputImage,blackAndWhite);
+//	cvShowImage("Display",blackAndWhite);
+//	cvWaitKey(0);
+//	
+	///////////////////////
+	
+//	IplImage* color_dst =img;//cvLoadImage("DSC00099.jpg", 0 );
+//	IplImage* src = cvCreateImage(cvGetSize(img), 8, 1);
+//	cvCvtColor(img,src,CV_BGR2GRAY);
+
+	IplImage* src = inputImage;
+	IplImage* dst = blackAndWhite;
+	
+	CvMemStorage* storage = cvCreateMemStorage(0);
+	CvSeq* lines = 0;
+	int i;
+	
+	//if( !src )
+	//	return;
+	
+	//dst = cvCreateImage( cvGetSize(src), 8, 1 );
+	//		color_dst = cvCreateImage( cvGetSize(src), 8, 3 );
+	
+	IplConvKernel* element = cvCreateStructuringElementEx(2*2+1, 2*2+1, 2, 2, CV_SHAPE_RECT, 0 );
+	cvDilate(dst,dst,element);
+	//		cvCvtColor( dst, color_dst, CV_GRAY2BGR );	
+	//cvCanny( src, dst, 50, 200, 3 );
+	cvShowImage("Display",dst);
 	cvWaitKey(0);
 
-	cvSaveImage(makeOut("raw"),inputImage);
+	//Image
+	//Storage
+	//Transform to use
+	//rho
+	//theta
+	//threshold
+	//linelength
+	//linegap
 	
-	//REDLIGHT
+	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/4, 15, 15, 1 );
+	CvPoint start,end;
+	
+	start.x=start.y=end.x=end.y=0;
+	int missed = 0;
+	int temp;
+	for( i = 0; i < lines->total; i++ )
 	{
-		IplImage* image=cvCreateImage(cvGetSize(inputImage),8,3);
-		IplImage* flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-		
-		cvCopyImage(inputImage,image);
-		cvCopyImage(image, flashFrame);
-	
-		to_ratios(image);
-		CvPoint p;
-		redMask(image,flashFrame);
-		cvSaveImage(makeOut("redmask"),flashFrame);
-		
-		int redPixelCount=histogram(flashFrame,&p.x,&p.y);	
-		if (redPixelCount<75)
+		CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+		if (((line[0].x < 5)&&(line[1].x < 5)) || ((line[0].x > src->width-5)&&(line[1].x > src->width-5)) 
+			|| ((line[0].y < 5)&&(line[1].y < 5)) || ((line[0].y > src->height-5)&&(line[1].y > src->height-5))) 
 		{
-			cout<<"No red light found."<<endl;
-		}	
-		else
-		{
-			cout<<"FOUND RED LIGHT"<<endl;
-			CvPoint tl,tr,bl,br;
-			cvCopyImage(inputImage,image);
-			
-			tl.x=bl.x=max(p.x-4,0);
-			tr.x=br.x=min(p.x+4,image->width-1);
-			tl.y=tr.y=min(p.y+4,image->height-1);
-			br.y=bl.y=max(p.y-4,0);
-			
-			cvLine(image, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
-			cvLine(image, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
-			cvLine(image, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-			cvLine(image, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-			cvSaveImage(makeOut("redfound"),image);
+			missed++;
+			//cout<<"Missed++"<<endl;
 		}
+		else 
+		{
+			if(line[0].y < line[1].y)
+			{
+				temp = line[0].y;
+				line[0].y = line[1].y;
+				line[1].y = temp;
+				temp = line[0].x;
+				line[0].x = line[1].x;
+				line[1].x = temp;
+			}
+			start.x += line[0].x;
+			start.y += line[0].y;
+			end.x += line[1].x;
+			end.y += line[1].y;
+		}
+		
+		cvLine(colorVersion, line[0], line[1], CV_RGB(255,0,0), 3, CV_AA, 0 );
 	}
-
+	cvShowImage("Display", blackAndWhite);
+	cvWaitKey(0);
+	
+	cvShowImage("Display", colorVersion);
+	cvWaitKey(0);
 	return 0;
 }

@@ -11,11 +11,14 @@
 
 #include "vision/include/DetectorTest.h"
 #include "vision/include/Export.h"
+#include "vision/include/Events.h"
+#include "core/include/EventPublisher.h"
 
 namespace ram{ namespace vision{
 class VisionRunner{
 	public:
 		VisionRunner();
+		void captureEvent(ram::core::EventPtr e);
 		DetectorTest forward;
 		DetectorTest downward;
 };

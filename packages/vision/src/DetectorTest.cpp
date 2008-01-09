@@ -3,6 +3,7 @@
 
 #include <highgui.h>
 
+#include "core/include/EventPublisher.h"
 #include "vision/include/DetectorTest.h"
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/OpenCVImage.h"
@@ -13,12 +14,19 @@
 #include "vision/include/Calibration.h"
 #include "vision/include/Recorder.h"
 #include "vision/include/VisionDemo.h"
+#include "core/include/Event.h"
 #include <string>
 #include <iostream>
 
+RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, LIGHT_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, PIPE_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, GATE_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, BIN_FOUND);
+
+
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 1
+#define SHOW_OUTPUT 0
 #define DEMO 0
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
@@ -33,6 +41,8 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 	gDetect=new GateDetector(camera);
 	bDetect=new BinDetector(camera);
 	rlDetect=new RedLightDetector(camera);
+	fDetect=new FeatureDetector(camera);
+	
 	recorder=NULL;
 	if (forward)
 		recorder=new Recorder(camera, "forward.avi");
@@ -77,6 +87,7 @@ DetectorTest::DetectorTest(string movie)
 	gDetect=new GateDetector(camera);
 	bDetect=new BinDetector(camera);
 	rlDetect=new RedLightDetector(camera);
+	fDetect=new FeatureDetector(camera);
 	
 	if (SHOW_OUTPUT)
 	{
@@ -112,6 +123,7 @@ void DetectorTest::orangeDetectOn()
 	gateOn=false;
 	binOn=false;
 	orangeOn=true;
+	featureOn=false;
 	//Turn off others
 }
 void DetectorTest::lightDetectOn()
@@ -121,6 +133,7 @@ void DetectorTest::lightDetectOn()
 	binOn=false;
 	orangeOn=false;
 	lightOn=true;
+	featureOn=false;
 }
 void DetectorTest::gateDetectOn()
 {
@@ -129,6 +142,7 @@ void DetectorTest::gateDetectOn()
 	binOn=false;
 	orangeOn=false;
 	gateOn=true;
+	featureOn=false;
 }
 void DetectorTest::binDetectOn()
 {
@@ -137,6 +151,16 @@ void DetectorTest::binDetectOn()
 	gateOn=false;
 	orangeOn=false;
 	binOn=true;
+	featureOn=false;
+}
+void DetectorTest::featureDetectOn()
+{
+	cout<<"Turning on feature detection"<<endl;
+	lightOn=false;
+	gateOn=false;
+	orangeOn=false;
+	binOn=false;
+	featureOn=true;
 }
 void DetectorTest::orangeDetectOff()
 {
@@ -153,6 +177,10 @@ void DetectorTest::gateDetectOff()
 void DetectorTest::binDetectOff()
 {
 	binOn=false;
+}
+void DetectorTest::featureDetectOff()
+{
+	featureOn=false;
 }
 OrangePipeDetector* DetectorTest::getOrangeDetector()
 {
@@ -211,6 +239,10 @@ void DetectorTest::update(double timestep)
 			recorder->writeFrame(opDetect->getAnalyzedImage());
 		if (opDetect->found && opDetect->getAngle()!=-10)
 		{
+			ram::core::EventPtr e(new ram::core::Event());
+			e->type=PIPE_FOUND;
+			e->sender=this;
+			publish(PIPE_FOUND,e);
 			//Found in this case refers to the finding of a thresholded number of pixels
 			//Angle will be equal to -10 if those pixels do not form pipeline shaped objects
 			//center will be -1 -1 whenever angle is -10
@@ -244,6 +276,11 @@ void DetectorTest::update(double timestep)
 
 		if (gDetect->found)
 		{
+			ram::core::EventPtr e(new ram::core::Event());
+			e->type=GATE_FOUND;
+			e->sender=this;
+			ram::core::EventPublisher::publish(GATE_FOUND,e);
+
 			if (SHOW_OUTPUT)
 			{
 				cout<<"Gate Found!"<<endl;
@@ -272,6 +309,11 @@ void DetectorTest::update(double timestep)
 
 		if (bDetect->found)
 		{
+			ram::core::EventPtr e(new ram::core::Event());
+			e->type=BIN_FOUND;
+			e->sender=this;
+			publish(BIN_FOUND,e);
+
 			if (SHOW_OUTPUT)
 			{
 				cout<<"Bin Found!"<<endl;
@@ -299,6 +341,9 @@ void DetectorTest::update(double timestep)
 
 		if (rlDetect->found)
 		{
+			ram::core::EventPtr e(new ram::vision::ImageEvent(rlDetect->getX(),rlDetect->getY()));
+			publish(LIGHT_FOUND,e);
+
 			if (SHOW_OUTPUT)
 			{
 				cout<<"Red Light Found!"<<endl;
@@ -313,6 +358,17 @@ void DetectorTest::update(double timestep)
 				cout<<"No Red Light Found."<<endl;
 			}
 		}
+	}
+	
+	if (featureOn)
+	{
+		if (SHOW_OUTPUT)
+			cout<<"Running feature detector..."<<endl;
+		fDetect->update();
+		if (SHOW_OUTPUT)
+			fDetect->show("Detector Test");
+		if (fromMovie && recorder!=NULL)
+			recorder->writeFrame(fDetect->getAnalyzedImage());
 	}
 	
 	if (DEMO)

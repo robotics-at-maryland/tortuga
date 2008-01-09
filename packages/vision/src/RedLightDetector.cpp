@@ -87,10 +87,12 @@ void RedLightDetector::update()
 		cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
 		cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
 		cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+		lightCenter.x = p.x;
+		lightCenter.y = p.y;
 	}
 
 	redLightCenterX=lightCenter.x;
 	redLightCenterY=lightCenter.y;
-	redLightCenterX/=image->width;
-	redLightCenterY/=image->height;
+	redLightCenterX=((double)redLightCenterX) / ((double)(image->width));
+	redLightCenterY=((double)redLightCenterY) / ((double)(image->height));
 }
