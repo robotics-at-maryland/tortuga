@@ -32,7 +32,7 @@ from ram.sim.input import InputSystem
 from ram.sim.util import SimulationError
 import ram.sim.defaults as defaults
 
-from core import Singleton, log, log_init, implements, Component
+from core import Singleton, log, log_init, implements, Component, environmentSub
 from ram.module import Module, IModule
 
 # Events
@@ -124,7 +124,11 @@ class Simulation(Singleton, Module):
         """
         scene_path = self._config.get('scene_path', defaults.scene_search_path)
 
+        # Interpolate scene path
+        scene_path = [environmentSub(p) for p in scene_path]
+        print 'TEST -1', scene_path
         for name, scene_file in self._config.get('Scenes', {}).iteritems():
+            print 'TEST -2', scene_path
             self.create_scene(name, scene_file, scene_path)
     
     def create_scene(self, name, scene_file, scene_path):
@@ -142,7 +146,8 @@ class Simulation(Singleton, Module):
         # Filter out non-existant paths from search, this keeps windows paths
         # out of unix and unix paths out of windows
         search_path = [p for p in scene_path if os.path.exists(p)]
-        if len(scene_path) == 0:
+        print 'TEST',search_path,len(search_path)
+        if len(search_path) == 0:
             raise SimulationError('No valid directory found on scene path')
         
         #self.logger.info('Loading %s on path:', scene_file)

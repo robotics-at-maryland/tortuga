@@ -66,6 +66,9 @@ class Vehicle(vehicle.IVehicle):
     def backgrounded(self):
         return False
     
+    def unbackground(self, join = True):
+        pass
+    
     def update(self, time):
         pass
 

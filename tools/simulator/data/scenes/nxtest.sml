@@ -3,8 +3,8 @@ Scene:
     name: Main
     
     Resources:
-        Zip: ['data/media/nxogre/tutorialmedia.zip']
-        FileSystem: ['data/media/nxogre']
+        Zip: ['%(RAM_SVN_DIR)s/tools/simulator/data/media/nxogre/tutorialmedia.zip']
+        FileSystem: ['%(RAM_SVN_DIR)s/tools/simulator/data/media/nxogre']
                          
     #SkyBox:
     #    material_name: 'Examples/CloudyNoonSkyBox'
@@ -22,7 +22,7 @@ Scene:
             offset: [-2, 0, 1]
     
     Robots:
-        AUT: 'data/robots/nxaut.rml'
+        AUT: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/nxaut.rml'
     
     Objects:
 #        gate:

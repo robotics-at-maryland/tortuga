@@ -28,7 +28,8 @@ def main(args = None):
     # Module Manager needed for Simulation
     moduleManager = module.ModuleManager()
     
-    path = os.path.abspath(os.path.join('data', 'config','sim.yml'))
+    path = os.path.abspath(os.path.join(os.environ['RAM_SVN_DIR'], 'tools',
+        'simulator', 'data', 'config','sim.yml'))
     print 'PATH',path
     app = ext.core.Application(path)
 
@@ -43,9 +44,10 @@ def main(args = None):
     # Remove extra references
     conn.disconnect()
     
-    simulation.shutdown()
     APPLICATION = None
     del app
+    simulation.shutdown()
+
     print 'DONE'
 
 if __name__ == '__main__':

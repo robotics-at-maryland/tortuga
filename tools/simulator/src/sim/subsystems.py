@@ -76,13 +76,18 @@ class Simulation(core.Subsystem):
     def backgrounded(self):
         return False
         
+    def unbackground(self, join = True):
+        pass
+        
     def update(self, timeSinceLastUpdate):
         ogre.WindowEventUtilities.messagePump()
         if not self._window.isClosed() and self._window.isActive():
             self._root.renderOneFrame()
             self._simulation.update(timeSinceLastUpdate)
-        elif not self._simulation.backgrounded():
+        elif not self._simulation.backgrounded() and self._window.isClosed():
             self.windowClosed(self._window)
+        else:
+            ogre.WindowEventUtilities.messagePump()
             
         event.process_events()
 
@@ -93,8 +98,6 @@ class Simulation(core.Subsystem):
     def shutdown(self):
         if not self._simulation.backgrounded():
             self._simulation.shutdown()
-            self._window.removeAllViewports()
-            self._window.destroy()
             self._inputForwarder.shutdown()
             #ogrenewt.Debugger.getSingleton().deInit()
             

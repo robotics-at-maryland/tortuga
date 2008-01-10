@@ -188,7 +188,7 @@ class Scene(object):
             for location in location_map[resource_type]:
 #                print '\t',location_map[resource_type]
 #                print '\t\t-',location
-                  location = os.path.abspath(location)
+                  location = os.path.abspath(core.environmentSub(location))
 #                  self.logger.info('/t/tAdding location: %s' % location)
 #                  print '\t\tAdding location: %s' % location
                   rsrc_mrg.addResourceLocation(location, resource_type,
@@ -351,7 +351,7 @@ class KMLSceneLoader(core.Component):
         
         if kml_node.has_key('Robots'):
             for name, path in kml_node['Robots'].iteritems():
-                scene.create_robot(path)
+                scene.create_robot(core.environmentSub(path))
                 
     def _create_sky_box(self, node):
         """
