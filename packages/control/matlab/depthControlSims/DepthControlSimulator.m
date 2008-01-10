@@ -90,9 +90,9 @@ for i=2:length(time)
 end
 figure (1)
 %plot actual and measured position
-desired = ones(1,length(time));
+desired = xd*ones(1,length(time));
 subplot(2,1,1)
-plot(time,xd,'r',time,x(1,:),'b',time_measured,y_array,'.g','LineWidth',1)
+plot(time,desired,'r',time,x(1,:),'b',time_measured,y_array,'.g','LineWidth',1)
 set(gca,'YDir','reverse')
 legend('desired','actual','measured')
 ylabel('x1 - depth')
