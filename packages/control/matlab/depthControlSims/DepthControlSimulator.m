@@ -1,6 +1,6 @@
 % Main Code to run the Depth Control Simulation
 % set controlType to 'p' (not case sensitive) for P control
-controlType = 'p';
+controlType = 'oc';
 % set controlType to 'pd' (not case sensitive) for PD control
 % controlType = 'pd';
 
@@ -55,13 +55,13 @@ for i=2:length(time)
         time_measured(j) = time(i);
         %simulate sensor measurement of x1
         %perfect sensor
-        y_array(j)=x(1,i-1);
+        %y_array(j)=x(1,i-1);
         
         %random noise sensor
         %give a random number between -0.5 to 0.5
-        %random = rand-0.5;
-        %constant = .1;
-        %y_array(j)=constant*random+x(1,i-1);
+        random = rand-0.5;
+        constant = .2;
+        y_array(j)=constant*random+x(1,i-1);
         
         %gaussian noise sensor
         %constant = .25;
@@ -82,7 +82,7 @@ for i=2:length(time)
         Fthrust(i) = pController(kp,y,xd);
     elseif strcmp('OC',upper(controlType))==1
         %Observer Control
-        Fthrust(i) = 1;%put the correct function call here
+        Fthrust(i) = ObserverController(y,dt);
     end
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
