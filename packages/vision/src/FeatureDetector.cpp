@@ -72,10 +72,10 @@ void FeatureDetector::update()
 	{
 		CvPoint topLeft;
 		CvPoint bottomRight;
-		topLeft.x=features[i].x-2;
-		topLeft.y=features[i].y+2;
-		bottomRight.x=features[i].x+2;
-		bottomRight.y=features[i].y-2;
+		topLeft.x = (int)features[i].x-2;
+		topLeft.y = (int)features[i].y+2;
+		bottomRight.x = (int)features[i].x+2;
+		bottomRight.y = (int)features[i].y-2;
 		cvLine(image,topLeft,bottomRight,CV_RGB(0,0,255),1,CV_AA,0);
 		int temp;
 		temp=topLeft.y;
