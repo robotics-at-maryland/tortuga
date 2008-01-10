@@ -15,16 +15,12 @@ import ram.ai.state as state
 
 class Reciever(object):
     def __init__(self):
-        self.etype = None
-        self.sender = None
-        self.args = None
+        self.event = None
         self.called = False
     
-    def __call__(self, etype, sender, args):
-        self.etype = etype
-        self.sender = sender
-        self.args = args
-        self.called = False
+    def __call__(self, event):
+        self.event = event
+        self.called = True
 
 # Test States (Consider Magic base class to take care of the init method)
 class TrackedState(state.State):
@@ -119,57 +115,57 @@ class TestStateMachine(unittest.TestCase):
         # Make sure the transition function was called
         self.assertEquals(startState.event.sender, self.machine)
         self.assertEquals(startState.event.value, 1)
-#
-#    def testSimple(self):
-#        self.machine.injectEvent("Change", self, 1)
-#        cstate = self.machine.currentState()
-#        self.assertEquals(Simple, type(cstate))
-#
-#    def testLoop(self):
-#        self.machine.injectEvent("LoopBack", self, 0)
-#        cstate = self.machine.currentState()
-#
-#        # Ensure we got into are looping state
-#        self.assertEquals(LoopBack, type(cstate))
-#        self.assert_(cstate.entered)
-#
-#        # Make  A Loopback
-#        self.machine.injectEvent("Update", self, 0)
-#        newstate = self.machine.currentState()
-#
-#        self.assertEquals(LoopBack, type(newstate))
-#        self.assertFalse(newstate.exited)
-#        self.assertEquals(1, newstate.transCount)
-#        self.assertEquals(1, newstate.enterCount)
-#        self.assertEquals(newstate, cstate)
-#
-#        # Repated loopbacks
-#        for i in xrange(1,5):
-#            self.machine.injectEvent("Update", self, 0)
-#        self.assertEquals(5, cstate.transCount)
-#        self.assertFalse(newstate.exited)
-#        self.assertEquals(1, newstate.enterCount)
-#        
-#    def testEvents(self):
-#        enterRecv = Reciever()
-#        exitRecv = Reciever()
-#        self.machine.subscribe(state.Machine.STATE_ENTERED, enterRecv)
-#        self.machine.subscribe(state.Machine.STATE_EXITED, exitRecv)
-#
-#        startState = self.machine.currentState()
-#        self.machine.injectEvent("Start")
-#        nextState = self.machine.currentState()
-#
-#        # Check enter event
-#        self.assertEquals(state.Machine.STATE_ENTERED, enterRecv.eventType)
-#        self.assertEquals(self.machine, enterRecv.sender)
-#        self.assertEquals(nextState, enterRecv.args.state)
-#
-#        # Check exit event
-#        self.assertEquals(state.Machine.STATE_EXITED, exitRecv.eventType)
-#        self.assertEquals(self.machine, exitRecv.sender)
-#        self.assertEquals(startState, exitRecv.args.state)
-#        
+
+    def testSimple(self):
+        self.machine.injectEvent(self._makeEvent("Change"))
+        cstate = self.machine.currentState()
+        self.assertEquals(Simple, type(cstate))
+
+    def testLoop(self):
+        self.machine.injectEvent(self._makeEvent("LoopBack"))
+        cstate = self.machine.currentState()
+
+        # Ensure we got into are looping state
+        self.assertEquals(LoopBack, type(cstate))
+        self.assert_(cstate.entered)
+
+        # Make  A Loopback
+        self.machine.injectEvent(self._makeEvent("Update"))
+        newstate = self.machine.currentState()
+
+        self.assertEquals(LoopBack, type(newstate))
+        self.assertFalse(newstate.exited)
+        self.assertEquals(1, newstate.transCount)
+        self.assertEquals(1, newstate.enterCount)
+        self.assertEquals(newstate, cstate)
+
+        # Repated loopbacks
+        for i in xrange(1,5):
+            self.machine.injectEvent(self._makeEvent("Update"))
+        self.assertEquals(5, cstate.transCount)
+        self.assertFalse(newstate.exited)
+        self.assertEquals(1, newstate.enterCount)
+        
+    def testEvents(self):
+        enterRecv = Reciever()
+        exitRecv = Reciever()
+        self.machine.subscribe(state.Machine.STATE_ENTERED, enterRecv)
+        self.machine.subscribe(state.Machine.STATE_EXITED, exitRecv)
+
+        startState = self.machine.currentState()
+        self.machine.injectEvent(self._makeEvent("Start"))
+        nextState = self.machine.currentState()
+
+        # Check enter event
+        self.assertEquals(state.Machine.STATE_ENTERED, enterRecv.event.type)
+        self.assertEquals(self.machine, enterRecv.event.sender)
+        self.assertEquals(nextState, enterRecv.event.state)
+
+        # Check exit event
+        self.assertEquals(state.Machine.STATE_EXITED, exitRecv.event.type)
+        self.assertEquals(self.machine, exitRecv.event.sender)
+        self.assertEquals(startState, exitRecv.event.state)
+        
         
 if __name__ == '__main__':
     unittest.main()
