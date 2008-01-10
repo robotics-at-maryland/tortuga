@@ -9,11 +9,7 @@
 import os
 import sys
 
-# Library Imports
-import yaml
-
 # Project Imports
-import ram.module as module
 import sim.subsystems
 import ext.core
 
@@ -24,13 +20,9 @@ def stop(event):
 def main(args = None):
     if args is None:
         args = sys.argv
-        
-    # Module Manager needed for Simulation
-    moduleManager = module.ModuleManager()
     
     path = os.path.abspath(os.path.join(os.environ['RAM_SVN_DIR'], 'tools',
         'simulator', 'data', 'config','sim.yml'))
-    print 'PATH',path
     app = ext.core.Application(path)
 
     # Hook into stop event to stop main loop
@@ -39,6 +31,7 @@ def main(args = None):
     simulation = app.getSubsystem("Simulation")
     conn = simulation.subscribe(sim.subsystems.Simulation.SHUTDOWN, stop)
     
+    # Go Into main loop
     app.mainLoop()
     
     # Remove extra references
@@ -46,7 +39,6 @@ def main(args = None):
     
     APPLICATION = None
     del app
-    simulation.shutdown()
 
     print 'DONE'
 

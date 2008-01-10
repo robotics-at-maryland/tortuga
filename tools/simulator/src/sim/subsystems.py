@@ -19,7 +19,13 @@ import ogre.renderer.OGRE as ogre
 import ext.core as core
 import ram.sim.simulation as simulation
 import ram.sim.input as input
+import ram.module
 import event
+
+# Ensure the module manager is started up (legacy code)
+moduleManager = None
+if not hasattr(ram.module.ModuleManager, 'get'):
+    moduleManager = ram.module.ModuleManager()
 
 class WindowListener(ogre.WindowEventListener):
     def __init__(self, closeHandler):
@@ -77,7 +83,7 @@ class Simulation(core.Subsystem):
         return False
         
     def unbackground(self, join = True):
-        pass
+        self.shutdown()
         
     def update(self, timeSinceLastUpdate):
         ogre.WindowEventUtilities.messagePump()
