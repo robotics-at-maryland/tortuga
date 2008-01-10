@@ -121,11 +121,11 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
  */
 	#define BTN_INCSPEED  10
 	#define BTN_DECSPEED  13
-	#define BTN_TURNLEFT  11
-	#define BTN_TURNRIGHT 12
+	#define BTN_TURNLEFT  1
+	#define BTN_TURNRIGHT 3
 
-	#define BTN_ASCEND  6
-	#define BTN_DESCEND 7
+	#define BTN_ASCEND  6 
+	#define BTN_DESCEND 7 
 
 	#define BTN_EMERGSTOP 0
 	#define BTN_ZEROSPEED 2
@@ -150,7 +150,7 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 #endif
 
 /* Speeds to send.. ie, -SPEED_RANGE to +SPEED_RANGE */
-#define SPEED_RANGE 3
+#define SPEED_RANGE 10
 
 /* Don't send same speed twice */
 int lastAxisSpeed=0;
@@ -188,15 +188,19 @@ void processAxis(int fd, int axis, int val)
 // 	    	printf("%d\n", val);
 
 			if(val < 0)	/* Forward, range up to 15677 */
-            	val = SPEED_RANGE * val / -14000;
+		            	val = SPEED_RANGE * val / -14000;
 			else
 				val = SPEED_RANGE * val / -15000;
          
+			if(val > SPEED_RANGE)
+				val = SPEED_RANGE;
 
+			if(val < -SPEED_RANGE)
+				val = SPEED_RANGE;
 
-			if(val != lastAxisSpeed)
-			{
-				printf("New speed: %d\n", val);
+	if(val != lastAxisSpeed)
+	{
+		printf("New speed: %d\n", val);
                 lastAxisSpeed = val;
                 sendCmd(fd, CMD_SETSPEED, val);
             }
@@ -334,7 +338,7 @@ int main(int argc, char ** argv)
 {
 
 #ifdef SAITEK
-    printf("Using Saitek mapping\n\tF3-Ascend\n\tF4-Descend\n\tPOV Hat - Fwd/Back, Turn\n\tZ trigger- Emergency stop\n\tButton under POV Hat - zer speed to 0\n");
+    printf("Using Saitek mapping\n\tThumb L-Ascend\n\tThumb R-Descend\n\tPOV Hat - Fwd/Back, Turn\n\tZ trigger- Emergency stop\n\tButton under POV Hat - zer speed to 0\n");
 #else
     printf("Using XBox mapping\n");
 #endif
