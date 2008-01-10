@@ -13,24 +13,31 @@
 // Project Includes
 #include "core/include/Event.h"
 #include "math/include/Quaternion.h"
+#include "math/include/Vector3.h"
 
 namespace ram {
 namespace math {
 
-class OrientationEvent : public core::Event
+struct OrientationEvent : public core::Event
 {
     Quaternion orientation;
 };
 
-class Vector3Event : public core::Event
+typedef boost::shared_ptr<OrientationEvent> OrientationEventPtr;
+
+struct Vector3Event : public core::Event
 {
-    Vector vector;
+    Vector3 vector3;
 };
 
-class NumericEvent : public core::Event
+typedef boost::shared_ptr<Vector3Event> Vector3EventPtr;
+    
+struct NumericEvent : public core::Event
 {
-    double value;
+    double number;
 };
+
+typedef boost::shared_ptr<NumericEvent> NumericEventPtr;
     
 } // namespace math
 } // namespace ram

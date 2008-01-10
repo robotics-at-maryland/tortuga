@@ -32,10 +32,25 @@ namespace vehicle {
 class RAM_EXPORT IVehicle : public core::Subsystem
 {
 public:
+    /**
+     * \defgroup Events IVehicle Events
+     */
+    /* @{ */
+    
+    /** When the vehicles orientation changes (ram::math:;OrientationEvent)*/
     static const core::Event::EventType ORIENTATION_UPDATE;
+    
+    /** When the vehicles linear accel. changes (ram::math::Vector3Event) */
     static const core::Event::EventType LINEAR_ACCEL_UPDATE;
+    
+    /** When the vehicles angular rate changes (ram::math::Vector3Event) */
     static const core::Event::EventType ANGULAR_RATE_UPDATE;
+    
+    /** When the vehicles depth changes changes (ram::math::NumericEvent) */
     static const core::Event::EventType DEPTH_UPDATE;
+    
+    /* @{ */
+
     
     virtual ~IVehicle(); //{}
 

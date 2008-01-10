@@ -10,6 +10,9 @@
 // Project Includes
 #include "control/include/IController.h"
 
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTH_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, AT_DEPTH);
+
 namespace ram {
 namespace control {
 

@@ -26,6 +26,7 @@
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
+#include "math/include/Events.h"
 #include "imu/include/imuapi.h"
 
 // Register controller in subsystem maker system
@@ -39,6 +40,8 @@ namespace control {
 BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
                                core::ConfigNode config) :
     IController(config["name"].asString()),
+    m_atDepth(false),
+    m_depthThreshold(0),
     m_vehicle(vehicle),
     m_config(config),
     m_desiredState(0),
@@ -91,10 +94,17 @@ void BWPDController::setHeading(double degrees)
 
 void BWPDController::setDepth(double depth)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
-    if (depth < 0)
-        depth = 0;
-    m_desiredState->depth = depth;
+
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+        if (depth < 0)
+            depth = 0;
+        m_desiredState->depth = depth;
+    }
+    
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = depth;
+    publish(IController::DESIRED_DEPTH_UPDATE, event);
 }
 
 int BWPDController::getSpeed()
@@ -201,10 +211,8 @@ bool BWPDController::isOriented()
 
 bool BWPDController::atDepth()
 {
-    double actual = m_measuredState->depth;
-    double expected = m_desiredState->depth;
-    return (actual >= (expected - DEPTH_TOLERANCE)) &&
-        (actual <= (expected + DEPTH_TOLERANCE));
+    double difference = fabs(m_measuredState->depth - m_desiredState->depth);
+    return difference <= m_depthThreshold;
 }
     
 void BWPDController::update(double timestep)
@@ -246,6 +254,24 @@ void BWPDController::update(double timestep)
 
     // Actually set motor values
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
+
+    // Fire off events if needed
+    // We use to be at depth now we aren't
+    if (m_atDepth && !atDepth())
+    {
+        m_atDepth = false;
+    }
+    // We weren't at depth, now we are
+    else if (!m_atDepth && atDepth())
+    {
+        m_atDepth = true;
+        math::NumericEventPtr event(new math::NumericEvent());
+        event->number = m_measuredState->depth;
+        publish(IController::AT_DEPTH, event);        
+    }
+        
+    
+    // Log values
     m_logfile << m_measuredState->quaternion[0] << " "
          << m_measuredState->quaternion[1] << " "
          << m_measuredState->quaternion[2] << " "
@@ -278,6 +304,8 @@ void BWPDController::init(core::ConfigNode config)
     memset(m_measuredState, 0, sizeof(MeasuredState));
     memset(m_controllerState, 0, sizeof(ControllerState));
 
+    m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
+    
     // Set desired state
     m_desiredState->quaternion[0] = config["desiredQuaternion"][0].asDouble();
     m_desiredState->quaternion[1] = config["desiredQuaternion"][1].asDouble();

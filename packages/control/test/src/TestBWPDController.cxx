@@ -10,10 +10,11 @@
 // Library Includes
 #include <iostream>
 #include <UnitTest++/UnitTest++.h>
-//#include <boost/lambda.hpp>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "math/test/include/MathChecks.h"
+#include "math/include/Events.h"
 #include "vehicle/test/include/MockVehicle.h"
 #include "control/include/BWPDController.h"
 //#include "control/test/include/ControllerTests.h"
@@ -86,4 +87,87 @@ TEST_FIXTURE(Fixture, DepthControl)
     vehicle->depth = 0;
     controller.update(1);
     CHECK_CLOSE(exp_tranForce, vehicle->force, 0.0001);
+}
+
+TEST_FIXTURE(Fixture, atDepth)
+{
+    // This assumes the default threshold for depth is 0.5
+    vehicle->depth = 4;
+    controller.update(1);
+    
+    controller.setDepth(5);
+    CHECK_EQUAL(false, controller.atDepth());
+
+    controller.setDepth(3);
+    CHECK_EQUAL(false, controller.atDepth());
+
+    controller.setDepth(4.3);
+    CHECK_EQUAL(true, controller.atDepth());
+
+    controller.setDepth(3.7);
+    CHECK_EQUAL(true, controller.atDepth());
+    
+    controller.setDepth(4);
+    CHECK(controller.atDepth());
+}
+
+void depthHelper(double* result, ram::core::EventPtr event)
+{
+    ram::math::NumericEventPtr nevent =
+        boost::dynamic_pointer_cast<ram::math::NumericEvent>(event);
+    *result = nevent->number;
+}
+
+TEST_FIXTURE(Fixture, Event_DESIRED_DEPTH_UPDATE)
+{
+    double actualDesiredDepth = 0;
+
+    // Subscribe to the event
+    controller.subscribe(ram::control::IController::DESIRED_DEPTH_UPDATE,
+                         boost::bind(depthHelper, &actualDesiredDepth, _1));
+    
+    // Test at correct depth response
+    controller.setDepth(5);
+
+    CHECK_EQUAL(5, actualDesiredDepth);
+}
+
+TEST_FIXTURE(Fixture, Event_AT_DEPTH)
+{
+    double actualDepth = 0;
+
+    // Subscribe to the event
+    controller.subscribe(ram::control::IController::AT_DEPTH,
+                         boost::bind(depthHelper, &actualDepth, _1));
+
+    // Default Depth Threshold is 0.5
+    vehicle->depth = 4;
+    controller.update(1);
+    controller.setDepth(3.7);
+    CHECK_EQUAL(true, controller.atDepth());
+    
+    // Make sure the event doesn't go off when we are at depth
+    controller.setDepth(5);
+    controller.update(1);
+    CHECK_EQUAL(0, actualDepth);
+
+    // Ensure it does go off
+    controller.setDepth(4.3);
+    controller.update(1);
+    CHECK_EQUAL(4, actualDepth);
+
+    // Make sure it doesn't go off again until we have left the depth range
+    actualDepth = 0;
+    controller.update(1);
+    CHECK_EQUAL(0, actualDepth);
+
+    // Make sure once we leave, and come back it will go off again
+    vehicle->depth = 6;
+    controller.update(1);
+    CHECK_EQUAL(0, actualDepth);
+
+    vehicle->depth = 4;
+    controller.setDepth(3.7);
+    controller.update(1);
+    CHECK_EQUAL(4, actualDepth);
 }

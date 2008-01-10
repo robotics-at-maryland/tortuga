@@ -32,7 +32,7 @@ namespace ram {
 namespace control {
 
 /** Tolerance for at Depth (1 foot in meters) */
-static const double DEPTH_TOLERANCE = 0.3048;
+static const double DEPTH_TOLERANCE = 0.5;
 
 static const double ORIENTATION_THRESHOLD = 0.015;
     
@@ -41,12 +41,6 @@ class RAM_EXPORT BWPDController : public IController,
                                   public core::Updatable
 {
 public:
-    enum UPDATE_EVENTS {
-        SPEED_UPDATE,
-        HEADING_UPDATE,
-        DEPTH_UPDATE
-
-    };
     BWPDController(vehicle::IVehiclePtr vehicle, core::ConfigNode config);
 
     BWPDController(core::ConfigNode config,
@@ -108,6 +102,12 @@ public:
     
 private:
     void init(core::ConfigNode config);
+
+    /** Used to maintain state, so we don't issue continuous at depth updates */
+    bool m_atDepth;
+
+    /** When we are within this limit we send off the at depth event */
+    double m_depthThreshold;
     
     /** Out Vehicle */
     vehicle::IVehiclePtr m_vehicle;

@@ -17,6 +17,7 @@
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
+#include "core/include/Event.h"
 #include "core/include/Subsystem.h"
 
 // Must Be Included last
@@ -31,6 +32,24 @@ typedef boost::shared_ptr<IController> IControllerPtr;
 class RAM_EXPORT IController : public core::Subsystem
 {
 public:
+    /**
+     * \defgroup Events IController Events
+     */
+    /* @{ */
+    
+    /** When the controller desired depth changes
+     *
+     *  Type is ram::math::NumbericEvent;
+     */
+    static const core::Event::EventType DESIRED_DEPTH_UPDATE;
+
+    /** When the vehicle reaches the depth set by the controller
+     *
+     *  Type is ram::math::NumbericEvent;
+     */
+    static const core::Event::EventType AT_DEPTH;
+
+    /* @{ */
     
     /** Set the current speed, clamped between -5 and 5 */
     virtual void setSpeed(int speed) = 0;
