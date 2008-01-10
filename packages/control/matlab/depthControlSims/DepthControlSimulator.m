@@ -18,7 +18,7 @@ v_displaced=(1+m*g)/(p_water*g);%volume of water displaced by sub in m^3
 
 constant=(p_water*v_displaced-m)*g;
 
-time=linspace(0,10,4000);
+time=linspace(0,40,4000);
 dt=time(2)-time(1);
 %sensor delay time
 delay =0.05;

@@ -15,5 +15,5 @@ x_dot_prev = A*x_hat + B*(-([16.4 8.1])*x_hat) + ([44.1; 486.2])*(y-y_hat);
 x_hat = x_hat + dt*x_dot_prev;
 
 % Fthrust (U) : new control signal
-Fthrust = -([16.4 8.1])*x_hat;
+Fthrust = -([16.4 8.1])*(x_hat-[1; 0]);
 end
