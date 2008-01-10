@@ -4,6 +4,12 @@ controlType = 'p';
 % set controlType to 'pd' (not case sensitive) for PD control
 % controlType = 'pd';
 
+%create a global variable so observer controllers can store variables
+%between iterations
+global x_hat;
+x_hat=[0 0]';%initialize the global variable to rest conditions
+
+
 m=20;%mass of sub in kg
 p_water=998;%density of water in kg/m^3
 g=9.8;%gravitational constant in m/s^2
@@ -74,6 +80,9 @@ for i=2:length(time)
     elseif strcmp('P',upper(controlType))==1
         %P control
         Fthrust(i) = pController(kp,y,xd);
+    elseif strcmp('OC',upper(controlType))==1
+        %Observer Control
+        Fthrust(i) = 1;%put the correct function call here
     end
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
