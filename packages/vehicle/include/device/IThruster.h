@@ -14,6 +14,7 @@
 #include <string>
 
 // Project Includes
+#include "core/include/Event.h"
 #include "vehicle/include/device/IDevice.h"
 
 // Must Be Included last
@@ -26,11 +27,9 @@ namespace device {
 class RAM_EXPORT IThruster : public IDevice // boost::noncopyable
 {
 public:
-    enum UpdateEvents {
-        FORCE_UPDATE
-    };
+    static const core::Event::EventType FORCE_UPDATE;
     
-    virtual ~IThruster() {};
+    virtual ~IThruster();
 
     /** Sets the current thruster force of the thrusters */
     virtual void setForce(double newtons) = 0;

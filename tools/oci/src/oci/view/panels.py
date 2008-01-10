@@ -38,7 +38,7 @@ class ThrusterPanel(wx.Panel):
             layout.Add(label, (0,pos),flag = wx.ALIGN_CENTER_HORIZONTAL)
             layout.Add(bar, (1,pos), flag = wx.EXPAND)
             layout.AddGrowableCol(pos)
-            conn = item.subscribe(str(ext.vehicle.device.IThruster.FORCE_UPDATE), 
+            conn = item.subscribe(ext.vehicle.device.IThruster.FORCE_UPDATE, 
                                   self._update(bar))
             self._connections.append(conn)
             pos+=1
@@ -101,7 +101,7 @@ class DepthPanel(wx.Panel):
         self.SetSizerAndFit(layout)
         self.SetSizeHints(0,0,100,-1)
         
-        conn = vehicle.subscribe(str(ext.vehicle.IVehicle.DEPTH_UPDATE), 
+        conn = vehicle.subscribe(ext.vehicle.IVehicle.DEPTH_UPDATE, 
                                  self._update)
         self._connections.append(conn)
         
@@ -160,7 +160,7 @@ class RotationPanel(wx.Panel):
         
         # Subscribe to events
         self.Bind(wx.EVT_CLOSE,self._onClose)
-        conn = vehicle.subscribe(str(ext.vehicle.IVehicle.ORIENTATION_UPDATE), 
+        conn = vehicle.subscribe(ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
                                  self._onOrientationUpdate)
         self._connections.append(conn)
         

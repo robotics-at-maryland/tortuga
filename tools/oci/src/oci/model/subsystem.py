@@ -86,7 +86,7 @@ class Thruster(core.EventPublisher, device.IThruster):
         
         event = core.Event()
         event.force = self.force
-        self.publish(str(device.IThruster.FORCE_UPDATE), event)
+        self.publish(device.IThruster.FORCE_UPDATE, event)
 
 class DemoPower(core.Subsystem, core.EventPublisher):
     """
