@@ -166,12 +166,12 @@ class RotationCtrl(wx.Panel):
 
     def setOrientation(self,quat):
         style = self.GetWindowStyle()
-        if style | RotationCtrl.ROLL:
-            self.rotVal = (quat.getRoll(False)).valueRadians()
-        elif style | RotationCtrl.PITCH:
-            self.rotVal = (quat.getPitch(False)).valueRadians()
-        elif style | RotationCtrl.YAW:
-            self.rotVal = (quat.getYaw(False)).valueRadians()
+        if style & RotationCtrl.ROLL:
+            self.rotVal = (quat.getRoll(True)).valueRadians()
+        elif style & RotationCtrl.PITCH:
+            self.rotVal = (quat.getPitch(True)).valueRadians()
+        elif style & RotationCtrl.YAW:
+            self.rotVal = (quat.getYaw(True)).valueRadians()
         self.Refresh()
     
     #def OnEraseBackground(self, event):

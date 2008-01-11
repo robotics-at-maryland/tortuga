@@ -50,10 +50,17 @@ class Vehicle(vehicle.IVehicle):
         self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
         
         # Orientation
-        self._orientation.x = 1.0 * math.sin(self._currentTime) + 1.0
-        self._orientation.y = 1.0 * math.sin(self._currentTime + 5) + 1.0
-        self._orientation.z = 1.0 * math.sin(self._currentTime + 10) + 1.0
-        self._orientation.w = 1.0 * math.sin(self._currentTime + 15) + 1.0
+        
+        x = 1.0 * math.sin(self._currentTime) + 1.0
+        y = 1.0 * math.sin(self._currentTime + 5) + 1.0
+        z = 1.0 * math.sin(self._currentTime + 10) + 1.0
+        vector = ext.math.Vector3(x, y, z)
+        vector.normalise()
+        
+        angle = 2*math.pi * math.sin(self._currentTime + 15) + 1.0
+        self._orientation.FromAngleAxis(ext.math.Radian(angle), vector)
+        
+        self._orientation.normalise()
         event = core.Event()
         event.orientation = self._orientation
         self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
