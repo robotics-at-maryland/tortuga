@@ -274,8 +274,8 @@ def add_castTo(cls, from_cls, smart_ptr = False):
 
         #print args
         cls.add_declaration_code("""
-        %(cls_ptr_type)s castTo(%(from_type)s from) {
-        return boost::dynamic_pointer_cast<%(cls_type)s>(from);
+        boost::python::object castTo(%(from_type)s from) {
+        return boost::python::object(boost::dynamic_pointer_cast<%(cls_type)s>(from));
         }""" % args)
         cls.add_registration_code("""
         def(\"castTo\", castTo)
