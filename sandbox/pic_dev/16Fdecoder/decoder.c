@@ -1,5 +1,9 @@
 /* Author: Scott Watson
 
+---modified by Peter for a learning experiece---
+for original functionalty please see the decoder_orig.c file
+
+
 Description: This code accepts binary coded input on 4 pins
 and uses it to determine which of the other pins to drive high
 
@@ -26,7 +30,11 @@ main(){
 	//Main part of program begins here...
     while (1 == 1){
 
-		if(PORTB==0b00000000){ //0
+		//RA0=1;
+		//RA1=1;
+		//RA2=1;
+		RC6=1;
+		/*if(PORTB==0b00000000){ //0
 			RA0=1;
 		}
 		if(PORTB==0b00010000){ //1
@@ -76,7 +84,7 @@ main(){
 			RC6=0;
 		}
 		PORTA=0;//turn off the lights
-		PORTC=0;//turn off the lights
+		PORTC=0;//turn off the lights*/
 	
     }//elihw
 }//end main
