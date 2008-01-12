@@ -68,17 +68,19 @@ void translationalController(MeasuredState* measuredState,
     double depthComponent[3];
     depthComponent[0]=0;
     depthComponent[1]=0;
-    depthComponent[2]=depthControlSignal;
+    depthComponent[2]=-depthControlSignal;
 
     //now rotate depth control component to the vehicle's coordinate frame
     // Quaternion is bogus doing it manually
-/*    double rotationMatrix[3][3];
+    double rotationMatrix[3][3];
     rotationMatrixFromQuaternion(measuredState->quaternion,&rotationMatrix[0][0]);
     matrixMult3x1by3x3(rotationMatrix,depthComponent,&translationControlSignal[0]);
-*/
+
+    /*
     translationControlSignal[0] = 0;
     translationControlSignal[1] = 0;
     translationControlSignal[2] = -depthControlSignal;
+    */
             
     //fore-aft control (open loop, not really control) done in vehicle coordinates
     double foreAftComponent[3];
