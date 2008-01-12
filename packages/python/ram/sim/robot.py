@@ -228,8 +228,12 @@ class Thruster(Visual):
         self._thrust_line.end()
     
     def _draw_thrust_line(self):
+        # Remove transformation by Ogre SceneNode
+        orientation = self._node.orientation.UnitInverse()
         base_pt = Ogre.Vector3(0,0,0)
-        thrust_pt = (base_pt + self._node.orientation * self.direction) * self._force
+        # Direction must be reversed because we are showing water flow
+        thrust_pt = (orientation * -self.direction) * self._force
+        
         self._thrust_line.position(base_pt)
         self._thrust_line.position(thrust_pt) 
     
