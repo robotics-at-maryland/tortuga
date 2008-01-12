@@ -45,7 +45,8 @@ Subsystems:
                 '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE',
                 '/home/jlisee/projects/pogre/PythonOgre/lib/OGRE',
                 '/home/jlisee/tmp/python-ogre-snapshot/plugins',
-                '/home/jlisee/projects/pogre/python-ogre-snapshot/plugins']
+                '/home/jlisee/projects/pogre/python-ogre-snapshot/plugins',
+                '/home/lsinger/ram_deps/python-ogre-snapshot/plugins']
                 
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
                 'Plugin_OctreeSceneManager']
@@ -95,4 +96,5 @@ Subsystems:
                 O : DIVE
                 Y : PITCH_UP
                 H : PITCH_DOWN
-       
+                Z : ROLL_PORT
+                X : ROLL_STARBOARD

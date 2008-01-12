@@ -12,7 +12,7 @@ Robot:
     Physical:
         # In kilograms
         mass: 28.175262359039998  # About 0.5% bouyant
-        center_of_mass: [0, 0, -0.15]
+        center_of_mass: [0, 0, -0.01]
         material: SubMat
         Shape:
             type: box
@@ -90,6 +90,38 @@ Robot:
             position: [-0.4, 0, 0]
             orientation: [0, 1, 0, 90]
             direction: [0, 0, 1]
+            min_force: -25.5
+            max_force: 25.5
+            
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.5,0.2,0.1]
+                scale: [0.15,0.047,0.047]
+
+        TopThruster:
+            type: [Thruster, ram.sim.robot.Thruster]            
+            name: top_thruster
+            
+            position: [0, 0, 0.16]
+            orientation: [0, 0, 1, 90]
+            direction: [0, 1, 0]
+            min_force: -25.5
+            max_force: 25.5
+            
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.5,0.2,0.1]
+                scale: [0.15,0.047,0.047]
+
+        BotThruster:
+            type: [Thruster, ram.sim.robot.Thruster]            
+            name: bot_thruster
+            
+            position: [0, 0, -0.16]
+            orientation: [0, 0, 1, 90]
+            direction: [0, -1, 0]
             min_force: -25.5
             max_force: 25.5
             

@@ -19,6 +19,7 @@ import ext.vehicle as vehicle
 import ext.vehicle.device as device
 import ext.math as math
 import math as pmath
+import numpy as numpy
 
 def convertToVector3(vType, vector):
     return vType(vector.x, vector.y, vector.z)
@@ -54,6 +55,10 @@ class SimThruster(core.EventPublisher, device.IThruster):
     
     def getForce(self):
         return self._simThruster.force
+    
+    @property
+    def maxForce(self):
+        return self._simThruster.max_force
                 
     def update(self, timestep):
         pass
@@ -71,6 +76,8 @@ class SimVehicle(vehicle.IVehicle):
         self._addThruster('StartboardThruster', self.robot.parts.right_thruster)
         self._addThruster('AftThruster', self.robot.parts.aft_thruster)
         self._addThruster('ForeThruster', self.robot.parts.front_thruster)
+        self._addThruster('TopThruster', self.robot.parts.top_thruster)
+        self._addThruster('BotThruster', self.robot.parts.bot_thruster)
 
     def _addThruster(self, name, simThruster):
         self._devices[name] = SimThruster(name, simThruster)
@@ -125,16 +132,26 @@ class SimVehicle(vehicle.IVehicle):
         return convertToVector3(math.Vector3,
                                 self.robot._main_part.angular_accel)   
     
+    def _vectorToNumpyArray(self, vec):
+        return numpy.array([vec.x, vec.y, vec.z])
+    
     def applyForcesAndTorques(self, force, torque):
-        portThruster = self.getDevice('PortThruster')
-        starThruster = self.getDevice('StartboardThruster')
-        foreThruster = self.getDevice('ForeThruster')
-        aftThruster = self.getDevice('AftThruster')
+        thrusters = self.getThrusters()
+        m = len(thrusters)
+        A = numpy.zeros([6, m])
         
-        starThruster.setForce(force[0] / 2 + 0.5 * torque[2]) #/ 0.1905
-        portThruster.setForce(force[0] / 2 - 0.5 * torque[2]) #/ 0.1905
-        foreThruster.setForce(force[2] / 2 + 0.5 * torque[1]) #/ 0.3366
-        aftThruster.setForce(force[2] / 2 - 0.5 * torque[1]) #/ 0.3366
+        for i in range(m):
+            thruster = thrusters[i]
+            maxThrusterForce = thruster.forceDirection * thruster.maxForce
+            A[0:3,i] = self._vectorToNumpyArray(maxThrusterForce)
+            A[3:6,i] = self._vectorToNumpyArray(thruster.relativePosition.crossProduct(maxThrusterForce))
+        
+        b = numpy.array([force.x, force.y, force.z, torque.x, torque.y, torque.z])
+        (p, residuals, rank, s) = numpy.linalg.lstsq(A, b)
+        
+        for i in range(m):
+            thruster = thrusters[i]
+            thruster.setForce(thruster.maxForce * p[i])
     
     def backgrounded(self):
         return False

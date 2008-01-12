@@ -19,7 +19,7 @@ import ram.sim.input as input
 import event
 
 event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
-                       'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN'])
+                       'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN', 'ROLL_PORT', 'ROLL_STARBOARD'])
 
 class KeyboardController(core.Subsystem):
     def __init__(self, config, deps):
@@ -35,14 +35,16 @@ class KeyboardController(core.Subsystem):
                            '_dive' : ['DIVE'],
                            '_surface' : ['SURFACE'],
                            '_pitch_up' : ['PITCH_UP'],
-                           '_pitch_down' : ['PITCH_DOWN']}
+                           '_pitch_down' : ['PITCH_DOWN'],
+                           '_roll_port' : ['ROLL_PORT'],
+                           '_roll_starboard' : ['ROLL_STARBOARD']}
         self.key_observer = input.ButtonStateObserver(self, watched_buttons)
         
     def backgrounded(self):
         return False
     
     def update(self, time_since_last_frame):
-        # Turn Control
+        # Turn (Yaw) Control
         if self._left:
             self._controller.yawVehicle(30 * time_since_last_frame)
         elif self._right:
@@ -53,6 +55,12 @@ class KeyboardController(core.Subsystem):
             self._controller.pitchVehicle(30 * time_since_last_frame)
         elif self._pitch_down:
             self._controller.pitchVehicle(-30 * time_since_last_frame)
+        
+        # Roll Control
+        if self._roll_port:
+            self._controller.rollVehicle(30 * time_since_last_frame)
+        elif self._roll_starboard:
+            self._controller.rollVehicle(-30 * time_since_last_frame)
         
         # Speed Control
         if self._desiredSpeed > 5:

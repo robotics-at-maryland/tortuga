@@ -34,6 +34,10 @@ public:
 
     virtual void yawVehicle(double degrees) { yaw = degrees; }
 
+    virtual void pitchVehicle(double degrees) { yaw = degrees; }
+
+    virtual void rollVehicle(double degrees) { yaw = degrees; }
+
     virtual bool isOriented() { return oriented; }
     
     virtual bool atDepth() { return atdepth; }

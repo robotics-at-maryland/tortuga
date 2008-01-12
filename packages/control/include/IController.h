@@ -72,6 +72,12 @@ public:
     /** Yaws the desired vehicle state by the desired number of degrees */
     virtual void yawVehicle(double degrees) = 0;
 
+    /** Pitches the desired vehicle state by the desired number of degrees */
+    virtual void pitchVehicle(double degrees) = 0;
+
+    /** Rolls the desired vehicle state by the desired number of degrees */
+    virtual void rollVehicle(double degrees) = 0;
+
     /** Returns true if the vehicle is at the desired orientation */
     virtual bool isOriented() = 0;
 
