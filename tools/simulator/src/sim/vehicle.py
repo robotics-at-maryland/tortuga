@@ -17,6 +17,7 @@ import ogre.renderer.OGRE as ogre
 import ext.core as core
 import ext.vehicle as vehicle
 import ext.math as math
+import math as pmath
 
 def convertToVector3(vType, vector):
     return vType(vector.x, vector.y, vector.z)
@@ -25,7 +26,7 @@ def convertToQuaternion(qType, quat):
     return qType(quat.x, quat.y, quat.z, quat.w)
 
 
-class Vehicle(vehicle.IVehicle):
+class SimVehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
         vehicle.IVehicle.__init__(self, config.get('name', 'SimVehicle'))
         sim = deps[0]
@@ -35,17 +36,37 @@ class Vehicle(vehicle.IVehicle):
         # Down is positive for depth
         return -1 * self.robot._main_part._node.position.z
     
+    def quaternionFromMagAccel(self, mag, accel):
+        """
+        Just here for reference, will be moved in the future
+        """
+        if accel == math.Vector3(0,0,0):
+            accel = math.Vector3(0, 0, 0.084214)
+        accel = accel + math.Vector3(0,0,-9.8);
+        mag.normalise();
+
+        n3 = accel * -1;
+        n3.normalise();
+        n2 = mag.crossProduct(accel);
+        n2.normalise();
+        n1 = n2.crossProduct(n3);
+        n1.normalise();
+
+        return math.Quaternion(n1,n2,n3);
+
     def getOrientation(self):
-        return convertToQuaternion(math.Quaternion,
-                                   self.robot._main_part._node.orientation)
-    
+       return convertToQuaternion(math.Quaternion,
+                                  self.robot._main_part._node.orientation)
+
     def getLinearAcceleration(self):
-        return convertToVector3(math.Vector3,
-                                self.robot._main_part.acceleration)
+        baseAccel = convertToVector3(math.Vector3,
+                                     self.robot._main_part.acceleration)
+        # Add in gravity
+        return baseAccel + math.Vector3(0, 0, -9.8)
     
     def getAngularRate(self):
         return convertToVector3(math.Vector3,
-                                self.robot._main_part.angular_accel)
+                                self.robot._main_part.angular_accel)   
     
     def applyForcesAndTorques(self, force, torque):
         self.robot._main_part.set_local_force(
@@ -69,7 +90,7 @@ class Vehicle(vehicle.IVehicle):
     def unbackground(self, join = True):
         pass
     
-    def update(self, time):
+    def update(self, timeSinceUpdate):
         pass
 
-core.SubsystemMaker.registerSubsystem('SimVehicle', Vehicle)
+core.SubsystemMaker.registerSubsystem('SimVehicle', SimVehicle)
