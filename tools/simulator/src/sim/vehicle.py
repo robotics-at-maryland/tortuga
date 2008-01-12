@@ -51,6 +51,9 @@ class SimThruster(core.EventPublisher, device.IThruster):
         event = core.Event()
         event.force = force
         self.publish(device.IThruster.FORCE_UPDATE, event)
+    
+    def getForce(self):
+        return self._simThruster.force
                 
     def update(self, timestep):
         pass
@@ -123,23 +126,16 @@ class SimVehicle(vehicle.IVehicle):
                                 self.robot._main_part.angular_accel)   
     
     def applyForcesAndTorques(self, force, torque):
-        self.robot._main_part.set_local_force(
-            convertToVector3(ogre.Vector3, force), (0,0,0))
-        self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)
-        
         portThruster = self.getDevice('PortThruster')
         starThruster = self.getDevice('StartboardThruster')
         foreThruster = self.getDevice('ForeThruster')
         aftThruster = self.getDevice('AftThruster')
         
-        # TODO: Fix and check me
-        #starThruster.setForce(force[2] / 2 + 0.5 * torque[1]) #/ 0.1905
-        #portThruster.setForce(force[2] / 2 - 0.5 * torque[1]) #/ 0.1905
-        #foreThruster.setForce(force[1] / 2 + 0.5 * torque[0]) #/ 0.3366
-        #aftThruster.setForce(force[1] / 2 - 0.5 * torque[0]) #/ 0.3366        
-            
-
-        
+        starThruster.setForce(force[0] / 2 + 0.5 * torque[2]) #/ 0.1905
+        portThruster.setForce(force[0] / 2 - 0.5 * torque[2]) #/ 0.1905
+        foreThruster.setForce(force[2] / 2 + 0.5 * torque[1]) #/ 0.3366
+        aftThruster.setForce(force[2] / 2 - 0.5 * torque[1]) #/ 0.3366
+    
     def backgrounded(self):
         return False
     

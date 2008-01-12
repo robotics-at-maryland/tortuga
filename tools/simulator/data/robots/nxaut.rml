@@ -28,14 +28,14 @@ Robot:
     Parts:
         # For each simulated thruster you need to give its type, relative
         # to the body coordinate system (describe me here)
-        # Y is UP, Z comes out the front of the vehicle and when looking at
-        # vehicle from the back X comes out the right (starboard) side 
+        # Z is UP, X comes out the front of the vehicle and when looking at
+        # vehicle from the back Y comes out the left (port) side 
         LeftThruster:
             type: [Thruster, ram.sim.robot.Thruster] 
             name: left_thruster
             
             # Position relative to robot
-            position: [0, -.16, 0]
+            position: [0, .16, 0]
             
             # Thruster Properties
             # A unit vector along which thrust will be applied
@@ -55,7 +55,7 @@ Robot:
             type: [Thruster, ram.sim.robot.Thruster]
             name: right_thruster
             
-            position: [0, .16, 0]
+            position: [0, -.16, 0]
             direction: [1, 0, 0]
             min_force: -25.5
             max_force: 25.5
