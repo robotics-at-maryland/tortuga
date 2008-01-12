@@ -19,7 +19,7 @@ import ram.sim.input as input
 import event
 
 event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
-                       'DIVE', 'SURFACE'])
+                       'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN'])
 
 class KeyboardController(core.Subsystem):
     def __init__(self, config, deps):
@@ -33,7 +33,9 @@ class KeyboardController(core.Subsystem):
                            '_forward' : ['THRUST_FORE'],
                            '_backward' : ['THRUST_BACK'],
                            '_dive' : ['DIVE'],
-                           '_surface' : ['SURFACE']}
+                           '_surface' : ['SURFACE'],
+                           '_pitch_up' : ['PITCH_UP'],
+                           '_pitch_down' : ['PITCH_DOWN']}
         self.key_observer = input.ButtonStateObserver(self, watched_buttons)
         
     def backgrounded(self):
@@ -46,6 +48,11 @@ class KeyboardController(core.Subsystem):
         elif self._right:
             self._controller.yawVehicle(-30 * time_since_last_frame)
         
+        # Pitch Control
+        if self._pitch_up:
+            self._controller.pitchVehicle(30 * time_since_last_frame)
+        elif self._pitch_down:
+            self._controller.pitchVehicle(-30 * time_since_last_frame)
         
         # Speed Control
         if self._desiredSpeed > 5:

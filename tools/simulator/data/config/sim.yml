@@ -93,6 +93,6 @@ Subsystems:
                 L : TURN_RIGHT
                 U : SURFACE
                 O : DIVE
-                Y : THRUST_PITCH_UP
-                H : THRUST_PITCH_DOWN
+                Y : PITCH_UP
+                H : PITCH_DOWN
        
