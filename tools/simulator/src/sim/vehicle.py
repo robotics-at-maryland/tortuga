@@ -16,6 +16,7 @@ import ogre.renderer.OGRE as ogre
 # Project Imports
 import ext.core as core
 import ext.vehicle as vehicle
+import ext.vehicle.device as device
 import ext.math as math
 import math as pmath
 
@@ -25,12 +26,52 @@ def convertToVector3(vType, vector):
 def convertToQuaternion(qType, quat):
     return qType(quat.x, quat.y, quat.z, quat.w)
 
+class SimThruster(core.EventPublisher, device.IThruster):
+    def __init__(self, name, simThruster):
+        core.EventPublisher.__init__(self)
+        device.IThruster.__init__(self)
+        
+        self._simThruster = simThruster
+        self._name = name
+                
+    @property
+    def relativePosition(self):
+        return convertToVector3(math.Vector3, self._simThruster._force_pos)
+                
+    def getName(self):
+        return self._name
+    
+    def setForce(self, force):
+        self._simThruster.force = star
+        
+        event.force = self.force
+        self.publish(device.IThruster.FORCE_UPDATE, event)
+                
+    def update(self, timestep):
+        pass
+    
 
 class SimVehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
         vehicle.IVehicle.__init__(self, config.get('name', 'SimVehicle'))
         sim = deps[0]
         self.robot = sim.scene._robots['AUT']
+        self._devices = {}
+    
+        # Add Sim Thruster objects
+        self._addThruster('PortThruster', self.robot.parts.left_thruster)
+        self._addThruster('StartboardThruster', self.robot.parts.right_thruster)
+        self._addThruster('AftThruster', self.robot.parts.aft_thruster)
+        self._addThruster('ForeThruster', self.robot.parts.front_thruster)
+
+    def _addThruster(self, name, simThruster):
+        self._devices[name] = SimThruster(name, simThruster)
+        
+    def getDevice(self, name):
+        return self._devices[name]
+    
+    def getDeviceNames(self):
+        return self._devices.keys()
     
     def getDepth(self):
         # Down is positive for depth
@@ -73,16 +114,18 @@ class SimVehicle(vehicle.IVehicle):
             convertToVector3(ogre.Vector3, force), (0,0,0))
         self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)
         
+        portThruster = self.getDevice('PortThruster')
+        starThruster = self.getDevice('StartboardThruster')
+        foreThruster = self.getDevice('ForeThruster')
+        aftThruser = self.getDevice('AftThruster')
+        
         # TODO: Fix and check me
-#        star = force[2] / 2 + 0.5 * torque[1] #/ 0.1905
-#        port = force[2] / 2 - 0.5 * torque[1] #/ 0.1905
-#        fore = force[1] / 2 + 0.5 * torque[0] #/ 0.3366
-#        aft = force[1] / 2 - 0.5 * torque[0] #/ 0.3366        
-#            
-#        self.robot.parts.right_thruster.force = star
-#        self.robot.parts.left_thruster.force = port
-#        self.robot.parts.front_thruster.force = fore
-#        self.robot.parts.aft_thruster.force = aft
+        #starThruster.setForce(force[2] / 2 + 0.5 * torque[1]) #/ 0.1905
+        #portThruster.setForce(force[2] / 2 - 0.5 * torque[1]) #/ 0.1905
+        #foreThruster.setForce(force[1] / 2 + 0.5 * torque[0]) #/ 0.3366
+        #aftThruster.setForce(force[1] / 2 - 0.5 * torque[0]) #/ 0.3366        
+            
+
         
     def backgrounded(self):
         return False

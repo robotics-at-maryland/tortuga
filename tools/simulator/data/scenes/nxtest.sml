@@ -19,7 +19,8 @@ Scene:
     Cameras:
         Main:
             position: [-18, 0, 0]
-            offset: [-2, 0, 1]
+            offset: [0, 0, 2]
+            #offset: [-2, 0, 1]
     
     Robots:
         AUT: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/nxaut.rml'

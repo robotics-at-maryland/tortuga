@@ -155,7 +155,6 @@ class RotationCtrl(wx.Panel):
     
     def __init__(self,  parent, label="[Default]", style = 0):
         # Remove our styles from the style
-        #style = style ^ ROLL ^ PITCH ^ YAQ
         wx.Panel.__init__(self, parent, wx.ID_ANY, 
                           style = style | wx.TAB_TRAVERSAL | wx.NO_BORDER)
         

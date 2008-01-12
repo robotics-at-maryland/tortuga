@@ -62,6 +62,7 @@ class ThrusterPanel(wx.Panel):
         vehicle = getSubsystemOfType(subsystems, ext.vehicle.IVehicle)
         
         if vehicle is not None:
+            # Get All the current Thrusters the vehicle has
             thrusters = []
             for name in vehicle.getDeviceNames():
                 device = vehicle.getDevice(name)

@@ -282,7 +282,7 @@ class Thruster(Visual):
         scale = Ogre.Vector3(gfx_node['scale'])
         
         position, orientation = parse_position_orientation(kml_node)
-        self._force_pos = position
+        self._force_pos = Ogre.Vector3(position)
         
         direction = Ogre.Vector3(kml_node['direction'])
         min_force = kml_node['min_force']
