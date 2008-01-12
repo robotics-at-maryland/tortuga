@@ -66,7 +66,15 @@ class SimVehicle(vehicle.IVehicle):
 
     def _addThruster(self, name, simThruster):
         self._devices[name] = SimThruster(name, simThruster)
-        
+    
+    def getThrusters(self):
+        thrusters = []
+        for name in self.getDeviceNames():
+            device = self.getDevice(name)
+            if isinstance(device, vehicle.device.IThruster):
+                thrusters.append(device)
+        return thrusters
+    
     def getDevice(self, name):
         return self._devices[name]
     
