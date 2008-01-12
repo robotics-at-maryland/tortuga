@@ -38,13 +38,18 @@ class SimThruster(core.EventPublisher, device.IThruster):
     def relativePosition(self):
         return convertToVector3(math.Vector3, self._simThruster._force_pos)
                 
+    @property
+    def forceDirection(self):
+        return convertToVector3(math.Vector3, self._simThruster.direction)
+                
     def getName(self):
         return self._name
     
     def setForce(self, force):
-        self._simThruster.force = star
+        self._simThruster.force = force
         
-        event.force = self.force
+        event = core.Event()
+        event.force = force
         self.publish(device.IThruster.FORCE_UPDATE, event)
                 
     def update(self, timestep):
@@ -125,7 +130,7 @@ class SimVehicle(vehicle.IVehicle):
         portThruster = self.getDevice('PortThruster')
         starThruster = self.getDevice('StartboardThruster')
         foreThruster = self.getDevice('ForeThruster')
-        aftThruser = self.getDevice('AftThruster')
+        aftThruster = self.getDevice('AftThruster')
         
         # TODO: Fix and check me
         #starThruster.setForce(force[2] / 2 + 0.5 * torque[1]) #/ 0.1905

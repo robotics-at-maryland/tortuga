@@ -39,7 +39,7 @@ Robot:
             
             # Thruster Properties
             # A unit vector along which thrust will be applied
-            direction: [0, 0, -1]
+            direction: [1, 0, 0]
             # In newtons, 9.0 N = 2 lbs of thrust
             min_force: -25.5
             max_force: 25.5
@@ -56,7 +56,7 @@ Robot:
             name: right_thruster
             
             position: [0, .16, 0]
-            direction: [0, 0, -1]
+            direction: [1, 0, 0]
             min_force: -25.5
             max_force: 25.5
             
@@ -72,7 +72,7 @@ Robot:
             
             position: [0.4, 0, 0]
             orientation: [0, 1, 0, 90]
-            direction: [0, 1, 0]
+            direction: [0, 0, 1]
             min_force: -25.5
             max_force: 25.5
             
@@ -89,7 +89,7 @@ Robot:
             
             position: [-0.4, 0, 0]
             orientation: [0, 1, 0, 90]
-            direction: [0, 1, 0]
+            direction: [0, 0, 1]
             min_force: -25.5
             max_force: 25.5
             
