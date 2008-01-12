@@ -54,14 +54,14 @@ class TestBody(unittest.TestCase):
         for i in xrange(100):
             self.scene.world.update(0.05)
 
-        self.assertTrue(self.body.position.y < 0)
+        self.assertTrue(self.body.position.z < 0)
         
     def test_velocity(self):
         for i in xrange(100):
             self.scene.world.update(0.05)
 
         # Make sure the object has gained falling velocity
-        self.assertTrue(self.body.velocity.y < 0)
+        self.assertTrue(self.body.velocity.z < 0)
         
     def test_local_force(self):
         # Generate a torque around the z axis
@@ -70,7 +70,8 @@ class TestBody(unittest.TestCase):
         for i in xrange(100):
             self.scene.world.update(0.05)
 
-        self.assertNotEqual(self.body.omega.z, 0)
+        print self.body.omega.z
+        self.assert_(self.body.omega.z < 0 )
         
     def test_torque(self):
         # Apply a torque around the z axis

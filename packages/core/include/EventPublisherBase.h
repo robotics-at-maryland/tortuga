@@ -15,6 +15,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signal.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 // Project Includes
 #include "core/include/ReadWriteMutex.h"
@@ -91,7 +92,7 @@ private:
     ReadWriteMutex m_signalMapMutex;
 
     /// Protects access to each signal (they are not thread safe)
-    boost::ptr_map<T, boost::mutex> m_signalMutexes;
+    boost::ptr_map<T, boost::recursive_mutex> m_signalMutexes;
 
     typedef boost::signal<void (EventPtr)>  EventSignal;
     /// Maps types -> signals
@@ -128,10 +129,14 @@ void EventPublisherBaseTemplate<T>::publish(T subscribeType,
     // Set event property
     event->type = etype;
     event->sender = sender;
-        
+
+    boost::recursive_mutex* signalMutex;
     {
         ReadWriteMutex::ScopedReadLock mapLock(m_signalMapMutex);
-        boost::mutex::scoped_lock lock(m_signalMutexes[subscribeType]);
+        signalMutex = &m_signalMutexes[subscribeType];
+    }
+    {
+        boost::recursive_mutex::scoped_lock lock(*signalMutex);
         
         // Call subscribers
         m_signals[subscribeType](event);
@@ -145,8 +150,13 @@ template<typename T>
 void EventPublisherBaseTemplate<T>::unSubscribe(T type,
     boost::signals::connection connection)
 {
-    ReadWriteMutex::ScopedWriteLock mapLock(m_signalMapMutex);
-    boost::mutex::scoped_lock lock(m_signalMutexes[type]);
+    boost::recursive_mutex* signalMutex;
+    {
+        ReadWriteMutex::ScopedReadLock mapLock(m_signalMapMutex);
+        signalMutex = &m_signalMutexes[type];
+    }
+    
+    boost::recursive_mutex::scoped_lock lock(*signalMutex);
     connection.disconnect();
 }
 

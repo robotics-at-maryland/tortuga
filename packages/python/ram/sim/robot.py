@@ -219,23 +219,29 @@ class Thruster(Visual):
                 self._force = force
                  
     def update(self, time_since_last_frame):
-        force = Ogre.Vector3(self.direction) * self._force
+        forceToApply = self._force
+        # You can thrust in the water
+        if self._node._getDerivedPosition().z > 0:
+            forceToApply = 0
+        
+        force = Ogre.Vector3(self.direction) * forceToApply
         self.parent.add_local_force(force, self._force_pos)
         
         # Redraw force lines
         self._thrust_line.beginUpdate(0)
-        self._draw_thrust_line()
+        self._draw_thrust_line(forceToApply)
         self._thrust_line.end()
     
-    def _draw_thrust_line(self):
+    def _draw_thrust_line(self, force):
         # Remove transformation by Ogre SceneNode
         orientation = self._node.orientation.UnitInverse()
         base_pt = Ogre.Vector3(0,0,0)
         # Direction must be reversed because we are showing water flow
-        thrust_pt = (orientation * -self.direction) * self._force
-        
+        thrust_pt = (orientation * -self.direction) * force
+
         self._thrust_line.position(base_pt)
-        self._thrust_line.position(thrust_pt) 
+        self._thrust_line.position(thrust_pt)
+
     
     #def _create(self, direction):
     def _create(self, scene, direction, min_force, max_force, mesh, material, 
@@ -269,7 +275,7 @@ class Thruster(Visual):
         self._thrust_line.dynamic = True
         
         self._thrust_line.begin("BaseRedNoLighting", Ogre.RenderOperation.OT_LINE_STRIP);
-        self._draw_thrust_line()
+        self._draw_thrust_line(self._force)
         self._thrust_line.end()
                 
         self._node.attachObject(self._thrust_line)

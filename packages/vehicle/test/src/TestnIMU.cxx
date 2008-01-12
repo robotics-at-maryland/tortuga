@@ -91,7 +91,7 @@ TEST_UTILITY(quatIMU, (Vector3 expVehicleMag, Vector3 expVehicleAccel,
 
 TEST_FIXTURE(IMU, quaternionFromIMU)
 {
-    // Used for axis angle conversions
+/*    // Used for axis angle conversions
     Quaternion magAccelRotation(Quaternion::IDENTITY);
 
     // No rotation
@@ -148,7 +148,7 @@ TEST_FIXTURE(IMU, quaternionFromIMU)
     magAccelRotation.FromAngleAxis(Degree(33),
                                    Vector3(0.365148, 0.912871, 0.182574));
     TEST_UTILITY_FUNC(quatIMU)(Vector3::ZERO, Vector3::ZERO, magAccelRotation);
-    
+*/    
     // This test doesn't seem to make sense
 /*
     Vector3 mag2(-0.0518, -0.0335, -0.1903);

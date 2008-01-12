@@ -19,7 +19,8 @@ import ram.sim.input as input
 import event
 
 event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
-                       'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN', 'ROLL_PORT', 'ROLL_STARBOARD'])
+                       'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN', 
+                       'ROLL_PORT', 'ROLL_STARBOARD'])
 
 class KeyboardController(core.Subsystem):
     def __init__(self, config, deps):
