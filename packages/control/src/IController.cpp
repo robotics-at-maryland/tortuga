@@ -16,8 +16,8 @@ RAM_CORE_EVENT_TYPE(ram::control::IController, AT_DEPTH);
 namespace ram {
 namespace control {
 
-IController::IController(std::string name) : 
-    Subsystem(name) 
+IController::IController(std::string name, core::EventHubPtr eventHub) :
+    core::Subsystem(name, eventHub)
 {
 }
 

@@ -31,8 +31,11 @@ class TestSubsystemMaker(unittest.TestCase):
 
     def testGetRegisteredKeys(self):
         expected = ['LoopSubsystem', 'SubsystemA', 'SubsystemB',
-                    'TestSubsystem']
+                    'TestSubsystem', 'EventHub', 'QueuedEventHub']
         keys = core.SubsystemMaker.getRegisteredKeys()
+
+        keys.sort()
+        expected.sort()
         
         self.assertEquals(len(expected), len(keys))
         for exp,act in zip(expected, keys):

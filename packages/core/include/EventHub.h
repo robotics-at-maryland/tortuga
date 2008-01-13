@@ -28,6 +28,8 @@ namespace core {
 class RAM_EXPORT EventHub : public Subsystem
 {
 public:
+    static const ram::core::Event::EventType ALL_EVENTS;
+    
     /** Easier to use contructor */
     EventHub(std::string name = "EventHub");
 

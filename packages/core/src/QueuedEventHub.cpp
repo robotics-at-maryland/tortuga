@@ -14,6 +14,10 @@
 #include "core/include/QueuedEventHub.h"
 #include "core/include/QueuedEventHubImp.h"
 #include "core/include/EventConnection.h"
+#include "core/include/SubsystemMaker.h"
+
+// Register EventHub into the maker subsystem
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::core::QueuedEventHub, QueuedEventHub);
 
 namespace ram {
 namespace core {

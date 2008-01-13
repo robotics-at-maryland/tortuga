@@ -12,6 +12,11 @@ envl = env.Clone()
 # Find all cpp files in the source directory
 sources = envl.Glob('src', '*.cpp')
 
+# Doesn't work right
+# Add sources for Subsystem based Interfaces (needed here for wrapping
+#if env.HasFeature('vehicle'):
+#    sources.append('../vehicle/src/IVehicle.cpp')
+    
 # Build Library (will be called 'libram_core.so')
 # Build flags for dependencies automaticallly added based on buildfiles/libs.py
 envl.RAMSharedLibrary('core', source = sources)

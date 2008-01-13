@@ -13,6 +13,9 @@ envl = env.Clone()
 sources = env.Glob('src', '*.cpp')
 sources.extend(env.Glob('src/device', '*.cpp'))
 
+# Doesn't Work
+# sources.remove('src/IVehicle.cpp')
+
 # If we aren't building the drivers, remove the sources that depend on them
 if not env.HasFeature('drivers'):
     # Remove hardware vehicle

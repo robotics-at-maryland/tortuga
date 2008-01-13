@@ -10,8 +10,13 @@
 // Project Includes
 #include "core/include/EventHub.h"
 #include "core/include/EventPublisherBase.h"
+#include "core/include/SubsystemMaker.h"
 
-static const ram::core::Event::EventType ALL_TYPE("ALL");
+// Event Types
+RAM_CORE_EVENT_TYPE(ram::core::EventHub, ALL_EVENTS);
+
+// Register EventHub into the maker subsystem
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::core::EventHub, EventHub);
 
 namespace ram {
 namespace core {
@@ -74,8 +79,9 @@ EventConnectionPtr EventHub::subscribeToType(
 EventConnectionPtr EventHub::subscribeToAll(
     boost::function<void (EventPtr)> handler)
 {
-    return asType<TypeEventPublisherType>(m_impAll)->subscribe(ALL_TYPE,
-                                                               handler);
+    return asType<TypeEventPublisherType>(m_impAll)->subscribe(
+        EventHub::ALL_EVENTS,
+        handler);
 }
     
 void EventHub::publish(EventPtr event)
@@ -94,10 +100,11 @@ void EventHub::publish(EventPtr event)
         event);
 
     // Publish to subscribers who want all events
-    asType<TypeEventPublisherType>(m_impAll)->publish(ALL_TYPE,
-                                                      event->type,
-                                                      event->sender,
-                                                      event);
+    asType<TypeEventPublisherType>(m_impAll)->publish(
+        EventHub::ALL_EVENTS,
+        event->type,
+        event->sender,
+        event);
 }
 
 void EventHub::update(double)
