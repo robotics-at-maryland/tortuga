@@ -32,10 +32,10 @@ def main(args = None):
 
     os.environ['PYTHON_OGRE_HOME'] = options.pythonOgreHome
     sys.path.insert(0, os.path.join(options.pythonOgreHome, 'packages_2.5'))
-    print sys.path
+
+    # Now Import the packages which depend on Python Ogre
     import sim.subsystems
 
-    
 
     # Create Application class (creates all Subsystems)
     path = os.path.abspath(os.path.join(os.environ['RAM_SVN_DIR'], 'tools',
