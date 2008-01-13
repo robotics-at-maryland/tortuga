@@ -100,7 +100,7 @@ Robot:
                 scale: [0.15,0.047,0.047]
 
         TopThruster:
-            type: [Thruster, ram.sim.robot.Thruster]            
+            type: [Thruster, ram.sim.robot.Thruster]
             name: top_thruster
             
             position: [0, 0, 0.16]
@@ -116,7 +116,7 @@ Robot:
                 scale: [0.15,0.047,0.047]
 
         BotThruster:
-            type: [Thruster, ram.sim.robot.Thruster]            
+            type: [Thruster, ram.sim.robot.Thruster]
             name: bot_thruster
             
             position: [0, 0, -0.16]

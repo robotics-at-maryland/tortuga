@@ -62,7 +62,7 @@ BWPDController::BWPDController(core::ConfigNode config,
 {
     init(config);
 }
-    
+
 BWPDController::~BWPDController()
 {
     unbackground(true);
@@ -140,7 +140,7 @@ void BWPDController::rollVehicle(double degrees)
   
   //rotate the quaternion and store in a new place
   double newQuaternion[4];
-  quaternionCrossProduct(rotationQuaternion, m_desiredState->quaternion,
+  quaternionCrossProduct(m_desiredState->quaternion, rotationQuaternion,
 			 newQuaternion);
 
   //store the new quaternion as the new desired quaternion
@@ -148,7 +148,6 @@ void BWPDController::rollVehicle(double degrees)
   m_desiredState->quaternion[1] = newQuaternion[1];
   m_desiredState->quaternion[2] = newQuaternion[2];
   m_desiredState->quaternion[3] = newQuaternion[3];
-    
 }
 
 void BWPDController::pitchVehicle(double degrees)
@@ -166,7 +165,7 @@ void BWPDController::pitchVehicle(double degrees)
   
   //rotate the quaternion and store in a new place
   double newQuaternion[4];
-  quaternionCrossProduct(rotationQuaternion, m_desiredState->quaternion,
+  quaternionCrossProduct(m_desiredState->quaternion, rotationQuaternion,
 			 newQuaternion);
 
   //store the new quaternion as the new desired quaternion
@@ -174,7 +173,6 @@ void BWPDController::pitchVehicle(double degrees)
   m_desiredState->quaternion[1] = newQuaternion[1];
   m_desiredState->quaternion[2] = newQuaternion[2];
   m_desiredState->quaternion[3] = newQuaternion[3];
-
 }
 
 void BWPDController::yawVehicle(double degrees)
@@ -192,7 +190,7 @@ void BWPDController::yawVehicle(double degrees)
   
   //rotate the quaternion and store in a new place
   double newQuaternion[4];
-  quaternionCrossProduct(rotationQuaternion, m_desiredState->quaternion,
+  quaternionCrossProduct(m_desiredState->quaternion, rotationQuaternion,
 			 newQuaternion);
 
   //store the new quaternion as the new desired quaternion

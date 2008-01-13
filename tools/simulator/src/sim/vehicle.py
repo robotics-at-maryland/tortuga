@@ -108,18 +108,22 @@ class SimVehicle(vehicle.IVehicle):
             accel = math.Vector3(0, 0, 0.084214)
         accel = accel + math.Vector3(0,0,-9.8);
         mag.normalise();
-
+        
         n3 = accel * -1;
         n3.normalise();
         n2 = mag.crossProduct(accel);
         n2.normalise();
         n1 = n2.crossProduct(n3);
         n1.normalise();
-
+        
         return math.Quaternion(n1,n2,n3);
 
     def getOrientation(self):
-       return convertToQuaternion(math.Quaternion,
+        return self._getActualOrientation()
+        #return self.quaternionFromMagAccel(self.getMag(), self.getLinearAcceleration())
+    
+    def _getActualOrientation(self):
+        return convertToQuaternion(math.Quaternion,
                                   self.robot._main_part._node.orientation)
 
     def getLinearAcceleration(self):
@@ -127,6 +131,9 @@ class SimVehicle(vehicle.IVehicle):
                                      self.robot._main_part.acceleration)
         # Add in gravity
         return baseAccel + math.Vector3(0, 0, -9.8)
+    
+    def getMag(self):
+        return self._getActualOrientation() * math.Vector3(0.5, 0, -1);
     
     def getAngularRate(self):
         return convertToVector3(math.Vector3,
