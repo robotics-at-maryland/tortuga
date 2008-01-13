@@ -40,12 +40,10 @@ Subsystems:
         
         Graphics:
             Plugins:
-                search_path: ['C:\Libraries\PythonOgre\plugins',
+                # TODO: Remove the extra paths
+                search_path: ['%(PYTHON_OGRE_HOME)s/plugins',
+                'C:\Libraries\PythonOgre\plugins',
                 'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
-                '/home/jlisee/projects/mrbc/trunk/deps/local/lib/OGRE',
-                '/home/jlisee/projects/pogre/PythonOgre/lib/OGRE',
-                '/home/jlisee/tmp/python-ogre-snapshot/plugins',
-                '/home/jlisee/projects/pogre/python-ogre-snapshot/plugins',
                 '/home/lsinger/ram_deps/python-ogre-snapshot/plugins']
                 
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 

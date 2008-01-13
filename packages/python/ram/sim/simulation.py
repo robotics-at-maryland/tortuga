@@ -125,7 +125,7 @@ class Simulation(Singleton, Module):
         scene_path = self._config.get('scene_path', defaults.scene_search_path)
 
         # Interpolate scene path
-        scene_path = [environmentSub(p) for p in scene_path]
+        scene_path = [os.path.normpath(environmentSub(p)) for p in scene_path]
         print 'TEST -1', scene_path
         for name, scene_file in self._config.get('Scenes', {}).iteritems():
             print 'TEST -2', scene_path
@@ -198,6 +198,9 @@ class Simulation(Singleton, Module):
         # Filter out non-existant paths from search, this keeps windows paths
         # out of unix and unix paths out of windows
         search_path = config.get('search_path', defaults.ogre_plugin_search_path)
+        # Run Environment varialbe replacement
+        search_path = [os.path.normpath(environmentSub(p)) for p in search_path]
+        
         search_path = [p for p in search_path if os.path.exists(p)]
         if len(search_path) == 0:
             raise GraphicsError('All plugin directories do not exist')

@@ -8,10 +8,11 @@
 # STD Imports
 import os
 import sys
+from optparse import OptionParser
 
 # Project Imports
-import sim.subsystems
 import ext.core
+# NOTE: sim.subsystems delayed till after setting of sys.path for Python-Ogre
 
 def stop(event):
     global APPLICATION
@@ -20,7 +21,23 @@ def stop(event):
 def main(args = None):
     if args is None:
         args = sys.argv
+
+    # Determine path for Python-Ogre and set environment variable, and
+    # PYTHONPATH properly
+    parser = OptionParser()
+    parser.add_option('-p','--python-ogre', dest='pythonOgreHome',
+                      help = "Location of Python-Ogre install",
+                      default = '/opt/ram/local/python-ogre-snapshot')
+    options, args = parser.parse_args()
+
+    os.environ['PYTHON_OGRE_HOME'] = options.pythonOgreHome
+    sys.path.insert(0, os.path.join(options.pythonOgreHome, 'packages_2.5'))
+    print sys.path
+    import sim.subsystems
+
     
+
+    # Create Application class (creates all Subsystems)
     path = os.path.abspath(os.path.join(os.environ['RAM_SVN_DIR'], 'tools',
         'simulator', 'data', 'config','sim.yml'))
     app = ext.core.Application(path)
