@@ -18,6 +18,7 @@ sources = envl.Glob('src', '*.cpp')
 #    sources.append('../vehicle/src/IVehicle.cpp')
 if not env.HasFeature('wrappers'):
     sources.remove('src/SubsystemConverter.cpp')
+    sources.remove('src/EventConverter.cpp')
     
 # Build Library (will be called 'libram_core.so')
 # Build flags for dependencies automaticallly added based on buildfiles/libs.py

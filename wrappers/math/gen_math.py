@@ -23,6 +23,7 @@ def generate(module_builder, local_ns, global_ns):
     base_path = os.path.join(os.environ['RAM_SVN_DIR'],'packages','math',
                              'include')
 
+    classes = []
 
     # Find all the classes to wrap
     Radian = local_ns.class_('Radian')
@@ -37,6 +38,8 @@ def generate(module_builder, local_ns, global_ns):
     Vector3.include()
     Quaternion.include()
     Matrix3.include()
+
+    classes.extend([Radian, Degree, Vector3, Quaternion, Matrix3])
 
     # Map operator<< to __str__
     wrap.str_from_ostream(local_ns)
@@ -55,8 +58,17 @@ def generate(module_builder, local_ns, global_ns):
                              ignore_names = ['ptr'])
     wrap.fix_pointer_args([Vector3, Quaternion, Matrix3])
 
+    # Wrap Events
+    eventsFound = False
+    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event')):
+        cls.include()
+        classes.append(cls)
+
+    if eventsFound:
+        wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
+
     # Append the approaite include files
-    wrap.add_needed_includes([Radian, Degree, Vector3, Quaternion, Matrix3])
+    wrap.add_needed_includes(classes)
     Quaternion.include_files.append(Matrix3.location.file_name)
     # Remove implicit conversions
     wrap.set_implicit_conversions([Radian, Degree, Vector3, Quaternion, Matrix3],

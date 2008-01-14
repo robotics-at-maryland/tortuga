@@ -15,8 +15,10 @@ import buildfiles.helpers as helpers
 Import('env')
 envl = env.Clone()
 
-# Link to libram_pattern.so library
+# Link in internal libraries
 libs.add_internal(envl, 'math')
+if env.HasFeature('core'):
+    libs.add_internal(envl, 'core')
 
 # Pattern library directories
 base_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'packages', 'math')
@@ -29,6 +31,9 @@ envl.Append(CPPPATH = base_dir)
 #wrapped_headers = ['Vector3.h','Vector4.h', 'Matrix3.h', 'Matrix4.h',
 #                   'Quaternion.h']
 wrapped_headers = ['Math.h', 'Vector3.h', 'Quaternion.h', 'Matrix3.h']
+
+if env.HasFeature('core'):
+    wrapped_headers.append('Events.h')
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 # Tests
@@ -36,8 +41,16 @@ envt = env.Clone()
 test_prog, runner = envt.Tests(int_deps = 'math', ext_deps = 'Boost.Python',
                                run = False)
 
+py_sources = [os.path.abspath(s) for s in envl.Glob('python', '*.py')]
+def extras(env, output, message = None, deps = None):
+    tester = runner(env, output, message, deps)
+    py_install = env.Install(dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext',
+                             source = py_sources)
+
+    env.Depends(tester, py_install)    
+    return tester
+
 # Wrappers
 libs.add_external(envl, 'Boost.Python')
-envl.Pypp('math', wrapped_headers,
-          module = 'gen_math.py',
-          tester = runner)
+envl.Pypp('_math', wrapped_headers, module = 'gen_math.py',
+          tester = extras, dep_wrappers = ['_core','core.py'])

@@ -51,7 +51,7 @@ def extras(env, output, message = None, deps = None):
 # Wrapper
 envl.Pypp('_control', wrapped_headers, module = 'gen_control.py',
           tester = extras,
-          dep_wrappers = ['_core', 'core.py','math', '_vehicle',
+          dep_wrappers = ['_core', 'core.py', '_math', 'math.py', '_vehicle',
                           'vehicle/__init__.py'],
           dont_build = ['SubsystemList.pypp.cpp'],
           extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])

@@ -62,7 +62,8 @@ envw = envl.Clone()
 envw.Pypp('_vehicle',
           [os.path.join(header_dir, h) for h in veh_wrapped_headers],
           module = 'gen_vehicle.py',
-          tester = extras, dep_wrappers = ['math', '_core','core.py'],
+          tester = extras, dep_wrappers =
+          ['_math', 'math.py', '_core','core.py'],
           dont_build = ['SubsystemList.pypp.cpp'],
           extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])
 
@@ -70,6 +71,6 @@ envw = envl.Clone()
 envw.Pypp('_vehicle::device',
           [os.path.join(header_dir, h) for h in dev_wrapped_headers],
           module = 'gen_vehicle_device.py',
-          tester = dev_runner, dep_wrappers = ['_vehicle',
-                                               'vehicle/__init__.py'])
-
+          tester = dev_runner, dep_wrappers =
+          ['_vehicle', 'vehicle/__init__.py', '_core', 'core.py','_math',
+           'math.py'])

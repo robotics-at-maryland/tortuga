@@ -306,3 +306,4 @@ def registerSubsystemConverter(cls):
     """ % args)
 
     cls.include_files.append('core/include/SubsystemConverter.h')
+
