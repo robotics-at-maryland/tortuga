@@ -112,11 +112,15 @@ else:
     # 4121 = alignment issue
     # 4347 = odd template vs. normal function issue
     # 4350 = behaviour change
+    # 4263 = hide virtual function in base class
+    # 4264 = same as the above
+    # 4191 = odd calling convention issue
     env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
                                 '/wd4512', '/wd4127', '/wd4640', '/wd4061', 
                                 '/wd4514', '/wd4100', '/wd4255', '/wd4686',
 								'/wd4251', '/wd4275', '/wd4244', '/wd4121',
-                                '/wd4347', '/wd4350', '/wd4928'])
+                                '/wd4347', '/wd4350', '/wd4928', '/wd4263',
+                                '/wd4264', '/wd4266', '/wd4191'])
                                 
     # Make sure to embed our manifestes
     

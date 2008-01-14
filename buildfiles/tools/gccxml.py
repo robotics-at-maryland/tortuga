@@ -43,7 +43,9 @@ def generate(env):
 
     if os.name != 'posix':
         env['GCCXML_INCPREFIX'] = '-I'
+        env['GCCXML_CPPDEFPREFIX'] = '-D'
         env['_XML_CPPINCFLAGS'] = '$( ${_concat(GCCXML_INCPREFIX, CPPPATH, INCSUFFIX, __env__, RDirs, TARGET, SOURCE) } $)'
+        env['_XML_CPPDEFFLAGS'] = '${_defines(GCCXML_CPPDEFPREFIX, CPPDEFINES, CPPDEFSUFFIX, __env__)}'
     
     # Added the builder to the given environment
     env.Append(BUILDERS = {'XMLHeader' : GCCXMLBuilder })

@@ -13,10 +13,13 @@
 namespace ram {
 namespace core {
 
-QueuedEventHubImp::QueuedEventHubImp(
-    boost::function<void (EventPtr)> publishFunction) :
-    m_publishFunction(publishFunction)
+QueuedEventHubImp::QueuedEventHubImp()
 {
+}
+
+void QueuedEventHubImp::setPublishFunction(boost::function<void (EventPtr)> publishFunction)
+{
+    m_publishFunction = publishFunction;
 }
     
 void QueuedEventHubImp::queueEvent(EventPtr event)

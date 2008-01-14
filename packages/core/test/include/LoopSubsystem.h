@@ -48,8 +48,12 @@ public:
         }
         
         m_start.now();
+        #ifdef RAM_POSIX
+            usleep(USEC_PER_MILLISEC * m_sleepTime);
+        #else
+            Sleep(m_sleepTime);
+        #endif
         
-        usleep(USEC_PER_MILLISEC * m_sleepTime);
     }
 
     std::vector<double> actualUpdates;

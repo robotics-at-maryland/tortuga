@@ -243,15 +243,18 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
         # Hook OIS up to the window created by Ogre
         windowHnd = self._window.getCustomAttributeInt("WINDOW")
         params = [('WINDOW',windowHnd)]
-        
-        if 'Linux' == platform.system():
+    
+        plat = platform.system()
+        if 'Linux' == plat:
 #            if config.get('debug', False):
 #                self.logger.info("OIS Keyboard grab off")
             params.extend([('x11_keyboard_grab', 'false'), 
                                ('x11_mouse_grab','false'),
                                 ('XAutoRepeatOn', 'true')])
+        elif 'Windows' == plat:
+            pass
         else:
-            raise InputSystem, "Platform not supposed"
+            raise InputSystem, "Platform '%s' not supposed" % plat
             
         
         self.input_mgr = OIS.createPythonInputSystem(params)

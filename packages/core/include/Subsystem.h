@@ -43,7 +43,7 @@ class RAM_EXPORT Subsystem : public IUpdatable, public EventPublisher
 public:
     virtual ~Subsystem();
     
-    std::string getName();
+    virtual std::string getName();
 
     /** Finds the first Subsystem of the desired type in the list
      *

@@ -24,9 +24,12 @@ namespace core {
 class QueuedEventHubImp
 {
 public:
-    /** Creates a new instance which publishes use the given function */
-    QueuedEventHubImp(boost::function<void (EventPtr)> publishFunction);
+    /** Creates a new instance */ 
+    QueuedEventHubImp();
 
+    /** Set the function used twhich publishes use the given function */
+    void setPublishFunction(boost::function<void (EventPtr)> publishFunction);
+    
     /** Store event on the internal queue */
     void queueEvent(EventPtr event);
 

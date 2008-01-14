@@ -21,6 +21,9 @@
 // Project Includes
 #include "core/include/Event.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
@@ -29,7 +32,7 @@ typedef std::set<EventConverter*> EventConverterSet;
 typedef std::map<ram::core::Event::EventType, EventConverter*>
     EventTypeConverterMap;
 
-class EventConverter
+class RAM_EXPORT EventConverter
 {
 public:
     virtual ~EventConverter() {};

@@ -20,13 +20,16 @@
 // Project Includes
 #include "core/include/Subsystem.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
 
 class SubsystemConverter;
 typedef std::set<SubsystemConverter*> SubsystemConverterSet;
 
-class SubsystemConverter
+class RAM_EXPORT SubsystemConverter
 {
 public:
     virtual ~SubsystemConverter() {};

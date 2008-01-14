@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 //	forward->binDetectOn();
 //	forward->gateDetectOn();
 	signal(SIGINT,handler);
-	forward->subscribe(ram::vision::DetectorTest::LIGHT_FOUND,myImageEventHandler);
+	forward->subscribe(ram::vision::DetectorTest::LIGHT_FOUND, myImageEventHandler);
 	while (true)
 	{
 //		key=(char)cvWaitKey(50);
