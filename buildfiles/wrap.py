@@ -292,3 +292,17 @@ def add_castTo(cls, from_cls, smart_ptr = False):
         def(\"castTo\", (%(cls_type)s (*)(%(from_type)s))(&::castTo),
             boost::python::return_internal_reference<1>())
         .staticmethod(\"castTo\")""" % args)
+
+# Core Specifc Helper Functions
+def registerSubsystemConverter(cls):
+    cls_type = declarations.algorithm.full_name(cls).strip("::")
+    args = {'cls_type' : cls_type,
+            'cls_name' : cls_type.replace('::','_').upper()}
+    
+
+    cls.add_declaration_code("""
+    static ram::core::SpecificSubsystemConverter<%(cls_type)s>
+    %(cls_name)s;
+    """ % args)
+
+    cls.include_files.append('core/include/SubsystemConverter.h')

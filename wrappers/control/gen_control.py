@@ -21,7 +21,7 @@ def generate(module_builder, local_ns, global_ns):
                                      '/packages/control/include/IController.h')
 
     # Add a castTo
-    wrap.add_castTo(IController, 'ram::core::Subsystem', smart_ptr = True)
+    wrap.registerSubsystemConverter(IController)
 
 #    wrap.make_already_exposed(global_ns, 'ram::pattern', 'Subject')
     module_builder.add_registration_code("registerIControllerPtrs();")

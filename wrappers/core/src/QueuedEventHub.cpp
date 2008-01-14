@@ -15,9 +15,13 @@
 #include "core/include/QueuedEventHub.h"
 #include "core/include/EventPublisher.h"
 #include "core/include/EventConnection.h"
+#include "core/include/SubsystemConverter.h"
 #include "wrappers/core/include/EventFunctor.h"
 
 namespace bp = boost::python;
+
+static ram::core::SpecificSubsystemConverter<ram::core::EventHub>
+REGISTER_QUEUEDEVENTHUB_CONVERTER;
 
 void registerQueuedEventHubClass()
 {

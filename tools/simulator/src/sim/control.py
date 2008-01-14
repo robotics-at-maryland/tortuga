@@ -25,7 +25,8 @@ event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
 class KeyboardController(core.Subsystem):
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config.get('name', 'KeyboardController'))
-        self._controller = control.IController.castTo(deps[0])
+#        self._controller = control.IController.castTo(deps[0])
+        self._controller = deps[0]
         self._desiredSpeed = self._controller.getSpeed()
         
         # Hook into input system

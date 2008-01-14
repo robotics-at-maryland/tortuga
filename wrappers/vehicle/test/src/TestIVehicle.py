@@ -21,11 +21,9 @@ class TestIVehicle(unittest.TestCase):
             'type' : 'Vehicle'
             }
         cfg = core.ConfigNode.fromString(str(cfg))
-        obj = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
+        veh = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
 
-        # Make sure the casting works and is needed
-        self.assert_(not hasattr(obj,'getDepth'))
-        veh = ext.vehicle.IVehicle.castTo(obj)
+        # Make sure the type was properly converted
         self.assert_(hasattr(veh,'getDepth'))
         
 

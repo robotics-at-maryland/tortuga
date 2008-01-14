@@ -14,9 +14,13 @@
 #include "core/include/EventHub.h"
 #include "core/include/EventPublisher.h"
 #include "core/include/EventConnection.h"
+#include "core/include/SubsystemConverter.h"
 #include "wrappers/core/include/EventFunctor.h"
 
 namespace bp = boost::python;
+
+static ram::core::SpecificSubsystemConverter<ram::core::EventHub>
+REGISTER_EVENTHUB_CONVERTER;
 
 // Wrapper functions allow use of python function objects
 ram::core::EventConnectionPtr subscribe(ram::core::EventHub& epub,

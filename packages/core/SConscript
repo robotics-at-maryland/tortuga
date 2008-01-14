@@ -16,6 +16,8 @@ sources = envl.Glob('src', '*.cpp')
 # Add sources for Subsystem based Interfaces (needed here for wrapping
 #if env.HasFeature('vehicle'):
 #    sources.append('../vehicle/src/IVehicle.cpp')
+if not env.HasFeature('wrappers'):
+    sources.remove('src/SubsystemConverter.cpp')
     
 # Build Library (will be called 'libram_core.so')
 # Build flags for dependencies automaticallly added based on buildfiles/libs.py

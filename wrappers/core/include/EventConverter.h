@@ -52,8 +52,6 @@ public:
         // If not, return None
         return boost::python::object();
     }
-
-//    static registerThis;
 };
 
 //#define RAM_CORE_REGISTER_EVENT_CONVERTER(TYPE)  

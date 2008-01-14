@@ -84,6 +84,9 @@ def build_module(env, target, source): #, actual_target = None):
         suffix = '.so'
     else:
         env.AppendUnique(CCFLAGS = ['/wd4244','/wd4245'])
+
+#    libdir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext/'
+#    env.Append(LDFLAGS = [libdir + d + '.so' for d in dep_wrappers])
     extension_mod = env.SharedLibrary(target_name, sources, SHLIBPREFIX='',
                                       SHLIBSUFFIX = suffix)
 

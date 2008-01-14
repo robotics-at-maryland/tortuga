@@ -80,6 +80,21 @@ def generate(module_builder, local_ns, global_ns):
     Application.include()
     # Don't have ofstream wrapped properly
     Application.member_function('writeDependencyGraph').exclude()
+
+    # Replace getSubsystem with one which uses our converter
+    Application.member_function('getSubsystem').exclude()
+    Application.add_declaration_code("""
+    boost::python::object pyGetSubsystem(ram::core::Application& app,
+                                         std::string subsystemName)
+    {
+        ram::core::SubsystemPtr subsystem = app.getSubsystem(subsystemName);
+        return ram::core::SubsystemConverter::convertSubsystem(subsystem);
+    }
+    """)
+    Application.add_registration_code(
+        'def("getSubsystem", &::pyGetSubsystem)', works_on_instance = True )
+    Application.include_files.append('core/include/SubsystemConverter.h')
+    
     classes.append(Application)
 
     # Add registrations functions for hand wrapped classes
