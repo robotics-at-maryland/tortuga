@@ -342,7 +342,7 @@ void showString(unsigned char str[], int line)
 byte pollStatus()
 {
 #warning WRITE NEW STATUS FUNCTION
-    return -1;
+    return 0;
 }
 
 
@@ -891,13 +891,106 @@ int main(void)
 
             case HOST_CMD_SETSPEED:
             {
-#warning WRITE NEW SET SPEED COMMAND
-                break;
-            }
+                t1 = 0; /* Error counter */
 
-            case HOST_CMD_MOTOR_READ:
-            {
-#warning WRITE NEW SPEED REPLY COMMAND
+                /* 12 bytes of speed, plus checksum */
+                for(i=0; i<13; i++)
+                    rxBuf[i] = waitchar(1);
+
+                for(i=0; i<12; i++)
+                    t1 += rxBuf[i];
+
+                t1 += HOST_CMD_SETSPEED;
+
+                if(rxBuf[12] != (t1 & 0xFF))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                t1 = 0;
+                if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
+                if(busWriteByte(rxBuf[0], SLAVE_ID_MM1) != 0) t1++;
+                if(busWriteByte(rxBuf[1], SLAVE_ID_MM1) != 0) t1++;
+
+                if(busWriteByte(SLAVE_MM2_WRITE_CMD, SLAVE_ID_MM2) != 0) t1++;
+                if(busWriteByte(rxBuf[2], SLAVE_ID_MM2) != 0) t1++;
+                if(busWriteByte(rxBuf[3], SLAVE_ID_MM2) != 0) t1++;
+
+                if(busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3) != 0) t1++;
+                if(busWriteByte(rxBuf[4], SLAVE_ID_MM3) != 0) t1++;
+                if(busWriteByte(rxBuf[5], SLAVE_ID_MM3) != 0) t1++;
+
+                if(busWriteByte(SLAVE_MM4_WRITE_CMD, SLAVE_ID_MM4) != 0) t1++;
+                if(busWriteByte(rxBuf[6], SLAVE_ID_MM4) != 0) t1++;
+                if(busWriteByte(rxBuf[7], SLAVE_ID_MM4) != 0) t1++;
+
+                if(busWriteByte(SLAVE_MM5_WRITE_CMD, SLAVE_ID_MM5) != 0) t1++;
+                if(busWriteByte(rxBuf[8], SLAVE_ID_MM5) != 0) t1++;
+                if(busWriteByte(rxBuf[9], SLAVE_ID_MM5) != 0) t1++;
+
+                if(busWriteByte(SLAVE_MM6_WRITE_CMD, SLAVE_ID_MM6) != 0) t1++;
+                if(busWriteByte(rxBuf[10], SLAVE_ID_MM6) != 0) t1++;
+                if(busWriteByte(rxBuf[11], SLAVE_ID_MM6) != 0) t1++;
+
+                if(t1 == 0)
+                    sendByte(HOST_REPLY_SUCCESS);
+                else
+                    sendByte(HOST_REPLY_FAILURE);
+                break;
+           }
+
+           case HOST_CMD_MOTOR_READ:
+           {
+                unsigned char resp[6];
+                t1 = waitchar(1);
+
+
+                if(t1 != HOST_CMD_MOTOR_READ)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                t1 = 0;
+
+                if(busWriteByte(SLAVE_MM1_READ_CMD, SLAVE_ID_MM1) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM1) != 1) t1++;
+                resp[0] = rxBuf[0];
+
+                if(busWriteByte(SLAVE_MM2_READ_CMD, SLAVE_ID_MM2) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM2) != 1) t1++;
+                resp[1] = rxBuf[0];
+
+                if(busWriteByte(SLAVE_MM3_READ_CMD, SLAVE_ID_MM3) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM3) != 1) t1++;
+                resp[2] = rxBuf[0];
+
+                if(busWriteByte(SLAVE_MM4_READ_CMD, SLAVE_ID_MM4) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM4) != 1) t1++;
+                resp[3] = rxBuf[0];
+
+                if(busWriteByte(SLAVE_MM5_READ_CMD, SLAVE_ID_MM5) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM5) != 1) t1++;
+                resp[4] = rxBuf[0];
+
+                if(busWriteByte(SLAVE_MM6_READ_CMD, SLAVE_ID_MM6) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM6) != 1) t1++;
+                resp[5] = rxBuf[0];
+
+                if(t1 != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_CMD_MOTOR_REPLY);
+
+                for(i=0; i<6; i++)
+                    sendByte(resp[i]);
+
+                sendByte(HOST_CMD_MOTOR_REPLY + resp[0] + resp[1] + resp[2] + resp[3] + resp[4] + resp[5]);
+
                 break;
             }
         }
