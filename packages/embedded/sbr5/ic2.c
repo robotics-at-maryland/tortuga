@@ -397,7 +397,15 @@ void disableBusInterrupt()
 void initCN()
 {
     enableBusInterrupt();
-    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
+    IPC3bits.CNIP = 4;      /* Raise CN interrupt priority above ADC */
+
+    IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
+    IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
+
+    IPC6bits.U2TXIP = 6;    /* TX at priority 6 */
+    IPC6bits.U2RXIP = 5;    /* RX at priority 5 */
+
+
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 }
