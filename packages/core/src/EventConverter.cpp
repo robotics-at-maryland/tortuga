@@ -16,6 +16,8 @@
 // Project Includes
 #include "core/include/EventConverter.h"
 
+namespace bp = boost::python;
+
 namespace ram {
 namespace core {
 
@@ -53,6 +55,10 @@ EventTypeConverterMap* EventConverter::getEventTypeConverterMap()
 
 boost::python::object EventConverter::convertEvent(ram::core::EventPtr event)
 {
+    // Check to see if we already have a python object
+    if (0 != boost::get_deleter<bp::converter::shared_ptr_deleter>(event))
+        return DEFAULT_EVENT_CONVERTER.convert(event);
+    
     EventTypeConverterMap* eventConverterMap = getEventTypeConverterMap();
     
     // Find the proper converter, first look it up by event type

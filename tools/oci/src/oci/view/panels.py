@@ -9,6 +9,7 @@ from gui.view import IPanelProvider
 from oci.view.controls import DepthBar, ThrusterBar, RotationCtrl
 import ext.vehicle
 import ext.vehicle.device
+import ext.core
 
 import oci.model.subsystem as subsystemMod
 def getSubsystemOfType(subsystems, subsystemType):
@@ -59,7 +60,8 @@ class ThrusterPanel(wx.Panel):
     
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        vehicle = getSubsystemOfType(subsystems, ext.vehicle.IVehicle)
+        vehicle = ext.core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+                                                        subsystems)
         
         if vehicle is not None:
             # Get All the current Thrusters the vehicle has
@@ -117,7 +119,8 @@ class DepthPanel(wx.Panel):
         
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        vehicle = getSubsystemOfType(subsystems, ext.vehicle.IVehicle)
+        vehicle = ext.core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+                                                        subsystems)
         
         if vehicle is not None:
             paneInfo = wx.aui.AuiPaneInfo().Name("Depth")
@@ -179,7 +182,8 @@ class RotationPanel(wx.Panel):
   
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        vehicle = getSubsystemOfType(subsystems, ext.vehicle.IVehicle)
+        vehicle = ext.core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+                                                        subsystems)
         
         if vehicle is not None:
             paneInfo = wx.aui.AuiPaneInfo().Name("Orientation")
@@ -238,7 +242,8 @@ class DemoPowerPanel(wx.Panel):
         """
         Creates 
         """
-        power = getSubsystemOfType(subsystems, subsystemMod.DemoPower)
+        power = ext.core.Subsystem.getSubsystemOfType(subsystemMod.DemoPower,
+                                                      subsystems)  
         
         if power is not None:
             paneInfo = wx.aui.AuiPaneInfo().Name("Demo Power")
@@ -312,7 +317,8 @@ class DemoSonarPanel(wx.Panel):
 
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        sonar = getSubsystemOfType(subsystems, subsystemMod.DemoSonar)
+        sonar = ext.core.Subsystem.getSubsystemOfType(subsystemMod.DemoSonar,
+                                                      subsystems)
         
         if sonar is not None:
             paneInfo = wx.aui.AuiPaneInfo().Name("Demo Sonar")

@@ -58,7 +58,6 @@ def generate(module_builder, local_ns, global_ns):
                                   '/packages/vehicle/include/device/IDevice.h')
 
     # Add a castTo
-    #wrap.add_castTo(IVehicle, 'ram::core::Subsystem', smart_ptr = True)
     wrap.registerSubsystemConverter(IVehicle)
 
     module_builder.add_registration_code("registerIVehiclePtrs();")

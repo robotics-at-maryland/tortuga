@@ -81,7 +81,7 @@ class Application(wx.App):
         self.timer = wx.Timer()
         self.Bind(wx.EVT_TIMER, self._onTimer, self.timer)
     
-        self._updateInterval = 1000.0 / guiCfg.get('updateRate', 10)
+        self._updateInterval = 1000.0 / guiCfg.get('updateRate', 1)
         self._lastTime = self._getTime()
         self.timer.Start(self._updateInterval, True)
         

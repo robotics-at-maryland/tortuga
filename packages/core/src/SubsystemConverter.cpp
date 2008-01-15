@@ -13,6 +13,8 @@
 // Project Includes
 #include "core/include/SubsystemConverter.h"
 
+namespace bp = boost::python;
+
 namespace ram {
 namespace core {
 
@@ -33,6 +35,10 @@ boost::python::object SubsystemConverter::convertSubsystem(
     ram::core::SubsystemPtr subsystem)
 {
     SubsystemConverter* converter = 0;
+
+    // Check to see if we already have a python object
+    if (0 != boost::get_deleter<bp::converter::shared_ptr_deleter>(subsystem))
+        return DEFAULT_SUBSYSTEM_CONVERTER.convert(subsystem);
     
     SubsystemConverterSet* subsystemConverterSet =
         SubsystemConverter::getSubsystemConverterSet();

@@ -13,6 +13,7 @@ import ram.motion as motion
 import ext.control as control
 import ext.vehicle as vehicle
 import ext.core as core
+import ext.math
 
 # Mock subsystems
 class MockController(control.IController):
@@ -28,6 +29,7 @@ class MockController(control.IController):
         Throws the at depth event
         """
         
+        #event = ext.math.NumericEvent()
         event = core.Event()
         event.number = vehicleDepth
         self.publish(control.IController.AT_DEPTH, event)
@@ -66,6 +68,13 @@ class TestMotionManager(unittest.TestCase):
         
         deps = [self.vehicle, self.controller, self.qeventHub]
         self.motionManager = motion.MotionManager({}, deps)
+
+    def tearDown(self):
+        del self.motionManager
+        del self.qeventHub
+        del self.eventHub
+        del self.vehicle
+        del self.controller
         
     def testSetMotion(self):
         m = MockMotion()
@@ -95,6 +104,13 @@ class TestChangeDepth(unittest.TestCase):
         self.motionManager = motion.MotionManager({}, deps)
     
         self.motionFinished = False
+
+    def tearDown(self):
+        del self.motionManager
+        del self.qeventHub
+        del self.eventHub
+        del self.vehicle
+        del self.controller
     
     def handleFinished(self, event):
         self.motionFinished = True

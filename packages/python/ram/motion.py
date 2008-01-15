@@ -9,6 +9,7 @@
 import ext.core as core
 import ext.control as control
 import ext.vehicle as vehicle
+import ext.math as math
 
 class MotionManager(core.Subsystem):
     def __init__(self, config, deps):

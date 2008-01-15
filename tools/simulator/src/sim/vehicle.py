@@ -19,7 +19,7 @@ import ext.vehicle as vehicle
 import ext.vehicle.device as device
 import ext.math as math
 import math as pmath
-#import numpy as numpy
+import numpy as numpy
 
 def convertToVector3(vType, vector):
     return vType(vector.x, vector.y, vector.z)
@@ -143,25 +143,25 @@ class SimVehicle(vehicle.IVehicle):
         return numpy.array([vec.x, vec.y, vec.z])
     
     def applyForcesAndTorques(self, force, torque):
-        self.robot._main_part.set_local_force(
-            convertToVector3(ogre.Vector3, force), (0,0,0))
-        self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)
-        # thrusters = self.getThrusters()
-        # m = len(thrusters)
-        # A = numpy.zeros([6, m])
+        #self.robot._main_part.set_local_force(
+        #    convertToVector3(ogre.Vector3, force), (0,0,0))
+        #self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)
+        thrusters = self.getThrusters()
+        m = len(thrusters)
+        A = numpy.zeros([6, m])
         
-        # for i in range(m):
-            # thruster = thrusters[i]
-            # maxThrusterForce = thruster.forceDirection * thruster.maxForce
-            # A[0:3,i] = self._vectorToNumpyArray(maxThrusterForce)
-            # A[3:6,i] = self._vectorToNumpyArray(thruster.relativePosition.crossProduct(maxThrusterForce))
+        for i in range(m):
+            thruster = thrusters[i]
+            maxThrusterForce = thruster.forceDirection * thruster.maxForce
+            A[0:3,i] = self._vectorToNumpyArray(maxThrusterForce)
+            A[3:6,i] = self._vectorToNumpyArray(thruster.relativePosition.crossProduct(maxThrusterForce))
         
-        # b = numpy.array([force.x, force.y, force.z, torque.x, torque.y, torque.z])
-        # (p, residuals, rank, s) = numpy.linalg.lstsq(A, b)
+        b = numpy.array([force.x, force.y, force.z, torque.x, torque.y, torque.z])
+        (p, residuals, rank, s) = numpy.linalg.lstsq(A, b)
         
-        # for i in range(m):
-            # thruster = thrusters[i]
-            # thruster.setForce(thruster.maxForce * p[i])
+        for i in range(m):
+            thruster = thrusters[i]
+            thruster.setForce(thruster.maxForce * p[i])
     
     def backgrounded(self):
         return False
