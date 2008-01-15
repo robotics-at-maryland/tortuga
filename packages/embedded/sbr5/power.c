@@ -2,7 +2,7 @@
 #include <string.h>
 #include "buscodes.h"
 
-#define SENSORBOARD_IC4
+#define SENSORBOARD_POWERBOARD
 #include "uart.c"
 
 //_FOSC( CSW_FSCM_OFF & FRC );

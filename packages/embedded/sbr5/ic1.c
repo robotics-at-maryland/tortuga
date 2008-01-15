@@ -1,7 +1,7 @@
 #include <p30fxxxx.h>
 #include "buscodes.h"
 #include <stdio.h>
-  
+
 #define SENSORBOARD_IC1
 #include "uart.c"
 
@@ -15,49 +15,59 @@ _FWDT ( WDT_OFF );
 
 /*
  * Bus = D1 D0 E5-E0
- * Akn = D3
+ * Akn = D2
  * RW  = E8
  */
 
 /* Bus pin assignments */
-#define IN_AKN      _RD3
-#define LAT_AKN     _LATD3
-#define TRIS_AKN    _TRISD3
+#define IN_AKN      _RD2
+#define LAT_AKN     _LATD2
+#define TRIS_AKN    _TRISD2
 
 #define IN_RW       _RE8
 #define TRIS_RW     _TRISE8
 #define LAT_RW      _LATE8
 
-
-#define IN_KS       _RF0
-#define TRIS_KS     _TRISF0
-
-
-
 #define RW_READ     0
 #define RW_WRITE    1
 
 
-#define SLAVE_ID_POWERBOARD 1
-#define SLAVE_ID_DEPTH      0
-#define SLAVE_ID_THRUSTERS  0
-#define SLAVE_ID_MARKERS    0
-#define SLAVE_ID_TEMP       1
-#define SLAVE_ID_LCD        2
-#define SLAVE_ID_HARDKILL   1
-#define SLAVE_ID_SONAR	    3
+#define IRQ_IC2     2
+#define IRQ_IC3     1
+#define IRQ_IC4     0
+#define IRQ_POWER   3
+#define IRQ_SONAR   4
 
-#define SLAVE_ID_MM1        0
-#define SLAVE_ID_MM2        2
-#define SLAVE_ID_MM3        2
+#define SLAVE_ID_POWERBOARD IRQ_POWER
+#define SLAVE_ID_DEPTH      IRQ_IC4
+#define SLAVE_ID_THRUSTERS  IRQ_POWER
+#define SLAVE_ID_MARKERS    IRQ_POWER
+#define SLAVE_ID_TEMP       IRQ_IC3
+#define SLAVE_ID_LCD        IRQ_IC2
+#define SLAVE_ID_HARDKILL   IRQ_POWER
+#define SLAVE_ID_SONAR	    IRQ_SONAR
+
+#define SLAVE_ID_MM1        IRQ_IC2
+#define SLAVE_ID_MM2        IRQ_IC2
+#define SLAVE_ID_MM3        IRQ_IC3
+#define SLAVE_ID_MM4        IRQ_IC3
+#define SLAVE_ID_MM5        IRQ_IC4
+#define SLAVE_ID_MM6        IRQ_IC4
 
 #define SLAVE_MM1_WRITE_CMD BUS_CMD_SETSPEED_U1
 #define SLAVE_MM2_WRITE_CMD BUS_CMD_SETSPEED_U2
 #define SLAVE_MM3_WRITE_CMD BUS_CMD_SETSPEED_U1
+#define SLAVE_MM4_WRITE_CMD BUS_CMD_SETSPEED_U2
+#define SLAVE_MM5_WRITE_CMD BUS_CMD_SETSPEED_U1
+#define SLAVE_MM6_WRITE_CMD BUS_CMD_SETSPEED_U2
 
 #define SLAVE_MM1_READ_CMD  BUS_CMD_GETREPLY_U1
 #define SLAVE_MM2_READ_CMD  BUS_CMD_GETREPLY_U2
 #define SLAVE_MM3_READ_CMD  BUS_CMD_GETREPLY_U1
+#define SLAVE_MM4_READ_CMD  BUS_CMD_GETREPLY_U2
+#define SLAVE_MM5_READ_CMD  BUS_CMD_GETREPLY_U1
+#define SLAVE_MM6_READ_CMD  BUS_CMD_GETREPLY_U2
+
 
 /*
  * Bus Constants
@@ -80,7 +90,7 @@ _FWDT ( WDT_OFF );
 #define DIAG_TIMEOUT     25000
 
 
-/* No sonar? */
+/* No sonar? No power board either...*/
 #define NUM_SLAVES  3
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
@@ -126,8 +136,6 @@ unsigned char waitchar(byte timeout)
     long waitTime=0;
     byte x;
 
-
-
     U1STAbits.OERR = 0;
     U1STAbits.FERR = 0;
     U1STAbits.PERR = 0;
@@ -171,7 +179,10 @@ void setReq(byte req, byte val)
         _LATB2 = val;
 
     if(req == 3)
-        _LATB3 = val;
+        _LATB4 = val;   /* Skip B3 because it is a breakout */
+
+    if(req == 4)
+        _LATB3 = val;   /* Technically sonar but is actually a breakout */
 }
 
 
@@ -284,15 +295,6 @@ void sendByte(byte i)
 }
 
 
-/* Send a string to the serial console */
-void U2SendString(unsigned char str[])
-{
-    byte i=0;
-    for(i=0; str[i]!=0; i++)
-        U2WriteByte(str[i]);
-}
-
-
 /* General purpose bus receive buffer */
 byte rxBuf[60];
 
@@ -339,114 +341,22 @@ void showString(unsigned char str[], int line)
 
 byte pollStatus()
 {
-    if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD) != 0)
-    {
-        showString("STA FAIL   ", 1);
-        return 255;
-    }
-
-    byte len = readDataBlock(SLAVE_ID_POWERBOARD);
-
-    if(len!=1)
-    {
-        showString("STA FAIL   ", 1);
-        return 255;
-    }
-
-    rxBuf[0] &= 0xFD;   /* Clear the reported kill switch bit */
-
-
-    /* We report the kill switch our own way */
-    if(IN_KS == 1)
-        rxBuf[0] |= 0x02;
-
-    return rxBuf[0];
+#warning WRITE NEW STATUS FUNCTION
+    return -1;
 }
 
 
 byte pollThrusterState()
 {
-    if(busWriteByte(BUS_CMD_THRUSTER_STATE, SLAVE_ID_THRUSTERS) != 0)
-    {
-        showString("TSTA FAIL  ", 1);
-        return 0;
-    }
-
-    byte len = readDataBlock(SLAVE_ID_THRUSTERS);
-
-    if(len!=1)
-    {
-        showString("TSTA FAIL  ", 1);
-        return 0;
-    }
-
-    if(IN_KS == 1)
-        rxBuf[0] |= 0x10;
-
-    return rxBuf[0];
+#warning WRITE NEW THRUSTER STATE FUNCTION
+    return -1;
 }
 
-byte tsValue=255;
 
 /* Run a bit of the run-time diagnostic message system */
 void processRuntimeDiag()
 {
-    byte t;
-    unsigned char tmp[16];
-    t = pollThrusterState();
-
-    if(tsValue != t)    /* A change */
-    {
-
-        switch(t)
-        {
-            case 0x00:
-            {
-                showString("Vehicle Safe    ", 1);
-                break;
-            }
-
-            case 0x1F:  /* Thrusters enabled and magnet attached */
-            {
-                showString("Vehicle Enabled ", 1);
-                break;
-            }
-
-            case 0x0F:  /* Thrusters enabled by sensor board, but no magnet */
-            {
-                showString("No Kill Switch  ", 1);
-                break;
-            }
-
-            case 0x10:  /* Magnet attached but thrusters disabled by sensor board */
-            {
-                showString("Safe only in SW ", 1);
-                break;
-            }
-
-
-            default:
-            {
-                sprintf(tmp, "TS: %c%c%c%c%c       ",
-                    (t & 0x10) ? 'K' : '-',
-                    (t & 0x08) ? '1' : '-',
-                    (t & 0x04) ? '2' : '-',
-                    (t & 0x02) ? '3' : '-',
-                    (t & 0x01) ? '4' : '-');
-
-                if(t & 0x10)
-                {
-                    sprintf(tmp+10, "UNSAFE");
-                }
-
-                showString(tmp, 1);
-            }
-
-        }
-
-        tsValue=t;
-    }
-
+#warning WRITE NEW RUNTIME DIAGNOSTIC FUNCTION
 }
 
 
@@ -456,6 +366,8 @@ void showBootDiag(int mode)
     if(mode == 0)
     {
         //sprintf(tmp, "Status: %02X      ", pollStatus());
+
+#warning THESE BITS MAY CHANGE BASED ON SCHEMATIC
 
         byte sta = pollStatus();
         sprintf(tmp, "Sta: %02X %c%c%c%c%c%c%c%c", sta,
@@ -558,7 +470,6 @@ void showIdent()
 void diagBootMode()
 {
     byte mode=0;
-//    unsigned char tmp[16];
     long j=0;
 
     showString("Diagnostic Mode ", 0);
@@ -594,14 +505,7 @@ void diagBootMode()
 int main(void)
 {
     long j=0;
-//    long t=0, b=0;
     byte i;
-
-//    byte tmp[60];
-//    byte rxPtr = 0;
-//    byte rxLen = 0;
-
-    TRIS_KS = TRIS_IN;
 
     initBus();
 
@@ -750,69 +654,14 @@ int main(void)
 
             case HOST_CMD_THRUSTERSTATE:
             {
-                t1 = waitchar(1);
-                if(t1 != HOST_CMD_THRUSTERSTATE)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                if(busWriteByte(BUS_CMD_THRUSTER_STATE, SLAVE_ID_THRUSTERS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                int len = readDataBlock(SLAVE_ID_THRUSTERS);
-
-                if(len != 1)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                sendByte(HOST_REPLY_THRUSTERSTATE);
-                sendByte(rxBuf[0]);
-                byte cs = HOST_REPLY_THRUSTERSTATE+rxBuf[0];
-                sendByte(cs);
+#warning WRITE NEW THRUSTER STATE COMMAND
                 break;
             }
 
 
             case HOST_CMD_BOARDSTATUS:
             {
-                t1 = waitchar(1);
-                if(t1 != HOST_CMD_BOARDSTATUS)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                byte len = readDataBlock(SLAVE_ID_POWERBOARD);
-
-                if(len!=1)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                } else
-                {
-
-                    rxBuf[0] &= 0xFD; // Clear kill switch bit
-
-                    // Set kill switch bit based on the GPIO kill input
-                    if(IN_KS == 1)
-                        rxBuf[0] |= 0x02;
-
-                    sendByte(HOST_REPLY_BOARDSTATUS);
-                    sendByte(rxBuf[0]);
-                    sendByte(HOST_REPLY_BOARDSTATUS+rxBuf[0]);
-                }
-
+#warning WRITE NEW STATUS COMMAND
                 break;
             }
 
@@ -897,51 +746,11 @@ int main(void)
 
             case HOST_CMD_THRUSTERS:
             {
-                for(i=0; i<5; i++)
-                    rxBuf[i] = waitchar(1);
-
-                t1 = waitchar(1);
-                t2 = waitchar(1);
-
-                byte cflag=0;
-                byte cs=0;
-
-                // Check the special sequence
-                for(i=0; i<5; i++)
-                {
-                    cs += rxBuf[i];
-                    if(rxBuf[i] != tkSafety[i])
-                        cflag=1;
-                }
-
-                cs += t1 + HOST_CMD_THRUSTERS;
-
-
-                const static unsigned char tkCommands[]=
-                {
-                    BUS_CMD_THRUSTER1_OFF, BUS_CMD_THRUSTER2_OFF,
-                    BUS_CMD_THRUSTER3_OFF, BUS_CMD_THRUSTER4_OFF,
-                    BUS_CMD_THRUSTER1_ON, BUS_CMD_THRUSTER2_ON,
-                    BUS_CMD_THRUSTER3_ON, BUS_CMD_THRUSTER4_ON
-                };
-
-                if(cflag == 1 || t1 > 7 || (t2 != cs))
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                } else
-                {
-                    if(busWriteByte(tkCommands[t1], SLAVE_ID_THRUSTERS) != 0)
-                    {
-                        sendByte(HOST_REPLY_FAILURE);
-                        break;
-                    }
-                }
-                sendByte(HOST_REPLY_SUCCESS);
+#warning WRITE NEW THRUSTER STATE COMMAND
                 break;
             }
 
-
+            /* This does not include the power board temperature sensor */
             case HOST_CMD_TEMPERATURE:
             {
                 t1 = waitchar(1);
@@ -1017,7 +826,7 @@ int main(void)
                 break;
             }
 
-
+            /* May vastly change */
             case HOST_CMD_SONAR:
             {
                 t1 = waitchar(1);
@@ -1080,92 +889,13 @@ int main(void)
 
             case HOST_CMD_SETSPEED:
             {
-                t1 = 0; /* Error counter */
-
-                /* 8 bytes of speed, plus checksum */
-                for(i=0; i<9; i++)
-                    rxBuf[i] = waitchar(1);
-
-                for(i=0; i<8; i++)
-                    t1 += rxBuf[i];
-
-                t1 += HOST_CMD_SETSPEED;
-
-                if(rxBuf[8] != (t1 & 0xFF))
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                t1 = 0;
-                if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
-                if(busWriteByte(rxBuf[0], SLAVE_ID_MM1) != 0) t1++;
-                if(busWriteByte(rxBuf[1], SLAVE_ID_MM1) != 0) t1++;
-
-
-                if(busWriteByte(SLAVE_MM2_WRITE_CMD, SLAVE_ID_MM2) != 0) t1++;
-                if(busWriteByte(rxBuf[2], SLAVE_ID_MM2) != 0) t1++;
-                if(busWriteByte(rxBuf[3], SLAVE_ID_MM2) != 0) t1++;
-
-                if(busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3) != 0) t1++;
-                if(busWriteByte(rxBuf[4], SLAVE_ID_MM3) != 0) t1++;
-                if(busWriteByte(rxBuf[5], SLAVE_ID_MM3) != 0) t1++;
-
-                UARTSendSpeed(U2_MM_ADDR, rxBuf[6], rxBuf[7], 1);
-
-                if(t1 == 0)
-                    sendByte(HOST_REPLY_SUCCESS);
-                else
-                    sendByte(HOST_REPLY_FAILURE);
+#warning WRITE NEW SET SPEED COMMAND
                 break;
-           }
+            }
 
-           case HOST_CMD_MOTOR_READ:
-           {
-                unsigned char resp[4];
-                t1 = waitchar(1);
-
-
-                if(t1 != HOST_CMD_MOTOR_READ)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                t1 = 0;
-
-                if(busWriteByte(SLAVE_MM1_READ_CMD, SLAVE_ID_MM1) != 0) t1++;
-                if(readDataBlock(SLAVE_ID_MM1) != 1) t1++;
-                resp[0] = rxBuf[0];
-
-                if(busWriteByte(SLAVE_MM2_READ_CMD, SLAVE_ID_MM2) != 0) t1++;
-                if(readDataBlock(SLAVE_ID_MM2) != 1) t1++;
-                resp[1] = rxBuf[0];
-
-                if(busWriteByte(SLAVE_MM3_READ_CMD, SLAVE_ID_MM3) != 0) t1++;
-                if(readDataBlock(SLAVE_ID_MM3) != 1) t1++;
-                resp[2] = rxBuf[0];
-
-                if(U2CanRead())
-                    resp[3] = U2ReadByte();
-                else
-                    resp[3] = 0xFF;
-
-
-                if(t1 != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                sendByte(HOST_CMD_MOTOR_REPLY);
-                sendByte(resp[0]);
-                sendByte(resp[1]);
-                sendByte(resp[2]);
-                sendByte(resp[3]);
-
-                sendByte(HOST_CMD_MOTOR_REPLY + resp[0] + resp[1] + resp[2] + resp[3]);
-
+            case HOST_CMD_MOTOR_READ:
+            {
+#warning WRITE NEW SPEED REPLY COMMAND
                 break;
             }
         }
