@@ -37,50 +37,43 @@ The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
 #define MASTER_U1_BRG 1
 #define byte unsigned char
 
-/* Motor controller addresses */
+/* Motor controller address defaults */
 #define U1_MM_ADDR 0x01
 #define U2_MM_ADDR 0x01
 
+
 /* Master */
 #ifdef SENSORBOARD_IC1
-    /* JP13 Row 7, outer = tx */
-    #define HAS_U2
-
-
-    #define U2_MM_ADDR 0x04
-    #define U2_BRG 11
+    /* Master has no UARTs */
 #endif
 
-/* LCD */
+
 #ifdef SENSORBOARD_IC2
-    /* PGD and PGC, pin 3 = tx */
     #define HAS_U1
-
-    /* JP14 Row 3, outer = tx */
     #define HAS_U2
-
     #define U1_BRG 11
     #define U2_BRG 11
-
-    #define U1_MM_ADDR 0x03
+    #define U1_MM_ADDR 0x01
     #define U2_MM_ADDR 0x02
 #endif
 
-/* Temp */
 #ifdef SENSORBOARD_IC3
-    /* U1 multiplexed to I2C. U1Alt multiplexed to bus */
-    /* U2 is available but TX/RX not conveliently placed */
+    #define HAS_U1
+    #define HAS_U2
+    #define U1_BRG 11
+    #define U2_BRG 11
+    #define U1_MM_ADDR 0x02
+    #define U2_MM_ADDR 0x03
 #endif
 
 /* Depth (slave.c) */
 #ifdef SENSORBOARD_IC4
-    /* PGD and PGC, pin 3 = tx */
     #define HAS_U1
-
-                    // 48 for PLL4
+    #define HAS_U2
     #define U1_BRG 11
-    #define U1_MM_ADDR 0x01
-    /* U2 available, but not conveliently placed */
+    #define U2_BRG 11
+    #define U1_MM_ADDR 0x04
+    #define U2_MM_ADDR 0x05
 #endif
 
 
@@ -143,7 +136,7 @@ void initInterruptUarts()
 #ifdef HAS_U1
     U1MODE = 0x0000;
     U1BRG = U1_BRG;  /* 7 for 115200 at 15 MIPS */
-    U1MODEbits.ALTIO = 0;   // Use alternate IO
+    U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
 

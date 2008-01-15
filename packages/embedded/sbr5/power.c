@@ -263,6 +263,8 @@ void processData(byte data)
         }
         break;
 
+
+#ifdef HAS_UART
         case STATE_SETSPEED_U1:
         case STATE_SETSPEED_U2:
         {
@@ -280,6 +282,8 @@ void processData(byte data)
             }
             break;
         }
+#endif
+
 
         case STATE_READ_CMD:
         {
@@ -613,7 +617,10 @@ void main()
 
     initADC();
     initBus();
+
+#ifdef HAS_UART
     initInterruptUarts();
+#endif
 
     while(1);
 }

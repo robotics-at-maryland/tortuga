@@ -518,8 +518,10 @@ int main(void)
 
 
     initMasterUart();
-    initInterruptUarts();
 
+#ifdef HAS_UART
+    initInterruptUarts();
+#endif
 
     for(j=0; j<25000; j++);
 
