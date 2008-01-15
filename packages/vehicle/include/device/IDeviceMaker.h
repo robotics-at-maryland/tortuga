@@ -11,6 +11,7 @@
 #define	RAM_VEHICLE_IDEVICEMAKER_10_29_2007
 
 // Project Includes
+#include "vehicle/include/device/Common.h"
 #include "vehicle/include/device/IDevice.h"
 #include "pattern/include/Maker.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
@@ -27,7 +28,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-typedef ram::pattern::Maker<IDevice*, // The type of object created by the maker
+typedef pattern::Maker<IDevicePtr, // The type of object created by the maker
               ram::core::ConfigNode,  // The parameter used to create the object
               std::string,            // The type of key used to register makers
               ram::core::ConfigNodeKeyExtractor> // Gets the key from the paramters
@@ -35,10 +36,10 @@ IDeviceMaker;
 
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
-template class RAM_EXPORT ram::pattern::Maker<IDevice*,
-    ram::core::ConfigNode,
+template class RAM_EXPORT pattern::Maker<IDevicePtr,
+    core::ConfigNode,
     std::string,
-    ram::core::ConfigNodeKeyExtractor>;
+    core::ConfigNodeKeyExtractor>;
 #endif
 
 template<class DeviceType>
@@ -46,9 +47,9 @@ struct IDeviceMakerTemplate : public IDeviceMaker
 {
     IDeviceMakerTemplate(std::string deviceType) : IDeviceMaker(deviceType) {};
     
-    virtual ram::vehicle::device::IDevice* makeObject(ram::core::ConfigNode config)
+    virtual IDevicePtr makeObject(core::ConfigNode config)
     {
-        return new DeviceType(config);
+        return IDevicePtr(new DeviceType(config));
     }
 };
 

@@ -50,8 +50,9 @@ def generate(module_builder, global_ns, local_ns):
     IThruster = expose_device(local_ns, 'IThruster', cast = True);
     print 'TYPE',IThruster
 
-
+    module_builder.add_registration_code("registerIDeviceMakerClass();")
     wrap.add_needed_includes([IDevice, IThruster])
+    return ['wrappers/vehicle/include/RegisterFunctions.h']
     # Wrap IMU class
 #    IMU = expose_device(local_ns, 'IMU', False);
 #    IMU.include_files.append( "imu/include/imuapi.h" )

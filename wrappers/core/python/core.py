@@ -78,7 +78,7 @@ class Subsystem(_core.Subsystem):
         pass
 
     def backgrounded(self):
-        pass
+        return False
     
     def unbackground(self, join = False):
         pass

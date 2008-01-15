@@ -22,7 +22,7 @@ TEST(DeviceMaker)
 {
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
             "{ 'name' : 'IMU', 'type' : 'MockDevice' }"));
-    device::IDevice* device = device::IDeviceMaker::newObject(config);
+    device::IDevicePtr device = device::IDeviceMaker::newObject(config);
     
     CHECK_EQUAL("IMU", device->getName());
 }

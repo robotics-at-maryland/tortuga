@@ -98,8 +98,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
             // TODO: Make me a log
             //std::cout << "Creating device " << node["name"].asString()
             //    << " of type: " << node["type"].asString() << std::endl;
-            device::IDevicePtr device(device::IDeviceMaker::newObject(node));
-            _addDevice(device);
+            _addDevice(device::IDeviceMaker::newObject(node));
         }
     }
 }

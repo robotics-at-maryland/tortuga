@@ -38,7 +38,10 @@ struct SubsystemMakerWrapper : ram::core::SubsystemMaker,
     {
         bp::override func_makeObject = this->get_override( "makeObject" );
         bp::list deps;
-        
+
+        // Convert Subsystems to Python Objects with our converter, this
+        // ensures the types are downcast to there specific C++ type, before
+        // being converted to python objects
         BOOST_FOREACH(ram::core::SubsystemPtr subsystem, params.second)
         {
             deps.append(
