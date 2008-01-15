@@ -450,7 +450,8 @@ void lcdPulse()
 
 void lcdWrite(byte b)
 {
-    LATB = (LATB & 0xFFF0) | (b&0x0F);
+    LATB = (LATB & 0xFFF1) | (b&0x0E);
+    _LATD3 = b & 0x01;
 }
 
 
@@ -467,7 +468,8 @@ void initLCD()
     long i=0;
     ADPCFG = 0xFFFF;
     LATB = 0;
-    TRISB = 0;
+    TRISB = 0x0001; /* Leave IRQ as input */
+    _TRISD3 = 1;    /* LCD bit 0 */
 
     lcdWrite (0x00);
     for(i=0; i<25000; i++);
