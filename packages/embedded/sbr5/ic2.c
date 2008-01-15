@@ -22,8 +22,8 @@ _FWDT ( WDT_OFF );
 
 /*
  * Bus = D1 D0 E5-E0
- * Req = C13
- * Akn = C14
+ * Req = B0
+ * Akn = D2
  * RW  = E8
  */
 

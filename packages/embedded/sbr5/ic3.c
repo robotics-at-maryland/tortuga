@@ -26,19 +26,19 @@ _FWDT ( WDT_OFF );
 
 /*
  * Bus = D1 D0 E5-E0
- * Req = C13
- * Akn = C14
+ * Req = B0
+ * Akn = D2
  * RW  = E8 again
  */
 
 /* Bus pin assignments */
-#define REQ_CN_BIT  (CNEN1bits.CN1IE)
-#define WATER_CN_BIT  (CNEN1bits.CN2IE)
-#define IN_REQ      _RC13
-#define TRIS_REQ    _TRISC13
+#define REQ_CN_BIT  (CNEN1bits.CN2IE)
 
-#define LAT_AKN     _LATC14
-#define TRIS_AKN    _TRISC14
+#define IN_REQ      _RB0
+#define TRIS_REQ    _TRISB0
+
+#define LAT_AKN     _LATD2
+#define TRIS_AKN    _TRISD2
 
 #define IN_RW       _RE8
 #define TRIS_RW     _TRISE8
@@ -276,7 +276,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "TMP STA PWR");
+                    txBuf[0] = sprintf(txBuf+1, "TMP STA");
                     break;
                 }
 
@@ -297,10 +297,8 @@ void processData(byte data)
                 case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = (PORTB & 0x7F) ^ 0x01;
+                    txBuf[1] = _RB1;    /* Just the start switch ... */
 
-                    if(_RD3)
-                        txBuf[1] |= 0x80;
                     break;
                 }
 
@@ -312,12 +310,6 @@ void processData(byte data)
                         txBuf[i+1] = tempData[i];
 
                     txBuf[0] = TEMP_DATA_SIZE;
-                    break;
-                }
-
-                case BUS_CMD_HARDKILL:
-                {
-                    _LATC15 = 0; /* Uh oh.... master kill */
                     break;
                 }
             }
@@ -446,58 +438,6 @@ byte checkBus()
     return 1;
 }
 
-
-/*
- * Drop the first marker. I am assuming we have multiple markers. This is
- * really here to let me play with interrupts and learn how to use the
- * timer module. I cannot occupy the slave while the marker drops, so
- * marker command sets marker output to 1, and then a timer interrupt must
- * bring it back to 0.
- */
-void dropMarker(byte id)
-{
-    /* Set appropriate output to 1 */
-    if(id == 0)
-        _LATB1 = 1;
-    else
-        _LATB2 = 1;
-
-
-    /* Timer1 is a Type A timer. Evidently there are other types
-     * The clock rate is 96MHz, after PLL. So.. it seems that:
-     * (1/96e6) * (256 prescaler) * (4 clocks per insn) * (65536 period) = 0.69 seconds.
-     * Oh well, 2.79 seconds of soleniod operation should be enough time to drop a
-     * marker, but I would like to know the reason for this discrepantcy.
-     */
-
-    PR1 = 65535;            /* Period */
-    TMR1 = 0;               /* Reset timer */
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 1;      /* Enable interrupts */
-    T1CONbits.TCS = 0;      /* Use internal clock */
-    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
-    T1CONbits.TON = 1;      /* Start Timer1 */
-}
-
-/* ISR for Timer1. Used for turning off marker soleniod after it was turned on */
-void _ISR _T1Interrupt(void)
-{
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 0;      /* Disable interrupts */
-
-    /* This timer kills both solenoids. If one marker is dropped, and another is
-     * dropped before the first soleniod deactivates, the timer is reset and both
-     * solenids will deactivate when the timer expires.
-     */
-
-    _LATB1 = 0;         /* Turn off marker soleniod (or LED in my case) */
-    _LATB2 = 0;         /* Turn off marker soleniod (or LED in my case) */
-
-    T1CONbits.TON = 0;  /* Stop Timer1 */
-}
-
-
-
 /*
  * These functions are insanely simple. But they are made anyway to prevent
  * a race condition when the bus code tries to send back partially-written data.
@@ -517,23 +457,10 @@ void disableBusInterrupt()
     REQ_CN_BIT = 0;    /* Turn off CN for the pin */
 }
 
-void enableWaterInterrupt()
-{
-    WATER_CN_BIT = 1; /* Turn on CN for the pin */
-    checkBus();
-}
-
-void disableWaterInterrupt()
-{
-    WATER_CN_BIT = 0;    /* Turn off CN for the pin */
-}
-
-
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
     enableBusInterrupt();
-    enableWaterInterrupt();
     IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
@@ -566,19 +493,10 @@ void _ISR _CNInterrupt(void)
 {
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
 
-    if(WATER_CN_BIT == 1 && _RB0 == 0)  /* WATER!!! */
-    {
-        _LATC15 = 0;      /* Hard Kill */
-    }
-
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
         checkBus();
 }
-
-
-int depthArray[100];
-int dp=0;
 
 
 //readTemp addr 0x9E
@@ -587,27 +505,6 @@ int main()
 {
     byte i;
     long l;
-    _LATC15 = 1;
-    _TRISC15 = TRIS_OUT; /* Hard Kill */
-
-
-    _TRISB0 = TRIS_IN;  /* Water sensor  */
-    _TRISB1 = TRIS_IN;  /* Start Switch  */
-    _TRISB2 = TRIS_IN;  /* Power board 1 */
-    _TRISB3 = TRIS_IN;  /* Power board 2 */
-    _TRISB4 = TRIS_IN;  /* Power board 3 */
-    _TRISB5 = TRIS_IN;  /* Power board 4 */
-    _TRISB6 = TRIS_IN;  /* Power board ?? */
-
-    _TRISD3 = TRIS_IN;  /* Start switch for real */
-
-    /* CN4-CN7 internal pull-ups */
-//    CNPU1bits.CN2PUE = 1;
-
-    CNPU1bits.CN4PUE = 1;
-    CNPU1bits.CN5PUE = 1;
-    CNPU1bits.CN6PUE = 1;
-    CNPU1bits.CN7PUE = 1;
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
