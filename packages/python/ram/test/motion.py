@@ -16,8 +16,8 @@ import ext.core as core
 
 # Mock subsystems
 class MockController(control.IController):
-    def __init__(self):
-        control.IController.__init__(self, "A")
+    def __init__(self, eventHub):
+        control.IController.__init__(self, "A", eventHub)
         self.depth = 0
         
     def setDepth(self, depth):
@@ -47,7 +47,7 @@ class MockMotion(object):
         self.vehicle = None
         self.stoped = False
     
-    def start(self, controller, vehicle):
+    def start(self, controller, vehicle, eventHub):
         self.controller = controller
         self.vehicle = vehicle
         
@@ -56,9 +56,15 @@ class MockMotion(object):
 
 class TestMotionManager(unittest.TestCase):
     def setUp(self):
+        # Create the event hub to collect all published events
+        self.eventHub = core.EventHub()
         self.vehicle = MockVehicle()
-        self.controller = MockController()
-        deps = [self.vehicle, self.controller]
+        self.controller = MockController(self.eventHub)
+        
+        # The QueuedEventHub lets us queue the events to be released when ready
+        self.qeventHub = core.QueuedEventHub(self.eventHub)
+        
+        deps = [self.vehicle, self.controller, self.qeventHub]
         self.motionManager = motion.MotionManager({}, deps)
         
     def testSetMotion(self):
@@ -77,12 +83,17 @@ class TestMotionManager(unittest.TestCase):
   
 class TestChangeDepth(unittest.TestCase):
     def setUp(self):
+        # Create the event hub to collect all published events
+        self.eventHub = core.EventHub()
         self.vehicle = MockVehicle()
-        self.controller = MockController()
+        self.controller = MockController(self.eventHub)
         
-        deps = [self.vehicle, self.controller]
+        # The QueuedEventHub lets us queue the events to be released when ready
+        self.qeventHub = core.QueuedEventHub(self.eventHub)
+        
+        deps = [self.vehicle, self.controller, self.qeventHub]
         self.motionManager = motion.MotionManager({}, deps)
-        
+    
         self.motionFinished = False
     
     def handleFinished(self, event):
@@ -104,6 +115,7 @@ class TestChangeDepth(unittest.TestCase):
             self.assertEqual(i, self.controller.depth)
             # Say we have reached the depth to keep going
             self.controller.publishAtDepth(i)
+            self.qeventHub.publishEvents()
             
         self.assert_(self.motionFinished)
             
@@ -122,6 +134,7 @@ class TestChangeDepth(unittest.TestCase):
             self.assertEqual(i, self.controller.depth)
             # Say we have reached the depth to keep going
             self.controller.publishAtDepth(i)
+            self.qeventHub.publishEvents()
             
         self.assert_(self.motionFinished)
 

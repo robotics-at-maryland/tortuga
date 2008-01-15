@@ -8,6 +8,7 @@
 # STD Imports
 import sys
 import StringIO
+import inspect
 
 # Capture stderr, to suppress unwanted warnings
 stderr = sys.stderr
@@ -48,6 +49,28 @@ SubsystemMaker.registerSubsystem = staticmethod(registerSubsystem)
 
 
 class Subsystem(_core.Subsystem):
+    """
+    Implements the virtual methods or ram::core::Subsystem
+
+    This is so that all python classes have default implementations
+    """
+    
+    @staticmethod
+    def getSubsystemOfType(_type, deps):
+        """
+        Returns the subsystem of the desired type from the given list
+        """
+        
+        # Make sure we are checking subsystems
+        assert issubclass(_type, _core.Subsystem)
+
+        # Check each subsystem
+        for d in deps:
+            if isinstance(d, _type):
+                return d
+
+        raise Exception("Subsystem of that type not found")
+    
     def __init__(self, name):
         _core.Subsystem.__init__(self, name)
         
@@ -63,3 +86,21 @@ class Subsystem(_core.Subsystem):
     def update(self, timestep):
         pass
         
+
+def declareEventType(name):
+    """
+    Defines an event type in a manner which will avoid collosions
+    
+    It defines it in the same format as in done in c++: <file>:<line> <EVENT>
+    
+    @rtype : str
+    @return: The new event type
+    """
+    stack = inspect.stack()
+    try:
+        frame = stack[1][0]
+        line = frame.f_lineno
+        fileName = frame.f_code.co_filename
+        return '%s:%d %s' % (fileName, line, name.replace(' ', '_').upper())
+    finally:
+        del stack
