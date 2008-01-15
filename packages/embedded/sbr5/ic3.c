@@ -457,13 +457,23 @@ void disableBusInterrupt()
     REQ_CN_BIT = 0;    /* Turn off CN for the pin */
 }
 
+
+
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
     enableBusInterrupt();
-    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
-    IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
-    IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
+/* This can lead to same interrupt priority issues as with depth in rev 3 */
+//     IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
+//     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
+//     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
+
+/* Same priorities as depth chip. */
+/* UART priorities above CN       */
+    IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
+    IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
+    IPC3bits.CNIP = 4;      /* Bus at priority 4 */
+    IPC2bits.ADIP = 2;      /* ADC at priority 2 */
 }
 
 
