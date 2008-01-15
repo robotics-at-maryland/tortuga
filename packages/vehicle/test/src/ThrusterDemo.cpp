@@ -31,7 +31,7 @@ using namespace ram;
 using namespace ram::core;
 using namespace ram::vehicle::device;
 
-static const int FORCE = 6;
+static const int FORCE = 15;
 static const int APPLY_SLEEP = 10;
 static const int POST_CMD_SLEEP = 1;
 
@@ -65,15 +65,19 @@ int main(int argc, char** argv)
 
     // Parse Some config stuff
     core::ConfigNode root = core::ConfigNode::fromFile(configPath);
-    core::ConfigNode modules(root["Modules"]);
+    core::ConfigNode modules(root["Subsystems"]);
 
     // Create vehicle and devices
     core::ConfigNode veh_cfg(modules["Vehicle"]);
     vehicle::Vehicle vehicle(veh_cfg);
+    math::Vector3 force;
 
     // Apply a forward force
-    std::cout << "Applying forward force" << std::endl;
-    vehicle.applyForcesAndTorques(math::Vector3(FORCE, 0, 0),
+    force = math::Vector3(FORCE, 0, 0);
+    std::cout << "Applying forward force (move's vehicle forward): " << force 
+	      << std::endl;
+    std::cout << "Air/Water goes back" << std::endl;
+    vehicle.applyForcesAndTorques(force,
                                   math::Vector3::ZERO);
     vehicle.update(0);
     sleep(APPLY_SLEEP);
@@ -83,10 +87,28 @@ int main(int argc, char** argv)
     sleep(POST_CMD_SLEEP);
     std::cout << "Thrusters stopped" << std::endl;
     
-    // Apply a forward force
-    std::cout << "Applying upward force" << std::endl;
-    vehicle.applyForcesAndTorques(math::Vector3(0, 0, FORCE),
+    // Apply a upward force
+    force = math::Vector3(0, 0, FORCE);
+    std::cout << "Applying upward force (moves vehicle up): " << force 
+	      << std::endl;
+    std::cout << "Air/Water goes down" << std::endl;
+    vehicle.applyForcesAndTorques(force,
                                   math::Vector3::ZERO);
+    vehicle.update(0);
+    sleep(APPLY_SLEEP);
+    std::cout << "Stoping thrusters" << std::endl;
+    vehicle.applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+    vehicle.update(0);
+    sleep(POST_CMD_SLEEP);
+    std::cout << "Thrusters stopped" << std::endl;
+
+    // Apply a positive pitch
+    math::Vector3 torque = math::Vector3(0, FORCE, 0);
+    std::cout << "Applying a positive pitch (vehicle nose down): " << torque 
+	      << std::endl;
+    std::cout << "Air/Water above fore, Air/Water below aft" << std::endl;
+    vehicle.applyForcesAndTorques(math::Vector3::ZERO, torque);
+
     vehicle.update(0);
     sleep(APPLY_SLEEP);
     std::cout << "Stoping thrusters" << std::endl;
