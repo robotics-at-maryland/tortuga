@@ -28,12 +28,12 @@ _FWDT ( WDT_OFF );
  */
 
 /* Bus pin assignments */
-#define REQ_CN_BIT  (CNEN1bits.CN1IE)
-#define IN_REQ      _RC13
-#define TRIS_REQ    _TRISC13
+#define REQ_CN_BIT  (CNEN1bits.CN2IE)
+#define IN_REQ      _RB0
+#define TRIS_REQ    _TRISB0
 
-#define LAT_AKN     _LATC14
-#define TRIS_AKN    _TRISC14
+#define LAT_AKN     _LATD2
+#define TRIS_AKN    _TRISD2
 
 #define IN_RW       _RE8
 #define TRIS_RW     _TRISE8
@@ -506,6 +506,8 @@ void lcdChar(byte b)
 void main()
 {
     byte i;
+
+    ADPCFG = 0xFFFF;
 
     _TRISC15 = TRIS_OUT;
     _LATC15 = 0;
