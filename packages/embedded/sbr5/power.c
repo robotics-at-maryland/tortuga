@@ -60,7 +60,7 @@ _FWDT ( WDT_OFF );
 /* We know this one is active low */
 #define IN_WTRSEN   _LATG6
 #define TRIS_WTRSEN _TRISG6
-#define WTR_CN_BIT  (CNEN1bits.CN8IE)
+#define WATER_CN_BIT  (CNEN1bits.CN8IE)
 
 
 /* Level specification for marker outputs */
@@ -168,7 +168,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "DEP MRK THR");
+                    txBuf[0] = sprintf(txBuf+1, "PWR MRK THR");
                     break;
                 }
 
@@ -250,8 +250,6 @@ void processData(byte data)
                 case BUS_CMD_THRUSTER4_ON:  { LAT_MOTR4 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER5_ON:  { LAT_MOTR5 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER6_ON:  { LAT_MOTR6 = MOTR_ON; break; }
-
-
 
                 case BUS_CMD_THRUSTER_STATE:
                 {
@@ -478,11 +476,23 @@ void disableBusInterrupt()
     REQ_CN_BIT = 0;    /* Turn off CN for the pin */
 }
 
+void enableWaterInterrupt()
+{
+    WATER_CN_BIT = 1; /* Turn on CN for the pin */
+    checkBus();
+}
+
+void disableWaterInterrupt()
+{
+    WATER_CN_BIT = 0;    /* Turn off CN for the pin */
+}
+
 
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
     enableBusInterrupt();
+    enableWaterInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
     IPC3bits.CNIP = 4;      /* Bus at priority 4 */
@@ -518,6 +528,11 @@ void initBus()
 void _ISR _CNInterrupt(void)
 {
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
+
+    if(WATER_CN_BIT == 1 && IN_WTRSEN == 0)  /* WATER!!! */
+    {
+        LAT_PWRKILL = PWRKILL_ON;      /* Hard Kill */
+    }
 
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
@@ -596,17 +611,50 @@ void main()
     byte i;
     long l;
 
-    for(i=0; i<16; i++)
-        cfgRegs[i] = 65;
+    TRIS_BATT1 = TRIS_IN;
+    TRIS_BATT2 = TRIS_IN;
+    TRIS_BATT3 = TRIS_IN;
+    TRIS_BATT4 = TRIS_IN;
 
+    TRIS_WTRSEN = TRIS_IN;
 
-    initADC();
+    LAT_MRKR1 = ~MRKR_ON;
+    LAT_MRKR2 = ~MRKR_ON;
+
+    TRIS_MRKR1 = TRIS_OUT;
+    TRIS_MRKR2 = TRIS_OUT;
+
+    LAT_MOTR1 = ~MOTR_ON;
+    LAT_MOTR2 = ~MOTR_ON;
+    LAT_MOTR3 = ~MOTR_ON;
+    LAT_MOTR4 = ~MOTR_ON;
+    LAT_MOTR5 = ~MOTR_ON;
+    LAT_MOTR6 = ~MOTR_ON;
+
+    TRIS_MOTR1 = TRIS_OUT;
+    TRIS_MOTR2 = TRIS_OUT;
+    TRIS_MOTR3 = TRIS_OUT;
+    TRIS_MOTR4 = TRIS_OUT;
+    TRIS_MOTR5 = TRIS_OUT;
+    TRIS_MOTR6 = TRIS_OUT;
+
+    LAT_PWRKILL = ~PWRKILL_ON;
+    TRIS_PWRKILL = TRIS_OUT;
+
+    TRIS_KILLSW = TRIS_IN;
+
     initBus();
+    initADC();
     initI2C();
 
 #ifdef HAS_UART
     initInterruptUarts();
 #endif
+
+
+    for(i=0; i<16; i++)
+        cfgRegs[i] = 65;
+
 
     while(1)
     {
