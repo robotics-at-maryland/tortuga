@@ -24,7 +24,7 @@ power.o : power.c buscodes.h uart.c i2c.c
 	$(CC) -mcpu=30F5011 $(CFLAGS) -Wunused-function -c $< -o $@
 
 power.elf : power.o uart.c i2c.c
-	$(CC) -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f5011.gld,--heap=0,-lp30F4011-elf,--report-mem /home/steve/dspicc/c30/lib/libp30F5011-elf.a $< -o $@
+	$(CC) -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f5011.gld,--heap=0,-lp30F5011-elf,--report-mem /home/steve/dspicc/c30/lib/libp30F5011-elf.a $< -o $@
 
 
 %.hex : %.elf

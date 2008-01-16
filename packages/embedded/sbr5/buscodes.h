@@ -26,11 +26,18 @@
 #define BUS_CMD_THRUSTER2_OFF   20
 #define BUS_CMD_THRUSTER3_OFF   21
 #define BUS_CMD_THRUSTER4_OFF   22
+#define BUS_CMD_THRUSTER5_OFF   35
+#define BUS_CMD_THRUSTER6_OFF   36
+
 
 #define BUS_CMD_THRUSTER1_ON    23
 #define BUS_CMD_THRUSTER2_ON    24
 #define BUS_CMD_THRUSTER3_ON    25
 #define BUS_CMD_THRUSTER4_ON    26
+#define BUS_CMD_THRUSTER5_ON    37
+#define BUS_CMD_THRUSTER6_ON    38
+
+
 #define BUS_CMD_THRUSTER_STATE  28
 
 #define BUS_CMD_SONAR           27
@@ -51,7 +58,7 @@
 #define BUS_CMD_GETREPLY_U1     33
 #define BUS_CMD_GETREPLY_U2     34
 
-
+/* Next free is 39 */
 
 
 

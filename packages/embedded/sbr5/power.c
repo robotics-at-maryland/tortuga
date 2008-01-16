@@ -40,7 +40,10 @@ _FWDT ( WDT_OFF );
 #define RW_WRITE    1
 
 
+/* Level specification for battery inputs */
+#define BATT_ON     1
 
+/* Battery input pin assignments */
 #define IN_BATT1    _LATC1
 #define TRIS_BATT1  _TRISC1
 
@@ -53,12 +56,58 @@ _FWDT ( WDT_OFF );
 #define IN_BATT4    _LATC14
 #define TRIS_BATT4  _TRISC14
 
+
+/* We know this one is active low */
 #define IN_WTRSEN   _LATG6
 #define TRIS_WTRSEN _TRISG6
 #define WTR_CN_BIT  (CNEN1bits.CN8IE)
 
 
-void dropMarker(byte id);
+/* Level specification for marker outputs */
+#define MRKR_ON     1
+
+#define LAT_MRKR1   _LATF0
+#define TRIS_MRKR1  _TRISF0
+
+#define LAT_MRKR2   _LATF1
+#define TRIS_MRKR2  _TRISF1
+
+
+/* Level specification for thruster enables */
+#define MOTR_ON     1
+
+/* Thruster pin assignments */
+#define LAT_MOTR1   _LATG0
+#define TRIS_MOTR1  _TRISG0
+
+#define LAT_MOTR2   _LATG1
+#define TRIS_MOTR2  _TRISG1
+
+#define LAT_MOTR3   _LATG8
+#define TRIS_MOTR3  _TRISG8
+
+#define LAT_MOTR4   _LATG9
+#define TRIS_MOTR4  _TRISG9
+
+#define LAT_MOTR5   _LATG12
+#define TRIS_MOTR5  _TRISG12
+
+#define LAT_MOTR6   _LATG13
+#define TRIS_MOTR6  _TRISG13
+
+
+/* Power kill output level specification */
+#define PWRKILL_ON  1
+
+/* Power kill pin assignment */
+#define LAT_PWRKILL _LATG14
+#define TRIS_PWRKILL _TRISG14
+
+
+/* Kill switch input */
+#define IN_KILLSW   _RG15
+#define TRIS_KILLSW _TRISG15
+
 
 
 /* Transmit buffer */
@@ -67,11 +116,7 @@ byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
 
-/* Shut up GCC, I'm not there yet ! */
-#define LAT_TK1 _LATB0
-#define LAT_TK2 _LATB0
-#define LAT_TK3 _LATB0
-#define LAT_TK4 _LATB0
+void dropMarker(byte id);
 
 
 /*
@@ -192,79 +237,33 @@ void processData(byte data)
                 }
 
 
-            /* <Deprecated> */
-                case BUS_CMD_THRUSTERS_ON:
-                {
-                    _LATB3 = 1;
-                    break;
-                }
+                case BUS_CMD_THRUSTER1_OFF:  { LAT_MOTR1 = ~MOTR_ON; break; }
+                case BUS_CMD_THRUSTER2_OFF:  { LAT_MOTR2 = ~MOTR_ON; break; }
+                case BUS_CMD_THRUSTER3_OFF:  { LAT_MOTR3 = ~MOTR_ON; break; }
+                case BUS_CMD_THRUSTER4_OFF:  { LAT_MOTR4 = ~MOTR_ON; break; }
+                case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; break; }
+                case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; break; }
 
-                case BUS_CMD_THRUSTERS_OFF:
-                {
-                    _LATB3 = 0;
-                    break;
-                }
-
-                case BUS_CMD_CHECKWATER:
-                {
-                    txBuf[0] = 1;
-                    txBuf[1] = _RB4;
-                    break;
-                }
-            /* </Deprecated> */
+                case BUS_CMD_THRUSTER1_ON:  { LAT_MOTR1 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER2_ON:  { LAT_MOTR2 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER3_ON:  { LAT_MOTR3 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER4_ON:  { LAT_MOTR4 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER5_ON:  { LAT_MOTR5 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER6_ON:  { LAT_MOTR6 = MOTR_ON; break; }
 
 
-                case BUS_CMD_THRUSTER1_OFF:
-                {
-                    LAT_TK1 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER2_OFF:
-                {
-                    LAT_TK2 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER3_OFF:
-                {
-                    LAT_TK3 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER4_OFF:
-                {
-                    LAT_TK4 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER1_ON:
-                {
-                    LAT_TK1 = 1;
-                    break;
-                }
-                case BUS_CMD_THRUSTER2_ON:
-                {
-                    LAT_TK2 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER3_ON:
-                {
-                    LAT_TK3 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER4_ON:
-                {
-                    LAT_TK4 = 1;
-                    break;
-                }
 
                 case BUS_CMD_THRUSTER_STATE:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = (LAT_TK1 << 3) | (LAT_TK2 << 2) | (LAT_TK3 << 1) | LAT_TK4;
+                    txBuf[1] = 0;
+
+                    if(LAT_MOTR1 == MOTR_ON) txBuf[1] |= 0x01;
+                    if(LAT_MOTR2 == MOTR_ON) txBuf[1] |= 0x02;
+                    if(LAT_MOTR3 == MOTR_ON) txBuf[1] |= 0x04;
+                    if(LAT_MOTR4 == MOTR_ON) txBuf[1] |= 0x08;
+                    if(LAT_MOTR5 == MOTR_ON) txBuf[1] |= 0x10;
+                    if(LAT_MOTR6 == MOTR_ON) txBuf[1] |= 0x20;
                     break;
                 }
 
@@ -420,9 +419,9 @@ void dropMarker(byte id)
 {
     /* Set appropriate output to 1 */
     if(id == 0)
-        _LATB1 = 0;
+        LAT_MRKR1 = MRKR_ON;
     else
-        _LATB2 = 0;
+        LAT_MRKR2 = MRKR_ON;
 
 
     /* Timer1 is a Type A timer. Evidently there are other types
@@ -452,8 +451,8 @@ void _ISR _T1Interrupt(void)
      * solenids will deactivate when the timer expires.
      */
 
-    _LATB1 = 1;         /* Turn off marker soleniod (or LED in my case) */
-    _LATB2 = 1;         /* Turn off marker soleniod (or LED in my case) */
+    LAT_MRKR1 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
+    LAT_MRKR2 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
 
     T1CONbits.TON = 0;  /* Stop Timer1 */
 }
