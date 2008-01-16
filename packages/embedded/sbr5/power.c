@@ -55,7 +55,7 @@ _FWDT ( WDT_OFF );
 
 #define IN_WTRSEN   _LATG6
 #define TRIS_WTRSEN _TRISG6
-#define WTR_CN_BIT  (CNEN1bits.CN2IE)
+#define WTR_CN_BIT  (CNEN1bits.CN8IE)
 
 
 void dropMarker(byte id);
@@ -327,30 +327,22 @@ void processData(byte data)
 /* Read a byte from the bus */
 byte readBus()
 {
-    return (PORTE & 0x3F) | (_RD0 << 6) | (_RD1 << 7);
+    return (PORTD & 0x00FF);
 }
 
 
 /* Take bus out of high-impedance state and write a byte there */
 void writeBus(byte b)
 {
-    TRISE = TRISE & 0xFFC0;
-    _TRISD1 = TRIS_OUT;
-    _TRISD0 = TRIS_OUT;
-
-     LATE = (LATE & 0xFFC0) | (b & 0x3F);
-    _LATD0 = (b & 0x40) >> 6;
-    _LATD1 = (b & 0x80) >> 7;
-
+    TRISD = TRISD & 0xFF00;
+    LATD = (LATD & 0xFF00) | b;
 }
 
 
 /* Put bus in high-impedance state. */
 void freeBus()
 {
-    _TRISD1 = TRIS_IN;
-    _TRISD0 = TRIS_IN;
-    TRISE = TRISE | 0x3F;
+    TRISD = TRISD | 0x00FF;
 }
 
 
