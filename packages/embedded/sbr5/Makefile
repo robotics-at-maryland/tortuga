@@ -16,13 +16,16 @@ LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
 all: ic1.hex ic2.hex ic3.hex ic4.hex power.hex
 
+power.o : power.c buscodes.h uart.c i2c.c
+	$(CC) $(CFLAGS) -mcpu=30F5011 -Wunused-function -c $< -o $@
+
 %.hex : %.elf
 	$(BIN2HEX) $<
 
-%.elf : %.o uart.c
+%.elf : %.o uart.c i2c.c
 	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
 
-%.o : %.c buscodes.h uart.h
+%.o : %.c buscodes.h uart.c i2c.c
 	$(CC) $(CFLAGS) -Wunused-function -c $< -o $@
 
 run:

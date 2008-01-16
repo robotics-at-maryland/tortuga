@@ -26,18 +26,37 @@ _FWDT ( WDT_OFF );
  */
 
 /* Bus pin assignments */
-#define REQ_CN_BIT  (CNEN1bits.CN1IE)
-#define IN_REQ      _RC13
-#define TRIS_REQ    _TRISC13
+#define REQ_CN_BIT  (CNEN1bits.CN9IE)
+#define IN_REQ      _RG7
+#define TRIS_REQ    _TRISG7
 
-#define LAT_AKN     _LATC14
-#define TRIS_AKN    _TRISC14
+#define LAT_AKN     _LATD8
+#define TRIS_AKN    _TRISD8
 
-#define IN_RW       _RE8
-#define TRIS_RW     _TRISE8
+#define IN_RW       _RD9
+#define TRIS_RW     _TRISD9
 
 #define RW_READ     0
 #define RW_WRITE    1
+
+
+
+#define IN_BATT1    _LATC1
+#define TRIS_BATT1  _TRISC1
+
+#define IN_BATT2    _LATC2
+#define TRIS_BATT2  _TRISC2
+
+#define IN_BATT3    _LATC13
+#define TRIS_BATT3  _TRISC13
+
+#define IN_BATT4    _LATC14
+#define TRIS_BATT4  _TRISC14
+
+#define IN_WTRSEN   _LATG6
+#define TRIS_WTRSEN _TRISG6
+#define WTR_CN_BIT  (CNEN1bits.CN2IE)
+
 
 void dropMarker(byte id);
 
@@ -48,17 +67,11 @@ byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
 
-#define LAT_BATT1  _LATB0
-#define TRIS_BATT1 _TRISB0
-
-#define LAT_BATT1  _LATB0
-#define TRIS_BATT1 _TRISB0
-
-#define LAT_BATT1  _LATB0
-#define TRIS_BATT1 _TRISB0
-
-#define LAT_BATT1  _LATB0
-#define TRIS_BATT1 _TRISB0
+/* Shut up GCC, I'm not there yet ! */
+#define LAT_TK1 _LATB0
+#define LAT_TK2 _LATB0
+#define LAT_TK3 _LATB0
+#define LAT_TK4 _LATB0
 
 
 /*
