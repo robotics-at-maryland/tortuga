@@ -104,6 +104,9 @@ _FWDT ( WDT_OFF );
 #define TRIS_PWRKILL _TRISG14
 
 
+/* Kill switch level specification */
+#define KILLSW_ON 1
+
 /* Kill switch input */
 #define IN_KILLSW   _RG15
 #define TRIS_KILLSW _TRISG15
@@ -262,6 +265,22 @@ void processData(byte data)
                     if(LAT_MOTR4 == MOTR_ON) txBuf[1] |= 0x08;
                     if(LAT_MOTR5 == MOTR_ON) txBuf[1] |= 0x10;
                     if(LAT_MOTR6 == MOTR_ON) txBuf[1] |= 0x20;
+                    break;
+                }
+
+                case BUS_CMD_BOARDSTATUS:
+                {
+                    txBuf[0] = 1;
+                    txBuf[1] = 0;
+
+                    if(IN_WTRSEN == 0) txBuf[1] |= 0x01;
+                    if(IN_KILLSW == KILLSW_ON) txBuf[1] |= 0x02;
+
+                    if(IN_BATT4 == BATT_ON) txBuf[1] |= 0x04;
+                    if(IN_BATT3 == BATT_ON) txBuf[1] |= 0x08;
+                    if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x10;
+                    if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x20;
+
                     break;
                 }
 
