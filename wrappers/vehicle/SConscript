@@ -38,14 +38,18 @@ dev_wrapped_headers = ['device/IDevice.h',
                        'device/IThruster.h']
 
 # Tests
+root_src = os.path.dirname(env.GetBuildPath('SConscript'))
+
 envt = env.Clone()
 test_veh, veh_runner = envt.Tests(target = 'TestVehicle',
                                   source = 'test/src/TestIVehicle.cxx',
+                                  search_dir = root_src + '/test/src',
                                   int_deps = 'vehicle',
                                   ext_deps = 'Boost.Python', run = False)
 
 test_dev, dev_runner = envt.Tests(target = 'TestDevices',
-                                  source = 'test/src/TestIDevices.cxx',
+                                  source = 'test/src/device/TestIDevices.cxx',
+                                  search_dir = root_src + '/test/src/device',
                                   int_deps = 'vehicle',
                                   ext_deps = 'Boost.Python', run = False)
 

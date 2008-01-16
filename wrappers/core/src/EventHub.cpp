@@ -58,4 +58,7 @@ void registerEventHubClass()
         .def("subscribeToAll", &::subscribeToAll, (bp::arg("handler")));
 
     bp::register_ptr_to_python<ram::core::EventConnectionPtr>();
+    bp::register_ptr_to_python<boost::shared_ptr<ram::core::EventHub> >();
+    bp::implicitly_convertible<boost::shared_ptr<ram::core::EventHub>,
+        ram::core::SubsystemPtr >();
 }

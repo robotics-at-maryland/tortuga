@@ -157,8 +157,12 @@ def run_tests(env, output, inputs, message = None, deps = None):
     return env.Command(output, inputs,
                        SCons.Action.Action(run_test_imp, msg))
 
-def Tests(env, _target, _source, run = True, **kwargs):
+def Tests(env, target, source, run = True, **kwargs):
+    _source = source
+    _target = target
+    
     exclude_list = _ensure_list(kwargs.get('exclude', []))
+    search_dir = kwargs.get('search_dir', 'test/src')
     # Add 'UnitTest++' to the list of ext_deps
     ext_deps = _ensure_list(kwargs.get('ext_deps', []))
     ext_deps.append('UnitTest++')
@@ -168,20 +172,22 @@ def Tests(env, _target, _source, run = True, **kwargs):
     if _target is None:
         _target = ['test/Tests']
     if _source is None:
-        _source = glob(env, 'test/src', '*.cxx')
+        _source = glob(env, search_dir, '*.cxx')
     for exclude in exclude_list:
         _source.remove(exclude)
+
     # Create the Test Program
     prog = Program(env, target = _target, source = _source, **kwargs)
 
     # Gather Up the C++ and Python based tests
     tests = [prog]
     root = os.path.dirname(env.GetBuildPath('SConscript'))
-    pytests = glob(env, 'test/src', '*.py')
+    pytests = glob(env, search_dir, '*.py')
+    
     for pytest in pytests:
         # Need the full path here for python's 'imp' module later
         tests.append(os.path.join(root, pytest))
-    
+        
     if run:
         cmd = run_tests(env, _target[0] + '.successful', tests,
                         'Running Tests in: ' + \

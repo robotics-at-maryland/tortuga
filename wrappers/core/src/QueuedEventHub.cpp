@@ -34,6 +34,10 @@ void registerQueuedEventHubClass()
              &ram::core::QueuedEventHub::publishEvents)
         .def("waitAndPublishEvents",
              &ram::core::QueuedEventHub::waitAndPublishEvents);
+
+    bp::register_ptr_to_python<boost::shared_ptr<ram::core::QueuedEventHub> >();
+    bp::implicitly_convertible<boost::shared_ptr<ram::core::QueuedEventHub>,
+        ram::core::SubsystemPtr >();
 }
 
 
