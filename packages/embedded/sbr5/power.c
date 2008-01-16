@@ -4,6 +4,7 @@
 
 #define SENSORBOARD_POWERBOARD
 #include "uart.c"
+#include "i2c.c"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & ECIO); //EC_PLL4); //ECIO );
@@ -35,17 +36,6 @@ _FWDT ( WDT_OFF );
 #define IN_RW       _RE8
 #define TRIS_RW     _TRISE8
 
-/* Thurster Safety Pins */
-#define TRIS_TK4    _TRISB3
-#define TRIS_TK3    _TRISB4
-#define TRIS_TK2    _TRISB5
-#define TRIS_TK1    _TRISC15
-#define LAT_TK4     _LATB3
-#define LAT_TK3     _LATB4
-#define LAT_TK2     _LATB5
-#define LAT_TK1     _LATC15
-
-
 #define RW_READ     0
 #define RW_WRITE    1
 
@@ -56,6 +46,19 @@ void dropMarker(byte id);
 #define TXBUF_LEN 60
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
+
+
+#define LAT_BATT1  _LATB0
+#define TRIS_BATT1 _TRISB0
+
+#define LAT_BATT1  _LATB0
+#define TRIS_BATT1 _TRISB0
+
+#define LAT_BATT1  _LATB0
+#define TRIS_BATT1 _TRISB0
+
+#define LAT_BATT1  _LATB0
+#define TRIS_BATT1 _TRISB0
 
 
 /*
@@ -197,13 +200,6 @@ void processData(byte data)
                 }
             /* </Deprecated> */
 
-                case BUS_CMD_DEPTH:
-                {
-                    txBuf[0] = 2;   /* Depth is 2 bytes */
-                    txBuf[1] = (avgDepth & 0xFF00) >> 8;
-                    txBuf[2] = avgDepth & 0xFF;
-                    break;
-                }
 
                 case BUS_CMD_THRUSTER1_OFF:
                 {
@@ -594,22 +590,7 @@ void initADC()
 void main()
 {
     byte i;
-
-    _LATB1 = 1;
-    _LATB2 = 1;
-    _TRISB1 = TRIS_OUT; /* Marker 1 */
-    _TRISB2 = TRIS_OUT; /* Marker 2 */
-
-    LAT_TK1 = 0;
-    LAT_TK2 = 0;
-    LAT_TK3 = 0;
-    LAT_TK4 = 0;
-
-    TRIS_TK1 = TRIS_OUT;
-    TRIS_TK2 = TRIS_OUT;
-    TRIS_TK3 = TRIS_OUT;
-    TRIS_TK4 = TRIS_OUT;
-
+    long l;
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
@@ -617,10 +598,24 @@ void main()
 
     initADC();
     initBus();
+    initI2C();
 
 #ifdef HAS_UART
     initInterruptUarts();
 #endif
 
-    while(1);
+    while(1)
+    {
+        /* Give it a second */
+        for(l=0; l<10000; l++);
+
+        byte rx = readTemp(0x90);
+
+        /* Read error */
+        if(rx == 255)
+            initI2C();
+
+        /* Do something with the temperature here */
+
+    }
 }
