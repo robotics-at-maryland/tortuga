@@ -49,7 +49,7 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
         
         self.SetMinSize(self.GetSize())
     
-        self.Bind(wx.EVT_CLOSE,self._onClose)
+        self.Bind(wx.EVT_CLOSE,self._onClose)            
     
     def _onClose(self, event):
         # TODO: Update this list based on whether the close or not

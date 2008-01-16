@@ -7,12 +7,19 @@ GUI:
     updateRate: 60
 
 Subsystems:
+    EventHub:
+        type: EventHub
+        
+    QueuedEventHub:
+        depends_on: ["EventHub"]
+        type: QueuedEventHub
+
     Vehicle:
         type: SimVehicle
-        depends_on: ["Simulation"]
+        depends_on: ["Simulation", "EventHub"]
 
     Controller:
-        depends_on: ["Vehicle"]
+        depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
         #update_interval: 10
 

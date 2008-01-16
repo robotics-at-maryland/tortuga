@@ -7,6 +7,7 @@
  * File:  packages/core/src/EventHub.cpp
  */
 
+
 // Project Includes
 #include "core/include/EventHub.h"
 #include "core/include/EventPublisherBase.h"
@@ -54,6 +55,10 @@ EventHub::EventHub(ConfigNode config, SubsystemList deps) :
 {
 }
 
+EventHub::~EventHub()
+{
+}
+    
 EventConnectionPtr EventHub::subscribe(
     Event::EventType type,
     EventPublisher* publisher,

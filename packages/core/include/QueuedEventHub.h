@@ -63,6 +63,9 @@ public:
 private:
     /** Publishes the event to all subscribers */
     void _publish(EventPtr event);
+
+    /** The EventHub we are connected to */
+    EventHubPtr m_hub;
     
     /// The implementation of the QueuedEventHub
     QueuedEventHubImpPtr m_imp;

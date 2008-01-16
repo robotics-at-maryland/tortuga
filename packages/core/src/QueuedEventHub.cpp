@@ -7,6 +7,7 @@
  * File:  packages/core/src/QueuedEventHub.cpp
  */
 
+
 // Library Includes
 #include <boost/bind.hpp>
 
@@ -25,6 +26,7 @@ namespace core {
 QueuedEventHub::QueuedEventHub(ram::core::EventHubPtr eventHub,
                                std::string name) :
     EventHub(name),
+    m_hub(eventHub),
     m_imp(new QueuedEventHubImp()),
     // Send all incomming events to be queued, and store the resulting connection
     m_connection(eventHub->subscribeToAll(
@@ -36,10 +38,10 @@ QueuedEventHub::QueuedEventHub(ram::core::EventHubPtr eventHub,
 
 QueuedEventHub::QueuedEventHub(ConfigNode config, SubsystemList deps) :
     EventHub(config["name"].asString()),
+    m_hub(core::Subsystem::getSubsystemOfType<EventHub>(deps)),
     m_imp(new QueuedEventHubImp()),
-    // Send all incomming events to be queued, and store the resulting connection
-    m_connection(
-        core::Subsystem::getSubsystemOfType<EventHub>(deps)->subscribeToAll(
+    // Send all incomming events to be queued and store the resulting connection
+    m_connection(m_hub->subscribeToAll(
             boost::bind(&QueuedEventHubImp::queueEvent, m_imp, _1)))
 {
     m_imp->setPublishFunction(boost::bind(&QueuedEventHub::_publish, this, _1));

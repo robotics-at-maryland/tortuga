@@ -36,7 +36,7 @@ public:
     /** Standard subsystem constructor */
     EventHub(ConfigNode config, SubsystemList deps = SubsystemList());
 
-    virtual ~EventHub() {};
+    virtual ~EventHub();
 
     /** Subscribe to recieve events of the given type from a certain Publisher
      *

@@ -10,16 +10,20 @@ This module implements the ext.core.IVehicle interface in python using a
 simulation robot.
 """
 
+# STD Imports
+import math as pmath
+
 # Library Imports
 import ogre.renderer.OGRE as ogre
+import numpy
 
 # Project Imports
 import ext.core as core
 import ext.vehicle as vehicle
 import ext.vehicle.device as device
 import ext.math as math
-import math as pmath
-import numpy as numpy
+import sim.subsystems as subsystems
+
 
 def convertToVector3(vType, vector):
     return vType(vector.x, vector.y, vector.z)
@@ -28,8 +32,8 @@ def convertToQuaternion(qType, quat):
     return qType(quat.x, quat.y, quat.z, quat.w)
 
 class SimThruster(core.EventPublisher, device.IThruster):
-    def __init__(self, name, simThruster):
-        core.EventPublisher.__init__(self)
+    def __init__(self, eventHub, name, simThruster):
+        core.EventPublisher.__init__(self, eventHub)
         device.IThruster.__init__(self)
         
         self._simThruster = simThruster
@@ -56,9 +60,11 @@ class SimThruster(core.EventPublisher, device.IThruster):
     def getForce(self):
         return self._simThruster.force
     
-    @property
-    def maxForce(self):
+    def getMaxForce(self):
         return self._simThruster.max_force
+    
+    def getMinForce(self):
+        return self._simThruster.min_force
                 
     def update(self, timestep):
         pass
@@ -66,21 +72,24 @@ class SimThruster(core.EventPublisher, device.IThruster):
 
 class SimVehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
-        vehicle.IVehicle.__init__(self, config.get('name', 'SimVehicle'))
-        sim = deps[0]
+        eventHub = core.Subsystem.getSubsystemOfType(core.EventHub, deps)
+        vehicle.IVehicle.__init__(self, config.get('name', 'SimVehicle'),
+                                  eventHub)
+        
+        sim = core.Subsystem.getSubsystemOfType(subsystems.Simulation, deps)
         self.robot = sim.scene._robots['AUT']
         self._devices = {}
     
         # Add Sim Thruster objects
-        self._addThruster('PortThruster', self.robot.parts.left_thruster)
-        self._addThruster('StartboardThruster', self.robot.parts.right_thruster)
-        self._addThruster('AftThruster', self.robot.parts.aft_thruster)
-        self._addThruster('ForeThruster', self.robot.parts.front_thruster)
-        self._addThruster('TopThruster', self.robot.parts.top_thruster)
-        self._addThruster('BotThruster', self.robot.parts.bot_thruster)
+        self._addThruster(eventHub, 'PortThruster', self.robot.parts.left_thruster)
+        self._addThruster(eventHub, 'StartboardThruster', self.robot.parts.right_thruster)
+        self._addThruster(eventHub, 'AftThruster', self.robot.parts.aft_thruster)
+        self._addThruster(eventHub, 'ForeThruster', self.robot.parts.front_thruster)
+        self._addThruster(eventHub, 'TopThruster', self.robot.parts.top_thruster)
+        self._addThruster(eventHub, 'BotThruster', self.robot.parts.bot_thruster)
 
-    def _addThruster(self, name, simThruster):
-        self._devices[name] = SimThruster(name, simThruster)
+    def _addThruster(self, eventHub, name, simThruster):
+        self._devices[name] = SimThruster(eventHub, name, simThruster)
     
     def getThrusters(self):
         thrusters = []
@@ -143,16 +152,16 @@ class SimVehicle(vehicle.IVehicle):
         return numpy.array([vec.x, vec.y, vec.z])
     
     def applyForcesAndTorques(self, force, torque):
-        #self.robot._main_part.set_local_force(
-        #    convertToVector3(ogre.Vector3, force), (0,0,0))
-        #self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)
+#        self.robot._main_part.set_local_force(
+#            convertToVector3(ogre.Vector3, force), (0,0,0))
+#        self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)
         thrusters = self.getThrusters()
         m = len(thrusters)
         A = numpy.zeros([6, m])
         
         for i in range(m):
             thruster = thrusters[i]
-            maxThrusterForce = thruster.forceDirection * thruster.maxForce
+            maxThrusterForce = thruster.forceDirection * thruster.getMaxForce()
             A[0:3,i] = self._vectorToNumpyArray(maxThrusterForce)
             A[3:6,i] = self._vectorToNumpyArray(thruster.relativePosition.crossProduct(maxThrusterForce))
         
@@ -161,7 +170,7 @@ class SimVehicle(vehicle.IVehicle):
         
         for i in range(m):
             thruster = thrusters[i]
-            thruster.setForce(thruster.maxForce * p[i])
+            thruster.setForce(thruster.getMaxForce() * p[i])
     
     def backgrounded(self):
         return False

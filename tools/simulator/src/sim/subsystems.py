@@ -92,8 +92,8 @@ class Simulation(core.Subsystem):
             self._simulation.update(timeSinceLastUpdate)
         elif not self._simulation.backgrounded() and self._window.isClosed():
             self.windowClosed(self._window)
-        else:
-            ogre.WindowEventUtilities.messagePump()
+        #else:
+        #    ogre.WindowEventUtilities.messagePump()
             
         event.process_events()
 

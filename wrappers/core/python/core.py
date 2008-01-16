@@ -70,6 +70,21 @@ class Subsystem(_core.Subsystem):
                 return d
 
         return None
+
+    @staticmethod
+    def getSubsystemByName(name, deps):
+        for d in deps:
+            if d.getName() == name:
+                return d
+
+        return None
+
+    @staticmethod
+    def getNamedSubsystemOfType(name, _type, deps):
+        subsystem = Subsystem.getSubsystemByName(name, deps)
+        if isinstance(subsystem, _type):
+            return subsystem
+        return None
     
     def __init__(self, name):
         _core.Subsystem.__init__(self, name)

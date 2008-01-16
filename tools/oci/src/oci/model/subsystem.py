@@ -17,19 +17,21 @@ import ext.vehicle.device as device
 
 class Vehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
-        vehicle.IVehicle.__init__(self, config["name"])
+        eventHub = core.Subsystem.getSubsystemOfType(core.EventHub, deps)
+        vehicle.IVehicle.__init__(self, config["name"], eventHub)
+        
         self._devices = {}
         self._currentTime = 0.0
         self._depth = 0.0
         self._orientation = ext.math.Quaternion(0, 0, 0, 0)
 
-        self._addThruster('PortThruster', 1)
-        self._addThruster('StartboardThruster', 2)
-        self._addThruster('AftThruster', 3)
-        self._addThruster('ForeThruster', 4)
+        self._addThruster(eventHub, 'PortThruster', 1)
+        self._addThruster(eventHub, 'StartboardThruster', 2)
+        self._addThruster(eventHub, 'AftThruster', 3)
+        self._addThruster(eventHub, 'ForeThruster', 4)
 
-    def _addThruster(self, name, offset):
-        self._devices[name] = Thruster(name, offset)
+    def _addThruster(self, eventHub, name, offset):
+        self._devices[name] = Thruster(eventHub, name, offset)
 
     def backgrounded(self):
         return False
@@ -50,7 +52,6 @@ class Vehicle(vehicle.IVehicle):
         self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
         
         # Orientation
-        
         x = 1.0 * math.sin(self._currentTime) + 1.0
         y = 1.0 * math.sin(self._currentTime + 5) + 1.0
         z = 1.0 * math.sin(self._currentTime + 10) + 1.0
@@ -75,8 +76,8 @@ class Vehicle(vehicle.IVehicle):
 core.SubsystemMaker.registerSubsystem('DemoVehicle', Vehicle)
 
 class Thruster(core.EventPublisher, device.IThruster):    
-    def __init__(self, name, offset):
-        core.EventPublisher.__init__(self)
+    def __init__(self, eventHub, name, offset):
+        core.EventPublisher.__init__(self, eventHub)
         device.IThruster.__init__(self)
         
         self.force = 0
@@ -94,6 +95,14 @@ class Thruster(core.EventPublisher, device.IThruster):
         event = core.Event()
         event.force = self.force
         self.publish(device.IThruster.FORCE_UPDATE, event)
+        
+    def getMinForce(self):
+        return -100;
+    
+    def getMaxForce(self):
+        return 100;
+        
+    
 
 class DemoPower(core.Subsystem, core.EventPublisher):
     """

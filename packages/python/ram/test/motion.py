@@ -69,13 +69,6 @@ class TestMotionManager(unittest.TestCase):
         deps = [self.vehicle, self.controller, self.qeventHub]
         self.motionManager = motion.MotionManager({}, deps)
 
-    def tearDown(self):
-        del self.motionManager
-        del self.qeventHub
-        del self.eventHub
-        del self.vehicle
-        del self.controller
-        
     def testSetMotion(self):
         m = MockMotion()
         self.motionManager.setMotion(m)
@@ -105,13 +98,6 @@ class TestChangeDepth(unittest.TestCase):
     
         self.motionFinished = False
 
-    def tearDown(self):
-        del self.motionManager
-        del self.qeventHub
-        del self.eventHub
-        del self.vehicle
-        del self.controller
-    
     def handleFinished(self, event):
         self.motionFinished = True
         

@@ -23,6 +23,7 @@
 #include "vehicle/include/IVehicle.h"
 
 #include "core/include/SubsystemMaker.h"
+#include "core/include/EventHub.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
@@ -53,7 +54,8 @@ BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
 
 BWPDController::BWPDController(core::ConfigNode config,
                                core::SubsystemList deps) :
-    IController(config["name"].asString()),
+    IController(config["name"].asString(),
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),
     m_config(config),
     m_desiredState(0),

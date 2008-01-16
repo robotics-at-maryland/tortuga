@@ -5,24 +5,20 @@ import wx
 
 # Project Imports
 from core import Component, implements
+
 from gui.view import IPanelProvider
 from oci.view.controls import DepthBar, ThrusterBar, RotationCtrl
+import oci.model.subsystem as subsystemMod
+
 import ext.vehicle
 import ext.vehicle.device
-import ext.core
-
-import oci.model.subsystem as subsystemMod
-def getSubsystemOfType(subsystems, subsystemType):
-    for subsystem in subsystems:
-        if isinstance(subsystem, subsystemType):
-            return subsystem
-    return None
-
+import ext.control
+import ext.core as core
 
 class ThrusterPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, thrusters, *args, **kwargs):
+    def __init__(self, parent, eventHub, thrusters, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._connections = []
         self._thrusterList = []
@@ -33,16 +29,24 @@ class ThrusterPanel(wx.Panel):
         pos = 0
   
         for item in self._thrusterList:
+            # Create Control
             label = wx.StaticText(self, wx.ID_ANY, 
                                   item.getName().replace('Thruster',''))
-            bar = ThrusterBar(self)           
+            bar = ThrusterBar(self)
+            bar.minValue = item.getMinForce()
+            bar.maxValue = item.getMaxForce()
+                       
+            # Add it to our layout
             layout.Add(label, (0,pos),flag = wx.ALIGN_CENTER_HORIZONTAL)
             layout.Add(bar, (1,pos), flag = wx.EXPAND)
             layout.AddGrowableCol(pos)
-            conn = item.subscribe(ext.vehicle.device.IThruster.FORCE_UPDATE, 
-                                  self._update(bar))
+            pos += 1
+            
+            # Connect to its events
+            conn = eventHub.subscribe(ext.vehicle.device.IThruster.FORCE_UPDATE,
+                                      item, self._update(bar))
             self._connections.append(conn)
-            pos+=1
+            
         
         layout.AddGrowableRow(1)
         self.SetSizerAndFit(layout)
@@ -60,7 +64,10 @@ class ThrusterPanel(wx.Panel):
     
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        vehicle = ext.core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+        eventHub = core.Subsystem.getNamedSubsystemOfType(
+            "QueuedEventHub", core.QueuedEventHub,  subsystems)
+        
+        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
         
         if vehicle is not None:
@@ -76,15 +83,15 @@ class ThrusterPanel(wx.Panel):
                 paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
                 paneInfo = paneInfo.Caption("Thrusters").Left()
         
-                return [(paneInfo, ThrusterPanel(parentFunc(), thrusters), 
-                         [vehicle])]
+                panel = ThrusterPanel(parentFunc(), eventHub, thrusters)
+                return [(paneInfo, panel, [vehicle])]
             
         return []
 
 class DepthPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, vehicle, controller, *args, **kwargs):
+    def __init__(self, parent, eventHub, vehicle, controller, *args, **kwargs):
         """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
@@ -107,15 +114,15 @@ class DepthPanel(wx.Panel):
         self.SetSizeHints(0,0,100,-1)
         
         if vehicle is not None:
-            conn = vehicle.subscribe(ext.vehicle.IVehicle.DEPTH_UPDATE, 
-                                     self._depthUpdate)
+            conn = eventHub.subscribe(ext.vehicle.IVehicle.DEPTH_UPDATE, 
+                                     vehicle, self._depthUpdate)
             self._connections.append(conn)
         
         if controller is not None:
-            conn = controller.subscribe(ext.control.IController.DESIRED_DEPTH_UPDATE,
-                                        self._desiredDepthUpdate)
+            conn = eventHub.subscribe(ext.control.IController.DESIRED_DEPTH_UPDATE,
+                                      controller, self._desiredDepthUpdate)
         
-            self._connections.append(conn)
+            self._connections.append(conn)    
         
     def _depthUpdate(self,event):
         self._depthbar.setVal(event.number)
@@ -131,9 +138,12 @@ class DepthPanel(wx.Panel):
         
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        vehicle = ext.core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+        eventHub = core.Subsystem.getNamedSubsystemOfType(
+            "QueuedEventHub", core.QueuedEventHub,  subsystems)
+        
+        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
-        controller = ext.core.Subsystem.getSubsystemOfType(
+        controller = core.Subsystem.getSubsystemOfType(
             ext.control.IController, subsystems)
         
         if (vehicle is not None) or (controller is not None):
@@ -141,7 +151,7 @@ class DepthPanel(wx.Panel):
             paneInfo = paneInfo.Caption("Depth").Left()
         
         
-            panel = DepthPanel(parentFunc(), vehicle, controller)
+            panel = DepthPanel(parentFunc(), eventHub, vehicle, controller)
             return [(paneInfo, panel, [vehicle])]
         
         return []
@@ -149,7 +159,7 @@ class DepthPanel(wx.Panel):
 class RotationPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, vehicle, *args, **kwargs):
+    def __init__(self, parent, eventHub, vehicle, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._connections = []
       
@@ -180,8 +190,8 @@ class RotationPanel(wx.Panel):
         
         # Subscribe to events
         self.Bind(wx.EVT_CLOSE,self._onClose)
-        conn = vehicle.subscribe(ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
-                                 self._onOrientationUpdate)
+        conn = eventHub.subscribe(ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
+                                  vehicle, self._onOrientationUpdate)
         self._connections.append(conn)
         
     def _onClose(self, closeEvent):
@@ -198,14 +208,18 @@ class RotationPanel(wx.Panel):
   
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        vehicle = ext.core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+        eventHub = core.Subsystem.getNamedSubsystemOfType(
+            "QueuedEventHub", core.QueuedEventHub,  subsystems)
+        
+        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
         
         if vehicle is not None:
             paneInfo = wx.aui.AuiPaneInfo().Name("Orientation")
             paneInfo = paneInfo.Caption("Orientation").Left()
         
-            return [(paneInfo, RotationPanel(parentFunc(), vehicle), [vehicle])]
+            panel = RotationPanel(parentFunc(), eventHub, vehicle)
+            return [(paneInfo, panel, [vehicle])]
         
         return []
     
@@ -258,7 +272,7 @@ class DemoPowerPanel(wx.Panel):
         """
         Creates 
         """
-        power = ext.core.Subsystem.getSubsystemOfType(subsystemMod.DemoPower,
+        power = core.Subsystem.getSubsystemOfType(subsystemMod.DemoPower,
                                                       subsystems)  
         
         if power is not None:
@@ -333,7 +347,7 @@ class DemoSonarPanel(wx.Panel):
 
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        sonar = ext.core.Subsystem.getSubsystemOfType(subsystemMod.DemoSonar,
+        sonar = core.Subsystem.getSubsystemOfType(subsystemMod.DemoSonar,
                                                       subsystems)
         
         if sonar is not None:

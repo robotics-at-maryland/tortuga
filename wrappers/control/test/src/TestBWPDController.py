@@ -51,19 +51,23 @@ class TestBWPDController(unittest.TestCase):
             'angularDGain' : 1,
             'desiredQuaternion' : [0, 0, 0, 1] }
         cfg = core.ConfigNode.fromString(str(cfg))
-        deps = core.SubsystemList()
-        deps.append(self.vehicle)
-        
-        self.controller = core.SubsystemMaker.newObject(cfg, deps)
-        self.actualDepth = 0
+        self.eventHub = core.EventHub()
 
-    def depthHelper(self, event):
-        self.actualDepth = event.number
-        
+        deps = core.SubsystemList()
+        deps.append(self.eventHub)
+        deps.append(self.vehicle)
+
+        self.actualDepth = 0
+        self.desiredDepth = 0
+        self.controller = core.SubsystemMaker.newObject(cfg, deps)
+        self.qeventHub = core.QueuedEventHub(self.eventHub)
+
     def testAtDepth(self):
+        def handler(event):
+            self.actualDepth = event.number
+        
         # Subscribe to the event
-        self.controller.subscribe(control.IController.AT_DEPTH,
-                                  self.depthHelper)
+        self.controller.subscribe(control.IController.AT_DEPTH, handler)
 
         # Default Depth Threshold is 0.5
         self.vehicle.depth = 4;
@@ -76,6 +80,21 @@ class TestBWPDController(unittest.TestCase):
         self.controller.update(1);
         self.assertEqual(4, self.actualDepth)
 
+    def testQueuedEvents(self):
+        def desiredHandler(event):
+            self.desiredDepth = event.number
+            
+        self.qeventHub.subscribe(control.IController.DESIRED_DEPTH_UPDATE,
+                                 self.controller, desiredHandler)
+
+        # Make sure the event has got through yet
+        self.assertEquals(0, self.desiredDepth)
+        self.controller.setDepth(10)
+        self.assertEquals(0, self.desiredDepth)
+
+        # Publish the event
+        self.qeventHub.publishEvents()
+        self.assertEquals(10, self.desiredDepth)
 
 if __name__ == '__main__':
     unittest.main()

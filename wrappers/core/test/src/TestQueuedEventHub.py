@@ -54,7 +54,20 @@ class TestQueuedEventHub(unittest.TestCase):
         self.assertEquals(5, recv.calls)        
 
         for expType, actType in zip(types, recv.etypes):
-            self.assertEquals(expType, actType)        
+            self.assertEquals(expType, actType)
+
+    def testSubscrie(self):
+        recv = Reciever()
+        self.qehub.subscribe('A', self.epubA, recv)
+
+        self.assertEquals(0, recv.calls)
+        self.epubB.publish('A', core.Event())
+        self.assertEquals(0, recv.calls)
+
+        self.epubA.publish('A', core.Event())
+        self.assertEquals(0, recv.calls)
+        self.qehub.publishEvents()
+        self.assertEquals(1, recv.calls)
 
 if __name__ == '__main__':
     unittest.main()
