@@ -150,6 +150,10 @@ void BWPDController::rollVehicle(double degrees)
   m_desiredState->quaternion[1] = newQuaternion[1];
   m_desiredState->quaternion[2] = newQuaternion[2];
   m_desiredState->quaternion[3] = newQuaternion[3];
+
+  math::OrientationEventPtr event(new math::OrientationEvent());
+  event->orientation = math::Quaternion(m_desiredState->quaternion);
+  publish(IController::DESIRED_ORIENTATION_UPDATE, event);
 }
 
 void BWPDController::pitchVehicle(double degrees)
@@ -175,6 +179,10 @@ void BWPDController::pitchVehicle(double degrees)
   m_desiredState->quaternion[1] = newQuaternion[1];
   m_desiredState->quaternion[2] = newQuaternion[2];
   m_desiredState->quaternion[3] = newQuaternion[3];
+
+  math::OrientationEventPtr event(new math::OrientationEvent());
+  event->orientation = math::Quaternion(m_desiredState->quaternion);
+  publish(IController::DESIRED_ORIENTATION_UPDATE, event);
 }
 
 void BWPDController::yawVehicle(double degrees)
@@ -200,6 +208,10 @@ void BWPDController::yawVehicle(double degrees)
   m_desiredState->quaternion[1] = newQuaternion[1];
   m_desiredState->quaternion[2] = newQuaternion[2];
   m_desiredState->quaternion[3] = newQuaternion[3];
+
+  math::OrientationEventPtr event(new math::OrientationEvent());
+  event->orientation = math::Quaternion(m_desiredState->quaternion);
+  publish(IController::DESIRED_ORIENTATION_UPDATE, event);
 }
 
     

@@ -43,6 +43,9 @@ public:
      */
     static const core::Event::EventType DESIRED_DEPTH_UPDATE;
 
+    /** When the desired orientation changes (ram::math::OrientationEvent) */
+    static const core::Event::EventType DESIRED_ORIENTATION_UPDATE;
+
     /** When the vehicle reaches the depth set by the controller
      *
      *  Type is ram::math::NumbericEvent;

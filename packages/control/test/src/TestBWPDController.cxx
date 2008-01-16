@@ -171,3 +171,27 @@ TEST_FIXTURE(Fixture, Event_AT_DEPTH)
     controller.update(1);
     CHECK_EQUAL(4, actualDepth);
 }
+
+void orientationHelper(math::Quaternion* result, ram::core::EventPtr event)
+{
+    math::OrientationEventPtr oevent =
+        boost::dynamic_pointer_cast<ram::math::OrientationEvent>(event);
+    *result = oevent->orientation;
+}
+
+TEST_FIXTURE(Fixture, Event_DESIRED_ORIENTATION_UPDATE)
+{
+    math::Quaternion actualDesiredOrientation = math::Quaternion::IDENTITY;
+
+    // Subscribe to the event
+    controller.subscribe(ram::control::IController::DESIRED_ORIENTATION_UPDATE,
+                         boost::bind(orientationHelper,
+                                     &actualDesiredOrientation, _1));
+    
+    // Change vehicle orientation
+    controller.yawVehicle(15);
+
+    math::Quaternion expectedOrientation;
+    expectedOrientation.FromAngleAxis(math::Degree(15), math::Vector3::UNIT_Z);
+    CHECK_EQUAL(expectedOrientation, actualDesiredOrientation);
+}

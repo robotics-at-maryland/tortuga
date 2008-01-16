@@ -10,6 +10,7 @@ from gui.view import IPanelProvider
 from oci.view.controls import DepthBar, ThrusterBar, RotationCtrl
 import oci.model.subsystem as subsystemMod
 
+import ext.math
 import ext.vehicle
 import ext.vehicle.device
 import ext.control
@@ -159,9 +160,11 @@ class DepthPanel(wx.Panel):
 class RotationPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, eventHub, vehicle, *args, **kwargs):
+    def __init__(self, parent, eventHub, vehicle, controller, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._connections = []
+        self._actualOrientation = ext.math.Quaternion.IDENTITY
+        self._desiredOrientation = ext.math.Quaternion.IDENTITY
       
         # Create Rotational Controls
         values = [('Roll', RotationCtrl.ROLL), 
@@ -192,6 +195,9 @@ class RotationPanel(wx.Panel):
         self.Bind(wx.EVT_CLOSE,self._onClose)
         conn = eventHub.subscribe(ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
                                   vehicle, self._onOrientationUpdate)
+        
+        conn = eventHub.subscribe(ext.control.IController.DESIRED_ORIENTATION_UPDATE, 
+                                  controller, self._onDesiredOrientationUpdate)
         self._connections.append(conn)
         
     def _onClose(self, closeEvent):
@@ -200,11 +206,19 @@ class RotationPanel(wx.Panel):
         
         closeEvent.Skip()
     
+    def _onDesiredOrientationUpdate(self, event):
+        quat = event.orientation
+        self._desiredOrientation = quat
+        self._rollControl.setOrientation(self._actualOrientation, quat)
+        self._pitchControl.setOrientation(self._actualOrientation, quat)
+        self._yawControl.setOrientation(self._actualOrientation, quat)       
+    
     def _onOrientationUpdate(self, event):
         quat = event.orientation
-        self._rollControl.setOrientation(quat)
-        self._pitchControl.setOrientation(quat)
-        self._yawControl.setOrientation(quat)
+        self._actualOrientation = quat
+        self._rollControl.setOrientation(quat, self._desiredOrientation)
+        self._pitchControl.setOrientation(quat, self._desiredOrientation)
+        self._yawControl.setOrientation(quat, self._desiredOrientation)
   
     @staticmethod
     def getPanels(subsystems, parentFunc):
@@ -214,11 +228,14 @@ class RotationPanel(wx.Panel):
         vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
         
-        if vehicle is not None:
+        controller = core.Subsystem.getSubsystemOfType(
+            ext.control.IController, subsystems)
+        
+        if (vehicle is not None) or (controller is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Orientation")
             paneInfo = paneInfo.Caption("Orientation").Left()
         
-            panel = RotationPanel(parentFunc(), eventHub, vehicle)
+            panel = RotationPanel(parentFunc(), eventHub, vehicle, controller)
             return [(paneInfo, panel, [vehicle])]
         
         return []
