@@ -18,10 +18,10 @@ adcdata = adcdata(:,1:numsamples);
 adcdata = adcdata + signal_amplitude / snr * 2 * (0.5-rand(size(adcdata)));
 % warning: if the noise level or signal level is set too high, then
 % the following operation could overflow
-adcdata = uint8(round((adcdata) / adc_amplitude * 2^adc_bits));
+adcdata = int8(round((adcdata) / adc_amplitude * 2^adc_bits));
 
 f = fopen(filename, 'wb');
-fwrite(f, adcdata, 'uint8');
+fwrite(f, adcdata, 'int8');
 fclose(f);
 
 end

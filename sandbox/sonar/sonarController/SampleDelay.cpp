@@ -12,6 +12,7 @@
 
 
 #include <string.h>
+#include <assert.h>
 
 
 namespace ram {
@@ -20,11 +21,12 @@ namespace sonar {
 
 SampleDelay::SampleDelay(int nchannels, int numSamples)
 {
-	buflen = nchannels * numSamples;
+	assert(numSamples >= 0);
+	buflen = nchannels * (numSamples + 1);
 	buf = new adcdata_t[buflen];
 	bufend = &buf[buflen];
 	bufptr = buf;
-	increment = nchannels * sizeof(*buf);
+	increment = nchannels;
 	purge();
 }
 
@@ -39,7 +41,7 @@ void SampleDelay::writeSample(adcdata_t *sample)
 {
 	memcpy(bufptr, sample, increment);
 	bufptr += increment;
-	if (bufptr > bufend)
+	if (bufptr >= bufend)
 		bufptr = buf;
 }
 
@@ -52,7 +54,7 @@ adcdata_t * SampleDelay::readSample()
 
 void SampleDelay::purge()
 {
-	memset(buf, 0, buflen * sizeof(*buf));
+	memset(buf, 0, buflen);
 }
 
 
