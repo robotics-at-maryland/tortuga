@@ -256,6 +256,7 @@ void processData(byte data)
 
                 case BUS_CMD_THRUSTER_STATE:
                 {
+                    disableBusInterrupt();
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
@@ -265,11 +266,13 @@ void processData(byte data)
                     if(LAT_MOTR4 == MOTR_ON) txBuf[1] |= 0x08;
                     if(LAT_MOTR5 == MOTR_ON) txBuf[1] |= 0x10;
                     if(LAT_MOTR6 == MOTR_ON) txBuf[1] |= 0x20;
+                    enableBusInterrupt();
                     break;
                 }
 
                 case BUS_CMD_BOARDSTATUS:
                 {
+                    disableBusInterrupt();
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
@@ -280,10 +283,15 @@ void processData(byte data)
                     if(IN_BATT3 == BATT_ON) txBuf[1] |= 0x08;
                     if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x10;
                     if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x20;
-
+                    enableBusInterrupt();
                     break;
                 }
 
+                case BUS_CMD_HARDKILL:
+                {
+                    LAT_PWRKILL = PWRKILL_ON; /* Uh oh.... master kill */
+                    break;
+                }
             }
         }
         break;
