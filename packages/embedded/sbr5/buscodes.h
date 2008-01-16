@@ -58,7 +58,10 @@
 #define BUS_CMD_GETREPLY_U1     33
 #define BUS_CMD_GETREPLY_U2     34
 
-/* Next free is 39 */
+
+#define BUS_CMD_STARTSW         39
+
+/* Next free is 40 */
 
 
 
