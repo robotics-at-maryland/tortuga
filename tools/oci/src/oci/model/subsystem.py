@@ -44,9 +44,9 @@ class Vehicle(vehicle.IVehicle):
         self._currentTime += timestep  
         
         # Depth
-        self.depth = 50.0 * math.sin(self._currentTime) + 50.0
+        self.depth = 12.0 * math.sin(self._currentTime) + 12.0
         event = core.Event()
-        event.depth = self.depth
+        event.number = self.depth
         self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
         
         # Orientation

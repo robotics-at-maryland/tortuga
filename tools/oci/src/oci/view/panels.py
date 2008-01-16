@@ -70,20 +70,21 @@ class ThrusterPanel(wx.Panel):
                 device = vehicle.getDevice(name)
                 if isinstance(device, ext.vehicle.device.IThruster):
                     thrusters.append(device)
-            
-            
-            paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
-            paneInfo = paneInfo.Caption("Thrusters").Left()
     
-            return [(paneInfo, ThrusterPanel(parentFunc(), thrusters), 
-                     [vehicle])]
+            # Only create the panel if there are thrusters on the vehicle        
+            if len(thrusters):
+                paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
+                paneInfo = paneInfo.Caption("Thrusters").Left()
+        
+                return [(paneInfo, ThrusterPanel(parentFunc(), thrusters), 
+                         [vehicle])]
             
         return []
 
 class DepthPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, vehicle, *args, **kwargs):
+    def __init__(self, parent, vehicle, controller, *args, **kwargs):
         """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
@@ -94,6 +95,7 @@ class DepthPanel(wx.Panel):
         layout =  wx.GridBagSizer(10, 10)        
         label = wx.StaticText(self,-1,"Depth")    
         self._depthbar = DepthBar(self)
+        self._depthbar.minValue = 25
     
         layout.Add(label, (0,0),flag=wx.ALIGN_CENTER_HORIZONTAL)
         layout.Add(self._depthbar, (1,0),flag=wx.EXPAND)
@@ -104,12 +106,22 @@ class DepthPanel(wx.Panel):
         self.SetSizerAndFit(layout)
         self.SetSizeHints(0,0,100,-1)
         
-        conn = vehicle.subscribe(ext.vehicle.IVehicle.DEPTH_UPDATE, 
-                                 self._update)
-        self._connections.append(conn)
+        if vehicle is not None:
+            conn = vehicle.subscribe(ext.vehicle.IVehicle.DEPTH_UPDATE, 
+                                     self._depthUpdate)
+            self._connections.append(conn)
         
-    def _update(self,event):
-        self._depthbar.setVal(event.depth)
+        if controller is not None:
+            conn = controller.subscribe(ext.control.IController.DESIRED_DEPTH_UPDATE,
+                                        self._desiredDepthUpdate)
+        
+            self._connections.append(conn)
+        
+    def _depthUpdate(self,event):
+        self._depthbar.setVal(event.number)
+        
+    def _desiredDepthUpdate(self, event):
+        self._depthbar.desiredValue = event.number
 
     def _onClose(self, closeEvent):
         for conn in self._connections:
@@ -121,12 +133,16 @@ class DepthPanel(wx.Panel):
     def getPanels(subsystems, parentFunc):
         vehicle = ext.core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
+        controller = ext.core.Subsystem.getSubsystemOfType(
+            ext.control.IController, subsystems)
         
-        if vehicle is not None:
+        if (vehicle is not None) or (controller is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Depth")
             paneInfo = paneInfo.Caption("Depth").Left()
         
-            return [(paneInfo, DepthPanel(parentFunc(), vehicle), [vehicle])]
+        
+            panel = DepthPanel(parentFunc(), vehicle, controller)
+            return [(paneInfo, panel, [vehicle])]
         
         return []
 

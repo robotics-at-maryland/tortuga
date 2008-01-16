@@ -170,6 +170,14 @@ class SimVehicle(vehicle.IVehicle):
         pass
     
     def update(self, timeSinceUpdate):
-        pass
+        # Send Orientation Event
+        event = core.Event()
+        event.orientation = self.getOrientation()
+        self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
+        
+        # Send Depth Event
+        event = core.Event()
+        event.number = self.getDepth()
+        self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
 
 core.SubsystemMaker.registerSubsystem('SimVehicle', SimVehicle)

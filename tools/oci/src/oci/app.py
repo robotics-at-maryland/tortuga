@@ -7,9 +7,6 @@
 
 # Python Imports
 import time
-import sys
-import os.path
-from optparse import OptionParser
 
 # Library Imports
 import wx
@@ -38,31 +35,32 @@ class Application(wx.App):
     @ivar _heartBeat: updated every timer update
     """
     
+    def __init__(self, configPath = ''):
+        """
+        @type  configPath: str 
+        @param configPath: The path to configuration file containing the 
+                           subsystems to start. 
+        """
+        self._configPath = configPath
+        
+        # Now call parent class
+        wx.App.__init__(self)
+    
+    
     def OnInit(self):
         # Initialize instance variables
         self.timer = None
         self._lastTime = 0.0
         self._updateInterval = 0.0
         self._heartBeat = 0
-        
-        # Parse command line options
-        defaultConfigPath = os.path.abspath(
-            os.path.join(os.environ['RAM_SVN_DIR'], 'tools', 'oci', 'data', 
-                         'test.yml'))
-        
-        parser = OptionParser()
-        parser.add_option("-c", "--config", dest = "configPath", 
-                          default = defaultConfigPath,
-                          help = "The path to the config file")
-        (options, args) = parser.parse_args()
 
         # Create config file
         config = {}
-        if len(options.configPath) > 0:
-            config = yaml.load(file(options.configPath))
+        if len(self._configPath) > 0:
+            config = yaml.load(file(self._configPath))
         
         # Create our C++ app
-        self._app = ext.core.Application(options.configPath)
+        self._app = ext.core.Application(self._configPath)
 
         # Build a list of subsystems
         subsystems = []
@@ -71,7 +69,7 @@ class Application(wx.App):
             subsystems.append(self._app.getSubsystem(names[i]))
 
         # Create the Main Frame
-        guiCfg = config.get('Subsystems', {}).get('GUI', {})
+        guiCfg = config.get('GUI', {})
         frame = oci.frame.MainFrame(guiCfg, subsystems)
                                       
         frame.Show(True)
@@ -81,7 +79,7 @@ class Application(wx.App):
         self.timer = wx.Timer()
         self.Bind(wx.EVT_TIMER, self._onTimer, self.timer)
     
-        self._updateInterval = 1000.0 / guiCfg.get('updateRate', 1)
+        self._updateInterval = 1000.0 / guiCfg.get('updateRate', 10)
         self._lastTime = self._getTime()
         self.timer.Start(self._updateInterval, True)
         

@@ -7,6 +7,8 @@
 
 # STD Imports
 import sys
+import os
+from optparse import OptionParser
 
 # Library Imports
 import yaml
@@ -15,7 +17,18 @@ import yaml
 import oci.app as app
 
 def main():            
-    application = app.Application()
+    # Parse command line options
+    defaultConfigPath = os.path.abspath(
+        os.path.join(os.environ['RAM_SVN_DIR'], 'tools', 'oci', 'data', 
+                     'test.yml'))
+    
+    parser = OptionParser()
+    parser.add_option("-c", "--config", dest = "configPath", 
+                      default = defaultConfigPath,
+                      help = "The path to the config file")
+    (options, args) = parser.parse_args()
+
+    application = app.Application(options.configPath)
     application.MainLoop()
 
 if __name__ == '__main__':

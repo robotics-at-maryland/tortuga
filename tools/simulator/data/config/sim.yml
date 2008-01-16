@@ -2,7 +2,10 @@
 # It tells the program what kind of vehicle to create
 
 
-# All new config file stuff here
+GUI:
+    # In Hz
+    updateRate: 60
+
 Subsystems:
     Vehicle:
         type: SimVehicle

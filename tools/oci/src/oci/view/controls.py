@@ -11,6 +11,7 @@ from math import radians,sqrt,pi
 import wx
 
 # Project Imports
+import math as pmath
 import ext.core as core
 import ext.math as math
 
@@ -107,7 +108,6 @@ class DepthBar(wx.PyControl):
             self.barValue=val
             self.Refresh() #Refresh the display
         else:
-            print val
             # return None if we could not process setVal due to constraints
             return None 
             
@@ -159,18 +159,22 @@ class RotationCtrl(wx.Panel):
                           style = style | wx.TAB_TRAVERSAL | wx.NO_BORDER)
         
         self.rotVal = 0
+        self.desiredRotVal = 0
         
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         #self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
-    def setOrientation(self,quat):
+    def setOrientation(self, quat, desiredQuat = math.Quaternion.IDENTITY):
         style = self.GetWindowStyle()
         if style & RotationCtrl.ROLL:
             self.rotVal = (quat.getRoll(True)).valueRadians()
+            self.desiredRotVal = (desiredQuat.getRoll(True)).valueRadians()
         elif style & RotationCtrl.PITCH:
             self.rotVal = (quat.getPitch(True)).valueRadians()
+            self.desiredRotVal = (desiredQuat.getPitch(True)).valueRadians()
         elif style & RotationCtrl.YAW:
             self.rotVal = (quat.getYaw(True)).valueRadians()
+            self.desiredRotVal = (desiredQuat.getYaw(True)).valueRadians()
         self.Refresh()
     
     #def OnEraseBackground(self, event):
@@ -179,7 +183,14 @@ class RotationCtrl(wx.Panel):
     def OnPaint(self, evt):
         dc = wx.PaintDC(self)
         gc = wx.GraphicsContext.Create(dc)
-        self.draw(gc)        
+        
+        gc.PushState()
+        self.draw(gc) 
+        gc.PopState()
+        
+        gc.PushState()
+        self.drawText(gc, dc)       
+        gc.PopState()
            
     def draw(self,gc):
         # TODO: change pen color to correspond to degrees rotated?
@@ -242,8 +253,8 @@ class RotationCtrl(wx.Panel):
             gc.Translate(originalWidth/2,radius+5)
         else:
             gc.Translate(xCenter*2,radius+5)
-        # Rotate on origin triangle
-        gc.Rotate(self.rotVal) #Assumes radians!
+        # Rotate on origin triangle (pmath.pi is to fix triangle facing down)
+        gc.Rotate(self.rotVal + pmath.pi) #Assumes radians!
         gc.DrawPath(trianglePath)
          
         # Draw the circle that circumscribes the triangle
@@ -254,7 +265,10 @@ class RotationCtrl(wx.Panel):
         # Draw the direction indicator
         gc.SetPen(wx.Pen(wx.Colour(0, 0, 255, 200),3))
         gc.DrawPath(directionCircle)
-
+        
+        # Rotate back for next triangle
+        gc.Rotate(-self.rotVal)
+        
         
         # Create a copy of the triangle path to display desired orientation
         # work on rotating independently
@@ -265,7 +279,7 @@ class RotationCtrl(wx.Panel):
         desiredPath.AddPath(directionCircle)
         desiredPath.CloseSubpath()
         xform = gc.CreateMatrix()
-        xform.Rotate(-self.rotVal)
+        xform.Rotate(self.desiredRotVal)
         desiredPath.Transform(xform)
         
         pen = wx.Pen(wx.Colour(0, 0, 0, 128),3)
@@ -278,3 +292,49 @@ class RotationCtrl(wx.Panel):
         gc.DrawPath(desiredPath)
         #gc.StrokePath(desiredPath)
         #gc.FillPath(desiredPath)
+        
+    def getTextExtent(self, gc, dc, text):
+        if "wxGTK" in wx.PlatformInfo:
+            # NYI in Cairo context
+            return dc.GetTextExtent(text)
+        else:
+            return gc.GetTextExtent(text)
+        
+    def drawText(self, gc, dc):
+        """
+        Draws the currrent rotation in the middle of the circle
+        """
+        # Determin center
+        width, height = self.GetSize()
+        smallest = width
+        if height < width:
+            smallest = height
+        xCenter = smallest/2
+        yCenter = smallest/2
+        
+        # Set Font
+        font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        #font.SetWeight(wx.BOLD)
+        font.SetPointSize(int(float(font.GetPointSize()) * 1.5))
+        gc.SetFont(font)
+        
+        # Draw Background marker
+        defaultText = "-000.0"
+        textAreaWidth, textAreaHeight = self.getTextExtent(gc, dc, defaultText)
+        
+        rectHeight = textAreaHeight * 1.25
+        rectWidth = textAreaWidth * 1.5
+        
+        gc.SetPen(wx.Pen("black", 3))
+        gc.SetBrush(wx.Brush("white"))
+        gc.DrawRectangle(xCenter - rectWidth/2, yCenter - rectHeight/2, 
+                         rectWidth, rectHeight)
+        
+        # Draw text
+        rotStr = "% 4.1f" % (self.rotVal * 180/pmath.pi)
+        textWidth, textHeight = self.getTextExtent(gc, dc, rotStr)
+        leftOffset = textAreaWidth - textWidth
+        
+        gc.DrawText(rotStr, xCenter - textAreaWidth / 2 + leftOffset, 
+                            yCenter - textAreaHeight / 2)
+        

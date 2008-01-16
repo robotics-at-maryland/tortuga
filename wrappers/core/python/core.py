@@ -69,7 +69,7 @@ class Subsystem(_core.Subsystem):
             if isinstance(d, _type):
                 return d
 
-        raise Exception("Subsystem of that type not found")
+        return None
     
     def __init__(self, name):
         _core.Subsystem.__init__(self, name)
