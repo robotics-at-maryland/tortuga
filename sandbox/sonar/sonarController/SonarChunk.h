@@ -32,7 +32,7 @@ public:
 	~SonarChunk();
 	static SonarChunk *newInstance();
 	
-	const static int capacity = 2048;
+	const static int capacity;
 	adcsampleindex_t startIndex;
 	
 	bool append(adcdata_t);

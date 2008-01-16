@@ -20,6 +20,7 @@ namespace ram {
 namespace sonar {
 
 
+const int SonarChunk::capacity(2048);
 std::list<SonarChunk*> SonarChunk::pool;
 
 
