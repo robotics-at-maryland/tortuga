@@ -73,8 +73,8 @@ struct SimpleSlidingDFTTestFixture {
 
 TEST_FIXTURE(SimpleSlidingDFTTestFixture, CheckAgainstFFTW)
 {
-	int nchannels = 3, N = 20, k = 5, seed = 42, countFrames = 160;
-	int countInputData = N * nchannels * (countFrames + N);
+	int nchannels = 3, N = 20, k = 5, seed = 42, countFrames = 200;
+	int countInputData = nchannels * countFrames;
 	
 	//  A parameter needed by fftw
 	int *n = new int[nchannels];
@@ -103,12 +103,12 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CheckAgainstFFTW)
 	for (int i = 0 ; i < N ; i ++)
 		myDFT.update(&adcdataSamples[i * nchannels]);
 	
-    for (int i = 0 ; i < countFrames ; i ++)
+    for (int i = N ; i < countFrames ; i ++)
     {
     	//  Set up the DFT with fftw.  We are using fftw as a trusted 
     	//  reference DFT.  SimpleSlidingDFT should give equivalent results.
 		fftw_plan p = fftw_plan_many_dft_r2c(1, n, nchannels,
-					&doubleSamples[i * nchannels], NULL,
+					&doubleSamples[(i - N) * nchannels], NULL,
 					nchannels, 1,
 					out, NULL,
 					nchannels, 1,
@@ -149,7 +149,7 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CheckAgainstFFTW)
 		}
 		
 		//  Update the sliding DFT.
-		myDFT.update(&adcdataSamples[(i + N) * nchannels]);
+		myDFT.update(&adcdataSamples[i * nchannels]);
 		
 		//  Throw out the old fftw plan to prepare for a new one.
 		fftw_destroy_plan(p);
