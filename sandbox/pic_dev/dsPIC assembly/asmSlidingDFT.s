@@ -18,6 +18,7 @@
 .bss trigger,2
 .bss timestamp,16
 .bss trigFlag,2
+.bss trigger,2
 
 
 ; W register arguments:
@@ -56,7 +57,7 @@ _asmSlidingDFT:
 	; W9 is index loop mask (N-1)
 	; W10 is not used
 	; W11 is not used
-	; W12 is trigger level
+	; W12 is not used
 	; W13 is scratch register, dsp
 	; W14 is frame pointer
 	; W15 is stack pointer
@@ -69,7 +70,7 @@ _asmSlidingDFT:
 	clr		W3				; start at buffer index 0
 	sl		W0,W2			; shift left one bit to get number of bytes instead of words
 	dec		W2,W9			; generate bit mask for buffer index looping
-	mov		W4,W12			; store trigger value
+	mov		W4,trigger		; store trigger value
 	
 	mov		#0xF,W0
 	mov		W0,trigFlag		; trigger count, counting down
@@ -81,7 +82,7 @@ BigLoop:
 	bra		BigLoop
 	
 	; TOTAL INSTRUCTIONS EXECUTED AFTER THIS POINT:
-	; >>> 181
+	; >>> 177
 	
 	
 	; >> 32 INSTRUCTIONS
@@ -339,52 +340,49 @@ BigLoop:
 	clr		A,[W13]							; write back to kMags
 	
 
-	; >>> 37 INSTRUCTIONS
+
+	; >>> 33 INSTRUCTIONS
 	; Compare the norms to the trigger level
 	mov		&kMags,W8			; address of kMags in W8
-	
-	btss	trigFlag,0			; check if this channel has triggered already
-	rcall	_apdCallOffset14	; returns at _apdChXDone label
-	cpslt	W12,[W8++]			; compare trigger to kMag for channel 0
-	rcall	_apdCallOffset10	; returns at _apdChXDone label
-	mov		TMR8,W0				; get timestamp low word
-	mov		W0,timestamp+0		; store timestamp low word
-	mov		TMR9HLD,W0			; get timestamp high word
-	mov		W0,timestamp+2		; store timestamp high word
+	mov		&TMR8,W6
+	mov		&TMR9HLD,W7
+	mov		&timestamp,W13
+	mov		trigger,W0
+
+	btsc	trigFlag,0			; check if this channel has triggered already
+	cpslt	W0,[W8++]			; compare trigger to kMag for channel 0
+	bra		_apdCh0Skip			; returns at _apdChXDone label
+	mov		[W6],[W13++]		; get timestamp low word
+	mov		[W7],[W13++]		; get timestamp high word
 	bclr	trigFlag,0			; decrement trigger counter
+	nop
 _apdCh0Done
 
-	btss	trigFlag,1			; check if this channel has triggered already
-	rcall	_apdCallOffset14	; returns at _apdChXDone label
-	cpslt	W12,[W8++]			; compare trigger to kMag for channel 0
-	rcall	_apdCallOffset10	; returns at _apdChXDone label
-	mov		TMR8,W0				; get timestamp low word
-	mov		W0,timestamp+4		; store timestamp low word
-	mov		TMR9HLD,W0			; get timestamp high word
-	mov		W0,timestamp+6		; store timestamp high word
+	btsc	trigFlag,1			; check if this channel has triggered already
+	cpslt	W0,[W8++]			; compare trigger to kMag for channel 0
+	bra		_apdCh1Skip			; returns at _apdChXDone label
+	mov		[W6],[W13++]		; get timestamp low word
+	mov		[W7],[W13++]		; get timestamp high word
 	bclr	trigFlag,1			; decrement trigger counter
+	nop
 _apdCh1Done
 
-	btss	trigFlag,2			; check if this channel has triggered already
-	rcall	_apdCallOffset14	; returns at _apdChXDone label
-	cpslt	W12,[W8++]			; compare trigger to kMag for channel 0
-	rcall	_apdCallOffset10	; returns at _apdChXDone label
-	mov		TMR8,W0				; get timestamp low word
-	mov		W0,timestamp+8		; store timestamp low word
-	mov		TMR9HLD,W0			; get timestamp high word
-	mov		W0,timestamp+10		; store timestamp high word
+	btsc	trigFlag,2			; check if this channel has triggered already
+	cpslt	W0,[W8++]			; compare trigger to kMag for channel 0
+	bra		_apdCh2Skip			; returns at _apdChXDone label
+	mov		[W6],[W13++]		; get timestamp low word
+	mov		[W7],[W13++]		; get timestamp high word
 	bclr	trigFlag,2			; decrement trigger counter
+	nop
 _apdCh2Done
 
-	btss	trigFlag,3			; check if this channel has triggered already
-	rcall	_apdCallOffset14	; returns at _apdChXDone label
-	cpslt	W12,[W8++]			; compare trigger to kMag for channel 0
-	rcall	_apdCallOffset10	; returns at _apdChXDone label
-	mov		TMR8,W0				; get timestamp low word
-	mov		W0,timestamp+12		; store timestamp low word
-	mov		TMR9HLD,W0			; get timestamp high word
-	mov		W0,timestamp+14		; store timestamp high word
+	btsc	trigFlag,3			; check if this channel has triggered already
+	cpslt	W0,[W8++]			; compare trigger to kMag for channel 0
+	bra		_apdCh3Skip			; returns at _apdChXDone label
+	mov		[W6],[W13++]		; get timestamp low word
+	mov		[W7],[W13++]		; get timestamp high word
 	bclr	trigFlag,3			; decrement trigger counter
+	nop
 _apdCh3Done
 
 	; >>> LOOP OVERHEAD: 3 INSTRUCTIONS
@@ -410,22 +408,24 @@ _apdCh3Done
 	return
 
 
-_apdCallOffset10
-	; TOS-1 is return location
-	; we want to increment that number by 10, exactly 5 instructions later
-	pop		W0					; get return address
-	add		W0,#10,[W15++]		; add offset and push result
-	return
+;-----------------
 
-_apdCallOffset14
-	; TOS-1 is return location
-	; we want to increment that number by 10, exactly 5 instructions later
-	pop		W0					; get return address
-	add		W0,#14,[W15++]		; add offset and push result
-	nop
-	nop
-	return
+_apdCh0Skip
+	add		#4,W13,W13
+	bra		_apdCh0Done
+	
+_apdCh1Skip
+	add		#4,W13,W13
+	bra		_apdCh1Done
 
+_apdCh2Skip
+	add		#4,W13,W13
+	bra		_apdCh2Done
+
+_apdCh3Skip
+	add		#4,W13,W13
+	bra		_apdCh3Done
+	
 
 
 .end
