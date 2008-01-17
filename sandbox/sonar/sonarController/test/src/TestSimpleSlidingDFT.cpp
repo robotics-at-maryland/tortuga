@@ -71,9 +71,8 @@ struct SimpleSlidingDFTTestFixture {
 };
 
 
-TEST_FIXTURE(SimpleSlidingDFTTestFixture, CheckAgainstFFTW)
+TEST_UTILITY(CheckAgainstFFTW, (adcdata_t *adcdataSamples, int nchannels, int countFrames, int k, int N))
 {
-	int nchannels = 3, N = 20, k = 5, seed = 42, countFrames = 200;
 	int countInputData = nchannels * countFrames;
 	
 	//  A parameter needed by fftw
@@ -84,15 +83,8 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CheckAgainstFFTW)
 	SimpleSlidingDFT myDFT(nchannels, k, N);
 	
 	double *doubleSamples = new double[countInputData];
-	adcdata_t *adcdataSamples = new adcdata_t[countInputData];
-	
-	rand_adcdata_vector(adcdataSamples, countInputData, seed);
-	adcdata_vector_to_real(adcdataSamples, doubleSamples, countInputData);
-	
-	//  Uncomment the next two lines to replace the random test vector with a cosine-wave test vector
-	
-	//  cos_adcdata_vector(adcdataSamples, nchannels, (countFrames + N)/8, countFrames + N);
-	//  adcdata_vector_to_real(adcdataSamples, doubleSamples, countInputData);
+	SimpleSlidingDFTTestFixture::
+		adcdata_vector_to_real(adcdataSamples, doubleSamples, countInputData);
 	
 	//  Allocate a destination array for fftw.
 	fftw_complex *out = 
@@ -136,8 +128,10 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CheckAgainstFFTW)
 			
 			//  Convert fftw's output to the same normalization as our sliding
 			//  DFT.
-			adcmath_t re_theirs = normalize_double(re_propagated);
-			adcmath_t im_theirs = normalize_double(im_propagated);
+			adcmath_t re_theirs = 
+				SimpleSlidingDFTTestFixture::normalize_double(re_propagated);
+			adcmath_t im_theirs = 
+				SimpleSlidingDFTTestFixture::normalize_double(im_propagated);
 			
 			//  Get results from our sliding DFT.
 			adcmath_t re_mine = myDFT.getReal(channel);
@@ -157,6 +151,35 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CheckAgainstFFTW)
 	
     fftw_free(out);
 	delete [] doubleSamples;
-	delete [] adcdataSamples;
 	delete [] n;
+}
+
+
+TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTRandomInput)
+{
+	int nchannels = 3, N = 20, k = 5, seed = 42, countFrames = 200;
+	int countInputData = nchannels * countFrames;
+	
+	adcdata_t *in = new adcdata_t[countInputData];
+	
+	rand_adcdata_vector(in, countInputData, seed);
+	
+	TEST_UTILITY_FUNC(CheckAgainstFFTW)(in, nchannels, countFrames, k, N);
+	
+	delete [] in;
+}
+
+
+TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTCosineInput)
+{
+	int nchannels = 3, N = 20, k = 5, countFrames = 200;
+	int countInputData = nchannels * countFrames;
+	
+	adcdata_t *in = new adcdata_t[countInputData];
+	
+	cos_adcdata_vector(in, nchannels, countFrames/8, countFrames);
+	
+	TEST_UTILITY_FUNC(CheckAgainstFFTW)(in, nchannels, countFrames, k, N);
+	
+	delete [] in;
 }
