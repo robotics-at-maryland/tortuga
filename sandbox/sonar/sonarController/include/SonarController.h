@@ -21,7 +21,7 @@
 
 #include "Sonar.h"
 #include "SonarChunk.h"
-#include "SlidingDFT/SimpleSlidingDFT.h"
+#include "SimpleSlidingDFT.h"
 
 
 namespace ram {

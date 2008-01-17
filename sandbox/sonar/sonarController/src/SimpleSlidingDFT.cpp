@@ -51,6 +51,14 @@ void SimpleSlidingDFT::update(adcdata_t * sample)
 {
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
+		/*	We subtract window____[channel][firstidx] because both windowreal[i]
+		 *	and windowimag[i] are circular buffers.  On the next call of this 
+		 *	function, window____[channel][firstidx] will be overwritten with 
+		 *	computations from the next sample.
+		 */
+		
+		sumreal[channel] -= windowreal[channel][curidx];
+		sumimag[channel] -= windowimag[channel][curidx];
 		
 		/*	For each sample we receive, we only need to compute one new term in
 		 *	the DFT sum.  These two lines together compute 
@@ -100,18 +108,6 @@ void SimpleSlidingDFT::update(adcdata_t * sample)
 	++curidx;
 	if (curidx == N)
 		curidx = 0;
-	
-	for (int channel = 0 ; channel < nchannels ; channel ++)
-	{
-		/*	We subtract window____[channel][firstidx] because both windowreal[i]
-		 *	and windowimag[i] are circular buffers.  On the next call of this 
-		 *	function, window____[channel][firstidx] will be overwritten with 
-		 *	computations from the next sample.
-		 */
-		
-		sumreal[channel] -= windowreal[channel][curidx];
-		sumimag[channel] -= windowimag[channel][curidx];
-	}
 }
 
 
@@ -121,8 +117,8 @@ void SimpleSlidingDFT::setupCoefficients()
 	coefimag = new adcdata_t[N];
 	for (int n = 0 ; n < N ; n++)
 	{
-		coefreal[n] = cosf(- 2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE;
-		coefimag[n] = sinf(- 2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE;
+		coefreal[n] = (adcdata_t) (cos(- 2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE);
+		coefimag[n] = (adcdata_t) (sin(- 2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE);
 	}
 }
 

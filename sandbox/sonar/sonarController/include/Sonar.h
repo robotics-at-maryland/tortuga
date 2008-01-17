@@ -16,7 +16,7 @@
 #define SONAR_H
 
 
-#include "stdint.h"
+#include <stdint.h>
 
 
 namespace ram {
@@ -28,7 +28,7 @@ typedef int32_t adcmath_t;
 typedef int32_t adcsampleindex_t;
 
 
-static const int ADCDATA_MAXAMPLITUDE = 127;
+static const int ADCDATA_MAXAMPLITUDE = (1 << (sizeof(adcdata_t) * 8 - 1)) - 1;
 static const int NCHANNELS = 4;
 static const int BITS_ADCCOEFF = 8;
 static const float PINGDURATION = 1.3e-3;

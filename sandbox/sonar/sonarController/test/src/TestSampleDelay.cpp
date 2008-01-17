@@ -9,9 +9,11 @@
 
 
 #include <UnitTest++/UnitTest++.h>
+#include <stdint.h>
+
+
 #include "SampleDelay.h"
-#include <stdio.h>
-#include "stdint.h"
+
 
 struct SampleDelayTestFixture {
 };
