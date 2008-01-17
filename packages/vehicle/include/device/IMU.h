@@ -48,24 +48,27 @@ class IMU : public IIMU,
             // boost::noncopyable
 {
 public:
-    enum UpdateEvents {
-        DataUpdate
-    };
+    
+    /** Create an IMU with the given device file */
+    IMU(core::ConfigNode config,
+        core::EventHubPtr eventHub = core::EventHubPtr(),
+        IVehiclePtr vehicle = IVehiclePtr());
+
+    virtual ~IMU();
+    
+    virtual math::Vector3 getLinearAcceleration();
+
+    virtual math::Vector3 getAngularRate();
+
+    virtual math::Quaternion getOrientation();
+    
+    /** Grabs the raw IMU state */
+    void getRawState(RawIMUData& imuState);
+    /** Grab filtered state */
+    void getFilteredState(FilteredIMUData& filteredState);
 
     virtual std::string getName() { return Device::getName(); }
     
-    /** Create an IMU with the given device file */
-    IMU(core::ConfigNode config);
-
-    /** Creats a new object */
-    static IMUPtr construct(core::ConfigNode config);
-
-    /** Preforms a cast to the desired type */
-    static IMUPtr castTo(IDevicePtr ptr);
-//    static IMU* castTo(IDevice* ptr);
-    
-    virtual ~IMU();
-
     /** This is called at the desired interval to read data from the IMU */
     virtual void update(double timestep);
 
@@ -80,17 +83,6 @@ public:
     virtual bool backgrounded() {
         return Updatable::backgrounded();
     };
-
-    virtual math::Vector3 getLinearAcceleration();
-
-    virtual math::Vector3 getAngularRate();
-
-    virtual math::Quaternion getOrientation();
-    
-    /** Grabs the raw IMU state */
-    void getRawState(RawIMUData& imuState);
-    /** Grab filtered state */
-    void getFilteredState(FilteredIMUData& filteredState);
     
 private:
     void rotateAndFilterData(RawIMUData* newState);

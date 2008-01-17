@@ -41,8 +41,8 @@ class IDeviceMaker(_device.IDeviceMaker):
         self.args = None
         self._createClass = createClass
 
-    def makeObject(self, config):
-        return self._createClass(eval(config.toString()))
+    def makeObject(self, config, eventHub, vehicle):
+        return self._createClass(eval(config.toString()), eventHub, vehicle)
 
 def registerDevice(name, cls):
     cls.maker = IDeviceMaker(name, cls)
@@ -50,8 +50,8 @@ def registerDevice(name, cls):
 IDeviceMaker.registerDevice = staticmethod(registerDevice)
 
 class Device(_device.IDevice):
-    def __init__(self, name):
-        _device.IDevice.__init__(self)
+    def __init__(self, name, eventHub = None):
+        _device.IDevice.__init__(self, eventHub)
         self._name = name
 
     def getName(self):

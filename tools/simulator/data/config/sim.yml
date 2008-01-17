@@ -18,11 +18,16 @@ Subsystems:
         type: SimVehicle
         depends_on: ["Simulation", "EventHub"]
 
+    MotionManager:
+        type: MotionManager
+        depends_on: ["Vehicle", "Controller", "QueuedEventHub"]
+
     Controller:
         depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
         #update_interval: 10
 
+        depthThreshold: 0.2
         angularPGain: 10
         angularDGain: 1
         speedPGain: 3

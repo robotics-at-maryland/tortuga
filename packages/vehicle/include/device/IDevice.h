@@ -19,6 +19,7 @@
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
+#include "core/include/EventPublisher.h"
 #include "core/include/IUpdatable.h"
 
 // Must Be Included last
@@ -28,10 +29,12 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class RAM_EXPORT IDevice : public core::IUpdatable, boost::noncopyable
+class RAM_EXPORT IDevice : public core::IUpdatable,
+                           public core::EventPublisher,
+                           boost::noncopyable
 {
 public:
-    virtual ~IDevice() {};
+    virtual ~IDevice();
 
     virtual std::string getName() = 0;
 
@@ -50,6 +53,9 @@ public:
         assert(ptr && "Failed to cast IDevice pointer");
         return ptr;
     }
+    
+protected:
+    IDevice(core::EventHubPtr eventHub);
 };
     
 } // namespace device

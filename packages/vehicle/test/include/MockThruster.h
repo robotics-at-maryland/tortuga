@@ -18,7 +18,9 @@ class MockThruster : public ram::vehicle::device::IThruster,
                      public ram::vehicle::device::Device
 {
 public:
-    MockThruster(std::string name) : Device(name) {}
+    MockThruster(std::string name) :
+        IThruster(ram::core::EventHubPtr()),
+        Device(name) {}
 
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
@@ -27,6 +29,11 @@ public:
     virtual void setForce(double newtons) { force = newtons; }
 
     virtual double getForce() { return force; }
+
+    virtual double getMaxForce() { return 10; }
+
+    virtual double getMinForce() { return -10; }
+    
     
     double force;
     

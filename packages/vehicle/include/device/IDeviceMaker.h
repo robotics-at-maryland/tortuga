@@ -10,7 +10,11 @@
 #ifndef RAM_VEHICLE_IDEVICEMAKER_10_29_2007
 #define	RAM_VEHICLE_IDEVICEMAKER_10_29_2007
 
+// Library Includes
+#include <boost/tuple/tuple.hpp>
+
 // Project Includes
+#include "vehicle/include/Common.h"
 #include "vehicle/include/device/Common.h"
 #include "vehicle/include/device/IDevice.h"
 #include "pattern/include/Maker.h"
@@ -28,18 +32,29 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
+typedef boost::tuple<core::ConfigNode,
+                     core::EventHubPtr, IVehiclePtr> IDeviceMakerParamType;
+
+struct IDeviceKeyExtractor
+{
+    static std::string extractKey(IDeviceMakerParamType& params)
+    {
+        return core::ConfigNodeKeyExtractor::extractKey(boost::get<0>(params));
+    }
+};
+    
 typedef pattern::Maker<IDevicePtr, // The type of object created by the maker
-              ram::core::ConfigNode,  // The parameter used to create the object
+              IDeviceMakerParamType,  // The parameter used to create the object
               std::string,            // The type of key used to register makers
-              ram::core::ConfigNodeKeyExtractor> // Gets the key from the paramters
+              IDeviceKeyExtractor> // Gets the key from the paramters
 IDeviceMaker;
 
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
 template class RAM_EXPORT pattern::Maker<IDevicePtr,
-    core::ConfigNode,
+    IDeviceMakerParamType,
     std::string,
-    core::ConfigNodeKeyExtractor>;
+    IDeviceKeyExtractor>;
 #endif
 
 template<class DeviceType>
@@ -47,9 +62,11 @@ struct IDeviceMakerTemplate : public IDeviceMaker
 {
     IDeviceMakerTemplate(std::string deviceType) : IDeviceMaker(deviceType) {};
     
-    virtual IDevicePtr makeObject(core::ConfigNode config)
+    virtual IDevicePtr makeObject(IDeviceMakerParamType params)
     {
-        return IDevicePtr(new DeviceType(config));
+        return IDevicePtr(new DeviceType(boost::get<0>(params),
+                                         boost::get<1>(params),
+                                         boost::get<2>(params)));
     }
 };
 

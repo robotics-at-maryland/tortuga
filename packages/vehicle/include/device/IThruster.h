@@ -36,6 +36,15 @@ public:
 
     /** Return the current force the thrusters are outputing in newtons */
     virtual double getForce() = 0;
+
+    /** The maximum positive force in Newtons the thruster produces */
+    virtual double getMaxForce() = 0;
+
+    /** The maximum negative force in Newtons the thruster produces */
+    virtual double getMinForce() = 0;
+                                         
+protected:
+    IThruster(core::EventHubPtr eventHub = core::EventHubPtr());  
 };
     
 } // namespace device

@@ -4,27 +4,25 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/src/device/IThruster.cpp
+ * File:  packages/vision/src/device/IDevice.cpp
  */
 
 // Project Includes
-#include "vehicle/include/device/IThruster.h"
-
-RAM_CORE_EVENT_TYPE(ram::vehicle::device::IThruster, FORCE_UPDATE);
+#include "vehicle/include/device/IDevice.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
-    
-IThruster::IThruster(core::EventHubPtr eventHub) :
-    IDevice(eventHub)
+
+IDevice::IDevice(core::EventHubPtr eventHub) :
+    core::EventPublisher(eventHub)
 {
 }
 
-IThruster::~IThruster()
-{    
+IDevice::~IDevice()
+{
 }
-
+    
 } // namespace device
 } // namespace vehicle
 } // namespace ram

@@ -18,7 +18,8 @@
 class DeviceA : public ram::vehicle::device::IDevice
 {
 public:
-    virtual ~DeviceA() {};
+    DeviceA() :
+        ram::vehicle::device::IDevice(ram::core::EventHubPtr()) {};
     virtual std::string getName() { return "DeviceA"; }
     virtual void update(double) {}
     virtual void background(int) {}
@@ -29,7 +30,8 @@ public:
 class DeviceB : public ram::vehicle::device::IDevice
 {
 public:
-    virtual ~DeviceB() {};
+    DeviceB() :
+        ram::vehicle::device::IDevice(ram::core::EventHubPtr()) {};
     virtual std::string getName() { return "DeviceB"; }
     virtual void update(double) {}
     virtual void background(int) {}

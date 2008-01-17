@@ -22,8 +22,17 @@ class MockDevice : public ram::vehicle::device::IDevice,
                    public ram::vehicle::device::Device
 {
 public:
-    MockDevice(std::string name) : Device(name) {}
-    MockDevice(ram::core::ConfigNode config) : Device(config["name"].asString()) {}
+    MockDevice(std::string name) :
+        IDevice(ram::core::EventHubPtr()),
+        Device(name) {}
+    
+    MockDevice(ram::core::ConfigNode config,
+               ram::core::EventHubPtr eventHub =
+               ram::core::EventHubPtr(),
+               ram::vehicle::IVehiclePtr vehicle =
+               ram::vehicle::IVehiclePtr()) :
+        IDevice(eventHub),
+        Device(config["name"].asString()) {}
 
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();

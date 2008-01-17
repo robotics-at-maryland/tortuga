@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/src/device/Thruster.cpp
+ * File:  packages/vision/src/device/Device.cpp
  */
 
 // STD Includes

@@ -14,6 +14,7 @@
 #include <string>
 
 // Project Includes
+#include "vehicle/include/Common.h"
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/IThruster.h"
 
@@ -29,30 +30,26 @@ class Thruster : public Device, // for getName
                  // boost::noncopyable
 {
 public:
-    enum UpdateEvents {
-        FORCE_UPDATE
-    };
-
     virtual std::string getName() { return Device::getName(); }
     
     /** Create a thruster with the given address */
-    Thruster(core::ConfigNode config);
+    Thruster(core::ConfigNode config,
+             core::EventHubPtr eventHub = core::EventHubPtr(),
+             IVehiclePtr vehicle = IVehiclePtr());
     
     virtual ~Thruster();
 
-    /** Creats a new object */
-    static ThrusterPtr construct(core::ConfigNode config);
-
-    /** Preforms a cast to the desired type */
-    static ThrusterPtr castTo(IDevicePtr ptr);
-//    static Thruster* castTo(IDevice* ptr);
-    
     /** Sets the current thruster force of the thrusters */
-    void setForce(double newtons);
+    virtual void setForce(double newtons);
 
     /** Return the current force the thrusters are outputing in newtons */
-    double getForce();
+    virtual double getForce();
 
+    virtual double getMaxForce();
+    
+    virtual double getMinForce();
+
+    
     /** Gets the current motor count */
     int getMotorCount();
     

@@ -8,6 +8,7 @@
 # Library Imports
 import wx
 import wx.aui
+import wx.py
 
 # Project Imports
 from gui.view import IPanelProvider
@@ -46,10 +47,23 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
 
         # Add panels for all the current subsystems
         self._addSubsystemPanels(subsystems)
+        self._addShell(subsystems)
         
         self.SetMinSize(self.GetSize())
-    
         self.Bind(wx.EVT_CLOSE,self._onClose)            
+    
+    def _addShell(self, subsystems):
+        # Build locals
+        subsystemDict = {}
+        for subsystem in subsystems:
+            subsystemDict[subsystem.getName()] = subsystem
+        locals = {}
+        locals['subsystems'] = subsystemDict
+        
+        shell = wx.py.shell.Shell(self._createMDIChild(), locals = locals)
+        paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
+        paneInfo = paneInfo.Caption("Shell").Left()
+        self._addSubsystemPanel(paneInfo, shell, [])
     
     def _onClose(self, event):
         # TODO: Update this list based on whether the close or not

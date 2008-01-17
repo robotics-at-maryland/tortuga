@@ -14,18 +14,16 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/ThrusterCommunicator.h"
 #include "vehicle/include/device/ThrusterCommand.h"
-
-// Project Includes
-#include "vehicle/include/device/Thruster.h"
-#include "vehicle/include/device/ThrusterCommunicator.h"
-#include "vehicle/include/device/ThrusterCommand.h"
+#include "math/include/Events.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
     
-Thruster::Thruster(core::ConfigNode config) :
+Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
+                   IVehiclePtr vehicle) :
     Device(config["name"].asString()),
+    IThruster(eventHub),
     m_address(config["address"].asInt()),
     m_calibrationFactor(config["calibration_factor"].asDouble()),
     m_direction(config["direction"].asInt(1))
@@ -49,21 +47,6 @@ Thruster::~Thruster()
     ThrusterCommunicator::unRegisterThruster(this);*/
 }
 
-ThrusterPtr Thruster::construct(core::ConfigNode config)
-{
-    return ThrusterPtr(new Thruster(config));
-}
-
-ThrusterPtr Thruster::castTo(IDevicePtr ptr)
-{
-    return boost::dynamic_pointer_cast<Thruster>(ptr);
-}
-/*
-Thruster* Thruster::castTo(IDevice* ptr)
-{
-    return dynamic_cast<Thruster*>(ptr);
-    }*/
-    
 void Thruster::setForce(double force)
 {
     double b = 0; // Not currently used
@@ -91,10 +74,9 @@ void Thruster::setForce(double force)
         m_motorCount = motorCount;
     }
 
-    // TODO: Replace me with an event
-    // Notify observers
-    //etChanged();
-    //notifyObservers(0, FORCE_UPDATE);
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = m_force;
+    publish(IThruster::FORCE_UPDATE, event);
 }
 
 double Thruster::getForce()
@@ -107,6 +89,16 @@ int Thruster::getMotorCount()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_forceMutex);
     return m_motorCount;
+}
+
+double Thruster::getMaxForce()
+{
+    return (((1023.0 * 27) / 1023) + 0.0) * m_calibrationFactor;
+}
+    
+double Thruster::getMinForce()
+{
+    return (((-1023 * 27) / 1023) + 0.0) * m_calibrationFactor;
 }
     
 void Thruster::update(double timestep)

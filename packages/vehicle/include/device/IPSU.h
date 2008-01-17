@@ -28,11 +28,7 @@ class RAM_EXPORT IPSU : public IDevice          // For getName
             // boost::noncopyable
 {
 public:
-    enum UpdateEvents {
-        DataUpdate
-    };
-    
-    virtual ~IPSU() {};
+    virtual ~IPSU();
 
     /** Gets the voltage from the main batteries*/
     double getBatteryVoltage();
@@ -54,6 +50,9 @@ public:
     
     /** The names of all output supplies */
     StringList getSupplyNames();
+    
+protected:
+    IPSU(core::EventHubPtr eventHub = core::EventHubPtr());  
 };
     
 } // namespace device

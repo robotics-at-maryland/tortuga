@@ -28,7 +28,9 @@ namespace device {
 
 using namespace ram::math;
     
-IMU::IMU(core::ConfigNode config) :
+IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
+         IVehiclePtr vehicle) :
+    IIMU(eventHub),
     Device(config["name"].asString()),
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/imu")),
@@ -92,21 +94,7 @@ IMU::~IMU()
     m_logfile.close();
 }
 
-IMUPtr IMU::construct(core::ConfigNode config)
-{
-    return IMUPtr(new IMU(config));
-}
 
-IMUPtr IMU::castTo(IDevicePtr ptr)
-{
-    return boost::dynamic_pointer_cast<IMU>(ptr);
-}
-/*
-IMU* IMU::castTo(IDevice* ptr)
-{
-    return dynamic_cast<IMU*>(ptr);
-}
-*/ 
 void IMU::update(double timestep)
 {
 //    std::cout << "IMU update" << std::endl;

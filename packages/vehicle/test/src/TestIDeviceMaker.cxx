@@ -9,6 +9,7 @@
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/tuple/tuple.hpp>
 
 // Test Includes
 #include "vehicle/include/device/IDeviceMaker.h"
@@ -22,7 +23,10 @@ TEST(DeviceMaker)
 {
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
             "{ 'name' : 'IMU', 'type' : 'MockDevice' }"));
-    device::IDevicePtr device = device::IDeviceMaker::newObject(config);
+    device::IDevicePtr device = device::IDeviceMaker::newObject( 
+        boost::make_tuple(config,
+                          ram::core::EventHubPtr(),
+                          ram::vehicle::IVehiclePtr() ));
     
     CHECK_EQUAL("IMU", device->getName());
 }

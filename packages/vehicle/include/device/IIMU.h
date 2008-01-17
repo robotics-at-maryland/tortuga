@@ -28,17 +28,16 @@ class RAM_EXPORT IIMU : public IDevice         // For getName
              // boost::noncopyable
 {
 public:
-    enum UpdateEvents {
-        DataUpdate
-    };
-        
-    virtual ~IIMU() {};
+    virtual ~IIMU();
 
     virtual math::Vector3 getLinearAcceleration() = 0;
 
     virtual math::Vector3 getAngularRate() = 0;
     
     virtual math::Quaternion getOrientation() = 0;
+    
+protected:
+    IIMU(core::EventHubPtr eventHub = core::EventHubPtr());  
 };
     
 } // namespace device
