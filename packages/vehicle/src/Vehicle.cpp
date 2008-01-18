@@ -244,9 +244,9 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
         0.5 * rotationalTorques[2] / m_rStarboard;
     double port = translationalForces[0] / 2 -
         0.5 * rotationalTorques[2] / m_rPort;
-    double fore = translationalForces[2] / 2 +
+    double fore = translationalForces[2] / 2 -
         0.5 * rotationalTorques[1] / m_rFore;
-    double aft = translationalForces[2]/2 -
+    double aft = translationalForces[2]/2 +
       0.5 * rotationalTorques[1] / m_rAft;
 
     if (m_devices.end() != m_devices.find(m_starboardThruster))
