@@ -3,6 +3,16 @@
 	
 	; asmSlidingDFT( int Log2N, fractional * pData, fractcomplex wFactor, fractional trigger );
 	
+	
+	
+	; Pinouts...
+	; Configure THS1206 in signed integer mode.  Connect 12 data lines to upper bits of port.
+	
+	
+	
+	
+	
+	
 	.include "dspcommon.inc"
 	
 	.global _asmSlidingDFT
@@ -64,16 +74,35 @@ _asmSlidingDFT:
 	
 	
 	
-	mov.d	W2,W4		; store complex wFactor
+	mov		W4,trigger		; store trigger value
+	mov		W5,mLen			; store window length
+	mov.d	W2,W4			; store complex wFactor
 	
 	
-	clr		W3				; start at buffer index 0
 	sl		W0,W2			; shift left one bit to get number of bytes instead of words
 	dec		W2,W9			; generate bit mask for buffer index looping
-	mov		W4,trigger		; store trigger value
+	clr		W3				; start at buffer index 0
 	
 	mov		#0xF,W0
 	mov		W0,trigFlag		; trigger count, counting down
+	
+	; Initialize the DFT
+	; All we have to do is zero out the entire data buffer and the dft terms
+	mov		&kValue,W0
+	repeat	#7				; clear out all 8 kValue registers
+	clr		[W0++]
+	mov		W1,W0			; get address of data buffer
+	sl		W2,#2,W6		; multiply N by 4 to get total length of buffer
+	dec		W6				; decrement to get REPEAT argument
+	repeat	W6				; clear entire array
+	clr		[W0++]
+	
+	
+
+	
+	
+	
+	
 		
 BigLoop:
 	
@@ -82,43 +111,51 @@ BigLoop:
 	bra		BigLoop
 	
 	; TOTAL INSTRUCTIONS EXECUTED AFTER THIS POINT:
-	; >>> 177
+	; >>> 185
 	
 	
-	; >> 32 INSTRUCTIONS
+	; >> 40 INSTRUCTIONS
 	; >> uses W0 scratch
 	; Collect the data
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
-	mov		W0,localBuf
+	asr		W0,#4,W0
+	mov		W0,localBuf+0
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
+	asr		W0,#4,W0
 	mov		W0,localBuf+1
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
+	asr		W0,#4,W0
 	mov		W0,localBuf+2
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
+	asr		W0,#4,W0
 	mov		W0,localBuf+3
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
+	asr		W0,#4,W0
 	mov		W0,localBuf+4
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
+	asr		W0,#4,W0
 	mov		W0,localBuf+5
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
+	asr		W0,#4,W0
 	mov		W0,localBuf+6
 	bclr	RD_PIN
 	mov		DATA_PORT,W0
 	bset	RD_PIN
+	asr		W0,#4,W0
 	mov		W0,localBuf+7
 	
 	
