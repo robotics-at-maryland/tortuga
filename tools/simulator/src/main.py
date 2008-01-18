@@ -84,10 +84,10 @@ def main(args = None):
     # Determine path for Python-Ogre and set environment variable, and
     # PYTHONPATH properly
     os.environ['PYTHON_OGRE_HOME'] = options.pythonOgreHome
+    # The import of ram.sim will put PYTHON_OGRE_HOME onto the sys.path
     sys.path.insert(0, os.path.join(options.pythonOgreHome, 'packages_2.5'))
 
     # Now Import the packages which depend on Python Ogre
-    print 'DEBUG',sys.path
     import sim.subsystems
 
     # Start up the application (with or without the GUI)

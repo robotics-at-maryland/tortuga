@@ -22,6 +22,9 @@ class Reciever(object):
         self.event = event
         self.called = True
 
+class MockEventSource(object):
+    THING_UPDATED = core.declareEventType('THING_UPDATED')
+
 # Test States (Consider Magic base class to take care of the init method)
 class TrackedState(state.State):
     def __init__(self, machine):
@@ -40,16 +43,21 @@ class Start(TrackedState):
         TrackedState.__init__(self, machine)
         self.event = None
         self.func = None
+        self.thingUpdatedEvent = None
         
     @staticmethod
     def transitions():
         return { "Start" : End,
                  "Change" : Simple,
-                 "LoopBack" : LoopBack }
+                 "LoopBack" : LoopBack ,
+                 MockEventSource.THING_UPDATED : End}
  #                "Stuck" : state.PushState(Unstick) }
 
     def Start(self, event):
         self.event = event
+        
+    def THING_UPDATED(self, event):
+        self.thingUpdatedEvent = event
 
 #class Unstick(TrackedState):
 #    
@@ -113,6 +121,7 @@ class TestStateMachine(unittest.TestCase):
         self.assert_(cstate)
 
         # Make sure the transition function was called
+        self.assertNotEquals(None, startState.event)
         self.assertEquals(startState.event.sender, self.machine)
         self.assertEquals(startState.event.value, 1)
 
@@ -166,6 +175,24 @@ class TestStateMachine(unittest.TestCase):
         self.assertEquals(self.machine, exitRecv.event.sender)
         self.assertEquals(startState, exitRecv.event.state)
         
+    def testDeclaredEvents(self):
+        startState = self.machine.currentState()
+
+        self.machine.injectEvent(self._makeEvent(MockEventSource.THING_UPDATED,
+                                                 value = 4))
+        cstate = self.machine.currentState()
+
+        # Check to me sure we left the start state
+        self.assert_(startState.exited)
+
+        # Check to make sure we reached the proper state
+        self.assertEquals(End, type(cstate))
+        self.assert_(cstate)
+
+        # Make sure the transition function was called
+        self.assertNotEquals(None, startState.thingUpdatedEvent)
+        self.assertEquals(startState.thingUpdatedEvent.sender, self.machine)
+        self.assertEquals(startState.thingUpdatedEvent.value, 4)
         
 if __name__ == '__main__':
     unittest.main()

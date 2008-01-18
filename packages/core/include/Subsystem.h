@@ -47,6 +47,10 @@ public:
 
     /** Finds the first Subsystem of the desired type in the list
      *
+     *  This is determine by a dynamic down cast, so there can be problems
+     *  if there exists a subclass of the type you want, and the base class
+     *  in the same list.  Use 'getSubsystemOfExactType' for those cases.
+     *
      *  @return A shared_ptr of the desired type, null if not found.
      */
     template<typename T>
@@ -63,6 +67,25 @@ public:
         }
         
         return result;
+    }
+
+    /** Finds the Subsystem of the exact type in the list */
+    template<typename T>
+    static boost::shared_ptr<T> getSubsystemOfExactType(SubsystemList list) 
+    {
+        SubsystemListIter iter = list.begin();
+        SubsystemListIter end = list.end();
+        for (; iter != end; ++iter) 
+        {
+            // Ignore null pointers
+            if (*iter)
+            {
+                if (typeid(T) == typeid(*(*iter).get()))
+                    return boost::dynamic_pointer_cast<T>(*iter);
+            }
+        }
+        
+        return boost::shared_ptr<T>();
     }
     
 protected:

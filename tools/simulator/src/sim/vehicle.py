@@ -72,7 +72,7 @@ class SimThruster(core.EventPublisher, device.IThruster):
 
 class SimVehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
-        eventHub = core.Subsystem.getSubsystemOfType(core.EventHub, deps)
+        eventHub = core.Subsystem.getSubsystemOfExactType(core.EventHub, deps)
         vehicle.IVehicle.__init__(self, config.get('name', 'SimVehicle'),
                                   eventHub)
         

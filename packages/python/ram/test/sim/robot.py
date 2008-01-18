@@ -13,9 +13,6 @@ module is retreived with tests.sim.robot.get_suite().
 # Ptyhon Imports
 import unittest
 
-# Library Imports
-#import ogre.renderer.OGRE as Ogre
-
 # Project Imporst
 import core
 

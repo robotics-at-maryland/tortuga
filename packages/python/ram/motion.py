@@ -13,19 +13,27 @@ import ext.math as math
 
 class MotionManager(core.Subsystem):
     def __init__(self, config, deps):
-        core.Subsystem.__init__(self, config.get('name', 'MotionManager'))
+        core.Subsystem.__init__(self, config.get('name', 'MotionManager'), deps)
         self._motion = None
         
-        self._controller = core.Subsystem.getSubsystemOfType(control.IController, deps)
-        self._vehicle = core.Subsystem.getSubsystemOfType(vehicle.IVehicle, deps)
-        self._eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, deps)
+        self._controller = core.Subsystem.getSubsystemOfType(control.IController, 
+                                                             deps, 
+                                                             nonNone = True)
+        
+        self._vehicle = core.Subsystem.getSubsystemOfType(vehicle.IVehicle, 
+                                                          deps, 
+                                                          nonNone = True)
+        
+        self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
+                                                           deps,
+                                                           nonNone = True)
             
     def setMotion(self, motion):
         if self._motion is not None:
             self._motion.stop()
             
         self._motion = motion
-        self._motion.start(self._controller, self._vehicle, self._eventHub)    
+        self._motion.start(self._controller, self._vehicle, self._qeventHub)    
         
     def background(self):
         pass

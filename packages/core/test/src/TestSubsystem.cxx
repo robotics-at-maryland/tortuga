@@ -53,10 +53,10 @@ TEST(GetSubsystem)
 	
 	config.set("name", "Mock2");
 	MockSub2* mock2 = new MockSub2(config);
-	
+
 	config.set("name", "Mock3");
 	MockSub3* mock3 = new MockSub3(config);
-	
+        
 	ram::core::SubsystemList subsystemList = boost::assign::list_of(
             ram::core::SubsystemPtr(mock1))
             (ram::core::SubsystemPtr(mock2))
@@ -72,10 +72,43 @@ TEST(GetSubsystem)
 	CHECK_EQUAL(mock3, sub3.get());
 	CHECK_EQUAL("Mock3", sub3->getName());
 
-        ram::core::SubsystemPtr sub =
+        ram::core::SubsystemPtr sub1 =
             ram::core::Subsystem::getSubsystemOfType<MockSub1>(subsystemList);
+	CHECK_EQUAL(mock1, sub1.get());
+	CHECK_EQUAL("Mock1", sub1->getName());
+
+        // This just returns the first one because they all subclass
+        // MockSubsystem
+        ram::core::SubsystemPtr sub =
+            ram::core::Subsystem::getSubsystemOfType<MockSubsystem>(subsystemList);
 	CHECK_EQUAL(mock1, sub.get());
 	CHECK_EQUAL("Mock1", sub->getName());
+}
+
+TEST(GetSubsystemExact)
+{
+	ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
+	            "{ 'name' : 'Mock1' }"));
+	MockSub1* mock1 = new MockSub1(config);
+	
+	config.set("name", "Mock2");
+	MockSub2* mock2 = new MockSub2(config);
+
+	config.set("name", "Mock3");
+	MockSubsystem* mock = new MockSubsystem(config,
+                                                ram::core::SubsystemList());
+	
+	ram::core::SubsystemList subsystemList = boost::assign::list_of(
+            ram::core::SubsystemPtr(mock1))
+            (ram::core::SubsystemPtr(mock2))
+            (ram::core::SubsystemPtr(mock));
+
+        ram::core::SubsystemPtr sub =
+            ram::core::Subsystem::getSubsystemOfExactType<MockSubsystem>(
+                subsystemList);
+        
+	CHECK_EQUAL(mock, sub.get());
+	CHECK_EQUAL("Mock3", sub->getName());
 }
 
 TEST(Events)

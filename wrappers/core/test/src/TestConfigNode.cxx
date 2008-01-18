@@ -57,11 +57,11 @@ TEST_FIXTURE(DeviceFixture, Vehicle)
 }
 
 // Slight Hack, to pull in event functor test module
-// extern "C" void initevent_functor();
+extern "C" void initevent_functor();
 
 int main()
 {
-//    PyImport_AppendInittab("event_functor", initevent_functor);
+    PyImport_AppendInittab("event_functor", initevent_functor);
     Py_Initialize();
     return UnitTest::RunAllTests();
 }

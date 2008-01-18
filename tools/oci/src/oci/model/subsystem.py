@@ -17,7 +17,7 @@ import ext.vehicle.device as device
 
 class Vehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
-        eventHub = core.Subsystem.getSubsystemOfType(core.EventHub, deps)
+        eventHub = core.Subsystem.getSubsystemOfExactType(core.EventHub, deps)
         vehicle.IVehicle.__init__(self, config["name"], eventHub)
         
         self._devices = {}

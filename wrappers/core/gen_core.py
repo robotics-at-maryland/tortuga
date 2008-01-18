@@ -101,8 +101,8 @@ def generate(module_builder, local_ns, global_ns):
 
     # This one has to be first because Py++ is too stupid to actually put it
     # before these!!
-    module_builder.add_registration_code("registerSubsystemClass();")
     module_builder.add_registration_code("registerSubsystemList();")
+    module_builder.add_registration_code("registerSubsystemClass();")
     module_builder.add_registration_code("registerSubsystemMakerClass();")
     module_builder.add_registration_code("registerEventHubClass();")
     module_builder.add_registration_code("registerQueuedEventHubClass();")

@@ -70,7 +70,6 @@ class TestBody(unittest.TestCase):
         for i in xrange(100):
             self.scene.world.update(0.05)
 
-        print self.body.omega.z
         self.assert_(self.body.omega.z < 0 )
         
     def test_torque(self):

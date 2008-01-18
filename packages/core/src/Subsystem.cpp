@@ -30,7 +30,7 @@ Subsystem::Subsystem(std::string name, EventHubPtr eventHub) :
 }
 
 Subsystem::Subsystem(std::string name, SubsystemList list) :
-    EventPublisher(getSubsystemOfType<EventHub>(list)),
+    EventPublisher(getSubsystemOfExactType<EventHub>(list)),
     m_name(name)
 {
 }

@@ -16,6 +16,18 @@
 
 namespace bp = boost::python;
 
+
+static ram::core::SubsystemList pythonListToCpp(bp::list list)
+{
+    ram::core::SubsystemList result;
+
+    int length = bp::len(list);
+    for (int i = 0; i < length; ++i)
+        result.push_back(bp::extract<ram::core::SubsystemPtr>(list[i]));
+
+    return result;
+}
+
 class SubsystemWrapper : public ram::core::Subsystem,
                          public bp::wrapper< ram::core::Subsystem >
 {
@@ -31,6 +43,12 @@ public:
                      ram::core::SubsystemList list) :
         Subsystem(name, list),
         bp::wrapper< ram::core::Subsystem >()
+    {}
+
+     SubsystemWrapper(std::string name,
+                      bp::list list) :
+         Subsystem(name, pythonListToCpp(list)),
+         bp::wrapper< ram::core::Subsystem >()
     {}
 
     virtual void background( int interval=-1 ){
@@ -63,6 +81,12 @@ void registerSubsystemClass()
             bp::init<std::string, bp::optional<ram::core::EventHubPtr> >(
                 (bp::arg("name"),
                  bp::arg("eventHub") = ram::core::EventHubPtr())) )
+        .def(bp::init<std::string, ram::core::SubsystemList>(
+                 (bp::arg("name"),
+                  bp::arg("deps") = ram::core::SubsystemList())) )
+        .def(bp::init<std::string, bp::list>(
+                 (bp::arg("name"),
+                  bp::arg("list") = bp::list())) )
         .def("getName", &ram::core::Subsystem::getName)
         .add_property("name", &ram::core::Subsystem::getName);
 

@@ -65,8 +65,8 @@ class ThrusterPanel(wx.Panel):
     
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        eventHub = core.Subsystem.getNamedSubsystemOfType(
-            "QueuedEventHub", core.QueuedEventHub,  subsystems)
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
+                                                     subsystems)
         
         vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
@@ -139,8 +139,8 @@ class DepthPanel(wx.Panel):
         
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        eventHub = core.Subsystem.getNamedSubsystemOfType(
-            "QueuedEventHub", core.QueuedEventHub,  subsystems)
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
         
         vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
@@ -222,8 +222,8 @@ class RotationPanel(wx.Panel):
   
     @staticmethod
     def getPanels(subsystems, parentFunc):
-        eventHub = core.Subsystem.getNamedSubsystemOfType(
-            "QueuedEventHub", core.QueuedEventHub,  subsystems)
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
         
         vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)

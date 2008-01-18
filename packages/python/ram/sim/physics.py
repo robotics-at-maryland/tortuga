@@ -534,7 +534,6 @@ class World(OgreNewt.World):
         Here to ensure that all body reference counts go to zero so that there 
         won't be any OgreNewt bodies without a valid world.
         """
-        print 'Removing references to all bodies'
         del self._material_pairs
         del self._materials
         del self._listeners

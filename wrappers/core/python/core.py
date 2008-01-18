@@ -56,7 +56,7 @@ class Subsystem(_core.Subsystem):
     """
     
     @staticmethod
-    def getSubsystemOfType(_type, deps):
+    def getSubsystemOfType(_type, deps, nonNone = False, exact = False):
         """
         Returns the subsystem of the desired type from the given list
         """
@@ -66,28 +66,53 @@ class Subsystem(_core.Subsystem):
 
         # Check each subsystem
         for d in deps:
-            if isinstance(d, _type):
-                return d
+            # For exact which compare types, 
+            if exact:
+                if _type == type(d):
+                    return d
+            # Non exact uses "isinstance" which means subclasses still work
+            else:
+                if isinstance(d, _type):
+                    return d
 
+        if nonNone:
+            raise Exception("No Subsystem of type: '%s' found" % _type)
+        
         return None
 
     @staticmethod
-    def getSubsystemByName(name, deps):
-        for d in deps:
-            if d.getName() == name:
-                return d
+    def getSubsystemOfExactType(_type, deps, nonNone = False):
+        subsystem = Subsystem.getSubsystemOfType(_type, deps, exact = True)
 
-        return None
+        if nonNone and subsystem is None:
+            raise Exception("No Subsystem of type: '%s' found" % _type)
+        
+        return subsystem
 
-    @staticmethod
-    def getNamedSubsystemOfType(name, _type, deps):
-        subsystem = Subsystem.getSubsystemByName(name, deps)
-        if isinstance(subsystem, _type):
-            return subsystem
-        return None
+    #@staticmethod
+    #def getSubsystemByName(name, deps, nonNone = False):
+    #    for d in deps:
+    #        if d.getName() == name:
+    #            return d
+
+    #   if nonNone:
+    #        raise Exception("No Subsystem named: '%s' found" % name)
+            
+    #    return None
+
+#    @staticmethod
+#    def getNamedSubsystemOfType(name, _type, deps, nonNone = False):
+#        subsystem = Subsystem.getSubsystemByName(name, deps)
+#        if isinstance(subsystem, _type):
+#            return subsystem
+
+#        if nonNone:
+#            raise Exception("No Subsystem named: '%s' of type: '%s' found" % (name, _type))
+        
+#        return None
     
-    def __init__(self, name):
-        _core.Subsystem.__init__(self, name)
+    def __init__(self, name, deps = None):
+        _core.Subsystem.__init__(self, name, deps)
         
     def background(self, interval = -1):
         pass
