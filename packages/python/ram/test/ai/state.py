@@ -22,8 +22,18 @@ class Reciever(object):
         self.event = event
         self.called = True
 
-class MockEventSource(object):
+class MockEventSource(core.EventPublisher):
     THING_UPDATED = core.declareEventType('THING_UPDATED')
+    ANOTHER_EVT = core.declareEventType('ANOTHER_EVT')
+    
+    def __init__(self, eventHub = None):
+        core.EventPublisher.__init__(self, eventHub)
+        
+    def sendEvent(self, etype, **kwargs):
+        event = core.Event()
+        for key, value in kwargs.iteritems():
+            setattr(event, key, value)
+        self.publish(etype, event)
 
 # Test States (Consider Magic base class to take care of the init method)
 class TrackedState(state.State):
@@ -44,13 +54,15 @@ class Start(TrackedState):
         self.event = None
         self.func = None
         self.thingUpdatedEvent = None
+        self.anotherEvtEvent = None
         
     @staticmethod
     def transitions():
         return { "Start" : End,
                  "Change" : Simple,
                  "LoopBack" : LoopBack ,
-                 MockEventSource.THING_UPDATED : End}
+                 MockEventSource.THING_UPDATED : End,
+                 MockEventSource.ANOTHER_EVT : QueueTestState}
  #                "Stuck" : state.PushState(Unstick) }
 
     def Start(self, event):
@@ -58,7 +70,16 @@ class Start(TrackedState):
         
     def THING_UPDATED(self, event):
         self.thingUpdatedEvent = event
+        
+    def ANOTHER_EVT(self, event):
+        self.anotherEvtEvent = event
 
+class QueueTestState(TrackedState):
+    @staticmethod
+    def transitions():
+        #return {}
+        return {MockEventSource.ANOTHER_EVT : End}
+    
 #class Unstick(TrackedState):
 #    
 
@@ -193,6 +214,30 @@ class TestStateMachine(unittest.TestCase):
         self.assertNotEquals(None, startState.thingUpdatedEvent)
         self.assertEquals(startState.thingUpdatedEvent.sender, self.machine)
         self.assertEquals(startState.thingUpdatedEvent.value, 4)
+        
+    def testEventHub(self):
+        eventHub = core.EventHub()
+        qeventHub = core.QueuedEventHub(eventHub)
+        mockEventSource = MockEventSource(eventHub)
+        
+        machine = state.Machine(deps = [eventHub, qeventHub])
+        machine.start(Start)
+        
+        # Send an event, and make sure it does get through until the queue
+        # releases it
+        mockEventSource.sendEvent(MockEventSource.ANOTHER_EVT, value = 20)
+        startState = machine.currentState()
+        self.assertEquals(Start, type(startState))
+        
+        # Release events and make sure we have transition properly
+        qeventHub.publishEvents()
+        self.assertEquals(QueueTestState, type(machine.currentState()))
+        self.assertEquals(20, startState.anotherEvtEvent.value)
+        
+        # Fire off another event and make sure we haven't gone anywhere
+        mockEventSource.sendEvent(MockEventSource.THING_UPDATED, value = 34)
+        qeventHub.publishEvents()
+        self.assertEquals(QueueTestState, type(machine.currentState()))
         
 if __name__ == '__main__':
     unittest.main()

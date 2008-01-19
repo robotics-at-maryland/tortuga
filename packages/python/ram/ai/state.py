@@ -25,7 +25,7 @@ class State(object):
         """
         Returns a map of eventTypes -> resulting states, loopbacks are allowed
         """
-        pass
+        return {}
 
     def enter(self):
         """
@@ -74,6 +74,8 @@ class Machine(core.Subsystem):
         self._currentState = None
         self._started = False
         self._qeventHub = None
+        self._previousEvent = core.Event()
+        self._connections = []
         
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
                                                             deps)
@@ -97,6 +99,13 @@ class Machine(core.Subsystem):
         @type  event: ext.core.Event
         @param event: A new event for the state machine to process 
         """
+        # If the state we just entered transitions on same kind of event that
+        # caused the transition, we can be notified again with the same event!
+        # This check here prevents that event from causing an unwanted 
+        # transition.
+        if event == self._previousEvent:
+            return
+        
         if not self._started:
             raise Exception("Machine must be started")
         
@@ -123,11 +132,24 @@ class Machine(core.Subsystem):
             if not loopback:
                 # Create an instance of the next state's class
                 self._enterState(nextState(self))
+                
+        # Record previous event
+        self._previousEvent = event
 
     def _enterState(self, newState):
         """
         Does all the house keeping when entering a new state
         """
+        
+        # Subscribe to every event of the desired type
+        if self._qeventHub is not None:
+            transitionTable = type(newState).transitions()
+            for eventType in transitionTable.iterkeys():
+                conn = self._qeventHub.subscribeToType(eventType, 
+                                                       self.injectEvent)
+                self._connections.append(conn)
+        
+        
         self._currentState = newState
         self._currentState.enter()
         
@@ -141,6 +163,9 @@ class Machine(core.Subsystem):
         """
         self._currentState.exit()
                 
+        for conn in self._connections:
+            conn.disconnect()
+                
         changeEvent = core.Event()
         changeEvent.state = self._currentState
         self.publish(Machine.STATE_EXITED, changeEvent)
@@ -150,8 +175,7 @@ class Machine(core.Subsystem):
         Determines which funtion during a transistaion between states
         
         This uses the event type of the event which caused the transition to
-        determine which member funtion of the state for which the transition
-        occured.
+        determine which member funtion of the self._currentState to call.
         """
         # Trim etype of namespace stuff
         etype = etype.split(' ')[-1]
