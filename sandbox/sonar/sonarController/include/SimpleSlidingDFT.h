@@ -19,16 +19,16 @@ namespace ram {
 namespace sonar {
 
 
-class SimpleSlidingDFT : public SlidingDFT<SimpleSlidingDFT> {
+class SimpleSlidingDFT : public SlidingDFT {
 
 public:
 	SimpleSlidingDFT(int nchannels, int k, int N);
 	~SimpleSlidingDFT();
-	void purge();
-	void update(adcdata_t * sample);
-	adcmath_t getMagL1(int channel) const;
-	adcmath_t getReal(int channel) const;
-	adcmath_t getImag(int channel) const;
+	virtual void purge();
+	virtual void update(adcdata_t * sample);
+	virtual adcmath_t getMagL1(int channel) const;
+	virtual adcmath_t getReal(int channel) const;
+	virtual adcmath_t getImag(int channel) const;
 	
 private:
 	void setupCoefficients();

@@ -1,4 +1,11 @@
 function plotadcdata(filename,nsamp,stride)
+% PLOTADCDATA(filename, nsamp, stride
+%   Plot ADC data records stored to a file
+%
+%   Input arguments:
+%     filename  The name of the file where the data is stored
+%     nsamp     The number of samples to plot
+%     stride    Number of samples to skip between plot points
 
 config;
 f = fopen(filename, 'rb');
@@ -7,6 +14,6 @@ fclose(f);
 clf;
 for i=1:nchannels
   subplot(nchannels, 1, i);
-  ylabel(sprintf('Channel %d',i-1));
   plot(dat(i,1:stride:nsamp));
+  ylabel(sprintf('Channel %d',i-1));
 end

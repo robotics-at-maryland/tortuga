@@ -21,7 +21,7 @@ namespace ram {
 namespace sonar {
 
 
-SimpleSlidingDFT::SimpleSlidingDFT(int nchannels, int k, int N) : SlidingDFT<SimpleSlidingDFT>(nchannels, k, N)
+SimpleSlidingDFT::SimpleSlidingDFT(int nchannels, int k, int N) : SlidingDFT(nchannels, k, N)
 {
 	setupCoefficients();
 	setupWindow();
@@ -82,7 +82,7 @@ void SimpleSlidingDFT::update(adcdata_t * sample)
 		/*	The next two lines update the real and imaginary part of the complex
 		 *	output amplitude.
 		 *	
-		 *	We add window____[channel][curidx] to sum____[channel] because all 
+		 *	We add window____[channel][curidx] to sum____[chan constnel] because all 
 		 *	of the previous N-1 terms of F(k), numbered 0,1,...,N-3,N-2, were 
 		 *	calculated and summed during previous iterations of this function - 
 		 *	hence the name "sliding DFT".
