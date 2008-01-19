@@ -1,5 +1,5 @@
 /*
- *  SimpleSimpleSlidingDFT.cpp
+ *  SimpleSlidingDFT.cpp
  *  sonarController
  *
  *  Created by Leo Singer on 12/10/07.

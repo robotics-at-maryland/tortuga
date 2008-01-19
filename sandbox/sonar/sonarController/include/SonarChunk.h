@@ -24,7 +24,17 @@
 namespace ram {
 namespace sonar {
 
-
+/**
+ * Provides long-term storage of sound sample data.
+ * 
+ * When you are done with a SonarChunk instance, recycle() rather than delete 
+ * it.  recycle() reinitializes all the fields in the instance, returning it to
+ * the clean state it was in when it was first created.  The clean instance is 
+ * not deallocated but rather added to a pool of empty SonarChunks.
+ * 
+ * When you need a new SonarChunk instance, using newInstance() will draw a 
+ * recycled SonarChunk from the pool rather than allocating a new one.
+ */
 class SonarChunk {
 	
 public:

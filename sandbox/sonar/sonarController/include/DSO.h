@@ -31,6 +31,8 @@ class DSO {
 	DSO(int nchannels, int k, int N, int presample);
 	~DSO();
 	void update(adcdata_t *sample);
+	
+	//	Reconstruct the sample data from triggered, stored SonarChunks
 	void reconstruct_adcdata(adcdata_t *out, adcsampleindex_t until) const;
 	
 	private:
