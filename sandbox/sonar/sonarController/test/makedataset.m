@@ -20,15 +20,21 @@ numsamples = round(duration*f_s);
 adcdata = zeros(nchannels,numsamples);
 
 for tping = tfirstping:pingrate:duration
-  startindex = round(tping * f_s);
-  oneping = getOnePing(tping, min(duration-tping,ping_duration), envtype);
-  m = size(oneping);
-  adcdata(:,startindex:(startindex+m(2)-1)) = oneping;
+  oneping = getOnePing(tping, envtype);
+  siz = size(oneping);
+  srcStartIndex = 1;
+  srcStopIndex = siz(2);
+  destStartIndex = floor(tping * f_s);
+  destStopIndex = destStartIndex + siz(2) - 1;
+  if destStopIndex > numsamples
+    srcStopIndex = srcStopIndex - (destStopIndex - numsamples);
+    destStopIndex = numsamples;
+  end
+  adcdata(:,destStartIndex:destStopIndex) = oneping(:,srcStartIndex:srcStopIndex);
 end
 
 clear('oneping');
 
-adcdata = adcdata(:,1:numsamples);
 adcdata = adcdata + signal_amplitude / snr * 2 * (0.5-rand(size(adcdata)));
 % warning: if the noise level or signal level is set too high, then
 % the following operation could overflow
@@ -40,25 +46,18 @@ fclose(f);
 
 end
 
-function adcdata = getOnePing(tping, duration, envtype)
+
+
+function adcdata = getOnePing(tping, envtype)
 config;
 omega = 2 * pi * f;
 
-% Cause the robot to wait for (trainingtime) seconds and follow a
-% "spira mirabilis," a logarithmic spiral in the plane z = 0,
-% parameterized for constant speed.  A logarithmic spiral has the
-% special property that the angle formed between the tangent line
-% (the velocity) and the raidal line from the origin is constant, 
-% and equal to arctan(1/b).
-v = max_speed;
-A = max_range;
+searchAheadTime = (max_speed * ping_duration + max_range + baseline) / c + ping_duration;
+
 b = tan(bearing);
 T_s = 1/f_s;
-t = tping + (0:T_s:duration);
-tau = - log(1 - b * (t - trainingtime) * v / A ./ sqrt(b^2 + 1)) / b;
-x = A * cos(tau) .* exp(-b * tau) .* (t > trainingtime) + (t <= trainingtime) * A;
-y = A * sin(tau) .* exp(-b * tau) .* (t > trainingtime);
-z = 0 * t;
+t = tping + (0:T_s:searchAheadTime);
+[x,y,z] = robot_path(t);
 
 hydroRotationMatrix = [cos(bearing),sin(bearing),0;-sin(bearing),cos(bearing),0;0,0,1];
 hydro_pos = zeros(nchannels,3);
@@ -83,3 +82,23 @@ phase = (0.5-rand())*2*pi;
 
 adcdata = signal_amplitude * sin(omega * trelping + phase) .* envelope;
 end
+
+
+
+function [x,y,z] = robot_path(t)
+% Cause the robot to wait for (trainingtime) seconds and follow a
+% "spira mirabilis," a logarithmic spiral in the plane z = 0,
+% parameterized for constant speed.  A logarithmic spiral has the
+% special property that the angle formed between the tangent line
+% (the velocity) and the raidal line from the origin is constant, 
+% and equal to arctan(1/b).
+config;
+v = max_speed;
+A = max_range;
+b = tan(bearing);
+tau = - log(1 - b * (t - trainingtime) * v / A ./ sqrt(b^2 + 1)) / b;
+x = A * cos(tau) .* exp(-b * tau) .* (t > trainingtime) + (t <= trainingtime) * A;
+y = A * sin(tau) .* exp(-b * tau) .* (t > trainingtime);
+z = 0 * t;
+end
+
