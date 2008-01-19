@@ -11,9 +11,7 @@
 #define RAM_CORE_APPLICATION_H_11_24_2007
 
 // STD Includes
-#include <ostream>
 #include <string>
-#include <list>
 #include <vector>
 #include <map>
 
@@ -50,9 +48,6 @@ public:
     /** Get the name of all subsystems */
     std::vector<std::string> getSubsystemNames();
 
-    /** Writes the dependency graph in Graphviz dot format */
-    void writeDependencyGraph(std::ostream& file);
-
     /** Starts updating non-backgrounded Subsystems in a blocking fashion
      *
      *  Every Subsystem which returns false from backgrounded(), will be
@@ -80,9 +75,6 @@ private:
     
     /** The order the systems are created in */
     NameList m_order;
-
-    /** The names of which subsystem by each subsystem  */
-    std::map<std::string, NameList> m_subsystemDeps;
 
     /** Records when the the subsystem was last updated */
     std::map<std::string, TimeVal> m_lastUpdate;

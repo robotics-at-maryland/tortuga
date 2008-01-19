@@ -17,51 +17,61 @@ namespace core {
 
 ConfigNode ConfigNode::operator[](int index)
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return ConfigNode(m_impl->idx(index));
 }
 
 ConfigNode ConfigNode::operator[](std::string key)
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return ConfigNode(m_impl->map(key));
 }
 
 std::string ConfigNode::asString()
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->asString();
 }
 
 std::string ConfigNode::asString(const std::string& def)
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->asString(def);
 }
 
 double ConfigNode::asDouble()
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->asDouble();
 }
 
 double ConfigNode::asDouble(const double def)
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->asDouble(def);
 }
     
 int ConfigNode::asInt()
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->asInt();
 }
 
 int ConfigNode::asInt(const int def)
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->asInt(def);
 }
 
 NodeNameList ConfigNode::subNodes()
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->subNodes();
 }
 
 size_t ConfigNode::size()
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->size();
 }
 
@@ -74,6 +84,7 @@ bool ConfigNode::exists(std::string name)
 
 void ConfigNode::set(std::string key, std::string str)
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     m_impl->set(key, str);
 }
 
@@ -84,6 +95,7 @@ ConfigNode ConfigNode::fromString(std::string data)
 
 std::string ConfigNode::toString()
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
     return m_impl->toString();
 }
 
@@ -95,6 +107,7 @@ ConfigNode ConfigNode::fromFile(std::string data)
 ConfigNode::ConfigNode(ConfigNodeImpPtr impl) :
     m_impl(impl)
 {
+    assert(m_impl.get() && "No ConfigNode impl found");
 }
 
 ConfigNode::ConfigNode()
@@ -104,12 +117,15 @@ ConfigNode::ConfigNode()
 
 ConfigNode::ConfigNode(const ConfigNode& configNode)
 {
+    assert(configNode.m_impl.get() && "No ConfigNode impl found");
     m_impl = configNode.m_impl;
 //    assert(false && "ConfigNode(const ConfigNode* configNode)");
 }
 
 ConfigNode& ConfigNode::operator=(const ConfigNode& that)
 {
+    assert(that.m_impl.get() && "No ConfigNode impl found");
+    
     // make sure not same object
     if (this != &that)
     {  

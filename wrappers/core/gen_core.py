@@ -78,8 +78,6 @@ def generate(module_builder, local_ns, global_ns):
     # Application
     Application = local_ns.class_('Application')
     Application.include()
-    # Don't have ofstream wrapped properly
-    Application.member_function('writeDependencyGraph').exclude()
 
     # Replace getSubsystem with one which uses our converter
     Application.member_function('getSubsystem').exclude()
@@ -98,9 +96,6 @@ def generate(module_builder, local_ns, global_ns):
     classes.append(Application)
 
     # Add registrations functions for hand wrapped classes
-
-    # This one has to be first because Py++ is too stupid to actually put it
-    # before these!!
     module_builder.add_registration_code("registerSubsystemList();")
     module_builder.add_registration_code("registerSubsystemClass();")
     module_builder.add_registration_code("registerSubsystemMakerClass();")

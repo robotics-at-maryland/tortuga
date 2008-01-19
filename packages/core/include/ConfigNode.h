@@ -89,10 +89,7 @@ public:
     */
     static ConfigNode fromFile(std::string fileName);
 
-private:
-
-
-    
+private:    
     ConfigNodeImpPtr m_impl;
 };
 

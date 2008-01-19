@@ -34,7 +34,7 @@ namespace bf = boost::filesystem;
 const std::string LoopSubsystem::STOP("CORE_TEST_LOOPSUBSYSTEM");
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(LoopSubsystem, LoopSubsystem);
 
-bf::path getConfigRoot()
+static bf::path getConfigRoot()
 {
     bf::path root(getenv("RAM_SVN_DIR"));
     return root / "packages" / "core" / "test" / "data";
@@ -111,29 +111,6 @@ TEST(Dependencies)
     CHECK(subServant);
     CHECK_EQUAL(11, subServant->config["test"].asInt());
     CHECK(expected == subServant->dependents);
-}
-
-TEST(writeDependencyGraph)
-{
-    bf::path path(getConfigRoot() / "subsystems.yml");
-    ram::core::Application app(path.string());
-
-    std::stringstream ss;
-    app.writeDependencyGraph(ss);
-
-    std::string expected =
-        "digraph G {\n"
-        "0[label=\"Manager\"];\n"
-        "1[label=\"Servant2\"];\n"
-        "2[label=\"Servant1\"];\n"
-        "3[label=\"SubServant\"];\n"
-        "0->1 ;\n"
-        "0->2 ;\n"
-        "2->3 ;\n"
-        "1->3 ;\n"
-        "}\n";
-
-    CHECK_EQUAL(expected, ss.str());
 }
 
 void stopLoop(ram::core::Application* app, ram::core::EventPtr)
