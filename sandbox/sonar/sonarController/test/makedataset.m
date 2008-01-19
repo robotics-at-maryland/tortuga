@@ -1,13 +1,27 @@
 function adcdata = makedataset(filename, envtype, duration)
+% adcdata = MAKEDATASET(filename, envtype, duration)
+% 
+% Output simulated acoustic data for a SONAR array.
+% Physical and ADC parameters are stored in config.m.
+% 
+%   Input arguments:
+%     filename  Write output to a binary file with this path
+%     envtype   Envelope form.
+%               'bump' for a smooth cosine-shaped envelope
+%               'rect' for a rectangular or square-wave envelope
+%     duration  Amount of acoustic data to generate, in seconds
+%
+%    Output arguments:
+%      adcdata  A matrix containing the ADC data
+
 config;
 
 numsamples = round(duration*f_s);
-adcdata = zeros(4,numsamples);
+adcdata = zeros(nchannels,numsamples);
 
-testduration = ping_duration + 2 * max_range/c;
 for tping = tfirstping:pingrate:duration
   startindex = round(tping * f_s);
-  oneping = getOnePing(tping, min(testduration,floor(duration-tping)), envtype);
+  oneping = getOnePing(tping, min(duration-tping,ping_duration), envtype);
   m = size(oneping);
   adcdata(:,startindex:(startindex+m(2)-1)) = oneping;
 end
@@ -42,18 +56,18 @@ b = tan(bearing);
 T_s = 1/f_s;
 t = tping + (0:T_s:duration);
 tau = - log(1 - b * (t - trainingtime) * v / A ./ sqrt(b^2 + 1)) / b;
-x = A * cos(tau) .* exp(-b * tau) .* (t > trainingtime);
+x = A * cos(tau) .* exp(-b * tau) .* (t > trainingtime) + (t <= trainingtime) * A;
 y = A * sin(tau) .* exp(-b * tau) .* (t > trainingtime);
 z = 0 * t;
 
 hydroRotationMatrix = [cos(bearing),sin(bearing),0;-sin(bearing),cos(bearing),0;0,0,1];
-hydro_pos = zeros(4,3);
+hydro_pos = zeros(nchannels,3);
 hydro_pos(2:end,:) = hydroRotationMatrix * baseline;
-hydro_ranges=repmat([shiftdim(x,-1),shiftdim(y,-1),shiftdim(z,-1)],[4,1,1]) ...
+hydro_ranges=repmat([shiftdim(x,-1),shiftdim(y,-1),shiftdim(z,-1)],[nchannels,1,1]) ...
     + repmat(hydro_pos, [1,1,length(t)]);
 hydro_ranges = squeeze(sqrt(dot(hydro_ranges, hydro_ranges, 2)));
 
-trelping = repmat(t,4,1) - hydro_ranges / c - tping;
+trelping = repmat(t,nchannels,1) - hydro_ranges / c - tping;
 
 switch lower(envtype)
  case {'rect'}

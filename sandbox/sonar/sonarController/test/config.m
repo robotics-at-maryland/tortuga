@@ -19,6 +19,7 @@ tfirstping = 0.0001;            % time of the first ping
 baseline = 0.2;                 % distance between sensors in meters
 pingrate = 2;                   % seconds between pings
 bearing = pi/4;                 % relative bearing from to pinger in radians
-trainingtime = 10;              % seconds during stationary
+trainingtime = 4;              % seconds during stationary
                                 % training period
+nchannels = 4;                  % number of channels
 
