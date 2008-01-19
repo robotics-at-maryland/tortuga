@@ -17,6 +17,12 @@
 	
 	
 	
+	; MEGA NOTE:
+	; ***  Previous versions assumed that the buffer was declared like "int buf[4][256]", 
+	;         so that channel buffers are contiguous in memory.
+	; ***  THIS VERSION now assumes that the buffer is declared like "int buf[256][4]",
+	;         so that the channels are interleaved in the buffer.  This simplifies sampling and processing. 
+	
 	
 	
 	
@@ -70,7 +76,6 @@ _asmSlidingDFT:
 	push.d	W12
 	; Save config registers
 	push	CORCON
-	push	PSVPAG
 	
 	; Configure core for fractional operations
 	fractsetup	W7
@@ -90,7 +95,8 @@ _asmSlidingDFT:
 	mov		W0,bufTimeAdr
 	mov		[W14-10],W0
 	mov		W0,timestampAdr
-	mov.d	[W14-14],W0
+	mov		[W14-14],W0
+	mov		[W14-12],W1
 	mov		W0,timeoutVal
 	mov		W1,timeoutVal+2
 	
@@ -511,7 +517,8 @@ _apdTimeout:
 	; if all four triggers were not found, return trigger flags
 	mov		trigFlag,W0			; if one or more triggers were not found, those bits are high
 	cp0		pLen				; check post-trigger samples
-	bsw.z	W0,#4				; if not all post-trigger samples were taken, bit 4 goes high
+	btsc	STATUS,#Z			; if not all post-trigger samples were taken, bit 4 goes high
+	bset	W0,#4
 
 	; Copy out timestamp values for return data
 	mov		#timestamp,W6
@@ -529,7 +536,6 @@ _apdTimeout:
 	
 
 	; Restore config registers
-	pop		PSVPAG
 	pop		CORCON
 	; Restore upper W registers
 	pop.d	W12
