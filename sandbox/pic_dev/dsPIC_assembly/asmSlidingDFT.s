@@ -1,7 +1,7 @@
 
 	; DSP Sliding DFT function
 	
-	; int asmSlidingDFT( int N, int M, int P, fractional trigger, fractcomplex wFactor, fractional * pData, long * pTimestamps, int Timeout );
+	; int asmSlidingDFT( int N, int M, int P, fractional trigger, fractcomplex wFactor, fractional * pData, int * pIndex, long * pBufferTime, long * pTimestamps, long Timeout );
 	; N - number of words (samples) in each channel buffer
 	; M - number of words (samples) in SDFT window
 	; P - number of samples to take after first/last trigger is acquired
@@ -38,10 +38,12 @@
 .bss trigFlag,2
 .bss mLen,2
 .bss pLen,2
-.bss timeAddr,2
+.bss timestampAdr,2
 .bss timeout,4
-.bss timeoutVal,2
-.bss timestampe,16
+.bss timeoutVal,4
+.bss timestamp,16
+.bss retIndexAdr,2
+.bss bufTimeAdr,2
 
 
 
@@ -54,11 +56,13 @@
 ; W4 - re(W)
 ; W5 - im(W)
 ; W6 - bufAdr
-; W7 - timeAdr
+; W7 - retIndexAdr
+; W7 - timestampAdr
+
 
 _asmSlidingDFT:
 
-	lnk		#16
+	lnk		#0		; set frame pointer so we can access stack arguments
 
 	; Save upper W registers
 	push.d	W8
@@ -81,9 +85,15 @@ _asmSlidingDFT:
 	mov		W4,wFactor
 	mov		W5,wFactor+2
 	mov		W6,bufAdr
-	mov		W7,timeAdr
+	mov		W7,retIndexAdr
 	mov		[W14-8],W0
+	mov		W0,bufTimeAdr
+	mov		[W14-10],W0
+	mov		W0,timestampAdr
+	mov.d	[W14-14],W0
 	mov		W0,timeoutVal
+	mov		W1,timeoutVal+2
+	
 	
 	; Persistent WREG assignments:
 	; W0 is scratch register
@@ -106,25 +116,33 @@ _asmSlidingDFT:
 	
 	
 	mov		bufAdr,W1		; buffer base address
+	
 	mov		nLen,W2
 	sl		W2,#1,W2		; buffer length, byte addressed
+	
 	clr		W3				; buffer write index
-	mov		wFactor,W4		; wFactor real part
-	mov		wFactor+2,W5	; wFactor imag part
+	
+	; this is where they are already
+	;mov		wFactor,W4		; wFactor real part
+	;mov		wFactor+2,W5	; wFactor imag part
+	
 	dec		W2,W9			; buffer index looping mask
+	
 	sl		mLen,WREG
 	mov		W0,mLen			; window length, byte addressed
 	sub		W2,W0,W12		; calculate read index lagging behind write index my M (write=0,read=N-M)
 	
 	asr		pLen			; divide sample count by 2 to get number of loops
+	
 	mov		#0xF,W0
 	mov		W0,trigFlag		; trigger flags, all set
-	mov		TMR8,W0
-	mov		TMR9HLD,W7
-	add		timeoutVal,WREG
-	addc	#0,W7			; add carry
+	
+	mov		TMR8,W0			; get current time LSB
+	add		timeoutVal,WREG	; add LSB
 	mov		W0,timeout		; store timeout value LSB
-	mov		W7,timeout+2	; store timeout value MSB
+	mov		TMR9HLD,W0		; get current time MSB
+	addc	timeoutVal+2,WREG	; add MSB with carry
+	mov		W0,timeout+2	; store timeout value MSB
 	
 	
 	; Clear timestamp registers
@@ -138,6 +156,7 @@ _asmSlidingDFT:
 	mov		#kValue,W0
 	repeat	#7				; clear out all 8 kValue registers
 	clr		[W0++]
+	
 	mov		W1,W0			; get address of data buffer
 	sl		W2,#2,W6		; multiply N by 4 to get total length of buffer
 	dec		W6,W6			; decrement to get REPEAT argument
@@ -425,13 +444,6 @@ BigLoop:
 	mov		TMR8,W6				; get timer value at this iteration
 	mov		TMR9HLD,W7
 	
-	; check for timeout
-	mov		timeout,W0
-	mov		timeout+2,W8
-	sub		W0,W6,W0			; perform (timeoutL - TMRL)
-	cpb		W8,W7				; perform (timeoutH - TMRH - B)
-	bra		LT,_apdTimeout		; branch if timeout < TMR
-	
 	; Load trigger value
 	mov		trigger,W0
 
@@ -471,6 +483,13 @@ _apdCh2Done:
 	bclr	trigFlag,#3			; decrement trigger counter
 _apdCh3Done:
 
+	; check for timeout
+	mov		timeout,W0
+	mov		timeout+2,W8
+	sub		W0,W6,W0			; perform (timeoutL - TMRL)
+	cpb		W8,W7				; perform (timeoutH - TMRH - B)
+	bra		LT,_apdTimeout		; branch if timeout < TMR
+
 
 	; >>> LOOP OVERHEAD: 5 INSTRUCTIONS MAX
 	; Check if we have all four triggers
@@ -480,28 +499,33 @@ _apdCh3Done:
 	bra		NZ,BigLoop
 	
 	
-	; OUT OF BIG LOOP!!! GOT ALL FOUR TRIGGERS
+	; OUT OF BIG LOOP!!! GOT ALL FOUR TRIGGERS!! OR TIMEOUT...
 	
 	
 _apdFinished:
-
-
-
-
-
-
-
-
 _apdTimeout:
 
+	
+	; Generate return value
+	
+	; if all four triggers were not found, return trigger flags
+	mov		trigFlag,W0			; if one or more triggers were not found, those bits are high
+	cp0		pLen				; check post-trigger samples
+	bsw.z	W0,#4				; if not all post-trigger samples were taken, bit 4 goes high
 
-
-
-
-
-
-_apdAllDone:
-
+	; Copy out timestamp values for return data
+	mov		#timestamp,W6
+	mov		timestampAdr,W7
+	repeat	#3
+	mov		[W6],[W7]
+	
+	; Copy out write index to show where buffer starts in time
+	mov		retIndexAdr,W6
+	mov		W3,[W6]
+	
+	; Save timestamp corresponding to last point in buffer
+	mov		bufTimeAdr,W0
+	mov.d	W6,[W0]
 	
 
 	; Restore config registers
