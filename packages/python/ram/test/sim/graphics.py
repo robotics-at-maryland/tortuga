@@ -13,14 +13,14 @@ module is retreived with tests.sim.robot.get_suite().
 # Ptyhon Imports
 import unittest
 
-# Library Imports
-import ogre.renderer.OGRE as Ogre
-
 # Project Imporst
 import core
 
 # Module to test
 import ram.sim.graphics as graphics
+
+# Library Imports
+import ogre.renderer.OGRE as Ogre
 
 class TestVisual(unittest.TestCase):
     def setUp(self):

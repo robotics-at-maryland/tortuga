@@ -5,5 +5,7 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/python/ram/__init__.py
 
-# To all the registration 
+# To allow the registration of SubsystemMakers
 import ram.motion as _motion
+import ram.timer as _timer
+import ram.ai.state as _state

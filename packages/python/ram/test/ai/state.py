@@ -37,8 +37,8 @@ class MockEventSource(core.EventPublisher):
 
 # Test States (Consider Magic base class to take care of the init method)
 class TrackedState(state.State):
-    def __init__(self, machine):
-        state.State.__init__(self, machine)
+    def __init__(self, **kwargs):
+        state.State.__init__(self, **kwargs)
         self.entered = False
         self.exited = False
 
@@ -49,8 +49,8 @@ class TrackedState(state.State):
         self.exited = True
 
 class Start(TrackedState):
-    def __init__(self, machine):
-        TrackedState.__init__(self, machine)
+    def __init__(self, **kwargs):
+        TrackedState.__init__(self, **kwargs)
         self.event = None
         self.func = None
         self.thingUpdatedEvent = None
@@ -87,8 +87,8 @@ class Simple(state.State):
     pass
 
 class LoopBack(TrackedState):
-    def __init__(self, machine):
-        TrackedState.__init__(self, machine)
+    def __init__(self, **kwargs):
+        TrackedState.__init__(self, **kwargs)
         self.transCount = 0
         self.enterCount = 0
 
@@ -238,6 +238,18 @@ class TestStateMachine(unittest.TestCase):
         mockEventSource.sendEvent(MockEventSource.THING_UPDATED, value = 34)
         qeventHub.publishEvents()
         self.assertEquals(QueueTestState, type(machine.currentState()))
+        
+    def testSubsystemPassing(self):
+        eventHub = core.EventHub("EventHub")
+        qeventHub = core.QueuedEventHub(eventHub, "QueuedEventHub")
+        machine = state.Machine(deps = [eventHub, qeventHub])
+        
+        machine.start(Start)
+        startState = machine.currentState()
+        
+        # Check for subsystems
+        self.assertEquals(eventHub, startState.eventHub)
+        self.assertEquals(qeventHub, startState.queuedEventHub)
         
 if __name__ == '__main__':
     unittest.main()

@@ -201,7 +201,6 @@ class RotationCtrl(wx.Panel):
         
         gc.PushState()
         self.drawText(gc, dc)       
-        gc.PopState()
            
     def draw(self,gc):
         # Apply direction and offset

@@ -49,6 +49,7 @@ void registerEventHubClass()
 {
     bp::class_<ram::core::EventHub,
         bp::bases<ram::core::Subsystem> >("EventHub")
+        .def(bp::init<std::string>())
         .def(bp::init<ram::core::ConfigNode,
              bp::optional<ram::core::SubsystemList> >())
         .def("subscribe", &subscribe,

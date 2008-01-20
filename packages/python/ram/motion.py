@@ -27,13 +27,18 @@ class MotionManager(core.Subsystem):
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
                                                            deps,
                                                            nonNone = True)
+        
+        self._eventHub = core.Subsystem.getSubsystemOfExactType(
+            core.EventHub, deps, nonNone = True)
             
     def setMotion(self, motion):
         if self._motion is not None:
             self._motion.stop()
             
+        eventPublisher = core.EventPublisher(self._eventHub)
         self._motion = motion
-        self._motion.start(self._controller, self._vehicle, self._qeventHub)    
+        self._motion.start(self._controller, self._vehicle, self._qeventHub,
+                           eventPublisher)    
         
     def background(self):
         pass
@@ -49,20 +54,20 @@ class MotionManager(core.Subsystem):
     
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)
         
-class Motion(core.EventPublisher):
+class Motion(object):
     FINISHED = core.declareEventType('FINISHED')
     
     def __init__(self):
-        core.EventPublisher.__init__(self)
+        self._eventPublisher = None
         self._controller = None
         self._vehicle = None
         self._eventHub = None
     
-    def start(self, controller, vehicle, eventHub):
+    def start(self, controller, vehicle, eventHub, eventPublisher):
         """
         Called by the motion manager to state main state variables
         
-        Do not override this method directly.  Overrive _start instead.
+        DO NOT OVERRIED this method directly.  Overrive _start instead.
         
         @type  controller: ext.control.IController 
         @param controller: The current controller of the vehicle
@@ -76,6 +81,10 @@ class Motion(core.EventPublisher):
         self._controller = controller
         self._vehicle = vehicle
         self._eventHub =  eventHub
+        self._eventPublisher = eventPublisher
+        
+        # Set up the publish method to be seemless and easy
+        self.publish = self._eventPublisher.publish
         
         self._start()
         

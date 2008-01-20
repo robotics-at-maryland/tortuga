@@ -17,8 +17,9 @@ class State(object):
     Basic state class, its provides empty implementation for all the needed
     methods of a state
     """
-    def __init__(self, machine):
-        self.machine = machine
+    def __init__(self, **subsystems):
+        for name, subsystem in subsystems.iteritems():
+            setattr(self, name, subsystem)
 
     @staticmethod
     def transitions():
@@ -56,6 +57,18 @@ class Machine(core.Subsystem):
     
     @type _started: boolean
     @ivar _started: The Machine will not process events unless started
+    
+    @type _qeventHub: ext.core.QueuedEventHub
+    @ivar _qeventHub: The thread safe to subscribe to events through
+    
+    @type _previousEvent: ext.core.Event
+    @ivar _previousEvent: The last event injected into the state machine
+    
+    @type _connections: [ext.core.EventConnection]
+    @ivar _connections: The list of event connections for current state
+    
+    @type _subsystems: {str : ext.core.Subsystem }
+    @ivar _subsystems: The subsystems provided to each state
     """
     
     STATE_ENTERED = core.declareEventType('STATE_ENTERED')
@@ -70,15 +83,24 @@ class Machine(core.Subsystem):
         core.Subsystem.__init__(self, cfg.get('name', 'StateMachine'),
                                 deps)
 
+        # Set default instance values
         self._root = None
         self._currentState = None
         self._started = False
         self._qeventHub = None
         self._previousEvent = core.Event()
         self._connections = []
+        self._subsystems = {}
         
+        # Deal with Subsystems
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
                                                             deps)
+        for subsystem in deps:
+            # Make first letter lower case
+            name = subsystem.getName()
+            name = name[0].lower() + name[1:]
+            
+            self._subsystems[name] = subsystem
 
     def currentState(self):
         return self._currentState
@@ -87,7 +109,7 @@ class Machine(core.Subsystem):
         self._root = startState
         self._started = True
 
-        self._enterState(startState(self))
+        self._enterState(startState)
 
     def injectEvent(self, event):
         """
@@ -131,25 +153,27 @@ class Machine(core.Subsystem):
             # Notify that we are entering the next state
             if not loopback:
                 # Create an instance of the next state's class
-                self._enterState(nextState(self))
+                self._enterState(nextState)
                 
         # Record previous event
         self._previousEvent = event
 
-    def _enterState(self, newState):
+    def _enterState(self, newStateClass):
         """
         Does all the house keeping when entering a new state
         """
         
         # Subscribe to every event of the desired type
         if self._qeventHub is not None:
-            transitionTable = type(newState).transitions()
+            transitionTable = newStateClass.transitions()
             for eventType in transitionTable.iterkeys():
                 conn = self._qeventHub.subscribeToType(eventType, 
                                                        self.injectEvent)
                 self._connections.append(conn)
         
-        
+        # Create state instance from class, make sure to pass all subsystems
+        # along as well
+        newState = newStateClass(**self._subsystems)
         self._currentState = newState
         self._currentState.enter()
         

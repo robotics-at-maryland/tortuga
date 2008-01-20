@@ -10,6 +10,7 @@ Subsystems:
     EventHub:
         type: EventHub
         
+    # Queues events from background threads so they can be executed in python
     QueuedEventHub:
         depends_on: ["EventHub"]
         type: QueuedEventHub
@@ -18,9 +19,20 @@ Subsystems:
         type: SimVehicle
         depends_on: ["Simulation", "EventHub"]
 
+    # Exectures Motions
     MotionManager:
         type: MotionManager
-        depends_on: ["Vehicle", "Controller", "QueuedEventHub"]
+        depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+
+    # Handles Timers
+    TimerManager:
+        type: TimerManager
+        depends_on: ["EventHub"]
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", 
+                     "MotionManager", "TimerManager"]
 
     Controller:
         depends_on: ["Vehicle", "EventHub"]

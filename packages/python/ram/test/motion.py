@@ -49,7 +49,7 @@ class MockMotion(object):
         self.vehicle = None
         self.stoped = False
     
-    def start(self, controller, vehicle, eventHub):
+    def start(self, controller, vehicle, eventHub, eventPublisher):
         self.controller = controller
         self.vehicle = vehicle
         
@@ -66,7 +66,7 @@ class TestMotionManager(unittest.TestCase):
         # The QueuedEventHub lets us queue the events to be released when ready
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         
-        deps = [self.vehicle, self.controller, self.qeventHub]
+        deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
         self.motionManager = motion.MotionManager({}, deps)
 
     def testSetMotion(self):
@@ -93,7 +93,7 @@ class TestChangeDepth(unittest.TestCase):
         # The QueuedEventHub lets us queue the events to be released when ready
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         
-        deps = [self.vehicle, self.controller, self.qeventHub]
+        deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
         self.motionManager = motion.MotionManager({}, deps)
     
         self.motionFinished = False
@@ -105,7 +105,8 @@ class TestChangeDepth(unittest.TestCase):
     def testDive(self):
         self.vehicle.depth = 5
         m = motion.ChangeDepth(10, 5) 
-        m.subscribe(motion.Motion.FINISHED, self.handleFinished)
+        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+                                       self.handleFinished)
         
         # First step
         self.motionManager.setMotion(m)
@@ -124,7 +125,8 @@ class TestChangeDepth(unittest.TestCase):
     def testSurface(self):
         self.vehicle.depth = 10
         m = motion.ChangeDepth(5, 5) 
-        m.subscribe(motion.Motion.FINISHED, self.handleFinished)
+        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+                                      self.handleFinished)
         
         # First step
         self.motionManager.setMotion(m)

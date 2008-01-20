@@ -13,15 +13,15 @@ the module is retreived with tests.sim.physics.get_suite().
 # Ptyhon Imports
 import unittest
 
-# Library Imports
-import ogre.renderer.OGRE as Ogre
-
 # Project Imporst
 import core
 from test import Mock
 
 # Module to test
 import ram.sim.physics as physics
+
+# Library Imports
+import ogre.renderer.OGRE as Ogre
 
 class TestBody(unittest.TestCase):
     # TODO: Some basic math to determine better values for position and 
