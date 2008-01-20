@@ -153,19 +153,29 @@ class RotationCtrl(wx.Panel):
     PITCH = 2
     YAW = 4
     
-    def __init__(self,  parent, label="[Default]", style = 0):
-        # Remove our styles from the style
+    def __init__(self,  parent, label="[Default]", offset=0, direction=1,
+                 style = 0):
+        """
+        @type  offset: float
+        @param offest: Radians to offset the given rotation images
+        
+        @type  direction: float
+        @param direction: 1 or -1, change the direction of the images rotation
+        """
         wx.Panel.__init__(self, parent, wx.ID_ANY, 
                           style = style | wx.TAB_TRAVERSAL | wx.NO_BORDER)
         
         self.rotVal = 0
         self.desiredRotVal = 0
+        self.offset = offset
+        self.direction = direction
         
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         #self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
     def setOrientation(self, quat, desiredQuat = math.Quaternion.IDENTITY):
         style = self.GetWindowStyle()
+        
         if style & RotationCtrl.ROLL:
             self.rotVal = (quat.getRoll(True)).valueRadians()
             self.desiredRotVal = (desiredQuat.getRoll(True)).valueRadians()
@@ -175,6 +185,7 @@ class RotationCtrl(wx.Panel):
         elif style & RotationCtrl.YAW:
             self.rotVal = (quat.getYaw(True)).valueRadians()
             self.desiredRotVal = (desiredQuat.getYaw(True)).valueRadians()
+
         self.Refresh()
     
     #def OnEraseBackground(self, event):
@@ -193,6 +204,10 @@ class RotationCtrl(wx.Panel):
         gc.PopState()
            
     def draw(self,gc):
+        # Apply direction and offset
+        rotVal = (self.rotVal + self.offset) * self.direction
+        desiredRotVal = (self.desiredRotVal + self.offset) * self.direction
+        
         # TODO: change pen color to correspond to degrees rotated?
         # TODO: clean up the code!
         width,height = self.GetSize()
@@ -254,7 +269,7 @@ class RotationCtrl(wx.Panel):
         else:
             gc.Translate(xCenter*2,radius+5)
         # Rotate on origin triangle (pmath.pi is to fix triangle facing down)
-        gc.Rotate(self.rotVal + pmath.pi) #Assumes radians!
+        gc.Rotate(rotVal + pmath.pi) #Assumes radians!
         gc.DrawPath(trianglePath)
          
         # Draw the circle that circumscribes the triangle
@@ -267,7 +282,7 @@ class RotationCtrl(wx.Panel):
         gc.DrawPath(directionCircle)
         
         # Rotate back for next triangle
-        gc.Rotate(-self.rotVal)
+        gc.Rotate(-rotVal)
         
         
         # Create a copy of the triangle path to display desired orientation
@@ -279,7 +294,7 @@ class RotationCtrl(wx.Panel):
         desiredPath.AddPath(directionCircle)
         desiredPath.CloseSubpath()
         xform = gc.CreateMatrix()
-        xform.Rotate(self.desiredRotVal)
+        xform.Rotate(desiredRotVal)
         desiredPath.Transform(xform)
         
         pen = wx.Pen(wx.Colour(0, 0, 0, 128),3)

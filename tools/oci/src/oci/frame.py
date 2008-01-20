@@ -8,7 +8,6 @@
 # Library Imports
 import wx
 import wx.aui
-import wx.py
 
 # Project Imports
 from gui.view import IPanelProvider
@@ -16,6 +15,7 @@ from core import ExtensionPoint
 import ext.core as core
 
 import oci.view.panels  # Import needed for registration of IPanelProviders
+from oci.view.shell import ShellPanel
 
 class MainFrame(wx.aui.AuiMDIParentFrame):
     """
@@ -53,14 +53,18 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
         self.Bind(wx.EVT_CLOSE,self._onClose)            
     
     def _addShell(self, subsystems):
+        introText = 'Current Subsystems:\n'
         # Build locals
-        subsystemDict = {}
-        for subsystem in subsystems:
-            subsystemDict[subsystem.getName()] = subsystem
         locals = {}
-        locals['subsystems'] = subsystemDict
+        for subsystem in subsystems:
+            # Make first letter lower case
+            name = subsystem.getName()
+            name = name[0].lower() + name[1:]
+            locals[name] = subsystem
+            introText += '%s: %s\n' % (name, type(subsystem))
         
-        shell = wx.py.shell.Shell(self._createMDIChild(), locals = locals)
+        shell = ShellPanel(self._createMDIChild(), locals = locals,
+                           introText = introText)
         paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
         paneInfo = paneInfo.Caption("Shell").Left()
         self._addSubsystemPanel(paneInfo, shell, [])

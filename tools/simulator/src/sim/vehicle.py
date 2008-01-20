@@ -107,7 +107,7 @@ class SimVehicle(vehicle.IVehicle):
     
     def getDepth(self):
         # Down is positive for depth
-        return -1 * self.robot._main_part._node.position.z
+        return -3.281 * self.robot._main_part._node.position.z 
     
     def quaternionFromMagAccel(self, mag, accel):
         """

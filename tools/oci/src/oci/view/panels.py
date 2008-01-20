@@ -1,4 +1,12 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Jon Speiser <jspeiser@umd.edu>
+# All rights reserved.
+#
+# Author: Jon Speiser <jspeiser@umd.edu>
 
+
+# STD Imports
+import math
 
 # Library Imports
 import wx
@@ -100,19 +108,41 @@ class DepthPanel(wx.Panel):
         
         self._connections = []
         
-        layout =  wx.GridBagSizer(10, 10)        
-        label = wx.StaticText(self,-1,"Depth")    
-        self._depthbar = DepthBar(self)
-        self._depthbar.minValue = 25
-    
-        layout.Add(label, (0,0),flag=wx.ALIGN_CENTER_HORIZONTAL)
-        layout.Add(self._depthbar, (1,0),flag=wx.EXPAND)
+        layout =  wx.GridBagSizer(10, 10)
+              
+        label = wx.StaticText(self, label = "Depth")
+        layout.Add(label, (0,0), span = wx.GBSpan(1, 2),
+                   flag = wx.ALIGN_CENTER_HORIZONTAL)
         
-        layout.AddGrowableCol(0)
-        layout.AddGrowableRow(1)
+        textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+00.0')
+        textSize = wx.Size(textWidth, wx.DefaultSize.height) 
+        textStyle = wx.TE_RIGHT | wx.TE_READONLY
+        
+        # Create Desired controls
+        desiredLabel = wx.StaticText(self, label = 'Des:')
+        layout.Add(desiredLabel, (1, 0), flag = wx.ALIGN_CENTER)
+        self._desiredDepth = wx.TextCtrl(self, size = textSize,
+                                         style = textStyle)
+        layout.Add(self._desiredDepth, (1, 1), flag = wx.ALIGN_CENTER)
+        
+        # Create Actual controls
+        actualLabel = wx.StaticText(self, label = 'Act:')
+        layout.Add(actualLabel, (2, 0), flag = wx.ALIGN_CENTER)
+        self._actualDepth = wx.TextCtrl(self, size = textSize,
+                                        style = textStyle)
+        layout.Add(self._actualDepth, (2, 1), flag = wx.ALIGN_CENTER)
+        
+        # Create graphical controls
+        self._depthbar = DepthBar(self)
+        self._depthbar.minValue = 20
+        layout.Add(self._depthbar, (3,0), span = wx.GBSpan(1,2), 
+                   flag = wx.EXPAND)
+        
+        layout.AddGrowableCol(1)
+        layout.AddGrowableRow(4)
         
         self.SetSizerAndFit(layout)
-        self.SetSizeHints(0,0,100,-1)
+        #self.SetSizeHints(0,0,100,-1)
         
         if vehicle is not None:
             conn = eventHub.subscribe(ext.vehicle.IVehicle.DEPTH_UPDATE, 
@@ -126,9 +156,11 @@ class DepthPanel(wx.Panel):
             self._connections.append(conn)    
         
     def _depthUpdate(self,event):
+        self._actualDepth.Value = '% 4.1f' % event.number
         self._depthbar.setVal(event.number)
         
     def _desiredDepthUpdate(self, event):
+        self._desiredDepth.Value = '% 4.1f' % event.number
         self._depthbar.desiredValue = event.number
 
     def _onClose(self, closeEvent):
@@ -167,17 +199,18 @@ class RotationPanel(wx.Panel):
         self._desiredOrientation = ext.math.Quaternion.IDENTITY
       
         # Create Rotational Controls
-        values = [('Roll', RotationCtrl.ROLL), 
-                  ('Pitch', RotationCtrl.PITCH), 
-                  ('Yaw', RotationCtrl.YAW)]
+        values = [('Roll', RotationCtrl.ROLL, 0, 1), 
+                  ('Pitch', RotationCtrl.PITCH, math.pi/2, 1), 
+                  ('Yaw', RotationCtrl.YAW, 0, -1)]
       
         layout = wx.GridBagSizer(0,0)
 
         pos = 0
-        for name, style in values:
+        for name, style, offset, direction in values:
             # Create controls
             label = wx.StaticText(self, wx.ID_ANY, name)
-            control = RotationCtrl(self, name, style = style)
+            control = RotationCtrl(self, name, style = style, offset = offset,
+                                   direction = direction)
             
             # Set variables
             setattr(self, '_' + name[0].lower() + name[1:] + 'Control', control)
