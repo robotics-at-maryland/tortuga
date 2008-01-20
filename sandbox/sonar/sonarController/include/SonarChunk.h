@@ -38,8 +38,6 @@ namespace sonar {
 class SonarChunk {
 	
 public:
-	SonarChunk();
-	~SonarChunk();
 	static SonarChunk *newInstance();
 	
 	const static int capacity;
@@ -61,6 +59,8 @@ public:
 	static void emptyPool(int numToRemain);
 	
 private:
+	SonarChunk();
+	~SonarChunk();
 	int length;
 	adcdata_t *sample;
 	adcdata_t peak;

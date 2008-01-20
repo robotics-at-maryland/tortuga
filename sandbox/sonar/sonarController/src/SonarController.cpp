@@ -79,8 +79,7 @@ void destroy()
 	delete [] sample;
 	delete [] sonarchannelstate;
 	delete [] currentChunks;
-	for (int i = 0 ; i < oldChunks.size() ; i ++)
-		delete oldChunks[i];
+	SonarChunk::emptyPool();
 }
 
 
