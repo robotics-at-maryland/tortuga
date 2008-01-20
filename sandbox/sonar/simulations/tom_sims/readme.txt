@@ -7,3 +7,6 @@ sensitivity1_N=256.bmp :  This is with a 256-point window.  This encompasses abo
 sensitivity2_N=512.bmp :  This is with a 512-point window.  This encomasses most of the ping.  The lowest sensitivity point (in between k values) is still at about 30% of the maximum amplitude, though it is not as wide.  This could raise the same issues as the 256-point filter.
 
 sensitivity2_N=1024.bmp :  This is with a 1024-point window.  It is twice as long as the ping.  That means the maximum amplitudes are 1/2 of what they would be if the ping filled the entire window.  However, the lowest sensitivity point is a much smaller percentage of the maximum.  This means that to lock onto a frequency, we pick the closest k value, and it can still trigger on the frequency of the adjacent k value, but we get better symmetric response about the desired frequency.  It would therefore appear to be desireable to use a window twice as big as the ping.
+
+
+pulse_detection1.bmp :  This was generated using test3.m and adc.data (currently on ramshare).  It looks at the simulated pinger data, and does a very good job of discriminating the frequency.
