@@ -6,7 +6,6 @@ sample_f = 30e4
 
 
 k_values = round(25000*N/sample_f) : round(35000*N/sample_f)
-%k_values = [5 6 12 13 19 20]
 
 f = fopen('adc.dat', 'rb');
 dat = fread(f, [4, 30000], 'int8');
