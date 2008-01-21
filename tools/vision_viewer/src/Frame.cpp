@@ -44,7 +44,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     
     // Add CameraView panel full screen
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    m_view = new CameraView(this, _T("images.jpg"));
+    m_view = new CameraView(this); //, _T("images.jpg"));
     sizer->Add(m_view, 1, wxEXPAND);
     SetSizer(sizer);
 }

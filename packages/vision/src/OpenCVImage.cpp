@@ -13,6 +13,7 @@
 // Library Includes
 /// TODO: Limit this to just the needed headers if possible
 #include "cv.h" // OpenCV Functions
+#include "highgui.h"
 
 // Project incldues
 #include "vision/include/OpenCVImage.h"
@@ -37,6 +38,13 @@ OpenCVImage::OpenCVImage(IplImage* image, bool ownership) :
     m_own(ownership),
     m_img(image)
 {
+}
+
+OpenCVImage::OpenCVImage(std::string fileName) :
+    m_own(true),
+    m_img(cvLoadImage(fileName.c_str()))
+{
+    assert(m_img && "Image could not be loaded from file");
 }
     
 void OpenCVImage::copyFrom (const Image* src)
@@ -89,7 +97,7 @@ size_t OpenCVImage::getHeight() const
     return cvGetSize(m_img).height;
 }
 
-Image::PixelFormat OpenCVImage::getPixelFormat()
+Image::PixelFormat OpenCVImage::getPixelFormat() const
 {
     ///TODO:Make sure this format is actually the format that the image is in.
     return PF_BGR_8;

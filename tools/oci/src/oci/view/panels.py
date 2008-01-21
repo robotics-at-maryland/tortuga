@@ -139,7 +139,7 @@ class DepthPanel(wx.Panel):
                    flag = wx.EXPAND)
         
         layout.AddGrowableCol(1)
-        layout.AddGrowableRow(4)
+        layout.AddGrowableRow(3)
         
         self.SetSizerAndFit(layout)
         #self.SetSizeHints(0,0,100,-1)

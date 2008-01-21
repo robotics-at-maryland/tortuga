@@ -13,26 +13,46 @@
 // Library Includes
 #include <wx/panel.h>
 #include <wx/event.h>
-#include <highgui.h>
+//class wxTimer;
 
-class wxBitmap;
+// Project Includes
+#include "vision/include/Common.h"
 
 namespace ram {
 namespace tools {
 namespace visionvwr {
 
+class wxBitmapImage;    
+    
 class CameraView : public wxPanel
 {
 public:
-    CameraView(wxWindow* parent, wxString imageFilename);
+    CameraView(wxWindow* parent); //, vision::Camera* camera);
     
     ~CameraView();
-    
-    /** Draws the given image on screen */
-    void onPaint(wxPaintEvent& event);
 
 private:
-    wxBitmap* m_bitmap;
+    /** Draws the given image on screen */
+    void onPaint(wxPaintEvent& event);
+    
+    /** Called on close allows shutdown of timer */
+//    void onClose(wxCloseEvent& event);
+    
+    /** Temporary: Upon timer get new image from camera */
+//    void onTimer(wxTimerEvent& event);
+
+    /** Reads an image from the Camera into the wxBitmap */
+//    void readImage();
+    
+    /** Used to draw the image to the screen */
+    wxBitmapImage* m_bitmapImage;
+
+    
+
+    /** The source of the new images */
+//    vision::Camera* m_camera;
+
+//    wxTimer* m_timer;
     
     DECLARE_EVENT_TABLE()
 };

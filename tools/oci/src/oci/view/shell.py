@@ -29,5 +29,8 @@ class ShellPanel(wx.py.shell.Shell):
     def __init__(self, parent, introText, locals):
         wx.py.shell.Shell.__init__(self, parent, locals = locals,
                                    introText = introText, 
-                                   InterpClass = Intrepreter)      
+                                   InterpClass = Intrepreter)
+
+        self.redirectStdout()
+        self.redirectStderr()
     
