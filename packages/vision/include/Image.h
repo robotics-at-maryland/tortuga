@@ -55,7 +55,7 @@ public:
     virtual size_t getHeight() const = 0;
 
     /** Pixel format of the image */
-    virtual Image::PixelFormat getPixelFormat() = 0;
+    virtual Image::PixelFormat getPixelFormat() const = 0;
 
     /** Determines whether or not to release the image buffer */
     virtual bool getOwnership() const = 0;
