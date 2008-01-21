@@ -13,42 +13,57 @@
 // Library Includes
 #include <wx/dcclient.h>
 #include <wx/rawbmp.h>
+#include <wx/timer.h>
 #include <cv.h>
 
 // Project Includes
 #include "CameraView.h"
 #include "wxBitmapImage.h"
-#include "vision/include/OpenCVImage.h"
+#include "vision/include/Camera.h"
 
 namespace ram {
 namespace tools {
 namespace visionvwr {
 
-//static int ID_TIMER = 12312;
+static int ID_TIMER = 5;
     
 BEGIN_EVENT_TABLE(CameraView, wxPanel)
     EVT_PAINT(CameraView::onPaint)
-//    EVT_CLOSE(CameraView::onClose)
-//    EVT_TIMER(ID_TIMER, CameraView::onTimer)
+    EVT_CLOSE(CameraView::onClose)
+    EVT_TIMER(ID_TIMER, CameraView::onTimer)
 END_EVENT_TABLE()
 
-CameraView::CameraView(wxWindow* parent) ://, vision::Camera* camera)
-wxPanel(parent),
-//    m_camera(camera)
-    m_bitmapImage(0)
+CameraView::CameraView(wxWindow* parent, vision::Camera* camera) :
+    wxPanel(parent),
+    m_camera(camera),
+    m_bitmapImage(new wxBitmapImage(1,1)),
+    m_timer(0)
 {
-    m_bitmapImage = new wxBitmapImage(10, 480);
-
-    vision::OpenCVImage tmp("images.jpg");
-    m_bitmapImage->copyFrom(&tmp);
+    m_timer = new wxTimer(this, ID_TIMER);
+    
+    if (m_camera)
+    {
+        // 10 FPS
+        m_timer->Start(100);
+    }
 }
 
 CameraView::~CameraView()
 {
-//    delete m_camera;
+    delete m_camera;
     delete m_bitmapImage;
+    delete m_timer;
 }
 
+void CameraView::setCamera(vision::Camera* camera)
+{    
+    delete m_camera;
+    m_camera = camera;
+
+    m_timer->Stop();
+    m_timer->Start(100);
+}
+    
 void CameraView::onPaint(wxPaintEvent& event)
 {
     wxPaintDC dc(this);
@@ -69,10 +84,25 @@ void CameraView::onPaint(wxPaintEvent& event)
         dc.DrawBitmap(*m_bitmapImage->getBitmap(), 0, 0);
 }
 
-/*void CameraView::readImage()
+
+void CameraView::onClose(wxCloseEvent& event)
 {
+    m_timer->Stop();
+    event.Skip();
+}
     
-}*/
+
+void CameraView::onTimer(wxTimerEvent& event)
+{
+    // Get a new image from file
+    m_camera->update(0);
+    
+    // Copy the latest camera image into bitmap
+    m_camera->getImage(m_bitmapImage);
+
+    // Force a repaint
+    Refresh();
+}
     
 } // namespace visionvwr
 } // namespace tools

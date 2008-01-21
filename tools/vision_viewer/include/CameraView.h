@@ -13,7 +13,7 @@
 // Library Includes
 #include <wx/panel.h>
 #include <wx/event.h>
-//class wxTimer;
+#include <wx/timer.h>
 
 // Project Includes
 #include "vision/include/Common.h"
@@ -27,33 +27,31 @@ class wxBitmapImage;
 class CameraView : public wxPanel
 {
 public:
-    CameraView(wxWindow* parent); //, vision::Camera* camera);
+    CameraView(wxWindow* parent, vision::Camera* camera = 0);
     
     ~CameraView();
 
+    void setCamera(vision::Camera* camera);
+    
 private:
     /** Draws the given image on screen */
     void onPaint(wxPaintEvent& event);
     
     /** Called on close allows shutdown of timer */
-//    void onClose(wxCloseEvent& event);
+    void onClose(wxCloseEvent& event);
     
     /** Temporary: Upon timer get new image from camera */
-//    void onTimer(wxTimerEvent& event);
+    void onTimer(wxTimerEvent& event);
 
-    /** Reads an image from the Camera into the wxBitmap */
-//    void readImage();
+    /** The source of the new images */
+    vision::Camera* m_camera;
     
     /** Used to draw the image to the screen */
     wxBitmapImage* m_bitmapImage;
 
-    
-
-    /** The source of the new images */
-//    vision::Camera* m_camera;
-
-//    wxTimer* m_timer;
-    
+    /** Temp timer */
+    wxTimer* m_timer;
+   
     DECLARE_EVENT_TABLE()
 };
 

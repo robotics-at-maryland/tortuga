@@ -23,6 +23,7 @@ enum
 {
     ID_Quit = 1,
     ID_About,
+    ID_OpenFile
 };
 
 class Frame : public wxFrame
@@ -30,11 +31,12 @@ class Frame : public wxFrame
 public:
 
     Frame(const wxString& title, const wxPoint& pos, const wxSize& size);
-
+    
+private:
     void onQuit(wxCommandEvent& event);
     void onAbout(wxCommandEvent& event);
-
-private:
+    void onOpenFile(wxCommandEvent& event);
+    
     CameraView* m_view;
     
     DECLARE_EVENT_TABLE()

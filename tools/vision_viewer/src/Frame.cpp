@@ -12,10 +12,12 @@
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/msgdlg.h>
+#include <wx/filedlg.h>
 
 // Project Includes
 #include "Frame.h"
 #include "CameraView.h"
+#include "vision/include/OpenCVCamera.h"
 
 namespace ram {
 namespace tools {
@@ -24,6 +26,7 @@ namespace visionvwr {
 BEGIN_EVENT_TABLE(Frame, wxFrame)
     EVT_MENU(ID_Quit, Frame::onQuit)
     EVT_MENU(ID_About, Frame::onAbout)
+    EVT_MENU(ID_OpenFile, Frame::onOpenFile)
 END_EVENT_TABLE()
 
 
@@ -31,12 +34,14 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxFrame((wxFrame *)NULL, -1, title, pos, size),
     m_view(0)
 {
+    // File Menu
     wxMenu *menuFile = new wxMenu;
-
-    menuFile->Append( ID_About, _T("&About...") );
+    menuFile->Append(ID_OpenFile, _T("&OpenFile..."));
+    menuFile->Append(ID_About, _T("&About..."));
     menuFile->AppendSeparator();
-    menuFile->Append( ID_Quit, _T("E&xit") );
+    menuFile->Append(ID_Quit, _T("E&xit"));
 
+    
     wxMenuBar *menuBar = new wxMenuBar;
     menuBar->Append( menuFile, _T("&File") );
 
@@ -44,7 +49,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     
     // Add CameraView panel full screen
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    m_view = new CameraView(this); //, _T("images.jpg"));
+    m_view = new CameraView(this);
     sizer->Add(m_view, 1, wxEXPAND);
     SetSizer(sizer);
 }
@@ -60,6 +65,17 @@ void Frame::onAbout(wxCommandEvent& WXUNUSED(event))
         _T("About Vision Viewer"), wxOK | wxICON_INFORMATION, this);
 }
 
+void Frame::onOpenFile(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_T("Choose a video file to open"));
+    if ( !filename.empty() )
+    {
+        vision::OpenCVCamera* camera =
+            new vision::OpenCVCamera(std::string(filename.mb_str()));
+        m_view->setCamera(camera);
+    }
+}
+    
 } // namespace visionvwr
 } // namespace tools
 } // namespace ram
