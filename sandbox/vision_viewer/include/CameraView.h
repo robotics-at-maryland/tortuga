@@ -9,7 +9,7 @@
 
 #include <wx/panel.h>
 #include <wx/event.h>
-class wxImage;
+class wxBitmap;
 
 #include <highgui.h>
 
@@ -24,7 +24,7 @@ public:
     void onPaint(wxPaintEvent& event);
 
 private:
-    wxImage* m_image;
+    wxBitmap* m_bitmap;
     
     DECLARE_EVENT_TABLE()
 };

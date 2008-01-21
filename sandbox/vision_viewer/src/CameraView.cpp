@@ -7,10 +7,13 @@
  * File:  sandbox/vision_viewer/src/CameraView.cpp
  */
 
+// STD Includes
+#include <iostream>
+
 // Library Includes
 #include <wx/dcclient.h>
-//#include <wx/bitmap.h>
-#include <wx/image.h>
+#include <wx/rawbmp.h>
+
 #include <cv.h>
 
 // Project Includes
@@ -22,7 +25,7 @@ END_EVENT_TABLE()
 
 CameraView::CameraView(wxWindow* parent, wxString imageFilename) :
     wxPanel(parent),
-    m_image(0)
+    m_bitmap(0)
 {
     // Load Image with OpenCV
     if (!imageFilename.IsEmpty())
@@ -36,17 +39,35 @@ CameraView::CameraView(wxWindow* parent, wxString imageFilename) :
             int height = image->height;
             
             // Allocate Bitmap
-            m_image = new wxImage(width, height);
+            m_bitmap = new wxBitmap(width, height);
 
-            // Tmp Header to allow for conversion (BGR -> RGB)
-            IplImage* tmpImg = cvCreateImageHeader(cvSize(width, height), 8, 3);
-            cvSetData(tmpImg, m_image->GetData(), width * 3);
+            // Use low level wxWidgets functions for conversion from
+            // BGR to RGB
+            
+            typedef wxPixelData<wxBitmap, wxNativePixelFormat> PixelData;
 
-            // This converts directly into the wxImage's memory buffer, so it
-            // preforms the copy and conversion in one step
-            cvCvtColor((CvArr*)image, tmpImg, CV_BGR2RGB);
 
-            cvReleaseImageHeader(&tmpImg);
+            PixelData bitmapData(*m_bitmap);
+            if ( !bitmapData )
+            {
+                std::cout << "ERROR could not use raw bmp" << std::endl;
+            }
+
+            PixelData::Iterator p(bitmapData);
+
+            unsigned char* imageData = (unsigned char*)image->imageData;
+            size_t length = width * height;
+            for (size_t i = 0; i < length; ++i)
+            {
+                // OpenCV is BGR
+                p.Red() = *(imageData + 2);
+                p.Green() = *(imageData + 1);
+                p.Blue() = *imageData;
+
+                ++p;
+                imageData += 3;
+            }
+            
             cvReleaseImage(&image);
         }
     }
@@ -54,7 +75,7 @@ CameraView::CameraView(wxWindow* parent, wxString imageFilename) :
 
 CameraView::~CameraView()
 {
-    delete m_image;
+    delete m_bitmap;
 }
 
 void CameraView::onPaint(wxPaintEvent& event)
@@ -72,10 +93,7 @@ void CameraView::onPaint(wxPaintEvent& event)
     
     dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 
-    // Now draw out bitmap (really slow, but just testing right now)
-    if (m_image)
-    {
-        wxBitmap bitmap(*m_image);
-        dc.DrawBitmap(bitmap, 0, 0);
-    }
+    // Now draw out bitmap
+    if (m_bitmap)
+        dc.DrawBitmap(*m_bitmap, 0, 0);
 }
