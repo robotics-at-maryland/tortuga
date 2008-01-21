@@ -13,28 +13,44 @@
 
 #include <algorithm>
 #include <math.h>
+#include <limits.h>
+#include <assert.h>
 
 
 namespace ram {
 namespace sonar {
 
 
-adcsampleindex_t tdoa_xcorr(const SonarChunk &a, const SonarChunk &b)
+adcsampleindex_t tdoa_xcorr(const SonarChunk &f, const SonarChunk &g)
 {
-	long int max = 0, accum = 0;
+	long int max = LONG_MIN;
 	adcsampleindex_t maxindex = 0;
-	for (int k = -b.size() ; k < a.size() ; k ++)
+	
+	for (int k = -f.size() ; k < g.size() ; k ++)
 	{
-		accum = 0;
-		for (int i = std::max(0, std::min(k, a.size())) ; i < std::min(a.size(), k + b.size()) ; i ++)
-			accum += a[i] * b[i + k];
+		long int accum = 0;
+		
+		int gMinIndex = std::max(0, k);
+		
+		int gMaxIndex = g.size();
+		if (gMaxIndex > k + f.size())
+			gMaxIndex = k + f.size();
+		
+		for (int i = gMinIndex ; i < gMaxIndex ; i ++)
+		{
+			assert(i >= 0);
+			assert(i - k >= 0);
+			assert(i < g.size());
+			assert(i - k < f.size());
+			accum += f[i - k] * g[i];
+		}
 		if (accum > max)
 		{
 			max = accum;
 			maxindex = k;
 		}
-	}	
-	return maxindex - a.startIndex + b.startIndex;
+	}
+	return maxindex - f.startIndex + g.startIndex;
 }
 
 
