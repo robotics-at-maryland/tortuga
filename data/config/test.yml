@@ -1,7 +1,32 @@
-# Config for the vehicle
+GUI:
+    updateRate: 10
 
+# Config for the vehicle
 # Each module is a seperate system that needs to be started up
-Subsystems:
+Subsystems:    
+    EventHub:
+        type: EventHub
+
+    # Queues events from background threads so they can be executed in python
+    QueuedEventHub:
+        depends_on: ["EventHub"]
+        type: QueuedEventHub
+
+    # Exectures Motions
+    MotionManager:
+        type: MotionManager
+        depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+
+    # Handles Timers
+    TimerManager:
+        type: TimerManager
+        depends_on: ["EventHub"]
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller",
+                     "MotionManager", "TimerManager"
+
     # Object that creates the vehicle interface
     Vehicle:
         # The full name of the class to instantiate in this case its a wrapper
@@ -9,6 +34,8 @@ Subsystems:
         type: Vehicle
         # Time between updates in ms
         update_interval: 25
+     
+        depends_on: ["EventHub"]
 
         # Pressure tranducer calibration 
         depthCalibSlope: 33.01
@@ -69,7 +96,7 @@ Subsystems:
                 localMagneticPitch: 60
 
     Controller:
-        depends_on: ["Vehicle"]
+        depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
         update_interval: 10
 

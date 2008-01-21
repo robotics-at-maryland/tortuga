@@ -19,7 +19,6 @@ extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'vehicle')
 envl.Append(CPPPATH = os.path.abspath(os.environ['RAM_SVN_DIR']))
 
 extra_dev_sources = envl.Glob('src/device', '*.cpp')
-print extra_dev_sources
 
 # Link to libram_pattern.so library
 libs.add_internal(envl, 'vehicle')

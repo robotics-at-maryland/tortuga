@@ -82,8 +82,10 @@ class ThrusterPanel(wx.Panel):
         if vehicle is not None:
             # Get All the current Thrusters the vehicle has
             thrusters = []
-            for name in vehicle.getDeviceNames():
-                device = vehicle.getDevice(name)
+            names = vehicle.getDeviceNames()
+            
+            for i in range(0,len(names)):
+                device = vehicle.getDevice(names[i])
                 if isinstance(device, ext.vehicle.device.IThruster):
                     thrusters.append(device)
     

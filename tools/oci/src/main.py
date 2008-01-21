@@ -15,6 +15,7 @@ import yaml
 
 # Project Imports
 import oci.app as app
+import ram
 
 def main():            
     # Parse command line options

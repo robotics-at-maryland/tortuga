@@ -48,7 +48,7 @@ try:
     _libc.nanosleep.argtypes = \
             [ctypes.POINTER(_TIMESPEC), ctypes.POINTER(_TIMESPEC)]
 
-    print 'Connection using nanosleep!'
+
     def nanosleep(sec, nsec):
         sleeptime = _TIMESPEC()
         sleeptime.secs = sec
