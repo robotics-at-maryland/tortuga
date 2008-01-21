@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  sandbox/vision_viewer/src/CameraView.cpp
+ * File:  tools/vision_viewer/src/CameraView.cpp
  */
 
 // STD Includes
@@ -13,11 +13,14 @@
 // Library Includes
 #include <wx/dcclient.h>
 #include <wx/rawbmp.h>
-
 #include <cv.h>
 
 // Project Includes
 #include "CameraView.h"
+
+namespace ram {
+namespace tools {
+namespace visionvwr {
 
 BEGIN_EVENT_TABLE(CameraView, wxPanel)
     EVT_PAINT(CameraView::onPaint)
@@ -97,3 +100,7 @@ void CameraView::onPaint(wxPaintEvent& event)
     if (m_bitmap)
         dc.DrawBitmap(*m_bitmap, 0, 0);
 }
+
+} // namespace visionvwr
+} // namespace tools
+} // namespace ram

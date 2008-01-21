@@ -1,0 +1,19 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/tools/vision_viewer/SConscript
+
+Import('env')
+envl = env.Clone()
+
+# Add wxWidgets and OpenCV
+envl.Append(CPPPATH = 'include')
+
+envl.RAMProgram(target = 'Viewer',
+               source = ['src/App.cpp', 
+                         'src/CameraView.cpp',
+                         'src/Frame.cpp'],
+               int_deps = ['vision'], ext_deps = ['wxWidgets'])
+

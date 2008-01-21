@@ -4,14 +4,22 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  sandbox/vision_viewer/include/CameraView.h"
+ * File:  tools/vision_viewer/include/CameraView.h
  */
 
+#ifndef RAM_TOOLS_VISIONVWR_CAMERAVIEW_H_01_20_2008
+#define RAM_TOOLS_VISIONVWR_CAMERAVIEW_H_01_20_2008
+
+// Library Includes
 #include <wx/panel.h>
 #include <wx/event.h>
+#include <highgui.h>
+
 class wxBitmap;
 
-#include <highgui.h>
+namespace ram {
+namespace tools {
+namespace visionvwr {
 
 class CameraView : public wxPanel
 {
@@ -28,3 +36,9 @@ private:
     
     DECLARE_EVENT_TABLE()
 };
+
+} // namespace visionvwr
+} // namespace tools
+} // namespace ram
+
+#endif // RAM_TOOLS_VISIONVWR_CAMERAVIEW_H_01_20_2008
