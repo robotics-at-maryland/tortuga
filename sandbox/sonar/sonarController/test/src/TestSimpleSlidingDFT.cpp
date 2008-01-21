@@ -64,7 +64,7 @@ struct SimpleSlidingDFTTestFixture {
 	
 	static adcmath_t normalize_double(double y)
 	{
-		return (adcmath_t) (y * ADCDATA_MAXAMPLITUDE);
+		return (adcmath_t) round(y * ADCDATA_MAXAMPLITUDE);
 	}
 	
 	
@@ -138,8 +138,8 @@ TEST_UTILITY(CheckAgainstFFTW, (adcdata_t *adcdataSamples, int nchannels, int co
 			adcmath_t im_mine = myDFT.getImag(channel);
 			
 			//  Compare them.
-			CHECK_CLOSE(re_mine, re_theirs, 1);
-			CHECK_CLOSE(im_mine, im_theirs, 1);
+			CHECK_EQUAL(re_mine, re_theirs);
+			CHECK_EQUAL(im_mine, im_theirs);
 		}
 		
 		//  Update the sliding DFT.
