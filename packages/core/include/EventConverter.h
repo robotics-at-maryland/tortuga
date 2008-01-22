@@ -14,6 +14,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <cstring>
 
 // Library Includes
 #include <boost/python.hpp>
@@ -81,8 +82,11 @@ public:
 protected:    
     virtual boost::python::object convert(ram::core::EventPtr event)
     {
-        boost::shared_ptr<T> result = boost::dynamic_pointer_cast<T>(event);
-
+        boost::shared_ptr<T> result;
+        
+        if ( strcmp(typeid(T).name(), typeid(*event.get()).name()) == 0)
+            result = boost::static_pointer_cast<T>(event);
+        
         // If the conversion was succesfull return the proper python object
         if (result)
             return boost::python::object(result);

@@ -51,7 +51,7 @@ class Forward(state.State):
 
     def enter(self):
         # Full speed ahead!!
-        self.controller.setSpeed(5)
+        self.controller.setSpeed(3)
         
         # Timer goes off in 10 seconds then sends off FORWARD_DONE
         timer = self.timerManager.newTimer(Forward.FORWARD_DONE, 10)

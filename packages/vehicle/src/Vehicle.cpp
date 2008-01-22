@@ -325,20 +325,33 @@ void Vehicle::update(double timestep)
             core::ReadWriteMutex::ScopedWriteLock lockState(m_state_mutex);
             
             // Depth
-            double rawDepth = readDepth(m_sensorFD);
-            m_state.depth = (rawDepth - m_depthCalibIntercept) /
-                m_depthCalibSlope - m_depthOffset;;
-
-            // If we aren't calibrated, take values
-            if (!m_calibratedDepth)
+            int rawDepth = readDepth(m_sensorFD);
+            if (SB_ERROR == rawDepth)
             {
-                m_depthFilter.addValue(m_state.depth);
-                
-                // After five values, take the reading
-                if (5 == m_depthFilter.getSize())
+                if (SB_ERROR == syncBoard(m_sensorFD))
                 {
-                    m_calibratedDepth = true;
-                    m_depthOffset = m_depthFilter.getValue();
+                    // Just bail if this fails
+                    return;
+                }
+                rawDepth = readDepth(m_sensorFD);
+            }
+            // Don't attempt anything with a bad depth
+            if (SB_ERROR != rawDepth)
+            {
+                m_state.depth = (((double)rawDepth) - m_depthCalibIntercept) /
+                    m_depthCalibSlope - m_depthOffset;
+
+                // If we aren't calibrated, take values
+                if (!m_calibratedDepth)
+                {
+                    m_depthFilter.addValue(m_state.depth);
+                
+                    // After five values, take the reading
+                    if (5 == m_depthFilter.getSize())
+                    {
+                        m_calibratedDepth = true;
+                        m_depthOffset = m_depthFilter.getValue();
+                    }
                 }
             }
         }

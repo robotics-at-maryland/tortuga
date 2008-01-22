@@ -66,6 +66,10 @@ int checkBoard(int fd);
 
 int pingBoard(int fd);
 
+/** Requests the depth value from the device (or error code)
+ *
+ *  @return An integer between 0 and 1023, or SB_ERROR.
+ */
 int readDepth(int fd);
 
 /** Read the status bit back from the board */

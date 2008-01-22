@@ -9,8 +9,8 @@
 import unittest
 
 # Project Imports
-import ext.control as control
 import ext.core as core
+import ext.control as control
 import ext.vehicle as vehicle
 import ext.math as math
 
@@ -80,9 +80,29 @@ class TestBWPDController(unittest.TestCase):
         self.controller.update(1);
         self.assertEqual(4, self.actualDepth)
 
+    def testQueuedEventsAtDepth(self):
+        def desiredHandler(event):
+            self.actualDepth = desiredDepth
+            
+        self.qeventHub.subscribe(control.IController.AT_DEPTH,
+                                 self.controller, desiredHandler)
+
+        # Default Depth Threshold is 0.5
+        self.vehicle.depth = 4;
+        self.controller.update(1);
+        self.controller.setDepth(3.7);
+        self.assertEqual(True, self.controller.atDepth())
+
+        # Ensure it does go off
+        self.controller.setDepth(4.3);
+        self.controller.update(1);
+        self.qeventHub.publishEvents()
+        self.assertEqual(4, self.actualDepth)
+
     def testQueuedEvents(self):
         def desiredHandler(event):
-            self.desiredDepth = event.number
+            desiredDepth = event.number
+            self.desiredDepth = desiredDepth
             
         self.qeventHub.subscribe(control.IController.DESIRED_DEPTH_UPDATE,
                                  self.controller, desiredHandler)
