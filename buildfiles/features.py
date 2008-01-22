@@ -52,8 +52,8 @@ def get_features():
                      'vehicle' : ['wrappers/vehicle'],
                      'core' : ['wrappers/core']})
 
-    add_feature('vision_tools', dirs = ['tools/vision_viewer'],
-                deps = ['vision'])
+    add_feature('vision_tools',
+                opt_dirs = {'vision' : ['tools/vision_viewer']} )
 
     if os.name == 'posix':
         add_feature('drivers', dirs = ['packages/sensorapi',
