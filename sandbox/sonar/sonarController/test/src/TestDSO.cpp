@@ -18,11 +18,7 @@
 using namespace ram::sonar;
 
 
-struct DSOTestFixture {
-	
-	
-	
-};
+struct DSOTestFixture {};
 
 
 TEST_FIXTURE(DSOTestFixture, TryDSO)
@@ -30,7 +26,6 @@ TEST_FIXTURE(DSOTestFixture, TryDSO)
 	DSO dso(NCHANNELS, 2, 20, 20);
 	FILE *f;
 	char fname[] = "/home/lsinger/workspace/sonarController/test/adc_extended.dat";
-	char fnamereconstructed[] = "/home/lsinger/workspace/sonarController/test/reconstructedadc.dat";
 	
 	adcdata_t sample[NCHANNELS];
 	int numsamples = 0;
@@ -51,6 +46,10 @@ TEST_FIXTURE(DSOTestFixture, TryDSO)
 	}
 	fclose(f);
 	
+	dso.thinkAboutIt();
+	
+	/*
+	char fnamereconstructed[] = "/home/lsinger/workspace/sonarController/test/reconstructedadc.dat";
 	adcdata_t *reconstructed = new adcdata_t[NCHANNELS * numsamples];
 	dso.reconstruct_adcdata(reconstructed, numsamples);
 	
@@ -64,4 +63,5 @@ TEST_FIXTURE(DSOTestFixture, TryDSO)
 	fclose(fr);
 	
 	delete [] reconstructed;
+	*/
 }

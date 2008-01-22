@@ -15,9 +15,11 @@
 #include "SimpleSlidingDFT.h"
 #include "SonarChunk.h"
 #include "SampleDelay.h"
+#include "TDOA.h"
 
 
 #include <stdio.h>
+#include <vector>
 
 
 namespace ram {
@@ -27,7 +29,7 @@ namespace sonar {
 DSO::DSO(int nchannels, int k, int N, int presample) :
 	dft(nchannels, k, N), delayQueue(nchannels, presample), 
 	nchannels(nchannels), k(k), N(N),
-	threshold(200000),
+	threshold(120000),
 	sample_index(0)
 {
 	oldChunks = new std::vector<SonarChunk*>[nchannels];
@@ -64,7 +66,7 @@ void DSO::update(adcdata_t *sample)
 				triggers[channel] = true;
 				currentChunks[channel] = SonarChunk::newInstance();
 				currentChunks[channel]->startIndex = sample_index;
-				printf("CH%2d: Starting sample record\n", channel);
+				printf("CH%2d: Starting sample record *** %d\n", channel, sample_index);
 			}
 			bool bufferNotFull = 
 				currentChunks[channel]->append(delayedSample[channel]);
@@ -83,7 +85,7 @@ void DSO::update(adcdata_t *sample)
 				triggers[channel] = false;
 				oldChunks[channel].push_back(currentChunks[channel]);
 				currentChunks[channel] = NULL;
-				printf("CH%2d: Stopping sample record\n", channel);
+				printf("CH%2d: Stopping sample record --- %d\n", channel, sample_index);
 			}
 		}
 	}
@@ -99,7 +101,7 @@ void DSO::reconstruct_adcdata(adcdata_t *out, adcsampleindex_t until) const
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
 		std::vector<SonarChunk*> &chunks = oldChunks[channel];
-		for (int chunkIndex = 0 ; chunkIndex < chunks.size() ; chunkIndex ++)
+		for (unsigned int chunkIndex = 0 ; chunkIndex < chunks.size() ; chunkIndex ++)
 		{
 			SonarChunk &chunk = *chunks[chunkIndex];
 			if (chunk.startIndex < until)
@@ -113,6 +115,78 @@ void DSO::reconstruct_adcdata(adcdata_t *out, adcsampleindex_t until) const
 			}
 		}
 	}
+}
+
+
+void DSO::thinkAboutIt()
+{
+	using namespace std;
+	
+	adcsampleindex_t maxTDOA = (adcsampleindex_t) (MAX_SENSOR_SEPARATION * 2 / SPEED_OF_SOUND);
+	
+	vector<SonarChunk*>::iterator * it = 
+		new vector<SonarChunk*>::iterator[nchannels];
+	SonarChunk **slots = new SonarChunk*[nchannels];
+	
+	for (int channel = 0 ; channel < nchannels ; channel ++)
+	{
+		it[channel] = oldChunks[channel].begin();
+		slots[channel] = NULL;
+	}
+	
+	
+	bool moreData = true;
+	int countPings = 0;
+	while (moreData)
+	{
+		for (int channel = 0 ; channel < nchannels && moreData ; channel ++)
+		{
+			if (slots[channel] == NULL)
+			{
+				it[channel]++;
+				if (it[channel] == oldChunks[channel].end())
+				{
+					moreData = false;
+				}
+				else if ((*it[channel])->size() > 100)
+				{
+					slots[channel] = *(it[channel]);
+					for (int channel2 = 0 ; channel2 < nchannels ; channel2 ++)
+						if (channel2 != channel && slots[channel2] != NULL)
+							if (abs(slots[channel]->startIndex - slots[channel]->startIndex) > maxTDOA)
+								slots[channel] = NULL;
+				}
+			}
+			bool pingDetected = true;
+			for (int channel2 = 0 ; channel2 < nchannels ; channel2 ++)
+				if (slots[channel2] == NULL)
+					pingDetected = false;
+			if (pingDetected)
+			{
+				printf("Ping %d detected!\n", countPings);
+				localize(slots);
+				for (int channel2 = 0 ; channel2 < nchannels ; channel2 ++)
+					slots[channel2] = NULL;
+				countPings ++;
+			}
+		}
+	}
+	delete [] slots;
+	delete [] it;
+}
+
+
+void DSO::localize(SonarChunk **chunks)
+{
+	adcsampleindex_t *tdoas = new adcsampleindex_t[nchannels - 1];
+	
+	for (int channel = 1 ; channel < nchannels ; channel ++)
+	{
+		tdoas[channel - 1] = tdoa_xcorr(*(chunks[0]), *(chunks[channel]));
+		printf("  TDOA d0%d = %d\n", channel, tdoas[channel - 1]);
+	}
+	
+	delete [] tdoas;
 }
 
 

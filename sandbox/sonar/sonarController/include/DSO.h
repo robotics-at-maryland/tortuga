@@ -35,6 +35,11 @@ class DSO {
 	//	Reconstruct the sample data from triggered, stored SonarChunks
 	void reconstruct_adcdata(adcdata_t *out, adcsampleindex_t until) const;
 	
+	//	Sorry for the nondescript method name.  This method goes through 
+	//  oldChunks and correlates SoundChunks that belong to a single ping event,
+	//	then computes the necessary cross-correlations.
+	void thinkAboutIt();
+	
 	private:
 	bool *triggers;
 	SimpleSlidingDFT dft;
@@ -44,6 +49,8 @@ class DSO {
 	std::vector<SonarChunk*> *oldChunks;
 	SonarChunk **currentChunks;
 	adcsampleindex_t sample_index;
+	
+	void localize(SonarChunk **);
 	
 };
 
