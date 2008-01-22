@@ -82,6 +82,7 @@ def build_module(env, target, source): #, actual_target = None):
     suffix = '.pyd'
     if os.name == 'posix':
         suffix = '.so'
+        env.AppendUnique(CCFLAGS = ['-fno-strict-aliasing'])
     else:
         env.AppendUnique(CCFLAGS = ['/wd4244','/wd4245'])
 
@@ -179,8 +180,10 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
     prog_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts', 'pypp.py')
     outfile_path = env.File(target_str + '_gen-sources.txt').abspath
     verbose = ''
-    if env['verbose']:
-        verbose = '--verbose'
+    # TODO: Find a better way to set this, right now it causes a large
+    # rebuild just to see what the error was
+    #if env['verbose']:
+    #    verbose = '--verbose'
     cmd_str = '%s "%s" -t "%s" -m "%s" %s %s' % (sys.executable, prog_path,
                                         outfile_path, target_str, slist, 
                                         verbose)

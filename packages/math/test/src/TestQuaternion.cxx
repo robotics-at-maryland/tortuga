@@ -14,6 +14,7 @@
 //#include "math/test/include/MathChecks.h"
 #include "math/include/Quaternion.h"
 #include "math/include/Matrix3.h"
+#include "math/include/Math.h"
 
 using namespace ram::math;
 
@@ -28,13 +29,17 @@ TEST(ScalarMult)
 TEST(normalise)
 {
     Quaternion quat(4,3,2,1);
-    Quaternion exp(0.73029674334022143,
-                   0.54772255750516607,
-                   0.36514837167011072,
-                   0.18257418583505536);
-    
+
+    // Ensure proper length is returned
     CHECK_EQUAL(30, quat.normalise());
-    CHECK_ARRAY_CLOSE(exp.ptr(), quat.ptr(), 4, 0.0001);
+
+    // Make sure the length of the normalized quaternion is 1
+    CHECK_CLOSE(1, quat.normalise(), 0.0001);
+
+    // Ensure ratio is maintained
+    CHECK_CLOSE(4, quat.x / quat.w, 0.001);
+    CHECK_CLOSE(3, quat.y / quat.w, 0.001);
+    CHECK_CLOSE(2, quat.z / quat.w, 0.001);
 }
 
 TEST(FromAngleAxis)

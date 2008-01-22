@@ -5,11 +5,16 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/carnetix/SConscript
 
+import os
+
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
 
 envl.Append(CPPPATH = 'src')
+
+if 'posix' == os.name:
+    envl.AppendUnique(CCFLAGS = ['-fno-strict-aliasing'])
 
 sources = ['src/JAUS_helpers.cpp',
            'src/JAUS_Message.cpp',

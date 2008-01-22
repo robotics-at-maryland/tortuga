@@ -36,7 +36,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
 {
     // File Menu
     wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_OpenFile, _T("&OpenFile..."));
+    menuFile->Append(ID_OpenFile, _T("&Open Video File"));
     menuFile->Append(ID_About, _T("&About..."));
     menuFile->AppendSeparator();
     menuFile->Append(ID_Quit, _T("E&xit"));

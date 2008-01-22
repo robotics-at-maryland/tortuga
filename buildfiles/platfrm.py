@@ -21,7 +21,8 @@ def setup_environment(env):
     check_supported_os(env)
     add_platform_defines(env)
     add_scons_variables(env)
-
+    add_platform_paths(env)
+    
 def check_supported_os(env):
     """
     Ensures that we are on a supported platform
@@ -56,5 +57,29 @@ def add_platform_defines(env):
     env.Append(CPPDEFINES = ['RAM_%s' % system_map[platform.system()].upper()])
 
 def add_scons_variables(env):
+    """
+    Sets RAM_PLATFORM and RAM_OS scons environment variable
+    """
+    
     env['RAM_PLATFORM'] = os.name.lower()
     env['RAM_OS'] = platform.system().lower()
+
+def add_platform_paths(env):
+    """
+    Add LIBPATH and CPPPATH that are dependent on platform
+    """
+
+    plat = env['RAM_PLATFORM']
+
+    if 'Windows' == plat:
+        sdkDir = r'C:\Program Files\Microsoft Platform SDK for Windows ' + \
+                 r'Server 2003 R2'
+        
+        env.AppendUnique(CPPPATH =
+                         [os.path.join(os.environ['RAM_ROOT_DIR'],'include'),
+                          sdkDir + r'\Include'])
+        
+        env.AppendUnique(LIBPATH = [sdkDir + r'\Lib'])
+        env.AppendUnique(LIBPATH = [env['LIB_DIR'],
+                                    os.path.join(os.environ['RAM_ROOT_DIR'],'lib')])
+    

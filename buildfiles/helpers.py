@@ -170,7 +170,7 @@ def Tests(env, target, source, run = True, **kwargs):
 
     # Allow the user to over ride the test name and/or sources
     if _target is None:
-        _target = ['test/Tests']
+        _target = ['test/Tests' + env['PROGSUFFIX']]
     if _source is None:
         _source = glob(env, search_dir, '*.cxx')
     for exclude in exclude_list:

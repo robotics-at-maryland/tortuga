@@ -16,10 +16,11 @@ import SCons.Tool
 
 
 
-GCCXMLBuilder = SCons.Builder.Builder(action = "$GCCXML $GCCXML_EXTRA_FLAGS $_XML_CPPINCFLAGS $_XML_CPPDEFFLAGS $SOURCE -fxml=$TARGET",
-                              suffix='xml',
-                              src_suffic = ['h', 'hpp'],
-                              source_scanner = SCons.Tool.CScanner)
+GCCXMLBuilder = SCons.Builder.Builder(
+    action = "$GCCXML $GCCXML_EXTRA_FLAGS $_XML_CPPINCFLAGS $_XML_CPPDEFFLAGS $SOURCE -fxml=$TARGET",
+    suffix='xml',
+    src_suffic = ['h', 'hpp'],
+    source_scanner = SCons.Tool.CScanner)
 
 def generate(env):
     gccxml_path = env.WhereIs('gccxml')

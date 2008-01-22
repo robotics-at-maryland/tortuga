@@ -110,10 +110,18 @@ def setup_environment(env):
     if has_without:
         feature_list = available()
         for f in env['without_features']:
+            # Make sure the feature actual exists
+            if 0 == feature_list.count(f):
+                raise Exception('"%s" is not a valid feature' % f)
             feature_list.remove(f)
 
-    # Find and add the extra features needed by deps
+    # Check the features to make sure they are valid
     global FEATURES
+    for f in feature_list:
+        if not FEATURES.has_key(f):
+            raise Exception('"%s" is not a valid feature' % f)
+
+    # Find and add the extra features needed by deps
     current = set(feature_list)
     added = set()
 
