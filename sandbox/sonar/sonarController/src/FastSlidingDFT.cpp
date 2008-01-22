@@ -22,14 +22,14 @@ namespace ram {
 namespace sonar {
 
 
-SimpleSlidingDFT::SimpleSlidingDFT(int nchannels, int k, int N) : SlidingDFT(nchannels, k, N)
+FastSlidingDFT::FastSlidingDFT(int nchannels, int k, int N) : SlidingDFT(nchannels, k, N)
 {
 	setupCoefficients();
 	setupWindow();
  }
 
 
-SimpleSlidingDFT::~SimpleSlidingDFT()
+FastSlidingDFT::~FastSlidingDFT()
 {
 	delete coefreal;
 	delete coefimag;
@@ -46,7 +46,7 @@ SimpleSlidingDFT::~SimpleSlidingDFT()
 
 /** Update the one selected Fourier amplitude using a sliding DFT
  */
-void SimpleSlidingDFT::update(adcdata_t * sample)
+void FastSlidingDFT::update(adcdata_t * sample)
 {
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
@@ -99,14 +99,14 @@ void SimpleSlidingDFT::update(adcdata_t * sample)
 }
 
 
-void SimpleSlidingDFT::setupCoefficients()
+void FastSlidingDFT::setupCoefficients()
 {
 	coefreal = (adcdata_t) (cos(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE);
 	coefimag = (adcdata_t) (sin(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE);
 }
 
 
-void SimpleSlidingDFT::setupWindow() {
+void FastSlidingDFT::setupWindow() {
 	windowreal = new adcmath_t*[nchannels];
 	sumreal = new adcmath_t[nchannels];
 	sumimag = new adcmath_t[nchannels];
@@ -119,7 +119,7 @@ void SimpleSlidingDFT::setupWindow() {
 }
 
 
-void SimpleSlidingDFT::purge()
+void FastSlidingDFT::purge()
 {
 	memset(sumreal, 0, sizeof(*sumreal) * nchannels);
 	memset(sumimag, 0, sizeof(*sumimag) * nchannels);
@@ -132,21 +132,21 @@ void SimpleSlidingDFT::purge()
 }
 
 
-adcmath_t SimpleSlidingDFT::getMagL1(int channel) const
+adcmath_t FastSlidingDFT::getMagL1(int channel) const
 {
 	assert(channel < nchannels);
 	return mag[channel];
 }
 
 
-adcmath_t SimpleSlidingDFT::getReal(int channel) const
+adcmath_t FastSlidingDFT::getReal(int channel) const
 {
 	assert(channel < nchannels);
 	return sumreal[channel];
 }
 
 
-adcmath_t SimpleSlidingDFT::getImag(int channel) const
+adcmath_t FastSlidingDFT::getImag(int channel) const
 {
 	assert(channel < nchannels);
 	return sumimag[channel];

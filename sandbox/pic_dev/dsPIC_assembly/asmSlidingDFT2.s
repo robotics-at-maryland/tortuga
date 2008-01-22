@@ -35,27 +35,31 @@
 	.include "dspcommon.inc"
 	.include "p33FJ256GP710.inc"
 	
-	.global _asmSlidingDFT
+	.global _asmSlidingDFT2
 	
 	
 .text
 
+
+.section mydata,bss,near
 .bss nLen,2
-.bss bufAdr,2
-.bss kValue,16		; must be in near memory
-.bss kMags,8		; must be contiguous after kValue
-.bss wFactor,4
-.bss trigger,2
 .bss mLen,2
 .bss pLen,2
+.bss trigger,2
+.bss wFactor,4
+.bss bufAdr,2
+.bss retIndexAdr,2
+.bss bufTimeAdr,2
 .bss timestampAdr,2
 .bss timeout,4
 .bss timestamp,16
-.bss retIndexAdr,2
-.bss bufTimeAdr,2
 .bss trigFlag,2
 
+.section mykvalues,bss,near,xmemory
+.bss kValue,16		; must be in near memory
+.bss kMags,8		; must be contiguous after kValue
 
+.text
 
 
 ; W register arguments:
@@ -70,7 +74,7 @@
 ; W7 - timestampAdr
 
 
-_asmSlidingDFT:
+_asmSlidingDFT2:
 
 	lnk		#0		; set frame pointer so we can access stack arguments
 
@@ -81,8 +85,7 @@ _asmSlidingDFT:
 	; Save config registers
 	push	CORCON
 	
-	; Configure core for fractional operations
-	fractsetup	W7
+	
 	
 	
 	
@@ -105,10 +108,16 @@ _asmSlidingDFT:
 	mov		W0,timeout+2
 	
 	
+	; Configure core for fractional operations
+	fractsetup	W7
+	
+	; Disable interrupts
+	
+	
 	; Persistent WREG assignments:
 	; W0 is scratch register ^
 	; W1 is trigger value *
-	; W2 is not used
+	; W2 is data address
 	; W3 is not used
 	; W4 is wFactor real, dsp *
 	; W5 is wFactor imag, dsp *
@@ -146,16 +155,20 @@ _asmSlidingDFT:
 	sub		W9,W7,W11		; pointer max - window length = read pointer lagging behind write pointer by one window
 	
 	; Prepare counter. This gets decremented to zero when the time comes.
+	btsc	pLen,#0			; check if user specified odd number of samples
+	inc		pLen			; increment to next even number of samples
 	asr		pLen			; divide post-trigger sample count by 2 to get number of loops
-	
+	inc		pLen			; increment so pre-decrement operation is correct.
+
 	; Initialize trigger flags
 	mov		#0xF,W0
 	mov		W0,trigFlag		; trigger flags, all set to watch for trigger
 
 	; Prepare timeout value
 	; timeout will contain 2's complement of number of loop iterations before timing out
-	neg		timeout			; negate number of loops to get incrementing counter start value
-	neg		timeout+2
+	mov		#0,W0
+	subr	timeout			; negate number of loops to get incrementing counter start value
+	subbr	timeout+2
 
 	; Clear timestamp registers
 	mov		#timestamp,W0
@@ -169,20 +182,34 @@ _asmSlidingDFT:
 	repeat	#7				; clear out all 8 kValue registers
 	clr		[W0++]
 	
-	mov		W12,W0			; get address of data buffer
-	dec		W6,W7			; decrement total buffer length to get REPEAT argument
-	repeat	W7				; clear entire array
-	clr		[W0++]
+	mov		W12,W7			; get address of data buffer
+	lsr		W6,W0			; divide total byte count to get word count
+	dec		W0,W0			; decrement buffer word count to get REPEAT argument
+	repeat	W0				; clear entire array
+	clr		[W7++]
 	
 
 
 
-BigLoop:
+_BigLoop:
 	
 	; Wait for data to arrive
 	; >> 5 INSTRUCTIONS MAX
-	btsc	PORTA,#5
-	bra		BigLoop
+;	btsc	PORTA,#5
+;	bra		_BigLoop
+
+;********
+	btss	IFS0,#13	; check adc flag
+	bra		_BigLoop
+	bclr	IFS0,#13
+;********
+
+;*****
+	mov		#ADC1BUF0,W2	; data address
+	btss	AD1CON2,#7
+	mov		#ADC1BUF0+16,W2	; go to second half of ADC buffer
+;*****
+
 	
 	; TOTAL INSTRUCTIONS EXECUTED AFTER THIS POINT:
 	; MAX: 5 + 29 + 22 + 29 + 22 + 14 + 30 + 9 = 160
@@ -193,34 +220,43 @@ BigLoop:
 	; >> 29 INSTRUCTIONS
 	; Collect new data, add new data and subtract old data from kValue(r), and store new data in buffer	
 	mov		#kValue,W8		; initialize kValue pointer
+	
 
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
-	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+	mov		[W2++],W0		; get data from ADC
 	
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
 	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+	add		W6,[W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
 	
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
-	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+;	mov		[W2++],W0		; get data from ADC
 	
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
 	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[++W8],[W8]	; add difference to kValue(r), double increment finishes next cycle
+	add		W6,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+	
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+;	mov		[W2++],W0		; get data from ADC
+	
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
+	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
+	add		W6,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+	
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+;	mov		[W2++],W0		; get data from ADC
+	
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
+	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
+	add		W6,[++W8],[W8]	; add difference to kValue(r), double increment finishes next cycle
 	
 	; loop pointers
 	cpsne	W9,W10
@@ -274,34 +310,42 @@ BigLoop:
 	; Collect new data, add new data and subtract old data from kValue(r), and store new data in buffer	
 	mov		#kValue,W8		; initialize kValue pointer
 
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
-	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+	mov		[W2++],W0		; get data from ADC
 	
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
 	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+	add		W6,[W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
 	
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+;	mov		[W2++],W0		; get data from ADC
+	
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
 	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
+	add		W6,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
 	
-	bclr	PORTA,#4		; clock data out of ADC
-	mov		PORTC,W0		; get data
-	bset	PORTA,#4		; clock inactive
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+;	mov		[W2++],W0		; get data from ADC
+	
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
 	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
-	sub		W0,[W11++],W0	; subtract old window data from new window data, increment pointer
-	add		W0,[++W8],[W8]	; add difference to kValue(r), double increment finishes next cycle
+	add		W6,[++W8],[W8++]	; add difference to kValue(r), double increment finishes next cycle
 	
+;	bclr	PORTA,#4		; clock data out of ADC
+;	mov		PORTC,W0		; get data
+;	bset	PORTA,#4		; clock inactive
+;	mov		[W2++],W0		; get data from ADC
+	
+	sub		W0,[W11++],W6	; subtract old window data from new window data, increment pointer
+	mov		W0,[W10++]		; store data at write pointer, overwrite old data and increment pointer
+	add		W6,[++W8],[W8]	; add difference to kValue(r), double increment finishes next cycle
+		
 	; loop pointers
 	cpsne	W9,W10
 	mov		W12,W10
@@ -355,7 +399,7 @@ BigLoop:
 	; Norm Vectors
 	
 	; load addresses
-	mov		#kValues,W8						; address of kValue array in prefetch register
+	mov		#kValue,W8						; address of kValue array in prefetch register
 	; fetch first values
 	movsac	A,[W8]+=2,W6,[W13]+=2			; prefetch kValue(0r) to W6 and writeback kValue(3) imag
 	
@@ -365,13 +409,13 @@ BigLoop:
 	movsac	B,[W13]+=2						; write back to kMags
 	
 	; channel 1 norm
-	mpy		W6*W6,A,[W8]+=2,W6				; square real part, prefetch kValue(1i) to W6
-	mac		W7*W7,A,[W8]+=2,W7				; square and sum imag part, prefetch next real part
+	mpy		W6*W6,A,[W8]+=2,W7				; square real part, prefetch kValue(1i) to W6
+	mac		W7*W7,A,[W8]+=2,W6				; square and sum imag part, prefetch next real part
 	movsac	B,[W13]+=2						; write back to kMags
 		
 	; channel 2 norm
-	mpy		W6*W6,A,[W8]+=2,W6				; square real part, prefetch next imag part
-	mac		W7*W7,A,[W8]+=2,W7				; square and sum imag part, prefetch next real part
+	mpy		W6*W6,A,[W8]+=2,W7				; square real part, prefetch next imag part
+	mac		W7*W7,A,[W8]+=2,W6				; square and sum imag part, prefetch next real part
 	movsac	B,[W13]+=2						; write back to kMags
 	
 	; channel 3 norm
@@ -432,9 +476,9 @@ _apdCh3Done:
 	
 	; Check if we have all four triggers, once that happens we go to post-trigger sampling
 	cp0		trigFlag					; check if trigger flags are zero (W0 is already 0x0000)
-	bra		NZ,BigLoop
+	bra		NZ,_BigLoop
 	dec		pLen				; if trigFlag==0, decrement post-trigger sample count
-	bra		NZ,BigLoop
+	bra		NZ,_BigLoop
 	
 	
 	; OUT OF BIG LOOP!!! GOT ALL FOUR TRIGGERS!! OR TIMEOUT...
@@ -450,23 +494,30 @@ _apdTimeout:
 	mov		bufTimeAdr,W0
 	mov.d	W6,[W0]
 		
-	; Return value contains error flags
-	mov		trigFlag,W0			; if one or more triggers were not found, those bits are high
-	cp0		pLen				; check post-trigger samples
-	btsc	STATUS,#Z			; if not all post-trigger samples were taken, bit 4 goes high
-	bset	W0,#4
-
+	
 	; Copy out timestamp values for return data
 	mov		#timestamp,W0
 	mov		timestampAdr,W8
 	repeat	#7					; four long moves
-	mov		[W0],[W8]
+	mov		[W0++],[W8++]
 	
 	; Copy out write index to show where buffer starts in time
-	mov		retIndexAdr,W0
 	sub		W10,W12,W8			; subtract buffer base address
-	lsr		W8,#2,W8			; divide by 4 to give array index
+	lsr		W8,#3,W8			; divide by 8 to give array index
+	mov		retIndexAdr,W0
 	mov		W8,[W0]				; store at output location
+	
+	; Return value contains error flags
+	mov		trigFlag,W6			; if one or more triggers were not found, those bits are high
+	clr		W0
+	cp		timeout				; check post-trigger samples
+	cpb		timeout+2
+	bra		NZ,_apdNoTimeout
+	bset	W6,#4
+_apdNoTimeout:
+	mov		W6,W0
+
+	; Re-enable interrupts
 	
 	
 	

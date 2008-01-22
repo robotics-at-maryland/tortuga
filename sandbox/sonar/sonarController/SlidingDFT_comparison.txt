@@ -17,6 +17,8 @@ DSP instructions would be of minimal use when implementing the Simple algorithm,
 they are designed to perform "multiply and accumulate" operations typical of 
 convolution integrals.  However, this is a moot point because the dsPIC only barely
 contains enough memory to properly implement the Simple algorithm in a practical setting.
+Also, the simple fact that there is more memory used in the Simple algorithm means that
+more instructions will be used maintaining and generating array pointers and such.
 
 
 
