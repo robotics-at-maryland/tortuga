@@ -31,7 +31,7 @@ bin/ctx.o: test/src/ctx.c include/ctxapi.h
 	$(CC) $(CFLAGS) -c test/src/ctx.c -o bin/ctx.o 
 
 ctx: bin/ctx.o bin/ctxapi.o
-	$(CC) $(LDFLAGS)  bin/ctx.o -o ctx
+	$(CC) -lusb bin/ctxapi.o  bin/ctx.o -o ctx
 
 # Demo Program
 bin/consolemon.o: test/src/consolemon.c include/ctxapi.h bin/ctxapi.o
@@ -39,4 +39,4 @@ bin/consolemon.o: test/src/consolemon.c include/ctxapi.h bin/ctxapi.o
 
 
 consolemon: bin/ctxapi.o bin/consolemon.o
-	$(CC) $(LDFLAGS) bin/consolemon.o bin/ctx.o bin/ctxapi.o -o consolemon 
+	$(CC) -lusb bin/consolemon.o bin/ctxapi.o -o consolemon 
