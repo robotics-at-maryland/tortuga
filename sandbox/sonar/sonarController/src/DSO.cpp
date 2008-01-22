@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <vector>
+#include <assert.h>
 
 
 namespace ram {
@@ -120,61 +121,123 @@ void DSO::reconstruct_adcdata(adcdata_t *out, adcsampleindex_t until) const
 
 void DSO::thinkAboutIt()
 {
-	using namespace std;
+	//  Maximum possible TDOA in units of samples
+	adcsampleindex_t maxTDOA = (adcsampleindex_t) (MAX_SENSOR_SEPARATION * 2 / SPEED_OF_SOUND * SAMPRATE);
 	
-	adcsampleindex_t maxTDOA = (adcsampleindex_t) (MAX_SENSOR_SEPARATION * 2 / SPEED_OF_SOUND);
+	adcsampleindex_t minIndex, maxIndex;
+	int minIndexSlot, maxIndexSlot;
 	
-	vector<SonarChunk*>::iterator * it = 
-		new vector<SonarChunk*>::iterator[nchannels];
+	std::vector<SonarChunk*>::iterator * it = 
+		new std::vector<SonarChunk*>::iterator[nchannels];
 	SonarChunk **slots = new SonarChunk*[nchannels];
 	
+	//	Grab the first SonarChunk from each channel and put it in the corresponding slot
+	bool moreData = true;
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
 		it[channel] = oldChunks[channel].begin();
-		slots[channel] = NULL;
+		if (it[channel] == oldChunks[channel].end())
+			moreData = false;
+		else
+			slots[channel] = *(it[channel]);
 	}
 	
+	if (!moreData || nchannels <= 0)
+		return;  //  You IDIOT!
 	
-	bool moreData = true;
+	//  Retrieve the minimum and maximum start index from each channel.
+	minIndex = slots[0]->startIndex;
+	maxIndex = slots[0]->startIndex;
+	minIndexSlot = 0;
+	maxIndexSlot = 0;
+	for (int channel = 1 ; channel < nchannels ; channel ++)
+	{
+		adcsampleindex_t startIndex = slots[channel]->startIndex;
+		if (startIndex > maxIndex)
+		{
+			maxIndex = startIndex;
+			maxIndexSlot = channel;
+		}
+		if (startIndex < minIndex)
+		{
+			minIndex = startIndex;
+			minIndexSlot = channel;
+		}
+	}
+	
 	int countPings = 0;
 	while (moreData)
 	{
-		for (int channel = 0 ; channel < nchannels && moreData ; channel ++)
+		if (maxIndex - minIndex > maxTDOA)
 		{
-			if (slots[channel] == NULL)
+			it[minIndexSlot]++;
+			if (it[minIndexSlot] == oldChunks[minIndexSlot].end())
+			{
+				moreData = false;
+				break;
+			}
+			
+			SonarChunk *nextChunk = *(it[minIndexSlot]);
+			slots[minIndexSlot] = nextChunk;
+			
+			minIndex = slots[0]->startIndex;
+			maxIndex = slots[0]->startIndex;
+			minIndexSlot = 0;
+			maxIndexSlot = 0;
+			for (int channel = 1 ; channel < nchannels ; channel ++)
+			{
+				adcsampleindex_t startIndex = slots[channel]->startIndex;
+				if (startIndex > maxIndex)
+				{
+					maxIndex = startIndex;
+					maxIndexSlot = channel;
+				}
+				if (startIndex < minIndex)
+				{
+					minIndex = startIndex;
+					minIndexSlot = channel;
+				}
+			}
+		}
+		else
+		{
+			printf("Ping %d detected with channel 0 at sample index %d\n", countPings, slots[0]->startIndex);
+			localize(slots);
+			countPings ++;
+			for (int channel = 0 ; channel < nchannels ; channel ++)
 			{
 				it[channel]++;
 				if (it[channel] == oldChunks[channel].end())
-				{
 					moreData = false;
-				}
-				else if ((*it[channel])->size() > 100)
-				{
+				else
 					slots[channel] = *(it[channel]);
-					for (int channel2 = 0 ; channel2 < nchannels ; channel2 ++)
-						if (channel2 != channel && slots[channel2] != NULL)
-							if (abs(slots[channel]->startIndex - slots[channel]->startIndex) > maxTDOA)
-								slots[channel] = NULL;
-				}
 			}
-			bool pingDetected = true;
-			for (int channel2 = 0 ; channel2 < nchannels ; channel2 ++)
-				if (slots[channel2] == NULL)
-					pingDetected = false;
-			if (pingDetected)
+			if (!moreData)
+				break;
+			minIndex = slots[0]->startIndex;
+			maxIndex = slots[0]->startIndex;
+			minIndexSlot = 0;
+			maxIndexSlot = 0;
+			for (int channel = 1 ; channel < nchannels ; channel ++)
 			{
-				printf("Ping %d detected!\n", countPings);
-				localize(slots);
-				for (int channel2 = 0 ; channel2 < nchannels ; channel2 ++)
-					slots[channel2] = NULL;
-				countPings ++;
+				adcsampleindex_t startIndex = slots[channel]->startIndex;
+				if (startIndex > maxIndex)
+				{
+					maxIndex = startIndex;
+					maxIndexSlot = channel;
+				}
+				if (startIndex < minIndex)
+				{
+					minIndex = startIndex;
+					minIndexSlot = channel;
+				}
 			}
 		}
 	}
 	delete [] slots;
 	delete [] it;
 }
-
+	
 
 void DSO::localize(SonarChunk **chunks)
 {
