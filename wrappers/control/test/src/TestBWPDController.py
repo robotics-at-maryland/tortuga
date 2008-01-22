@@ -82,7 +82,7 @@ class TestBWPDController(unittest.TestCase):
 
     def testQueuedEventsAtDepth(self):
         def desiredHandler(event):
-            self.actualDepth = desiredDepth
+            self.actualDepth = event.number
             
         self.qeventHub.subscribe(control.IController.AT_DEPTH,
                                  self.controller, desiredHandler)
@@ -101,8 +101,7 @@ class TestBWPDController(unittest.TestCase):
 
     def testQueuedEvents(self):
         def desiredHandler(event):
-            desiredDepth = event.number
-            self.desiredDepth = desiredDepth
+            self.desiredDepth = event.number
             
         self.qeventHub.subscribe(control.IController.DESIRED_DEPTH_UPDATE,
                                  self.controller, desiredHandler)

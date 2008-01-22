@@ -38,7 +38,8 @@ struct RAM_EXPORT Event
 } // namespace core
 } // namespace ram
 
-#define RAM_CORE_EVENT_STR(S) # S
+#define RAM_CORE_EVENT_STRINGIFY(S) #S
+#define RAM_CORE_EVENT_STR(S) RAM_CORE_EVENT_STRINGIFY(S)
 #define RAM_CORE_EVENT_TYPE(_class, name) \
     const ram::core::Event::EventType _class  :: name  \
     (std::string(__FILE__ ":" RAM_CORE_EVENT_STR(__LINE__) " ") \
