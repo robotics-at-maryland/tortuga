@@ -132,5 +132,10 @@ OpenCVImage::operator IplImage* ()
     return m_img;
 }
 
+IplImage* OpenCVImage::asIplImage() const
+{
+    return m_img;
+}
+
 } // namespace vision
 } // namespace ram

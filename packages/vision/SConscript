@@ -81,3 +81,7 @@ envt.RAMProgram(target = 'DetectorTest',
 # Image Analysis Test
 envt.RAMProgram(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
 
+
+# Unit Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'vision')

@@ -72,6 +72,9 @@ public:
 
     /** All images should be castable to IplImage for OpenCV compatibility */
     virtual operator IplImage*() = 0;
+
+    /** Provieded for OpenCV Compatibiltiy */
+    virtual IplImage* asIplImage() const = 0;
 };
 
 } // namespace vision

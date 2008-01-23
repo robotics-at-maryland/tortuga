@@ -50,6 +50,8 @@ public:
     virtual void setPixelFormat(vision::Image::PixelFormat format);
 
     virtual operator IplImage*();
+
+    virtual IplImage* asIplImage() const;
     
 private:
     wxBitmap* m_bitmap;

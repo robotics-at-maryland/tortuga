@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Daniel Hakim
- * File:  packages/vision/include/CvCamera.h
+ * File:  packages/vision/include/OpenCVImage.h
  */
 
 #ifndef RAM_VISION_OPENCVIMAGE_H_06_06_2007
@@ -65,7 +65,10 @@ public:
     virtual void setPixelFormat(Image::PixelFormat format);
   
     virtual operator IplImage*();
-  
+    
+    virtual IplImage* asIplImage() const;
+    
+    
 private:
     bool m_own;
     IplImage* m_img;

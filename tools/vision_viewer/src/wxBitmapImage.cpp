@@ -150,6 +150,11 @@ wxBitmapImage::operator IplImage* ()
     assert(false && "wxBitmapImage::operator IplImage*Not implemented");
 }
 
+IplImage* wxBitmapImage::asIplImage() const
+{
+    assert(false && "wxBitmapImage::asIplImage Not implemented");
+}
+    
 } // namespace visionvwr
 } // namespace tools
 } // namespace ram
