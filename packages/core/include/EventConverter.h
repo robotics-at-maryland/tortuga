@@ -29,7 +29,7 @@ namespace ram {
 namespace core {
 
 class EventConverter;
-typedef std::set<EventConverter*> EventConverterSet;
+typedef std::map<std::string, EventConverter*> EventConverterRegistry;
 typedef std::map<ram::core::Event::EventType, EventConverter*>
     EventTypeConverterMap;
 
@@ -43,12 +43,17 @@ public:
 protected:
     virtual boost::python::object convert(ram::core::EventPtr event) = 0;
 
-    /** Add an event converter to the global list of converters */
-    static void addEventConverter(EventConverter* converter);
+    /** Add an event converter to the global list of converters
+     *
+     *  @param typeName  The result of typeid(<current event type>).name()
+     *  @param converter The converter which will convert this type
+     */
+    static void addEventConverter(std::string typeName,
+                                  EventConverter* converter);
 
 private:    
     /** Gets the global set of event converters */
-    static EventConverterSet* getEventConverterSet();
+    static EventConverterRegistry* getEventConverterRegistry();
 
     /** Gets the global map which maps an event type to the right converter */
     static EventTypeConverterMap* getEventTypeConverterMap();
@@ -70,7 +75,7 @@ class SpecificEventConverter : public EventConverter
 public:
     SpecificEventConverter()
     {
-        EventConverter::addEventConverter(this);
+        EventConverter::addEventConverter(typeid(T).name(), this);
 
         // Register these types here. This is a slight hack, but its really
         // the simplest place to put these
@@ -82,17 +87,11 @@ public:
 protected:    
     virtual boost::python::object convert(ram::core::EventPtr event)
     {
-        boost::shared_ptr<T> result;
+        // We preform a static cast here, because this is only called when
+        // have the proper type
+        boost::shared_ptr<T> result = boost::static_pointer_cast<T>(event);;
         
-        if ( strcmp(typeid(T).name(), typeid(*event.get()).name()) == 0)
-            result = boost::static_pointer_cast<T>(event);
-        
-        // If the conversion was succesfull return the proper python object
-        if (result)
-            return boost::python::object(result);
-
-        // If not, return None
-        return boost::python::object();
+        return boost::python::object(result);
     }
 };
 

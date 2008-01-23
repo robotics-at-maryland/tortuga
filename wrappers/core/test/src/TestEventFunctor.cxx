@@ -58,10 +58,10 @@ BOOST_PYTHON_MODULE(event_functor)
         .def_readwrite("value", &RegisteredEvent::value);
     py::register_ptr_to_python<boost::shared_ptr<RegisteredEvent> >();
     
-    py::class_<UnRegisteredEvent, py::bases<ram::core::Event> >(
+/*    py::class_<UnRegisteredEvent, py::bases<ram::core::Event> >(
         "UnRegisteredEvent")
         .def_readwrite("number", &UnRegisteredEvent::number);
-    py::register_ptr_to_python<boost::shared_ptr<UnRegisteredEvent> >();
+        py::register_ptr_to_python<boost::shared_ptr<UnRegisteredEvent> >();*/
 }
 
 TEST_FIXTURE(EventFunctorFixture, test)
@@ -92,7 +92,7 @@ TEST_FIXTURE(EventFunctorFixture, test)
         
 
         // Check the one with the unregistered converter
-        UnRegisteredEvent* eventUnReg = new UnRegisteredEvent();
+/*        UnRegisteredEvent* eventUnReg = new UnRegisteredEvent();
         eventUnReg->number = 5;
         
         eventPublisher->publish("TEST_UNREG",
@@ -105,7 +105,7 @@ TEST_FIXTURE(EventFunctorFixture, test)
         CHECK_EQUAL(true, hasattr);
 
         int number = py::extract<int>(main_namespace["number"]);
-        CHECK_EQUAL(5, number);
+        CHECK_EQUAL(5, number);*/
 
         // They both seem to work, I have no idea why!
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }

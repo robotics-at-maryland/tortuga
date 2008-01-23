@@ -10,9 +10,6 @@
 // STD Includes
 #include <utility>
 
-// Library Includes
-#include <boost/foreach.hpp>
-
 // Project Includes
 #include "core/include/EventConverter.h"
 
@@ -34,16 +31,18 @@ boost::python::object DefaultEventConverter::convert(ram::core::EventPtr event)
 }
 
 
-void EventConverter::addEventConverter(EventConverter* converter)
+void EventConverter::addEventConverter(std::string typeName,
+                                       EventConverter* converter)
 {
-    EventConverter::getEventConverterSet()->insert(converter);
+    EventConverter::getEventConverterRegistry()->insert(
+        std::make_pair(typeName, converter));
 }
  	
     
-EventConverterSet* EventConverter::getEventConverterSet()
+EventConverterRegistry* EventConverter::getEventConverterRegistry()
 {
-    static EventConverterSet eventConverterSet;
-    return &eventConverterSet;
+    static EventConverterRegistry eventConverterRegistry;
+    return &eventConverterRegistry;
 }
 
 
@@ -55,13 +54,12 @@ EventTypeConverterMap* EventConverter::getEventTypeConverterMap()
 
 boost::python::object EventConverter::convertEvent(ram::core::EventPtr event)
 {
-    // Check to see if we already have a python object
+    // If we already have a python object, use default converter
     if (0 != boost::get_deleter<bp::converter::shared_ptr_deleter>(event))
         return DEFAULT_EVENT_CONVERTER.convert(event);
-    
+
+    // Attempt to find the converter based on event type
     EventTypeConverterMap* eventConverterMap = getEventTypeConverterMap();
-    
-    // Find the proper converter, first look it up by event type
     EventConverter* converter = 0;
     EventTypeConverterMap::iterator iter = eventConverterMap->find(event->type);
 
@@ -71,23 +69,19 @@ boost::python::object EventConverter::convertEvent(ram::core::EventPtr event)
     }
     else
     {
-        // Did not find the converter so look it up in our set    
-        EventConverterSet* eventConverterSet =
-            EventConverter::getEventConverterSet();
-        
-        BOOST_FOREACH(EventConverter* conv, (*eventConverterSet))
-        {
-            // If we don't get None back, the converter succeeded
-            if(Py_None != conv->convert(event).ptr())
-            {
-                converter = conv;
-                break;
-            }
-        }
+        // Did not find the converter so look it up by type in our registry
+        EventConverterRegistry* registry =
+            EventConverter::getEventConverterRegistry();
 
-        // If no converter was found, just use the default
-        if (!converter)
-            converter = &DEFAULT_EVENT_CONVERTER;
+        std::string eventTypeName(typeid(*(event.get())).name());
+        EventConverterRegistry::iterator registryIter =
+            registry->find(eventTypeName);
+
+        // We *must* find a converter, or things will break
+        assert(registry->end() != registryIter &&
+               "Could not find converter for event type in registry");
+
+        converter = registryIter->second;
         
         // Record converter it in our map for faster lookup
         eventConverterMap->insert(std::make_pair(event->type, converter));
