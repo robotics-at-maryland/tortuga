@@ -9,8 +9,8 @@ Recorder::Recorder(OpenCVCamera* camera, const char* filename)
 	frame = new ram::vision::OpenCVImage(640, 480);
 	isColor = 1;
 	fps     = 30;  // or 30
-	frameW=640;
-	frameH=480;
+	frameW=480;
+	frameH=640;
 	FILE* video=fopen(filename,"w");
 	//Yes, thats a comma, not a semicolon, it forces the compiler to close the file before attempting the next step, creating a video writer on a file that may not exist before the close finishes
 	fclose(video),

@@ -602,12 +602,12 @@ void redMask(IplImage* percents, IplImage* base)
 	int count=0;
 	
 //To remove top half of image, insert this, and start y at height/2 in the next set of loops
-//	for (int y=0; y<height/2;y++)
-//		for (int x=0;x<width;x++)
-//		{
-//			data2[count]=data2[count+1]=data2[count+2]=0;
-//			count+=3;
-//		}
+	for (int y=0; y<height/2;y++)
+		for (int x=0;x<width;x++)
+		{
+			data2[count]=data2[count+1]=data2[count+2]=0;
+			count+=3;
+		}
 //			
 	for (int y=0; y<height; y++)
 	{
