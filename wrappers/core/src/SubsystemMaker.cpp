@@ -45,7 +45,7 @@ struct SubsystemMakerWrapper : ram::core::SubsystemMaker,
         BOOST_FOREACH(ram::core::SubsystemPtr subsystem, params.second)
         {
             deps.append(
-                ram::core::SubsystemConverter::convertSubsystem(subsystem));
+                ram::core::SubsystemConverter::convertObject(subsystem));
         }
         
         return func_makeObject(params.first, deps);
@@ -58,7 +58,7 @@ struct SubsystemMakerWrapper : ram::core::SubsystemMaker,
         ram::core::SubsystemPtr subsystem =
             ram::core::SubsystemMaker::newObject(std::make_pair(config, deps));
         
-        return ram::core::SubsystemConverter::convertSubsystem(subsystem);
+        return ram::core::SubsystemConverter::convertObject(subsystem);
     }
 };
 

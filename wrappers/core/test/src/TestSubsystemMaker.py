@@ -30,16 +30,12 @@ class TestSubsystemMaker(unittest.TestCase):
         self.assert_(isinstance(obj, core.Subsystem))
 
     def testGetRegisteredKeys(self):
-        expected = ['LoopSubsystem', 'SubsystemA', 'SubsystemB',
-                    'TestSubsystem', 'EventHub', 'QueuedEventHub']
-        keys = core.SubsystemMaker.getRegisteredKeys()
+        expected = set(['TestSubsystem', 'EventHub', 'QueuedEventHub'])
+        actual = set()
+        actual.update(core.SubsystemMaker.getRegisteredKeys())
 
-        keys.sort()
-        expected.sort()
-        
-        self.assertEquals(len(expected), len(keys))
-        for exp,act in zip(expected, keys):
-            self.assertEquals(exp, act)
+        difference = expected.intersection(actual)
+        self.assertEquals(3, len(difference));
         
 
 if __name__ == '__main__':

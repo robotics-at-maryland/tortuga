@@ -86,7 +86,7 @@ def generate(module_builder, local_ns, global_ns):
                                          std::string subsystemName)
     {
         ram::core::SubsystemPtr subsystem = app.getSubsystem(subsystemName);
-        return ram::core::SubsystemConverter::convertSubsystem(subsystem);
+        return ram::core::SubsystemConverter::convertObject(subsystem);
     }
     """)
     Application.add_registration_code(

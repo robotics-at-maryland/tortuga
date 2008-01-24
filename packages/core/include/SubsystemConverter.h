@@ -19,6 +19,7 @@
 
 // Project Includes
 #include "core/include/Subsystem.h"
+#include "core/include/ToPythonConverter.h"
 
 // Must Be Included last
 #include "core/include/Export.h"
@@ -26,54 +27,12 @@
 namespace ram {
 namespace core {
 
-class SubsystemConverter;
-typedef std::set<SubsystemConverter*> SubsystemConverterSet;
-
-class RAM_EXPORT SubsystemConverter
-{
-public:
-    virtual ~SubsystemConverter() {};
+typedef ToPythonConverter<Subsystem> SubsystemConverter;
     
-    virtual boost::python::object convert(
-        ram::core::SubsystemPtr subsystem) = 0;
-
-    static void addSubsystemConverter(SubsystemConverter* converter);
-
-    static boost::python::object convertSubsystem(
-        ram::core::SubsystemPtr subsystem);
-private:
-    /** Gets the global set of subsystem converters */
-    static SubsystemConverterSet* getSubsystemConverterSet();
-};
-
-class DefaultSubsystemConverter : public SubsystemConverter
-{
-public:
-    virtual ~DefaultSubsystemConverter();
-    
-    virtual boost::python::object convert(ram::core::SubsystemPtr subsystem);
-};
-
 template<class T>
-class SpecificSubsystemConverter : public SubsystemConverter
+class SpecificSubsystemConverter :
+        public SpecificToPythonConverter<T, Subsystem>
 {
-public:
-    SpecificSubsystemConverter()
-    {
-        SubsystemConverter::addSubsystemConverter(this);
-    }
-    
-    virtual boost::python::object convert(ram::core::SubsystemPtr subsystem)
-    {
-        boost::shared_ptr<T> result = boost::dynamic_pointer_cast<T>(subsystem);
-
-        // If the conversion was succesfull return the proper python object
-        if (result)
-            return boost::python::object(result);
-
-        // If not, return None
-        return boost::python::object();
-    }
 };
 
 } // namespace core

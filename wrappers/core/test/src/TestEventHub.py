@@ -60,5 +60,17 @@ class TestEventHub(unittest.TestCase):
         self.epubB.publish("Type", core.Event())
         self.assertEquals(2, recv.calls)
 
+    def testMakeEventHub(self):
+        cfg = { 'name' : 'Test', 'type' : 'EventHub' }
+        cfg = core.ConfigNode.fromString(str(cfg))
+        ehub = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
+
+        recv = Reciever()
+        epub = core.EventPublisher(ehub)
+        ehub.subscribeToType("Type", recv)
+        
+        epub.publish("Type", core.Event())
+        self.assertEquals(1, recv.calls)
+
 if __name__ == '__main__':
     unittest.main()

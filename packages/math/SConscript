@@ -12,10 +12,12 @@ import buildfiles.libs as libs
 Import('env')
 envl = env.Clone()
 
+ext_deps = []
 # Only need boost if we are compling the wrappers and the core
 if env.HasFeature('wrappers') and env.HasFeature('core'):
     libs.add_internal(envl, 'core')
     libs.add_external(envl, 'Boost.Python')
+    ext_deps = ['Boost.Python']
 
 # Sources
 sources = envl.Glob('src', '*.cpp')
@@ -25,4 +27,4 @@ envl.RAMSharedLibrary('math',  source = sources)
 
 # Tests
 envt = env.Clone()
-envt.Tests(int_deps = 'math')
+envt.Tests(int_deps = 'math', ext_deps = ext_deps)
