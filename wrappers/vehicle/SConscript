@@ -33,7 +33,8 @@ envl.Append(CPPPATH = base_dir)
 # Headers we are currently wrapping
 veh_wrapped_headers = ['IVehicle.h']
 
-dev_wrapped_headers = ['device/IDevice.h',
+dev_wrapped_headers = ['device/Common.h',
+                       'device/IDevice.h',
                        'device/IThruster.h']
 
 # Tests

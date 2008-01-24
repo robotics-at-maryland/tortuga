@@ -54,6 +54,10 @@ EventTypeConverterMap* EventConverter::getEventTypeConverterMap()
 
 boost::python::object EventConverter::convertEvent(ram::core::EventPtr event)
 {
+    // Return None when given a null pointer
+    if (!event)
+        return boost::python::object();
+    
     // If we already have a python object, use default converter
     if (0 != boost::get_deleter<bp::converter::shared_ptr_deleter>(event))
         return DEFAULT_EVENT_CONVERTER.convert(event);

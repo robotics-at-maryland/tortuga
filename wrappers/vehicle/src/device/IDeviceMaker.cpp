@@ -14,6 +14,7 @@
 
 // Project Includes
 #include "vehicle/include/device/IDeviceMaker.h"
+#include "vehicle/include/device/IDeviceConverter.h"
 
 namespace bp = boost::python;
 
@@ -46,13 +47,16 @@ struct IDeviceMakerWrapper : ram::vehicle::device::IDeviceMaker,
                           boost::get<2>(params));
     }
     
-    static ram::vehicle::device::IDevicePtr newObject(
+    static boost::python::object newObject(
         ram::core::ConfigNode config,
         ram::core::EventHubPtr eventHub,
         ram::vehicle::IVehiclePtr vehicle)
     {
-        return ram::vehicle::device::IDeviceMaker::newObject(
-            boost::make_tuple(config, eventHub, vehicle));
+        ram::vehicle::device::IDevicePtr device =
+            ram::vehicle::device::IDeviceMaker::newObject(
+                boost::make_tuple(config, eventHub, vehicle));
+        
+        return ram::vehicle::device::IDeviceConverter::convertObject(device);
     }
 };
 

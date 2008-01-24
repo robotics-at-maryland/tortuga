@@ -68,6 +68,10 @@ template<class T>
 boost::python::object ToPythonConverter<T>::convertObject(
     boost::shared_ptr<T> object)
 {
+    // Return Nxone, if we get a null pointer
+    if (!object)
+        return boost::python::object();
+    
 //    std::cout << "Conveter of type: \"" << typeid(T).name() << "\" started:  ";
     // If we already have a python object, use default converter
     if (0 != boost::get_deleter<boost::python::converter::shared_ptr_deleter>(

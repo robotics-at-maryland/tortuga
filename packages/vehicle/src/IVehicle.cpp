@@ -23,6 +23,12 @@ IVehicle::IVehicle(std::string name, core::EventHubPtr eventHub) :
 {
 }
 
+device::IDevicePtr IVehicle::getDevice(std::string name)
+{
+    return device::IDevicePtr();
+}
+    
+    
 IVehicle::~IVehicle()
 {    
 }

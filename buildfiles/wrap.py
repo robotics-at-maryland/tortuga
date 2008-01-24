@@ -307,3 +307,17 @@ def registerSubsystemConverter(cls):
 
     cls.include_files.append('core/include/SubsystemConverter.h')
 
+def registerConverter(converter_cls, cls, include):
+    cls_type = declarations.algorithm.full_name(cls).strip("::")
+    args = {'converter_cls' : converter_cls,
+            'cls_type' : cls_type,
+            'cls_name' : cls_type.replace('::','_').upper()}
+    
+
+    cls.add_declaration_code("""
+    static %(converter_cls)s<%(cls_type)s>
+    %(cls_name)s;
+    """ % args)
+
+    cls.include_files.append(include)
+

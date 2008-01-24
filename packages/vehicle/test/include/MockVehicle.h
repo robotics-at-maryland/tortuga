@@ -38,11 +38,11 @@ public:
                 
 //    virtual ~MockVehicle {};
     
-    virtual ram::vehicle::device::IDevice* getDevice(std::string name)
+    virtual ram::vehicle::device::IDevicePtr getDevice(std::string name)
     {
         ram::vehicle::NameDeviceMapIter iter = devices.find(name);
         assert(iter != devices.end() && "Error Device not found");
-        return (*iter).second.get();
+        return (*iter).second;
     }
 
     std::vector<std::string> getDeviceNames()

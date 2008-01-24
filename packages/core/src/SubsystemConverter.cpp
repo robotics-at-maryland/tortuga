@@ -7,13 +7,9 @@
  * File:  packages/core/src/SubsystemConverter.cpp
  */
 
-// Library Includes
-#include <boost/foreach.hpp>
 
 // Project Includes
 #include "core/include/SubsystemConverter.h"
-
-namespace bp = boost::python;
 
 namespace ram {
 namespace core {

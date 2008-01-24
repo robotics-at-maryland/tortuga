@@ -34,7 +34,7 @@ public:
     virtual ~Vehicle();
     
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
-    virtual device::IDevice* getDevice(std::string name);
+    virtual device::IDevicePtr getDevice(std::string name);
 
     /** @copydoc IVehilce::getDeviceNames() */
     virtual std::vector<std::string> getDeviceNames();
@@ -102,7 +102,7 @@ protected:
     void setState(const Vehicle::VehicleState& state);
 
     /** Grabs the IMU from the current list of devices */
-    device::IIMU* getIMU();
+    device::IIMUPtr getIMU();
     
 private:
             
@@ -137,7 +137,7 @@ private:
     std::string m_aftThruster;
 
     std::string m_imuName;
-    vehicle::device::IIMU* m_imu;
+    vehicle::device::IIMUPtr m_imu;
 };
     
 } // namespace vehicle

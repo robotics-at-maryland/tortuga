@@ -60,7 +60,6 @@ TEST_FIXTURE(DeviceFixture, Vehicle)
         thruster->force = 10;
 
         eval("thruster = vehicle.getDevice('AftThruster')\n"
-             "thruster = vdev.IThruster.castTo(thruster)\n"
              "force = thruster.getForce()");
 
         int force = py::extract<double>(main_namespace["force"]);

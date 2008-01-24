@@ -13,22 +13,17 @@ from pyplusplus import messages
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
-def expose_device(local_ns, name, remove = True, cast = False):
+def expose_device(local_ns, name, register = True):
     print 'NAME:',name
     device = local_ns.class_(name)
     device.include()
 
-    if cast:
-        wrap.add_castTo(device, 'ram::vehicle::device::IDevice')
-
-#    if remove:
-#        device.member_function('getVehicle').call_policies = \
-#            call_policies.return_internal_reference()
+    if register:
+        wrap.registerConverter(
+            'ram::vehicle::device::SpecificIDeviceConverter',
+            device, 'vehicle/include/device/IDeviceConverter.h')
     
-#    device.disable_warnings(messages.W1023)
-
-#    local_ns.typedef(name + 'Ptr').include()
-  
+    
     return device
 
 
@@ -44,13 +39,13 @@ def generate(module_builder, global_ns, local_ns):
         cls.already_exposed = True
 
     # Wrap IDevice Class
-    IDevice = expose_device(local_ns, 'IDevice')#, #cast = False);
+    IDevice = expose_device(local_ns, 'IDevice', register = False);
 
     # Wrap the thruster class
-    IThruster = expose_device(local_ns, 'IThruster', cast = True);
-    print 'TYPE',IThruster
+    IThruster = expose_device(local_ns, 'IThruster');
 
     module_builder.add_registration_code("registerIDeviceMakerClass();")
+    module_builder.add_registration_code("registerIDevicePtrs();")
     wrap.add_needed_includes([IDevice, IThruster])
     return ['wrappers/vehicle/include/RegisterFunctions.h']
     # Wrap IMU class

@@ -94,6 +94,6 @@ TEST_FIXTURE(VehicleFixture, _addDevice)
     MockDevice* mockDevice = new MockDevice("TestName");
     veh->_addDevice(vehicle::device::IDevicePtr(mockDevice));
 
-    CHECK_EQUAL(mockDevice, veh->getDevice("TestName"));
+    CHECK_EQUAL(mockDevice, veh->getDevice("TestName").get());
     CHECK_EQUAL("TestName", veh->getDevice("TestName")->getName());
 }

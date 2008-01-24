@@ -11,6 +11,7 @@
 #define RAM_VEHICLE_WRAP_REGISTERFUNCTIONS_H_01_04_2008
 
 void registerIVehiclePtrs();
+void registerIDevicePtrs();
 void registerIDeviceMakerClass();
 
 #endif // RAM_VEHICLE_WRAP_REGISTERFUNCTIONS_H_01_04_2008

@@ -85,7 +85,7 @@ class Subsystem(_core.Subsystem):
         subsystem = Subsystem.getSubsystemOfType(_type, deps, exact = True)
 
         if nonNone and subsystem is None:
-            raise Exception("No Subsystem of type: '%s' found" % _type)
+            raise Exception("No Subsystem of exactly the type: '%s' found" % _type)
         
         return subsystem
 

@@ -10,13 +10,6 @@
 #ifndef RAM_CORE_SUBSYSTEMCONVERTER_H_01_13_2008
 #define RAM_CORE_SUBSYSTEMCONVERTER_H_01_13_2008
 
-// STD Includes
-#include <string>
-#include <set>
-
-// Library Includes
-#include <boost/python.hpp>
-
 // Project Includes
 #include "core/include/Subsystem.h"
 #include "core/include/ToPythonConverter.h"
@@ -28,6 +21,10 @@ namespace ram {
 namespace core {
 
 typedef ToPythonConverter<Subsystem> SubsystemConverter;
+
+#ifdef RAM_WINDOWS
+template class RAM_EXPORT ToPythonConverter<Subsystem>
+#endif
     
 template<class T>
 class SpecificSubsystemConverter :

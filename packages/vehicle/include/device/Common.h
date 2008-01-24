@@ -49,26 +49,36 @@ typedef DoubleList VoltageList;
 typedef DoubleList WattageList;
 typedef DoubleList CurrentList;
 typedef std::vector<std::string> StringList;
-
-// To expose things to GCC-XML
-namespace details {
-inline int instantiate()
-{
-    int a = sizeof(boost::shared_ptr<IDevice>);
-    a += sizeof(boost::shared_ptr<IThruster>);
-    a += sizeof(DoubleList);
-    a += sizeof(VoltageList);
-    a += sizeof(WattageList);
-    a += sizeof(CurrentList);
-    a += sizeof(StringList);
-    return a;
-}
-}
     
 } // namespace device
 } // namespace vehicle
 } // namespace ram
 
+
+// Magic namespace to clean up names
+namespace pyplusplus { 
+namespace aliases {
+
+typedef ram::vehicle::device::IDevicePtr IDevicePtr;
+typedef ram::vehicle::device::IThrusterPtr IThrusterPtr;
+
+}
+}
+
+// To expose things to GCC-XML
+namespace details {
+inline int instantiateVehicleDeviceCommon()
+{
+    int a = sizeof(boost::shared_ptr<ram::vehicle::device::IDevice>);
+    a += sizeof(boost::shared_ptr<ram::vehicle::device::IThruster>);
+/*    a += sizeof(DoubleList);
+    a += sizeof(VoltageList);
+    a += sizeof(WattageList);
+    a += sizeof(CurrentList);
+    a += sizeof(StringList);*/
+    return a;
+}
+}
 
 
 #endif // RAM_VEHICLE_DEVICE_COMMON_06_11_2007
