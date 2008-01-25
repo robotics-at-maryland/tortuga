@@ -29,8 +29,7 @@ class MockController(control.IController):
         Throws the at depth event
         """
         
-        #event = ext.math.NumericEvent()
-        event = core.Event()
+        event = ext.math.NumericEvent()
         event.number = vehicleDepth
         self.publish(control.IController.AT_DEPTH, event)
         
