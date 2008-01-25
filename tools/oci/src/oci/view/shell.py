@@ -32,5 +32,18 @@ class ShellPanel(wx.py.shell.Shell):
                                    InterpClass = Intrepreter)
 
         self.redirectStdout()
-        self.redirectStderr()
+        self.redirectStdout()
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _onClose(self, closeEvent):
+        # Make the rest of the output go the console
+        self.redirectStdout(False)
+        self.redirectStdout(False)
+        
+        # Remove intrepter references
+        del self.interp
+        
+        closeEvent.Skip()
+            
     

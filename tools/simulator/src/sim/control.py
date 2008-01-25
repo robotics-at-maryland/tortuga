@@ -44,6 +44,12 @@ class KeyboardController(core.Subsystem):
         
     def backgrounded(self):
         return False
+
+    def unbackground(self, join = False):
+        pass
+
+    def background(self):
+        pass
     
     def update(self, time_since_last_frame):
         # Turn (Yaw) Control

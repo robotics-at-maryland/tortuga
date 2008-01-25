@@ -17,7 +17,7 @@ import ext.core as core
 import oci.view.panels  # Import needed for registration of IPanelProviders
 from oci.view.shell import ShellPanel
 
-class MainFrame(wx.aui.AuiMDIParentFrame):
+class MainFrame(wx.Frame):
     """
     @type panel_providers: iterable
     @cvar panel_providers: A list of all classes which can provide panels for 
@@ -42,14 +42,18 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
         position = wx.DefaultPosition
         size = wx.Size(800,600)
         title = 'OCI'
-        wx.aui.AuiMDIParentFrame.__init__(self, None, wx.ID_ANY, title, 
-                                          position, size)
+        wx.Frame.__init__(self, None, title = title, pos = position, 
+                          size = size) 
+        
+        self._notebook = wx.aui.AuiNotebook(self)
+        sizer = wx.BoxSizer()
+        sizer.Add(self._notebook, 1, wx.EXPAND)
+        self.SetSizer(sizer)
 
         # Add panels for all the current subsystems
-        self._addSubsystemPanels(subsystems)
         self._addShell(subsystems)
-        
-        self.SetMinSize(self.GetSize())
+        self._addSubsystemPanels(subsystems)
+ 
         self.Bind(wx.EVT_CLOSE,self._onClose)            
     
     def _addShell(self, subsystems):
@@ -63,16 +67,21 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
             locals[name] = subsystem
             introText += '%s: %s\n' % (name, type(subsystem))
         
-        shell = ShellPanel(self._createMDIChild(), locals = locals,
-                           introText = introText)
+        shell = ShellPanel(self, locals = locals, introText = introText)
         paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
         paneInfo = paneInfo.Caption("Shell").Left()
         self._addSubsystemPanel(paneInfo, shell, [])
     
-    def _onClose(self, event):
-        # TODO: Update this list based on whether the close or not
+    def _onClose(self, event):        
+        for i in range(0, self._notebook.GetPageCount()):
+            self._notebook.RemovePage(i)
+            
+        # Close all panels, if I don't do this the EVT_CLOSE handlers will 
+        # never be called
         for panel in self._panels:
-            panel._onClose(wx.CloseEvent())
+            panel.Close()
+            
+        # Let the normal handler of this event take over
         event.Skip()
         
 #    def _remove_module(self, mod):    
@@ -85,25 +94,12 @@ class MainFrame(wx.aui.AuiMDIParentFrame):
 #        
 #        del self._panels[mod]
         
-    def _createMDIChild(self):
-        return wx.aui.AuiMDIChildFrame(self, wx.ID_ANY, 'ERROR')
-        
     def _addSubsystemPanels(self, subsystems):
         for provider in self.panelProviders:
-            panelInfos = provider.getPanels(subsystems, self._createMDIChild)
+            panelInfos = provider.getPanels(subsystems, self)
             for paneInfo, panel, sys in panelInfos:
-                self._panels.append(panel)
                 self._addSubsystemPanel(paneInfo, panel, sys)
 
     def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems):
-        mdiFrame = panel.GetParent()
-        mdiFrame.SetTitle(paneInfo.caption)
-        mdiFrame.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOWFRAME)) 
-        # Put the panel in a sizer which streches the panel over the entire 
-        # AuiMDIChildFrame
-        sizer = wx.BoxSizer()
-        sizer.Add(panel, proportion = 1, flag = wx.EXPAND)
-        mdiFrame.SetSizer(sizer)  
-        sizer.Fit(panel) 
-        mdiFrame.SetMinSize(sizer.GetMinSize())
-        
+        self._notebook.AddPage(panel, paneInfo.caption)
+        self._panels.append(panel)

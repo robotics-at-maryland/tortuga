@@ -72,7 +72,7 @@ class ThrusterPanel(wx.Panel):
         closeEvent.Skip()
     
     @staticmethod
-    def getPanels(subsystems, parentFunc):
+    def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
                                                      subsystems)
         
@@ -94,7 +94,7 @@ class ThrusterPanel(wx.Panel):
                 paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
                 paneInfo = paneInfo.Caption("Thrusters").Left()
         
-                panel = ThrusterPanel(parentFunc(), eventHub, thrusters)
+                panel = ThrusterPanel(parent, eventHub, thrusters)
                 return [(paneInfo, panel, [vehicle])]
             
         return []
@@ -172,7 +172,7 @@ class DepthPanel(wx.Panel):
         closeEvent.Skip()
         
     @staticmethod
-    def getPanels(subsystems, parentFunc):
+    def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
         
@@ -186,7 +186,7 @@ class DepthPanel(wx.Panel):
             paneInfo = paneInfo.Caption("Depth").Left()
         
         
-            panel = DepthPanel(parentFunc(), eventHub, vehicle, controller)
+            panel = DepthPanel(parent, eventHub, vehicle, controller)
             return [(paneInfo, panel, [vehicle])]
         
         return []
@@ -256,7 +256,7 @@ class RotationPanel(wx.Panel):
         self._yawControl.setOrientation(quat, self._desiredOrientation)
   
     @staticmethod
-    def getPanels(subsystems, parentFunc):
+    def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
         
@@ -270,7 +270,7 @@ class RotationPanel(wx.Panel):
             paneInfo = wx.aui.AuiPaneInfo().Name("Orientation")
             paneInfo = paneInfo.Caption("Orientation").Left()
         
-            panel = RotationPanel(parentFunc(), eventHub, vehicle, controller)
+            panel = RotationPanel(parent, eventHub, vehicle, controller)
             return [(paneInfo, panel, [vehicle])]
         
         return []
@@ -320,7 +320,7 @@ class DemoPowerPanel(wx.Panel):
         self._gauge.SetValue(event.power)
         
     @staticmethod
-    def getPanels(subsystems, parentFunc):
+    def getPanels(subsystems, parent):
         """
         Creates 
         """
@@ -331,7 +331,7 @@ class DemoPowerPanel(wx.Panel):
             paneInfo = wx.aui.AuiPaneInfo().Name("Demo Power")
             paneInfo = paneInfo.Caption("Demo Power").Left()
         
-            return [(paneInfo, DemoPowerPanel(parentFunc(), power), [power])]
+            return [(paneInfo, DemoPowerPanel(parent, power), [power])]
     
         return []
     
@@ -398,7 +398,7 @@ class DemoSonarPanel(wx.Panel):
         self._yText.SetValue(str(event.y))
 
     @staticmethod
-    def getPanels(subsystems, parentFunc):
+    def getPanels(subsystems, parent):
         sonar = core.Subsystem.getSubsystemOfType(subsystemMod.DemoSonar,
                                                       subsystems)
         
@@ -406,7 +406,7 @@ class DemoSonarPanel(wx.Panel):
             paneInfo = wx.aui.AuiPaneInfo().Name("Demo Sonar")
             paneInfo = paneInfo.Caption("Demo Sonar").Left()
         
-            return [(paneInfo, DemoSonarPanel(parentFunc(), sonar), [sonar])]
+            return [(paneInfo, DemoSonarPanel(parent, sonar), [sonar])]
         
         return []
     

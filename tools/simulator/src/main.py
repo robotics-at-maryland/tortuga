@@ -96,9 +96,6 @@ def main(args = None):
     else:
         commandLineStart(options.configPath)
     
-
-
-
     print 'DONE'
 
 if __name__ == '__main__':
