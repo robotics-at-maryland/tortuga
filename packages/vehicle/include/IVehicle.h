@@ -47,10 +47,10 @@ public:
     static const core::Event::EventType ORIENTATION_UPDATE;
     
     /** When the vehicles linear accel. changes (ram::math::Vector3Event) */
-    static const core::Event::EventType LINEAR_ACCEL_UPDATE;
+    //static const core::Event::EventType LINEAR_ACCEL_UPDATE;
     
     /** When the vehicles angular rate changes (ram::math::Vector3Event) */
-    static const core::Event::EventType ANGULAR_RATE_UPDATE;
+    //static const core::Event::EventType ANGULAR_RATE_UPDATE;
     
     /** When the vehicles depth changes changes (ram::math::NumericEvent) */
     static const core::Event::EventType DEPTH_UPDATE;

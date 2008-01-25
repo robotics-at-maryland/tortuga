@@ -23,7 +23,11 @@
 #include "vehicle/include/device/IThruster.h"
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IIMU.h"
+
 #include "sensorapi/include/sensorapi.h"
+
+#include "math/include/Events.h"
+
 #include "core/include/SubsystemMaker.h"
 
 // Register vehicle into the maker subsystem
@@ -283,6 +287,13 @@ void Vehicle::_addDevice(device::IDevicePtr device)
 
 void Vehicle::update(double timestep)
 {
+    if (m_devices.end() != m_devices.find(m_imuName))
+    {    
+        math::OrientationEventPtr oevent(new math::OrientationEvent());
+        oevent->orientation = getOrientation();
+        publish(IVehicle::ORIENTATION_UPDATE, oevent);
+    }
+    
     if (m_sensorFD >= 0)
     {
 
@@ -320,7 +331,7 @@ void Vehicle::update(double timestep)
                       addressSpeedMap[3], addressSpeedMap[4]);
         }
 
-
+        double depth = -1;
         {
             core::ReadWriteMutex::ScopedWriteLock lockState(m_state_mutex);
             
@@ -340,7 +351,8 @@ void Vehicle::update(double timestep)
             {
                 m_state.depth = (((double)rawDepth) - m_depthCalibIntercept) /
                     m_depthCalibSlope - m_depthOffset;
-
+                depth = m_state.depth;
+                
                 // If we aren't calibrated, take values
                 if (!m_calibratedDepth)
                 {
@@ -354,6 +366,14 @@ void Vehicle::update(double timestep)
                     }
                 }
             }
+        }
+        
+        // Publish depth event after we release the lock on the state
+        if (-1 != depth)
+        {
+            math::NumericEventPtr devent(new math::NumericEvent());
+            devent->number = depth;
+            publish(IVehicle::DEPTH_UPDATE, devent);
         }
         
         // Currently turned off inorder because they are not tested
@@ -405,7 +425,7 @@ void Vehicle::calibrateDepth()
 
 device::IIMUPtr Vehicle::getIMU()
 {
-    if (0 == m_imu)
+    if (!m_imu)
         m_imu = device::IDevice::castTo<device::IIMU>(getDevice(m_imuName));
     return m_imu;
 }

@@ -13,6 +13,7 @@
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
 
@@ -21,8 +22,10 @@
 //#include "math/test/include/MathChecks.h"
 #include "vehicle/include/Vehicle.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/EventConnection.h"
 #include "vehicle/test/include/MockDevice.h"
 #include "vehicle/test/include/MockIMU.h"
+#include "math/include/Events.h"
 
 using namespace ram;
 
@@ -96,4 +99,31 @@ TEST_FIXTURE(VehicleFixture, _addDevice)
 
     CHECK_EQUAL(mockDevice, veh->getDevice("TestName").get());
     CHECK_EQUAL("TestName", veh->getDevice("TestName")->getName());
+}
+
+void orientationHelper(math::Quaternion* result, ram::core::EventPtr event)
+{
+    math::OrientationEventPtr oevent =
+    boost::dynamic_pointer_cast<ram::math::OrientationEvent>(event);
+    *result = oevent->orientation;
+}
+
+TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
+{
+    MockIMU* imu = new MockIMU("IMU");  
+    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    
+    math::Quaternion result = math::Quaternion::IDENTITY;
+    math::Quaternion expected(7,8,9,10);
+    imu->orientation = expected;
+    
+    // Subscribe to the event
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::ORIENTATION_UPDATE,
+        boost::bind(orientationHelper, &result, _1));
+
+    veh->update(0);
+    CHECK_EQUAL(expected, result);
+    
+    conn->disconnect();
 }
