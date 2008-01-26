@@ -34,7 +34,8 @@ namespace control {
 /** Tolerance for at Depth (1 foot in meters) */
 static const double DEPTH_TOLERANCE = 0.5;
 
-static const double ORIENTATION_THRESHOLD = 0.015;
+/** About a 2.5 degree tolerance */
+static const double ORIENTATION_THRESHOLD = 0.03;
     
 /** Implements a PD Controller, based on a paper by Bong Wie  */
 class RAM_EXPORT BWPDController : public IController,
@@ -79,8 +80,8 @@ public:
     /** @copydoc IController::yawVehicle() */
     virtual void yawVehicle(double degrees);
     
-    /** @copydoc IController::isOriented() */
-    virtual bool isOriented();
+    /** @copydoc IController::atOrientation() */
+    virtual bool atOrientation();
 
     /** @copydoc IController::atDepth() */
     virtual bool atDepth();
@@ -106,8 +107,14 @@ private:
     /** Used to maintain state, so we don't issue continuous at depth updates */
     bool m_atDepth;
 
+    /** True when we are at the desired orientation */
+    bool m_atOrientation;
+    
     /** When we are within this limit we send off the at depth event */
     double m_depthThreshold;
+
+    /** When we are within this limit we send of the at orientation event */
+    double m_orientationThreshold;
     
     /** Out Vehicle */
     vehicle::IVehiclePtr m_vehicle;

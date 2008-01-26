@@ -20,6 +20,7 @@
 #include "control/include/ControlFunctions.h"
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
 
 #ifndef RAM_MATLAB_CONTROL_TEST
 namespace ram {
@@ -269,11 +270,11 @@ bool doIsOriented(MeasuredState* measuredState,
   findErrorQuaternion(desiredState->quaternion,
 		      measuredState->quaternion,
                       &qError[0]);
-
+  
   // This does the sqrt of the sum of the squares for the first three elements
   Vector3 tmp(qError);
 //  cout << "Q: " << tmp << " 4th: " <<  qError[3] << " Mag: " << tmp.length()
-//       << endl;
+//       << "T: " << threshold << endl;
   if(tmp.length() > threshold) {
     amIOriented = false;
   } else {

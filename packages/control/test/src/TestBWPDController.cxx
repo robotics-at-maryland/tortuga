@@ -146,7 +146,7 @@ TEST_FIXTURE(Fixture, Event_AT_DEPTH)
     controller.setDepth(3.7);
     CHECK_EQUAL(true, controller.atDepth());
     
-    // Make sure the event doesn't go off when we are at depth
+    // Make sure the event doesn't go off when we are at and loose it depth
     controller.setDepth(5);
     controller.update(1);
     CHECK_EQUAL(0, actualDepth);
@@ -172,6 +172,7 @@ TEST_FIXTURE(Fixture, Event_AT_DEPTH)
     CHECK_EQUAL(4, actualDepth);
 }
 
+
 void orientationHelper(math::Quaternion* result, ram::core::EventPtr event)
 {
     math::OrientationEventPtr oevent =
@@ -194,4 +195,79 @@ TEST_FIXTURE(Fixture, Event_DESIRED_ORIENTATION_UPDATE)
     math::Quaternion expectedOrientation;
     expectedOrientation.FromAngleAxis(math::Degree(15), math::Vector3::UNIT_Z);
     CHECK_EQUAL(expectedOrientation, actualDesiredOrientation);
+}
+
+TEST_FIXTURE(Fixture, atOrientation)
+{
+    // Yawed 15 degrees left
+    math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
+    vehicle->orientation = orientation;
+    controller.update(1);
+
+    // 15 degrees left of desired
+    controller.yawVehicle(30);
+    CHECK_EQUAL(false, controller.atOrientation());
+
+    // 15 degrees right of desired
+    controller.yawVehicle(-30);
+    CHECK_EQUAL(false, controller.atOrientation());
+
+    // 2.5 degrees right of desired
+    controller.yawVehicle(12.5);
+    CHECK_EQUAL(true, controller.atOrientation());
+
+    // 2.5 degrees left of desired
+    controller.yawVehicle(5);
+    CHECK_EQUAL(true, controller.atOrientation());
+
+    // Desired = Actual
+    controller.yawVehicle(-2.5);
+    CHECK_EQUAL(true, controller.atOrientation());
+}
+
+TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
+{
+    math::Quaternion actualOrientation = math::Quaternion::IDENTITY;
+
+    // Subscribe to the event
+    controller.subscribe(ram::control::IController::AT_ORIENTATION,
+                         boost::bind(orientationHelper,
+                                     &actualOrientation, _1));
+    
+    // Default Orientation threshold is about 2.5 degrees
+    math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
+    vehicle->orientation = orientation;
+    controller.update(1);
+    // 1 Degree difference
+    controller.yawVehicle(16);
+    CHECK_EQUAL(true, controller.atOrientation());
+    
+    // Make sure the event doesn't go off when we are at orientation and then
+    // move out
+    // 4 degrees left of desired
+    controller.yawVehicle(3);
+    controller.update(1);
+    CHECK_EQUAL(math::Quaternion::IDENTITY, actualOrientation);
+
+    // Ensure it does go off when we move back
+    // 1.5 degrees left of desired
+    controller.yawVehicle(-2.5);
+    controller.update(1);
+    CHECK_EQUAL(actualOrientation, actualOrientation);
+
+    // Make sure it doesn't go off again until we have left the depth range
+    actualOrientation = math::Quaternion::IDENTITY;
+    controller.update(1);
+    CHECK_EQUAL(math::Quaternion::IDENTITY, actualOrientation);
+
+    // Make sure once we leave, and come back it will go off again
+    vehicle->orientation = math::Quaternion(math::Degree(30),
+                                            math::Vector3::UNIT_Z);;
+    controller.update(1);
+    CHECK_EQUAL(math::Quaternion::IDENTITY, actualOrientation);
+
+    vehicle->orientation = math::Quaternion(math::Degree(15),
+                                            math::Vector3::UNIT_Z);
+    controller.update(1);
+    CHECK_EQUAL(orientation, actualOrientation);
 }

@@ -11,10 +11,11 @@
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
-//#include "math/test/include/MathChecks.h"
+#include "math/test/include/MathChecks.h"
 #include "math/include/Quaternion.h"
 #include "math/include/Matrix3.h"
 #include "math/include/Math.h"
+#include "math/include/Helpers.h"
 
 using namespace ram::math;
 
@@ -51,10 +52,10 @@ TEST(FromAngleAxis)
 
     Quaternion actual;
     actual.FromAngleAxis(Degree(90), Vector3::UNIT_X);
-    CHECK_ARRAY_CLOSE(expected.ptr(), actual.ptr(), 4, 0.0001);
+    CHECK_CLOSE(expected, actual, 0.0001);
 
     Quaternion actualConstructed(Degree(90), Vector3::UNIT_X);
-    CHECK_ARRAY_CLOSE(expected.ptr(), actualConstructed.ptr(), 4, 0.0001);    
+    CHECK_CLOSE(expected, actualConstructed, 0.0001);    
 }
 
 TEST(getRoll)
@@ -99,4 +100,17 @@ TEST(getRollPitchYaw)
     CHECK_CLOSE(53, quat.getYaw(false).valueDegrees(), 0.0001);
     CHECK_CLOSE(10, quat.getRoll(false).valueDegrees(), 0.0001);
     CHECK_CLOSE(15, quat.getPitch(false).valueDegrees(), 0.0001);
+}
+
+TEST(errorQuaternion)
+{
+    Quaternion quatA(Quaternion::IDENTITY);
+    Quaternion quatB(Degree(45), Vector3::UNIT_Y);
+
+    Quaternion expected;
+    findErrorQuaternion(quatA.ptr(), quatB.ptr(), expected.ptr());
+    
+    Quaternion result = quatA.errorQuaternion(quatB);
+
+    CHECK_CLOSE(expected, result, 0.0001);
 }

@@ -13,6 +13,7 @@
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTH_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_ORIENTATION_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_DEPTH);
+RAM_CORE_EVENT_TYPE(ram::control::IController, AT_ORIENTATION);
 
 namespace ram {
 namespace control {

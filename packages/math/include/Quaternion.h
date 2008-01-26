@@ -282,6 +282,9 @@ namespace math {
             return o;
         }
 
+        /** Find the error quaternion between this quaternion and other quat. */
+        Quaternion errorQuaternion(Quaternion other);
+        
     };
 
 

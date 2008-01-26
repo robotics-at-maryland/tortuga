@@ -87,8 +87,3 @@ TEST(doIsOriented)
     
     CHECK_EQUAL(true, doIsOriented(&measuredGood, &desiredGood, 0.15));
 }
-
-int main()
-{
-    return UnitTest::RunAllTests();
-}

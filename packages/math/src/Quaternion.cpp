@@ -618,5 +618,17 @@ namespace math {
         return result;
     }
 
+    Quaternion Quaternion::errorQuaternion(Quaternion q)
+    {
+        Quaternion result;
+        
+        result.x =  (w * q.x) + (z * q.y) - (y * q.z) - (x * q.w);
+        result.y = (-z * q.x) + (w * q.y) + (x * q.z) - (y * q.w);
+        result.z =  (y * q.x) - (x * q.y) + (w * q.z) - (z * q.w);
+        result.w =  (x * q.x) + (y * q.y) + (z * q.z) + (w * q.w);
+
+        return result;
+    }
+
 } // namespace math
 } // namespace ram

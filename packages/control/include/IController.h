@@ -52,6 +52,12 @@ public:
      */
     static const core::Event::EventType AT_DEPTH;
 
+    /** When the vehicle reaches the orientation set by the controller
+     *
+     *  Type is ram::math::OrientationEvent
+     */
+    static const core::Event::EventType AT_ORIENTATION;
+
     /* @{ */
     
     /** Set the current speed, clamped between -5 and 5 */
@@ -81,11 +87,11 @@ public:
     /** Rolls the desired vehicle state by the desired number of degrees */
     virtual void rollVehicle(double degrees) = 0;
 
-    /** Returns true if the vehicle is at the desired orientation */
-    virtual bool isOriented() = 0;
-
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
+
+    /** Returns true if the vehicle is at the desired orientation */
+    virtual bool atOrientation() = 0;
     
 protected:
     IController(std::string name,

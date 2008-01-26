@@ -42,7 +42,9 @@ BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
                                core::ConfigNode config) :
     IController(config["name"].asString()),
     m_atDepth(false),
+    m_atOrientation(false),
     m_depthThreshold(0),
+    m_orientationThreshold(0),
     m_vehicle(vehicle),
     m_config(config),
     m_desiredState(0),
@@ -56,6 +58,10 @@ BWPDController::BWPDController(core::ConfigNode config,
                                core::SubsystemList deps) :
     IController(config["name"].asString(),
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
+    m_atDepth(false),
+    m_atOrientation(false),
+    m_depthThreshold(0),
+    m_orientationThreshold(0),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),
     m_config(config),
     m_desiredState(0),
@@ -215,10 +221,10 @@ void BWPDController::yawVehicle(double degrees)
 }
 
     
-bool BWPDController::isOriented()
+bool BWPDController::atOrientation()
 {
     return doIsOriented(m_measuredState, m_desiredState,
-                        ORIENTATION_THRESHOLD);
+                        m_orientationThreshold);
 }
 
 bool BWPDController::atDepth()
@@ -281,6 +287,19 @@ void BWPDController::update(double timestep)
         event->number = m_measuredState->depth;
         publish(IController::AT_DEPTH, event);        
     }
+
+    if (m_atOrientation && !atOrientation())
+    {
+        m_atOrientation = false;
+    }
+    // We weren't at depth, now we are
+    else if (!m_atOrientation && atOrientation())
+    {
+        m_atOrientation = true;
+        math::OrientationEventPtr event(new math::OrientationEvent());
+        event->orientation = math::Quaternion(m_measuredState->quaternion);
+        publish(IController::AT_ORIENTATION, event);        
+    }
         
     
     // Log values
@@ -317,6 +336,8 @@ void BWPDController::init(core::ConfigNode config)
     memset(m_controllerState, 0, sizeof(ControllerState));
 
     m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
+    m_orientationThreshold =
+        config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
     
     // Set desired state
     m_desiredState->quaternion[0] = config["desiredQuaternion"][0].asDouble();

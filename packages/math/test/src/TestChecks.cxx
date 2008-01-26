@@ -50,8 +50,3 @@ TEST(Matrix4AreClose)
     Matrix4 b(0, 2, 5, 1, 7, 3.3, 10, 8, 5.5, 8.3, 9.2, 46.3, 5, 2, 1, 108.3);
     CHECK_CLOSE(a, b, 5.01);
 }
-
-int main()
-{
-    return UnitTest::RunAllTests();
-}
