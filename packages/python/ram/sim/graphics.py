@@ -154,7 +154,7 @@ class Camera(Component):
     
     def __init__(self, name, scene, position, offset, near_clip = 0.5):
         self._camera = scene.scene_mgr.createCamera(name)
-        self._camera.position = offset
+        self._camera.position = (Ogre.Vector3(offset).length(),0,0)
         self._camera.lookAt((0, 0, 0))
         self._camera.nearClipDistance = near_clip
                 
@@ -163,6 +163,9 @@ class Camera(Component):
         self._node.position = (0, 0, 0)
         self._node.attachObject(self._camera)
         self._camera.lookAt(0, 0, 0)
+    
+        # Rotate the node to place the camera in its desired offset position
+        self._node.rotate(self._camera.position.getRotationTo(offset))
     
         # Account for the odd up vector difference between our and Ogre's 
         # default coordinate systems
@@ -232,39 +235,43 @@ class CameraController(object):
         pass
     
     def update(self, time_since_last_frame):
-        quat = self._camera_node.getOrientation()
         moveUnit = 5 * time_since_last_frame
         
-        # A really bad way to generate the rotation vectors I wants
-        
+        # A really bad way to generate the rotation vectors I want
         # Moves us in the Z (up/down direction)
-        height = quat * Ogre.Vector3(0, 0, moveUnit)
-        height.y = 0
+        height = Ogre.Vector3(0, 0, moveUnit)
+
+        # We ignore z, because that always go up and down relative to the world
+        # axes.  Here we want forward and side to be relative to the direction
+        # the camera is facing.
+        toCamera = self._camera.getRealPosition() - self._camera_node.position
+        toCamera.z = 0
+        quat = Ogre.Vector3.UNIT_X.getRotationTo(toCamera)
 
         # Moves us in the X (Forward/back direction)        
-        trans = quat * Ogre.Vector3(moveUnit, 0, 0)
-        trans.y = 0
+        trans = quat * Ogre.Vector3(-moveUnit, 0, 0)
+        trans.z = 0
         
         # Moves us in the Y (Left/Right direction)
-        strafe = quat * Ogre.Vector3(0, -moveUnit, 0)
+        strafe = quat * Ogre.Vector3(0, moveUnit, 0)
         strafe.z = 0
         
         
         if self.original_parent is None:
             if self._forward:
-                self._camera_node.translate(trans, Ogre.Node.TS_WORLD)
+                self._camera_node.translate(trans)#, Ogre.Node.TS_WORLD)
             if self._backward:
-                self._camera_node.translate(trans * -1.0, Ogre.Node.TS_WORLD)
+                self._camera_node.translate(trans * -1.0)#, Ogre.Node.TS_WORLD)
                 
             if self._up:
-                self._camera_node.translate(height, Ogre.Node.TS_WORLD)
+                self._camera_node.translate(height)#, Ogre.Node.TS_WORLD)
             if self._down:
-                self._camera_node.translate(height * -1.0, Ogre.Node.TS_WORLD)
+                self._camera_node.translate(height * -1.0)#, Ogre.Node.TS_WORLD)
      
             if self._left:
-                self._camera_node.translate(strafe * -1.0, Ogre.Node.TS_WORLD)
+                self._camera_node.translate(strafe * -1.0)#, Ogre.Node.TS_WORLD)
             if self._right:
-                self._camera_node.translate(strafe, Ogre.Node.TS_WORLD)
+                self._camera_node.translate(strafe)#, Ogre.Node.TS_WORLD)
                 
             pos = self._camera.position
             if self._zoom_in:
