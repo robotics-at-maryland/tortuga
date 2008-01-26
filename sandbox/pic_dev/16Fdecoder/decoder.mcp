@@ -2,6 +2,7 @@
 magic_cookie={66E99B07-E706-4689-9E80-9B2582898A13}
 file_version=1.0
 [PATH_INFO]
+BuildDirPolicy=BuildDirIsSourceDir
 dir_src=
 dir_bin=
 dir_tmp=
@@ -17,8 +18,10 @@ filter_lib=*.lib
 filter_lkr=
 [OTHER_FILES]
 file_000=no
+file_001=no
 [FILE_INFO]
 file_000=decoder.c
+file_001=decoder_orig.c
 [SUITE_INFO]
 suite_guid={93566987-1A5D-48B8-8EFC-4B3A423573F9}
 suite_state=
