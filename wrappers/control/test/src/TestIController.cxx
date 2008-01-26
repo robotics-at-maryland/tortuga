@@ -38,7 +38,7 @@ public:
 
     virtual void rollVehicle(double degrees) { yaw = degrees; }
 
-    virtual bool isOriented() { return oriented; }
+    virtual bool atOrientation() { return atorientation; }
     
     virtual bool atDepth() { return atdepth; }
 
@@ -51,7 +51,7 @@ public:
     int speed;
     double depth;
     double yaw;
-    bool oriented;
+    bool atorientation;
     bool atdepth;
 };
 
