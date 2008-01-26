@@ -11,6 +11,8 @@ import ext.control as control
 import ext.vehicle as vehicle
 import ext.math as math
 
+import ram.timer
+
 class MotionManager(core.Subsystem):
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config.get('name', 'MotionManager'), deps)
@@ -90,6 +92,12 @@ class Motion(object):
         
     def _start(self):
         raise Exception("You must implement this method")
+    
+    def _finish(self):
+        """
+        Raises, motion finished event.
+        """
+        self.publish(Motion.FINISHED, core.Event())
         
     def stop(self):
         pass
@@ -140,7 +148,111 @@ class ChangeDepth(Motion):
         """
         Finishes off the motion, disconnects events, and putlishes finish event
         """
-        self.publish(Motion.FINISHED, core.Event())
+        Motion._finish(self)
         self._conn.disconnect()
         
+class ChangeHeading(Motion):
+    def __init__(self, desiredHeading, steps):
+        """
+        @type  desiredHeading: float
+        @param desiredHeading: Heading you wish to sub to be had
+        
+        @type  steps: int
+        @param steps: Number of increments you wish to change heading in    
+        """
+        Motion.__init__(self)
+        
+        self._steps = steps
+        self._desiredHeading = desiredHeading
+        self._conn = None
+        
+    def _start(self):
+        # Register to recieve AT_ORIENTATION events
+        self._conn = self._eventHub.subscribe(control.IController.AT_ORIENTATION,
+                                              self._controller, 
+                                              self._atOrientation)
 
+        # Start changing heading
+        self._nextHeading(self._vehicle.getOrientation().getYaw(True).valueDegrees())
+        
+    def _nextHeading(self, currentVehicleHeading):
+        """
+        Changes the heading by one 'step' of the remaing heading change
+        """
+        headingDifference = self._desiredHeading - currentVehicleHeading 
+        headingChange = headingDifference/self._steps
+        self._controller.yawVehicle(headingChange)
+        
+    def _atOrientation(self, event):
+        """
+        AT_ORIENTATION event handler
+        
+        Called when the vehicle reaches the command orientation
+        """
+        self._steps -= 1
+        currentVehicleHeading = event.orientation.getYaw(True).valueDegrees()
+        if not (self._steps == 0):
+            self._nextHeading(currentVehicleHeading)
+        else:
+            self._finish()
+    
+    def _finish(self):
+        """
+        Finishes off the motion, disconnects events, and putlishes finish event
+        """
+        Motion._finish(self)
+        self._conn.disconnect()
+
+ 
+class ForwardZigZag(Motion):
+    LEG_COMPLETE = core.declareEventType('LEG_COMPLETE')
+    
+    def __init__(self, legTime, sweepAngle, speed):
+        """
+        Drives a forward zig-zag pattern
+        """
+        Motion.__init__(self)
+        
+        self._legTime = legTime
+        self._sweepAngle = sweepAngle
+        self._speed = speed
+        self._connections = []
+        
+    def _start(self):
+        # Register to recieve AT_ORIENTATION events
+        conn = self._eventHub.subscribe(control.IController.AT_ORIENTATION,
+                                        self._controller, self._atOrientation)
+        self._connections.append(conn)
+        
+        conn = self._eventHub.subscribeToType(ForwardZigZag.LEG_COMPLETE,
+                                              self._legFinished)
+        self._connections.append(conn)
+
+        self._controller.yawVehicle(self._sweepAngle / 2)
+        self._sweepAngle *= -1
+        
+    def _atOrientation(self, event):
+        """
+        AT_ORIENTATION event handler
+        
+        Called when the vehicle reaches the command orientation
+        """
+        
+        # Start the vehicle forward and create a timer to change the motion
+        self._controller.setSpeed(self._speed)
+        timer = ram.timer.Timer(self._eventPublisher, 
+                                ForwardZigZag.LEG_COMPLETE, self._legTime)
+        timer.start()
+            
+    def _legFinished(self, event):
+        """
+        Called when the leg timer expires
+        """
+        self._controller.setSpeed(0)
+        self._controller.yawVehicle(self._sweepAngle)
+        self._sweepAngle *= -1
+    
+    def stop(self):
+        self._controller.setSpeed(0)
+        for conn in self._connections:
+            conn.disconnect()

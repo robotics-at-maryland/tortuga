@@ -20,26 +20,36 @@ class MockController(control.IController):
     def __init__(self, eventHub):
         control.IController.__init__(self, "A", eventHub)
         self.depth = 0
+        self.yawChange = 0
         
     def setDepth(self, depth):
         self.depth = depth
         
-    def publishAtDepth(self, vehicleDepth):
-        """
-        Throws the at depth event
-        """
+    def yawVehicle(self, yawChange):
+        self.yawChange = yawChange
         
+    def publishAtDepth(self, vehicleDepth):
         event = ext.math.NumericEvent()
         event.number = vehicleDepth
         self.publish(control.IController.AT_DEPTH, event)
+        
+    def publishAtOrientation(self, vehicleOrientation):
+        event = ext.math.OrientationEvent()
+        event.orientation = vehicleOrientation
+        self.publish(control.IController.AT_ORIENTATION, event)
+        
         
 class MockVehicle(vehicle.IVehicle):
     def __init__(self):
         vehicle.IVehicle.__init__(self, "B")
         self.depth = 0
+        self.orientation = ext.math.Quaternion.IDENTITY
         
     def getDepth(self):
         return self.depth
+    
+    def getOrientation(self):
+        return self.orientation
 
 # Mock Motion
 class MockMotion(object):
@@ -140,7 +150,69 @@ class TestChangeDepth(unittest.TestCase):
             self.qeventHub.publishEvents()
             
         self.assert_(self.motionFinished)
+        
+class TestChangeHeading(unittest.TestCase):
+    def setUp(self):
+        # Create the event hub to collect all published events
+        self.eventHub = core.EventHub()
+        self.vehicle = MockVehicle()
+        self.controller = MockController(self.eventHub)
+        
+        # The QueuedEventHub lets us queue the events to be released when ready
+        self.qeventHub = core.QueuedEventHub(self.eventHub)
+        
+        deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
+        self.motionManager = motion.MotionManager({}, deps)
+    
+        self.motionFinished = False
 
+    def handleFinished(self, event):
+        self.motionFinished = True
+        
+        
+    def testLeft(self):
+        m = motion.ChangeHeading(30, 5) 
+        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # First step
+        self.motionManager.setMotion(m)
+        
+        for i in xrange(6, 36, 6):
+            # Make sure we didn't finish early
+            self.assert_(not self.motionFinished)
+            # Make sure the proper depth was commanded
+            self.assertAlmostEqual(6, self.controller.yawChange, 2)
+            # Say we have reached the depth to keep going
+            self.controller.publishAtOrientation(
+                ext.math.Quaternion(ext.math.Radian(ext.math.Degree(i)),
+                                    ext.math.Vector3.UNIT_Z))
+            self.qeventHub.publishEvents()
+            
+        self.assert_(self.motionFinished)
+            
+            
+    def testRight(self):
+        m = motion.ChangeHeading(-30, 5) 
+        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # First step
+        self.motionManager.setMotion(m)
+        
+        for i in xrange(6, 36, 6):
+            # Make sure we didn't finish early
+            self.assert_(not self.motionFinished)
+            # Make sure the proper depth was commanded
+            self.assertAlmostEqual(-6, self.controller.yawChange, 2)
+            # Say we have reached the depth to keep going
+            self.controller.publishAtOrientation(
+                ext.math.Quaternion(ext.math.Radian(ext.math.Degree(-i)),
+                                    ext.math.Vector3.UNIT_Z))
+            self.qeventHub.publishEvents()
+            
+        self.assert_(self.motionFinished)
+            
 if __name__ == '__main__':
     unittest.main()
         
