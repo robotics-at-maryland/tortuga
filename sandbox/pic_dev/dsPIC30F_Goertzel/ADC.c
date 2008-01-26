@@ -2,7 +2,7 @@
 #define byte unsigned char
 #define SAMPLE_LENGTH 1900
 #define TRIGGER_POSITION 1500	//0-(SAMPLE_LENGTH-1)
-#define TRIGGER_VALUE 700		//0-1023 in Volts
+#define TRIGGER_VALUE 650		//0-1023 in Volts
 
 byte result[SAMPLE_LENGTH];
 unsigned int count = 0;
@@ -59,7 +59,9 @@ All other bits to their default state */
 	ADCON1bits.FORM = 0;	//
 	ADCON1bits.SSRC = 7;	//enable auto convert mode
 	ADCON1bits.ASAM = 1;	//enable auto sampling
-	ADCON1bits.SIMSAM = 0;	//enable sequential sampling
+	ADCON1bits.SIMSAM = 1;	//enable simultaneous sampling
+
+	ADCON2bits.BUFM = 1;
 
 /*  ___ADCON2 Register___
 Set up A/D for interrupting after 2 samples get filled in the buffer
@@ -79,8 +81,8 @@ Using equaion in the Family Reference Manual we have
 	ADCS = 2*Tad/Tcy - 1  		*/
 
 //SAMC needs updating to 0b'00001' or ob'00010'
-	ADCON3bits.SAMC = 2;	//minimum sampling time  //was 0;
-	ADCON3bits.ADCS = 9;	//minimum Tad time   //was 4;
+	ADCON3bits.SAMC = 0;	//minimum sampling time  //was 0;
+	ADCON3bits.ADCS = 4;	//minimum Tad time   //was 4;
 
 /*___ADCHS Register___
 Set up A/D Channel Select Register to convert AN3 on Mux A input
@@ -138,17 +140,28 @@ void sendNum(unsigned int i){
 //The routine must have global scope in order to be an ISR.
 //The ISR name is chosen from the device linker script.
 void __attribute__((__interrupt__)) _ADCInterrupt(void){
-	unsigned int temp = 0;
+	//unsigned int temp = 0;
 	//Clear the A/D Interrupt flag bit or else the CPU will
 	//keep vectoring back to the ISR
 	IFS0bits.ADIF = 0;
+	//ADCON1 &= ~0x00E0;
 
+	/*if( ADCON2bits.BUFS )
+		for( temp=0; temp < 8; temp++ ) {
+			result[count++] = (byte)((*(&ADCBUF0+temp))>>2);
+		}
+	else
+		for( temp=0; temp < 8; temp++ ) {
+			result[count++] = (byte)((*(&ADCBUF8+temp))>>2);
+		}*/
 	result[count++] = (byte)(ADCBUF0>>2);
 	result[count++] = (byte)(ADCBUF1>>2);
+	//ADCON1 |= 0x00E0;
+	//temp=0;
 	
 //frequency watch mode
 	//signal seen going above trigger
-	/*if(TRIGGER_VALUE<ADCBUF0 || TRIGGER_VALUE<ADCBUF1){
+/*	if(TRIGGER_VALUE<ADCBUF0 || TRIGGER_VALUE<ADCBUF1){
 		if(trigger_status==3){
 			trigger_status=4;
 		}else if(trigger_status==5){ //period found!
@@ -194,7 +207,7 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 
 //trigger mode
 	//if trigger tripped
-	if(trigger_status == 1) trigger_count+=2;
+/*	if(trigger_status == 1) trigger_count+=2;
 	//if prog just started then fill buffer min amount
 	if(trigger_status == 2){
 		trigger_count+=2;
@@ -211,13 +224,15 @@ void __attribute__((__interrupt__)) _ADCInterrupt(void){
 		trigger_status=0;//watch for trigger again
 	}
 	if(count>=SAMPLE_LENGTH)count=0;
+*/
+
 
 //continuous sample and display mode
-	/*if(count>=SAMPLE_LENGTH){
-		send_samples_over_UART_as_bytes(0)
-		send_samples_over_UART_as_ASCII()
+	if(count>=SAMPLE_LENGTH){
+		send_samples_over_UART_as_bytes(0);
+		//send_samples_over_UART_as_ASCII();
 		count = 0; 
-	}*/
+	}
 }
 
 void send_samples_over_UART_as_bytes(int start){
