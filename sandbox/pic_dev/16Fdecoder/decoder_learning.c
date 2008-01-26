@@ -10,7 +10,7 @@ and uses it to determine which of the other pins to drive high
 The functionality is as a BCD to Decimal decoder for a light display
 
 */
-
+/*
 #include <pic.h>
  __CONFIG(FCMDIS & IESODIS & BORDIS & UNPROTECT & 
     MCLRDIS & PWRTEN & WDTDIS & INTIO);
@@ -84,9 +84,10 @@ main(){
 			RC6=0;
 		}
 		PORTA=0;//turn off the lights
-		PORTC=0;//turn off the lights*/
+		PORTC=0;//turn off the lights
 	
     }//elihw
 }//end main
 
 
+*/

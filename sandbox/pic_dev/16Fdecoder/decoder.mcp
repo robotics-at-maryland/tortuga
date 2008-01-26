@@ -19,9 +19,11 @@ filter_lkr=
 [OTHER_FILES]
 file_000=no
 file_001=no
+file_002=no
 [FILE_INFO]
 file_000=decoder.c
 file_001=decoder_orig.c
+file_002=decoder_learning.c
 [SUITE_INFO]
 suite_guid={93566987-1A5D-48B8-8EFC-4B3A423573F9}
 suite_state=

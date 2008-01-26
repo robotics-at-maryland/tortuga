@@ -7,6 +7,7 @@ The functionality is as a BCD to Decimal decoder for a light display
 
 */
 
+/*
 #include <pic.h>
  __CONFIG(FCMDIS & IESODIS & BORDIS & UNPROTECT & 
     MCLRDIS & PWRTEN & WDTDIS & INTIO);
@@ -80,3 +81,6 @@ main(){
 	
     }//elihw
 }//end main
+
+
+*/
