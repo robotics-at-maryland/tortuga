@@ -27,7 +27,7 @@ def expose_device(local_ns, name, register = True):
     return device
 
 
-def generate(module_builder, global_ns, local_ns):
+def generate(module_builder, local_ns, global_ns):
     """
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
@@ -37,6 +37,12 @@ def generate(module_builder, global_ns, local_ns):
     for cls in local_ns.decls(decl_type=decls_package.class_declaration_t):
         cls.include()
         cls.already_exposed = True
+
+#    for cls in global_ns.classes():
+#        print cls
+
+    wrap.make_already_exposed(global_ns, 'ram::core', ['EventPublisher'],
+                              no_implicit_conversion = True)
 
     # Wrap IDevice Class
     IDevice = expose_device(local_ns, 'IDevice', register = False);

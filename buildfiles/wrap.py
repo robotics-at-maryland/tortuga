@@ -235,7 +235,7 @@ def fix_ptr_fun(fun, pointee_types = None, ignore_names = None, Exclude = False)
                         return
         
 def make_already_exposed(global_ns, namespace_name, classes,
-                         class_decs = None):
+                         class_decs = None, no_implicit_conversion = False):
     if type(classes) is not list:
         classes = [classes]
 
@@ -247,12 +247,16 @@ def make_already_exposed(global_ns, namespace_name, classes,
         for name in namespace_name.split('::'):
             print 'Going into namespace',name
             ns = ns.namespace(name)
+            print 'IN'
 
     for class_name in classes:
         print 'Marking class',class_name
         class_ = ns.class_(class_name)
         class_.include()
         class_.already_exposed = True
+
+        if no_implicit_conversion:
+            set_implicit_conversions([class_], False)
 
     for class_dec in class_decs:
         print 'Marking class dec',class_dec
