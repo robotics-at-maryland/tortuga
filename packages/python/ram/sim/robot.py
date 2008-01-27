@@ -137,6 +137,14 @@ class Robot(core.Component):
     def update(self, time_since_last_update):
         self._main_part.update(time_since_last_update)
 
+    class position(core.cls_property):
+        def fget(self):
+            return self._main_part.position
+        
+    class orientation(core.cls_property):
+        def fget(self):
+            return self._main_part.orientation
+            
     def save(self, location):
         raise SceneError("Save not yet implemented")
         # TODO: Finish me

@@ -25,6 +25,7 @@ import ogre.renderer.OGRE as Ogre
 # Project Imports
 import logloader    
 import event
+import core
 from core import fixed_update, Component, implements, Interface, Attribute, cls_property
 from ram.sim.util import SimulationError
 #from ram.sim.input import KeyStateObserver
@@ -38,7 +39,8 @@ class GraphicsError(SimulationError):
 
 class IVisual(IObject):
     """ An object which you can see in the simulation"""
-    pass
+    
+    position = core.Attribute("""The position of the object""")
 
 # TODO: Fill out the methods for the class
 
@@ -76,6 +78,10 @@ class Visual(Object):
             
         self._node.position = position
         self._node.orientation = orientation
+      
+    class position(core.cls_property):
+        def fget(self):
+            return self._node.position
             
     # IStorable Methods
     def load(self, data_object):
