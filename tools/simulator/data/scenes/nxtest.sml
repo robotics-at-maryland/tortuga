@@ -36,9 +36,18 @@ Scene:
 #                    size: [1, 1, 1]
 #                contact_information:
 #                    SubMat: ['GATE_ENTERED', 'GATE_EXITED']
-         
+        
+        buoy1:
+            type: [sim.vision.IBuoy, sim.vision.Buoy]
+            position: [-15, 1, 0]
+            
+            Graphical:
+                mesh: 'sphere.50cm.mesh'
+                material: 'Simple/BumpyMetal'
+                scale: [0.1, 0.1, 0.1]
+        
         water:
-            type: [Visual, ram.sim.graphics.Visual]
+            type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
             
             Graphical:
                 mesh: 'PLANE:water'
@@ -48,7 +57,7 @@ Scene:
                 material: 'Simple/Translucent'
          
         ground:
-            type: [SceneObject, ram.sim.scene.SceneObject] 
+            type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject] 
             position: [0, 0, -5]
             
             Graphical:
@@ -67,7 +76,7 @@ Scene:
                     mesh_name: ground
                 
         north_wall:
-            type: [SceneObject, ram.sim.scene.SceneObject] 
+            type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject] 
             position: [20, 0, -2]
             
             Graphical:
@@ -87,7 +96,7 @@ Scene:
                     mesh_name: far_wall
         
         south_wall:
-            type: [SceneObject, ram.sim.scene.SceneObject]
+            type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
             position: [-20, 0, -2]
             
             Graphical:
@@ -108,7 +117,7 @@ Scene:
         
                 
         west_wall:
-            type: [SceneObject, ram.sim.scene.SceneObject]
+            type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
             position: [0, 20, -2]
             #orientation: [0, 1, 0, -90]
             
@@ -130,7 +139,7 @@ Scene:
         
         
         east_wall:
-            type: [SceneObject, ram.sim.scene.SceneObject]
+            type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
             position: [0, -20, -2]
             #orientation: [0, 1, 0, 90]
             

@@ -31,10 +31,9 @@ def convertToVector3(vType, vector):
 def convertToQuaternion(qType, quat):
     return qType(quat.x, quat.y, quat.z, quat.w)
 
-class SimThruster(core.EventPublisher, device.IThruster):
+class SimThruster(device.IThruster):
     def __init__(self, eventHub, name, simThruster):
-        core.EventPublisher.__init__(self, eventHub)
-        device.IThruster.__init__(self)
+        device.IThruster.__init__(self, eventHub)
         
         self._simThruster = simThruster
         self._name = name

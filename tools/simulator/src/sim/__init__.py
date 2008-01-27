@@ -10,3 +10,4 @@
 import sim.control as _control
 import sim.subsystems as _subsystems
 import sim.vehicle as _vehicle
+import sim.vision as _vision

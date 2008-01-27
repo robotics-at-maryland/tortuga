@@ -7,6 +7,10 @@ GUI:
     updateRate: 60
 
 Subsystems:
+    Vision:
+        type: SimVision
+        depends_on: ["EventHub", "Vehicle", "Simulation"]
+
     EventHub:
         type: EventHub
         

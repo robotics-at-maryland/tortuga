@@ -277,11 +277,6 @@ class ModuleSceneLoader(core.Component, ModuleLoader):
 class KMLSceneLoader(core.Component):
     core.implements(ISceneLoader)
 
-    iface_map = {'Visual' : IVisual,
-                 'SceneObject' : ISceneObject,
-                 'Trigger': ITrigger,
-                 'Body' : IBody}
-
     def __init__(self):
         self._light_count= 0
 
@@ -341,8 +336,7 @@ class KMLSceneLoader(core.Component):
         if objects is not None:
             for name, node in objects.iteritems():
                 iface_name, class_name = node['type']
-                iface = self.iface_map[iface_name]
-                obj = core.Component.create(iface, class_name)
+                obj = core.Component.create(iface_name, class_name)
                 node['name'] = name
                 obj.load((scene, None, node))
                 

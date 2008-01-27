@@ -75,10 +75,9 @@ class Vehicle(vehicle.IVehicle):
 
 core.SubsystemMaker.registerSubsystem('DemoVehicle', Vehicle)
 
-class Thruster(core.EventPublisher, device.IThruster):    
+class Thruster(device.IThruster):  
     def __init__(self, eventHub, name, offset):
-        core.EventPublisher.__init__(self, eventHub)
-        device.IThruster.__init__(self)
+        device.IThruster.__init__(self, eventHub)
         
         self.force = 0
         self._currentTime = 0.0
