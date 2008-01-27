@@ -56,7 +56,7 @@ int main(void){
 			OC2RS=dutyCycle;
 			sendNum(dutyCycle);
 			sendString("\n\r");
-			//delay(10);
+			delay(10);
 		}
 		if(PORTBbits.RB1==1 && dutyCycle>110){
 			sendString("increased duty cycle to ");
@@ -64,7 +64,7 @@ int main(void){
 			OC2RS=dutyCycle;
 			sendNum(dutyCycle);
 			sendString("\n\r");
-			//delay(10);
+			delay(10);
 		}
 		
 	}
