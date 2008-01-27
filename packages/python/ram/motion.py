@@ -213,6 +213,7 @@ class ForwardZigZag(Motion):
         """
         Motion.__init__(self)
         
+        self._first = True
         self._legTime = legTime
         self._sweepAngle = sweepAngle
         self._speed = speed
@@ -237,11 +238,15 @@ class ForwardZigZag(Motion):
         
         Called when the vehicle reaches the command orientation
         """
+        legTime = self._legTime
+        if self._first:
+            legTime /= 2
+            self._first = False
         
         # Start the vehicle forward and create a timer to change the motion
         self._controller.setSpeed(self._speed)
         timer = ram.timer.Timer(self._eventPublisher, 
-                                ForwardZigZag.LEG_COMPLETE, self._legTime)
+                                ForwardZigZag.LEG_COMPLETE, legTime)
         timer.start()
             
     def _legFinished(self, event):
