@@ -229,7 +229,7 @@ class ForwardZigZag(Motion):
                                               self._legFinished)
         self._connections.append(conn)
 
-        self._controller.yawVehicle(self._sweepAngle / 2)
+        self._controller.yawVehicle(self._sweepAngle / 2.0)
         self._sweepAngle *= -1
         
     def _atOrientation(self, event):
@@ -240,7 +240,7 @@ class ForwardZigZag(Motion):
         """
         legTime = self._legTime
         if self._first:
-            legTime /= 2
+            legTime = legTime / 2.0
             self._first = False
         
         # Start the vehicle forward and create a timer to change the motion

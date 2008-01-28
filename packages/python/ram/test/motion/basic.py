@@ -9,107 +9,37 @@
 import unittest
 
 # Project Imports
-import ram.motion as motion
-import ext.control as control
-import ext.vehicle as vehicle
-import ext.core as core
 import ext.math
 
-# Mock subsystems
-class MockController(control.IController):
-    def __init__(self, eventHub):
-        control.IController.__init__(self, "A", eventHub)
-        self.depth = 0
-        self.yawChange = 0
-        
-    def setDepth(self, depth):
-        self.depth = depth
-        
-    def yawVehicle(self, yawChange):
-        self.yawChange = yawChange
-        
-    def publishAtDepth(self, vehicleDepth):
-        event = ext.math.NumericEvent()
-        event.number = vehicleDepth
-        self.publish(control.IController.AT_DEPTH, event)
-        
-    def publishAtOrientation(self, vehicleOrientation):
-        event = ext.math.OrientationEvent()
-        event.orientation = vehicleOrientation
-        self.publish(control.IController.AT_ORIENTATION, event)
-        
-        
-class MockVehicle(vehicle.IVehicle):
-    def __init__(self):
-        vehicle.IVehicle.__init__(self, "B")
-        self.depth = 0
-        self.orientation = ext.math.Quaternion.IDENTITY
-        
-    def getDepth(self):
-        return self.depth
-    
-    def getOrientation(self):
-        return self.orientation
+import ram.motion as motion
+import ram.test.motion.support as support
 
-# Mock Motion
-class MockMotion(object):
-    def __init__(self):
-        self.controller = None
-        self.vehicle = None
-        self.stoped = False
-    
-    def start(self, controller, vehicle, eventHub, eventPublisher):
-        self.controller = controller
-        self.vehicle = vehicle
-        
-    def stop(self):
-        self.stoped = True
 
-class TestMotionManager(unittest.TestCase):
+class TestMotionManager(support.MotionTest):
     def setUp(self):
-        # Create the event hub to collect all published events
-        self.eventHub = core.EventHub()
-        self.vehicle = MockVehicle()
-        self.controller = MockController(self.eventHub)
-        
-        # The QueuedEventHub lets us queue the events to be released when ready
-        self.qeventHub = core.QueuedEventHub(self.eventHub)
-        
-        deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
-        self.motionManager = motion.MotionManager({}, deps)
+        support.MotionTest.setUp(self)
 
     def testSetMotion(self):
-        m = MockMotion()
+        m = support.MockMotion()
         self.motionManager.setMotion(m)
         
         self.assertEquals(self.vehicle.getName(), m.vehicle.getName())
         self.assertEquals(self.controller.getName(), m.controller.getName())
         
-        m2 = MockMotion()
+        m2 = support.MockMotion()
         self.motionManager.setMotion(m2)
         self.assert_(m.stoped)
         self.assertEquals(self.vehicle.getName(), m2.vehicle.getName())
         self.assertEquals(self.controller.getName(), m2.controller.getName())
   
   
-class TestChangeDepth(unittest.TestCase):
+class TestChangeDepth(support.MotionTest):
     def setUp(self):
-        # Create the event hub to collect all published events
-        self.eventHub = core.EventHub()
-        self.vehicle = MockVehicle()
-        self.controller = MockController(self.eventHub)
-        
-        # The QueuedEventHub lets us queue the events to be released when ready
-        self.qeventHub = core.QueuedEventHub(self.eventHub)
-        
-        deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
-        self.motionManager = motion.MotionManager({}, deps)
-    
+        support.MotionTest.setUp(self)
         self.motionFinished = False
 
     def handleFinished(self, event):
         self.motionFinished = True
-        
         
     def testDive(self):
         self.vehicle.depth = 5
@@ -151,19 +81,9 @@ class TestChangeDepth(unittest.TestCase):
             
         self.assert_(self.motionFinished)
         
-class TestChangeHeading(unittest.TestCase):
+class TestChangeHeading(support.MotionTest):
     def setUp(self):
-        # Create the event hub to collect all published events
-        self.eventHub = core.EventHub()
-        self.vehicle = MockVehicle()
-        self.controller = MockController(self.eventHub)
-        
-        # The QueuedEventHub lets us queue the events to be released when ready
-        self.qeventHub = core.QueuedEventHub(self.eventHub)
-        
-        deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
-        self.motionManager = motion.MotionManager({}, deps)
-    
+        support.MotionTest.setUp(self)
         self.motionFinished = False
 
     def handleFinished(self, event):
