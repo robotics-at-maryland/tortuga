@@ -22,6 +22,7 @@
 
 // Must Be Included last
 #include "control/include/Export.h"
+#include "math/include/Quaternion.h"
 
 namespace ram {
 namespace control {
@@ -87,6 +88,9 @@ public:
     /** Rolls the desired vehicle state by the desired number of degrees */
     virtual void rollVehicle(double degrees) = 0;
 
+    /** Gets the current desired orientation */
+    virtual math::Quaternion getDesiredOrientation() = 0;
+    
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
 

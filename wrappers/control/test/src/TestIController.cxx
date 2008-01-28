@@ -22,7 +22,7 @@
 class MockController : public ram::control::IController
 {
 public:
-	MockController(std::string name) : IController(name) {}
+    MockController(std::string name) : IController(name) {}
 	
     virtual void setSpeed(int speed_) { speed = speed_; }
 
@@ -34,10 +34,13 @@ public:
 
     virtual void yawVehicle(double degrees) { yaw = degrees; }
 
-    virtual void pitchVehicle(double degrees) { yaw = degrees; }
+    virtual void pitchVehicle(double degrees) {  }
 
-    virtual void rollVehicle(double degrees) { yaw = degrees; }
+    virtual void rollVehicle(double degrees) { }
 
+    virtual ram::math::Quaternion getDesiredOrientation()
+        { return ram::math::Quaternion(); }
+    
     virtual bool atOrientation() { return atorientation; }
     
     virtual bool atDepth() { return atdepth; }

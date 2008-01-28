@@ -79,6 +79,9 @@ public:
 
     /** @copydoc IController::yawVehicle() */
     virtual void yawVehicle(double degrees);
+
+    /** Gets the current desired orientation */
+    virtual math::Quaternion getDesiredOrientation();
     
     /** @copydoc IController::atOrientation() */
     virtual bool atOrientation();

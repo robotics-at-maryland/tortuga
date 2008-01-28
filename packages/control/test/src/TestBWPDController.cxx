@@ -65,6 +65,27 @@ TEST_FIXTURE(Fixture, RollControl)
     CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
 }
 
+TEST_FIXTURE(Fixture, yawVehicle)
+{
+    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Z);
+    controller.yawVehicle(30);
+    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+}
+
+TEST_FIXTURE(Fixture, pitchVehicle)
+{
+    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Y);
+    controller.pitchVehicle(30);
+    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+}
+
+TEST_FIXTURE(Fixture, rollVehicle)
+{
+    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
+    controller.rollVehicle(30);
+    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+}
+
 TEST_FIXTURE(Fixture, DepthControl)
 {
     math::Vector3 exp_tranForce(0, 0, 0);

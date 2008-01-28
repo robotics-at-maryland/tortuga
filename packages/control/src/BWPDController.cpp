@@ -220,6 +220,10 @@ void BWPDController::yawVehicle(double degrees)
   publish(IController::DESIRED_ORIENTATION_UPDATE, event);
 }
 
+math::Quaternion BWPDController::getDesiredOrientation()
+{
+    return math::Quaternion(m_desiredState->quaternion);
+}
     
 bool BWPDController::atOrientation()
 {

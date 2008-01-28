@@ -12,6 +12,8 @@ import buildfiles.wrap as wrap
 def generate(module_builder, local_ns, global_ns):
 
     wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem'])
+    wrap.make_already_exposed(global_ns, 'ram::math', ['Quaternion'],
+                              no_implicit_conversion = True)
 
     # Include controller classes
     IController = local_ns.class_('IController')
