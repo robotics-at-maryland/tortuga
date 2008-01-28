@@ -128,6 +128,9 @@ class Timer(threading.Thread):
         # Sleep for that time period
         sleep(self._sleepTime)
         
+        self._complete()
+        
+    def _complete(self):
         # Publish event
         self._eventPublisher.publish(self._eventType, ext.core.Event())
         
