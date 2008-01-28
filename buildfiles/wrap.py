@@ -260,7 +260,7 @@ def make_already_exposed(global_ns, namespace_name, classes,
 
     for class_dec in class_decs:
         print 'Marking class dec',class_dec
-        class_dec = ns.decl(name = 'Vehicle' ,
+        class_dec = ns.decl(name = class_dec,
                             decl_type = declarations.class_declaration_t)
         class_dec.already_exposed = True
 
