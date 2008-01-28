@@ -11,6 +11,7 @@ import unittest
 # Project Imports
 import ext.math as math
 import ram.motion as motion
+import ram.motion.search
 import ram.timer as timer
 import ram.test.motion.support as support
 
@@ -56,7 +57,7 @@ class TestForwardZigZag(support.MotionTest):
         del timer._origTimer
     
     def testStart(self):
-        m = motion.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8)
+        m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8)
         
         # Start the motion
         self.motionManager.setMotion(m)
@@ -72,13 +73,13 @@ class TestForwardZigZag(support.MotionTest):
         self.qeventHub.publishEvents()
         
         # Ensure we only go half time of the first leg and at the right speed
-        mockTimer = MockTimer.LOG[motion.ForwardZigZag.LEG_COMPLETE]
+        mockTimer = MockTimer.LOG[motion.search.ForwardZigZag.LEG_COMPLETE]
         self.assert_(mockTimer.started)
         self.assertEqual(3, mockTimer.sleepTime)
         self.assertEqual(8, self.controller.speed)
         
     def testNormal(self):
-        m = motion.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8)
+        m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8)
         self.motionManager.setMotion(m)
         
         # Comlete on short leg
@@ -87,7 +88,7 @@ class TestForwardZigZag(support.MotionTest):
         self.controller.publishAtOrientation(orientation)
         self.qeventHub.publishEvents()
         
-        mockTimer = MockTimer.LOG[motion.ForwardZigZag.LEG_COMPLETE]
+        mockTimer = MockTimer.LOG[motion.search.ForwardZigZag.LEG_COMPLETE]
         mockTimer.finish()
         self.qeventHub.publishEvents()
         
@@ -104,7 +105,7 @@ class TestForwardZigZag(support.MotionTest):
         self.qeventHub.publishEvents()
         
         # Ensure we only go half time of the first leg and at the right speed
-        mockTimer = MockTimer.LOG[motion.ForwardZigZag.LEG_COMPLETE]
+        mockTimer = MockTimer.LOG[motion.search.ForwardZigZag.LEG_COMPLETE]
         self.assert_(mockTimer.started)
         self.assertEqual(6, mockTimer.sleepTime)
         self.assertEqual(8, self.controller.speed)

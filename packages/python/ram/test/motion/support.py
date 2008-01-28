@@ -19,6 +19,7 @@ import ext.vehicle as vehicle
 import ext.math
 
 import ram.motion as motion
+import ram.motion.basic
 
 # Mock subsystems
 class MockController(control.IController):
@@ -87,4 +88,4 @@ class MotionTest(unittest.TestCase):
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         
         deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
-        self.motionManager = motion.MotionManager({}, deps)
+        self.motionManager = motion.basic.MotionManager({}, deps)

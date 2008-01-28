@@ -43,8 +43,8 @@ class TestChangeDepth(support.MotionTest):
         
     def testDive(self):
         self.vehicle.depth = 5
-        m = motion.ChangeDepth(10, 5) 
-        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+        m = motion.basic.ChangeDepth(10, 5) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
                                        self.handleFinished)
         
         # First step
@@ -63,8 +63,8 @@ class TestChangeDepth(support.MotionTest):
             
     def testSurface(self):
         self.vehicle.depth = 10
-        m = motion.ChangeDepth(5, 5) 
-        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+        m = motion.basic.ChangeDepth(5, 5) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
                                       self.handleFinished)
         
         # First step
@@ -91,8 +91,8 @@ class TestChangeHeading(support.MotionTest):
         
         
     def testLeft(self):
-        m = motion.ChangeHeading(30, 5) 
-        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+        m = motion.basic.ChangeHeading(30, 5) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
                                        self.handleFinished)
         
         # First step
@@ -113,8 +113,8 @@ class TestChangeHeading(support.MotionTest):
             
             
     def testRight(self):
-        m = motion.ChangeHeading(-30, 5) 
-        self.qeventHub.subscribeToType(motion.Motion.FINISHED, 
+        m = motion.basic.ChangeHeading(-30, 5) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
                                        self.handleFinished)
         
         # First step

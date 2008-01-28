@@ -6,6 +6,6 @@
 # File:  packages/python/ram/__init__.py
 
 # To allow the registration of SubsystemMakers
-import ram.motion as _motion
+import ram.motion.basic as _basic
 import ram.timer as _timer
 import ram.ai.state as _state

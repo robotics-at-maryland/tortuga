@@ -25,6 +25,7 @@ import ext.core as core
 
 import ram.ai.state as state
 import ram.motion as motion
+import ram.motion.search
 
 class Wait(state.State):
     @staticmethod
@@ -35,11 +36,11 @@ class Wait(state.State):
 class Dive(state.State):
     @staticmethod
     def transitions():
-        return {motion.Motion.FINISHED : Forward}
+        return {motion.basic.Motion.FINISHED : Forward}
     
     def enter(self):
         # Go to 5 feet in 5 increments
-        diveMotion = motion.ChangeDepth(5, 5)
+        diveMotion = motion.basic.ChangeDepth(5, 5)
         self.motionManager.setMotion(diveMotion)
     
 class Forward(state.State):
@@ -63,11 +64,11 @@ class Forward(state.State):
 class Surface(state.State):
     @staticmethod
     def transitions():
-        return {motion.Motion.FINISHED : End}     
+        return {motion.basic.Motion.FINISHED : End}     
     
     def enter(self):  
         # Go to 0 feet in 5 increments
-        surfaceMotion = motion.ChangeDepth(0, 5)
+        surfaceMotion = motion.basic.ChangeDepth(0, 5)
         self.motionManager.setMotion(surfaceMotion)
         
 class End(state.State):
