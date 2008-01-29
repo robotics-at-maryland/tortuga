@@ -14,7 +14,7 @@ BIN2HEX = pic30-elf-bin2hex
 
 LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
-all: master.hex slave.hex lcd.hex temp.hex
+all: master.hex slave.hex lcd.hex temp.hex debug.hex
 
 %.hex : %.elf
 	$(BIN2HEX) $<
@@ -30,6 +30,10 @@ run:
 
 stop:
 	piklab-prog -p icd2 -d 30f4011 -c stop
+
+debug: debug.hex
+	piklab-prog -p icd2 -d 30f4011 -c program debug.hex
+
 
 master: master.hex
 	piklab-prog -p icd2 -d 30f4011 -c program master.hex
