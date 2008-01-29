@@ -495,7 +495,7 @@ int main(void)
     d - depth query
     t - temperature query
     s - read status register
-
+    T - thruster safety
 */
 
 
@@ -515,7 +515,89 @@ int main(void)
                 break;
             }
 
+#ifndef BUS_CMD_THRUSTER5_ON
+#define BUS_CMD_THRUSTER5_ON 0
+#define BUS_CMD_THRUSTER6_ON 0
+#define BUS_CMD_THRUSTER5_OFF 0
+#define BUS_CMD_THRUSTER6_OFF 0
 
+#endif
+
+            case 'T':
+            {
+                byte t, t2;
+                static const byte offCmd[]=
+                {
+                    BUS_CMD_THRUSTER1_OFF,
+                    BUS_CMD_THRUSTER2_OFF,
+                    BUS_CMD_THRUSTER3_OFF,
+                    BUS_CMD_THRUSTER4_OFF,
+                    BUS_CMD_THRUSTER5_OFF,
+                    BUS_CMD_THRUSTER6_OFF
+                };
+
+                static const byte onCmd[]=
+                {
+                    BUS_CMD_THRUSTER1_ON,
+                    BUS_CMD_THRUSTER2_ON,
+                    BUS_CMD_THRUSTER3_ON,
+                    BUS_CMD_THRUSTER4_ON,
+                    BUS_CMD_THRUSTER5_ON,
+                    BUS_CMD_THRUSTER6_ON
+                };
+
+                sendString("\n\rThrusters: Safe / Unsafe?\n\r>");
+                t = waitchar();
+                sendByte(t);
+                if(t != 's' && t != 'u')
+                    break;
+
+                sendString("\n\rID? (1-6,a)\n\r>");
+                t2 = waitchar();
+
+                if(t2 != '1' && t2 != '2' && t2 != '3' && t2 != '4' && t2 != '5' && t2 != '6' && t2 != 'a')
+                    break;
+
+
+                if(t == 's')
+                {
+                    if(t2 != 'a')
+                    {
+                        if(busWriteByte(offCmd[t2-'1'], SLAVE_ID_THRUSTERS) != 0)
+                            sendString("\n\rCommand error.");
+                        else
+                            sendString("\n\rOK");
+                    } else
+                    {
+                        for(i=0; i<6; i++)
+                            if(busWriteByte(offCmd[i], SLAVE_ID_THRUSTERS) != 0)
+                                sendString("\n\rCommand error.");
+                            else
+                                sendString("\n\rOK");
+                    }
+                }
+
+                if(t == 'u')
+                {
+                    if(t2 != 'a')
+                    {
+                        if(busWriteByte(onCmd[t2-'1'], SLAVE_ID_THRUSTERS) != 0)
+                            sendString("\n\rCommand error.");
+                        else
+                            sendString("\n\rOK");
+                    } else
+                    {
+                        for(i=0; i<6; i++)
+                            if(busWriteByte(onCmd[i], SLAVE_ID_THRUSTERS) != 0)
+                                sendString("\n\rCommand error.");
+                            else
+                                sendString("\n\rOK");
+                    }
+                }
+
+
+                break;
+            }
 
 
 
@@ -523,7 +605,7 @@ int main(void)
 
             case 's':
             {
-                  busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD);
+                busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD);
 
                 byte len = readDataBlock(SLAVE_ID_POWERBOARD);
 
