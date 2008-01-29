@@ -67,6 +67,9 @@ class ForwardZigZag(Motion):
         self._sweepAngle *= -1
     
     def stop(self):
+        """
+        Called by the MotionManager when another motion takes over, stops movement
+        """
         self._controller.setSpeed(0)
         for conn in self._connections:
             conn.disconnect()

@@ -28,15 +28,25 @@ class MockController(control.IController):
         self.depth = 0
         self.yawChange = 0
         self.speed = 0
+        self.desiredOrientation = ext.math.Quaternion.IDENTITY
         
     def setDepth(self, depth):
         self.depth = depth
         
+    def getDepth(self):
+        return self.depth
+        
     def setSpeed(self, speed):
         self.speed = speed
         
+    def getSpeed(self):
+        return self.speed
+        
     def yawVehicle(self, yawChange):
         self.yawChange = yawChange
+        
+    def getDesiredOrientation(self):
+        return self.desiredOrientation
         
     def publishAtDepth(self, vehicleDepth):
         event = ext.math.NumericEvent()

@@ -23,6 +23,7 @@ def importFromPath(path):
     
     # Import Test Module
     (search_path, name) = os.path.split(path)
+
     # Stip '.py' from the end
     name = name[:-3]
     (f, pathname, decs) = imp.find_module(name, [search_path])
@@ -45,8 +46,9 @@ def main(argv = None):
     
     # Recursively walk the path 
     for root, dirs, files in os.walk(testDir):
-        # Remove *.pyc files and add the directory
-        pathes = [os.path.join(root,f) for f in files if not f.endswith('.pyc')]
+        # Only take *.py files in add the directory
+        pathes = [os.path.join(root,f) for f in files if f.endswith('.py')]
+
         # Remove __init__ files
         pathes = [p for p in pathes if 0 == p.count('__init__')]
                                           

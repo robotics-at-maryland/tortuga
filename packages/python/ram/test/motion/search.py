@@ -67,7 +67,7 @@ class TestForwardZigZag(support.MotionTest):
         self.assertEqual(expectedYaw , self.controller.yawChange)
         self.assertEqual(0, self.controller.speed)
         
-        orientation = math.Quaternion(math.Radian(math.Degree(expectedYaw)),
+        orientation = math.Quaternion(math.Degree(expectedYaw),
                                       math.Vector3.UNIT_Z)
         self.controller.publishAtOrientation(orientation)
         self.qeventHub.publishEvents()
@@ -83,7 +83,7 @@ class TestForwardZigZag(support.MotionTest):
         self.motionManager.setMotion(m)
         
         # Comlete on short leg
-        orientation = math.Quaternion(math.Radian(math.Degree(35/2.0)),
+        orientation = math.Quaternion(math.Degree(35/2.0),
                                       math.Vector3.UNIT_Z)
         self.controller.publishAtOrientation(orientation)
         self.qeventHub.publishEvents()
@@ -99,7 +99,7 @@ class TestForwardZigZag(support.MotionTest):
         self.assertEqual(expectedYaw , self.controller.yawChange)
         self.assertEqual(0, self.controller.speed)
         
-        orientation = math.Quaternion(math.Radian(math.Degree(expectedYaw)),
+        orientation = math.Quaternion(math.Degree(expectedYaw),
                                       math.Vector3.UNIT_Z)
         self.controller.publishAtOrientation(orientation)
         self.qeventHub.publishEvents()
