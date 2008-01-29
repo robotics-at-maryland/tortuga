@@ -1,44 +1,70 @@
 #include "p30fxxxx.h"
 #define byte unsigned char
+#define _ISR __attribute__((interrupt))
+#define _ISRFAST __attribute__((interrupt, shadow))
 #define UART_ENABLED 1  //set to 0 to turn off uart
 
 //Configuration settings for the dsPIC30F4012
 _FOSC(CSW_FSCM_OFF & XT_PLL8); //to get 30MIPS with 15MHz clock
-//_FOSC(CSW_FSCM_OFF & XT_PLL16); //to get 30MIPS with 7.37MHz clock
-_FOSCSEL(PRIOSC_PLL);
+//_FOSC(CSW_FSCM_OFF & XT_PLL16); //to get 30MIPS with 7.5MHz clock
+//_FOSCSEL(PRIOSC_PLL);
 _FWDT(WDT_OFF);	
 _FGS(CODE_PROT_OFF);
+_FBORPOR(PBOR_OFF & PWRT_64);
 
-void initUart(void);
-void intiIO(void);
-void initTimer(void);
-void sendString(unsigned char * s);
-void sendNum(unsigned int i);
+
+void init_IO(void);
+void init_OC2(void);
+void init_Uart(void);
+void init_Timer2and3(void);
 void sendByte(byte i);
+void sendString( char * s);
+void sendNum(unsigned int i);
 void delay(int microseconds);
+void startup_flashes_text(void);
+void _ISRFAST _T3Interrupt(void);
+
+volatile int dutyCycle = 710;
 
 int main(void){
-	int dutyCycle = 710;
+	//int x=0;
 	
-	delay(200);  
-	/* nothing should run in the first 200 ms so that 
-	 * if the chip resets the output is not interupted */
-
-    initUart();
-	sendString("\n\rRunning...\n\r\n\r");
-	sendString("Starting at duty cycle = ");
-	sendNum(dutyCycle);
-	sendString("\n\r");
-	initIO();
-
-	initTimer2and3();
-	OC2CONbits.OCM = 0b000; //keep OC2 off while mod's are made
-	OC2CONbits.OCSIDL = 0; //0=continued operation in idle mode
-	OC2CONbits.OCTSEL = 1; //1=timer3  0=timer2
-	OC2R=0;
-	OC2RS=dutyCycle;
-	OC2CONbits.OCM = 0b101; //initialize OC2 low, generate continuous output pulses
+	init_IO();
+	init_Uart();
+	startup_flashes_text();
 	
+	init_Timer2and3();
+	init_OC2();
+	
+	while(1){
+		PORTBbits.RB3=1;
+		if(PORTBbits.RB0==1 && dutyCycle<1065){
+			PORTBbits.RB3=0;
+			sendString("increased duty cycle to ");
+			dutyCycle+=5;
+			OC2RS=dutyCycle;
+			sendNum(dutyCycle);
+			sendString(" \t(counterclockwise)\n\r");
+			delay(10);
+		}
+		if(PORTBbits.RB1==1 && dutyCycle>110){
+			PORTBbits.RB3=0;
+			sendString(" decreased duty cycle to ");
+			dutyCycle-=5;
+			OC2RS=dutyCycle;
+			sendNum(dutyCycle);
+			sendString("\t(clockwise)\n\r");
+			delay(10);
+		}
+	}
+}
+
+void _ISRFAST _T3Interrupt(void){
+//	OC2RS=dutyCycle;
+	IFS0bits.T3IF=0;
+}
+
+void init_OC2(void){
 	/*  OUTPUT COMPARE CONFIGURATION CALCULATIONS
 	instruction clock cycle time.... 30MIPS... 33ns
 	using timer prescaler of 1:64 so 2.112us per TMR3 incriment
@@ -47,40 +73,45 @@ int main(void){
 	1.5ms = 710.3 timer ticks
 	2ms = 947 timer ticks
 	25ms = 11,837.1 timer ticks
-	*/
-	
-	while(1){
-		if(PORTBbits.RB0==1 && dutyCycle<1065){
-			sendString("decreased duty cycle to ");
-			dutyCycle+=5;
-			OC2RS=dutyCycle;
-			sendNum(dutyCycle);
-			sendString("\n\r");
-			delay(10);
-		}
-		if(PORTBbits.RB1==1 && dutyCycle>110){
-			sendString("increased duty cycle to ");
-			dutyCycle-=5;
-			OC2RS=dutyCycle;
-			sendNum(dutyCycle);
-			sendString("\n\r");
-			delay(10);
-		}
-		
-	}
-}
+	*/	
+	OC2CONbits.OCM = 0b000; //keep OC2 off while mod's are made
+	OC2CONbits.OCSIDL = 0; //0=continued operation in idle mode
+	OC2CONbits.OCTSEL = 1; //1=timer3  0=timer2
+	OC2R=dutyCycle;
+	OC2RS=dutyCycle;
+	OC2CONbits.OCM = 0b110; //initialize OC2 low, generate continuous output pulses
+}	
 
-void initTimer2and3(void){
+void startup_flashes_text(void){
+	PORTBbits.RB2=1;
+	delay(200);
+	PORTBbits.RB2=0;
+	delay(200);  
+	PORTBbits.RB2=1;
+	delay(200);  
+	PORTBbits.RB2=0;
+	delay(200);  
+	PORTBbits.RB2=1;
+	
+	sendString("\n\rRunning...\n\r\n\r");
+	sendString("Starting at duty cycle = ");
+	sendNum(dutyCycle);
+	sendString("\n\r");
+}	
+
+void init_Timer2and3(void){
 	//setup TMR2 and TMR3... in this project, TMR3 is used to do continuous PWM on 
 	T2CONbits.T32=0; //turn off 32 bit operation
 	T2CONbits.TCKPS=0b11;  // 1:256 prescale value
 	T2CONbits.TON=1;
 	
-	T3CONbits.TCKPS=0b10; // 1:8 prescale value
+	T3CONbits.TCKPS=0b10; // 1:64 prescale value
 	T3CONbits.TSIDL=0; //continue in idle mode
 	T3CONbits.TCS=0; //internal clock  (F_OSC/4)
 	T3CONbits.TON=1;
-	PR3=11837; //25ms period for 40Hz operation
+	PR3=11845; //25ms period for 40Hz operation
+	IEC0bits.T3IE=1;  //enable interupts for Timer3
+	IPC1bits.T3IP=6;  //interupt priority0-7 where 7 is the highest priority
 }
 
 void delay(int mseconds){ //cannot be called with more than about 550ms
@@ -89,8 +120,9 @@ void delay(int mseconds){ //cannot be called with more than about 550ms
 	mseconds=mseconds*onemillisecond;
 	//start config bit selection
 	T1CONbits.TON=0;
-	T1CONbits.TCKPS=0b11;
 	TMR1=0;
+	T1CONbits.TCS=0; 
+	T1CONbits.TCKPS=0b11;
 	T1CONbits.TON=1;
 	while(TMR1<mseconds){
 		Nop();
@@ -109,7 +141,7 @@ void sendByte(byte i){
 //////////////////////////////////////////////
 //Use this function to send literal strings in quotes as
 //ASCII bytes to the UART
-void sendString(unsigned char str[]){
+void sendString( char str[]){
 	if(!UART_ENABLED)return;
     byte i=0;
     for(i=0; str[i]!=0; i++){
@@ -121,7 +153,7 @@ void sendString(unsigned char str[]){
 //as ASCII text
 void sendNum(unsigned int i){
 	if(!UART_ENABLED)return;
-	unsigned char tmp[10];
+	char tmp[10];
 	sprintf(tmp, "%u ", i);
 	sendString(tmp);
 }
@@ -138,20 +170,26 @@ MIPS = 15MMhz * pll8 / 4 = 30,000,000
 ****don't forget to invert the signal coming out of the PIC
 to create a signal that most computer's serial ports will 
 interpret  */
-void initUart(void){
+void init_Uart(void){
 	if(!UART_ENABLED)return;
     U1MODE = 0x0000;
-    U1BRG = 7;  // 25 for baud of 38400 //7 for baud of 230400 pll8
+    // Calculations for differnt Baud rates...
+    // 25 for baud of 38400 
+    // 7  for baud of 230400 pll8
+    // 15 for baud of 115200
+    U1BRG = 15;
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
 }
 
-void initIO(void){
+void init_IO(void){
 	//setup master timing inputs and outputs
 	ADPCFG=0b1111111111111111;//turn off all analog stuff
-	TRISBbits.TRISB0=1; //Hydrophone input 1
-	TRISBbits.TRISB1=1;	//Hydrophone input 2
-	TRISBbits.TRISB2=1;	//Hydrophone input 3
-	TRISBbits.TRISB3=1; //FFT validation input
+	TRISBbits.TRISB0=1; //left button
+	TRISBbits.TRISB1=1;	//right button
+	TRISBbits.TRISB2=0;	//status LED
+	PORTBbits.RB2=0;
+	TRISBbits.TRISB3=0; //status LED
+	PORTBbits.RB3=0;
 }
