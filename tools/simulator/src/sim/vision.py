@@ -70,6 +70,7 @@ class SimVision(ext.core.Subsystem):
                                                              nonNone = True)
         self._horizontalFOV = config.get('horizontalFOV', 107)
         self._verticalFOV = config.get('verticalFOV', 78)
+        self._runRedLight = False
         
         # Find all the Buoy's
         self._foundLight = False
@@ -79,17 +80,18 @@ class SimVision(ext.core.Subsystem):
                 self._bouys.append(obj)
         
     def redLightDetectorOn(self):
-        pass
+        self._runRedLight = True
     
     def redLightDetectorOff(self):
-        pass
+        self._runRedLight = False
     
 
     def update(self, timeSinceLastUpdate):
         """
         Checks against the obstacles, and generates the proper events
         """
-        self._checkRedLight()
+        if self._runRedLight:
+            self._checkRedLight()
     
     def _checkRedLight(self):
         """
@@ -126,9 +128,16 @@ class SimVision(ext.core.Subsystem):
         
         if lightVisible:
             event = ext.core.Event()
+
             event.x = yaw / (self._horizontalFOV/2)
             # Negative because of the corindate system
             event.y = -pitch / (self._verticalFOV/2)
+            
+            # These have to be swaped as well
+            event.azimuth = -yaw
+            event.elevation = -pitch
+            event.range = relativePos.length()
+            
             self.publish(SimVision.LIGHT_FOUND, event)
             
         else:

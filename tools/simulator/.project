@@ -3,6 +3,7 @@
 	<name>Simulator</name>
 	<comment></comment>
 	<projects>
+		<project>OCI</project>
 		<project>Python Packages</project>
 	</projects>
 	<buildSpec>

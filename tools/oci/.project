@@ -3,6 +3,7 @@
 	<name>OCI</name>
 	<comment></comment>
 	<projects>
+		<project>Python Packages</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
