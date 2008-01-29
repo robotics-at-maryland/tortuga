@@ -22,6 +22,7 @@ class LED(wx.Control):
         wx.Control.__init__(self, parent, id, pos, size, style)
         self.MinSize = size
         
+        self.bmp = None
         self._colors = colors
         self._state = state
         self.SetState(0)
@@ -81,4 +82,5 @@ class LED(wx.Control):
     
     def OnPaint(self, e):
         dc = wx.PaintDC(self)
-        dc.DrawBitmap(self.bmp, 0, 0, True)
+        if self.bmp is not None:
+            dc.DrawBitmap(self.bmp, 0, 0, True)
