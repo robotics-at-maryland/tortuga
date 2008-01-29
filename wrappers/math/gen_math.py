@@ -58,9 +58,14 @@ def generate(module_builder, local_ns, global_ns):
                              ignore_names = ['ptr'])
     wrap.fix_pointer_args([Vector3, Quaternion, Matrix3])
 
+    # Remove float -> Radian/Degree implicit conversions
+    Degree.constructor(arg_types = ['double']).allow_implicit_conversion = False
+    Radian.constructor(arg_types = ['double']).allow_implicit_conversion = False
+
     # Wrap Events
     eventsFound = False
-    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event')):
+    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
+                                allow_empty = True):
         cls.include()
         classes.append(cls)
 
@@ -71,5 +76,7 @@ def generate(module_builder, local_ns, global_ns):
     wrap.add_needed_includes(classes)
     Quaternion.include_files.append(Matrix3.location.file_name)
     # Remove implicit conversions
-    wrap.set_implicit_conversions([Radian, Degree, Vector3, Quaternion, Matrix3],
+    wrap.set_implicit_conversions([Vector3, Quaternion, Matrix3],
                                   False)
+
+    return ['math/include/Math.h']

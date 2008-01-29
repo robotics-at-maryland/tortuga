@@ -49,6 +49,15 @@ class TestSubsystem(unittest.TestCase):
         subsystemC = SubsystemC({'name' : 'Dave'}, deps)
         subsystemC = SubsystemC({'name' : 'Dave'}, [core.EventHub()])
 
+    def testVirtualMethods(self):
+        subsystem = core.Subsystem('Test')
+
+        # None of these methods should throw
+        subsystem.background(20)
+        self.assertEquals(False, subsystem.backgrounded())
+        subsystem.unbackground(True)
+        subsystem.update(0.1)
+
     def testGetSubsystemOfType(self):
         a = core.Subsystem('Bob')
         b = SubsystemD('John')
