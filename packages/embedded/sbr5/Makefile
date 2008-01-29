@@ -18,7 +18,7 @@ LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
 
 
-all: ic1.hex ic2.hex ic3.hex ic4.hex power.hex
+all: ic1.hex ic2.hex ic3.hex ic4.hex power.hex debug.hex
 
 power.o : power.c buscodes.h uart.c i2c.c
 	$(CC) -mcpu=30F5011 $(CFLAGS) -Wunused-function -c $< -o $@
@@ -55,7 +55,10 @@ ic4: ic4.hex
 	piklab-prog -p icd2 -d 30f4011 -c program ic4.hex
 
 power: power.hex
-	piklab-prog -p icd2 -d 30f4011 -c program power.hex
+	piklab-prog -p icd2 -d 30f5011 -c program power.hex
+
+debug: debug.hex
+	piklab-prog -p icd2 -d 30f4011 -c program debug.hex
 
 clean:
 	rm -f *.o *.elf *.hex *~
