@@ -5,7 +5,7 @@
 #define UART_ENABLED 1  //set to 0 to turn off uart
 
 //Configuration settings for the dsPIC30F4012
-_FOSC(CSW_FSCM_OFF & XT_PLL8) //to get 30MIPS with 15MHz clock
+_FOSC(CSW_FSCM_OFF & XT_PLL8); //to get 30MIPS with 15MHz clock
 //_FOSC(CSW_FSCM_OFF & XT_PLL16); //to get 30MIPS with 7.5MHz clock
 //_FOSCSEL(PRIOSC_PLL);
 _FWDT(WDT_OFF);	
