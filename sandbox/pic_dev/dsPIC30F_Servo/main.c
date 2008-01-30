@@ -12,6 +12,7 @@ _FWDT(WDT_OFF);
 _FGS(CODE_PROT_OFF);
 _FBORPOR(PBOR_OFF & PWRT_64);
 
+//Author: Scott Watson
 
 void init_IO(void);
 void init_OC2(void);
