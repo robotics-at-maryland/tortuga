@@ -602,7 +602,7 @@ void redMask(IplImage* percents, IplImage* base)
 	int count=0;
 	
 //To remove top half of image, insert this, and start y at height/2 in the next set of loops
-	for (int y=0; y<height/2;y++)
+	for (int y=0; y<height/4;y++)
 		for (int x=0;x<width;x++)
 		{
 			data2[count]=data2[count+1]=data2[count+2]=0;
@@ -615,7 +615,7 @@ void redMask(IplImage* percents, IplImage* base)
 		{
 			r=(data[count+2]+256)%256;//r = percent red in the image
 			r2=(data2[count+2]+256)%256;//r2 = intensity of red in the image
-			if (r>35 && r2>100) //Change these values if red light in tank is not being detected.
+			if (r>40 && r2>200) //Change these values if red light in tank is not being detected.
 			{
 				data2[count]=255;
 				data2[count+1]=255;

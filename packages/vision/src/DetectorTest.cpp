@@ -26,7 +26,7 @@ RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, BIN_FOUND);
 
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 0
+#define SHOW_OUTPUT 1
 #define DEMO 0
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
@@ -207,7 +207,7 @@ void DetectorTest::update(double timestep)
 	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
 	
 	if (fromMovie)
-	{	
+	{
 		printf("Acquiring Next Frame\n");
 		camera->update(timestep);//When running on a movie, the camera is not constantly grabbing frames, analyze each frame by itself.
 	}
@@ -239,9 +239,7 @@ void DetectorTest::update(double timestep)
 			recorder->writeFrame(opDetect->getAnalyzedImage());
 		if (opDetect->found && opDetect->getAngle()!=-10)
 		{
-			ram::core::EventPtr e(new ram::core::Event());
-			e->type=PIPE_FOUND;
-			e->sender=this;
+			ram::core::EventPtr e(new ram::vision::PipeEvent(2*opDetect->getX()-1,1-2*opDetect->getY(),opDetect->getAngle()));
 			publish(PIPE_FOUND,e);
 			//Found in this case refers to the finding of a thresholded number of pixels
 			//Angle will be equal to -10 if those pixels do not form pipeline shaped objects
@@ -341,7 +339,7 @@ void DetectorTest::update(double timestep)
 
 		if (rlDetect->found)
 		{
-			ram::core::EventPtr e(new ram::vision::ImageEvent(rlDetect->getX(),rlDetect->getY()));
+			ram::core::EventPtr e(new ram::vision::ImageEvent((2*rlDetect->getX())-1,1-(2*rlDetect->getY())));
 			publish(LIGHT_FOUND,e);
 
 			if (SHOW_OUTPUT)

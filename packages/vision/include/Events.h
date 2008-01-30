@@ -16,7 +16,16 @@ class ImageEvent : public core::Event
     double x;
     double y;
 };
-    
+
+class PipeEvent : public core::Event
+{
+	public:
+	PipeEvent(double x, double y, double angle){this->x=x;this->y=y;this->angle=angle;}
+	double x;
+	double y;
+	double angle;
+};
+
 } // namespace vision
 } // namespace ram
 

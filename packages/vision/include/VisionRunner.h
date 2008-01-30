@@ -19,7 +19,7 @@ class VisionRunner{
 	public:
 		VisionRunner();
 		void captureEvent(ram::core::EventPtr e);
-		DetectorTest forward;
+		DetectorTest forward; 
 		DetectorTest downward;
 };
 }}

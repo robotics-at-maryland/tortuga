@@ -25,15 +25,17 @@ sources = ['src/BasicImage.cpp',
            'src/OrangePipeDetector.cpp',
            'src/Calibration.cpp',
            'src/main.cpp',
-           'src/Recorder.cpp']
+           'src/Recorder.cpp',
+	   'src/VisionSystem.cpp',
+	   'src/DetectorTest.cpp',
+	   'src/VisionRunner.cpp'
+	]
 
 detectorSources = [
-		   'src/DetectorTest.cpp',
-		   'src/VisionRunner.cpp'
+		   'src/VisionTest.cpp'
 		  ]
 
 demoSources = [
-		'src/DetectorTest.cpp',
 		'src/VisionDemo.cpp'
 	      ]
 	
@@ -81,6 +83,8 @@ envt.RAMProgram(target = 'DetectorTest',
 # Image Analysis Test
 envt.RAMProgram(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
 
+# Vision System
+#envt.RAMProgram(target = 'VisionSystem', source = ['src/VisionSystem.cpp','src/DetectorTest.cpp'], int_deps = ['vision'])
 
 # Unit Tests
 envt = env.Clone()

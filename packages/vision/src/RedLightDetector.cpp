@@ -68,7 +68,7 @@ void RedLightDetector::update()
 
 	int redPixelCount=histogram(flashFrame,&p.x,&p.y);
 
-	if (redPixelCount<75)
+	if (redPixelCount<250)
 	{
 		p.x=p.y=-1;
 		found=false; //Completely ignoring the state machine for the time being.
@@ -76,7 +76,7 @@ void RedLightDetector::update()
 	else
 	{
 		found=true; //completely ignoring the state machine for the time being.
-		cout<<"FOUND RED LIGHT"<<endl;
+		cout<<"FOUND RED LIGHT "<<redPixelCount<<endl;
 		CvPoint tl,tr,bl,br;
 		tl.x=bl.x=max(p.x-4,0);
 		tr.x=br.x=min(p.x+4,raw->width-1);
