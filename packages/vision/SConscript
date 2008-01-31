@@ -31,9 +31,9 @@ sources = ['src/BasicImage.cpp',
 	   'src/VisionRunner.cpp'
 	]
 
-detectorSources = [
-		   'src/VisionTest.cpp'
-		  ]
+#detectorSources = [
+#		   'src/VisionTest.cpp'
+#		  ]
 
 demoSources = [
 		'src/VisionDemo.cpp'
@@ -77,14 +77,12 @@ if platform.system() in ['Linux', 'Darwin']:
 
 # Detector Test
 envt = env.Clone()
-envt.RAMProgram(target = 'DetectorTest', 
-                source=detectorSources, int_deps = ['vision'])
+#envt.RAMProgram(target = 'DetectorTest', 
+#                source=detectorSources, int_deps = ['vision'])
 
 # Image Analysis Test
 envt.RAMProgram(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
 
-# Vision System
-#envt.RAMProgram(target = 'VisionSystem', source = ['src/VisionSystem.cpp','src/DetectorTest.cpp'], int_deps = ['vision'])
 
 # Unit Tests
 envt = env.Clone()

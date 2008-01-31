@@ -40,6 +40,12 @@ class VisionPanel(wx.Panel):
                                   self._onBouyLost)
         self._connections.append(conn)
         
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _onClose(self):
+        for conn in self._connections:
+            conn.disconnect()
+        
     def _createControls(self):
         sizer =  wx.GridBagSizer(10, 10)
         
