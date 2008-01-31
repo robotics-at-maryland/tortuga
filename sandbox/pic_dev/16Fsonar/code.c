@@ -1,4 +1,4 @@
-/* Author: Scott Watson
+/* Author: Scott Tbomas Watson
 
 Description: This is a redo of the 3 direction PIC16F690
 passive sonar application in c code with the PICC Lite compiler
