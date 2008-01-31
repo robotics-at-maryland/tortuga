@@ -18,12 +18,6 @@
 #include <string>
 #include <iostream>
 
-RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, LIGHT_FOUND);
-RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, PIPE_FOUND);
-RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, GATE_FOUND);
-RAM_CORE_EVENT_TYPE(ram::vision::DetectorTest, BIN_FOUND);
-
-
 using namespace std;
 using namespace ram::vision;
 #define SHOW_OUTPUT 1
@@ -240,7 +234,7 @@ void DetectorTest::update(double timestep)
 		if (opDetect->found && opDetect->getAngle()!=-10)
 		{
 			ram::core::EventPtr e(new ram::vision::PipeEvent(2*opDetect->getX()-1,1-2*opDetect->getY(),opDetect->getAngle()));
-			publish(PIPE_FOUND,e);
+			publish(ram::vision::EventType::PIPE_FOUND,e);
 			//Found in this case refers to the finding of a thresholded number of pixels
 			//Angle will be equal to -10 if those pixels do not form pipeline shaped objects
 			//center will be -1 -1 whenever angle is -10
@@ -275,9 +269,7 @@ void DetectorTest::update(double timestep)
 		if (gDetect->found)
 		{
 			ram::core::EventPtr e(new ram::core::Event());
-			e->type=GATE_FOUND;
-			e->sender=this;
-			ram::core::EventPublisher::publish(GATE_FOUND,e);
+			ram::core::EventPublisher::publish(ram::vision::EventType::GATE_FOUND,e);
 
 			if (SHOW_OUTPUT)
 			{
@@ -308,9 +300,7 @@ void DetectorTest::update(double timestep)
 		if (bDetect->found)
 		{
 			ram::core::EventPtr e(new ram::core::Event());
-			e->type=BIN_FOUND;
-			e->sender=this;
-			publish(BIN_FOUND,e);
+			publish(ram::vision::EventType::BIN_FOUND,e);
 
 			if (SHOW_OUTPUT)
 			{
@@ -340,7 +330,7 @@ void DetectorTest::update(double timestep)
 		if (rlDetect->found)
 		{
 			ram::core::EventPtr e(new ram::vision::ImageEvent((2*rlDetect->getX())-1,1-(2*rlDetect->getY())));
-			publish(LIGHT_FOUND,e);
+			publish(ram::vision::EventType::LIGHT_FOUND,e);
 
 			if (SHOW_OUTPUT)
 			{

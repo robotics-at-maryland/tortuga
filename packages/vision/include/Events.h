@@ -9,6 +9,15 @@
 namespace ram {
 namespace vision {
 
+class EventType 
+{
+    public:
+    static const core::Event::EventType LIGHT_FOUND;
+    static const core::Event::EventType PIPE_FOUND;
+    static const core::Event::EventType GATE_FOUND;
+    static const core::Event::EventType BIN_FOUND;
+};
+
 class ImageEvent : public core::Event
 {
 	public:

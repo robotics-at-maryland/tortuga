@@ -47,6 +47,7 @@ namespace ram { namespace vision {
 			bool startCounting;
 			double redLightCenterX;
 			double redLightCenterY;
+            int minRedPixels;
 			IplImage* image;
 			IplImage* raw;
 			IplImage* flashFrame;

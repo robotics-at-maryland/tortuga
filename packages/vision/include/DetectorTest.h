@@ -21,10 +21,6 @@ namespace vision{
 	class DetectorTest : public core::Updatable, public core::EventPublisher
 	{
 		public:
-			static const core::Event::EventType LIGHT_FOUND;
-			static const core::Event::EventType PIPE_FOUND;
-			static const core::Event::EventType GATE_FOUND;
-			static const core::Event::EventType BIN_FOUND;
 		
 			DetectorTest(int, bool);
 			DetectorTest(std::string);

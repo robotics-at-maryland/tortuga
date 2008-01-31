@@ -15,6 +15,7 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	startCounting=false;
 	lightCenter.x=0;
 	lightCenter.y=0;
+    minRedPixels=800;
 	image=cvCreateImage(cvSize(480,640),8,3);//480 by 640 if we put the camera on sideways again...
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
@@ -67,16 +68,21 @@ void RedLightDetector::update()
 	redMask(image,flashFrame);
 
 	int redPixelCount=histogram(flashFrame,&p.x,&p.y);
-
-	if (redPixelCount<250)
+    cout<<"Red Pixel Count:" << redPixelCount<< " Current Threshold: " << minRedPixels<<endl;
+	if (redPixelCount<minRedPixels)
 	{
 		p.x=p.y=-1;
 		found=false; //Completely ignoring the state machine for the time being.
+        if (minRedPixels>400)
+            minRedPixels*=.85;
+        else
+            minRedPixels=400;
 	}	
 	else
 	{
+        minRedPixels=redPixelCount*.75;
 		found=true; //completely ignoring the state machine for the time being.
-		cout<<"FOUND RED LIGHT "<<redPixelCount<<endl;
+		cout<<"FOUND RED LIGHT "<<endl;
 		CvPoint tl,tr,bl,br;
 		tl.x=bl.x=max(p.x-4,0);
 		tr.x=br.x=min(p.x+4,raw->width-1);

@@ -58,7 +58,7 @@ OpenCVCamera::~OpenCVCamera()
 //make the returning of calibrated images invisible to the vision code
 void OpenCVCamera::getImage(Image* undistorted)
 {
-	std::cout<<"Image width and height"<<undistorted->getWidth()<<" "<<undistorted->getHeight()<<"\n";
+//	std::cout<<"Image width and height"<<undistorted->getWidth()<<" "<<undistorted->getHeight()<<"\n";
 	if (m_calibration!=NULL)
 		getCalibratedImage(undistorted);
 	else
@@ -82,7 +82,7 @@ void OpenCVCamera::update(double timestep)
 {
     if (cvGrabFrame(m_camCapture))
     {
-      std::cout<<"Grabbed Frame\n";
+//      std::cout<<"Grabbed Frame\n";
       // Create a new image and return it, image does not own the wrapped
       // IplImage and thus will not delete it!
         Image* newImage = new OpenCVImage(cvRetrieveFrame(m_camCapture),
