@@ -71,7 +71,7 @@ def add_platform_paths(env):
 
     plat = env['RAM_PLATFORM']
 
-    if 'Windows' == plat:
+    if 'nt' == os.name:
         sdkDir = r'C:\Program Files\Microsoft Platform SDK for Windows ' + \
                  r'Server 2003 R2'
         

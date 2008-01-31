@@ -13,13 +13,16 @@
 // Project Includes
 #include "core/include/ToPythonConverter.h"
 #include "vehicle/include/device/IDevice.h"
-#include "vehicle/include/device/IDeviceConverter.h"
 
 namespace ram {
 namespace vehicle {
 namespace device {
 
 typedef core::ToPythonConverter<IDevice> IDeviceConverter;
+    
+#ifdef RAM_WINDOWS
+template class RAM_EXPORT core::ToPythonConverter<IDevice>;
+#endif
     
 template<class T>
 class SpecificIDeviceConverter :

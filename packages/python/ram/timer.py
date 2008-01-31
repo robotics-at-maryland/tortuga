@@ -62,7 +62,7 @@ except ImportError:
     # a dummy which uses time.sleep
 
     def nanosleep(sec, nsec):
-        time.sleep(sec + (nsec * 0.000000001))
+        _time.sleep(sec + (nsec * 0.000000001))
         
 # End nanosleep code
 

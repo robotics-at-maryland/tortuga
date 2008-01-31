@@ -19,10 +19,10 @@
 // Project Includes
 #include "core/include/Event.h"
 #include "core/include/Subsystem.h"
+#include "math/include/Quaternion.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
-#include "math/include/Quaternion.h"
 
 namespace ram {
 namespace control {

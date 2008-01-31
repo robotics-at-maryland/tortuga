@@ -111,7 +111,7 @@ if os.name == 'posix':
                                 '-fmessage-length=0'] # For gathering stats
                      ) 
 else:
-    env.AppendUnique(CCFLAGS = ['/Wall', # All Warnings
+    env.AppendUnique(CCFLAGS = ['/W3',   # Level 3 out of 4 warnings
                                 '/WX',   # Warnings as Errors
                                 '/MD',   # Multithreaded runtime
                                 '/EHa',  # Structured Exception Handling

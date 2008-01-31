@@ -7,6 +7,10 @@
  * File:  packages/core/test/src/TestDependencyGraph.cxx
  */
 
+#ifdef RAM_WINDOWS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+ 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/filesystem.hpp>

@@ -19,6 +19,9 @@
 // Project Includes
 #include "core/include/ConfigNode.h"
 
+// Must Be Included last
+#include "core/include/Export.h"
+
 namespace ram {
 namespace core {
     
@@ -37,7 +40,7 @@ namespace core {
  *  The depends_on entry lists the names that the given section depends on.
  * 
  */
-class DependencyGraph
+class RAM_EXPORT DependencyGraph
 {
 public:
     /** Generate a dependency graph from given config */

@@ -29,14 +29,14 @@ public:
 
     static boost::python::object convertObject(boost::shared_ptr<T> event);
     
+    typedef std::map<std::string, ToPythonConverter*> ConverterRegistry;
+    
 protected:
     /** Does a manual conversion with boost::static_pointer_cast */
     virtual boost::python::object forceConvert(boost::shared_ptr<T> event) = 0;
 
     /** Try to do the conversion with boost::dynamic_pointer_cast */
     virtual boost::python::object tryConvert(boost::shared_ptr<T> event) = 0;
-
-    typedef std::map<std::string, ToPythonConverter*> ConverterRegistry;
     
     /** Gets the global set of event converters */
     static ConverterRegistry* getConverterRegistry();

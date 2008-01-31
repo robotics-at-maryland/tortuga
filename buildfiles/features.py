@@ -51,11 +51,11 @@ def get_features():
                      'math' : ['wrappers/math'],
                      'vehicle' : ['wrappers/vehicle'],
                      'core' : ['wrappers/core']})
-
-    add_feature('vision_tools',
-                opt_dirs = {'vision' : ['tools/vision_viewer']} )
-
+                     
     if os.name == 'posix':
+        add_feature('vision_tools',
+                opt_dirs = {'vision' : ['tools/vision_viewer']} )
+    
         add_feature('drivers', dirs = ['packages/sensorapi',
                                        'packages/thrusterapi',
                                        'packages/imu',

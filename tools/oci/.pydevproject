@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?eclipse-pydev version="1.0"?>
 
 <pydev_project>
@@ -11,6 +11,7 @@
 <path>/opt/ram/source/ram_code/packages/python</path>
 <path>/opt/ram/source/ram_code/build/lib</path>
 <path>/opt/ram/local/lib/python2.5/site-packages</path>
+<path>C:\Documents and Settings\JLisee\My Documents\RAM\trunk\build_ext</path>
 </pydev_pathproperty>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/OCI</path>

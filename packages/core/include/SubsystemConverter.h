@@ -23,7 +23,7 @@ namespace core {
 typedef ToPythonConverter<Subsystem> SubsystemConverter;
 
 #ifdef RAM_WINDOWS
-template class RAM_EXPORT ToPythonConverter<Subsystem>
+template class RAM_EXPORT ToPythonConverter<Subsystem>;
 #endif
     
 template<class T>
