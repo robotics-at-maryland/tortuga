@@ -1,4 +1,4 @@
-\title{Derivation of Integral LQG Control for AUV Depth Tracking}
+\title{Implementation of Integral LQG Control for AUV Depth Tracking}
 \author{Joseph Gland}
 \documentclass{article}
 \usepackage{graphicx}%needed for images
@@ -6,6 +6,13 @@
 \begin{document}
 
 \maketitle
+
+\begin{center}
+\Huge 
+DRAFT
+\normalsize
+\end{center}
+\vspace{0.5cm}
 
 Depth control for an AUV can be achieved in many ways, but is often neither obvious nor intuitive as all states of the system are not directly measurable.  The situation is further complicated as many people assume depth control to be simple when design objectives like tracking control (as opposed to just regulation control) and disturbance rejection require some advanced techniques.  First, consider the free body diagram for a rigid body in viscous fluid (such as water) shown in Figure \ref{fig:freeBody}.  Note that the depth datum has been set at the fluid surface with the downward direction chosen to be positive.
 
@@ -96,10 +103,36 @@ which will regulate the system states to zero (we'll worry about tracking contro
 
 While the pole placement method for $K$ works, it requires numerous simulation and experimental work in order to find controller poles that make the system fast enough while preventing the system from using its thrusters too much.  The LQR algorithm (an acronym for Linear Quadratic Regulator) attempts to formalize this design tradeoff and simplify the design of $K$.  The design method actually minimizes the cost function $J=\frac{1}{2}\int_{0}^{\infty}\{\pmb{x}^TQ\pmb{x}+uRu\}dt$ where $Q$ and $R$ act as weighting matrices for different design objectives.  The $Q$ matrix penalizes the error between the system states and zero, so a large $Q$ would wind up designing a control matrix $K$ with large values, exert large thrusts, and make the system respond very quickly.  The $R$ matrix (a scalar for our problem since we only have one control output) penalizes control signals, so a large $R$ would wind up designing a control matrix $K$ with small values, exert small thrusts, and make the system respond very slowly.  With appropriate choice of $Q$ and $R$, we can selectively choose to ``worry'' more about some states more than others or some states more than the control outputs.  MATLAB's routine for solving for $K$ given $Q$ and $R$ is \verb+K=lqr(A,B,Q,R)+.  With this method, we still have to simulate how the system will respond for various conditions, but the design methodology is much faster and easier to use.  In the long run, it winds up being much easier and more intuitive to tweak the $Q$ and $R$ matrices than it is to tweak the controller poles (ie the poles of $[A-BK]$).
 
-The use of the simplified steady-state Kalman filter for the design of $L$ along with the use of the LQR for the design of $K$ is called a Linear Quadratic Gaussian controller, or LQG for short.  The Gaussian part of the name comes from the steady-state Kalman filter, which makes an assumption that all noise sources can be treated as Gaussian random variables (we skipped over the derivation of this and just used MATLAB to give us a solution).  By using our $L$ designed by MATLAB's \verb+lqe()+ command and our $K$ designed by MATLAB's \verb+lqr()+ command in equations \ref{eq:luenberger} and \ref{eq:equivalencePrinciple}, we can implement the controller block in the figure NUMBER which almost completes the design of our depth control system.
+The use of the simplified steady-state Kalman filter for the design of $L$ along with the use of the LQR for the design of $K$ is called a Linear Quadratic Gaussian controller, or LQG for short.  The Gaussian part of the name comes from the steady-state Kalman filter, which makes an assumption that all noise sources can be treated as Gaussian random variables (we skipped over the derivation of this and just used MATLAB to give us a solution).  By using our $L$ designed by MATLAB's \verb+lqe()+ command and our $K$ designed by MATLAB's \verb+lqr()+ command in equations \ref{eq:luenberger} and \ref{eq:equivalencePrinciple}, we can implement the controller block in the Figure \ref{fig:LQGBlockDiagram} which almost completes the design of our depth control system.
 
-%put an LQG schematic here
+\begin{figure}[h]
+\includegraphics[width=0.8\textwidth]{LQGBlockDiagram.png}
+\centering
+\caption{Block Diagram for an LQG controller.  A strict LQG controller only allows the input $\pmb{y_d}=0$.  The Ad Hoc LQG Servo controller is implemented by simply setting $\pmb{y_d}=$constant, but is not recommended.}
+\label{fig:LQGBlockDiagram}
+\end{figure}
 
-We now have a full LQG controller.  We could stop right here and the controller would reliably regulate the depth of the AUV to zero under the assumption that there are no constant disturbances acting on the vehicle (ie assuming that $F_{grav}-F_{buoy}=d_0=0$).  The constant disturbance model, however, is in general not zero.  In fact, competition rules requires that the vehicle is positively buoyant, so $F_{grav}-F_{buoy}=d_0<0$.  Also, we will definitely want to be able to 
+We now have a full LQG controller.  We could stop right here and the controller would reliably regulate the depth of the AUV to zero under the assumption that there are no constant disturbances acting on the vehicle (ie assuming that $F_{grav}-F_{buoy}=d_0=0$).  The constant disturbance model, however, is in general not zero.  In fact, competition rules requires that the vehicle is positively buoyant, so $F_{grav}-F_{buoy}=d_0<0$.  Also, we will definitely want to be able to go to depths other than zero.
+
+\begin{figure}[h]
+\includegraphics[width=0.8\textwidth]{LQGAugmentedPlant.png}
+\centering
+\caption{Augmented plant}
+\label{fig:LQGAugmentedPlant}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=0.8\textwidth]{LQGAugmentedController.png}
+\centering
+\caption{Augmented Controller}
+\label{fig:LQGBlockDiagram}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics[width=0.8\textwidth]{LQGIntegralController.png}
+\centering
+\caption{Augmented Controller}
+\label{fig:LQGBlockDiagram}
+\end{figure}
 
 \end{document}
