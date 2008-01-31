@@ -51,12 +51,12 @@ namespace ram { namespace vision {
 			IplImage* image;
 			IplImage* raw;
 			IplImage* flashFrame;
-
+			IplImage* saveFrame;
 		CvPoint lightCenter;
 	
 		ram::vision::Image* frame;
 		ram::vision::OpenCVCamera* cam;
-	};
+};
 	
 }}//ram::vision
 

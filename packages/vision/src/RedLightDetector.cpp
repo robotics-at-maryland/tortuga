@@ -19,6 +19,7 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
 	image=cvCreateImage(cvSize(480,640),8,3);//480 by 640 if we put the camera on sideways again...
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
+	saveFrame=cvCreateImage(cvSize(640,480),8,3);
 }
 
 RedLightDetector::~RedLightDetector()
@@ -27,6 +28,7 @@ RedLightDetector::~RedLightDetector()
 	cvReleaseImage(&flashFrame);
 	cvReleaseImage(&image);
 	cvReleaseImage(&raw);
+	cvReleaseImage(&saveFrame);
 }
 
 double RedLightDetector::getX()
@@ -50,7 +52,8 @@ void RedLightDetector::show(char* window)
 
 IplImage* RedLightDetector::getAnalyzedImage()
 {
-	return (IplImage*)(raw);
+	rotate90DegClockwise(raw, saveFrame);
+	return (IplImage*)(saveFrame);
 }
 
 
@@ -74,13 +77,13 @@ void RedLightDetector::update()
 		p.x=p.y=-1;
 		found=false; //Completely ignoring the state machine for the time being.
         if (minRedPixels>400)
-            minRedPixels*=.85;
+            minRedPixels=(int)(minRedPixels * .85);
         else
             minRedPixels=400;
 	}	
 	else
 	{
-        minRedPixels=redPixelCount*.75;
+        minRedPixels=(int)(redPixelCount*.75);
 		found=true; //completely ignoring the state machine for the time being.
 		cout<<"FOUND RED LIGHT "<<endl;
 		CvPoint tl,tr,bl,br;
