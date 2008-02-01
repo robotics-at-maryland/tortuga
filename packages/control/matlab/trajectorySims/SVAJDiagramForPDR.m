@@ -1,4 +1,5 @@
 %This tests and prints out SVAJ Diagrams for a 4-5-6-7 polynomial;
+close all;
 clear all;
 clc;
 
@@ -12,10 +13,11 @@ des_depth = input('Please inpute the desired depth: ');
 
 vel_max = .7291;
 
+
 [s v] = SVAJ_generator(deltat,act_depth,des_depth,vel_max);
 hold on;
 s;
-v(150)
+%v(150) 
 
 
 
