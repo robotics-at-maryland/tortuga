@@ -8,8 +8,8 @@ namespace ram{
 namespace vision
 {
 	VisionRunner::VisionRunner():
-		forward(300,true),
-		downward(301,false)
+		forward(0,true),
+		downward(1,false)
 	{
 		forward.background(25);
 		downward.background(25);

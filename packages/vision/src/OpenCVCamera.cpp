@@ -32,9 +32,10 @@ OpenCVCamera::OpenCVCamera()
 //downward=false;
 OpenCVCamera::OpenCVCamera(int camNum, bool forward)
 {
+    m_calibration=NULL;
 	//What does camnum say about which camera this is?
-	m_calibration=new Calibration(this);
-	m_calibration->setCalibration(forward);
+//	m_calibration=new Calibration(this);
+//	m_calibration->setCalibration(forward);
     m_camCapture = cvCaptureFromCAM(camNum);
 
     /// TODO: Handle the more gracefully
