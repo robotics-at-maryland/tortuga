@@ -105,12 +105,15 @@ void RedLightDetector::update()
 	redLightCenterX=((double)redLightCenterX) / ((double)(image->width));
 	redLightCenterY=((double)redLightCenterY) / ((double)(image->height));
     
+    double xVal = 2*redLightCenterX-1;
+    double yVal = 1-(2*redLightCenterY);
+    
     if (found)
     {
-        cout<<1<<","<<redLightCenterX<<","<<redLightCenterY<<","<<redPixelCount<<endl;
+        cout<<1<<" "<<xVal<<" "<<yVal<<" "<<redPixelCount<<endl;
     }
     else
     {
-        cout<<"0,0,0,0"<<endl;
+        cout<<"0 0 0 0"<<endl;
     }
 }
