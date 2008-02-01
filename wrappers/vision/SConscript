@@ -8,16 +8,24 @@
 import os
 
 # Build System imports
-import wrap
-import libs
+import buildfiles.wrap as wrap
+import buildfiles.libs as libs
+import buildfiles.helpers as helpers
 
 Import('env')
 envl = env.Clone()
 
-# Link to libram_pattern.so library
+# Link in internal libraries
 libs.add_internal(envl, 'vision')
+#if env.HasFeature('core'):
+#    libs.add_internal(envl, 'core')
 
-# Pattern library directories
+# Find all cpp files in the source directory
+extra_sources = envl.Glob('src', '*.cpp')
+extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'vision')
+envl.Append(CPPPATH = os.path.abspath(os.environ['RAM_SVN_DIR']))
+
+# Vision library directories
 base_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'packages', 'vision')
 header_dir = os.path.join(base_dir, 'include')
 
@@ -25,14 +33,13 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-wrapped_headers = ['DetectorTest.h',
-                   'VisionRunner.h',
-                   'GateDetector.h',
-                   'BinDetector.h',
-                   'RedLightDetector.h',
-                   'OrangePipeDetector.h']
+wrapped_headers = ['Events.h',
+                   'VisionSystem.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
-wrap.wrap_headers(envl, 'vision',
-                  wrapped_headers,
-		  gen_mod = 'gen_vision')
+# Wrappers
+libs.add_external(envl, 'Boost.Python')
+envl.Pypp('vision', wrapped_headers, module = 'gen_vision.py',
+          dep_wrappers = ['_core', 'core.py'], 
+          dont_build = ['SubsystemList.pypp.cpp'],
+          extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])

@@ -50,6 +50,7 @@ def get_features():
                     {'control' : ['wrappers/control'],
                      'math' : ['wrappers/math'],
                      'vehicle' : ['wrappers/vehicle'],
+                     'vision' : ['wrappers/vision'],
                      'core' : ['wrappers/core']})
                      
     if os.name == 'posix':

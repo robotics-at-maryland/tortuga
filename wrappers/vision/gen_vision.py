@@ -11,53 +11,37 @@ from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
 # Project Imports
-import wrap
-from wrap import make_already_exposed
+import buildfiles.wrap as wrap
+from buildfiles.wrap import make_already_exposed
 
-def generate_vision(name, global_ns, local_ns):
+def generate(module_builder, local_ns, global_ns):
     """
     name: is the name of the module being wrapped (in name::space::form)
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
+    global_ns.exclude()
+    classes = []
 
-    # Base classes
-#    Camera = local_ns.class_('Camera')
-#    Camera.include()
-#    Camera.member_function('getImage').exclude()
-#    Camera.member_function('waitForImage').exclude()
-#    Camera.member_function('capturedImage').exclude()
-    
-#    OpenCVCamera = local_ns.class_('OpenCVCamera')
-#    OpenCVCamera.include()
-#    OpenCVCamera.member_function('getImage').exclude()
-#    OpenCVCamera.member_function('waitForImage').exclude()
+    # Lets Py++ know to make VisionSystem a subclass of Subsystem
+    wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem'])
 
+    # Vision System
+    VisionSystem = local_ns.class_('VisionSystem')
+    VisionSystem.include()
+    classes.append(VisionSystem)   
+#    IController.include_files.append(os.environ['RAM_SVN_DIR'] +
+#                                     '/packages/control/include/IController.h')
 
-    # Pull in decector classes
-    DetectorTest = local_ns.class_('DetectorTest')
-    DetectorTest.include()
-    DetectorTest.member_function("getOrangeDetector").call_policies = \
-        call_policies.return_internal_reference()
-    DetectorTest.member_function("getGateDetector").call_policies = \
-        call_policies.return_internal_reference()
-    DetectorTest.member_function("getBinDetector").call_policies = \
-        call_policies.return_internal_reference()
-    DetectorTest.member_function("getRedDetector").call_policies = \
-        call_policies.return_internal_reference()
-    
+    # Wrap Events
+    eventsFound = False
+    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
+                                allow_empty = True):
+        cls.include()
+        classes.append(cls)
 
+    if eventsFound:
+        wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
 
-    local_ns.class_('VisionRunner').include()
-    local_ns.class_('GateDetector').include()
-    local_ns.class_('BinDetector').include()
-    local_ns.class_('RedLightDetector').include()
-    local_ns.class_('OrangePipeDetector').include()
-
-
-
-def generate_code(module_name, files, output_dir, include_files,
-                  extra_includes = []):
-    wrap.generate_code(module_name, files, output_dir, include_files,
-                       extra_includes,
-                       {'vision' : generate_vision})
+    # Append the approaite include files
+    wrap.add_needed_includes(classes)

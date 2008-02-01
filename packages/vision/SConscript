@@ -6,10 +6,17 @@
 # File:  packages/vision/SConscript
 
 import platform
+from buildfiles import libs
 
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
+
+ext_deps = []
+# Only need boost if we are compling the wrappers and the core
+if env.HasFeature('wrappers'):
+    libs.add_external(envl, 'Boost.Python')
+    ext_deps = ['Boost.Python']
 
 # Sources
 sources = ['src/BasicImage.cpp',
@@ -42,7 +49,7 @@ demoSources = [
 	
 # Build Library (will be called 'libram_vision.so')
 # All build settings for the library are stored in buildfiles/libs.py
-envl.RAMSharedLibrary('vision',  source = sources)
+envl.RAMSharedLibrary('vision',  source = sources, ext_deps = ext_deps)
 # Testing
 envt = env.Clone()
 
@@ -83,7 +90,6 @@ envt.RAMProgram(target = 'DetectorTest',
 
 # Image Analysis Test
 envt.RAMProgram(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
-
 
 # Unit Tests
 envt = env.Clone()
