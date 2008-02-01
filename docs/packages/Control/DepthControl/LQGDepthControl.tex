@@ -19,7 +19,8 @@ Depth control for an AUV can be achieved in many ways, but is often neither obvi
 \begin{figure}[h]
 \includegraphics[width=0.5\textwidth]{FreeBodyDiagram.png}
 \centering
-\caption{Free body diagram for a rigid body suspended in viscous fluid}\label{fig:freeBody}
+\caption{Free body diagram for a rigid body suspended in viscous fluid}
+\label{fig:freeBody}
 \end{figure}
 
 The free body diagram shows a total of four forces acting on the vehicle: 
@@ -34,7 +35,7 @@ The above forces can be applied to a single equation of motion using Newton's la
 \label{eq:newton1}
 m\ddot{x}=\sum_{i}F_i=F_{grav}+F_{thrust}-F_{buoy}-F_{drag}
 \end{equation}
-where $m$ and $\ddot{x}$ are the mass and acceleration of the vehicle, respectively.  By substituting in the relation for $F_{drag}$, replacing the $F_{thrust}$ variable with the control input variable $u$, renaming the sum of the constant terms $F_{grav}-F_{buoy}=d_0$, and dividing through by $m$, equation \ref{eq:newton1} can be rewritten as:
+where $m$ and $\ddot{x}$ are the mass and acceleration of the vehicle, respectively.  By substituting in the relation for $F_{drag}$, replacing the $F_{thrust}$ variable with the control input variable $u$, renaming the sum of the constant terms $F_{grav}-F_{buoy}=d_0$, and dividing through by $m$, Equation \ref{eq:newton1} can be rewritten as:
 \begin{equation}
 \ddot{x}=-\frac{c}{m}\dot{x}+\frac{1}{m}u+\frac{1}{m}d_0
 \end{equation}
@@ -60,13 +61,13 @@ y&=\begin{bmatrix} 1 & 0 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix} 
 \end{equation}
 where $n$ is a random white noise variable with intensity $N$.  The white noise variable is a simple model for a sensor with noise.  While other noise models exist, this model is simple to generate as the intensity $N$ can be roughly approximated from simple experimentation.  The model also fits well into our design framework later on.
 
-We have now generated a model for an AUV for depth control.  Note that the system, described by equations \ref{eq:system} and \ref{eq:measurement}, is both linear and time-invariant.  The system model is controllable and observable as well, which allows us to apply a number of powerful control theory tools.
+We have now generated a model for an AUV for depth control.  Note that the system, described by Equations \ref{eq:system} and \ref{eq:measurement}, is both linear and time-invariant.  The system model is controllable and observable as well, which allows us to apply a number of powerful control theory tools.
 
-Note that at this point, if our measurement equation was simply $\pmb{y}_{full}=\begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} \pmb{x}$ we could immediately implement the full state feedback control $u=-K\pmb{x}=-K\pmb{y}_{full}$.  Then we would just have to design $K$ to meet our control design objectives.  Unfortunately, our measurement equation is instead equation \ref{eq:measurement} which implies that $\pmb{x}\neq y$.
+Note that at this point, if our measurement equation was simply $\pmb{y}_{full}=\begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} \pmb{x}$ we could immediately implement the full state feedback control $u=-K\pmb{x}=-K\pmb{y}_{full}$.  Then we would just have to design $K$ to meet our control design objectives.  Unfortunately, our measurement equation is instead Equation \ref{eq:measurement} which implies that $\pmb{x}\neq y$.
 
 If we can't implement $u=-K\pmb{x}$ for full state feedback, the concept of certainty equivalence can be used \emph{for linear time-invariant systems}.  The certainty equivalence principle suggests that instead of using $u=-K\pmb{x}$, we can implement $u=-K\pmb{\hat{x}}$ where $\pmb{\hat{x}}$ is the output of an observer.  This concept works well for linear time-invariant systems; however, it can fail spectacularly for time-varying and/or nonlinear systems.
 
-There are many ways of estimating $\pmb{\hat{x}}$.  Assuming we have a reasonably accurate model for the system dynamics, a Luenberger observer can be used to estimate the system states.  A Luenberger observer, shown in equation \ref{eq:luenberger}, uses a copy of the model of the system along with a correction term to continually predict system states.  If we neglect the constant term $d_0$ in equation \ref{eq:system}, then we can estimate the states of the system with:
+There are many ways of estimating $\pmb{\hat{x}}$.  Assuming we have a reasonably accurate model for the system dynamics, a Luenberger observer can be used to estimate the system states.  A Luenberger observer, shown in Equation \ref{eq:luenberger}, uses a copy of the model of the system along with a correction term to continually predict system states.  If we neglect the constant term $d_0$ in Equation \ref{eq:system}, then we can estimate the states of the system with:
 \begin{equation}
 \begin{split}
 \label{eq:luenberger}
@@ -80,19 +81,18 @@ One common way of designing the observer gain matrix is to directly place the ob
 
 A more sophisticated way of designing the observer gain matrix is to solve the filter algebraic Riccati equation.  With our model of the noise acting on the sensor, we can solve the Riccati equation.  The solution for $L$, when incorporated into a Luenberger, is actually the simplified steady-state version of the celebrated Kalman filter.  The MATLAB incantation \verb+L=lqe(A,C,B_0,zeros(2),N)+ solves the Riccati equation and produces the stochastically optimal gain matrix $L$.  The zero matrix is used because we are assuming there are no random forces are acting on the vehicle.
 
-We now have two different methods to design $L$.  The observer can now be used to generate $\pmb{\hat{x}}$ which is an estimate of the true states $\pmb{x}$ using only measurements $y$.  The Luenberger observer, in equations \ref{eq:luenberger}, can be incorporated into our system software and integrated over time.  If our measurements $y$ are made at a known fixed interval, we can implement a discrete version of equations \ref{eq:luenberger} with MATLAB.  The initial estimate $\pmb{\hat{x}}$ can be set to any physical state the system could actually achieve; however, the further off the initial estimate is the longer it will take for the estimates to converge to the true state.   
+%
+%
+%
+%  lqe syntax incorrect!!!!!!!!
+%
+%
+%
+%
 
-%
-% DO I HAVE MY MATLAB SYNTAX RIGHT for lqe()?
-%
-%      ***********
-%     *           * 
-%     *   *   *   *
-%     *           *  <- blockhead
-%     *  _______  *
-%     *           *
-%      ***********
-%
+
+We now have two different methods to design $L$.  The observer can now be used to generate $\pmb{\hat{x}}$ which is an estimate of the true states $\pmb{x}$ using only measurements $y$.  The Luenberger observer, in Equations \ref{eq:luenberger}, can be incorporated into our system software and integrated over time.  If our measurements $y$ are made at a known fixed interval, we can implement a discrete version of Equations \ref{eq:luenberger} with MATLAB.  The initial estimate $\pmb{\hat{x}}$ can be set to any physical state the system could actually achieve; however, the further off the initial estimate is the longer it will take for the estimates to converge to the true state.   
+
 
 Now that we have an estimate for all our states, we can use the certainty equivalence principle to incorporate the full state feedback control law: 
 \begin{equation}
@@ -103,7 +103,7 @@ which will regulate the system states to zero (we'll worry about tracking contro
 
 While the pole placement method for $K$ works, it requires numerous simulation and experimental work in order to find controller poles that make the system fast enough while preventing the system from using its thrusters too much.  The LQR algorithm (an acronym for Linear Quadratic Regulator) attempts to formalize this design tradeoff and simplify the design of $K$.  The design method actually minimizes the cost function $J=\frac{1}{2}\int_{0}^{\infty}\{\pmb{x}^TQ\pmb{x}+uRu\}dt$ where $Q$ and $R$ act as weighting matrices for different design objectives.  The $Q$ matrix penalizes the error between the system states and zero, so a large $Q$ would wind up designing a control matrix $K$ with large values, exert large thrusts, and make the system respond very quickly.  The $R$ matrix (a scalar for our problem since we only have one control output) penalizes control signals, so a large $R$ would wind up designing a control matrix $K$ with small values, exert small thrusts, and make the system respond very slowly.  With appropriate choice of $Q$ and $R$, we can selectively choose to ``worry'' more about some states more than others or some states more than the control outputs.  MATLAB's routine for solving for $K$ given $Q$ and $R$ is \verb+K=lqr(A,B,Q,R)+.  With this method, we still have to simulate how the system will respond for various conditions, but the design methodology is much faster and easier to use.  In the long run, it winds up being much easier and more intuitive to tweak the $Q$ and $R$ matrices than it is to tweak the controller poles (ie the poles of $[A-BK]$).
 
-The use of the simplified steady-state Kalman filter for the design of $L$ along with the use of the LQR for the design of $K$ is called a Linear Quadratic Gaussian controller, or LQG for short.  The Gaussian part of the name comes from the steady-state Kalman filter, which makes an assumption that all noise sources can be treated as Gaussian random variables (we skipped over the derivation of this and just used MATLAB to give us a solution).  By using our $L$ designed by MATLAB's \verb+lqe()+ command and our $K$ designed by MATLAB's \verb+lqr()+ command in equations \ref{eq:luenberger} and \ref{eq:equivalencePrinciple}, we can implement the controller block in the Figure \ref{fig:LQGBlockDiagram} which almost completes the design of our depth control system.
+The use of the simplified steady-state Kalman filter for the design of $L$ along with the use of the LQR for the design of $K$ is called a Linear Quadratic Gaussian controller, or LQG for short.  The Gaussian part of the name comes from the steady-state Kalman filter, which makes an assumption that all noise sources can be treated as Gaussian random variables (we skipped over the derivation of this and just used MATLAB to give us a solution).  By using our $L$ designed by MATLAB's \verb+lqe()+ command and our $K$ designed by MATLAB's \verb+lqr()+ command in Equations \ref{eq:luenberger} and \ref{eq:equivalencePrinciple}, we can implement the controller block in the Figure \ref{fig:LQGBlockDiagram} which almost completes the design of our depth control system.
 
 \begin{figure}[h]
 \includegraphics[width=0.8\textwidth]{LQGBlockDiagram.png}
@@ -112,20 +112,26 @@ The use of the simplified steady-state Kalman filter for the design of $L$ along
 \label{fig:LQGBlockDiagram}
 \end{figure}
 
-We now have a full LQG controller.  We could stop right here and the controller would reliably regulate the depth of the AUV to zero under the assumption that there are no constant disturbances acting on the vehicle (ie assuming that $F_{grav}-F_{buoy}=d_0=0$).  The constant disturbance model, however, is in general not zero.  In fact, competition rules requires that the vehicle is positively buoyant, so $F_{grav}-F_{buoy}=d_0<0$.  Also, we will definitely want to be able to go to depths other than zero.
+We now have a full LQG controller.  We could stop right here and the controller would reliably regulate the depth of the AUV to zero under the assumption that there are no constant disturbances acting on the vehicle (ie assuming that $F_{grav}-F_{buoy}=d_0=0$).  The constant disturbance model, however, is in general not zero.  In fact, competition rules requires that the vehicle is positively buoyant, so $F_{grav}-F_{buoy}=d_0<0$.  Also, we will definitely want to be able to go to depths other than zero.  This is more formally stated as a desire to track trajectories.  
+
+New section - integral augmentation
+
+We can implement an integrator in our controller via state augmentation.  For an LTI system, the addition of an integrator in the controller will allow our controller to overcome any constant input disturbance.  For us, this means that our controller will be able to treat the constant disturbance term $d_0$ as if it didn't exist.  The integrator will also allow the controller to track step inputs perfectly after the system recovers from initial transient affects of moving from the initial to the desired state.  This is referred to as perfect steady state tracking error.
+
+The technique of integrator implementation via state augmentation works for any LTI control system, not just our specific LQG controller.  First, consider the controller that we have implemented previously and depicted in Figure \ref{fig:LQGBlockDiagram}.  We now desire to implement an integrator in series with the controller and plant, which can be represented as a multiplication by $\frac{1}{s}$.  This is shown in Figure \ref{fig:LQGAugmentedController}.  
+
+\begin{figure}[h]
+\includegraphics[width=0.8\textwidth]{LQGAugmentedController.png}
+\centering
+\caption{Augmented Controller}
+\label{fig:LQGAugmentedController}
+\end{figure}
 
 \begin{figure}[h]
 \includegraphics[width=0.8\textwidth]{LQGAugmentedPlant.png}
 \centering
 \caption{Augmented plant}
 \label{fig:LQGAugmentedPlant}
-\end{figure}
-
-\begin{figure}[h]
-\includegraphics[width=0.8\textwidth]{LQGAugmentedController.png}
-\centering
-\caption{Augmented Controller}
-\label{fig:LQGBlockDiagram}
 \end{figure}
 
 \begin{figure}[h]
