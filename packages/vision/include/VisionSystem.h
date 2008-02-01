@@ -14,12 +14,15 @@
 #include "core/include/Subsystem.h"
 #include "vision/include/VisionRunner.h"
 
+#include "core/include/ConfigNode.h"
+
 namespace ram {
 namespace vision {
 
 class VisionSystem : public core::Subsystem
 {
 public:
+    VisionSystem(ram::core::ConfigNode config, ram::core::SubsystemList deps);
     VisionSystem(std::string name,
                  core::EventHubPtr eventHub = core::EventHubPtr());
     
@@ -28,6 +31,22 @@ public:
     void redLightDetectorOn();
     
     void redLightDetectorOff();
+    virtual void background(int interval) {
+//        Updatable::background(interval);
+    };
+    virtual void unbackground(bool join = false) {
+//        Updatable::unbackground(join);
+    };
+    virtual bool backgrounded() {
+      return false;
+//        return Updatable::backgrounded();
+    };
+
+    /** Grabs latest vehicle state, runs the controller, the commands the
+        thrusters */
+    virtual void update(double timestep)
+    {
+    };
 
 private:
     VisionRunner vr;
