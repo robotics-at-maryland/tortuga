@@ -37,9 +37,25 @@ wrapped_headers = ['Events.h',
                    'VisionSystem.h']
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
+# Tests
+envt = env.Clone()
+test_prog, runner = envt.Tests(int_deps = 'vision', ext_deps = 'Boost.Python',
+                               run = False)
+
+py_sources = [os.path.abspath(s) for s in envl.Glob('python', '*.py')]
+def extras(env, output, message = None, deps = None):
+    tester = runner(env, output, message, deps)
+    py_install = env.Install(dir = os.environ['RAM_SVN_DIR'] + \
+                                   '/build_ext/ext',
+                             source = py_sources)
+
+    env.Depends(tester, py_install)    
+    return tester
+
 # Wrappers
 libs.add_external(envl, 'Boost.Python')
-envl.Pypp('vision', wrapped_headers, module = 'gen_vision.py',
+envl.Pypp('_vision', wrapped_headers, module = 'gen_vision.py',
+          tester = extras,
           dep_wrappers = ['_core', 'core.py'], 
           dont_build = ['SubsystemList.pypp.cpp'],
           extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])

@@ -20,7 +20,7 @@
 
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 1
+#define SHOW_OUTPUT 0
 #define DEMO 0
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
@@ -100,6 +100,7 @@ DetectorTest::DetectorTest(string movie)
 
 DetectorTest::~DetectorTest()
 {
+    	unbackground(true);
 	delete camera;
 	delete frame;
 	delete opDetect;
@@ -107,7 +108,6 @@ DetectorTest::~DetectorTest()
 	delete bDetect;
 	delete rlDetect;
 	delete recorder;
-	unbackground(true);
 }
 
 void DetectorTest::orangeDetectOn()
