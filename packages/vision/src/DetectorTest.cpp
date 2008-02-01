@@ -44,7 +44,7 @@ DetectorTest::DetectorTest(int camNum, bool forward)
 		recorder=new Recorder(camera, "downward.avi");
 	undistorted=cvCreateImage(cvSize(640,480),8,3);
     differenceImage=cvCreateImage(cvSize(640,480),8,3);
-	cout<<"Detector test being created, forward:"<<forward;
+//	cout<<"Detector test being created, forward:"<<forward;
 	if (SHOW_OUTPUT)
 	{
 		cvNamedWindow("Detector Test");
@@ -112,7 +112,7 @@ DetectorTest::~DetectorTest()
 
 void DetectorTest::orangeDetectOn()
 {
-	cout<<"Turning On Orange Detection"<<endl;
+//	cout<<"Turning On Orange Detection"<<endl;
 	lightOn=false;
 	gateOn=false;
 	binOn=false;
@@ -122,7 +122,7 @@ void DetectorTest::orangeDetectOn()
 }
 void DetectorTest::lightDetectOn()
 {
-	cout<<"Turning On Light Detection"<<endl;
+//	cout<<"Turning On Light Detection"<<endl;
 	gateOn=false;
 	binOn=false;
 	orangeOn=false;
@@ -131,7 +131,7 @@ void DetectorTest::lightDetectOn()
 }
 void DetectorTest::gateDetectOn()
 {
-	cout<<"Turning on Gate Detection"<<endl;
+//	cout<<"Turning on Gate Detection"<<endl;
 	lightOn=false;
 	binOn=false;
 	orangeOn=false;
@@ -140,7 +140,7 @@ void DetectorTest::gateDetectOn()
 }
 void DetectorTest::binDetectOn()
 {
-	cout<<"Turning on Bin Detection"<<endl;
+//	cout<<"Turning on Bin Detection"<<endl;
 	lightOn=false;
 	gateOn=false;
 	orangeOn=false;
@@ -149,7 +149,7 @@ void DetectorTest::binDetectOn()
 }
 void DetectorTest::featureDetectOn()
 {
-	cout<<"Turning on feature detection"<<endl;
+//	cout<<"Turning on feature detection"<<endl;
 	lightOn=false;
 	gateOn=false;
 	orangeOn=false;
@@ -195,14 +195,14 @@ RedLightDetector* DetectorTest::getRedDetector()
 
 void DetectorTest::update(double timestep)
 {
-	cout<<"I am compiled"<<endl;
-	cout<<orangeOn<<" "<<binOn<<" "<<lightOn<<" "<<gateOn<<endl;
+//	cout<<"I am compiled"<<endl;
+//	cout<<orangeOn<<" "<<binOn<<" "<<lightOn<<" "<<gateOn<<endl;
 	//char key=' ';
-	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
+//	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
 	
 	if (fromMovie)
 	{
-		printf("Acquiring Next Frame\n");
+//		printf("Acquiring Next Frame\n");
 		camera->update(timestep);//When running on a movie, the camera is not constantly grabbing frames, analyze each frame by itself.
 	}
 	camera->getImage(frame);
@@ -320,8 +320,8 @@ void DetectorTest::update(double timestep)
 	//Red Light Detection
 	if (lightOn)
 	{
-		if (SHOW_OUTPUT)
-			cout<<"Running Red Light Detection..."<<endl;
+//		if (SHOW_OUTPUT)
+//			cout<<"Running Red Light Detection..."<<endl;
 		rlDetect->update();
 		rlDetect->show("Detector Test");
 		if (fromMovie && recorder!=NULL)
@@ -329,22 +329,22 @@ void DetectorTest::update(double timestep)
 
 		if (rlDetect->found)
 		{
-			ram::core::EventPtr e(new ram::vision::ImageEvent((2*rlDetect->getX())-1,1-(2*rlDetect->getY())));
+			ram::core::EventPtr e(new ram::vision::ImageEvent((2*rlDetect->getX())-1,1-(2*rlDetect->getY()),0));//FIXME
 			publish(ram::vision::EventType::LIGHT_FOUND,e);
 
 			if (SHOW_OUTPUT)
 			{
-				cout<<"Red Light Found!"<<endl;
-				cout<<"Useful Data:"<<endl;
-				cout<<"Center(X,Y):"<<"("<<rlDetect->getX()<<","<<rlDetect->getY()<<")"<<endl<<endl;
+//				cout<<"Red Light Found!"<<endl;
+//				cout<<"Useful Data:"<<endl;
+//				cout<<"Center(X,Y):"<<"("<<rlDetect->getX()<<","<<rlDetect->getY()<<")"<<endl<<endl;
 			}
 		}
 		else
 		{
-			if (SHOW_OUTPUT)
-			{
-				cout<<"No Red Light Found."<<endl;
-			}
+//			if (SHOW_OUTPUT)
+//			{
+//				cout<<"No Red Light Found."<<endl;
+//			}
 		}
 	}
 	

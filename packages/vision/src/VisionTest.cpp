@@ -15,7 +15,7 @@ void myImageEventHandler(ram::core::EventPtr e)
 {
 	boost::shared_ptr<ram::vision::ImageEvent> imageEvent = 
 	    boost::dynamic_pointer_cast<ram::vision::ImageEvent>(e);
-	printf("\n\nHOOHOO!! X: %f Y: %f \n\n", imageEvent->x,imageEvent->y);
+	printf("%f %f", imageEvent->x,imageEvent->y);
 }
 
 void myPipeEventHandler(ram::core::EventPtr e)
@@ -43,15 +43,15 @@ int main(int argc, char** argv)
   //forward->binDetectOn();
   //forward->gateDetectOn();
   signal(SIGINT,handler);
-  forward->subscribe(ram::vision::EventType::LIGHT_FOUND, myImageEventHandler);
-  forward->subscribe(ram::vision::EventType::PIPE_FOUND,myPipeEventHandler);
+//  forward->subscribe(ram::vision::EventType::LIGHT_FOUND, myImageEventHandler);
+//  forward->subscribe(ram::vision::EventType::PIPE_FOUND,myPipeEventHandler);
   while (true)
     {
       key=(char)cvWaitKey(50);
       forward->update(0);
       if (key =='q')
 	{
-	  std::cout<<"Quitting Normally"<<endl;
+//	  std::cout<<"Quitting Normally"<<endl;
 	  forward->unbackground(true);
 	  delete forward;
 	  return 0;

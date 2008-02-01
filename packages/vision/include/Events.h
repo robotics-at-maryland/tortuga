@@ -21,9 +21,10 @@ class EventType
 class ImageEvent : public core::Event
 {
 	public:
-	ImageEvent(double x, double y){this->x=x; this->y=y;}
+	ImageEvent(double x, double y, int numPix){this->x=x; this->y=y; this->pixCount=numPix;}
     double x;
     double y;
+    int pixCount;
 };
 
 class PipeEvent : public core::Event

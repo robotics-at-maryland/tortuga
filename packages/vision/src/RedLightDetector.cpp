@@ -71,7 +71,7 @@ void RedLightDetector::update()
 	redMask(image,flashFrame);
 
 	int redPixelCount=histogram(flashFrame,&p.x,&p.y);
-    cout<<"Red Pixel Count:" << redPixelCount<< " Current Threshold: " << minRedPixels<<endl;
+
 	if (redPixelCount<minRedPixels)
 	{
 		p.x=p.y=-1;
@@ -85,7 +85,7 @@ void RedLightDetector::update()
 	{
         minRedPixels=(int)(redPixelCount*.75);
 		found=true; //completely ignoring the state machine for the time being.
-		cout<<"FOUND RED LIGHT "<<endl;
+//		cout<<"FOUND RED LIGHT "<<endl;
 		CvPoint tl,tr,bl,br;
 		tl.x=bl.x=max(p.x-4,0);
 		tr.x=br.x=min(p.x+4,raw->width-1);
@@ -104,4 +104,13 @@ void RedLightDetector::update()
 	redLightCenterY=lightCenter.y;
 	redLightCenterX=((double)redLightCenterX) / ((double)(image->width));
 	redLightCenterY=((double)redLightCenterY) / ((double)(image->height));
+    
+    if (found)
+    {
+        cout<<1<<","<<redLightCenterX<<","<<redLightCenterY<<","<<redPixelCount<<endl;
+    }
+    else
+    {
+        cout<<"0,0,0,0"<<endl;
+    }
 }
