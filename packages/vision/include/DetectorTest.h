@@ -11,14 +11,15 @@
 #include "vision/include/BinDetector.h"
 #include "vision/include/FeatureDetector.h"
 #include "vision/include/Recorder.h"
-#include "vision/include/Export.h"
 #include "vision/include/Events.h"
 
+// Must Be Included Last
+#include "vision/include/Export.h"
 
 namespace ram{
 namespace vision{
 
-	class DetectorTest : public core::Updatable, public core::EventPublisher
+	class RAM_EXPORT DetectorTest : public core::Updatable, public core::EventPublisher
 	{
 		public:
 		

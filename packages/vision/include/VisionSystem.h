@@ -12,14 +12,17 @@
 
 // Project Includes
 #include "core/include/Subsystem.h"
-#include "vision/include/VisionRunner.h"
-
 #include "core/include/ConfigNode.h"
+
+// Must Be Included Last
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
 
-class VisionSystem : public core::Subsystem
+class VisionRunner;
+
+class RAM_EXPORT VisionSystem : public core::Subsystem
 {
 public:
     VisionSystem(ram::core::ConfigNode config, ram::core::SubsystemList deps);
@@ -27,6 +30,8 @@ public:
                  core::EventHubPtr eventHub = core::EventHubPtr());
     
     VisionSystem(std::string name, core::SubsystemList list);
+    
+    virtual ~VisionSystem();
     
     void redLightDetectorOn();
     
@@ -49,7 +54,7 @@ public:
     };
 
 private:
-    VisionRunner vr;
+    VisionRunner* vr;
     
 };
 

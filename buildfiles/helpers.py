@@ -15,6 +15,9 @@ import SCons
 # Build System imports
 import libs
 
+if 'nt' == os.name:
+    MSVS_PROJECTS = []
+
 def glob(env, path, pattern):
     """
     Returns the list of paths relative to the current SConscript directory
@@ -88,9 +91,12 @@ def SharedLibrary(env, name, _source, **kwargs):
     lib = env.SharedLibrary(target = target_name, source = _source, **kwargs)
     env.Install(dir = env['LIB_DIR'], source = lib)
     
+    if env['RAM_OS'] == 'windows':
+        add_msvs_project(env, lib, _source)
+    
     return lib
 
-def Program(env, *args, **kwargs):
+def Program(env, target, source, *args, **kwargs):
     """
     Repleces env.Program allow automatic inclusinon of settings from dependency
     libraries, and makes program depend on them being installed.
@@ -100,7 +106,12 @@ def Program(env, *args, **kwargs):
     add_int_deps(env, kwargs.get('int_deps', []))
     add_ext_deps(env, kwargs.get('ext_deps', []))
     
-    return env.Program(*args, **kwargs)
+    prog = env.Program(target, source, *args, **kwargs)
+    
+    if env['RAM_OS'] == 'windows':
+        add_msvs_project(env, prog, source)
+
+    return prog
 
 def run_tests(env, output, inputs, message = None, deps = None):    
     def run_test_imp(env, target, source):
@@ -168,9 +179,12 @@ def Tests(env, target, source, run = True, **kwargs):
     ext_deps.append('UnitTest++')
     kwargs['ext_deps'] = ext_deps
 
+    root = os.path.dirname(env.GetBuildPath('SConscript'))
+    
     # Allow the user to over ride the test name and/or sources
     if _target is None:
-        _target = ['test/Tests' + env['PROGSUFFIX']]
+        dirname = os.path.split(root)[1]
+        _target = ['Tests_' + dirname + env['PROGSUFFIX']]
     if _source is None:
         _source = glob(env, search_dir, '*.cxx')
     for exclude in exclude_list:
@@ -181,7 +195,6 @@ def Tests(env, target, source, run = True, **kwargs):
 
     # Gather Up the C++ and Python based tests
     tests = [prog]
-    root = os.path.dirname(env.GetBuildPath('SConscript'))
     pytests = glob(env, search_dir, '*.py')
     
     for pytest in pytests:
@@ -223,3 +236,34 @@ def setup_printing(env):
     env['PRINT_CMD_LINE_FUNC'] = print_cmd_line
     env['CMD_LOGFILE'] = 'build.log'  
 
+def add_msvs_project(env, target_, source_):
+    """
+    Handles the generation of project files for Microsoft Visual Studio
+    """
+    
+    # Find all includes (the brute force way)
+    include_dirs = set()
+    for s in source_:
+        src_dir = os.path.dirname(s)
+        include_dirs.add(src_dir.replace('src','include'))
+    
+    includes = []
+    for include_dir in include_dirs:
+        includes.extend(env.Glob(include_dir, '*.h'))
+
+    proj = env.MSVSProject(target = str(target_[0]) + env['MSVSPROJECTSUFFIX'],
+                           srcs = source_,
+                           incs = includes,
+                           buildtarget = [target_[0]],
+                           variant = [env['VARIANT'].name],
+                           auto_build_solution = 0)
+    
+    
+    global MSVS_PROJECTS
+
+    # Here we have to work around odd placement of MSVS projects
+    basepath = os.environ['RAM_SVN_DIR']
+    project_path = proj[0].abspath[len(env['ABS_BUILD_DIR']):]
+    full_path = basepath + project_path
+    
+    MSVS_PROJECTS.append(os.path.abspath(full_path))

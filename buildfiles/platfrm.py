@@ -60,9 +60,15 @@ def add_scons_variables(env):
     """
     Sets RAM_PLATFORM and RAM_OS scons environment variable
     """
+    system_map = {
+        'Linux' : 'Linux',
+        'Darwin' : 'Darwin',
+        'Windows' : 'Windows',
+        'Microsoft' : 'Windows'
+        }
     
     env['RAM_PLATFORM'] = os.name.lower()
-    env['RAM_OS'] = platform.system().lower()
+    env['RAM_OS'] = system_map[platform.system()].lower()
 
 def add_platform_paths(env):
     """

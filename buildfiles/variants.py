@@ -97,6 +97,9 @@ def setup_environment(env):
 
     for variable in variables:
         env[variable] = suffix + env[variable]
+        
+    # Set variant name
+    env['VARIANT'] = variant
 
 # --------------------------------------------------------------------------- #
 #                            S U P P O R T                                    #

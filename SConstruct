@@ -169,8 +169,10 @@ def has_help():
 # Don't process any directories if we just want the help options
 if not has_help():
     for directory in features.dirs_to_build(env):
-        Export('env')
         build_dir= os.path.join(env['build_dir'], directory)
+        env['ABS_BUILD_DIR'] = os.path.abspath(env['build_dir'])
+    
+        Export('env')
 
         print 'Dir:',build_dir
         # Build seperate directories (this calls our file in the sub directory)
@@ -178,4 +180,8 @@ if not has_help():
                        build_dir = build_dir,
                        duplicate = 0)
 
-
+# On Windows generate a solution which runs everything for us
+if env['RAM_OS'] == 'windows':
+    env.MSVSSolution(target = 'All' + env['MSVSSOLUTIONSUFFIX'],
+                     projects = helpers.MSVS_PROJECTS,
+                     variant = [env['VARIANT'].name])
