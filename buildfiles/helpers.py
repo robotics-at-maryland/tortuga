@@ -206,6 +206,10 @@ def Tests(env, target, source, run = True, **kwargs):
                         'Running Tests in: ' + \
                         os.path.dirname(env.GetBuildPath('SConscript')))
 
+                        
+        if env['RAM_OS'] == 'windows':
+            add_msvs_project(env, cmd, [])
+            
         return (prog, cmd)
     
     else:
