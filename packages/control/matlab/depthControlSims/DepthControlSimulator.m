@@ -69,6 +69,8 @@ time_measured(1)=0;
 Fthrust=zeros(1,length(time));
 
 %create an x_hat array here
+x_hat_array = zeros(2,length(time));
+
 j=1;
 
 
@@ -111,10 +113,15 @@ for i=2:length(time)
     elseif strcmp('OC',upper(controlType))==1
         %Observer Control
         Fthrust(i) = ObserverController(y,xd,dt);
+        %store current x_hat from ObserverController in x_hat array
+        x_hat_array(1,i) = x_hat(1);
+        x_hat_array(2,i) = x_hat(2);
     elseif strcmp('LQG',upper(controlType))==1
         %LQG Controller
         Fthrust(i) = ObserverController(y,xd,dt);
         %store current x_hat from ObserverController in x_hat array
+        x_hat_array(1,i) = x_hat(1);
+        x_hat_array(2,i) = x_hat(2);
     end
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
@@ -147,6 +154,15 @@ plot(time,Fthrust)
 ylabel('u - control signal')
 xlabel('time')
 
+figure(3)
 %create a figure 3 that has
-%subplot 1 -> x(1) and xhat(1), positions
-%subplot 2 -> x(2) and xhat(2), velocities
+subplot(2,1,1)
+plot(time,x(1,:),'b',time,x_hat_array(1,:),'g','LineWidth',1)
+set(gca,'YDir','reverse')
+legend('actual','estimated')
+ylabel('x1 - depth')
+subplot(2,1,2)
+plot(time,x(2,:),'b',time,x_hat_array(2,:),'g','LineWidth',1)
+set(gca,'YDir','reverse')
+ylabel('x2 - velocity')
+xlabel('time')
