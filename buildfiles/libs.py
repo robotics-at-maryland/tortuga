@@ -508,7 +508,8 @@ class InternalLibrary(Library):
     def setup_environment(self, env, building_self = False):
         # Include self in library list
         if not building_self:
-            env.AppendUnique(LIBS = ['ram_' + self.name])
+            variant_suffix = env['VARIANT'].suffix
+            env.AppendUnique(LIBS = ['ram_' + self.name + variant_suffix])
 
         self.setup_dependents(env)
 
