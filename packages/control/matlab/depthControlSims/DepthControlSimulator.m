@@ -1,12 +1,16 @@
 % Main Code to run the Depth Control Simulation
 % set controlType to 'p' (not case sensitive) for P control
-controlType = 'oc';
+controlType = 'lqg';
 % set controlType to 'pd' (not case sensitive) for PD control
 % controlType = 'pd';
 
 %create a global variable so observer controllers can store variables
 %between iterations
 global x_hat;
+global kp;
+global kd;
+global K;
+global L;
 x_hat=[0 0]';%initialize the global variable to rest conditions
 
 
@@ -27,9 +31,31 @@ delay =0.05;
 xd=2;
 %desired depth_dot (downward velocity)
 
-%control gain
-kp=40;%proportional control
-kd=30;%derivative gain
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Control Constants %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+if strcmp('PD',upper(controlType))==1
+    %PD Control
+     kp =40;
+    kd =30;
+elseif strcmp('P',upper(controlType))==1
+    %P Control
+    kp=40;
+elseif strcmp('OC',upper(controlType))==1
+    %Observer Controller - ObserverControllerCoefficients.m
+     K=[16.4 8.1];
+     L=[44.1; 486.2];
+elseif strcmp('LQG',upper(controlType))==1
+    %LQG Controller - LQGCoefficients.m
+     K = [0.1414  2.5134];
+     L = [0.0229; 0.0003];
+end    
+   
+
+
+
 
 %create array to store actual vehicle states
 %let x=[x1 x2 x3]' where x1=x, x2=dx/dt, x3=d^2x/dt^3
@@ -41,6 +67,8 @@ y_array=y(1);
 time_measured(1)=0;
 %create array to store control thrusts
 Fthrust=zeros(1,length(time));
+
+%create an x_hat array here
 j=1;
 
 
@@ -76,13 +104,17 @@ for i=2:length(time)
     %compute control laws
     if strcmp('PD',upper(controlType))==1
         %PD control
-        Fthrust(i) = pdController(kp,kd,x(1,i-1),xd,x(2,i-1));
+        Fthrust(i) = pdController(x(1,i-1),xd,x(2,i-1));
     elseif strcmp('P',upper(controlType))==1
         %P control
         Fthrust(i) = pController(kp,y,xd);
     elseif strcmp('OC',upper(controlType))==1
         %Observer Control
         Fthrust(i) = ObserverController(y,xd,dt);
+    elseif strcmp('LQG',upper(controlType))==1
+        %LQG Controller
+        Fthrust(i) = ObserverController(y,xd,dt);
+        %store current x_hat from ObserverController in x_hat array
     end
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
@@ -101,3 +133,20 @@ plot(time,x(2,:))
 set(gca,'YDir','reverse')
 ylabel('x2 - velocity')
 xlabel('time')
+
+figure (2)
+%plot position and Control Signal
+subplot(2,1,1)
+plot(time,desired,'r',time,x(1,:),'b',time_measured,y_array,'.g','LineWidth',1)
+set(gca,'YDir','reverse')
+legend('desired','actual','measured')
+ylabel('x1 - depth')
+subplot(2,1,2)
+plot(time,Fthrust)
+%set(gca,'YDir','reverse')
+ylabel('u - control signal')
+xlabel('time')
+
+%create a figure 3 that has
+%subplot 1 -> x(1) and xhat(1), positions
+%subplot 2 -> x(2) and xhat(2), velocities
