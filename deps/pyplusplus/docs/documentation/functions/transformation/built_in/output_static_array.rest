@@ -1,0 +1,85 @@
+===================================
+``output_static_array`` transformer
+===================================
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+"output_static_array" transformer works on native static arrays. It handles the
+translation between array and `Python`_ list object. Size of array should be predefined.
+
+"output_static_array" transformer takes as first argument name or index of the
+original function argument. The argument should have "array" or "pointer" type.
+The second argument should an integer value, that represents array size.
+
+-------
+Example
+-------
+
+.. code-block:: C++
+
+   struct vector3{
+
+       void get_values( int values[3] ){
+           values[0] = x;
+           values[1] = y;
+           values[2] = z;
+       }
+
+       int x,y,z;
+   };
+
+In order to expose ``get_values`` member function we need to create small wrapper:
+Next `Py++`_ code does it for you:
+
+  .. code-block:: Python
+
+     from pyplusplus import module_builder
+     from pyplusplus import function_transformers as FT
+
+     mb = module_builder.module_builder_t( ... )
+     v3 = mb.class_( 'vector3' )
+     v3.mem_fun( 'get_values' ).add_transformation( FT.output_static_array( 0, 3 ) )
+
+What you see below is the relevant pieces of generated code:
+
+  .. code-block:: C++
+
+     #include "__convenience.pypp.hpp" //Py++ header file, which contains few convenience function
+
+     namespace bp = boost::python;
+
+     static boost::python::object get_values_22786c66e5973b70f714e7662e2aecd2( ::ft::vector3 & inst ){
+        int native_values[3];
+        boost::python::list py_values;
+        inst.get_values(native_values);
+        pyplus_conv::copy_container( native_values, native_values + 3, pyplus_conv::list_inserter( py_values ) );
+        return bp::object( py_values );
+     }
+
+     BOOST_PYTHON_MODULE(...){
+         ...
+         bp::class_< ft::vector3 >( "vector3", "documentation" )
+            .def( "get_values"
+                  , &get_values_22786c66e5973b70f714e7662e2aecd2
+                  , ( bp::arg("inst") ) )
+            .def_readwrite( "x", &ft::vector3::x )
+            .def_readwrite( "y", &ft::vector3::y )
+            .def_readwrite( "z", &ft::vector3::z );
+     }
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

@@ -1,0 +1,96 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vision/SConscript
+
+import platform
+from buildfiles import libs
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+ext_deps = []
+# Only need boost if we are compling the wrappers and the core
+if env.HasFeature('wrappers'):
+    libs.add_external(envl, 'Boost.Python')
+    ext_deps = ['Boost.Python']
+
+# Sources
+sources = ['src/BasicImage.cpp',
+           'src/Camera.cpp',
+           'src/OpenCVCamera.cpp',
+           'src/OpenCVImage.cpp',
+           'src/VisionCommunication.cpp',
+           'src/ProcessList.cpp',
+           'src/GateDetector.cpp',
+           'src/BinDetector.cpp',
+           'src/RedLightDetector.cpp',
+	   'src/FeatureDetector.cpp',
+           'src/OrangePipeDetector.cpp',
+           'src/Calibration.cpp',
+           'src/main.cpp',
+           'src/Recorder.cpp',
+	   'src/VisionSystem.cpp',
+	   'src/DetectorTest.cpp',
+	   'src/VisionRunner.cpp',
+	   'src/Events.cpp'
+	]
+
+detectorSources = [
+		   'src/VisionTest.cpp'
+		  ]
+
+demoSources = [
+		'src/VisionDemo.cpp'
+	      ]
+	
+# Build Library (will be called 'libram_vision.so')
+# All build settings for the library are stored in buildfiles/libs.py
+envl.RAMSharedLibrary('vision',  source = sources, ext_deps = ext_deps)
+# Testing
+envt = env.Clone()
+
+# Optical Flow Demo
+#envt=env.Clone()
+envt.RAMProgram(target = 'OpticalFlowTest',
+                source = 'test/src/OpticalFlow.cpp')
+
+# Build simple camera test program and make sure vision library is intalled
+envt.RAMProgram(target='AdvCvTest', 
+                source = 'test/src/AdvCvTest.cpp',
+                int_deps = 'vision')
+
+# Gui Demo
+#envq = env.Clone()
+#envq .RAMProgram(target = 'VisionDemo',
+#		source = demoSources,
+#		int_deps = 'vision')
+
+# Basic camera test
+if platform.system() in ['Linux', 'Darwin']:
+    envt.AppendUnique(CCFLAGS = '-Wno-unused')
+envt.Program(target = 'BasicCvTest', source = 'test/src/BasicCvTest.c')
+
+# Basic video test
+envt.Program(target = 'BasicVideoTest', source = 'test/src/BasicVideoTest.c')
+
+# Basic record test
+if platform.system() in ['Linux', 'Darwin']:
+    envt.Program(target = 'RecordTest', source = 'test/src/CvRecordVideoTest.c')
+    # A test
+    envt.RAMProgram('src/test.cpp',int_deps = 'vision')
+
+# Detector Test
+envt = env.Clone()
+envt.RAMProgram(target = 'DetectorTest', 
+                source=detectorSources, int_deps = ['vision'])
+
+# Image Analysis Test
+envt.RAMProgram(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
+
+# Unit Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'vision')

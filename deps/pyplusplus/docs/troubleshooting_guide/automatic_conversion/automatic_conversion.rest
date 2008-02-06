@@ -1,0 +1,72 @@
+=================================================
+Automatic conversion between C++ and Python types
+=================================================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+.. include:: ./definition.rest
+
+-------
+Content
+-------
+
+This example actually consist from 2 small, well documented examples.
+
+The first one shows how to handle conversion between tuples: `boost::tuples::tuple`_
+and Python tuple.
+
+.. _`boost::tuples::tuple` : http://boost.org/libs/tuple/doc/tuple_users_guide.html
+
+The second one shows how to add an automatic conversion from Python tuple to
+some registered class. The class registration allows you to use its functionality
+and enjoy from automatic conversion.
+
+Files
+-----
+
+* `tuples.hpp`_ file contains Boost.Tuple to\\from Python tuple conversion
+  implementation
+
+* `tuples_tester.cpp`_ file contains few functions, which test the tuples
+  conversion functionality
+
+* `custom_rvalue.cpp`_ file contains example of registration custom r-value
+  converter
+
+* `sconstruct`_ file contains build instructions for scons build tool.
+
+* `test.py`_ file contains complete unit tests for both example
+
+All files contain comments, which describe what and why was done.
+
+.. _`tuples.hpp` : ./tuples.hpp.html
+.. _`tuples_tester.cpp` : ./tuples_tester.cpp.html
+.. _`custom_rvalue.cpp` : ./custom_rvalue.cpp.html
+.. _`sconstruct` : ./sconstruct.html
+.. _`test.py` : ./test.py.html
+
+--------
+Download
+--------
+
+`automatic_conversion.zip`_
+
+.. _`automatic_conversion.zip` : ./automatic_conversion.zip
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`pygccxml` : http://www.language-binding.net/pygccxml/pygccxml.html
+.. _`SourceForge`: http://sourceforge.net/index.php
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:
+

@@ -1,0 +1,30 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vehicle/SConscript
+
+# Build System imports
+import buildfiles.libs as libs
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+ext_deps = []
+# Only need boost if we are compling the wrappers and the core
+if env.HasFeature('wrappers') and env.HasFeature('core'):
+    libs.add_internal(envl, 'core')
+    libs.add_external(envl, 'Boost.Python')
+    ext_deps = ['Boost.Python']
+
+# Sources
+sources = envl.Glob('src', '*.cpp')
+
+# Build Procducts (library will be called 'libram_math.so')
+envl.RAMSharedLibrary('math',  source = sources)
+
+# Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'math', ext_deps = ext_deps)

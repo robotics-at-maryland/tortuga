@@ -1,0 +1,19 @@
+test: 10
+
+Subsystems:
+    EventHub:
+        type: EventHub
+        
+    QueuedEventHub:
+        depends_on: ["EventHub"]
+        type: QueuedEventHub
+
+    Sonar:
+        type: DemoSonar
+        
+    Power:
+        type: DemoPower
+        
+    Vehicle:
+        type: DemoVehicle
+        depends_on: ["EventHub"]

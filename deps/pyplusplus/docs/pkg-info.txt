@@ -1,0 +1,19 @@
+Metadata-Version: 1.1
+Name: pyplusplus
+Version: 0.6.1
+Author: Roman Yakovenko
+Author-email: roman yakovenko at gmail com
+Maintainer: Roman Yakovenko
+Maintainer-email: roman yakovenko at gmail com
+Home-page: http://www.language-binding.net/
+Download-url: http://sourceforge.net/project/showfiles.php?group_id=118209
+Summary: pyplusplus is an object-oriented framework for creating a code generator for boost.python library
+License: Boost Software License
+Description: pyplusplus is an object-oriented framework for creating a code generator for boost.python library
+Keywords: C++ Python bindings Boost code generator
+Requires: pygccxml
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: Freeware
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development

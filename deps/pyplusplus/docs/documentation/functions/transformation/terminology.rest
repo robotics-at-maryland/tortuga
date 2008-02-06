@@ -1,0 +1,45 @@
+===========
+Terminology
+===========
+
+.. contents:: Table of contents
+
+**Function transformation**
+
+  `Py++`_ sub-system\\framework, which allows you to create function wrappers
+  and to keep smile.
+  
+  The operation of changing one function into another in accordance with some 
+  rules. Especially: a change of return type and\\or arguments and their mapping
+  to the original ones.
+
+**Function wrapper** ( or just wrapper )
+
+  C++ function, which calls some other function. 
+
+**Immutable type**
+
+  An instance of this type could not be modified after construction
+
+**Transformer**
+
+  An object that applies predefined set of rules on a function, during 
+  function-wrapper construction process.
+
+**Function alias** ( or just alias )
+
+  Name under which `Python`_ users see the exposed function
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

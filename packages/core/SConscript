@@ -1,0 +1,41 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/core/SConscript
+
+# Pull in build environment from parent SConstruct
+Import('env')
+envl = env.Clone()
+
+# Find all cpp files in the source directory
+sources = envl.Glob('src', '*.cpp')
+
+# Doesn't work right
+# Add sources for Subsystem based Interfaces (needed here for wrapping
+#if env.HasFeature('vehicle'):
+#    sources.append('../vehicle/src/IVehicle.cpp')
+if not env.HasFeature('wrappers'):
+    sources.remove('src/SubsystemConverter.cpp')
+    sources.remove('src/EventConverter.cpp')
+    
+# Build Library (will be called 'libram_core.so')
+# Build flags for dependencies automaticallly added based on buildfiles/libs.py
+envl.RAMSharedLibrary('core', source = sources)
+
+# Build our little demo program
+envt = env.Clone()
+envt.RAMProgram(target = 'QueueTest',
+                source = ['test/src/QueueTest.cpp'], int_deps = 'core')
+
+# Test for updatable class
+envt.RAMProgram(target = 'UpdatableTest',
+                source = ['test/src/UpdatableTest.cpp'], int_deps = 'core')
+
+envt.RAMProgram(target = 'AvgFilterTest',
+                source = ['test/src/AvgTest.cpp'], int_deps = 'core')
+
+# Unit Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'core')

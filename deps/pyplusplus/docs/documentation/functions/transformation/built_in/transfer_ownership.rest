@@ -1,0 +1,78 @@
+==================================
+``transfer_ownership`` transformer
+==================================
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+"transfer_ownership" transformer changes type of the function argument, from
+``T*`` to ``std::auto_ptr<T>``. This transformer was born to provide the answer
+to `How can I wrap a function which needs to take ownership of a raw pointer?`_
+FAQ.
+
+.. _`How can I wrap a function which needs to take ownership of a raw pointer?` : http://boost.org/libs/python/doc/v2/faq.html#ownership
+
+"transfer_ownership" transformer takes one argument, name or index of the
+original function argument. The argument type should be "pointer".
+
+New in version grater than 0.8.5.
+
+-------
+Example
+-------
+
+.. code-block:: C++
+
+  struct resource_t{...};
+
+  void do_smth(resource_t* r){
+      ...
+  }
+
+Lets say that you need to expose "do_smth" function. According to the FAQ, you
+have to create small wrapper, which will take ``std::auto_ptr`` as an argument.
+Next `Py++`_ code does it for you:
+
+  .. code-block:: Python
+
+     from pygccxml import declarations
+     from pyplusplus import module_builder
+     from pyplusplus import function_transformers as FT
+
+     mb = module_builder.module_builder_t( ... )
+
+     resource = mb.class_( 'resource_t' )
+     resource.held_type = 'std::auto_ptr< %s >' % resource.decl_string
+     do_smth = mb.free_fun( 'do_smth' )
+     do_smth.add_transformation( FT.transfer_ownership( 0 ) )
+
+What you see below is the relevant pieces of generated code:
+
+  .. code-block:: C++
+
+     namespace bp = boost::python;
+
+     static void do_smth_4cf7cde5fca92efcdb8519f8c1a4bccd( std::auto_ptr< ::resource_t > r ){
+      ::do_smth(r.release());
+     }
+
+     BOOST_PYTHON_MODULE(...){
+         ...
+         bp::def( "do_smth", &do_smth_4cf7cde5fca92efcdb8519f8c1a4bccd, ( bp::arg("r") ) );
+     }
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

@@ -1,0 +1,127 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Joseph Lisee <jlisee@umd.edu>
+ * File:  packages/vehicle/src/device/Thruster.cpp
+ */
+
+// STD Includes
+#include <sstream>
+
+// Project Includes
+#include "vehicle/include/device/Thruster.h"
+#include "vehicle/include/device/ThrusterCommunicator.h"
+#include "vehicle/include/device/ThrusterCommand.h"
+#include "math/include/Events.h"
+
+namespace ram {
+namespace vehicle {
+namespace device {
+    
+Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
+                   IVehiclePtr vehicle) :
+    Device(config["name"].asString()),
+    IThruster(eventHub),
+    m_address(config["address"].asInt()),
+    m_calibrationFactor(config["calibration_factor"].asDouble()),
+    m_direction(config["direction"].asInt(1))
+{
+    /*
+    // Register thruster
+    ThrusterCommunicator::registerThruster(this);
+
+    // Preform a soft reset just to be safe
+    ThrusterCommunicator::getSingleton().sendThrusterCommand(
+    ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,0));*/
+}
+
+Thruster::~Thruster()
+{/*
+    // Preform a soft reset to make sure the power dies to the thruster
+    ThrusterCommunicator::getSingleton().sendThrusterCommand(
+        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED, 0));
+
+    // Unregister from communicator so it will no when to destory itself
+    ThrusterCommunicator::unRegisterThruster(this);*/
+}
+
+void Thruster::setForce(double force)
+{
+    double b = 0; // Not currently used
+    int motorCount;
+    
+    // Convert force here (using calibration factor)
+    motorCount = (int)((force / m_calibrationFactor - b) * 1023) / 27;
+
+    // Take into acount motor direction
+    motorCount = motorCount * m_direction;
+    
+    // Clamp the values
+    if (motorCount > 1024)
+        motorCount = 1023;
+    else if (motorCount < -1024)
+        motorCount = -1023;
+
+/*    ThrusterCommunicator::getSingleton().sendThrusterCommand(
+        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,
+        motorCount));*/
+
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_forceMutex);
+        m_force = force;
+        m_motorCount = motorCount;
+    }
+
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = m_force;
+    publish(IThruster::FORCE_UPDATE, event);
+}
+
+double Thruster::getForce()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_forceMutex);
+    return m_force;
+}
+
+int Thruster::getMotorCount()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_forceMutex);
+    return m_motorCount;
+}
+
+double Thruster::getMaxForce()
+{
+    return (((1023.0 * 27) / 1023) + 0.0) * m_calibrationFactor;
+}
+    
+double Thruster::getMinForce()
+{
+    return (((-1023 * 27) / 1023) + 0.0) * m_calibrationFactor;
+}
+    
+void Thruster::update(double timestep)
+{
+//    ThrusterCommunicator::getSingleton().update(timestep);
+}
+    
+void Thruster::background(int interval)
+{
+//    ThrusterCommunicator::getSingleton().background(interval);
+}
+
+void Thruster::unbackground(bool join)
+{
+//    ThrusterCommunicator::getSingleton().unbackground(join);
+}
+
+bool Thruster::backgrounded()
+{
+    return false;
+//    return ThrusterCommunicator::getSingleton().backgrounded();
+}
+    
+} // namespace device
+} // namespace vehicle
+} // namespace ram

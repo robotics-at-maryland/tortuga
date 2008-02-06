@@ -1,0 +1,222 @@
+=============
+Py++ warnings
+=============
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Py++`_ has been created with few goals in mind:
+
+* to allow users create `Python`_ bindings for large projects using the `Boost.Python`_
+  library
+
+* to minimize maintenance time
+
+* to serve as a user's guide for `Boost.Python`_ library
+
+
+Those goals all have something in common. In order to achieve them, `Py++`_ must
+give useful feedback to the user. Because `Py++`_ understands the declarations
+it exports, it can scan declarations for potential problems, report them and in
+some cases provide hints about how to resolve the problem. Few examples:
+
+*
+  .. code-block:: C++
+
+     struct Y{ ... };
+
+  .. code-block:: C++
+
+     struct X{
+         ...
+         virtual Y& do_smth();
+     };
+
+  Member function ``do_smth`` can not be overridden in Python because... [FILL IN HERE].
+
+*
+  .. code-block:: C++
+
+     struct window{
+         ...
+         void get_size( int& height, int& width ) const;
+     };
+
+  Member function ``get_size`` can be exposed to Python, but it will not be callable because [FILL IN HERE].
+
+* In order to expose free/member function that takes more than 10 arguments user
+  should define ``BOOST_PYTHON_MAX_ARITY`` macro.
+
+*
+  .. code-block:: C++
+
+     struct X{
+         ...
+     };
+
+     void do_smth( X x );
+
+  If you expose ``do_smth`` function and don't expose struct ``X``, `Py++`_
+  will tell you that struct ``X`` is used in exported declaration, but was not
+  exposed.
+
+For these problems and many other `Py++`_ gives a nice explanation
+and sometimes a link to the relevant information on the Internet.
+
+I don't know what about you, but I found these messages pretty useful. They allow
+me to deliver Python bindings with higher quality.
+
+-------------
+How it works?
+-------------
+
+In previous paragraph, I described some pretty useful functionality but what should you
+do to enable it? - *Nothing!* By default, `Py++`_ only prints the
+important messages to ``stdout``. More over it prints them only for declarations
+that are going to be exported.
+
+`Py++`_ uses the python  `logging`_ package to write all user messages. By
+default, messages with ``DEBUG`` level will be skipped, all other messages will
+be reported.
+
+--------
+Warnings
+--------
+
+Example of the warning:
+::
+
+  WARNING: containers::item_t [struct]
+  > warning W1020: Py++ will generate class wrapper - hand written code
+  > should be added to the wrapper class
+
+Almost every warning reported by `Py++`_ consists from 3 parts:
+
+* description of the declaration it refers to: "containers::item_t [struct]"
+
+* warning unique identifier: "W1020"
+
+* short explanation of the problem: "Py++ will generate class wrapper - hand
+  written code should be added to the wrapper class"
+
+---------------
+API Description
+---------------
+
+How to disable warning(s)?
+--------------------------
+
+Every warning has unique identifier. In the example I gave it was ``W1020``.
+
+.. code-block:: Python
+
+   from pyplusplus import messages
+   from pyplusplus import module_builder
+
+   mb = module_builder.module_builder_t( ... )
+   xyz = mb.class_( XYZ )
+   xyz.disable_warnings( messages.W1020 )
+
+It is also possible to disable warnings for all declarations. ``pyplusplus.messages``
+package defines ``DISABLE_MESSAGES`` variable. This variable( ``list`` ) keeps
+all warnings, which should not be reported. Use ``messages.disable`` function to
+edit it:
+
+.. code-block:: Python
+
+   messages.disable( messages.W1020 )
+
+
+Logging API
+-----------
+
+If you are here, it probably means that you are not pleased with default configuration
+and want to change it, right?
+
+1. If you simply want to change the logging message level:
+
+   .. code-block:: Python
+
+     import logging
+     from pyplusplus import module_builder
+
+   .. code-block:: Python
+
+     module_builder.set_logger_level( logging.DEBUG )
+
+
+2. But what if you want to disable some messages and leave others? This is also possible.
+   `Py++`_ and `pygccxml`_ do not use a single logger. Almost every internal
+   package has its own logger. So you can enable one logger and disable another one.
+
+   The `pygccxml`_ package defines all loggers in the ``pygccxml.utils`` package.
+
+   The `Py++`_ package defines all loggers in the ``pyplusplus._logging_`` package.
+
+   Both packages define a ``loggers`` class. Those classes keep references to
+   different loggers. The ``loggers`` classes look very similar to the next class:
+
+   .. code-block:: Python
+
+      import logging #standard Python package
+
+      def _create_logger_( name ):
+          logger = logging.getLogger(name)
+          ...
+          return logger
+
+      class loggers:
+           file_writer = _create_logger_( 'pyplusplus.file_writer' )
+           declarations = _create_logger_( 'pyplusplus.declarations' )
+           module_builder = _create_logger_( 'pyplusplus.module_builder' )
+           root = logging.getLogger( 'pyplusplus' )
+           all = [ root, file_writer, module_builder, declarations ]
+
+   You can use these references in the ``logging`` package to complete
+   your task of adjusting individual loggers.
+
+   One more thing, `Py++`_ automatically splits long message, where line
+   length defaults to 70 characters. Thus it is very convenient to read them on your screen.
+   If you want to use different tools to monitor those messages, consider to use
+   standard `Formatter`_ class, instead of ``multi_line_formatter_t`` one.
+
+
+Declarations API
+----------------
+
+Every declaration class has the following methods:
+
+* ``why_not_exportable( self )``
+
+  This method explains why a declaration could not be exported. The return value
+  is a string or ``None``. ``None`` is returned if the declaration is exportable.
+
+  Property ``exportable`` will be set to ``True`` if declaration is exportable,
+  and to ``False`` otherwise.
+
+* ``readme( self )``
+
+  This method gives you access to all tips/hints/warnings `Py++`_ has about
+  the declaration. This methods returns a list of strings. If the declaration is
+  not exportable, than first message within the list is an explanation, why it
+  is not exportable.
+
+
+.. _`Formatter` : http://docs.python.org/lib/node357.html
+.. _`logging` : http://docs.python.org/lib/module-logging.html
+.. _`Py++` : ./../pyplusplus.html
+.. _`pygccxml` : ./../../pygccxml/pygccxml.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

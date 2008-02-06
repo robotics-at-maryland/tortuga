@@ -1,0 +1,4 @@
+Boost.Python has a limitation: it does not allow to create class, which derives
+from the class defined in Python. In most use cases this should not bother you,
+except one - exceptions. The example will provide you with one of the possible
+solutions.

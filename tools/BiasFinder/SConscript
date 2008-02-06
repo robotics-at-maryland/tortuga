@@ -1,0 +1,15 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/tools/FindBias/SConscript
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Build the ctx and consolemon
+envl.RAMProgram(target = 'BiasFinder', 
+		source = 'src/FindBias.cpp',
+                int_deps = ['vehicle','math'])

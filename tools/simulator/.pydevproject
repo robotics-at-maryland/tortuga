@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse-pydev version="1.0"?>
+
+<pydev_project>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.5</pydev_property>
+<pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
+<path>C:\Documents and Settings\Mike\My Documents\RAM Libraies\RAM\Lib\site-packages</path>
+<path>C:\Documents and Settings\Mike\My Documents\RAM source\packages\python</path>
+<path>/home/jlisee/projects/mrbc/trunk/packages/python</path>
+<path>/home/jlisee/projects/mrbc/trunk/build_ext</path>
+<path>/home/jlisee/projects/pogre/PythonOgre/lib/python2.5/site-packages</path>
+<path>/home/jlisee/tmp/python-ogre-snapshot/packages_2.5</path>
+<path>/home/jlisee/projects/pogre/python-ogre-snapshot/packages_2.5</path>
+</pydev_pathproperty>
+<pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
+<path>/Simulator</path>
+</pydev_pathproperty>
+</pydev_project>

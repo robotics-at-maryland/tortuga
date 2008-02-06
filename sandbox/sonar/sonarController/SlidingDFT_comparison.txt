@@ -1,0 +1,84 @@
+This is a comparison between the two different algorithms for the Sliding DFT.
+The tables below compare the system resources used by the two algorithms for 
+various configurations.  It is immediately apparent that while the number of
+arithmetic operations scales mostly linearly in both M and P in both algorithms,
+the SimpleSlidingDFT algorithm consumes a great deal more memory than the 
+FastSlidingDFT algorithm.  The only other difference of note is that the 
+Simple algorithm replaces half the multiplications with additions.  This could
+be useful if the target architecture allows faster additions than multiplications,
+though in any true DSP these will both take only single instructions, barring some
+phenomenon of precision-reduction parallelism, for example.
+
+My comment: the dsPIC has a single instruction that perform a multiplication and
+an addition at the same time.  This reduces the time of a complex multiply dramatically
+and brings its times on the Fast algorithm in league with the Simple algorithm, again
+barring other spectacular tricks that a different architecture may supply.  The dsPIC's
+DSP instructions would be of minimal use when implementing the Simple algorithm, since 
+they are designed to perform "multiply and accumulate" operations typical of 
+convolution integrals.  However, this is a moot point because the dsPIC only barely
+contains enough memory to properly implement the Simple algorithm in a practical setting.
+Also, the simple fact that there is more memory used in the Simple algorithm means that
+more instructions will be used maintaining and generating array pointers and such.
+
+
+
+
+given N points in window
+given M channels
+given P frequencies
+
+
+FastSlidingDFT:
+2*M*(P+1) 	additions
+4*M*P 		multiplications
+N*M+2*P		adcdata_t variables
+2*M*P 		adcmath_t
+
+>> Pros: Very low memory footprint. 
+	 Memory footprint scales well with multiple frequency detection.
+	 Addition count scales well with multiple frequency detection.
+>> Cons: Requires more multiplications.
+
+
+
+SimpleSlidingDFT:
+4*M*P 		additions
+2*M*P 		multiplications
+2*N*P		adcdata_t (static) variables--calculated based on frequency alone
+2*M*P*(N+1)	adcmath_t variables
+
+>> Pros: Very few multiplications.
+>> Cons: Very large memory footprint.
+	 Memory footprint does not scale well with multiple frequency detection.
+	 Addition count does not scale well with multiple frequency detection.
+
+
+
+
+Comparisons:
+
+
+	N=256,M=1,P=1		N=256,M=4,P=1		N=256,M=1,P=4		N=256,M=4,P=4
+	Fast	Simple		Fast	Simple		Fast	Simple		Fast	Simple
+add	4	4		16	16		10	16		40	64
+mul	4	2		16	8		16	8		64	32
+total	8	6		32	24		26	24		104	96
+
+data	258	512		1026	512		264	2048		1032	2048
+math	2	514		8	2056		8	2056		32	8224
+total	260	1026		1034	2568		272	4104		1064   10272
+
+
+
+	N=1024,M=1,P=1		N=1024,M=4,P=1		N=1024,M=1,P=4		N=1024,M=4,P=4
+	Fast	Simple		Fast	Simple		Fast	Simple		Fast	Simple
+add	4	4		16	16		10	16		40	64
+mul	4	2		16	8		16	8		64	32
+total	8	6		32	24		26	24		104	96
+
+data	1026	2048		4098	2048		1032	8192		4104	8192
+math	2	2050		8	8200		8	8200		32     32800
+total	1028	4098		4106   10248		1040   16392		4136   40992
+
+
+

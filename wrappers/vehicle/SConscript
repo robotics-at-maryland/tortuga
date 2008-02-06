@@ -1,0 +1,84 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  wrappers/vehicle/SConscript
+
+import os
+
+# Build System imports
+import buildfiles.libs as libs
+
+Import('env')
+envl = env.Clone()
+
+# Find all cpp files in the source directory
+extra_sources = envl.Glob('src', '*.cpp')
+extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'vehicle')
+envl.Append(CPPPATH = os.path.abspath(os.environ['RAM_SVN_DIR']))
+
+extra_dev_sources = envl.Glob('src/device', '*.cpp')
+
+# Link to libram_pattern.so library
+libs.add_internal(envl, 'vehicle')
+
+# Pattern library directories
+base_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'packages', 'vehicle')
+header_dir = os.path.join(base_dir, 'include')
+
+# Need for because Py++ has so odd include paths
+envl.Append(CPPPATH = base_dir)
+
+# Headers we are currently wrapping
+veh_wrapped_headers = ['IVehicle.h']
+
+dev_wrapped_headers = ['device/Common.h',
+                       'device/IDevice.h',
+                       'device/IThruster.h']
+
+# Tests
+root_src = os.path.dirname(env.GetBuildPath('SConscript'))
+
+envt = env.Clone()
+test_veh, veh_runner = envt.Tests(target = 'TestVehicle',
+                                  source = 'test/src/TestIVehicle.cxx',
+                                  search_dir = root_src + '/test/src',
+                                  int_deps = 'vehicle',
+                                  ext_deps = 'Boost.Python', run = False)
+
+test_dev, dev_runner = envt.Tests(target = 'TestDevices',
+                                  source = 'test/src/device/TestIDevices.cxx',
+                                  search_dir = root_src + '/test/src/device',
+                                  int_deps = 'vehicle',
+                                  ext_deps = 'Boost.Python', run = False)
+
+# Python sources
+py_sources = env.Glob(os.path.join('python','vehicle'), '*.py')
+py_sources = [os.path.abspath(s) for s in py_sources]
+output_dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext/vehicle'
+def extras(env, output, message = None, deps = None):
+    tester = veh_runner(env, output, message, deps)
+    py_install = env.Install(dir = output_dir, source = py_sources)
+
+    env.Depends(tester, py_install)    
+    return tester
+                                  
+# Wrapper
+envw = envl.Clone()
+envw.Pypp('_vehicle',
+          [os.path.join(header_dir, h) for h in veh_wrapped_headers],
+          module = 'gen_vehicle.py',
+          tester = extras, dep_wrappers =
+          ['_math', 'math.py', '_core','core.py'],
+          dont_build = ['SubsystemList.pypp.cpp'],
+          extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])
+
+envw = envl.Clone()
+envw.Pypp('_vehicle::device',
+          [os.path.join(header_dir, h) for h in dev_wrapped_headers],
+          module = 'gen_vehicle_device.py',
+          tester = dev_runner, dep_wrappers =
+          ['_vehicle', 'vehicle/__init__.py', '_core', 'core.py','_math',
+           'math.py'],
+          extra_sources = [os.path.join(extra_dir, s) for s in extra_dev_sources])

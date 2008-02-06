@@ -1,0 +1,19 @@
+# All sleepTimes in milliseconds
+
+Subsystems:
+    SubsystemA:
+        type: LoopSubsystem
+        sleepTime: 50
+        stopIterations: 10
+
+    SubsystemB:
+        type: LoopSubsystem
+        sleepTime: 150
+
+    SubsystemC:
+        type: LoopSubsystem
+        sleepTime: 20
+
+    SubsystemD:
+        type: LoopSubsystem
+        sleepTime: 120

@@ -1,0 +1,2 @@
+The pypp_api package is distributed under the same license as the main
+pyplusplus package.

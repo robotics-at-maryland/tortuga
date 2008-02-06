@@ -1,0 +1,82 @@
+==================================
+``input_c_buffer`` transformer
+==================================
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+"input_c_buffer" transformer works on C buffers. It handles the translation 
+between a `Python`_ sequence object and the buffer.
+
+"input_c_buffer" transformer takes as first argument name or index of the
+"buffer" argument. The argument should have "array" or "pointer" type.
+The second argument should be name or index of another original function argument,
+which represents array size.
+
+-------
+Example
+-------
+
+.. code-block:: C++
+
+  struct file_t{
+      void write( char* buffer, int size ) const;	
+  };
+
+In order to expose ``write`` member function we need to create small wrapper:
+Next `Py++`_ code does it for you:
+
+  .. code-block:: Python
+
+     from pyplusplus import module_builder
+     from pyplusplus import function_transformers as FT
+
+     mb = module_builder.module_builder_t( ... )
+     f = mb.class_( 'file_t' )
+     f.mem_fun( 'write' ).add_transformation( FT.input_c_buffer( 'buffer', 'size' ) )
+
+What you see below is the relevant pieces of generated code:
+
+  .. code-block:: C++
+
+     #include "__convenience.pypp.hpp" //Py++ header file, which contains few convenience function
+
+     #include <vector>
+
+     #include <iterator>
+     
+     namespace bp = boost::python;
+
+     static void write_8883fea8925bad9911e6c5a4015ed106( ::file_t const & inst, boost::python::object buffer ){
+        int size2 = boost::python::len(buffer);
+        std::vector< char > native_buffer;
+        native_buffer.reserve( size2 );
+        pyplus_conv::ensure_uniform_sequence< char >( buffer );
+        pyplus_conv::copy_sequence( buffer, std::back_inserter( native_buffer), boost::type< char >() );
+        inst.write(&native_buffer[0], size2);
+     }
+
+     BOOST_PYTHON_MODULE(...){
+         ...
+         bp::class_< file_t >( "file_t" )    
+            .def( 
+                  "write"
+                , (void (*)( ::file_t const &,boost::python::object ))( &write_8883fea8925bad9911e6c5a4015ed106 )
+                , ( bp::arg("inst"), bp::arg("buffer") ) );
+     }
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:

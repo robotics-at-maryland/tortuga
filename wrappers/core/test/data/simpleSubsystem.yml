@@ -1,0 +1,8 @@
+Subsystems:
+    SystemA:
+        type: SubsystemA
+        AData: 27
+        
+    SystemB:
+        type: SubsystemB
+        BData: 5

@@ -1,0 +1,132 @@
+# This the config file that builds the simulated version of the AUV
+
+Robot:
+    name: AUT
+    
+    # In the X, Y, and Z direction
+    position: [-18, 0, 0]
+    # In Axis/Angle Form (last term angle)
+    orientation: [0.0, 0.0, 1.0, 0.0]
+    
+    # This section describes the physics ofw the object
+    Physical:
+        # In kilograms
+        mass: 28.175262359039998  # About 0.5% bouyant
+        center_of_mass: [0, 0, -0.01]
+        material: SubMat
+        Shape:
+            type: box
+            # Actual size in meters
+            size: [0.6858, 0.2032, 0.2032]
+                
+    # This section describes how the object will appear
+    Graphical:
+         mesh: cube.1m.mesh
+         material: nx.cube
+         scale: [0.6858, 0.2032, 0.2032]
+          
+    Parts:
+        # For each simulated thruster you need to give its type, relative
+        # to the body coordinate system (describe me here)
+        # Z is UP, X comes out the front of the vehicle and when looking at
+        # vehicle from the back Y comes out the left (port) side 
+        LeftThruster:
+            type: [Thruster, ram.sim.robot.Thruster] 
+            name: left_thruster
+            
+            # Position relative to robot
+            position: [0, .16, 0]
+            
+            # Thruster Properties
+            # A unit vector along which thrust will be applied
+            direction: [1, 0, 0]
+            # In newtons, 9.0 N = 2 lbs of thrust
+            min_force: -25.5
+            max_force: 25.5
+            
+            # This section describes how the object will apear
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.75,0.15,0.075]
+                scale: [0.15,0.047,0.047]
+
+        RightThruster:
+            type: [Thruster, ram.sim.robot.Thruster]
+            name: right_thruster
+            
+            position: [0, -.16, 0]
+            direction: [1, 0, 0]
+            min_force: -25.5
+            max_force: 25.5
+            
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.75,0.15,0.075]
+                scale: [0.15,0.047,0.047]
+                    
+        FrontThruster:
+            type: [Thruster, ram.sim.robot.Thruster]
+            name: front_thruster
+            
+            position: [0.4, 0, 0]
+            orientation: [0, 1, 0, 90]
+            direction: [0, 0, 1]
+            min_force: -25.5
+            max_force: 25.5
+            
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.5,0.2,0.1]
+                #scale: [10,10,10]
+                scale: [0.15,0.047,0.047]
+                
+        AftThruster:
+            type: [Thruster, ram.sim.robot.Thruster]            
+            name: aft_thruster
+            
+            position: [-0.4, 0, 0]
+            orientation: [0, 1, 0, 90]
+            direction: [0, 0, 1]
+            min_force: -25.5
+            max_force: 25.5
+            
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.5,0.2,0.1]
+                scale: [0.15,0.047,0.047]
+
+        TopThruster:
+            type: [Thruster, ram.sim.robot.Thruster]
+            name: top_thruster
+            
+            position: [0, 0, 0.16]
+            orientation: [0, 0, 1, 90]
+            direction: [0, 1, 0]
+            min_force: -25.5
+            max_force: 25.5
+            
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.5,0.2,0.1]
+                scale: [0.15,0.047,0.047]
+
+        BotThruster:
+            type: [Thruster, ram.sim.robot.Thruster]
+            name: bot_thruster
+            
+            position: [0, 0, -0.16]
+            orientation: [0, 0, 1, 90]
+            direction: [0, -1, 0]
+            min_force: -25.5
+            max_force: 25.5
+            
+            Graphical:
+                mesh: cube.1m.mesh
+                material: nx.cube
+                #scale: [0.5,0.2,0.1]
+                scale: [0.15,0.047,0.047]

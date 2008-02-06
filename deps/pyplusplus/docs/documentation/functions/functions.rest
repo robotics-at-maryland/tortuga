@@ -1,0 +1,27 @@
+=====================
+Functions & operators
+=====================
+
+.. contents:: Table of contents
+
+--------
+Preamble
+--------
+
+`Boost.Python`_ provides very rich interface to expose functions and operators.
+This section of documentation will explain how to configure `Py++`_ in order
+to export your functions, using desired `Boost.Python`_ functionality.
+
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+
+..
+   Local Variables:
+   mode: indented-text
+   indent-tabs-mode: nil
+   sentence-end-double-space: t
+   fill-column: 70
+   End:
