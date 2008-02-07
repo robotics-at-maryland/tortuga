@@ -13,8 +13,8 @@ void handler(int x)
 
 void myImageEventHandler(ram::core::EventPtr e)
 {
-	boost::shared_ptr<ram::vision::ImageEvent> imageEvent = 
-	    boost::dynamic_pointer_cast<ram::vision::ImageEvent>(e);
+	boost::shared_ptr<ram::vision::RedLightEvent> imageEvent = 
+	    boost::dynamic_pointer_cast<ram::vision::RedLightEvent>(e);
 	printf("%f %f", imageEvent->x,imageEvent->y);
 }
 

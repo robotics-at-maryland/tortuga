@@ -20,7 +20,7 @@
 
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 0
+#define SHOW_OUTPUT 1
 #define DEMO 0
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
@@ -100,7 +100,7 @@ DetectorTest::DetectorTest(string movie)
 
 DetectorTest::~DetectorTest()
 {
-    	unbackground(true);
+    unbackground(true);
 	delete camera;
 	delete frame;
 	delete opDetect;
@@ -329,7 +329,7 @@ void DetectorTest::update(double timestep)
 
 		if (rlDetect->found)
 		{
-			ram::core::EventPtr e(new ram::vision::ImageEvent((2*rlDetect->getX())-1,1-(2*rlDetect->getY()),0));//FIXME
+			ram::core::EventPtr e(new ram::vision::RedLightEvent((2*rlDetect->getX())-1,1-(2*rlDetect->getY())));
 			publish(ram::vision::EventType::LIGHT_FOUND,e);
 
 			if (SHOW_OUTPUT)

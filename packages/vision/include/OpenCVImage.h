@@ -3,7 +3,7 @@
  * Copyright (C) 2007 Daniel Hakim
  * All rights reserved.
  *
- * Author: Daniel Hakim
+ * Author: Daniel Hakim <dhakim@umd.edu>
  * File:  packages/vision/include/OpenCVImage.h
  */
 

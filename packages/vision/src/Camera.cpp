@@ -11,11 +11,16 @@
 #include "vision/include/Camera.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/Events.h"
+
+RAM_CORE_EVENT_TYPE(ram::vision::Camera, RAW_IMAGE_CAPTURED);
+RAM_CORE_EVENT_TYPE(ram::vision::Camera, IMAGE_CAPTURED);
 
 namespace ram {
 namespace vision {
 
 Camera::Camera() :
+    EventPublisher(core::EventHubPtr()),
     m_publicImage(0),
     m_imageLatch(1)
 {
@@ -63,20 +68,31 @@ void Camera::capturedImage(Image* newImage)
         core::ReadWriteMutex::ScopedWriteLock lock(m_imageMutex);
 
         // Copy over the image data to the public image
-	if (newImage)//Silently ignore a new image if the new image is null.
-	  m_publicImage->copyFrom(newImage);
+        // (Silently ignore a new image if the new image is null.)
+	if (newImage)
+        {
+            // Before processing
+            publish(Camera::RAW_IMAGE_CAPTURED,
+                    ImageEventPtr(new ImageEvent(newImage)) );
+                    
+            copyToPublic(newImage, m_publicImage);
+
+            // After processing
+            publish(Camera::IMAGE_CAPTURED,
+                    ImageEventPtr(new ImageEvent(m_publicImage)) );
+        }
     }
     
-    // Our state has changed
-    setChanged();
-
-    // Tell all the observers about it
-    notifyObservers(0, IMAGE_CAPTURED);
-
     // Now release all waiting threads
     m_imageLatch.countDown();
     // Reset count to one
     m_imageLatch.resetCount(1);
+}
+
+void Camera::copyToPublic(Image* newImage, Image* publicImage)
+{
+    if (newImage && publicImage)
+        publicImage->copyFrom(newImage);    
 }
     
 } // namespace vision

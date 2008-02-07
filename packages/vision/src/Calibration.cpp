@@ -37,7 +37,8 @@ void Calibration::calculateCalibrations()
 	
 	while (goodImages<NUMIMAGES_CALIBRATE)
 	{
-		cam->getUncalibratedImage(frame);
+            cam->getImage(frame);
+            //cam->getUncalibratedImage(frame);
 		IplImage* image =(IplImage*)(*frame);
 		cout<<"Printing image"<<endl;
 		int cornerCount=findCorners(image,tmpArray);

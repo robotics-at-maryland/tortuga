@@ -62,7 +62,7 @@ void OrangePipeDetector::update()
 	//If the pipeline is found, the angle found by hough is reported.  
 	
 	//Mask orange takes frame, then alter image, then strictness (true=more strict, false=more lenient)
-	cam->getUncalibratedImage(frame);
+	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
 
 //	rotate90Deg(image,rotated);//Only do this if the camera is attached sideways again.

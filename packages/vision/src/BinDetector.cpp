@@ -26,7 +26,7 @@ void BinDetector::update()
 	int binx=-1;
 	int biny=-1;
 	/*First argument to white_detect is a ratios frame, then a regular one*/
-	cam->getUncalibratedImage(frame);
+	cam->getImage(frame);
 	IplImage* image =(IplImage*)(*frame);
 	
 	//This is only right if the camera is on sideways... again.

@@ -25,30 +25,44 @@ namespace vision {
 class RAM_EXPORT OpenCVCamera : public Camera
 {
 public:
-	OpenCVCamera();
+    /** Opens Default Camera */
+    OpenCVCamera();
+    
+    /** Open specific camera */
     OpenCVCamera(int camNum, bool forward);
-	OpenCVCamera(std::string movieName);
+
+    /** Open a specific movie */
+    OpenCVCamera(std::string movieName);
+
+    
     ~OpenCVCamera();
 
     /** This grabs the new image, and then stores it for Camera::getImage */
     virtual void update(double timestep);
 	
-	virtual void getUncalibratedImage(Image* distorted);
-	
-	virtual void getImage(Image* undistorted);
-	
-	/** Retrieves the latest image from camera and undistorts it into undistorted
-	*	@undistorted the image to be undistorted
-	*/
-	void getCalibratedImage(Image* undistorted);
-
     virtual size_t width();
     
     virtual size_t height();
 
+protected:
+    /** Preforms a calbration during the copy if possible
+     *  
+     *  If m_calibration is non 0, it will perform the calibration and copy in
+     *  one operation.  If not, it will use the standard camera copy.
+     */
+    virtual void copyToPublic(Image* newImage, Image* publicImage);
+    
 private:
-	/*A Calibration with parameters that can be set for this camera*/
-	Calibration* m_calibration;
+    /** Retrieves the latest image from camera and undistorts
+     *
+     *	@undistorted The image to place the undistorted results into
+     */
+    void getCalibratedImage(Image* undistorted);
+    
+    /** A Calibration with parameters that can be set for this camera */
+    Calibration* m_calibration;
+    
+    /** OpenCV Capture handle */
     CvCapture* m_camCapture;
 };
 
