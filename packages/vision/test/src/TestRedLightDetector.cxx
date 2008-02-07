@@ -12,6 +12,7 @@
 
 // Project Includes
 #include "vision/include/RedLightDetector.h"
+#include "vision/include/OpenCVImage.h"
 
 using namespace ram;
 

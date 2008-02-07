@@ -10,40 +10,41 @@
 #ifndef RAM_RED_LIGHT_DETECTOR_H_06_23_2007
 #define RAM_RED_LIGHT_DETECTOR_H_06_23_2007
 
-#include <iostream>
-#include <sstream>
-#include <math.h>
-#include <cstdlib>
-#include <stdio.h>
+// Library Includes
 #include "cv.h"
-#include "highgui.h"
-#include <string>
-#include "vision/include/main.h"
-#include "vision/include/ProcessList.h"
-#include "vision/include/VisionCommunication.h"
-#include "vision/include/OpenCVCamera.h"
-#include "vision/include/OpenCVImage.h"
-#include "vision/include/Image.h"
-#include "vision/include/Camera.h"
+
+// Project Includes
+#include "vision/include/Common.h"
+#include "vision/include/Detector.h"
+#include "core/include/ConfigNode.h"
+
+// Must be incldued last
 #include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
     
-class RAM_EXPORT RedLightDetector
+class RAM_EXPORT RedLightDetector : public Detector
 {
   public:
-    bool found;
-    RedLightDetector(OpenCVCamera*);
+    RedLightDetector(core::ConfigNode config,
+                     core::EventHubPtr eventHub = core::EventHubPtr());
+    RedLightDetector(Camera* camera);
     ~RedLightDetector();
+
     void update();
     void processImage(Image* input, Image* output);
+
+    bool found;
     double getX();
     double getY();
+    
     void show(char* window);
     IplImage* getAnalyzedImage();
     
   private:
+    void init();
+    
     int lightFramesOff;
     int lightFramesOn;
     int blinks;
@@ -58,8 +59,8 @@ class RAM_EXPORT RedLightDetector
     IplImage* saveFrame;
     CvPoint lightCenter;
     
-    ram::vision::Image* frame;
-    ram::vision::OpenCVCamera* cam;
+    Image* frame;
+    Camera* cam;
 };
 	
 } // namespace vision

@@ -10,15 +10,34 @@
 // STD Includes
 #include <algorithm>
 
+// Library Includes
+#include "highgui.h"
+
 // Project Includes
+#include "vision/include/main.h"
+#include "vision/include/Camera.h"
+#include "vision/include/OpenCVImage.h"
 #include "vision/include/RedLightDetector.h"
 
 namespace ram {
 namespace vision {
 
-RedLightDetector::RedLightDetector(OpenCVCamera* camera)
+RedLightDetector::RedLightDetector(core::ConfigNode config,
+                                   core::EventHubPtr eventHub) :
+    Detector(eventHub),
+    cam(0)
 {
-    cam = camera;
+    init();
+}
+    
+RedLightDetector::RedLightDetector(Camera* camera) :
+    cam(camera)    
+{
+    init();
+}
+
+void RedLightDetector::init()
+{
     frame = new ram::vision::OpenCVImage(640,480);
     found=false;
     lightFramesOff=0;
@@ -32,9 +51,9 @@ RedLightDetector::RedLightDetector(OpenCVCamera* camera)
     image=cvCreateImage(cvSize(480,640),8,3);//480 by 640 if we put the camera on sideways again...
     raw=cvCreateImage(cvGetSize(image),8,3);
     flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-    saveFrame=cvCreateImage(cvSize(640,480),8,3);
+    saveFrame=cvCreateImage(cvSize(640,480),8,3);    
 }
-
+    
 RedLightDetector::~RedLightDetector()
 {
     delete frame;

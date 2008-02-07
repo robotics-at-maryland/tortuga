@@ -36,7 +36,8 @@ sources = ['src/BasicImage.cpp',
 	   'src/VisionSystem.cpp',
 	   'src/DetectorTest.cpp',
 	   'src/VisionRunner.cpp',
-	   'src/Events.cpp'
+	   'src/Events.cpp',
+           'src/Detector.cpp'
 	]
 
 detectorSources = [
