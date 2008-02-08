@@ -1,7 +1,9 @@
 function Fthrust = ObserverController(y,xd,dt)
 % Returns force output from the observer controller
-A = [0 1;0 0];
-B = [0; 1];
+m=20;
+c=11.5;
+A = [0 1;0 -c/m];
+B = [0; 1/m];
 C = [1 0];
 
 

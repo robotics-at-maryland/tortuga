@@ -14,6 +14,7 @@ global L;
 x_hat=[0 0]';%initialize the global variable to rest conditions
 
 
+c=11.5;
 m=20;%mass of sub in kg
 p_water=998;%density of water in kg/m^3
 g=9.8;%gravitational constant in m/s^2
@@ -45,12 +46,15 @@ elseif strcmp('P',upper(controlType))==1
     kp=40;
 elseif strcmp('OC',upper(controlType))==1
     %Observer Controller - ObserverControllerCoefficients.m
-     K=[16.4 8.1];
-     L=[44.1; 486.2];
+    % K=[16.4 8.1];
+    % L=[44.1; 486.2];
+      K=[9.5358 16.12];
+      L=[43.525; 461.173];
 elseif strcmp('LQG',upper(controlType))==1
     %LQG Controller - LQGCoefficients.m
-     K = [0.1414  2.5134];
-     L = [0.0229; 0.0003];
+     K = [3.162277660168380   4.585431495820535];
+     L = [ 0.229271574791027;
+   0.026282727503579];
 end    
    
 
@@ -125,7 +129,7 @@ for i=2:length(time)
     end
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
-    x(3,i)=-constant/m+(Fthrust(i)/m);
+    x(3,i)=-c/m+(Fthrust(i)/m);
 end
 figure (1)
 %plot actual and measured position
