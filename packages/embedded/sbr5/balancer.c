@@ -2,7 +2,7 @@
 #include <string.h>
 #include "buscodes.h"
 
-#define SENSORBOARD_POWERBOARD
+#define SENSORBOARD_BALANCERBOARD
 #include "uart.c"
 #include "i2c.c"
 
@@ -56,44 +56,13 @@ _FWDT ( WDT_OFF );
 #define IN_BATT4    _LATC14
 #define TRIS_BATT4  _TRISC14
 
+#define IN_BATT5    _LATC14
+#define TRIS_BATT5  _TRISC14
 
 /* We know this one is active low */
 #define IN_WTRSEN   _LATG6
 #define TRIS_WTRSEN _TRISG6
 #define WATER_CN_BIT  (CNEN1bits.CN8IE)
-
-
-/* Level specification for marker outputs */
-#define MRKR_ON     1
-
-#define LAT_MRKR1   _LATF0
-#define TRIS_MRKR1  _TRISF0
-
-#define LAT_MRKR2   _LATF1
-#define TRIS_MRKR2  _TRISF1
-
-
-/* Level specification for thruster enables */
-#define MOTR_ON     1
-
-/* Thruster pin assignments */
-#define LAT_MOTR1   _LATG0
-#define TRIS_MOTR1  _TRISG0
-
-#define LAT_MOTR2   _LATG1
-#define TRIS_MOTR2  _TRISG1
-
-#define LAT_MOTR3   _LATG8
-#define TRIS_MOTR3  _TRISG8
-
-#define LAT_MOTR4   _LATG9
-#define TRIS_MOTR4  _TRISG9
-
-#define LAT_MOTR5   _LATG12
-#define TRIS_MOTR5  _TRISG12
-
-#define LAT_MOTR6   _LATG13
-#define TRIS_MOTR6  _TRISG13
 
 
 /* Power kill output level specification */
@@ -104,13 +73,26 @@ _FWDT ( WDT_OFF );
 #define TRIS_PWRKILL _TRISG14
 
 
-/* Kill switch level specification */
-#define KILLSW_ON 1
 
-/* Kill switch input */
-#define IN_KILLSW   _RG15
-#define TRIS_KILLSW _TRISG15
+/* Level specification for battery control outputs */
+#define BATT_ENABLE 1
 
+
+/* Battery control outputs */
+#define LAT_BATT1_CTL   _LATG12
+#define TRIS_BATT1_CTL  _TRISG12
+
+#define LAT_BATT2_CTL   _LATG12
+#define TRIS_BATT2_CTL  _TRISG12
+
+#define LAT_BATT3_CTL   _LATG12
+#define TRIS_BATT3_CTL  _TRISG12
+
+#define LAT_BATT4_CTL   _LATG12
+#define TRIS_BATT4_CTL  _TRISG12
+
+#define LAT_BATT5_CTL   _LATG12
+#define TRIS_BATT5_CTL  _TRISG12
 
 
 /* Transmit buffer */
@@ -171,7 +153,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "PWR MRK THR");
+                    txBuf[0] = sprintf(txBuf+1, "BAL WTR PWR");
                     break;
                 }
 
@@ -227,48 +209,6 @@ void processData(byte data)
                 }
 #endif
 
-                case BUS_CMD_MARKER1:
-                {
-                    dropMarker(0);
-                    break;
-                }
-
-                case BUS_CMD_MARKER2:
-                {
-                    dropMarker(1);
-                    break;
-                }
-
-
-                case BUS_CMD_THRUSTER1_OFF:  { LAT_MOTR1 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER2_OFF:  { LAT_MOTR2 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER3_OFF:  { LAT_MOTR3 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER4_OFF:  { LAT_MOTR4 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; break; }
-
-                case BUS_CMD_THRUSTER1_ON:  { LAT_MOTR1 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER2_ON:  { LAT_MOTR2 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER3_ON:  { LAT_MOTR3 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER4_ON:  { LAT_MOTR4 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER5_ON:  { LAT_MOTR5 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER6_ON:  { LAT_MOTR6 = MOTR_ON; break; }
-
-                case BUS_CMD_THRUSTER_STATE:
-                {
-                    disableBusInterrupt();
-                    txBuf[0] = 1;
-                    txBuf[1] = 0;
-
-                    if(LAT_MOTR1 == MOTR_ON) txBuf[1] |= 0x01;
-                    if(LAT_MOTR2 == MOTR_ON) txBuf[1] |= 0x02;
-                    if(LAT_MOTR3 == MOTR_ON) txBuf[1] |= 0x04;
-                    if(LAT_MOTR4 == MOTR_ON) txBuf[1] |= 0x08;
-                    if(LAT_MOTR5 == MOTR_ON) txBuf[1] |= 0x10;
-                    if(LAT_MOTR6 == MOTR_ON) txBuf[1] |= 0x20;
-                    enableBusInterrupt();
-                    break;
-                }
 
                 case BUS_CMD_BOARDSTATUS:
                 {
@@ -277,8 +217,9 @@ void processData(byte data)
                     txBuf[1] = 0;
 
                     if(IN_WTRSEN == 0) txBuf[1] |= 0x01;
-                    if(IN_KILLSW == KILLSW_ON) txBuf[1] |= 0x02;
 
+
+                    if(IN_BATT5 == BATT_ON) txBuf[1] |= 0x04;
                     if(IN_BATT4 == BATT_ON) txBuf[1] |= 0x04;
                     if(IN_BATT3 == BATT_ON) txBuf[1] |= 0x08;
                     if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x10;
@@ -434,57 +375,6 @@ byte checkBus()
 
 
 /*
- * Drop the first marker. I am assuming we have multiple markers. This is
- * really here to let me play with interrupts and learn how to use the
- * timer module. I cannot occupy the slave while the marker drops, so
- * marker command sets marker output to 1, and then a timer interrupt must
- * bring it back to 0.
- */
-void dropMarker(byte id)
-{
-    /* Set appropriate output to 1 */
-    if(id == 0)
-        LAT_MRKR1 = MRKR_ON;
-    else
-        LAT_MRKR2 = MRKR_ON;
-
-
-    /* Timer1 is a Type A timer. Evidently there are other types
-     * The clock rate is 96MHz, after PLL. So.. it seems that:
-     * (1/96e6) * (256 prescaler) * (4 clocks per insn) * (65536 period) = 0.69 seconds.
-     * Oh well, 2.79 seconds of soleniod operation should be enough time to drop a
-     * marker, but I would like to know the reason for this discrepantcy.
-     */
-
-    PR1 = 7500;            /* Period */
-    TMR1 = 0;               /* Reset timer */
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 1;      /* Enable interrupts */
-    T1CONbits.TCS = 0;      /* Use internal clock */
-    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
-    T1CONbits.TON = 1;      /* Start Timer1 */
-}
-
-/* ISR for Timer1. Used for turning off marker soleniod after it was turned on */
-void _ISR _T1Interrupt(void)
-{
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 0;      /* Disable interrupts */
-
-    /* This timer kills both solenoids. If one marker is dropped, and another is
-     * dropped before the first soleniod deactivates, the timer is reset and both
-     * solenids will deactivate when the timer expires.
-     */
-
-    LAT_MRKR1 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
-    LAT_MRKR2 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
-
-    T1CONbits.TON = 0;  /* Stop Timer1 */
-}
-
-
-
-/*
  * These functions are insanely simple. But they are made anyway to prevent
  * a race condition when the bus code tries to send back partially-written data.
  *
@@ -566,39 +456,6 @@ void _ISR _CNInterrupt(void)
         checkBus();
 }
 
-
-int depthArray[100];
-int dp=0;
-
-void _ISR _ADCInterrupt(void)
-{
-    IFS0bits.ADIF = 0;
-    byte i=0;
-
-    long ad=0;
-
-
-    depthArray[dp++] = ADCBUF0;
-    if(dp >= 100)
-        dp=0;
-
-    ad = 0;
-    for(i=0; i<100; i++)
-        ad+= depthArray[i];
-
-    ad /= 100;
-
-
-    /*
-     * Why does disabling and re-enabling the CN interrupts muck up the data transfers?
-     * Maybe some interrupt bits need to be dealt with. Since average depth is only a 16-bit
-     * value, the assignment operation is atomic and there should be no data race here.
-     */
-//     disableBusInterrupt();
-    avgDepth = ad;
-//     enableBusInterrupt();
-}
-
 /*
  * Initialize ADC for depth sensor. All this code really needs to be split up
  * into different files, each one different for each slave. But for now, write
@@ -638,37 +495,29 @@ void main()
     byte i;
     long l;
 
+    LAT_BATT1_CTL = BATT_ENABLE;
+    LAT_BATT2_CTL = BATT_ENABLE;
+    LAT_BATT3_CTL = BATT_ENABLE;
+    LAT_BATT4_CTL = BATT_ENABLE;
+    LAT_BATT5_CTL = BATT_ENABLE;
+
+    TRIS_BATT1_CTL = TRIS_OUT;
+    TRIS_BATT2_CTL = TRIS_OUT;
+    TRIS_BATT3_CTL = TRIS_OUT;
+    TRIS_BATT4_CTL = TRIS_OUT;
+    TRIS_BATT5_CTL = TRIS_OUT;
+
+
     TRIS_BATT1 = TRIS_IN;
     TRIS_BATT2 = TRIS_IN;
     TRIS_BATT3 = TRIS_IN;
     TRIS_BATT4 = TRIS_IN;
+    TRIS_BATT5 = TRIS_IN;
 
     TRIS_WTRSEN = TRIS_IN;
 
-    LAT_MRKR1 = ~MRKR_ON;
-    LAT_MRKR2 = ~MRKR_ON;
-
-    TRIS_MRKR1 = TRIS_OUT;
-    TRIS_MRKR2 = TRIS_OUT;
-
-    LAT_MOTR1 = ~MOTR_ON;
-    LAT_MOTR2 = ~MOTR_ON;
-    LAT_MOTR3 = ~MOTR_ON;
-    LAT_MOTR4 = ~MOTR_ON;
-    LAT_MOTR5 = ~MOTR_ON;
-    LAT_MOTR6 = ~MOTR_ON;
-
-    TRIS_MOTR1 = TRIS_OUT;
-    TRIS_MOTR2 = TRIS_OUT;
-    TRIS_MOTR3 = TRIS_OUT;
-    TRIS_MOTR4 = TRIS_OUT;
-    TRIS_MOTR5 = TRIS_OUT;
-    TRIS_MOTR6 = TRIS_OUT;
-
     LAT_PWRKILL = ~PWRKILL_ON;
     TRIS_PWRKILL = TRIS_OUT;
-
-    TRIS_KILLSW = TRIS_IN;
 
     initBus();
     initADC();

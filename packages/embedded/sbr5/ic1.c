@@ -32,19 +32,22 @@ _FWDT ( WDT_OFF );
 #define RW_WRITE    1
 
 
-#define IRQ_IC2     2
-#define IRQ_IC3     1
-#define IRQ_IC4     0
-#define IRQ_POWER   3
-#define IRQ_SONAR   4
+#define IRQ_IC2         2
+#define IRQ_IC3         1
+#define IRQ_IC4         0
+#define IRQ_DISTRO      3
+#define IRQ_BALANCER    4
+#define IRQ_SONAR       5
 
-#define SLAVE_ID_POWERBOARD IRQ_POWER
+#define SLAVE_ID_POWERBOARD IRQ_DISTRO
+
+
 #define SLAVE_ID_DEPTH      IRQ_IC4
-#define SLAVE_ID_THRUSTERS  IRQ_POWER
-#define SLAVE_ID_MARKERS    IRQ_POWER
+#define SLAVE_ID_THRUSTERS  IRQ_DISTRO
+#define SLAVE_ID_MARKERS    IRQ_DISTRO
 #define SLAVE_ID_TEMP       IRQ_IC3
 #define SLAVE_ID_LCD        IRQ_IC2
-#define SLAVE_ID_HARDKILL   IRQ_POWER
+#define SLAVE_ID_HARDKILL   IRQ_BALANCER
 #define SLAVE_ID_SONAR	    IRQ_SONAR
 #define SLAVE_ID_STARTSW    IRQ_IC3
 
@@ -180,10 +183,13 @@ void setReq(byte req, byte val)
         _LATB2 = val;
 
     if(req == 3)
-        _LATB4 = val;   /* Skip B3 because it is a breakout */
+        _LATB4 = val;
 
     if(req == 4)
-        _LATB3 = val;   /* Technically sonar but is actually a breakout */
+        _LATB3 = val;
+
+    if(req == 5)
+        _LATB6 = val;
 }
 
 

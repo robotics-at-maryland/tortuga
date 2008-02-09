@@ -2,7 +2,7 @@
 #include <string.h>
 #include "buscodes.h"
 
-#define SENSORBOARD_POWERBOARD
+#define SENSORBOARD_DISTROBOARD
 #include "uart.c"
 #include "i2c.c"
 
