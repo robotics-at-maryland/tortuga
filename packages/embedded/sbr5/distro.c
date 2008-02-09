@@ -245,7 +245,8 @@ void processData(byte data)
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
-                    if(IN_KILLSW == KILLSW_ON) txBuf[1] |= 0x02;
+                    if(IN_KILLSW == KILLSW_ON)
+                        txBuf[1] = 0x01;
 
                     enableBusInterrupt();
                     break;

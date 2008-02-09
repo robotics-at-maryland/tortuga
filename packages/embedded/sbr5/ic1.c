@@ -50,6 +50,9 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_HARDKILL   IRQ_BALANCER
 #define SLAVE_ID_SONAR	    IRQ_SONAR
 #define SLAVE_ID_STARTSW    IRQ_IC3
+#define SLAVE_ID_KILLSW     IRQ_DISTRO
+#define SLAVE_ID_BATTSTAT   IRQ_BALANCER
+
 
 #define SLAVE_ID_MM1        IRQ_IC2
 #define SLAVE_ID_MM2        IRQ_IC2
@@ -667,6 +670,8 @@ int main(void)
                 break;
             }
 
+
+            // [S  K  W B1 B2 B3 B4 B5]
             case HOST_CMD_BOARDSTATUS:
             {
                 t1 = waitchar(1);
@@ -676,20 +681,37 @@ int main(void)
                     break;
                 }
 
-                /* Read battery, water, and killsw info from power board */
-                if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_POWERBOARD) != 0)
+                /* Read battery and water from balancer board */
+                if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_BATTSTAT) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
-                if(readDataBlock(SLAVE_ID_POWERBOARD) != 1)
+                if(readDataBlock(SLAVE_ID_BATTSTAT) != 1)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
                 t1 = rxBuf[0];
+
+
+                /* Read kill switch from another chip......... */
+                if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_KILLSW) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(readDataBlock(SLAVE_ID_KILLSW) != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(rxBuf[0] & 0x01)
+                    t1 |= 0x40;
 
                 /* Read start switch from another chip......... */
                 if(busWriteByte(BUS_CMD_STARTSW, SLAVE_ID_STARTSW) != 0)
