@@ -40,29 +40,6 @@ _FWDT ( WDT_OFF );
 #define RW_WRITE    1
 
 
-/* Level specification for battery inputs */
-#define BATT_ON     1
-
-/* Battery input pin assignments */
-#define IN_BATT1    _LATC1
-#define TRIS_BATT1  _TRISC1
-
-#define IN_BATT2    _LATC2
-#define TRIS_BATT2  _TRISC2
-
-#define IN_BATT3    _LATC13
-#define TRIS_BATT3  _TRISC13
-
-#define IN_BATT4    _LATC14
-#define TRIS_BATT4  _TRISC14
-
-
-/* We know this one is active low */
-#define IN_WTRSEN   _LATG6
-#define TRIS_WTRSEN _TRISG6
-#define WATER_CN_BIT  (CNEN1bits.CN8IE)
-
-
 /* Level specification for marker outputs */
 #define MRKR_ON     1
 
@@ -94,14 +71,6 @@ _FWDT ( WDT_OFF );
 
 #define LAT_MOTR6   _LATG13
 #define TRIS_MOTR6  _TRISG13
-
-
-/* Power kill output level specification */
-#define PWRKILL_ON  1
-
-/* Power kill pin assignment */
-#define LAT_PWRKILL _LATG14
-#define TRIS_PWRKILL _TRISG14
 
 
 /* Kill switch level specification */
@@ -276,20 +245,9 @@ void processData(byte data)
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
-                    if(IN_WTRSEN == 0) txBuf[1] |= 0x01;
                     if(IN_KILLSW == KILLSW_ON) txBuf[1] |= 0x02;
 
-                    if(IN_BATT4 == BATT_ON) txBuf[1] |= 0x04;
-                    if(IN_BATT3 == BATT_ON) txBuf[1] |= 0x08;
-                    if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x10;
-                    if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x20;
                     enableBusInterrupt();
-                    break;
-                }
-
-                case BUS_CMD_HARDKILL:
-                {
-                    LAT_PWRKILL = PWRKILL_ON; /* Uh oh.... master kill */
                     break;
                 }
             }
@@ -503,23 +461,11 @@ void disableBusInterrupt()
     REQ_CN_BIT = 0;    /* Turn off CN for the pin */
 }
 
-void enableWaterInterrupt()
-{
-    WATER_CN_BIT = 1; /* Turn on CN for the pin */
-    checkBus();
-}
-
-void disableWaterInterrupt()
-{
-    WATER_CN_BIT = 0;    /* Turn off CN for the pin */
-}
-
 
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
     enableBusInterrupt();
-    enableWaterInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
     IPC3bits.CNIP = 4;      /* Bus at priority 4 */
@@ -555,11 +501,6 @@ void initBus()
 void _ISR _CNInterrupt(void)
 {
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
-
-    if(WATER_CN_BIT == 1 && IN_WTRSEN == 0)  /* WATER!!! */
-    {
-        LAT_PWRKILL = PWRKILL_ON;      /* Hard Kill */
-    }
 
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
@@ -638,13 +579,6 @@ void main()
     byte i;
     long l;
 
-    TRIS_BATT1 = TRIS_IN;
-    TRIS_BATT2 = TRIS_IN;
-    TRIS_BATT3 = TRIS_IN;
-    TRIS_BATT4 = TRIS_IN;
-
-    TRIS_WTRSEN = TRIS_IN;
-
     LAT_MRKR1 = ~MRKR_ON;
     LAT_MRKR2 = ~MRKR_ON;
 
@@ -665,8 +599,6 @@ void main()
     TRIS_MOTR5 = TRIS_OUT;
     TRIS_MOTR6 = TRIS_OUT;
 
-    LAT_PWRKILL = ~PWRKILL_ON;
-    TRIS_PWRKILL = TRIS_OUT;
 
     TRIS_KILLSW = TRIS_IN;
 
