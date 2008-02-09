@@ -840,7 +840,50 @@ int main(void)
 
             case HOST_CMD_THRUSTERS:
             {
-#warning WRITE NEW THRUSTER STATE COMMAND
+                for(i=0; i<5; i++)
+                    rxBuf[i] = waitchar(1);
+
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                byte cflag=0;
+                byte cs=0;
+
+                // Check the special sequence
+                for(i=0; i<5; i++)
+                {
+                    cs += rxBuf[i];
+                    if(rxBuf[i] != tkSafety[i])
+                        cflag=1;
+                }
+
+                cs += t1 + HOST_CMD_THRUSTERS;
+
+
+                const static unsigned char tkCommands[]=
+                {
+                    BUS_CMD_THRUSTER1_OFF, BUS_CMD_THRUSTER2_OFF,
+                    BUS_CMD_THRUSTER3_OFF, BUS_CMD_THRUSTER4_OFF,
+                    BUS_CMD_THRUSTER5_OFF, BUS_CMD_THRUSTER6_OFF,
+
+                    BUS_CMD_THRUSTER1_ON, BUS_CMD_THRUSTER2_ON,
+                    BUS_CMD_THRUSTER3_ON, BUS_CMD_THRUSTER4_ON,
+                    BUS_CMD_THRUSTER5_ON, BUS_CMD_THRUSTER6_ON
+                };
+
+                if(cflag == 1 || t1 > 11 || (t2 != cs))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                } else
+                {
+                    if(busWriteByte(tkCommands[t1], SLAVE_ID_THRUSTERS) != 0)
+                    {
+                        sendByte(HOST_REPLY_FAILURE);
+                        break;
+                    }
+                }
+                sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
 
