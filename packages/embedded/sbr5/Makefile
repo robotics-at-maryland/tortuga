@@ -18,13 +18,19 @@ LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
 
 
-all: ic1.hex ic2.hex ic3.hex ic4.hex power.hex debug.hex
+all: ic1.hex ic2.hex ic3.hex ic4.hex distro.hex balancer.hex debug.hex
 
-power.o : power.c buscodes.h uart.c i2c.c
-	$(CC) -mcpu=30F5011 $(CFLAGS) -Wunused-function -c $< -o $@
+distro.o : distro.c buscodes.h uart.c i2c.c
+	$(CC) -mcpu=30F6014 $(CFLAGS) -Wunused-function -c $< -o $@
 
-power.elf : power.o uart.c i2c.c
-	$(CC) -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f5011.gld,--heap=0,-lp30F5011-elf,--report-mem /home/steve/dspicc/c30/lib/libp30F5011-elf.a $< -o $@
+balancer.o : balancer.c buscodes.h uart.c i2c.c
+	$(CC) -mcpu=30F6014 $(CFLAGS) -Wunused-function -c $< -o $@
+
+distro.elf : distro.o uart.c i2c.c
+	$(CC) -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f5011.gld,--heap=0,-lp30F6014-elf,--report-mem /home/steve/dspicc/c30/lib/libp30F5011-elf.a $< -o $@
+
+balancer.elf : balancer.o uart.c i2c.c
+	$(CC) -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f5011.gld,--heap=0,-lp30F6014-elf,--report-mem /home/steve/dspicc/c30/lib/libp30F5011-elf.a $< -o $@
 
 
 %.hex : %.elf
@@ -54,8 +60,11 @@ ic3: ic3.hex
 ic4: ic4.hex
 	piklab-prog -p icd2 -d 30f4011 -c program ic4.hex
 
-power: power.hex
-	piklab-prog -p icd2 -d 30f5011 -c program power.hex
+distro: distro.hex
+	piklab-prog -p icd2 -d 30f5011 -c program distro.hex
+
+balancer: balancer.hex
+	piklab-prog -p icd2 -d 30f5011 -c program balancer.hex
 
 debug: debug.hex
 	piklab-prog -p icd2 -d 30f4011 -c program debug.hex
