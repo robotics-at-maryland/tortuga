@@ -62,6 +62,9 @@ void OpenCVImage::copyFrom (const Image* src)
     if ((getWidth() != src->getWidth()) ||
         (getHeight() != src->getHeight()) )
     {
+        assert(m_own && "Cannot perform resize unless I own the image");
+        cvReleaseImage(&m_img);
+        m_img = cvCreateImage(cvSize(src->getWidth(), src->getHeight()), 8, 3);
         cvResize(tmp_img, m_img);
     }
     else
