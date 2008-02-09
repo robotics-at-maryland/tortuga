@@ -32,6 +32,7 @@ Torus Knot Software Ltd.
 // STD Includes
 #include <limits>
 #include <cmath>
+#include <ostream>
 
 // Project Includes
 //#include "core/include/Platform.h"
@@ -90,6 +91,13 @@ namespace math {
 		bool operator != ( const Radian& r ) const { return mRad != r.mRad; }
 		bool operator >= ( const Radian& r ) const { return mRad >= r.mRad; }
 		bool operator >  ( const Radian& r ) const { return mRad >  r.mRad; }
+                inline friend std::ostream& operator <<
+                    ( std::ostream& o, const Radian& r )
+                {
+                    o << "Radian(" << r.valueRadians() << ")";
+                    return o;
+                }
+                
 	};
 
     /** Wrapper class which indicates a given angle value is in Degrees.
@@ -134,6 +142,13 @@ namespace math {
 		bool operator != ( const Degree& d ) const { return mDeg != d.mDeg; }
 		bool operator >= ( const Degree& d ) const { return mDeg >= d.mDeg; }
 		bool operator >  ( const Degree& d ) const { return mDeg >  d.mDeg; }
+
+                inline friend std::ostream& operator <<
+                    ( std::ostream& o, const Degree& d )
+                {
+                    o << "Degree(" << d.valueDegrees() << ")";
+                    return o;
+                }
 	};
 
     /** Wrapper class which identifies a value as the currently default angle 

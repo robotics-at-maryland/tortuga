@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <algorithm>
+#include <cmath>
 
 // Library Includes
 #include "highgui.h"
@@ -18,6 +19,7 @@
 #include "vision/include/Camera.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/RedLightDetector.h"
+#include "vision/include/Events.h"
 
 namespace ram {
 namespace vision {
@@ -111,6 +113,11 @@ void RedLightDetector::processImage(Image* input, Image* output)
     
     if (redPixelCount<minRedPixels)
     {
+        // Just lost the light so issue a lost event
+        if (found)
+            publish(EventType::LIGHT_LOST, core::EventPtr(new core::Event()));
+            
+        
         p.x=p.y=-1;
         found=false; //Completely ignoring the state machine for the time being.
         if (minRedPixels>400)
@@ -119,7 +126,7 @@ void RedLightDetector::processImage(Image* input, Image* output)
             minRedPixels=400;
     }	
     else
-    {
+    {   
         minRedPixels=(int)(redPixelCount*.75);
         found=true; //completely ignoring the state machine for the time being.
 //	        	        cout<<"FOUND RED LIGHT "<<endl;
@@ -135,19 +142,32 @@ void RedLightDetector::processImage(Image* input, Image* output)
         cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
         lightCenter.x = p.x;
         lightCenter.y = p.y;
+
+        redLightCenterX = lightCenter.x;
+        redLightCenterY = lightCenter.y;
+    
+        // Shift origin to the center
+        redLightCenterX = -1 * ((image->width / 2) - redLightCenterX);
+        redLightCenterY = (image->height / 2) - redLightCenterY;
+    
+        // Normalize (-1 to 1)
+        redLightCenterX = redLightCenterX / ((double)(image->width)) * 2.0;
+        redLightCenterY = redLightCenterY / ((double)(image->height)) * 2.0;
+
+        RedLightEventPtr event(new RedLightEvent(0, 0));
+        event->x = redLightCenterX;
+        event->y = redLightCenterY;
+        event->azimuth = math::Degree((78.0 / 2) * event->x * -2);
+        event->elevation = math::Degree((105.0 / 2) * event->y * 2);
+
+        // Compute range (assume a sphere)
+        double lightRadius = 0.25; // feet
+        event->range = (lightRadius * image->width) /
+            (sqrt((double)redPixelCount/M_PI) * tan(78.0/2 * (M_PI/180)));
+        
+        publish(EventType::LIGHT_FOUND, event);
     }
 
-    redLightCenterX = lightCenter.x;
-    redLightCenterY = lightCenter.y;
-    
-    // Shift origin to the center
-    redLightCenterX = -1 * ((image->width / 2) - redLightCenterX);
-    redLightCenterY = (image->height / 2) - redLightCenterY;
-    
-    // Normalize (-1 to 1)
-    redLightCenterX = redLightCenterX / ((double)(image->width)) * 2.0;
-    redLightCenterY = redLightCenterY / ((double)(image->height)) * 2.0;
-    
     
     if (found)
     {

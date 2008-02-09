@@ -11,16 +11,17 @@
 #define RAM_VISION_EVENTS_01_08_2008
 
 // Project Includes
-#include "core/include/Event.h"
 #include "vision/include/Common.h"
+#include "core/include/Event.h"
+#include "math/include/Math.h"
 
 namespace ram {
 namespace vision {
 
-class EventType 
+struct EventType 
 {
-    public:
     static const core::Event::EventType LIGHT_FOUND;
+    static const core::Event::EventType LIGHT_LOST;
     static const core::Event::EventType PIPE_FOUND;
     static const core::Event::EventType GATE_FOUND;
     static const core::Event::EventType BIN_FOUND;
@@ -42,7 +43,10 @@ class RedLightEvent : public core::Event
 public:
     RedLightEvent(double x, double y)
         {this->x=x; this->y=y;}
-    
+
+    math::Degree azimuth;
+    math::Degree elevation;
+    double range;
     double x;
     double y;
     int pixCount;

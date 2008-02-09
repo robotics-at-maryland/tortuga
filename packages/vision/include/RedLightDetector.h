@@ -33,7 +33,7 @@ class RAM_EXPORT RedLightDetector : public Detector
     ~RedLightDetector();
 
     void update();
-    void processImage(Image* input, Image* output);
+    void processImage(Image* input, Image* output= 0);
 
     bool found;
     double getX();
