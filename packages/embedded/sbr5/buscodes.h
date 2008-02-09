@@ -73,7 +73,11 @@
 #define BUS_CMD_BATT5_ON        0x31
 
 
-/* Next free is 0x32 */
+#define BUS_CMD_SOFTKILL_SAFE   0x32
+#define BUS_CMD_SOFTKILL_UNSAFE 0x33
+
+
+/* Next free is 0x34 */
 
 
 
