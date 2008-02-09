@@ -58,10 +58,22 @@
 #define BUS_CMD_GETREPLY_U1     0x21
 #define BUS_CMD_GETREPLY_U2     0x22
 
-
 #define BUS_CMD_STARTSW         0x27
 
-/* Next free is 0x28 */
+#define BUS_CMD_BATT1_OFF       0x28
+#define BUS_CMD_BATT2_OFF       0x29
+#define BUS_CMD_BATT3_OFF       0x2A
+#define BUS_CMD_BATT4_OFF       0x2B
+#define BUS_CMD_BATT5_OFF       0x2C
+
+#define BUS_CMD_BATT1_ON        0x2D
+#define BUS_CMD_BATT2_ON        0x2E
+#define BUS_CMD_BATT3_ON        0x2F
+#define BUS_CMD_BATT4_ON        0x30
+#define BUS_CMD_BATT5_ON        0x31
+
+
+/* Next free is 0x32 */
 
 
 

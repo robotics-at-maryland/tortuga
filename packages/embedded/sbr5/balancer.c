@@ -216,17 +216,28 @@ void processData(byte data)
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
-                    if(IN_WTRSEN == 0) txBuf[1] |= 0x01;
+                    if(IN_BATT5 == BATT_ON) txBuf[1] |= 0x01;
+                    if(IN_BATT4 == BATT_ON) txBuf[1] |= 0x02;
+                    if(IN_BATT3 == BATT_ON) txBuf[1] |= 0x04;
+                    if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x08;
+                    if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x10;
+                    if(IN_WTRSEN == 0) txBuf[1] |= 0x20;
 
-
-                    if(IN_BATT5 == BATT_ON) txBuf[1] |= 0x04;
-                    if(IN_BATT4 == BATT_ON) txBuf[1] |= 0x04;
-                    if(IN_BATT3 == BATT_ON) txBuf[1] |= 0x08;
-                    if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x10;
-                    if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x20;
                     enableBusInterrupt();
                     break;
                 }
+
+                case BUS_CMD_BATT1_OFF: {LAT_BATT1_CTL = ~BATT_ENABLE; break;}
+                case BUS_CMD_BATT2_OFF: {LAT_BATT2_CTL = ~BATT_ENABLE; break;}
+                case BUS_CMD_BATT3_OFF: {LAT_BATT3_CTL = ~BATT_ENABLE; break;}
+                case BUS_CMD_BATT4_OFF: {LAT_BATT4_CTL = ~BATT_ENABLE; break;}
+                case BUS_CMD_BATT5_OFF: {LAT_BATT5_CTL = ~BATT_ENABLE; break;}
+
+                case BUS_CMD_BATT1_ON: {LAT_BATT1_CTL = BATT_ENABLE; break;}
+                case BUS_CMD_BATT2_ON: {LAT_BATT2_CTL = BATT_ENABLE; break;}
+                case BUS_CMD_BATT3_ON: {LAT_BATT3_CTL = BATT_ENABLE; break;}
+                case BUS_CMD_BATT4_ON: {LAT_BATT4_CTL = BATT_ENABLE; break;}
+                case BUS_CMD_BATT5_ON: {LAT_BATT5_CTL = BATT_ENABLE; break;}
 
                 case BUS_CMD_HARDKILL:
                 {
