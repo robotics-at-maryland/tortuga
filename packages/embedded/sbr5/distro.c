@@ -81,13 +81,6 @@ _FWDT ( WDT_OFF );
 #define TRIS_KILLSW _TRISG15
 
 
-/* Soft kill level specification */
-#define SOFTKILL_SAFE 1
-
-/* Soft kill output */
-#define LAT_SOFTKILL   _RG15
-#define TRIS_SOFTKILL _TRISG15
-
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -229,9 +222,6 @@ void processData(byte data)
                 case BUS_CMD_THRUSTER4_ON:  { LAT_MOTR4 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER5_ON:  { LAT_MOTR5 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER6_ON:  { LAT_MOTR6 = MOTR_ON; break; }
-
-                case BUS_CMD_SOFTKILL_SAFE: { LAT_SOFTKILL = SOFTKILL_SAFE; break;}
-                case BUS_CMD_SOFTKILL_UNSAFE: { LAT_SOFTKILL = ~SOFTKILL_SAFE; break;}
 
                 case BUS_CMD_THRUSTER_STATE:
                 {
@@ -611,9 +601,6 @@ void main()
     TRIS_MOTR6 = TRIS_OUT;
 
     TRIS_KILLSW = TRIS_IN;
-
-    LAT_SOFTKILL = SOFTKILL_SAFE;
-    TRIS_SOFTKILL = TRIS_OUT;
 
     initBus();
     initADC();
