@@ -34,8 +34,8 @@ void CheckClose(TestResults& results,
     // Check Width and Height
     if (expected.getWidth() != actual.getWidth())
     {
-        stream << "Expected image width " << expected.getWidth() << "but was "
-               << actual.getWidth();
+        stream << "Expected image width " << expected.getWidth()
+               << " but was " << actual.getWidth();
     
         results.OnTestFailure(details, stream.GetText());
         
@@ -44,8 +44,8 @@ void CheckClose(TestResults& results,
 
     if (expected.getHeight() != actual.getHeight())
     {
-        stream << "Expected image height " << expected.getHeight() << "but was "
-               << actual.getHeight();
+        stream << "Expected image height " << expected.getHeight()
+               << " but was " << actual.getHeight();
     
         results.OnTestFailure(details, stream.GetText());
         
@@ -56,7 +56,7 @@ void CheckClose(TestResults& results,
     if (expected.getPixelFormat() != actual.getPixelFormat())
     {
         stream << "Expected image pixel format " << expected.getPixelFormat()
-               << "but was " << actual.getPixelFormat();
+               << " but was " << actual.getPixelFormat();
     
         results.OnTestFailure(details, stream.GetText());
         
@@ -117,7 +117,34 @@ void CheckClose(TestResults& results,
     CheckClose(results, expected, actual, static_cast<double>(tolerance),
                details);
 }
-    
+
+template<>
+void CheckClose(TestResults& results,
+                ram::vision::OpenCVImage* const& expected,
+                ram::vision::OpenCVImage* const& actual,
+                double const& tolerance,
+                TestDetails const& details)
+{
+    CheckClose(results,
+               *((ram::vision::Image*)(expected)),
+               *((ram::vision::Image*)(actual)),
+               tolerance, details);
+}
+
+template<>
+void CheckClose(TestResults& results,
+                ram::vision::OpenCVImage* const& expected,
+                ram::vision::OpenCVImage* const& actual,
+                int const& tolerance,
+                TestDetails const& details)
+{
+    CheckClose(results,
+               *((ram::vision::Image*)(expected)),
+               *((ram::vision::Image*)(actual)),
+               static_cast<double>(tolerance),
+               details);
+}
+
 } // namespace UnitTest    
 
 #endif // RAM_VISION_TEST_UNITTESTCHECKSIMP_H_01_23_2008

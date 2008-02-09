@@ -60,15 +60,24 @@ public:
      */
     void getImage(Image* current);
 
-    /** Retrieves the next image from the camera.
+    /** Waitfs for next image from the camera, then copies to given image
      *
      *  This will block until the next image is grabed from the camera then call
-     *  getImage.
+     *  getImage. If the camera is not running in the background it will
+     *  return early with false. current will be unchanged.
      *
      *  @current  The current image is copied into the given image
      *            and that pointer is returned.
+     *
+     *  @return   True if an image copied to current false if not.
      */
-    void waitForImage(Image* current);
+    bool waitForImage(Image* current);
+
+    /** Waits for the next camera image (with a timeout)
+     *
+     *  @return  False if the result timed out, or the camera is not capturing
+     */
+    bool waitForImage(Image* current, const boost::xtime &xt);
     
     /** Grabs an image from the camera and saves it with capturedImage
      *
@@ -87,6 +96,12 @@ public:
 
     /** Returns the current FPS of the camera */
     //virtual size_t fps() = 0;
+
+    /** Start the camera running the background */
+    virtual void background(int rate = -1);
+    
+    /** Stop the camera running in the background */
+    virtual void unbackground(bool join = false);
     
 protected:
     /** No argument constructor

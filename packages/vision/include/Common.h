@@ -10,6 +10,9 @@
 #ifndef RAM_VISION_COMMON_H_05_29_2007
 #define RAM_VISION_COMMON_H_05_29_2007
 
+// Library Includes
+#include <boost/shared_ptr.hpp>
+
 namespace ram {
 namespace vision {
 
@@ -19,7 +22,10 @@ class Image;
 class OpenCVImage;
 class OpenCVCamera;
 class Calibration;
-
+    
+class Detector;
+typedef boost::shared_ptr<Detector> DetectorPtr;
+    
 } // namespace vision
 } // namespace ram
 

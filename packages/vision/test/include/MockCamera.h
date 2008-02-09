@@ -7,6 +7,9 @@
  * File:  packages/vision/test/include/MockCamera.h
  */
 
+#ifndef RAM_VISION_TEST_MOCKCAMERA_H_02_07_2008
+#define RAM_VISION_TEST_MOCKCAMERA_H_02_07_2008
+
 // Project Includes
 #include "vision/include/Image.h"
 #include "vision/include/Camera.h"
@@ -42,7 +45,22 @@ public:
 
     virtual size_t height();
 
+    virtual bool backgrounded()
+        { return _backgrounded; }
+    
+    virtual void background(int)
+        { _backgrounded = true; }
+
+    virtual void unbackground(bool join = false)
+    {
+        _backgrounded = false;
+        Camera::unbackground(join);
+    };
+
+
 protected:
+    bool _backgrounded;
+    
     ram::vision::Image* m_newImage;
     
     ram::vision::Image* m_publicImage;
@@ -55,3 +73,5 @@ protected:
     virtual void copyToPublic(ram::vision::Image* newImage,
                               ram::vision::Image* publicImage);
 };
+
+#endif // RAM_VISION_TEST_MOCKCAMERA_H_02_07_2008

@@ -16,16 +16,17 @@
 
 using namespace ram;
 
-void makeBlue(vision::Image* image)
+void makeColor(vision::Image* image, unsigned char R, unsigned char G,
+               unsigned char B)
 {
     int size = image->getWidth() * image->getHeight() * 3;
     unsigned char* data = image->getData();
     for (int i = 0; i < size; i += 3)
     {
         // BGR
-        data[i] = 255;
-        data[i + 1]  = 0;
-        data[i + 2]  = 0;
+        data[i] = B;
+        data[i + 1]  = G;
+        data[i + 2]  = R;
     }
 }
 
@@ -37,7 +38,7 @@ void drawRedCircle(vision::Image* image, int x, int y, int radius = 50)
     cvCircle(image->asIplImage(), center, radius, CV_RGB(255, 0, 0), -1);
 }
 
-SUITE(Camera) {
+SUITE(RedLightDetector) {
 
 struct RedLightDetectorFixture
 {
@@ -53,7 +54,7 @@ struct RedLightDetectorFixture
 TEST_FIXTURE(RedLightDetectorFixture, CenterLight)
 {
     // Blue Image with red circle in the center
-    makeBlue(&input);
+    makeColor(&input, 0, 0, 255);
     drawRedCircle(&input, 640/2, 240);
 
     // Process it
@@ -67,7 +68,7 @@ TEST_FIXTURE(RedLightDetectorFixture, CenterLight)
 TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
 {
     // Blue Image with red circle in upper left (remeber image rotated 90 deg)
-    makeBlue(&input);
+    makeColor(&input, 0, 0, 255);
     drawRedCircle(&input, 640 - (640/4), 480/4);
     
     detector.processImage(&input, 0);
@@ -80,7 +81,7 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
 TEST_FIXTURE(RedLightDetectorFixture, LowerRight)
 {
     // Blue Image with red circle in lower right (remeber image rotated 90 deg)
-    makeBlue(&input);
+    makeColor(&input, 0, 0, 255);
     drawRedCircle(&input, 640/4, 480/4 * 3);
     
     detector.processImage(&input, 0);
@@ -90,4 +91,4 @@ TEST_FIXTURE(RedLightDetectorFixture, LowerRight)
     CHECK(detector.found);
 }
 
-} // SUITE(Camera)
+} // SUITE(RedLightDetector)

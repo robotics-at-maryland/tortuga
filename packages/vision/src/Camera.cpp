@@ -32,6 +32,9 @@ Camera::~Camera()
 {
     assert(m_cleanedUp && "You must call Camera::cleanup before you destruct"
                           "anything");
+    assert(!backgrounded() &&
+           "Camera must not be backgrounded for destruction");
+    delete m_publicImage;
 }
 
 void Camera::getImage(Image* current)
@@ -44,19 +47,51 @@ void Camera::getImage(Image* current)
     current->copyFrom(m_publicImage);
 }
 
-void Camera::waitForImage(Image* current)
+bool Camera::waitForImage(Image* current)
 {
+    // We aren't even running in the background return
+    if (!backgrounded())
+        return false;
+    
     // Wait for the next capturedImage call
     m_imageLatch.await();
 
-    // Grab the image
-    getImage(current);
+    // Make sure we are still running the background
+    bool inBackground = backgrounded();
+    if (inBackground)
+    {
+        // Grab the image
+        getImage(current);
+    }
+    
+    return inBackground;
 }
 
+bool Camera::waitForImage(Image* current, const boost::xtime &xt)
+{
+    bool result = m_imageLatch.await(xt);
+    
+    if(result)
+        getImage(current);
+
+    return result;
+}
+
+void Camera::background(int rate)
+{
+    m_imageLatch.resetCount(1);
+    Updatable::background(rate);
+}
+    
+void Camera::unbackground(bool join)
+{
+    Updatable::unbackground(join);
+    m_imageLatch.countDown();
+}
+    
 void Camera::cleanup()
 {
     unbackground(true);
-    delete m_publicImage;
     m_cleanedUp = true;
 }
     
