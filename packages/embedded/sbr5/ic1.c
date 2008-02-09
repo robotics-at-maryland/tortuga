@@ -666,7 +666,29 @@ int main(void)
 
             case HOST_CMD_THRUSTERSTATE:
             {
-#warning WRITE NEW THRUSTER STATE COMMAND
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_THRUSTERSTATE)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                /* Read thruster state from distro board */
+                if(busWriteByte(BUS_CMD_THRUSTER_STATE, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(readDataBlock(SLAVE_ID_THRUSTERS) != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+                sendByte(HOST_REPLY_THRUSTERSTATE);
+                sendByte(rxBuf[0]);
+                sendByte(HOST_REPLY_THRUSTERSTATE+rxBuf[0]);
+
                 break;
             }
 
