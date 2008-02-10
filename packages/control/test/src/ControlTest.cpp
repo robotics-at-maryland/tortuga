@@ -137,10 +137,10 @@ int main(int argc, char** argv)
     }
 
     ram::core::Application app(configPath);
-    
+
     {
         ram::core::SubsystemPtr controller = app.getSubsystem("Controller");
-        
+
         // Got into networking loop
         networkLoop(dynamic_cast<ram::control::IController*>(controller.get()));
     }
@@ -167,9 +167,10 @@ int setupNetworking(struct sockaddr_in& my_addr)
 {
     // listen on sock_fd
     int sockfd;
+    unsigned char buf[65536];
 
     // Grab socket to listen on
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
         perror("socket");
         return sockfd;
@@ -189,13 +190,12 @@ int setupNetworking(struct sockaddr_in& my_addr)
         return ret;
     }
 
-    // Prepare socket for to accept incomming connections
-    ret = listen(sockfd, BACKLOG);
-    if (ret < 0)
-    {
-        perror("listen");
-        return ret;
-    }
+    int t = sizeof(my_addr);
+    my_addr.sin_port = 0;
+    my_addr.sin_addr.s_addr = INADDR_ANY;
+    int len = recvfrom(sockfd, buf, 65536, 0, (struct sockaddr *) &my_addr, &t);
+
+    printf("Recieved first packet.\n");
 
     return sockfd;
 }
@@ -214,78 +214,70 @@ void networkLoop(control::IController* controller)
     signal(SIGALRM, shutdownHandler);
     signal(SIGINT, shutdownHandler);
 
+
+    struct sockaddr_in their_addr;
+
+    // Recored the FD to allow external shutdown
+    g_teleopFD = sockfd;
+    printf("server: got connection\n");
+
+    // Activate deadman timer
+    alarm(DEADMAN_WAIT);
+
+    // Got connection, jump into recive loop
     while(g_running)
     {
-        struct sockaddr_in their_addr;
 
-        printf("server: waiting for connections...\n");
+        // Wait for command packet
+        signed char buf[2];
 
-        // Recored the FD to allow external shutdown
-        g_teleopFD = sockfd;
+        int t = sizeof(my_addr);
+        my_addr.sin_port = 0;
+        my_addr.sin_addr.s_addr = INADDR_ANY;
+        int len = recvfrom(sockfd, buf, 2, 0, (struct sockaddr *) &my_addr, &t);
 
-        // Wait for a connection
-        int sin_size = sizeof(struct sockaddr_in);
-        int new_fd = accept(sockfd, (struct sockaddr *)&their_addr, (socklen_t *) &sin_size);
 
-        // Error with connection, try again
-        if (new_fd < 0) {
-            perror("accept");
-            continue;
+
+        if(len != 2)
+        {
+            // If error from network drop out of receive loop
+            printf("Error reading from network\n");
+            break;
         }
 
-        printf("server: got connection\n");
+        unsigned char cmd = buf[0];
+        signed char param = buf[1];
 
-        // Activate deadman timer
+        // Reset the deadman timer
         alarm(DEADMAN_WAIT);
 
-        // Got connection, jump into recive loop
-        while(g_running)
-        {
-            // Record the current waited on FD to allow us to drop out of 'recv'
-            g_teleopFD = new_fd;
 
-            // Wait for command packet
-            signed char buf[2];
-            if(recv(new_fd, buf, 2, 0) != 2)
-            {
-                // If error from network drop out of receive loop
-                printf("Error reading from network\n");
-                break;
-            }
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
 
-            unsigned char cmd = buf[0];
-            signed char param = buf[1];
+        int startTime=0, endTime=0;
 
-            // Reset the deadman timer
-            alarm(DEADMAN_WAIT);
+        startTime = tv.tv_usec;
 
+        // Process Packet (If quit message drop out of loop, stop running)
+        g_running = processMessage(controller, cmd, param);
 
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
+        gettimeofday(&tv, NULL);
+        endTime = tv.tv_usec;
 
-            int startTime=0, endTime=0;
+        if(startTime > endTime) /* Wraparound offset */
+            endTime += 1048576;
 
-            startTime = tv.tv_usec;
+	if(cmd != CMD_NOTHING)
+	    printf("processMessage took %d usec\n", endTime - startTime);
 
-            // Process Packet (If quit message drop out of loop, stop running)
-            g_running = processMessage(controller, cmd, param);
-
-            gettimeofday(&tv, NULL);
-            endTime = tv.tv_usec;
-
-            if(startTime > endTime) /* Wraparound offset */
-                endTime += 1048576;
-		
-	    if(cmd != CMD_NOTHING)
-	       printf("processMessage took %d usec\n", endTime - startTime);
-
-        }
-
-        // Close old fd
-        close(new_fd);
-
-        printf("server: lost connection\n");
     }
+
+    // Close old fd
+    close(new_fd);
+
+    printf("server: lost connection\n");
+
 }
 
 
