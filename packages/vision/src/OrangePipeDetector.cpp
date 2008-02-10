@@ -1,23 +1,36 @@
 /*
- *  OrangePipeDetector.cpp
- *  
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
  *
- *  Created by Daniel Hakim on 6/22/07.
- *  Copyright 2007 __MyCompanyName__. All rights reserved.
- *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/OrangePipeDetector.cpp
  */
 
+// STD Includes
+#include <iostream>
+
+// Library Includes
+#include "cv.h"
+#include "highgui.h"
+
+// Project Includes
+#include "vision/include/main.h"
 #include "vision/include/OrangePipeDetector.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/Camera.h"
 
 using namespace std;
-using namespace ram::vision;
 
-OrangePipeDetector::OrangePipeDetector(OpenCVCamera* camera)
+namespace ram {
+namespace vision {
+
+OrangePipeDetector::OrangePipeDetector(Camera* camera)
 {
 	found=0;
 	angle=0;
 	cam = camera;
-    frame = new ram::vision::OpenCVImage(640, 480);
+    frame = new OpenCVImage(640, 480);
 	rotated = cvCreateImage(cvSize(640,480),8,3);//480 by 640 if camera is on sideways, else 640 by 480.
 	lineX=lineY=0;
 }
@@ -109,3 +122,6 @@ void OrangePipeDetector::update()
 		}
 	}
 }
+
+} // namespace vision
+} // namespace ram

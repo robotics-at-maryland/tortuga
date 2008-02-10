@@ -16,6 +16,7 @@ MockCamera::MockCamera(ram::vision::Image* newImage,
     m_newImage(newImage),
     m_publicImage(publicImage)
 {
+    
 }
 
 MockCamera::~MockCamera()
@@ -42,16 +43,18 @@ size_t MockCamera::width()
 {
     if (m_publicImage)
         return m_publicImage->getWidth();
-
-    return m_newImage->getWidth();
+    if (m_newImage)
+        return m_newImage->getWidth();
+    return 640;
 }
 
 size_t MockCamera::height()
 {
     if (m_publicImage)
         return m_publicImage->getHeight();
-
-    return m_newImage->getHeight();
+    if (m_newImage)
+        return m_newImage->getHeight();
+    return 480;
 }
 
 void MockCamera::copyToPublic(ram::vision::Image* newImage,

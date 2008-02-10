@@ -169,7 +169,7 @@ void RedLightDetector::processImage(Image* input, Image* output)
     }
 
     
-    if (found)
+/*    if (found)
     {
         std::cout << 1 <<" "<< redLightCenterX << " "
                   << redLightCenterY << " " << redPixelCount
@@ -178,7 +178,7 @@ void RedLightDetector::processImage(Image* input, Image* output)
     else
     {
         std::cout << "0 0 0 0" << std::endl;
-    }
+        }*/
 
     if (output)
     {

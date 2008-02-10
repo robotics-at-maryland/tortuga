@@ -1,12 +1,34 @@
-#include "vision/include/Calibration.h"
-using namespace std;
-using namespace ram::vision; 
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/GateDetector.cpp
+ */
 
-Calibration::Calibration(OpenCVCamera* camera)
+// STD Includes
+#include <iostream>
+
+// Library Includes
+#include "cv.h"
+
+// Project Includes
+#include "vision/include/main.h"
+#include "vision/include/Calibration.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/Camera.h"
+
+using namespace std;
+
+namespace ram {
+namespace vision {
+
+Calibration::Calibration(Camera* camera)
 {
 	cam=camera;
 	calibrated=false;
-	frame = new ram::vision::OpenCVImage(640,480);
+	frame = new OpenCVImage(640,480);
 	//	cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
 }
 
@@ -258,3 +280,6 @@ void Calibration::setCalibration(bool forward)
 	}
     calibrated=true;
 }
+
+} // namespace vision
+} // namespace ram

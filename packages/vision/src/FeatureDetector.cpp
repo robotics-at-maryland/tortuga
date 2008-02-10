@@ -1,12 +1,31 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/FeatureDetector.cpp
+ */
+
+
+// Library Includes
+#include "cv.h"
+#include "highgui.h"
+
+// Project Includes
+#include "vision/include/main.h"
 #include "vision/include/FeatureDetector.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/Camera.h"
 
-using namespace std;
-using namespace ram::vision;
 
-FeatureDetector::FeatureDetector(OpenCVCamera* camera, int maxFeatures)
+namespace ram {
+namespace vision {
+
+FeatureDetector::FeatureDetector(Camera* camera, int maxFeatures)
 {
 	cam = camera;
-    frame = new ram::vision::OpenCVImage(640,480);
+    frame = new OpenCVImage(640,480);
 	image=cvCreateImage(cvSize(640,480),8,3);//480 by 640 if we put the camera on sideways again...
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	eigImage=cvCreateImage(cvGetSize(image),IPL_DEPTH_32F,1);
@@ -85,4 +104,5 @@ void FeatureDetector::update()
 	}
 }
 
-
+} // namespace vision
+} // namespace ram

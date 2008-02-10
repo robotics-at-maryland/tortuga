@@ -1,11 +1,31 @@
-#include "vision/include/BinDetector.h"
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/BinDetector.cpp
+ */
 
-using namespace std;
-using namespace ram::vision;
-BinDetector::BinDetector(OpenCVCamera* camera)
+
+// Library Includes
+#include "cv.h"
+#include "highgui.h"
+
+// Project Includes
+#include "vision/include/main.h"
+#include "vision/include/BinDetector.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/Camera.h"
+
+
+namespace ram {
+namespace vision {
+
+BinDetector::BinDetector(Camera* camera)
 {
 	cam = camera;
-	frame = new ram::vision::OpenCVImage(640, 480);
+	frame = new OpenCVImage(640, 480);
 	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
 	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
 	found=0;
@@ -77,3 +97,6 @@ double BinDetector::getY()
 {
 	return binY;
 }
+
+} // namespace vision
+} // namespace ram

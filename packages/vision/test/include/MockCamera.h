@@ -26,7 +26,7 @@ public:
      *       The image copied to Public Image during copyToPublic.  If 0, then
      *       newImage is used.
      */
-    MockCamera(ram::vision::Image* newImage_,
+    MockCamera(ram::vision::Image* newImage_ = 0,
                ram::vision::Image* publicImage_ = 0);
 
     virtual ~MockCamera();

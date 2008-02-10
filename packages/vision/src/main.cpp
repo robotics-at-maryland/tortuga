@@ -1,22 +1,39 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/main.cpp
+ */
+
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <iostream>
-#include <sstream>
+// STD Includes
 #include <math.h>
 #include <cstdlib>
 #include <stdio.h>
+#include <time.h>
+
+#include <list>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+// Library Includes
 #include "cv.h"
 #include "highgui.h"
-#include <string>
-#include <time.h>
+
+// Project Includes
 #include "vision/include/main.h"
-#include "vision/include/ProcessList.h"
-#include "vision/include/VisionCommunication.h"
 
 /* 
 	Daniel Hakim
 	VISION CODE!!! 
 	PLEASE TOUCH ME.
+        
+        I am all over it.
+          -JHL 02-09-2008
 */
 using namespace std;
 using namespace ram::vision;

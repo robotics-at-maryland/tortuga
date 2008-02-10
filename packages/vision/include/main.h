@@ -1,8 +1,21 @@
-#ifndef main_h
-#define main_h
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/include/main.h
+ */
 
-#include "ProcessList.h"
+#ifndef RAM_RED_LIGHT_MAIN_H_06_23_2007
+#define RAM_RED_LIGHT_MAIN_H_06_23_2007
+
+// Project Includes
+#include "vision/include/Common.h"
+
+// Must be included last
 #include "vision/include/Export.h"
+
 //Light constants
 #define MINFRAMESON 3
 #define MINFRAMESOFF 3
@@ -29,8 +42,6 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny);
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 void RAM_EXPORT redMask(IplImage* percents, IplImage* base);
-void run(ram::vision::ProcessList* pl);
-void walk(IplImage* img, ram::vision::ProcessList* pl);
 int RAM_EXPORT histogram(IplImage* img, int* centerx, int* centery);
 int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy);
 void rotate90Deg(IplImage* image, IplImage* dest);
@@ -38,4 +49,5 @@ void rotate90DegClockwise(IplImage* src, IplImage* dest);
 void calibrateCamera(int width, int height, int* cornerCounts, float* distortion, float* cameraMatrix, float* transVects, float* rotMat, int numImages,  CvPoint2D32f* array, CvPoint3D32f* buffer);
 int findCorners(IplImage* image, CvPoint2D32f* array);
 void undistort(IplImage* image, IplImage* dest, float* cameraMatrix, float* distortion);
-#endif
+
+#endif // RAM_RED_LIGHT_MAIN_H_06_23_2007

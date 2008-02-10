@@ -1,12 +1,31 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/GateDetector.cpp
+ */
+
+
+// Library Includes
+#include "cv.h"
+#include "highgui.h"
+
+// Project Includes
+#include "vision/include/main.h"
 #include "vision/include/GateDetector.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/Camera.h"
 
-using namespace std;
-using namespace ram::vision;
 
-GateDetector::GateDetector(OpenCVCamera* camera)
+namespace ram {
+namespace vision {
+
+GateDetector::GateDetector(Camera* camera)
 {
 	cam = camera;
-	frame = new ram::vision::OpenCVImage(640,480);
+	frame = new OpenCVImage(640,480);
 	gateX=0;
 	gateY=0;
 	found=false;
@@ -68,3 +87,6 @@ void GateDetector::update()
 	gateXNorm/=image->width;
 	gateXNorm/=image->height;		
 }
+
+} // namespace vision
+} // namespace ram

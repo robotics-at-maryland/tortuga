@@ -33,4 +33,7 @@ typedef boost::shared_ptr<Detector> DetectorPtr;
 struct _IplImage;
 typedef struct _IplImage IplImage;
 
+struct CvVideoWriter;
+typedef struct CvVideoWriter CvVideoWriter;
+
 #endif // RAM_VISION_COMMON_H_05_29_2007

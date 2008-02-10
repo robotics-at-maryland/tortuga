@@ -7,31 +7,30 @@
  *
  */
 
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/include/FeatureDetector.h
+ */
+
 #ifndef RAM_FEATURE_DETECTOR_H_06_23_2007
 #define RAM_FEATURE_DETECTOR_H_06_23_2007
 
-#include <iostream>
-#include <sstream>
-#include <math.h>
-#include <cstdlib>
-#include <stdio.h>
-#include "cv.h"
-#include "highgui.h"
-#include <string>
-#include "vision/include/main.h"
-#include "vision/include/ProcessList.h"
-#include "vision/include/VisionCommunication.h"
-#include "vision/include/OpenCVCamera.h"
-#include "vision/include/OpenCVImage.h"
-#include "vision/include/Image.h"
-#include "vision/include/Camera.h"
+// Project Includes
+#include "vision/include/Common.h"
+
+// Must be included last
 #include "vision/include/Export.h"
 
-namespace ram { namespace vision {
+namespace ram {
+namespace vision {
 	class RAM_EXPORT FeatureDetector
 	{
 		public:
-			FeatureDetector(OpenCVCamera*, int=1000);
+			FeatureDetector(Camera*, int=1000);
 			~FeatureDetector();
 			void update();
 			void show(char* window);
@@ -49,9 +48,11 @@ namespace ram { namespace vision {
 			void copyChannel(IplImage*, IplImage*, int);
 			
 			ram::vision::Image* frame;
-			ram::vision::OpenCVCamera* cam;
+			ram::vision::Camera* cam;
 			
-	};	
-}}//ram::vision
+	};
+
+} // namespace vision
+} // namespace ram
 
 #endif // RAM_FEATURE_DETECTOR_H_06_23_2007

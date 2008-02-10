@@ -13,6 +13,7 @@
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/RedLightDetector.h"
 
+#include "core/include/EventHub.h"
 //To register it as a subsystem.
 #include "core/include/SubsystemMaker.h"
 
@@ -31,22 +32,22 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_downward(0),
     m_redLightDetector(DetectorPtr())
 {
-    init();
+    init(core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
 
 VisionSystem::VisionSystem(Camera* forward, Camera* downward,
-                           core::SubsystemList list) :
-    Subsystem("VisionSystem", list),
+                           core::ConfigNode config, core::SubsystemList deps) :
+    Subsystem("VisionSystem", deps),
     m_forwardCamera(forward),
     m_downwardCamera(downward),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr())
 {
-    init();
+    init(core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
     
-void VisionSystem::init()
+void VisionSystem::init(core::EventHubPtr eventHub)
 {
     if (!m_forwardCamera)
         m_forwardCamera = new OpenCVCamera(0, true);
@@ -56,7 +57,8 @@ void VisionSystem::init()
 
     m_forward = new VisionRunner(m_forwardCamera);
     m_downward = new VisionRunner(m_downwardCamera);
-    m_redLightDetector = DetectorPtr(new RedLightDetector(0));
+    m_redLightDetector = DetectorPtr(new RedLightDetector(
+         core::ConfigNode::fromString("{}"), eventHub));
 
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
