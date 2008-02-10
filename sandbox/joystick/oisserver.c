@@ -63,20 +63,21 @@ void sigalrmHandler(int i)
 
 void runInput(int fd)
 {
-    signed char buf[2];
+    signed char buf[100];
     unsigned char cmd = 0;
     signed char param=0;
-
+    struct sockaddr_in rcv_addr;
 
     alarm(1);
 
+
     while(1)
     {
-        if(recv(fd, buf, 2, 0) != 2)
-        {
-            system("lcdshow -safe");
-            exit(1);
-        }
+        int t = sizeof(rcv_addr);
+        rcv_addr.sin_port = 0;
+        rcv_addr.sin_addr.s_addr = INADDR_ANY;
+        int len = recvfrom(fd, buf, 2, 0, (struct sockaddr *) &rcv_addr, &t);
+
         alarm(1);
 
         cmd = buf[0];
@@ -150,12 +151,13 @@ void runInput(int fd)
 
 main()
 {
+    unsigned char buf[65536];
     int sockfd, new_fd;/*listen on sock_fd, new connection on new_fd */
     struct sockaddr_in my_addr;    /*my address information */
     struct sockaddr_in their_addr; /*connector's address information */
     int sin_size;
     int opt_val = 1, ret;
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
             perror("socket");
             exit(1);
     }
@@ -173,41 +175,20 @@ main()
           return ret;
     }
 
+    int t = sizeof(my_addr);
+    my_addr.sin_port = 0;
+    my_addr.sin_addr.s_addr = INADDR_ANY;
+    int len = recvfrom(sockfd, buf, 65536, 0, (struct sockaddr *) &my_addr, &t);
 
-    printf("Listening...\n");
-
-    ret = listen(sockfd, BACKLOG);
-    if (ret < 0)
-    {
-        perror("listen");
-        return ret;
-    }
+    printf("Recieved first packet.\n");
 
     signal(SIGALRM, sigalrmHandler);
 
 
-/* put the correct code segments HERE in the correct order */
+    runInput(sockfd);
+    close(sockfd);
+    exit(0);
 
-    while(1)
-    {  /* main accept() loop */
-        sin_size = sizeof(struct sockaddr_in);
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-        if (new_fd < 0) {
-            perror("accept");
-            continue;
-        }
-        printf("server: got connection\n");
-
-        //if (!fork())
-        {
-            runInput(new_fd);
-            exit(0);
-        }
-        close(new_fd);  /* parent doesn't need this */
-
-
-        while(waitpid(-1,NULL,WNOHANG) > 0); /*clean up child proc*/
-    }
 }
 
 

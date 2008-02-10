@@ -103,6 +103,8 @@ ForceFeedback* g_ff[4] = {0,0,0,0};//Array to hold ff interface for each joy
 
 int sockfd=0;
 
+struct sockaddr_in their_addr; /*connector's address information */
+
 
 void sendCmd(int fd, unsigned char cmd, signed char param)
 {
@@ -110,7 +112,10 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
     buf[0]=cmd;
     buf[1]=param;
 
-    send(fd, buf, 2, 0);
+    if(sendto(fd, buf, 2, 0, (struct sockaddr *) &their_addr, sizeof(struct sockaddr_in)) == -1)
+    {
+        printf("Cant send\n");
+    }
 }
 
 #ifdef SAITEK
@@ -124,8 +129,8 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 	#define BTN_TURNLEFT  1
 	#define BTN_TURNRIGHT 3
 
-	#define BTN_ASCEND  6 
-	#define BTN_DESCEND 7 
+	#define BTN_ASCEND  6
+	#define BTN_DESCEND 7
 
 	#define BTN_EMERGSTOP 0
 	#define BTN_ZEROSPEED 2
@@ -184,14 +189,14 @@ void processAxis(int fd, int axis, int val)
         case AXIS_SPEED:
         {
 
-			val += 6811;	   
+			val += 6811;
 // 	    	printf("%d\n", val);
 
 			if(val < 0)	/* Forward, range up to 15677 */
 		            	val = SPEED_RANGE * val / -14000;
 			else
 				val = SPEED_RANGE * val / -15000;
-         
+
 			if(val > SPEED_RANGE)
 				val = SPEED_RANGE;
 
@@ -349,10 +354,9 @@ int main(int argc, char ** argv)
     }
 
 
-    /* Blatant copy and paste job from 212 */
+    /* Blatant copy and paste job from 417 */
     int numbytes;
     struct hostent *he;
-    struct sockaddr_in their_addr; /*connector's address information */
 
 
 
@@ -362,7 +366,7 @@ int main(int argc, char ** argv)
            exit(1);
     }
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
         perror("socket");
         exit(1);
@@ -372,15 +376,6 @@ int main(int argc, char ** argv)
     their_addr.sin_family = AF_INET;    /* host byte order */
     their_addr.sin_port = htons(PORT);  /* short, network byte order */
     their_addr.sin_addr = *((struct in_addr *)he->h_addr);
-
-
-    printf("Connecting...\n");
-
-    if (connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) < 0)
-    {
-        perror("connect");
-        exit(1);
-    }
 
 
     printf("\nSocket FD is %d\n", sockfd);
