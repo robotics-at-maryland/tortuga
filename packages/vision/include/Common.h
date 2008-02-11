@@ -18,6 +18,8 @@ namespace vision {
 
 // Forware declaration of all classes
 class Camera;
+typedef boost::shared_ptr<Camera> CameraPtr;
+    
 class Image;
 class OpenCVImage;
 class OpenCVCamera;

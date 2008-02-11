@@ -28,8 +28,8 @@ class RAM_EXPORT VisionSystem : public core::Subsystem
 {
 public:
     VisionSystem(core::ConfigNode config, core::SubsystemList deps);
-    VisionSystem(Camera* forward, Camera* downward, core::ConfigNode config,
-                 core::SubsystemList deps);
+    VisionSystem(CameraPtr forward, CameraPtr downward,
+                 core::ConfigNode config, core::SubsystemList deps);
     
     virtual ~VisionSystem();
     
@@ -57,8 +57,8 @@ private:
     /** Initializes all internal members */
     void init(core::EventHubPtr eventHub);
     
-    Camera* m_forwardCamera;
-    Camera* m_downwardCamera;
+    CameraPtr m_forwardCamera;
+    CameraPtr m_downwardCamera;
     VisionRunner* m_forward;
     VisionRunner* m_downward;
 

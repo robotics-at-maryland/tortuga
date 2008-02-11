@@ -41,7 +41,8 @@ struct VisionSystemFixture
         downwardCamera(new MockCamera(&downwardImage)),
         
         eventHub(new core::EventHub()),
-        vision(forwardCamera, downwardCamera,
+        vision(vision::CameraPtr(forwardCamera),
+               vision::CameraPtr(downwardCamera),
                core::ConfigNode::fromString("{}"),
                boost::assign::list_of(eventHub))
     {
@@ -82,17 +83,20 @@ SUITE(VisionSystem) {
 
 TEST(CreateDestroy)
 {
-    vision::VisionSystem vision(new MockCamera(), new MockCamera(),
+    vision::VisionSystem vision(vision::CameraPtr(new MockCamera()),
+                                vision::CameraPtr(new MockCamera()),
                                 core::ConfigNode::fromString("{}"),
                                 core::SubsystemList());
 }
 
-TEST_FIXTURE(VisionSystemFixture, UpperLeft)
+TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 {
     // Blue Image with red circle in upper left (remeber image rotated 90 deg)
     makeColor(&forwardImage, 0, 0, 255);
     drawRedCircle(&forwardImage, 640 - (640/4), 480/4);
 
+    vision::Image::saveToFile(&forwardImage, "/tmp/red_light_upper_left.png");
+    
     // "Backgrounds" the camera (no real background thread, because this is
     // just a mock object)
     forwardCamera->background(0);

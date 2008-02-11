@@ -26,8 +26,8 @@ namespace vision {
 VisionSystem::VisionSystem(core::ConfigNode config,
                            core::SubsystemList deps) :
     Subsystem(config["date"].asString("VisionSystem"), deps),
-    m_forwardCamera(0),
-    m_downwardCamera(0),
+    m_forwardCamera(CameraPtr()),
+    m_downwardCamera(CameraPtr()),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr())
@@ -35,7 +35,7 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     init(core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
 
-VisionSystem::VisionSystem(Camera* forward, Camera* downward,
+VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
                            core::ConfigNode config, core::SubsystemList deps) :
     Subsystem("VisionSystem", deps),
     m_forwardCamera(forward),
@@ -50,13 +50,13 @@ VisionSystem::VisionSystem(Camera* forward, Camera* downward,
 void VisionSystem::init(core::EventHubPtr eventHub)
 {
     if (!m_forwardCamera)
-        m_forwardCamera = new OpenCVCamera(0, true);
+        m_forwardCamera = CameraPtr(new OpenCVCamera(0, true));
 
     if (!m_downwardCamera)
-        m_downwardCamera = new OpenCVCamera(1, false);
+        m_downwardCamera = CameraPtr(new OpenCVCamera(1, false));
 
-    m_forward = new VisionRunner(m_forwardCamera);
-    m_downward = new VisionRunner(m_downwardCamera);
+    m_forward = new VisionRunner(m_forwardCamera.get());
+    m_downward = new VisionRunner(m_downwardCamera.get());
     m_redLightDetector = DetectorPtr(new RedLightDetector(
          core::ConfigNode::fromString("{}"), eventHub));
 
@@ -77,9 +77,6 @@ VisionSystem::~VisionSystem()
     // Shutdown our detectors running on our cameras
     delete m_forward;
     delete m_downward;
-
-    delete m_forwardCamera;
-    delete m_downwardCamera;
 }
 
 void VisionSystem::redLightDetectorOn()
