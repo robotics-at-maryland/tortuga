@@ -1,4 +1,4 @@
-function phaseExp(delayBetweenPlots,inverseNoiseLevel,loopLength);
+function phaseExp(delayBetweenPlots,NoiseLevel,loopLength);
 % PHASEXP A visualization of the phase properties of a
 %	single frequency signal (for now)
 %	This function illustrates the relationship between the 
@@ -10,46 +10,83 @@ function phaseExp(delayBetweenPlots,inverseNoiseLevel,loopLength);
 %	Fixes include computing and comparing both the 
 %	negative and positive Fourier components or using the 
 %	atan2 function found in C's <math.h> and other languages.
+%   ...
+%   The code has been modified to plot the phase after an fft
+%   on a quantized and noisy-quantized signal.  I also explore
+%   the error of the phase from the no noise double precision 
+%   version of the same signal.  So far the code demonstrates that
+%   about 11bit depth does not pose much of a problem for phase
+%   determination in the frequency and sample rate ranges that we'll
+%   be working with.  However, if we see noise levels similar to last
+%   year then we will face significant difficulties.  Noise can be
+%   tackled somewhat by sampling faster(if it is achievable).
 
 clf;
 number_of_samples=64;
 signal_frequency=30; %in kHz
 sample_rate=500; %in kHz
 desiredBin1=5;
-desiredBin2=61;
+%desiredBin2=61;
+k=0:number_of_samples-1;
+phase1(1:number_of_samples)=0; %preallocating for speed
+phase2(1:number_of_samples)=0; %preallocating for speed
+phase3(1:number_of_samples)=0; %preallocating for speed
 
 for loop=1:loopLength
 	%create signal
-	k=0:number_of_samples-1;
-	y=sin((2.*pi.*k./(sample_rate/signal_frequency))+(loop/10));
-	y=y+(randn(1,number_of_samples)/inverseNoiseLevel);
+	y_clean=sin((2.*pi.*k./(sample_rate/signal_frequency))+(loop/10));
+	%quantize signal
+	y_quant=round(y_clean.*1024);
+	%add quantized noise to signal
+	y_noisy=y_quant+round(randn(1,number_of_samples)*NoiseLevel);
 	
 	%fft and phase computations
-	ffty=fft(y);
-	imag1=imag(ffty(desiredBin1));
-	real1=real(ffty(desiredBin1));
-	imag2=imag(ffty(desiredBin2));
-	real2=real(ffty(desiredBin2));
+	ffty_clean=fft(y_clean);
+	ffty_quant=fft(y_quant);
+	ffty_noisy=fft(y_noisy);
+	imag1=imag(ffty_clean(desiredBin1));
+	real1=real(ffty_clean(desiredBin1));
+	imag2=imag(ffty_quant(desiredBin1));
+	real2=real(ffty_quant(desiredBin1));
+	imag3=imag(ffty_noisy(desiredBin1));
+	real3=real(ffty_noisy(desiredBin1));
 	phase1(loop)=(180/pi)*atan2(imag1,real1);
 	phase2(loop)=(180/pi)*atan2(imag2,real2);
-	phaseA(loop)=(180/pi)*atan(imag1/real1);
-	phaseB(loop)=(180/pi)*atan(imag2/real2);
+	phase3(loop)=(180/pi)*atan2(imag3,real3);
 	
-	%plot signal with FFT result on left plot
-	subplot(1,2,1); hold off; plot(k,5.*y,'.-'); hold on;
-	plot(k,real(ffty),'or'); plot(k,imag(ffty),'.r');
-	axis([0 64 -35 35])
-	title('input signal:blue, FFT:red(circles:real dots:imag')
-
+	%plot signal on top left plot 
+	subplot(2,2,1); hold off; 
+	plot(k,1024.*y_clean,'.-b'); hold on;
+	plot(k,y_quant,'og');
+	plot(k,y_noisy,'x-r');
+	axis([0 number_of_samples -1100 1100])
+	title('input signal')
+	
+	%plot FFT result on left bottom plot
+	subplot(2,2,3); hold off;
+	plot(k,real(ffty_clean),'or'); hold on;
+	plot(k,imag(ffty_clean),'.r');
+	axis([0 number_of_samples -35 35])
+	title('FFT of input signal(circles:real dots:imag)')
+	
 	%plot phase over time on the right side plot
-	subplot(1,2,2); hold on;
-	plot(1:loop,phaseA,'b.'); 
-	plot(1:loop,phaseB,'r.');
-	plot(1:loop,phase1,'ko');
-	plot(1:loop,phase2,'go');
-	plot(1:loop,(phase1-phase2)/2,'c^')
+	subplot(2,2,2); hold off;
+	plot(1:loop,phase1(1:loop),'.b');hold on; 
+	plot(1:loop,phase2(1:loop),'og');
+	plot(1:loop,phase3(1:loop),'xr');
 	axis([1 loopLength -180 180])
 	title('different attempts to compute phase') %in time
+	
+	%plot of phase error in lower right
+	subplot(2,2,4);hold off;
+	plot(1:loop,phase1(1:loop)-phase2(1:loop),'.g');hold on; 
+	noise_error=phase1(1:loop)-phase3(1:loop);
+	plot(1:loop,noise_error,'or');
+	maxerror=max(noise_error);
+	if maxerror>300; maxerror=50; end
+	if maxerror<1; maxerror=10; end
+	axis([1 loopLength -maxerror maxerror])
+	title('estimated phase error') %in time
 	
 	%delay before plotting next iteration
 	pause(delayBetweenPlots)
