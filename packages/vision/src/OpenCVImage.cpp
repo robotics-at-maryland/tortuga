@@ -40,6 +40,19 @@ OpenCVImage::OpenCVImage(IplImage* image, bool ownership) :
 {
 }
 
+OpenCVImage::OpenCVImage(unsigned char* data, int width, int height,
+                         bool ownership) :
+    m_own(ownership),
+    m_img(0)
+{
+    assert(data && "Image data can't be null");
+    assert(width >= 1 && "Image can't have a negative or 0 width");
+    assert(height >= 1 && "Image can't have a negative or 0 height");
+
+    m_img = cvCreateImageHeader(cvSize(width, height), 8, 3);
+    cvSetData(m_img, data, width * 3);
+}
+    
 OpenCVImage::OpenCVImage(std::string fileName) :
     m_own(true),
     m_img(cvLoadImage(fileName.c_str()))
@@ -65,13 +78,10 @@ void OpenCVImage::copyFrom (const Image* src)
         assert(m_own && "Cannot perform resize unless I own the image");
         cvReleaseImage(&m_img);
         m_img = cvCreateImage(cvSize(src->getWidth(), src->getHeight()), 8, 3);
-        cvResize(tmp_img, m_img);
+//        cvResize(tmp_img, m_img);
     }
-    else
-    {
-        // Copy the internal image data over
-        cvCopy(tmp_img, m_img);
-    }
+    // Copy the internal image data over
+    cvCopy(tmp_img, m_img);
 
     cvReleaseImageHeader(&tmp_img);
     

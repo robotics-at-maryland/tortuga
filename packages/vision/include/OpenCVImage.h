@@ -31,6 +31,10 @@ public:
     /** Create an OpenCVImage from the given IplImage */
     OpenCVImage(IplImage*, bool ownership = true);
 
+    /** Create an image from the given image buffer */
+    OpenCVImage(unsigned char* data, int width, int height,
+                bool ownership = true);
+    
     /** Creat an OpenCV from the given file */
     OpenCVImage(std::string fileName);
     
