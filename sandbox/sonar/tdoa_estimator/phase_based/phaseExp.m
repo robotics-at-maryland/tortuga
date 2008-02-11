@@ -1,4 +1,4 @@
-function phaseExp(delayBetweenPlots,NoiseLevel,loopLength);
+function phaseExp(delayBetweenPlots,NoiseLevel,loopLength,freq,ksps,N);
 % PHASEXP A visualization of the phase properties of a
 %	single frequency signal (for now)
 %	This function illustrates the relationship between the 
@@ -22,10 +22,11 @@ function phaseExp(delayBetweenPlots,NoiseLevel,loopLength);
 %   tackled somewhat by sampling faster(if it is achievable).
 
 clf;
-number_of_samples=64;
-signal_frequency=30; %in kHz
-sample_rate=500; %in kHz
-desiredBin1=5;
+number_of_samples=N;
+signal_frequency=freq; %in kHz
+sample_rate=ksps; %in kHz
+%desiredBin1=5;
+desiredBin1=1+round(N*(freq/ksps));
 %desiredBin2=61;
 k=0:number_of_samples-1;
 phase1(1:number_of_samples)=0; %preallocating for speed
@@ -60,14 +61,14 @@ for loop=1:loopLength
 	plot(k,y_quant,'og');
 	plot(k,y_noisy,'x-r');
 	axis([0 number_of_samples -1100 1100])
-	title('input signal')
+	title(['input signal: N:' num2str(number_of_samples) ' frequency:' num2str(signal_frequency) 'kHz sampleRate:' num2str(sample_rate) 'ksps'])
 	
 	%plot FFT result on left bottom plot
 	subplot(2,2,3); hold off;
 	plot(k,real(ffty_clean),'or'); hold on;
 	plot(k,imag(ffty_clean),'.r');
 	axis([0 number_of_samples -35 35])
-	title('FFT of input signal(circles:real dots:imag)')
+	title(['FFT of input signal(circles:real dots:imag) desired bin:' num2str(desiredBin1)])
 	
 	%plot phase over time on the right side plot
 	subplot(2,2,2); hold off;
@@ -82,11 +83,11 @@ for loop=1:loopLength
 	plot(1:loop,phase1(1:loop)-phase2(1:loop),'.g');hold on; 
 	noise_error=phase1(1:loop)-phase3(1:loop);
 	plot(1:loop,noise_error,'or');
-	maxerror=max(noise_error);
-	if maxerror>300; maxerror=50; end
-	if maxerror<1; maxerror=10; end
-	axis([1 loopLength -maxerror maxerror])
-	title('estimated phase error') %in time
+	stderror=std(noise_error);
+	maxplot=stderror;
+	if maxplot<.01; maxplot=.05; end
+	axis([1 loopLength -maxplot maxplot])
+	title(['estimated phase error, std.dev:' num2str(stderror)]) %in time
 	
 	%delay before plotting next iteration
 	pause(delayBetweenPlots)
