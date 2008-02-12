@@ -25,6 +25,12 @@ class PointTarget(ext.core.EventPublisher):
         self.elevation = elevation
         self.range = range
 
+        # Change them to degrees if they are ext.math.Degree/Radian types
+        if hasattr(self.azimuth, 'valueDegrees'):
+            self.azimuth = self.azimuth.valueDegrees()
+        if hasattr(self.elevation, 'valueDegrees'):
+            self.elevation = self.elevation.valueDegrees()
+
         if publish:
             self.publish(PointTarget.UPDATE, ext.core.Event())
         
@@ -52,6 +58,8 @@ class SeekPoint(Motion):
     def _seek(self):
         """
         Commands the controller to seek the current vehicle
+
+        @note Everything is in DEGREES!
         """
         
         # Determine new Depth

@@ -43,8 +43,8 @@ Scene:
             
             Graphical:
                 mesh: 'sphere.50cm.mesh'
-                material: 'Simple/BumpyMetal'
-                scale: [0.1, 0.1, 0.1]
+                material: 'Simple/Red'
+                scale: [0.15, 0.15, 0.15]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

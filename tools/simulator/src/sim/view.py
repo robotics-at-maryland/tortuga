@@ -11,6 +11,7 @@ import wx
 # Project Imports
 import core
 import ext.core
+import ext.vision
 import ram.gui.led
 import sim.vision
 import gui.view
@@ -32,12 +33,12 @@ class VisionPanel(wx.Panel):
         self._createControls()
         
         # Events
-        conn = eventHub.subscribe(sim.vision.SimVision.LIGHT_FOUND, vision,
-                                  self._onBouyFound)
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND,
+                                        self._onBouyFound)
         self._connections.append(conn)
         
-        conn = eventHub.subscribe(sim.vision.SimVision.LIGHT_LOST, vision,
-                                  self._onBouyLost)
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_LOST,
+                                        self._onBouyLost)
         self._connections.append(conn)
         
         self.Bind(wx.EVT_CLOSE, self._onClose)
@@ -87,8 +88,8 @@ class VisionPanel(wx.Panel):
     def _onBouyFound(self, event):
         self._x.Value = "% 4.2f" % event.x
         self._y.Value = "% 4.2f" % event.y    
-        self._azimuth.Value = "% 4.2f" % event.azimuth
-        self._elevation.Value = "% 4.2f" % event.elevation
+        self._azimuth.Value = "% 4.2f" % event.azimuth.valueDegrees()
+        self._elevation.Value = "% 4.2f" % event.elevation.valueDegrees()
         self._range.Value = "% 4.2f" % event.range
         
         # The LED only does work when you change state, so calling this mutiple

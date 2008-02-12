@@ -7,16 +7,20 @@
 
 # STD Imports
 import math
+import ctypes
 
 # Library Imports
 import ogre.renderer.OGRE as ogre
 
 # Project Imports
 import ext.core
+import ext.vision
+import ext.math
 from sim.subsystems import Simulation
 from sim.vehicle import SimVehicle
 
 import core
+import ram.timer
 from ram.sim.object import IObject
 from ram.sim.graphics import IVisual, Visual
 from ram.sim.serialization import IKMLStorable, two_step_init
@@ -56,10 +60,7 @@ class Buoy(Visual):
     def save(self, data_object):
         raise "Not yet implemented"
 
-class SimVision(ext.core.Subsystem):
-    LIGHT_FOUND = ext.core.declareEventType('LIGHT_FOUND')
-    LIGHT_LOST = ext.core.declareEventType('LIGHT_LOST')
-    
+class IdealSimVision(ext.core.Subsystem):
     def __init__(self, config, deps):
         ext.core.Subsystem.__init__(self, config.get('name', 'SimVision'), deps)
         
@@ -84,7 +85,6 @@ class SimVision(ext.core.Subsystem):
     
     def redLightDetectorOff(self):
         self._runRedLight = False
-    
 
     def update(self, timeSinceLastUpdate):
         """
@@ -92,6 +92,7 @@ class SimVision(ext.core.Subsystem):
         """
         if self._runRedLight:
             self._checkRedLight()
+
     
     def _checkRedLight(self):
         """
@@ -134,17 +135,176 @@ class SimVision(ext.core.Subsystem):
             event.y = -pitch / (self._verticalFOV/2)
             
             # These have to be swaped as well
-            event.azimuth = -yaw
-            event.elevation = -pitch
+            event.azimuth = ext.math.Degree(-yaw)
+            event.elevation = ext.math.Degree(-pitch)
             event.range = relativePos.length()
             
-            self.publish(SimVision.LIGHT_FOUND, event)
+            self.publish(ext.vision.EventType.LIGHT_FOUND, event)
             
         else:
             if self._foundLight:
-                self.publish(SimVision.LIGHT_LOST, ext.core.Event())
+                self.publish(ext.vision.EventType.LIGHT_LOST, ext.core.Event())
 
         self._foundLight = lightVisible
         
+
+ext.core.SubsystemMaker.registerSubsystem('IdealSimVision', IdealSimVision)
+
+class RenderCameraListener(ogre.RenderTargetListener):
+    """
+    Listens for the rendering of our camera textures, copies them to system
+    memory, then ejects them into the vision system.
+    """
+    
+    def __init__(self, camera, buffer_, texture, updateInterval):
+        """
+        @type  camera: ext.vision.Camera
+        @param camera: The camera to send the render image to
+        
+        @type  buffer: ctypes array
+        @param buffer: The buffer to copy the renderered image to
+        
+        @type  texture: ogre.renderer.OGRE.Texture
+        @param texture: The texture that it rendered to by Ogre
+        """
+        
+        ogre.RenderTargetListener.__init__(self)
+        self._camera = camera
+        self._bufferAddress = ctypes.addressof(buffer_)
+        self._texture = texture
+        self._updateInterval = updateInterval
+        
+        self._image = None
+        self._lastTime = 0
+
+    def postRenderTargetUpdate(self, renderTargetEvent):
+        now = ram.timer.time()
+        if 0 == self._lastTime:
+            timePassed = self._updateInterval
+        else:
+            timePassed = now - self._lastTime
+
+        # Only update at the desired interval
+        if timePassed >= self._updateInterval:
+            self._updateCamera(timePassed)
+
+            self._lastTime = now
+
+    def _updateCamera(self, timeSinceLastUpdate):
+        # Lock all of the texture buffer
+        textureBuffer = self._texture.getBuffer()
+        lockBox = ogre.Box(0, 0, 640, 480)
+        textureBuffer.lock(lockBox, ogre.HardwareBuffer.HBL_NORMAL)
+
+        # Copy the lock portion our image
+        texPb = textureBuffer.getCurrentLock()
+
+        # Convert and copy our pixels
+        ogre.PixelUtil.bulkPixelConversion(ogre.CastInt(texPb.getData()),
+                                           textureBuffer.getFormat(),
+                                           self._bufferAddress,
+                                           ogre.PixelFormat.PF_R8G8B8,
+                                           640 * 480)
+
+        # Create our temporary image
+        self._image = ext.vision.Image.loadFromBuffer(self._bufferAddress,
+                                                      640, 480, False)
+        # Send image to camera
+        self._camera.capturedImage(self._image)
+        
+        textureBuffer.unlock()
+
+        
+
+class SimVision(ext.vision.VisionSystem):
+    def __init__(self, config, deps):
+        self.vehicle = ext.core.Subsystem.getSubsystemOfType(SimVehicle, deps, 
+                                                             nonNone = True)
+
+        # Creates ogre.renderer.OGRE.Camera and attaches it to the vehicle
+        forwardOgreCamera = self._createCamera('_forward', (0.5, 0, 0),
+                                               (1, 0, 0))
+        # Create _forwardCamera, _forwardBuffer, and _forwardTexture
+        self._setupCameraRendering(forwardOgreCamera, 640, 480)
+
+        # Transform arguments to create base VisionSystem class
+        cfg = ext.core.ConfigNode.fromString(str(config))
+        depList = ext.core.SubsystemList()
+        for subsys in deps:
+            depList.append(subsys)
+        
+        ext.vision.VisionSystem.__init__(self, self._forwardCamera,
+                                         ext.vision.Camera(640, 480),
+                                         cfg, depList)
+
+        cameraRate = config.get('cameraRate', 10)
+        self._cameraUpdateInterval = 1.0 / cameraRate
+
+        # Setup render target listeners to do the copying of images
+        self._forwardCameraListener = RenderCameraListener(
+            self._forwardCamera, self._forwardBuffer, self._forwardTexture,
+            self._cameraUpdateInterval)
+        self._forwardTexture.getBuffer().getRenderTarget().addListener(
+            self._forwardCameraListener)
+        
+    def _setupCameraRendering(self, camera, width, height):
+        """
+        @type  camera: ogre.renderer.OGRE.Camera
+        @param camera: The Ogre camera to grab images from
+        """ 
+
+        ImageBufferType = ctypes.c_uint8 * (640 * 480 * 3)
+
+        # Create our camera to allow communication with the vision system
+        setattr(self, camera.name + 'Camera', ext.vision.Camera(width, height))
+        # Buffer we copy the rendered image into
+        setattr(self, camera.name + 'Buffer', ImageBufferType())
+
+        # Create our texture which the camera renderers to
+        renderSys = ogre.Root.getSingleton().getRenderSystem()
+        texture = ogre.TextureManager.getSingleton().createManual(
+            camera.name + 'RenderTexture', 
+            ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME,
+            ogre.TEX_TYPE_2D, width, height, 0, ogre.PixelFormat.PF_B8G8R8,
+            ogre.TU_RENDERTARGET)
+        rttTex = texture.getBuffer().getRenderTarget();
+        rttTex.addViewport(camera)
+
+        setattr(self, camera.name + 'Texture', texture)
+
+    def _createCamera(self, name, position, direction):
+        """Lets hack on a camera (integrate better in the future)"""
+        
+        node = self.vehicle.robot._main_part._node
+        sceneMgr = ogre.Root.getSingleton().getSceneManager('Main')
+
+        # Create camera and attached it to our ourself
+        camera = sceneMgr.createCamera(name)
+
+        # Align and Position
+        camera.position = position
+        camera.lookAt(ogre.Vector3(direction).normalisedCopy())
+        camera.nearClipDistance = 0.25
+        node.attachObject(camera)
+
+        # This needs be set from the config file (only VERTICAL FOV)
+        camera.FOVy = ogre.Degree(78)
+
+        # NOTE: Fix not needed because camera on the vehicle is offset in the
+        #       same way, what an odd coincidence
+        # Account for the odd up vector difference between our and Ogre's 
+        # default coordinate systems
+        #camera.roll(ogre.Degree(-90))
+
+        return camera
+
+    def saveForwardCameraSnapshot(self, filename):
+        """
+        Saves the current forward camera image to file
+        """
+        address = ctypes.addressof(self._forwardBuffer)
+        image = ext.vision.Image.loadFromBuffer(address, 640, 480, False)
+        ext.vision.Image.saveToFile(image, filename)
+
 
 ext.core.SubsystemMaker.registerSubsystem('SimVision', SimVision)
