@@ -29,11 +29,11 @@ _FWDT ( WDT_OFF );
 #define IN_REQ      _RB0
 #define TRIS_REQ    _TRISB0
 
-#define LAT_AKN     _LATD2
-#define TRIS_AKN    _TRISD2
+#define LAT_AKN     _LATD8
+#define TRIS_AKN    _TRISD8
 
-#define IN_RW       _RE8
-#define TRIS_RW     _TRISE8
+#define IN_RW       _RD9
+#define TRIS_RW     _TRISD9
 
 
 #define RW_READ     0
@@ -213,30 +213,26 @@ void processData(byte data)
 /* Read a byte from the bus */
 byte readBus()
 {
-    return (PORTE & 0x3F) | (_RD0 << 6) | (_RD1 << 7);
+    return (PORTD & 0x0F) | ((PORTB & 0x0F00) >> 4);
 }
 
 
 /* Take bus out of high-impedance state and write a byte there */
 void writeBus(byte b)
 {
-    TRISE = TRISE & 0xFFC0;
-    _TRISD1 = TRIS_OUT;
-    _TRISD0 = TRIS_OUT;
+    TRISD = TRISD & 0xFFF0;
+    TRISB = TRISB & 0xF0FF;
 
-     LATE = (LATE & 0xFFC0) | (b & 0x3F);
-    _LATD0 = (b & 0x40) >> 6;
-    _LATD1 = (b & 0x80) >> 7;
-
+    LATD = (LATD & 0xFFF0) | (b & 0x0F);
+    LATB = (LATB & 0xF0FF) | ((b & 0xF0) << 4);
 }
 
 
 /* Put bus in high-impedance state. */
 void freeBus()
 {
-    _TRISD1 = TRIS_IN;
-    _TRISD0 = TRIS_IN;
-    TRISE = TRISE | 0x3F;
+    TRISB = TRISB | 0x0F00;
+    TRISD = TRISD | 0x0F;
 }
 
 
