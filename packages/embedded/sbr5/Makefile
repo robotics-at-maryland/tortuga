@@ -67,13 +67,13 @@ ic3: ic3.hex
 	piklab-prog -p icd2 -d 30f4011 -c program ic3.hex
 
 ic4: ic4.hex
-	piklab-prog -p icd2 -d 30f4011 -c program ic4.hex
+	piklab-prog -p icd2 -d 30f4013 -c program ic4.hex
 
 distro: distro.hex
-	piklab-prog -p icd2 -d 30f5011 -c program distro.hex
+	piklab-prog -p icd2 -d 30f6014 -c program distro.hex
 
 balancer: balancer.hex
-	piklab-prog -p icd2 -d 30f5011 -c program balancer.hex
+	piklab-prog -p icd2 -d 30f6014 -c program balancer.hex
 
 debug: debug.hex
 	piklab-prog -p icd2 -d 30f4011 -c program debug.hex

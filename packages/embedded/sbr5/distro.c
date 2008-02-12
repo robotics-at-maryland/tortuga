@@ -27,14 +27,14 @@ _FWDT ( WDT_OFF );
 
 /* Bus pin assignments */
 #define REQ_CN_BIT  (CNEN1bits.CN9IE)
-#define IN_REQ      _RG7
-#define TRIS_REQ    _TRISG7
+#define IN_REQ      _RA6
+#define TRIS_REQ    _TRISA6
 
-#define LAT_AKN     _LATD8
-#define TRIS_AKN    _TRISD8
+#define LAT_AKN     _LATF0
+#define TRIS_AKN    _TRISF0
 
-#define IN_RW       _RD9
-#define TRIS_RW     _TRISD9
+#define IN_RW       _RF1
+#define TRIS_RW     _TRISF1
 
 #define RW_READ     0
 #define RW_WRITE    1
