@@ -26,7 +26,7 @@ _FWDT ( WDT_OFF );
  */
 
 /* Bus pin assignments */
-#define REQ_CN_BIT  (CNEN1bits.CN9IE)
+#define REQ_CN_BIT  (CNEN2bits.CN22IE)
 #define IN_REQ      _RA6
 #define TRIS_REQ    _TRISA6
 
@@ -43,71 +43,71 @@ _FWDT ( WDT_OFF );
 /* Level specification for marker outputs */
 #define MRKR_ON     1
 
-#define LAT_MRKR1   _LATF0
-#define TRIS_MRKR1  _TRISF0
+#define LAT_MRKR1   _LATC1
+#define TRIS_MRKR1  _TRISC1
 
-#define LAT_MRKR2   _LATF1
-#define TRIS_MRKR2  _TRISF1
+#define LAT_MRKR2   _LATG15
+#define TRIS_MRKR2  _TRISG15
 
 
 /* Level specification for thruster enables */
 #define MOTR_ON     1
 
 /* Thruster pin assignments */
-#define LAT_MOTR1   _LATG0
-#define TRIS_MOTR1  _TRISG0
+#define LAT_MOTR1   _LATG8
+#define TRIS_MOTR1  _TRISG8
 
-#define LAT_MOTR2   _LATG1
-#define TRIS_MOTR2  _TRISG1
+#define LAT_MOTR2   _LATG7
+#define TRIS_MOTR2  _TRISG7
 
-#define LAT_MOTR3   _LATG8
-#define TRIS_MOTR3  _TRISG8
+#define LAT_MOTR3   _LATG6
+#define TRIS_MOTR3  _TRISG6
 
-#define LAT_MOTR4   _LATG9
-#define TRIS_MOTR4  _TRISG9
+#define LAT_MOTR4   _LATC4
+#define TRIS_MOTR4  _TRISC4
 
-#define LAT_MOTR5   _LATG12
-#define TRIS_MOTR5  _TRISG12
+#define LAT_MOTR5   _LATC3
+#define TRIS_MOTR5  _TRISC3
 
-#define LAT_MOTR6   _LATG13
-#define TRIS_MOTR6  _TRISG13
+#define LAT_MOTR6   _LATC2
+#define TRIS_MOTR6  _TRISC2
 
 
 /* Kill switch level specification */
-#define KILLSW_ON 1
+#define KILLSW_ON 0
 
 /* Kill switch input */
-#define IN_KILLSW   _RG15
-#define TRIS_KILLSW _TRISG15
+#define IN_KILLSW   _RD15
+#define TRIS_KILLSW _TRISD15
 
 
 /* LED Bar and Fan output definitions */
 /* Level specification */
 #define BAR_ON  1
 
-#define LAT_BAR1    _LATG13
-#define TRIS_BAR1   _TRISG13
+#define LAT_BAR1    _LATF7
+#define TRIS_BAR1   _TRISF7
 
-#define LAT_BAR2    _LATG13
-#define TRIS_BAR2   _TRISG13
+#define LAT_BAR2    _LATF6
+#define TRIS_BAR2   _TRISF6
 
-#define LAT_BAR3    _LATG13
-#define TRIS_BAR3   _TRISG13
+#define LAT_BAR3    _LATA14
+#define TRIS_BAR3   _TRISA14
 
-#define LAT_BAR4    _LATG13
-#define TRIS_BAR4   _TRISG13
+#define LAT_BAR4    _LATA15
+#define TRIS_BAR4   _TRISA15
 
-#define LAT_BAR5    _LATG13
-#define TRIS_BAR5   _TRISG13
+#define LAT_BAR5    _LATD8
+#define TRIS_BAR5   _TRISD8
 
-#define LAT_BAR6    _LATG13
-#define TRIS_BAR6   _TRISG13
+#define LAT_BAR6    _LATD9
+#define TRIS_BAR6   _TRISD9
 
-#define LAT_BAR7    _LATG13
-#define TRIS_BAR7   _TRISG13
+#define LAT_BAR7    _LATD10
+#define TRIS_BAR7   _TRISD10
 
-#define LAT_BAR8    _LATG13
-#define TRIS_BAR8   _TRISG13
+#define LAT_BAR8    _LATD11
+#define TRIS_BAR8   _TRISD11
 
 
 
