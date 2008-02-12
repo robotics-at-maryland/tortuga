@@ -64,6 +64,8 @@ private:
 class DefaultEventConverter : public EventConverter
 {
 public:
+    DefaultEventConverter();
+    
     virtual ~DefaultEventConverter();
     
     virtual boost::python::object convert(ram::core::EventPtr event);
