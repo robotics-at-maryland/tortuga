@@ -34,6 +34,13 @@ def get_variants():
                 cflags = { 'linux' : ['-O2', '-g'],
                            'darwin' : ['-O2', '-g'] })
 
+    # Unsafe Fast
+    #   All the optimizations, but has a possibility to break code
+    add_variant(name = 'unsafe_fast', suffix = '_f',
+                cflags = { 'linux' : ['-O3'],
+                           'darwin' : ['-O3'],
+                           'windows' : ['/O3'] })
+
     # Profile
     #  Same as release, but has additional profiling information added
     add_variant(name = 'profile', suffix = '_p',
