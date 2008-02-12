@@ -81,6 +81,36 @@ _FWDT ( WDT_OFF );
 #define TRIS_KILLSW _TRISG15
 
 
+/* LED Bar and Fan output definitions */
+/* Level specification */
+#define BAR_ON  1
+
+#define LAT_BAR1    _LATG13
+#define TRIS_BAR1   _TRISG13
+
+#define LAT_BAR2    _LATG13
+#define TRIS_BAR2   _TRISG13
+
+#define LAT_BAR3    _LATG13
+#define TRIS_BAR3   _TRISG13
+
+#define LAT_BAR4    _LATG13
+#define TRIS_BAR4   _TRISG13
+
+#define LAT_BAR5    _LATG13
+#define TRIS_BAR5   _TRISG13
+
+#define LAT_BAR6    _LATG13
+#define TRIS_BAR6   _TRISG13
+
+#define LAT_BAR7    _LATG13
+#define TRIS_BAR7   _TRISG13
+
+#define LAT_BAR8    _LATG13
+#define TRIS_BAR8   _TRISG13
+
+
+
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -238,6 +268,44 @@ void processData(byte data)
                     enableBusInterrupt();
                     break;
                 }
+
+                case BUS_CMD_BAR1_OFF: { LAT_BAR1 = ~BAR_ON; break; }
+                case BUS_CMD_BAR2_OFF: { LAT_BAR2 = ~BAR_ON; break; }
+                case BUS_CMD_BAR3_OFF: { LAT_BAR3 = ~BAR_ON; break; }
+                case BUS_CMD_BAR4_OFF: { LAT_BAR4 = ~BAR_ON; break; }
+                case BUS_CMD_BAR5_OFF: { LAT_BAR5 = ~BAR_ON; break; }
+                case BUS_CMD_BAR6_OFF: { LAT_BAR6 = ~BAR_ON; break; }
+                case BUS_CMD_BAR7_OFF: { LAT_BAR7 = ~BAR_ON; break; }
+                case BUS_CMD_BAR8_OFF: { LAT_BAR8 = ~BAR_ON; break; }
+
+                case BUS_CMD_BAR1_ON: { LAT_BAR1 = BAR_ON; break; }
+                case BUS_CMD_BAR2_ON: { LAT_BAR2 = BAR_ON; break; }
+                case BUS_CMD_BAR3_ON: { LAT_BAR3 = BAR_ON; break; }
+                case BUS_CMD_BAR4_ON: { LAT_BAR4 = BAR_ON; break; }
+                case BUS_CMD_BAR5_ON: { LAT_BAR5 = BAR_ON; break; }
+                case BUS_CMD_BAR6_ON: { LAT_BAR6 = BAR_ON; break; }
+                case BUS_CMD_BAR7_ON: { LAT_BAR7 = BAR_ON; break; }
+                case BUS_CMD_BAR8_ON: { LAT_BAR8 = BAR_ON; break; }
+
+                case BUS_CMD_BAR_STATE:
+                {
+                    disableBusInterrupt();
+                    txBuf[0] = 1;
+                    txBuf[1] = 0;
+
+                    if(LAT_BAR1 == BAR_ON) txBuf[1] |= 0x01;
+                    if(LAT_BAR2 == BAR_ON) txBuf[1] |= 0x02;
+                    if(LAT_BAR3 == BAR_ON) txBuf[1] |= 0x04;
+                    if(LAT_BAR4 == BAR_ON) txBuf[1] |= 0x08;
+                    if(LAT_BAR5 == BAR_ON) txBuf[1] |= 0x10;
+                    if(LAT_BAR6 == BAR_ON) txBuf[1] |= 0x20;
+                    if(LAT_BAR7 == BAR_ON) txBuf[1] |= 0x40;
+                    if(LAT_BAR8 == BAR_ON) txBuf[1] |= 0x80;
+
+                    enableBusInterrupt();
+                    break;
+                }
+
 
                 case BUS_CMD_BOARDSTATUS:
                 {
@@ -601,6 +669,24 @@ void main()
     TRIS_MOTR6 = TRIS_OUT;
 
     TRIS_KILLSW = TRIS_IN;
+
+    LAT_BAR1 = ~BAR_ON;
+    LAT_BAR2 = ~BAR_ON;
+    LAT_BAR3 = ~BAR_ON;
+    LAT_BAR4 = ~BAR_ON;
+    LAT_BAR5 = ~BAR_ON;
+    LAT_BAR6 = ~BAR_ON;
+    LAT_BAR7 = ~BAR_ON;
+    LAT_BAR8 = ~BAR_ON;
+
+    TRIS_BAR1 = TRIS_OUT;
+    TRIS_BAR2 = TRIS_OUT;
+    TRIS_BAR3 = TRIS_OUT;
+    TRIS_BAR4 = TRIS_OUT;
+    TRIS_BAR5 = TRIS_OUT;
+    TRIS_BAR6 = TRIS_OUT;
+    TRIS_BAR7 = TRIS_OUT;
+    TRIS_BAR8 = TRIS_OUT;
 
     initBus();
     initADC();

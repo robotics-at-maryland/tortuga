@@ -60,6 +60,8 @@
 
 #define BUS_CMD_STARTSW         0x27
 
+
+/* Battery enables on the balancer board */
 #define BUS_CMD_BATT1_OFF       0x28
 #define BUS_CMD_BATT2_OFF       0x29
 #define BUS_CMD_BATT3_OFF       0x2A
@@ -73,8 +75,28 @@
 #define BUS_CMD_BATT5_ON        0x31
 
 
+/* Bars (LED and fan) on distro board */
+#define BUS_CMD_BAR1_OFF        0x32
+#define BUS_CMD_BAR2_OFF        0x33
+#define BUS_CMD_BAR3_OFF        0x34
+#define BUS_CMD_BAR4_OFF        0x35
+#define BUS_CMD_BAR5_OFF        0x36
+#define BUS_CMD_BAR6_OFF        0x37
+#define BUS_CMD_BAR7_OFF        0x38
+#define BUS_CMD_BAR8_OFF        0x39
 
-/* Next free is 0x32 */
+#define BUS_CMD_BAR1_ON         0x3A
+#define BUS_CMD_BAR2_ON         0x3B
+#define BUS_CMD_BAR3_ON         0x3C
+#define BUS_CMD_BAR4_ON         0x3D
+#define BUS_CMD_BAR5_ON         0x3E
+#define BUS_CMD_BAR6_ON         0x3F
+#define BUS_CMD_BAR7_ON         0x40
+#define BUS_CMD_BAR8_ON         0x41
+
+#define BUS_CMD_BAR_STATE       0x42
+
+/* Next free is 0x43 */
 
 
 
