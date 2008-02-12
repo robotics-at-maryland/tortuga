@@ -40,12 +40,36 @@ VisionSystem::VisionSystem(core::ConfigNode config, core::SubsystemList deps) :
 {
 }
 
-
 VisionSystem::~VisionSystem()
 {
     delete vr;
 }
 
+void VisionSystem::binDetectorOn()
+{
+    vr->downward.binDetectOn();
+}
+
+void VisionSystem::binDetectorOff()
+{
+    vr->downward.binDetectOff();
+}
+void VisionSystem::pipeLineDetectorOn()
+{
+    vr->downward.orangeDetectOn();
+}
+void VisionSystem::pipeLineDetectorOff()
+{
+    vr->downward.orangeDetectOff();
+}
+void VisionSystem::gateDetectorOn()
+{
+    vr->forward.gateDetectOn();
+}
+void VisionSystem::gateDetectorOff()
+{
+    vr->forward.gateDetectOff();
+}
 void VisionSystem::redLightDetectorOn()
 {
     vr->forward.lightDetectOn();

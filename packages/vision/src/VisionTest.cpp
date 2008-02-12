@@ -38,8 +38,8 @@ int main(int argc, char** argv)
     }
   else
     forward=new ram::vision::DetectorTest(0,true);
-  //forward->orangeDetectOn();
-  forward->lightDetectOn();
+  forward->orangeDetectOn();
+  //forward->lightDetectOn();
   //forward->binDetectOn();
   //forward->gateDetectOn();
   signal(SIGINT,handler);

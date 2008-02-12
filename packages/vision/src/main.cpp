@@ -1176,14 +1176,14 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 
 	if (!strict)
 	{
-		r_over_g_min=0.7f;
-		r_over_g_max=1.4f;
+		r_over_g_min=1.2f;
+		r_over_g_max=2.1f;
 		b_over_r_max=0.6f;
 	}
 	else//(strict)
 	{
-		r_over_g_min=0.8f;
-		r_over_g_max=1.2f;
+		r_over_g_min=1.2f;
+		r_over_g_max=2.0f;
 		b_over_r_max=0.4f;
 	}
 
@@ -1428,10 +1428,19 @@ void to_ratios(IplImage* img)
 			b=(data[count]+256)%256;
 			g=(data[count+1]+256)%256;
 			r=(data[count+2]+256)%256;
-			data[count]=static_cast<char>((double)(b)/(b+g+r) *100);
-			data[count+1]=static_cast<char>((double)(g)/(b+g+r) *100);
-			data[count+2]=static_cast<char>((double)(r)/(b+g+r) *100);
-			count+=3;
+            if (b+g+r==0)
+            {
+                data[count]=33;
+                data[count+1]=33;
+                data[count+2]=33;
+            }
+            else
+            {
+                data[count]=static_cast<char>((double)(b)/(b+g+r) *100);
+                data[count+1]=static_cast<char>((double)(g)/(b+g+r) *100);
+                data[count+2]=static_cast<char>((double)(r)/(b+g+r) *100);
+			}
+            count+=3;
 		}
 }
 
@@ -1467,10 +1476,11 @@ int red_blue(IplImage* img, float ratio)
 	return total;
 }
 
-int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
+int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny)
 {
 	unsigned char* data=(unsigned char*)percents->imageData;
 	unsigned char* data2=(unsigned char*)base->imageData;
+    unsigned char* data3=(unsigned char*)temp->imageData;
 	int width=percents->width;
 	int height=percents->height;
 	int count=0;
@@ -1506,13 +1516,19 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 			b2=(data2[count]+256)%256;
 			g2=(data2[count+1]+256)%256;
 			r2=(data2[count+2]+256)%256;
-			if (b>26 && g>26 && r>26)
+			if (b>30 && g>30 && r>30)
 			{
-				if (b2>150 && g2>150 && r2>150)
+				if (b2>210 && g2>210 && r2>210)
 				{
 					data2[count]=0;
 					data2[count+1]=0;
 					data2[count+2]=255;
+                    data[count]=0;
+                    data[count+1]=0;
+                    data[count+2]=100;
+                    data3[count]=255;
+                    data3[count+1]=255;
+                    data3[count+2]=255;
 					whitex+=x;
 					whitey+=y;
 					total++;
@@ -1521,36 +1537,63 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 					miny=min(y,miny);
 					maxy=max(y,maxy);
 				}
-//				else
-//				{
-//					data2[count]=0;
-//					data2[count+1]=0;
-//					data2[count+2]=0;
-//				}
+				else
+				{
+                    data3[count]=data3[count+1]=data3[count+2]=0;
+				}
 			}
-//			else
-//			{
-//					data2[count]=0;
-//					data2[count+1]=0;
-//					data2[count+2]=0;				
-//			}
+			else
+			{
+                data3[count]=data3[count+1]=data3[count+2]=0;
+            }
 			count+=3;
 		}
-	}	
+	}
+    
+//    cout<<"Total = " << total <<endl;
+    int histoWhiteX, histoWhiteY;
+    int totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY);
+    //Erosion: cvErode( const CvArr* src, CvArr* dst, IplConvKernel* element=NULL, int iterations=1 );
+    while (totalWhite ==-1)
+    {
+        cout<<"Too many separate white pixel groups, eroding the image"<<endl;
+        cvErode(temp,temp,NULL,1);
+        totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY);
+    }
+//    cout<<"Histo Total = " << totalWhite << endl;
+
+    //clear the temporary image
+    count=0;
+    for (int y=0; y<height; y++)
+    {
+        for (int x=0; x<width; x++)
+        {
+            data3[count]=data3[count+1]=data3[count+2]=0;
+            count+=3;
+        }
+    }    
+
 	count=0;
 	for (int y=miny;y<maxy;y++)
 	{
 		count=3*minx+3*width*y;
 		for (int x=minx; x<maxx; x++)
 		{
+            b=(data[count]+256)%256;
+			g=(data[count+1]+256)%256;
+			r=(data[count+2]+256)%256;
 			b2=(data2[count]+256)%256;
 			g2=(data2[count+1]+256)%256;
 			r2=(data2[count+2]+256)%256;
-			if (b2+g2+r2 <150)
+			if (b2+g2+r2<350 && b>25 && g>25 && r>25)
 			{
 				data2[count]=255;
 				data2[count+1]=0;
 				data2[count+2]=0;
+                data[count]=100;
+                data[count+1]=0;
+                data[count+2]=0;
+                data3[count]=data3[count+1]=data3[count+2]=255;
 				blackx+=x;
 				blacky+=y;
 				total2++;
@@ -1559,30 +1602,52 @@ int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny)
 		}
 	}
 	
-	if (total>0 && total2>0)
+//    cout<<"Black Total = " << total2 <<endl;
+    int histoBlackX, histoBlackY;
+    int totalBlack = histogram(temp,&histoBlackX,&histoBlackY);
+    while (totalBlack ==-1)
+    {
+        cout<<"Too many separate white pixel groups, eroding the image"<<endl;
+        cvErode(temp,temp,NULL,1);
+        totalBlack = histogram(temp,&histoBlackX,&histoBlackY);
+    }
+//    cout<<"Histo Total = " << totalBlack << endl;
+
+    if (totalWhite<0 || totalBlack<0)
+    {
+        cout<<"WHAT THE FUCK!?!? "<<totalWhite << " ," << totalBlack<<endl;
+    }
+	if (totalWhite>0 && totalBlack>0)
 	{
 		whitex/=total;
 		whitey/=total;
 		blackx/=total2;
 		blacky/=total2;
-	
-		xdist=blackx-whitex;
-		ydist=blacky-whitey;
-	
-	
+//		xdist=blackx-whitex;
+//		ydist=blacky-whitey;
+
+        xdist=histoBlackX-histoWhiteX;
+        ydist=histoBlackY-histoWhiteY;
 		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
-		//cout<<"White Center:"<<whitex<<","<<whitey<<endl;
-		//cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
-		//cout<<distance<<endl;
+		cout<<"White Center:"<<whitex<<","<<whitey<<endl;
+		cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
 		
-		if (distance<30)
+        cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
+        cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
+        cout<<"Distance:"<<distance<<endl;
+		
+		if (distance<50)
 		{
 			//cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;
-			*binx=(whitex+blackx)/2;
-			*biny=(whitey+blacky)/2;
+//			*binx=(whitex+blackx)/2;
+//			*biny=(whitey+blacky)/2;
+            *binx=(histoWhiteX + histoBlackX) /2;
+            *biny=(histoWhiteY + histoBlackY) /2;
 		}
 		else
 		{
+            cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
+            cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
 			*binx=-1;
 			*biny=-1;
 		}
@@ -1636,6 +1701,7 @@ int visionStart()
 	IplImage* moveFrame=NULL;
 	IplImage* gateFrame=NULL;
 	IplImage* percentsFrame=NULL;
+    IplImage* bufferFrame=NULL;
 	CvPoint lightCenter;
 	lightCenter.x=0;
 	lightCenter.y=0;
@@ -1682,6 +1748,8 @@ int visionStart()
 	oldFrame=cvCreateImage(cvGetSize(frame),8,3);
 	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
 	percentsFrame=cvCreateImage(cvGetSize(frame),8,3);
+    bufferFrame=cvCreateImage(cvGetSize(frame),8,3);
+    
 	while(goVision)
 	{
 	  
@@ -1865,7 +1933,7 @@ int visionStart()
 				{
 					int binX=0;
 					int binY=0;
-					binCount=white_detect(frame,binFrame,&binX,&binY);
+					binCount=white_detect(frame,binFrame,bufferFrame,&binX,&binY);
 					if (swapper==1)
 					{
 						buffer1->binx=binX;

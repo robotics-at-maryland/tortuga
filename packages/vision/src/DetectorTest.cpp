@@ -20,7 +20,7 @@
 
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 0
+#define SHOW_OUTPUT 1
 #define DEMO 0
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
@@ -113,47 +113,47 @@ DetectorTest::~DetectorTest()
 void DetectorTest::orangeDetectOn()
 {
 //	cout<<"Turning On Orange Detection"<<endl;
-	lightOn=false;
-	gateOn=false;
-	binOn=false;
+//	lightOn=false;
+//	gateOn=false;
+//	binOn=false;
 	orangeOn=true;
-	featureOn=false;
+//	featureOn=false;
 	//Turn off others
 }
 void DetectorTest::lightDetectOn()
 {
 //	cout<<"Turning On Light Detection"<<endl;
-	gateOn=false;
-	binOn=false;
-	orangeOn=false;
+//	gateOn=false;
+//	binOn=false;
+//	orangeOn=false;
 	lightOn=true;
-	featureOn=false;
+//	featureOn=false;
 }
 void DetectorTest::gateDetectOn()
 {
 //	cout<<"Turning on Gate Detection"<<endl;
-	lightOn=false;
-	binOn=false;
-	orangeOn=false;
+//	lightOn=false;
+//	binOn=false;
+//	orangeOn=false;
 	gateOn=true;
-	featureOn=false;
+//	featureOn=false;
 }
 void DetectorTest::binDetectOn()
 {
 //	cout<<"Turning on Bin Detection"<<endl;
-	lightOn=false;
-	gateOn=false;
-	orangeOn=false;
+//	lightOn=false;
+//	gateOn=false;
+//	orangeOn=false;
 	binOn=true;
-	featureOn=false;
+//	featureOn=false;
 }
 void DetectorTest::featureDetectOn()
 {
 //	cout<<"Turning on feature detection"<<endl;
-	lightOn=false;
-	gateOn=false;
-	orangeOn=false;
-	binOn=false;
+//	lightOn=false;
+//	gateOn=false;
+//	orangeOn=false;
+//	binOn=false;
 	featureOn=true;
 }
 void DetectorTest::orangeDetectOff()

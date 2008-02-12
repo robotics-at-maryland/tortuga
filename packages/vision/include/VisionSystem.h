@@ -34,8 +34,14 @@ public:
     virtual ~VisionSystem();
     
     void redLightDetectorOn();
-    
     void redLightDetectorOff();
+    void binDetectorOn();
+    void binDetectorOff();
+    void pipeLineDetectorOn();
+    void pipeLineDetectorOff();
+    void gateDetectorOn();
+    void gateDetectorOff();
+    
     virtual void background(int interval) {
 //        Updatable::background(interval);
     };

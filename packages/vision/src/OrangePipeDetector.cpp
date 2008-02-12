@@ -92,6 +92,7 @@ void OrangePipeDetector::update()
 	int linex,liney;
 	if (found)
 	{
+        cvErode(image, image);//3 x 3 default erosion element, 1 default iteration.
 		angle=hough(image,&linex,&liney);
 		if (angle==HOUGH_ERROR)
 		{

@@ -8,6 +8,7 @@ BinDetector::BinDetector(OpenCVCamera* camera)
 	frame = new ram::vision::OpenCVImage(640, 480);
 	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
 	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
+    bufferFrame = cvCreateImage(cvGetSize(rotated),8,3);
 	found=0;
 	binX=-1;
 	binY=-1;
@@ -19,6 +20,7 @@ BinDetector::~BinDetector()
 	delete frame;
 	cvReleaseImage(&binFrame);
 	cvReleaseImage(&rotated);
+    cvReleaseImage(&bufferFrame);
 }
 
 void BinDetector::update()
@@ -40,7 +42,7 @@ void BinDetector::update()
 	cvCopyImage(image,binFrame);
 	
 	to_ratios(image);
-	binCount=white_detect(image,binFrame,&binx,&biny);
+	binCount=white_detect(image,binFrame, bufferFrame, &binx,&biny);
 	if (biny!=-1 && binx!=-1)
 	{
 		binX=binx;
@@ -48,6 +50,17 @@ void BinDetector::update()
 		binY=biny;
 		binY/=image->height;
 		found=true;
+        
+        CvPoint tl,tr,bl,br;
+		tl.x=bl.x=max(binx-4,0);
+		tr.x=br.x=min(binx+4,binFrame->width-1);
+		tl.y=tr.y=min(biny+4,binFrame->height-1);
+		br.y=bl.y=max(biny-4,0);
+		
+		cvLine(binFrame, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0 );
+		cvLine(binFrame, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0 );
+		cvLine(binFrame, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
+		cvLine(binFrame, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
 	}
 	else
 	{

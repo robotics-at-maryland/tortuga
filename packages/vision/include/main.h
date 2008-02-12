@@ -25,7 +25,7 @@ void correct(IplImage* img);
 void filter(IplImage* img, bool red_flag, bool green_flag, bool blue_flag);
 void RAM_EXPORT to_ratios(IplImage* img);
 int red_blue(IplImage* img, float ratio);
-int white_detect(IplImage* percents, IplImage* base, int* binx, int* biny);
+int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny);
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 void RAM_EXPORT redMask(IplImage* percents, IplImage* base);
