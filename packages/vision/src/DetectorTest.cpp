@@ -20,7 +20,7 @@
 
 using namespace std;
 using namespace ram::vision;
-#define SHOW_OUTPUT 1
+#define SHOW_OUTPUT 0
 #define DEMO 0
 //forward is 1 for forwardcamera, 0 for downward camera
 DetectorTest::DetectorTest(int camNum, bool forward)
@@ -195,8 +195,6 @@ RedLightDetector* DetectorTest::getRedDetector()
 
 void DetectorTest::update(double timestep)
 {
-//	cout<<"I am compiled"<<endl;
-//	cout<<orangeOn<<" "<<binOn<<" "<<lightOn<<" "<<gateOn<<endl;
 	//char key=' ';
 //	cout<<frame->getWidth()<<" "<<frame->getHeight()<<" ";
 	
