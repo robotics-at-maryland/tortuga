@@ -190,10 +190,11 @@ int setupNetworking(struct sockaddr_in& my_addr)
         return ret;
     }
 
-    int t = sizeof(my_addr);
+    size_t t = sizeof(my_addr);
     my_addr.sin_port = 0;
     my_addr.sin_addr.s_addr = INADDR_ANY;
-    int len = recvfrom(sockfd, buf, 65536, 0, (struct sockaddr *) &my_addr, &t);
+    // Return length is ignored
+    recvfrom(sockfd, buf, 65536, 0, (struct sockaddr *) &my_addr, &t);
 
     printf("Recieved first packet.\n");
 
@@ -214,9 +215,6 @@ void networkLoop(control::IController* controller)
     signal(SIGALRM, shutdownHandler);
     signal(SIGINT, shutdownHandler);
 
-
-    struct sockaddr_in their_addr;
-
     // Recored the FD to allow external shutdown
     g_teleopFD = sockfd;
     printf("server: got connection\n");
@@ -231,7 +229,7 @@ void networkLoop(control::IController* controller)
         // Wait for command packet
         signed char buf[2];
 
-        int t = sizeof(my_addr);
+        size_t t = sizeof(my_addr);
         my_addr.sin_port = 0;
         my_addr.sin_addr.s_addr = INADDR_ANY;
         int len = recvfrom(sockfd, buf, 2, 0, (struct sockaddr *) &my_addr, &t);
@@ -274,7 +272,7 @@ void networkLoop(control::IController* controller)
     }
 
     // Close old fd
-    close(new_fd);
+    close(sockfd);
 
     printf("server: lost connection\n");
 
