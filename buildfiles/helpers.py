@@ -87,10 +87,10 @@ def SharedLibrary(env, name, _source, **kwargs):
     # Needed for DLL symbol export on windows
     env.AppendUnique(CPPDEFINES = ['RAM_PKG_' + name.upper()])
     
-    target_name = 'ram_' + name
+    target_name = 'ram_' + name + env['VARIANT'].suffix
     lib = env.SharedLibrary(target = target_name, source = _source, **kwargs)
     env.Install(dir = env['LIB_DIR'], source = lib)
-    
+
     if env['RAM_OS'] == 'windows':
         add_msvs_project(env, lib, _source)
     

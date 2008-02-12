@@ -92,8 +92,7 @@ def setup_environment(env):
     suffix = variant.suffix
 
     # Suffixes we have to adjust
-    variables = ['OBJSUFFIX', 'SHOBJSUFFIX', 'SHLIBSUFFIX', 'PROGSUFFIX',
-                 'LIBSUFFIX']
+    variables = ['OBJSUFFIX', 'SHOBJSUFFIX', 'PROGSUFFIX']
 
     for variable in variables:
         env[variable] = suffix + env[variable]
