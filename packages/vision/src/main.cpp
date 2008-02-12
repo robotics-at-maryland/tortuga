@@ -1405,9 +1405,9 @@ void to_ratios(IplImage* img)
 {
     unsigned char* data = (unsigned char*)img->imageData;
     int length = img->width * img->height * 3;
-    int r=0;
-    int g=0;
-    int b=0;
+    int r = 0;
+    int g = 0;
+    int b = 0;
     int sum = 0;
     
     for (int i = 0; i < length; i += 3)
@@ -1416,9 +1416,20 @@ void to_ratios(IplImage* img)
         g = data[i+1];
         r = data[i+2];
         sum = r + b + g;
-        data[i]=static_cast<unsigned char>((double)(b)/(sum) *100);
-        data[i+1]=static_cast<unsigned char>((double)(g)/(sum) *100);
-        data[i+2]=static_cast<unsigned char>((double)(r)/(sum) *100);
+
+        // Fixed point version (conditional needed for divede by zero)
+        if (sum)
+        {
+            data[i]= (100 * b) / sum;
+            data[i+1]= (100 * g) / sum;
+            data[i+2]= (100 * r) / sum;
+        }
+        else
+        {
+            data[i]= 0;
+            data[i+1]= 0;
+            data[i+2]= 0;
+        }
     }
 }
 
