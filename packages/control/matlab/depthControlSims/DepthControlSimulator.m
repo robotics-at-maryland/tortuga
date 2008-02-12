@@ -1,6 +1,6 @@
 % Main Code to run the Depth Control Simulation
 % set controlType to 'p' (not case sensitive) for P control
-controlType = 'lqg';
+controlType = 'oc';
 % set controlType to 'pd' (not case sensitive) for PD control
 % controlType = 'pd';
 
