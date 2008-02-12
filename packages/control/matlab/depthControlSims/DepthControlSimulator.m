@@ -1,6 +1,6 @@
 % Main Code to run the Depth Control Simulation
 % set controlType to 'p' (not case sensitive) for P control
-controlType = 'oc';
+controlType = 'lqgi';
 % set controlType to 'pd' (not case sensitive) for PD control
 % controlType = 'pd';
 
@@ -11,8 +11,12 @@ global kp;
 global kd;
 global K;
 global L;
+global W;
+global A_c;
+global B_c;
+global C_c;
 x_hat=[0 0]';%initialize the global variable to rest conditions
-
+W = [0 0 0 0]';
 
 c=11.5;
 m=20;%mass of sub in kg
@@ -55,6 +59,14 @@ elseif strcmp('LQG',upper(controlType))==1
      K = [3.162277660168380   4.585431495820535];
      L = [ 0.229271574791027;
    0.026282727503579];
+elseif strcmp('LQGI',upper(controlType))==1
+    %LQG Controller - LQGIntegraterCoefficients
+    A_c = 1.0e+005 *  [-0.00003243340773  -2.12958762273715  -0.00005192593681      0;
+                                       0  -0.00065425000000   0.00001000000000      0;
+                        0.00000050000000  -0.01414370624982  -0.00000575000000      0;
+                       -0.00003243340773  -0.00003162277660  -0.00005192593681      0;];
+    B_c =  1.0e+005 * [ 2.12955599996055; 0.00065425000000; 0.01414370624982; 0];                
+    C_c = [ 0 0 0 1];
 end    
    
 
@@ -126,6 +138,12 @@ for i=2:length(time)
         %store current x_hat from ObserverController in x_hat array
         x_hat_array(1,i) = x_hat(1);
         x_hat_array(2,i) = x_hat(2);
+    elseif strcmp('LQGI',upper(controlType))==1
+        %LQG Controller
+        Fthrust(i) = ObserverController_LQGIntegrater(y,xd,dt);
+        %store current x_hat from ObserverController in x_hat array
+        x_hat_array(1,i) = W(1);
+        x_hat_array(2,i) = W(2);
     end
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
