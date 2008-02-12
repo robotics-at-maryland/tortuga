@@ -93,6 +93,15 @@ public:
     };
 };
 
+/** Wraps to allow usage from python */
+ram::vision::Image* loadFromBuffer(unsigned long address, int width, int height,
+                                   bool ownership)
+{
+//    unsigned long addr = bp::extract<unsigned long>(address);
+    return ram::vision::Image::loadFromBuffer((unsigned char*)address, width,
+                                              height, ownership);
+}
+
 void registerImageClass()
 {
     typedef bp::class_< ImageWrapper, boost::noncopyable > ImageExposer;
@@ -113,7 +122,7 @@ void registerImageClass()
         .def("saveToFile", &ram::vision::Image::saveToFile,
              bp::return_value_policy<bp::manage_new_object>())
         .staticmethod("saveToFile")
-        .def("loadFromBuffer", &ram::vision::Image::loadFromBuffer,
+        .def("loadFromBuffer", &::loadFromBuffer,
              bp::return_value_policy<bp::manage_new_object>())
         .staticmethod("loadFromBuffer");
 }

@@ -48,7 +48,7 @@ public:
     /** Saves the given image to the desired file */
     static void saveToFile(Image* image, std::string fileName);
 
-    /** Creates and image given the data buffer */
+    /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
     static Image* loadFromBuffer(unsigned char* buffer, int width,
                                  int height, bool ownership);
     
