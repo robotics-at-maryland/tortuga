@@ -131,8 +131,7 @@ byte busState = 0;
 byte nParam = 0;
 byte p1=0;
 
-/* Average depth, as computed by ADC ISR */
-long avgDepth = 0;
+byte myTemperature = 255;
 
 /* If Master writes us data, this gets called */
 void processData(byte data)
@@ -224,6 +223,13 @@ void processData(byte data)
                     if(IN_WTRSEN == 0) txBuf[1] |= 0x20;
 
                     enableBusInterrupt();
+                    break;
+                }
+
+                case BUS_CMD_TEMP:
+                {
+                    txBuf[0] = 1;
+                    txBuf[1] = myTemperature;
                     break;
                 }
 
@@ -474,7 +480,7 @@ void _ISR _CNInterrupt(void)
  */
 void initADC()
 {
-    avgDepth = 0x1234;
+//     avgDepth = 0x1234;
     ADPCFG = 0xFFFF;
     ADPCFGbits.PCFG0 = 0;
     _TRISB0 = TRIS_IN;
@@ -543,6 +549,8 @@ void main()
         cfgRegs[i] = 65;
 
 
+    byte i2cErrCount = 0;
+
     while(1)
     {
         /* Give it a second */
@@ -552,9 +560,17 @@ void main()
 
         /* Read error */
         if(rx == 255)
+        {
+            if(i2cErrCount < 10)
+                i2cErrCount++;
+            else
+                myTemperature = 255;
+
             initI2C();
-
-        /* Do something with the temperature here */
-
+        } else
+        {
+            i2cErrCount = 0;
+            myTemperature = rx;
+        }
     }
 }
