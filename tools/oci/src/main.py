@@ -17,6 +17,10 @@ import yaml
 import oci.app as app
 import ram
 
+# Needed to register makers
+import ext.vision
+
+
 def main():            
     # Parse command line options
     defaultConfigPath = os.path.abspath(

@@ -86,8 +86,8 @@ class TestVisionSystem(unittest.TestCase):
         self.assertAlmostEqual(-0.5, self.event.x, 2)
         self.assertAlmostEqual(0.5, self.event.y, 2)
         self.assertAlmostEqual(3, self.event.range, 1)
-        self.assertAlmostEqual(78.0/2, self.event.azimuth.valueDegrees(), 2)
-        self.assertAlmostEqual(105.0/2, self.event.elevation.valueDegrees(), 0)
+        self.assertAlmostEqual(78.0/4, self.event.azimuth.valueDegrees(), 2)
+        self.assertAlmostEqual(105.0/4, self.event.elevation.valueDegrees(), 0)
 
 
 if __name__ == '__main__':

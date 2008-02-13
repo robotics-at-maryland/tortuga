@@ -79,7 +79,7 @@ TEST_FIXTURE(MathFixture, Matrix3)
         
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
-
+/*
 TEST_FIXTURE(MathFixture, __str__)
 {
     try {
@@ -89,7 +89,7 @@ TEST_FIXTURE(MathFixture, __str__)
         CHECK_EQUAL("Vector3(1, 2, 3)", str);
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
-
+*/
 int main()
 {
     // We must register this contverted so we can pass a pointer to python

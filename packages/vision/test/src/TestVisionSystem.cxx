@@ -118,8 +118,8 @@ TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
     CHECK_CLOSE(-0.5, event->x, 0.005);
     CHECK_CLOSE(0.5, event->y, 0.005);
     CHECK_CLOSE(3, event->range, 0.1);
-    CHECK_CLOSE(math::Degree(78.0/2), event->azimuth, math::Degree(0.4));
-    CHECK_CLOSE(math::Degree(105.0/2), event->elevation, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(78.0/4), event->azimuth, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(105.0/4), event->elevation, math::Degree(0.4));
 
     forwardCamera->unbackground(true);
 }

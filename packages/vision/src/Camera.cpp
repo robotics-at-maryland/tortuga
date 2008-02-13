@@ -79,7 +79,8 @@ bool Camera::waitForImage(Image* current, const boost::xtime &xt)
 
 void Camera::background(int rate)
 {
-    m_imageLatch.resetCount(1);
+    if (0 == m_imageLatch.getCount())
+        m_imageLatch.resetCount(1);
     Updatable::background(rate);
 }
     

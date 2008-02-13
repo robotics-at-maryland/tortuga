@@ -157,8 +157,8 @@ void RedLightDetector::processImage(Image* input, Image* output)
         RedLightEventPtr event(new RedLightEvent(0, 0));
         event->x = redLightCenterX;
         event->y = redLightCenterY;
-        event->azimuth = math::Degree((78.0 / 2) * event->x * -2);
-        event->elevation = math::Degree((105.0 / 2) * event->y * 2);
+        event->azimuth = math::Degree((78.0 / 2) * event->x * -1);
+        event->elevation = math::Degree((105.0 / 2) * event->y * 1);
 
         // Compute range (assume a sphere)
         double lightRadius = 0.25; // feet

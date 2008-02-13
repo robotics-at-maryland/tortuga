@@ -17,6 +17,8 @@ import ext.core as core
 import oci.view.panels  # Import needed for registration of IPanelProviders
 from oci.view.shell import ShellPanel
 
+import oci.view.vision
+
 class MainFrame(wx.Frame):
     """
     @type panel_providers: iterable
