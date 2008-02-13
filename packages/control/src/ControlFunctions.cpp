@@ -33,8 +33,14 @@ using namespace ram::math;
 using namespace std;
     
 /********************************************************************
-function translationalController.m is a decoupled controller for vertical and
-fore/aft control only.  Note that the fore/aft control is completely open loop
+function translationalController.m is a decoupled controller 
+
+all translational forces and control laws should be implemented here
+
+at the moment, only depth (global coordinates) and fore/aft (relative
+coordinates) motions are currently implemented
+
+Note that the fore/aft control is completely open loop
 
 assumes the quaternion is written as
 
@@ -51,6 +57,7 @@ void translationalController(MeasuredState* measuredState,
 
     double translationControlSignal[3];
 
+    /*
     //depth control
     //depth component first calculated in inertial frame for a single axis
     //first find depth error (proportional component)
@@ -64,7 +71,12 @@ void translationalController(MeasuredState* measuredState,
     //second implement depth error in single axis control law
     double depthControlSignal;
     depthControlSignal = (-1)*(controllerState->depthPGain)*depthError;
-
+    */
+    
+    //do P control for now
+    double depthControlSignal;
+    depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+    
     //now put single axis control signal in a proper inertial frame
     double depthComponent[3];
     depthComponent[0]=0;
@@ -72,12 +84,12 @@ void translationalController(MeasuredState* measuredState,
     depthComponent[2]=-depthControlSignal;
 
     //now rotate depth control component to the vehicle's coordinate frame
-    // Quaternion is bogus doing it manually
     double rotationMatrix[3][3];
     rotationMatrixFromQuaternion(measuredState->quaternion,&rotationMatrix[0][0]);
     matrixMult3x1by3x3(rotationMatrix,depthComponent,&translationControlSignal[0]);
 
     /*
+    // Quaternion is bogus doing it manually
     translationControlSignal[0] = 0;
     translationControlSignal[1] = 0;
     translationControlSignal[2] = -depthControlSignal;
@@ -99,6 +111,29 @@ void translationalController(MeasuredState* measuredState,
     *(translationalForces+2) = translationControlSignal[2];
 }
 
+/************************************************************************
+depthPController(measuredDepth,desiredDepth)
+
+implements a crappy P controller to regulate depth
+
+Fthrust=-k(x_measured-x_desired)
+reads the gain "k" from the config file 
+
+returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
+*/
+double depthPController(double measuredDepth,
+                        double desiredDepth,
+                        ControllerState* controllerState){
+    double depthError;
+    double depthControlSignal;
+    double depthPGain=controllerState->depthPGain;
+    
+    //compute difference
+    depthError=measuredDepth-desiredDepth;
+    //compute control law u=-k(x_meas-x_desire)
+    depthControlSignal = (-1)*depthPGain*depthError;
+    return depthControlSignal;
+}
 
 /************************************************************************
 BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt,translationalForces)

@@ -67,6 +67,10 @@ void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
                                    ControllerState* controllerState,
                                    double dt,
                                    double* rotationalTorques);
+                                   
+double RAM_EXPORT depthPController(double measuredDepth,
+                            double desiredDepth,
+                            ControllerState* controllerState);
 
   //TODO: implement this function
   //  bool isAtDepth();
