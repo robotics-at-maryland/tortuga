@@ -44,12 +44,16 @@ def main(argv=None):
     (options, args) = parser.parse_args()
 
     site_package_dir = os.path.join(options.prefix, PYTHON_SITE_PACKAGE_SUFFIX)
-    
+
     # Buildit imports
     util.ensure_buildit_installed(ROOT_DIR, site_package_dir, options.prefix)
     from buildit.context import Context
     from buildit.context import Software
-    
+
+    # Make sure out site package dir is on the python path
+    default_path = os.environ.get('PYTHONPATH', '')
+    os.environ['PYTHONPATH'] = site_package_dir + os.pathsep + default_path
+
     # Task information
     import buildfiles.bootstrap.tasks as build_tasks
 
