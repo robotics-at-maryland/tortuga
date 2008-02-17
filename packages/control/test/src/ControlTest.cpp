@@ -190,7 +190,7 @@ int setupNetworking(struct sockaddr_in& my_addr)
         return ret;
     }
 
-    size_t t = sizeof(my_addr);
+    socklen_t t = sizeof(my_addr);
     my_addr.sin_port = 0;
     my_addr.sin_addr.s_addr = INADDR_ANY;
     // Return length is ignored
@@ -229,7 +229,7 @@ void networkLoop(control::IController* controller)
         // Wait for command packet
         signed char buf[2];
 
-        size_t t = sizeof(my_addr);
+        socklen_t t = sizeof(my_addr);
         my_addr.sin_port = 0;
         my_addr.sin_addr.s_addr = INADDR_ANY;
         int len = recvfrom(sockfd, buf, 2, 0, (struct sockaddr *) &my_addr, &t);
