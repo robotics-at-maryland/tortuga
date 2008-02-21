@@ -1,4 +1,4 @@
-% This file creates A, B, and C for LQG Integrater controller
+% This file creates A, B, and C for LQG Integral controller
   
 %physical constants
 m=20;
@@ -13,8 +13,6 @@ G = [0 1/m]';
 Q = [10 0;0 0];
 R = 1;
 
-
-
 A_b = 0;
 B_b = 1;
 C_b = 1;
@@ -26,21 +24,9 @@ C_a = [0 C];
 Q_a = [10 0 0;0 10 0;0 0 0];
 G_a = [0 1/m 0]';
 
-K_a = place(A_a,B_a,[-4 -4.1 -3.9]);
-L_a = (place(A_a',C_a',[-22 -22.1 -21.9]))';
-
-
 K_a = lqr(A_a,B_a,Q_a,R);
-%L_a = lqe(A_a,G_a,C_a,W,N,0)
-
-
-%size_a = size(A_a)
-%size_b = size(A_b)
-%size(B_a*K_a)
-%size(L_a*C_a)
+L_a = lqe(A_a,G_a,C_a,W,N,0)
 
 A_c = [A_a - B_a*K_a-L_a*C_a   zeros(3,1);   -B_b*K_a    A_b]
 B_c = [L_a; 0]
 C_c = [zeros(1,3) C_b]
-
-

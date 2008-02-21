@@ -1,4 +1,4 @@
-% This file creates K and L for the "don't know what to call it" controller
+% This file creates K and L for the LQG controller
 
 %physical constants
 m=20;
@@ -13,7 +13,4 @@ G = [0 1/m]';
 Q = [10 0;0 0];
 R = 1;
 K = lqr(A,B,Q,R)
-
-
-
 L = lqe(A,G,C,W,N,0)
