@@ -22,6 +22,7 @@ struct EventType
 {
     static const core::Event::EventType LIGHT_FOUND;
     static const core::Event::EventType LIGHT_LOST;
+    static const core::Event::EventType LIGHT_ALMOST_HIT;
     static const core::Event::EventType PIPE_FOUND;
     static const core::Event::EventType GATE_FOUND;
     static const core::Event::EventType BIN_FOUND;

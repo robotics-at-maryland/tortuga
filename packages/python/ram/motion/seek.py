@@ -40,7 +40,7 @@ class PointTarget(ext.core.EventPublisher):
             return -1 * self.range * math.sin(elevation)
         
 class SeekPoint(Motion):
-    def __init__(self, target):
+    def __init__(self, target, maxSpeed = 0.0):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -49,6 +49,7 @@ class SeekPoint(Motion):
         
         self._running = False
         self._target = target
+        self._maxSpeed = maxSpeed
         self._conn = target.subscribe(PointTarget.UPDATE, self._onBouyUpdate)
         
     def _start(self):
@@ -77,6 +78,25 @@ class SeekPoint(Motion):
         
         yawCommand = absoluteTargetHeading - desiredHeading
         self._controller.yawVehicle(yawCommand)
+
+        # Drive toward light
+        self._controller.setSpeed(self._speedScale() * self._maxSpeed)
+
+    def _speedScale(self):
+        """
+        Scales the speed based on far from the center of the field of view
+        the light is.  It uses both azimuth & elevation, with a max moving angle
+        of 90 degrees
+        """
+        maxPossible = math.sqrt(45**2 * 2)
+        azimuth = self._target.azimuth**2
+        elevation = self._target.elevation**2
+        
+        scale = 1 - (math.sqrt(azimuth + elevation) / maxPossible)
+
+        if scale < 0.0:
+            scale = 0.0
+        return scale
 
     def _onBouyUpdate(self, event):
         """

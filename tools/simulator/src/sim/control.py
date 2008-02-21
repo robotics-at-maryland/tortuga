@@ -78,10 +78,10 @@ class KeyboardController(core.Subsystem):
             
         if self._forward:
             self._desiredSpeed += 2 * time_since_last_frame
-            self._controller.setSpeed(int(self._desiredSpeed))
+            self._controller.setSpeed(self._desiredSpeed)
         elif self._backward:
             self._desiredSpeed -= 2 * time_since_last_frame
-            self._controller.setSpeed(int(self._desiredSpeed))
+            self._controller.setSpeed(self._desiredSpeed)
             
         # Depth Control
         currentDepth = self._controller.getDepth()

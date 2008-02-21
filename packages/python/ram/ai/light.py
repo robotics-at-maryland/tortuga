@@ -26,10 +26,12 @@ class Searching(state.State):
     def enter(self):
         # Turn on the vision system
         self.visionSystem.redLightDetectorOn()
-        
+
         # Create zig zag search to 
-        # 15 seconds long, 120 Degree sweep, speed 1
-        zigZag = motion.search.ForwardZigZag(15, 120, 1)
+        zigZag = motion.search.ForwardZigZag(
+            legTime = 15,
+            sweepAngle = 120,
+            speed = 1)
         self.motionManager.setMotion(zigZag)
         
 
@@ -37,7 +39,7 @@ class Seek(state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_LOST : Searching,
-                 vision.EventType.LIGHT_FOUND : Seek
+                 vision.EventType.LIGHT_FOUND : Seek,
                  vision.EventType.LIGHT_ALMOST_HIT : Hit }
 
     def LIGHT_FOUND(self, event):
@@ -46,7 +48,8 @@ class Seek(state.State):
 
     def enter(self):
         self._light = ram.motion.seek.PointTarget(0,0,0)
-        motion = ram.motion.seek.SeekPoint(self._light)
+        motion = ram.motion.seek.SeekPoint(target = self._light,
+                                           maxSpeed = 3)
         self.motionManager.setMotion(motion)
 
 
@@ -58,8 +61,9 @@ class Hit(state.State):
         return {Hit.FORWARD_DONE : End}
 
     def enter(self):
-        
         self.visionSystem.redLightDetectorOff()
+
+        print '"Attempting to hit light, Charge!!!!"'
         # Timer goes off in 3 seconds then sends off FORWARD_DONE
         timer = self.timerManager.newTimer(Hit.FORWARD_DONE, 3)
         timer.start()
@@ -69,4 +73,4 @@ class Hit(state.State):
         
 class End(state.State):
     def enter(self):
-        print 'Mission Complete'
+        print '"Mission Complete"'

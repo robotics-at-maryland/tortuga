@@ -24,11 +24,11 @@ class MockController : public ram::control::IController
 public:
     MockController(std::string name) : IController(name) {}
 	
-    virtual void setSpeed(int speed_) { speed = speed_; }
+    virtual void setSpeed(double speed_) { speed = speed_; }
 
     virtual void setDepth(double depth_) { depth = depth_; }
 
-    virtual int getSpeed() { return speed; }
+    virtual double getSpeed() { return speed; }
 
     virtual double getDepth() { return depth; }
 
@@ -51,7 +51,7 @@ public:
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
     
-    int speed;
+    double speed;
     double depth;
     double yaw;
     bool atorientation;
@@ -116,7 +116,7 @@ TEST(ControllerWrapping)
     CHECK_EQUAL(3, mockController->speed);
     
     eval("speed = controller.getSpeed()");
-    int speed = py::extract<int>(main_namespace["speed"]);
+    double speed = py::extract<double>(main_namespace["speed"]);
     CHECK_EQUAL(3, speed);
     
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }

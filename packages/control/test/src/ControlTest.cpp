@@ -321,7 +321,7 @@ bool processMessage(control::IController* controller, unsigned char cmd,
             if(controller->getSpeed() < MAX_SPEED)
                 controller->setSpeed(controller->getSpeed()+SPEED_ENC);
 
-            printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+            printf("\nNEW SPEED:  %f\n", controller->getSpeed());
             break;
         }
 
@@ -330,7 +330,7 @@ bool processMessage(control::IController* controller, unsigned char cmd,
             if(controller->getSpeed() > MIN_SPEED)
                 controller->setSpeed(controller->getSpeed()-SPEED_ENC);
 
-            printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+            printf("\nNEW SPEED:  %f\n", controller->getSpeed());
             break;
         }
 
@@ -356,7 +356,7 @@ bool processMessage(control::IController* controller, unsigned char cmd,
         case CMD_ZEROSPEED:
         {
             controller->setSpeed(0);
-            printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+            printf("\nNEW SPEED:  %f\n", controller->getSpeed());
             break;
         }
 
@@ -365,7 +365,7 @@ bool processMessage(control::IController* controller, unsigned char cmd,
             if(param <= MAX_SPEED && param >= MIN_SPEED)
             {
                 controller->setSpeed(param);
-                printf("\nNEW SPEED:  %d\n", controller->getSpeed());
+                printf("\nNEW SPEED:  %f\n", controller->getSpeed());
             } else
             {
                 printf("\nINVALID NEW SPEED: %d\n", param);

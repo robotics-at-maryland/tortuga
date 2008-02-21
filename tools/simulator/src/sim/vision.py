@@ -60,9 +60,19 @@ class Buoy(Visual):
     def save(self, data_object):
         raise "Not yet implemented"
 
-class IdealSimVision(ext.core.Subsystem):
+class IdealSimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
-        ext.core.Subsystem.__init__(self, config.get('name', 'SimVision'), deps)
+        # Transform arguments to create base VisionSystem class
+        cfg = ext.core.ConfigNode.fromString(str(config))
+        depList = ext.core.SubsystemList()
+        for subsys in deps:
+            depList.append(subsys)
+
+        # The camera do nothing
+        ext.vision.VisionSystem.__init__(self, ext.vision.Camera(640, 480),
+                                         ext.vision.Camera(640, 480), cfg,
+                                         depList)
+        
         
         # Grab the scene we are operating in
         sim = ext.core.Subsystem.getSubsystemOfType(Simulation, deps, 
@@ -142,6 +152,10 @@ class IdealSimVision(ext.core.Subsystem):
             event.range = relativePos.length() * 3.2808399
             
             self.publish(ext.vision.EventType.LIGHT_FOUND, event)
+
+            if relativePos.length() < 0.5:
+                self.publish(ext.vision.EventType.LIGHT_ALMOST_HIT,
+                             ext.core.Event())
             
         else:
             if self._foundLight:

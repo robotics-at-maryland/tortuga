@@ -81,7 +81,7 @@ BWPDController::~BWPDController()
     delete m_controllerState;
 }
     
-void BWPDController::setSpeed(int speed)
+void BWPDController::setSpeed(double speed)
 {
     // Clamp speed
     if (speed > 5)
@@ -115,10 +115,10 @@ void BWPDController::setDepth(double depth)
     publish(IController::DESIRED_DEPTH_UPDATE, event);
 }
 
-int BWPDController::getSpeed()
+double BWPDController::getSpeed()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
-    return (int)m_desiredState->speed;
+    return m_desiredState->speed;
 }
 
 double BWPDController::getHeading()
