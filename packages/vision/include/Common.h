@@ -24,6 +24,7 @@ class Image;
 class OpenCVImage;
 class OpenCVCamera;
 class Calibration;
+class Recorder;
     
 class Detector;
 typedef boost::shared_ptr<Detector> DetectorPtr;

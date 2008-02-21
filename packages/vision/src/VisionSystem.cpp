@@ -12,6 +12,7 @@
 #include "vision/include/VisionRunner.h"
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/RedLightDetector.h"
+#include "vision/include/Recorder.h"
 
 #include "core/include/EventHub.h"
 //To register it as a subsystem.
@@ -25,14 +26,16 @@ namespace vision {
 
 VisionSystem::VisionSystem(core::ConfigNode config,
                            core::SubsystemList deps) :
-    Subsystem(config["date"].asString("VisionSystem"), deps),
+    Subsystem(config["name"].asString("VisionSystem"), deps),
     m_forwardCamera(CameraPtr()),
     m_downwardCamera(CameraPtr()),
+    m_forwardRecorder(0),
+    m_downwardRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr())
 {
-    init(core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
+    init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
 
 VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
@@ -40,14 +43,16 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     Subsystem("VisionSystem", deps),
     m_forwardCamera(forward),
     m_downwardCamera(downward),
+    m_forwardRecorder(0),
+    m_downwardRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr())
 {
-    init(core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
+    init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
     
-void VisionSystem::init(core::EventHubPtr eventHub)
+void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 {
     if (!m_forwardCamera)
         m_forwardCamera = CameraPtr(new OpenCVCamera(0, true));
@@ -55,6 +60,23 @@ void VisionSystem::init(core::EventHubPtr eventHub)
     if (!m_downwardCamera)
         m_downwardCamera = CameraPtr(new OpenCVCamera(1, false));
 
+    // Recorders
+    if (config.exists("forwardFile"))
+    {
+        m_forwardRecorder = new Recorder(m_forwardCamera.get(),
+                                         Recorder::NEXT_FRAME,
+                                         config["forwardFile"].asString());
+    }
+
+    if (config.exists("downwardFile"))
+    {
+        m_downwardRecorder = new Recorder(m_downwardCamera.get(),
+                                          Recorder::NEXT_FRAME,
+                                          config["downwardFile"].asString());
+
+    }
+    
+    // Detectors
     m_forward = new VisionRunner(m_forwardCamera.get());
     m_downward = new VisionRunner(m_downwardCamera.get());
     m_redLightDetector = DetectorPtr(new RedLightDetector(
@@ -74,6 +96,9 @@ VisionSystem::~VisionSystem()
     m_forwardCamera->unbackground(true);
     m_downwardCamera->unbackground(true);
 
+    delete m_forwardRecorder;
+    delete m_downwardRecorder;
+    
     // Shutdown our detectors running on our cameras
     delete m_forward;
     delete m_downward;

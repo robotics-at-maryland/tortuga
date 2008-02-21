@@ -55,10 +55,14 @@ public:
 
 private:
     /** Initializes all internal members */
-    void init(core::EventHubPtr eventHub);
+    void init(core::ConfigNode config, core::EventHubPtr eventHub);
     
     CameraPtr m_forwardCamera;
     CameraPtr m_downwardCamera;
+
+    Recorder* m_forwardRecorder;
+    Recorder* m_downwardRecorder;
+    
     VisionRunner* m_forward;
     VisionRunner* m_downward;
 
