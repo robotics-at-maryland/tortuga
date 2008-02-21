@@ -14,10 +14,13 @@
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/filesystem.hpp>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "vision/include/Camera.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/Events.h"
+
 #include "vision/test/include/UnitTestChecks.h"
 #include "vision/test/include/MockCamera.h"
 
@@ -59,6 +62,52 @@ TEST(copyToPublic)
 
     // Should be exactly the same
     CHECK_CLOSE(*expected, *result, 0);
+}
+
+struct CameraFixture
+{
+    CameraFixture() :
+        rawImage(new OpenCVImage(10,10)),
+        capturedImage(new OpenCVImage(10,10))
+    {}
+    
+    ~CameraFixture()
+    {
+        delete rawImage;
+        delete capturedImage;
+    }
+
+    void rawCaptureHandler(ram::core::EventPtr event)
+    {
+        rawImage->copyFrom(
+            boost::dynamic_pointer_cast<ImageEvent>(event)->image);
+    }
+
+    void captureHandler(ram::core::EventPtr event)
+    {
+        capturedImage->copyFrom(
+            boost::dynamic_pointer_cast<ImageEvent>(event)->image);
+    }
+
+    Image* rawImage;
+    Image* capturedImage;
+};
+
+TEST_FIXTURE(CameraFixture, event_RAW_IMAGE_CAPTURED_and_IMAGE_CAPTURED)
+{
+    Image* expectedRaw = new OpenCVImage((getImagesDir() / "A.jpg").string());
+    Image* expectedCap = new OpenCVImage((getImagesDir() / "B.jpg").string());
+    
+    MockCamera camera(expectedRaw, expectedCap);
+    camera.subscribe(ram::vision::Camera::RAW_IMAGE_CAPTURED,
+                     boost::bind(&CameraFixture::rawCaptureHandler, this, _1));
+    camera.subscribe(ram::vision::Camera::IMAGE_CAPTURED,
+                     boost::bind(&CameraFixture::captureHandler, this, _1));
+
+    // Fire off events, then change handlers
+    camera.update(0);
+    CHECK_CLOSE(*expectedRaw, *rawImage, 0);
+    CHECK_CLOSE(*expectedCap, *capturedImage, 0);
 }
 
 } // SUITE(Camera)
