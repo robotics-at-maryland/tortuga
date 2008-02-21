@@ -45,6 +45,8 @@ public:
 
     virtual size_t height();
 
+    virtual size_t fps() { return _fps; }
+    
     virtual bool backgrounded()
         { return _backgrounded; }
     
@@ -57,7 +59,7 @@ public:
         Camera::unbackground(join);
     };
 
-
+    size_t _fps;
 protected:
     bool _backgrounded;
     

@@ -206,7 +206,10 @@ public:
 	///< @return A reference to the time value.
 
     /** Sleep for the requested number of seconds */
-    static void sleep(long seconds);
+    static void sleep(double seconds);
+    
+    /** Sleep the requested duration */
+    static void sleep(const TimeVal& duration);
 /// @}
 };
 

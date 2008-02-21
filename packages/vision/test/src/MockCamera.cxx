@@ -13,6 +13,8 @@
 
 MockCamera::MockCamera(ram::vision::Image* newImage,
                        ram::vision::Image* publicImage) :
+    _fps(30),
+    _backgrounded(false),
     m_newImage(newImage),
     m_publicImage(publicImage)
 {

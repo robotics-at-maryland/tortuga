@@ -18,6 +18,7 @@
 #include "vision/include/Events.h"
 
 #include "core/include/EventHub.h"
+#include "core/include/TimeVal.h"
 
 #include "vision/test/include/MockCamera.h"
 
@@ -103,11 +104,11 @@ TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 
     // Have to wait for the processing thread to be waiting on the camera
     vision.redLightDetectorOn();
-    usleep(33 * 1000);
+    ram::core::TimeVal::sleep(33.0 / 1000.0);
 
     // Release the image from the camera (and wait for the detector capture it)
     forwardCamera->update(0);
-    usleep(33 * 1000);
+    ram::core::TimeVal::sleep(33.0 / 1000.0);
 
     // This stops the background thread
     vision.redLightDetectorOff();

@@ -105,6 +105,17 @@ size_t OpenCVCamera::height()
     return height;
 }
 
+size_t OpenCVCamera::fps()
+{
+    int fps = 0;
+    //if open cv returns 0 for this, we have to assume an fps
+    fps = (size_t)cvGetCaptureProperty(m_camCapture, CV_CAP_PROP_FPS);
+
+    if (fps <= 0)
+        return 30;
+    return fps;    
+}
+    
 void OpenCVCamera::copyToPublic(Image* newImage, Image* publicImage)
 {
     // Only calibration if we its possible

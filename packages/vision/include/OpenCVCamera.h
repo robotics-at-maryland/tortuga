@@ -44,6 +44,8 @@ public:
     
     virtual size_t height();
 
+    virtual size_t fps();
+
 protected:
     /** Preforms a calbration during the copy if possible
      *  

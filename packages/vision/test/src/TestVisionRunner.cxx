@@ -21,6 +21,7 @@
 #include "vision/test/include/MockDetector.h"
 #include "vision/test/include/UnitTestChecks.h"
 
+#include "core/include/TimeVal.h"
 
 using namespace ram;
 
@@ -72,13 +73,13 @@ TEST_FIXTURE(VisionRunnerFixture, Update)
     runner.addDetector(detectorPtr);
     
     // Have to wait for the processing thread to be waiting on the camera
-    usleep(33 * 1000);
+    ram::core::TimeVal::sleep(33.0 / 1000.0);
 
     // Release the image from the camera
     camera->update(0);
 
     // Wait for the capture to go ahead
-    usleep(33 * 1000);
+    ram::core::TimeVal::sleep(33.0 / 1000.0);
 
     // This removal stops the background thread
     runner.removeDetector(detectorPtr);

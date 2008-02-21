@@ -61,7 +61,8 @@ bool Camera::waitForImage(Image* current)
     if (inBackground)
     {
         // Grab the image
-        getImage(current);
+        if (current)
+            getImage(current);
     }
     
     return inBackground;

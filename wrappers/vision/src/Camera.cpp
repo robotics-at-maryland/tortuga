@@ -58,6 +58,11 @@ public:
         return m_height;
     }
 
+    virtual size_t fps()
+    {
+        return 30;
+    }
+
     // Override these to be compatible with users
     virtual bool backgrounded()
     {

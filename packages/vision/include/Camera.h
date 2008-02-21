@@ -67,9 +67,9 @@ public:
      *  return early with false. current will be unchanged.
      *
      *  @current  The current image is copied into the given image
-     *            and that pointer is returned.
+     *            and that pointer is returned, can be 0.
      *
-     *  @return   True if an image copied to current false if not.
+     *  @return   False if the camera is not backgrounded.
      */
     bool waitForImage(Image* current);
 
@@ -95,7 +95,7 @@ public:
     virtual size_t height() = 0;
 
     /** Returns the current FPS of the camera */
-    //virtual size_t fps() = 0;
+    virtual size_t fps() = 0;
 
     /** Start the camera running the background */
     virtual void background(int rate = -1);
