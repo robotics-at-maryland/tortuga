@@ -127,7 +127,7 @@ class IdealSimVision(ext.core.Subsystem):
            (math.fabs(pitch) <= (self._verticalFOV/2)):
             lightVisible = True
         
-        if lightVisible:
+        if lightVisible and (relativePos.length() < 3):
             event = ext.core.Event()
 
             event.x = yaw / (self._horizontalFOV/2)
@@ -137,7 +137,9 @@ class IdealSimVision(ext.core.Subsystem):
             # These have to be swaped as well
             event.azimuth = ext.math.Degree(-yaw)
             event.elevation = ext.math.Degree(-pitch)
-            event.range = relativePos.length()
+            
+            # Convert to feet
+            event.range = relativePos.length() * 3.2808399
             
             self.publish(ext.vision.EventType.LIGHT_FOUND, event)
             
@@ -284,7 +286,7 @@ class SimVision(ext.vision.VisionSystem):
         # Align and Position
         camera.position = position
         camera.lookAt(ogre.Vector3(direction).normalisedCopy())
-        camera.nearClipDistance = 0.25
+        camera.nearClipDistance = 0.05
         node.attachObject(camera)
 
         # This needs be set from the config file (only VERTICAL FOV)

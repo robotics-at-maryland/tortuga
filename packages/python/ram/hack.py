@@ -6,7 +6,8 @@ B = None
 
 def handleLight(event):
     global B
-    B.setState(event.azimuth, 0, event.range)
+    B.setState(event.azimuth, 0, 0)
+#    B.setState(event.azimuth, event.elevation, event.range)
 
 def setup(hub):
     global B

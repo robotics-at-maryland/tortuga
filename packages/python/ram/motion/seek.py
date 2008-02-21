@@ -63,9 +63,9 @@ class SeekPoint(Motion):
         """
         
         # Determine new Depth
-#        absoluteTargetDepth = \
-#            self._vehicle.getDepth() + self._target.relativeDepth
-#        self._controller.setDepth(absoluteTargetDepth)    
+        absoluteTargetDepth = \
+            self._vehicle.getDepth() + self._target.relativeDepth
+        self._controller.setDepth(absoluteTargetDepth)    
     
         # Determine how to yaw the vehicle
         vehicleHeading =  self._vehicle.getOrientation().getYaw(True)

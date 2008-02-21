@@ -8,9 +8,16 @@ GUI:
 
 Subsystems:
     Vision:
-        type: SimVision
+        type: IdealSimVision
+        cameraRate: 30
         depends_on: ["EventHub", "Vehicle", "Simulation"]
+#        forwardFile: forward.avi
 
+#       RedLightDetector:
+#           intialMinPixels: 400
+#           foundMinPixelScale: 0.85
+#           lostMinPixelScale: 0.75
+           
     EventHub:
         type: EventHub
         

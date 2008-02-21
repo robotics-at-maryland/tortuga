@@ -43,7 +43,7 @@ class RAM_EXPORT RedLightDetector : public Detector
     IplImage* getAnalyzedImage();
     
   private:
-    void init();
+    void init(core::ConfigNode config);
     
     int lightFramesOff;
     int lightFramesOn;
@@ -61,6 +61,15 @@ class RAM_EXPORT RedLightDetector : public Detector
     
     Image* frame;
     Camera* cam;
+
+    /** Initial level of minimum red pixels (and lower bound) */
+    int m_initialMinRedPixels;
+
+    /** Factor to change minRedPixels by for each found frame */
+    double m_foundMinPixelScale;
+
+    /** Factor to change minRedPixels by for each found frame */
+    double m_lostMinPixelScale;
 };
 	
 } // namespace vision

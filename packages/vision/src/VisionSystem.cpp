@@ -79,8 +79,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Detectors
     m_forward = new VisionRunner(m_forwardCamera.get());
     m_downward = new VisionRunner(m_downwardCamera.get());
-    m_redLightDetector = DetectorPtr(new RedLightDetector(
-         core::ConfigNode::fromString("{}"), eventHub));
+    m_redLightDetector = DetectorPtr(
+        new RedLightDetector(config["RedLightDetector"], eventHub));
 
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);

@@ -29,18 +29,24 @@ RedLightDetector::RedLightDetector(core::ConfigNode config,
     Detector(eventHub),
     cam(0)
 {
-    init();
+    init(config);
 }
     
 RedLightDetector::RedLightDetector(Camera* camera) :
     cam(camera)    
 {
-    init();
+    init(core::ConfigNode::fromString("{}"));
 }
 
-void RedLightDetector::init()
+void RedLightDetector::init(core::ConfigNode config)
 {
-    frame = new ram::vision::OpenCVImage(640,480);
+    // Detection variables
+    m_initialMinRedPixels = config["intialMinPixels"].asInt(400);
+    m_foundMinPixelScale = config["lostMinPixelScale"].asDouble(0.85);
+    m_lostMinPixelScale = config["foundMinPixelScale"].asDouble(0.75);
+    minRedPixels = m_initialMinRedPixels;
+    
+    // State machine variables 
     found=false;
     lightFramesOff=0;
     lightFramesOn=0;
@@ -49,7 +55,9 @@ void RedLightDetector::init()
     startCounting=false;
     lightCenter.x=0;
     lightCenter.y=0;
-    minRedPixels=800;
+
+    // Working images
+    frame = new ram::vision::OpenCVImage(640,480);
     image=cvCreateImage(cvSize(480,640),8,3);//480 by 640 if we put the camera on sideways again...
     raw=cvCreateImage(cvGetSize(image),8,3);
     flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
@@ -120,14 +128,14 @@ void RedLightDetector::processImage(Image* input, Image* output)
         
         p.x=p.y=-1;
         found=false; //Completely ignoring the state machine for the time being.
-        if (minRedPixels>400)
-            minRedPixels=(int)(minRedPixels * .85);
+        if (minRedPixels > m_initialMinRedPixels)
+            minRedPixels = (int)(minRedPixels * m_lostMinPixelScale);
         else
-            minRedPixels=400;
+            minRedPixels = m_initialMinRedPixels;;
     }	
     else
     {   
-        minRedPixels=(int)(redPixelCount*.75);
+        minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
         found=true; //completely ignoring the state machine for the time being.
 //	        	        cout<<"FOUND RED LIGHT "<<endl;
         CvPoint tl,tr,bl,br;

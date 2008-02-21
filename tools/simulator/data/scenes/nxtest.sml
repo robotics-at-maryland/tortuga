@@ -39,7 +39,7 @@ Scene:
         
         buoy1:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-15, 1, 0]
+            position: [-15, 1, -1]
             
             Graphical:
                 mesh: 'sphere.50cm.mesh'
