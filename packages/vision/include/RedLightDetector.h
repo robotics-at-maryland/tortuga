@@ -70,6 +70,9 @@ class RAM_EXPORT RedLightDetector : public Detector
 
     /** Factor to change minRedPixels by for each found frame */
     double m_lostMinPixelScale;
+
+    /** Thresdhol for almost hitting the red light */
+    double m_almostHitPixels;
 };
 	
 } // namespace vision

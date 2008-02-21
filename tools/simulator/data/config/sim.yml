@@ -4,19 +4,21 @@
 
 GUI:
     # In Hz
-    updateRate: 60
+    updateRate: 30
 
 Subsystems:
-    Vision:
+    VisionSystem:
         type: IdealSimVision
         cameraRate: 30
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 #        forwardFile: forward.avi
 
-#       RedLightDetector:
+#       RedLightDetector:       
 #           intialMinPixels: 400
 #           foundMinPixelScale: 0.85
 #           lostMinPixelScale: 0.75
+#           # About 20% of the total pixels
+#           almostHitPixels: 61440.0
            
     EventHub:
         type: EventHub
@@ -43,7 +45,7 @@ Subsystems:
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller", 
-                     "MotionManager", "TimerManager"]
+                     "MotionManager", "TimerManager", "VisionSystem"]
 
     Controller:
         depends_on: ["Vehicle", "EventHub"]

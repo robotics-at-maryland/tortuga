@@ -44,6 +44,7 @@ void RedLightDetector::init(core::ConfigNode config)
     m_initialMinRedPixels = config["intialMinPixels"].asInt(400);
     m_foundMinPixelScale = config["lostMinPixelScale"].asDouble(0.85);
     m_lostMinPixelScale = config["foundMinPixelScale"].asDouble(0.75);
+    m_almostHitPixels = config["almostHitPixels"].asInt((int)(640*480*0.2));
     minRedPixels = m_initialMinRedPixels;
     
     // State machine variables 
@@ -174,6 +175,13 @@ void RedLightDetector::processImage(Image* input, Image* output)
             (sqrt((double)redPixelCount/M_PI) * tan(78.0/2 * (M_PI/180)));
         
         publish(EventType::LIGHT_FOUND, event);
+
+        // Tell the watcher we are really freaking close to the light
+        if (redPixelCount > m_almostHitPixels)
+        {
+            publish(EventType::LIGHT_ALMOST_HIT,
+                    core::EventPtr(new core::Event()));
+        }
     }
 
     

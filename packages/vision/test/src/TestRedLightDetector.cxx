@@ -46,6 +46,7 @@ struct RedLightDetectorFixture
 {
     RedLightDetectorFixture() :
         found(false),
+        almostHit(false),
         event(vision::RedLightEventPtr()),
         input(640, 480),
         eventHub(new core::EventHub()),
@@ -55,6 +56,8 @@ struct RedLightDetectorFixture
             boost::bind(&RedLightDetectorFixture::foundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::LIGHT_LOST,
             boost::bind(&RedLightDetectorFixture::lostHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::LIGHT_ALMOST_HIT,
+            boost::bind(&RedLightDetectorFixture::almostHitHandler, this, _1));
     }
 
     void foundHandler(core::EventPtr event_)
@@ -68,8 +71,14 @@ struct RedLightDetectorFixture
         found = false;
         event = vision::RedLightEventPtr();
     }
+
+    void almostHitHandler(core::EventPtr event)
+    {
+        almostHit = true;
+    }
     
     bool found;
+    bool almostHit;
     vision::RedLightEventPtr event;
     vision::OpenCVImage input;
     core::EventHubPtr eventHub;
@@ -101,6 +110,9 @@ TEST_FIXTURE(RedLightDetectorFixture, CenterLight)
     CHECK_CLOSE(3, event->range, 0.1);
     CHECK_CLOSE(math::Degree(0), event->azimuth, math::Degree(0.4));
     CHECK_CLOSE(math::Degree(0), event->elevation, math::Degree(0.4));
+
+    // Make sure we haven't "almost hit" the light
+    CHECK(false == almostHit);
 }
 
 TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
@@ -125,6 +137,9 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
     CHECK_CLOSE(3, event->range, 0.1);
     CHECK_CLOSE(math::Degree(78.0/4), event->azimuth, math::Degree(0.4));
     CHECK_CLOSE(math::Degree(105.0/4), event->elevation, math::Degree(0.4));
+
+    // Make sure we haven't "almost hit" the light
+    CHECK(false == almostHit);
 }
 
 TEST_FIXTURE(RedLightDetectorFixture, LowerRight)
@@ -149,6 +164,9 @@ TEST_FIXTURE(RedLightDetectorFixture, LowerRight)
     CHECK_CLOSE(3, event->range, 0.1);
     CHECK_CLOSE(math::Degree(-78.0/4), event->azimuth, math::Degree(0.4));
     CHECK_CLOSE(math::Degree(-105.0/4), event->elevation, math::Degree(0.4));
+
+    // Make sure we haven't "almost hit" the light
+    CHECK(false == almostHit);
 }
 
 TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_LOST)
@@ -178,6 +196,36 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_LOST)
     found = true;
     detector.processImage(&input);
     CHECK(found == true);
+}
+
+TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT)
+{
+    // Blue Image with red circle in the center
+    makeColor(&input, 0, 0, 255);
+    drawRedCircle(&input, 640/2, 240, 140);
+
+    // Process it
+    detector.processImage(&input);
+
+    double expectedX = 0;
+    double expectedY = 0;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found);
+
+    // Check the events
+
+    // LIGHT_ALMOST_HIT
+    CHECK(almostHit);
+    
+    // LIGHT_FOUND
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.005);
+    CHECK_CLOSE(expectedY, event->y, 0.005);
+    CHECK_CLOSE(1.058, event->range, 0.1);
+    CHECK_CLOSE(math::Degree(0), event->azimuth, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(0), event->elevation, math::Degree(0.4));
 }
 
 } // SUITE(RedLightDetector)
