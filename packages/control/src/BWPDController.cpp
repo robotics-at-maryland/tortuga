@@ -355,8 +355,11 @@ void BWPDController::init(core::ConfigNode config)
     // Set controller state from config file (defaults hard coded)
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
+
+    m_controllerState->controllerState = config["depthControlType"].asDouble(1);
+
     m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
-    m_controllerState->speedPGain = config["speedPGain"].asDouble(1);
+    m_controllerState->speedPGain = config["speedPGain"].asInt(1);
 
     
     m_controllerState->inertiaEstimate[0][0] =
