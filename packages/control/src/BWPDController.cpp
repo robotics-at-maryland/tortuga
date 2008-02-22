@@ -49,8 +49,8 @@ BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
     m_config(config),
     m_desiredState(0),
     m_measuredState(0),
-    m_controllerState(0),
-    m_estimatedState(0)
+    m_estimatedState(0),
+    m_controllerState(0)
 {   
     init(config); 
 }
@@ -67,8 +67,8 @@ BWPDController::BWPDController(core::ConfigNode config,
     m_config(config),
     m_desiredState(0),
     m_measuredState(0),
-    m_controllerState(0),
-    m_estimatedState(0)
+    m_estimatedState(0),
+    m_controllerState(0)
 {
     init(config);
 }
@@ -362,7 +362,7 @@ void BWPDController::init(core::ConfigNode config)
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
 
-    m_controllerState->depthControlType = config["depthControlType"].asDouble(1);
+    m_controllerState->depthControlType = config["depthControlType"].asInt(1);
 
     m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
