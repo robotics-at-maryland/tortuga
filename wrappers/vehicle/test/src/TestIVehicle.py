@@ -6,7 +6,6 @@
 # File: wrapper/vehicle/test/src/TestIVehicle.py
 
 # STD Imports
-import os
 import unittest
 
 # Project Imports
@@ -27,7 +26,7 @@ core.SubsystemMaker.registerSubsystem('MockVehicle', Vehicle)
 class TestIVehicle(unittest.TestCase):
     def testSubsystemMaker(self):
         # Test the existing C++ Vehicle
-        if 'posix' == os.name:
+        if 'Vehicle' in core.SubsystemMaker.getRegisteredKeys():
             cfg = {
                 'depthCalibSlope': 33.01,
                 'depthCalibIntercept': 94,
