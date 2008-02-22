@@ -66,7 +66,7 @@ public:
     /** @copydoc IController::getDepth() */
     virtual double getDepth();
 
-    /** Rolls the desired quaternion by a desired angle in degress (ugh!)
+    /** Rolls the desired quaternion by a desired angle in degrees (ugh!)
 	a positive angle makes the vehicle barrel roll clockwise as seen
 	by the fore camera
     */
@@ -133,10 +133,13 @@ private:
 
     /** State of the vehicle as the controller sees it */
     MeasuredState* m_measuredState;
-
+    
+    /** Estimated state of the vehicle */
+    EstimatedState* m_estimatedState;
+    
     /** Internal State of the controller */
     ControllerState* m_controllerState;
-
+    
     std::ofstream m_logfile;
 };
     

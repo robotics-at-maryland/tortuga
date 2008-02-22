@@ -17,6 +17,7 @@ namespace control {
 struct DesiredState;
 struct MeasuredState;
 struct ControllerState;
+struct EstimatedState;
     
 } // namespace control
 } // namespace ram

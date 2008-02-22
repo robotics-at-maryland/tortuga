@@ -49,7 +49,8 @@ BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
     m_config(config),
     m_desiredState(0),
     m_measuredState(0),
-    m_controllerState(0)
+    m_controllerState(0),
+    m_estimatedState(0)
 {   
     init(config); 
 }
@@ -66,7 +67,8 @@ BWPDController::BWPDController(core::ConfigNode config,
     m_config(config),
     m_desiredState(0),
     m_measuredState(0),
-    m_controllerState(0)
+    m_controllerState(0),
+    m_estimatedState(0)
 {
     init(config);
 }
@@ -79,6 +81,7 @@ BWPDController::~BWPDController()
     delete m_desiredState;
     delete m_measuredState;
     delete m_controllerState;
+    delete m_estimatedState;
 }
     
 void BWPDController::setSpeed(int speed)
@@ -333,11 +336,14 @@ void BWPDController::init(core::ConfigNode config)
     m_desiredState = new DesiredState();
     m_measuredState = new MeasuredState();
     m_controllerState = new ControllerState();
+    m_estimatedState = new EstimatedState();
+                           
 
     // Zero all the structs
     memset(m_desiredState, 0, sizeof(DesiredState));
     memset(m_measuredState, 0, sizeof(MeasuredState));
     memset(m_controllerState, 0, sizeof(ControllerState));
+    memset(m_estimatedState, 0, sizeof(EstimatedState));
 
     m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
     m_orientationThreshold =
@@ -361,6 +367,8 @@ void BWPDController::init(core::ConfigNode config)
     m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
 
+    // Select observer controller gains based on config file
+
     
     m_controllerState->inertiaEstimate[0][0] =
         config["inertia"][0][0].asDouble(0.201);
@@ -383,6 +391,13 @@ void BWPDController::init(core::ConfigNode config)
     m_controllerState->inertiaEstimate[2][2] =
         config["inertia"][2][2].asDouble(1.288);
 
+        
+    //Set estimated struct
+    //we don't know what the state is, so guess (0,0).  
+    m_estimatedState->xHat2.x = 0;
+    m_estimatedState->xHat2.y = 0;
+    
+    
     m_logfile.open("control_log.txt");
     m_logfile << "% M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
               << std::endl;    

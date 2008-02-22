@@ -12,6 +12,9 @@
 
 #ifndef RAM_MATLAB_CONTROL_TEST
 
+// Project Includes
+#include "math/include/Vector2.h"
+
 // Must Be Included last
 #include "control/include/Export.h"
 
@@ -48,11 +51,23 @@ struct RAM_EXPORT MeasuredState{
     double angularRate[3];
 };
 
+struct RAM_EXPORT EstimatedState{
+    //estimated state for a 2x2 observer controller
+    math::Vector2 xHat2;  //<- want to use this, but having trouble
+    //double xHat2;
+};
+
 struct RAM_EXPORT ControllerState{
     double angularPGain;
     double angularDGain;
     double inertiaEstimate[3][3];
+    
+    /* DEPTH CONTROL GAINS*/
+    //for depth P control
     double depthPGain;
+    //for depth observer controller
+    
+    
     double speedPGain;
     int depthControlType;
 };
@@ -69,10 +84,15 @@ void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
                                    double dt,
                                    double* rotationalTorques);
                                    
-double RAM_EXPORT depthPController(double measuredDepth,
-                            double desiredDepth,
+double RAM_EXPORT depthPController(MeasuredState* measuredState,
+                            DesiredState* desiredState,
                             ControllerState* controllerState);
 
+double RAM_EXPORT depthObserverController(MeasuredState* measuredState,
+                            DesiredState* desiredState,
+                            ControllerState* controllerState);
+                            
+                            
   //TODO: implement this function
   //  bool isAtDepth();
 

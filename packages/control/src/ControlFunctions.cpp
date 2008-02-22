@@ -20,7 +20,10 @@
 #include "control/include/ControlFunctions.h"
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
+#include "math/include/Matrix3.h"
 #include "math/include/Quaternion.h"
+#include "math/include/Vector2.h"
+#include "math/include/Matrix2.h"
 
 #ifndef RAM_MATLAB_CONTROL_TEST
 namespace ram {
@@ -75,24 +78,26 @@ void translationalController(MeasuredState* measuredState,
     
     //do P control for now
     double depthControlSignal;
+
     switch(controllerState->depthControlType)
     {
 	case 1 :
-	    depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+        depthControlSignal=depthPController(measuredState,desiredState,controllerState);
 	    break;
 	case 2 :
-            depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
             break;
 	case 3 :
-            depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
             break;
 	case 4 :
-            depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
             break;
 	default :
-	    depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+	    depthControlSignal=depthPController(measuredState,desiredState,controllerState);
 	    break;
     }
+
     
     //now put single axis control signal in a proper inertial frame
     double depthComponent[3];
@@ -129,7 +134,7 @@ void translationalController(MeasuredState* measuredState,
 }
 
 /************************************************************************
-depthPController(measuredDepth,desiredDepth)
+depthPController(measuredState,desiredState,controllerState)
 
 implements a crappy P controller to regulate depth
 
@@ -138,15 +143,15 @@ reads the gain "k" from the config file
 
 returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
 */
-double depthPController(double measuredDepth,
-                        double desiredDepth,
+double depthPController(MeasuredState* measuredState,
+                        DesiredState* desiredState,
                         ControllerState* controllerState){
     double depthError;
     double depthControlSignal;
     double depthPGain=controllerState->depthPGain;
     
     //compute difference
-    depthError=measuredDepth-desiredDepth;
+    depthError=measuredState->depth-desiredState->depth;
     //compute control law u=-k(x_meas-x_desire)
     depthControlSignal = (-1)*depthPGain*depthError;
     return depthControlSignal;
