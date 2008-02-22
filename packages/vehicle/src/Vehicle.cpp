@@ -29,6 +29,7 @@
 #include "math/include/Events.h"
 
 #include "core/include/SubsystemMaker.h"
+#include "core/include/EventHub.h"
 
 // Register vehicle into the maker subsystem
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
@@ -39,7 +40,8 @@ namespace ram {
 namespace vehicle {
 
 Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
-    IVehicle(config["name"].asString()),
+    IVehicle(config["name"].asString(),
+             core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_config(config),
     m_sensorFD(-1),
     m_markerNum(0),

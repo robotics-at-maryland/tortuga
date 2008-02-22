@@ -24,7 +24,7 @@ def generate(module_builder, local_ns, global_ns):
     classes = []
 
     # Lets Py++ know to make VisionSystem a subclass of Subsystem
-    wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem'])
+    wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem', 'Event'])
 
     # Vision System
     VisionSystem = local_ns.class_('VisionSystem')
