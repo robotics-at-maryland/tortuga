@@ -12,33 +12,43 @@
 
 // Project Includes
 #include "vision/include/Common.h"
+#include "vision/include/Detector.h"
+#include "core/include/ConfigNode.h"
 
 // Must be included last
 #include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
-	class RAM_EXPORT BinDetector
-	{
-		public:
-			bool found;
-			BinDetector(Camera*);
-			~BinDetector();
-			void update();
-			void show(char* window);
-			double getX();
-			double getY();
-			IplImage* getAnalyzedImage();
+    
+class RAM_EXPORT BinDetector : public Detector
+{
+  public:
+    bool found;
+    BinDetector(core::ConfigNode config,
+                core::EventHubPtr eventHub = core::EventHubPtr());
+    BinDetector(Camera*);
+    ~BinDetector();
 
-		private:
-			double binX;
-			double binY;
-			int binCount;
-			IplImage* binFrame;
-			IplImage* rotated;
-		Image* frame;
-		Camera* cam;
-	};
+    void processImage(Image* input, Image* output= 0);
+    
+    void update();
+    void show(char* window);
+    double getX();
+    double getY();
+    IplImage* getAnalyzedImage();
+    
+  private:
+    void init(core::ConfigNode config);
+    
+    double binX;
+    double binY;
+    int binCount;
+    IplImage* binFrame;
+    IplImage* rotated;
+    Image* frame;
+    Camera* cam;
+};
 	
 } // namespace vision
 } // namespace ram

@@ -22,9 +22,22 @@
 namespace ram {
 namespace vision {
 
-BinDetector::BinDetector(Camera* camera)
+BinDetector::BinDetector(core::ConfigNode config,
+                         core::EventHubPtr eventHub) :
+    Detector(eventHub),
+    cam(0)
 {
-	cam = camera;
+    init(config);
+}
+    
+BinDetector::BinDetector(Camera* camera) :
+    cam(camera)
+{
+    init(core::ConfigNode::fromString("{}"));
+}
+
+void BinDetector::init(core::ConfigNode)
+{
 	frame = new OpenCVImage(640, 480);
 	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
 	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
@@ -33,7 +46,7 @@ BinDetector::BinDetector(Camera* camera)
 	binY=-1;
 	binCount=0;
 }
-
+    
 BinDetector::~BinDetector()
 {
 	delete frame;
@@ -43,11 +56,16 @@ BinDetector::~BinDetector()
 
 void BinDetector::update()
 {
+    cam->getImage(frame);
+    processImage(frame, 0);
+}
+    
+void BinDetector::processImage(Image* input, Image* output)
+{
 	int binx=-1;
 	int biny=-1;
 	/*First argument to white_detect is a ratios frame, then a regular one*/
-	cam->getImage(frame);
-	IplImage* image =(IplImage*)(*frame);
+	IplImage* image =(IplImage*)(*input);
 	
 	//This is only right if the camera is on sideways... again.
 	//rotate90Deg(image,rotated);
@@ -75,7 +93,12 @@ void BinDetector::update()
 		binX=-1;
 		binY=-1;
 	}
-	
+
+        if (output)
+        {
+            OpenCVImage temp(binFrame, false);
+            output->copyFrom(&temp);
+        }
 }
 
 void BinDetector::show(char* window)

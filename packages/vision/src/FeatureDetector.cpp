@@ -22,10 +22,22 @@
 namespace ram {
 namespace vision {
 
-FeatureDetector::FeatureDetector(Camera* camera, int maxFeatures)
+FeatureDetector::FeatureDetector(core::ConfigNode config,
+                                 core::EventHubPtr eventHub) :
+    cam(0)
 {
-	cam = camera;
-    frame = new OpenCVImage(640,480);
+    init(config);
+}
+    
+FeatureDetector::FeatureDetector(Camera* camera, int maxFeatures) :
+    cam(camera)
+{
+    init(core::ConfigNode::fromString("{}"));
+}
+
+void FeatureDetector::init(core::ConfigNode)
+{
+        frame = new OpenCVImage(640,480);
 	image=cvCreateImage(cvSize(640,480),8,3);//480 by 640 if we put the camera on sideways again...
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	eigImage=cvCreateImage(cvGetSize(image),IPL_DEPTH_32F,1);
@@ -35,7 +47,7 @@ FeatureDetector::FeatureDetector(Camera* camera, int maxFeatures)
 	grayscale=cvCreateImage(cvGetSize(image),8,1);
 	edgeDetected=cvCreateImage(cvGetSize(image),8,1);
 }
-
+    
 FeatureDetector::~FeatureDetector()
 {
 	delete frame;
@@ -74,10 +86,17 @@ void FeatureDetector::copyChannel(IplImage* src, IplImage* dest, int channel)
 		}
 }
 
+
+    
 void FeatureDetector::update()
 {
-	cam->getImage(frame);
-	raw=(IplImage*)(*frame);
+    cam->getImage(frame);
+    processImage(frame, 0);
+}
+    
+void FeatureDetector::processImage(Image* input, Image* output)
+{
+	raw=(IplImage*)(*input);
 	cvCopyImage(raw,image);
 //	copyChannel(image,grayscale,2);//Lets try just copying the red channel
 	cvCvtColor(image,grayscale,CV_BGR2GRAY);

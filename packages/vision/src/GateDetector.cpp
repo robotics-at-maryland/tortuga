@@ -22,9 +22,23 @@
 namespace ram {
 namespace vision {
 
-GateDetector::GateDetector(Camera* camera)
+GateDetector::GateDetector(core::ConfigNode config,
+                           core::EventHubPtr eventHub) :
+    Detector(eventHub),
+    cam(0)
 {
-	cam = camera;
+    init(config);
+}
+    
+GateDetector::GateDetector(Camera* camera) :
+    cam(camera)
+{
+    init(core::ConfigNode::fromString("{}"));
+
+}
+
+void GateDetector::init(core::ConfigNode)
+{
 	frame = new OpenCVImage(640,480);
 	gateX=0;
 	gateY=0;
@@ -35,7 +49,7 @@ GateDetector::GateDetector(Camera* camera)
 	gateFrame =cvCreateImage(cvSize(640,480),8,3);
 	gateFrameRatios = cvCreateImage(cvGetSize(gateFrame),8,3);
 }
-
+    
 GateDetector::~GateDetector()
 {
 	delete frame;
@@ -63,10 +77,16 @@ IplImage* GateDetector::getAnalyzedImage()
 	return (IplImage*)(gateFrame);
 }
 
+    
 void GateDetector::update()
+{
+    cam->getImage(frame);
+    processImage(frame, 0);
+}
+    
+void GateDetector::processImage(Image* input, Image* output)
 {	
-	cam->getImage(frame);
-	IplImage* image =(IplImage*)(*frame);
+	IplImage* image =(IplImage*)(*input);
 //  These lines are correct only if the camera is on sideways again.
 //	rotate90Deg(image,gateFrame);//Rotate image into gateFrame, so that it will be vertical.
 //	rotate90Deg(image,gateFrameRatios); 
@@ -85,7 +105,13 @@ void GateDetector::update()
 	gateXNorm=gateX;
 	gateYNorm=gateY;
 	gateXNorm/=image->width;
-	gateXNorm/=image->height;		
+	gateXNorm/=image->height;
+
+        if (output)
+        {
+            OpenCVImage temp(gateFrame, false);
+            output->copyFrom(&temp);
+        }
 }
 
 } // namespace vision

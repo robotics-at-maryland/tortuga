@@ -12,6 +12,8 @@
 
 // Project Includes
 #include "vision/include/Common.h"
+#include "vision/include/Detector.h"
+#include "core/include/ConfigNode.h"
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -19,30 +21,37 @@
 namespace ram {
 namespace vision {
     
-	class RAM_EXPORT GateDetector
-	{
-		public:
-			bool found;
-			GateDetector(Camera*);
-			~GateDetector();
-			void update();
-			double getX();
-			double getY();
-			void show(char* window);
-			IplImage* getAnalyzedImage();
-
-		private:
-			int gateX;
-			int gateY;
-			double gateXNorm;
-			double gateYNorm;
-			IplImage* gateFrame;
-			IplImage* gateFrameRatios;
-	
-			Image* frame;
-			Camera* cam;
-	};
-	
+class RAM_EXPORT GateDetector : public Detector
+{
+  public:
+    bool found;
+    GateDetector(core::ConfigNode config,
+                 core::EventHubPtr eventHub = core::EventHubPtr());
+    GateDetector(Camera*);
+    ~GateDetector();
+    
+    void update();
+    void processImage(Image* input, Image* output= 0);
+    
+    double getX();
+    double getY();
+    void show(char* window);
+    IplImage* getAnalyzedImage();
+    
+  private:
+    void init(core::ConfigNode config);
+    
+    int gateX;
+    int gateY;
+    double gateXNorm;
+    double gateYNorm;
+    IplImage* gateFrame;
+    IplImage* gateFrameRatios;
+    
+    Image* frame;
+    Camera* cam;
+};
+    
 } // namespace vision
 } // namespace ram
 
