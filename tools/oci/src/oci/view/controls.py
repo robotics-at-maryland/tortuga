@@ -15,20 +15,22 @@ import math as pmath
 import ext.core as core
 import ext.math as math
 
-class ThrusterBar(wx.PyControl):
+class MultiBar(wx.PyControl):
     RED = wx.Colour(255, 0, 0, 100)
     GREEN = wx.Colour(0, 255, 0, 100)
-    def __init__(self, parent, innerBorder=20, id=wx.ID_ANY, pos=wx.DefaultPosition,
+    VERTICAL = 0
+    HORIZONTAL = 1
+    def __init__(self, parent, innerBorder=20, barType=VERTICAL, id=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.NO_BORDER, validator=wx.DefaultValidator,name="valbar"):
         wx.PyControl.__init__(self, parent, id, pos, size, style, validator, name)
         self.parent = parent
         # Default to 0%
         self.barValue = 50 
         # The max/min values of the bar
-        
         self.maxValue = 100
         self.minValue = -100
         self.innerBorder=innerBorder 
+        self.barType = barType
         
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
@@ -49,17 +51,20 @@ class ThrusterBar(wx.PyControl):
        
     def Draw(self,gc):
         width,height = self.GetSize()
-        
         # Draw the rectangle to represent the value
-        pen = wx.Pen(ThrusterBar.GREEN, 1)
-        brush = wx.Brush(ThrusterBar.GREEN) #wx.Brush("green")
-    
+        pen = wx.Pen(MultiBar.GREEN, 1)
+        brush = wx.Brush(MultiBar.GREEN) #wx.Brush("green")
+        if self.barType == MultiBar.HORIZONTAL:  
+            gc.Rotate((pmath.pi / 2))
+            gc.Translate(0,-width)
+            width,height = height,width
+
         if self.barValue > 0:
             gc.SetPen(pen)
             gc.SetBrush(brush)
         else:
-            pen.SetColour(ThrusterBar.RED)
-            brush.SetColour(ThrusterBar.RED)
+            pen.SetColour(MultiBar.RED)
+            brush.SetColour(MultiBar.RED)
             gc.SetPen(pen)
             gc.SetBrush(brush)
             
@@ -77,7 +82,8 @@ class ThrusterBar(wx.PyControl):
         gc.SetBrush(brush)
         border = gc.CreatePath()
         border.AddRectangle(0, 0, width, height)
-        gc.DrawPath(border)      
+        gc.DrawPath(border)   
+       
              
     def OnEraseBackground(self, event):
         """ Handles the wx.EVT_ERASE_BACKGROUND event. """
@@ -113,7 +119,7 @@ class DepthBar(wx.PyControl):
             
         
     def OnPaint(self, event):
-        """ Handles the wx.EVT_PAINT event for ThrusterBar. """
+        """ Handles the wx.EVT_PAINT event for MultiBar. """
         dc = wx.PaintDC(self)
         gc = wx.GraphicsContext.Create(dc)
         self.Draw(gc)

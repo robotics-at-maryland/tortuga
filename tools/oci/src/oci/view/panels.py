@@ -15,7 +15,7 @@ import wx
 from core import Component, implements
 
 from gui.view import IPanelProvider
-from oci.view.controls import DepthBar, ThrusterBar, RotationCtrl
+from oci.view.controls import DepthBar, MultiBar, RotationCtrl
 import oci.model.subsystem as subsystemMod
 
 import ext.math
@@ -41,7 +41,7 @@ class ThrusterPanel(wx.Panel):
             # Create Control
             label = wx.StaticText(self, wx.ID_ANY, 
                                   item.getName().replace('Thruster',''))
-            bar = ThrusterBar(self)
+            bar = MultiBar(self)
             bar.minValue = item.getMinForce()
             bar.maxValue = item.getMaxForce()
                        
