@@ -356,7 +356,7 @@ void BWPDController::init(core::ConfigNode config)
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
 
-    m_controllerState->depthControlTypee = config["depthControlType"].asDouble(1);
+    m_controllerState->depthControlType = config["depthControlType"].asDouble(1);
 
     m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);

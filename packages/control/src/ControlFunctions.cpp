@@ -75,7 +75,24 @@ void translationalController(MeasuredState* measuredState,
     
     //do P control for now
     double depthControlSignal;
-    depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+    switch(controllerState->depthControlType)
+    {
+	case 1 :
+	    depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+	    break;
+	case 2 :
+            depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+            break;
+	case 3 :
+            depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+            break;
+	case 4 :
+            depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+            break;
+	default :
+	    depthControlSignal=depthPController(measuredState->depth,desiredState->depth,controllerState);
+	    break;
+    }
     
     //now put single axis control signal in a proper inertial frame
     double depthComponent[3];
