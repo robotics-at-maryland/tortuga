@@ -54,7 +54,7 @@ struct RAM_EXPORT ControllerState{
     double inertiaEstimate[3][3];
     double depthPGain;
     double speedPGain;
-    int controllerState;
+    int depthControlType;
 };
 
 void RAM_EXPORT translationalController(MeasuredState* measuredState,
