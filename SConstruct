@@ -19,6 +19,7 @@ import buildfiles.platfrm as platfrm
 import buildfiles.features as features
 import buildfiles.variants as variants
 
+
 # --------------------------------------------------------------------------- #
 #                              O P T I O N S                                  #
 # --------------------------------------------------------------------------- #
@@ -86,6 +87,20 @@ env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 # See: buildfiles/platfrm.py for more information
 platfrm.setup_environment(env)
 
+# Dist clean
+def dist_func(target = None, source = None, env = None):
+    import shutil
+    
+    print 'Removing', env['BUILD_DIR']
+    shutil.rmtree(env['BUILD_DIR'], True)
+    build_ext = os.path.join(env.Dir('.').abspath, 'build_ext')
+    print 'Removing', build_ext
+    shutil.rmtree(build_ext, True)
+
+# Creat are "phony" distclean target
+dist_clean = env.Alias('dist-clean', 'SConstruct', env.Action(dist_func))
+env.AlwaysBuild(dist_clean)
+
 
 # --------------------------------------------------------------------------- #
 #                                F L A G S                                    #
@@ -145,7 +160,6 @@ else:
                                 '/wd4347', '/wd4350', '/wd4928', '/wd4263',
                                 '/wd4264', '/wd4266', '/wd4191'])
                                 
-    # Make sure to embed our manifestes
 
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
@@ -167,7 +181,7 @@ def has_help():
     return False
 
 # Don't process any directories if we just want the help options
-if not has_help():
+if (not has_help()) and (0 == sys.argv.count('dist-clean')):
     for directory in features.dirs_to_build(env):
         build_dir= os.path.join(env['build_dir'], directory)
         env['ABS_BUILD_DIR'] = os.path.abspath(env['build_dir'])
@@ -180,8 +194,8 @@ if not has_help():
                        build_dir = build_dir,
                        duplicate = 0)
 
-# On Windows generate a solution which runs everything for us
-if env['RAM_OS'] == 'windows':
-    env.MSVSSolution(target = 'All' + env['MSVSSOLUTIONSUFFIX'],
-                     projects = helpers.MSVS_PROJECTS,
-                     variant = [env['VARIANT'].name])
+    # On Windows generate a solution which runs everything for us
+    if env['RAM_OS'] == 'windows':
+        env.MSVSSolution(target = 'All' + env['MSVSSOLUTIONSUFFIX'],
+                         projects = helpers.MSVS_PROJECTS,
+                         variant = [env['VARIANT'].name])
