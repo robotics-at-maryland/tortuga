@@ -104,7 +104,12 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
             // TODO: Make me a log
             //std::cout << "Creating device " << node["name"].asString()
             //    << " of type: " << node["type"].asString() << std::endl;
-            _addDevice(device::IDeviceMaker::newObject(node));
+            device::IDeviceMakerParamType params(
+                node,
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
+                IVehiclePtr());
+            
+            _addDevice(device::IDeviceMaker::newObject(params));
         }
     }
 }
