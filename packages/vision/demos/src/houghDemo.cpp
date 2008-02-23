@@ -1,19 +1,27 @@
 /*
- *  HoughDemo.cpp
- *  
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
  *
- *  Created by Daniel Hakim on 2/1/07.
- *  Copyright 2007 __MyCompanyName__. All rights reserved.
- *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/demos/src/houghDemo.cpp
  */
+
+// STD Includes
 #include <math.h>
 #include <cstdlib>
+#include <cstdio>
 #include <iostream>
+
+// System Includes
 #include <unistd.h>
 
+// Library Includes
 #include "cv.h"
 #include "highgui.h"
-#include "houghDemo.h"
+
+// Project Includes
+#include "vision/demos/include/houghDemo.h"
 
 using namespace std;
 int main( int argc, char** argv )
@@ -56,7 +64,7 @@ int main( int argc, char** argv )
 ////	cvWaitKey(-1);
 //}
 
-	CvCapture* auvsi_movie=cvCaptureFromFile("auvsi.mpg");
+//	CvCapture* auvsi_movie=cvCaptureFromFile("auvsi.mpg");
 //	CvCapture* auvsi_movie=cvCaptureFromCAM(0);
 	
 //	IplImage* frame=NULL;
@@ -153,7 +161,7 @@ int main( int argc, char** argv )
 //				distance=(128-(unsigned int)data[count])*(128-(unsigned int)data[count]) +
 //					 (128-(unsigned int)data[count+1])*(128-(unsigned int)data[count+1]) +
 //					 (128-(unsigned int)data[count+2])*(128-(unsigned int)data[count+2]);
-				distance=sqrt(distance);
+				distance= (unsigned int)sqrt((double)distance);
 				data[count]=distance;
 				data[count+1]=distance;
 				data[count+2]=distance;

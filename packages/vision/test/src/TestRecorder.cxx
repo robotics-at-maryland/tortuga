@@ -112,6 +112,10 @@ TEST_FIXTURE(RecorderFixture, Update)
     vision::Image* actual = new vision::OpenCVImage(640, 480);
     vision::OpenCVCamera movieCamera(filename.c_str());
 
+    CHECK_EQUAL(30u, movieCamera.fps());
+    CHECK_EQUAL(640u, movieCamera.width());
+    CHECK_EQUAL(480u, movieCamera.height());
+    
     BOOST_FOREACH(vision::Image* expectedImage, images)
     {
         movieCamera.update(0);

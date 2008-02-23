@@ -12,6 +12,10 @@ from buildfiles import libs
 Import('env')
 envl = env.Clone()
 
+# --------------------------------------------------------------------------- #
+#                              L I B R A R Y                                  #
+# --------------------------------------------------------------------------- #
+
 ext_deps = []
 # Only need boost if we are compling the wrappers and the core
 if env.HasFeature('wrappers'):
@@ -19,77 +23,58 @@ if env.HasFeature('wrappers'):
     ext_deps = ['Boost.Python']
 
 # Sources
-sources = ['src/BasicImage.cpp',
-           'src/Camera.cpp',
-           'src/OpenCVCamera.cpp',
-           'src/OpenCVImage.cpp',
-           'src/GateDetector.cpp',
-           'src/BinDetector.cpp',
-           'src/RedLightDetector.cpp',
-	   'src/FeatureDetector.cpp',
-           'src/OrangePipeDetector.cpp',
-           'src/Calibration.cpp',
-           'src/main.cpp',
-           'src/Recorder.cpp',
-	   'src/VisionSystem.cpp',
-#	   'src/DetectorTest.cpp',
-	   'src/VisionRunner.cpp',
-	   'src/Events.cpp',
-           'src/Detector.cpp',
-           'src/Image.cpp',
-           'src/DetectorMakers.cpp'
-	]
-
-detectorSources = [
-		   'src/VisionTest.cpp'
-		  ]
-
-demoSources = [
-		'src/VisionDemo.cpp'
-	      ]
+sources = env.Glob('src', '*.cpp')
+sources.remove('src/VisionTest.cpp')
+sources.remove('src/DetectorTest.cpp')
 	
 # Build Library (will be called 'libram_vision.so')
 # All build settings for the library are stored in buildfiles/libs.py
 envl.RAMSharedLibrary('vision',  source = sources, ext_deps = ext_deps)
-# Testing
+
+
+# --------------------------------------------------------------------------- #
+#                               T E S T S                                     #
+# --------------------------------------------------------------------------- #
+
 envt = env.Clone()
-
-# Optical Flow Demo
-#envt=env.Clone()
-envt.RAMProgram(target = 'OpticalFlowTest',
-                source = 'test/src/OpticalFlow.cpp')
-
-# Build simple camera test program and make sure vision library is intalled
-envt.RAMProgram(target='AdvCvTest', 
-                source = 'test/src/AdvCvTest.cpp',
-                int_deps = 'vision')
-
-# Gui Demo
-#envq = env.Clone()
-#envq .RAMProgram(target = 'VisionDemo',
-#		source = demoSources,
-#		int_deps = 'vision')
 
 # Basic camera test
 if platform.system() in ['Linux', 'Darwin']:
     envt.AppendUnique(CCFLAGS = '-Wno-unused')
-envt.Program(target = 'BasicCvTest', source = 'test/src/BasicCvTest.c')
+envt.Program(target = 'CvCameraTest', source = 'test/src/CvCameraTest.c')
 
-# Basic video test
-envt.Program(target = 'BasicVideoTest', source = 'test/src/BasicVideoTest.c')
+# Optical Flow
+envt.RAMProgram(target = 'OpticalFlowTest',
+                source = 'test/src/OpticalFlow.cpp',
+                ext_deps = ['OpenCV'])
 
-# Basic record test
-if platform.system() in ['Linux', 'Darwin']:
-    envt.Program(target = 'RecordTest', source = 'test/src/CvRecordVideoTest.c')
+# Image Analyzer
+envt.RAMProgram(target = 'ImageAnalyzer',
+                source = 'test/src/ImageAnalysisTest.cpp',
+                int_deps = ['vision'])
 
 # Detector Test
-envt = env.Clone()
 #envt.RAMProgram(target = 'DetectorTest', 
 #                source=detectorSources, int_deps = ['vision'])
-
-# Image Analysis Test
-envt.RAMProgram(target = 'ImageAnalyzer',source = 'test/src/ImageAnalysisTest.cpp', int_deps = ['vision'])
 
 # Unit Tests
 envt = env.Clone()
 envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'])
+
+
+# --------------------------------------------------------------------------- #
+#                               D E M O S                                     #
+# --------------------------------------------------------------------------- #
+
+envd = env.Clone()
+
+# OpenGL Vision Demo
+# Doesn't have portable includes, can't build on Linux/Mac
+#envd.RAMProgram(target = 'VisionDemo',
+#                source = 'demos/src/VisionDemo.cpp',
+#                int_deps = ['vision'])
+
+# Hough Transform Demo
+envd.RAMProgram(target = 'HoughDemo',
+                source = 'demos/src/houghDemo.cpp',
+                ext_deps = ['OpenCV'])
