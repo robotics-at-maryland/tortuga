@@ -12,10 +12,14 @@
 
 // Project Includes
 #include "vision/include/Detector.h"
+#include "core/include/EventHub.h"
+#include "core/include/ConfigNode.h"
 
 class MockDetector : public ram::vision::Detector
 {
 public:
+    MockDetector(ram::core::ConfigNode config,
+                 ram::core::EventHubPtr eventHub = ram::core::EventHubPtr());
     MockDetector();
     ~MockDetector();
 

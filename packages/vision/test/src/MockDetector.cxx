@@ -11,12 +11,17 @@
 #include "vision/test/include/MockDetector.h"
 #include "vision/include/OpenCVImage.h"
 
+MockDetector::MockDetector(ram::core::ConfigNode,
+                           ram::core::EventHubPtr) :
+    processCount(0),
+    inputImage(new ram::vision::OpenCVImage(10, 10))
+{
+}
 
 MockDetector::MockDetector() :
     processCount(0),
     inputImage(new ram::vision::OpenCVImage(10, 10))
 {
-    
 }
 
 MockDetector::~MockDetector()
