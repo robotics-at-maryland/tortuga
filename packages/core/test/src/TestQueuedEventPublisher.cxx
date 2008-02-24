@@ -67,7 +67,8 @@ TEST_FIXTURE(QueuedEventPublisherFixture, disconnect)
     ram::core::EventConnectionPtr connection(
         qpublisher.subscribe("Type", boost::bind(&Reciever::handler, &recv,
                                                  _1)) );
-
+    CHECK(connection->connected());
+    
     // Standard publish
     publisher.publish("Type", ram::core::EventPtr(new ram::core::Event()));
     CHECK_EQUAL(0, recv.calls);
@@ -76,6 +77,7 @@ TEST_FIXTURE(QueuedEventPublisherFixture, disconnect)
     connection->disconnect();
     publisher.publish("Type", ram::core::EventPtr(new ram::core::Event()));
     qpublisher.publishEvents();
+    CHECK(false == connection->connected());
     CHECK_EQUAL(0, recv.calls);
 }
 

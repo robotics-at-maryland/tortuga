@@ -22,16 +22,21 @@
 namespace ram {
 namespace core {
 
-/** Represents the connection between and event handler, and publisher
+/** Represents the connection between an event handler and a publisher
  * 
  *  You must call disconnect on this object before the handler is destroyed,
- *  or any further calls to the handler will result in crashes.
+ *  or any further calls to the handler will result in a crash.
  */
 class RAM_EXPORT EventConnection : boost::noncopyable
 {
 public:
     virtual ~EventConnection() {}
+
+    /** Disconnects the events, the handler function will not be called */
     virtual void disconnect() = 0;
+    
+    /** Return true if disconnect has been called */
+    virtual bool connected() = 0;
 protected:
     EventConnection() {}
 };

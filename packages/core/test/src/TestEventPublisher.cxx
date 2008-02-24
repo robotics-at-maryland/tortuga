@@ -56,7 +56,9 @@ TEST_FIXTURE(EventPublisherFixture, disconnect)
     ram::core::EventConnectionPtr connection(
         publisher.subscribe("Type", boost::bind(&Reciever::handler, &recv,
                                                 _1)) );
-
+    CHECK(connection->connected());
+    
+    
     // Standard publish
     ram::core::EventPtr event(new ram::core::Event());
     publisher.publish("Type", event);
@@ -65,6 +67,7 @@ TEST_FIXTURE(EventPublisherFixture, disconnect)
     // Unsubscribe then publish
     connection->disconnect();
     publisher.publish("Type", event);
+    CHECK(false == connection->connected());
     CHECK_EQUAL(1, recv.calls);
 }
 

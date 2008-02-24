@@ -67,7 +67,7 @@ protected:
     
         virtual T getType();
         virtual void disconnect();
-        
+        virtual bool connected();
     private:
 
         EventPublisherConnectionPtr m_internal;
@@ -125,6 +125,11 @@ void QueuedEventPublisherBaseTemplate<T>::Connection::disconnect()
     m_internal->disconnect();
 }
 
+template<typename T>
+bool QueuedEventPublisherBaseTemplate<T>::Connection::connected()
+{
+    return m_internal->connected();
+}
     
 // ------------------------------------------------------------------------- //
 // Q U E U E D   E V E N T   P U B L I S H E R   I M P L E M E N T A T I O N //

@@ -64,7 +64,12 @@ protected:
         virtual T getType();
         
         virtual void disconnect();
+
+        virtual bool connected();
     private:
+        /** Whether or not disconnected has been called */
+        bool m_connected;
+        
         /** Type of the event */
         T m_type;
         
@@ -164,6 +169,7 @@ template<typename T>
 EventPublisherBaseTemplate<T>::Connection::Connection(T type,
                    EventPublisherBaseTemplate<T>* publisher,
                    boost::signals::connection connection) :
+    m_connected(true),
     m_type(type),
     m_publisher(publisher),
     m_connection(connection)
@@ -180,8 +186,15 @@ template<typename T>
 void EventPublisherBaseTemplate<T>::Connection::disconnect()
 {
     m_publisher->unSubscribe(m_type, m_connection);
+    m_connected = false;
 }
 
+template<typename T>
+bool EventPublisherBaseTemplate<T>::Connection::connected()
+{
+    return m_connected;
+}
+    
 } // namespace core
 } // namespace ram
     
