@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/test/src/TestRecorder.cxx
+ * File:  packages/vision/test/src/TestFileRecorder.cxx
  */
 
 // Not tested yet on windows or Mac, so just go for Linux
-#ifdef RAM_BOB
+#ifdef RAM_LINUX
 
 // STD Includes
 #include <sstream>
@@ -21,7 +21,7 @@
 #include <boost/foreach.hpp>
 
 // Project Includes
-#include "vision/include/Recorder.h"
+#include "vision/include/FileRecorder.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/OpenCVCamera.h"
 
@@ -84,14 +84,14 @@ struct RecorderFixture
     
 TEST_FIXTURE(RecorderFixture, CreateDestroy)
 {
-    vision::Recorder recorder(camera, vision::Recorder::NEXT_FRAME,
-                              filename);
+    vision::FileRecorder recorder(camera, vision::Recorder::NEXT_FRAME,
+                                  filename);
 }
 
 TEST_FIXTURE(RecorderFixture, Update)
 {
-    vision::Recorder recorder(camera, vision::Recorder::NEXT_FRAME,
-                              filename);
+    vision::FileRecorder recorder(camera, vision::Recorder::NEXT_FRAME,
+                                  filename);
     recorder.unbackground(true);
 
     // Generate 20 images

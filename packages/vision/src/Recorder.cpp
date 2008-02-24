@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
- * Copyright (C) 2007 Daniel Hakim
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Joseph Lisee
  * All rights reserved.
  *
- * Author: Daniel Hakim <dhakim@umd.edu>
+ * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/vision/src/Recorder.cpp
  */
 
@@ -12,8 +12,6 @@
 #include <algorithm>
 
 // Library Includes
-#include "cv.h"
-#include "highgui.h"
 #include <boost/bind.hpp>
 
 // Project Includes
@@ -29,51 +27,30 @@
 namespace ram {
 namespace vision {
 
-Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy,
-                   std::string filename) :
+Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy) :
     m_policy(policy),
     m_newFrame(false),
     m_nextFrame(new OpenCVImage(640, 480)),
     m_currentFrame(new OpenCVImage(640, 480)),
-    m_camera(camera),
-    m_writer(0)
+    m_camera(camera)
 {
     assert((RP_START < policy) && (policy < RP_END) &&
            "Invalid recording policy");
     
-    // Determine video FPS (default to 30)
-    int fps = m_camera->fps();
-    if (0 == fps)
-        fps = 30;
-
-    CvSize size = cvSize(m_camera->width(), m_camera->height());
-    
-    FILE* video = fopen(filename.c_str(), "w");
-    // Yes, thats a comma, not a semicolon, it forces the compiler to close
-    // the file before attempting the next step, creating a video writer on a
-    // file that may not exist before the close finishes
-    fclose(video),
-	m_writer=cvCreateVideoWriter(filename.c_str(),
-                                     CV_FOURCC('D','I','V','X'),
-                                     fps, size, 1);
-
     // Subscribe to camera event
     m_connection = camera->subscribe(Camera::IMAGE_CAPTURED,
                                      boost::bind(&Recorder::newImageCapture,
                                                  this,
                                                  _1));
-    
-    // Run update as fast as possible
-    background(-1);
 }
 
 Recorder::~Recorder()
 {
     // Stop the background thread and events
-    m_connection->disconnect();
-    unbackground(true);
+    assert(!backgrounded() && "Recorder::cleanUp() not called by subclass");
+    assert(!m_connection->connected() &&
+           "Recorder::cleanUp() not called by subclass");
     
-    cvReleaseVideoWriter(&m_writer);
     delete m_nextFrame;
     delete m_currentFrame;
 }
@@ -88,7 +65,7 @@ void Recorder::update(double timeSinceLastUpdate)
         
         case NEXT_FRAME:
         {
-            bool recordFrame = false;
+            bool frameToRecord = false;
             
             {
                 boost::mutex::scoped_lock lock(m_mutex);
@@ -96,15 +73,15 @@ void Recorder::update(double timeSinceLastUpdate)
                 if (m_newFrame)
                 {
                     // If we have a new frame waiting, swap it for the current
-                    recordFrame = true;
+                    frameToRecord = true;
                     std::swap(m_nextFrame, m_currentFrame);
                     m_newFrame = false;
                 }
             }
 
-            if (recordFrame)
+            if (frameToRecord)
             {
-                cvWriteFrame(m_writer, m_currentFrame->asIplImage());
+                recordFrame(m_currentFrame);
             }
             else
             {
@@ -124,6 +101,12 @@ void Recorder::update(double timeSinceLastUpdate)
     }
 }
 
+void Recorder::cleanUp()
+{
+    m_connection->disconnect();
+    unbackground(true);    
+}
+    
 void Recorder::newImageCapture(core::EventPtr event)
 {
     boost::mutex::scoped_lock lock(m_mutex);

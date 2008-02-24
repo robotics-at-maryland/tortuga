@@ -10,6 +10,9 @@
 #ifndef RAM_RED_LIGHT_MAIN_H_06_23_2007
 #define RAM_RED_LIGHT_MAIN_H_06_23_2007
 
+// Library Includes
+#include <cv.h>
+
 // Project Includes
 #include "vision/include/Common.h"
 

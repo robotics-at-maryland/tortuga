@@ -11,7 +11,7 @@
 #include "vision/include/VisionSystem.h"
 #include "vision/include/VisionRunner.h"
 #include "vision/include/OpenCVCamera.h"
-#include "vision/include/Recorder.h"
+#include "vision/include/FileRecorder.h"
 
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
@@ -72,16 +72,16 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Recorders
     if (config.exists("forwardFile"))
     {
-        m_forwardRecorder = new Recorder(m_forwardCamera.get(),
-                                         Recorder::NEXT_FRAME,
-                                         config["forwardFile"].asString());
+        m_forwardRecorder = new FileRecorder(m_forwardCamera.get(),
+                                             Recorder::NEXT_FRAME,
+                                             config["forwardFile"].asString());
     }
 
     if (config.exists("downwardFile"))
     {
-        m_downwardRecorder = new Recorder(m_downwardCamera.get(),
-                                          Recorder::NEXT_FRAME,
-                                          config["downwardFile"].asString());
+        m_downwardRecorder = new FileRecorder(m_downwardCamera.get(),
+                                              Recorder::NEXT_FRAME,
+                                              config["downwardFile"].asString());
 
     }
     

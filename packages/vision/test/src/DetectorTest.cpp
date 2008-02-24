@@ -21,7 +21,7 @@
 #include "vision/include/Detector.h"
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/ImageCamera.h"
-#include "vision/include/Recorder.h"
+#include "vision/include/FileRecorder.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
                 recordCamera = new vision::ImageCamera(
                     outputImage->getWidth(), outputImage->getHeight(),
                     camera->fps());
-                recorder = new vision::Recorder(
+                recorder = new vision::FileRecorder(
                     recordCamera, vision::Recorder::NEXT_FRAME, outputFilename);
                 recorder->unbackground(true);
             }
