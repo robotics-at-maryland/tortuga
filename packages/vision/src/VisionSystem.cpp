@@ -11,11 +11,14 @@
 #include "vision/include/VisionSystem.h"
 #include "vision/include/VisionRunner.h"
 #include "vision/include/OpenCVCamera.h"
-#include "vision/include/RedLightDetector.h"
 #include "vision/include/Recorder.h"
 
+#include "vision/include/RedLightDetector.h"
+#include "vision/include/BinDetector.h"
+#include "vision/include/OrangePipeDetector.h"
+#include "vision/include/GateDetector.h"
+
 #include "core/include/EventHub.h"
-//To register it as a subsystem.
 #include "core/include/SubsystemMaker.h"
 
 // Register controller in subsystem maker system

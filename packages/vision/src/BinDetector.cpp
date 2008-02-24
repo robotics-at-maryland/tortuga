@@ -14,8 +14,8 @@
 
 // Project Includes
 #include "vision/include/main.h"
-#include "vision/include/BinDetector.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/BinDetector.h"
 #include "vision/include/Camera.h"
 
 
@@ -90,10 +90,10 @@ void BinDetector::processImage(Image* input, Image* output)
 		found=true;
         
         CvPoint tl,tr,bl,br;
-		tl.x=bl.x=max(binx-4,0);
-		tr.x=br.x=min(binx+4,binFrame->width-1);
-		tl.y=tr.y=min(biny+4,binFrame->height-1);
-		br.y=bl.y=max(biny-4,0);
+		tl.x=bl.x= std::max(binx-4,0);
+		tr.x=br.x= std::min(binx+4,binFrame->width-1);
+		tl.y=tr.y= std::min(biny+4,binFrame->height-1);
+		br.y=bl.y= std::max(biny-4,0);
 		
 		cvLine(binFrame, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0 );
 		cvLine(binFrame, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0 );

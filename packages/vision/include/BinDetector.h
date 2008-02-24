@@ -54,5 +54,4 @@ class RAM_EXPORT BinDetector : public Detector
 } // namespace vision
 } // namespace ram
 
-dif // RAM_BIN_DETECTOR_H_06_23_2007
 #endif // RAM_BIN_DETECTOR_H_06_23_2007
