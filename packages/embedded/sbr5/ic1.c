@@ -32,6 +32,17 @@ _FWDT ( WDT_OFF );
 #define RW_WRITE    1
 
 
+#define LED_ON      1
+
+/* LED pin definitions */
+#define LAT_LED_ACT     _LATF1
+#define TRIS_LED_ACT    _TRISF1
+
+#define LAT_LED_ERR     _LATF0
+#define TRIS_LED_ERR    _TRISF0
+
+
+
 #define IRQ_IC2         2
 #define IRQ_IC3         1
 #define IRQ_IC4         0
@@ -533,7 +544,15 @@ int main(void)
     initInterruptUarts();
 #endif
 
+    LAT_LED_ACT = LED_ON;
+    LAT_LED_ERR = LED_ON;
+
+    TRIS_LED_ACT = TRIS_OUT;
+    TRIS_LED_ERR = TRIS_OUT;
+
     for(j=0; j<25000; j++);
+
+    LAT_LED_ERR = ~LED_ON;
 
 
     unsigned char emptyLine[]="                ";

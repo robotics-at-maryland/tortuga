@@ -112,7 +112,7 @@ _FWDT ( WDT_OFF );
 
 
 /* LED level specification */
-#define LED_ON          0
+#define LED_ON          1
 
 
 /* LED pin definitions */
