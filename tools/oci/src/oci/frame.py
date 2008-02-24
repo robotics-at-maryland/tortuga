@@ -63,13 +63,14 @@ class MainFrame(wx.Frame):
             stream.close()
             self.SetSize(guiData["windowSize"])
             self.SetPosition(guiData["windowPos"])
+            self._shell.history = guiData["shellHistory"]
             self._mgr.LoadPerspective(guiData["paneLayout"])
             all_panes = self._mgr.GetAllPanes()
             for pane in all_panes:
                 pane.Show()
             self._mgr.Update()    
         except Exception, e:
-            print "Could not read/load yaml layout:"  ,e
+            self._shell.write("Could not read/load yaml layout: "  + e) # Test this line
         
         self.Bind(wx.EVT_CLOSE,self._onClose)            
     
@@ -84,11 +85,21 @@ class MainFrame(wx.Frame):
             locals[name] = subsystem
             introText += '%s: %s\n' % (name, type(subsystem))
         shell = ShellPanel(self, locals = locals, introText = introText)
+        shell.Bind(wx.EVT_KEY_DOWN, self._onShellKeyPress)
         locals["shell"] = shell # for testing
 
         paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
         paneInfo = paneInfo.Caption("Shell").Left()
         self._addSubsystemPanel(paneInfo, shell, [])
+    
+    def _onShellKeyPress(self,event):
+        if event.KeyCode ==  wx.WXK_UP:
+            self._shell.OnHistoryReplace(step=+1)
+            return
+        elif event.KeyCode == wx.WXK_DOWN:
+            self._shell.OnHistoryReplace(step=-1)
+            return
+        event.Skip()
     
     def _onClose(self, event):  
         allPanes = self._mgr.GetAllPanes()
@@ -145,7 +156,6 @@ class MainFrame(wx.Frame):
             paneInfo.Left()
         elif paneInfo.caption == "Demo Power":
             paneInfo.Left()
-
         
         self._mgr.AddPane(panel, paneInfo, paneInfo.caption)
         self._panels.append(panel)
