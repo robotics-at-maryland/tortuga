@@ -266,12 +266,12 @@ void processData(byte data)
                 case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; ovrReg &= ~0x10; break; }
                 case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; ovrReg &= ~0x20; break; }
 
-                case BUS_CMD_THRUSTER1_ON:  { LAT_MOTR1 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER2_ON:  { LAT_MOTR2 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER3_ON:  { LAT_MOTR3 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER4_ON:  { LAT_MOTR4 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER5_ON:  { LAT_MOTR5 = MOTR_ON; break; }
-                case BUS_CMD_THRUSTER6_ON:  { LAT_MOTR6 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER1_ON:  { if(!(ovrReg & 0x01)) LAT_MOTR1 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER2_ON:  { if(!(ovrReg & 0x02)) LAT_MOTR2 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER3_ON:  { if(!(ovrReg & 0x04)) LAT_MOTR3 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER4_ON:  { if(!(ovrReg & 0x08)) LAT_MOTR4 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER5_ON:  { if(!(ovrReg & 0x10)) LAT_MOTR5 = MOTR_ON; break; }
+                case BUS_CMD_THRUSTER6_ON:  { if(!(ovrReg & 0x20)) LAT_MOTR6 = MOTR_ON; break; }
 
                 case BUS_CMD_THRUSTER_STATE:
                 {
