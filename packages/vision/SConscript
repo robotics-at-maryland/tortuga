@@ -24,8 +24,6 @@ if env.HasFeature('wrappers'):
 
 # Sources
 sources = env.Glob('src', '*.cpp')
-sources.remove('src/VisionTest.cpp')
-sources.remove('src/DetectorTest.cpp')
 	
 # Build Library (will be called 'libram_vision.so')
 # All build settings for the library are stored in buildfiles/libs.py
@@ -54,8 +52,9 @@ envt.RAMProgram(target = 'ImageAnalyzer',
                 int_deps = ['vision'])
 
 # Detector Test
-#envt.RAMProgram(target = 'DetectorTest', 
-#                source=detectorSources, int_deps = ['vision'])
+envt.RAMProgram(target = 'DetectorTest', 
+                source = 'test/src/DetectorTest.cpp',
+                int_deps = ['vision'], ext_deps = ['Boost.ProgramOptions'])
 
 # Unit Tests
 envt = env.Clone()

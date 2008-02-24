@@ -34,7 +34,7 @@ int main(int argc, char** argv)
     {
         camNum = (int)strtol(argv[1], &tailPtr, 10);
         
-        if (tailPtr != 0)
+        if ((*tailPtr) != '\0')
             usageError();
     }
     else if (argc != 1)
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
             break;
         }
         
-        cvShowImage( "Raw Camera Image", frame );
+        cvShowImage("Raw Camera Image", frame);
 
         //Do not release the frame!
         //If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
