@@ -111,6 +111,23 @@ _FWDT ( WDT_OFF );
 
 
 
+/* LED level specification */
+#define LED_ON          0
+
+
+/* LED pin definitions */
+#define LAT_LED_STA1    _LATF8
+#define TRIS_LED_STA1   _TRISF8
+
+#define LAT_LED_STA2    _LATD14
+#define TRIS_LED_STA2   _TRISD14
+
+#define LAT_LED_ERR     _LATA10
+#define TRIS_LED_ERR    _TRISA10
+
+#define LAT_LED_OVR     _LATA9
+#define TRIS_LED_OVR    _TRISA9
+
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -150,6 +167,8 @@ byte p1=0;
 
 
 byte myTemperature = 255;
+
+byte ovrReg = 0;    /* Overcurrent register */
 
 
 /* If Master writes us data, this gets called */
@@ -240,12 +259,12 @@ void processData(byte data)
                 }
 
 
-                case BUS_CMD_THRUSTER1_OFF:  { LAT_MOTR1 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER2_OFF:  { LAT_MOTR2 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER3_OFF:  { LAT_MOTR3 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER4_OFF:  { LAT_MOTR4 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; break; }
-                case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; break; }
+                case BUS_CMD_THRUSTER1_OFF:  { LAT_MOTR1 = ~MOTR_ON; ovrReg &= ~0x01; break; }
+                case BUS_CMD_THRUSTER2_OFF:  { LAT_MOTR2 = ~MOTR_ON; ovrReg &= ~0x02; break; }
+                case BUS_CMD_THRUSTER3_OFF:  { LAT_MOTR3 = ~MOTR_ON; ovrReg &= ~0x04; break; }
+                case BUS_CMD_THRUSTER4_OFF:  { LAT_MOTR4 = ~MOTR_ON; ovrReg &= ~0x08; break; }
+                case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; ovrReg &= ~0x10; break; }
+                case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; ovrReg &= ~0x20; break; }
 
                 case BUS_CMD_THRUSTER1_ON:  { LAT_MOTR1 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER2_ON:  { LAT_MOTR2 = MOTR_ON; break; }
@@ -657,6 +676,7 @@ void main()
 {
     byte i;
     long l;
+    ovrReg = 0; /* Clear overcurrent register */
 
     LAT_MRKR1 = ~MRKR_ON;
     LAT_MRKR2 = ~MRKR_ON;
@@ -697,6 +717,17 @@ void main()
     TRIS_BAR6 = TRIS_OUT;
     TRIS_BAR7 = TRIS_OUT;
     TRIS_BAR8 = TRIS_OUT;
+
+
+    TRIS_LED_STA1 = TRIS_OUT;
+    TRIS_LED_STA2 = TRIS_OUT;
+    TRIS_LED_ERR = TRIS_OUT;
+    TRIS_LED_OVR = TRIS_OUT;
+
+    LAT_LED_STA1 = LED_ON;
+    LAT_LED_STA2 = ~LED_ON;
+    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_OVR = ~LED_ON;
 
     initBus();
     initADC();
