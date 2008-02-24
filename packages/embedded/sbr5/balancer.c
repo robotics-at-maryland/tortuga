@@ -26,15 +26,15 @@ _FWDT ( WDT_OFF );
  */
 
 /* Bus pin assignments */
-#define REQ_CN_BIT  (CNEN1bits.CN9IE)
-#define IN_REQ      _RG7
-#define TRIS_REQ    _TRISG7
+#define REQ_CN_BIT  (CNEN2bits.CN22IE)
+#define IN_REQ      _RA6
+#define TRIS_REQ    _TRISA6
 
-#define LAT_AKN     _LATD8
-#define TRIS_AKN    _TRISD8
+#define LAT_AKN     _LATA7
+#define TRIS_AKN    _TRISA7
 
-#define IN_RW       _RD9
-#define TRIS_RW     _TRISD9
+#define IN_RW       _RG14
+#define TRIS_RW     _TRISG14
 
 #define RW_READ     0
 #define RW_WRITE    1
@@ -44,55 +44,55 @@ _FWDT ( WDT_OFF );
 #define BATT_ON     1
 
 /* Battery input pin assignments */
-#define IN_BATT1    _LATC1
-#define TRIS_BATT1  _TRISC1
+#define IN_BATT1    _LATG7
+#define TRIS_BATT1  _TRISG7
 
-#define IN_BATT2    _LATC2
-#define TRIS_BATT2  _TRISC2
+#define IN_BATT2    _LATC4
+#define TRIS_BATT2  _TRISC4
 
-#define IN_BATT3    _LATC13
-#define TRIS_BATT3  _TRISC13
+#define IN_BATT3    _LATC2
+#define TRIS_BATT3  _TRISC2
 
-#define IN_BATT4    _LATC14
-#define TRIS_BATT4  _TRISC14
+#define IN_BATT4    _LATG15
+#define TRIS_BATT4  _TRISG15
 
-#define IN_BATT5    _LATC14
-#define TRIS_BATT5  _TRISC14
+#define IN_BATT5    _LATG12
+#define TRIS_BATT5  _TRISG12
 
 /* We know this one is active low */
-#define IN_WTRSEN   _LATG6
-#define TRIS_WTRSEN _TRISG6
-#define WATER_CN_BIT  (CNEN1bits.CN8IE)
+#define IN_WTRSEN   _LATB15
+#define TRIS_WTRSEN _TRISB15
+#define WATER_CN_BIT  (CNEN1bits.CN12IE)
 
 
 /* Power kill output level specification */
 #define PWRKILL_ON  1
 
 /* Power kill pin assignment */
-#define LAT_PWRKILL _LATG14
-#define TRIS_PWRKILL _TRISG14
+#define LAT_PWRKILL _LATB14
+#define TRIS_PWRKILL _TRISB14
 
 
 
 /* Level specification for battery control outputs */
-#define BATT_ENABLE 1
+#define BATT_ENABLE 0
 
 
 /* Battery control outputs */
-#define LAT_BATT1_CTL   _LATG12
-#define TRIS_BATT1_CTL  _TRISG12
+#define LAT_BATT1_CTL   _LATG8
+#define TRIS_BATT1_CTL  _TRISG8
 
-#define LAT_BATT2_CTL   _LATG12
-#define TRIS_BATT2_CTL  _TRISG12
+#define LAT_BATT2_CTL   _LATG6
+#define TRIS_BATT2_CTL  _TRISG6
 
-#define LAT_BATT3_CTL   _LATG12
-#define TRIS_BATT3_CTL  _TRISG12
+#define LAT_BATT3_CTL   _LATC3
+#define TRIS_BATT3_CTL  _TRISC3
 
-#define LAT_BATT4_CTL   _LATG12
-#define TRIS_BATT4_CTL  _TRISG12
+#define LAT_BATT4_CTL   _LATC1
+#define TRIS_BATT4_CTL  _TRISC1
 
-#define LAT_BATT5_CTL   _LATG12
-#define TRIS_BATT5_CTL  _TRISG12
+#define LAT_BATT5_CTL   _LATG13
+#define TRIS_BATT5_CTL  _TRISG13
 
 
 /* Transmit buffer */
