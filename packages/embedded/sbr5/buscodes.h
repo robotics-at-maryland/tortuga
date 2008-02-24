@@ -96,7 +96,9 @@
 
 #define BUS_CMD_BAR_STATE       0x42
 
-/* Next free is 0x43 */
+#define BUS_CMD_READ_OVR        0x43
+
+/* Next free is 0x44 */
 
 
 

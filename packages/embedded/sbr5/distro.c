@@ -348,6 +348,13 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_READ_OVR:
+                {
+                    txBuf[0] = 1;
+                    txBuf[1] = ovrReg;
+                    break;
+                }
+
             }
         }
         break;
