@@ -95,6 +95,17 @@ _FWDT ( WDT_OFF );
 #define TRIS_BATT5_CTL  _TRISG13
 
 
+/* LED level specification */
+#define LED_ON          0
+
+/* LED pin definitions */
+#define LAT_LED_STA     _LATF7
+#define TRIS_LED_STA    _TRISF7
+
+#define LAT_LED_ERR     _LATF8
+#define TRIS_LED_ERR    _TRISF8
+
+
 /* Transmit buffer */
 #define TXBUF_LEN 60
 byte txBuf[TXBUF_LEN];
@@ -535,6 +546,12 @@ void main()
 
     LAT_PWRKILL = ~PWRKILL_ON;
     TRIS_PWRKILL = TRIS_OUT;
+
+    TRIS_LED_STA = TRIS_OUT;
+    TRIS_LED_ERR = TRIS_OUT;
+
+    LAT_LED_STA = LED_ON;
+    LAT_LED_ERR = ~LED_ON;
 
     initBus();
     initADC();
