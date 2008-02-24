@@ -69,8 +69,8 @@ class MainFrame(wx.Frame):
             for pane in all_panes:
                 pane.Show()
             self._mgr.Update()    
-        except Exception, e:
-            self._shell.write("Could not read/load yaml layout: "  + e) # Test this line
+        except:
+            pass # No history availible, continue 
         
         self.Bind(wx.EVT_CLOSE,self._onClose)            
     
