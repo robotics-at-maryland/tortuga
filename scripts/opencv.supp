@@ -1,10 +1,10 @@
 {
    OpenCV Loading Error 1
    Memcheck:Addr4
-   obj:/lib/ld-2.5.so
-   obj:/lib/tls/i686/cmov/libdl-2.5.so
-   obj:/lib/ld-2.5.so
-   obj:/lib/tls/i686/cmov/libdl-2.5.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
    fun:dlopen
    fun:cvUseOptimized
    fun:cvRegisterModule
@@ -13,11 +13,11 @@
 {
    Open CV Loading Error 2
    Memcheck:Cond
-   obj:/lib/ld-2.5.so
-   obj:/lib/ld-2.5.so
-   obj:/lib/tls/i686/cmov/libdl-2.5.so
-   obj:/lib/ld-2.5.so
-   obj:/lib/tls/i686/cmov/libdl-2.5.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
    fun:dlopen
    fun:cvUseOptimized
    fun:cvRegisterModule
@@ -33,7 +33,7 @@
    OpenCV Shut Down Error
    Memcheck:Free
    fun:_vgrZU_libcZdsoZa_free
-   obj:/lib/tls/i686/cmov/libc-2.5.so
+   obj:*
    fun:__libc_freeres
    fun:_vgnU_freeres
    fun:_Exit

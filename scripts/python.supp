@@ -86,18 +86,16 @@
 {
    LOAD_DYNAMIC_MODULE/Invalide read of size 4
    Memcheck:Addr4
-#   obj:/lib/ld-2.5.so
-#   obj:/lib/ld-2.5.so
-#   obj:/lib/ld-2.5.so
-#   obj:/lib/ld-2.5.so
-#   obj:/lib/ld-2.5.so
-#   obj:/lib/ld-2.5.so
-#   obj:/lib/tls/i686/cmov/libdl-2.5.so
-#   obj:/lib/ld-2.5.so
-   obj:/lib/tls/i686/cmov/libdl-2.5.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
    fun:dlopen
    fun:_PyImport_GetDynLoadFunc
    fun:_PyImport_LoadDynamicModule
-#   Memcheck:Addr4
-#   fun:_PyImport_LoadDynamicModule
 }
