@@ -1,14 +1,20 @@
-#include "vision/include/DetectorTest.h"
-#include "vision/include/VisionDemo.h"
-#include <highgui.h>
-#include <iostream>
-#include <signal.h>
-#include <string>
 
-#include <openGL/openGL.h>
-#include <GLUT/glut.h>
+
+// STD Includes
+#include <iostream>
+#include <string>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+// Library Includes
+#include <highgui.h>
+#include <openGL/openGL.h>
+#include <GLUT/glut.h>
+
+// Project Includes
+#include "vision/include/DetectorTest.h"
+#include "vision/demos/include/VisionDemo.h"
 
 using namespace std;
 

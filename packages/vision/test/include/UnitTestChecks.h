@@ -32,6 +32,21 @@ void CheckClose(TestResults& results,
                 ram::vision::Image const& actual,
                 int const& tolerance,
                 TestDetails const& details);
+
+template<>
+void CheckClose(TestResults& results,
+                ram::vision::OpenCVImage* const& expected,
+                ram::vision::OpenCVImage* const& actual,
+                double const& tolerance,
+                TestDetails const& details);
+
+template<>
+void CheckClose(TestResults& results,
+                ram::vision::OpenCVImage* const& expected,
+                ram::vision::OpenCVImage* const& actual,
+                int const& tolerance,
+                TestDetails const& details);
+
     
 } // namespace UnitTest
 

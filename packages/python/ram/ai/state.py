@@ -111,6 +111,18 @@ class Machine(core.Subsystem):
 
         self._enterState(startState)
 
+    def stop(self):
+        """
+        Exits the current state, and stops if from responding to any more
+        events.
+        """
+        self._exitState()
+        
+        self._started = False
+        self._previousEvent = core.Event()
+        self._root = None
+        self._currentState = None
+
     def injectEvent(self, event):
         """
         Sends an event into the state machine
@@ -189,6 +201,7 @@ class Machine(core.Subsystem):
                 
         for conn in self._connections:
             conn.disconnect()
+        self._connections = []
                 
         changeEvent = core.Event()
         changeEvent.state = self._currentState

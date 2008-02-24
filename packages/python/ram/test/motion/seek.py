@@ -40,7 +40,8 @@ class TestPointTarget(unittest.TestCase):
 class TestSeekPoint(support.MotionTest):
     #def setUp(self):
     
-    def checkCommand(self, azimuth, elevation, range, yawChange, newDepth):
+    def checkCommand(self, azimuth, elevation, range, yawChange = None,
+                     newDepth = None, newSpeed = None):
         """
         Checks the commands given to the controller with a certain buoy state
         
@@ -56,18 +57,44 @@ class TestSeekPoint(support.MotionTest):
                                        range = range)
         
         # Creat the motion to seek the target
-        m = motion.seek.SeekPoint(target = bouy)
+        maxSpeed = 0
+        if newSpeed is not None:
+            maxSpeed = 1
+        m = motion.seek.SeekPoint(target = bouy, maxSpeed = maxSpeed)
         
         # Start it and check the first results
         self.motionManager.setMotion(m)
-        self.assertAlmostEqual(yawChange, self.controller.yawChange, 3)
-        self.assertAlmostEqual(newDepth, self.controller.depth, 3)
+        if yawChange is not None:
+            self.assertAlmostEqual(yawChange, self.controller.yawChange, 3)
+        if newDepth is not None:
+            self.assertAlmostEqual(newDepth, self.controller.depth, 3)
+        if newSpeed is not None:
+            self.assertAlmostEqual(newSpeed, self.controller.speed, 3)
     
     def testDeadAhead(self):
         # Bouy dead ahead of the vehicle
         # Make sure no vehicle heading or depth changes are ordered
         self.checkCommand(azimuth = 0, elevation = 0, range = 10, 
-                          yawChange = 0, newDepth = 0)
+                          yawChange = 0, newDepth = 0, newSpeed = 1)
+
+    def testSpeed(self):
+        # This is right at the range, we shouldn't be moving
+        self.checkCommand(azimuth = 45, elevation = 45, range = 10,
+                          newSpeed = 0)
+
+        # Half way there
+        self.checkCommand(azimuth = 45/2.0, elevation = 45/2.0, range = 10, 
+                          newSpeed = 0.5)
+
+        # A little closer
+        self.checkCommand(azimuth = 45/2.0, elevation = 0, range = 10, 
+                          newSpeed = 0.6464)
+        self.checkCommand(azimuth = 0, elevation = 45/2.0, range = 10, 
+                          newSpeed = 0.6464)
+
+        # Dead ahead
+        self.checkCommand(azimuth = 0, elevation = 0, range = 10, 
+                          newSpeed = 1)
         
     def testBelow(self):
         # Setup the vehicle and the controller, such that the vehicle is 

@@ -18,13 +18,16 @@
 #include <boost/assign/list_of.hpp>
 
 // Project Includes
-// Why can't I include you?
-//#include "math/test/include/MathChecks.h"
 #include "vehicle/include/Vehicle.h"
-#include "core/include/ConfigNode.h"
-#include "core/include/EventConnection.h"
+#include "vehicle/include/device/IThruster.h"
 #include "vehicle/test/include/MockDevice.h"
 #include "vehicle/test/include/MockIMU.h"
+
+#include "core/include/ConfigNode.h"
+#include "core/include/EventConnection.h"
+#include "core/include/EventHub.h"
+
+#include "math/test/include/MathChecks.h"
 #include "math/include/Events.h"
 
 using namespace ram;
@@ -36,15 +39,25 @@ static const std::string CONFIG("{'depthCalibSlope' : 33.01,"
 struct VehicleFixture
 
 {
-    VehicleFixture() {
-        veh = new vehicle::Vehicle(core::ConfigNode::fromString(CONFIG));
+    VehicleFixture() :
+        eventHub(new core::EventHub()),
+        veh(new vehicle::Vehicle(core::ConfigNode::fromString(CONFIG),
+                                 boost::assign::list_of(eventHub)))
+    {
     }
+    
     ~VehicleFixture() {
         delete veh;
     }
 
+    core::EventHubPtr eventHub;
     vehicle::Vehicle* veh;
 };
+
+void eventHelper(std::string* eventType, ram::core::EventPtr event)
+{
+    *eventType = event->type;
+}
 
 TEST(DeviceCreation)
 {
@@ -55,8 +68,10 @@ TEST(DeviceCreation)
             "    'IMU' : {'type' : 'MockDevice'},"
             "    'PSU' : {'type' : 'MockDevice'}"
             "} }";
+    core::EventHubPtr eventHub(new core::EventHub());
     vehicle::IVehicle* veh = 
-        new vehicle::Vehicle(core::ConfigNode::fromString(config));
+        new vehicle::Vehicle(core::ConfigNode::fromString(config),
+                             boost::assign::list_of(eventHub));
     
     CHECK_EQUAL("IMU", veh->getDevice("IMU")->getName());
     CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
@@ -73,6 +88,18 @@ TEST(DeviceCreation)
 
     CHECK_EQUAL(2u, givenNames.size());
     CHECK(expNames == givenNames);
+
+    // Make sure events get through
+    std::string eventType;
+
+    eventHub->subscribeToType(
+        vehicle::device::IThruster::FORCE_UPDATE,
+        boost::bind(eventHelper, &eventType, _1));
+
+    veh->getDevice("IMU")->publish(vehicle::device::IThruster::FORCE_UPDATE,
+                                   core::EventPtr(new core::Event()));
+
+    CHECK_EQUAL(vehicle::device::IThruster::FORCE_UPDATE, eventType);
 }
 
 TEST_FIXTURE(VehicleFixture, IMU)

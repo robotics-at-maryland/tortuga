@@ -50,7 +50,7 @@ public:
     virtual ~BWPDController();
     
     /** @copydoc IController::setSpeed() */
-    virtual void setSpeed(int speed);
+    virtual void setSpeed(double speed);
 
     /** Sets the current heading in degrees off north */
     virtual void setHeading(double degrees);
@@ -59,7 +59,7 @@ public:
     virtual void setDepth(double depth);
 
     /** @copydoc IController::getSpeed() */
-    virtual int getSpeed();
+    virtual double getSpeed();
 
     virtual double getHeading();
 

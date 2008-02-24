@@ -49,9 +49,6 @@ def guiStart(path):
     # Now we can import OCI
     import oci.app
     
-    # Our Specific Panels
-    import sim.view
-    
     # Now we can start up the vehicle
     application = oci.app.Application(path)
     application.MainLoop()

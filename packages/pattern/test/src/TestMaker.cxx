@@ -96,6 +96,12 @@ TEST(getRegisteredKeys)
     CHECK(expected == result);
 }
 
+TEST(isKeyRegistered)
+{
+    CHECK(NumberMaker::isKeyRegistered("Int"));
+    CHECK(false == NumberMaker::isKeyRegistered("Bob"));
+}
+
 int main()
 {
     return UnitTest::RunAllTests();

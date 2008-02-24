@@ -101,7 +101,7 @@ def setup_posix_libs():
                                        [BOOST_GRAPH_LIB]),
         
         'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,34,1), [],
-                                      [BOOST_SIGNALS_LIB]),
+                                      [BOOST_FILESYSTEM_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
                                               (1,35), [],

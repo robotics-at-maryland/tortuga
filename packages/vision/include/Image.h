@@ -42,6 +42,16 @@ public:
         PF_END,   /** Sentinal Value */
     };
 
+    /* Open image from given file, returns 0 on error */
+    static Image* loadFromFile(std::string fileName);
+
+    /** Saves the given image to the desired file */
+    static void saveToFile(Image* image, std::string fileName);
+
+    /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
+    static Image* loadFromBuffer(unsigned char* buffer, int width,
+                                 int height, bool ownership);
+    
     /** Copies data from the given image to the src */
     virtual void copyFrom (const Image* src) = 0;
     
@@ -60,7 +70,10 @@ public:
     /** Determines whether or not to release the image buffer */
     virtual bool getOwnership() const = 0;
     
-    /** Change Image data (only free if ownership = true) */
+    /** Change Image data, old data returned if not owned
+     *  
+     *  
+     */
     virtual unsigned char* setData(unsigned char* data,
                                    bool ownership = true) = 0;
 

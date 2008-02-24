@@ -41,6 +41,7 @@ struct DefaultMakerLookup
         assert(iter != registry->end() && "Could not find maker");
         return iter->second;
     }
+
 };
 
 /** Default ObjectMaker policy. Uses virtual makeObject method on maker objects.
@@ -250,6 +251,17 @@ public:
         std::sort(results.begin(), results.end());
         
         return results;
+    }
+
+    /** Returns true if a maker is registered for the given key */
+    static bool isKeyRegistered(Key key)
+    {
+        MakerMap* registry = getRegistry();
+        MakerMapIter iter = registry->find(key);
+        
+        if(registry->end() != iter)
+            return true;
+        return false;
     }
     
     /** Creates a new object based on the given parameters

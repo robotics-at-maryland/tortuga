@@ -24,24 +24,36 @@ def generate(module_builder, local_ns, global_ns):
     classes = []
 
     # Lets Py++ know to make VisionSystem a subclass of Subsystem
-    wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem'])
+    wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem', 'Event'])
 
     # Vision System
     VisionSystem = local_ns.class_('VisionSystem')
     VisionSystem.include()
+    VisionSystem.include_files.append('vision/include/Camera.h')
     classes.append(VisionSystem)   
-#    IController.include_files.append(os.environ['RAM_SVN_DIR'] +
-#                                     '/packages/control/include/IController.h')
 
     # Wrap Events
+    EventType = local_ns.class_('EventType')
+    EventType.include()
+    classes.append(EventType)
+    
     eventsFound = False
     for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
                                 allow_empty = True):
         cls.include()
         classes.append(cls)
+    ImageEvent = local_ns.class_('ImageEvent')
+    ImageEvent.include_files.append('vision/include/Image.h')
+    wrap.set_implicit_conversions([ImageEvent], False)
 
     if eventsFound:
         wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
 
     # Append the approaite include files
+#    for cls in classes:
+#        cls.include()
     wrap.add_needed_includes(classes)
+
+    module_builder.add_registration_code("registerImageClass();")
+    module_builder.add_registration_code("registerCameraClass();")
+    return ['wrappers/vision/include/RegisterFunctions.h']

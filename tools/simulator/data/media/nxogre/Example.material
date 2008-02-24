@@ -125,6 +125,21 @@ material Simple/Translucent
 		}
 	}
 }
+material Simple/Red
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 1.0 0.0 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 1.0 0.0 0.0
+		}
+	}
+}
+
 
 
 material Examples/CloudyNoonSkyBox

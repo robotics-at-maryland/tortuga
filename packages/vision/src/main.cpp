@@ -1,22 +1,39 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/main.cpp
+ */
+
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <iostream>
-#include <sstream>
+// STD Includes
 #include <math.h>
 #include <cstdlib>
 #include <stdio.h>
+#include <time.h>
+
+#include <list>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+// Library Includes
 #include "cv.h"
 #include "highgui.h"
-#include <string>
-#include <time.h>
+
+// Project Includes
 #include "vision/include/main.h"
-#include "vision/include/ProcessList.h"
-#include "vision/include/VisionCommunication.h"
 
 /* 
 	Daniel Hakim
 	VISION CODE!!! 
 	PLEASE TOUCH ME.
+        
+        I am all over it.
+          -JHL 02-09-2008
 */
 using namespace std;
 using namespace ram::vision;
@@ -331,33 +348,6 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	free(columnCounts);
 	return whitex!=-1;
 }
-
-//An example test function for the shortlived attempt at a way to write lists of commands to Vision
-//A process list allows you to send a list of steps to a vision processing loop, but 
-	int runVision(int argc, char** argv)
-	{
-		cvNamedWindow("test",CV_WINDOW_AUTOSIZE);
-		ProcessList* pl=new ProcessList();
-		pl->addStep("show");
-		pl->addStep("white_detect");
-		pl->addStep("show");
-		pl->addStep("reset");
-		pl->addStep("mask_red");
-		pl->addStep("show");
-		pl->addStep("reset");
-		pl->addStep("mask_orange");
-		pl->addStep("show");
-
-		if ((pl->toCall.back())!="end")
-			pl->toCall.push_back("end");
-
-//		walk(img,pl);
-		run(pl);
-		cvWaitKey(0);
-		delete pl;
-
-		return 0;
-	}
 	
 	//subtract two images, display the result
 	void diff(IplImage* img, IplImage* oldImg, IplImage* destination)
@@ -613,8 +603,8 @@ void redMask(IplImage* percents, IplImage* base)
 	{
 		for (int x=0; x<width; x++)
 		{
-			r=(data[count+2]+256)%256;//r = percent red in the image
-			r2=(data2[count+2]+256)%256;//r2 = intensity of red in the image
+			r=data[count+2];//r = percent red in the image
+			r2=data2[count+2];//r2 = intensity of red in the image
 			if (r>40 && r2>200) //Change these values if red light in tank is not being detected.
 			{
 				data2[count]=255;
@@ -1413,35 +1403,34 @@ void filter(IplImage* img, bool red_flag, bool green_flag, bool blue_flag)
 
 void to_ratios(IplImage* img)
 {
-	char* data=img->imageData;
-	int width=img->width;
-	int height=img->height;
-	int count=0;
-//	int pixel_count=0;
-	int r=0;
-	int g=0;
-	int b=0;
-	
-	for (int y=0; y<height; y++)
-		for (int x=0; x<width; x++)
-		{
-			b=(data[count]+256)%256;
-			g=(data[count+1]+256)%256;
-			r=(data[count+2]+256)%256;
-            if (b+g+r==0)
-            {
-                data[count]=33;
-                data[count+1]=33;
-                data[count+2]=33;
-            }
-            else
-            {
-                data[count]=static_cast<char>((double)(b)/(b+g+r) *100);
-                data[count+1]=static_cast<char>((double)(g)/(b+g+r) *100);
-                data[count+2]=static_cast<char>((double)(r)/(b+g+r) *100);
-			}
-            count+=3;
-		}
+    unsigned char* data = (unsigned char*)img->imageData;
+    int length = img->width * img->height * 3;
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    int sum = 0;
+    
+    for (int i = 0; i < length; i += 3)
+    {
+        b = data[i];
+        g = data[i+1];
+        r = data[i+2];
+        sum = r + b + g;
+
+        // Fixed point version (conditional needed for divede by zero)
+        if (sum)
+        {
+            data[i] = (100 * b) / sum;
+            data[i+1] = (100 * g) / sum;
+            data[i+2] = (100 * r) / sum;
+        }
+        else
+        {
+            data[i] = 33;
+            data[i+1] = 33;
+            data[i+2] = 33;
+        }
+    }
 }
 
 int red_blue(IplImage* img, float ratio)
@@ -1629,12 +1618,12 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
         xdist=histoBlackX-histoWhiteX;
         ydist=histoBlackY-histoWhiteY;
 		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
-		cout<<"White Center:"<<whitex<<","<<whitey<<endl;
-		cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
+		//cout<<"White Center:"<<whitex<<","<<whitey<<endl;
+		//cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
 		
-        cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-        cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
-        cout<<"Distance:"<<distance<<endl;
+        //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
+        //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
+        //cout<<"Distance:"<<distance<<endl;
 		
 		if (distance<50)
 		{
@@ -1646,8 +1635,8 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 		}
 		else
 		{
-            cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-            cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
+            //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
+            //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
 			*binx=-1;
 			*biny=-1;
 		}
@@ -1655,867 +1644,6 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 	return min(total,total2);
 }
 
-extern "C" {
-  int visionStart();
-}
-int visionStart()
-{
-  goVision=1;
-  CvCapture* camCapture=cvCaptureFromFile("underwater.avi");
 
-//	VisionData  duplicateMe;
-	VisionData *buffer1,*buffer2;
-	
-	buffer1=new VisionData();
-	buffer2=new VisionData();
-	getCommunicator()->safe=&buffer1;
-	
-	int swapper=2;	
-	
-	//CvCapture* camCapture=cvCaptureFromCAM(0);
-	CvVideoWriter *writer = 0;
-//	int isColor = 1;
-	int fps     = 30;  // or 30
-	int frameW  = 640; // 744 for firewire cameras
-	int frameH  = 480; // 480 for firewire cameras
-	FILE* video=fopen("out.avi","w");
-	fclose(video),
-	writer=cvCreateVideoWriter("out.avi",CV_FOURCC('D','I','V','X'),
-                           fps,cvSize(frameW,frameH),1);
 
-	//cvNamedWindow("After_Analysis", CV_WINDOW_AUTOSIZE );
-	cvNamedWindow("Before_Analysis", CV_WINDOW_AUTOSIZE );
-	//cvNamedWindow("Hough", CV_WINDOW_AUTOSIZE );
-	//cvNamedWindow("Bin_go", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("Flash", CV_WINDOW_AUTOSIZE);
-	//cvNamedWindow("Movement", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("Gate",CV_WINDOW_AUTOSIZE);
-	IplImage* unscaledFrame=NULL;
-	IplImage* frame=NULL;
-	IplImage* starterFrame=NULL;
-	IplImage* houghFrame=NULL;
-	IplImage* analysis=NULL;
-	IplImage* binFrame=NULL;
-	IplImage* flashFrame=NULL;
-	IplImage* oldFrame=NULL;
-	IplImage* moveFrame=NULL;
-	IplImage* gateFrame=NULL;
-	IplImage* percentsFrame=NULL;
-    IplImage* bufferFrame=NULL;
-	CvPoint lightCenter;
-	lightCenter.x=0;
-	lightCenter.y=0;
-	char key=0;
-	bool paused=false;
-	bool red_flag=true;
-	bool green_flag=true;
-	bool blue_flag=true;
-	bool redraw=false;
-	bool mask_on=false;
-	bool filter_on=true;
-	bool correct_on=false;
-	bool orange_pipe_detect=true;
-	bool center_line_on=true;
-	bool ratios_on=true;
-	bool hough_on=false;
-	bool show_flashing=true;
-	bool startCounting=false;
-	bool show_movement=true;
-	bool show_gate=true;
-	long frame_count=0;
-	int lightFramesOn=0;
-	int lightFramesOff=0;
-	int speed=1;
-	int blinks=0;
-	int spooky=0;
-	bool found=false;
-
-//	int okay=cvGrabFrame(camCapture);
-        cvGrabFrame(camCapture);
-	frame=cvCreateImage(cvSize(200,200),8,3);
-	unscaledFrame=cvRetrieveFrame(camCapture);
-	
-
-	
-	cvResize(unscaledFrame,frame);
-
-	starterFrame=cvCreateImage(cvGetSize(frame),8,3);	
-	analysis=cvCreateImage(cvGetSize(frame),8,3);
-	binFrame=cvCreateImage(cvGetSize(frame),8,3);
-	gateFrame=cvCreateImage(cvGetSize(frame),8,3);
-	houghFrame=cvCreateImage(cvGetSize(frame),8,3);
-	flashFrame=cvCreateImage(cvGetSize(frame),8,3);
-	oldFrame=cvCreateImage(cvGetSize(frame),8,3);
-	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
-	percentsFrame=cvCreateImage(cvGetSize(frame),8,3);
-    bufferFrame=cvCreateImage(cvGetSize(frame),8,3);
-    
-	while(goVision)
-	{
-	  
-	    key=(char)cvWaitKey(25);
-	  
-		  //Start of input checking
-		if (key=='q')
-		{
-			cout<<key<<" Goodbye."<<endl;
-			goVision=false;
-		}
-	/*
-		if (key=='a')
-		{
-			show_gate=!show_gate;
-			cout<<key<<"Gate detection:"<<show_gate<<endl;
-		}	
-		if (key=='u')
-		{
-			show_flashing=!show_flashing;
-			cout<<key<<" Showing flashing stuff:"<<show_flashing<<endl;
-		}
-		if (key=='+')
-		{
-			speed++;
-		}
-		if (key=='h')
-		{
-			hough_on=!hough_on;
-			cout<<key<<"Hough transformation:"<<hough_on<<endl;
-		}
-		if (key=='-')
-		{
-			speed--;
-		}
-		if (key=='j')
-		{
-			orange_pipe_detect=!orange_pipe_detect;
-			cout<<key<<" Orange_pipe_detection:"<<orange_pipe_detect<<endl;
-		}
-		if (key=='c')
-		{
-			correct_on=!correct_on;
-		}
-		if (key=='s')
-		{
-			speed=1;
-		}
-		if (key=='p')
-		{
-			paused=!paused;
-			cout<<key<<" Pause:"<<paused<<endl;
-		}
-		if (key=='f')
-		{
-			filter_on=!filter_on;
-			cout<<key<<" Filter:"<<filter_on<<endl;
-			cout<<"Filtering flags are r, g, and b, to turn colors on and off"<<endl;
-		}
-		if (key=='r')
-		{
-			red_flag=!red_flag;
-			cout<<key<<" Red:"<<red_flag<<endl;
-		}
-		if (key=='g')
-		{
-			green_flag=!green_flag;
-			cout<<key<<" Green:"<<green_flag<<endl;
-		}
-		if (key=='b')
-		{
-			blue_flag=!blue_flag;
-			cout<<key<<" Blue:"<<blue_flag<<endl;
-		}
-		if (key=='m')
-		{
-			mask_on=!mask_on;
-			cout<<key<<" Masking:"<<mask_on<<endl;
-		}
-		if (key=='t')
-		{
-			ratios_on=!ratios_on;
-			cout<<key<<" Ratios:"<<ratios_on<<endl;
-		}
-		if (key=='l')
-		{
-			center_line_on=!center_line_on;
-			cout<<key<<" Center Line:"<<center_line_on<<endl;
-		}
-		if (key==' ')
-		{
-			redraw=true;
-		}
-		//End of input checking
-		*/
-
-		if (paused && redraw)
-		{
-			redraw=false;
-			cvCopyImage(frame,analysis);
-						
-			if (correct_on)
-			{
-				correct(analysis);
-				mask_red(analysis,true,10);
-			}
-			if (filter_on)
-			{
-				filter(analysis,red_flag,green_flag,blue_flag);
-			}
-			if (mask_on)
-			{
-				mask_with_input(analysis);
-			}
-			//cvShowImage("After_Analysis",analysis);
-		}
-				
-		if (!paused)
-		  {
-		    if (swapper==1)
-		      buffer1->frameNumCheck=buffer2->frameNumCheck+1;
-		    else //swapper==2
-		      buffer2->frameNumCheck=buffer1->frameNumCheck+1;
-
-		    if (swapper==1)
-		      buffer1->frameNum=buffer2->frameNum+1;
-		    else //swapper==2
-		      buffer2->frameNum=buffer1->frameNum+1;
-		    
-		    for (int x=0; x<speed; x++)
-		      {
-//			int okay=cvGrabFrame(camCapture);
-                          cvGrabFrame(camCapture);
-		        unscaledFrame=cvRetrieveFrame(camCapture);
-	  			
-
-			printf("\nSize=%dx%d\n", cvGetSize(unscaledFrame).width, cvGetSize(unscaledFrame).height);
-			
-			cvWriteFrame(writer,unscaledFrame);      // add the frame to the file
-			cvResize(unscaledFrame,frame);
-		      }
-		    
-		    if (swapper==1)
-		      {
-			buffer1->width=cvGetSize(frame).width;
-			buffer1->height=cvGetSize(frame).height;
-		      }
-		    else// if(swapper==2)
-		      {
-			buffer2->width=cvGetSize(frame).width;
-			buffer2->height=cvGetSize(frame).height;
-		      }
-		    frame_count+=speed;
-		    
-		    cvCopyImage(starterFrame,oldFrame);//Put old frame into oldFrame
-		    cvCopyImage(frame,starterFrame);//Put new frame into starterFrame
-		    
-		    cvCopyImage(frame,binFrame);
-		    cvCopyImage(frame,gateFrame);
-			cvShowImage("Before_Analysis", starterFrame);
-		    
-		    if (ratios_on)
-			{
-				int binCount=0;
-				to_ratios(frame);
-				
-				if (show_gate)
-				{
-					int gatex;
-					int gatey;
-					bool gateFound=(gateDetect(frame,gateFrame,&gatex,&gatey) > 0);
-					if (gateFound==true)
-						cout<<"Gate Found!\n"<<gatex<<" "<<gatey<<endl;
-					else
-						cout<<"No gate"<<endl;
-					cvShowImage("Gate",gateFrame);
-				}
-				
-				
-				if (found==true || frame_count>0)
-				{
-					int binX=0;
-					int binY=0;
-					binCount=white_detect(frame,binFrame,bufferFrame,&binX,&binY);
-					if (swapper==1)
-					{
-						buffer1->binx=binX;
-						buffer1->biny=binY;
-					}
-					else //swapper==2
-					{
-						buffer2->binx=binX;
-						buffer2->biny=binY;
-					}
-				}
-				int pipe_count=red_blue(frame,2.0);
-				//cout<<pipe_count<<endl;
-				if (pipe_count>10000)
-				{
-					found=true;
-					if (frame_count<0)
-						frame_count=0;
-				}
-				else
-				{
-					found=false;
-					frame_count-=speed*2;
-				}
-				if (binCount>500)
-				{
-					//cout<<"WE FOUND THE BIN!!! DROP THE MARKER!!!"<<endl;
-					if (swapper==1)
-						buffer1->binVisible=1;
-					else //swapper==2
-						buffer2->binVisible=1;
-				}
-				else
-				{
-					if (swapper==1)
-						buffer1->binVisible=0;
-					else //swapper==2
-						buffer2->binVisible=0;
-				}
-			}
-		    else
-			{
-				if (orange_pipe_detect)
-				{
-					if (!found && frame_count>10)
-					{
-						frame_count=0;
-						int orange_count=mask_orange(frame,0,true);
-						if (orange_count>1000)
-						{
-							//    cout<<orange_count<<endl;
-							found=1;
-						}
-						else
-						{
-							found=0;
-						}
-					}
-					else if (found)
-					{
-						int orange_count=mask_orange(frame,1,0);
-						int left_or_right;
-						if ((left_or_right=guess_line(frame))>20){}
-						//cout<<"go right"<<endl;
-						else if (left_or_right<-20){}
-						//cout<<"go left"<<endl;
-						
-						if (orange_count<250)
-							found=0;
-						
-						if (swapper==1)
-							buffer1->distFromVertical=left_or_right;
-						else //swapper==2
-							buffer2->distFromVertical=left_or_right;
-					}
-					
-					if (swapper==1)
-						buffer1->pipeVisible=found;
-					else //swapper==2
-						buffer2->frameNum=found;
-				}
-			}
-		    if (hough_on)
-			{
-				int houghx,houghy;
-				cvCopyImage(frame,houghFrame);
-				if (swapper==1)
-					buffer1->angle=hough(houghFrame,&houghx,&houghy);
-				else
-					buffer2->angle=hough(houghFrame,&houghx,&houghy);
-			}	
-		    
-		    if (show_flashing)
-		      {
-			if (lightFramesOff>20)
-			  {
-			    //					cout<<"Its been 20 frames without seeing the light-like object, maybe it was just a reflection, im starting the count over"<<endl;
-			    lightFramesOn=0;
-			    lightFramesOff=0;
-			    blinks=0;
-			    spooky=0;
-			    startCounting=false;
-			  }
-			if (lightFramesOn>20)
-			  {
-			    //					cout<<"Its been 20 frames of seeing the light-like object, its not flashing, guess its just something shiny"<<endl;
-			    lightFramesOn=0;
-			    lightFramesOff=0;
-			    blinks=0;
-			    spooky=0;
-			    startCounting=false;
-			  }
-			if (spooky>5)
-			  {
-			    //					cout<<"Somethings wrong, its staying off for too short/long, or staying on for too short/long, and its happened a spooky number of times, its not the light."<<endl;
-			    lightFramesOn=0;
-			    lightFramesOff=0;
-			    blinks=0;
-			    spooky=0;
-			    startCounting=false;
-			  }					
-			if (blinks>3)
-			  {
-			    //cout<<"This thing has blinked "<<blinks<<" times, WE FOUND THE LIGHT GUYS!!"<<endl;
-			    if (swapper==1)
-			      buffer1->lightVisible=true;
-			    else //swapper==2
-			      buffer2->lightVisible=true;
-			    //paused=true;
-			  }
-			else
-			  {
-			    if (swapper==1)
-			      buffer1->lightVisible=false;
-			    else //swapper==2
-			      buffer2->lightVisible=false;
-			  }
-			cvCopyImage(starterFrame, flashFrame);
-			cvCopyImage(starterFrame, percentsFrame);
-			to_ratios(percentsFrame);
-			CvPoint p;//=find_flash(flashFrame, show_flashing);
-			
-//			int redPixelCount=redDetect(percentsFrame,flashFrame,&p.x,&p.y);
-                        redDetect(percentsFrame,flashFrame,&p.x,&p.y);
-
-			if (p.x!=-1 && p.y!=-1)
-			  {
-			    if (swapper==1)
-			      {
-				buffer1->redLightx=p.x;
-				buffer1->redLighty=p.y;
-			      }
-			    else//swapper==2
-			      {
-				buffer2->redLightx=p.x;
-				buffer2->redLighty=p.y;
-			      }	
-			    if (lightCenter.x==-1 && lightCenter.y==-1)
-			      {
-				//	cout<<"I see a light-like object"<<endl;
-				startCounting=true;
-			      }
-			    else {
-			      //						if (lightCenter.x<p.x)
-			      //							cout<<"Its moving left"<<endl;
-			      //						if (lightCenter.y<p.y)
-			      //							cout<<"Its moving up"<<endl;
-			      //						if (lightCenter.x>p.x)
-			      //							cout<<"Its moving right"<<endl;
-			      //						if (lightCenter.y>p.y)
-			      //							cout<<"Its moving down"<<endl;
-			      //						if (lightCenter.x==p.x && lightCenter.y==p.y)
-			      //							cout<<"Its not moving... did someone put a flashing light on the sub or something... or are we stopped... uh oh..."<<endl;
-			      
-			    }
-			    lightCenter.x=p.x;
-			    lightCenter.y=p.y;
-			    if (startCounting)
-			      {
-				if (lightFramesOff>0)
-				  {
-				    blinks++;
-				    //  cout<<"The light has been off for "<<lightFramesOff<<" frames, now its coming back on"<<endl;
-				  }
-				
-				if (lightFramesOff<MINFRAMESOFF || lightFramesOff>MAXFRAMESOFF)
-				  {
-				    spooky++;
-				  }
-				lightFramesOn++;
-				lightFramesOff=0;
-			      }
-			  } 
-			else
-			  {
-			    if (lightCenter.x!=-1 && lightCenter.y!=-1)
-			      //cout<<"Light's out"<<endl;
-			    
-			    lightCenter.x=p.x;
-			    lightCenter.y=p.y;
-			    
-			    if (startCounting)
-			      {
-				if (lightFramesOn>0)
-				  {
-				    //cout<<"The light has been on for "<<lightFramesOn<<" frames, now its gone"<<endl;
-				  }
-				
-				if (lightFramesOn<MINFRAMESON || lightFramesOn>MAXFRAMESON)
-				  {
-				    spooky++;
-				  }
-				
-				lightFramesOff++;
-				lightFramesOn=0;
-			      }
-			    //	paused=true;
-			  }
-		      }
-		    
-		    if (center_line_on)
-		      thin_blue_line(frame);
-		    
-		    if (show_movement)
-		      diff(starterFrame,oldFrame,moveFrame);
-		    
-		    //cvShowImage("After_Analysis",frame);
-		    //cvShowImage("Bin_go",binFrame);
-		    cvShowImage("Flash",flashFrame);
-		    if (show_movement){}
-		      //cvShowImage("Movement",moveFrame);
-		    
-		    
-		  }
-	if (swapper==1)
-	  {
-	    getCommunicator()->safe=&buffer1;
-	    swapper=2;
-	  }
-	else //swapper==2
-	  {
-	    getCommunicator()->safe=&buffer2;
-	    swapper=1;
-	  }
-	  
-	}
-
-	printf("\nBYEBYEBYE\n");
-
-	cvReleaseCapture(&camCapture);
-	cvReleaseVideoWriter(&writer);
-	return goVision;
-}
-
-void run (ProcessList *pl) {
-	CvCapture* camCapture=cvCaptureFromFile("underwater.mov");
-
-	//	CvCapture* camCapture=cvCaptureFromCAM(0);
-	IplImage* unscaledFrame=NULL;
-	IplImage* frame=NULL;
-	IplImage* starterFrame=NULL;
-	IplImage* houghFrame=NULL;
-	IplImage* analysis=NULL;
-	IplImage* binFrame=NULL;
-	IplImage* flashFrame=NULL;
-//	IplImage* oldFrame=NULL;
-	IplImage* moveFrame=NULL;
-	IplImage* result=NULL;
-	CvPoint lightCenter;
-	lightCenter.x=0;
-	lightCenter.y=0;
-	char key=0;
-	bool paused=false;
-	bool red_flag=true;
-	bool green_flag=true;
-	bool blue_flag=true;
-//	bool redraw=false;
-//	bool mask_on=false;
-//	bool filter_on=true;
-//	bool correct_on=false;
-//	bool orange_pipe_detect=true;
-//	bool center_line_on=true;
-//	bool ratios_on=true;
-//	bool hough_on=false;
-	bool show_flashing=true;
-//	bool startCounting=false;
-//	bool show_movement=true;
-	long frame_count=0;
-//	int lightFramesOn=0;
-//	int lightFramesOff=0;
-	int speed=1;
-//	int blinks=0;
-//	int spooky=0;
-//	bool found=false;
-
-//	int okay=cvGrabFrame(camCapture);
-        cvGrabFrame(camCapture);
-	frame=cvCreateImage(cvSize(200,200),8,3);
-	unscaledFrame=cvRetrieveFrame(camCapture);
-	cvResize(unscaledFrame,frame);
-
-	starterFrame=cvCreateImage(cvGetSize(frame),8,3);	
-	analysis=cvCreateImage(cvGetSize(frame),8,3);
-	binFrame=cvCreateImage(cvGetSize(frame),8,3);
-	houghFrame=cvCreateImage(cvGetSize(frame),8,3);
-	flashFrame=cvCreateImage(cvGetSize(frame),8,3);
-	result=cvCreateImage(cvGetSize(frame),8,3);
-	moveFrame=cvCreateImage(cvGetSize(frame),8,3);
-	int windowCount=0;
-	for (StringListIterator i=pl->toCall.begin();*i!="end";i++)
-	{
-		if (*i=="show")
-		{
-			ostringstream os;
-			os<<"Results"<<windowCount;
-			string windowName=os.str();
-			cvNamedWindow(windowName.c_str(), CV_WINDOW_AUTOSIZE );
-			windowCount++;
-		}
-	}
-	
-	while (true)
-	{
-		key=(char)cvWaitKey(25);
-		int windowCount=0;
-		if (!paused)
-		{			
-			for (int x=0; x<speed; x++)
-				{
-//					int okay=cvGrabFrame(camCapture);
-                                    cvGrabFrame(camCapture);
-					unscaledFrame=cvRetrieveFrame(camCapture);
-					cvResize(unscaledFrame,frame);
-				}
-			frame_count+=speed;
-		}
-	
-		cvCopyImage(frame,result);	
-		string lastStep="Start";
-		for (StringListIterator i=pl->toCall.begin();*i!="end";lastStep=*i,i++)
-		{
-			if (*i=="show")
-			{
-			        ostringstream os;
-				os<<"Results"<<windowCount;
-				string windowName=os.str();
-				cvShowImage(windowName.c_str(),result);
-				windowCount++;
-			}	
-			else if (*i=="end")
-				return;
- 			else if (*i=="hough")
-			{
-				int houghx,houghy;
-				hough(result,&houghx,&houghy);
-			}
-			else if (*i=="reset")
-			{
-				cvCopyImage(frame,result);
-			}
-			else if (*i=="diff")
-			{
-				diff(result,frame,moveFrame);
-				cvCopyImage(moveFrame,result);
-			}
-			else if (*i=="mask_red")
-			{
-				mask_red(result,true,10);
-			}
-			else if (*i=="find_flash")
-			{
-				//CvPoint p=
-				find_flash(result, show_flashing);
-			} 
-			else if (*i=="guess_line")
-			{
-				guess_line(result);
-					int left_or_right;
-				if ((left_or_right=guess_line(result))>20)
-				{
-					//cout<<"go right"<<endl;
-				}
-				else if (left_or_right<-20)
-				{
-					//cout<<"go left"<<endl;
-				}
-				else
-				{
-					//cout<<"go straight"<<endl;
-				}
-			}	
-			else if (*i=="mask_orange")
-			{
-//				int orange_count=mask_orange(result,1,0);
-                            mask_orange(result,1,0);
-			}
-			else if (*i=="mask_with_input")
-			{
-				mask_with_input(result);
-			}
-			else if (*i=="angle_from_center")
-			{
-			}
-			else if (*i== "correct")
-			{
-				correct(result);
-			}
-			else if (*i=="filter")
-			{	
-				filter(result,red_flag,green_flag,blue_flag);
-			}
-			else if (*i=="to_ratios")
-			{
-				to_ratios(result);
-			}
-			else if (*i=="red_blue")
-			{
-//				int pipe_count=red_blue(result,2.0);
-                            red_blue(result,2.0);
-			}
-			else if (*i=="white_detect")
-			{
-//			  int ignoreBinx,ignoreBiny;
-				cvCopyImage(result,binFrame);
-				to_ratios(binFrame);
-				//cout<<white_detect(binFrame,result,&ignoreBinx,&ignoreBiny)<<endl;
-			}
-			else
-			{}
-				//cout<<"Unrecognized function"<<endl;
-		}
-	}
-	return;
-}
-
-void walk(IplImage *img, ProcessList *pl) {
-
-//	IplImage* unscaledFrame=NULL;
-	IplImage* frame=NULL;
-//	IplImage* starterFrame=NULL;
-//	IplImage* houghFrame=NULL;
-//	IplImage* analysis=NULL;
-	IplImage* binFrame=NULL;
-//	IplImage* flashFrame=NULL;
-//	IplImage* oldFrame=NULL;
-//	IplImage* moveFrame=NULL;
-//	IplImage* result=img;
-	CvPoint lightCenter;
-	lightCenter.x=0;
-	lightCenter.y=0;
-//	char key=0;
-//	bool paused=false;
-	bool red_flag=true;
-	bool green_flag=true;
-	bool blue_flag=true;
-//	bool redraw=false;
-//	bool mask_on=false;
-//	bool filter_on=true;
-//	bool correct_on=false;
-//	bool orange_pipe_detect=true;
-//	bool center_line_on=true;
-//	bool ratios_on=true;
-//	bool hough_on=false;
-	bool show_flashing=true;
-//	bool startCounting=false;
-//	bool show_movement=true;
-//	long frame_count=0;
-//	int lightFramesOn=0;
-//	int lightFramesOff=0;
-//	int speed=1;
-//	int blinks=0;
-//	int spooky=0;
-//	bool found=false;
-
-	int windowCount=0;
-	for (StringListIterator i=pl->toCall.begin();*i!="end";i++)
-	{
-		if (*i=="show")
-		{
-			ostringstream os;
-			os<<"Results"<<windowCount;
-			string windowName=os.str();
-			cvNamedWindow(windowName.c_str(), CV_WINDOW_AUTOSIZE );
-			windowCount++;
-		}
-	}
-
-	windowCount=0;
-
-	string lastStep="Start";
-	for (StringListIterator i=pl->toCall.begin();*i!="end";lastStep=*i,i++)
-	{
-		if (*i=="show")
-		{
-			ostringstream os;
-			os<<"Results"<<windowCount;
-			string windowName=os.str();
-			cvShowImage(windowName.c_str(),img);
-			windowCount++;
-		}	
-		else if (*i=="end")
-			return;
-		else if (*i=="hough")
-		{
-			int houghx,houghy;
-			hough(img,&houghx,&houghy);
-		}
-		else if (*i=="reset")
-		{
-			cvCopyImage(frame,img);
-		}
-		else if (*i=="diff")
-		{
-			//cout<<"No prev image, dumbass"<<endl;
-		}
-		else if (*i=="mask_red")
-		{
-			mask_red(img,true,10);
-		}
-		else if (*i=="find_flash")
-		{
-			//CvPoint p=
-			find_flash(img, show_flashing);
-		} 
-		else if (*i=="guess_line")
-		{
-			guess_line(img);
-				int left_or_right;
-			if ((left_or_right=guess_line(img))>20)
-			{
-					//cout<<"go right"<<endl;
-			}
-			else if (left_or_right<-20)
-			{
-				//cout<<"go left"<<endl;
-			}
-			else
-			{
-			//cout<<"go straight"<<endl;
-			}
-		}
-		else if (*i=="mask_orange")
-		{
-//			int orange_count=mask_orange(img,1,0);
-                    mask_orange(img,1,0);
-		}
-		else if (*i=="mask_with_input")
-		{
-			mask_with_input(img);
-		}
-		else if (*i=="angle_from_center")
-		{
-		}
-		else if (*i== "correct")
-		{
-			correct(img);
-		}
-		else if (*i=="filter")
-		{	
-			filter(img,red_flag,green_flag,blue_flag);
-		}
-		else if (*i=="to_ratios")
-		{
-			to_ratios(img);
-		}
-		else if (*i=="red_blue")
-		{
-//			int pipe_count=red_blue(img,2.0);
-                    red_blue(img,2.0);
-		}
-		else if (*i=="white_detect")
-		{
-//		  int binx, biny;
-			cvCopyImage(img,binFrame);
-			to_ratios(binFrame);
-			//cout<<white_detect(binFrame,img,&binx,&biny)<<endl;
-		}
-		else
-		{
-			//cout<<"Unrecognized function"<<endl;
-		}
-	}
-	return;
-}
 

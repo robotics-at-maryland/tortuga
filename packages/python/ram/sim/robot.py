@@ -119,7 +119,7 @@ class Robot(core.Component):
         loader = loaders[0]()
         loader.load(self, scene, robot_data)
     
-    # Provides Robot.<part_name> access to parts
+    # Provides Robot.parts.<part_name> access to parts
     class part_lookup(object):
         def __init__(self, children):
             self._children = children

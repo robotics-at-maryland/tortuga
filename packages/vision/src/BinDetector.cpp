@@ -1,11 +1,44 @@
-#include "vision/include/BinDetector.h"
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Daniel Hakim
+ * All rights reserved.
+ *
+ * Author: Daniel Hakim <dhakim@umd.edu>
+ * File:  packages/vision/src/BinDetector.cpp
+ */
 
-using namespace std;
-using namespace ram::vision;
-BinDetector::BinDetector(OpenCVCamera* camera)
+
+// Library Includes
+#include "cv.h"
+#include "highgui.h"
+
+// Project Includes
+#include "vision/include/main.h"
+#include "vision/include/BinDetector.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/Camera.h"
+
+
+namespace ram {
+namespace vision {
+
+BinDetector::BinDetector(core::ConfigNode config,
+                         core::EventHubPtr eventHub) :
+    Detector(eventHub),
+    cam(0)
 {
-	cam = camera;
-	frame = new ram::vision::OpenCVImage(640, 480);
+    init(config);
+}
+    
+BinDetector::BinDetector(Camera* camera) :
+    cam(camera)
+{
+    init(core::ConfigNode::fromString("{}"));
+}
+
+void BinDetector::init(core::ConfigNode)
+{
+	frame = new OpenCVImage(640, 480);
 	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
 	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
     bufferFrame = cvCreateImage(cvGetSize(rotated),8,3);
@@ -14,7 +47,7 @@ BinDetector::BinDetector(OpenCVCamera* camera)
 	binY=-1;
 	binCount=0;
 }
-
+    
 BinDetector::~BinDetector()
 {
 	delete frame;
@@ -25,11 +58,16 @@ BinDetector::~BinDetector()
 
 void BinDetector::update()
 {
+    cam->getImage(frame);
+    processImage(frame, 0);
+}
+    
+void BinDetector::processImage(Image* input, Image* output)
+{
 	int binx=-1;
 	int biny=-1;
 	/*First argument to white_detect is a ratios frame, then a regular one*/
-	cam->getUncalibratedImage(frame);
-	IplImage* image =(IplImage*)(*frame);
+	IplImage* image =(IplImage*)(*input);
 	
 	//This is only right if the camera is on sideways... again.
 	//rotate90Deg(image,rotated);
@@ -68,7 +106,12 @@ void BinDetector::update()
 		binX=-1;
 		binY=-1;
 	}
-	
+
+        if (output)
+        {
+            OpenCVImage temp(binFrame, false);
+            output->copyFrom(&temp);
+        }
 }
 
 void BinDetector::show(char* window)
@@ -90,3 +133,6 @@ double BinDetector::getY()
 {
 	return binY;
 }
+
+} // namespace vision
+} // namespace ram

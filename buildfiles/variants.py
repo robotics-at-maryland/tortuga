@@ -34,6 +34,13 @@ def get_variants():
                 cflags = { 'linux' : ['-O2', '-g'],
                            'darwin' : ['-O2', '-g'] })
 
+    # Unsafe Fast
+    #   All the optimizations, but has a possibility to break code
+    add_variant(name = 'unsafe_fast', suffix = '_f',
+                cflags = { 'linux' : ['-O3'],
+                           'darwin' : ['-O3'],
+                           'windows' : ['/O3'] })
+
     # Profile
     #  Same as release, but has additional profiling information added
     add_variant(name = 'profile', suffix = '_p',
@@ -92,8 +99,7 @@ def setup_environment(env):
     suffix = variant.suffix
 
     # Suffixes we have to adjust
-    variables = ['OBJSUFFIX', 'SHOBJSUFFIX', 'SHLIBSUFFIX', 'PROGSUFFIX',
-                 'LIBSUFFIX']
+    variables = ['OBJSUFFIX', 'SHOBJSUFFIX', 'PROGSUFFIX']
 
     for variable in variables:
         env[variable] = suffix + env[variable]

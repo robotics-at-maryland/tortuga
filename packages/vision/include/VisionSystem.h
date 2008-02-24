@@ -14,6 +14,8 @@
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNode.h"
 
+#include "vision/include/Common.h"
+
 // Must Be Included Last
 #include "vision/include/Export.h"
 
@@ -25,11 +27,9 @@ class VisionRunner;
 class RAM_EXPORT VisionSystem : public core::Subsystem
 {
 public:
-    VisionSystem(ram::core::ConfigNode config, ram::core::SubsystemList deps);
-    VisionSystem(std::string name,
-                 core::EventHubPtr eventHub = core::EventHubPtr());
-    
-    VisionSystem(std::string name, core::SubsystemList list);
+    VisionSystem(core::ConfigNode config, core::SubsystemList deps);
+    VisionSystem(CameraPtr forward, CameraPtr downward,
+                 core::ConfigNode config, core::SubsystemList deps);
     
     virtual ~VisionSystem();
     
@@ -60,8 +60,22 @@ public:
     };
 
 private:
-    VisionRunner* vr;
+    /** Initializes all internal members */
+    void init(core::ConfigNode config, core::EventHubPtr eventHub);
     
+    CameraPtr m_forwardCamera;
+    CameraPtr m_downwardCamera;
+
+    Recorder* m_forwardRecorder;
+    Recorder* m_downwardRecorder;
+    
+    VisionRunner* m_forward;
+    VisionRunner* m_downward;
+
+    DetectorPtr m_redLightDetector;
+    DetectorPtr m_binDetector;
+    DetectorPtr m_pipelineDetector;
+    DetectorPtr m_gateDetector;
 };
 
 } // namespace vision

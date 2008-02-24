@@ -3,7 +3,7 @@
  * Copyright (C) 2007 Daniel Hakim
  * All rights reserved.
  *
- * Author: Daniel Hakim
+ * Author: Daniel Hakim <dhakim@umd.edu>
  * File:  packages/vision/include/OpenCVImage.h
  */
 
@@ -31,6 +31,10 @@ public:
     /** Create an OpenCVImage from the given IplImage */
     OpenCVImage(IplImage*, bool ownership = true);
 
+    /** Create an image from the given image buffer */
+    OpenCVImage(unsigned char* data, int width, int height,
+                bool ownership = true);
+    
     /** Creat an OpenCV from the given file */
     OpenCVImage(std::string fileName);
     

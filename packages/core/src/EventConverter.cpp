@@ -21,6 +21,12 @@ namespace core {
 static DefaultEventConverter DEFAULT_EVENT_CONVERTER;
 
 // DefaultEventConverter Methods
+DefaultEventConverter::DefaultEventConverter()
+{
+    // Note this only works because we are going for exact matches now
+    addEventConverter(typeid(ram::core::Event).name(), this);
+}
+    
 DefaultEventConverter::~DefaultEventConverter()
 {   
 }

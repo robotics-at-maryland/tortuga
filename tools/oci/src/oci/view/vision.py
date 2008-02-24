@@ -11,9 +11,11 @@ import wx
 # Project Imports
 import core
 import ext.core
+import ext.vision
 import ram.gui.led
-import sim.vision
+#import sim.vision
 import gui.view
+
 
 class VisionPanel(wx.Panel):
     core.implements(gui.view.IPanelProvider)
@@ -32,12 +34,12 @@ class VisionPanel(wx.Panel):
         self._createControls()
         
         # Events
-        conn = eventHub.subscribe(sim.vision.SimVision.LIGHT_FOUND, vision,
-                                  self._onBouyFound)
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND,
+                                        self._onBouyFound)
         self._connections.append(conn)
         
-        conn = eventHub.subscribe(sim.vision.SimVision.LIGHT_LOST, vision,
-                                  self._onBouyLost)
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_LOST,
+                                        self._onBouyLost)
         self._connections.append(conn)
         
         self.Bind(wx.EVT_CLOSE, self._onClose)
@@ -87,8 +89,8 @@ class VisionPanel(wx.Panel):
     def _onBouyFound(self, event):
         self._x.Value = "% 4.2f" % event.x
         self._y.Value = "% 4.2f" % event.y    
-        self._azimuth.Value = "% 4.2f" % event.azimuth
-        self._elevation.Value = "% 4.2f" % event.elevation
+        self._azimuth.Value = "% 4.2f" % event.azimuth.valueDegrees()
+        self._elevation.Value = "% 4.2f" % event.elevation.valueDegrees()
         self._range.Value = "% 4.2f" % event.range
         
         # The LED only does work when you change state, so calling this mutiple
@@ -96,11 +98,11 @@ class VisionPanel(wx.Panel):
         self._bouyLED.SetState(2)
     
     def _onBouyLost(self, event):
-        self._x.Value = 'NA'
-        self._y.Value = 'NA'
-        self._azimuth.Value = 'NA'
-        self._elevation.Value = 'NA'
-        self._range.Value = 'NA'
+#        self._x.Value = 'NA'
+#        self._y.Value = 'NA'
+#        self._azimuth.Value = 'NA'
+#        self._elevation.Value = 'NA'
+#        self._range.Value = 'NA'
         
         self._bouyLED.SetState(0)
         
@@ -109,7 +111,7 @@ class VisionPanel(wx.Panel):
         eventHub = ext.core.Subsystem.getSubsystemOfType(
             ext.core.QueuedEventHub, subsystems)
         
-        vision = ext.core.Subsystem.getSubsystemOfType(sim.vision.SimVision,
+        vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem,
                                                        subsystems)
         
         if vision is not None:

@@ -13,6 +13,20 @@
 // Project Includes
 #include "core/include/CountDownLatch.h"
 
+boost::xtime add_xtime(const boost::xtime& a, const boost::xtime& b)
+{
+    boost::xtime result = {a.sec + b.sec, a.nsec + b.nsec};
+    
+    // Handle the overflow of nanosecond
+    if(result.nsec >= 1000000000)
+    {
+        result.nsec %= 1000000000;
+        result.sec++;
+    }
+
+    return result;
+}
+
 namespace ram {
 namespace core {
 
@@ -36,11 +50,17 @@ bool CountDownLatch::await(boost::xtime timeout)
 {
     boost::mutex::scoped_lock lock(m_mutex);
 
+    // Boost uses and absolute timeout, so determine when we want to wake up
+    // based on the current time and how long the timeout is
+    boost::xtime now;
+    boost::xtime_get(&now, boost::TIME_UTC);
+    boost::xtime wakeUp = add_xtime(now, timeout);
+
     // Return immediately if count is zero
     if (m_count == 0)
         return true;
     
-    return m_countAtZero.timed_wait(lock, timeout);
+    return m_countAtZero.timed_wait(lock, wakeUp);
 }
 
 void CountDownLatch::countDown()

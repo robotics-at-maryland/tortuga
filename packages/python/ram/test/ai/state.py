@@ -146,6 +146,19 @@ class TestStateMachine(unittest.TestCase):
         self.assertEquals(startState.event.sender, self.machine)
         self.assertEquals(startState.event.value, 1)
 
+    def testStop(self):
+        startState = self.machine.currentState()
+
+        # Stop the machine and make sure events have no effect
+        self.machine.stop()
+
+        self.assertRaises(Exception, self.machine.injectEvent,
+                          self._makeEvent("Start", value = 1))
+        cstate = self.machine.currentState()
+
+        self.assertNotEquals(End, type(cstate))
+        self.assertNotEquals(startState, cstate)
+
     def testSimple(self):
         self.machine.injectEvent(self._makeEvent("Change"))
         cstate = self.machine.currentState()

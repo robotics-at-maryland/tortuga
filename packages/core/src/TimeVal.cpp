@@ -21,6 +21,7 @@
 // STD Includes
 #include <cstdlib>
 #include <cassert>
+#include <time.h>
 
 // Project Includes
 #include "core/include/TimeVal.h"
@@ -29,7 +30,6 @@
 #ifdef RAM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <time.h>
 
 #define EPOCHFILETIME (116444736000000000LL)
 #else 
@@ -136,12 +136,24 @@ void TimeVal::now()
     gettimeofday(time_val(), NULL);
 }
     
-void TimeVal::sleep(long seconds)
+void TimeVal::sleep(double seconds)
+{
+    TimeVal::sleep(TimeVal(seconds));
+}
+    
+void TimeVal::sleep(const TimeVal& duration)
 {
 #ifdef RAM_POSIX
-    sleep(seconds);
+    struct timespec sleep = {0, 0};
+    struct timespec act_sleep = {0, 0};
+
+    sleep.tv_sec = duration.seconds();
+    sleep.tv_nsec = duration.microseconds() * 1000;
+    
+    nanosleep(&sleep, &act_sleep);  
 #else
-    Sleep(seconds * 1000);
+    long millseconds = duraction.get_double() / 1000;
+    Sleep(milliseconds);
 #endif
 }
     
