@@ -38,40 +38,42 @@ class MainFrame(wx.Frame):
     panelProviders = ExtensionPoint(IPanelProvider)
     
     def __init__(self, config, subsystems):
+        wx.Frame.__init__(self, None, title = 'OCI')
         self._panels = []
-        self.guiDataFile = os.path.abspath(os.path.join(wx.StandardPaths.Get().GetUserConfigDir(), 'guidata.yml'))
+        self._shell = None
+        self._mgr = None
         
-        # Instantiate super class based on configuration settings
-        #gui_node = config.get('GUI', {})
-        #position = gui_node.get('window_position',wx.DefaultPosition)
-        #size = gui_node.get('window_size', wx.Size(800,600))
-
-        position = wx.DefaultPosition
-        size = wx.Size(800,600)
-        title = 'OCI'
-        wx.Frame.__init__(self, None, title = title, pos = position, 
-                          size = size) 
+        # Determine config file location
+        guiBasePath = wx.StandardPaths.Get().GetUserConfigDir()
+        guiFileName = 'ramoci.yml'
+        if wx.Platform == '__WXGTK__':
+            guiFileName = '.' + guiFileName
+        self.guiDataFile = os.path.abspath(os.path.join(guiBasePath, guiFileName))
         
-        self._mgr = wx.aui.AuiManager(self)
-
         # Add panels for all the current subsystems
+        self._mgr = wx.aui.AuiManager(self)
         self._addShell(subsystems)
         self._addSubsystemPanels(subsystems)
         self._mgr.Update()
         
+        # Load configuration settings from disk
         try:
+            # Load data file
             stream = file(self.guiDataFile, 'r')
             guiData = yaml.load(stream)    
             stream.close()
-            self.SetSize(guiData["windowSize"])
-            self.SetPosition(guiData["windowPos"])
-            self._shell.history = guiData["shellHistory"]
-            self._mgr.LoadPerspective(guiData["paneLayout"])
-            all_panes = self._mgr.GetAllPanes()
-            for pane in all_panes:
-                pane.Show()
+            
+            # Load settings
+            self.SetSize(guiData.get("windowSize", wx.Size(800, 600)))
+            self.SetPosition(guiData.get("windowPos", wx.DefaultPosition))
+            self._shell.history = guiData.get("shellHistory", [])
+            
+            if guiData.has_key("paneLayout"):
+                self._mgr.LoadPerspective(guiData["paneLayout"])
+
+            # Apply changes
             self._mgr.Update()    
-        except:
+        except IOError:
             pass # No history availible, continue 
         
         self.Bind(wx.EVT_CLOSE,self._onClose)            
@@ -86,13 +88,18 @@ class MainFrame(wx.Frame):
             name = name[0].lower() + name[1:]
             locals[name] = subsystem
             introText += '%s: %s\n' % (name, type(subsystem))
-        shell = ShellPanel(self, locals = locals, introText = introText)
-        shell.Bind(wx.EVT_KEY_DOWN, self._onShellKeyPress)
-        locals["shell"] = shell # for testing
+        
+        # Create shell
+        self._shell = ShellPanel(self, locals = locals, introText = introText)
+        
+        # This should not be bound, it makes it impossible to edit functions
+        # You can rebind this once CTRL+UP/DOWN does what the old up down do
+        # The old/up down let you navigate the text
+        #self._shell.Bind(wx.EVT_KEY_DOWN, self._onShellKeyPress)
 
         paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
-        paneInfo = paneInfo.Caption("Shell").Left()
-        self._addSubsystemPanel(paneInfo, shell, [])
+        paneInfo = paneInfo.Caption("Shell").Center()
+        self._addSubsystemPanel(paneInfo, self._shell, [])
     
     def _onShellKeyPress(self,event):
         if event.KeyCode ==  wx.WXK_UP:
@@ -104,21 +111,21 @@ class MainFrame(wx.Frame):
         event.Skip()
     
     def _onClose(self, event):  
-        allPanes = self._mgr.GetAllPanes()
-        for pane in allPanes: 
-            self._mgr.ClosePane(pane)    
-
-        # Write YAML data
+        # Write Config YAML data
         layoutStream = file(self.guiDataFile, 'w+')
         guiData = {}
         guiData["windowSize"] = self.GetSize()
         guiData["windowPos"] = self.GetPosition()
         guiData["paneLayout"] = self._mgr.SavePerspective()
         guiData["shellHistory"] = self._shell.history
-        
         yaml.dump(guiData,layoutStream) 
         layoutStream.close()
         
+        # Close the gui
+        allPanes = self._mgr.GetAllPanes()
+        for pane in allPanes: 
+            self._mgr.ClosePane(pane)    
+
         self._mgr.UnInit()
      
         # Close all panels, if I don't do this the EVT_CLOSE handlers will 
@@ -145,20 +152,7 @@ class MainFrame(wx.Frame):
             for paneInfo, panel, sys in panelInfos:
                 self._addSubsystemPanel(paneInfo, panel, sys)
 
-    def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems):
-        if paneInfo.caption == "Thrusters":
-            paneInfo.Center()
-        elif paneInfo.caption == "Depth":
-            paneInfo.Right()
-        elif paneInfo.caption == "Shell":
-            self._shell = panel
-        elif paneInfo.caption == "Orientation":
-            paneInfo.Center()
-        elif paneInfo.caption == "Demo Sonar":
-            paneInfo.Left()
-        elif paneInfo.caption == "Demo Power":
-            paneInfo.Left()
-        
+    def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems):        
         self._mgr.AddPane(panel, paneInfo, paneInfo.caption)
         self._panels.append(panel)
         

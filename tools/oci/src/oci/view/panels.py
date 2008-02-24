@@ -92,7 +92,7 @@ class ThrusterPanel(wx.Panel):
             # Only create the panel if there are thrusters on the vehicle        
             if len(thrusters):
                 paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
-                paneInfo = paneInfo.Caption("Thrusters").Left()
+                paneInfo = paneInfo.Caption("Thrusters").Bottom()
         
                 panel = ThrusterPanel(parent, eventHub, thrusters)
                 return [(paneInfo, panel, [vehicle])]
@@ -183,7 +183,7 @@ class DepthPanel(wx.Panel):
         
         if (vehicle is not None) or (controller is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Depth")
-            paneInfo = paneInfo.Caption("Depth").Left()
+            paneInfo = paneInfo.Caption("Depth").Right()
         
         
             panel = DepthPanel(parent, eventHub, vehicle, controller)
@@ -268,7 +268,7 @@ class RotationPanel(wx.Panel):
         
         if (vehicle is not None) or (controller is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Orientation")
-            paneInfo = paneInfo.Caption("Orientation").Left()
+            paneInfo = paneInfo.Caption("Orientation").Bottom()
         
             panel = RotationPanel(parent, eventHub, vehicle, controller)
             return [(paneInfo, panel, [vehicle])]
