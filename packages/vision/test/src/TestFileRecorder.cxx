@@ -54,7 +54,7 @@ int getPid()
 }
 
 
-SUITE(Recorder) {
+SUITE(FileRecorder) {
 
 struct RecorderFixture
 {
@@ -135,6 +135,6 @@ TEST_FIXTURE(RecorderFixture, Update)
     
 }
 
-} // SUITE(Recorder)
+} // SUITE(FileRecorder)
 
 #endif // RAM_LINUX
