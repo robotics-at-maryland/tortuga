@@ -5,6 +5,9 @@
  *  Created by Leo Singer on 1/18/08.
  *  Copyright 2008 Robotics@Maryland. All rights reserved.
  *
+ *  Designed to mimic some of the behaviors of a digital storage oscilloscope
+ *  (DSO), this class detects pings and calculates their time delays on arrival
+ *  using cross correlation.
  */
 
 

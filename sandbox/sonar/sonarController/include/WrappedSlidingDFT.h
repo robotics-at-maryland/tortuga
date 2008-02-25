@@ -5,6 +5,8 @@
  *  Created by Leo Singer on 02/25/08.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
+ *  Wrapper for dft.h, primarily for the purpose of unit testing.
+ * 
  */
 
 #ifndef WRAPPEDSLIDINGDFT_H

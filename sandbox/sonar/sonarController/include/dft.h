@@ -5,6 +5,7 @@
  *  Created by Leo Singer on 02/25/08.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
+ *  C language implementation of the sliding DFT for PIC compatibility.
  */
 
 

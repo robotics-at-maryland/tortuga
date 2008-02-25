@@ -4,7 +4,9 @@
  *
  *  Created by Leo Singer on 12/10/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
- *
+ *  
+ *  Simple, well documented implementation of a sliding DFT.
+ * 
  */
 
 #ifndef SIMPLESLIDINGDFT_H

@@ -5,6 +5,8 @@
  *  Created by Leo Singer on 11/30/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
+ *  Calculate time delay on arrival using a number of different techniques.
+ * 
  */
 
 

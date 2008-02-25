@@ -5,7 +5,9 @@
  *  Created by Leo Singer on 12/10/07.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  Sliding Discrete Fourier Transform (DFT).
+ *  Sliding Discrete Fourier Transform (DFT).  Abstract base clase
+ *  allowing for platform optimized or special purpose implementations.
+ * 
  */
 
 #ifndef SLIDINGDFT_H
