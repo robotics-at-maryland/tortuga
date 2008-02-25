@@ -40,11 +40,20 @@ class RAM_EXPORT Recorder : public core::Updatable
     enum RecordingPolicy
     {
         RP_START,   /** Sentinal Value */
-        NEXT_FRAME, /** Record frame, wait for the next, record; repeat */
+        MAX_RATE,   /** Don't record any faster than the given rate (in Hz) */
+        NEXT_FRAME, /** Always record the next availabe frame */
         RP_END,     /** Sentinal Value */
     };
-    
-    Recorder(Camera* camera, Recorder::RecordingPolicy policy);
+
+    /** Constructor
+     *
+     *  @param camera  The camera to record images from
+     *  @param policy  Determines how often images from the camera are recorded
+     *  @param policyArg  An argument for use by the given recording policy.
+     *
+     */
+    Recorder(Camera* camera, Recorder::RecordingPolicy policy,
+             int policyArg = 0);
         
     ~Recorder();
 
@@ -66,6 +75,9 @@ class RAM_EXPORT Recorder : public core::Updatable
     
     /** Determines how the recorder records video from the camera */
     Recorder::RecordingPolicy m_policy;
+
+    /** Recording Policy specific data */
+    int m_policyArg;
     
     /** Protects access to m_nextFrame and m_newFrame */
     boost::mutex m_mutex;
@@ -81,6 +93,12 @@ class RAM_EXPORT Recorder : public core::Updatable
 
     /** The camera we are recording from */
     Camera* m_camera;
+
+    /** Current time in seconds */
+    double m_currentTime;
+
+    /** The next time an image can be recorded */
+    double m_nextRecordTime;
 };
     
 } // namespace vision

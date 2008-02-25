@@ -21,8 +21,8 @@ namespace ram {
 namespace vision {
 
 FileRecorder::FileRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                           std::string filename) :
-    Recorder(camera, policy),
+                           std::string filename, int policyArg) :
+    Recorder(camera, policy, policyArg),
     m_writer(0)
 {
     assert((RP_START < policy) && (policy < RP_END) &&

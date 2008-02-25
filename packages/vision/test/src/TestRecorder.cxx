@@ -7,6 +7,8 @@
  * File:  packages/vision/test/src/TestRecorder.cxx
  */
 
+#include <iostream>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/foreach.hpp>
@@ -70,6 +72,37 @@ TEST_FIXTURE(RecorderFixture, Update_NEXT_FRAME)
         CHECK(recorder.lastRecordedFrame);
         CHECK_CLOSE(*image, *(recorder.lastRecordedFrame), 0);
     }
+
+    // Free Images
+    BOOST_FOREACH(vision::Image* image, images)
+    {
+        delete image;
+    }
+}
+
+TEST_FIXTURE(RecorderFixture, Update_MAX_RATE)
+{
+    MockRecorder recorder(camera, vision::Recorder::MAX_RATE,
+                          4); // 4 Hz
+
+    // Generate 20 images
+    std::vector<vision::Image*> images;
+    for (int i = 0; i < 20; ++i)
+    {
+        vision::Image* image = new vision::OpenCVImage(640,480);
+        makeColor(image, i * 20, 0, 0);
+        images.push_back(image);
+    }
+    
+    BOOST_FOREACH(vision::Image* image, images)
+    {
+        camera->setNewImage(image);
+        camera->update(0);
+        recorder.update(1.0/20); // 20 Hz
+    }
+
+    // Make only the right number of the images got
+    CHECK_EQUAL(5u, recorder.imageCRCs.size());
 
     // Free Images
     BOOST_FOREACH(vision::Image* image, images)

@@ -27,12 +27,16 @@
 namespace ram {
 namespace vision {
 
-Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy) :
+Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy,
+                   int policyArg) :
     m_policy(policy),
+    m_policyArg(policyArg),
     m_newFrame(false),
     m_nextFrame(new OpenCVImage(640, 480)),
     m_currentFrame(new OpenCVImage(640, 480)),
-    m_camera(camera)
+    m_camera(camera),
+    m_currentTime(0),
+    m_nextRecordTime(0)
 {
     assert((RP_START < policy) && (policy < RP_END) &&
            "Invalid recording policy");
@@ -57,12 +61,30 @@ Recorder::~Recorder()
 
 void Recorder::update(double timeSinceLastUpdate)
 {
+    m_currentTime += timeSinceLastUpdate;
+    
     switch(m_policy)
     {
         case RP_START:
             assert(false && "Invalid recording policy");
             break;
+
+        case MAX_RATE:
+        {
+            // Don't record if not enough time has passed
+            if (m_currentTime < m_nextRecordTime)
+            {
+                break;
+            }
+            else
+            {
+                // Calculate the next time to record
+                m_nextRecordTime += (1 / (double)m_policyArg);
+            }
+        }
         
+        // FALL THROUGH - based on current time
+            
         case NEXT_FRAME:
         {
             bool frameToRecord = false;

@@ -23,7 +23,7 @@ class RAM_EXPORT FileRecorder : public Recorder
 {
   public:
     FileRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                 std::string filename);
+                 std::string filename, int policyArg = 0);
 
     virtual ~FileRecorder();
 
