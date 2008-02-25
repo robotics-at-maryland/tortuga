@@ -1,5 +1,5 @@
 /*
- *  TestSimpleSlidingDFT.cpp
+ *  TestWrappedSlidingDFT.cpp
  *  sonarController
  *
  *  Created by Leo Singer on 1/16/08.
@@ -14,13 +14,13 @@
 #include <math.h>
 
 
-#include "SimpleSlidingDFT.h"
+#include "WrappedSlidingDFT.h"
 
 
 using namespace ram::sonar;
 
 
-struct SimpleSlidingDFTTestFixture {
+struct WrappedSlidingDFTTestFixture {
 	
 	/**
 	 * Return a random double between -1 and 1.
@@ -71,7 +71,7 @@ struct SimpleSlidingDFTTestFixture {
 };
 
 
-TEST_UTILITY(SimpleSlidingDFTCheckAgainstFFTW, (adcdata_t *adcdataSamples, int nchannels, int countFrames, int k, int N))
+TEST_UTILITY(WrappedSlidingDFTCheckAgainstFFTW, (adcdata_t *adcdataSamples, int nchannels, int countFrames, int k, int N))
 {
 	int countInputData = nchannels * countFrames;
 	
@@ -80,10 +80,10 @@ TEST_UTILITY(SimpleSlidingDFTCheckAgainstFFTW, (adcdata_t *adcdataSamples, int n
 	for (int i = 0 ; i < nchannels ; i ++)
 		n[i] = N;
 	
-	SimpleSlidingDFT myDFT(nchannels, k, N);
+	WrappedSlidingDFT myDFT(nchannels, k, N);
 	
 	double *doubleSamples = new double[countInputData];
-	SimpleSlidingDFTTestFixture::
+	WrappedSlidingDFTTestFixture::
 		adcdata_vector_to_real(adcdataSamples, doubleSamples, countInputData);
 	
 	//  Allocate a destination array for fftw.
@@ -98,7 +98,7 @@ TEST_UTILITY(SimpleSlidingDFTCheckAgainstFFTW, (adcdata_t *adcdataSamples, int n
     for (int i = N ; i < countFrames ; i ++)
     {
     	//  Set up the DFT with fftw.  We are using fftw as a trusted 
-    	//  reference DFT.  SimpleSlidingDFT should give equivalent results.
+    	//  reference DFT.  WrappedSlidingDFT should give equivalent results.
 		fftw_plan p = fftw_plan_many_dft_r2c(1, n, nchannels,
 					&doubleSamples[(i - N) * nchannels], NULL,
 					nchannels, 1,
@@ -129,9 +129,9 @@ TEST_UTILITY(SimpleSlidingDFTCheckAgainstFFTW, (adcdata_t *adcdataSamples, int n
 			//  Convert fftw's output to the same normalization as our sliding
 			//  DFT.
 			adcmath_t re_theirs = 
-				SimpleSlidingDFTTestFixture::normalize_double(re_propagated);
+				WrappedSlidingDFTTestFixture::normalize_double(re_propagated);
 			adcmath_t im_theirs = 
-				SimpleSlidingDFTTestFixture::normalize_double(im_propagated);
+				WrappedSlidingDFTTestFixture::normalize_double(im_propagated);
 			
 			//  Get results from our sliding DFT.
 			adcmath_t re_mine = myDFT.getReal(channel);
@@ -155,7 +155,7 @@ TEST_UTILITY(SimpleSlidingDFTCheckAgainstFFTW, (adcdata_t *adcdataSamples, int n
 }
 
 
-TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTRandomInput)
+TEST_FIXTURE(WrappedSlidingDFTTestFixture, CompareDFTRandomInput)
 {
 	int nchannels = 3, N = 20, k = 5, seed = 42, countFrames = 200;
 	int countInputData = nchannels * countFrames;
@@ -164,13 +164,13 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTRandomInput)
 	
 	rand_adcdata_vector(in, countInputData, seed);
 	
-	TEST_UTILITY_FUNC(SimpleSlidingDFTCheckAgainstFFTW)(in, nchannels, countFrames, k, N);
+	TEST_UTILITY_FUNC(WrappedSlidingDFTCheckAgainstFFTW)(in, nchannels, countFrames, k, N);
 	
 	delete [] in;
 }
 
 
-TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTCosineInput)
+TEST_FIXTURE(WrappedSlidingDFTTestFixture, CompareDFTCosineInput)
 {
 	int nchannels = 3, N = 20, k = 5, countFrames = 200;
 	int countInputData = nchannels * countFrames;
@@ -179,7 +179,7 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTCosineInput)
 	
 	cos_adcdata_vector(in, nchannels, countFrames/8, countFrames);
 	
-	TEST_UTILITY_FUNC(SimpleSlidingDFTCheckAgainstFFTW)(in, nchannels, countFrames, k, N);
+	TEST_UTILITY_FUNC(WrappedSlidingDFTCheckAgainstFFTW)(in, nchannels, countFrames, k, N);
 	
 	delete [] in;
 }

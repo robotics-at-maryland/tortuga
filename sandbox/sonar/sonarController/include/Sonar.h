@@ -19,8 +19,10 @@
 #include <stdint.h>
 
 
+#ifdef __cplusplus
 namespace ram {
 namespace sonar {
+#endif
 
 
 typedef int8_t adcdata_t;
@@ -28,6 +30,13 @@ typedef int32_t adcmath_t;
 typedef int32_t adcsampleindex_t;
 
 
+#ifndef __cplusplus
+#define ADCDATA_MAXAMPLITUDE ((int) ((1 << (sizeof(adcdata_t) * 8 - 1)) - 1))
+#define BITS_ADCCOEFF ((int) 8)
+#endif
+
+
+#ifdef __cplusplus
 static const int ADCDATA_MAXAMPLITUDE = (1 << (sizeof(adcdata_t) * 8 - 1)) - 1;
 static const int NCHANNELS = 4;
 static const int BITS_ADCCOEFF = 8;
@@ -54,6 +63,7 @@ template<class T>
 
 } // namespace sonar
 } // namespace ram
+#endif
 
 
 #endif

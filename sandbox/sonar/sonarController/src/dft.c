@@ -2,7 +2,7 @@
  *  dft.c
  *  sonarController
  *
- *  Created by Leo Singer on 2/25/08.
+ *  Created by Leo Singer on 02/25/08.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *
  */
@@ -15,29 +15,15 @@
 #include <stdio.h>
 
 
-#include "SonarCFriendly.h"
+#include "dft.h"
 
 
-typedef struct {
-	int k, N, nchannels;
-	int idx;
-	adcdata_t *bufre, *bufim;
-	adcdata_t *coefre, *coefim;
-	adcmath_t *re, *im, *mag;
-} sliding_dft_t;
-
-
-sliding_dft_t *dft_malloc(int nchannels, int k, int N);
-void dft_free(sliding_dft_t *dft);
-void dft_update(sliding_dft_t *dft, adcdata_t *sample);
-void dft_setup_coefficients(sliding_dft_t *dft);
-void dft_setup_window(sliding_dft_t *dft);
-void dft_purge(sliding_dft_t *dft);
-
-
-sliding_dft_t *dft_malloc(int nchannels, int k, int N)
+sliding_dft_t *dft_alloc(int nchannels, int k, int N)
 {
 	sliding_dft_t *dft = malloc(sizeof(sliding_dft_t));
+	dft->nchannels = nchannels;
+	dft->k = k;
+	dft->N = N;
 	dft_setup_coefficients(dft);
 	dft_setup_window(dft);
 	return dft;
@@ -152,7 +138,7 @@ void dft_purge(sliding_dft_t *dft)
 	memset(dft->re, 0, sizeof(adcmath_t) * dft->nchannels);
 	memset(dft->im, 0, sizeof(adcmath_t) * dft->nchannels);
 	memset(dft->mag, 0, sizeof(adcmath_t) * dft->nchannels);
-	memset(dft->bufre, 0, sizeof(adcdata_t) * dft->N * dft->nchannels);
-	memset(dft->bufim, 0, sizeof(adcdata_t) * dft->N * dft->nchannels);
+	memset(dft->bufre, 0, sizeof(adcmath_t) * dft->N * dft->nchannels);
+	memset(dft->bufim, 0, sizeof(adcmath_t) * dft->N * dft->nchannels);
 	dft->idx = 0;
 }
