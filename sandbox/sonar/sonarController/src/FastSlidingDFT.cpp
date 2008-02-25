@@ -2,11 +2,18 @@
  *  FastSlidingDFT.cpp
  *  sonarController
  *
- *  Created by Tome Capon on 01/20/08.
+ *  Created by Tom Capon on 01/20/08.
  *  Based on work by Leo Singer.
  *  Copyright 2008 Robotics@Maryland. All rights reserved.
  *
  */
+
+
+/* This class contains errors that prevent it from compiling.
+ * No time to fix it now, so just tell the comiler to skip it.
+ */
+#if false
+
 
 #include "FastSlidingDFT.h"
 
@@ -155,3 +162,6 @@ adcmath_t FastSlidingDFT::getImag(int channel) const
 
 } // namespace sonar
 } // namespace ram
+
+
+#endif

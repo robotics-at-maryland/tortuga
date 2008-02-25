@@ -25,7 +25,7 @@ SimpleSlidingDFT::SimpleSlidingDFT(int nchannels, int k, int N) : SlidingDFT(nch
 {
 	setupCoefficients();
 	setupWindow();
- }
+}
 
 
 SimpleSlidingDFT::~SimpleSlidingDFT()
