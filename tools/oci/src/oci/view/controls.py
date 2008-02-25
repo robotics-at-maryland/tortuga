@@ -224,9 +224,9 @@ class RotationCtrl(wx.Panel):
         else:
             radius = height / 2.0
         
-        # Find the x,y positions of a 40 degrees angle
-        xCoord = pmath.cos(0.698111111111) * radius
-        yCoord = pmath.sin(0.698111111111) * radius
+        # Find the x,y positions of a 55 degrees angle
+        xCoord = pmath.cos(0.959931089) * radius
+        yCoord = pmath.sin(0.959931089) * radius
         
         # The 3 points of our triangle
         p1 = wx.Point2D(-xCoord,yCoord)
@@ -246,18 +246,24 @@ class RotationCtrl(wx.Panel):
         circle = gc.CreatePath()
         circle.AddCircle(0,0,radius)
         gc.StrokePath(circle)
-        gc.Rotate(self.rotVal * pmath.pi) 
+
+        # Determin rotation values for triangles (in radians)
+        rotVal = (self.rotVal + self.offset) * self.direction
+        desiredRotVal = (self.desiredRotVal + self.offset) * self.direction
+
+        # Draw the current triangle        
+        gc.Rotate(rotVal) 
         gc.DrawPath(trianglePath)
 
         # Reset rotation to draw the desired rotation triangle
-        gc.Rotate(-self.rotVal)
+        gc.Rotate(-rotVal)
         
         desiredPath = gc.CreatePath()
         desiredPath.AddPath(trianglePath)        
         desiredPath.CloseSubpath()
         
         xform = gc.CreateMatrix()
-        xform.Rotate(self.desiredRotVal)
+        xform.Rotate(desiredRotVal)
         desiredPath.Transform(xform)
         
         pen = wx.Pen(wx.Colour(0, 0, 0, 128),3)
