@@ -102,11 +102,11 @@ TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 
     // Have to wait for the processing thread to be waiting on the camera
     vision.redLightDetectorOn();
-    ram::core::TimeVal::sleep(33.0 / 1000.0);
+    ram::core::TimeVal::sleep(500 / 1000.0);
 
     // Release the image from the camera (and wait for the detector capture it)
     forwardCamera->update(0);
-    ram::core::TimeVal::sleep(33.0 / 1000.0);
+    ram::core::TimeVal::sleep(500.0 / 1000.0);
 
     // This stops the background thread
     vision.redLightDetectorOff();

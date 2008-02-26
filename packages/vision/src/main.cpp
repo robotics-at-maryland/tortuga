@@ -1480,13 +1480,13 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 	int r2=0;
 	int g2=0;
 	int b2=0;
-	int total=0;
-	int total2=0;
-	
-	int blackx=0;
-	int blacky=0;
-	int whitex=0;
-	int whitey=0;
+//	int total=0;
+//	int total2=0;
+//	
+//	int blackx=0;
+//	int blacky=0;
+//	int whitex=0;
+//	int whitey=0;
 	
 	int xdist=0;
 	int ydist=0;
@@ -1518,9 +1518,9 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
                     data3[count]=255;
                     data3[count+1]=255;
                     data3[count+2]=255;
-					whitex+=x;
-					whitey+=y;
-					total++;
+//					whitex+=x;
+//					whitey+=y;
+//					total++;
 					minx=min(x,minx);
 					maxx=max(x,maxx);
 					miny=min(y,miny);
@@ -1583,9 +1583,9 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
                 data[count+1]=0;
                 data[count+2]=0;
                 data3[count]=data3[count+1]=data3[count+2]=255;
-				blackx+=x;
-				blacky+=y;
-				total2++;
+//				blackx+=x;
+//				blacky+=y;
+//				total2++;
 			}
 			count+=3;
 		}
@@ -1608,24 +1608,23 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
     }
 	if (totalWhite>0 && totalBlack>0)
 	{
-		whitex/=total;
-		whitey/=total;
-		blackx/=total2;
-		blacky/=total2;
+//		whitex/=total;
+//		whitey/=total;
+//		blackx/=total2;
+//		blacky/=total2;
 //		xdist=blackx-whitex;
 //		ydist=blacky-whitey;
 
         xdist=histoBlackX-histoWhiteX;
         ydist=histoBlackY-histoWhiteY;
 		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
-		//cout<<"White Center:"<<whitex<<","<<whitey<<endl;
-		//cout<<"Black Center:"<<blackx<<","<<blacky<<endl;
 		
         //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
         //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
         //cout<<"Distance:"<<distance<<endl;
-		
-		if (distance<50)
+        cout<<"Total White Count:"<<totalWhite<<endl;
+        cout<<"Total Black Count:"<<totalBlack<<endl;
+		if (distance<100 && totalWhite > 1000 && totalBlack > 1000)
 		{
 			//cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;
 //			*binx=(whitex+blackx)/2;
@@ -1641,7 +1640,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 			*biny=-1;
 		}
 	}
-	return min(total,total2);
+	return min(totalWhite,totalBlack);
 }
 
 

@@ -73,7 +73,7 @@ TEST_FIXTURE(VisionRunnerFixture, Update)
     runner.addDetector(detectorPtr);
     
     // Have to wait for the processing thread to be waiting on the camera
-    ram::core::TimeVal::sleep(33.0 / 1000.0);
+    ram::core::TimeVal::sleep(500.0 / 1000.0);
 
     // Release the image from the camera
     camera->update(0);
