@@ -30,10 +30,12 @@ class Searching(state.State):
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
             legTime = 15,
-            sweepAngle = 120,
+            sweepAngle = 100,
             speed = 1)
         self.motionManager.setMotion(zigZag)
-        
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
 
 class Seek(state.State):
     @staticmethod
@@ -52,6 +54,8 @@ class Seek(state.State):
                                            maxSpeed = 3)
         self.motionManager.setMotion(motion)
 
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
 
 class Hit(state.State):
     FORWARD_DONE = core.declareEventType('FORWARD_DONE')

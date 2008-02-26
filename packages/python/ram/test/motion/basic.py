@@ -31,6 +31,13 @@ class TestMotionManager(support.MotionTest):
         self.assert_(m.stoped)
         self.assertEquals(self.vehicle.getName(), m2.vehicle.getName())
         self.assertEquals(self.controller.getName(), m2.controller.getName())
+
+    def testStopCurrentMotion(self):
+        m = support.MockMotion()
+        self.motionManager.setMotion(m)
+
+        self.motionManager.stopCurrentMotion()
+        self.assert_(m.stoped)
   
   
 class TestChangeDepth(support.MotionTest):

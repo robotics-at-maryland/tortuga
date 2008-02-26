@@ -33,13 +33,16 @@ class MotionManager(core.Subsystem):
             core.EventHub, deps, nonNone = True)
             
     def setMotion(self, motion):
-        if self._motion is not None:
-            self._motion.stop()
+        self.stopCurrentMotion()
             
         eventPublisher = core.EventPublisher(self._eventHub)
         self._motion = motion
         self._motion.start(self._controller, self._vehicle, self._qeventHub,
-                           eventPublisher)    
+                           eventPublisher)
+
+    def stopCurrentMotion(self):
+        if self._motion is not None:
+            self._motion.stop()        
         
     def background(self):
         pass
