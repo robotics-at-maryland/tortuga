@@ -25,6 +25,7 @@ if platform.system() == 'Darwin':
     BOOST_GRAPH_LIB = 'boost_graph-mt-1_34_1'
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-mt-1_34_1'
+    BOOST_REGEX_LIB = 'boost_regex-mt-1_34_1'
 elif platform.system() == 'Linux':
     BOOST_PYTHON_LIB = 'boost_python-gcc41-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
@@ -32,6 +33,7 @@ elif platform.system() == 'Linux':
     BOOST_GRAPH_LIB = 'boost_graph-gcc41-mt'
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-gcc41-mt'
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc41-mt'
+    BOOST_REGEX_LIB = 'boost_regex-gcc41-mt'
 elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'
@@ -39,6 +41,7 @@ elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_GRAPH_LIB = 'boost_graph-vc80-mt-1_34_1'
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-vc80-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-vc80-mt-1_34_1'
+    BOOST_REGEX_LIB = 'boost_regex-vc80-mt-1_34_1'
 else:
     print '"%s" is an unsupported platform' % platform.system()
     sys.exit(1)
@@ -101,11 +104,15 @@ def setup_posix_libs():
                                        [BOOST_GRAPH_LIB]),
         
         'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,34,1), [],
-                                      [BOOST_FILESYSTEM_LIB]),
+                                          [BOOST_FILESYSTEM_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
                                               (1,35), [],
                                              [BOOST_PROGOPT_LIB]),
+
+        'Boost.Regex' : BoostLibrary('Boost.Regex', (1,34,1), [],
+                                     [BOOST_REGEX_LIB]),
+        
         'Python' : PythonLib('2.5'),
 
         'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
@@ -144,10 +151,15 @@ def setup_windows_libs():
                                  
         'Boost.Filesystem' : Library('Boost.Filesystem', '1.34.1',
                                  [], [BOOST_FILESYSTEM_LIB], 
-                                 ext_deps = ['Boost']),     
+                                 ext_deps = ['Boost']),
+
+        'Boost.Regex' : Library('Boost.Regex', '1.34.1',
+                                [], [BOOST_REGEX_LIB], 
+                                ext_deps = ['Boost']),     
                                  
         'Boost.ProgramOptions' : Library('Boost.ProgramOptions','1.34.1', [],
                                          [BOOST_PROGOPT_LIB]),
+        
                                  
         'Python' : Library('Python', '2.5', ['Python.h'],
                            'python25', CPPPATH = sysconfig.get_python_inc(),
