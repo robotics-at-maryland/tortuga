@@ -14,9 +14,12 @@
 // Library Includes
 #include <highgui.h>
 #include <boost/program_options.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
 
 // Project Includes
 #include "vision/include/OpenCVCamera.h"
+#include "vision/include/NetworkCamera.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Detector.h"
 #include "vision/include/DetectorMaker.h"
@@ -31,6 +34,9 @@ using namespace ram;
 
 static const char* PROCESSED_WINDOW = "Processed Image";
 
+/** Creates the camera based on the input stream */
+vision::Camera* createCamera(std::string input);
+
 int main(int argc, char** argv)
 {
     po::options_description desc("Allowed options");
@@ -43,6 +49,7 @@ int main(int argc, char** argv)
     std::string outputFilename;
     bool show = true;
     bool output = false;
+    bool runDetector = false;
     
     try
     {
@@ -52,12 +59,15 @@ int main(int argc, char** argv)
 
         // Option Descriptions
         desc.add_options()
-            ("help", "produce help message")
-            ("nogui,n", "suppress display of image")
+            ("help", "Produce help message")
+            ("nogui,n", po::bool_switch(&show),
+             "Suppress display of image")
+            ("disable-detector,d", po::bool_switch(&runDetector),
+             "Do not run the detector on input")
             ("output,o", po::value<std::string>(&outputFilename),
-             "file to write analyzed images to")
+             "File to write analyzed images to")
             ("input", po::value<std::string>(&input),
-             "movie file")
+             "Video file, camera #, hostname:port")
             ("detector", po::value<std::string>(&detectorName)->
              default_value("RedLightDetector"), "Detector to run on the input")
             ;
@@ -91,8 +101,9 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
     
-    if (vm.count("nogui"))
-        show = false;
+    // Must swap values, because boost.programoptions stores the negation
+    show = !show;
+    runDetector = !runDetector;
 
     if (outputFilename.length() != 0)
         output = true;
@@ -106,26 +117,31 @@ int main(int argc, char** argv)
     
     // Load the detector
     vision::DetectorPtr detector;
-    
-    if (vision::DetectorMaker::isKeyRegistered(detectorName))
+
+    if (runDetector)
     {
-        // Generate a config with the proper type
-        std::stringstream ss;
-        ss << "{ 'type' : '" << detectorName << "'}";
-        core::ConfigNode cfg(core::ConfigNode::fromString(ss.str()));
+        if (vision::DetectorMaker::isKeyRegistered(detectorName))
+        {
+            // Generate a config with the proper type
+            std::stringstream ss;
+            ss << "{ 'type' : '" << detectorName << "'}";
+            core::ConfigNode cfg(core::ConfigNode::fromString(ss.str()));
             
-        detector = vision::DetectorMaker::newObject(
-            vision::DetectorMakerParamType(cfg, core::EventHubPtr()));
-    }
-    else
-    {
-        std::cerr << "Detector '" << detectorName
-                  << "' is not a valid detector" << std::endl;
-        return EXIT_FAILURE;
+            detector = vision::DetectorMaker::newObject(
+                vision::DetectorMakerParamType(cfg, core::EventHubPtr()));
+            std::cout << "Running '" << detectorName << "' on input images"
+                      << std::endl;
+        }
+        else
+        {
+            std::cerr << "Detector '" << detectorName
+                      << "' is not a valid detector" << std::endl;
+            return EXIT_FAILURE;
+        }
     }
     
     // Setup camera and OpenCV Window, and the Recorder
-    vision::Camera* camera = new vision::OpenCVCamera(input.c_str());
+    vision::Camera* camera = createCamera(input);
     vision::Image* frame = new vision::OpenCVImage(camera->width(),
                                                    camera->height());
     vision::Image* outputImage = new vision::OpenCVImage(camera->width(),
@@ -135,15 +151,32 @@ int main(int argc, char** argv)
     vision::Recorder* recorder = 0;
 
     if (show)
+    {
         cvNamedWindow(PROCESSED_WINDOW, CV_WINDOW_AUTOSIZE);
-    
+
+        if (runDetector)
+            std::cout << "Showing processed";
+        else
+            std::cout << "Showing input";
+        
+        std::cout << " images on window '" << PROCESSED_WINDOW << "'"
+                  << std::endl;
+    }
+
     // Main Loop
     while(1)
     {
+        vision::Image* workingImage = frame;
+        
         // Get one frame and process
         camera->update(1.0 / camera->fps());
         camera->getImage(frame);
-        detector->processImage(frame, outputImage);
+
+        if (runDetector)
+        {
+            detector->processImage(frame, outputImage);
+            workingImage = outputImage;
+        }
 
         if (output)
         {
@@ -152,26 +185,29 @@ int main(int argc, char** argv)
             // of the output image isn't know till now
             if (!recorder)
             {
+                std::cout << "Writing images to " << outputFilename
+                          << std::endl;
+                
                 recordCamera = new vision::ImageCamera(
-                    outputImage->getWidth(), outputImage->getHeight(),
+                    workingImage->getWidth(), workingImage->getHeight(),
                     camera->fps());
                 recorder = new vision::FileRecorder(
                     recordCamera, vision::Recorder::NEXT_FRAME, outputFilename);
                 recorder->unbackground(true);
             }
             
-            recordCamera->newImage(outputImage);
+            recordCamera->newImage(workingImage);
             recorder->update(1.0/recordCamera->fps());
         }
         
         if (show)
-            cvShowImage(PROCESSED_WINDOW, outputImage->asIplImage());
+            cvShowImage(PROCESSED_WINDOW, workingImage->asIplImage());
 
         //If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
         //remove higher bits using AND operator
         if (show)
         {
-            if ((cvWaitKey(1) & 255) == 27)
+            if ((cvWaitKey(10) & 255) == 27)
                 break;
         }
     }
@@ -188,4 +224,41 @@ int main(int argc, char** argv)
 
     delete frame;
     delete outputImage;
+}
+
+vision::Camera* createCamera(std::string input)
+{
+    static boost::regex movie("[a-zA-Z0-9/]+.\\w{3}");
+    static boost::regex camnum("\\d+");
+    static boost::regex hostnamePort("([a-zA-Z0-9.-_]+):(\\d{1,5})");
+
+    std::cout << "Images comming from: ";
+    
+    if (boost::regex_match(input, movie))
+    {
+        std::cout << "'" << input << "' video file" << std::endl;
+        return new vision::OpenCVCamera(input);
+    }
+
+    if (boost::regex_match(input, camnum))
+    {
+        int camnum = boost::lexical_cast<int>(input);
+        std::cout << "Forward Camera #" << camnum << std::endl;
+        return new vision::OpenCVCamera(camnum, true);
+    }
+
+    boost::smatch what;
+    if (boost::regex_match(input, what, hostnamePort))
+    {
+        std::string hostname = what.str(1);
+        boost::uint16_t port =
+            boost::lexical_cast<boost::uint16_t>(what.str(2));
+        std::cout << "Streaming images from host: \"" << hostname
+                  << "\" on port " << port << std::endl;
+        return new vision::NetworkCamera(hostname, port);
+    }
+    
+        
+    std::cerr << "Input '" << input << "' is invalid" << std::endl;
+    exit(EXIT_FAILURE);
 }

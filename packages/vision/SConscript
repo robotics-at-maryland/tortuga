@@ -54,7 +54,8 @@ envt.RAMProgram(target = 'ImageAnalyzer',
 # Detector Test
 envt.RAMProgram(target = 'DetectorTest', 
                 source = 'test/src/DetectorTest.cpp',
-                int_deps = ['vision'], ext_deps = ['Boost.ProgramOptions'])
+                int_deps = ['vision'],
+                ext_deps = ['Boost.ProgramOptions', 'Boost.Regex'])
 
 # Unit Tests
 envt = env.Clone()
