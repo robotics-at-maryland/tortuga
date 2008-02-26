@@ -36,8 +36,37 @@ class TestEventPublisher(unittest.TestCase):
     def setUp(self):
         self.epub = core.EventPublisher()
 
-    def testNotCallable(self):
+    def memberHandler(self, event):
+        pass
+
+    def testBadCallable(self):
+        # Non Function
         self.assertRaises(TypeError, self.epub.subscribe, "Test", 1)
+
+        # Wrong function type
+        def noArgs():
+            pass
+        self.assertRaises(TypeError, self.epub.subscribe, "Test", noArgs)
+
+        def tooManyArgs(a, b):
+            pass
+        self.assertRaises(TypeError, self.epub.subscribe, "Test", tooManyArgs)
+
+        def tooManyArgsVar(a, b, *args):
+            pass
+        self.assertRaises(TypeError, self.epub.subscribe, "Test",
+                          tooManyArgsVar)
+
+        # Corner cases, that should still pass
+        def varArgs(*args):
+            pass
+        self.epub.subscribe("Test", varArgs)
+        
+        def goodWithVar(a, *args):
+            pass
+        self.epub.subscribe("Test", goodWithVar)
+
+        self.epub.subscribe("Test", self.memberHandler)
 
     def testSend(self):
         # Handler for the function

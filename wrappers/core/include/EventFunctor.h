@@ -18,7 +18,8 @@
 
 /** Wraps a called python object, so it can handle events
  *
- *  Then given python object is checked to make sure its calledable before use.
+ *  Then given python object is checked to make sure its calledable and has
+ *  the proper number of arguments on functor creation.
  */
 class EventFunctor
 {
