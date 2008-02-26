@@ -75,8 +75,42 @@ class MainFrame(wx.Frame):
             self._mgr.Update()    
         except IOError:
             pass # No history availible, continue 
+        mb = self._buildMenuBar()
+        self.SetMenuBar(mb)
         
+        self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self._paneHide)
         self.Bind(wx.EVT_CLOSE,self._onClose)            
+
+
+    def _buildMenuBar(self):
+        menuBar = wx.MenuBar()
+        menu = wx.Menu()
+        for pane in self._mgr.GetAllPanes():
+            menuItem = menu.AppendCheckItem(-1, pane.caption)
+            menuItem.Check(pane.IsShown())
+            self.Bind(wx.EVT_MENU, self._menuItemClick(pane), menuItem)
+        menuBar.Append(menu, "&Panels")
+        return menuBar
+    
+    def _paneHide(self,event):
+        pane = event.GetPane()
+        mb = self.GetMenuBar()
+        menuItemId = mb.FindMenuItem("Panels",pane.caption)
+        mb.Check(menuItemId, False) # The Aui button only closes panels
+        mb.Refresh() # Redraw menubar
+        event.Skip() # Proceed to closing the panel
+        
+    # Hide/Show Panes
+    def _menuItemClick(self,pane):
+        def handler(event):
+            # event == wx.wxEVT_COMMAND_MENU_SELECTED
+            if event.IsChecked():
+                pane.Show()
+            else:
+                pane.Hide()
+            self._mgr.Update()
+        return handler
+
     
     def _addShell(self, subsystems):
         introText = 'Current Subsystems:\n'
@@ -95,17 +129,17 @@ class MainFrame(wx.Frame):
         # This should not be bound, it makes it impossible to edit functions
         # You can rebind this once CTRL+UP/DOWN does what the old up down do
         # The old/up down let you navigate the text
-        #self._shell.Bind(wx.EVT_KEY_DOWN, self._onShellKeyPress)
+        self._shell.Bind(wx.EVT_KEY_DOWN, self._onShellKeyPress)
 
         paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
         paneInfo = paneInfo.Caption("Shell").Center()
         self._addSubsystemPanel(paneInfo, self._shell, [])
     
     def _onShellKeyPress(self,event):
-        if event.KeyCode ==  wx.WXK_UP:
+        if event.KeyCode == wx.WXK_UP and event.ControlDown():
             self._shell.OnHistoryReplace(step=+1)
             return
-        elif event.KeyCode == wx.WXK_DOWN:
+        elif event.KeyCode == wx.WXK_DOWN and event.ControlDown():
             self._shell.OnHistoryReplace(step=-1)
             return
         event.Skip()
@@ -152,7 +186,6 @@ class MainFrame(wx.Frame):
             for paneInfo, panel, sys in panelInfos:
                 self._addSubsystemPanel(paneInfo, panel, sys)
 
-    def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems):        
+    def _addSubsystemPanel(self, paneInfo, panel, usedSubsystems): 
         self._mgr.AddPane(panel, paneInfo, paneInfo.caption)
         self._panels.append(panel)
-        
