@@ -39,7 +39,7 @@ envt = env.Clone()
 # Basic camera test
 if platform.system() in ['Linux', 'Darwin']:
     envt.AppendUnique(CCFLAGS = '-Wno-unused')
-envt.Program(target = 'CvCameraTest', source = 'test/src/CvCameraTest.c')
+envt.Program(target = 'CvCaptureTest', source = 'test/src/CvCaptureTest.c')
 
 # Optical Flow
 envt.RAMProgram(target = 'OpticalFlowTest',

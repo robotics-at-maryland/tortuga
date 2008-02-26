@@ -18,7 +18,7 @@
 
 void usageError()
 {
-    fprintf(stderr, "Usage: CvCameraTest [camera number]\n");
+    fprintf(stderr, "Usage: CvCameraTest [camera number or movie file]\n");
     getchar();
     exit(EXIT_FAILURE);
 }
@@ -29,28 +29,38 @@ int main(int argc, char** argv)
     CvCapture* capture = 0;
     char* tailPtr = (char*)1;
         
-    // Parse the camera num from the arguments
+    // Parse arguments and open camera
     if (argc == 2)
     {
+        if ((0 == strcmp(argv[1], "--help")) || (0 == strcmp(argv[1], "-h")))
+            usageError();
+        
         camNum = (int)strtol(argv[1], &tailPtr, 10);
         
         if ((*tailPtr) != '\0')
-            usageError();
+        {
+            if (NULL == (capture = cvCaptureFromFile(argv[1])))
+            {
+                fprintf(stderr, "ERROR: capture is NULL, can't open movie file"
+                        " '%s'\n", argv[1]);
+                getchar();
+                return EXIT_FAILURE;
+            }
+        }
+        else
+        {
+            capture = cvCaptureFromCAM( CV_CAP_ANY );
+            fprintf(stderr, "ERROR: capture is NULL, no camera with num '%d'\n",
+                    camNum);
+            getchar();
+            return EXIT_FAILURE;
+        }
     }
     else if (argc != 1)
     {
         usageError();
     }
 
-    // Open Up Cemera
-    capture = cvCaptureFromCAM( CV_CAP_ANY );
-    if (!capture)
-    {
-        fprintf(stderr, "ERROR: capture is NULL, no camera with num '%d'\n",
-                camNum);
-        getchar();
-        return -1;
-    }
     
     printf("Camera Capture Properties:\n");
     printf("\tWidth:  %f\n", cvGetCaptureProperty(capture,
