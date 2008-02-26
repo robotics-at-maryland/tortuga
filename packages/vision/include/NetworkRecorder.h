@@ -60,7 +60,7 @@ class RAM_EXPORT NetworkRecorder : public Recorder
     void setupListenSocket();
 
     /** Send data out on the current socket */
-    void sendData(void* buf, size_t len);
+    bool sendData(void* buf, size_t len);
 
     /** Accept connections on the listening socket */
     int acceptConnection(double timeout);

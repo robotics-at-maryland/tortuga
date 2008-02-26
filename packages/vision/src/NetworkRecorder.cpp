@@ -118,10 +118,11 @@ void NetworkRecorder::recordFrame(Image* image)
     if (m_currentSocket >= 0)
     {
         // Send header
-        sendData(&m_packet, sizeof(ImagePacketHeader));
-
-        // Send raw image data in one big chunck
-        sendData(image->getData(), dataSize);
+        if (sendData(&m_packet, sizeof(ImagePacketHeader)))
+        {
+            // Send image data
+            sendData(image->getData(), dataSize);
+        }
     }
 }
 
@@ -163,13 +164,20 @@ void NetworkRecorder::setupListenSocket()
     }
 }
 
-void NetworkRecorder::sendData(void* buf, size_t len)
+bool NetworkRecorder::sendData(void* buf, size_t len)
 {
     if (send(m_currentSocket, buf, len, 0) < 0)
     {
         perror("send");
-        assert(false && "send error");
+        
+        // Sending data failed, close connection
+        close(m_currentSocket);
+        m_currentSocket = -1;
+        
+        return false;
     }
+
+    return true;
 }
 
 int NetworkRecorder::acceptConnection(double timeout)

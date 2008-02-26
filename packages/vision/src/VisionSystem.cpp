@@ -12,6 +12,7 @@
 #include "vision/include/VisionRunner.h"
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/FileRecorder.h"
+#include "vision/include/NetworkRecorder.h"
 
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
@@ -76,6 +77,13 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
                                              Recorder::NEXT_FRAME,
                                              config["forwardFile"].asString());
     }
+    else if (config.exists("forwardPort"))
+    {
+        m_forwardRecorder = new NetworkRecorder(m_forwardCamera.get(),
+                                                Recorder::NEXT_FRAME,
+                                                config["forwardPort"].asInt());
+    }
+        
 
     if (config.exists("downwardFile"))
     {
