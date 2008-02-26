@@ -90,15 +90,9 @@ Subsystems:
                 type: IMU
                 update_interval: 5
                 # These are in VEHICLE FRAME
-                magXBias: -0.3053
-                magYBias: 0.2663
-                magZBias: 0.1884
-#                magXBias: 0.0
-#                magYBias: 0.0
-#                magZBias: 0.0
-#                magXBias: -0.21305
-#                magYBias: -0.139574
-#                magZBias: -0.282475
+                magXBias: -0.229488
+                magYBias: 0.270406
+                magZBias: 0.158325
                 localMagneticPitch: 60
 
     Controller:

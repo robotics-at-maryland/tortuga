@@ -53,9 +53,9 @@ int main (){
   
   // Create IMU Device
   IMU imu(ConfigNode::fromString("{'name' : 'IMU',"
-                                 "'magXBias' : -0.3053,"
-                                 "'magYBias' : 0.2663,"
-                                 "'magZBias' : 0.1884}"));
+                                 "'magXBias' : 0.0,"
+                                 "'magYBias' : 0.0,"
+                                 "'magZBias' : 0.0}"));
 
   // Start IMU running in the background
   imu.background(5);
