@@ -96,8 +96,6 @@ TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
     makeColor(&forwardImage, 0, 0, 255);
     drawRedCircle(&forwardImage, 640 - (640/4), 480/4);
 
-    vision::Image::saveToFile(&forwardImage, "/tmp/red_light_upper_left.png");
-    
     // "Backgrounds" the camera (no real background thread, because this is
     // just a mock object)
     forwardCamera->background(0);
