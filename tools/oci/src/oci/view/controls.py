@@ -212,7 +212,8 @@ class RotationCtrl(wx.Panel):
     def draw(self,gc):
         # All angles are in radians
         width,height = self.GetSize()
-        gc.SetPen(wx.Pen("black", 3))
+        penSize = 3.0
+        gc.SetPen(wx.Pen("black", penSize))
         gc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 98)))
  
         xCenter = width / 2.0
@@ -223,6 +224,7 @@ class RotationCtrl(wx.Panel):
             radius = width / 2.0
         else:
             radius = height / 2.0
+        radius -= penSize
         
         # Find the x,y positions of a 55 degrees angle
         xCoord = pmath.cos(0.959931089) * radius

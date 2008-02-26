@@ -44,7 +44,7 @@ class VisionPanel(wx.Panel):
         
         self.Bind(wx.EVT_CLOSE, self._onClose)
         
-    def _onClose(self):
+    def _onClose(self, closeEvent):
         for conn in self._connections:
             conn.disconnect()
         
