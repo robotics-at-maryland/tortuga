@@ -425,11 +425,8 @@ int main(int argc, char ** argv)
 			  usleep( 250 );
 	              		sendCmd(sockfd, CMD_NOTHING, 0);
 
-			  if(yawTime-- <= 0)
-			  {
-				sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
-				yawTime = 2;
-			  }
+			sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
+			
 			#endif
 /*
 			if( g_kb )
