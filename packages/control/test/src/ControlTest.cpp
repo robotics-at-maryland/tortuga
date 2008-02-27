@@ -43,7 +43,7 @@
 #define DEADMAN_WAIT 1
 
 // Setting for the hand control inputs
-#define MAX_DEPTH 5
+#define MAX_DEPTH 10
 
 #define MIN_DEPTH 0
 
@@ -70,6 +70,7 @@
 
 #define CMD_SETSPEED    9
 
+#define CMD_ANGLEYAW	10
 
 using namespace std;
 using namespace ram;
@@ -266,8 +267,8 @@ void networkLoop(control::IController* controller)
         if(startTime > endTime) /* Wraparound offset */
             endTime += 1048576;
 
-	if(cmd != CMD_NOTHING)
-	    printf("processMessage took %d usec\n", endTime - startTime);
+//	if(cmd != CMD_NOTHING)
+//	    printf("processMessage took %d usec\n", endTime - startTime);
 
     }
 
@@ -368,11 +369,24 @@ bool processMessage(control::IController* controller, unsigned char cmd,
             break;
         }
 
-        default:
+        case CMD_ANGLEYAW:
+	{
+	    if(param != 0)
+	    {
+	    	double yaw = param / 10.0;
+	    	printf("Yaw: %f\n", yaw);
+	    	controller->yawVehicle(yaw);
+	    }
+	    break;
+	}
+
+	default:
         {
             printf("Invalide network command type: %c\n", cmd);
         }
+
     }
+
 
     // Return true to keep running
     return true;

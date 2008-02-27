@@ -8,6 +8,7 @@ Subsystems:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
         almostHitPixels: 30000
+        forwardPort: 50000
         #forwardFile: forward.avi
     
     EventHub:
