@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/NetwockRecorder.h
+ * File:  packages/vision/include/NetworkRecorder.h
  */
 
 #ifndef RAM_NETWORKRECORDER_H_02_25_2008

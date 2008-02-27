@@ -10,6 +10,7 @@
 // STD Includes
 #include <iostream>
 #include <sstream>
+#include <signal.h>
 
 // Library Includes
 #include <highgui.h>
@@ -25,6 +26,7 @@
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/ImageCamera.h"
 #include "vision/include/FileRecorder.h"
+#include "vision/include/NetworkRecorder.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
@@ -36,7 +38,8 @@ static const char* PROCESSED_WINDOW = "Processed Image";
 
 /** Creates the camera based on the input stream */
 vision::Camera* createCamera(std::string input);
-
+vision::Recorder* createRecorder(std::string output, vision::Camera* camera);
+void brokenPipeHandler(int signum);
 int main(int argc, char** argv)
 {
     po::options_description desc("Allowed options");
@@ -185,14 +188,13 @@ int main(int argc, char** argv)
             // of the output image isn't know till now
             if (!recorder)
             {
-                std::cout << "Writing images to " << outputFilename
-                          << std::endl;
+                std::cout << "Writing images to " << outputFilename << std::endl;
                 
                 recordCamera = new vision::ImageCamera(
                     workingImage->getWidth(), workingImage->getHeight(),
                     camera->fps());
-                recorder = new vision::FileRecorder(
-                    recordCamera, vision::Recorder::NEXT_FRAME, outputFilename);
+                                    
+                recorder = createRecorder(outputFilename,recordCamera);
                 recorder->unbackground(true);
             }
             
@@ -226,13 +228,44 @@ int main(int argc, char** argv)
     delete outputImage;
 }
 
+vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
+{
+    static boost::regex movie("[a-zA-Z0-9/]+.\\w{3}");
+    static boost::regex port("(\\d{1,5})");
+    
+    if (boost::regex_match(output, movie))
+    {
+        std::cout <<"Recording to '" << output << "'" << std::endl;
+        return new vision::FileRecorder(camera, vision::Recorder::NEXT_FRAME, output);
+    }
+    
+    boost::smatch matcher;
+    if (boost::regex_match(output, matcher, port))
+    {
+        std::cout <<"Recording to host : '" << boost::lexical_cast<int>(output) <<"'"<< std::endl;
+        boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(output);
+        
+        signal(SIGPIPE,brokenPipeHandler);
+        vision::Recorder* r = new vision::NetworkRecorder(camera,vision::Recorder::NEXT_FRAME, portNum);
+        return r;
+    }
+    
+    std::cout<<"Output is neither a file nor a port number."<<std::endl;
+    return NULL;
+}
+
+void brokenPipeHandler(int signum)
+{
+    std::cout<<"Broken Pipe Ignored"<<std::endl;
+}
+
 vision::Camera* createCamera(std::string input)
 {
     static boost::regex movie("[a-zA-Z0-9/]+.\\w{3}");
     static boost::regex camnum("\\d+");
     static boost::regex hostnamePort("([a-zA-Z0-9.-_]+):(\\d{1,5})");
 
-    std::cout << "Images comming from: ";
+    std::cout << "Images coming from: ";
     
     if (boost::regex_match(input, movie))
     {
