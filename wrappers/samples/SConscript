@@ -17,7 +17,7 @@ envl = env.Clone()
 extra_sources = envl.Glob('src', '*.cpp')
 
 # Link to libram_pattern.so library
-libs.add_internal(envl, 'core')
+libs.add_external(envl, 'Boost.Python')
 
 # Pattern library directories
 base_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'samples')
@@ -31,8 +31,7 @@ wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 # Tests
 envt = env.Clone()
-test, runner = envt.Tests(int_deps = 'core', ext_deps = 'Boost.Python',
-                          run = False)
+test, runner = envt.Tests(ext_deps = 'Boost.Python', run = False)
 
 envl.Pypp('samples', [os.path.join(header_dir, h) for h in wrapped_headers],
           module = 'gen_samples.py',
