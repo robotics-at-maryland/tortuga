@@ -54,6 +54,8 @@
 
 #define CMD_SETSPEED    9
 
+#define CMD_ANGLEYAW	10
+
 void sigalrmHandler(int i)
 {
     printf("\nKeep-alive timer expired!\n");
@@ -136,7 +138,14 @@ void runInput(int fd)
             case CMD_SETSPEED:
             {
                 printf("New speed: %d\n", param);
+		break;
             }
+
+            case CMD_ANGLEYAW:
+	    {
+		printf("Yawing: %d\n", param);
+		break;
+	    }
 
             case CMD_NOTHING:
             {

@@ -101,9 +101,15 @@ ForceFeedback* g_ff[4] = {0,0,0,0};//Array to hold ff interface for each joy
 
 #define CMD_SETSPEED    9
 
+#define CMD_ANGLEYAW 10
+
+
 int sockfd=0;
 
 struct sockaddr_in their_addr; /*connector's address information */
+
+
+int yawCmd = 0;
 
 
 void sendCmd(int fd, unsigned char cmd, signed char param)
@@ -136,6 +142,7 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 	#define BTN_ZEROSPEED 2
 
 	#define AXIS_SPEED 1
+	#define AXIS_YAW 0
 //    #error No speed axis defined for Saitek yet.
 #else
 
@@ -211,6 +218,21 @@ void processAxis(int fd, int axis, int val)
             }
             break;
         }
+
+#define YAW_RANGE 10
+
+	case AXIS_YAW:
+	{
+		val += 10152;
+
+		if(val > 0)
+			val = YAW_RANGE * val / 17476;
+		else
+			val = YAW_RANGE * val / 15934;
+//		printf("RAW IS %d\n", val);
+		yawCmd = -val;
+		break;
+	}
     };
 }
 #endif
@@ -339,9 +361,10 @@ public:
 //Create a global instance
 EventHandler handler;
 
+
 int main(int argc, char ** argv)
 {
-
+    int yawTime = 0;
 #ifdef SAITEK
     printf("Using Saitek mapping\n\tThumb L-Ascend\n\tThumb R-Descend\n\tPOV Hat - Fwd/Back, Turn\n\tZ trigger- Emergency stop\n\tButton under POV Hat - zer speed to 0\n");
 #else
@@ -400,7 +423,13 @@ int main(int argc, char ** argv)
 			#elif defined OIS_LINUX_PLATFORM
 			  checkX11Events();
 			  usleep( 250 );
-              sendCmd(sockfd, CMD_NOTHING, 0);
+	              		sendCmd(sockfd, CMD_NOTHING, 0);
+
+			  if(yawTime-- <= 0)
+			  {
+				sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
+				yawTime = 2;
+			  }
 			#endif
 /*
 			if( g_kb )
