@@ -62,7 +62,7 @@ class ThrusterPanel(wx.Panel):
         
     def _update(self, bar):
         def handler(event):
-            bar.setVal(event.force)
+            bar.setVal(event.number)
         return handler
     
     def _onClose(self, closeEvent):
