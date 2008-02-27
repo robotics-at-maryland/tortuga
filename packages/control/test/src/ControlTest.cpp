@@ -373,7 +373,7 @@ bool processMessage(control::IController* controller, unsigned char cmd,
 	{
 	    if(param != 0)
 	    {
-	    	double yaw = param / 10.0;
+	    	double yaw = param / 20.0;
 	    	printf("Yaw: %f\n", yaw);
 	    	controller->yawVehicle(yaw);
 	    }
