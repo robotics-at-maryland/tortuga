@@ -197,7 +197,7 @@ int NetworkRecorder::acceptConnection(double timeout)
     timevalTimeout.tv_usec = (long)(modf(timeout, &intpart) * 1000000);
     timevalTimeout.tv_sec = (long)intpart;
 
-    if (-1 != select(m_listenSocket, &fds, NULL, NULL, &timevalTimeout))
+    if (1 == select(m_listenSocket + 1, &fds, NULL, NULL, &timevalTimeout))
     {
         newfd = accept(m_listenSocket,
                        (struct sockaddr*)m_currentAddr,
