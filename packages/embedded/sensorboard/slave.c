@@ -512,6 +512,9 @@ void initCN()
     enableBusInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
+    IPC6bits.U2TXIP = 6;    /* TX at priority 6 */
+    IPC6bits.U2RXIP = 5;    /* RX at priority 5 */
+
     IPC3bits.CNIP = 4;      /* Bus at priority 4 */
     IPC2bits.ADIP = 2;      /* ADC at priority 2 */
 
