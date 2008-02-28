@@ -27,6 +27,12 @@
 #define BUS_CMD_THRUSTER3_OFF   21
 #define BUS_CMD_THRUSTER4_OFF   22
 
+#define BUS_CMD_THRUSTER5_OFF   35
+#define BUS_CMD_THRUSTER6_OFF   36
+
+#define BUS_CMD_THRUSTER5_ON    37
+#define BUS_CMD_THRUSTER6_ON    38
+
 #define BUS_CMD_THRUSTER1_ON    23
 #define BUS_CMD_THRUSTER2_ON    24
 #define BUS_CMD_THRUSTER3_ON    25
@@ -52,7 +58,7 @@
 #define BUS_CMD_GETREPLY_U2     34
 
 
-
+/* Last is 39 */
 
 
 #define HOST_CMD_SYNC               0xFF
@@ -71,26 +77,3 @@
 #define HOST_REPLY_BOARDSTATUS      0x05
 
 #define HOST_CMD_HARDKILL           0x06
-#define HOST_CMD_MARKER             0x07
-
-#define HOST_CMD_BACKLIGHT          0x08
-
-#define HOST_CMD_THRUSTERS          0x09
-
-#define HOST_CMD_TEMPERATURE        0x0A
-#define HOST_REPLY_TEMPERATURE      0x0B
-
-#define HOST_CMD_PRINTTEXT          0x0C
-
-#define HOST_CMD_SONAR              0x0D
-#define HOST_REPLY_SONAR            0x0E
-
-#define HOST_CMD_RUNTIMEDIAG        0x0F
-
-#define HOST_CMD_THRUSTERSTATE      0x10
-#define HOST_REPLY_THRUSTERSTATE    0x11
-
-#define HOST_CMD_SETSPEED           0x12
-
-#define HOST_CMD_MOTOR_READ         0x13
-#define HOST_CMD_MOTOR_REPLY        0x14
