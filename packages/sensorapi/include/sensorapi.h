@@ -28,10 +28,25 @@
 #define CMD_THRUSTER2_OFF     1
 #define CMD_THRUSTER3_OFF     2
 #define CMD_THRUSTER4_OFF     3
-#define CMD_THRUSTER1_ON      4
-#define CMD_THRUSTER2_ON      5
-#define CMD_THRUSTER3_ON      6
-#define CMD_THRUSTER4_ON      7
+#define CMD_THRUSTER5_OFF     4
+#define CMD_THRUSTER6_OFF     5
+
+
+#define CMD_THRUSTER1_ON      6
+#define CMD_THRUSTER2_ON      7
+#define CMD_THRUSTER3_ON      8
+#define CMD_THRUSTER4_ON      9
+#define CMD_THRUSTER5_ON      10
+#define CMD_THRUSTER6_ON      11
+
+
+
+#define THRUSTER1_ENABLED     0x20
+#define THRUSTER2_ENABLED     0x10
+#define THRUSTER3_ENABLED     0x08
+#define THRUSTER4_ENABLED     0x04
+#define THRUSTER5_ENABLED     0x02
+#define THRUSTER6_ENABLED     0x01
 
 
 #define NUM_TEMP_SENSORS 5
@@ -75,11 +90,18 @@ int readDepth(int fd);
 /** Read the status bit back from the board */
 int readStatus(int fd);
 
+/** Reads the state of thrusters (safed or not)
+ *  Returns a bit combination of THRUSTERx_ENABLED as above
+ *  or SB_ERROR. How to tell them apart? SB_ERROR is negative,
+ *  don't worry.
+ */
 int readThrusterState(int fd);
 
 int hardKill(int fd);
 
-/** Releases marker, only takes 0 or 1 */
+/** This doesn't do anything anymore. Return value is undefined.
+ * Marker dropper support to return in the next revision hopefully.
+ */
 int dropMarker(int fd, int markerNum);
 
 int lcdBacklight(int fd, int state);
@@ -110,10 +132,10 @@ int setDiagnostics(int fd, int state);
     This command takes about 2 ms to execute.  You must call
     readSpeedResponses before this command, or about 15 ms after this call is
     made.
-    
+
     @param fd
          The file descriptor returned by openSensorBoard()
-         
+
     @param s1
          The speed of thruster with address one
     @param s2
@@ -122,8 +144,12 @@ int setDiagnostics(int fd, int state);
          The speed of thruster with address three
     @param s4
          The speed of thruster with address four
+    @param s5
+         The speed of thruster with address five
+    @param s6
+         The speed of thruster with address six
  */
-int setSpeeds(int fd, int s1, int s2, int s3, int s4);
+int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6);
 
 /** Reads back the on the board from the motor controller
 

@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
 
     for(i=0; i<10; i++)
     {
-        ret = setSpeeds(fd, i/3,i/3,i/3,i/3);
+        ret = setSpeeds(fd, i/3,i/3,i/3,i/3,i/3,i/3);
         if(ret == SB_ERROR)
             err++;
 
@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
     }
 
     usleep(15 * 1000);
-    ret = setSpeeds(fd, 0,0,0,0);
+    ret = setSpeeds(fd, 0,0,0,0,0,0);
     printf("Last speed result = %d\n", ret);
     printf("Error count: %d\n", err);
     printf("Average downtime delay: %ld usec\n", tst/1000);

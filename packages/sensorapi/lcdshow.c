@@ -109,11 +109,13 @@ int main(int argc, char ** argv)
         else
         {
             printf("\nThruster state: 0x%02X\n", ret);
-            printf("\t%s\n\t%s\n\t%s\n\t%s\n",
-            (ret & 0x08) ? "Thruster 1 enabled" : "Thruster 1 disabled",
-            (ret & 0x04) ? "Thruster 2 enabled" : "Thruster 2 disabled",
-            (ret & 0x02) ? "Thruster 3 enabled" : "Thruster 3 disabled",
-            (ret & 0x01) ? "Thruster 4 enabled" : "Thruster 4 disabled");
+            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
+            (ret & 0x20) ? "Thruster 1 enabled" : "Thruster 1 disabled",
+            (ret & 0x10) ? "Thruster 2 enabled" : "Thruster 2 disabled",
+            (ret & 0x08) ? "Thruster 3 enabled" : "Thruster 3 disabled",
+            (ret & 0x04) ? "Thruster 4 enabled" : "Thruster 4 disabled",
+            (ret & 0x02) ? "Thruster 5 enabled" : "Thruster 5 disabled",
+            (ret & 0x01) ? "Thruster 6 enabled" : "Thruster 6 disabled");
 
         }
     }
@@ -155,6 +157,12 @@ int main(int argc, char ** argv)
         if(thrusterSafety(fd, CMD_THRUSTER4_OFF) != SB_OK)
             printf("Error safing thruster\n");
 
+        if(thrusterSafety(fd, CMD_THRUSTER5_OFF) != SB_OK)
+            printf("Error safing thruster\n");
+
+        if(thrusterSafety(fd, CMD_THRUSTER6_OFF) != SB_OK)
+            printf("Error safing thruster\n");
+
         close(fd);
         return 0;
     }
@@ -172,6 +180,13 @@ int main(int argc, char ** argv)
 
         if(thrusterSafety(fd, CMD_THRUSTER4_ON) != SB_OK)
             printf("Error unsafing thruster\n");
+
+        if(thrusterSafety(fd, CMD_THRUSTER5_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
+
+        if(thrusterSafety(fd, CMD_THRUSTER6_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
+
         close(fd);
         return 0;
     }
@@ -179,7 +194,7 @@ int main(int argc, char ** argv)
 
     if(strcmp(argv[1], "-tstop") == 0)
     {
-        setSpeeds(fd, 0, 0, 0, 0);
+        setSpeeds(fd, 0, 0, 0, 0, 0, 0);
         close(fd);
         return 0;
     }
@@ -190,7 +205,7 @@ int main(int argc, char ** argv)
         close(fd);
         return 0;
     }
-    
+
     if(strcmp(argv[1], "-diagoff") == 0)
     {
         setDiagnostics(fd, 0);

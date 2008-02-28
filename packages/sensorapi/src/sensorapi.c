@@ -269,6 +269,11 @@ int hardKill(int fd)
 
 int dropMarker(int fd, int markerNum)
 {
+    /* MARKERS ARE NO LONGER SUPPORTED IN THIS FIRMWARE            */
+    /* Their pins went to thrusters 5 and 6. If you want markers,  */
+    /* talk to the electronics people. Maybe we can rig something. */
+    return -1;
+
     if(markerNum != 0 && markerNum != 1)
         return -255;
 
@@ -323,7 +328,7 @@ int lcdBacklight(int fd, int state)
 
 int thrusterSafety(int fd, int state)
 {
-    if(state<0 || state>7)
+    if(state<0 || state>11)
         return -255;
 
     unsigned char buf[8]={0x09, 0xB1, 0xD0, 0x23, 0x7A, 0x69, 0, 0};
@@ -393,13 +398,13 @@ int displayText(int fd, int line, const char* text)
 
 
 // MSB LSB !! (big endian)
-int setSpeeds(int fd, int s1, int s2, int s3, int s4)
+int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
 {
     int i=0;
-    unsigned char buf[10]={0x12, 0,0, 0,0, 0,0, 0,0, 0x00};
+    unsigned char buf[14]={0x12, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0x00};
 //    printf("Sending speeds: %d %d %d %d\n", s1, s2, s3, s4);
 
-    
+
     buf[1] = (s1 >> 8);
     buf[2] = (s1 & 0xFF);
 
@@ -412,10 +417,16 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4)
     buf[7] = (s4 >> 8);
     buf[8] = (s4 & 0xFF);
 
-    buf[9] = 0;
+    buf[9] = (s4 >> 8);
+    buf[10] = (s4 & 0xFF);
 
-    for(i=0; i<9; i++)
-        buf[9]+=buf[i];
+    buf[11] = (s4 >> 8);
+    buf[12] = (s4 & 0xFF);
+
+    buf[13] = 0;
+
+    for(i=0; i<13; i++)
+        buf[13]+=buf[i];
 
     writeData(fd, buf, 10);
     readData(fd, buf, 1);
@@ -456,17 +467,9 @@ int readSpeedResponses(int fd)
 
     int errCount=0;
 
-    if(buf[1] != 0x06)
-        errCount++;
-
-    if(buf[2] != 0x06)
-        errCount++;
-
-    if(buf[3] != 0x06)
-        errCount++;
-
-    if(buf[4] != 0x06)
-        errCount++;
+    for(i=0; i<6; i++)
+        if(buf[i+1] != 0x06)
+            errCount++;
 
     if(errCount != 0)
     {
