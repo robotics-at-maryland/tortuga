@@ -51,13 +51,23 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_MM2        2
 #define SLAVE_ID_MM3        2
 
+#define SLAVE_ID_MM5        1
+#define SLAVE_ID_MM6        0
+
 #define SLAVE_MM1_WRITE_CMD BUS_CMD_SETSPEED_U1
 #define SLAVE_MM2_WRITE_CMD BUS_CMD_SETSPEED_U2
 #define SLAVE_MM3_WRITE_CMD BUS_CMD_SETSPEED_U1
 
+#define SLAVE_MM5_WRITE_CMD BUS_CMD_SETSPEED_U2
+#define SLAVE_MM6_WRITE_CMD BUS_CMD_SETSPEED_U2
+
+
 #define SLAVE_MM1_READ_CMD  BUS_CMD_GETREPLY_U1
 #define SLAVE_MM2_READ_CMD  BUS_CMD_GETREPLY_U2
 #define SLAVE_MM3_READ_CMD  BUS_CMD_GETREPLY_U1
+
+#define SLAVE_MM5_READ_CMD  BUS_CMD_GETREPLY_U2
+#define SLAVE_MM6_READ_CMD  BUS_CMD_GETREPLY_U2
 
 /*
  * Bus Constants
@@ -1089,15 +1099,15 @@ int main(void)
                 t1 = 0; /* Error counter */
 
                 /* 8 bytes of speed, plus checksum */
-                for(i=0; i<9; i++)
+                for(i=0; i<13; i++)
                     rxBuf[i] = waitchar(1);
 
-                for(i=0; i<8; i++)
+                for(i=0; i<12; i++)
                     t1 += rxBuf[i];
 
                 t1 += HOST_CMD_SETSPEED;
 
-                if(rxBuf[8] != (t1 & 0xFF))
+                if(rxBuf[12] != (t1 & 0xFF))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1119,6 +1129,14 @@ int main(void)
 
                 UARTSendSpeed(U2_MM_ADDR, rxBuf[6], rxBuf[7], 1);
 
+                if(busWriteByte(SLAVE_MM5_WRITE_CMD, SLAVE_ID_MM5) != 0) t1++;
+                if(busWriteByte(rxBuf[8], SLAVE_ID_MM5) != 0) t1++;
+                if(busWriteByte(rxBuf[9], SLAVE_ID_MM5) != 0) t1++;
+
+                if(busWriteByte(SLAVE_MM6_WRITE_CMD, SLAVE_ID_MM6) != 0) t1++;
+                if(busWriteByte(rxBuf[10], SLAVE_ID_MM6) != 0) t1++;
+                if(busWriteByte(rxBuf[11], SLAVE_ID_MM6) != 0) t1++;
+
                 if(t1 == 0)
                     sendByte(HOST_REPLY_SUCCESS);
                 else
@@ -1128,7 +1146,7 @@ int main(void)
 
            case HOST_CMD_MOTOR_READ:
            {
-                unsigned char resp[4];
+                unsigned char resp[6];
                 t1 = waitchar(1);
 
 
@@ -1157,6 +1175,13 @@ int main(void)
                 else
                     resp[3] = 0xFF;
 
+                if(busWriteByte(SLAVE_MM5_READ_CMD, SLAVE_ID_MM5) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM5) != 1) t1++;
+                resp[4] = rxBuf[0];
+
+                if(busWriteByte(SLAVE_MM6_READ_CMD, SLAVE_ID_MM6) != 0) t1++;
+                if(readDataBlock(SLAVE_ID_MM6) != 1) t1++;
+                resp[5] = rxBuf[0];
 
                 if(t1 != 0)
                 {
@@ -1169,8 +1194,10 @@ int main(void)
                 sendByte(resp[1]);
                 sendByte(resp[2]);
                 sendByte(resp[3]);
+                sendByte(resp[4]);
+                sendByte(resp[5]);
 
-                sendByte(HOST_CMD_MOTOR_REPLY + resp[0] + resp[1] + resp[2] + resp[3]);
+                sendByte(HOST_CMD_MOTOR_REPLY + resp[0] + resp[1] + resp[2] + resp[3] + resp[4] + resp[5]);
 
                 break;
             }
