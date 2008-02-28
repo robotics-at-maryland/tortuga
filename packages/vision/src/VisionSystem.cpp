@@ -70,26 +70,32 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     if (!m_downwardCamera)
         m_downwardCamera = CameraPtr(new OpenCVCamera(1, false));
 
+    // Max number of frames per second to record
+    int maxRecordRate = config["maxRecordRate"].asInt(5);
+    
     // Recorders
     if (config.exists("forwardFile"))
     {
         m_forwardRecorder = new FileRecorder(m_forwardCamera.get(),
-                                             Recorder::NEXT_FRAME,
-                                             config["forwardFile"].asString());
+                                             Recorder::MAX_RATE,
+                                             config["forwardFile"].asString(),
+                                             maxRecordRate);
     }
     else if (config.exists("forwardPort"))
     {
         m_forwardRecorder = new NetworkRecorder(m_forwardCamera.get(),
-                                                Recorder::NEXT_FRAME,
-                                                config["forwardPort"].asInt());
+                                                Recorder::MAX_RATE,
+                                                config["forwardPort"].asInt(),
+                                                maxRecordRate);
     }
         
 
     if (config.exists("downwardFile"))
     {
         m_downwardRecorder = new FileRecorder(m_downwardCamera.get(),
-                                              Recorder::NEXT_FRAME,
-                                              config["downwardFile"].asString());
+                                              Recorder::MAX_RATE,
+                                              config["downwardFile"].asString(),
+                                              maxRecordRate);
 
     }
     

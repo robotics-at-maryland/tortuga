@@ -7,9 +7,18 @@ Subsystems:
     VisionSystem:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
-        almostHitPixels: 30000
-        forwardPort: 50000
-        #forwardFile: forward.avi
+        
+#       RedLightDetector:       
+#           intialMinPixels: 400
+#           foundMinPixelScale: 0.85
+#           lostMinPixelScale: 0.75
+#           # About 20% of the total pixels
+#           almostHitPixels: 61440.0
+        
+        # Recording Settings
+#        maxRecordRate: 5 # Hz
+#        forwardFile: forward.avi
+#        forwardPort: 50000
     
     EventHub:
         type: EventHub

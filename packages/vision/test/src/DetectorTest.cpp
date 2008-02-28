@@ -49,9 +49,9 @@ int main(int argc, char** argv)
     // Input file to read from
     std::string input;
     std::string detectorName;
-    std::string outputFilename;
+    std::string output;
     bool show = true;
-    bool output = false;
+    bool outputing = false;
     bool runDetector = false;
     
     try
@@ -67,8 +67,8 @@ int main(int argc, char** argv)
              "Suppress display of image")
             ("disable-detector,d", po::bool_switch(&runDetector),
              "Do not run the detector on input")
-            ("output,o", po::value<std::string>(&outputFilename),
-             "File to write analyzed images to")
+            ("output,o", po::value<std::string>(&output),
+             "File or network port to send images to")
             ("input", po::value<std::string>(&input),
              "Video file, camera #, hostname:port")
             ("detector", po::value<std::string>(&detectorName)->
@@ -87,19 +87,8 @@ int main(int argc, char** argv)
 
     if (vm.count("help"))
     {
-        std::cout << "Usage: DetectorTest <input> [detector] [options]";
-
-        // Loop through positional options and build the usage message          
-        /*if (p.max_total_count() != 0)
-        {
-            std::cout << "[";
-            for (size_t i = 0; i < p.max_total_count(); ++i)
-                std::cout << " " << p.name_for_position(i);
-            std::cout << "]";
-        }
-        */
-        std::cout << std::endl;
-        std::cout << desc << std::endl;
+        std::cout << "Usage: DetectorTest <input> [detector] [options]"
+                  << std::endl << desc << std::endl;
         
         return EXIT_FAILURE;
     }
@@ -108,10 +97,10 @@ int main(int argc, char** argv)
     show = !show;
     runDetector = !runDetector;
 
-    if (outputFilename.length() != 0)
-        output = true;
+    if (output.length() != 0)
+        outputing = true;
 
-    if (!(show || output))
+    if (!(show || outputing))
     {
         std::cout << "Nothing to show on screen or write to disk, closing."
                   << std::endl;
@@ -181,20 +170,20 @@ int main(int argc, char** argv)
             workingImage = outputImage;
         }
 
-        if (output)
+        if (outputing)
         {
             // Create recorder if we haven't already
             // This needs to be done here because we can't be sure of the size
             // of the output image isn't know till now
             if (!recorder)
             {
-                std::cout << "Writing images to " << outputFilename << std::endl;
+                std::cout << "Writing images to " << output << std::endl;
                 
                 recordCamera = new vision::ImageCamera(
                     workingImage->getWidth(), workingImage->getHeight(),
                     camera->fps());
                                     
-                recorder = createRecorder(outputFilename,recordCamera);
+                recorder = createRecorder(output, recordCamera);
                 recorder->unbackground(true);
             }
             
@@ -230,28 +219,24 @@ int main(int argc, char** argv)
 
 vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
 {
-    static boost::regex movie("[a-zA-Z0-9/]+.\\w{3}");
     static boost::regex port("(\\d{1,5})");
-    
-    if (boost::regex_match(output, movie))
-    {
-        std::cout <<"Recording to '" << output << "'" << std::endl;
-        return new vision::FileRecorder(camera, vision::Recorder::NEXT_FRAME, output);
-    }
     
     boost::smatch matcher;
     if (boost::regex_match(output, matcher, port))
     {
-        std::cout <<"Recording to host : '" << boost::lexical_cast<int>(output) <<"'"<< std::endl;
+        std::cout <<"Recording to host : '" << boost::lexical_cast<int>(output)
+                  << "'" << std::endl;
         boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(output);
         
         signal(SIGPIPE,brokenPipeHandler);
-        vision::Recorder* r = new vision::NetworkRecorder(camera,vision::Recorder::NEXT_FRAME, portNum);
+        vision::Recorder* r =
+            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
         return r;
     }
-    
-    std::cout<<"Output is neither a file nor a port number."<<std::endl;
-    return NULL;
+
+    std::cout <<"Assuming output is a file, Recording to '" << output << "'"
+              << std::endl;
+    return new vision::FileRecorder(camera, vision::Recorder::NEXT_FRAME, output);
 }
 
 void brokenPipeHandler(int signum)
@@ -261,18 +246,11 @@ void brokenPipeHandler(int signum)
 
 vision::Camera* createCamera(std::string input)
 {
-    static boost::regex movie("[a-zA-Z0-9/]+.\\w{3}");
     static boost::regex camnum("\\d+");
     static boost::regex hostnamePort("([a-zA-Z0-9.-_]+):(\\d{1,5})");
 
     std::cout << "Images coming from: ";
     
-    if (boost::regex_match(input, movie))
-    {
-        std::cout << "'" << input << "' video file" << std::endl;
-        return new vision::OpenCVCamera(input);
-    }
-
     if (boost::regex_match(input, camnum))
     {
         int camnum = boost::lexical_cast<int>(input);
@@ -290,8 +268,7 @@ vision::Camera* createCamera(std::string input)
                   << "\" on port " << port << std::endl;
         return new vision::NetworkCamera(hostname, port);
     }
-    
-        
-    std::cerr << "Input '" << input << "' is invalid" << std::endl;
-    exit(EXIT_FAILURE);
+
+    std::cout << "'" << input << "' video file" << std::endl;
+    return new vision::OpenCVCamera(input);
 }

@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <set>
+#include <vector>
 #include <algorithm>
 
 // Library Includes
@@ -41,7 +42,8 @@ class RAM_EXPORT MockRecorder : public ram::vision::Recorder
         cleanUp();
     }
 
-    std::set<boost::uint16_t> imageCRCs;
+    std::set<boost::uint16_t> uniqueCRCs;
+    std::vector<boost::uint16_t> imageCRCs;
     ram::vision::Image* lastRecordedFrame;
   protected:
 
@@ -57,7 +59,8 @@ class RAM_EXPORT MockRecorder : public ram::vision::Recorder
         boost::crc_16_type crc_it;
         crc_it = std::for_each( data, data + data_len, crc_it);
 
-        imageCRCs.insert(crc_it());
+        uniqueCRCs.insert(crc_it());
+        imageCRCs.push_back(crc_it());
     }
 };
     
