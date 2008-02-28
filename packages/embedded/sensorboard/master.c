@@ -379,9 +379,11 @@ byte pollThrusterState()
         showString("TSTA FAIL  ", 1);
         return 0;
     }
+//   40 20 10 8 4 2 1
+//   K  1  2  3 4 5 6
 
     if(IN_KS == 1)
-        rxBuf[0] |= 0x10;
+        rxBuf[0] |= 0x40;
 
     return rxBuf[0];
 }
@@ -406,19 +408,19 @@ void processRuntimeDiag()
                 break;
             }
 
-            case 0x1F:  /* Thrusters enabled and magnet attached */
+            case 0x7F:  /* Thrusters enabled and magnet attached */
             {
                 showString("Vehicle Enabled ", 1);
                 break;
             }
 
-            case 0x0F:  /* Thrusters enabled by sensor board, but no magnet */
+            case 0x3F:  /* Thrusters enabled by sensor board, but no magnet */
             {
                 showString("No Kill Switch  ", 1);
                 break;
             }
 
-            case 0x10:  /* Magnet attached but thrusters disabled by sensor board */
+            case 0x40:  /* Magnet attached but thrusters disabled by sensor board */
             {
                 showString("Safe only in SW ", 1);
                 break;
@@ -427,16 +429,18 @@ void processRuntimeDiag()
 
             default:
             {
-                sprintf(tmp, "TS: %c%c%c%c%c       ",
-                    (t & 0x10) ? 'K' : '-',
-                    (t & 0x08) ? '1' : '-',
-                    (t & 0x04) ? '2' : '-',
-                    (t & 0x02) ? '3' : '-',
-                    (t & 0x01) ? '4' : '-');
+                sprintf(tmp, "TS: %c%c%c%c%c%c%c     ",
+                    (t & 0x40) ? 'K' : '-',
+                    (t & 0x20) ? '1' : '-',
+                    (t & 0x10) ? '2' : '-',
+                    (t & 0x08) ? '3' : '-',
+                    (t & 0x04) ? '4' : '-',
+                    (t & 0x02) ? '5' : '-',
+                    (t & 0x01) ? '6' : '-');
 
-                if(t & 0x10)
+                if(t & 0x40)
                 {
-                    sprintf(tmp+10, "UNSAFE");
+                    sprintf(tmp+12, "WARN");
                 }
 
                 showString(tmp, 1);
@@ -921,11 +925,13 @@ int main(void)
                 {
                     BUS_CMD_THRUSTER1_OFF, BUS_CMD_THRUSTER2_OFF,
                     BUS_CMD_THRUSTER3_OFF, BUS_CMD_THRUSTER4_OFF,
+                    BUS_CMD_THRUSTER5_OFF, BUS_CMD_THRUSTER6_OFF,
                     BUS_CMD_THRUSTER1_ON, BUS_CMD_THRUSTER2_ON,
-                    BUS_CMD_THRUSTER3_ON, BUS_CMD_THRUSTER4_ON
+                    BUS_CMD_THRUSTER3_ON, BUS_CMD_THRUSTER4_ON,
+                    BUS_CMD_THRUSTER5_ON, BUS_CMD_THRUSTER6_ON
                 };
 
-                if(cflag == 1 || t1 > 7 || (t2 != cs))
+                if(cflag == 1 || t1 > 11 || (t2 != cs))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;

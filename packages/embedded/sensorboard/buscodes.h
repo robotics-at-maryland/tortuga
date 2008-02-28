@@ -77,3 +77,25 @@
 #define HOST_REPLY_BOARDSTATUS      0x05
 
 #define HOST_CMD_HARDKILL           0x06
+#define HOST_CMD_MARKER             0x07
+#define HOST_CMD_BACKLIGHT          0x08
+
+#define HOST_CMD_THRUSTERS          0x09
+
+#define HOST_CMD_TEMPERATURE        0x0A
+#define HOST_REPLY_TEMPERATURE      0x0B
+
+#define HOST_CMD_PRINTTEXT          0x0C
+
+#define HOST_CMD_SONAR              0x0D
+#define HOST_REPLY_SONAR            0x0E
+
+#define HOST_CMD_RUNTIMEDIAG        0x0F
+
+#define HOST_CMD_THRUSTERSTATE      0x10
+#define HOST_REPLY_THRUSTERSTATE    0x11
+
+#define HOST_CMD_SETSPEED           0x12
+
+#define HOST_CMD_MOTOR_READ         0x13
+#define HOST_CMD_MOTOR_REPLY        0x14
