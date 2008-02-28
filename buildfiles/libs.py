@@ -207,7 +207,7 @@ def _get_internal_lib(env, name):
     if INTERNAL_LIBS is None:
         INTERNAL_LIBS = {
             'vision' : InternalLibrary('vision',
-                                       int_deps = ['pattern', 'core'],
+                                       int_deps = ['pattern', 'core', 'math'],
                                        ext_deps = ['OpenCV', 'Boost.Thread']),
             
             'pattern' : InternalLibrary('pattern', int_deps = [],
