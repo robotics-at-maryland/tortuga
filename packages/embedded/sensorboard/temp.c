@@ -592,9 +592,14 @@ void initCN()
 {
     enableBusInterrupt();
     enableWaterInterrupt();
-    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
+    IPC6bits.U2TXIP = 6;    /* TX at priority 6 */
+    IPC6bits.U2RXIP = 5;    /* RX at priority 5 */
+    IPC3bits.CNIP = 4;      /* Bus at priority 4 */
+    IPC2bits.ADIP = 2;      /* ADC at priority 2 */
+
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
+
 }
 
 
