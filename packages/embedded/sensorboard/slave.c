@@ -36,10 +36,16 @@ _FWDT ( WDT_OFF );
 #define TRIS_RW     _TRISE8
 
 /* Thurster Safety Pins */
+#define TRIS_TK6    _TRISB1
+#define TRIS_TK5    _TRISB2
 #define TRIS_TK4    _TRISB3
 #define TRIS_TK3    _TRISB4
 #define TRIS_TK2    _TRISB5
 #define TRIS_TK1    _TRISC15
+
+
+#define LAT_TK6     _LATB1
+#define LAT_TK5     _LATB2
 #define LAT_TK4     _LATB3
 #define LAT_TK3     _LATB4
 #define LAT_TK2     _LATB5
@@ -165,13 +171,13 @@ void processData(byte data)
 
                 case BUS_CMD_MARKER1:
                 {
-                    dropMarker(0);
+//                     dropMarker(0);
                     break;
                 }
 
                 case BUS_CMD_MARKER2:
                 {
-                    dropMarker(1);
+//                     dropMarker(1);
                     break;
                 }
 
@@ -229,6 +235,19 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_THRUSTER5_OFF:
+                {
+                    LAT_TK5 = 0;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER6_OFF:
+                {
+                    LAT_TK6 = 0;
+                    break;
+                }
+
+
                 case BUS_CMD_THRUSTER1_ON:
                 {
                     LAT_TK1 = 1;
@@ -249,6 +268,18 @@ void processData(byte data)
                 case BUS_CMD_THRUSTER4_ON:
                 {
                     LAT_TK4 = 1;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER5_ON:
+                {
+                    LAT_TK5 = 1;
+                    break;
+                }
+
+                case BUS_CMD_THRUSTER6_ON:
+                {
+                    LAT_TK6 = 1;
                     break;
                 }
 
@@ -600,11 +631,16 @@ void main()
     LAT_TK2 = 0;
     LAT_TK3 = 0;
     LAT_TK4 = 0;
+    LAT_TK5 = 0;
+    LAT_TK6 = 0;
+
 
     TRIS_TK1 = TRIS_OUT;
     TRIS_TK2 = TRIS_OUT;
     TRIS_TK3 = TRIS_OUT;
     TRIS_TK4 = TRIS_OUT;
+    TRIS_TK5 = TRIS_OUT;
+    TRIS_TK6 = TRIS_OUT;
 
 
     for(i=0; i<16; i++)
