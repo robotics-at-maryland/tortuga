@@ -78,7 +78,8 @@ byte cfgRegs[16];
 #define STATE_TOP_LEVEL     0
 #define STATE_READ_CMD      1
 #define STATE_WRITE_CMD     2
-
+#define STATE_SETSPEED_U1   4
+#define STATE_SETSPEED_U2   5
 
 #define I2C_TIMEOUT 100000
 
@@ -294,6 +295,44 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_SETSPEED_U1:
+                {
+                    busState = STATE_SETSPEED_U1;
+                    nParam = 0;
+                    break;
+                }
+
+                case BUS_CMD_SETSPEED_U2:
+                {
+                    busState = STATE_SETSPEED_U2;
+                    nParam = 0;
+                    break;
+                }
+
+#ifdef HAS_U1
+                case BUS_CMD_GETREPLY_U1:
+                {
+                    txBuf[0] = 1;
+                    if(U1CanRead())
+                        txBuf[1] = U1ReadByte();
+                    else
+                        txBuf[1] = 0xFF;
+                    break;
+                }
+#endif
+
+#ifdef HAS_U2
+                case BUS_CMD_GETREPLY_U2:
+                {
+                    txBuf[0] = 1;
+                    if(U2CanRead())
+                        txBuf[1] = U2ReadByte();
+                    else
+                        txBuf[1] = 0xFF;
+                    break;
+                }
+#endif
+
                 case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
@@ -323,6 +362,25 @@ void processData(byte data)
             }
         }
         break;
+
+        case STATE_SETSPEED_U1:
+        case STATE_SETSPEED_U2:
+        {
+            if(nParam == 0)
+                p1 = data;
+
+            nParam++;
+
+            if(nParam == 2)
+            {
+                nParam=0;
+                UARTSendSpeed((busState == STATE_SETSPEED_U1) ? U1_MM_ADDR : U2_MM_ADDR,
+                              p1, data, (busState == STATE_SETSPEED_U1) ? 0 : 1);
+                busState = STATE_TOP_LEVEL;
+            }
+            break;
+        }
+
 
         case STATE_READ_CMD:
         {
