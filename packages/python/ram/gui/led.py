@@ -11,22 +11,27 @@ def change_intensity(color, fac):
     return wx.Color(*rgb)    
 
 class LED(wx.Control):
-    def __init__(self, parent, id=-1,
-                 colors= None, pos=(-1,-1), style=wx.NO_BORDER, state = -1):
+    WIDTH = 17
+    HEIGHT = 17
+    
+    def __init__(self, parent, id=-1, colors= None, pos=(-1,-1),
+                 size = (WIDTH, HEIGHT), style=wx.NO_BORDER,
+                 state = -1):
         if colors is None:
             colors = [wx.Colour(220, 10, 10),  # Red
                       wx.Colour(250, 200, 0),  # Yellow
-                      wx.Colour(10, 220, 10)] # Green
+                      wx.Colour(10, 220, 10),  # Green
+                      wx.Colour(0, 0, 0)]      # Black
         
-        size = (17, 17)
         wx.Control.__init__(self, parent, id, pos, size, style)
-        self.MinSize = size
+        self.MinSize = (LED.WIDTH, LED.HEIGHT)
         
         self.bmp = None
         self._colors = colors
-        self._state = state
-        self.SetState(0)
+        self._state = None
         self.Bind(wx.EVT_PAINT, self.OnPaint, self)
+
+        self.SetState(state)
         
     def SetState(self, i):
         if i < 0:
@@ -35,7 +40,7 @@ class LED(wx.Control):
             raise IndexError, 'There is no state with an index of %d.' % i
         elif i == self._state:
             return
-        
+
         self._state = i
         base_color = self._colors[i]
         light_color = change_intensity(base_color, 1.15)
@@ -81,6 +86,16 @@ class LED(wx.Control):
     State = property(GetState, SetState)
     
     def OnPaint(self, e):
+        width, height = self.GetSize()
+
+        # Center the bitmap in the control
+        x = int((width - LED.WIDTH) / 2.0)
+        y = int((height - LED.HEIGHT) / 2.0)
+        if x < 0:
+            x = 0
+        if y < 0:
+            y = 0;
+        
         dc = wx.PaintDC(self)
         if self.bmp is not None:
-            dc.DrawBitmap(self.bmp, 0, 0, True)
+            dc.DrawBitmap(self.bmp, x, y, True)

@@ -13,7 +13,6 @@ import core
 import ext.core
 import ext.vision
 import ram.gui.led
-#import sim.vision
 import gui.view
 
 
@@ -29,6 +28,9 @@ class VisionPanel(wx.Panel):
         self._elevation = None
         self._range = None
         self._bouyLED = None
+        self._generatedControls = []
+        self._controlsShowing = True
+        self._hide = None
         
         # Controls
         self._createControls()
@@ -49,44 +51,68 @@ class VisionPanel(wx.Panel):
             conn.disconnect()
         
     def _createControls(self):
-        sizer =  wx.GridBagSizer(10, 10)
+        # Creat box around controls
+        box = wx.StaticBox(parent = self, label = "Bouy")
+        topSizer = wx.StaticBoxSizer(box)
+        
+        self.sizer = wx.FlexGridSizer(0, 2, 10, 10)
+        topSizer.Add(self.sizer, 1, wx.EXPAND)
         
         # Buoy Text and Label
-        label = wx.StaticText(self, label = "Bouy")
-        sizer.Add(label, (0,0), flag = wx.ALIGN_CENTER)
-        self._bouyLED = ram.gui.led.LED(self, state = 0)
-        sizer.Add(self._bouyLED, (0, 1), flag = wx.ALIGN_CENTER)
+        self._hide = wx.Button(self, label = "Hide")
+        self.sizer.Add(self._hide, 1, flag = wx.ALIGN_CENTER)
+        self._hide.Bind(wx.EVT_BUTTON, self._onButton)
+
+        size = (self._getTextSize()[0], ram.gui.led.LED.HEIGHT)
+        self._bouyLED = ram.gui.led.LED(self, state = 3, size = size)
+        self._bouyLED.MinSize = size
+        self.sizer.Add(self._bouyLED, 1, flag = wx.ALIGN_CENTER)
         
         # Create controls
-        self._createDataControl(sizer = sizer, controlName = '_x', 
-                                pos = (1, 0), label = 'Y Pos: ')
-        self._createDataControl(sizer = sizer, controlName = '_y', 
-                                pos = (2, 0), label = 'X Pos: ')
-        self._createDataControl(sizer = sizer, controlName = '_azimuth', 
-                                pos = (3, 0), label = 'Azimuth: ')
-        self._createDataControl(sizer = sizer, controlName = '_elevation', 
-                                pos = (4, 0), label = 'Elvevation: ')
-        self._createDataControl(sizer = sizer, controlName = '_range', 
-                                pos = (5, 0), label = 'Range: ')
+        self._createDataControl(controlName = '_x', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_y', label = 'X Pos: ')
+        self._createDataControl(controlName = '_azimuth', label = 'Azimuth: ')
+        self._createDataControl(controlName = '_elevation',
+                                label = 'Elvevation: ')
+        self._createDataControl(controlName = '_range',  label = 'Range: ')
+
+        # Start off greyed out
+        for control in self._generatedControls:
+            control.Enable(False)
         
-        self.SetSizerAndFit(sizer)
-        
-    def _createDataControl(self, sizer, controlName, pos, label):
+        self.SetSizerAndFit(topSizer)
+
+    def _getTextSize(self):
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+0.000')
-        textSize = wx.Size(textWidth, wx.DefaultSize.height) 
+        return wx.Size(textWidth, wx.DefaultSize.height)         
+        
+    def _createDataControl(self, controlName, label):
+        textSize = self._getTextSize()
         textStyle = wx.TE_RIGHT | wx.TE_READONLY
         
         desiredLabel = wx.StaticText(self, label = label)
-        sizer.Add(desiredLabel, pos, flag = wx.ALIGN_RIGHT)
+        self.sizer.Add(desiredLabel, 1, flag = wx.ALIGN_RIGHT)
         
         control = wx.TextCtrl(self, size = textSize, style = textStyle)
         setattr(self, controlName, control)
+        self._generatedControls.append(control)
+        self.sizer.Add(control, proportion = 1 , flag = wx.ALIGN_CENTER)
+
+    def _onButton(self, event):
+        if self._controlsShowing:
+            self._hide.Label = "Show"
+        else:
+            self._hide.Label = "Hide"
         
-        
-        sizer.Add(control, (pos[0], pos[1] + 1) , flag = wx.ALIGN_CENTER)
-        
+        self._controlsShowing = not self._controlsShowing
+        for i in xrange(2, (len(self._generatedControls) + 1) * 2):
+            self.sizer.Show(i, self._controlsShowing)
+        self.sizer.Layout()
         
     def _onBouyFound(self, event):
+        for control in self._generatedControls:
+            control.Enable()
+        
         self._x.Value = "% 4.2f" % event.x
         self._y.Value = "% 4.2f" % event.y    
         self._azimuth.Value = "% 4.2f" % event.azimuth.valueDegrees()
@@ -98,11 +124,8 @@ class VisionPanel(wx.Panel):
         self._bouyLED.SetState(2)
     
     def _onBouyLost(self, event):
-#        self._x.Value = 'NA'
-#        self._y.Value = 'NA'
-#        self._azimuth.Value = 'NA'
-#        self._elevation.Value = 'NA'
-#        self._range.Value = 'NA'
+        for control in self._generatedControls:
+            control.Enable(False)
         
         self._bouyLED.SetState(0)
         
