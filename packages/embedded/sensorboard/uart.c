@@ -70,13 +70,6 @@ The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
 #ifdef SENSORBOARD_IC3
     /* U1 multiplexed to I2C. U1Alt multiplexed to bus */
     /* U2 is available but TX/RX not conveliently placed */
-
-    #define HAS_U2
-
-                    // 48 for PLL4
-    #define U2_BRG 11
-    #define U2_MM_ADDR 0x05
-
 #endif
 
 /* Depth (slave.c) */
@@ -87,15 +80,7 @@ The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
                     // 48 for PLL4
     #define U1_BRG 11
     #define U1_MM_ADDR 0x01
-
-
     /* U2 available, but not conveliently placed */
-    #define HAS_U2
-
-                    // 48 for PLL4
-    #define U2_BRG 11
-    #define U2_MM_ADDR 0x06
-
 #endif
 
 

@@ -78,8 +78,7 @@ byte cfgRegs[16];
 #define STATE_TOP_LEVEL     0
 #define STATE_READ_CMD      1
 #define STATE_WRITE_CMD     2
-#define STATE_SETSPEED_U1   4
-#define STATE_SETSPEED_U2   5
+
 
 #define I2C_TIMEOUT 100000
 
@@ -295,44 +294,6 @@ void processData(byte data)
                     break;
                 }
 
-                case BUS_CMD_SETSPEED_U1:
-                {
-                    busState = STATE_SETSPEED_U1;
-                    nParam = 0;
-                    break;
-                }
-
-                case BUS_CMD_SETSPEED_U2:
-                {
-                    busState = STATE_SETSPEED_U2;
-                    nParam = 0;
-                    break;
-                }
-
-#ifdef HAS_U1
-                case BUS_CMD_GETREPLY_U1:
-                {
-                    txBuf[0] = 1;
-                    if(U1CanRead())
-                        txBuf[1] = U1ReadByte();
-                    else
-                        txBuf[1] = 0xFF;
-                    break;
-                }
-#endif
-
-#ifdef HAS_U2
-                case BUS_CMD_GETREPLY_U2:
-                {
-                    txBuf[0] = 1;
-                    if(U2CanRead())
-                        txBuf[1] = U2ReadByte();
-                    else
-                        txBuf[1] = 0xFF;
-                    break;
-                }
-#endif
-
                 case BUS_CMD_BOARDSTATUS:
                 {
                     txBuf[0] = 1;
@@ -362,25 +323,6 @@ void processData(byte data)
             }
         }
         break;
-
-        case STATE_SETSPEED_U1:
-        case STATE_SETSPEED_U2:
-        {
-            if(nParam == 0)
-                p1 = data;
-
-            nParam++;
-
-            if(nParam == 2)
-            {
-                nParam=0;
-                UARTSendSpeed((busState == STATE_SETSPEED_U1) ? U1_MM_ADDR : U2_MM_ADDR,
-                              p1, data, (busState == STATE_SETSPEED_U1) ? 0 : 1);
-                busState = STATE_TOP_LEVEL;
-            }
-            break;
-        }
-
 
         case STATE_READ_CMD:
         {
@@ -592,14 +534,9 @@ void initCN()
 {
     enableBusInterrupt();
     enableWaterInterrupt();
-    IPC6bits.U2TXIP = 6;    /* TX at priority 6 */
-    IPC6bits.U2RXIP = 5;    /* RX at priority 5 */
-    IPC3bits.CNIP = 4;      /* Bus at priority 4 */
-    IPC2bits.ADIP = 2;      /* ADC at priority 2 */
-
+    IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
-
 }
 
 
