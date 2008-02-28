@@ -143,7 +143,7 @@ TEST(mainLoop)
         for (size_t i = 0; i < loopSubsystem->actualUpdates.size(); ++i)
         {
             CHECK_CLOSE(loopSubsystem->actualUpdates[i],
-                        loopSubsystem->expectedUpdates[i], 0.01);
+                        loopSubsystem->expectedUpdates[i], 0.05);
         }
     }
 }

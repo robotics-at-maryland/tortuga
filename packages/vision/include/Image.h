@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <cstddef>
+#include <string>
 
 // Library Includes
 #include <boost/utility.hpp>

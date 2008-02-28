@@ -211,7 +211,7 @@ class Simulation(Singleton, Module):
         
         
         extension = '.so'
-        if 'Windows' == platform.system():
+        if 'nt' == os.name:
             extension = '.dll'
             
         for plugin in config.get('plugins', defaults.ogre_plugins):

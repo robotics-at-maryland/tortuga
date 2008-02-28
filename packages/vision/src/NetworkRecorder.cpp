@@ -14,9 +14,13 @@
 #include <iostream>
 
 // System Includes
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <arpa/inet.h>
+#ifdef RAM_POSIX
+	#include <sys/socket.h>
+	#include <sys/select.h>
+	#include <arpa/inet.h>
+#else
+	#include <winsock2.h>
+#endif
 
 // Project Includes
 #include "vision/include/NetworkRecorder.h"
@@ -39,6 +43,14 @@ NetworkRecorder::NetworkRecorder(Camera* camera,
     m_addr(0),
     m_currentAddr(0)
 {
+#ifndef RAM_POSIX
+	WSADATA wsaData;
+	WORD version;
+	int error;
+	version = MAKEWORD( 2, 0 );
+	error = WSAStartup( version, &wsaData );
+#endif
+
     m_packet.width = htons(static_cast<boost::uint16_t>(camera->width()));
     m_packet.height = htons(static_cast<boost::uint16_t>(camera->height()));
     m_packet.dataSize = 0;
@@ -85,12 +97,20 @@ void NetworkRecorder::unbackground(bool join)
     // Close sockets (will force update function to stop)
     if (m_listenSocket >= 0)
     {
+#ifdef RAM_POSIX
         close(m_listenSocket);
+#else
+		closesocket(m_listenSocket);
+#endif
         m_listenSocket = -1;
     }
     if (m_currentSocket >= 0)
     {
-        close(m_currentSocket);
+#ifdef RAM_POSIX
+        close(m_listenSocket);
+#else
+		closesocket(m_listenSocket);
+#endif
         m_listenSocket = -1;
     }
 
@@ -166,12 +186,20 @@ void NetworkRecorder::setupListenSocket()
 
 bool NetworkRecorder::sendData(void* buf, size_t len)
 {
+#ifdef RAM_POSIX
     if (send(m_currentSocket, buf, len, 0) < 0)
+#else
+	if (send(m_currentSocket, (char*)buf, len, 0) < 0)
+#endif
     {
         perror("send");
         
         // Sending data failed, close connection
+#ifdef RAM_POSIX
         close(m_currentSocket);
+#else
+		closesocket(m_currentSocket);
+#endif
         m_currentSocket = -1;
         
         return false;
@@ -183,7 +211,11 @@ bool NetworkRecorder::sendData(void* buf, size_t len)
 int NetworkRecorder::acceptConnection(double timeout)
 {
     m_currentAddr = (struct sockaddr_in*)calloc(sizeof(*m_currentAddr), 1);
+#ifdef RAM_POSIX
     socklen_t sin_size = sizeof(struct sockaddr_in);
+#else
+	int sin_size = (int)sizeof(struct sockaddr_in);
+#endif
     int newfd = 0;
 
     // Use select to get a timeout type accept call

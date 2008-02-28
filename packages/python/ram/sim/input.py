@@ -251,7 +251,7 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
             params.extend([('x11_keyboard_grab', 'false'), 
                                ('x11_mouse_grab','false'),
                                 ('XAutoRepeatOn', 'true')])
-        elif 'Windows' == plat:
+        elif 'Windows' == plat or 'Microsoft' == plat:
             pass
         else:
             raise InputSystem, "Platform '%s' not supposed" % plat

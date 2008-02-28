@@ -25,9 +25,9 @@
 #include "vision/include/Image.h"
 
 // Must be included last
-#include "vision/include/Export.h"
+#//include "vision/include/Export.h"
 
-class RAM_EXPORT MockRecorder : public ram::vision::Recorder
+class MockRecorder : public ram::vision::Recorder
 {
   public:
     MockRecorder(ram::vision::Camera* camera,

@@ -13,12 +13,13 @@
 // Project Includes
 #include "vision/include/Image.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
 
 /** A minmal camera class which can be driven by external images */
-class ImageCamera : public ram::vision::Camera
+class RAM_EXPORT ImageCamera : public ram::vision::Camera
 {
 public:
     ImageCamera(size_t width, size_t height, size_t fps);

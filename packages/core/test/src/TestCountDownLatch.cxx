@@ -30,7 +30,7 @@ TEST(timedAwait)
 
     double actual = duration.get_double();
     CHECK_EQUAL(false, result);
-    CHECK_CLOSE(1, actual, 0.01);
+    CHECK_CLOSE(1, actual, 0.02);
 }
     
 } // SUITE(CountDownLatch)

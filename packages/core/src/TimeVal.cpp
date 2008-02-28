@@ -152,7 +152,7 @@ void TimeVal::sleep(const TimeVal& duration)
     
     nanosleep(&sleep, &act_sleep);  
 #else
-    long millseconds = duraction.get_double() / 1000;
+    long milliseconds = duration.get_double() / 1000;
     Sleep(milliseconds);
 #endif
 }

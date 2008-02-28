@@ -21,6 +21,10 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/Events.h"
 
+#ifndef M_PI
+#define M_PI 3.14159
+#endif
+
 namespace ram {
 namespace vision {
 

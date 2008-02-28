@@ -14,10 +14,14 @@
 #include <iostream>
 
 // System Includes
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h> // gethosebyname
-#include <netinet/in.h>
+#ifdef RAM_POSIX
+	#include <sys/socket.h>
+	#include <arpa/inet.h>
+	#include <netdb.h> // gethosebyname
+	#include <netinet/in.h>
+#else
+	#include <winsock2.h>
+#endif
 
 // Project includes
 #include "vision/include/NetworkCamera.h"
@@ -48,7 +52,15 @@ NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port) :
     m_addr->sin_family = AF_INET;    // host byte order
     m_addr->sin_port = htons(port);  // short, network byte order
     m_addr->sin_addr = *((struct in_addr *)he->h_addr);
-    
+
+#ifndef RAM_POSIX
+	WSADATA wsaData;
+	WORD version;
+	int error;
+	version = MAKEWORD( 2, 0 );
+	error = WSAStartup( version, &wsaData );
+#endif
+
     // Create socket
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_sockfd < 0)
@@ -78,9 +90,13 @@ NetworkCamera::~NetworkCamera()
 {
     // Have to stop background capture before we release the capture!
     cleanup();
-    close(m_sockfd);
+    closesocket(m_sockfd);
     free(m_addr);
     free(m_buffer);
+
+#ifndef RAM_POSIX
+	WSACleanup();
+#endif
 }
 
 void NetworkCamera::update(double timestep)
@@ -149,7 +165,11 @@ void NetworkCamera::recieve(void* buf, size_t len)
     // Loop until we have all the data off the socket
     while ((errno == 0) && (len != 0u))
     {
+#ifdef RAM_POSIX
         size_t bytes = recv(m_sockfd, buf, len, 0);
+#else
+		size_t bytes = recv(m_sockfd, (char*)buf, len, 0);
+#endif
 
         if ((((size_t)-1) == bytes) || (errno != 0))
         {
