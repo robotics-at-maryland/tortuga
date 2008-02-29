@@ -38,7 +38,7 @@ ic4.o : ic4.c buscodes.h uart.c i2c.c
 	$(CC) -mcpu=30F4013 $(CFLAGS) -Wunused-function -c $< -o $@
 
 ic4.elf : ic4.o uart.c i2c.c
-	$(CC) -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f4013.gld,--heap=0,-lp30F6014-elf,--report-mem /home/steve/dspicc/c30/lib/libp30F4013-elf.a $< -o $@
+	$(CC) -Wl,-L/home/steve/dspicc/c30/lib,--script=/home/steve/dspicc/c30/support/gld/p30f4013.gld,--heap=0,-lp30F4013-elf,--report-mem /home/steve/dspicc/c30/lib/libp30F4013-elf.a $< -o $@
 
 
 
