@@ -89,7 +89,7 @@ TEST(CreateDestroy)
                                 core::ConfigNode::fromString("{}"),
                                 core::SubsystemList());
 }
-
+#ifndef RAM_WINDOWS
 TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 {
     // Blue Image with red circle in upper left (remeber image rotated 90 deg)
@@ -122,5 +122,5 @@ TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 
     forwardCamera->unbackground(true);
 }
-
+#endif
 } // SUITE(RedLightDetector)

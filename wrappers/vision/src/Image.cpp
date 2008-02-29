@@ -62,6 +62,7 @@ public:
     virtual bool getOwnership() const
     {
         assert(false && "Not Implemented");
+		return false;
     };
     
     virtual unsigned char* setData(unsigned char*, bool)

@@ -15,10 +15,13 @@
 #include "core/include/Event.h"
 #include "math/include/Math.h"
 
+// Must Be Included last
+#include "vision/include/Export.h"
+
 namespace ram {
 namespace vision {
 
-struct EventType 
+struct RAM_EXPORT EventType 
 {
     static const core::Event::EventType LIGHT_FOUND;
     static const core::Event::EventType LIGHT_LOST;
@@ -28,7 +31,7 @@ struct EventType
     static const core::Event::EventType BIN_FOUND;
 };
 
-class ImageEvent : public core::Event
+class RAM_EXPORT ImageEvent : public core::Event
 {
 public:
     ImageEvent(Image* image_)
@@ -39,7 +42,7 @@ public:
 
 typedef boost::shared_ptr<ImageEvent> ImageEventPtr;
     
-class RedLightEvent : public core::Event
+class RAM_EXPORT RedLightEvent : public core::Event
 {
 public:
     RedLightEvent(double x, double y)
@@ -55,7 +58,7 @@ public:
 
 typedef boost::shared_ptr<RedLightEvent> RedLightEventPtr;
     
-class PipeEvent : public core::Event
+class RAM_EXPORT PipeEvent : public core::Event
 {
 public:
     PipeEvent(double x, double y, double angle)

@@ -233,8 +233,9 @@ vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
         std::cout <<"Recording to host : '" << boost::lexical_cast<int>(output)
                   << "'" << std::endl;
         boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(output);
-        
+#ifdef RAM_POSIX
         signal(SIGPIPE,brokenPipeHandler);
+#endif
         vision::Recorder* r =
             new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
         return r;

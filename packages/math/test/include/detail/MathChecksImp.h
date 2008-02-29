@@ -19,6 +19,7 @@
 #include "math/include/Quaternion.h"
 #include "math/include/Matrix3.h"
 #include "math/include/Matrix4.h"
+#include "math/include/MatrixN.h"
 
 // Place inside UnitTest++ namespace to override there usage
 namespace UnitTest {
@@ -60,6 +61,17 @@ namespace UnitTest {
                   const double& tolerance)
     {
         return ArrayAreClose(expected[0], actual[0], 16, tolerance);
+    }
+
+	template<>
+    bool AreClose(const ram::math::MatrixN& expected,
+                  const ram::math::MatrixN& actual,
+                  const double& tolerance)
+    {
+		if (expected.getRows() != actual.getRows() || expected.getCols() != actual.getCols())
+			return false;
+        return ArrayAreClose(expected[0], actual[0], 
+			actual.getRows()*actual.getCols(), tolerance);
     }
     
 } // namespace UnitTest

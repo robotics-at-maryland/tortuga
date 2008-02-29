@@ -54,6 +54,7 @@ TEST_FIXTURE(VisionRunnerFixture, CreateDestroy)
     vision::VisionRunner runner(camera);
 }
 
+#ifndef RAM_WINDOWS
 TEST_FIXTURE(VisionRunnerFixture, Update)
 {
     vision::VisionRunner runner(camera);
@@ -95,5 +96,6 @@ TEST_FIXTURE(VisionRunnerFixture, Update)
 
     camera->unbackground(true);
 }
+#endif
   
 } // SUITE(VisionRunner)

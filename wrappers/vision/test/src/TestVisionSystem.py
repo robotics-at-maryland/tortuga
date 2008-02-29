@@ -8,14 +8,13 @@
 # STD Imports
 import os
 import unittest
+import platform
 
 # Project Imports
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
 import ram.timer as timer
-
-import platform
 
 def getConfigRoot():
     root = os.environ['RAM_SVN_DIR']
@@ -43,7 +42,7 @@ class TestVisionSystem(unittest.TestCase):
         self.found = False
         self.event = event
 
-    if platform.system() != 'Darwin':
+    if platform.system() != 'Darwin' and os.name == 'posix':
         
         def testRedLightDetector(self):
             # Create a vision system with two mock cameras and an EventHub
