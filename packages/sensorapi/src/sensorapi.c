@@ -446,7 +446,7 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
 // 14 xx xx xx xx CS
 int readSpeedResponses(int fd)
 {
-    unsigned char buf[6]={0x13, 0x13};
+    unsigned char buf[8]={0x13, 0x13};
     int i;
 
     writeData(fd, buf, 2);
@@ -459,11 +459,14 @@ int readSpeedResponses(int fd)
 
     unsigned char sum = 0;
 
-    for(i=0; i<5; i++)
+    for(i=0; i<7; i++)
         sum = (sum+buf[i]) & 0xFF;
 
-    if(sum != buf[5])
+    if(sum != buf[7])
+    {
+        printf("bad cs: got %02x, expected %02x\n", sum, buf[7]);
         return SB_ERROR;
+    }
 
     int errCount=0;
 
