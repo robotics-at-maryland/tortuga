@@ -428,7 +428,7 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
     for(i=0; i<13; i++)
         buf[13]+=buf[i];
 
-    writeData(fd, buf, 10);
+    writeData(fd, buf, 14);
     readData(fd, buf, 1);
 
     if(buf[0] == 0xBC)
@@ -455,7 +455,7 @@ int readSpeedResponses(int fd)
     if(buf[0] != 0x14)
         return SB_ERROR;
 
-    readData(fd, buf+1, 5);
+    readData(fd, buf+1, 7);
 
     unsigned char sum = 0;
 
@@ -473,7 +473,7 @@ int readSpeedResponses(int fd)
 
     if(errCount != 0)
     {
-        printf("\t Got: %02x %02x %02x %02x\n", buf[1], buf[2], buf[3], buf[4]);
+        printf("\t Got: %02x %02x %02x %02x %02x %02x\n", buf[1], buf[2], buf[3], buf[4], buf[5], buf[6]);
         return SB_ERROR;
     }
 
