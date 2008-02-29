@@ -470,7 +470,7 @@ int readSpeedResponses(int fd)
 
     int errCount=0;
 
-    for(i=0; i<6; i++)
+    for(i=4; i<6; i++)
         if(buf[i+1] != 0x06)
             errCount++;
 
