@@ -20,18 +20,35 @@ class MultiBar(wx.PyControl):
     GREEN = wx.Colour(0, 255, 0, 100)
     VERTICAL = 0
     HORIZONTAL = 1
-    def __init__(self, parent, innerBorder=20, barType=VERTICAL, id=wx.ID_ANY, pos=wx.DefaultPosition,
+    def __init__(self, parent, innerBorder=15, barType=VERTICAL, colorList=[], valueList=[], max=100,min=-100, id=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.NO_BORDER, validator=wx.DefaultValidator,name="valbar"):
         wx.PyControl.__init__(self, parent, id, pos, size, style, validator, name)
         self.parent = parent
         # Default to 0%
-        self.barValue = 50 
+        self.barValue = 0
+
         # The max/min values of the bar
-        self.maxValue = 100
-        self.minValue = -100
-        self.innerBorder=innerBorder 
+        self.maxValue = max
+        self.minValue = min
+        self.innerBorder = innerBorder 
         self.barType = barType
+        self.colorList = colorList
+        self.valueList = valueList
+        self.multiDirectional = False
         
+        # If a value list is defined, grab the first and last element for min/max values
+        if len(self.valueList) > 0:
+            self.minValue = self.valueList[0]
+            self.maxValue = self.valueList[-1]
+        
+        # Check if the values indicate a mutlidirectional control
+        if self.minValue < 0 and self.maxValue > 0:
+            self.multiDirectional = True
+        
+        # If we are going to be working with color coded value range, ensure the conditions are met 
+        if len(colorList) > 0 or len(valueList) > 0:
+            assert(len(colorList) == len(valueList) - 1) # This MUST be true for proper functionality
+
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         
@@ -54,37 +71,62 @@ class MultiBar(wx.PyControl):
         # Draw the rectangle to represent the value
         pen = wx.Pen(MultiBar.GREEN, 1)
         brush = wx.Brush(MultiBar.GREEN) #wx.Brush("green")
+        
+        # Rotate the graphics context if we're drawing a horizontal box
         if self.barType == MultiBar.HORIZONTAL:  
             gc.Rotate((pmath.pi / 2))
             gc.Translate(0,-width)
             width,height = height,width
-
-        if self.barValue > 0:
-            gc.SetPen(pen)
-            gc.SetBrush(brush)
-        else:
-            pen.SetColour(MultiBar.RED)
-            brush.SetColour(MultiBar.RED)
-            gc.SetPen(pen)
-            gc.SetBrush(brush)
-            
-        path = gc.CreatePath()
-        percent = float(self.barValue) / (self.maxValue*2) 
-        heightScale = -height*percent
-        path.AddRectangle(0+self.innerBorder, height/2, width-(self.innerBorder*2), heightScale) #innerBorder
-        gc.DrawPath(path)
         
-        pen.SetColour("black")
-        pen.SetWidth(2)  
-        gc.SetPen(pen)  
-        gc.StrokeLine(0,height/2,width,height/2)
-        brush.SetStyle(wx.TRANSPARENT)
-        gc.SetBrush(brush)
-        border = gc.CreatePath()
-        border.AddRectangle(0, 0, width, height)
-        gc.DrawPath(border)   
-       
-             
+        if self.multiDirectional:
+            # Set the brush according to the sign of the barValue
+            if self.barValue > 0:
+                gc.SetPen(pen)
+                gc.SetBrush(brush)
+            else:
+                pen.SetColour(MultiBar.RED)
+                brush.SetColour(MultiBar.RED)
+                gc.SetPen(pen)
+                gc.SetBrush(brush)
+            # Create a path to represent the percent to be filled
+            progressPath = gc.CreatePath()
+            percent = float(self.barValue) / (self.maxValue + abs(self.minValue)) 
+            heightScale = -height*percent
+            innerBorder = (self.innerBorder / 100.0) * width
+            progressPath.AddRectangle(0+innerBorder, height/2, width-(innerBorder*2), heightScale) #innerBorder
+            gc.DrawPath(progressPath)
+            
+            pen.SetColour("black")
+            pen.SetWidth(2)  
+            gc.SetPen(pen)  
+            gc.StrokeLine(0,height/2,width,height/2)
+            brush.SetStyle(wx.TRANSPARENT)
+            gc.SetBrush(brush)
+            border = gc.CreatePath()
+            border.AddRectangle(0, 0, width, height)
+            gc.DrawPath(border)   
+        else: # Unidirectional control 
+            progressPath = gc.CreatePath()
+            percent = float(self.barValue) / float(self.maxValue) 
+            heightScale = -height*percent
+            for i in xrange(0,len(self.colorList)):
+                if self.barValue <= self.valueList[i+1]:
+                    brush.SetColour(self.colorList[i])
+                    pen.SetColour(self.colorList[i])
+                    break
+            gc.SetBrush(brush)
+            gc.SetPen(pen)
+            innerBorder = (self.innerBorder / 100.0) * width
+            progressPath.AddRectangle(0+innerBorder, height, width-(innerBorder*2), heightScale) # we've rotated x & y
+            gc.DrawPath(progressPath)
+            # Draw the containing rectangle
+            pen.SetColour("black")
+            pen.SetWidth(2)  
+            gc.SetPen(pen)  
+            border = gc.CreatePath()
+            border.AddRectangle(0, 0, width, height)
+            gc.StrokePath(border) 
+                        
     def OnEraseBackground(self, event):
         """ Handles the wx.EVT_ERASE_BACKGROUND event. """
         pass
