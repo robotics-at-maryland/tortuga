@@ -17,7 +17,7 @@
 #ifdef RAM_POSIX
 	#include <sys/socket.h>
 	#include <arpa/inet.h>
-	#include <netdb.h> // gethosebyname
+	#include <netdb.h> // gethostbyname
 	#include <netinet/in.h>
 #else
 	#include <winsock2.h>
@@ -53,7 +53,7 @@ NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port) :
     m_addr->sin_port = htons(port);  // short, network byte order
     m_addr->sin_addr = *((struct in_addr *)he->h_addr);
 
-#ifndef RAM_POSIX
+#ifdef RAM_WINDOWS
 	WSADATA wsaData;
 	WORD version;
 	int error;
@@ -90,13 +90,16 @@ NetworkCamera::~NetworkCamera()
 {
     // Have to stop background capture before we release the capture!
     cleanup();
+
+#ifdef RAM_WINDOWS
     closesocket(m_sockfd);
+    WSACleanup();
+#else
+    close(m_sockfd);
+#endif
+
     free(m_addr);
     free(m_buffer);
-
-#ifndef RAM_POSIX
-	WSACleanup();
-#endif
 }
 
 void NetworkCamera::update(double timestep)
@@ -165,11 +168,7 @@ void NetworkCamera::recieve(void* buf, size_t len)
     // Loop until we have all the data off the socket
     while ((errno == 0) && (len != 0u))
     {
-#ifdef RAM_POSIX
-        size_t bytes = recv(m_sockfd, buf, len, 0);
-#else
-		size_t bytes = recv(m_sockfd, (char*)buf, len, 0);
-#endif
+        size_t bytes = recv(m_sockfd, (char*)buf, len, 0);
 
         if ((((size_t)-1) == bytes) || (errno != 0))
         {

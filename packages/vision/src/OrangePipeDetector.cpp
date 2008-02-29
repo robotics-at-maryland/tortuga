@@ -19,6 +19,8 @@
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Events.h"
+
 
 using namespace std;
 
@@ -123,7 +125,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 	int linex,liney;
 	if (found)
 	{
-        cvErode(image, image);//3 x 3 default erosion element, 1 default iteration.
+        cvErode(image, image, 0, 3);//3 x 3 default erosion element, 3 iterations.
 		angle=hough(image,&linex,&liney);
 		if (angle==HOUGH_ERROR)
 		{
@@ -138,7 +140,16 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 			lineY=liney;
 			lineY/=image->height;
 			cout<<"(x,y):"<<"("<<lineX<<","<<lineY<<")"<<endl;
-		}
+            PipeEventPtr event(new PipeEvent(0, 0, 0));
+            event->x = linex;
+            event->y = liney;
+            event->angle = angle;
+            
+            publish(EventType::LIGHT_FOUND, event);
+
+            
+        }
+        
 	}
 
         if (output)

@@ -198,8 +198,14 @@ int main(int argc, char** argv)
         //remove higher bits using AND operator
         if (show)
         {
-            if ((cvWaitKey(10) & 255) == 27)
+            char key;
+            if ((key = (char)(cvWaitKey(10) & 255)) == 27)
                 break;
+                
+            if (key == 't' && detector)
+            {
+                runDetector = !runDetector;
+            }
         }
     }
 
