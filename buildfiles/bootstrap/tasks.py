@@ -119,6 +119,8 @@ def get_wx_prefix():
   
 WX_PREFIX = get_wx_prefix()
 
+
+from distutils import sysconfig
 gen_setenv = Task(
       'Generate setenv',
       namespaces = 'bootstrap',
@@ -129,6 +131,8 @@ gen_setenv = Task(
                            ram_environ_root = '${ram_prefix}',
                            local_svn_dir = '${buildoutdir}',
                            python_executable = '${python_executable}',
+                           python_prefix = sysconfig.PREFIX,
+                           python_version = sys.version.replace('\n',''),
                            py_site_packages_suffix = '${py_site_packages_suffix}',
                            wx_bin_dir = WX_PREFIX + os.sep + 'bin',
                            wx_lib_dir = WX_PREFIX + os.sep + 'lib')]

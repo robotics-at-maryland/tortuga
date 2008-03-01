@@ -659,12 +659,14 @@ class PkgConfigLibrary(ConfigLibrary):
                                strict_version = strict_version)
 
  
-
+PYTHON_CONFIG = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
+                             'python2.5-config')
+print 'PYTHON_CONFIG',PYTHON_CONFIG
 class PythonLib(ConfigLibrary):
     def __init__(self, version):
         ConfigLibrary.__init__(self, 'Python', version, ['Python.h'],
-                               'python2.5-config',
-                               lib_flag = ' ; python2.5-config --ldflags',
+                               PYTHON_CONFIG,
+                               lib_flag = ' ; ' + PYTHON_CONFIG + ' --ldflags',
                                version_flag = '--includes')
 
     def setup_environment(self, env):
