@@ -124,8 +124,8 @@ TEST(ControllerWrapping)
 
 int main()
 {
+    Py_Initialize();
     // We must register this contverted so we can pass a pointer to python
     py::register_ptr_to_python< boost::shared_ptr<ram::control::IController> >();
-    Py_Initialize();
     return UnitTest::RunAllTests();
 }

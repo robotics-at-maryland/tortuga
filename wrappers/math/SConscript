@@ -28,8 +28,6 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-#wrapped_headers = ['Vector3.h','Vector4.h', 'Matrix3.h', 'Matrix4.h',
-#                   'Quaternion.h']
 wrapped_headers = ['Math.h', 'Vector3.h', 'Quaternion.h', 'Matrix3.h']
 
 if env.HasFeature('core'):
@@ -51,6 +49,10 @@ def extras(env, output, message = None, deps = None):
     return tester
 
 # Wrappers
+dep_wrappers = []
+if env.HasFeature('core'):
+    dep_wrappers.extend(['_core','core.py'])
+
 libs.add_external(envl, 'Boost.Python')
 envl.Pypp('_math', wrapped_headers, module = 'gen_math.py',
-          tester = extras, dep_wrappers = ['_core','core.py'])
+          tester = extras, dep_wrappers = dep_wrappers)

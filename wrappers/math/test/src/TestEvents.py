@@ -10,33 +10,39 @@ import unittest
 
 # Project Imports
 import ext.math as math
-import ext.core as core
 
-class TestEvents(unittest.TestCase):
-    def setUp(self):
-        self.eventHub = core.EventHub()
-        self.qeventHub = core.QueuedEventHub(self.eventHub)
-        self.epub = core.EventPublisher()
+TEST = True
+try:
+    import ext.core as core
+except ImportError:
+    TEST = False
 
-    def testNumericEvent(self):
-        def handler(event):
-            self.number = event.number
+if TEST:
+    class TestEvents(unittest.TestCase):
+        def setUp(self):
+            self.eventHub = core.EventHub()
+            self.qeventHub = core.QueuedEventHub(self.eventHub)
+            self.epub = core.EventPublisher()
+            
+        def testNumericEvent(self):
+            def handler(event):
+                self.number = event.number
         
-        self.epub.subscribe("TEST", handler)
+            self.epub.subscribe("TEST", handler)
 
-        newEvent = math.NumericEvent()
-        newEvent.number = 5 
-        self.epub.publish("TEST", newEvent)
-        self.assertEquals(5, self.number)
+            newEvent = math.NumericEvent()
+            newEvent.number = 5 
+            self.epub.publish("TEST", newEvent)
+            self.assertEquals(5, self.number)
+            
+            # Try with the hub
+            self.qeventHub.subscribeToType("TEST", handler)
 
-        # Try with the hub
-        self.qeventHub.subscribeToType("TEST", handler)
-
-        newEvent = math.NumericEvent()
-        newEvent.number = 8
-        self.epub.publish("TEST", newEvent)
-        self.qeventHub.publishEvents()
-        self.assertEquals(8, self.number)
+            newEvent = math.NumericEvent()
+            newEvent.number = 8
+            self.epub.publish("TEST", newEvent)
+            self.qeventHub.publishEvents()
+            self.assertEquals(8, self.number)
 
 if __name__ == '__main__':
     unittest.main()
