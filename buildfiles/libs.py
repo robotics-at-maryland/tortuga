@@ -661,12 +661,11 @@ class PkgConfigLibrary(ConfigLibrary):
  
 PYTHON_CONFIG = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
                              'python2.5-config')
-print 'PYTHON_CONFIG',PYTHON_CONFIG
 class PythonLib(ConfigLibrary):
     def __init__(self, version):
         ConfigLibrary.__init__(self, 'Python', version, ['Python.h'],
-                               PYTHON_CONFIG,
-                               lib_flag = ' ; ' + PYTHON_CONFIG + ' --ldflags',
+                               'python ' + PYTHON_CONFIG,
+                               lib_flag = ' ; python ' + PYTHON_CONFIG + ' --ldflags',
                                version_flag = '--includes')
 
     def setup_environment(self, env):

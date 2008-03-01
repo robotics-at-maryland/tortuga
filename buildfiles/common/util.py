@@ -27,6 +27,10 @@ def run_shell_cmd(command, error_msg):
     try:
         proc = subprocess.Popen(command, stdout=subprocess.PIPE)
         result = proc.communicate()
+
+        if 0 != proc.returncode:
+            print error_msg
+        
         return result[0], proc.returncode
     except OSError:
         print error_msg
