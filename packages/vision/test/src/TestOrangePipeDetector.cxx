@@ -85,8 +85,8 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterLight)
     detector.processImage(&input);
     
 	// FIX ME!!!
-    double expectedX = 0;
-    double expectedY = 0;
+    //double expectedX = 0;
+    //double expectedY = 0;
     //CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     //CHECK_CLOSE(expectedY, detector.getY(), 0.005);
     //CHECK(detector.found);
