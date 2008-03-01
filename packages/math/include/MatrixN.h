@@ -1,7 +1,16 @@
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Chris Giles <cgiles@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Chris Giles <cgiles@umd.edu>
+ * File:  packages/math/include/MatrixN.h
+ */
 
 #ifndef RAM_MATH_MATRIX4_N_28_02_2008
 #define RAM_MATH_MATRIX4_N_28_02_2008
 
+// Project Includes
 #include "math/include/Vector2.h"
 #include "math/include/Matrix2.h"
 #include "math/include/Vector3.h"
@@ -12,7 +21,7 @@
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
-#define RC(r,c) r*cols+c
+#define RAM_MATRIXN_RC(r,c) r*cols+c
 
 // Must Be Included last
 #include "math/include/Export.h"
@@ -36,6 +45,15 @@ public:
 		data = new Real[rows*cols];
     }
 
+    inline MatrixN(const MatrixN& o)
+    {
+        rows = 0;
+        cols = 0;
+        data = 0;
+           
+        *this = o;
+    }
+    
 	inline MatrixN(int rows_, int cols_)
 	{
 		rows = rows_;
@@ -65,8 +83,8 @@ public:
 		data = new Real[rc];
 		for (int i=0;i<rc;i++)
 			data[i] = 0;
-		data[RC(0,0)] = v.x;
-		data[RC(1,0)] = v.y;
+		data[RAM_MATRIXN_RC(0,0)] = v.x;
+		data[RAM_MATRIXN_RC(1,0)] = v.y;
     }
 
 	inline MatrixN(const Vector3& v, int rows_ = -1, int cols_ = -1)
@@ -81,9 +99,9 @@ public:
 		data = new Real[rc];
 		for (int i=0;i<rc;i++)
 			data[i] = 0;
-		data[RC(0,0)] = v.x;
-		data[RC(1,0)] = v.y;
-		data[RC(2,0)] = v.z;
+		data[RAM_MATRIXN_RC(0,0)] = v.x;
+		data[RAM_MATRIXN_RC(1,0)] = v.y;
+		data[RAM_MATRIXN_RC(2,0)] = v.z;
     }
 
 	inline MatrixN(const Vector4& v, int rows_ = -1, int cols_ = -1)
@@ -98,10 +116,10 @@ public:
 		data = new Real[rc];
 		for (int i=0;i<rc;i++)
 			data[i] = 0;
-		data[RC(0,0)] = v.x;
-		data[RC(1,0)] = v.y;
-		data[RC(2,0)] = v.z;
-		data[RC(3,0)] = v.w;
+		data[RAM_MATRIXN_RC(0,0)] = v.x;
+		data[RAM_MATRIXN_RC(1,0)] = v.y;
+		data[RAM_MATRIXN_RC(2,0)] = v.z;
+		data[RAM_MATRIXN_RC(3,0)] = v.w;
     }
 
 	inline MatrixN(const Matrix2& v, int rows_ = -1, int cols_ = -1)
@@ -118,7 +136,7 @@ public:
 			data[i] = 0;
 		for(int i=0;i<2;i++)
 			for (int j=0;j<2;j++)
-				data[RC(i,j)] = v[i][j];
+				data[RAM_MATRIXN_RC(i,j)] = v[i][j];
     }
 
 	inline MatrixN(const Matrix3& v, int rows_ = -1, int cols_ = -1)
@@ -135,7 +153,7 @@ public:
 			data[i] = 0;
 		for(int i=0;i<3;i++)
 			for (int j=0;j<3;j++)
-				data[RC(i,j)] = v[i][j];
+				data[RAM_MATRIXN_RC(i,j)] = v[i][j];
     }
 
 	inline MatrixN(const Matrix4& v, int rows_ = -1, int cols_ = -1)
@@ -152,12 +170,29 @@ public:
 			data[i] = 0;
 		for(int i=0;i<4;i++)
 			for (int j=0;j<4;j++)
-				data[RC(i,j)] = v[i][j];
+				data[RAM_MATRIXN_RC(i,j)] = v[i][j];
     }
 
+        inline MatrixN& operator= (const MatrixN& o)
+	{
+		// Handle assign to self
+		if (this == &o)
+			return *this;
+		if ((cols != o.cols) || (rows != o.rows))
+		{
+			delete[] data;
+			data = new Real[o.cols * o.rows];
+		}
+                
+		cols = o.cols;
+		rows = o.rows;
+		memcpy(data, o.data, sizeof(Real) * o.rows * o.cols);
+		return *this;
+	}
+        
 	~MatrixN()
 	{
-		delete data;
+		delete[] data;
 		data = NULL;
 	}
 
@@ -217,7 +252,7 @@ public:
 
 		for (int i=0;i<rows;i++)
 			for (int j=0;j<cols;j++)
-				if (data[RC(i,j)] != m2[i][j])
+				if (data[RAM_MATRIXN_RC(i,j)] != m2[i][j])
 					return false;
 		return true;
     }
@@ -229,17 +264,9 @@ public:
 
 		for (int i=0;i<rows;i++)
 			for (int j=0;j<cols;j++)
-				if (data[RC(i,j)] != m2[i][j])
+				if (data[RAM_MATRIXN_RC(i,j)] != m2[i][j])
 					return true;
 		return false;
-    }
-
-    inline void operator = ( const MatrixN& mat )
-    {
-        resize(mat.rows, mat.cols);
-		for (int i=0;i<rows;i++)
-			for (int j=0;j<cols;j++)
-				data[RC(i,j)] = mat[i][j];
     }
 
     inline MatrixN transpose(void) const
@@ -247,7 +274,7 @@ public:
         MatrixN out(rows, cols);
 		for (int i=0;i<rows;i++)
 			for (int j=0;j<cols;j++)
-				out[i][j] = data[RC(j,i)];
+				out[i][j] = data[RAM_MATRIXN_RC(j,i)];
 		return out;
     }
 
@@ -284,12 +311,12 @@ public:
 				for (int j=0;j<cols_;j++)
 				{
 					if (i < rows && j < cols)
-						newData[RC(i,j)] = data[RC(i,j)];
+						newData[RAM_MATRIXN_RC(i,j)] = data[RAM_MATRIXN_RC(i,j)];
 					else
-						newData[RC(i,j)] = 0;
+						newData[RAM_MATRIXN_RC(i,j)] = 0;
 				}
 			}
-			delete data;
+			delete[] data;
 			data = newData;
 			newData = NULL;
 		}
@@ -298,7 +325,7 @@ public:
 			data = new Real[rows_ * cols_];
 			for (int i=0;i<rows_;i++)
 				for (int j=0;j<cols_;j++)
-					data[RC(i,j)] = 0;
+					data[RAM_MATRIXN_RC(i,j)] = 0;
 		}
 		rows = rows_;
 		cols = cols_;
@@ -320,9 +347,9 @@ public:
 			for (int j=0;j<cols;j++)
 			{
 				if (i == j)
-					data[RC(i,j)] = 1;
+					data[RAM_MATRIXN_RC(i,j)] = 1;
 				else
-					data[RC(i,j)] = 0;
+					data[RAM_MATRIXN_RC(i,j)] = 0;
 			}
 	}
 
@@ -330,7 +357,7 @@ public:
 	{
 		for (int i=0;i<rows;i++)
 			for (int j=0;j<cols;j++)
-				data[RC(i,j)] = 0;
+				data[RAM_MATRIXN_RC(i,j)] = 0;
 	}
 
 	inline void removeRow(int r)
@@ -339,7 +366,7 @@ public:
 
 		for (int i=r;i<rows-1;i++)
 			for (int j=0;j<cols;j++)
-				data[RC(i,j)] = data[RC(i+1,j)];
+				data[RAM_MATRIXN_RC(i,j)] = data[RAM_MATRIXN_RC(i+1,j)];
 
 		resize(rows-1, cols);
 	}
@@ -350,7 +377,7 @@ public:
 
 		for (int i=0;i<rows;i++)
 			for (int j=r;j<cols-1;j++)
-				data[RC(i,j)] = data[RC(i,j+1)];
+				data[RAM_MATRIXN_RC(i,j)] = data[RAM_MATRIXN_RC(i,j+1)];
 
 		resize(rows, cols-1);
 	}

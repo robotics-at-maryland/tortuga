@@ -33,5 +33,5 @@ TEST(addition)
 	double data[] = {2,0,0, 0,2,0, 0,0,2};
 	MatrixN expected(data, 3, 3);
 
-    CHECK_CLOSE(n3, expected, 0.001);
+        CHECK_CLOSE(n3, expected, 0.001);
 }

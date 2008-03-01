@@ -53,10 +53,12 @@ TEST(Matrix4AreClose)
 
 TEST(MatrixNAreClose)
 {
-	double arrA[] = {0, 2, 0, 1, 7, 3.3, 10, 8, 5.5, 8.3, 9.2, 46.3, 5, 2, 1, 108.3};
-	double arrB[] = {0, 2, 0, 1, 7, 3.3, 10, 8, 5.5, 8.3, 9.2, 46.3, 5, 2, 1, 108.3};
-	MatrixN a(arrA, 4, 4);
+    double arrA[] = {0, 2, 0, 1, 13, 3.3, 10, 8, 5.5, 8.3, 9.2, 46.3, 5, 2, 1,
+                     108.3};
+    double arrB[] = {0, 2, 3, 1, 7, 3.3, 10, 8, 5.5, 8.3, 15, 46.3, 5, 2, 1,
+                     108.3};
+    MatrixN a(arrA, 4, 4);
     MatrixN b(arrB, 4, 4);
-    CHECK_CLOSE(a, b, 5.01);
+    CHECK_CLOSE(a, b, 8.0);
 }
 
