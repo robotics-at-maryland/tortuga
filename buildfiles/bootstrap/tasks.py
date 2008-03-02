@@ -111,8 +111,14 @@ def get_wx_prefix():
                 if dir.startswith('wxPython-unicode-2.8'):
                     return os.path.abspath(os.path.join('/usr','local','lib',dir))
 
-        print 'Please install wxPython 2.8.x from http://www.wxpython.org'
-        sys.exit(1)
+        # If we get to this point then it means that the user did not install
+        # wxPython from the binary installer.  He may have used MacPorts.
+        # Before we give up, let's look in /opt/local/lib.
+        if os.path.exists('/opt/local/lib/wx'):
+            return os.path.abspath(os.path.join('/opt','local','lib','wx'))
+        else:
+            print 'Please install wxPython 2.8.x from http://www.wxpython.org'
+            sys.exit(1)
         
     else:
         return ''
