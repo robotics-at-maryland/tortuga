@@ -85,14 +85,16 @@ class SimVehicle(vehicle.IVehicle):
     
         # Add Sim Thruster objects
         self._addThruster(eventHub, 'PortThruster', self.robot.parts.left_thruster)
-        self._addThruster(eventHub, 'StartboardThruster', self.robot.parts.right_thruster)
+        self._addThruster(eventHub, 'StarboardThruster', self.robot.parts.right_thruster)
         self._addThruster(eventHub, 'AftThruster', self.robot.parts.aft_thruster)
         self._addThruster(eventHub, 'ForeThruster', self.robot.parts.front_thruster)
         self._addThruster(eventHub, 'TopThruster', self.robot.parts.top_thruster)
         self._addThruster(eventHub, 'BotThruster', self.robot.parts.bot_thruster)
 
     def _addThruster(self, eventHub, name, simThruster):
-        self._devices[name] = SimThruster(eventHub, name, simThruster)
+        thruster = SimThruster(eventHub, name, simThruster)
+        self._devices[name] = thruster
+        setattr(self, name[0].lower() + name[1:], thruster)
     
     def getThrusters(self):
         thrusters = []
@@ -173,9 +175,25 @@ class SimVehicle(vehicle.IVehicle):
                 thruster = thrusters[i]
                 thruster.setForce(thruster.getMaxForce() * p[i])
         else:
-            self.robot._main_part.set_local_force(
-                convertToVector3(ogre.Vector3, force), (0,0,0))
-            self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)            
+            # Determine Thruster forces based on thruster position
+            star = (force.x / 2) - (0.5 * torque.z / self.starboardThruster.relativePosition.y)
+            port = (force.x / 2) - (0.5 * torque.z / self.portThruster.relativePosition.y)
+            fore = (force.z / 2) - (0.5 * torque.y / self.foreThruster.relativePosition.x)
+            aft = (force.z / 2) - (0.5 * torque.y / self.aftThruster.relativePosition.x)
+            top = (force.y / 2) - (0.5 * torque.x / self.topThruster.relativePosition.z)
+            bot = (force.y / 2) + (0.5 * torque.x / self.botThruster.relativePosition.z)
+
+            self.starboardThruster.setForce(star)
+            self.portThruster.setForce(port)
+            self.foreThruster.setForce(fore)
+            self.aftThruster.setForce(aft)
+            self.topThruster.setForce(top)
+            self.botThruster.setForce(bot)
+
+            # Set forces exactly
+            #self.robot._main_part.set_local_force(
+            #    convertToVector3(ogre.Vector3, force), (0,0,0))
+            #self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)            
     
     def backgrounded(self):
         return False
