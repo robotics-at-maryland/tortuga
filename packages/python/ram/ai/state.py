@@ -73,6 +73,8 @@ class Machine(core.Subsystem):
     
     STATE_ENTERED = core.declareEventType('STATE_ENTERED')
     STATE_EXITED = core.declareEventType('STATE_EXITED')
+    traversedList = []
+    structList= []
     
     def __init__(self, cfg = None, deps = None):
         if deps is None:
@@ -227,5 +229,41 @@ class Machine(core.Subsystem):
         assert len(matches) < 2
         if len(matches) > 0:
             return matches[0]
+
+    @staticmethod
+    def writeStateGraph(fileobj, state):
+        """
+        Write the graph of the state machine starting at the given state to the fileobj.
+    
+        @type  fileobj: a file like object
+        @param fileobj: The object to write the result graph to (ie: fileobject.write(graphtext))
+       
+        @type  state: ram.ai.state.State
+        @param state: The state to start the graph at
+        
+        import ram.ai.light as light
+        light.Searching.transitions()
+        """
+        # Get the transitions of the state object passed in
+        graphText = "digraph aistate {\n"
+        Machine.traverse(state)
+        nodeText = ""
+        for arrow in Machine.structList:
+            nodeText += arrow + "\n"
+        graphText += nodeText + "}"
+        fileobj.write(graphText)
+        fileobj.flush() # Push data to file
+        
+    @staticmethod
+    def traverse(currentState):
+        if currentState.transitions() == {}:
+            return
+        else:
+            for aiState in currentState.transitions().itervalues():
+                if not aiState in Machine.traversedList:
+                    strStruct = currentState.__name__ + "->" +  aiState.__name__ 
+                    Machine.structList.append(strStruct)
+                    Machine.traversedList.append(aiState)
+                    Machine.traverse(aiState)
 
 core.registerSubsystem('StateMachine', Machine)
