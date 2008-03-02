@@ -1,4 +1,4 @@
-DSPICC_PATH = /home/lsinger/dspicc
+DSPICC_PATH = /home/steve/dspicc
 
 PATH = $(DSPICC_PATH)/pic30/debs/usr/bin:/bin
 
@@ -21,10 +21,10 @@ all: dft.hex
 %.hex : %.elf
 	$(BIN2HEX) $<
 
-%.elf : %.o uart.c
+%.elf : %.o 
 	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
 
-%.o : %.c buscodes.h uart.h
+%.o : %.c
 	$(CC) $(CFLAGS) -Wunused-function -c $< -o $@
 
 run:
