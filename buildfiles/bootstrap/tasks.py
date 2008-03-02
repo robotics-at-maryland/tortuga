@@ -130,9 +130,8 @@ gen_setenv = Task(
                            '${buildoutdir}/scripts/setenv',
                            ram_environ_root = '${ram_prefix}',
                            local_svn_dir = '${buildoutdir}',
-                           python_executable = '${python_executable}',
                            python_prefix = sysconfig.PREFIX,
-                           python_version = sys.version.replace('\n',''),
+                           python_version = str(sys.subversion),
                            py_site_packages_suffix = '${py_site_packages_suffix}',
                            wx_bin_dir = WX_PREFIX + os.sep + 'bin',
                            wx_lib_dir = WX_PREFIX + os.sep + 'lib')]

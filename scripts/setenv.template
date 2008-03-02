@@ -8,7 +8,6 @@ RAM_ROOT_DIR="%(ram_environ_root)s"
 RAM_SVN_DIR="%(local_svn_dir)s"
 
 # Set up PYTHONPATH so imports will work properly
-export RAM_PYTHON_EXE=%(python_executable)s
 export RAM_PYTHON_PREFIX=%(python_prefix)s
 export RAM_PYTHON_VERSION="%(python_version)s"
 export PYTHONPATH="$RAM_SVN_DIR/build_ext:$RAM_SVN_DIR/packages/python:$RAM_ROOT_DIR/%(py_site_packages_suffix)s:$PYTHONPATH"

@@ -6,26 +6,14 @@
 # File:  wrappers/control/python/control.py
 
 # STD Imports
+
 import os
 import sys
 import StringIO
 from distutils import sysconfig
 
 # Ensure we are using the proper version of python
-if os.environ['RAM_PYTHON_EXE'] !=  os.path.realpath(sys.executable):
-    print 'Error running with python exe:', os.path.realpath(sys.executable)
-    print 'Bootstrap run with:', os.environ['RAM_PYTHON_EXE']
-    sys.exit(1)
-
-if os.environ['RAM_PYTHON_PREFIX'] != sysconfig.PREFIX:
-    print 'Error running with python prefix:',sysconfig.PREFIX
-    print 'Bootstrap run with:', os.environ['RAM_PYTHON_PREFIX']
-    sys.exit(1)
-
-if os.environ['RAM_PYTHON_VERSION'] !=  sys.version.replace('\n',''):
-    print 'Error running with python version:', sys.version.replace('\n','')
-    print 'Bootstrap run with:', os.environ['RAM_PYTHON_VERSION']
-    sys.exit(1)
+import ram_version_check
 
 
 # Capture stderr, to suppress unwanted warnings
