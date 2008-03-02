@@ -104,22 +104,36 @@ install_python_modules = Task(
 
 # Generate Environment File
 
+class CommandReturnedNonZeroError(Exception):
+	def __init__(self, errno, cmd):
+		self.errno = errno
+		self.cmd = cmd
+	def __str__(self):
+		return '"' + self.cmd + '" returned non-zero: ' + str(self.errno)
+
+def execute_like_backticks(command):
+	"""
+	Execute a command as if on a command line and return the value 
+	that gets written to stdout, much like the backticks operator 
+	from certain UNIX shells
+	"""
+	p = os.popen(command, "r")
+	result = p.read()
+	exitstatus = p.close()
+	if exitstatus is not None:
+		raise CommandReturnedNonZeroError(exitstatus, command)
+	else:
+		return result
+
 def get_wx_prefix():
     if platform.system() == 'Darwin':
-        if os.path.exists('/usr/local/lib'):
-            for dir in os.listdir('/usr/local/lib'):
-                if dir.startswith('wxPython-unicode-2.8'):
-                    return os.path.abspath(os.path.join('/usr','local','lib',dir))
-
-        # If we get to this point then it means that the user did not install
-        # wxPython from the binary installer.  He may have used MacPorts.
-        # Before we give up, let's look in /opt/local/lib.
-        if os.path.exists('/opt/local/lib/wx'):
-            return os.path.abspath(os.path.join('/opt','local','lib','wx'))
-        else:
-            print 'Please install wxPython 2.8.x from http://www.wxpython.org'
-            sys.exit(1)
-        
+    	cmd = "python -c 'import wx;print(wx.__file__)'"
+    	try:
+    		wx_imported_path = execute_like_backticks(cmd)
+    	except CommandReturnedNOnZeroError:
+			print 'Please install wxPython 2.8.x from http://www.wxpython.org'
+			raise
+        return os.path.dirname(wx_imported_path)
     else:
         return ''
   
