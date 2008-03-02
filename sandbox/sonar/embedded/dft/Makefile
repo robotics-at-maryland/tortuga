@@ -19,7 +19,7 @@ BIN2HEX = pic30-elf-bin2hex
 
 LIBS = $(DSPICC_PATH)/c30/lib/libp30F4011-elf.a
 
-all: dft.hex
+all: main.hex dft.hex
 
 %.hex : %.elf
 	$(BIN2HEX) $<
