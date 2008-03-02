@@ -15,7 +15,11 @@ import math as pmath
 
 # Library Imports
 import ogre.renderer.OGRE as ogre
-import numpy
+HAVE_NUMPY = True
+try:
+    import numpy
+except ImportError:
+    HAVE_NUMPY = False
 
 # Project Imports
 import ext.core as core
@@ -151,25 +155,27 @@ class SimVehicle(vehicle.IVehicle):
         return numpy.array([vec.x, vec.y, vec.z])
     
     def applyForcesAndTorques(self, force, torque):
-#        self.robot._main_part.set_local_force(
-#            convertToVector3(ogre.Vector3, force), (0,0,0))
-#        self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)
-        thrusters = self.getThrusters()
-        m = len(thrusters)
-        A = numpy.zeros([6, m])
+        if HAVE_NUMPY:
+            thrusters = self.getThrusters()
+            m = len(thrusters)
+            A = numpy.zeros([6, m])
         
-        for i in range(m):
-            thruster = thrusters[i]
-            maxThrusterForce = thruster.forceDirection * thruster.getMaxForce()
-            A[0:3,i] = self._vectorToNumpyArray(maxThrusterForce)
-            A[3:6,i] = self._vectorToNumpyArray(thruster.relativePosition.crossProduct(maxThrusterForce))
+            for i in range(m):
+                thruster = thrusters[i]
+                maxThrusterForce = thruster.forceDirection * thruster.getMaxForce()
+                A[0:3,i] = self._vectorToNumpyArray(maxThrusterForce)
+                A[3:6,i] = self._vectorToNumpyArray(thruster.relativePosition.crossProduct(maxThrusterForce))
         
-        b = numpy.array([force.x, force.y, force.z, torque.x, torque.y, torque.z])
-        (p, residuals, rank, s) = numpy.linalg.lstsq(A, b)
+            b = numpy.array([force.x, force.y, force.z, torque.x, torque.y, torque.z])
+            (p, residuals, rank, s) = numpy.linalg.lstsq(A, b)
         
-        for i in range(m):
-            thruster = thrusters[i]
-            thruster.setForce(thruster.getMaxForce() * p[i])
+            for i in range(m):
+                thruster = thrusters[i]
+                thruster.setForce(thruster.getMaxForce() * p[i])
+        else:
+            self.robot._main_part.set_local_force(
+                convertToVector3(ogre.Vector3, force), (0,0,0))
+            self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)            
     
     def backgrounded(self):
         return False
