@@ -13,13 +13,13 @@ import os
 import sys
 from distutils import sysconfig
 
+if 'nt' != os.name:
+    if os.environ['RAM_PYTHON_PREFIX'] != sysconfig.PREFIX:
+        print 'Error running with python prefix:',sysconfig.PREFIX
+        print 'Bootstrap run with:', os.environ['RAM_PYTHON_PREFIX']
+        raise Exception("Python version mismatch")
 
-if os.environ['RAM_PYTHON_PREFIX'] != sysconfig.PREFIX:
-    print 'Error running with python prefix:',sysconfig.PREFIX
-    print 'Bootstrap run with:', os.environ['RAM_PYTHON_PREFIX']
-    raise Exception("Python version mismatch")
-
-if os.environ['RAM_PYTHON_VERSION'] !=  str(sys.subversion):
-    print 'Error running with python version:',str(sys.subversion)
-    print 'Bootstrap run with:', s.environ['RAM_PYTHON_VERSION']
-    raise Exception("Python version mismatch")
+    if os.environ['RAM_PYTHON_VERSION'] !=  str(sys.subversion):
+        print 'Error running with python version:',str(sys.subversion)
+        print 'Bootstrap run with:', s.environ['RAM_PYTHON_VERSION']
+        raise Exception("Python version mismatch")
