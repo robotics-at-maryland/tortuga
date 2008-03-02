@@ -2,11 +2,14 @@ DSPICC_PATH = /home/lsinger/dspicc
 
 PATH = $(DSPICC_PATH)/pic30/debs/usr/bin:/bin
 
+# Provide standard C headers that are missing from Linux-hosted PIC gcc toolchain
+SURROGATE_STD_H_PATH = ../include
+
 CC = pic30-elf-gcc
 AS = pic30-elf-as
 STRIP = pic30-elf-strip
 
-CFLAGS = -mcpu=30F4011 -Wunused-function -mpa=5 -I$(DSPICC_PATH)/c30/support/h -I$(DSPICC_PATH)/c30/include -I$(DSPICC_PATH)/c30/support/inc -Wall -fno-short-double
+CFLAGS = -mcpu=30F4011 -Wunused-function -mpa=5 -I$(DSPICC_PATH)/c30/support/h -I$(DSPICC_PATH)/c30/include -I$(DSPICC_PATH)/c30/support/inc -I$(SURROGATE_STD_H_PATH) -Wall -fno-short-double
 
 ASLAGS = -I$(DSPICC_PATH)/c30/include
 
