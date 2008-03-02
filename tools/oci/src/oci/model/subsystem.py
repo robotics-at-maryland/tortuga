@@ -92,7 +92,7 @@ class Thruster(device.IThruster):
         self.force = 100 * math.sin(self._currentTime + self._offset)
         
         event = core.Event()
-        event.force = self.force
+        event.number = self.force
         self.publish(device.IThruster.FORCE_UPDATE, event)
         
     def getMinForce(self):
