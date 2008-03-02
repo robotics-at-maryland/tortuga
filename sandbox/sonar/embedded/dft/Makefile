@@ -1,4 +1,4 @@
-DSPICC_PATH = /home/steve/dspicc
+DSPICC_PATH = /home/lsinger/dspicc
 
 PATH = $(DSPICC_PATH)/pic30/debs/usr/bin:/bin
 
