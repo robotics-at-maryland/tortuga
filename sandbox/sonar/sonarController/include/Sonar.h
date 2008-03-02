@@ -20,6 +20,16 @@
 #include <stdint.h>
 
 
+/* The PIC math.h is missing a few things; let's #include whatever 
+ * math.h this system has and #define whatever we need that isn't
+ * there already.
+ */
+#include <math.h>
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795028841971
+#endif
+
+
 #ifdef __cplusplus
 namespace ram {
 namespace sonar {
