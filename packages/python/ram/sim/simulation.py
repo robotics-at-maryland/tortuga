@@ -195,40 +195,48 @@ class Simulation(Singleton, Module):
         """
         import platform
         
-        # Filter out non-existant paths from search, this keeps windows paths
-        # out of unix and unix paths out of windows
-        search_path = config.get('search_path', defaults.ogre_plugin_search_path)
-        # Run Environment varialbe replacement
-        search_path = [os.path.normpath(environmentSub(p)) for p in search_path]
+        plugins = config.get('plugins', defaults.ogre_plugins)
+
+        if 'Darwin' == platform.system():
+            for plugin in plugins:
+                self._ogre_root.loadPlugin(plugin)
+        else:
+            # Filter out non-existant paths from search, this keeps windows 
+            # paths out of unix and unix paths out of windows
+            search_path = config.get('search_path', 
+                                     defaults.ogre_plugin_search_path)
+            # Run Environment varialbe replacement
+            search_path = \
+                [os.path.normpath(environmentSub(p)) for p in search_path]
         
-        search_path = [p for p in search_path if os.path.exists(p)]
-        if len(search_path) == 0:
-            raise GraphicsError('All plugin directories do not exist')
+            search_path = [p for p in search_path if os.path.exists(p)]
+            if len(search_path) == 0:
+                raise GraphicsError('All plugin directories do not exist')
         
-        #self.logger.info('Loadings Ogre Plugins on path:')
-        #for path in search_path: 
-        #    self.logger.info('\t%s' % path )
+            #self.logger.info('Loadings Ogre Plugins on path:')
+            #for path in search_path: 
+            #    self.logger.info('\t%s' % path )
         
-        
-        extension = '.so'
-        if 'nt' == os.name:
-            extension = '.dll'
+
+  	    extension = '.so'
+            if 'nt' == os.name:
+                extension = '.dll'
             
-        for plugin in config.get('plugins', defaults.ogre_plugins):
-            plugin_name = plugin + extension
-            #self.logger.info('\tSearching for: %s' % plugin_name)
-            found = False
+            for plugin in plugins:
+                plugin_name = plugin + extension
+                #self.logger.info('\tSearching for: %s' % plugin_name)
+                found = False
             
-            for dir in search_path:
-                plugin_path = os.path.join(dir, plugin_name)
+                for dir in search_path:
+                    plugin_path = os.path.join(dir, plugin_name)
                 
-                # Only the plugin once
-                if not found and os.path.exists(plugin_path):
-                    self._ogre_root.loadPlugin(plugin_path)
-                    found = True
+                    # Only the plugin once
+                    if not found and os.path.exists(plugin_path):
+                        self._ogre_root.loadPlugin(plugin_path)
+                        found = True
                 
-            if not found:
-                raise GraphicsError('Could not load plugin: %s' % plugin_name)
+                if not found:
+                    raise GraphicsError('Could not load plugin: %s' % plugin_name)
             
     def _create_render_system(self, config):
         """

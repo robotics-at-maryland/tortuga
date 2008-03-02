@@ -253,8 +253,10 @@ class OISInputForwarder(OIS.KeyListener, Ogre.WindowEventListener):
                                 ('XAutoRepeatOn', 'true')])
         elif 'Windows' == plat or 'Microsoft' == plat:
             pass
+        elif 'Darwin' == plat:
+            pass
         else:
-            raise InputSystem, "Platform '%s' not supposed" % plat
+            raise InputSystem("Platform '%s' not supposed" % plat)
             
         
         self.input_mgr = OIS.createPythonInputSystem(params)
