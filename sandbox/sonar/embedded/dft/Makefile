@@ -1,4 +1,4 @@
-DSPICC_PATH = /home/lsinger/dspicc
+DSPICC_PATH = /home/steve/dspicc
 
 PATH = $(DSPICC_PATH)/pic30/debs/usr/bin:/bin
 
@@ -19,16 +19,20 @@ BIN2HEX = pic30-elf-bin2hex
 
 LIBS = $(DSPICC_PATH)/c30/lib/libp30F4011-elf.a
 
-all: main.hex dft.hex
+all: main.hex
 
 %.hex : %.elf
 	$(BIN2HEX) $<
+
+main.elf: main.o dft.o
+	$(CC) $(LDFLAGS) $(LIBS) main.o dft.o -o main.elf
+
 
 %.elf : %.o 
 	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
 
 %.o : %.c
-	$(CC) $(CFLAGS) -Wunused-function -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 run:
 	piklab-prog -p icd2 -d 30f4011 -c run
