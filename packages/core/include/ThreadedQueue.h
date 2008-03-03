@@ -32,7 +32,13 @@ public:
         m_itemAvailable.notify_one();
     }
 
-    /** Returns true if there is data*/
+    /** Copies data into given parameter if there is data
+        @param data
+            If there is data, the value poped off the queue will be copied into
+            the given variable.  Otherwise it will be unchanged.
+        
+        @return true if there is data, false is there isn't
+    */
     bool popNoWait(T& data)
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
@@ -49,7 +55,7 @@ public:
         return true;
     }
     
-    /** Waits until new data is queue */
+    /** Waits until new data is queue and returns that item when its pushed in */
     T popWait()
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
@@ -64,7 +70,10 @@ public:
         return temp;
     }
 
-    /** Waits until new data is in the queue or the timer runs out */
+    /** Waits until new data is in the queue or the timer runs out
+
+    The data paramater and return time are handled the same as popNoWait
+    */
     bool popTimedWait(const boost::xtime &xt, T& data)
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
