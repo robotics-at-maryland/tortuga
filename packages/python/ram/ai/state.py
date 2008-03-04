@@ -244,7 +244,11 @@ class Machine(core.Subsystem):
         """
         graphText = "digraph aistate {\n"
         stateList = []
+        
         Machine.traverse(state,stateList,[])
+        # Sort list for determinism
+        stateList.sort()
+
         nodeText = ""
         for item in stateList:
             nodeText += item + "\n"
@@ -258,12 +262,14 @@ class Machine(core.Subsystem):
             return
         else:
             for aiEvent,aiState in currentState.transitions().iteritems():
+                eventName = str(aiEvent).split(' ')[-1]
+                strStruct = currentState.__name__ + "->" +  aiState.__name__ 
+                strStruct += "[label=" + eventName+"]" # Add event label
+                stateList.append(strStruct)
+                traversedList.append(currentState)
+
+                # Don't recuse on a state we have already seen
                 if not aiState in traversedList:
-                    eventName = str(aiEvent).split(' ')[-1]
-                    strStruct = currentState.__name__ + "->" +  aiState.__name__ 
-                    strStruct += "[label=" + eventName+"]" # Add event label
-                    stateList.append(strStruct)
-                    traversedList.append(currentState)
                     Machine.traverse(aiState,stateList,traversedList)
 
 core.registerSubsystem('StateMachine', Machine)

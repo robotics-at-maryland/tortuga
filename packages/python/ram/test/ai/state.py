@@ -78,14 +78,15 @@ class Start(TrackedState):
 class QueueTestState(TrackedState):
     @staticmethod
     def transitions():
-        #return {}
         return {MockEventSource.ANOTHER_EVT : End}
     
 #class Unstick(TrackedState):
 #    
 
 class Simple(state.State):
-    pass
+    @staticmethod
+    def transitions():
+        return {MockEventSource.ANOTHER_EVT : Start}
 
 class LoopBack(TrackedState):
     def __init__(self, **kwargs):
@@ -270,14 +271,15 @@ class TestStateMachine(unittest.TestCase):
         state = Start
         self.machine.writeStateGraph(mockFile,state)
         output = mockFile.getvalue()
-        expected = "digraph aistate {\n" +  \
+        expected = "digraph aistate {\n" + \
+            "LoopBack->LoopBack[label=Update]\n" + \
+            "QueueTestState->End[label=ANOTHER_EVT]\n" + \
+            "Simple->Start[label=ANOTHER_EVT]\n" + \
             "Start->End[label=Start]\n" + \
             "Start->End[label=THING_UPDATED]\n" + \
-            "Start->QueueTestState[label=ANOTHER_EVT]\n" + \
-            "QueueTestState->End[label=ANOTHER_EVT]\n" + \
-            "Start->Simple[label=Change]\n" + \
             "Start->LoopBack[label=LoopBack]\n" + \
-            "LoopBack->LoopBack[label=Update]\n" + \
+            "Start->QueueTestState[label=ANOTHER_EVT]\n" + \
+            "Start->Simple[label=Change]\n" + \
             "}"
         self.assertEquals(expected,output)
         
