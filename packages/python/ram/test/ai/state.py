@@ -8,6 +8,7 @@
 
 # STD Imports
 import unittest
+import StringIO
 
 # Project Imports
 import ext.core as core
@@ -263,6 +264,22 @@ class TestStateMachine(unittest.TestCase):
         # Check for subsystems
         self.assertEquals(eventHub, startState.eventHub)
         self.assertEquals(qeventHub, startState.queuedEventHub)
+    
+    def testWriteGraph(self):
+        mockFile = StringIO.StringIO()
+        state = Start
+        self.machine.writeStateGraph(mockFile,state)
+        output = mockFile.getvalue()
+        expected = "digraph aistate {\n" +  \
+            "Start->End[label=Start]\n" + \
+            "Start->End[label=THING_UPDATED]\n" + \
+            "Start->QueueTestState[label=ANOTHER_EVT]\n" + \
+            "QueueTestState->End[label=ANOTHER_EVT]\n" + \
+            "Start->Simple[label=Change]\n" + \
+            "Start->LoopBack[label=LoopBack]\n" + \
+            "LoopBack->LoopBack[label=Update]\n" + \
+            "}"
+        self.assertEquals(expected,output)
         
 if __name__ == '__main__':
     unittest.main()
