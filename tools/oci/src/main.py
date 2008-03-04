@@ -20,6 +20,11 @@ import ram
 # Needed to register makers
 import ext.vision
 
+try:
+    import ctypes
+    ctypes.cdll.LoadLibrary("libram_network.so")
+except:
+    pass
 
 def main():            
     # Parse command line options
