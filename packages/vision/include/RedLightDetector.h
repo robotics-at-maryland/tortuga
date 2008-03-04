@@ -72,7 +72,10 @@ class RAM_EXPORT RedLightDetector : public Detector
     double m_lostMinPixelScale;
 
     /** Thresdhol for almost hitting the red light */
-    double m_almostHitPixels;
+    int m_almostHitPixels;
+
+    /** Percentage of the image to remove from the top */
+    double m_topRemovePercentage;
 };
 	
 } // namespace vision

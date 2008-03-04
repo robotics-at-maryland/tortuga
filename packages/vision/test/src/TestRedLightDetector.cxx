@@ -228,4 +228,28 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT)
     CHECK_CLOSE(math::Degree(0), event->elevation, math::Degree(0.4));
 }
 
+TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
+{
+    // Blue Image with red circle in upper center (remeber image rotated 90 deg)
+    makeColor(&input, 0, 0, 255);
+    drawRedCircle(&input, 640 - 60, 480/2);
+
+    // Check with a non top removed detector
+    detector.processImage(&input);
+    double expectedX = 0;
+    double expectedY = 0.815;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found);
+
+    // Create a detector which remove the top of the window
+    vision::RedLightDetector detectorTopRemoved(
+        core::ConfigNode::fromString("{ 'topRemovePercentage' : 0.25 }"));
+
+    vision::OpenCVImage out(480, 640);
+    detectorTopRemoved.processImage(&input, &out);
+    CHECK(false == detectorTopRemoved.found);
+    vision::Image::saveToFile(&out, "/tmp/test.png");
+}
+
 } // SUITE(RedLightDetector)

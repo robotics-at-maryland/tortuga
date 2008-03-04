@@ -46,10 +46,13 @@ void RedLightDetector::init(core::ConfigNode config)
 {
     // Detection variables
     m_initialMinRedPixels = config["intialMinPixels"].asInt(400);
+    minRedPixels = m_initialMinRedPixels;
+    
     m_foundMinPixelScale = config["lostMinPixelScale"].asDouble(0.85);
     m_lostMinPixelScale = config["foundMinPixelScale"].asDouble(0.75);
     m_almostHitPixels = config["almostHitPixels"].asInt((int)(640*480*0.2));
-    minRedPixels = m_initialMinRedPixels;
+    m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
+
     
     // State machine variables 
     found=false;
@@ -117,6 +120,15 @@ void RedLightDetector::processImage(Image* input, Image* output)
 	//	image=(IplImage*)(*frame);
     cvCopyImage(image,raw);//Now both are rotated 90 degrees
     cvCopyImage(image, flashFrame);
+
+    // Remove top chunck if desired
+    if (m_topRemovePercentage != 0)
+    {
+        int linesToRemove = (int)(m_topRemovePercentage * image->height);
+        size_t bytesToBlack = linesToRemove * image->width * 3;
+        memset(image->imageData, 0, bytesToBlack);
+        memset(flashFrame->imageData, 0, bytesToBlack);
+    }
     
     to_ratios(image);
     CvPoint p;
