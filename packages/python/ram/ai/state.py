@@ -73,8 +73,6 @@ class Machine(core.Subsystem):
     
     STATE_ENTERED = core.declareEventType('STATE_ENTERED')
     STATE_EXITED = core.declareEventType('STATE_EXITED')
-    traversedList = []
-    structList= []
     
     def __init__(self, cfg = None, deps = None):
         if deps is None:
@@ -244,26 +242,28 @@ class Machine(core.Subsystem):
         import ram.ai.light as light
         light.Searching.transitions()
         """
-        # Get the transitions of the state object passed in
         graphText = "digraph aistate {\n"
-        Machine.traverse(state)
+        stateList = []
+        Machine.traverse(state,stateList,[])
         nodeText = ""
-        for arrow in Machine.structList:
-            nodeText += arrow + "\n"
+        for item in stateList:
+            nodeText += item + "\n"
         graphText += nodeText + "}"
         fileobj.write(graphText)
         fileobj.flush() # Push data to file
         
     @staticmethod
-    def traverse(currentState):
+    def traverse(currentState,stateList,traversedList):
         if currentState.transitions() == {}:
             return
         else:
-            for aiState in currentState.transitions().itervalues():
-                if not aiState in Machine.traversedList:
+            for aiEvent,aiState in currentState.transitions().iteritems():
+                if not aiState in traversedList:
+                    eventName = str(aiEvent).split(' ')[-1]
                     strStruct = currentState.__name__ + "->" +  aiState.__name__ 
-                    Machine.structList.append(strStruct)
-                    Machine.traversedList.append(aiState)
-                    Machine.traverse(aiState)
+                    strStruct += "[label=" + eventName+"]" # Add event label
+                    stateList.append(strStruct)
+                    traversedList.append(currentState)
+                    Machine.traverse(aiState,stateList,traversedList)
 
 core.registerSubsystem('StateMachine', Machine)
