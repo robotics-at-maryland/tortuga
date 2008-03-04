@@ -233,6 +233,9 @@ def _get_internal_lib(env, name):
             'math' : InternalLibrary('math', int_deps = [],
                                        ext_deps = []),
 
+            'network' : InternalLibrary('network', int_deps = ['core'],
+                                        ext_deps = []),
+
             'control' : InternalLibrary('control',
                                         int_deps = ['math', 'core', 'vehicle'],
                                         ext_deps = []),

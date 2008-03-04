@@ -231,10 +231,12 @@ class Machine(core.Subsystem):
     @staticmethod
     def writeStateGraph(fileobj, state):
         """
-        Write the graph of the state machine starting at the given state to the fileobj.
+        Write the graph of the state machine starting at the given state to
+        the fileobj.
     
         @type  fileobj: a file like object
-        @param fileobj: The object to write the result graph to (ie: fileobject.write(graphtext))
+        @param fileobj: The object to write the result graph to (ie:
+                        fileobject.write(graphtext))
        
         @type  state: ram.ai.state.State
         @param state: The state to start the graph at

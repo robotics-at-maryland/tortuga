@@ -44,7 +44,7 @@ def get_features():
                     deps = ['math', 'core', 'pattern'])
     
     add_feature('control', dirs = ['packages/control'],
-                    deps = ['math', 'core', 'vehicle'])
+                deps = ['math', 'core', 'vehicle'])
     
     add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
                     {'control' : ['wrappers/control'],
@@ -54,6 +54,8 @@ def get_features():
                      'core' : ['wrappers/core']})
                      
     if os.name == 'posix':
+        add_feature('network', dirs = ['packages/network'])
+        
         add_feature('vision_tools',
                 opt_dirs = {'vision' : ['tools/vision_viewer']} )
     

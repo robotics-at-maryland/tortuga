@@ -10,6 +10,9 @@
 #ifndef RAM_CONTROL_COMMON_07_07_2007
 #define RAM_CONTROL_COMMON_07_07_2007
 
+// Library Includes
+#include <boost/shared_ptr.hpp>
+
 namespace ram {
 namespace control {
 
@@ -18,6 +21,9 @@ struct DesiredState;
 struct MeasuredState;
 struct ControllerState;
 struct EstimatedState;
+
+class IController;
+typedef boost::shared_ptr<IController> IControllerPtr;
     
 } // namespace control
 } // namespace ram
