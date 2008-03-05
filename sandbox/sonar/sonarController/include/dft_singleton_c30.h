@@ -1,10 +1,32 @@
 /*
- *  sliding_dft_c30.h
+ *  dft_singleton_c30.h
  *  sonarController
  *
  *  Created by Leo Singer on 03/04/2008.
  *  Copyright 2007 Robotics@Maryland. All rights reserved.
  *  
+ *  Statically allocate a single global sliding_dft_t structure.
+ *  Some platforms, like PIC30, don't support malloc. 
+ *  
+ *  Usage:
+ * 
+ *    #define M_SLIDING_DFT_k 5          // the Fourier bin index
+ *    #define M_SLIDING_DFT_N 100        // size of the Fourier window
+ *    #define M_SLIDING_DFT_nchannels 3  // number of channels
+ *    #include <dft_singleton_c30.h>
+ *    
+ *    // the rest of your #includes ...
+ *    // your function prototypes
+ *    
+ *    void main(void)
+ *    {
+ *        ...  // your other variable declarations
+ *        sliding_dft_t *dft;
+ *        ...  // some code
+ *        dft = M_DFT_INIT();
+ *        ...  // now you can use the dft with calls to dft_update(dft) and so on.
+ *    }
+ * 
  */
 
 
@@ -22,7 +44,7 @@ adcmath_t M_SLIDING_DFT_RE[M_SLIDING_DFT_nchannels];
 adcmath_t M_SLIDING_DFT_IM[M_SLIDING_DFT_nchannels];
 adcmath_t M_SLIDING_DFT_MAG[M_SLIDING_DFT_nchannels];
 
-sliding_dft_t sliding_dft = 
+sliding_dft_t M_SLIDING_DFT = 
 {
 		M_SLIDING_DFT_k,
 		M_SLIDING_DFT_N,
@@ -37,7 +59,13 @@ sliding_dft_t sliding_dft =
 		M_SLIDING_DFT_MAG
 };
 
-sliding_dft_t *dft = &sliding_dft;
+sliding_dft_t *M_DFT_INIT()
+{
+	dft_init(&M_SLIDING_DFT, M_SLIDING_DFT_k, M_SLIDING_DFT_N, M_SLIDING_DFT_nchannels);
+}
+
+//  Post script to PIC programmers: Call this in void main():
+//  dft_init(dft, M_SLIDING_DFT_k, M_SLIDING_DFT_N, M_SLIDING_DFT_nchannels);
 
 
 #endif
