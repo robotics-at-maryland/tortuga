@@ -18,6 +18,10 @@
 #include "dft.h"
 
 
+//  C30 doesn't do mallocs well, so don't compile dft_alloc if we are on the 
+//  C30 platform.
+#ifdef __C30
+
 sliding_dft_t *dft_alloc(int nchannels, int k, int N)
 {
 	sliding_dft_t *dft = malloc(sizeof(sliding_dft_t));
@@ -32,16 +36,6 @@ sliding_dft_t *dft_alloc(int nchannels, int k, int N)
 }
 
 
-void dft_init(sliding_dft_t *dft, int nchannels, int k, int N)
-{
-	dft->nchannels = nchannels;
-	dft->k = k;
-	dft->N = N;
-	dft_setup_coefficients(dft);
-	dft_setup_window(dft);
-}
-
-
 void dft_free(sliding_dft_t *dft)
 {
 	free(dft->bufre);
@@ -52,6 +46,18 @@ void dft_free(sliding_dft_t *dft)
 	free(dft->im);
 	free(dft->mag);
 	free(dft);
+}
+
+#endif
+
+
+void dft_init(sliding_dft_t *dft, int nchannels, int k, int N)
+{
+	dft->nchannels = nchannels;
+	dft->k = k;
+	dft->N = N;
+	dft_setup_coefficients(dft);
+	dft_setup_window(dft);
 }
 
 

@@ -34,15 +34,22 @@ typedef struct {
 } sliding_dft_t;
 
 
+//  C30 doesn't do mallocs well, so don't compile dft_alloc if we are on the 
+//  C30 platform.
+#ifdef __C30
+
 //  Dynamically allocate and initialize a sliding DFT structure
 sliding_dft_t *dft_alloc(int nchannels, int k, int N);
+
+
+//  Free a sliding DFT structure that has been dynamically allocated
+void dft_free(sliding_dft_t *dft);
+
+#endif
 
 //  Initialize a sliding DFT structure that has already been allocated,
 //  statically or dynamically
 void dft_init(sliding_dft_t *dft, int nchannels, int k, int N);
-
-//  Free a sliding DFT structure that has been dynamically allocated
-void dft_free(sliding_dft_t *dft);
 
 //  Pump new samples into a sliding DFT structure
 void dft_update(sliding_dft_t *dft, adcdata_t *sample);
