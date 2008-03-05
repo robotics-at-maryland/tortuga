@@ -16,9 +16,9 @@ Subsystems:
 #           almostHitPixels: 61440.0
         
         # Recording Settings
-        maxRecordRate: 8 # Hz
+        #maxRecordRate: 8 # Hz
         #forwardFile: forward.avi
-        forwardPort: 50001
+        #forwardPort: 50001
     
 
     RemoteController:
