@@ -20,7 +20,7 @@
 
 //  C30 doesn't do mallocs well, so don't compile dft_alloc if we are on the 
 //  C30 platform.
-#ifdef __C30
+#ifndef __C30
 
 sliding_dft_t *dft_alloc(int nchannels, int k, int N)
 {
