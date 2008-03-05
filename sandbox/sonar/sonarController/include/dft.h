@@ -34,11 +34,26 @@ typedef struct {
 } sliding_dft_t;
 
 
+//  Dynamically allocate and initialize a sliding DFT structure
 sliding_dft_t *dft_alloc(int nchannels, int k, int N);
+
+//  Initialize a sliding DFT structure that has already been allocated,
+//  statically or dynamically
+void dft_init(sliding_dft_t *dft, int nchannels, int k, int N);
+
+//  Free a sliding DFT structure that has been dynamically allocated
 void dft_free(sliding_dft_t *dft);
+
+//  Pump new samples into a sliding DFT structure
 void dft_update(sliding_dft_t *dft, adcdata_t *sample);
+
+//  Initialize the DFT coefficients.  Called during dft_init
 void dft_setup_coefficients(sliding_dft_t *dft);
+
+//  Initialize the DFT window.  Called during dft_init
 void dft_setup_window(sliding_dft_t *dft);
+
+//  Purge the DFT window by pumping the buffer full of zeros.  Called during dft_init
 void dft_purge(sliding_dft_t *dft);
 
 

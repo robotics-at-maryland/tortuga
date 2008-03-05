@@ -21,12 +21,24 @@
 sliding_dft_t *dft_alloc(int nchannels, int k, int N)
 {
 	sliding_dft_t *dft = malloc(sizeof(sliding_dft_t));
+	dft->bufre = malloc(dft->nchannels*dft->N*sizeof(adcmath_t));
+	dft->bufim = malloc(dft->nchannels*dft->N*sizeof(adcmath_t));
+	dft->re = malloc(dft->nchannels*sizeof(adcmath_t));
+	dft->im = malloc(dft->nchannels*sizeof(adcmath_t));
+	dft->mag = malloc(dft->nchannels*sizeof(adcmath_t));
+	dft->coefre = malloc(dft->N*sizeof(adcdata_t));
+	dft->coefim = malloc(dft->N*sizeof(adcdata_t));
+	dft_init(dft, nchannels, k, N);
+}
+
+
+void dft_init(sliding_dft_t *dft, int nchannels, int k, int N)
+{
 	dft->nchannels = nchannels;
 	dft->k = k;
 	dft->N = N;
 	dft_setup_coefficients(dft);
 	dft_setup_window(dft);
-	return dft;
 }
 
 
@@ -113,8 +125,6 @@ void dft_update(sliding_dft_t *dft, adcdata_t *sample)
 void dft_setup_coefficients(sliding_dft_t *dft)
 {
 	int n;
-	dft->coefre = malloc(dft->N*sizeof(adcdata_t));
-	dft->coefim = malloc(dft->N*sizeof(adcdata_t));
 	for (n = 0 ; n < dft->N ; n++)
 	{
 		dft->coefre[n] = (adcdata_t) (cos(- 2 * M_PI * n * dft->k / dft->N) * ADCDATA_MAXAMPLITUDE);
@@ -124,11 +134,6 @@ void dft_setup_coefficients(sliding_dft_t *dft)
 
 
 void dft_setup_window(sliding_dft_t *dft) {
-	dft->bufre = malloc(dft->nchannels*dft->N*sizeof(adcmath_t));
-	dft->bufim = malloc(dft->nchannels*dft->N*sizeof(adcmath_t));
-	dft->re = malloc(dft->nchannels*sizeof(adcmath_t));
-	dft->im = malloc(dft->nchannels*sizeof(adcmath_t));
-	dft->mag = malloc(dft->nchannels*sizeof(adcmath_t));
 	dft_purge(dft);
 }
 
