@@ -17,7 +17,19 @@
 #define SONAR_H
 
 
+/* Microchip C30 does not come with <stdint.h>, so we will provide
+ * our own fixed width data types.
+ */
+#ifdef __C30
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef signed int int16_t;
+typedef unsigned int uint16_t;
+typedef signed long int32_t;
+typedef unsigned long uint32_t;
+#else
 #include <stdint.h>
+#endif
 
 
 /* The PIC math.h is missing a few things; let's #include whatever 
