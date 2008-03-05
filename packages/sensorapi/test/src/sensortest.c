@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
     printf("\n");
 
 
-    for(i=0; i<10; i++)
+    for(i=0; i<1000; i++)
     {
         ret = setSpeeds(fd, i/3,i/3,i/3,i/3);
         if(ret == SB_ERROR)

@@ -248,7 +248,7 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
 	{
 	    if(param != 0)
 	    {
-	    	double yaw = param / 20.0;
+	    	double yaw = param / 100.0;
 	    	//printf("Yaw: %f\n", yaw);
 	    	m_controller->yawVehicle(yaw);
 	    }

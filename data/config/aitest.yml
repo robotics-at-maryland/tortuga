@@ -16,10 +16,16 @@ Subsystems:
 #           almostHitPixels: 61440.0
         
         # Recording Settings
-#        maxRecordRate: 5 # Hz
-#        forwardFile: forward.avi
-#        forwardPort: 50000
+        maxRecordRate: 8 # Hz
+        #forwardFile: forward.avi
+        forwardPort: 50001
     
+
+    RemoteController:
+        type: RemoteController
+        depends_on: ["Controller"]
+        update_interval: -1
+
     EventHub:
         type: EventHub
 
