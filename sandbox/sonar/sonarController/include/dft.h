@@ -24,7 +24,9 @@ extern "C" { /* Play nice with C++. */
 
 
 typedef struct {
-	int k, N, nchannels;
+	int k; //bin number
+	int N; //number of samples in window
+	int nchannels; //number of concurrent channels 
 	int idx;
 	adcmath_t *bufre, *bufim;
 	adcdata_t *coefre, *coefim;
