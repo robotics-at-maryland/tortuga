@@ -1,0 +1,95 @@
+\documentclass[10pt]{amsart}
+
+
+%%% PAGE SETTINGS
+\usepackage[twocolumn, nohead, letterpaper, landscape, margin={0.5in,0.5in}]{geometry}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+
+%%% TITLE
+\title{\huge{Sonar Crib Sheet}}
+\date{\today}
+
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+
+%%% ROBOTICS@MARYLAND LOGO
+\begin{center}
+\includegraphics[scale=0.4]{robocrab.pdf}
+\end{center}
+\maketitle
+
+
+\section{Constants}
+
+
+%%% PHYSICAL CONSTANTS TABLE
+\begin{table}[h]
+\caption{Physical Constants}
+\begin{tabular}{|c|c c|}
+\hline\hline
+Symbol	&	Quantity							& \(\approx\) Metric value \\
+\hline
+\(v_a\)	& Speed of sound in air				& 343 m/s	 	\\
+\(v_w\)	& Speed of sound in water			& 1500 m/s		\\
+\(Z_a\)	& Acoustic impedance of air (STP)	& 420 MPa s/m	\\
+\(Z_w\) & Acoustic impedance of water		  & 1.5 MPa s/m	\\
+\hline
+\end{tabular}
+\label{tab:PhysicalConstants}
+\end{table}
+
+
+%%% AUVSI CONSTANTS TABLE
+\begin{table}[h]
+\caption{AUVSI Specific Parameters}
+\begin{tabular}{|c|c c|}
+\hline\hline
+Symbol	&	Quantity							& \(\approx\) Metric value \\
+\hline
+\(T_{ping}\)	& Ping duration						& 1.3 ms		 	\\
+\(\nu_{ping}\)	& Ping frequency					& 22 kHz \(< \nu_{ping} <\) 30 kHz \\
+\(d_{ping}\)	& Ping wave train length			& 1.95 m \\
+\hline
+\end{tabular}
+\label{tab:PhysicalConstants}
+\end{table}
+
+
+\section{Surface echoes}
+
+
+A source and receiver are at depth \(z\) separated by distance \(R\).  The source emits a ping at time \(t=0\) and arrives at the receiver at time \(t_{ping}=R/v_w\).  Then the first surface echo arrives at a time \(t_{ping}+\Delta{t}_{echo}\):
+
+
+%%% SURFACE ECHOES EQUATION
+\begin{equation*}
+\Delta{t}_{echo}(z,R)=(2\sqrt{z^2+(R/2)^2}-R)/v_w.
+\end{equation*}
+
+
+%%% SURFACE ECHOES TABLE
+\begin{table}[h]
+\caption{\(\Delta{t}_{echo}\) at a depth of \(z=3\) meters}
+\begin{tabular}{|c|c|}
+\hline\hline
+\(R\) (m) & \(\Delta{t}_{echo}\) (ms) \\
+\hline
+ 0	& 4.0 \\
+ 10	& 1.0 \\
+ 20	& 0.6 \\
+ 30	& 0.4 \\
+ 40	& 0.3 \\
+ 50	& 0.2 \\
+ \hline
+\end{tabular}
+\label{tab:SurfaceEchoes}
+\end{table}
+
+
+%%% END DOCUMENT
+\end{document}  
