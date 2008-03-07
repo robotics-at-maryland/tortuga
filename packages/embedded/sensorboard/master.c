@@ -120,7 +120,8 @@ void freeBus()
     TRISE = TRISE | 0x3F;
 }
 
-byte diagMsg=1;
+byte diagMsg = 1;
+byte failsafeExpired = 0;
 
 /* Wait for a byte on the serial console */
 unsigned char waitchar(byte timeout)
@@ -146,7 +147,11 @@ unsigned char waitchar(byte timeout)
 
         if(failsafeTime++ == FAILSAFE_TIMEOUT)
         {
-            stopThrusters();
+            if(!failsafeExpired)
+            {
+                failsafeExpired = 1;
+                stopThrusters();
+            }
             failsafeTime = 0;
         }
     }
@@ -1122,6 +1127,8 @@ int main(void)
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
+
+                failsafeExpired = 0;    /* Reset failsafe mechanism */
 
                 t1 = 0;
                 if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
