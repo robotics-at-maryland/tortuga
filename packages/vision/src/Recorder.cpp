@@ -109,7 +109,7 @@ void Recorder::update(double timeSinceLastUpdate)
             {
                 // If camera is not backgrounded, sleep for 1/30 a second
                 if (m_camera->backgrounded())
-                    m_camera->waitForImage(0);
+                    waitForImage(m_camera);
                 // Only sleep if we are operting backgrounded
                 else if (backgrounded())
                     core::TimeVal::sleep(1.0/30.0);
@@ -123,10 +123,24 @@ void Recorder::update(double timeSinceLastUpdate)
     }
 }
 
+void Recorder::background(int interval)
+{
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        m_newFrame = false;
+    }
+    Updatable::background(interval);
+}
+    
 void Recorder::cleanUp()
 {
     m_connection->disconnect();
     unbackground(true);    
+}
+
+void Recorder::waitForImage(Camera* camera)
+{
+    camera->waitForImage(0);
 }
     
 void Recorder::newImageCapture(core::EventPtr event)

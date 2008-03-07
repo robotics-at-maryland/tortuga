@@ -16,47 +16,41 @@
 // Project Includes
 #include "vision/include/VisionRunner.h"
 #include "vision/include/Camera.h"
-#include "vision/include/OpenCVImage.h"
 #include "vision/include/Detector.h"
 
 namespace ram {
 namespace vision {
 
-VisionRunner::VisionRunner(Camera* camera) :
-    m_camera(camera),
-    m_image(new OpenCVImage(camera->width(), camera->height()))
+VisionRunner::VisionRunner(Camera* camera, Recorder::RecordingPolicy policy,
+                           int policyArg) :
+    Recorder(camera, policy, policyArg)
 {
 }
 
 VisionRunner::~VisionRunner()
 {
+    cleanUp();
+    
     // stop background thread, and wait till it joins
     Updatable::unbackground(true);
-
-    delete m_image;
 }
     
 void VisionRunner::update(double timestep)
 {
-    // Process changes to the detector list (return if we get a STOP change)
-    if(processDetectorChanges())
-        return;
+    // Process changes to the detector changes
+    bool toggleBackground = processDetectorChanges(false);
 
-    // Wait for the next image
-    boost::xtime timeout = {0, (int)(1e6 * 1000/33)}; // 33 milliseconds
-    if(m_camera->waitForImage(m_image, timeout))
+    // Normal update (calls record frame as needed) only if backgrounded
+    Recorder::update(timestep);
+
+    if (toggleBackground)
     {
-        // Make any changes to the detectors which might have happend while
-        // we waited for the image to appear
-        if(processDetectorChanges() || (m_detectors.size() == 0))
-            return;
-
-        // Have each detector process the image
-        BOOST_FOREACH(DetectorPtr detector, m_detectors)
-        {
-            detector->processImage(m_image);
-        }
+        if (backgrounded())
+            unbackground(true);
+        else
+            background(-1);
     }
+        
 }
     
 void VisionRunner::addDetector(DetectorPtr detector)
@@ -86,17 +80,29 @@ void VisionRunner::removeAllDetectors()
         processDetectorChanges();
 }
 
-void VisionRunner::unbackground(bool join)
+void VisionRunner::recordFrame(Image* image)
 {
-    // Stop the detector wait loop if there is one
-    m_detectorChanges.push(std::make_pair(STOP, DetectorPtr()));
-    
-    Updatable::unbackground(join);
+    // Make any changes to the detectors which might have happend while
+    // we waited for the image to appear
+    if(processDetectorChanges() || (m_detectors.size() == 0))
+        return;
+
+    // Have each detector process the image
+    BOOST_FOREACH(DetectorPtr detector, m_detectors)
+    {
+        detector->processImage(image);
+    }
 }
     
-bool VisionRunner::processDetectorChanges()
+void VisionRunner::waitForImage(Camera* camera)
 {
-    bool stopped = false;
+    boost::xtime timeout = {0, (int)(1e6 * 1000/33)}; // 33 milliseconds
+    camera->waitForImage(0, timeout);
+}
+    
+    
+bool VisionRunner::processDetectorChanges(bool canBackground)
+{
     size_t startSize = m_detectors.size();
     DetectorChange change;
     
@@ -125,27 +131,22 @@ bool VisionRunner::processDetectorChanges()
                 m_detectors.clear();
             }
             break;
-            
-            case STOP:
-            {
-                stopped = false;
-            }
-            break;
         }
     }
 
     // Background or unbackground depending on size change
     if ((0 == startSize) && (m_detectors.size() > 0))
-        background(-1);
+    {
+        if (canBackground)
+            background(-1);
+        return true;
+    }
     else if ((startSize > 0) && (0 == m_detectors.size()))
-        Updatable::unbackground(false);
-
-   return stopped;
-}
-
-bool VisionRunner::processDetectorChange(DetectorChange& change)
-{
-
+    {
+        if (canBackground)
+            Updatable::unbackground(true);
+        return true;
+    }
 
     return false;
 }

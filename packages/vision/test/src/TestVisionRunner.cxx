@@ -51,13 +51,13 @@ struct VisionRunnerFixture
     
 TEST_FIXTURE(VisionRunnerFixture, CreateDestroy)
 {
-    vision::VisionRunner runner(camera);
+    vision::VisionRunner runner(camera, vision::Recorder::NEXT_FRAME);
 }
 
 #ifndef RAM_WINDOWS
 TEST_FIXTURE(VisionRunnerFixture, Update)
 {
-    vision::VisionRunner runner(camera);
+    vision::VisionRunner runner(camera, vision::Recorder::NEXT_FRAME);
 
     // "Backgrounds" the camera (no real background thread, because this is
     // just a mock object)
@@ -70,29 +70,30 @@ TEST_FIXTURE(VisionRunnerFixture, Update)
     // Add a mock detector and make sure its called properly
     MockDetector* detector = new MockDetector();
     vision::DetectorPtr detectorPtr(detector);
+    
     // This addition automatically starts the detector running in the background
     runner.addDetector(detectorPtr);
-    
-    // Have to wait for the processing thread to be waiting on the camera
-    ram::core::TimeVal::sleep(500.0 / 1000.0);
+    CHECK(runner.backgrounded());
 
+    // Unbackground to make the rest of the test deterministic
+    runner.unbackground(true);
+    
     // Release the image from the camera
     camera->update(0);
-
-    // Wait for the capture to go ahead
-    ram::core::TimeVal::sleep(33.0 / 1000.0);
-
-    // This removal stops the background thread
-    runner.removeDetector(detectorPtr);
-
+    runner.update(1.0/20);
 
     CHECK_EQUAL(1, detector->processCount);
     CHECK_CLOSE(*image, *detector->inputImage, 0);
-
+    
+    // Make sure that you can remove the detector (with the background thread)
+    runner.background(-1);
+    runner.removeDetector(detectorPtr);
+    
     // Ensure another update does nothing
     camera->update(0);
+    runner.update(1.0/20);
     CHECK_EQUAL(1, detector->processCount);
-
+    CHECK_EQUAL(false, runner.backgrounded());
 
     camera->unbackground(true);
 }

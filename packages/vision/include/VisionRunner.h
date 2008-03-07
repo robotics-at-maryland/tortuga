@@ -17,9 +17,9 @@
 // Project Includes
 #include "vision/include/Events.h"
 #include "vision/include/Common.h"
+#include "vision/include/Recorder.h"
 
 #include "core/include/Event.h"
-#include "core/include/Updatable.h"
 #include "core/include/ThreadedQueue.h"
 
 // Must be included last
@@ -33,13 +33,21 @@ namespace vision {
  *  If the runner has detecctors, and the given camera is caputring images the
  *  detectors will be running.
  */
-class RAM_EXPORT VisionRunner : public core::Updatable
+class RAM_EXPORT VisionRunner : public Recorder
 {
 public:
-    VisionRunner(Camera* camera);
+    /** Constructor
+     *
+     *  @param camera  The camera to record images from
+     *  @param policy  Determines how often images from the camera are recorded
+     *  @param policyArg  An argument for use by the given recording policy.
+     *
+     */
+    VisionRunner(Camera* camera, Recorder::RecordingPolicy policy,
+                 int policyArg = 0);
     ~VisionRunner();
     
-    /** Waits for the next camera image then runs the detectors on the image */
+    /** Process detector changes, then goes into the normal Recorder update */
     virtual void update(double timestep);
     
     /** Adds the given detector to the list running detectors */
@@ -51,41 +59,35 @@ public:
     /** Removes all detectors */
     void removeAllDetectors();
     
-    /** Stops the background process thread */
-    virtual void unbackground(bool join = false);
+protected:
+    /** Waits for 1/30 of second, then just keeps looping */
+    virtual void waitForImage(Camera* camera);
+    
+    /** Called when we have a new image process */
+    virtual void recordFrame(Image* image);
     
 private:
     enum ChangeType {
         ADD,
         REMOVE,
-        REMOVE_ALL,
-        STOP
+        REMOVE_ALL
     };
     typedef std::pair<ChangeType, DetectorPtr> DetectorChange;
 
     /** Runs through the detectorChanges queue and adds/remove detectors
      *
-     *  @return  true if the we get a STOP processing change
-     */
-    bool processDetectorChanges();
-
-    /** Processes and indivual changes to the detector list
+     *  @param   canBackground  Allows the function to change the backgrounded
+     *                          state if needed.
      *
-     *  @return  true if the we get a STOP processing change
+     *  @return  Whether or not the background thread needs to be toggle on/off
      */
-    bool processDetectorChange(DetectorChange& change);
+    bool processDetectorChanges(bool canBackground = true);
     
     /** Detectors to be added or removed */
     core::ThreadedQueue<DetectorChange> m_detectorChanges;
 
     /** Current list of dectors being added */
     std::set<DetectorPtr> m_detectors;
-
-    /** Camera to grabe images from */
-    Camera* m_camera;
-
-    /** Image we capture from the camera */
-    Image* m_image;
 };
         
 } // namespace vision

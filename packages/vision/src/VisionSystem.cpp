@@ -99,9 +99,11 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
     }
     
+    // Detector runners (go as fast as possible)
+    m_forward = new VisionRunner(m_forwardCamera.get(), Recorder::NEXT_FRAME);
+    m_downward = new VisionRunner(m_downwardCamera.get(), Recorder::NEXT_FRAME);
+
     // Detectors
-    m_forward = new VisionRunner(m_forwardCamera.get());
-    m_downward = new VisionRunner(m_downwardCamera.get());
     m_redLightDetector = DetectorPtr(
         new RedLightDetector(config["RedLightDetector"], eventHub));
     m_binDetector = DetectorPtr(

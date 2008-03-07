@@ -59,14 +59,22 @@ class RAM_EXPORT Recorder : public core::Updatable
 
     virtual void update(double timeSinceLastUpdate);
 
+    /** Starts the background process thread, clear m_newFrame flag */
+    virtual void background(int interval = -1);
+    
   protected:
     /** This must be the first thing called in by a subclasses destructor */
     virtual void cleanUp();
+
+    /** Waits for the next image, only run when the recorder is backgronuded
+     *
+     *  By default it will block until a new image is recieved by the camera.
+     */
+    virtual void waitForImage(Camera* camera);
     
     /** Called when ever there is a new frame to record */
     virtual void recordFrame(Image* image) = 0;
-
-
+    
   private:
     /** Called when the camera has processed a new event */
     void newImageCapture(core::EventPtr event);

@@ -73,7 +73,10 @@ bool Camera::waitForImage(Image* current, const boost::xtime &xt)
     bool result = m_imageLatch.await(xt);
     
     if(result)
-        getImage(current);
+    {
+        if (current)
+            getImage(current);
+    }
 
     return result;
 }
