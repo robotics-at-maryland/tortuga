@@ -78,6 +78,7 @@ _FWDT ( WDT_OFF );
 #define BUS_FAILURE     -2
 
 #define DIAG_TIMEOUT     25000
+#define FAILSAFE_TIMEOUT 75000
 
 
 /* No sonar? */
@@ -89,6 +90,7 @@ static const unsigned char cdSafety[]={0xBA, 0xDB, 0xEE, 0xEF, 0x4A};
 
 
 void processRuntimeDiag();
+void stopThrusters();
 
 /* Read byte from bus */
 byte readBus()
@@ -124,6 +126,7 @@ byte diagMsg=1;
 unsigned char waitchar(byte timeout)
 {
     long waitTime=0;
+    long failsafeTime=0;
     byte x;
 
 
@@ -139,6 +142,12 @@ unsigned char waitchar(byte timeout)
         {
             processRuntimeDiag();
             waitTime=0;
+        }
+
+        if(failsafeTime++ == FAILSAFE_TIMEOUT)
+        {
+            stopThrusters();
+            failsafeTime = 0;
         }
     }
 
@@ -590,6 +599,23 @@ void diagBootMode()
     }
 }
 
+
+void stopThrusters()
+{
+    busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1);
+    busWriteByte(0, SLAVE_ID_MM1);
+    busWriteByte(0, SLAVE_ID_MM1);
+
+    busWriteByte(SLAVE_MM2_WRITE_CMD, SLAVE_ID_MM2);
+    busWriteByte(0, SLAVE_ID_MM2);
+    busWriteByte(0, SLAVE_ID_MM2);
+
+    busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3);
+    busWriteByte(0, SLAVE_ID_MM3);
+    busWriteByte(0, SLAVE_ID_MM3);
+
+    UARTSendSpeed(U2_MM_ADDR, rxBuf[6], rxBuf[7], 1);
+}
 
 int main(void)
 {
