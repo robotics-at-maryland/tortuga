@@ -423,10 +423,10 @@ int main(int argc, char ** argv)
 			#elif defined OIS_LINUX_PLATFORM
 			  checkX11Events();
 			  usleep( 250 );
-	              		sendCmd(sockfd, CMD_NOTHING, 0);
+	       	sendCmd(sockfd, CMD_NOTHING, 0);
 
 			sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
-			
+
 			#endif
 /*
 			if( g_kb )
