@@ -79,7 +79,7 @@ NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port) :
 
     
     // Read first no data packet to get width and height
-    ImagePacketHeader header;
+    ImagePacketHeader header = {0, 0, 0};
     readPacketHeader(&header);
     m_width = header.width;
     m_height = header.height;

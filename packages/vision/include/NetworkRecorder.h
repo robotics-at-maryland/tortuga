@@ -12,6 +12,8 @@
 
 // Library Includes
 #include <boost/cstdint.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/condition.hpp>
 
 // Project Includes
 #include "vision/include/Recorder.h"
@@ -50,6 +52,12 @@ class RAM_EXPORT NetworkRecorder : public Recorder
 
     /** Stops the background thread and closes network connections */
     virtual void unbackground(bool join = false);
+
+    /** Waits until we can accept a client connection
+     *
+     *  Returns immedietly if we already have a connection.
+     */
+    virtual void waitForAccepting();
     
   protected:
     /** Called whenever there is a frame to record, sends data over network */
@@ -67,6 +75,12 @@ class RAM_EXPORT NetworkRecorder : public Recorder
     
     /** Port to listen for connections on */
     boost::uint16_t m_port;
+
+    /** Protect access to network sockets and addresse */
+    boost::mutex m_mutex;
+
+    /** Allows waiting for a client to connect */
+    boost::condition m_waitForAccepting;
     
     /** TCP socket used to listen for connections on */
     int m_listenSocket;

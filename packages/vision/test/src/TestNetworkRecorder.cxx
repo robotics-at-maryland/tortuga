@@ -75,7 +75,12 @@ TEST_FIXTURE(RecorderFixture, Update)
         images.push_back(image);
     }
 
-    vision::NetworkCamera networkCamera("localhost", TEST_PORT);
+    // Wait for the network recorder to be ready for clients
+    recorder.waitForAccepting();
+    
+    // Create the network camera
+    vision::NetworkCamera*  networkCamera =
+        new vision::NetworkCamera("localhost", TEST_PORT);
     
     // Record each image
     vision::Image* actual = new vision::OpenCVImage(640, 480);
@@ -86,8 +91,8 @@ TEST_FIXTURE(RecorderFixture, Update)
         camera->update(0);
         
         // Read the image back
-        networkCamera.update(0);
-        networkCamera.getImage(actual);
+        networkCamera->update(0);
+        networkCamera->getImage(actual);
         CHECK_CLOSE(*image, *actual, 0);
     }
 
@@ -98,6 +103,9 @@ TEST_FIXTURE(RecorderFixture, Update)
     }
 
     camera->unbackground();
+
+    // Shutdown the client before we shutdown the NetworkRecorder
+    delete networkCamera;
 }
 
 } // SUITE(NetworkRecorder)
