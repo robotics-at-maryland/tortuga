@@ -1,4 +1,4 @@
-function phaseExp(delayBetweenPlots,NoiseLevel,loopLength,freq,ksps,N);
+function phaseExp(delayBetweenPlots,NoiseLevel,loopLength,freq,ksps,N,scale);
 % PHASEXP A visualization of the phase properties of a
 %	single frequency signal (for now)
 %	This function illustrates the relationship between the 
@@ -20,6 +20,12 @@ function phaseExp(delayBetweenPlots,NoiseLevel,loopLength,freq,ksps,N);
 %   be working with.  However, if we see noise levels similar to last
 %   year then we will face significant difficulties.  Noise can be
 %   tackled somewhat by sampling faster(if it is achievable).
+%
+%USAGE:
+% phaseExp(animation delay time, noise level, number of sample
+% sets to evaluate, input frequency in kHz, sample frequency 
+% in ksps, samples in window, amplitude of input signal-for 
+% simulating different bit depths)
 
 clf;
 number_of_samples=N;
@@ -37,7 +43,7 @@ for loop=1:loopLength
 	%create signal
 	y_clean=sin((2.*pi.*k./(sample_rate/signal_frequency))+(loop/10));
 	%quantize signal
-	y_quant=round(y_clean.*1024);
+	y_quant=round(y_clean.*scale);
 	%add quantized noise to signal
 	y_noisy=y_quant+round(randn(1,number_of_samples)*NoiseLevel);
 	
@@ -57,11 +63,12 @@ for loop=1:loopLength
 	
 	%plot signal on top left plot 
 	subplot(2,2,1); hold off; 
-	plot(k,1024.*y_clean,'.-b'); hold on;
+	plot(k,scale.*y_clean,'.-b'); hold on;
 	plot(k,y_quant,'og');
 	plot(k,y_noisy,'x-r');
-	axis([0 number_of_samples -1100 1100])
+	axis([0 number_of_samples -scale*1.1 scale*1.1])
 	title(['input signal: N:' num2str(number_of_samples) ' frequency:' num2str(signal_frequency) 'kHz sampleRate:' num2str(sample_rate) 'ksps'])
+	xlabel('samples'),ylabel('sample value')
 	
 	%plot FFT result on left bottom plot
 	subplot(2,2,3); hold off;
@@ -69,6 +76,7 @@ for loop=1:loopLength
 	plot(k,imag(ffty_clean),'.r');
 	axis([0 number_of_samples -35 35])
 	title(['FFT of input signal(circles:real dots:imag) desired bin:' num2str(desiredBin1)])
+	xlabel('frequency bins'),ylabel('units')
 	
 	%plot phase over time on the right side plot
 	subplot(2,2,2); hold off;
@@ -76,7 +84,8 @@ for loop=1:loopLength
 	plot(1:loop,phase2(1:loop),'og');
 	plot(1:loop,phase3(1:loop),'xr');
 	axis([1 loopLength -180 180])
-	title('different attempts to compute phase') %in time
+	title('Measured Phase of a Wave with Linearly shifted Phase and Noise') %in time
+	xlabel('different sample sets'),ylabel('phase (degrees)')
 	
 	%plot of phase error in lower right
 	subplot(2,2,4);hold off;
@@ -88,6 +97,7 @@ for loop=1:loopLength
 	if maxplot<.01; maxplot=.05; end
 	axis([1 loopLength -maxplot maxplot])
 	title(['estimated phase error, std.dev:' num2str(stderror)]) %in time
+	xlabel('different sample sets'),ylabel('phase error (degrees)')
 	
 	%delay before plotting next iteration
 	pause(delayBetweenPlots)
