@@ -65,17 +65,29 @@ TEST(invert)
 	CHECK_CLOSE(n1, exp, 0.001);
 }
 
-//TODO find a test for this
-/*
 TEST(cholesky)
 {
-	double data1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-	MatrixN n1(data1, 3, 3);
+	double data1[] = {
+            1, 1, 1, 1, 1,
+            1, 2, 3, 4, 5,
+            1, 3, 6, 10, 15,
+            1, 4, 10, 20, 35,
+            1, 5, 15, 35, 70
+        };
+	MatrixN n1(data1, 5, 5);
 
-	n1.invert();
+        // The actual result is the bottom left diagonal of the matrix.  The in
+        // place version of this function leaves old data in the upper right
+        // section.
+	double dataExp[] = {
+            1, 1, 1, 1, 1,
+            1, 1, 3, 4, 5,
+            1, 2, 1, 10, 15,
+            1, 3, 3, 1, 35,
+            1, 4, 6, 4, 1
+        };
+	MatrixN exp(dataExp, 5, 5);
 
-	double dataExp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-	MatrixN exp = MatrixN(dataExp, 3, 3);
-
+        n1.factorCholesky();
 	CHECK_CLOSE(n1, exp, 0.001);
-}*/
+}

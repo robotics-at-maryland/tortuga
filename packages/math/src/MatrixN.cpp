@@ -9,7 +9,7 @@
 namespace ram {
 namespace math {
 	
-	bool MatrixN::factorLU( int *index, float *det ) 
+	bool MatrixN::factorLU( int *index, Real *det ) 
 	{
 		int i, j, k, newi, min;
 		double s, t, d, w;
@@ -87,10 +87,10 @@ namespace math {
 		return true;
 	}   
 
-	void MatrixN::solveLU( float *x, float *b, const int *index ) const
+	void MatrixN::solveLU(Real *x, Real *b, const int *index) const
 	{
 		int i, j;
-		double sum;
+		Real sum;
  
 		// solve L
 		for ( i = 0; i < rows; i++ ) {
@@ -119,15 +119,19 @@ namespace math {
 	{
 		int i, j, *index;
 		MatrixN tmp(rows, cols);
-		float *x = new float[rows];
-		float *b = new float[rows];
 		index = new int[rows];
 		tmp = *this;
 
 		if ( !tmp.factorLU( index ) )
+                {
+                    delete[] index;
 			return false;
+                }
 
-		memset(b, 0, sizeof(double)*rows);
+		Real *x = new Real[rows];
+		Real *b = new Real[rows];
+                
+		memset(b, 0, sizeof(Real)*rows);
 
 		for ( i = 0; i < rows; i++ ) 
 		{
@@ -137,6 +141,10 @@ namespace math {
 				(*this)[j][i] = x[j];
 			b[i] = 0.0f;
 		}
+
+                delete[] index;
+                delete[] x;
+                delete[] b;
 		return true;
 	}
 
@@ -148,7 +156,7 @@ namespace math {
 
 		assert( rows == cols );
 
-		invSqrt = new double[rows];
+		invSqrt = new Real[rows];
 		for (i=0;i<rows;i++)
 			invSqrt[i] = 0;
 
@@ -169,12 +177,14 @@ namespace math {
 			}
 
 			if ( sum <= 0.0f ) {
+                            delete[] invSqrt;
 				return false;
 			}
 
 			invSqrt[i] = 1.0 / sqrt(sum);
 			(*this)[i][i] = invSqrt[i] * sum;
 		}
+                delete[] invSqrt;
 		return true;
 	}
 

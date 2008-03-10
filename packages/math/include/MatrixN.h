@@ -219,7 +219,6 @@ public:
 		{
 			for ( int j = 0; j < m2.cols; j++ ) 
 			{
-				Real sum = 0;
 				for ( int k = 0; k < cols; k++ ) 
 				{
 					out[i][j] += (*this)[i][k] * m2[k][j];
@@ -388,20 +387,28 @@ public:
 	}
 
 	//in place
-	bool factorLU( int *index, float *det = NULL);
+	bool factorLU(int *index, Real *det = NULL);
 
 	//in place
-	void solveLU( float *x, float *b, const int *index ) const;
+	void solveLU(Real *x, Real *b, const int *index) const;
 
 	//in place
 	bool invert();
 
-	/*
-	in place
-	L is a triangular matrix stored in the lower triangle.
-	The upper triangle is not cleared.
-	The initial matrix has to be symmetric positive definite.
-	*/
+        /** Preform an inplace Cholesky Factorization
+         *
+         *  This function uses only the diagonal and upper triangle of the
+         *  current matrix.  The initial matrix has to be symmetric positive
+         *  definite.  That means the lower triangular is assumed to be the
+         *  (complex conjugate) transpose of the upper.
+         *
+         *  The result is placed in the bottom diagonal of the matrix.  The
+         *  resulting matrix (with the top diagonal zeroed) results gives you
+         *  the following: R'*R = X.  Where R is the result and X is initail
+         *  matrix.
+         *
+         *  @return  true on success, false if the function fails
+         */
 	bool factorCholesky();
 	
 };
