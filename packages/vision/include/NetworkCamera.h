@@ -16,6 +16,9 @@
 // Library Includes
 #include <boost/cstdint.hpp>
 
+// Compression
+#include "quicklz.h"
+
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Camera.h"

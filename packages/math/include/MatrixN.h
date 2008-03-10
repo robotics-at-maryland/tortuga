@@ -43,6 +43,7 @@ public:
 		rows = 1;
 		cols = 1;
 		data = new Real[rows*cols];
+		data[0] = 0;
     }
 
     inline MatrixN(const MatrixN& o)
@@ -207,23 +208,27 @@ public:
         assert( row_ >= 0 && row_ < rows );
         return data + row_ * cols;
     }
-/*
+
     inline MatrixN operator * ( const MatrixN &m2 ) const
     {
 		assert( cols == m2.rows );
+
+		MatrixN out(rows, m2.cols);
 
 		for ( int i = 0; i < rows; i++ ) 
 		{
 			for ( int j = 0; j < m2.cols; j++ ) 
 			{
 				Real sum = 0;
-				for ( int k = 0; n < cols; n++ ) 
+				for ( int k = 0; k < cols; k++ ) 
 				{
-					
+					out[i][j] += (*this)[i][k] * m2[k][j];
 				}
 			}
 		}
-    }*/
+
+		return out;
+    }
 
     inline MatrixN operator + ( const MatrixN &m2 ) const
     {
@@ -381,9 +386,24 @@ public:
 
 		resize(rows, cols-1);
 	}
+
+	//in place
+	bool factorLU( int *index, float *det = NULL);
+
+	//in place
+	void solveLU( float *x, float *b, const int *index ) const;
+
+	//in place
+	bool invert();
+
+	/*
+	in place
+	L is a triangular matrix stored in the lower triangle.
+	The upper triangle is not cleared.
+	The initial matrix has to be symmetric positive definite.
+	*/
+	bool factorCholesky();
 	
-	Real determinant() const;
-	//MatrixN inverse() const;
 };
 
 inline MatrixN operator * (Real scalar, const MatrixN& mat)

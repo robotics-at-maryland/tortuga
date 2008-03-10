@@ -28,6 +28,16 @@
 #include "vision/include/NetworkRecorder.h"
 #include "vision/include/OpenCVImage.h"
 
+#define RAM_NETWORK_COMPRESSION
+
+#ifdef RAM_NETWORK_COMPRESSION
+#include "vision/include/quicklz.h"
+#endif
+
+#ifdef RAM_WINDOWS
+#define close closesocket
+#endif
+
 namespace ram {
 namespace vision {
 
@@ -91,11 +101,9 @@ NetworkCamera::~NetworkCamera()
     // Have to stop background capture before we release the capture!
     cleanup();
 
+	close(m_sockfd);
 #ifdef RAM_WINDOWS
-    closesocket(m_sockfd);
     WSACleanup();
-#else
-    close(m_sockfd);
 #endif
 
     free(m_addr);
@@ -130,7 +138,19 @@ void NetworkCamera::update(double timestep)
     // with it
     if (header.dataSize)
     {
-        OpenCVImage newImage(m_buffer, header.width, header.height, false);
+#ifdef RAM_NETWORK_COMPRESSION
+		char *scratch = (char*)malloc(QLZ_SCRATCH_DECOMPRESS);
+		char *newBuffer = (char*)malloc(m_bufferSize);
+		size_t newSize = qlz_decompress((char*)m_buffer, (void*)newBuffer, scratch);
+		OpenCVImage newImage((unsigned char*)newBuffer, header.width, header.height, false);
+		//can we free newBuffer now?
+		//free(newBuffer);
+		free(scratch);
+
+#else
+		OpenCVImage newImage(m_buffer, header.width, header.height, false);
+#endif
+
         capturedImage(&newImage);
     }
 }

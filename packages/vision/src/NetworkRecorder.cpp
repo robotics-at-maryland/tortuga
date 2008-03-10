@@ -32,6 +32,16 @@
 // how many pending connections queue will hold
 static const int BACKLOG = 10;
 
+#define RAM_NETWORK_COMPRESSION
+
+#ifdef RAM_NETWORK_COMPRESSION
+#include "vision/include/quicklz.h"
+#endif
+
+#ifdef RAM_WINDOWS
+#define close closesocket
+#endif
+
 namespace ram {
 namespace vision {
 
@@ -163,26 +173,35 @@ void NetworkRecorder::waitForAccepting()
 
 void NetworkRecorder::recordFrame(Image* image)
 {
+
     size_t width = image->getWidth();
     size_t height = image->getHeight();
     size_t dataSize = width * height * 3;
+
+#ifdef RAM_NETWORK_COMPRESSION
+	char *newData = (char*)malloc(dataSize + 400);
+	char *scratch = (char*)malloc(QLZ_SCRATCH_COMPRESS);
+	size_t newSize = qlz_compress((void*)image->getData(), newData, dataSize, scratch);
+	free(scratch);
+#endif
 
     // Create Network order packet
     m_packet.width = htons(static_cast<boost::uint16_t>(width));
     m_packet.height = htons(static_cast<boost::uint16_t>(height));
     m_packet.dataSize = htonl(dataSize);
 
+    if (m_currentSocket >= 0)
     {
-        boost::mutex::scoped_lock lock(m_mutex);
-    
-        if (m_currentSocket >= 0)
+        // Send header
+        if (sendData(&m_packet, sizeof(ImagePacketHeader)))
         {
-            // Send header
-            if (sendData(&m_packet, sizeof(ImagePacketHeader)))
-            {
-                // Send image data
-                sendData(image->getData(), dataSize);
-            }
+            // Send image data
+#ifdef RAM_NETWORK_COMPRESSION
+			sendData((void*)newData, newSize);
+			free(newData);
+#else
+            sendData(image->getData(), dataSize);
+#endif
         }
     }
 }

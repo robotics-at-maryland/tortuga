@@ -15,6 +15,9 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/condition.hpp>
 
+// Compression
+#include "quicklz.h"
+
 // Project Includes
 #include "vision/include/Recorder.h"
 
