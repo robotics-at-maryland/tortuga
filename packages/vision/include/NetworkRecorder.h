@@ -99,6 +99,10 @@ class RAM_EXPORT NetworkRecorder : public Recorder
 
     /** Holds the width, height, and data size of the last image sent */
     ImagePacketHeader m_packet;
+
+    /** The buffer where we copy the image network data */
+    unsigned char* m_compressedBuffer;
+    size_t m_bufferSize;
 };
     
 } // namespace vision

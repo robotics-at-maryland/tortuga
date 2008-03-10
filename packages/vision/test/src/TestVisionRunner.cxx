@@ -95,6 +95,13 @@ TEST_FIXTURE(VisionRunnerFixture, Update)
     CHECK_EQUAL(1, detector->processCount);
     CHECK_EQUAL(false, runner.backgrounded());
 
+    // Prevent dead lock in case the test fails
+    if (runner.backgrounded())
+    {
+        runner.unbackground(true);
+        assert(false && "Test failed");
+    }
+
     camera->unbackground(true);
 }
 #endif

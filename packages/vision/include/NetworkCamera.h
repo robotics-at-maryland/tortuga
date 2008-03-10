@@ -63,7 +63,10 @@ private:
     int m_sockfd;
 
     /** The buffer where we copy the image network data */
-    unsigned char* m_buffer;
+    unsigned char* m_compressedBuffer;
+    /** The buffer where the decompressed network data is stored */
+    unsigned char* m_imageBuffer;
+    
     size_t m_bufferSize;
     
     size_t m_width;

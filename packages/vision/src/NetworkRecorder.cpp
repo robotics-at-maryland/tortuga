@@ -53,7 +53,8 @@ NetworkRecorder::NetworkRecorder(Camera* camera,
     m_listenSocket(-1),
     m_currentSocket(-1),
     m_addr(0),
-    m_currentAddr(0)
+    m_currentAddr(0),
+    m_compressedBuffer(0)
 {
 #ifdef RAM_WINDOWS
     WSADATA wsaData;
@@ -78,6 +79,7 @@ NetworkRecorder::~NetworkRecorder()
 {
     // Stop the background thread, events, and network connections
     cleanUp();
+    free(m_compressedBuffer);
 }
 
 void NetworkRecorder::update(double timeSinceLastUpdate)
@@ -100,21 +102,19 @@ void NetworkRecorder::update(double timeSinceLastUpdate)
     {
         // Wait for a connection (0.1 second timeout)
         currentSocket = acceptConnection(0.1);
-
+        
         // Release all threads waiting on a connection
         m_waitForAccepting.notify_all();
         
         if (-1 != currentSocket)
         {
             // Now we can lock the socket again
-            {
-                boost::mutex::scoped_lock lock(m_mutex);
-                m_currentSocket = currentSocket;
+            boost::mutex::scoped_lock lock(m_mutex);
+            m_currentSocket = currentSocket;
                 
-                // Send a no data packet so the camera knows the image size
-                m_packet.dataSize = 0;
-                sendData(&m_packet, sizeof(ImagePacketHeader));
-            }
+            // Send a no data packet so the camera knows the image size
+            m_packet.dataSize = 0;
+            sendData(&m_packet, sizeof(ImagePacketHeader));
         }
     }
 
@@ -173,35 +173,61 @@ void NetworkRecorder::waitForAccepting()
 
 void NetworkRecorder::recordFrame(Image* image)
 {
-
     size_t width = image->getWidth();
     size_t height = image->getHeight();
     size_t dataSize = width * height * 3;
 
-#ifdef RAM_NETWORK_COMPRESSION
-	char *newData = (char*)malloc(dataSize + 400);
-	char *scratch = (char*)malloc(QLZ_SCRATCH_COMPRESS);
-	size_t newSize = qlz_compress((void*)image->getData(), newData, dataSize, scratch);
-	free(scratch);
-#endif
-
     // Create Network order packet
-    m_packet.width = htons(static_cast<boost::uint16_t>(width));
-    m_packet.height = htons(static_cast<boost::uint16_t>(height));
-    m_packet.dataSize = htonl(dataSize);
-
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        m_packet.width = htons(static_cast<boost::uint16_t>(width));
+        m_packet.height = htons(static_cast<boost::uint16_t>(height));
+        m_packet.dataSize = htonl(dataSize);
+    }
+    
     if (m_currentSocket >= 0)
     {
-        // Send header
-        if (sendData(&m_packet, sizeof(ImagePacketHeader)))
-        {
-            // Send image data
 #ifdef RAM_NETWORK_COMPRESSION
-			sendData((void*)newData, newSize);
-			free(newData);
+        size_t bufferSize = width * height * 3 + 400;
+
+        if (bufferSize != m_bufferSize)
+        {
+            m_bufferSize = bufferSize;
+            if (m_compressedBuffer)
+            {
+                m_compressedBuffer = (unsigned char*)realloc(m_compressedBuffer,
+                                                             m_bufferSize);
+                
+            }
+            else
+            {
+                m_compressedBuffer = (unsigned char*)malloc(m_bufferSize);
+            }
+        }
+        
+        char scratch[QLZ_SCRATCH_DECOMPRESS];
+        size_t newSize = qlz_compress((void*)image->getData(),
+                                      (char*)m_compressedBuffer,
+                                      dataSize, scratch);
+        {
+            boost::mutex::scoped_lock lock(m_mutex);
+            dataSize = newSize;
+            m_packet.dataSize = htonl(dataSize);
 #else
-            sendData(image->getData(), dataSize);
+        {
+            boost::mutex::scoped_lock lock(m_mutex);
 #endif
+        
+            // Send header
+            if (sendData(&m_packet, sizeof(ImagePacketHeader)))
+            {
+                // Send image data
+#ifdef RAM_NETWORK_COMPRESSION
+                sendData(m_compressedBuffer, dataSize);
+#else
+                sendData(image->getData(), dataSize);
+#endif
+            }
         }
     }
 }

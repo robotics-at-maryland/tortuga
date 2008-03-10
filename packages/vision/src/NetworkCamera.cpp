@@ -44,7 +44,8 @@ namespace vision {
 NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port) :
     m_addr(0),
     m_sockfd(0),
-    m_buffer(0),
+    m_compressedBuffer(0),
+    m_imageBuffer(0),
     m_bufferSize(0),
     m_width(0),
     m_height(0),
@@ -107,7 +108,8 @@ NetworkCamera::~NetworkCamera()
 #endif
 
     free(m_addr);
-    free(m_buffer);
+    free(m_compressedBuffer);
+    free(m_imageBuffer);
 }
 
 void NetworkCamera::update(double timestep)
@@ -122,33 +124,44 @@ void NetworkCamera::update(double timestep)
     m_fps = 30;
 
     // Make buffer fit incomming image size
-    if (header.dataSize && (header.dataSize != m_bufferSize))
+    // Need to fix buffer sizes better
+#ifdef RAM_NETWORK_COMPRESSION
+    size_t dataSize = m_width * m_height * 3;
+#else
+    size_t dataSize = header.dataSize;
+#endif
+    if (dataSize && (dataSize != m_bufferSize))
     {
-        m_bufferSize = header.dataSize;
-        if (m_buffer)
-            m_buffer = (unsigned char*)realloc(m_buffer, m_bufferSize);
+        m_bufferSize = dataSize;
+        if (m_compressedBuffer)
+        {
+            m_compressedBuffer = (unsigned char*)realloc(m_compressedBuffer,
+                                                         m_bufferSize);
+            m_imageBuffer = (unsigned char*)realloc(m_imageBuffer,
+                                                    m_bufferSize);
+        }
         else
-            m_buffer = (unsigned char*)malloc(m_bufferSize);
+        {
+            m_compressedBuffer = (unsigned char*)malloc(m_bufferSize);
+            m_imageBuffer = (unsigned char*)malloc(m_bufferSize);
+        }
     }
 
     // Read image off the wire
-    recieve(m_buffer, header.dataSize);
+    recieve(m_compressedBuffer, header.dataSize);
 
     // Create a temp image which doens't own the buffer, and then call capture
     // with it
     if (header.dataSize)
     {
 #ifdef RAM_NETWORK_COMPRESSION
-		char *scratch = (char*)malloc(QLZ_SCRATCH_DECOMPRESS);
-		char *newBuffer = (char*)malloc(m_bufferSize);
-		size_t newSize = qlz_decompress((char*)m_buffer, (void*)newBuffer, scratch);
-		OpenCVImage newImage((unsigned char*)newBuffer, header.width, header.height, false);
-		//can we free newBuffer now?
-		//free(newBuffer);
-		free(scratch);
-
+        char scratch[QLZ_SCRATCH_DECOMPRESS];
+        /*size_t newSize = */qlz_decompress((char*)m_compressedBuffer,
+                                            (void*)m_imageBuffer, scratch);
+        OpenCVImage newImage(m_imageBuffer, header.width, header.height,
+                             false);
 #else
-		OpenCVImage newImage(m_buffer, header.width, header.height, false);
+        OpenCVImage newImage(m_buffer, header.width, header.height, false);
 #endif
 
         capturedImage(&newImage);

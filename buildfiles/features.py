@@ -38,7 +38,7 @@ def get_features():
     add_feature('pattern', dirs = ['packages/pattern'])
     add_feature('math', dirs = ['packages/math'])
     add_feature('vision', dirs = ['packages/vision'],
-                deps = ['pattern', 'core'])
+                deps = ['pattern', 'core', 'math'])
 	
     add_feature('vehicle', dirs = ['packages/vehicle'],
                     deps = ['math', 'core', 'pattern'])
