@@ -4,7 +4,7 @@ CC = pic30-elf-gcc
 AS = pic30-elf-as
 STRIP = pic30-elf-strip
 
-CFLAGS = -mcpu=30F4011 -Wunused-function -mpa=5 -I/home/steve/dspicc/c30/support/h -I/home/steve/dspicc/c30/include -I/home/steve/dspicc/c30/support/inc -Wall -fno-short-double
+CFLAGS = -mcpu=30F4011 -Wunused-function -mpa=5 -I/home/steve/dspicc/c30/support/h -I/home/steve/dspicc/c30/include -I/home/steve/dspicc/c30/support/inc -Wall -fno-short-double -fverbose-asm 
 
 ASLAGS = -I/home/steve/dspicc/c30/include
 
@@ -15,6 +15,12 @@ BIN2HEX = pic30-elf-bin2hex
 LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
 all: master.hex slave.hex lcd.hex temp.hex debug.hex
+
+asm: master.s slave.s lcd.s temp.s debug.s
+
+%.s : %.c
+	$(CC) $(CFLAGS) -S $< -o $@
+
 
 %.hex : %.elf
 	$(BIN2HEX) $<
