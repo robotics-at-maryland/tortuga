@@ -283,7 +283,6 @@ FUID3            0xf80016           0x000002
 
 Linker script and memory map
 
-LOAD test.o
 LOAD main.o
 LOAD dft.o
                     0xf80000                  __FBS = 0xf80000
@@ -1963,6 +1962,8 @@ __FUID3
                     0x0220                  _UART1 = 0x220
                     0x0230                  UART2 = 0x230
                     0x0230                  _UART2 = 0x230
+                    0x0001                  __MPLAB_BUILD = 0x1
+                    0x0001                  __MPLAB_DEBUG = 0x1
 START GROUP
 LOAD c:/program files/microchip/mplab c30/bin/../lib\libpic30-coff.a
 LOAD c:/program files/microchip/mplab c30/bin/../lib\libm-coff.a

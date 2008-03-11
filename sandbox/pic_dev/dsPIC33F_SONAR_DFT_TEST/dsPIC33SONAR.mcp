@@ -23,17 +23,13 @@ file_002=no
 file_003=no
 file_004=no
 file_005=no
-file_006=no
-file_007=no
 [FILE_INFO]
-file_000=test.c
-file_001=main.c
-file_002=..\..\sonar\sonarController\src\dft.c
-file_003=test.h
-file_004=..\..\sonar\sonarController\include\dft.h
-file_005=..\..\sonar\sonarController\include\Sonar.h
-file_006=..\..\sonar\sonarController\include\dft_singleton_c30.h
-file_007=C:\Program Files\Microchip\MPLAB C30\support\gld\p33FJ256GP710.gld
+file_000=main.c
+file_001=..\..\sonar\sonarController\src\dft.c
+file_002=..\..\sonar\sonarController\include\dft.h
+file_003=..\..\sonar\sonarController\include\Sonar.h
+file_004=..\..\sonar\sonarController\include\dft_singleton_c30.h
+file_005=C:\Program Files\Microchip\MPLAB C30\support\gld\p33FJ256GP710.gld
 [SUITE_INFO]
 suite_guid={479DDE59-4D56-455E-855E-FFF59A3DB57E}
 suite_state=
