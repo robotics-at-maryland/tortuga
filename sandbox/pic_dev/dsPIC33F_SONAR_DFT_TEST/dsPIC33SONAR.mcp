@@ -7,7 +7,7 @@ dir_src=
 dir_bin=
 dir_tmp=
 dir_sin=
-dir_inc=C:\PICprog\sonarController\include
+dir_inc=..\..\sonar\sonarController\include
 dir_lib=C:\Program Files\Microchip\MPLAB C30\lib
 dir_lkr=
 [CAT_FILTERS]
@@ -25,26 +25,27 @@ file_004=no
 file_005=no
 file_006=no
 file_007=no
-file_008=no
 [FILE_INFO]
 file_000=test.c
 file_001=main.c
-file_002=C:\PICprog\sonarController\src\dft.c
+file_002=..\..\sonar\sonarController\src\dft.c
 file_003=test.h
-file_004=C:\Program Files\Microchip\MPLAB C30\support\h\p33FJ256GP710.h
-file_005=C:\PICprog\sonarController\include\dft.h
-file_006=C:\PICprog\sonarController\include\Sonar.h
-file_007=C:\PICprog\sonarController\include\dft_singleton_c30.h
-file_008=C:\Program Files\Microchip\MPLAB C30\support\gld\p33FJ256GP710.gld
+file_004=..\..\sonar\sonarController\include\dft.h
+file_005=..\..\sonar\sonarController\include\Sonar.h
+file_006=..\..\sonar\sonarController\include\dft_singleton_c30.h
+file_007=C:\Program Files\Microchip\MPLAB C30\support\gld\p33FJ256GP710.gld
 [SUITE_INFO]
 suite_guid={479DDE59-4D56-455E-855E-FFF59A3DB57E}
 suite_state=
 [TOOL_SETTINGS]
 TS{7D9C6ECE-785D-44CB-BA22-17BF2E119622}=-g
 TS{25AC22BD-2378-4FDB-BFB6-7345A15512D3}=-g -Wall
-TS{7DAC9A1D-4C45-45D6-B25A-D117C74E8F5A}=-Map="$(BINDIR_)$(TARGETBASE).map" --report-mem -o"$(BINDIR_)$(TARGETBASE).$(TARGETSUFFIX)"
+TS{7DAC9A1D-4C45-45D6-B25A-D117C74E8F5A}=-o"$(BINDIR_)$(TARGETBASE).$(TARGETSUFFIX)" -Map="$(BINDIR_)$(TARGETBASE).map" --report-mem
 TS{509E5861-1E2A-483B-8B6B-CA8DB7F2DD78}=
 [INSTRUMENTED_TRACE]
 enable=0
 transport=0
 format=0
+[CUSTOM_BUILD]
+Pre-Build=
+Post-Build=
