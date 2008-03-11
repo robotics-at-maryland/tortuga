@@ -1,0 +1,2 @@
+#define creature 5
+
