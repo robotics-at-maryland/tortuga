@@ -249,7 +249,6 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
     vision::OpenCVImage out(480, 640);
     detectorTopRemoved.processImage(&input, &out);
     CHECK(false == detectorTopRemoved.found);
-    vision::Image::saveToFile(&out, "/tmp/test.png");
 }
 
 } // SUITE(RedLightDetector)
