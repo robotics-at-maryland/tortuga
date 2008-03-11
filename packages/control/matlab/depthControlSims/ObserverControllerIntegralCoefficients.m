@@ -30,3 +30,4 @@ L_a = (place(A_a',C_a',[-22 -22.1 -21.9]))';
 A_c = [A_a - B_a*K_a-L_a*C_a   zeros(3,1);   -B_b*K_a    A_b]
 B_c = [L_a; 0]
 C_c = [zeros(1,3) C_b]
+

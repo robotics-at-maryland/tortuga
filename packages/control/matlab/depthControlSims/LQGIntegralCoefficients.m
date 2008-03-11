@@ -22,10 +22,19 @@ B_a = [B_b; zeros(2,1)];
 C_a = [0 C];
 
 Q_a = [10 0 0;0 10 0;0 0 0];
-G_a = [0 1/m 0]';
+G_a = [0 0 1/m]';
+
+%is augmented system observable?
+M_a_obs=[C_a; C_a*A_a; C_a*A_a^2];
+rank(M_a_obs);%=3, so this should be observable.....
 
 K_a = lqr(A_a,B_a,Q_a,R);
-L_a = lqe(A_a,G_a,C_a,W,N,0)
+%L_a = lqe(A_a,G_a,C_a,W,N,0)
+%try another way, trick matlab into having eigenvalues along state
+%disturbance variances
+Q_care=[0.0001 0 0; 0 0.0001 0; 0 0 W];
+Sigma=care(A_a',C_a',Q_care,N);
+L_a=Sigma*C_a'*inv(N);
 
 A_c = [A_a - B_a*K_a-L_a*C_a   zeros(3,1);   -B_b*K_a    A_b]
 B_c = [L_a; 0]
