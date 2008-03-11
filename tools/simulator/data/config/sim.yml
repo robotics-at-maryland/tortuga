@@ -8,8 +8,8 @@ GUI:
 
 Subsystems:
     VisionSystem:
-        type: SimVision
-#        type: IdealSimVision
+#        type: SimVision
+        type: IdealSimVision
         cameraRate: 30
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
@@ -103,7 +103,8 @@ Subsystems:
                 search_path: ['%(PYTHON_OGRE_HOME)s/plugins',
                 'C:\Libraries\PythonOgre\plugins',
                 'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
-                '/home/lsinger/ram_deps/python-ogre-snapshot/plugins']
+                '/home/lsinger/ram_deps/python-ogre-snapshot/plugins',
+                '/opt/ram/local/lib/OGRE']
                 
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
                 'Plugin_OctreeSceneManager']
