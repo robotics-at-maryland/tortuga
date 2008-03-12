@@ -63,6 +63,7 @@ sliding_dft_t M_SLIDING_DFT =
 sliding_dft_t *M_DFT_INIT()
 {
 	dft_init(&M_SLIDING_DFT, M_SLIDING_DFT_k, M_SLIDING_DFT_N, M_SLIDING_DFT_nchannels);
+	return &M_SLIDING_DFT;
 }
 
 //  Post script to PIC programmers: Call this in void main():
