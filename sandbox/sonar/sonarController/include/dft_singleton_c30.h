@@ -30,10 +30,11 @@
  */
 
 
+#include "dft.h"
+
 #ifdef M_SLIDING_DFT_k
 #ifdef M_SLIDING_DFT_N
 #ifdef M_SLIDING_DFT_nchannels
-
 
 //	Statically allocate the necessary arrays
 adcmath_t M_SLIDING_DFT_BUFRE[M_SLIDING_DFT_N * M_SLIDING_DFT_nchannels];
