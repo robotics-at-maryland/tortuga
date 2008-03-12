@@ -12,7 +12,7 @@ global K;
 global L;
 
 % y_hat: estimation of y from previous state estimate
-y_hat = x_hat(1);
+y_hat = C*x_hat;
 
 % finding x_dot_prev from x_prev and y
 x_dot_prev = A*x_hat + B*(-(K)*x_hat) + (L)*(y-y_hat);
