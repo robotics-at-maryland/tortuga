@@ -26,44 +26,24 @@ void _ISRFAST _T3Interrupt(void);
 
 int dutyCycle = 937;
 
+#define M_SLIDING_DFT_k 10
+#define M_SLIDING_DFT_N 100
+#define M_SLIDING_DFT_nchannels 4
+
+#include "dft_singleton_c30.h"
+
+
 int main(){
-	//more work to ensure proper clock configuration (from top of page 139 of part manaual)
-	//this may need some testing to verify if it is necessary or not
-	
-	/*CLKDIVbits.PLLPRE = 0;
-	PLLFBDbits.PLLDIV = 0x1E;
-	CLKDIVbits.PLLPOST = 0;
-	
-	
-	init_IO();
-	init_Uart();
-	startup_flashes_text();
-	
-	//init_Timer2and3();
-	//init_OC2();
-	
-	while(1){
-		PORTBbits.RB3=1;
-		if(PORTBbits.RB0==1 && dutyCycle<1065){
-			PORTBbits.RB3=0;
-			sendString("increased duty cycle to ");
-			dutyCycle+=5;
-			OC2RS=dutyCycle;
-			sendNum(dutyCycle);
-			sendString(" \t(counterclockwise)\n\r");
-			delay(10);
-		}
-		if(PORTBbits.RB1==1 && dutyCycle>110){
-			PORTBbits.RB3=0;
-			sendString(" decreased duty cycle to ");
-			dutyCycle-=5;
-			OC2RS=dutyCycle;
-			sendNum(dutyCycle);
-			sendString("\t(clockwise)\n\r");
-			delay(10);
-		}
+	sliding_dft_t * dft = M_DFT_INIT();
+	adcdata_t zeroMatrix[M_SLIDING_DFT_nchannels];
+	int i;
+
+	for (i = 0; i < M_SLIDING_DFT_nchannels; i++){
+		zeroMatrix[i] = 0;
 	}
-	*/
+	while(1){
+		dft_update(dft, zeroMatrix);
+	}
 }
 
 
