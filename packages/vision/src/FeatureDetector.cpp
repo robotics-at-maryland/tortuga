@@ -26,18 +26,18 @@ FeatureDetector::FeatureDetector(core::ConfigNode config,
                                  core::EventHubPtr eventHub) :
     cam(0)
 {
-    init(config);
+    init(config,1000);
 }
     
 FeatureDetector::FeatureDetector(Camera* camera, int maxFeatures) :
     cam(camera)
 {
-    init(core::ConfigNode::fromString("{}"));
+    init(core::ConfigNode::fromString("{}"), maxFeatures);
 }
 
-void FeatureDetector::init(core::ConfigNode)
+void FeatureDetector::init(core::ConfigNode, int maxFeatures)
 {
-        frame = new OpenCVImage(640,480);
+    frame = new OpenCVImage(640,480);
 	image=cvCreateImage(cvSize(640,480),8,3);//480 by 640 if we put the camera on sideways again...
 	raw=cvCreateImage(cvGetSize(image),8,3);
 	eigImage=cvCreateImage(cvGetSize(image),IPL_DEPTH_32F,1);
@@ -73,8 +73,8 @@ void FeatureDetector::copyChannel(IplImage* src, IplImage* dest, int channel)
 {
 	char* data=src->imageData;
 	char* data2=dest->imageData;
-	int width=image->width;
-	int height=image->height;
+	int width=src->width;
+	int height=src->height;
 	int count=0;
 	int count2=0;
 	for (int y=0; y<height; y++)
@@ -86,16 +86,37 @@ void FeatureDetector::copyChannel(IplImage* src, IplImage* dest, int channel)
 		}
 }
 
+//This is 1 channel to 3 channel image copying.
+void FeatureDetector::singleChannelToThreeChannel(IplImage* src, IplImage* dest)
+{
+    char* data = src->imageData;
+    char* data2= dest->imageData;
+    int width=src->width;
+    int height=src->height;
+    int count=0;
+    int count2=0;
+    for (int y=0; y<height; y++)
+    {
+        for (int x=0; x<width; x++)
+        {
+            data2[count2]=data2[count2+1]=data2[count2+2]=data[count];
+            count++;
+            count2+=3;
+        }
+    }       
+}
 
     
 void FeatureDetector::update()
 {
+    printf("Updating\n");
     cam->getImage(frame);
     processImage(frame, 0);
 }
     
 void FeatureDetector::processImage(Image* input, Image* output)
 {
+    printf("Processing\n");
 	raw=(IplImage*)(*input);
 	cvCopyImage(raw,image);
 //	copyChannel(image,grayscale,2);//Lets try just copying the red channel
@@ -106,6 +127,7 @@ void FeatureDetector::processImage(Image* input, Image* output)
 	int numFeatures=maxFeatures;
 	cvGoodFeaturesToTrack(edgeDetected,eigImage,tempImage,features,&numFeatures,.15,30,NULL);
 	
+    singleChannelToThreeChannel(edgeDetected,image);
 	for (int i=0; i<numFeatures; i++)
 	{
 		CvPoint topLeft;
@@ -121,6 +143,12 @@ void FeatureDetector::processImage(Image* input, Image* output)
 		bottomRight.y=temp;
 		cvLine(image,topLeft,bottomRight,CV_RGB(0,0,255),1,CV_AA,0);
 	}
+    
+    if (output)
+    {
+        OpenCVImage temp(image, false);
+        output->copyFrom(&temp);
+    }
 }
 
 } // namespace vision

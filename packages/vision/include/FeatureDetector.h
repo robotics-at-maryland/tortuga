@@ -46,7 +46,7 @@ class RAM_EXPORT FeatureDetector : public Detector
     int maxFeatures;
     
   private:
-    void init(core::ConfigNode config);
+    void init(core::ConfigNode config, int maxFeatures);
     
     IplImage* image;
     IplImage* grayscale;
@@ -57,7 +57,7 @@ class RAM_EXPORT FeatureDetector : public Detector
     CvPoint2D32f* features;
     
     void copyChannel(IplImage*, IplImage*, int);
-    
+    void singleChannelToThreeChannel(IplImage* src, IplImage* dest);
     ram::vision::Image* frame;
     ram::vision::Camera* cam;
     
