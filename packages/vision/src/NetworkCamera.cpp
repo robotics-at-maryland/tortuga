@@ -119,9 +119,12 @@ void NetworkCamera::update(double timestep)
     readPacketHeader(&header);
 
     // TODO: Don't ignore this return value
-    m_width = header.width;
-    m_height = header.height;
-    m_fps = 30;
+    {                                                                       
+        boost::mutex::scoped_lock lock(m_specsMutex);                     
+        m_width = header.width;                                             
+        m_height = header.height;                                           
+        m_fps = 30;                                                         
+    }
 
     // Make buffer fit incomming image size
     // Need to fix buffer sizes better
@@ -169,17 +172,20 @@ void NetworkCamera::update(double timestep)
 }
 
 size_t NetworkCamera::width()
-{    
+{
+    boost::mutex::scoped_lock lock(m_specsMutex);
     return m_width;
 }
 
 size_t NetworkCamera::height()
 {
+    boost::mutex::scoped_lock lock(m_specsMutex);
     return m_height;
 }
 
 size_t NetworkCamera::fps()
 {
+    boost::mutex::scoped_lock lock(m_specsMutex);
     return m_fps;
 }
 

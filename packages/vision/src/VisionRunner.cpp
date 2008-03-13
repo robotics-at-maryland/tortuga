@@ -46,7 +46,7 @@ void VisionRunner::update(double timestep)
     if (toggleBackground)
     {
         if (backgrounded())
-            unbackground(true);
+            unbackground(false);
         else
             background(-1);
     }

@@ -42,6 +42,11 @@ public:
     /** Updates the Object.
      *
      *  This is called in the background once the object has been backgrounded.
+     *  Do not call unbackground(true) while in this method.  You will get a
+     *  deadlock.  This is because unbackground true waits for the background
+     *  thread to quit, and you in update you *are* the background thread. If
+     *  you wish to stop the background thread, from the background thread, use
+     *  unbackground(false).
      *
      *  @param timestep  The time since the last update.
      */
@@ -84,9 +89,6 @@ private:
     /** Joins and delete's the background thread */
     void cleanUpBackgroundThread();
     
-    /** The current backgrond thread */
-    boost::thread* m_backgroundThread;
-    
     /** Guard the interval and background */
     boost::mutex m_upStateMutex;
 
@@ -96,6 +98,12 @@ private:
     /** Number of milliseconds between updates */
     int m_interval;
 
+    /** Syncronizes access background tread, and latch */
+    boost::mutex m_threadStateMutex;
+    
+    /** The current backgrond thread */
+    boost::thread* m_backgroundThread;
+    
     CountDownLatch m_threadStopped;
 };
 

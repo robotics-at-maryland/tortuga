@@ -118,9 +118,11 @@ void NetworkRecorder::update(double timeSinceLastUpdate)
         }
     }
 
-
-    // Standard update (calls recordFrame)
-    Recorder::update(timeSinceLastUpdate);
+    if (-1 != currentSocket)
+    {
+        // Standard update (calls recordFrame)
+        Recorder::update(timeSinceLastUpdate);
+    }
 }
     
 void NetworkRecorder::unbackground(bool join)

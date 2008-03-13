@@ -109,9 +109,9 @@ struct timeval *elapse_time(struct timeval *tv, unsigned msec) {
 
     
 Updatable::Updatable() :
-    m_backgroundThread(0),
     m_backgrounded(0),
     m_interval(100),
+    m_backgroundThread(0),
     m_threadStopped(1)
 {
 }
@@ -144,16 +144,20 @@ void Updatable::background(int interval)
     if (startThread)
     {
         // Join and delete background thread if it exists, if it does exist
-        // wait for it to stop before starting a new one
+        // wait for it to stop before starting a new one (It really shouldn't)
         cleanUpBackgroundThread();
 
-        // Reset the latch count
-        if (0 == m_threadStopped.getCount())
-            m_threadStopped.resetCount(1);
+        {
+            boost::mutex::scoped_lock lock(m_threadStateMutex);
+            
+            // Reset the latch count
+            if (0 == m_threadStopped.getCount())
+                m_threadStopped.resetCount(1);
         
-        // Create out background thread
-        m_backgroundThread = new boost::thread(boost::bind(&Updatable::loop,
-                                                           this));
+            // Create out background thread
+            m_backgroundThread = new boost::thread(boost::bind(&Updatable::loop,
+                                                               this));
+        }
     }
 }
 
@@ -162,6 +166,10 @@ void Updatable::unbackground(bool join)
     {
         boost::mutex::scoped_lock lock(m_upStateMutex);
 
+        // Leave early if its already backgrounded and we aren't joining
+        if (!m_backgrounded && !join)
+            return;
+        
         // The run loop check this value to determine whether it should keep
         // running, next loop through it will stop.
         m_backgrounded = false;
@@ -272,6 +280,8 @@ void Updatable::waitForUpdate(long microseconds)
     
 void Updatable::cleanUpBackgroundThread()
 {
+    boost::mutex::scoped_lock lock(m_threadStateMutex);
+
     if (0 != m_backgroundThread)
     {
         // Wait for the background thread to stop

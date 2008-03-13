@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/vehicle/SConscript
+# File:  packages/math/SConscript
 
 # Build System imports
 import buildfiles.libs as libs

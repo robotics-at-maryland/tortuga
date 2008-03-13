@@ -15,6 +15,7 @@
 
 // Library Includes
 #include <boost/cstdint.hpp>
+#include <boost/thread/mutex.hpp>
 
 // Compression
 #include "quicklz.h"
@@ -56,6 +57,9 @@ private:
     /** */
     void recieve(void* bug, size_t len);
 
+    /** Protects access to the socket and addr data */                          
+    boost::mutex m_networkMutex;
+    
     /** Address to connect to */
     struct sockaddr_in* m_addr;
     
@@ -68,6 +72,9 @@ private:
     unsigned char* m_imageBuffer;
     
     size_t m_bufferSize;
+
+    /** Protects access to m_width, m_height, and m_fps variables */            
+    boost::mutex m_specsMutex;   
     
     size_t m_width;
     size_t m_height;
