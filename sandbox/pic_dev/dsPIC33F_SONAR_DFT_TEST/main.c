@@ -34,14 +34,26 @@ int dutyCycle = 937;
 
 
 int main(){
+	//	Initialize the DFT.
 	sliding_dft_t * dft = M_DFT_INIT();
 	adcdata_t zeroMatrix[M_SLIDING_DFT_nchannels];
+	
 	int i;
 
+	//	Set up a vector of zeros; this is the simplest test
+	//  of the DFT -- pump it with zeros
 	for (i = 0; i < M_SLIDING_DFT_nchannels; i++){
 		zeroMatrix[i] = 0;
 	}
+	
+	//	Infinite loop -- just pass zeros over and over again.
+	//	Nothing interesting will happen, but at least we can
+	//	see that the code is working if the amplitude stays
+	//	zero always.
 	while(1){
+		//	Replace zeroMatrix with an array of adcdata_t's 
+		//	(or int8_t's, or signed char's if you prefer)
+		//	from the most recent data collected on all channels
 		dft_update(dft, zeroMatrix);
 	}
 }
