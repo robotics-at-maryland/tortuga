@@ -593,17 +593,22 @@ int main(void)
 
     if(IN_USBDETECT == 0)
     {
-        LAT_LED_ACT = LED_ON;
         showString("  Moan for me,  ", 0);
         showString("    BITCH !     ", 1);
     }
 
+    LAT_LED_ACT = ~LED_ON;
+    LAT_LED_ERR = LED_ON;
+
     while(IN_USBDETECT == 0)
     {
-        for(j=0; j<25000; j++);
+        for(j=0; j<50000; j++);
         LAT_LED_ACT = ~LAT_LED_ACT;
+        LAT_LED_ERR = ~LAT_LED_ERR;
     }
 
+    LAT_LED_ACT = ~LED_ON;
+    LAT_LED_ERR = ~LED_ON;
 
     initMasterUart();
 
