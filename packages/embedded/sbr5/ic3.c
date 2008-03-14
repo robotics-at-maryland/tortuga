@@ -295,6 +295,7 @@ void disableBusInterrupt()
 void initCN()
 {
     enableBusInterrupt();
+
 /* This can lead to same interrupt priority issues as with depth in rev 3 */
 //     IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
 //     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */

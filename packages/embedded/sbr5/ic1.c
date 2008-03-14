@@ -547,8 +547,16 @@ int main(void)
     LAT_LED_ACT = LED_ON;
     LAT_LED_ERR = LED_ON;
 
+
     TRIS_LED_ACT = TRIS_OUT;
     TRIS_LED_ERR = TRIS_OUT;
+
+    sendByte('H');
+    sendByte('e');
+    sendByte('l');
+    sendByte('l');
+    sendByte('o');
+    sendByte('.');
 
     for(j=0; j<25000; j++);
 
@@ -564,18 +572,22 @@ int main(void)
 
     showString("Diagnostic?", 0);
 
-    for(j=0; j<25000 && ((pollStatus() & 0x80) == 0); j++);
+    for(j=0; j<250000 && ((pollStatus() & 0x80) == 0); j++);
 
     if(pollStatus() & 0x80)
         diagBootMode();
 
+
+    LAT_LED_ACT = ~LED_ON;
 
     showString("Starting up...  ", 0);
     showString("                ", 1);
 
     while(1)
     {
+        LAT_LED_ACT = ~LED_ON;
         byte c = waitchar(0);
+        LAT_LED_ACT = LED_ON;
 
         long t1, t2;
 
@@ -722,6 +734,7 @@ int main(void)
                     break;
                 }
 
+#if 0
                 /* Read battery and water from balancer board */
                 if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_BATTSTAT) != 0)
                 {
@@ -754,15 +767,18 @@ int main(void)
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x40;
 
+#endif
                 /* Read start switch from another chip......... */
                 if(busWriteByte(BUS_CMD_STARTSW, SLAVE_ID_STARTSW) != 0)
                 {
+                    sendByte(0xBE);
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
                 if(readDataBlock(SLAVE_ID_STARTSW) != 1)
                 {
+                    sendByte(0xEF);
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }

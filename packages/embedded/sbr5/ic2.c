@@ -458,7 +458,8 @@ void lcdPulse()
 
 void lcdWrite(byte b)
 {
-    LATB = (LATB & 0xFFF1) | (b&0x0E);
+    b &= 0x0F;
+    LATB = (LATB & 0xFFF1) | (b & 0x0E);
     _LATD3 = b & 0x01;
 }
 
@@ -477,7 +478,7 @@ void initLCD()
     ADPCFG = 0xFFFF;
     LATB = 0;
     TRISB = 0x0001; /* Leave IRQ as input */
-    _TRISD3 = 1;    /* LCD bit 0 */
+    _TRISD3 = TRIS_OUT;    /* LCD bit 0 */
 
     lcdWrite (0x00);
     for(i=0; i<25000; i++);
@@ -517,6 +518,9 @@ void main()
 {
     byte i;
 
+    _TRISD3 = TRIS_OUT;
+    _LATD3 = 0;
+
     ADPCFG = 0xFFFF;
 
     _TRISC15 = TRIS_OUT;
@@ -525,9 +529,14 @@ void main()
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
 
+
     initBus();
 
     initLCD();
+
+    lcdWrite(0x00);
+
+
     initInterruptUarts();
     byte data1[] = "IC1 FAIL        ";
 
@@ -537,6 +546,7 @@ void main()
         lcdBuf[i] = ' ';
         lcdBuf[i+16] = ' ';
     }
+
 
     while(1)
     {
