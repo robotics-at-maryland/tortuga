@@ -158,6 +158,9 @@
 #define HOST_CMD_BARSTATE           0x16
 #define HOST_REPLY_BARSTATE         0x17
 
+#define HOST_CMD_IMOTOR             0x18
+#define HOST_REPLY_IMOTOR           0x19
+
 
 #define BAR1_ON     0x00
 #define BAR2_ON     0x01

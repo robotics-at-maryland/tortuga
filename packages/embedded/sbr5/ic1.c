@@ -67,6 +67,8 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_KILLSW     IRQ_DISTRO
 #define SLAVE_ID_BATTSTAT   IRQ_BALANCER
 #define SLAVE_ID_BARS       IRQ_DISTRO
+#define SLAVE_ID_IMOTOR     IRQ_DISTRO
+#define SLAVE_ID_VLOW       IRQ_DISTRO
 
 #define SLAVE_ID_MM1        IRQ_IC2
 #define SLAVE_ID_MM2        IRQ_IC2
@@ -1278,6 +1280,48 @@ int main(void)
 
                 break;
             }
+
+            case HOST_CMD_IMOTOR:
+            {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_IMOTOR)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_READ_IMOTOR, SLAVE_ID_IMOTOR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                int len = readDataBlock(SLAVE_ID_IMOTOR);
+
+                if(len != 16)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_IMOTOR);
+
+                byte cs=0;
+
+                for(i=0; i<16; i++)
+                {
+                    cs += rxBuf[i];
+                    sendByte(rxBuf[i]);
+                }
+
+                sendByte(rxBuf[i]);
+
+                sendByte(cs + t1 + HOST_REPLY_IMOTOR);
+                break;
+            }
+
+
+
         }
     }
 }
