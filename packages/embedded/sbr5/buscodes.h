@@ -99,6 +99,8 @@
 
 #define BUS_CMD_READ_IMOTOR     0x44
 
+#define BUS_CMD_READ_ASTATUS    0x45
+
 /* Next free is 0x45 */
 
 

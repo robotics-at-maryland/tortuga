@@ -405,6 +405,29 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_READ_ASTATUS:
+                {
+                    txBuf[0] = 12;
+                    txBuf[1] = refVoltage >> 8;
+                    txBuf[2] = refVoltage & 0xFF;
+
+                    txBuf[3] = v5VBus >> 8;
+                    txBuf[4] = v5VBus & 0xFF;
+
+                    txBuf[5] = i5VBus >> 8;
+                    txBuf[6] = i5VBus & 0xFF;
+
+                    txBuf[7] = v12VBus >> 8;
+                    txBuf[8] = v12VBus & 0xFF;
+
+                    txBuf[9] = i12VBus >> 8;
+                    txBuf[10] = i12VBus & 0xFF;
+
+                    txBuf[11] = iAux >> 8;
+                    txBuf[12] = iAux & 0xFF;
+                    break;
+                }
+
             }
         }
         break;
