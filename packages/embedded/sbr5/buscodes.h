@@ -148,3 +148,9 @@
 
 #define HOST_CMD_MOTOR_READ         0x13
 #define HOST_CMD_MOTOR_REPLY        0x14
+
+
+#define HOST_CMD_BARS               0x15
+
+#define HOST_CMD_BARSTATE           0x16
+#define HOST_REPLY_BARSTATE         0x17

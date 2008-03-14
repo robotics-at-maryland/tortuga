@@ -66,7 +66,7 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_STARTSW    IRQ_IC3
 #define SLAVE_ID_KILLSW     IRQ_DISTRO
 #define SLAVE_ID_BATTSTAT   IRQ_BALANCER
-
+#define SLAVE_ID_BARS       IRQ_DISTRO
 
 #define SLAVE_ID_MM1        IRQ_IC2
 #define SLAVE_ID_MM2        IRQ_IC2
@@ -756,6 +756,34 @@ int main(void)
                 break;
             }
 
+
+            case HOST_CMD_BARSTATE:
+            {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_BARSTATE)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                /* Read thruster state from distro board */
+                if(busWriteByte(BUS_CMD_BAR_STATE, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(readDataBlock(SLAVE_ID_BARS) != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+                sendByte(HOST_REPLY_BARSTATE);
+                sendByte(rxBuf[0]);
+                sendByte(HOST_REPLY_BARSTATE+rxBuf[0]);
+
+                break;
+            }
 
             // [S  K  W B1 B2 B3 B4 B5]
             case HOST_CMD_BOARDSTATUS:
