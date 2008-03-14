@@ -835,14 +835,12 @@ int main(void)
                 /* Read start switch from another chip......... */
                 if(busWriteByte(BUS_CMD_STARTSW, SLAVE_ID_STARTSW) != 0)
                 {
-                    sendByte(0xBE);
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
                 if(readDataBlock(SLAVE_ID_STARTSW) != 1)
                 {
-                    sendByte(0xEF);
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
@@ -852,7 +850,7 @@ int main(void)
 
                 sendByte(HOST_REPLY_BOARDSTATUS);
                 sendByte(t1);
-                sendByte(HOST_REPLY_BOARDSTATUS+rxBuf[0]);
+                sendByte(HOST_REPLY_BOARDSTATUS+t1);
 
                 break;
             }
