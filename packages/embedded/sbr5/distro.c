@@ -804,6 +804,12 @@ void main()
 #endif
 
 
+    byte motorADCs[]=
+    {
+        ADC_IM1, ADC_IM2, ADC_IM3, ADC_IM4,
+        ADC_IM5, ADC_IM6, ADC_IM7, ADC_IM8
+    };
+
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
@@ -831,5 +837,36 @@ void main()
             i2cErrCount = 0;
             myTemperature = rx;
         }
+
+        for(i=0; i<8; i++)
+        {
+            setADC(motorADCs[i]);
+            iMotor[i] = readADC();
+        }
+
+        setADC(ADC_VREF);
+        refVoltage = readADC();
+
+        setADC(ADC_V5V);
+        v5VBus = readADC();
+
+        setADC(ADC_I5V);
+        i5VBus = readADC();
+
+
+        setADC(ADC_V12V);
+        v12VBus = readADC();
+
+        setADC(ADC_I12V);
+        i12VBus = readADC();
+
+        setADC(ADC_V5V);
+        v5VBus = readADC();
+
+        setADC(ADC_IAUX);
+        iAux = readADC();
+
+
+
     }
 }
