@@ -161,6 +161,9 @@
 #define HOST_CMD_IMOTOR             0x18
 #define HOST_REPLY_IMOTOR           0x19
 
+#define HOST_CMD_VLOW               0x1A
+#define HOST_REPLY_VLOW             0x1B
+
 
 #define BAR1_ON     0x00
 #define BAR2_ON     0x01
