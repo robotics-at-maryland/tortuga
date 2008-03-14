@@ -682,7 +682,11 @@ void _ISR _CNInterrupt(void)
 
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
+    {
+        LAT_LED_STA2 = LED_ON;
         checkBus();
+        LAT_LED_STA2 = ~LED_ON;
+    }
 }
 
 
@@ -822,7 +826,7 @@ void main()
     TRIS_LED_ERR = TRIS_OUT;
     TRIS_LED_OVR = TRIS_OUT;
 
-    LAT_LED_STA1 = LED_ON;
+    LAT_LED_STA1 = ~LED_ON;
     LAT_LED_STA2 = ~LED_ON;
     LAT_LED_ERR = ~LED_ON;
     LAT_LED_OVR = ~LED_ON;
@@ -840,6 +844,19 @@ void main()
 #ifdef HAS_UART
     initInterruptUarts();
 #endif
+
+    /* Check the LEDs */
+    LAT_LED_STA1 = LED_ON;
+    LAT_LED_STA2 = LED_ON;
+    LAT_LED_ERR = LED_ON;
+    LAT_LED_OVR = LED_ON;
+
+    for(l=0; l<55000; l++);
+
+    LAT_LED_STA1 = ~LED_ON;
+    LAT_LED_STA2 = ~LED_ON;
+    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_OVR = ~LED_ON;
 
 
     byte motorADCs[]=
