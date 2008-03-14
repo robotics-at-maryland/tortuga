@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2008 Robotics at Maryland
  * Copyright (C) 2008 Daniel Hakim <dhakim@umd.edu>
  * All rights reserved.
@@ -22,8 +22,6 @@ using namespace ram;
 
 void makeColor(vision::Image* image, unsigned char R, unsigned char G,
                unsigned char B);
-
-void drawRedCircle(vision::Image* image, int x, int y, int radius = 50);
 
 struct OrangePipeDetectorFixture
 {
@@ -85,20 +83,19 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterLight)
     detector.processImage(&input);
     
 	// FIX ME!!!
-    //double expectedX = 0;
-    //double expectedY = 0;
-    //CHECK_CLOSE(expectedX, detector.getX(), 0.005);
-    //CHECK_CLOSE(expectedY, detector.getY(), 0.005);
-    //CHECK(detector.found);
-
-    // Check the events
-    //CHECK(found);
-    //CHECK(event);
-    //CHECK_CLOSE(expectedX, event->x, 0.005);
-    //CHECK_CLOSE(expectedY, event->y, 0.005);
-    //CHECK_CLOSE(3, event->range, 0.1);
-    //CHECK_CLOSE(math::Degree(0), event->azimuth, math::Degree(0.4));
-    //CHECK_CLOSE(math::Degree(0), event->elevation, math::Degree(0.4));
+    double expectedX = -.640625 * 640.0/480.0; //((((255 - 25) / 2) / 640.0) -.5) * 2)
+    double expectedY = .791666; //((((75 - 25) / 2) / 480.0) -.5) * -2)
+    CHECK(detector.found);
+    CHECK_CLOSE(expectedX, detector.getX(), .3);
+    CHECK_CLOSE(expectedY, detector.getY(), .1);
+    if (detector.getAngle() == 90 || detector.getAngle() == -90)
+    {
+        
+    }
+    else
+    {
+        CHECK(false);
+    }
 }
 
 } // SUITE(OrangePipeDetector)

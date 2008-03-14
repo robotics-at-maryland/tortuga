@@ -139,15 +139,20 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 			lineX/=image->width;
 			lineY=liney;
 			lineY/=image->height;
-			cout<<"(x,y):"<<"("<<lineX<<","<<lineY<<")"<<endl;
+            lineX -= .5;
+            lineY -= .5;
+            lineX *= 2;
+            lineY *= -2;
+            
+//			cout<<"(x,y):"<<"("<<lineX<<","<<lineY<<")"<<endl;
+//            cout<<"Angle:" << angle << endl;
+            angle-=90; //Rotate into joes coordinates.
             PipeEventPtr event(new PipeEvent(0, 0, 0));
             event->x = linex;
             event->y = liney;
             event->angle = angle;
             
             publish(EventType::LIGHT_FOUND, event);
-
-            
         }
         
 	}

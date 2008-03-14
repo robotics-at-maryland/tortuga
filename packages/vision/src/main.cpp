@@ -509,7 +509,7 @@ double hough(IplImage* img, int* linex, int* liney)
 		
 		int xdiff = (end.x - start.x);		//deal with y's being flipped
 		int ydiff = -1*(end.y - start.y);
-		angle = atan2((double)(ydiff),(double)(xdiff));
+		angle = atan2((double)(ydiff/(double)img->height),(double)(xdiff/(double)img->height));
 		//cout<<"Xdiff: "<<xdiff<<endl;
 		//cout<<"Ydiff: "<<ydiff<<endl;
 		//cout<<"Angle: "<<angle<<endl; 
