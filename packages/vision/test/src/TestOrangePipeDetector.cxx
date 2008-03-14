@@ -83,11 +83,11 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterLight)
     detector.processImage(&input);
     
 	// FIX ME!!!
-    double expectedX = -.640625 * 640.0/480.0; //((((255 - 25) / 2) / 640.0) -.5) * 2)
-    double expectedY = .791666; //((((75 - 25) / 2) / 480.0) -.5) * -2)
+    double expectedX = -.5625 * 640.0/480.0; //((((255 + 25) / 2) / 640.0) -.5) * 2)
+    double expectedY = .791666; //((((75 + 25) / 2) / 480.0) -.5) * -2)
     CHECK(detector.found);
-    CHECK_CLOSE(expectedX, detector.getX(), .3);
-    CHECK_CLOSE(expectedY, detector.getY(), .1);
+    CHECK_CLOSE(expectedX, detector.getX(), .05);
+    CHECK_CLOSE(expectedY, detector.getY(), .05);
     if (detector.getAngle() == 90 || detector.getAngle() == -90)
     {
         

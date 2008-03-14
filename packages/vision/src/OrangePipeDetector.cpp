@@ -143,7 +143,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
             lineY -= .5;
             lineX *= 2;
             lineY *= -2;
-            
+            lineX *= 640.0/480.0;
 //			cout<<"(x,y):"<<"("<<lineX<<","<<lineY<<")"<<endl;
 //            cout<<"Angle:" << angle << endl;
             angle-=90; //Rotate into joes coordinates.
