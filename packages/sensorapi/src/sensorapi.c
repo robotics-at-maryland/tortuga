@@ -154,6 +154,7 @@ int readStatus(int fd)
     unsigned char buf[5]={HOST_CMD_STATUS, HOST_CMD_STATUS};
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
+
     if(buf[0] != 0x05)
         return SB_ERROR;
 
@@ -161,6 +162,8 @@ int readStatus(int fd)
 
     if( ((0x05 + buf[0]) & 0xFF) == buf[1])
         return buf[0];
+
+    printf("bad cs!\n");
 
     return SB_ERROR;
 }
@@ -207,8 +210,6 @@ int readTemp(int fd, unsigned char * tempData)
 
     if(sum == buf[0])
         return SB_OK;
-
-    printf("bad cs!\n");
 
     return SB_ERROR;
 }
