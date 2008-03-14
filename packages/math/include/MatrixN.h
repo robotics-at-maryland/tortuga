@@ -275,9 +275,9 @@ public:
 
     inline MatrixN transpose(void) const
     {
-        MatrixN out(rows, cols);
-		for (int i=0;i<rows;i++)
-			for (int j=0;j<cols;j++)
+        MatrixN out(cols, rows);
+		for (int i=0;i<cols;i++)
+			for (int j=0;j<rows;j++)
 				out[i][j] = data[RAM_MATRIXN_RC(j,i)];
 		return out;
     }

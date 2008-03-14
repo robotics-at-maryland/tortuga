@@ -20,6 +20,7 @@
 #include "math/include/Matrix3.h"
 #include "math/include/Matrix4.h"
 #include "math/include/MatrixN.h"
+#include "math/include/VectorN.h"
 
 // Place inside UnitTest++ namespace to override there usage
 namespace UnitTest {
@@ -51,6 +52,11 @@ namespace UnitTest {
 	template<>
     bool AreClose(const ram::math::MatrixN& expected,
                   const ram::math::MatrixN& actual,
+                  const double& tolerance);
+
+    template<>
+    bool AreClose(const ram::math::VectorN& expected,
+                  const ram::math::VectorN& actual,
                   const double& tolerance);
     
 } // namespace UnitTest

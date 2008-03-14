@@ -20,6 +20,19 @@
 
 using namespace ram::math;
 
+SUITE(MatrixNTest) {
+
+TEST(transpose)
+{
+    double data[] = {1, 2,  3, 4,  5, 6,  7, 8};
+    double dataExp[] = {1, 3, 5, 7,   2, 4, 6, 8};
+
+    MatrixN reg(data, 4, 2);
+    MatrixN exp(dataExp, 2, 4);
+
+    CHECK_CLOSE(exp, reg.transpose(), 0.001);
+}
+
 TEST(addition)
 {
 	MatrixN n1(3, 3);
@@ -90,4 +103,6 @@ TEST(cholesky)
 
         n1.factorCholesky();
 	CHECK_CLOSE(n1, exp, 0.001);
+}
+
 }
