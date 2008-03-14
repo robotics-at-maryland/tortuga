@@ -394,8 +394,8 @@ void BWPDController::init(core::ConfigNode config)
         
     //Set estimated struct
     //we don't know what the state is, so guess (0,0).  
-    m_estimatedState->xHat2.x = 0;
-    m_estimatedState->xHat2.y = 0;
+    m_estimatedState->xHat2Depth.x = 0;
+    m_estimatedState->xHat2Depth.y = 0;
     
     
     m_logfile.open("control_log.txt");

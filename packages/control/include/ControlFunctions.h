@@ -14,6 +14,7 @@
 
 // Project Includes
 #include "math/include/Vector2.h"
+#include "math/include/Matrix2.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -53,7 +54,7 @@ struct RAM_EXPORT MeasuredState{
 
 struct RAM_EXPORT EstimatedState{
     //estimated state for a 2x2 observer controller
-    math::Vector2 xHat2;  //<- want to use this, but having trouble
+    math::Vector2 xHat2Depth;  //<- want to use this, but having trouble
     //double xHat2;
 };
 
@@ -70,6 +71,12 @@ struct RAM_EXPORT ControllerState{
     
     double speedPGain;
     int depthControlType;
+    math::Matrix2 A;
+    math::Vector2 B;
+    math::Vector2 K;
+    math::Vector2 L;
+    double dt;
+    
 };
 
 void RAM_EXPORT translationalController(MeasuredState* measuredState,

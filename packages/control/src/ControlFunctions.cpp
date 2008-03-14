@@ -158,6 +158,46 @@ double depthPController(MeasuredState* measuredState,
 }
 
 /************************************************************************
+depthObserverController(measuredState,desiredState,controllerState,estimatedState)
+
+implements an Observer Controller to regulate depth
+
+Observer
+xHatDot=A*xHat+B*u+L(y-C*xHat)
+
+Controller
+U = -K*xHat
+Fthrust = U
+
+returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
+*/
+double depthObserverController(MeasuredState* measuredState,
+                        DesiredState* desiredState,
+                        ControllerState* controllerState,
+						EstimatedState* estimatedState){
+	// xHat2Depth: estimation of depth and depth_dot
+	Vector2 xHat = estimatedState->xHat2Depth;
+	
+	double yHat = xHat.x;
+	
+	Vector2 xDotPrev = (controllerState->A)*(xHat) + 
+            (controllerState->B).dotProduct(-controllerState->K)*(xHat) + 
+            (controllerState->L)*(measuredState->depth - yHat);
+	
+	xHat = xHat + (controllerState->dt)*(xDotPrev);
+	estimatedState->xHat2Depth = xHat;
+	
+	// desired: desired depth and depth_dot
+	Vector2 desired;
+	desired.x = desiredState->depth;
+	desired.y = 0;
+	
+	// depthCotrolSignal: new control signal (u)
+	double depthControlSignal = (-controllerState->K).dotProduct(xHat - desired);
+    return depthControlSignal;
+}
+
+/************************************************************************
 BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt,translationalForces)
 
 function BongWiePDControl.m is an encapsulation of the nonlinear eigenaxis
