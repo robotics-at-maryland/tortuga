@@ -31,6 +31,10 @@ public:
     virtual double getSpeed() { return speed; }
 
     virtual double getDepth() { return depth; }
+    
+    virtual double getEstimatedDepth() { return 0; }
+    
+    virtual double getEstimatedDepthDot() { return 0; }
 
     virtual void yawVehicle(double degrees) { yaw = degrees; }
 

@@ -78,6 +78,12 @@ public:
 
     /** Current desired depth of the sub in meters */
     virtual double getDepth() = 0;
+    
+    /** Grab current estimated depth*/
+    virtual double getEstimatedDepth() = 0;
+    
+    /** Grab current estimated depth velocity (depthDot)*/
+    virtual double getEstimatedDepthDot() = 0;
 
     /** Yaws the desired vehicle state by the desired number of degrees */
     virtual void yawVehicle(double degrees) = 0;

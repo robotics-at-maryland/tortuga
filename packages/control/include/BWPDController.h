@@ -65,6 +65,12 @@ public:
 
     /** @copydoc IController::getDepth() */
     virtual double getDepth();
+    
+    /** Grab current estimated depth*/
+    virtual double getEstimatedDepth();
+    
+    /** Grab current estimated depth velocity (depthDot)*/
+    virtual double getEstimatedDepthDot();
 
     /** Rolls the desired quaternion by a desired angle in degrees (ugh!)
 	a positive angle makes the vehicle barrel roll clockwise as seen
@@ -100,7 +106,7 @@ public:
         return Updatable::backgrounded();
     };
 
-    /** Grabs latest vehicle state, runs the controller, the commands the
+    /** Called at a fixed rate.  Grabs latest vehicle state, runs the controller, the commands the
         thrusters */
     virtual void update(double timestep);
     
@@ -126,7 +132,7 @@ private:
     core::ConfigNode m_config;
     
     /** Syncs asscess to the desired state */
-    core::ReadWriteMutex m_desiredStateMutex;
+    core::ReadWriteMutex m_desiredEstimatedStateMutex;
     
     /** State the controller is trying to reach */
     DesiredState* m_desiredState;
