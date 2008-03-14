@@ -989,9 +989,6 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                byte cflag=0;
-                byte cs=0;
-
                 if(t1 + HOST_CMD_BARS != t2 || t1 > 15)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -1023,7 +1020,7 @@ int main(void)
             }
 
 
-            /* This does not include the power board temperature sensor */
+            /* This does not include the balancer board temperature sensor */
             case HOST_CMD_TEMPERATURE:
             {
                 t1 = waitchar(1);
@@ -1033,13 +1030,28 @@ int main(void)
                     break;
                 }
 
+                if(busWriteByte(BUS_CMD_TEMP, IRQ_DISTRO) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                int len = readDataBlock(IRQ_DISTRO);
+                if(len != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                t1 = rxBuf[0];
+
                 if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
-                int len = readDataBlock(SLAVE_ID_TEMP);
+                len = readDataBlock(SLAVE_ID_TEMP);
 
                 if(len != 5)
                 {
@@ -1057,7 +1069,9 @@ int main(void)
                     sendByte(rxBuf[i]);
                 }
 
-                sendByte(cs + HOST_REPLY_TEMPERATURE);
+                sendByte(rxBuf[i]);
+
+                sendByte(cs + t1 + HOST_REPLY_TEMPERATURE);
                 break;
             }
 
