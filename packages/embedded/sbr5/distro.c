@@ -390,6 +390,21 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_READ_IMOTOR:
+                {
+                    byte i=0;
+                    txBuf[0] = 16;
+
+                    /* 16 bytes. 1 - 16 */
+                    /* Motor controller currents. Big-endian. */
+                    for(i=0; i<8; i++)
+                    {
+                        txBuf[2*i+1] = iMotor[i] >> 8;
+                        txBuf[2*i+2] = iMotor[i] & 0xFF;
+                    }
+                    break;
+                }
+
             }
         }
         break;
@@ -865,8 +880,5 @@ void main()
 
         setADC(ADC_IAUX);
         iAux = readADC();
-
-
-
     }
 }
