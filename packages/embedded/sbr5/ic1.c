@@ -812,7 +812,7 @@ int main(void)
                 }
 
                 t1 = rxBuf[0];
-#endif
+
 
 
                 /* Read kill switch from another chip......... */
@@ -830,6 +830,7 @@ int main(void)
 
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x40;
+#endif
 
                 /* Read start switch from another chip......... */
                 if(busWriteByte(BUS_CMD_STARTSW, SLAVE_ID_STARTSW) != 0)
@@ -1031,14 +1032,15 @@ int main(void)
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
-
+                int len = 0;
+#if 0
                 if(busWriteByte(BUS_CMD_TEMP, IRQ_DISTRO) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
-                int len = readDataBlock(IRQ_DISTRO);
+                len = readDataBlock(IRQ_DISTRO);
                 if(len != 1)
                 {
                     sendByte(HOST_REPLY_FAILURE);
@@ -1046,7 +1048,7 @@ int main(void)
                 }
 
                 t1 = rxBuf[0];
-
+#endif
                 if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
@@ -1071,7 +1073,7 @@ int main(void)
                     sendByte(rxBuf[i]);
                 }
 
-                sendByte(rxBuf[i]);
+                sendByte(t1);   // Distro board temperature
 
                 sendByte(cs + t1 + HOST_REPLY_TEMPERATURE);
                 break;

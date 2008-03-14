@@ -130,7 +130,7 @@ void processData(byte data)
                 case BUS_CMD_STARTSW:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = _RB1;    /* Just the start switch ... */
+                    txBuf[1] = ~_RB1;    /* Just the start switch ... */
 
                     break;
                 }
