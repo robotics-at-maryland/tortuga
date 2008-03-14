@@ -983,6 +983,46 @@ int main(void)
                 break;
             }
 
+
+            case HOST_CMD_BARS:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                byte cflag=0;
+                byte cs=0;
+
+                if(t1 + HOST_CMD_BARS != t2 || t1 > 15)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+
+                const static unsigned char barCommands[]=
+                {
+                    BUS_CMD_BAR1_OFF, BUS_CMD_BAR2_OFF,
+                    BUS_CMD_BAR3_OFF, BUS_CMD_BAR4_OFF,
+                    BUS_CMD_BAR5_OFF, BUS_CMD_BAR6_OFF,
+                    BUS_CMD_BAR7_OFF, BUS_CMD_BAR8_OFF,
+
+                    BUS_CMD_BAR1_ON, BUS_CMD_BAR2_ON,
+                    BUS_CMD_BAR3_ON, BUS_CMD_BAR4_ON,
+                    BUS_CMD_BAR5_ON, BUS_CMD_BAR6_ON,
+                    BUS_CMD_BAR7_ON, BUS_CMD_BAR8_ON,
+                };
+
+                if(busWriteByte(barCommands[t1], SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
             /* This does not include the power board temperature sensor */
             case HOST_CMD_TEMPERATURE:
             {

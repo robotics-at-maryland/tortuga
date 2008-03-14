@@ -154,3 +154,22 @@
 
 #define HOST_CMD_BARSTATE           0x16
 #define HOST_REPLY_BARSTATE         0x17
+
+
+#define BAR1_ON     0x00
+#define BAR2_ON     0x01
+#define BAR3_ON     0x02
+#define BAR4_ON     0x03
+#define BAR5_ON     0x04
+#define BAR6_ON     0x05
+#define BAR7_ON     0x06
+#define BAR8_ON     0x07
+
+#define BAR1_OFF    0x08
+#define BAR2_OFF    0x09
+#define BAR3_OFF    0x0A
+#define BAR4_OFF    0x0B
+#define BAR5_OFF    0x0C
+#define BAR6_OFF    0x0D
+#define BAR7_OFF    0x0E
+#define BAR8_OFF    0x0F
