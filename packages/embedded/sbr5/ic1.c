@@ -42,6 +42,9 @@ _FWDT ( WDT_OFF );
 #define TRIS_LED_ERR    _TRISB6
 
 
+#define IN_USBDETECT    _RC15
+#define TRIS_USBDETECT  _TRISC15
+
 
 #define IRQ_IC2         2
 #define IRQ_IC3         1
@@ -540,7 +543,7 @@ int main(void)
     long j=0;
     byte i;
     _TRISF0 = TRIS_IN;
-
+    TRIS_USBDETECT = TRIS_IN;
 
     initBus();
 
@@ -550,9 +553,6 @@ int main(void)
     ADPCFG = 0xFFFF;
     LATB = 0;
     TRISB = 0;
-
-
-    initMasterUart();
 
 #ifdef HAS_UART
     initInterruptUarts();
@@ -565,12 +565,6 @@ int main(void)
     TRIS_LED_ACT = TRIS_OUT;
     TRIS_LED_ERR = TRIS_OUT;
 
-    sendByte('H');
-    sendByte('e');
-    sendByte('l');
-    sendByte('l');
-    sendByte('o');
-    sendByte('.');
 
     for(j=0; j<25000; j++);
 
@@ -584,6 +578,8 @@ int main(void)
 
     for(j=0; j<25000; j++);
 
+    TRIS_USBDETECT = TRIS_IN;
+
     showString("Diagnostic?", 0);
 
     for(j=0; j<250000 && ((pollStatus() & 0x80) == 0); j++);
@@ -593,6 +589,24 @@ int main(void)
 
 
     LAT_LED_ACT = ~LED_ON;
+
+
+    if(IN_USBDETECT == 0)
+    {
+        LAT_LED_ACT = LED_ON;
+        showString("  Moan for me,  ", 0);
+        showString("    BITCH !     ", 1);
+    }
+
+    while(IN_USBDETECT == 0)
+    {
+        for(j=0; j<25000; j++);
+        LAT_LED_ACT = ~LAT_LED_ACT;
+    }
+
+
+    initMasterUart();
+
 
     showString("Starting up...  ", 0);
     showString("                ", 1);
