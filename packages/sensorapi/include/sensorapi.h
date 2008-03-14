@@ -40,6 +40,25 @@
 #define CMD_THRUSTER6_ON      11
 
 
+#define CMD_BAR1_ON     0x00
+#define CMD_BAR2_ON     0x01
+#define CMD_BAR3_ON     0x02
+#define CMD_BAR4_ON     0x03
+#define CMD_BAR5_ON     0x04
+#define CMD_BAR6_ON     0x05
+#define CMD_BAR7_ON     0x06
+#define CMD_BAR8_ON     0x07
+
+#define CMD_BAR1_OFF    0x08
+#define CMD_BAR2_OFF    0x09
+#define CMD_BAR3_OFF    0x0A
+#define CMD_BAR4_OFF    0x0B
+#define CMD_BAR5_OFF    0x0C
+#define CMD_BAR6_OFF    0x0D
+#define CMD_BAR7_OFF    0x0E
+#define CMD_BAR8_OFF    0x0F
+
+
 
 #define THRUSTER1_ENABLED     0x20
 #define THRUSTER2_ENABLED     0x10
@@ -49,7 +68,7 @@
 #define THRUSTER6_ENABLED     0x01
 
 
-#define NUM_TEMP_SENSORS 5
+#define NUM_TEMP_SENSORS 6
 
 /* Bits of the status command */
 /* Use these constants. The values can, and most likely will, change. */
