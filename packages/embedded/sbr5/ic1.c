@@ -810,6 +810,7 @@ int main(void)
                 }
 
                 t1 = rxBuf[0];
+#endif
 
 
                 /* Read kill switch from another chip......... */
@@ -828,7 +829,6 @@ int main(void)
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x40;
 
-#endif
                 /* Read start switch from another chip......... */
                 if(busWriteByte(BUS_CMD_STARTSW, SLAVE_ID_STARTSW) != 0)
                 {
