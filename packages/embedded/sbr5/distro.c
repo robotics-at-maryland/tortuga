@@ -18,13 +18,6 @@ _FWDT ( WDT_OFF );
 #define TRIS_IN  1
 #define byte unsigned char
 
-/*
- * Bus = D1 D0 E5-E0
- * Req = C13
- * Akn = C14
- * RW  = E8 again
- */
-
 /* Bus pin assignments */
 #define REQ_CN_BIT  (CNEN2bits.CN22IE)
 #define IN_REQ      _RA6
@@ -127,6 +120,37 @@ _FWDT ( WDT_OFF );
 
 #define LAT_LED_OVR     _LATA9
 #define TRIS_LED_OVR    _TRISA9
+
+/* Motor controller and marker currents */
+#define ADC_IM1         0x09
+#define ADC_IM2         0x08
+#define ADC_IM3         0x07
+#define ADC_IM4         0x06
+#define ADC_IM5         0x02
+#define ADC_IM6         0x03
+#define ADC_IM7         0x04
+#define ADC_IM8         0x05
+
+/* The reference input. Hasn't been attached yet */
+#define ADC_VREF        0x0A
+
+/* 5V and 12V voltage and current sensing */
+#define ADC_V5V         0x0B
+#define ADC_V12V        0x0C
+
+#define ADC_I5V         0x0E
+#define ADC_I12V        0x0F
+
+#define ADC_IAUX        0x0D
+
+
+unsigned int iMotor[8];
+unsigned int refVoltage;
+unsigned int v5VBus;
+unsigned int v12VBus;
+unsigned int i5VBus;
+unsigned int i12VBus;
+unsigned int iAux;
 
 
 /* Transmit buffer */
@@ -652,31 +676,49 @@ void _ISR _ADCInterrupt(void)
  */
 void initADC()
 {
-//     avgDepth = 0x1234;
-    ADPCFG = 0xFFFF;
-    ADPCFGbits.PCFG0 = 0;
-    _TRISB0 = TRIS_IN;
+    ADPCFG = 0x0000;        /* Well damn. All analog. */
+    TRISB = 0xFFFF;         /* All inputs */
 
     ADCON1 = 0x0000;
     ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
-    ADCON1bits.ASAM = 1;    /* Automatic sampling enabled */
+    ADCON1bits.ASAM = 0;    /* Automatic sampling disabled */
 
     ADCON1bits.FORM = 0;    /* Plain format */
 
+    ADCON2bits.VCFG = 0x00; /* AVDD and AVSS as reference */
+
     ADCHS = 0x0000;
     ADCSSL = 0;
-    ADCON3bits.SAMC=0x1F;
+    ADCON3bits.SAMC=0x1F;   /* Sample for a long time. We have decent impedances */
 
-    ADCON3bits.ADCS = 4;        /* ADC needs so much time to convert at 30 MIPS */
-    ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
-          //Clear the A/D interrupt flag bit
-    IFS0bits.ADIF = 0;
+    ADCON3bits.ADCS = 8;    /* ADC needs so much time to convert at 30 MIPS */
+    ADCON2bits.SMPI = 0x0F; /* Interrupt every 16 samples - why not? We dont use interrupts here */
 
-        //Set the A/D interrupt enable bit
-    IEC0bits.ADIE = 1;
+    ADCON2bits.BUFM = 0;    /* No buffering */
+    ADCON2bits.ALTS = 0;    /* No alternating. Bad 440 memories. */
+
+    IFS0bits.ADIF = 0;      /* Clear interrupt flag */
+    IEC0bits.ADIE = 0;      /* No interrupts please */
 
     ADCON1bits.ADON = 1;
-    ADCON1bits.SAMP = 1;    /* Start auto-sampling */
+    ADCON1bits.SAMP = 0;    /* Start auto-sampling */
+}
+
+void setADC(byte inPort)
+{
+    byte t;
+    ADCHS = inPort;
+    for(t=0; t<10; t++);
+}
+
+unsigned int readADC()
+{
+    byte t;
+    ADCON1bits.SAMP = 1;
+    for(t=0; t<2; t++);
+    ADCON1bits.SAMP = 0;
+    while (!ADCON1bits.DONE);
+    return ADCBUF0;
 }
 
 void main()
@@ -743,6 +785,7 @@ void main()
 #ifdef HAS_UART
     initInterruptUarts();
 #endif
+
 
 
     for(i=0; i<16; i++)
