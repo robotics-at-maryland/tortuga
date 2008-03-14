@@ -299,7 +299,7 @@ void initCN()
 /* This can lead to same interrupt priority issues as with depth in rev 3 */
 //     IPC3bits.CNIP = 6;      /* Raise CN interrupt priority above ADC */
 //     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
-//     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
+    IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 
 /* Same priorities as depth chip. */
 /* UART priorities above CN       */
@@ -353,6 +353,19 @@ int main()
 {
     byte i;
     long l;
+    ADPCFG = 0xFFFF;
+
+    initI2C();
+    initBus();
+
+    _TRISB0 = TRIS_IN;
+    _TRISB1 = TRIS_IN;
+
+
+    #ifdef HAS_UART
+    initInterruptUarts();
+    #endif
+
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
@@ -360,12 +373,6 @@ int main()
     for(i=0; i<TEMP_DATA_SIZE; i++)
         tempData[i] = 0;
 
-    initI2C();
-    initBus();
-    #ifdef HAS_UART
-    initInterruptUarts();
-    #endif
-    ADPCFG = 0xFFFF;
 
     while(1)
     {

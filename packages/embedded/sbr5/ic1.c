@@ -38,8 +38,8 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_ACT     _LATF1
 #define TRIS_LED_ACT    _TRISF1
 
-#define LAT_LED_ERR     _LATF0
-#define TRIS_LED_ERR    _TRISF0
+#define LAT_LED_ERR     _LATB6
+#define TRIS_LED_ERR    _TRISB6
 
 
 
@@ -227,6 +227,7 @@ int busReadByte(byte req)
         if(timeout++ == BUS_TIMEOUT)
         {
             setReq(req, 0);
+            LAT_LED_ERR = LED_ON;
             return BUS_ERROR;
         }
     }
@@ -242,8 +243,13 @@ int busReadByte(byte req)
     while(IN_AKN == 1)
     {
         if(timeout++ == BUS_TIMEOUT)
+        {
+            LAT_LED_ERR = LED_ON;
             return BUS_FAILURE;     /* We're totally screwed */
+        }
     }
+
+    LAT_LED_ERR = ~LED_ON;
 
     return data;
 }
@@ -272,6 +278,7 @@ int busWriteByte(byte data, byte req)
         {
             setReq(req, 0);
             freeBus();
+            LAT_LED_ERR = LED_ON;
             return BUS_ERROR;
         }
     }
@@ -287,8 +294,13 @@ int busWriteByte(byte data, byte req)
     while(IN_AKN == 1)
     {
         if(timeout++ == BUS_TIMEOUT)
+        {
+            LAT_LED_ERR = LED_ON;
             return BUS_FAILURE;     /* We're totally screwed */
+        }
     }
+
+    LAT_LED_ERR = ~LED_ON;
 
     return 0;
 }
@@ -527,6 +539,8 @@ int main(void)
 {
     long j=0;
     byte i;
+    _TRISF0 = TRIS_IN;
+
 
     initBus();
 
