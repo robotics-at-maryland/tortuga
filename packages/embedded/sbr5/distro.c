@@ -103,6 +103,17 @@ _FWDT ( WDT_OFF );
 #define TRIS_BAR8   _TRISD11
 
 
+/* Regulator board enables */
+#define LAT_12V_EN  _LATC13
+#define TRIS_12V_EN _TRISC13
+
+#define LAT_5V_EN  _LATC14
+#define TRIS_5V_EN _TRISC14
+
+/* Regulator board level specification */
+/* Who knows? */
+#define REG_ON  0
+
 
 /* LED level specification */
 #define LED_ON          1
@@ -777,6 +788,12 @@ void main()
     LAT_LED_STA2 = ~LED_ON;
     LAT_LED_ERR = ~LED_ON;
     LAT_LED_OVR = ~LED_ON;
+
+    LAT_5V_EN = REG_ON;
+    LAT_12V_EN = REG_ON;
+
+    TRIS_5V_EN = TRIS_OUT;
+    TRIS_12V_EN = TRIS_OUT;
 
     initBus();
     initADC();
