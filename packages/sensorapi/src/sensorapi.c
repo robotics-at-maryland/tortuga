@@ -541,6 +541,50 @@ int readSpeedResponses(int fd)
 
 }
 
+int readMotorCurrents(int fd, struct powerInfo * info)
+{
+    unsigned char buf[20] = {HOST_CMD_IMOTOR, HOST_CMD_IMOTOR};
+
+    int i;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_IMOTOR)
+        return SB_ERROR;
+
+    readData(fd, buf+1, 17);
+
+    for(i=0; i<8; i++)
+    {
+        printf("\tRead: %d\n", (buf[i*2+1] << 8) | (buf[i*2+2]));
+    }
+
+    return SB_OK;
+}
+
+int readBoardVoltages(int fd, struct powerInfo * info)
+{
+    unsigned char buf[20] = {HOST_CMD_VLOW, HOST_CMD_VLOW};
+
+    int i;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_VLOW)
+        return SB_ERROR;
+
+    readData(fd, buf+1, 13);
+
+    for(i=0; i<6; i++)
+    {
+        printf("\tRead: %d\n", (buf[i*2+1] << 8) | (buf[i*2+2]));
+    }
+
+    return SB_OK;
+}
+
 
 int setDiagnostics(int fd, int state)
 {

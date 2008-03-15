@@ -1,5 +1,14 @@
 #define MAX_SYNC_ATTEMPTS 20
 
+struct powerInfo
+{
+    int v12Bus;
+    int v5Bus;
+};
+
+
+
+
 /* In msec */
 #define IO_TIMEOUT  100
 
@@ -14,6 +23,11 @@
 #define HOST_CMD_BARS               0x15
 #define HOST_CMD_BARSTATE           0x16
 #define HOST_REPLY_BARSTATE         0x17
+#define HOST_CMD_IMOTOR             0x18
+#define HOST_REPLY_IMOTOR           0x19
+#define HOST_CMD_VLOW               0x1A
+#define HOST_REPLY_VLOW             0x1B
+
 
 #define LCD_BL_OFF    0
 #define LCD_BL_ON     1
@@ -196,6 +210,9 @@ int readSpeedResponses(int fd);
 int readThrusterState(int fd);
 
 int readBarState(int fd);
+
+int readMotorCurrents(int fd, struct powerInfo * info);
+int readBoardVoltages(int fd, struct powerInfo * info);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus

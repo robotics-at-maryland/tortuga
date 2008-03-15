@@ -154,6 +154,13 @@ int main(int argc, char ** argv)
             (ret & BAR8_ENABLED) ? "Bar 8 enabled" : "Bar 8 disabled");
         }
 
+        printf("\nReading currents:\n");
+        readMotorCurrents(fd, NULL);
+
+        printf("\nReading voltages:\n");
+        readBoardVoltages(fd, NULL);
+
+
     }
 
 
