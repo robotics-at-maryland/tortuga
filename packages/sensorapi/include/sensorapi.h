@@ -1,14 +1,5 @@
 #define MAX_SYNC_ATTEMPTS 20
 
-struct powerInfo
-{
-    int v12Bus;
-    int v5Bus;
-};
-
-
-
-
 /* In msec */
 #define IO_TIMEOUT  100
 
@@ -20,13 +11,6 @@ struct powerInfo
 #define HOST_CMD_TEMPERATURE 0x0A
 #define HOST_CMD_SONAR 0x0D
 #define HOST_CMD_THRUSTERSTATE 0x10
-#define HOST_CMD_BARS               0x15
-#define HOST_CMD_BARSTATE           0x16
-#define HOST_REPLY_BARSTATE         0x17
-#define HOST_CMD_IMOTOR             0x18
-#define HOST_REPLY_IMOTOR           0x19
-#define HOST_CMD_VLOW               0x1A
-#define HOST_REPLY_VLOW             0x1B
 
 
 #define LCD_BL_OFF    0
@@ -55,27 +39,8 @@ struct powerInfo
 #define CMD_THRUSTER5_ON      10
 #define CMD_THRUSTER6_ON      11
 
-/* Inputs to the bar command */
-#define CMD_BAR1_OFF     0x00
-#define CMD_BAR2_OFF     0x01
-#define CMD_BAR3_OFF     0x02
-#define CMD_BAR4_OFF     0x03
-#define CMD_BAR5_OFF     0x04
-#define CMD_BAR6_OFF     0x05
-#define CMD_BAR7_OFF     0x06
-#define CMD_BAR8_OFF     0x07
-
-#define CMD_BAR1_ON    0x08
-#define CMD_BAR2_ON    0x09
-#define CMD_BAR3_ON    0x0A
-#define CMD_BAR4_ON    0x0B
-#define CMD_BAR5_ON    0x0C
-#define CMD_BAR6_ON    0x0D
-#define CMD_BAR7_ON    0x0E
-#define CMD_BAR8_ON    0x0F
 
 
-/* Bits of the thruster state response */
 #define THRUSTER1_ENABLED     0x20
 #define THRUSTER2_ENABLED     0x10
 #define THRUSTER3_ENABLED     0x08
@@ -83,31 +48,22 @@ struct powerInfo
 #define THRUSTER5_ENABLED     0x02
 #define THRUSTER6_ENABLED     0x01
 
-#define BAR1_ENABLED    0x01
-#define BAR2_ENABLED    0x02
-#define BAR3_ENABLED    0x04
-#define BAR4_ENABLED    0x08
-#define BAR5_ENABLED    0x10
-#define BAR6_ENABLED    0x20
-#define BAR7_ENABLED    0x40
-#define BAR8_ENABLED    0x80
 
-
-#define NUM_TEMP_SENSORS 6
+#define NUM_TEMP_SENSORS 5
 
 /* Bits of the status command */
 /* Use these constants. The values can, and most likely will, change. */
-#define STATUS_BATT1      0x10
+#define STATUS_WATER      0x01
+#define STATUS_KILLSW	  0x02
+
+#define STATUS_BATT1      0x04
 #define STATUS_BATT2      0x08
-#define STATUS_BATT3      0x04
-#define STATUS_BATT4      0x02
-#define STATUS_BATT5      0x01
+#define STATUS_BATT3      0x10
+#define STATUS_BATT4      0x20
 
-#define STATUS_WATER      0x20
-#define STATUS_KILLSW     0x40
+#define STATUS_MYSTERYBIT 0x40
+
 #define STATUS_STARTSW    0x80
-
-
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
@@ -150,12 +106,7 @@ int dropMarker(int fd, int markerNum);
 
 int lcdBacklight(int fd, int state);
 
-int setThrusterSafety(int fd, int state);
-
-/* Deprecated. Use above. Same syntax. Better name. */
 int thrusterSafety(int fd, int state);
-
-int setBarState(int fd, int state);
 
 int displayText(int fd, int line, const char* text);
 
@@ -209,10 +160,6 @@ int readSpeedResponses(int fd);
 
 int readThrusterState(int fd);
 
-int readBarState(int fd);
-
-int readMotorCurrents(int fd, struct powerInfo * info);
-int readBoardVoltages(int fd, struct powerInfo * info);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus

@@ -154,7 +154,6 @@ int readStatus(int fd)
     unsigned char buf[5]={HOST_CMD_STATUS, HOST_CMD_STATUS};
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
-
     if(buf[0] != 0x05)
         return SB_ERROR;
 
@@ -162,8 +161,6 @@ int readStatus(int fd)
 
     if( ((0x05 + buf[0]) & 0xFF) == buf[1])
         return buf[0];
-
-    printf("bad cs!\n");
 
     return SB_ERROR;
 }
@@ -185,36 +182,15 @@ int readThrusterState(int fd)
     return SB_ERROR;
 }
 
-
-
-int readBarState(int fd)
-{
-    unsigned char buf[5]={HOST_CMD_BARSTATE, HOST_CMD_BARSTATE};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] != HOST_REPLY_BARSTATE)
-        return SB_ERROR;
-
-    readData(fd, buf, 2);
-
-    if( ((HOST_REPLY_BARSTATE + buf[0]) & 0xFF) == buf[1])
-        return buf[0];
-
-    return SB_ERROR;
-}
-
 int readTemp(int fd, unsigned char * tempData)
 {
-    unsigned char buf[6]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
+    unsigned char buf[5]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
     int i;
     for(i=0; i<NUM_TEMP_SENSORS; i++)
         tempData[i]=0;
 
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
-
-
-
     if(buf[0] != 0x0B)
         return SB_ERROR;
 
@@ -293,6 +269,11 @@ int hardKill(int fd)
 
 int dropMarker(int fd, int markerNum)
 {
+    /* MARKERS ARE NO LONGER SUPPORTED IN THIS FIRMWARE            */
+    /* Their pins went to thrusters 5 and 6. If you want markers,  */
+    /* talk to the electronics people. Maybe we can rig something. */
+    return -1;
+
     if(markerNum != 0 && markerNum != 1)
         return -255;
 
@@ -344,15 +325,8 @@ int lcdBacklight(int fd, int state)
     return SB_ERROR;
 }
 
+
 int thrusterSafety(int fd, int state)
-{
-    printf("You should use setThrusterSafety instead of thrusterSafety\n");
-    printf("Same parameters, same return value, just a better name.\n");
-    return setThrusterSafety(fd, state);
-}
-
-
-int setThrusterSafety(int fd, int state)
 {
     if(state<0 || state>11)
         return -255;
@@ -383,32 +357,6 @@ int setThrusterSafety(int fd, int state)
     return SB_ERROR;
 }
 
-
-int setBarState(int fd, int state)
-{
-    if(state<0 || state>16)
-        return -255;
-
-    unsigned char buf[3]={HOST_CMD_BARS, 0, 0};
-
-    buf[1] = state;
-    buf[2] = buf[0] + buf[1];
-
-    writeData(fd, buf, 3);
-
-    readData(fd, buf, 1);
-
-    if(buf[0] == 0xBC)
-        return SB_OK;
-
-    if(buf[0] == 0xCC)
-        return SB_BADCC;
-
-    if(buf[0] == 0xDF)
-        return SB_HWFAIL;
-
-    return SB_ERROR;
-}
 
 
 int displayText(int fd, int line, const char* text)
@@ -534,50 +482,6 @@ int readSpeedResponses(int fd)
 
     return SB_OK;
 
-}
-
-int readMotorCurrents(int fd, struct powerInfo * info)
-{
-    unsigned char buf[20] = {HOST_CMD_IMOTOR, HOST_CMD_IMOTOR};
-
-    int i;
-
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-
-    if(buf[0] != HOST_REPLY_IMOTOR)
-        return SB_ERROR;
-
-    readData(fd, buf+1, 17);
-
-    for(i=0; i<8; i++)
-    {
-        printf("\tRead: %d\n", (buf[i*2+1] << 8) | (buf[i*2+2]));
-    }
-
-    return SB_OK;
-}
-
-int readBoardVoltages(int fd, struct powerInfo * info)
-{
-    unsigned char buf[20] = {HOST_CMD_VLOW, HOST_CMD_VLOW};
-
-    int i;
-
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-
-    if(buf[0] != HOST_REPLY_VLOW)
-        return SB_ERROR;
-
-    readData(fd, buf+1, 13);
-
-    for(i=0; i<6; i++)
-    {
-        printf("\tRead: %d\n", (buf[i*2+1] << 8) | (buf[i*2+2]));
-    }
-
-    return SB_OK;
 }
 
 

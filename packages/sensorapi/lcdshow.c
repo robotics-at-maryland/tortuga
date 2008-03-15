@@ -13,18 +13,6 @@
  *
  */
 
-void thrusterCmd(int fd, int cmd)
-{
-    if(setThrusterSafety(fd, cmd) != SB_OK)
-        printf("Error safing thruster\n");
-}
-
-void barCmd(int fd, int cmd)
-{
-    if(setBarState(fd, cmd) != SB_OK)
-        printf("Error setting bar state\n");
-}
-
 
 int main(int argc, char ** argv)
 {
@@ -41,22 +29,14 @@ int main(int argc, char ** argv)
         printf("\nSafety commands:\n");
         printf("\tlcdshow -safe (disable thrusters)\n");
         printf("\tlcdshow -unsafe (enable thrusters)\n");
-        printf("\tlcdshow -safe [n] (safe thruster n)\n");
-        printf("\tlcdshow -unsafe [n] (unsafe thruster n)\n");
         printf("\tlcdshow -diagon  (runtime diagnostics on)\n");
         printf("\tlcdshow -diagoff (runtime diagnostics off)\n");
-	    printf("\tlcdshow -tstop (send zero speed command)\n");
-
+	printf("\tlcdshow -tstop (send zero speed command)\n");
 
 
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
         printf("\tlcdshow -status (show sensor readings)\n");
-        printf("\tlcdshow -baron (enable bar outputs)\n");
-        printf("\tlcdshow -baroff (disable bar outputs)\n");
-        printf("\tlcdshow -baron [n] (enable bar output n)\n");
-        printf("\tlcdshow -baroff [n] (disable bar output n)\n");
-        printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
 
 	    return -1;
@@ -120,7 +100,7 @@ int main(int argc, char ** argv)
                 (ret & STATUS_BATT2) ? "Battery 2 active" : "Battery 2 inactive",
                 (ret & STATUS_BATT3) ? "Battery 3 active" : "Battery 3 inactive",
                 (ret & STATUS_BATT4) ? "Battery 4 active" : "Battery 4 inactive",
-                (ret & STATUS_BATT5) ? "Battery 5 active" : "Battery 5 inactive");
+                (ret & STATUS_MYSTERYBIT) ? "Mystery bit set" : "Mystery bit cleared");
         }
 
         ret = readThrusterState(fd);
@@ -130,38 +110,14 @@ int main(int argc, char ** argv)
         {
             printf("\nThruster state: 0x%02X\n", ret);
             printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
-            (ret & THRUSTER1_ENABLED) ? "Thruster 1 enabled" : "Thruster 1 disabled",
-            (ret & THRUSTER2_ENABLED) ? "Thruster 2 enabled" : "Thruster 2 disabled",
-            (ret & THRUSTER3_ENABLED) ? "Thruster 3 enabled" : "Thruster 3 disabled",
-            (ret & THRUSTER4_ENABLED) ? "Thruster 4 enabled" : "Thruster 4 disabled",
-            (ret & THRUSTER5_ENABLED) ? "Thruster 5 enabled" : "Thruster 5 disabled",
-            (ret & THRUSTER6_ENABLED) ? "Thruster 6 enabled" : "Thruster 6 disabled");
+            (ret & 0x20) ? "Thruster 1 enabled" : "Thruster 1 disabled",
+            (ret & 0x10) ? "Thruster 2 enabled" : "Thruster 2 disabled",
+            (ret & 0x08) ? "Thruster 3 enabled" : "Thruster 3 disabled",
+            (ret & 0x04) ? "Thruster 4 enabled" : "Thruster 4 disabled",
+            (ret & 0x02) ? "Thruster 5 enabled" : "Thruster 5 disabled",
+            (ret & 0x01) ? "Thruster 6 enabled" : "Thruster 6 disabled");
+
         }
-
-        ret = readBarState(fd);
-        if(ret == SB_ERROR)
-            printf("Error reading bar state!\n");
-        else
-        {
-            printf("\nBar state: 0x%02X\n", ret);
-            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
-            (ret & BAR1_ENABLED) ? "Bar 1 enabled" : "Bar 1 disabled",
-            (ret & BAR2_ENABLED) ? "Bar 2 enabled" : "Bar 2 disabled",
-            (ret & BAR3_ENABLED) ? "Bar 3 enabled" : "Bar 3 disabled",
-            (ret & BAR4_ENABLED) ? "Bar 4 enabled" : "Bar 4 disabled",
-            (ret & BAR5_ENABLED) ? "Bar 5 enabled" : "Bar 5 disabled",
-            (ret & BAR6_ENABLED) ? "Bar 6 enabled" : "Bar 6 disabled",
-            (ret & BAR7_ENABLED) ? "Bar 7 enabled" : "Bar 7 disabled",
-            (ret & BAR8_ENABLED) ? "Bar 8 enabled" : "Bar 8 disabled");
-        }
-
-        printf("\nReading currents:\n");
-        readMotorCurrents(fd, NULL);
-
-        printf("\nReading voltages:\n");
-        readBoardVoltages(fd, NULL);
-
-
     }
 
 
@@ -185,55 +141,27 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    if(strcmp(argv[1], "-marker") == 0)
-    {
-        if(argc == 3)
-        {
-            int t = atoi(argv[2]);
-            if(t != 1 && t != 2)
-            {
-                printf("Bad marker number: %d\n", t);
-                close(fd);
-                return -1;
-            }
 
-            dropMarker(fd, t-1);
-
-        } else
-        {
-            printf("Which marker? Specify 1 or 2.\n");
-        }
-
-        close(fd);
-        return 0;
-    }
 
     if(strcmp(argv[1], "-safe") == 0)
     {
-        int i;
-        unsigned int cmdList[]=
-        {
-            CMD_THRUSTER1_OFF, CMD_THRUSTER2_OFF, CMD_THRUSTER3_OFF,
-            CMD_THRUSTER4_OFF, CMD_THRUSTER5_OFF, CMD_THRUSTER6_OFF
-        };
+        if(thrusterSafety(fd, CMD_THRUSTER1_OFF) != SB_OK)
+            printf("Error safing thruster\n");
 
-        if(argc == 3)
-        {
-            int t = atoi(argv[2]);
-            if(t < 1 || t > 6)
-            {
-                printf("Bad thruster number: %d\n", t);
-                close(fd);
-                return -1;
-            }
+        if(thrusterSafety(fd, CMD_THRUSTER2_OFF) != SB_OK)
+            printf("Error safing thruster\n");
 
-            thrusterCmd(fd, cmdList[t-1]);
+        if(thrusterSafety(fd, CMD_THRUSTER3_OFF) != SB_OK)
+            printf("Error safing thruster\n");
 
-        } else
-        {
-            for(i=0; i<6; i++)
-                thrusterCmd(fd, cmdList[i]);
-        }
+        if(thrusterSafety(fd, CMD_THRUSTER4_OFF) != SB_OK)
+            printf("Error safing thruster\n");
+
+        if(thrusterSafety(fd, CMD_THRUSTER5_OFF) != SB_OK)
+            printf("Error safing thruster\n");
+
+        if(thrusterSafety(fd, CMD_THRUSTER6_OFF) != SB_OK)
+            printf("Error safing thruster\n");
 
         close(fd);
         return 0;
@@ -241,102 +169,27 @@ int main(int argc, char ** argv)
 
     if(strcmp(argv[1], "-unsafe") == 0)
     {
-        int i;
-        unsigned int cmdList[]=
-        {
-            CMD_THRUSTER1_ON, CMD_THRUSTER2_ON, CMD_THRUSTER3_ON,
-            CMD_THRUSTER4_ON, CMD_THRUSTER5_ON, CMD_THRUSTER6_ON
-        };
+        if(thrusterSafety(fd, CMD_THRUSTER1_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
 
-        if(argc == 3)
-        {
-            int t = atoi(argv[2]);
-            if(t < 1 || t > 6)
-            {
-                printf("Bad thruster number: %d\n", t);
-                close(fd);
-                return -1;
-            }
+        if(thrusterSafety(fd, CMD_THRUSTER2_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
 
-            thrusterCmd(fd, cmdList[t-1]);
+        if(thrusterSafety(fd, CMD_THRUSTER3_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
 
-        } else
-        {
-            for(i=0; i<6; i++)
-                thrusterCmd(fd, cmdList[i]);
-        }
+        if(thrusterSafety(fd, CMD_THRUSTER4_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
 
+        if(thrusterSafety(fd, CMD_THRUSTER5_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
+
+        if(thrusterSafety(fd, CMD_THRUSTER6_ON) != SB_OK)
+            printf("Error unsafing thruster\n");
 
         close(fd);
         return 0;
     }
-
-
-
-    if(strcmp(argv[1], "-baroff") == 0)
-    {
-        int i;
-        unsigned int cmdList[]=
-        {
-            CMD_BAR1_OFF, CMD_BAR2_OFF, CMD_BAR3_OFF, CMD_BAR4_OFF,
-            CMD_BAR5_OFF, CMD_BAR6_OFF, CMD_BAR7_OFF, CMD_BAR8_OFF
-        };
-
-        if(argc == 3)
-        {
-            int t = atoi(argv[2]);
-            if(t < 1 || t > 8)
-            {
-                printf("Bad bar number: %d\n", t);
-                close(fd);
-                return -1;
-            }
-
-            barCmd(fd, cmdList[t-1]);
-
-        } else
-        {
-            for(i=0; i<8; i++)
-                barCmd(fd, cmdList[i]);
-        }
-
-        close(fd);
-        return 0;
-    }
-
-
-
-    if(strcmp(argv[1], "-baron") == 0)
-    {
-        int i;
-        unsigned int cmdList[]=
-        {
-            CMD_BAR1_ON, CMD_BAR2_ON, CMD_BAR3_ON, CMD_BAR4_ON,
-            CMD_BAR5_ON, CMD_BAR6_ON, CMD_BAR7_ON, CMD_BAR8_ON
-        };
-
-        if(argc == 3)
-        {
-            int t = atoi(argv[2]);
-            if(t < 1 || t > 8)
-            {
-                printf("Bad bar number: %d\n", t);
-                close(fd);
-                return -1;
-            }
-
-            barCmd(fd, cmdList[t-1]);
-
-        } else
-        {
-            for(i=0; i<8; i++)
-                barCmd(fd, cmdList[i]);
-        }
-
-        close(fd);
-        return 0;
-    }
-
 
 
     if(strcmp(argv[1], "-tstop") == 0)
