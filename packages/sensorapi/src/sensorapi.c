@@ -185,6 +185,24 @@ int readThrusterState(int fd)
     return SB_ERROR;
 }
 
+
+
+int readBarState(int fd)
+{
+    unsigned char buf[5]={HOST_CMD_BARSTATE, HOST_CMD_BARSTATE};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] != HOST_REPLY_BARSTATE)
+        return SB_ERROR;
+
+    readData(fd, buf, 2);
+
+    if( ((HOST_REPLY_BARSTATE + buf[0]) & 0xFF) == buf[1])
+        return buf[0];
+
+    return SB_ERROR;
+}
+
 int readTemp(int fd, unsigned char * tempData)
 {
     unsigned char buf[6]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
