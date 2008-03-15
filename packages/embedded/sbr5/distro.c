@@ -683,44 +683,15 @@ void _ISR _CNInterrupt(void)
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
     {
-        LAT_LED_STA2 = LED_ON;
+        LAT_LED_STA1 = LED_ON;
         checkBus();
-        LAT_LED_STA2 = ~LED_ON;
+        LAT_LED_STA1 = ~LED_ON;
     }
 }
 
 
 int depthArray[100];
 int dp=0;
-
-void _ISR _ADCInterrupt(void)
-{
-    IFS0bits.ADIF = 0;
-    byte i=0;
-
-    long ad=0;
-
-
-    depthArray[dp++] = ADCBUF0;
-    if(dp >= 100)
-        dp=0;
-
-    ad = 0;
-    for(i=0; i<100; i++)
-        ad+= depthArray[i];
-
-    ad /= 100;
-
-
-    /*
-     * Why does disabling and re-enabling the CN interrupts muck up the data transfers?
-     * Maybe some interrupt bits need to be dealt with. Since average depth is only a 16-bit
-     * value, the assignment operation is atomic and there should be no data race here.
-     */
-//     disableBusInterrupt();
-//     avgDepth = ad;
-//     enableBusInterrupt();
-}
 
 /*
  * Initialize ADC for depth sensor. All this code really needs to be split up
@@ -729,10 +700,33 @@ void _ISR _ADCInterrupt(void)
  */
 void initADC()
 {
+
+    ADPCFG = 0x0000; // all PORTB = Digital; RB2 = analog
+    ADCON1 = 0x0000; // SAMP bit = 0 ends sampling ...
+    // and starts converting
+    ADCHS = 0x0002; // Connect RB2/AN2 as CH0 input ..
+    // in this example RB2/AN2 is the input
+    ADCSSL = 0;
+    ADCON3 = 0x0002; // Manual Sample, Tad = internal 2 Tcy
+    ADCON2 = 0;
+    ADCON1bits.ADON = 1; // turn ADC ON
+
+    return;
+
     ADPCFG = 0x0000;        /* Well damn. All analog. */
     TRISB = 0xFFFF;         /* All inputs */
 
     ADCON1 = 0x0000;
+    ADCON2 = 0x0000;
+    ADCON3 = 0x0000;
+
+    ADCSSL = 0;
+    ADCON3 = 0x1F02;
+
+    ADCON1bits.ADON = 1;
+    return;
+
+
     ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
     ADCON1bits.ASAM = 0;    /* Automatic sampling disabled */
 
@@ -740,11 +734,11 @@ void initADC()
 
     ADCON2bits.VCFG = 0x00; /* AVDD and AVSS as reference */
 
-    ADCHS = 0x0000;
+    ADCHS = ADC_V12V;
     ADCSSL = 0;
     ADCON3bits.SAMC=0x1F;   /* Sample for a long time. We have decent impedances */
 
-    ADCON3bits.ADCS = 8;    /* ADC needs so much time to convert at 30 MIPS */
+    ADCON3bits.ADCS = 4;    /* ADC needs so much time to convert at 30 MIPS */
     ADCON2bits.SMPI = 0x0F; /* Interrupt every 16 samples - why not? We dont use interrupts here */
 
     ADCON2bits.BUFM = 0;    /* No buffering */
@@ -760,18 +754,23 @@ void initADC()
 void setADC(byte inPort)
 {
     byte t;
-    ADCHS = inPort;
+//     ADCON1bits.ADON = 0;
+     ADCHS = inPort;
+//     ADCON1bits.ADON = 1;
     for(t=0; t<10; t++);
 }
 
-unsigned int readADC()
+long readADC()
 {
-    byte t;
-    ADCON1bits.SAMP = 1;
-    for(t=0; t<2; t++);
-    ADCON1bits.SAMP = 0;
-    while (!ADCON1bits.DONE);
-    return ADCBUF0;
+    unsigned int ret;
+    long l;
+
+    ADCON1bits.SAMP = 1; // start sampling ...
+    for(l=0; l<5000; l++);
+    ADCON1bits.SAMP = 0; // start Converting
+    while (!ADCON1bits.DONE); // conversion done?
+    ret = ADCBUF0; // yes then get ADC value
+    return ret;
 }
 
 void main()
