@@ -7,7 +7,7 @@
 #include "i2c.c"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
+_FOSC( CSW_FSCM_OFF & FRC); //EC_PLL4); //ECIO );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
@@ -837,6 +837,14 @@ void main()
     TRIS_5V_EN = TRIS_OUT;
     TRIS_12V_EN = TRIS_OUT;
 
+
+    LAT_LED_STA1 = LED_ON;
+    LAT_LED_STA2 = LED_ON;
+    LAT_LED_ERR = LED_ON;
+    LAT_LED_OVR = LED_ON;
+
+//    while(1);
+
     initBus();
     initADC();
     initI2C();
@@ -876,7 +884,7 @@ void main()
         /* Give it a second */
         for(l=0; l<10000; l++);
 
-        byte rx = readTemp(0x90);
+        byte rx = readTemp(0x9E);
 
         /* Read error */
         if(rx == 255)
