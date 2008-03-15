@@ -293,11 +293,6 @@ int hardKill(int fd)
 
 int dropMarker(int fd, int markerNum)
 {
-    /* MARKERS ARE NO LONGER SUPPORTED IN THIS FIRMWARE            */
-    /* Their pins went to thrusters 5 and 6. If you want markers,  */
-    /* talk to the electronics people. Maybe we can rig something. */
-    return -1;
-
     if(markerNum != 0 && markerNum != 1)
         return -255;
 

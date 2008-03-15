@@ -56,6 +56,7 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -baroff (disable bar outputs)\n");
         printf("\tlcdshow -baron [n] (enable bar output n)\n");
         printf("\tlcdshow -baroff [n] (disable bar output n)\n");
+        printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
 
 	    return -1;
@@ -184,7 +185,28 @@ int main(int argc, char ** argv)
         return 0;
     }
 
+    if(strcmp(argv[1], "-marker") == 0)
+    {
+        if(argc == 3)
+        {
+            int t = atoi(argv[2]);
+            if(t != 1 && t != 2)
+            {
+                printf("Bad marker number: %d\n", t);
+                close(fd);
+                return -1;
+            }
 
+            dropMarker(fd, t-1);
+
+        } else
+        {
+            printf("Which marker? Specify 1 or 2.\n");
+        }
+
+        close(fd);
+        return 0;
+    }
 
     if(strcmp(argv[1], "-safe") == 0)
     {
@@ -212,7 +234,6 @@ int main(int argc, char ** argv)
             for(i=0; i<6; i++)
                 thrusterCmd(fd, cmdList[i]);
         }
-
 
         close(fd);
         return 0;
