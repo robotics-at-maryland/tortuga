@@ -311,6 +311,28 @@ int busWriteByte(byte data, byte req)
 }
 
 
+void actLight()
+{
+    PR2 = 100;            /* Period */
+    TMR2 = 0;               /* Reset timer */
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 1;      /* Enable interrupts */
+    T2CONbits.TCS = 0;      /* Use internal clock */
+    T2CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T2CONbits.TON = 1;      /* Start Timer2 */
+    LAT_LED_ACT = LED_ON;
+}
+
+/* ISR for Timer2. Used for making the ACT light pretty */
+void _ISR _T2Interrupt(void)
+{
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 0;      /* Disable interrupts */
+    LAT_LED_ACT = ~LED_ON;
+    T2CONbits.TON = 0;  /* Stop Timer1 */
+}
+
+
 void initMasterUart()
 {
     U1MODE = 0x0000;
@@ -620,9 +642,10 @@ int main(void)
 
     while(1)
     {
-        LAT_LED_ACT = ~LED_ON;
+//         LAT_LED_ACT = ~LED_ON;
+        actLight();
         byte c = waitchar(0);
-        LAT_LED_ACT = LED_ON;
+//         LAT_LED_ACT = LED_ON;
 
         long t1, t2;
 
