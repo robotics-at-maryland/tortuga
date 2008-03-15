@@ -36,7 +36,11 @@ class RAM_EXPORT RedLightDetector : public Detector
     void processImage(Image* input, Image* output= 0);
 
     bool found;
+
+    /** Center of the red light in the local horizontal, -4/3 to 4/3 */
     double getX();
+    
+    /** Center of the red light in the local vertical, -1 to 1 */
     double getY();
     
     void show(char* window);

@@ -14,6 +14,10 @@ from optparse import OptionParser
 import ext.core
 # NOTE: sim.subsystems delayed till after setting of sys.path for Python-Ogre
 
+import ctypes
+ctypes.cdll.LoadLibrary("libram_network.so")
+    
+
 def stop(event):
     global APPLICATION
     APPLICATION.stopMainLoop()
