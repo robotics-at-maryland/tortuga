@@ -349,8 +349,15 @@ int lcdBacklight(int fd, int state)
     return SB_ERROR;
 }
 
-
 int thrusterSafety(int fd, int state)
+{
+    printf("You should use setThrusterSafety instead of thrusterSafety\n");
+    printf("Same parameters, same return value, just a better name.\n");
+    return setThrusterSafety(fd, state);
+}
+
+
+int setThrusterSafety(int fd, int state)
 {
     if(state<0 || state>11)
         return -255;
@@ -381,6 +388,32 @@ int thrusterSafety(int fd, int state)
     return SB_ERROR;
 }
 
+
+int setBarState(int fd, int state)
+{
+    if(state<0 || state>16)
+        return -255;
+
+    unsigned char buf[3]={HOST_CMD_BARS, 0, 0};
+
+    buf[1] = state;
+    buf[2] = buf[0] + buf[1];
+
+    writeData(fd, buf, 3);
+
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
 
 
 int displayText(int fd, int line, const char* text)

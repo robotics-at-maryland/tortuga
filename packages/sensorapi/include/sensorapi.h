@@ -11,6 +11,7 @@
 #define HOST_CMD_TEMPERATURE 0x0A
 #define HOST_CMD_SONAR 0x0D
 #define HOST_CMD_THRUSTERSTATE 0x10
+#define HOST_CMD_BARS               0x15
 #define HOST_CMD_BARSTATE           0x16
 #define HOST_REPLY_BARSTATE         0x17
 
@@ -135,7 +136,12 @@ int dropMarker(int fd, int markerNum);
 
 int lcdBacklight(int fd, int state);
 
+int setThrusterSafety(int fd, int state);
+
+/* Deprecated. Use above. Same syntax. Better name. */
 int thrusterSafety(int fd, int state);
+
+int setBarState(int fd, int state);
 
 int displayText(int fd, int line, const char* text);
 

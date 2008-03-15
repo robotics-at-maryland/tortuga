@@ -15,11 +15,15 @@
 
 void thrusterCmd(int fd, int cmd)
 {
-    if(thrusterSafety(fd, cmd) != SB_OK)
+    if(setThrusterSafety(fd, cmd) != SB_OK)
         printf("Error safing thruster\n");
 }
 
-
+void barCmd(int fd, int cmd)
+{
+    if(setBarState(fd, cmd) != SB_OK)
+        printf("Error setting bar state\n");
+}
 
 
 int main(int argc, char ** argv)
@@ -37,17 +41,21 @@ int main(int argc, char ** argv)
         printf("\nSafety commands:\n");
         printf("\tlcdshow -safe (disable thrusters)\n");
         printf("\tlcdshow -unsafe (enable thrusters)\n");
+        printf("\tlcdshow -safe [n] (safe thruster n)\n");
+        printf("\tlcdshow -unsafe [n] (unsafe thruster n)\n");
         printf("\tlcdshow -diagon  (runtime diagnostics on)\n");
         printf("\tlcdshow -diagoff (runtime diagnostics off)\n");
 	    printf("\tlcdshow -tstop (send zero speed command)\n");
-        printf("\tlcdshow -safe [n] (safe thruster n)\n");
-        printf("\tlcdshow -unsafe [n] (unsafe thruster n)\n");
 
 
 
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
         printf("\tlcdshow -status (show sensor readings)\n");
+        printf("\tlcdshow -baron (enable bar outputs)\n");
+        printf("\tlcdshow -baroff (disable bar outputs)\n");
+        printf("\tlcdshow -baron [n] (enable bar output n)\n");
+        printf("\tlcdshow -baroff [n] (disable bar output n)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
 
 	    return -1;
@@ -173,6 +181,13 @@ int main(int argc, char ** argv)
 
     if(strcmp(argv[1], "-safe") == 0)
     {
+        int i;
+        unsigned int cmdList[]=
+        {
+            CMD_THRUSTER1_OFF, CMD_THRUSTER2_OFF, CMD_THRUSTER3_OFF,
+            CMD_THRUSTER4_OFF, CMD_THRUSTER5_OFF, CMD_THRUSTER6_OFF
+        };
+
         if(argc == 3)
         {
             int t = atoi(argv[2]);
@@ -183,22 +198,12 @@ int main(int argc, char ** argv)
                 return -1;
             }
 
-            unsigned int cmdList[]=
-            {
-                CMD_THRUSTER1_OFF, CMD_THRUSTER2_OFF, CMD_THRUSTER3_OFF,
-                CMD_THRUSTER4_OFF, CMD_THRUSTER5_OFF, CMD_THRUSTER6_OFF
-            };
-
             thrusterCmd(fd, cmdList[t-1]);
 
         } else
         {
-            thrusterCmd(fd, CMD_THRUSTER1_OFF);
-            thrusterCmd(fd, CMD_THRUSTER2_OFF);
-            thrusterCmd(fd, CMD_THRUSTER3_OFF);
-            thrusterCmd(fd, CMD_THRUSTER4_OFF);
-            thrusterCmd(fd, CMD_THRUSTER5_OFF);
-            thrusterCmd(fd, CMD_THRUSTER6_OFF);
+            for(i=0; i<6; i++)
+                thrusterCmd(fd, cmdList[i]);
         }
 
 
@@ -208,6 +213,13 @@ int main(int argc, char ** argv)
 
     if(strcmp(argv[1], "-unsafe") == 0)
     {
+        int i;
+        unsigned int cmdList[]=
+        {
+            CMD_THRUSTER1_ON, CMD_THRUSTER2_ON, CMD_THRUSTER3_ON,
+            CMD_THRUSTER4_ON, CMD_THRUSTER5_ON, CMD_THRUSTER6_ON
+        };
+
         if(argc == 3)
         {
             int t = atoi(argv[2]);
@@ -218,28 +230,86 @@ int main(int argc, char ** argv)
                 return -1;
             }
 
-            unsigned int cmdList[]=
-            {
-                CMD_THRUSTER1_ON, CMD_THRUSTER2_ON, CMD_THRUSTER3_ON,
-                CMD_THRUSTER4_ON, CMD_THRUSTER5_ON, CMD_THRUSTER6_ON
-            };
-
             thrusterCmd(fd, cmdList[t-1]);
 
         } else
         {
-            thrusterCmd(fd, CMD_THRUSTER1_ON);
-            thrusterCmd(fd, CMD_THRUSTER2_ON);
-            thrusterCmd(fd, CMD_THRUSTER3_ON);
-            thrusterCmd(fd, CMD_THRUSTER4_ON);
-            thrusterCmd(fd, CMD_THRUSTER5_ON);
-            thrusterCmd(fd, CMD_THRUSTER6_ON);
+            for(i=0; i<6; i++)
+                thrusterCmd(fd, cmdList[i]);
         }
 
 
         close(fd);
         return 0;
     }
+
+
+
+    if(strcmp(argv[1], "-baroff") == 0)
+    {
+        int i;
+        unsigned int cmdList[]=
+        {
+            CMD_BAR1_OFF, CMD_BAR2_OFF, CMD_BAR3_OFF, CMD_BAR4_OFF,
+            CMD_BAR5_OFF, CMD_BAR6_OFF, CMD_BAR7_OFF, CMD_BAR8_OFF
+        };
+
+        if(argc == 3)
+        {
+            int t = atoi(argv[2]);
+            if(t < 1 || t > 8)
+            {
+                printf("Bad bar number: %d\n", t);
+                close(fd);
+                return -1;
+            }
+
+            barCmd(fd, cmdList[t-1]);
+
+        } else
+        {
+            for(i=0; i<8; i++)
+                barCmd(fd, cmdList[i]);
+        }
+
+        close(fd);
+        return 0;
+    }
+
+
+
+    if(strcmp(argv[1], "-baron") == 0)
+    {
+        int i;
+        unsigned int cmdList[]=
+        {
+            CMD_BAR1_ON, CMD_BAR2_ON, CMD_BAR3_ON, CMD_BAR4_ON,
+            CMD_BAR5_ON, CMD_BAR6_ON, CMD_BAR7_ON, CMD_BAR8_ON
+        };
+
+        if(argc == 3)
+        {
+            int t = atoi(argv[2]);
+            if(t < 1 || t > 8)
+            {
+                printf("Bad bar number: %d\n", t);
+                close(fd);
+                return -1;
+            }
+
+            barCmd(fd, cmdList[t-1]);
+
+        } else
+        {
+            for(i=0; i<8; i++)
+                barCmd(fd, cmdList[i]);
+        }
+
+        close(fd);
+        return 0;
+    }
+
+
 
     if(strcmp(argv[1], "-tstop") == 0)
     {
