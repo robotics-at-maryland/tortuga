@@ -28,9 +28,24 @@ MC2: JP14, row 3 (outer = TX)
 MC3: JP10, pins 2 and 3 (3 = TX)
 MC4: JP14, row 3 (outer = TX)
 
-(ie, the receive pin always is towards the middle of the board)
+(ie, the receive pin always is towards the middle of the board on 1-4)
+
+WHITE = TRANSMIT
+
 
 The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
+
+MC #5
+JP13
+Purple - Row 4, away from board
+White - Row 3, towards the board
+
+
+MC #6
+JP14
+White - Row 7, towards the board
+Blue - Row 9, away from the board
+
 */
 
 

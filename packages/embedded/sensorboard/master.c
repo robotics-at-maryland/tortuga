@@ -1098,7 +1098,7 @@ int main(void)
             {
                 t1 = 0; /* Error counter */
 
-                /* 8 bytes of speed, plus checksum */
+                /* 12 bytes of speed, plus checksum */
                 for(i=0; i<13; i++)
                     rxBuf[i] = waitchar(1);
 
