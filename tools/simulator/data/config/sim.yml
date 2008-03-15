@@ -83,10 +83,10 @@ Subsystems:
         desiredDepth: 5
         desiredQuaternion: [0, 0, 0, 1]
 
-    RemoteController:
-        type: RemoteController
-        depends_on: ["Controller"]
-        update_interval: -1
+#    RemoteController:
+#        type: RemoteController
+#        depends_on: ["Controller"]
+#        update_interval: -1
 
     KeyboardController:
         depends_on: ["Controller"]
