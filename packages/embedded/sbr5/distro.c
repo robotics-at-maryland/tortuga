@@ -7,7 +7,7 @@
 #include "i2c.c"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & FRC); //EC_PLL4); //ECIO );
+_FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
