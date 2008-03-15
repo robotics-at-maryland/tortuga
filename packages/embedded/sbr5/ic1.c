@@ -796,7 +796,7 @@ int main(void)
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
-
+                t1 = 0;
 #if 0
                 /* Read battery and water from balancer board */
                 if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_BATTSTAT) != 0)
