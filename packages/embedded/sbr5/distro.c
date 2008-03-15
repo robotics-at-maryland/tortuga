@@ -601,6 +601,20 @@ void dropMarker(byte id)
     T1CONbits.TON = 1;      /* Start Timer1 */
 }
 
+
+void actLight()
+{
+    PR2 = 100;            /* Period */
+    TMR2 = 0;               /* Reset timer */
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 1;      /* Enable interrupts */
+    T2CONbits.TCS = 0;      /* Use internal clock */
+    T2CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T2CONbits.TON = 1;      /* Start Timer2 */
+    LAT_LED_STA1 = LED_ON;
+}
+
+
 /* ISR for Timer1. Used for turning off marker soleniod after it was turned on */
 void _ISR _T1Interrupt(void)
 {
@@ -619,6 +633,14 @@ void _ISR _T1Interrupt(void)
 }
 
 
+/* ISR for Timer2. Used for making the ACT light pretty */
+void _ISR _T2Interrupt(void)
+{
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 0;      /* Disable interrupts */
+    LAT_LED_STA1 = ~LED_ON;
+    T2CONbits.TON = 0;  /* Stop Timer1 */
+}
 
 /*
  * These functions are insanely simple. But they are made anyway to prevent
@@ -683,9 +705,10 @@ void _ISR _CNInterrupt(void)
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
     {
-        LAT_LED_STA1 = LED_ON;
+        //LAT_LED_STA1 = LED_ON;
         checkBus();
-        LAT_LED_STA1 = ~LED_ON;
+        actLight();
+        //LAT_LED_STA1 = ~LED_ON;
     }
 }
 
