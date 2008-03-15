@@ -766,7 +766,7 @@ long readADC()
     long l;
 
     ADCON1bits.SAMP = 1; // start sampling ...
-    for(l=0; l<5000; l++);
+    for(l=0; l<1000; l++);
     ADCON1bits.SAMP = 0; // start Converting
     while (!ADCON1bits.DONE); // conversion done?
     ret = ADCBUF0; // yes then get ADC value
