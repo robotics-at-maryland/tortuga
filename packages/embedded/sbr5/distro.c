@@ -417,19 +417,25 @@ void processData(byte data)
                     txBuf[1] = t >> 8;
                     txBuf[2] = t & 0xFF;
 
-                    txBuf[3] = i5VBus >> 8;
-                    txBuf[4] = i5VBus & 0xFF;
+                    t = adcCurrent(i5VBus);
+
+                    txBuf[3] = t >> 8;
+                    txBuf[4] = t & 0xFF;
 
                     t = adcVoltage(v12VBus);
 
                     txBuf[5] = t >> 8;
                     txBuf[6] = t & 0xFF;
 
-                    txBuf[7] = i12VBus >> 8;
-                    txBuf[8] = i12VBus & 0xFF;
+                    t = adcCurrent(i12VBus);
 
-                    txBuf[9] = iAux >> 8;
-                    txBuf[10] = iAux & 0xFF;
+                    txBuf[7] = t >> 8;
+                    txBuf[8] = t & 0xFF;
+
+                    t = adcCurrent(iAux);
+
+                    txBuf[9] = t >> 8;
+                    txBuf[10] = t & 0xFF;
                     break;
                 }
 
@@ -809,6 +815,12 @@ long readADC()
 unsigned int adcVoltage(unsigned int x)
 {
     float t = x * 11.334405 + 1.527331;
+    return t;
+}
+
+unsigned int adcCurrent(unsigned int x)
+{
+    float t = x * 7.2350087 - 3002.89818;
     return t;
 }
 
