@@ -56,7 +56,7 @@ run:
 
 
 
-run6014:
+run2:
 	piklab-prog -p icd2 -d 30f6014A -c run
 
 

@@ -407,24 +407,29 @@ void processData(byte data)
 
                 case BUS_CMD_READ_ASTATUS:
                 {
+
+                    unsigned int t;
+
                     txBuf[0] = 12;
-                    txBuf[1] = refVoltage >> 8;
-                    txBuf[2] = refVoltage & 0xFF;
 
-                    txBuf[3] = v5VBus >> 8;
-                    txBuf[4] = v5VBus & 0xFF;
+                    t = adcVoltage(v5VBus);
 
-                    txBuf[5] = i5VBus >> 8;
-                    txBuf[6] = i5VBus & 0xFF;
+                    txBuf[1] = t >> 8;
+                    txBuf[2] = t & 0xFF;
 
-                    txBuf[7] = v12VBus >> 8;
-                    txBuf[8] = v12VBus & 0xFF;
+                    txBuf[3] = i5VBus >> 8;
+                    txBuf[4] = i5VBus & 0xFF;
 
-                    txBuf[9] = i12VBus >> 8;
-                    txBuf[10] = i12VBus & 0xFF;
+                    t = adcVoltage(v12VBus);
 
-                    txBuf[11] = iAux >> 8;
-                    txBuf[12] = iAux & 0xFF;
+                    txBuf[5] = t >> 8;
+                    txBuf[6] = t & 0xFF;
+
+                    txBuf[7] = i12VBus >> 8;
+                    txBuf[8] = i12VBus & 0xFF;
+
+                    txBuf[9] = iAux >> 8;
+                    txBuf[10] = iAux & 0xFF;
                     break;
                 }
 
@@ -746,6 +751,9 @@ void initADC()
     ADCSSL = 0;
     ADCON3 = 0x1F02;
 
+    IFS0bits.ADIF = 0;      /* Clear interrupt flag */
+    IEC0bits.ADIE = 0;      /* No interrupts please */
+
     ADCON1bits.ADON = 1;
     return;
 
@@ -788,12 +796,28 @@ long readADC()
     unsigned int ret;
     long l;
 
+    LAT_LED_STA2 ^= LED_ON;
     ADCON1bits.SAMP = 1; // start sampling ...
-    for(l=0; l<1000; l++);
+    for(l=0; l<200; l++);
     ADCON1bits.SAMP = 0; // start Converting
     while (!ADCON1bits.DONE); // conversion done?
     ret = ADCBUF0; // yes then get ADC value
+
     return ret;
+}
+
+unsigned int adcVoltage(unsigned int x)
+{
+    float t = x * 11.334405 + 1.527331;
+    return t;
+}
+
+void setLEDs(byte v)
+{
+    LAT_LED_STA1 = v & 0x01 ? LED_ON : ~LED_ON;
+    LAT_LED_STA2 = v & 0x02 ? LED_ON : ~LED_ON;
+    LAT_LED_ERR = v & 0x04 ? LED_ON : ~LED_ON;
+    LAT_LED_OVR = v & 0x08 ? LED_ON : ~LED_ON;
 }
 
 void main()
@@ -876,10 +900,18 @@ void main()
 #endif
 
     /* Check the LEDs */
-    LAT_LED_STA1 = LED_ON;
-    LAT_LED_STA2 = LED_ON;
-    LAT_LED_ERR = LED_ON;
-    LAT_LED_OVR = LED_ON;
+    LAT_LED_STA1 = ~LED_ON;
+    LAT_LED_STA2 = ~LED_ON;
+    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_OVR = ~LED_ON;
+
+    byte pretty[] = {0x01, 0x02, 0x04, 0x08, 0x04, 0x02, 0x01, 0x00};
+    for(i=0; i<8; i++)
+    {
+        setLEDs(pretty[i]);
+        for(l=0; l<15000; l++);
+    }
+
 
     for(l=0; l<55000; l++);
 
@@ -904,7 +936,7 @@ void main()
     while(1)
     {
         /* Give it a second */
-        for(l=0; l<10000; l++);
+//         for(l=0; l<10000; l++);
 
         byte rx = readTemp(0x9E);
 
@@ -937,7 +969,6 @@ void main()
 
         setADC(ADC_I5V);
         i5VBus = readADC();
-
 
         setADC(ADC_V12V);
         v12VBus = readADC();
