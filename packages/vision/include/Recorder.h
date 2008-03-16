@@ -57,7 +57,7 @@ class RAM_EXPORT Recorder : public core::Updatable
         
     ~Recorder();
 
-    virtual void update(double timeSinceLastUpdate);
+    virtual void update(double timestep);
 
     /** Starts the background process thread, clear m_newFrame flag */
     virtual void background(int interval = -1);

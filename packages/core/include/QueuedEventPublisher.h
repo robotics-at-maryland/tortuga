@@ -29,7 +29,8 @@ public:
      *  All event subscribtions are forward to the given EventPublishers.  Then
      *  all incoming events are queued up, until they are released.
      *
-     *  @param parent The EventPublisher to subcribe to, and handle events from.
+     *  @param parent
+     *      The EventPublisher to subcribe to, and handle events from.
      */
     QueuedEventPublisher(EventPublisher* parent);
 
@@ -40,24 +41,31 @@ public:
      *  When processEvents is called those events will be delived to subscribed
      *  handler.
      *
-     *  @param type     The kind of event to listen for
-     *  @param handler  A void(EventPtr) function object to recieve the event
-     *  @return         The connection object, needed for disconnection.
+     *  @param type
+     *      The kind of event to listen for
+     *  @param handler
+     *      A void(EventPtr) function object to recieve the event
+     *  @return
+     *      The connection object, needed for disconnection.
      */
     virtual EventConnectionPtr subscribe(Event::EventType type,
                                          boost::function<void (EventPtr)>  handler);
     
-    /** Publish the event to the internal queue */
+    /**Publish the event to the internal queue */
     virtual void publish(Event::EventType type, EventPtr event);
 
     /** Publishes all queued events and any that arrive while publishing those events
-        @return The number of events published
+     *
+     *  @return
+     *      The number of events published
      */
     int publishEvents();
     
     /** Waits for the next event, then publishs all queued Events
-        @return The number of events published
-    */
+     *
+     *  @return
+     *      The number of events published
+     */
     int waitAndPublishEvents();
     
 private:

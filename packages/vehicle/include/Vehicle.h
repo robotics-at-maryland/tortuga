@@ -36,16 +36,12 @@ public:
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevicePtr getDevice(std::string name);
 
-    /** @copydoc IVehilce::getDeviceNames() */
     virtual std::vector<std::string> getDeviceNames();
     
-    /** @copydoc IVehicle::getDepth() */
     virtual double getDepth();
 
-    /** @copydoc IVehicle::getTemperatureNames() */
     virtual std::vector<std::string> getTemperatureNames();
 
-    /** @copydoc IVehicle::getTemperatures() */
     virtual std::vector<int> getTemperatures();
 
     math::Vector3 getLinearAcceleration();
@@ -54,22 +50,17 @@ public:
     
     math::Quaternion getOrientation();
     
-    /** @copydoc IVehicle::safeThrusters() */
     virtual void safeThrusters();
 
-    /** @copydoc IVehicle::unsafeThrusters */
     virtual void unsafeThrusters(); 
 
-    /** @copydoc IVehicle::dropMaker */
     virtual void dropMarker();
 
-    /** @copydoc IVehicle::startStatus */
     virtual int startStatus();
 
     /** Prints a line to the vehicle LCD screen */
     virtual void printLine(int line, std::string text);
 
-    /** @copydoc IVehicle::applyForcesAndTorques */
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque);
 

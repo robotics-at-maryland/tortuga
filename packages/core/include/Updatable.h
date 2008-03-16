@@ -38,41 +38,12 @@ public:
     Updatable();
     virtual ~Updatable();
 
-    
-    /** Updates the Object.
-     *
-     *  This is called in the background once the object has been backgrounded.
-     *  Do not call unbackground(true) while in this method.  You will get a
-     *  deadlock.  This is because unbackground true waits for the background
-     *  thread to quit, and you in update you *are* the background thread. If
-     *  you wish to stop the background thread, from the background thread, use
-     *  unbackground(false).
-     *
-     *  @param timestep  The time since the last update.
-     */
     virtual void update(double timestep) = 0;
 
-    /**  Starts automatic background update.
-     *
-     * This runs a background thread and calls update in a loop at the given
-     * interval. If the thread is already running it will just change its update
-     * interval.
-     *
-     * @interval   The time between calls in milliseconds, a negative number
-     *             means the object runs at its own pace.  This can be full out
-     *             or waiting on incoming events.
-     */
     virtual void background(int interval = -1);
 
-    /** Stops background update.
-     *
-     * @join  If true the function won't return until the background thread has
-     *        stopped and been joined.
-     */
     virtual void unbackground(bool join = false);
 
-    /** Returns true if the thread is running in the background false if not.
-     */
     virtual bool backgrounded();
 
 protected:

@@ -50,14 +50,14 @@ public:
     /** @copydoc QueuedEventPublisher::publishEvents() */
     int publishEvents();
     
-    /** @copydoc QueuedEventPublisher::waitAndpublishEvents() */
+    /** @copydoc QueuedEventPublisher::waitAndPublishEvents() */
     int waitAndPublishEvents();
     
     /** Has the same effect as publishEvents() */
-    virtual void update(double);
+    virtual void update(double timestep);
 
-    virtual void background(int);
-    virtual void unbackground(bool);
+    virtual void background(int interval);
+    virtual void unbackground(bool join);
     virtual bool backgrounded();
     
 private:

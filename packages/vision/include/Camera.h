@@ -55,27 +55,31 @@ public:
     
     /** Retrieves the latest image from the camera.
      *
-     *  @current  The current image is copied into the given image
-     *            and that pointer is returned.
+     *  @param current
+     *      The current image is copied into the given image and that pointer
+     *      is returned.
      */
     void getImage(Image* current);
 
-    /** Waitfs for next image from the camera, then copies to given image
+    /** Waits for next image from the camera, then copies to given image
      *
      *  This will block until the next image is grabed from the camera then call
      *  getImage. If the camera is not running in the background it will
      *  return early with false. current will be unchanged.
      *
-     *  @current  The current image is copied into the given image
-     *            and that pointer is returned, can be 0.
+     *  @param current
+     *      The current image is copied into the given image and that pointer
+     *      is returned, can be 0.
      *
-     *  @return   False if the camera is not backgrounded.
+     *  @return
+     *      False if the camera is not backgrounded.
      */
     bool waitForImage(Image* current);
 
     /** Waits for the next camera image (with a timeout)
      *
-     *  @return  False if the result timed out, or the camera is not capturing
+     *  @return
+     *      False if the result timed out, or the camera is not capturing
      */
     bool waitForImage(Image* current, const boost::xtime &xt);
     

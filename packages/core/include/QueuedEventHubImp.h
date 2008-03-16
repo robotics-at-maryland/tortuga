@@ -33,10 +33,10 @@ public:
     /** Store event on the internal queue */
     void queueEvent(EventPtr event);
 
-    /** @copydoc QueuedEventPublisher::publichEvents() */
+    /** @copydoc QueuedEventPublisher::publishEvents() */
     int publishEvents();
 
-    /** @copydoc QueuedEventPublisher::waitAndPublichEvents() */
+    /** @copydoc QueuedEventPublisher::waitAndPublishEvents() */
     int waitAndPublishEvents();
     
 private:

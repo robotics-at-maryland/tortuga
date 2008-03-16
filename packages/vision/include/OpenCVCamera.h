@@ -57,7 +57,8 @@ protected:
 private:
     /** Retrieves the latest image from camera and undistorts
      *
-     *	@undistorted The image to place the undistorted results into
+     *	@param undistorted
+     *      The image to place the undistorted results into
      */
     void getCalibratedImage(Image* undistorted);
     

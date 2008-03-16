@@ -34,9 +34,10 @@ typedef SubsystemList::iterator SubsystemListIter;
 
     
 /** Reprsents a major part of the overall system
-
-    This is a class mainly a marker class, used to provide a uniform start up
-    framework.
+ *
+ *  This is a class mainly a marker class, used to provide a uniform start up
+ *  framework.  It also allows all subclasses to implement events and requires
+ *  them to be updatable.
  */
 class RAM_EXPORT Subsystem : public IUpdatable, public EventPublisher
 {
@@ -51,7 +52,8 @@ public:
      *  if there exists a subclass of the type you want, and the base class
      *  in the same list.  Use 'getSubsystemOfExactType' for those cases.
      *
-     *  @return A shared_ptr of the desired type, null if not found.
+     *  @return
+     *     A shared_ptr of the desired type, null if not found.
      */
     template<typename T>
     static boost::shared_ptr<T> getSubsystemOfType(SubsystemList list) 

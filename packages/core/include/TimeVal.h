@@ -55,7 +55,7 @@ __inline int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 static const long USEC_PER_SEC = 1000000;
     
-/// @class TimeVal timer.hh xfc/glib/timeval.hh
+/// @class TimeVal
 /// @brief A GTimeVal C++ wrapper interface.
 ///
 /// TimeVal represents a time expressed in seconds and microseconds.
@@ -248,6 +248,8 @@ operator-(const TimeVal& lhs, const TimeVal& rhs)
 }
 ///< Subtract the TimeVal object <EM>rhs</EM> from <EM>lhs</EM>.
 
+/// @}
+    
 inline struct timeval*
 TimeVal::time_val() const
 {
@@ -301,7 +303,7 @@ TimeVal::operator>=(const TimeVal& other)
 	return operator==(other) || operator>(other);
 }
     
-/// @}
+
 
 } // namespace core
 } // namespace ram

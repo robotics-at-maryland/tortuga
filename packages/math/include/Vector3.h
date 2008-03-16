@@ -461,7 +461,7 @@ namespace math {
                 non-equivalent vectors which lie on the plane (e.g. 2 edges
                 of a triangle).
             @param
-                vec Vector which, together with this one, will be used to
+                rkVector Vector3 which, together with this one, will be used to
                 calculate the cross-product.
             @returns
                 A vector which is the result of the cross-product. This

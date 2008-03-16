@@ -87,9 +87,9 @@ public:
      */
     virtual void publish(EventPtr event);
 
-    virtual void update(double);
-    virtual void background(int);
-    virtual void unbackground(bool);
+    virtual void update(double timestep);
+    virtual void background(int interval);
+    virtual void unbackground(bool join);
     virtual bool backgrounded();
     
 private:
