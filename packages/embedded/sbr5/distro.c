@@ -796,9 +796,9 @@ long readADC()
     unsigned int ret;
     long l;
 
-    LAT_LED_STA2 ^= LED_ON;
+//     LAT_LED_STA2 ^= LED_ON;
     ADCON1bits.SAMP = 1; // start sampling ...
-    for(l=0; l<200; l++);
+    for(l=0; l<100; l++);
     ADCON1bits.SAMP = 0; // start Converting
     while (!ADCON1bits.DONE); // conversion done?
     ret = ADCBUF0; // yes then get ADC value
@@ -820,9 +820,30 @@ void setLEDs(byte v)
     LAT_LED_OVR = v & 0x08 ? LED_ON : ~LED_ON;
 }
 
+#define IHISTORY_SIZE   50
+
+byte iADCs[11]=
+{
+    ADC_IM1, ADC_IM2, ADC_IM3, ADC_IM4,
+    ADC_IM5, ADC_IM6, ADC_IM7, ADC_IM8,
+    ADC_I5V, ADC_I12V, ADC_IAUX
+};
+
+unsigned int iADCVal[11][IHISTORY_SIZE];
+
+unsigned int avgRow(byte r)
+{
+    unsigned long long t = 0;
+    byte i;
+    for(i=0; i<IHISTORY_SIZE; i++)
+        t += iADCVal[r][i];
+    return t / IHISTORY_SIZE;
+}
+
 void main()
 {
     byte i;
+    byte writeIndex = 0;
     long l;
     ovrReg = 0; /* Clear overcurrent register */
 
@@ -921,13 +942,6 @@ void main()
     LAT_LED_OVR = ~LED_ON;
 
 
-    byte motorADCs[]=
-    {
-        ADC_IM1, ADC_IM2, ADC_IM3, ADC_IM4,
-        ADC_IM5, ADC_IM6, ADC_IM7, ADC_IM8
-    };
-
-
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
 
@@ -955,31 +969,37 @@ void main()
             myTemperature = rx;
         }
 
-        for(i=0; i<8; i++)
+
+        /* Maintain running averages of the I sensors */
+        for(i=0; i<11; i++)
         {
-            setADC(motorADCs[i]);
-            iMotor[i] = readADC();
+            setADC(iADCs[i]);
+            iADCVal[i][writeIndex] = readADC();
+            writeIndex++;
+
+            if(writeIndex >= IHISTORY_SIZE)
+            {
+                writeIndex = 0;
+                LAT_LED_STA2 ^= LED_ON; /* Blink a light to give us an idea of window size */
+            }
         }
 
+        /* Measure the voltages */
         setADC(ADC_VREF);
         refVoltage = readADC();
 
         setADC(ADC_V5V);
         v5VBus = readADC();
 
-        setADC(ADC_I5V);
-        i5VBus = readADC();
-
         setADC(ADC_V12V);
         v12VBus = readADC();
 
-        setADC(ADC_I12V);
-        i12VBus = readADC();
+        /* Calculate running averages of the motor currents */
+        for(i=0; i<8; i++)
+            iMotor[i] = avgRow(i);
 
-        setADC(ADC_V5V);
-        v5VBus = readADC();
-
-        setADC(ADC_IAUX);
-        iAux = readADC();
+        i5VBus = avgRow(8);
+        i12VBus = avgRow(9);
+        iAux = avgRow(10);
     }
 }
