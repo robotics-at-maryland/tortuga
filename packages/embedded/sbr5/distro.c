@@ -399,8 +399,9 @@ void processData(byte data)
                     /* Motor controller currents. Big-endian. */
                     for(i=0; i<8; i++)
                     {
-                        txBuf[2*i+1] = iMotor[i] >> 8;
-                        txBuf[2*i+2] = iMotor[i] & 0xFF;
+                        unsigned int t = adcCurrent(iMotor[i]);
+                        txBuf[2*i+1] = t >> 8;
+                        txBuf[2*i+2] = t & 0xFF;
                     }
                     break;
                 }
