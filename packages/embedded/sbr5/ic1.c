@@ -5,7 +5,7 @@
 #define SENSORBOARD_IC1
 #include "uart.c"
 
-_FOSC( CSW_FSCM_OFF & ECIO );
+_FOSC( CSW_FSCM_OFF & ECIO & PWRT_64);
 _FWDT ( WDT_OFF );
 
 
@@ -569,14 +569,14 @@ int main(void)
     _TRISF0 = TRIS_IN;
     TRIS_USBDETECT = TRIS_IN;
 
-    initBus();
-
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
 
     ADPCFG = 0xFFFF;
     LATB = 0;
     TRISB = 0;
+
+    initBus();
 
 #ifdef HAS_UART
     initInterruptUarts();
@@ -590,10 +590,14 @@ int main(void)
     TRIS_LED_ERR = TRIS_OUT;
 
 
-    for(j=0; j<25000; j++);
+    for(j=0; j<2500; j++);
 
+
+    LAT_LED_ACT = ~LED_ON;
     LAT_LED_ERR = ~LED_ON;
 
+
+    for(j=0; j<550; j++);
 
     unsigned char emptyLine[]="                ";
 
@@ -601,8 +605,6 @@ int main(void)
     showString(emptyLine, 1);
 
     for(j=0; j<25000; j++);
-
-    TRIS_USBDETECT = TRIS_IN;
 
     showString("Diagnostic?", 0);
 

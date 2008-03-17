@@ -6,7 +6,7 @@
 #include "uart.c"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & ECIO); //EC_PLL4); //ECIO );
+_FOSC( CSW_FSCM_OFF & ECIO & PWRT_64); //EC_PLL4); //ECIO );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
