@@ -170,8 +170,18 @@ int main(int argc, char ** argv)
 
         struct powerInfo info;
 
-        printf("\nReading currents:\n");
-        readMotorCurrents(fd, &info);
+        ret = readMotorCurrents(fd, &info);
+        if(ret == SB_OK)
+        {
+            printf("\nMotor currents:\n");
+            printf("\t5V Bus :\t% 2.3fV\t  %2.3fA\n", info.v5VBus, info.i5VBus);
+            printf("\t12V Bus:\t%2.3fV\t  %2.3fA\n", info.v12VBus, info.i12VBus);
+            printf("\tAux Current:\t%2.3fA\n", info.iAux);
+        } else
+            printf("\nError reading motor currents\n");
+
+
+
 
         ret = readBoardVoltages(fd, &info);
         if(ret == SB_OK)
@@ -181,7 +191,7 @@ int main(int argc, char ** argv)
             printf("\t12V Bus:\t%2.3fV\t  %2.3fA\n", info.v12VBus, info.i12VBus);
             printf("\tAux Current:\t%2.3fA\n", info.iAux);
         } else
-            printf("Error reading power information\n");
+            printf("\nError reading power information\n");
 
 
     }

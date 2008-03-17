@@ -2,12 +2,12 @@
 
 struct powerInfo
 {
-    float motorCurrents[8];
-    float v12VBus;
-    float v5VBus;
-    float i12VBus;
-    float i5VBus;
-    float iAux;
+    float motorCurrents[8]; /* Currents for motors and marker droppers */
+    float v12VBus;          /* Voltage of 12V bus. */
+    float v5VBus;           /* Voltage of 5V bus */
+    float i12VBus;          /* Current of 12V bus */
+    float i5VBus;           /* Current of 5V bus */
+    float iAux;             /* Current of aux (carnetix) output */
 };
 
 
