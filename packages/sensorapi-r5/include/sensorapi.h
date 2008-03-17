@@ -2,8 +2,12 @@
 
 struct powerInfo
 {
-    int v12Bus;
-    int v5Bus;
+    float motorCurrents[8];
+    float v12VBus;
+    float v5VBus;
+    float i12VBus;
+    float i5VBus;
+    float iAux;
 };
 
 

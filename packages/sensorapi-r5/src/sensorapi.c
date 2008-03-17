@@ -561,22 +561,40 @@ int readMotorCurrents(int fd, struct powerInfo * info)
 int readBoardVoltages(int fd, struct powerInfo * info)
 {
     unsigned char buf[20] = {HOST_CMD_VLOW, HOST_CMD_VLOW};
+    int i=0, cs=0;
 
-    int i;
+    if(info == NULL)
+        return SB_ERROR;
 
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
 
     if(buf[0] != HOST_REPLY_VLOW)
-        return SB_ERROR;
-
-    readData(fd, buf+1, 13);
-
-    for(i=0; i<6; i++)
     {
-        printf("\tRead: %d\n", (buf[i*2+1] << 8) | (buf[i*2+2]));
+        printf("cunt\n");
+        if(buf[0] == 0xCC)
+            return SB_BADCC;
+        if(buf[0] == 0xDF)
+            return SB_HWFAIL;
+
+
+        return SB_ERROR;
     }
 
+    readData(fd, buf+1, 11);
+
+    for(i=0; i<11; i++)
+        cs += buf[i];
+
+    if((cs & 0xFF) != buf[11])
+        return SB_BADCC;
+
+
+    info->v5VBus = ((buf[0*2+1] << 8) | (buf[0*2+2])) / 1000.0;
+    info->i5VBus = ((buf[1*2+1] << 8) | (buf[1*2+2])) / 1000.0;
+    info->v12VBus = ((buf[2*2+1] << 8) | (buf[2*2+2])) / 1000.0;
+    info->i12VBus = ((buf[3*2+1] << 8) | (buf[3*2+2])) / 1000.0;
+    info->iAux = ((buf[4*2+1] << 8) | (buf[4*2+2])) / 1000.0;
     return SB_OK;
 }
 
