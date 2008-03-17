@@ -411,7 +411,7 @@ void processData(byte data)
 
                     unsigned int t;
 
-                    txBuf[0] = 12;
+                    txBuf[0] = 10;
 
                     t = adcVoltage(v5VBus);
 
