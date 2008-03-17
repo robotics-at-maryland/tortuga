@@ -128,14 +128,21 @@ int main(int argc, char ** argv)
             printf("Error reading thruster state!\n");
         else
         {
-            printf("\nThruster state: 0x%02X\n", ret);
-            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
-            (ret & THRUSTER1_ENABLED) ? "Thruster 1 enabled" : "Thruster 1 disabled",
-            (ret & THRUSTER2_ENABLED) ? "Thruster 2 enabled" : "Thruster 2 disabled",
-            (ret & THRUSTER3_ENABLED) ? "Thruster 3 enabled" : "Thruster 3 disabled",
-            (ret & THRUSTER4_ENABLED) ? "Thruster 4 enabled" : "Thruster 4 disabled",
-            (ret & THRUSTER5_ENABLED) ? "Thruster 5 enabled" : "Thruster 5 disabled",
-            (ret & THRUSTER6_ENABLED) ? "Thruster 6 enabled" : "Thruster 6 disabled");
+            printf("\nThruster state: 0x%02X\t", ret);
+            printf("[%c%c%c%c%c%c]",
+            (ret & THRUSTER1_ENABLED) ? '1' : '-',
+            (ret & THRUSTER2_ENABLED) ? '2' : '-',
+            (ret & THRUSTER3_ENABLED) ? '3' : '-',
+            (ret & THRUSTER4_ENABLED) ? '4' : '-',
+            (ret & THRUSTER5_ENABLED) ? '5' : '-',
+            (ret & THRUSTER6_ENABLED) ? '6' : '-');
+
+            if(ret == 0x00)
+                printf("   (All safe)");
+
+            if(ret == 0x3F)
+                printf("   (All unsafe)");
+
         }
 
         ret = readBarState(fd);
@@ -143,16 +150,22 @@ int main(int argc, char ** argv)
             printf("Error reading bar state!\n");
         else
         {
-            printf("\nBar state: 0x%02X\n", ret);
-            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
-            (ret & BAR1_ENABLED) ? "Bar 1 enabled" : "Bar 1 disabled",
-            (ret & BAR2_ENABLED) ? "Bar 2 enabled" : "Bar 2 disabled",
-            (ret & BAR3_ENABLED) ? "Bar 3 enabled" : "Bar 3 disabled",
-            (ret & BAR4_ENABLED) ? "Bar 4 enabled" : "Bar 4 disabled",
-            (ret & BAR5_ENABLED) ? "Bar 5 enabled" : "Bar 5 disabled",
-            (ret & BAR6_ENABLED) ? "Bar 6 enabled" : "Bar 6 disabled",
-            (ret & BAR7_ENABLED) ? "Bar 7 enabled" : "Bar 7 disabled",
-            (ret & BAR8_ENABLED) ? "Bar 8 enabled" : "Bar 8 disabled");
+            printf("\nBar state: \t0x%02X", ret);
+            printf("\t[%c%c%c%c%c%c%c%c]",
+            (ret & BAR1_ENABLED) ? '1' : '-',
+            (ret & BAR2_ENABLED) ? '2' : '-',
+            (ret & BAR3_ENABLED) ? '3' : '-',
+            (ret & BAR4_ENABLED) ? '4' : '-',
+            (ret & BAR5_ENABLED) ? '5' : '-',
+            (ret & BAR6_ENABLED) ? '6' : '-',
+            (ret & BAR7_ENABLED) ? '7' : '-',
+            (ret & BAR8_ENABLED) ? '8' : '-');
+
+            if(ret == 0x00)
+                printf(" (All off)");
+
+            if(ret == 0xFF)
+                printf(" (All on)");
         }
 
         printf("\nReading currents:\n");
