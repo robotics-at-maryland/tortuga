@@ -1337,7 +1337,7 @@ int main(void)
                     sendByte(rxBuf[i]);
                 }
 
-                sendByte(cs + t1 + HOST_REPLY_IMOTOR);
+                sendByte(cs + HOST_REPLY_IMOTOR);
                 break;
             }
 
