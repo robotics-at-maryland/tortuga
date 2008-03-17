@@ -173,27 +173,26 @@ int main(int argc, char ** argv)
         ret = readMotorCurrents(fd, &info);
         if(ret == SB_OK)
         {
-            printf("\nMotor currents:\n");
-            printf("\t5V Bus :\t% 2.3fV\t  %2.3fA\n", info.v5VBus, info.i5VBus);
-            printf("\t12V Bus:\t%2.3fV\t  %2.3fA\n", info.v12VBus, info.i12VBus);
-            printf("\tAux Current:\t%2.3fA\n", info.iAux);
+            int i;
+            printf("\nOutput currents:\n\t[1-4]: ");
+            for(i=0; i<4; i++)
+                printf("\t%2.3fA", info.motorCurrents[i]);
+            printf("\n\t[5-8]: ");
+            for(i=0; i<4; i++)
+                printf("\t%2.3fA", info.motorCurrents[i+4]);
         } else
             printf("\nError reading motor currents\n");
 
-
-
-
+        printf("\n");
         ret = readBoardVoltages(fd, &info);
         if(ret == SB_OK)
         {
             printf("\nPower information:\n");
             printf("\t5V Bus :\t% 2.3fV\t  %2.3fA\n", info.v5VBus, info.i5VBus);
             printf("\t12V Bus:\t%2.3fV\t  %2.3fA\n", info.v12VBus, info.i12VBus);
-            printf("\tAux Current:\t%2.3fA\n", info.iAux);
+            printf("\tAux Current:\t %2.3fA\n", info.iAux);
         } else
             printf("\nError reading power information\n");
-
-
     }
 
 

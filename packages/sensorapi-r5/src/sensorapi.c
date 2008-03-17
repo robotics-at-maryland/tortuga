@@ -554,7 +554,6 @@ int readMotorCurrents(int fd, struct powerInfo * info)
         if(buf[0] == 0xDF)
             return SB_HWFAIL;
 
-
         return SB_ERROR;
     }
 
@@ -565,7 +564,6 @@ int readMotorCurrents(int fd, struct powerInfo * info)
 
     if((cs & 0xFF) != buf[17])
         return SB_BADCC;
-
 
     for(i=0; i<8; i++)
         info->motorCurrents[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
@@ -590,7 +588,6 @@ int readBoardVoltages(int fd, struct powerInfo * info)
             return SB_BADCC;
         if(buf[0] == 0xDF)
             return SB_HWFAIL;
-
 
         return SB_ERROR;
     }
