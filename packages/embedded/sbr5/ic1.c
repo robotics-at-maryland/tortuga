@@ -41,10 +41,19 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_ERR     _LATB6
 #define TRIS_LED_ERR    _TRISB6
 
-
+/* USB detection */
 #define IN_USBDETECT    _RC15
 #define TRIS_USBDETECT  _TRISC15
 
+/* The PC jumper */
+#define LAT_PCJ_L   _LATB7
+#define TRIS_PCJ_L  _TRISB7
+
+#define LAT_PCJ_H   _LATD3
+#define TRIS_PCJ_H  _TRISD3
+
+#define IN_PCJ_I    _RB8
+#define TRIS_PCJ_I  _TRISB8
 
 #define IRQ_IC2         2
 #define IRQ_IC3         1
@@ -568,13 +577,19 @@ int main(void)
     byte i;
     _TRISF0 = TRIS_IN;
     TRIS_USBDETECT = TRIS_IN;
+    TRIS_PCJ_I = TRIS_IN;
+    TRIS_PCJ_L = TRIS_OUT;
+    TRIS_PCJ_H = TRIS_OUT;
+
+    LAT_PCJ_L = 0;
+    LAT_PCJ_H = 1;
 
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
 
     ADPCFG = 0xFFFF;
     LATB = 0;
-    TRISB = 0;
+    TRISB = 0x100;
 
     initBus();
 
@@ -619,8 +634,15 @@ int main(void)
 
     if(IN_USBDETECT == 0)
     {
-        showString("  Moan for me,  ", 0);
-        showString("    BITCH !     ", 1);
+        if(IN_PCJ_I == 1)
+        {
+            showString("  Moan for me,  ", 0);
+            showString("    BITCH !     ", 1);
+        } else
+        {
+            showString("No USB link     ", 0);
+            showString("detected        ", 1);
+        }
     }
 
     LAT_LED_ACT = ~LED_ON;
