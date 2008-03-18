@@ -399,7 +399,7 @@ void processData(byte data)
                     /* Motor controller currents. Big-endian. */
                     for(i=0; i<8; i++)
                     {
-                        unsigned int t = adcCurrent(iMotor[i]);
+                        unsigned int t = iMotor[i];
                         txBuf[2*i+1] = t >> 8;
                         txBuf[2*i+2] = t & 0xFF;
                     }
@@ -413,27 +413,27 @@ void processData(byte data)
 
                     txBuf[0] = 10;
 
-                    t = adcVoltage(v5VBus);
+                    t = v5VBus;
 
                     txBuf[1] = t >> 8;
                     txBuf[2] = t & 0xFF;
 
-                    t = adcCurrent(i5VBus);
+                    t = i5VBus;
 
                     txBuf[3] = t >> 8;
                     txBuf[4] = t & 0xFF;
 
-                    t = adcVoltage(v12VBus);
+                    t = v12VBus;
 
                     txBuf[5] = t >> 8;
                     txBuf[6] = t & 0xFF;
 
-                    t = adcCurrent(i12VBus);
+                    t = i12VBus;
 
                     txBuf[7] = t >> 8;
                     txBuf[8] = t & 0xFF;
 
-                    t = adcCurrent(iAux);
+                    t = iAux;
 
                     txBuf[9] = t >> 8;
                     txBuf[10] = t & 0xFF;
@@ -813,6 +813,22 @@ long readADC()
     return ret;
 }
 
+#define CAL_I5V_A 7.305594
+#define CAL_I5V_B -3065.893302
+
+#define CAL_I12V_A 7.463615
+#define CAL_I12V_B -3098.165312
+
+#define CAL_V_A 11.334405
+#define CAL_V_B 1.527331
+
+unsigned int applyCalibration(unsigned int x, float a, float b)
+{
+    float t = x * a + b;
+    return t;
+}
+
+/*
 unsigned int adcVoltage(unsigned int x)
 {
     float t = x * 11.334405 + 1.527331;
@@ -824,6 +840,7 @@ unsigned int adcCurrent(unsigned int x)
     float t = x * 7.2350087 - 3002.89818;
     return t;
 }
+*/
 
 void setLEDs(byte v)
 {
@@ -1002,17 +1019,17 @@ void main()
         refVoltage = readADC();
 
         setADC(ADC_V5V);
-        v5VBus = readADC();
+        v5VBus = applyCalibration(readADC(), CAL_V_A, CAL_V_B);
 
         setADC(ADC_V12V);
-        v12VBus = readADC();
+        v12VBus = applyCalibration(readADC(), CAL_V_A, CAL_V_B);
 
         /* Calculate running averages of the motor currents */
         for(i=0; i<8; i++)
-            iMotor[i] = avgRow(i);
+            iMotor[i] = applyCalibration(avgRow(i), CAL_I12V_A, CAL_I12V_B);
 
-        i5VBus = avgRow(8);
-        i12VBus = avgRow(9);
-        iAux = avgRow(10);
+        i5VBus = applyCalibration(avgRow(8), CAL_I5V_A, CAL_I5V_B);
+        i12VBus = applyCalibration(avgRow(9), CAL_I12V_A, CAL_I12V_B);
+        iAux = applyCalibration(avgRow(10), CAL_I12V_A, CAL_I12V_B);
     }
 }
