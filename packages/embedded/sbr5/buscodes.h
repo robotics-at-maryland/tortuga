@@ -164,6 +164,8 @@
 #define HOST_CMD_VLOW               0x1A
 #define HOST_REPLY_VLOW             0x1B
 
+#define HOST_CMD_READ_OVR           0x1C
+#define HOST_REPLY_OVR              0x1D
 
 #define BAR1_ON     0x00
 #define BAR2_ON     0x01
