@@ -605,14 +605,14 @@ int main(void)
     TRIS_LED_ERR = TRIS_OUT;
 
 
-    for(j=0; j<2500; j++);
+    for(j=0; j<20000; j++);
 
 
     LAT_LED_ACT = ~LED_ON;
     LAT_LED_ERR = ~LED_ON;
 
 
-    for(j=0; j<550; j++);
+    for(j=0; j<20000; j++);
 
     unsigned char emptyLine[]="                ";
 
