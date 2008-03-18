@@ -128,6 +128,28 @@ int main(int argc, char ** argv)
 
         }
 
+        ret = readOvrState(fd);
+        if(ret == SB_ERROR)
+            printf("\nError reading overcurrent register!\n");
+        else
+        {
+            printf("\nOver-current: \t0x%02X", ret);
+            printf("\t[%c%c%c%c%c%c]",
+            (ret & THRUSTER1_OVR) ? '1' : '-',
+            (ret & THRUSTER2_OVR) ? '2' : '-',
+            (ret & THRUSTER3_OVR) ? '3' : '-',
+            (ret & THRUSTER4_OVR) ? '4' : '-',
+            (ret & THRUSTER5_OVR) ? '5' : '-',
+            (ret & THRUSTER6_OVR) ? '6' : '-');
+
+            if(ret == 0x00)
+                printf("   (All ok)");
+
+            if(ret == 0xFF)
+                printf("   (All busted)");
+        }
+
+
         ret = readBarState(fd);
         if(ret == SB_ERROR)
             printf("Error reading bar state!\n");

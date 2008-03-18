@@ -31,6 +31,8 @@ struct powerInfo
 #define HOST_REPLY_IMOTOR           0x19
 #define HOST_CMD_VLOW               0x1A
 #define HOST_REPLY_VLOW             0x1B
+#define HOST_CMD_READ_OVR           0x1C
+#define HOST_REPLY_OVR              0x1D
 
 
 #define LCD_BL_OFF    0
@@ -80,12 +82,21 @@ struct powerInfo
 
 
 /* Bits of the thruster state response */
-#define THRUSTER1_ENABLED     0x20
-#define THRUSTER2_ENABLED     0x10
-#define THRUSTER3_ENABLED     0x08
-#define THRUSTER4_ENABLED     0x04
-#define THRUSTER5_ENABLED     0x02
-#define THRUSTER6_ENABLED     0x01
+#define THRUSTER1_ENABLED     0x01
+#define THRUSTER2_ENABLED     0x02
+#define THRUSTER3_ENABLED     0x04
+#define THRUSTER4_ENABLED     0x08
+#define THRUSTER5_ENABLED     0x10
+#define THRUSTER6_ENABLED     0x20
+
+
+/* Overcurrent bits. Last 2 are marker droppers */
+#define THRUSTER1_OVR     0x01
+#define THRUSTER2_OVR     0x02
+#define THRUSTER3_OVR     0x04
+#define THRUSTER4_OVR     0x08
+#define THRUSTER5_OVR     0x10
+#define THRUSTER6_OVR     0x20
 
 #define BAR1_ENABLED    0x01
 #define BAR2_ENABLED    0x02
@@ -214,6 +225,8 @@ int readSpeedResponses(int fd);
 int readThrusterState(int fd);
 
 int readBarState(int fd);
+
+int readOvrState(int fd);
 
 int readMotorCurrents(int fd, struct powerInfo * info);
 int readBoardVoltages(int fd, struct powerInfo * info);
