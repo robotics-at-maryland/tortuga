@@ -20,6 +20,15 @@ module ram
 			double z;
 		};
 		
+		struct Quaternion
+		{
+			double w;
+			double x;
+			double y;
+			double z;
+		};
+		
+		/*
 		class Quaternion
 		{
 			idempotent double Dot(Quaternion q);
@@ -41,6 +50,7 @@ module ram
 			double y;
 			double z;
 		};
+		*/
 	};
 	
 	module control
