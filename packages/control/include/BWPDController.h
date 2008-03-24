@@ -89,6 +89,9 @@ public:
     /** Gets the current desired orientation */
     virtual math::Quaternion getDesiredOrientation();
     
+    /** Sets the current desired orientation */
+    virtual void setDesiredOrientation(math::Quaternion);
+    
     /** @copydoc IController::atOrientation() */
     virtual bool atOrientation();
 

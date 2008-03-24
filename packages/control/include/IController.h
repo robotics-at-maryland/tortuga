@@ -97,6 +97,9 @@ public:
     /** Gets the current desired orientation */
     virtual math::Quaternion getDesiredOrientation() = 0;
     
+    /** Sets the current desired orientation */
+    virtual void setDesiredOrientation(math::Quaternion) = 0;
+	
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
 

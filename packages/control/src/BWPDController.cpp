@@ -245,6 +245,26 @@ math::Quaternion BWPDController::getDesiredOrientation()
     return math::Quaternion(m_desiredState->quaternion);
 }
     
+void BWPDController::setDesiredOrientation(math::Quaternion newQuaternion)
+{
+	//fetch old desired quaternion
+	core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
+	
+	//we do not want to apply a non-normalized quaternion; the 
+	//non-normalization could propagate through internal controller variables
+	newQuaternion.normalise();
+	
+	//store the new quaternion as the new desired quaternion
+	m_desiredState->quaternion[0] = newQuaternion.x;
+	m_desiredState->quaternion[1] = newQuaternion.y;
+	m_desiredState->quaternion[2] = newQuaternion.z;
+	m_desiredState->quaternion[3] = newQuaternion.w;
+	
+	math::OrientationEventPtr event(new math::OrientationEvent());
+	event->orientation = math::Quaternion(m_desiredState->quaternion);
+	publish(IController::DESIRED_ORIENTATION_UPDATE, event);
+}
+    
 bool BWPDController::atOrientation()
 {
     return doIsOriented(m_measuredState, m_desiredState,

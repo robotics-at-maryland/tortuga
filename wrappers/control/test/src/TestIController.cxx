@@ -44,6 +44,9 @@ public:
 
     virtual ram::math::Quaternion getDesiredOrientation()
         { return ram::math::Quaternion(); }
+	
+	virtual void setDesiredOrientation(ram::math::Quaternion)
+		{ }
     
     virtual bool atOrientation() { return atorientation; }
     
