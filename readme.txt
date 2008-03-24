@@ -15,3 +15,4 @@ Then fire up another shell in this directory and type "build/python/testclient".
 This will send 1000 pairs of setSpeed/getSpeed commands to the server.  In both
 terminals you should see some messages that occur when the methods get called.
 
+If you are in an adventurous mood, type "./toomanyclients 5000".
