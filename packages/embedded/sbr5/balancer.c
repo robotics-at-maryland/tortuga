@@ -44,19 +44,19 @@ _FWDT ( WDT_OFF );
 #define BATT_ON     1
 
 /* Battery input pin assignments */
-#define IN_BATT1    _LATG7
+#define IN_BATT1    _RG7
 #define TRIS_BATT1  _TRISG7
 
-#define IN_BATT2    _LATC4
+#define IN_BATT2    _RC4
 #define TRIS_BATT2  _TRISC4
 
-#define IN_BATT3    _LATC2
+#define IN_BATT3    _RC2
 #define TRIS_BATT3  _TRISC2
 
-#define IN_BATT4    _LATG15
+#define IN_BATT4    _RG15
 #define TRIS_BATT4  _TRISG15
 
-#define IN_BATT5    _LATG12
+#define IN_BATT5    _RG12
 #define TRIS_BATT5  _TRISG12
 
 /* We know this one is active low */
@@ -66,7 +66,7 @@ _FWDT ( WDT_OFF );
 
 
 /* Power kill output level specification */
-#define PWRKILL_ON  1
+#define PWRKILL_ON  0
 
 /* Power kill pin assignment */
 #define LAT_PWRKILL _LATB14
@@ -222,7 +222,7 @@ void processData(byte data)
 
                 case BUS_CMD_BOARDSTATUS:
                 {
-                    disableBusInterrupt();
+//                     disableBusInterrupt();
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
@@ -233,7 +233,7 @@ void processData(byte data)
                     if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x10;
                     if(IN_WTRSEN == 0) txBuf[1] |= 0x20;
 
-                    enableBusInterrupt();
+//                     enableBusInterrupt();
                     break;
                 }
 
@@ -412,8 +412,8 @@ byte checkBus()
  */
 void enableBusInterrupt()
 {
-    REQ_CN_BIT = 1; /* Turn on CN for the pin */
-    checkBus();
+//     REQ_CN_BIT = 1; /* Turn on CN for the pin */
+//    checkBus();
 }
 
 void disableBusInterrupt()
@@ -436,8 +436,8 @@ void disableWaterInterrupt()
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
-    enableBusInterrupt();
-    enableWaterInterrupt();
+//     enableBusInterrupt();
+//     enableWaterInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
     IPC3bits.CNIP = 4;      /* Bus at priority 4 */
@@ -551,15 +551,36 @@ void main()
     TRIS_LED_ERR = TRIS_OUT;
 
     LAT_LED_STA = LED_ON;
-    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_ERR = LED_ON;
+
 
     initBus();
-    initADC();
+    LAT_LED_STA = LED_ON;
+    LAT_LED_ERR = ~LED_ON;
+
+  //  while(1);
+
+ //   initADC();
     initI2C();
 
 #ifdef HAS_UART
     initInterruptUarts();
 #endif
+
+    for(l=0; l<50000; l++);
+
+    LAT_LED_STA = LED_ON;
+    LAT_LED_ERR = ~LED_ON;
+
+
+//     LAT_PWRKILL = PWRKILL_ON;
+
+
+    while(1)
+    {
+        LAT_LED_ERR = ~IN_REQ;
+        checkBus();
+    }
 
 
     for(i=0; i<16; i++)
@@ -570,8 +591,9 @@ void main()
 
     while(1)
     {
+        checkBus();
         /* Give it a second */
-        for(l=0; l<10000; l++);
+//        for(l=0; l<10000; l++);
 
         byte rx = readTemp(0x90);
 

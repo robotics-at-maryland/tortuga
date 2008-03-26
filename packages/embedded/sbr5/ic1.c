@@ -214,10 +214,10 @@ void setReq(byte req, byte val)
         _LATB4 = val;
 
     if(req == 4)
-        _LATB3 = val;
-
-    if(req == 5)
         _LATB6 = val;
+
+//    if(req == 5)
+//        _LATB6 = val;
 }
 
 
@@ -872,7 +872,7 @@ int main(void)
                     break;
                 }
                 t1 = 0;
-#if 0
+//#if 0
                 /* Read battery and water from balancer board */
                 if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_BATTSTAT) != 0)
                 {
@@ -887,7 +887,7 @@ int main(void)
                 }
 
                 t1 = rxBuf[0];
-#endif
+//#endif
 
 
                 /* Read kill switch from another chip......... */
