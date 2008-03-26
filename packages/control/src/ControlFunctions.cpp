@@ -55,6 +55,7 @@ written in the vehicle's coord frame.  forces are in newtons
 void translationalController(MeasuredState* measuredState,
                              DesiredState* desiredState,
                              ControllerState* controllerState,
+			     EstimatedState* estimatedState,
                              double dt,
                              double* translationalForces){
 
@@ -85,10 +86,11 @@ void translationalController(MeasuredState* measuredState,
         depthControlSignal=depthPController(measuredState,desiredState,controllerState);
 	    break;
 	case 2 :
-            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
-            break;
+            depthObserver2(measuredState,desiredState,controllerState,estimatedState,dt);
+            depthControlSignal=depthPDController2(measuredState,desiredState,controllerState,estimatedState);
+	    break;
 	case 3 :
-            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+            depthControlSignal=depthObserverController(measuredState,desiredState,controllerState,estimatedState,dt);
             break;
 	case 4 :
             depthControlSignal=depthPController(measuredState,desiredState,controllerState);
@@ -174,17 +176,18 @@ returns a depth control signal intended to be the control force used in the +z a
 double depthObserverController(MeasuredState* measuredState,
                         DesiredState* desiredState,
                         ControllerState* controllerState,
-						EstimatedState* estimatedState){
+			EstimatedState* estimatedState,
+                        double dt){
 	// xHat2Depth: estimation of depth and depth_dot
 	Vector2 xHat = estimatedState->xHat2Depth;
 	
-	double yHat = xHat.x;
+	double yHat = (controllerState->depthC).dotProduct(xHat);
 	
-	Vector2 xDotPrev = (controllerState->A)*(xHat) + 
-            (controllerState->B).dotProduct(-controllerState->K)*(xHat) + 
-            (controllerState->L)*(measuredState->depth - yHat);
+	Vector2 xDotPrev = (controllerState->depthA)*(xHat) + 
+            (controllerState->depthB).dotProduct(-controllerState->depthK)*(xHat) + 
+            (controllerState->depthL)*(measuredState->depth - yHat);
 	
-	xHat = xHat + (controllerState->dt)*(xDotPrev);
+	xHat = xHat + (dt)*(xDotPrev);
 	estimatedState->xHat2Depth = xHat;
 	
 	// desired: desired depth and depth_dot
@@ -193,9 +196,52 @@ double depthObserverController(MeasuredState* measuredState,
 	desired.y = 0;
 	
 	// depthCotrolSignal: new control signal (u)
-	double depthControlSignal = (-controllerState->K).dotProduct(xHat - desired);
+	double depthControlSignal = (-controllerState->depthK).dotProduct(xHat - desired);
     return depthControlSignal;
 }
+
+
+//Modifies the estimate from State Estimate
+
+//Takes in the measured,desired,controller,estimated state
+//Only Changes estimatedState.xHat2Depth
+
+void depthObserver2(MeasuredState* measuredState,
+                    DesiredState* desiredState,
+                    ControllerState* controllerState,
+                    EstimatedState* estimatedState,
+                    double dt)
+{
+	Vector2 xHat2 =  estimatedState->xHat2Depth;
+	double yHat = controllerState->depthC.dotProduct(xHat2);
+	
+	// xHatDot = (A-B*K)*xHat+L*(y-yHat);
+	
+	Vector2 xHatDot = (controllerState->depthA)*xHat2 +
+	 (controllerState->depthB).dotProduct(-controllerState->depthK)*xHat2 +
+	 (controllerState->depthL)*(measuredState->depth - yHat);
+
+	xHat2 = xHat2 + dt*xHatDot;
+
+	estimatedState->xHat2Depth = xHat2;
+}
+
+
+//Produces a depth control signal
+double depthPDController2(MeasuredState* measuredState,
+                          DesiredState* desiredState,
+                          ControllerState* controllerState,
+                          EstimatedState* estimatedState)
+{
+
+	Vector2 xHat2 = estimatedState->xHat2Depth;
+	Vector2 xDesired2 = Vector2(desiredState->depth,0);
+	double depthControlSignal = -controllerState->depthK.dotProduct(xHat2-xDesired2);
+	return depthControlSignal;
+
+}
+
+
 
 /************************************************************************
 BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt,translationalForces)
