@@ -25,6 +25,8 @@
 // Bring image classes into scope
 using namespace ram::vision;
 
+// Current OpenCV is slightly broken on OSX
+#ifndef RAM_DARWIN
 static boost::filesystem::path getImagesDir()
 {
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
@@ -46,3 +48,5 @@ TEST(ImageAreClose)
     delete a;
     delete b;
 }
+
+#endif // RAM_DARWIN
