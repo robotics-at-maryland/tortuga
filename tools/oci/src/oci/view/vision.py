@@ -13,11 +13,11 @@ import ram.core as core
 import ext.core
 import ext.vision
 import ram.gui.led
-import gui.view
+import ram.gui.view as view
 
 
 class VisionPanel(wx.Panel):
-    core.implements(gui.view.IPanelProvider)
+    core.implements(view.IPanelProvider)
     
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)

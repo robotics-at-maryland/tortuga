@@ -14,7 +14,7 @@ import wx.aui
 import yaml
 
 # Project Imports
-from gui.view import IPanelProvider
+from ram.gui.view import IPanelProvider
 from ram.core import ExtensionPoint
 import ext.core as core
 

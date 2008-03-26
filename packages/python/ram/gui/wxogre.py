@@ -110,7 +110,7 @@ class wxOgre(wx.PyControl):
         params = Ogre.NameValuePairList()
         
         if '__WXGTK__' == wx.Platform:
-            from gui.util import get_window_handle_str
+            from ram.gui.util import get_window_handle_str
             params['externalWindowHandle'] = get_window_handle_str(self)
         elif '__WXMSW__' == wx.Platform:
             params['externalWindowHandle'] = str(self.GetHandle())

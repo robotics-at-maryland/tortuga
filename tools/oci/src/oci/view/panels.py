@@ -14,7 +14,7 @@ import wx
 # Project Imports
 from ram.core import Component, implements
 
-from gui.view import IPanelProvider
+from ram.gui.view import IPanelProvider
 from oci.view.controls import DepthBar, MultiBar, RotationCtrl
 import oci.model.subsystem as subsystemMod
 

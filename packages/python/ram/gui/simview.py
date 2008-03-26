@@ -15,9 +15,9 @@ from ram.core import Component, implements
 from ram.sim.simulation import Simulation
 from ram.sim.input import OISInputForwarder
 
-from gui.view import IPanelProvider
-from gui.wxogre import wxOgre
-from gui.input import InputForwarder
+from ram.gui.view import IPanelProvider
+from ram.gui.wxogre import wxOgre
+from ram.gui.input import InputForwarder
 
 
 class SimPanelProvider(Component):
