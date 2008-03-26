@@ -71,35 +71,49 @@ struct RAM_EXPORT ControllerState{
     
     double speedPGain;
     int depthControlType;
-    math::Matrix2 A;
-    math::Vector2 B;
-    math::Vector2 K;
-    math::Vector2 L;
+    math::Matrix2 depthA;
+    math::Vector2 depthB;
+    math::Vector2 depthC;
+    math::Vector2 depthK;
+    math::Vector2 depthL;
     double dt;
     
 };
 
 void RAM_EXPORT translationalController(MeasuredState* measuredState,
-                             DesiredState* desiredState,
-                             ControllerState* controllerState,
-                             double dt,
-                             double* translationalForces);
+                                        DesiredState* desiredState,
+                                        ControllerState* controllerState,
+                                        EstimatedState* estimatedState,
+                                        double dt,
+                                        double* translationalForces);
 
 void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
-                                   DesiredState* desiredState,
-                                   ControllerState* controllerState,
-                                   double dt,
-                                   double* rotationalTorques);
+                                              DesiredState* desiredState,
+                                              ControllerState* controllerState,
+                                              double dt,
+                                              double* rotationalTorques);
                                    
 double RAM_EXPORT depthPController(MeasuredState* measuredState,
-                            DesiredState* desiredState,
-                            ControllerState* controllerState);
-
+                                   DesiredState* desiredState,
+                                   ControllerState* controllerState);
+    
 double RAM_EXPORT depthObserverController(MeasuredState* measuredState,
-                            DesiredState* desiredState,
-                            ControllerState* controllerState);
+                                          DesiredState* desiredState,
+                                          ControllerState* controllerState,
+                                          EstimatedState* estimatedState,
+                                          double dt);
                             
-                            
+void depthObserver2(MeasuredState* measuredState,
+                    DesiredState* desiredState,
+                    ControllerState* controllerState,
+                    EstimatedState* estimatedState,
+                    double dt);
+
+double depthPDController2(MeasuredState* measuredState,
+                          DesiredState* desiredState,
+                          ControllerState* controllerState,
+                          EstimatedState* estimatedState);
+    
   //TODO: implement this function
   //  bool isAtDepth();
 

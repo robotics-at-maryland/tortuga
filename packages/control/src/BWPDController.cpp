@@ -92,13 +92,13 @@ void BWPDController::setSpeed(double speed)
     else if (speed < -5)
         speed = -5;
     
-    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
     m_desiredState->speed = speed;
 }
 
 void BWPDController::setHeading(double degrees)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
 
     // Put math here
 }
@@ -107,7 +107,7 @@ void BWPDController::setDepth(double depth)
 {
 
     {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+        core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
         if (depth < 0)
             depth = 0;
         m_desiredState->depth = depth;
@@ -120,20 +120,40 @@ void BWPDController::setDepth(double depth)
 
 double BWPDController::getSpeed()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_desiredEstimatedStateMutex);
     return m_desiredState->speed;
 }
 
 double BWPDController::getHeading()
 {
-    //core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+    //core::ReadWriteMutex::ScopedReadLock lock(m_desiredEstimatedStateMutex);
     return 0;
 }
 
 double BWPDController::getDepth()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_desiredEstimatedStateMutex);
     return m_desiredState->depth;
+}
+
+
+
+double BWPDController::getEstimatedDepth()
+{
+    // BROKEN!!!!
+    core::ReadWriteMutex::ScopedReadLock lock(m_desiredEstimatedStateMutex);
+    assert(false && "Not yet implemented");
+    //return appropriate xHat value here
+    return 0;
+}
+
+double BWPDController::getEstimatedDepthDot()
+{
+    // BROKEN!!!!!
+    core::ReadWriteMutex::ScopedReadLock lock(m_desiredEstimatedStateMutex);
+    assert(false && "Not yet implemented");
+    //return appropriate xHat value here
+    return 0;
 }
     
 void BWPDController::rollVehicle(double degrees)
@@ -142,7 +162,7 @@ void BWPDController::rollVehicle(double degrees)
   using namespace ram::math;
 
   //fetch old desired quaternion
-  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
 
   //create rotation quaternion based on user input
   double rotationQuaternion[4];
@@ -171,7 +191,7 @@ void BWPDController::pitchVehicle(double degrees)
   using namespace ram::math;
 
   //fetch old desired quaternion
-  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
 
   //create rotation quaternion based on user input
   double rotationQuaternion[4];
@@ -200,7 +220,7 @@ void BWPDController::yawVehicle(double degrees)
   using namespace ram::math;
 
   //fetch old desired quaternion
-  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+  core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
 
   //create rotation quaternion based on user input
   double rotationQuaternion[4];
@@ -226,6 +246,26 @@ void BWPDController::yawVehicle(double degrees)
 math::Quaternion BWPDController::getDesiredOrientation()
 {
     return math::Quaternion(m_desiredState->quaternion);
+}
+
+void BWPDController::setDesiredOrientation(math::Quaternion newQuaternion)
+{
+	//fetch old desired quaternion
+	core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
+	
+	//we do not want to apply a non-normalized quaternion; the 
+	//non-normalization could propagate through internal controller variables
+	newQuaternion.normalise();
+	
+	//store the new quaternion as the new desired quaternion
+	m_desiredState->quaternion[0] = newQuaternion.x;
+	m_desiredState->quaternion[1] = newQuaternion.y;
+	m_desiredState->quaternion[2] = newQuaternion.z;
+	m_desiredState->quaternion[3] = newQuaternion.w;
+	
+	math::OrientationEventPtr event(new math::OrientationEvent());
+	event->orientation = math::Quaternion(m_desiredState->quaternion);
+	publish(IController::DESIRED_ORIENTATION_UPDATE, event);
 }
     
 bool BWPDController::atOrientation()
@@ -266,7 +306,7 @@ void BWPDController::update(double timestep)
     math::Vector3 rotationalTorque(0,0,0);
 
     {
-        core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+        core::ReadWriteMutex::ScopedReadLock lock(m_desiredEstimatedStateMutex);
         
         translationalController(m_measuredState, m_desiredState,
         	                m_controllerState, m_estimatedState,
