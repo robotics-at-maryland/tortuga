@@ -1,5 +1,5 @@
 import time,key_controller
-import core
+import ram.core as core
             
 class state_machine:
     '''

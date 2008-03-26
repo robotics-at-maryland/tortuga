@@ -14,7 +14,7 @@ module is retreived with tests.sim.robot.get_suite().
 import unittest
 
 # Project Imporst
-import core
+import ram.core as core
 
 # Module to test
 import ram.sim.robot as robot

@@ -9,7 +9,7 @@
 import math
 
 # Project Imports
-import core
+import ram.core as core
 from ram.motion.basic import Motion
 import ext.core
 

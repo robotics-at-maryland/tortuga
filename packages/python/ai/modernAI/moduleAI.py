@@ -1,5 +1,5 @@
 from ram.module import Module,ModuleManager,IModule
-from core import implements
+from ram.core import implements
 from aiInitMachine import aiInitMachine
 
 class AI(Module):

@@ -9,7 +9,7 @@
 #
 # Author: Originally from Turbogears
 #         Changes - Joseph Lisee <jlisee@umd.edu>
-# File:  decorator.py
+# File:  packages/python/ram/decorator.py
 
 import itertools
 from copy import copy

@@ -9,8 +9,8 @@
 import warnings
 
 # Project Imports
-import event	
-from core import Component, implements
+import ram.event as event	
+from ram.core import Component, implements
 from ram.module import IModule, Module, Component, ModuleManager
 
 warnings.simplefilter('ignore', RuntimeWarning)

@@ -19,11 +19,10 @@ import ogre.io.OIS as OIS
 
 # Project imports
 import platform
-import event
-import logloader
-import decorator
+import ram.event as event
+import ram.decorator as decorator
 
-from core import fixed_update, cls_property, Enum, Interface, Component, ExtensionPoint
+from ram.core import fixed_update, cls_property, Enum, Interface, Component, ExtensionPoint
 from ram.sim.util import Vector
 from ram.sim.util import SimulationError
 

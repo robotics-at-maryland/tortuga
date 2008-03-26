@@ -11,8 +11,8 @@ import ogre.physics.OgreNewt as OgreNewt
 
 
 # Project Imports
-import core
-import event
+import ram.core as core
+import ram.event as event
 import ram.sim.util as util
 import ram.sim.defaults as defaults
 from ram.sim.object import Object, IObject

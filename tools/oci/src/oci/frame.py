@@ -15,7 +15,7 @@ import yaml
 
 # Project Imports
 from gui.view import IPanelProvider
-from core import ExtensionPoint
+from ram.core import ExtensionPoint
 import ext.core as core
 
 import oci.view.panels  # Import needed for registration of IPanelProviders

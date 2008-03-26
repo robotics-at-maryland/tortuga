@@ -14,8 +14,8 @@ the module is retreived with tests.sim.physics.get_suite().
 import unittest
 
 # Project Imporst
-import core
-from test import Mock
+import ram.core as core
+from ram.test import Mock
 
 # Module to test
 import ram.sim.physics as physics

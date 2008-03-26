@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  core.py
+# File:  packages/python/ram/core.py
 
 """
 Offers core functionallity
@@ -46,7 +46,7 @@ def log_init(default_config, level = logging.INFO):
     """
     def decorator(func):
         def wrapper(self, config, *args, **kwargs):
-            import logloader
+            import ram.logloader as logloader
             # Setup the logger and log the start of our function
             cfg = config.get('Logging', default_config)
             self.logger = logloader.setup_logger(cfg, cfg)

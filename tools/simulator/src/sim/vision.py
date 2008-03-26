@@ -19,7 +19,7 @@ import ext.math
 from sim.subsystems import Simulation
 from sim.vehicle import SimVehicle
 
-import core
+import ram.core as core
 import ram.timer
 from ram.sim.object import IObject
 from ram.sim.graphics import IVisual, Visual

@@ -9,7 +9,7 @@
 import unittest
 
 # Project Imporst
-import core
+import ram.core as core
 
 # Module to test
 import ram.sim.util as util

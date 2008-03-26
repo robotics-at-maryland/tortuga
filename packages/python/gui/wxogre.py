@@ -4,8 +4,8 @@ import ogre.renderer.OGRE as Ogre
 
 # Projects Include
 from ram.sim.simulation import Simulation
-from core import cls_property
-import event
+from ram.core import cls_property
+import ram.event as event
 
 class wxOgre(wx.PyControl):
     """

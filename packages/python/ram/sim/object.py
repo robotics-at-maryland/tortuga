@@ -6,8 +6,8 @@
 # File:   packages/python/ram/sim/object.py
 
 # Project Imports
-import core
-import event
+import ram.core as core
+import ram.event as event
 from ram.sim.serialization import two_step_init, IKMLStorable
 from ram.sim.util import SimulationError
 

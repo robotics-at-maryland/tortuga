@@ -10,7 +10,7 @@ import unittest
 import sys
 
 # Project Import
-import core
+import ram.core as core
 import ram.module as module
 
 #class DummyModule():

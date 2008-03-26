@@ -16,7 +16,7 @@ import ext.control as control
 
 import ram.sim.input as input
 
-import event
+import ram.event as event
 
 event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
                        'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN', 

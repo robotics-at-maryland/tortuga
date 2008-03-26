@@ -17,7 +17,7 @@ import yaml
 import vehicle.vehicle
 import vehicle.devices
 import control.bwpdcontrol
-import event
+import ram.event as event
 from ram.module import ModuleManager
 import scheduler
 

@@ -12,7 +12,7 @@ import math
 import wx
 
 # Project Imports
-from core import Component, implements
+from ram.core import Component, implements
 
 from gui.view import IPanelProvider
 from oci.view.controls import DepthBar, MultiBar, RotationCtrl

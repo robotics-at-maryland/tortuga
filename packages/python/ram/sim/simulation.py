@@ -25,14 +25,13 @@ import ogre.physics.OgreNewt
 warnings.simplefilter('default', RuntimeWarning)
 
 # Project Imports
-import logloader
-import event
+import ram.event as event
 import ram.sim.scene as scene
 from ram.sim.input import InputSystem
 from ram.sim.util import SimulationError
 import ram.sim.defaults as defaults
 
-from core import Singleton, log, log_init, implements, Component, environmentSub
+from ram.core import Singleton, log, log_init, implements, Component, environmentSub
 from ram.module import Module, IModule
 
 # Events

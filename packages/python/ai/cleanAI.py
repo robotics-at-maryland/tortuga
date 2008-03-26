@@ -1,5 +1,5 @@
 from ram.module import Module, IModule
-from core import implements
+from ram.core import implements
 from ai.state_machine import state_machine as StateMachine
 import ai.Movement as Movement
 import time as clock

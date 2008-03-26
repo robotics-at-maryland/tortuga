@@ -22,11 +22,10 @@ import logging
 import ogre.renderer.OGRE as Ogre
 #import ogre.io.OIS as OIS
 
-# Project Imports
-import logloader    
-import event
-import core
-from core import fixed_update, Component, implements, Interface, Attribute, cls_property
+# Project Imports   
+import ram.event as event
+import ram.core as core
+from ram.core import fixed_update, Component, implements, Interface, Attribute, cls_property
 from ram.sim.util import SimulationError
 #from ram.sim.input import KeyStateObserver
 from ram.sim.serialization import IKMLStorable, two_step_init, parse_position_orientation

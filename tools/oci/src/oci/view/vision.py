@@ -9,7 +9,7 @@
 import wx
 
 # Project Imports
-import core
+import ram.core as core
 import ext.core
 import ext.vision
 import ram.gui.led

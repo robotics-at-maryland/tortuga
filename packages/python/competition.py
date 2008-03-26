@@ -1,4 +1,4 @@
-import core
+import ram.core as core
 import math
 
 class ICompetitionObjective(core.Interface):

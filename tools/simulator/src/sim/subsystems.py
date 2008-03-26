@@ -20,7 +20,7 @@ import ext.core as core
 import ram.sim.simulation as simulation
 import ram.sim.input as input
 import ram.module
-import event
+import ram.event as event
 
 # Ensure the module manager is started up (legacy code)
 moduleManager = None

@@ -6,7 +6,7 @@
 # File:  packages/python/gui/view.py
 
 # Project Imports
-from core import Interface
+from ram.core import Interface
 
 class IPanelProvider(Interface):
 

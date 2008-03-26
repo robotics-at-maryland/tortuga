@@ -10,7 +10,7 @@ import ogre.renderer.OGRE as Ogre
 import yaml
 
 # Project Impports
-import core
+import ram.core as core
 
 import ram.sim.defaults as defaults 
 from ram.sim.util import Vector, Quat, SimulationError

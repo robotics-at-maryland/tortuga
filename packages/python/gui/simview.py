@@ -10,7 +10,7 @@ import wx
 import wx.aui
 
 # Project Imports
-from core import Component, implements
+from ram.core import Component, implements
 
 from ram.sim.simulation import Simulation
 from ram.sim.input import OISInputForwarder

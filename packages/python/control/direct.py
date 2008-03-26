@@ -11,7 +11,7 @@ of the vehicle with the keyboard.
 """
 
 # Project Imports
-import event
+import ram.event as event
 
 # Register Are Event types
 event.add_event_types(['PORT_THRUST_UP', 'PORT_THRUST_DOWN',

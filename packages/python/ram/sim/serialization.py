@@ -18,8 +18,8 @@ import imp
 import ogre.renderer.OGRE as Ogre
 
 # Projects Import
-import core
-import decorator
+import ram.core as core
+import ram.decorator as decorator
 from ram.sim.util import SimulationError, Quat
 
 class IStorable(core.Interface):

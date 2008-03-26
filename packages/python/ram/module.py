@@ -14,8 +14,8 @@ explictly joined.
 # Move me into the core?
 
 # Project Imports
-import event
-from core import Singleton, Interface, verifyClass, Attribute, implements, Component
+import ram.event as event
+from ram.core import Singleton, Interface, verifyClass, Attribute, implements, Component
 from decorator import decorate, make_weak_signature
 
 event.add_event_types(['MODULE_CREATED','MODULE_START', 'MODULE_PAUSE', 
