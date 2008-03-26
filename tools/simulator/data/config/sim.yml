@@ -8,15 +8,15 @@ GUI:
 
 Subsystems:
     VisionSystem:
-#        type: SimVision
-        type: IdealSimVision
-        cameraRate: 30
+        type: SimVision
+#        type: IdealSimVision
+        cameraRate: 10
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
 #        maxRecordRate: 5 # Hz
 #        forwardFile: forward.avi
-#        forwardPort: 57353
+        forwardPort: 57353
 
 #       RedLightDetector:       
 #           intialMinPixels: 400
@@ -120,7 +120,7 @@ Subsystems:
                 OpenGL:
                     - [Colour Depth, '32']
                     - [FSAA, '0']
-                    - [RTT Preferred Mode, 'FBO']
+                    - [RTT Preferred Mode, 'PBO']
                     - [VSync, 'No']
                     
         Input:
