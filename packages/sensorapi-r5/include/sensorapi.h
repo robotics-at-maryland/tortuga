@@ -33,12 +33,16 @@ struct powerInfo
 #define HOST_REPLY_VLOW             0x1B
 #define HOST_CMD_READ_OVR           0x1C
 #define HOST_REPLY_OVR              0x1D
+#define HOST_CMD_BATTSTATE          0x1E
+#define HOST_REPLY_BATTSTATE        0x1F
+#define HOST_CMD_BATTCTL            0x20
 
-
+/* LCD backlight control */
 #define LCD_BL_OFF    0
 #define LCD_BL_ON     1
 #define LCD_BL_FLASH  2
 
+/* Control command return values */
 #define SB_OK        0
 #define SB_IOERROR  -4
 #define SB_BADCC    -3
@@ -46,6 +50,7 @@ struct powerInfo
 #define SB_ERROR    -1
 
 
+/* Inputs to the thruster safety command */
 #define CMD_THRUSTER1_OFF     0
 #define CMD_THRUSTER2_OFF     1
 #define CMD_THRUSTER3_OFF     2
@@ -53,13 +58,14 @@ struct powerInfo
 #define CMD_THRUSTER5_OFF     4
 #define CMD_THRUSTER6_OFF     5
 
-
 #define CMD_THRUSTER1_ON      6
 #define CMD_THRUSTER2_ON      7
 #define CMD_THRUSTER3_ON      8
 #define CMD_THRUSTER4_ON      9
 #define CMD_THRUSTER5_ON      10
 #define CMD_THRUSTER6_ON      11
+
+
 
 /* Inputs to the bar command */
 #define CMD_BAR1_OFF     0x00
@@ -81,6 +87,20 @@ struct powerInfo
 #define CMD_BAR8_ON    0x0F
 
 
+/* Inputs to the battery control command */
+#define CMD_BATT1_OFF     0x00
+#define CMD_BATT2_OFF     0x01
+#define CMD_BATT3_OFF     0x02
+#define CMD_BATT4_OFF     0x03
+#define CMD_BATT5_OFF     0x04
+
+#define CMD_BATT1_ON      0x05
+#define CMD_BATT2_ON      0x06
+#define CMD_BATT3_ON      0x07
+#define CMD_BATT4_ON      0x08
+#define CMD_BATT5_ON      0x09
+
+
 /* Bits of the thruster state response */
 #define THRUSTER1_ENABLED     0x01
 #define THRUSTER2_ENABLED     0x02
@@ -98,6 +118,8 @@ struct powerInfo
 #define THRUSTER5_OVR     0x10
 #define THRUSTER6_OVR     0x20
 
+
+/* Bits of the bar state response */
 #define BAR1_ENABLED    0x01
 #define BAR2_ENABLED    0x02
 #define BAR3_ENABLED    0x04
@@ -108,9 +130,21 @@ struct powerInfo
 #define BAR8_ENABLED    0x80
 
 
+/* Bits of the battery state response */
+/* Ie, is the battery enabled? Does not imply the battery is actually in use */
+/* For that, see below. */
+#define BATT1_ENABLED      0x10
+#define BATT2_ENABLED      0x08
+#define BATT3_ENABLED      0x04
+#define BATT4_ENABLED      0x02
+#define BATT5_ENABLED      0x01
+
+
+
 #define NUM_TEMP_SENSORS 6
 
-/* Bits of the status command */
+/* Bits of the status response */
+/* Ie, is the battery actually being used? */
 /* Use these constants. The values can, and most likely will, change. */
 #define STATUS_BATT1      0x10
 #define STATUS_BATT2      0x08
