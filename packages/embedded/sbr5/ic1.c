@@ -1123,6 +1123,39 @@ int main(void)
                 break;
             }
 
+            case HOST_CMD_BATTCTL:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if(t1 + HOST_CMD_BATTCTL != t2 || t1 > 9)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+
+                const static unsigned char battCommands[]=
+                {
+                    BUS_CMD_BATT1_OFF, BUS_CMD_BATT2_OFF,
+                    BUS_CMD_BATT3_OFF, BUS_CMD_BATT4_OFF,
+                    BUS_CMD_BATT5_OFF,
+
+                    BUS_CMD_BATT1_ON, BUS_CMD_BATT2_ON,
+                    BUS_CMD_BATT3_ON, BUS_CMD_BATT4_ON,
+                    BUS_CMD_BATT5_ON
+                };
+
+                if(busWriteByte(battCommands[t1], SLAVE_ID_BATTSTAT) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
 
             /* This does not include the balancer board temperature sensor */
             case HOST_CMD_TEMPERATURE:

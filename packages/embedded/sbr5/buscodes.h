@@ -172,6 +172,8 @@
 #define HOST_CMD_BATTSTATE          0x1E
 #define HOST_REPLY_BATTSTATE        0x1F
 
+#define HOST_CMD_BATTCTL            0x20
+
 #define BAR1_ON     0x00
 #define BAR2_ON     0x01
 #define BAR3_ON     0x02
