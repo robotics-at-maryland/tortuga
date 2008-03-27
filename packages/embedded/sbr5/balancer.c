@@ -607,7 +607,7 @@ void main()
         /* Give it a second */
 //        for(l=0; l<10000; l++);
 
-        byte rx = readTemp(0x90);
+        byte rx = readTemp(0x9E);
 
         /* Read error */
         if(rx == 255)
