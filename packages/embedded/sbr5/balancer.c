@@ -424,8 +424,8 @@ byte checkBus()
  */
 void enableBusInterrupt()
 {
-//     REQ_CN_BIT = 1; /* Turn on CN for the pin */
-//    checkBus();
+     REQ_CN_BIT = 1; /* Turn on CN for the pin */
+     checkBus();
 }
 
 void disableBusInterrupt()
@@ -448,7 +448,7 @@ void disableWaterInterrupt()
 /* Initialize the CN interrupt to watch the Req line */
 void initCN()
 {
-//     enableBusInterrupt();
+    enableBusInterrupt();
 //     enableWaterInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
@@ -493,8 +493,35 @@ void _ISR _CNInterrupt(void)
 
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
+    {
         checkBus();
+        actLight();
+    }
 }
+
+
+
+void actLight()
+{
+    PR2 = 100;            /* Period */
+    TMR2 = 0;               /* Reset timer */
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 1;      /* Enable interrupts */
+    T2CONbits.TCS = 0;      /* Use internal clock */
+    T2CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T2CONbits.TON = 1;      /* Start Timer2 */
+    LAT_LED_STA = LED_ON;
+}
+
+/* ISR for Timer2. Used for making the ACT light pretty */
+void _ISR _T2Interrupt(void)
+{
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 0;      /* Disable interrupts */
+    LAT_LED_STA = ~LED_ON;
+    T2CONbits.TON = 0;  /* Stop Timer1 */
+}
+
 
 /*
  * Initialize ADC for depth sensor. All this code really needs to be split up
@@ -584,16 +611,11 @@ void main()
     LAT_LED_STA = LED_ON;
     LAT_LED_ERR = ~LED_ON;
 
+    for(l=0; l<50000; l++);
 
 //     LAT_PWRKILL = PWRKILL_ON;
 
-
-    while(1)
-    {
-        LAT_LED_ERR = ~IN_REQ;
-        checkBus();
-    }
-
+    LAT_LED_STA = ~LED_ON;
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
@@ -603,7 +625,7 @@ void main()
 
     while(1)
     {
-        checkBus();
+//         checkBus();
         /* Give it a second */
 //        for(l=0; l<10000; l++);
 

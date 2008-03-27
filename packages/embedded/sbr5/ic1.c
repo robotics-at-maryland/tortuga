@@ -214,7 +214,7 @@ void setReq(byte req, byte val)
         _LATB4 = val;
 
     if(req == 4)
-        _LATB6 = val;
+        _LATB3 = val;
 
 //    if(req == 5)
 //        _LATB6 = val;
