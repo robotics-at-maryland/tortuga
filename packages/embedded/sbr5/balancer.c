@@ -261,6 +261,18 @@ void processData(byte data)
                     LAT_PWRKILL = PWRKILL_ON; /* Uh oh.... master kill */
                     break;
                 }
+
+                case BUS_CMD_BATTSTATE:
+                {
+                    txBuf[0] = 1;
+                    txBuf[1] = 0;
+                    if(LAT_BATT5_CTL == BATT_ENABLE) txBuf[1] |= 0x01;
+                    if(LAT_BATT4_CTL == BATT_ENABLE) txBuf[1] |= 0x02;
+                    if(LAT_BATT3_CTL == BATT_ENABLE) txBuf[1] |= 0x04;
+                    if(LAT_BATT2_CTL == BATT_ENABLE) txBuf[1] |= 0x08;
+                    if(LAT_BATT1_CTL == BATT_ENABLE) txBuf[1] |= 0x10;
+                    break;
+                }
             }
         }
         break;

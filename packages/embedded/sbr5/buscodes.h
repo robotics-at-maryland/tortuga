@@ -101,7 +101,9 @@
 
 #define BUS_CMD_READ_ASTATUS    0x45
 
-/* Next free is 0x45 */
+#define BUS_CMD_BATTSTATE       0x46
+
+/* Next free is 0x47 */
 
 
 
@@ -166,6 +168,9 @@
 
 #define HOST_CMD_READ_OVR           0x1C
 #define HOST_REPLY_OVR              0x1D
+
+#define HOST_CMD_BATTSTATE          0x1E
+#define HOST_REPLY_BATTSTATE        0x1F
 
 #define BAR1_ON     0x00
 #define BAR2_ON     0x01

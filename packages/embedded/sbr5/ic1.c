@@ -834,6 +834,35 @@ int main(void)
             }
 
 
+            case HOST_CMD_BATTSTATE:
+            {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_BATTSTATE)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                /* Read thruster state from distro board */
+                if(busWriteByte(BUS_CMD_BATTSTATE, SLAVE_ID_BATTSTAT) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(readDataBlock(SLAVE_ID_BATTSTAT) != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+                sendByte(HOST_REPLY_BATTSTATE);
+                sendByte(rxBuf[0]);
+                sendByte(HOST_REPLY_BATTSTATE+rxBuf[0]);
+
+                break;
+            }
+
+
             case HOST_CMD_BARSTATE:
             {
                 t1 = waitchar(1);
@@ -1008,7 +1037,6 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
-
 
             case HOST_CMD_THRUSTERS:
             {
