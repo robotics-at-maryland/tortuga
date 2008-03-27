@@ -174,20 +174,34 @@
 
 #define HOST_CMD_BATTCTL            0x20
 
-#define BAR1_ON     0x00
-#define BAR2_ON     0x01
-#define BAR3_ON     0x02
-#define BAR4_ON     0x03
-#define BAR5_ON     0x04
-#define BAR6_ON     0x05
-#define BAR7_ON     0x06
-#define BAR8_ON     0x07
+#define CMD_BAR1_OFF     0x00
+#define CMD_BAR2_OFF     0x01
+#define CMD_BAR3_OFF     0x02
+#define CMD_BAR4_OFF     0x03
+#define CMD_BAR5_OFF     0x04
+#define CMD_BAR6_OFF     0x05
+#define CMD_BAR7_OFF     0x06
+#define CMD_BAR8_OFF     0x07
 
-#define BAR1_OFF    0x08
-#define BAR2_OFF    0x09
-#define BAR3_OFF    0x0A
-#define BAR4_OFF    0x0B
-#define BAR5_OFF    0x0C
-#define BAR6_OFF    0x0D
-#define BAR7_OFF    0x0E
-#define BAR8_OFF    0x0F
+#define CMD_BAR1_ON    0x08
+#define CMD_BAR2_ON    0x09
+#define CMD_BAR3_ON    0x0A
+#define CMD_BAR4_ON    0x0B
+#define CMD_BAR5_ON    0x0C
+#define CMD_BAR6_ON    0x0D
+#define CMD_BAR7_ON    0x0E
+#define CMD_BAR8_ON    0x0F
+
+
+
+#define CMD_BATT1_OFF     0x00
+#define CMD_BATT2_OFF     0x01
+#define CMD_BATT3_OFF     0x02
+#define CMD_BATT4_OFF     0x03
+#define CMD_BATT5_OFF     0x04
+
+#define CMD_BATT1_ON      0x05
+#define CMD_BATT2_ON      0x06
+#define CMD_BATT3_ON      0x07
+#define CMD_BATT4_ON      0x08
+#define CMD_BATT5_ON      0x09
