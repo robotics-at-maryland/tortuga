@@ -1490,6 +1490,82 @@ int main(void)
                 sendByte(cs + HOST_REPLY_VLOW);
                 break;
             }
+
+            case HOST_CMD_BATTVOLTAGE:
+            {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_BATTVOLTAGE)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_BATTVOLTAGE, SLAVE_ID_BATTSTAT) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+                if(len != 12)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_BATTVOLTAGE);
+
+                byte cs=0;
+
+                for(i=0; i<12; i++)
+                {
+                    cs += rxBuf[i];
+                    sendByte(rxBuf[i]);
+                }
+
+                sendByte(cs + HOST_REPLY_BATTVOLTAGE);
+                break;
+            }
+
+
+            case HOST_CMD_BATTCURRENT:
+            {
+                t1 = waitchar(1);
+                if(t1 != HOST_CMD_BATTCURRENT)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTAT) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+                if(len != 10)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_BATTCURRENT);
+
+                byte cs=0;
+
+                for(i=0; i<10; i++)
+                {
+                    cs += rxBuf[i];
+                    sendByte(rxBuf[i]);
+                }
+
+                sendByte(cs + HOST_REPLY_BATTCURRENT);
+                break;
+            }
+
         }
     }
 }

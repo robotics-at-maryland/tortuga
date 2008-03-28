@@ -62,8 +62,8 @@ The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
     #define HAS_U2
     #define U1_BRG 11
     #define U2_BRG 11
-    #define U1_MM_ADDR 0x02
-    #define U2_MM_ADDR 0x03
+    #define U1_MM_ADDR 0x03
+    #define U2_MM_ADDR 0x04
 #endif
 
 /* Depth (slave.c) */
@@ -72,8 +72,8 @@ The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
     #define HAS_U2
     #define U1_BRG 11
     #define U2_BRG 11
-    #define U1_MM_ADDR 0x04
-    #define U2_MM_ADDR 0x05
+    #define U1_MM_ADDR 0x05
+    #define U2_MM_ADDR 0x06
 #endif
 
 

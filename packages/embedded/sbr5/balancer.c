@@ -106,6 +106,26 @@ _FWDT ( WDT_OFF );
 #define TRIS_LED_ERR    _TRISF8
 
 
+/* ADC Inputs */
+#define ADC_B1V     0x0B
+#define ADC_B2V     0x09
+#define ADC_B3V     0x07
+#define ADC_B4V     0x03
+#define ADC_B5V     0x05
+
+#define ADC_26V
+
+#define ADC_B1I     0x0C
+#define ADC_B2I     0x0A
+#define ADC_B3I     0x08
+#define ADC_B4I     0x06
+#define ADC_B5I     0x04
+
+
+
+unsigned int vBatt[6];
+unsigned int iBatt[5];
+
 /* Transmit buffer */
 #define TXBUF_LEN 60
 byte txBuf[TXBUF_LEN];
@@ -271,6 +291,36 @@ void processData(byte data)
                     if(LAT_BATT3_CTL == BATT_ENABLE) txBuf[1] |= 0x04;
                     if(LAT_BATT2_CTL == BATT_ENABLE) txBuf[1] |= 0x08;
                     if(LAT_BATT1_CTL == BATT_ENABLE) txBuf[1] |= 0x10;
+                    break;
+                }
+
+                case BUS_CMD_BATTVOLTAGE:
+                {
+                    txBuf[0] = 12;
+                    byte i;
+
+                    /* Battery voltages. Big-endian. */
+                    for(i=0; i<6; i++)
+                    {
+                        unsigned int t = vBatt[i];
+                        txBuf[2*i+1] = t >> 8;
+                        txBuf[2*i+2] = t & 0xFF;
+                    }
+                    break;
+                }
+
+                case BUS_CMD_BATTCURRENT:
+                {
+                    txBuf[0] = 10;
+                    byte i;
+
+                    /* Battery currents. Big-endian. */
+                    for(i=0; i<5; i++)
+                    {
+                        unsigned int t = iBatt[i];
+                        txBuf[2*i+1] = t >> 8;
+                        txBuf[2*i+2] = t & 0xFF;
+                    }
                     break;
                 }
             }
@@ -523,6 +573,7 @@ void _ISR _T2Interrupt(void)
 }
 
 
+
 /*
  * Initialize ADC for depth sensor. All this code really needs to be split up
  * into different files, each one different for each slave. But for now, write
@@ -530,37 +581,103 @@ void _ISR _T2Interrupt(void)
  */
 void initADC()
 {
-//     avgDepth = 0x1234;
-    ADPCFG = 0xFFFF;
-    ADPCFGbits.PCFG0 = 0;
-    _TRISB0 = TRIS_IN;
+
+    ADPCFG = 0x0000; // all PORTB = Digital; RB2 = analog
+    ADCON1 = 0x0000; // SAMP bit = 0 ends sampling ...
+    // and starts converting
+    ADCHS = 0x0002; // Connect RB2/AN2 as CH0 input ..
+    // in this example RB2/AN2 is the input
+    ADCSSL = 0;
+    ADCON3 = 0x0002; // Manual Sample, Tad = internal 2 Tcy
+    ADCON2 = 0;
+    ADCON1bits.ADON = 1; // turn ADC ON
+
+    return;
+
+    ADPCFG = 0x0000;        /* Well damn. All analog. */
+    TRISB = 0xFFFF;         /* All inputs */
 
     ADCON1 = 0x0000;
-    ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
-    ADCON1bits.ASAM = 1;    /* Automatic sampling enabled */
+    ADCON2 = 0x0000;
+    ADCON3 = 0x0000;
 
-    ADCON1bits.FORM = 0;    /* Plain format */
-
-    ADCHS = 0x0000;
     ADCSSL = 0;
-    ADCON3bits.SAMC=0x1F;
+    ADCON3 = 0x1F02;
 
-    ADCON3bits.ADCS = 4;        /* ADC needs so much time to convert at 30 MIPS */
-    ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
-          //Clear the A/D interrupt flag bit
-    IFS0bits.ADIF = 0;
-
-        //Set the A/D interrupt enable bit
-    IEC0bits.ADIE = 1;
+    IFS0bits.ADIF = 0;      /* Clear interrupt flag */
+    IEC0bits.ADIE = 0;      /* No interrupts please */
 
     ADCON1bits.ADON = 1;
-    ADCON1bits.SAMP = 1;    /* Start auto-sampling */
+    return;
 }
+
+void setADC(byte inPort)
+{
+    byte t;
+//     ADCON1bits.ADON = 0;
+     ADCHS = inPort;
+//     ADCON1bits.ADON = 1;
+    for(t=0; t<10; t++);
+}
+
+long readADC()
+{
+    unsigned int ret;
+    long l;
+
+//     LAT_LED_STA2 ^= LED_ON;
+    ADCON1bits.SAMP = 1; // start sampling ...
+    for(l=0; l<100; l++);
+    ADCON1bits.SAMP = 0; // start Converting
+    while (!ADCON1bits.DONE); // conversion done?
+    ret = ADCBUF0; // yes then get ADC value
+
+    return ret;
+}
+
+#define CAL_I5V_A 7.305594
+#define CAL_I5V_B -3065.893302
+
+#define CAL_I12V_A 7.463615
+#define CAL_I12V_B -3098.165312
+
+#define CAL_V_A 11.334405
+#define CAL_V_B 1.527331
+
+unsigned int applyCalibration(unsigned int x, float a, float b)
+{
+    float t = x * a + b;
+    return t;
+}
+
+#define IHISTORY_SIZE   1
+
+const static byte iADCs[5]=
+{
+    ADC_B1I, ADC_B2I, ADC_B3I, ADC_B4I, ADC_B5I
+};
+
+
+
+unsigned int iADCVal[5][IHISTORY_SIZE];
+
+
+unsigned int avgRow(byte r)
+{
+    unsigned long long t = 0;
+    byte i;
+    for(i=0; i<IHISTORY_SIZE; i++)
+        t += iADCVal[r][i];
+    return t / IHISTORY_SIZE;
+}
+
 
 void main()
 {
+    byte writeIndex = 0;
     byte i;
     long l;
+    TRISB = 0xFFFF;         /* All inputs */
 
     LAT_BATT1_CTL = BATT_ENABLE;
     LAT_BATT2_CTL = BATT_ENABLE;
@@ -599,7 +716,7 @@ void main()
 
   //  while(1);
 
- //   initADC();
+    initADC();
     initI2C();
 
 #ifdef HAS_UART
@@ -645,5 +762,32 @@ void main()
             i2cErrCount = 0;
             myTemperature = rx;
         }
+
+
+        static const byte vADCs[]={ADC_B1V, ADC_B2V, ADC_B3V, ADC_B4V, ADC_B5V, ADC_26V};
+
+        /* Measure battery voltages */
+        for(i=0; i<6; i++)
+        {
+            setADC(vADCs[i]);
+            vBatt[i] = applyCalibration(readADC(), CAL_V_A, CAL_V_B);
+        }
+
+        /* Maintain running averages of the I sensors */
+        for(i=0; i<5; i++)
+        {
+            setADC(iADCs[i]);
+            iADCVal[i][writeIndex] = readADC();
+            writeIndex++;
+
+            if(writeIndex >= IHISTORY_SIZE)
+                writeIndex = 0;
+        }
+
+        /* Calculate running averages of the battery currents */
+         for(i=0; i<5; i++)
+             iBatt[i] = applyCalibration(avgRow(i), CAL_I12V_A, CAL_I12V_B);
+
+
     }
 }

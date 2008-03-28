@@ -103,7 +103,10 @@
 
 #define BUS_CMD_BATTSTATE       0x46
 
-/* Next free is 0x47 */
+#define BUS_CMD_BATTVOLTAGE     0x47
+
+#define BUS_CMD_BATTCURRENT     0x48
+/* Next free is 0x49 */
 
 
 
@@ -173,6 +176,13 @@
 #define HOST_REPLY_BATTSTATE        0x1F
 
 #define HOST_CMD_BATTCTL            0x20
+
+#define HOST_CMD_BATTVOLTAGE        0x21
+#define HOST_REPLY_BATTVOLTAGE      0x22
+
+#define HOST_CMD_BATTCURRENT        0x23
+#define HOST_REPLY_BATTCURRENT      0x24
+
 
 #define CMD_BAR1_OFF     0x00
 #define CMD_BAR2_OFF     0x01
