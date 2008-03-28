@@ -26,6 +26,7 @@
 
 #define DEPTH_ENC 0.25
 #define TURN_ENC 10
+#define YAW_GAIN 100.0
 
 #define MIN_SPEED -5
 #define MAX_SPEED 5
@@ -76,6 +77,7 @@ RemoteController::RemoteController(core::ConfigNode config,
     m_minSpeed = config["minSpeed"].asDouble(MIN_SPEED);
     m_maxSpeed = config["maxSpeed"].asDouble(MAX_SPEED);
     m_speedEnc = config["speedEnc"].asDouble(SPEED_ENC);
+    m_yawGain = config["yawGain"].asDouble(YAW_GAIN);
     
     setupNetworking(config["port"].asInt(MYPORT));
 }
@@ -248,7 +250,7 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
 	{
 	    if(param != 0)
 	    {
-	    	double yaw = param / 100.0;
+	    	double yaw = param / m_yawGain;
 	    	//printf("Yaw: %f\n", yaw);
 	    	m_controller->yawVehicle(yaw);
 	    }

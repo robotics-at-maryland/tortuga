@@ -87,6 +87,7 @@ class RAM_EXPORT RemoteController :
     double m_minSpeed;
     double m_maxSpeed;
     double m_speedEnc;
+    double m_yawGain;
 };
 
 } // namespace network
