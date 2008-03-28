@@ -521,8 +521,10 @@ int readSpeedResponses(int fd)
     readData(fd, buf, 1);
 
     if(buf[0] != 0x14)
-        return SB_ERROR;
-
+    {
+    	printf("Bad reply: %x\n", buf[0]);
+    	return SB_ERROR;
+    }
     readData(fd, buf+1, 7);
 
     unsigned char sum = 0;

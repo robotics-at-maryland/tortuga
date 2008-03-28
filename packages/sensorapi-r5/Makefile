@@ -1,4 +1,4 @@
-CFLAGS= -Iinclude -Wall -Werror
+CFLAGS= -Iinclude -Wall
 
 all: sensortest lcdshow
 
