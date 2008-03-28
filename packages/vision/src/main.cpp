@@ -12,6 +12,7 @@
 // STD Includes
 #include <math.h>
 #include <cstdlib>
+#include <cassert>
 #include <stdio.h>
 #include <time.h>
 
@@ -85,8 +86,8 @@ void rotate90Deg(IplImage* src, IplImage* dest)
 	int height=src->height;
 	if (width!=dest->height || height!=dest->width)
 	{
-		cout<<"Wrong dimensions of destination image in rotation, should be transpose of src image"<<endl;
-		exit(-1);
+            assert(false &&
+                   "Wrong dimensions of destination image in rotation, should be transpose of src image");
 	}
 	int count=0;
 	int count2=0;
@@ -113,8 +114,8 @@ void rotate90DegClockwise(IplImage* src, IplImage* dest)
 	int height=src->height;
 	if (width!=dest->height || height!=dest->width)
 	{
-		cout<<"Wrong dimensions of destination image in rotation, should be transpose of src image"<<endl;
-		exit(-1);
+            assert(false && 
+                   "Wrong dimensions of destination image in rotation, should be transpose of src image");
 	}
 	int count=0;
 	int count2=0;
@@ -581,7 +582,8 @@ typedef struct
 }Pos;
 typedef std::list<Pos> PosList;
 
-void redMask(IplImage* percents, IplImage* base)
+void redMask(IplImage* percents, IplImage* base,
+             int redPercent, int redIntensity)
 {
 	unsigned char* data=(unsigned char*)percents->imageData;
 	unsigned char* data2=(unsigned char*)base->imageData;
@@ -605,7 +607,7 @@ void redMask(IplImage* percents, IplImage* base)
 		{
 			r=data[count+2];//r = percent red in the image
 			r2=data2[count+2];//r2 = intensity of red in the image
-			if (r>40 && r2>200) //Change these values if red light in tank is not being detected.
+			if (r > redPercent && r2 > redIntensity) 
 			{
 				data2[count]=255;
 				data2[count+1]=255;
@@ -664,8 +666,9 @@ int redMaskAndHistogram(IplImage* percents, IplImage* base, int* redx, int* redy
 			count+=3;
 		}
 	}
-	
-	return histogram(base, redx, redy);
+
+        int minX, minY, maxX, maxY;
+	return histogram(base, redx, redy, &minX, &minY, &maxX, &maxY);
 }
 
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
@@ -848,7 +851,8 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 //-1 on failure from too many distinct pieces, 0 if nothing at all was found,
 //otherwise returns number of pixels in the largest connected white splotch in the image
 //and fills centerX and centerY with its center.
-int histogram(IplImage* img, int* centerX, int* centerY)
+int histogram(IplImage* img, int* centerX, int* centerY, int* maxX, int* maxY,
+              int* minX, int* minY)
 {
 //	cout<<"starting histogram, beware."<<endl;
 	int width=img->width;
@@ -858,9 +862,20 @@ int histogram(IplImage* img, int* centerX, int* centerY)
 	//Might need longs for these two if we increase image size above 1024x1024, otherwise a full white image might overflow
 	int* totalX=(int*) calloc(254,sizeof(int));
 	int* totalY=(int*) calloc(254,sizeof(int));
+
+        // To keep track of mins and maxes of the bounds of blobs
+        int* totalMaxX=(int*) calloc(254, sizeof(int));
+        int* totalMaxY=(int*) calloc(254, sizeof(int));
+        int* totalMinX=(int*) malloc(254 * sizeof(int));
+        int* totalMinY=(int*) malloc(254 * sizeof(int));
+        
 	unsigned char* joins=(unsigned char*) malloc(254*sizeof(unsigned char));
 	for (unsigned char i=0; i<254; i++)
+        {
 		joins[i]=i;
+                totalMinX[i] = img->width;
+                totalMinY[i] = img->height;
+        }
 	joins[0]=255;
 	
 	int index=1;
@@ -926,6 +941,16 @@ int histogram(IplImage* img, int* centerX, int* centerY)
 					totalY[data[count]]+=y;
 					++pixelCounts[data[count]];
 //					cout<<"end of part 2"<<endl;
+                                        
+                                        // Min/Max
+                                        if (x < totalMinX[data[count]])
+                                            totalMinX[data[count]] = x;
+                                        else if (x > totalMaxX[data[count]])
+                                            totalMaxX[data[count]] = x;
+                                        if (y < totalMinY[data[count]])
+                                            totalMinY[data[count]] = y;
+                                        else if (y > totalMaxY[data[count]])
+                                            totalMaxY[data[count]] = y;
 				}
 			}
 			count+=3;
@@ -947,9 +972,14 @@ int histogram(IplImage* img, int* centerX, int* centerY)
 		{
 			if (maxCount<pixelCounts[i])
 			{
+                            // Transfer data from the correct blob back to caller
 				maxCount=pixelCounts[i];
 				(*centerX)=totalX[i]/maxCount;
 				(*centerY)=totalY[i]/maxCount;
+                                *minX = totalMinX[i];
+                                *maxX = totalMaxX[i];
+                                *minY = totalMinY[i];
+                                *maxY = totalMaxY[i];
 			}
 		}
 	}
@@ -959,6 +989,10 @@ int histogram(IplImage* img, int* centerX, int* centerY)
 	free(totalX);
 	free(totalY);
 	free(joins);
+        free(totalMinX);
+        free(totalMaxX);
+        free(totalMinY);
+        free(totalMaxY);
 //	cout<<"Happily reaching the end of histogram"<<endl;
 	return maxCount;
 }
@@ -1541,13 +1575,16 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
     
 //    cout<<"Total = " << total <<endl;
     int histoWhiteX, histoWhiteY;
-    int totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY);
+    int minX, minY, maxX, maxY;
+    int totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY,
+                               &minX, &minY, &maxX, &maxY);
     //Erosion: cvErode( const CvArr* src, CvArr* dst, IplConvKernel* element=NULL, int iterations=1 );
     while (totalWhite ==-1)
     {
         cout<<"Too many separate white pixel groups, eroding the image"<<endl;
         cvErode(temp,temp,NULL,1);
-        totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY);
+        totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY,
+                               &minX, &minY, &maxX, &maxY);
     }
 //    cout<<"Histo Total = " << totalWhite << endl;
 
@@ -1593,12 +1630,15 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 	
 //    cout<<"Black Total = " << total2 <<endl;
     int histoBlackX, histoBlackY;
-    int totalBlack = histogram(temp,&histoBlackX,&histoBlackY);
+    
+    int totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
+                               &minX, &minY, &maxX, &maxY);
     while (totalBlack ==-1)
     {
         cout<<"Too many separate white pixel groups, eroding the image"<<endl;
         cvErode(temp,temp,NULL,1);
-        totalBlack = histogram(temp,&histoBlackX,&histoBlackY);
+        totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
+                               &minX, &minY, &maxX, &maxY);
     }
 //    cout<<"Histo Total = " << totalBlack << endl;
 

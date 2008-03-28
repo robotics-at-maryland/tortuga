@@ -131,8 +131,20 @@ unsigned char* OpenCVImage::setData(unsigned char* data, bool ownership)
 
 void  OpenCVImage::setSize(int width, int height)
 {
+    // Leave early if we really aren't changing the image size
+    if ((cvGetSize(m_img).width == width) && (cvGetSize(m_img).height == height))
+        return;
+
+    assert(m_own && "Can't change size of an image we don't own");
+    assert(width >= 1 && "Image can't have a negative or 0 width");
+    assert(height >= 1 && "Image can't have a negative or 0 height");
     
-    assert(false && "OpenCVImage::setSize Not implemented");
+    IplImage* old = m_img;
+    
+    m_img = cvCreateImage(cvSize(width, height), 8, 3);
+    cvCopy(old, m_img);
+    
+    cvReleaseImage(&old);
 }
 
 void  OpenCVImage::setPixelFormat(Image::PixelFormat format)

@@ -50,9 +50,10 @@ void RedLightDetector::init(core::ConfigNode config)
     
     m_foundMinPixelScale = config["lostMinPixelScale"].asDouble(0.85);
     m_lostMinPixelScale = config["foundMinPixelScale"].asDouble(0.75);
-    m_almostHitPixels = config["almostHitPixels"].asInt((int)(640*480*0.2));
+    m_almostHitPercentage = config["almostHitPercentage"].asDouble(0.2);
     m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
-
+    m_redPercentage = config["redPercentage"].asDouble(40);
+    m_redIntensity = config["redIntensity"].asInt(200);
     
     // State machine variables 
     found=false;
@@ -83,12 +84,12 @@ RedLightDetector::~RedLightDetector()
 
 double RedLightDetector::getX()
 {
-    return redLightCenterX;
+    return m_redLightCenterX;
 }
 
 double RedLightDetector::getY()
 {
-    return redLightCenterY;
+    return m_redLightCenterY;
 }
 
 void RedLightDetector::show(char* window)
@@ -116,6 +117,19 @@ void RedLightDetector::update()
 void RedLightDetector::processImage(Image* input, Image* output)
 {
     IplImage* sideways =(IplImage*)(*input);
+
+    // Resize images if needed
+    if ((image->width != (int)input->getHeight()) &&
+        (image->height != (int)input->getWidth()))
+    {
+        cvReleaseImage(&image);
+        image = cvCreateImage(cvSize(input->getHeight(), input->getWidth()), 8, 3);
+        cvReleaseImage(&raw);
+        raw=cvCreateImage(cvGetSize(image),8,3);
+        cvReleaseImage(&flashFrame);
+        flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
+    }
+    
     rotate90Deg(sideways,image);//  Don't do this unless we put the cameras on sideways again...
 	//	image=(IplImage*)(*frame);
     cvCopyImage(image,raw);//Now both are rotated 90 degrees
@@ -129,72 +143,65 @@ void RedLightDetector::processImage(Image* input, Image* output)
         memset(image->imageData, 0, bytesToBlack);
         memset(flashFrame->imageData, 0, bytesToBlack);
     }
-    
+
+    // Process Image
     to_ratios(image);
-    CvPoint p;
-    redMask(image,flashFrame);
+    CvPoint boundUR;
+    CvPoint boundLL;
+    redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
     
-    int redPixelCount = histogram(flashFrame,&p.x,&p.y);
+    int redPixelCount = histogram(flashFrame, &lightCenter.x, &lightCenter.y,
+                                  &boundUR.x, &boundUR.y,
+                                  &boundLL.x, &boundLL.y);
+
+    // Determine if the light has been found or lost
+    double lightPixelRadius = 0;
     
-    if (redPixelCount<minRedPixels)
+    if (redPixelCount < minRedPixels)
     {
         // Just lost the light so issue a lost event
         if (found)
             publish(EventType::LIGHT_LOST, core::EventPtr(new core::Event()));
             
-        
-        p.x=p.y=-1;
         found=false; //Completely ignoring the state machine for the time being.
         if (minRedPixels > m_initialMinRedPixels)
             minRedPixels = (int)(minRedPixels * m_lostMinPixelScale);
         else
-            minRedPixels = m_initialMinRedPixels;;
+            minRedPixels = m_initialMinRedPixels;
     }	
     else
-    {   
+    {
+        // Determine if we have actual found the light
+        lightPixelRadius = sqrt((double)redPixelCount/M_PI);
+        
         minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
+        
         found=true; //completely ignoring the state machine for the time being.
 //	        	        cout<<"FOUND RED LIGHT "<<endl;
-        CvPoint tl,tr,bl,br;
-        tl.x = bl.x = std::max(p.x-4,0);
-        tr.x = br.x = std::min(p.x+4,raw->width-1);
-        tl.y = tr.y = std::min(p.y+4,raw->height-1);
-        br.y = bl.y = std::max(p.y-4,0);
-	
-        cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
-        cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
-        cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-        cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-        lightCenter.x = p.x;
-        lightCenter.y = p.y;
 
-        redLightCenterX = lightCenter.x;
-        redLightCenterY = lightCenter.y;
-    
+    }
+
+    // Do all the needed work if the light is found
+    if (found)
+    {
         // Shift origin to the center
-        redLightCenterX = -1 * ((image->width / 2) - redLightCenterX);
-        redLightCenterY = (image->height / 2) - redLightCenterY;
+        m_redLightCenterX = -1 * ((image->width / 2) - lightCenter.x);
+        m_redLightCenterY = (image->height / 2) - lightCenter.y;
     
         // Normalize (-1 to 1)
-        redLightCenterX = redLightCenterX / ((double)(image->width)) * 2.0;
-        redLightCenterY = redLightCenterY / ((double)(image->height)) * 2.0;
+        m_redLightCenterX = m_redLightCenterX / ((double)(image->width)) * 2.0;
+        m_redLightCenterY = m_redLightCenterY / ((double)(image->height)) * 2.0;
 
-        RedLightEventPtr event(new RedLightEvent(0, 0));
-        event->x = redLightCenterX;
-        event->y = redLightCenterY;
-        event->azimuth = math::Degree((78.0 / 2) * event->x * -1);
-        event->elevation = math::Degree((105.0 / 2) * event->y * 1);
-        redLightCenterX *= 640.0 / 480.0;
-        event->x = redLightCenterX;
-        // Compute range (assume a sphere)
-        double lightRadius = 0.25; // feet
-        event->range = (lightRadius * image->width) /
-            (sqrt((double)redPixelCount/M_PI) * tan(78.0/2 * (M_PI/180)));
+        // Account for the aspect ratio difference
+        // 640/480
+        m_redLightCenterX *= (double)image->height / image->width;
+
+        publishFoundEvent(lightPixelRadius);
         
-        publish(EventType::LIGHT_FOUND, event);
-
         // Tell the watcher we are really freaking close to the light
-        if (redPixelCount > m_almostHitPixels)
+        int pixelThreshold = (int)(input->getHeight() * input->getWidth() *
+                                   m_almostHitPercentage);
+        if (redPixelCount > pixelThreshold)
         {
             publish(EventType::LIGHT_ALMOST_HIT,
                     core::EventPtr(new core::Event()));
@@ -204,8 +211,8 @@ void RedLightDetector::processImage(Image* input, Image* output)
     
 /*    if (found)
     {
-        std::cout << 1 <<" "<< redLightCenterX << " "
-                  << redLightCenterY << " " << redPixelCount
+        std::cout << 1 <<" "<< m_redLightCenterX << " "
+                  << m_redLightCenterY << " " << redPixelCount
                   << std::endl;
     }
     else
@@ -215,10 +222,59 @@ void RedLightDetector::processImage(Image* input, Image* output)
 
     if (output)
     {
+        // Only draw debug info if we found the light
+        if (found)
+        {
+            CvPoint tl,tr,bl,br;
+            tl.x = bl.x = std::max(lightCenter.x-4,0);
+            tr.x = br.x = std::min(lightCenter.x+4,raw->width-1);
+            tl.y = tr.y = std::min(lightCenter.y+4,raw->height-1);
+            br.y = bl.y = std::max(lightCenter.y-4,0);
+            
+            cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            
+            cvRectangle(raw, boundUR, boundLL, CV_RGB(0,255,0), 2, CV_AA, 0);
+            
+            // clamp values
+            lightCenter.x = std::min(lightCenter.x, raw->width-1);
+            lightCenter.x = std::max(lightCenter.x, 0);
+            lightCenter.y = std::min(lightCenter.y, raw->height-1);
+            lightCenter.y = std::max(lightCenter.y, 0);
+            int radius = std::max((int)sqrt((double)redPixelCount/M_PI), 1);
+         
+            cvCircle(raw, lightCenter, radius, CV_RGB(0,255,0), 2, CV_AA, 0);
+        }
+        
         OpenCVImage temp(raw, false);
         output->copyFrom(&temp);
     }
 }
 
+void RedLightDetector::publishFoundEvent(double lightPixelRadius)
+{
+    if (found)
+    {
+        RedLightEventPtr event(new RedLightEvent(0, 0));
+        
+        event->x = m_redLightCenterX;
+        event->y = m_redLightCenterY;
+        event->azimuth = math::Degree(
+            (78.0 / 2) * event->x * -1.0 *
+            (double)flashFrame->width/flashFrame->height);
+        event->elevation = math::Degree((105.0 / 2) * event->y * 1);
+        
+        // Compute range (assume a sphere)
+        double lightRadius = 0.25; // feet
+        event->range = (lightRadius * image->width) /
+            (lightPixelRadius * tan(78.0/2 * (M_PI/180)));
+        
+        publish(EventType::LIGHT_FOUND, event);
+    }
+}
+        
+    
 } // namespace vision
 } // namespace ram

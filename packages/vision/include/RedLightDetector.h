@@ -48,14 +48,17 @@ class RAM_EXPORT RedLightDetector : public Detector
     
   private:
     void init(core::ConfigNode config);
+
+    // Process current state, and publishes LIGHT_FOUND event
+    void publishFoundEvent(double lightPixelRadius);
     
     int lightFramesOff;
     int lightFramesOn;
     int blinks;
     int spooky;
     bool startCounting;
-    double redLightCenterX;
-    double redLightCenterY;
+    double m_redLightCenterX;
+    double m_redLightCenterY;
     int minRedPixels;
     IplImage* image;
     IplImage* raw;
@@ -75,11 +78,17 @@ class RAM_EXPORT RedLightDetector : public Detector
     /** Factor to change minRedPixels by for each found frame */
     double m_lostMinPixelScale;
 
-    /** Thresdhol for almost hitting the red light */
-    int m_almostHitPixels;
+    /** Threshold for almost hitting the red light */
+    double m_almostHitPercentage;
 
     /** Percentage of the image to remove from the top */
     double m_topRemovePercentage;
+
+    /** The threshold of the percentage of red in the image */
+    double m_redPercentage;
+
+    /** The threshold of the intensity of red in the image */
+    int m_redIntensity;
 };
 	
 } // namespace vision

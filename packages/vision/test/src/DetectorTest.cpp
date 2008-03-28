@@ -17,6 +17,7 @@
 #include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
+#include <boost/foreach.hpp>
 
 // Project Includes
 #include "vision/include/OpenCVCamera.h"
@@ -38,8 +39,22 @@ static const char* PROCESSED_WINDOW = "Processed Image";
 
 /** Creates the camera based on the input stream */
 vision::Camera* createCamera(std::string input);
+
+/** Creates a recorder based on the input stream */
 vision::Recorder* createRecorder(std::string output, vision::Camera* camera);
+
+/** Creates a dector of the given type, tries to use given config file */
+vision::DetectorPtr createDetector(std::string dectorType,
+                                   std::string configPath);
+
+/** Searches all sections in the config for one which has the given type */
+vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
+                                             core::ConfigNode cfg,
+                                             std::string& nodeUsed);
+
+// Handle a corner case on Mac OSX
 void brokenPipeHandler(int signum);
+
 int main(int argc, char** argv)
 {
     po::options_description desc("Allowed options");
@@ -50,6 +65,7 @@ int main(int argc, char** argv)
     std::string input;
     std::string detectorName;
     std::string output;
+    std::string configPath;
     bool show = true;
     bool outputing = false;
     bool runDetector = false;
@@ -73,6 +89,8 @@ int main(int argc, char** argv)
              "Video file, camera #, hostname:port")
             ("detector", po::value<std::string>(&detectorName)->
              default_value("RedLightDetector"), "Detector to run on the input")
+            ("config,c", po::value<std::string>(&configPath)->
+             default_value("NONE"), "Path to config with detector settings")
             ;
         
         po::store(po::command_line_parser(argc, argv).
@@ -112,22 +130,15 @@ int main(int argc, char** argv)
 
     if (runDetector)
     {
-        if (vision::DetectorMaker::isKeyRegistered(detectorName))
+        detector = createDetector(detectorName, configPath);
+
+        if (detector)
         {
-            // Generate a config with the proper type
-            std::stringstream ss;
-            ss << "{ 'type' : '" << detectorName << "'}";
-            core::ConfigNode cfg(core::ConfigNode::fromString(ss.str()));
-            
-            detector = vision::DetectorMaker::newObject(
-                vision::DetectorMakerParamType(cfg, core::EventHubPtr()));
             std::cout << "Running '" << detectorName << "' on input images"
                       << std::endl;
         }
         else
         {
-            std::cerr << "Detector '" << detectorName
-                      << "' is not a valid detector" << std::endl;
             return EXIT_FAILURE;
         }
     }
@@ -221,6 +232,108 @@ int main(int argc, char** argv)
 
     delete frame;
     delete outputImage;
+}
+
+vision::DetectorPtr createDetector(std::string detectorType,
+                                   std::string configPath)
+{
+    // Bail out early if there is no such dectector
+    if (!vision::DetectorMaker::isKeyRegistered(detectorType))
+    {
+        std::cerr << "Detector '" << detectorType
+                  << "' is not a valid detector" << std::endl;
+        return vision::DetectorPtr();
+    }
+    
+    vision::DetectorPtr detector;
+    
+    // Generate a config with the proper type
+    if ("NONE" != configPath)
+    {
+        std::string nodeUsed;
+        core::ConfigNode cfg(core::ConfigNode::fromFile(configPath));
+
+        // Attempt to find at the base level
+        detector = createDetectorFromConfig(detectorType, cfg, nodeUsed);
+
+        if (!detector)
+        {
+            // Attempt to find the section deeper in the file
+            if (cfg.exists("Subsystems"))
+            {
+                cfg = cfg["Subsystems"];
+                        
+                // Attempt to find a VisionSystem subsystem
+                core::NodeNameList nodeNames(cfg.subNodes());
+                BOOST_FOREACH(std::string nodeName, nodeNames)
+                {
+                    core::ConfigNode subsysCfg(cfg[nodeName]);
+                    if ("VisionSystem" == subsysCfg["type"].asString("NONE"))
+                    {
+                        std::cout << "Looking in config section" << std::endl;
+                        // Attempt to find in the list of detectors
+                        detector =
+                            createDetectorFromConfig(detectorType,
+                                                     cfg["VisionSystem"],
+                                                     nodeUsed);
+
+                        std::stringstream ss;
+                        ss << "Subsystem:" << nodeName << ":" << nodeUsed;
+                        nodeUsed = ss.str();
+                    }
+                }
+            }
+        }
+
+        if (detector)
+        {
+            std::cout << "Using section \"" << nodeUsed << "\" for detector \""
+                      << detectorType << "\"" << std::endl << "from config "
+                      << "file: \"" << configPath << "\"" << std::endl;
+        }
+        else
+        {
+            std::cerr << "Cannot find config information for dectector '"
+                      << detectorType << "'" << std::endl << " in file: \""
+                      << configPath << "\"" << std::endl;
+        }
+
+        return detector;
+    }
+    else
+    {
+        std::stringstream ss;
+        ss << "{ 'type' : '" << detectorType << "'}";
+        core::ConfigNode cfg(core::ConfigNode::fromString(ss.str()));
+        
+        detector = vision::DetectorMaker::newObject(
+            vision::DetectorMakerParamType(cfg, core::EventHubPtr()));
+    }
+
+    return detector;
+}
+
+vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
+                                             core::ConfigNode cfg,
+                                             std::string& nodeUsed)
+{
+    core::NodeNameList nodeNames(cfg.subNodes());
+    // Go through each section and check its type
+    BOOST_FOREACH(std::string nodeName, nodeNames)
+    {
+        core::ConfigNode cfgSection(cfg[nodeName]);
+        if ((detectorType == cfgSection["type"].asString("NONE"))
+             || (nodeName == detectorType))
+        {
+            nodeUsed = nodeName;
+            cfgSection.set("type", detectorType);
+            return vision::DetectorMaker::newObject(
+                vision::DetectorMakerParamType(cfgSection,
+                                               core::EventHubPtr()));
+        }
+    }
+    
+    return vision::DetectorPtr();
 }
 
 vision::Recorder* createRecorder(std::string output, vision::Camera* camera)

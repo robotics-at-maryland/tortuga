@@ -34,7 +34,7 @@ using namespace ram;
 void makeColor(vision::Image* image, unsigned char R, unsigned char G,
                unsigned char B);
 
-static const int TEST_PORT = 59151;
+static const int TEST_PORT = 59156;
 
 SUITE(NetworkRecorder) {
 
