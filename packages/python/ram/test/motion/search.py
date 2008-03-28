@@ -110,6 +110,7 @@ class TestForwardZigZag(support.MotionTest):
         self.assertEqual(6, mockTimer.sleepTime)
         self.assertEqual(8, self.controller.speed)
 
+    # TODO: Test not allow repeat events to make it turn or angle again
 if __name__ == '__main__':
     unittest.main()
         

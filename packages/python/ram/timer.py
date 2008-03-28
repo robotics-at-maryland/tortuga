@@ -120,6 +120,7 @@ class Timer(threading.Thread):
         self._eventPublisher = eventPublisher
         self._eventType = eventType
         self._sleepTime = duration
+        self._running = True
         
     def run(self):
         """
@@ -129,10 +130,15 @@ class Timer(threading.Thread):
         sleep(self._sleepTime)
         
         self._complete()
+        self.stop()
+ 
+    def stop(self):
+        self._running = False
         
     def _complete(self):
         # Publish event
-        self._eventPublisher.publish(self._eventType, ext.core.Event())
+        if self._running:
+            self._eventPublisher.publish(self._eventType, ext.core.Event())
         
 class TimerManager(ext.core.Subsystem):
     def __init__(self, config = None, deps = None):

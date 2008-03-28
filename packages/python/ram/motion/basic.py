@@ -152,6 +152,9 @@ class ChangeDepth(Motion):
         """
         Motion._finish(self)
         self._conn.disconnect()
+
+    def stop(self):
+        self._conn.disconnect()
         
 class ChangeHeading(Motion):
     def __init__(self, desiredHeading, steps):
