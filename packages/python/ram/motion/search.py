@@ -27,6 +27,8 @@ class ForwardZigZag(Motion):
         self._sweepAngle = sweepAngle
         self._speed = speed
         self._connections = []
+        self._timer = None
+        self._inLeg = False
         
     def _start(self):
         # Register to recieve AT_ORIENTATION events
@@ -47,6 +49,10 @@ class ForwardZigZag(Motion):
         
         Called when the vehicle reaches the command orientation
         """
+        if self._inLeg:
+            return
+        self._inLeg = True
+
         legTime = self._legTime
         if self._first:
             legTime = legTime / 2.0
@@ -54,9 +60,10 @@ class ForwardZigZag(Motion):
         
         # Start the vehicle forward and create a timer to change the motion
         self._controller.setSpeed(self._speed)
-        timer = ram.timer.Timer(self._eventPublisher, 
-                                ForwardZigZag.LEG_COMPLETE, legTime)
-        timer.start()
+        self._timer = ram.timer.Timer(self._eventPublisher, 
+                                     ForwardZigZag.LEG_COMPLETE, legTime)
+        self._timer.start()
+
             
     def _legFinished(self, event):
         """
@@ -65,6 +72,8 @@ class ForwardZigZag(Motion):
         self._controller.setSpeed(0)
         self._controller.yawVehicle(self._sweepAngle)
         self._sweepAngle *= -1
+        self._timer = None
+        self._inLeg = False
     
     def stop(self):
         """
@@ -73,3 +82,6 @@ class ForwardZigZag(Motion):
         self._controller.setSpeed(0)
         for conn in self._connections:
             conn.disconnect()
+
+        if self._timer is not None:
+            self._timer.stop()
