@@ -31,7 +31,7 @@ Subsystems:
         type: RemoteController
         depends_on: ["Controller"]
         update_interval: -1
-        yawGain: 50
+        yawGain: 65
 
     EventHub:
         type: EventHub
