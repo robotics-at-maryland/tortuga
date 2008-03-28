@@ -58,6 +58,7 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -baroff [n] (disable bar output n)\n");
         printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
+        printf("\tlcdshow -hardkill  (kill power)\n");
 
 	    return -1;
     }
@@ -398,6 +399,14 @@ int main(int argc, char ** argv)
         close(fd);
         return 0;
     }
+
+    if(strcmp(argv[1], "-hardkill") == 0)
+    {
+        hardKill(fd);
+        close(fd);
+        return 0;
+    }
+
 
     if(strcmp(argv[1], "-diagon") == 0)
     {

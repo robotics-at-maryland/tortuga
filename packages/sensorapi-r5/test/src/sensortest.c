@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
 
         gettimeofday(&tv, NULL);
         stv = tv.tv_usec;
-        usleep(15 * 1000);       /* Nanosleep is equally as bad as usleep :( */
+        usleep(5 * 1000);       /* Nanosleep is equally as bad as usleep :( */
         gettimeofday(&tv, NULL);
 
         ftv = tv.tv_usec;
