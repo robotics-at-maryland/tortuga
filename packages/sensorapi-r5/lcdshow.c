@@ -174,6 +174,26 @@ int main(int argc, char ** argv)
                 printf(" (All on)");
         }
 
+        ret = readBatteryEnables(fd);
+        if(ret == SB_ERROR)
+            printf("Error reading battery enables state!\n");
+        else
+        {
+            printf("\nBatt enables:   0x%02X\t", ret);
+            printf("[%c%c%c%c%c]",
+            (ret & BATT1_ENABLED) ? '1' : '-',
+            (ret & BATT2_ENABLED) ? '2' : '-',
+            (ret & BATT3_ENABLED) ? '3' : '-',
+            (ret & BATT4_ENABLED) ? '4' : '-',
+            (ret & BATT5_ENABLED) ? '5' : '-');
+
+            if(ret == 0x00)
+                printf("  (All off?????)");
+
+            if(ret == 0x1F)
+                printf("    (All on)");
+        }
+
         ret = readStatus(fd);
         if(ret == SB_ERROR)
             printf("Error reading board status!\n");
@@ -216,6 +236,14 @@ int main(int argc, char ** argv)
             printf("\tAux Current:\t %2.3fA\n", info.iAux);
         } else
             printf("\nError reading power information\n");
+
+
+        printf("Battery voltages!\n");
+        readBatteryVoltages(fd, &info);
+
+        printf("Battery currents!\n");
+        readBatteryCurrents(fd, &info);
+
     }
 
 

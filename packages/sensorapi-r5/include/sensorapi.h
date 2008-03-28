@@ -36,6 +36,13 @@ struct powerInfo
 #define HOST_CMD_BATTSTATE          0x1E
 #define HOST_REPLY_BATTSTATE        0x1F
 #define HOST_CMD_BATTCTL            0x20
+#define HOST_CMD_BATTVOLTAGE        0x21
+#define HOST_REPLY_BATTVOLTAGE      0x22
+
+#define HOST_CMD_BATTCURRENT        0x23
+#define HOST_REPLY_BATTCURRENT      0x24
+
+
 
 /* LCD backlight control */
 #define LCD_BL_OFF    0
@@ -264,6 +271,9 @@ int readOvrState(int fd);
 
 int readMotorCurrents(int fd, struct powerInfo * info);
 int readBoardVoltages(int fd, struct powerInfo * info);
+
+int readBatteryVoltages(int fd, struct powerInfo * info);
+int readBatteryCurrents(int fd, struct powerInfo * info);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus

@@ -186,6 +186,22 @@ int readThrusterState(int fd)
 }
 
 
+int readBatteryEnables(int fd)
+{
+    unsigned char buf[5]={HOST_CMD_BATTSTATE, HOST_CMD_BATTSTATE};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] != HOST_REPLY_BATTSTATE)
+        return SB_ERROR;
+
+    readData(fd, buf, 2);
+
+    if( ((HOST_REPLY_BATTSTATE + buf[0]) & 0xFF) == buf[1])
+        return buf[0];
+
+    return SB_ERROR;
+}
+
 
 int readBarState(int fd)
 {
@@ -626,6 +642,93 @@ int readBoardVoltages(int fd, struct powerInfo * info)
     info->iAux = ((buf[4*2+1] << 8) | (buf[4*2+2])) / 1000.0;
     return SB_OK;
 }
+
+
+
+int readBatteryVoltages(int fd, struct powerInfo * info)
+{
+    unsigned char buf[14] = {HOST_CMD_BATTVOLTAGE, HOST_CMD_BATTVOLTAGE};
+    int i=0, cs=0;
+
+    if(info == NULL)
+        return SB_ERROR;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_BATTVOLTAGE)
+    {
+
+        printf("\nbad reply!\n");
+
+        if(buf[0] == 0xCC)
+            return SB_BADCC;
+        if(buf[0] == 0xDF)
+            return SB_HWFAIL;
+
+        return SB_ERROR;
+    }
+
+    readData(fd, buf+1, 13);
+
+    for(i=0; i<13; i++)
+        cs += buf[i];
+
+    if((cs & 0xFF) != buf[13])
+    {
+        printf("bad cc in voltages!\n");
+        return SB_BADCC;
+    }
+
+    for(i=0; i<6; i++)
+    {
+        printf("%f\n", ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0);
+    }
+    return SB_OK;
+}
+
+int readBatteryCurrents(int fd, struct powerInfo * info)
+{
+    unsigned char buf[12] = {HOST_CMD_BATTCURRENT, HOST_CMD_BATTCURRENT};
+    int i=0, cs=0;
+
+    if(info == NULL)
+        return SB_ERROR;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_BATTCURRENT)
+    {
+
+        printf("\nbad reply!\n");
+
+        if(buf[0] == 0xCC)
+            return SB_BADCC;
+        if(buf[0] == 0xDF)
+            return SB_HWFAIL;
+
+        return SB_ERROR;
+    }
+
+    readData(fd, buf+1, 11);
+
+    for(i=0; i<11; i++)
+        cs += buf[i];
+
+    if((cs & 0xFF) != buf[11])
+    {
+        printf("bad cc in currents!\n");
+        return SB_BADCC;
+    }
+
+    for(i=0; i<5; i++)
+    {
+        printf("%f\n", ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0);
+    }
+    return SB_OK;
+}
+
 
 
 int setDiagnostics(int fd, int state)
