@@ -1,5 +1,5 @@
 GUI:
-    updateRate: 10
+    updateRate: 5
 
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
@@ -8,15 +8,21 @@ Subsystems:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
         
-#       RedLightDetector:       
+        RedLightDetector:       
 #           intialMinPixels: 400
 #           foundMinPixelScale: 0.85
 #           lostMinPixelScale: 0.75
 #           # About 20% of the total pixels
-#           almostHitPixels: 61440.0
-        
+            topRemovePercentage: 0.25
+            almostHitPixels: 0.2
+
+            # Default 40
+            redPercentage: 35
+            # Default 200
+            redIntensity: 150
+
         # Recording Settings
-        #maxRecordRate: 8 # Hz
+        maxRecordRate: 1 # Hz
         #forwardFile: forward.avi
         #forwardPort: 50001
     
@@ -25,6 +31,7 @@ Subsystems:
         type: RemoteController
         depends_on: ["Controller"]
         update_interval: -1
+        yawGain: 50
 
     EventHub:
         type: EventHub
@@ -86,7 +93,7 @@ Subsystems:
                 type: Thruster
                 address: 3
                 calibration_factor: 0.4146
-                direction: -1
+                direction: 1
 
             ForeThruster:
                 type: Thruster
@@ -106,17 +113,21 @@ Subsystems:
                 type: IMU
                 update_interval: 5
                 # These are in VEHICLE FRAME
-                magXBias: -0.229488
-                magYBias: 0.270406
-                magZBias: 0.158325
+                #magXBias: -0.229488
+                #magYBias: 0.270406
+                #magZBias: 0.158325
+                magXBias: -0.235985
+                magYBias: 0.223828
+                magZBias: 0.229027
                 localMagneticPitch: 60
 
     Controller:
         depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
         update_interval: 10
+        orientationThreshold: 0.05
 
-        angularPGain: 10
+        angularPGain: 7
         angularDGain: 1
         speedPGain: 3
         # Should not be negative

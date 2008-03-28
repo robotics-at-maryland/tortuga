@@ -49,7 +49,7 @@ Subsystems:
                 type: Thruster
                 address: 3
                 calibration_factor: 0.4146
-                direction: -1
+                direction: 1
 
             ForeThruster:
                 type: Thruster
