@@ -7,6 +7,9 @@
  * File:  packages/core/src/ConfigNode.cpp
  */
 
+// Library Includes
+#include <boost/filesystem.hpp>
+
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/ConfigNodeImp.h"
@@ -99,9 +102,10 @@ std::string ConfigNode::toString()
     return m_impl->toString();
 }
 
-ConfigNode ConfigNode::fromFile(std::string data)
+ConfigNode ConfigNode::fromFile(std::string configPath)
 {
-    return ConfigNode(PythonConfigNodeImp::fromYamlFile(data));
+    boost::filesystem::path path(configPath);
+    return ConfigNode(PythonConfigNodeImp::fromYamlFile(path.string()));
 }
     
 ConfigNode::ConfigNode(ConfigNodeImpPtr impl) :
