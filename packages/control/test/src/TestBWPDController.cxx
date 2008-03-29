@@ -86,6 +86,14 @@ TEST_FIXTURE(Fixture, rollVehicle)
     CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
 }
 
+TEST_FIXTURE(Fixture, setDesiredOrientation)
+{
+    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
+    controller.setDesiredOrientation(expected);
+    math::Quaternion actual(controller.getDesiredOrientation());
+    CHECK_EQUAL(expected, actual);
+}
+
 TEST_FIXTURE(Fixture, DepthControl)
 {
     math::Vector3 exp_tranForce(0, 0, 0);
@@ -210,11 +218,17 @@ TEST_FIXTURE(Fixture, Event_DESIRED_ORIENTATION_UPDATE)
                          boost::bind(orientationHelper,
                                      &actualDesiredOrientation, _1));
     
-    // Change vehicle orientation
+    // Change vehicle orientation by yawing
     controller.yawVehicle(15);
 
     math::Quaternion expectedOrientation;
     expectedOrientation.FromAngleAxis(math::Degree(15), math::Vector3::UNIT_Z);
+    CHECK_EQUAL(expectedOrientation, actualDesiredOrientation);
+
+
+    // Full reset
+    expectedOrientation.FromAngleAxis(math::Degree(30), math::Vector3::UNIT_X);
+    controller.setDesiredOrientation(expectedOrientation);
     CHECK_EQUAL(expectedOrientation, actualDesiredOrientation);
 }
 
