@@ -830,6 +830,32 @@ int main(void)
                 break;
             }
 
+            // 0=internal, 1=external
+            case HOST_CMD_SWITCHPOWER:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_SWITCHPOWER != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(t1 == 0)
+                    t1 = busWriteByte(BUS_CMD_INTPOWER, SLAVE_ID_BATTSTAT);
+                else
+                    t1 = busWriteByte(BUS_CMD_EXTPOWER, SLAVE_ID_BATTSTAT);
+
+                if(t1 != 0)
+                    sendByte(HOST_REPLY_FAILURE);
+                else
+                    sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
+
             // [S  K  W B1 B2 B3 B4 B5]
             case HOST_CMD_BOARDSTATUS:
             {

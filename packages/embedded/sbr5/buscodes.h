@@ -186,6 +186,8 @@
 #define HOST_CMD_BATTCURRENT        0x23
 #define HOST_REPLY_BATTCURRENT      0x24
 
+#define HOST_CMD_SWITCHPOWER        0x25
+
 
 #define CMD_BAR1_OFF     0x00
 #define CMD_BAR2_OFF     0x01
