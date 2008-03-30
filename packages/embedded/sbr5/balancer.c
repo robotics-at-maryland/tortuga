@@ -276,6 +276,26 @@ void processData(byte data)
                 case BUS_CMD_BATT4_ON: {LAT_BATT4_CTL = BATT_ENABLE; break;}
                 case BUS_CMD_BATT5_ON: {LAT_BATT5_CTL = BATT_ENABLE; break;}
 
+                case BUS_CMD_EXTPOWER:
+                {
+                    LAT_BATT5_CTL = BATT_ENABLE; break;
+
+                    LAT_BATT1_CTL = ~BATT_ENABLE; break;
+                    LAT_BATT2_CTL = ~BATT_ENABLE; break;
+                    LAT_BATT3_CTL = ~BATT_ENABLE; break;
+                    LAT_BATT4_CTL = ~BATT_ENABLE; break;
+                }
+
+                case BUS_CMD_INTPOWER:
+                {
+                    LAT_BATT1_CTL = BATT_ENABLE; break;
+                    LAT_BATT2_CTL = BATT_ENABLE; break;
+                    LAT_BATT3_CTL = BATT_ENABLE; break;
+                    LAT_BATT4_CTL = BATT_ENABLE; break;
+                    LAT_BATT5_CTL = ~BATT_ENABLE; break;
+                }
+
+
                 case BUS_CMD_HARDKILL:
                 {
                     LAT_PWRKILL = PWRKILL_ON; /* Uh oh.... master kill */

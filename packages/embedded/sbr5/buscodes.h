@@ -106,7 +106,10 @@
 #define BUS_CMD_BATTVOLTAGE     0x47
 
 #define BUS_CMD_BATTCURRENT     0x48
-/* Next free is 0x49 */
+
+#define BUS_CMD_EXTPOWER        0x49
+#define BUS_CMD_INTPOWER        0x4A
+/* Next free is 0x4B */
 
 
 

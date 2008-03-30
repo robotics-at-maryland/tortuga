@@ -570,6 +570,33 @@ void diagBootMode()
     }
 }
 
+/* Simple mapping, hostCmd -> busCmd */
+void simpleCmd(byte cmdCode, byte replyCode, byte slaveId, byte busCmd)
+{
+    byte t1 = waitchar(1);
+    if(t1 != cmdCode)
+    {
+        sendByte(HOST_REPLY_BADCHKSUM);
+        return;
+    }
+
+    /* Read thruster state from distro board */
+    if(busWriteByte(busCmd, slaveId) != 0)
+    {
+        sendByte(HOST_REPLY_FAILURE);
+        return;
+    }
+
+    if(readDataBlock(slaveId) != 1)
+    {
+        sendByte(HOST_REPLY_FAILURE);
+        return;
+    }
+    sendByte(replyCode);
+    sendByte(rxBuf[0]);
+    sendByte(replyCode+rxBuf[0]);
+}
+
 
 int main(void)
 {
@@ -779,115 +806,27 @@ int main(void)
 
             case HOST_CMD_THRUSTERSTATE:
             {
-                t1 = waitchar(1);
-                if(t1 != HOST_CMD_THRUSTERSTATE)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                /* Read thruster state from distro board */
-                if(busWriteByte(BUS_CMD_THRUSTER_STATE, SLAVE_ID_THRUSTERS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                if(readDataBlock(SLAVE_ID_THRUSTERS) != 1)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-                sendByte(HOST_REPLY_THRUSTERSTATE);
-                sendByte(rxBuf[0]);
-                sendByte(HOST_REPLY_THRUSTERSTATE+rxBuf[0]);
-
+                simpleCmd(HOST_CMD_THRUSTERSTATE, HOST_REPLY_THRUSTERSTATE, SLAVE_ID_THRUSTERS, BUS_CMD_THRUSTER_STATE);
                 break;
             }
 
             case HOST_CMD_READ_OVR:
             {
-                t1 = waitchar(1);
-                if(t1 != HOST_CMD_READ_OVR)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                /* Read thruster state from distro board */
-                if(busWriteByte(BUS_CMD_READ_OVR, SLAVE_ID_THRUSTERS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                if(readDataBlock(SLAVE_ID_THRUSTERS) != 1)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-                sendByte(HOST_REPLY_OVR);
-                sendByte(rxBuf[0]);
-                sendByte(HOST_REPLY_OVR+rxBuf[0]);
-
+                simpleCmd(HOST_CMD_READ_OVR, HOST_REPLY_OVR, SLAVE_ID_THRUSTERS, BUS_CMD_READ_OVR);
                 break;
             }
 
 
             case HOST_CMD_BATTSTATE:
             {
-                t1 = waitchar(1);
-                if(t1 != HOST_CMD_BATTSTATE)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                /* Read thruster state from distro board */
-                if(busWriteByte(BUS_CMD_BATTSTATE, SLAVE_ID_BATTSTAT) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                if(readDataBlock(SLAVE_ID_BATTSTAT) != 1)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-                sendByte(HOST_REPLY_BATTSTATE);
-                sendByte(rxBuf[0]);
-                sendByte(HOST_REPLY_BATTSTATE+rxBuf[0]);
-
+                simpleCmd(HOST_CMD_BATTSTATE, HOST_REPLY_BATTSTATE, SLAVE_ID_BATTSTAT, BUS_CMD_BATTSTATE);
                 break;
             }
 
 
             case HOST_CMD_BARSTATE:
             {
-                t1 = waitchar(1);
-                if(t1 != HOST_CMD_BARSTATE)
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                /* Read thruster state from distro board */
-                if(busWriteByte(BUS_CMD_BAR_STATE, SLAVE_ID_BARS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                if(readDataBlock(SLAVE_ID_BARS) != 1)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-                sendByte(HOST_REPLY_BARSTATE);
-                sendByte(rxBuf[0]);
-                sendByte(HOST_REPLY_BARSTATE+rxBuf[0]);
-
+                simpleCmd(HOST_CMD_BARSTATE, HOST_REPLY_BARSTATE, SLAVE_ID_BARS, BUS_CMD_BAR_STATE);
                 break;
             }
 
@@ -1565,7 +1504,6 @@ int main(void)
                 sendByte(cs + HOST_REPLY_BATTCURRENT);
                 break;
             }
-
         }
     }
 }
