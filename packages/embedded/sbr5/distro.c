@@ -735,49 +735,20 @@ int dp=0;
  */
 void initADC()
 {
-
-    ADPCFG = 0x0000; // all PORTB = Digital; RB2 = analog
-    ADCON1 = 0x0000; // SAMP bit = 0 ends sampling ...
-    // and starts converting
-    ADCHS = 0x0002; // Connect RB2/AN2 as CH0 input ..
-    // in this example RB2/AN2 is the input
-    ADCSSL = 0;
-    ADCON3 = 0x0002; // Manual Sample, Tad = internal 2 Tcy
-    ADCON2 = 0;
-    ADCON1bits.ADON = 1; // turn ADC ON
-
-    return;
-
-    ADPCFG = 0x0000;        /* Well damn. All analog. */
-    TRISB = 0xFFFF;         /* All inputs */
-
     ADCON1 = 0x0000;
     ADCON2 = 0x0000;
     ADCON3 = 0x0000;
 
-    ADCSSL = 0;
-    ADCON3 = 0x1F02;
-
-    IFS0bits.ADIF = 0;      /* Clear interrupt flag */
-    IEC0bits.ADIE = 0;      /* No interrupts please */
-
-    ADCON1bits.ADON = 1;
-    return;
-
-
-    ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
-    ADCON1bits.ASAM = 0;    /* Automatic sampling disabled */
-
-    ADCON1bits.FORM = 0;    /* Plain format */
-
+    ADCON1bits.SSRC = 0x00;    /* Conversion starts when sampling ends */
+    ADCON1bits.ASAM = 0x00;    /* Automatic sampling disabled */
+    ADCON1bits.FORM = 0x00;    /* Plain format */
     ADCON2bits.VCFG = 0x00; /* AVDD and AVSS as reference */
-
     ADCHS = ADC_V12V;
-    ADCSSL = 0;
-    ADCON3bits.SAMC=0x1F;   /* Sample for a long time. We have decent impedances */
+    ADCSSL = 0x00;
 
+    ADCON3bits.SAMC=0x1F;   /* Sample for a long time. We have decent impedances */
     ADCON3bits.ADCS = 4;    /* ADC needs so much time to convert at 30 MIPS */
-    ADCON2bits.SMPI = 0x0F; /* Interrupt every 16 samples - why not? We dont use interrupts here */
+
 
     ADCON2bits.BUFM = 0;    /* No buffering */
     ADCON2bits.ALTS = 0;    /* No alternating. Bad 440 memories. */
@@ -785,8 +756,11 @@ void initADC()
     IFS0bits.ADIF = 0;      /* Clear interrupt flag */
     IEC0bits.ADIE = 0;      /* No interrupts please */
 
-    ADCON1bits.ADON = 1;
+
     ADCON1bits.SAMP = 0;    /* Start auto-sampling */
+    ADCON1bits.ADON = 1; // turn ADC ON
+
+    return;
 }
 
 void setADC(byte inPort)
@@ -800,17 +774,13 @@ void setADC(byte inPort)
 
 long readADC()
 {
-    unsigned int ret;
     long l;
 
-//     LAT_LED_STA2 ^= LED_ON;
     ADCON1bits.SAMP = 1; // start sampling ...
     for(l=0; l<100; l++);
     ADCON1bits.SAMP = 0; // start Converting
     while (!ADCON1bits.DONE); // conversion done?
-    ret = ADCBUF0; // yes then get ADC value
-
-    return ret;
+    return ADCBUF0;
 }
 
 #define CAL_I5V_A 7.305594
@@ -850,7 +820,8 @@ void setLEDs(byte v)
     LAT_LED_OVR = v & 0x08 ? LED_ON : ~LED_ON;
 }
 
-#define IHISTORY_SIZE   50
+#define IHISTORY_SIZE   16
+#define IHISTORY_LOG2   4
 
 byte iADCs[11]=
 {
@@ -867,7 +838,7 @@ unsigned int avgRow(byte r)
     byte i;
     for(i=0; i<IHISTORY_SIZE; i++)
         t += iADCVal[r][i];
-    return t / IHISTORY_SIZE;
+    return t >> IHISTORY_LOG2;
 }
 
 void main()
@@ -979,9 +950,6 @@ void main()
 
     while(1)
     {
-        /* Give it a second */
-//         for(l=0; l<10000; l++);
-
         byte rx = readTemp(0x9E);
 
         /* Read error */
@@ -999,7 +967,6 @@ void main()
             myTemperature = rx;
         }
 
-
         /* Maintain running averages of the I sensors */
         for(i=0; i<11; i++)
         {
@@ -1014,7 +981,6 @@ void main()
             writeIndex = 0;
             LAT_LED_STA2 ^= LED_ON; /* Blink a light to give us an idea of window size */
         }
-
 
         /* Measure the voltages */
         setADC(ADC_VREF);

@@ -643,17 +643,13 @@ void setADC(byte inPort)
 
 long readADC()
 {
-    unsigned int ret;
     long l;
-
-//     LAT_LED_STA2 ^= LED_ON;
     ADCON1bits.SAMP = 1; // start sampling ...
     for(l=0; l<100; l++);
     ADCON1bits.SAMP = 0; // start Converting
     while (!ADCON1bits.DONE); // conversion done?
-    ret = ADCBUF0; // yes then get ADC value
 
-    return ret;
+    return ADCBUF0;
 }
 
 #define CAL_I5V_A 7.305594
@@ -671,7 +667,6 @@ unsigned int applyCalibration(unsigned int x, float a, float b)
     return t;
 }
 
-#define IHISTORY_SIZE   50
 
 const static byte iADCs[5]=
 {
@@ -679,9 +674,10 @@ const static byte iADCs[5]=
 };
 
 
+#define IHISTORY_SIZE   32
+#define IHISTORY_LOG2   5
 
 unsigned int iADCVal[5][IHISTORY_SIZE];
-
 
 unsigned int avgRow(byte r)
 {
@@ -689,9 +685,8 @@ unsigned int avgRow(byte r)
     byte i;
     for(i=0; i<IHISTORY_SIZE; i++)
         t += iADCVal[r][i];
-    return t / IHISTORY_SIZE;
+    return t >> IHISTORY_LOG2;
 }
-
 
 void main()
 {
