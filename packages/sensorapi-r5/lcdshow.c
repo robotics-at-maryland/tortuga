@@ -59,6 +59,8 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
         printf("\tlcdshow -hardkill  (kill power)\n");
+        printf("\tlcdshow -extpower  (switch to external power source)\n");
+        printf("\tlcdshow -intpower  (switch to batteries)\n");
 
 	    return -1;
     }
@@ -188,7 +190,7 @@ int main(int argc, char ** argv)
             (ret & BATT5_ENABLED) ? '5' : '-');
 
             if(ret == 0x00)
-                printf("  (All off?????)");
+                printf("  (All off ? ? ? ? ?)");
 
             if(ret == 0x1F)
                 printf("    (All on)");
@@ -468,6 +470,20 @@ int main(int argc, char ** argv)
     if(strcmp(argv[1], "-blfl") == 0)
     {
         lcdBacklight(fd, LCD_BL_FLASH);
+        close(fd);
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-intpower") == 0)
+    {
+        switchToInternalPower(fd);
+        close(fd);
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-extpower") == 0)
+    {
+        switchToExternalPower(fd);
         close(fd);
         return 0;
     }

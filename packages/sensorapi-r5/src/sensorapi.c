@@ -203,6 +203,7 @@ int readOvrState(int fd)
     return simpleRead(fd, HOST_CMD_READ_OVR, HOST_REPLY_OVR);
 }
 
+
 int readTemp(int fd, unsigned char * tempData)
 {
     unsigned char buf[6]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
@@ -316,6 +317,16 @@ int simpleWrite(int fd, int cmdCode, int param, int range)
         return SB_HWFAIL;
 
     return SB_ERROR;
+}
+
+int switchToExternalPower(int fd)
+{
+    return simpleWrite(fd, HOST_CMD_SWITCHPOWER, 1, 2);
+}
+
+int switchToInternalPower(int fd)
+{
+    return simpleWrite(fd, HOST_CMD_SWITCHPOWER, 0, 2);
 }
 
 

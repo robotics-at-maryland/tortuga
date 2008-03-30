@@ -255,6 +255,10 @@ int readBoardVoltages(int fd, struct powerInfo * info);
 int readBatteryVoltages(int fd, struct powerInfo * info);
 int readBatteryCurrents(int fd, struct powerInfo * info);
 
+int switchToExternalPower(int fd);
+int switchToInternalPower(int fd);
+
+
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 } // extern "C"
