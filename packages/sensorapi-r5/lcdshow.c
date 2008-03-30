@@ -101,7 +101,7 @@ int main(int argc, char ** argv)
 
             for(i=0; i<NUM_TEMP_SENSORS; i++)
                 if(temp[i] == 255)
-                    printf("?? ");
+                    printf("%c%c ", '?','?');
                 else
                     printf("%d ", temp[i]);
             printf("\n");

@@ -1,3 +1,5 @@
+#include "../../embedded/sbr5/buscodes.h"
+
 #define MAX_SYNC_ATTEMPTS 20
 
 struct powerInfo
@@ -17,71 +19,6 @@ struct powerInfo
 #define IO_TIMEOUT  100
 
 
-#define HOST_CMD_SYNC               0xFF
-
-#define HOST_CMD_PING               0x00
-#define HOST_REPLY_SUCCESS          0xBC
-#define HOST_REPLY_FAILURE          0xDF
-#define HOST_REPLY_BADCHKSUM        0xCC
-
-#define HOST_CMD_SYSCHECK           0x01
-
-#define HOST_CMD_DEPTH              0x02
-#define HOST_REPLY_DEPTH            0x03
-
-#define HOST_CMD_BOARDSTATUS        0x04
-#define HOST_REPLY_BOARDSTATUS      0x05
-
-#define HOST_CMD_HARDKILL           0x06
-#define HOST_CMD_MARKER             0x07
-
-#define HOST_CMD_BACKLIGHT          0x08
-
-#define HOST_CMD_THRUSTERS          0x09
-
-#define HOST_CMD_TEMPERATURE        0x0A
-#define HOST_REPLY_TEMPERATURE      0x0B
-
-#define HOST_CMD_PRINTTEXT          0x0C
-
-#define HOST_CMD_SONAR              0x0D
-#define HOST_REPLY_SONAR            0x0E
-
-#define HOST_CMD_RUNTIMEDIAG        0x0F
-
-#define HOST_CMD_THRUSTERSTATE      0x10
-#define HOST_REPLY_THRUSTERSTATE    0x11
-
-#define HOST_CMD_SETSPEED           0x12
-
-#define HOST_CMD_MOTOR_READ         0x13
-#define HOST_CMD_MOTOR_REPLY        0x14
-
-
-#define HOST_CMD_BARS               0x15
-
-#define HOST_CMD_BARSTATE           0x16
-#define HOST_REPLY_BARSTATE         0x17
-
-#define HOST_CMD_IMOTOR             0x18
-#define HOST_REPLY_IMOTOR           0x19
-
-#define HOST_CMD_VLOW               0x1A
-#define HOST_REPLY_VLOW             0x1B
-
-#define HOST_CMD_READ_OVR           0x1C
-#define HOST_REPLY_OVR              0x1D
-
-#define HOST_CMD_BATTSTATE          0x1E
-#define HOST_REPLY_BATTSTATE        0x1F
-
-#define HOST_CMD_BATTCTL            0x20
-
-#define HOST_CMD_BATTVOLTAGE        0x21
-#define HOST_REPLY_BATTVOLTAGE      0x22
-
-#define HOST_CMD_BATTCURRENT        0x23
-#define HOST_REPLY_BATTCURRENT      0x24
 
 
 
@@ -309,6 +246,8 @@ int readThrusterState(int fd);
 int readBarState(int fd);
 
 int readOvrState(int fd);
+
+int readBatteryEnables(int fd);
 
 int readMotorCurrents(int fd, struct powerInfo * info);
 int readBoardVoltages(int fd, struct powerInfo * info);
