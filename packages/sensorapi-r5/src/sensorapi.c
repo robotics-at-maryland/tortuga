@@ -134,7 +134,7 @@ int readDepth(int fd)
     unsigned char buf[5]={HOST_CMD_DEPTH, HOST_CMD_DEPTH};
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
-    if(buf[0] != 0x03)
+    if(buf[0] != HOST_REPLY_DEPTH)
         return SB_ERROR;
 
     readData(fd, buf, 3);
@@ -289,18 +289,19 @@ int hardKill(int fd)
     return SB_ERROR;
 }
 
-
-
-int dropMarker(int fd, int markerNum)
+/*  Send:   [cmdCode, param, CS]
+ *  Expect: [BC | DF | CC]
+ *  Param valid is from 0 to range-1, inclusive
+ */
+int simpleWrite(int fd, int cmdCode, int param, int range)
 {
-    if(markerNum != 0 && markerNum != 1)
+    if(param < 0 || param > range)
         return -255;
 
-    unsigned char buf[3]={0x07, 0x00, 0x00};
-
-    buf[1] = markerNum;
-    buf[2] = markerNum + 0x07;
-
+    unsigned char buf[3];
+    buf[0] = cmdCode;
+    buf[1] = param;
+    buf[2] = (cmdCode + param) & 0xFF;
 
     writeData(fd, buf, 3);
     readData(fd, buf, 1);
@@ -318,30 +319,15 @@ int dropMarker(int fd, int markerNum)
 }
 
 
+int dropMarker(int fd, int markerNum)
+{
+    return simpleWrite(fd, HOST_CMD_MARKER, markerNum, 2);
+}
+
+
 int lcdBacklight(int fd, int state)
 {
-    if(state != LCD_BL_OFF && state != LCD_BL_ON && state != LCD_BL_FLASH)
-        return -255;
-
-    unsigned char buf[3]={0x08, 0x00, 0x00};
-
-    buf[1] = state;
-    buf[2] = state + 0x08;
-
-
-    writeData(fd, buf, 3);
-    readData(fd, buf, 1);
-
-    if(buf[0] == 0xBC)
-        return SB_OK;
-
-    if(buf[0] == 0xCC)
-        return SB_BADCC;
-
-    if(buf[0] == 0xDF)
-        return SB_HWFAIL;
-
-    return SB_ERROR;
+    return simpleWrite(fd, HOST_CMD_BACKLIGHT, state, 3);
 }
 
 int thrusterSafety(int fd, int state)
@@ -386,28 +372,7 @@ int setThrusterSafety(int fd, int state)
 
 int setBarState(int fd, int state)
 {
-    if(state<0 || state>16)
-        return -255;
-
-    unsigned char buf[3]={HOST_CMD_BARS, 0, 0};
-
-    buf[1] = state;
-    buf[2] = buf[0] + buf[1];
-
-    writeData(fd, buf, 3);
-
-    readData(fd, buf, 1);
-
-    if(buf[0] == 0xBC)
-        return SB_OK;
-
-    if(buf[0] == 0xCC)
-        return SB_BADCC;
-
-    if(buf[0] == 0xDF)
-        return SB_HWFAIL;
-
-    return SB_ERROR;
+    return simpleWrite(fd, HOST_CMD_BARS, state, 16);
 }
 
 
@@ -701,28 +666,7 @@ int readBatteryCurrents(int fd, struct powerInfo * info)
 
 int setDiagnostics(int fd, int state)
 {
-    if(state != 0 && state != 1)
-        return -255;
-
-    unsigned char buf[3]={0x0F, 0x00, 0x00};
-
-    buf[1] = state;
-    buf[2] = state + 0x0F;
-
-
-    writeData(fd, buf, 3);
-    readData(fd, buf, 1);
-
-    if(buf[0] == 0xBC)
-        return SB_OK;
-
-    if(buf[0] == 0xCC)
-        return SB_BADCC;
-
-    if(buf[0] == 0xDF)
-        return SB_HWFAIL;
-
-    return SB_ERROR;
+    return simpleWrite(fd, HOST_CMD_RUNTIMEDIAG, state, 2);
 }
 
 
