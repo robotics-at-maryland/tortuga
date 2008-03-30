@@ -48,6 +48,12 @@ int main(int argc, char ** argv)
 	    printf("\tlcdshow -tstop (send zero speed command)\n");
 
 
+        printf("\nPower commands:\n");
+        printf("\tlcdshow -hardkill  (kill power)\n");
+        printf("\tlcdshow -extpower  (switch to external power source)\n");
+        printf("\tlcdshow -intpower  (switch to batteries)\n");
+        printf("\tlcdshow -batton n (enable battery n)\n");
+        printf("\tlcdshow -battoff n  (disable battery n)\n");
 
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
@@ -58,9 +64,6 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -baroff [n] (disable bar output n)\n");
         printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
-        printf("\tlcdshow -hardkill  (kill power)\n");
-        printf("\tlcdshow -extpower  (switch to external power source)\n");
-        printf("\tlcdshow -intpower  (switch to batteries)\n");
 
 	    return -1;
     }
@@ -72,6 +75,10 @@ int main(int argc, char ** argv)
     if(fd == -1)
     {
         printf("\nCould not find device!\n");
+        printf("Is the right device set?\n");
+        printf("Has the serial number of this FTDI chip been added to udev?\n");
+        printf("Because that needs to be done for every board we make.\n");
+
         close(fd);
         return -1;
     }
@@ -317,6 +324,62 @@ int main(int argc, char ** argv)
         {
             for(i=0; i<6; i++)
                 thrusterCmd(fd, cmdList[i]);
+        }
+
+        close(fd);
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-battoff") == 0)
+    {
+        unsigned int cmdList[]=
+        {
+            CMD_BATT1_OFF, CMD_BATT2_OFF, CMD_BATT3_OFF, CMD_BATT4_OFF, CMD_BATT5_OFF
+        };
+
+        if(argc == 3)
+        {
+            int t = atoi(argv[2]);
+            if(t < 1 || t > 5)
+            {
+                printf("Bad battery number: %d\n", t);
+                close(fd);
+                return -1;
+            }
+
+            setBatteryState(fd, cmdList[t-1]);
+
+        } else
+        {
+            printf("Battery number not specified.\n");
+        }
+
+        close(fd);
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-batton") == 0)
+    {
+        unsigned int cmdList[]=
+        {
+            CMD_BATT1_ON, CMD_BATT2_ON, CMD_BATT3_ON, CMD_BATT4_ON, CMD_BATT5_ON
+        };
+
+        if(argc == 3)
+        {
+            int t = atoi(argv[2]);
+            if(t < 1 || t > 5)
+            {
+                printf("Bad battery number: %d\n", t);
+                close(fd);
+                return -1;
+            }
+
+            setBatteryState(fd, cmdList[t-1]);
+
+        } else
+        {
+            printf("Battery number not specified.\n");
         }
 
         close(fd);

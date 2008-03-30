@@ -258,6 +258,7 @@ int readBatteryCurrents(int fd, struct powerInfo * info);
 int switchToExternalPower(int fd);
 int switchToInternalPower(int fd);
 
+int setBatteryState(int fd, int state);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus

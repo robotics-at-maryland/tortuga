@@ -329,17 +329,22 @@ int switchToInternalPower(int fd)
     return simpleWrite(fd, HOST_CMD_SWITCHPOWER, 0, 2);
 }
 
+int setBatteryState(int fd, int state)
+{
+    return simpleWrite(fd, HOST_CMD_BATTCTL, state, 10);
+}
 
 int dropMarker(int fd, int markerNum)
 {
     return simpleWrite(fd, HOST_CMD_MARKER, markerNum, 2);
 }
 
-
 int lcdBacklight(int fd, int state)
 {
     return simpleWrite(fd, HOST_CMD_BACKLIGHT, state, 3);
 }
+
+
 
 int thrusterSafety(int fd, int state)
 {
