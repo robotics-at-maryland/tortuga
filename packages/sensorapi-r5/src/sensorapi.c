@@ -109,11 +109,9 @@ int pingBoard(int fd)
 }
 
 
-
-
 int checkBoard(int fd)
 {
-    unsigned char buf[2]={HOST_CMD_CHECK, HOST_CMD_CHECK};
+    unsigned char buf[2]={HOST_CMD_SYSCHECK, HOST_CMD_SYSCHECK};
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
     if(buf[0] == 0xBC)
@@ -148,91 +146,61 @@ int readDepth(int fd)
 }
 
 
-
-int readStatus(int fd)
+/*
+ * Send:   [CmdCode, CS]
+ * Expect: [ReplyCode, Val, CS]
+ */
+int simpleRead(int fd, int cmdCode, int replyCode)
 {
-    unsigned char buf[5]={HOST_CMD_STATUS, HOST_CMD_STATUS};
+    unsigned char buf[5];
+    buf[0] = buf[1] = cmdCode;
+
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
 
-    if(buf[0] != 0x05)
+    if(buf[0] != replyCode)
+    {
+        printf("Bad reply from simple command %02x! (Expected %02x, got %02x)\n", cmdCode, replyCode, buf[0]);
         return SB_ERROR;
-
+    }
     readData(fd, buf, 2);
 
-    if( ((0x05 + buf[0]) & 0xFF) == buf[1])
+    if( ((replyCode + buf[0]) & 0xFF) == buf[1])
         return buf[0];
 
-    printf("bad cs!\n");
+    printf("Bad cs in response from simple command %02x!\n", cmdCode);
 
     return SB_ERROR;
+}
+
+
+
+int readStatus(int fd)
+{
+    return simpleRead(fd, HOST_CMD_BOARDSTATUS, HOST_REPLY_BOARDSTATUS);
 }
 
 
 int readThrusterState(int fd)
 {
-    unsigned char buf[5]={HOST_CMD_THRUSTERSTATE, HOST_CMD_THRUSTERSTATE};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] != 0x11)
-        return SB_ERROR;
-
-    readData(fd, buf, 2);
-
-    if( ((0x11 + buf[0]) & 0xFF) == buf[1])
-        return buf[0];
-
-    return SB_ERROR;
+    return simpleRead(fd, HOST_CMD_THRUSTERSTATE, HOST_REPLY_THRUSTERSTATE);
 }
 
 
 int readBatteryEnables(int fd)
 {
-    unsigned char buf[5]={HOST_CMD_BATTSTATE, HOST_CMD_BATTSTATE};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] != HOST_REPLY_BATTSTATE)
-        return SB_ERROR;
-
-    readData(fd, buf, 2);
-
-    if( ((HOST_REPLY_BATTSTATE + buf[0]) & 0xFF) == buf[1])
-        return buf[0];
-
-    return SB_ERROR;
+    return simpleRead(fd, HOST_CMD_BATTSTATE, HOST_REPLY_BATTSTATE);
 }
 
 
 int readBarState(int fd)
 {
-    unsigned char buf[5]={HOST_CMD_BARSTATE, HOST_CMD_BARSTATE};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] != HOST_REPLY_BARSTATE)
-        return SB_ERROR;
-
-    readData(fd, buf, 2);
-
-    if( ((HOST_REPLY_BARSTATE + buf[0]) & 0xFF) == buf[1])
-        return buf[0];
-
-    return SB_ERROR;
+    return simpleRead(fd, HOST_CMD_BARSTATE, HOST_REPLY_BARSTATE);
 }
 
 int readOvrState(int fd)
 {
-    unsigned char buf[5]={HOST_CMD_READ_OVR, HOST_CMD_READ_OVR};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] != HOST_REPLY_OVR)
-        return SB_ERROR;
-
-    readData(fd, buf, 2);
-
-    if( ((HOST_REPLY_OVR + buf[0]) & 0xFF) == buf[1])
-        return buf[0];
-
-    return SB_ERROR;
+    return simpleRead(fd, HOST_CMD_READ_OVR, HOST_REPLY_OVR);
 }
 
 int readTemp(int fd, unsigned char * tempData)
