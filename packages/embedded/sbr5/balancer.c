@@ -671,7 +671,7 @@ unsigned int applyCalibration(unsigned int x, float a, float b)
     return t;
 }
 
-#define IHISTORY_SIZE   1
+#define IHISTORY_SIZE   50
 
 const static byte iADCs[5]=
 {
@@ -799,16 +799,15 @@ void main()
         {
             setADC(iADCs[i]);
             iADCVal[i][writeIndex] = readADC();
-            writeIndex++;
-
-            if(writeIndex >= IHISTORY_SIZE)
-                writeIndex = 0;
         }
+        writeIndex++;
+
+        if(writeIndex >= IHISTORY_SIZE)
+            writeIndex = 0;
+
 
         /* Calculate running averages of the battery currents */
          for(i=0; i<5; i++)
              iBatt[i] = applyCalibration(avgRow(i), CAL_I12V_A, CAL_I12V_B);
-
-
     }
 }

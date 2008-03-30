@@ -1005,14 +1005,16 @@ void main()
         {
             setADC(iADCs[i]);
             iADCVal[i][writeIndex] = readADC();
-            writeIndex++;
-
-            if(writeIndex >= IHISTORY_SIZE)
-            {
-                writeIndex = 0;
-                LAT_LED_STA2 ^= LED_ON; /* Blink a light to give us an idea of window size */
-            }
         }
+
+        writeIndex++;
+
+        if(writeIndex >= IHISTORY_SIZE)
+        {
+            writeIndex = 0;
+            LAT_LED_STA2 ^= LED_ON; /* Blink a light to give us an idea of window size */
+        }
+
 
         /* Measure the voltages */
         setADC(ADC_VREF);
