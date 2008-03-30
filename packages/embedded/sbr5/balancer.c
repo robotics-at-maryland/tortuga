@@ -60,7 +60,7 @@ _FWDT ( WDT_OFF );
 #define TRIS_BATT5  _TRISG12
 
 /* We know this one is active low */
-#define IN_WTRSEN   _LATB15
+#define IN_WTRSEN   _RB15
 #define TRIS_WTRSEN _TRISB15
 #define WATER_CN_BIT  (CNEN1bits.CN12IE)
 
@@ -603,7 +603,7 @@ void _ISR _T2Interrupt(void)
 void initADC()
 {
 
-    ADPCFG = 0x0000; // all PORTB = Digital; RB2 = analog
+    ADPCFG = 0x8000; // all PORTB = Digital; RB2 = analog
     ADCON1 = 0x0000; // SAMP bit = 0 ends sampling ...
     // and starts converting
     ADCHS = 0x0002; // Connect RB2/AN2 as CH0 input ..
