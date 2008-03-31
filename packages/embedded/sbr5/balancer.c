@@ -113,7 +113,7 @@ _FWDT ( WDT_OFF );
 #define ADC_B4V     0x03
 #define ADC_B5V     0x05
 
-#define ADC_26V
+#define ADC_26V     0x0D
 
 #define ADC_B1I     0x0C
 #define ADC_B2I     0x0A
