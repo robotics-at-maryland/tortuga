@@ -132,7 +132,7 @@ struct powerInfo
 
 
 
-#define NUM_TEMP_SENSORS 6
+#define NUM_TEMP_SENSORS 7
 
 /* Bits of the status response */
 /* Ie, is the battery actually being used? */

@@ -206,7 +206,7 @@ int readOvrState(int fd)
 
 int readTemp(int fd, unsigned char * tempData)
 {
-    unsigned char buf[6]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
+    unsigned char buf[10]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
     int i;
     for(i=0; i<NUM_TEMP_SENSORS; i++)
         tempData[i]=0;
