@@ -92,6 +92,9 @@ int main(int argc, char ** argv)
     if(strcmp(argv[1], "-status") == 0)
     {
         int ret;
+        int bStat = -1;
+        int bEnable = -1;
+
         unsigned char temp[NUM_TEMP_SENSORS];
         ret = readDepth(fd);
 
@@ -165,7 +168,7 @@ int main(int argc, char ** argv)
             printf("Error reading bar state!\n");
         else
         {
-            printf("\nBar state: \t0x%02X", ret);
+            printf("\nBar state   :\t0x%02X", ret);
             printf("\t[%c%c%c%c%c%c%c%c]",
             (ret & BAR1_ENABLED) ? '1' : '-',
             (ret & BAR2_ENABLED) ? '2' : '-',
@@ -201,6 +204,8 @@ int main(int argc, char ** argv)
 
             if(ret == 0x1F)
                 printf("    (All on)");
+
+            bEnable = ret;
         }
 
         ret = readStatus(fd);
@@ -208,16 +213,21 @@ int main(int argc, char ** argv)
             printf("Error reading board status!\n");
         else
         {
+            printf("\nBatt in use :   0x%02X\t", ret);
+            printf("[%c%c%c%c%c]",
+            (ret & STATUS_BATT1) ? '1' : '-',
+            (ret & STATUS_BATT2) ? '2' : '-',
+            (ret & STATUS_BATT3) ? '3' : '-',
+            (ret & STATUS_BATT4) ? '4' : '-',
+            (ret & STATUS_BATT5) ? '5' : '-');
+
+            bStat = ret;
+
             printf("\n\nStatus: 0x%02X\n", ret);
-            printf("\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n\t%s\n",
+            printf("\t%s\n\t%s\n\t%s\n",
                 (ret & STATUS_WATER) ? "Water present" : "No water detected.",
                 (ret & STATUS_STARTSW) ? "Start switch on" : "Start switch off",
-                (ret & STATUS_KILLSW) ? "Kill magnet present" : "No kill magnet",
-                (ret & STATUS_BATT1) ? "Battery 1 active" : "Battery 1 inactive",
-                (ret & STATUS_BATT2) ? "Battery 2 active" : "Battery 2 inactive",
-                (ret & STATUS_BATT3) ? "Battery 3 active" : "Battery 3 inactive",
-                (ret & STATUS_BATT4) ? "Battery 4 active" : "Battery 4 inactive",
-                (ret & STATUS_BATT5) ? "Battery 5 active" : "Battery 5 inactive");
+                (ret & STATUS_KILLSW) ? "Kill magnet present" : "No kill magnet");
         }
 
         struct powerInfo info;
@@ -236,23 +246,62 @@ int main(int argc, char ** argv)
             printf("\nError reading motor currents\n");
 
         printf("\n");
-        ret = readBoardVoltages(fd, &info);
-        if(ret == SB_OK)
+
+
+        if(readBoardVoltages(fd, &info) == SB_OK &&
+           readBatteryVoltages(fd, &info) == SB_OK &&
+           readBatteryCurrents(fd, &info) == SB_OK)
         {
             printf("\nPower information:\n");
-            printf("\t5V Bus :\t% 2.3fV\t  %2.3fA\n", info.v5VBus, info.i5VBus);
-            printf("\t12V Bus:\t%2.3fV\t  %2.3fA\n", info.v12VBus, info.i12VBus);
-            printf("\t26V Bus:\t%2.3fV\n", info.v26VBus);
+            printf("\t5V Bus :\t% 2.3fV\t  % 2.3fA\n", info.v5VBus, info.i5VBus);
+            printf("\t12V Bus:\t%-2.3fV\t  % 2.3fA\n", info.v12VBus, info.i12VBus);
+            printf("\t26V Bus:\t% 2.3fV  (Not implemented)\n", info.v26VBus);
             printf("\tAux Current:\t %2.3fA\n", info.iAux);
+
+
+            if(bStat == -1 || bEnable == -1)
+                printf("Could not get enough information about batteries\n");
+            else
+            {
+                printf("\nBattery information:\n");
+
+                unsigned char enableFlags[]=
+                {
+                    BATT1_ENABLED, BATT2_ENABLED, BATT3_ENABLED, BATT4_ENABLED, BATT5_ENABLED
+                };
+
+                unsigned char useFlags[]=
+                {
+                    STATUS_BATT1, STATUS_BATT2, STATUS_BATT3, STATUS_BATT4, STATUS_BATT5
+                };
+
+                int i;
+
+                printf("\tBAT\t Voltage\t Current   EN?\tUsed?\n");
+                for(i=0; i<5; i++)
+                {
+                    printf("\t");
+                    if(i != 4)
+                        printf("B%d ", i+1);
+                    else
+                        printf("EXT ");
+
+                    printf("\t% 2.3fV\t% 2.3fA\t ", info.battVoltages[i], info.battCurrents[i]);
+
+                    printf("   %c\t %c", bEnable & enableFlags[i] ? 'Y' : 'N',
+                                     bStat & useFlags[i] ? 'Y' : 'N');
+
+
+                    printf("\n");
+                }
+            }
+
+
         } else
             printf("\nError reading power information\n");
 
 
-        printf("Battery voltages!\n");
-        readBatteryVoltages(fd, &info);
 
-        printf("Battery currents!\n");
-        readBatteryCurrents(fd, &info);
 
     }
 
