@@ -1148,6 +1148,22 @@ int main(void)
 
                 t1 = rxBuf[0];
 
+
+                if(busWriteByte(BUS_CMD_TEMP, IRQ_BALANCER) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+                len = readDataBlock(IRQ_BALANCER);
+                if(len != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                t2 = rxBuf[0];
+
+
                 if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
@@ -1173,8 +1189,9 @@ int main(void)
                 }
 
                 sendByte(t1);   // Distro board temperature
+                sendByte(t2);   // Balancer board temperature
 
-                sendByte(cs + t1 + HOST_REPLY_TEMPERATURE);
+                sendByte(cs + t1 + t2 + HOST_REPLY_TEMPERATURE);
                 break;
             }
 
