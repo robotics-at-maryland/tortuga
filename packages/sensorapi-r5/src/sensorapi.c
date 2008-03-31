@@ -629,10 +629,12 @@ int readBatteryVoltages(int fd, struct powerInfo * info)
         return SB_BADCC;
     }
 
-    for(i=0; i<6; i++)
-    {
-        printf("%f\n", ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0);
-    }
+
+    for(i=0; i<5; i++)
+        info->battVoltages[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
+
+    info->v26VBus = ((buf[5*2+1] << 8) | (buf[5*2+2])) / 1000.0;
+
     return SB_OK;
 }
 
@@ -672,9 +674,8 @@ int readBatteryCurrents(int fd, struct powerInfo * info)
     }
 
     for(i=0; i<5; i++)
-    {
-        printf("%f\n", ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0);
-    }
+        info->battCurrents[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
+
     return SB_OK;
 }
 

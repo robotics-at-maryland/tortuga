@@ -242,6 +242,7 @@ int main(int argc, char ** argv)
             printf("\nPower information:\n");
             printf("\t5V Bus :\t% 2.3fV\t  %2.3fA\n", info.v5VBus, info.i5VBus);
             printf("\t12V Bus:\t%2.3fV\t  %2.3fA\n", info.v12VBus, info.i12VBus);
+            printf("\t26V Bus:\t%2.3fV\n", info.v26VBus);
             printf("\tAux Current:\t %2.3fA\n", info.iAux);
         } else
             printf("\nError reading power information\n");

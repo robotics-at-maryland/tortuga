@@ -5,11 +5,17 @@
 struct powerInfo
 {
     float motorCurrents[8]; /* Currents for motors and marker droppers */
-    float v12VBus;          /* Voltage of 12V bus. */
-    float v5VBus;           /* Voltage of 5V bus */
-    float i12VBus;          /* Current of 12V bus */
-    float i5VBus;           /* Current of 5V bus */
-    float iAux;             /* Current of aux (carnetix) output */
+    float v12VBus;          /* Voltage of 12V bus, in V. */
+    float v5VBus;           /* Voltage of 5V bus, in V */
+    float i12VBus;          /* Current of 12V bus, in A */
+    float i5VBus;           /* Current of 5V bus, in A */
+    float iAux;             /* Current of aux (carnetix) output, in A */
+
+    float v26VBus;          /* Voltage of balanced 26V, in V. NOT IMPLEMENTED IN BALANCER r2 */
+                            /* Reads as complete garbage */
+
+    float battVoltages[5];  /* 0-3 are batt 1-4. 4 is external power (batt 5). In V */
+    float battCurrents[5];  /* BAttery currents. See note above. In A */
 };
 
 
