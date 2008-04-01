@@ -27,7 +27,7 @@ if os.name == 'posix':
     PYTHON_SITE_PACKAGE_SUFFIX = os.path.join('lib',PYTHON_VERSION_STR,
                                               'site-packages')
 elif os.name == 'nt':
-    DEFAULT_PREFIX = r'C:\RAM'
+    DEFAULT_PREFIX = os.environ['RAM_ROOT_DIR']
     PYTHON_SITE_PACKAGE_SUFFIX = os.path.join('Lib','site-packages')
 else:
     print 'OS "%s" Not Supported' % os.name
