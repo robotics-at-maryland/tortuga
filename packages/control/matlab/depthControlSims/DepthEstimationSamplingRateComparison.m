@@ -1,4 +1,8 @@
+function [true_measured_depth       time         depth_measured         x_hat_array] = DepthEstimationSamplingRateComparison(frequency)
+
+
 clc
+close all
 % Main Code to run the Depth Control Simulation
 % set controlType to 'p' (not case sensitive) for P control
 controlType = 'pd';
@@ -28,15 +32,16 @@ v_displaced=(1+m*g)/(p_water*g);%volume of water displaced by sub in m^3
 
 constant=(p_water*v_displaced-m)*g;
 
-time=linspace(0,10,100000);
+time=linspace(0,10,frequency);
 
 dt=time(2)-time(1);
+
 %sensor delay time
 %Setting as 10khz
-delay = 1/10000;
+delay = 1/frequency;
 
 %Vector composed of the measured depth,depth_dot but with noise
-depth_measured_high_freq = zeros(2,length(time));
+depth_measured = zeros(2,length(time));
 true_measured_depth = zeros(2,length(time));
 
 
@@ -107,15 +112,16 @@ for i=2:length(time)
         %random = randn(1);
         %y_array(j)=constant*random+x(1,i-1);
         y = y_array(j);
-        
+        depth_measured(1,i) = y;
+        depth_measured(2,i)= (depth_measured(1,i)-depth_measured(1,i-1))/dt;    
         
         % This is the measured position with sensor noise       
-        depth_measured_high_freq(1,i)=(y_array(j)+y_array(j-1))/delay;
+        %    =(y_array(j)+y_array(j-1))/delay;
         % True meassured depth is an array of the position,velocity vectors
         % without noise
         true_measured_depth(1,i) = x(1,i);
         true_measured_depth(2,i) = x(2,i);
-           
+        
     end
     
            
@@ -137,30 +143,6 @@ for i=2:length(time)
     end
 end
 
-    
-%Now we need to make a low frequency version of the depth readings
-%10000/60 = 166.666667;
- % new sampling rate 1/60
-depth_measured_low_freq = zeros(1,600);
-x_hat_array2 = zeros(1,600);
-
-for i=1:600
-    step = floor(i*166.6666667+.5);
-    depth_measured_low_freq(1,i) = depth_measured_high_freq(1,step);
-    x_hat_array2(i) = x_hat_array(step);
 end
 
-
-figure (1)
-%plot low freq
-subplot(2,1,1)
-plot(time,true_measured_depth(1,:),'r',time,depth_measured_low_freq(1,:),'g',time,x_hat_array(1,:),'.g','LineWidth',1)
-set(gca,'YDir','reverse')
-legend('Perfect','PD Noisy','OC')
-ylabel('x1 - depth')
-subplot(2,1,2)
-plot(time,true_measured_depth(2,:),'r',time,depth_measured_low_freq(2,:),'g',time,x_hat_array(2,:),'.g','LineWidth',1)
-set(gca,'YDir','reverse')
-legend('Perfect','PD Noisy','OC')
-ylabel('x2 - velocity')
-xlabel('time')
+    
