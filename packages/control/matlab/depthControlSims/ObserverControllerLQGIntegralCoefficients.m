@@ -36,6 +36,6 @@ Q_care=[0.0001 0 0; 0 0.0001 0; 0 0 W];
 Sigma=care(A_a',C_a',Q_care,N);
 L_a=Sigma*C_a'*inv(N);
 
-A_c = [A_a-B_a*K_a-L_a*C_a   -zeros(3,1);   -B_b*K_a    A_b]
+A_c = [A_a-B_a*K_a-L_a*C_a   zeros(3,1);   -B_b*K_a    A_b]
 B_c = [L_a; 0]
 C_c = [zeros(1,3) C_b]
