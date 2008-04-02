@@ -165,8 +165,8 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 #endif
 
 /* Speeds to send.. ie, -SPEED_RANGE to +SPEED_RANGE */
-#define SPEED_RANGE 10
-#define TSPEED_RANGE 10
+#define SPEED_RANGE 5
+#define TSPEED_RANGE 5
 
 /* Don't send same speed twice */
 int lastAxisSpeed=0;
