@@ -286,7 +286,7 @@ void processData(byte data)
                 case BUS_CMD_THRUSTER_STATE:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = (LAT_TK1 << 5) | (LAT_TK2 << 4) | (LAT_TK3 << 3) | (LAT_TK4 << 2) | ( (~LAT_TK5) << 1) | (~LAT_TK6);
+                    txBuf[1] = (LAT_TK1 << 5) | (LAT_TK2 << 4) | (LAT_TK3 << 3) | (LAT_TK4 << 2) | ( (LAT_TK5 == 0) << 1) | (LAT_TK6 == 0);
                     break;
                 }
 
