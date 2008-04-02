@@ -103,6 +103,7 @@ ForceFeedback* g_ff[4] = {0,0,0,0};//Array to hold ff interface for each joy
 
 #define CMD_ANGLEYAW 10
 
+#define CMD_TSETSPEED      11
 
 int sockfd=0;
 
@@ -141,8 +142,10 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 	#define BTN_EMERGSTOP 0
 	#define BTN_ZEROSPEED 2
 
+
+    #define AXIS_TSPEED 0
 	#define AXIS_SPEED 1
-	#define AXIS_YAW 0
+	#define AXIS_YAW 2
 //    #error No speed axis defined for Saitek yet.
 #else
 
@@ -163,10 +166,11 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 
 /* Speeds to send.. ie, -SPEED_RANGE to +SPEED_RANGE */
 #define SPEED_RANGE 10
+#define TSPEED_RANGE 10
 
 /* Don't send same speed twice */
 int lastAxisSpeed=0;
-
+int lastAxisTSpeed = 0;
 
 #ifndef SAITEK
 void processAxis(int fd, int axis, int val)
@@ -195,10 +199,7 @@ void processAxis(int fd, int axis, int val)
     {
         case AXIS_SPEED:
         {
-
 			val += 6811;
-// 	    	printf("%d\n", val);
-
 			if(val < 0)	/* Forward, range up to 15677 */
 		            	val = SPEED_RANGE * val / -14000;
 			else
@@ -210,9 +211,9 @@ void processAxis(int fd, int axis, int val)
 			if(val < -SPEED_RANGE)
 				val = SPEED_RANGE;
 
-	if(val != lastAxisSpeed)
-	{
-		printf("New speed: %d\n", val);
+	        if(val != lastAxisSpeed)
+	        {
+		        printf("New speed: %d\n", val);
                 lastAxisSpeed = val;
                 sendCmd(fd, CMD_SETSPEED, val);
             }
@@ -221,19 +222,45 @@ void processAxis(int fd, int axis, int val)
 
 #define YAW_RANGE 10
 
-	case AXIS_YAW:
-	{
-		val += 10152;
 
-		if(val > 0)
-			val = YAW_RANGE * val / 17476;
-		else
-			val = YAW_RANGE * val / 15934;
-//		printf("RAW IS %d\n", val);
-		yawCmd = -val;
-		break;
-	}
-    };
+        case AXIS_YAW:
+        {
+            val += 10152;
+
+            if(val > 0)
+                val = YAW_RANGE * val / 17476;
+            else
+                val = YAW_RANGE * val / 15934;
+    //      printf("RAW IS %d\n", val);
+        // yawCmd = -val;    /* YAW DISABLED UNTIL CALIBRATED ! */
+            break;
+        }
+
+
+	    case AXIS_TSPEED:
+	    {
+		    val += 10152;
+
+		    if(val > 0)
+			    val = TSPEED_RANGE * val / 17476;
+		    else
+			    val = TSPEED_RANGE * val / 15934;
+
+            if(val > TSPEED_RANGE)
+                val = TSPEED_RANGE;
+
+            if(val < -TSPEED_RANGE)
+                val = TSPEED_RANGE;
+
+            if(val != lastAxisTSpeed)
+            {
+                printf("New tspeed: %d\n", val);
+                lastAxisTSpeed = val;
+                sendCmd(fd, CMD_TSETSPEED, val);
+            }
+            break;
+        };
+    }
 }
 #endif
 
@@ -426,7 +453,7 @@ int main(int argc, char ** argv)
 	              		sendCmd(sockfd, CMD_NOTHING, 0);
 
 			sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
-			
+
 			#endif
 /*
 			if( g_kb )
