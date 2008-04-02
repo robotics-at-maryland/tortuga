@@ -237,13 +237,13 @@ void processData(byte data)
 
                 case BUS_CMD_THRUSTER5_OFF:
                 {
-                    LAT_TK5 = 0;
+                    LAT_TK5 = 1;
                     break;
                 }
 
                 case BUS_CMD_THRUSTER6_OFF:
                 {
-                    LAT_TK6 = 0;
+                    LAT_TK6 = 1;
                     break;
                 }
 
@@ -273,20 +273,20 @@ void processData(byte data)
 
                 case BUS_CMD_THRUSTER5_ON:
                 {
-                    LAT_TK5 = 1;
+                    LAT_TK5 = 0;
                     break;
                 }
 
                 case BUS_CMD_THRUSTER6_ON:
                 {
-                    LAT_TK6 = 1;
+                    LAT_TK6 = 0;
                     break;
                 }
 
                 case BUS_CMD_THRUSTER_STATE:
                 {
                     txBuf[0] = 1;
-                    txBuf[1] = (LAT_TK1 << 5) | (LAT_TK2 << 4) | (LAT_TK3 << 3) | (LAT_TK4 << 2) | (LAT_TK5 << 1) | LAT_TK6;
+                    txBuf[1] = (LAT_TK1 << 5) | (LAT_TK2 << 4) | (LAT_TK3 << 3) | (LAT_TK4 << 2) | ( (~LAT_TK5) << 1) | (~LAT_TK6);
                     break;
                 }
 
@@ -634,8 +634,8 @@ void main()
     LAT_TK2 = 0;
     LAT_TK3 = 0;
     LAT_TK4 = 0;
-    LAT_TK5 = 0;
-    LAT_TK6 = 0;
+    LAT_TK5 = 1;    // Flipped board logic
+    LAT_TK6 = 1;
 
 
     TRIS_TK1 = TRIS_OUT;
