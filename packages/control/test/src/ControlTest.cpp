@@ -72,6 +72,8 @@
 
 #define CMD_ANGLEYAW	10
 
+#define CMD_TSETSPEED 11
+
 using namespace std;
 using namespace ram;
 namespace po = boost::program_options;
@@ -363,6 +365,18 @@ bool processMessage(control::IController* controller, unsigned char cmd,
             }
         }
 
+
+        case CMD_TSETSPEED:
+        {
+            if(param <= MAX_SPEED && param >= MIN_SPEED)
+            {
+	        controller->setSidewaysSpeed(param);
+	        printf("\nNEW SIDEWAYS SPEED:  %f\n", controller->getSidewaysSpeed());
+	    } else
+	    {
+	        printf("\nINVALID NEW SIDEWAYS SPEED: %d\n", param);
+	    }
+	}
         case CMD_NOTHING:
         {
             // Ignore, just sent to keep the connection alive

@@ -103,7 +103,7 @@ Subsystems:
         type: BWPDController
         update_interval: 10
 
-        angularPGain: 10
+        angularPGain: 7
         angularDGain: 1
         speedPGain: 3
         # Should not be negative
