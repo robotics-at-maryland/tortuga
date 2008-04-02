@@ -96,12 +96,6 @@ void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
 double RAM_EXPORT depthPController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState);
-    
-double RAM_EXPORT depthObserverController(MeasuredState* measuredState,
-                                          DesiredState* desiredState,
-                                          ControllerState* controllerState,
-                                          EstimatedState* estimatedState,
-                                          double dt);
                             
 void depthObserver2(MeasuredState* measuredState,
                     DesiredState* desiredState,

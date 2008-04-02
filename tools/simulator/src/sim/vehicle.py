@@ -57,7 +57,7 @@ class SimThruster(device.IThruster):
         self._simThruster.force = force
         
         event = core.Event()
-        event.number = force
+        event.number = self._simThruster.force
         self.publish(device.IThruster.FORCE_UPDATE, event)
     
     def getForce(self):

@@ -69,10 +69,25 @@ Subsystems:
         #                       (2 for observer control) 
         #                       (3 for observer + LQR)
         #                       (4 for LQG)
-        depthControlType: 1
+        depthControlType: 3
         #parameters for depth P controller
         depthPGain: 20
         #parameters for depth observer controller 
+        depthKx: 34.06
+        depthKy: 40.70
+        depthLx: 43.53
+        depthLy: 461.17
+
+        depthA1: 0
+        depthA2: 1
+        depthA3: 0
+        depthA4: -.575
+        depthBx: 0
+        depthBy: 0.05
+        depthCx: 1
+        depthCy: 0
+
+
         depthOCGainK: [1, 2]
         depthOCGainL: [3, 4]
         #parameters for depth observer controller with integrator
@@ -80,7 +95,7 @@ Subsystems:
         #parameters for depth LQG controller with integrator
 
         desiredSpeed: 0
-        desiredDepth: 5
+        desiredDepth: 2
         desiredQuaternion: [0, 0, 0, 1]
 
 #    RemoteController:

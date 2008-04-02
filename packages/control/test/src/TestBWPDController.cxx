@@ -27,7 +27,7 @@ struct Fixture
                 controller(ram::vehicle::IVehiclePtr(vehicle),
                            core::ConfigNode::fromString(
                                "{ 'name' : 'TestController',"
-                        	   "'angularPGain' : 10,"
+                               "'angularPGain' : 10,"
                                "'angularDGain' : 1,"
                                "'desiredQuaternion' : [0, 0, 0, 1] }"))
     {}

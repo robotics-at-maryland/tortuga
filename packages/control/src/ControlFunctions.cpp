@@ -90,7 +90,7 @@ void translationalController(MeasuredState* measuredState,
             depthControlSignal=depthPDController2(measuredState,desiredState,controllerState,estimatedState);
 	    break;
 	case 3 :
-            depthControlSignal=depthObserverController(measuredState,desiredState,controllerState,estimatedState,dt);
+            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
             break;
 	case 4 :
             depthControlSignal=depthPController(measuredState,desiredState,controllerState);
@@ -159,53 +159,20 @@ double depthPController(MeasuredState* measuredState,
     return depthControlSignal;
 }
 
+
 /************************************************************************
-depthObserverController(measuredState,desiredState,controllerState,estimatedState)
+depthObserver2(measuredState,desiredState,controllerState,estimatedState,dt)
 
-implements an Observer Controller to regulate depth
+Modifies the estimate from State Estimate
 
-Observer
+implements a Luenberger state observer for depth
+
 xHatDot=A*xHat+B*u+L(y-C*xHat)
 
-Controller
-U = -K*xHat
-Fthrust = U
+where xHat=[depthHat depthDotHat]'
 
-returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
+Only Changes estimatedState.xHat2Depth
 */
-double depthObserverController(MeasuredState* measuredState,
-                        DesiredState* desiredState,
-                        ControllerState* controllerState,
-			EstimatedState* estimatedState,
-                        double dt){
-	// xHat2Depth: estimation of depth and depth_dot
-	Vector2 xHat = estimatedState->xHat2Depth;
-	
-	double yHat = (controllerState->depthC).dotProduct(xHat);
-	
-	Vector2 xDotPrev = (controllerState->depthA)*(xHat) + 
-            (controllerState->depthB).dotProduct(-controllerState->depthK)*(xHat) + 
-            (controllerState->depthL)*(measuredState->depth - yHat);
-	
-	xHat = xHat + (dt)*(xDotPrev);
-	estimatedState->xHat2Depth = xHat;
-	
-	// desired: desired depth and depth_dot
-	Vector2 desired;
-	desired.x = desiredState->depth;
-	desired.y = 0;
-	
-	// depthCotrolSignal: new control signal (u)
-	double depthControlSignal = (-controllerState->depthK).dotProduct(xHat - desired);
-    return depthControlSignal;
-}
-
-
-//Modifies the estimate from State Estimate
-
-//Takes in the measured,desired,controller,estimated state
-//Only Changes estimatedState.xHat2Depth
-
 void depthObserver2(MeasuredState* measuredState,
                     DesiredState* desiredState,
                     ControllerState* controllerState,
@@ -227,7 +194,16 @@ void depthObserver2(MeasuredState* measuredState,
 }
 
 
-//Produces a depth control signal
+/************************************************************************
+depthPDController2(measuredState,desiredState,controllerState,estimatedState)
+
+implements a PD Controller to regulate depth
+
+U = -K*xHat
+Fthrust = U
+
+returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
+*/
 double depthPDController2(MeasuredState* measuredState,
                           DesiredState* desiredState,
                           ControllerState* controllerState,
