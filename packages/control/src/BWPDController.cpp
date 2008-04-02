@@ -406,29 +406,37 @@ void BWPDController::init(core::ConfigNode config)
 
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
 
-//do if depthcontroltype=1
-    m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
+    switch(m_controllerState->depthControlType)
+    {
+	case 1 :
+        m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
+	    break;
+	case 2 :
+        m_controllerState->depthK = math::Vector2(config["depthKx"].asDouble(1.1),
+    						config["depthKy"].asDouble(1.1));
+        m_controllerState->depthL = math::Vector2(config["depthLx"].asDouble(1.1),
+    						config["depthLy"].asDouble(1.1));
 
-    // Select observer controller gains based on config file
 
-    m_controllerState->depthK = math::Vector2(config["depthKx"].asDouble(1.1),
-						config["depthKy"].asDouble(1.1));
-    m_controllerState->depthL = math::Vector2(config["depthLx"].asDouble(1.1),
-						config["depthLy"].asDouble(1.1));
-
-
-    m_controllerState->depthA = math::Matrix2(config["depthA1"].asDouble(0),
-                                            config["depthA2"].asDouble(1),
-                                            config["depthA3"].asDouble(0),
-                                            config["depthA4"].asDouble(-.575));
-    m_controllerState->depthB = math::Vector2(config["depthBx"].asDouble(0),
-						config["depthBy"].asDouble(0.05));
-    m_controllerState->depthC = math::Vector2(config["depthCx"].asDouble(1),
-						config["depthCy"].asDouble(0));
-	/*cout << "BWPD controller\n";
-	cout << m_controllerState->depthPGain << endl;
-	cout << m_controllerState->depthK.x << " " << m_controllerState->depthK.y << endl;
-	cout << m_controllerState->depthL.x << " " << m_controllerState->depthL.y << endl;*/
+        m_controllerState->depthA = math::Matrix2(config["depthA1"].asDouble(0),
+                                                config["depthA2"].asDouble(1),
+                                                config["depthA3"].asDouble(0),
+                                                config["depthA4"].asDouble(-.575));
+        m_controllerState->depthB = math::Vector2(config["depthBx"].asDouble(0),
+    						config["depthBy"].asDouble(0.05));
+        m_controllerState->depthC = math::Vector2(config["depthCx"].asDouble(1),
+    						config["depthCy"].asDouble(0));
+	    break;
+	case 3 :
+            //depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+            break;
+	case 4 :
+            //depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+            break;
+	default :
+	    //depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+	    break;
+    }
 
     
     m_controllerState->inertiaEstimate[0][0] =
