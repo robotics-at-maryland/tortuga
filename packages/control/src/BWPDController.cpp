@@ -404,8 +404,10 @@ void BWPDController::init(core::ConfigNode config)
 
     m_controllerState->depthControlType = config["depthControlType"].asInt(1);
 
-    m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
+
+//do if depthcontroltype=1
+    m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
 
     // Select observer controller gains based on config file
 

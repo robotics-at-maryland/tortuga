@@ -61,24 +61,15 @@ void translationalController(MeasuredState* measuredState,
 
     double translationControlSignal[3];
 
-    /*
-    //depth control
-    //depth component first calculated in inertial frame for a single axis
-    //first find depth error (proportional component)
-    double depthError;
-    
-    // Flipped based on testing
-    depthError = (measuredState->depth) - (desiredState->depth);
-//    printf("D: %7.4f DE %7.4f\n", measuredState->depth, depthError);
-//    depthError = (desiredState->depth)-(measuredState->depth);
+    double depthControlSignal;
 
-    //second implement depth error in single axis control law
-    double depthControlSignal;
-    depthControlSignal = (-1)*(controllerState->depthPGain)*depthError;
+    /*Select type of Depth Controller
+      set depthControlType = (1 for P control) 
+                             (2 for observer control for a 2d depth state) 
+                             (3 for observer control for a 4d depth state)
+                             (4 yet to be implemented)
+    Note: 3 and 4 not implemented yet
     */
-    
-    //do P control for now
-    double depthControlSignal;
 
     switch(controllerState->depthControlType)
     {
