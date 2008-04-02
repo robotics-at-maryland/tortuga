@@ -1,6 +1,6 @@
 % Main Code to run the Depth Control Simulation
 % set controlType to 'p' (not case sensitive) for P control
-controlType = 'oc';
+controlType = 'lqgi';
 % set controlType to 'pd' (not case sensitive) for PD control
 % controlType = 'pd';
 
@@ -11,12 +11,12 @@ global kp;
 global kd;
 global K;
 global L;
-global W;
+global xHat4;
 global A_c;
 global B_c;
 global C_c;
 x_hat=[0 0]';%initialize the global variable to rest conditions
-W = [0 0 0 0]';
+xHat4 = [0 0 0 0]';
 
 c=11.5;
 m=20;%mass of sub in kg
@@ -61,17 +61,13 @@ elseif strcmp('LQG',upper(controlType))==1
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
     %LQG Controller - LQGIntegraterCoefficients
-    A_c = 1.0e+005 *  [-0.00003243340773  -2.12958762273715  -0.00005192593681      0;
-                                       0  -0.00065425000000   0.00001000000000      0;
-                        0.00000050000000  -0.01414370624982  -0.00000575000000      0;
-                       -0.00003243340773  -0.00003162277660  -0.00005192593681      0;];
-    B_c =  1.0e+005 * [ 2.12955599996055; 0.00065425000000; 0.01414370624982; 0];                
+    A_c = [-3.243340772732847  -3.193900436770053  -5.192593680713134                   0;
+                            0  -2.005477626537006   1.000000000000000                   0;
+            0.050000000000000  -2.010470255270256  -0.575000000000000                   0;
+           -3.243340772732847  -3.162277660168377  -5.192593680713134                   0];
+    B_c =  [0.031622776601676; 2.005477626537006; 2.010470255270256; 0];                
     C_c = [ 0 0 0 1];
 end    
-   
-
-
-
 
 %create array to store actual vehicle states
 %let x=[x1 x2 x3]' where x1=x, x2=dx/dt, x3=d^2x/dt^3
@@ -142,8 +138,8 @@ for i=2:length(time)
         %LQG Controller
         Fthrust(i) = ObserverController_LQGIntegrater(y,xd,dt);
         %store current x_hat from ObserverController in x_hat array
-        x_hat_array(1,i) = W(1);
-        x_hat_array(2,i) = W(2);
+        x_hat_array(1,i) = xHat4(2);
+        x_hat_array(2,i) = xHat4(3);
     end
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
@@ -153,9 +149,9 @@ figure (1)
 %plot actual and measured position
 desired = xd*ones(1,length(time));
 subplot(2,1,1)
-plot(time,desired,'r',time,x(1,:),'b',time_measured,y_array,'.g','LineWidth',1)
+plot(time_measured,y_array,'.g',time,desired,'r',time,x(1,:),'b','LineWidth',1)
 set(gca,'YDir','reverse')
-legend('desired','actual','measured')
+legend('measured','desired','actual')
 ylabel('x1 - depth')
 subplot(2,1,2)
 plot(time,x(2,:))
@@ -166,9 +162,9 @@ xlabel('time')
 figure (2)
 %plot position and Control Signal
 subplot(2,1,1)
-plot(time,desired,'r',time,x(1,:),'b',time_measured,y_array,'.g','LineWidth',1)
+plot(time_measured,y_array,'.g',time,desired,'r',time,x(1,:),'b','LineWidth',1)
 set(gca,'YDir','reverse')
-legend('desired','actual','measured')
+legend('measured','desired','actual')
 ylabel('x1 - depth')
 subplot(2,1,2)
 plot(time,Fthrust)
@@ -179,12 +175,12 @@ xlabel('time')
 figure(3)
 %create a figure 3 that has
 subplot(2,1,1)
-plot(time,x(1,:),'b',time,x_hat_array(1,:),'g','LineWidth',1)
+plot(time,x_hat_array(1,:),'g',time,x(1,:),'b','LineWidth',1)
 set(gca,'YDir','reverse')
-legend('actual','estimated')
+legend('estimated','actual')
 ylabel('x1 - depth')
 subplot(2,1,2)
-plot(time,x(2,:),'b',time,x_hat_array(2,:),'g','LineWidth',1)
+plot(time,x_hat_array(2,:),'g',time,x(2,:),'b','LineWidth',1)
 set(gca,'YDir','reverse')
 ylabel('x2 - velocity')
 xlabel('time')
