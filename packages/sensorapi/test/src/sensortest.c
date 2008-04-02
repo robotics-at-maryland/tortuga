@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
     struct timeval tv;
 
     gettimeofday(&tv, NULL);
-    fd = openSensorBoard("/dev/ttyUSB0");
+    fd = openSensorBoard("/dev/sensor");
 
     if(fd == -1)
     {
