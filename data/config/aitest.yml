@@ -134,6 +134,7 @@ Subsystems:
         angularPGain: 7
         angularDGain: 1
         speedPGain: 3
+        sidewaysSpeedPGain: 3
         # Should not be negative
         depthPGain: 20
 
