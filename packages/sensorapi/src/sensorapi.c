@@ -402,7 +402,7 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
 {
     int i=0;
     unsigned char buf[14]={0x12, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0x00};
-//    printf("Sending speeds: %d %d %d %d\n", s1, s2, s3, s4);
+//    printf("Sending speeds: %d %d %d %d %d %d\n", s1, s2, s3, s4, s5, s6);
 
 
     buf[1] = (s1 >> 8);
@@ -417,11 +417,11 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
     buf[7] = (s4 >> 8);
     buf[8] = (s4 & 0xFF);
 
-    buf[9] = (s4 >> 8);
-    buf[10] = (s4 & 0xFF);
+    buf[9] = (s5 >> 8);
+    buf[10] = (s5 & 0xFF);
 
-    buf[11] = (s4 >> 8);
-    buf[12] = (s4 & 0xFF);
+    buf[11] = (s6 >> 8);
+    buf[12] = (s6 & 0xFF);
 
     buf[13] = 0;
 

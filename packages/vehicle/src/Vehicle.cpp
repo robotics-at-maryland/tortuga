@@ -53,6 +53,8 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_rPort(0),
     m_rFore(0),
     m_rAft(0),
+    m_rTop(0),
+    m_rBottom(0),
     m_imu(device::IIMUPtr())
 {
     std::string devfile =
@@ -81,6 +83,10 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         config["ForeThrusterName"].asString("ForeThruster");
     m_aftThruster =
         config["AftThrusterName"].asString("AftThruster");
+    m_topThruster =
+        config["TopThrusterName"].asString("TopThruster");
+    m_bottomThruster =
+        config["BottomThrusterName"].asString("BottomThruster");
 
     m_imuName = config["IMUName"].asString("IMU");
     
@@ -89,6 +95,8 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_rPort = config["rPort"].asDouble(0.1905);
     m_rFore= config["rFore"].asDouble(0.3366);
     m_rAft = config["rAft"].asDouble(0.3366);
+    m_rTop = config["rTop"].asDouble(0.193);
+    m_rBottom = config["rBottom"].asDouble(0.193);
     
     // Allocate space for temperate readings
     m_state.temperatures.reserve(NUM_TEMP_SENSORS);
@@ -209,6 +217,8 @@ void Vehicle::safeThrusters()
         thrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
         thrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
         thrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER5_OFF);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER6_OFF);
     }
 }
 
@@ -223,6 +233,8 @@ void Vehicle::unsafeThrusters()
         thrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
         thrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
         thrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER5_ON);
+        thrusterSafety(m_sensorFD, CMD_THRUSTER6_ON);
     }
 }
 
@@ -258,7 +270,11 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     double fore = translationalForces[2] / 2 -
         0.5 * rotationalTorques[1] / m_rFore;
     double aft = translationalForces[2]/2 +
-      0.5 * rotationalTorques[1] / m_rAft;
+        0.5 * rotationalTorques[1] / m_rAft;
+    double top = translationalForces[1] / 2 +
+        0.5 * rotationalTorques[0] / m_rTop;
+    double bottom = translationalForces[1]/2 -
+        0.5 * rotationalTorques[0] / m_rBottom;
 
     if (m_devices.end() != m_devices.find(m_starboardThruster))
     {
@@ -272,6 +288,10 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
             getDevice(m_foreThruster))->setForce(fore);
         device::IDevice::castTo<device::IThruster>(
             getDevice(m_aftThruster))->setForce(aft);
+        device::IDevice::castTo<device::IThruster>(
+            getDevice(m_topThruster))->setForce(top);
+        device::IDevice::castTo<device::IThruster>(
+            getDevice(m_bottomThruster))->setForce(bottom);
     }
 }
     
@@ -334,8 +354,19 @@ void Vehicle::update(double timestep)
             addressSpeedMap[thruster->getAddress()] =
                 thruster->getMotorCount();
             
+            thruster = device::IDevice::castTo<device::Thruster>(
+                getDevice(m_topThruster));
+            addressSpeedMap[thruster->getAddress()] =
+                thruster->getMotorCount();
+
+            thruster = device::IDevice::castTo<device::Thruster>(
+                getDevice(m_bottomThruster));
+            addressSpeedMap[thruster->getAddress()] =
+                thruster->getMotorCount();
+            
             setSpeeds(m_sensorFD, addressSpeedMap[1], addressSpeedMap[2],
-                      addressSpeedMap[3], addressSpeedMap[4]);
+                      addressSpeedMap[3], addressSpeedMap[4],
+                      addressSpeedMap[5], addressSpeedMap[6]);
         }
 
         double depth = -1;

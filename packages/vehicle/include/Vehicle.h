@@ -130,11 +130,15 @@ private:
     double m_rPort;
     double m_rFore;
     double m_rAft;
+    double m_rTop;
+    double m_rBottom;
 
     std::string m_starboardThruster;
     std::string m_portThruster;
     std::string m_foreThruster;
     std::string m_aftThruster;
+    std::string m_topThruster;
+    std::string m_bottomThruster;
 
     std::string m_imuName;
     vehicle::device::IIMUPtr m_imu;

@@ -49,7 +49,7 @@ Subsystems:
                 type: Thruster
                 address: 3
                 calibration_factor: 0.4146
-                direction: -1
+                direction: 1
 
             ForeThruster:
                 type: Thruster
@@ -63,6 +63,19 @@ Subsystems:
                 type: Thruster
                 address: 1
                 calibration_factor: 0.3612
+                direction: -1
+
+            TopThruster:
+                # serial: 149
+                type: Thruster
+                address: 5
+                calibration_factor: 0.4146
+                direction: 1
+
+            BottomThruster:
+                type: Thruster
+                address: 6
+                calibration_factor: 0.3652
                 direction: -1
 
             IMU:
