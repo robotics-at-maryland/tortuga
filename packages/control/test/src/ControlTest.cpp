@@ -363,6 +363,7 @@ bool processMessage(control::IController* controller, unsigned char cmd,
             {
                 printf("\nINVALID NEW SPEED: %d\n", param);
             }
+	    break;
         }
 
 
@@ -376,6 +377,7 @@ bool processMessage(control::IController* controller, unsigned char cmd,
 	    {
 	        printf("\nINVALID NEW SIDEWAYS SPEED: %d\n", param);
 	    }
+	    break;
 	}
         case CMD_NOTHING:
         {
