@@ -116,9 +116,18 @@ Subsystems:
                 #magXBias: -0.229488
                 #magYBias: 0.270406
                 #magZBias: 0.158325
-                magXBias: -0.235985
-                magYBias: 0.223828
-                magZBias: 0.229027
+                
+                #New set of thrusters, but only four
+                #magXBias: -0.235985
+                #magYBias: 0.223828
+                #magZBias: 0.229027
+                
+                #Six thrusters
+                magXBias: -0.260058
+                magYBias: 0.211263
+                magZBias: 0.243511
+
+                
                 localMagneticPitch: 60
 
     Controller:
