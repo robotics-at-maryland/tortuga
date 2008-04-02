@@ -61,12 +61,12 @@ elseif strcmp('LQG',upper(controlType))==1
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
     %LQG Controller - LQGIntegraterCoefficients
-    A_c = [-3.243340772732847  -3.193900436770053  -5.192593680713134                   0;
-                            0  -2.005477626537006   1.000000000000000                   0;
-            0.050000000000000  -2.010470255270256  -0.575000000000000                   0;
-           -3.243340772732847  -3.162277660168377  -5.192593680713134                   0];
-    B_c =  [0.031622776601676; 2.005477626537006; 2.010470255270256; 0];                
-    C_c = [ 0 0 0 1];
+%     A_c = [-3.243340772732847  -3.193900436770053  -5.192593680713134                   0;
+%                             0  -2.005477626537006   1.000000000000000                   0;
+%             0.050000000000000  -2.010470255270256  -0.575000000000000                   0;
+%            -3.243340772732847  -3.162277660168377  -5.192593680713134                   0];
+%     B_c =  [0.031622776601676; 2.005477626537006; 2.010470255270256; 0];                
+%     C_c = [ 0 0 0 1];
 end    
 
 %create array to store actual vehicle states
@@ -136,7 +136,7 @@ for i=2:length(time)
         x_hat_array(2,i) = x_hat(2);
     elseif strcmp('LQGI',upper(controlType))==1
         %LQG Controller
-        Fthrust(i) = ObserverController_LQGIntegrater(y,xd,dt);
+        Fthrust(i) = ObserverController_Integrater(y,xd,dt);
         %store current x_hat from ObserverController in x_hat array
         x_hat_array(1,i) = xHat4(2);
         x_hat_array(2,i) = xHat4(3);
