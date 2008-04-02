@@ -1,5 +1,5 @@
 GUI:
-    updateRate: 10
+    updateRate: 5
 
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up

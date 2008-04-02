@@ -120,7 +120,8 @@ void translationalController(MeasuredState* measuredState,
     //fore-aft control (open loop, not really control) done in vehicle coordinates
     double foreAftComponent[3];
     foreAftComponent[0] = (controllerState->speedPGain)*(desiredState->speed);
-    foreAftComponent[1] = 0;
+    foreAftComponent[1] =
+        (controllerState->sidewaysSpeedPGain) * (desiredState->sidewaysSpeed);
     foreAftComponent[2] = 0;
 
 

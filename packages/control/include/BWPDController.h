@@ -52,6 +52,8 @@ public:
     /** @copydoc IController::setSpeed() */
     virtual void setSpeed(double speed);
 
+    virtual void setSidewaysSpeed(double speed);
+    
     /** Sets the current heading in degrees off north */
     virtual void setHeading(double degrees);
 
@@ -61,6 +63,8 @@ public:
     /** @copydoc IController::getSpeed() */
     virtual double getSpeed();
 
+    virtual double getSidewaysSpeed();
+    
     virtual double getHeading();
 
     /** @copydoc IController::getDepth() */

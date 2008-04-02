@@ -22,6 +22,7 @@ TEST(BongWiePDRotationalController)
     
     // Quat = 0,0,0,1 and everything else zero
     control::DesiredState desired = {0, // speed
+                                     0, // sidewaysSpeed
                                      0, // depth
                                      {0, 0, 0, 1}, // quat
                                      {0} // angularRate
@@ -71,7 +72,7 @@ TEST(BongWiePDRotationalController)
 TEST(doIsOriented)
 {
     // Not matching
-    control::DesiredState desiredBad = {0, 0, {0.0872, 0, 0, 0.9962}, {0}};
+    control::DesiredState desiredBad = {0, 0, 0, {0.0872, 0, 0, 0.9962}, {0}};
 
     control::MeasuredState measuredBad = {0, {0}, {0},
                                           {0.2588, 0, 0, 0.9659},
@@ -80,7 +81,7 @@ TEST(doIsOriented)
     CHECK_EQUAL(false, doIsOriented(&measuredBad, &desiredBad, 0.15));
 
     // Matching
-    control::DesiredState desiredGood = {0, 0, {0.0872, 0, 0, 0.9962}, {0}};
+    control::DesiredState desiredGood = {0, 0, 0, {0.0872, 0, 0, 0.9962}, {0}};
     control::MeasuredState measuredGood = {0, {0}, {0},
                                            {0.173, 0.0858, -0.0151, 0.9811},
                                           {0}};

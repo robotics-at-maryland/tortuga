@@ -96,6 +96,18 @@ void BWPDController::setSpeed(double speed)
     m_desiredState->speed = speed;
 }
 
+void BWPDController::setSidewaysSpeed(double speed)
+{
+    // Clamp speed
+    if (speed > 5)
+        speed = 5;
+    else if (speed < -5)
+        speed = -5;
+    
+    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
+    m_desiredState->sidewaysSpeed = speed;
+}
+
 void BWPDController::setHeading(double degrees)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_desiredStateMutex);
@@ -122,6 +134,12 @@ double BWPDController::getSpeed()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
     return m_desiredState->speed;
+}
+
+double BWPDController::getSidewaysSpeed()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_desiredStateMutex);
+    return m_desiredState->sidewaysSpeed;
 }
 
 double BWPDController::getHeading()
@@ -366,6 +384,8 @@ void BWPDController::init(core::ConfigNode config)
 
     m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
+    m_controllerState->sidewaysSpeedPGain =
+        config["sidewaysSpeedPGain"].asInt(1);
 
     // Select observer controller gains based on config file
 
