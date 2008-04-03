@@ -7,8 +7,8 @@ clear
 % 'pd' for PD Control
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
-% 'lqgi' for 
-controlType = 'oc';
+% 'lqgi' for an observer controller with integral augmentation
+controlType = 'lqgi';
 
 
 %create a global variable so observer controllers can store variables
@@ -35,7 +35,7 @@ v_displaced=(1+m*g)/(p_water*g);%volume of water displaced by sub in m^3
 %constant=(p_water*v_displaced-m)*g;
 constant=g*(m-p_water*v_displaced);
 
-time=linspace(0,15,6000);
+time=linspace(0,20,6000);
 dt=time(2)-time(1);
 %sensor delay time
 %delay =0.05;
@@ -93,7 +93,7 @@ end
 x=zeros(3,length(time));
 
 %INITIAL CONDITION
-x(:,1)=[1 0 0]';
+x(:,1)=[0 0 0]';
 
 %create array to store measured vehicle states
 %y_array=zeros(1,length(time));
@@ -107,8 +107,11 @@ Fthrust=zeros(1,length(time));
 %create an x_hat array here
 x_hat_array = zeros(2,length(time));
 
-j=1;
+%for varying measurement sampling frequencies
+%j=1;
 
+%depth error check margin to see if sub is above surface of water or submerged
+depthCheckEpsilon=-0.001;%negative direction is out of water
 
 
 for i=2:length(time)
@@ -118,10 +121,11 @@ for i=2:length(time)
     
     %simulate no velocity or acceleration if at surface
     %THIS CHECK IS DONE IN TWO OTHER LOCATIONS 
-    if(x(1,i)<0)
+    if(x(1,i)<depthCheckEpsilon)
         x(:,i)=[0 0 0]';
     end
     
+% for varying measurement sampling frequencies, appears to have magic numbers    
 %     if mod(time(i),delay)< dt
 %         j=j+1;
 %         time_measured(j) = time(i);
@@ -150,7 +154,7 @@ for i=2:length(time)
 
     %integrate velocity equation so long as we aren't above surface
     %velocity eq xdot1=dx/dt=x2
-    if(x(1,i)<=0)
+    if(x(1,i)<=depthCheckEpsilon)
         x(2,i)=0;
     else
         x(2,i)=x(2,i-1)+x(3,i-1)*dt;
@@ -187,7 +191,7 @@ for i=2:length(time)
     %use control law in simulation of acceleration so long as we aren't
     %above the surface
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
-    if(x(1,i)<=0)
+    if(x(1,i)<=depthCheckEpsilon)
         x(3,i)=0;
     else
         x(3,i)=-c/m*x(2,i)+(Fthrust(i)/m)+constant/m;
