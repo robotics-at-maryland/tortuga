@@ -7,4 +7,4 @@ global xHat4;
 
 xHat4_dot = A_c*xHat4 + B_c*y;
 xHat4 = xHat4 + xHat4_dot*dt;
-Fthrust = -C_c*(xHat4-[xd 0 0 0]');
+Fthrust = -C_c*(xHat4-[0 xd 0 0]');
