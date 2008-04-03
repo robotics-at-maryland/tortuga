@@ -184,7 +184,7 @@ for i=2:length(time)
         %LQG Controller
         Fthrust(i) = ObserverController_Integrater(y,xd,dt);
         %store current x_hat from ObserverController in x_hat array
-        x_hat_array(1,i) = xHat4(2);
+        x_hat_array(1,i) = xHat4(2)+xd;
         x_hat_array(2,i) = xHat4(3);
     end
     
