@@ -83,11 +83,16 @@ Subsystems:
                 update_interval: 5
                 # These are in VEHICLE FRAME
 
-                magXBias: -0.229488
-                magYBias: 0.270406
-                magZBias: 0.158325
+                # Before 6 thrusters
+           #     magXBias: -0.229488
+           #     magYBias: 0.270406
+           #     magZBias: 0.158325
 
 
+                # After 6 thrusters.
+                magXBias: -0.260058
+                magYBias: 0.211263
+                magZBias: 0.243511
 
 
 #                magXBias: 0.0
