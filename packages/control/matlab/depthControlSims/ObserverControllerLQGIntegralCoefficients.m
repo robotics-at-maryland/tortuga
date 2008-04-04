@@ -24,6 +24,15 @@ C_a = [0 C];
 Q_a = [10 0 0;0 10 0;0 0 0];
 G_a = [0 0 1/m]';
 
+
+
+% Q_a = [0 0 0;0 1000 0;0 0 0];
+% G_a = [0 0 1/m]';
+
+
+
+
+
 %is augmented system observable?
 M_a_obs=[C_a; C_a*A_a; C_a*A_a^2];
 rank(M_a_obs);%=3, so this should be observable.....

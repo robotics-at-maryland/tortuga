@@ -30,6 +30,9 @@ m=20;%mass of sub in kg
 p_water=998;%density of water in kg/m^3
 g=9.8;%gravitational constant in m/s^2
 
+% max thruster force in Newtons
+max_thrust = 40; % 10 lbf
+
 v_displaced=(1+m*g)/(p_water*g);%volume of water displaced by sub in m^3
 
 %constant=(p_water*v_displaced-m)*g;
@@ -69,23 +72,23 @@ elseif strcmp('LQG',upper(controlType))==1
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
     %LQG Controller - LQGIntegraterCoefficients
-    A_c =1.0e+03 *[
-
-  -0.001225000000000  -4.204200000000262  -0.007312500000000                   0;
-                   0  -0.017425000000000   0.001000000000000                   0;
-   0.000050000000000  -0.096980625000004  -0.000575000000000                   0;
-  -0.001225000000000  -0.004200000000000  -0.007312500000000                   0];
-
-
-B_c =1.0e+03 *[
-
-   4.200000000000262;
-   0.017425000000000;
-   0.096980625000004;
-                   0];
-
-
-C_c =[0     0     0     1];
+%     A_c =1.0e+03 *[
+% 
+%   -0.001225000000000  -4.204200000000262  -0.007312500000000                   0;
+%                    0  -0.017425000000000   0.001000000000000                   0;
+%    0.000050000000000  -0.096980625000004  -0.000575000000000                   0;
+%   -0.001225000000000  -0.004200000000000  -0.007312500000000                   0];
+% 
+% 
+% B_c =1.0e+03 *[
+% 
+%    4.200000000000262;
+%    0.017425000000000;
+%    0.096980625000004;
+%                    0];
+% 
+% 
+% C_c =[0     0     0     1];
 end    
 
 %create array to store actual vehicle states
@@ -186,6 +189,14 @@ for i=2:length(time)
         %store current x_hat from ObserverController in x_hat array
         x_hat_array(1,i) = xHat4(2)+xd;
         x_hat_array(2,i) = xHat4(3);
+    end
+    
+    
+    %Account for thruster saturation
+    if (Fthrust(i) > max_thrust)
+        Fthrust(i) = max_thrust;
+    elseif (Fthrust(i) < -max_thrust)
+        Fthrust(i) =  -max_thrust;
     end
     
     %use control law in simulation of acceleration so long as we aren't

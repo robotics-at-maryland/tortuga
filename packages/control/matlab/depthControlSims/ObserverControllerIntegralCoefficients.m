@@ -28,14 +28,21 @@ K_a = place(A_a,B_a,[-0.7 -0.6 -0.5]);
 L_a = (place(A_a',C_a',[-7 -6 -5]))';
 
 
-
-
-% K_a = place(A_a,B_a,[-.1 -.11 -.09]);
+% K_a = place(A_a,B_a,[-1 -1.1 -.99]);
 % L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
-
-
-
-
+%   
+% K_a = place(A_a,B_a,[-5 -5.1 -4.9]);
+% L_a = (place(A_a',C_a',[-2 -2.1 -1.9]))';
+%    
+% K_a = place(A_a,B_a,[-1 -1.1 -0.9]);
+% L_a = (place(A_a',C_a',[-100 -100.1 -99.9]))';
+%   
+% K_a = place(A_a,B_a,[-.5 -.51 -.49]);
+% L_a = (place(A_a',C_a',[-2 -2.1 -1.9]))';
+%   
+% K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+% L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+% clc
 A_c = [A_a-B_a*K_a-L_a*C_a   zeros(3,1);   -B_b*K_a    A_b]
 B_c = [L_a; 0]
 C_c = [zeros(1,3) C_b]
