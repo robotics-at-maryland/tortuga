@@ -30,14 +30,13 @@ g=9.8;%gravitational constant in m/s^2
 
 v_displaced=(1+m*g)/(p_water*g);%volume of water displaced by sub in m^3
 
-constant=(p_water*v_displaced-m)*g;
+constant=g*(m-p_water*v_displaced);
 
 time=linspace(0,10,frequency);
 
 dt=time(2)-time(1);
 
 %sensor delay time
-%Setting as 10khz
 delay = 1/frequency;
 
 %Vector composed of the measured depth,depth_dot but with noise
@@ -78,7 +77,7 @@ Fthrust=zeros(1,length(time));
 
 %create an x_hat array here
 x_hat_array = zeros(2,length(time));
-
+x_hat_array(:,1)= x_hat;
 j=1;
 
 
@@ -112,35 +111,47 @@ for i=2:length(time)
         %random = randn(1);
         %y_array(j)=constant*random+x(1,i-1);
         y = y_array(j);
-        depth_measured(1,i) = y;
-        depth_measured(2,i)= (depth_measured(1,i)-depth_measured(1,i-1))/dt;    
         
+        depth_measured(1,j) = y;
+        depth_measured(2,j)= (depth_measured(1,j)-depth_measured(1,j-1))/dt;    
+                
         % This is the measured position with sensor noise       
         %    =(y_array(j)+y_array(j-1))/delay;
         % True meassured depth is an array of the position,velocity vectors
         % without noise
-        true_measured_depth(1,i) = x(1,i);
-        true_measured_depth(2,i) = x(2,i);
-        
-    end
-    
-           
-    %compute control laws
+        %true_measured_depth(1,i) = x(1,i);
+        %true_measured_depth(2,i) = x(2,i);
+
+            %compute control laws
     if strcmp('PD',upper(controlType))==1
         %PD control
-        Fthrust(i) = pdController(x(1,i-1),xd,x(2,i-1));
+        Fthrust(j) = pdController(x(1,i-1),xd,x(2,i-1));
     
         
      %This is calling the observer to estimate the values for comparison.   
-     ObserverEstimation(y,xd,dt);
+     
+     if(frequency==60)
+        DiscreteObserverEstimation60Hz(y,xd,dt); 
+     else
+        ObserverEstimation(y,xd,dt);
+     end
      x_hat_array(:,i) = x_hat; 
+     
+        
+    end    
+      
+        
+        
+    end
+    
+      
          
      
     %
     %use control law in simulation of acceleration
     %acceleration eq xdot2=xdotdot1=d^2x/dt^2=-c/m+(Fthrust/m)
-    x(3,i)=-c/m+(Fthrust(i)/m);
-    end
+     x(3,i)=-c/m*x(2,i)+(Fthrust(j)/m)+constant/m;
+    
 end
 
 end
