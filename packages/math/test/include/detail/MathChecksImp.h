@@ -25,6 +25,14 @@
 // Place inside UnitTest++ namespace to override there usage
 namespace UnitTest {
     template<>
+    bool AreClose(const ram::math::Vector2& expected,
+                  const ram::math::Vector2& actual,
+                  const double& tolerance)
+    {
+        return ArrayAreClose(expected.ptr(), actual.ptr(), 2, tolerance);
+    }
+    
+    template<>
     bool AreClose(const ram::math::Vector3& expected,
                   const ram::math::Vector3& actual,
                   const double& tolerance)
@@ -46,6 +54,14 @@ namespace UnitTest {
                   const double& tolerance)
     {
         return ArrayAreClose(expected.ptr(), actual.ptr(), 4, tolerance);
+    }
+
+    template<>
+    bool AreClose(const ram::math::Matrix2& expected,
+                  const ram::math::Matrix2& actual,
+                  const double& tolerance)
+    {
+        return ArrayAreClose(expected[0], actual[0], 4, tolerance);
     }
     
     template<>

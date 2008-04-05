@@ -84,48 +84,48 @@ namespace math {
             @note
                 It does <b>NOT</b> initialize the matrix for efficiency.
         */
-		inline Matrix2 () {};
+        inline Matrix2 () {};
         inline explicit Matrix2 (const Real arr[2][2])
-		{
-			memcpy(m,arr,4*sizeof(Real));
-		}
+        {
+            memcpy(m,arr,4*sizeof(Real));
+        }
         inline Matrix2 (const Matrix2& rkMatrix)
-		{
-			memcpy(m,rkMatrix.m,4*sizeof(Real));
-		}
+        {
+            memcpy(m,rkMatrix.m,4*sizeof(Real));
+        }
         Matrix2 (Real fEntry00, Real fEntry01,
                     Real fEntry10, Real fEntry11)
-		{
-			m[0][0] = fEntry00;
-			m[0][1] = fEntry01;
-			m[1][0] = fEntry10;
-			m[1][1] = fEntry11;
-		}
+        {
+            m[0][0] = fEntry00;
+            m[0][1] = fEntry01;
+            m[1][0] = fEntry10;
+            m[1][1] = fEntry11;
+        }
 
         // member access, allows use of construct mat[r][c]
         inline Real* operator[] (size_t iRow) const
-		{
-			return (Real*)m[iRow];
-		}
+        {
+            return (Real*)m[iRow];
+        }
         /*inline operator Real* ()
-		{
-			return (Real*)m[0];
-		}*/
+        {
+            return (Real*)m[0];
+        }*/
         Vector2 GetColumn (size_t iCol) const;
         void SetColumn(size_t iCol, const Vector2& vec);
         //void FromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis); meaningless for 2d
 
         // assignment and comparison
         inline Matrix2& operator= (const Matrix2& rkMatrix)
-		{
-			memcpy(m,rkMatrix.m,4*sizeof(Real));
-			return *this;
-		}
+        {
+            memcpy(m,rkMatrix.m,4*sizeof(Real));
+            return *this;
+        }
         bool operator== (const Matrix2& rkMatrix) const;
         inline bool operator!= (const Matrix2& rkMatrix) const
-		{
-			return !operator==(rkMatrix);
-		}
+        {
+            return !operator==(rkMatrix);
+        }
 
         // arithmetic operations
         Matrix2 operator+ (const Matrix2& rkMatrix) const;
@@ -133,20 +133,23 @@ namespace math {
         Matrix2 operator* (const Matrix2& rkMatrix) const;
         Matrix2 operator- () const;
 
-        // matrix * vector [2x2 * 2x1 = 2x1]
+        /** matrix * vector [2x2 * 2x1 = 2x1] */
         Vector2 operator* (const Vector2& rkVector) const;
 
-        // vector * matrix [1x2 * 2x2 = 1x2]
+        /** vector * matrix [1x2 * 2x2 = 1x2] */
          friend Vector2 operator* (const Vector2& rkVector,
             const Matrix2& rkMatrix);
 
-        // matrix * scalar
+         /**  matrix * scalar */
         Matrix2 operator* (Real fScalar) const;
 
-        // scalar * matrix
+        /** scalar * matrix */
          friend Matrix2 operator* (Real fScalar, const Matrix2& rkMatrix);
 
         // utilities
+         /** Creata rotation matrix from the given angle (counter clockwise)*/
+         void fromAngle(Radian angle);
+         
         /* THIS STUFF is neat but we don't have time to implement
         Matrix2 Transpose () const;
         bool Inverse (Matrix2& rkInverse, Real fTolerance = 1e-06) const;
@@ -170,127 +173,7 @@ namespace math {
         Real SpectralNorm () const;
 
         */
-        
-        /*
-        // matrix must be orthonormal
-        void ToAxisAngle (Vector3& rkAxis, Radian& rfAngle) const;
-		inline void ToAxisAngle (Vector3& rkAxis, Degree& rfAngle) const {
-			Radian r;
-			ToAxisAngle ( rkAxis, r );
-			rfAngle = r;
-		}
-        void FromAxisAngle (const Vector3& rkAxis, const Radian& fRadians);
-#ifndef OGRE_FORCE_ANGLE_TYPES
-        inline void ToAxisAngle (Vector3& rkAxis, Real& rfRadians) const {
-			Radian r;
-			ToAxisAngle ( rkAxis, r );
-			rfRadians = r.valueRadians();
-		}
-        inline void FromAxisAngle (const Vector3& rkAxis, Real fRadians) {
-			FromAxisAngle ( rkAxis, Radian(fRadians) );
-		}
-#endif//OGRE_FORCE_ANGLE_TYPES
-        */
 
-        // The matrix must be orthonormal.  The decomposition is yaw*pitch*roll
-        // where yaw is rotation about the Up vector, pitch is rotation about the
-        // Right axis, and roll is rotation about the Direction axis.
-        /*
-        bool ToEulerAnglesXYZ (Radian& rfYAngle, Radian& rfPAngle,
-            Radian& rfRAngle) const;
-        bool ToEulerAnglesXZY (Radian& rfYAngle, Radian& rfPAngle,
-            Radian& rfRAngle) const;
-        bool ToEulerAnglesYXZ (Radian& rfYAngle, Radian& rfPAngle,
-            Radian& rfRAngle) const;
-        bool ToEulerAnglesYZX (Radian& rfYAngle, Radian& rfPAngle,
-            Radian& rfRAngle) const;
-        bool ToEulerAnglesZXY (Radian& rfYAngle, Radian& rfPAngle,
-            Radian& rfRAngle) const;
-        bool ToEulerAnglesZYX (Radian& rfYAngle, Radian& rfPAngle,
-            Radian& rfRAngle) const;
-        void FromEulerAnglesXYZ (const Radian& fYAngle, const Radian& fPAngle, const Radian& fRAngle);
-        void FromEulerAnglesXZY (const Radian& fYAngle, const Radian& fPAngle, const Radian& fRAngle);
-        void FromEulerAnglesYXZ (const Radian& fYAngle, const Radian& fPAngle, const Radian& fRAngle);
-        void FromEulerAnglesYZX (const Radian& fYAngle, const Radian& fPAngle, const Radian& fRAngle);
-        void FromEulerAnglesZXY (const Radian& fYAngle, const Radian& fPAngle, const Radian& fRAngle);
-        void FromEulerAnglesZYX (const Radian& fYAngle, const Radian& fPAngle, const Radian& fRAngle);
-        */
-        /*
-#ifndef OGRE_FORCE_ANGLE_TYPES
-        inline bool ToEulerAnglesXYZ (float& rfYAngle, float& rfPAngle,
-            float& rfRAngle) const {
-			Radian y, p, r;
-			bool b = ToEulerAnglesXYZ(y,p,r);
-			rfYAngle = y.valueRadians();
-			rfPAngle = p.valueRadians();
-			rfRAngle = r.valueRadians();
-			return b;
-		}
-        inline bool ToEulerAnglesXZY (float& rfYAngle, float& rfPAngle,
-            float& rfRAngle) const {
-			Radian y, p, r;
-			bool b = ToEulerAnglesXZY(y,p,r);
-			rfYAngle = y.valueRadians();
-			rfPAngle = p.valueRadians();
-			rfRAngle = r.valueRadians();
-			return b;
-		}
-        inline bool ToEulerAnglesYXZ (float& rfYAngle, float& rfPAngle,
-            float& rfRAngle) const {
-			Radian y, p, r;
-			bool b = ToEulerAnglesYXZ(y,p,r);
-			rfYAngle = y.valueRadians();
-			rfPAngle = p.valueRadians();
-			rfRAngle = r.valueRadians();
-			return b;
-		}
-        inline bool ToEulerAnglesYZX (float& rfYAngle, float& rfPAngle,
-            float& rfRAngle) const {
-			Radian y, p, r;
-			bool b = ToEulerAnglesYZX(y,p,r);
-			rfYAngle = y.valueRadians();
-			rfPAngle = p.valueRadians();
-			rfRAngle = r.valueRadians();
-			return b;
-		}
-        inline bool ToEulerAnglesZXY (float& rfYAngle, float& rfPAngle,
-            float& rfRAngle) const {
-			Radian y, p, r;
-			bool b = ToEulerAnglesZXY(y,p,r);
-			rfYAngle = y.valueRadians();
-			rfPAngle = p.valueRadians();
-			rfRAngle = r.valueRadians();
-			return b;
-		}
-        inline bool ToEulerAnglesZYX (float& rfYAngle, float& rfPAngle,
-            float& rfRAngle) const {
-			Radian y, p, r;
-			bool b = ToEulerAnglesZYX(y,p,r);
-			rfYAngle = y.valueRadians();
-			rfPAngle = p.valueRadians();
-			rfRAngle = r.valueRadians();
-			return b;
-		}
-        inline void FromEulerAnglesXYZ (float fYAngle, float fPAngle, float fRAngle) {
-			FromEulerAnglesXYZ ( Radian(fYAngle), Radian(fPAngle), Radian(fRAngle) );
-		}
-        inline void FromEulerAnglesXZY (float fYAngle, float fPAngle, float fRAngle) {
-			FromEulerAnglesXZY ( Radian(fYAngle), Radian(fPAngle), Radian(fRAngle) );
-		}
-        inline void FromEulerAnglesYXZ (float fYAngle, float fPAngle, float fRAngle) {
-			FromEulerAnglesYXZ ( Radian(fYAngle), Radian(fPAngle), Radian(fRAngle) );
-		}
-        inline void FromEulerAnglesYZX (float fYAngle, float fPAngle, float fRAngle) {
-			FromEulerAnglesYZX ( Radian(fYAngle), Radian(fPAngle), Radian(fRAngle) );
-		}
-        inline void FromEulerAnglesZXY (float fYAngle, float fPAngle, float fRAngle) {
-			FromEulerAnglesZXY ( Radian(fYAngle), Radian(fPAngle), Radian(fRAngle) );
-		}
-        inline void FromEulerAnglesZYX (float fYAngle, float fPAngle, float fRAngle) {
-			FromEulerAnglesZYX ( Radian(fYAngle), Radian(fPAngle), Radian(fRAngle) );
-		}
-#endif//OGRE_FORCE_ANGLE_TYPES
-        */
         // eigensolver, matrix must be symmetric
         //most likely written for 3x3 only
         /*
@@ -303,23 +186,23 @@ namespace math {
 
             
         
-		/** Determines if this matrix involves a scaling. */
+        /** Determines if this matrix involves a scaling. */
         /*
-		inline bool hasScale() const
-		{
-			// check magnitude of column vectors (==local axes)
-			Real t = m[0][0] * m[0][0] + m[1][0] * m[1][0] + m[2][0] * m[2][0];
-			if (!Math::RealEqual(t, 1.0, 1e-04))
-				return true;
-			t = m[0][1] * m[0][1] + m[1][1] * m[1][1] + m[2][1] * m[2][1];
-			if (!Math::RealEqual(t, 1.0, 1e-04))
-				return true;
-			t = m[0][2] * m[0][2] + m[1][2] * m[1][2] + m[2][2] * m[2][2];
-			if (!Math::RealEqual(t, 1.0, 1e-04))
-				return true;
+        inline bool hasScale() const
+        {
+            // check magnitude of column vectors (==local axes)
+            Real t = m[0][0] * m[0][0] + m[1][0] * m[1][0] + m[2][0] * m[2][0];
+            if (!Math::RealEqual(t, 1.0, 1e-04))
+                return true;
+            t = m[0][1] * m[0][1] + m[1][1] * m[1][1] + m[2][1] * m[2][1];
+            if (!Math::RealEqual(t, 1.0, 1e-04))
+                return true;
+            t = m[0][2] * m[0][2] + m[1][2] * m[1][2] + m[2][2] * m[2][2];
+            if (!Math::RealEqual(t, 1.0, 1e-04))
+                return true;
 
-			return false;
-		}*/
+            return false;
+        }*/
 
 
         static const Real EPSILON;
@@ -332,7 +215,7 @@ namespace math {
             ( std::ostream& o, const Matrix2& m )
         {
             o << "Matrix2(";
-			for (size_t i = 0; i < 2; ++i)
+            for (size_t i = 0; i < 2; ++i)
             {
                 o << " row" << (unsigned)i << "{";
                 for(size_t j = 0; j < 2; ++j)

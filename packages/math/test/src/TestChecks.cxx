@@ -16,6 +16,13 @@
 // Bring Vector3, and other math classes into scope
 using namespace ram::math;
 
+TEST(Vector2AreClose)
+{
+    Vector2 a(0, 1);
+    Vector2 b(0, 1.5);
+    CHECK_CLOSE(a, b, 0.6);
+}
+
 TEST(Vector3AreClose)
 {
     Vector3 a(0, 0, 1);
@@ -35,6 +42,13 @@ TEST(QuaternionAreClose)
     Quaternion a(0, 1, 1, 0);
     Quaternion b(0, 4, 1.5, 2);
     CHECK_CLOSE(a, b, 3.1);
+}
+
+TEST(Matrix2AreClose)
+{
+    Matrix2 a(0, 2, 0, 1);
+    Matrix2 b(0, 2, 5, 1);
+    CHECK_CLOSE(a, b, 5.01);
 }
 
 TEST(Matrix3AreClose)
