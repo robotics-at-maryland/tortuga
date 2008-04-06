@@ -222,7 +222,6 @@ class Body(Object):
                                                  Ogre.Vector3(1,1,1)))
             
             tree_ent = scene.scene_mgr.createEntity(name, mesh_name)
-            tree_ent.setMaterialName('TREE_HACK_BLANK')
 
             # Need extra node, for scaling error
             temp_node = \
