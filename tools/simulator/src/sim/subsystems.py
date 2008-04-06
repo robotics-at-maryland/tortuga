@@ -14,6 +14,7 @@ import time
 
 # Library Imports
 import ogre.renderer.OGRE as ogre
+import ogre.physics.OgreNewt as ogrenewt
 
 # Project Imports
 import ext.core as core
@@ -59,6 +60,7 @@ class Simulation(core.Subsystem):
         self._root = ogre.Root.getSingleton()
         self._window = self._root.createRenderWindow("Simulator", 800, 600, 
                                                      False)
+        self._debug = config.get('debug', False)
         
         # Load Scenes and grab the main one
         self._simulation.create_all_scenes()
@@ -77,7 +79,8 @@ class Simulation(core.Subsystem):
         self._simulation.start()
 
         time.sleep(1)
-        #ogrenewt.Debugger.getSingleton().showLines(sim.get_scene('Main').world)
+        if self._debug:
+            ogrenewt.Debugger.getSingleton().init(self.scene.scene_mgr)
         
     def backgrounded(self):
         return False
@@ -90,6 +93,8 @@ class Simulation(core.Subsystem):
         if not self._window.isClosed() and self._window.isActive():
             self._root.renderOneFrame()
             self._simulation.update(timeSinceLastUpdate)
+            if self._debug:
+                ogrenewt.Debugger.getSingleton().showLines(self.scene.world)
         elif not self._simulation.backgrounded() and self._window.isClosed():
             self.windowClosed(self._window)
         #else:
@@ -105,7 +110,8 @@ class Simulation(core.Subsystem):
         if not self._simulation.backgrounded():
             self._simulation.shutdown()
             self._inputForwarder.shutdown()
-            #ogrenewt.Debugger.getSingleton().deInit()
+            if self._debug:
+                ogrenewt.Debugger.getSingleton().deInit()
             
             
 
