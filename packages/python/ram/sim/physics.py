@@ -220,6 +220,7 @@ class Body(Object):
             mesh_name = shape_props['mesh_name']
             
             tree_ent = scene.scene_mgr.createEntity(name, mesh_name)
+            tree_ent.setMaterialName('TREE_HACK_BLANK')
             temp_node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
             temp_node.attachObject(tree_ent)
             temp_node.setVisible(False)
