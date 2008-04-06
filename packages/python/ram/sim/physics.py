@@ -242,17 +242,26 @@ class Body(Object):
         
         # Load Object based values
         Object.load(self, (parent, node))
-        
-        physical_node = node['Physical']    
+
+        physical_node = node.get('Physical', None)
+        if physical_node is None:
+            msg = 'Object "%s" needs a "Phsyical" section' % node['name']
+            raise SimulationError(msg)
+
         # Find shape type and its properties
-        shape_type = physical_node['Shape']['type'].lower() 
+        shape_node = physical_node.get('Shape', None)
+        if shape_node is None:
+            msg = 'Object "%s" needs a "Physical.Shape" section' % node['name']
+            raise SimulationError(msg)
+        
+        shape_type = shape_node['type'].lower() 
         shape_props = {}
-        for param, value in physical_node['Shape'].iteritems():
+        for param, value in shape_node.iteritems():
             if param != 'type':
                 shape_props[param] = value 
                     
         # Grab and validate Mass
-        mass = physical_node['mass']
+        mass = physical_node.get('mass', 0)
         if (type(mass) is not int) and (type(mass) is not float):
             raise SimulationError('Mass must be an interger of float')
         
