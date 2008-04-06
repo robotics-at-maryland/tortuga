@@ -218,12 +218,18 @@ class Body(Object):
             name = 'TREE_HACK' + str(Body._tree_mesh_hack)
             Body._tree_mesh_hack += 1
             mesh_name = shape_props['mesh_name']
+            scale = Ogre.Vector3(shape_props.get('mesh_scale',
+                                                 Ogre.Vector3(1,1,1)))
             
             tree_ent = scene.scene_mgr.createEntity(name, mesh_name)
             tree_ent.setMaterialName('TREE_HACK_BLANK')
-            temp_node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
+
+            # Need extra node, for scaling error
+            temp_node = \
+                scene.scene_mgr.getRootSceneNode().createChildSceneNode()
             temp_node.attachObject(tree_ent)
             temp_node.setVisible(False)
+            temp_node.setScale(scale)
             
             col = OgreNewt.TreeCollision(scene.world, temp_node, True)
             # When this works remove and destory our node temporary node!!
@@ -259,7 +265,14 @@ class Body(Object):
         shape_props = {}
         for param, value in shape_node.iteritems():
             if param != 'type':
-                shape_props[param] = value 
+                shape_props[param] = value
+
+        scale = shape_node.get('mesh_scale', None)
+        if scale is not None:
+            shape_props['mesh_scale'] = scale
+        else:
+            gfx_node = node.get('Graphical', {})
+            shape_props['mesh_scale'] = gfx_node.get('scale', [1,1,1])
                     
         # Grab and validate Mass
         mass = physical_node.get('mass', 0)
