@@ -71,7 +71,7 @@ elseif strcmp('LQG',upper(controlType))==1
      L = [ 0.229271574791027;
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
-    LQG Controller - LQGIntegraterCoefficients
+%    LQG Controller - LQGIntegraterCoefficients
     A_c =1.0e+03 *[
 
   -0.001225000000000  -4.204200000000262  -0.007312500000000                   0;
