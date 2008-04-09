@@ -24,6 +24,8 @@
 #include "math/include/Quaternion.h"
 #include "math/include/Vector2.h"
 #include "math/include/Matrix2.h"
+#include "math/include/Vector4.h"
+#include "math/include/Matrix4.h"
 
 #ifndef RAM_MATLAB_CONTROL_TEST
 namespace ram {
@@ -208,7 +210,35 @@ double depthPDController2(MeasuredState* measuredState,
 
 }
 
+/************************************************************************
+depthObserverController4(measuredState,desiredState,controllerState,estimatedState)
+implements an Observer Controller with Integral Augmentation
 
+xHat4_dot = A_c*xHat4 + B_c*(y-xd)
+
+xHat4 = xHat4 + xHat4_dot*dt
+
+Fthrust = C_c*xHat4
+
+returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
+*/
+double depthObserverController4(MeasuredState* measuredState,
+                                DesiredState* desiredState,
+                                ControllerState* controllerState,
+                                EstimatedState* estimatedState,
+                                double dt)
+{
+    Vector4 xHat4 = estimatedState->xHat4Depth;
+    Vector4 xHat4Dot = controllerState->depthA4*xHat4 +
+                       controllerState->depthB4*
+                       (measuredState->depth - desiredState->depth);
+
+    xHat4 = xHat4 + xHat4Dot*dt;
+    estimatedState->xHat4Depth = xHat4;
+
+    double depthControlSignal = controllerState->depthC4.dotProduct(xHat4);
+    return depthControlSignal;
+}
 
 /************************************************************************
 BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt,translationalForces)
