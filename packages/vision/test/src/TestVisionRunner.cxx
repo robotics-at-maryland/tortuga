@@ -20,13 +20,11 @@
 #include "vision/test/include/MockCamera.h"
 #include "vision/test/include/MockDetector.h"
 #include "vision/test/include/UnitTestChecks.h"
+#include "vision/test/include/Utility.h"
 
 #include "core/include/TimeVal.h"
 
 using namespace ram;
-
-void makeColor(vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B);
 
 SUITE(VisionRunner) {
 
@@ -36,7 +34,7 @@ struct VisionRunnerFixture
         image(new vision::OpenCVImage(640, 480)),
         camera(new MockCamera(image))
     {
-        makeColor(image, 0, 255, 0);
+        vision::makeColor(image, 0, 255, 0);
     }
 
     ~VisionRunnerFixture()

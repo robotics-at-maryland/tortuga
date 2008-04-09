@@ -18,10 +18,9 @@
 
 #include "core/include/EventHub.h"
 
-using namespace ram;
+#include "vision/test/include/Utility.h"
 
-void makeColor(vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B);
+using namespace ram;
 
 struct OrangePipeDetectorFixture
 {
@@ -61,7 +60,7 @@ SUITE(OrangePipeDetector) {
 TEST_FIXTURE(OrangePipeDetectorFixture, CenterLight)
 {
     // Blue Image with orange rectangle in it
-    makeColor(&input, 0, 0, 255);
+    vision::makeColor(&input, 0, 0, 255);
     // draw orange square
     CvPoint pts[4];
     pts[0] = CvPoint();

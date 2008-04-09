@@ -25,14 +25,12 @@
 
 #include "vision/test/include/MockCamera.h"
 #include "vision/test/include/UnitTestChecks.h"
+#include "vision/test/include/Utility.h"
 
 #include "core/include/TimeVal.h"
 
 
 using namespace ram;
-
-void makeColor(vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B);
 
 static const int TEST_PORT = 59156;
 
@@ -71,7 +69,7 @@ TEST_FIXTURE(RecorderFixture, Update)
     for (int i = 0; i < 20; ++i)
     {
         vision::Image* image = new vision::OpenCVImage(640,480);
-        makeColor(image, i * 20, 0, 0);
+        vision::makeColor(image, i * 20, 0, 0);
         images.push_back(image);
     }
 

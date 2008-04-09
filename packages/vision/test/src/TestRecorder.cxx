@@ -19,11 +19,9 @@
 
 #include "vision/test/include/MockCamera.h"
 #include "vision/test/include/UnitTestChecks.h"
+#include "vision/test/include/Utility.h"
 
 using namespace ram;
-
-void makeColor(vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B);
 
 SUITE(Recorder) {
 
@@ -57,7 +55,7 @@ TEST_FIXTURE(RecorderFixture, Update_NEXT_FRAME)
     for (int i = 0; i < 20; ++i)
     {
         vision::Image* image = new vision::OpenCVImage(640,480);
-        makeColor(image, i * 20, 0, 0);
+        vision::makeColor(image, i * 20, 0, 0);
         images.push_back(image);
     }
     
@@ -90,7 +88,7 @@ TEST_FIXTURE(RecorderFixture, Update_MAX_RATE)
     for (int i = 0; i < 20; ++i)
     {
         vision::Image* image = new vision::OpenCVImage(640,480);
-        makeColor(image, i * 20, 0, 0);
+        vision::makeColor(image, i * 20, 0, 0);
         images.push_back(image);
     }
     

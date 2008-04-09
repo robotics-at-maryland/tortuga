@@ -27,6 +27,7 @@
 
 #include "vision/test/include/MockCamera.h"
 #include "vision/test/include/UnitTestChecks.h"
+#include "vision/test/include/Utility.h"
 
 #include "core/include/TimeVal.h"
 
@@ -39,10 +40,6 @@
 
 using namespace ram;
 namespace bf = boost::filesystem;
-
-
-void makeColor(vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B);
 
 int getPid()
 {
@@ -99,7 +96,7 @@ TEST_FIXTURE(RecorderFixture, Update)
     for (int i = 0; i < 20; ++i)
     {
         vision::Image* image = new vision::OpenCVImage(640,480);
-        makeColor(image, i * 20, 0, 0);
+        vision::makeColor(image, i * 20, 0, 0);
         images.push_back(image);
     }
     

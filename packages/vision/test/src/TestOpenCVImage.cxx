@@ -11,11 +11,10 @@
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
-#include "vision/test/include/UnitTestChecks.h"
 #include "vision/include/OpenCVImage.h"
 
-void makeColor(ram::vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B);
+#include "vision/test/include/UnitTestChecks.h"
+#include "vision/test/include/Utility.h"
 
 SUITE(OpenCVImage) {
 
@@ -24,7 +23,7 @@ TEST(copyFrom)
     ram::vision::OpenCVImage source(640, 480);
     ram::vision::OpenCVImage destination(10, 10);
 
-    makeColor(&source, 255, 0, 0);
+    ram::vision::makeColor(&source, 255, 0, 0);
 
     // Copy image over
     destination.copyFrom(&source);

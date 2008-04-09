@@ -15,24 +15,13 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
+#include "vision/test/include/Utility.h"
 
 #include "core/include/EventHub.h"
 
-using namespace ram;
 
-void makeColor(vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B)
-{
-    int size = image->getWidth() * image->getHeight() * 3;
-    unsigned char* data = image->getData();
-    for (int i = 0; i < size; i += 3)
-    {
-        // BGR
-        data[i] = B;
-        data[i + 1]  = G;
-        data[i + 2]  = R;
-    }
-}
+
+using namespace ram;
 
 void drawRedCircle(vision::Image* image, int x, int y, int radius = 50)
 {
@@ -41,6 +30,8 @@ void drawRedCircle(vision::Image* image, int x, int y, int radius = 50)
     center.y = y;
     cvCircle(image->asIplImage(), center, radius, CV_RGB(255, 0, 0), -1);
 }
+
+
 
 struct RedLightDetectorFixture
 {
@@ -250,5 +241,21 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
     detectorTopRemoved.processImage(&input, &out);
     CHECK(false == detectorTopRemoved.found);
 }
+/*
+TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
+{
+    // Make sure we don't say a rectangle is a bouy
+    makeColor(&input, 0, 0, 255);
+    // Same area as normal circle just bad bounding box
+    drawSquare(&input, 640/2, 480/2, 155, 55, 0, CV_RGB(255,0,0));
 
+    vision::Image::saveToFile(&input, "/tmp/square.png");
+    detector.processImage(&input);
+    CHECK(detector.found);    
+    
+    // Make sure we don't except a mostly empty blob
+    vision::RedLightDetector detectorTopRemoved(
+        core::ConfigNode::fromString("{ 'minFillPercentage' : 0.25 }"));
+}
+*/
 } // SUITE(RedLightDetector)
