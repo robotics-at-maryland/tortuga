@@ -7,11 +7,14 @@
  * File:  packages/vision/src/Image.cpp
  */
 
-// Librar Includes
+
+// Library Includes
 #include "highgui.h"
 
 // Project Includes
 #include "vision/include/OpenCVImage.h"
+
+static const char* DEBUG_WINDOW = "Debug Image (close w/ESC Key)";
 
 namespace ram {
 namespace vision {
@@ -29,6 +32,23 @@ void Image::saveToFile(Image* image, std::string fileName)
     cvSaveImage(fileName.c_str(), image->asIplImage());
 }
 
+void Image::showImage(Image* image)
+{
+    cvNamedWindow(DEBUG_WINDOW, CV_WINDOW_AUTOSIZE);
+
+    while(1)
+    {
+        cvShowImage(DEBUG_WINDOW, image->asIplImage());
+
+        // Check for escape key
+        char key;
+        if ((key = (char)(cvWaitKey(10) & 255)) == 27)
+            break;
+    }
+
+    cvDestroyWindow(DEBUG_WINDOW);
+}
+    
 Image* Image::loadFromBuffer(unsigned char* buffer, int width, int height,
                              bool ownership)
 {

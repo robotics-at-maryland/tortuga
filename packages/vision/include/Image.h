@@ -49,6 +49,9 @@ public:
     /** Saves the given image to the desired file */
     static void saveToFile(Image* image, std::string fileName);
 
+    /** Shows the image on screen (THIS BLOCKS UNTIL CLOSED w/ESC Key) */
+    static void showImage(Image* image);
+    
     /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
     static Image* loadFromBuffer(unsigned char* buffer, int width,
                                  int height, bool ownership);

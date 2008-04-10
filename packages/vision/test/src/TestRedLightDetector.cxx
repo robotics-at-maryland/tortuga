@@ -113,7 +113,7 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
     drawRedCircle(&input, 640 - (640/4), 480/4);
     
     detector.processImage(&input);
-
+    
     double expectedX = -0.5 * 640.0/480.0;
     double expectedY = 0.5;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);

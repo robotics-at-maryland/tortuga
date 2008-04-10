@@ -27,6 +27,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType LIGHT_LOST;
     static const core::Event::EventType LIGHT_ALMOST_HIT;
     static const core::Event::EventType PIPE_FOUND;
+    static const core::Event::EventType PIPE_LOST;
     static const core::Event::EventType GATE_FOUND;
     static const core::Event::EventType BIN_FOUND;
 };
@@ -66,7 +67,7 @@ public:
     
     double x;
     double y;
-    double angle;
+    math::Degree angle;
 };
 
 typedef boost::shared_ptr<PipeEvent> PipeEventPtr;

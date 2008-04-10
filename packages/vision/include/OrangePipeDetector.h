@@ -15,6 +15,7 @@
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "core/include/ConfigNode.h"
+#include "math/include/Math.h"
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -36,7 +37,7 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
     //get normalized center of line.
     double getX();
     double getY();
-    double getAngle();
+    math::Degree getAngle();
     void update();
 
     
@@ -47,12 +48,12 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
   private:
     void init(core::ConfigNode config);
     
-    double angle;
-    double lineX;
-    double lineY;
-    IplImage* rotated;
-    Image* frame;
-    Camera* cam;
+    math::Radian m_angle;
+    double m_lineX;
+    double m_lineY;
+    IplImage* m_rotated;
+    Image* m_frame;
+    Camera* m_cam;
 };
     
 } // namespace vision

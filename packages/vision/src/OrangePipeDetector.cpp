@@ -30,138 +30,156 @@ namespace vision {
 OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     Detector(eventHub),
-    cam(0)
+    m_cam(0)
 {
     init(config);
 }
     
 OrangePipeDetector::OrangePipeDetector(Camera* camera) :
-    cam(camera)
+    m_cam(camera)
 {
     init(core::ConfigNode::fromString("{}"));
 }
 
 void OrangePipeDetector::init(core::ConfigNode)
 {
+    m_angle = math::Degree(0);
+    m_lineX = 0;
+    m_lineY = 0;
     found=0;
-    angle=0;
-    frame = new OpenCVImage(640, 480);
-    rotated = cvCreateImage(cvSize(640,480),8,3);//480 by 640 if camera is on sideways, else 640 by 480.
-    lineX=lineY=0;    
+    m_frame = new OpenCVImage(640, 480);
+    m_rotated = cvCreateImage(cvSize(640,480),8,3);//480 by 640 if camera is on sideways, else 640 by 480.
+    m_lineX=m_lineY=0;    
 }
     
 double OrangePipeDetector::getX()
 {
-	return lineX;
+    return m_lineX;
 }
 
 double OrangePipeDetector::getY()
 {
-	return lineY;
+    return m_lineY;
 }
 
-double OrangePipeDetector::getAngle()
+math::Degree OrangePipeDetector::getAngle()
 {
-	return angle;
+    return m_angle;
 }
 
 OrangePipeDetector::~OrangePipeDetector()
 {
-	delete frame;
-	cvReleaseImage(&rotated);
+    delete m_frame;
+    cvReleaseImage(&m_rotated);
 }
 
 void OrangePipeDetector::show(char* window)
 {
-	cvShowImage(window,rotated);
+    cvShowImage(window,m_rotated);
 }
 
 IplImage* OrangePipeDetector::getAnalyzedImage()
 {
-	return (IplImage*)(rotated);
+    return (IplImage*)(m_rotated);
 }
 
 void OrangePipeDetector::update()
 {
-    cam->getImage(frame);
-    processImage(frame, 0);
+    m_cam->getImage(m_frame);
+    processImage(m_frame, 0);
 }
 
 void OrangePipeDetector::processImage(Image* input, Image* output)
 {
-	//Plan is:  Search out orange with a strict orange filter, as soon as we see a good deal of orange
-	// use a less strict filter, and reduce the amount we need to see.
-	//In theory this makes us follow the pipeline as long as possible, but be reluctant to follow some
-	//arbitrary blob until we know its of a large size and the right shade of orange.  
-	//If the pipeline is found, the angle found by hough is reported.  
-	
-	//Mask orange takes frame, then alter image, then strictness (true=more strict, false=more lenient)
-	IplImage* image =(IplImage*)(*input);
+    //Plan is:  Search out orange with a strict orange filter, as soon as we
+    // see a good deal of orange use a less strict filter, and reduce the
+    // amount we need to see. In theory this makes us follow the pipeline as
+    // long as possible, but be reluctant to follow some arbitrary blob until
+    // we know its of a large size and the right shade of orange.  If the
+    // pipeline is found, the angle found by hough is reported.  
+    
+    // Mask orange takes frame, then alter image, then strictness (true=more
+    // strict, false=more lenient)
+    IplImage* image =(IplImage*)(*input);
 
-//	rotate90Deg(image,rotated);//Only do this if the camera is attached sideways again.
-	cvCopyImage(image,rotated);//Poorly named if the cameras not on sideways... oh well.
-	image=rotated;
-	if (!found)
-	{
-		int orange_count=mask_orange(image,true,true);
-		if (orange_count>1000)//this number is in pixels.
-		{
-			found=1;
-		}
-		else
-		{
-			found=0;
-		}
-	}
-	else if (found)
-	{
-		int orange_count=mask_orange(image,true,false);
-		//int left_or_right=guess_line(image);//Left is negative, right is positive, magnitude is num pixels from center line
-		
-		if (orange_count<250)
-			found=0;
-	}
-	
-	int linex,liney;
-	if (found)
-	{
-        cvErode(image, image, 0, 3);//3 x 3 default erosion element, 3 iterations.
-		angle=hough(image,&linex,&liney);
-		if (angle==HOUGH_ERROR)
-		{
-			lineX=-1;
-			lineY=-1;
-		}
-		else
-		{
-			//lineX and lineY are fields, both are doubles
-			lineX=linex;
-			lineX/=image->width;
-			lineY=liney;
-			lineY/=image->height;
-            lineX -= .5;
-            lineY -= .5;
-            lineX *= 2;
-            lineY *= -2;
-            lineX *= 640.0/480.0;
-//			cout<<"(x,y):"<<"("<<lineX<<","<<lineY<<")"<<endl;
-//            cout<<"Angle:" << angle << endl;
-            angle-=90; //Rotate into joes coordinates.
-            PipeEventPtr event(new PipeEvent(0, 0, 0));
-            event->x = linex;
-            event->y = liney;
-            event->angle = angle;
+//    rotate90Deg(image,m_rotated);//Only do this if the camera is attached sideways again.
+    cvCopyImage(image,m_rotated);//Poorly named if the cameras not on sideways... oh well.
+    image=m_rotated;
+    if (!found)
+    {
+        int orange_count=mask_orange(image,true,true);
+        if (orange_count>1000)//this number is in pixels.
+        {
+            found=1;
             
-            publish(EventType::LIGHT_FOUND, event);
+        }
+        else if (0 != found)
+        {
+            found=0;
+            publish(EventType::PIPE_LOST,
+                    core::EventPtr(new core::Event()));
+        }
+    }
+    else if (found)
+    {
+        int orange_count=mask_orange(image,true,false);
+        //int left_or_right=guess_line(image);//Left is negative, right is positive, magnitude is num pixels from center line
+        
+        if (orange_count<250 && (0 != found))
+        {
+            found=0;
+            publish(EventType::PIPE_LOST,
+                    core::EventPtr(new core::Event()));
+        }
+    }
+    
+    int linex,liney;
+    if (found)
+    {
+        cvErode(image, image, 0, 3);//3 x 3 default erosion element, 3 iterations.
+        double angle = hough(image,&linex,&liney);
+        if (angle==HOUGH_ERROR)
+        {
+            m_lineX=-1;
+            m_lineY=-1;
+        }
+        else
+        {
+            // Make angle between 90 and -90
+            m_angle = math::Radian(angle);
+            if (m_angle > math::Radian(math::Math::HALF_PI))
+                m_angle = m_angle - math::Radian(math::Math::PI);
+
+            //lineX and lineY are fields, both are doubles
+            m_lineX=linex;
+            m_lineX/=image->width;
+            m_lineY=liney;
+            m_lineY/=image->height;
+            m_lineX -= .5;
+            m_lineY -= .5;
+            m_lineX *= -2;
+            m_lineY *= -2;
+            m_lineX *= 640.0/480.0;
+
+            // Fire off found event
+            PipeEventPtr event(new PipeEvent(0, 0, 0));
+            event->x = m_lineX;
+            event->y = m_lineY;
+            event->angle = m_angle;
+            publish(EventType::PIPE_FOUND, event);
         }
         
-	}
-
-        if (output)
-        {
-            OpenCVImage temp(image, false);
-            output->copyFrom(&temp);
-        }
+    }
+    
+    if (output)
+    {
+        CvPoint center;
+        center.x = linex;
+        center.y = liney;
+        cvCircle(image, center, 5, CV_RGB(0, 255, 0), -1);
+        OpenCVImage temp(image, false);
+        output->copyFrom(&temp);
+    }
 }
 
 } // namespace vision

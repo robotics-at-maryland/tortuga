@@ -89,6 +89,9 @@ class RAM_EXPORT RedLightDetector : public Detector
 
     /** The threshold of the intensity of red in the image */
     int m_redIntensity;
+
+    /** The ammout the aspect ratio of the bounding box can be non-square */
+    //double m_aspectRatioDeviation;
 };
 	
 } // namespace vision
