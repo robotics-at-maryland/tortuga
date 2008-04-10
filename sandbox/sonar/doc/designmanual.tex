@@ -1,6 +1,6 @@
 %! program = pdflatex
 
-\documentclass[12pt]{article}
+\documentclass[10pt]{article}
 \usepackage{graphicx}
 \usepackage{listings}
 \title{Passive SONAR: Theory and Implementation on \textit{Tortuga 2}}
@@ -34,7 +34,7 @@ We will further demonstrate that time difference on arrival (TDOA) estimates, wh
 
 \section{Multilateration}
 
-\subsection{Spherical waves, near-field}
+\subsection{Spherical waves, near field}
 \label{sec:near-field}
 
 If we assume that we are in the near field of the pinger, then the multilateration problem reduces to finding the intersection point of a collection of hyperboloids, as is shown in figure~(\ref{fig:hyperbola-good}).
@@ -141,7 +141,7 @@ R_2^2-d_{20}^2-z_2z_s \\
 \right)
 \end{equation}
 
-\subsection{Planar waves, far-field}
+\subsection{Planar waves, far field}
 \label{sec:far-field}
 
 If we assume that we are in the far field of the pinger, then the radius of curvature of the wavefronts is much greater than the spacing of the hydrophones.  The wavefronts will look like plane waves.
@@ -202,7 +202,7 @@ d_{30}
 
 \subsubsection{Number of hydrophones}
 
-Since (\ref{eq:planars-multi}) is a set of linear equations in three variables, the matrix on the left hand side must have rank 3 in order to solve for \(\hat \mathbf k\).  Therefore, we need at least 4 (noncollinear, noncoplanar) hydrophones to determine \(\hat \mathbf k\) using far-field multilateration.
+Since (\ref{eq:planars-multi}) is a set of linear equations in three variables, the matrix on the left hand side must have rank 3 in order to solve for \(\hat \mathbf k\).  Therefore, we need at least 4 (noncollinear, non-coplanar) hydrophones to determine \(\hat \mathbf k\) using far field multilateration.
 
 \section{Estimating the vehicle's state}
 
@@ -259,7 +259,48 @@ During the first step, the robot can log camera, IMU, and SONAR data, post-proce
 
 \subsubsection{Range from triangulation}
 
-If the robot is equipped with two near field type arrays, separated by a fixed distance, then it can apply elementary trigonometry to determine its range using triangulation.
+If the robot is equipped with two far field type arrays, separated by a fixed distance, then it can apply elementary trigonometry to determine its range using triangulation.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.5]{triangulation_diagram.pdf}
+\caption{Two-array (four sensor) triangulation setup}
+\label{fig:triangulationDiagram}
+\end{center}
+\end{figure}
+
+Two far field arrays allow us to sample the direction of propagation of a sound wave at two points.  Let \(\hat\mathbf k_1\) be the direction of propagation at the first receiver, and let \(\hat\mathbf k_2\) be the direction of propagation at the second receiver.  We want to solve for the range \(R_1=b\) from the first receiver and \(R_2=a\) from the second receiver.
+
+Since equation (\ref{eq:planars-multi}) expresses the relative bearing of the acoustic source as a unit vector, we would like the inputs to our algorithm to be unit vectors rather than angles.  In the end, we will be able to calculate the range of the target without using any trigonometric functions.
+
+First, we express each of the angles \(A\), \(B\), and \(C\) using dot products:
+
+\begin{eqnarray*}
+\cos C &=& \hat\mathbf k_1 \cdot \hat\mathbf k_2 \\
+\cos B &=& \hat\mathbf k_1 \cdot \hat\mathbf R_{12} \\
+\cos A &=& \hat\mathbf k_2 \cdot \hat\mathbf R_{12}
+\end{eqnarray*}
+
+Using the law of sines, 
+
+\begin{eqnarray*}
+\frac{c}{\sin C} &=& \frac{b}{\sin B} = \frac{a}{\sin A} \\
+\frac{c^2}{\sin^2 C} &=& \frac{b^2}{\sin^2 B} = \frac{a^2}{\sin^2 A} \\
+\frac{c^2}{1 - \cos^2 C} &=& \frac{b^2}{1 - \cos^2 B} = \frac{a^2}{1 - \cos^2 A}
+\end{eqnarray*}
+
+Plugging in the dot products for the angles, \(R_{12}\) for \(c\), \(R_1\) for \(b\), and \(R_2\) for \(a\), we conclude
+
+\begin{eqnarray}
+\label{eq:triangulationR1}
+R_1 &=& R_{12} \sqrt\frac{1-{\left(\hat\mathbf k_1 \cdot \hat\mathbf R_{12}\right)}^2}{1-{\left(\hat\mathbf k_1 \cdot \hat\mathbf k_2\right)}^2} \\
+\label{eq:triangulationR2}
+R_2 &=& R_{12} \sqrt\frac{1-{\left(\hat\mathbf k_2 \cdot \hat\mathbf R_{12}\right)}^2}{1-{\left(\hat\mathbf k_1 \cdot \hat\mathbf k_2\right)}^2}
+\end{eqnarray}
+
+The reader may, if desired, use equations (\ref{eq:triangulationR1}) and (\ref{eq:triangulationR2}) to find the range from the center of the two-array system, which corresponds to the length of the median of the triangle \(\Delta A B C\).
+
+Note that if \(\hat\mathbf k_1 \cdot \hat\mathbf k_2 = 0\) then \(b\) and \(a\) cannot be determined.  Operationally, this means that if ever both of the arrays and the source are perfectly lined up, then all range information vanishes for an instant.  This should also provide a hint that as the target approaches alignment with both arrays, the region of uncertainty becomes an elongated ellipsoid.
 
 \subsubsection{Range from multilateration}
 

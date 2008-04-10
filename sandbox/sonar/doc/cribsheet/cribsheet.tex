@@ -34,8 +34,8 @@
 \hline\hline
 Symbol	&	Quantity							& \(\approx\) Metric value \\
 \hline
-\(v_a\)	& Speed of sound in air				& 343 m/s	 	\\
-\(v_w\)	& Speed of sound in water			& 1500 m/s		\\
+\(c_a\)	& Speed of sound in air				& 343 m/s	 	\\
+\(c_w\)	& Speed of sound in water			& 1500 m/s		\\
 \(Z_a\)	& Acoustic impedance of air (STP)	& 420 MPa s/m	\\
 \(Z_w\) & Acoustic impedance of water		  & 1.5 MPa s/m	\\
 \hline
@@ -60,16 +60,44 @@ Symbol	&	Quantity							& \(\approx\) Metric value \\
 \end{table}
 
 
+\section{Reflection, refraction, transmission}
+
+\subsection{Acoustic impedance}
+
+$$
+Z = \rho c_w
+$$
+
+\subsection{Coefficients of reflection and transmission at an interface \(1 \rightarrow 2\)}
+
+$$
+\Gamma_{r} = \frac{Z_2 - Z_1}{Z_2 + Z_1}
+$$
+
+$$
+\Gamma_{t} = \frac{2 Z_1}{Z_2 + Z_1}
+$$
+
+\subsection{Power reflected and transmitted}
+
+$$
+P_r = \Gamma_{r}^2 P_i
+$$
+
+$$
+P_t = \Gamma_{t}^2 P_i
+$$
+
 \section{Surface echoes}
 
 
-A source and receiver are at depth \(z\) separated by distance \(R\).  The source emits a ping at time \(t=0\) and arrives at the receiver at time \(t_{ping}=R/v_w\).  Then the first surface echo arrives at a time \(t_{ping}+\Delta{t}_{echo}\):
+A source and receiver are at depth \(z\) separated by distance \(R\).  The source emits a ping at time \(t=0\) and arrives at the receiver at time \(t_{ping}=R/c_w\).  Then the first surface echo arrives at a time \(t_{ping}+\Delta{t}_{echo}\):
 
 
 %%% SURFACE ECHOES EQUATION
-\begin{equation*}
-\Delta{t}_{echo}(z,R)=(2\sqrt{z^2+(R/2)^2}-R)/v_w.
-\end{equation*}
+\begin{equation}
+\Delta{t}_{echo}(z,R)=(2\sqrt{z^2+(R/2)^2}-R)/c_w.
+\end{equation}
 
 
 %%% SURFACE ECHOES TABLE
