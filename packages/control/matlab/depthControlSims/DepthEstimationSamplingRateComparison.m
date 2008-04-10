@@ -4,10 +4,10 @@ function [true_measured_depth       time         depth_measured         x_hat_ar
 clc
 close all
 % Main Code to run the Depth Control Simulation
-% set controlType to 'p' (not case sensitive) for P control
-controlType = 'pd';
+
+
 % set controlType to 'pd' (not case sensitive) for PD control
-% controlType = 'pd';
+controlType = 'pd';
 
 %create a global variable so observer controllers can store variables
 %between iterations
@@ -119,8 +119,8 @@ for i=2:length(time)
         %    =(y_array(j)+y_array(j-1))/delay;
         % True meassured depth is an array of the position,velocity vectors
         % without noise
-        %true_measured_depth(1,i) = x(1,i);
-        %true_measured_depth(2,i) = x(2,i);
+        true_measured_depth(1,i) = x(1,i);
+        true_measured_depth(2,i) = x(2,i);
 
             %compute control laws
     if strcmp('PD',upper(controlType))==1
