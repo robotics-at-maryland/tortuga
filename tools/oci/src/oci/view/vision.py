@@ -15,36 +15,16 @@ import ext.vision
 import ram.gui.led
 import ram.gui.view as view
 
-
 class VisionPanel(wx.Panel):
     core.implements(view.IPanelProvider)
     
-    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._connections = []
-        self._x = None
-        self._y = None
-        self._azimuth = None
-        self._elevation = None
-        self._range = None
-        self._bouyLED = None
         self._generatedControls = []
         self._controlsShowing = True
         self._hide = None
-        
-        # Controls
-        self._createControls()
-        
-        # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND,
-                                        self._onBouyFound)
-        self._connections.append(conn)
-        
-        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_LOST,
-                                        self._onBouyLost)
-        self._connections.append(conn)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
+        self._bouyLED = None
         
     def _onClose(self, closeEvent):
         for conn in self._connections:
@@ -68,19 +48,17 @@ class VisionPanel(wx.Panel):
         self._bouyLED.MinSize = size
         self.sizer.Add(self._bouyLED, 1, flag = wx.ALIGN_CENTER)
         
-        # Create controls
-        self._createDataControl(controlName = '_x', label = 'Y Pos: ')
-        self._createDataControl(controlName = '_y', label = 'X Pos: ')
-        self._createDataControl(controlName = '_azimuth', label = 'Azimuth: ')
-        self._createDataControl(controlName = '_elevation',
-                                label = 'Elvevation: ')
-        self._createDataControl(controlName = '_range',  label = 'Range: ')
+        # Create controls\
+        self._createDataControls()
 
         # Start off greyed out
         for control in self._generatedControls:
             control.Enable(False)
         
         self.SetSizerAndFit(topSizer)
+
+    def _createDataControls(self):
+        pass
 
     def _getTextSize(self):
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+0.000')
@@ -109,26 +87,18 @@ class VisionPanel(wx.Panel):
             self.sizer.Show(i, self._controlsShowing)
         self.sizer.Layout()
         
-    def _onBouyFound(self, event):
+    def enableControls(self):
         for control in self._generatedControls:
             control.Enable()
-        
-        self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y    
-        self._azimuth.Value = "% 4.2f" % event.azimuth.valueDegrees()
-        self._elevation.Value = "% 4.2f" % event.elevation.valueDegrees()
-        self._range.Value = "% 4.2f" % event.range
-        
         # The LED only does work when you change state, so calling this mutiple
         # times with the same value is ok
         self._bouyLED.SetState(2)
-    
-    def _onBouyLost(self, event):
+            
+    def disableControls(self):
         for control in self._generatedControls:
             control.Enable(False)
-        
         self._bouyLED.SetState(0)
-        
+
     @staticmethod
     def getPanels(subsystems, parent):
         eventHub = ext.core.Subsystem.getSubsystemOfType(
@@ -138,10 +108,104 @@ class VisionPanel(wx.Panel):
                                                        subsystems)
         
         if vision is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Vision")
-            paneInfo = paneInfo.Caption("Vision").Left()
-        
-            panel = VisionPanel(parent, eventHub, vision)
-            return [(paneInfo, panel, [vision])]
+            buoyPaneInfo = wx.aui.AuiPaneInfo().Name("Red Light")
+            buoyPaneInfo = buoyPaneInfo.Caption("Red Light").Left()
+            buoyPanel = RedLightPanel(parent, eventHub, vision)
+            
+            pipePaneInfo = wx.aui.AuiPaneInfo().Name("Orange Pipe")
+            pipePaneInfo = pipePaneInfo.Caption("Orange Pipe").Left()
+            pipePanel = OrangePipePanel(parent, eventHub, vision)
+            
+            return [(buoyPaneInfo, buoyPanel, [vision]),
+                    (pipePaneInfo, pipePanel, [vision])]
         
         return []
+
+class RedLightPanel(VisionPanel):
+    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+        VisionPanel.__init__(self, parent, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._azimuth = None
+        self._elevation = None
+        self._range = None
+
+        # Controls
+        self._createControls()
+        
+        # Events
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND,
+                                        self._onBouyFound)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_LOST,
+                                        self._onBouyLost)
+        self._connections.append(conn)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_y', label = 'X Pos: ')
+        self._createDataControl(controlName = '_azimuth', label = 'Azimuth: ')
+        self._createDataControl(controlName = '_elevation',
+                                label = 'Elvevation: ')
+        self._createDataControl(controlName = '_range',  label = 'Range: ')
+        
+    def _onBouyFound(self, event):
+        self._x.Value = "% 4.2f" % event.x
+        self._y.Value = "% 4.2f" % event.y    
+        self._azimuth.Value = "% 4.2f" % event.azimuth.valueDegrees()
+        self._elevation.Value = "% 4.2f" % event.elevation.valueDegrees()
+        self._range.Value = "% 4.2f" % event.range
+        
+        self.enableControls()
+    
+    def _onBouyLost(self, event):
+        self.disableControls()
+        
+class OrangePipePanel(VisionPanel):
+    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+        VisionPanel.__init__(self, parent, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._angle = None
+
+        # Controls
+        self._createControls()
+        
+        # Events
+        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_FOUND,
+                                        self._onPipeFound)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_LOST,
+                                        self._onPipeLost)
+        self._connections.append(conn)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_y', label = 'X Pos: ')
+        self._createDataControl(controlName = '_angle', label = 'Angle: ')
+        
+    def _onPipeFound(self, event):
+        self._x.Value = "% 4.2f" % event.x
+        self._y.Value = "% 4.2f" % event.y    
+        self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
+        
+        self.enableControls()
+    
+    def _onPipeLost(self, event):
+        self.disableControls()
+        
+
