@@ -446,46 +446,33 @@ void checkChip(unsigned char * str, byte irq)
     int ret;
     ret = busWriteByte(BUS_CMD_PING, irq);
     if(ret == BUS_ERROR)
-        sprintf(str, "fail");
+        memcpy(str, "fail", 4);
 
     if(ret == BUS_FAILURE)
-        sprintf(str, "EPIC");
+        memcpy(str, "EPIC", 4);
 
     if(ret == 0)
     {
         if(readDataBlock(irq) == 0)
-            sprintf(str, " OK ");
+            memcpy(str, " OK ", 4);
         else
-            sprintf(str, "rbad");
+            memcpy(str, "rbad", 4);
     }
 }
 
 
 void showBootDiag(int mode)
 {
-    unsigned char tmp[16];
+    unsigned char tmp[20];
     if(mode == 0)
     {
-        sprintf(tmp, "DIST  BALN      ");
+        sprintf(tmp, "DIST  BALN  SONR");
         showString(tmp, 0);
         sprintf(tmp, "                ");
 
-        checkChip(tmp, IRQ_DISTRO);
-        checkChip(tmp+6, IRQ_BALANCER);
-
-
-/*
-        byte sta = pollStartSw();
-        sprintf(tmp, "Sta: %02X %c%c%c%c%c%c%c%c", sta,
-            (sta & 0x80) ? 'S' : '-',
-            (sta & 0x40) ? '?' : '-',
-            (sta & 0x20) ? '1' : '-',
-            (sta & 0x10) ? '2' : '-',
-            (sta & 0x08) ? '3' : '-',
-            (sta & 0x04) ? '4' : '-',
-            (sta & 0x02) ? 'K' : '-',
-            (sta & 0x01) ? 'W' : '-');
-*/
+        checkChip(tmp, IRQ_BALANCER);
+        checkChip(tmp+6, IRQ_DISTRO);
+        checkChip(tmp+12, IRQ_SONAR);
         showString(tmp, 1);
     }
 
@@ -511,6 +498,7 @@ void showBootDiag(int mode)
 
     if(mode == 2)
     {
+        int t1;
         if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
         {
             showString("TEMP FAIL       ", 1);
@@ -526,7 +514,65 @@ void showBootDiag(int mode)
         }
 
         sprintf(tmp, "T:%02X %02X %02X %02X %02X", rxBuf[0], rxBuf[1], rxBuf[2], rxBuf[3], rxBuf[4]);
+        showString(tmp, 0);
+
+        if(busWriteByte(BUS_CMD_TEMP, IRQ_DISTRO) != 0)
+        {
+            showString("DB Temp fail", 1);
+            return;
+        }
+
+        len = readDataBlock(IRQ_DISTRO);
+        if(len != 1)
+        {
+            showString("DB Temp len fail", 1);
+            return;
+        }
+
+        t1 = rxBuf[0];
+
+
+        if(busWriteByte(BUS_CMD_TEMP, IRQ_BALANCER) != 0)
+        {
+            showString("BB Temp fail", 1);
+            return;
+        }
+        len = readDataBlock(IRQ_BALANCER);
+        if(len != 1)
+        {
+            showString("BB Temp len fail", 1);
+            return;
+        }
+
+
+        sprintf(tmp, "D:%02X B: %02X      ", t1, rxBuf[0]);
         showString(tmp, 1);
+
+    }
+
+    if(mode == 3)
+    {
+        if(busWriteByte(BUS_CMD_READ_ASTATUS, SLAVE_ID_VLOW) != 0)
+        {
+            showString("VREAD FAIL", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_VLOW);
+
+        if(len != 10)
+        {
+            showString("VREAD BAD LEN", 0);
+            return;
+        }
+
+        sprintf(tmp, "%2.3fV %2.3fA   ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0,
+                                         (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);
+        showString(tmp, 0);
+        sprintf(tmp, "%2.3fV %2.3fA   ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0,
+                                         (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);
+        showString(tmp, 1);
+
     }
 }
 
@@ -543,11 +589,12 @@ void diagBootMode()
         if(pollStartSw())
         {
             mode++;
-            if(mode == 3)
-            {
-//                 showIdent();
+            if(mode == 1)
+                showString("Diagnostic Mode ", 0);
+
+            if(mode == 4)
                 mode = 0;
-            }
+
             showBootDiag(mode);
 
             j=0;
