@@ -464,7 +464,7 @@ void checkChip(unsigned char * str, byte irq)
 void showBootDiag(int mode)
 {
     unsigned char tmp[20];
-    if(mode == 0)
+    if(mode == 1)
     {
         sprintf(tmp, "DIST  BALN  SONR");
         showString(tmp, 0);
@@ -476,7 +476,7 @@ void showBootDiag(int mode)
         showString(tmp, 1);
     }
 
-    if(mode == 1)
+    if(mode == 0)
     {
         if(busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH) != 0)
         {
@@ -589,12 +589,11 @@ void diagBootMode()
         if(pollStartSw())
         {
             mode++;
-            if(mode == 1)
-                showString("Diagnostic Mode ", 0);
-
             if(mode == 4)
+            {
+                showString("Diagnostic Mode ", 0);
                 mode = 0;
-
+            }
             showBootDiag(mode);
 
             j=0;
