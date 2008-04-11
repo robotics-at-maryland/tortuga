@@ -102,6 +102,13 @@ class Scene(object):
         loader = loaders[0]()
         loader.load(scene_data, self)
     
+    def getObjectsByInterface(self, iface):
+        devs = []
+        for obj in self._objects:
+            if iface in core.providedBy(obj):
+                devs.append(obj)
+        return devs
+    
     def destroy(self):
         """
         Release all resources held by objects

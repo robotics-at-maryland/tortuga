@@ -28,6 +28,7 @@ class MockController(control.IController):
         self.depth = 0
         self.yawChange = 0
         self.speed = 0
+        self.sidewaysSpeed = 0
         self.desiredOrientation = ext.math.Quaternion.IDENTITY
         
     def setDepth(self, depth):
@@ -39,8 +40,14 @@ class MockController(control.IController):
     def setSpeed(self, speed):
         self.speed = speed
         
+    def setSidewaysSpeed(self, speed):
+        self.sidewaysSpeed = speed
+        
     def getSpeed(self):
         return self.speed
+    
+    def getSidewaysSpeed(self):
+        return self.sidewaysSpeed
         
     def yawVehicle(self, yawChange):
         self.yawChange = yawChange
