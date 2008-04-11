@@ -600,7 +600,7 @@ void diagBootMode()
             while(pollStartSw())
             {
                 j++;
-                if(j == 25000)
+                if(j == 5000)
                 {
                     return;
                 }
