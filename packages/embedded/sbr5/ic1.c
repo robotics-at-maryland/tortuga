@@ -408,10 +408,22 @@ void showString(unsigned char str[], int line)
     busWriteByte(BUS_CMD_LCD_REFRESH, SLAVE_ID_LCD);
 }
 
-int pollStatus()
+int pollStartSw()
 {
-#warning WRITE NEW STATUS FUNCTION
-    return 0;
+    /* Read start switch from another chip......... */
+    if(busWriteByte(BUS_CMD_STARTSW, SLAVE_ID_STARTSW) != 0)
+    {
+        sendByte(HOST_REPLY_FAILURE);
+        return -1;
+    }
+
+    if(readDataBlock(SLAVE_ID_STARTSW) != 1)
+    {
+        sendByte(HOST_REPLY_FAILURE);
+        return -1;
+    }
+
+    return rxBuf[0] & 0x01;
 }
 
 
@@ -438,7 +450,7 @@ void showBootDiag(int mode)
 
 #warning THESE BITS MAY CHANGE BASED ON SCHEMATIC
 
-        byte sta = pollStatus();
+        byte sta = pollStartSw();
         sprintf(tmp, "Sta: %02X %c%c%c%c%c%c%c%c", sta,
             (sta & 0x80) ? 'S' : '-',
             (sta & 0x40) ? '?' : '-',
@@ -494,70 +506,28 @@ void showBootDiag(int mode)
     }
 }
 
-void showIdent()
-{
-    byte i=0;
-    long j=0;
-    unsigned char tmp[16];
-
-    while(!(pollStatus() & 0x80));
-
-    for(i=0; i<NUM_SLAVES; i++)
-    {
-        sprintf(tmp, "Ident IRQ %d:    ", i);
-        showString(tmp, 0);
-
-        /* Don't mix the strings */
-        for(j=0; j<17; j++)
-            rxBuf[j]=0;
-
-        if(busWriteByte(BUS_CMD_ID, i) != 0)
-        {
-            showString("<Write Fail>    ", 1);
-        } else
-        {
-            byte len = readDataBlock(i);
-
-            if(len > 0)
-            {
-                for(j=len; j<16; j++)
-                    rxBuf[j]=32;
-
-                showString(rxBuf, 1);
-            } else
-            {
-                showString("<Read Fail>     ", 1);
-            }
-        }
-
-        while(pollStatus() & 0x80);
-        while(!(pollStatus() & 0x80));
-    }
-    showString("Diagnostic Mode ", 0);
-}
-
 void diagBootMode()
 {
     byte mode=0;
     long j=0;
 
     showString("Diagnostic Mode ", 0);
-    while(pollStatus() & 0x80);
+    while(pollStartSw());
 
     while(1)
     {
-        if(pollStatus() & 0x80)
+        if(pollStartSw())
         {
             mode++;
             if(mode == 3)
             {
-                showIdent();
+//                 showIdent();
                 mode = 0;
             }
             showBootDiag(mode);
 
             j=0;
-            while(pollStatus() & 0x80)
+            while(pollStartSw())
             {
                 j++;
                 if(j == 25000)
@@ -650,9 +620,9 @@ int main(void)
 
     showString("Diagnostic?", 0);
 
-    for(j=0; j<250000 && ((pollStatus() & 0x80) == 0); j++);
+    for(j=0; j<250000 && (pollStartSw() == 0); j++);
 
-    if(pollStatus() & 0x80)
+    if(pollStartSw())
         diagBootMode();
 
 
