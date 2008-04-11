@@ -18,25 +18,26 @@ Scene:
     
     Cameras:
         Main:
-            position: [-15, 0, 0]
-            offset: [0, 0, 8]
+            position: [-18, 0, 0]
+            #offset: [0, 0, 2]
+            offset: [-2, 0, 1]
     
     Robots:
         AUT: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/nxaut.rml'
     
     Objects:        
-        pipe1:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [-15, 1, -3.05]
-            #position: [-18, 0, -3.05]
+        buoy1:
+            type: [sim.vision.IBuoy, sim.vision.Buoy]
+            position: [-15, 1, -1]
             
             Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
+                mesh: 'sphere.50cm.mesh'
+                material: 'Simple/Red'
+                scale: [0.15, 0.15, 0.15]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
+            
             Graphical:
                 mesh: 'PLANE:water'
                 width: 40

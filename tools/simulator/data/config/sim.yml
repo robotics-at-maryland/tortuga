@@ -109,6 +109,7 @@ Subsystems:
 
     Simulation:
         type: Simulation
+        debug: 1
         scene_path: ['%(RAM_SVN_DIR)s/tools/simulator/data/scenes']
         debug: 0
         

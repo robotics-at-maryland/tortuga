@@ -30,30 +30,34 @@ class IBuoy(IObject):
     """ An object which you can see in the simulation"""
     pass
 
+class IPipe(IObject):
+    """ An object which you can see in the simulation"""
+    pass
+
 # TODO: Fill out the methods for the class
 
 class Buoy(Visual):
     core.implements(IVisual, IBuoy)
     
-    _plane_count = 0
+    @two_step_init
+    def __init__(self):
+        Visual.__init__(self)
+
+    def load(self, data_object):
+        scene, parent, node = data_object
+        Visual.load(self, (scene, parent, node))
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
+    
+class Pipe(Visual):
+    core.implements(IVisual, IPipe)
     
     @two_step_init
     def __init__(self):
         Visual.__init__(self)
 
-#    def init(self, parent, name, scene, mesh, material,
-#             position = Ogre.Vector3.ZERO, 
-#             orientation = Ogre.Quaternion.IDENTITY,
-#             scale = Ogre.Vector3(1,1,1)):
-#        Visual.init(self, parent, name, scene, mesh, material, position, 
-#                    orientation, scale)
-
-    # IStorable Methods
     def load(self, data_object):
-        """
-        @type  data_object: tuple
-        @param data_object: (scene, parent, kml_node)
-        """
         scene, parent, node = data_object
         Visual.load(self, (scene, parent, node))
         
@@ -81,20 +85,30 @@ class IdealSimVision(ext.vision.VisionSystem):
                                                              nonNone = True)
         self._horizontalFOV = config.get('horizontalFOV', 107)
         self._verticalFOV = config.get('verticalFOV', 78)
+        
+        # Red light detector variables
         self._runRedLight = False
-        
-        # Find all the Buoy's
         self._foundLight = False
-        self._bouys = []
-        for obj in sim.scene._objects:
-            if IBuoy in core.providedBy(obj):
-                self._bouys.append(obj)
         
+        # Orange pipe detector variables
+        self._runOrangePipe = False
+        self._foundPipe = False
+        
+        # Find all the Buoy's and Pipes
+        self._bouys = sim.scene.getObjectsByInterface(IBuoy)
+        self._pipes = sim.scene.getObjectsByInterface(IPipe)
+
     def redLightDetectorOn(self):
         self._runRedLight = True
     
     def redLightDetectorOff(self):
         self._runRedLight = False
+        
+    def pipeLineDetectorOn(self):
+        self._runOrangePipe = True
+        
+    def pipeLineDetectorOff(self):
+        self._runOrangePipe = False
 
     def update(self, timeSinceLastUpdate):
         """
@@ -102,30 +116,43 @@ class IdealSimVision(ext.vision.VisionSystem):
         """
         if self._runRedLight:
             self._checkRedLight()
+        if self._runOrangePipe:
+            self._checkOrangePipe()
 
+    
+    def _findClosest(self, objects):
+        """
+        Find the closest object to the given position
+        
+        @note: This is inefficient but the object count is to remain low, so
+               we are fine.
+        """
+        closest = None
+        obj = None
+        relativePos = None
+        
+        for o in objects:
+            toObj = o.position - self.vehicle.robot.position
+            
+            # None yet found, default to this one
+            if closest is None:
+               closest = (o, toObj)
+            else:
+                obj, realtivePos = closest
+                if toObj.squaredLength() < realtivePos.squaredLength():
+                    # Found a better one switch to it
+                    closest = (o, toObj)
+
+        return closest
+    
     
     def _checkRedLight(self):
         """
         Check for the red light
         """
-        
-        # Find the closest bouy
-        # Note: This is inefficient but the buoy count is to remain low, so
-        # we are fine.
-        closest = None
-        for b in self._bouys:
-            toBuoy = b.position - self.vehicle.robot.position
-            
-            if closest is None:
-               closest = (b, toBuoy)
-            else:
-                buoy, realtivePos = closest
-                if toBuoy.squaredLength() < realtivePos.squaredLength():
-                    closest = (b, toBuoy)
-                    
         # Determine orientation to the bouy
         lightVisible = False
-        bouy, relativePos = closest
+        bouy, relativePos = self._findClosest(self._bouys)
         forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
         
         quat = forwardVector.getRotationTo(relativePos)
@@ -162,6 +189,42 @@ class IdealSimVision(ext.vision.VisionSystem):
                 self.publish(ext.vision.EventType.LIGHT_LOST, ext.core.Event())
 
         self._foundLight = lightVisible
+        
+    def _checkOrangePipe(self):
+        # Determine orientation to the bouy
+        pipeVisible = False
+        pipe, relativePos = self._findClosest(self._pipes)
+        forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
+        downwardVector = self.vehicle.robot.orientation * -ogre.Vector3.UNIT_Z
+        
+        quat = downwardVector.getRotationTo(relativePos)
+        yaw = -quat.getPitch(True).valueDegrees()
+        pitch = quat.getYaw(True).valueDegrees()
+        
+        # Check to see if its the field of view
+        if (math.fabs(yaw) <= (self._horizontalFOV/2)) and \
+           (math.fabs(pitch) <= (self._verticalFOV/2)):
+            pipeVisible = True
+        
+        if pipeVisible and (relativePos.length() < 4.5):
+            event = ext.core.Event()
+
+            event.x = pitch / (self._verticalFOV/2)
+            event.y = yaw / (self._horizontalFOV/2)
+            
+            # Find pipe relative pipe angle
+            forwardPipe = pipe.orientation * ogre.Vector3.UNIT_X
+            orientation = forwardVector.getRotationTo(forwardPipe)
+            event.angle = \
+                ext.math.Degree(orientation.getRoll(True).valueDegrees())
+            
+            self.publish(ext.vision.EventType.PIPE_FOUND, event)
+            
+        else:
+            if self._foundPipe:
+                self.publish(ext.vision.EventType.PIPE_LOST, ext.core.Event())
+
+        self._foundPipe = pipeVisible
         
 
 ext.core.SubsystemMaker.registerSubsystem('IdealSimVision', IdealSimVision)

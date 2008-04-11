@@ -139,6 +139,20 @@ material Simple/Red
 		}
 	}
 }
+material Simple/Orange
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 0.901 0.705 0.156
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 0.901 0.705 0.156
+		}
+	}
+}
 
 
 
