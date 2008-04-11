@@ -441,15 +441,40 @@ void processRuntimeDiag()
 }
 
 
+void checkChip(unsigned char * str, byte irq)
+{
+    int ret;
+    ret = busWriteByte(BUS_CMD_PING, irq);
+    if(ret == BUS_ERROR)
+        sprintf(str, "fail");
+
+    if(ret == BUS_FAILURE)
+        sprintf(str, "EPIC");
+
+    if(ret == 0)
+    {
+        if(readDataBlock(irq) == 0)
+            sprintf(str, " OK ");
+        else
+            sprintf(str, "rbad");
+    }
+}
+
+
 void showBootDiag(int mode)
 {
     unsigned char tmp[16];
     if(mode == 0)
     {
-        //sprintf(tmp, "Status: %02X      ", pollStatus());
+        sprintf(tmp, "DIST  BALN      ");
+        showString(tmp, 0);
+        sprintf(tmp, "                ");
 
-#warning THESE BITS MAY CHANGE BASED ON SCHEMATIC
+        checkChip(tmp, IRQ_DISTRO);
+        checkChip(tmp+6, IRQ_BALANCER);
 
+
+/*
         byte sta = pollStartSw();
         sprintf(tmp, "Sta: %02X %c%c%c%c%c%c%c%c", sta,
             (sta & 0x80) ? 'S' : '-',
@@ -460,13 +485,12 @@ void showBootDiag(int mode)
             (sta & 0x04) ? '4' : '-',
             (sta & 0x02) ? 'K' : '-',
             (sta & 0x01) ? 'W' : '-');
-
+*/
         showString(tmp, 1);
     }
 
     if(mode == 1)
     {
-
         if(busWriteByte(BUS_CMD_DEPTH, SLAVE_ID_DEPTH) != 0)
         {
             showString("DEPTH FAIL      ", 1);
