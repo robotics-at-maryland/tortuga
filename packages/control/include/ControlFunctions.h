@@ -114,6 +114,12 @@ double depthPDController2(MeasuredState* measuredState,
                           DesiredState* desiredState,
                           ControllerState* controllerState,
                           EstimatedState* estimatedState);
+
+double depthObserverController4(MeasuredState* measuredState,
+                    DesiredState* desiredState,
+                    ControllerState* controllerState,
+                    EstimatedState* estimatedState,
+                    double dt);
     
   //TODO: implement this function
   //  bool isAtDepth();
