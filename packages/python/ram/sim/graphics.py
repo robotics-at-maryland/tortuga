@@ -82,6 +82,10 @@ class Visual(Object):
         def fget(self):
             return self._node.position
             
+    class orientation(core.cls_property):
+        def fget(self):
+            return self._node.orientation
+            
     # IStorable Methods
     def load(self, data_object):
         """
