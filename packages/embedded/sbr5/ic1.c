@@ -690,7 +690,7 @@ int main(void)
 
     showString("Diagnostic?", 0);
 
-    for(j=0; j<250000 && (pollStartSw() == 0); j++);
+    for(j=0; j<25000 && (pollStartSw() == 0); j++);
 
     if(pollStartSw())
         diagBootMode();
