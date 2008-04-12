@@ -393,7 +393,7 @@ The most precise method of estimating TDOAs is phase comparison.  In an unbounde
 
 Recievers at two different ranges \(R_i\) and \(R_j\) will perceive different phases \(\phi_i\) and \(\phi_j\), with a phase difference of \(\phi_{ij} \equiv kd_{ij}\bmod{2\pi}\).  Phase on arrival can be computed using the discrete Fourier transform (DFT).
 
-To estimate TDOAs with phase comparison, each hydrophone must have at least one neighbor no more than a wavelength \(\lambda\equiv\frac{2\pi}{k}\) distant from it.  In water, a 30 kHz signal has a wavelength of approximately 5 cm.  Obviously, phase comparison severely limits the baseline.
+To estimate TDOAs with phase comparison, each hydrophone must have at least one neighbor no more than a half a wavelength \(\lambda/2\equiv\frac{\pi}{k}\) distant from it.  In water, a 30 kHz signal has a wavelength of approximately 5 cm.  Obviously, phase comparison severely limits the baseline.
 
 The simplest way to get around this is to use edge detection to get a rough TDOA and then to use phase comparison by DFT to refine it.
 
@@ -510,7 +510,7 @@ We can estimate the spatial variation in position accuracy for any given sonar a
 
 \paragraph{Phase comparison}
 
-As noted in section \ref{sec:tdoa-error}, if two hydrophones are separated by less than one  wavelength \(\lambda\), then the TDOA between them is proportional to the phase difference between the signals.  One of the most obvious ways to calculate the phase is to perform a discrete Fourier transform (DFT).
+As noted in section \ref{sec:tdoa-error}, if two hydrophones are separated by less than half a  wavelength \(\lambda\), then the TDOA between them is proportional to the phase difference between the signals.  One of the most obvious ways to calculate the phase is to perform a discrete Fourier transform (DFT).
 
 The DFT maps a sequence of \(N\) complex numbers \(x_n\) from \(n=0\) to \(N\) to another sequence of complex numbers \(X_k\) from \(k=0\) to \(N\):
 
