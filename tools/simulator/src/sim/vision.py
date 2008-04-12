@@ -194,23 +194,38 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Determine orientation to the bouy
         pipeVisible = False
         pipe, relativePos = self._findClosest(self._pipes)
+                
+        camVector = self.vehicle.robot.orientation * -ogre.Vector3.UNIT_Z
+        camVector.normalise()
+
+        # Find pitch
         forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
-        downwardVector = self.vehicle.robot.orientation * -ogre.Vector3.UNIT_Z
+        pitchPlane = ogre.Plane(forwardVector, 0) 
+        pitchVec = pitchPlane.projectVector(relativePos).normalisedCopy()
+        pitch = ogre.Math.ACos(pitchVec.dotProduct(camVector)).valueDegrees()
         
-        quat = downwardVector.getRotationTo(relativePos)
-        yaw = -quat.getPitch(True).valueDegrees()
-        pitch = quat.getYaw(True).valueDegrees()
-        
+        # Find yaw
+        rightVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_Y
+        yawPlane = ogre.Plane(rightVector, 0) 
+        yawVec = yawPlane.projectVector(relativePos).normalisedCopy()
+        yaw = ogre.Math.ACos(yawVec.dotProduct(camVector)).valueDegrees()
+
+        # Add in sign
+        relativePos = self.vehicle.robot.orientation.UnitInverse() * relativePos
+        pitch *= relativePos.y / (relativePos.y/relativePos.y)
+        yaw *= relativePos.x / (relativePos.x/relativePos.x)
+
+        #print 'P',pitchPlane,'Y',yawPlane
         # Check to see if its the field of view
         if (math.fabs(yaw) <= (self._horizontalFOV/2)) and \
            (math.fabs(pitch) <= (self._verticalFOV/2)):
             pipeVisible = True
-        
+       # pipeVisible = True
         if pipeVisible and (relativePos.length() < 4.5):
             event = ext.core.Event()
 
-            event.x = pitch / (self._verticalFOV/2)
-            event.y = yaw / (self._horizontalFOV/2)
+            event.y = pitch / (self._verticalFOV/2)
+            event.x = yaw / (self._horizontalFOV/2)
             
             # Find pipe relative pipe angle
             forwardPipe = pipe.orientation * ogre.Vector3.UNIT_X
