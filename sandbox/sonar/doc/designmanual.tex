@@ -273,7 +273,9 @@ A & -\mathbf b \\
 
 We can now solve this matrix equation for \(A\) and \(\mathbf b\) by, for instance, right-multiplying \(K\) by the pseudoinverse of \(D\).
 
-Rather than move the source, it may be simpler to rotate the hydrophone array.  We can use the AUV itself as a precision \(4 \pi\) steradians underwater rotation stage for the calibration process.
+This calibration routine has been numerically verified in MATLAB.  Adequate solutions for \(A\) and \(\mathbf b\) emerge with suprisingly few calibration pings.  Three pings is enough in principal, although accuracy is greatly enhanced for hundreds to thousands of trials.
+
+It may be simpler in practice to rotate the hydrophone array than to move the source.  We can use the AUV itself as a precision \(4 \pi\) steradians underwater rotation stage for the calibration process.
 
 \section{Estimating the vehicle's state}
 
