@@ -3,7 +3,7 @@
 \documentclass[10pt]{article}
 \usepackage{graphicx}
 \usepackage{listings}
-\title{Passive SONAR: Theory and Implementation on \textit{Tortuga 2}}
+\title{Sonar: Theory and Implementation on \textit{Tortuga 2}}
 \author{Leo Singer}
 
 \begin{document}
@@ -11,7 +11,7 @@
 \maketitle
 
 \begin{abstract}
-We explain the theories and methods involved in \textit{Tortuga}'s 2008 passive SONAR system.  We document and support mechanical design requirements and interfaces with other subsystems.
+We explain the theories and methods involved in \textit{Tortuga}'s 2008 passive sonar system.  We document and support mechanical design requirements and interfaces with other subsystems.
 
 This document is also meant to serve as a cumulative design manual for future revisions of \textit{Tortuga}.
 \end{abstract}
@@ -173,7 +173,14 @@ x_k \\
 y_k \\
 z_k
 \end{array}
-\right)=\left(
+\right) = A \left(
+\begin{array}{c}
+x_k \\
+y_k \\
+z_k
+\end{array}
+\right) = \\
+\left(
 \begin{array}{c}
 d_{10} \\
 d_{20} \\
@@ -202,11 +209,75 @@ d_{30}
 
 \subsubsection{Number of hydrophones}
 
-Since (\ref{eq:planars-multi}) is a set of linear equations in three variables, the matrix on the left hand side must have rank 3 in order to solve for \(\hat \mathbf k\).  Therefore, we need at least 4 (noncollinear, non-coplanar) hydrophones to determine \(\hat \mathbf k\) using far field multilateration.
+The matrix equation allows us to establish a design criterion for far field arrays.
+
+Since (\ref{eq:planars-multi}) is a set of linear equations in three variables, the matrix \(A\) must have rank 3 in order to solve for \(\hat \mathbf k\).  Therefore, we need at least 4 hydrophones.
+
+We need \(A\) to be non-singular, or put differently, have a nonzero determinant.  For a \(3 \times 3\) matrix, the determinant can be interpreted as the volume of the parallelepiped spanned by the columns.  A hydrophone layout for a far field type array must therefore be noncoplanar.  The best design is the one that spans the greatest volume, given whatever practical constraints are present.
+
+\subsubsection{Calibration}
+
+The accuracy with which we may record the hydrophone positions in the matrix \(A\) is clearly critical to the performance of the system.  We may project sound waves from known directions to map or calibrate the hydrophone positions.
+
+Suppose that we probe the array with pings from the directions \(\hat\mathbf k_1, \hat\mathbf k_2, \dots, \hat\mathbf k_i, \dots, \hat\mathbf k_m\) and measure TDOAs \(\mathbf d_1, \mathbf d_2, \dots, \mathbf d_i, \dots, \mathbf d_m\).  Here, the vectors \(\mathbf d_i\) correspond to the \(\left(d_{10}, d_{20}, d_{30}\right)\) column vectors on the right hand side of (\ref{eq:planars-multi}).
+
+Assume that each hydrophone \(\left\{0,1,2,3\right\}\) has an inherent timing bias, possibly due to differences in cable length.  Let the vector \(\mathbf b = \left(b_1,b_2,b_3\right)\) denote the timing bias of the first, second, and third hydrophones relative to the zeroth.
+
+Then from the set of matrix equations
+
+\begin{equation}
+\label{eq:planar-cal-nonsimp}
+A\left(\mathbf d_i - \mathbf b\right) = \mathbf k_i
+\end{equation}
+
+with known \(\mathbf d_i\) and \(\mathbf k_i\) we may calculate both the geometry matrix \(A\) and the bias vector \(\mathbf b\).  A handy way to write (\ref{eq:planar-cal-nonsimp}) is:
+
+\begin{equation}
+\label{eq:planar-cal-nonsimp}
+\left(\begin{array}{cc}
+A & -\mathbf b \\
+0 & 1
+\end{array}\right)
+\left(\begin{array}{c}
+\mathbf d_i \\
+1
+\end{array}\right)
+ = 
+\left(\begin{array}{c}
+\mathbf k_i \\
+1
+\end{array}\right)
+\end{equation}
+
+Now, considering all \(m\) measurements at once:
+
+\begin{eqnarray*}
+\label{eq:planar-cAL-simp}
+\left(\begin{array}{cc}
+A & -\mathbf b \\
+0 & 1
+\end{array}\right)
+\left(\begin{array}{cccccc}
+\mathbf d_1 & \mathbf d_2 & \dots & \mathbf d_i & \dots & \mathbf d_m\\
+1 & 1 & \dots & 1 & \dots & 1
+\end{array}\right) &=&
+\left(\begin{array}{cccccc}
+\mathbf k_1 & \mathbf k_2 & \dots & \mathbf k_i & \dots & \mathbf k_m\\
+1 & 1 & \dots & 1 & \dots & 1
+\end{array}\right) \\
+\left(\begin{array}{cc}
+A & -\mathbf b \\
+0 & 1
+\end{array}\right) D &=& K
+\end{eqnarray*}
+
+We can now solve this matrix equation for \(A\) and \(\mathbf b\) by, for instance, right-multiplying \(K\) by the pseudoinverse of \(D\).
+
+Rather than move the source, it may be simpler to rotate the hydrophone array.  We can use the AUV itself as a precision \(4 \pi\) steradians underwater rotation stage for the calibration process.
 
 \section{Estimating the vehicle's state}
 
-In this section, we describe three different levels of information that the SONAR system alone can provide: relative bearing, range rate, and range.
+In this section, we describe three different levels of information that the sonar system alone can provide: relative bearing, range rate, and range.
 
 \subsection{3D relative bearing (azimuth and elevation)}
 
@@ -255,11 +326,11 @@ Note that once the robot homes on the pinger, its range is automatically zero.  
 \item Complete the rest of the course using navigation augmented with absolute positioning.
 \end{enumerate}
 
-During the first step, the robot can log camera, IMU, and SONAR data, post-processing captured images en-route to identify visual targets.  Once the zero range has been established, the robot can speed back to the exact location of the identified targets.
+During the first step, the robot can log camera, IMU, and sonar data, post-processing captured images en-route to identify visual targets.  Once the zero range has been established, the robot can speed back to the exact location of the identified targets.
 
 \subsubsection{Range from triangulation}
 
-If the robot is equipped with two far field type arrays, separated by a fixed distance, then it can apply elementary trigonometry to determine its range using triangulation.
+If the robot is equipped with two far field type arrays, separated by a fixed distance, then we may use triangulation to determine the range.
 
 \begin{figure}[htbp]
 \begin{center}
@@ -330,7 +401,7 @@ With a sample rate of \(\tau_s=1/f_s\) and a target period of \(\tau=1/f\), ther
 
 \subsubsection{Machining tolerance}
 
-Errors in the placement of the hydrophones will cause systematic errors in location estimates.  Standard machine tools available at the Univesity of Maryland can achieve a tolerance of about 2.5 thousandths of an inch, or about 64 \(\mu\)m.  These systematic errors can be reduced or eliminated by calibrating the SONAR array before use.
+Errors in the placement of the hydrophones will cause systematic errors in location estimates.  Standard machine tools available at the Univesity of Maryland can achieve a tolerance of about 2.5 thousandths of an inch, or about 64 \(\mu\)m.  These systematic errors can be reduced or eliminated by calibrating the sonar array before use.
 
 Ultimately, the errors in the relative positions of the hydrophones are limited by the mechanical properties of the mounting rig.  As one engineer from Carderock has pointed out, at high frequencies ordinary materials like aluminum and plastic are ``like jello.''
 
@@ -385,7 +456,7 @@ From table~(\ref{tab:lloyd}) we see that at close range the first echo is entire
 
 Based on Ho's error analysis \cite{Ho} \cite{Ho:2007lr}, we estimate the minimum covariance matrix relating \(x_s\), \(y_s\), and \(z_s\) by considering normally distributed random errors in the TDOAs \(d_{ij}\) and the hydrophone positions \(\mathbf{r}_i\).
 
-We can estimate the spatial variation in position accuracy for any given SONAR array geometry.  Figures (\ref{fig:squarePyramid}) and (\ref{fig:doubleTetrahedron}) depict the positional accuracy of an inverted square pyramid array and a double tetrahedron array, respectively.
+We can estimate the spatial variation in position accuracy for any given sonar array geometry.  Figures (\ref{fig:squarePyramid}) and (\ref{fig:doubleTetrahedron}) depict the positional accuracy of an inverted square pyramid array and a double tetrahedron array, respectively.
 
 \subsection{Monte Carlo estimation of the covariance matrix}
 
