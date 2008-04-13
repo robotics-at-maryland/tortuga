@@ -149,8 +149,8 @@ class RedLightPanel(VisionPanel):
             conn.disconnect()
         
     def _createDataControls(self):
-        self._createDataControl(controlName = '_x', label = 'Y Pos: ')
-        self._createDataControl(controlName = '_y', label = 'X Pos: ')
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
         self._createDataControl(controlName = '_azimuth', label = 'Azimuth: ')
         self._createDataControl(controlName = '_elevation',
                                 label = 'Elvevation: ')
@@ -194,8 +194,8 @@ class OrangePipePanel(VisionPanel):
             conn.disconnect()
         
     def _createDataControls(self):
-        self._createDataControl(controlName = '_x', label = 'Y Pos: ')
-        self._createDataControl(controlName = '_y', label = 'X Pos: ')
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
         self._createDataControl(controlName = '_angle', label = 'Angle: ')
         
     def _onPipeFound(self, event):
