@@ -198,34 +198,35 @@ class IdealSimVision(ext.vision.VisionSystem):
         camVector = self.vehicle.robot.orientation * -ogre.Vector3.UNIT_Z
         camVector.normalise()
 
-        # Find pitch
+        # Find Roll (X cordinate)
         forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
-        pitchPlane = ogre.Plane(forwardVector, 0) 
+        rollPlane = ogre.Plane(forwardVector, 0) 
+        rollVec = rollPlane.projectVector(relativePos).normalisedCopy()
+        roll = ogre.Math.ACos(rollVec.dotProduct(camVector)).valueDegrees()
+        
+        # Find Pitch (Y cordinate)
+        rightVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_Y
+        pitchPlane = ogre.Plane(rightVector, 0) 
         pitchVec = pitchPlane.projectVector(relativePos).normalisedCopy()
         pitch = ogre.Math.ACos(pitchVec.dotProduct(camVector)).valueDegrees()
-        
-        # Find yaw
-        rightVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_Y
-        yawPlane = ogre.Plane(rightVector, 0) 
-        yawVec = yawPlane.projectVector(relativePos).normalisedCopy()
-        yaw = ogre.Math.ACos(yawVec.dotProduct(camVector)).valueDegrees()
 
         # Add in sign
         relativePos = self.vehicle.robot.orientation.UnitInverse() * relativePos
-        pitch *= relativePos.y / (relativePos.y/relativePos.y)
-        yaw *= relativePos.x / (relativePos.x/relativePos.x)
-
-        #print 'P',pitchPlane,'Y',yawPlane
+        if relativePos.y < 0:
+            roll *= -1
+        if relativePos.x < 0:
+            pitch *= -1
+        
         # Check to see if its the field of view
-        if (math.fabs(yaw) <= (self._horizontalFOV/2)) and \
+        if (math.fabs(roll) <= (self._horizontalFOV/2)) and \
            (math.fabs(pitch) <= (self._verticalFOV/2)):
             pipeVisible = True
-       # pipeVisible = True
+
         if pipeVisible and (relativePos.length() < 4.5):
             event = ext.core.Event()
 
+            event.x = roll / (self._horizontalFOV/2)
             event.y = pitch / (self._verticalFOV/2)
-            event.x = yaw / (self._horizontalFOV/2)
             
             # Find pipe relative pipe angle
             forwardPipe = pipe.orientation * ogre.Vector3.UNIT_X
