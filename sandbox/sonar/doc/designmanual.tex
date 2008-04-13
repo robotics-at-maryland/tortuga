@@ -22,7 +22,7 @@ This document is also meant to serve as a cumulative design manual for future re
 
 \section{The pinger}
 
-The annual AUVSI AUV competition has included an acoustic pinger since the 2000 competition in Orlando, Florida.  In 2007, the pinger may mark the location of a ``treasure'' that the vehicle could grab and pull to the surface directly above to earn points.
+The annual AUVSI AUV competition has included an acoustic pinger since the 2000 competition in Orlando, Florida.  In 2008, the pinger will also mark the location of a ``treasure'' that the vehicle can grab and pull to the surface directly above to earn points.
 
 \subsection{Possible uses}
 
@@ -37,7 +37,7 @@ We will further demonstrate that time difference on arrival (TDOA) estimates, wh
 \subsection{Spherical waves, near field}
 \label{sec:near-field}
 
-If we assume that we are in the near field of the pinger, then the multilateration problem reduces to finding the intersection point of a collection of hyperboloids, as is shown in figure~(\ref{fig:hyperbola-good}).
+In the near field of the pinger, the multilateration problem reduces to finding the intersection point of a collection of hyperboloids, as is shown in figure~(\ref{fig:hyperbola-good}).
 
 \begin{figure}[htbp]
 \begin{center}
@@ -224,12 +224,10 @@ Suppose that we probe the array with pings from the directions \(\hat\mathbf k_1
 Assume that each hydrophone \(\left\{0,1,2,3\right\}\) has an inherent timing bias, possibly due to differences in cable length.  Let the vector \(\mathbf b = \left(b_1,b_2,b_3\right)\) denote the timing bias of the first, second, and third hydrophones relative to the zeroth.
 
 Then from the set of matrix equations
-
 \begin{equation}
 \label{eq:planar-cal-nonsimp}
 A\left(\mathbf d_i - \mathbf b\right) = \mathbf k_i
 \end{equation}
-
 with known \(\mathbf d_i\) and \(\mathbf k_i\) we may calculate both the geometry matrix \(A\) and the bias vector \(\mathbf b\).  A handy way to write (\ref{eq:planar-cal-nonsimp}) is:
 
 \begin{equation}
