@@ -34,10 +34,10 @@ class Pipe(ext.core.EventPublisher):
 
         if publish:
             self.publish(Pipe.UPDATE, ext.core.Event())
-            
-class Hover(Motion):
+    
+class Base(Motion):
     """
-    Hovers over and aligns with pipe
+    Base motion, by default it hovers over the center of the pipe and alings
     """
     def __init__(self, pipe, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
                  #speedGain = 1.0, sidewaysSpeedGain = 1.0, 
@@ -65,20 +65,23 @@ class Hover(Motion):
         self._running = True
         self._seek()
         
-    def _seek(self):
-        
-        # Determin forward speed (and bound within limits)
+    def _setForwardSpeed(self):
+        """Determin forward speed (and bound within limits)"""
         forwardSpeed = self._pipe.y * self._maxSpeed
 #        forwardSpeed = Hover._limit(self._pipe.y * self._speedGain,
 #                                    -self._maxSpeed, self._maxSpeed)
+        self._controller.setSpeed(forwardSpeed)
         
-        # Determine (and bound within limits)
+    def _setSidewaysSpeed(self):
+        """Determine sideways speed (and bound within limits)"""
         sidewaysSpeed = self._pipe.x * self._maxSidewaysSpeed
 #        sidewaysSpeed = Hover._limit(self._pipe.x * self._sidewaysSpeedGain,
 #                                     -self._maxSidewaysSpeed,
 #                                     self._maxSidewaysSpeed)
+        self._controller.setSidewaysSpeed(sidewaysSpeed)
         
-        # Determine turn
+    def _turn(self):
+        """Determine turn"""
         vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
         vehicleHeading = vehicleHeading.valueDegrees()
         absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
@@ -87,12 +90,15 @@ class Hover(Motion):
         desiredHeading = desiredHeading.valueDegrees()
         
         yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
-        
+
         # Command the vehicle
-        self._controller.setSpeed(forwardSpeed)
-        self._controller.setSidewaysSpeed(sidewaysSpeed)
         self._controller.yawVehicle(yawCommand) 
         
+    def _seek(self):
+        self._setForwardSpeed()
+        self._setSidewaysSpeed()
+        self._turn()
+
     @staticmethod
     def _limit(val, min, max):
         if val < min:
@@ -100,8 +106,7 @@ class Hover(Motion):
         elif val > max:
             return max
         return val
-        
-        
+
     def _onPipeUpdate(self, event):
         if self._running:
             # Data already updated, so lets just keep seeking
@@ -115,3 +120,11 @@ class Hover(Motion):
         self._controller.setSpeed(0)
         self._controller.setSidewaysSpeed(0)
         self._conn.disconnect()
+
+Hover = Base
+
+class Follow(Base):
+    def _setForwardSpeed(self):
+        """Determin forward speed (and bound within limits)"""
+        forwardSpeed = (1 - math.fabs(self._pipe.x)) * self._maxSpeed
+        self._controller.setSpeed(forwardSpeed)

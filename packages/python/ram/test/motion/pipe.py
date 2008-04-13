@@ -19,12 +19,15 @@ import ram.motion as motion
 import ram.motion.pipe
 import ram.test.motion.support as support
 
-class TestHover(support.MotionTest):
+class TestBase(support.MotionTest):
+    def makeClass(self, *args, **kwags):
+        return motion.pipe.Base(*args, **kwags)
+    
     def testAngle(self):
         # Dead center, with yawGain = 1
         pipe = motion.pipe.Pipe(x = 0, y = 0, relativeAngle = 15)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 1,
-                              maxSidewaysSpeed = 1)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(15, self.controller.yawChange, 3)
@@ -35,8 +38,8 @@ class TestHover(support.MotionTest):
         
         # Test a yaw gain
         pipe = motion.pipe.Pipe(x = 0, y = 0, relativeAngle = 30)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 1,
-                              maxSidewaysSpeed = 1, yawGain = 0.5)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1, yawGain = 0.5)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(15, self.controller.yawChange, 3)
@@ -51,8 +54,8 @@ class TestHover(support.MotionTest):
         # Make sure we only rotate relative to the controllers desired 
         # orientation
         pipe = motion.pipe.Pipe(x = 0, y = 0, relativeAngle = 45)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 1,
-                              maxSidewaysSpeed = 1)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(20, self.controller.yawChange, 3)
@@ -60,8 +63,8 @@ class TestHover(support.MotionTest):
     def testUpperLeftHover(self):
         # All gains set to 1 (default)
         pipe = motion.pipe.Pipe(x = -0.5, y = 0.5, relativeAngle = 0)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 1,
-                              maxSidewaysSpeed = 1)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
@@ -70,8 +73,8 @@ class TestHover(support.MotionTest):
         
         # Different gains
         pipe = motion.pipe.Pipe(x = -0.5, y = 0.5, relativeAngle = 0)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 0.5,
-                              maxSidewaysSpeed = 2)
+        m = self.makeClass(pipe = pipe, maxSpeed = 0.5,
+                           maxSidewaysSpeed = 2)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
@@ -81,8 +84,8 @@ class TestHover(support.MotionTest):
     def testLowerRightHover(self):
         # All gains set to 1 (default)
         pipe = motion.pipe.Pipe(x = 0.25, y = -1, relativeAngle = 0)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 1,
-                              maxSidewaysSpeed = 1)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
@@ -91,8 +94,8 @@ class TestHover(support.MotionTest):
         
         # Different gains
         pipe = motion.pipe.Pipe(x = 0.25, y = -1, relativeAngle = 0)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 3,
-                              maxSidewaysSpeed = 0.75)
+        m = self.makeClass(pipe = pipe, maxSpeed = 3,
+                           maxSidewaysSpeed = 0.75)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
@@ -102,8 +105,8 @@ class TestHover(support.MotionTest):
     def testStop(self):
         # Move the vehicle
         pipe = motion.pipe.Pipe(x = -0.5, y = 0.5, relativeAngle = 0)
-        m = motion.pipe.Hover(pipe = pipe, maxSpeed = 1,
-                              maxSidewaysSpeed = 1)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
@@ -116,4 +119,64 @@ class TestHover(support.MotionTest):
         self.assertAlmostEqual(0, self.controller.speed, 3)
         #self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
     
+# Just test the same things as the base
+class TestHover(TestBase):
+    def makeClass(self, *args, **kwags):
+        return motion.pipe.Hover(*args, **kwags)
+    
+    
+class TestFollow(TestBase):
+    def makeClass(self, *args, **kwags):
+        return motion.pipe.Follow(*args, **kwags)
+    
+    def testUpperLeftHover(self):
+        """Not applicable"""
+        pass
+    
+    def testLowerRightHover(self):
+        """Not applicable"""
+        pass
+    
+    def testStraight(self):
+        # All gains set to 1 (default)
+        pipe = motion.pipe.Pipe(x = 0, y = 0.5, relativeAngle = 0)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1)
         
+        self.motionManager.setMotion(m)
+        self.assertAlmostEqual(0, self.controller.yawChange, 3)
+        self.assertAlmostEqual(1, self.controller.speed, 3)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
+        
+        # Different gains
+        pipe = motion.pipe.Pipe(x = 0, y = -1, relativeAngle = 0)
+        m = self.makeClass(pipe = pipe, maxSpeed = 4,
+                           maxSidewaysSpeed = 2)
+        
+        self.motionManager.setMotion(m)
+        self.assertAlmostEqual(0, self.controller.yawChange, 3)
+        self.assertAlmostEqual(4, self.controller.speed, 3)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
+    
+    
+    def testLeftRight(self):
+        # To the left, All gains set to 1 (default)
+        pipe = motion.pipe.Pipe(x = -0.25, y = 0.5, relativeAngle = 0)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1)
+        
+        self.motionManager.setMotion(m)
+        self.assertAlmostEqual(0, self.controller.yawChange, 3)
+        self.assertAlmostEqual(0.75, self.controller.speed, 3)
+        self.assertAlmostEqual(-0.25, self.controller.sidewaysSpeed, 3)
+        
+        # To the right, Different gains
+        pipe = motion.pipe.Pipe(x = 0.25, y = 0.5, relativeAngle = 0)
+        m = self.makeClass(pipe = pipe, maxSpeed = 4,
+                           maxSidewaysSpeed = 2)
+        
+        self.motionManager.setMotion(m)
+        self.assertAlmostEqual(0, self.controller.yawChange, 3)
+        self.assertAlmostEqual(3, self.controller.speed, 3)
+        self.assertAlmostEqual(0.5, self.controller.sidewaysSpeed, 3)
+    
