@@ -30,10 +30,10 @@ class Pipe(ext.core.EventPublisher):
 
         # Change them to degrees if they are ext.math.Degree/Radian types
         if hasattr(self.relativeAngle, 'valueDegrees'):
-            self.relativeAngle = self.angle.valueDegrees()
+            self.relativeAngle = self.relativeAngle.valueDegrees()
 
         if publish:
-            self.publish(PointTarget.UPDATE, ext.core.Event())
+            self.publish(Pipe.UPDATE, ext.core.Event())
             
 class Hover(Motion):
     """
@@ -79,11 +79,19 @@ class Hover(Motion):
 #                                     self._maxSidewaysSpeed)
         
         # Determine turn
-        yawCommand = self._pipe.relativeAngle * self._yawGain
+        vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+        vehicleHeading = vehicleHeading.valueDegrees()
+        absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
+        
+        desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
+        desiredHeading = desiredHeading.valueDegrees()
+        
+        yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
         
         # Command the vehicle
         self._controller.setSpeed(forwardSpeed)
-        self._controller.setSidewaysSpeed(sidewaysSpeed)
+        if sidewaysSpeed != 0:
+            self._controller.setSidewaysSpeed(sidewaysSpeed)
         self._controller.yawVehicle(yawCommand) 
         
     @staticmethod
@@ -106,5 +114,5 @@ class Hover(Motion):
         """
         self._running = False
         self._controller.setSpeed(0)
-        self._controller.setSidewaysSpeed(0)
+        #self._controller.setSidewaysSpeed(0)
         self._conn.disconnect()
