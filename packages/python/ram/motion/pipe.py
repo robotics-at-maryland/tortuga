@@ -90,8 +90,7 @@ class Hover(Motion):
         
         # Command the vehicle
         self._controller.setSpeed(forwardSpeed)
-        if sidewaysSpeed != 0:
-            self._controller.setSidewaysSpeed(sidewaysSpeed)
+        self._controller.setSidewaysSpeed(sidewaysSpeed)
         self._controller.yawVehicle(yawCommand) 
         
     @staticmethod
@@ -114,5 +113,5 @@ class Hover(Motion):
         """
         self._running = False
         self._controller.setSpeed(0)
-        #self._controller.setSidewaysSpeed(0)
+        self._controller.setSidewaysSpeed(0)
         self._conn.disconnect()

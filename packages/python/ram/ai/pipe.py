@@ -52,7 +52,7 @@ class Seek(state.State):
         self._pipe = ram.motion.pipe.Pipe(0,0,0)
         motion = ram.motion.pipe.Hover(pipe = self._pipe,
                                        maxSpeed = 3,
-                                       maxSidewaysSpeed = 0)
+                                       maxSidewaysSpeed = 3)
         self.motionManager.setMotion(motion)
 
     def exit(self):

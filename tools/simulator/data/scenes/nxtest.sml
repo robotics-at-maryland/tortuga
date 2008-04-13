@@ -28,7 +28,7 @@ Scene:
         pipe1:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-15, 1, -3.05]
-            #position: [-18, 0, -3.05]
+            orientation: [0, 0, 1, 45]
             
             Graphical:
                 mesh: 'cube.1m.mesh'
