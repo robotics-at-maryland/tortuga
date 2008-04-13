@@ -37,6 +37,7 @@ extern "C" {
 //                       'angularRate',[1 2 3]');
 struct RAM_EXPORT DesiredState{
     double speed;
+    double sidewaysSpeed;
     double depth;
     double quaternion[4];
     double angularRate[3];
@@ -73,6 +74,7 @@ struct RAM_EXPORT ControllerState{
     
     
     double speedPGain;
+    double sidewaysSpeedPGain;
     int depthControlType;
     math::Matrix2 depthA;
     math::Vector2 depthB;

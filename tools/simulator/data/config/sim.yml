@@ -63,6 +63,7 @@ Subsystems:
         angularPGain: 10
         angularDGain: 1
         speedPGain: 3
+        sidewaysSpeedPGain: 3
         
         #Select type of Depth Controller
         # set depthControlType = (1 for P control) 

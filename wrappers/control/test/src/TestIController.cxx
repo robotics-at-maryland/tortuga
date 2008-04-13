@@ -26,9 +26,13 @@ public:
 	
     virtual void setSpeed(double speed_) { speed = speed_; }
 
+    virtual void setSidewaysSpeed(double speed) { sidewaysSpeed = speed; }
+    
     virtual void setDepth(double depth_) { depth = depth_; }
 
     virtual double getSpeed() { return speed; }
+
+    virtual double getSidewaysSpeed() { return sidewaysSpeed; }
 
     virtual double getDepth() { return depth; }
     
@@ -59,6 +63,7 @@ public:
     virtual bool backgrounded() { return false; }
     
     double speed;
+    double sidewaysSpeed;
     double depth;
     double yaw;
     bool atorientation;

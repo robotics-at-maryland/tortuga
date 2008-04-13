@@ -6,7 +6,7 @@
 #include "uart.c"
 
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & ECIO); //EC_PLL4); //ECIO );
+_FOSC( CSW_FSCM_OFF & ECIO & PWRT_64); //EC_PLL4); //ECIO );
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
@@ -25,37 +25,19 @@ _FWDT ( WDT_OFF );
  */
 
 /* Bus pin assignments */
-#define REQ_CN_BIT  (CNEN1bits.CN1IE)
-#define IN_REQ      _RC13
-#define TRIS_REQ    _TRISC13
+#define REQ_CN_BIT  (CNEN1bits.CN2IE)
+#define IN_REQ      _RB0
+#define TRIS_REQ    _TRISB0
 
-#define LAT_AKN     _LATC14
-#define TRIS_AKN    _TRISC14
+#define LAT_AKN     _LATD8
+#define TRIS_AKN    _TRISD8
 
-#define IN_RW       _RE8
-#define TRIS_RW     _TRISE8
-
-/* Thurster Safety Pins */
-#define TRIS_TK6    _TRISB1
-#define TRIS_TK5    _TRISB2
-#define TRIS_TK4    _TRISB3
-#define TRIS_TK3    _TRISB4
-#define TRIS_TK2    _TRISB5
-#define TRIS_TK1    _TRISC15
-
-
-#define LAT_TK6     _LATB1
-#define LAT_TK5     _LATB2
-#define LAT_TK4     _LATB3
-#define LAT_TK3     _LATB4
-#define LAT_TK2     _LATB5
-#define LAT_TK1     _LATC15
+#define IN_RW       _RD9
+#define TRIS_RW     _TRISD9
 
 
 #define RW_READ     0
 #define RW_WRITE    1
-
-void dropMarker(byte id);
 
 
 /* Transmit buffer */
@@ -113,7 +95,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "DEP MRK THR");
+                    txBuf[0] = sprintf(txBuf+1, "Depth");
                     break;
                 }
 
@@ -169,40 +151,6 @@ void processData(byte data)
                 }
 #endif
 
-                case BUS_CMD_MARKER1:
-                {
-//                     dropMarker(0);
-                    break;
-                }
-
-                case BUS_CMD_MARKER2:
-                {
-//                     dropMarker(1);
-                    break;
-                }
-
-
-            /* <Deprecated> */
-                case BUS_CMD_THRUSTERS_ON:
-                {
-                    _LATB3 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTERS_OFF:
-                {
-                    _LATB3 = 0;
-                    break;
-                }
-
-                case BUS_CMD_CHECKWATER:
-                {
-                    txBuf[0] = 1;
-                    txBuf[1] = _RB4;
-                    break;
-                }
-            /* </Deprecated> */
-
                 case BUS_CMD_DEPTH:
                 {
                     txBuf[0] = 2;   /* Depth is 2 bytes */
@@ -210,86 +158,6 @@ void processData(byte data)
                     txBuf[2] = avgDepth & 0xFF;
                     break;
                 }
-
-                case BUS_CMD_THRUSTER1_OFF:
-                {
-                    LAT_TK1 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER2_OFF:
-                {
-                    LAT_TK2 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER3_OFF:
-                {
-                    LAT_TK3 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER4_OFF:
-                {
-                    LAT_TK4 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER5_OFF:
-                {
-                    LAT_TK5 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER6_OFF:
-                {
-                    LAT_TK6 = 1;
-                    break;
-                }
-
-
-                case BUS_CMD_THRUSTER1_ON:
-                {
-                    LAT_TK1 = 1;
-                    break;
-                }
-                case BUS_CMD_THRUSTER2_ON:
-                {
-                    LAT_TK2 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER3_ON:
-                {
-                    LAT_TK3 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER4_ON:
-                {
-                    LAT_TK4 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER5_ON:
-                {
-                    LAT_TK5 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER6_ON:
-                {
-                    LAT_TK6 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER_STATE:
-                {
-                    txBuf[0] = 1;
-                    txBuf[1] = (LAT_TK1 << 5) | (LAT_TK2 << 4) | (LAT_TK3 << 3) | (LAT_TK4 << 2) | ( (LAT_TK5 == 0) << 1) | (LAT_TK6 == 0);
-                    break;
-                }
-
             }
         }
         break;
@@ -345,30 +213,26 @@ void processData(byte data)
 /* Read a byte from the bus */
 byte readBus()
 {
-    return (PORTE & 0x3F) | (_RD0 << 6) | (_RD1 << 7);
+    return (PORTD & 0x0F) | ((PORTB & 0x0F00) >> 4);
 }
 
 
 /* Take bus out of high-impedance state and write a byte there */
 void writeBus(byte b)
 {
-    TRISE = TRISE & 0xFFC0;
-    _TRISD1 = TRIS_OUT;
-    _TRISD0 = TRIS_OUT;
+    TRISD = TRISD & 0xFFF0;
+    TRISB = TRISB & 0xF0FF;
 
-     LATE = (LATE & 0xFFC0) | (b & 0x3F);
-    _LATD0 = (b & 0x40) >> 6;
-    _LATD1 = (b & 0x80) >> 7;
-
+    LATD = (LATD & 0xFFF0) | (b & 0x0F);
+    LATB = (LATB & 0xF0FF) | ((b & 0xF0) << 4);
 }
 
 
 /* Put bus in high-impedance state. */
 void freeBus()
 {
-    _TRISD1 = TRIS_IN;
-    _TRISD0 = TRIS_IN;
-    TRISE = TRISE | 0x3F;
+    TRISB = TRISB | 0x0F00;
+    TRISD = TRISD | 0x0F;
 }
 
 
@@ -435,56 +299,6 @@ byte checkBus()
 }
 
 
-/*
- * Drop the first marker. I am assuming we have multiple markers. This is
- * really here to let me play with interrupts and learn how to use the
- * timer module. I cannot occupy the slave while the marker drops, so
- * marker command sets marker output to 1, and then a timer interrupt must
- * bring it back to 0.
- */
-void dropMarker(byte id)
-{
-    /* Set appropriate output to 1 */
-    if(id == 0)
-        _LATB1 = 0;
-    else
-        _LATB2 = 0;
-
-
-    /* Timer1 is a Type A timer. Evidently there are other types
-     * The clock rate is 96MHz, after PLL. So.. it seems that:
-     * (1/96e6) * (256 prescaler) * (4 clocks per insn) * (65536 period) = 0.69 seconds.
-     * Oh well, 2.79 seconds of soleniod operation should be enough time to drop a
-     * marker, but I would like to know the reason for this discrepantcy.
-     */
-
-    PR1 = 7500;            /* Period */
-    TMR1 = 0;               /* Reset timer */
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 1;      /* Enable interrupts */
-    T1CONbits.TCS = 0;      /* Use internal clock */
-    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
-    T1CONbits.TON = 1;      /* Start Timer1 */
-}
-
-/* ISR for Timer1. Used for turning off marker soleniod after it was turned on */
-void _ISR _T1Interrupt(void)
-{
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 0;      /* Disable interrupts */
-
-    /* This timer kills both solenoids. If one marker is dropped, and another is
-     * dropped before the first soleniod deactivates, the timer is reset and both
-     * solenids will deactivate when the timer expires.
-     */
-
-    _LATB1 = 1;         /* Turn off marker soleniod (or LED in my case) */
-    _LATB2 = 1;         /* Turn off marker soleniod (or LED in my case) */
-
-    T1CONbits.TON = 0;  /* Stop Timer1 */
-}
-
-
 
 /*
  * These functions are insanely simple. But they are made anyway to prevent
@@ -512,8 +326,10 @@ void initCN()
     enableBusInterrupt();
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
+
     IPC6bits.U2TXIP = 6;    /* TX at priority 6 */
     IPC6bits.U2RXIP = 5;    /* RX at priority 5 */
+
 
     IPC3bits.CNIP = 4;      /* Bus at priority 4 */
     IPC2bits.ADIP = 2;      /* ADC at priority 2 */
@@ -596,7 +412,7 @@ void initADC()
 {
     avgDepth = 0x1234;
     ADPCFG = 0xFFFF;
-    ADPCFGbits.PCFG0 = 0;
+    ADPCFGbits.PCFG1 = 0;
     _TRISB0 = TRIS_IN;
 
     ADCON1 = 0x0000;
@@ -605,7 +421,7 @@ void initADC()
 
     ADCON1bits.FORM = 0;    /* Plain format */
 
-    ADCHS = 0x0000;
+    ADCHS = 0x0001;         /* Convert pin AN1 */
     ADCSSL = 0;
     ADCON3bits.SAMC=0x1F;
 
@@ -624,27 +440,6 @@ void initADC()
 void main()
 {
     byte i;
-
-    _LATB1 = 1;
-    _LATB2 = 1;
-    _TRISB1 = TRIS_OUT; /* Marker 1 */
-    _TRISB2 = TRIS_OUT; /* Marker 2 */
-
-    LAT_TK1 = 0;
-    LAT_TK2 = 0;
-    LAT_TK3 = 0;
-    LAT_TK4 = 0;
-    LAT_TK5 = 1;    // Flipped board logic
-    LAT_TK6 = 1;
-
-
-    TRIS_TK1 = TRIS_OUT;
-    TRIS_TK2 = TRIS_OUT;
-    TRIS_TK3 = TRIS_OUT;
-    TRIS_TK4 = TRIS_OUT;
-    TRIS_TK5 = TRIS_OUT;
-    TRIS_TK6 = TRIS_OUT;
-
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;

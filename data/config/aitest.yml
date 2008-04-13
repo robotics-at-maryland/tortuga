@@ -8,31 +8,18 @@ Subsystems:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
         
-        RedLightDetector:       
+#       RedLightDetector:       
 #           intialMinPixels: 400
 #           foundMinPixelScale: 0.85
 #           lostMinPixelScale: 0.75
 #           # About 20% of the total pixels
-            topRemovePercentage: 0.25
-            almostHitPixels: 0.2
-
-            # Default 40
-            redPercentage: 35
-            # Default 200
-            redIntensity: 150
-
+#           almostHitPixels: 61440.0
+        
         # Recording Settings
-        maxRecordRate: 1 # Hz
-        #forwardFile: forward.avi
-        #forwardPort: 50001
+#        maxRecordRate: 5 # Hz
+#        forwardFile: forward.avi
+#        forwardPort: 50000
     
-
-    RemoteController:
-        type: RemoteController
-        depends_on: ["Controller"]
-        update_interval: -1
-        yawGain: 65
-
     EventHub:
         type: EventHub
 
@@ -109,25 +96,34 @@ Subsystems:
                 calibration_factor: 0.3612
                 direction: -1
 
+            TopThruster:
+                # serial: 149
+                type: Thruster
+                address: 5
+                calibration_factor: 0.4146
+                direction: 1
+
+            BottomThruster:
+                type: Thruster
+                address: 6
+                calibration_factor: 0.3652
+                direction: -1
+
+
+
             IMU:
                 type: IMU
                 update_interval: 5
                 # These are in VEHICLE FRAME
+                # Pre-thruster change out
                 #magXBias: -0.229488
                 #magYBias: 0.270406
                 #magZBias: 0.158325
-                
-                #New set of thrusters, but only four
-                #magXBias: -0.235985
-                #magYBias: 0.223828
-                #magZBias: 0.229027
-                
-                #Six thrusters
+                # Post Thruster change out, and with 6 thrusters
                 magXBias: -0.260058
                 magYBias: 0.211263
                 magZBias: 0.243511
 
-                
                 localMagneticPitch: 60
 
     Controller:
@@ -139,6 +135,7 @@ Subsystems:
         angularPGain: 7
         angularDGain: 1
         speedPGain: 3
+        sidewaysSpeedPGain: 3
         # Should not be negative
         depthPGain: 20
 

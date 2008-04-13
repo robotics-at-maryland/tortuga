@@ -109,11 +109,9 @@ int pingBoard(int fd)
 }
 
 
-
-
 int checkBoard(int fd)
 {
-    unsigned char buf[2]={HOST_CMD_CHECK, HOST_CMD_CHECK};
+    unsigned char buf[2]={HOST_CMD_SYSCHECK, HOST_CMD_SYSCHECK};
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
     if(buf[0] == 0xBC)
@@ -136,7 +134,7 @@ int readDepth(int fd)
     unsigned char buf[5]={HOST_CMD_DEPTH, HOST_CMD_DEPTH};
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
-    if(buf[0] != 0x03)
+    if(buf[0] != HOST_REPLY_DEPTH)
         return SB_ERROR;
 
     readData(fd, buf, 3);
@@ -148,49 +146,76 @@ int readDepth(int fd)
 }
 
 
+/*
+ * Send:   [CmdCode, CS]
+ * Expect: [ReplyCode, Val, CS]
+ */
+int simpleRead(int fd, int cmdCode, int replyCode)
+{
+    unsigned char buf[5];
+    buf[0] = buf[1] = cmdCode;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != replyCode)
+    {
+        printf("Bad reply from simple command %02x! (Expected %02x, got %02x)\n", cmdCode, replyCode, buf[0]);
+        return SB_ERROR;
+    }
+    readData(fd, buf, 2);
+
+    if( ((replyCode + buf[0]) & 0xFF) == buf[1])
+        return buf[0];
+
+    printf("Bad cs in response from simple command %02x!\n", cmdCode);
+
+    return SB_ERROR;
+}
+
+
 
 int readStatus(int fd)
 {
-    unsigned char buf[5]={HOST_CMD_STATUS, HOST_CMD_STATUS};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] != 0x05)
-        return SB_ERROR;
-
-    readData(fd, buf, 2);
-
-    if( ((0x05 + buf[0]) & 0xFF) == buf[1])
-        return buf[0];
-
-    return SB_ERROR;
+    return simpleRead(fd, HOST_CMD_BOARDSTATUS, HOST_REPLY_BOARDSTATUS);
 }
 
 
 int readThrusterState(int fd)
 {
-    unsigned char buf[5]={HOST_CMD_THRUSTERSTATE, HOST_CMD_THRUSTERSTATE};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] != 0x11)
-        return SB_ERROR;
-
-    readData(fd, buf, 2);
-
-    if( ((0x11 + buf[0]) & 0xFF) == buf[1])
-        return buf[0];
-
-    return SB_ERROR;
+    return simpleRead(fd, HOST_CMD_THRUSTERSTATE, HOST_REPLY_THRUSTERSTATE);
 }
+
+
+int readBatteryEnables(int fd)
+{
+    return simpleRead(fd, HOST_CMD_BATTSTATE, HOST_REPLY_BATTSTATE);
+}
+
+
+int readBarState(int fd)
+{
+    return simpleRead(fd, HOST_CMD_BARSTATE, HOST_REPLY_BARSTATE);
+}
+
+int readOvrState(int fd)
+{
+    return simpleRead(fd, HOST_CMD_READ_OVR, HOST_REPLY_OVR);
+}
+
 
 int readTemp(int fd, unsigned char * tempData)
 {
-    unsigned char buf[5]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
+    unsigned char buf[10]={HOST_CMD_TEMPERATURE, HOST_CMD_TEMPERATURE};
     int i;
     for(i=0; i<NUM_TEMP_SENSORS; i++)
         tempData[i]=0;
 
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
+
+
+
     if(buf[0] != 0x0B)
         return SB_ERROR;
 
@@ -265,68 +290,71 @@ int hardKill(int fd)
     return SB_ERROR;
 }
 
+/*  Send:   [cmdCode, param, CS]
+ *  Expect: [BC | DF | CC]
+ *  Param valid is from 0 to range-1, inclusive
+ */
+int simpleWrite(int fd, int cmdCode, int param, int range)
+{
+    if(param < 0 || param > range)
+        return -255;
 
+    unsigned char buf[3];
+    buf[0] = cmdCode;
+    buf[1] = param;
+    buf[2] = (cmdCode + param) & 0xFF;
+
+    writeData(fd, buf, 3);
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int switchToExternalPower(int fd)
+{
+    return simpleWrite(fd, HOST_CMD_SWITCHPOWER, 1, 2);
+}
+
+int switchToInternalPower(int fd)
+{
+    return simpleWrite(fd, HOST_CMD_SWITCHPOWER, 0, 2);
+}
+
+int setBatteryState(int fd, int state)
+{
+    return simpleWrite(fd, HOST_CMD_BATTCTL, state, 10);
+}
 
 int dropMarker(int fd, int markerNum)
 {
-    /* MARKERS ARE NO LONGER SUPPORTED IN THIS FIRMWARE            */
-    /* Their pins went to thrusters 5 and 6. If you want markers,  */
-    /* talk to the electronics people. Maybe we can rig something. */
-    return -1;
-
-    if(markerNum != 0 && markerNum != 1)
-        return -255;
-
-    unsigned char buf[3]={0x07, 0x00, 0x00};
-
-    buf[1] = markerNum;
-    buf[2] = markerNum + 0x07;
-
-
-    writeData(fd, buf, 3);
-    readData(fd, buf, 1);
-
-    if(buf[0] == 0xBC)
-        return SB_OK;
-
-    if(buf[0] == 0xCC)
-        return SB_BADCC;
-
-    if(buf[0] == 0xDF)
-        return SB_HWFAIL;
-
-    return SB_ERROR;
+    return simpleWrite(fd, HOST_CMD_MARKER, markerNum, 2);
 }
-
 
 int lcdBacklight(int fd, int state)
 {
-    if(state != LCD_BL_OFF && state != LCD_BL_ON && state != LCD_BL_FLASH)
-        return -255;
-
-    unsigned char buf[3]={0x08, 0x00, 0x00};
-
-    buf[1] = state;
-    buf[2] = state + 0x08;
-
-
-    writeData(fd, buf, 3);
-    readData(fd, buf, 1);
-
-    if(buf[0] == 0xBC)
-        return SB_OK;
-
-    if(buf[0] == 0xCC)
-        return SB_BADCC;
-
-    if(buf[0] == 0xDF)
-        return SB_HWFAIL;
-
-    return SB_ERROR;
+    return simpleWrite(fd, HOST_CMD_BACKLIGHT, state, 3);
 }
 
 
+
 int thrusterSafety(int fd, int state)
+{
+    printf("You should use setThrusterSafety instead of thrusterSafety\n");
+    printf("Same parameters, same return value, just a better name.\n");
+    return setThrusterSafety(fd, state);
+}
+
+
+int setThrusterSafety(int fd, int state)
 {
     if(state<0 || state>11)
         return -255;
@@ -357,6 +385,11 @@ int thrusterSafety(int fd, int state)
     return SB_ERROR;
 }
 
+
+int setBarState(int fd, int state)
+{
+    return simpleWrite(fd, HOST_CMD_BARS, state, 16);
+}
 
 
 int displayText(int fd, int line, const char* text)
@@ -402,7 +435,8 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
 {
     int i=0;
     unsigned char buf[14]={0x12, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0x00};
-//    printf("Sending speeds: %d %d %d %d %d %d\n", s1, s2, s3, s4, s5, s6);
+//    printf("Sending speeds: %d %d %d %d\n", s1, s2, s3, s4);
+
 
     buf[1] = (s1 >> 8);
     buf[2] = (s1 & 0xFF);
@@ -452,8 +486,10 @@ int readSpeedResponses(int fd)
     readData(fd, buf, 1);
 
     if(buf[0] != 0x14)
-        return SB_ERROR;
-
+    {
+    	printf("Bad reply: %x\n", buf[0]);
+    	return SB_ERROR;
+    }
     readData(fd, buf+1, 7);
 
     unsigned char sum = 0;
@@ -483,31 +519,171 @@ int readSpeedResponses(int fd)
 
 }
 
+int readMotorCurrents(int fd, struct powerInfo * info)
+{
+    unsigned char buf[20] = {HOST_CMD_IMOTOR, HOST_CMD_IMOTOR};
+    int i=0, cs=0;
+
+    if(info == NULL)
+        return SB_ERROR;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_IMOTOR)
+    {
+        if(buf[0] == 0xCC)
+            return SB_BADCC;
+        if(buf[0] == 0xDF)
+            return SB_HWFAIL;
+
+        return SB_ERROR;
+    }
+
+    readData(fd, buf+1, 17);
+
+    for(i=0; i<17; i++)
+        cs += buf[i];
+
+    if((cs & 0xFF) != buf[17])
+        return SB_BADCC;
+
+    for(i=0; i<8; i++)
+        info->motorCurrents[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
+
+    return SB_OK;
+}
+
+int readBoardVoltages(int fd, struct powerInfo * info)
+{
+    unsigned char buf[20] = {HOST_CMD_VLOW, HOST_CMD_VLOW};
+    int i=0, cs=0;
+
+    if(info == NULL)
+        return SB_ERROR;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_VLOW)
+    {
+        if(buf[0] == 0xCC)
+            return SB_BADCC;
+        if(buf[0] == 0xDF)
+            return SB_HWFAIL;
+
+        return SB_ERROR;
+    }
+
+    readData(fd, buf+1, 11);
+
+    for(i=0; i<11; i++)
+        cs += buf[i];
+
+    if((cs & 0xFF) != buf[11])
+        return SB_BADCC;
+
+
+    info->v5VBus = ((buf[0*2+1] << 8) | (buf[0*2+2])) / 1000.0;
+    info->i5VBus = ((buf[1*2+1] << 8) | (buf[1*2+2])) / 1000.0;
+    info->v12VBus = ((buf[2*2+1] << 8) | (buf[2*2+2])) / 1000.0;
+    info->i12VBus = ((buf[3*2+1] << 8) | (buf[3*2+2])) / 1000.0;
+    info->iAux = ((buf[4*2+1] << 8) | (buf[4*2+2])) / 1000.0;
+    return SB_OK;
+}
+
+
+
+int readBatteryVoltages(int fd, struct powerInfo * info)
+{
+    unsigned char buf[14] = {HOST_CMD_BATTVOLTAGE, HOST_CMD_BATTVOLTAGE};
+    int i=0, cs=0;
+
+    if(info == NULL)
+        return SB_ERROR;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_BATTVOLTAGE)
+    {
+
+        printf("\nbad reply!\n");
+
+        if(buf[0] == 0xCC)
+            return SB_BADCC;
+        if(buf[0] == 0xDF)
+            return SB_HWFAIL;
+
+        return SB_ERROR;
+    }
+
+    readData(fd, buf+1, 13);
+
+    for(i=0; i<13; i++)
+        cs += buf[i];
+
+    if((cs & 0xFF) != buf[13])
+    {
+        printf("bad cc in voltages!\n");
+        return SB_BADCC;
+    }
+
+
+    for(i=0; i<5; i++)
+        info->battVoltages[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
+
+    info->v26VBus = ((buf[5*2+1] << 8) | (buf[5*2+2])) / 1000.0;
+
+    return SB_OK;
+}
+
+int readBatteryCurrents(int fd, struct powerInfo * info)
+{
+    unsigned char buf[12] = {HOST_CMD_BATTCURRENT, HOST_CMD_BATTCURRENT};
+    int i=0, cs=0;
+
+    if(info == NULL)
+        return SB_ERROR;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_BATTCURRENT)
+    {
+
+        printf("\nbad reply!\n");
+
+        if(buf[0] == 0xCC)
+            return SB_BADCC;
+        if(buf[0] == 0xDF)
+            return SB_HWFAIL;
+
+        return SB_ERROR;
+    }
+
+    readData(fd, buf+1, 11);
+
+    for(i=0; i<11; i++)
+        cs += buf[i];
+
+    if((cs & 0xFF) != buf[11])
+    {
+        printf("bad cc in currents!\n");
+        return SB_BADCC;
+    }
+
+    for(i=0; i<5; i++)
+        info->battCurrents[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
+
+    return SB_OK;
+}
+
+
 
 int setDiagnostics(int fd, int state)
 {
-    if(state != 0 && state != 1)
-        return -255;
-
-    unsigned char buf[3]={0x0F, 0x00, 0x00};
-
-    buf[1] = state;
-    buf[2] = state + 0x0F;
-
-
-    writeData(fd, buf, 3);
-    readData(fd, buf, 1);
-
-    if(buf[0] == 0xBC)
-        return SB_OK;
-
-    if(buf[0] == 0xCC)
-        return SB_BADCC;
-
-    if(buf[0] == 0xDF)
-        return SB_HWFAIL;
-
-    return SB_ERROR;
+    return simpleWrite(fd, HOST_CMD_RUNTIMEDIAG, state, 2);
 }
 
 

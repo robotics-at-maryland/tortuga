@@ -64,6 +64,9 @@ public:
     /** Set the current speed, clamped between -5 and 5 */
     virtual void setSpeed(double speed) = 0;
 
+    /** How fast the vehicle is going side to side (positive = right) */
+    virtual void setSidewaysSpeed(double speed) = 0;
+
     /** Sets the current heading in degrees off north */
 //    virtual void setHeading(double degrees) = 0;
 
@@ -73,6 +76,13 @@ public:
     /** Gets the current speed, a value between -5 and 5 */
     virtual double getSpeed() = 0;
 
+    /** Gets the current sideways speed
+     *
+     *  @return
+     *      A value between -5 (left) and 5 (right)
+     */
+    virtual double getSidewaysSpeed() = 0;
+    
     /** The current heading of th*/
 //    virtual double getHeading() = 0;
 

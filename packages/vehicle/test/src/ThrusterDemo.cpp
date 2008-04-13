@@ -32,7 +32,7 @@ using namespace ram::core;
 using namespace ram::vehicle::device;
 
 static const int FORCE = 15;
-static const int APPLY_SLEEP = 10;
+static const int APPLY_SLEEP = 7;
 static const int POST_CMD_SLEEP = 1;
 
 int main(int argc, char** argv)
@@ -102,11 +102,41 @@ int main(int argc, char** argv)
     sleep(POST_CMD_SLEEP);
     std::cout << "Thrusters stopped" << std::endl;
 
+    // Apply a sideways force
+    force = math::Vector3(0, FORCE, 0);
+    std::cout << "Applying right sideways force (moves vehicle right): "
+              << force  << std::endl;
+    std::cout << "Air/Water goes left" << std::endl;
+    vehicle.applyForcesAndTorques(force,
+                                  math::Vector3::ZERO);
+    vehicle.update(0);
+    sleep(APPLY_SLEEP);
+    std::cout << "Stoping thrusters" << std::endl;
+    vehicle.applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+    vehicle.update(0);
+    sleep(POST_CMD_SLEEP);
+    std::cout << "Thrusters stopped" << std::endl;
+    
     // Apply a positive pitch
     math::Vector3 torque = math::Vector3(0, FORCE, 0);
     std::cout << "Applying a positive pitch (vehicle nose down): " << torque 
 	      << std::endl;
     std::cout << "Air/Water above fore, Air/Water below aft" << std::endl;
+    vehicle.applyForcesAndTorques(math::Vector3::ZERO, torque);
+
+    vehicle.update(0);
+    sleep(APPLY_SLEEP);
+    std::cout << "Stoping thrusters" << std::endl;
+    vehicle.applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
+    vehicle.update(0);
+    sleep(POST_CMD_SLEEP);
+    std::cout << "Thrusters stopped" << std::endl;
+
+    // Apply a positive roll
+    torque = math::Vector3(FORCE, 0, 0);
+    std::cout << "Applying a positive roll (vehicle roll right): " << torque 
+	      << std::endl;
+    std::cout << "Air/Water left top, Air/Water right bottom" << std::endl;
     vehicle.applyForcesAndTorques(math::Vector3::ZERO, torque);
 
     vehicle.update(0);

@@ -2,16 +2,19 @@
 #include <string.h>
 #include "buscodes.h"
 
-#define SENSORBOARD_IC4
+
+#define SENSORBOARD_IC2
 #include "uart.c"
 
+
 //_FOSC( CSW_FSCM_OFF & FRC );
-_FOSC( CSW_FSCM_OFF & ECIO); //EC_PLL4); //ECIO );
+_FOSC( CSW_FSCM_OFF & ECIO & PWRT_64);
 //_FOSC( FRC_LO_RANGE);
 //_FOSCSEL(FRC);
 //_FPOR( PWRT_OFF);
 //Turn off the watchdog
 _FWDT ( WDT_OFF );
+
 
 #define TRIS_OUT 0
 #define TRIS_IN  1
@@ -19,50 +22,36 @@ _FWDT ( WDT_OFF );
 
 /*
  * Bus = D1 D0 E5-E0
- * Req = C13
- * Akn = C14
- * RW  = E8 again
+ * Req = B0
+ * Akn = D2
+ * RW  = E8
  */
 
 /* Bus pin assignments */
-#define REQ_CN_BIT  (CNEN1bits.CN1IE)
-#define IN_REQ      _RC13
-#define TRIS_REQ    _TRISC13
+#define REQ_CN_BIT  (CNEN1bits.CN2IE)
+#define IN_REQ      _RB0
+#define TRIS_REQ    _TRISB0
 
-#define LAT_AKN     _LATC14
-#define TRIS_AKN    _TRISC14
+#define LAT_AKN     _LATD2
+#define TRIS_AKN    _TRISD2
 
 #define IN_RW       _RE8
 #define TRIS_RW     _TRISE8
 
-/* Thurster Safety Pins */
-#define TRIS_TK6    _TRISB1
-#define TRIS_TK5    _TRISB2
-#define TRIS_TK4    _TRISB3
-#define TRIS_TK3    _TRISB4
-#define TRIS_TK2    _TRISB5
-#define TRIS_TK1    _TRISC15
-
-
-#define LAT_TK6     _LATB1
-#define LAT_TK5     _LATB2
-#define LAT_TK4     _LATB3
-#define LAT_TK3     _LATB4
-#define LAT_TK2     _LATB5
-#define LAT_TK1     _LATC15
-
-
 #define RW_READ     0
 #define RW_WRITE    1
 
-void dropMarker(byte id);
 
 
 /* Transmit buffer */
-#define TXBUF_LEN 60
+#define TXBUF_LEN 30
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
+/* Misc LCD pins */
+#define LAT_E   _LATB4
+#define LAT_RS  _LATB5
+#define LAT_BL  _LATC15
 
 /*
  * Configuration Registers
@@ -84,6 +73,7 @@ byte cfgRegs[16];
 #define STATE_TOP_LEVEL     0
 #define STATE_READ_CMD      1
 #define STATE_WRITE_CMD     2
+#define STATE_WRITE_LCD     3
 #define STATE_SETSPEED_U1   4
 #define STATE_SETSPEED_U2   5
 
@@ -91,8 +81,10 @@ byte busState = 0;
 byte nParam = 0;
 byte p1=0;
 
-/* Average depth, as computed by ADC ISR */
-long avgDepth = 0;
+
+
+byte lcdBuf[32];
+byte lcdUpdate = 0;
 
 /* If Master writes us data, this gets called */
 void processData(byte data)
@@ -113,7 +105,7 @@ void processData(byte data)
 
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "DEP MRK THR");
+                    txBuf[0] = sprintf(txBuf+1, "LCD Controller");
                     break;
                 }
 
@@ -168,131 +160,47 @@ void processData(byte data)
                     break;
                 }
 #endif
-
-                case BUS_CMD_MARKER1:
+                case BUS_CMD_LCD_WRITE:
                 {
-//                     dropMarker(0);
+                    busState = STATE_WRITE_LCD;
+                    nParam = 0;
                     break;
                 }
 
-                case BUS_CMD_MARKER2:
+                case BUS_CMD_LCD_REFRESH:
                 {
-//                     dropMarker(1);
+                    lcdUpdate++;
                     break;
                 }
 
-
-            /* <Deprecated> */
-                case BUS_CMD_THRUSTERS_ON:
+                case BUS_CMD_LCD_LIGHT_OFF:
                 {
-                    _LATB3 = 1;
+                    LAT_BL = 0;
+                    T1CONbits.TON = 0;  /* Stop Timer1 */
                     break;
                 }
 
-                case BUS_CMD_THRUSTERS_OFF:
+                case BUS_CMD_LCD_LIGHT_ON:
                 {
-                    _LATB3 = 0;
+                    LAT_BL = 1;
+                    T1CONbits.TON = 0;  /* Stop Timer1 */
                     break;
                 }
 
-                case BUS_CMD_CHECKWATER:
+                case BUS_CMD_LCD_LIGHT_FLASH:
                 {
-                    txBuf[0] = 1;
-                    txBuf[1] = _RB4;
-                    break;
-                }
-            /* </Deprecated> */
-
-                case BUS_CMD_DEPTH:
-                {
-                    txBuf[0] = 2;   /* Depth is 2 bytes */
-                    txBuf[1] = (avgDepth & 0xFF00) >> 8;
-                    txBuf[2] = avgDepth & 0xFF;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER1_OFF:
-                {
-                    LAT_TK1 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER2_OFF:
-                {
-                    LAT_TK2 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER3_OFF:
-                {
-                    LAT_TK3 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER4_OFF:
-                {
-                    LAT_TK4 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER5_OFF:
-                {
-                    LAT_TK5 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER6_OFF:
-                {
-                    LAT_TK6 = 1;
-                    break;
-                }
-
-
-                case BUS_CMD_THRUSTER1_ON:
-                {
-                    LAT_TK1 = 1;
-                    break;
-                }
-                case BUS_CMD_THRUSTER2_ON:
-                {
-                    LAT_TK2 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER3_ON:
-                {
-                    LAT_TK3 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER4_ON:
-                {
-                    LAT_TK4 = 1;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER5_ON:
-                {
-                    LAT_TK5 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER6_ON:
-                {
-                    LAT_TK6 = 0;
-                    break;
-                }
-
-                case BUS_CMD_THRUSTER_STATE:
-                {
-                    txBuf[0] = 1;
-                    txBuf[1] = (LAT_TK1 << 5) | (LAT_TK2 << 4) | (LAT_TK3 << 3) | (LAT_TK4 << 2) | ( (LAT_TK5 == 0) << 1) | (LAT_TK6 == 0);
-                    break;
+                    PR1 = 8000;            /* Period */
+                    TMR1 = 0;               /* Reset timer */
+                    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+                    IEC0bits.T1IE = 1;      /* Enable interrupts */
+                    T1CONbits.TCS = 0;      /* Use internal clock */
+                    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
+                    T1CONbits.TON = 1;      /* Start Timer1 */
                 }
 
             }
+            break;
         }
-        break;
 
         case STATE_SETSPEED_U1:
         case STATE_SETSPEED_U2:
@@ -318,8 +226,8 @@ void processData(byte data)
             busState = STATE_TOP_LEVEL;
             txBuf[0] = 1;
             txBuf[1] = cfgRegs[data];
+            break;
         }
-        break;
 
         case STATE_WRITE_CMD:
         {
@@ -334,12 +242,39 @@ void processData(byte data)
                 busState = STATE_TOP_LEVEL;
                 cfgRegs[p1] = data;
             }
-
+            break;
         }
-        break;
+
+
+        case STATE_WRITE_LCD:
+        {
+            if(nParam == 0)
+                p1 = data;
+
+            nParam++;
+
+            if(nParam == 2)
+            {
+                nParam=0;
+                busState = STATE_TOP_LEVEL;
+                if(p1 < 32)
+                    lcdBuf[p1] = data;
+            }
+            break;
+        }
 
     }
 }
+
+
+
+/* ISR for Timer1. Used for flashing the screen backlight */
+void _ISR _T1Interrupt(void)
+{
+    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+    LAT_BL ^= 1;
+}
+
 
 
 /* Read a byte from the bus */
@@ -435,54 +370,6 @@ byte checkBus()
 }
 
 
-/*
- * Drop the first marker. I am assuming we have multiple markers. This is
- * really here to let me play with interrupts and learn how to use the
- * timer module. I cannot occupy the slave while the marker drops, so
- * marker command sets marker output to 1, and then a timer interrupt must
- * bring it back to 0.
- */
-void dropMarker(byte id)
-{
-    /* Set appropriate output to 1 */
-    if(id == 0)
-        _LATB1 = 0;
-    else
-        _LATB2 = 0;
-
-
-    /* Timer1 is a Type A timer. Evidently there are other types
-     * The clock rate is 96MHz, after PLL. So.. it seems that:
-     * (1/96e6) * (256 prescaler) * (4 clocks per insn) * (65536 period) = 0.69 seconds.
-     * Oh well, 2.79 seconds of soleniod operation should be enough time to drop a
-     * marker, but I would like to know the reason for this discrepantcy.
-     */
-
-    PR1 = 7500;            /* Period */
-    TMR1 = 0;               /* Reset timer */
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 1;      /* Enable interrupts */
-    T1CONbits.TCS = 0;      /* Use internal clock */
-    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
-    T1CONbits.TON = 1;      /* Start Timer1 */
-}
-
-/* ISR for Timer1. Used for turning off marker soleniod after it was turned on */
-void _ISR _T1Interrupt(void)
-{
-    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 0;      /* Disable interrupts */
-
-    /* This timer kills both solenoids. If one marker is dropped, and another is
-     * dropped before the first soleniod deactivates, the timer is reset and both
-     * solenids will deactivate when the timer expires.
-     */
-
-    _LATB1 = 1;         /* Turn off marker soleniod (or LED in my case) */
-    _LATB2 = 1;         /* Turn off marker soleniod (or LED in my case) */
-
-    T1CONbits.TON = 0;  /* Stop Timer1 */
-}
 
 
 
@@ -510,13 +397,14 @@ void disableBusInterrupt()
 void initCN()
 {
     enableBusInterrupt();
+    IPC3bits.CNIP = 4;      /* Raise CN interrupt priority above ADC */
+
     IPC2bits.U1TXIP = 6;    /* TX at priority 6 */
     IPC2bits.U1RXIP = 5;    /* RX at priority 5 */
+
     IPC6bits.U2TXIP = 6;    /* TX at priority 6 */
     IPC6bits.U2RXIP = 5;    /* RX at priority 5 */
 
-    IPC3bits.CNIP = 4;      /* Bus at priority 4 */
-    IPC2bits.ADIP = 2;      /* ADC at priority 2 */
 
     IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
@@ -555,104 +443,126 @@ void _ISR _CNInterrupt(void)
 }
 
 
-int depthArray[100];
-int dp=0;
 
-void _ISR _ADCInterrupt(void)
+
+
+void lcdPulse()
 {
-    IFS0bits.ADIF = 0;
-    byte i=0;
-
-    long ad=0;
-
-
-    depthArray[dp++] = ADCBUF0;
-    if(dp >= 100)
-        dp=0;
-
-    ad = 0;
-    for(i=0; i<100; i++)
-        ad+= depthArray[i];
-
-    ad /= 100;
-
-
-    /*
-     * Why does disabling and re-enabling the CN interrupts muck up the data transfers?
-     * Maybe some interrupt bits need to be dealt with. Since average depth is only a 16-bit
-     * value, the assignment operation is atomic and there should be no data race here.
-     */
-//     disableBusInterrupt();
-    avgDepth = ad;
-//     enableBusInterrupt();
+    long i;
+    LAT_E = 1;
+    for(i=0; i<300; i++);
+    LAT_E = 0;
+    for(i=0; i<300; i++);
 }
 
-/*
- * Initialize ADC for depth sensor. All this code really needs to be split up
- * into different files, each one different for each slave. But for now, write
- * and test everything in one file.
- */
-void initADC()
+
+void lcdWrite(byte b)
 {
-    avgDepth = 0x1234;
+    b &= 0x0F;
+    LATB = (LATB & 0xFFF1) | (b & 0x0E);
+    _LATD3 = b & 0x01;
+}
+
+
+void lcdByte(byte b)
+{
+    lcdWrite( (b & 0xF0) >> 4);
+    lcdPulse();
+    lcdWrite(b & 0x0F);
+    lcdPulse();
+}
+
+void initLCD()
+{
+    long i=0;
     ADPCFG = 0xFFFF;
-    ADPCFGbits.PCFG0 = 0;
-    _TRISB0 = TRIS_IN;
+    LATB = 0;
+    TRISB = 0x0001; /* Leave IRQ as input */
+    _TRISD3 = TRIS_OUT;    /* LCD bit 0 */
 
-    ADCON1 = 0x0000;
-    ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
-    ADCON1bits.ASAM = 1;    /* Automatic sampling enabled */
+    lcdWrite (0x00);
+    for(i=0; i<25000; i++);
+    LAT_RS = 0;
+    lcdWrite(0x03);   /* init with specific nibbles to start 4-bit mode */
 
-    ADCON1bits.FORM = 0;    /* Plain format */
+    lcdPulse();
+    lcdPulse();
+    lcdPulse();
 
-    ADCHS = 0x0000;
-    ADCSSL = 0;
-    ADCON3bits.SAMC=0x1F;
+    lcdWrite(0x02);
+    lcdPulse();
+    lcdByte(0x2C);    /* function set (all lines, 5x7 characters) */
 
-    ADCON3bits.ADCS = 4;        /* ADC needs so much time to convert at 30 MIPS */
-    ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
-          //Clear the A/D interrupt flag bit
-    IFS0bits.ADIF = 0;
+    lcdByte(0x0C);    /* display ON, cursor off, no blink */
+    //lcdByte(0x0F);
 
-        //Set the A/D interrupt enable bit
-    IEC0bits.ADIE = 1;
-
-    ADCON1bits.ADON = 1;
-    ADCON1bits.SAMP = 1;    /* Start auto-sampling */
+    lcdByte(0x01);    /* clear display */
+    lcdByte(0x06);    /* entry mode set, increment & scroll left */
+    LAT_RS = 1;
 }
+
+void lcdCmd(byte b)
+{
+    LAT_RS = 0;
+    lcdByte(b);
+    LAT_RS = 1;
+}
+
+void lcdChar(byte b)
+{
+    lcdByte(b);
+}
+
 
 void main()
 {
     byte i;
 
-    _LATB1 = 1;
-    _LATB2 = 1;
-    _TRISB1 = TRIS_OUT; /* Marker 1 */
-    _TRISB2 = TRIS_OUT; /* Marker 2 */
+    _TRISD3 = TRIS_OUT;
+    _LATD3 = 0;
 
-    LAT_TK1 = 0;
-    LAT_TK2 = 0;
-    LAT_TK3 = 0;
-    LAT_TK4 = 0;
-    LAT_TK5 = 1;    // Flipped board logic
-    LAT_TK6 = 1;
+    ADPCFG = 0xFFFF;
 
-
-    TRIS_TK1 = TRIS_OUT;
-    TRIS_TK2 = TRIS_OUT;
-    TRIS_TK3 = TRIS_OUT;
-    TRIS_TK4 = TRIS_OUT;
-    TRIS_TK5 = TRIS_OUT;
-    TRIS_TK6 = TRIS_OUT;
-
+    _TRISC15 = TRIS_OUT;
+    _LATC15 = 0;
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
 
 
-    initADC();
     initBus();
-    initInterruptUarts();
 
-    while(1);
+    initLCD();
+
+    lcdWrite(0x00);
+
+
+    initInterruptUarts();
+    byte data1[] = "IC1 FAIL        ";
+
+    for(i=0; i<16; i++)
+    {
+        lcdChar(data1[i]);
+        lcdBuf[i] = ' ';
+        lcdBuf[i+16] = ' ';
+    }
+
+
+    while(1)
+    {
+        while(lcdUpdate > 0)
+        {
+            /* Dump LCD buffer to display */
+            lcdCmd(0x80);
+
+            for(i=0; i<16; i++)
+                lcdChar(lcdBuf[i]);
+
+            lcdCmd(0xC0);
+            for(i=0; i<16; i++)
+                lcdChar(lcdBuf[i+16]);
+
+            lcdUpdate--;
+        }
+    }
 }

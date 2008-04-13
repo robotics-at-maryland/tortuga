@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
     struct timeval tv;
 
     gettimeofday(&tv, NULL);
-    fd = openSensorBoard("/dev/sensor");
+    fd = openSensorBoard("/dev/ttyUSB0");
 
     if(fd == -1)
     {
@@ -27,9 +27,10 @@ int main(int argc, char ** argv)
     printf("\n");
 
 
-    for(i=0; i<500; i++)
+    for(i=0; i<1000; i++)
     {
-        ret = setSpeeds(fd, i/3,i/3,i/3,i/3,i/3,i/3);
+        printf("%d\n", i);
+	ret = setSpeeds(fd, i/3,i/3,i/3,i/3,i/3,i/3);
         if(ret == SB_ERROR)
             err++;
 
@@ -38,6 +39,7 @@ int main(int argc, char ** argv)
             err++;
 
         printf("Depth: %d\n", ret);
+
 
         ret = readTemp(fd, temp);
         if(ret == SB_ERROR)
@@ -53,7 +55,7 @@ int main(int argc, char ** argv)
 
         gettimeofday(&tv, NULL);
         stv = tv.tv_usec;
-        usleep(6 * 1000);       /* Nanosleep is equally as bad as usleep :( */
+        usleep(5 * 1000);       /* Nanosleep is equally as bad as usleep :( */
         gettimeofday(&tv, NULL);
 
         ftv = tv.tv_usec;
@@ -67,7 +69,7 @@ int main(int argc, char ** argv)
             err++;
     }
 
-    usleep(15 * 1000);
+    usleep(5 * 1000);
     ret = setSpeeds(fd, 0,0,0,0,0,0);
     printf("Last speed result = %d\n", ret);
     printf("Error count: %d\n", err);
