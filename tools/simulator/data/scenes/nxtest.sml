@@ -18,8 +18,8 @@ Scene:
     
     Cameras:
         Main:
-            position: [-15, 0, 0]
-            offset: [0, 0, 8]
+            position: [-13, 6, 0]
+            offset: [0, 0, 15]
     
     Robots:
         AUT: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/nxaut.rml'
@@ -29,6 +29,16 @@ Scene:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-15, 1, -3.05]
             orientation: [0, 0, 1, 45]
+            
+            Graphical:
+                mesh: 'cube.1m.mesh'
+                material: 'Simple/Orange'
+                scale: [1.2192, 0.1524, 0.0254]
+        
+        pipe2:
+            type: [sim.vision.IPipe, sim.vision.Pipe]
+            position: [-7.92893, 8.07107, -3.05]
+            orientation: [0, 0, 1, -35]
             
             Graphical:
                 mesh: 'cube.1m.mesh'

@@ -93,6 +93,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Orange pipe detector variables
         self._runOrangePipe = False
         self._foundPipe = False
+        self._pipeCentered = False
         
         # Find all the Buoy's and Pipes
         self._bouys = sim.scene.getObjectsByInterface(IBuoy)
@@ -235,6 +236,15 @@ class IdealSimVision(ext.vision.VisionSystem):
                 ext.math.Degree(orientation.getRoll(True).valueDegrees())
             
             self.publish(ext.vision.EventType.PIPE_FOUND, event)
+            
+            # Check for centering
+            toCenter = ogre.Vector2(event.x, event.y)
+            if toCenter.normalise() < 0.08:
+                if not self._pipeCentered:
+                    self._pipeCentered = True
+                    self.publish(ext.vision.EventType.PIPE_CENTERED, event)
+            else:
+                self._pipeCentered = False
             
         else:
             if self._foundPipe:

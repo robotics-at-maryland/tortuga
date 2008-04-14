@@ -41,8 +41,8 @@ class Seek(state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.PIPE_LOST : Searching,
-                 vision.EventType.PIPE_FOUND : Seek}
-                 #vision.EventType.LIGHT_ALMOST_HIT : Hit }
+                 vision.EventType.PIPE_FOUND : Seek,
+                 vision.EventType.PIPE_CENTERED : FollowPath }
 
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -56,26 +56,40 @@ class Seek(state.State):
         self.motionManager.setMotion(motion)
 
     def exit(self):
+        print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
 
-#class Hit(state.State):
-#    FORWARD_DONE = core.declareEventType('FORWARD_DONE')
-#    
-#    @staticmethod
-#    def transitions():
-#        return {Hit.FORWARD_DONE : End}
-#
-#    def enter(self):
-#        self.visionSystem.redLightDetectorOff()
-#
-#        print '"Attempting to hit light, Charge!!!!"'
-#        # Timer goes off in 3 seconds then sends off FORWARD_DONE
-#        timer = self.timerManager.newTimer(Hit.FORWARD_DONE, 3)
-#        timer.start()
-#    
-#    def exit(self):
-#        self.controller.setSpeed(0)
+class FollowPath(state.State):
+    LOST_PATH = core.declareEventType('LOST_PATH')
+    
+    @staticmethod
+    def transitions():
+        return { vision.EventType.PIPE_LOST : FollowPath,
+                 vision.EventType.PIPE_FOUND : FollowPath,
+                 FollowPath.LOST_PATH : End }
+
+
+    def PIPE_FOUND(self, event):
+        """Update the state of the light, this moves the vehicle"""
+        self._pipe.setState(event.x, event.y, event.angle)
         
-#class End(state.State):
-#    def enter(self):
-#        print '"Mission Complete"'
+    def PIPE_LOST(self, event):
+        """We have driving off the 'end' of the pipe"""
+        self._timer = self.timerManager.newTimer(FollowPath.LOST_PATH, 15)
+        self._timer.start()
+
+    def enter(self):
+        """Makes the vehicle follow along line outlined by the pipe"""
+        self._pipe = ram.motion.pipe.Pipe(0,0,0)
+        motion = ram.motion.pipe.Follow(pipe = self._pipe,
+                                       maxSpeed = 5,
+                                       maxSidewaysSpeed = 3)
+        self.motionManager.setMotion(motion)
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+        
+class End(state.State):
+    def enter(self):
+        self.visionSystem.pipeLineDetectorOff()
+        print '"Pipe Follow"'
