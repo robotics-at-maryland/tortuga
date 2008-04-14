@@ -329,8 +329,12 @@ class SimVision(ext.vision.VisionSystem):
         # Creates ogre.renderer.OGRE.Camera and attaches it to the vehicle
         forwardOgreCamera = self._createCamera('_forward', (0.5, 0, 0),
                                                (1, 0, 0))
+        downwardOgreCamera = self._createCamera('_downward', (0.5, 0, -0.1),
+                                               (0, 0, -1))
+        
         # Create _forwardCamera, _forwardBuffer, and _forwardTexture
         self._setupCameraRendering(forwardOgreCamera, 640, 480)
+        self._setupCameraRendering(downwardOgreCamera, 640, 480) 
 
         # Transform arguments to create base VisionSystem class
         cfg = ext.core.ConfigNode.fromString(str(config))
@@ -339,8 +343,9 @@ class SimVision(ext.vision.VisionSystem):
             depList.append(subsys)
         
         ext.vision.VisionSystem.__init__(self, self._forwardCamera,
-                                         ext.vision.Camera(640, 480),
+                                         self._downwardCamera,
                                          cfg, depList)
+
 
         cameraRate = config.get('cameraRate', 10)
         self._cameraUpdateInterval = 1.0 / cameraRate
@@ -351,6 +356,12 @@ class SimVision(ext.vision.VisionSystem):
             self._cameraUpdateInterval)
         self._forwardTexture.getBuffer().getRenderTarget().addListener(
             self._forwardCameraListener)
+        
+        self._downwardCameraListener = RenderCameraListener(
+            self._downwardCamera, self._downwardBuffer, self._downwardTexture,
+            self._cameraUpdateInterval)
+        self._downwardTexture.getBuffer().getRenderTarget().addListener(
+            self._downwardCameraListener)
         
     def _setupCameraRendering(self, camera, width, height):
         """
@@ -388,7 +399,7 @@ class SimVision(ext.vision.VisionSystem):
 
         # Align and Position
         camera.position = position
-        camera.lookAt(ogre.Vector3(direction).normalisedCopy())
+        camera.lookAt(camera.position + ogre.Vector3(direction))
         camera.nearClipDistance = 0.05
         node.attachObject(camera)
 
