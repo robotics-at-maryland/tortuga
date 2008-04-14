@@ -13,6 +13,9 @@ the rest of the system
 import time
 
 # Library Imports
+import os
+import wx
+import yaml
 import ogre.renderer.OGRE as ogre
 import ogre.physics.OgreNewt as ogrenewt
 
@@ -58,8 +61,36 @@ class Simulation(core.Subsystem):
         
         self._simulation = simulation.Simulation(config)
         self._root = ogre.Root.getSingleton()
-        self._window = self._root.createRenderWindow("Simulator", 800, 600, 
-                                                     False)
+        
+        # Load data file
+        self._guiFileName = config.get('guiConfig', 'ramsim.yml')
+        guiBasePath = wx.StandardPaths.Get().GetUserConfigDir()
+        if wx.Platform == '__WXGTK__':
+            self._guiFileName = '.' + self._guiFileName
+        self._guiFileName = \
+            os.path.abspath(os.path.join(guiBasePath, self._guiFileName))
+        guiData = {}
+        try:
+            stream = file(self._guiFileName, 'r')
+            guiData = yaml.load(stream)    
+            stream.close()
+        except IOError:
+            # File does not exist, ignore
+            pass
+
+            
+        # Load settings and create screen
+        simGUICfg = guiData.get('SIM', {})
+        width = simGUICfg.get("windowWidth", 800)
+        height = simGUICfg.get("windowHeight", 600)
+        top = simGUICfg.get("windowTop", 100)
+        left = simGUICfg.get("windowLeft", 100)
+        params = ogre.NameValuePairList()
+        params['top'] = str(top)
+        params['left'] = str(left)
+        
+        self._window = self._root.createRenderWindow("Simulator", width, height, 
+                                                     False, params)
         self._debug = config.get('debug', False)
         
         # Load Scenes and grab the main one
@@ -108,11 +139,37 @@ class Simulation(core.Subsystem):
         
     def shutdown(self):
         if not self._simulation.backgrounded():
+            self._saveWindowSettings()
             self._simulation.shutdown()
             self._inputForwarder.shutdown()
             if self._debug:
                 ogrenewt.Debugger.getSingleton().deInit()
-            
+                
+    def _saveWindowSettings(self):
+        guiData = {}
+        try:
+            stream = file(self._guiFileName, 'r')
+            guiData = yaml.load(stream)    
+            stream.close()
+            print 'SIM READ FILE'
+        except IOError:
+            # File does not exist, ignore
+            pass
+        
+        # Grab window metrics
+        width, height, colorDepth, left, top = self._window.getMetrics()
+        
+        layoutStream = file(self._guiFileName, 'w+')
+        simGUICfg = guiData.get("SIM", {})
+        simGUICfg["windowWidth"] = int(width)
+        simGUICfg["windowHeight"] = int(height)
+        if wx.Platform != '__WXGTK__':
+            simGUICfg["windowTop"] = int(top)
+            simGUICfg["windowLeft"] = int(left)
+        guiData["SIM"] = simGUICfg
+        yaml.dump(guiData,layoutStream) 
+        layoutStream.close()
+
             
 
 core.SubsystemMaker.registerSubsystem('Simulation', Simulation)

@@ -45,7 +45,7 @@ class MainFrame(wx.Frame):
         
         # Determine config file location
         guiBasePath = wx.StandardPaths.Get().GetUserConfigDir()
-        guiFileName = 'ramoci.yml'
+        guiFileName = config.get('guiConfigFile', 'ramoci.yml')
         if wx.Platform == '__WXGTK__':
             guiFileName = '.' + guiFileName
         self.guiDataFile = os.path.abspath(os.path.join(guiBasePath, guiFileName))
@@ -57,24 +57,25 @@ class MainFrame(wx.Frame):
         self._mgr.Update()
         
         # Load configuration settings from disk
+        guiData = {}
         try:
             # Load data file
             stream = file(self.guiDataFile, 'r')
             guiData = yaml.load(stream)    
             stream.close()
+        except IOError:
+            pass # No history file availale, continue 
+        
+        # Load settings
+        self.SetSize(guiData.get("windowSize", wx.Size(800, 600)))
+        self.SetPosition(guiData.get("windowPos", wx.DefaultPosition))
+        self._shell.history = guiData.get("shellHistory", [])
             
-            # Load settings
-            self.SetSize(guiData.get("windowSize", wx.Size(800, 600)))
-            self.SetPosition(guiData.get("windowPos", wx.DefaultPosition))
-            self._shell.history = guiData.get("shellHistory", [])
-            
-            if guiData.has_key("paneLayout"):
-                self._mgr.LoadPerspective(guiData["paneLayout"])
-
+        if guiData.has_key("paneLayout"):
+            self._mgr.LoadPerspective(guiData["paneLayout"])
             # Apply changes
             self._mgr.Update()    
-        except IOError:
-            pass # No history availible, continue 
+
         mb = self._buildMenuBar()
         self.SetMenuBar(mb)
         
@@ -145,9 +146,18 @@ class MainFrame(wx.Frame):
         event.Skip()
     
     def _onClose(self, event):  
+        # Read old data
+        guiData = {}
+        try:
+            # Load data file
+            stream = file(self.guiDataFile, 'r')
+            guiData = yaml.load(stream)    
+            stream.close()
+        except IOError:
+            pass # No history file availale, continue 
+        
         # Write Config YAML data
         layoutStream = file(self.guiDataFile, 'w+')
-        guiData = {}
         guiData["windowSize"] = self.GetSize()
         guiData["windowPos"] = self.GetPosition()
         guiData["paneLayout"] = self._mgr.SavePerspective()

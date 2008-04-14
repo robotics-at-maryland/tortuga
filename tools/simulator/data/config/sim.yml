@@ -5,7 +5,8 @@
 GUI:
     # In Hz
     updateRate: 30
-
+    guiConfigFile: ramsim.yml
+    
 Subsystems:
     VisionSystem:
 #        type: SimVision

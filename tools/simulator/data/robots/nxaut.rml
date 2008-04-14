@@ -41,8 +41,8 @@ Robot:
             # A unit vector along which thrust will be applied
             direction: [1, 0, 0]
             # In newtons, 9.0 N = 2 lbs of thrust
-            min_force: -15
-            max_force: 15
+            min_force: -15.0
+            max_force: 15.0
             
             # This section describes how the object will apear
             Graphical:
@@ -57,8 +57,8 @@ Robot:
             
             position: [0, -.16, 0]
             direction: [1, 0, 0]
-            min_force: -15
-            max_force: 15
+            min_force: -15.0
+            max_force: 15.0
             
             Graphical:
                 mesh: cube.1m.mesh
@@ -73,8 +73,8 @@ Robot:
             position: [0.4, 0, 0]
             orientation: [0, 1, 0, 90]
             direction: [0, 0, 1]
-            min_force: -15
-            max_force: 15
+            min_force: -15.0
+            max_force: 15.0
             
             Graphical:
                 mesh: cube.1m.mesh
@@ -90,8 +90,8 @@ Robot:
             position: [-0.4, 0, 0]
             orientation: [0, 1, 0, 90]
             direction: [0, 0, 1]
-            min_force: -15
-            max_force: 15
+            min_force: -15.0
+            max_force: 15.0
             
             Graphical:
                 mesh: cube.1m.mesh
@@ -106,8 +106,8 @@ Robot:
             position: [0, 0, 0.16]
             orientation: [0, 0, 1, 90]
             direction: [0, 1, 0]
-            min_force: -15
-            max_force: 15
+            min_force: -15.0
+            max_force: 15.0
             
             Graphical:
                 mesh: cube.1m.mesh
@@ -122,8 +122,8 @@ Robot:
             position: [0, 0, -0.16]
             orientation: [0, 0, 1, 90]
             direction: [0, -1, 0]
-            min_force: -15
-            max_force: 15
+            min_force: -15.0
+            max_force: 15.0
             
             Graphical:
                 mesh: cube.1m.mesh
