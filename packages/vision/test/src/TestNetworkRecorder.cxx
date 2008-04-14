@@ -32,7 +32,7 @@
 
 using namespace ram;
 
-static const int TEST_PORT = 59156;
+static const int TEST_PORT = 59155;
 
 SUITE(NetworkRecorder) {
 

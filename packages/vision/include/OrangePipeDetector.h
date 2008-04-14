@@ -47,13 +47,24 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
     
   private:
     void init(core::ConfigNode config);
-    
+
+    /** Angle of the pipe */
     math::Radian m_angle;
+    
+    /** X cordinate of pipe */
     double m_lineX;
+    
+    /** Y cordinate of pipe */
     double m_lineY;
     IplImage* m_rotated;
     Image* m_frame;
     Camera* m_cam;
+
+    /** Maximum distance for the pipe to be considred "centered" */
+    double m_centeredLimit;
+
+    /** Whether or not we are centered */
+    bool m_centered;
 };
     
 } // namespace vision

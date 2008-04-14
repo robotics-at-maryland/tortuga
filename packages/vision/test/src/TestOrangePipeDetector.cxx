@@ -26,6 +26,7 @@ struct OrangePipeDetectorFixture
 {
     OrangePipeDetectorFixture() :
         found(false),
+        centered(false),
         event(vision::PipeEventPtr()),
         input(640, 480),
         eventHub(new core::EventHub()),
@@ -34,6 +35,8 @@ struct OrangePipeDetectorFixture
         // Subscribe to events like so
         eventHub->subscribeToType(vision::EventType::PIPE_FOUND,
             boost::bind(&OrangePipeDetectorFixture::foundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::PIPE_CENTERED,
+            boost::bind(&OrangePipeDetectorFixture::centeredHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::PIPE_LOST,
             boost::bind(&OrangePipeDetectorFixture::lostHandler, this, _1));
     }
@@ -44,6 +47,12 @@ struct OrangePipeDetectorFixture
         event = boost::dynamic_pointer_cast<vision::PipeEvent>(event_);
     }
 
+    void centeredHandler(core::EventPtr event_)
+    {
+        centered = true;
+        event = boost::dynamic_pointer_cast<vision::PipeEvent>(event_);
+    }
+
     void lostHandler(core::EventPtr event_)
     {
         found = false;
@@ -51,6 +60,7 @@ struct OrangePipeDetectorFixture
     }
     
     bool found;
+    bool centered;
     vision::PipeEventPtr event;
     vision::OpenCVImage input;
     core::EventHubPtr eventHub;
@@ -180,7 +190,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_LOST)
     CHECK(found == false);
     CHECK(!event);
 
-    // Now we found the light (lower right location)
+    // Now we found the pipe (lower right location)
     drawSquare(&input, 640/4, 480/4 * 3,
                230, 50, -25, CV_RGB(230,180,40));
     detector.processImage(&input);
@@ -199,6 +209,32 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_LOST)
     found = true;
     detector.processImage(&input);
     CHECK(found == true);
+}
+
+TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_CENTERED)
+{
+    // Pipe in the lower right
+    makeColor(&input, 0, 0, 255);
+    drawSquare(&input, 640/4, 480/4 * 3,
+               230, 50, 0, CV_RGB(230,180,40));
+    detector.processImage(&input);
+    CHECK(found);
+    CHECK(event);
+    CHECK(!centered);
+    CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
+    CHECK_CLOSE(-0.5, event->y, 0.05);    
+
+    // Now pipe is dead center
+    makeColor(&input, 0, 0, 255);
+    drawSquare(&input, 640/2, 480/2, 230, 50, 0, CV_RGB(230,180,40));    
+    detector.processImage(&input);
+    CHECK(found);
+
+    // Make sure we get the centered event
+    CHECK(centered);
+    CHECK(event);
+    CHECK_CLOSE(0, event->x, 0.05);
+    CHECK_CLOSE(0, event->y, 0.05);
 }
 
 } // SUITE(OrangePipeDetector)

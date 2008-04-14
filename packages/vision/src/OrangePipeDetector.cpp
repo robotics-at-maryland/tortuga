@@ -21,6 +21,7 @@
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
 
+#include "math/include/Vector2.h"
 
 using namespace std;
 
@@ -30,18 +31,20 @@ namespace vision {
 OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     Detector(eventHub),
-    m_cam(0)
+    m_cam(0),
+    m_centered(false)
 {
     init(config);
 }
     
 OrangePipeDetector::OrangePipeDetector(Camera* camera) :
-    m_cam(camera)
+    m_cam(camera),
+    m_centered(false)
 {
     init(core::ConfigNode::fromString("{}"));
 }
 
-void OrangePipeDetector::init(core::ConfigNode)
+void OrangePipeDetector::init(core::ConfigNode config)
 {
     m_angle = math::Degree(0);
     m_lineX = 0;
@@ -49,7 +52,9 @@ void OrangePipeDetector::init(core::ConfigNode)
     found=0;
     m_frame = new OpenCVImage(640, 480);
     m_rotated = cvCreateImage(cvSize(640,480),8,3);//480 by 640 if camera is on sideways, else 640 by 480.
-    m_lineX=m_lineY=0;    
+    m_lineX=m_lineY=0;
+    
+    m_centeredLimit = config["centeredLimit"].asDouble(0.1);
 }
     
 double OrangePipeDetector::getX()
@@ -167,6 +172,21 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
             event->y = m_lineY;
             event->angle = m_angle;
             publish(EventType::PIPE_FOUND, event);
+
+            // Determine Centered
+            math::Vector2 toCenter(m_lineX, m_lineY);
+            if (toCenter.normalise() < m_centeredLimit)
+            {
+                if(!m_centered)
+                {
+                    m_centered = true;
+                    publish(EventType::PIPE_CENTERED, event);
+                }
+            }
+            else
+            {
+                m_centered = false;
+            }
         }
         
     }
