@@ -156,15 +156,15 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
                 m_angle = m_angle - math::Radian(math::Math::PI);
 
             //lineX and lineY are fields, both are doubles
-            m_lineX=linex;
-            m_lineX/=image->width;
-            m_lineY=liney;
-            m_lineY/=image->height;
+            m_lineY=linex;
+            m_lineY/=image->width;
+            m_lineX=liney;
+            m_lineX/=image->height;
             m_lineX -= .5;
             m_lineY -= .5;
-            m_lineX *= -2;
-            m_lineY *= -2;
-            m_lineX *= 640.0/480.0;
+            m_lineX *= 2;
+            m_lineY *= 2;
+            m_lineY *= 640.0/480.0;
 
             // Fire off found event
             PipeEventPtr event(new PipeEvent(0, 0, 0));

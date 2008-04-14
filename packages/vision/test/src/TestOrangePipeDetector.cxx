@@ -70,7 +70,7 @@ struct OrangePipeDetectorFixture
 SUITE(OrangePipeDetector) {
 
 // TODO Test upright, and onside angle
-    
+
 TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeft)
 {
     // Blue Image with orange rectangle in it
@@ -82,9 +82,37 @@ TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeft)
     // Process it
     detector.processImage(&input);
     
-    double expectedX = -0.431 * 640.0/480.0; 
-    double expectedY = 0.5;
+    double expectedX = -0.5;
+    double expectedY = 0.431 * 640.0/480.0;
     math::Degree expectedAngle(25);
+    
+    CHECK(detector.found);
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(0.5));
+
+    // Check Events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.05);
+    CHECK_CLOSE(expectedY, event->y, 0.05);
+    CHECK_CLOSE(expectedAngle, event->angle, math::Degree(0.5));
+}
+
+TEST_FIXTURE(OrangePipeDetectorFixture, Left)
+{
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // draw orange square (left, remember image rotated 90 deg)
+    drawSquare(&input, 640/2, 480/4,
+               230, 50, 0, CV_RGB(230,180,40));
+
+    // Process it
+    detector.processImage(&input);
+    
+    double expectedX = -0.5; 
+    double expectedY = 0;
+    math::Degree expectedAngle(0);
     
     CHECK(detector.found);
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
@@ -110,8 +138,8 @@ TEST_FIXTURE(OrangePipeDetectorFixture, LowerRight)
     // Process it
     detector.processImage(&input);
     
-    double expectedX = 0.5 * 640.0/480.0; 
-    double expectedY = -0.5;
+    double expectedX = 0.5;
+    double expectedY = -0.5 * 640.0/480.0; 
     math::Degree expectedAngle(-25);
     
     CHECK(detector.found);
@@ -137,8 +165,8 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterUp)
     // Process it
     detector.processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0; 
-    double expectedY = 0;
+    double expectedX = 0;
+    double expectedY = 0 * 640.0/480.0; 
     math::Degree expectedAngle(0);
     
     CHECK(detector.found);
@@ -164,8 +192,8 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterSideways)
     // Process it
     detector.processImage(&input);
     
-    double expectedX = 0 * 640.0/480.0; 
-    double expectedY = 0;
+    double expectedX = 0;
+    double expectedY = 0 * 640.0/480.0; 
     math::Degree expectedAngle(90);
     
     CHECK(detector.found);
@@ -196,8 +224,8 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_LOST)
     detector.processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
-    CHECK_CLOSE(-0.5, event->y, 0.05);
+    CHECK_CLOSE(0.5, event->x, 0.05);
+    CHECK_CLOSE(-0.5 * 640.0/480.0, event->y, 0.05);
 
     // Now we lost the light
     makeColor(&input, 0, 0, 255);
@@ -221,8 +249,8 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_CENTERED)
     CHECK(found);
     CHECK(event);
     CHECK(!centered);
-    CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
-    CHECK_CLOSE(-0.5, event->y, 0.05);    
+    CHECK_CLOSE(0.5, event->x, 0.05);
+    CHECK_CLOSE(-0.5 * 640.0/480.0, event->y, 0.05);    
 
     // Now pipe is dead center
     makeColor(&input, 0, 0, 255);
