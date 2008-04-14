@@ -226,7 +226,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         if pipeVisible and (relativePos.length() < 4.5):
             event = ext.core.Event()
 
-            event.x = roll / (self._horizontalFOV/2)
+            event.x = roll / (self._horizontalFOV/2) * -1
             event.y = pitch / (self._verticalFOV/2)
             
             # Find pipe relative pipe angle

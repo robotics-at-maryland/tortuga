@@ -74,7 +74,7 @@ class Base(Motion):
         
     def _setSidewaysSpeed(self):
         """Determine sideways speed (and bound within limits)"""
-        sidewaysSpeed = self._pipe.x * self._maxSidewaysSpeed
+        sidewaysSpeed = -1 * self._pipe.x * self._maxSidewaysSpeed
 #        sidewaysSpeed = Hover._limit(self._pipe.x * self._sidewaysSpeedGain,
 #                                     -self._maxSidewaysSpeed,
 #                                     self._maxSidewaysSpeed)
