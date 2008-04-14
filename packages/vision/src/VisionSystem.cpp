@@ -98,6 +98,14 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
                                               maxRecordRate);
 
     }
+    else if (config.exists("downwardPort"))
+    {
+        m_downwardRecorder = new NetworkRecorder(m_downwardCamera.get(),
+                                                 Recorder::MAX_RATE,
+                                                 config["downwardPort"].asInt(),
+                                                 maxRecordRate);
+    }
+    
     
     // Detector runners (go as fast as possible)
     m_forward = new VisionRunner(m_forwardCamera.get(), Recorder::NEXT_FRAME);

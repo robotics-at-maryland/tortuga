@@ -12,6 +12,7 @@
 #include <cerrno>
 #include <cmath>
 #include <iostream>
+#include <sstream>
 
 // System Includes
 #ifdef RAM_POSIX
@@ -259,7 +260,9 @@ void NetworkRecorder::setupListenSocket()
                    sizeof(struct sockaddr));
     if (ret < 0)
     {
-        perror("bind");
+        std::ostringstream ss;
+        ss << "bind port: " << m_port;
+        perror(ss.str().c_str());
         assert(false && "bind error");
     }
 
