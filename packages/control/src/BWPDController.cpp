@@ -448,7 +448,32 @@ void BWPDController::init(core::ConfigNode config)
     						config["depthCy"].asDouble(0));
 	    break;
 	case 3 :
-            //depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+        m_controllerState->depthA4 = math::Matrix4(config["depthOCIA4"][0].asDouble(0),
+                                                   config["depthOCIA4"][1].asDouble(0),
+                                                   config["depthOCIA4"][2].asDouble(0),
+                                                   config["depthOCIA4"][3].asDouble(0),
+                                                   config["depthOCIA4"][4].asDouble(0),
+                                                   config["depthOCIA4"][5].asDouble(0),
+                                                   config["depthOCIA4"][6].asDouble(0),
+                                                   config["depthOCIA4"][7].asDouble(0),
+                                                   config["depthOCIA4"][8].asDouble(0),
+                                                   config["depthOCIA4"][9].asDouble(0),
+                                                   config["depthOCIA4"][10].asDouble(0),
+                                                   config["depthOCIA4"][11].asDouble(0),
+                                                   config["depthOCIA4"][12].asDouble(0),
+                                                   config["depthOCIA4"][13].asDouble(0),
+                                                   config["depthOCIA4"][14].asDouble(0),
+                                                   config["depthOCIA4"][15].asDouble(0));
+
+        m_controllerState->depthB4 = math::Vector4(config["depthOCIB4"][0].asDouble(0),
+                                                   config["depthOCIB4"][1].asDouble(0),
+                                                   config["depthOCIB4"][2].asDouble(0),
+                                                   config["depthOCIB4"][3].asDouble(0));
+
+        m_controllerState->depthC4 = math::Vector4(config["depthOCIC4"][0].asDouble(0),
+                                                   config["depthOCIC4"][1].asDouble(0),
+                                                   config["depthOCIC4"][2].asDouble(0),
+                                                   config["depthOCIC4"][3].asDouble(0));
             break;
 	case 4 :
             //depthControlSignal=depthPController(measuredState,desiredState,controllerState);
