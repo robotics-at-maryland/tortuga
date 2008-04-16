@@ -63,7 +63,7 @@ void translationalController(MeasuredState* measuredState,
 
     double translationControlSignal[3];
 
-    double depthControlSignal;
+    double depthControlSignal=0;
 
     /*Select type of Depth Controller
       set depthControlType = (1 for P control) 
@@ -77,13 +77,18 @@ void translationalController(MeasuredState* measuredState,
     {
 	case 1 :
         depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+//depthControlSignal=depthObserverController4(measuredState,desiredState,controllerState,
+  //                                                      estimatedState,dt);
 	    break;
 	case 2 :
             depthObserver2(measuredState,desiredState,controllerState,estimatedState,dt);
             depthControlSignal=depthPDController2(measuredState,desiredState,controllerState,estimatedState);
 	    break;
 	case 3 :
-            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+            //std::cout << "In case 3" << std::endl;
+           depthControlSignal=depthObserverController4(measuredState,desiredState,controllerState,
+                                                      estimatedState,dt);
+
             break;
 	case 4 :
             depthControlSignal=depthPController(measuredState,desiredState,controllerState);

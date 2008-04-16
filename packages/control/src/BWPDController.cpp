@@ -474,6 +474,7 @@ void BWPDController::init(core::ConfigNode config)
                                                    config["depthOCIC4"][1].asDouble(0),
                                                    config["depthOCIC4"][2].asDouble(0),
                                                    config["depthOCIC4"][3].asDouble(0));
+        m_estimatedState->xHat4Depth = math::Vector4(0,0,0,0);
             break;
 	case 4 :
             //depthControlSignal=depthPController(measuredState,desiredState,controllerState);
