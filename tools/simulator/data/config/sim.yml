@@ -71,7 +71,7 @@ Subsystems:
         #                       (2 for observer control for a 2d depth state) 
         #                       (3 for observer control for a 4d depth state)
         #                       (4 yet to be implemented)
-        depthControlType: 3
+        depthControlType: 1
         #parameters for depth P controller
         depthPGain: 20
         #parameters for depth observer controller 
