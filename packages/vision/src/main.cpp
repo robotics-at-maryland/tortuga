@@ -86,8 +86,7 @@ void rotate90Deg(IplImage* src, IplImage* dest)
 	int height=src->height;
 	if (width!=dest->height || height!=dest->width)
 	{
-            assert(false &&
-                   "Wrong dimensions of destination image in rotation, should be transpose of src image");
+        assert(false && "Wrong dimensions of destination image in rotation, should be transpose of src image");
 	}
 	int count=0;
 	int count2=0;
@@ -114,8 +113,7 @@ void rotate90DegClockwise(IplImage* src, IplImage* dest)
 	int height=src->height;
 	if (width!=dest->height || height!=dest->width)
 	{
-            assert(false && 
-                   "Wrong dimensions of destination image in rotation, should be transpose of src image");
+        assert(false && "Wrong dimensions of destination image in rotation, should be transpose of src image");
 	}
 	int count=0;
 	int count2=0;
@@ -521,10 +519,15 @@ double hough(IplImage* img, int* linex, int* liney)
 		
 		cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
 		cvReleaseImage(&src);
+        cvReleaseImage(&dst);
+        cvReleaseMemStorage(&storage);
+
 		return angle;
 	}
 #endif
-	cvReleaseImage(&src);
+    cvReleaseImage(&src);
+    cvReleaseImage(&dst);
+    cvReleaseMemStorage(&storage);
 	return HOUGH_ERROR;
 	//		cvShowImage( "Hough", color_dst );
 }
