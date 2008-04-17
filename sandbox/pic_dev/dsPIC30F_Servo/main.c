@@ -36,6 +36,8 @@ int main(void){
 	
 	init_Timer2and3();
 	init_OC2();
+	ADC_Init();
+	
 	
 	while(1){
 		PORTBbits.RB3=1;
