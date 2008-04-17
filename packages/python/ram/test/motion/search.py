@@ -92,7 +92,7 @@ class TestForwardZigZag(support.MotionTest):
         mockTimer.finish()
         self.qeventHub.publishEvents()
         
-        # Test a normal leg
+        # Now test the that normal part of the leg completes 
         
         # Test turn first
         expectedYaw = -35
@@ -109,6 +109,52 @@ class TestForwardZigZag(support.MotionTest):
         self.assert_(mockTimer.started)
         self.assertEqual(6, mockTimer.sleepTime)
         self.assertEqual(8, self.controller.speed)
+        
+    def testNoEventAfterStop(self):
+        m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8)
+        self.motionManager.setMotion(m)
+        
+        # Register for the leg complete event
+        self.legComplete = False
+        def handler(event):
+            self.legComplete = True
+        self.eventHub.subscribeToType(motion.search.ForwardZigZag.LEG_COMPLETE,
+                                      handler)
+        
+        # Start the short leg
+        orientation = math.Quaternion(math.Degree(35/2.0),
+                                      math.Vector3.UNIT_Z)
+        self.controller.publishAtOrientation(orientation)
+        self.qeventHub.publishEvents()
+        
+        # Stop motion
+        self.motionManager.stopCurrentMotion()
+        
+        mockTimer = MockTimer.LOG[motion.search.ForwardZigZag.LEG_COMPLETE]
+        mockTimer.finish()
+        self.qeventHub.publishEvents()
+        
+        # Make sure we didn't get the event
+        self.assert_(mockTimer.started)
+        self.assertEqual(3, mockTimer.sleepTime)
+        self.assertEquals(False, self.legComplete)
+        
+    def testDuplicateAtOrientations(self):
+        m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8)
+        self.motionManager.setMotion(m)
+        
+        # Comlete on short leg (with duplicate AT_ORIENTATION events)
+        orientation = math.Quaternion(math.Degree(35/2.0),
+                                      math.Vector3.UNIT_Z)
+        self.controller.publishAtOrientation(orientation)
+        self.qeventHub.publishEvents()
+        mockTimerA = MockTimer.LOG[motion.search.ForwardZigZag.LEG_COMPLETE]
+        
+        self.controller.publishAtOrientation(orientation)
+        self.qeventHub.publishEvents()
+        mockTimerB = MockTimer.LOG[motion.search.ForwardZigZag.LEG_COMPLETE]
+        
+        self.assertEquals(mockTimerA, mockTimerB)
 
     # TODO: Test not allow repeat events to make it turn or angle again
 if __name__ == '__main__':
