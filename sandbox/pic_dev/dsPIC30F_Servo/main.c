@@ -1,3 +1,11 @@
+/* Author: Scott Watson
+ * Date: February, 2008
+ * last modified(If I remembered to update this): April 16, 2008
+ * 
+ * learning how to use output compare to control a servo
+ * 
+ * code written for a dsPIC30F4012 running with a 7.5MHz crystal*/
+ 
 #include "p30fxxxx.h"
 #define byte unsigned char
 #define _ISR __attribute__((interrupt))
