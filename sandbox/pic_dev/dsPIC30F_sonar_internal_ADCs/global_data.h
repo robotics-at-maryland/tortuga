@@ -1,0 +1,3 @@
+
+int globalA;
+int globalB;
