@@ -45,7 +45,7 @@ struct VisionSystemFixture
         eventHub(new core::EventHub()),
         vision(vision::CameraPtr(forwardCamera),
                vision::CameraPtr(downwardCamera),
-               core::ConfigNode::fromString("{}"),
+               core::ConfigNode::fromString("{'testing' : 1}"),
                boost::assign::list_of(eventHub))
     {
         eventHub->subscribeToType(vision::EventType::LIGHT_FOUND,

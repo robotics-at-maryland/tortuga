@@ -70,6 +70,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     if (!m_downwardCamera)
         m_downwardCamera = CameraPtr(new OpenCVCamera(1, false));
 
+    m_testing = config["testing"].asInt(0);
+
     // Max number of frames per second to record
     int maxRecordRate = config["maxRecordRate"].asInt(5);
     
@@ -185,6 +187,7 @@ void VisionSystem::redLightDetectorOff()
 
 void VisionSystem::background(int interval)
 {
+    assert(m_testing && "Can't background when not testing");
     // Start cameras
     m_forwardCamera->background(interval);
     m_downwardCamera->background(interval);
@@ -202,6 +205,8 @@ void VisionSystem::background(int interval)
         
 void VisionSystem::unbackground(bool join)
 {
+    assert(m_testing && "Can't unbackground when not testing");
+    
     // Stop cameras
     m_forwardCamera->unbackground(join);
     m_downwardCamera->unbackground(join);
@@ -219,6 +224,8 @@ void VisionSystem::unbackground(bool join)
 
 void VisionSystem::update(double timestep)
 {
+    assert(m_testing && "Can't update when not testing");
+    
     // Grab data from the cameras
     m_forwardCamera->update(timestep);
     m_downwardCamera->update(timestep);
