@@ -16,6 +16,7 @@
 #include "vision/include/VisionSystem.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
+#include "vision/test/include/Utility.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/TimeVal.h"
@@ -24,16 +25,16 @@
 
 using namespace ram;
 
-void makeColor(vision::Image* image, unsigned char R, unsigned char G,
-               unsigned char B);
-
 void drawRedCircle(vision::Image* image, int x, int y, int radius = 50);
 
 struct VisionSystemFixture
 {
     VisionSystemFixture() :
-        found(false),
-        event(vision::RedLightEventPtr()),
+        redFound(false),
+        redEvent(vision::RedLightEventPtr()),
+        
+        pipeFound(false),
+        pipeEvent(vision::PipeEventPtr()),
         
         forwardImage(640, 480),
         forwardCamera(new MockCamera(&forwardImage)),
@@ -49,24 +50,28 @@ struct VisionSystemFixture
     {
         eventHub->subscribeToType(vision::EventType::LIGHT_FOUND,
             boost::bind(&VisionSystemFixture::redFoundHandler, this, _1));
-        eventHub->subscribeToType(vision::EventType::LIGHT_LOST,
-            boost::bind(&VisionSystemFixture::redLostHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::PIPE_FOUND,
+            boost::bind(&VisionSystemFixture::pipeFoundHandler, this, _1));
     }
 
     void redFoundHandler(core::EventPtr event_)
     {
-        found = true;
-        event = boost::dynamic_pointer_cast<vision::RedLightEvent>(event_);
+        redFound = true;
+        redEvent = boost::dynamic_pointer_cast<vision::RedLightEvent>(event_);
     }
 
-    void redLostHandler(core::EventPtr event_)
+    void pipeFoundHandler(core::EventPtr event_)
     {
-        found = false;
-        event = vision::RedLightEventPtr();
+        pipeFound = true;
+        pipeEvent = boost::dynamic_pointer_cast<vision::PipeEvent>(event_);
     }
     
-    bool found;
-    vision::RedLightEventPtr event;
+    
+    bool redFound;
+    vision::RedLightEventPtr redEvent;
+
+    bool pipeFound;
+    vision::PipeEventPtr pipeEvent;
     
     vision::OpenCVImage forwardImage;
     MockCamera* forwardCamera;
@@ -89,38 +94,59 @@ TEST(CreateDestroy)
                                 core::ConfigNode::fromString("{}"),
                                 core::SubsystemList());
 }
-#ifndef RAM_WINDOWS
+
 TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 {
-/*    // Blue Image with red circle in upper left (remeber image rotated 90 deg)
+    // Blue Image with red circle in upper left (remeber image rotated 90 deg)
     makeColor(&forwardImage, 0, 0, 255);
     drawRedCircle(&forwardImage, 640 - (640/4), 480/4);
 
-    // "Backgrounds" the camera (no real background thread, because this is
-    // just a mock object)
-    forwardCamera->background(0);
-
-    // Have to wait for the processing thread to be waiting on the camera
+    // Start dectector and unbackground it
     vision.redLightDetectorOn();
-    ram::core::TimeVal::sleep(500 / 1000.0);
-
-    // Release the image from the camera (and wait for the detector capture it)
-    forwardCamera->update(0);
-    ram::core::TimeVal::sleep(500.0 / 1000.0);
-
-    // This stops the background thread
+    vision.unbackground(true);
+    forwardCamera->background(0);
+    
+    // Process the current camera image
+    vision.update(0);
     vision.redLightDetectorOff();
 
     // Check the events
-    CHECK(found);
-    CHECK(event);
-    CHECK_CLOSE(-0.5, event->x, 0.005);
-    CHECK_CLOSE(0.5, event->y, 0.005);
-    CHECK_CLOSE(3, event->range, 0.1);
-    CHECK_CLOSE(math::Degree(78.0/4), event->azimuth, math::Degree(0.4));
-    CHECK_CLOSE(math::Degree(105.0/4), event->elevation, math::Degree(0.4));
+    CHECK(redFound);
+    CHECK(redEvent);
+    CHECK_CLOSE(-0.5 * 4.0/3.0, redEvent->x, 0.005);
+    CHECK_CLOSE(0.5, redEvent->y, 0.005);
+    CHECK_CLOSE(3, redEvent->range, 0.1);
+    CHECK_CLOSE(math::Degree(78.0/4), redEvent->azimuth, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(105.0/4), redEvent->elevation, math::Degree(0.4));
 
-    forwardCamera->unbackground(true);*/
+    forwardCamera->unbackground(true);
 }
-#endif
+
+TEST_FIXTURE(VisionSystemFixture, PipeDetector)
+{
+    vision::makeColor(&downwardImage, 0, 0, 255);
+    // draw orange square (upper left, remember image rotated 90 deg)
+    drawSquare(&downwardImage, 640 - (640/4), 480/4,
+               230, 50, 25, CV_RGB(230,180,40));
+
+    // Start dectector and unbackground it
+    vision.pipeLineDetectorOn();
+    vision.unbackground(true);
+    forwardCamera->background(0);
+    
+    // Process the current camera image
+    vision.update(0);
+    vision.pipeLineDetectorOff();
+
+    forwardCamera->unbackground(true);
+
+    // Check Events
+    CHECK(pipeFound);
+    CHECK(pipeEvent);
+    CHECK_CLOSE(-0.5, pipeEvent->x, 0.05);
+    CHECK_CLOSE(0.431 * 640.0/480.0, pipeEvent->y, 0.1);
+    CHECK_CLOSE(math::Degree(25), pipeEvent->angle, math::Degree(0.5));
+}
+    
+
 } // SUITE(RedLightDetector)

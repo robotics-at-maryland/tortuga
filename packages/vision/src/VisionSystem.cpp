@@ -183,5 +183,56 @@ void VisionSystem::redLightDetectorOff()
     m_forward->removeDetector(m_redLightDetector);
 }
 
+void VisionSystem::background(int interval)
+{
+    // Start cameras
+    m_forwardCamera->background(interval);
+    m_downwardCamera->background(interval);
+
+    // Start detectors
+    m_forward->background(interval);
+    m_downward->background(interval);
+
+    // Start recorders
+    if (m_forwardRecorder)
+        m_forwardRecorder->background(interval);
+    if (m_downwardRecorder)
+        m_downwardRecorder->background(interval);    
+}
+        
+void VisionSystem::unbackground(bool join)
+{
+    // Stop cameras
+    m_forwardCamera->unbackground(join);
+    m_downwardCamera->unbackground(join);
+
+    // Stop detectors
+    m_forward->unbackground(join);
+    m_downward->unbackground(join);
+
+    // Stop recorders
+    if (m_forwardRecorder)
+        m_forwardRecorder->unbackground(join);
+    if (m_downwardRecorder)
+        m_downwardRecorder->unbackground(join);    
+}
+
+void VisionSystem::update(double timestep)
+{
+    // Grab data from the cameras
+    m_forwardCamera->update(timestep);
+    m_downwardCamera->update(timestep);
+
+    // Process in the detectors
+    m_forward->update(timestep);
+    m_downward->update(timestep);
+
+    // Update the recorders to record the data
+    if (m_forwardRecorder)
+        m_forwardRecorder->update(timestep);
+    if (m_downwardRecorder)
+        m_downwardRecorder->update(timestep);
+}
+    
 } // namespace vision
 } // namespace ram

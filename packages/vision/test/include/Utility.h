@@ -12,6 +12,7 @@
 
 // Library Includes
 #include "cxtypes.h"
+#include "cxcore.h"
 
 // Project Includes
 #include "vision/include/Common.h"

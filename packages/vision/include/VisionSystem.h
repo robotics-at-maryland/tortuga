@@ -41,23 +41,29 @@ public:
     void pipeLineDetectorOff();
     void gateDetectorOn();
     void gateDetectorOff();
-    
-    virtual void background(int interval) {
-//        Updatable::background(interval);
-    };
-    virtual void unbackground(bool join = false) {
-//        Updatable::unbackground(join);
-    };
+
+    /** Calls background on the Cameras, VisionRunners and Recorders
+     *
+     *  @note Only valid when in testing mode, set by 'testing' in config file
+     */
+    virtual void background(int interval);
+
+    /** Calls unbackgrond on the Cameras, VisionRunners, and Recorders
+     *
+     *  @note Only valid when in testing mode, set by 'testing' in config file
+     */
+    virtual void unbackground(bool join = false);
+
     virtual bool backgrounded() {
       return false;
 //        return Updatable::backgrounded();
     };
 
-    /** Grabs latest vehicle state, runs the controller, the commands the
-        thrusters */
-    virtual void update(double timestep)
-    {
-    };
+    /** Updates Cameras, then VisionRunners, then Recorders
+     *
+     *  @note Only valid when in testing mode, set by 'testing' in config file
+     */
+    virtual void update(double timestep);
 
 private:
     /** Initializes all internal members */
@@ -76,6 +82,9 @@ private:
     DetectorPtr m_binDetector;
     DetectorPtr m_pipelineDetector;
     DetectorPtr m_gateDetector;
+
+    /** Flag which when true enables use of back/unback and update */
+    bool m_testing;
 };
 
 } // namespace vision
