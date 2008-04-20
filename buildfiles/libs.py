@@ -168,7 +168,7 @@ def setup_windows_libs():
         
         'OpenCV' : Library('OpenCV', '1.0', ['opencv/cv.h'],
                            ['cv', 'cxcore','highgui','cxts','cvaux','ml'],
-                           CPPPATH = 'opencv')
+                           CPPPATH = ram_include + '/opencv')
     }                               
         
 def _get_external_lib(name):

@@ -137,14 +137,14 @@ namespace math {
         Vector2 operator* (const Vector2& rkVector) const;
 
         /** vector * matrix [1x2 * 2x2 = 1x2] */
-         friend Vector2 operator* (const Vector2& rkVector,
+         friend Vector2 RAM_EXPORT operator* (const Vector2& rkVector,
             const Matrix2& rkMatrix);
 
          /**  matrix * scalar */
         Matrix2 operator* (Real fScalar) const;
 
         /** scalar * matrix */
-         friend Matrix2 operator* (Real fScalar, const Matrix2& rkMatrix);
+         friend Matrix2 RAM_EXPORT operator* (Real fScalar, const Matrix2& rkMatrix);
 
         // utilities
          /** Creata rotation matrix from the given angle (counter clockwise)*/

@@ -55,7 +55,7 @@ public:
     virtual void unbackground(bool join = false);
 
     virtual bool backgrounded() {
-      return false;
+      return true;
 //        return Updatable::backgrounded();
     };
 

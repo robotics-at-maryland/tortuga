@@ -106,22 +106,22 @@ double RAM_EXPORT depthPController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState);
                             
-void depthObserver2(MeasuredState* measuredState,
-                    DesiredState* desiredState,
-                    ControllerState* controllerState,
-                    EstimatedState* estimatedState,
-                    double dt);
+void RAM_EXPORT depthObserver2(MeasuredState* measuredState,
+                               DesiredState* desiredState,
+                               ControllerState* controllerState,
+                               EstimatedState* estimatedState,
+                               double dt);
 
-double depthPDController2(MeasuredState* measuredState,
-                          DesiredState* desiredState,
-                          ControllerState* controllerState,
-                          EstimatedState* estimatedState);
+double RAM_EXPORT depthPDController2(MeasuredState* measuredState,
+                                     DesiredState* desiredState,
+                                     ControllerState* controllerState,
+                                     EstimatedState* estimatedState);
 
-double depthObserverController4(MeasuredState* measuredState,
-                    DesiredState* desiredState,
-                    ControllerState* controllerState,
-                    EstimatedState* estimatedState,
-                    double dt);
+double RAM_EXPORT depthObserverController4(MeasuredState* measuredState,
+                                          DesiredState* desiredState,
+                                          ControllerState* controllerState,
+                                          EstimatedState* estimatedState,
+                                          double dt);
     
   //TODO: implement this function
   //  bool isAtDepth();
