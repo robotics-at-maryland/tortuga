@@ -12,6 +12,7 @@ import os
 import os.path
 import sys
 import platform
+import subprocess
 
 # Build system imports
 import buildfiles.helpers as helpers
@@ -90,20 +91,6 @@ env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 # See: buildfiles/platfrm.py for more information
 platfrm.setup_environment(env)
 
-# Dist clean
-def dist_func(target = None, source = None, env = None):
-    import shutil
-    
-    print 'Removing', env['BUILD_DIR']
-    shutil.rmtree(env['BUILD_DIR'], True)
-    build_ext = os.path.join(env.Dir('.').abspath, 'build_ext')
-    print 'Removing', build_ext
-    shutil.rmtree(build_ext, True)
-
-# Creat are "phony" distclean target
-dist_clean = env.Alias('dist-clean', 'SConstruct', env.Action(dist_func))
-env.AlwaysBuild(dist_clean)
-
 
 # --------------------------------------------------------------------------- #
 #                                F L A G S                                    #
@@ -165,7 +152,47 @@ else:
                                 '/wd4347', '/wd4350', '/wd4928', '/wd4263',
                                 '/wd4264', '/wd4266', '/wd4191', '/wd4996',
                                 '/wd4273'])
-                                
+
+    
+# --------------------------------------------------------------------------- #
+#                      C U S T O M   T A R G E T S                            #
+# --------------------------------------------------------------------------- #
+
+# Dist clean
+def dist_func(target = None, source = None, env = None):
+    import shutil
+    
+    print 'Removing', env['BUILD_DIR']
+    shutil.rmtree(env['BUILD_DIR'], True)
+    build_ext = os.path.join(env.Dir('.').abspath, 'build_ext')
+    print 'Removing', build_ext
+    shutil.rmtree(build_ext, True)
+
+# Creat are "phony" distclean target
+dist_clean = env.Alias('dist-clean', 'SConstruct', env.Action(dist_func))
+env.AlwaysBuild(dist_clean)
+
+# Docs
+if 1 == sys.argv.count('docs'):
+    doxygen_path = env.WhereIs('doxygen')
+    if doxygen_path is None:
+        print 'Could not find doxygen, please make sure it is on your PATH'
+        env.Exit(1)
+    else:
+        env['doxygen_path'] = doxygen_path
+        
+def docs_func(target = None, source = None, env = None):
+    cfg_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
+                            'doxygen.cfg')
+
+    output_dir = os.path.join('docs','api','cpp')
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    subprocess.call("%s %s" % (env['doxygen_path'], cfg_path), shell = True)
+
+# Creat are "phony" distclean target
+make_docs = env.Alias('docs', 'SConstruct', env.Action(docs_func))
+env.AlwaysBuild(make_docs)
 
 # --------------------------------------------------------------------------- #
 #                              B U I L D                                      #
