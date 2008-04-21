@@ -1,0 +1,12 @@
+import Microchip
+
+# Set CPU
+env = Microchip.MPLAB_C30(MCPU='30f4011')
+
+env.Append(CPPPATH = ['../../sonar/sonarController/include'])
+
+sourcefiles = ['../../sonar/sonarController/src/dft.c',
+               'leoadc.c']
+
+env.Program('out.elf', sourcefiles)
+env.Hex('out.hex', 'out.elf')
