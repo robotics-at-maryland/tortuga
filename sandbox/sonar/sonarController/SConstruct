@@ -1,0 +1,33 @@
+import os
+
+env = Environment(PATH = os.environ['PATH'])
+env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/include', '#include'])
+env.Append(LIBPATH = ['/opt/ram/local/lib', '/opt/local/lib'])
+
+commonFiles = Split("""
+					src/dft.c
+					src/FastSlidingDFT.cpp
+					src/SampleDelay.cpp
+					src/SimpleSlidingDFT.cpp
+					src/SlidingDFT.cpp
+					src/Sonar.cpp
+					src/SonarChunk.cpp
+					src/SonarController.cpp
+					src/WrappedSlidingDFT.cpp
+					src/TDOA.cpp
+					src/DSO.cpp
+					""")
+
+testFiles   = Split("""
+					test/src/Test.cpp
+					test/src/TestSampleDelay.cpp
+					test/src/TestSimpleSlidingDFT.cpp
+					test/src/TestTDOAxcorr.cpp
+					test/src/TestWrappedSlidingDFT.cpp
+					""")
+
+commonLib = env.Library('build/sonar', commonFiles)
+env.Append(LIBS = [commonLib])
+env.Append(LIBS = ['fftw3', 'UnitTest++'])
+
+testExec = env.Program('build/test', testFiles)

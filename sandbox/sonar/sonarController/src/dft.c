@@ -25,13 +25,13 @@
 sliding_dft_t *dft_alloc(int nchannels, int k, int N)
 {
 	sliding_dft_t *dft = malloc(sizeof(sliding_dft_t));
-	dft->bufre = malloc(dft->nchannels*dft->N*sizeof(adcmath_t));
-	dft->bufim = malloc(dft->nchannels*dft->N*sizeof(adcmath_t));
-	dft->re = malloc(dft->nchannels*sizeof(adcmath_t));
-	dft->im = malloc(dft->nchannels*sizeof(adcmath_t));
-	dft->mag = malloc(dft->nchannels*sizeof(adcmath_t));
-	dft->coefre = malloc(dft->N*sizeof(adcdata_t));
-	dft->coefim = malloc(dft->N*sizeof(adcdata_t));
+	dft->bufre = malloc(nchannels*N*sizeof(adcmath_t));
+	dft->bufim = malloc(nchannels*N*sizeof(adcmath_t));
+	dft->re = malloc(nchannels*sizeof(adcmath_t));
+	dft->im = malloc(nchannels*sizeof(adcmath_t));
+	dft->mag = malloc(nchannels*sizeof(adcmath_t));
+	dft->coefre = malloc(N*sizeof(adcdata_t));
+	dft->coefim = malloc(N*sizeof(adcdata_t));
 	dft_init(dft, nchannels, k, N);
 }
 
