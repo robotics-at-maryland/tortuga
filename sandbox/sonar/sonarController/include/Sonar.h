@@ -27,6 +27,8 @@ typedef signed int int16_t;
 typedef unsigned int uint16_t;
 typedef signed long int32_t;
 typedef unsigned long uint32_t;
+typedef signed long long int64_t;
+typedef unsigned long long uint64_t;
 #else
 #include <stdint.h>
 #endif
@@ -49,8 +51,8 @@ namespace sonar {
 
 
 typedef int16_t adcdata_t;
-typedef int64_t adcmath_t;
-typedef int64_t adcsampleindex_t;
+typedef int32_t adcmath_t;
+typedef int32_t adcsampleindex_t;
 
 
 #ifndef __cplusplus

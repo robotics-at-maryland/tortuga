@@ -25,13 +25,13 @@ namespace sonar {
 
 int16_t floatToQ15(float x)
 {
-	return (int16_t) round(x * (1<<16));
+	return (int16_t) (x * (float)(1<<15));
 }
 
 
 int32_t int32ToQ31(int32_t x)
 {
-	return x << 1;
+	return x >> 1;
 }
 
 	
@@ -74,7 +74,7 @@ void FastSlidingDFT::update(adcdata_t * sample)
 		
 		/*	Step 2: Add the new data point in the x(0) position.
 		 *	Also store new data in the buffer.
-		*/
+		 */
 		
 		sumreal[channel] += sample[channel];
 		window[channel][curidx] = sample[channel];
@@ -88,7 +88,7 @@ void FastSlidingDFT::update(adcdata_t * sample)
 		 *	coef = exp(2*pi*i*k/N)
 		 *
 		 *	Note that the exponent is positive; this causes the backwards shift.
-		*/
+		 */
 		
 		adcmath_t tmp    = int32ToQ31(coefreal * sumreal[channel]) - int32ToQ31(coefimag * sumimag[channel]);
 		sumimag[channel] = int32ToQ31(coefreal * sumimag[channel]) + int32ToQ31(coefimag * sumreal[channel]);
@@ -116,8 +116,8 @@ void FastSlidingDFT::update(adcdata_t * sample)
 
 void FastSlidingDFT::setupCoefficients()
 {
-	coefreal = (adcdata_t) floatToQ15(cos(2 * M_PI * k / N));
-	coefimag = (adcdata_t) floatToQ15(sin(2 * M_PI * k / N));
+	coefreal = floatToQ15(cos(2 * M_PI * k / N));
+	coefimag = floatToQ15(sin(2 * M_PI * k / N));
 }
 
 
@@ -136,12 +136,12 @@ void FastSlidingDFT::setupWindow() {
 
 void FastSlidingDFT::purge()
 {
-	memset(sumreal, 0, sizeof(*sumreal) * nchannels);
-	memset(sumimag, 0, sizeof(*sumimag) * nchannels);
-	memset(mag, 0, sizeof(*mag) * nchannels);
+	bzero(sumreal, sizeof(*sumreal) * nchannels);
+	bzero(sumimag, sizeof(*sumimag) * nchannels);
+	bzero(mag, sizeof(*mag) * nchannels);
 	for (int i = 0 ; i < nchannels ; i ++)
 	{
-		memset(window[i], 0, sizeof(**window) * N);
+		bzero(window[i], sizeof(**window) * N);
 	}
 	curidx = 0;
 }

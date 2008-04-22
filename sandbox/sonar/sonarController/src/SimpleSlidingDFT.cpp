@@ -140,13 +140,13 @@ void SimpleSlidingDFT::setupWindow() {
 
 void SimpleSlidingDFT::purge()
 {
-	memset(sumreal, 0, sizeof(*sumreal) * nchannels);
-	memset(sumimag, 0, sizeof(*sumimag) * nchannels);
-	memset(mag, 0, sizeof(*mag) * nchannels);
+	bzero(sumreal, sizeof(*sumreal) * nchannels);
+	bzero(sumimag, sizeof(*sumimag) * nchannels);
+	bzero(mag, sizeof(*mag) * nchannels);
 	for (int i = 0 ; i < nchannels ; i ++)
 	{
-		memset(windowreal[i], 0, sizeof(**windowreal) * N);
-		memset(windowimag[i], 0, sizeof(**windowimag) * N);
+		bzero(windowreal[i], sizeof(**windowreal) * N);
+		bzero(windowimag[i], sizeof(**windowimag) * N);
 	}
 	curidx = 0;
 }

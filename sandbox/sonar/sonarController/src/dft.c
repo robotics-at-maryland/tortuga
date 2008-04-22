@@ -146,10 +146,10 @@ void dft_setup_window(sliding_dft_t *dft) {
 
 void dft_purge(sliding_dft_t *dft)
 {
-	memset(dft->re, 0, sizeof(adcmath_t) * dft->nchannels);
-	memset(dft->im, 0, sizeof(adcmath_t) * dft->nchannels);
-	memset(dft->mag, 0, sizeof(adcmath_t) * dft->nchannels);
-	memset(dft->bufre, 0, sizeof(adcmath_t) * dft->N * dft->nchannels);
-	memset(dft->bufim, 0, sizeof(adcmath_t) * dft->N * dft->nchannels);
+	bzero(dft->re, sizeof(adcmath_t) * dft->nchannels);
+	bzero(dft->im, sizeof(adcmath_t) * dft->nchannels);
+	bzero(dft->mag, sizeof(adcmath_t) * dft->nchannels);
+	bzero(dft->bufre, sizeof(adcmath_t) * dft->N * dft->nchannels);
+	bzero(dft->bufim, sizeof(adcmath_t) * dft->N * dft->nchannels);
 	dft->idx = 0;
 }

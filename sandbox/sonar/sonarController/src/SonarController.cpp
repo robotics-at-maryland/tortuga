@@ -150,7 +150,7 @@ void setupWindow() {
 
 void purge()
 {
-	memset(sample, 0, sizeof(*sample) * nchannels);
+	bzero(sample, sizeof(*sample) * nchannels);
 }
 
 
