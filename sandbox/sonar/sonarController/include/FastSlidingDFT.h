@@ -8,11 +8,6 @@
  *
  */
 
-/* This class contains errors that prevent it from compiling.
- * No time to fix it now, so just tell the comiler to skip it.
- */
-#if false
-
 
 #ifndef FASTSLIDINGDFT_H
 #define FASTSLIDINGDFT_H
@@ -42,7 +37,7 @@ private:
 	void setupWindow();
 	
 	adcdata_t coefreal, coefimag;
-	adcmath_t **windowreal;
+	adcdata_t **window;
 	adcmath_t *sumreal, *sumimag, *mag;
 	
 	int curidx;
@@ -51,9 +46,6 @@ private:
 
 } // namespace sonar
 } // namespace ram
-
-
-#endif
 
 #endif
 

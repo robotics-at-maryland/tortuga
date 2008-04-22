@@ -48,21 +48,21 @@ namespace sonar {
 #endif
 
 
-typedef int8_t adcdata_t;
-typedef int32_t adcmath_t;
-typedef int32_t adcsampleindex_t;
+typedef int16_t adcdata_t;
+typedef int64_t adcmath_t;
+typedef int64_t adcsampleindex_t;
 
 
 #ifndef __cplusplus
-#define ADCDATA_MAXAMPLITUDE ((int) ((1 << (sizeof(adcdata_t) * 8 - 1)) - 1))
-#define BITS_ADCCOEFF ((int) 8)
+#define BITS_ADCCOEFF ((int) 10)
+#define ADCDATA_MAXAMPLITUDE ((int) ((1 << (BITS_ADCCOEFF - 1)) - 1))
 #endif
 
 
 #ifdef __cplusplus
-static const int ADCDATA_MAXAMPLITUDE = (1 << (sizeof(adcdata_t) * 8 - 1)) - 1;
 static const int NCHANNELS = 4;
-static const int BITS_ADCCOEFF = 8;
+static const int BITS_ADCCOEFF = 10;
+static const int ADCDATA_MAXAMPLITUDE = (1 << (BITS_ADCCOEFF - 1)) - 1;
 static const float PINGDURATION = 1.3e-3;
 static const float MAX_SENSOR_SEPARATION = 0.2;
 static const float SPEED_OF_SOUND = 1500;

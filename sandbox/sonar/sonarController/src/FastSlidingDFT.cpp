@@ -9,12 +9,6 @@
  */
 
 
-/* This class contains errors that prevent it from compiling.
- * No time to fix it now, so just tell the comiler to skip it.
- */
-#if false
-
-
 #include "FastSlidingDFT.h"
 
 
@@ -27,8 +21,20 @@
 
 namespace ram {
 namespace sonar {
+	
+
+int16_t floatToQ15(float x)
+{
+	return (int16_t) round(x * (1<<16));
+}
 
 
+int32_t int32ToQ31(int32_t x)
+{
+	return x << 1;
+}
+
+	
 FastSlidingDFT::FastSlidingDFT(int nchannels, int k, int N) : SlidingDFT(nchannels, k, N)
 {
 	setupCoefficients();
@@ -38,16 +44,14 @@ FastSlidingDFT::FastSlidingDFT(int nchannels, int k, int N) : SlidingDFT(nchanne
 
 FastSlidingDFT::~FastSlidingDFT()
 {
-	delete coefreal;
-	delete coefimag;
 	delete [] sumreal;
 	delete [] sumimag;
 	delete [] mag;
 	for (int i = 0 ; i < nchannels ; i ++)
 	{
-		delete [] windowreal[i];
+		delete [] window[i];
 	}
-	delete [] windowreal;
+	delete [] window;
 }
 
 
@@ -57,20 +61,23 @@ void FastSlidingDFT::update(adcdata_t * sample)
 {
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
+		
+		//	After http://www.comm.toronto.edu/~dimitris/ece431/slidingdft.pdf
+		
 		/*	Step 1: Subtract the old data from the real part sum.
 		 *	This removes the x(0) term from the DFT, corresponding to the
 		 *	data point that is getting pushed out of the window.
 		 *	Since all ADC data is real, we do not touch the imaginary part.
 		 */
 		
-		sumreal[channel] -= windowreal[channel][curidx];
+		sumreal[channel] -= window[channel][curidx];
 		
 		/*	Step 2: Add the new data point in the x(0) position.
 		 *	Also store new data in the buffer.
 		*/
 		
 		sumreal[channel] += sample[channel];
-		windowreal[channel][curidx] = sample[channel];
+		window[channel][curidx] = sample[channel];
 
 		/*	Step 3: Phase-shift the DFT sum.
 		 *	Note that after step 2, the point that should be x(N-1) is in the
@@ -81,11 +88,12 @@ void FastSlidingDFT::update(adcdata_t * sample)
 		 *	coef = exp(2*pi*i*k/N)
 		 *
 		 *	Note that the exponent is positive; this causes the backwards shift.
-		*/		
-
-		windowreal[channel][curidx] = (adcmath_t) (coefreal * windowreal[channel][curidx] - coefimag * windowimag[channel][curidx]);
-		windowimag[channel][curidx] = (adcmath_t) (coefimag * windowreal[channel][curidx] + coefimag * windowreal[channel][curidx]);
-
+		*/
+		
+		adcmath_t tmp    = int32ToQ31(coefreal * sumreal[channel]) - int32ToQ31(coefimag * sumimag[channel]);
+		sumimag[channel] = int32ToQ31(coefreal * sumimag[channel]) + int32ToQ31(coefimag * sumreal[channel]);
+		sumreal[channel] = tmp;
+		
 		/*	We compute the L1 norm (|a|+|b|) instead of the L2 norm 
 		 *	sqrt(a^2+b^2) in order to aovid integer overflow.  Since we are only
 		 *	using the magnitude for thresholding, this is an acceptable 
@@ -108,19 +116,19 @@ void FastSlidingDFT::update(adcdata_t * sample)
 
 void FastSlidingDFT::setupCoefficients()
 {
-	coefreal = (adcdata_t) (cos(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE);
-	coefimag = (adcdata_t) (sin(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE);
+	coefreal = (adcdata_t) floatToQ15(cos(2 * M_PI * k / N));
+	coefimag = (adcdata_t) floatToQ15(sin(2 * M_PI * k / N));
 }
 
 
 void FastSlidingDFT::setupWindow() {
-	windowreal = new adcmath_t*[nchannels];
+	window = new adcdata_t*[nchannels];
 	sumreal = new adcmath_t[nchannels];
 	sumimag = new adcmath_t[nchannels];
 	mag = new adcmath_t[nchannels];
 	for (int i = 0 ; i < nchannels ; i ++)
 	{
-		windowreal[i] = new adcmath_t[N];
+		window[i] = new adcdata_t[N];
 	}
 	purge();
 }
@@ -133,7 +141,7 @@ void FastSlidingDFT::purge()
 	memset(mag, 0, sizeof(*mag) * nchannels);
 	for (int i = 0 ; i < nchannels ; i ++)
 	{
-		memset(windowreal[i], 0, sizeof(**windowreal) * N);
+		memset(window[i], 0, sizeof(**window) * N);
 	}
 	curidx = 0;
 }
@@ -162,6 +170,3 @@ adcmath_t FastSlidingDFT::getImag(int channel) const
 
 } // namespace sonar
 } // namespace ram
-
-
-#endif

@@ -22,8 +22,9 @@ testFiles   = Split("""
 					test/src/Test.cpp
 					test/src/TestSampleDelay.cpp
 					test/src/TestSimpleSlidingDFT.cpp
-					test/src/TestTDOAxcorr.cpp
 					test/src/TestWrappedSlidingDFT.cpp
+					test/src/TestFastSlidingDFT.cpp
+					test/src/TestTDOAxcorr.cpp
 					""")
 
 commonLib = env.Library('build/sonar', commonFiles)

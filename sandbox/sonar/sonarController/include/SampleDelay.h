@@ -36,7 +36,7 @@ public:
 private:
 	int buflen;
 	adcdata_t *buf, *bufptr, *bufend;
-	int increment;
+	size_t increment;
 };
 
 

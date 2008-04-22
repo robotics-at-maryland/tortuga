@@ -39,7 +39,7 @@ SampleDelay::~SampleDelay()
 
 void SampleDelay::writeSample(adcdata_t *sample)
 {
-	memcpy(bufptr, sample, increment);
+	memcpy(bufptr, sample, increment * sizeof(adcdata_t));
 	bufptr += increment;
 	if (bufptr >= bufend)
 		bufptr = buf;
@@ -54,7 +54,7 @@ adcdata_t * SampleDelay::readSample()
 
 void SampleDelay::purge()
 {
-	memset(buf, 0, buflen);
+	bzero(buf, buflen * sizeof(adcdata_t));
 }
 
 
