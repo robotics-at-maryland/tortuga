@@ -3,5 +3,5 @@ env = Environment(tools = ['default', 'Microchip'],
 				  MCPU = '30f4011')
 
 env.Append(CPPPATH = ['../../sonar/sonarController/include'])
-sourcefiles = ['../../sonar/sonarController/src/dft.c','leoadc.c']
+sourcefiles = ['../../sonar/sonarController/src/dft.c','leoadc.c','uart.c']
 env.Hex('out.hex', env.Program(sourcefiles))

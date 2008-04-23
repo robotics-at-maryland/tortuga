@@ -1,7 +1,9 @@
+#ifndef _scottcommon_h
+#define _scottcommon_h
 
+typedef unsigned char byte;
 
 #define SAMPLE_LENGTH 100
-#define byte unsigned char
 #define _ISR __attribute__((interrupt))
 #define _ISRFAST __attribute__((interrupt, shadow))
 
@@ -21,3 +23,5 @@ void _ISRFAST _T3Interrupt(void);
 //ADC specific
 void ADC_Init(void);
 void __attribute__((__interrupt__)) _ADCInterrupt(void);
+
+#endif

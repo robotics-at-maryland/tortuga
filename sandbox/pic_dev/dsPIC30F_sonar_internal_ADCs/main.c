@@ -6,7 +6,7 @@
  * 
  * code written for a dsPIC30F4012 running with a 7.5MHz crystal*/
  
-#include "p30fxxxx.h"
+#include <p30fxxxx.h>
 #include "scottcommon.h"
 #define UART_ENABLED 1  //set to 0 to turn off uart
 

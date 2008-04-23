@@ -1,7 +1,8 @@
-#include "p30fxxxx.h"
+#include <p30fxxxx.h>
+#include <stdio.h>
 #include "scottcommon.h"
 
-byte uart_enabled;
+int uart_enabled;
 
 //////////////////////////////////////////////
 //Use this function to send 1 byte to the UART
@@ -42,7 +43,7 @@ MIPS = 7.5Mhz * pll16 / 4 = 30,000,000 MIPS
 ****don't forget to invert the signal coming out of the PIC
 to create a signal that most computer's serial ports will 
 interpret.  When communicating to other PIC devices, no inversion is needed. */
-void init_Uart(byte enabled){
+extern void init_Uart(byte enabled){
 	uart_enabled=enabled;
 	if(!uart_enabled)return;
     U1MODE = 0x0000;
