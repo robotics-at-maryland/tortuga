@@ -1,10 +1,9 @@
 #include <p30fxxxx.h>
-#include "scottcommon.h"
 
 
 #define M_SLIDING_DFT_k 4
 #define M_SLIDING_DFT_N 32
-#define M_SLIDING_DFT_nchannels 4
+#define M_SLIDING_DFT_nchannels 3
 #include <dft_singleton_c30.h>
 
 
@@ -12,42 +11,57 @@
 sliding_dft_t *dft;
 
 
-void reportPing(void)
+/**
+ * Stop the car.
+ */
+void allStop()
 {
-	byte *buf, *end;
-	
-	buf = (byte*)(dft->re);
-	end = buf + sizeof(adcmath_t) * M_SLIDING_DFT_nchannels;
-	
-	for (; buf < end ; buf ++)
-		sendByte(*buf);
-	
-	buf = (byte*)(dft->im);
-	end = buf + sizeof(adcmath_t) * M_SLIDING_DFT_nchannels;
-	
-	for (; buf < end ; buf ++)
-		sendByte(*buf);
+	//	TODO
 }
 
 
-void __attribute__((interrupt, auto_psv)) _ISR _ADCInterrupt(void)
+/**
+ * Drive the car in the direction (x,y) where (x,y) is a (not necessarily normalized)
+ * 2-dimensional vector relative to the car.
+ */
+void steerToward(float x, float y)
 {
-	int i;
+	//	TODO
+}
+
+
+void _ISR _ADCInterrupt(void)
+{
+	//	Change the magnitude threshold to whatever works
+	int threshold = 10000;
 	
-	//	Copy and cast converted ADC data to the correct type
+	//	Copy captured ADC data
 	adcdata_t rawData[M_SLIDING_DFT_nchannels];
-	for (i = 0 ; i < M_SLIDING_DFT_nchannels ; i ++)
-		rawData[i] = (&ADCBUF0)[i];
+	rawData[0] = ADCBUF1;
+	rawData[1] = ADCBUF2;
+	rawData[2] = ADCBUF3;
 	
-	//	Propate the DFT
+	
+	//	Propagate the DFT
 	dft_update(dft, rawData);
 	
-	int thresholdMet = 1;
-	for (i = 0 ; i < M_SLIDING_DFT_nchannels ; i ++)
-		thresholdMet &= (dft->mag[i] > DFT_MAG_THRESHOLD);
 	
+	//	Check to see if the DFT magnitude crossed the threshold on all channels
+	int i, thresholdMet = 1;
+	for (i = 0 ; i < M_SLIDING_DFT_nchannels ; i ++)
+		thresholdMet &= (dft->mag[i] > threshold);
+	
+	
+	//	Steer the car
 	if (thresholdMet)
-		reportPing();
+	{
+		float d10 = dft_relativePhase(dft, 0, 1);  //  TDOA 0/1
+		float d20 = dft_relativePhase(dft, 0, 2);  //  TDOA 0/2
+		steerToward(d10, d20);                     //  Steer car
+	}
+	else
+		allStop();                                 //  Halt car
+	
 	
 	//	Clear interrupt bit; we are done servicing the interrupt
 	IFS0bits.ADIF = 0;

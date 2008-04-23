@@ -2,11 +2,12 @@ import os
 import SCons.Builder
 
 def generate(env):
-	hex = SCons.Builder.Builder(action = '/opt/local/bin/wine \'C:\\Program Files\\Microchip\\MPLAB C30\\bin\\pic30-elf-bin2hex\' < $SOURCE > $TARGET')
-	env.Append(BUILDERS = {'Hex': hex})
-	env.Replace(CC = '/opt/local/bin/wine \'C:\\Program Files\\Microchip\\MPLAB C30\\bin\\pic30-elf-gcc\'')
+	hex = SCons.Builder.Builder(action = '/opt/pic/bin/pic30-elf-bin2hex $SOURCE')
+	pickitProg = SCons.Builder.Builder(action = 'cd /opt/pic/bin;/opt/pic/bin/pk2cmd -PP${MCPU} -M -R -F $SOURCE')
+	env.Append(BUILDERS = {'Bin2Hex': hex, 'PicKit2' : pickitProg})
+	env.Replace(CC = '/opt/pic/bin/pic30-elf-gcc')
 	env.Append(CFLAGS = ['-mcpu=$MCPU', '-Wall'])
-	env.Append(LINKFLAGS = '-Wl,--script="C:\\Program Files\\Microchip\\MPLAB C30\\support\\gld\\p${MCPU}.gld",--report-mem')
+	env.Append(LINKFLAGS = '-Wl,--script=\'p${MCPU}.gld\',--report-mem')
 
 def exists(env):
 	return os.exists('~/.wine/drive_c')
