@@ -63,6 +63,8 @@ void dft_setup_window(sliding_dft_t *dft);
 //  Purge the DFT window by pumping the buffer full of zeros.  Called during dft_init
 void dft_purge(sliding_dft_t *dft);
 
+//	Compute the phase of channel channelB relative to channel channelA
+float dft_relativePhase(sliding_dft_t *dft, int channelA, int channelB);
 
 #ifdef __cplusplus
 } /* Done playing nice with C++. */

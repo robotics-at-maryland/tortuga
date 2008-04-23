@@ -153,3 +153,11 @@ void dft_purge(sliding_dft_t *dft)
 	bzero(dft->bufim, sizeof(adcmath_t) * dft->N * dft->nchannels);
 	dft->idx = 0;
 }
+
+
+float dft_relativePhase(sliding_dft_t *dft, int channelA, int channelB)
+{
+	int64_t re = dft->re[channelA] * dft->re[channelB] + dft->re[channelA] * dft->re[channelB];
+	int64_t im = - dft->re[channelA] * dft->im[channelB] + dft->re[channelB] * dft->im[channelA];
+	return atan2(im, re);
+}

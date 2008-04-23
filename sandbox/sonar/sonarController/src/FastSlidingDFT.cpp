@@ -25,17 +25,17 @@ namespace sonar {
 
 int16_t floatToQ15(float x)
 {
-	float y = x * ((int16_t) 1 << 15);
+	float y = round(x * ((int16_t) 1 << 15));
 	if (y >= 32768)
 		return 32767;
 	else
-		return (int16_t) x * ((int16_t) 1 << 15);
+		return (int16_t) y;
 }
 
 
 int32_t int32ToQ31(int32_t x)
 {
-	return x >> 1;
+	return x >> 4;
 }
 
 	
@@ -120,10 +120,14 @@ void FastSlidingDFT::update(adcdata_t * sample)
 
 void FastSlidingDFT::setupCoefficients()
 {
+	coefreal = cos(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE;
+	coefimag = sin(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE;
+	/*
 	coefreal = floatToQ15(cos(2 * M_PI * k / N));
 	coefimag = floatToQ15(sin(2 * M_PI * k / N));
 	printf("k: %d, N: %d\n", k, N);
 	printf("coefreal: %d, coefimag: %d\n", coefreal, coefimag);
+	*/
 }
 
 
