@@ -1,13 +1,10 @@
 #include <p30fxxxx.h>
 
-
+//  Configure sliding DFT for 3 kHz, 3 channels
 #define M_SLIDING_DFT_k 4
 #define M_SLIDING_DFT_N 32
 #define M_SLIDING_DFT_nchannels 3
 #include <dft_singleton_c30.h>
-
-
-#define DFT_MAG_THRESHOLD 1000
 sliding_dft_t *dft;
 
 
@@ -32,72 +29,38 @@ void steerToward(float x, float y)
 
 void _ISR _ADCInterrupt(void)
 {
-    //  Change the magnitude threshold to whatever works
-    int threshold = 10000;
-    
-    //  Copy captured ADC data
+    int i, thresholdMet = 1, threshold = 10000;    //  May need to adjust threshold
     adcdata_t rawData[M_SLIDING_DFT_nchannels];
-    rawData[0] = ADCBUF1;
-    rawData[1] = ADCBUF2;
-    rawData[2] = ADCBUF3;
     
+    rawData[0] = ADCBUF1;                          //  Copy ADC data
+    rawData[1] = ADCBUF2;                          //  Copy ADC data
+    rawData[2] = ADCBUF3;                          //  Copy ADC data
+    dft_update(dft, rawData);                      //  Propagate the DFT
     
-    //  Propagate the DFT
-    dft_update(dft, rawData);
+    for (i = 0; i < M_SLIDING_DFT_nchannels; i ++) //  For all channels:
+        thresholdMet &= (dft->mag[i] > threshold); //  Check for threshold
     
-    
-    //  Check to see if the DFT magnitude crossed the threshold on all channels
-    int i, thresholdMet = 1;
-    for (i = 0 ; i < M_SLIDING_DFT_nchannels ; i ++)
-        thresholdMet &= (dft->mag[i] > threshold);
-    
-    
-    //  Steer the car
-    if (thresholdMet)
-    {
+    if (thresholdMet) {                            //  If we are hearing a ping:
         float d10 = dft_relativePhase(dft, 0, 1);  //  TDOA 0/1
         float d20 = dft_relativePhase(dft, 0, 2);  //  TDOA 0/2
         steerToward(d10, d20);                     //  Steer car
-    }
-    else
-        allStop();                                 //  Halt car
+    } else
+        allStop();                                 //  Otherwise, halt car
     
-    
-    //  Clear interrupt bit; we are done servicing the interrupt
-    IFS0bits.ADIF = 0;
+    IFS0bits.ADIF = 0;                             //  Clear interrupt bit
 }
 
 
 int main(void)
 {
-    //  Initialize the sliding DFT
-    dft = M_DFT_INIT();
+    dft = M_DFT_INIT();  //  Initialize the sliding DFT
     
-    
-    //  Initialize UART
-    init_Uart(1);
-    
-    
-    //  Initilize ADCs for simultaneous sampling and sequential conversion 
-    //  on four channels
-    
-    ADPCFG = 0xFF78;    // RB0,RB1,RB2 & RB7 = analog 
-    ADCON1 = 0x00EC;    // SIMSAM bit = 1 implies ... 
-    // simultaneous sampling 
-    // ASAM = 1 for auto sample after convert 
-    // SSRC = 111 for 3Tad sample time 
-    ADCHS = 0x0007;     // Connect AN7 as CH0 input 
-    ADCSSL = 0;
-    ADCON3 = 0x0302;    // Auto Sampling 3 Tad, Tad = internal 2 Tcy 
-    ADCON2 = 0x030C;    // CHPS = 1x implies simultaneous ... 
-    // sample CH0 to CH3
-    // SMPI = 0011 for interrupt after 4 converts 
-    
-    IFS0bits.ADIF = 0;  // Clear the A/D interrupt flag bit
-    IEC0bits.ADIE = 1;  // Set the A/D interrupt enable bit
-    
-    ADCON1bits.ADON = 1;// turn ADC ON
-    
+    //  TODO
+    //  Initialize ADCs for:
+    //    - simultaneous sampling and sequential convesion
+    //    - four channels
+    //    - automatic, timed sampling
+    //    - interrupt on completion
     
     while (1);          // run indefinitely
 }
