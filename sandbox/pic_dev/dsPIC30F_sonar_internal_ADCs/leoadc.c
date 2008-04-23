@@ -61,6 +61,7 @@ int main(void)
     //    - four channels
     //    - automatic, timed sampling
     //    - interrupt on completion
+    //    - signed integer output
     
     while (1);          // run indefinitely
 }
