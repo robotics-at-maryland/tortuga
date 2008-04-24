@@ -31,9 +31,9 @@ class RAM_EXPORT RemoteController :
         public core::Updatable
 {
   public:
-    RemoteController(core::ConfigNode config, 
+    RemoteController(core::ConfigNode config,
                      core::SubsystemList deps = core::SubsystemList());
-    
+
     virtual ~RemoteController();
 
     /** Turn on network control inputs */
@@ -49,17 +49,17 @@ class RAM_EXPORT RemoteController :
     {
         core::Updatable::background(interval);
     }
-    
+
     virtual void unbackground(bool join = false)
     {
         core::Updatable::unbackground(join);
     }
-    
+
     virtual bool backgrounded()
     {
         return Updatable::backgrounded();
     }
-    
+
   private:
     /** Sets up the networking based on the setting defined above
      *
@@ -73,7 +73,7 @@ class RAM_EXPORT RemoteController :
      * @return If false it means an emergency shutdown command was sent
      */
     bool processMessage(unsigned char cmd, signed char param = 0);
-    
+
     /** Socket to recieve on */
     int m_sockfd;
 
@@ -88,6 +88,8 @@ class RAM_EXPORT RemoteController :
     double m_maxSpeed;
     double m_speedEnc;
     double m_yawGain;
+    double m_pitchGain;
+    double m_rollGain;
 };
 
 } // namespace network
