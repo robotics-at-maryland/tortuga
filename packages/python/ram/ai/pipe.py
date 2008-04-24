@@ -71,7 +71,10 @@ class FollowPath(state.State):
 
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        self._pipe.setState(event.x, event.y, event.angle)
+        angle = 0
+        if event.x < 0.5 and event.y < 0.5:
+            angle = event.angle
+        self._pipe.setState(event.x, event.y, angle)
         
     def PIPE_LOST(self, event):
         """We have driving off the 'end' of the pipe"""
