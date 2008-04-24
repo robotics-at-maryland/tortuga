@@ -102,6 +102,8 @@ ForceFeedback* g_ff[4] = {0,0,0,0};//Array to hold ff interface for each joy
 #define CMD_SETSPEED    9
 
 #define CMD_ANGLEYAW 10
+#define CMD_ANGLEPITCH 12
+#define CMD_ANGLEROLL 13
 
 #define CMD_TSETSPEED      11
 
@@ -111,7 +113,8 @@ struct sockaddr_in their_addr; /*connector's address information */
 
 
 int yawCmd = 0;
-
+int pitchCmd = 0;
+int rollCmd = 0;
 
 void sendCmd(int fd, unsigned char cmd, signed char param)
 {
@@ -193,23 +196,30 @@ void processAxis(int fd, int axis, int val)
 }
 #else
 
+int scaleAxis(int val, int negRange, int posRange, int offset, int outRange)
+{
+    val += offset;
+    if(val < 0) /* Forward, range up to 15677 */
+        val = outRange * val / negRange;
+    else
+        val = outRange * val / posRange;
+
+    if(val > outRange)
+        val = outRange;
+
+    if(val < -outRange)
+        val = -outRange;
+
+    return val;
+}
+
 void processAxis(int fd, int axis, int val)
 {
     switch(axis)
     {
         case AXIS_SPEED:
         {
-			val += 6811;
-			if(val < 0)	/* Forward, range up to 15677 */
-		            	val = SPEED_RANGE * val / -14000;
-			else
-				val = SPEED_RANGE * val / -15000;
-
-			if(val > SPEED_RANGE)
-				val = SPEED_RANGE;
-
-			if(val < -SPEED_RANGE)
-				val = SPEED_RANGE;
+            val = scaleAxis(val, -14000, -15000, 6811, SPEED_RANGE);
 
 	        if(val != lastAxisSpeed)
 	        {
@@ -225,32 +235,15 @@ void processAxis(int fd, int axis, int val)
 
         case AXIS_YAW:
         {
-            val += 10152;
-
-            if(val > 0)
-                val = YAW_RANGE * val / 17476;
-            else
-                val = YAW_RANGE * val / 15934;
-    //      printf("RAW IS %d\n", val);
-        // yawCmd = -val;    /* YAW DISABLED UNTIL CALIBRATED ! */
+            val = scaleAxis(val, -18504, 18504, 4498, YAW_RANGE);
+            yawCmd = -val;    /* YAW DISABLED UNTIL CALIBRATED ! */
             break;
         }
 
 
 	    case AXIS_TSPEED:
 	    {
-		    val += 10152;
-
-		    if(val > 0)
-			    val = TSPEED_RANGE * val / 17476;
-		    else
-			    val = TSPEED_RANGE * val / 15934;
-
-            if(val > TSPEED_RANGE)
-                val = TSPEED_RANGE;
-
-            if(val < -TSPEED_RANGE)
-                val = TSPEED_RANGE;
+            val = scaleAxis(val, 15934, 17476, 10152, TSPEED_RANGE);
 
             if(val != lastAxisTSpeed)
             {
@@ -451,8 +444,9 @@ int main(int argc, char ** argv)
 			  checkX11Events();
 			  usleep( 250 );
 	       	sendCmd(sockfd, CMD_NOTHING, 0);
-
 			sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
+            sendCmd(sockfd, CMD_ANGLEPITCH, pitchCmd);
+            sendCmd(sockfd, CMD_ANGLEROLL, rollCmd);
 
 			#endif
 /*
