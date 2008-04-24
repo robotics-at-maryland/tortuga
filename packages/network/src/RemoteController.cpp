@@ -251,6 +251,8 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
             {
                 //printf("\nINVALID NEW SPEED: %d\n", param);
             }
+
+            break;
         }
 
         case CMD_NOTHING:
@@ -260,20 +262,22 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         }
 
         case CMD_ANGLEYAW:
-	    {
-	        if(param != 0)
-	        {
-	            double yaw = param / m_yawGain;
-	            m_controller->yawVehicle(yaw);
-	        }
-	        break;
-	    }
+        {
+            if(param != 0)
+            {
+                double yaw = param / m_yawGain;
+//                printf("Y: %f\n", yaw);
+	        m_controller->yawVehicle(yaw);
+            }
+            break;
+        }
 
         case CMD_ANGLEPITCH:
         {
             if(param != 0)
             {
                 double pitch = param / m_pitchGain;
+//                printf("P: %f\n", pitch);
                 m_controller->pitchVehicle(pitch);
             }
             break;
@@ -285,12 +289,13 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
             {
                 double roll = param / m_rollGain;
                 m_controller->rollVehicle(roll);
+//                printf("R: %f\n", roll);
             }
             break;
         }
 
 
-	    default:
+        default:
         {
             //printf("Invalid network command type: %c\n", cmd);
         }

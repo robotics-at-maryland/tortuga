@@ -237,8 +237,10 @@ void processAxis(int fd, int axis, int val)
 
         case AXIS_YAW:
         {
-            val = scaleAxis(val, -18504, 18504, 4498, YAW_RANGE);
-            yawCmd = -val;    /* YAW DISABLED UNTIL CALIBRATED ! */
+            val = scaleAxis(val, 18504, 18504, 4498, YAW_RANGE);
+            if(val == 1 || val == -1)
+		val = 0;
+	    yawCmd = -val;    /* YAW DISABLED UNTIL CALIBRATED ! */
             break;
         }
 
@@ -448,10 +450,10 @@ int main(int argc, char ** argv)
 			  checkX11Events();
 			  usleep( 250 );
 	       	sendCmd(sockfd, CMD_NOTHING, 0);
-			sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
-            sendCmd(sockfd, CMD_ANGLEPITCH, pitchCmd);
-            sendCmd(sockfd, CMD_ANGLEROLL, rollCmd);
-
+		sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
+       		sendCmd(sockfd, CMD_ANGLEPITCH, pitchCmd);
+                sendCmd(sockfd, CMD_ANGLEROLL, rollCmd);
+//		printf("Sending: %d\t%d\t%d\n", yawCmd, pitchCmd, rollCmd);
 			#endif
 /*
 			if( g_kb )
