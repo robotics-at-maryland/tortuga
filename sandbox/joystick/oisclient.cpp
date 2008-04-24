@@ -171,6 +171,8 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 #define SPEED_RANGE 5
 #define TSPEED_RANGE 5
 
+#define YAW_RANGE 10
+
 /* Don't send same speed twice */
 int lastAxisSpeed=0;
 int lastAxisTSpeed = 0;
@@ -220,17 +222,17 @@ void processAxis(int fd, int axis, int val)
         case AXIS_SPEED:
         {
             val = scaleAxis(val, -14000, -15000, 6811, SPEED_RANGE);
-
+/*
 	        if(val != lastAxisSpeed)
 	        {
 		        printf("New speed: %d\n", val);
                 lastAxisSpeed = val;
                 sendCmd(fd, CMD_SETSPEED, val);
             }
+  */
+            pitchCmd = val;
             break;
         }
-
-#define YAW_RANGE 10
 
 
         case AXIS_YAW:
@@ -244,13 +246,15 @@ void processAxis(int fd, int axis, int val)
 	    case AXIS_TSPEED:
 	    {
             val = scaleAxis(val, 15934, 17476, 10152, TSPEED_RANGE);
-
+            rollCmd = val;
+/*
             if(val != lastAxisTSpeed)
             {
                 printf("New tspeed: %d\n", val);
                 lastAxisTSpeed = val;
                 sendCmd(fd, CMD_TSETSPEED, val);
             }
+*/
             break;
         };
     }
