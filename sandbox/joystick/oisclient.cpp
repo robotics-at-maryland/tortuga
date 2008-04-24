@@ -149,6 +149,7 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
     #define AXIS_TSPEED 0
 	#define AXIS_SPEED 1
 	#define AXIS_YAW 2
+    #define AXIS_THROTTLE 3
 //    #error No speed axis defined for Saitek yet.
 #else
 
@@ -175,6 +176,7 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
 
 /* Don't send same speed twice */
 int lastAxisSpeed=0;
+int lastThrottleSpeed=0;
 int lastAxisTSpeed = 0;
 
 #ifndef SAITEK
@@ -257,6 +259,19 @@ void processAxis(int fd, int axis, int val)
                 sendCmd(fd, CMD_TSETSPEED, val);
             }
 */
+            break;
+        };
+
+        case AXIS_THROTTLE:
+        {
+            val = scaleAxis(val, -19789, -19789, 8867, SPEED_RANGE);
+
+            if(val != lastThrottleSpeed)
+            {
+                printf("New speed: %d\n", val);
+                lastThrottleSpeed = val;
+                sendCmd(fd, CMD_SETSPEED, val);
+            }
             break;
         };
     }
