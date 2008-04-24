@@ -26,7 +26,10 @@
 
 #define DEPTH_ENC 0.25
 #define TURN_ENC 10
+
 #define YAW_GAIN 100.0
+#define PITCH_GAIN 100.0
+#define ROLL_GAIN 100.0
 
 #define MIN_SPEED -5
 #define MAX_SPEED 5
@@ -53,13 +56,21 @@
 
 #define CMD_ANGLEYAW	10
 
+#define CMD_SETSPEED    9
+
+#define CMD_ANGLEYAW 10
+#define CMD_ANGLEPITCH 12
+#define CMD_ANGLEROLL 13
+
+
+
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::RemoteController,
                                   RemoteController);
 
 namespace ram {
 namespace network {
 
-RemoteController::RemoteController(core::ConfigNode config, 
+RemoteController::RemoteController(core::ConfigNode config,
                                    core::SubsystemList deps) :
     core::Subsystem(config["name"].asString(),
                     core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
@@ -78,10 +89,12 @@ RemoteController::RemoteController(core::ConfigNode config,
     m_maxSpeed = config["maxSpeed"].asDouble(MAX_SPEED);
     m_speedEnc = config["speedEnc"].asDouble(SPEED_ENC);
     m_yawGain = config["yawGain"].asDouble(YAW_GAIN);
-    
+    m_pitchGain = config["pitchGain"].asDouble(PITCH_GAIN);
+    m_rollGain = config["rollGain"].asDouble(ROLL_GAIN);
+
     setupNetworking(config["port"].asInt(MYPORT));
 }
-        
+
 RemoteController::~RemoteController()
 {
     close(m_sockfd);
@@ -110,7 +123,7 @@ void RemoteController::update(double)
         printf("Error reading from network\n");
     }
     //printf("Got message\n");
-    
+
     if (backgrounded())
     {
         // Break out commands and parameters
@@ -247,17 +260,37 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         }
 
         case CMD_ANGLEYAW:
-	{
-	    if(param != 0)
 	    {
-	    	double yaw = param / m_yawGain;
-	    	//printf("Yaw: %f\n", yaw);
-	    	m_controller->yawVehicle(yaw);
+	        if(param != 0)
+	        {
+	            double yaw = param / m_yawGain;
+	            m_controller->yawVehicle(yaw);
+	        }
+	        break;
 	    }
-	    break;
-	}
 
-	default:
+        case CMD_ANGLEPITCH:
+        {
+            if(param != 0)
+            {
+                double pitch = param / m_pitchGain;
+                m_controller->pitchVehicle(pitch);
+            }
+            break;
+        }
+
+        case CMD_ANGLEROLL:
+        {
+            if(param != 0)
+            {
+                double roll = param / m_rollGain;
+                m_controller->rollVehicle(roll);
+            }
+            break;
+        }
+
+
+	    default:
         {
             //printf("Invalid network command type: %c\n", cmd);
         }
