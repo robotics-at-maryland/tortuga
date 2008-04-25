@@ -122,6 +122,12 @@ double RAM_EXPORT depthObserverController4(MeasuredState* measuredState,
                                           ControllerState* controllerState,
                                           EstimatedState* estimatedState,
                                           double dt);
+
+double depthObserverController4Discrete(MeasuredState* measuredState,
+                    DesiredState* desiredState,
+                    ControllerState* controllerState,
+                    EstimatedState* estimatedState,
+                    double dt);
     
   //TODO: implement this function
   //  bool isAtDepth();

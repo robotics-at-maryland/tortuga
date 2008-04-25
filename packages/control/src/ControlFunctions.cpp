@@ -91,7 +91,9 @@ void translationalController(MeasuredState* measuredState,
 
             break;
 	case 4 :
-            depthControlSignal=depthPController(measuredState,desiredState,controllerState);
+            depthControlSignal=depthObserverController4Discrete(measuredState,desiredState,
+                                                                controllerState,
+                                                                estimatedState,dt);
             break;
 	default :
 	    depthControlSignal=depthPController(measuredState,desiredState,controllerState);
@@ -246,6 +248,30 @@ double depthObserverController4(MeasuredState* measuredState,
     return depthControlSignal;
 }
 
+/************************************************************************
+depthObserverController4Discrete(measuredState,desiredState,controllerState,estimatedState)
+implements an Observer Controller with Integral Augmentation
+
+xHat4 = A_c*xHat4 + B_c*(y-xd)
+
+Fthrust = C_c*xHat4
+
+returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
+*/
+double depthObserverController4Discrete(MeasuredState* measuredState,
+                                        DesiredState* desiredState,
+                                        ControllerState* controllerState,
+                                        EstimatedState* estimatedState,
+                                        double dt)
+{
+    Vector4 xHat4 = estimatedState->xHat4Depth;
+    xHat4 = controllerState->depthA4*xHat4 + controllerState->depthB4*
+            (measuredState->depth - desiredState->depth);
+    estimatedState->xHat4Depth = xHat4;
+
+    double depthControlSignal = controllerState->depthC4.dotProduct(xHat4);
+    return depthControlSignal;
+}
 /************************************************************************
 BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt,translationalForces)
 
