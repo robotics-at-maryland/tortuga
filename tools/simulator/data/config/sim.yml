@@ -53,6 +53,12 @@ Subsystems:
         depends_on: ["EventHub", "QueuedEventHub", "Controller", 
                      "MotionManager", "TimerManager", "VisionSystem"]
 
+    RemoteController:
+        type: RemoteController
+        depends_on: ["Controller"]
+        update_interval: -1
+        yawGain: 50
+
     Controller:
         
         depends_on: ["Vehicle", "EventHub"]
