@@ -93,11 +93,19 @@ Subsystems:
         depthOCGainK: [1, 2]
         depthOCGainL: [3, 4]
         #parameters for depth observer controller with integrator
-        depthOCIA4: [-3.2433, -3.1939, -5.1926, 0, 
-                    0, -2.0055, 1.0, 0, 
-                    0.05, -2.0105, -0.57, 0, 
-                    -3.2433, -3.1623, -5.1926, 0]
-        depthOCIB4: [.0316, 2.0055, 2.0105, 0]
+        depthOCIA4: [-1.2, -7463.4, -7.3, 0, 
+                    0, -21, 1.0, 0, 
+                    0.1, -143.4, -0.6, 0, 
+                    -1.2, -4.2, -7.3, 0]
+        depthOCIB4: [7459.2, 21, 143.4, 0]
+        depthOCIC4: [0, 0, 0, 1]
+
+        #parameters for ***discrete*** depth observer controller with integrator
+        depthOCIA4: [-1.2, -7463.4, -7.3, 0, 
+                    0, -21, 1.0, 0, 
+                    0.1, -143.4, -0.6, 0, 
+                    -1.2, -4.2, -7.3, 0]
+        depthOCIB4: [7459.2, 21, 143.4, 0]
         depthOCIC4: [0, 0, 0, 1]
         #parameters for depth LQG controller
         #parameters for depth LQG controller with integrator
