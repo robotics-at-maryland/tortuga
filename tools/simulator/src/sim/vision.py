@@ -111,6 +111,9 @@ class IdealSimVision(ext.vision.VisionSystem):
     def pipeLineDetectorOff(self):
         self._runOrangePipe = False
 
+    def backgrounded(self):
+        return False
+
     def update(self, timeSinceLastUpdate):
         """
         Checks against the obstacles, and generates the proper events
