@@ -125,6 +125,11 @@ Subsystems:
                 magZBias: 0.243511
 
                 localMagneticPitch: 60
+    RemoteController:
+        type: RemoteController
+        depends_on: ["Controller"]
+        update_interval: -1
+        yawGain: 50
 
     Controller:
         depends_on: ["Vehicle", "EventHub"]
