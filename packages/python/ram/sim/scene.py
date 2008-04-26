@@ -219,6 +219,7 @@ class Scene(object):
     def create_robot(self, config_path):
         robot = Robot(self, config_path)
         self._robots[robot.name] = robot
+        return robot
 
 
 class ISceneObject(core.Interface):
@@ -351,8 +352,19 @@ class KMLSceneLoader(core.Component):
                 scene._objects.append(obj)
         
         if kml_node.has_key('Robots'):
-            for name, path in kml_node['Robots'].iteritems():
-                scene.create_robot(core.environmentSub(path))
+            for name, node in kml_node['Robots'].iteritems():
+                if not hasattr(node, 'has_key'):
+                    scene.create_robot(core.environmentSub(node))
+                else:
+                    path = node['path']
+                    robot = scene.create_robot(core.environmentSub(path))
+                
+                    # Change position and orientaiton if needed
+                    position, orientation = parse_position_orientation(node)
+                    robot._main_part._body.setPositionOrientation(position, 
+                                                                  orientation)
+
+
                 
     def _create_sky_box(self, node):
         """
