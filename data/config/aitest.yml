@@ -144,6 +144,9 @@ Subsystems:
         # Should not be negative
         depthPGain: 20
 
+#        inertia: [[0.501, 0, 0],
+#                  [0, 1.5, 0],
+#                  [0, 0, 1.5]]
 
         desiredSpeed: 0
         desiredDepth: 0

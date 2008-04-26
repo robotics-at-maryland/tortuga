@@ -56,7 +56,7 @@ class Seek(state.State):
         self.motionManager.setMotion(motion)
 
     def exit(self):
-        print '"Exiting Seek, going to follow"'
+        #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
 
 class FollowPath(state.State):
@@ -85,7 +85,7 @@ class FollowPath(state.State):
         """Makes the vehicle follow along line outlined by the pipe"""
         self._pipe = ram.motion.pipe.Pipe(0,0,0)
         motion = ram.motion.pipe.Follow(pipe = self._pipe,
-                                       maxSpeed = 5,
+                                       maxSpeed = 2,
                                        maxSidewaysSpeed = 3)
         self.motionManager.setMotion(motion)
 
@@ -95,4 +95,4 @@ class FollowPath(state.State):
 class End(state.State):
     def enter(self):
         self.visionSystem.pipeLineDetectorOff()
-        print '"Pipe Follow"'
+        #print '"Pipe Follow"'
