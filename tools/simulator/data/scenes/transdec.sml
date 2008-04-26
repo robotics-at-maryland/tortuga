@@ -18,12 +18,16 @@ Scene:
     
     Cameras:
         Main:
-            position: [-80, 0, 10]
+            position: [0, -22.82, 0]
+            #position: [22.82, 0, 10]
             #offset: [0, 0, 2]
-            offset: [-2, 0, 1]
+            offset: [0, 0, 70]
     
     Robots:
-        AUT: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/nxaut.rml'
+        AUT: 
+            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/nxaut.rml'
+            position: [-27, -10, 0]
+            #position: [-22, -19, -3.05]
     
     Objects:
 #        gate:
@@ -37,14 +41,54 @@ Scene:
 #                contact_information:
 #                    SubMat: ['GATE_ENTERED', 'GATE_EXITED']
         
-        buoy1:
-            type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-15, 1, -1]
+#        buoy1:
+#            type: [sim.vision.IBuoy, sim.vision.Buoy]
+#            position: [-15, 1, -1]
+#            
+#            Graphical:
+#                mesh: 'sphere.50cm.mesh'
+#                material: 'Simple/Red'
+#                scale: [0.15, 0.15, 0.15]
+        
+        pipe1:
+            type: [sim.vision.IPipe, sim.vision.Pipe]
+            position: [-22, -19, -3.05]
+            orientation: [0, 0, 1, -45]
             
             Graphical:
-                mesh: 'sphere.50cm.mesh'
-                material: 'Simple/Red'
-                scale: [0.15, 0.15, 0.15]
+                mesh: 'cube.1m.mesh'
+                material: 'Simple/Orange'
+                scale: [1.2192, 0.1524, 0.0254]
+                
+        pipe2:
+            type: [sim.vision.IPipe, sim.vision.Pipe]
+            position: [-12, -28, -3.05]
+            orientation: [0, 0, 1, 0]
+            
+            Graphical:
+                mesh: 'cube.1m.mesh'
+                material: 'Simple/Orange'
+                scale: [1.2192, 0.1524, 0.0254]
+        
+        pipe3:
+            type: [sim.vision.IPipe, sim.vision.Pipe]
+            position: [2, -28, -3.05]
+            orientation: [0, 0, 1, -45]
+            
+            Graphical:
+                mesh: 'cube.1m.mesh'
+                material: 'Simple/Orange'
+                scale: [1.2192, 0.1524, 0.0254]
+                
+        pipe4:
+            type: [sim.vision.IPipe, sim.vision.Pipe]
+            position: [11, -37, -3.05]
+            orientation: [0, 0, 1, 45]
+            
+            Graphical:
+                mesh: 'cube.1m.mesh'
+                material: 'Simple/Orange'
+                scale: [1.2192, 0.1524, 0.0254]
         
         tank_walls:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
@@ -64,12 +108,12 @@ Scene:
                     type: mesh
                     mesh_name: 'TankWallsMesh.mesh'
         
-        water:
-            type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
-            position: [0, 0, 0]
-            orientation: [1, 0, 0, 90]
-            
-            Graphical:
-                mesh: 'WaterSurfaceMesh.mesh'
-                scale: [.3048, .3048, .3048]  # convert feet to meters
-                material: 'Simple/Translucent'
+#        water:
+#            type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
+#            position: [0, 0, -1]
+#            orientation: [1, 0, 0, 90]
+#            
+#            Graphical:
+#                mesh: 'WaterSurfaceMesh.mesh'
+#                scale: [.3048, .3048, .3048]  # convert feet to meters
+#                material: 'Simple/Translucent'
