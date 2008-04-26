@@ -53,6 +53,7 @@
 #define CMD_EMERGSTOP   8
 
 #define CMD_SETSPEED    9
+#define CMD_TSETSPEED 11
 
 #define CMD_ANGLEYAW	10
 
@@ -254,7 +255,17 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
 
             break;
         }
-
+	case CMD_TSETSPEED:
+	{
+	    if(param <= MAX_SPEED && param >= MIN_SPEED)
+            {
+	        m_controller->setSidewaysSpeed(param);
+            } 
+            else
+            {
+            }
+            break;
+       }
         case CMD_NOTHING:
         {
             // Ignore, just sent to keep the connection alive
