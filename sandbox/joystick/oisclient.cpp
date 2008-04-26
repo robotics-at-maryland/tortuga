@@ -224,15 +224,15 @@ void processAxis(int fd, int axis, int val)
         case AXIS_SPEED:
         {
             val = scaleAxis(val, -14000, -15000, 6811, SPEED_RANGE);
-/*
+
 	        if(val != lastAxisSpeed)
 	        {
 		        printf("New speed: %d\n", val);
                 lastAxisSpeed = val;
                 sendCmd(fd, CMD_SETSPEED, val);
             }
-  */
-            pitchCmd = val;
+
+//            pitchCmd = val;
             break;
         }
 
@@ -242,7 +242,7 @@ void processAxis(int fd, int axis, int val)
             val = scaleAxis(val, 18504, 18504, 4498, YAW_RANGE);
             if(val == 1 || val == -1)
 		val = 0;
-	    yawCmd = -val;    /* YAW DISABLED UNTIL CALIBRATED ! */
+	    yawCmd = -val;
             break;
         }
 
@@ -250,15 +250,15 @@ void processAxis(int fd, int axis, int val)
 	    case AXIS_TSPEED:
 	    {
             val = scaleAxis(val, 15934, 17476, 10152, TSPEED_RANGE);
-            rollCmd = val;
-/*
+//            rollCmd = val;
+
             if(val != lastAxisTSpeed)
             {
                 printf("New tspeed: %d\n", val);
                 lastAxisTSpeed = val;
                 sendCmd(fd, CMD_TSETSPEED, val);
             }
-*/
+
             break;
         };
 
