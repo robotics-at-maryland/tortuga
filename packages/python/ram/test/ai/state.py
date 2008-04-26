@@ -149,6 +149,11 @@ class TestStateMachine(unittest.TestCase):
         self.assertEquals(startState.event.value, 1)
 
     def testStop(self):
+        # No States
+        machine = state.Machine()
+        machine.stop()
+
+        # Normal
         startState = self.machine.currentState()
 
         # Stop the machine and make sure events have no effect

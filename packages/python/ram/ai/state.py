@@ -116,7 +116,8 @@ class Machine(core.Subsystem):
         Exits the current state, and stops if from responding to any more
         events.
         """
-        self._exitState()
+        if self._currentState is not None:
+            self._exitState()
         
         self._started = False
         self._previousEvent = core.Event()
