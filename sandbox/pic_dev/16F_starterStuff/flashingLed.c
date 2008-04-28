@@ -2,6 +2,8 @@
  __CONFIG(FCMDIS & IESODIS & BORDIS & UNPROTECT & MCLRDIS & PWRTEN &
  WDTDIS & INTIO);
 
+//author: Peter Enns
+
  int main(void)
  {
 	long x;
