@@ -8,7 +8,7 @@
  */
 
 
-#include "SlidingDFT.h"
+#include "dft/SlidingDFT.h"
 
 
 #include <math.h>

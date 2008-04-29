@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 
-#include "dft.h"
+#include "dft/dft.h"
 
 
 //  C30 doesn't do mallocs well, so don't compile dft_alloc if we are on the 

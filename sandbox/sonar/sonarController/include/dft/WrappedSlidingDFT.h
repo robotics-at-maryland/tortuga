@@ -13,7 +13,7 @@
 #define WRAPPEDSLIDINGDFT_H
 
 
-#include "Sonar.h"
+#include "../Sonar.h"
 #include "SlidingDFT.h"
 #include "dft.h"
 

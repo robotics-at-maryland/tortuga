@@ -7,7 +7,7 @@
  *
  */
 
-#include "FastSlidingDFT.h"
+#include "dft/FastSlidingDFT.h"
 
 struct FastSlidingDFTTestFixture {};
 

@@ -12,7 +12,7 @@
 #ifndef SIMPLESLIDINGDFT_H
 #define SIMPLESLIDINGDFT_H
 
-#include "Sonar.h"
+#include "../Sonar.h"
 #include "SlidingDFT.h"
 
 #include <strings.h>

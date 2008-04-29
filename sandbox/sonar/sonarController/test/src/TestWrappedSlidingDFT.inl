@@ -7,7 +7,7 @@
  *
  */
 
-#include "WrappedSlidingDFT.h"
+#include "dft/WrappedSlidingDFT.h"
 
 struct WrappedSlidingDFTTestFixture {};
 

@@ -14,7 +14,7 @@
 #define SLIDINGDFT_H
 
 
-#include "Sonar.h"
+#include "../Sonar.h"
 
 
 #include <math.h>

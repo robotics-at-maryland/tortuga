@@ -12,7 +12,7 @@
 
 
 #include "Sonar.h"
-#include "SimpleSlidingDFT.h"
+#include "dft/SimpleSlidingDFT.h"
 #include "SonarChunk.h"
 #include "SampleDelay.h"
 #include "TDOA.h"
