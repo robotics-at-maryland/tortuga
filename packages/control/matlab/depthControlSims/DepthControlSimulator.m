@@ -9,7 +9,7 @@ clear
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
-controlType = 'pid';
+controlType = 'lqgi';
 
 
 %create a global variable so observer controllers can store variables

@@ -15,7 +15,7 @@ clear
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
-controlType = 'oc';
+controlType = 'lqgi';
 
 %frequency of control/actuation loop
 frequency=40;
@@ -160,6 +160,8 @@ for i=2:length(time)
     
     %simulate measurement
     y=x(1,i-1);
+    %add gaussian white noise
+    y=y+(rand-0.5);
     %store measurement
     y_array(i)=y;
 
