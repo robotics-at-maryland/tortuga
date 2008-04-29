@@ -17,8 +17,12 @@ extern int asmSlidingDFT2( unsigned int N, unsigned int M, unsigned int P,
 							unsigned long * pBufferTime, unsigned long * pTimestamps, 
 							unsigned long Timeout );
 
-extern void asmUpdateDFT( fractional sample );
-extern void asmInitDFT( fractcomplex * coeff_buffer, signed long * window_buffer, signed long * sum_buffer, unsigned int buffer_length );
+extern void asmUpdateDFT( fractional * sample );
+extern void asmInitDFT( fractcomplex * coeff_buffer, 
+						signed long * window_buffer, 
+						signed long * sum_buffer, 
+						unsigned int buffer_length, 
+						unsigned int num_channels );
 
 
 

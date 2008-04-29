@@ -1,34 +1,8 @@
 
 	; DSP Sliding DFT function
 	
-	; int asmSlidingDFT3( unsigned int N, unsigned int M, unsigned int P, 
-	;					 fractional trigger, fractcomplex wFactor, 
-	;					 fractional * pData, int * pIndex, 
-	;					 unsigned long * pBufferTime, unsigned long * pTimestamps, 
-	;					 unsigned long Timeout );
-	; N - number of words (samples) in each channel buffer
-	; M - number of words (samples) in SDFT window
-	; P - number of samples to take after first/last trigger is acquired
-	; trigger - DFT term magnitude that constitutes a trigger (term must be greater than this number)
-	; wFactor - complex number representing the DFT term to look for.  Is found by exp(2*pi*i*k/M).
-	; pData - address of start of sample data buffer of size 4*N words
-	; pIndex - address at which to store the buffer index of oldest sample
-	; pBufferTime - address at which to store the timestamp of the newest sample in the buffer
-	; pTimestamps - address of buffer in which to return timestamp values
-	; Timeout - 2 * number of samples after which to exit without receiving triggers.
-	
-	
-	; Pinouts...
-	; Configure THS1206 in signed integer mode.  Connect 12 data lines to upper bits of port.
-	
-	
-	
-	; MEGA NOTE:
-	; ***  Previous versions assumed that the buffer was declared like "int buf[4][256]", 
-	;         so that channel buffers are contiguous in memory.
-	; ***  THIS VERSION now assumes that the buffer is declared like "int buf[256][4]",
-	;         so that the channels are interleaved in the buffer.  This simplifies sampling and processing. 
-	
+; MEGA NOTE:
+;  * Sample buffer must be in the X data space	
 	
 	
 	.include "dspcommon.inc"
@@ -54,6 +28,8 @@
 .bss coeff_ptr_max,2
 .bss window_ptr_max,2
 
+.bss num_channels,2
+
 
 
 .text
@@ -65,118 +41,130 @@
 ; W1 - window buffer pointer
 ; W2 - sum buffer pointer
 ; W3 - window length (num samples)
+; W4 - num channels
 
 _asmInitDFT:
 
-	mov W0,coeff_ptr
-	mov	W0,coeff_ptr_base
-	mov W1,window_ptr
-	mov W1,window_ptr_base
-	mov W2,sum_ptr
-	mov W3,window_len
+	mov 	W0,coeff_ptr
+	mov		W0,coeff_ptr_base
+	mov 	W1,window_ptr
+	mov 	W1,window_ptr_base
+	mov 	W2,sum_ptr
+	mov 	W3,window_len
+	mov 	W4,num_channels
 	
 	; coeff_ptr_max = coeff_ptr + 4*window_len
-	sl	W3,#2,W4
-	add	W0,W4,W4
-	mov	W4,coeff_ptr_max
+	mul.uu	W3,#4,W6
+	add		W0,W6,W6
+	mov		W6,coeff_ptr_max
 	
-	; window_ptr_max = window_prt + 8*window_len
-	sl	W3,#3,W4
-	add	W1,W4,W4
-	mov	W4,window_ptr_max
+	; window_ptr_max = window_prt + 8*window_len*num_channels
+	mul.uu	W3,#8,W6
+	mul.uu	W6,W4,W6
+	add		W1,W6,W6
+	mov		W6,window_ptr_max
 	
-	; zero out the window
-me_loop:
-	clr	[W1++]
-	cpsne W1,W4
-	bra me_done
-	bra me_loop
-me_done:
+	; zero out the windows
+we_loop:
+	clr		[W1++]
+	cp		W1,W6
+	bra		EQ,we_loop
+
+	; zero out the sums
+	sl		W4,#3,W0
+se_loop:
+	clr		[W2++]
+	dec		W0,W0
+	bra		NZ,se_loop
 
 	return
-
-
-
-
-
+	
+	
+	
 
 
 ; W register arguments:
-; W0 = new sample (fractional)
+; W0 = new sample address
 
 ; W register contents:
+; W0 = scratch
+; W1 = sum pointer
 ; W2 = window pointer
-; W3 = scratch
-; W4 = coefficient value
-; W5 = sum pointer
-; W6 = sample value
-; W7 = coefficient pointer
+; W3 = loop counter
+; W4 = sample value
+; W5 = scratch
+; W6 = real coefficient
+; W7 = imag coefficient
+; W8 = sample pointer
+; W9 = scratch
+; W10 = coefficient pointer
+; W11 = scratch
 
 _asmUpdateDFT:
+
+	; save wregs
+	push.d W8
+	push.d W10
 
 	; Save config registers
 	push	CORCON
 	
 	
 	; Configure core for fractional operations
-	fractsetup	W3
+	fractsetup	W7
 	
 	
 	; operations to complete:
-
-	mov		sum_ptr,W5			; load sum pointer
-	
+	mov		W0,W8				; load sample pointer
+	mov		num_channels,W3		; load loop counter
+	mov		sum_ptr,W1			; load sum pointer
+	mov		coeff_ptr,W10		; load coefficient pointer
 	mov		window_ptr,W2		; load window pointer
-	mov		coeff_ptr,W7		; load coefficient pointer
-
-	mov		[W2],W3				; fetch LSW windowreal
-	subr	W3,[W5],[W5++]		; subtract LSW from sumreal
-	mov		[W2+2],W3			; fetch MSW windowreal
-	subbr	W3,[W5],[W5--]		; subtract MSW from sumreal
+	mov		[W10++],W6			; prefetch real coefficient
+	mov		[W8++],W4			; prefetch sample
+	mov		[W10++],W7			; prefect imag coefficient
 	
-	mov 	[W7++],W4			; prefetch real coefficient
+channel_loop:
 	
-	mov		W0,W6				; prefetch sample data
-
-	mpy 	W4*W6,B				; multiply for new windowreal
+	mpy 	W4*W6,A				; multiply for new windowreal
+	mpy 	W4*W7,B,[W8]+=2,W4	; multiply for new windowimag, prefetch next sample
 	
-	mov		ACCBL,W3			; fetch new windowreal LSW
-	mov		W3,[W2++]			; store windowreal LSW
-	add 	W3,[W5],[W5++]		; add windowreal LSW to sumreal
-	mov		ACCBH,W3			; fetch new windowreal MSW
-	mov		W3,[W2++]			; store windowreal MSW
-	addc	W3,[W5],[W5++]		; add windowreal MSW to sumreal
+	mov		ACCAL,W0			; fetch new windowreal LSW
+	mov		ACCAH,W5			; fetch new windowreal MSW
+	sub		W0,[W2],W9			; subtract old windowreal LSW from new windowreal LSW
+	mov		W0,[W2]				; store windowreal LSW
+	subb	W5,[++W2],W11		; subtract old windowreal MSW from new windowreal MSW
+	add 	W9,[W1],[W1++]		; add windowsum LSW to sumreal
+	mov		W0,[W2++]			; store windowreal MSW
+	addc	W11,[W1],[W1++]		; add windowsum MSW to sumreal
 	
-	mov		[W2],W3				; fetch old windowimag LSW
-	subr	W3,[W5],[W5++]		; subtract imag LSW from sumimag
-	mov		[W2+2],W3			; fetch old windowimag MSW
-	subbr	W3,[W5],[W5--]		; subtract imag MSW from sumimag
+	mov		ACCBL,W0			; fetch new windowimag LSW
+	mov		ACCBH,W5			; fetch new windowimag MSW
+	sub		W0,[W2],W9			; subtract old windowimag LSW from new
+	mov		W0,[W2]				; store windowimag LSW
+	subb	W5,[++W2],W11		; subtract old windowimag MSW from new
+	add		W9,[W1],[W1++]		; add windowimag LSW to sumimag
+	mov		W0,[W2++]			; store wimdowimag MSW
+	addc	W11,[W1],[W1++]		; add windowimag MSW to sumimag
 	
-	mov		[W7++],W4			; prefetch imag coefficient
-	
-	mpy 	W4*W6,B				; multiply for new windowimag
-	
-	mov		ACCBL,W3			; fetch new windowimag LSW
-	mov		W3,[W2++]			; store windowimag LSW
-	add		W3,[W5],[W5++]		; add windowimag LSW to sumimag
-	mov		ACCBH,W3			; fetch new windowimag MSW
-	mov		W3,[W2++]			; store wimdowimag MSW
-	addc	W3,[W5],[W5]		; add windowimag MSW to sumimag
+	dec		W3,W3				; decrement loop counter
+	bra		NZ,channel_loop		; branch if counter not zero
 	
 	; Check for window pointer overflow
-	mov window_ptr_max,W0
-	cpsne W0,W2
-	mov	window_ptr_base,W2
-	
-	; Check for coefficient pointer overflow
-	mov	coeff_ptr_max,W0
-	cpsne W0,W7
-	mov coeff_ptr_max,W7
-	mov	W2,window_ptr		; this goes here to improve pipelining
-	mov W7,coeff_ptr
+	mov		window_ptr_max,W0
+	cpsne	W0,W2
+	mov 	coeff_ptr_max,W10
+	cpsne	W0,W2
+	mov		window_ptr_base,W2
+not_end:
+	mov		W2,window_ptr		; this goes here to improve pipelining
+	mov 	W10,coeff_ptr
 	
 	; Restore config registers
 	pop		CORCON
+	
+	pop.d	W10
+	pop.d	W8
 	
 	return
 

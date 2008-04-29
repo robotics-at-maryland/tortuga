@@ -7,9 +7,19 @@
 
 #include "SlidingDFT.h"
 
+#define NUM_CHANNELS 4
+#define NUM_SAMPLES	128
 
 #pragma udata BigMemory
-fractional __attribute__((address(0x2000))) Data[4096];
+//fractional __attribute__((address(0x2000))) Data[4096];
+
+signed long window[2*NUM_CHANNELS*NUM_SAMPLES];
+
+signed long sums[2*NUM_CHANNELS];
+
+fractional __attribute__((space(xmemory))) data[NUM_CHANNELS];
+
+fractcomplex coefficients[NUM_SAMPLES];
 
 #pragma code
 
@@ -23,14 +33,14 @@ int main()
 	
 	
 	
-	asmInitDFT(0x2000,0x2200,0x2800,128);
+	asmInitDFT(coefficients,window,sums,NUM_SAMPLES,NUM_CHANNELS);
 	
 	while(1) {
-		asmUpdateDFT(0x0234);
+		asmUpdateDFT(data);
 	}
 	
 	
-	
+/*	
 	
 	
 	
@@ -67,7 +77,7 @@ int main()
 
 	}
 	
-	
+	*/
 	
 	return 0;
 }
