@@ -23,12 +23,6 @@ namespace sonar {
 
 template<int nchannels, int k, int N>
 class SimpleSlidingDFT : public SlidingDFT {
-private:
-	adcdata_t coefreal[N], coefimag[N];
-	adcmath_t windowreal[nchannels][N], windowimag[nchannels][N];
-	adcmath_t sumreal[nchannels], sumimag[nchannels], mag[nchannels];
-	int curidx;
-	
 public:
 	SimpleSlidingDFT()
 	{
@@ -122,6 +116,12 @@ public:
 	virtual int getCountChannels() const {return nchannels;}
 	virtual int getFourierIndex() const {return k;}
 	virtual int getWindowSize() const {return N;}
+	
+private:
+	adcdata_t coefreal[N], coefimag[N];
+	adcmath_t windowreal[nchannels][N], windowimag[nchannels][N];
+	adcmath_t sumreal[nchannels], sumimag[nchannels], mag[nchannels];
+	int curidx;
 	
 };
 
