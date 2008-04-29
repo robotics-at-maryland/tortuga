@@ -63,7 +63,7 @@ void dft_init(sliding_dft_t *dft, int nchannels, int k, int N)
 
 /** Update the one selected Fourier amplitude using a sliding DFT
  */
-void dft_update(sliding_dft_t *dft, adcdata_t *sample)
+void dft_update(sliding_dft_t *dft, const adcdata_t *sample)
 {
 	int channel;
 	for (channel = 0 ; channel < dft->nchannels ; channel ++)

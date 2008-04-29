@@ -22,16 +22,8 @@ namespace ram {
 namespace sonar {
 
 
-SlidingDFT::SlidingDFT(int nchannels, int k, int N) 
-	: nchannels(nchannels), k(k), N(N) {}
-
-
-SlidingDFT::~SlidingDFT() {}
-
-
 adcmath_t SlidingDFT::getMagL2(int channel) const
 {
-	assert(channel < nchannels);
 	adcmath_t re = getReal(channel);
 	adcmath_t im = getImag(channel);
 	return (adcmath_t) sqrt(double(re) * re + double(im) * im);
@@ -40,38 +32,20 @@ adcmath_t SlidingDFT::getMagL2(int channel) const
 
 adcmath_t SlidingDFT::getUnity() const
 {
-	return N * ADCDATA_MAXAMPLITUDE * ADCDATA_MAXAMPLITUDE;
+	return getWindowSize() * ADCDATA_MAXAMPLITUDE * ADCDATA_MAXAMPLITUDE;
 }
 
 
 float SlidingDFT::getPhase(int channel) const
 {
-	assert(channel < nchannels);
+	assert(channel < getCountChannels());
 	return atan2f(getImag(channel), getReal(channel));
-}
-
-
-int SlidingDFT::getCountChannels() const
-{
-	return nchannels;
-}
-
-
-int SlidingDFT::getFourierIndex() const
-{
-	return k;
-}
-
-
-int SlidingDFT::getWindowSize() const
-{
-	return N;
 }
 
 
 void SlidingDFT::println() const
 {
-	for (int channel = 0 ; channel < nchannels ; channel ++)
+	for (int channel = 0 ; channel < getCountChannels() ; channel ++)
 	{
 		printf("Channel %2d: %12d + %12d i  :  MagL1: %12d : MagL2: %d\n",
 			channel,

@@ -52,7 +52,7 @@ void dft_free(sliding_dft_t *dft);
 void dft_init(sliding_dft_t *dft, int nchannels, int k, int N);
 
 //  Pump new samples into a sliding DFT structure
-void dft_update(sliding_dft_t *dft, adcdata_t *sample);
+void dft_update(sliding_dft_t *dft, const adcdata_t *sample);
 
 //  Initialize the DFT coefficients.  Called during dft_init
 void dft_setup_coefficients(sliding_dft_t *dft);

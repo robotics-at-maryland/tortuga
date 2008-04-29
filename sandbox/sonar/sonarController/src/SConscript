@@ -1,0 +1,14 @@
+Import('env')
+
+src = Split("""
+	dft.c
+	FastSlidingDFT.cpp
+	SampleDelay.cpp
+	SlidingDFT.cpp
+	Sonar.cpp
+	SonarChunk.cpp
+	TDOA.cpp
+	""")
+
+lib = env.Library('ram_sonar', src)
+Return('lib')

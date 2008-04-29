@@ -22,16 +22,20 @@ namespace ram {
 namespace sonar {
 
 
+template<int nchannels, int k, int N>
 class WrappedSlidingDFT : public SlidingDFT {
 
 public:
-	WrappedSlidingDFT(int nchannels, int k, int N);
-	~WrappedSlidingDFT();
-	virtual void purge();
-	virtual void update(adcdata_t * sample);
-	virtual adcmath_t getMagL1(int channel) const;
-	virtual adcmath_t getReal(int channel) const;
-	virtual adcmath_t getImag(int channel) const;
+	WrappedSlidingDFT() {dft = dft_alloc(nchannels, k, N);}
+	~WrappedSlidingDFT() {dft_free(dft);}
+	virtual void purge() {dft_purge(dft);}
+	virtual void update(const adcdata_t * sample) {dft_update(dft, sample);}
+	virtual adcmath_t getMagL1(int channel) const {return dft->mag[channel];}
+	virtual adcmath_t getReal(int channel) const {return dft->re[channel];}
+	virtual adcmath_t getImag(int channel) const {return dft->im[channel];}
+	virtual int getCountChannels() const {return nchannels;}
+	virtual int getFourierIndex() const {return k;}
+	virtual int getWindowSize() const {return N;}
 	
 private:
 	sliding_dft_t *dft;

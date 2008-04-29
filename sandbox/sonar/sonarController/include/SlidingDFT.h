@@ -28,24 +28,19 @@ namespace sonar {
 class SlidingDFT {
 
 public:
-	SlidingDFT(int nchannels, int k, int N);
-	virtual ~SlidingDFT();
 	virtual void purge() =0;
-	virtual void update(adcdata_t * sample) =0;
+	virtual void update(const adcdata_t *) =0;
 	virtual adcmath_t getReal(int channel) const =0;
 	virtual adcmath_t getImag(int channel) const =0;
 	virtual adcmath_t getMagL1(int channel) const =0;
 	virtual adcmath_t getMagL2(int channel) const;
 	virtual adcmath_t getUnity() const;
 	virtual float getPhase(int channel) const;
-	virtual int getCountChannels() const;
-	virtual int getFourierIndex() const;
-	virtual int getWindowSize() const;
+	virtual int getCountChannels() const =0;
+	virtual int getFourierIndex() const =0;
+	virtual int getWindowSize() const =0;
 	virtual void println() const;
 
-protected:
-	int nchannels, k, N;
-	
 };
 
 

@@ -1,34 +1,16 @@
 import os
 
-env = Environment(PATH = os.environ['PATH'])
+env = Environment(ENV = {'PATH': os.environ['PATH']})
 env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/include', '#include'])
 env.Append(LIBPATH = ['/opt/ram/local/lib', '/opt/local/lib'])
+#env.Append(CPPFLAGS = ['-O3'])
 
-commonFiles = Split("""
-					src/dft.c
-					src/FastSlidingDFT.cpp
-					src/SampleDelay.cpp
-					src/SimpleSlidingDFT.cpp
-					src/SlidingDFT.cpp
-					src/Sonar.cpp
-					src/SonarChunk.cpp
-					src/SonarController.cpp
-					src/WrappedSlidingDFT.cpp
-					src/TDOA.cpp
-					src/DSO.cpp
-					""")
+Export('env')
+libram_sonar = env.SConscript('src/SConscript', variant_dir='#build', duplicate=0)
 
-testFiles   = Split("""
-					test/src/Test.cpp
-					test/src/TestSampleDelay.cpp
-					test/src/TestSimpleSlidingDFT.cpp
-					test/src/TestWrappedSlidingDFT.cpp
-					test/src/TestFastSlidingDFT.cpp
-					test/src/TestTDOAxcorr.cpp
-					""")
+env = env.Clone()
+env.Append(LIBS = [libram_sonar])
+Export('env')
 
-commonLib = env.Library('build/sonar', commonFiles)
-env.Append(LIBS = [commonLib])
-env.Append(LIBS = ['fftw3', 'UnitTest++'])
-
-testExec = env.Program('build/test', testFiles)
+tests = env.SConscript('test/SConscript', variant_dir='#build/test', duplicate=0)
+#testExec = env.Program('build/test', testFiles)

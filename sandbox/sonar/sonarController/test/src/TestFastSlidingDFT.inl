@@ -7,16 +7,14 @@
  *
  */
 
-#include "TestUtilities.h"
-#include "SimpleSlidingDFT.h"
+#include "FastSlidingDFT.h"
+
+struct FastSlidingDFTTestFixture {};
 
 
-struct SimpleSlidingDFTTestFixture {};
-
-
-TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTRandomInput)
+TEST_FIXTURE(FastSlidingDFTTestFixture, CompareDFTRandomInput)
 {
-	SimpleSlidingDFT<3, 5, 20> myDFT;
+	FastSlidingDFT<3, 5, 20> myDFT;
 	int seed = 42, countFrames = 200;
 	int countInputData = myDFT.getCountChannels() * countFrames;
 	
@@ -30,9 +28,9 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTRandomInput)
 }
 
 
-TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTCosineInput)
+TEST_FIXTURE(FastSlidingDFTTestFixture, CompareDFTCosineInput)
 {
-	SimpleSlidingDFT<3, 5, 20> myDFT;
+	FastSlidingDFT<3, 5, 20> myDFT;
 	int countFrames = 200;
 	int countInputData = myDFT.getCountChannels() * countFrames;
 	

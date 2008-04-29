@@ -38,30 +38,19 @@ int32_t int32ToQ31(int32_t x)
 	return x >> 4;
 }
 
-	
-FastSlidingDFT::FastSlidingDFT(int nchannels, int k, int N) : SlidingDFT(nchannels, k, N)
+
+template<int nchannels, int k, int N>
+FastSlidingDFT<nchannels, k, N>::FastSlidingDFT()
 {
 	setupCoefficients();
 	setupWindow();
- }
-
-
-FastSlidingDFT::~FastSlidingDFT()
-{
-	delete [] sumreal;
-	delete [] sumimag;
-	delete [] mag;
-	for (int i = 0 ; i < nchannels ; i ++)
-	{
-		delete [] window[i];
-	}
-	delete [] window;
 }
 
 
 /** Update the one selected Fourier amplitude using a sliding DFT
  */
-void FastSlidingDFT::update(adcdata_t * sample)
+template<int nchannels, int k, int N>
+void FastSlidingDFT<nchannels, k, N>::update(const adcdata_t * sample)
 {
 	for (int channel = 0 ; channel < nchannels ; channel ++)
 	{
@@ -94,8 +83,8 @@ void FastSlidingDFT::update(adcdata_t * sample)
 		 *	Note that the exponent is positive; this causes the backwards shift.
 		 */
 		
-		adcmath_t tmp    = int32ToQ31(coefreal * sumreal[channel]) - int32ToQ31(coefimag * sumimag[channel]);
-		sumimag[channel] = int32ToQ31(coefreal * sumimag[channel]) + int32ToQ31(coefimag * sumreal[channel]);
+		adcmath_t tmp    = coefreal * sumreal[channel] - coefimag * sumimag[channel];
+		sumimag[channel] = coefreal * sumimag[channel] + coefimag * sumreal[channel];
 		sumreal[channel] = tmp;
 		
 		/*	We compute the L1 norm (|a|+|b|) instead of the L2 norm 
@@ -118,33 +107,22 @@ void FastSlidingDFT::update(adcdata_t * sample)
 }
 
 
-void FastSlidingDFT::setupCoefficients()
+template<int nchannels, int k, int N>
+void FastSlidingDFT<nchannels, k, N>::setupCoefficients()
 {
 	coefreal = cos(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE;
 	coefimag = sin(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE;
-	/*
-	coefreal = floatToQ15(cos(2 * M_PI * k / N));
-	coefimag = floatToQ15(sin(2 * M_PI * k / N));
-	printf("k: %d, N: %d\n", k, N);
-	printf("coefreal: %d, coefimag: %d\n", coefreal, coefimag);
-	*/
 }
 
 
-void FastSlidingDFT::setupWindow() {
-	window = new adcdata_t*[nchannels];
-	sumreal = new adcmath_t[nchannels];
-	sumimag = new adcmath_t[nchannels];
-	mag = new adcmath_t[nchannels];
-	for (int i = 0 ; i < nchannels ; i ++)
-	{
-		window[i] = new adcdata_t[N];
-	}
+template<int nchannels, int k, int N>
+void FastSlidingDFT<nchannels, k, N>::setupWindow() {
 	purge();
 }
 
 
-void FastSlidingDFT::purge()
+template<int nchannels, int k, int N>
+void FastSlidingDFT<nchannels, k, N>::purge()
 {
 	bzero(sumreal, sizeof(*sumreal) * nchannels);
 	bzero(sumimag, sizeof(*sumimag) * nchannels);
@@ -157,21 +135,24 @@ void FastSlidingDFT::purge()
 }
 
 
-adcmath_t FastSlidingDFT::getMagL1(int channel) const
+template<int nchannels, int k, int N>
+adcmath_t FastSlidingDFT<nchannels, k, N>::getMagL1(int channel) const
 {
 	assert(channel < nchannels);
 	return mag[channel];
 }
 
 
-adcmath_t FastSlidingDFT::getReal(int channel) const
+template<int nchannels, int k, int N>
+adcmath_t FastSlidingDFT<nchannels, k, N>::getReal(int channel) const
 {
 	assert(channel < nchannels);
 	return sumreal[channel];
 }
 
 
-adcmath_t FastSlidingDFT::getImag(int channel) const
+template<int nchannels, int k, int N>
+adcmath_t FastSlidingDFT<nchannels, k, N>::getImag(int channel) const
 {
 	assert(channel < nchannels);
 	return sumimag[channel];

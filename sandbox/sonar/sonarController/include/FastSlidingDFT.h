@@ -20,25 +20,27 @@
 namespace ram {
 namespace sonar {
 
-
+template<int nchannels, int k, int N>
 class FastSlidingDFT : public SlidingDFT {
 
 public:
-	FastSlidingDFT(int nchannels, int k, int N);
-	~FastSlidingDFT();
+	FastSlidingDFT();
 	virtual void purge();
-	virtual void update(adcdata_t * sample);
+	virtual void update(const adcdata_t *);
 	virtual adcmath_t getMagL1(int channel) const;
 	virtual adcmath_t getReal(int channel) const;
 	virtual adcmath_t getImag(int channel) const;
+	virtual int getCountChannels() const {return nchannels;}
+	virtual int getFourierIndex() const {return k;}
+	virtual int getWindowSize() const {return N;}
 	
 private:
 	void setupCoefficients();
 	void setupWindow();
 	
 	adcdata_t coefreal, coefimag;
-	adcdata_t **window;
-	adcmath_t *sumreal, *sumimag, *mag;
+	adcdata_t window[nchannels][N];
+	adcmath_t sumreal[nchannels], sumimag[nchannels], mag[nchannels];
 	
 	int curidx;
 };
