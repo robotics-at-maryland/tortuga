@@ -46,12 +46,14 @@ class Seek(state.State):
 
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        self._light.setState(event.azimuth, event.elevation, event.range)
+        self._light.setState(event.azimuth, event.elevation, event.range,
+                             event.x, event.y)
 
     def enter(self):
-        self._light = ram.motion.seek.PointTarget(0,0,0)
+        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
         motion = ram.motion.seek.SeekPoint(target = self._light,
-                                           maxSpeed = 3)
+                                           maxSpeed = 3,
+                                           depthGain = 1.5)
         self.motionManager.setMotion(motion)
 
     def exit(self):

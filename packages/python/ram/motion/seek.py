@@ -19,14 +19,16 @@ class PointTarget(ext.core.EventPublisher):
     """
     UPDATE = ext.core.declareEventType('UPDATE')
     
-    def __init__(self, azimuth, elevation, range):
+    def __init__(self, azimuth, elevation, range, x, y):
         ext.core.EventPublisher.__init__(self)
-        self.setState(azimuth, elevation, range, publish = False)
+        self.setState(azimuth, elevation, range, x, y, publish = False)
 
-    def setState(self, azimuth, elevation, range, publish = True):
+    def setState(self, azimuth, elevation, range, x, y, publish = True):
         self.azimuth = azimuth
         self.elevation = elevation
         self.range = range
+        self.x = x
+        self.y = y
 
         # Change them to degrees if they are ext.math.Degree/Radian types
         if hasattr(self.azimuth, 'valueDegrees'):
@@ -38,12 +40,15 @@ class PointTarget(ext.core.EventPublisher):
             self.publish(PointTarget.UPDATE, ext.core.Event())
         
     class relativeDepth(core.cls_property):
+        """
+        Not currently used
+        """
         def fget(self):
             elevation = self.elevation * math.pi / 180.0
             return -1 * self.range * math.sin(elevation)
         
 class SeekPoint(Motion):
-    def __init__(self, target, maxSpeed = 0.0):
+    def __init__(self, target, maxSpeed = 0.0, depthGain = 1):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -53,6 +58,7 @@ class SeekPoint(Motion):
         self._running = False
         self._target = target
         self._maxSpeed = maxSpeed
+        self._depthGain = depthGain
         self._conn = target.subscribe(PointTarget.UPDATE, self._onBouyUpdate)
         
     def _start(self):
@@ -67,9 +73,9 @@ class SeekPoint(Motion):
         """
         
         # Determine new Depth
-        absoluteTargetDepth = \
-            self._vehicle.getDepth() + self._target.relativeDepth
-       # self._controller.setDepth(absoluteTargetDepth)    
+        currentDepth = self._vehicle.getDepth()
+        newDepth = currentDepth - self._target.y * self._depthGain
+        self._controller.setDepth(newDepth)
     
         # Determine how to yaw the vehicle
         vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
