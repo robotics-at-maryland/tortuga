@@ -5,23 +5,27 @@ clear
 % set controlType to desired control (not case sensitive)
 % 'p' for P Control
 % 'pd' for PD Control
+% 'pid' for PID control
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
-controlType = 'lqgi';
+controlType = 'pid';
 
 
 %create a global variable so observer controllers can store variables
 %between iterations
-global x_hat;
-global kp;
-global kd;
-global K;
-global L;
-global xHat4;
-global A_c;
-global B_c;
-global C_c;
+global x_hat;%estimated state vector
+global kp;%proportional gain
+global kd;%derivative gain
+global ki;%integral gain
+global x_pid;%storage bin for PID controller
+global K;%controller gain matrix
+global L;%observer gain matrix
+global xHat4;%larger estimated state vector
+global A_c;%full dynamic controller A matrix
+global B_c;%full dynamic controller B matrix
+global C_c;%full dynamic controller C matrix
+
 x_hat=[0 0]';%initialize the global variable to rest conditions
 xHat4 = [0 0 0 0]';
 
@@ -44,7 +48,7 @@ dt=time(2)-time(1);
 %delay =0.05;
 
 %desired depth
-xd=2;
+xd=15;
 %desired depth_dot (downward velocity)
 
 
@@ -52,13 +56,19 @@ xd=2;
 %%% Control Constants %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
-if strcmp('PD',upper(controlType))==1
-    %PD Control
-     kp =40;
-    kd =30;
-elseif strcmp('P',upper(controlType))==1
+if strcmp('P',upper(controlType))==1
     %P Control
     kp=8;
+elseif strcmp('PD',upper(controlType))==1
+    %PD Control
+    kp =40;
+    kd =30;
+elseif strcmp('PID',upper(controlType))==1
+    %PID Control
+    kp =40;
+    kd =30;
+    ki =0.5;
+    x_pid=[0 0]';%x_pid=[sum_error previous_position]'
 elseif strcmp('OC',upper(controlType))==1
     %Observer Controller - ObserverControllerCoefficients.m
     % K=[16.4 8.1];
@@ -74,17 +84,17 @@ elseif strcmp('LQGI',upper(controlType))==1
 %    LQG Controller - LQGIntegraterCoefficients
     A_c =1.0e+03 *[
 
-  -0.001225000000000  -4.204200000000262  -0.007312500000000                   0;
-                   0  -0.017425000000000   0.001000000000000                   0;
-   0.000050000000000  -0.096980625000004  -0.000575000000000                   0;
-  -0.001225000000000  -0.004200000000000  -0.007312500000000                   0];
+  -0.0012  -4.2042  -0.0073                   0;
+                   0  -0.0174   0.001000000000000                   0;
+   0.00010000  -0.097  -0.0006000000000                   0;
+  -0.0012000000000  -0.004200000000000  -0.007300000000                   0];
 
 
 B_c =1.0e+03 *[
 
-   4.200000000000262;
-   0.017425000000000;
-   0.096980625000004;
+   4.200;
+   0.0174;
+   0.097;
                    0];
 
 
@@ -98,16 +108,17 @@ x=zeros(3,length(time));
 %INITIAL CONDITION
 x(:,1)=[0 0 0]';
 
-%create array to store measured vehicle states
-%y_array=zeros(1,length(time));
+
+%initial measurement
 y=x(1,1);
+%measurement array
 y_array=zeros(1,length(time));
 y_array(1)=y;
 %time_measured(1)=0;
-%create array to store control thrusts
+%array to store control thrust history
 Fthrust=zeros(1,length(time));
 
-%create an x_hat array here
+%state estimate array (would be made available to AI)
 x_hat_array = zeros(2,length(time));
 
 %for varying measurement sampling frequencies
@@ -164,13 +175,16 @@ for i=2:length(time)
     end
     
     %compute control laws
-    if strcmp('PD',upper(controlType))==1
+    if strcmp('P',upper(controlType))==1
+        %P control
+        Fthrust(i) = pController(y,xd,dt);
+    elseif strcmp('PD',upper(controlType))==1
         %PD control
         % WE CAN'T ACTUALLY IMPLEMENT THIS
         Fthrust(i) = pdController(x(1,i-1),xd,x(2,i-1));
-    elseif strcmp('P',upper(controlType))==1
-        %P control
-        Fthrust(i) = pController(y,xd,dt);
+    elseif strcmp('PID',upper(controlType))==1
+        %PID control
+        Fthrust(i) = pidController(y,xd,dt);
     elseif strcmp('OC',upper(controlType))==1
         %Observer Control
         Fthrust(i) = ObserverController(y,xd,dt);

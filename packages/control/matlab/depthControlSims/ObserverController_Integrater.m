@@ -5,6 +5,14 @@ global B_c;
 global C_c;
 global xHat4;
 
+A_c;
+B_c;
+C_c;
+xHat4;
+
+y;
+xd;
+
 %compensator dynamics at time i-1
 %xHat4_dot = A_c*xHat4 + B_c*y;
 xHat4_dot = A_c*xHat4 + B_c*(y-xd);

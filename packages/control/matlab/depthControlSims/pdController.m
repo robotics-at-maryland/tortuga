@@ -5,3 +5,4 @@ global kp;
 global kd;
 
 Fthrust=-kp*(x_measured-x_desired)-kd*(x2_measured);
+
