@@ -1,7 +1,7 @@
 import os
 
 env = Environment(ENV = {'PATH': os.environ['PATH']})
-env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/lib/octave-3.0.0', '/opt/local/include', '#include'])
+env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/include/octave-3.0.0', '/opt/local/include', '#include'])
 env.Append(LIBPATH = ['/opt/ram/local/lib', '/opt/local/lib/octave-3.0.0', '/opt/local/lib'])
 #env.Append(CPPFLAGS = ['-O3'])
 

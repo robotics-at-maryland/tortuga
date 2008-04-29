@@ -1,3 +1,4 @@
+#include <octave/oct.h>
 #include "Sonar.h"
 
 #ifndef _SONAR_SONARSERVICE_H
@@ -15,11 +16,21 @@ typedef struct {
 
 
 typedef struct {
-	complex_adcmath_t[4];
+	complex_adcmath_t channels[4];
 } PingRecord_t;
 
 
 #ifdef __cplusplus
+class SonarService {
+public:
+	SonarService();
+	ColumnVector localize(const PingRecord_t &);
+private:
+	//! A 4x4 matrix
+	Matrix m_calibration;
+};
+
+
 } // namespace sonar
 } // namespace ram
 #endif
