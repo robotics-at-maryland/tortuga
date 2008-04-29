@@ -53,7 +53,7 @@ adcmath_t normalize_double(double y)
 }
 
 
-TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames, SlidingDFT &myDFT))
+TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames, SlidingDFT &myDFT, bool shiftPhase))
 {
 	int nchannels = myDFT.getCountChannels();
 	int k = myDFT.getFourierIndex();
@@ -103,23 +103,35 @@ TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames
 			double re_trusted = out[nchannels * k + channel][0];
 			double im_trusted = out[nchannels * k + channel][1];
 			
-			//  The real and imaginary components of the trusted DFT, with the 
-			//  propagating phase shift taken into account.
-			double re_propagated = re_trusted * re_shift - im_trusted * im_shift;
-			double im_propagated = re_trusted * im_shift + im_trusted * re_shift;
+			double re_propagated, im_propagated;
+			if (shiftPhase)
+			{
+				//  The real and imaginary components of the trusted DFT, with the 
+				//  propagating phase shift taken into account.
+				re_propagated = re_trusted * re_shift - im_trusted * im_shift;
+				im_propagated = re_trusted * im_shift + im_trusted * re_shift;
+			}
+			else
+			{
+				re_propagated = re_trusted;
+				im_propagated = im_trusted;
+			}
 			
 			//  Convert fftw's output to the same normalization as our sliding
 			//  DFT.
 			adcmath_t re_theirs = normalize_double(re_propagated);
 			adcmath_t im_theirs = normalize_double(im_propagated);
+			adcmath_t L1_theirs = normalize_double(abs(re_propagated) + abs(im_propagated));
 			
 			//  Get results from our sliding DFT.
 			adcmath_t re_mine = myDFT.getReal(channel);
 			adcmath_t im_mine = myDFT.getImag(channel);
+			adcmath_t L1_mine = myDFT.getMagL1(channel);
 			
 			//  Compare them.
 			CHECK_EQUAL(re_mine, re_theirs);
 			CHECK_EQUAL(im_mine, im_theirs);
+			CHECK_EQUAL(L1_mine, L1_theirs);
 		}
 		
 		//  Update the sliding DFT.

@@ -22,7 +22,7 @@ TEST_FIXTURE(FastSlidingDFTTestFixture, CompareDFTRandomInput)
 	
 	rand_adcdata_vector(in, countInputData, seed);
 	
-	TEST_UTILITY_FUNC(CheckAgainstFFTW)(in, countFrames, myDFT);
+	TEST_UTILITY_FUNC(CheckAgainstFFTW)(in, countFrames, myDFT, false);
 	
 	delete [] in;
 }
@@ -38,7 +38,7 @@ TEST_FIXTURE(FastSlidingDFTTestFixture, CompareDFTCosineInput)
 	
 	cos_adcdata_vector(in, myDFT.getCountChannels(), countFrames/8, countFrames);
 	
-	TEST_UTILITY_FUNC(CheckAgainstFFTW)(in, countFrames, myDFT);
+	TEST_UTILITY_FUNC(CheckAgainstFFTW)(in, countFrames, myDFT, false);
 	
 	delete [] in;
 }
