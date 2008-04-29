@@ -158,6 +158,7 @@ class SimVehicle(vehicle.IVehicle):
     
     def applyForcesAndTorques(self, force, torque):
         if HAVE_NUMPY:
+            force.y = force.y * -1
             thrusters = self.getThrusters()
             m = len(thrusters)
             A = numpy.zeros([6, m])

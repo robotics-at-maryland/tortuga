@@ -31,7 +31,8 @@ class Searching(state.State):
         zigZag = motion.search.ForwardZigZag(
             legTime = 15,
             sweepAngle = 60,
-            speed = 2.5)
+            speed = 5)
+
         self.motionManager.setMotion(zigZag)
 
     def exit(self):

@@ -69,7 +69,7 @@ class TestBase(support.MotionTest):
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(0.5, self.controller.speed, 3)
-        self.assertAlmostEqual(0.5, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(-0.5, self.controller.sidewaysSpeed, 3)
         
         # Different gains
         pipe = motion.pipe.Pipe(x = -0.5, y = 0.5, relativeAngle = 0)
@@ -79,7 +79,7 @@ class TestBase(support.MotionTest):
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(0.25, self.controller.speed, 3)
-        self.assertAlmostEqual(1, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(-1, self.controller.sidewaysSpeed, 3)
     
     def testLowerRightHover(self):
         # All gains set to 1 (default)
@@ -90,7 +90,7 @@ class TestBase(support.MotionTest):
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(-1, self.controller.speed, 3)
-        self.assertAlmostEqual(-0.25, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(0.25, self.controller.sidewaysSpeed, 3)
         
         # Different gains
         pipe = motion.pipe.Pipe(x = 0.25, y = -1, relativeAngle = 0)
@@ -100,7 +100,7 @@ class TestBase(support.MotionTest):
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(-3, self.controller.speed, 3)
-        self.assertAlmostEqual(-0.1875, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(0.1875, self.controller.sidewaysSpeed, 3)
     
     def testStop(self):
         # Move the vehicle
@@ -111,13 +111,13 @@ class TestBase(support.MotionTest):
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(0.5, self.controller.speed, 3)
-        self.assertAlmostEqual(0.5, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(-0.5, self.controller.sidewaysSpeed, 3)
         
         # Make sure it stops
         self.motionManager.stopCurrentMotion()
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(0, self.controller.speed, 3)
-        #self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
     
 # Just test the same things as the base
 class TestHover(TestBase):
@@ -168,7 +168,7 @@ class TestFollow(TestBase):
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(0.75, self.controller.speed, 3)
-        self.assertAlmostEqual(0.25, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(-0.25, self.controller.sidewaysSpeed, 3)
         
         # To the right, Different gains
         pipe = motion.pipe.Pipe(x = 0.25, y = 0.5, relativeAngle = 0)
@@ -178,5 +178,5 @@ class TestFollow(TestBase):
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         self.assertAlmostEqual(3, self.controller.speed, 3)
-        self.assertAlmostEqual(-0.5, self.controller.sidewaysSpeed, 3)
+        self.assertAlmostEqual(0.5, self.controller.sidewaysSpeed, 3)
     
