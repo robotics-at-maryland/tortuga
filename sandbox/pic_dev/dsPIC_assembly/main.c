@@ -22,6 +22,18 @@ int main()
 	PLLFBD = 43;			// puts clock speed at 79.2576Mhz
 	
 	
+	
+	asmInitDFT(0x2000,0x2200,0x2800,128);
+	
+	while(1) {
+		asmUpdateDFT(0x0234);
+	}
+	
+	
+	
+	
+	
+	
 	fractional trigger = 0x400;
 	fractcomplex wFactor;
 	wFactor.real = 0x65DE;
