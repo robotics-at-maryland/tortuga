@@ -24,8 +24,8 @@ C_a = [0 C];
 Q_a = [10 0 0;0 10 0;0 0 0];
 G_a = [0 1/m 0]';
 
-K_a = place(A_a,B_a,[-0.7 -0.6 -0.5]);
-L_a = (place(A_a',C_a',[-7 -6 -5]))';
+% K_a = place(A_a,B_a,[-0.7 -0.6 -0.5]);
+% L_a = (place(A_a',C_a',[-7 -6 -5]))';
 
 
 % K_a = place(A_a,B_a,[-1 -1.1 -.99]);
@@ -40,10 +40,24 @@ L_a = (place(A_a',C_a',[-7 -6 -5]))';
 % K_a = place(A_a,B_a,[-.5 -.51 -.49]);
 % L_a = (place(A_a',C_a',[-2 -2.1 -1.9]))';
 %   
+%K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+%L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+
 % K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
-% L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+% L_a = (place(A_a',C_a',[-15 -15.2 -15.4]))';
+
+K_a = place(A_a,B_a,[-10 -10.1 -10.2]);
+L_a = (place(A_a',C_a',[-100 -100.2 -100.4]))';
+
 % clc
 A_c = [A_a-B_a*K_a-L_a*C_a   zeros(3,1);   -B_b*K_a    A_b]
 B_c = [L_a; 0]
 C_c = [zeros(1,3) C_b]
 
+
+
+% For Discrete Time: 
+freq=40;%control loop frequency in Hz
+sys_cont=ss(A_c,B_c,C_c,0);
+sys_dis=c2d(sys_cont,1/freq);
+[A_d B_d C_d D_d]=ssdata(sys_dis)

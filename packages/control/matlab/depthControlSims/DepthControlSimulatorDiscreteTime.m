@@ -15,10 +15,11 @@ clear
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
-controlType = 'lqgi';
+% 'lqgid' for a DISCRETE TIME observer controller with integral augmentation
+controlType = 'lqgid';
 
 %frequency of control/actuation loop
-frequency=40;
+frequency=40;%Hz
 
 %global variables for various controllers
 global x_hat;%estimated state vector
@@ -63,7 +64,7 @@ constant=g*(m-p_water*v_displaced);
 %%%%%%%%%%%%%%%%
 
 ti=0;%initial time
-tf=20;%final time
+tf=40;%final time
 time=ti:1/frequency:tf;
 dt=time(2)-time(1);
 %sensor delay time
@@ -104,23 +105,83 @@ elseif strcmp('LQG',upper(controlType))==1
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
 %    LQG Controller - LQGIntegraterCoefficients
-    A_c =1.0e+03 *[
+% K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+% L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+A_c = 1.0e+04 * [-0.0006   -2.0242   -0.0248         0;
+         0   -0.0029    0.0001         0;
+    0.0000   -0.0283   -0.0001         0;
+   -0.0006   -0.0244   -0.0248         0];
+B_c = 1.0e+04 *[1.9998;
+    0.0029;
+    0.0283;
+         0];
+C_c = [0     0     0     1];
+elseif strcmp('LQGID',upper(controlType))==1
+    
+    % Observer Controller w/ integral augmentation for DISCRETE TIME
+    %K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+    %L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+    % designed for 40 Hz
+%     
+% A_c =[0.8462 -300.9784  -10.1814         0;
+%     0.0000    0.4236    0.0170         0;
+%     0.0011   -5.0480    0.9116         0;
+%    -0.1517   42.5212   -5.3177    1.0000];
+% B_c = [ 295.3628;
+%     0.5763;
+%     5.0445;
+%   -48.1402];
+% C_c = [ 0     0     0     1];
+ 
 
-  -0.0012  -4.2042  -0.0073                   0;
-                   0  -0.0174   0.001000000000000                   0;
-   0.00010000  -0.097  -0.0006000000000                   0;
-  -0.0012000000000  -0.004200000000000  -0.007300000000                   0];
+% K_a = place(A_a,B_a,[-1 -1.1 -0.9]);
+ % L_a = (place(A_a',C_a',[-100 -100.1 -99.9]))'; 
+%  A_c = 1.0e+04 *[0.0001    1.0884   -0.0494         0;
+%     0.0000   -0.0000   -0.0000         0;
+%     0.0000   -0.0010   -0.0000         0;
+%    -0.0000    0.1246    0.0021    0.0001];
+% B_c = 1.0e+04 * [-1.0884;
+%     0.0001;
+%     0.0010;
+%    -0.1247];
+% C_c =[ 0     0     0     1];
+% K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+% L_a = (place(A_a',C_a',[-15 -15.2 -15.4]))';
+% A_c = [0.8419 -857.9510  -19.5524         0;
+%     0.0000    0.2218    0.0138         0;
+%     0.0011   -9.9348    0.8339         0;
+%    -0.1515  123.2679   -4.5555    1.0000];
+% B_c = [852.3424;
+%     0.7782;
+%     9.9313;
+%  -128.8872];
+% C_c = [0     0     0     1];
 
+% K_a = place(A_a,B_a,[-2 -2.1 -2.2]);
+% L_a = (place(A_a',C_a',[-100 -100.2 -100.4]))';
+  
+A_c = 1.0e+04 *[0.0000    1.2217   -0.0469         0;
+    0.0000   -0.0000   -0.0000         0;
+    0.0000   -0.0009   -0.0000         0;
+   -0.0000    0.2932    0.0049    0.0001];
+B_c = 1.0e+04 *[-1.2221;
+    0.0001;
+    0.0009;
+   -0.2937];
+C_c = [0     0     0     1];
 
-B_c =1.0e+03 *[
-
-   4.200;
-   0.0174;
-   0.097;
-                   0];
-
-
-C_c =[0     0     0     1];
+% K_a = place(A_a,B_a,[-10 -10.1 -10.2]);
+% L_a = (place(A_a',C_a',[-100 -100.2 -100.4]))';
+  
+% A_c = 1.0e+04 *[0.0000    1.9696   -0.0334         0;
+%     0.0000   -0.0000   -0.0000         0;
+%     0.0000   -0.0004   -0.0000         0;
+%    -0.0000    1.4139    0.0189    0.0001];
+% B_c = 1.0e+04 *[-1.9993;
+%     0.0001;
+%     0.0004;
+%    -1.4508];
+% C_c = [0     0     0     1];
 end    
 
 %create array to store actual vehicle states
@@ -161,7 +222,7 @@ for i=2:length(time)
     %simulate measurement
     y=x(1,i-1);
     %add gaussian white noise
-    y=y+(rand-0.5);
+    y=y+0.3*(rand-0.5);
     %store measurement
     y_array(i)=y;
 
@@ -193,8 +254,15 @@ for i=2:length(time)
         x_hat_array(1,i) = x_hat(1);
         x_hat_array(2,i) = x_hat(2);
     elseif strcmp('LQGI',upper(controlType))==1
-        %LQG Controller
+        %LQG Controller w/ integral augmentation
         Fthrust(i) = ObserverController_Integrater(y,xd,dt);
+        %store current x_hat from ObserverController in x_hat array
+        x_hat_array(1,i) = xHat4(2)+xd;
+        x_hat_array(2,i) = xHat4(3);
+    elseif strcmp('LQGID',upper(controlType))==1
+        %observer controller with integral augmentation 
+        %designed for discrete time
+        Fthrust(i) = ObserverControllerIntegratorDiscrete(y,xd);
         %store current x_hat from ObserverController in x_hat array
         x_hat_array(1,i) = xHat4(2)+xd;
         x_hat_array(2,i) = xHat4(3);
@@ -221,7 +289,7 @@ for i=2:length(time)
 end
 
 
-figure (1)
+figure (4)
 %plot actual and measured position
 desired = xd*ones(1,length(time));
 subplot(2,1,1)
@@ -235,7 +303,7 @@ set(gca,'YDir','reverse')
 ylabel('x2 - velocity')
 xlabel('time')
 
-figure (2)
+figure (5)
 %plot position and Control Signal
 subplot(2,1,1)
 plot(time,y_array,'.g',time,desired,'r',time,x(1,:),'b','LineWidth',1)
@@ -248,7 +316,7 @@ plot(time,Fthrust)
 ylabel('u - control signal')
 xlabel('time')
 
-figure(3)
+figure (6)
 %plot actual and estimated position
 subplot(2,1,1)
 plot(time,x_hat_array(1,:),'g',time,x(1,:),'b','LineWidth',1)

@@ -82,23 +82,21 @@ elseif strcmp('LQG',upper(controlType))==1
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
 %    LQG Controller - LQGIntegraterCoefficients
-    A_c =1.0e+03 *[
-
-  -0.0012  -4.2042  -0.0073                   0;
-                   0  -0.0174   0.001000000000000                   0;
-   0.00010000  -0.097  -0.0006000000000                   0;
-  -0.0012000000000  -0.004200000000000  -0.007300000000                   0];
-
-
-B_c =1.0e+03 *[
-
-   4.200;
-   0.0174;
-   0.097;
-                   0];
+% K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+% L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+A_c = 1.0e+04 * [-0.0006   -2.0242   -0.0248         0;
+         0   -0.0029    0.0001         0;
+    0.0000   -0.0283   -0.0001         0;
+   -0.0006   -0.0244   -0.0248         0];
 
 
-C_c =[0     0     0     1];
+B_c = 1.0e+04 *[1.9998;
+    0.0029;
+    0.0283;
+         0];
+
+
+C_c = [0     0     0     1];
 end    
 
 %create array to store actual vehicle states
@@ -163,6 +161,8 @@ for i=2:length(time)
 
     %simulate measurement
     y=x(1,i-1);
+    %add gaussian white noise
+    y=y+(rand-0.5);
     %store measurement
     y_array(i)=y;
 
