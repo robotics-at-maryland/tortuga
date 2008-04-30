@@ -49,14 +49,19 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_angle = math::Degree(0);
     m_lineX = 0;
     m_lineY = 0;
-    found=0;
+    m_found = false;
     m_frame = new OpenCVImage(640, 480);
     m_rotated = cvCreateImage(cvSize(640,480),8,3);//480 by 640 if camera is on sideways, else 640 by 480.
     m_lineX=m_lineY=0;
     
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
 }
-    
+
+bool OrangePipeDetector::found()
+{
+    return m_found;
+}
+
 double OrangePipeDetector::getX()
 {
     return m_lineX;
@@ -110,36 +115,38 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 //    rotate90Deg(image,m_rotated);//Only do this if the camera is attached sideways again.
     cvCopyImage(image,m_rotated);//Poorly named if the cameras not on sideways... oh well.
     image=m_rotated;
-    if (!found)
+    
+    int orange_count=mask_orange(image,true,true);
+    bool pipeFound = m_found;
+    if (pipeFound)
     {
-        int orange_count=mask_orange(image,true,true);
-        if (orange_count>1000)//this number is in pixels.
-        {
-            found=1;
-            
-        }
-        else if (0 != found)
-        {
-            found=0;
-            publish(EventType::PIPE_LOST,
-                    core::EventPtr(new core::Event()));
-        }
+        //int left_or_right=guess_line(image);
+        // Left is negative, right is positive, magnitude is num pixels from
+        // center line
+
+        // Can see the pipe
+        if (orange_count < 250)
+            pipeFound = false;
     }
-    else if (found)
+    else
     {
-        int orange_count=mask_orange(image,true,false);
-        //int left_or_right=guess_line(image);//Left is negative, right is positive, magnitude is num pixels from center line
-        
-        if (orange_count<250 && (0 != found))
-        {
-            found=0;
-            publish(EventType::PIPE_LOST,
-                    core::EventPtr(new core::Event()));
-        }
+        // Can't current see the pipe
+        if (orange_count>1000)//this number is in pixels.
+            pipeFound = true;
     }
     
+    // We use to see the pipe, but now can't
+    if (!pipeFound && m_found)
+    {
+        publish(EventType::PIPE_LOST,
+                core::EventPtr(new core::Event()));
+    }
+    
+    m_found = pipeFound;
+
+    
     int linex,liney;
-    if (found)
+    if (m_found)
     {
         cvErode(image, image, 0, 3);//3 x 3 default erosion element, 3 iterations.
         double angle = hough(image,&linex,&liney);

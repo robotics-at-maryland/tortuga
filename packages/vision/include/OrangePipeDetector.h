@@ -26,7 +26,6 @@ namespace vision {
 class RAM_EXPORT OrangePipeDetector  : public Detector
 {
   public:
-    bool found;
     OrangePipeDetector(core::ConfigNode config,
                        core::EventHubPtr eventHub = core::EventHubPtr());
     OrangePipeDetector(Camera*);
@@ -34,8 +33,10 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
     
     void processImage(Image* input, Image* output= 0);
     
-    //get normalized center of line.
+    bool found();
+    /** Get normalized X cordinate of the center of the orange line */
     double getX();
+    /** Get normalized Y cordinate of the center of the orange line */
     double getY();
     math::Degree getAngle();
     void update();
@@ -59,6 +60,8 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
     IplImage* m_rotated;
     Image* m_frame;
     Camera* m_cam;
+
+    bool m_found;
 
     /** Maximum distance for the pipe to be considred "centered" */
     double m_centeredLimit;

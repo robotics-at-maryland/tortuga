@@ -86,7 +86,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeft)
     double expectedY = 0.431 * 640.0/480.0;
     math::Degree expectedAngle(25);
     
-    CHECK(detector.found);
+    CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
     CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(0.5));
@@ -114,7 +114,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Left)
     double expectedY = 0;
     math::Degree expectedAngle(0);
     
-    CHECK(detector.found);
+    CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
     CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(0.5));
@@ -142,7 +142,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, LowerRight)
     double expectedY = -0.5 * 640.0/480.0; 
     math::Degree expectedAngle(-25);
     
-    CHECK(detector.found);
+    CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
     CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(0.5));
@@ -169,7 +169,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterUp)
     double expectedY = 0 * 640.0/480.0; 
     math::Degree expectedAngle(0);
     
-    CHECK(detector.found);
+    CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
     CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(0.5));
@@ -196,7 +196,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterSideways)
     double expectedY = 0 * 640.0/480.0; 
     math::Degree expectedAngle(90);
     
-    CHECK(detector.found);
+    CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
     CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(0.5));
