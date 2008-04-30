@@ -40,6 +40,7 @@ public:
         PF_START, /** Sentinal Value */
         PF_RGB_8, /** Red Green Blue, 8 bits per channel */
         PF_BGR_8, /** Blue Green Red, 8 bits*/
+        PF_YUV444_8, /** YUV, 8 bits for each channel */
         PF_END,   /** Sentinal Value */
     };
 
@@ -56,7 +57,7 @@ public:
     static Image* loadFromBuffer(unsigned char* buffer, int width,
                                  int height, bool ownership);
     
-    /** Copies data from the given image to the src */
+    /** Makes the current image an exact copy of the source */
     virtual void copyFrom (const Image* src) = 0;
     
     /** The raw image data */
@@ -84,7 +85,7 @@ public:
     /** Set width and height of image in pixels */
     virtual void setSize(int width, int height) = 0;
   
-    /** Set pixel format of the image */
+    /** Set pixel format of the image, will crash if conversion is impossible*/
     virtual void setPixelFormat(Image::PixelFormat format) = 0;
 
     /** All images should be castable to IplImage for OpenCV compatibility */

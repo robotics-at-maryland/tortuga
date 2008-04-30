@@ -47,6 +47,10 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 
 /** Makes all red in the image white, and everything black
  *
+ *  @param percents
+ *      The result of running the base image through vision::to_ratios
+ *  @param base
+ *      The starting image from the camera.
  *  @param redPercent
  *      The percent of the total pixel value that is red.
  *  @param redIntensity
@@ -58,6 +62,8 @@ void RAM_EXPORT redMask(IplImage* percents, IplImage* base,
 
 /** Takes an image from redMask and finds the biggest red blob
  *
+ *  @param img
+ *      The image that is outputed by redMask
  *  @param centerX
  *      The X cordinate of the center of the biggest red blob
  *  @param centerY
