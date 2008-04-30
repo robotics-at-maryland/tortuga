@@ -63,7 +63,7 @@ class MainFrame(wx.Frame):
             stream = file(self.guiDataFile, 'r')
             guiData = yaml.load(stream)    
             stream.close()
-        except IOError:
+        except (IOError, yaml.YAMLError):
             pass # No history file availale, continue 
         
         # Load settings
@@ -153,7 +153,7 @@ class MainFrame(wx.Frame):
             stream = file(self.guiDataFile, 'r')
             guiData = yaml.load(stream)    
             stream.close()
-        except IOError:
+        except (IOError, yaml.YAMLError):
             pass # No history file availale, continue 
         
         # Write Config YAML data

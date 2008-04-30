@@ -57,7 +57,10 @@ class Application(wx.App):
         # Create config file
         config = {}
         if len(self._configPath) > 0:
-            config = yaml.load(file(self._configPath))
+            try:
+                config = yaml.load(file(self._configPath))
+            except (IOError, yaml.YAMLError):
+                pass # No history file availale, continue 
         
         # Create our C++ app
         self._app = ext.core.Application(self._configPath)

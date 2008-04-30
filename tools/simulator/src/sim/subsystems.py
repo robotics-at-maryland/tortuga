@@ -72,9 +72,9 @@ class Simulation(core.Subsystem):
         guiData = {}
         try:
             stream = file(self._guiFileName, 'r')
-            guiData = yaml.load(stream)    
+            guiData = yaml.load(stream)
             stream.close()
-        except IOError:
+        except (IOError, yaml.YAMLError):
             # File does not exist, ignore
             pass
 
@@ -152,7 +152,7 @@ class Simulation(core.Subsystem):
             guiData = yaml.load(stream)    
             stream.close()
             print 'SIM READ FILE'
-        except IOError:
+        except (IOError, yaml.YAMLError):
             # File does not exist, ignore
             pass
         
