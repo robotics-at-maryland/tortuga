@@ -18,6 +18,7 @@
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/GateDetector.h"
 #include "vision/include/FeatureDetector.h"
+#include "vision/include/SuitDetector.h"
 
 namespace ram {
 namespace vision {
@@ -36,6 +37,9 @@ registerGateDetector("GateDetector");
 
 static DetectorMakerTemplate<FeatureDetector>
 registerFeatureDetector("FeatureDetector");
+
+static DetectorMakerTemplate<SuitDetector>
+registerSuitDetector("SuitDetector");
     
 } // namespace vision
 } // namespace ram

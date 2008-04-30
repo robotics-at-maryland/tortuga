@@ -7,6 +7,8 @@
  * File:  packages/vision/src/Image.cpp
  */
 
+// STD Includes
+#include <iostream>
 
 // Library Includes
 #include "highgui.h"
@@ -23,7 +25,14 @@ Image* Image::loadFromFile(std::string fileName)
 {
     IplImage* image = cvLoadImage(fileName.c_str());
     if (image)
+	{
         return new OpenCVImage(image, true);
+	}
+	else
+	{
+		std::cout << "Could not load file: \"" << fileName << "\"" << std::endl;
+		assert(false && "Could not load image");
+	}
     return 0;
 }
 

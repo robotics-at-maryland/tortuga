@@ -10,7 +10,7 @@
 // Project Includes
 #include "vision/include/ImageCamera.h"
 #include "vision/include/OpenCVImage.h"
-
+#include "cv.h"
 namespace ram {
 namespace vision {
 
@@ -29,7 +29,11 @@ ImageCamera::~ImageCamera()
 
 void ImageCamera::newImage(ram::vision::Image* image)
 {
-    capturedImage(image);
+	OpenCVImage sizedImage(m_width, m_height);
+	IplImage* img = image->asIplImage();
+	IplImage* dest = sizedImage.asIplImage();
+	cvResize(img,dest);
+    capturedImage(&sizedImage);
 }
 
 void ImageCamera::update(double)

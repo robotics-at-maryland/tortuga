@@ -48,13 +48,13 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 /** Makes all red in the image white, and everything black
  *
  *  @param redPercent
- *      The precent of the total pixel value that is red.
+ *      The percent of the total pixel value that is red.
  *  @param redIntensity
  *      The the overall red value in the image.
  *
  */
 void RAM_EXPORT redMask(IplImage* percents, IplImage* base,
-                        int redPercent, int redIntencity);
+                        int redPercent, int redIntensity);
 
 /** Takes an image from redMask and finds the biggest red blob
  *
