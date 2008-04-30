@@ -428,7 +428,7 @@ void BWPDController::init(core::ConfigNode config)
 
     switch(m_controllerState->depthControlType)
     {
-	case 1 :
+    case 1 :
         m_controllerState->depthPGain = config["depthPGain"].asDouble(1);
 	    break;
 	case 2 :
@@ -504,6 +504,13 @@ void BWPDController::init(core::ConfigNode config)
                                                    config["depthOCIC4"][2].asDouble(0),
                                                    config["depthOCIC4"][3].asDouble(0));
         m_estimatedState->xHat4Depth = math::Vector4(0,0,0,0);
+        break;
+    case 5 :
+        m_controllerState->depthKi = config["depthKi"].asDouble(1);
+        m_controllerState->depthKp = config["depthKp"].asDouble(1);
+        m_controllerState->depthKd = config["depthKd"].asDouble(1);
+        m_controllerState->depthSumError = config["depthSumError"].asDouble(1);
+        m_controllerState->depthPrevX = config["depthPrevX"].asDouble(1);
         break;
 	default :
 	    //depthControlSignal=depthPController(measuredState,desiredState,controllerState);

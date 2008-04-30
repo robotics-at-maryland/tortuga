@@ -13,7 +13,7 @@
 #include <iostream>
 
 #ifdef RAM_WINDOWS
-#define M_PI 3.14159265358979323846
+#define M_PI 3.141592653589793238464
 #endif
 
 // Project Includes
@@ -95,6 +95,12 @@ void translationalController(MeasuredState* measuredState,
                                                                 controllerState,
                                                                 estimatedState,dt);
             break;
+    case 5 :
+            depthControlSignal=depthPIDController(measuredState,desiredState,
+                                                                controllerState,
+                                                                estimatedState);
+            break;
+
 	default :
 	    depthControlSignal=depthPController(measuredState,desiredState,controllerState);
 	    break;
@@ -217,6 +223,30 @@ double depthPDController2(MeasuredState* measuredState,
 	return depthControlSignal;
 
 }
+
+/************************************************************************/
+double depthPIDController(MeasuredState* measuredState,
+                          DesiredState* desiredState,
+                          ControllerState* controllerState,
+                          EstimatedState* estimatedState)
+{
+
+
+    double error = measuredState->depth-desiredState->depth;
+    double errorDot = (measuredState->depth-controllerState->depthPrevX)/controllerState->dt;
+    double errorInt = controllerState->depthSumError+error*controllerState->dt;
+    controllerState->depthSumError = errorInt;
+    controllerState->depthPrevX = measuredState->depth;
+
+    double depthControlSignal = -(controllerState->depthKp)*error-(controllerState->depthKd)        
+                                *errorDot-(controllerState->depthKi)*errorInt;
+	return depthControlSignal;
+
+}
+
+/************************************************************************/
+
+
 
 /************************************************************************
 depthObserverController4(measuredState,desiredState,controllerState,estimatedState)

@@ -70,8 +70,15 @@ struct RAM_EXPORT ControllerState{
     /* DEPTH CONTROL GAINS*/
     //for depth P control
     double depthPGain;
+    //for depth PID control
+    double depthKi;
+    double depthKp;
+    double depthKd;
+    double depthSumError;
+    double depthPrevX;
+
+
     //for depth observer controller
-    
     
     double speedPGain;
     double sidewaysSpeedPGain;
@@ -116,6 +123,11 @@ double RAM_EXPORT depthPDController2(MeasuredState* measuredState,
                                      DesiredState* desiredState,
                                      ControllerState* controllerState,
                                      EstimatedState* estimatedState);
+
+double RAM_EXPORT depthPIDController(MeasuredState* measuredState,
+                          DesiredState* desiredState,
+                          ControllerState* controllerState,
+                          EstimatedState* estimatedState);
 
 double RAM_EXPORT depthObserverController4(MeasuredState* measuredState,
                                           DesiredState* desiredState,
