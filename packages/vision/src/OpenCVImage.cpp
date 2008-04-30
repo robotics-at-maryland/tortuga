@@ -71,14 +71,13 @@ void OpenCVImage::copyFrom (const Image* src)
                                                    src->getHeight()), 8, 3);
     cvSetData(tmp_img, src->getData(), src->getWidth() * 3);
 
-    // Resize image if needed (also copy)
+    // Resize this image to match the source needed (also copy)
     if ((getWidth() != src->getWidth()) ||
         (getHeight() != src->getHeight()) )
     {
         assert(m_own && "Cannot perform resize unless I own the image");
         cvReleaseImage(&m_img);
         m_img = cvCreateImage(cvSize(src->getWidth(), src->getHeight()), 8, 3);
-//        cvResize(tmp_img, m_img);
     }
     // Copy the internal image data over
     cvCopy(tmp_img, m_img);
