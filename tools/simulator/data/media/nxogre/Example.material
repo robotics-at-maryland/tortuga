@@ -146,10 +146,10 @@ material Simple/Orange
 		
 		pass
 		{
-			diffuse 0.901 0.705 0.156
+			diffuse 1.0 0.6 0.0
 			specular 0 0 0 0
 			ambient 0 0 0
-			emissive 0.901 0.705 0.156
+			emissive 1.0 0.6 0.0
 		}
 	}
 }
