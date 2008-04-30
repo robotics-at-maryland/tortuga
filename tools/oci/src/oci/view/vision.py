@@ -30,9 +30,9 @@ class VisionPanel(wx.Panel):
         for conn in self._connections:
             conn.disconnect()
         
-    def _createControls(self):
+    def _createControls(self, name):
         # Creat box around controls
-        box = wx.StaticBox(parent = self, label = "Bouy")
+        box = wx.StaticBox(parent = self, label = name)
         topSizer = wx.StaticBoxSizer(box)
         
         self.sizer = wx.FlexGridSizer(0, 2, 10, 10)
@@ -131,7 +131,7 @@ class RedLightPanel(VisionPanel):
         self._range = None
 
         # Controls
-        self._createControls()
+        self._createControls("Bouy")
         
         # Events
         conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND,
@@ -176,7 +176,7 @@ class OrangePipePanel(VisionPanel):
         self._angle = None
 
         # Controls
-        self._createControls()
+        self._createControls("Orange Pipe")
         
         # Events
         conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_FOUND,
