@@ -25,27 +25,27 @@ enum Suit {CLUB, SPADE, HEART, DIAMOND, UNKNOWN};
     
 class RAM_EXPORT SuitDetector : public Detector
 {
-	public:
-	Suit suit;
+  public:
+    Suit suit;
     SuitDetector(core::ConfigNode config,
-                core::EventHubPtr eventHub = core::EventHubPtr());
-	SuitDetector::SuitDetector(Camera*);
-	~SuitDetector();
+                 core::EventHubPtr eventHub = core::EventHubPtr());
+    SuitDetector(Camera*);
+    ~SuitDetector();
     void processImage(Image* input, Image* output= 0);
-	void update();
-	IplImage* getAnalyzedImage();
+    void update();
+    IplImage* getAnalyzedImage();
     double getX();
-	double getY();
-	Suit getSuit();
+    double getY();
+    Suit getSuit();
 
   private:
-	Camera* cam;
-	IplImage* ratioImage;
-	IplImage* analyzedImage;
+    Camera* cam;
+    IplImage* ratioImage;
+    IplImage* analyzedImage;
     void init(core::ConfigNode config);
-	double suitX;
-	double suitY;	
-	
+    double suitX;
+    double suitY;	
+    
 };
 	
 } // namespace vision
