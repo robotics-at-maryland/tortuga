@@ -21,6 +21,8 @@
 
 // Project Includes
 #include "vision/include/OpenCVCamera.h"
+#include "vision/include/ImageCamera.h"
+#include "vision/include/Image.h"
 #include "vision/include/NetworkCamera.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Detector.h"
@@ -86,7 +88,7 @@ int main(int argc, char** argv)
             ("output,o", po::value<std::string>(&output),
              "File or network port to send images to")
             ("input", po::value<std::string>(&input),
-             "Video file, camera #, hostname:port")
+             "Video/Image file, camera #, hostname:port")
             ("detector", po::value<std::string>(&detectorName)->
              default_value("RedLightDetector"), "Detector to run on the input")
             ("config,c", po::value<std::string>(&configPath)->
@@ -368,7 +370,7 @@ vision::Camera* createCamera(std::string input)
 {
     static boost::regex camnum("\\d+");
     static boost::regex hostnamePort("([a-zA-Z0-9.-_]+):(\\d{1,5})");
-
+	static boost::regex image("[^\\.]+.(jpg|png)");
     std::cout << "Images coming from: ";
     
     if (boost::regex_match(input, camnum))
@@ -388,7 +390,18 @@ vision::Camera* createCamera(std::string input)
                   << "\" on port " << port << std::endl;
         return new vision::NetworkCamera(hostname, port);
     }
-
+	
+	if (boost::regex_match(input, image))
+	{
+		std::cout <<"'" << input <<"' image file" << std::endl;
+		
+		vision::Image* img = vision::Image::loadFromFile(input);
+		vision::ImageCamera* c = new vision::ImageCamera(640, 480, 30);
+		c->newImage(img);
+		//delete img;
+		return c;
+	}
+	
     std::cout << "'" << input << "' video file" << std::endl;
     return new vision::OpenCVCamera(input);
 }
