@@ -507,8 +507,8 @@ void BWPDController::init(core::ConfigNode config)
         break;
     case 5 :
         m_controllerState->depthKi = config["depthKi"].asDouble(1);
-        m_controllerState->depthKp = config["depthKp"].asDouble(1);
-        m_controllerState->depthKd = config["depthKd"].asDouble(1);
+        m_controllerState->depthKp = config["depthKp"].asDouble(10);
+        m_controllerState->depthKd = config["depthKd"].asDouble(4);
         m_controllerState->depthSumError = config["depthSumError"].asDouble(1);
         m_controllerState->depthPrevX = config["depthPrevX"].asDouble(1);
         break;

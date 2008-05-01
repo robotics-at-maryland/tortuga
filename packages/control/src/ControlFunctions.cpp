@@ -98,7 +98,7 @@ void translationalController(MeasuredState* measuredState,
     case 5 :
             depthControlSignal=depthPIDController(measuredState,desiredState,
                                                                 controllerState,
-                                                                estimatedState);
+                                                                estimatedState,dt);
             break;
 
 	default :
@@ -228,13 +228,14 @@ double depthPDController2(MeasuredState* measuredState,
 double depthPIDController(MeasuredState* measuredState,
                           DesiredState* desiredState,
                           ControllerState* controllerState,
-                          EstimatedState* estimatedState)
+                          EstimatedState* estimatedState,
+                          double dt)
 {
 
 
     double error = measuredState->depth-desiredState->depth;
-    double errorDot = (measuredState->depth-controllerState->depthPrevX)/controllerState->dt;
-    double errorInt = controllerState->depthSumError+error*controllerState->dt;
+    double errorDot = (measuredState->depth-controllerState->depthPrevX)/dt;
+    double errorInt = controllerState->depthSumError+error*dt;
     controllerState->depthSumError = errorInt;
     controllerState->depthPrevX = measuredState->depth;
 

@@ -127,7 +127,8 @@ double RAM_EXPORT depthPDController2(MeasuredState* measuredState,
 double RAM_EXPORT depthPIDController(MeasuredState* measuredState,
                           DesiredState* desiredState,
                           ControllerState* controllerState,
-                          EstimatedState* estimatedState);
+                          EstimatedState* estimatedState,
+                          double dt);
 
 double RAM_EXPORT depthObserverController4(MeasuredState* measuredState,
                                           DesiredState* desiredState,

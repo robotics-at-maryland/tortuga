@@ -46,7 +46,7 @@ TEST(PIDController)
    //Testing PID controller
     desired.depth = 4;
     measured.depth = 3;
-    state.dt = 0.025;    
+    //state.dt = 0.025;    
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;
@@ -56,7 +56,7 @@ TEST(PIDController)
     double result = control::depthPIDController(&measured,
                           &desired,
                           &state,
-                          &estimated);
+                          &estimated,0.025);
     CHECK_CLOSE(14463, result, 1);
 
 }
@@ -94,7 +94,7 @@ TEST(PIDController2)
    //Testing PID controller
     desired.depth = 3.1;
     measured.depth = 3;
-    state.dt = .0250;    
+    //state.dt = .0250;    
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;
@@ -104,7 +104,7 @@ TEST(PIDController2)
     double result = control::depthPIDController(&measured,
                           &desired,
                           &state,
-                          &estimated);
+                          &estimated,0.025);
     CHECK_CLOSE(14427, result, 1);
 
 }
