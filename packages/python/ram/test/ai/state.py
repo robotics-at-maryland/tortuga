@@ -274,7 +274,7 @@ class TestStateMachine(unittest.TestCase):
     def testWriteGraph(self):
         mockFile = StringIO.StringIO()
         state = Start
-        self.machine.writeStateGraph(mockFile,state)
+        self.machine.writeStateGraph(mockFile,state, ordered = True)
         output = mockFile.getvalue()
         expected = "digraph aistate {\n" + \
             "LoopBack->LoopBack[label=Update]\n" + \

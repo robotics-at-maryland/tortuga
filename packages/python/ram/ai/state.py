@@ -230,7 +230,7 @@ class Machine(core.Subsystem):
             return matches[0]
 
     @staticmethod
-    def writeStateGraph(fileobj, state):
+    def writeStateGraph(fileobj, state, ordered = False):
         """
         Write the graph of the state machine starting at the given state to
         the fileobj.
@@ -242,15 +242,17 @@ class Machine(core.Subsystem):
         @type  state: ram.ai.state.State
         @param state: The state to start the graph at
         
-        import ram.ai.light as light
-        light.Searching.transitions()
+        @type  ordered: boolean
+        @param ordered: Whether or not to alphabetize the states
         """
         graphText = "digraph aistate {\n"
         stateList = []
         
         Machine.traverse(state,stateList,[])
+        
         # Sort list for determinism
-        stateList.sort()
+        if ordered:
+            stateList.sort()
 
         nodeText = ""
         for item in stateList:
