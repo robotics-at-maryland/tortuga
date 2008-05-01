@@ -175,20 +175,59 @@ env.AlwaysBuild(dist_clean)
 # Docs
 if 1 == sys.argv.count('docs'):
     doxygen_path = env.WhereIs('doxygen')
+    epydoc_path = env.WhereIs('epydoc')
+    
     if doxygen_path is None:
         print 'Could not find doxygen, please make sure it is on your PATH'
-        env.Exit(1)
+    elif epydoc_path is None:
+        print 'Could not find epydoc, please make sure it is on your PATH'
+    elif (doxygen_path is None) and (epydoc_path is None):
+        print 'Could not find any documentation tools!'
+        Exit(1)
     else:
         env['doxygen_path'] = doxygen_path
+        env['epydoc_path'] = epydoc_path
+
         
 def docs_func(target = None, source = None, env = None):
-    cfg_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
-                            'doxygen.cfg')
+    # Config paths
+    dox_cfg_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
+                                'doxygen.cfg')
+    epy_cfg_path = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
+                                'epydoc.cfg')
 
-    output_dir = os.path.join('docs','api','cpp')
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    subprocess.call("%s %s" % (env['doxygen_path'], cfg_path), shell = True)
+    # Make sure directories exist
+    output_dir = os.path.join('docs','api')
+
+    # Run documentation generation
+    if env['doxygen_path'] is not None:
+        cpp_dir = os.path.join(output_dir,'cpp')
+        if not os.path.exists(cpp_dir):
+            os.makedirs(cpp_dir)
+        
+        subprocess.call("%s %s" % (env['doxygen_path'], dox_cfg_path),
+                        shell = True)
+
+    if env['epydoc_path'] is not None:
+        epy_dir = os.path.join(output_dir,'python')
+        if not os.path.exists(epy_dir):
+            os.makedirs(epy_dir)
+
+        # Small hack to make sure ogre can be imported by epydoc
+        import ram.sim
+        
+        # Another small hack to run the command program without our environment
+        # so we can setup the python path properly
+        origArgv = sys.argv
+        sys.argv = ['', '--config', epy_cfg_path]
+        
+        # Call into epydoc API
+        import epydoc
+        import epydoc.cli
+        epydoc.cli.cli()
+
+        # Restore args
+        sys.argv = origArgv
 
 # Creat are "phony" distclean target
 make_docs = env.Alias('docs', 'SConstruct', env.Action(docs_func))
