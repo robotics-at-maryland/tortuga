@@ -124,18 +124,29 @@ class Timer(threading.Thread):
         
     def run(self):
         """
-        Called by the python threading.Thread class in a background thread
+        Fires of the event from a background thread after the needed sleep
+
+        This is the standard python threading.Thread class method.
         """
         # Sleep for that time period
         sleep(self._sleepTime)
-        
+
+        # Publish event
         self._complete()
+
+        # Set running to false
         self.stop()
  
     def stop(self):
+        """
+        Stops the backgruond thread from publishing its event when it wakes up
+        """
         self._running = False
         
     def _complete(self):
+        """
+        Publishes the desired event, called in background thread after the sleep
+        """
         # Publish event
         if self._running:
             self._eventPublisher.publish(self._eventType, ext.core.Event())
