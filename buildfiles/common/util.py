@@ -68,3 +68,39 @@ def install_buildit(package_dir, prefix_dir):
     # Change back to original directory
     print 'Returning to',cwd
     os.chdir(cwd)
+
+def python_version_str():
+    """
+    Gets the python version string, ie: python2.5 for Python 2.5.x
+    """
+    python_version = sys.version_info[0:2]
+    assert (2,5) == python_version # Check Python Version
+    return 'python%d.%d' % python_version
+
+def ram_prefix():
+    """
+    Returns the current prefix RAM dependency libraries are installed in
+    """
+    prefix = None
+    if os.name == 'posix':
+        prefix = '/opt/ram/local'
+    elif os.name == 'nt':
+        prefix = os.environ['RAM_ROOT_DIR']
+    else:
+        print 'OS "%s" Not Supported' % os.name
+    return prefix
+
+def site_packages_suffix():
+    """
+    Gets the suffix (the part after the prefix) of the python site packages dir
+    """
+    site_packages_suffix = None
+    if os.name == 'posix':
+        site_packages_suffix = os.path.join('lib', python_version_str(),
+                                            'site-packages')
+    elif os.name == 'nt':
+        site_packages_suffix = os.path.join('Lib','site-packages')
+    else:
+        print 'OS "%s" Not Supported' % os.name
+
+    return site_packages_suffix

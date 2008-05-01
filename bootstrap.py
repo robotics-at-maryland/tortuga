@@ -11,26 +11,15 @@ from buildfiles.common import util
 from optparse import OptionParser
 
 # Check Python Version, ensure 2.5.x
-PYTHON_VERSION = sys.version_info[0:2]
-assert (2,5) == PYTHON_VERSION # Check Python Version
-PYTHON_VERSION_STR = 'python%d.%d' % PYTHON_VERSION
+PYTHON_VERSION_STR = util.python_version_str()
 ROOT_DIR = os.path.abspath(sys.path[0])
 
 DEFULT_TASKS = ['setup_directories', 
                 'install_python_modules', 
                 'gen_setenv']
 
-DEFAULT_PREFIX = None
-PYTHON_SITE_PACKAGE_SUFFIX = None
-if os.name == 'posix':
-    DEFAULT_PREFIX = '/opt/ram/local'
-    PYTHON_SITE_PACKAGE_SUFFIX = os.path.join('lib',PYTHON_VERSION_STR,
-                                              'site-packages')
-elif os.name == 'nt':
-    DEFAULT_PREFIX = os.environ['RAM_ROOT_DIR']
-    PYTHON_SITE_PACKAGE_SUFFIX = os.path.join('Lib','site-packages')
-else:
-    print 'OS "%s" Not Supported' % os.name
+DEFAULT_PREFIX = util.ram_prefix()
+PYTHON_SITE_PACKAGE_SUFFIX = util.site_packages_suffix()
     
 def main(argv=None):
     # Parse Arguments
