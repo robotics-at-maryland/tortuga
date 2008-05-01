@@ -12,6 +12,10 @@
 	.global _asmUpdateDFT
 	
 	
+	.def FRACT_MODE
+	;.def INT_MODE
+	
+	
 .text
 
 
@@ -30,10 +34,11 @@
 
 .bss num_channels,2
 
+.bss corcon_save,2
+
 
 
 .text
-
 
 
 ; W register arguments:
@@ -42,6 +47,7 @@
 ; W2 - sum buffer pointer
 ; W3 - window length (num samples)
 ; W4 - num channels
+; W5 - math mode
 
 _asmInitDFT:
 
@@ -71,12 +77,29 @@ we_loop:
 	bra		EQ,we_loop
 
 	; zero out the sums
-	sl		W4,#3,W0
+	sl		W4,#0x3,W0
 se_loop:
 	clr		[W2++]
 	dec		W0,W0
 	bra		NZ,se_loop
+	
+	; set up corecon
+	mov		CORCON,W0
+	mov		W0,corcon_save
+	; CORCON = xxxm0xxx 1110ss0m
+	and		#0x00C,W0
+	ior		#0x0E0,W0
+	ior		W0,W5,W0
+	mov		W0,CORCON
 
+	return
+
+
+_asmExitDFT:
+	; restore corcon
+	mov		corcon_save,W0
+	mov		W0,CORCON
+	
 	return
 	
 	
@@ -106,15 +129,7 @@ _asmUpdateDFT:
 	push.d W8
 	push.d W10
 
-	; Save config registers
-	push	CORCON
-	
-	
-	; Configure core for fractional operations
-	fractsetup	W7
-	
-	
-	; operations to complete:
+	; Initialize working registers
 	mov		W0,W8				; load sample pointer
 	mov		num_channels,W3		; load loop counter
 	mov		sum_ptr,W1			; load sum pointer
@@ -124,6 +139,7 @@ _asmUpdateDFT:
 	mov		[W8++],W4			; prefetch sample
 	mov		[W10++],W7			; prefect imag coefficient
 	
+	; Loop for each channel
 channel_loop:
 	
 	mpy 	W4*W6,A				; multiply for new windowreal
@@ -151,18 +167,16 @@ channel_loop:
 	bra		NZ,channel_loop		; branch if counter not zero
 	
 	; Check for window pointer overflow
-	mov		window_ptr_max,W0
-	cpsne	W0,W2
-	mov 	coeff_ptr_max,W10
-	cpsne	W0,W2
-	mov		window_ptr_base,W2
+	mov		window_ptr_max,W0	; get max window address
+	cpsne	W0,W2				; compare
+	mov 	coeff_ptr_base,W10	; reset coefficient pointer
+	cpsne	W0,W2				; compare
+	mov		window_ptr_base,W2	; reset window pointer
 not_end:
-	mov		W2,window_ptr		; this goes here to improve pipelining
-	mov 	W10,coeff_ptr
+	mov		W2,window_ptr		; store window pointer
+	mov 	W10,coeff_ptr		; store coefficient pointer
 	
-	; Restore config registers
-	pop		CORCON
-	
+	; Restore working registers
 	pop.d	W10
 	pop.d	W8
 	
