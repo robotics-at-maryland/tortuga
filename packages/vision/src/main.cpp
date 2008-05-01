@@ -1186,7 +1186,7 @@ int guess_line(IplImage* img)
 }
 		
 
-int mask_orange(IplImage* img, bool alter_img, bool strict)
+int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict)
 {
 	unsigned char* data=(unsigned char*)img->imageData;
 	int width=img->width;
@@ -1243,8 +1243,9 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 				++acceptable;
 			if ( b_over_r_max*r>b)
 				++acceptable;
-			//A new test because dark black squares shouldn't be orange.
-			if (r+g+b<100)//100 seems like a good value, but should probably be in a config file somewheres.
+			// A new test because dark black squares shouldn't be
+                        // orange. (default should be 100)
+			if (r+g+b < brightness)
 				acceptable=0;
 			if (acceptable>=2+(int)strict)
 			{
@@ -1258,26 +1259,6 @@ int mask_orange(IplImage* img, bool alter_img, bool strict)
 		}
 		
 	return pixel_count;
-}
-
-void mask_with_input(IplImage* img)
-{
-//	const int ORANGE='0';
-	char a='0';
-	//cout<<"Select Mask Description"<<endl;
-	//cout<<"0: Strict Orange"<<endl;
-	//cout<<"1: Lenient Orange"<<endl;
-	//cout<<"More coming someday... one might hope"<<endl;
-	a=(char)cvWaitKey(-1);
-	
-	if (a=='0')
-	{
-		mask_orange(img,true,true);
-	}
-	if (a=='1')
-	{
-		mask_orange(img,true,false);
-	}
 }
 
 void thin_blue_line(IplImage* img)

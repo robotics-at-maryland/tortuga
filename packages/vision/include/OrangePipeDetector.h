@@ -68,6 +68,12 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
 
     /** Whether or not we are centered */
     bool m_centered;
+
+    /** The minimum brightness a pixel has to be to be considered orange */
+    int m_minBrightness;
+
+    /** Number of times to erode the masked image before the hough */
+    int m_erodeIterations;
 };
     
 } // namespace vision

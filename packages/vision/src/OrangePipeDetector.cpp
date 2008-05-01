@@ -55,6 +55,8 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_lineX=m_lineY=0;
     
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
+    m_minBrightness = config["minBrightness"].asInt(100);
+    m_erodeIterations = config["erodeIterations"].asInt(3);
 }
 
 bool OrangePipeDetector::found()
@@ -116,7 +118,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     cvCopyImage(image,m_rotated);//Poorly named if the cameras not on sideways... oh well.
     image=m_rotated;
     
-    int orange_count=mask_orange(image,true,true);
+
     bool pipeFound = m_found;
     if (pipeFound)
     {
@@ -124,14 +126,17 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
         // Left is negative, right is positive, magnitude is num pixels from
         // center line
 
-        // Can see the pipe
+        // Can see the pipe, find pixels with a strict filtering
+        int orange_count = mask_orange(image,true, m_minBrightness, true);
+        
         if (orange_count < 250)
             pipeFound = false;
     }
     else
     {
-        // Can't current see the pipe
-        if (orange_count>1000)//this number is in pixels.
+        // Can't current see the pipe, find pixels with non-strict filtering
+        int orange_count = mask_orange(image,true, m_minBrightness, false);
+        if (orange_count > 1000)//this number is in pixels.
             pipeFound = true;
     }
     
@@ -148,7 +153,9 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     int linex,liney;
     if (m_found)
     {
-        cvErode(image, image, 0, 3);//3 x 3 default erosion element, 3 iterations.
+        // 3 x 3 default erosion element, default 3 iterations.
+        cvErode(image, image, 0, m_erodeIterations);
+        
         double angle = hough(image,&linex,&liney);
         if (angle==HOUGH_ERROR)
         {

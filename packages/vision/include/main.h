@@ -34,8 +34,20 @@ int mask_red(IplImage* img, bool alter_img, int threshold);
 void explore(IplImage* img, int x, int y, int* out, int color);
 CvPoint find_flash(IplImage* img, bool display);
 int guess_line(IplImage* img);
-int mask_orange(IplImage* img, bool alter_img, bool strict);
-void mask_with_input(IplImage* img);
+
+/** Makes all orange in the image white, and everything else black
+ *
+ *  @param img
+ *      A raw image from the camera
+ *  @param alter_img
+ *      Whether or not to make the color changes to the image
+ *  @param brightness
+ *      A threshold which the sum of each pixels RGB parts must meet
+ *  @param strict
+ *      Whether or not to use a strict orange filtering
+ */
+int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict);
+
 int angle_from_center(int argxs[], IplImage* img);
 void correct(IplImage* img);
 void filter(IplImage* img, bool red_flag, bool green_flag, bool blue_flag);
@@ -45,7 +57,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 
-/** Makes all red in the image white, and everything black
+/** Makes all red in the image white, and everything else black
  *
  *  @param percents
  *      The result of running the base image through vision::to_ratios
