@@ -38,8 +38,8 @@ class MockEventSource(core.EventPublisher):
 
 # Test States (Consider Magic base class to take care of the init method)
 class TrackedState(state.State):
-    def __init__(self, **kwargs):
-        state.State.__init__(self, **kwargs)
+    def __init__(self, *args, **kwargs):
+        state.State.__init__(self, *args, **kwargs)
         self.entered = False
         self.exited = False
 
@@ -50,8 +50,8 @@ class TrackedState(state.State):
         self.exited = True
 
 class Start(TrackedState):
-    def __init__(self, **kwargs):
-        TrackedState.__init__(self, **kwargs)
+    def __init__(self, *args, **kwargs):
+        TrackedState.__init__(self, *args, **kwargs)
         self.event = None
         self.func = None
         self.thingUpdatedEvent = None
@@ -89,8 +89,8 @@ class Simple(state.State):
         return {MockEventSource.ANOTHER_EVT : Start}
 
 class LoopBack(TrackedState):
-    def __init__(self, **kwargs):
-        TrackedState.__init__(self, **kwargs)
+    def __init__(self, *args, **kwargs):
+        TrackedState.__init__(self, *args, **kwargs)
         self.transCount = 0
         self.enterCount = 0
 
@@ -259,6 +259,23 @@ class TestStateMachine(unittest.TestCase):
         qeventHub.publishEvents()
         self.assertEquals(QueueTestState, type(machine.currentState()))
         
+    def testConfig(self):
+        cfg = { 
+            'param' : 5,
+            'States' : {
+                'state.StateTestConfig' : {
+                    'val' : 10,
+                    'other' : 'job'
+                }
+            }
+        }
+        machine = state.Machine(cfg = cfg)
+        
+        machine.start(StateTestConfig)
+        current = machine.currentState()
+        self.assertEqual(10, current.getConfig('val'))
+        self.assertEqual('job', current.getConfig('other'))
+        
     def testSubsystemPassing(self):
         eventHub = core.EventHub("EventHub")
         qeventHub = core.QueuedEventHub(eventHub, "QueuedEventHub")
@@ -287,6 +304,29 @@ class TestStateMachine(unittest.TestCase):
             "Start->Simple[label=Change]\n" + \
             "}"
         self.assertEquals(expected,output)
+        
+        
+# Testing of State Class
+class StateTestConfig(state.State):
+    def getConfig(self, val):
+        return self._config[val]
+
+class TestState(unittest.TestCase):
+    def testSubsystemArgs(self):
+        s = state.State(a = 5, bob = 'A')
+        self.assertEqual(5, s.a)
+        self.assertEqual('A', s.bob)
+        
+        # Make sure config isn't considered a subsystem
+        s = state.State(config = 5)
+        self.assertFalse(hasattr(s, 'config'))
+        
+    def testConfig(self):
+        s = StateTestConfig({'ram' : 50}, john = 10)
+        self.assertEqual(10, s.john)
+        self.assertFalse(hasattr(s, 'config'))
+        
+        self.assertEqual(50, s.getConfig('ram'))
         
 if __name__ == '__main__':
     unittest.main()

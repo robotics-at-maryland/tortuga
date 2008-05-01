@@ -17,8 +17,13 @@ class State(object):
     Basic state class, its provides empty implementation for all the needed
     methods of a state
     """
-    def __init__(self, **subsystems):
+    def __init__(self, config = None, **subsystems):
+        if config is None:
+            config = {}
+        self._config = config
         for name, subsystem in subsystems.iteritems():
+            if 'config' == name:
+                raise ValueError, "Subsystme cannot be named 'config'"
             setattr(self, name, subsystem)
 
     @staticmethod
@@ -83,7 +88,9 @@ class Machine(core.Subsystem):
         core.Subsystem.__init__(self, cfg.get('name', 'StateMachine'),
                                 deps)
 
+
         # Set default instance values
+        self._config = cfg
         self._root = None
         self._currentState = None
         self._started = False
@@ -184,9 +191,15 @@ class Machine(core.Subsystem):
                                                        self.injectEvent)
                 self._connections.append(conn)
         
+        # Look up config based on full dotted name of state class
+        fullClassName = '%s.%s' % (newStateClass.__module__, 
+                                   newStateClass.__name__)
+        stateCfg = self._config.get('States', {})
+        config = stateCfg.get(fullClassName, {})
+        
         # Create state instance from class, make sure to pass all subsystems
         # along as well
-        newState = newStateClass(**self._subsystems)
+        newState = newStateClass(config, **self._subsystems)
         self._currentState = newState
         self._currentState.enter()
         

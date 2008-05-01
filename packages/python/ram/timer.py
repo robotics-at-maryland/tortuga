@@ -126,7 +126,7 @@ class Timer(threading.Thread):
         """
         Fires of the event from a background thread after the needed sleep
 
-        This is the standard python threading.Thread class method.
+        This is implements the standard python threading.Thread method.
         """
         # Sleep for that time period
         sleep(self._sleepTime)
