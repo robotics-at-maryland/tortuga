@@ -26,12 +26,13 @@ class IStorable(core.Interface):
     def __init__(*args, **kwargs):
         """
         This function most work with, no args, or the same set of arguments 
-        that init() takes.  This means you can either initilize and object
-        like:
-            obj = GameObject()
-            obj.init(10, 20, 'My Info')
-        or:
-            obj = GameObject(10, 20, 'My Info')
+        that init() takes.  This means you can either initilize and object in
+        the following ways:
+
+          1. obj = GameObject()
+             obj.init(10, 20, 'My Info')
+              
+          2. obj = GameObject(10, 20, 'My Info')
             
         and you will get exactly the same object.
         """
@@ -70,8 +71,8 @@ class ILoader(core.Interface):
         
         @type  file_name: string
         @param file_name: The absolute path to the file
-        
-        @rtype : bool
+
+        @rtype: bool
         @return: True if loader can load from the file, false if not
         """
         pass
@@ -80,8 +81,8 @@ class ILoader(core.Interface):
         """
         Loads the scene from the file into the given scene object.
         
-        @type scene_file: string
-        @param scene_file: The absolute path to the scene file
+        @type file_name: string
+        @param file_name: The absolute path to the scene file
         
         @type scene: Scene
         @param scene: The scene into which the objects should be loaded

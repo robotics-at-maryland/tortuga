@@ -210,8 +210,8 @@ class Scene(object):
         """
         Creates an object
 
-        @type type: Interface
-        @param type: The interface
+        @type  obj_type: Interface
+        @param obj_type: The interface
         """
         kwargs['scene'] = self
         core.Component.create(obj_type, *args, **kwargs)
@@ -369,15 +369,16 @@ class KMLSceneLoader(core.Component):
     def _create_sky_box(self, node):
         """
         Parse the needed information to create a sky box out of a kml node 
-        defaults values shown below:
+        defaults values shown below::
         
-        SkyBox:
-            enable: True
-            material_name: <Must Be Given>
-            distance: 5000
-            draw_first: True
-            orientation: Quaternion.Identity
-            group_name: General
+          SkyBox:
+              enable: True
+              material_name: <Must Be Given>
+              distance: 5000
+              draw_first: True
+              orientation: Quaternion.Identity
+              group_name: General
+        
         """
         enable = node.get('enable', True)
         material_name = node['material_name']

@@ -177,17 +177,19 @@ class Simulation(Singleton, Module):
         
     def _load_ogre_plugins(self, config):
         """
-        This loads the plugins Ogre needs to run based on the config file.
-        Here is an example:
-        Plugins:
-            # Where to search for the plugins
-            search_path: [ C:\Libraries\Python-Ogre-0.7\plugins,
-                           C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins]
+        This loads the plugins Ogre needs to run based on the config file. An
+        example::
+        
+          Plugins:
+              # Where to search for the plugins
+              search_path: [ C:\Libraries\Python-Ogre-0.7\plugins,
+                             C:\Developement\Python-Ogre\Python-Ogre-0.7\plugins]
                
-            # The plugins to load
-            plugins: [ RenderSystem_GL, 
-                       Plugin_ParticleFX, 
-                       Plugin_OctreeSceneManager ] 
+              # The plugins to load
+              plugins: [ RenderSystem_GL, 
+                         Plugin_ParticleFX, 
+                         Plugin_OctreeSceneManager ]
+        
         """
         import platform
         
@@ -238,19 +240,21 @@ class Simulation(Singleton, Module):
         """
         This secion here takes over for Ogre's ogre.cfg.  The type 
         indicates which Ogre RenderSystem to create and which section to
-        load the options from.  Example:
+        load the options from.
+
+        An Example::
         
-        Ogre:
-            RenderSystem:
-                type: GLRenderSystem
+          Ogre:
+              RenderSystem:
+                  type: GLRenderSystem
                 
-                GLRenderSystem:
-                    - [Colour Depth, '32']
-                    - [Display Frequency, 'N/A']
-                    - [FSAA, '0']
-                    - [Full Screen, 'No']
-                    - [RTT Preferred Mode, 'FBO']
-                    - [VSync, 'No']
+                  GLRenderSystem:
+                      - [Colour Depth, '32']
+                      - [Display Frequency, 'N/A']
+                      - [FSAA, '0']
+                      - [Full Screen, 'No']
+                      - [RTT Preferred Mode, 'FBO']
+                      - [VSync, 'No']
 
         """
         

@@ -12,35 +12,36 @@
 This takes a section from a yaml file and loads loggers and formatter froms it.
 This is basically the logging.config format from python standard library made
 sane.  All the same caveats to all the arguments apply.  The one change is
-qualname is now name.  Here is an example:
+qualname is now name.  Here is an example::
 
-Logging:
-    Loggers:
-        Root:
-            level: NOTSET
-            handlers: Console
-        Parse:
-            level: DEBUG
-            handlers: Console
-            propagate: 1
-            name: compiler.parser
+  Logging:
+      Loggers:
+          Root:
+              level: NOTSET
+              handlers: Console
+          Parse:
+              level: DEBUG
+              handlers: Console
+              propagate: 1
+              name: compiler.parser
 
-    Handlers:
-        Console:
-            class: StreamHandler
-            level: NOTSET
-            formatter: Form1
-            args: (sys.stdout,)
-        File:
-            class: FileHandler
-            level: DEBUG
-            formatter: Form2
-            args: ('python.log', 'w')
+      Handlers:
+          Console:
+              class: StreamHandler
+              level: NOTSET
+              formatter: Form1
+              args: (sys.stdout,)
+          File:
+              class: FileHandler
+              level: DEBUG
+              formatter: Form2
+              args: ('python.log', 'w')
             
-    Formatters:
-        Form1:
-            format: F1 %(asctime)s %(levelname)s %(message)s
-            class: logging.Formatter
+      Formatters:
+          Form1:
+              format: F1 %(asctime)s %(levelname)s %(message)s
+              class: logging.Formatter
+
 """
 
 import logging, logging.handlers, string

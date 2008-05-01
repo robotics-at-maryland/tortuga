@@ -119,7 +119,7 @@ class IBody(IObject):
         pass
         
 
-    def set_global_force(sforce, pos):
+    def set_global_force(force, pos):
         """
         @type  pos: Ogre.Vector3
         @param pos: Offset from the object
@@ -190,8 +190,8 @@ class Body(Object):
              position = Ogre.Vector3.ZERO, 
              orientation = Ogre.Quaternion.IDENTITY):
         """
-        @type  world: sim.physics.World
-        @param world: The physical simulation to create the body in
+        @type  scene: ram.sim.scene.Scene
+        @param scene: The scene to create the body in
         
         @type  shape_type: str
         @param shape_type: Denotes, the type of shape, like 'box' or 'sphere'
@@ -380,9 +380,9 @@ class Body(Object):
         
     def set_buoyancy(self, normal):
         """
-        type  normal: Ogre.Vector3
-        param normal: The normal of the buoyancy plane. If none, the object will
-                     not be buoyanct
+        @type  normal: Ogre.Vector3
+        @param normal: The normal of the buoyancy plane. If none, the object
+                       will not be buoyanct
         """
         if normal is not None:
             self._buoyancy_plane = Ogre.Plane(normal, (0,0,0))

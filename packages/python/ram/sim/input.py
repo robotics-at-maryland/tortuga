@@ -6,7 +6,7 @@
 # File:  packages/python/ram/sim/input.py
 
 """
-    Wraps up the initialization and management of OIS and other input releated
+Wraps up the initialization and management of OIS and other input releated
 activities
 """
 
@@ -73,9 +73,10 @@ class InputSystem(object):
     
     def _load_actions(self, config):
         """
-        Loads actions from the config file in the following form:
-        KeyMap:
-            CTRL+TAB+A: THRUST_UP
+        Loads actions from the config file in the following form::
+        
+            KeyMap:
+                CTRL+TAB+A: THRUST_UP
         
         The key combination can be in any order, and capitalization doesn't 
         matter.  They value is the event that is fired when the key combination
@@ -107,7 +108,8 @@ class InputSystem(object):
         @type  key_string: string
         @param key_string: A string reprsenting the key like 'A', 'Z', or 'BACK'
         
-        @retrun: The keycode, or None 
+        @rtype: string or None
+        @return: The keycode or None
         """
         if hasattr(KC, key_string):
             return getattr(KC, key_string)

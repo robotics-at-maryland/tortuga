@@ -124,6 +124,9 @@ class Module(Component):
         event.send('MODULE_SHUTDOWN',self)
 
 class ModuleManager(Singleton):
+    """
+    @ivar _registry: A dict which maps module name to module instances
+    """
     
     def init(self, config = None, load_func = None):
         """
@@ -134,8 +137,6 @@ class ModuleManager(Singleton):
         @type  load_func: function
         @param load_func: Called to load every module, first arg mod class,
                           second is the config section
-                          
-        @ivar _registry: A dict which maps module name to module instances
         """
         self._registry = {}
         self._mod_type_reg = {}

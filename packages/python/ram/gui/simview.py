@@ -23,7 +23,7 @@ from ram.gui.input import InputForwarder
 class SimPanelProvider(Component):
     implements(IPanelProvider)
     
-    def get_panels(self, subsystems, parent):
+    def getPanels(self, subsystems, parent):
         # This dummy window holds the rendering context to make sure the user
         # doesn't close the window containing it
         dummy = wxOgre(None, parent, -1, wx.DefaultPosition, wx.DefaultSize, 0, 

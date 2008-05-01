@@ -87,8 +87,8 @@ def log(begin, end = None, level = logging.INFO):
 class property_meta(type):
     """
     This allow easy creation of properties that can be get, set, or deleted.
-    See the python reciepe (in the dicussion) here:
-        http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/410698
+    See the python reciepe (in the dicussion) here: U{http://aspn.activestate.
+    com/ASPN/Cookbook/Python/Recipe/410698}
     """
     def __new__(meta, class_name, bases, new_attrs):
         if bases == (object,):
@@ -102,18 +102,20 @@ class property_meta(type):
 
 class cls_property(object):
     """
-    Uses this as such:
-    class Angle(object):
-        def __init__(self,rad):
-            self._rad = rad
+    Uses this as such::
+    
+      class Angle(object):
+          def __init__(self,rad):
+              self._rad = rad
 
-        class rad(property):
-            '''The angle in radians'''
-            def fget(self):
-                return self._rad
-            def fset(self,angle):
-                if isinstance(angle,Angle): angle = angle.rad
-                self._rad = angle
+          class rad(property):
+              '''The angle in radians'''
+              def fget(self):
+                  return self._rad
+              def fset(self,angle):
+                  if isinstance(angle,Angle): angle = angle.rad
+                  self._rad = angle
+    
     """
 
     __metaclass__ = property_meta
@@ -197,8 +199,8 @@ class ExtensionPoint(property):
     def __init__(self, iface):
         """Create the extension point.
 
-        @type interface: Subclass of Interface
-        @param interface: the `Interface` subclass that defines the protocol
+        @type  iface: Subclass of Interface
+        @param iface: the `Interface` subclass that defines the protocol
             for the extension point
         """
         property.__init__(self, self.extensions)
@@ -221,7 +223,8 @@ class Component(object):
     The base class for all components, each subclass must implement and
     interface.  If it doesn't, it shouldn't be a component.
 
-    The registry is of the form
+    The registry is of the form::
+    
         { IInterfaceOne :
             {'mypkg.submod.My
         # Determine the name of attributes
@@ -232,6 +235,7 @@ class Component(object):
              'module1.OtherCls' : OtherCls },
           IAnotherInterface :
               {'myotherpkg.subpkg.submod.AClass' : AClass} }
+    
     """
 
 
@@ -263,7 +267,8 @@ def _register_class(_class):
     """
     Registers the given class in the component registry
 
-    This ends up with a registry of the following form:
+    This ends up with a registry of the following form::
+    
         { IInterfaceOne :
             {'mypkg.submod.MyClass' : MyClass,
              'module1.OtherCls' : OtherCls },
@@ -353,8 +358,8 @@ def fixed_update(update_interval_attr, _elapsed_attr = None,
     @param update_interval_attr: The name of the class attribute that holds
                                  the desired time between updates.
 
-    @type elapsed_attr: string
-    @param elapsed_attr: The name of the object attribute that will hold the
+    @type  _elapsed_attr: string
+    @param _elapsed_attr: The name of the object attribute that will hold the
                          elapsed time between updates. If None
                          func.__name__ + '_elapsed' is used.
 

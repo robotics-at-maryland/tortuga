@@ -78,12 +78,15 @@ class Turn(state.State):
 	    return { Turn.TURN_DONE : Forward }
 
     def enter(self):
-        self._conn = self.motionManager._eventHub.subscribe(control.IController.AT_ORIENTATION, self.controller, self._turnDone)
+        self._conn = self.motionManager._eventHub.subscribe(
+            control.IController.AT_ORIENTATION,
+            self.controller, self._turnDone)
+        
         self.controller.yawVehicle(90)
         #print "ping"
 
     def _turnDone(self,event):
-	    event = ext.core.Event()
+        event = ext.core.Event()
         self.publish(Turn.TURN_DONE, event)
 
 class Surface(state.State):

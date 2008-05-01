@@ -43,8 +43,8 @@ class Base(Motion):
                  #speedGain = 1.0, sidewaysSpeedGain = 1.0, 
                  yawGain = 1.0):
         """
-        @type  target: ram.motion.pipe.Pipe
-        @param target: Target to attempt to reach
+        @type  pipe: ram.motion.pipe.Pipe
+        @param pipe: Target to attempt to reach
         """
         Motion.__init__(self)
         

@@ -69,7 +69,7 @@ class SeekPoint(Motion):
         """
         Commands the controller to seek the current vehicle
 
-        @note Everything is in DEGREES!
+        @note: Everything is in DEGREES!
         """
         
         # Determine new Depth
@@ -145,7 +145,7 @@ class ObserverControllerSeekPoint(Motion):
         """
         Commands the controller to seek the current vehicle
 
-        @note Everything is in DEGREES!
+        @note: Everything is in DEGREES!
         """
         
         # Determine new Depth

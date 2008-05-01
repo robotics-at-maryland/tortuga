@@ -100,8 +100,8 @@ class Robot(core.Component):
     
     def __init__(self, scene, robot_data):
         """
-        @type name: string
-        @param name: The name of robot
+        @type scene: ram.sim.Scene
+        @param scene: The scene to load into
         
         @type  robot_data: Anything
         @param robot_data: The object that will be passed to the robot loader
