@@ -44,20 +44,20 @@ TEST(PIDController)
     control::EstimatedState estimated = {math::Vector2(0,0)};
 
    //Testing PID controller
-    desired.depth = 4;
-    measured.depth = 3;
+    desired.depth = 2.2;
+    measured.depth = 0;
     //state.dt = 0.025;    
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;
-    state.depthSumError = -46;
-    state.depthPrevX = 15;
+    state.depthSumError = 0;
+    state.depthPrevX = 0;
 
     double result = control::depthPIDController(&measured,
                           &desired,
                           &state,
                           &estimated,0.025);
-    CHECK_CLOSE(14463, result, 1);
+    CHECK_CLOSE(88.0275, result, .001);
 
 }
 
@@ -90,21 +90,20 @@ TEST(PIDController2)
     control::EstimatedState estimated = {math::Vector2(0,0)};
     estimated.xHat4Depth = math::Vector4(0,0,0,0);
 
-
+	 
    //Testing PID controller
     desired.depth = 3.1;
-    measured.depth = 3;
-    //state.dt = .0250;    
+    measured.depth = 3.0;
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;
     state.depthSumError = -46;
-    state.depthPrevX = 15;
+    state.depthPrevX = 3.0;
 
     double result = control::depthPIDController(&measured,
                           &desired,
                           &state,
                           &estimated,0.025);
-    CHECK_CLOSE(14427, result, 1);
+    CHECK_CLOSE(27.0013, result, .001);
 
 }
