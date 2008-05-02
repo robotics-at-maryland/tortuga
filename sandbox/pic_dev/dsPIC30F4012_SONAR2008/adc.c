@@ -10,45 +10,34 @@
 extern int data1[SAMPLE_LENGTH];
 extern int data2[SAMPLE_LENGTH];
 extern int data3[SAMPLE_LENGTH];
-extern int otherData[OTHERDATA_LENGTH];
-extern int filtered1;
-extern int filtered2;
-extern int filtered3;
-extern int mem1a;
-extern int mem1b;
-extern int mem2a;
-extern int mem2b;
-extern int mem3a;
-extern int mem3b;
+extern int data4[SAMPLE_LENGTH];
+extern int filtered1;extern int filtered2;
+extern int filtered3;extern int filtered4;
+extern int mem1a;extern int mem1b;
+extern int mem2a;extern int mem2b;
+extern int mem3a;extern int mem3b;
+extern int mem4a;extern int mem4b;
+extern byte found1;extern byte found2;
+extern byte found3;extern byte found4;
+extern byte foundTime1;extern byte foundTime2;
+extern byte foundTime3;extern byte foundTime4;
 extern unsigned int count;
-
-extern byte found1;
-extern byte found2;
-extern byte found3;
-extern byte foundTime1;
-extern byte foundTime2;
-extern byte foundTime3;
-
-//filter memory
-float s1[] = {0,0,0};
-float s2[] = {0,0,0};
-float s3[] = {0,0,0};
 
 //_ADCInterrupt() is the A/D interrupt service routine (ISR).
 //The routine must have global scope in order to be an ISR.
 //The ISR name is chosen from the device linker script.
 void _ISR _ADCInterrupt(void){
-	int v1; int v2; int v3;
-	//ADCBUF0 contains AN3 information (not needed until a 4th channel is added to the system
+	//int v1; int v2; int v3;
+	
 	data1[count] = ADCBUF1;
 	data2[count] = ADCBUF2;
 	data3[count] = ADCBUF3;
-	
-	int outputReal1; int outputReal2; int outputReal3;
+	data4[count] = ADCBUF0;
+	/*int outputReal1; int outputReal2; int outputReal3;
 	int outputImag1; int outputImag2; int outputImag3;
 	int output1; int output2; int output3;
 	int intermediate1; int intermediate2; int intermediate3;
-	int index;
+	int index;*/
 	//k=4 N=32 fs=20ksps delay=1.6ms
 	
 //asm ("mov w0,%0" : "+r"(mem1));
@@ -58,6 +47,7 @@ void _ISR _ADCInterrupt(void){
 //"mov #IPC2, w0	\n\t" );
 	
 //0     0     0     4     5     6     0     0     0    10    11    12
+	/*
 	intermediate1 = mem1a + (mem1a>>4) + (mem1a>>5) + (mem1a>>6) + (mem1a>>10) + (mem1a>>11) + (mem1a>>12);
 	v1 = ADCBUF1 + intermediate1 - mem1b;
 	intermediate2 = mem2a + (mem2a>>4) + (mem2a>>5) + (mem2a>>6) + (mem2a>>10) + (mem2a>>11) + (mem2a>>12);
@@ -144,9 +134,9 @@ void _ISR _ADCInterrupt(void){
 	mem2b=mem2a;
 	mem2a=v2;
 	mem3b=mem3a;
-	mem3a=v3;
-	count++;
+	mem3a=v3; */
 	
+	count++; 
 	
 	
 	if(count>=SAMPLE_LENGTH){
@@ -156,20 +146,6 @@ void _ISR _ADCInterrupt(void){
 		clearData();
 	}	
 	
-
-	
-	//sendByte((byte)(ADCBUF0>>2));
-	//sendNum(ADCBUF0); // now comes in correctly as AN0 (timing check still required)
-	//sendNum((int)filtered1);
-	//sendString(" : ");
-	//sendByte((byte)(ADCBUF1>>2));
-	//sendNum(ADCBUF1); // now comes in correctly as AN1 (timing check still required)
-	//sendNum((int)filtered2);
-	//sendString(" : ");
-	//sendByte((byte)(ADCBUF2>>2));
-	//sendNum(ADCBUF2); // now comes in correctly as AN1 (timing check still required)
-	//sendNum((int)filtered3);
-	//sendString("\n\r");
 	
 	//Clear the A/D Interrupt flag bit or else the CPU will keep vectoring back to the ISR
     IFS0bits.ADIF = 0;
@@ -233,11 +209,13 @@ void send_samples_over_UART_as_bytes(int start){
 		sendByte(data1[i]);
 		sendByte(data2[i]);
 		sendByte(data3[i]);
+		sendByte(data4[i]);
 	}
 	for(i=0; i<start; i++){
 		sendByte(data1[i]);
 		sendByte(data2[i]);
 		sendByte(data3[i]);
+		sendByte(data4[i]);
 	}
 	enableTimer3();
 }
@@ -268,14 +246,16 @@ void send_data_over_UART(int data[], byte dataType){
 
 void clearData(){
 	int i;
+	disableTimer3(); //this takes a little while to do. might as well not be sampling
 	for(i=0;i<SAMPLE_LENGTH;i++){
-		data1[i]=0; data2[i]=0; data3[i]=0;
+		data1[i]=0; data2[i]=0; data3[i]=0; data4[i]=0;
 	}
 	mem1a=0; mem1b=0;
 	mem2a=0; mem2b=0;
 	mem3a=0; mem3b=0;
+	mem4a=0; mem4b=0;
 	
-	found1=0;found2=0;found3=0;
-	foundTime1=0;foundTime2=0;foundTime3=0;
-
+	found1=0;found2=0;found3=0;found4=0;
+	foundTime1=0;foundTime2=0;foundTime3=0;foundTime4=0;
+	enableTimer3(); //turn sampling back on
 }	

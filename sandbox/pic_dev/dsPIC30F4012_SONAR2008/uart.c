@@ -63,6 +63,6 @@ void init_Uart(byte enabled){
     U1STAbits.OERR=0;
     IEC0bits.U1RXIE = 1; //enable recieve interupts
     IFS0bits.U1RXIF = 0; //clear interupt flag to start
-    IPC2bits.U1RXIP = 7;  //interupt priority0-7 where 7 is the highest priority
+    IPC2bits.U1RXIP = 4;  //interupt priority0-7 where 7 is the highest priority
 }
 

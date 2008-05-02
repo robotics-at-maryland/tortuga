@@ -2,8 +2,8 @@
  *Scott Watson April 20, 2008
  *include this file whenever using time.c functions in another file
  */
-
-void init_Timer2and3(void);
+void init_Timer2(void);
+void init_Timer3(void);
 void delay(int microseconds);
 
 void disableTimer1(void);

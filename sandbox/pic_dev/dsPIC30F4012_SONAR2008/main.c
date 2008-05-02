@@ -52,7 +52,8 @@ int main(void){
 	count=0;
 	filtered1=0; filtered2=0; filtered3=0;
 //initialize controller
-	init_Timer2and3();
+	//init_Timer2();
+	init_Timer3();
 	ADC_Init(); 
 	
 
