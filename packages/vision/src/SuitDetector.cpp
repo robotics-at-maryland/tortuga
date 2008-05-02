@@ -54,16 +54,39 @@ void SuitDetector::processImage(Image* input, Image* output)
 	/*First argument to white_detect is a ratios frame, then a regular one*/
 	IplImage* image = (IplImage*)(*input);
 	cvCopyImage(image,ratioImage);//Now both are rotated 90 degrees
-	
+	IplImage* gray = cvCreateImage(cvGetSize(image), 8, 1);
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    
 	to_ratios(ratioImage);
 	redMask(ratioImage, image, 50, 100);
-	//cvErode(image, image, NULL, 10);
+	cvErode(image, image, NULL, 10);
+
 	
+	cvCvtColor(image, gray, CV_BGR2GRAY);
+    cvSmooth(gray, gray, CV_GAUSSIAN, 9, 9); 
+	
+    CvSeq* circles = cvHoughCircles(gray, storage, 
+        CV_HOUGH_GRADIENT, 2, gray->height/4, 200, 40);
+    int i;
+
+    for (i = 0; i < circles->total; i++) 
+    {
+         float* p = (float*)cvGetSeqElem( circles, i );
+         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
+             3, CV_RGB(0,255,0), -1, 8, 0 );
+         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
+             cvRound(p[2]), CV_RGB(255,0,0), 3, 8, 0 );
+    }
+
 	if (output)
 	{
 		OpenCVImage temp(image, false);
 		output->copyFrom(&temp);
 	}
+	
+	cvReleaseMemStorage(&storage);
+	cvReleaseImage(&gray);
+	
 }
 
 double SuitDetector::getX()

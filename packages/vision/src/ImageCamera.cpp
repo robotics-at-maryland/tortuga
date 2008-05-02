@@ -38,7 +38,7 @@ void ImageCamera::newImage(ram::vision::Image* image)
 
 void ImageCamera::update(double)
 {
-    assert(false && "Cannot update an ImageCamera");
+    //assert(false && "Cannot update an ImageCamera");
 }
     
 size_t ImageCamera::width()
