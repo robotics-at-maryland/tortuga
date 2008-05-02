@@ -7,11 +7,11 @@
 void init_Timer2and3(void);
 void delay(int microseconds);
 
-void disableTimer3(void);
+void disableTimer1(void);
 void disableTimer2(void);
 void disableTimer3(void);
  
-void enableTimer3(void);
+void enableTimer1(void);
 void enableTimer2(void);
 void enableTimer3(void);
 

@@ -28,20 +28,18 @@ file_007=no
 file_008=no
 file_009=no
 file_010=no
-file_011=no
 [FILE_INFO]
 file_000=uart.c
 file_001=adc.c
 file_002=iir.c
 file_003=main.c
 file_004=time.c
-file_005=..\sonarController\src\dft.c
-file_006=adc.h
-file_007=iir.h
-file_008=scottcommon.h
-file_009=time.h
-file_010=uart.h
-file_011=C:\Program Files\Microchip\MPLAB C30\support\gld\p30f4012.gld
+file_005=adc.h
+file_006=iir.h
+file_007=scottcommon.h
+file_008=time.h
+file_009=uart.h
+file_010=C:\Program Files\Microchip\MPLAB C30\support\gld\p30f4012.gld
 [SUITE_INFO]
 suite_guid={479DDE59-4D56-455E-855E-FFF59A3DB57E}
 suite_state=

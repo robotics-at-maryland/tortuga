@@ -5,7 +5,7 @@
  * 
  * This project demonstrates algorithms for the AUV2008 SONAR
  * on a autonomous groud vehicle platform using piezo electric
- * transducers instead of hydrophones.  
+ * transducers instead of hydrophones.  (Test for Leo)
  *
  * code written for a dsPIC30F4012 running with a 7.5MHz crystal*/
  

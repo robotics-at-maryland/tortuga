@@ -1,10 +1,14 @@
 /* Author: Scott Watson
- * Date: April 19, 2008
- * last modified(If I remembered to update this): April 25, 2008
+ * Date: May 1, 2008
+ * last modified(If I remembered to update this): May 1, 2008
  * 
- *  
+ * This is a branch of some of my commonly used dsPIC30F4012 code
+ * that is meant to be used for a 4 channel simultaneous sampling 
+ * sonar system.  I'm going to try and push the sampling as fast 
+ * as possible within the ability of the various recursive filters
+ * to run within the number of samples.
  *
- * code written for a dsPIC30F4012 running with a 7.5MHz crystal*/
+ * code written for a dsPIC30F4012 running with a 7.5MHz crystal to run at 30MIPS*/
  
 #include "p30fxxxx.h"
 #include "scottcommon.h"
@@ -21,26 +25,21 @@ _FWDT(WDT_OFF);
 _FGS(CODE_PROT_OFF);
 _FBORPOR(PBOR_OFF & PWRT_64);
 
-int dutyCycle1;
-int dutyCycle2;
-
 int data1[SAMPLE_LENGTH];
 int data2[SAMPLE_LENGTH];
 int data3[SAMPLE_LENGTH];
-int otherData[OTHERDATA_LENGTH];
-int filtered1;int filtered2;int filtered3;
+int data4[SAMPLE_LENGTH];
+int filtered1;int filtered2;int filtered3;int filtered4;
 int mem1a;int mem1b;
 int mem2a;int mem2b;
 int mem3a;int mem3b;
-byte found1;
-byte found2;
-byte found3;
-byte foundTime1;
-byte foundTime2;
-byte foundTime3;
+int mem4a;int mem4b;
+byte found1;byte found2;
+byte found3;byte found4;
+byte foundTime1;byte foundTime2;
+byte foundTime3;byte foundTime4;
 unsigned int count;
 
-	
 int main(void){
 //declare main() variables
 	
@@ -50,12 +49,10 @@ int main(void){
 	startup_flashes_text();
 //initialize variables
 	clearData();
-	dutyCycle1 = 710; dutyCycle2 = 710;
 	count=0;
 	filtered1=0; filtered2=0; filtered3=0;
 //initialize controller
 	init_Timer2and3();
-	init_OutputCompare();
 	ADC_Init(); 
 	
 
@@ -65,17 +62,13 @@ int main(void){
 void _ISRFAST _U1RXInterrupt(void){//AltU1RXInterrupt
 	char charIn = U1RXREG;
 	if(charIn=='1'){
-		dutyCycle1+=10;
-		OC1RS=dutyCycle1;
+		//do stuff
 	}else if(charIn=='2'){
-		dutyCycle1-=10;
-		OC1RS=dutyCycle1;
+		//do stuff
 	}else if(charIn=='3'){
-		dutyCycle2+=10;
-		OC2RS=dutyCycle2;
+		//do stuff
 	}else if(charIn=='4'){
-		dutyCycle2-=10;
-		OC2RS=dutyCycle2;
+		//do stuff
 	}
 	U1STAbits.OERR=0;
 	IFS0bits.U1RXIF = 0; //clear interupt flag
@@ -123,31 +116,6 @@ void init_IO(void){
 	PORTEbits.RE2=0;
 }
 
-void init_OutputCompare(void){
-	/*  OUTPUT COMPARE CONFIGURATION CALCULATIONS
-	instruction clock cycle time.... 30MIPS... 33ns
-	using timer prescaler of 1:64 so 2.112us per TMR2 incriment
-	2.112us * 2^16 = 138.4ms maximum period
-	1ms = 473.5 timer ticks
-	1.5ms = 710.3 timer ticks
-	2ms = 947 timer ticks
-	25ms = 11,837.1 timer ticks
-	*/	
-	OC1CONbits.OCM = 0b000; //keep OC2 off while mod's are made
-	OC1CONbits.OCSIDL = 0; //0=continued operation in idle mode
-	OC1CONbits.OCTSEL = 0; //1=timer3  0=timer2
-	OC1R=dutyCycle1;
-	OC1RS=dutyCycle1;
-	OC1CONbits.OCM = 0b110; //initialize OC2 low, generate continuous output pulses
-	
-	OC2CONbits.OCM = 0b000; //keep OC2 off while mod's are made
-	OC2CONbits.OCSIDL = 0; //0=continued operation in idle mode
-	OC2CONbits.OCTSEL = 0; //1=timer3  0=timer2
-	OC2R=dutyCycle2;
-	OC2RS=dutyCycle2;
-	OC2CONbits.OCM = 0b110; //initialize OC2 low, generate continuous output pulses
-}	
-
 void startup_flashes_text(void){
 	PORTEbits.RE0=1; delay(200);
 	PORTEbits.RE0=0; delay(200);  
@@ -170,7 +138,6 @@ CORE-E0003: Trap due to unimplemented RAM memory access, occurred from instructi
 	
 	//sendNum(dutyCycle1);sendString("\n\r");
 }	
-
 
 
 void init_CORCON(){ //just does default configuration for now... (I THINK, NOT TESTED)
