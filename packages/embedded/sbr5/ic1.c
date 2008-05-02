@@ -132,6 +132,9 @@ static const unsigned char cdSafety[]={0xBA, 0xDB, 0xEE, 0xEF, 0x4A};
 
 void processRuntimeDiag();
 
+
+byte failsafeTripped = 0;   /* Gets set to 1 */
+
 /* Read byte from bus */
 byte readBus()
 {
@@ -173,6 +176,8 @@ unsigned char waitchar(byte timeout)
     U1STAbits.PERR = 0;
     U1STAbits.URXDA = 0;
 
+    checkFailsafe();
+
     while(U1STAbits.URXDA == 0)
     {
         if(diagMsg && waitTime++ == DIAG_TIMEOUT)
@@ -180,6 +185,7 @@ unsigned char waitchar(byte timeout)
             processRuntimeDiag();
             waitTime=0;
         }
+        checkFailsafe();
     }
 
     x = U1RXREG;
@@ -339,6 +345,28 @@ void _ISR _T2Interrupt(void)
     IEC0bits.T2IE = 0;      /* Disable interrupts */
     LAT_LED_ACT = ~LED_ON;
     T2CONbits.TON = 0;  /* Stop Timer1 */
+}
+
+
+void setMotorFailsafe()
+{
+    failsafeTripped = 0;
+    PR1 = 5000;            /* Period */
+    TMR1 = 0;               /* Reset timer */
+    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T1IE = 1;      /* Enable interrupts */
+    T1CONbits.TCS = 0;      /* Use internal clock */
+    T1CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T1CONbits.TON = 1;      /* Start Timer1 */
+}
+
+/* ISR for Timer2. Used for making the ACT light pretty */
+void _ISR _T1Interrupt(void)
+{
+    IFS0bits.T1IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T1IE = 0;      /* Disable interrupts */
+    T1CONbits.TON = 0;  /* Stop Timer1 */
+    failsafeTripped = 1;
 }
 
 
@@ -635,6 +663,47 @@ void simpleCmd(byte cmdCode, byte replyCode, byte slaveId, byte busCmd)
     sendByte(replyCode);
     sendByte(rxBuf[0]);
     sendByte(replyCode+rxBuf[0]);
+}
+
+
+void checkFailsafe()
+{
+    if(failsafeTripped == 1)
+    {
+        failsafeTripped = 0;
+
+        /* Zero the speeds */
+        busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1);
+        busWriteByte(0, SLAVE_ID_MM1);
+        busWriteByte(0, SLAVE_ID_MM1);
+
+        busWriteByte(SLAVE_MM2_WRITE_CMD, SLAVE_ID_MM2);
+        busWriteByte(0, SLAVE_ID_MM2);
+        busWriteByte(0, SLAVE_ID_MM2);
+
+        busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3);
+        busWriteByte(0, SLAVE_ID_MM3);
+        busWriteByte(rxBuf[5], SLAVE_ID_MM3);
+
+        busWriteByte(SLAVE_MM4_WRITE_CMD, SLAVE_ID_MM4);
+        busWriteByte(0, SLAVE_ID_MM4);
+        busWriteByte(0, SLAVE_ID_MM4);
+
+        busWriteByte(SLAVE_MM5_WRITE_CMD, SLAVE_ID_MM5);
+        busWriteByte(0, SLAVE_ID_MM5);
+        busWriteByte(0, SLAVE_ID_MM5);
+
+        busWriteByte(SLAVE_MM6_WRITE_CMD, SLAVE_ID_MM6);
+        busWriteByte(0, SLAVE_ID_MM6);
+        busWriteByte(0, SLAVE_ID_MM6);
+
+        busWriteByte(BUS_CMD_THRUSTER1_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER2_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER3_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER4_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER5_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER6_OFF, SLAVE_ID_THRUSTERS);
+    }
 }
 
 
@@ -1337,7 +1406,7 @@ int main(void)
             case HOST_CMD_SETSPEED:
             {
                 t1 = 0; /* Error counter */
-
+                setMotorFailsafe();
                 /* 12 bytes of speed, plus checksum */
                 for(i=0; i<13; i++)
                     rxBuf[i] = waitchar(1);

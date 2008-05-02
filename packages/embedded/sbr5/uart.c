@@ -31,6 +31,9 @@ MC4: JP14, row 3 (outer = TX)
 (ie, the receive pin always is towards the middle of the board)
 
 The remaining two UARTs are somewhere on JP14 and JP13. See schematic.
+
+White is the top row if the board is facing upright.
+
 */
 
 
