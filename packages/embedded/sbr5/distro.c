@@ -841,6 +841,17 @@ unsigned int avgRow(byte r)
     return t >> IHISTORY_LOG2;
 }
 
+
+void checkSafetyIndicator()
+{
+    /* Does not check against level spec, but eh, too much code otherwise */
+    if(LAT_MOTR1 || LAT_MOTR2 || LAT_MOTR3 || LAT_MOTR4 || LAT_MOTR5 || LAT_MOTR6 || LAT_MRKR1 || LAT_MRKR2)
+        LAT_LED_STA2 = LED_ON;
+    else
+        LAT_LED_STA2 = ~LED_ON;
+
+}
+
 void main()
 {
     byte i;
@@ -950,6 +961,8 @@ void main()
 
     while(1)
     {
+        checkSafetyIndicator();
+
         byte rx = readTemp(0x9E);
 
         /* Read error */
@@ -979,7 +992,6 @@ void main()
         if(writeIndex >= IHISTORY_SIZE)
         {
             writeIndex = 0;
-            LAT_LED_STA2 ^= LED_ON; /* Blink a light to give us an idea of window size */
         }
 
         /* Measure the voltages */

@@ -642,6 +642,8 @@ int main(void)
 {
     long j=0;
     byte i;
+    _TRISC13 = TRIS_IN;
+    _TRISC14 = TRIS_IN;
     _TRISF0 = TRIS_IN;
     TRIS_USBDETECT = TRIS_IN;
     TRIS_PCJ_I = TRIS_IN;
@@ -679,7 +681,7 @@ int main(void)
     LAT_LED_ERR = ~LED_ON;
 
 
-    for(j=0; j<20000; j++);
+    for(j=0; j<50000; j++);
 
     unsigned char emptyLine[]="                ";
 
