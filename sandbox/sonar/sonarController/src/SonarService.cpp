@@ -1,4 +1,13 @@
 #include "SonarService.h"
+#include <iostream>
+
+int main()
+{
+	Matrix m(3,3);
+	for (int i = 0 ; i < 9 ; i ++)
+		m(i) = i;
+	std::cout << m << std::endl;
+}
 
 namespace ram {
 namespace sonar {

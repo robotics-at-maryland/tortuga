@@ -6,11 +6,13 @@ env.Append(LIBPATH = ['/opt/ram/local/lib', '/opt/local/lib/octave-3.0.0', '/opt
 #env.Append(CPPFLAGS = ['-O3'])
 
 Export('env')
-libram_sonar = env.SConscript('src/SConscript', variant_dir='#build', duplicate=0)
+libram_sonar = env.SConscript('src/common.SConscript', variant_dir='#build', duplicate=0)
 
 env = env.Clone()
 env.Append(LIBS = [libram_sonar, 'octave'])
 Export('env')
+
+
 
 tests = env.SConscript('test/SConscript', variant_dir='#build/test', duplicate=0)
 #testExec = env.Program('build/test', testFiles)
