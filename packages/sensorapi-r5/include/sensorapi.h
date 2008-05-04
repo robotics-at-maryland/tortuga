@@ -2,6 +2,8 @@
 
 #define MAX_SYNC_ATTEMPTS 20
 
+#define NUM_TEMP_SENSORS 7
+
 struct powerInfo
 {
     float motorCurrents[8]; /* Currents for motors and marker droppers */
@@ -15,10 +17,26 @@ struct powerInfo
                             /* Reads as complete garbage */
 
     float battVoltages[5];  /* 0-3 are batt 1-4. 4 is external power (batt 5). In V */
-    float battCurrents[5];  /* BAttery currents. See note above. In A */
+    float battCurrents[5];  /* Battery currents. See note above. In A */
 };
 
+struct boardInfo
+{
+    int updateState;    /* Internal use only */
+    int status;         /* Status register- startsw, killsw, water, batt used */
+    int thrusterState;  /* Which thrusters are on */
+    int barState;       /* Which bar outputs are on */
+    int ovrState;       /* Which thrusters have over-currented */
+    int battEnabled;    /* Which batteries are enabled (not the same as in use) */
 
+    struct powerInfo powerInfo;  /* Everything related to power. See above */
+
+    /* Temperatures, in deg C */
+    /* These are scattered throughout. The first one is the sensorboard temp. */
+    /* The last two are distro and balancer temp (or vice versa?)   */
+    /* The middle ones are floaties, if we even have them connected */
+    char temperature[NUM_TEMP_SENSORS];
+};
 
 
 /* In msec */
@@ -35,6 +53,7 @@ struct powerInfo
 
 /* Control command return values */
 #define SB_OK        0
+#define SB_UPDATEDONE 1
 #define SB_IOERROR  -4
 #define SB_BADCC    -3
 #define SB_HWFAIL   -2
@@ -132,8 +151,6 @@ struct powerInfo
 
 
 
-#define NUM_TEMP_SENSORS 7
-
 /* Bits of the status response */
 /* Ie, is the battery actually being used? */
 /* Use these constants. The values can, and most likely will, change. */
@@ -153,6 +170,14 @@ struct powerInfo
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+
+/* Perform next step of update cycle.
+ * Returns: SB_OK on success
+ *          SB_UPDATEDONE on success and update cycle is done
+ *          SB_ERROR, SB_IOERROR, SB_BADCC, SB_HWFAIL, SB_ERROR on failure
+ */
+int partialRead(int fd, struct boardInfo * info);
 
 /** Returns the file*/
 int openSensorBoard(const char * devName);

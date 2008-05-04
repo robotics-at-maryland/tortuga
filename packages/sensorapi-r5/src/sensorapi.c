@@ -680,12 +680,105 @@ int readBatteryCurrents(int fd, struct powerInfo * info)
 }
 
 
-
+/* Runtime diagnostics not really available in SB R5 due to the massive number of LEDs */
 int setDiagnostics(int fd, int state)
 {
     return simpleWrite(fd, HOST_CMD_RUNTIMEDIAG, state, 2);
 }
 
+
+int partialRead(int fd, struct boardInfo * info)
+{
+    int retCode=0;
+    if(info == NULL)
+        return SB_ERROR;
+
+    switch(info->updateState)
+    {
+        case 0:
+        {
+            info->status = retCode = readStatus(fd);
+            break;
+        }
+
+        case 1:
+        {
+            info->thrusterState = retCode = readThrusterState(fd);
+            break;
+        }
+
+        case 2:
+        {
+            info->barState = retCode = readBarState(fd);
+            break;
+        }
+
+        case 3:
+        {
+            info->ovrState = retCode = readOvrState(fd);
+            break;
+        }
+
+        case 4:
+        {
+            info->battEnabled = retCode = readBatteryEnables(fd);
+            break;
+        }
+
+        case 5:
+        {
+            retCode = readTemp(fd, info->temperature);
+            break;
+        }
+
+        case 6:
+        {
+            retCode = readMotorCurrents(fd, &(info->powerInfo));
+            break;
+        }
+
+        case 7:
+        {
+            retCode = readBoardVoltages(fd, &(info->powerInfo));
+            break;
+        }
+
+        case 8:
+        {
+            retCode = readBatteryVoltages(fd, &(info->powerInfo));
+            break;
+        }
+
+        case 9:
+        {
+            retCode = readBatteryCurrents(fd, &(info->powerInfo));
+            break;
+        }
+
+        default:
+        {
+            info->updateState = 0;
+            return SB_OK;
+        }
+
+    }
+
+    info->updateState++;
+
+    if(info->updateState == 10)
+    {
+        info->updateState = 0;
+        if(retCode >= 0)
+            return SB_UPDATEDONE;
+        else
+            return retCode;
+    }
+
+    if(retCode < 0)
+        return retCode;
+    else
+        return SB_OK;
+}
 
 
 /* Some code from cutecom, which in turn may have come from minicom */
