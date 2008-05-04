@@ -7,7 +7,6 @@ src = Split("""
 	Sonar.cpp
 	SonarChunk.cpp
 	TDOA.cpp
-	SonarService.cpp
 	""")
 
 lib = env.Library('ram_sonar', src)

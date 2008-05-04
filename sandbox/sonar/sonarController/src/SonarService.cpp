@@ -1,18 +1,28 @@
 #include "SonarService.h"
 #include <iostream>
 
+
 int main()
 {
-	Matrix m(3,3);
-	for (int i = 0 ; i < 9 ; i ++)
-		m(i) = i;
-	std::cout << m << std::endl;
+	ram::sonar::SonarService ss;
+	return 0;
 }
 
 namespace ram {
 namespace sonar {
 
-SonarService::SonarService() : m_calibration(4,4) {}
+SonarService::SonarService() : m_calibration(4,4) {
+	const static double m[4][4] = 
+	{
+		{0,      0.984, 0,     0},
+		{0.492,  0.492, 0.696, 0},
+		{-0.492, 0.492, 0.696, 0},
+		{0,      0,     0,     1}
+	};
+	for (int i = 0 ; i < 3 ; i ++)
+		for (int j = 0 ; j < 3 ; j ++)
+			m_calibration(i, j) = m[i][j];
+}
 
 ColumnVector SonarService::localize(const PingRecord_t &rec)
 {

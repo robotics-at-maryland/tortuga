@@ -12,7 +12,7 @@ env = env.Clone()
 env.Append(LIBS = [libram_sonar, 'octave'])
 Export('env')
 
-
+SonarService = env.SConscript('src/SonarService.SConscript', variant_dir='#build', duplicate=0)
 
 tests = env.SConscript('test/SConscript', variant_dir='#build/test', duplicate=0)
 #testExec = env.Program('build/test', testFiles)
