@@ -687,6 +687,63 @@ int setDiagnostics(int fd, int state)
 }
 
 
+int readOvrParams(int fd, int * a, int * b)
+{
+    unsigned char buf[4];
+
+    if(a == NULL || b == NULL)
+        return SB_ERROR;
+
+    buf[0] = HOST_CMD_READ_OVRLIMIT;
+    buf[1] = buf[0];
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_OVRLIMIT)
+        return SB_ERROR;
+
+    readData(fd, buf+1, 3);
+
+    if(((buf[0] + buf[1] + buf[2]) & 0xFF) != buf[3])
+	{
+		printf("got cs: %02x, read: %02x\n", (buf[0] + buf[1] + buf[2]) & 0xFF, buf[3]);
+        return SB_BADCC;
+	}
+    *a = buf[1];
+    *b = buf[2];
+
+    return SB_OK;
+}
+
+
+int setOvrParams(int fd, int a, int b)
+{
+    if(a < 0 || a > 255 || b < 0 || b > 255)
+        return -255;
+
+    unsigned char buf[4];
+    buf[0] = HOST_CMD_SET_OVRLIMIT;
+    buf[1] = a;
+	buf[2] = b;
+    buf[3] = buf[0] + buf[1] + buf[2];
+
+    writeData(fd, buf, 4);
+    readData(fd, buf, 1);
+
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+
 int partialRead(int fd, struct boardInfo * info)
 {
     int retCode=0;

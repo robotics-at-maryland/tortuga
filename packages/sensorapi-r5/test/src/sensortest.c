@@ -26,11 +26,13 @@ int main(int argc, char ** argv)
     printf("\nSyncBoard says: %d", syncBoard(fd));
     printf("\n");
 
+    struct boardInfo info;
+
 
     for(i=0; i<1000; i++)
     {
         printf("%d\n", i);
-	ret = setSpeeds(fd, i/3,i/3,i/3,i/3,i/3,i/3);
+		ret = setSpeeds(fd, i/3,i/3,i/3,i/3,i/3,i/3);
         if(ret == SB_ERROR)
             err++;
 
@@ -41,17 +43,18 @@ int main(int argc, char ** argv)
         printf("Depth: %d\n", ret);
 
 
-        ret = readTemp(fd, temp);
+        ret = partialRead(fd, &info);
         if(ret == SB_ERROR)
             err++;
 
-        ret = readStatus(fd);
-        if(ret == SB_ERROR)
-            err++;
+		if(ret == SB_UPDATEDONE)
+		{
+			int i;
+			for(i=0; i<6; i++)
+				printf("%2.3f  ", info.powerInfo.motorCurrents[i]);
 
-        ret = readThrusterState(fd);
-        if(ret == SB_ERROR)
-            err++;
+			printf("  Update done!\n");
+		}
 
         gettimeofday(&tv, NULL);
         stv = tv.tv_usec;

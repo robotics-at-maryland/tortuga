@@ -291,6 +291,9 @@ int switchToInternalPower(int fd);
 
 int setBatteryState(int fd, int state);
 
+int setOvrParams(int fd, int a, int b);
+int readOvrParams(int fd, int * a, int * b);
+
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 } // extern "C"

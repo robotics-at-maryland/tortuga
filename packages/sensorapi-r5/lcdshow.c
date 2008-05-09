@@ -54,6 +54,7 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -intpower  (switch to batteries)\n");
         printf("\tlcdshow -batton n (enable battery n)\n");
         printf("\tlcdshow -battoff n  (disable battery n)\n");
+        printf("\tlcdshow -setovr a b  (configure overcurrent parameters)\n");
 
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
@@ -88,6 +89,30 @@ int main(int argc, char ** argv)
         printf("\nCould not sync with board!\n");
         close(fd);
     }
+
+	if(strcmp(argv[1], "-readovr") == 0)
+	{
+		int a, b;
+		
+		if(readOvrParams(fd, &a, &b) != SB_OK)
+			printf("Error reading parameters\n");
+		else
+			printf("a=%d, b=%d\n", a, b);
+		close(fd);
+		return 0;
+	}
+	
+    if(strcmp(argv[1], "-setovr") == 0)
+    {
+		if(argc != 4)
+		{
+			printf("Bad number of arguments\n");
+			close(fd);
+			exit(1);
+		}
+
+		printf("reply was 0x%02x\n", setOvrParams(fd, atoi(argv[2]), atoi(argv[3])));
+	}
 
     if(strcmp(argv[1], "-status") == 0)
     {
