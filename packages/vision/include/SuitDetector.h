@@ -37,14 +37,15 @@ class RAM_EXPORT SuitDetector : public Detector
     double getX();
     double getY();
     Suit getSuit();
-
+	int edgeRun(int startx, int starty, IplImage* img);
+	
   private:
     Camera* cam;
     IplImage* ratioImage;
     IplImage* analyzedImage;
     void init(core::ConfigNode config);
     double suitX;
-    double suitY;	
+    double suitY;
     
 };
 	
