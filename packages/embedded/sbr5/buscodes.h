@@ -109,7 +109,9 @@
 
 #define BUS_CMD_EXTPOWER        0x49
 #define BUS_CMD_INTPOWER        0x4A
-/* Next free is 0x4B */
+
+#define BUS_CMD_MOTRSPEEDS      0x4B
+/* Next free is 0x4C */
 
 
 
@@ -187,6 +189,14 @@
 #define HOST_REPLY_BATTCURRENT      0x24
 
 #define HOST_CMD_SWITCHPOWER        0x25
+
+#define HOST_CMD_READ_OVRLIMIT      0x26
+#define HOST_REPLY_OVRLIMIT         0x27
+
+#define HOST_CMD_SET_OVRLIMIT       0x28
+
+
+
 
 
 #define CMD_BAR1_OFF     0x00

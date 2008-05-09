@@ -195,6 +195,7 @@ byte cfgRegs[16];
 #define STATE_WRITE_CMD     2
 #define STATE_SETSPEED_U1   4
 #define STATE_SETSPEED_U2   5
+#define STATE_MOTRSPEEDS    6
 
 byte busState = 0;
 byte nParam = 0;
@@ -205,6 +206,7 @@ byte myTemperature = 255;
 
 byte ovrReg = 0;    /* Overcurrent register */
 
+byte mSpeeds[6];
 
 /* If Master writes us data, this gets called */
 void processData(byte data)
@@ -239,6 +241,14 @@ void processData(byte data)
                 case BUS_CMD_WRITE_REG:
                 {
                     busState = STATE_WRITE_CMD;
+                    nParam = 0;
+                    break;
+                }
+
+                case BUS_CMD_MOTRSPEEDS:
+                {
+                    LAT_LED_STA1 = LED_ON;
+                    busState = STATE_MOTRSPEEDS;
                     nParam = 0;
                     break;
                 }
@@ -472,8 +482,9 @@ void processData(byte data)
             busState = STATE_TOP_LEVEL;
             txBuf[0] = 1;
             txBuf[1] = cfgRegs[data];
+            break;
         }
-        break;
+
 
         case STATE_WRITE_CMD:
         {
@@ -488,9 +499,20 @@ void processData(byte data)
                 busState = STATE_TOP_LEVEL;
                 cfgRegs[p1] = data;
             }
-
+            break;
         }
-        break;
+
+        case STATE_MOTRSPEEDS:
+        {
+            mSpeeds[nParam++] = data;
+            if(nParam == 6)
+            {
+                nParam = 0;
+                busState = STATE_TOP_LEVEL;
+                LAT_LED_STA1 = ~LED_ON;
+            }
+            break;
+        }
 
     }
 }
@@ -952,9 +974,11 @@ void main()
     LAT_LED_ERR = ~LED_ON;
     LAT_LED_OVR = ~LED_ON;
 
+    for(i=0; i<6; i++)
+        mSpeeds[i] = 0;     /* All motors initially off */
 
     for(i=0; i<16; i++)
-        cfgRegs[i] = 65;
+        cfgRegs[i] = 0;
 
     byte i2cErrCount = 0;
 
@@ -989,10 +1013,7 @@ void main()
         writeIndex++;
 
         if(writeIndex >= IHISTORY_SIZE)
-        {
             writeIndex = 0;
-            LAT_LED_STA2 ^= LED_ON; /* Blink a light to give us an idea of window size */
-        }
 
         /* Measure the voltages */
         setADC(ADC_VREF);

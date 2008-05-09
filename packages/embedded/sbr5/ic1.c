@@ -939,6 +939,116 @@ int main(void)
                 break;
             }
 
+            case HOST_CMD_READ_OVRLIMIT:
+            {
+                t1 = waitchar(1);
+
+                if(t1 != HOST_CMD_READ_OVRLIMIT)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_READ_REG, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(0, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(readDataBlock(SLAVE_ID_THRUSTERS) != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                t1 = rxBuf[0];
+
+                if(busWriteByte(BUS_CMD_READ_REG, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(1, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(readDataBlock(SLAVE_ID_THRUSTERS) != 1)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_OVRLIMIT);
+                sendByte(t1);
+                sendByte(rxBuf[0]);
+                sendByte(rxBuf[0] + t1 + HOST_REPLY_OVRLIMIT);
+
+                break;
+            }
+
+            case HOST_CMD_SET_OVRLIMIT:
+            {
+                byte t3;
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+                t3 = waitchar(1);
+
+
+                if(((t1+t2+HOST_CMD_SET_OVRLIMIT) & 0xFF) != t3)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_WRITE_REG, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(0, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(t1, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_WRITE_REG, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(1, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(t2, SLAVE_ID_THRUSTERS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
             // 0=internal, 1=external
             case HOST_CMD_SWITCHPOWER:
             {
@@ -1446,6 +1556,21 @@ int main(void)
                 if(busWriteByte(SLAVE_MM6_WRITE_CMD, SLAVE_ID_MM6) != 0) t1++;
                 if(busWriteByte(rxBuf[10], SLAVE_ID_MM6) != 0) t1++;
                 if(busWriteByte(rxBuf[11], SLAVE_ID_MM6) != 0) t1++;
+
+                /* Inform distro board of new speeds */
+                if(busWriteByte(BUS_CMD_MOTRSPEEDS, SLAVE_ID_THRUSTERS) == 0)
+                {
+                    for(i=0; i<6; i++)
+                    {
+                        int speed;
+                        speed = (rxBuf[2*i] << 8) | (rxBuf[2*i+1]);
+                        if(speed < 0)
+                            speed = -speed;
+
+                        if(busWriteByte((speed >> 1), SLAVE_ID_THRUSTERS) != 0) t1++;
+                    }
+                } else
+                    t1++;
 
                 if(t1 == 0)
                     sendByte(HOST_REPLY_SUCCESS);
