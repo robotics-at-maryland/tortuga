@@ -55,7 +55,10 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -batton n (enable battery n)\n");
         printf("\tlcdshow -battoff n  (disable battery n)\n");
         printf("\tlcdshow -setovr a b  (configure overcurrent parameters)\n");
+		printf("\tlcdshow -readovr  (read overcurrent parameters)\n");
+		printf("\tlcdshow -setspeed a b c d e f  (set speeds)\n");
 
+		
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
         printf("\tlcdshow -status (show sensor readings)\n");
@@ -114,6 +117,18 @@ int main(int argc, char ** argv)
 		printf("reply was 0x%02x\n", setOvrParams(fd, atoi(argv[2]), atoi(argv[3])));
 	}
 
+	if(strcmp(argv[1], "-setspeed") == 0)
+	{
+		if(argc != 8)
+		{
+			printf("Bad number of arguments\n");
+			close(fd);
+			exit(1);
+		}
+
+		setSpeeds(fd, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
+	}
+	
     if(strcmp(argv[1], "-status") == 0)
     {
         int ret;

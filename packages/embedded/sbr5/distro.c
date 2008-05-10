@@ -247,7 +247,6 @@ void processData(byte data)
 
                 case BUS_CMD_MOTRSPEEDS:
                 {
-                    LAT_LED_STA1 = LED_ON;
                     busState = STATE_MOTRSPEEDS;
                     nParam = 0;
                     break;
@@ -304,12 +303,12 @@ void processData(byte data)
                 }
 
 
-                case BUS_CMD_THRUSTER1_OFF:  { LAT_MOTR1 = ~MOTR_ON; ovrReg &= ~0x01; break; }
-                case BUS_CMD_THRUSTER2_OFF:  { LAT_MOTR2 = ~MOTR_ON; ovrReg &= ~0x02; break; }
-                case BUS_CMD_THRUSTER3_OFF:  { LAT_MOTR3 = ~MOTR_ON; ovrReg &= ~0x04; break; }
-                case BUS_CMD_THRUSTER4_OFF:  { LAT_MOTR4 = ~MOTR_ON; ovrReg &= ~0x08; break; }
-                case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; ovrReg &= ~0x10; break; }
-                case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; ovrReg &= ~0x20; break; }
+                case BUS_CMD_THRUSTER1_OFF:  { LAT_MOTR1 = ~MOTR_ON; ovrReg &= ~0x01; checkOvrReg(); break; }
+                case BUS_CMD_THRUSTER2_OFF:  { LAT_MOTR2 = ~MOTR_ON; ovrReg &= ~0x02; checkOvrReg(); break; }
+                case BUS_CMD_THRUSTER3_OFF:  { LAT_MOTR3 = ~MOTR_ON; ovrReg &= ~0x04; checkOvrReg(); break; }
+                case BUS_CMD_THRUSTER4_OFF:  { LAT_MOTR4 = ~MOTR_ON; ovrReg &= ~0x08; checkOvrReg(); break; }
+                case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; ovrReg &= ~0x10; checkOvrReg(); break; }
+                case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; ovrReg &= ~0x20; checkOvrReg(); break; }
 
                 case BUS_CMD_THRUSTER1_ON:  { if(!(ovrReg & 0x01)) LAT_MOTR1 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER2_ON:  { if(!(ovrReg & 0x02)) LAT_MOTR2 = MOTR_ON; break; }
@@ -509,7 +508,6 @@ void processData(byte data)
             {
                 nParam = 0;
                 busState = STATE_TOP_LEVEL;
-                LAT_LED_STA1 = ~LED_ON;
             }
             break;
         }
@@ -873,9 +871,25 @@ void checkSafetyIndicator()
 
 }
 
+void checkOvrReg()
+{
+    if(ovrReg)
+        LAT_LED_OVR = LED_ON;
+    else
+        LAT_LED_OVR = ~LED_ON;
+
+    if(ovrReg & 0x01) LAT_MOTR1 = ~MOTR_ON;
+    if(ovrReg & 0x02) LAT_MOTR2 = ~MOTR_ON;
+    if(ovrReg & 0x04) LAT_MOTR3 = ~MOTR_ON;
+    if(ovrReg & 0x08) LAT_MOTR4 = ~MOTR_ON;
+    if(ovrReg & 0x10) LAT_MOTR5 = ~MOTR_ON;
+    if(ovrReg & 0x20) LAT_MOTR6 = ~MOTR_ON;
+}
+
 void main()
 {
     byte i;
+    byte ovrTmp = 0x00;
     byte writeIndex = 0;
     long l;
     ovrReg = 0; /* Clear overcurrent register */
@@ -982,6 +996,8 @@ void main()
 
     byte i2cErrCount = 0;
 
+    cfgRegs[1] = 0xFF; /* Start with overcurrent protection disabled */
+
     while(1)
     {
         checkSafetyIndicator();
@@ -1032,5 +1048,29 @@ void main()
         i5VBus = applyCalibration(avgRow(8), CAL_I5V_A, CAL_I5V_B);
         i12VBus = applyCalibration(avgRow(9), CAL_I12V_A, CAL_I12V_B);
         iAux = applyCalibration(avgRow(10), CAL_I12V_A, CAL_I12V_B);
+
+        /* Check for over-current */
+        if(writeIndex == 0 && cfgRegs[1] != 0xFF)
+        {
+            for(i=0; i<6; i++)
+            {
+                unsigned int maxCurrent;
+                maxCurrent = (cfgRegs[0] * mSpeeds[i]) / 6 + (cfgRegs[1] * 40);
+                if(iMotor[i] > maxCurrent)
+                {
+                    if(ovrTmp & (1<<i))
+                    {
+                        ovrReg |= (1<<i);
+                        checkOvrReg();
+                    } else
+                    {
+                        ovrTmp |= (1<<i);
+                    }
+                } else
+                {
+                    ovrTmp &= ~(1<<i);
+                }
+            }
+        }
     }
 }

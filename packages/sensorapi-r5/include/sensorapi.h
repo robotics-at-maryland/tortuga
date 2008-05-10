@@ -291,6 +291,9 @@ int switchToInternalPower(int fd);
 
 int setBatteryState(int fd, int state);
 
+
+// maxCurrent (mA) = (a * speed) / 6 + b*40
+// where speed=[0,255] corresponds to 0 to full speed
 int setOvrParams(int fd, int a, int b);
 int readOvrParams(int fd, int * a, int * b);
 
