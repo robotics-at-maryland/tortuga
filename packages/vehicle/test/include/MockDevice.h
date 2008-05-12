@@ -29,10 +29,13 @@ public:
     MockDevice(ram::core::ConfigNode config,
                ram::core::EventHubPtr eventHub =
                ram::core::EventHubPtr(),
-               ram::vehicle::IVehiclePtr vehicle =
+               ram::vehicle::IVehiclePtr vehicle_ =
                ram::vehicle::IVehiclePtr()) :
         IDevice(eventHub),
-        Device(config["name"].asString()) {}
+        Device(config["name"].asString())
+    {
+        vehicle = vehicle_;
+    }
 
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
@@ -42,6 +45,8 @@ public:
     virtual void background(int) {}
     virtual void unbackground(bool) {}
     virtual bool backgrounded() { return false; }
+
+    ram::vehicle::IVehiclePtr vehicle;
 };
 
 #endif // RAM_VEHICLE_MOCKDEVICE_10_29_2007

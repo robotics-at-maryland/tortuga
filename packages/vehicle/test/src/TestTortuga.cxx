@@ -76,6 +76,11 @@ TEST(DeviceCreation)
     CHECK_EQUAL("IMU", veh->getDevice("IMU")->getName());
     CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
 
+    // Check to make sure the device got the right vehicle
+    MockDevice* dev = dynamic_cast<MockDevice*>(veh->getDevice("IMU").get());
+    CHECK(dev);
+    CHECK_EQUAL(veh, dev->vehicle.get());
+    
     // Check to make sure the list of names matches
     std::set<std::string> expNames = boost::assign::list_of("IMU")("PSU");
     std::set<std::string> givenNames;

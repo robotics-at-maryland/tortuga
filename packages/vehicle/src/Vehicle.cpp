@@ -39,6 +39,14 @@ using namespace ram::vehicle::device;
 namespace ram {
 namespace vehicle {
 
+// Lets us have a shared pointer, with no ownership requirements
+struct null_deleter
+{
+    void operator()(void const *) const
+    {
+    }
+};
+    
 Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     IVehicle(config["name"].asString(),
              core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
@@ -112,10 +120,12 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
             // TODO: Make me a log
             //std::cout << "Creating device " << node["name"].asString()
             //    << " of type: " << node["type"].asString() << std::endl;
+            
+            // TODO: Figure out how to get my python object if needed
             device::IDeviceMakerParamType params(
                 node,
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
-                IVehiclePtr());
+                IVehiclePtr(this, null_deleter()));
             
             _addDevice(device::IDeviceMaker::newObject(params));
         }
