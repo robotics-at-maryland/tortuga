@@ -3,7 +3,7 @@ LD = gcc
 AR = ar
 
 LDFLAGS= -lm -Lbin
-CFLAGS= -g -Iinclude
+CFLAGS= -g -Iinclude -I../
 
 all: bin/libimu.a imutest
 

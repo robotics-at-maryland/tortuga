@@ -369,6 +369,10 @@ int setThrusterSafety(int fd, int state)
         buf[7] += buf[i];
 
 
+    if(state > 5)	/* If unsafing, sleep a little */
+    	usleep(300 * 1000);
+
+
     writeData(fd, buf, 8);
 
     readData(fd, buf, 1);
