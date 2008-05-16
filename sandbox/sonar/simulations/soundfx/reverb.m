@@ -21,4 +21,3 @@ y = x;
 for i = 1:length(delays)
     y = y + shiftrows(x, delays(i)) * scale_factors(i);
 end
-

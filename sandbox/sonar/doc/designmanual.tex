@@ -3,7 +3,8 @@
 \documentclass[10pt]{article}
 \usepackage{graphicx}
 \usepackage{listings}
-\title{Sonar: Theory and Implementation on \textit{Tortuga 2}}
+\newcommand{\TortugaII}{\emph{Tortuga II}}
+\title{The Sonar Cookbook: Theory and Implementation on \textit{Tortuga 2}}
 \author{Leo Singer}
 
 \begin{document}
@@ -16,17 +17,38 @@ We explain the theories and methods involved in \textit{Tortuga}'s 2008 passive 
 This document is also meant to serve as a cumulative design manual for future revisions of \textit{Tortuga}.
 \end{abstract}
 
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.4]{robocrab.pdf}
+\label{fig:robocrab}
+\end{center}
+\end{figure}
+
+\clearpage
+
 \tableofcontents
 
 \clearpage
 
-\section{The pinger}
+\section{Introduction}
 
-The annual AUVSI AUV competition has included an acoustic pinger since the 2000 competition in Orlando, Florida.  In 2008, the pinger will also mark the location of a ``treasure'' that the vehicle can grab and pull to the surface directly above to earn points.
+Association for Unmanned Vehicle Systems International (AUVSI) and Office of Naval Research (ONR) host an annual autonomous underwater vehicle (AUV) competition for teams of college students.
 
-\subsection{Possible uses}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.4]{tortuga-perspective.jpg}
+\caption{CAD rendering of \TortugaII}
+\label{fig:tortuga-render}
+\end{center}
+\end{figure}
 
-We propose to use a technique called multilateration to determine our \emph{relative} range and/or bearing from the pinger.  Multilateration estimates the relative position of an acoustic source by comparing time difference on arrival (TDOA) of a pulse sent to a collection of hydrophones at known postitions.
+The competition has included an acoustic pinger since the 2000 competition in Orlando, Florida.  In 2008, the pinger will also mark the location of a ``treasure'' that vehicles must receive and pull to the surface.
+
+\subsection{Strategy}
+
+University of Maryland's 2008 entry, \TortugaII, will feature an all-new passive sonar system.
+
+We will use a technique called multilateration to determine our \emph{relative} range and/or bearing from the pinger.  Multilateration estimates the relative position of an acoustic source by comparing time difference on arrival (TDOA) of a pulse sent to a collection of hydrophones at known postitions.
 
 We will examine some simple strategies to home in on the pinger using bearing alone, bearing plus range, and bearing plus range rate.
 
@@ -577,8 +599,6 @@ The basic algorithm to calculate \(X_k\) using an \(N\)-point sliding DFT is as 
 The quantity \(X_k^{real} + i X_k^{imag}\) is equivalent to the complex Fourier amplitude \(X_k\) from an \(N\)-point DFT extending \(N\) samples into the past.
 
 \subparagraph{A sliding Goertzel's algorithm?}
-
-Does this exist?
 
 \paragraph{Edge detection}
 
