@@ -90,7 +90,8 @@ void registerCameraClass()
 {
     bp::class_<CameraWrapper, boost::noncopyable >(
         "Camera", bp::init<int, int>((bp::arg("width"), bp::arg("height"))) )
-        .def("capturedImage", &CameraWrapper::capturedImage);
+        .def("capturedImage", &CameraWrapper::capturedImage)
+        .def("background", &CameraWrapper::background);
     bp::register_ptr_to_python< ram::vision::CameraPtr >();
 //    bp::implicitly_convertible< ram::core::SubsystemPtr, boost::shared_ptr< ram::core::EventPublisher > >();
 }
