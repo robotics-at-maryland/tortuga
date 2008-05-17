@@ -10,9 +10,9 @@ A state machine to go through the gate:
  - Waits for Switch
  - Dives to depth
  - Goes forward for a time
- - Surfaces
  
-Reguires the following subsystems:
+ 
+Requires the following subsystems:
  - timerManager - ram.timer.TimerManager
  - motionManager - ram.motion.MotionManager
  - controller - ext.control.IController
@@ -48,29 +48,20 @@ class Forward(state.State):
 
     @staticmethod
     def transitions():
-        return {Forward.FORWARD_DONE : Surface}
+        return {Forward.FORWARD_DONE : End}
 
     def enter(self):
         # Full speed ahead!!
         self.controller.setSpeed(3)
         
         # Timer goes off in 10 seconds then sends off FORWARD_DONE
-        timer = self.timerManager.newTimer(Forward.FORWARD_DONE, 10)
-        timer.start()
+        self.timer = self.timerManager.newTimer(Forward.FORWARD_DONE, 10)
+        self.timer.start()
     
     def exit(self):
+        self.timer.stop()
         self.controller.setSpeed(0)
-        
-class Surface(state.State):
-    @staticmethod
-    def transitions():
-        return {motion.basic.Motion.FINISHED : End}     
-    
-    def enter(self):  
-        # Go to 0 feet in 5 increments
-        surfaceMotion = motion.basic.ChangeDepth(0, 5)
-        self.motionManager.setMotion(surfaceMotion)
         
 class End(state.State):
     def enter(self):
-        print 'Mission Complete'
+        pass

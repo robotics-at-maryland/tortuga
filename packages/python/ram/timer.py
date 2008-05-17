@@ -152,6 +152,12 @@ class Timer(threading.Thread):
             self._eventPublisher.publish(self._eventType, ext.core.Event())
         
 class TimerManager(ext.core.Subsystem):
+    """
+    Creates ram.timer.Timer objects, using itself as the EventPublisher
+    
+    It makes sure all of its events are forward to the main EventHub so they
+    can be properly queued by the QueuedEventHub.
+    """
     def __init__(self, config = None, deps = None):
         if config is None:
             config = {}
@@ -164,6 +170,12 @@ class TimerManager(ext.core.Subsystem):
                                     deps)
         
     def newTimer(self, eventType, duration):
+        """
+        Create a Timer object which publishes using this object.
+        
+        @rtype: ram.timer.Timer
+        @return: A Timer objects which uses this object ot publish its event
+        """
         return Timer(self, eventType, duration)
 
 

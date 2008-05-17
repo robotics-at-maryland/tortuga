@@ -24,7 +24,7 @@ import ram.motion.basic
 # Mock subsystems
 class MockController(control.IController):
     def __init__(self, eventHub):
-        control.IController.__init__(self, "A", eventHub)
+        control.IController.__init__(self, "Controller", eventHub)
         self.depth = 0
         self.yawChange = 0
         self.speed = 0
