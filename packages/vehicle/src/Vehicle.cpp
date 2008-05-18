@@ -233,12 +233,12 @@ void Vehicle::safeThrusters()
     if (m_sensorFD >= 0)
     {
         // Todo, check whether these succeed
-        thrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER5_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER6_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER5_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER6_OFF);
     }
 }
 
@@ -249,12 +249,12 @@ void Vehicle::unsafeThrusters()
     if (m_sensorFD >= 0)
     {
         // todo check whether these succeed
-        thrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER5_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER6_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER5_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER6_ON);
     }
 }
 

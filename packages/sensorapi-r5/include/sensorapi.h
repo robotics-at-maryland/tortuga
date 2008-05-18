@@ -217,10 +217,8 @@ int dropMarker(int fd, int markerNum);
 
 int lcdBacklight(int fd, int state);
 
+/** Either enables or disables a desired thruster */
 int setThrusterSafety(int fd, int state);
-
-/* Deprecated. Use above. Same syntax. Better name. */
-int thrusterSafety(int fd, int state);
 
 int setBarState(int fd, int state);
 

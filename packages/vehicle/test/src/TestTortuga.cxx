@@ -34,7 +34,8 @@ using namespace ram;
 
 static const std::string CONFIG("{'depthCalibSlope' : 33.01,"
                                 "'name' : 'TestVehicle',"
-                                " 'depthCalibIntercept' : 94}");
+                                "'depthCalibIntercept' : 94,"
+                                "'sensor_board_file' : '/dev/DOESNOTEXIST'}");
 
 struct VehicleFixture
 
@@ -67,7 +68,9 @@ TEST(DeviceCreation)
             "'Devices' : {"
             "    'IMU' : {'type' : 'MockDevice'},"
             "    'PSU' : {'type' : 'MockDevice'}"
-            "} }";
+            " },"
+            " 'sensor_board_file' : '/dev/DOESNOTEXIST'"
+            "}";
     core::EventHubPtr eventHub(new core::EventHub());
     vehicle::IVehicle* veh = 
         new vehicle::Vehicle(core::ConfigNode::fromString(config),
