@@ -59,7 +59,7 @@ def get_features():
         add_feature('vision_tools',
                 opt_dirs = {'vision' : ['tools/vision_viewer']} )
     
-        add_feature('drivers', dirs = ['packages/sensorapi',
+        add_feature('drivers', dirs = ['packages/sensorapi-r5',
                                        'packages/thrusterapi',
                                        'packages/imu',
                                        'packages/carnetix'])

@@ -24,7 +24,7 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IIMU.h"
 
-#include "sensorapi/include/sensorapi.h"
+#include "sensorapi-r5/include/sensorapi.h"
 
 #include "math/include/Events.h"
 
@@ -79,7 +79,17 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         syncBoard(m_sensorFD);
         /// @TODO Check to see if we are already unsafed, and if we are don't 
         // try to unsafe again.  If we aren't unsafe, and sleep.
-        unsafeThrusters();
+
+        int thrusterState = readThrusterState(m_sensorFD);
+        if (SB_ERROR == thrusterState)
+        {
+            std::cout << "Sensor board error\n"; 
+        }
+        else if ((thrusterState & ALL_THRUSTERS_ENABLED) !=
+                 ALL_THRUSTERS_ENABLED)
+        {
+            unsafeThrusters();
+        }
     }
     
     // Get the thruster names
