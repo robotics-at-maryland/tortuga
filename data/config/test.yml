@@ -47,14 +47,14 @@ Subsystems:
             PortThruster:
                 # serial: 149
                 type: Thruster
-                address: 3
+                address: 2
                 calibration_factor: 0.4146
                 direction: 1
 
             ForeThruster:
                 type: Thruster
                 # serial: 146
-                address: 2
+                address: 3
                 calibration_factor: 0.4368
                 direction: 1
 
