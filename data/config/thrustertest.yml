@@ -72,13 +72,13 @@ Subsystems:
                 type: Thruster
                 address: 5
                 calibration_factor: 0.4146
-                direction: 1
+                direction: -1
 
             BottomThruster:
                 type: Thruster
                 address: 6
                 calibration_factor: 0.3652
-                direction: -1
+                direction: 1
 
 
 
@@ -91,9 +91,13 @@ Subsystems:
                 #magYBias: 0.270406
                 #magZBias: 0.158325
                 # Post Thruster change out, and with 6 thrusters
-                magXBias: -0.260058
-                magYBias: 0.211263
-                magZBias: 0.243511
+                #magXBias: -0.260058
+                #magYBias: 0.211263
+                #magZBias: 0.243511
+                # New Electronics
+                magXBias: -0.269084
+                magYBias: 0.221182
+                magZBias: 0.243998
 
                 localMagneticPitch: 60
 
