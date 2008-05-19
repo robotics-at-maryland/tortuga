@@ -1,9 +1,8 @@
 /*
- *  dft_singleton_c30.h
- *  sonarController
+ * @file dft_singleton_c30.h
  *
- *  Created by Leo Singer on 03/04/2008.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *  
  *  Statically allocate a single global sliding_dft_t structure.
  *  Some platforms, like PIC30, don't support malloc. 

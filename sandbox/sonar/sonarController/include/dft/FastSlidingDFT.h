@@ -1,16 +1,15 @@
 /*
- *  FastSlidingDFT.h
- *  sonarController
+ * @file FastSlidingDFT.h
  *
- *  Created by Tom Capon on 1/20/08.
- *  Based on work by Leo Singer.
- *  Copyright 2008 Robotics@Maryland. All rights reserved.
+ * @author Tom Capon
+ * Based on work by Leo Singer.
+ * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  *
  */
 
 
-#ifndef FASTSLIDINGDFT_H
-#define FASTSLIDINGDFT_H
+#ifndef _RAM_SONAR_FASTSLIDINGDFT_H
+#define _RAM_SONAR_FASTSLIDINGDFT_H
 
 
 #include "../Sonar.h"

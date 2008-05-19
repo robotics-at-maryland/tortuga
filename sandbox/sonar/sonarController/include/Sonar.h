@@ -1,20 +1,19 @@
-/*
- *  Sonar.h
- *  sonarController
+/**
+ * @file Sonar.h
  *
- *  Created by Leo Singer on 11/28/07.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  Common typedefs and constants for both C and C++
+ * Common typedefs and constants for both C and C++
  *
- *  All physical constants, dimensions, and times in this header file are in SI
- *  units.
+ * All physical constants, dimensions, and times in this header file are in SI
+ * units.
  * 
  */
 
 
-#ifndef SONAR_H
-#define SONAR_H
+#ifndef _RAM_SONAR_SONAR_H
+#define _RAM_SONAR_SONAR_H
 
 
 /* Microchip C30 does not come with <stdint.h>, so we will provide
@@ -89,6 +88,5 @@ template<class T>
 } // namespace sonar
 } // namespace ram
 #endif
-
 
 #endif

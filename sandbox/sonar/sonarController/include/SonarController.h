@@ -1,18 +1,17 @@
-/*
- *  SonarController.h
- *  sonarController
+/**
+ * @file SonarController.h
  *
- *  Created by Leo Singer on 11/25/07.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  Acquire samples from ADCs, compute a single-band, sliding DFT, and 
- *  detect edges.
+ * Acquire samples from ADCs, compute a single-band, sliding DFT, and 
+ * detect edges.
  *
  */
 
 
-#ifndef SONARCONTROLLER_H
-#define SONARCONTROLLER_H
+#ifndef _RAM_SONAR_SONARCONTROLLER_H
+#define _RAM_SONAR_SONARCONTROLLER_H
 
 
 #include <stdint.h>

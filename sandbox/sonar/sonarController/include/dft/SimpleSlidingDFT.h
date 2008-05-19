@@ -1,20 +1,18 @@
-/*
- *  SimpleSlidingDFT.h
- *  sonarController
+/**
+ * @file SimpleSlidingDFT.h
  *
- *  Created by Leo Singer on 12/10/07.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *  
- *  Simple, well documented implementation of a sliding DFT.
+ * Simple, well documented implementation of a sliding DFT.
  * 
  */
 
-#ifndef SIMPLESLIDINGDFT_H
-#define SIMPLESLIDINGDFT_H
+#ifndef _RAM_SONAR_SIMPLESLIDINGDFT_H
+#define _RAM_SONAR_SIMPLESLIDINGDFT_H
 
 #include "../Sonar.h"
 #include "SlidingDFT.h"
-
 #include <strings.h>
 
 namespace ram {

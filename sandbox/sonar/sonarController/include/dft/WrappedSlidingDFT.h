@@ -1,16 +1,15 @@
-/*
- *  WrappedSlidingDFT.h
- *  sonarController
+/**
+ * @file WrappedSlidingDFT.h
  *
- *  Created by Leo Singer on 02/25/08.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  Wrapper for dft.h, primarily for the purpose of unit testing.
+ * Wrapper for dft.h, primarily for the purpose of unit testing.
  * 
  */
 
-#ifndef WRAPPEDSLIDINGDFT_H
-#define WRAPPEDSLIDINGDFT_H
+#ifndef _RAM_SONAR_WRAPPEDSLIDINGDFT_H
+#define _RAM_SONAR_WRAPPEDSLIDINGDFT_H
 
 
 #include "../Sonar.h"

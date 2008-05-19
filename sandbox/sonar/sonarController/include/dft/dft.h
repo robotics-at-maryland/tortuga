@@ -1,16 +1,16 @@
-/*
- *  dft.h
- *  sonarController
+/**
+ * @file dft.h
  *
- *  Created by Leo Singer on 02/25/08.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  C language implementation of the sliding DFT for PIC compatibility.
+ * C language implementation of the sliding DFT for PIC compatibility.
+ *
  */
 
 
-#ifndef DFT_H
-#define DFT_H
+#ifndef _RAM_SONAR_DFT_H
+#define _RAM_SONAR_DFT_H
 
 
 #include "Sonar.h"

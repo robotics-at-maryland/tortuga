@@ -1,17 +1,16 @@
-/*
- *  TDOA.h
- *  sonarController
+/**
+ * @file TDOA.h
  *
- *  Created by Leo Singer on 11/30/07.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  Calculate time delay on arrival using a number of different techniques.
+ * Calculate time delay on arrival using a number of different techniques.
  * 
  */
 
 
-#ifndef TDOA_H
-#define TDOA_H
+#ifndef _RAM_SONAR_TDOA_H
+#define _RAM_SONAR_TDOA_H
 
 
 #include "SonarChunk.h"

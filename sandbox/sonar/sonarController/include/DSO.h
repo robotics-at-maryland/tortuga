@@ -1,18 +1,18 @@
-/*
- *  DSO.h
- *  sonarController
+/**
+ * @file DSO.h
  *
- *  Created by Leo Singer on 1/18/08.
- *  Copyright 2008 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  *
- *  Designed to mimic some of the behaviors of a digital storage oscilloscope
- *  (DSO), this class detects pings and calculates their time delays on arrival
- *  using cross correlation.
+ * Designed to mimic some of the behaviors of a digital storage oscilloscope
+ * (DSO), this class detects pings and calculates their time delays on arrival
+ * using cross correlation.
+ *
  */
 
 
-#ifndef DSO_H
-#define DSO_H
+#ifndef _RAM_SONAR_DSO_H
+#define _RAM_SONAR_DSO_H
 
 
 #include "Sonar.h"

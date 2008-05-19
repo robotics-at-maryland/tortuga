@@ -1,24 +1,21 @@
-/*
- *  SampleDelay.h
- *  sonarController
+/**
+ * @file SampleDelay.h
  *
- *  Created by Leo Singer on 1/8/08.
- *  Copyright 2008 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  *  
- *  Circular queue for imposing a fixed-length delay on a time series.
- *  The queue advances on writes but not on reads.  This ensures that multiple
- *  reads will not distort the time delay.
+ * Circular queue for imposing a fixed-length delay on a time series.
+ * The queue advances on writes but not on reads.  This ensures that multiple
+ * reads will not distort the time delay.
  * 
  */
 
 
-#ifndef SAMPLEDELAY_H
-#define SAMPLEDELAY_H
+#ifndef _RAM_SONAR_SAMPLEDELAY_H
+#define _RAM_SONAR_SAMPLEDELAY_H
 
 
 #include "Sonar.h"
-
-
 #include <stdlib.h>
 
 

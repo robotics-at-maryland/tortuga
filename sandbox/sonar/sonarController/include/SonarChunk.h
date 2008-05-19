@@ -1,23 +1,20 @@
-/*
- *  SonarChunk.h
- *  sonarController
+/**
+ * @file SonarChunk.h
  *
- *  Created by Leo Singer on 11/28/07.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
- *  Time-stamped container for ping samples.
- *  Also includes cross-correlation algorithm.
+ * Time-stamped container for ping samples.
+ * Also includes cross-correlation algorithm.
  *
  */
 
 
-#ifndef SONARCHUNK_H
-#define SONARCHUNK_H
+#ifndef _RAM_SONAR_SONARCHUNK_H
+#define _RAM_SONAR_SONARCHUNK_H
 
 
 #include "Sonar.h"
-
-
 #include <list>
 
 
