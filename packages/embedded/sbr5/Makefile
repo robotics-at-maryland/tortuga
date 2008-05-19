@@ -18,7 +18,7 @@ LIBS = /home/steve/dspicc/c30/lib/libp30F4011-elf.a
 
 
 
-all: ic1.hex ic2.hex ic3.hex ic4.hex distro.hex balancer.hex debug.hex
+all: ic1.hex ic2.hex ic3.hex ic4.hex distro.hex balancer.hex bfin.hex debug.hex
 
 distro.o : distro.c buscodes.h uart.c i2c.c
 	$(CC) -mcpu=30F6014A $(CFLAGS) -Wunused-function -c $< -o $@
@@ -72,6 +72,10 @@ ic2: ic2.hex
 
 ic3: ic3.hex
 	piklab-prog -p icd2 -d 30f4011 -c program ic3.hex
+
+bfin: bfin.hex
+	piklab-prog -p icd2 -d 30f4011 -c program bfin.hex
+
 
 ic4: ic4.hex
 	piklab-prog -p icd2 -d 30f4013 -c program ic4.hex

@@ -886,6 +886,20 @@ void checkOvrReg()
     if(ovrReg & 0x20) LAT_MOTR6 = ~MOTR_ON;
 }
 
+void checkKillSwitch()
+{
+    if(IN_KILLSW != KILLSW_ON)
+    {
+        LAT_MOTR1 = ~MOTR_ON;
+        LAT_MOTR2 = ~MOTR_ON;
+        LAT_MOTR3 = ~MOTR_ON;
+        LAT_MOTR4 = ~MOTR_ON;
+        LAT_MOTR5 = ~MOTR_ON;
+        LAT_MOTR6 = ~MOTR_ON;
+        ovrReg &= 0xC0;
+    }
+}
+
 void main()
 {
     byte i;
@@ -1001,6 +1015,7 @@ void main()
     while(1)
     {
         checkSafetyIndicator();
+        checkKillSwitch();
 
         byte rx = readTemp(0x9E);
 
