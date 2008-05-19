@@ -8,7 +8,7 @@ int main(int argc, char ** argv)
     if(argc == 1)
     {
         printf("mem [r|w] addr [val]\n");
-        printf("all values are in hex\n");
+        printf("all values are in hex. addr is 32bit. val is 16bit\n");
         return -1;
     }
 
