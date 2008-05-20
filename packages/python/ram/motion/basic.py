@@ -13,7 +13,20 @@ import ext.math as math
 
 
 class MotionManager(core.Subsystem):
+    """
+    Starts and stops the AI's currently active ram.motion.basic.Motion
+    
+    Requires the following subsystems:
+     - ext.control.IController
+     - ext.vehicle.IVehicle
+     - ext.core.EventHub
+     - ext.core.QueuedEventHub
+    """
+    
     def __init__(self, config, deps):
+        """
+        Create a MotionManager object
+        """
         core.Subsystem.__init__(self, config.get('name', 'MotionManager'), deps)
         self._motion = None
         
@@ -33,6 +46,9 @@ class MotionManager(core.Subsystem):
             core.EventHub, deps, nonNone = True)
             
     def setMotion(self, motion):
+        """
+        Stops the current motion and starts this one
+        """
         self.stopCurrentMotion()
             
         eventPublisher = core.EventPublisher(self._eventHub)
@@ -41,8 +57,15 @@ class MotionManager(core.Subsystem):
                            eventPublisher)
 
     def stopCurrentMotion(self):
+        """
+        Calls stop() on the current motion if it exists.
+        """
         if self._motion is not None:
             self._motion.stop()        
+        
+    @property
+    def currentMotion(self):
+        return self._motion
         
     def background(self):
         pass

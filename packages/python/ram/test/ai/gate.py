@@ -21,16 +21,17 @@ class TestGate(support.AITestCase):
         self.machine.start(gate.Dive)
         
         # Ensure we actually started diving
-        self.assertEquals(motion.basic.ChangeDepth, 
-                          type(self.motionManager.currentMotion))
-        
+        self.assertCurrentMotion(motion.basic.ChangeDepth)
+                
         # Now make sure we go to forward after diving
-        self.injectEvent(motion.basic.Motion.FINISHED)      
-        self.assertEquals(gate.Forward, type(self.machine.currentState()))
+        self.injectEvent(motion.basic.Motion.FINISHED)   
+        self.assertCurrentState(gate.Forward)   
+                
+        #self.assert_(self.motionManager.stopped)
         
     def testForward(self):
         # Make our timer blocks in the background
-        self.block = True
+        self.timerBlock = True
         
         # Make sure we start driving forward
         self.machine.start(gate.Forward)
@@ -39,3 +40,5 @@ class TestGate(support.AITestCase):
         # Now make sure we stop
         self.releaseTimer(self.machine.currentState().timer)
         self.assertEqual(0, self.controller.speed)
+        
+        self.assertCurrentState(gate.End)

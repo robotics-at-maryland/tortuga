@@ -6,7 +6,17 @@
 # File:  packages/python/ram/ai/light.py
 
 """
-
+A state machine for finding and hitting the red light
+ - Search for light
+ - Seeks light when found (goes back to search if lost)
+ - Forward ram when close
+ - Halts vehicle
+ 
+ 
+Requires the following subsystems:
+ - timerManager - ram.timer.TimerManager
+ - motionManager - ram.motion.MotionManager
+ - controller - ext.control.IController
 """
 
 # Project Imports
@@ -69,14 +79,14 @@ class Hit(state.State):
     def enter(self):
         self.visionSystem.redLightDetectorOff()
 
-        print '"Attempting to hit light, Charge!!!!"'
         # Timer goes off in 3 seconds then sends off FORWARD_DONE
-        timer = self.timerManager.newTimer(Hit.FORWARD_DONE, 3)
-        timer.start()
+        self.timer = self.timerManager.newTimer(Hit.FORWARD_DONE, 3)
+        self.timer.start()
+        self.controller.setSpeed(3)
     
     def exit(self):
+        self.timer.stop()
         self.controller.setSpeed(0)
         
 class End(state.State):
-    def enter(self):
-        print '"Mission Complete"'
+    pass

@@ -68,7 +68,7 @@ class MockController(control.IController):
         
 class MockVehicle(vehicle.IVehicle):
     def __init__(self):
-        vehicle.IVehicle.__init__(self, "B")
+        vehicle.IVehicle.__init__(self, "Vehicle")
         self.depth = 0
         self.orientation = ext.math.Quaternion.IDENTITY
         

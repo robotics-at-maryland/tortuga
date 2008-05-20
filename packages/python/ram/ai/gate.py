@@ -42,6 +42,9 @@ class Dive(state.State):
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.ChangeDepth(5, 5)
         self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
     
 class Forward(state.State):
     FORWARD_DONE = core.declareEventType('FORWARD_DONE')

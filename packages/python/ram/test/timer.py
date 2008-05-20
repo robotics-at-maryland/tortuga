@@ -47,19 +47,19 @@ class TimerTester(unittest.TestCase):
         self.nsec = nsec
         
         # Busy loop if desired
-        while self.block:
+        while self.timerBlock:
             pass
 
     def setUp(self):
         # Replace nanosleep with out Mock sleep function
         self.origNanosleep = timer.nanosleep
         timer.nanosleep = self.mockNanosleep
-        self.block = False
+        self.timerBlock = False
         
     def tearDown(self):
         # Put back the original function
         timer.nanosleep = self.origNanosleep
-        self.block = False
+        self.timerBlock = False
 
 
 class TestTimer(TimerTester):
@@ -98,12 +98,12 @@ class TestTimer(TimerTester):
         newTimer = timer.Timer(self.epub, TestTimer.TIMER_EVENT, 0.25)
         
         # Start the timer in a busy background loop
-        self.block = True
+        self.timerBlock = True
         newTimer.start()
         
         # Stop then kill background loop
         newTimer.stop()
-        self.block = False
+        self.timerBlock = False
         newTimer.join()
         
         self.assertEquals(0, self.sec)
