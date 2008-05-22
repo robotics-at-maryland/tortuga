@@ -328,5 +328,27 @@ class TestState(unittest.TestCase):
         
         self.assertEqual(50, s.getConfig('ram'))
         
+    def testPublish(self):
+        self.called = False
+        self.sender = None
+        self.type = None
+        
+        def reciever(event):
+            self.called = True
+            self.type = event.type
+            self.sender = event.sender
+        
+        machine = state.Machine()
+        machine.start(Start)
+        
+        machine.subscribe("TestEvent", reciever)
+        machine.currentState().publish("TestEvent", core.Event())
+        
+        
+        self.assert_(self.called)
+        self.assertEqual("TestEvent", self.type)
+        self.assertEqual(machine, self.sender)
+        
+        
 if __name__ == '__main__':
     unittest.main()

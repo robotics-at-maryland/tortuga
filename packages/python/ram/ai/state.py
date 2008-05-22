@@ -44,6 +44,14 @@ class State(object):
         Called when the state is exited, loopbacks don't count
         """
         pass
+    
+    def publish(self, eventType, event):
+        """
+        Publish an event, with the owning Machine object as publisher
+        
+        @warning: Only valid when the object is created by a Machine object
+        """
+        raise 
 
 class Machine(core.Subsystem):
     """
@@ -53,6 +61,9 @@ class Machine(core.Subsystem):
     represents a state machine.  There can only be one current state at a time.
     When events are injected into the state machine the currents states 
     transition table determines which state to advance to next.
+    
+    Requires the following subsystems:
+     - ext.core.QueuedEventHub
     
     @type _root: ram.ai.state.State
     @ivar _root: The first state of the Machine
@@ -200,6 +211,7 @@ class Machine(core.Subsystem):
         # Create state instance from class, make sure to pass all subsystems
         # along as well
         newState = newStateClass(config, **self._subsystems)
+        newState.publish = self.publish
         self._currentState = newState
         self._currentState.enter()
         
