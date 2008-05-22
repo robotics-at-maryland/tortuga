@@ -47,6 +47,9 @@ public:
     /** Places the event on the intneral event queue*/
     virtual void publish(EventPtr event);
 
+    /** Publishs the event into the internal event queue (with sender=this) */
+    virtual void publish(Event::EventType type, EventPtr event);
+    
     /** @copydoc QueuedEventPublisher::publishEvents() */
     int publishEvents();
     

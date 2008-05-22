@@ -57,6 +57,13 @@ void QueuedEventHub::publish(EventPtr event)
     m_imp->queueEvent(event);
 }
 
+void QueuedEventHub::publish(Event::EventType etype, EventPtr event)
+{
+    event->type = etype;
+    event->sender = this;
+    publish(event);
+}
+    
 int QueuedEventHub::publishEvents()
 {
     return m_imp->publishEvents();

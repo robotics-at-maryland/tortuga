@@ -112,6 +112,13 @@ void EventHub::publish(EventPtr event)
         event);
 }
 
+void EventHub::publish(Event::EventType etype, EventPtr event)
+{
+    event->type = etype;
+    event->sender = this;
+    publish(event);
+}
+    
 void EventHub::update(double)
 {
 }

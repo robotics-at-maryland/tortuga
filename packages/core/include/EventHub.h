@@ -24,7 +24,17 @@
 
 namespace ram {
 namespace core {
-    
+
+/** A hub for events from EventPublisher objects
+ *
+ *  This is an object which, when passed to EventPublisher, also recieves all
+ *  events published through that EventPublisher.  You can pass the same hub to
+ *  multiple EventPublishers and be able to easy subscribe to the events that
+ *  group of EventPublishers creates.
+ *
+ *  This object itself is an EventPublisher and its events are published the
+ *  hub as well.  It currently does not generate any events.
+ */
 class RAM_EXPORT EventHub : public Subsystem
 {
 public:
@@ -77,6 +87,8 @@ public:
      */
     virtual EventConnectionPtr subscribeToAll(
         boost::function<void (EventPtr)> handler);
+
+    using EventPublisher::publish;
     
     /** Publishes and event to the hub
      *
@@ -87,6 +99,12 @@ public:
      */
     virtual void publish(EventPtr event);
 
+    /** Publishs an event of the given type as the event hub
+     *
+     *  This event goes out through the event hub as well.
+     */
+    virtual void publish(Event::EventType type, EventPtr event);
+    
     virtual void update(double timestep);
     virtual void background(int interval);
     virtual void unbackground(bool join);

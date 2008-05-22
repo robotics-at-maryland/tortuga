@@ -151,3 +151,65 @@ TEST_FIXTURE(EventHubFixture, subscribeToAll)
     publisherB.publish("Type", ram::core::EventPtr(new ram::core::Event()));
     CHECK_EQUAL(2, recv.calls);
 }
+
+// Test EventHub::publish explicitly
+TEST_FIXTURE(EventHubFixture, publichEventHub)
+{
+    ram::core::EventConnectionPtr connectionA =
+        eventHub->subscribeToType("Type",
+                                  boost::bind(&Reciever::handler, &recv, _1));
+
+    CHECK_EQUAL(0, recv.calls);
+
+    // Make sure messages of the desired type get through
+    ram::core::EventPtr event(new ram::core::Event());
+    event->type = "Type";
+    event->sender = &publisherB;
+    eventHub->publish(event);
+    CHECK_EQUAL(1, recv.calls);
+    CHECK_EQUAL("Type", recv.events[0]->type);
+    CHECK_EQUAL(&publisherB, recv.events[0]->sender);
+
+    connectionA->disconnect();
+
+    // Make sure we get all messages as well
+    ram::core::EventConnectionPtr connectionB =
+        eventHub->subscribeToAll(boost::bind(&Reciever::handler, &recv, _1));
+
+    event = ram::core::EventPtr(new ram::core::Event());
+    event->type = "TypeB";
+    event->sender = &publisherA;
+    eventHub->publish(event);
+    CHECK_EQUAL(2, recv.calls);
+    CHECK_EQUAL("TypeB", recv.events[1]->type);
+    CHECK_EQUAL(&publisherA, recv.events[1]->sender);
+}
+
+// Test EventPublisher::publish explicitly
+TEST_FIXTURE(EventHubFixture, publichEventPublisher)
+{
+    ram::core::EventConnectionPtr connectionA =
+        eventHub->subscribeToType("Type",
+                                  boost::bind(&Reciever::handler, &recv, _1));
+
+    CHECK_EQUAL(0, recv.calls);
+
+    // Make sure messages of the desired type get through
+    eventHub->publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(1, recv.calls);
+    CHECK_EQUAL("Type", recv.events[0]->type);
+    CHECK_EQUAL(eventHub.get(), recv.events[0]->sender);
+
+    connectionA->disconnect();
+
+    // Make sure we get all messages as well
+    ram::core::EventConnectionPtr connectionB =
+        eventHub->subscribeToAll(boost::bind(&Reciever::handler, &recv, _1));
+
+    eventHub->publish("TypeB", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(2, recv.calls);
+    CHECK_EQUAL("TypeB", recv.events[1]->type);
+    CHECK_EQUAL(eventHub.get(), recv.events[1]->sender);
+
+    connectionB->disconnect();
+}
