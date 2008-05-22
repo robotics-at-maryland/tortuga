@@ -36,6 +36,23 @@ class MockMotionManager(core.Subsystem):
     def stopCurrentMotion(self):
         self.stopped = True
         
+class MockVisionSystem(core.Subsystem):
+    def __init__(self):
+        core.Subsystem.__init__(self, 'VisionSystem')
+        self.redLightDetector = False
+        self.pipeLineDetector = False
+         
+    def redLightDetectorOn(self):
+        self.redLightDetector = True
+        
+    def redLightDetectorOff(self):
+        self.redLightDetector = False
+        
+    def pipeLineDetectorOn(self):
+        self.pipeLineDetector = True
+        
+    def pipeLineDetectorOff(self):
+        self.pipeLineDetector = False
         
 class AITestCase(TimerTester):
     def setUp(self, extraDeps = None, cfg = None):
@@ -52,9 +69,10 @@ class AITestCase(TimerTester):
         self.timerManager = timer.TimerManager(deps = [self.eventHub])
         self.controller = MockController(None)
         self.vehicle = MockVehicle()
+        self.visionSystem = MockVisionSystem()
         
         deps = [self.controller, self.timerManager, self.eventHub, 
-                self.qeventHub, self.vehicle]
+                self.qeventHub, self.vehicle, self.visionSystem]
         
         self.motionManager = motion.basic.MotionManager(cfg, deps)
         deps.append(self.motionManager)

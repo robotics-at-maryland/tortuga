@@ -20,6 +20,7 @@ import ram.motion.search
 import ram.motion.pipe
 
 class Searching(state.State):
+    """When the vehicle is looking for a pipe"""
     @staticmethod
     def transitions():
         return { vision.EventType.PIPE_FOUND : Seeking }
@@ -40,6 +41,7 @@ class Searching(state.State):
         self.motionManager.stopCurrentMotion()
 
 class Seeking(state.State):
+    """When the vehicle is moving over the found pipe"""
     @staticmethod
     def transitions():
         return { vision.EventType.PIPE_LOST : Searching,
@@ -63,6 +65,8 @@ class Seeking(state.State):
 
 class Centering(state.State):
     """
+    When the vehicle is settling over the pipe
+    
     @cvar SETTLED: Event fired when vehile has settled over the pipe
     """
     SETTLED = core.declareEventType('SETTLED')
@@ -78,8 +82,8 @@ class Centering(state.State):
         self._pipe.setState(event.x, event.y, event.angle)
 
     def enter(self):
-        self._timer = self.timerManager.newTimer(Centering.SETTLED, 5)
-        self._timer.start()
+        self.timer = self.timerManager.newTimer(Centering.SETTLED, 5)
+        self.timer.start()
         
         self._pipe = ram.motion.pipe.Pipe(0,0,0)
         motion = ram.motion.pipe.Hover(pipe = self._pipe,
@@ -90,7 +94,7 @@ class Centering(state.State):
     def exit(self):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
-        self._timer.stop()
+        self.timer.stop()
 
 class AlongPipe(state.State):
     """
@@ -112,7 +116,7 @@ class AlongPipe(state.State):
         newPipeLoc = ext.math.Vector3(event.x, event.y, 0)
         if self._lastPipeLoc is not None:
             if self._lastPipeLoc.distance(newPipeLoc) > 0.5:
-                self.eventHub.publish(AlongPipe.FOUND_NEW_PIPE, core.Event())
+                self.publish(AlongPipe.FOUND_NEW_PIPE, core.Event())
         self._lastPipeLoc = newPipeLoc
         
         # Update the targets state
@@ -146,14 +150,14 @@ class BetweenPipes(state.State):
     
     def enter(self):
         """We have driving off the 'end' of the pipe set a timeout"""
-        self._timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 15)
-        self._timer.start()
+        self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 15)
+        self.timer.start()
         
         self.controller.setSpeed(5)
         
     def exit(self):
         self.controller.setSpeed(0)
-        self._timer.stop()
+        self.timer.stop()
         
 class End(state.State):
     def enter(self):

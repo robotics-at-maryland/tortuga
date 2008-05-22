@@ -18,27 +18,10 @@ import ram.motion as motion
 import ram.motion.search
 
 import ram.test.ai.support as support
-
-class MockVisionSystem(core.Subsystem):
-    def __init__(self):
-        core.Subsystem.__init__(self, 'VisionSystem')
-        self.redLightDetector = False
-    
-    def redLightDetectorOn(self):
-        self.redLightDetector = True
         
-    def redLightDetectorOff(self):
-        self.redLightDetector = False
-
-class LightTestCase(support.AITestCase):
-    """Base case for testing all states of the light state machine"""
+class TestSearching(support.AITestCase):
     def setUp(self):
-        self.visionSystem = MockVisionSystem()
-        support.AITestCase.setUp(self, [self.visionSystem])
-        
-class TestSearching(LightTestCase):
-    def setUp(self):
-        LightTestCase.setUp(self)
+        support.AITestCase.setUp(self)
         self.machine.start(light.Searching)        
     
     def testStart(self):
@@ -55,9 +38,9 @@ class TestSearching(LightTestCase):
         # Leave and make sure its still on
         self.assert_(self.visionSystem.redLightDetector)
         
-class TestSeek(LightTestCase):
+class TestSeek(support.AITestCase):
     def setUp(self):
-        LightTestCase.setUp(self)
+        support.AITestCase.setUp(self)
         self.machine.start(light.Seek)
     
     def testStart(self):
@@ -68,6 +51,7 @@ class TestSeek(LightTestCase):
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = -0.5, azimuth = math.Degree(15))
         
+        # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
     
@@ -81,7 +65,7 @@ class TestSeek(LightTestCase):
         self.injectEvent(vision.EventType.LIGHT_ALMOST_HIT)
         self.assertCurrentState(light.Hit)
         
-class TestHit(LightTestCase):       
+class TestHit(support.AITestCase):       
     def testStart(self):
         # Make our timer blocks in the background
         self.timerBlock = True

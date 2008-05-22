@@ -3,8 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/python/ram/ai/light.py
-
+# File:  packages/python/ram/ai/light.pyc    
 """
 A state machine for finding and hitting the red light
  - Search for light
