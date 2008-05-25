@@ -14,6 +14,10 @@ import StringIO
 import ext.core as core
 import ram.ai.state as state
 
+# --------------------------------------------------------------------------- #
+#                      S U P P P O R T    O B J E C T S                       #
+# --------------------------------------------------------------------------- #
+
 class Reciever(object):
     def __init__(self):
         self.event = None
@@ -36,8 +40,8 @@ class MockEventSource(core.EventPublisher):
             setattr(event, key, value)
         self.publish(etype, event)
 
-# Test States (Consider Magic base class to take care of the init method)
 class TrackedState(state.State):
+    """Records whether a state has been entered or exited"""
     def __init__(self, *args, **kwargs):
         state.State.__init__(self, *args, **kwargs)
         self.entered = False
@@ -48,6 +52,12 @@ class TrackedState(state.State):
 
     def exit(self):
         self.exited = True
+
+# --------------------------------------------------------------------------- #
+#                           T E S T   S T A T E S                             #
+# --------------------------------------------------------------------------- #
+
+# Test States (Consider Magic base class to take care of the init method)
 
 class Start(TrackedState):
     def __init__(self, *args, **kwargs):
@@ -107,6 +117,10 @@ class LoopBack(TrackedState):
 
 class End(TrackedState):
     pass
+
+# --------------------------------------------------------------------------- #
+#                                 T E S T S                                   #
+# --------------------------------------------------------------------------- #
 
 class TestStateMachine(unittest.TestCase):
     def setUp(self):

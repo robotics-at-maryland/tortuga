@@ -9,23 +9,22 @@
 import math
 
 # Project Imports
-import ram.core as core
-from ram.motion.basic import Motion
 import ext.core
+import ram.core as core
+import ram.motion.common as common
+from ram.motion.basic import Motion
 
-class Pipe(ext.core.EventPublisher):
+class Pipe(common.Target):
     """
     Represents the pipe we are trying to follow
     """
-    UPDATE = ext.core.declareEventType('UPDATE')
     
     def __init__(self, x, y, relativeAngle):
-        ext.core.EventPublisher.__init__(self)
+        common.Target.__init__(self, x, y)
         self.setState(x, y, relativeAngle, publish = False)
 
     def setState(self, x, y, relativeAngle, publish = True):
-        self.x = x
-        self.y = y
+        common.Target.setState(self, x, y, False)
         self.relativeAngle = relativeAngle
 
         # Change them to degrees if they are ext.math.Degree/Radian types
@@ -35,9 +34,9 @@ class Pipe(ext.core.EventPublisher):
         if publish:
             self.publish(Pipe.UPDATE, ext.core.Event())
     
-class Base(Motion):
+class Hover(common.Hover):
     """
-    Base motion, by default it hovers over the center of the pipe and alings
+    A verision of ram.motion.common.Hover which aligns to target too
     """
     def __init__(self, pipe, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
                  #speedGain = 1.0, sidewaysSpeedGain = 1.0, 
@@ -46,39 +45,13 @@ class Base(Motion):
         @type  pipe: ram.motion.pipe.Pipe
         @param pipe: Target to attempt to reach
         """
-        Motion.__init__(self)
+        common.Hover.__init__(self, pipe, maxSpeed, maxSidewaysSpeed)
         
-        self._running = False
         self._pipe = pipe
-        self._maxSpeed = maxSpeed
-        self._maxSidewaysSpeed = maxSidewaysSpeed
-        #self._speedGain = speedGain
-        #self._sidewaysSpeedGain = sidewaysSpeedGain
         
         if yawGain > 1:
             raise TypeError("Yaw Gain must be <= 1")
         self._yawGain = yawGain
-        
-        self._conn = pipe.subscribe(Pipe.UPDATE, self._onPipeUpdate)
-        
-    def _start(self):
-        self._running = True
-        self._seek()
-        
-    def _setForwardSpeed(self):
-        """Determin forward speed (and bound within limits)"""
-        forwardSpeed = self._pipe.y * self._maxSpeed
-#        forwardSpeed = Hover._limit(self._pipe.y * self._speedGain,
-#                                    -self._maxSpeed, self._maxSpeed)
-        self._controller.setSpeed(forwardSpeed)
-        
-    def _setSidewaysSpeed(self):
-        """Determine sideways speed (and bound within limits)"""
-        sidewaysSpeed = self._pipe.x * self._maxSidewaysSpeed
-#        sidewaysSpeed = Hover._limit(self._pipe.x * self._sidewaysSpeedGain,
-#                                     -self._maxSidewaysSpeed,
-#                                     self._maxSidewaysSpeed)
-        self._controller.setSidewaysSpeed(sidewaysSpeed)
         
     def _turn(self):
         """Determine turn"""
@@ -95,35 +68,10 @@ class Base(Motion):
         self._controller.yawVehicle(yawCommand) 
         
     def _seek(self):
-        self._setForwardSpeed()
-        self._setSidewaysSpeed()
+        common.Hover._seek(self)
         self._turn()
 
-    @staticmethod
-    def _limit(val, min, max):
-        if val < min:
-            return min
-        elif val > max:
-            return max
-        return val
-
-    def _onPipeUpdate(self, event):
-        if self._running:
-            # Data already updated, so lets just keep seeking
-            self._seek()
-            
-    def stop(self):
-        """
-        Finishes off the motion, disconnects events, and putlishes finish event
-        """
-        self._running = False
-        self._controller.setSpeed(0)
-        self._controller.setSidewaysSpeed(0)
-        self._conn.disconnect()
-
-Hover = Base
-
-class Follow(Base):
+class Follow(Hover):
     def _setForwardSpeed(self):
         """Determin forward speed (and bound within limits)"""
         forwardSpeed = (1 - math.fabs(self._pipe.x)) * self._maxSpeed
