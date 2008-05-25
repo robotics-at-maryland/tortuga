@@ -39,35 +39,49 @@ EventFunctor::EventFunctor(bp::object pyObject) :
         //  * Free python functions have a 'func_code' attributes
         //  * For python function objects, their __call__ method has func_code
         bp::object func_code;
+        bp::object func_defaults;
         
         if (0 == PyObject_HasAttrString(pyObject.ptr(), "func_code"))
         {
             // Function object, need to increment count for 'self'
             expectedArgs += 1; 
             func_code = pyObject.attr("__call__").attr("func_code");
+            func_defaults = pyObject.attr("__call__").attr("func_defaults");
         }
         else
         {
             func_code = pyObject.attr("func_code");
+            func_defaults = pyObject.attr("func_defaults");
 
             // Handle instancemethod type callable
             if (0 != PyObject_HasAttrString(pyObject.ptr(), "im_self"))
                 expectedArgs += 1;
         }
 
-        int argCount = bp::extract<int>(func_code.attr("co_argcount"));
+        // Determine the number of default arguments
+        int defaultArgCount = 0;
+        if (Py_None != func_defaults.ptr())
+            defaultArgCount = bp::len(func_defaults);
+        
+        int maxArgCount = bp::extract<int>(func_code.attr("co_argcount"));
         // 0x4 in the flags means we have a function signature with *args 
         int flags = bp::extract<int>(func_code.attr("co_flags"));
 
+        // Argument count with default arguments considered
+        int minArgCount = maxArgCount - defaultArgCount;
+        
         // To many arguments
-        if (argCount > expectedArgs)
+        if (minArgCount > expectedArgs)
         {
             PyErr_SetString(PyExc_TypeError,
                             "Handler has to many args, expected 1");
             bad = true;
         }
+
+        // Note: 0x08 if flags means **kwargs in signature
+        
         // To few arguments and no "*args" in signature
-        else if ((argCount < expectedArgs) && !(flags & 4))
+        else if ((maxArgCount < expectedArgs) && !(flags & 4))
         {
             PyErr_SetString(PyExc_TypeError,
                             "Handler has too few args, expected 1");

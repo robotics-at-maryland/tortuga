@@ -57,6 +57,11 @@ class TestEventPublisher(unittest.TestCase):
         self.assertRaises(TypeError, self.epub.subscribe, "Test",
                           tooManyArgsVar)
 
+        def tooManyDefArgs(a, b, c = 1):
+            pass
+        self.assertRaises(TypeError, self.epub.subscribe, "Test",
+                          tooManyDefArgs)
+        
         # Corner cases, that should still pass
         def varArgs(*args):
             pass
@@ -65,6 +70,14 @@ class TestEventPublisher(unittest.TestCase):
         def goodWithVar(a, *args):
             pass
         self.epub.subscribe("Test", goodWithVar)
+
+        def goodWithDefault(a = 1):
+            pass
+        self.epub.subscribe("Test", goodWithDefault)
+
+        def goodWithDefArgs(a, b = 1):
+            pass
+        self.epub.subscribe("Test", goodWithDefArgs)
 
         self.epub.subscribe("Test", self.memberHandler)
 
