@@ -53,6 +53,27 @@ class State(object):
         """
         raise 
 
+class End(State):
+    """
+    State machine which demarks a valid end point for a state machine
+    
+    Ensure that any "dead ends" (states with no out transitions) are actually
+    intended to be that way.
+    """
+    def __init__(self, config = None, **kwargs):
+        State.__init__(self, config, **kwargs)
+
+class Branch(object):
+    """
+    A marker class indication we branch the state machine
+    """
+    def __init__(self, state):
+        """
+        @type state: ram.ai.state.State
+        @param state: The state to branch to
+        """
+        self.state = state
+
 class Machine(core.Subsystem):
     """
     An event based finite state machine.
@@ -270,36 +291,63 @@ class Machine(core.Subsystem):
         @type  ordered: boolean
         @param ordered: Whether or not to alphabetize the states
         """
-        graphText = "digraph aistate {\n"
-        stateList = []
+        fileobj.write("digraph aistate {\n")
+        stateTransitionList = []
+        traversedStates = []
         
-        Machine.traverse(state,stateList,[])
+        Machine._traverse(state, stateTransitionList, traversedStates)
         
         # Sort list for determinism
         if ordered:
-            stateList.sort()
+            stateTransitionList.sort()
 
-        nodeText = ""
-        for item in stateList:
-            nodeText += item + "\n"
-        graphText += nodeText + "}"
-        fileobj.write(graphText)
+        # Output Labels in Simple format        
+        traversedStates.sort(key = Machine._dottedName)
+        for state in traversedStates:
+            fullName = Machine._dottedName(state)
+            shortName = state.__name__
+            # Shape denots "end" states with a "Stop Sign" type shape
+            shape = 'circle'
+            if 0 == len(state.transitions()):
+                shape = 'doubleoctagon'
+            fileobj.write('%s [label=%s,shape=%s]\n' % \
+                          (fullName, shortName, shape))
+
+        for item in stateTransitionList:
+            fileobj.write(item + "\n")
+        fileobj.write("}")
         fileobj.flush() # Push data to file
         
     @staticmethod
-    def traverse(currentState,stateList,traversedList):
-        if currentState.transitions() == {}:
-            return
+    def _traverse(currentState,stateList,traversedList):
+        if 0 == len(currentState.transitions()):
+            if not currentState in traversedList:
+                    traversedList.append(currentState)
         else:
             for aiEvent,aiState in currentState.transitions().iteritems():
                 eventName = str(aiEvent).split(' ')[-1]
-                strStruct = currentState.__name__ + "->" +  aiState.__name__ 
-                strStruct += "[label=" + eventName+"]" # Add event label
+                
+                # Style is determine whether or not we are branching
+                style = "solid"
+                if type(aiState) is Branch:
+                    style = "dotted"
+                    aiState = aiState.state
+                
+                # Determine state names
+                startName = Machine._dottedName(currentState)
+                endName = Machine._dottedName(aiState)
+                
+                strStruct = "%s -> %s [label=%s,style=%s]" % \
+                    (startName, endName, eventName, style)
                 stateList.append(strStruct)
-                traversedList.append(currentState)
+                if not currentState in traversedList:
+                    traversedList.append(currentState)
 
                 # Don't recuse on a state we have already seen
                 if not aiState in traversedList:
-                    Machine.traverse(aiState,stateList,traversedList)
-
+                    Machine._traverse(aiState,stateList,traversedList)
+    @staticmethod
+    def _dottedName(cls):
+        return cls.__module__.replace('.','_') + '_' + cls.__name__
+    
 core.registerSubsystem('StateMachine', Machine)

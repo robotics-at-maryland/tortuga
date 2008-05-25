@@ -73,8 +73,8 @@ class Start(TrackedState):
                  "Change" : Simple,
                  "LoopBack" : LoopBack ,
                  MockEventSource.THING_UPDATED : End,
-                 MockEventSource.ANOTHER_EVT : QueueTestState}
- #                "Stuck" : state.PushState(Unstick) }
+                 MockEventSource.ANOTHER_EVT : QueueTestState,
+                 "Branch" : state.Branch(BranchedState) }
 
     def Start(self, event):
         self.event = event
@@ -89,9 +89,6 @@ class QueueTestState(TrackedState):
     @staticmethod
     def transitions():
         return {MockEventSource.ANOTHER_EVT : End}
-    
-#class Unstick(TrackedState):
-#    
 
 class Simple(state.State):
     @staticmethod
@@ -99,6 +96,10 @@ class Simple(state.State):
         return {MockEventSource.ANOTHER_EVT : Start}
 
 class LoopBack(TrackedState):
+    @staticmethod
+    def transitions():
+        return { "Update" : LoopBack }
+    
     def __init__(self, *args, **kwargs):
         TrackedState.__init__(self, *args, **kwargs)
         self.transCount = 0
@@ -108,15 +109,28 @@ class LoopBack(TrackedState):
         TrackedState.enter(self)
         self.enterCount += 1
 
-    @staticmethod
-    def transitions():
-        return { "Update" : LoopBack }
-
     def Update(self, event):
         self.transCount += 1
 
 class End(TrackedState):
     pass
+
+class BranchedState(TrackedState):
+    @staticmethod
+    def transitions():
+        return { "InBranchEvent" : BranchEnd }
+    
+class BranchEnd(state.End):
+    def __init__(self):
+        state.End.__init__(self, *args, **kwargs)
+        self.entered = False
+        self.exited = False
+        
+    def enter(self):
+        self.entered = True
+
+    def exit(self):
+        self.exited = True
 
 # --------------------------------------------------------------------------- #
 #                                 T E S T S                                   #
@@ -308,15 +322,25 @@ class TestStateMachine(unittest.TestCase):
         self.machine.writeStateGraph(mockFile,state, ordered = True)
         output = mockFile.getvalue()
         expected = "digraph aistate {\n" + \
-            "LoopBack->LoopBack[label=Update]\n" + \
-            "QueueTestState->End[label=ANOTHER_EVT]\n" + \
-            "Simple->Start[label=ANOTHER_EVT]\n" + \
-            "Start->End[label=Start]\n" + \
-            "Start->End[label=THING_UPDATED]\n" + \
-            "Start->LoopBack[label=LoopBack]\n" + \
-            "Start->QueueTestState[label=ANOTHER_EVT]\n" + \
-            "Start->Simple[label=Change]\n" + \
+            "state_BranchEnd [label=BranchEnd,shape=doubleoctagon]\n" + \
+            "state_BranchedState [label=BranchedState,shape=circle]\n" + \
+            "state_End [label=End,shape=doubleoctagon]\n" + \
+            "state_LoopBack [label=LoopBack,shape=circle]\n" + \
+            "state_QueueTestState [label=QueueTestState,shape=circle]\n" + \
+            "state_Simple [label=Simple,shape=circle]\n" + \
+            "state_Start [label=Start,shape=circle]\n" + \
+            "state_BranchedState -> state_BranchEnd [label=InBranchEvent,style=solid]\n" + \
+            "state_LoopBack -> state_LoopBack [label=Update,style=solid]\n" + \
+            "state_QueueTestState -> state_End [label=ANOTHER_EVT,style=solid]\n" + \
+            "state_Simple -> state_Start [label=ANOTHER_EVT,style=solid]\n" + \
+            "state_Start -> state_BranchedState [label=Branch,style=dotted]\n" + \
+            "state_Start -> state_End [label=Start,style=solid]\n" + \
+            "state_Start -> state_End [label=THING_UPDATED,style=solid]\n" + \
+            "state_Start -> state_LoopBack [label=LoopBack,style=solid]\n" + \
+            "state_Start -> state_QueueTestState [label=ANOTHER_EVT,style=solid]\n" + \
+            "state_Start -> state_Simple [label=Change,style=solid]\n" + \
             "}"
+
         self.assertEquals(expected,output)
         
         
