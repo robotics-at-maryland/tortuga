@@ -52,6 +52,8 @@ struct VisionSystemFixture
             boost::bind(&VisionSystemFixture::redFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::PIPE_FOUND,
             boost::bind(&VisionSystemFixture::pipeFoundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::BIN_FOUND,
+            boost::bind(&VisionSystemFixture::binFoundHandler, this, _1));
     }
 
     void redFoundHandler(core::EventPtr event_)
@@ -65,6 +67,12 @@ struct VisionSystemFixture
         pipeFound = true;
         pipeEvent = boost::dynamic_pointer_cast<vision::PipeEvent>(event_);
     }
+
+    void binFoundHandler(core::EventPtr event_)
+    {
+        binFound = true;
+        binEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
+    }
     
     
     bool redFound;
@@ -72,6 +80,9 @@ struct VisionSystemFixture
 
     bool pipeFound;
     vision::PipeEventPtr pipeEvent;
+
+    bool binFound;
+    vision::BinEventPtr binEvent;
     
     vision::OpenCVImage forwardImage;
     MockCamera* forwardCamera;
@@ -148,5 +159,28 @@ TEST_FIXTURE(VisionSystemFixture, PipeDetector)
     CHECK_CLOSE(math::Degree(25), pipeEvent->angle, math::Degree(0.5));
 }
     
+TEST_FIXTURE(VisionSystemFixture, BinDetector)
+{
+    vision::makeColor(&downwardImage, 0, 0, 255);
+    // draw orange square (upper left, remember image rotated 90 deg)
+    drawBin(&downwardImage, 640 - (640/4), 480/4, 130, 25);
+
+    // Start dectector and unbackground it
+    vision.binDetectorOn();
+    vision.unbackground(true);
+    forwardCamera->background(0);
+    
+    // Process the current camera image
+    vision.update(0);
+    vision.binDetectorOff();
+
+    forwardCamera->unbackground(true);
+
+    // Check Events
+    CHECK(binFound);
+    CHECK(binEvent);
+    CHECK_CLOSE(-0.5, binEvent->x, 0.05);
+    CHECK_CLOSE(0.5 * 640.0/480.0, binEvent->y, 0.1);
+}
 
 } // SUITE(RedLightDetector)

@@ -25,7 +25,9 @@ void makeColor(vision::Image* image, unsigned char R, unsigned char G,
 
 void drawSquare(vision::Image* image, int x, int y, int width, int height,
                 double angle, CvScalar color);
-
+    
+void drawBin(vision::Image* image, int x, int y, int width, double angle);
+    
 } // namespace vision
 } // namespace ram
 

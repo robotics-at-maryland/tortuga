@@ -148,12 +148,12 @@ VisionSystem::~VisionSystem()
 
 void VisionSystem::binDetectorOn()
 {
-    m_downward->addDetector(m_pipelineDetector);
+    m_downward->addDetector(m_binDetector);
 }
 
 void VisionSystem::binDetectorOff()
 {
-    m_downward->removeDetector(m_pipelineDetector);
+    m_downward->removeDetector(m_binDetector);
 }
 
 void VisionSystem::pipeLineDetectorOn()

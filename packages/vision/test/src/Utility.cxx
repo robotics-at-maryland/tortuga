@@ -65,6 +65,22 @@ void drawSquare(vision::Image* image, int x, int y, int width, int height,
     // Finally lets draw the image
     cvFillConvexPoly(image->asIplImage(), pts, 4, color);
 }
+
+void drawBin(vision::Image* image, int x, int y, int width,
+             double angle)
+{
+    // Generate the height based on the width
+    int height = (int)((double)width * 1.5);
+    
+    // Draw white first rectangle first
+    drawSquare(image, x, y, width, height, angle, CV_RGB(255, 255, 255));
+
+    // Draw black rectangle
+    int innerWidth = width / 2;
+    int innerHeight = width;
+
+    drawSquare(image, x, y, innerWidth, innerHeight, angle, CV_RGB(0, 0, 0));
+}
     
 } // namespace vision
 } // namespace ram

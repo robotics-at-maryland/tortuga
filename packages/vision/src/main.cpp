@@ -1646,8 +1646,8 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
         //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
         //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
         //cout<<"Distance:"<<distance<<endl;
-        cout<<"Total White Count:"<<totalWhite<<endl;
-        cout<<"Total Black Count:"<<totalBlack<<endl;
+        //cout<<"Total White Count:"<<totalWhite<<endl;
+        //cout<<"Total Black Count:"<<totalBlack<<endl;
 		if (distance<100 && totalWhite > 1000 && totalBlack > 1000)
 		{
 			//cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;

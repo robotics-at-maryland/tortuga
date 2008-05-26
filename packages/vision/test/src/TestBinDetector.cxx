@@ -23,22 +23,6 @@
 
 using namespace ram;
 
-void drawBin(vision::Image* image, int x, int y, int width,
-             double angle)
-{
-    // Generate the height based on the width
-    int height = (int)((double)width * 1.5);
-    
-    // Draw white first rectangle first
-    drawSquare(image, x, y, width, height, angle, CV_RGB(255, 255, 255));
-
-    // Draw black rectangle
-    int innerWidth = width / 2;
-    int innerHeight = width;
-
-    drawSquare(image, x, y, innerWidth, innerHeight, angle, CV_RGB(0, 0, 0));
-}
-
 struct BinDetectorFixture
 {
     BinDetectorFixture() :
@@ -92,7 +76,7 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 {
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
-    // draw orange square (upper left, remember image rotated 90 deg)
+    // draw the bin (upper left, remember image rotated 90 deg)
     drawBin(&input, 640 - (640/4), 480/4, 130, 25);
 
     // Process it
@@ -118,7 +102,7 @@ TEST_FIXTURE(BinDetectorFixture, Left)
 {
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
-    // draw orange square (left, remember image rotated 90 deg)
+    // draw the bin (left, remember image rotated 90 deg)
     drawBin(&input, 640/2, 480/4, 130, 0);
 
     // Process it
@@ -142,7 +126,7 @@ TEST_FIXTURE(BinDetectorFixture, LowerRight)
 {
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
-    // draw orange square (upper left, remember image rotated 90 deg)
+    // draw the bin (upper left, remember image rotated 90 deg)
     drawBin(&input, 640/4, 480/4 * 3, 130, -25);
 
     // Process it
@@ -166,7 +150,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterUp)
 {
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
-    // draw orange square in center sideways
+    // draw the bin in center sideways
     drawBin(&input, 640/2, 480/2, 130, 0);
 
     // Process it
@@ -190,7 +174,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
 {
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
-    // draw orange square in center sideways
+    // draw the bin in center sideways
     drawBin(&input, 640/2, 480/2, 130, 90);
     
     // Process it
