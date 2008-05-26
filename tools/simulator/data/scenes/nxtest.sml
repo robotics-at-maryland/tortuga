@@ -34,6 +34,16 @@ Scene:
                 mesh: 'cube.1m.mesh'
                 material: 'Simple/Orange'
                 scale: [1.2192, 0.1524, 0.0254]
+                
+        buoy:
+            type: [sim.vision.IBuoy, sim.vision.Buoy]
+            position: [-11.46, 4.54, -1.5]
+            orientation: [0, 0, 1, 45]
+            
+            Graphical:
+                mesh: 'sphere.50cm.mesh'
+                material: 'Simple/Red'
+                scale: [0.15, 0.15, 0.15]
         
         pipe2:
             type: [sim.vision.IPipe, sim.vision.Pipe]
