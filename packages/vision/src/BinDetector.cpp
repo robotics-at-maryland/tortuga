@@ -17,7 +17,7 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/Camera.h"
-
+#include "vision/include/Events.h"
 
 namespace ram {
 namespace vision {
@@ -42,7 +42,7 @@ void BinDetector::init(core::ConfigNode)
 	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
 	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
     bufferFrame = cvCreateImage(cvGetSize(rotated),8,3);
-	found=0;
+	m_found=0;
 	binX=-1;
 	binY=-1;
 	binCount=0;
@@ -83,32 +83,45 @@ void BinDetector::processImage(Image* input, Image* output)
 	binCount=white_detect(image,binFrame, bufferFrame, &binx,&biny);
 	if (biny!=-1 && binx!=-1)
 	{
-		binX=binx;
-		binX/=image->width;
-		binY=biny;
-		binY/=image->height;
-		found=true;
-        
-        CvPoint tl,tr,bl,br;
-		tl.x=bl.x= std::max(binx-4,0);
-		tr.x=br.x= std::min(binx+4,binFrame->width-1);
-		tl.y=tr.y= std::min(biny+4,binFrame->height-1);
-		br.y=bl.y= std::max(biny-4,0);
-		
-		cvLine(binFrame, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0 );
-		cvLine(binFrame, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0 );
-		cvLine(binFrame, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
-		cvLine(binFrame, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
+		binY=binx;
+		binY/=image->width;
+		binX=biny;
+		binX/=image->height;
+                binX -= .5;
+                binY -= .5;
+                binX *= 2;
+                binY *= 2;
+                binY *= 640.0/480.0;
+                
+		m_found=true;
+                
+                BinEventPtr event(new BinEvent(binX, binY));
+                publish(EventType::BIN_FOUND, event);
 	}
 	else
 	{
-		found=false;
-		binX=-1;
-		binY=-1;
+            if (m_found)
+                publish(EventType::BIN_LOST, core::EventPtr(new core::Event()));
+            
+            m_found=false;
+            binX=-1;
+            binY=-1;
 	}
 
         if (output)
         {
+            // Mark up frame for debugging
+            CvPoint tl,tr,bl,br;
+            tl.x=bl.x= std::max(binx-4,0);
+            tr.x=br.x= std::min(binx+4,binFrame->width-1);
+            tl.y=tr.y= std::min(biny+4,binFrame->height-1);
+            br.y=bl.y= std::max(biny-4,0);
+            
+            cvLine(binFrame, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0 );
+            cvLine(binFrame, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0 );
+            cvLine(binFrame, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
+            cvLine(binFrame, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
+            
             OpenCVImage temp(binFrame, false);
             output->copyFrom(&temp);
         }
@@ -124,6 +137,11 @@ IplImage* BinDetector::getAnalyzedImage()
 	return (IplImage*)(binFrame);
 }
 
+bool BinDetector::found()
+{
+    return m_found;
+}
+    
 double BinDetector::getX()
 {
 	return binX;

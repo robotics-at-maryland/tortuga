@@ -31,6 +31,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType PIPE_LOST;
     static const core::Event::EventType GATE_FOUND;
     static const core::Event::EventType BIN_FOUND;
+    static const core::Event::EventType BIN_LOST;
 };
 
 class RAM_EXPORT ImageEvent : public core::Event
@@ -44,6 +45,7 @@ public:
 
 typedef boost::shared_ptr<ImageEvent> ImageEventPtr;
     
+
 class RAM_EXPORT RedLightEvent : public core::Event
 {
 public:
@@ -59,6 +61,7 @@ public:
 };
 
 typedef boost::shared_ptr<RedLightEvent> RedLightEventPtr;
+
     
 class RAM_EXPORT PipeEvent : public core::Event
 {
@@ -72,6 +75,18 @@ public:
 };
 
 typedef boost::shared_ptr<PipeEvent> PipeEventPtr;
+
+class RAM_EXPORT BinEvent : public core::Event
+{
+public:
+    BinEvent(double x, double y)
+    { this->x=x; this->y=y; }
+    
+    double x;
+    double y;
+};
+
+typedef boost::shared_ptr<BinEvent> BinEventPtr;
     
 } // namespace vision
 } // namespace ram

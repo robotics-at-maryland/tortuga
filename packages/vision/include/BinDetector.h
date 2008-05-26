@@ -24,23 +24,23 @@ namespace vision {
 class RAM_EXPORT BinDetector : public Detector
 {
   public:
-    bool found;
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
     BinDetector(Camera*);
     ~BinDetector();
 
     void processImage(Image* input, Image* output= 0);
-    
     void update();
     void show(char* window);
+    bool found();
     double getX();
     double getY();
     IplImage* getAnalyzedImage();
     
   private:
     void init(core::ConfigNode config);
-    
+
+    bool m_found;
     double binX;
     double binY;
     int binCount;
