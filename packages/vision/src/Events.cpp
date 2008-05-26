@@ -20,6 +20,7 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, GATE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_CENTERED);
 
 // This section is only needed when we are compiling the wrappers
 // This registers converters to work around some issues with Boost.Python

@@ -9,6 +9,7 @@
 
 
 // Library Includes
+//#include "assert.h"
 #include "cv.h"
 #include "highgui.h"
 
@@ -19,24 +20,28 @@
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
 
+#include "math/include/Vector2.h"
+
 namespace ram {
 namespace vision {
 
 BinDetector::BinDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
     Detector(eventHub),
-    cam(0)
+    cam(0),
+    m_centered(false)
 {
     init(config);
 }
     
 BinDetector::BinDetector(Camera* camera) :
-    cam(camera)
+    cam(camera),
+    m_centered(false)
 {
     init(core::ConfigNode::fromString("{}"));
 }
 
-void BinDetector::init(core::ConfigNode)
+void BinDetector::init(core::ConfigNode config)
 {
 	frame = new OpenCVImage(640, 480);
 	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
@@ -46,6 +51,8 @@ void BinDetector::init(core::ConfigNode)
 	binX=-1;
 	binY=-1;
 	binCount=0;
+
+        m_centeredLimit = config["centeredLimit"].asDouble(0.1);
 }
     
 BinDetector::~BinDetector()
@@ -97,6 +104,21 @@ void BinDetector::processImage(Image* input, Image* output)
                 
                 BinEventPtr event(new BinEvent(binX, binY));
                 publish(EventType::BIN_FOUND, event);
+
+                // Determine Centered
+                math::Vector2 toCenter(binX, binY);
+                if (toCenter.normalise() < m_centeredLimit)
+                {
+                    if(!m_centered)
+                    {
+                        m_centered = true;
+                        publish(EventType::BIN_CENTERED, event);
+                    }
+                }
+                else
+                {
+                    m_centered = false;
+                }
 	}
 	else
 	{

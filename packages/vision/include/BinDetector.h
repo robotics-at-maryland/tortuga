@@ -49,6 +49,12 @@ class RAM_EXPORT BinDetector : public Detector
     IplImage* bufferFrame;
     Image* frame;
     Camera* cam;
+
+    /** Maximum distance for the bin to be considred "centered" */
+    double m_centeredLimit;
+    
+    /** Whether or not we are centered */
+    bool m_centered;
 };
 	
 } // namespace vision

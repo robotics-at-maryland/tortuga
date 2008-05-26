@@ -27,7 +27,7 @@ struct BinDetectorFixture
 {
     BinDetectorFixture() :
         found(false),
-//        centered(false),
+        centered(false),
         event(vision::BinEventPtr()),
         input(640, 480),
         eventHub(new core::EventHub()),
@@ -36,8 +36,8 @@ struct BinDetectorFixture
         // Subscribe to events like so
         eventHub->subscribeToType(vision::EventType::BIN_FOUND,
             boost::bind(&BinDetectorFixture::foundHandler, this, _1));
-//        eventHub->subscribeToType(vision::EventType::BIN_CENTERED,
-//            boost::bind(&BinDetectorFixture::centeredHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::BIN_CENTERED,
+            boost::bind(&BinDetectorFixture::centeredHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_LOST,
             boost::bind(&BinDetectorFixture::lostHandler, this, _1));
     }
@@ -48,11 +48,11 @@ struct BinDetectorFixture
         event = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
     }
 
-/*    void centeredHandler(core::EventPtr event_)
+    void centeredHandler(core::EventPtr event_)
     {
         centered = true;
         event = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
-        }*/
+    }
 
     void lostHandler(core::EventPtr event_)
     {
@@ -61,7 +61,7 @@ struct BinDetectorFixture
     }
     
     bool found;
-//    bool centered;
+    bool centered;
     vision::BinEventPtr event;
     vision::OpenCVImage input;
     core::EventHubPtr eventHub;
@@ -223,12 +223,11 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
     CHECK(found == true);
 }
 
-/*TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
+TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
 {
     // Bin in the lower right
     makeColor(&input, 0, 0, 255);
-    drawSquare(&input, 640/4, 480/4 * 3,
-               130, 50, 0, CV_RGB(230,180,40));
+    drawBin(&input, 640/4, 480/4 * 3, 130, 0);
     detector.processImage(&input);
     CHECK(found);
     CHECK(event);
@@ -238,7 +237,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
 
     // Now bin is dead center
     makeColor(&input, 0, 0, 255);
-    drawSquare(&input, 640/2, 480/2, 130, 50, 0, CV_RGB(230,180,40));    
+    drawBin(&input, 640/2, 480/2, 130, 0);
     detector.processImage(&input);
     CHECK(found);
 
@@ -247,6 +246,6 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
     CHECK(event);
     CHECK_CLOSE(0, event->x, 0.05);
     CHECK_CLOSE(0, event->y, 0.05);
-    }*/
+}
 
 } // SUITE(BinDetector)
