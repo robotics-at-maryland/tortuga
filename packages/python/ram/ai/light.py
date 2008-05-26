@@ -27,6 +27,8 @@ import ram.motion as motion
 import ram.motion.search
 import ram.motion.seek
 
+LIGHT_HIT = core.declareEventType('LIGHT_HIT')
+
 class Searching(state.State):
     @staticmethod
     def transitions():
@@ -88,4 +90,5 @@ class Hit(state.State):
         self.controller.setSpeed(0)
         
 class End(state.State):
-    pass
+    def enter(self):
+        self.publish(LIGHT_HIT, core.Event())

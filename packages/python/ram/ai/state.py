@@ -183,6 +183,13 @@ class Machine(core.Subsystem):
         for branch in self._branches.itervalues():
             branch.stop()
         self._branches = {}
+        
+    def stopBranch(self, stateType):
+        """
+        Stops just the desired branch, and its current type
+        """
+        self._branches[stateType].stop()
+        del self._branches[stateType]
 
     def injectEvent(self, event, _sendToBranches = False):
         """

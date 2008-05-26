@@ -440,6 +440,18 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(0, len(self.machine.branches))
         self.assert_(branchedState.exited)
         
+        # Now test stopping just one branch
+        self.machine.start(state.Branch(Simple))
+        self.machine.start(state.Branch(Start))
+        self.assertEqual(2, len(self.machine.branches))
+        
+        self.machine.stopBranch(Simple)
+        self.assertEqual(1, len(self.machine.branches))
+        self.assertFalse(self.machine.branches.has_key(Simple))
+        
+        self.machine.stopBranch(Start)
+        self.assertEqual(0, len(self.machine.branches))
+        self.assertFalse(self.machine.branches.has_key(Start))
         
         
 # Testing of State Class

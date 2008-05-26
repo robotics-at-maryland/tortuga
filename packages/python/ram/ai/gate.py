@@ -27,6 +27,9 @@ import ram.ai.state as state
 import ram.motion as motion
 import ram.motion.search
 
+# Denotes when this state machine finishes
+COMPLETE = core.declareEventType('COMPLETE')
+
 class Wait(state.State):
     @staticmethod
     def transitions():
@@ -47,18 +50,18 @@ class Dive(state.State):
         self.motionManager.stopCurrentMotion()
     
 class Forward(state.State):
-    FORWARD_DONE = core.declareEventType('FORWARD_DONE')
+    DONE = core.declareEventType('DONE')
 
     @staticmethod
     def transitions():
-        return {Forward.FORWARD_DONE : End}
+        return {Forward.DONE : End}
 
     def enter(self):
         # Full speed ahead!!
         self.controller.setSpeed(3)
         
-        # Timer goes off in 10 seconds then sends off FORWARD_DONE
-        self.timer = self.timerManager.newTimer(Forward.FORWARD_DONE, 10)
+        # Timer goes off in 10 seconds then sends off DONE
+        self.timer = self.timerManager.newTimer(Forward.DONE, 10)
         self.timer.start()
     
     def exit(self):
@@ -67,4 +70,4 @@ class Forward(state.State):
         
 class End(state.State):
     def enter(self):
-        pass
+        self.publish(COMPLETE, core.Event())

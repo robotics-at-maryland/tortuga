@@ -43,3 +43,20 @@ class TestGate(support.AITestCase):
         
         # Make sure we hit the end state
         self.assert_(self.machine.complete)
+    
+    def testEndEvent(self):
+        # Clear anything in the queue
+        self.qeventHub.publishEvents()
+        
+        # Subscribe to end event
+        self._complete = False
+        def finished(event):
+            self._complete = True
+        self.qeventHub.subscribeToType(gate.COMPLETE, finished)
+            
+        # Make sure we get the final event
+        self.timerBlock = True
+        self.machine.start(gate.Forward)
+        self.releaseTimer(self.machine.currentState().timer)
+        self.qeventHub.publishEvents()
+        self.assert_(self._complete)

@@ -76,10 +76,20 @@ class TestHit(support.AITestCase):
         self.machine.start(light.Hit)
         self.assert_(self.controller.speed > 0)
         self.assertEqual(False, self.visionSystem.redLightDetector)
+
+        # Subscribe to end event
+        self._lightHit = False
+        def lightHit(event):
+            self._lightHit = True
+        self.qeventHub.subscribeToType(light.LIGHT_HIT, lightHit)
         
         # Now make sure we stop
         self.releaseTimer(self.machine.currentState().timer)
         self.assertEqual(0, self.controller.speed)
+        
+        # Make sure we get the final event
+        self.qeventHub.publishEvents()
+        self.assert_(self._lightHit)
         
         # Make sure hit the end state
         self.assert_(self.machine.complete)

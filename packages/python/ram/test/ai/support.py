@@ -101,11 +101,16 @@ class AITestCase(TimerTester):
         kwargs['type'] = etype
         event = eclass(*args)
         
+        sendToBranches = False
+        if kwargs.has_key('sendToBranches'):
+            sendToBranches = True
+            del kwargs['sendToBranches']
+        
         # Set desired class attributes
         for attr, val in kwargs.iteritems():
             setattr(event, attr, val)
         
-        self.machine.injectEvent(event)
+        self.machine.injectEvent(event, _sendToBranches = sendToBranches)
         
     def releaseTimer(self, timer):
         """
