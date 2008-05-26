@@ -81,4 +81,5 @@ class TestHit(support.AITestCase):
         self.releaseTimer(self.machine.currentState().timer)
         self.assertEqual(0, self.controller.speed)
         
-        self.assertCurrentState(light.End)
+        # Make sure hit the end state
+        self.assert_(self.machine.complete)

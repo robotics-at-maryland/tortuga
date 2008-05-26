@@ -72,11 +72,11 @@ class Start(TrackedState):
         return { "Start" : End,
                  "Change" : Simple,
                  "LoopBack" : LoopBack ,
-                 MockEventSource.THING_UPDATED : End,
+                 MockEventSource.THING_UPDATED : Simple,
                  MockEventSource.ANOTHER_EVT : QueueTestState,
                  "Branch" : state.Branch(BranchedState) }
 
-    def Start(self, event):
+    def Change(self, event):
         self.event = event
         
     def THING_UPDATED(self, event):
@@ -88,9 +88,9 @@ class Start(TrackedState):
 class QueueTestState(TrackedState):
     @staticmethod
     def transitions():
-        return {MockEventSource.ANOTHER_EVT : End}
+        return {MockEventSource.ANOTHER_EVT : Simple}
 
-class Simple(state.State):
+class Simple(TrackedState):
     @staticmethod
     def transitions():
         return {MockEventSource.ANOTHER_EVT : Start}
@@ -118,9 +118,14 @@ class End(TrackedState):
 class BranchedState(TrackedState):
     @staticmethod
     def transitions():
-        return { "InBranchEvent" : BranchEnd }
+        return { "InBranchEvent" : BranchedMiddle }
     
-class BranchEnd(state.End):
+class BranchedMiddle(TrackedState):
+    @staticmethod
+    def transitions():
+        return { "InBranchEndEvent" : BranchedEnd }
+    
+class BranchedEnd(state.End):
     def __init__(self):
         state.End.__init__(self, *args, **kwargs)
         self.entered = False
@@ -161,14 +166,14 @@ class TestStateMachine(unittest.TestCase):
     def testInjectEvent(self):
         startState = self.machine.currentState()
 
-        self.machine.injectEvent(self._makeEvent("Start", value = 1))
+        self.machine.injectEvent(self._makeEvent("Change", value = 1))
         cstate = self.machine.currentState()
 
         # Check to me sure we left the start state
         self.assert_(startState.exited)
 
         # Check to make sure we reached the proper state
-        self.assertEquals(End, type(cstate))
+        self.assertEquals(Simple, type(cstate))
         self.assert_(cstate)
 
         # Make sure the transition function was called
@@ -223,16 +228,38 @@ class TestStateMachine(unittest.TestCase):
         self.assertEquals(5, cstate.transCount)
         self.assertFalse(newstate.exited)
         self.assertEquals(1, newstate.enterCount)
-        
-    def testEvents(self):
+       
+    def testComplete(self):
         enterRecv = Reciever()
         exitRecv = Reciever()
         self.machine.subscribe(state.Machine.STATE_ENTERED, enterRecv)
         self.machine.subscribe(state.Machine.STATE_EXITED, exitRecv)
+        
+        # Ensure that completion is detected
+        self.assertEqual(False, self.machine.complete)
+        self.machine.injectEvent(self._makeEvent("Start"))
+        self.assert_(self.machine.complete)
+        
+        # State machine is done, make sure there is no current state
+        self.assertEqual(None, self.machine.currentState())
+        
+        # Ensure we entered and exited the exit state
+        self.assertEquals(End, type(enterRecv.event.state))
+        self.assertEquals(End, type(exitRecv.event.state))
+
+    def testEvents(self):
+        enterRecv = Reciever()
+        exitRecv = Reciever()
+        completeRecv = Reciever()
+        self.machine.subscribe(state.Machine.STATE_ENTERED, enterRecv)
+        self.machine.subscribe(state.Machine.STATE_EXITED, exitRecv)
+        self.machine.subscribe(state.Machine.COMPLETE, completeRecv)
 
         startState = self.machine.currentState()
-        self.machine.injectEvent(self._makeEvent("Start"))
+        self.machine.injectEvent(self._makeEvent("Change"))
         nextState = self.machine.currentState()
+
+        self.assertNotEqual(startState, nextState)
 
         # Check enter event
         self.assertEquals(state.Machine.STATE_ENTERED, enterRecv.event.type)
@@ -243,6 +270,13 @@ class TestStateMachine(unittest.TestCase):
         self.assertEquals(state.Machine.STATE_EXITED, exitRecv.event.type)
         self.assertEquals(self.machine, exitRecv.event.sender)
         self.assertEquals(startState, exitRecv.event.state)
+        
+        # Check completion event
+        self.machine.injectEvent(self._makeEvent(MockEventSource.ANOTHER_EVT))
+        self.machine.injectEvent(self._makeEvent("Start"))
+        
+        self.assertEquals(state.Machine.COMPLETE, completeRecv.event.type)
+        self.assertEquals(self.machine, completeRecv.event.sender)
         
     def testDeclaredEvents(self):
         startState = self.machine.currentState()
@@ -255,7 +289,7 @@ class TestStateMachine(unittest.TestCase):
         self.assert_(startState.exited)
 
         # Check to make sure we reached the proper state
-        self.assertEquals(End, type(cstate))
+        self.assertEquals(Simple, type(cstate))
         self.assert_(cstate)
 
         # Make sure the transition function was called
@@ -280,6 +314,7 @@ class TestStateMachine(unittest.TestCase):
         # Release events and make sure we have transition properly
         qeventHub.publishEvents()
         self.assertEquals(QueueTestState, type(machine.currentState()))
+        self.assert_(startState.anotherEvtEvent)
         self.assertEquals(20, startState.anotherEvtEvent.value)
         
         # Fire off another event and make sure we haven't gone anywhere
@@ -322,30 +357,75 @@ class TestStateMachine(unittest.TestCase):
         self.machine.writeStateGraph(mockFile,state, ordered = True)
         output = mockFile.getvalue()
         expected = "digraph aistate {\n" + \
-            "state_BranchEnd [label=BranchEnd,shape=doubleoctagon]\n" + \
+            "state_BranchedEnd [label=BranchedEnd,shape=doubleoctagon]\n" + \
+            "state_BranchedMiddle [label=BranchedMiddle,shape=circle]\n" + \
             "state_BranchedState [label=BranchedState,shape=circle]\n" + \
             "state_End [label=End,shape=doubleoctagon]\n" + \
             "state_LoopBack [label=LoopBack,shape=circle]\n" + \
             "state_QueueTestState [label=QueueTestState,shape=circle]\n" + \
             "state_Simple [label=Simple,shape=circle]\n" + \
             "state_Start [label=Start,shape=circle]\n" + \
-            "state_BranchedState -> state_BranchEnd [label=InBranchEvent,style=solid]\n" + \
+            "state_BranchedMiddle -> state_BranchedEnd [label=InBranchEndEvent,style=solid]\n" + \
+            "state_BranchedState -> state_BranchedMiddle [label=InBranchEvent,style=solid]\n" + \
             "state_LoopBack -> state_LoopBack [label=Update,style=solid]\n" + \
-            "state_QueueTestState -> state_End [label=ANOTHER_EVT,style=solid]\n" + \
+            "state_QueueTestState -> state_Simple [label=ANOTHER_EVT,style=solid]\n" + \
             "state_Simple -> state_Start [label=ANOTHER_EVT,style=solid]\n" + \
             "state_Start -> state_BranchedState [label=Branch,style=dotted]\n" + \
             "state_Start -> state_End [label=Start,style=solid]\n" + \
-            "state_Start -> state_End [label=THING_UPDATED,style=solid]\n" + \
             "state_Start -> state_LoopBack [label=LoopBack,style=solid]\n" + \
             "state_Start -> state_QueueTestState [label=ANOTHER_EVT,style=solid]\n" + \
             "state_Start -> state_Simple [label=Change,style=solid]\n" + \
+            "state_Start -> state_Simple [label=THING_UPDATED,style=solid]\n" + \
             "}"
 
         self.assertEquals(expected,output)
+    
+    def testBasicBranching(self):
+        # Test Branching
+        self.machine.injectEvent(self._makeEvent("Branch"), 
+                                 _sendToBranches = True)
+        
+        # Make sure we are still in the start state
+        self.assertEqual(Start, type(self.machine.currentState()))
+
+        # Ensure the branch was created properly
+        self.assertEqual(1, len(self.machine.branches))
+        
+        # Make sure it was entered properly
+        branchedMachine = self.machine.branches[BranchedState]
+        branchStartState = branchedMachine.currentState()
+        self.assertEqual(BranchedState, type(branchStartState))
+        self.assert_(branchStartState.entered)
+        self.assertEqual(False, branchStartState.exited)
+        
+        # Make sure branched machine doesn't impair state changes events
+        self.machine.injectEvent(self._makeEvent("Change"),
+                                 _sendToBranches = True)
+        self.assertEqual(Simple, type(self.machine.currentState()))
+        
+        # Make sure events reach the branched machine
+        self.machine.injectEvent(self._makeEvent("InBranchEvent"),
+                                 _sendToBranches = True)
+        self.assert_(branchStartState.exited)
+        self.assertEqual(BranchedMiddle, type(branchedMachine.currentState()))
+        
+        # Make sure we are still in the proper main state machine state
+        self.assertEqual(Simple, type(self.machine.currentState()))
+        
+    def testRepeatBranching(self):
+        self.machine.injectEvent(self._makeEvent("Branch"), 
+                                 _sendToBranches = True)
+        
+        # Make sure branching again throws an error
+        self.assertRaises(Exception, self.machine.injectEvent, 
+                          self._makeEvent("Branch"), _sendToBranches = True)
         
         
 # Testing of State Class
 class StateTestConfig(state.State):
+    @staticmethod
+    def transitions():
+        return {'TEST' : StateTestConfig }
     def getConfig(self, val):
         return self._config[val]
 

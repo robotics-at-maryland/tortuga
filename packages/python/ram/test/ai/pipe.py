@@ -148,7 +148,8 @@ class TestBetweenPipes(aisupport.AITestCase):
         self.releaseTimer(self.machine.currentState().timer)
         self.assertEqual(0, self.controller.speed)
         
-        self.assertCurrentState(pipe.End)
+        # Make sure we hit the end state
+        self.assert_(self.machine.complete)
     
     def testPipeFound(self):
         """If we find a pipe, seek it"""

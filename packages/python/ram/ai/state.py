@@ -110,6 +110,7 @@ class Machine(core.Subsystem):
     
     STATE_ENTERED = core.declareEventType('STATE_ENTERED')
     STATE_EXITED = core.declareEventType('STATE_EXITED')
+    COMPLETE = core.declareEventType('COMPLETE')
     
     def __init__(self, cfg = None, deps = None):
         if deps is None:
@@ -126,10 +127,12 @@ class Machine(core.Subsystem):
         self._root = None
         self._currentState = None
         self._started = False
+        self._complete = False
         self._qeventHub = None
         self._previousEvent = core.Event()
         self._connections = []
         self._subsystems = {}
+        self._branches = {}
         
         # Deal with Subsystems
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
@@ -147,6 +150,7 @@ class Machine(core.Subsystem):
     def start(self, startState):
         self._root = startState
         self._started = True
+        self._complete = False
 
         self._enterState(startState)
 
@@ -162,8 +166,9 @@ class Machine(core.Subsystem):
         self._previousEvent = core.Event()
         self._root = None
         self._currentState = None
+        self._complete = False
 
-    def injectEvent(self, event):
+    def injectEvent(self, event, _sendToBranches = False):
         """
         Sends an event into the state machine
         
@@ -172,6 +177,10 @@ class Machine(core.Subsystem):
         
         @type  event: ext.core.Event
         @param event: A new event for the state machine to process 
+        
+        @type _sendToBranches: bool
+        @param _sendToBranches: Use only for testing, injects events into 
+                                branched state machines
         """
         # If the state we just entered transitions on same kind of event that
         # caused the transition, we can be notified again with the same event!
@@ -187,28 +196,51 @@ class Machine(core.Subsystem):
         nextState = transitionTable.get(event.type, None)
 
         if nextState is not None:
-            # For loops backs we don't reenter, or exit from our state, just
-            # call the transition function
+            # Determine if we are branching
+            branching = False
+            if Branch == type(nextState):
+                branching = True
+                nextState = nextState.state
+                
+            # Detemine if we are in a loopback
             loopback = False
             if nextState == type(self._currentState):
                 loopback = True
+                
+            # For loops backs or branches we don't reenter, or exit from our 
+            # state, just call the transition function
+            leaveState = False
+            if (not branching) and (not loopback):
+                leaveState = True
             
             # We are leaving the current state
-            if not loopback:
+            currentState = self._currentState
+            if leaveState:
                 self._exitState()
             
             # Call the function for the transitions
-            transFunc = self._getTransitionFunc(event.type, self._currentState)
+            transFunc = self._getTransitionFunc(event.type, currentState)
             if transFunc is not None:
                 transFunc(event)
 
             # Notify that we are entering the next state
-            if not loopback:
+            if (not loopback) and (not branching):
                 # Create an instance of the next state's class
                 self._enterState(nextState)
+            elif branching:
+                self._branchToState(nextState)
                 
         # Record previous event
         self._previousEvent = event
+        
+        if _sendToBranches:
+            for branch in self._branches.itervalues():
+                branch.injectEvent(event)
+
+    @property
+    def complete(self):
+        """Returns true when """
+        return self._complete
 
     def _enterState(self, newStateClass):
         """
@@ -216,8 +248,8 @@ class Machine(core.Subsystem):
         """
         
         # Subscribe to every event of the desired type
+        transitionTable = newStateClass.transitions()
         if self._qeventHub is not None:
-            transitionTable = newStateClass.transitions()
             for eventType in transitionTable.iterkeys():
                 conn = self._qeventHub.subscribeToType(eventType, 
                                                        self.injectEvent)
@@ -240,6 +272,13 @@ class Machine(core.Subsystem):
         event.state = self._currentState
         self.publish(Machine.STATE_ENTERED, event)
         
+        # If we are in a state with no way out, exit the state and mark ourself
+        # complete
+        if 0 == len(transitionTable):
+            self._exitState()
+            self._complete = True
+            self.publish(Machine.COMPLETE, core.Event())
+        
     def _exitState(self):
         """
         Does all the house keeping for when you are exiting an old state
@@ -253,6 +292,24 @@ class Machine(core.Subsystem):
         changeEvent = core.Event()
         changeEvent.state = self._currentState
         self.publish(Machine.STATE_EXITED, changeEvent)
+        
+        self._currentState = None
+
+    def _branchToState(self, nextState):
+        if self._branches.has_key(nextState):
+            raise Exception("Already branched to this state")
+        
+        # Create new state machine
+        deps = core.SubsystemList()
+        for subsystem in self._subsystems.itervalues():
+            deps.append(subsystem)
+        branchedMachine = Machine(self._config, deps)
+        
+        # Start it up with the proper state
+        branchedMachine.start(nextState)
+        
+        # Store new state machine
+        self._branches[nextState] = branchedMachine
 
     def _getTransitionFunc(self, etype, obj):
         """
@@ -274,6 +331,10 @@ class Machine(core.Subsystem):
         assert len(matches) < 2
         if len(matches) > 0:
             return matches[0]
+
+    @property
+    def branches(self):
+        return self._branches
 
     @staticmethod
     def writeStateGraph(fileobj, state, ordered = False):
