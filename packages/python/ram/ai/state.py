@@ -148,16 +148,28 @@ class Machine(core.Subsystem):
         return self._currentState
 
     def start(self, startState):
-        self._root = startState
-        self._started = True
-        self._complete = False
+        """
+        Starts or branches the state machine with the given state
+        
+        If the given state is really a branch, it will branch to that state
+        instead.
+        """
+        
+        if Branch == type(startState):
+            # Determine if we are branching
+            branching = True
+            self._branchToState(startState.state)
+        else:
+            self._root = startState
+            self._started = True
+            self._complete = False
 
-        self._enterState(startState)
+            self._enterState(startState)
 
     def stop(self):
         """
         Exits the current state, and stops if from responding to any more
-        events.
+        events. Also stops all branches
         """
         if self._currentState is not None:
             self._exitState()
@@ -167,6 +179,10 @@ class Machine(core.Subsystem):
         self._root = None
         self._currentState = None
         self._complete = False
+        
+        for branch in self._branches.itervalues():
+            branch.stop()
+        self._branches = {}
 
     def injectEvent(self, event, _sendToBranches = False):
         """
@@ -260,6 +276,11 @@ class Machine(core.Subsystem):
                                    newStateClass.__name__)
         stateCfg = self._config.get('States', {})
         config = stateCfg.get(fullClassName, {})
+        
+        # Add self to the list of subsystems
+        subsystems = self._subsystems
+        name = self.getName()
+        subsystems[name[0].lower() + name[1:]] = self
         
         # Create state instance from class, make sure to pass all subsystems
         # along as well

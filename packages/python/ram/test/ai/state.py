@@ -420,6 +420,27 @@ class TestStateMachine(unittest.TestCase):
         self.assertRaises(Exception, self.machine.injectEvent, 
                           self._makeEvent("Branch"), _sendToBranches = True)
         
+    def testBranchState(self):
+        self.machine.start(state.Branch(Simple))
+        
+        # Make sure current state stayed
+        self.assertEqual(Start, type(self.machine.currentState()))
+        
+        # Ensure we actually branched
+        self.assertEqual(1, len(self.machine.branches))
+        self.assert_(self.machine.branches.has_key(Simple))
+   
+    def testBranchStop(self):
+        self.machine.start(state.Branch(Simple))
+        branchedState = self.machine.branches[Simple].currentState()
+        
+        self.machine.stop()
+        
+        # Ensure we actually stopped the branch
+        self.assertEqual(0, len(self.machine.branches))
+        self.assert_(branchedState.exited)
+        
+        
         
 # Testing of State Class
 class StateTestConfig(state.State):
