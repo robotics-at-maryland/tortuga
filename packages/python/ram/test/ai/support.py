@@ -41,6 +41,7 @@ class MockVisionSystem(core.Subsystem):
         core.Subsystem.__init__(self, 'VisionSystem')
         self.redLightDetector = False
         self.pipeLineDetector = False
+        self.binDetector = False
          
     def redLightDetectorOn(self):
         self.redLightDetector = True
@@ -53,6 +54,12 @@ class MockVisionSystem(core.Subsystem):
         
     def pipeLineDetectorOff(self):
         self.pipeLineDetector = False
+        
+    def binDetectorOn(self):
+        self.binDetector = True
+        
+    def binDetectorOff(self):
+        self.binDetector = False
         
 class AITestCase(TimerTester):
     def setUp(self, extraDeps = None, cfg = None):

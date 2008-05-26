@@ -28,7 +28,7 @@ class Target(ext.core.EventPublisher):
         self.y = y
 
         if publish:
-            self.publish(Pipe.UPDATE, ext.core.Event())
+            self.publish(Target.UPDATE, ext.core.Event())
     
 class Hover(Motion):
     """

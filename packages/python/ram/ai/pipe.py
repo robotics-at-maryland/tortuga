@@ -5,8 +5,18 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/python/ram/ai/pipe.py
 
+
 """
-Currently hovers over the pipe
+A state machine for following the pipeline
+ - Searches for a pipe
+ - Centers over the first pipe, and waits to settle
+ - Drives forward until it doesn't see the pipe
+ - Goes back to the first step
+ 
+Requires the following subsystems:
+ - timerManager - ram.timer.TimerManager
+ - motionManager - ram.motion.MotionManager
+ - controller - ext.control.IController
 """
 
 # Project Imports
