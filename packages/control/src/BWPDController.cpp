@@ -24,6 +24,7 @@
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
+#include "core/include/TimeVal.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
@@ -368,7 +369,10 @@ void BWPDController::update(double timestep)
         
     
     // Log values
-    m_logfile << m_measuredState->quaternion[0] << " "
+    core::TimeVal timeVal;
+    timeVal.now();
+    m_logfile << timeVal.get_double() << " "
+         << m_measuredState->quaternion[0] << " "
          << m_measuredState->quaternion[1] << " "
          << m_measuredState->quaternion[2] << " "
          << m_measuredState->quaternion[3] << " "
@@ -547,7 +551,7 @@ void BWPDController::init(core::ConfigNode config)
     
     
     m_logfile.open("control_log.txt");
-    m_logfile << "% M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
+    m_logfile << "% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
               << std::endl;    
 }
     
