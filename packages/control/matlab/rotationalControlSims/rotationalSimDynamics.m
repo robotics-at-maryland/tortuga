@@ -1,0 +1,1 @@
+function dx=rotationalSimDynamics(t,x)
