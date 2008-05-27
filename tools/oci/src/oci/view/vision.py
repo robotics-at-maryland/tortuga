@@ -116,8 +116,13 @@ class VisionPanel(wx.Panel):
             pipePaneInfo = pipePaneInfo.Caption("Orange Pipe").Left()
             pipePanel = OrangePipePanel(parent, eventHub, vision)
             
+            binPaneInfo = wx.aui.AuiPaneInfo().Name("Bin")
+            binPaneInfo = binPaneInfo.Caption("Bin").Left()
+            binPanel = BinPanel(parent, eventHub, vision)
+            
             return [(buoyPaneInfo, buoyPanel, [vision]),
-                    (pipePaneInfo, pipePanel, [vision])]
+                    (pipePaneInfo, pipePanel, [vision]),
+                    (binPaneInfo, binPanel, [vision])]
         
         return []
 
@@ -206,6 +211,44 @@ class OrangePipePanel(VisionPanel):
         self.enableControls()
     
     def _onPipeLost(self, event):
+        self.disableControls()
+        
+        
+class BinPanel(VisionPanel):
+    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+        VisionPanel.__init__(self, parent, *args, **kwargs)
+        self._x = None
+        self._y = None
+
+        # Controls
+        self._createControls("Bin")
+        
+        # Events
+        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_FOUND,
+                                        self._onBinFound)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_LOST,
+                                        self._onBinLost)
+        self._connections.append(conn)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+        
+    def _onBinFound(self, event):
+        self._x.Value = "% 4.2f" % event.x
+        self._y.Value = "% 4.2f" % event.y    
+        
+        self.enableControls()
+    
+    def _onBinLost(self, event):
         self.disableControls()
         
 
