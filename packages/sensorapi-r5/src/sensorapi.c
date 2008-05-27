@@ -344,16 +344,6 @@ int lcdBacklight(int fd, int state)
     return simpleWrite(fd, HOST_CMD_BACKLIGHT, state, 3);
 }
 
-
-
-int thrusterSafety(int fd, int state)
-{
-    printf("You should use setThrusterSafety instead of thrusterSafety\n");
-    printf("Same parameters, same return value, just a better name.\n");
-    return setThrusterSafety(fd, state);
-}
-
-
 int setThrusterSafety(int fd, int state)
 {
     if(state<0 || state>11)

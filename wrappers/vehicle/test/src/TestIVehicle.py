@@ -31,7 +31,8 @@ class TestIVehicle(unittest.TestCase):
                 'depthCalibSlope': 33.01,
                 'depthCalibIntercept': 94,
                 'name' : 'TestVehicle',
-                'type' : 'Vehicle'
+                'type' : 'Vehicle',
+                'sensor_board_file' : '/dev/DOESNOTEXIST'
                 }
             cfg = core.ConfigNode.fromString(str(cfg))
             veh = core.SubsystemMaker.newObject(cfg, core.SubsystemList())

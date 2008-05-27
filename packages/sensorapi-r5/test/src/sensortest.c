@@ -8,7 +8,7 @@
 
 int main(int argc, char ** argv)
 {
-    unsigned char temp[NUM_TEMP_SENSORS];
+    //unsigned char temp[NUM_TEMP_SENSORS];
     int stv=0, ftv=0, fd=0;
     int ret = 0, err=0, i=0;
     long tst = 0;

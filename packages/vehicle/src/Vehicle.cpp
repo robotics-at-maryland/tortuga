@@ -24,7 +24,7 @@
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IIMU.h"
 
-#include "sensorapi/include/sensorapi.h"
+#include "sensorapi-r5/include/sensorapi.h"
 
 #include "math/include/Events.h"
 
@@ -79,7 +79,17 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         syncBoard(m_sensorFD);
         /// @TODO Check to see if we are already unsafed, and if we are don't 
         // try to unsafe again.  If we aren't unsafe, and sleep.
-        unsafeThrusters();
+
+        int thrusterState = readThrusterState(m_sensorFD);
+        if (SB_ERROR == thrusterState)
+        {
+            std::cout << "Sensor board error\n"; 
+        }
+        else if ((thrusterState & ALL_THRUSTERS_ENABLED) !=
+                 ALL_THRUSTERS_ENABLED)
+        {
+            unsafeThrusters();
+        }
     }
     
     // Get the thruster names
@@ -223,12 +233,12 @@ void Vehicle::safeThrusters()
     if (m_sensorFD >= 0)
     {
         // Todo, check whether these succeed
-        thrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER5_OFF);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER6_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER5_OFF);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER6_OFF);
     }
 }
 
@@ -239,12 +249,12 @@ void Vehicle::unsafeThrusters()
     if (m_sensorFD >= 0)
     {
         // todo check whether these succeed
-        thrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER5_ON);
-        thrusterSafety(m_sensorFD, CMD_THRUSTER6_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER5_ON);
+        setThrusterSafety(m_sensorFD, CMD_THRUSTER6_ON);
     }
 }
 

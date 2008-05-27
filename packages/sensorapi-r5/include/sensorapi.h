@@ -35,7 +35,7 @@ struct boardInfo
     /* These are scattered throughout. The first one is the sensorboard temp. */
     /* The last two are distro and balancer temp (or vice versa?)   */
     /* The middle ones are floaties, if we even have them connected */
-    char temperature[NUM_TEMP_SENSORS];
+    unsigned char temperature[NUM_TEMP_SENSORS];
 };
 
 
@@ -118,7 +118,9 @@ struct boardInfo
 #define THRUSTER4_ENABLED     0x08
 #define THRUSTER5_ENABLED     0x10
 #define THRUSTER6_ENABLED     0x20
-
+#define ALL_THRUSTERS_ENABLED \
+    (THRUSTER1_ENABLED | THRUSTER2_ENABLED | THRUSTER3_ENABLED | \
+     THRUSTER4_ENABLED | THRUSTER5_ENABLED | THRUSTER6_ENABLED) 
 
 /* Overcurrent bits. Last 2 are marker droppers */
 #define THRUSTER1_OVR     0x01
@@ -215,10 +217,8 @@ int dropMarker(int fd, int markerNum);
 
 int lcdBacklight(int fd, int state);
 
+/** Either enables or disables a desired thruster */
 int setThrusterSafety(int fd, int state);
-
-/* Deprecated. Use above. Same syntax. Better name. */
-int thrusterSafety(int fd, int state);
 
 int setBarState(int fd, int state);
 

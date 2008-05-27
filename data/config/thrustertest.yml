@@ -4,22 +4,6 @@ GUI:
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
 Subsystems:    
-    VisionSystem:
-        type: VisionSystem
-        depends_on: ["EventHub", "Vehicle"]
-        
-#       RedLightDetector:       
-#           intialMinPixels: 400
-#           foundMinPixelScale: 0.85
-#           lostMinPixelScale: 0.75
-#           # About 20% of the total pixels
-#           almostHitPixels: 61440.0
-        
-        # Recording Settings
-#        maxRecordRate: 5 # Hz
-#        forwardFile: forward.avi
-#        forwardPort: 50000
-    
     EventHub:
         type: EventHub
 
@@ -28,20 +12,7 @@ Subsystems:
         depends_on: ["EventHub"]
         type: QueuedEventHub
 
-    # Exectures Motions
-    MotionManager:
-        type: MotionManager
-        depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
 
-    # Handles Timers
-    TimerManager:
-        type: TimerManager
-        depends_on: ["EventHub"]
-
-    StateMachine:
-        type: StateMachine
-        depends_on: ["EventHub", "QueuedEventHub", "Controller",
-                     "MotionManager", "TimerManager", "VisionSystem"]
 
     # Object that creates the vehicle interface
     Vehicle:
@@ -129,49 +100,4 @@ Subsystems:
                 magZBias: 0.243998
 
                 localMagneticPitch: 60
-    RemoteController:
-        type: RemoteController
-        depends_on: ["Controller"]
-        update_interval: -1
-        yawGain: 50
-
-    Controller:
-        depends_on: ["Vehicle", "EventHub"]
-        type: BWPDController
-        update_interval: 40
-        orientationThreshold: 0.05
-
-        angularPGain: 7
-        angularDGain: 1
-        speedPGain: 3
-        sidewaysSpeedPGain: 3
-        # Should not be negative
-        depthPGain: 20
-
-#        inertia: [[0.501, 0, 0],
-#                  [0, 1.5, 0],
-#                  [0, 0, 1.5]]
-
-        desiredSpeed: 0
-        desiredDepth: 0
-        desiredQuaternion: [0, 0, 0, 1]
-
-        # Picks kind of depth controller
-        # 1 = P control (Normal)
-        # 4 = Dis. Obs. w/Integral Aug.
-        # 5 = PID
-        depthControlType: 1
-
-        # Discrete Observer Controller w/Integral Aug. (#4)
-        depthOCIA4: [0, 12217, -469, 0,
-                     0, 0, 0, 0,
-                     0, -9, 0, 0,
-                     0, 2932, 49, 1]
-        depthOCIB4: [-12221, 1, 9, -2937]
-        depthOCIC4: [0, 0, 0, 1]
-
-        # Settings for PID Depth Controller (#5)
-        depthKp: 10
-        depthKd: 4
-        depthKi: 1
 
