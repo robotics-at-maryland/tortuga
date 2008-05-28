@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/device/Thruster.h
+ * File:  packages/vision/include/device/Thruster7.h
  */
 
 #ifndef RAM_VEHICLE_DEVICE_THRUSTER_06_25_2007
@@ -61,6 +61,18 @@ public:
     /** This will force an update on the ThrusterCommunicator */
     virtual void update(double timestep);
 
+    virtual void setPriority(core::IUpdatable::Priority) {}
+
+    virtual core::IUpdatable::Priority getPriority() {
+        return IUpdatable::NORMAL_PRIORITY;
+    }
+
+    virtual void setAffinity(size_t) {};
+    
+    virtual int getAffinity() {
+        return -1;
+    };
+    
     /** This is delegated to the ThrusterCommunicator
      *
      *  @note  It affect ALL thrusters.

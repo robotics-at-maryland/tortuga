@@ -20,6 +20,7 @@
 // System Includes
 #ifdef RAM_POSIX
 #include <unistd.h>
+#include <pthread.h>
 #else
 #include <windows.h> // For Sleep()
 #endif // RAM_POSIX
@@ -32,6 +33,10 @@ const static long NSEC_PER_USEC = 1000;
 
 // How close do we try to get to actual sleep time (in usec)
 const static long SLEEP_THRESHOLD = 500;
+
+static int HIGH_PRIORITY_VALUE = 0;
+static int NORMAL_PRIORITY_VALUE = 0;
+static int LOW_PRIORITY_VALUE = 0;
 
 namespace ram {
 namespace core {
@@ -111,9 +116,12 @@ struct timeval *elapse_time(struct timeval *tv, unsigned msec) {
 Updatable::Updatable() :
     m_backgrounded(0),
     m_interval(100),
+    m_priority(NORMAL_PRIORITY),
+    m_affinity(-1),
     m_backgroundThread(0),
     m_threadStopped(1)
 {
+    initThreadPriorities();
 }
 
 Updatable::~Updatable()
@@ -121,7 +129,67 @@ Updatable::~Updatable()
     // Join and delete background thread if its still running
     cleanUpBackgroundThread();
 }
-    
+
+void Updatable::setPriority(Priority priority)
+{
+    boost::mutex::scoped_lock lock(m_upStateMutex);
+
+    if (priority != m_priority)
+    {
+        m_priority = priority;
+        int priorityValue = 0;
+
+        switch (priority)
+        {
+            case HIGH_PRIORITY:
+            {
+                priorityValue = HIGH_PRIORITY_VALUE;
+                break;
+            };
+
+            case NORMAL_PRIORITY:
+            {
+                priorityValue = NORMAL_PRIORITY_VALUE;
+                break;
+            };
+
+            case LOW_PRIORITY:
+            {
+                priorityValue = LOW_PRIORITY_VALUE;
+                break;
+            };
+            
+            default:
+                assert(false && "Invalid thread priority");
+        }
+
+#ifdef RAM_POSIX
+        // Ensure thread has SCHED_FIFO scheduling
+
+        // Set the proper 
+#endif
+    }
+}
+
+Updatable::Priority Updatable::getPriority()
+{
+    boost::mutex::scoped_lock lock(m_upStateMutex);
+    return m_priority;
+}
+
+void Updatable::setAffinity(size_t core)
+{
+    if (core <= 2)
+        m_affinity = (int)core;
+    else
+        m_affinity = -1;
+}
+
+int Updatable::getAffinity()
+{
+    return m_affinity;
+}
+     
 void Updatable::background(int interval)
 {
     bool startThread = false;
@@ -295,6 +363,44 @@ void Updatable::cleanUpBackgroundThread()
         m_backgroundThread = 0;
     }
 }
+
+void Updatable::initThreadPriorities()
+{
+    static bool init = false;
     
+    if (!init)
+    {
+#ifdef RAM_POSIX
+        HIGH_PRIORITY_VALUE = sched_get_priority_max(SCHED_FIFO);
+        LOW_PRIORITY_VALUE = sched_get_priority_min(SCHED_FIFO);
+
+        // We can test these values well, so lets assert to make sure they
+        // make sense
+        assert(HIGH_PRIORITY_VALUE > LOW_PRIORITY_VALUE &&
+               "Cannot determine proper thread prorities");
+        
+        // Determine normal priority by looking at my current priority
+        //pthread_t thisThread = pthread_self();
+        //struct sched_param sparam;
+        //int policy;
+        //pthread_getschedparam(thisThread, &policy, &sparam);
+        //NORMAL_PRIORITY_VALUE = sparam.sched_priority;
+        
+        // Note: The above doesn't work, becuase it appears to return 0
+        // so we are just pick the middle value
+        NORMAL_PRIORITY_VALUE = LOW_PRIORITY_VALUE +
+            ((HIGH_PRIORITY_VALUE - LOW_PRIORITY_VALUE) / 2);
+
+
+        // Check to make sure these values all make sense
+        assert(HIGH_PRIORITY_VALUE > NORMAL_PRIORITY_VALUE &&
+               "Cannot determine proper thread prorities");
+        assert(NORMAL_PRIORITY_VALUE > LOW_PRIORITY_VALUE &&
+               "Cannot determine proper thread prorities");
+#endif
+        init = true;
+    }
+}
+   
 } // namespace core     
 } // namespace ram

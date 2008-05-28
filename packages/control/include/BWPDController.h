@@ -101,6 +101,22 @@ public:
 
     /** @copydoc IController::atDepth() */
     virtual bool atDepth();
+
+    virtual void setPriority(core::IUpdatable::Priority priority) {
+        Updatable::setPriority(priority);
+    }
+    
+    virtual core::IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
+    }
+
+    virtual void setAffinity(size_t affinity) {
+        Updatable::setAffinity(affinity);
+    }
+    
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
     
     virtual void background(int interval) {
         Updatable::background(interval);

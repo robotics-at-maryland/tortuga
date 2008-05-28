@@ -104,10 +104,22 @@ public:
      *  This event goes out through the event hub as well.
      */
     virtual void publish(Event::EventType type, EventPtr event);
-    
+
+    /** Does nothing for this class */
     virtual void update(double timestep);
+    /** Does nothing for this class */
+    virtual void setPriority(IUpdatable::Priority priority);
+    /** Does nothing for this class, always returns NORMAL_PRIORITY */
+    virtual IUpdatable::Priority getPriority();
+    /** Does nothing for this class */
+    virtual void setAffinity(size_t affinity);
+    /** Does nothing for this class, always returns -1 */
+    virtual int getAffinity();
+    /** Does nothing for this class */
     virtual void background(int interval);
+    /** Does nothing for this class */
     virtual void unbackground(bool join);
+    /** Does nothing for this class, always returns false  */
     virtual bool backgrounded();
     
 private:

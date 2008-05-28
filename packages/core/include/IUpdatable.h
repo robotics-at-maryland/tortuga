@@ -24,8 +24,42 @@ namespace core {
 class RAM_EXPORT IUpdatable
 {
 public:
+    enum Priority
+    {
+        HIGH_PRIORITY,
+        NORMAL_PRIORITY,
+        LOW_PRIORITY
+    };
+    
     virtual ~IUpdatable() {};
 
+    /** Changes the priority of the background thread
+     *
+     *  Higher priority threads will be run in whenever they need to, even if
+     *  there are other lower priority threads which can run.
+     *
+     *  @priority
+     *      A value of the Priority enum
+     */
+    virtual void setPriority(Priority priority) = 0;
+
+    /** Returns the current priority of the background thread */
+    virtual Priority getPriority() = 0;
+
+    /** Set which CPU core you wish the background thread to run
+     *
+     *  By default it will run on any core.
+     *
+     *  @core
+     *      The CPU core you wish to run on, starts a 0.
+     */
+    virtual void setAffinity(size_t core) = 0;
+
+    /** Gets the current core the background thread runs on
+     *
+     *  @return -1, if no affinity is set.
+     */
+    virtual int getAffinity() = 0;
     
     /** Updates the Object.
      *

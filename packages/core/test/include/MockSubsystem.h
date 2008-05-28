@@ -28,7 +28,9 @@ public:
         config(config_),
         dependents(dependents_),
         inBackground(false),
-        rate(-1)
+        rate(-1),
+        priority(ram::core::IUpdatable::NORMAL_PRIORITY),
+        affinity(-1)
     {
     }
 
@@ -36,7 +38,21 @@ public:
     ram::core::SubsystemList dependents;
     bool inBackground;
     int rate;
-    
+    IUpdatable::Priority priority;
+    int affinity;
+
+    virtual void setPriority(ram::core::IUpdatable::Priority priority_) {
+        priority = priority_;
+    }
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        return priority;
+    }
+    virtual void setAffinity(size_t affinity_) {
+        affinity = affinity_;
+    };
+    virtual int getAffinity() {
+        return affinity;
+    };
     virtual void update(double) {}
     virtual void background(int rate_) {
         inBackground = true;

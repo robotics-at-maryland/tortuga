@@ -42,6 +42,24 @@ public:
     void gateDetectorOn();
     void gateDetectorOff();
 
+    /** Calls setPriority on Cameras, VisionRunners, and Recorders
+     *
+     *  @note Only valid when in testing mode, set by 'testing' in config file
+     */
+    virtual void setPriority(core::IUpdatable::Priority priority);
+
+    /** Not implemented, always returns core::IUpdatable::NORMAL_PRIORITY */
+    virtual core::IUpdatable::Priority getPriority() {
+        return core::IUpdatable::NORMAL_PRIORITY;
+    }
+
+    /** Not implemented */
+    virtual void setAffinity(size_t) {};
+    /** Not implemented */
+    virtual int getAffinity() {
+        return -1;
+    };
+    
     /** Calls background on the Cameras, VisionRunners and Recorders
      *
      *  @note Only valid when in testing mode, set by 'testing' in config file
@@ -54,6 +72,7 @@ public:
      */
     virtual void unbackground(bool join = false);
 
+    /** Not implemented, always return true */
     virtual bool backgrounded() {
       return true;
 //        return Updatable::backgrounded();

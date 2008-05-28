@@ -452,6 +452,26 @@ void Vehicle::update(double timestep)
     }
 }
 
+void Vehicle::setPriority(core::IUpdatable::Priority priority)
+{
+    BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+    {
+        pair.second->setPriority(priority);
+    }
+
+    Updatable::setPriority(priority);    
+}
+
+void Vehicle::setAffinity(size_t affinity)
+{
+    BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+    {
+        pair.second->setAffinity(affinity);
+    }
+
+    Updatable::setAffinity(affinity);    
+}
+    
 void Vehicle::background(int interval) 
 {
     BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)

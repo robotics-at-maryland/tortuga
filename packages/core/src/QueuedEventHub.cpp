@@ -79,19 +79,6 @@ void QueuedEventHub::update(double)
     m_imp->publishEvents();
 }
 
-void QueuedEventHub::background(int)
-{
-}
-
-void QueuedEventHub::unbackground(bool)
-{
-}
-
-bool QueuedEventHub::backgrounded()
-{
-    return false;
-}
-
 void QueuedEventHub::_publish(EventPtr event)
 {
     EventHub::publish(event);

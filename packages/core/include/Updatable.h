@@ -38,6 +38,14 @@ public:
     Updatable();
     virtual ~Updatable();
 
+    virtual void setPriority(Priority priority);
+
+    virtual Priority getPriority();
+
+    virtual void setAffinity(size_t core);
+
+    virtual int getAffinity();
+    
     virtual void update(double timestep) = 0;
 
     virtual void background(int interval = -1);
@@ -59,6 +67,9 @@ protected:
 private:
     /** Joins and delete's the background thread */
     void cleanUpBackgroundThread();
+
+    /** Determines the proper thread priorities based on the OS */
+    void initThreadPriorities();
     
     /** Guard the interval and background */
     boost::mutex m_upStateMutex;
@@ -69,6 +80,12 @@ private:
     /** Number of milliseconds between updates */
     int m_interval;
 
+    /** The priority of the running background thread */
+    Priority m_priority;
+
+    /** The core which background thread will run on */
+    int m_affinity;
+    
     /** Syncronizes access background tread, and latch */
     boost::mutex m_threadStateMutex;
     

@@ -118,6 +118,26 @@ void EventHub::publish(Event::EventType etype, EventPtr event)
     event->sender = this;
     publish(event);
 }
+  
+void EventHub::setPriority(IUpdatable::Priority)
+{
+}
+
+IUpdatable::Priority EventHub::getPriority()
+{
+    return IUpdatable::NORMAL_PRIORITY;
+}
+
+
+void EventHub::setAffinity(size_t)
+{
+}
+
+int EventHub::getAffinity()
+{
+    return -1;
+}
+
     
 void EventHub::update(double)
 {

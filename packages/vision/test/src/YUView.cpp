@@ -134,10 +134,15 @@ int main(int argc, char** argv)
     cvNamedWindow(V_FRAME_NAME, CV_WINDOW_AUTOSIZE);
 
     // Manual window position for easy display of all for windows
-//    cvMoveWindow(UV_FRAME_NAME, 1670 + 0, 0);
-//    cvMoveWindow(Y_FRAME_NAME, 1670 + 670, 0);
-//    cvMoveWindow(U_FRAME_NAME, 1670 + 670, 515);
-//    cvMoveWindow(V_FRAME_NAME, 1670 + 0, 515);
+    /*cvMoveWindow(UV_FRAME_NAME, 1670 + 0, 0);
+    cvMoveWindow(Y_FRAME_NAME, 1670 + 400, 0);
+    cvMoveWindow(U_FRAME_NAME, 1670 + 400, 400);
+    cvMoveWindow(V_FRAME_NAME, 1670 + 0, 400);*/
+
+    /*cvMoveWindow(UV_FRAME_NAME, 1670 + 0, 0);
+    cvMoveWindow(Y_FRAME_NAME, 1670 + 670, 0);
+    cvMoveWindow(U_FRAME_NAME, 1670 + 670, 515);
+    cvMoveWindow(V_FRAME_NAME, 1670 + 0, 515);*/
     
     Images images;
     images.src = 0;

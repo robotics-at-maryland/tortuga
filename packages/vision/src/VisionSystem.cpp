@@ -186,6 +186,21 @@ void VisionSystem::redLightDetectorOff()
     m_forward->removeDetector(m_redLightDetector);
 }
 
+void VisionSystem::setPriority(core::IUpdatable::Priority priority)
+{
+    assert(m_testing && "Can't background when not testing");
+    m_forwardCamera->setPriority(priority);
+    m_downwardCamera->setPriority(priority);
+
+    m_forward->setPriority(priority);
+    m_downward->setPriority(priority);
+
+    if (m_forwardRecorder)
+        m_forwardRecorder->setPriority(priority);
+    if (m_downwardRecorder)
+        m_downwardRecorder->setPriority(priority);        
+}
+    
 void VisionSystem::background(int interval)
 {
     assert(m_testing && "Can't background when not testing");

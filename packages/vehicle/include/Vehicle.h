@@ -67,8 +67,24 @@ public:
     /** This is <b>NOT</b> thread safe */
     virtual void _addDevice(device::IDevicePtr device);
 
+    /** Sets the priority to all background devices threads */
+    virtual void setPriority(core::IUpdatable::Priority priority);
+
+    virtual core::IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
+    }
+
+    /** Sets the affinity for all background devices threads */
+    virtual void setAffinity(size_t affinity);
+
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
+         
+    /** Backgrounds all devices with the given update interval */
     virtual void background(int interval);
-    
+
+    /** Unbackgrounds all devices */
     virtual void unbackground(bool join = false);
     
     virtual bool backgrounded() {

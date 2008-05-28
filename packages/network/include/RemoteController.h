@@ -45,6 +45,22 @@ class RAM_EXPORT RemoteController :
     /** Runs in a continous loop blocking on reading messages */
     virtual void update(double timeSinceLastUpdate);
 
+    virtual void setPriority(core::IUpdatable::Priority priority) {
+        Updatable::setPriority(priority);
+    }
+    
+    virtual core::IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
+    }
+
+    virtual void setAffinity(size_t affinity) {
+        Updatable::setAffinity(affinity);
+    }
+    
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
+    
     virtual void background(int interval)
     {
         core::Updatable::background(interval);

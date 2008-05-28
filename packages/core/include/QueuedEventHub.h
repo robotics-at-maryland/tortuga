@@ -58,10 +58,6 @@ public:
     
     /** Has the same effect as publishEvents() */
     virtual void update(double timestep);
-
-    virtual void background(int interval);
-    virtual void unbackground(bool join);
-    virtual bool backgrounded();
     
 private:
     /** Publishes the event to all subscribers */
