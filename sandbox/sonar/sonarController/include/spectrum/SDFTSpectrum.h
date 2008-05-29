@@ -47,7 +47,7 @@ public:
 				coef.real() = (1 << 16) * std::cos(2*M_PI*k/N);
 				coef.imag() = (1 << 16) * std::sin(2*M_PI*k/N);
 				X = coef *
-					(X - data[idx][channel] + sample[channel]);
+				(X - (adcmath_t) (data[idx][channel]) + (adcmath_t) (sample[channel])r);
 				X.real() = (X.real() >> 16) & 0xFFFF;
 				X.imag() = (X.imag() >> 16) & 0xFFFF;
 			}

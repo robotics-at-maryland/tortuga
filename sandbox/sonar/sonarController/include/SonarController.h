@@ -20,7 +20,7 @@
 
 #include "Sonar.h"
 #include "SonarChunk.h"
-#include "SimpleSlidingDFT.h"
+#include "TiledSlidingDFT.h"
 
 
 namespace ram {
@@ -114,7 +114,7 @@ void go();
 
 namespace /* internal */ {
 	
-	typedef SimpleSlidingDFT CONTROLLER_DFT_IMPL;
+	typedef TiledSlidingDFT CONTROLLER_DFT_IMPL;
 	
 	void setstate(sonarstate_t);
 	void setupWindow();

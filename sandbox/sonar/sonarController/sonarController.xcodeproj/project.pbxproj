@@ -1,0 +1,124 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXFileReference section */
+		A43B11D80DBE934400E39662 /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
+		A43B11E60DBE934400E39662 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		A43B11E70DBE934400E39662 /* SConstruct */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SConstruct; sourceTree = "<group>"; };
+		A43B11E80DBE934400E39662 /* SlidingDFT_comparison.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SlidingDFT_comparison.txt; sourceTree = "<group>"; };
+		A43B11E90DBE934400E39662 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
+		A43B12010DBE934400E39662 /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		A4FE7E8C0DBDC4AF00B34A9B = {
+			isa = PBXGroup;
+			children = (
+				A43B11D80DBE934400E39662 /* include */,
+				A43B11E60DBE934400E39662 /* main.cpp */,
+				A43B11E70DBE934400E39662 /* SConstruct */,
+				A43B11E80DBE934400E39662 /* SlidingDFT_comparison.txt */,
+				A43B11E90DBE934400E39662 /* src */,
+				A43B12010DBE934400E39662 /* test */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		A4FE7E970DBDC4D200B34A9B /* scons Build */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = A4FE7EF80DBDC50C00B34A9B /* Build configuration list for PBXLegacyTarget "scons Build" */;
+			buildPhases = (
+			);
+			buildToolPath = sonarController.xcodeproj/scons_xcode_adapter.sh;
+			dependencies = (
+			);
+			name = "scons Build";
+			passBuildSettingsInEnvironment = 1;
+			productName = SCons;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		A4FE7E8E0DBDC4AF00B34A9B /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = A4FE7E910DBDC4AF00B34A9B /* Build configuration list for PBXProject "sonarController" */;
+			compatibilityVersion = "Xcode 2.4";
+			hasScannedForEncodings = 0;
+			mainGroup = A4FE7E8C0DBDC4AF00B34A9B;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A4FE7E970DBDC4D200B34A9B /* scons Build */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		A4FE7E8F0DBDC4AF00B34A9B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		A4FE7E900DBDC4AF00B34A9B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+			};
+			name = Release;
+		};
+		A4FE7E980DBDC4D200B34A9B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = "scons Build";
+			};
+			name = Debug;
+		};
+		A4FE7E990DBDC4D200B34A9B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = SCons;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A4FE7E910DBDC4AF00B34A9B /* Build configuration list for PBXProject "sonarController" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4FE7E8F0DBDC4AF00B34A9B /* Debug */,
+				A4FE7E900DBDC4AF00B34A9B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4FE7EF80DBDC50C00B34A9B /* Build configuration list for PBXLegacyTarget "scons Build" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4FE7E980DBDC4D200B34A9B /* Debug */,
+				A4FE7E990DBDC4D200B34A9B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A4FE7E8E0DBDC4AF00B34A9B /* Project object */;
+}

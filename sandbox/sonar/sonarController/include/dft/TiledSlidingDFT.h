@@ -1,15 +1,20 @@
 /**
- * @file SimpleSlidingDFT.h
+ * @file TiledSlidingDFT.h
  *
  * @author Leo Singer
  * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *  
- * Simple, well documented implementation of a sliding DFT.
+ * Sliding discrete Fourier transform optimized for N divisible by k.
+ * Called a "tiled" DFT because the sine wave sin(2*pi*k*n/N) tiles perfectly
+ * across the fourier window of length N.
+ *
+ * Implemented as a sliding dot product.  Has the special property of phase 
+ * coherence.
  * 
  */
 
-#ifndef _RAM_SONAR_SIMPLESLIDINGDFT_H
-#define _RAM_SONAR_SIMPLESLIDINGDFT_H
+#ifndef _RAM_SONAR_TILEDSLIDINGDFT_H
+#define _RAM_SONAR_TILEDSLIDINGDFT_H
 
 #include "../Sonar.h"
 #include "SlidingDFT.h"
@@ -20,10 +25,11 @@ namespace sonar {
 
 
 template<int nchannels, int k, int N>
-class SimpleSlidingDFT : public SlidingDFT {
+class TiledSlidingDFT : public SlidingDFT {
 public:
-	SimpleSlidingDFT()
+	TiledSlidingDFT()
 	{
+		assert(N % k == 0);
 		for (int n = 0 ; n < N ; n++)
 		{
 			coefreal[n] = (adcdata_t) (cos(- 2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE);

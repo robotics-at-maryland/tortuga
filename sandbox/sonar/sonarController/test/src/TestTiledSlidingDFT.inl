@@ -1,5 +1,5 @@
 /*
- *  TestSimpleSlidingDFT.cpp
+ *  TestTiledSlidingDFT.cpp
  *  sonarController
  *
  *  Created by Leo Singer on 1/16/08.
@@ -7,14 +7,14 @@
  *
  */
 
-#include "dft/SimpleSlidingDFT.h"
+#include "dft/TiledSlidingDFT.h"
 
-struct SimpleSlidingDFTTestFixture {};
+struct TiledSlidingDFTTestFixture {};
 
 
-TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTRandomInput)
+TEST_FIXTURE(TiledSlidingDFTTestFixture, CompareDFTRandomInput)
 {
-	SimpleSlidingDFT<3, 5, 20> myDFT;
+	TiledSlidingDFT<3, 5, 20> myDFT;
 	int seed = 42, countFrames = 200;
 	int countInputData = myDFT.getCountChannels() * countFrames;
 	
@@ -28,9 +28,9 @@ TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTRandomInput)
 }
 
 
-TEST_FIXTURE(SimpleSlidingDFTTestFixture, CompareDFTCosineInput)
+TEST_FIXTURE(TiledSlidingDFTTestFixture, CompareDFTCosineInput)
 {
-	SimpleSlidingDFT<3, 5, 20> myDFT;
+	TiledSlidingDFT<3, 5, 20> myDFT;
 	int countFrames = 200;
 	int countInputData = myDFT.getCountChannels() * countFrames;
 	

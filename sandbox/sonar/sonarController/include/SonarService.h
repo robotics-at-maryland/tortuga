@@ -1,13 +1,14 @@
-#include <octave/oct.h>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <complex>
 #include "Sonar.h"
 
 #ifndef _SONAR_SONARSERVICE_H
 #define _SONAR_SONARSERVICE_H
 
-#ifdef __cplusplus
+
 namespace ram {
 namespace sonar {
-#endif
 
 
 typedef struct {
@@ -24,10 +25,10 @@ typedef struct {
 class SonarService {
 public:
 	SonarService();
-	ColumnVector localize(const PingRecord_t &);
+	boost::numeric::ublas::vector<double> localize(const PingRecord_t &);
 private:
 	//! A 4x4 matrix
-	Matrix m_calibration;
+	boost::numeric::ublas::matrix<double> m_calibration;
 };
 
 

@@ -2,7 +2,7 @@ This is a comparison between the two different algorithms for the Sliding DFT.
 The tables below compare the system resources used by the two algorithms for 
 various configurations.  It is immediately apparent that while the number of
 arithmetic operations scales mostly linearly in both M and P in both algorithms,
-the SimpleSlidingDFT algorithm consumes a great deal more memory than the 
+the TiledSlidingDFT algorithm consumes a great deal more memory than the 
 FastSlidingDFT algorithm.  The only other difference of note is that the 
 Simple algorithm replaces half the multiplications with additions.  This could
 be useful if the target architecture allows faster additions than multiplications,
@@ -41,7 +41,7 @@ N*M+2*P		adcdata_t variables
 
 
 
-SimpleSlidingDFT:
+TiledSlidingDFT:
 4*M*P 		additions
 2*M*P 		multiplications
 2*N*P		adcdata_t (static) variables--calculated based on frequency alone

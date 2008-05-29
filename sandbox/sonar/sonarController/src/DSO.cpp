@@ -1,9 +1,8 @@
-/*
- *  DSO.cpp
- *  sonarController
+/**
+ * @file DSO.cpp
  *
- *  Created by Leo Singer on 1/18/08.
- *  Copyright 2008 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  *
  */
 
@@ -12,7 +11,7 @@
 
 
 #include "Sonar.h"
-#include "dft/SimpleSlidingDFT.h"
+#include "dft/TiledSlidingDFT.h"
 #include "SonarChunk.h"
 #include "SampleDelay.h"
 #include "TDOA.h"

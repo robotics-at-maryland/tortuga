@@ -80,7 +80,7 @@ TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames
     for (int i = N ; i < countFrames ; i ++)
     {
     	//  Set up the DFT with fftw.  We are using fftw as a trusted 
-    	//  reference DFT.  SimpleSlidingDFT should give equivalent results.
+    	//  reference DFT.  TiledSlidingDFT should give equivalent results.
 		fftw_plan p = fftw_plan_many_dft_r2c(1, n, nchannels,
 											 &doubleSamples[(i - N) * nchannels], NULL,
 											 nchannels, 1,
@@ -146,6 +146,6 @@ TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames
 	delete [] n;
 }
 
-#include "TestSimpleSlidingDFT.inl"
+#include "TestTiledSlidingDFT.inl"
 #include "TestWrappedSlidingDFT.inl"
 //	#include "TestFastSlidingDFT.inl"

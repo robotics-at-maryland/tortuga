@@ -17,7 +17,7 @@
 
 #include "Sonar.h"
 #include "SonarChunk.h"
-#include "SimpleSlidingDFT.h"
+#include "TiledSlidingDFT.h"
 #include "SampleDelay.h"
 
 
@@ -45,7 +45,7 @@ class DSO {
 	
 	private:
 	bool *triggers;
-	SimpleSlidingDFT dft;
+	TiledSlidingDFT dft;
 	SampleDelay delayQueue;
 	int nchannels, k, N;
 	adcmath_t threshold;
