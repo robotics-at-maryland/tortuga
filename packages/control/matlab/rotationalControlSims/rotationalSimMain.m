@@ -7,17 +7,17 @@ clear;
 
 %initial position
 axis0=[0 0 1]';
-angle0=10*pi/180;
+angle0=0;
 q0=[axis0*sin(angle0/2); cos(angle0/2)];
 
 %initial angular rate
-w0=(pi/180)*[0 0 360/10]';
+w0=(pi/180)*[0 0 0]';
 
 %initial desired position
 qd0=q0;
 
 %initial desired angular rate
-wd0=w0;
+wd0=(pi/180)*[0 0 0]';
 
 x0=[q0; w0; qd0; wd0];
 
@@ -36,14 +36,22 @@ H=(0.45359/39.37^2)*H;
 
 %controller gain
 global Kd;
-Kd=1*eye(3);
+Kd=0*eye(3);%typically choose Kd=1*eye(3)
 global lambda;
-lambda=1;
+lambda=0;%typically choose lambda=1
+
+%drag constants
+global Cd;
+Cd=diag([1 5 5]);%i made these numbers up
+
+%buoyant force
+global fb;
+fb=2;%newtons, i made this number up
 
 
 %% timing
 t0=0;
-te=10;
+te=100;
 
 %% simulation
 options=odeset;

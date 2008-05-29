@@ -9,6 +9,8 @@ global H;
 global Kd;
 global lambda;
 
+%drag
+global Cd;
 
 %% unpack ODE data
 
@@ -51,8 +53,11 @@ u=-Kd*shat+H*dwr-S(H*wmeas)*wr;
 
 %% dynamics
 
+%drag
+drag=Cd*diag([abs(w(1)) abs(w(2)) abs(w(3))])*w;
+
 %propagate actual vehicle dynamics
-dw=inv(H)*(S(H*w)*w+u);
+dw=inv(H)*(S(H*w)*w+u-drag);
 
 %propagate actual vehicle kinematics
 dq=(1/2)*Q(q)*w;
