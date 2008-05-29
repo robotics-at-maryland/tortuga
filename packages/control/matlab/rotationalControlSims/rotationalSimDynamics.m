@@ -12,6 +12,13 @@ global lambda;
 %drag
 global Cd;
 
+%buoyant force
+global fb;
+
+%vector from center of gravity (CG) to center of buoyancy (CB)
+global rb;
+
+
 %% unpack ODE data
 
 q=x(1:4);
@@ -54,7 +61,15 @@ u=-Kd*shat+H*dwr-S(H*wmeas)*wr;
 %% dynamics
 
 %drag
+%drag=zeros(3,1);%use this line to turn off drag
 drag=Cd*diag([abs(w(1)) abs(w(2)) abs(w(3))])*w;
+
+%buoyant moment
+%buoyant=zeros(3,1);%use this line to turn off buoyant moment
+Rot=R(qmeas);
+buoyant=fb*[(r(2)*Rot(3,3)-r(3)*Rot(2,3));
+            (r(3)*R(1,3)-r(1)*R(3,3));
+            (r(1)*R(2,3)-r(2)*R(1,3))];
 
 %propagate actual vehicle dynamics
 dw=inv(H)*(S(H*w)*w+u-drag);

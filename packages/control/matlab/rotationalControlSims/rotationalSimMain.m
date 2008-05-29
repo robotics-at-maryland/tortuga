@@ -46,7 +46,10 @@ Cd=diag([1 5 5]);%i made these numbers up
 
 %buoyant force
 global fb;
-fb=2;%newtons, i made this number up
+fb=4;%newtons, i made this number up
+%vector from center of gravity (CG) to center of buoyancy (CB)
+global rb;
+rb=[0 0 0.05]';%meters, i made these numbers up
 
 
 %% timing
