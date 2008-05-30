@@ -26,6 +26,9 @@ class RAM_EXPORT IUpdatable
 public:
     enum Priority
     {
+        RT_HIGH_PRIORITY,
+        RT_NORMAL_PRIORITY,
+        RT_LOW_PRIORITY,
         HIGH_PRIORITY,
         NORMAL_PRIORITY,
         LOW_PRIORITY
@@ -36,7 +39,9 @@ public:
     /** Changes the priority of the background thread
      *
      *  Higher priority threads will be run in whenever they need to, even if
-     *  there are other lower priority threads which can run.
+     *  there are other lower priority threads which can run. RT threads are
+     *  real time threads.  Even the lowest priority real time threads has
+     *  priority over any non-realtime thread.
      *
      *  @priority
      *      A value of the Priority enum
@@ -51,13 +56,13 @@ public:
      *  By default it will run on any core.
      *
      *  @core
-     *      The CPU core you wish to run on, starts a 0.
+     *      The CPU core you wish to run on, starts at 0.
      */
     virtual void setAffinity(size_t core) = 0;
 
     /** Gets the current core the background thread runs on
      *
-     *  @return -1, if no affinity is set.
+     *  @return -1, if no affinity has been set.
      */
     virtual int getAffinity() = 0;
     
