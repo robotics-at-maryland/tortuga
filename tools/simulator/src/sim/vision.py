@@ -34,6 +34,10 @@ class IPipe(IObject):
     """ An object which you can see in the simulation"""
     pass
 
+class IBin(IObject):
+    """ An object which you can see in the simulation"""
+    pass
+
 # TODO: Fill out the methods for the class
 
 class Buoy(Visual):
@@ -52,6 +56,20 @@ class Buoy(Visual):
     
 class Pipe(Visual):
     core.implements(IVisual, IPipe)
+    
+    @two_step_init
+    def __init__(self):
+        Visual.__init__(self)
+
+    def load(self, data_object):
+        scene, parent, node = data_object
+        Visual.load(self, (scene, parent, node))
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
+
+class Bin(Visual):
+    core.implements(IVisual, IBin)
     
     @two_step_init
     def __init__(self):
@@ -95,9 +113,15 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundPipe = False
         self._pipeCentered = False
         
-        # Find all the Buoy's and Pipes
+        # Bin detector variables
+        self._runBin = False
+        self._foundBin = False
+        self._binCentered = False
+        
+        # Find all the Buoys, Pipes and Bins
         self._bouys = sim.scene.getObjectsByInterface(IBuoy)
         self._pipes = sim.scene.getObjectsByInterface(IPipe)
+        self._bins = sim.scene.getObjectsByInterface(IBin)
 
     def redLightDetectorOn(self):
         self._runRedLight = True
@@ -110,6 +134,12 @@ class IdealSimVision(ext.vision.VisionSystem):
         
     def pipeLineDetectorOff(self):
         self._runOrangePipe = False
+        
+    def binDetectorOn(self):
+        self._runBin = True
+        
+    def binDetectorOff(self):
+        self._runBin = False
 
     def backgrounded(self):
         return False
@@ -122,7 +152,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             self._checkRedLight()
         if self._runOrangePipe:
             self._checkOrangePipe()
-
+        if self._runBin:
+            self._checkBin()
     
     def _findClosest(self, objects):
         """
@@ -194,11 +225,19 @@ class IdealSimVision(ext.vision.VisionSystem):
 
         self._foundLight = lightVisible
         
-    def _checkOrangePipe(self):
-        # Determine orientation to the bouy
-        pipeVisible = False
-        pipe, relativePos = self._findClosest(self._pipes)
-                
+    def _downwardCheck(self, relativePos, obj):
+        """
+        Determines the whether or the object at the given relative position
+        is is visible, and if so, it returns its x, y (camera frame cordinates)
+        and angle.
+        
+        @type  relativePos: ogre.renderer.OGRE.Vector3
+        @param relativePos: The relative position to the downward object
+        
+        @rtype:  (bool, double, double, ext.math.Degree)
+        @return: (visible, x, y, angle)
+        """
+        
         camVector = self.vehicle.robot.orientation * -ogre.Vector3.UNIT_Z
         camVector.normalise()
 
@@ -222,26 +261,38 @@ class IdealSimVision(ext.vision.VisionSystem):
             pitch *= -1
         
         # Check to see if its the field of view
+        visible = False
+        x = 0.0
+        y = 0.0
+        angle = ext.math.Degree(0.0)
+        
         if (math.fabs(roll) <= (self._horizontalFOV/2)) and \
            (math.fabs(pitch) <= (self._verticalFOV/2)):
-            pipeVisible = True
+            visible = True
+            
+            x = roll / (self._horizontalFOV/2) * -1
+            y = pitch / (self._verticalFOV/2)
+            
+            # Find pipe relative angle
+            forwardPipe = obj.orientation * ogre.Vector3.UNIT_X
+            orientation = forwardVector.getRotationTo(forwardPipe)
+            angle = ext.math.Degree(orientation.getRoll(True).valueDegrees())
+            
+        return (visible, x, y, angle)
+        
+    def _checkOrangePipe(self):
+        pipe, relativePos = self._findClosest(self._pipes)
+        pipeVisible, x, y, angle = self._downwardCheck(relativePos, pipe)
 
         if pipeVisible and (relativePos.length() < 4.5):
             event = ext.core.Event()
-
-            event.x = roll / (self._horizontalFOV/2) * -1
-            event.y = pitch / (self._verticalFOV/2)
-            
-            # Find pipe relative pipe angle
-            forwardPipe = pipe.orientation * ogre.Vector3.UNIT_X
-            orientation = forwardVector.getRotationTo(forwardPipe)
-            event.angle = \
-                ext.math.Degree(orientation.getRoll(True).valueDegrees())
-            
+            event.x = x
+            event.y = y
+            event.angle = angle
             self.publish(ext.vision.EventType.PIPE_FOUND, event)
             
             # Check for centering
-            toCenter = ogre.Vector2(event.x, event.y)
+            toCenter = ogre.Vector2(x, y)
             if toCenter.normalise() < 0.08:
                 if not self._pipeCentered:
                     self._pipeCentered = True
@@ -255,6 +306,30 @@ class IdealSimVision(ext.vision.VisionSystem):
 
         self._foundPipe = pipeVisible
         
+    def _checkBin(self):
+        bin, relativePos = self._findClosest(self._bins)
+        binVisible, x, y, angle = self._downwardCheck(relativePos, bin)
+
+        if binVisible and (relativePos.length() < 4.5):
+            event = ext.core.Event()
+            event.x = x
+            event.y = y
+            self.publish(ext.vision.EventType.BIN_FOUND, event)
+            
+            # Check for centering
+            toCenter = ogre.Vector2(x, y)
+            if toCenter.normalise() < 0.08:
+                if not self._binCentered:
+                    self._binCentered = True
+                    self.publish(ext.vision.EventType.BIN_CENTERED, event)
+            else:
+                self._binCentered = False
+            
+        else:
+            if self._foundBin:
+                self.publish(ext.vision.EventType.BIN_LOST, ext.core.Event())
+
+        self._foundBin = binVisible
 
 ext.core.SubsystemMaker.registerSubsystem('IdealSimVision', IdealSimVision)
 
