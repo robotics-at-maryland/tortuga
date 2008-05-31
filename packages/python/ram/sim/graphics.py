@@ -161,27 +161,29 @@ class ICamera(Interface):
 class Camera(Component):
     implements(ICamera)
     
-    def __init__(self, name, scene, position, offset, near_clip = 0.5):
+    def __init__(self, name, scene, position, offset, orientation,
+                 near_clip = 0.5):
         self._camera = scene.scene_mgr.createCamera(name)
         self._camera.position = (Ogre.Vector3(offset).length(),0,0)
         self._camera.lookAt((0, 0, 0))
         self._camera.nearClipDistance = near_clip
+        
+        # Account for the odd up vector difference between our and Ogre's 
+        # default coordinate systems
+        self._camera.roll(Ogre.Degree(90))
+        self._camera.rotate(orientation)
                 
         # Allows easier movement of camera
         self._node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
         self._node.position = (0, 0, 0)
         self._node.attachObject(self._camera)
-        self._camera.lookAt(0, 0, 0)
     
         # Rotate the node to place the camera in its desired offset position
         self._node.rotate(self._camera.position.getRotationTo(offset))
     
-        # Account for the odd up vector difference between our and Ogre's 
-        # default coordinate systems
-        self._camera.roll(Ogre.Degree(-90))
-    
         # position camera
         self._node.position = position
+        self._node.setOrientation(orientation)
     
     #ICamera methods
     class camera(cls_property):
