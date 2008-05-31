@@ -20,7 +20,7 @@ import ram.motion as motion
 import ram.motion.basic
 
 from ram.test.timer import TimerTester
-from ram.test.motion.support import MockController, MockVehicle
+from ram.test.motion.support import MockController, MockVehicle, MockTimer
 
 
 class MockMotionManager(core.Subsystem):
@@ -62,14 +62,29 @@ class MockVisionSystem(core.Subsystem):
         self.binDetector = False
         
 class AITestCase(TimerTester):
+    def mockSleep(self, seconds):
+        self.seconds = seconds
+    
+    def mockTimer(self):
+        if not self._timerMocked:
+            # Replace Timer with out Mock Timer Class
+            timer._origTimer = timer.Timer
+            timer.Timer = MockTimer
+        else:
+            # Put the original timer class back
+            timer.Timer = timer._origTimer
+            del timer._origTimer
+    
     def setUp(self, extraDeps = None, cfg = None):
         TimerTester.setUp(self)
+        self._timerMocked = False
         
         if extraDeps is None:
             extraDeps = []
             
         if cfg is None:
             cfg = {}
+        
         
         self.eventHub = core.EventHub()
         self.qeventHub = core.QueuedEventHub(self.eventHub)
@@ -81,11 +96,13 @@ class AITestCase(TimerTester):
         deps = [self.controller, self.timerManager, self.eventHub, 
                 self.qeventHub, self.vehicle, self.visionSystem]
         
-        self.motionManager = motion.basic.MotionManager(cfg, deps)
+        mCfg = cfg.get('MotionManager', {})
+        self.motionManager = motion.basic.MotionManager(mCfg, deps)
         deps.append(self.motionManager)
         
         deps.extend(extraDeps)
-        self.machine = state.Machine(deps = deps)
+        sCfg = cfg.get('StateMachine', {})
+        self.machine = state.Machine(cfg = sCfg, deps = deps)
     
     def tearDown(self):
         TimerTester.tearDown(self)

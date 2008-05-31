@@ -43,7 +43,9 @@ class Dive(state.State):
     
     def enter(self):
         # Go to 5 feet in 5 increments
-        diveMotion = motion.basic.ChangeDepth(5, 5)
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 5),
+            speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         
     def exit(self):
@@ -58,10 +60,12 @@ class Forward(state.State):
 
     def enter(self):
         # Full speed ahead!!
-        self.controller.setSpeed(3)
+        self.controller.setSpeed(self._config.get('speed',3))
         
-        # Timer goes off in 10 seconds then sends off DONE
-        self.timer = self.timerManager.newTimer(Forward.DONE, 10)
+        # Timer goes off in X seconds then sends off DONE
+        self.timer = self.timerManager.newTimer(
+            eventType = Forward.DONE, 
+            duration = self._config.get('time', 10))
         self.timer.start()
     
     def exit(self):

@@ -17,11 +17,28 @@ import ram.motion.basic
 import ram.test.ai.support as support
 
 class TestGate(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.gate.Dive' : {
+                        'depth' : 7,
+                        'speed' : 2,
+                    },
+                    'ram.ai.gate.Forward' : {
+                        'speed' : 5,
+                         'time' : 15
+                    }
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+    
     def testDive(self):
         self.machine.start(gate.Dive)
         
         # Ensure we actually started diving
-        self.assertCurrentMotion(motion.basic.ChangeDepth)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
                 
         # Now make sure we go to forward after diving
         self.injectEvent(motion.basic.Motion.FINISHED)   
@@ -35,7 +52,7 @@ class TestGate(support.AITestCase):
         
         # Make sure we start driving forward
         self.machine.start(gate.Forward)
-        self.assert_(self.controller.speed > 0)
+        self.assertEqual(5, self.controller.speed)
         
         # Now make sure we stop
         self.releaseTimer(self.machine.currentState().timer)
