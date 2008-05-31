@@ -129,6 +129,10 @@ void BWPDController::setDepth(double depth)
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depth;
     publish(IController::DESIRED_DEPTH_UPDATE, event);
+
+    // Make sure to publish if we set a depth that is within our range
+    if (atDepth())
+        publishAtDepth();
 }
 
 double BWPDController::getSpeed()
@@ -260,6 +264,12 @@ void BWPDController::yawVehicle(double degrees)
   math::OrientationEventPtr event(new math::OrientationEvent());
   event->orientation = math::Quaternion(m_desiredState->quaternion);
   publish(IController::DESIRED_ORIENTATION_UPDATE, event);
+
+
+  if(atOrientation())
+  {
+      publishAtOrientation();
+  }
 }
 
 math::Quaternion BWPDController::getDesiredOrientation()
@@ -348,10 +358,7 @@ void BWPDController::update(double timestep)
     // We weren't at depth, now we are
     else if (!m_atDepth && atDepth())
     {
-        m_atDepth = true;
-        math::NumericEventPtr event(new math::NumericEvent());
-        event->number = m_measuredState->depth;
-        publish(IController::AT_DEPTH, event);        
+        publishAtDepth();
     }
 
     if (m_atOrientation && !atOrientation())
@@ -361,10 +368,7 @@ void BWPDController::update(double timestep)
     // We weren't at depth, now we are
     else if (!m_atOrientation && atOrientation())
     {
-        m_atOrientation = true;
-        math::OrientationEventPtr event(new math::OrientationEvent());
-        event->orientation = math::Quaternion(m_measuredState->quaternion);
-        publish(IController::AT_ORIENTATION, event);        
+        publishAtOrientation();
     }
         
     
@@ -554,6 +558,22 @@ void BWPDController::init(core::ConfigNode config)
     m_logfile << "% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
               << std::endl;    
 }
-    
+
+void BWPDController::publishAtDepth()
+{
+    m_atDepth = true;
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = m_measuredState->depth;
+    publish(IController::AT_DEPTH, event);
+}
+
+void BWPDController::publishAtOrientation()
+{
+    m_atOrientation = true;
+    math::OrientationEventPtr event(new math::OrientationEvent());
+    event->orientation = math::Quaternion(m_measuredState->quaternion);
+    publish(IController::AT_ORIENTATION, event);        
+}
+        
 } // namespace control
 } // namespace ram

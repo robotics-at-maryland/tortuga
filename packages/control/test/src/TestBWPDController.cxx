@@ -174,6 +174,10 @@ TEST_FIXTURE(Fixture, Event_AT_DEPTH)
     controller.update(1);
     controller.setDepth(3.7);
     CHECK_EQUAL(true, controller.atDepth());
+
+    // Make sure we get event if we are in range we set it
+    CHECK_EQUAL(4, actualDepth);
+    actualDepth = 0;
     
     // Make sure the event doesn't go off when we are at and loose it depth
     controller.setDepth(5);
@@ -276,6 +280,10 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     // 1 Degree difference
     controller.yawVehicle(16);
     CHECK_EQUAL(true, controller.atOrientation());
+
+    // Make sure when we set a value in range we still get the event
+    CHECK_EQUAL(orientation, actualOrientation);
+    actualOrientation = math::Quaternion::IDENTITY;
     
     // Make sure the event doesn't go off when we are at orientation and then
     // move out
@@ -288,7 +296,7 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     // 1.5 degrees left of desired
     controller.yawVehicle(-2.5);
     controller.update(1);
-    CHECK_EQUAL(actualOrientation, actualOrientation);
+    CHECK_EQUAL(orientation, actualOrientation);
 
     // Make sure it doesn't go off again until we have left the depth range
     actualOrientation = math::Quaternion::IDENTITY;

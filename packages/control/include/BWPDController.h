@@ -136,6 +136,10 @@ public:
 private:
     void init(core::ConfigNode config);
 
+    void publishAtDepth();
+
+    void publishAtOrientation();
+    
     /** Used to maintain state, so we don't issue continuous at depth updates */
     bool m_atDepth;
 
