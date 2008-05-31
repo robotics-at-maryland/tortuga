@@ -104,7 +104,7 @@ class Timer(threading.Thread):
     Throws event after given duration sleep in a background thread
     """
     
-    def __init__(self, eventPublisher, eventType, duration):
+    def __init__(self, eventPublisher, eventType, duration, repeat = False):
         """
         @type  eventPublisher: ext.core.EventPublisher
         @param eventPublisher: Publisher to publish the event with
@@ -114,6 +114,9 @@ class Timer(threading.Thread):
         
         @type  duration: float
         @param duration: The seconds to sleep
+        
+        @type  repeat: bool
+        @param repeat: Whether or not the timer repeats
         """
         threading.Thread.__init__(self)
         
@@ -121,6 +124,7 @@ class Timer(threading.Thread):
         self._eventType = eventType
         self._sleepTime = duration
         self._running = True
+        self._repeat = repeat
         
     def run(self):
         """
@@ -128,14 +132,20 @@ class Timer(threading.Thread):
 
         This is implements the standard python threading.Thread method.
         """
-        # Sleep for that time period
-        sleep(self._sleepTime)
+        
+        while True:
+            # Sleep for that time period
+            sleep(self._sleepTime)
 
-        # Publish event
-        self._complete()
+            # Publish event
+            self._complete()
 
-        # Set running to false
-        self.stop()
+            # Set running to false
+            if not self._repeat:
+                self.stop()
+            
+            if not self._running:
+                break
  
     def stop(self):
         """

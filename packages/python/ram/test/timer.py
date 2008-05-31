@@ -8,6 +8,7 @@
 # STD Imports
 import unittest
 import time as time
+import math
 
 # Project Imports
 import ext.core as core
@@ -42,6 +43,15 @@ class TestSleepFuncs(unittest.TestCase):
         
 
 class TimerTester(unittest.TestCase):
+    def replaceNanosleep(self):
+        if not self.nanoSleepMocked:
+            self.origNanosleep = timer.nanosleep
+            timer.nanosleep = self.mockNanosleep
+            self.nanoSleepMocked = True
+        else:
+            timer.nanosleep = self.origNanosleep
+            self.nanoSleepMocked = False
+    
     def mockNanosleep(self, sec, nsec):
         self.sec = sec
         self.nsec = nsec
@@ -51,14 +61,14 @@ class TimerTester(unittest.TestCase):
             pass
 
     def setUp(self):
+        self.nanoSleepMocked = False
         # Replace nanosleep with out Mock sleep function
-        self.origNanosleep = timer.nanosleep
-        timer.nanosleep = self.mockNanosleep
+        self.replaceNanosleep()
         self.timerBlock = False
         
     def tearDown(self):
         # Put back the original function
-        timer.nanosleep = self.origNanosleep
+        self.replaceNanosleep()
         self.timerBlock = False
 
 
@@ -71,15 +81,30 @@ class TestTimer(TimerTester):
         self.epub = core.EventPublisher()
         self.epub.subscribe(TestTimer.TIMER_EVENT, self.handleTimer)
         self.event = None
+        self.count = 0
         
     def tearDown(self):
         TimerTester.tearDown(self)
         self.epub = None
         self.event = None
+        self.count = 0
     
     def handleTimer(self, event):
+        self.count += 1
         self.event = event
         self.endTime = timer.time()
+    
+    def checkTimer(self, seconds, eventType = None):
+        sec = math.floor(seconds)
+        secFloat = seconds - sec
+    
+        self.assertEquals(sec, self.sec)
+        self.assertEquals(secFloat * 1e9, self.nsec)
+        
+        if eventType is None:
+            self.assertEquals(None, self.event)
+        else:
+            self.assertEquals(eventType, self.event.type)
     
     def testStart(self):
         # Create time and record the current time
@@ -89,9 +114,8 @@ class TestTimer(TimerTester):
         newTimer.start()
         newTimer.join()
         
-        self.assertEquals(0, self.sec)
-        self.assertEquals(0.25 * 1e9, self.nsec)
-        self.assertEquals(TestTimer.TIMER_EVENT, self.event.type)
+        self.checkTimer(0.25, TestTimer.TIMER_EVENT)
+        self.assertEqual(1, self.count)
     
     def testStop(self):        
         # Create time and record the current time
@@ -106,9 +130,25 @@ class TestTimer(TimerTester):
         self.timerBlock = False
         newTimer.join()
         
-        self.assertEquals(0, self.sec)
-        self.assertEquals(0.25 * 1e9, self.nsec)
-        self.assertEquals(None, self.event)
+        self.checkTimer(0.25)
+        
+    def testRepeat(self):
+        # Make the timer normal
+        self.replaceNanosleep()
+        
+        newTimer = timer.Timer(self.epub, TestTimer.TIMER_EVENT, 0.1,
+                               repeat = True)
+        newTimer.start()
+        time.sleep(0.5)
+        newTimer.stop()
+        newTimer.join()
+        
+        
+        self.assert_((3 < self.count) and (self.count < 10))
+        self.assertEqual(TestTimer.TIMER_EVENT, self.event.type)
+        
+        self.replaceNanosleep()
+      
         
 class TestTimerManager(TimerTester):
     def handleTimer(self, event):
