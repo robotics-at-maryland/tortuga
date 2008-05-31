@@ -98,4 +98,3 @@ class Centering(state.State):
 class End(state.State):
     def enter(self):
         self.visionSystem.binDetectorOff()
-        #print '"Pipe Follow"'

@@ -198,37 +198,47 @@ class RateChangeDepth(Motion):
         Motion.__init__(self)
 
         self._desiredDepth = desiredDepth
-        self._speed = speed
-        self._rate = rate
+        self._speed = float(speed)
+        self._rate = float(rate)
         self._interval = 1 / float(rate)
         self._conn = None
         
     def _start(self):
+        # Ensure the controller is consistent with vehicle
         currentDepth = self._vehicle.getDepth()
+        self._controller.setDepth(currentDepth)
+        
         absDepthDifference = pmath.fabs(currentDepth - self._desiredDepth)
 
-        self._stepCount = absDepthDifference / self._speed / self._rate;
+        self._stepCount = absDepthDifference / (self._speed / self._rate)
         self._stepSize = (self._desiredDepth - currentDepth) / self._stepCount
+        self._stepCount = int(self._stepCount)
         
         self._timer  = timer.Timer(self, RateChangeDepth.NEXT_DEPTH,
-                                   self._rate)
+                                   self._interval, repeat = True)
         # Register to NEXT_DEPTH events
         self._conn = self._eventHub.subscribeToType(RateChangeDepth.NEXT_DEPTH,
                                                     self._onTimer)
         self._timer.start()
 
     def _onTimer(self, event):
-        if self._stepCount != 0:
-            self._controller.setDepth(self._controller.getDepth() +
+        setDepth = self._controller.getDepth()
+        depthDiff = pmath.fabs(setDepth - self._desiredDepth)
+        
+        if (self._stepCount > 0) and (depthDiff > 0.0001):
+            self._controller.setDepth(self._controller.getDepth() + \
                                       self._stepSize)
             self._stepCount -= 1
+        else:
+            self._finish()
         
     def _finish(self):
         """
         Finishes off the motion, disconnects events, and putlishes finish event
         """
-        Motion._finish(self)
+        self._timer.stop()
         self._conn.disconnect()
+        Motion._finish(self)
 
     def stop(self):
         self._conn.disconnect()

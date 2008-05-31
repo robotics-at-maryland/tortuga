@@ -96,54 +96,74 @@ class TestRateChangeDepth(support.MotionTest):
     def handleFinished(self, event):
         self.motionFinished = True
         
-#    def testDive(self):
-#        self.vehicle.depth = 5
-#        # Go to ten units, at 1 unit a second, with a 10Hz update rate
-#        m = motion.basic.RateChangeDepth(desiredDepth = 10, speed=1, rate = 10) 
-#        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-#                                       self.handleFinished)
-#        
-#        
-#        
-#        # Start
-#        self.motionManager.setMotion(m)
-#
-#        mockTimer = MockTimer.LOG[motion.basic.RateChangeDepth.NEXT_DEPTH]
-#        self.assertEqual()
-#
-#        # Check fifty steps
-#        #for i in xrange(0, 50):
-#            
-#        
-#        
-#        self.qeventHub.publishEvents()
-#
-#        # Make sure we got that many commands
-#        self.assertEqual(50, self.count)
-#        # Make sure the final depth is right
-#        self.assertEqual(10, self.controller.depth)
-#            
-#        self.assert_(self.motionFinished)
-            
-#    def testSurface(self):
-#        self.vehicle.depth = 10
-#        m = motion.basic.ChangeDepth(5, 5) 
-#        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-#                                      self.handleFinished)
+    def testDive(self):
+        self.vehicle.depth = 5
         
-        # First step
-#        self.motionManager.setMotion(m)
+        # Go to ten units, at 1 unit a second, with a 10Hz update rate
+        m = motion.basic.RateChangeDepth(desiredDepth = 11, speed=2, rate = 10) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
+                                       self.handleFinished)
         
-#        for i in reversed(xrange(5,10)):
-            # Make sure we didn't finish early
-#            self.assert_(not self.motionFinished)
-            # Make sure the proper depth was commanded
-#            self.assertEqual(i, self.controller.depth)
-            # Say we have reached the depth to keep going
-#            self.controller.publishAtDepth(i)
-#            self.qeventHub.publishEvents()
-            
-#        self.assert_(self.motionFinished)
+        # Start
+        self.motionManager.setMotion(m)
+
+        mockTimer = \
+            support.MockTimer.LOG[motion.basic.RateChangeDepth.NEXT_DEPTH]
+        self.assert_(mockTimer.repeat)
+        self.assertEqual(mockTimer.sleepTime, 0.1)
+
+        # Check fifty steps
+        expectedDepth = 5
+        for i in xrange(0, 30):
+            expectedDepth += 0.2
+            mockTimer.finish()
+            self.qeventHub.publishEvents()
+            self.assertEqual(expectedDepth, self.controller.depth)
+        self.assertAlmostEqual(11, self.controller.depth, 3)
+
+        # Make sure more events don't let it keep going        
+        mockTimer.finish()
+        self.qeventHub.publishEvents()
+
+        self.assertAlmostEqual(11, self.controller.depth, 3)
+        self.assertEqual(True, self.motionFinished)
+
+    def testSurface(self):
+        self.vehicle.depth = 10
+        
+        # Go to ten units, at 1 unit a second, with a 10Hz update rate
+        m = motion.basic.RateChangeDepth(desiredDepth = 4, speed=2, rate = 10) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # Start
+        self.motionManager.setMotion(m)
+
+        mockTimer = \
+            support.MockTimer.LOG[motion.basic.RateChangeDepth.NEXT_DEPTH]
+        self.assert_(mockTimer.repeat)
+        self.assertEqual(mockTimer.sleepTime, 0.1)
+
+        # Check fifty steps
+        expectedDepth = 10
+        for i in xrange(0, 30):
+            expectedDepth -= 0.2
+            mockTimer.finish()
+            self.qeventHub.publishEvents()
+            self.assertEqual(expectedDepth, self.controller.depth)
+        self.assertAlmostEqual(4, self.controller.depth, 3)
+
+        # Make sure more events don't let it keep going        
+        mockTimer.finish()
+        self.qeventHub.publishEvents()
+
+        self.assertAlmostEqual(4, self.controller.depth, 3)
+        self.assertEqual(True, self.motionFinished)
+
+
+
+
+
         
 class TestChangeHeading(support.MotionTest):
     def setUp(self):
@@ -152,7 +172,6 @@ class TestChangeHeading(support.MotionTest):
 
     def handleFinished(self, event):
         self.motionFinished = True
-        
         
     def testLeft(self):
         m = motion.basic.ChangeHeading(30, 5) 
