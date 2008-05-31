@@ -5,11 +5,16 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/python/ram/motion.py
 
+# Python Imports
+import math as pmath
+
 # Project Imports
 import ext.core as core
 import ext.control as control
 import ext.vehicle as vehicle
 import ext.math as math
+
+import ram.timer as timer
 
 
 class MotionManager(core.Subsystem):
@@ -169,6 +174,55 @@ class ChangeDepth(Motion):
         else:
             self._finish()
     
+    def _finish(self):
+        """
+        Finishes off the motion, disconnects events, and putlishes finish event
+        """
+        Motion._finish(self)
+        self._conn.disconnect()
+
+    def stop(self):
+        self._conn.disconnect()
+
+class RateChangeDepth(Motion):
+    NEXT_DEPTH = core.declareEventType('NEXT_DEPTH')
+    
+    def __init__(self, desiredDepth, speed, rate = 10):
+        """
+        @type  desiredDepth: float
+        @param desiredDepth: Depth you wish the sub to be at
+        
+        @type  steps: int
+        @param steps: Number of increments you wish to change depth in    
+        """
+        Motion.__init__(self)
+
+        self._desiredDepth = desiredDepth
+        self._speed = speed
+        self._rate = rate
+        self._interval = 1 / float(rate)
+        self._conn = None
+        
+    def _start(self):
+        currentDepth = self._vehicle.getDepth()
+        absDepthDifference = pmath.fabs(currentDepth - self._desiredDepth)
+
+        self._stepCount = absDepthDifference / self._speed / self._rate;
+        self._stepSize = (self._desiredDepth - currentDepth) / self._stepCount
+        
+        self._timer  = timer.Timer(self, RateChangeDepth.NEXT_DEPTH,
+                                   self._rate)
+        # Register to NEXT_DEPTH events
+        self._conn = self._eventHub.subscribeToType(RateChangeDepth.NEXT_DEPTH,
+                                                    self._onTimer)
+        self._timer.start()
+
+    def _onTimer(self, event):
+        if self._stepCount != 0:
+            self._controller.setDepth(self._controller.getDepth() +
+                                      self._stepSize)
+            self._stepCount -= 1
+        
     def _finish(self):
         """
         Finishes off the motion, disconnects events, and putlishes finish event

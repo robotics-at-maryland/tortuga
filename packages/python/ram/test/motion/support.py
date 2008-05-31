@@ -18,6 +18,7 @@ import ext.control as control
 import ext.vehicle as vehicle
 import ext.math
 
+import ram.timer as timer
 import ram.motion as motion
 import ram.motion.basic
 
@@ -78,6 +79,31 @@ class MockVehicle(vehicle.IVehicle):
     def getOrientation(self):
         return self.orientation
     
+# For testing purposes
+class MockTimer(timer.Timer):
+    LOG = {}
+    
+    def __init__(self, eventPublisher, eventType, sleepTime, repeat = False):
+        timer._origTimer.__init__(self, eventPublisher, eventType, sleepTime)
+        
+        self.sleepTime = sleepTime
+        self.started = False
+        self.repeat = repeat
+        
+        # Log the timer so we can reference it in our tests
+        MockTimer.LOG[eventType] = self
+        
+    def run(self):
+        pass
+        
+    def start(self):
+        self.started = True
+        
+    def finish(self):
+        """
+        Fires off the finish event
+        """
+        self._complete()
 
 # Mock Motion
 class MockMotion(object):
@@ -95,6 +121,9 @@ class MockMotion(object):
         
 # Provides basic test support
 class MotionTest(unittest.TestCase):
+    def mockSleep(self, seconds):
+        self.seconds = seconds
+    
     def setUp(self):
         # Create the event hub to collect all published events
         self.eventHub = core.EventHub()
@@ -106,3 +135,12 @@ class MotionTest(unittest.TestCase):
         
         deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
         self.motionManager = motion.basic.MotionManager({}, deps)
+
+        # Replace Timer with out Mock Timer Class
+        timer._origTimer = timer.Timer
+        timer.Timer = MockTimer
+
+    def tearDown(self):
+        # Put the original timer class back
+        timer.Timer = timer._origTimer
+        del timer._origTimer

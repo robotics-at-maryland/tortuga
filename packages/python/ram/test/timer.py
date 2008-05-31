@@ -55,16 +55,35 @@ class TimerTester(unittest.TestCase):
     def mockNanosleep(self, sec, nsec):
         self.sec = sec
         self.nsec = nsec
+
+        self.secs.append(sec)
+        self.nsecs.append(nsec)
         
         # Busy loop if desired
         while self.timerBlock:
             pass
+
+    def checkRepeat(self, count, interval):
+        sec = math.floor(interval)
+        secFloat = interval - sec
+        
+        for i in xrange(0, count):
+            while self.count == i:
+                self.origNanosleep(0, int(1e6))
+            
+            self.assertEquals(sec, self.secs[i])
+            self.assertEquals(secFloat * 1e9, self.nsecs[i])
 
     def setUp(self):
         self.nanoSleepMocked = False
         # Replace nanosleep with out Mock sleep function
         self.replaceNanosleep()
         self.timerBlock = False
+
+        self.sec = None
+        self.nsec = None
+        self.secs = []
+        self.nsecs = []
         
     def tearDown(self):
         # Put back the original function
@@ -87,7 +106,7 @@ class TestTimer(TimerTester):
         TimerTester.tearDown(self)
         self.epub = None
         self.event = None
-        self.count = 0
+        self.count = None
     
     def handleTimer(self, event):
         self.count += 1
@@ -133,23 +152,18 @@ class TestTimer(TimerTester):
         self.checkTimer(0.25)
         
     def testRepeat(self):
-        # Make the timer normal
-        self.replaceNanosleep()
-        
         newTimer = timer.Timer(self.epub, TestTimer.TIMER_EVENT, 0.1,
                                repeat = True)
         newTimer.start()
-        time.sleep(0.5)
+        
+        self.checkRepeat(5, 0.1)
+
         newTimer.stop()
         newTimer.join()
         
-        
-        self.assert_((3 < self.count) and (self.count < 10))
         self.assertEqual(TestTimer.TIMER_EVENT, self.event.type)
-        
-        self.replaceNanosleep()
-      
-        
+
+                
 class TestTimerManager(TimerTester):
     def handleTimer(self, event):
         self.event = event

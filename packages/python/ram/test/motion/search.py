@@ -14,48 +14,9 @@ import ram.motion as motion
 import ram.motion.search
 import ram.timer as timer
 import ram.test.motion.support as support
-
-
-class MockTimer(timer.Timer):
-    LOG = {}
-    
-    def __init__(self, eventPublisher, eventType, sleepTime):
-        timer._origTimer.__init__(self, eventPublisher, eventType, sleepTime)
-        
-        self.sleepTime = sleepTime
-        self.started = False
-        
-        # Log the timer so we can reference it in our tests
-        MockTimer.LOG[eventType] = self
-        
-    def run(self):
-        pass
-        
-    def start(self):
-        self.started = True
-        
-    def finish(self):
-        """
-        Fires off the finish event
-        """
-        self._complete()
+from ram.test.motion.support import MockTimer
 
 class TestForwardZigZag(support.MotionTest):
-    def mockSleep(self, seconds):
-        self.seconds = seconds
-    
-    def setUp(self):
-        support.MotionTest.setUp(self)
-        
-        # Replace Timer with out Mock Timer Class
-        timer._origTimer = timer.Timer
-        timer.Timer = MockTimer
-    
-    def tearDown(self):
-        # Put the original timer class back
-        timer.Timer = timer._origTimer
-        del timer._origTimer
-    
     def testStart(self):
         m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8)
         
