@@ -1,9 +1,8 @@
-/*
- *  TestSimpleSlidingDFT.cpp
- *  sonarController
+/**
+ * TestDSO.cpp
  *
- *  Created by Leo Singer on 1/16/08.
- *  Copyright 2008 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  *
  */
 

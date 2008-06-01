@@ -1,5 +1,5 @@
 /*
- *  TestSimpleSlidingDFT.cpp
+ *  TestTiledSlidingDFT.cpp
  *  sonarController
  *
  *  Created by Leo Singer on 1/16/08.
