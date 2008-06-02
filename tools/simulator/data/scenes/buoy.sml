@@ -3,8 +3,9 @@ Scene:
     name: Main
     
     Resources:
-        Zip: ['%(RAM_SVN_DIR)s/tools/simulator/data/media/nxogre/tutorialmedia.zip']
-        FileSystem: ['%(RAM_SVN_DIR)s/tools/simulator/data/media/nxogre']
+        FileSystem: ['%(RAM_SVN_DIR)s/tools/simulator/data/media/materials/scripts',
+                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/materials/textures',
+                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/models']
                          
     #SkyBox:
     #    material_name: 'Examples/CloudyNoonSkyBox'
@@ -19,11 +20,10 @@ Scene:
     Cameras:
         Main:
             position: [-18, 0, 0]
-            #offset: [0, 0, 2]
-            offset: [-2, 0, 1]
+            offset: [-4, 3, 2]
     
     Robots:
-        AUT: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/nxaut.rml'
+        Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
     
     Objects:        
         buoy1:

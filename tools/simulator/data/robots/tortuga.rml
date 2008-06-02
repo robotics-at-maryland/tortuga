@@ -1,7 +1,7 @@
 # This the config file that builds the simulated version of the AUV
 
 Robot:
-    name: AUT
+    name: Tortuga
     
     # In the X, Y, and Z direction
     position: [-18, 0, 0]

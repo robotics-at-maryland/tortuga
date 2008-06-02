@@ -163,14 +163,23 @@ class Camera(Component):
     
     def __init__(self, name, scene, position, offset, orientation,
                  near_clip = 0.5):
-        self._camera = scene.scene_mgr.createCamera(name)
-        self._camera.position = (Ogre.Vector3(offset).length(),0,0)
-        self._camera.lookAt((0, 0, 0))
-        self._camera.nearClipDistance = near_clip
+        offset = Ogre.Vector3(offset)
         
+        self._camera = scene.scene_mgr.createCamera(name)
+        self._camera.nearClipDistance = near_clip
+        self._camera.setFixedYawAxis(False)
+        
+        # Place the camera out in front at the needed distance
+        self._camera.position = (offset.length(),0,0)
+    
+        # Make it face back toward zero
+        self._camera.lookAt((0,0,0))
+      
         # Account for the odd up vector difference between our and Ogre's 
         # default coordinate systems
         self._camera.roll(Ogre.Degree(90))
+        
+        # Apply custom rotation if desired
         self._camera.rotate(orientation)
                 
         # Allows easier movement of camera
@@ -179,11 +188,19 @@ class Camera(Component):
         self._node.attachObject(self._camera)
     
         # Rotate the node to place the camera in its desired offset position
-        self._node.rotate(self._camera.position.getRotationTo(offset))
+        # Do the in plane rotation, then up rotation to keep the cameras up 
+        # facing the proper way
+        inPlane = Ogre.Vector3(offset.x, offset.y, 0)
+        if inPlane.length() != 0:
+            self._node.rotate(self._camera.position.getRotationTo(inPlane))
+        else:
+            # The camera is directly above or below
+            self._camera.roll(Ogre.Degree(180))
+            inPlane  = Ogre.Vector3.UNIT_X
+        self._node.rotate(inPlane.getRotationTo(offset), Ogre.Node.TS_WORLD)
     
         # position camera
         self._node.position = position
-        self._node.setOrientation(orientation)
     
     #ICamera methods
     class camera(cls_property):
