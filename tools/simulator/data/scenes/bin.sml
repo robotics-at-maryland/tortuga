@@ -20,8 +20,8 @@ Scene:
     
     Cameras:
         Main:
-            position: [-18, 0, 0]
-            offset: [-4, 3, 2]
+            position: [-15, 0, 0]
+            offset: [0, 0, 8]
     
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'

@@ -35,4 +35,7 @@ RAM_VISION_REDLIGHTEVENT;
 static ram::core::SpecificEventConverter<ram::vision::PipeEvent>
 RAM_VISION_PIPEEVENT;
 
+static ram::core::SpecificEventConverter<ram::vision::BinEvent>
+RAM_VISION_BINEVENT;
+
 #endif // RAM_WITH_WRAPPERS
