@@ -1,0 +1,43 @@
+material Simple/Red
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 1.0 0.0 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 1.0 0.0 0.0
+		}
+	}
+}
+material Simple/Orange
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 1.0 0.6 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 1.0 0.6 0.0
+		}
+	}
+}
+
+material CompElement/Bin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture bin.png
+			}
+		}
+	}
+}

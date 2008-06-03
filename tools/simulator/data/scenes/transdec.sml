@@ -5,7 +5,8 @@ Scene:
     Resources:
         FileSystem: ['%(RAM_SVN_DIR)s/tools/simulator/data/media/materials/scripts',
                      '%(RAM_SVN_DIR)s/tools/simulator/data/media/materials/textures',
-                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/models']
+                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/models',
+                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/models/primitives']
                          
     #SkyBox:
     #    material_name: 'Examples/CloudyNoonSkyBox'

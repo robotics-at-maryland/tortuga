@@ -5,7 +5,8 @@ Scene:
     Resources:
         FileSystem: ['%(RAM_SVN_DIR)s/tools/simulator/data/media/materials/scripts',
                      '%(RAM_SVN_DIR)s/tools/simulator/data/media/materials/textures',
-                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/models']
+                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/models',
+                     '%(RAM_SVN_DIR)s/tools/simulator/data/media/models/primitives']
                                  
     #SkyBox:
     #    material_name: 'Examples/CloudyNoonSkyBox'
@@ -21,6 +22,7 @@ Scene:
         Main:
             position: [-13, 6, 0]
             offset: [0, 0, 15]
+
     
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
@@ -50,6 +52,26 @@ Scene:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-7.92893, 8.07107, -3.05]
             orientation: [0, 0, 1, -35]
+            
+            Graphical:
+                mesh: 'cube.1m.mesh'
+                material: 'Simple/Orange'
+                scale: [1.2192, 0.1524, 0.0254]
+                
+        bin:
+            type: [sim.vision.IBin, sim.vision.Bin]
+            position: [-2.604442,4.342823,-3.050000]
+            orientation: [0, 0, 1, -45]
+            
+            Graphical:
+                mesh: 'box.mesh'
+                material: 'CompElement/Bin'
+                scale: [0.9144, 0.6096, 0.0254]
+                
+        pipe3:
+            type: [sim.vision.IPipe, sim.vision.Pipe]
+            position: [2.310471,0.901365,-3.050000]
+            orientation: [0, 0, 1, -90]
             
             Graphical:
                 mesh: 'cube.1m.mesh'

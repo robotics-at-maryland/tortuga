@@ -26,16 +26,16 @@ Scene:
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
     
-    Objects:        
-        buoy1:
-            type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-15, 1, -1]
-            
+    Objects:  
+        bin:
+            type: [sim.vision.IBin, sim.vision.Bin]
+            position: [-15, 1, -3.05]
+                        
             Graphical:
-                mesh: 'sphere.50cm.mesh'
-                material: 'Simple/Red'
-                scale: [0.15, 0.15, 0.15]
-        
+                mesh: 'box.mesh'
+                material: 'CompElement/Bin'
+                scale: [0.9144, 0.6096, 0.0254]
+          
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
             
