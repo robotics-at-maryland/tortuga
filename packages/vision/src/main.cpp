@@ -1188,6 +1188,7 @@ int guess_line(IplImage* img)
 
 int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict)
 {
+	strict=true;
 	unsigned char* data=(unsigned char*)img->imageData;
 	int width=img->width;
 	int height=img->height;
@@ -1203,13 +1204,13 @@ int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict)
 
 	if (!strict)
 	{
-		r_over_g_min=1.2f;
+		r_over_g_min=1.0f;
 		r_over_g_max=2.1f;
 		b_over_r_max=0.6f;
 	}
 	else//(strict)
 	{
-		r_over_g_min=1.2f;
+		r_over_g_min=1.0f;
 		r_over_g_max=2.0f;
 		b_over_r_max=0.4f;
 	}
