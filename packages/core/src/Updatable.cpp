@@ -28,7 +28,7 @@
         #include <sys/syscall.h>
         #include <unistd.h>
         #define gettid(NOT_USED) ((pid_t)syscall(SYS_gettid))
-    #elif defined(RAM_MAC)
+    #elif defined(RAM_DARWIN)
         #include <sys/types.h>
         #include <sys/sysctl.h>
     #endif // RAM_LINUX
@@ -201,7 +201,7 @@ void Updatable::setPriority(Priority priority)
 
     // Make sure we only do real time threads on Linux
     #ifndef RAM_LINUX
-    assert(prioirtyValue <= LOW_PRIORITY &&
+    assert(priorityValue <= LOW_PRIORITY &&
            "Can't have real time threads on non-linux platforms");
     #endif
     
@@ -439,17 +439,7 @@ void Updatable::initThreadingSettings()
         while (CPU_ISSET((int)CPU_COUNT, &defaultSet))
             CPU_COUNT++;
         assert(CPU_COUNT != 0 && "Getting CPU count failed");
-        
-#elif defined(RAM_MAC)
-        RT_HIGH_PRIORITY_VALUE = PTHREAD_MAX_PRIORITY;
-        RT_LOW_PRIORITY_VALUE = PTHREAD_MIN_PRIORITY;
 
-        size_t size = sizeof(CPU_COUNT) ;
-        int ret = sysctlbyname("hw.ncpu", &count, &size, NULL, 0);
-        assert(ret == 0 && "Getting CPU count failed");
-#else
-        #error "Unsupported platform"
-#endif
         // Assume these are standard accross all systems
         HIGH_PRIORITY_VALUE = -20;
         NORMAL_PRIORITY_VALUE = 0;
@@ -467,7 +457,18 @@ void Updatable::initThreadingSettings()
         assert(RT_HIGH_PRIORITY_VALUE > RT_NORMAL_PRIORITY_VALUE &&
                "Cannot determine proper thread prorities");
         assert(RT_NORMAL_PRIORITY_VALUE > RT_LOW_PRIORITY_VALUE &&
-               "Cannot determine proper thread prorities");
+               "Cannot determine proper thread prorities");        
+#elif defined(RAM_DARWIN)
+	//        RT_HIGH_PRIORITY_VALUE = PTHREAD_MAX_PRIORITY;
+	//        RT_LOW_PRIORITY_VALUE = PTHREAD_MIN_PRIORITY;
+
+        size_t size = sizeof(CPU_COUNT) ;
+        int ret = sysctlbyname("hw.ncpu", &CPU_COUNT, &size, NULL, 0);
+        assert(ret == 0 && "Getting CPU count failed");
+#else
+        #error "Unsupported platform"
+#endif
+
 #elif defined(RAM_WINDOWS)
         // Not yet implemented
 #else
@@ -515,7 +516,7 @@ void Updatable::setThreadPriority()
 */
             
 #else
-    #error "Unsupported platform"
+	  assert(false && "Unsupported platform");
 #endif
             break;
         };
@@ -531,7 +532,7 @@ void Updatable::setThreadAffinity()
 {
 #ifdef RAM_LINUX
     // use sched_set_affinity()
-#elif defined(RAM_MAC)
+#elif defined(RAM_DARWIN)
     // Not supported    
 #elif defined(RAM_WINDOWS)
     // Not yet implemented
