@@ -1,4 +1,4 @@
-function Q1=Q1(q)
+function Q1out=Q1(q)
 %
 % Q=Q(q)
 %
@@ -16,7 +16,7 @@ function Q1=Q1(q)
    e = q(1:3);
    n = q(4);
 
-   Q1=n*eye(3)+S(e);
+   Q1out=n*eye(3)+S(e);
 
    
    

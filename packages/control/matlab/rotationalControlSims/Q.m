@@ -1,6 +1,6 @@
-function Q=Q(q)
+function Qout=Q(q)
 %
-% Q=Q(q)
+% Qout=Q(q)
 %
 % a matrix used for computaions of quaternion kinematics
 %
@@ -18,6 +18,6 @@ function Q=Q(q)
    n = q(4);
 
    Q1=n*eye(3)+S(e);
-   Q=[Q1; -e'];
+   Qout=[Q1; -e'];
    
    

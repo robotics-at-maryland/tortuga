@@ -1,6 +1,6 @@
-function [S]=S(e)
+function out=S(e)
 %
-% S=S(e)
+% out=S(e)
 %
 % skew symmetric matrix
 %
@@ -8,4 +8,4 @@ function [S]=S(e)
 %
 % output: a skew symmetric matrix
 %
-   S = [0 -e(3) e(2); e(3) 0 -e(1); -e(2) e(1) 0];
+ out = [0 -e(3) e(2); e(3) 0 -e(1); -e(2) e(1) 0];

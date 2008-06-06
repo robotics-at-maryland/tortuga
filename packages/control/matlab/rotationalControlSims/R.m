@@ -1,4 +1,4 @@
-function R=R(q)
+function Rout=R(q)
 %
 % R=R(q)
 %
@@ -13,7 +13,13 @@ function R=R(q)
 % rotation matrix R = (n^2-e'*e)*eye(3)+2*e*e'-2*n*S(e)
 %
 
-   e = q(1:3);
-   n = q(4);
+%force quaternion into a column vector
+qformatted=[q(1) q(2) q(3) q(4)]';
 
-   R = (n^2-e'*e)*eye(3)+2*e*e'-2*n*S(e);
+%split into vector and scalar portion
+e = qformatted(1:3);
+n = qformatted(4);
+
+%generate rotation matrix
+Rout = (n^2-e'*e)*eye(3)+2*e*e'-2*n*S(e);
+   
