@@ -61,23 +61,30 @@ class MockVisionSystem(core.Subsystem):
     def binDetectorOff(self):
         self.binDetector = False
         
-class AITestCase(TimerTester):
+class AITestCase(unittest.TestCase):
+    TIMER_ORIG = timer.Timer
+    
     def mockSleep(self, seconds):
         self.seconds = seconds
     
     def mockTimer(self):
-        if not self._timerMocked:
-            # Replace Timer with out Mock Timer Class
-            timer._origTimer = timer.Timer
-            timer.Timer = MockTimer
-        else:
+        if self._timerMocked:
+            assert timer.Timer == MockTimer
             # Put the original timer class back
-            timer.Timer = timer._origTimer
-            del timer._origTimer
+            timer.Timer = AITestCase.TIMER_ORIG
+            
+            self._timerMocked = False
+        else:
+            assert timer.Timer != MockTimer
+            # Replace Timer with out Mock Timer Class
+            timer.Timer = MockTimer
+            
+            self._timerMocked = True
     
     def setUp(self, extraDeps = None, cfg = None):
-        TimerTester.setUp(self)
         self._timerMocked = False
+        # Replace the Timer class with the Mock one
+        self.mockTimer()
         
         if extraDeps is None:
             extraDeps = []
@@ -105,9 +112,10 @@ class AITestCase(TimerTester):
         self.machine = state.Machine(cfg = sCfg, deps = deps)
     
     def tearDown(self):
-        TimerTester.tearDown(self)
+        # Put back the normal timer class
+        self.mockTimer()
         self.machine.stop()
-        
+
     def injectEvent(self, etype, eclass = core.Event, *args, **kwargs):
         """
         Sends and event of the desired type and class into the state machine
@@ -135,18 +143,29 @@ class AITestCase(TimerTester):
             setattr(event, attr, val)
         
         self.machine.injectEvent(event, _sendToBranches = sendToBranches)
+     
+    def releaseTimer(self, eventType):
+        timer = MockTimer.LOG[eventType]
+
+        # Make sure the timer has actual been started
+        self.assert_(timer.started)
         
-    def releaseTimer(self, timer):
-        """
-        Stops a spinning background timer, joins it, then releases its event
-        """
-        assert self.timerBlock, "Must set self.timerBlock to be true"
+        # Release the timer finished event
+        timer.finish()
         
-        # Stops the background loop
-        self.timerBlock = False
-        timer.join()
-        # Releases the event the timer published when the loop stopped
         self.qeventHub.publishEvents()
+        
+#    def releaseTimer(self, timer):
+#        """
+#        Stops a spinning background timer, joins it, then releases its event
+#        """
+#        assert self.timerBlock, "Must set self.timerBlock to be true"
+#        
+#        # Stops the background loop
+#        self.timerBlock = False
+#        timer.join()
+#        # Releases the event the timer published when the loop stopped
+#        self.qeventHub.publishEvents()
         
     def assertCurrentState(self, stateType):
         """

@@ -67,8 +67,6 @@ class TestSeek(support.AITestCase):
         
 class TestHit(support.AITestCase):       
     def testStart(self):
-        # Make our timer blocks in the background
-        self.timerBlock = True
         # Turn this on, so we make sure it goes off
         self.visionSystem.redLightDetector = True
         
@@ -84,7 +82,7 @@ class TestHit(support.AITestCase):
         self.qeventHub.subscribeToType(light.LIGHT_HIT, lightHit)
         
         # Now make sure we stop
-        self.releaseTimer(self.machine.currentState().timer)
+        self.releaseTimer(light.Hit.FORWARD_DONE)
         self.assertEqual(0, self.controller.speed)
         
         # Make sure we get the final event

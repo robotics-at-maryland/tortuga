@@ -69,13 +69,13 @@ class TestCentering(aisupport.AITestCase):
     def testStart(self):
         """Make sure the motion and the timer are setup properly"""
         self.machine.stop()
-        self.timerBlock = True
         self.machine.start(bin.Centering)
         
         self.assertCurrentMotion(motion.common.Hover)
         
-        self.releaseTimer(self.machine.currentState().timer)
-        self.assert_(self.machine.complete)
+        self.releaseTimer(bin.Centering.SETTLED)
+        self.assertCurrentState(bin.Dive)
+
         
     def testBinLost(self):
         """Make sure we search when we lose the bin"""
@@ -89,4 +89,64 @@ class TestCentering(aisupport.AITestCase):
     def testSettled(self):
         """Make sure we move on after settling"""
         self.injectEvent(bin.Centering.SETTLED)
+        self.assertCurrentState(bin.Dive)
+        
+class TestDive(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(bin.Dive)
+    
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        # Need to add multi-motion support
+        #binFoundHelper(self)
+        pass
+        
+    def testDiveFinished(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(bin.DropMarker)
+        
+class TestDropMarker(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(bin.DropMarker)
+    
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(motion.common.Hover)
+        
+        self.releaseTimer(bin.DropMarker.DROPPED)
+        self.assertCurrentState(bin.Surface)
+        
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        binFoundHelper(self)
+        
+    def testDropped(self):
+        """Make sure we move on after settling"""
+        self.injectEvent(bin.DropMarker.DROPPED)
+        self.assertCurrentState(bin.Surface)
+        
+class TestSurface(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(bin.Surface)
+    
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        # Need to add multi-motion support
+        #binFoundHelper(self)
+        pass
+        
+    def testDiveFinished(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
         self.assert_(self.machine.complete)
+

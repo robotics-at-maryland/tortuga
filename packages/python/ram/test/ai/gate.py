@@ -47,15 +47,12 @@ class TestGate(support.AITestCase):
         #self.assert_(self.motionManager.stopped)
         
     def testForward(self):
-        # Make our timer blocks in the background
-        self.timerBlock = True
-        
         # Make sure we start driving forward
         self.machine.start(gate.Forward)
         self.assertEqual(5, self.controller.speed)
         
         # Now make sure we stop
-        self.releaseTimer(self.machine.currentState().timer)
+        self.releaseTimer(gate.Forward.DONE)
         self.assertEqual(0, self.controller.speed)
         
         # Make sure we hit the end state
@@ -72,8 +69,7 @@ class TestGate(support.AITestCase):
         self.qeventHub.subscribeToType(gate.COMPLETE, finished)
             
         # Make sure we get the final event
-        self.timerBlock = True
         self.machine.start(gate.Forward)
-        self.releaseTimer(self.machine.currentState().timer)
+        self.releaseTimer(gate.Forward.DONE)
         self.qeventHub.publishEvents()
         self.assert_(self._complete)

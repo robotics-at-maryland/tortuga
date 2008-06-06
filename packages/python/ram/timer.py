@@ -132,7 +132,6 @@ class Timer(threading.Thread):
 
         This is implements the standard python threading.Thread method.
         """
-        
         while True:
             # Sleep for that time period
             sleep(self._sleepTime)

@@ -101,11 +101,10 @@ class TestLight(support.AITestCase):
         """
         # Restart with a working timer
         self.machine.stop()
-        self.timerBlock = True
         self.machine.start(course.Light)
         
         # Release timer
-        self.releaseTimer(self.machine.currentState().timer)
+        self.releaseTimer(course.Light.TIMEOUT)
         
         # Test that the timeout worked properly
         self.assertCurrentState(course.Pipe2)

@@ -15,8 +15,36 @@ import ext.vision as vision
 
 import ram.ai.state as state
 import ram.motion as motion
+import ram.motion.basic
 import ram.motion.search
 import ram.motion.common
+
+class HoveringState(state.State):
+    def BIN_FOUND(self, event):
+        """Update the state of the light, this moves the vehicle"""
+        self._bin.setState(event.x, event.y)
+
+    def enter(self):
+        self._bin = ram.motion.common.Target(0,0)
+        motion = ram.motion.common.Hover(target = self._bin,
+                                         maxSpeed = 5,
+                                         maxSidewaysSpeed = 3)
+        self.motionManager.setMotion(motion)
+
+    def exit(self):
+        #print '"Exiting Seek, going to follow"'
+        self.motionManager.stopCurrentMotion()
+
+class SettlingState(HoveringState):
+    def enter(self, eventType, eventTime):
+        self.timer = self.timerManager.newTimer(eventType, eventTime)
+        self.timer.start()
+        
+        HoveringState.enter(self)
+
+    def exit(self):
+        HoveringState.exit(self)
+        self.timer.stop()
 
 class Searching(state.State):
     """When the vehicle is looking for a bin"""
@@ -39,7 +67,7 @@ class Searching(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class Seeking(state.State):
+class Seeking(HoveringState):
     """When the vehicle is moving over the found bin"""
     @staticmethod
     def transitions():
@@ -47,22 +75,7 @@ class Seeking(state.State):
                  vision.EventType.BIN_FOUND : Seeking,
                  vision.EventType.BIN_CENTERED : Centering }
 
-    def BIN_FOUND(self, event):
-        """Update the state of the light, this moves the vehicle"""
-        self._bin.setState(event.x, event.y)
-
-    def enter(self):
-        self._bin = ram.motion.common.Target(0,0)
-        motion = ram.motion.common.Hover(target = self._bin,
-                                         maxSpeed = 5,
-                                         maxSidewaysSpeed = 3)
-        self.motionManager.setMotion(motion)
-
-    def exit(self):
-        #print '"Exiting Seek, going to follow"'
-        self.motionManager.stopCurrentMotion()
-
-class Centering(state.State):
+class Centering(SettlingState):
     """
     When the vehicle is settling over the bin
     
@@ -74,26 +87,73 @@ class Centering(state.State):
     def transitions():
         return { vision.EventType.BIN_LOST : Searching,
                  vision.EventType.BIN_FOUND : Centering,
-                 Centering.SETTLED : End }
+                 Centering.SETTLED : Dive }
     
+    def enter(self):
+        SettlingState.enter(self, Centering.SETTLED, 5)
+    
+class Dive(state.State):
+    @staticmethod
+    def transitions():
+        return { vision.EventType.BIN_LOST : Searching,
+                 vision.EventType.BIN_FOUND : Dive,
+                 motion.basic.Motion.FINISHED : DropMarker }
+        
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        self._bin.setState(event.x, event.y)
+        #self._bin.setState(event.x, event.y)
+        pass
+        
+    def enter(self):
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 8),
+            speed = self._config.get('diveSpeed', 1.0/3.0))
+        
+        self.motionManager.setMotion(diveMotion)
+        
+#        self._bin = ram.motion.common.Target(0,0)
+#        motion = ram.motion.common.Hover(target = self._bin,
+#                                         maxSpeed = 5,
+#                                         maxSidewaysSpeed = 3)
+#        self.motionManager.setMotion(motion)
+        
+class DropMarker(SettlingState):
+    DROPPED = core.declareEventType('DROPPPED')
+    
+    @staticmethod
+    def transitions():
+        return { vision.EventType.BIN_LOST : Searching,
+                 vision.EventType.BIN_FOUND : DropMarker,
+                 DropMarker.DROPPED : Surface }
 
     def enter(self):
-        self.timer = self.timerManager.newTimer(Centering.SETTLED, 5)
-        self.timer.start()
+        SettlingState.enter(self, DropMarker.DROPPED, 5)
+        # TODO: drop marker here
         
-        self._bin = ram.motion.common.Target(0,0)
-        motion = ram.motion.common.Hover(target = self._bin,
-                                         maxSpeed = 5,
-                                         maxSidewaysSpeed = 3)
-        self.motionManager.setMotion(motion)
-
-    def exit(self):
-        #print '"Exiting Seek, going to follow"'
-        self.motionManager.stopCurrentMotion()
-        self.timer.stop()
+class Surface(state.State):
+    @staticmethod
+    def transitions():
+        return { vision.EventType.BIN_LOST : Searching,
+                 vision.EventType.BIN_FOUND : Surface,
+                 motion.basic.Motion.FINISHED : End }
+        
+    def BIN_FOUND(self, event):
+        """Update the state of the light, this moves the vehicle"""
+        #self._bin.setState(event.x, event.y)
+        pass
+        
+    def enter(self):
+        surfaceMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 3),
+            speed = self._config.get('surfaceSpeed', 1.0/3.0))
+        
+        self.motionManager.setMotion(surfaceMotion)
+        
+#        self._bin = ram.motion.common.Target(0,0)
+#        motion = ram.motion.common.Hover(target = self._bin,
+#                                         maxSpeed = 5,
+#                                         maxSidewaysSpeed = 3)
+#        self.motionManager.setMotion(motion)
         
 class End(state.State):
     def enter(self):

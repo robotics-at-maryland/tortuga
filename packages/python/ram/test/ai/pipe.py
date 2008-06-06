@@ -70,12 +70,11 @@ class TestCentering(aisupport.AITestCase):
     def testStart(self):
         """Make sure the motion and the timer are setup properly"""
         self.machine.stop()
-        self.timerBlock = True
         self.machine.start(pipe.Centering)
         
         self.assertCurrentMotion(motion.pipe.Hover)
         
-        self.releaseTimer(self.machine.currentState().timer)
+        self.releaseTimer(pipe.Centering.SETTLED)
         self.assertCurrentState(pipe.AlongPipe)
         
     def testPipeLost(self):
@@ -137,15 +136,12 @@ class TestAlongPipe(aisupport.AITestCase):
 
 class TestBetweenPipes(aisupport.AITestCase):
     def testStart(self):
-        # Make our timer blocks in the background
-        self.timerBlock = True
-        
         # Make sure we start driving forward
         self.machine.start(pipe.BetweenPipes)
         self.assert_(self.controller.speed > 0)
         
         # Now make sure we stop
-        self.releaseTimer(self.machine.currentState().timer)
+        self.releaseTimer(pipe.BetweenPipes.LOST_PATH)
         self.assertEqual(0, self.controller.speed)
         
         # Make sure we hit the end state

@@ -81,10 +81,11 @@ class MockVehicle(vehicle.IVehicle):
     
 # For testing purposes
 class MockTimer(timer.Timer):
+    ORIG = timer.Timer
     LOG = {}
     
     def __init__(self, eventPublisher, eventType, sleepTime, repeat = False):
-        timer._origTimer.__init__(self, eventPublisher, eventType, sleepTime)
+        MockTimer.ORIG.__init__(self, eventPublisher, eventType, sleepTime)
         
         self.sleepTime = sleepTime
         self.started = False
