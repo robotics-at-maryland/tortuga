@@ -396,7 +396,7 @@ class Machine(core.Subsystem):
             fullName = Machine._dottedName(state)
             shortName = state.__name__
             # Shape denots "end" states with a "Stop Sign" type shape
-            shape = 'circle'
+            shape = 'ellipse'
             if 0 == len(state.transitions()):
                 shape = 'doubleoctagon'
             fileobj.write('%s [label=%s,shape=%s]\n' % \

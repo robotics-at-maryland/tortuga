@@ -358,13 +358,13 @@ class TestStateMachine(unittest.TestCase):
         output = mockFile.getvalue()
         expected = "digraph aistate {\n" + \
             "state_BranchedEnd [label=BranchedEnd,shape=doubleoctagon]\n" + \
-            "state_BranchedMiddle [label=BranchedMiddle,shape=circle]\n" + \
-            "state_BranchedState [label=BranchedState,shape=circle]\n" + \
+            "state_BranchedMiddle [label=BranchedMiddle,shape=ellipse]\n" + \
+            "state_BranchedState [label=BranchedState,shape=ellipse]\n" + \
             "state_End [label=End,shape=doubleoctagon]\n" + \
-            "state_LoopBack [label=LoopBack,shape=circle]\n" + \
-            "state_QueueTestState [label=QueueTestState,shape=circle]\n" + \
-            "state_Simple [label=Simple,shape=circle]\n" + \
-            "state_Start [label=Start,shape=circle]\n" + \
+            "state_LoopBack [label=LoopBack,shape=ellipse]\n" + \
+            "state_QueueTestState [label=QueueTestState,shape=ellipse]\n" + \
+            "state_Simple [label=Simple,shape=ellipse]\n" + \
+            "state_Start [label=Start,shape=ellipse]\n" + \
             "state_BranchedMiddle -> state_BranchedEnd [label=InBranchEndEvent,style=solid]\n" + \
             "state_BranchedState -> state_BranchedMiddle [label=InBranchEvent,style=solid]\n" + \
             "state_LoopBack -> state_LoopBack [label=Update,style=solid]\n" + \

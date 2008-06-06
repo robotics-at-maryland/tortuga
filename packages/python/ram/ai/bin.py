@@ -19,6 +19,8 @@ import ram.motion.basic
 import ram.motion.search
 import ram.motion.common
 
+COMPLETE = core.declareEventType('COMPLETE')
+
 class HoveringState(state.State):
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -158,3 +160,4 @@ class Surface(state.State):
 class End(state.State):
     def enter(self):
         self.visionSystem.binDetectorOff()
+        self.publish(COMPLETE, core.Event())

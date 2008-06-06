@@ -179,6 +179,11 @@ class AITestCase(unittest.TestCase):
         """
         self.assertEquals(motionType, type(self.motionManager.currentMotion))
         
+    def assertCurrentBranches(self, branches):
+        for branch in branches:
+            self.assert_(self.machine.branches.has_key(branch))
+        self.assertEqual(len(branches), len(self.machine.branches))
+        
     def assertLessThan(self, a, b):
         if not (a < b):
             self.fail(str(a) + " is not less than " + str(b))

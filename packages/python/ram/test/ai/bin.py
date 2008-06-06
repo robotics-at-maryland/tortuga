@@ -147,6 +147,16 @@ class TestSurface(aisupport.AITestCase):
         pass
         
     def testDiveFinished(self):
+        # Subscribe to end event
+        self._binComplete = False
+        def binComplete(event):
+            self._binComplete = True
+        self.qeventHub.subscribeToType(bin.COMPLETE, binComplete)
+        
+        # Finish the state machine
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assert_(self.machine.complete)
-
+        
+        # Make sure we get the final event
+        self.qeventHub.publishEvents()
+        self.assert_(self._binComplete)
