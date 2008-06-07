@@ -80,7 +80,7 @@ class SimVehicle(vehicle.IVehicle):
                                   eventHub)
         
         sim = core.Subsystem.getSubsystemOfType(subsystems.Simulation, deps)
-        self.robot = sim.scene._robots['AUT']
+        self.robot = sim.scene._robots['Tortuga']
         self._devices = {}
     
         # Add Sim Thruster objects
