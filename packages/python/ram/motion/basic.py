@@ -33,7 +33,9 @@ class MotionManager(core.Subsystem):
         Create a MotionManager object
         """
         core.Subsystem.__init__(self, config.get('name', 'MotionManager'), deps)
-        self._motion = None
+        self._inPlaneMotion = None
+        self._depthMotion = None
+        self._orientationMotion = None
         
         self._controller = core.Subsystem.getSubsystemOfType(control.IController, 
                                                              deps, 
@@ -54,23 +56,96 @@ class MotionManager(core.Subsystem):
         """
         Stops the current motion and starts this one
         """
-        self.stopCurrentMotion()
-            
         eventPublisher = core.EventPublisher(self._eventHub)
-        self._motion = motion
-        self._motion.start(self._controller, self._vehicle, self._qeventHub,
-                           eventPublisher)
+        started = False
+        
+        
+        if motion.type & Motion.IN_PLANE:
+            if self._inPlaneMotion is not None:
+                self._stopMotion(self._inPlaneMotion)
+            self._inPlaneMotion = motion
+            
+            self._inPlaneMotion.start(self._controller, self._vehicle, 
+                                      self._qeventHub, eventPublisher)
+            started = True
+            
+        if motion.type & Motion.DEPTH:
+            if self._depthMotion is not None:
+                self._stopMotion(self._depthMotion)
+                self._depthMotion.stop()
+            self._depthMotion = motion
+            
+            if not started:
+                self._depthMotion.start(self._controller, self._vehicle, 
+                                        self._qeventHub, eventPublisher)
+                started = True
+            
+        if motion.type & Motion.ORIENTATION:
+            if self._orientationMotion is not None:
+                self._stopMotion(self._orientationMotion)
+            self._orientationMotion = motion
+            
+            if not started:
+                self._orientationMotion.start(self._controller, self._vehicle, 
+                                              self._qeventHub, eventPublisher)
 
     def stopCurrentMotion(self):
         """
         Calls stop() on the current motion if it exists.
         """
-        if self._motion is not None:
-            self._motion.stop()        
+        if self._inPlaneMotion is not None:
+            self._stopMotion(self._inPlaneMotion)
+        if self._depthMotion is not None:
+            self._stopMotion(self._depthMotion)
+        if self._orientationMotion is not None:
+            self._stopMotion(self._orientationMotion)
+        
+    def stopMotionOfType(self, _type):
+        if _type & Motion.IN_PLANE:
+            assert not (self._inPlaneMotion is None)
+            self._stopMotion(self._inPlaneMotion)
+        elif _type & Motion.DEPTH:
+            assert not (self._depthMotion is None)
+            self._stopMotion(self._depthMotion)
+        elif _type & Motion.ORIENTATION:
+            assert not (self._orientationMotion is None)
+            self._stopMotion(self._orientationMotion)
         
     @property
     def currentMotion(self):
-        return self._motion
+        motionCount = 0
+        motion = None
+        if not (self._inPlaneMotion is None):
+            motionCount += 1
+            motion = self._inPlaneMotion
+        if not (self._depthMotion is None) and \
+          not (motion == self._depthMotion):
+            motionCount += 1
+            motion = self._depthMotion
+        if not (self._orientationMotion is None) and \
+          not (motion == self._orientationMotion):
+            motionCount += 1
+            motion = self._orientationMotion
+            
+        if 1 == motionCount:
+            return motion
+        return (self._inPlaneMotion, self._depthMotion, 
+                self._orientationMotion)
+      
+    def _stopMotion(self, motion):
+        motion.stop()
+        if motion.type & Motion.IN_PLANE:
+            assert not (self._inPlaneMotion is None)
+            assert motion == self._inPlaneMotion
+            self._inPlaneMotion = None
+        if motion.type & Motion.DEPTH:
+            assert not (self._depthMotion is None)
+            assert motion == self._depthMotion
+            self._depthMotion = None
+        if motion.type & Motion.ORIENTATION:
+            assert not (self._orientationMotion is None)
+            assert motion == self._orientationMotion
+            self._orientationMotion = None
         
     def background(self):
         pass
@@ -87,13 +162,24 @@ class MotionManager(core.Subsystem):
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)
         
 class Motion(object):
+    """
+    A class which encapsulates some sort of motion of the vehicle.
+    """
+    
+    
+    IN_PLANE = 1
+    DEPTH = 2
+    ORIENTATION = 4
+    NORMAL = IN_PLANE | DEPTH | ORIENTATION
+    
     FINISHED = core.declareEventType('FINISHED')
     
-    def __init__(self):
+    def __init__(self, _type = NORMAL):
         self._eventPublisher = None
         self._controller = None
         self._vehicle = None
         self._eventHub = None
+        self._type = _type
     
     def start(self, controller, vehicle, eventHub, eventPublisher):
         """
@@ -119,6 +205,10 @@ class Motion(object):
         self.publish = self._eventPublisher.publish
         
         self._start()
+        
+    @property
+    def type(self):
+        return self._type
         
     def _start(self):
         raise Exception("You must implement this method")

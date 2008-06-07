@@ -12,6 +12,7 @@ import unittest
 import ext.math
 
 import ram.motion as motion
+import ram.motion.basic
 import ram.test.motion.support as support
 
 
@@ -31,7 +32,52 @@ class TestMotionManager(support.MotionTest):
         self.assert_(m.stoped)
         self.assertEquals(self.vehicle.getName(), m2.vehicle.getName())
         self.assertEquals(self.controller.getName(), m2.controller.getName())
+        
+    def testMultiMotion(self):
+        m = support.MockMotion()
+        mPlane = support.MockMotion(type = motion.basic.Motion.IN_PLANE)
+        mDepth = support.MockMotion(type = motion.basic.Motion.DEPTH)
+        mOrien = support.MockMotion(type = motion.basic.Motion.ORIENTATION)
+        
+        _type = motion.basic.Motion.ORIENTATION | motion.basic.Motion.IN_PLANE
+        mPlaneOrien = support.MockMotion(type = _type)
+        
+        # Place an all enclusive motion
+        self.motionManager.setMotion(m)
+        self.assertEqual(m, self.motionManager.currentMotion)
+        
+        # Replace with just a depth one
+        self.motionManager.setMotion(mPlane)
+        self.assertEqual(mPlane, self.motionManager.currentMotion)
+        self.assert_(m.stoped)
+        self.assert_(mPlane.started)
+        
+        # Add a depth one and make sure they are both still present
+        self.motionManager.setMotion(mDepth)
+        self.assertEqual((mPlane,mDepth,None), 
+                         self.motionManager.currentMotion)
+        self.assert_(mDepth.started)
+        
+        # Add orientation one
+        self.motionManager.setMotion(mOrien)
+        self.assertEqual((mPlane,mDepth,mOrien),
+                         self.motionManager.currentMotion)
+        self.assert_(mOrien.started)
 
+
+        # Now replace both in plane and depth with a single new motion
+        self.motionManager.setMotion(mPlaneOrien)
+        self.assertEqual((mPlaneOrien,mDepth,mPlaneOrien),
+                         self.motionManager.currentMotion)
+        self.assert_(mOrien.stoped)
+        self.assert_(mPlane.stoped)
+        self.assert_(mPlaneOrien.started)
+        
+        # Now stop that multimotion by just doing a single type stop
+        self.motionManager.stopMotionOfType(motion.basic.Motion.IN_PLANE)
+        self.assertEqual(mDepth, self.motionManager.currentMotion)
+        self.assert_(mPlaneOrien.stoped)
+        
     def testStopCurrentMotion(self):
         m = support.MockMotion()
         self.motionManager.setMotion(m)

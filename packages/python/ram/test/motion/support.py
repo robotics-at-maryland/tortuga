@@ -108,14 +108,19 @@ class MockTimer(timer.Timer):
 
 # Mock Motion
 class MockMotion(object):
-    def __init__(self):
+    def __init__(self, type = motion.basic.Motion.NORMAL):
         self.controller = None
         self.vehicle = None
         self.stoped = False
+        self.type = type
+        self.started = False
     
     def start(self, controller, vehicle, eventHub, eventPublisher):
+        assert not self.started
+
         self.controller = controller
         self.vehicle = vehicle
+        self.started = True
         
     def stop(self):
         self.stoped = True
