@@ -231,7 +231,7 @@ class ChangeDepth(Motion):
         @type  steps: int
         @param steps: Number of increments you wish to change depth in    
         """
-        Motion.__init__(self)
+        Motion.__init__(self, _type = Motion.DEPTH)
         
         self._steps = steps
         self._desiredDepth = desiredDepth
@@ -285,7 +285,8 @@ class RateChangeDepth(Motion):
         @type  steps: int
         @param steps: Number of increments you wish to change depth in    
         """
-        Motion.__init__(self)
+
+        Motion.__init__(self, _type = Motion.DEPTH)
 
         self._desiredDepth = desiredDepth
         self._speed = float(speed)

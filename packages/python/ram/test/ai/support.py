@@ -11,6 +11,7 @@ Provides support classes for the testing of the AI subsystem
 
 # Python Imports
 import unittest
+import types
 
 # Project Imports
 import ext.core as core
@@ -177,7 +178,20 @@ class AITestCase(unittest.TestCase):
         """
         Compares the type of the current motion to the given one
         """
-        self.assertEquals(motionType, type(self.motionManager.currentMotion))
+        current = self.motionManager.currentMotion
+        currentType = type(self.motionManager.currentMotion)
+        
+        def getType(val):
+            if val is None:
+                return None
+            else:
+                return type(val)
+            
+        if types.TupleType == currentType:
+            currentType = (getType(current[0]), getType(current[1]), 
+                           getType(current[2]))
+            
+        self.assertEquals(motionType, currentType)
         
     def assertCurrentBranches(self, branches):
         for branch in branches:

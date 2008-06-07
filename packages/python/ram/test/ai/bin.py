@@ -94,17 +94,19 @@ class TestCentering(aisupport.AITestCase):
 class TestDive(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
+        self.vehicle.depth = 0
         self.machine.start(bin.Dive)
     
     def testStart(self):
         """Make sure we start diving"""
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
-        
+        self.assertCurrentMotion(
+            (motion.common.Hover, motion.basic.RateChangeDepth, None))
+        #self.assertGreaterThan(self.controller.depth, 0)
+                
     def testBinFound(self):
         """Make sure the loop back works"""
         # Need to add multi-motion support
-        #binFoundHelper(self)
-        pass
+        binFoundHelper(self)
         
     def testDiveFinished(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
@@ -134,17 +136,19 @@ class TestDropMarker(aisupport.AITestCase):
 class TestSurface(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
+        self.vehicle.depth = 10
         self.machine.start(bin.Surface)
     
     def testStart(self):
-        """Make sure we start diving"""
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        """Make sure we start surfacing and are still hovering"""
+        self.assertCurrentMotion(
+            (motion.common.Hover, motion.basic.RateChangeDepth, None))
+        
+        #self.assertLessThan(self.controller.depth, 10)
         
     def testBinFound(self):
         """Make sure the loop back works"""
-        # Need to add multi-motion support
-        #binFoundHelper(self)
-        pass
+        binFoundHelper(self)
         
     def testDiveFinished(self):
         # Subscribe to end event

@@ -103,6 +103,10 @@ class TestChangeDepth(support.MotionTest):
     def handleFinished(self, event):
         self.motionFinished = True
         
+    def testType(self):
+        m = motion.basic.ChangeDepth(10, 5) 
+        self.assertEqual(motion.basic.Motion.DEPTH, m.type)
+        
     def testDive(self):
         self.vehicle.depth = 5
         m = motion.basic.ChangeDepth(10, 5) 
@@ -150,6 +154,10 @@ class TestRateChangeDepth(support.MotionTest):
 
     def handleFinished(self, event):
         self.motionFinished = True
+        
+    def testType(self):
+        m = motion.basic.RateChangeDepth(10, 5) 
+        self.assertEqual(motion.basic.Motion.DEPTH, m.type)
         
     def testDive(self):
         self.vehicle.depth = 5

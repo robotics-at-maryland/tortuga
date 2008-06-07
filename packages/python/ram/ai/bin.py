@@ -94,30 +94,23 @@ class Centering(SettlingState):
     def enter(self):
         SettlingState.enter(self, Centering.SETTLED, 5)
     
-class Dive(state.State):
+class Dive(HoveringState):
     @staticmethod
     def transitions():
         return { vision.EventType.BIN_LOST : Searching,
                  vision.EventType.BIN_FOUND : Dive,
                  motion.basic.Motion.FINISHED : DropMarker }
         
-    def BIN_FOUND(self, event):
-        """Update the state of the light, this moves the vehicle"""
-        #self._bin.setState(event.x, event.y)
-        pass
-        
     def enter(self):
+        # Keep the hover motion going
+        HoveringState.enter(self)
+        
+        # While keeping center, dive down
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 8),
             speed = self._config.get('diveSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(diveMotion)
-        
-#        self._bin = ram.motion.common.Target(0,0)
-#        motion = ram.motion.common.Hover(target = self._bin,
-#                                         maxSpeed = 5,
-#                                         maxSidewaysSpeed = 3)
-#        self.motionManager.setMotion(motion)
         
 class DropMarker(SettlingState):
     DROPPED = core.declareEventType('DROPPPED')
@@ -132,30 +125,24 @@ class DropMarker(SettlingState):
         SettlingState.enter(self, DropMarker.DROPPED, 5)
         # TODO: drop marker here
         
-class Surface(state.State):
+class Surface(HoveringState):
     @staticmethod
     def transitions():
         return { vision.EventType.BIN_LOST : Searching,
                  vision.EventType.BIN_FOUND : Surface,
                  motion.basic.Motion.FINISHED : End }
         
-    def BIN_FOUND(self, event):
-        """Update the state of the light, this moves the vehicle"""
-        #self._bin.setState(event.x, event.y)
-        pass
-        
     def enter(self):
+        # Keep centered over the bin
+        HoveringState.enter(self)
+        
+        # Also surface
         surfaceMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 3),
             speed = self._config.get('surfaceSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(surfaceMotion)
-        
-#        self._bin = ram.motion.common.Target(0,0)
-#        motion = ram.motion.common.Hover(target = self._bin,
-#                                         maxSpeed = 5,
-#                                         maxSidewaysSpeed = 3)
-#        self.motionManager.setMotion(motion)
+
         
 class End(state.State):
     def enter(self):
