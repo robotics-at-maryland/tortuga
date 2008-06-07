@@ -45,7 +45,8 @@ class Hover(common.Hover):
         @type  pipe: ram.motion.pipe.Pipe
         @param pipe: Target to attempt to reach
         """
-        common.Hover.__init__(self, pipe, maxSpeed, maxSidewaysSpeed)
+        common.Hover.__init__(self, pipe, maxSpeed, maxSidewaysSpeed,
+                              _type = Motion.IN_PLANE | Motion.ORIENTATION)
         
         self._pipe = pipe
         

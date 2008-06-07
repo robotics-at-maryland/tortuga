@@ -26,6 +26,11 @@ class TestHover(support.MotionTest):
     def makeTarget(self, *args, **kwargs):
         return motion.common.Target(*args, **kwargs)
     
+    def testType(self):
+        target = motion.common.Target(x = -0.5, y = 0.5)
+        m = motion.common.Hover(target = target)
+        self.assertEquals(motion.basic.Motion.IN_PLANE, m.type)
+    
     def testUpperLeftHover(self):
         # All gains set to 1 (default)
         target = self.makeTarget(x = -0.5, y = 0.5)

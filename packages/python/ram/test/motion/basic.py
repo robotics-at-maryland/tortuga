@@ -78,6 +78,14 @@ class TestMotionManager(support.MotionTest):
         self.assertEqual(mDepth, self.motionManager.currentMotion)
         self.assert_(mPlaneOrien.stoped)
         
+        
+        # Now make sure a single multi motion shows up like that
+        self.motionManager.stopCurrentMotion()
+        mPlaneOrien = support.MockMotion(type = _type)
+        self.motionManager.setMotion(mPlaneOrien)
+        self.assertEqual(mPlaneOrien, self.motionManager.currentMotion)
+        
+        
     def testStopCurrentMotion(self):
         m = support.MockMotion()
         self.motionManager.setMotion(m)
@@ -85,6 +93,7 @@ class TestMotionManager(support.MotionTest):
         self.motionManager.stopCurrentMotion()
         self.assert_(m.stoped)
   
+        self.assertEqual(None, self.motionManager.currentMotion)
   
 class TestChangeDepth(support.MotionTest):
     def setUp(self):

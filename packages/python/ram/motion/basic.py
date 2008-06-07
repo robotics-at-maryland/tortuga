@@ -127,7 +127,7 @@ class MotionManager(core.Subsystem):
             motionCount += 1
             motion = self._orientationMotion
             
-        if 1 == motionCount:
+        if motionCount <= 1:
             return motion
         return (self._inPlaneMotion, self._depthMotion, 
                 self._orientationMotion)

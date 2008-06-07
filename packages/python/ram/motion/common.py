@@ -34,13 +34,14 @@ class Hover(Motion):
     """
     Base motion it centers the vehicle over the target
     """
-    def __init__(self, target, maxSpeed = 0.0, maxSidewaysSpeed = 0.0):
+    def __init__(self, target, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
+                 _type = Motion.IN_PLANE):
                  #speedGain = 1.0, sidewaysSpeedGain = 1.0
         """
         @type  target: ram.motion.common.Target
         @param target: Target to attempt to reach
         """
-        Motion.__init__(self)
+        Motion.__init__(self, _type = _type)
         
         self._running = False
         self._target = target
