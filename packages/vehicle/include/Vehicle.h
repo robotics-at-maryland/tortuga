@@ -85,8 +85,6 @@ protected:
     struct VehicleState
     {
         double depth;
-        bool startSwitch;
-        std::vector<int> temperatures;
     };
     
     void getState(Vehicle::VehicleState& state);

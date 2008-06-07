@@ -4,47 +4,8 @@
 
 #define NUM_TEMP_SENSORS 7
 
-struct powerInfo
-{
-    float motorCurrents[8]; /* Currents for motors and marker droppers */
-    float v12VBus;          /* Voltage of 12V bus, in V. */
-    float v5VBus;           /* Voltage of 5V bus, in V */
-    float i12VBus;          /* Current of 12V bus, in A */
-    float i5VBus;           /* Current of 5V bus, in A */
-    float iAux;             /* Current of aux (carnetix) output, in A */
-
-    float v26VBus;          /* Voltage of balanced 26V, in V. NOT IMPLEMENTED IN BALANCER r2 */
-                            /* Reads as complete garbage */
-
-    float battVoltages[5];  /* 0-3 are batt 1-4. 4 is external power (batt 5). In V */
-    float battCurrents[5];  /* Battery currents. See note above. In A */
-};
-
-struct boardInfo
-{
-    int updateState;    /* Internal use only */
-    int status;         /* Status register- startsw, killsw, water, batt used */
-    int thrusterState;  /* Which thrusters are on */
-    int barState;       /* Which bar outputs are on */
-    int ovrState;       /* Which thrusters have over-currented */
-    int battEnabled;    /* Which batteries are enabled (not the same as in use) */
-
-    struct powerInfo powerInfo;  /* Everything related to power. See above */
-
-    /* Temperatures, in deg C */
-    /* These are scattered throughout. The first one is the sensorboard temp. */
-    /* The last two are distro and balancer temp (or vice versa?)   */
-    /* The middle ones are floaties, if we even have them connected */
-    unsigned char temperature[NUM_TEMP_SENSORS];
-};
-
-
 /* In msec */
 #define IO_TIMEOUT  100
-
-
-
-
 
 /* LCD backlight control */
 #define LCD_BL_OFF    0
@@ -167,6 +128,80 @@ struct boardInfo
 #define STATUS_STARTSW    0x80
 
 
+/** Information about the vehicles power state */
+struct powerInfo
+{
+    /** Currents for motors and marker droppers */
+    float motorCurrents[8];
+    
+    /** Voltage of 12V bus, in V. */
+    float v12VBus;
+    
+    /** Voltage of 5V bus, in V */
+    float v5VBus;
+    
+    /** Current of 12V bus, in A */
+    float i12VBus;
+    
+    /** Current of 5V bus, in A */
+    float i5VBus;
+    
+    /** Current of aux (carnetix) output, in A */
+    float iAux;             
+
+    /** Voltage of balanced 26V, in V. NOT IMPLEMENTED IN BALANCER r2 */
+    float v26VBus;          
+
+    /** 0-3 are batt 1-4. 4 is external power (batt 5). In V */
+    float battVoltages[5];
+    
+    /** Battery currents. See note above. In A */
+    float battCurrents[5];  
+};
+
+/** Complete vehicle information */
+struct boardInfo
+{
+    /** What was last updates in this struct, value of partialUpdateType enum */
+    int updateState;
+    /** Status register- startsw, killsw, water, batt used */
+    int status;
+    /** Which thrusters are on */
+    int thrusterState;
+    /** Which bar outputs are on */
+    int barState;
+    /** Which thrusters have over-currented */
+    int ovrState;
+    /** Which batteries are enabled (not the same as in use) */
+    int battEnabled;    
+
+    /** Everything related to power. See above */
+    struct powerInfo powerInfo;  
+
+    /** Temperatures, in deg C
+     *
+     * These are scattered throughout. The first one is the sensorboard temp.
+     * The last two are distro and balancer temp (or vice versa?)  
+     * The middle ones are floaties, if we even have them connected
+     */
+    unsigned char temperature[NUM_TEMP_SENSORS];
+};
+
+enum e_partialUpdateType
+{
+    NO_UPDATE,
+    STATUS,
+    THRUSTER_STATE,
+    BAR_STATE,
+    OVERCURRENT_STATE,
+    BATTERY_ENABLES,
+    TEMP,
+    MOTOR_CURRENTS,
+    BOARD_VOLTAGES_CURRENTS,
+    BATTERY_VOLTAGES,
+    BATTERY_CURRENTS,
+    END_OF_UPDATES,
+} partialUpdateType
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
