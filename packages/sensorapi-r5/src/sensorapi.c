@@ -811,6 +811,12 @@ int partialRead(int fd, struct boardInfo * info)
             break;
         }
 
+        case 10:
+        {
+            info->battUsed = retCode = readBatteryUsage(fd);
+            break;
+        }
+
         default:
         {
             info->updateState = 0;
@@ -821,7 +827,7 @@ int partialRead(int fd, struct boardInfo * info)
 
     info->updateState++;
 
-    if(info->updateState == 10)
+    if(info->updateState == 11)
     {
         info->updateState = 0;
         if(retCode >= 0)
