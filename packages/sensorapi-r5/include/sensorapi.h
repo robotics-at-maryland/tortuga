@@ -23,11 +23,13 @@ struct powerInfo
 struct boardInfo
 {
     int updateState;    /* Internal use only */
-    int status;         /* Status register- startsw, killsw, water, batt used */
+    int status;         /* Status register- start switch, kill switch, water sensing */
     int thrusterState;  /* Which thrusters are on */
     int barState;       /* Which bar outputs are on */
     int ovrState;       /* Which thrusters have over-currented */
     int battEnabled;    /* Which batteries are enabled (not the same as in use) */
+    int battUsed;       /* Which batteries are being drawn by the balancing circuit */
+
 
     struct powerInfo powerInfo;  /* Everything related to power. See above */
 
@@ -120,7 +122,7 @@ struct boardInfo
 #define THRUSTER6_ENABLED     0x20
 #define ALL_THRUSTERS_ENABLED \
     (THRUSTER1_ENABLED | THRUSTER2_ENABLED | THRUSTER3_ENABLED | \
-     THRUSTER4_ENABLED | THRUSTER5_ENABLED | THRUSTER6_ENABLED) 
+     THRUSTER4_ENABLED | THRUSTER5_ENABLED | THRUSTER6_ENABLED)
 
 /* Overcurrent bits. Last 2 are marker droppers */
 #define THRUSTER1_OVR     0x01
@@ -153,17 +155,23 @@ struct boardInfo
 
 
 
-/* Bits of the status response */
+/* Bits of the battery utilization response */
 /* Ie, is the battery actually being used? */
-/* Use these constants. The values can, and most likely will, change. */
-#define STATUS_BATT1      0x10
-#define STATUS_BATT2      0x08
-#define STATUS_BATT3      0x04
-#define STATUS_BATT4      0x02
-#define STATUS_BATT5      0x01
+#define BATT1_INUSE       0x10
+#define BATT2_INUSE       0x08
+#define BATT3_INUSE       0x04
+#define BATT4_INUSE       0x02
+#define BATT5_INUSE       0x01
 
+
+/* Bits of the status response */
+/* Water is present */
 #define STATUS_WATER      0x20
+
+/* Kill switch is attached */
 #define STATUS_KILLSW     0x40
+
+/* Start switch is being pressed */
 #define STATUS_STARTSW    0x80
 
 
@@ -279,6 +287,8 @@ int readBarState(int fd);
 int readOvrState(int fd);
 
 int readBatteryEnables(int fd);
+
+int readBatteryUsage(int fd);
 
 int readMotorCurrents(int fd, struct powerInfo * info);
 int readBoardVoltages(int fd, struct powerInfo * info);

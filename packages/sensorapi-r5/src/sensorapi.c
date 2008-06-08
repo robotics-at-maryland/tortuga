@@ -192,6 +192,11 @@ int readBatteryEnables(int fd)
     return simpleRead(fd, HOST_CMD_BATTSTATE, HOST_REPLY_BATTSTATE);
 }
 
+int readBatteryUsage(int fd)
+{
+    return readStatus(fd);
+}
+
 
 int readBarState(int fd)
 {

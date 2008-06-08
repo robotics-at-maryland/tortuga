@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
 		printf("\tlcdshow -readovr  (read overcurrent parameters)\n");
 		printf("\tlcdshow -setspeed a b c d e f  (set speeds)\n");
 
-		
+
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
         printf("\tlcdshow -status (show sensor readings)\n");
@@ -96,7 +96,7 @@ int main(int argc, char ** argv)
 	if(strcmp(argv[1], "-readovr") == 0)
 	{
 		int a, b;
-		
+
 		if(readOvrParams(fd, &a, &b) != SB_OK)
 			printf("Error reading parameters\n");
 		else
@@ -104,7 +104,7 @@ int main(int argc, char ** argv)
 		close(fd);
 		return 0;
 	}
-	
+
     if(strcmp(argv[1], "-setovr") == 0)
     {
 		if(argc != 4)
@@ -128,7 +128,7 @@ int main(int argc, char ** argv)
 
 		setSpeeds(fd, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
 	}
-	
+
     if(strcmp(argv[1], "-status") == 0)
     {
         int ret;
@@ -255,11 +255,11 @@ int main(int argc, char ** argv)
         {
             printf("\nBatt in use :   0x%02X\t", ret);
             printf("[%c%c%c%c%c]",
-            (ret & STATUS_BATT1) ? '1' : '-',
-            (ret & STATUS_BATT2) ? '2' : '-',
-            (ret & STATUS_BATT3) ? '3' : '-',
-            (ret & STATUS_BATT4) ? '4' : '-',
-            (ret & STATUS_BATT5) ? '5' : '-');
+            (ret & BATT1_INUSE) ? '1' : '-',
+            (ret & BATT2_INUSE) ? '2' : '-',
+            (ret & BATT3_INUSE) ? '3' : '-',
+            (ret & BATT4_INUSE) ? '4' : '-',
+            (ret & BATT5_INUSE) ? '5' : '-');
 
             bStat = ret;
 
@@ -310,9 +310,10 @@ int main(int argc, char ** argv)
                     BATT1_ENABLED, BATT2_ENABLED, BATT3_ENABLED, BATT4_ENABLED, BATT5_ENABLED
                 };
 
+                #warning these need to use the new battery usage function
                 unsigned char useFlags[]=
                 {
-                    STATUS_BATT1, STATUS_BATT2, STATUS_BATT3, STATUS_BATT4, STATUS_BATT5
+                    BATT1_INUSE, BATT2_INUSE, BATT3_INUSE, BATT4_INUSE, BATT5_INUSE
                 };
 
                 int i;
