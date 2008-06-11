@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/sensorapi/src/sensorapi.c
+ */
+
+#ifndef RAM_DRIVER_SENSORAPI_H_06_09_2008
+#define RAM_DRIVER_SENSORAPI_H_06_09_2008
+
 #include "../../embedded/sbr5/buscodes.h"
 
 #define MAX_SYNC_ATTEMPTS 20
@@ -127,7 +139,27 @@
 #define STATUS_KILLSW     0x40
 #define STATUS_STARTSW    0x80
 
+// If we are compiling as C++ code we need to use extern "C" linkage
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
+enum partialUpdateType_
+{
+    NO_UPDATE,
+    STATUS,
+    THRUSTER_STATE,
+    BAR_STATE,
+    OVERCURRENT_STATE,
+    BATTERY_ENABLES,
+    TEMP,
+    MOTOR_CURRENTS,
+    BOARD_VOLTAGES_CURRENTS,
+    BATTERY_VOLTAGES,
+    BATTERY_CURRENTS,
+    END_OF_UPDATES,
+};
+    
 /** Information about the vehicles power state */
 struct powerInfo
 {
@@ -163,7 +195,7 @@ struct powerInfo
 struct boardInfo
 {
     /** What was last updates in this struct, value of partialUpdateType enum */
-    int updateState;
+    enum partialUpdateType_ updateState;
     /** Status register- startsw, killsw, water, batt used */
     int status;
     /** Which thrusters are on */
@@ -186,29 +218,7 @@ struct boardInfo
      */
     unsigned char temperature[NUM_TEMP_SENSORS];
 };
-
-enum e_partialUpdateType
-{
-    NO_UPDATE,
-    STATUS,
-    THRUSTER_STATE,
-    BAR_STATE,
-    OVERCURRENT_STATE,
-    BATTERY_ENABLES,
-    TEMP,
-    MOTOR_CURRENTS,
-    BOARD_VOLTAGES_CURRENTS,
-    BATTERY_VOLTAGES,
-    BATTERY_CURRENTS,
-    END_OF_UPDATES,
-} partialUpdateType
-
-// If we are compiling as C++ code we need to use extern "C" linkage
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
-
-
+    
 /* Perform next step of update cycle.
  * Returns: SB_OK on success
  *          SB_UPDATEDONE on success and update cycle is done
@@ -332,7 +342,12 @@ int setBatteryState(int fd, int state);
 int setOvrParams(int fd, int a, int b);
 int readOvrParams(int fd, int * a, int * b);
 
+/** Translates the function error return codes into text */    
+char* sbErrorToText(int ret);
+    
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
+
+#endif // RAM_DRIVER_SENSORAPI_H_06_09_2008

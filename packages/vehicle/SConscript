@@ -24,8 +24,6 @@ if not env.HasFeature('drivers'):
     # Remove hardware devices
     sources.remove('src/device/IMU.cpp')
     sources.remove('src/device/PSU.cpp')
-    sources.remove('src/device/ThrusterCommand.cpp')
-    sources.remove('src/device/ThrusterCommunicator.cpp')
 
 # Build Procducts (library will be called 'libram_vehicle.so')
 envl.RAMSharedLibrary('vehicle',  source = sources)

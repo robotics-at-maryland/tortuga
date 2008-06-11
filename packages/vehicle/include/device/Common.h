@@ -32,16 +32,17 @@ typedef boost::shared_ptr<IThruster> IThrusterPtr;
 class Thruster;
 typedef boost::shared_ptr<Thruster> ThrusterPtr;
     
-class ThrusterCommand;
-typedef boost::shared_ptr<ThrusterCommand> ThrusterCommandPtr;
-
-    
 class IIMU;
 typedef boost::shared_ptr<IIMU> IIMUPtr;
     
-    
 class IPSU;
 typedef boost::shared_ptr<IPSU> IPSUPtr;
+
+class IDepthSensor;
+typedef boost::shared_ptr<IDepthSensor> IDepthSensorPtr;
+    
+class SensorBoard;
+typedef boost::shared_ptr<SensorBoard> SensorBoardPtr;
     
 
 typedef std::vector<double> DoubleList;

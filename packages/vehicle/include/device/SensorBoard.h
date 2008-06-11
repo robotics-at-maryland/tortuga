@@ -19,8 +19,10 @@
 #include "vehicle/include/device/IDepthSensor.h"
 
 #include "core/include/Event.h"
+#include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/AveragingFilter.h"
 
 #include "sensorapi-r5/include/sensorapi.h"
 
@@ -47,6 +49,7 @@ public:
     
     /** Creates a device with the given file descriptor */
     SensorBoard(int deviceFD,
+                core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
     
     /** Create a SensorBoard from the config file with the given vehicle */
@@ -70,14 +73,15 @@ public:
     virtual void update(double timestep);
 
     virtual void background(int interval) {
-        Updatable::background(interval);
-    };
+//        core::Updatable::background(interval);
+    }
     virtual void unbackground(bool join = false) {
-        Updatable::unbackground(join);
-    };
+//        core::Updatable::unbackground(join);
+    }
     virtual bool backgrounded() {
-        return Updatable::backgrounded();
-    };
+        return false;
+//        return core::Updatable::backgrounded();
+    }
 
     // IDepth interface methods
     virtual double getDepth();
@@ -99,16 +103,50 @@ public:
      *      The number of the thruster (1-6)
      */
     virtual bool isThrusterEnabled(int address);
+
+    /** Enables of disables a desired thruster
+     *
+     *  @param address
+     *      The number of the thruster (1-6)
+     *  @param state
+     *      True to enable the thruster, false to disable
+     */
+    virtual void setThrusterEnable(int address, bool state);
+
+    /** Drops a marker (currently only works twice) */
+    virtual void dropMarker();
     
-private
+private:
     struct VehicleState
     {
         double depth;
+        int thrusterValues[6];
         struct boardInfo telemetry;
     };
+
+    /** Opens the FD if needed and syncs with the board */
+    void establishConnection();
+
+    bool handleReturn(int ret);
+
+    /** Mutex which protects access to state */
+    core::ReadWriteMutex m_stateMutex;
+
+    /** Vehicle state */
+    VehicleState m_state;
+
+    // Hacked depth calibration stuff
+    double m_depthCalibSlope;
+    double m_depthCalibIntercept;
+    bool m_calibratedDepth;
+    core::AveragingFilter<double, 5> m_depthFilter;
+    double m_depthOffset;
     
     /** The device file to open the file descriptor from */
     std::string m_deviceFile;
+
+    /** Protects access to the SB device */
+    boost::mutex m_deviceMutex;
     
     /** The file descriptor which is connected to the SB's USB port */
     int m_deviceFD;

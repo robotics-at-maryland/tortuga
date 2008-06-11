@@ -17,7 +17,6 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/Updatable.h"
-#include "core/include/AveragingFilter.h"
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
@@ -40,10 +39,6 @@ public:
     
     virtual double getDepth();
 
-    virtual std::vector<std::string> getTemperatureNames();
-
-    virtual std::vector<int> getTemperatures();
-
     math::Vector3 getLinearAcceleration();
 
     math::Vector3 getAngularRate();
@@ -55,11 +50,6 @@ public:
     virtual void unsafeThrusters(); 
 
     virtual void dropMarker();
-
-    virtual int startStatus();
-
-    /** Prints a line to the vehicle LCD screen */
-    virtual void printLine(int line, std::string text);
 
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque);
@@ -82,55 +72,38 @@ public:
     void calibrateDepth();
     
 protected:
-    struct VehicleState
-    {
-        double depth;
-    };
-    
-    void getState(Vehicle::VehicleState& state);
-    void setState(const Vehicle::VehicleState& state);
-
     /** Grabs the IMU from the current list of devices */
     device::IIMUPtr getIMU();
     
-private:
-            
-    core::ConfigNode m_config;
+    /** Grabs the depth sensor from the current list of devices*/
+    device::IDepthSensorPtr getDepthSensor();
 
-    /** syncs access to the sensor api */
-    boost::mutex m_sensorBoardMutex;
-    int m_sensorFD;
-    int m_markerNum;
+    /** Returns true if all IThrusterPtrs now contain valid thrusters */
+    bool lookupThrusterDevices();
     
-    double m_depthCalibSlope;
-    double m_depthCalibIntercept;
-    
-    core::ReadWriteMutex m_state_mutex;
-    VehicleState m_state;
+private:
+    core::ConfigNode m_config;
     
     NameDeviceMap m_devices;
 
-    bool m_calibratedDepth;
-    core::AveragingFilter<double, 5> m_depthFilter;
-    double m_depthOffset;
-
-    /** Values needed for thruster combination */
-    double m_rStarboard;
-    double m_rPort;
-    double m_rFore;
-    double m_rAft;
-    double m_rTop;
-    double m_rBottom;
-
-    std::string m_starboardThruster;
-    std::string m_portThruster;
-    std::string m_foreThruster;
-    std::string m_aftThruster;
-    std::string m_topThruster;
-    std::string m_bottomThruster;
+    std::string m_starboardThrusterName;
+    vehicle::device::IThrusterPtr m_starboardThruster;
+    std::string m_portThrusterName;
+    vehicle::device::IThrusterPtr m_portThruster;
+    std::string m_foreThrusterName;
+    vehicle::device::IThrusterPtr m_foreThruster;
+    std::string m_aftThrusterName;
+    vehicle::device::IThrusterPtr m_aftThruster;
+    std::string m_topThrusterName;
+    vehicle::device::IThrusterPtr m_topThruster;
+    std::string m_bottomThrusterName;
+    vehicle::device::IThrusterPtr m_bottomThruster;
 
     std::string m_imuName;
     vehicle::device::IIMUPtr m_imu;
+
+    std::string m_depthSensorName;
+    vehicle::device::IDepthSensorPtr m_depthSensor;
 };
     
 } // namespace vehicle

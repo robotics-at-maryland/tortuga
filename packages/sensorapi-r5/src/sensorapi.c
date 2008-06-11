@@ -896,3 +896,18 @@ int openSensorBoard(const char * devName)
     return fd;
 }
 
+char* sbErrorToText(int ret)
+{
+    static char* toText[] = {
+        "IO error",
+        "Bad CRC",
+        "Hardware failure",
+        "Error",
+        "OK"
+    };
+
+    if ((ret >= -4) && (ret <= 0))
+        return toText[ret + 5];
+    else
+        return "Unknown";
+}
