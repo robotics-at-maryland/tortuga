@@ -29,7 +29,9 @@ SensorBoard::SensorBoard(int deviceFD,
     m_deviceFile(""),
     m_deviceFD(deviceFD)
 {
-    establishConnection();
+    // If we get a negative FD, don't try to talk to the board
+    if (deviceFD >= 0)
+        establishConnection();
 }
     
 

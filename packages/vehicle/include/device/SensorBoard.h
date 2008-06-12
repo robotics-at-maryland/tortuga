@@ -7,8 +7,8 @@
  * File:  packages/vision/include/device/SensorBoard.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_SENSORBOARD_06_04_2007
-#define RAM_VEHICLE_DEVICE_SENSORBOARD_06_04_2007
+#ifndef RAM_VEHICLE_DEVICE_SENSORBOARD_06_04_2008
+#define RAM_VEHICLE_DEVICE_SENSORBOARD_06_04_2008
 
 // STD Includes
 #include <string>
@@ -156,4 +156,4 @@ private:
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_SENSORBOARD_06_04_2007
+#endif // RAM_VEHICLE_DEVICE_SENSORBOARD_06_04_2008

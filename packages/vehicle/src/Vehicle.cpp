@@ -291,7 +291,10 @@ bool Vehicle::lookupThrusterDevices()
                 (*iter).second);
 
         }
-        good = false;
+        else
+        {
+            good = false;
+        }
     }
 
     if (!m_portThruster)
@@ -303,7 +306,10 @@ bool Vehicle::lookupThrusterDevices()
                 (*iter).second);
 
         }
-        good = false;
+        else
+        {
+            good = false;
+        }
     }
 
     if (!m_foreThruster)
@@ -315,7 +321,10 @@ bool Vehicle::lookupThrusterDevices()
                 (*iter).second);
 
         }
-        good = false;
+        else
+        {
+            good = false;
+        }
     }
 
     if (!m_aftThruster)
@@ -327,7 +336,10 @@ bool Vehicle::lookupThrusterDevices()
                 (*iter).second);
 
         }
-        good = false;
+        else
+        {
+            good = false;
+        }
     }
 
     if (!m_topThruster)
@@ -339,7 +351,10 @@ bool Vehicle::lookupThrusterDevices()
                 (*iter).second);
 
         }
-        good = false;
+        else
+        {
+            good = false;
+        }
     }
     
     if (!m_bottomThruster)
@@ -351,7 +366,10 @@ bool Vehicle::lookupThrusterDevices()
                 (*iter).second);
 
         }
-        good = false;
+        else
+        {
+            good = false;
+        }
     }
 
     return good;

@@ -35,7 +35,7 @@ Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
         m_offset = config["offset"].asDouble(0.1905);
     else if (std::string::npos != name.find("Port"))
         m_offset = config["offset"].asDouble(0.1905);
-    else if (std::string::npos != name.find("Port"))
+    else if (std::string::npos != name.find("Fore"))
         m_offset = config["offset"].asDouble(0.3366);
     else if (std::string::npos != name.find("Aft"))
         m_offset = config["offset"].asDouble(0.3366);
