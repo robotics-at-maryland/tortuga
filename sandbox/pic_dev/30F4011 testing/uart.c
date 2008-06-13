@@ -49,7 +49,7 @@ Blue - Row 9, away from the board
 */
 
 
-#define MASTER_U1_BRG 1
+#define MASTER_U1_BRG 15
 #define byte unsigned char
 
 /* Motor controller addresses */
