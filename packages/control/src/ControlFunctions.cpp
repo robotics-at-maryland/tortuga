@@ -69,7 +69,8 @@ void translationalController(MeasuredState* measuredState,
       set depthControlType = (1 for P control) 
                              (2 for observer control for a 2d depth state) 
                              (3 for observer control for a 4d depth state)
-                             (4 yet to be implemented)
+                             (4 for observer control for a 4d discrete depth state)
+                             (5 for pid control)
     Note: 3 and 4 not implemented yet
     */
 
@@ -188,6 +189,15 @@ void depthObserver2(MeasuredState* measuredState,
 {
 	Vector2 xHat2 =  estimatedState->xHat2Depth;
 	double yHat = controllerState->depthC.dotProduct(xHat2);
+    //std::cout << "dt:" << dt << " " << controllerState->dtMin << " " << controllerState->dtMax << std::endl;
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
 	
 	// xHatDot = (A-B*K)*xHat+L*(y-yHat);
 	
@@ -231,7 +241,15 @@ double depthPIDController(MeasuredState* measuredState,
                           EstimatedState* estimatedState,
                           double dt)
 {
-
+    //std::cout << "dt:" << dt << " " << controllerState->dtMin << " " << controllerState->dtMax << std::endl;
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
 
     double error = measuredState->depth-desiredState->depth;
     double errorDot = (measuredState->depth-controllerState->depthPrevX)/dt;
@@ -267,6 +285,15 @@ double depthObserverController4(MeasuredState* measuredState,
                                 EstimatedState* estimatedState,
                                 double dt)
 {
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
+
     Vector4 xHat4 = estimatedState->xHat4Depth;
     Vector4 xHat4Dot = controllerState->depthA4*xHat4 +
                        controllerState->depthB4*
@@ -295,6 +322,15 @@ double depthObserverController4Discrete(MeasuredState* measuredState,
                                         EstimatedState* estimatedState,
                                         double dt)
 {
+    if(controllerState->dtMin > dt)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(controllerState->dtMax < dt)
+    {
+        dt = controllerState->dtMax;
+    }
+
     Vector4 xHat4 = estimatedState->xHat4Depth;
     xHat4 = controllerState->depthA4*xHat4 + controllerState->depthB4*
             (measuredState->depth - desiredState->depth);
@@ -325,7 +361,16 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
                                    double dt,
-                                   double* rotationalTorques){
+                                   double* rotationalTorques)
+{
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
 
     // Generate proportional controller gain matrix
     double PGain[3][3];
@@ -432,7 +477,8 @@ create an estimate of the pitch.
 double HackedPDPitchControl(MeasuredState* measuredState,
                            DesiredState* desiredState,
 			   ControllerState* controllerState,
-			   double hackedPitchGain){
+			   double hackedPitchGain)
+{
   double accel1=measuredState->linearAcceleration[0];
   double accel3=measuredState->linearAcceleration[2];
   double thetaMeas=atan2(accel3,accel1);

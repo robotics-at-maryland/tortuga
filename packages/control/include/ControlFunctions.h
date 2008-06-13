@@ -70,6 +70,8 @@ struct RAM_EXPORT ControllerState{
     /* DEPTH CONTROL GAINS*/
     //for depth P control
     double depthPGain;
+    double dtMin;
+    double dtMax;
     //for depth PID control
     double depthKi;
     double depthKp;
@@ -92,7 +94,6 @@ struct RAM_EXPORT ControllerState{
     math::Matrix4 depthA4;
     math::Vector4 depthB4;
     math::Vector4 depthC4;
-    double dt;
     
 };
 

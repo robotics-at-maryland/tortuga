@@ -46,7 +46,9 @@ TEST(PIDController)
    //Testing PID controller
     desired.depth = 2.2;
     measured.depth = 0;
-    //state.dt = 0.025;    
+    //state.dt = 0.025;
+    state.dtMin = .001;
+    state.dtMax = .05;    
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;
@@ -94,6 +96,8 @@ TEST(PIDController2)
    //Testing PID controller
     desired.depth = 3.1;
     measured.depth = 3.0;
+    state.dtMin = .001;
+    state.dtMax = .05;    
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;

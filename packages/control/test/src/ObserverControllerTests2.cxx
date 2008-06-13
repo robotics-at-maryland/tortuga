@@ -48,7 +48,8 @@ state.depthB = math::Vector2(0, 0.05); //Vector2 B
 state.depthC = math::Vector2(1, 0); //Vector2 C
 state.depthK = math::Vector2(9.5358, 16.12); //Vector2 K
 state.depthL = math::Vector2(43.525, 461.173); //Vector2 L
-state.dt = 1; //dt (delta_time)
+state.dtMin = .001;
+state.dtMax = 1; 
 
 control::EstimatedState estimated = {math::Vector2(0,0)};
 
@@ -99,7 +100,8 @@ state.depthB = math::Vector2(0, 0.05); //Vector2 B
 state.depthC = math::Vector2(1, 0); //Vector2 C
 state.depthK = math::Vector2(9.5358, 16.12); //Vector2 K
 state.depthL = math::Vector2(43.525, 461.173); //Vector2 L
-state.dt = 1; //dt (delta_time)
+state.dtMin = .001;
+state.dtMax = 1; 
 
 control::EstimatedState estimated = {math::Vector2(0,0)};
 estimated.xHat2Depth = math::Vector2(1,0);
@@ -146,7 +148,8 @@ state.depthB = math::Vector2(0, 0.05); //Vector2 B
 state.depthC = math::Vector2(1, 0); //Vector2 C
 state.depthK = math::Vector2(3.1622, 4.5854); //Vector2 K
 state.depthL = math::Vector2(0.22927, 0.026282); //Vector2 L
-state.dt = 1; //dt (delta_time)
+state.dtMin = .001;
+state.dtMax = 1; 
 
 control::EstimatedState estimated = {math::Vector2(0,0)};
 
@@ -191,7 +194,8 @@ state.depthB = math::Vector2(0, 0.05); //Vector2 B
 state.depthC = math::Vector2(1, 0); //Vector2 C
 state.depthK = math::Vector2(3.1622, 4.5854); //Vector2 K
 state.depthL = math::Vector2(0.22927, 0.026282); //Vector2 L
-state.dt = 1; //dt (delta_time)
+state.dtMin = .001;
+state.dtMax = 1; 
 
 control::EstimatedState estimated = {math::Vector2(0,0)};
 
