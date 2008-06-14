@@ -33,10 +33,7 @@
 
 using namespace ram;
 
-static const std::string CONFIG("{'depthCalibSlope' : 33.01,"
-                                "'name' : 'TestVehicle',"
-                                "'depthCalibIntercept' : 94,"
-                                "'sensor_board_file' : '/dev/DOESNOTEXIST'}");
+static const std::string CONFIG("{'name' : 'TestVehicle'}");
 
 struct VehicleFixture
 {
@@ -63,13 +60,12 @@ void eventHelper(std::string* eventType, ram::core::EventPtr event)
 TEST(DeviceCreation)
 {
     std::string config =
-            "{'depthCalibSlope':33.01,'depthCalibIntercept':94,"
+            "{"
             "'name' : 'TestVehicle',"
             "'Devices' : {"
             "    'IMU' : {'type' : 'MockDevice'},"
             "    'PSU' : {'type' : 'MockDevice'}"
             " },"
-            " 'sensor_board_file' : '/dev/DOESNOTEXIST'"
             "}";
     core::EventHubPtr eventHub(new core::EventHub());
     vehicle::IVehicle* veh = 
@@ -111,6 +107,23 @@ TEST(DeviceCreation)
 }
 
 TEST_FIXTURE(VehicleFixture, IMU)
+{
+    MockIMU* imu = new MockIMU("IMU");
+    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    
+    math::Vector3 accel(1,2,3);
+    math::Vector3 angularRate(4,5,6);
+    math::Quaternion orientation(7,8,9,10);
+    
+    imu->linearAcceleration = accel;
+    imu->angularRate = angularRate;
+    imu->orientation = orientation;
+    CHECK_EQUAL(accel, veh->getLinearAcceleration());
+    CHECK_EQUAL(angularRate, veh->getAngularRate());
+    CHECK_EQUAL(orientation, veh->getOrientation());
+}
+
+TEST_FIXTURE(VehicleFixture, DepthSensor)
 {
     MockIMU* imu = new MockIMU("IMU");
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
@@ -302,4 +315,35 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
         0.0, // Bottom
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosXForce, thrusterForceArray(), 6);
+}
+
+TEST_FIXTURE(ThrusterVehicleFixture, safeThrusters)
+{
+    starboard->enabled = true;
+    port->enabled = true;
+    fore->enabled = true;
+    aft->enabled = true;
+    top->enabled = true;
+    bottom->enabled = true;
+
+    veh->safeThrusters();
+
+    CHECK_EQUAL(false, starboard->enabled);
+    CHECK_EQUAL(false, port->enabled);
+    CHECK_EQUAL(false, fore->enabled);
+    CHECK_EQUAL(false, aft->enabled);
+    CHECK_EQUAL(false, top->enabled);
+    CHECK_EQUAL(false, bottom->enabled);
+}
+
+TEST_FIXTURE(ThrusterVehicleFixture, unsafeThrusters)
+{
+    veh->unsafeThrusters();
+
+    CHECK_EQUAL(true, starboard->enabled);
+    CHECK_EQUAL(true, port->enabled);
+    CHECK_EQUAL(true, fore->enabled);
+    CHECK_EQUAL(true, aft->enabled);
+    CHECK_EQUAL(true, top->enabled);
+    CHECK_EQUAL(true, bottom->enabled);
 }
