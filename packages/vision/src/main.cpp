@@ -1526,7 +1526,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 			r2=(data2[count+2]+256)%256;
 			if (b>30 && g>30 && r>30)
 			{
-				if (b2>210 && g2>210 && r2>210)
+				if (b2>190 && g2>190 && r2>190)
 				{
 					data2[count]=0;
 					data2[count+1]=0;
@@ -1627,10 +1627,10 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
     }
 //    cout<<"Histo Total = " << totalBlack << endl;
 
-    if (totalWhite<0 || totalBlack<0)
-    {
-        cout<<"WHAT THE FUCK!?!? "<<totalWhite << " ," << totalBlack<<endl;
-    }
+//    if (totalWhite<0 || totalBlack<0)
+//    {
+//        cout<<"WHAT THE FUCK!?!? "<<totalWhite << " ," << totalBlack<<endl;
+//    }
 	if (totalWhite>0 && totalBlack>0)
 	{
 //		whitex/=total;
@@ -1656,6 +1656,11 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 //			*biny=(whitey+blacky)/2;
             *binx=(histoWhiteX + histoBlackX) /2;
             *biny=(histoWhiteY + histoBlackY) /2;
+            
+            //Start SUIT DETECTION CODE!
+            
+            
+            
 		}
 		else
 		{
