@@ -164,6 +164,8 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
         }
         else
         {
+            int dummy;
+            histogram(image, &linex,&liney,&dummy,&dummy,&dummy,&dummy);//uh oh.
             // Make angle between 90 and -90
             m_angle = math::Radian(angle);
             if (m_angle > math::Radian(math::Math::HALF_PI))
