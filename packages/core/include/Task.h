@@ -54,8 +54,6 @@ public:
 	long getAverageRunTime();
 	// gets the average time in microseconds that it has not been running
 	long getAverageOffTime();
-	
-	bool operator< (const Task& t1, const Task& t2);
 
 protected:
 
@@ -77,6 +75,7 @@ protected:
 	int m_runs;
 };
 
+bool operator< (Task* t1, Task* t2);
 
 
 inline long Task::getUpdateRate()

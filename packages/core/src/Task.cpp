@@ -102,8 +102,8 @@ struct timeval *elapse_time(struct timeval *tv, unsigned msec) {
     
 Task::Task(long updateRate, int priority, bool repeat) :
     m_updateRate(updateRate),
-	m_priority(priority)
-	m_repeat(repeat)
+	m_priority(priority),
+	m_repeat(repeat),
 	m_enabled(true),
 	m_totalRunTime(0),
 	m_totalOffTime(0),
@@ -133,15 +133,15 @@ void Task:endUpdate()
 	m_runs ++;
 }
 
-bool Task::operator< (const Task& t1, const Task& t2)
+bool operator< (Task* t1, Task* t2)
 {
-	int r = timeval_compare(&t1.m_nextRunTime, &t2.m_nextRunTime);
+	int r = timeval_compare(&(t1->m_nextRunTime), &(t2->m_nextRunTime));
 	if (r < 0)
 		return true;
 	else if (r > 0)
 		return false;
 	else
-		return t1.priority <= t2.priority;
+		return t1->priority <= t2->priority;
 }
 
 

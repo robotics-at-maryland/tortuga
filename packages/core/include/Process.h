@@ -8,7 +8,8 @@
 #include <boost/thread/xtime.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
-#include <priority_queue>
+#include <vector>
+#include <queue>
 
 // Project Includes
 #include "core/include/TimeVal.h"
@@ -34,16 +35,21 @@ public:
 	Process(int core);
 	~Process();
 	
-	void addTask(Task &t);
+	void addTask(Task *t);
 	
 	void start();
 	void stop();
 	
 protected:
 
-		int m_core;
+	int m_core;
+	bool m_started;
 
-		priority_queue<Task, vector<Task>, less<vector<Task>::value_type> > m_queue;
+	std::priority_queue<Task*, std::vector<Task*>, std::less<std::vector<Task*>::value_type> > m_queue;
+	
+	boost::thread* m_thread;
+	
+	void run();
 
 };
 
