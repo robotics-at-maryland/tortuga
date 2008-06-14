@@ -34,6 +34,11 @@
 
 #define USEC_PER_MSEC 1000
 
+#ifndef SENSORAPI_R5
+#error "WRONG VERSION OF INCLUDE"
+#endif
+
+
 int hasData(int fd, int timeout)
 {
     struct pollfd pfd;
@@ -140,7 +145,7 @@ int readDepth(int fd)
     readData(fd, buf, 3);
 
     if( ((0x03 + buf[0] + buf[1]) & 0xFF) == buf[2])
-        return buf[0]<<8 | buf[1];
+        return (buf[0]<<8 | buf[1]);
 
     return SB_ERROR;
 }

@@ -8,6 +8,10 @@
 // Project Includes
 #include "include/sensorapi.h"
 
+#ifndef SENSORAPI_R5
+#error "WRONG VERSION OF INLUDE"
+#endif
+
 /*
  * Sensor Board Utility, Revision $rev:$
  *
@@ -72,9 +76,7 @@ int main(int argc, char ** argv)
 	    return -1;
     }
 
-//    int fd = openSensorBoard("/dev/sensor");
-    int fd = openSensorBoard("/dev/ttyUSB0");
-
+    int fd = openSensorBoard("/dev/sensor");
 
     if(fd == -1)
     {

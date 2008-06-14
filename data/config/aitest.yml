@@ -16,8 +16,9 @@ Subsystems:
 #           almostHitPixels: 61440.0
         
         # Recording Settings
-#        maxRecordRate: 5 # Hz
-#        forwardFile: forward.avi
+        #maxRecordRate: 5 # Hz
+        #forwardFile: forward.avi
+        #downwardFile: downward.avi
 #        forwardPort: 50000
     
     EventHub:
@@ -54,8 +55,8 @@ Subsystems:
         depends_on: ["EventHub"]
 
         # Pressure tranducer calibration 
-        depthCalibSlope: 33.01
-        depthCalibIntercept: 94
+        depthCalibSlope: 35.4
+        depthCalibIntercept: 1183
 
         # The list of devices to create for the vehicle
         Devices:

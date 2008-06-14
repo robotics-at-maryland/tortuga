@@ -4,6 +4,8 @@
 
 #define NUM_TEMP_SENSORS 7
 
+#define SENSORAPI_R5
+
 struct powerInfo
 {
     float motorCurrents[8]; /* Currents for motors and marker droppers */

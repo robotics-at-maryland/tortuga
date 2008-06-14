@@ -72,7 +72,6 @@ class MotionManager(core.Subsystem):
         if motion.type & Motion.DEPTH:
             if self._depthMotion is not None:
                 self._stopMotion(self._depthMotion)
-                self._depthMotion.stop()
             self._depthMotion = motion
             
             if not started:
