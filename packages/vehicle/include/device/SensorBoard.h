@@ -115,6 +115,21 @@ public:
 
     /** Drops a marker (currently only works twice) */
     virtual void dropMarker();
+
+protected:
+    // Makes easy access to the sensor board and allows testing
+    
+    virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6);
+
+    virtual int partialRead(struct boardInfo* telemetry);
+
+    virtual int readDepth();
+
+    virtual void setThrusterSafety(int state);
+
+    virtual void dropMarker(int markerNum);
+
+    virtual void syncBoard();
     
 private:
     struct VehicleState
