@@ -73,7 +73,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     
     m_imuName(config["IMUName"].asString("IMU")),
     m_imu(device::IIMUPtr()),
-    m_depthSensorName(config["DepthSensorName"].asString("DepthSensor")),
+    m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr())
 {
     // Create devices
@@ -235,6 +235,13 @@ void Vehicle::update(double timestep)
         math::OrientationEventPtr oevent(new math::OrientationEvent());
         oevent->orientation = getOrientation();
         publish(IVehicle::ORIENTATION_UPDATE, oevent);
+    }
+
+    if (m_devices.end() != m_devices.find(m_depthSensorName))
+    {    
+        math::NumericEventPtr nevent(new math::NumericEvent());
+        nevent->number = getDepth();
+        publish(IVehicle::DEPTH_UPDATE, nevent);
     }
 }
 

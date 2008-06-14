@@ -20,9 +20,6 @@
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IThruster.h"
-#include "vehicle/test/include/MockDevice.h"
-#include "vehicle/test/include/MockIMU.h"
-#include "vehicle/test/include/MockThruster.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventConnection.h"
@@ -30,6 +27,11 @@
 
 #include "math/test/include/MathChecks.h"
 #include "math/include/Events.h"
+
+#include "vehicle/test/include/MockDevice.h"
+#include "vehicle/test/include/MockIMU.h"
+#include "vehicle/test/include/MockThruster.h"
+#include "vehicle/test/include/MockDepthSensor.h"
 
 using namespace ram;
 
@@ -125,19 +127,12 @@ TEST_FIXTURE(VehicleFixture, IMU)
 
 TEST_FIXTURE(VehicleFixture, DepthSensor)
 {
-    MockIMU* imu = new MockIMU("IMU");
-    veh->_addDevice(vehicle::device::IDevicePtr(imu));
-    
-    math::Vector3 accel(1,2,3);
-    math::Vector3 angularRate(4,5,6);
-    math::Quaternion orientation(7,8,9,10);
-    
-    imu->linearAcceleration = accel;
-    imu->angularRate = angularRate;
-    imu->orientation = orientation;
-    CHECK_EQUAL(accel, veh->getLinearAcceleration());
-    CHECK_EQUAL(angularRate, veh->getAngularRate());
-    CHECK_EQUAL(orientation, veh->getOrientation());
+    MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
+    veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
+
+    double depth = 2.6;
+    depthSensor->depth = depth;
+    CHECK_EQUAL(depth, veh->getDepth());
 }
 
 TEST_FIXTURE(VehicleFixture, _addDevice)
@@ -169,6 +164,33 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
     core::EventConnectionPtr conn = veh->subscribe(
         vehicle::IVehicle::ORIENTATION_UPDATE,
         boost::bind(orientationHelper, &result, _1));
+
+    veh->update(0);
+    CHECK_EQUAL(expected, result);
+    
+    conn->disconnect();
+}
+
+void depthHelper(double* result, ram::core::EventPtr event)
+{
+    math::NumericEventPtr nevent =
+    boost::dynamic_pointer_cast<ram::math::NumericEvent>(event);
+    *result = nevent->number;
+}
+
+TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
+{
+    MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
+    veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
+    
+    double result = 0;
+    double expected = 5.7;
+    depthSensor->depth = expected;
+    
+    // Subscribe to the event
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::DEPTH_UPDATE,
+        boost::bind(depthHelper, &result, _1));
 
     veh->update(0);
     CHECK_EQUAL(expected, result);
