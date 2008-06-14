@@ -83,7 +83,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeft)
     detector.processImage(&input);
     
     double expectedX = -0.5;
-    double expectedY = 0.431 * 640.0/480.0;
+    double expectedY = 0.5 * 640.0/480.0;
     math::Degree expectedAngle(25);
     
     CHECK(detector.found());
