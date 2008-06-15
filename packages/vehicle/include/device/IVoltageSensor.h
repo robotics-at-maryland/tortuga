@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/device/IDepthSensor.h
+ * File:  packages/vision/include/device/IVoltageSensor.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_IDEPTHSENSOR_06_05_2008
-#define RAM_VEHICLE_DEVICE_IDEPTHSENSOR_06_05_2008
+#ifndef RAM_VEHICLE_DEVICE_IVOLTAGESENSOR_06_15_2008
+#define RAM_VEHICLE_DEVICE_IVOLTAGESENSOR_06_15_2008
 
 // STD Includesb
 #include <string>
@@ -23,20 +23,19 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-class RAM_EXPORT IDepthSensor : public IDevice         // For getName
-             // boost::noncopyable
+class RAM_EXPORT IVoltageSensor 
 {
 public:
-    virtual ~IDepthSensor();
-
-    virtual double getDepth() = 0;
+    /** Fired when the voltage updates */
+    static const core::Event::EventType UPDATE;
     
-protected:
-    IDepthSensor(core::EventHubPtr eventHub = core::EventHubPtr());  
+    virtual ~IVoltageSensor();
+
+    virtual double getVoltage() = 0;
 };
     
 } // namespace device
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_IDEPTHSENSOR_06_05_2008
+#endif // RAM_VEHICLE_DEVICE_IVOLTAGESENSOR_06_15_2008
