@@ -40,11 +40,20 @@ class SensorBoard : public Device, // for getName, boost::noncopyable
                     public IDepthSensor
 {
 public:
+    enum PowerID
+    {
+        BATTERY_1,
+        BATTERY_2,
+        BATTERY_3,
+        BATTERY_4,
+        SHORE
+    };
+    
     /**
      * @defgroup Events SensorBoard Events
      */
     /* @{ */
-    static const core::Event::EventType DEPTH_UPDATE;
+    static const core::Event::EventType POWERSOURCE_UPDATE;
     /* @{ */
     
     /** Creates a device with the given file descriptor */
@@ -118,7 +127,6 @@ public:
 
 protected:
     // Makes easy access to the sensor board and allows testing
-    
     virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6);
 
     virtual int partialRead(struct boardInfo* telemetry);
@@ -144,6 +152,9 @@ private:
 
     bool handleReturn(int ret);
 
+    /** Triggers power source events */
+    void powerSourceEvents(struct boardInfo* telemetry);
+    
     /** Mutex which protects access to state */
     core::ReadWriteMutex m_stateMutex;
 

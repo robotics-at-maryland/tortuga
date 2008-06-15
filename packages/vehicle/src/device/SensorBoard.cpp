@@ -9,10 +9,12 @@
 
 // Project Includes
 #include "vehicle/include/device/SensorBoard.h"
+#include "vehicle/include/Events.h"
 
-#include "math/include/Events.h"
+//#include "math/include/Events.h"
 
-RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, DEPTH_UPDATE);
+
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, POWERSOURCE_UPDATE);
 
 namespace ram {
 namespace vehicle {
@@ -81,7 +83,10 @@ void SensorBoard::update(double timestep)
     
         // Do a partial read
         int ret = partialRead(&state.telemetry);
-        // TODO: trigger proper events when a full update happens
+        if (ret == SB_UPDATEDONE)
+        {
+            powerSourceEvents(&state.telemetry);
+        }
     
         // Now read depth
         ret = readDepth();
@@ -92,11 +97,6 @@ void SensorBoard::update(double timestep)
         {
             // Only record depth after we are calibrated
             state.depth = depth;
-            
-            // Publish event
-            math::NumericEventPtr devent(new math::NumericEvent());
-            devent->number = depth;
-            publish(SensorBoard::DEPTH_UPDATE, devent);
         }
         else
         {
@@ -203,35 +203,6 @@ void SensorBoard::dropMarker()
     }
 }
     
-    
-void SensorBoard::establishConnection()
-{
-    boost::mutex::scoped_lock lock(m_deviceMutex);
-    if (m_deviceFD < 0)
-    {
-        m_deviceFD = openSensorBoard(m_deviceFile.c_str());
-
-        if (m_deviceFD < 0)
-        {
-            assert(false && "Can't open sensor board file");
-        }
-    }
-
-    syncBoard();
-}
-
-bool SensorBoard::handleReturn(int ret)
-{
-    if (ret < 0)
-    {
-        close(m_deviceFD);
-        m_deviceFD = -1;
-        establishConnection();
-    }
-
-    return true;
-}
-
 void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
 {
     handleReturn(::setSpeeds(m_deviceFD, s1, s2, s3, s4, s5, s6));
@@ -272,6 +243,64 @@ void SensorBoard::syncBoard()
     if (SB_ERROR == ::syncBoard(m_deviceFD))
     {
         assert(false && "Can't sync with the sensor board");
+    }
+}
+
+void SensorBoard::establishConnection()
+{
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    if (m_deviceFD < 0)
+    {
+        m_deviceFD = openSensorBoard(m_deviceFile.c_str());
+
+        if (m_deviceFD < 0)
+        {
+            assert(false && "Can't open sensor board file");
+        }
+    }
+
+    syncBoard();
+}
+
+bool SensorBoard::handleReturn(int ret)
+{
+    if (ret < 0)
+    {
+        close(m_deviceFD);
+        m_deviceFD = -1;
+        establishConnection();
+    }
+
+    return true;
+}
+
+void SensorBoard::powerSourceEvents(struct boardInfo* telemetry)
+{
+    static int id2Enable[5] = {
+        BATT1_ENABLED,
+        BATT2_ENABLED,
+        BATT3_ENABLED,
+        BATT4_ENABLED,
+        BATT5_ENABLED
+    };
+
+/*    static int id2InUse[5] = {
+        BATT1_INUSE,
+        BATT2_INUSE,
+        BATT3_INUSE,
+        BATT4_INUSE,
+        BATT5_INUSE
+        };*/
+    
+    for (int i = BATTERY_1; i <= SHORE; ++i)
+    {
+        PowerSourceEventPtr event(new PowerSourceEvent);
+        event->id = i;
+        event->enabled = telemetry->battEnabled & id2Enable[i];
+//        event->inUse = telemetry->status & id2InUse[i];
+        event->voltage = telemetry->powerInfo.battVoltages[i];
+        event->current = telemetry->powerInfo.battCurrents[i];
+        publish(POWERSOURCE_UPDATE, event);
     }
 }
     

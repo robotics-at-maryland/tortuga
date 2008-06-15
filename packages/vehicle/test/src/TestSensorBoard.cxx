@@ -7,11 +7,18 @@
  * File:  packages/packages/vehicle/test/src/TestSensorBoard.cxx
  */
 
+// STD Includes
+#include <vector>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "vehicle/include/device/SensorBoard.h"
+#include "vehicle/include/Events.h"
+
+#include "core/include/EventConnection.h"
 
 class TestSensorBoard : public ram::vehicle::device::SensorBoard
 {
@@ -190,3 +197,58 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
     ((ram::vehicle::device::SensorBoard*)sb)->dropMarker();
     CHECK_EQUAL(1, sb->markerDropped);
 }
+
+typedef std::vector<ram::vehicle::PowerSourceEventPtr>
+PowerSourceEventPtrList;
+
+void powerSourceUpdateHelper(PowerSourceEventPtrList* list,
+                             ram::core::EventPtr event)
+{
+    list->push_back(boost::dynamic_pointer_cast<
+                    ram::vehicle::PowerSourceEvent>(event));
+}
+
+TEST_FIXTURE(SensorBoardFixture, event_POWERSOURCE_UPDATE)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    float expectedVoltages[5] = {9.3, 8.6, 5.7, 3.3, 0};
+    float expectedCurrents[5] = {2.23, 16.2, 5.3, 2.6, 0};
+    bool expectedEnables[5] = {true, false, false, true, false};
+
+    // Set values to be returned
+    sb->updateDone = true;
+    memcpy(expectedVoltages, &(sb->currentTelemetry.powerInfo.battVoltages),
+           sizeof(expectedVoltages));
+    memcpy(expectedCurrents, &(sb->currentTelemetry.powerInfo.battCurrents),
+           sizeof(expectedCurrents));
+    sb->currentTelemetry.battEnabled = BATT1_ENABLED | BATT4_ENABLED;
+
+    PowerSourceEventPtrList eventList;
+    ram::core::EventConnectionPtr conn = sb->subscribe(
+        ram::vehicle::device::SensorBoard::POWERSOURCE_UPDATE,
+        boost::bind(powerSourceUpdateHelper, &eventList, _1));
+    sb->update(0);
+
+    CHECK_EQUAL(5u, eventList.size());
+
+    
+    float actualVoltages[5] = {0};
+    float actualCurrents[5] = {0};
+    bool actualEnables[5] = {0};
+    
+    for (size_t i = 0; i < LENGTH(expectedVoltages); ++i)
+    {
+        actualVoltages[i] = eventList[i]->voltage;
+        actualCurrents[i] = eventList[i]->current;
+        actualEnables[i] = eventList[i]->enabled;
+    }
+
+    CHECK_ARRAY_EQUAL(expectedVoltages, actualVoltages, 5);
+    CHECK_ARRAY_EQUAL(expectedCurrents, actualCurrents, 5);
+    CHECK_ARRAY_EQUAL(expectedEnables, actualEnables, 5);
+    
+    conn->disconnect();
+}
+
