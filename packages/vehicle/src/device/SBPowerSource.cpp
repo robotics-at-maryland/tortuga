@@ -121,11 +121,11 @@ void SBPowerSource::onPowerSourceUpdate(core::EventPtr event)
 
     math::NumericEventPtr nevent(new math::NumericEvent);
     nevent->number = psEvent->voltage;
-    publish(IVoltageSensor::UPDATE, nevent);
+    publish(IVoltageProvider::UPDATE, nevent);
 
     nevent = math::NumericEventPtr(new math::NumericEvent);
     nevent->number = psEvent->current;
-    publish(ICurrentSensor::UPDATE, nevent);
+    publish(ICurrentProvider::UPDATE, nevent);
 }
     
 } // namespace device

@@ -15,8 +15,8 @@
 
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
-#include "vehicle/include/device/IVoltageSensor.h"
-#include "vehicle/include/device/ICurrentSensor.h"
+#include "vehicle/include/device/IVoltageProvider.h"
+#include "vehicle/include/device/ICurrentProvider.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
@@ -26,8 +26,8 @@ namespace vehicle {
 namespace device {
     
 class RAM_EXPORT IPowerSource :
-        public IVoltageSensor,
-        public ICurrentSensor,
+        public IVoltageProvider,
+        public ICurrentProvider,
         public IDevice
              // boost::noncopyable
 {

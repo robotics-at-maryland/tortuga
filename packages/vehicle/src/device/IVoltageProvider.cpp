@@ -4,19 +4,19 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/src/device/ICurrenSensor.cpp
+ * File:  packages/vision/src/device/IVoltageProvider.cpp
  */
 
 // Project Includes
-#include "vehicle/include/device/ICurrentSensor.h"
+#include "vehicle/include/device/IVoltageProvider.h"
 
-RAM_CORE_EVENT_TYPE(ram::vehicle::device::ICurrentSensor, UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IVoltageProvider, UPDATE);
 
 namespace ram {
 namespace vehicle {
 namespace device {
 
-ICurrentSensor::~ICurrentSensor()
+IVoltageProvider::~IVoltageProvider()
 {
 }
     

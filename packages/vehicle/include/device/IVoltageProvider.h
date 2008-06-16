@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/device/IVoltageSensor.h
+ * File:  packages/vision/include/device/IVoltageProvider.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_IVOLTAGESENSOR_06_15_2008
-#define RAM_VEHICLE_DEVICE_IVOLTAGESENSOR_06_15_2008
+#ifndef RAM_VEHICLE_DEVICE_IVOLTAGEPROVIDER_06_15_2008
+#define RAM_VEHICLE_DEVICE_IVOLTAGEPROVIDER_06_15_2008
 
 // STD Includesb
 #include <string>
@@ -23,13 +23,13 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-class RAM_EXPORT IVoltageSensor 
+class RAM_EXPORT IVoltageProvider 
 {
 public:
     /** Fired when the voltage updates */
     static const core::Event::EventType UPDATE;
     
-    virtual ~IVoltageSensor();
+    virtual ~IVoltageProvider();
 
     virtual double getVoltage() = 0;
 };
@@ -38,4 +38,4 @@ public:
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_IVOLTAGESENSOR_06_15_2008
+#endif // RAM_VEHICLE_DEVICE_IVOLTAGEPROVIDER_06_15_2008
