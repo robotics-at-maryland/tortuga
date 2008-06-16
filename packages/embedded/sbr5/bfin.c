@@ -5,7 +5,7 @@
 #define SENSORBOARD_BFIN
 #include "uart.c"
 
-_FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
+_FOSC( CSW_FSCM_OFF & XT_PLL8); //EC_PLL4); //ECIO );
 _FWDT ( WDT_OFF );
 
 
@@ -50,6 +50,53 @@ _FWDT ( WDT_OFF );
 
 #define IN_U1_RX    _RF2
 
+
+#define TRIS_PWM    _TRISD2
+
+void _ISR _U2RXInterrupt(void)
+{
+    byte t;
+    IFS1bits.U2RXIF = 0;    /* Clear RX interrupt */
+
+
+    t = U2RXREG;
+
+    LAT_LED_GREEN = t & 0x01;
+    LAT_LED_YELLOW = t & 0x02;
+    LAT_LED_RED = t & 0x04;
+
+
+/*
+    TMR2 = 0;
+    OC3RS = ((unsigned char)(U2RXREG & 0xFF));
+*/
+
+}
+
+void initUart()
+{
+    _TRISF5 = 0;        // Un-tristate the U2 transmit pin
+    U2MODE = 0x0000;
+    U2BRG = 10;  /* 10 for 115200 at 20 MIPS */
+    U2MODEbits.UARTEN = 1;
+    U2STAbits.UTXEN = 1;   // Enable transmit
+    U2STAbits.UTXISEL=1;    /* Generate interrupt only when buffer is empty */
+    U2STAbits.URXISEL=0;    /* Generate interrupt when a byte comes in */
+    IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
+}
+
+void initJPortal()
+{
+    TRIS_PWM = 0;        /* Un-tristate the PWM output */
+    OC3CON = 0x0000;
+    OC3CONbits.OCTSEL = 0;  /* Use Timer2 */
+    OC3CONbits.OCM = 0x6;   /* PWM, fault pin disabled */
+    PR2 = 300;
+    OC3RS = 0;
+    T2CONbits.TCKPS = 0;    /* No prescaler */
+    T2CONbits.TON = 1;      /* Start Timer2 */
+}
+
 void main()
 {
     long l;
@@ -83,6 +130,10 @@ void main()
 
 
     TRIS_BF_RESET = TRIS_IN;    /* Start the Blackfin */
+
+    for(l=0; l<200000; l++);     /* Wait a little bit more before accepting commands */
+
+    initUart();
 
     while(1);
 }
