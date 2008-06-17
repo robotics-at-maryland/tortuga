@@ -31,7 +31,8 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-veh_wrapped_headers = ['IVehicle.h']
+veh_wrapped_headers = ['IVehicle.h',
+                       'Events.h']
 
 dev_wrapped_headers = ['device/Common.h',
                        'device/IDevice.h',
