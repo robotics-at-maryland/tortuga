@@ -39,7 +39,8 @@ class TestIVehicle(unittest.TestCase):
 
             # Make sure the type was properly converted
             self.assert_(hasattr(veh,'getDepth'))
-            self.assertNotEquals(None, veh.getDepth())
+            self.assert_(hasattr(veh,'safeThrusters'))
+            self.assertEquals(None, veh.safeThrusters())
             
 
         # Test a mock Python one

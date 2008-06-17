@@ -44,15 +44,31 @@ def generate(module_builder, local_ns, global_ns):
     wrap.make_already_exposed(global_ns, 'ram::core', ['EventPublisher'],
                               no_implicit_conversion = True)
 
+    wrappedClasses = []
+
     # Wrap IDevice Class
     IDevice = expose_device(local_ns, 'IDevice', register = False);
+    wrappedClasses.append(IDevice)
 
     # Wrap the thruster class
-    IThruster = expose_device(local_ns, 'IThruster');
+    IThruster = expose_device(local_ns, 'IThruster')
+    wrappedClasses.append(IThruster)
+
+    # Wrap marker interfaces (slightly abuse expose device)
+    IVoltageProvider = expose_device(local_ns, 'IVoltageProvider',
+                                     register = False)
+    wrappedClasses.append(IVoltageProvider)
+    ICurrentProvider = expose_device(local_ns, 'ICurrentProvider',
+                                     register = False)
+    wrappedClasses.append(ICurrentProvider)
+
+    # Wrap the IPowerSource class
+    IPowerSource = expose_device(local_ns, 'IPowerSource')
+    wrappedClasses.append(IPowerSource)
 
     module_builder.add_registration_code("registerIDeviceMakerClass();")
     module_builder.add_registration_code("registerIDevicePtrs();")
-    wrap.add_needed_includes([IDevice, IThruster])
+    wrap.add_needed_includes(wrappedClasses)
     return ['wrappers/vehicle/include/RegisterFunctions.h']
     # Wrap IMU class
 #    IMU = expose_device(local_ns, 'IMU', False);

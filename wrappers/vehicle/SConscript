@@ -35,7 +35,8 @@ veh_wrapped_headers = ['IVehicle.h']
 
 dev_wrapped_headers = ['device/Common.h',
                        'device/IDevice.h',
-                       'device/IThruster.h']
+                       'device/IThruster.h',
+                       'device/IPowerSource.h']
 
 # Tests
 root_src = os.path.dirname(env.GetBuildPath('SConscript'))
