@@ -14,11 +14,15 @@ int main(int argc, char ** argv)
 
     addr = strtol(argv[1], NULL, 16);
 
+    unsigned short lastCount = 0;
+
     while(1)
     {
         val = *((signed short *) (addr));
 	    printf("%06d\n", val);
 	    fflush(stdout);
+        while(lastCount == *((unsigned short *)0x202F0020));
+        lastCount = *((unsigned short *)0x202F0020);
     }
     return 0; // hi joe
 }
