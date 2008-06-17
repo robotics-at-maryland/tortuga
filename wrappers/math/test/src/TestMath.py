@@ -48,6 +48,18 @@ class TestConversions(unittest.TestCase):
         except TypeError:
             pass
 
+class TestVectorMatrix2(unittest.TestCase):
+    def test(self):
+        start = math.Vector2(1,0);
+        rotationMatrix = math.Matrix2()
+        rotationMatrix.fromAngle(math.Degree(45));
+        
+        expected = math.Vector2(math.Vector2(1,1).normalisedCopy());
+        # TODO: Expose the free operator functions
+        #result = (start * rotationMatrix)
+
+        #self.assertAlmostEqual(expected.x, result.x, 4)
+        #self.assertAlmostEqual(expected.y, result.y, 4)
 
 if __name__ == '__main__':
     unittest.main()

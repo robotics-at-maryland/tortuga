@@ -28,24 +28,36 @@ def generate(module_builder, local_ns, global_ns):
     # Find all the classes to wrap
     Radian = local_ns.class_('Radian')
     Degree = local_ns.class_('Degree')
+    Vector2 = local_ns.class_('Vector2')
     Vector3 = local_ns.class_('Vector3')
     Quaternion = local_ns.class_('Quaternion')
+    Matrix2 = local_ns.class_('Matrix2')
     Matrix3 = local_ns.class_('Matrix3')
 
     # Include them
     Radian.include()
     Degree.include()
+    Vector2.include()
     Vector3.include()
     Quaternion.include()
+    Matrix2.include()
     Matrix3.include()
 
-    classes.extend([Radian, Degree, Vector3, Quaternion, Matrix3])
+    classes.extend([Radian, Degree, Vector2, Vector3, Quaternion, Matrix2,
+                    Matrix3])
 
     # Map operator<< to __str__
     wrap.str_from_ostream(local_ns)
 
 
     # Fix '[]' operators on matrices
+    c = Matrix2.operators('[]')
+    c.call_policies= call_policies.convert_array_to_tuple(2, \
+        call_policies.memory_managers.none)
+    c.include()
+    c.documentation = wrap.docit("Return Type Change", "None",
+                                 "Tuple with 2 floats's (the matrix 'line')")
+    
     c = Matrix3.operators('[]')
     c.call_policies= call_policies.convert_array_to_tuple(3, \
         call_policies.memory_managers.none)
@@ -54,9 +66,9 @@ def generate(module_builder, local_ns, global_ns):
                                  "Tuple with 3 floats's (the matrix 'line')")
 
     # Handle the 'ptr' functions
-    wrap.fix_pointer_returns([Vector3, Quaternion, Matrix3],
+    wrap.fix_pointer_returns([Vector2, Vector3, Quaternion, Matrix2, Matrix3],
                              ignore_names = ['ptr'])
-    wrap.fix_pointer_args([Vector3, Quaternion, Matrix3])
+    wrap.fix_pointer_args([Vector2, Vector3, Quaternion, Matrix2, Matrix3])
 
     # Remove float -> Radian/Degree implicit conversions
     Degree.constructor(arg_types = ['double']).allow_implicit_conversion = False
@@ -75,8 +87,9 @@ def generate(module_builder, local_ns, global_ns):
     # Append the approaite include files
     wrap.add_needed_includes(classes)
     Quaternion.include_files.append(Matrix3.location.file_name)
+    
     # Remove implicit conversions
-    wrap.set_implicit_conversions([Vector3, Quaternion, Matrix3],
-                                  False)
+    wrap.set_implicit_conversions([Vector2, Vector3, Quaternion, Matrix2,
+                                   Matrix3], False)
 
     return ['math/include/Math.h']

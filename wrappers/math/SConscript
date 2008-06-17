@@ -28,7 +28,12 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-wrapped_headers = ['Math.h', 'Vector3.h', 'Quaternion.h', 'Matrix3.h']
+wrapped_headers = ['Math.h',
+                   'Vector2.h',
+                   'Vector3.h',
+                   'Quaternion.h',
+                   'Matrix2.h',
+                   'Matrix3.h']
 
 if env.HasFeature('core'):
     wrapped_headers.append('Events.h')

@@ -236,15 +236,15 @@ namespace math {
         */
         
         // support for singular value decomposition
-        static const Real ms_fSvdEpsilon;
-        static const unsigned int ms_iSvdMaxIterations;
-        static void Bidiagonalize (Matrix2& kA, Matrix2& kL,
-            Matrix2& kR);
-        static void GolubKahanStep (Matrix2& kA, Matrix2& kL,
-            Matrix2& kR);
+        //static const Real ms_fSvdEpsilon;
+        //static const unsigned int ms_iSvdMaxIterations;
+        //static void Bidiagonalize (Matrix2& kA, Matrix2& kL,
+        //    Matrix2& kR);
+        //static void GolubKahanStep (Matrix2& kA, Matrix2& kL,
+        //    Matrix2& kR);
 
         // support for spectral norm
-        static Real MaxCubicRoot (Real afCoeff[2]);
+        //static Real MaxCubicRoot (Real afCoeff[2]);
 
         Real m[2][2];
 
@@ -252,6 +252,10 @@ namespace math {
         //friend class Matrix4; we don't need this (we think....)
     };
 
+
+Vector2 operator* (const Vector2& rkPoint, const Matrix2& rkMatrix);
+Matrix2 operator* (Real fScalar, const Matrix2& rkMatrix);
+    
 } // namespace math
 } // namespace ram
 
