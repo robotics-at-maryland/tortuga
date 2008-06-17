@@ -617,6 +617,11 @@ class ConfigLibrary(Library):
                 self._config_cmd_output += ' '+ result
         
         # Merge actuall command output
+        # Stip out flags we don't "like"
+        flagsToRemove = ['-O2', '-O3', '-O0', '-DNDEBUG', '-g']
+        for flag in flagsToRemove:
+            self._config_cmd_output = self._config_cmd_output.replace(flag, '')
+        
         env.MergeFlags([self._config_cmd_output])
 
         # Make sure settings for dependent libraries are set
