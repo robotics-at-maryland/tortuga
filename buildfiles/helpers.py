@@ -149,7 +149,7 @@ def run_tests(env, output, inputs, message = None, deps = None):
             testerpath = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
                                       'pytester.py')
             tests = '"' + '" "'.join(pytests) + '"'
-            cmd_str = '%s "%s" %s' % (sys.executable, testerpath, tests)
+            cmd_str = '"%s" "%s" %s' % (sys.executable, testerpath, tests)
             result = subprocess.call(cmd_str, shell = True)
             if result:
                 return 1 # Failure

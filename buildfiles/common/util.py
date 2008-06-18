@@ -61,7 +61,7 @@ def install_buildit(package_dir, prefix_dir):
     os.chdir(package_dir)
 
     # Run setup.py for that package    
-    command_str = '%s setup.py install --prefix=%s' % \
+    command_str = '"%s" setup.py install --prefix=%s' % \
         (sys.executable, prefix_dir) 
     safe_system(command_str)
     

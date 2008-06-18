@@ -17,6 +17,8 @@ from buildit.task import Task
 # Project Imports
 from buildfiles.common.commands import *
 
+pythonExecutable = '"%s"' % sys.executable
+
 # Setup basic directory structure
 setup_directories = Task(
     'Setup Directory Structure',
@@ -36,7 +38,7 @@ install_pygccxml = Task(
     namespaces = 'pygccxml',
     targets = '${py_site_packages}/pygccxml',
     workdir = '${deps_dir}/pygccxml',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -46,7 +48,7 @@ install_pyplusplus = Task(
     namespaces = 'pyplusplus',
     targets = '${py_site_packages}/pyplusplus',
     workdir = '${deps_dir}/pyplusplus',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -56,7 +58,7 @@ install_pyserial = Task(
     namespaces = 'pyserial',
     targets = '${py_site_packages}/serial',
     workdir = '${deps_dir}/pyserial',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -66,7 +68,7 @@ install_pyyaml = Task(
     namespaces = 'pyyaml',
     targets = '${py_site_packages}/yaml',
     workdir = '${deps_dir}/pyyaml',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -77,7 +79,7 @@ install_scons = Task(
     namespaces = 'scons',
     targets = '${py_site_packages}/SCons',
     workdir = '${deps_dir}/scons',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'
                 '  --standard-lib'],
     dependencies = (setup_directories,)
@@ -88,7 +90,7 @@ install_zope_interface = Task(
     namespaces = 'zope_interface',
     targets = '${py_site_packages}/zope',
     workdir = '${deps_dir}/zope_interface',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )

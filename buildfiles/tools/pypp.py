@@ -184,7 +184,7 @@ def run_pypp(env, target, source, module, tester = None, extra_sources = None,
     # rebuild just to see what the error was
     #if env['verbose']:
     #    verbose = '--verbose'
-    cmd_str = '%s "%s" -t "%s" -m "%s" %s %s' % (sys.executable, prog_path,
+    cmd_str = '"%s" "%s" -t "%s" -m "%s" %s %s' % (sys.executable, prog_path,
                                         outfile_path, target_str, slist, 
                                         verbose)
     commands = [cmd_str]
