@@ -30,6 +30,7 @@
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
+#include "core/include/DependencyGraph.h"
 
 // Register vehicle into the maker subsystem
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
@@ -79,11 +80,16 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     // Create devices
     if (config.exists("Devices"))
     {
-        core::NodeNameList subnodes = config["Devices"].subNodes();
-        BOOST_FOREACH(std::string nodeName, subnodes)
+        core::ConfigNode deviceConfig(config["Devices"]);
+
+        // Properly fills m_order, and m_subsystemDeps
+        core::DependencyGraph depGraph(deviceConfig);
+        std::vector<std::string> deviceOrder = depGraph.getOrder();
+        
+        BOOST_FOREACH(std::string deviceName, deviceOrder)
         {
-            core::ConfigNode node(config["Devices"][nodeName]);
-            node.set("name", nodeName);
+            core::ConfigNode node(deviceConfig[deviceName]);
+            node.set("name", deviceName);
             // TODO: Make me a log
             //std::cout << "Creating device " << node["name"].asString()
             //    << " of type: " << node["type"].asString() << std::endl;
@@ -124,6 +130,8 @@ Vehicle::~Vehicle()
 device::IDevicePtr Vehicle::getDevice(std::string name)
 {
     NameDeviceMapIter iter = m_devices.find(name);
+    if (iter == m_devices.end())
+        std::cout << "Could not find device: \"" << name << "\"" << std::endl;
     assert(iter != m_devices.end() && "Error Device not found");
     return (*iter).second;
 }
@@ -247,12 +255,17 @@ void Vehicle::update(double timestep)
 
 void Vehicle::background(int interval) 
 {
+    core::ConfigNode deviceConfig(m_config["Devices"]);
+    
     BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
     {
         device::IDevicePtr device(pair.second);
-        core::ConfigNode devCfg(m_config["Devices"][device->getName()]);
-        if (devCfg.exists("update_interval"))
-            device->background(devCfg["update_interval"].asInt());
+        if (deviceConfig.exists(device->getName()))
+        {
+            core::ConfigNode devCfg(deviceConfig[device->getName()]);
+            if (devCfg.exists("update_interval"))
+                device->background(devCfg["update_interval"].asInt());
+        }
     }
     
     Updatable::background(interval);

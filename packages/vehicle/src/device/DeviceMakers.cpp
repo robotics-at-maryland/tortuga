@@ -21,14 +21,16 @@
 #include "vehicle/include/device/IMU.h"
 #include "vehicle/include/device/PSU.h"
 #include "vehicle/include/device/SensorBoard.h"
+#include "vehicle/include/device/SBPowerSource.h"
 #endif
 
 // Register each device with the factor system
 #ifdef RAM_WITH_DRIVERS
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::IMU, IMU);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::PSU, PSU);
-//RAM_VEHICLE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SensorBoard,
-//                                   SensorBoard);
+
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SensorBoard, SensorBoard);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBPowerSource, SBPowerSource);
 #endif
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::Thruster, Thruster);
 
