@@ -24,11 +24,11 @@ __all__ = ['Download', 'Template', 'UpdatePkgConfig', 'Mkdir', 'Archive',
            'UnArchive']  
 
 # If On Windows import modules to update registry
-if os.name == 'nt':
-    import _winreg
-    import win32gui
-    import win32con
-    __all__.append('EditEnvironment')
+#if os.name == 'nt':
+    #import _winreg
+    #import win32gui
+    #import win32con
+    #__all__.append('EditEnvironment')
            
 class Download(object):
     """
