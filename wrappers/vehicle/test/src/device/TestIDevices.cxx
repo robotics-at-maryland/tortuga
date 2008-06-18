@@ -20,6 +20,7 @@
 // Project Includes
 #include "vehicle/test/include/MockVehicle.h"
 #include "vehicle/test/include/MockThruster.h"
+#include "vehicle/test/include/MockPowerSource.h"
 
 namespace py = boost::python;
 
@@ -68,6 +69,34 @@ TEST_FIXTURE(DeviceFixture, Vehicle)
         // Test set force
         eval("thruster.setForce(13)");
         CHECK_EQUAL(13, thruster->force);
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
+}
+
+TEST_FIXTURE(DeviceFixture, IPowerSource)
+{
+    try {
+        // Create vehicle and add it the python environment
+        MockVehicle* vehicle = new MockVehicle;
+        boost::shared_ptr<ram::vehicle::IVehicle> vehiclePtr(vehicle);
+        main_namespace["vehicle"] = vehiclePtr;
+
+        // Create MockThruster and add it to the MockVehicle
+        MockPowerSource* powerSource = new MockPowerSource("PowerSource");
+        ram::vehicle::device::IPowerSourcePtr powerSourcePtr(powerSource);
+        vehicle->devices[powerSource->getName()] = powerSourcePtr;
+
+        // Test isEnabled
+        powerSource->enabled = true;
+
+        eval("powerSource = vehicle.getDevice('PowerSource')\n"
+             "enabled = powerSource.isEnabled()");
+
+        bool enabled = py::extract<double>(main_namespace["enabled"]);
+        CHECK_EQUAL(powerSource->isEnabled(), enabled);
+
+        // Test setEnabled
+        //eval("powerSource.setEnabled(false)");
+        //CHECK_EQUAL(false, powerSource->isEnabled());
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
 

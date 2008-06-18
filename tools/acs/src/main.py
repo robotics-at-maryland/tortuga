@@ -20,6 +20,10 @@ import ext.core
 # To register the makers
 import ram
 import ext.vision
+import ext.vehicle
+import ext.core
+import ext.math
+import ext.control
 
 try:
     import ctypes
