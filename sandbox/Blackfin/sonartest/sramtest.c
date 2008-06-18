@@ -14,13 +14,14 @@ int main(int argc, char ** argv)
     printf("Writing words...\n");
     for(i=0; i<SRAM_SIZE; i+=2)
     {
-        *((unsigned short *) i + SRAM_BASE) = i;
+//         printf("Writing to %08x\n", (i+SRAM_BASE));
+        *((unsigned short *) (i + SRAM_BASE)) = i;
     }
 
     printf("Reading words...\n");
     for(i=0; i<SRAM_SIZE; i+=2)
     {
-        t = *((unsigned short *) i + SRAM_BASE);
+        t = *((unsigned short *) (i + SRAM_BASE));
         if(t != (i & 0xFFFF))
         {
             printf("Mismatch at address %08x: expected %04x, got %04x\n", i, (i&0xFFFF), t);
@@ -31,13 +32,13 @@ int main(int argc, char ** argv)
     printf("Writing bytes...\n");
     for(i=0; i<SRAM_SIZE; i++)
     {
-        *((unsigned char *) i + SRAM_BASE) = i;
+        *((unsigned char *) (i + SRAM_BASE)) = i;
     }
 
     printf("Reading bytes...\n");
     for(i=0; i<SRAM_SIZE; i++)
     {
-        t = *((unsigned char *) i + SRAM_BASE);
+        t = *((unsigned char *) (i + SRAM_BASE));
         if(t != (i & 0xFF))
         {
             printf("Mismatch at address %08x: expected %02x, got %02x\n", i, (i&0xFF), t);
