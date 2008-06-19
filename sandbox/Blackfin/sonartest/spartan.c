@@ -3,6 +3,7 @@
 
 int initADC()
 {
-    REG_ADCONFIG = 0x1300;
-//     REG_ADPRESCALER = 0x0000;
+    REG(ADDR_ADConfig1) = 0x8000;
+    REG(ADDR_ADConfig1) = 0x4000;
+    REG(ADDR_ADConfig2) = 0x0000;
 }

@@ -71,22 +71,23 @@ int main(int argc, char ** argv)
     register unsigned short lastCount, sampleCount;
 
 
-    REG_LED = 0x02;
+    REG(ADDR_LED) = 0x02;
 
     int sd = 0;
 
     for(i=0; i<count; i++)
     {
-        samples1[i] = *((volatile unsigned short *) addr);
-        samples2[i] = REG_ADC2;
-        samples3[i] = REG_ADC4;
-        samples4[i] = REG_ADC6;
+        samples1[i] = REG(ADDR_FIFO_OUT1S); //*((volatile unsigned short *) addr);
+        samples2[i] = REG(ADDR_ADC2);
+        samples3[i] = REG(ADDR_ADC4);
+        samples4[i] = REG(ADDR_ADC6);
 
 
-
+        while(REG(ADDR_FIFO_EMPTY1S) != 0);
+/*
         do
         {
-            sampleCount = REG_SAMPLECOUNT1;
+            sampleCount = REG(ADDR_SampleCount1);
         }
         while(lastCount == sampleCount);
 
@@ -94,9 +95,10 @@ int main(int argc, char ** argv)
             sd++;
 
          lastCount = sampleCount;
+         */
     }
 
-    REG_LED = 0x01;
+    REG(ADDR_LED) = 0x01;
 
 
     if(argc == 3)
@@ -107,7 +109,7 @@ int main(int argc, char ** argv)
 
 //     printf("samples dropped: %d\n", sd);
 
-    REG_LED = 0x00;
+    REG(ADDR_LED) = 0x00;
 
     return 0; // hi joe
 

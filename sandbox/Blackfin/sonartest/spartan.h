@@ -1,60 +1,81 @@
 #define SRAM_BASE 0x20300000
 #define SRAM_SIZE 0x100000
 
-#define ADDR_LED         0x202E0000
-#define ADDR_LOOPBACK0   0x202E0010
-#define ADDR_LOOPBACK1   0x202E0012
-#define ADDR_LOOPBACK2   0x202E0014
-#define ADDR_LOOPBACK3   0x202E0016
+
+// Bus addresses
+#define ADDR_ADC0           0x202F0000  //0x202F 0000
+#define ADDR_ADC1           0x202F0004
+#define ADDR_ADC2           0x202F0008
+#define ADDR_ADC3           0x202F000C
+#define ADDR_ADC4           0x202F0010
+#define ADDR_ADC5           0x202F0014
+#define ADDR_ADC6           0x202F0018
+#define ADDR_ADC7           0x202F001C
+
+#define ADDR_ADConfig1          0x202F0100
+#define ADDR_ADConfig2          0x202F0104
+
+#define ADDR_SampleCount1       0x202F0110
+#define ADDR_SampleCount2       0x202F0114
+#define ADDR_SampleCount1Swap   0x202F0118
+#define ADDR_SampleCount2Swap   0x202F011C
+#define ADDR_SampleCount1Latch  0x202F0120
+#define ADDR_SampleCount2Latch  0x202F0124
+
+#define ADDR_BitCounter1        0x202F0130
+#define ADDR_BitCounter2        0x202F0134
+
+#define ADDR_FIFO_OUT1A         0x202F0020
+#define ADDR_FIFO_OUT1B         0x202F0024
+#define ADDR_FIFO_OUT2A         0x202F0028
+#define ADDR_FIFO_OUT2B         0x202F002C
+#define ADDR_FIFO_OUT1S         0x202F0128
+#define ADDR_FIFO_OUT2S         0x202F012C
+
+#define ADDR_FIFO_COUNT1A       0x202F00A0
+#define ADDR_FIFO_COUNT1B       0x202F00A4
+#define ADDR_FIFO_COUNT2A       0x202F00A8
+#define ADDR_FIFO_COUNT2B       0x202F00AC
+#define ADDR_FIFO_COUNT1S       0x202F01A8
+#define ADDR_FIFO_COUNT2S       0x202F01AC
+
+#define ADDR_FIFO_EMPTY1A       0x202F00B0
+#define ADDR_FIFO_EMPTY1B       0x202F00B4
+#define ADDR_FIFO_EMPTY2A       0x202F00B8
+#define ADDR_FIFO_EMPTY2B       0x202F00BC
+#define ADDR_FIFO_EMPTY1S       0x202F01B8
+#define ADDR_FIFO_EMPTY2S       0x202F01BC
+
+#define ADDR_FIFO_HALF1A        0x202F00C0
+#define ADDR_FIFO_HALF1B        0x202F00C4
+#define ADDR_FIFO_HALF2A        0x202F00C8
+#define ADDR_FIFO_HALF2B        0x202F00CC
+#define ADDR_FIFO_HALF1S        0x202F01C8
+#define ADDR_FIFO_HALF2S        0x202F01CC
+
+#define ADDR_FIFO_STATUS1       0x202F0108
+#define ADDR_FIFO_STATUS2       0x202F010C
+
+#define ADDR_ADStep             0x202F0130
 
 
-/* 1A0 1A1 1B0 1B1  2A0 2A1 2B0 2B1 */
-#define ADDR_ADC0        0x202F0000
-#define ADDR_ADC1        0x202F0002
-#define ADDR_ADC2        0x202F0004
-#define ADDR_ADC3        0x202F0006
-#define ADDR_ADC4        0x202F0008
-#define ADDR_ADC5        0x202F000A
-#define ADDR_ADC6        0x202F000C
-#define ADDR_ADC7        0x202F000E
 
-#define ADDR_ADCONFIG      0x202F0100
-#define ADDR_ADPRESCALER   0x202F0102
 
-#define ADDR_SAMPLECOUNT1  0x202F0104
-#define ADDR_SAMPLECOUNT2  0x202F0106
 
-#define ADDR_BITCOUNTER1   0x202F0108
-#define ADDR_BITCOUNTER2   0x202F010A
+#define ADDR_LED                0x202E0000
+#define ADDR_Testreg0           0x202E0010
+#define ADDR_Testreg1           0x202E0014
+#define ADDR_Testreg2           0x202E0018
+#define ADDR_Testreg3           0x202E001C
+#define ADDR_Loopback0          0x202E0020
+#define ADDR_Loopback1          0x202E0024
+#define ADDR_Loopback2          0x202E0028
+#define ADDR_Loopback3          0x202E002C
+
+
+
 
 #define REG(a) (*(volatile unsigned short *) a)
-
-
-#define REG_LED         (*(volatile unsigned short *) ADDR_LED)
-
-#define REG_LOOPBACK0   (*(volatile unsigned short *) ADDR_LOOPBACK0)
-#define REG_LOOPBACK1   (*(volatile unsigned short *) ADDR_LOOPBACK1)
-#define REG_LOOPBACK2   (*(volatile unsigned short *) ADDR_LOOPBACK2)
-#define REG_LOOPBACK3   (*(volatile unsigned short *) ADDR_LOOPBACK3)
-
-#define REG_ADC0        (*(volatile signed short *) ADDR_ADC0)
-#define REG_ADC1        (*(volatile signed short *) ADDR_ADC1)
-#define REG_ADC2        (*(volatile signed short *) ADDR_ADC2)
-#define REG_ADC3        (*(volatile signed short *) ADDR_ADC3)
-#define REG_ADC4        (*(volatile signed short *) ADDR_ADC4)
-#define REG_ADC5        (*(volatile signed short *) ADDR_ADC5)
-#define REG_ADC6        (*(volatile signed short *) ADDR_ADC6)
-#define REG_ADC7        (*(volatile signed short *) ADDR_ADC7)
-
-#define REG_ADCONFIG    (*(volatile unsigned short *) ADDR_ADCONFIG)
-#define REG_ADPRESCALER (*(volatile unsigned short *) ADDR_ADPRESCALER)
-
-
-#define REG_SAMPLECOUNT1 (*(volatile unsigned short *) ADDR_SAMPLECOUNT1)
-#define REG_SAMPLECOUNT2 (*(volatile unsigned short *) ADDR_SAMPLECOUNT2)
-
-#define REG_BITCOUNTER1  (*(volatile unsigned short *) ADDR_BITCOUNTER1)
-#define REG_BITCOUNTER2  (*(volatile unsigned short *) ADDR_BITCOUNTER2)
 
 
 int initADC();
