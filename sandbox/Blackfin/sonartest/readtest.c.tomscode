@@ -76,21 +76,17 @@ int main(int argc, char ** argv)
     int sd = 0;
     unsigned short tempSample;
 
-    for(i=0; i<count; i++)
+    for(i=0; i<count; )
     {
-        do
-        {
-            samples1[i] = *((volatile unsigned short *) addr);
-            samples2[i] = REG_ADC2;
-            samples3[i] = REG_ADC4;
-            samples4[i] = REG_ADC6;
-            sampleCount = REG_SAMPLECOUNT1;
-        } while(lastCount == sampleCount);
+        tempSample = *((volatile unsigned short *) addr);
+        samples2[i] = REG_ADC2;
+        samples3[i] = REG_ADC4;
+        samples4[i] = REG_ADC6;
 
-        lastCount = sampleCount;
+
+
         //do
         //{
-        /*
             sampleCount = REG_SAMPLECOUNT1;
 
           if(sampleCount != lastCount)
@@ -98,7 +94,7 @@ int main(int argc, char ** argv)
             samples1[i] = tempSample;
             i++;
             lastCount = sampleCount;
-          }*/
+          }
 
         //}
         //while(lastCount == sampleCount);
