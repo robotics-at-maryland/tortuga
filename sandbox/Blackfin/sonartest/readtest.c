@@ -74,39 +74,26 @@ int main(int argc, char ** argv)
     REG_LED = 0x02;
 
     int sd = 0;
-    unsigned short tempSample;
 
     for(i=0; i<count; i++)
     {
+        samples1[i] = *((volatile unsigned short *) addr);
+        samples2[i] = REG_ADC2;
+        samples3[i] = REG_ADC4;
+        samples4[i] = REG_ADC6;
+
+
+
         do
         {
-            samples1[i] = *((volatile unsigned short *) addr);
-            samples2[i] = REG_ADC2;
-            samples3[i] = REG_ADC4;
-            samples4[i] = REG_ADC6;
             sampleCount = REG_SAMPLECOUNT1;
-        } while(lastCount == sampleCount);
+        }
+        while(lastCount == sampleCount);
 
-        lastCount = sampleCount;
-        //do
-        //{
-        /*
-            sampleCount = REG_SAMPLECOUNT1;
+        if(((lastCount+1)&0xFFFF) != sampleCount)
+            sd++;
 
-          if(sampleCount != lastCount)
-          {
-            samples1[i] = tempSample;
-            i++;
-            lastCount = sampleCount;
-          }*/
-
-        //}
-        //while(lastCount == sampleCount);
-
-//         if(((lastCount+1)&0xFFFF) != sampleCount)
-//             sd++;
-
-
+         lastCount = sampleCount;
     }
 
     REG_LED = 0x01;
