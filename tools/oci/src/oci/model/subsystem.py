@@ -30,8 +30,17 @@ class Vehicle(vehicle.IVehicle):
         self._addThruster(eventHub, 'AftThruster', 3)
         self._addThruster(eventHub, 'ForeThruster', 4)
 
+        self._addPowerSource(eventHub, 'Batt 1', 1)
+        self._addPowerSource(eventHub, 'Batt 2', 2)
+        self._addPowerSource(eventHub, 'Batt 3', 3)
+        self._addPowerSource(eventHub, 'Batt 4', 4)
+        self._addPowerSource(eventHub, 'Shore', 5)
+
     def _addThruster(self, eventHub, name, offset):
         self._devices[name] = Thruster(eventHub, name, offset)
+        
+    def _addPowerSource(self, eventHub, name, offset):
+        self._devices[name] = PowerSource(eventHub, name, offset)
 
     def backgrounded(self):
         return False
@@ -101,48 +110,40 @@ class Thruster(device.IThruster):
     def getMaxForce(self):
         return 100;
         
+class PowerSource(device.Device):
+    VOLTAGE = ext.core.declareEventType('VOLTAGE')
+    CURRNET = ext.core.declareEventType('CURRENT')
+    ENABLED = ext.core.declareEventType('ENABLED')
+    DISABLED = ext.core.declareEventType('DISABLED')
     
-
-class DemoPower(core.Subsystem, core.EventPublisher):
-    """
-    A demo power subsystem with a single value that goes up and down.
-    
-    @type power: double
-    @ivar power: Watts in use
-    
-    @type _currentTime: double
-    @ivar _currentTime: current time accumlated by from update timestep
-    
-    @type POWER_UPDATE: string
-    @ivar POWER_UPDATE: Event type of event through when power updated
-    """
-    POWER_UPDATE = 'POWER_UPDATE'
-    
-    def __init__(self, config, deps):
-        core.Subsystem.__init__(self, config['name'])
-        core.EventPublisher.__init__(self)
-        
-        self.power = 0
+    def __init__(self, eventHub, name, offset):
+        device.Device.__init__(self, name, eventHub)
+        self._offset = offset
         self._currentTime = 0.0
-        
+    
     def update(self, timestep):
-        """
-        Updates power level based a simple sine wave
-        
-        @type  timestep: double
-        @param timestep: The time since the last update, added to _currentTime
-        """
         self._currentTime += timestep
-        self.power = 50.0 * math.sin(self._currentTime) + 50.0
+        
+        sinVal = math.sin(self._currentTime + self._offset)
+        self.voltage = 2.0 * sinVal + 26
+        self.current = 5.0 * sinVal + 5
+        if sinVal >= 0:
+            self.enabled = True
+            self.publish(PowerSource.ENABLED, core.Event())
+        else:
+            self.enabled = False
+            self.publish(PowerSource.DISABLED, core.Event())
+        
         
         event = core.Event()
-        event.power = self.power
-        self.publish(DemoPower.POWER_UPDATE, event)
+        event.number = self.voltage
+        self.publish(PowerSource.VOLTAGE, event)
         
+        event = core.Event()
+        event.number = self.current
+        self.publish(PowerSource.CURRNET, event)
         
-# Register Subsystem so it can be created from a config file
-core.SubsystemMaker.registerSubsystem('DemoPower', DemoPower)
-        
+
 class DemoSonar(core.Subsystem, core.EventPublisher):
     """
     Sonar system demo, has an x and y positiion of the sonar

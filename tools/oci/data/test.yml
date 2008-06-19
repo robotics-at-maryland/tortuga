@@ -11,9 +11,6 @@ Subsystems:
     Sonar:
         type: DemoSonar
         
-    Power:
-        type: DemoPower
-        
     Vehicle:
         type: DemoVehicle
         depends_on: ["EventHub"]

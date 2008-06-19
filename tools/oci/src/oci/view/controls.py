@@ -15,14 +15,27 @@ import math as pmath
 import ext.core as core
 import ext.math as math
 
+import oci.model.subsystem as subsystemMod
+import ram.gui.led
+
 class MultiBar(wx.PyControl):
     RED = wx.Colour(255, 0, 0, 100)
     GREEN = wx.Colour(0, 255, 0, 100)
-    VERTICAL = 0
-    HORIZONTAL = 1
-    def __init__(self, parent, innerBorder=15, barType=VERTICAL, colorList=[], valueList=[], max=100,min=-100, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=wx.NO_BORDER, validator=wx.DefaultValidator,name="valbar"):
+
+    def __init__(self, parent, innerBorder=15, barType=wx.VERTICAL, colorList=None, 
+                 valueList=None, max=100,min=-100, id=wx.ID_ANY, 
+                 pos=wx.DefaultPosition, size=wx.DefaultSize, 
+                 style=wx.NO_BORDER, 
+                 validator=wx.DefaultValidator,name="valbar"):
         wx.PyControl.__init__(self, parent, id, pos, size, style, validator, name)
+        if self.GetSize() != wx.DefaultSize:
+            self.SetMinSize(self.GetSize())
+            
+        if colorList is None:
+            colorList = []
+        if valueList is None:
+            valueList = []
+        
         self.parent = parent
         # Default to 0%
         self.barValue = 0
@@ -45,7 +58,8 @@ class MultiBar(wx.PyControl):
         if self.minValue < 0 and self.maxValue > 0:
             self.multiDirectional = True
         
-        # If we are going to be working with color coded value range, ensure the conditions are met 
+        # If we are going to be working with color coded value range, ensure 
+        # the conditions are met 
         if len(colorList) > 0 or len(valueList) > 0:
             assert(len(colorList) == len(valueList) - 1) # This MUST be true for proper functionality
 
@@ -58,7 +72,9 @@ class MultiBar(wx.PyControl):
             self.Refresh() #Refresh the display
         else:
             # return None if we could not process setVal due to constraints
-            return None 
+            return None
+        
+    SetValue = setVal
         
     def OnPaint(self, event):
         """ Handles the wx.EVT_PAINT event for ThrusterBar """
@@ -68,12 +84,13 @@ class MultiBar(wx.PyControl):
        
     def Draw(self,gc):
         width,height = self.GetSize()
+
         # Draw the rectangle to represent the value
         pen = wx.Pen(MultiBar.GREEN, 1)
         brush = wx.Brush(MultiBar.GREEN) #wx.Brush("green")
         
         # Rotate the graphics context if we're drawing a horizontal box
-        if self.barType == MultiBar.HORIZONTAL:  
+        if self.barType == wx.HORIZONTAL:  
             gc.Rotate((pmath.pi / 2))
             gc.Translate(0,-width)
             width,height = height,width
@@ -360,3 +377,65 @@ class RotationCtrl(wx.Panel):
         gc.DrawText(rotStr, xCenter - textAreaWidth / 2 + leftOffset, 
                             yCenter - textAreaHeight / 2)
         
+class PowerSourceDisplay(object):
+    VOLTAGE = 1
+    CURRENT = 2
+    
+    def __init__(self, parent, eventHub, powerSource, sizer, lineNum, 
+                 mode = VOLTAGE):
+        self._connections = []
+
+        # Get a size reference
+        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
+
+        # Create controls
+        label = wx.StaticText(parent, wx.ID_ANY, powerSource.getName())
+
+        yellow = wx.Color(255, 255, 0)
+        colorList = [wx.RED, yellow, wx.GREEN, yellow, wx.RED]
+        valueList = [0, 25.5, 26.5, 29.5, 30, 31]
+        self._gauge = MultiBar(parent, colorList = colorList, 
+                               size = (textWidth, textHeight),
+                               innerBorder = 1,
+                               valueList = valueList, barType=wx.HORIZONTAL)
+        
+        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
+        size = (textWidth, wx.DefaultSize.height)
+        self._textBox = wx.TextCtrl(parent, size = size)
+
+        
+        self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
+        
+        # Add them to sizer
+        sizer.Add(label, (lineNum, 0),flag = wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._textBox, (lineNum, 1), flag = wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._gauge, (lineNum, 2), flag = wx.EXPAND)
+        sizer.Add(self._enableLED, (lineNum, 3), flag = wx.ALIGN_CENTER_VERTICAL)
+        
+        # Subscribe to events
+        def subscribe(_type, handler):
+            conn = eventHub.subscribe(_type, powerSource, handler)
+            self._connections.append(conn) 
+            
+        if mode == PowerSourceDisplay.VOLTAGE:
+            subscribe(subsystemMod.PowerSource.VOLTAGE, self._update)
+        elif mode == PowerSourceDisplay.CURRENT:           
+            subscribe(subsystemMod.PowerSource.CURRENT, self._update)
+        else:
+            raise Exception, "Error, invalid mode"
+        subscribe(subsystemMod.PowerSource.ENABLED, self._enable)
+        subscribe(subsystemMod.PowerSource.DISABLED, self._disable)
+    
+    def _update(self, event):
+        self._textBox.Value = "%5.2f" % event.number
+        self._gauge.setVal(event.number)
+        
+    def _enable(self, event):
+        self._enableLED.SetState(2)
+    
+    def _disable(self, event):
+        self._enableLED.SetState(0)
+    
+    def disconnect(self):
+        for conn in self._connections:
+            conn.disconnect()

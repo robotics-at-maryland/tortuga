@@ -15,7 +15,7 @@ import wx
 from ram.core import Component, implements
 
 from ram.gui.view import IPanelProvider
-from oci.view.controls import DepthBar, MultiBar, RotationCtrl
+from oci.view.controls import DepthBar, MultiBar, RotationCtrl, PowerSourceDisplay
 import oci.model.subsystem as subsystemMod
 
 import ext.math
@@ -275,64 +275,74 @@ class RotationPanel(wx.Panel):
         
         return []
     
-class DemoPowerPanel(wx.Panel):
-    implements(IPanelProvider)
     
-    def __init__(self, parent, power, *args, **kwargs):
+class PowerSourcePanel(wx.Panel):
+    implements(IPanelProvider)
+        
+    def __init__(self, parent, eventHub, powerSources, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._connections = []
+        self._powerSources = powerSources
+        self._powerDisplays = []
         
-        # Create Controls
-        text = wx.StaticText(self, label = 'Power Level', size = (100,20))
-        self._gauge = wx.Gauge(self, range =  100, size = (300, 25))
+        sizer =  wx.GridBagSizer(10, 10)
+        lineNum = 0
+  
+        for item in self._powerSources:
+            # Create Control
+            display = PowerSourceDisplay(parent = self, eventHub = eventHub,
+                                        powerSource = item,
+                                        sizer = sizer, lineNum = lineNum)
+                       
+            self._powerDisplays.append(display)
+            lineNum += 1
         
-        # Vertical sizer
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(text)
-        sizer.Add(self._gauge)
+            
+        # Only gauge column is growable
+        sizer.AddGrowableCol(2)
         
-        # Hook size up to the panel
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-        self.SetMinSize(sizer.GetMinSize())
-
-        # Connect to events
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        conn = power.subscribe(subsystemMod.DemoPower.POWER_UPDATE, 
-                               self._update)
-        self._connections.append(conn)
-
+        self.SetSizerAndFit(sizer)
         
+    def _update(self, bar):
+        def handler(event):
+            bar.setVal(event.number)
+        return handler
+    
     def _onClose(self, closeEvent):
-        """
-        Disconnects from C++ events
-        
-        Ensure that functions of this object won't get called after its already
-        disctructed.
-        """
         for conn in self._connections:
             conn.disconnect()
-            
-    def _update(self, event):
-        """
-        Called when the power subsystem updates the power cosumption
-        """
-        self._gauge.SetValue(event.power)
         
+        for display in self._powerDisplays:
+            display.disconnect()
+        
+        closeEvent.Skip()
+    
     @staticmethod
     def getPanels(subsystems, parent):
-        """
-        Creates 
-        """
-        power = core.Subsystem.getSubsystemOfType(subsystemMod.DemoPower,
-                                                      subsystems)  
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
+                                                     subsystems)
         
-        if power is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Demo Power")
-            paneInfo = paneInfo.Caption("Demo Power").Left()
+        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+                                                        subsystems)
         
-            return [(paneInfo, DemoPowerPanel(parent, power), [power])]
+        if vehicle is not None:
+            # Get All the current PowerSources the vehicle has
+            powerSources = []
+            names = vehicle.getDeviceNames()
+            
+            for i in range(0,len(names)):
+                device = vehicle.getDevice(names[i])
+                if isinstance(device, subsystemMod.PowerSource):
+                    powerSources.append(device)
     
+            # Only create the panel if there are powerSourcess on the vehicle        
+            if len(powerSources):
+                paneInfo = wx.aui.AuiPaneInfo().Name("PowerSources")
+                paneInfo = paneInfo.Caption("Power Sources").Bottom()
+        
+                panel = PowerSourcePanel(parent, eventHub, powerSources)
+                return [(paneInfo, panel, [vehicle])]
+            
         return []
     
 
