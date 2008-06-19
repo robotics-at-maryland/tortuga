@@ -124,7 +124,8 @@ class MultiBar(wx.PyControl):
             gc.DrawPath(border)   
         else: # Unidirectional control 
             progressPath = gc.CreatePath()
-            percent = float(self.barValue) / float(self.maxValue) 
+            percent = float(self.barValue - self.minValue) / \
+                float(self.maxValue - self.minValue) 
             heightScale = -height*percent
             for i in xrange(0,len(self.colorList)):
                 if self.barValue <= self.valueList[i+1]:
@@ -393,7 +394,7 @@ class PowerSourceDisplay(object):
 
         yellow = wx.Color(255, 255, 0)
         colorList = [wx.RED, yellow, wx.GREEN, yellow, wx.RED]
-        valueList = [0, 25.5, 26.5, 29.5, 30, 31]
+        valueList = [22, 25.5, 26.5, 29.5, 30, 31]
         self._gauge = MultiBar(parent, colorList = colorList, 
                                size = (textWidth, textHeight),
                                innerBorder = 1,
