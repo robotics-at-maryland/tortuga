@@ -9,14 +9,18 @@ int main(int argc, char ** argv)
     int g=0, e=0, l=0, ovr=0;
     unsigned long i=0;
 
-    unsigned short c, p;
+    register volatile unsigned short c, p, a, b;
 
 
-    p = *(volatile unsigned short *)(0x202F0020);
-
+    p = *(volatile unsigned short *)(0x202F0124);
+    int j;
     for(i=0; i<0xA0000; i++)
     {
-        c = *(volatile unsigned short *)(0x202F0020);
+        for(j=0; j<10; j++)
+            c+= *(volatile unsigned short *)(0x202F0124);
+        c = *(volatile unsigned short *)(0x202F0114);
+        c = (c >> 8) & 0x00FF;
+
 
         if(c > p)
             g++;

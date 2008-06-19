@@ -21,12 +21,13 @@
 #define ADDR_ADCONFIG      0x202F0100
 #define ADDR_ADPRESCALER   0x202F0102
 
-#define ADDR_SAMPLECOUNT1  0x202F0020
+#define ADDR_SAMPLECOUNT1  0x202F0104
 #define ADDR_SAMPLECOUNT2  0x202F0106
 
 #define ADDR_BITCOUNTER1   0x202F0108
 #define ADDR_BITCOUNTER2   0x202F010A
 
+#define REG(a) (*(volatile unsigned short *) a)
 
 
 #define REG_LED         (*(volatile unsigned short *) ADDR_LED)

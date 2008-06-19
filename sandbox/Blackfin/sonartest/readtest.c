@@ -77,10 +77,12 @@ int main(int argc, char ** argv)
 
     for(i=0; i<count; i++)
     {
-         samples1[i] = *((volatile unsigned short *) addr);
-         samples2[i] = REG_ADC2;
-         samples3[i] = REG_ADC4;
-         samples4[i] = REG_ADC6;
+        samples1[i] = *((volatile unsigned short *) addr);
+        samples2[i] = REG_ADC2;
+        samples3[i] = REG_ADC4;
+        samples4[i] = REG_ADC6;
+
+
 
         do
         {
@@ -91,9 +93,7 @@ int main(int argc, char ** argv)
         if(((lastCount+1)&0xFFFF) != sampleCount)
             sd++;
 
-
-        samples1[i] = sampleCount;
-        lastCount = sampleCount;
+         lastCount = sampleCount;
     }
 
     REG_LED = 0x01;
