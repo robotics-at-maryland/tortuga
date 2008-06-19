@@ -12,7 +12,7 @@ int main(int argc, char ** argv)
     initADC();
 
 
-    unsigned short * samples1 = NULL;
+    signed short * samples1 = NULL;
     signed short * samples2 = NULL;
     signed short * samples3 = NULL;
     signed short * samples4 = NULL;
@@ -77,25 +77,12 @@ int main(int argc, char ** argv)
 
     for(i=0; i<count; i++)
     {
-        samples1[i] = REG(ADDR_FIFO_OUT1S); //*((volatile unsigned short *) addr);
-        samples2[i] = REG(ADDR_ADC2);
-        samples3[i] = REG(ADDR_ADC4);
-        samples4[i] = REG(ADDR_ADC6);
+        samples1[i] = REG(ADDR_FIFO_OUT1A); //*((volatile unsigned short *) addr);
+        samples2[i] = REG(ADDR_FIFO_OUT1B);
+        samples3[i] = REG(ADDR_FIFO_OUT1S); //REG(ADDR_ADC4);
+        samples4[i] = REG(ADDR_FIFO_COUNT1A); //REG(ADDR_ADC6);
 
-
-        while(REG(ADDR_FIFO_EMPTY1S) != 0);
-/*
-        do
-        {
-            sampleCount = REG(ADDR_SampleCount1);
-        }
-        while(lastCount == sampleCount);
-
-        if(((lastCount+1)&0xFFFF) != sampleCount)
-            sd++;
-
-         lastCount = sampleCount;
-         */
+        while(REG(ADDR_FIFO_EMPTY1A) != 0);
     }
 
     REG(ADDR_LED) = 0x01;
@@ -104,7 +91,13 @@ int main(int argc, char ** argv)
     if(argc == 3)
     {
         for(i=0; i<count; i++)
-            printf("%u\n", samples1[i]);
+            printf("A%d\n", samples1[i]);
+        for(i=0; i<count; i++)
+            printf("B%d\n", samples2[i]);
+        for(i=0; i<count; i++)
+            printf("C%d\n", samples3[i]);
+        for(i=0; i<count; i++)
+            printf("D%d\n", samples4[i]);
     }
 
 //     printf("samples dropped: %d\n", sd);
