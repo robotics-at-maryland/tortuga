@@ -1,8 +1,13 @@
 PATH=/opt/uClinux/bfin-linux-uclibc/bin
 CC = bfin-linux-uclibc-gcc
+#CFLAGS = -O3
 
-all: sonartest readtest sramtest
+all: adctest readtest sramtest chrt
 
-sonartest: sonartest.c
-readtest: readtest.c
+adctest: adctest.c spartan.c spartan.h
+readtest: readtest.c  spartan.c spartan.h
 sramtest: sramtest.c
+
+
+clean:
+	/bin/rm -rf adctest readtest sramtest *~ *.o
