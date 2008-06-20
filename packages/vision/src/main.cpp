@@ -961,11 +961,15 @@ int histogram(IplImage* img, int* centerX, int* centerY, int* maxX, int* maxY,
 	}
 //	cout<<"Made it through image, now creating useful data from arrays"<<endl;
 	int maxCount=0;
-	
+
+        // Work from the top to bottom, collapsing the pixel clusters together
 	for (int i=index-1;i>0;i--)
 	{
+                
 		if (joins[i]!=i)
 		{
+                    // "Unfinished" cluster of pixels, ie part of bigger cluster
+                    // So add all of its information to the parents information
 			totalX[joins[i]]+=totalX[i];
 			totalY[joins[i]]+=totalY[i];
 			pixelCounts[joins[i]]+=pixelCounts[i];
@@ -973,6 +977,7 @@ int histogram(IplImage* img, int* centerX, int* centerY, int* maxX, int* maxY,
 		}
 		else
 		{
+                    // Found a final cluster
 			if (maxCount<pixelCounts[i])
 			{
                             // Transfer data from the correct blob back to caller

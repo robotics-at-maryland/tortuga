@@ -53,6 +53,15 @@ void correct(IplImage* img);
 void filter(IplImage* img, bool red_flag, bool green_flag, bool blue_flag);
 void RAM_EXPORT to_ratios(IplImage* img);
 int red_blue(IplImage* img, float ratio);
+
+/**
+ * @param percents
+ *     Holds the percents of each color
+ * @param base
+ *     Original image from the computer
+ * @param temp
+ *      A work space/output image
+ */
 int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny);
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);

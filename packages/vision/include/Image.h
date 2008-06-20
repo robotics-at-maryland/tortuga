@@ -21,6 +21,8 @@
 #include "vision/include/Common.h"
 #include "vision/include/Export.h"
 
+#include "math/include/Math.h"
+
 namespace ram {
 namespace vision {
 
@@ -52,6 +54,10 @@ public:
 
     /** Shows the image on screen (THIS BLOCKS UNTIL CLOSED w/ESC Key) */
     static void showImage(Image* image);
+
+    /** Rotates and scales the given image */
+    static void rotateAndScale(Image* src, Image* dest, math::Degree rotation,
+                               double scaleFactor = 1.0);
     
     /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
     static Image* loadFromBuffer(unsigned char* buffer, int width,

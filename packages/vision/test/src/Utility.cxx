@@ -65,7 +65,7 @@ void drawSquare(vision::Image* image, int x, int y, int width, int height,
     // Finally lets draw the image
     cvFillConvexPoly(image->asIplImage(), pts, 4, color);
 }
-
+    
 void drawBin(vision::Image* image, int x, int y, int width,
              double angle)
 {

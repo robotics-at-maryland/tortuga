@@ -11,6 +11,7 @@
 #include <iostream>
 
 // Library Includes
+#include "cv.h"
 #include "highgui.h"
 
 // Project Includes
@@ -41,6 +42,27 @@ void Image::saveToFile(Image* image, std::string fileName)
     cvSaveImage(fileName.c_str(), image->asIplImage());
 }
 
+void Image::rotateAndScale(Image* src, Image* dest,
+                           math::Degree rotation, double scale)
+{
+    float m[6] = {0};
+    CvMat M = cvMat( 2, 3, CV_32F, m );
+    
+    double rotateFactor = rotation.valueRadians();
+    double scaleFactor = 1;
+    if(1.0 != scale)
+        scaleFactor = 1/scale;
+    
+    m[0] = (float)(scaleFactor * cos(rotateFactor));
+    m[1] = (float)(scaleFactor * sin(rotateFactor));
+    m[2] = src->getWidth() * 0.5f;
+    m[3] = -m[1];
+    m[4] = m[0];
+    m[5] = src->getHeight() * 0.5f;
+    
+    cvGetQuadrangleSubPix(src->asIplImage(), dest->asIplImage(), &M);
+}
+    
 void Image::showImage(Image* image)
 {
     cvNamedWindow(DEBUG_WINDOW, CV_WINDOW_AUTOSIZE);

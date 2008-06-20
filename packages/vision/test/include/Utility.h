@@ -19,7 +19,7 @@
 
 namespace ram {
 namespace vision {    
-
+    
 void makeColor(vision::Image* image, unsigned char R, unsigned char G,
                unsigned char B);
 
