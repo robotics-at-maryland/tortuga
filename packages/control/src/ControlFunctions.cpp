@@ -303,7 +303,13 @@ double depthObserverController4(MeasuredState* measuredState,
     estimatedState->xHat4Depth = xHat4;
 
     double depthControlSignal = controllerState->depthC4.dotProduct(xHat4);
-    return depthControlSignal;
+    
+	double error = (measuredState->depth - desiredState->depth)/desiredState->depth;
+	double cutoff = 0.1;
+	if (error > -1*cutoff && error < cutoff && dt != 1)
+	    depthControlSignal*= 0.3;
+	
+	return depthControlSignal;
 }
 
 /************************************************************************
