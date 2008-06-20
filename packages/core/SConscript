@@ -29,10 +29,6 @@ envt = env.Clone()
 envt.RAMProgram(target = 'QueueTest',
                 source = ['test/src/QueueTest.cpp'], int_deps = 'core')
 
-# Test for updatable class
-envt.RAMProgram(target = 'UpdatableTest',
-                source = ['test/src/UpdatableTest.cpp'], int_deps = 'core')
-
 envt.RAMProgram(target = 'AvgFilterTest',
                 source = ['test/src/AvgTest.cpp'], int_deps = 'core')
 

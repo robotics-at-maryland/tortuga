@@ -32,24 +32,7 @@ namespace core {
 typedef boost::int64_t Usec;
 
 // Adapted from the avahi library, under LPGL
-int timeval_compare(const struct timeval *a, const struct timeval *b) {
-    assert(a);
-    assert(b);
 
-    if (a->tv_sec < b->tv_sec)
-        return -1;
-
-    if (a->tv_sec > b->tv_sec)
-        return 1;
-
-    if (a->tv_usec < b->tv_usec)
-        return -1;
-
-    if (a->tv_usec > b->tv_usec)
-        return 1;
-
-    return 0;
-}
 
 Usec timeval_diff(const struct timeval *a, const struct timeval *b) {
     assert(a);
@@ -110,7 +93,7 @@ Task::Task(long updateRate, int priority, bool repeat) :
 	m_runs(0)
 {
     gettimeofday(&m_nextRunTime, NULL);
-	m_nextRunTime.add(m_updateRate);
+	//timeval_add(&m_nextRunTime, m_updateRate);
 	gettimeofday(&m_lastRunEnd, NULL);
 }
 
@@ -124,25 +107,15 @@ void Task::startUpdate()
 	m_totalOffTime += timeval_diff(&m_lastRunStart, &m_lastRunEnd);
 }
 
-void Task:endUpdate()
+void Task::endUpdate()
 {
 	gettimeofday(&m_lastRunEnd, NULL);
 	m_totalRunTime += timeval_diff(&m_lastRunEnd, &m_lastRunStart);
 	m_nextRunTime = m_lastRunEnd;
-	m_nextRunTime.add(m_updateRate);
+	timeval_add(&m_nextRunTime, m_updateRate);
 	m_runs ++;
 }
 
-bool operator< (Task* t1, Task* t2)
-{
-	int r = timeval_compare(&(t1->m_nextRunTime), &(t2->m_nextRunTime));
-	if (r < 0)
-		return true;
-	else if (r > 0)
-		return false;
-	else
-		return t1->priority <= t2->priority;
-}
 
 
 timeval Task::getNextRunTime()

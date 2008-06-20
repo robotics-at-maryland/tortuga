@@ -45,7 +45,7 @@ protected:
 	int m_core;
 	bool m_started;
 
-	std::priority_queue<Task*, std::vector<Task*>, std::less<std::vector<Task*>::value_type> > m_queue;
+	std::priority_queue<Task*, std::vector<Task*>, Task::compare_less<Task*> > m_queue;
 	
 	boost::thread* m_thread;
 	

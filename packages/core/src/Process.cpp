@@ -4,6 +4,8 @@
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
 
+#include <iostream>
+
 // Project Includes
 #include "core/include/TimeVal.h"
 #include "core/include/Process.h"
@@ -11,24 +13,6 @@
 namespace ram {
 namespace core {
 
-int timeval_compare(const struct timeval *a, const struct timeval *b) {
-    assert(a);
-    assert(b);
-
-    if (a->tv_sec < b->tv_sec)
-        return -1;
-
-    if (a->tv_sec > b->tv_sec)
-        return 1;
-
-    if (a->tv_usec < b->tv_usec)
-        return -1;
-
-    if (a->tv_usec > b->tv_usec)
-        return 1;
-
-    return 0;
-}
 
 Process::Process(int core) : m_core(core), m_started(false)
 {
@@ -58,6 +42,8 @@ void Process::stop()
 	m_started = false;
 }
 
+
+
 void Process::run()
 {
 	while (m_started)
@@ -70,8 +56,9 @@ void Process::run()
 			while (1)
 			{
 				timeval now;
+				timeval next = nextTask->getNextRunTime();
 				gettimeofday(&now, NULL);
-				if (timeval_compare(now, nextTask->getNextRunTime()) >= 0)
+				if (timeval_compare(&now, &next) >= 0)
 					break;
 			}
 			

@@ -20,6 +20,25 @@ namespace boost { class thread; }
 namespace ram {
 namespace core {
 
+inline int timeval_compare(const struct timeval *a, const struct timeval *b) {
+    assert(a);
+    assert(b);
+
+    if (a->tv_sec < b->tv_sec)
+        return -1;
+
+    if (a->tv_sec > b->tv_sec)
+        return 1;
+
+    if (a->tv_usec < b->tv_usec)
+        return -1;
+
+    if (a->tv_usec > b->tv_usec)
+        return 1;
+
+    return 0;
+}
+
 class RAM_EXPORT Task
 {
 public:
@@ -55,6 +74,21 @@ public:
 	// gets the average time in microseconds that it has not been running
 	long getAverageOffTime();
 
+	template<class T>
+	struct compare_less : std::binary_function<T,T,bool>
+	{
+		bool operator() (const T& t1, const T& t2)
+{
+	int r = timeval_compare(&(t1->m_nextRunTime), &(t2->m_nextRunTime));
+	if (r < 0)
+		return false;
+	else if (r > 0)
+		return true;
+	else
+		return t1->m_priority >= t2->m_priority;
+}
+	};
+
 protected:
 
 	// these should be called by classes implementing update()
@@ -74,8 +108,6 @@ protected:
 	long m_totalOffTime;
 	int m_runs;
 };
-
-bool operator< (Task* t1, Task* t2);
 
 
 inline long Task::getUpdateRate()

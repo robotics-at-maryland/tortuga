@@ -14,22 +14,49 @@
 #include <iostream>
 
 // Project Includes
-#include "core/include/Runnable.h"
-#include "core/include/Scheduler.h"
+#include "core/include/Process.h"
+#include "core/include/Task.h"
 
 using namespace ram;
 
+class TaskA : public core::Task 
+{
+public:
+	char letter;
+	
+	TaskA(long updateRate, char letter) :
+		Task(updateRate, 1, true), letter(letter)
+		{
+		}
+		
+	virtual ~TaskA() {}
+		
+	virtual void update()
+	{
+		startUpdate();
+		std::cout << letter << letter << letter << "\n";
+		endUpdate();
+	}
+};
+
+
 TEST(basicTest)
 {
-    core::Scheduler *s = new core::Scheduler();
-
-    s->run();
-
-    for (int i=0;i<1000;i++)
-        std::cout << "OTHER THREAD\n";
-
-    s->stop();
-
-    std::cout << "ALL DONE\n";
+    core::Process *proc1 = new core::Process(0);
+	proc1->addTask(new TaskA(3500000, 'A'));
+	proc1->addTask(new TaskA(370000, 'C'));
+	proc1->addTask(new TaskA(3900000, 'B'));
+	
+	core::Process *proc2 = new core::Process(0);
+	proc2->addTask(new TaskA(1000000, 'D'));
+	proc2->addTask(new TaskA(1500000, 'E'));
+	proc2->addTask(new TaskA(2000000, 'F'));
+	
+	proc1->start();
+	proc2->start();
+	
+	while (1)
+	{
+	}
 
 }

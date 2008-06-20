@@ -30,27 +30,7 @@ public:
 
     ~Scheduler();
 
-    void addRunnable(Runnable *r);
-    void removeRunnable(Runnable *r);
-
-    void run();
-    void stop();
-
-    inline bool getRunning() const
-    {
-        return running;
-    }
-
-
 protected:
-
-    std::map<std::string, std::vector<Runnable*> >  m_runnables;
-
-    boost::thread* m_mainThread;
-
-    bool m_running;
-
-    void process();
 
 };
 

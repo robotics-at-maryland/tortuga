@@ -30,6 +30,8 @@ class RAM_EXPORT Runnable
 {
 public:
 
+	virtual ~Runnable() {}
+
     virtual void run() = 0;
 
     inline ThreadPriority getPriority()
