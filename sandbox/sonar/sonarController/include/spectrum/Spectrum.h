@@ -22,8 +22,8 @@ class Spectrum {
 public:
 	virtual void purge() =0;
 	virtual void update(const adcdata_t *) =0;
-	virtual std::complex<adcmath_t> getAmplitude(int k, int channel) const;
-	std::complex<adcmath_t> operator() (int k, int channel) const 
+	virtual std::complex<int64_t> getAmplitude(int k, int channel) const;
+	std::complex<int64_t> operator() (int k, int channel) const 
 	{ return getAmplitude(k, channel); }
 };
 
