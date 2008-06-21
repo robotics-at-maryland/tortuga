@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 // Library Includes
 #include "cv.h"
@@ -181,9 +182,8 @@ int BlobDetector::histogram(IplImage* img)
 					totalX[data[count]]+=x;
 					totalY[data[count]]+=y;
 					++pixelCounts[data[count]];
-//					cout<<"end of part 2"<<endl;
                                         
-		    // Min/Max
+					// Min/Max
 					if (x < totalMinX[data[count]])
 						totalMinX[data[count]] = x;
 					else if (x > totalMaxX[data[count]])
@@ -209,7 +209,7 @@ int BlobDetector::histogram(IplImage* img)
 			// So add all of its information to the parents information
 			totalX[joins[i]]+=totalX[i];
 			totalY[joins[i]]+=totalY[i];
-			
+
 			// Mins
 			if (totalMinX[i] < totalMinX[joins[i]])
 				totalMinX[joins[i]] = totalMinX[i];

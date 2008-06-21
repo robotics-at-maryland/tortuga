@@ -46,7 +46,7 @@ public:
         int getMinX() { return m_minX; }
         
         int getMaxY() { return m_maxY; }
-        int getMinY() { return m_minX; }
+        int getMinY() { return m_minY; }
 
     private:
         int m_size;

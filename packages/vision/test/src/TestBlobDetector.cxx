@@ -58,17 +58,18 @@ TEST_FIXTURE(BlobDetectorFixture, simpleBlobs)
 
     // Process it
     vision::OpenCVImage output(640, 480);
-    //    vision::Image::showImage(&input);
     detector.processImage(&input, &output);
-	//    vision::Image::showImage(&output);
 
     // Make sure we found no blobs
     CHECK_EQUAL(1u, detector.getBlobs().size());
     vision::BlobDetector::Blob blob = detector.getBlobs()[0];
-    CHECK_EQUAL(100, blob.getMaxX() - blob.getMinX());
-	// Broken right now!
-	//    CHECK_EQUAL(200, blob.getMaxY() - blob.getMinY());
+    CHECK_EQUAL(250, blob.getMaxX());
+	CHECK_EQUAL(150, blob.getMinX());
+    CHECK_EQUAL(300, blob.getMaxY());
+	CHECK_EQUAL(100, blob.getMinY());
 	CHECK_CLOSE(100 * 200, blob.getSize(), 500);
+	CHECK_EQUAL(200, blob.getCenterX());
+	CHECK_EQUAL(200, blob.getCenterY());
 }
 
 } // SUITE(BlobDetector)
