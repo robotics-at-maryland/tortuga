@@ -205,8 +205,9 @@ int main(int argc, char** argv)
         }
         
         if (show)
+		{
             cvShowImage(PROCESSED_WINDOW, workingImage->asIplImage());
-
+		}
         //If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
         //remove higher bits using AND operator
         if (show)

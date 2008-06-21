@@ -27,6 +27,9 @@ void drawSquare(vision::Image* image, int x, int y, int width, int height,
                 double angle, CvScalar color);
     
 void drawBin(vision::Image* image, int x, int y, int width, double angle);
+
+void drawCircle(vision::Image* image, int x, int y, int radius,
+		CvScalar color);
     
 } // namespace vision
 } // namespace ram

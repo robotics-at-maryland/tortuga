@@ -81,6 +81,15 @@ void drawBin(vision::Image* image, int x, int y, int width,
 
     drawSquare(image, x, y, innerWidth, innerHeight, angle, CV_RGB(0, 0, 0));
 }
+
+void drawCircle(vision::Image* image, int x, int y, int radius,
+		CvScalar color)
+{
+    CvPoint center;
+    center.x = x;
+    center.y = y;
+    cvCircle(image->asIplImage(), center, radius, color, -1);
+}
     
 } // namespace vision
 } // namespace ram
