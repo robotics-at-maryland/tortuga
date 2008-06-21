@@ -33,8 +33,8 @@ public:
 		int prefactor = 1 << 15;
 		for (int k = 0 ; k < N ; k ++)
 		{
-			coef[N].real() = prefactor * std::cos(2*M_PI*k/N);
-			coef[N].imag() = prefactor * std::sin(2*M_PI*k/N);
+			coef[k].real() = prefactor * std::cos(2*M_PI*k/N);
+			coef[k].imag() = prefactor * std::sin(2*M_PI*k/N);
 		}
 		purge();
 	}
@@ -57,8 +57,8 @@ public:
 		adcmath_t diff[nchannels];
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
-			diff[channel] = sample[idx] - data[idx][nchannels];
-			data[idx][nchannels] = sample[idx];
+			diff[channel] = sample[channel] - data[idx][nchannels];
+			data[idx][nchannels] = sample[channel];
 		}
 		
 		for (int k = 0 ; k < N ; k ++)
