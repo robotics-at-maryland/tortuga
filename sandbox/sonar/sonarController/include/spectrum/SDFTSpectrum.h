@@ -1,5 +1,7 @@
 /**
- * @file SlidingDFT.h
+ * @file SDFTSpectrum.h
+ * Sliding DFT based spectrum analyzer, inspired by
+ * http://www.comm.toronto.edu/~dimitris/ece431/slidingdft.pdf
  *
  * @author Leo Singer
  * @author Copyright 2007 Robotics@Maryland. All rights reserved.
@@ -17,42 +19,69 @@
 namespace ram {
 namespace sonar {
 
-
 template<int N, int nchannels>
 class SDFTSpectrum {
 private:
 	int idx;
 	adcdata_t data[N][nchannels];
 	std::complex<adcmath_t> fourier[N][nchannels];
+	std::complex<adcmath_t> coef[N];
 public:
-	SDFTSpectrum() { purge(); }
+	SDFTSpectrum()
+	{
+		//	Sample cosine and sine and store as signed 16 bit integers
+		int prefactor = 1 << 15;
+		for (int k = 0 ; k < N ; k ++)
+		{
+			coef[N].real() = prefactor * std::cos(2*M_PI*k/N);
+			coef[N].imag() = prefactor * std::sin(2*M_PI*k/N);
+		}
+		purge();
+	}
+	
 	void purge()
 	{
 		bzero(data, sizeof(adcdata_t) * N * nchannels);
 		bzero(fourier, sizeof(std::complex<adcmath_t>) * N);
 		idx = 0;
 	}
+	
 	void update(const adcdata_t *sample)
 	{
+		//	Slide through circular buffers
 		++idx;
 		if (idx == N)
 			idx = 0;
 		
+		//	Compute x[n+1]-x[n], then store new samples over old ones
+		adcmath_t diff[nchannels];
+		for (int channel = 0 ; channel < nchannels ; channel ++)
+		{
+			diff[channel] = sample[idx] - data[idx][nchannels];
+			data[idx][nchannels] = sample[idx];
+		}
+		
 		for (int k = 0 ; k < N ; k ++)
 		{
+			//	Make some convenient shorthands for numbers we need
+			adcmath_t &coefRe = coef[k].real();
+			adcmath_t &coefIm = coef[k].imag();
 			for (int channel = 0 ; channel < nchannels ; channel ++)
 			{
-				std::complex<adcmath_t> &X = fourier[k][channel];
-				std::complex<adcmath_t> coef;
-				coef.real() = (1 << 16) * std::cos(2*M_PI*k/N);
-				coef.imag() = (1 << 16) * std::sin(2*M_PI*k/N);
-				X = coef *
-				(X - (adcmath_t) (data[idx][channel]) + (adcmath_t) (sample[channel])r);
-				X.real() = (X.real() >> 16) & 0xFFFF;
-				X.imag() = (X.imag() >> 16) & 0xFFFF;
+				adcmath_t &fourRe = fourier[k][channel].real();
+				adcmath_t &fourIm = fourier[k][channel].imag();
+				
+				adcmath_t rhsRe = fourRe + diff[channel];
+				
+				fourRe = coefRe * rhsRe - coefIm * fourIm;
+				fourIm = coefRe * fourIm + coefIm * rhsRe;
+				
+				fourRe = (fourRe >> 16);
+				fourRe = (fourRe >> 16);
 			}
 		}
 	}
+	
 	std::complex<adcmath_t> getAmplitude(int k, int channel) const
 	{ return fourier[k][channel]; }
 };
