@@ -81,13 +81,15 @@ int main(int argc, char ** argv)
 
     REG(ADDR_LED) = 0x01;
 
+    int t;
+    if(count > BLOCK_SIZE)
+        t = BLOCK_SIZE;
+    else
+        t = count;
+
     if(argc == 2)
     {
-        int t;
-        if(count > BLOCK_SIZE)
-            t = BLOCK_SIZE;
-        else
-            t = count;
+        fprintf(stderr, "Sending as ASCII\n");
 
         for(i=0; i<t; i++)
             printf("A %d\n", samples1[i]);
@@ -112,7 +114,34 @@ int main(int argc, char ** argv)
         }
     } else
     {
+        fprintf(stderr, "Sending as binary\n");
+        for(i=0; i<t; i++)
+        {
+            putchar(samples1[i] & 0xFF);
+            putchar((samples1[i] >> 8) & 0xFF);
+            putchar(samples2[i] & 0xFF);
+            putchar((samples2[i] >> 8) & 0xFF);
+            putchar(samples3[i] & 0xFF);
+            putchar((samples3[i] >> 8) & 0xFF);
+            putchar(samples4[i] & 0xFF);
+            putchar((samples4[i] >> 8) & 0xFF);
+        }
 
+        if(count > BLOCK_SIZE)
+        {
+            t = count - BLOCK_SIZE;
+            for(i=0; i<t; i++)
+            {
+                putchar(samples5[i] & 0xFF);
+                putchar((samples5[i] >> 8) & 0xFF);
+                putchar(samples6[i] & 0xFF);
+                putchar((samples6[i] >> 8) & 0xFF);
+                putchar(samples7[i] & 0xFF);
+                putchar((samples7[i] >> 8) & 0xFF);
+                putchar(samples8[i] & 0xFF);
+                putchar((samples8[i] >> 8) & 0xFF);
+            }
+        }
 
     }
 
