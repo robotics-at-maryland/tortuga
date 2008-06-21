@@ -58,6 +58,12 @@ public:
     /** Rotates and scales the given image */
     static void rotateAndScale(Image* src, Image* dest, math::Degree rotation,
                                double scaleFactor = 1.0);
+
+    /** Blits the images using the clear color to the destination image */
+    static void blitImage(Image* toBlit, Image* src, Image* dest,
+                          unsigned char R = 255,
+                          unsigned char G = 255,
+                          unsigned char B = 255);
     
     /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
     static Image* loadFromBuffer(unsigned char* buffer, int width,

@@ -62,6 +62,41 @@ void Image::rotateAndScale(Image* src, Image* dest,
     
     cvGetQuadrangleSubPix(src->asIplImage(), dest->asIplImage(), &M);
 }
+
+void Image::blitImage(Image* toBlit, Image* src, Image* dest,
+                      unsigned char R, unsigned char G, unsigned char B)
+{
+    size_t toBlitBytes = toBlit->getWidth() * toBlit->getHeight() * 3;
+    size_t destBytes = dest->getWidth() * dest->getHeight() * 3;
+    size_t srcBytes = src->getWidth() * src->getHeight() * 3;
+    assert((destBytes == toBlitBytes) && (toBlitBytes == srcBytes) &&
+           "Images are not the same size");
+
+    unsigned char* srcData = src->getData();
+    unsigned char* blitData = toBlit->getData();
+    unsigned char* destData = dest->getData();
+
+    for (size_t i = 0; i < toBlitBytes; i += 3)
+    {
+        unsigned char b = blitData[i];
+        unsigned char g = blitData[i + 1];
+        unsigned char r = blitData[i + 2];
+        if ((b == B) && (g == G) && (r == R))
+        {
+            // We have clear color, copy from source
+            destData[i] = srcData[i];
+            destData[i + 1] = srcData[i + 1];
+            destData[i + 2] = srcData[i + 2];
+        }
+        else
+        {
+            // No clear color, copy from blit image
+            destData[i] = b;
+            destData[i + 1] = g;
+            destData[i + 2] = r;
+        }
+    }
+}
     
 void Image::showImage(Image* image)
 {
