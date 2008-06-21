@@ -79,8 +79,8 @@ int main(int argc, char ** argv)
     {
         samples1[i] = REG(ADDR_FIFO_OUT1A); //*((volatile unsigned short *) addr);
         samples2[i] = REG(ADDR_FIFO_OUT1B);
-        samples3[i] = REG(ADDR_FIFO_OUT1S); //REG(ADDR_ADC4);
-        samples4[i] = REG(ADDR_FIFO_COUNT1A); //REG(ADDR_ADC6);
+        samples3[i] = REG(ADDR_FIFO_OUT2A); //REG(ADDR_ADC4);
+        samples4[i] = REG(ADDR_FIFO_OUT2B); //REG(ADDR_ADC6);
 
         while(REG(ADDR_FIFO_EMPTY1A) != 0);
     }
