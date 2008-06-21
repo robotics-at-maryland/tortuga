@@ -53,32 +53,22 @@ public:
 		if (idx == N)
 			idx = 0;
 		
-		//	Compute x[n+1]-x[n], then store new samples over old ones
-		int32_t diff[nchannels];
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
-			diff[channel] = sample[channel] - data[idx][channel];
+			int32_t diff = sample[channel] - data[idx][channel];
 			data[idx][channel] = sample[channel];
-		}
-		
-		for (int k = 0 ; k < N ; k ++)
-		{
-			//	Make some convenient shorthands for numbers we need
-			int32_t coefRe = coef[k].real();
-			int32_t coefIm = coef[k].imag();
-			
-			for (int channel = 0 ; channel < nchannels ; channel ++)
+			for (int k = 0 ; k < N ; k ++)
 			{
+				//	Make some convenient shorthands for numbers we need
+				int32_t coefRe = coef[k].real();
+				int32_t coefIm = coef[k].imag();
 				int64_t &fourRe = fourier[k][channel].real();
 				int64_t &fourIm = fourier[k][channel].imag();
 				
-				int64_t rhsRe = fourRe + diff[channel];
+				int64_t rhsRe = fourRe + diff;
 				
-				fourRe = coefRe * rhsRe - coefIm * fourIm;
-				fourIm = coefRe * fourIm + coefIm * rhsRe;
-				
-				fourRe = (fourRe >> 15);
-				fourIm = (fourIm >> 15);
+				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> 15;
+				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> 15;
 			}
 		}
 	}
