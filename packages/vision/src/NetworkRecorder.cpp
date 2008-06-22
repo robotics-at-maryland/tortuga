@@ -55,7 +55,8 @@ NetworkRecorder::NetworkRecorder(Camera* camera,
     m_currentSocket(-1),
     m_addr(0),
     m_currentAddr(0),
-    m_compressedBuffer(0)
+    m_compressedBuffer(0),
+    m_bufferSize(0)
 {
 #ifdef RAM_WINDOWS
     WSADATA wsaData;
@@ -81,6 +82,8 @@ NetworkRecorder::~NetworkRecorder()
     // Stop the background thread, events, and network connections
     cleanUp();
     free(m_compressedBuffer);
+    free(m_addr);
+    free(m_currentAddr);
 }
 
 void NetworkRecorder::update(double timeSinceLastUpdate)
@@ -250,6 +253,8 @@ void NetworkRecorder::setupListenSocket()
     }
 
     // Setup my address information
+    if (m_addr)
+        free(m_addr);
     m_addr = (struct sockaddr_in*)calloc(1, sizeof(*m_addr));
     m_addr->sin_family = AF_INET; // host byte order
     m_addr->sin_port = htons(m_port);  // short, network byte order
@@ -293,6 +298,8 @@ int NetworkRecorder::acceptConnection(double timeout)
 {
     // NOTE: no locking of m_listenSocket is done here because its only
     // read, and setupListenSocket cannot be called concurently with this
+    if (m_currentAddr)
+        free(m_currentAddr);
     
     m_currentAddr = (struct sockaddr_in*)calloc(sizeof(*m_currentAddr), 1);
 #ifdef RAM_POSIX

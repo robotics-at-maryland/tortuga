@@ -47,6 +47,9 @@ TEST(getImage)
 
     // Should be exactly the same
     CHECK_CLOSE(*expected, *result, 0);
+
+    delete expected;
+    delete result;
 }
 
 TEST(copyToPublic)
@@ -62,6 +65,10 @@ TEST(copyToPublic)
 
     // Should be exactly the same
     CHECK_CLOSE(*expected, *result, 0);
+
+    delete imageA;
+    delete expected;
+    delete result;
 }
 
 struct CameraFixture
@@ -108,6 +115,9 @@ TEST_FIXTURE(CameraFixture, event_RAW_IMAGE_CAPTURED_and_IMAGE_CAPTURED)
     camera.update(0);
     CHECK_CLOSE(*expectedRaw, *rawImage, 0);
     CHECK_CLOSE(*expectedCap, *capturedImage, 0);
+
+    delete expectedRaw;
+    delete expectedCap;
 }
 
 } // SUITE(Camera)

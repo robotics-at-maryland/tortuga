@@ -127,12 +127,10 @@ void NetworkCamera::update(double timestep)
     }
 
     // Make buffer fit incomming image size
-    // Need to fix buffer sizes better
-#ifdef RAM_NETWORK_COMPRESSION
-    size_t dataSize = m_width * m_height * 3;
-#else
-    size_t dataSize = header.dataSize;
-#endif
+    size_t dataSize = m_width * m_height * 3; 
+    if (header.dataSize > dataSize)
+        dataSize = header.dataSize;
+
     if (dataSize && (dataSize != m_bufferSize))
     {
         m_bufferSize = dataSize;
@@ -151,6 +149,7 @@ void NetworkCamera::update(double timestep)
     }
 
     // Read image off the wire
+    assert(m_bufferSize >= header.dataSize && "Buffer to small");
     recieve(m_compressedBuffer, header.dataSize);
 
     // Create a temp image which doens't own the buffer, and then call capture
@@ -158,13 +157,15 @@ void NetworkCamera::update(double timestep)
     if (header.dataSize)
     {
 #ifdef RAM_NETWORK_COMPRESSION
-        char scratch[QLZ_SCRATCH_DECOMPRESS];
+        char scratch[QLZ_SCRATCH_DECOMPRESS] = {0};
+        memset(scratch, 0, QLZ_SCRATCH_DECOMPRESS);
         /*size_t newSize = */qlz_decompress((char*)m_compressedBuffer,
                                             (void*)m_imageBuffer, scratch);
         OpenCVImage newImage(m_imageBuffer, header.width, header.height,
                              false);
 #else
-        OpenCVImage newImage(m_buffer, header.width, header.height, false);
+        OpenCVImage newImage(m_compressedBuffer, header.width, header.height,
+                             false);
 #endif
 
         capturedImage(&newImage);

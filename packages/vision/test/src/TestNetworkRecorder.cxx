@@ -99,7 +99,8 @@ TEST_FIXTURE(RecorderFixture, Update)
     {
         delete image;
     }
-
+    delete actual;
+    
     camera->unbackground();
 
     // Shutdown the client before we shutdown the NetworkRecorder

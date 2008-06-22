@@ -47,6 +47,8 @@ void BinDetector::init(core::ConfigNode config)
 	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
 	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
     bufferFrame = cvCreateImage(cvGetSize(rotated),8,3);
+    memset(bufferFrame->imageData, 0,
+           bufferFrame->width * bufferFrame->height * 3);
 	m_found=0;
 	binX=-1;
 	binY=-1;

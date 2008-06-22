@@ -74,6 +74,15 @@ public:
     int histogram(IplImage* img);
     
     std::vector<Blob> m_blobs;
+
+    int* pixelCounts;
+    int* totalX;
+    int* totalY;
+    int* totalMaxX;
+    int* totalMaxY;
+    int* totalMinX;
+    int* totalMinY;
+    unsigned char* joins;
 };
     
 } // namespace vision
