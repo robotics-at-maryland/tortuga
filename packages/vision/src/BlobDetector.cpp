@@ -30,13 +30,16 @@ namespace vision {
 
 BlobDetector::BlobDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
-    Detector(eventHub)
+    Detector(eventHub),
+    data(0),
+    m_dataSize(0)
 {
     init(config);
 }
 
 BlobDetector::~BlobDetector()
 {
+    free(data);
 }
     
 void BlobDetector::processImage(Image* input, Image* output)
@@ -48,7 +51,7 @@ void BlobDetector::processImage(Image* input, Image* output)
     if (0 != output)
     {
         output->copyFrom(input);
-
+        
         CvPoint boundUR;
         CvPoint boundLL;
         
@@ -78,15 +81,28 @@ std::vector<BlobDetector::Blob> BlobDetector::getBlobs()
     
 void BlobDetector::init(core::ConfigNode)
 {
+    // Pre-allocate memory
+    joins.reserve(1024);
+    pixelCounts.reserve(1024);
+    totalX.reserve(1024);
+    totalY.reserve(1024);
+    totalMinX.reserve(1024);
+    totalMaxX.reserve(1024);
+    totalMinY.reserve(1024);
+    totalMaxY.reserve(1024);
+
+    ensureDataSize(640 * 480);
 }
     
 int BlobDetector::histogram(IplImage* img)
 {
     int width=img->width;
     int height=img->height;
-    unsigned char* data=(unsigned char*)img->imageData;
-
-    joins.resize(1, 255);
+    unsigned char* imgData=(unsigned char*)img->imageData;
+    // Make sure the data array is large enough
+    ensureDataSize(width * height);
+    
+    joins.resize(1, UINT_MAX);
     pixelCounts.resize(1, 0);
     totalX.resize(1, 0);
     totalY.resize(1, 0);
@@ -95,34 +111,48 @@ int BlobDetector::histogram(IplImage* img)
     totalMinY.resize(1, 0);
     totalMaxY.resize(1, 0);
         
-    int index=1;
+    unsigned int index=1;
     // Black out the top row, front edge so the above and left algos
     // work properly
-    int count=0;
-    for (int x=0;x<width;x++)
+    int imgCount=0;
+    int count = 0;
+    memset(imgData, 0, width * 3);
+    memset(data, 0, sizeof(*data) * width);
+/*    for (int x=0;x<width;x++)
     {
-        data[count]=data[count+1]=data[count+2]=0;
-        count+=3;
+        imgData[imgCount]=imgData[imgCount+1]=imgData[imgCount+2]=0;
+        data[count] = 0;
+        imgCount+=3;
+        count++;
     }
-    count=0;
+    imgCount=0;
+    count = 0;*/
     for (int y=0;y<height;y++)
     {
-        data[count]=data[count+1]=data[count+2]=0;
-        count+=3*width;
+        imgData[imgCount]=imgData[imgCount+1]=imgData[imgCount+2]=0;
+        data[count]=0;
+        imgCount+=3*width;
+        count += width;
     }
-    count=0;
+    imgCount=0;
+    count = 0;
+
 
     // Loop over every pixel
     for (int y=0; y<height;y++)
     {
         for (int x=0; x<width;x++)
         {
-            if (data[count]>0)
+            // Check for a marked (ie. white) pixel
+            if (imgData[imgCount]>0)
             {
-                unsigned char above=data[count-3*width];
-                unsigned char left=data[count-3];
+                // Found a valid pixel, check the value above and below it
+                unsigned int above=data[count-width];
+                unsigned int left=data[count-1];
                 if (above==0 && left==0)
                 {
+                    // Start of a new blob
+                    
                     //int neededSize = index + 1;
                     //int presentSize = pixelCounts.size();
                     //assert((presentSize + 1) == neededSize);
@@ -135,17 +165,17 @@ int BlobDetector::histogram(IplImage* img)
                     totalMinY.push_back(y);
                     totalMaxY.push_back(y);
                     joins.push_back(index);
-                    assert((index + 1) == (int)(totalX.size()));
+                    //assert((index + 1) == (totalX.size()));
                     
-                    data[count]=(unsigned char)(index++);
+                    data[count]= (index++);
                 }
                 else 
                 {
-                    //                    cout<<"I'm in part 2"<<endl;
-                    unsigned char above2=above;
-                    unsigned char left2=left;
+                    // Continuation of an existing blob
+                    unsigned int above2=above;
+                    unsigned int left2=left;
                     if (above2==0)
-                        above2=255;
+                        above2=UINT_MAX;
                     else
                     {
                         //assert(above2 <= index);
@@ -155,7 +185,7 @@ int BlobDetector::histogram(IplImage* img)
                             above2=joins[above2];
                     }
                     if (left2==0)
-                        left2=255;
+                        left2=UINT_MAX;
                     else
                     {
                         //assert(left2 <= index);
@@ -165,44 +195,58 @@ int BlobDetector::histogram(IplImage* img)
                             left2=joins[left2];
                     }
 
+                    //if ((left2 == above2) && (left2 == UINT_MAX))
+                    //{
+                    //    assert(false && "error");
+                    //}
+                    
                     // More sanity checks
                     //assert(left <= index);
                     //assert((int)joins.size() >= (left + 1));
                         
                     //assert(above <= index);
                     //assert((int)joins.size() >= (above + 1));
-                    
-                    data[count]=joins[above]=joins[left]=std::min(left2,above2);
+
+                    unsigned int idx = std::min(left2,above2);
+                    joins[above]= idx;
+                    joins[left]= idx;
+                    data[count]= idx;
 
                     // Small sanity checks for refactoring
                     //assert(data[count] <= index);
                     //assert((int)totalX.size() >= (data[count] + 1));
                         
-                    totalX[data[count]]+=x;
-                    totalY[data[count]]+=y;
-                    ++pixelCounts[data[count]];
+                    totalX[idx]+=x;
+                    totalY[idx]+=y;
+                    ++pixelCounts[idx];
                                         
                     // Min/Max
-                    if (x < totalMinX[data[count]])
-                        totalMinX[data[count]] = x;
-                    else if (x > totalMaxX[data[count]])
-                        totalMaxX[data[count]] = x;
-                    if (y < totalMinY[data[count]])
-                        totalMinY[data[count]] = y;
-                    else if (y > totalMaxY[data[count]])
-                        totalMaxY[data[count]] = y;
+                    if (x < totalMinX[idx])
+                        totalMinX[idx] = x;
+                    else if (x > totalMaxX[idx])
+                        totalMaxX[idx] = x;
+                    if (y < totalMinY[idx])
+                        totalMinY[idx] = y;
+                    else if (y > totalMaxY[idx])
+                        totalMaxY[idx] = y;
                 }
             }
-            count+=3;
+            count++;
+            imgCount += 3;
         }
     }
-    //    cout<<"Made it through image, now creating useful data from arrays"<<endl;
+
     int maxCount=0;
-  
-        // Work from the top to bottom, collapsing the pixel clusters together
-    for (int i=index-1;i>0;i--)
+
+    // Work from the top to bottom, collapsing the pixel clusters together
+    for (unsigned int i=index-1;i>0;i--)
     {
-        int join = joins[i];
+        unsigned int join = joins[i];
+
+        // Catch sentinal to make the first join, point to the last
+        if (join == UINT_MAX)
+            join = joins.size() - 1;
+        
         //assert(join <= index);
         if (join!=i)
         {
@@ -243,5 +287,18 @@ int BlobDetector::histogram(IplImage* img)
     return maxCount;
 }
 
+void BlobDetector::ensureDataSize(int pixels)
+{
+    size_t bytes = (size_t)pixels * sizeof(*data);
+    if (m_dataSize < (size_t)pixels)
+    {
+        m_dataSize = (int)pixels;
+        if (data)
+            data = (unsigned int*)realloc(data, bytes);
+        else
+            data = (unsigned int*)malloc(bytes);
+    }
+}
+    
 } // namespace vision
 } // namespace ram

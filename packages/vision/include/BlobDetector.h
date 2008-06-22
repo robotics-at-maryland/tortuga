@@ -72,6 +72,8 @@ public:
     void init(core::ConfigNode config);
 
     int histogram(IplImage* img);
+
+    void ensureDataSize(int pixels);
     
     std::vector<Blob> m_blobs;
 
@@ -82,7 +84,11 @@ public:
     std::vector<int> totalMaxY;
     std::vector<int> totalMinX;
     std::vector<int> totalMinY;
-    std::vector<unsigned char> joins;
+    std::vector<unsigned int> joins;
+
+    unsigned int* data;
+    /** Number of pixels represetned in the data array */
+    size_t m_dataSize;
 };
     
 } // namespace vision

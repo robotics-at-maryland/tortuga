@@ -1,10 +1,10 @@
 
 /*
  * Copyright (C) 2008 Robotics at Maryland
- * Copyright (C) 2008 Daniel Hakim <dhakim@umd.edu>
+ * Copyright (C) 2008 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *
- * Author: Daniel Hakim <dhakim@umd.edu>
+ * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/vision/test/src/TestOrangePipeDetector.cxx
  */
 
@@ -162,6 +162,30 @@ TEST_FIXTURE(BlobDetectorFixture, complexBlobs)
     CHECK_CLOSE((100 * 200) - (50 * 100), blob.getSize(), 500);
     CHECK_EQUAL(200, blob.getCenterX());
     CHECK_EQUAL(200, blob.getCenterY());
+}
+
+TEST_FIXTURE(BlobDetectorFixture, manyBlobs)
+{
+    // Make image black
+    vision::makeColor(&input, 0, 0, 0);
+
+    // Draw a field of circles
+    size_t expectedBlobs = 0;
+    for (int x = 15; x < (int)(input.getWidth() - 11); x += 30)
+    {
+        for (int y = 15; y < (int)(input.getHeight() - 11); y += 30)
+        {
+            drawCircle(&input, x, y, 10, CV_RGB(255,255,255));
+            expectedBlobs++;
+        }
+    }
+    
+    // Process it
+    vision::OpenCVImage output(640, 480);
+    detector.processImage(&input, &output);
+
+    // Make sure we picked up all the blobs
+    CHECK_EQUAL(expectedBlobs, detector.getBlobs().size());
 }
 
 } // SUITE(BlobDetector)
