@@ -1,8 +1,13 @@
+/*
+ * The SRAM chip. Use it. Or don't. Nothing touches it right now.
+ * Reads are slightly faster than DRAM. Writes are slightly slower
+ * than DRAM.
+ */
 #define SRAM_BASE 0x20300000
 #define SRAM_SIZE 0x100000
 
 
-// Bus addresses
+/* Internal stuff. don't touch it */
 #define ADDR_ADC0           0x202F0000  //0x202F 0000
 #define ADDR_ADC1           0x202F0004
 #define ADDR_ADC2           0x202F0008
@@ -59,9 +64,6 @@
 #define ADDR_ADStep             0x202F0130
 
 
-
-
-
 #define ADDR_LED                0x202E0000
 #define ADDR_Testreg0           0x202E0010
 #define ADDR_Testreg1           0x202E0014
@@ -78,4 +80,44 @@
 #define REG(a) (*(volatile unsigned short *) a)
 
 
+
+
+/* Your stuff. Use it if you want */
+
+
 int initADC();
+int setLED(int yellow, int green);
+void yellowOn();
+void yellowOff();
+void greenOn();
+void greenOff();
+
+/* All channels low gain */
+#define GAINMODE_LOW    0x4000
+
+/* All channels high gain */
+#define GAINMODE_HIGH   0x4044
+
+/* Channels 0 and 1 low gain, Channels 2 and 3 high gain */
+#define GAINMODE_LH    0x4040
+
+/* Channels 0 and 1 high gain, Channels 2 and 3 low gain */
+#define GAINMODE_HL    0x4004
+
+/* Starts new sampling session. Combining samples from this session
+ * with samples of the previous session will yield absolute garbage,
+ * even though it may appear valid on cursory inspection.
+ * Don't do it. It will not give anything good.
+ *
+ * It is a very good idea to begin a new sampling session for every
+ * block read you do. You absolutely *MUST* begin a new session if
+ * you haven't gathered data for over 8ms or the fifos will overflow.
+ */
+int resetADC(unsigned short gainMode);
+
+
+/* Block read function goes here
+ * Imagine there is a function here. It takes # of samples to record
+ * and some sort of set of pointers to where to put it.
+ * Can record up to 2.62 seconds but must pass in 8 buffers where to put it.
+ */
