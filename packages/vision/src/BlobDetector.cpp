@@ -37,14 +37,6 @@ BlobDetector::BlobDetector(core::ConfigNode config,
 
 BlobDetector::~BlobDetector()
 {
-    free(pixelCounts);
-    free(totalX);
-    free(totalY);
-    free(joins);
-    free(totalMinX);
-    free(totalMaxX);
-    free(totalMinY);
-    free(totalMaxY);
 }
     
 void BlobDetector::processImage(Image* input, Image* output)
@@ -86,45 +78,23 @@ std::vector<BlobDetector::Blob> BlobDetector::getBlobs()
     
 void BlobDetector::init(core::ConfigNode)
 {
-    pixelCounts=(int*) malloc(254 * sizeof(int));
-    totalX=(int*) malloc(254 * sizeof(int));
-    totalY=(int*) malloc(254 * sizeof(int));
-  
-    totalMaxX=(int*) malloc(254 * sizeof(int));
-    totalMaxY=(int*) malloc(254 * sizeof(int));
-    totalMinX=(int*) malloc(254 * sizeof(int));
-    totalMinY=(int*) malloc(254 * sizeof(int));
-
-    joins=(unsigned char*) malloc(254*sizeof(unsigned char));
 }
-
+    
 int BlobDetector::histogram(IplImage* img)
 {
-
-//Allow testRecord to be called easily from within a dynamically linked library
-
-//-1 on failure from too many distinct pieces, 0 if nothing at all was found,
-//otherwise returns number of pixels in the largest connected white splotch in the image
-//and fills centerX and centerY with its center.
-//    cout<<"starting histogram, beware."<<endl;
     int width=img->width;
     int height=img->height;
     unsigned char* data=(unsigned char*)img->imageData;
 
-    // Zero needed data sets
-    memset(pixelCounts, 0, 254);
-    memset(totalX, 0, 254);
-    memset(totalY, 0, 254);
-
-
-    for (unsigned char i=0; i<254; i++)
-    {
-        joins[i]=i;
-        totalMinX[i] = img->width;
-        totalMinY[i] = img->height;
-    }
-    joins[0]=255;
-  
+    joins.resize(1, 255);
+    pixelCounts.resize(1, 0);
+    totalX.resize(1, 0);
+    totalY.resize(1, 0);
+    totalMinX.resize(1, 0);
+    totalMaxX.resize(1, 0);
+    totalMinY.resize(1, 0);
+    totalMaxY.resize(1, 0);
+        
     int index=1;
     // Black out the top row, front edge so the above and left algos
     // work properly
@@ -153,20 +123,21 @@ int BlobDetector::histogram(IplImage* img)
                 unsigned char left=data[count-3];
                 if (above==0 && left==0)
                 {
-                    // Replace me with vector push backs
-                    pixelCounts[index]=1;
-                    totalX[index]=x;
-                    totalY[index]=y;
-                    totalMinX[index] = x;
-                    totalMaxX[index] = x;
-                    totalMinY[index] = y;
-                    totalMaxY[index] = y;
+                    //int neededSize = index + 1;
+                    //int presentSize = pixelCounts.size();
+                    //assert((presentSize + 1) == neededSize);
+                
+                    pixelCounts.push_back(1);
+                    totalX.push_back(x);
+                    totalY.push_back(y);
+                    totalMinX.push_back(x);
+                    totalMaxX.push_back(x);
+                    totalMinY.push_back(y);
+                    totalMaxY.push_back(y);
+                    joins.push_back(index);
+                    assert((index + 1) == (int)(totalX.size()));
+                    
                     data[count]=(unsigned char)(index++);
-                    //                    cout<<index<<endl;                
-                    if (index==254)
-                    {
-                        return -1;
-                    }
                 }
                 else 
                 {
@@ -177,6 +148,9 @@ int BlobDetector::histogram(IplImage* img)
                         above2=255;
                     else
                     {
+                        //assert(above2 <= index);
+                        //assert((int)joins.size() >= (above2 + 1));
+                            
                         while (above2!=joins[above2])
                             above2=joins[above2];
                     }
@@ -184,11 +158,26 @@ int BlobDetector::histogram(IplImage* img)
                         left2=255;
                     else
                     {
+                        //assert(left2 <= index);
+                        //assert((int)joins.size() >= (left2 + 1));
+                            
                         while (left2!=joins[left2])
                             left2=joins[left2];
                     }
+
+                    // More sanity checks
+                    //assert(left <= index);
+                    //assert((int)joins.size() >= (left + 1));
+                        
+                    //assert(above <= index);
+                    //assert((int)joins.size() >= (above + 1));
                     
                     data[count]=joins[above]=joins[left]=std::min(left2,above2);
+
+                    // Small sanity checks for refactoring
+                    //assert(data[count] <= index);
+                    //assert((int)totalX.size() >= (data[count] + 1));
+                        
                     totalX[data[count]]+=x;
                     totalY[data[count]]+=y;
                     ++pixelCounts[data[count]];
@@ -214,6 +203,7 @@ int BlobDetector::histogram(IplImage* img)
     for (int i=index-1;i>0;i--)
     {
         int join = joins[i];
+        //assert(join <= index);
         if (join!=i)
         {
             // "Unfinished" cluster of pixels, ie part of bigger cluster

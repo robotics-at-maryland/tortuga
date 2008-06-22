@@ -75,14 +75,14 @@ public:
     
     std::vector<Blob> m_blobs;
 
-    int* pixelCounts;
-    int* totalX;
-    int* totalY;
-    int* totalMaxX;
-    int* totalMaxY;
-    int* totalMinX;
-    int* totalMinY;
-    unsigned char* joins;
+    std::vector<int> pixelCounts;
+    std::vector<int> totalX;
+    std::vector<int> totalY;
+    std::vector<int> totalMaxX;
+    std::vector<int> totalMaxY;
+    std::vector<int> totalMinX;
+    std::vector<int> totalMinY;
+    std::vector<unsigned char> joins;
 };
     
 } // namespace vision
