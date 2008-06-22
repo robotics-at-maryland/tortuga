@@ -78,11 +78,19 @@ public:
 		}
 	}
 	
-	//	TODO should pass in k instead of kIdx
-	std::complex<int64_t> getAmplitude(int kIdx, int channel) const
+	std::complex<int64_t> &getAmplitudeForBinIndex(int kIdx, int channel) const
+	{ return fourier[kIdx][channel]; }
+	
+	int getBinIndexForBin(int k) const
 	{
-		return fourier[kIdx][channel];
+		for (int kIdx = 0 ; kIdx < nFreqBands ; kIdx ++)
+			if (kBands[kIdx] == k)
+				return kIdx;
+		return -1;
 	}
+	
+	const std::complex<int64_t> &getAmplitude(int k, int channel) const
+	{ return fourier[getBinIndexForBin(k)][channel]; }
 };
 
 

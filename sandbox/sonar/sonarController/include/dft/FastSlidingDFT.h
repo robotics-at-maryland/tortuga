@@ -1,10 +1,11 @@
-/*
+/**
  * @file FastSlidingDFT.h
  *
  * @author Tom Capon
  * Based on work by Leo Singer.
  * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  *
+ * TODO: Currently nonfunctioning.  Fix based on SDFTSpectrum.h
  */
 
 

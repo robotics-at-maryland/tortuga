@@ -73,10 +73,8 @@ public:
 		}
 	}
 	
-	std::complex<int64_t> getAmplitude(int k, int channel) const
-	{
-		return fourier[k][channel];
-	}
+	const std::complex<int64_t> &getAmplitude(int k, int channel) const
+	{ return fourier[k][channel]; }
 };
 
 
