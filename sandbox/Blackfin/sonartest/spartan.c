@@ -3,19 +3,19 @@
 
 int initADC()
 {
-    REG(ADDR_ADConfig1) = 0x8000;
-    REG(ADDR_ADConfig1) = 0x4000;
+    REG(ADDR_ADCONFIG) = 0x8000;
+    REG(ADDR_ADCONFIG) = 0x4000;
     //REG(ADDR_ADConfig1) = 0x4044;
-    REG(ADDR_ADConfig2) = 0x0000;
+    REG(ADDR_ADPRESCALER) = 0x0000;
 }
 
 
 int resetADC(unsigned short gainMode)
 {
-    REG(ADDR_ADConfig1) = 0x8000;
-    REG(ADDR_ADConfig1) = gainMode;
+    REG(ADDR_ADCONFIG) = 0x8000;
+    REG(ADDR_ADCONFIG) = gainMode;
     //REG(ADDR_ADConfig1) = 0x4044;
-    REG(ADDR_ADConfig2) = 0x0000;
+    REG(ADDR_ADPRESCALER) = 0x0000;
 }
 
 int setLED(int yellow, int green)
