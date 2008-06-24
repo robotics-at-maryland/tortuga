@@ -34,6 +34,9 @@ typedef boost::shared_ptr<Thruster> ThrusterPtr;
 
 class IPowerSource;
 typedef boost::shared_ptr<IPowerSource> IPowerSourcePtr;
+
+class ITempSensor;
+typedef boost::shared_ptr<ITempSensor> ITempSensorPtr;
     
 class IIMU;
 typedef boost::shared_ptr<IIMU> IIMUPtr;
@@ -66,6 +69,7 @@ namespace aliases {
 typedef ram::vehicle::device::IDevicePtr IDevicePtr;
 typedef ram::vehicle::device::IThrusterPtr IThrusterPtr;
 typedef ram::vehicle::device::IPowerSourcePtr IPowerSourcePtr;
+typedef ram::vehicle::device::ITempSensorPtr ITempSensorPtr;
 
 }
 }
@@ -77,6 +81,7 @@ inline int instantiateVehicleDeviceCommon()
     int a = sizeof(boost::shared_ptr<ram::vehicle::device::IDevice>);
     a += sizeof(boost::shared_ptr<ram::vehicle::device::IThruster>);
     a += sizeof(boost::shared_ptr<ram::vehicle::device::IPowerSource>);
+    a += sizeof(boost::shared_ptr<ram::vehicle::device::ITempSensor>);
 /*    a += sizeof(DoubleList);
     a += sizeof(VoltageList);
     a += sizeof(WattageList);

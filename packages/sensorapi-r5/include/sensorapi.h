@@ -344,7 +344,10 @@ int readOvrParams(int fd, int * a, int * b);
 
 /** Translates the function error return codes into text */    
 char* sbErrorToText(int ret);
-    
+
+/** Translates the index from the boardInfo array into the sensor name */
+char* tempSensorIDToText(int id);
+
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 } // extern "C"

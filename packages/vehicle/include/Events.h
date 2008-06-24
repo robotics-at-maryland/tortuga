@@ -26,6 +26,15 @@ struct PowerSourceEvent : public core::Event
 };
 
 typedef boost::shared_ptr<PowerSourceEvent> PowerSourceEventPtr;
+
+struct TempSensorEvent : public core::Event
+{
+    int id;
+    /** Temperature in degrees C */
+    int temp;
+};
+
+typedef boost::shared_ptr<TempSensorEvent> TempSensorEventPtr;
     
 } // namespace vehicle
 } // namespace ram

@@ -252,3 +252,46 @@ TEST_FIXTURE(SensorBoardFixture, event_POWERSOURCE_UPDATE)
     conn->disconnect();
 }
 
+typedef std::vector<ram::vehicle::TempSensorEventPtr>
+TempSensorEventPtrList;
+
+void tempSensorUpdateHelper(TempSensorEventPtrList* list,
+                             ram::core::EventPtr event)
+{
+    list->push_back(boost::dynamic_pointer_cast<
+                    ram::vehicle::TempSensorEvent>(event));
+}
+
+TEST_FIXTURE(SensorBoardFixture, event_TEMPSENSOR_UPDATE)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    int expectedTemps[7] = {2, 23, 4, 89, 22, 57, 79};
+
+    // Set values to be returned
+    sb->updateDone = true;
+    for (size_t i = 0; i < LENGTH(expectedTemps); ++i)
+        sb->currentTelemetry.temperature[i] = expectedTemps[i];
+
+    // Register handler and trigger and update
+    TempSensorEventPtrList eventList;
+    ram::core::EventConnectionPtr conn = sb->subscribe(
+        ram::vehicle::device::SensorBoard::TEMPSENSOR_UPDATE,
+        boost::bind(tempSensorUpdateHelper, &eventList, _1));
+    sb->update(0);
+
+    // Check to make sure we got the proper number of updates
+    CHECK_EQUAL(7u, eventList.size());
+
+
+    // Make sure the values were correct
+    int actualTemps[7] = {0};
+    
+    for (size_t i = 0; i < LENGTH(expectedTemps); ++i)
+        actualTemps[i] = eventList[i]->temp;
+
+    CHECK_ARRAY_EQUAL(expectedTemps, actualTemps, 7);
+    
+    conn->disconnect();
+}

@@ -11,10 +11,11 @@
 #include "vehicle/include/device/SensorBoard.h"
 #include "vehicle/include/Events.h"
 
-//#include "math/include/Events.h"
+#include "math/include/Events.h"
 
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, POWERSOURCE_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
 
 namespace ram {
 namespace vehicle {
@@ -86,6 +87,7 @@ void SensorBoard::update(double timestep)
         if (ret == SB_UPDATEDONE)
         {
             powerSourceEvents(&state.telemetry);
+            tempSensorEvents(&state.telemetry);
         }
     
         // Now read depth
@@ -301,6 +303,17 @@ void SensorBoard::powerSourceEvents(struct boardInfo* telemetry)
         event->voltage = telemetry->powerInfo.battVoltages[i];
         event->current = telemetry->powerInfo.battCurrents[i];
         publish(POWERSOURCE_UPDATE, event);
+    }
+}
+
+void SensorBoard::tempSensorEvents(struct boardInfo* telemetry)
+{
+    for (int i = 0; i < NUM_TEMP_SENSORS; ++i)
+    {
+        TempSensorEventPtr event(new TempSensorEvent);
+        event->id = i;
+        event->temp = telemetry->temperature[i];
+        publish(TEMPSENSOR_UPDATE, event);
     }
 }
     

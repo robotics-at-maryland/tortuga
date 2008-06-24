@@ -21,6 +21,7 @@
 #include "vehicle/test/include/MockVehicle.h"
 #include "vehicle/test/include/MockThruster.h"
 #include "vehicle/test/include/MockPowerSource.h"
+#include "vehicle/test/include/MockTempSensor.h"
 
 namespace py = boost::python;
 
@@ -29,14 +30,22 @@ struct DeviceFixture
     DeviceFixture() :
         main_module(py::import("__main__")),
         main_namespace(main_module.attr("__dict__")),
-        eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
+        eval(boost::bind(py::exec, _1, main_namespace, main_namespace)),
+        vehicle(new MockVehicle),
+        vehiclePtr(boost::shared_ptr<ram::vehicle::IVehicle>())
     {
         main_namespace["vdev"] = py::import("ext.vehicle.device");
+
+        // Add vehicle to the python environment
+        vehiclePtr = boost::shared_ptr<ram::vehicle::IVehicle>(vehicle);
+        main_namespace["vehicle"] = vehiclePtr;
     }
 
     py::object main_module;
     py::object main_namespace;
     boost::function<py::object (py::str)> eval;
+    MockVehicle* vehicle;
+    boost::shared_ptr<ram::vehicle::IVehicle> vehiclePtr;
 };
 
 TEST(DeviceImport)
@@ -47,11 +56,6 @@ TEST(DeviceImport)
 TEST_FIXTURE(DeviceFixture, Vehicle)
 {
     try {
-        // Create vehicle and add it the python environment
-        MockVehicle* vehicle = new MockVehicle;
-        boost::shared_ptr<ram::vehicle::IVehicle> vehiclePtr(vehicle);
-        main_namespace["vehicle"] = vehiclePtr;
-
         // Create MockThruster and add it to the MockVehicle
         MockThruster* thruster = new MockThruster("AftThruster");
         ram::vehicle::device::IThrusterPtr thrusterPtr(thruster);
@@ -75,11 +79,6 @@ TEST_FIXTURE(DeviceFixture, Vehicle)
 TEST_FIXTURE(DeviceFixture, IPowerSource)
 {
     try {
-        // Create vehicle and add it the python environment
-        MockVehicle* vehicle = new MockVehicle;
-        boost::shared_ptr<ram::vehicle::IVehicle> vehiclePtr(vehicle);
-        main_namespace["vehicle"] = vehiclePtr;
-
         // Create MockThruster and add it to the MockVehicle
         MockPowerSource* powerSource = new MockPowerSource("PowerSource");
         ram::vehicle::device::IPowerSourcePtr powerSourcePtr(powerSource);
@@ -97,6 +96,25 @@ TEST_FIXTURE(DeviceFixture, IPowerSource)
         // Test setEnabled
         //eval("powerSource.setEnabled(false)");
         //CHECK_EQUAL(false, powerSource->isEnabled());
+    } catch(py::error_already_set err) { PyErr_Print(); throw err; }
+}
+
+TEST_FIXTURE(DeviceFixture, ITempSensor)
+{
+    try {
+        // Create MockThruster and add it to the MockVehicle
+        MockTempSensor* tempSensor = new MockTempSensor("TempSensor");
+        ram::vehicle::device::ITempSensorPtr tempSensorPtr(tempSensor);
+        vehicle->devices[tempSensor->getName()] = tempSensorPtr;
+
+        // Test getTemp
+        tempSensor->temp = 23;
+
+        eval("tempSensor = vehicle.getDevice('TempSensor')\n"
+             "temp = tempSensor.getTemp()");
+
+        int temp = py::extract<double>(main_namespace["temp"]);
+        CHECK_EQUAL(tempSensor->getTemp(), temp);
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
 

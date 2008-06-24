@@ -66,6 +66,10 @@ def generate(module_builder, local_ns, global_ns):
     IPowerSource = expose_device(local_ns, 'IPowerSource')
     wrappedClasses.append(IPowerSource)
 
+    # Wrap the ITempSensor class
+    ITempSensor = expose_device(local_ns, 'ITempSensor')
+    wrappedClasses.append(ITempSensor)
+
     module_builder.add_registration_code("registerIDeviceMakerClass();")
     module_builder.add_registration_code("registerIDevicePtrs();")
     wrap.add_needed_includes(wrappedClasses)

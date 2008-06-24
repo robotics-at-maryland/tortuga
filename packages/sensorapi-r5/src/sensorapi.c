@@ -911,3 +911,21 @@ char* sbErrorToText(int ret)
     else
         return "Unknown";
 }
+
+char* tempSensorIDToText(int id)
+{
+    static char* toText[7] = {
+        "Sensor Board",
+        "Unused",
+        "Unused",
+        "Unused",
+        "Unused",
+        "Distro Board",
+        "Balancer Board"
+    };
+
+    if ((id >=0) && (id <= (sizeof(toText))))
+        return toText[id];
+    else
+        return "ERROR: Id out of range";
+}

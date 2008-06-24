@@ -69,6 +69,17 @@ public:
 
         publish(ram::vehicle::device::SensorBoard::POWERSOURCE_UPDATE, event);
     }
+
+    void publishTempSensorUpdate(int id, int temp)
+    {
+        ram::vehicle::TempSensorEventPtr event(
+            new ram::vehicle::TempSensorEvent);
+        
+        event->id = id;
+        event->temp = temp;
+
+        publish(ram::vehicle::device::SensorBoard::TEMPSENSOR_UPDATE, event);
+    }
 };
 
 #endif // RAM_VEHICLE_DEVICE_MOCKSENSORBOARD_06_12_2008
