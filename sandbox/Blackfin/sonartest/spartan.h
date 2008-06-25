@@ -1,9 +1,9 @@
 #define SRAM_BASE 0x20300000
 #define SRAM_SIZE 0x100000
 
-
-
 /*
+
+
 // System timer config register:
 //  Bit 15 - Clock reset.  When high, resets clock to 0 and prevents clock increments.
 //                          When low, clock functions normally
@@ -141,7 +141,9 @@
 #define ADDR_FIFO_HALF1S        0x202F02C0
 #define ADDR_FIFO_STATUS2       0x202F02D0
 
+
 */
+
 
 
 // Bus addresses
