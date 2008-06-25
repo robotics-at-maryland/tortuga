@@ -149,14 +149,20 @@ def run_tests(env, output, inputs, message = None, deps = None):
             testerpath = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
                                       'pytester.py')
             tests = '"' + '" "'.join(pytests) + '"'
-            cmd_str = '"%s" "%s" %s' % (sys.executable, testerpath, tests)
+            exe_str = sys.executable
+			# Add quotes if there is a space in the string
+            if -1 != exe_str.find(' '):
+                exe_str = '"' + exe_str + '"'
+            cmd_str = '%s "%s" %s' % (exe_str, testerpath, tests)
+
             result = subprocess.call(cmd_str, shell = True)
+
             if result:
                 return 1 # Failure
 
         # Record the test success to the file
         open(str(target[0]), 'w').write("PASSED\n")
-
+	
         # Success
         return 0
 
