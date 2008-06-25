@@ -27,7 +27,7 @@ static long arctantab[] = {
  * composite scaling of the product of all the cos(theta[i])'s.
  */
 
-static void
+long
 PseudoPolarize(long *argx, long *argy)
 {
 	register long theta;
