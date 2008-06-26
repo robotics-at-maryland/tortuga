@@ -30,6 +30,8 @@ static const int kBandOffCenterAmount = 10;
 static const int nKBands = 3;		//	Number of frequency bands to examine
 static const int kBands[] = {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount};
 
+static const float holdoffTime = .1;//	Holdoff until looking for next ping (seconds)
+static const size_t holdoffSamples = holdoffTime * fs;// Number of samples to holdoff
 
 static const double hydroStructureArray[4][4] = 
 {
@@ -55,6 +57,7 @@ int main(int argc, char *argv[])
 	
 	
 	size_t sampleIndex = 0;
+	size_t samplesSinceLastPing = 0;
 	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == nChannels)
 	{
 		++sampleIndex;
@@ -73,6 +76,8 @@ int main(int argc, char *argv[])
 		trigger.update(triggerVals);
 		
 		bool pingDetected = true;
+		if (samplesSinceLastPing < holdoffSamples)
+			pingDetected = false;
 		for (int channel = 0 ; channel < nChannels ; channel ++)
 		{
 			if (!trigger(nChannels * 0 + channel))
@@ -85,6 +90,7 @@ int main(int argc, char *argv[])
 		
 		if (pingDetected)
 		{
+			samplesSinceLastPing = 0;
 			const complex<int64_t> &ch0 = spectrum.getAmplitudeForBinIndex(0, 0);
 			complex<double> ch0Double(ch0.real(), ch0.imag());
 			MatrixN tdoas(4, 1);
@@ -102,7 +108,10 @@ int main(int argc, char *argv[])
 			directionVector.normalise();
 			cout << "Ping detected at sample " << sampleIndex << ":" << endl;
 			cout << directionVector << endl;
-			return 0;
+		}
+		else // !pingDetected
+		{
+			++samplesSinceLastPing;
 		}
 	}
 	return 0;
