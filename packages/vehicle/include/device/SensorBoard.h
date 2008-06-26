@@ -55,6 +55,7 @@ public:
     /* @{ */
     static const core::Event::EventType POWERSOURCE_UPDATE;
     static const core::Event::EventType TEMPSENSOR_UPDATE;
+    static const core::Event::EventType MOTORCURRENT_UPDATE;
     /* @{ */
     
     /** Creates a device with the given file descriptor */
@@ -158,6 +159,9 @@ private:
 
     /** Triggers temperature sensor events */
     void tempSensorEvents(struct boardInfo* telemetry);
+
+    /** Triggers motor current events */
+    void motorCurrentEvents(struct boardInfo* telemetry);
     
     /** Mutex which protects access to state */
     core::ReadWriteMutex m_stateMutex;

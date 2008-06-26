@@ -16,6 +16,7 @@
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, POWERSOURCE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, MOTORCURRENT_UPDATE);
 
 namespace ram {
 namespace vehicle {
@@ -88,6 +89,7 @@ void SensorBoard::update(double timestep)
         {
             powerSourceEvents(&state.telemetry);
             tempSensorEvents(&state.telemetry);
+            motorCurrentEvents(&state.telemetry);
         }
     
         // Now read depth
@@ -314,6 +316,17 @@ void SensorBoard::tempSensorEvents(struct boardInfo* telemetry)
         event->id = i;
         event->temp = telemetry->temperature[i];
         publish(TEMPSENSOR_UPDATE, event);
+    }
+}
+    
+void SensorBoard::motorCurrentEvents(struct boardInfo* telemetry)
+{
+    for (int i = 0; i < 6; ++i)
+    {
+        MotorCurrentEventPtr event(new MotorCurrentEvent);
+        event->address = i;
+        event->current = telemetry->powerInfo.motorCurrents[i];
+        publish(MOTORCURRENT_UPDATE, event);
     }
 }
     

@@ -295,3 +295,47 @@ TEST_FIXTURE(SensorBoardFixture, event_TEMPSENSOR_UPDATE)
     
     conn->disconnect();
 }
+
+typedef std::vector<ram::vehicle::MotorCurrentEventPtr>
+MotorCurrentEventPtrList;
+
+void motorCurrentUpdateHelper(MotorCurrentEventPtrList* list,
+                             ram::core::EventPtr event)
+{
+    list->push_back(boost::dynamic_pointer_cast<
+                    ram::vehicle::MotorCurrentEvent>(event));
+}
+
+TEST_FIXTURE(SensorBoardFixture, event_MOTORCURRENT_UPDATE)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    double expectedCurrents[6] = {2.3, 5.1, 2.5, 1.0, 0.0, 9.0};
+
+    // Set values to be returned
+    sb->updateDone = true;
+    for (size_t i = 0; i < LENGTH(expectedCurrents); ++i)
+        sb->currentTelemetry.powerInfo.motorCurrents[i] = expectedCurrents[i];
+
+    // Register handler and trigger and update
+    MotorCurrentEventPtrList eventList;
+    ram::core::EventConnectionPtr conn = sb->subscribe(
+        ram::vehicle::device::SensorBoard::MOTORCURRENT_UPDATE,
+        boost::bind(motorCurrentUpdateHelper, &eventList, _1));
+    sb->update(0);
+
+    // Check to make sure we got the proper number of updates
+    CHECK_EQUAL(6u, eventList.size());
+
+
+    // Make sure the values were correct
+    double actualCurrents[6] = {0};
+    
+    for (size_t i = 0; i < LENGTH(expectedCurrents); ++i)
+        actualCurrents[i] = eventList[i]->current;
+
+    CHECK_ARRAY_CLOSE(expectedCurrents, actualCurrents, 6, 0.0001);
+    
+    conn->disconnect();
+}

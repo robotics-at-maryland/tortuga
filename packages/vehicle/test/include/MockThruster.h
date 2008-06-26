@@ -23,7 +23,8 @@ public:
         Device(name),
         force(0.0),
         offset(0.0),
-        enabled(false)
+        enabled(false),
+        current(0.0)
         {}
 
     virtual std::string getName() {
@@ -43,10 +44,13 @@ public:
     virtual void setEnabled(bool state) { enabled = state; }
 
     virtual double getOffset() { return offset; }
+
+    virtual double getCurrent() { return current; }
     
     double force;
     double offset;
     bool enabled;
+    double current;
     
     virtual void update(double) {}
     virtual void background(int) {}

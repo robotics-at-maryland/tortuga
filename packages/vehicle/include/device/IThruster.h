@@ -16,6 +16,7 @@
 // Project Includes
 #include "core/include/Event.h"
 #include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/device/ICurrentProvider.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
@@ -24,7 +25,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class RAM_EXPORT IThruster : public IDevice // boost::noncopyable
+class RAM_EXPORT IThruster : public IDevice, // boost::noncopyable
+                             public ICurrentProvider
 {
 public:
     static const core::Event::EventType FORCE_UPDATE;
@@ -59,7 +61,7 @@ public:
      *  X-Y plane would give report its distance off the X axis.
      */
     virtual double getOffset() = 0;
-    
+
 protected:
     IThruster(core::EventHubPtr eventHub = core::EventHubPtr());  
 };

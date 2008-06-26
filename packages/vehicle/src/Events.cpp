@@ -18,10 +18,13 @@
 #include "vehicle/include/Events.h"
 #include "core/include/EventConverter.h"
 
-/*static ram::core::SpecificEventConverter<ram::vehicle::PowerSourceEvent>
+static ram::core::SpecificEventConverter<ram::vehicle::PowerSourceEvent>
 RAM_VEHICLE_POWERSOURCE_EVENT;
 
 static ram::core::SpecificEventConverter<ram::vehicle::TempSensorEvent>
-RAM_VEHICLE_TEMPSENSOR_EVENT;*/
+RAM_VEHICLE_TEMPSENSOR_EVENT;
+
+static ram::core::SpecificEventConverter<ram::vehicle::MotorCurrentEvent>
+RAM_VEHICLE_MOTORCURRENT_EVENT;
 
 #endif // RAM_WITH_WRAPPERS

@@ -80,6 +80,17 @@ public:
 
         publish(ram::vehicle::device::SensorBoard::TEMPSENSOR_UPDATE, event);
     }
+
+    void publishMotorCurrentUpdate(int address, double current)
+    {
+        ram::vehicle::MotorCurrentEventPtr event(
+            new ram::vehicle::MotorCurrentEvent);
+        
+        event->address = address;
+        event->current = current;
+
+        publish(ram::vehicle::device::SensorBoard::MOTORCURRENT_UPDATE, event);
+    }
 };
 
 #endif // RAM_VEHICLE_DEVICE_MOCKSENSORBOARD_06_12_2008

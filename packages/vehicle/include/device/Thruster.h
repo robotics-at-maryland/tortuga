@@ -54,6 +54,8 @@ public:
     virtual void setEnabled(bool state);
 
     virtual double getOffset();
+
+    virtual double getCurrent();
     
     /** Gets the current motor count */
     int getMotorCount();
@@ -83,12 +85,15 @@ public:
     virtual bool backgrounded();
     
 private:
+    /** Handles MOTORCURRENT_UPDATE events */
+    void onMotorCurrentUpdate(core::EventPtr event);
+    
     int m_address;
 
     /** Experimentally determined calibration factor */
     double m_calibrationFactor;
 
-    core::ReadWriteMutex m_forceMutex;
+    core::ReadWriteMutex m_stateMutex;
     /** Current output force of motor */
     double m_force;
     
@@ -101,8 +106,14 @@ private:
     /** The offset from axis perpendicular to axis of induced rotation */
     double m_offset;
 
+    /** Current amperage draw of the thruster */
+    double m_current;
+    
     /** The sensor board which provides access to the hardware */
     SensorBoardPtr m_sensorBoard;
+
+    /** MOTORCURRENT_UPDATE event connection */
+    core::EventConnectionPtr m_connection;
 };
     
 } // namespace device

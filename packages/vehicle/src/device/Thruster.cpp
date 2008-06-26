@@ -7,9 +7,12 @@
  * File:  packages/vehicle/src/device/Thruster.cpp
  */
 
+// Library Includes
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
+#include "vehicle/include/Events.h"
 #include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/SensorBoard.h"
 
@@ -27,6 +30,7 @@ Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
     m_calibrationFactor(config["calibration_factor"].asDouble()),
     m_direction(config["direction"].asInt(1)),
     m_offset(0),
+    m_current(0.0),
     m_sensorBoard(SensorBoardPtr())
 {
     // A little hack to determine the offset based on thruster type
@@ -46,6 +50,9 @@ Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
 
     m_sensorBoard = IDevice::castTo<SensorBoard>(
         vehicle->getDevice("SensorBoard"));
+    m_connection = m_sensorBoard->subscribe(
+        SensorBoard::MOTORCURRENT_UPDATE,
+        boost::bind(&Thruster::onMotorCurrentUpdate, this, _1));
 }
 
 Thruster::~Thruster()
@@ -72,7 +79,7 @@ void Thruster::setForce(double force)
         motorCount = -1023;
 
     {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_forceMutex);
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_force = force;
         m_motorCount = motorCount;
     }
@@ -87,7 +94,7 @@ void Thruster::setForce(double force)
 
 double Thruster::getForce()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_forceMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_force;
 }
 
@@ -115,10 +122,16 @@ double Thruster::getOffset()
 {
     return m_offset;
 }
+
+double Thruster::getCurrent()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_current;
+}
     
 int Thruster::getMotorCount()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_forceMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_motorCount;
 }
 
@@ -137,6 +150,28 @@ void Thruster::unbackground(bool join)
 bool Thruster::backgrounded()
 {
     return false;
+}
+
+void Thruster::onMotorCurrentUpdate(core::EventPtr event)
+{
+    ram::vehicle::MotorCurrentEventPtr mcEvent =
+        boost::dynamic_pointer_cast<ram::vehicle::MotorCurrentEvent>(event);
+
+    // Drop out if the event isn't for us
+    if (m_address != mcEvent->address)
+        return;
+
+    // Read in new values
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+            
+        m_current = mcEvent->current;
+    }
+
+    math::NumericEventPtr nevent(new math::NumericEvent);
+    nevent->number = mcEvent->current;
+    publish(ICurrentProvider::UPDATE, nevent);
+
 }
     
 } // namespace device

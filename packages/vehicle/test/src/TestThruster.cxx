@@ -187,3 +187,41 @@ TEST_FIXTURE(Thruster, getOffset)
     CHECK_EQUAL(0.193, thruster->getOffset());
     delete thruster;
 }
+
+TEST_FIXTURE(Thruster, getCurrent)
+{
+    std::string config = TH_CONFIG_BASE +
+        "'name' : 'StarboardThruster',"
+        "'address' : 3}";
+
+    // Default case
+    thruster = new ram::vehicle::device::Thruster(
+        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+        ivehicle);
+
+    // Check default
+    CHECK_EQUAL(0, thruster->getCurrent());
+
+    // Publish event and check values
+    sensorBoard->publishMotorCurrentUpdate(3, 6.5);
+    CHECK_CLOSE(6.5, thruster->getCurrent(), 0.0001);
+}
+
+TEST_FIXTURE(Thruster, updateAddress)
+{
+    std::string config = TH_CONFIG_BASE +
+        "'name' : 'StarboardThruster',"
+        "'address' : 5}";
+
+    // Default case
+    thruster = new ram::vehicle::device::Thruster(
+        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+        ivehicle);
+
+    // Check default
+    CHECK_EQUAL(0, thruster->getCurrent());
+
+    // Publish event and check values
+    sensorBoard->publishMotorCurrentUpdate(4, 4.5);
+    CHECK_CLOSE(0, thruster->getCurrent(), 0.0001);
+}
