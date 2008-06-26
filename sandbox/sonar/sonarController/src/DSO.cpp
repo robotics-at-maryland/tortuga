@@ -9,7 +9,6 @@
 
 #include "DSO.h"
 
-
 #include "Sonar.h"
 #include "dft/TiledSlidingDFT.h"
 #include "SonarChunk.h"

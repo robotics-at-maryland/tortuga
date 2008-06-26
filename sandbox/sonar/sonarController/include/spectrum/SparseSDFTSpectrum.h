@@ -78,7 +78,7 @@ public:
 		}
 	}
 	
-	std::complex<int64_t> &getAmplitudeForBinIndex(int kIdx, int channel) const
+	const std::complex<int64_t> &getAmplitudeForBinIndex(int kIdx, int channel) const
 	{ return fourier[kIdx][channel]; }
 	
 	int getBinIndexForBin(int k) const

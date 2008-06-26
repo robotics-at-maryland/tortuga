@@ -16,5 +16,7 @@ SonarService = env.SConscript('src/SonarService.SConscript', variant_dir='#build
 
 env.Program('data/TestSDFTSpectrum.cpp')
 
+env.Program('sonard','src/sonard/main.cpp')
+
 tests = env.SConscript('test/SConscript', variant_dir='#build/test', duplicate=0)
 #testExec = env.Program('build/test', testFiles)

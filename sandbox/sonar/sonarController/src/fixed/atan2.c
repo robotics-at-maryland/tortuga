@@ -1,6 +1,6 @@
-# define COSCALE 0x11616E8E	/* 291597966 = 0.2715717684432241 * 2^30, valid for j>13 */
-#  define MAXITER 16	/* the resolution of the arctan table */
-#  define QUARTER ((long)(3.141592654 / 2.0 * (1L << 16)))
+#define COSCALE 0x11616E8E	/* 291597966 = 0.2715717684432241 * 2^30, valid for j>13 */
+#define MAXITER 16	/* the resolution of the arctan table */
+#define QUARTER ((long)(3.141592654 / 2.0 * (1L << 16)))
 static long arctantab[] = {
 	72558, 51472, 30386, 16055, 8150, 4091, 2047, 1024,
 	512, 256, 128, 64, 32, 16, 8, 4,
@@ -28,7 +28,7 @@ static long arctantab[] = {
  */
 
 long
-PseudoPolarize(long *argx, long *argy)
+PseudoPolarize(const long *argx, const long *argy)
 {
 	register long theta;
 	register long yi, i;
