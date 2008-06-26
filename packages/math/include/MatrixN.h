@@ -64,7 +64,7 @@ public:
 		memset(data, 0, sizeof(Real)*rows*cols);
 	}
 
-    inline MatrixN(Real *data_, int rows_, int cols_)
+    inline MatrixN(const Real *data_, int rows_, int cols_)
     {
         rows = rows_;
 		cols = cols_;
@@ -294,7 +294,7 @@ public:
     inline  friend std::ostream& operator <<
         ( std::ostream& o, const MatrixN& m )
     {
-		o << "MatrixN(" << m.rows << ", " << m.cols << " = {\n";
+		o << "MatrixN(" << m.rows << ", " << m.cols << ") = {\n";
 		for (int i=0;i<m.rows;i++)
 		{
 			for (int j=0;j<m.cols;j++)

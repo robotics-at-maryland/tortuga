@@ -430,7 +430,7 @@ namespace math {
 
         /** Normalises the vector.
             @remarks
-                This method normalises the vector such that it's
+                This method normalises the vector such that its
                 length / magnitude is 1. The result is called a unit vector.
             @note
                 This function will not crash for zero-sized vectors, but there
