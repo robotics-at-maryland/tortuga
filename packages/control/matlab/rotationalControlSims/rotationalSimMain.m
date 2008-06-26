@@ -1,5 +1,5 @@
 %simulate tortuga rotational dynamics
-
+clc
 close all;
 clear;
 
@@ -12,7 +12,7 @@ angle0=20*pi/180;
 q0=[0 0 0 1]';
 
 %initial angular rate
-w0=(pi/180)*[0 200 0]';
+w0=(pi/180)*[0 0 0]';
 
 %initial desired position
 qd0=[0 0 0 1]';
@@ -56,6 +56,15 @@ global rb;
 rb=[0 0 0.05]';%meters, i made these numbers up
 %rb=[0 0 1]';%meters, i made these numbers up
 
+% gravity and magnetic vectors in earth's(inertial) frame
+% [1 2 3]
+% 1 - North
+% 2 - West
+% 3 - Up
+global a_inertial;
+a_inertial = [0 0 -1];
+global m_inertial;
+m_inertial = [0 0.1 -0.1732];
 
 %% timing
 t0=0;
