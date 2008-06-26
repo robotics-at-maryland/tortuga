@@ -393,8 +393,16 @@ class PowerSourceDisplay(object):
         label = wx.StaticText(parent, wx.ID_ANY, powerSource.getName())
 
         yellow = wx.Color(255, 255, 0)
-        colorList = [wx.RED, yellow, wx.GREEN, yellow, wx.RED]
-        valueList = [22, 25.5, 26.5, 29.5, 30, 31]
+        
+        colorList = []
+        valueList = []
+        if mode == PowerSourceDisplay.VOLTAGE:
+            colorList = [wx.RED, yellow, wx.GREEN, yellow, wx.RED]
+            valueList = [22, 25.5, 26.5, 29.5, 30, 31]
+        elif mode == PowerSourceDisplay.CURRENT:
+            colorList = [wx.GREEN, yellow, wx.RED]
+            valueList = [0, 7, 9, 10]
+            
         self._gauge = MultiBar(parent, colorList = colorList, 
                                size = (textWidth, textHeight),
                                innerBorder = 1,

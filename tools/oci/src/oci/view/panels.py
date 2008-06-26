@@ -278,8 +278,11 @@ class RotationPanel(wx.Panel):
     
 class PowerSourcePanel(wx.Panel):
     implements(IPanelProvider)
+    
+    VOLTAGE = 1
+    CURRENT = 2
         
-    def __init__(self, parent, eventHub, powerSources, *args, **kwargs):
+    def __init__(self, parent, eventHub, powerSources, mode, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._connections = []
         self._powerSources = powerSources
@@ -292,7 +295,8 @@ class PowerSourcePanel(wx.Panel):
             # Create Control
             display = PowerSourceDisplay(parent = self, eventHub = eventHub,
                                         powerSource = item,
-                                        sizer = sizer, lineNum = lineNum)
+                                        sizer = sizer, lineNum = lineNum,
+                                        mode = mode)
                        
             self._powerDisplays.append(display)
             lineNum += 1
@@ -337,11 +341,18 @@ class PowerSourcePanel(wx.Panel):
     
             # Only create the panel if there are powerSourcess on the vehicle        
             if len(powerSources):
-                paneInfo = wx.aui.AuiPaneInfo().Name("PowerSources")
-                paneInfo = paneInfo.Caption("Power Sources").Bottom()
-        
-                panel = PowerSourcePanel(parent, eventHub, powerSources)
-                return [(paneInfo, panel, [vehicle])]
+                paneInfoV = wx.aui.AuiPaneInfo().Name("PowerSourceVoltages")
+                paneInfoV = paneInfoV.Caption("Power Source Voltages").Bottom()
+                panelV = PowerSourcePanel(parent, eventHub, powerSources,
+                                         PowerSourcePanel.VOLTAGE)
+                
+                paneInfoC = wx.aui.AuiPaneInfo().Name("PowerSource Currents")
+                paneInfoC = paneInfoC.Caption("Power Source Currents").Bottom()
+                panelC = PowerSourcePanel(parent, eventHub, powerSources,
+                                         PowerSourcePanel.CURRENT)
+                
+                return [(paneInfoV, panelV, [vehicle]), 
+                        (paneInfoC, panelC, [vehicle])]
             
         return []
     

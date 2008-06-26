@@ -112,7 +112,7 @@ class Thruster(device.IThruster):
         
 class PowerSource(device.Device):
     VOLTAGE = ext.core.declareEventType('VOLTAGE')
-    CURRNET = ext.core.declareEventType('CURRENT')
+    CURRENT = ext.core.declareEventType('CURRENT')
     ENABLED = ext.core.declareEventType('ENABLED')
     DISABLED = ext.core.declareEventType('DISABLED')
     
@@ -141,7 +141,7 @@ class PowerSource(device.Device):
         
         event = core.Event()
         event.number = self.current
-        self.publish(PowerSource.CURRNET, event)
+        self.publish(PowerSource.CURRENT, event)
         
 
 class DemoSonar(core.Subsystem, core.EventPublisher):
