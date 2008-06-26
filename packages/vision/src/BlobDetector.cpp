@@ -31,6 +31,7 @@ namespace vision {
 BlobDetector::BlobDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
     Detector(eventHub),
+    m_minBlobSize(0),
     data(0),
     m_dataSize(0)
 {
@@ -78,8 +79,18 @@ std::vector<BlobDetector::Blob> BlobDetector::getBlobs()
 {
     return m_blobs;
 }
+
+void BlobDetector::setMinimumBlobSize(int pixels)
+{
+    m_minBlobSize = pixels;
+}
+
+int BlobDetector::getMinimumBlobSize()
+{
+    return m_minBlobSize;
+}
     
-void BlobDetector::init(core::ConfigNode)
+void BlobDetector::init(core::ConfigNode config)
 {
     // Pre-allocate memory
     joins.reserve(1024);
@@ -92,6 +103,8 @@ void BlobDetector::init(core::ConfigNode)
     totalMaxY.reserve(1024);
 
     ensureDataSize(640 * 480);
+
+    m_minBlobSize = config["minBlobSize"].asInt(0);
 }
     
 int BlobDetector::histogram(IplImage* img)
@@ -116,17 +129,12 @@ int BlobDetector::histogram(IplImage* img)
     // work properly
     int imgCount=0;
     int count = 0;
+
+    // Top row
     memset(imgData, 0, width * 3);
     memset(data, 0, sizeof(*data) * width);
-/*    for (int x=0;x<width;x++)
-    {
-        imgData[imgCount]=imgData[imgCount+1]=imgData[imgCount+2]=0;
-        data[count] = 0;
-        imgCount+=3;
-        count++;
-    }
-    imgCount=0;
-    count = 0;*/
+
+    // Front enge
     for (int y=0;y<height;y++)
     {
         imgData[imgCount]=imgData[imgCount+1]=imgData[imgCount+2]=0;
@@ -273,12 +281,15 @@ int BlobDetector::histogram(IplImage* img)
         else
         {
             maxCount=pixelCounts[i];
-            // Found a final cluster
-            m_blobs.push_back(
-                   BlobDetector::Blob(pixelCounts[i], totalX[i]/maxCount,
-                             totalY[i]/maxCount, totalMaxX[i], totalMinX[i],
-                             totalMaxY[i], totalMinY[i])
-                                    );
+            if (maxCount >= m_minBlobSize)
+            {
+                // Found a final cluster
+                m_blobs.push_back(
+                    BlobDetector::Blob(pixelCounts[i], totalX[i]/maxCount,
+                                       totalY[i]/maxCount, totalMaxX[i],
+                                       totalMinX[i], totalMaxY[i], totalMinY[i])
+                                  );
+            }
         }
     }
 

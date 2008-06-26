@@ -66,17 +66,30 @@ public:
     
     bool found();
 
+    /** Sets the minimum number of pixels a blob must be to be reported */
+    void setMinimumBlobSize(int pixels);
+
+    /** Returns the minimum number of pixels a blob must to be reported */
+    int getMinimumBlobSize();
+
     std::vector<Blob> getBlobs();
     
   private:
+    /** Initializes the class */
     void init(core::ConfigNode config);
 
     int histogram(IplImage* img);
 
+    /** Ensures that data array is large enough to hold desired pixel count */
     void ensureDataSize(int pixels);
     
     std::vector<Blob> m_blobs;
 
+    /** Minimum pixel count for blobs to count */
+    int m_minBlobSize;
+    
+    
+    // Data used by internal blob algorithm
     std::vector<int> pixelCounts;
     std::vector<int> totalX;
     std::vector<int> totalY;
@@ -86,7 +99,9 @@ public:
     std::vector<int> totalMinY;
     std::vector<unsigned int> joins;
 
+    /** "Image" used during internal processing */
     unsigned int* data;
+    
     /** Number of pixels represetned in the data array */
     size_t m_dataSize;
 };

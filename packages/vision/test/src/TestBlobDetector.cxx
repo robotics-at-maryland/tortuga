@@ -128,7 +128,6 @@ TEST_FIXTURE(BlobDetectorFixture, complexBlobs)
     // Process it
     vision::OpenCVImage output(640, 480);
     detector.processImage(&input, &output);
-//    vision::Image::showImage(&output);
 
     // Make sure we found no blobs
     CHECK_EQUAL(3u, detector.getBlobs().size());
@@ -186,6 +185,35 @@ TEST_FIXTURE(BlobDetectorFixture, manyBlobs)
 
     // Make sure we picked up all the blobs
     CHECK_EQUAL(expectedBlobs, detector.getBlobs().size());
+}
+
+TEST_FIXTURE(BlobDetectorFixture, minBlobSize)
+{
+    vision::BlobDetector detectorMinSize(
+        core::ConfigNode::fromString("{\"minBlobSize\" : 5000 }"));
+    
+    // Make image black
+    vision::makeColor(&input, 0, 0, 0);
+
+    // Add some white rectangles
+    drawSquare(&input, 200, 200, 100, 200, 0, CV_RGB(255,255,255));
+    drawSquare(&input, 350, 400, 100, 10, 0, CV_RGB(255,255,255));
+
+    // Process it
+    vision::OpenCVImage output(640, 480);
+    detectorMinSize.processImage(&input, &output);
+
+    // Make sure we found just the big blob
+    CHECK_EQUAL(1u, detectorMinSize.getBlobs().size());
+
+    vision::BlobDetector::Blob blob = detectorMinSize.getBlobs()[0];
+    CHECK_EQUAL(250, blob.getMaxX());
+    CHECK_EQUAL(150, blob.getMinX());
+    CHECK_EQUAL(300, blob.getMaxY());
+    CHECK_EQUAL(100, blob.getMinY());
+    CHECK_CLOSE(100 * 200, blob.getSize(), 500);
+    CHECK_EQUAL(200, blob.getCenterX());
+    CHECK_EQUAL(200, blob.getCenterY());
 }
 
 } // SUITE(BlobDetector)
