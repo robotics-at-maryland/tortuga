@@ -7,9 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		A41FCB360E11AEDB00363828 /* PulseTrigger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PulseTrigger.h; path = include/PulseTrigger.h; sourceTree = "<group>"; };
 		A43B11D80DBE934400E39662 /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
-		A43B11E60DBE934400E39662 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		A43B11E70DBE934400E39662 /* SConstruct */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SConstruct; sourceTree = "<group>"; };
 		A43B11E80DBE934400E39662 /* SlidingDFT_comparison.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SlidingDFT_comparison.txt; sourceTree = "<group>"; };
 		A43B11E90DBE934400E39662 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
@@ -21,8 +19,6 @@
 			isa = PBXGroup;
 			children = (
 				A43B11D80DBE934400E39662 /* include */,
-				A41FCB360E11AEDB00363828 /* PulseTrigger.h */,
-				A43B11E60DBE934400E39662 /* main.cpp */,
 				A43B11E70DBE934400E39662 /* SConstruct */,
 				A43B11E80DBE934400E39662 /* SlidingDFT_comparison.txt */,
 				A43B11E90DBE934400E39662 /* src */,
@@ -68,6 +64,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
+				HEADER_SEARCH_PATHS = ../../../packages;
 			};
 			name = Debug;
 		};
@@ -75,6 +72,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
+				HEADER_SEARCH_PATHS = ../../../packages;
 			};
 			name = Release;
 		};

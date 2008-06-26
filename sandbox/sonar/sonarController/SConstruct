@@ -1,7 +1,7 @@
 import os
 
 env = Environment(ENV = {'PATH': os.environ['PATH']})
-env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/include', '#include'])
+env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/include', '../../../packages', '#include'])
 env.Append(LIBPATH = ['/opt/ram/local/lib', '/opt/local/lib'])
 env.Append(CPPFLAGS = ['-O3'])
 
@@ -11,8 +11,6 @@ libram_sonar = env.SConscript('src/common.SConscript', variant_dir='#build', dup
 env = env.Clone()
 env.Append(LIBS = [libram_sonar])
 Export('env')
-
-SonarService = env.SConscript('src/SonarService.SConscript', variant_dir='#build', duplicate=0)
 
 env.Program('data/TestSDFTSpectrum.cpp')
 
