@@ -25,7 +25,7 @@ private:
 	int idx;
 	int16_t data[N][nchannels];
 	std::complex<int64_t> fourier[N][nchannels];
-	std::complex<int32_t> coef[N];
+	std::complex<int16_t> coef[N];
 public:
 	SDFTSpectrum()
 	{
@@ -33,8 +33,8 @@ public:
 		int prefactor = 1 << 15;
 		for (int k = 0 ; k < N ; k ++)
 		{
-			coef[k].real() = prefactor * std::cos(2*M_PI*(double)k/N);
-			coef[k].imag() = prefactor * std::sin(2*M_PI*(double)k/N);
+			coef[k].real() = (int16_t)((double)prefactor * std::cos(2*M_PI*(double)k/N));
+			coef[k].imag() = (int16_t)((double)prefactor * std::sin(2*M_PI*(double)k/N));
 		}
 		purge();
 	}
@@ -60,8 +60,8 @@ public:
 			for (int k = 0 ; k < N ; k ++)
 			{
 				//	Make some convenient shorthands for numbers we need
-				int32_t coefRe = coef[k].real();
-				int32_t coefIm = coef[k].imag();
+				int16_t coefRe = coef[k].real();
+				int16_t coefIm = coef[k].imag();
 				int64_t &fourRe = fourier[k][channel].real();
 				int64_t &fourIm = fourier[k][channel].imag();
 				

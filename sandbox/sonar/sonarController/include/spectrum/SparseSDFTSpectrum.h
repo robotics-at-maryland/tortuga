@@ -27,7 +27,7 @@ private:
 	int idx;
 	int16_t data[N][nchannels];
 	std::complex<int64_t> fourier[nFreqBands][nchannels];
-	std::complex<int32_t> coef[nFreqBands];
+	std::complex<int16_t> coef[nFreqBands];
 	int kBands[nFreqBands];
 public:
 	SparseSDFTSpectrum(const int *kBands)
@@ -38,8 +38,8 @@ public:
 		for (int kIdx = 0 ; kIdx < nFreqBands ; kIdx ++)
 		{
 			int k = kBands[kIdx];
-			coef[kIdx].real() = prefactor * std::cos(2*M_PI*(double)k/N);
-			coef[kIdx].imag() = prefactor * std::sin(2*M_PI*(double)k/N);
+			coef[kIdx].real() = (int16_t)((double)prefactor * std::cos(2*M_PI*(double)k/N));
+			coef[kIdx].imag() = (int16_t)((double)prefactor * std::sin(2*M_PI*(double)k/N));
 		}
 		purge();
 	}
@@ -65,8 +65,8 @@ public:
 			for (int kIdx = 0 ; kIdx < nFreqBands ; kIdx ++)
 			{
 				//	Make some convenient shorthands for numbers we need
-				int32_t coefRe = coef[kIdx].real();
-				int32_t coefIm = coef[kIdx].imag();
+				int16_t coefRe = coef[kIdx].real();
+				int16_t coefIm = coef[kIdx].imag();
 				int64_t &fourRe = fourier[kIdx][channel].real();
 				int64_t &fourIm = fourier[kIdx][channel].imag();
 				
