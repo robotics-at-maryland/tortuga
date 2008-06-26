@@ -1,7 +1,6 @@
 Import('env')
 
 src = Split("""
-	dft.c
 	SampleDelay.cpp
 	SlidingDFT.cpp
 	Sonar.cpp

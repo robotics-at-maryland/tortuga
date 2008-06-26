@@ -53,7 +53,7 @@ bool SonarChunk::append(adcdata_t datum)
 }
 
 
-int SonarChunk::size() const
+adcsampleindex_t SonarChunk::size() const
 {
 	return length;
 }
@@ -136,9 +136,9 @@ void SonarChunk::emptyPool()
 }
 
 
-void SonarChunk::emptyPool(int numToRemain)
+void SonarChunk::emptyPool(adcsampleindex_t numToRemain)
 {
-	while (pool.size() > numToRemain)
+	while (pool.size() > (size_t)numToRemain)
 	{
 		delete pool.front();
 		pool.pop_front();

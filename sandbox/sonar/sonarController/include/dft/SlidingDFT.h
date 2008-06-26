@@ -25,8 +25,8 @@ namespace sonar {
 
 
 class SlidingDFT {
-
 public:
+	virtual ~SlidingDFT() {}
 	virtual void purge() =0;
 	virtual void update(const adcdata_t *) =0;
 	virtual adcmath_t getReal(int channel) const =0;

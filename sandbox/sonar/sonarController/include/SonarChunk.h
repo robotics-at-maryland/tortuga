@@ -37,11 +37,11 @@ class SonarChunk {
 public:
 	static SonarChunk *newInstance();
 	
-	const static int capacity;
+	const static adcsampleindex_t capacity;
 	adcsampleindex_t startIndex;
 	
 	bool append(adcdata_t);
-	int size() const;
+	adcsampleindex_t size() const;
 	adcdata_t getPeak() const;
 	const adcdata_t &operator[](adcsampleindex_t i) const;
 	void setFourierComponents(adcmath_t re, adcmath_t img);
@@ -53,12 +53,12 @@ public:
 	void recycle();
 	
 	static void emptyPool();
-	static void emptyPool(int numToRemain);
+	static void emptyPool(adcsampleindex_t numToRemain);
 	
 private:
 	SonarChunk();
 	~SonarChunk();
-	int length;
+	adcsampleindex_t length;
 	adcdata_t *sample;
 	adcdata_t peak;
 	adcmath_t fourierAmpReal, fourierAmpImag;

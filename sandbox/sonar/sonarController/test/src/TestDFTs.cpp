@@ -121,12 +121,12 @@ TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames
 			//  DFT.
 			adcmath_t re_theirs = normalize_double(re_propagated);
 			adcmath_t im_theirs = normalize_double(im_propagated);
-			adcmath_t L1_theirs = normalize_double(abs(re_propagated) + abs(im_propagated));
+			//adcmath_t L1_theirs = normalize_double(abs(re_propagated) + abs(im_propagated));
 			
 			//  Get results from our sliding DFT.
 			adcmath_t re_mine = myDFT.getReal(channel);
 			adcmath_t im_mine = myDFT.getImag(channel);
-			adcmath_t L1_mine = myDFT.getMagL1(channel);
+			//adcmath_t L1_mine = myDFT.getMagL1(channel);
 			
 			//  Compare them.
 			CHECK_EQUAL(re_mine, re_theirs);
@@ -147,5 +147,4 @@ TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames
 }
 
 #include "TestTiledSlidingDFT.inl"
-//	#include "TestWrappedSlidingDFT.inl"
 //	#include "TestFastSlidingDFT.inl"

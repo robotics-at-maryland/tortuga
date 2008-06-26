@@ -20,6 +20,7 @@ namespace sonar {
 
 class Spectrum {
 public:
+	virtual ~Spectrum() {}
 	virtual void purge() =0;
 	virtual void update(const adcdata_t *) =0;
 	virtual const std::complex<int64_t> &getAmplitude(int k, int channel) const;

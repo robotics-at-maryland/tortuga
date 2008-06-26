@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 	
 	size_t sampleIndex = 0;
 	size_t samplesSinceLastPing = 0;
-	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == nChannels)
+	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == (size_t)nChannels)
 	{
 		++sampleIndex;
 		//	Update spectrogram
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 				directionVector[i] = direction[i][0];
 			directionVector.normalise();
 			cout << "Ping detected at sample " << sampleIndex << ":" << endl;
-			cout << directionVector << endl;
+			cout << "Direction to pinger is: " << directionVector << endl;
 		}
 		else // !pingDetected
 		{
