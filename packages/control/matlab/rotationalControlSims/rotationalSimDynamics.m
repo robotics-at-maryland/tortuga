@@ -33,13 +33,14 @@ q=q/norm(q,2);
 q_d=q_d/norm(q_d,2);
 
 %% measurement
-%perfect measurement for now
 Rot = R(q);
-a_meas = a_inertial * Rot; % add noise
-m_meas = m_inertial * Rot; % add noise
+a_meas = Rot * a_inertial + 0.05*randn; 
+m_meas = Rot * m_inertial + 0.05*randn;
 w_meas=w;
 
-q_meas = q;
+%% estimation
+
+q_meas = quaternionFromnCb(nCbFromIMU(m_meas,a_meas));
 %% controller
 
 %propagate desired states
