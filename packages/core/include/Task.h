@@ -46,8 +46,6 @@ public:
 	// updateRate - microseconds
     Task(long updateRate, int priority, bool repeat);
 	virtual ~Task();
-
-    virtual void update() {}
 	
 	// getters
 	long getUpdateRate();
@@ -78,19 +76,30 @@ public:
 	struct compare_less : std::binary_function<T,T,bool>
 	{
 		bool operator() (const T& t1, const T& t2)
-{
-	int r = timeval_compare(&(t1->m_nextRunTime), &(t2->m_nextRunTime));
-	if (r < 0)
-		return false;
-	else if (r > 0)
-		return true;
-	else
-		return t1->m_priority >= t2->m_priority;
-}
+		{
+			int r = timeval_compare(&(t1->m_nextRunTime), &(t2->m_nextRunTime));
+			if (r < 0)
+				return false;
+			else if (r > 0)
+				return true;
+			else
+			return t1->m_priority < t2->m_priority;
+		}
 	};
+	
+	void update() 
+	{
+		startUpdate();
+		if (m_enabled)
+			doUpdate();
+		endUpdate();
+	}
 
 protected:
+	// Must be implemented, run at the desired rate
+	virtual void doUpdate() = 0;
 
+private:
 	// these should be called by classes implementing update()
 	// they are called at the begining and end of update, respectively
 	void startUpdate();
