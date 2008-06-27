@@ -121,7 +121,6 @@ class Machine(core.Subsystem):
         core.Subsystem.__init__(self, cfg.get('name', 'StateMachine'),
                                 deps)
 
-
         # Set default instance values
         self._config = cfg
         self._root = None

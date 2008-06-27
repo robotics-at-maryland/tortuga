@@ -68,8 +68,8 @@ class MockController(control.IController):
         
         
 class MockVehicle(vehicle.IVehicle):
-    def __init__(self):
-        vehicle.IVehicle.__init__(self, "Vehicle")
+    def __init__(self, eventHub = core.EventHub()):
+        vehicle.IVehicle.__init__(self, "Vehicle", eventHub)
         self.depth = 0
         self.orientation = ext.math.Quaternion.IDENTITY
         
@@ -78,6 +78,11 @@ class MockVehicle(vehicle.IVehicle):
     
     def getOrientation(self):
         return self.orientation
+    
+    def publishOrientationUpdate(self, vehicleOrientation):
+        event = ext.math.OrientationEvent()
+        event.orientation = vehicleOrientation
+        self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
     
 # For testing purposes
 class MockTimer(timer.Timer):
@@ -133,7 +138,7 @@ class MotionTest(unittest.TestCase):
     def setUp(self):
         # Create the event hub to collect all published events
         self.eventHub = core.EventHub()
-        self.vehicle = MockVehicle()
+        self.vehicle = MockVehicle(self.eventHub)
         self.controller = MockController(self.eventHub)
         
         # The QueuedEventHub lets us queue the events to be released when ready
@@ -143,6 +148,7 @@ class MotionTest(unittest.TestCase):
         self.motionManager = motion.basic.MotionManager({}, deps)
 
         # Replace Timer with out Mock Timer Class
+        MockTimer.LOG = {}
         timer._origTimer = timer.Timer
         timer.Timer = MockTimer
 
