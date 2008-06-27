@@ -1,9 +1,8 @@
-/*
- *  Sonar.cpp
- *  sonarController
+/**
+ * @file Sonar.cpp
  *
- *  Created by Leo Singer on 11/29/07.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
  */
 

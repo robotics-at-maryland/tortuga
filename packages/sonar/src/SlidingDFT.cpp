@@ -1,9 +1,8 @@
-/*
- *  SlidingDFT.cpp
- *  sonarController
+/**
+ * @file SlidingDFT.cpp
  *
- *  Created by Leo Singer on 1/19/08.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
  */
 

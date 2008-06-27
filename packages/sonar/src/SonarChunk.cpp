@@ -1,9 +1,8 @@
-/*
- *  SonarChunk.cpp
- *  sonarController
+/**
+ * @file SonarChunk.cpp
  *
- *  Created by Leo Singer on 11/28/07.
- *  Copyright 2007 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2007 Robotics@Maryland. All rights reserved.
  *
  */
 
@@ -32,9 +31,7 @@ SonarChunk::SonarChunk()
 
 
 SonarChunk::~SonarChunk()
-{
-	delete [] sample;
-}
+{ delete [] sample; }
 
 
 bool SonarChunk::append(adcdata_t datum)
@@ -54,21 +51,13 @@ bool SonarChunk::append(adcdata_t datum)
 
 
 adcsampleindex_t SonarChunk::size() const
-{
-	return length;
-}
+{ return length; }
 
 
-adcdata_t SonarChunk::getPeak() const
-{
-	return peak;
-}
-
+adcdata_t SonarChunk::getPeak() const { return peak; }
 
 const adcdata_t &SonarChunk::operator[](adcsampleindex_t i) const
-{
-	return sample[i];
-}
+{ return sample[i]; }
 
 
 void SonarChunk::setFourierComponents(adcmath_t re, adcmath_t im)
@@ -79,22 +68,11 @@ void SonarChunk::setFourierComponents(adcmath_t re, adcmath_t im)
 }
 
 
-adcmath_t SonarChunk::getFourierAmpReal() const
-{
-	return fourierAmpReal;
-}
+adcmath_t SonarChunk::getFourierAmpReal() const { return fourierAmpReal; }
 
+adcmath_t SonarChunk::getFourierAmpImag() const { return fourierAmpImag; }
 
-adcmath_t SonarChunk::getFourierAmpImag() const
-{
-	return fourierAmpImag;
-}
-
-
-float SonarChunk::getPhase() const
-{
-	return phase;
-}
+float SonarChunk::getPhase() const { return phase; }
 
 
 void SonarChunk::purge()
@@ -130,10 +108,7 @@ SonarChunk *SonarChunk::newInstance()
 }
 
 
-void SonarChunk::emptyPool()
-{
-	emptyPool(0);
-}
+void SonarChunk::emptyPool() { emptyPool(0); }
 
 
 void SonarChunk::emptyPool(adcsampleindex_t numToRemain)

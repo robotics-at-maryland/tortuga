@@ -1,9 +1,8 @@
-/*
- *  SampleDelay.cpp
- *  sonarController
+/**
+ * @file SampleDelay.cpp
  *
- *  Created by Leo Singer on 1/8/08.
- *  Copyright 2008 Robotics@Maryland. All rights reserved.
+ * @author Leo Singer
+ * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  *
  */
 
