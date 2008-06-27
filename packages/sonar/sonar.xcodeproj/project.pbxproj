@@ -9,7 +9,6 @@
 /* Begin PBXFileReference section */
 		A43B11D80DBE934400E39662 /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; path = include; sourceTree = "<group>"; };
 		A43B11E70DBE934400E39662 /* SConstruct */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SConstruct; sourceTree = "<group>"; };
-		A43B11E80DBE934400E39662 /* SlidingDFT_comparison.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SlidingDFT_comparison.txt; sourceTree = "<group>"; };
 		A43B11E90DBE934400E39662 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 		A43B12010DBE934400E39662 /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -20,7 +19,6 @@
 			children = (
 				A43B11D80DBE934400E39662 /* include */,
 				A43B11E70DBE934400E39662 /* SConstruct */,
-				A43B11E80DBE934400E39662 /* SlidingDFT_comparison.txt */,
 				A43B11E90DBE934400E39662 /* src */,
 				A43B12010DBE934400E39662 /* test */,
 			);
@@ -35,7 +33,7 @@
 			buildConfigurationList = A4FE7EF80DBDC50C00B34A9B /* Build configuration list for PBXLegacyTarget "scons Build" */;
 			buildPhases = (
 			);
-			buildToolPath = sonarController.xcodeproj/scons_xcode_adapter.sh;
+			buildToolPath = sonar.xcodeproj/scons_xcode_adapter.sh;
 			dependencies = (
 			);
 			name = "scons Build";
@@ -47,7 +45,7 @@
 /* Begin PBXProject section */
 		A4FE7E8E0DBDC4AF00B34A9B /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = A4FE7E910DBDC4AF00B34A9B /* Build configuration list for PBXProject "sonarController" */;
+			buildConfigurationList = A4FE7E910DBDC4AF00B34A9B /* Build configuration list for PBXProject "sonar" */;
 			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 0;
 			mainGroup = A4FE7E8C0DBDC4AF00B34A9B;
@@ -100,7 +98,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A4FE7E910DBDC4AF00B34A9B /* Build configuration list for PBXProject "sonarController" */ = {
+		A4FE7E910DBDC4AF00B34A9B /* Build configuration list for PBXProject "sonar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A4FE7E8F0DBDC4AF00B34A9B /* Debug */,
