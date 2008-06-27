@@ -34,4 +34,3 @@ tools = env.SConscript('src/tools/SConscript', variant_dir='#build/tools', dupli
 ### Build and run unit tests
 
 tests = env.SConscript('src/test/SConscript', variant_dir='#build/test', duplicate=0)
-#testExec = env.Program('build/test', testFiles)

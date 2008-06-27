@@ -24,6 +24,15 @@ private:
 public:
 	PulseTrigger() { purge(); }
 	
+	PulseTrigger(T threshold)
+	{
+		purge();
+		setThresholds(threshold);
+	}
+	
+	/**
+	 * Place this class in the state that the constructor leaves it in.
+	 */
 	void purge()
 	{
 		bzero(buf, sizeof(T) * N * nChannels);
@@ -33,12 +42,17 @@ public:
 	
 	void update(const T sample[nChannels])
 	{
+		//	Update index in circular buffer
 		++idx;
 		if (idx >= N)
 			idx = 0;
 		
+		//	Get a pointer to the current set of samples
 		T *bufPtr = buf[idx];
+		
+		//	Copy new samples into the buffer
 		memcpy(bufPtr, sample, sizeof(T) * nChannels);
+		
 		
 		for (int channel = 0 ; channel < nChannels ; channel ++)
 		{
@@ -65,9 +79,7 @@ public:
 	}
 	
 	bool operator () (int channel) const
-	{
-		return countAboveThresholds[channel] >= N;
-	}
+	{ return countAboveThresholds[channel] >= N; }
 };
 	
 }} // namespace ram::sonar
