@@ -60,10 +60,6 @@ int main(int argc, char *argv[])
 	
 	adcdata_t sample[nChannels];
 	
-	
-	
-	
-	
 	size_t sampleIndex = 0;
 	size_t samplesSinceLastPing = 0;
 	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == (size_t)nChannels)
@@ -77,7 +73,7 @@ int main(int argc, char *argv[])
 			for (int kidx = 0 ; kidx < nKBands ; kidx ++)
 			{
 				const complex<int64_t> &cmplx = spectrum.getAmplitudeForBinIndex(kidx, channel);
-				int32_t L1 = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
+				int64_t L1 = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
 				triggerVals[nChannels * kidx + channel] = L1;
 			}
 		}

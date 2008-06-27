@@ -9,7 +9,9 @@
 #ifndef _RAM_FIXED_H
 #define _RAM_FIXED_H
 
-namespace ram { namespace sonar{ namespace fixed{
+#include <complex>
+
+namespace ram { namespace sonar { namespace fixed{
 
 extern "C" long PseudoPolarize(long *argx, long *argy);
 
