@@ -5,16 +5,18 @@ env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/include', '../../../
 env.Append(LIBPATH = ['/opt/ram/local/lib', '/opt/local/lib'])
 env.Append(CPPFLAGS = ['-O3','-Wall'])
 
+env.Replace(CC = 'bfin-linux-uclibc-gcc', CXX = 'bfin-linux-uclibc-g++')
+
 Export('env')
 libram_sonar = env.SConscript('src/common.SConscript', variant_dir='#build', duplicate=0)
 
-env = env.Clone()
-env.Append(LIBS = [libram_sonar])
-Export('env')
+#env = env.Clone()
+#env.Append(LIBS = [libram_sonar])
+#Export('env')
 
 env.Program('data/TestSDFTSpectrum.cpp')
 
 env.Program('sonard','src/sonard/main.cpp')
 
-tests = env.SConscript('test/SConscript', variant_dir='#build/test', duplicate=0)
+#tests = env.SConscript('test/SConscript', variant_dir='#build/test', duplicate=0)
 #testExec = env.Program('build/test', testFiles)

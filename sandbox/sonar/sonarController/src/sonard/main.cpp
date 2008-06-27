@@ -25,13 +25,13 @@ static const int N = 512;			//	Size of Fourier window
 static const int nChannels = 4;		//	Number of hydrophones
 
 static const float frequencyOfInterest = 25000;
-static const int kBandOfInterest = frequencyOfInterest / fs * N;
+static const int kBandOfInterest = (int) (frequencyOfInterest / fs * N);
 static const int kBandOffCenterAmount = 10;
 static const int nKBands = 3;		//	Number of frequency bands to examine
 static const int kBands[] = {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount};
 
 static const float holdoffTime = .1;//	Holdoff until looking for next ping (seconds)
-static const size_t holdoffSamples = holdoffTime * fs;// Number of samples to holdoff
+static const size_t holdoffSamples = (size_t) (holdoffTime * fs);// Number of samples to holdoff
 
 static const double hydroStructureArray[4][4] = 
 {
@@ -42,6 +42,14 @@ static const double hydroStructureArray[4][4] =
 };
 
 const MatrixN hydroStructure (*hydroStructureArray, 4, 4);
+
+int64_t myAbs(int64_t x)
+{
+	if (x < 0)
+		return -x;
+	else
+		return x;
+}
 
 int main(int argc, char *argv[])
 {
@@ -69,7 +77,7 @@ int main(int argc, char *argv[])
 			for (int kidx = 0 ; kidx < nKBands ; kidx ++)
 			{
 				const complex<int64_t> &cmplx = spectrum.getAmplitudeForBinIndex(kidx, channel);
-				int32_t L1 = (abs(cmplx.real()) + abs(cmplx.imag()));
+				int32_t L1 = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
 				triggerVals[nChannels * kidx + channel] = L1;
 			}
 		}
