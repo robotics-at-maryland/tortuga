@@ -27,6 +27,8 @@ q=x(1:4);
 w=x(5:7);
 q_d=x(8:11);
 w_d=x(12:14);
+qhat=x(15:18);
+%what=x(19:21);
 
 %fix numerical quaternion drift
 q=q/norm(q,2);
@@ -34,13 +36,21 @@ q_d=q_d/norm(q_d,2);
 
 %% measurement
 Rot = R(q);
-a_meas = Rot * a_inertial + 0.05*randn; 
-m_meas = Rot * m_inertial + 0.05*randn;
+a_meas = Rot * a_inertial + 0.0005*randn; 
+m_meas = Rot * m_inertial + 0.0005*randn;
+%a_meas = Rot * a_inertial;
+%m_meas = Rot * m_inertial;
 w_meas=w;
 
 %% estimation
 
 q_meas = quaternionFromnCb(nCbFromIMU(m_meas,a_meas));
+%q_meas=q;
+
+%quaternion estimation that requires only angular rate gyro
+dqhat = (1/2)*Q(qhat)*w_meas;
+%dwhat = 
+
 %% controller
 
 %propagate desired states
@@ -62,7 +72,9 @@ wc_tilde=w_meas-R(qc_tilde)*w_d;
 %d/dt(wrhat)=alpharhat
 dw_r=R(qc_tilde)*dw_d-S(wc_tilde)*R(qc_tilde)*w_d-lambda*Q1(qc_tilde)*wc_tilde;
 
-u=-Kd*shat+H*dw_r-S(H*w_meas)*w_r;
+%u=-Kd*shat+H*dw_r-S(H*w_meas)*w_r;
+u=-Kd*shat+H*dw_r;%-S(H*w_meas)*w_r;
+
 
 %% dynamics
 
@@ -78,8 +90,8 @@ buoyant=fb*[(rb(2)*Rot(3,3)-rb(3)*Rot(2,3));
             (rb(1)*Rot(2,3)-rb(2)*Rot(1,3))];
 
 %propagate actual vehicle dynamics
-%dw=inv(H)*(S(H*w)*w+u-drag-buoyant);
-dw=inv(H)*(S(H*w)*w-drag-buoyant);
+dw=inv(H)*(S(H*w)*w+u-drag-buoyant);
+%dw=inv(H)*(S(H*w)*w-drag-buoyant);
 
 %propagate actual vehicle kinematics
 dq=(1/2)*Q(q)*w;
@@ -87,4 +99,4 @@ dq=(1/2)*Q(q)*w;
 
 
 %put output states into vector for ode45
-dx=[dq; dw; dq_d; dw_d];
+dx=[dq; dw; dq_d; dw_d; dqhat];

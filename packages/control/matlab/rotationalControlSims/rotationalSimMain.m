@@ -7,12 +7,12 @@ clear;
 
 %initial position
 axis0=[1 0 0]';
-angle0=20*pi/180;
-%q0=[axis0*sin(angle0/2); cos(angle0/2)];
-q0=[0 0 0 1]';
+angle0=180*pi/180;
+q0=[axis0*sin(angle0/2); cos(angle0/2)];
+%q0=[0 0 0 1]';
 
 %initial angular rate
-w0=(pi/180)*[0 2 0]';
+w0=(pi/180)*[0 0 0]';
 
 %initial desired position
 qd0=[0 0 0 1]';
@@ -20,7 +20,13 @@ qd0=[0 0 0 1]';
 %initial desired angular rate
 wd0=(pi/180)*[0 0 0]';
 
-x0=[q0; w0; qd0; wd0];
+%initial estimated position
+qhat0=q0;
+
+%initial estimated angular rate
+%what0=w0;
+
+x0=[q0; w0; qd0; wd0; qhat0];
 
 
 %% constants
@@ -29,11 +35,11 @@ x0=[q0; w0; qd0; wd0];
 global H;
 %this inertia matrix is from Tom Capon's CAD model of Tortuga 2 
 % as of 2008-4-8
-% H=[1543 3 -60;
-%     3 6244 45;
-%     -60 45 6362];%in lbm*in^2
+ H=[1543 3 -60;
+     3 6244 45;
+     -60 45 6362];%in lbm*in^2
 
-H=1500*eye(3);
+%H=1500*eye(3);
 %convert to kg*m^2
 H=(0.45359/39.37^2)*H;
 
@@ -45,7 +51,7 @@ lambda=1;%typically choose lambda=1
 
 %drag constants
 global Cd;
-Cd=0.01*diag([1 5 5]);%i made these numbers up
+Cd=1*diag([1 5 5]);%i made these numbers up
 
 %buoyant force
 global fb;
@@ -68,7 +74,7 @@ m_inertial = [0.1 0 -0.1732]';
 
 %% timing
 t0=0;
-te=10;
+te=100;
 
 %% simulation
 options=odeset;
@@ -84,6 +90,8 @@ q=x(:,1:4);%actual angular position
 w=x(:,5:7);%actual angular rate
 qd=x(:,8:11);%desired angular position
 wd=x(:,12:14);%desired angular rate
+qhat=x(:,15:18);%estimated angular position
+%what=x(:,19:21);%estimated angular rate
 
 %% plot errors
 %storage arrays for error metrics
@@ -130,4 +138,23 @@ plot(time,w(:,3)*180/pi,time,wd(:,3)*180/pi)
 ylabel('w_3 in deg/s')
 xlabel('time (s)')
 
-R(q(end,:))'*[1 0 0]'
+%% plot gyro only quaternion estimation
+figure(4)
+subplot(4,1,1)
+plot(time,q(:,1),time,qhat(:,1))
+ylabel('q_1')
+legend('actual','estimated')
+title('Quaternion Estimation by Gryo Integration')
+subplot(4,1,2)
+plot(time,q(:,2),time,qhat(:,2))
+ylabel('q_2')
+subplot(4,1,3)
+plot(time,q(:,3),time,qhat(:,3))
+ylabel('q_3')
+subplot(4,1,4)
+plot(time,q(:,4),time,qhat(:,4))
+ylabel('q_4')
+xlabel('time (s)')
+
+%final heading of vehicle
+%R(q(end,:))'*[1 0 0]'
