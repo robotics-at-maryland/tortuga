@@ -9,17 +9,17 @@ GUI:
 
 Subsystems:
     VisionSystem:
-        type: SimVision
-#        type: IdealSimVision
+#        type: SimVision
+        type: IdealSimVision
         cameraRate: 10
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
-        maxRecordRate: 10 # Hz
+        #maxRecordRate: 10 # Hz
         #forwardFile: forward.avi
-        downwardFile: downward.avi
+        #downwardFile: downward.avi
         #forwardPort: 50000
-        downwardPort: 57002
+        #downwardPort: 57002
 
 #       RedLightDetector:       
 #           intialMinPixels: 400
