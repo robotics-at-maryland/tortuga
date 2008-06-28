@@ -234,21 +234,21 @@ void SuitDetector::processImage(Image* input, Image* output)
 	else if (corners == 3)
 		printf("Diamond\n");
 	
-//	cvCvtColor(image, gray, CV_BGR2GRAY);
-//    cvSmooth(gray, gray, CV_GAUSSIAN, 9, 9); 
+	cvCvtColor(image, gray, CV_BGR2GRAY);
+    cvSmooth(gray, gray, CV_GAUSSIAN, 9, 9); 
 	
-//    CvSeq* circles = cvHoughCircles(gray, storage, 
-//        CV_HOUGH_GRADIENT, 2, gray->height/4, 200, 40);
-//    int i;
-//	
-//    for (i = 0; i < circles->total; i++) 
-//    {
-//         float* p = (float*)cvGetSeqElem( circles, i );
-//         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
-//             3, CV_RGB(0,255,0), -1, 8, 0 );
-//         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
-//             cvRound(p[2]), CV_RGB(255,0,0), 3, 8, 0 );
-//    }
+    CvSeq* circles = cvHoughCircles(gray, storage, 
+        CV_HOUGH_GRADIENT, 2, gray->height/4, 200, 40);
+    int i;
+	
+    for (i = 0; i < circles->total; i++) 
+    {
+         float* p = (float*)cvGetSeqElem( circles, i );
+         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
+             3, CV_RGB(0,255,0), -1, 8, 0 );
+         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
+             cvRound(p[2]), CV_RGB(255,0,0), 3, 8, 0 );
+    }
 
 	if (output)
 	{
