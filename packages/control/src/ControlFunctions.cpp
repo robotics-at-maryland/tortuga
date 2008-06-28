@@ -69,7 +69,7 @@ void translationalController(MeasuredState* measuredState,
       set depthControlType = (1 for P control) 
                              (2 for observer control for a 2d depth state) 
                              (3 for observer control for a 4d depth state)
-                             (4 for observer control for a 4d discrete depth state)
+                             (4 for observer control with scaling for a 4d depth sate )
                              (5 for pid control)
     Note: 3 and 4 not implemented yet
     */
@@ -78,21 +78,18 @@ void translationalController(MeasuredState* measuredState,
     {
 	case 1 :
         depthControlSignal=depthPController(measuredState,desiredState,controllerState);
-//depthControlSignal=depthObserverController4(measuredState,desiredState,controllerState,
-  //                                                      estimatedState,dt);
 	    break;
 	case 2 :
             depthObserver2(measuredState,desiredState,controllerState,estimatedState,dt);
             depthControlSignal=depthPDController2(measuredState,desiredState,controllerState,estimatedState);
 	    break;
 	case 3 :
-            //std::cout << "In case 3" << std::endl;
            depthControlSignal=depthObserverController4(measuredState,desiredState,controllerState,
                                                       estimatedState,dt);
 
             break;
 	case 4 :
-            depthControlSignal=depthObserverController4Discrete(measuredState,desiredState,
+            depthControlSignal=depthObserverController4WithScaling(measuredState,desiredState,
                                                                 controllerState,
                                                                 estimatedState,dt);
             break;
@@ -303,6 +300,46 @@ double depthObserverController4(MeasuredState* measuredState,
     estimatedState->xHat4Depth = xHat4;
 
     double depthControlSignal = controllerState->depthC4.dotProduct(xHat4);
+	
+	return depthControlSignal;
+}
+
+/************************************************************************
+depthObserverController4WithScaling(measuredState,desiredState,controllerState,estimatedState)
+implements an Observer Controller with Integral Augmentation
+
+xHat4_dot = A_c*xHat4 + B_c*(y-xd)
+
+xHat4 = xHat4 + xHat4_dot*dt
+
+Fthrust = C_c*xHat4
+
+returns a depth control signal intended to be the control force used in the +z axis (inertial coord frame)
+*/
+double depthObserverController4WithScaling(MeasuredState* measuredState,
+                                DesiredState* desiredState,
+                                ControllerState* controllerState,
+                                EstimatedState* estimatedState,
+                                double dt)
+{
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
+
+    Vector4 xHat4 = estimatedState->xHat4Depth;
+    Vector4 xHat4Dot = controllerState->depthA4*xHat4 +
+                       controllerState->depthB4*
+                       (measuredState->depth - desiredState->depth);
+
+    xHat4 = xHat4 + xHat4Dot*dt;
+    estimatedState->xHat4Depth = xHat4;
+
+    double depthControlSignal = controllerState->depthC4.dotProduct(xHat4);
     
 	double error = (measuredState->depth - desiredState->depth)/desiredState->depth;
 	double cutoff = 0.1;
@@ -343,6 +380,7 @@ double depthObserverController4Discrete(MeasuredState* measuredState,
     estimatedState->xHat4Depth = xHat4;
 
     double depthControlSignal = controllerState->depthC4.dotProduct(xHat4);
+		
     return depthControlSignal;
 }
 /************************************************************************
