@@ -20,7 +20,12 @@ class MockThruster : public ram::vehicle::device::IThruster,
 public:
     MockThruster(std::string name) :
         IThruster(ram::core::EventHubPtr()),
-        Device(name) {}
+        Device(name),
+        force(0.0),
+        offset(0.0),
+        enabled(false),
+        current(0.0)
+        {}
 
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
@@ -33,9 +38,19 @@ public:
     virtual double getMaxForce() { return 10; }
 
     virtual double getMinForce() { return -10; }
-    
+
+    virtual bool isEnabled() { return enabled; }
+
+    virtual void setEnabled(bool state) { enabled = state; }
+
+    virtual double getOffset() { return offset; }
+
+    virtual double getCurrent() { return current; }
     
     double force;
+    double offset;
+    bool enabled;
+    double current;
 
     virtual void setPriority(ram::core::IUpdatable::Priority) {};
     virtual ram::core::IUpdatable::Priority getPriority() {

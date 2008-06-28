@@ -62,51 +62,69 @@ Subsystems:
         Devices:
             # NOTE: All current numbers here are BS and need to updated
 
+            SensorBoard:
+                type: SensorBoard
+                update_interval: 40
+                depthCalibSlope: 35.5
+                depthCalibIntercept: 1182
+
+            Battery1:
+                depends_on: ['SensorBoard']
+                type: SBPowerSource
+                id: 0
+
             # This entry creates a thruster
             StarboardThruster:
+                depends_on: ['SensorBoard']
                 # serial: 147
                 type: Thruster
                 update_interval: 100
 
                 # String representing the address of the thruster
-                address: 4
+                address: 3
                 # Number determined by testing
                 calibration_factor: 0.3652
                 # Number used to flip thruster forces (if thruster is reversed
+                
                 # on the vehicle)
                 direction: -1
 
             PortThruster:
+                depends_on: ['SensorBoard']
                 # serial: 149
                 type: Thruster
-                address: 2
+                address: 1
                 calibration_factor: 0.4146
                 direction: 1
 
             ForeThruster:
+                depends_on: ['SensorBoard']
                 type: Thruster
                 # serial: 146
-                address: 3
+                address: 2
                 calibration_factor: 0.4368
                 direction: 1
 
             AftThruster:
+                depends_on: ['SensorBoard']
                 # Serial 148
                 type: Thruster
-                address: 1
+                address: 0
                 calibration_factor: 0.3612
                 direction: -1
 
             TopThruster:
+                depends_on: ['SensorBoard']
                 # serial: 149
                 type: Thruster
-                address: 5
+                address: 4
                 calibration_factor: 0.4146
                 direction: -1
 
             BottomThruster:
+                depends_on: ['SensorBoard']
                 type: Thruster
-                address: 6
+                address: 5
                 calibration_factor: 0.3652
                 direction: 1
 

@@ -38,6 +38,8 @@ struct DefaultMakerLookup
         typename MapType::key_type key)
     {
         typename MapType::iterator iter = registry->find(key);
+        if (iter == registry->end())
+            std::cout << "Could not find maker: " << key << std::endl;
         assert(iter != registry->end() && "Could not find maker");
         return iter->second;
     }

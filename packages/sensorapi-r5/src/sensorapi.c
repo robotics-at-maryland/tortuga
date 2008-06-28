@@ -754,69 +754,77 @@ int partialRead(int fd, struct boardInfo * info)
     if(info == NULL)
         return SB_ERROR;
 
+    // Increment to find out what we are updating this time
+    info->updateState++;
+
+    // Roll over based upon end of enum marker
+    if (END_OF_UPDATES == info->updateState)
+        info->updateState = STATUS;
+    
     switch(info->updateState)
     {
-        case 0:
+        // Note STATUS == 1
+        case STATUS:
         {
             info->status = retCode = readStatus(fd);
             break;
         }
 
-        case 1:
+        case THRUSTER_STATE:
         {
             info->thrusterState = retCode = readThrusterState(fd);
             break;
         }
 
-        case 2:
+        case BAR_STATE:
         {
             info->barState = retCode = readBarState(fd);
             break;
         }
 
-        case 3:
+        case OVERCURRENT_STATE:
         {
             info->ovrState = retCode = readOvrState(fd);
             break;
         }
 
-        case 4:
+        case BATTERY_ENABLES:
         {
             info->battEnabled = retCode = readBatteryEnables(fd);
             break;
         }
 
-        case 5:
+        case TEMP:
         {
             retCode = readTemp(fd, info->temperature);
             break;
         }
 
-        case 6:
+        case MOTOR_CURRENTS:
         {
             retCode = readMotorCurrents(fd, &(info->powerInfo));
             break;
         }
 
-        case 7:
+        case BOARD_VOLTAGES_CURRENTS:
         {
             retCode = readBoardVoltages(fd, &(info->powerInfo));
             break;
         }
 
-        case 8:
+        case BATTERY_VOLTAGES:
         {
             retCode = readBatteryVoltages(fd, &(info->powerInfo));
             break;
         }
 
-        case 9:
+        case BATTERY_CURRENTS:
         {
             retCode = readBatteryCurrents(fd, &(info->powerInfo));
             break;
         }
 
-        case 10:
+        case BATTERY_USED:
         {
             info->battUsed = retCode = readBatteryUsage(fd);
             break;
@@ -824,17 +832,16 @@ int partialRead(int fd, struct boardInfo * info)
 
         default:
         {
-            info->updateState = 0;
+            printf("ERROR: update rolled over");
+            info->updateState = STATUS;
             return SB_OK;
         }
 
     }
 
-    info->updateState++;
-
-    if(info->updateState == 11)
+    // If we just updated the last item, we have finished an update cycle
+    if((END_OF_UPDATES - 1) == info->updateState)
     {
-        info->updateState = 0;
         if(retCode >= 0)
             return SB_UPDATEDONE;
         else
@@ -905,3 +912,36 @@ int openSensorBoard(const char * devName)
     return fd;
 }
 
+char* sbErrorToText(int ret)
+{
+    static char* toText[] = {
+        "IO error",
+        "Bad CRC",
+        "Hardware failure",
+        "Error",
+        "OK"
+    };
+
+    if ((ret >= -4) && (ret <= 0))
+        return toText[ret + 5];
+    else
+        return "Unknown";
+}
+
+char* tempSensorIDToText(int id)
+{
+    static char* toText[7] = {
+        "Sensor Board",
+        "Unused",
+        "Unused",
+        "Unused",
+        "Unused",
+        "Distro Board",
+        "Balancer Board"
+    };
+
+    if ((id >=0) && (id <= (sizeof(toText))))
+        return toText[id];
+    else
+        return "ERROR: Id out of range";
+}

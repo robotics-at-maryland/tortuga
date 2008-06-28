@@ -20,8 +20,6 @@
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/IThruster.h"
-#include "vehicle/test/include/MockDevice.h"
-#include "vehicle/test/include/MockIMU.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventConnection.h"
@@ -30,15 +28,17 @@
 #include "math/test/include/MathChecks.h"
 #include "math/include/Events.h"
 
+#include "vehicle/test/include/MockDevice.h"
+#include "vehicle/test/include/MockIMU.h"
+#include "vehicle/test/include/MockThruster.h"
+#include "vehicle/test/include/MockDepthSensor.h"
+
 using namespace ram;
 
-static const std::string CONFIG("{'depthCalibSlope' : 33.01,"
-                                "'name' : 'TestVehicle',"
-                                "'depthCalibIntercept' : 94,"
-                                "'sensor_board_file' : '/dev/DOESNOTEXIST'}");
+
+static const std::string CONFIG("{'name' : 'TestVehicle'}");
 
 struct VehicleFixture
-
 {
     VehicleFixture() :
         eventHub(new core::EventHub()),
@@ -63,14 +63,14 @@ void eventHelper(std::string* eventType, ram::core::EventPtr event)
 TEST(DeviceCreation)
 {
     std::string config =
-            "{'depthCalibSlope':33.01,'depthCalibIntercept':94,"
+            "{"
             "'name' : 'TestVehicle',"
             "'Devices' : {"
             "    'IMU' : {'type' : 'MockDevice'},"
             "    'PSU' : {'type' : 'MockDevice'}"
             " },"
-            " 'sensor_board_file' : '/dev/DOESNOTEXIST'"
             "}";
+
     core::EventHubPtr eventHub(new core::EventHub());
     vehicle::IVehicle* veh = 
         new vehicle::Vehicle(core::ConfigNode::fromString(config),
@@ -127,6 +127,16 @@ TEST_FIXTURE(VehicleFixture, IMU)
     CHECK_EQUAL(orientation, veh->getOrientation());
 }
 
+TEST_FIXTURE(VehicleFixture, DepthSensor)
+{
+    MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
+    veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
+
+    double depth = 2.6;
+    depthSensor->depth = depth;
+    CHECK_EQUAL(depth, veh->getDepth());
+}
+
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {
     MockDevice* mockDevice = new MockDevice("TestName");
@@ -161,4 +171,203 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
     CHECK_EQUAL(expected, result);
     
     conn->disconnect();
+}
+
+void depthHelper(double* result, ram::core::EventPtr event)
+{
+    math::NumericEventPtr nevent =
+    boost::dynamic_pointer_cast<ram::math::NumericEvent>(event);
+    *result = nevent->number;
+}
+
+TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
+{
+    MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
+    veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
+    
+    double result = 0;
+    double expected = 5.7;
+    depthSensor->depth = expected;
+    
+    // Subscribe to the event
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::DEPTH_UPDATE,
+        boost::bind(depthHelper, &result, _1));
+
+    veh->update(0);
+    CHECK_EQUAL(expected, result);
+    
+    conn->disconnect();
+}
+
+struct ThrusterVehicleFixture
+{
+    ThrusterVehicleFixture() :
+        eventHub(new core::EventHub()),
+        veh(new vehicle::Vehicle(core::ConfigNode::fromString(CONFIG),
+                                 boost::assign::list_of(eventHub))),
+        starboard(new MockThruster("StarboardThruster")),
+        port(new MockThruster("PortThruster")),
+        fore(new MockThruster("ForeThruster")),
+        aft(new MockThruster("AftThruster")),
+        top(new MockThruster("TopThruster")),
+        bottom(new MockThruster("BottomThruster"))
+    {
+        veh->_addDevice(vehicle::device::IDevicePtr(starboard));
+        veh->_addDevice(vehicle::device::IDevicePtr(port));
+        veh->_addDevice(vehicle::device::IDevicePtr(fore));
+        veh->_addDevice(vehicle::device::IDevicePtr(aft));
+        veh->_addDevice(vehicle::device::IDevicePtr(top));
+        veh->_addDevice(vehicle::device::IDevicePtr(bottom));
+
+        for (int i = 0; i < 6; ++i)
+            forceArray[i] = 0.0;
+    }
+    
+    ~ThrusterVehicleFixture() {
+        delete veh;
+    }
+
+    double* thrusterForceArray()
+    {
+        forceArray[0] = starboard->force;
+        forceArray[1] = port->force;
+        forceArray[2] = fore->force;
+        forceArray[3] = aft->force;
+        forceArray[4] = top->force;
+        forceArray[5] = bottom->force;
+        return forceArray;
+    }
+    
+    core::EventHubPtr eventHub;
+    vehicle::Vehicle* veh;
+    MockThruster* starboard;
+    MockThruster* port;
+    MockThruster* fore;
+    MockThruster* aft;
+    MockThruster* top;
+    MockThruster* bottom;
+private:
+    double forceArray[6];
+};
+
+TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
+{
+    // Make all thrusters have the same offset
+    starboard->offset = 1.0;
+    port->offset = 1.0;
+    fore->offset = 1.0;
+    aft->offset = 1.0;
+    top->offset = 1.0;
+    bottom->offset = 1.0;
+
+    // +X Torque
+    veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
+                               ram::math::Vector3(5, 0, 0));
+    double expectedForcesPosXTorque[] = {
+        0.0, // Starboard
+        0.0, // Port
+        0.0, // Fore
+        0.0, // Aft
+        2.5, // Top
+        -2.5, // Bottom
+    };
+    CHECK_ARRAY_EQUAL(expectedForcesPosXTorque, thrusterForceArray(), 6);
+
+    // +Y Force
+    veh->applyForcesAndTorques(ram::math::Vector3(0, 5, 0),
+                               ram::math::Vector3::ZERO);
+    double expectedForcesPosYForce[] = {
+        0.0, // Starboard
+        0.0, // Port
+        0.0, // Fore
+        0.0, // Aft
+        2.5, // Top
+        2.5, // Bottom
+    };
+    CHECK_ARRAY_EQUAL(expectedForcesPosYForce, thrusterForceArray(), 6);
+
+    /// @TODO FIX ME!!!
+    // +Y Torque (THIS IS BROKEN)
+    veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
+                               ram::math::Vector3(0, 6, 0));
+    double expectedForcesPosYTorque[] = {
+        0.0, // Starboard
+        0.0, // Port
+        -3.0, // Fore
+        3.0, // Aft
+        0.0, // Top
+        0.0, // Bottom
+    };
+    CHECK_ARRAY_EQUAL(expectedForcesPosYTorque, thrusterForceArray(), 6);
+
+    // +Z Force
+    veh->applyForcesAndTorques(ram::math::Vector3(0, 0, 6),
+                               ram::math::Vector3::ZERO);
+    double expectedForcesPosZForce[] = {
+        0.0, // Starboard
+        0.0, // Port
+        3.0, // Fore
+        3.0, // Aft
+        0.0, // Top
+        0.0, // Bottom
+    };
+    CHECK_ARRAY_EQUAL(expectedForcesPosZForce, thrusterForceArray(), 6);
+
+    // +Z Torque (THIS IS BROKEN)
+    veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
+                               ram::math::Vector3(0, 0, 7.5));
+    double expectedForcesPosZTorque[] = {
+        3.75,  // Starboard
+        -3.75, // Port
+        0.0, // Fore
+        0.0, // Aft
+        0.0, // Top
+        0.0, // Bottom
+    };
+    CHECK_ARRAY_EQUAL(expectedForcesPosZTorque, thrusterForceArray(), 6);
+
+    // +X Force
+    veh->applyForcesAndTorques(ram::math::Vector3(7.5, 0, 0),
+                               ram::math::Vector3::ZERO);
+    double expectedForcesPosXForce[] = {
+        3.75, // Starboard
+        3.75, // Port
+        0.0, // Fore
+        0.0, // Aft
+        0.0, // Top
+        0.0, // Bottom
+    };
+    CHECK_ARRAY_EQUAL(expectedForcesPosXForce, thrusterForceArray(), 6);
+}
+
+TEST_FIXTURE(ThrusterVehicleFixture, safeThrusters)
+{
+    starboard->enabled = true;
+    port->enabled = true;
+    fore->enabled = true;
+    aft->enabled = true;
+    top->enabled = true;
+    bottom->enabled = true;
+
+    veh->safeThrusters();
+
+    CHECK_EQUAL(false, starboard->enabled);
+    CHECK_EQUAL(false, port->enabled);
+    CHECK_EQUAL(false, fore->enabled);
+    CHECK_EQUAL(false, aft->enabled);
+    CHECK_EQUAL(false, top->enabled);
+    CHECK_EQUAL(false, bottom->enabled);
+}
+
+TEST_FIXTURE(ThrusterVehicleFixture, unsafeThrusters)
+{
+    veh->unsafeThrusters();
+
+    CHECK_EQUAL(true, starboard->enabled);
+    CHECK_EQUAL(true, port->enabled);
+    CHECK_EQUAL(true, fore->enabled);
+    CHECK_EQUAL(true, aft->enabled);
+    CHECK_EQUAL(true, top->enabled);
+    CHECK_EQUAL(true, bottom->enabled);
 }

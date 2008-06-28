@@ -49,12 +49,17 @@ public:
     
     virtual double getMinForce();
 
+    virtual bool isEnabled();
+
+    virtual void setEnabled(bool state);
+
+    virtual double getOffset();
+
+    virtual double getCurrent();
     
     /** Gets the current motor count */
     int getMotorCount();
-    
-    /** Kills all thruster power to ALL thrusters */
-    //void kill();
+
 
     // IUpdatable Interface methods, these delegate to the communicator
 
@@ -90,17 +95,17 @@ public:
      *  @note  It will return the same value for all thrusters.
      */
     virtual bool backgrounded();
-
-    /** Returns the address of the thruster */
-    int getAddress() { return m_address; }
     
 private:
+    /** Handles MOTORCURRENT_UPDATE events */
+    void onMotorCurrentUpdate(core::EventPtr event);
+    
     int m_address;
 
     /** Experimentally determined calibration factor */
     double m_calibrationFactor;
 
-    core::ReadWriteMutex m_forceMutex;
+    core::ReadWriteMutex m_stateMutex;
     /** Current output force of motor */
     double m_force;
     
@@ -109,6 +114,18 @@ private:
 
     /** Directional bias for motor */
     int m_direction;
+
+    /** The offset from axis perpendicular to axis of induced rotation */
+    double m_offset;
+
+    /** Current amperage draw of the thruster */
+    double m_current;
+    
+    /** The sensor board which provides access to the hardware */
+    SensorBoardPtr m_sensorBoard;
+
+    /** MOTORCURRENT_UPDATE event connection */
+    core::EventConnectionPtr m_connection;
 };
     
 } // namespace device

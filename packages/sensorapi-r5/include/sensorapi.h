@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/sensorapi/src/sensorapi.c
+ */
+
+#ifndef RAM_DRIVER_SENSORAPI_H_06_09_2008
+#define RAM_DRIVER_SENSORAPI_H_06_09_2008
+
 #include "../../embedded/sbr5/buscodes.h"
 
 #define MAX_SYNC_ATTEMPTS 20
@@ -6,49 +18,8 @@
 
 #define SENSORAPI_R5
 
-struct powerInfo
-{
-    float motorCurrents[8]; /* Currents for motors and marker droppers */
-    float v12VBus;          /* Voltage of 12V bus, in V. */
-    float v5VBus;           /* Voltage of 5V bus, in V */
-    float i12VBus;          /* Current of 12V bus, in A */
-    float i5VBus;           /* Current of 5V bus, in A */
-    float iAux;             /* Current of aux (carnetix) output, in A */
-
-    float v26VBus;          /* Voltage of balanced 26V, in V. NOT IMPLEMENTED IN BALANCER r2 */
-                            /* Reads as complete garbage */
-
-    float battVoltages[5];  /* 0-3 are batt 1-4. 4 is external power (batt 5). In V */
-    float battCurrents[5];  /* Battery currents. See note above. In A */
-};
-
-struct boardInfo
-{
-    int updateState;    /* Internal use only */
-    int status;         /* Status register- start switch, kill switch, water sensing */
-    int thrusterState;  /* Which thrusters are on */
-    int barState;       /* Which bar outputs are on */
-    int ovrState;       /* Which thrusters have over-currented */
-    int battEnabled;    /* Which batteries are enabled (not the same as in use) */
-    int battUsed;       /* Which batteries are being drawn by the balancing circuit */
-
-
-    struct powerInfo powerInfo;  /* Everything related to power. See above */
-
-    /* Temperatures, in deg C */
-    /* These are scattered throughout. The first one is the sensorboard temp. */
-    /* The last two are distro and balancer temp (or vice versa?)   */
-    /* The middle ones are floaties, if we even have them connected */
-    unsigned char temperature[NUM_TEMP_SENSORS];
-};
-
-
 /* In msec */
 #define IO_TIMEOUT  100
-
-
-
-
 
 /* LCD backlight control */
 #define LCD_BL_OFF    0
@@ -176,14 +147,89 @@ struct boardInfo
 /* Start switch is being pressed */
 #define STATUS_STARTSW    0x80
 
-
-
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
+enum partialUpdateType_
+{
+    NO_UPDATE,
+    STATUS,
+    THRUSTER_STATE,
+    BAR_STATE,
+    OVERCURRENT_STATE,
+    BATTERY_ENABLES,
+    TEMP,
+    MOTOR_CURRENTS,
+    BOARD_VOLTAGES_CURRENTS,
+    BATTERY_VOLTAGES,
+    BATTERY_CURRENTS,
+    BATTERY_USED,
+    END_OF_UPDATES,
+};
+    
+/** Information about the vehicles power state */
+struct powerInfo
+{
+    /** Currents for motors and marker droppers */
+    float motorCurrents[8];
+    
+    /** Voltage of 12V bus, in V. */
+    float v12VBus;
+    
+    /** Voltage of 5V bus, in V */
+    float v5VBus;
+    
+    /** Current of 12V bus, in A */
+    float i12VBus;
+    
+    /** Current of 5V bus, in A */
+    float i5VBus;
+    
+    /** Current of aux (carnetix) output, in A */
+    float iAux;             
 
+    /** Voltage of balanced 26V, in V. NOT IMPLEMENTED IN BALANCER r2 */
+    float v26VBus;          
+
+    /** 0-3 are batt 1-4. 4 is external power (batt 5). In V */
+    float battVoltages[5];
+    
+    /** Battery currents. See note above. In A */
+    float battCurrents[5];  
+};
+
+/** Complete vehicle information */
+struct boardInfo
+{
+    /** What was last updates in this struct, value of partialUpdateType enum */
+    enum partialUpdateType_ updateState;
+    /** Status register- startsw, killsw, water, batt used */
+    int status;
+    /** Which thrusters are on */
+    int thrusterState;
+    /** Which bar outputs are on */
+    int barState;
+    /** Which thrusters have over-currented */
+    int ovrState;
+    /** Which batteries are enabled (not the same as in use) */
+    int battEnabled;
+    /** Which batteries are being drawn by the balancing circuit */
+    int battUsed;
+
+    /** Everything related to power. See above */
+    struct powerInfo powerInfo;  
+
+    /** Temperatures, in deg C
+     *
+     * These are scattered throughout. The first one is the sensorboard temp.
+     * The last two are distro and balancer temp (or vice versa?)  
+     * The middle ones are floaties, if we even have them connected
+     */
+    unsigned char temperature[NUM_TEMP_SENSORS];
+};
+    
 /* Perform next step of update cycle.
  * Returns: SB_OK on success
  *          SB_UPDATEDONE on success and update cycle is done
@@ -309,7 +355,15 @@ int setBatteryState(int fd, int state);
 int setOvrParams(int fd, int a, int b);
 int readOvrParams(int fd, int * a, int * b);
 
+/** Translates the function error return codes into text */    
+char* sbErrorToText(int ret);
+
+/** Translates the index from the boardInfo array into the sensor name */
+char* tempSensorIDToText(int id);
+
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus
+
+#endif // RAM_DRIVER_SENSORAPI_H_06_09_2008

@@ -7,13 +7,15 @@
  * File:  packages/vehicle/src/device/Thruster.cpp
  */
 
-// STD Includes
-#include <sstream>
+// Library Includes
+#include <boost/bind.hpp>
 
 // Project Includes
+#include "vehicle/include/Vehicle.h"
+#include "vehicle/include/Events.h"
 #include "vehicle/include/device/Thruster.h"
-#include "vehicle/include/device/ThrusterCommunicator.h"
-#include "vehicle/include/device/ThrusterCommand.h"
+#include "vehicle/include/device/SensorBoard.h"
+
 #include "math/include/Events.h"
 
 namespace ram {
@@ -26,25 +28,37 @@ Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
     IThruster(eventHub),
     m_address(config["address"].asInt()),
     m_calibrationFactor(config["calibration_factor"].asDouble()),
-    m_direction(config["direction"].asInt(1))
+    m_direction(config["direction"].asInt(1)),
+    m_offset(0),
+    m_current(0.0),
+    m_sensorBoard(SensorBoardPtr())
 {
-    /*
-    // Register thruster
-    ThrusterCommunicator::registerThruster(this);
+    // A little hack to determine the offset based on thruster type
+    std::string name(getName());
+    if (std::string::npos != name.find("Starboard"))
+        m_offset = config["offset"].asDouble(0.1905);
+    else if (std::string::npos != name.find("Port"))
+        m_offset = config["offset"].asDouble(0.1905);
+    else if (std::string::npos != name.find("Fore"))
+        m_offset = config["offset"].asDouble(0.3366);
+    else if (std::string::npos != name.find("Aft"))
+        m_offset = config["offset"].asDouble(0.3366);
+    else if (std::string::npos != name.find("Top"))
+        m_offset = config["offset"].asDouble(0.193);
+    else if (std::string::npos != name.find("Bottom"))
+        m_offset = config["offset"].asDouble(0.193);
 
-    // Preform a soft reset just to be safe
-    ThrusterCommunicator::getSingleton().sendThrusterCommand(
-    ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,0));*/
+    m_sensorBoard = IDevice::castTo<SensorBoard>(
+        vehicle->getDevice("SensorBoard"));
+    m_connection = m_sensorBoard->subscribe(
+        SensorBoard::MOTORCURRENT_UPDATE,
+        boost::bind(&Thruster::onMotorCurrentUpdate, this, _1));
 }
 
 Thruster::~Thruster()
-{/*
-    // Preform a soft reset to make sure the power dies to the thruster
-    ThrusterCommunicator::getSingleton().sendThrusterCommand(
-        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED, 0));
-
-    // Unregister from communicator so it will no when to destory itself
-    ThrusterCommunicator::unRegisterThruster(this);*/
+{
+    // Zero forces
+    setForce(0);
 }
 
 void Thruster::setForce(double force)
@@ -64,15 +78,14 @@ void Thruster::setForce(double force)
     else if (motorCount < -1024)
         motorCount = -1023;
 
-/*    ThrusterCommunicator::getSingleton().sendThrusterCommand(
-        ThrusterCommand::construct(m_address, ThrusterCommand::SPEED,
-        motorCount));*/
-
     {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_forceMutex);
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_force = force;
         m_motorCount = motorCount;
     }
+
+    // Send the computed value to the hardware
+    m_sensorBoard->setThrusterValue(m_address, motorCount);
 
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = m_force;
@@ -81,14 +94,8 @@ void Thruster::setForce(double force)
 
 double Thruster::getForce()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_forceMutex);
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_force;
-}
-
-int Thruster::getMotorCount()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_forceMutex);
-    return m_motorCount;
 }
 
 double Thruster::getMaxForce()
@@ -100,26 +107,71 @@ double Thruster::getMinForce()
 {
     return (((-1023 * 27) / 1023) + 0.0) * m_calibrationFactor;
 }
-    
-void Thruster::update(double timestep)
+
+bool Thruster::isEnabled()
 {
-//    ThrusterCommunicator::getSingleton().update(timestep);
+    return m_sensorBoard->isThrusterEnabled(m_address);
+}
+
+void Thruster::setEnabled(bool state)
+{
+    m_sensorBoard->setThrusterEnable(m_address, state);
 }
     
-void Thruster::background(int interval)
+double Thruster::getOffset()
 {
-//    ThrusterCommunicator::getSingleton().background(interval);
+    return m_offset;
+}
+
+double Thruster::getCurrent()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_current;
+}
+    
+int Thruster::getMotorCount()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_motorCount;
+}
+
+void Thruster::update(double)
+{
+}
+    
+void Thruster::background(int)
+{
 }
 
 void Thruster::unbackground(bool join)
 {
-//    ThrusterCommunicator::getSingleton().unbackground(join);
 }
 
 bool Thruster::backgrounded()
 {
     return false;
-//    return ThrusterCommunicator::getSingleton().backgrounded();
+}
+
+void Thruster::onMotorCurrentUpdate(core::EventPtr event)
+{
+    ram::vehicle::MotorCurrentEventPtr mcEvent =
+        boost::dynamic_pointer_cast<ram::vehicle::MotorCurrentEvent>(event);
+
+    // Drop out if the event isn't for us
+    if (m_address != mcEvent->address)
+        return;
+
+    // Read in new values
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+            
+        m_current = mcEvent->current;
+    }
+
+    math::NumericEventPtr nevent(new math::NumericEvent);
+    nevent->number = mcEvent->current;
+    publish(ICurrentProvider::UPDATE, nevent);
+
 }
     
 } // namespace device

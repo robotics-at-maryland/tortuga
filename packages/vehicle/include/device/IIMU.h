@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/device/IMU.h
+ * File:  packages/vision/include/device/IIMU.h
  */
 
 #ifndef RAM_VEHICLE_DEVICE_IIMU_06_25_2007

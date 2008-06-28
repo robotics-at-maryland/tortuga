@@ -16,6 +16,7 @@
 // Project Includes
 #include "core/include/Event.h"
 #include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/device/ICurrentProvider.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
@@ -24,7 +25,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class RAM_EXPORT IThruster : public IDevice // boost::noncopyable
+class RAM_EXPORT IThruster : public IDevice, // boost::noncopyable
+                             public ICurrentProvider
 {
 public:
     static const core::Event::EventType FORCE_UPDATE;
@@ -42,7 +44,24 @@ public:
 
     /** The maximum negative force in Newtons the thruster produces */
     virtual double getMinForce() = 0;
-                                         
+
+    /** Whether or not the thruster will produce any force */
+    virtual bool isEnabled() = 0;
+
+    /** Enables of disables the thruster
+     *
+     *  @param state
+     *      True to enable the thruster, false to disable
+     */
+    virtual void setEnabled(bool state) = 0;
+    
+    /** Returns the offset from axis perpendicular to axis of inducded rotation
+     *
+     *  The means the port thruster which rotates around Z-axis and is in the
+     *  X-Y plane would give report its distance off the X axis.
+     */
+    virtual double getOffset() = 0;
+
 protected:
     IThruster(core::EventHubPtr eventHub = core::EventHubPtr());  
 };

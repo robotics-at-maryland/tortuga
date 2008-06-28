@@ -21,8 +21,8 @@
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/include/device/IThruster.h"
-#include "vehicle/include/device/Thruster.h"
 #include "vehicle/include/device/IIMU.h"
+#include "vehicle/include/device/IDepthSensor.h"
 
 #include "sensorapi-r5/include/sensorapi.h"
 
@@ -30,6 +30,7 @@
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
+#include "core/include/DependencyGraph.h"
 
 // Register vehicle into the maker subsystem
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
@@ -51,82 +52,42 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     IVehicle(config["name"].asString(),
              core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_config(config),
-    m_sensorFD(-1),
-    m_markerNum(0),
-    m_depthCalibSlope(m_config["depthCalibSlope"].asDouble()),
-    m_depthCalibIntercept(m_config["depthCalibIntercept"].asDouble()),
-    m_calibratedDepth(false),
-    m_depthOffset(0),
-    m_rStarboard(0),
-    m_rPort(0),
-    m_rFore(0),
-    m_rAft(0),
-    m_rTop(0),
-    m_rBottom(0),
-    m_imu(device::IIMUPtr())
+    m_starboardThrusterName(
+        config["StarboardThrusterName"].asString("StarboardThruster")),
+    m_starboardThruster(device::IThrusterPtr()),
+    m_portThrusterName(
+        config["PortThrusterName"].asString("PortThruster")),
+    m_portThruster(device::IThrusterPtr()),
+    m_foreThrusterName(
+        config["ForeThrusterName"].asString("ForeThruster")),
+    m_foreThruster(device::IThrusterPtr()),
+    m_aftThrusterName(
+        config["AftThrusterName"].asString("AftThruster")),
+    m_aftThruster(device::IThrusterPtr()),
+    m_topThrusterName(
+        config["TopThrusterName"].asString("TopThruster")),
+    m_topThruster(device::IThrusterPtr()),
+    m_bottomThrusterName(
+        config["BottomThrusterName"].asString("BottomThruster")),
+    m_bottomThruster(device::IThrusterPtr()),
+    m_imuName(config["IMUName"].asString("IMU")),
+    m_imu(device::IIMUPtr()),
+    m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
+    m_depthSensor(device::IDepthSensorPtr())
 {
-    std::string devfile =
-        m_config["sensor_board_file"].asString("/dev/sensor");
-    
-    m_sensorFD = openSensorBoard(devfile.c_str());
-
-    if (m_sensorFD < 0)
-    {
-        std::cout << "Could not open sensor board\n";
-    }
-    else
-    {    
-        syncBoard(m_sensorFD);
-        /// @TODO Check to see if we are already unsafed, and if we are don't 
-        // try to unsafe again.  If we aren't unsafe, and sleep.
-
-        int thrusterState = readThrusterState(m_sensorFD);
-        if (SB_ERROR == thrusterState)
-        {
-            std::cout << "Sensor board error\n"; 
-        }
-        else if ((thrusterState & ALL_THRUSTERS_ENABLED) !=
-                 ALL_THRUSTERS_ENABLED)
-        {
-            unsafeThrusters();
-        }
-    }
-    
-    // Get the thruster names
-    m_starboardThruster =
-        config["StarboardThrusterName"].asString("StarboardThruster");
-    m_portThruster =
-        config["PortThrusterName"].asString("PortThruster");
-    m_foreThruster =
-        config["ForeThrusterName"].asString("ForeThruster");
-    m_aftThruster =
-        config["AftThrusterName"].asString("AftThruster");
-    m_topThruster =
-        config["TopThrusterName"].asString("TopThruster");
-    m_bottomThruster =
-        config["BottomThrusterName"].asString("BottomThruster");
-
-    m_imuName = config["IMUName"].asString("IMU");
-    
-    // Grab thruster combining constants
-    m_rStarboard = config["rStarboard"].asDouble(0.1905);
-    m_rPort = config["rPort"].asDouble(0.1905);
-    m_rFore= config["rFore"].asDouble(0.3366);
-    m_rAft = config["rAft"].asDouble(0.3366);
-    m_rTop = config["rTop"].asDouble(0.193);
-    m_rBottom = config["rBottom"].asDouble(0.193);
-    
-    // Allocate space for temperate readings
-    m_state.temperatures.reserve(NUM_TEMP_SENSORS);
-    
     // Create devices
     if (config.exists("Devices"))
     {
-        core::NodeNameList subnodes = config["Devices"].subNodes();
-        BOOST_FOREACH(std::string nodeName, subnodes)
+        core::ConfigNode deviceConfig(config["Devices"]);
+
+        // Properly fills m_order, and m_subsystemDeps
+        core::DependencyGraph depGraph(deviceConfig);
+        std::vector<std::string> deviceOrder = depGraph.getOrder();
+        
+        BOOST_FOREACH(std::string deviceName, deviceOrder)
         {
-            core::ConfigNode node(config["Devices"][nodeName]);
-            node.set("name", nodeName);
+            core::ConfigNode node(deviceConfig[deviceName]);
+            node.set("name", deviceName);
             // TODO: Make me a log
             //std::cout << "Creating device " << node["name"].asString()
             //    << " of type: " << node["type"].asString() << std::endl;
@@ -160,19 +121,15 @@ Vehicle::~Vehicle()
     // references  floating around keeping the object from being destoryed.
     m_devices.clear();
 
-    //safeThrusters();
-    
     // Stop all background threads (does not include device background threads)
     unbackground(true);
-    
-    if (m_sensorFD >= 0)
-        close(m_sensorFD);
-    
 }
     
 device::IDevicePtr Vehicle::getDevice(std::string name)
 {
     NameDeviceMapIter iter = m_devices.find(name);
+    if (iter == m_devices.end())
+        std::cout << "Could not find device: \"" << name << "\"" << std::endl;
     assert(iter != m_devices.end() && "Error Device not found");
     return (*iter).second;
 }
@@ -190,25 +147,7 @@ std::vector<std::string> Vehicle::getDeviceNames()
     
 double Vehicle::getDepth()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    return m_state.depth;
-}
-
-std::vector<std::string> Vehicle::getTemperatureNames()
-{
-    std::vector<std::string> names;
-
-    // No current way to get actual sensor names
-    for (int i = 0; i < NUM_TEMP_SENSORS; ++i)
-        names.push_back("Unknown");
-    
-    return names;
-}
-
-std::vector<int> Vehicle::getTemperatures()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    return m_state.temperatures;
+    return getDepthSensor()->getDepth();
 }
 
 math::Vector3 Vehicle::getLinearAcceleration()
@@ -228,105 +167,68 @@ math::Quaternion Vehicle::getOrientation()
     
 void Vehicle::safeThrusters()
 {
-    boost::mutex::scoped_lock lock(m_sensorBoardMutex);
-    
-    if (m_sensorFD >= 0)
+    if (lookupThrusterDevices())
     {
-        // Todo, check whether these succeed
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER1_OFF);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER2_OFF);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER3_OFF);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER4_OFF);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER5_OFF);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER6_OFF);
+        m_starboardThruster->setEnabled(false);
+        m_portThruster->setEnabled(false);
+        m_foreThruster->setEnabled(false);
+        m_aftThruster->setEnabled(false);
+        m_topThruster->setEnabled(false);
+        m_bottomThruster->setEnabled(false);
     }
 }
 
 void Vehicle::unsafeThrusters()
 {
-    boost::mutex::scoped_lock lock(m_sensorBoardMutex);
-    
-    if (m_sensorFD >= 0)
+    if (lookupThrusterDevices())
     {
-        // todo check whether these succeed
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER1_ON);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER2_ON);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER3_ON);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER4_ON);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER5_ON);
-        setThrusterSafety(m_sensorFD, CMD_THRUSTER6_ON);
+        m_starboardThruster->setEnabled(true);
+        m_portThruster->setEnabled(true);
+        m_foreThruster->setEnabled(true);
+        m_aftThruster->setEnabled(true);
+        m_topThruster->setEnabled(true);
+        m_bottomThruster->setEnabled(true);
     }
 }
 
 void Vehicle::dropMarker()
 {
-    boost::mutex::scoped_lock lock(m_sensorBoardMutex);
-    ::dropMarker(m_sensorFD, m_markerNum);
+    // Do Nothing right now
 }
-
-int Vehicle::startStatus()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    return m_state.startSwitch;   
-}
-
-void Vehicle::printLine(int line, std::string text)
-{
-    if (m_sensorFD >= 0)
-    {
-        boost::mutex::scoped_lock lock(m_sensorBoardMutex);
-        displayText(m_sensorFD, line, text.c_str());
-    }
-}
-
-
+    
 void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
                                     const math::Vector3& rotationalTorques)
 {
-    double star = translationalForces[0] / 2 +
-        0.5 * rotationalTorques[2] / m_rStarboard;
-    double port = translationalForces[0] / 2 -
-        0.5 * rotationalTorques[2] / m_rPort;
-    double fore = translationalForces[2] / 2 -
-        0.5 * rotationalTorques[1] / m_rFore;
-    double aft = translationalForces[2]/2 +
-        0.5 * rotationalTorques[1] / m_rAft;
-    double top = translationalForces[1] / 2 +
-        0.5 * rotationalTorques[0] / m_rTop;
-    double bottom = translationalForces[1]/2 -
-        0.5 * rotationalTorques[0] / m_rBottom;
+    // Bail out if we don't currently have all thruster devices
+    if (!lookupThrusterDevices())
+        return;
 
-    if (m_devices.end() != m_devices.find(m_starboardThruster))
-    {
+    // Calculate indivdual thruster foces
+    double star = translationalForces[0] / 2 +
+        0.5 * rotationalTorques[2] / m_starboardThruster->getOffset();
+    double port = translationalForces[0] / 2 -
+        0.5 * rotationalTorques[2] / m_portThruster->getOffset();
+    double fore = translationalForces[2] / 2 -
+        0.5 * rotationalTorques[1] / m_foreThruster->getOffset();
+    double aft = translationalForces[2]/2 +
+        0.5 * rotationalTorques[1] / m_aftThruster->getOffset();
+    double top = translationalForces[1] / 2 +
+        0.5 * rotationalTorques[0] / m_topThruster->getOffset();
+    double bottom = translationalForces[1]/2 -
+        0.5 * rotationalTorques[0] / m_bottomThruster->getOffset();
+
 //        std::cout << "Force: " << star << " " << port << " " << fore
 //                  << " " << aft << std::endl;
-        device::IDevice::castTo<device::IThruster>(
-            getDevice(m_starboardThruster))->setForce(star);
-        device::IDevice::castTo<device::IThruster>(
-            getDevice(m_portThruster))->setForce(port);
-        device::IDevice::castTo<device::IThruster>(
-            getDevice(m_foreThruster))->setForce(fore);
-        device::IDevice::castTo<device::IThruster>(
-            getDevice(m_aftThruster))->setForce(aft);
-        device::IDevice::castTo<device::IThruster>(
-            getDevice(m_topThruster))->setForce(top);
-        device::IDevice::castTo<device::IThruster>(
-            getDevice(m_bottomThruster))->setForce(bottom);
-    }
+
+    // Set actual thruster forces
+    m_starboardThruster->setForce(star);
+    m_portThruster->setForce(port);
+    m_foreThruster->setForce(fore);
+    m_aftThruster->setForce(aft);
+    m_topThruster->setForce(top);
+    m_bottomThruster->setForce(bottom);
 }
     
-void Vehicle::getState(Vehicle::VehicleState& state)
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    state = m_state;
-}
-
-void Vehicle::setState(const Vehicle::VehicleState& state)
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_state_mutex);
-    m_state = state;
-}
-
 void Vehicle::_addDevice(device::IDevicePtr device)
 {
     m_devices[device->getName()] = device;
@@ -340,115 +242,12 @@ void Vehicle::update(double timestep)
         oevent->orientation = getOrientation();
         publish(IVehicle::ORIENTATION_UPDATE, oevent);
     }
-    
-    if (m_sensorFD >= 0)
-    {
 
-        boost::mutex::scoped_lock lockSensor(m_sensorBoardMutex);
-
-        // Send off thruster commands
-        readThrusterState(m_sensorFD);
-        // Maps thruster address to motor count
-        std::map<int, int> addressSpeedMap;
-
-        // Gather speeds, map
-        if (m_devices.end() != m_devices.find(m_starboardThruster))
-        {
-            ThrusterPtr thruster = device::IDevice::castTo<device::Thruster>(
-                getDevice(m_starboardThruster));
-            addressSpeedMap[thruster->getAddress()] =
-                thruster->getMotorCount();
-            
-            thruster = device::IDevice::castTo<device::Thruster>(
-                getDevice(m_portThruster));
-            addressSpeedMap[thruster->getAddress()] =
-                thruster->getMotorCount();
-            
-            thruster = device::IDevice::castTo<device::Thruster>(
-                getDevice(m_foreThruster));
-            addressSpeedMap[thruster->getAddress()] =
-                thruster->getMotorCount();
-            
-            thruster = device::IDevice::castTo<device::Thruster>(
-                getDevice(m_aftThruster));
-            addressSpeedMap[thruster->getAddress()] =
-                thruster->getMotorCount();
-            
-            thruster = device::IDevice::castTo<device::Thruster>(
-                getDevice(m_topThruster));
-            addressSpeedMap[thruster->getAddress()] =
-                thruster->getMotorCount();
-
-            thruster = device::IDevice::castTo<device::Thruster>(
-                getDevice(m_bottomThruster));
-            addressSpeedMap[thruster->getAddress()] =
-                thruster->getMotorCount();
-            
-            setSpeeds(m_sensorFD, addressSpeedMap[1], addressSpeedMap[2],
-                      addressSpeedMap[3], addressSpeedMap[4],
-                      addressSpeedMap[5], addressSpeedMap[6]);
-        }
-
-        double depth = -1;
-        {
-            core::ReadWriteMutex::ScopedWriteLock lockState(m_state_mutex);
-            
-            // Depth
-            int rawDepth = readDepth(m_sensorFD);
-            if (SB_ERROR == rawDepth)
-            {
-                if (SB_ERROR == syncBoard(m_sensorFD))
-                {
-                    // Just bail if this fails
-                    return;
-                }
-                rawDepth = readDepth(m_sensorFD);
-            }
-            // Don't attempt anything with a bad depth
-            if (SB_ERROR != rawDepth)
-            {
-                m_state.depth = (((double)rawDepth) - m_depthCalibIntercept) /
-                    m_depthCalibSlope - m_depthOffset;
-                depth = m_state.depth;
-                
-                // If we aren't calibrated, take values
-                if (!m_calibratedDepth)
-                {
-                    m_depthFilter.addValue(m_state.depth);
-                
-                    // After five values, take the reading
-                    if (5 == m_depthFilter.getSize())
-                    {
-                        m_calibratedDepth = true;
-                        m_depthOffset = m_depthFilter.getValue();
-                    }
-                }
-            }
-        }
-        
-        // Publish depth event after we release the lock on the state
-        if (-1 != depth)
-        {
-            math::NumericEventPtr devent(new math::NumericEvent());
-            devent->number = depth;
-            publish(IVehicle::DEPTH_UPDATE, devent);
-        }
-        
-        // Currently turned off inorder because they are not tested
-        /*
-        //m_state.depth = rawDepth;
-        // Status register
-        int status = readStatus(m_sensorFD);
-        m_state.startSwitch = status & STATUS_STARTSW;
-
-        // Temperatures
-        unsigned char temps[NUM_TEMP_SENSORS];
-        readTemp(m_sensorFD, temps);
-
-        // Copy the contents of temps into the temperature state
-        std::copy(temps, &temps[NUM_TEMP_SENSORS - 1] + 1,
-                  m_state.temperatures.begin());
-        */
+    if (m_devices.end() != m_devices.find(m_depthSensorName))
+    {    
+        math::NumericEventPtr nevent(new math::NumericEvent());
+        nevent->number = getDepth();
+        publish(IVehicle::DEPTH_UPDATE, nevent);
     }
 }
 
@@ -474,12 +273,17 @@ void Vehicle::setAffinity(size_t affinity)
     
 void Vehicle::background(int interval) 
 {
+    core::ConfigNode deviceConfig(m_config["Devices"]);
+    
     BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
     {
         device::IDevicePtr device(pair.second);
-        core::ConfigNode devCfg(m_config["Devices"][device->getName()]);
-        if (devCfg.exists("update_interval"))
-            device->background(devCfg["update_interval"].asInt());
+        if (deviceConfig.exists(device->getName()))
+        {
+            core::ConfigNode devCfg(deviceConfig[device->getName()]);
+            if (devCfg.exists("update_interval"))
+                device->background(devCfg["update_interval"].asInt());
+        }
     }
     
     Updatable::background(interval);
@@ -495,18 +299,119 @@ void Vehicle::unbackground(bool join)
     Updatable::unbackground(join);
 }
 
-void Vehicle::calibrateDepth()
-{
-    m_depthFilter.clear();
-    m_calibratedDepth = false;
-}
-
 device::IIMUPtr Vehicle::getIMU()
 {
     if (!m_imu)
         m_imu = device::IDevice::castTo<device::IIMU>(getDevice(m_imuName));
     return m_imu;
 }
+
+device::IDepthSensorPtr Vehicle::getDepthSensor()
+{
+    if (!m_depthSensor)
+    {
+        m_depthSensor = device::IDevice::castTo<device::IDepthSensor>(
+            getDevice(m_depthSensorName));
+    }
+    return m_depthSensor;
+}
+
+bool Vehicle::lookupThrusterDevices()
+{
+    bool good = true;
     
+    if (!m_starboardThruster)
+    {
+        NameDeviceMapIter iter = m_devices.find(m_starboardThrusterName);
+        if(iter != m_devices.end())
+        {
+            m_starboardThruster = device::IDevice::castTo<device::IThruster>(
+                (*iter).second);
+
+        }
+        else
+        {
+            good = false;
+        }
+    }
+
+    if (!m_portThruster)
+    {
+        NameDeviceMapIter iter = m_devices.find(m_portThrusterName);
+        if(iter != m_devices.end())
+        {
+            m_portThruster = device::IDevice::castTo<device::IThruster>(
+                (*iter).second);
+
+        }
+        else
+        {
+            good = false;
+        }
+    }
+
+    if (!m_foreThruster)
+    {
+        NameDeviceMapIter iter = m_devices.find(m_foreThrusterName);
+        if(iter != m_devices.end())
+        {
+            m_foreThruster = device::IDevice::castTo<device::IThruster>(
+                (*iter).second);
+
+        }
+        else
+        {
+            good = false;
+        }
+    }
+
+    if (!m_aftThruster)
+    {
+        NameDeviceMapIter iter = m_devices.find(m_aftThrusterName);
+        if(iter != m_devices.end())
+        {
+            m_aftThruster = device::IDevice::castTo<device::IThruster>(
+                (*iter).second);
+
+        }
+        else
+        {
+            good = false;
+        }
+    }
+
+    if (!m_topThruster)
+    {
+        NameDeviceMapIter iter = m_devices.find(m_topThrusterName);
+        if(iter != m_devices.end())
+        {
+            m_topThruster = device::IDevice::castTo<device::IThruster>(
+                (*iter).second);
+
+        }
+        else
+        {
+            good = false;
+        }
+    }
+    
+    if (!m_bottomThruster)
+    {
+        NameDeviceMapIter iter = m_devices.find(m_bottomThrusterName);
+        if(iter != m_devices.end())
+        {
+            m_bottomThruster = device::IDevice::castTo<device::IThruster>(
+                (*iter).second);
+
+        }
+        else
+        {
+            good = false;
+        }
+    }
+
+    return good;
+}
+
 } // namespace vehicle
 } // namespace ram
