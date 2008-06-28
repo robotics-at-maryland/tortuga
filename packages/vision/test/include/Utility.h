@@ -25,8 +25,18 @@ void makeColor(vision::Image* image, unsigned char R, unsigned char G,
 
 void drawSquare(vision::Image* image, int x, int y, int width, int height,
                 double angle, CvScalar color);
+
+enum TestSuitType
+{
+    Heart,
+    Spade,
+    Club,
+    Diamond,
+    None
+};
     
-void drawBin(vision::Image* image, int x, int y, int width, double angle);
+void drawBin(vision::Image* image, int x, int y, int width, double angle,
+             TestSuitType suitType = None);
 
 void drawCircle(vision::Image* image, int x, int y, int radius,
 		CvScalar color);

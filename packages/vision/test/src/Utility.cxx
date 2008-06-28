@@ -8,13 +8,22 @@
  */
 
 // Library Include
+#include "cv.h"
 #include "cxcore.h"
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "vision/test/include/Utility.h"
 #include "vision/include/Image.h"
+#include "vision/include/OpenCVImage.h"
 
 #include "math/include/Matrix2.h"
+
+static boost::filesystem::path getImagesDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "vision" / "test" / "data" / "references";
+}
 
 namespace ram {
 namespace vision {
@@ -67,8 +76,11 @@ void drawSquare(vision::Image* image, int x, int y, int width, int height,
 }
     
 void drawBin(vision::Image* image, int x, int y, int width,
-             double angle)
+             double angle, TestSuitType suitType)
 {
+    assert((image->getWidth() == 640) && (image->getHeight() == 480) &&
+           "Draw bin image must be 640x480");
+    
     // Generate the height based on the width
     int height = (int)((double)width * 1.5);
     
@@ -80,6 +92,40 @@ void drawBin(vision::Image* image, int x, int y, int width,
     int innerHeight = width;
 
     drawSquare(image, x, y, innerWidth, innerHeight, angle, CV_RGB(0, 0, 0));
+
+    // Draw suit if needed
+    if (suitType != None)
+    {
+        assert((suitType >= Heart) && (suitType <= None) && "Improper suit");
+        static OpenCVImage heart((getImagesDir() / "heart.png").string());
+        static OpenCVImage spade((getImagesDir() / "spade.png").string());
+        static OpenCVImage club((getImagesDir() / "club.png").string());
+        static OpenCVImage diamond((getImagesDir() / "diamond.png").string());
+        static OpenCVImage scratchImage(640, 480);
+        static OpenCVImage rotatedAndScaled(640, 480);
+        
+        // Get the proper image
+        Image* suit2Image[] = {&heart, &spade, &club, &diamond};
+        Image* desired = suit2Image[suitType];
+
+        // Scale it down to proper image size 640x480
+        cvResize(desired->asIplImage(), scratchImage.asIplImage());
+        //vision::Image::showImage(&scratchImage, "Base");
+        
+        // Scale and rotate suit to match bin
+        int desiredPixelWidth = (int)((double)innerWidth * 2.0/3.0);
+        double scaleFactor = ((double)desiredPixelWidth) /
+            ((double) scratchImage.getWidth());
+
+        vision::Image::rotateAndScale(&scratchImage, &rotatedAndScaled,
+                                      math::Degree(angle), scaleFactor);
+        //vision::Image::showImage(&rotatedAndScaled, "Rotated And Scaled");
+
+        // Transform and blit image into the proper place
+        vision::Image::blitImage(&rotatedAndScaled, image, image,
+                                 255, 255, 255, x, y);
+        //vision::Image::showImage(image, "Result");
+    }
 }
 
 void drawCircle(vision::Image* image, int x, int y, int radius,

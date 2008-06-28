@@ -22,6 +22,7 @@
 #include "vision/include/Export.h"
 
 #include "math/include/Math.h"
+#include "math/include/Vector2.h"
 
 namespace ram {
 namespace vision {
@@ -53,7 +54,7 @@ public:
     static void saveToFile(Image* image, std::string fileName);
 
     /** Shows the image on screen (THIS BLOCKS UNTIL CLOSED w/ESC Key) */
-    static void showImage(Image* image);
+    static void showImage(Image* image, std::string name = "");
 
     /** Rotates and scales the given image */
     static void rotateAndScale(Image* src, Image* dest, math::Degree rotation,
@@ -63,7 +64,8 @@ public:
     static void blitImage(Image* toBlit, Image* src, Image* dest,
                           unsigned char R = 255,
                           unsigned char G = 255,
-                          unsigned char B = 255);
+                          unsigned char B = 255,
+                          int xOffset = 0, int yOffset = 0);
     
     /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
     static Image* loadFromBuffer(unsigned char* buffer, int width,

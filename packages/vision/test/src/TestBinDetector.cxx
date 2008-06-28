@@ -248,4 +248,12 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     CHECK_CLOSE(0, event->y, 0.05);
 }
 
+/*TEST_FIXTURE(BinDetectorFixture, Suit)
+{
+    // Bin in the lower right
+    makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/4, 480/4 * 3, 130, 0, vision::Heart);
+    vision::Image::showImage(&input);
+    }*/
+
 } // SUITE(BinDetector)

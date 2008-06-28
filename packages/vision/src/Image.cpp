@@ -64,7 +64,8 @@ void Image::rotateAndScale(Image* src, Image* dest,
 }
 
 void Image::blitImage(Image* toBlit, Image* src, Image* dest,
-                      unsigned char R, unsigned char G, unsigned char B)
+                      unsigned char R, unsigned char G, unsigned char B,
+                      int xOffset, int yOffset)
 {
     size_t toBlitBytes = toBlit->getWidth() * toBlit->getHeight() * 3;
     size_t destBytes = dest->getWidth() * dest->getHeight() * 3;
@@ -72,39 +73,61 @@ void Image::blitImage(Image* toBlit, Image* src, Image* dest,
     assert((destBytes == toBlitBytes) && (toBlitBytes == srcBytes) &&
            "Images are not the same size");
 
-    unsigned char* srcData = src->getData();
+    // Preform a full copy of src, to dest
+    cvCopy(src->asIplImage(), dest->asIplImage());
+
+    // Now do the blit
     unsigned char* blitData = toBlit->getData();
     unsigned char* destData = dest->getData();
 
-    for (size_t i = 0; i < toBlitBytes; i += 3)
+    unsigned char* blitStart = blitData;
+    unsigned char* destStart = destData;
+    
+    int width = dest->getWidth();
+    int height = dest->getHeight();
+
+    for (int y = yOffset; y < height; ++y)
     {
-        unsigned char b = blitData[i];
-        unsigned char g = blitData[i + 1];
-        unsigned char r = blitData[i + 2];
-        if ((b == B) && (g == G) && (r == R))
+        // Select proper row of blit data (without the offset)
+        blitData = blitStart + (width * (y - yOffset) * 3);
+        
+        // For the dest, we use the offset
+        destData = destStart + (width * y * 3) + (xOffset * 3);
+        
+        for (int x = xOffset; x < width; ++x)
         {
-            // We have clear color, copy from source
-            destData[i] = srcData[i];
-            destData[i + 1] = srcData[i + 1];
-            destData[i + 2] = srcData[i + 2];
-        }
-        else
-        {
-            // No clear color, copy from blit image
-            destData[i] = b;
-            destData[i + 1] = g;
-            destData[i + 2] = r;
+            unsigned char b = *blitData;
+            unsigned char g = *(blitData + 1);
+            unsigned char r = *(blitData + 2);
+
+            if (!((b == B) && (g == G) && (r == R)))
+            {
+                // No clear color, copy from blit image
+                *destData = b;
+                *(destData + 1) = g;
+                *(destData + 2) = r;
+            }
+
+            // Move one pixel along each row
+            blitData += 3;
+            destData += 3;
         }
     }
 }
     
-void Image::showImage(Image* image)
+void Image::showImage(Image* image, std::string name)
 {
-    cvNamedWindow(DEBUG_WINDOW, CV_WINDOW_AUTOSIZE);
+    const char* windowName = 0;
+    if (name.length() != 0)
+        windowName = name.c_str();
+    else
+        windowName = DEBUG_WINDOW;
+
+    cvNamedWindow(windowName, CV_WINDOW_AUTOSIZE);
 
     while(1)
     {
-        cvShowImage(DEBUG_WINDOW, image->asIplImage());
+        cvShowImage(windowName, image->asIplImage());
 
         // Check for escape key
         char key;
@@ -112,7 +135,7 @@ void Image::showImage(Image* image)
             break;
     }
 
-    cvDestroyWindow(DEBUG_WINDOW);
+    cvDestroyWindow(windowName);
 }
     
 Image* Image::loadFromBuffer(unsigned char* buffer, int width, int height,
