@@ -16,6 +16,7 @@
 #include "math/include/Matrix3.h"
 #include "math/include/Math.h"
 #include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
 
 using namespace ram::math;
 
@@ -114,3 +115,15 @@ TEST(errorQuaternion)
 
     CHECK_CLOSE(expected, result, 0.0001);
 }
+
+
+TEST(quaternionDerivative)
+{
+	Quaternion q(0.243,0.243,0.243,0.9071);
+	Vector3 w(2,-4,-3);
+	Quaternion expected(1.0286,-1.2067,-2.0897,0.6075);
+	Quaternion result = q.derivative(w);
+	
+	CHECK_CLOSE(expected,result,0.0001);
+}
+

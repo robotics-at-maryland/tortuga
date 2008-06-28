@@ -284,6 +284,8 @@ namespace math {
 
         /** Find the error quaternion between this quaternion and other quat. */
         Quaternion errorQuaternion(Quaternion other);
+		
+		Quaternion derivative(Vector3 velocity);
         
     };
 
