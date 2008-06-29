@@ -53,6 +53,9 @@ class MockController(control.IController):
     def yawVehicle(self, yawChange):
         self.yawChange = yawChange
         
+    def setDesiredOrientation(self, orien):
+        self.desiredOrientation = orien
+        
     def getDesiredOrientation(self):
         return self.desiredOrientation
         

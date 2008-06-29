@@ -9,7 +9,7 @@
 import unittest
 
 # Project Imports
-import ext.math
+import ext.math as math
 
 import ram.motion as motion
 import ram.motion.basic
@@ -222,11 +222,6 @@ class TestRateChangeDepth(support.MotionTest):
 
         self.assertAlmostEqual(4, self.controller.depth, 3)
         self.assertEqual(True, self.motionFinished)
-
-
-
-
-
         
 class TestChangeHeading(support.MotionTest):
     def setUp(self):
@@ -251,8 +246,8 @@ class TestChangeHeading(support.MotionTest):
             self.assertAlmostEqual(6, self.controller.yawChange, 2)
             # Say we have reached the depth to keep going
             self.controller.publishAtOrientation(
-                ext.math.Quaternion(ext.math.Radian(ext.math.Degree(i)),
-                                    ext.math.Vector3.UNIT_Z))
+                math.Quaternion(math.Radian(math.Degree(i)),
+                                    math.Vector3.UNIT_Z))
             self.qeventHub.publishEvents()
             
         self.assert_(self.motionFinished)
@@ -273,11 +268,96 @@ class TestChangeHeading(support.MotionTest):
             self.assertAlmostEqual(-6, self.controller.yawChange, 2)
             # Say we have reached the depth to keep going
             self.controller.publishAtOrientation(
-                ext.math.Quaternion(ext.math.Radian(ext.math.Degree(-i)),
-                                    ext.math.Vector3.UNIT_Z))
+                math.Quaternion(math.Radian(math.Degree(-i)),
+                                    math.Vector3.UNIT_Z))
             self.qeventHub.publishEvents()
             
         self.assert_(self.motionFinished)
+            
+class TestRateChangeHeading(support.MotionTest):
+    def setUp(self):
+        support.MotionTest.setUp(self)
+        self.motionFinished = False
+
+    def handleFinished(self, event):
+        self.motionFinished = True
+        
+    def _getControllerHeading(self):
+        return self.controller.desiredOrientation.getYaw(True).valueDegrees()
+        
+    def testType(self):
+        m = motion.basic.RateChangeHeading(50, 5) 
+        self.assertEqual(motion.basic.Motion.ORIENTATION, m.type)
+        
+    def testLeft(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(30),
+                                                   math.Vector3.UNIT_Z)
+        
+        # Go to 60 degrees, at 10 degrees a second, with a 10Hz update rate
+        m = motion.basic.RateChangeHeading(desiredHeading = 60, speed = 10, 
+                                           rate = 10) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # Start
+        self.motionManager.setMotion(m)
+
+        mockTimer = \
+            support.MockTimer.LOG[motion.basic.RateChangeHeading.NEXT_HEADING]
+        self.assert_(mockTimer.repeat)
+        self.assertEqual(mockTimer.sleepTime, 0.1)
+
+        # Check thirty steps
+        expectedHeading = 30
+        for i in xrange(0, 30):
+            expectedHeading += 1
+            mockTimer.finish()
+            self.qeventHub.publishEvents()
+            self.assertAlmostEqual(expectedHeading, 
+                                   self._getControllerHeading(), 3)
+        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
+
+        # Make sure more events don't let it keep going        
+        mockTimer.finish()
+        self.qeventHub.publishEvents()
+
+        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
+        self.assertEqual(True, self.motionFinished)
+
+    def testRight(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(10),
+                                                   math.Vector3.UNIT_Z)
+        
+        # Go to 60 degrees, at 10 degrees a second, with a 10Hz update rate
+        m = motion.basic.RateChangeHeading(desiredHeading = -50, speed = 10, 
+                                           rate = 10) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # Start
+        self.motionManager.setMotion(m)
+
+        mockTimer = \
+            support.MockTimer.LOG[motion.basic.RateChangeHeading.NEXT_HEADING]
+        self.assert_(mockTimer.repeat)
+        self.assertEqual(mockTimer.sleepTime, 0.1)
+
+        # Check thirty steps
+        expectedHeading = 10
+        for i in xrange(0, 60):
+            expectedHeading -= 1
+            mockTimer.finish()
+            self.qeventHub.publishEvents()
+            self.assertAlmostEqual(expectedHeading, 
+                                   self._getControllerHeading(), 3)
+        self.assertAlmostEqual(-50, self._getControllerHeading(), 1)
+
+        # Make sure more events don't let it keep going        
+        mockTimer.finish()
+        self.qeventHub.publishEvents()
+
+        self.assertAlmostEqual(-50, self._getControllerHeading(), 1)
+        self.assertEqual(True, self.motionFinished)
             
 if __name__ == '__main__':
     unittest.main()

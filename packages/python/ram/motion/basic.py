@@ -233,7 +233,7 @@ class ChangeDepth(Motion):
         Motion.__init__(self, _type = Motion.DEPTH)
         
         self._steps = steps
-        self._desiredDepth = desiredDepth
+        self._desiredHeading = desiredDepth
         self._conn = None
         
     def _start(self):
@@ -248,7 +248,7 @@ class ChangeDepth(Motion):
         """
         Descreses depth by one 'step' of the remaing depth change
         """
-        depthDifference = self._desiredDepth - currentVehicleDepth 
+        depthDifference = self._desiredHeading - currentVehicleDepth 
         depthChange = depthDifference/self._steps
         self._controller.setDepth(currentVehicleDepth + depthChange)
         
@@ -287,7 +287,7 @@ class RateChangeDepth(Motion):
 
         Motion.__init__(self, _type = Motion.DEPTH)
 
-        self._desiredDepth = desiredDepth
+        self._desiredHeading = desiredDepth
         self._speed = float(speed)
         self._rate = float(rate)
         self._interval = 1 / float(rate)
@@ -298,10 +298,10 @@ class RateChangeDepth(Motion):
         currentDepth = self._vehicle.getDepth()
         self._controller.setDepth(currentDepth)
         
-        absDepthDifference = pmath.fabs(currentDepth - self._desiredDepth)
+        absDepthDifference = pmath.fabs(currentDepth - self._desiredHeading)
 
         self._stepCount = absDepthDifference / (self._speed / self._rate)
-        self._stepSize = (self._desiredDepth - currentDepth) / self._stepCount
+        self._stepSize = (self._desiredHeading - currentDepth) / self._stepCount
         self._stepCount = int(self._stepCount)
         
         self._timer  = timer.Timer(self, RateChangeDepth.NEXT_DEPTH,
@@ -313,7 +313,7 @@ class RateChangeDepth(Motion):
 
     def _onTimer(self, event):
         setDepth = self._controller.getDepth()
-        depthDiff = pmath.fabs(setDepth - self._desiredDepth)
+        depthDiff = pmath.fabs(setDepth - self._desiredHeading)
         
         if (self._stepCount > 0) and (depthDiff > 0.0001):
             self._controller.setDepth(self._controller.getDepth() + \
@@ -337,7 +337,7 @@ class ChangeHeading(Motion):
     def __init__(self, desiredHeading, steps):
         """
         @type  desiredHeading: float
-        @param desiredHeading: Heading you wish to sub to be had
+        @param desiredHeading: Heading you wish to sub to be at
         
         @type  steps: int
         @param steps: Number of increments you wish to change heading in    
@@ -383,4 +383,81 @@ class ChangeHeading(Motion):
         Finishes off the motion, disconnects events, and putlishes finish event
         """
         Motion._finish(self)
+        self._conn.disconnect()
+        
+class RateChangeHeading(Motion):
+    NEXT_HEADING = core.declareEventType('NEXT_HEADING')
+    
+    def __init__(self, desiredHeading, speed, rate = 10):
+        """
+        @type  desiredHeading: float
+        @param desiredHeading: Heading you wish to sub to be at
+        
+        @type  steps: int
+        @param steps: Number of increments you wish to change depth in    
+        """
+
+        Motion.__init__(self, _type = Motion.ORIENTATION)
+
+        self._desiredHeading = desiredHeading
+        self._speed = float(speed)
+        self._rate = float(rate)
+        self._interval = 1 / float(rate)
+        self._conn = None
+        
+        self._rotFactor = 0.0
+        self._rotProgress = 0.0
+        
+    def _start(self):
+        # Grab current State
+        currentOrient = self._vehicle.getOrientation()
+        currentHeading = currentOrient.getYaw(True).valueDegrees()
+        
+        # Generate our source and dest orientation
+        self._srcOrient = math.Quaternion(math.Degree(currentHeading),
+                                          math.Vector3.UNIT_Z)
+        self._destOrient = math.Quaternion(math.Degree(self._desiredHeading),
+                                          math.Vector3.UNIT_Z)
+        
+        # Ensure the controller is consistent with our start state
+        self._controller.setDesiredOrientation(self._srcOrient)
+        
+        # Determine slerp variables
+        absHeadingDifference = pmath.fabs(currentHeading - self._desiredHeading)
+
+        stepCount = absHeadingDifference / (self._speed / self._rate)
+        self._rotFactor = 1.0 / (stepCount)
+        self._rotProgress = 0.0
+
+        self._timer  = timer.Timer(self, RateChangeHeading.NEXT_HEADING,
+                                   self._interval, repeat = True)
+        
+        # Register to NEXT_HEADING events
+        self._conn = self._eventHub.subscribeToType(
+            RateChangeHeading.NEXT_HEADING, self._onTimer)
+        self._timer.start()
+
+    def _onTimer(self, event):
+        self._rotProgress += self._rotFactor
+        
+        currentHeading = self._controller.getDesiredOrientation().getYaw(True)
+        currentHeading = currentHeading.valueDegrees()
+        
+        if (pmath.fabs(currentHeading - self._desiredHeading) > 0.01):
+            newOrien = math.Quaternion.Slerp(self._rotProgress, 
+                                             self._srcOrient,
+                                             self._destOrient, True)
+            self._controller.setDesiredOrientation(newOrien)
+        else:
+            self._finish()
+        
+    def _finish(self):
+        """
+        Finishes off the motion, disconnects events, and putlishes finish event
+        """
+        self._timer.stop()
+        self._conn.disconnect()
+        Motion._finish(self)
+
+    def stop(self):
         self._conn.disconnect()
