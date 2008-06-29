@@ -19,6 +19,7 @@
 #include "../Sonar.h"
 #include "SlidingDFT.h"
 #include <strings.h>
+#include <cassert>
 
 namespace ram {
 namespace sonar {

@@ -1,0 +1,66 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vision/SConscript
+
+import platform
+import os
+from buildfiles import libs
+
+# Copy Our Build Environment
+Import('env')
+
+# We currently need non-standard include flags
+envb = env.Clone()
+envb.Append(CPPPATH = ['..', 'include'])
+
+envl = envb.Clone()
+
+# --------------------------------------------------------------------------- #
+#                              L I B R A R Y                                  #
+# --------------------------------------------------------------------------- #
+
+# Sources
+sources = env.Glob('src', '*.cpp')
+sources.extend(env.Glob('src/fixed', '*.cpp'))
+sources.remove('src/DSO.cpp') # Out of date
+sources.remove('src/SonarController.cpp') # Out of date
+	
+# Build Library (will be called 'sonar.so')
+# All build settings for the library are stored in buildfiles/libs.py
+envl.RAMSharedLibrary('sonar',  source = sources)
+envl.Append(CPPPATH = ['..', 'include'])
+
+# --------------------------------------------------------------------------- #
+#                               T E S T S                                     #
+# --------------------------------------------------------------------------- #
+
+# Unit Tests
+envt = envb.Clone()
+
+# Only build fftw3 if its here
+conf = envt.Configure()
+if conf.CheckLib('fftw3', language='C++', autoadd=1):
+    sources = env.Glob('src/test/src', '*.cpp')
+    envt.Tests(int_deps = 'sonar', source = sources)
+
+# --------------------------------------------------------------------------- #
+#                               T O O L S                                     #
+# --------------------------------------------------------------------------- #
+
+envt = envb.Clone()
+
+envt.RAMProgram(target = 'sonard',
+                source = 'src/sonard/main.cpp',
+                int_deps = ['sonar'])
+
+envt.RAMProgram(target = 'spectrogram',
+                source = 'src/tools/spectrogram.cpp',
+                int_deps = ['sonar'],
+                ext_deps = ['Boost.ProgramOptions'])
+
+envt.RAMProgram(target = 'chop',
+                source = 'src/tools/chop.cpp',
+                int_deps = ['sonar'])

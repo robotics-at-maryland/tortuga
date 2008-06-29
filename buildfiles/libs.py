@@ -108,7 +108,7 @@ def setup_posix_libs():
                                           [BOOST_FILESYSTEM_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
-                                              (1,35), [],
+                                              (1,34,1), [],
                                              [BOOST_PROGOPT_LIB]),
 
         'Boost.Regex' : BoostLibrary('Boost.Regex', (1,34,1), [],
@@ -229,9 +229,12 @@ def _get_internal_lib(env, name):
                                        ext_deps = []),
             
             'thruster' : InternalLibrary('thruster', int_deps = [],
-                                        ext_deps = []),
+                                         ext_deps = []),
 
             'math' : InternalLibrary('math', int_deps = [],
+                                     ext_deps = []),
+
+            'sonar' : InternalLibrary('sonar', int_deps = [],
                                        ext_deps = []),
 
             'network' : InternalLibrary('network', int_deps = ['core'],

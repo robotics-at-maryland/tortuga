@@ -17,7 +17,7 @@
 
 #include "Sonar.h"
 #include "SonarChunk.h"
-#include "TiledSlidingDFT.h"
+#include "dft/TiledSlidingDFT.h"
 #include "SampleDelay.h"
 
 

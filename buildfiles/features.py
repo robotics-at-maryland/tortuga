@@ -55,6 +55,8 @@ def get_features():
                      
     if os.name == 'posix':
         add_feature('network', dirs = ['packages/network'])
+
+        add_feature('sonar', dirs = ['packages/sonar'])
         
         add_feature('vision_tools',
                 opt_dirs = {'vision' : ['tools/vision_viewer']} )
