@@ -8,13 +8,21 @@ D = textread('/tmp/dataD.txt');
 
 DA = A; %A-min(A);
 
+Range=(1:length(A));
+
+figure
+plot((Range),A(Range),'g-', ...
+    (Range),B(Range),'b-', ...
+    (Range),C(Range),'r-', ...
+    (Range),D(Range),'m-')
+
 
 % Block size = 2x ping size
 BL=2000; r=0; for x=1:length(DA)/BL; r(x) = max(DA(x*BL:min((x+1)*BL, length(DA)))); end;
 r = abs(r');
 minr = min(r);
 r = (r / minr);
-%blockIndex = find(r == max(r));
+
 
 % Find where R increases the quickest
 rRate = (r(2:length(r)) ./ r(1:length(r)-1));
@@ -24,6 +32,10 @@ blockIndex = imr+1;
 
 pingStart = max(1, (blockIndex)*BL);
 pingEnd = min(length(DA), (blockIndex+1)*BL);
+
+hold on
+plot(pingStart, A(pingStart), '.')
+plot(pingEnd, A(pingEnd), '.')
 
 Range = (pingStart:pingEnd);
 
