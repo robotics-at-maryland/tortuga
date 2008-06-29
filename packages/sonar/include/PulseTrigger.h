@@ -52,8 +52,9 @@ public:
 		
 		//	Copy new samples into the buffer
 		memcpy(bufPtr, sample, sizeof(T) * nChannels);
-		
-		
+                
+                // Examine each channel with respect to its threshold,
+                // increment countAboveThresholds as needed
 		for (int channel = 0 ; channel < nChannels ; channel ++)
 		{
 			T &signal = bufPtr[channel];
@@ -77,7 +78,8 @@ public:
 	{
 		threshold[channel] = thresh;
 	}
-	
+
+	/** Returns true if the given channel had N samples above the threshold */
 	bool operator () (int channel) const
 	{ return countAboveThresholds[channel] >= N; }
 };

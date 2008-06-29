@@ -53,7 +53,9 @@ int64_t myAbs(int64_t x)
 
 int main(int argc, char *argv[])
 {
+	// Does the sliding DFT on the incoming
 	SparseSDFTSpectrum<512, nChannels, nKBands> spectrum(kBands);
+	// Does threshold based triggering on the results of the DFT
 	PulseTrigger<int64_t, 512, nChannels * nKBands> trigger;
 	int64_t triggerVals[nChannels * nKBands];
 	trigger.setThresholds(10000);
@@ -62,6 +64,8 @@ int main(int argc, char *argv[])
 	
 	size_t sampleIndex = 0;
 	size_t samplesSinceLastPing = 0;
+
+        // Read a single sample from each channel into the sample buffer "sample"
 	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == (size_t)nChannels)
 	{
 		++sampleIndex;
@@ -78,7 +82,8 @@ int main(int argc, char *argv[])
 			}
 		}
 		trigger.update(triggerVals);
-		
+
+                // Determine is we have heard the ping
 		bool pingDetected = true;
 		if (samplesSinceLastPing < holdoffSamples)
 			pingDetected = false;
@@ -94,6 +99,7 @@ int main(int argc, char *argv[])
 		
 		if (pingDetected)
 		{
+			// TODO: Break me into a class and test me
 			samplesSinceLastPing = 0;
 			const complex<int64_t> &ch0 = spectrum.getAmplitudeForBinIndex(0, 0);
 			complex<double> ch0Double(ch0.real(), ch0.imag());
