@@ -335,9 +335,9 @@ class PowerSourcePanel(wx.Panel):
             names = vehicle.getDeviceNames()
             
             for i in range(0,len(names)):
-                device = vehicle.getDevice(names[i])
-                if isinstance(device, subsystemMod.PowerSource):
-                    powerSources.append(device)
+                dev = vehicle.getDevice(names[i])
+                if isinstance(dev, ext.vehicle.device.IPowerSource):
+                    powerSources.append(dev)
     
             # Only create the panel if there are powerSourcess on the vehicle        
             if len(powerSources):

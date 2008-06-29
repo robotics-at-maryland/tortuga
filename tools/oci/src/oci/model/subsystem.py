@@ -110,16 +110,20 @@ class Thruster(device.IThruster):
     def getMaxForce(self):
         return 100;
         
-class PowerSource(device.Device):
+class PowerSource(device.IPowerSource):
     VOLTAGE = ext.core.declareEventType('VOLTAGE')
     CURRENT = ext.core.declareEventType('CURRENT')
     ENABLED = ext.core.declareEventType('ENABLED')
     DISABLED = ext.core.declareEventType('DISABLED')
     
     def __init__(self, eventHub, name, offset):
-        device.Device.__init__(self, name, eventHub)
+        device.IPowerSource.__init__(self, eventHub)
         self._offset = offset
         self._currentTime = 0.0
+        self._name = name
+    
+    def getName(self):
+        return self._name
     
     def update(self, timestep):
         self._currentTime += timestep
@@ -135,11 +139,11 @@ class PowerSource(device.Device):
             self.publish(PowerSource.DISABLED, core.Event())
         
         
-        event = core.Event()
+        event = ext.math.NumericEvent()
         event.number = self.voltage
         self.publish(PowerSource.VOLTAGE, event)
         
-        event = core.Event()
+        event = ext.math.NumericEvent()
         event.number = self.current
         self.publish(PowerSource.CURRENT, event)
         
