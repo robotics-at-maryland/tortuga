@@ -461,3 +461,99 @@ class RateChangeHeading(Motion):
 
     def stop(self):
         self._conn.disconnect()
+        
+class MoveDirection(Motion):
+    """
+    Moves and asbsolute direction regardless of orientation
+    """
+    
+    def __init__(self, desiredHeading, speed):
+        Motion.__init__(self, _type = Motion.IN_PLANE)
+        
+        self._speed = speed
+        self._direction = math.Quaternion(math.Degree(desiredHeading),
+                                          math.Vector3.UNIT_Z)
+        self._connections = []
+        
+    def _start(self):
+        # Register to recieve ORIENTATION_UPDATE events
+        conn = self._eventHub.subscribe(vehicle.IVehicle.ORIENTATION_UPDATE,
+                                        self._vehicle, self._onOrientation)
+        self._connections.append(conn)
+        
+        self._update()
+        
+    def _update(self):
+        # Start the vehicle forward and create a timer to change the motion
+        self._setSpeeds(self._vehicle.getOrientation())
+        
+    def _setSpeeds(self, orientation):
+        """
+        Steps the speeds to vehicle based on the given orientation
+        """
+        # Direction of desired vehicle motion
+        desiredDirection = self._direction.getYaw(True).valueDegrees()
+        
+        # Vehicle heading in degrees
+        vehicleHeading =  orientation.getYaw(True).valueDegrees()
+        
+        yawTransform = vehicleHeading - desiredDirection
+
+        # Find speed in vehicle cordinates
+        baseSpeed = math.Vector3(self._speed, 0, 0)
+        toVehicleFrame = math.Quaternion(math.Degree(yawTransform),
+                                         math.Vector3.UNIT_Z)
+        vehicleSpeed = toVehicleFrame * baseSpeed
+        
+        # Finally set the speeds
+        self._controller.setSpeed(vehicleSpeed.x)
+        self._controller.setSidewaysSpeed(vehicleSpeed.y)
+        
+    def _onOrientation(self, event):
+        """
+        Corrects commanded speed based on vehicle alignment
+        """
+        self._setSpeeds(event.orientation)
+        
+    def stop(self):
+        """
+        Called by the MotionManager when another motion takes over, stops movement
+        """
+        self._controller.setSpeed(0)
+        self._controller.setSidewaysSpeed(0)
+
+        for conn in self._connections:
+            conn.disconnect()
+            
+class TimedMoveDirection(MoveDirection):
+    COMPLETE = core.declareEventType('COMPLETE')
+    
+    def __init__(self, desiredHeading, speed, duration):
+        MoveDirection.__init__(self, desiredHeading, speed)
+        self._duration = duration
+        self._timer = None
+        
+    def _start(self):
+        # Subscribe to our ending event
+        conn = self._eventHub.subscribeToType(TimedMoveDirection.COMPLETE,
+                                              self._onComplete)
+        self._connections.append(conn)
+        
+        self._startTimer()
+        MoveDirection._start(self)
+        
+    def _onComplete(self, event):
+        self.stop()
+        self._finish()
+
+    def _startTimer(self):
+        self._timer = timer.Timer(self._eventPublisher, 
+                                  TimedMoveDirection.COMPLETE,
+                                  self._duration)
+        self._timer.start()
+        
+    def stop(self):
+        if self._timer is not None:
+            self._timer.stop()
+            self._timer = None
+        MoveDirection.stop(self)

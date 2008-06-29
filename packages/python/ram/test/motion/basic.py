@@ -7,6 +7,7 @@
 
 # STD Imports
 import unittest
+import math as pmath
 
 # Project Imports
 import ext.math as math
@@ -358,6 +359,109 @@ class TestRateChangeHeading(support.MotionTest):
 
         self.assertAlmostEqual(-50, self._getControllerHeading(), 1)
         self.assertEqual(True, self.motionFinished)
+          
+class TestMoveDirection(support.MotionTest):
+    def makeClass(self, *args, **kwargs):
+        return motion.basic.MoveDirection(*args, **kwargs)
+    
+    def testType(self):
+        m = self.makeClass(desiredHeading = 35, speed = 8)
+        expType = motion.basic.Motion.IN_PLANE
+        self.assertEquals(expType, m.type)
+    
+    def testStraight(self):
+        self.vehicle.orientation = math.Quaternion.IDENTITY;
+        
+        m = self.makeClass(desiredHeading = 0, speed = 5)
+        self.motionManager.setMotion(m)
+        
+        self.assertEqual(5, self.controller.speed)
+        self.assertEqual(0, self.controller.sidewaysSpeed)
+        
+    def testRight(self):
+        # Vehicle pointed striagh ahead
+        self.vehicle.orientation = math.Quaternion.IDENTITY
+        
+        m = self.makeClass(desiredHeading = 90, speed = 5)
+        self.motionManager.setMotion(m)
+        
+        self.assertAlmostEqual(0, self.controller.speed, 4)
+        self.assertEqual(-5, self.controller.sidewaysSpeed)
+        
+    def testOffset(self):
+        # Vehicle pointed 30 degrees left
+        self.vehicle.orientation = math.Quaternion(math.Degree(30),
+                                                   math.Vector3.UNIT_Z)
+        
+        # Move in a direction 45 degrees left
+        m = self.makeClass(desiredHeading = 75, speed = 5)
+        self.motionManager.setMotion(m)
+        
+        expectedSpeed = pmath.sqrt(2)/2.0 * 5
+        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 4)
+        self.assertEqual(-expectedSpeed, self.controller.sidewaysSpeed)
+
+    def testOrientationUpdate(self):
+        """Make sure we update when we get an orientation event"""
+        
+        self.vehicle.orientation = math.Quaternion.IDENTITY
+        
+        m = self.makeClass(desiredHeading = -90, speed = 6)
+        self.motionManager.setMotion(m)
+        
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertEqual(6, self.controller.sidewaysSpeed)
+
+        # Change vehicle orientation
+        orientation = math.Quaternion(math.Degree(-45), math.Vector3.UNIT_Z)
+        self.vehicle.publishOrientationUpdate(orientation)
+        self.qeventHub.publishEvents()
+        
+        # Make sure the speeds result from the updated orientation not the
+        # starting one
+        expectedSpeed = pmath.sqrt(2)/2.0 * 6
+        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
+        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
+        
+        self.motionManager.stopCurrentMotion()
+
+class TestTimedMoveDirection(TestMoveDirection):
+    def makeClass(self, *args, **kwargs):
+        if not kwargs.has_key('duration'):
+            kwargs['duration'] = 0
+        return motion.basic.TimedMoveDirection(*args, **kwargs)
+    
+    def testTiming(self):
+        self.finished = False
+        def handler(event):
+            self.finished = True
+        self.eventHub.subscribeToType(motion.basic.Motion.FINISHED,
+                                      handler)
+        
+        # Start it up
+        self.vehicle.orientation = math.Quaternion.IDENTITY
+        m = self.makeClass(desiredHeading = -45, speed = 3, duration = 5.5)
+        self.motionManager.setMotion(m)
+        self.assertFalse(self.finished)
+        
+        # Ensure speeds our present
+        expectedSpeed = pmath.sqrt(2)/2.0 * 3
+        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
+        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
+        
+        # Check Timer
+        mockTimer = \
+            support.MockTimer.LOG[motion.basic.TimedMoveDirection.COMPLETE]
+        self.assertFalse(mockTimer.repeat)
+        self.assertEqual(mockTimer.sleepTime, 5.5)
+        
+        # Finish
+        mockTimer.finish()
+        self.qeventHub.publishEvents()
+        
+        self.assertEqual(0, self.controller.speed)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed)
+        self.assert_(self.finished)
             
 if __name__ == '__main__':
     unittest.main()

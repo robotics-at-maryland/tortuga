@@ -13,6 +13,7 @@ import ext.math as math
 
 import ram.timer
 from ram.motion.basic import Motion
+import ram.motion.basic as basic
 
 class ForwardZigZag(Motion):
     LEG_COMPLETE = core.declareEventType('LEG_COMPLETE')
