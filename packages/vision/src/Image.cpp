@@ -17,6 +17,8 @@
 // Project Includes
 #include "vision/include/OpenCVImage.h"
 
+#include "math/include/Matrix3.h"
+
 static const char* DEBUG_WINDOW = "Debug Image (close w/ESC Key)";
 
 namespace ram {
@@ -42,25 +44,33 @@ void Image::saveToFile(Image* image, std::string fileName)
     cvSaveImage(fileName.c_str(), image->asIplImage());
 }
 
-void Image::rotateAndScale(Image* src, Image* dest,
-                           math::Degree rotation, double scale)
+void Image::transform(Image* src, Image* dest, math::Degree rotation,
+                      double scale, int xTrans, int yTrans,
+                      unsigned char fillR, unsigned char fillG,
+                      unsigned char fillB)
 {
-    float m[6] = {0};
-    CvMat M = cvMat( 2, 3, CV_32F, m );
+    // Create translation matrix
+    math::Matrix3 translate(1, 0, xTrans,
+                            0, 1, yTrans,
+                            0, 0, 1);
+
+    // Create rotation Matrix
+    math::Matrix3 rotate(0, 0, 0,
+                         0, 0, 0,
+                         0, 0, 1.0);
+
+    CvMat R = cvMat(2, 3, CV_64F, rotate[0]);
+    CvPoint2D32f center = {dest->getWidth()/2, dest->getHeight()/2};
+    cv2DRotationMatrix(center, -rotation.valueDegrees(), scale, &R);
+
+    // Combine translation and rotation
+    math::Matrix3 result = translate * rotate;
+    CvMat M = cvMat(3, 3, CV_64F, result[0]);    
     
-    double rotateFactor = rotation.valueRadians();
-    double scaleFactor = 1;
-    if(1.0 != scale)
-        scaleFactor = 1/scale;
-    
-    m[0] = (float)(scaleFactor * cos(rotateFactor));
-    m[1] = (float)(scaleFactor * sin(rotateFactor));
-    m[2] = src->getWidth() * 0.5f;
-    m[3] = -m[1];
-    m[4] = m[0];
-    m[5] = src->getHeight() * 0.5f;
-    
-    cvGetQuadrangleSubPix(src->asIplImage(), dest->asIplImage(), &M);
+    // Change the image (what a crazy function to use for this)
+    cvWarpPerspective(src->asIplImage(), dest->asIplImage(),
+                      &M, CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS,
+                      CV_RGB(fillB, fillG, fillR));
 }
 
 void Image::blitImage(Image* toBlit, Image* src, Image* dest,

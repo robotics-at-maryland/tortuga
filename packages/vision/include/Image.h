@@ -56,9 +56,33 @@ public:
     /** Shows the image on screen (THIS BLOCKS UNTIL CLOSED w/ESC Key) */
     static void showImage(Image* image, std::string name = "");
 
-    /** Rotates and scales the given image */
-    static void rotateAndScale(Image* src, Image* dest, math::Degree rotation,
-                               double scaleFactor = 1.0);
+    /** Rotates, scales, and translates a given image
+     *
+     *  @param src
+     *      The image to be transformed.
+     *  @param dest
+     *      The image where the result of the transformation goes.
+     *  @param rotation
+     *      How much to rotate the image.
+     *  @param scaleFactor
+     *      Changes image size, > 1 makes the image bigger.
+     *  @param xTrans
+     *      How many pixels to translate the images in the x dimension
+     *  @param yTrans
+     *      How many pixels to translate the images in the y dimension
+     *  @param fillR
+     *      The R component of the color to fill in around the rotate image.
+     *  @param fillG
+     *      The G component of the color to fill in around the rotate image.
+     *  @param fillB
+     *      The B component of the color to fill in around the rotate image.
+     */
+    static void transform(Image* src, Image* dest, math::Degree rotation,
+                          double scaleFactor = 1.0, int xTrans = 0,
+                          int yTrans = 0,
+                          unsigned char fillR = 0,
+                          unsigned char fillG = 0,
+                          unsigned char fillB = 0);
 
     /** Blits the images using the clear color to the destination image */
     static void blitImage(Image* toBlit, Image* src, Image* dest,

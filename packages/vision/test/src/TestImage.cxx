@@ -31,7 +31,7 @@ using namespace ram;
 
 SUITE(Image) {
 
-TEST(rotateAndScale)
+TEST(transform)
 {
     vision::Image* reference = vision::Image::loadFromFile(
         (getImagesDir() / "testrotate" / "upright.png").string());
@@ -44,15 +44,18 @@ TEST(rotateAndScale)
     vision::Image* result = new vision::OpenCVImage(640, 480);
 
     // Rotate Image right 30 degrees
-    vision::Image::rotateAndScale(reference, result, math::Degree(30));
+    vision::Image::transform(reference, result, math::Degree(30),
+                             1.0, 0, 0, 255, 255, 255);
     CHECK_CLOSE(*expected30, *result, 1.5);
 
     // Rotate Image right 90 degrees
-    vision::Image::rotateAndScale(reference, result, math::Degree(90));
+    vision::Image::transform(reference, result, math::Degree(90),
+                             1.0, 0, 0, 255, 255, 255);
     CHECK_CLOSE(*expected90, *result, 1);
 
     // Rotate left 25 degrees and scale 20%
-    vision::Image::rotateAndScale(reference, result, math::Degree(-25), 1.2);
+    vision::Image::transform(reference, result, math::Degree(-25), 1.2,
+                             0, 0, 255, 255, 255);
     CHECK_CLOSE(*expectedNeg25Scale, *result, 3.0);
     
     delete reference;

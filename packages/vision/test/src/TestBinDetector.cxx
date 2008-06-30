@@ -255,43 +255,10 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
 
 TEST_FIXTURE(BinDetectorFixture, Suit)
 {
-    // This ROTATES + TRANSLATES + SCALES!
-    /*
-    int x = 150;
-    int y = 50;
-    
-    // Create translation matrix
-    math::Matrix3 translate(1, 0, x,
-                            0, 1, y,
-                            0, 0, 1);
-
-    // Create rotation Matrix
-    math::Matrix3 rotate(0, 0, 0,
-                         0, 0, 0,
-                         0, 0, 1.0);
-
-    CvMat R = cvMat(2, 3, CV_64F, rotate[0]);
-    CvPoint2D32f center = {320, 240};
-    // Rotate: 45 degrees, Scale: 75%, about pt: 320,240
-    cv2DRotationMatrix(center, 45, 0.75, &R);
-
-    // Combine translation and rotation
-    math::Matrix3 result = translate * rotate;
-    CvMat M = cvMat(3, 3, CV_64F, result[0]);    
-    
     // Bin in center
     makeColor(&input, 0, 0, 255);
-    drawBin(&input, 320, 240, 130, 0);
-
-    vision::OpenCVImage output(640, 480);
-    // Change the image (what a crazy function to use for this)
-    cvWarpPerspective(input.asIplImage(), output.asIplImage(),
-                      &M, CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS,
-                      CV_RGB(0, 0, 255));
-    
-    vision::Image::showImage(&input);
-    vision::Image::showImage(&output);
-    */
+    drawBin(&input, 200, 150, 130, 25, vision::Heart);
+//    vision::Image::showImage(&input);
 }
 
 } // SUITE(BinDetector)

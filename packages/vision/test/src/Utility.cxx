@@ -110,21 +110,21 @@ void drawBin(vision::Image* image, int x, int y, int width,
 
         // Scale it down to proper image size 640x480
         cvResize(desired->asIplImage(), scratchImage.asIplImage());
-        //vision::Image::showImage(&scratchImage, "Base");
         
         // Scale and rotate suit to match bin
         int desiredPixelWidth = (int)((double)innerWidth * 2.0/3.0);
         double scaleFactor = ((double)desiredPixelWidth) /
             ((double) scratchImage.getWidth());
 
-        vision::Image::rotateAndScale(&scratchImage, &rotatedAndScaled,
-                                      math::Degree(angle), scaleFactor);
-        //vision::Image::showImage(&rotatedAndScaled, "Rotated And Scaled");
+        int xTrans = x - 320;
+        int yTrans = y - 240;
+        vision::Image::transform(&scratchImage, &rotatedAndScaled,
+                                 math::Degree(-angle), scaleFactor, xTrans,
+                                 yTrans, 255, 255, 255);
 
         // Transform and blit image into the proper place
         vision::Image::blitImage(&rotatedAndScaled, image, image,
-                                 255, 255, 255, x, y);
-        //vision::Image::showImage(image, "Result");
+                                 255, 255, 255, 0, 0);
     }
 }
 
