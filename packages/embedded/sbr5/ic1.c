@@ -1401,6 +1401,7 @@ int main(void)
 
                 byte cs=0;
 
+// sb x x x x distro balancer
                 for(i=0; i<5; i++)
                 {
                     cs += rxBuf[i];

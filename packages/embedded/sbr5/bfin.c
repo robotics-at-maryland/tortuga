@@ -59,17 +59,17 @@ void _ISR _U2RXInterrupt(void)
     IFS1bits.U2RXIF = 0;    /* Clear RX interrupt */
 
 
-    t = U2RXREG;
+//    t = U2RXREG;
 
-    LAT_LED_GREEN = t & 0x01;
-    LAT_LED_YELLOW = t & 0x02;
-    LAT_LED_RED = t & 0x04;
+//    LAT_LED_GREEN = t & 0x01;
+//    LAT_LED_YELLOW = t & 0x02;
+//    LAT_LED_RED = t & 0x04;
 
 
-/*
+
     TMR2 = 0;
     OC3RS = ((unsigned char)(U2RXREG & 0xFF));
-*/
+
 
 }
 
@@ -91,7 +91,7 @@ void initJPortal()
     OC3CON = 0x0000;
     OC3CONbits.OCTSEL = 0;  /* Use Timer2 */
     OC3CONbits.OCM = 0x6;   /* PWM, fault pin disabled */
-    PR2 = 300;
+    PR2 = 255;
     OC3RS = 0;
     T2CONbits.TCKPS = 0;    /* No prescaler */
     T2CONbits.TON = 1;      /* Start Timer2 */
@@ -124,16 +124,18 @@ void main()
     while(IN_U1_RX != 0);            /* Wait for FPGA to initialize */
     LAT_LED_RED = ~LED_ON;
 
-    for(l=0; l<200000; l++);     /* Wait a little bit more */
+    for(l=0; l<1600000; l++);     /* Wait a little bit more */
     LAT_LED_YELLOW = ~LED_ON;
     LAT_LED_GREEN = LED_ON;
 
 
     TRIS_BF_RESET = TRIS_IN;    /* Start the Blackfin */
 
-    for(l=0; l<200000; l++);     /* Wait a little bit more before accepting commands */
+    for(l=0; l<1600000; l++);     /* Wait a little bit more before accepting commands */
 
     initUart();
+    initJPortal();
 
+    OC3RS = 128;
     while(1);
 }
