@@ -54,8 +54,10 @@ r = abs(r');
 blockMax = r;
 r = (r / min(r));
 
-% Find where R increases the quickest
-rRate = (r(2:length(r)) ./ r(1:length(r)-1));
+% Find where R increases the most
+% Subtraction here means trigger on the highest jump
+% Division here means steepest slope. Highest jump makes more sense to me.
+rRate = (r(2:length(r)) - r(1:length(r)-1));
 imr = find(rRate == max(rRate));
 
 blockIndex = imr+1;
