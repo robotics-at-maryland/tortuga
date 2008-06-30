@@ -1,6 +1,8 @@
+CC = gcc
+
 all: triggertest
 
-triggertest: dataset.c trigger.c triggertest.c trigger.h dataset.h
+triggertest: dataset.o trigger.o triggertest.o trigger.h dataset.h
 
 clean:
 	rm -rf triggertest *.o *~

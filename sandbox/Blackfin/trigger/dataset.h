@@ -5,12 +5,7 @@
 
 #define MAX_SEGMENTS    255
 
-struct dataset
-{
-    int size;
-    int numUnits;
-    signed short * data[MAX_SEGMENTS][4];
-};
+struct dataset;
 
 
 struct dataset * createDataset(int size);

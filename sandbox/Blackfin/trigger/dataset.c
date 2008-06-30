@@ -7,6 +7,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+struct dataset
+{
+    int size;
+    int numUnits;
+    signed short * data[MAX_SEGMENTS][4];
+};
 
 
 struct dataset * createDataset(int size)
@@ -83,7 +89,7 @@ signed short getSample(struct dataset* s, int ch, int index)
 
     if(index < 0 || index >= s->size)
     {
-        fprintf(stderr, "Sample index out of range! Max: %d\n, requested: %d\n", s->size-1, index);
+        fprintf(stderr, "Sample index out of range! Max: %d, requested: %d\n", s->size-1, index);
         return -1;
     }
     int unit = index >> ALLOC_UNIT_NUMBITS;
