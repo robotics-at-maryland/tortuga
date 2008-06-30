@@ -6,12 +6,21 @@
 
 int main()
 {
-//      testDataset();
-    struct dataset * s = loadDataset("/home/steve/r0.bin");
-    int i;
+//     testDataset();
+//     struct dataset * s = loadDataset("/home/steve/r0.bin");
+//     blockTrigger(s, 0, 214456);
 
-    /* Matlab says that's where the DFT max is */
-    blockTrigger(s, 0, 214456);
+    struct dataset * s = loadDataset("/home/steve/r90.bin");
+    blockTrigger(s, 0, 132704);
+
+//     struct dataset * s = loadDataset("/home/steve/r180.bin");
+//     blockTrigger(s, 0, 99368);
+
+//     struct dataset * s = loadDataset("/home/steve/r270.bin");
+//     blockTrigger(s, 0, 226472);
+
+//     struct dataset * s = loadDataset("/home/steve/r360.bin");
+//     blockTrigger(s, 0, 97320);
 }
 
 

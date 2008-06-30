@@ -39,17 +39,19 @@ int blockTrigger(struct dataset * s, int ch, int highestDftSample)
     for(i=searchStart; i<searchEnd; i+= BLOCKSIZE)
     {
         lastBlockMax = blockMax;
-        blockMax = getSample(s, ch, i+j);
+        blockMax = sAbs(getSample(s, ch, i+j));
 
         /* Find maximum of this block */
         for(j=0; j<BLOCKSIZE; j++)
         {
-            signed short curSample = getSample(s, ch, i+j);
+            signed short curSample = sAbs(getSample(s, ch, i+j));
             if(sAbs(curSample) > blockMax)
                 blockMax = curSample;
         }
 
         blockJump = abs(blockMax - lastBlockMax);
+
+//         printf("\tbm: %d\n", blockMax);
 
         if(blockJump > highestJump)
         {
