@@ -105,11 +105,20 @@ class Thruster(device.IThruster):
                 
     def update(self, timestep):
         self._currentTime += timestep
-        self.force = 100 * math.sin(self._currentTime + self._offset)
+        sinVal = math.sin(self._currentTime + self._offset)
+        self.force = 100 * sinVal
+        self.current = 3 * sinVal + 3
         
-        event = core.Event()
+        event = ext.math.NumericEvent()
         event.number = self.force
         self.publish(device.IThruster.FORCE_UPDATE, event)
+        
+        event = ext.math.NumericEvent()
+        event.number = self.current
+        self.publish(device.ICurrentProvider.UPDATE, event)
+    
+    def getCurrent(self):
+        return self.current
         
     def getMinForce(self):
         return -100;
@@ -127,6 +136,18 @@ class PowerSource(device.IPowerSource):
     def getName(self):
         return self._name
     
+    def getVoltage(self):
+        return self.voltage
+    
+    def getCurrent(self):
+        return self.current
+    
+    def isEnabled(self):
+        return self.enabled
+    
+    def inUse(self):
+        return self.inUse
+    
     def update(self, timestep):
         self._currentTime += timestep
         
@@ -139,6 +160,13 @@ class PowerSource(device.IPowerSource):
         else:
             self.enabled = False
             self.publish(device.IPowerSource.DISABLED, core.Event())
+        
+        if math.sin(self._currentTime + self._offset + 1) >= 0:
+            self.inUse= True
+            self.publish(device.IPowerSource.USING, core.Event())
+        else:
+            self.inUse = False
+            self.publish(device.IPowerSource.NOT_USING, core.Event())
         
         
         event = ext.math.NumericEvent()

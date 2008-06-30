@@ -57,7 +57,7 @@ TEST_FIXTURE(SBPowerSourceFixture, getVoltage)
     CHECK_EQUAL(0.0, powerSource->getVoltage());
 
     // Publish event and check values
-    sensorBoard->publishPowerSourceUpdate(1, false, 12.5, 0);
+    sensorBoard->publishPowerSourceUpdate(1, false, false, 12.5, 0);
     CHECK_EQUAL(12.5, powerSource->getVoltage());
 }
 
@@ -73,7 +73,7 @@ TEST_FIXTURE(SBPowerSourceFixture, getCurrent)
     CHECK_EQUAL(0.0, powerSource->getCurrent());
 
     // Publish event and check values
-    sensorBoard->publishPowerSourceUpdate(2, false, 0, 18.5);
+    sensorBoard->publishPowerSourceUpdate(2, false, false, 0, 18.5);
     CHECK_EQUAL(18.5, powerSource->getCurrent());
 }
 
@@ -89,8 +89,24 @@ TEST_FIXTURE(SBPowerSourceFixture, isEnabled)
     CHECK_EQUAL(false, powerSource->isEnabled());
 
     // Publish event and check values
-    sensorBoard->publishPowerSourceUpdate(4, true, 0, 0);
+    sensorBoard->publishPowerSourceUpdate(4, true, false, 0, 0);
     CHECK_EQUAL(true, powerSource->isEnabled());
+}
+
+TEST_FIXTURE(SBPowerSourceFixture, used)
+{
+    powerSource = new ram::vehicle::device::SBPowerSource(
+        ram::core::ConfigNode::fromString("{ 'id' : 2 }"),
+        ram::core::EventHubPtr(), ivehicle);
+
+    CHECK_EQUAL("Batt 3", powerSource->getName());
+
+    // Check default
+    CHECK_EQUAL(false, powerSource->inUse());
+
+    // Publish event and check values
+    sensorBoard->publishPowerSourceUpdate(2, true, true, 0, 0);
+    CHECK_EQUAL(true, powerSource->inUse());
 }
 
 TEST_FIXTURE(SBPowerSourceFixture, updateID)
@@ -105,6 +121,6 @@ TEST_FIXTURE(SBPowerSourceFixture, updateID)
     CHECK_EQUAL(false, powerSource->isEnabled());
 
     // Publish event and make sure it didn't change
-    sensorBoard->publishPowerSourceUpdate(4, true, 0, 0);
+    sensorBoard->publishPowerSourceUpdate(4, true, false, 0, 0);
     CHECK_EQUAL(false, powerSource->isEnabled());
 }

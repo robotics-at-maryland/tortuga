@@ -47,7 +47,7 @@ public:
     
     virtual bool isEnabled();
 
-    //virtual bool inUse() = 0;
+    virtual bool inUse();
 
     virtual std::string getName() { return Device::getName(); }
     
@@ -86,6 +86,7 @@ private:
 
     core::ReadWriteMutex m_mutex;
     bool m_enabled;
+    bool m_inUse;
     double m_voltage;
     double m_current;
 

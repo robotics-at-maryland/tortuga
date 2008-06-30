@@ -398,7 +398,6 @@ class TempSensorDisplay(object):
                                innerBorder = 1,
                                valueList = valueList, barType=wx.HORIZONTAL)
         
-        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
         size = (textWidth, wx.DefaultSize.height)
         self._textBox = wx.TextCtrl(parent, size = size)
 
@@ -452,18 +451,19 @@ class PowerSourceDisplay(object):
                                innerBorder = 1,
                                valueList = valueList, barType=wx.HORIZONTAL)
         
-        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
         size = (textWidth, wx.DefaultSize.height)
         self._textBox = wx.TextCtrl(parent, size = size)
 
         
         self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
+        self._inUseLED = ram.gui.led.LED(parent, state = 3)#, size = size)
         
         # Add them to sizer
         sizer.Add(label, (lineNum, 0),flag = wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._textBox, (lineNum, 1), flag = wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self._gauge, (lineNum, 2), flag = wx.EXPAND)
         sizer.Add(self._enableLED, (lineNum, 3), flag = wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._inUseLED, (lineNum, 4), flag = wx.ALIGN_CENTER_VERTICAL)
         
         # Subscribe to events
         def subscribe(_type, handler):
@@ -478,6 +478,9 @@ class PowerSourceDisplay(object):
             raise Exception, "Error, invalid mode"
         subscribe(device.IPowerSource.ENABLED, self._enable)
         subscribe(device.IPowerSource.DISABLED, self._disable)
+        subscribe(device.IPowerSource.USING, self._inUse)
+        subscribe(device.IPowerSource.NOT_USING, self._notInUse)
+    
     
     def _update(self, event):
         self._textBox.Value = "%5.2f" % event.number
@@ -488,6 +491,12 @@ class PowerSourceDisplay(object):
     
     def _disable(self, event):
         self._enableLED.SetState(0)
+        
+    def _inUse(self, event):
+        self._inUseLED.SetState(2)
+    
+    def _notInUse(self, event):
+        self._inUseLED.SetState(0)
     
     def disconnect(self):
         for conn in self._connections:

@@ -23,7 +23,8 @@ public:
         Device(name),
         voltage(0.0),
         current(0.0),
-        enabled(false)
+        enabled(false),
+        used(false)
         {}
 
     virtual std::string getName() {
@@ -36,11 +37,14 @@ public:
 
     virtual bool isEnabled() { return enabled; }
 
+    virtual bool inUse() { return used; }
+
     //virtual void setEnabled(bool state) { enabled = state; }
     
     double voltage;
     double current;
     bool enabled;
+    bool used;
 
     virtual void setPriority(ram::core::IUpdatable::Priority) {};
     virtual ram::core::IUpdatable::Priority getPriority() {

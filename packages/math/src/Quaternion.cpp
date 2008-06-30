@@ -670,7 +670,7 @@ namespace math {
 		//result vector
 		MatrixN result(4,1);
 		result = 0.5*Q*velocityN;
-		std::cout << "result = " << result[0][0] << " " << result[1][0] << " " << result[2][0] << " " << result[3][0] << std::endl;
+		//std::cout << "result = " << result[0][0] << " " << result[1][0] << " " << result[2][0] << " " << result[3][0] << std::endl;
 		Quaternion ret(result[0][0], result[1][0], result[2][0],result[3][0]);
 		
 		return ret;

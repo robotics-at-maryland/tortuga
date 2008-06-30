@@ -36,12 +36,16 @@ public:
     static const core::Event::EventType ENABLED;
     /** Fired when the power source becomes disabled */
     static const core::Event::EventType DISABLED;
+    /** Fired when the power source becomes inUse */
+    static const core::Event::EventType USING;
+    /** Fired when the power source becomes stops being used */
+    static const core::Event::EventType NOT_USING;
     
     virtual ~IPowerSource();
 
     virtual bool isEnabled() = 0;
 
-    //virtual bool inUse() = 0;
+    virtual bool inUse() = 0;
     
 protected:
     IPowerSource(core::EventHubPtr eventHub = core::EventHubPtr());  

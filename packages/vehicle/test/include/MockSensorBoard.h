@@ -55,15 +55,15 @@ public:
     bool thrusterEnables[6];
     int thrusterValues[6];
 
-    void publishPowerSourceUpdate(int id, bool enabled, double voltage,
-                                  double current)
+    void publishPowerSourceUpdate(int id, bool enabled, bool inUse,
+                                  double voltage, double current)
     {
         ram::vehicle::PowerSourceEventPtr event(
             new ram::vehicle::PowerSourceEvent);
         
         event->id = id;
         event->enabled = enabled;
-//        event->inUse = inUse;
+        event->inUse = inUse;
         event->voltage = voltage;
         event->current = current;
 

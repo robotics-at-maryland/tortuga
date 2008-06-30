@@ -20,7 +20,7 @@ struct PowerSourceEvent : public core::Event
 {
     int id;
     bool enabled;
-//    bool inUse;
+    bool inUse;
     float voltage;
     float current;
 };

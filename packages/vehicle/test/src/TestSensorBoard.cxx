@@ -216,6 +216,7 @@ TEST_FIXTURE(SensorBoardFixture, event_POWERSOURCE_UPDATE)
     float expectedVoltages[5] = {9.3, 8.6, 5.7, 3.3, 0};
     float expectedCurrents[5] = {2.23, 16.2, 5.3, 2.6, 0};
     bool expectedEnables[5] = {true, false, false, true, false};
+    bool expectedUsed[5] = {false, true, true, false, false};
 
     // Set values to be returned
     sb->updateDone = true;
@@ -224,6 +225,7 @@ TEST_FIXTURE(SensorBoardFixture, event_POWERSOURCE_UPDATE)
     memcpy(expectedCurrents, &(sb->currentTelemetry.powerInfo.battCurrents),
            sizeof(expectedCurrents));
     sb->currentTelemetry.battEnabled = BATT1_ENABLED | BATT4_ENABLED;
+    sb->currentTelemetry.battUsed = BATT2_INUSE | BATT3_INUSE;
 
     PowerSourceEventPtrList eventList;
     ram::core::EventConnectionPtr conn = sb->subscribe(
@@ -237,17 +239,20 @@ TEST_FIXTURE(SensorBoardFixture, event_POWERSOURCE_UPDATE)
     float actualVoltages[5] = {0};
     float actualCurrents[5] = {0};
     bool actualEnables[5] = {0};
+    bool actualUsed[5] = {0};
     
     for (size_t i = 0; i < LENGTH(expectedVoltages); ++i)
     {
         actualVoltages[i] = eventList[i]->voltage;
         actualCurrents[i] = eventList[i]->current;
         actualEnables[i] = eventList[i]->enabled;
+        actualUsed[i] = eventList[i]->inUse;
     }
 
     CHECK_ARRAY_EQUAL(expectedVoltages, actualVoltages, 5);
     CHECK_ARRAY_EQUAL(expectedCurrents, actualCurrents, 5);
     CHECK_ARRAY_EQUAL(expectedEnables, actualEnables, 5);
+    CHECK_ARRAY_EQUAL(expectedUsed, actualUsed, 5);
     
     conn->disconnect();
 }

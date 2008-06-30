@@ -288,20 +288,20 @@ void SensorBoard::powerSourceEvents(struct boardInfo* telemetry)
         BATT5_ENABLED
     };
 
-/*    static int id2InUse[5] = {
+    static int id2InUse[5] = {
         BATT1_INUSE,
         BATT2_INUSE,
         BATT3_INUSE,
         BATT4_INUSE,
         BATT5_INUSE
-        };*/
+    };
     
     for (int i = BATTERY_1; i <= SHORE; ++i)
     {
         PowerSourceEventPtr event(new PowerSourceEvent);
         event->id = i;
         event->enabled = telemetry->battEnabled & id2Enable[i];
-//        event->inUse = telemetry->status & id2InUse[i];
+        event->inUse = telemetry->battUsed & id2InUse[i];
         event->voltage = telemetry->powerInfo.battVoltages[i];
         event->current = telemetry->powerInfo.battCurrents[i];
         publish(POWERSOURCE_UPDATE, event);
