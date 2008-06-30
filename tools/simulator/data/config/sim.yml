@@ -188,7 +188,8 @@ Subsystems:
             #Main: pipe.sml
             #Main: transdec.sml
             #Main: buoy.sml
-            Main: nxtest.sml
+            #Main: nxtest.sml
+            Main: bin.sml
         
         Graphics:
             Plugins:

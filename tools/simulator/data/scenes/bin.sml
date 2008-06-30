@@ -27,14 +27,25 @@ Scene:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
     
     Objects:  
-        bin:
+        spadeBin:
+            type: [sim.vision.IBin, sim.vision.Bin]
+            position: [-15,  0.35992, -3.05]
+            suit: 'Spade'
+    
+        clubBin:
             type: [sim.vision.IBin, sim.vision.Bin]
             position: [-15, 1, -3.05]
-                        
-            Graphical:
-                mesh: 'box.mesh'
-                material: 'CompElement/Bin'
-                scale: [0.9144, 0.6096, 0.0254]
+            suit: 'Club'
+            
+        heartBin:
+            type: [sim.vision.IBin, sim.vision.Bin]
+            position: [-15, 1.64008, -3.05]
+            suit: 'Heart'
+            
+        diamondBin:
+            type: [sim.vision.IBin, sim.vision.Bin]
+            position: [-15, 2.28016, -3.05]
+            suit: 'Diamond'
           
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

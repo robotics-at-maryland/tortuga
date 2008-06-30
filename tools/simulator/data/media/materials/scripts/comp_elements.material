@@ -41,3 +41,63 @@ material CompElement/Bin
 		}
 	}
 }
+
+material CompElement/SpadeBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture spade_bin.png
+			}
+		}
+	}
+}
+
+material CompElement/ClubBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture club_bin.png
+			}
+		}
+	}
+}
+
+material CompElement/DiamondBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture diamond_bin.png
+			}
+		}
+	}
+}
+
+material CompElement/HeartBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture heart_bin.png
+			}
+		}
+	}
+}

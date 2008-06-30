@@ -71,16 +71,54 @@ class Pipe(Visual):
 class Bin(Visual):
     core.implements(IVisual, IBin)
     
+    NONE = 1
+    CLUB = 2
+    HEART = 3
+    SPADE = 4
+    DIAMOND = 5
+    
     @two_step_init
     def __init__(self):
         Visual.__init__(self)
 
     def load(self, data_object):
         scene, parent, node = data_object
+        # Automatically fill in the graphical data
+        if not node.has_key('Graphical'):
+            # Default mesh and scale info
+            gfxNode = {'mesh' : 'box.mesh', 'scale' : [0.9144, 0.6096, 0.0254]}
+            
+            # Determine suit material
+            material = 'CompElement/Bin'
+            
+            _type = node.get('suit', '').lower()
+            self._suit = Bin.NONE
+            possibleSuits = set(['heart','spade','club','diamond'])
+            if _type in possibleSuits:
+                # Added the suit name to the base (first letter caps
+                material = 'CompElement/' + _type[0].upper() + _type[1:] + 'Bin'
+                
+                # Set suit type
+                typeToFlag = {'club' : Bin.CLUB, 'heart' : Bin.HEART,
+                              'spade' : Bin.SPADE, 'diamond' : Bin.DIAMOND}
+                self._suit = typeToFlag[_type]
+
+            gfxNode['material'] = material
+                
+            # Load the node
+            node['Graphical'] = gfxNode
+            
+
+        else:
+            self._suit = Bin.NONE
         Visual.load(self, (scene, parent, node))
         
     def save(self, data_object):
         raise "Not yet implemented"
+    
+    @property
+    def suit(self):
+        return self._suit
 
 class IdealSimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
