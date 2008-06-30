@@ -15,7 +15,8 @@ import wx
 from ram.core import Component, implements
 
 from ram.gui.view import IPanelProvider
-from oci.view.controls import DepthBar, MultiBar, RotationCtrl, PowerSourceDisplay
+from oci.view.controls import DepthBar, MultiBar, RotationCtrl
+from oci.view.controls import PowerSourceDisplay, TempSensorDisplay
 import oci.model.subsystem as subsystemMod
 
 import ext.math
@@ -275,6 +276,57 @@ class RotationPanel(wx.Panel):
         
         return []
     
+class TempSensorPanel(wx.Panel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub, tempSensors, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        self._tempSensors = tempSensors
+        self._tempDisplays = []
+        
+        sizer =  wx.GridBagSizer(10, 10)
+        lineNum = 0
+  
+        for item in self._tempSensors:
+            # Create Control
+            display = TempSensorDisplay(parent = self, eventHub = eventHub,
+                                        tempSensor = item,
+                                        sizer = sizer, lineNum = lineNum)                       
+            self._tempDisplays.append(display)
+            lineNum += 1
+            
+        # Only gauge column is growable
+        sizer.AddGrowableCol(2)
+        
+        self.SetSizerAndFit(sizer)
+    
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
+                                                     subsystems)
+        
+        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+                                                        subsystems)
+        
+        if vehicle is not None:
+            # Get All the current PowerSources the vehicle has
+            tempSensors = []
+            names = vehicle.getDeviceNames()
+            
+            for i in range(0,len(names)):
+                dev = vehicle.getDevice(names[i])
+                if isinstance(dev, ext.vehicle.device.ITempSensor):
+                    tempSensors.append(dev)
+    
+            # Only create the panel if there are tempSensorss on the vehicle        
+            if len(tempSensors):
+                paneInfoV = wx.aui.AuiPaneInfo().Name("Temperatures")
+                paneInfoV = paneInfoV.Caption("Temperatures").Bottom()
+                panelV = TempSensorPanel(parent, eventHub, tempSensors)                
+                return [(paneInfoV, panelV, [vehicle])]
+            
+        return []
+    
     
 class PowerSourcePanel(wx.Panel):
     implements(IPanelProvider)
@@ -284,7 +336,6 @@ class PowerSourcePanel(wx.Panel):
         
     def __init__(self, parent, eventHub, powerSources, mode, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
-        self._connections = []
         self._powerSources = powerSources
         self._powerDisplays = []
         
@@ -306,20 +357,6 @@ class PowerSourcePanel(wx.Panel):
         sizer.AddGrowableCol(2)
         
         self.SetSizerAndFit(sizer)
-        
-    def _update(self, bar):
-        def handler(event):
-            bar.setVal(event.number)
-        return handler
-    
-    def _onClose(self, closeEvent):
-        for conn in self._connections:
-            conn.disconnect()
-        
-        for display in self._powerDisplays:
-            display.disconnect()
-        
-        closeEvent.Skip()
     
     @staticmethod
     def getPanels(subsystems, parent):
@@ -355,7 +392,6 @@ class PowerSourcePanel(wx.Panel):
                         (paneInfoC, panelC, [vehicle])]
             
         return []
-    
 
 class DemoSonarPanel(wx.Panel):
     implements(IPanelProvider)

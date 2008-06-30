@@ -14,6 +14,7 @@ import wx
 import math as pmath
 import ext.core as core
 import ext.math as math
+import ext.vehicle.device as device
 
 import oci.model.subsystem as subsystemMod
 import ram.gui.led
@@ -378,6 +379,49 @@ class RotationCtrl(wx.Panel):
         gc.DrawText(rotStr, xCenter - textAreaWidth / 2 + leftOffset, 
                             yCenter - textAreaHeight / 2)
         
+class TempSensorDisplay(object):
+    def __init__(self, parent, eventHub, tempSensor, sizer, lineNum):
+        self._connections = []
+
+        # Get a size reference
+        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
+
+        # Create controls
+        label = wx.StaticText(parent, wx.ID_ANY, tempSensor.getName())
+
+        yellow = wx.Color(255, 255, 0)
+        colorList = [wx.GREEN, yellow, wx.RED]
+        valueList = [0, 50, 55, 65]
+            
+        self._gauge = MultiBar(parent, colorList = colorList, 
+                               size = (textWidth, textHeight),
+                               innerBorder = 1,
+                               valueList = valueList, barType=wx.HORIZONTAL)
+        
+        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
+        size = (textWidth, wx.DefaultSize.height)
+        self._textBox = wx.TextCtrl(parent, size = size)
+
+        # Add them to sizer
+        sizer.Add(label, (lineNum, 0),flag = wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._textBox, (lineNum, 1), flag = wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self._gauge, (lineNum, 2), flag = wx.EXPAND)
+        
+        # Subscribe to events
+        def subscribe(_type, handler):
+            conn = eventHub.subscribe(_type, tempSensor, handler)
+            self._connections.append(conn) 
+
+        subscribe(device.ITempSensor.UPDATE, self._update)
+    
+    def _update(self, event):
+        self._textBox.Value = "%5.2f" % event.number
+        self._gauge.setVal(event.number)
+    
+    def disconnect(self):
+        for conn in self._connections:
+            conn.disconnect()
+        
 class PowerSourceDisplay(object):
     VOLTAGE = 1
     CURRENT = 2
@@ -427,13 +471,13 @@ class PowerSourceDisplay(object):
             self._connections.append(conn) 
             
         if mode == PowerSourceDisplay.VOLTAGE:
-            subscribe(subsystemMod.PowerSource.VOLTAGE, self._update)
+            subscribe(device.IVoltageProvider.UPDATE, self._update)
         elif mode == PowerSourceDisplay.CURRENT:           
-            subscribe(subsystemMod.PowerSource.CURRENT, self._update)
+            subscribe(device.ICurrentProvider.UPDATE, self._update)
         else:
             raise Exception, "Error, invalid mode"
-        subscribe(subsystemMod.PowerSource.ENABLED, self._enable)
-        subscribe(subsystemMod.PowerSource.DISABLED, self._disable)
+        subscribe(device.IPowerSource.ENABLED, self._enable)
+        subscribe(device.IPowerSource.DISABLED, self._disable)
     
     def _update(self, event):
         self._textBox.Value = "%5.2f" % event.number

@@ -35,12 +35,19 @@ class Vehicle(vehicle.IVehicle):
         self._addPowerSource(eventHub, 'Batt 3', 3)
         self._addPowerSource(eventHub, 'Batt 4', 4)
         self._addPowerSource(eventHub, 'Shore', 5)
+        
+        self._addTempSensor(eventHub, 'Sensor Board', 1)
+        self._addTempSensor(eventHub, 'Balancer Board', 2)
+        self._addTempSensor(eventHub, 'Distro Board', 3)
 
     def _addThruster(self, eventHub, name, offset):
         self._devices[name] = Thruster(eventHub, name, offset)
         
     def _addPowerSource(self, eventHub, name, offset):
         self._devices[name] = PowerSource(eventHub, name, offset)
+        
+    def _addTempSensor(self, eventHub, name, offset):
+        self._devices[name] = TempSensor(eventHub, name, offset)
 
     def backgrounded(self):
         return False
@@ -111,11 +118,6 @@ class Thruster(device.IThruster):
         return 100;
         
 class PowerSource(device.IPowerSource):
-    VOLTAGE = ext.core.declareEventType('VOLTAGE')
-    CURRENT = ext.core.declareEventType('CURRENT')
-    ENABLED = ext.core.declareEventType('ENABLED')
-    DISABLED = ext.core.declareEventType('DISABLED')
-    
     def __init__(self, eventHub, name, offset):
         device.IPowerSource.__init__(self, eventHub)
         self._offset = offset
@@ -133,20 +135,39 @@ class PowerSource(device.IPowerSource):
         self.current = 5.0 * sinVal + 5
         if sinVal >= 0:
             self.enabled = True
-            self.publish(PowerSource.ENABLED, core.Event())
+            self.publish(device.IPowerSource.ENABLED, core.Event())
         else:
             self.enabled = False
-            self.publish(PowerSource.DISABLED, core.Event())
+            self.publish(device.IPowerSource.DISABLED, core.Event())
         
         
         event = ext.math.NumericEvent()
         event.number = self.voltage
-        self.publish(PowerSource.VOLTAGE, event)
+        self.publish(device.IVoltageProvider.UPDATE, event)
         
         event = ext.math.NumericEvent()
         event.number = self.current
-        self.publish(PowerSource.CURRENT, event)
+        self.publish(device.ICurrentProvider.UPDATE, event)
         
+class TempSensor(device.ITempSensor):
+    def __init__(self, eventHub, name, offset):
+        device.ITempSensor.__init__(self, eventHub)
+        self._offset = offset
+        self._currentTime = 0.0
+        self._name = name
+    
+    def getName(self):
+        return self._name
+    
+    def update(self, timestep):
+        self._currentTime += timestep
+        
+        sinVal = math.sin(self._currentTime + self._offset)
+        self.temp = 20 * sinVal + 39
+
+        event = ext.math.NumericEvent()
+        event.number = self.temp
+        self.publish(device.ITempSensor.UPDATE, event)
 
 class DemoSonar(core.Subsystem, core.EventPublisher):
     """
