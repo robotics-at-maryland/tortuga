@@ -5,7 +5,6 @@ D = textread('/tmp/dataD.txt');
 
 DA = A;
 
-
 Range = 1:length(A);
 
 close all
@@ -28,7 +27,7 @@ hold on
 % Max DFT with backtracking and mini-blocks.
 backtrackSize = 2000;
 d=0; for t=backtrackSize:length(DA)/8-512/8; l = abs(fft(DA(t*8:(t*8)+512))); d(t)=l(27); end; md = max(d);
-id = find(d == md) * 8
+id = find(d == md) * 8;
 
 
 %d=0; for t=1:length(DA)/512-1; l = abs(fft(DA(t*512:(t*512)+512))); d(t)=l(27); end;
@@ -47,11 +46,12 @@ plot(triggerPoint, DA(triggerPoint), '.')
 Range = (searchStart:triggerPoint);
 
 
-DA = DA(Range);
+DA = abs(DA(Range));
 
 % Block size = a few cycles of wave
 BL=50; r=0; for x=1:length(DA)/BL; r(x) = max(DA(x*BL:min((x+1)*BL, length(DA)))); end;
 r = abs(r');
+blockMax = r;
 r = (r / min(r));
 
 % Find where R increases the quickest
@@ -59,18 +59,27 @@ rRate = (r(2:length(r)) ./ r(1:length(r)-1));
 imr = find(rRate == max(rRate));
 
 blockIndex = imr+1;
-x = (blockIndex*BL) + searchStart
+x = (blockIndex*BL) + searchStart;
 
 
 figure
 Range = (searchStart:triggerPoint);
-plot((Range),A(Range),'g-', ...
+plot((Range),abs(A(Range)),'y-', ...
+    (Range),A(Range),'g-', ...
     (Range),B(Range),'b-', ...
     (Range),C(Range),'r-', ...
     (Range),D(Range),'m-')
 hold on
 plot(x, A(x), '.')
 title 'Ping edge trigger point'
+
+blockRange = BL+searchStart + (1:length(DA)/BL)*BL;
+
+xPoints=[blockRange', blockRange']';
+for i=2:length(blockRange)-1; plot([blockRange(i-1), blockRange(i-1)+BL], [blockMax(i), blockMax(i)], 'r-'); end
+
+plot(blockRange-BL, blockMax, 'k-');
+plot(blockRange-BL, blockMax, '.')
 
 
 figure
