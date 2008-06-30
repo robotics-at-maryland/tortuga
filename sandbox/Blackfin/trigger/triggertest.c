@@ -6,7 +6,11 @@
 
 int main()
 {
-    testDataset();
+//     testDataset();
+    struct dataset * s = loadDataset("/home/steve/r0.bin");
+    int i;
+    for(i=0; i<10; i++)
+        printf("%d\n", getSample(s, 1, i));
 }
 
 

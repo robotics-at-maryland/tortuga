@@ -3,6 +3,11 @@
 #include <string.h>
 #include "dataset.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+
 
 struct dataset * createDataset(int size)
 {
@@ -110,4 +115,37 @@ int putSample(struct dataset* s, int ch, int index, signed short value)
     int offset = index & ALLOC_UNIT_MASK;
 
     *(s->data[unit][ch]+offset) = value;
+}
+
+struct dataset * loadDataset(const char * filename)
+{
+    struct stat fileStat;
+    if(stat(filename, &fileStat) != 0)
+    {
+        printf("could not stat file\n");
+        return NULL;
+    }
+    fprintf(stderr, "Loading a dataset of %d bytes\n", fileStat.st_size);
+    struct dataset * s = createDataset(fileStat.st_size / 8);
+
+    if(!s)
+    {
+        fprintf(stderr, "Could not allocate memory for dataset\n");
+        exit(-1);
+    }
+
+    FILE * f = fopen(filename, "rb");
+
+    if(!f)
+    {
+        fprintf(stderr, "Could not open dataset\n");
+        destroyDataset(s);
+        return NULL;
+    }
+
+    int i, j;
+    for(i=0; i<fileStat.st_size / 8; i++)
+        for(j=0; j<4; j++)
+            putSample(s, j, i, (signed short) (fgetc(f) | (fgetc(f) << 8)));
+    return s;
 }
