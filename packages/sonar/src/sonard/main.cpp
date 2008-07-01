@@ -12,6 +12,7 @@
 
 #include "spectrum/SparseSDFTSpectrum.h"
 #include "PulseTrigger.h"
+#include "fixed/fixed.h"
 #include "math/include/MatrixN.h"
 #include "math/include/Vector3.h"
 
@@ -33,23 +34,14 @@ static const int kBands[] = {kBandOfInterest, kBandOfInterest - kBandOffCenterAm
 static const float holdoffTime = .1;//	Holdoff until looking for next ping (seconds)
 static const size_t holdoffSamples = (size_t) (holdoffTime * fs);// Number of samples to holdoff
 
-static const double hydroStructureArray[4][4] = 
+static const double hydroStructureArray[3][3] = 
 {
-	{0,      0.984, 0,     0},
-	{0.492,  0.492, 0.696, 0},
-	{-0.492, 0.492, 0.696, 0},
-	{0,      0,     0,     1}
+	{0,      0.984, 0,   },
+	{0.492,  0.492, 0.696},
+	{-0.492, 0.492, 0.696}
 };
 
-const MatrixN hydroStructure (*hydroStructureArray, 4, 4);
-
-int64_t myAbs(int64_t x)
-{
-	if (x < 0)
-		return -x;
-	else
-		return x;
-}
+const MatrixN hydroStructure (*hydroStructureArray, 3, 3);
 
 int main(int argc, char *argv[])
 {
@@ -73,14 +65,9 @@ int main(int argc, char *argv[])
 		spectrum.update(sample);
 		
 		for (int channel = 0 ; channel < nChannels ; channel ++)
-		{
 			for (int kidx = 0 ; kidx < nKBands ; kidx ++)
-			{
-				const complex<int64_t> &cmplx = spectrum.getAmplitudeForBinIndex(kidx, channel);
-				int64_t L1 = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
-				triggerVals[nChannels * kidx + channel] = L1;
-			}
-		}
+				triggerVals[nChannels * kidx + channel]
+				= fixed::magL1(spectrum.getAmplitudeForBinIndex(kidx, channel));
 		trigger.update(triggerVals);
 
                 // Determine is we have heard the ping
@@ -102,13 +89,11 @@ int main(int argc, char *argv[])
 			// TODO: Break me into a class and test me
 			samplesSinceLastPing = 0;
 			const complex<int64_t> &ch0 = spectrum.getAmplitudeForBinIndex(0, 0);
-			complex<double> ch0Double(ch0.real(), ch0.imag());
-			MatrixN tdoas(4, 1);
+			MatrixN tdoas(3, 1);
 			for (int channel = 1 ; channel < nChannels ; channel ++)
 			{
 				const complex<int64_t> &ch = spectrum.getAmplitudeForBinIndex(0, channel);
-				complex<double> chDouble(ch.real(), ch.imag());
-				tdoas[channel - 1][0] = arg(chDouble);
+				tdoas[channel - 1][0] = fixed::phaseBetween(ch0, ch);
 			}
 			tdoas[nChannels - 1][0] = 0;
 			MatrixN direction = hydroStructure * tdoas;

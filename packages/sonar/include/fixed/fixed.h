@@ -10,6 +10,7 @@
 #define _RAM_FIXED_H
 
 #include <complex>
+#include <cmath>
 
 namespace ram { namespace sonar { namespace fixed{
 
@@ -21,6 +22,11 @@ inline int64_t int64_abs(const int64_t &x)
 inline double magL1(const complex_int64& a)
 {
 	return int64_abs(a.real()) + int64_abs(a.imag());
+}
+
+inline double magL2(const complex_int64& a)
+{
+	return (int64_t) std::sqrt((double)a.real()*a.real() + (double)a.imag()*a.imag());
 }
 
 inline double phaseBetween(const complex_int64& a, const complex_int64& b)
