@@ -26,26 +26,11 @@ Scene:
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
     
-    Objects:  
-        spadeBin:
-            type: [sim.vision.IBin, sim.vision.Bin]
-            position: [-15,  0.35992, -3.05]
-            suit: 'Spade'
-    
-        clubBin:
-            type: [sim.vision.IBin, sim.vision.Bin]
+    Objects:
+        blackJackTable:
+            type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
             position: [-15, 1, -3.05]
-            suit: 'Club'
-            
-        heartBin:
-            type: [sim.vision.IBin, sim.vision.Bin]
-            position: [-15, 1.64008, -3.05]
-            suit: 'Heart'
-            
-        diamondBin:
-            type: [sim.vision.IBin, sim.vision.Bin]
-            position: [-15, 2.28016, -3.05]
-            suit: 'Diamond'
+            orientation: [0, 0, 1, 45]
           
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

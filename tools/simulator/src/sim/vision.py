@@ -24,7 +24,8 @@ import ram.timer
 from ram.sim.object import IObject
 from ram.sim.graphics import IVisual, Visual
 from ram.sim.serialization import IKMLStorable, two_step_init
-
+from ram.sim.serialization import parse_position_orientation
+import ram.sim.object
 
 class IBuoy(IObject):
     """ An object which you can see in the simulation"""
@@ -119,6 +120,80 @@ class Bin(Visual):
     @property
     def suit(self):
         return self._suit
+    
+class BlackJackTable(ram.sim.object.Object):
+    core.implements(ram.sim.object.IObject)
+    
+    SEPERATION = 0.64008
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+        self._farLeftBin = None
+        self._leftBin = None
+        self._rightBin = None
+        self._farRightBin = None
+
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+        
+        # Parse config information
+        basePos, orientation = parse_position_orientation(node)
+        basePos = ogre.Vector3(basePos)
+        baseOffset = orientation * ogre.Vector3(0, BlackJackTable.SEPERATION, 0)
+        baseName = node['name']
+        
+        suits = node.get('suits', ['heart','spade','club','diamond'])
+        while len(suits) < 4:
+            suits.append('')
+        
+        # Create far left bin
+        self._farLeftBin = Bin()
+        position = basePos + (baseOffset * -1.5)
+        cfg = {'name' : baseName + 'FarLeftBin', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'suit' : suits[0]}
+        self._farLeftBin.load((scene, parent, cfg))
+        scene._objects.append(self._farLeftBin)
+        
+        # Create left bin
+        self._leftBin = Bin()
+        position = basePos + (baseOffset * -0.5)
+        cfg = {'name' : baseName + 'LeftBin', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'suit' : suits[1]}
+        self._leftBin.load((scene, parent, cfg))
+        scene._objects.append(self._leftBin)
+
+        # Create right bin
+        self._rightBin = Bin()
+        position = basePos + (baseOffset * 0.5)
+        cfg = {'name' : baseName + 'RightBin', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'suit' : suits[2]}
+        self._rightBin.load((scene, parent, cfg))
+        scene._objects.append(self._rightBin)
+
+        # Create right bin
+        self._farRightBin = Bin()
+        position = basePos + (baseOffset * 1.5)
+        cfg = {'name' : baseName + 'FarRightBin', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'suit' : suits[3]}
+        self._farRightBin.load((scene, parent, cfg))
+        scene._objects.append(self._farRightBin)
+        
+        
+    def save(self, data_object):
+        raise "Not yet implemented"
+
 
 class IdealSimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
