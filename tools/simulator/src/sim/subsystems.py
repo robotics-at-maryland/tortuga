@@ -31,6 +31,9 @@ moduleManager = None
 if not hasattr(ram.module.ModuleManager, 'get'):
     moduleManager = ram.module.ModuleManager()
 
+# Special Event types
+event.add_event_types(['SCREENSHOT'])
+
 class WindowListener(ogre.WindowEventListener):
     def __init__(self, closeHandler):
         ogre.WindowEventListener.__init__(self)
@@ -101,6 +104,8 @@ class Simulation(core.Subsystem):
         self._inputForwarder = input.OISInputForwarder( \
             {}, self._simulation.input_system, self._window)
         
+        event.register_handlers({'SCREENSHOT' : self._onScreenshot})
+        
         # Setup viewport
         camera = self.scene.get_camera('Main').camera    
         camera.setAutoAspectRatio(True)
@@ -144,6 +149,9 @@ class Simulation(core.Subsystem):
             self._inputForwarder.shutdown()
             if self._debug:
                 ogrenewt.Debugger.getSingleton().deInit()
+               
+    def _onScreenshot(self, *args):
+        self._window.writeContentsToTimestampedFile('ScreenShot','.png')
                 
     def _saveWindowSettings(self):
         guiData = {}

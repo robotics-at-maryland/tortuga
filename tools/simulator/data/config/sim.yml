@@ -189,8 +189,8 @@ Subsystems:
             #Main: bin.sml
             #Main: duct.sml
             #Main: buoy.sml
-            Main: transdec.sml
-            #Main: nxtest.sml
+            #Main: transdec.sml
+            Main: nxtest.sml
 
         
         Graphics:
@@ -252,3 +252,6 @@ Subsystems:
                 H : PITCH_DOWN
                 Z : ROLL_PORT
                 X : ROLL_STARBOARD
+                
+                # Misc.
+                CTRL+B : SCREENSHOT
