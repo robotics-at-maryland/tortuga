@@ -25,8 +25,6 @@ envl = envb.Clone()
 # Sources
 sources = env.Glob('src', '*.cpp')
 sources.extend(env.Glob('src/fixed', '*.cpp'))
-sources.remove('src/DSO.cpp') # Out of date
-sources.remove('src/SonarController.cpp') # Out of date
 	
 # Build Library (will be called 'sonar.so')
 # All build settings for the library are stored in buildfiles/libs.py
@@ -42,9 +40,12 @@ envt = envb.Clone()
 
 # Only build fftw3 if its here
 conf = envt.Configure()
+envt.Append(LIBPATH = ['/opt/local/lib'], CPPPATH = ['/opt/local/include'])
 if conf.CheckLib('fftw3', language='C++', autoadd=1):
     sources = env.Glob('src/test/src', '*.cpp')
+    envt = conf.Finish()
     envt.Tests(int_deps = 'sonar', source = sources)
+
 
 # --------------------------------------------------------------------------- #
 #                               T O O L S                                     #
