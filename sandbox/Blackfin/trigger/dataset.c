@@ -7,14 +7,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-struct dataset
-{
-    int size;
-    int numUnits;
-    signed short * data[MAX_SEGMENTS][4];
-};
-
-
 struct dataset * createDataset(int size)
 {
     if(size < 0)

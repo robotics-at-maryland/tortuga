@@ -51,8 +51,6 @@ int blockTrigger(struct dataset * s, int ch, int highestDftSample)
 
         blockJump = abs(blockMax - lastBlockMax);
 
-//         printf("\tbm: %d\n", blockMax);
-
         if(blockJump > highestJump)
         {
             highestJump = blockJump;
