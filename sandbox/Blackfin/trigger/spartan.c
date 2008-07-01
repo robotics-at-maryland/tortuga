@@ -29,6 +29,6 @@ int captureSamples(struct dataset * s)
             unit++;
             offset = 0;
         }
+        while(REG(ADDR_FIFO_EMPTY1A) != 0);
     }
-    while(REG(ADDR_FIFO_EMPTY1A) != 0);
 }
