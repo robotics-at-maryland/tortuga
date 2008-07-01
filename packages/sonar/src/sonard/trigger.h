@@ -2,11 +2,11 @@
 
 /* Block size, in samples */
 /* Should be at least 20 samples or the waves will mess with it */
-#define BLOCKSIZE 50
+#define BLOCKSIZE 20
 
 /* How far to backtrack from DFT trigger point? */
 /* Large values are OK but need more work */
-#define BACKTRACK_BLOCKS   40
+#define BACKTRACK_BLOCKS   80
 
 /* It is nicer if the backtrack size is a multiple of the block size */
 #define BACKTRACK (BACKTRACK_BLOCKS * BLOCKSIZE)
