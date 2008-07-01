@@ -16,7 +16,7 @@ int initADC()
 int captureSamples(struct dataset * s)
 {
     int i=0, unit=0, offset=0;
-
+    initADC();
     for(i=0; i < s->size; i++)
     {
         *(s->data[unit][0]+offset) = REG(ADDR_FIFO_OUT1A);
