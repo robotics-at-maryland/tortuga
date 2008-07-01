@@ -12,9 +12,18 @@
 
 #include "spectrum/SparseSDFTSpectrum.h"
 #include "PulseTrigger.h"
-#include "fixed/fixed.h"
 #include "math/include/MatrixN.h"
 #include "math/include/Vector3.h"
+
+#include "fixed/fixed.h"
+
+#include "dataset.h"
+#include "spartan.h"
+#include "trigger.h"
+
+#include "spartan.c"
+#include "dataset.c"
+#include "trigger.c"
 
 using namespace ram::sonar;
 using namespace ram::math;
@@ -34,86 +43,158 @@ static const int kBands[] = {kBandOfInterest, kBandOfInterest - kBandOffCenterAm
 static const float holdoffTime = .1;//	Holdoff until looking for next ping (seconds)
 static const size_t holdoffSamples = (size_t) (holdoffTime * fs);// Number of samples to holdoff
 
-static const double hydroStructureArray[3][3] = 
+
+static const double hydroStructureArray[3][3] =
 {
-	{0,      0.984, 0,   },
-	{0.492,  0.492, 0.696},
-	{-0.492, 0.492, 0.696}
+    {0,      0.984, 0,   },
+    {0.492,  0.492, 0.696},
+    {-0.492, 0.492, 0.696}
 };
 
 const MatrixN hydroStructure (*hydroStructureArray, 3, 3);
 
+int64_t myAbs(int64_t x)
+{
+	if (x < 0)
+		return -x;
+	else
+		return x;
+}
+
 int main(int argc, char *argv[])
 {
-	// Does the sliding DFT on the incoming
-	SparseSDFTSpectrum<512, nChannels, nKBands> spectrum(kBands);
-	// Does threshold based triggering on the results of the DFT
-	PulseTrigger<int64_t, 512, nChannels * nKBands> trigger;
-	int64_t triggerVals[nChannels * nKBands];
-	trigger.setThresholds(10000);
-	
-	adcdata_t sample[nChannels];
-	
-	size_t sampleIndex = 0;
-	size_t samplesSinceLastPing = 0;
+    // Does the sliding DFT on the incoming
+    SparseSDFTSpectrum<512, nChannels, nKBands> spectrum(kBands);
+    // Does threshold based triggering on the results of the DFT
+    adcdata_t sample[nChannels];
 
-        // Read a single sample from each channel into the sample buffer "sample"
-	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == (size_t)nChannels)
-	{
-		++sampleIndex;
-		//	Update spectrogram
-		spectrum.update(sample);
-		
-		for (int channel = 0 ; channel < nChannels ; channel ++)
-                {
-			for (int kidx = 0 ; kidx < nKBands ; kidx ++)
-                        {
-                            triggerVals[nChannels * kidx + channel] = (int64_t)
-                                fixed::magL1(
-                                    spectrum.getAmplitudeForBinIndex(kidx,
-                                                                     channel));
-                        }
-                }
-		trigger.update(triggerVals);
+    size_t sampleIndex = 0;
+    size_t samplesSinceLastPing = 0;
 
-                // Determine is we have heard the ping
-		bool pingDetected = true;
-		if (samplesSinceLastPing < holdoffSamples)
-			pingDetected = false;
-		for (int channel = 0 ; channel < nChannels ; channel ++)
-		{
-			if (!trigger(nChannels * 0 + channel))
-				pingDetected = false;
-			if (trigger(nChannels * 1 + channel))
-				pingDetected = false;
-			if (trigger(nChannels * 2 + channel))
-				pingDetected = false;
-		}
-		
-		if (pingDetected)
-		{
-			// TODO: Break me into a class and test me
-			samplesSinceLastPing = 0;
-			const complex<int64_t> &ch0 = spectrum.getAmplitudeForBinIndex(0, 0);
-			MatrixN tdoas(3, 1);
-			for (int channel = 1 ; channel < nChannels ; channel ++)
-			{
-				const complex<int64_t> &ch = spectrum.getAmplitudeForBinIndex(0, channel);
-				tdoas[channel - 1][0] = fixed::phaseBetween(ch0, ch);
-			}
-			tdoas[nChannels - 1][0] = 0;
-			MatrixN direction = hydroStructure * tdoas;
-			Vector3 directionVector;
-			for (int i = 0 ; i < 3 ; i ++)
-				directionVector[i] = direction[i][0];
-			directionVector.normalise();
-			cout << "Ping detected at sample " << sampleIndex << ":" << endl;
-			cout << "Direction to pinger is: " << directionVector << endl;
-		}
-		else // !pingDetected
-		{
-			++samplesSinceLastPing;
-		}
-	}
-	return 0;
+
+
+    int i;
+
+    struct dataset * dataSet = NULL;
+
+    if(argc == 1)
+    {
+        dataSet = createDataset(0xA0000);
+        if(dataSet == NULL)
+        {
+            fprintf(stderr, "Could not allocate.\n");
+            exit(1);
+        }
+        REG(ADDR_LED) = 0x02;
+        fprintf(stderr, "Recording samples...\n");
+        captureSamples(dataSet);
+        fprintf(stderr, "Analyzing samples...\n");
+        REG(ADDR_LED) = 0x01;
+    } else
+    {
+        fprintf(stderr, "Using dataset %s\n", argv[1]);
+        dataSet = loadDataset(argv[1]);
+    }
+
+    if(dataSet == NULL)
+    {
+        fprintf(stderr, "Could not load dataset!\n");
+        return -1;
+    }
+
+
+    int64_t maxL1 = 0;
+    int peakIndex = 0;
+
+    for(i=0; i<dataSet->size; i++)
+    {
+
+        sample[0] = getSample(dataSet, 0, i);
+        sample[1] = getSample(dataSet, 1, i);
+        sample[2] = getSample(dataSet, 2, i);
+        sample[3] = getSample(dataSet, 3, i);
+
+        //  Update spectrogram
+        spectrum.update(sample);
+
+        int channel = 0;
+
+        for (int kidx = 0 ; kidx < nKBands ; kidx ++)
+        {
+            const complex<int64_t> &cmplx = spectrum.getAmplitudeForBinIndex(1, channel);
+            int64_t L1 = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
+
+            if(L1 > maxL1)
+            {
+//                 printf("idx=%d\n", kidx);
+                maxL1 = L1;
+                peakIndex = i;
+            }
+        }
+    }
+
+    fprintf(stderr, "Found DFT peak at sample %d\n", peakIndex);
+
+    int pingStart = 0;
+
+    pingStart = blockTrigger(dataSet, 0, peakIndex);
+
+    if(pingStart == -1)
+        return -1;
+
+    spectrum.purge();
+
+    SparseSDFTSpectrum<128, nChannels, nKBands> spectrum2(kBands);
+
+    fprintf(stderr, "Feeding sample %d into direction finder\n", pingStart)+100;
+
+    for(i=pingStart; i<pingStart+128; i++)
+    {
+        sample[0] = getSample(dataSet, 0, i);
+        sample[1] = getSample(dataSet, 1, i);
+        sample[2] = getSample(dataSet, 2, i);
+        sample[3] = getSample(dataSet, 3, i);
+        spectrum.update(sample);
+        spectrum2.update(sample);
+    }
+
+    const complex<int64_t> &ch0 = spectrum2.getAmplitudeForBinIndex(0, 0);
+    MatrixN tdoas(3, 1);
+
+    for (int channel = 1 ; channel < nChannels ; channel ++)
+    {
+        const complex<int64_t> &ch = spectrum2.getAmplitudeForBinIndex(0, channel);
+        tdoas[channel - 1][0] = fixed::phaseBetween(ch0, ch);
+    }
+//     tdoas[nChannels - 1][0] = 0;
+    MatrixN direction = hydroStructure * tdoas;
+    Vector3 directionVector;
+
+    for (int i = 0 ; i < 3 ; i ++)
+        directionVector[i] = direction[i][0];
+
+    directionVector.normalise();
+    cerr << "Direction to pinger is: " << directionVector << endl;
+
+    float yaw = 180*atan2(directionVector.y, directionVector.x) / 3.14159;
+    if(yaw < 0)
+        yaw += 360;
+
+    cerr << "Yaw is "<<yaw<<endl;
+
+    fprintf(stderr, "Sending samples...");
+
+    int j;
+    for(i=0; i<dataSet->size; i++)
+    {
+        for(j=0; j<4; j++)
+        {
+            putchar(getSample(dataSet, j, i) & 0xFF);
+            putchar(getSample(dataSet, j, i)  & 0xFF);
+        }
+    }
+    fprintf(stderr, "Done\n");
+
+
+    return 0;
 }
