@@ -193,7 +193,82 @@ class BlackJackTable(ram.sim.object.Object):
         
     def save(self, data_object):
         raise "Not yet implemented"
-
+    
+class AirDuct(ram.sim.object.Object):
+    core.implements(ram.sim.object.IObject)
+    
+    SEPERATION = 0.762
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+    
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+    
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+        
+        # Parse config information
+        basePos, orientation = parse_position_orientation(node)
+        basePos = ogre.Vector3(basePos)
+        baseName = node['name']
+        
+        sideOffset = orientation * ogre.Vector3(0, AirDuct.SEPERATION, 0)
+        upDownOffset = orientation * ogre.Vector3(0, 0, AirDuct.SEPERATION)
+        
+        # Shared graphics node
+        gfxNode = {'mesh': 'box.mesh', 'material' : 'CompElement/AirDuctSide',
+                   'scale': [1.524, 1.524, 0.003175] }
+        
+        # Create Bottom
+        position = basePos + (upDownOffset * -1)
+        botGfx = gfxNode.copy()
+        botGfx['material'] = 'CompElement/AirDuctBottom'
+        cfg = {'name' : baseName + 'DuctBottom', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation) ,
+               'Graphical' : botGfx}
+        side = Visual()
+        side.load((scene, parent, cfg))
+        
+        # Create Top
+        position = basePos + (upDownOffset * 1)
+        cfg = {'name' : baseName + 'DuctTop', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation) ,
+               'Graphical' : gfxNode}
+        side = Visual()
+        side.load((scene, parent, cfg))
+        
+        orientation = orientation * ogre.Quaternion(
+            ogre.Degree(90), ogre.Vector3.UNIT_X)
+        
+        # Create Right
+        position = basePos + (sideOffset * -1)
+        cfg = {'name' : baseName + 'DuctRight', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation) ,
+               'Graphical' : gfxNode}
+        side = Visual()
+        side.load((scene, parent, cfg))
+        
+        # Create Left
+        position = basePos + (sideOffset * 1)
+        cfg = {'name' : baseName + 'DuctLeft', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation) ,
+               'Graphical' : gfxNode}
+        side = Visual()
+        side.load((scene, parent, cfg))
+        
+        # Create Left
+#        position = basePos + (sideOffset * -1)
+#        cfg = {'name' : baseName + 'DuctTop', 'position' : position, 
+#               'orientation' : self._toAxisAngleArray(orientation) ,
+#               'Graphical' : gfxNode}
+#        side = Visual()
+#        side.load((scene, parent, cfg))
 
 class IdealSimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):

@@ -7,7 +7,7 @@ Scene:
                      '%(RAM_SVN_DIR)s/tools/simulator/data/media/materials/textures',
                      '%(RAM_SVN_DIR)s/tools/simulator/data/media/models',
                      '%(RAM_SVN_DIR)s/tools/simulator/data/media/models/primitives']
-                                 
+                         
     #SkyBox:
     #    material_name: 'Examples/CloudyNoonSkyBox'
         
@@ -20,67 +20,23 @@ Scene:
     
     Cameras:
         Main:
-            position: [-13, 6, 0]
-            offset: [0, 0, 15]
-
+            position: [-15, 0, 0]
+            #position: [-15, -1, -3.05]
+            #offset: [3, 0, 0]
+            offset: [0, 0, 8]
     
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
     
-    Objects:        
-        pipe1:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [-15, 1, -3.05]
-            orientation: [0, 0, 1, 45]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
-                
-        buoy:
-            type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-11.46, 4.54, -1.5]
-            orientation: [0, 0, 1, 45]
-            
-            Graphical:
-                mesh: 'sphere.50cm.mesh'
-                material: 'Simple/Red'
-                scale: [0.15, 0.15, 0.15]
-        
-        pipe2:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [-7.92893, 8.07107, -3.05]
-            orientation: [0, 0, 1, -35]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
-                
-        blackJackTable:
-            #type: [sim.vision.IBin, sim.vision.Bin]
-            type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
-            position: [-2.604442,4.342823,-3.050000]
-            orientation: [0, 0, 1, -45]
-                
-        pipe3:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [2.310471,0.901365,-3.050000]
-            orientation: [0, 0, 1, -90]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
-        
+    Objects:
         airDuct:
               type: [ram.sim.object.IObject, sim.vision.AirDuct]
-              position: [3, -7,-2.5]
-              orientation: [0, 0, 1, -45]
-        
+              position: [-12, -2, -3.05]
+              orientation: [0, 0, 1, 45]
+          
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
+            
             Graphical:
                 mesh: 'PLANE:water'
                 width: 40

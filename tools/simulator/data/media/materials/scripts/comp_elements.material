@@ -101,3 +101,34 @@ material CompElement/HeartBin
 		}
 	}
 }
+
+material CompElement/AirDuctSide
+{
+    technique
+    {
+        pass
+        {
+            ambient 1 1 1
+            texture_unit
+            {
+                texture duct_side.png
+            }
+        }
+    }
+}
+
+material CompElement/AirDuctBottom
+{
+    technique
+    {
+        pass
+        {
+            ambient 1 1 1
+            texture_unit
+            {
+                texture duct_bottom.png
+            }
+        }
+    }
+}
+
