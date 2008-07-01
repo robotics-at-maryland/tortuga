@@ -223,3 +223,4 @@
 
 
 int initADC();
+int captureSamples(struct dataset * s);
