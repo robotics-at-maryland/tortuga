@@ -31,41 +31,21 @@ Scene:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-15, 1, -3.05]
             orientation: [0, 0, 1, 45]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
         
         pipe2:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-7.92893, 8.07107, -3.05]
             orientation: [0, 0, 1, -35]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
                 
         pipe3:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [0.262590, 2.335306, -3.05]
             orientation: [0, 0, 1, -90]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
         
         pipe4:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [0.75, -7, -3.05]
             orientation: [0, 0, 1, -5]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

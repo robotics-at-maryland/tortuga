@@ -46,52 +46,28 @@ Scene:
 #        buoy1:
 #            type: [sim.vision.IBuoy, sim.vision.Buoy]
 #            position: [-15, 1, -1]
-#            
-#            Graphical:
-#                mesh: 'sphere.50cm.mesh'
-#                material: 'Simple/Red'
-#                scale: [0.15, 0.15, 0.15]
+
         
         pipe1:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-22, -19, -3.05]
             orientation: [0, 0, 1, -45]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
                 
         pipe2:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-12, -28, -3.05]
             orientation: [0, 0, 1, 0]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
-        
+
         pipe3:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [2, -28, -3.05]
             orientation: [0, 0, 1, -45]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
                 
         pipe4:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [11, -37, -3.05]
             orientation: [0, 0, 1, 45]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
-        
+
         tank_walls:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
             position: [0, 0, 0]

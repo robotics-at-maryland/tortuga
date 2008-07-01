@@ -32,32 +32,17 @@ Scene:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-15, 1, -3.05]
             orientation: [0, 0, 1, 45]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
                 
         buoy:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
             position: [-11.46, 4.54, -1.5]
             orientation: [0, 0, 1, 45]
-            
-            Graphical:
-                mesh: 'sphere.50cm.mesh'
-                material: 'Simple/Red'
-                scale: [0.15, 0.15, 0.15]
-        
+
         pipe2:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-7.92893, 8.07107, -3.05]
             orientation: [0, 0, 1, -35]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
-                
+
         blackJackTable:
             #type: [sim.vision.IBin, sim.vision.Bin]
             type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
@@ -68,11 +53,6 @@ Scene:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [2.310471,0.901365,-3.050000]
             orientation: [0, 0, 1, -90]
-            
-            Graphical:
-                mesh: 'cube.1m.mesh'
-                material: 'Simple/Orange'
-                scale: [1.2192, 0.1524, 0.0254]
         
         airDuct:
               type: [ram.sim.object.IObject, sim.vision.AirDuct]

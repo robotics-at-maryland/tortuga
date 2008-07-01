@@ -30,11 +30,6 @@ Scene:
         buoy1:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
             position: [-15, 1, -1]
-            
-            Graphical:
-                mesh: 'sphere.50cm.mesh'
-                material: 'Simple/Red'
-                scale: [0.15, 0.15, 0.15]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

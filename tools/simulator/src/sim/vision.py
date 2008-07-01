@@ -50,6 +50,12 @@ class Buoy(Visual):
 
     def load(self, data_object):
         scene, parent, node = data_object
+        if not node.has_key('Graphical'):
+            # Default mesh and scale info
+            gfxNode = {'mesh' : 'sphere.50cm.mesh', 
+                       'scale' : [0.15, 0.15, 0.15],
+                       'material' : 'Simple/Red' }
+            node['Graphical'] = gfxNode
         Visual.load(self, (scene, parent, node))
         
     def save(self, data_object):
@@ -64,6 +70,12 @@ class Pipe(Visual):
 
     def load(self, data_object):
         scene, parent, node = data_object
+        if not node.has_key('Graphical'):
+            # Default mesh and scale info
+            gfxNode = {'mesh' : 'cube.1m.mesh', 
+                       'scale' : [1.2192, 0.1524, 0.0254],
+                       'material' : 'Simple/Orange' }
+            node['Graphical'] = gfxNode
         Visual.load(self, (scene, parent, node))
         
     def save(self, data_object):
