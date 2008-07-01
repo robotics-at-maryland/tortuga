@@ -126,7 +126,6 @@ int main(int argc, char *argv[])
 
             if(L1 > maxL1)
             {
-//                 printf("idx=%d\n", kidx);
                 maxL1 = L1;
                 peakIndex = i;
             }
@@ -137,7 +136,7 @@ int main(int argc, char *argv[])
 
     int pingStart = 0;
 
-    pingStart = blockTrigger(dataSet, 0, peakIndex);
+    pingStart = blockTrigger(dataSet, 0, peakIndex) + 20;
 
     if(pingStart == -1)
         return -1;
@@ -146,7 +145,7 @@ int main(int argc, char *argv[])
 
     SparseSDFTSpectrum<128, nChannels, nKBands> spectrum2(kBands);
 
-    fprintf(stderr, "Feeding sample %d into direction finder\n", pingStart)+100;
+    fprintf(stderr, "Feeding sample %d into direction finder\n", pingStart);
 
     for(i=pingStart; i<pingStart+128; i++)
     {
@@ -185,12 +184,15 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Sending samples...");
 
     int j;
-    for(i=0; i<dataSet->size; i++)
+    for(i=pingStart; i<pingStart+128; i++)
     {
         for(j=0; j<4; j++)
         {
             putchar(getSample(dataSet, j, i) & 0xFF);
-            putchar(getSample(dataSet, j, i)  & 0xFF);
+            putchar((getSample(dataSet, j, i) >> 8) & 0xFF);
+
+//             putchar(getSample(dataSet, j, i) & 0xFF);
+//             putchar((getSample(dataSet, j, i) >> 8) && 0xFF);
         }
     }
     fprintf(stderr, "Done\n");

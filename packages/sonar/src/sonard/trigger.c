@@ -34,7 +34,7 @@ int blockTrigger(struct dataset * s, int ch, int highestDftSample)
     int triggeredBlock = 0;
 
 
-    fprintf(stdout, "Searching region %d to %d\n", searchStart, searchEnd);
+    fprintf(stderr, "Searching region %d to %d\n", searchStart, searchEnd);
 
     for(i=searchStart; i<searchEnd; i+= BLOCKSIZE)
     {
