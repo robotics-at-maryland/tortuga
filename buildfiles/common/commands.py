@@ -320,7 +320,7 @@ class Archive(ArchiveBase):
         if 0 == len(file_list):
             self.files = '<Entire Working Directory>'
         else:
-            self.file =  ' '.join(file_list)
+            self.files =  ' '.join(file_list)
 
     def check(self, task):
         self.filename = task.interpolate(self.filename)
