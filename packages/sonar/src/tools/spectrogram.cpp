@@ -33,13 +33,15 @@ static const int N = 512;
 int main(int argc, char *argv[])
 {
 	long skip, begin, end;
+	int channel;
 	try
 	{
 		po::options_description desc("Allowed options");
 		
 		desc.add_options()
 		("help", "Produce help message")
-		("skip,s", po::value<long>(&skip)->default_value(50), "Skip every s samples")
+		("channel,c", po::value<int>(&channel)->default_value(0), "Channel number")
+		("skip,s", po::value<long>(&skip)->default_value(1), "Skip every s samples")
 		("begin,b", po::value<long>(&begin)->default_value(0), "Begin at sample b")
 		("end,e", po::value<long>(&end)->default_value(-1), "End at sample e (-1 for end)")
 		;
@@ -60,31 +62,24 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	SDFTSpectrum<N, nChannels> spectrum;
+	SDFTSpectrum<N, 1> spectrum;
 	
 	adcdata_t sample[nChannels];
-	int64_t L1[nChannels];
+	int64_t L1[N];
 	int sampleCount = 0;
-	int64_t max = 0;
 	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == (size_t)nChannels)
 	{
 		++sampleCount;
 		//	Update spectrogram
 		spectrum.update(sample);
 		
-		for (int channel = 0 ; channel < nChannels ; channel ++)
+		for (int k = 0 ; k < N ; k ++)
 		{
-			for (int k = 0 ; k < N ; k ++)
-			{
-				const complex<int64_t> &cmplx = spectrum.getAmplitude(k, channel);
-				L1[channel] = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
-				if (k == 25 && L1[channel] > max)
-					max = L1[channel];
-			}
-//			if (sampleCount >= begin && (sampleCount < end || end == -1) && sampleCount % skip == 0)
-//				fwrite(L1, sizeof(int64_t), nChannels, stdout);
+			const complex<int64_t> &cmplx = spectrum.getAmplitude(k, channel);
+			L1[k] = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
 		}
+		if (sampleCount >= begin && (sampleCount < end || end < 0) && (sampleCount % skip == 0))
+			fwrite(L1, sizeof(int64_t), N, stdout);
 	}
-	std::cerr << "Maximum value of Fourier transform: " << max << std::endl;
 	return 0;
 }

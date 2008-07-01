@@ -1,6 +1,7 @@
 Import('env')
 
 src = Split("""
+	fixed/atan2.c
 	SampleDelay.cpp
 	SlidingDFT.cpp
 	Sonar.cpp
