@@ -65,9 +65,15 @@ int main(int argc, char *argv[])
 		spectrum.update(sample);
 		
 		for (int channel = 0 ; channel < nChannels ; channel ++)
+                {
 			for (int kidx = 0 ; kidx < nKBands ; kidx ++)
-				triggerVals[nChannels * kidx + channel]
-				= fixed::magL1(spectrum.getAmplitudeForBinIndex(kidx, channel));
+                        {
+                            triggerVals[nChannels * kidx + channel] = (int64_t)
+                                fixed::magL1(
+                                    spectrum.getAmplitudeForBinIndex(kidx,
+                                                                     channel));
+                        }
+                }
 		trigger.update(triggerVals);
 
                 // Determine is we have heard the ping
