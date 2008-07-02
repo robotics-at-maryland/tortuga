@@ -53,14 +53,6 @@ static const double hydroStructureArray[3][3] =
 
 const MatrixN hydroStructure (*hydroStructureArray, 3, 3);
 
-int64_t myAbs(int64_t x)
-{
-	if (x < 0)
-		return -x;
-	else
-		return x;
-}
-
 int main(int argc, char *argv[])
 {
     // Does the sliding DFT on the incoming
@@ -70,10 +62,6 @@ int main(int argc, char *argv[])
 
     //size_t sampleIndex = 0;
     //size_t samplesSinceLastPing = 0;
-
-
-
-    int i;
 
     struct dataset * dataSet = NULL;
 
@@ -106,7 +94,7 @@ int main(int argc, char *argv[])
     int64_t maxL1 = 0;
     int peakIndex = 0;
 
-    for(i=0; i<dataSet->size; i++)
+    for(int i=0; i<dataSet->size; i++)
     {
 
         sample[0] = getSample(dataSet, 0, i);
@@ -121,8 +109,7 @@ int main(int argc, char *argv[])
 
         for (int kidx = 0 ; kidx < nKBands ; kidx ++)
         {
-            const complex<int64_t> &cmplx = spectrum.getAmplitudeForBinIndex(1, channel);
-            int64_t L1 = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
+            int64_t L1 = fixed::magL1(spectrum.getAmplitudeForBinIndex(1, channel));
 
             if(L1 > maxL1)
             {
@@ -132,7 +119,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    fprintf(stderr, "Found DFT peak at sample %d\n", peakIndex);
+    cerr << "Found DFT peak at sample " << peakIndex << endl;
 
     int pingStart = 0;
 
@@ -145,9 +132,9 @@ int main(int argc, char *argv[])
 
     SparseSDFTSpectrum<128, nChannels, nKBands> spectrum2(kBands);
 
-    fprintf(stderr, "Feeding sample %d into direction finder\n", pingStart);
+    cerr << "Feeding sample " << pingStart << "into direction finder" << endl;
 
-    for(i=pingStart; i<pingStart+128; i++)
+    for(int i=pingStart; i<pingStart+128; i++)
     {
         sample[0] = getSample(dataSet, 0, i);
         sample[1] = getSample(dataSet, 1, i);
@@ -159,13 +146,11 @@ int main(int argc, char *argv[])
 
     const complex<int64_t> &ch0 = spectrum2.getAmplitudeForBinIndex(0, 0);
     MatrixN tdoas(3, 1);
-
     for (int channel = 1 ; channel < nChannels ; channel ++)
     {
         const complex<int64_t> &ch = spectrum2.getAmplitudeForBinIndex(0, channel);
         tdoas[channel - 1][0] = fixed::phaseBetween(ch0, ch);
     }
-//     tdoas[nChannels - 1][0] = 0;
     MatrixN direction = hydroStructure * tdoas;
     Vector3 directionVector;
 
@@ -175,18 +160,15 @@ int main(int argc, char *argv[])
     directionVector.normalise();
     cerr << "Direction to pinger is: " << directionVector << endl;
 
-    float yaw = 180*atan2(directionVector.y, directionVector.x) / 3.14159;
-    if(yaw < 0)
-        yaw += 360;
-
+    float yaw = 180/M_PI*atan2(directionVector.y, directionVector.x);
+	
     cerr << "Yaw is "<<yaw<<endl;
 
-    fprintf(stderr, "Sending samples...");
+    cerr << "Sending samples...";
 
-    int j;
-    for(i=pingStart; i<pingStart+128; i++)
+    for(int i=pingStart; i<pingStart+128; i++)
     {
-        for(j=0; j<4; j++)
+        for(int j=0; j<4; j++)
         {
             putchar(getSample(dataSet, j, i) & 0xFF);
             putchar((getSample(dataSet, j, i) >> 8) & 0xFF);
@@ -195,7 +177,7 @@ int main(int argc, char *argv[])
 //             putchar((getSample(dataSet, j, i) >> 8) && 0xFF);
         }
     }
-    fprintf(stderr, "Done\n");
+    cerr << "Done" << endl;
 
 
     return 0;

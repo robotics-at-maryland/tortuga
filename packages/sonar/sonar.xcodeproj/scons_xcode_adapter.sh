@@ -1,9 +1,12 @@
-#!/bin/sh
+#!/bin/bash -l
+
+cd ../..
+. scripts/setenv
 
 if [[ $1 == 'clean' ]];then
-	/opt/local/bin/scons --clean -Q
+	scons --clean -Q
 elif [[ $1 == '' ]];then
-	/opt/local/bin/scons -Q -j3
+	scons with_features=sonar -Q -j3
 else
 	echo Unknown build command.
 	exit 1

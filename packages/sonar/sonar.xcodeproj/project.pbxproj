@@ -34,6 +34,7 @@
 			buildPhases = (
 			);
 			buildToolPath = sonar.xcodeproj/scons_xcode_adapter.sh;
+			buildWorkingDirectory = "";
 			dependencies = (
 			);
 			name = "scons Build";
