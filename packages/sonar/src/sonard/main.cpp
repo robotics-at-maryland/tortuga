@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
     // Does threshold based triggering on the results of the DFT
     adcdata_t sample[nChannels];
 
-    size_t sampleIndex = 0;
-    size_t samplesSinceLastPing = 0;
+    //size_t sampleIndex = 0;
+    //size_t samplesSinceLastPing = 0;
 
 
 
