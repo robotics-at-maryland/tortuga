@@ -21,10 +21,6 @@
 #include "spartan.h"
 #include "trigger.h"
 
-#include "spartan.c"
-#include "dataset.c"
-#include "trigger.c"
-
 using namespace ram::sonar;
 using namespace ram::math;
 using namespace std;

@@ -24,6 +24,7 @@ envl = envb.Clone()
 
 # Sources
 sources = env.Glob('src', '*.cpp')
+sources.extend(env.Glob('src/sonard', '*.c'))
 sources.extend(env.Glob('src/fixed', '*.cpp'))
 	
 # Build Library (will be called 'sonar.so')

@@ -11,6 +11,9 @@
 /* It is nicer if the backtrack size is a multiple of the block size */
 #define BACKTRACK (BACKTRACK_BLOCKS * BLOCKSIZE)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Given a dataset, a channel, and an index where the DFT is the highest, will
  * return a sample number where the ping begins.
@@ -18,3 +21,7 @@
 int blockTrigger(struct dataset * s, int ch, int highestDftSample);
 
 signed short sAbs(signed short v);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif

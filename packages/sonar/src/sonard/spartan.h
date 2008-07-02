@@ -223,6 +223,13 @@
 
 #define REG(a) (*(volatile unsigned short *) a)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int initADC();
 int captureSamples(struct dataset * s);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
