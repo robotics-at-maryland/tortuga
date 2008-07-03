@@ -41,9 +41,9 @@ class Searching(state.State):
 
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
-            legTime = 15,
-            sweepAngle = 60,
-            speed = 5)
+            legTime = 5,
+            sweepAngle = 20,
+            speed = self._config.get('forwardSpeed', 3))
 
         self.motionManager.setMotion(zigZag)
 
@@ -140,7 +140,7 @@ class AlongPipe(state.State):
         self._lastPipeLoc = None
         self._pipe = ram.motion.pipe.Pipe(0,0,0)
         motion = ram.motion.pipe.Follow(pipe = self._pipe,
-                                       maxSpeed = 5,
+                                       maxSpeed = self._config.get('forwardSpeed', 5),
                                        maxSidewaysSpeed = 3)
         self.motionManager.setMotion(motion)
 
@@ -163,7 +163,7 @@ class BetweenPipes(state.State):
         self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 15)
         self.timer.start()
         
-        self.controller.setSpeed(5)
+        self.controller.setSpeed(self._config.get('forwardSpeed', 5))
         
     def exit(self):
         self.controller.setSpeed(0)

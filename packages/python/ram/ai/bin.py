@@ -60,9 +60,9 @@ class Searching(state.State):
 
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
-            legTime = 15,
-            sweepAngle = 60,
-            speed = 5)
+            legTime = 5,
+            sweepAngle = 45,
+            speed = 2.5)
 
         self.motionManager.setMotion(zigZag)
 
@@ -108,7 +108,7 @@ class Dive(HoveringState):
         # While keeping center, dive down
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 8),
-            speed = self._config.get('diveSpeed', 1.0/3.0))
+            speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)
         
