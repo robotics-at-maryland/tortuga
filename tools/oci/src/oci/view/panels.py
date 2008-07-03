@@ -17,6 +17,7 @@ from ram.core import Component, implements
 from ram.gui.view import IPanelProvider
 from oci.view.controls import DepthBar, MultiBar, RotationCtrl
 from oci.view.controls import PowerSourceDisplay, TempSensorDisplay
+from oci.view.controls import ThrusterCurrentDisplay
 import oci.model.subsystem as subsystemMod
 
 import ext.math
@@ -95,8 +96,13 @@ class ThrusterPanel(wx.Panel):
                 paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
                 paneInfo = paneInfo.Caption("Thrusters").Bottom()
         
+                paneInfoC = wx.aui.AuiPaneInfo().Name("ThrustersCurrents")   
+                paneInfoC = paneInfo.Caption("Thrusters Currents").Bottom()
+        
                 panel = ThrusterPanel(parent, eventHub, thrusters)
-                return [(paneInfo, panel, [vehicle])]
+                panelC = ThrusterCurrentPanel(parent, eventHub, thrusters)
+                return [(paneInfo, panel, [vehicle]),
+                        (paneInfoC, panelC, [vehicle])]
             
         return []
 
@@ -277,6 +283,10 @@ class RotationPanel(wx.Panel):
         return []
     
 class BarDisplayPanel(wx.Panel):
+    """
+    Base panel for bar displays.  All the user has to do is subclass and 
+    create the '_createBarDisplay' method which returns a new display
+    """
     def __init__(self, parent, eventHub, sensors, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._sensors = sensors
@@ -297,11 +307,26 @@ class BarDisplayPanel(wx.Panel):
         
         self.SetSizerAndFit(sizer)
         
-    def _createBarDisplay(self, parent, eventHub, sensor):
+        # Connect to events
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _createBarDisplay(self, parent, eventHub, sensor, sizer, lineNum):
         """
         Create and return bar display here
         """
         return None
+    
+    def _onClose(self, closeEvent):
+        """
+        Disconnects from C++ events
+        
+        Ensure that functions of this object won't get called after its already
+        disctructed.
+        """
+        for display in self._displays:
+            display.disconnect()
+            
+        closeEvent.Skip()
     
 class TempSensorPanel(BarDisplayPanel):
     implements(IPanelProvider)
@@ -342,6 +367,15 @@ class TempSensorPanel(BarDisplayPanel):
             
         return []
     
+class ThrusterCurrentPanel(BarDisplayPanel):
+    def __init__(self, parent, eventHub, thrusters, *args, **kwargs):
+        BarDisplayPanel.__init__(self, parent, eventHub, thrusters, *args, 
+                                 **kwargs)
+    
+    def _createBarDisplay(self, parent, eventHub, sensor, sizer, lineNum):
+        return ThrusterCurrentDisplay(parent = self, eventHub = eventHub,
+                                      thruster = sensor, sizer = sizer, 
+                                      lineNum = lineNum)
     
 class PowerSourcePanel(BarDisplayPanel):
     implements(IPanelProvider)

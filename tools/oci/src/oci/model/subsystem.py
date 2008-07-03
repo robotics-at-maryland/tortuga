@@ -26,7 +26,7 @@ class Vehicle(vehicle.IVehicle):
         self._orientation = ext.math.Quaternion(0, 0, 0, 0)
 
         self._addThruster(eventHub, 'PortThruster', 1)
-        self._addThruster(eventHub, 'StartboardThruster', 2)
+        self._addThruster(eventHub, 'StarboardThruster', 2)
         self._addThruster(eventHub, 'AftThruster', 3)
         self._addThruster(eventHub, 'ForeThruster', 4)
 
@@ -99,6 +99,7 @@ class Thruster(device.IThruster):
         self._currentTime = 0.0
         self._offset = offset
         self._name = name
+        self._current = 0.0
                 
     def getName(self):
         return self._name

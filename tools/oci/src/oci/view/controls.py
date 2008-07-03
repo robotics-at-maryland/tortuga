@@ -460,6 +460,48 @@ class TempSensorDisplay(BarDisplay):
     def _update(self, event):
         self._updateControls(event.number)
                     
+class ThrusterCurrentDisplay(BarDisplay):
+    def __init__(self, parent, eventHub, thruster, sizer, lineNum):
+        BarDisplay.__init__(self, parent, eventHub, thruster, sizer, lineNum)
+            
+    def _createControls(self, thruster, parent):
+        # Define custom color ranges
+        valueList = [0, 5, 7, 8]
+
+        # Create base controls
+        controls = BarDisplay._createControls(self, thruster, parent, 
+                                              colorList = None, 
+                                              valueList = valueList)
+        
+        # Update the label on the control to make it more consise
+        label, flags = controls[0]
+        label.SetLabel(label.GetLabel().replace('Thruster',''))
+        label.SetLabel(label.GetLabel().replace('Starboard','Star'))
+        
+        # Create enabled LED
+        #self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
+        #controls.append((self._enableLED, wx.ALIGN_CENTER_VERTICAL))
+
+        return controls
+            
+    def _subscribeToEvents(self, sensor, eventHub):
+        connections = []
+        def subscribe(_type, handler):
+            conn = eventHub.subscribe(_type, sensor, handler)
+            connections.append(conn) 
+        
+        subscribe(device.ICurrentProvider.UPDATE, self._update)
+#        subscribe(device.IThruser.ENABLED, 
+#                  lambda event: self._enableLED.SetState(2))
+#        subscribe(device.IThruster.DISABLED, 
+#                  lambda event: self._enableLED.SetState(0))
+        
+        return connections
+        
+        
+    def _update(self, event):
+        self._updateControls(event.number)
+                    
 class PowerSourceDisplay(BarDisplay):
     VOLTAGE = 1
     CURRENT = 2
