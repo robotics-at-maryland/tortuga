@@ -1634,7 +1634,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
     
     int totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
                                &minX, &minY, &maxX, &maxY);
-    printf("Narf\n");
+//    printf("Narf\n");
     while (totalBlack ==-1)
     {
         cout<<"Too many separate black pixel groups, eroding the image"<<endl;
@@ -1655,11 +1655,11 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
         ydist=histoBlackY-histoWhiteY;
 		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
 		
-        cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-        cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
-        cout<<"Distance:"<<distance<<endl;
-        cout<<"Total White Count:"<<totalWhite<<endl;
-        cout<<"Total Black Count:"<<totalBlack<<endl;
+//        cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
+//        cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
+//        cout<<"Distance:"<<distance<<endl;
+//        cout<<"Total White Count:"<<totalWhite<<endl;
+//        cout<<"Total Black Count:"<<totalBlack<<endl;
         
         //distance 100, totalWhite 1000 totalBlack 1000 is good for NBRF
 		if (distance<150 && totalWhite > 1000 && totalBlack > 500)
@@ -1682,7 +1682,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
             //scaledRedSuit (IplImage*)
             //chrisArray (float*)
             
-            cout<<"maxX, minX, maxY, minY: " << maxX << " " << minX << " " << maxY << " " << minY <<endl;
+            //cout<<"maxX, minX, maxY, minY: " << maxX << " " << minX << " " << maxY << " " << minY <<endl;
 
 //DO NOT TOUCH THE /4*4 THIS FORCES WIDTH AND HEIGHT TO BE MULTIPLES OF FOUR, SO OPENCV DOESNT FUCK WITH ITS IMAGE STRUCTURE
             IplImage* redSuit = cvCreateImage(cvSize((maxX-minX+1)/4*4,(maxY-minY+1)/4*4), IPL_DEPTH_8U, 3);
@@ -1779,11 +1779,11 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
             
             if (totalRed < 50) //ie, no red (having red pixels also ensures our suit bounding box is realistic.
             {
-                printf("No suit found :( \n");
+//                printf("No suit found :( \n");
             }
             else
             {
-                printf("Found a suit!\n");
+//                printf("Found a suit!\n");
                 //DO NOT TOUCH THE /4*4 THIS FORCES WIDTH AND HEIGHT TO BE MULTIPLES OF FOUR, SO OPENCV DOESNT FUCK WITH ITS IMAGE STRUCTURE
                 IplImage* onlyRedSuit = cvCreateImage(cvSize((maxSuitX-minSuitX+1)/4*4,(maxSuitY-minSuitY+1)/4*4), IPL_DEPTH_8U, 3);
                 cvGetRectSubPix(rotatedRedSuit, onlyRedSuit, cvPoint2D32f((maxSuitX+minSuitX)/2, (maxSuitY+minSuitY)/2));
