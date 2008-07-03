@@ -379,19 +379,42 @@ class RotationCtrl(wx.Panel):
         gc.DrawText(rotStr, xCenter - textAreaWidth / 2 + leftOffset, 
                             yCenter - textAreaHeight / 2)
         
-class TempSensorDisplay(object):
-    def __init__(self, parent, eventHub, tempSensor, sizer, lineNum):
+class BarDisplay(object):
+    """
+    Wrapper class which inserts a sequence of controls which represents a 
+    numeric value.  It uses both a text box, and a color bar 
+    """
+    def __init__(self, parent, eventHub, sensor, sizer, lineNum):
         self._connections = []
 
-        # Get a size reference
-        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
-
-        # Create controls
-        label = wx.StaticText(parent, wx.ID_ANY, tempSensor.getName())
+        # Create controls and add them to sizer
+        pos = 0
+        for control, flags in self._createControls(sensor, parent):
+            sizer.Add(control, (lineNum, pos), flag = flags)
+            pos += 1
+        
+        # Subscribe to events
+        self._connections.extend(self._subscribeToEvents(sensor, eventHub))
+    
+    def _createControls(self, sensor, parent, colorList = None, 
+                        valueList = None, textReference = "+00.00"):
+        """
+        Creates the controls and then returns them with sizer info.  This 
+        creates the textbox and guage update by the default _update method
+        
+        @rtype: [(control, flags)]
+        @return: A list of tuples containing the control and its sizer flags
+        """
+        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent(textReference)
+        
+        label = wx.StaticText(parent, wx.ID_ANY, sensor.getName())
 
         yellow = wx.Color(255, 255, 0)
-        colorList = [wx.GREEN, yellow, wx.RED]
-        valueList = [0, 50, 55, 65]
+        
+        if colorList is None:
+            colorList = [wx.GREEN, yellow, wx.RED]
+        if valueList is None:
+            valueList = [0, 50, 55, 65]
             
         self._gauge = MultiBar(parent, colorList = colorList, 
                                size = (textWidth, textHeight),
@@ -400,104 +423,104 @@ class TempSensorDisplay(object):
         
         size = (textWidth, wx.DefaultSize.height)
         self._textBox = wx.TextCtrl(parent, size = size)
-
-        # Add them to sizer
-        sizer.Add(label, (lineNum, 0),flag = wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(self._textBox, (lineNum, 1), flag = wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(self._gauge, (lineNum, 2), flag = wx.EXPAND)
         
-        # Subscribe to events
-        def subscribe(_type, handler):
-            conn = eventHub.subscribe(_type, tempSensor, handler)
-            self._connections.append(conn) 
-
-        subscribe(device.ITempSensor.UPDATE, self._update)
+        return [(label,  wx.ALIGN_CENTER_VERTICAL),
+                (self._textBox, wx.ALIGN_CENTER_VERTICAL),
+                (self._gauge, wx.EXPAND)]
+        
     
-    def _update(self, event):
-        self._textBox.Value = "%5.2f" % event.number
-        self._gauge.setVal(event.number)
+    def _subscribeToEvents(self, sensor, eventHub):
+        """
+        Subscribes to events, then returns the list of created connections
+        
+        @rtype: [ext.core.EventConnection]
+        @return: The connections which were created from event subscriptions
+        """
+        return []
+    
+    def _updateControls(self, number):
+        """
+        Sets the text box and guage to represent the same value
+        """
+        self._textBox.Value = "%5.2f" % number
+        self._gauge.setVal(number)
     
     def disconnect(self):
         for conn in self._connections:
             conn.disconnect()
         
-class PowerSourceDisplay(object):
+class TempSensorDisplay(BarDisplay):
+    def __init__(self, parent, eventHub, tempSensor, sizer, lineNum):
+        BarDisplay.__init__(self, parent, eventHub, tempSensor, sizer, lineNum)
+            
+    def _subscribeToEvents(self, sensor, eventHub):
+        return [eventHub.subscribe(device.ITempSensor.UPDATE, sensor,
+                                   self._update)]
+        
+    def _update(self, event):
+        self._updateControls(event.number)
+                    
+class PowerSourceDisplay(BarDisplay):
     VOLTAGE = 1
     CURRENT = 2
     
     def __init__(self, parent, eventHub, powerSource, sizer, lineNum, 
                  mode = VOLTAGE):
-        self._connections = []
-
-        # Get a size reference
-        textWidth, textHeight = wx.ClientDC(parent).GetTextExtent('+00.00')
-
-        # Create controls
-        label = wx.StaticText(parent, wx.ID_ANY, powerSource.getName())
-
-        yellow = wx.Color(255, 255, 0)
         
+        # Determine mode
+        modes = set([PowerSourceDisplay.VOLTAGE, PowerSourceDisplay.CURRENT])
+        if not (mode in modes):
+            raise Exception, "Error, invalid mode"    
+        self._mode = mode
+        
+        # Create entire control
+        BarDisplay.__init__(self, parent, eventHub, powerSource, sizer, 
+                            lineNum)
+        
+    def _createControls(self, powerSource, parent):
+        # Define custom color ranges
+        yellow = wx.Color(255, 255, 0)
         colorList = []
         valueList = []
-        if mode == PowerSourceDisplay.VOLTAGE:
+        if self._mode == PowerSourceDisplay.VOLTAGE:
             colorList = [wx.RED, yellow, wx.GREEN, yellow, wx.RED]
             valueList = [22, 25.5, 26.5, 29.5, 30, 31]
-        elif mode == PowerSourceDisplay.CURRENT:
+        elif self._mode == PowerSourceDisplay.CURRENT:
             colorList = [wx.GREEN, yellow, wx.RED]
             valueList = [0, 7, 9, 10]
-            
-        self._gauge = MultiBar(parent, colorList = colorList, 
-                               size = (textWidth, textHeight),
-                               innerBorder = 1,
-                               valueList = valueList, barType=wx.HORIZONTAL)
-        
-        size = (textWidth, wx.DefaultSize.height)
-        self._textBox = wx.TextCtrl(parent, size = size)
 
+        # Create base controls
+        controls = BarDisplay._createControls(self, powerSource, parent, 
+                                              colorList, valueList)
         
+        # Create custom controls
         self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
         self._inUseLED = ram.gui.led.LED(parent, state = 3)#, size = size)
         
-        # Add them to sizer
-        sizer.Add(label, (lineNum, 0),flag = wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(self._textBox, (lineNum, 1), flag = wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(self._gauge, (lineNum, 2), flag = wx.EXPAND)
-        sizer.Add(self._enableLED, (lineNum, 3), flag = wx.ALIGN_CENTER_VERTICAL)
-        sizer.Add(self._inUseLED, (lineNum, 4), flag = wx.ALIGN_CENTER_VERTICAL)
-        
-        # Subscribe to events
+        controls.extend([(self._enableLED, wx.ALIGN_CENTER_VERTICAL),
+                         (self._inUseLED, wx.ALIGN_CENTER_VERTICAL)])
+        return controls
+    
+    def _subscribeToEvents(self, powerSource, eventHub):
+        connections = []
         def subscribe(_type, handler):
             conn = eventHub.subscribe(_type, powerSource, handler)
-            self._connections.append(conn) 
+            connections.append(conn) 
             
-        if mode == PowerSourceDisplay.VOLTAGE:
+        if self._mode == PowerSourceDisplay.VOLTAGE:
             subscribe(device.IVoltageProvider.UPDATE, self._update)
-        elif mode == PowerSourceDisplay.CURRENT:           
+        elif self._mode == PowerSourceDisplay.CURRENT:           
             subscribe(device.ICurrentProvider.UPDATE, self._update)
-        else:
-            raise Exception, "Error, invalid mode"
-        subscribe(device.IPowerSource.ENABLED, self._enable)
-        subscribe(device.IPowerSource.DISABLED, self._disable)
-        subscribe(device.IPowerSource.USING, self._inUse)
-        subscribe(device.IPowerSource.NOT_USING, self._notInUse)
-    
+        
+        subscribe(device.IPowerSource.ENABLED, 
+                  lambda event: self._enableLED.SetState(2))
+        subscribe(device.IPowerSource.DISABLED, 
+                  lambda event: self._enableLED.SetState(0))
+        subscribe(device.IPowerSource.USING, 
+                  lambda event: self._inUseLED.SetState(2))
+        subscribe(device.IPowerSource.NOT_USING, 
+                  lambda event: self._inUseLED.SetState(0))
+        return connections
     
     def _update(self, event):
-        self._textBox.Value = "%5.2f" % event.number
-        self._gauge.setVal(event.number)
-        
-    def _enable(self, event):
-        self._enableLED.SetState(2)
-    
-    def _disable(self, event):
-        self._enableLED.SetState(0)
-        
-    def _inUse(self, event):
-        self._inUseLED.SetState(2)
-    
-    def _notInUse(self, event):
-        self._inUseLED.SetState(0)
-    
-    def disconnect(self):
-        for conn in self._connections:
-            conn.disconnect()
+        self._updateControls(event.number)

@@ -276,29 +276,44 @@ class RotationPanel(wx.Panel):
         
         return []
     
-class TempSensorPanel(wx.Panel):
-    implements(IPanelProvider)
-    
-    def __init__(self, parent, eventHub, tempSensors, *args, **kwargs):
+class BarDisplayPanel(wx.Panel):
+    def __init__(self, parent, eventHub, sensors, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
-        self._tempSensors = tempSensors
-        self._tempDisplays = []
-        
+        self._sensors = sensors
+        self._displays = []
+         
         sizer =  wx.GridBagSizer(10, 10)
         lineNum = 0
   
-        for item in self._tempSensors:
+        for sensor in self._sensors:
             # Create Control
-            display = TempSensorDisplay(parent = self, eventHub = eventHub,
-                                        tempSensor = item,
-                                        sizer = sizer, lineNum = lineNum)                       
-            self._tempDisplays.append(display)
+            display = self._createBarDisplay(parent, eventHub, sensor,
+                                             sizer, lineNum)
+            self._displays.append(display)
             lineNum += 1
             
         # Only gauge column is growable
         sizer.AddGrowableCol(2)
         
         self.SetSizerAndFit(sizer)
+        
+    def _createBarDisplay(self, parent, eventHub, sensor):
+        """
+        Create and return bar display here
+        """
+        return None
+    
+class TempSensorPanel(BarDisplayPanel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub, tempSensors, *args, **kwargs):
+        BarDisplayPanel.__init__(self, parent, eventHub, tempSensors, *args, 
+                                 **kwargs)
+    
+    def _createBarDisplay(self, parent, eventHub, sensor, sizer, lineNum):
+        return TempSensorDisplay(parent = self, eventHub = eventHub,
+                                 tempSensor = sensor, sizer = sizer, 
+                                 lineNum = lineNum)
     
     @staticmethod
     def getPanels(subsystems, parent):
@@ -328,36 +343,22 @@ class TempSensorPanel(wx.Panel):
         return []
     
     
-class PowerSourcePanel(wx.Panel):
+class PowerSourcePanel(BarDisplayPanel):
     implements(IPanelProvider)
     
     VOLTAGE = 1
     CURRENT = 2
         
     def __init__(self, parent, eventHub, powerSources, mode, *args, **kwargs):
-        wx.Panel.__init__(self, parent, *args, **kwargs)
-        self._powerSources = powerSources
-        self._powerDisplays = []
-        
-        sizer =  wx.GridBagSizer(10, 10)
-        lineNum = 0
-  
-        for item in self._powerSources:
-            # Create Control
-            display = PowerSourceDisplay(parent = self, eventHub = eventHub,
-                                        powerSource = item,
-                                        sizer = sizer, lineNum = lineNum,
-                                        mode = mode)
-                       
-            self._powerDisplays.append(display)
-            lineNum += 1
-        
-            
-        # Only gauge column is growable
-        sizer.AddGrowableCol(2)
-        
-        self.SetSizerAndFit(sizer)
+        self._mode = mode
+        BarDisplayPanel.__init__(self, parent, eventHub, powerSources, *args, 
+                                 **kwargs)
     
+    def _createBarDisplay(self, parent, eventHub, sensor, sizer, lineNum):
+        return PowerSourceDisplay(parent = self, eventHub = eventHub,
+                                  powerSource = sensor, sizer = sizer, 
+                                  lineNum = lineNum, mode = self._mode)
+                    
     @staticmethod
     def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
