@@ -6,7 +6,7 @@ import os
 env = Environment(ENV = {'PATH': os.environ['PATH']})
 env.Append(CPPPATH = ['/opt/ram/local/include', '/opt/local/include', '#/..', '#include'])
 env.Append(LIBPATH = ['/opt/ram/local/lib', '/opt/local/lib'])
-env.Append(CPPFLAGS = ['-O3','-Wall'])
+env.Append(CPPFLAGS = ['-O3','-Wall','-Werror'])
 env.Append(LIBS = ['boost_program_options-mt'])
 
 #env.Replace(CC = 'bfin-linux-uclibc-gcc', CXX = 'bfin-linux-uclibc-g++')

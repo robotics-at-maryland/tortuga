@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
         for (int kidx = 0 ; kidx < nKBands ; kidx ++)
         {
-            int64_t L1 = fixed::magL1(spectrum.getAmplitudeForBinIndex(1, channel));
+            int64_t L1 = (int64_t)fixed::magL1(spectrum.getAmplitudeForBinIndex(1, channel));
 
             if(L1 > maxL1)
             {
