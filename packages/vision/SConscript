@@ -55,6 +55,12 @@ envt.RAMProgram(target = 'ImageAnalyzer',
                 source = 'test/src/ImageAnalysisTest.cpp',
                 int_deps = ['vision'])
 
+# Suit Histogram Calculator
+envt.RAMProgram(target = 'SuitHistoCalculator',
+                source = 'test/src/SuitHistoCalculatorTest.cpp',
+                int_deps = ['vision'])
+
+
 # Detector Test
 envt.RAMProgram(target = 'DetectorTest', 
                 source = 'test/src/DetectorTest.cpp',

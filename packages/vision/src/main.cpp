@@ -27,6 +27,7 @@
 
 // Project Includes
 #include "vision/include/main.h"
+#include "vision/include/OpenCVImage.h"
 
 /* 
 	Daniel Hakim
@@ -38,6 +39,40 @@
 */
 using namespace std;
 using namespace ram::vision;
+
+int pixelCountsDiamond[] = {
+0, 2, 4, 6, 8, 10, 12, 12, 14, 16, 18, 20, 22, 24, 26, 28,
+30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 52, 54, 56, 58, 60, 62,
+62, 60, 58, 56, 54, 52, 50, 48, 44, 42, 40, 38, 36, 34, 32, 30,
+28, 26, 24, 22, 20, 18, 16, 14, 14, 12, 10, 8, 6, 4, 2, 2};
+
+int pixelCountsClub[] = {
+8, 13, 16, 20, 22, 23, 24, 26, 26, 28, 28, 28, 28, 28, 28, 28,
+28, 28, 28, 26, 26, 40, 49, 54, 56, 58, 59, 60, 62, 62, 62, 64,
+64, 64, 64, 64, 64, 64, 64, 60, 60, 58, 54, 53, 49, 45, 42, 38,
+30, 18, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 44, 44};
+
+int pixelCountsSpade[] = {
+0, 2, 2, 2, 4, 4, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24,
+26, 28, 32, 34, 36, 40, 42, 46, 48, 50, 52, 54, 56, 58, 60, 62,
+62, 62, 64, 64, 64, 64, 64, 62, 60, 58, 54, 50, 46, 40, 33, 18,
+6, 6, 8, 8, 10, 12, 14, 16, 18, 22, 26, 30, 36, 46, 56, 56};
+
+int pixelCountsHeart[] = {
+17, 28, 36, 42, 46, 50, 54, 56, 58, 60, 62, 63, 64, 64, 64, 64,
+64, 62, 62, 62, 60, 60, 58, 58, 56, 55, 54, 52, 50, 49, 47, 45,
+44, 42, 40, 38, 37, 35, 33, 32, 30, 28, 26, 24, 23, 22, 20, 18,
+17, 15, 14, 12, 11, 10, 8, 8, 6, 6, 4, 4, 2, 2, 1, 0};
+
+
+int suitDifference(int array1[], int array2[], int len)
+{
+    int i = 0;
+    int diff = 0;
+    for (i = 0; i < len; i++)
+        diff += (array1[i]-array2[i]) * (array1[i]-array2[i]);
+    return diff;
+}
 
 //Allow testRecord to be called easily from within a dynamically linked library
 extern "C"{
@@ -463,7 +498,7 @@ double hough(IplImage* img, int* linex, int* liney)
 		cvLine( color_dst, pt1, pt2, CV_RGB(255,0,0), 3, CV_AA, 0 );
 	}
 #else
-	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 50, 10 );
+	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
 	CvPoint start,end;
 	
 	start.x=start.y=end.x=end.y=0;
@@ -592,6 +627,7 @@ void redMask(IplImage* percents, IplImage* base,
 	unsigned char* data2=(unsigned char*)base->imageData;
 	int width=percents->width;
 	int height=percents->height;
+//    printf("width : %d height : %d vs width : %d height : %d", width, height, base->width, base->height);
 	int r;
 	int r2;
 	int count=0;
@@ -608,8 +644,9 @@ void redMask(IplImage* percents, IplImage* base,
 	{
 		for (int x=0; x<width; x++)
 		{
-			r=data[count+2];//r = percent red in the image
-			r2=data2[count+2];//r2 = intensity of red in the image
+//            data[count]=data2[count]=data2[count+1]=data2[count+2]=0;
+            r = data[count+2];//r = percent red in the image
+			r2 = data2[count+2];//r2 = intensity of red in the image
 			if (r > redPercent && r2 > redIntensity) 
 			{
 				data2[count]=255;
@@ -617,21 +654,9 @@ void redMask(IplImage* percents, IplImage* base,
 				data2[count+2]=255;
 			}
 			else
+          {
 				data2[count]=data2[count+1]=data2[count+2]=0;
-
-//			if (b>10 && g>10 && r>35)
-//			{
-//				if (b2>50 && g2>50 && r2>125)
-//				{
-//					data2[count]=255;
-//					data2[count+1]=255;
-//					data2[count+2]=255;
-//				}
-//				else
-//					data2[count]=data2[count+1]=data2[count+2]=0;
-//			}
-//			else
-//				data2[count]=data2[count+1]=data2[count+2]=0;
+          }
 			count+=3;
 		}
 	}
@@ -854,8 +879,8 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 //-1 on failure from too many distinct pieces, 0 if nothing at all was found,
 //otherwise returns number of pixels in the largest connected white splotch in the image
 //and fills centerX and centerY with its center.
-int histogram(IplImage* img, int* centerX, int* centerY, int* maxX, int* maxY,
-              int* minX, int* minY)
+int histogram(IplImage* img, int* centerX, int* centerY, int* minX, int* minY,
+              int* maxX, int* maxY)
 {
 //	cout<<"starting histogram, beware."<<endl;
 	int width=img->width;
@@ -1497,21 +1522,12 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 	int width=percents->width;
 	int height=percents->height;
 	int count=0;
-//	int pixel_count=0;
 	int r=0;
 	int g=0;
 	int b=0;
 	int r2=0;
 	int g2=0;
 	int b2=0;
-//	int total=0;
-//	int total2=0;
-//	
-//	int blackx=0;
-//	int blacky=0;
-//	int whitex=0;
-//	int whitey=0;
-	
 	int xdist=0;
 	int ydist=0;
 	int minx=999999;
@@ -1534,17 +1550,14 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 				if (b2>190 && g2>190 && r2>190)
 				{
 					data2[count]=0;
-					data2[count+1]=0;
-					data2[count+2]=255;
+					data2[count+1]=255;
+					data2[count+2]=0;
                     data[count]=0;
                     data[count+1]=0;
                     data[count+2]=100;
                     data3[count]=255;
                     data3[count+1]=255;
                     data3[count+2]=255;
-//					whitex+=x;
-//					whitey+=y;
-//					total++;
 					minx=min(x,minx);
 					maxx=max(x,maxx);
 					miny=min(y,miny);
@@ -1601,7 +1614,8 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 			b2=(data2[count]+256)%256;
 			g2=(data2[count+1]+256)%256;
 			r2=(data2[count+2]+256)%256;
-			if (b2+g2+r2<350 && b>25 && g>25 && r>25)
+            //sum 350 b 25+ g 25+ r 25+
+			if (b2+g2+r2<350 && b>15 && g>15 && r>15)
 			{
 				data2[count]=255;
 				data2[count+1]=0;
@@ -1610,9 +1624,6 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
                 data[count+1]=0;
                 data[count+2]=0;
                 data3[count]=data3[count+1]=data3[count+2]=255;
-//				blackx+=x;
-//				blacky+=y;
-//				total2++;
 			}
 			count+=3;
 		}
@@ -1623,13 +1634,15 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
     
     int totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
                                &minX, &minY, &maxX, &maxY);
+    printf("Narf\n");
     while (totalBlack ==-1)
     {
-        cout<<"Too many separate white pixel groups, eroding the image"<<endl;
+        cout<<"Too many separate black pixel groups, eroding the image"<<endl;
         cvErode(temp,temp,NULL,1);
         totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
                                &minX, &minY, &maxX, &maxY);
     }
+    
 //    cout<<"Histo Total = " << totalBlack << endl;
 
 //    if (totalWhite<0 || totalBlack<0)
@@ -1638,34 +1651,186 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 //    }
 	if (totalWhite>0 && totalBlack>0)
 	{
-//		whitex/=total;
-//		whitey/=total;
-//		blackx/=total2;
-//		blacky/=total2;
-//		xdist=blackx-whitex;
-//		ydist=blacky-whitey;
-
         xdist=histoBlackX-histoWhiteX;
         ydist=histoBlackY-histoWhiteY;
 		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
 		
-        //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-        //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
-        //cout<<"Distance:"<<distance<<endl;
-        //cout<<"Total White Count:"<<totalWhite<<endl;
-        //cout<<"Total Black Count:"<<totalBlack<<endl;
-		if (distance<100 && totalWhite > 1000 && totalBlack > 1000)
+        cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
+        cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
+        cout<<"Distance:"<<distance<<endl;
+        cout<<"Total White Count:"<<totalWhite<<endl;
+        cout<<"Total Black Count:"<<totalBlack<<endl;
+        
+        //distance 100, totalWhite 1000 totalBlack 1000 is good for NBRF
+		if (distance<150 && totalWhite > 1000 && totalBlack > 500)
 		{
 			//cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;
-//			*binx=(whitex+blackx)/2;
-//			*biny=(whitey+blacky)/2;
             *binx=(histoWhiteX + histoBlackX) /2;
             *biny=(histoWhiteY + histoBlackY) /2;
             
             //Start SUIT DETECTION CODE!
+            //MAKE SURE TO FREE ME:
+            //redSuit (IplImage*)
+            //redSuitGrayScale (IplImage*)
+            //cannied (IplImage*)
+            //storage (CvMemStorage*)
+            //lines (CvSeq*)
+            //rotatedRedSuit (IplImage*)
+            //percentsRotatedRed (IplImage*)
+            //ALSO IF A SUIT IS FOUND FREE ME:
+            //onlyRedSuit (IplImage*)
+            //scaledRedSuit (IplImage*)
+            //chrisArray (float*)
             
+            cout<<"maxX, minX, maxY, minY: " << maxX << " " << minX << " " << maxY << " " << minY <<endl;
+
+//DO NOT TOUCH THE /4*4 THIS FORCES WIDTH AND HEIGHT TO BE MULTIPLES OF FOUR, SO OPENCV DOESNT FUCK WITH ITS IMAGE STRUCTURE
+            IplImage* redSuit = cvCreateImage(cvSize((maxX-minX+1)/4*4,(maxY-minY+1)/4*4), IPL_DEPTH_8U, 3);
             
+            cvGetRectSubPix(base, redSuit, cvPoint2D32f((maxX+minX)/2, (maxY+minY)/2));
+            IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
+            cvCvtColor(redSuit,redSuitGrayScale,CV_BGR2GRAY);
             
+            IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
+            cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
+            
+            CvMemStorage* storage = cvCreateMemStorage(0);
+            CvSeq* lines = 0;
+            
+            lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+            
+            float longestLineLength = -1;
+            float slope = 0;
+            for(int i = 0; i < lines->total; i++ )
+            {
+                CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+                float lineX = line[1].x - line[0].x;
+                float lineY = line[1].y - line[0].y;
+                
+                if (longestLineLength < (lineX * lineX + lineY * lineY))
+                {
+                    slope = atan2(lineY,lineX);
+                    longestLineLength = lineX * lineX + lineY * lineY;
+                }
+            }
+            
+            IplImage* rotatedRedSuit = cvCreateImage(cvGetSize(redSuit), IPL_DEPTH_8U, 3);
+            
+            float m[6];
+            CvMat M = cvMat( 2, 3, CV_32F, m );
+
+            double factor = -slope;
+            m[0] = (float)(cos(factor));
+            m[1] = (float)(sin(factor));
+            m[2] = redSuitGrayScale->width * 0.5f;
+            m[3] = -m[1];
+            m[4] = m[0];
+            m[5] = redSuitGrayScale->height * 0.5f;
+
+            cvGetQuadrangleSubPix(redSuit, rotatedRedSuit,&M);
+            
+            IplImage* percentsRotatedRed = cvCreateImage(cvGetSize(rotatedRedSuit),IPL_DEPTH_8U, 3);
+            
+            cvCopyImage(rotatedRedSuit,percentsRotatedRed);
+            to_ratios(percentsRotatedRed);
+//            OpenCVImage mySuit(rotatedRedSuit,false);
+//            Image::showImage(&mySuit);
+            
+            //printf("This is fucking bullcrap. %d", rotatedRedSuit->dataOrder);
+            redMask(percentsRotatedRed, rotatedRedSuit, 30, 175);
+//            Image::showImage(&mySuit);
+            
+            //rotatedRedSuit->imageData[500]=rotatedRedSuit->imageData[501]=rotatedRedSuit->imageData[502]=255;
+            
+            //WIDTH * HEIGHT * 3 != IMAGESIZE!!  WIDTHSTEP = (WIDTH + WIDTH%4)* 3 WTF!!!  WIDTH+WIDTH%4 * HEIGHT * 3 = IMAGESIZE OMFG!!!
+            //printf("width: %d height: %d widthstep: %d", rotatedRedSuit->width, rotatedRedSuit->height, rotatedRedSuit->widthStep);
+            //printf("This is fucking bullcrap2. %d", rotatedRedSuit->dataOrder);
+
+//            unsigned char* rotatedRedData = (unsigned char*) rotatedRedSuit->imageData;
+            
+//            int redSuitCount = 0;
+            int totalRed = 0;
+            int minSuitX = 999999;
+            int minSuitY = 999999;
+            int maxSuitX = 0;
+            int maxSuitY = 0;
+            int redCX, redCY;
+//            cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 5);
+            totalRed = histogram(rotatedRedSuit, &redCX, &redCY, &minSuitX, &minSuitY, &maxSuitX, &maxSuitY);
+            if (totalRed == -1)
+            {
+                printf("Oops, we fucked up.  Tell Dan to use the BlobTracker instead of histogram\n");
+            }
+//            for (int y = 0; y < rotatedRedSuit->height; y++)
+//            {
+//                for (int x = 0; x < rotatedRedSuit->width; x++)
+//                {
+//                    if (rotatedRedData[redSuitCount]==255)
+//                    {
+//                        minSuitX = min(minSuitX,x);
+//                        minSuitY = min(minSuitY,y);
+//                        maxSuitX = max(maxSuitX,x);
+//                        maxSuitY = max(maxSuitY,y);
+//                        totalRed++;
+//                    }
+//                    redSuitCount+=3;
+//                }
+//            }
+            
+            if (totalRed < 50) //ie, no red (having red pixels also ensures our suit bounding box is realistic.
+            {
+                printf("No suit found :( \n");
+            }
+            else
+            {
+                printf("Found a suit!\n");
+                //DO NOT TOUCH THE /4*4 THIS FORCES WIDTH AND HEIGHT TO BE MULTIPLES OF FOUR, SO OPENCV DOESNT FUCK WITH ITS IMAGE STRUCTURE
+                IplImage* onlyRedSuit = cvCreateImage(cvSize((maxSuitX-minSuitX+1)/4*4,(maxSuitY-minSuitY+1)/4*4), IPL_DEPTH_8U, 3);
+                cvGetRectSubPix(rotatedRedSuit, onlyRedSuit, cvPoint2D32f((maxSuitX+minSuitX)/2, (maxSuitY+minSuitY)/2));
+                
+                OpenCVImage redSuit(onlyRedSuit, false);//The OpenCV image should not release onlyRedSuit when it is deleted
+                Image::showImage(&redSuit);
+                IplImage* scaledRedSuit = cvCreateImage(cvSize(64,64),IPL_DEPTH_8U, 3);
+                cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
+                int* chrisArray = (int*)(calloc(scaledRedSuit->height, sizeof(float)));
+                
+                int scaledRedIndex = 0;
+                unsigned char* scaledRedData=(unsigned char*)scaledRedSuit->imageData;
+                for (int y = 0; y < scaledRedSuit->height; y++)
+                {
+                    for (int x = 0; x < scaledRedSuit->width; x++)
+                    {
+                        if (scaledRedData[scaledRedIndex]!=0)
+                        {
+                            chrisArray[y]++;
+                        }
+                        scaledRedIndex+=3;
+                    }
+                }
+//                OpenCVImage suit(scaledRedSuit, false);// The OpenCVImage should not release scaledRedSuit when it is deleted. (else I'll double free)
+//                Image::showImage(&suit);
+                
+                
+                //onlyRedSuit (IplImage*)
+                //scaledRedSuit (IplImage*)
+                //chrisArray 
+                
+                cout<<"Heart : " << suitDifference(chrisArray, pixelCountsHeart, scaledRedSuit->height)<<endl;
+                cout<<"Club : " << suitDifference(chrisArray, pixelCountsClub, scaledRedSuit->height)<<endl;
+                cout<<"Diamond : " << suitDifference(chrisArray, pixelCountsDiamond, scaledRedSuit->height)<<endl;
+                cout<<"Spade : " << suitDifference(chrisArray, pixelCountsSpade, scaledRedSuit->height)<<endl;
+                cvReleaseImage(&onlyRedSuit);
+                cvReleaseImage(&scaledRedSuit);
+                free(chrisArray);
+            }
+            //MAKE SURE TO FREE ME:
+            cvReleaseImage(&redSuit);
+            cvReleaseImage(&redSuitGrayScale);
+            cvReleaseImage(&cannied);
+            cvReleaseMemStorage(&storage);
+//            cvReleaseSeq(&lines);  No one seems to release these... apparently they just use the mem storage for storage.
+            cvReleaseImage(&rotatedRedSuit);
+            cvReleaseImage(&percentsRotatedRed);
 		}
 		else
 		{
@@ -1674,9 +1839,12 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 			*binx=-1;
 			*biny=-1;
 		}
+        
 	}
 	return min(totalWhite,totalBlack);
 }
+
+
 
 
 
