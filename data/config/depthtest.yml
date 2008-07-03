@@ -171,7 +171,7 @@ Subsystems:
         dtMin: 0.001
         dtMax: 0.05
         
-        # Observer Control for 4d depth state
+        # Observer Control for 4d depth state (controllers 3 and 4)
         # low gains:
         depthOCIA4: [-0.355, -539.9952, -1.6815, 0,
                       0, -8.4250, 1.0, 0,
@@ -192,14 +192,6 @@ Subsystems:
         #              0, -283, -1, 0,
         #             -6, -244, -248, 0]
         #depthOCIB4: [19998, 29, 283, 0]
-        #depthOCIC4: [0, 0, 0, 1]
-
-        # Discrete Observer Controller w/Integral Aug. (#4)
-        #depthOCIA4: [0, 12217, -469, 0,
-        #             0, 0, 0, 0,
-        #             0, -9, 0, 0,
-        #             0, 2932, 49, 1]
-        #depthOCIB4: [-12221, 1, 9, -2937]
         #depthOCIC4: [0, 0, 0, 1]
 
         # Settings for PID Depth Controller (#5)
