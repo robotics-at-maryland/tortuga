@@ -537,8 +537,45 @@ class PowerSourceDisplay(BarDisplay):
         
         # Create custom controls
         self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
+        self._enableLED.SetAsciiPattern('''
+        000000-----000000      
+        0000---------0000
+        000-----------000
+        00-----XXX----=00
+        0----XX**XXX-===0
+        0---X***XXXXX===0
+        ----*000000XX====
+        ---X*0XXXXXXXX===
+        ---XX0000XXXXX===
+        ---XX0XXXXXXXX===
+        ----X000000XX====
+        0---XXXXXXXXX===0
+        0---=XXXXXXX====0
+        00=====XXX=====00
+        000===========000
+        0000=========0000
+        000000=====000000
+        '''.strip())
         self._inUseLED = ram.gui.led.LED(parent, state = 3)#, size = size)
-        
+        self._inUseLED.SetAsciiPattern('''
+        000000-----000000      
+        0000---------0000
+        000-----------000
+        00-----XXX----=00
+        0----XX**XXX-===0
+        0---X*0*XX0XX===0
+        ----X*0XXX0XX====
+        ---X*X0XXX0XXX===
+        ---XXX0XXX0XXX===
+        ---XXX0XXX0XXX===
+        ----XX00000XX====
+        0---XXXXXXXXX===0
+        0---=XXXXXXX====0
+        00=====XXX=====00
+        000===========000
+        0000=========0000
+        000000=====000000
+        '''.strip())
         controls.extend([(self._enableLED, wx.ALIGN_CENTER_VERTICAL),
                          (self._inUseLED, wx.ALIGN_CENTER_VERTICAL)])
         return controls
