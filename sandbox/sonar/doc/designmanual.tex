@@ -500,35 +500,9 @@ We can estimate the spatial variation in position accuracy for any given sonar a
 \end{center}
 \end{figure}
 
-\section{Implementation}
+\section{DSP Algorithms}
 
-\subsection{Sensors}
-
-\subsubsection{Mounting}
-
-\subsection{Electronics}
-
-\subsubsection{Analog board}
-
-\paragraph{Filters}
-
-\paragraph{Amplifiers}
-
-\paragraph{Power supply}
-
-\subsubsection{Digitial board}
-
-\paragraph{ADCs}
-
-\paragraph{DSPs and microprocessors}
-
-\subsubsection{Thermal budget}
-
-\subsection{Algorithms}
-
-\subsubsection{TDOA Estimation}
-
-\paragraph{Phase comparison}
+\subsection{Fourier and other transforms}
 
 As noted in section \ref{sec:tdoa-error}, if two hydrophones are separated by less than half a  wavelength \(\lambda\), then the TDOA between them is proportional to the phase difference between the signals.  One of the most obvious ways to calculate the phase is to perform a discrete Fourier transform (DFT).
 
@@ -542,11 +516,11 @@ There are many special-purpose variations and implementations of the DFT to choo
 
 In all cases, we can obtain some improvement in speed over the plain old DFT by computing only the rows (frequency bins) that we need.  There will typically be only one row of interest, corresponding to the frequency of the pinger.
 
-\subparagraph{Discrete Hartley transform}
+\subsubsection{Discrete Hartley transform}
 
-\subparagraph{Fast Fourier transform}
+\subsubsection{Fast Fourier transform}
 
-\subparagraph{Goertzel's  algorithm}
+\subsubsection{Goertzel's  algorithm}
 
 Goertzel's algorithm is a recursive implementation of the DFT.   It can be applied to incoming data on the fly.  Unlike the plain DFT, there is no need to store a vector of precomputed coefficients.  Only one coefficient is necessary.
 
@@ -556,7 +530,7 @@ The main disadvantage of Goertzel's algorithm is that it does not provide immedi
 
 Goertzel's algorithm is well suited to microcontrollers, dsPICs, or full-scale DSPs.
 
-\subparagraph{The sliding DFT}
+\subsubsection{The sliding DFT}
 
 The sliding DFT derives its name from the fact that the Fourier window shifts forward as new samples arrive.  Typically, the coefficient vector and sample vector are stored as circular buffers.  Like Goertzel's algorithm, each additional sample requires only a small, constant number of operations.
 
@@ -596,21 +570,9 @@ X_k(m) = e^{\frac{2 \pi i}{N} k} (X_k(m-1) - x(m-N) + x(m))
 
 Only three complex additions and one complex multiply are required to evaluate the sliding DFT.
 
-\paragraph{Edge detection}
+\subsection{Triggering}
 
-\paragraph{Cross-correlation}
-
-\subsubsection{Ping detection}
-
-\paragraph{Identifying acoustic features}
-
-\paragraph{Rejecting echoes}
-
-\paragraph{Rejecting noise}
-
-\subsubsection{Localization}
-
-\section{Interface with vehicle}
+\subsection{Cross-correlation}
 
 \clearpage
 
