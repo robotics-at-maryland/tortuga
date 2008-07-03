@@ -60,6 +60,7 @@ public:
     
     BlobDetector(core::ConfigNode config,
                  core::EventHubPtr eventHub = core::EventHubPtr());
+    BlobDetector(int minimumBlobSize = 0);
     ~BlobDetector();
     
     void processImage(Image* input, Image* output= 0);

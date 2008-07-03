@@ -38,6 +38,14 @@ BlobDetector::BlobDetector(core::ConfigNode config,
     init(config);
 }
 
+BlobDetector::BlobDetector(int minimumBlobSize) :
+    Detector(core::EventHubPtr()),
+    m_minBlobSize(minimumBlobSize),
+    data(0),
+    m_dataSize(0)
+{
+}
+    
 BlobDetector::~BlobDetector()
 {
     free(data);
