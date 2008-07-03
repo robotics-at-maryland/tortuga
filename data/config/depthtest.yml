@@ -163,6 +163,10 @@ Subsystems:
         # 3 = Observer Control for 4d depth state
         # 4 = Observer Control with scaling for 4d depth state
         # 5 = PID
+
+        # We want to run controlTypes 1, 3, 4, 5
+        # Record 2 runs for each controlType: from depth = 1 to depth = 3
+        # and from depth = 1 to depth - 15
         depthControlType: 1
         dtMin: 0.001
         dtMax: 0.05
