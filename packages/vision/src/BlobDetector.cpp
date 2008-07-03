@@ -239,6 +239,11 @@ int BlobDetector::histogram(IplImage* img)
                         totalMaxY[idx] = y;
                 }
             }
+            else
+            {
+                // We need to zero the data as we go
+                data[count] = 0;
+            }
             count++;
             imgCount += 3;
         }
