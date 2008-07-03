@@ -4,7 +4,7 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \newcommand{\TortugaII}{\emph{Tortuga II}}
-\title{The Sonar Cookbook: Theory and Implementation on \textit{Tortuga 2}}
+\title{The Sonar Cookbook: An Underwater Acoustics Primer for \TortugaII{}}
 \author{Leo Singer}
 
 \begin{document}
@@ -54,7 +54,7 @@ We will examine some simple strategies to home in on the pinger using bearing al
 
 We will further demonstrate that time difference on arrival (TDOA) estimates, when combined with orientation estimates from our inertial measurement unit (IMU), provide enough information to determine the \emph{absolute} coordinates of the vehicle, in a world coordinate system with the pinger at the origin.  Our AI may use this absolute position estimate as a navigation aid, verifying its progress anywhere in the obstacle course.
 
-\section{Multilateration}
+\section{Bearing}
 
 \subsection{Spherical waves, near field}
 \label{sec:near-field}
@@ -77,7 +77,6 @@ We start with a collection of \(M=N+1\) hydrophones at positions \(\mathbf{r}_i=
 \end{equation}
 
 Although we can construct \(N(N+1)/2\) such equations, only \(N\) of them are independent.  We arbitrarily pick \(j=0\) and arrive at a system of \(N\) equations with \(i=1,2,\dots,N\):
-
 \begin{equation}\label{eq:hyperboloid-i0}
 \|\mathbf{r}_i-\mathbf{r}_s\|-\|\mathbf{r}_0-\mathbf{r}_s\|=d_{i0}.
 \end{equation}
@@ -163,6 +162,29 @@ R_2^2-d_{20}^2-z_2z_s \\
 \right)
 \end{equation}
 
+\subsection{Theoretical performance limits}
+
+Based on Ho's error analysis \cite{Ho} \cite{Ho:2007lr}, we estimate the minimum covariance matrix relating \(x_s\), \(y_s\), and \(z_s\) by considering normally distributed random errors in the TDOAs \(d_{ij}\) and the hydrophone positions \(\mathbf{r}_i\).
+
+We can estimate the spatial variation in position accuracy for any given sonar array geometry.  Figures (\ref{fig:squarePyramid}) and (\ref{fig:doubleTetrahedron}) depict the positional accuracy of an inverted square pyramid array and a double tetrahedron array, respectively.  We have used MATLAB to compute the Cram\'{e}r-Rao lower bound on the position of the pinger in a number of different locations, then plotted the maximum eigenvalue of the covariance matrix.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.5]{squarePyramid.pdf}
+\caption{An inverted square pyramid array, spatial variation in positional accuracy}
+\label{fig:squarePyramid}
+\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.5]{doubleTetrahedron.pdf}
+\caption{A double tetrahedron array, spatial variation in positional accuracy}
+\label{fig:doubleTetrahedron}
+\end{center}
+\end{figure}
+
+
 \subsection{Planar waves, far field}
 \label{sec:far-field}
 
@@ -214,7 +236,6 @@ d_{20} \\
 The matrix \(A\) may, of course, be pre-inverted for use on a digital signal processor.
 
 If we select an array of four hydrophones forming right angles, with \(\mathbf r_1=a \hat\mathbf x\), \(\mathbf r_2=a \hat\mathbf y\), and \(\mathbf r_3=a \hat\mathbf z\), then the matrix on the left hand side of (\ref{eq:planars-multi}) becomes \(a \mathbf I_{3 \times 3}\), simplifying the solution to
-
 \begin{equation}\label{eq:planars-multi-unity}
 \left(
 \begin{array}{c}
@@ -299,7 +320,7 @@ This calibration routine has been numerically verified in MATLAB.  Adequate solu
 
 It may be simpler in practice to rotate the hydrophone array than to move the source.  We can use the AUV itself as a precision \(4 \pi\) steradians underwater rotation stage for the calibration process.
 
-\section{Estimating the vehicle's state}
+\section{Passive ranging and navigation}
 
 In this section, we describe three different levels of information that the sonar system alone can provide: relative bearing, range rate, and range.
 
@@ -473,34 +494,6 @@ Let us assume that the source and receiver are at the same depth \(z\), and a di
 where \(c\) is the speed of sound.
 
 From table~(\ref{tab:lloyd}) we see that at close range the first echo is entirely differentiated in time from the 1.3 ms ping.  At greater range, we can avoid the Lloyd's mirror effect by dropping the latter part of the digitized pulse from the phase determination DFT.
-
-\section{Theoretical limits on performance}
-
-\subsection{Estimating the Cram\'{e}r-Rao lower bound}
-
-Based on Ho's error analysis \cite{Ho} \cite{Ho:2007lr}, we estimate the minimum covariance matrix relating \(x_s\), \(y_s\), and \(z_s\) by considering normally distributed random errors in the TDOAs \(d_{ij}\) and the hydrophone positions \(\mathbf{r}_i\).
-
-We can estimate the spatial variation in position accuracy for any given sonar array geometry.  Figures (\ref{fig:squarePyramid}) and (\ref{fig:doubleTetrahedron}) depict the positional accuracy of an inverted square pyramid array and a double tetrahedron array, respectively.
-
-\subsection{Monte Carlo estimation of the covariance matrix}
-
-// Tons of plots and captions need to go here eventually.
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.5]{squarePyramid.pdf}
-\caption{An inverted square pyramid array, spatial variation in positional accuracy}
-\label{fig:squarePyramid}
-\end{center}
-\end{figure}
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.5]{doubleTetrahedron.pdf}
-\caption{A double tetrahedron array, spatial variation in positional accuracy}
-\label{fig:doubleTetrahedron}
-\end{center}
-\end{figure}
 
 \section{DSP Algorithms}
 
