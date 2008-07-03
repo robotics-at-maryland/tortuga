@@ -535,7 +535,7 @@ As noted in section \ref{sec:tdoa-error}, if two hydrophones are separated by le
 The DFT maps a sequence of \(N\) complex numbers \(x_n\) from \(n=0\) to \(N\) to another sequence of complex numbers \(X_k\) from \(k=0\) to \(N\):
 
 \begin{equation}
-X_k=\sum_{n=0}^{N-1} {x_n e^{\frac{2 \pi i}{N} kn}}
+X_k=\sum_{n=0}^{N-1} {x_n e^{- \frac{2 \pi i}{N} kn}}
 \end{equation}
 
 There are many special-purpose variations and implementations of the DFT to choose from, including the discrete Hartley transform (DHT), the fast Fourier transform (FFT), Goertzel's algorithm, and the sliding DFT.
@@ -558,47 +558,43 @@ Goertzel's algorithm is well suited to microcontrollers, dsPICs, or full-scale D
 
 \subparagraph{The sliding DFT}
 
-The sliding DFT derives its name from the fact that the Fourier window shifts forward as new samples arrive.  Typically, the coefficient vector and sample vector are stored as circular buffers.
+The sliding DFT derives its name from the fact that the Fourier window shifts forward as new samples arrive.  Typically, the coefficient vector and sample vector are stored as circular buffers.  Like Goertzel's algorithm, each additional sample requires only a small, constant number of operations.
 
-Like Goertzel's algorithm, each additional sample requires only a small, constant number of operations.
+The main advantage of the sliding DFT is that it provides a continuously varying (complex) amplitude that shifts immediately to reflect every new sample.  It can be used to generate a spectrogram or ``waterfall plot'', on which the horizontal axis is time, the vertical axis is frequency, and magnitude is indicated by color.  It is about as expensive as Goertzel's algorithm in terms of number of operations.
 
-The main advantage of the sliding DFT is that it provides a continuously varying (complex) amplitude that shifts immediately to reflect every new sample.  It is about as expensive as Goertzel's algorithm in terms of number of operations.
+The sliding DFT transforms the time-domain signal \(x(m)\) to the frequency-domain signal \(X_k(m)\).  Like Goertzel's algorithm, the sliding DFT may be expressed as a recursive function.  A derivation is provided below.  See \cite{sliding-dft-ieee} for an alternate derivation.
 
-The main disadvantage is that it has about the same memory requirements (namely, the coefficient vector) as a single-band DFT.
+The \(N\)-point discrete Fourier transform of the past \(N\) samples, upon the arrival of the \(m\)th sample, is given by
+\begin{equation}
+\label{eq:sdft-m}
+X_k(m) = \sum_{n=0}^{N-1} {x(m-N+n+1) e^{- \frac{2 \pi i}{N} kn}}
+\end{equation}
 
-The sliding DFT is well suited to full-scale DSPs.
+At the immediately preceding window, the DFT is
+\begin{equation}
+\label{eq:sdft-m-minusone}
+X_k(m-1) = \sum_{n=0}^{N-1} {x(m-N+n) e^{- \frac{2 \pi i}{N} kn}}
+\end{equation}
 
-The basic algorithm to calculate \(X_k\) using an \(N\)-point sliding DFT is as follows.
+Shifting the limits of summation in (\ref{eq:sdft-m}) yields
+\[
+X_k(m) = \sum_{n=1}^{N} {x(m-N+n) e^{- \frac{2 \pi i}{N} k(n-1)}}
+\]
 
-\begin{enumerate}
+The complex exponential contains a constant factor of \(e^{\frac{2 \pi i}{N} kn}\).  Taking it outside the summation gives us
+\begin{equation}
+\label{eq:sdft-factored}
+X_k(m) = e^{\frac{2 \pi i}{N} k} \sum_{n=1}^{N} {x(m-N+n) e^{- \frac{2 \pi i}{N} kn}}
+\end{equation}
 
-\item Precompute an \(N\)-element vector of sampled cosines \(A_n^k=\cos {\frac{2 \pi}{N} k n}\) and an \(N\)-element vector of sampled sines \(B_n^k=\sin {\frac{2 \pi}{N} k n}\).
+Now, the summations in (\ref{eq:sdft-factored}) and (\ref{eq:sdft-m-minusone}) are the same except for the starting and ending indices.  (\ref{eq:sdft-factored}) is missing the zeroth term of (\ref{eq:sdft-m-minusone}), which is \(x(m-N)\).  (\ref{eq:sdft-factored}) also has an \(N\)th term that (\ref{eq:sdft-m-minusone}) does not have, equal to \(x(m) e^{- \frac{2 \pi i}{N} k}\), or \(x(m)\).
 
-\item Allocate and zero two \(N\)-element buffers \(\alpha_n\) and \(\beta_n\).
+We can now express (\ref{eq:sdft-factored}) recursively:
+\begin{equation}
+X_k(m) = e^{\frac{2 \pi i}{N} k} (X_k(m-1) - x(m-N) + x(m))
+\end{equation}
 
-\item Allocate and zero two variables \(X_k^{real}\) and \(X_k^{imag}\).
-
-\item Let \(j=0\).
-
-\item For every sample \(x\) received:
-
-\subitem Let \(\alpha_j = A_j^k x\) and \(\beta_j = B_j^k x\).
-
-\subitem Let \(X_k^{real} = X_k^{real} + \alpha_j\) and \(X_k^{imag} = X_k^{imag} + \beta_j\).
-
-\subitem Let \(j = j + 1\).
-
-\subitem If \(j \ge N\) then
-
-\subsubitem Let \(j = 0\).
-
-\subitem Let \(X_k^{real} = X_k^{real} - \alpha_j\) and \(X_k^{imag} = X_k^{imag} - \beta_j\).
-
-\end{enumerate}
-
-The quantity \(X_k^{real} + i X_k^{imag}\) is equivalent to the complex Fourier amplitude \(X_k\) from an \(N\)-point DFT extending \(N\) samples into the past.
-
-\subparagraph{A sliding Goertzel's algorithm?}
+Only three complex additions and one complex multiply are required to evaluate the sliding DFT.
 
 \paragraph{Edge detection}
 
