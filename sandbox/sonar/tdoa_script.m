@@ -9,17 +9,18 @@ speedofsound=1500;
 numchan=4;
 numsamp=2000;
 numsamples=42*20;
-phase(1)=signalfreq*tdoa1/sampfreq*2*pi();
-phase(2)=signalfreq*tdoa2/sampfreq*2*pi();
-phase(3)=signalfreq*tdoa3/sampfreq*2*pi();
+phase(1)=0;
+phase(2)=signalfreq*tdoa1/sampfreq*2*pi();
+phase(3)=signalfreq*tdoa2/sampfreq*2*pi();
+phase(4)=signalfreq*tdoa3/sampfreq*2*pi();
 colors=['c','m','b','k'];
 
 figure(1);
 hold on;
 points=1:numsamp;
 
-sine=zeros(numchan-1,numsamp);
-for k=1:numchan-1
+sine=zeros(numchan,numsamp);
+for k=1:numchan
     %sine(k,:)=sin(signalfreq/sampfreq*2*pi*points*phase(k)
     for m=1:numsamp
         sine(k,m)=sin(signalfreq/sampfreq*2*pi()*points(m)+phase(k));
