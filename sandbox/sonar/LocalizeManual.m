@@ -16,10 +16,6 @@ samplesPerHalfWavelength = samplesPerWavelength / 2;
 
 disp('Loading samples...');
 
-%A = textread('/tmp/dataA.txt');
-%B = textread('/tmp/dataB.txt');
-%C = textread('/tmp/dataC.txt');
-%D = textread('/tmp/dataD.txt');
 file = fopen('r0.bin','rb');
 data = fread(file, Inf, 'int16');
 fclose(file);
@@ -27,8 +23,11 @@ A = data(1:4:end);
 B = data(2:4:end);
 C = data(3:4:end);
 D = data(4:4:end);
+%A = data(1,:);
+%B = data(2,:);
+%C = data(3,:);
+%D = data(4,:);
 t = (0:1/SamplingRate:(length(A)-1)/SamplingRate);
-
 
 
 if( nargin < 1 )
@@ -60,7 +59,12 @@ mousePts = ginput(4);
 peaks = mousePts(1:4,1);
 peaks = peaks - peaks(1);
 peaks = peaks(2:4);
-peaks = mod(peaks, samplesPerWavelength)-samplesPerHalfWavelength;
+peaks = mod(peaks, samplesPerWavelength);
+for i = 1:3
+    if peaks(i) >= samplesPerHalfWavelength
+        peaks(i) = peaks(i) - samplesPerWavelength;
+    end
+end
 
 direction = M * peaks;
 direction = direction/norm(direction);
