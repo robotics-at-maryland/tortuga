@@ -9,7 +9,7 @@ clear
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
-controlType = 'PID';
+controlType = 'lqgi';
 
 
 %create a global variable so observer controllers can store variables
@@ -42,7 +42,7 @@ v_displaced=(1+m*g)/(p_water*g);%volume of water displaced by sub in m^3
 %constant=(p_water*v_displaced-m)*g;
 constant=g*(m-p_water*v_displaced);
 
-time=linspace(0,20,6000);
+time=linspace(0,30,6000);
 dt=time(2)-time(1);
 %sensor delay time
 %delay =0.05;
@@ -81,20 +81,19 @@ elseif strcmp('LQG',upper(controlType))==1
      L = [ 0.229271574791027;
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
-%    LQG Controller - LQGIntegraterCoefficients
-% K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
-% L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+%   LQG Controller - LQGIntegraterCoefficients
+%K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+%L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
 A_c = 1.0e+04 * [-0.0006   -2.0242   -0.0248         0;
-         0   -0.0029    0.0001         0;
-    0.0000   -0.0283   -0.0001         0;
-   -0.0006   -0.0244   -0.0248         0];
+        0   -0.0029    0.0001         0;
+   0.0000   -0.0283   -0.0001         0;
+  -0.0006   -0.0244   -0.0248         0];
 
 
 B_c = 1.0e+04 *[1.9998;
-    0.0029;
-    0.0283;
-         0];
-
+   0.0029;
+   0.0283;
+        0];
 
 C_c = [0     0     0     1];
 end    
@@ -162,7 +161,7 @@ for i=2:length(time)
     %simulate measurement
     y=x(1,i-1);
     %add gaussian white noise
-    y=y+(rand-0.5);
+    y=y+(randn-0.5);
     %store measurement
     y_array(i)=y;
 
@@ -205,13 +204,13 @@ for i=2:length(time)
         x_hat_array(2,i) = xHat4(3);
     end
     
-    
+    %Fthrust(i) = Fthrust(i)*40/8000;
     %Account for thruster saturation
-    if (Fthrust(i) > max_thrust)
-        Fthrust(i) = max_thrust;
-    elseif (Fthrust(i) < -max_thrust)
-        Fthrust(i) =  -max_thrust;
-    end
+    %if (Fthrust(i) > max_thrust)
+    %    Fthrust(i) = max_thrust;
+    %elseif (Fthrust(i) < -max_thrust)
+    %    Fthrust(i) =  -max_thrust;
+    %end
     
     %use control law in simulation of acceleration so long as we aren't
     %above the surface

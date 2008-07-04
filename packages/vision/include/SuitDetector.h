@@ -43,6 +43,7 @@ class RAM_EXPORT SuitDetector : public Detector
     Camera* cam;
     IplImage* ratioImage;
     IplImage* analyzedImage;
+	IplImage* tempHoughImage;
     void init(core::ConfigNode config);
     double suitX;
     double suitY;

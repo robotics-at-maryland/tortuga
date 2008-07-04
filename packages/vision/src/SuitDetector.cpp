@@ -43,12 +43,14 @@ void SuitDetector::init(core::ConfigNode)
 	suitY = 0;
 	analyzedImage = cvCreateImage(cvSize(640,480), 8,3);
 	ratioImage = cvCreateImage(cvSize(640,480),8,3);
+	tempHoughImage = cvCreateImage(cvSize(640,480),8,3);
 }
 	
 SuitDetector::~SuitDetector()
 {
 	cvReleaseImage(&analyzedImage);
 	cvReleaseImage(&ratioImage);
+	cvReleaseImage(&tempHoughImage);
 }
 
 int SuitDetector::edgeRun(int startX, int startY, IplImage* img)
@@ -114,6 +116,7 @@ int SuitDetector::edgeRun(int startX, int startY, IplImage* img)
 	dir = UP;
 	int nextX;
 	int nextY;
+	printf("Starting Outline Finding\n");
 	while (true)
 	{
 		int startDir = dir;
@@ -192,8 +195,15 @@ int SuitDetector::edgeRun(int startX, int startY, IplImage* img)
 				data[count+1]=data[count+2]=0;
 				x=nextX;
 				y=nextY;
+			
+//				printf("%d ", attempt);				
 				if (attempt == 3)
+				{
+//					data[count]=255;
+//					data[count+1]=0;
+//					data[count+2]=255;
 					backups++;
+				}
 				break;
 			}
 			else

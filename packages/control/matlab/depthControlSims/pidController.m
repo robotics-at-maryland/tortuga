@@ -11,8 +11,9 @@ global ki;
 global x_pid;
 
 %kp = 10; kd = 4; ki = 1; x_pid = [0;0];
-kp = 40; kd = 30; ki = .5; x_pid = [-46;x_measured];
-
+%kp = 14; kd = 10; ki = .5; x_pid = [-46;x_measured];
+%kp = 18; kd = 10; ki = .5;
+kp = 16; kd = 10; ki = .5;x_pid = [-46; x_measured];
 
 %unpack data from x_pid storage bin
 %x_pid=[0 0]';%x_pid=[sum_error previous_position]'

@@ -96,45 +96,45 @@ void BinDetector::processImage(Image* input, Image* output)
 		binY/=image->width;
 		binX=biny;
 		binX/=image->height;
-                binX -= .5;
-                binY -= .5;
-                binX *= 2;
-                binY *= 2;
-                binY *= 640.0/480.0;
+		binX -= .5;
+		binY -= .5;
+		binX *= 2;
+		binY *= 2;
+		binY *= 640.0/480.0;
                 
 		m_found=true;
                 
-                BinEventPtr event(new BinEvent(binX, binY));
-                publish(EventType::BIN_FOUND, event);
+		BinEventPtr event(new BinEvent(binX, binY));
+		publish(EventType::BIN_FOUND, event);
 
-                // Determine Centered
-                math::Vector2 toCenter(binX, binY);
-                if (toCenter.normalise() < m_centeredLimit)
-                {
-                    if(!m_centered)
-                    {
-                        m_centered = true;
-                        publish(EventType::BIN_CENTERED, event);
-                    }
-                }
-                else
-                {
-                    m_centered = false;
-                }
+		// Determine Centered
+		math::Vector2 toCenter(binX, binY);
+		if (toCenter.normalise() < m_centeredLimit)
+		{
+			if(!m_centered)
+			{
+				m_centered = true;
+				publish(EventType::BIN_CENTERED, event);
+			}
+		}
+		else
+		{
+			m_centered = false;
+		}
 	}
 	else
 	{
-            if (m_found)
-                publish(EventType::BIN_LOST, core::EventPtr(new core::Event()));
+		if (m_found)
+			publish(EventType::BIN_LOST, core::EventPtr(new core::Event()));
             
-            m_found=false;
-            binX=-1;
-            binY=-1;
-	}
+		m_found=false;
+		binX=-1;
+		binY=-1;
+	
 
-        if (output)
-        {
-            // Mark up frame for debugging
+		if (output)
+		{
+			// Mark up frame for debugging
             CvPoint tl,tr,bl,br;
             tl.x=bl.x= std::max(binx-4,0);
             tr.x=br.x= std::min(binx+4,binFrame->width-1);
@@ -149,6 +149,7 @@ void BinDetector::processImage(Image* input, Image* output)
             OpenCVImage temp(binFrame, false);
             output->copyFrom(&temp);
         }
+	}
 }
 
 void BinDetector::show(char* window)

@@ -46,8 +46,8 @@ G_a = [0 1/m 0]';
 % K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
 % L_a = (place(A_a',C_a',[-15 -15.2 -15.4]))';
 
-K_a = place(A_a,B_a,[-10 -10.1 -10.2]);
-L_a = (place(A_a',C_a',[-100 -100.2 -100.4]))';
+K_a = place(A_a,B_a,[-0.3 -0.31 -0.32]);
+L_a = (place(A_a',C_a',[-5 -5.1 -4.9]))';
 
 % clc
 A_c = [A_a-B_a*K_a-L_a*C_a   zeros(3,1);   -B_b*K_a    A_b]
