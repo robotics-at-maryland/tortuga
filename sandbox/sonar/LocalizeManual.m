@@ -1,13 +1,11 @@
-function LocalizeManual(Range,SamplingRate)
+function direction = LocalizeManual(fname)
 
 M = [0,.984,0;.492,.492,.696;-.492,.492,.696];
 M = inv(M); % Note: be sure to put this in Sonar Cookbook!
 
 freq = 20000;
 
-if( nargin < 2 )
-    SamplingRate = 500000;
-end
+SamplingRate = 500000;
 
 samplesPerWavelength = SamplingRate / freq;
 samplesPerHalfWavelength = samplesPerWavelength / 2;
@@ -16,7 +14,7 @@ samplesPerHalfWavelength = samplesPerWavelength / 2;
 
 disp('Loading samples...');
 
-file = fopen('r0.bin','rb');
+file = fopen(fname,'rb');
 data = fread(file, Inf, 'int16');
 fclose(file);
 A = data(1:4:end);
@@ -30,9 +28,7 @@ D = data(4:4:end);
 t = (0:1/SamplingRate:(length(A)-1)/SamplingRate);
 
 
-if( nargin < 1 )
-    Range = 1:length(t);
-end
+Range = 1:length(t);
 
 
 % zoom in on ping
@@ -53,18 +49,36 @@ end
 plot(Range,A(Range),'c-',Range,B(Range),'m-',Range,C(Range),'b-',Range,D(Range),'k-');
 drawnow;
 
-disp('Pick four points at the peaks.');
-mousePts = ginput(4);
+%disp('Pick four points at the peaks.');
+%mousePts = ginput(4);
+%peaks = mousePts(1:4,1);
 
-peaks = mousePts(1:4,1);
-peaks = peaks - peaks(1);
-peaks = peaks(2:4);
-peaks = mod(peaks, samplesPerWavelength);
-for i = 1:3
-    if peaks(i) >= samplesPerHalfWavelength
-        peaks(i) = peaks(i) - samplesPerWavelength;
-    end
-end
+%peaks = peaks - peaks(1);
+%peaks = peaks(2:4);
+%peaks = mod(peaks, samplesPerWavelength);
+%for i = 1:3
+%    if peaks(i) >= samplesPerHalfWavelength
+%        peaks(i) = peaks(i) - samplesPerWavelength;
+%    end
+%end
+
+Fs = SamplingRate;
+N = 200;
+T = N/Fs;
+Range = Range(1):(Range(1)+N-1);
+k = floor(freq * T);
+fourierIndex = k +1; %MATLAB indexing from 1 instead of 0
+clear data;
+data(:,1) = A(Range);
+data(:,2) = B(Range);
+data(:,3) = C(Range);
+data(:,4) = D(Range);
+dft = fft(data);
+phases = dft(fourierIndex,:);
+phases = phases';
+phases = phases * conj(phases(1));
+phases = phases(2:4);
+peaks = angle(phases);
 
 direction = M * peaks;
 direction = direction/norm(direction);
