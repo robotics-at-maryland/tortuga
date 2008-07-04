@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vehicle/src/device/Thruster.cpp
+ * File:  packages/vehicle/src/device/SBThruster.cpp
  */
 
 // Library Includes
@@ -13,7 +13,7 @@
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/Events.h"
-#include "vehicle/include/device/Thruster.h"
+#include "vehicle/include/device/SBThruster.h"
 #include "vehicle/include/device/SensorBoard.h"
 
 #include "math/include/Events.h"
@@ -22,7 +22,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
+SBThruster::SBThruster(core::ConfigNode config, core::EventHubPtr eventHub,
                    IVehiclePtr vehicle) :
     Device(config["name"].asString()),
     IThruster(eventHub),
@@ -52,16 +52,16 @@ Thruster::Thruster(core::ConfigNode config, core::EventHubPtr eventHub,
         vehicle->getDevice("SensorBoard"));
     m_connection = m_sensorBoard->subscribe(
         SensorBoard::MOTORCURRENT_UPDATE,
-        boost::bind(&Thruster::onMotorCurrentUpdate, this, _1));
+        boost::bind(&SBThruster::onMotorCurrentUpdate, this, _1));
 }
 
-Thruster::~Thruster()
+SBThruster::~SBThruster()
 {
     // Zero forces
     setForce(0);
 }
 
-void Thruster::setForce(double force)
+void SBThruster::setForce(double force)
 {
     double b = 0; // Not currently used
     int motorCount;
@@ -92,67 +92,67 @@ void Thruster::setForce(double force)
     publish(IThruster::FORCE_UPDATE, event);
 }
 
-double Thruster::getForce()
+double SBThruster::getForce()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_force;
 }
 
-double Thruster::getMaxForce()
+double SBThruster::getMaxForce()
 {
     return (((1023.0 * 27) / 1023) + 0.0) * m_calibrationFactor;
 }
     
-double Thruster::getMinForce()
+double SBThruster::getMinForce()
 {
     return (((-1023 * 27) / 1023) + 0.0) * m_calibrationFactor;
 }
 
-bool Thruster::isEnabled()
+bool SBThruster::isEnabled()
 {
     return m_sensorBoard->isThrusterEnabled(m_address);
 }
 
-void Thruster::setEnabled(bool state)
+void SBThruster::setEnabled(bool state)
 {
     m_sensorBoard->setThrusterEnable(m_address, state);
 }
     
-double Thruster::getOffset()
+double SBThruster::getOffset()
 {
     return m_offset;
 }
 
-double Thruster::getCurrent()
+double SBThruster::getCurrent()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_current;
 }
     
-int Thruster::getMotorCount()
+int SBThruster::getMotorCount()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_motorCount;
 }
 
-void Thruster::update(double)
+void SBThruster::update(double)
 {
 }
     
-void Thruster::background(int)
+void SBThruster::background(int)
 {
 }
 
-void Thruster::unbackground(bool join)
+void SBThruster::unbackground(bool join)
 {
 }
 
-bool Thruster::backgrounded()
+bool SBThruster::backgrounded()
 {
     return false;
 }
 
-void Thruster::onMotorCurrentUpdate(core::EventPtr event)
+void SBThruster::onMotorCurrentUpdate(core::EventPtr event)
 {
     ram::vehicle::MotorCurrentEventPtr mcEvent =
         boost::dynamic_pointer_cast<ram::vehicle::MotorCurrentEvent>(event);

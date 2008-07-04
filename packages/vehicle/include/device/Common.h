@@ -25,13 +25,9 @@ namespace device {
 class IDevice;
 typedef boost::shared_ptr<IDevice> IDevicePtr;
 
-
 class IThruster;
 typedef boost::shared_ptr<IThruster> IThrusterPtr;
     
-class Thruster;
-typedef boost::shared_ptr<Thruster> ThrusterPtr;
-
 class IPowerSource;
 typedef boost::shared_ptr<IPowerSource> IPowerSourcePtr;
 

@@ -21,7 +21,6 @@
 // Project Includes
 #include "math/include/Vector3.h"
 #include "vehicle/include/Vehicle.h"
-#include "vehicle/include/device/Thruster.h"
 #include "core/include/ConfigNode.h"
 
 using namespace std;

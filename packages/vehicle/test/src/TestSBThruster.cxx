@@ -4,14 +4,14 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/packages/vehicle/test/src/TestThruster.cxx
+ * File:  packages/packages/vehicle/test/src/TestSBThruster.cxx
  */
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
-#include "vehicle/include/device/Thruster.h"
+#include "vehicle/include/device/SBThruster.h"
 #include "vehicle/include/device/SensorBoard.h"
 
 #include "vehicle/test/include/MockVehicle.h"
@@ -56,7 +56,7 @@ TEST_FIXTURE(Thruster, setForce)
         "'address' : 5,"
         "'direction' : 1}";
 
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
 
@@ -72,7 +72,7 @@ TEST_FIXTURE(Thruster, setForce)
         "'address' : 0,"
         "'direction' : -1}";
 
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     
@@ -89,7 +89,7 @@ TEST_FIXTURE(Thruster, getForce)
         "'address' : 5,"
         "'direction' : 1}";
 
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
 
@@ -116,7 +116,7 @@ TEST_FIXTURE(Thruster, isEnabled)
         "'address' : 5}";
 
     // Default case
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     
@@ -135,7 +135,7 @@ TEST_FIXTURE(Thruster, setEnable)
         "'address' : 3}";
 
     // Default case
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
 
@@ -152,42 +152,42 @@ TEST_FIXTURE(Thruster, setEnable)
 TEST_FIXTURE(Thruster, getOffset)
 {
     std::string config = TH_CONFIG_BASE + "'name' : 'StarboardThruster'}";
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     CHECK_EQUAL(0.1905, thruster->getOffset());
     delete thruster;
 
     config = TH_CONFIG_BASE + "'name' : 'PortThruster'}";
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     CHECK_EQUAL(0.1905, thruster->getOffset());
     delete thruster;
 
     config = TH_CONFIG_BASE + "'name' : 'ForeThruster'}";
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     CHECK_EQUAL(0.3366, thruster->getOffset());
     delete thruster;
 
     config = TH_CONFIG_BASE + "'name' : 'AftThruster'}";
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     CHECK_EQUAL(0.3366, thruster->getOffset());
     delete thruster;
 
     config = TH_CONFIG_BASE + "'name' : 'TopThruster'}";
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     CHECK_EQUAL(0.193, thruster->getOffset());
     delete thruster;
 
     config = TH_CONFIG_BASE + "'name' : 'BottomThruster'}";
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
     CHECK_EQUAL(0.193, thruster->getOffset());
@@ -201,7 +201,7 @@ TEST_FIXTURE(Thruster, getCurrent)
         "'address' : 3}";
 
     // Default case
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
 
@@ -221,7 +221,7 @@ TEST_FIXTURE(Thruster, updateAddress)
         "'address' : 5}";
 
     // Default case
-    thruster = new ram::vehicle::device::Thruster(
+    thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
 

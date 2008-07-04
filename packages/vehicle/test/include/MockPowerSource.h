@@ -39,7 +39,7 @@ public:
 
     virtual bool inUse() { return used; }
 
-    //virtual void setEnabled(bool state) { enabled = state; }
+    virtual void setEnabled(bool state) { enabled = state; }
     
     double voltage;
     double current;

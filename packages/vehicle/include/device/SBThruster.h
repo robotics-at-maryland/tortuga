@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/device/Thruster7.h
+ * File:  packages/vision/include/device/SBThruster.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_THRUSTER_06_25_2007
-#define RAM_VEHICLE_DEVICE_THRUSTER_06_25_2007
+#ifndef RAM_VEHICLE_DEVICE_SBTHRUSTER_06_25_2007
+#define RAM_VEHICLE_DEVICE_SBTHRUSTER_06_25_2007
 
 // STD Includes
 #include <string>
@@ -25,7 +25,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-class Thruster : public Device, // for getName
+/** Implements the IThruster interface using the sensor board */
+class SBThruster : public Device, // for getName
                  public IThruster
                  // boost::noncopyable
 {
@@ -33,11 +34,11 @@ public:
     virtual std::string getName() { return Device::getName(); }
     
     /** Create a thruster with the given address */
-    Thruster(core::ConfigNode config,
+    SBThruster(core::ConfigNode config,
              core::EventHubPtr eventHub = core::EventHubPtr(),
              IVehiclePtr vehicle = IVehiclePtr());
     
-    virtual ~Thruster();
+    virtual ~SBThruster();
 
     /** Sets the current thruster force of the thrusters */
     virtual void setForce(double newtons);
@@ -132,4 +133,4 @@ private:
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_THRUSTER_06_25_2007
+#endif // RAM_VEHICLE_DEVICE_SBTHRUSTER_06_25_2007
