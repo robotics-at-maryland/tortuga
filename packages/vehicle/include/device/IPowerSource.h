@@ -43,9 +43,14 @@ public:
     
     virtual ~IPowerSource();
 
+    /** Whether or not the vehicle can draw power from this power source */
     virtual bool isEnabled() = 0;
-    
+
+    /** Whether the vehicle is drawing power from this power source */
     virtual bool inUse() = 0;
+
+    /** Set whether or not the vehicle can draw power from this power source */
+    virtual void setEnabled(bool state) = 0;
     
 protected:
     IPowerSource(core::EventHubPtr eventHub = core::EventHubPtr());  

@@ -37,6 +37,7 @@ struct SBTempSensorFixture
     
     ~SBTempSensorFixture()
     {
+        // Don't delete vehicle, sensorBoard, handled by smart pointers
     }
 
     MockVehicle* vehicle;
@@ -59,6 +60,7 @@ TEST_FIXTURE(SBTempSensorFixture, getVoltage)
     // Publish event and check values
     sensorBoard->publishTempSensorUpdate(0, 23);
     CHECK_EQUAL(23, tempSensor->getTemp());
+    delete tempSensor;
 }
 
 TEST_FIXTURE(SBTempSensorFixture, updateID)
@@ -75,4 +77,5 @@ TEST_FIXTURE(SBTempSensorFixture, updateID)
     // Publish event and make sure it didn't change
     sensorBoard->publishTempSensorUpdate(4, 68);
     CHECK_EQUAL(0, tempSensor->getTemp());
+    delete tempSensor;
 }

@@ -40,6 +40,7 @@ struct Thruster
     
     ~Thruster()
     {
+        // no vehicle or sensorBoard cleanup becuase they use smart pointers
     }
 
     MockVehicle* vehicle;
@@ -63,7 +64,8 @@ TEST_FIXTURE(Thruster, setForce)
     CHECK_EQUAL(0, sensorBoard->thrusterValues[5]);
     thruster->setForce(2.5);
     CHECK(sensorBoard->thrusterValues[5] > 0);
-
+    delete thruster;
+    
     // Now with reverse direction
     config = TH_CONFIG_BASE +
         "'name' : 'StarboardThruster',"
@@ -77,6 +79,7 @@ TEST_FIXTURE(Thruster, setForce)
     CHECK_EQUAL(0, sensorBoard->thrusterValues[0]);
     thruster->setForce(2.5);
     CHECK(sensorBoard->thrusterValues[0] < 0);
+    delete thruster;
 }
     
 TEST_FIXTURE(Thruster, getForce)
@@ -93,6 +96,7 @@ TEST_FIXTURE(Thruster, getForce)
     
     thruster->setForce(2.5);
     CHECK_EQUAL(2.5, thruster->getForce());
+    delete thruster;
 }
 
 TEST_FIXTURE(Thruster, getMaxForce)
@@ -121,6 +125,7 @@ TEST_FIXTURE(Thruster, isEnabled)
     // Make sure it uses the address
     sensorBoard->thrusterEnables[5] = true;
     CHECK_EQUAL(true, thruster->isEnabled());
+    delete thruster;
 }
 
 TEST_FIXTURE(Thruster, setEnable)
@@ -141,6 +146,7 @@ TEST_FIXTURE(Thruster, setEnable)
 
     thruster->setEnabled(false);
     CHECK_EQUAL(false, sensorBoard->thrusterEnables[3]);
+    delete thruster;
 }
 
 TEST_FIXTURE(Thruster, getOffset)
@@ -205,6 +211,7 @@ TEST_FIXTURE(Thruster, getCurrent)
     // Publish event and check values
     sensorBoard->publishMotorCurrentUpdate(3, 6.5);
     CHECK_CLOSE(6.5, thruster->getCurrent(), 0.0001);
+    delete thruster;
 }
 
 TEST_FIXTURE(Thruster, updateAddress)
@@ -224,4 +231,5 @@ TEST_FIXTURE(Thruster, updateAddress)
     // Publish event and check values
     sensorBoard->publishMotorCurrentUpdate(4, 4.5);
     CHECK_CLOSE(0, thruster->getCurrent(), 0.0001);
+    delete thruster;
 }

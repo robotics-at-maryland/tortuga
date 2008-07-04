@@ -108,6 +108,7 @@ TEST(DeviceCreation)
                                    core::EventPtr(new core::Event()));
 
     CHECK_EQUAL(vehicle::device::IThruster::FORCE_UPDATE, eventType);
+    delete veh;
 }
 
 TEST_FIXTURE(VehicleFixture, IMU)

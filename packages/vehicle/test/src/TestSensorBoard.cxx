@@ -104,6 +104,7 @@ TEST_FIXTURE(SensorBoardFixture, getDepth)
     sb->depth = 15 + 5;;
     sb->update(0);
     CHECK_EQUAL(1.0, sb->getDepth());
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, setThrusterValue)
@@ -120,6 +121,7 @@ TEST_FIXTURE(SensorBoardFixture, setThrusterValue)
 
     // Now check them
     CHECK_ARRAY_EQUAL(speeds, sb->speeds, 6);
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, isThrusterEnabled)
@@ -152,6 +154,7 @@ TEST_FIXTURE(SensorBoardFixture, isThrusterEnabled)
             CHECK_EQUAL(enables[j], sb->isThrusterEnabled(j));
         }
     }
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, isPowerSourceEnabled)
@@ -183,6 +186,7 @@ TEST_FIXTURE(SensorBoardFixture, isPowerSourceEnabled)
             CHECK_EQUAL(enables[j], sb->isPowerSourceEnabled(j));
         }
     }
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, isPowerSourceInUse)
@@ -214,6 +218,7 @@ TEST_FIXTURE(SensorBoardFixture, isPowerSourceInUse)
             CHECK_EQUAL(enables[j], sb->isPowerSourceInUse(j));
         }
     }
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, setThrusterSafety)
@@ -250,6 +255,7 @@ TEST_FIXTURE(SensorBoardFixture, setThrusterSafety)
         sb->setThrusterEnable(i, false);
         CHECK_EQUAL(num2Off[i], sb->thrusterState);
     }
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, setPowerSourceEnabled)
@@ -284,6 +290,7 @@ TEST_FIXTURE(SensorBoardFixture, setPowerSourceEnabled)
         sb->setPowerSouceEnabled(i, false);
         CHECK_EQUAL(num2Off[i], sb->batteryState);
     }
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, dropMarker)
@@ -295,6 +302,7 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
     CHECK_EQUAL(0, sb->markerDropped);
     ((ram::vehicle::device::SensorBoard*)sb)->dropMarker();
     CHECK_EQUAL(1, sb->markerDropped);
+    delete sb;
 }
 
 typedef std::vector<ram::vehicle::PowerSourceEventPtr>
@@ -354,6 +362,7 @@ TEST_FIXTURE(SensorBoardFixture, event_POWERSOURCE_UPDATE)
     CHECK_ARRAY_EQUAL(expectedUsed, actualUsed, 5);
     
     conn->disconnect();
+    delete sb;
 }
 
 typedef std::vector<ram::vehicle::TempSensorEventPtr>
@@ -398,6 +407,7 @@ TEST_FIXTURE(SensorBoardFixture, event_TEMPSENSOR_UPDATE)
     CHECK_ARRAY_EQUAL(expectedTemps, actualTemps, 7);
     
     conn->disconnect();
+    delete sb;
 }
 
 typedef std::vector<ram::vehicle::MotorCurrentEventPtr>
@@ -442,4 +452,5 @@ TEST_FIXTURE(SensorBoardFixture, event_MOTORCURRENT_UPDATE)
     CHECK_ARRAY_CLOSE(expectedCurrents, actualCurrents, 6, 0.0001);
     
     conn->disconnect();
+    delete sb;
 }

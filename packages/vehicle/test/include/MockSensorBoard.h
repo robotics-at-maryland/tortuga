@@ -30,6 +30,8 @@ public:
         // Set array to false
         memset(thrusterEnables, false, sizeof(bool) * 6);
         memset(thrusterValues, 0, sizeof(int) * 6);
+        memset(powerSourceEnables, false, sizeof(bool) * 6);
+        memset(powerSourceUsed, false, sizeof(bool) * 6);
     }    
     virtual ~MockSensorBoard() {}
 
@@ -51,13 +53,18 @@ public:
     }
 
     virtual bool isPowerSourceEnabled(int address) {
-        assert(address <= 5 && address >=0 && "Invalid Address");
+        assert(address <= 4 && address >=0 && "Invalid Address");
         return powerSourceEnables[address];
     }
 
     virtual bool isPowerSourceInUse(int address) {
-        assert(address <= 5 && address >=0 && "Invalid Address");
+        assert(address <= 4 && address >=0 && "Invalid Address");
         return powerSourceUsed[address];
+    }
+
+    virtual void setPowerSouceEnabled(int address, bool state) {
+        assert(address <= 4 && address >=0 && "Invalid Address");
+        powerSourceEnables[address] = state;
     }
     
     virtual void dropMarker() {}

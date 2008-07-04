@@ -49,6 +49,8 @@ public:
 
     virtual bool inUse();
 
+    virtual void setEnabled(bool state);
+
     virtual std::string getName() { return Device::getName(); }
     
     virtual void update(double timestep) {}

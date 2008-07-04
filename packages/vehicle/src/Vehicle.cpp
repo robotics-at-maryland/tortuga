@@ -110,7 +110,6 @@ Vehicle::~Vehicle()
     for (int i = 0; i < 2; ++i) 
     {
         applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
-        update(0);
         usleep(30 * 1000);
     }
     

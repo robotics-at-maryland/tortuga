@@ -159,7 +159,7 @@ public:
      */
     virtual bool isPowerSourceInUse(int address);
 
-    /** Enables of disables a desired thruster
+    /** Enables or disables the ability to draw power from the given source
      *
      *  @param address
      *      The number of the power source (0-4)
@@ -167,7 +167,7 @@ public:
      *      True to enable the power source, false to disable
      */
     virtual void setPowerSouceEnabled(int address, bool state);
-    
+
 protected:
     // Makes easy access to the sensor board and allows testing
     virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6);

@@ -92,6 +92,11 @@ bool SBPowerSource::inUse()
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_inUse;
 }
+
+void SBPowerSource::setEnabled(bool state)
+{
+    m_sensorBoard->setPowerSouceEnabled(m_id, state);
+}
     
 void SBPowerSource::onPowerSourceUpdate(core::EventPtr event)
 {
