@@ -420,7 +420,7 @@ Note that if \(\hat\mathbf k_1 \cdot \hat\mathbf k_2 = 0\) then \(b\) and \(a\) 
 
 \subsubsection{Range from multilateration}
 
-If the robot is equipped witha far field type array (section \ref{sec:far-field}) then the range \(R_s\) is a direct result of the multilateration algorithm.
+If the robot is equipped with a near field type array (section \ref{sec:far-field}) then the range \(R_s\) is a direct result of the multilateration algorithm, provided the baseline is sufficiently large.  However, range accuracy for the near field approximation drops off dramatically with distance.
 
 \section{Error analysis}
 
@@ -436,9 +436,9 @@ The most precise method of estimating TDOAs is phase comparison.  In an unbounde
 
 Recievers at two different ranges \(R_i\) and \(R_j\) will perceive different phases \(\phi_i\) and \(\phi_j\), with a phase difference of \(\phi_{ij} \equiv kd_{ij}\bmod{2\pi}\).  Phase on arrival can be computed using the discrete Fourier transform (DFT).
 
-To estimate TDOAs with phase comparison, each hydrophone must have at least one neighbor no more than a half a wavelength \(\lambda/2\equiv\frac{\pi}{k}\) distant from it.  In water, a 30 kHz signal has a wavelength of approximately 5 cm.  Obviously, phase comparison severely limits the baseline.
+To estimate TDOAs with phase comparison, each hydrophone must have at least one neighbor less than half a wavelength \(\lambda/2\equiv\frac{\pi}{k}\) distant from it.  In water, a 30 kHz signal has a wavelength of approximately 5 cm.  Obviously, phase comparison severely limits the baseline.
 
-The simplest way to get around this is to use edge detection to get a rough TDOA and then to use phase comparison by DFT to refine it.
+The simplest way to get around this is to use edge detection to get a rough TDOA and then to use phase comparison from the frequency domain to refine it.
 
 The accuracy of a TDOA estimate, therefore, depends on the accuracy with which we can measure the phase of a signal, which in turn depends on the signal to noise ratio (SNR) of the signal, the bit depth, the sampling rate, and the duration of the sample.
 
