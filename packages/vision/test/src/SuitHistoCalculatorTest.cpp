@@ -13,6 +13,33 @@ using namespace std;
 using namespace ram;
 using namespace vision;
 
+void rotate90DegClockwiseOneChannel(IplImage* src, IplImage* dest);
+
+//This goes clockwise
+void rotate90DegClockwiseOneChannel(IplImage* src, IplImage* dest)
+{
+	char* data=src->imageData;
+	char* data2=dest->imageData;
+	int width=src->width;
+	int height=src->height;
+	if (width!=dest->height || height!=dest->width)
+	{
+        assert(false && "Wrong dimensions of destination image in rotation, should be transpose of src image");
+	}
+	int count=0;
+	int count2=0;
+	for (int y=0; y<height;y++)
+	{
+		count2=-1-y;
+		for (int x=0; x<width;x++)
+		{
+			count2+=(height);
+			data2[count2]=data[count];
+			count++;
+		}
+	}
+}	
+
 
 void copyAndMask(IplImage* gray, IplImage* bnw)
 {
@@ -37,6 +64,31 @@ void copyAndMask(IplImage* gray, IplImage* bnw)
 		}
     }
 }
+
+void copy(IplImage* img1, IplImage* img2)
+{
+	if (img1->width != img2->width || img1->height != img2->height)
+	{
+		cerr<<"Image sizes don't match, can't copy and mask!"<<endl;
+		return;
+	}
+	
+	int width=img1->width;
+	int height=img1->height;
+	unsigned char* data = (unsigned char*)img1->imageData;
+	unsigned char* data2 = (unsigned char*)img2->imageData;
+	int count=0;
+	
+	for (int y=0; y<height; y++)
+    {
+		for (int x=0; x<width; x++)
+		{
+			data2[count]=data[count];
+			count++;
+		}
+    }
+}
+
 
 // A Simple Camera Capture Framework
 int main(int argc, char** argv) {
@@ -92,33 +144,55 @@ int main(int argc, char** argv) {
 	IplImage* resized = cvCreateImage(cvSize(64,64),8,1);
     cvResize(inputImage,resized);
 	IplImage* blackAndWhite=cvCreateImage(cvGetSize(resized),8,1);
+    IplImage* tempImage = cvCreateImage(cvGetSize(blackAndWhite),8,1);
     copyAndMask(resized,blackAndWhite);
-	cvShowImage("Display",blackAndWhite);
-	cvWaitKey(0);
     
-    printf("Start Of Data\n");
-    
-    printf("int pixelCounts%s[] = {\n", argv[1]);
-    unsigned char* data = (unsigned char*) blackAndWhite->imageData;
-    int count = 0;
-    int pixelCountsAlongLeft[64];
-    for (int i = 0; i < 64; i++)
-        pixelCountsAlongLeft[i]=0;
-    
-    for (int y = 0; y < 64; ++y)
+    for (int rot = 0; rot <360; rot+=90)
     {
-        for (int x = 0; x < 64; ++x)
+        cvShowImage("Display",blackAndWhite);
+        cvWaitKey(0);
+        
+        
+        printf("\nStart Of Data\n");
+        
+        printf("int pixelCounts%s%d[] = {\n", argv[1], rot);
+        unsigned char* data = (unsigned char*) blackAndWhite->imageData;
+        int count = 0;
+        int pixelCountsAlongLeft[64];
+        int pixelCountsAlongBottom[64];
+        
+        for (int i = 0; i < 64; i++)
         {
-            pixelCountsAlongLeft[y] += (data[count]>0);
-            count++;
+            pixelCountsAlongLeft[i]=0;
+            pixelCountsAlongBottom[i]=0;
         }
-    }
+        
+        for (int y = 0; y < 64; ++y)
+        {
+            for (int x = 0; x < 64; ++x)
+            {
+                pixelCountsAlongLeft[y] += (data[count]>0);
+                pixelCountsAlongBottom[x] += (data[count]>0);
+                count++;
+            }
+        }
+        
+        for (int i = 0; i < 64; i ++)
+        {
+            printf("%d, ", pixelCountsAlongLeft[i]); 
+        }
+        
+        for (int i = 0; i < 63; i ++)
+        {
+            printf("%d, ", pixelCountsAlongBottom[i]);
+        }
+        printf("%d", pixelCountsAlongBottom[63]);
+        
+        printf("}\n");
     
-    for (int i = 0; i < 64; i ++)
-    {
-        printf("%d, ", pixelCountsAlongLeft[i]); 
+        rotate90DegClockwiseOneChannel(blackAndWhite,tempImage);
+        copy(tempImage,blackAndWhite);//Suppose we don't really need the masking... eh.
     }
-    printf("}\n");
     
 	return 0;
 }

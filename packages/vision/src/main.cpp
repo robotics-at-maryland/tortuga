@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 // Library Includes
 #include "cv.h"
@@ -28,6 +29,9 @@
 // Project Includes
 #include "vision/include/main.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/SuitHistoArrays.h"
+#include "vision/include/BlobDetector.h"
+
 
 /* 
 	Daniel Hakim
@@ -40,29 +44,29 @@
 using namespace std;
 using namespace ram::vision;
 
-int pixelCountsDiamond[] = {
-0, 2, 4, 6, 8, 10, 12, 12, 14, 16, 18, 20, 22, 24, 26, 28,
-30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 52, 54, 56, 58, 60, 62,
-62, 60, 58, 56, 54, 52, 50, 48, 44, 42, 40, 38, 36, 34, 32, 30,
-28, 26, 24, 22, 20, 18, 16, 14, 14, 12, 10, 8, 6, 4, 2, 2};
-
-int pixelCountsClub[] = {
-8, 13, 16, 20, 22, 23, 24, 26, 26, 28, 28, 28, 28, 28, 28, 28,
-28, 28, 28, 26, 26, 40, 49, 54, 56, 58, 59, 60, 62, 62, 62, 64,
-64, 64, 64, 64, 64, 64, 64, 60, 60, 58, 54, 53, 49, 45, 42, 38,
-30, 18, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 44, 44};
-
-int pixelCountsSpade[] = {
-0, 2, 2, 2, 4, 4, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24,
-26, 28, 32, 34, 36, 40, 42, 46, 48, 50, 52, 54, 56, 58, 60, 62,
-62, 62, 64, 64, 64, 64, 64, 62, 60, 58, 54, 50, 46, 40, 33, 18,
-6, 6, 8, 8, 10, 12, 14, 16, 18, 22, 26, 30, 36, 46, 56, 56};
-
-int pixelCountsHeart[] = {
-17, 28, 36, 42, 46, 50, 54, 56, 58, 60, 62, 63, 64, 64, 64, 64,
-64, 62, 62, 62, 60, 60, 58, 58, 56, 55, 54, 52, 50, 49, 47, 45,
-44, 42, 40, 38, 37, 35, 33, 32, 30, 28, 26, 24, 23, 22, 20, 18,
-17, 15, 14, 12, 11, 10, 8, 8, 6, 6, 4, 4, 2, 2, 1, 0};
+//int pixelCountsDiamond[] = {
+//0, 2, 4, 6, 8, 10, 12, 12, 14, 16, 18, 20, 22, 24, 26, 28,
+//30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 52, 54, 56, 58, 60, 62,
+//62, 60, 58, 56, 54, 52, 50, 48, 44, 42, 40, 38, 36, 34, 32, 30,
+//28, 26, 24, 22, 20, 18, 16, 14, 14, 12, 10, 8, 6, 4, 2, 2};
+//
+//int pixelCountsClub[] = {
+//8, 13, 16, 20, 22, 23, 24, 26, 26, 28, 28, 28, 28, 28, 28, 28,
+//28, 28, 28, 26, 26, 40, 49, 54, 56, 58, 59, 60, 62, 62, 62, 64,
+//64, 64, 64, 64, 64, 64, 64, 60, 60, 58, 54, 53, 49, 45, 42, 38,
+//30, 18, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 44, 44};
+//
+//int pixelCountsSpade[] = {
+//0, 2, 2, 2, 4, 4, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24,
+//26, 28, 32, 34, 36, 40, 42, 46, 48, 50, 52, 54, 56, 58, 60, 62,
+//62, 62, 64, 64, 64, 64, 64, 62, 60, 58, 54, 50, 46, 40, 33, 18,
+//6, 6, 8, 8, 10, 12, 14, 16, 18, 22, 26, 30, 36, 46, 56, 56};
+//
+//int pixelCountsHeart[] = {
+//17, 28, 36, 42, 46, 50, 54, 56, 58, 60, 62, 63, 64, 64, 64, 64,
+//64, 62, 62, 62, 60, 60, 58, 58, 56, 55, 54, 52, 50, 49, 47, 45,
+//44, 42, 40, 38, 37, 35, 33, 32, 30, 28, 26, 24, 23, 22, 20, 18,
+//17, 15, 14, 12, 11, 10, 8, 8, 6, 6, 4, 4, 2, 2, 1, 0};
 
 
 int suitDifference(int array1[], int array2[], int len)
@@ -1516,6 +1520,7 @@ int red_blue(IplImage* img, float ratio)
 
 int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny)
 {
+    static BlobDetector blobDetector(100);
 	unsigned char* data=(unsigned char*)percents->imageData;
 	unsigned char* data2=(unsigned char*)base->imageData;
     unsigned char* data3=(unsigned char*)temp->imageData;
@@ -1749,18 +1754,57 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 //            unsigned char* rotatedRedData = (unsigned char*) rotatedRedSuit->imageData;
             
 //            int redSuitCount = 0;
-            int totalRed = 0;
+//            int totalRed = 0;
             int minSuitX = 999999;
             int minSuitY = 999999;
             int maxSuitX = 0;
             int maxSuitY = 0;
-            int redCX, redCY;
-//            cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 5);
-            totalRed = histogram(rotatedRedSuit, &redCX, &redCY, &minSuitX, &minSuitY, &maxSuitX, &maxSuitY);
-            if (totalRed == -1)
+//            int redCX, redCY;
+            //cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 5);
+            OpenCVImage mySuit(rotatedRedSuit,false);
+            blobDetector.setMinimumBlobSize(100);
+            blobDetector.processImage(&mySuit);
+            if (!blobDetector.found())
             {
-                printf("Oops, we fucked up.  Tell Dan to use the BlobTracker instead of histogram\n");
+                printf("Oops, we fucked up, no suit found :(");
             }
+            else
+            {
+                //find biggest two blobs (hopefully should be just one, but if spade or club split..)
+                std::vector<ram::vision::BlobDetector::Blob> blobs = blobDetector.getBlobs();
+                ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
+                ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
+                ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
+                for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
+                {
+                    if (blobs[blobIndex].getSize() > secondBiggest.getSize())
+                    {
+                        secondBiggest = blobs[blobIndex];
+                        if (secondBiggest.getSize() > biggest.getSize())
+                        {
+                            swapper = secondBiggest;
+                            secondBiggest = biggest;
+                            biggest = swapper;
+                        }
+                    }
+                }
+                minSuitX = biggest.getMinX();
+                minSuitY = biggest.getMinY();
+                maxSuitX = biggest.getMaxX();
+                maxSuitY = biggest.getMaxY();
+                
+                if (blobs.size() > 1)
+                {
+                    minSuitX = min(minSuitX,secondBiggest.getMinX());
+                    minSuitY = min(minSuitY,secondBiggest.getMinY());
+                    maxSuitX = max(maxSuitX,secondBiggest.getMaxX());
+                    maxSuitY = max(maxSuitY,secondBiggest.getMaxY());                
+                }
+//            totalRed = histogram(rotatedRedSuit, &redCX, &redCY, &minSuitX, &minSuitY, &maxSuitX, &maxSuitY);
+//            if (totalRed == -1)
+//            {
+//                printf("Oops, we fucked up.  Tell Dan to use the BlobTracker instead of histogram\n");
+//            }
 //            for (int y = 0; y < rotatedRedSuit->height; y++)
 //            {
 //                for (int x = 0; x < rotatedRedSuit->width; x++)
@@ -1777,12 +1821,12 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 //                }
 //            }
             
-            if (totalRed < 50) //ie, no red (having red pixels also ensures our suit bounding box is realistic.
-            {
+//            if (totalRed < 50) //ie, no red (having red pixels also ensures our suit bounding box is realistic.
+//            {
 //                printf("No suit found :( \n");
-            }
-            else
-            {
+//            }
+//            else
+//            {
 //                printf("Found a suit!\n");
                 //DO NOT TOUCH THE /4*4 THIS FORCES WIDTH AND HEIGHT TO BE MULTIPLES OF FOUR, SO OPENCV DOESNT FUCK WITH ITS IMAGE STRUCTURE
                 IplImage* onlyRedSuit = cvCreateImage(cvSize((maxSuitX-minSuitX+1)/4*4,(maxSuitY-minSuitY+1)/4*4), IPL_DEPTH_8U, 3);
@@ -1792,7 +1836,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
                 Image::showImage(&redSuit);
                 IplImage* scaledRedSuit = cvCreateImage(cvSize(64,64),IPL_DEPTH_8U, 3);
                 cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
-                int* chrisArray = (int*)(calloc(scaledRedSuit->height, sizeof(float)));
+                int* chrisArray = (int*)(calloc(scaledRedSuit->height * 2, sizeof(float)));
                 
                 int scaledRedIndex = 0;
                 unsigned char* scaledRedData=(unsigned char*)scaledRedSuit->imageData;
@@ -1803,6 +1847,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
                         if (scaledRedData[scaledRedIndex]!=0)
                         {
                             chrisArray[y]++;
+                            chrisArray[x+64]++;
                         }
                         scaledRedIndex+=3;
                     }
@@ -1815,10 +1860,26 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
                 //scaledRedSuit (IplImage*)
                 //chrisArray 
                 
-                cout<<"Heart : " << suitDifference(chrisArray, pixelCountsHeart, scaledRedSuit->height)<<endl;
-                cout<<"Club : " << suitDifference(chrisArray, pixelCountsClub, scaledRedSuit->height)<<endl;
-                cout<<"Diamond : " << suitDifference(chrisArray, pixelCountsDiamond, scaledRedSuit->height)<<endl;
-                cout<<"Spade : " << suitDifference(chrisArray, pixelCountsSpade, scaledRedSuit->height)<<endl;
+                cout<<"Heart R0: " << suitDifference(chrisArray, heartCountsR0, scaledRedSuit->height*2)<<endl;
+                cout<<"Heart R90: " << suitDifference(chrisArray, heartCountsR90, scaledRedSuit->height*2)<<endl;
+                cout<<"Heart R180: " << suitDifference(chrisArray, heartCountsR180, scaledRedSuit->height*2)<<endl;
+                cout<<"Heart R270: " << suitDifference(chrisArray, heartCountsR270, scaledRedSuit->height*2)<<endl;
+
+                cout<<"Club R0: " << suitDifference(chrisArray, clubCountsR0, scaledRedSuit->height*2)<<endl;
+                cout<<"Club R90: " << suitDifference(chrisArray, clubCountsR90, scaledRedSuit->height*2)<<endl;
+                cout<<"Club R180: " << suitDifference(chrisArray, clubCountsR180, scaledRedSuit->height*2)<<endl;
+                cout<<"Club R270: " << suitDifference(chrisArray, clubCountsR270, scaledRedSuit->height*2)<<endl;
+
+                cout<<"Diamond R0: " << suitDifference(chrisArray, diamondCountsR0, scaledRedSuit->height*2)<<endl;
+                cout<<"Diamond R90: " << suitDifference(chrisArray, diamondCountsR90, scaledRedSuit->height*2)<<endl;
+                cout<<"Diamond R180: " << suitDifference(chrisArray, diamondCountsR180, scaledRedSuit->height*2)<<endl;
+                cout<<"Diamond R270: " << suitDifference(chrisArray, diamondCountsR270, scaledRedSuit->height*2)<<endl;
+
+                cout<<"Spade R0: " << suitDifference(chrisArray, spadeCountsR0, scaledRedSuit->height*2)<<endl;
+                cout<<"Spade R90: " << suitDifference(chrisArray, spadeCountsR90, scaledRedSuit->height*2)<<endl;
+                cout<<"Spade R180: " << suitDifference(chrisArray, spadeCountsR180, scaledRedSuit->height*2)<<endl;
+                cout<<"Spade R270: " << suitDifference(chrisArray, spadeCountsR270, scaledRedSuit->height*2)<<endl;
+
                 cvReleaseImage(&onlyRedSuit);
                 cvReleaseImage(&scaledRedSuit);
                 free(chrisArray);
