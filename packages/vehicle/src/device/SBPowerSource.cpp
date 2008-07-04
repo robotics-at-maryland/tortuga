@@ -37,7 +37,7 @@ static std::string idToName(int id)
         "Shore",
     };
 
-    assert((id >= 0) && (id <= 5) && "ID Out of range");
+    assert((id >= 0) && (id <= 4) && "ID Out of range");
     
     return id2Name[id];
 }
@@ -59,6 +59,9 @@ SBPowerSource::SBPowerSource(core::ConfigNode config,
     m_connection = m_sensorBoard->subscribe(
         SensorBoard::POWERSOURCE_UPDATE,
         boost::bind(&SBPowerSource::onPowerSourceUpdate, this, _1));
+
+    m_enabled = m_sensorBoard->isPowerSourceEnabled(m_id);
+    m_inUse = m_sensorBoard->isPowerSourceInUse(m_id);
 }
     
 SBPowerSource::~SBPowerSource()

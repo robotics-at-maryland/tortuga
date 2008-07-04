@@ -144,6 +144,30 @@ public:
     /** Drops a marker (currently only works twice) */
     virtual void dropMarker();
 
+   /** Returns true if the vehicle can draw power from the power source
+     *
+     *  @param address
+     *      The number of the power source (0-4)
+     */
+    virtual bool isPowerSourceEnabled(int address);
+
+
+    /** Returns true if the vehicle is drawing power from the power source
+     *
+     *  @param address
+     *      The number of the power source (0-4)
+     */
+    virtual bool isPowerSourceInUse(int address);
+
+    /** Enables of disables a desired thruster
+     *
+     *  @param address
+     *      The number of the power source (0-4)
+     *  @param state
+     *      True to enable the power source, false to disable
+     */
+    virtual void setPowerSouceEnabled(int address, bool state);
+    
 protected:
     // Makes easy access to the sensor board and allows testing
     virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6);
@@ -154,6 +178,8 @@ protected:
 
     virtual void setThrusterSafety(int state);
 
+    virtual void setBatteryState(int state);
+    
     virtual void dropMarker(int markerNum);
 
     virtual void syncBoard();

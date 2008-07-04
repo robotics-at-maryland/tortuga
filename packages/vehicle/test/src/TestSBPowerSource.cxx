@@ -45,6 +45,19 @@ struct SBPowerSourceFixture
     ram::vehicle::device::IPowerSource* powerSource;
 };
 
+TEST_FIXTURE(SBPowerSourceFixture, initialization)
+{
+    sensorBoard->powerSourceEnables[3] = true;
+    sensorBoard->powerSourceUsed[3] = true;
+    
+    powerSource = new ram::vehicle::device::SBPowerSource(
+        ram::core::ConfigNode::fromString("{ 'id' : 3 }"),
+        ram::core::EventHubPtr(), ivehicle);
+
+    CHECK(powerSource->isEnabled());
+    CHECK(powerSource->inUse());
+}
+
 TEST_FIXTURE(SBPowerSourceFixture, getVoltage)
 {
     powerSource = new ram::vehicle::device::SBPowerSource(

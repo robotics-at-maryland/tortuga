@@ -50,11 +50,24 @@ public:
         thrusterEnables[address] = state;
     }
 
+    virtual bool isPowerSourceEnabled(int address) {
+        assert(address <= 5 && address >=0 && "Invalid Address");
+        return powerSourceEnables[address];
+    }
+
+    virtual bool isPowerSourceInUse(int address) {
+        assert(address <= 5 && address >=0 && "Invalid Address");
+        return powerSourceUsed[address];
+    }
+    
     virtual void dropMarker() {}
 
     bool thrusterEnables[6];
     int thrusterValues[6];
 
+    bool powerSourceEnables[6];
+    bool powerSourceUsed[6];
+    
     void publishPowerSourceUpdate(int id, bool enabled, bool inUse,
                                   double voltage, double current)
     {

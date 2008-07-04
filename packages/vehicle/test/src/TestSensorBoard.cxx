@@ -39,6 +39,7 @@ public:
     bool updateDone;
     int depth;
     int thrusterState;
+    int batteryState;
     int markerDropped;
     
 protected:
@@ -65,10 +66,12 @@ protected:
 
     virtual void setThrusterSafety(int state) { thrusterState = state; }
 
+    virtual void setBatteryState(int state) { batteryState = state; }
+
     virtual void dropMarker(int markerNum) { markerDropped = markerNum; }
 
     // Does nothing
-    virtual void syncBoard() {}    
+    virtual void syncBoard() {}
     
 };
 
@@ -151,6 +154,68 @@ TEST_FIXTURE(SensorBoardFixture, isThrusterEnabled)
     }
 }
 
+TEST_FIXTURE(SensorBoardFixture, isPowerSourceEnabled)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    // There must be a better way to test this...
+    int num2Enables[5] = {
+        BATT1_ENABLED,
+        BATT2_ENABLED,
+        BATT3_ENABLED,
+        BATT4_ENABLED,
+        BATT5_ENABLED,
+    };
+
+    for (size_t i = 0; i < LENGTH(num2Enables); ++i)
+    {
+        bool enables[5] = {false, false, false, false, false};
+        enables[i] = true;
+        
+        // Set values, read them from fake board
+        sb->currentTelemetry.battEnabled = num2Enables[i];
+        sb->update(0);
+
+        // Check results
+        for (size_t j = 0; j < LENGTH(enables); ++j)
+        {
+            CHECK_EQUAL(enables[j], sb->isPowerSourceEnabled(j));
+        }
+    }
+}
+
+TEST_FIXTURE(SensorBoardFixture, isPowerSourceInUse)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    // There must be a better way to test this...
+    int num2Enables[5] = {
+        BATT1_INUSE,
+        BATT2_INUSE,
+        BATT3_INUSE,
+        BATT4_INUSE,
+        BATT5_INUSE,
+    };
+
+    for (size_t i = 0; i < LENGTH(num2Enables); ++i)
+    {
+        bool enables[5] = {false, false, false, false, false};
+        enables[i] = true;
+        
+        // Set values, read them from fake board
+        sb->currentTelemetry.battUsed = num2Enables[i];
+        sb->update(0);
+
+        // Check results
+        for (size_t j = 0; j < LENGTH(enables); ++j)
+        {
+            CHECK_EQUAL(enables[j], sb->isPowerSourceInUse(j));
+        }
+    }
+}
+
 TEST_FIXTURE(SensorBoardFixture, setThrusterSafety)
 {
     TestSensorBoard* sb = new TestSensorBoard(
@@ -184,6 +249,40 @@ TEST_FIXTURE(SensorBoardFixture, setThrusterSafety)
     {
         sb->setThrusterEnable(i, false);
         CHECK_EQUAL(num2Off[i], sb->thrusterState);
+    }
+}
+
+TEST_FIXTURE(SensorBoardFixture, setPowerSourceEnabled)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+    
+    int num2On[5] = {
+        CMD_BATT1_ON,
+        CMD_BATT2_ON,
+        CMD_BATT3_ON,
+        CMD_BATT4_ON,
+        CMD_BATT5_ON,
+    };
+
+    for (size_t i = 0; i < LENGTH(num2On); ++i)
+    {
+        sb->setPowerSouceEnabled(i, true);
+        CHECK_EQUAL(num2On[i], sb->batteryState);
+    }
+    
+    int num2Off[5] = {
+        CMD_BATT1_OFF,
+        CMD_BATT2_OFF,
+        CMD_BATT3_OFF,
+        CMD_BATT4_OFF,
+        CMD_BATT5_OFF,
+    };
+
+    for (size_t i = 0; i < LENGTH(num2Off); ++i)
+    {
+        sb->setPowerSouceEnabled(i, false);
+        CHECK_EQUAL(num2Off[i], sb->batteryState);
     }
 }
 

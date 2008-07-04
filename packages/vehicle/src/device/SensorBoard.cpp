@@ -51,6 +51,15 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_deviceFD(-1)
 {
     establishConnection();
+    m_state.thrusterValues[0] = 0;
+    m_state.thrusterValues[1] = 0;
+    m_state.thrusterValues[2] = 0;
+    m_state.thrusterValues[3] = 0;
+    m_state.thrusterValues[4] = 0;
+    m_state.thrusterValues[5] = 0;
+
+    for (int i = 0; i < 11; ++i)
+        update(1.0/40);
 }
     
 SensorBoard::~SensorBoard()
@@ -191,6 +200,73 @@ void SensorBoard::setThrusterEnable(int address, bool state)
     // Now set our internal flag to make everything consistent (maybe)
 }
 
+
+bool SensorBoard::isPowerSourceEnabled(int address)
+{
+    static int addressToEnable[] = {
+        BATT1_ENABLED,
+        BATT2_ENABLED,
+        BATT3_ENABLED,
+        BATT4_ENABLED,
+        BATT5_ENABLED,
+    };
+
+    assert((0 <= address) && (address < 5) && "Address out of range");
+
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return (0 != (addressToEnable[address] & m_state.telemetry.battEnabled));
+}
+
+bool SensorBoard::isPowerSourceInUse(int address)
+{
+    static int addressToEnable[] = {
+        BATT1_INUSE,
+        BATT2_INUSE,
+        BATT3_INUSE,
+        BATT4_INUSE,
+        BATT5_INUSE,
+    };
+
+    assert((0 <= address) && (address < 5) && "Address out of range");
+
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return (0 != (addressToEnable[address] & m_state.telemetry.battUsed));
+}
+
+void SensorBoard::setPowerSouceEnabled(int address, bool state)
+{
+    static int addressToOn[] = {
+        CMD_BATT1_ON,
+        CMD_BATT2_ON,
+        CMD_BATT3_ON,
+        CMD_BATT4_ON,
+        CMD_BATT5_ON,
+    };
+    
+    static int addressToOff[] = {
+        CMD_BATT1_OFF,
+        CMD_BATT2_OFF,
+        CMD_BATT3_OFF,
+        CMD_BATT4_OFF,
+        CMD_BATT5_OFF,
+    };
+
+    assert((0 <= address) && (address < 5) && "Power source id out of range");
+
+    {
+        boost::mutex::scoped_lock lock(m_deviceMutex);
+
+        int val;
+        
+        if (state)
+            val = addressToOn[address];
+        else
+            val = addressToOff[address];
+        
+        setBatteryState(val);
+    }
+}
+
 void SensorBoard::dropMarker()
 {
     static int markerNum = 0;
@@ -235,6 +311,11 @@ int SensorBoard::readDepth()
 void SensorBoard::setThrusterSafety(int state)
 {
     handleReturn(::setThrusterSafety(m_deviceFD, state));
+}
+
+void SensorBoard::setBatteryState(int state)
+{
+    handleReturn(::setBatteryState(m_deviceFD, state));
 }
 
 void SensorBoard::dropMarker(int markerNum)

@@ -44,7 +44,7 @@ public:
     virtual ~IPowerSource();
 
     virtual bool isEnabled() = 0;
-
+    
     virtual bool inUse() = 0;
     
 protected:
