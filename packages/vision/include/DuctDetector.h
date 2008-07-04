@@ -43,4 +43,4 @@ private:
 } // namespace vision
 } // namespace ram
 
-#endif
+#endif // RAM_DUCT_DETECTOR_H_07_03_2008

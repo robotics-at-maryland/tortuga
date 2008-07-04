@@ -1766,7 +1766,7 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
             blobDetector.processImage(&mySuit);
             if (!blobDetector.found())
             {
-                printf("Oops, we fucked up, no suit found :(");
+//                printf("Oops, we fucked up, no suit found :(\n");
             }
             else
             {

@@ -84,7 +84,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 	detector.processImage(input);
 
     CHECK(detector.getAligned());
-	std::cout << "Rotation: " << detector.getRotation() << "\n";
+    //std::cout << "Rotation 1: " << detector.getRotation() << "\n";
 	delete input;
 	
 	
@@ -93,8 +93,8 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 	    (getImagesDir() / "unal0.png").string());
     // Blue Image with red circle in the center
 	detector.processImage(input2);
-	
-	std::cout << "Rotation: " << detector.getRotation() << "\n";
+
+	//std::cout << "Rotation 2: " << detector.getRotation() << "\n";
     CHECK(!detector.getAligned());
 	delete input2;
 	
@@ -105,7 +105,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     // Blue Image with red circle in the center
 	detector.processImage(input3);
 	
-	std::cout << "Rotation: " << detector.getRotation() << "\n";
+	//std::cout << "Rotation 3: " << detector.getRotation() << "\n";
     CHECK(!detector.getAligned());
 	delete input3;
 	
@@ -117,8 +117,9 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     // Blue Image with red circle in the center
 	detector.processImage(input4);
 	
-	std::cout << "Rotation: " << detector.getRotation() << "\n";
-    CHECK(!detector.getAligned());
+	//std::cout << "Rotation 4: " << detector.getRotation() << "\n";
+        CHECK(!detector.getAligned());
+        
 	delete input4;
 }
 

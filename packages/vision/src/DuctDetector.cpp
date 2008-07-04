@@ -14,20 +14,20 @@
 #include <math.h>
 
 // Library Includes
-#include "highgui.h"
+//#include "highgui.h"
 
 // Project Includes
-#include "vision/include/main.h"
 #include "vision/include/Camera.h"
 #include "vision/include/OpenCVImage.h"
-//#include "vision/include/DuctDetector.h"
+#include "vision/include/DuctDetector.h"
 #include "vision/include/Events.h"
+#include "vision/include/main.h"
 
 #ifndef M_PI
 #define M_PI 3.14159
 #endif
 
-#include "vision/include/DuctDetector.h"
+//#include "vision/include/DuctDetector.h"
 
 namespace ram {
 namespace vision {
@@ -74,7 +74,11 @@ void DuctDetector::processImage(Image* input, Image* output)
 	{
 		int offset = j*input->getWidth()*3;
 		for (int i=0;i<(int)input->getWidth()*3;i+=3)
-			hist[i/3] += yellow(data[offset+i+2], data[offset+i+1], data[offset+i]); 
+                {
+                    hist[i/3] += yellow(data[offset+i+2], // R
+                                        data[offset+i+1], // G
+                                        data[offset+i]);  // B
+                }
 	} 
 	
 	
@@ -105,12 +109,16 @@ void DuctDetector::processImage(Image* input, Image* output)
 	
 	
 	if (ps[2] > 1 && ps[3] > 1)
+        {
 		m_rotation = 0;
+        }
 	else
-		
-		m_rotation = (1.0 - min(ps[3] - ps[1], ps[1] - ps[0]) / max(ps[3] - ps[1], ps[1] - ps[0])) * 90;
-	
-	delete hist;
+        {
+            m_rotation = (1.0 - min(ps[3] - ps[1], ps[1] - ps[0]) /
+                          max(ps[3] - ps[1], ps[1] - ps[0])) * 90;
+
+        }
+	delete[] hist;
 }
 	
 double DuctDetector::getX()
@@ -130,7 +138,7 @@ double DuctDetector::getRotation()
 	
 bool DuctDetector::getAligned()
 {
-	return abs(m_rotation) < 0.01;
+	return fabs(m_rotation) < 0.01;
 }
 
 } // namespace vision
