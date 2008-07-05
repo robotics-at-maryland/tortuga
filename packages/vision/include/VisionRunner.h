@@ -54,10 +54,10 @@ public:
     void addDetector(DetectorPtr detector);
 
     /** Removes the given detector from the list of running detectors */
-    void removeDetector(DetectorPtr detector);
+    void removeDetector(DetectorPtr detector, bool join = false);
 
     /** Removes all detectors */
-    void removeAllDetectors();
+    void removeAllDetectors(bool join = false);
     
 protected:
     /** Waits for 1/30 of second, then just keeps looping */

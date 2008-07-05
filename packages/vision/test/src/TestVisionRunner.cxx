@@ -9,6 +9,7 @@
 
 // System Includes
 //#include <unistd.h>
+#include <iostream>
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
@@ -85,11 +86,12 @@ TEST_FIXTURE(VisionRunnerFixture, Update)
     
     // Make sure that you can remove the detector (with the background thread)
     runner.background(-1);
-    runner.removeDetector(detectorPtr);
-    
+    runner.removeDetector(detectorPtr, true); // Force removal now
+
     // Ensure another update does nothing
     camera->update(0);
     runner.update(1.0/20);
+    
     CHECK_EQUAL(1, detector->processCount);
     CHECK_EQUAL(false, runner.backgrounded());
 
