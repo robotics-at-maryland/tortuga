@@ -17,6 +17,7 @@
 
 // Library Includes
 #include <boost/filesystem/path.hpp>
+#include <log4cpp/Priority.hh>
 
 namespace log4cpp {
     class Appender;
@@ -88,6 +89,9 @@ private:
     
     /** Creates a layout from the given config section */
     log4cpp::Layout* createLayout(ConfigNode config);
+
+	/** Translates a string into a priority level (case insensitive) */
+	log4cpp::Priority::PriorityLevel stringToPriority(std::string value);
     
     /** A list of the appenders current being used */
     std::map<log4cpp::Appender*, std::vector<std::string> > m_appenders;

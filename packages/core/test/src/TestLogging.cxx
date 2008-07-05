@@ -31,14 +31,22 @@ TEST_FIXTURE(LoggingFixture, CategoryCreation)
 {
     core::ConfigNode config(core::ConfigNode::fromString("{"
         "'Categories' : {"
-        "     'Control' : {},"
-        "     'Vehicle' : {}"
+        "     'Control' : {"
+        "         'priority' : 'warning'"
+        "     },"
+        "     'Vehicle' : {"
+        "         'priority' : 'debug'"
+        "     }"
         "}}"));
     core::Logging logSys(config);
 
     // Make sure the categories were actually
     CHECK(log4cpp::Category::exists("Control"));
+	//	CHECK_EQUAL(log4cpp::Priority::WARN, 
+	//				log4cpp::Category::exists("Control")->getPriority());
     CHECK(log4cpp::Category::exists("Vehicle"));
+	//	CHECK_EQUAL(log4cpp::Priority::DEBUG, 
+	//				log4cpp::Category::exists("Vehicle")->getPriority());
 }
 
 TEST_FIXTURE(LoggingFixture, AppenderCreation)
@@ -58,7 +66,7 @@ TEST_FIXTURE(LoggingFixture, AppenderCreation)
         "        'fileName' : 'unittest'"
         "    }"
         "}}"));
-    core::Logging logSys(config);
+    core::Logging* logSys = new core::Logging(config);
 
     // Ensure our category was actually created
     log4cpp::Category* category = log4cpp::Category::exists("Control");
@@ -88,5 +96,9 @@ TEST_FIXTURE(LoggingFixture, AppenderCreation)
     std::string actualLogDirName = pathName.substr(pathName.length() - 19, 16);
     CHECK_EQUAL(expectedLogDirName, actualLogDirName);
 
-    // TODO make sure appenders are deleted upon shutdown!
+	// Ensure that priorities are proper set
+
+	// Make sure all appenders are deleted
+	delete logSys;
+	CHECK(0 == category->getAppender());
 }
