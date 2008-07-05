@@ -24,7 +24,7 @@ RAM_VEHICLE_POWERSOURCE_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::TempSensorEvent>
 RAM_VEHICLE_TEMPSENSOR_EVENT;
 
-static ram::core::SpecificEventConverter<ram::vehicle::MotorCurrentEvent>
-RAM_VEHICLE_MOTORCURRENT_EVENT;
+static ram::core::SpecificEventConverter<ram::vehicle::ThrusterEvent>
+RAM_VEHICLE_THRUSTER_EVENT;
 
 #endif // RAM_WITH_WRAPPERS
