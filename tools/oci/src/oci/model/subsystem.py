@@ -100,6 +100,7 @@ class Thruster(device.IThruster):
         self._offset = offset
         self._name = name
         self._current = 0.0
+        self.enabled = False
                 
     def getName(self):
         return self._name
@@ -117,6 +118,14 @@ class Thruster(device.IThruster):
         event = ext.math.NumericEvent()
         event.number = self.current
         self.publish(device.ICurrentProvider.UPDATE, event)
+        
+        
+        if sinVal >= 0:
+            self.enabled = True
+            self.publish(device.IThruster.ENABLED, core.Event())
+        else:
+            self.enabled = False
+            self.publish(device.IThruster.DISABLED, core.Event())
     
     def getCurrent(self):
         return self.current
@@ -126,6 +135,9 @@ class Thruster(device.IThruster):
     
     def getMaxForce(self):
         return 100;
+    
+    def isEnabled(self):
+        return self.enabled
         
 class PowerSource(device.IPowerSource):
     def __init__(self, eventHub, name, offset):
@@ -133,6 +145,10 @@ class PowerSource(device.IPowerSource):
         self._offset = offset
         self._currentTime = 0.0
         self._name = name
+        self.enabled = False
+        self.used = False
+        self.voltage = 0.0
+        self.current = 0.0
     
     def getName(self):
         return self._name
@@ -147,7 +163,7 @@ class PowerSource(device.IPowerSource):
         return self.enabled
     
     def inUse(self):
-        return self.inUse
+        return self.used
     
     def update(self, timestep):
         self._currentTime += timestep
@@ -163,10 +179,10 @@ class PowerSource(device.IPowerSource):
             self.publish(device.IPowerSource.DISABLED, core.Event())
         
         if math.sin(self._currentTime + self._offset + 1) >= 0:
-            self.inUse= True
+            self.used= True
             self.publish(device.IPowerSource.USING, core.Event())
         else:
-            self.inUse = False
+            self.used = False
             self.publish(device.IPowerSource.NOT_USING, core.Event())
         
         

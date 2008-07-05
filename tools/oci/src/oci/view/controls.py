@@ -384,8 +384,10 @@ class BarDisplay(object):
     Wrapper class which inserts a sequence of controls which represents a 
     numeric value.  It uses both a text box, and a color bar 
     """
-    def __init__(self, parent, eventHub, sensor, sizer, lineNum):
+    def __init__(self, parent, eventHub, sensor, sizer, lineNum,
+                 format = "%5.2f"):
         self._connections = []
+        self._format = format
 
         # Create controls and add them to sizer
         pos = 0
@@ -442,7 +444,7 @@ class BarDisplay(object):
         """
         Sets the text box and guage to represent the same value
         """
-        self._textBox.Value = "%5.2f" % number
+        self._textBox.Value = self._format % number
         self._gauge.setVal(number)
     
     def disconnect(self):
@@ -451,7 +453,12 @@ class BarDisplay(object):
         
 class TempSensorDisplay(BarDisplay):
     def __init__(self, parent, eventHub, tempSensor, sizer, lineNum):
-        BarDisplay.__init__(self, parent, eventHub, tempSensor, sizer, lineNum)
+        BarDisplay.__init__(self, parent, eventHub, tempSensor, sizer, lineNum,
+                            format = "%2d")
+            
+    def _createControls(self, tempSensor, parent):
+        return BarDisplay._createControls(self, tempSensor, parent,
+                                          textReference = '+00')
             
     def _subscribeToEvents(self, sensor, eventHub):
         return [eventHub.subscribe(device.ITempSensor.UPDATE, sensor,
@@ -462,7 +469,8 @@ class TempSensorDisplay(BarDisplay):
                     
 class ThrusterCurrentDisplay(BarDisplay):
     def __init__(self, parent, eventHub, thruster, sizer, lineNum):
-        BarDisplay.__init__(self, parent, eventHub, thruster, sizer, lineNum)
+        BarDisplay.__init__(self, parent, eventHub, thruster, sizer, lineNum,
+                            format = '%4.2f')
             
     def _createControls(self, thruster, parent):
         # Define custom color ranges
@@ -471,7 +479,8 @@ class ThrusterCurrentDisplay(BarDisplay):
         # Create base controls
         controls = BarDisplay._createControls(self, thruster, parent, 
                                               colorList = None, 
-                                              valueList = valueList)
+                                              valueList = valueList,
+                                              textReference = '+0.00')
         
         # Update the label on the control to make it more consise
         label, flags = controls[0]
@@ -479,8 +488,14 @@ class ThrusterCurrentDisplay(BarDisplay):
         label.SetLabel(label.GetLabel().replace('Starboard','Star'))
         
         # Create enabled LED
-        #self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
-        #controls.append((self._enableLED, wx.ALIGN_CENTER_VERTICAL))
+        self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
+        controls.append((self._enableLED, wx.ALIGN_CENTER_VERTICAL))
+        
+        # Set initial state
+        if thruster.isEnabled():
+            self._enabledLED.SetState(2)
+        else:
+            self._enableLED.SetState(0)
 
         return controls
             
@@ -491,10 +506,10 @@ class ThrusterCurrentDisplay(BarDisplay):
             connections.append(conn) 
         
         subscribe(device.ICurrentProvider.UPDATE, self._update)
-#        subscribe(device.IThruser.ENABLED, 
-#                  lambda event: self._enableLED.SetState(2))
-#        subscribe(device.IThruster.DISABLED, 
-#                  lambda event: self._enableLED.SetState(0))
+        subscribe(device.IThruster.ENABLED, 
+                  lambda event: self._enableLED.SetState(2))
+        subscribe(device.IThruster.DISABLED, 
+                  lambda event: self._enableLED.SetState(0))
         
         return connections
         
@@ -515,9 +530,13 @@ class PowerSourceDisplay(BarDisplay):
             raise Exception, "Error, invalid mode"    
         self._mode = mode
         
+        format = '%5.2f'
+        if self._mode == PowerSourceDisplay.CURRENT:
+            format = '%4.2f'
+        
         # Create entire control
         BarDisplay.__init__(self, parent, eventHub, powerSource, sizer, 
-                            lineNum)
+                            lineNum, format = format)
         
     def _createControls(self, powerSource, parent):
         # Define custom color ranges
@@ -532,8 +551,13 @@ class PowerSourceDisplay(BarDisplay):
             valueList = [0, 7, 9, 10]
 
         # Create base controls
+        textReference = '+00.00'
+        if self._mode == PowerSourceDisplay.CURRENT:
+            textReference = '+0.00'
+            
         controls = BarDisplay._createControls(self, powerSource, parent, 
-                                              colorList, valueList)
+                                              colorList, valueList,
+                                              textReference = textReference)
         
         # Create custom controls
         self._enableLED = ram.gui.led.LED(parent, state = 3)#, size = size)
@@ -578,6 +602,19 @@ class PowerSourceDisplay(BarDisplay):
         '''.strip())
         controls.extend([(self._enableLED, wx.ALIGN_CENTER_VERTICAL),
                          (self._inUseLED, wx.ALIGN_CENTER_VERTICAL)])
+        
+        # Set LED state based on current control state
+        
+        if powerSource.isEnabled():
+            self._enabledLED.SetState(2)
+        else:
+            self._enableLED.SetState(0)
+            
+        if powerSource.inUse():
+            self._inUseLED.SetState(2)
+        else:
+            self._inUseLED.SetState(0)
+
         return controls
     
     def _subscribeToEvents(self, powerSource, eventHub):
