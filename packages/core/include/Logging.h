@@ -25,22 +25,58 @@ namespace log4cpp {
 
 // Project Includes
 #include "core/include/Subsystem.h"
+#include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
 
 namespace ram {
 namespace core {
 
 /** Handles the initialization of the Log4cpp based logging system */
-class Logging : public Subsystem
+class Logging : public Subsystem, public Updatable
 {
 public:
+    Logging(ConfigNode config);
     Logging(ConfigNode config, SubsystemList deps);
     ~Logging();
 
     /** Gets the directory where all log files will be placed */
-    boost::filesystem::path getLogDir();
+    static boost::filesystem::path getLogDir();
+
+
+        virtual void setPriority(core::IUpdatable::Priority priority) {
+        Updatable::setPriority(priority);
+    }
+    
+    // IUpdatable methods
+    virtual void update(double) {}
+    
+    virtual IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
+    }
+
+    virtual void setAffinity(size_t affinity) {
+        Updatable::setAffinity(affinity);
+    }
+    
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
+    
+    virtual void background(int interval) {
+        Updatable::background(interval);
+    };
+    
+    virtual void unbackground(bool join = false) {
+        Updatable::unbackground(join);
+    };
+    virtual bool backgrounded() {
+        return Updatable::backgrounded();
+    };
     
 private:
+    /** Creates all parts of the underlying logging system */
+    void init(ConfigNode config);
+    
     /** Creates a category with from given config and appenders */
     void createCategory(std::string name, ConfigNode config,
                         std::map<std::string, log4cpp::Appender*>& appenders);

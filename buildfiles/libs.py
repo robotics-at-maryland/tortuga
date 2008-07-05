@@ -27,6 +27,7 @@ if platform.system() == 'Darwin':
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-mt-1_34_1'
     BOOST_REGEX_LIB = 'boost_regex-mt-1_34_1'
+    BOOST_DATE_TIME_LIB = 'boost_date_time-mt-1_34_1'
 elif platform.system() == 'Linux':
     BOOST_PYTHON_LIB = 'boost_python-gcc41-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc41-mt'
@@ -35,6 +36,7 @@ elif platform.system() == 'Linux':
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-gcc41-mt'
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc41-mt'
     BOOST_REGEX_LIB = 'boost_regex-gcc41-mt'
+    BOOST_DATE_TIME_LIB = 'boost_date_time-gcc41-mt'
 elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'
@@ -43,6 +45,7 @@ elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-vc80-mt-1_34_1'
     BOOST_PROGOPT_LIB = 'boost_program_options-vc80-mt-1_34_1'
     BOOST_REGEX_LIB = 'boost_regex-vc80-mt-1_34_1'
+    BOOST_DATE_TIME_LIB = 'boost_date_time-vc80-mt-1_34_1'
 else:
     print '"%s" is an unsupported platform' % platform.system()
     sys.exit(1)
@@ -115,6 +118,9 @@ def setup_posix_libs():
 
         'Boost.Regex' : BoostLibrary('Boost.Regex', (1,34,1), [],
                                      [BOOST_REGEX_LIB]),
+
+        'Boost.DateTime' : BoostLibrary('Boost.DateTime', (1,34,1), [],
+                                     [BOOST_DATE_TIME_LIB]),
         
         'Python' : PythonLib('2.5'),
 
@@ -221,6 +227,7 @@ def _get_internal_lib(env, name):
                                                  'Boost.Python',
                                                  'Boost.Signals',
                                                  'Boost.Filesystem',
+                                                 'Boost.DateTime',
                                                  'log4cpp']),
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],

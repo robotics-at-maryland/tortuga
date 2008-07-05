@@ -7,9 +7,14 @@
  * File:  packages/core/src/Logging.cpp
  */
 
+#ifdef RAM_WINDOWS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 // STD Includes
 #include <iostream>
 #include <vector>
+#include <cstdlib>
 
 // Library Includes
 #include <boost/foreach.hpp>
@@ -33,37 +38,16 @@ namespace fs = boost::filesystem;
 namespace ram {
 namespace core {
 
+Logging::Logging(core::ConfigNode config) :
+    Subsystem(config["name"].asString("VisionSystem"))
+{
+    init(config);
+}
+    
 Logging::Logging(core::ConfigNode config, core::SubsystemList deps) :
     Subsystem(config["name"].asString("VisionSystem"), deps)
 {
-
-    std::map<std::string, log4cpp::Appender*> appenders;
-    
-    if (config.exists("Appenders"))
-    {
-        // Create Appenders
-        ConfigNode appenderConfig(config["Categories"]);
-        NodeNameList subnodes = appenderConfig.subNodes();
-        BOOST_FOREACH(std::string appenderName, subnodes)
-        {
-            ConfigNode config(appenderConfig[appenderName]);
-            createAppender(appenderName, config, appenders);
-        }
-
-        // Create categories
-        if (config.exists("Categories"))
-        {
-            ConfigNode categoryConfig(config["Categories"]);
-            subnodes = categoryConfig.subNodes();
-
-            // Go through each category
-            BOOST_FOREACH(std::string categoryName, subnodes)
-            {
-                createCategory(categoryName, categoryConfig[categoryName],
-                               appenders);
-            }
-        }
-    }
+    init(config);
 }
 
 Logging::~Logging()
@@ -95,12 +79,43 @@ boost::filesystem::path Logging::getLogDir()
     std::string dateName(boost::posix_time::to_iso_extended_string(now));
 
     // The root of source directory
-    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
-
+    fs::path root(getenv("RAM_SVN_DIR"));
+    
     // The resulting path
     return root / "logs" / dateName;
 }
 
+void Logging::init(ConfigNode config)
+{
+    std::map<std::string, log4cpp::Appender*> appenders;
+
+    if (config.exists("Appenders"))
+    {
+        // Create Appenders
+        ConfigNode appenderConfig(config["Appenders"]);
+        NodeNameList subnodes = appenderConfig.subNodes();
+        BOOST_FOREACH(std::string appenderName, subnodes)
+        {
+            ConfigNode config(appenderConfig[appenderName]);
+            createAppender(appenderName, config, appenders);
+        }
+    }
+
+    // Create categories
+    if (config.exists("Categories"))
+    {
+        ConfigNode categoryConfig(config["Categories"]);
+        NodeNameList subnodes = categoryConfig.subNodes();
+            
+        // Go through each category
+        BOOST_FOREACH(std::string categoryName, subnodes)
+        {
+            createCategory(categoryName, categoryConfig[categoryName],
+                           appenders);
+        }
+    }
+}
+    
 void Logging::createCategory(
     std::string name,
     ConfigNode config,
@@ -110,7 +125,7 @@ void Logging::createCategory(
     log4cpp::Category::getInstance(name);
     log4cpp::Category* category = log4cpp::Category::exists(name);
 
-    if (config.exists("Appenders"))
+    if (config.exists("appenders"))
     {
         ConfigNode appenderList(config["appenders"]);
         int appenderCount = appenderList.size();
@@ -124,7 +139,7 @@ void Logging::createCategory(
 
             if (iter != appenders.end())
             {
-                // Add appender but don't shift ownership
+                // Add appender but don't shift ownership to category
                 category->addAppender(*(iter->second));
             }
             else
@@ -159,8 +174,11 @@ void Logging::createCategory(
         }
         else
         {
-            std::cerr << "WARNING: priority: '" << priorityName
-                      << "' is not valid" << std::endl;
+            if (std::string("") != priorityName)
+            {
+                std::cerr << "WARNING: priority: '" << priorityName
+                          << "' is not valid" << std::endl;
+            }
             category->setPriority(log4cpp::Priority::NOTSET);
         }
     }
@@ -188,8 +206,13 @@ log4cpp::Appender* Logging::createAppender(
     {
         // Make sure log directory exists
         fs::path path(getLogDir());
+        
+/*        fs::path logRoot(path / "..");
+        if (!fs::exists(logRoot))
+        fs::create_directory(logRoot);*/
+        
         if (!fs::exists(path))
-            fs::create_directory(path);
+            fs::create_directories(path);
             
         // Determine file path
         std::string fileName = config["fileName"].asString(name);
@@ -207,7 +230,9 @@ log4cpp::Appender* Logging::createAppender(
     if (appender)
     {
         // Set layout (using default if needed)
-        log4cpp::Layout* layout = createLayout(config["Layout"]);
+        log4cpp::Layout* layout = 0;
+        if (config.exists("Layout"))
+            layout = createLayout(config["Layout"]);
         if (!layout)
             layout = new log4cpp::BasicLayout;
         appender->setLayout(layout);
