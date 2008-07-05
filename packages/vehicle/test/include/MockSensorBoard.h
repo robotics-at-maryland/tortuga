@@ -101,15 +101,16 @@ public:
         publish(ram::vehicle::device::SensorBoard::TEMPSENSOR_UPDATE, event);
     }
 
-    void publishMotorCurrentUpdate(int address, double current)
+    void publishThrusterUpdate(int address, double current, bool enabled)
     {
-        ram::vehicle::MotorCurrentEventPtr event(
-            new ram::vehicle::MotorCurrentEvent);
+        ram::vehicle::ThrusterEventPtr event(
+            new ram::vehicle::ThrusterEvent);
         
         event->address = address;
         event->current = current;
-
-        publish(ram::vehicle::device::SensorBoard::MOTORCURRENT_UPDATE, event);
+        event->enabled = enabled;
+        
+        publish(ram::vehicle::device::SensorBoard::THRUSTER_UPDATE, event);
     }
 };
 

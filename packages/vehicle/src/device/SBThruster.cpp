@@ -31,6 +31,7 @@ SBThruster::SBThruster(core::ConfigNode config, core::EventHubPtr eventHub,
     m_direction(config["direction"].asInt(1)),
     m_offset(0),
     m_current(0.0),
+    m_enabled(false),
     m_sensorBoard(SensorBoardPtr())
 {
     // A little hack to determine the offset based on thruster type
@@ -51,8 +52,8 @@ SBThruster::SBThruster(core::ConfigNode config, core::EventHubPtr eventHub,
     m_sensorBoard = IDevice::castTo<SensorBoard>(
         vehicle->getDevice("SensorBoard"));
     m_connection = m_sensorBoard->subscribe(
-        SensorBoard::MOTORCURRENT_UPDATE,
-        boost::bind(&SBThruster::onMotorCurrentUpdate, this, _1));
+        SensorBoard::THRUSTER_UPDATE,
+        boost::bind(&SBThruster::onThrusterUpdate, this, _1));
 }
 
 SBThruster::~SBThruster()
@@ -110,7 +111,13 @@ double SBThruster::getMinForce()
 
 bool SBThruster::isEnabled()
 {
-    return m_sensorBoard->isThrusterEnabled(m_address);
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+            
+    bool enabled = m_sensorBoard->isThrusterEnabled(m_address);
+    doEnabledEvents(m_enabled, enabled);
+    m_enabled = enabled;
+    
+    return m_enabled;
 }
 
 void SBThruster::setEnabled(bool state)
@@ -152,26 +159,50 @@ bool SBThruster::backgrounded()
     return false;
 }
 
-void SBThruster::onMotorCurrentUpdate(core::EventPtr event)
+void SBThruster::onThrusterUpdate(core::EventPtr event)
 {
-    ram::vehicle::MotorCurrentEventPtr mcEvent =
-        boost::dynamic_pointer_cast<ram::vehicle::MotorCurrentEvent>(event);
+    ram::vehicle::ThrusterEventPtr thEvent =
+        boost::dynamic_pointer_cast<ram::vehicle::ThrusterEvent>(event);
 
     // Drop out if the event isn't for us
-    if (m_address != mcEvent->address)
+    if (m_address != thEvent->address)
         return;
-
+    
     // Read in new values
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
             
-        m_current = mcEvent->current;
-    }
+        m_current = thEvent->current;
 
+        doEnabledEvents(m_enabled, thEvent->enabled);
+        m_enabled = thEvent->enabled;
+    }
+    
     math::NumericEventPtr nevent(new math::NumericEvent);
-    nevent->number = mcEvent->current;
+    nevent->number = thEvent->current;
     publish(ICurrentProvider::UPDATE, nevent);
 
+}
+
+void SBThruster::doEnabledEvents(bool currentState, bool newState)
+{
+    core::Event::EventType enabledEventType;
+    core::EventPtr enabledEventPtr;
+    
+    if (currentState && !newState)
+    {
+        enabledEventType = ENABLED;
+        enabledEventPtr = core::EventPtr(new core::Event);
+    }
+    else if (!currentState && newState)
+    {
+        enabledEventType = DISABLED;
+        enabledEventPtr = core::EventPtr(new core::Event);
+    }
+
+    // Publish Events as needed
+    if (enabledEventPtr.get())
+        publish(enabledEventType, enabledEventPtr);
 }
     
 } // namespace device

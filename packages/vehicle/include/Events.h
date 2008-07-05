@@ -36,14 +36,16 @@ struct TempSensorEvent : public core::Event
 
 typedef boost::shared_ptr<TempSensorEvent> TempSensorEventPtr;
 
-struct MotorCurrentEvent : public core::Event
+struct ThrusterEvent : public core::Event
 {
     int address;
     /** Current in Amps */
     double current;
+    /** Whether or not the thruster is accepts commands */
+    bool enabled;
 };
 
-typedef boost::shared_ptr<MotorCurrentEvent> MotorCurrentEventPtr;
+typedef boost::shared_ptr<ThrusterEvent> ThrusterEventPtr;
     
 } // namespace vehicle
 } // namespace ram

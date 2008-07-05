@@ -16,7 +16,7 @@
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, POWERSOURCE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
-RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, MOTORCURRENT_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, THRUSTER_UPDATE);
 
 namespace ram {
 namespace vehicle {
@@ -98,7 +98,7 @@ void SensorBoard::update(double timestep)
         {
             powerSourceEvents(&state.telemetry);
             tempSensorEvents(&state.telemetry);
-            motorCurrentEvents(&state.telemetry);
+            thrusterEvents(&state.telemetry);
         }
     
         // Now read depth
@@ -400,14 +400,24 @@ void SensorBoard::tempSensorEvents(struct boardInfo* telemetry)
     }
 }
     
-void SensorBoard::motorCurrentEvents(struct boardInfo* telemetry)
+void SensorBoard::thrusterEvents(struct boardInfo* telemetry)
 {
+    static int addressToEnable[] = {
+        THRUSTER1_ENABLED,
+        THRUSTER2_ENABLED,
+        THRUSTER3_ENABLED,
+        THRUSTER4_ENABLED,
+        THRUSTER5_ENABLED,
+        THRUSTER6_ENABLED
+    };
+    
     for (int i = 0; i < 6; ++i)
     {
-        MotorCurrentEventPtr event(new MotorCurrentEvent);
+        ThrusterEventPtr event(new ThrusterEvent);
         event->address = i;
         event->current = telemetry->powerInfo.motorCurrents[i];
-        publish(MOTORCURRENT_UPDATE, event);
+        event->enabled = telemetry->thrusterState & addressToEnable[i]; 
+        publish(THRUSTER_UPDATE, event);
     }
 }
     

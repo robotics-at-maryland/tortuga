@@ -209,7 +209,7 @@ TEST_FIXTURE(Thruster, getCurrent)
     CHECK_EQUAL(0, thruster->getCurrent());
 
     // Publish event and check values
-    sensorBoard->publishMotorCurrentUpdate(3, 6.5);
+    sensorBoard->publishThrusterUpdate(3, 6.5, false);
     CHECK_CLOSE(6.5, thruster->getCurrent(), 0.0001);
     delete thruster;
 }
@@ -229,7 +229,7 @@ TEST_FIXTURE(Thruster, updateAddress)
     CHECK_EQUAL(0, thruster->getCurrent());
 
     // Publish event and check values
-    sensorBoard->publishMotorCurrentUpdate(4, 4.5);
+    sensorBoard->publishThrusterUpdate(4, 4.5, false);
     CHECK_CLOSE(0, thruster->getCurrent(), 0.0001);
     delete thruster;
 }

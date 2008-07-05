@@ -98,8 +98,10 @@ public:
     virtual bool backgrounded();
     
 private:
-    /** Handles MOTORCURRENT_UPDATE events */
-    void onMotorCurrentUpdate(core::EventPtr event);
+    /** Handles THRUSTER_UPDATE events */
+    void onThrusterUpdate(core::EventPtr event);
+
+    void doEnabledEvents(bool current, bool newState);
     
     int m_address;
 
@@ -121,6 +123,9 @@ private:
 
     /** Current amperage draw of the thruster */
     double m_current;
+
+    /** Whether or not the thruster accepts commands */
+    bool m_enabled;
     
     /** The sensor board which provides access to the hardware */
     SensorBoardPtr m_sensorBoard;
