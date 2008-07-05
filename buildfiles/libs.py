@@ -84,6 +84,8 @@ def setup_posix_libs():
         'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
                                     'wx-config'),
         'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
+        
+        'log4cpp' : PkgConfigLibrary('log4cpp', '1.0', ['log4cpp/Export.hh']),
 
         'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 
                                                         'gdk/gdk.h']),
@@ -218,7 +220,8 @@ def _get_internal_lib(env, name):
                                      ext_deps = ['Boost.Thread',
                                                  'Boost.Python',
                                                  'Boost.Signals',
-                                                 'Boost.Filesystem']),
+                                                 'Boost.Filesystem',
+                                                 'log4cpp']),
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
                                          ext_deps = ['USB']),
