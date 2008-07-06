@@ -104,7 +104,7 @@ void _ISR _U2RXInterrupt(void)
         fCount = 0;
 
     if(sonarPtr < 12)
-        sonarBuf[sonarPtr++] = t;
+        sonarBuf[sonarPtr++] = t;   /* Blargh */
 #endif
 
 }
