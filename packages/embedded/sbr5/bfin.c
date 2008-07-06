@@ -95,7 +95,7 @@ void _ISR _U2RXInterrupt(void)
     OC3RS = ((unsigned char)(U2RXREG & 0xFF));
 #else
     byte t = U2RXREG;
-
+    actLight(0);
     /* We are looking for 6 FFs in a row. */
     if(t == 0xFF)
     {
@@ -208,12 +208,14 @@ void processData(byte data)
                     TRIS_BF_RESET = TRIS_OUT;   /* Stop the Blackfin */
                     for(l=0; l<1000; l++);     /* Wait a little bit. Yes, but I don't care */
                     TRIS_BF_RESET = TRIS_IN;    /* Start the Blackfin */
+
                     break;
                 }
 
                 case BUS_CMD_SONAR:
                 {
                     int i;
+
                     for(i=0; i<12; i++)
                         txBuf[i+1] = sonarBuf[i];
                     txBuf[0] = 12;
@@ -253,7 +255,7 @@ void processData(byte data)
 /* Read a byte from the bus */
 byte readBus()
 {
-    return (PORTB & 0xFF);
+    return PORTB;
 }
 
 
@@ -342,7 +344,10 @@ void _ISR _CNInterrupt(void)
 
     /* Don't check bus if its interrupt is disabled. Avoids a race condition */
     if(REQ_CN_BIT == 1)
+    {
         checkBus();
+        actLight(1);
+    }
 }
 
 
@@ -383,14 +388,44 @@ void initBus()
     TRIS_RW = TRIS_IN;
     TRIS_REQ = TRIS_IN;
     TRIS_AKN = TRIS_IN;
-    initCN();
 }
+
+
+void actLight(byte l)
+{
+#ifndef PORTAL
+    PR2 = 800;            /* Period */
+    TMR2 = 0;               /* Reset timer */
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 1;      /* Enable interrupts */
+    T2CONbits.TCS = 0;      /* Use internal clock */
+    T2CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T2CONbits.TON = 1;      /* Start Timer2 */
+
+    if(l == 0)
+        LAT_LED_GREEN = LED_ON;
+    else
+        LAT_LED_YELLOW = LED_ON;
+#endif
+}
+
+#ifndef PORTAL
+/* ISR for Timer2. Used for making the ACT light pretty */
+void _ISR _T2Interrupt(void)
+{
+    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T2IE = 0;      /* Disable interrupts */
+    LAT_LED_GREEN = ~LED_ON;
+    LAT_LED_YELLOW = ~LED_ON;
+    T2CONbits.TON = 0;  /* Stop Timer1 */
+}
+#endif
 
 
 int main()
 {
     long l;
-
+    ADPCFG = 0xFFFF;
     TRISB = 0xFFFF;
 
     LAT_BF_RESET = 0;
@@ -420,17 +455,6 @@ int main()
 
     initBus();
 
-    while(1);
-
-    {
-
-        if(IN_REQ)
-            LAT_LED_GREEN = LED_ON;
-        else
-            LAT_LED_GREEN = ~LED_ON;
-    }
-
-
     while(IN_U1_RX != 0);            /* Wait for FPGA to initialize */
     LAT_LED_RED = ~LED_ON;
 
@@ -453,10 +477,15 @@ int main()
     OC3RS = 128;
     while(1);
 #else
-
+    initCN();
 
 
 #endif
+
+    byte i;
+    byte blah[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x1F, 0xA3, 0x2B, 0xDC, 0x9E, 0x42, 0xD4, 0x7B};
+    for(i=0; i<12; i++)
+        sonarBuf[i] = blah[i];
 
     while(1);
 }

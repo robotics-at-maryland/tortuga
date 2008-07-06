@@ -1438,7 +1438,6 @@ int main(void)
             case HOST_CMD_SONAR:
             {
                 t1 = waitchar(1);
-		        byte cs=HOST_CMD_SONAR+t1;
 
                 if(t1 != HOST_CMD_SONAR)
 		        {
@@ -1462,7 +1461,7 @@ int main(void)
 
 		        sendByte(HOST_REPLY_SONAR);
 
-		        cs=0;
+		        byte cs=0;
                 for(i=0; i<12; i++)
                 {
                     cs += rxBuf[i];
