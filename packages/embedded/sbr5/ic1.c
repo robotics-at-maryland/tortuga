@@ -1473,7 +1473,7 @@ int main(void)
 
 
                 int len = readDataBlock(SLAVE_ID_SONAR);
-                if(len != 8)
+                if(len != 12)
 		        {
 			        sendByte(HOST_REPLY_FAILURE);
 			        break;
@@ -1482,7 +1482,7 @@ int main(void)
 		        sendByte(HOST_REPLY_SONAR);
 
 		        cs=0;
-                for(i=0; i<8; i++)
+                for(i=0; i<12; i++)
                 {
                     cs += rxBuf[i];
 	                sendByte(rxBuf[i]);
