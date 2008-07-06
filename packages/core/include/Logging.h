@@ -22,6 +22,7 @@
 namespace log4cpp {
     class Appender;
     class Layout;
+    class Category;
 };
 
 // Project Includes
@@ -95,6 +96,9 @@ private:
     
     /** A list of the appenders current being used */
     std::map<log4cpp::Appender*, std::vector<std::string> > m_appenders;
+
+    /** Category to which we log all messages during config loading */
+    log4cpp::Category* m_logger;
 };
 
 } // namespace core

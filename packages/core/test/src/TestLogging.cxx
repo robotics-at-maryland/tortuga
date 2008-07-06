@@ -23,8 +23,18 @@
 namespace fs = boost::filesystem;
 using namespace ram;
 
-class LoggingFixture
+struct LoggingFixture
 {
+    void suppressLogMessages()
+    {
+        log4cpp::Category::getInstance("Logging").setPriority(
+            log4cpp::Priority::FATAL);
+    }
+    void allowLogMessages()
+    {
+        log4cpp::Category::getInstance("Logging").setPriority(
+            log4cpp::Priority::NOTSET);
+    }
 };
 
 TEST_FIXTURE(LoggingFixture, CategoryCreation)
@@ -38,7 +48,9 @@ TEST_FIXTURE(LoggingFixture, CategoryCreation)
         "         'priority' : 'debug'"
         "     }"
         "}}"));
+    suppressLogMessages(); // Get rid of no appender warnings
     core::Logging logSys(config);
+    allowLogMessages();
     
     // Make sure the categories were actually
     CHECK(log4cpp::Category::exists("Control"));

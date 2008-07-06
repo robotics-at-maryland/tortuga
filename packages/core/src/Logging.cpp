@@ -39,13 +39,15 @@ namespace ram {
 namespace core {
 
 Logging::Logging(core::ConfigNode config) :
-    Subsystem(config["name"].asString("VisionSystem"))
+    Subsystem(config["name"].asString("VisionSystem")),
+    m_logger(0)
 {
     init(config);
 }
     
 Logging::Logging(core::ConfigNode config, core::SubsystemList deps) :
-    Subsystem(config["name"].asString("VisionSystem"), deps)
+    Subsystem(config["name"].asString("VisionSystem"), deps),
+    m_logger(0)
 {
     init(config);
 }
@@ -87,6 +89,14 @@ boost::filesystem::path Logging::getLogDir()
 
 void Logging::init(ConfigNode config)
 {
+    // Setup logging system category
+    log4cpp::Category::getInstance("Logging");
+    m_logger = log4cpp::Category::exists("Logging");
+    log4cpp::Appender* appender =
+        new log4cpp::OstreamAppender("console", &std::cout);
+    appender->setLayout(new log4cpp::SimpleLayout);
+    m_logger->setAppender(appender);
+    
     std::map<std::string, log4cpp::Appender*> appenders;
 
     if (config.exists("Appenders"))
@@ -145,15 +155,16 @@ void Logging::createCategory(
             }
             else
             {
-                std::cerr << "ERROR: no such appender '" << appenderName
-                          << "'" << std::endl;
+                m_logger->errorStream() << "No such appender '"
+                                        << appenderName;
             }
         }
     }
     else
     {
-        std::cerr << "WARNING: Category: '" << name << "' has no appenders "
-                  << "all logging messages will be suppressed" << std::endl;
+        m_logger->warnStream() << "Category '" << name
+                               << "' has no appenders all logging messages"
+                               <<" will be suppressed";
     }
 
     // Set priority
@@ -191,8 +202,7 @@ log4cpp::Appender* Logging::createAppender(
     }
     else
     {
-        std::cerr << "ERROR: invalid appender type: '" << type << "'"
-                  << std::endl;
+        m_logger->errorStream() << "Invalid appender type: '" << type << "'";
     }
 
     if (appender)
@@ -236,8 +246,7 @@ log4cpp::Layout* Logging::createLayout(ConfigNode config)
     }
     else
     {
-        std::cerr << "ERROR: invalid layout type: '" << type << "'"
-                  << std::endl;
+        m_logger->errorStream() << "Invalid layout type: '" << type << "'";
     }
 
     return layout;
@@ -272,8 +281,7 @@ log4cpp::Priority::PriorityLevel Logging::stringToPriority(std::string value)
     }
     else if (std::string("") != value)
     {
-         std::cerr << "WARNING: priority: '" << value
-                   << "' is not valid" << std::endl;
+        m_logger->errorStream() << "Priority: '" << value << "' is not valid";
     }
 
     return priority;
