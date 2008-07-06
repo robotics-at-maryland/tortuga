@@ -19,6 +19,7 @@
 // Project Includes
 #include "core/include/Logging.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/ThreadedAppender.h"
 
 namespace fs = boost::filesystem;
 using namespace ram;
@@ -89,12 +90,29 @@ TEST_FIXTURE(LoggingFixture, AppenderCreation)
     // Make sure it has the proper appenders
     log4cpp::Appender* appender = category->getAppender("screen");
     CHECK(appender);
+
+    // Now make sure its wrapped properly
+    core::ThreadedAppender* threadedAppender =
+        dynamic_cast<core::ThreadedAppender*>(appender);
+    CHECK(threadedAppender);
+
+    // Now get the real appender and check to make sure its the right type
+    appender = threadedAppender->wrappedAppender();
     log4cpp::OstreamAppender* ostreamAppender =
         dynamic_cast<log4cpp::OstreamAppender*>(appender);
     CHECK(ostreamAppender);
 
+
+    // FILE
     appender = category->getAppender("file");
     CHECK(appender);
+    
+    // Now make sure its wrapped properly
+    threadedAppender = dynamic_cast<core::ThreadedAppender*>(appender);
+    CHECK(threadedAppender);
+
+    // Now get the real appender and check to make sure its the right type
+    appender = threadedAppender->wrappedAppender();
     log4cpp::FileAppender* fileAppender =
         dynamic_cast<log4cpp::FileAppender*>(appender);
     CHECK(fileAppender);
@@ -104,7 +122,9 @@ TEST_FIXTURE(LoggingFixture, AppenderCreation)
                 ostreamAppender->getThreshold());
     CHECK_EQUAL(log4cpp::Priority::INFO,
                 fileAppender->getThreshold());
-    
+
+
+    // DIRECTORY
     // Ensure that the proper logging directory was created
     fs::path logPath = core::Logging::getLogDir();
     CHECK(fs::exists(logPath));

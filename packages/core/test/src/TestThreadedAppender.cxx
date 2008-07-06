@@ -59,9 +59,15 @@ struct ThreadedAppenderFixture
     log4cpp::Category* category;
 };
 
+TEST_FIXTURE(ThreadedAppenderFixture, wrappedAppender)
+{
+    CHECK_EQUAL(appender, threadedAppender->wrappedAppender());
+}
+
 TEST_FIXTURE(ThreadedAppenderFixture, update)
 {
-    // Turn off background thread
+    // Turn off background thread (and make sure its there in the first place)
+    CHECK(threadedAppender->backgrounded());
     threadedAppender->unbackground(true);
     
     CHECK_EQUAL(0u, appender->logEvents.size());

@@ -37,6 +37,9 @@ public:
 
     /** Waits for logging events and writes to files as possible*/        
     virtual void update(double timestep);
+
+    /** Gets the appender we are wraping */
+    log4cpp::Appender* wrappedAppender();
     
     /** Queues up logging event */
     virtual void doAppend(const log4cpp::LoggingEvent &event);

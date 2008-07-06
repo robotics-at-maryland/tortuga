@@ -32,6 +32,7 @@
 
 // Project Includes
 #include "core/include/Logging.h"
+#include "core/include/ThreadedAppender.h"
 
 namespace fs = boost::filesystem;
 
@@ -204,9 +205,12 @@ log4cpp::Appender* Logging::createAppender(
     {
         m_logger->errorStream() << "Invalid appender type: '" << type << "'";
     }
-
+    
     if (appender)
     {
+        // Wrap in a background threaded container
+        appender = new ThreadedAppender(appender);
+        
         // Set layout (using default if needed)
         log4cpp::Layout* layout = 0;
         if (config.exists("Layout"))

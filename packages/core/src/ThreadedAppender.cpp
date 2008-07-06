@@ -40,6 +40,11 @@ void ThreadedAppender::update(double timestep)
     if(m_logEvents.popTimedWait(wait, event))
         m_appender->doAppend(event);
 }
+
+log4cpp::Appender* ThreadedAppender::wrappedAppender()
+{
+    return m_appender;
+}
     
 void ThreadedAppender::doAppend(const log4cpp::LoggingEvent &event)
 {
