@@ -16,6 +16,9 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+// Library Includes
+#include <log4cpp/Category.hh>
+
 // Project Includes
 #include "control/include/BWPDController.h"
 #include "control/include/ControlFunctions.h"
@@ -33,6 +36,9 @@
 
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::BWPDController, BWPDController);
+
+// Create category for logging
+log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
 
 using namespace std;
 
@@ -78,7 +84,6 @@ BWPDController::~BWPDController()
 {
     unbackground(true);
 	
-    m_logfile.close();
     delete m_desiredState;
     delete m_measuredState;
     delete m_controllerState;
@@ -373,10 +378,7 @@ void BWPDController::update(double timestep)
         
     
     // Log values
-    core::TimeVal timeVal;
-    timeVal.now();
-    m_logfile << timeVal.get_double() << " "
-         << m_measuredState->quaternion[0] << " "
+    LOGGER.infoStream() << m_measuredState->quaternion[0] << " "
          << m_measuredState->quaternion[1] << " "
          << m_measuredState->quaternion[2] << " "
          << m_measuredState->quaternion[3] << " "
@@ -392,8 +394,7 @@ void BWPDController::update(double timestep)
          << rotationalTorque[2] << " "
          << translationalForce[0] << " "
          << translationalForce[1] << " "
-         << translationalForce[2] << std::endl;
-        
+         << translationalForce[2];
 }
 
 void BWPDController::init(core::ConfigNode config)
@@ -555,10 +556,8 @@ void BWPDController::init(core::ConfigNode config)
     m_estimatedState->xHat2Depth.x = 0;
     m_estimatedState->xHat2Depth.y = 0;
     
-    
-    m_logfile.open("control_log.txt");
-    m_logfile << "% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq TranForce"
-              << std::endl;    
+    LOGGER.info("% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq"
+                " TranForce");
 }
 
 void BWPDController::publishAtDepth()

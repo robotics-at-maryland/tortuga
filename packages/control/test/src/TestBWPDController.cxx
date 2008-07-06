@@ -11,6 +11,7 @@
 #include <iostream>
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "math/test/include/MathChecks.h"
@@ -18,6 +19,8 @@
 #include "vehicle/test/include/MockVehicle.h"
 #include "control/include/BWPDController.h"
 //#include "control/test/include/ControllerTests.h"
+
+#include "core/test/include/BufferedAppender.h"
 
 using namespace ram;
 
@@ -313,4 +316,25 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
                                             math::Vector3::UNIT_Z);
     controller.update(1);
     CHECK_EQUAL(orientation, actualOrientation);
+}
+
+
+TEST(BWPDControllerLogging)
+{
+    // Create in memory appender
+    BufferedAppender* appender = new BufferedAppender("Test");
+    log4cpp::Category::getInstance("Controller").setAppender(appender);
+
+    // Create Controller object
+    Fixture fixture;
+
+    // Make sure the header is present
+    CHECK_EQUAL(1u, appender->logEvents.size());
+    CHECK_EQUAL("% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq"
+                " TranForce", appender->logEvents[0].message);
+
+    // Just do an update and make sure we have a message
+    fixture.controller.update(1);
+    CHECK_EQUAL(2u, appender->logEvents.size());
+    CHECK(std::string("") !=  appender->logEvents[1].message);
 }

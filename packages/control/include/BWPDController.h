@@ -10,9 +10,6 @@
 #ifndef RAM_CONTROL_BWDCONTROLER_07_07_2007
 #define RAM_CONTROL_BWDCONTROLER_07_07_2007
 
-// STD Includes
-#include <fstream>
-
 // Project Includes
 #include "control/include/Common.h"
 #include "control/include/IController.h"
@@ -172,8 +169,6 @@ private:
     
     /** Internal State of the controller */
     ControllerState* m_controllerState;
-    
-    std::ofstream m_logfile;
 };
     
 } // namespace control
