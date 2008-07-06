@@ -1,8 +1,9 @@
 %! program = pdflatex
 
-\documentclass[10pt]{article}
+\documentclass[letterpaper,10pt]{article}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage[hmargin=1in,vmargin=1in]{geometry}
 \newcommand{\TortugaII}{\emph{Tortuga II}}
 \title{The Sonar Cookbook: An Underwater Acoustics Primer for \TortugaII{}}
 \author{Leo Singer}
@@ -18,10 +19,10 @@ This document is also meant to serve as a cumulative design manual for future re
 \end{abstract}
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.4]{robocrab.pdf}
-\label{fig:robocrab}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.4]{robocrab.pdf}
+		\label{fig:robocrab}
+	\end{center}
 \end{figure}
 
 \clearpage
@@ -35,11 +36,11 @@ This document is also meant to serve as a cumulative design manual for future re
 Association for Unmanned Vehicle Systems International (AUVSI) and Office of Naval Research (ONR) host an annual autonomous underwater vehicle (AUV) competition for teams of college students.
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.4]{tortuga-perspective.jpg}
-\caption{CAD rendering of \TortugaII}
-\label{fig:tortuga-render}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.4]{tortuga-perspective.jpg}
+		\caption{CAD rendering of \TortugaII}
+		\label{fig:tortuga-render}
+	\end{center}
 \end{figure}
 
 The competition has included an acoustic pinger since the 2000 competition in Orlando, Florida.  In 2008, the pinger will also mark the location of a ``treasure'' that vehicles must receive and pull to the surface.
@@ -48,25 +49,40 @@ The competition has included an acoustic pinger since the 2000 competition in Or
 
 University of Maryland's 2008 entry, \TortugaII, will feature an all-new passive sonar system.
 
-We will use a technique called multilateration to determine our \emph{relative} range and/or bearing from the pinger.  Multilateration estimates the relative position of an acoustic source by comparing time difference on arrival (TDOA) of a pulse sent to a collection of hydrophones at known postitions.
+We will use a technique called \emph{multilateration} to determine our \emph{relative} bearing and/or range from the pinger.  Multilateration estimates the relative position of an acoustic source by comparing time difference on arrival (TDOA) of a pulse sent to a collection of hydrophones at known postitions.
 
 We will examine some simple strategies to home in on the pinger using bearing alone, bearing plus range, and bearing plus range rate.
 
 We will further demonstrate that time difference on arrival (TDOA) estimates, when combined with orientation estimates from our inertial measurement unit (IMU), provide enough information to determine the \emph{absolute} coordinates of the vehicle, in a world coordinate system with the pinger at the origin.  Our AI may use this absolute position estimate as a navigation aid, verifying its progress anywhere in the obstacle course.
 
+\twocolumn
 \section{Bearing}
+
+In two dimensions, bearing defined as the compass direction of a distant target.  We will demonstrate how to compute \emph{relative} bearing, which is the angle between a fixed axis on the vehicle and a distant target.  In three dimensions, when we say ``relative bearing'' we mean a three-vector that gives the target's direction in vehicle body frame coordinates.
+
+There are two main categories of geometric approximations that give useful results for passive bearing: near field and far field.  In the near field of the pinger, the wavefronts are spherically symmetric, and the curvature can be used to deduce both the bearing and range of the source.
+
+In the far field, the wavefronts are roughly planar, so we can measure the direction of the source but not the distance.
+
+(This is not quite the whole story, because some sound sources might produce waves that are closer to cylindrical than spherical.  In fact, even a spherically symmetric source will produce roughly cylindrical waves in shallow water \cite{urick1996}.)
+
+Although the near field approach is very powerful in that it can be used to immediately pinpoint the location of the source in three dimensions, it is difficult to implement because the range accuracy drops off very rapidly with increasing distance.  This problem can be overcome by making the baseline -- the separation between the hydrophones -- very large, possibly so large that the sensors surround the source of interest.  It would be an intriguing applicaiton for a fleet or ``swarm'' of AUVs.
+
+The far field approximation is much simpler to implement, and is well suited for a small mobile platform such as \TortugaII{}.  What is more, the bearing accuracy will \emph{increase} dramatically as the source becomes more distant!
 
 \subsection{Spherical waves, near field}
 \label{sec:near-field}
 
-In the near field of the pinger, the multilateration problem reduces to finding the intersection point of a collection of hyperboloids, as is shown in figure~(\ref{fig:hyperbola-good}).
+We will study the near field case first because it will introduce all of the necessary notation.
+
+In the near field of the pinger, where the sound radiates in a radially symmetric pattern, the multilateration problem reduces to finding the intersection point of a collection of hyperboloids, as is shown in figure~(\ref{fig:hyperbola-good}).
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.5]{hyperbola-good.pdf}
-\caption{A three-hydrohpone array in a 2 dimensional environment.  The small gray dots represent hydrophones and the reticule represents the source.  Three hyperbolas, derived from the TDOAs, intersect at the source.}
-\label{fig:hyperbola-good}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.5]{hyperbola-good.pdf}
+		\caption{A three-hydrohpone array in a 2 dimensional environment.  The small gray dots represent hydrophones and the reticule represents the source.  Three hyperbolas, derived from the TDOAs, intersect at the source.}
+		\label{fig:hyperbola-good}
+	\end{center}
 \end{figure}
 
 \subsubsection{Solution}
@@ -113,11 +129,11 @@ We can now solve for the source position and range in a single step using one of
 \subsubsection{Number of hydrophones}
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.5]{hyperbola-bad.pdf}
-\caption{A three-hydrohpone array in a two dimensional environment.  The source has been placed in a region in which two independent solutions of equation~(\ref{eq:hyperboloids-matrix}) exist.}
-\label{fig:hyperbola-bad}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.5]{hyperbola-bad.pdf}
+		\caption{A three-hydrohpone array in a two dimensional environment.  The source has been placed in a region in which two independent solutions of equation~(\ref{eq:hyperboloids-matrix}) exist.}
+		\label{fig:hyperbola-bad}
+	\end{center}
 \end{figure}
 
 In a two-dimensional environment, equation~(\ref{eq:hyperboloids-matrix})  has three parameters \(x_s\), \(y_s\), and \(R_s\).  In three dimensions, there is a fourth parameter \(z_s\).  In 2D, we need \(M=4\) hydrophones for a consistent solution; in 3D, we need \(M=5\).
@@ -125,11 +141,11 @@ In a two-dimensional environment, equation~(\ref{eq:hyperboloids-matrix})  has t
 It would seem that by introducing the range parameter \(R_s\) we have increased the number of degrees of freedom of the system, thus increasing the number of hydrophones needed for a consistent solution.  There are clearly \(N=M-1\) relations of the form of equation~(\ref{eq:hyperboloid-i0}) and \(N\) rows in the rectangular matrix from equation~(\ref{eq:hyperboloids-matrix}).  Could we not reduce the number of required hydrophones to \(M=3\) in the 2D case and to \(M=4\) in the 3D case?
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.25]{bad-zones.pdf}
-\caption{A three-hydrophone array in two dimensional environment.  Regions in which unique solutions are not guaranteed are shaded.}
-\label{fig:bad-zones}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.25]{bad-zones.pdf}
+		\caption{A three-hydrophone array in two dimensional environment.  Regions in which unique solutions are not guaranteed are shaded.}
+		\label{fig:bad-zones}
+	\end{center}
 \end{figure}
 
 The answer is no.  There is no way of representing (\ref{eq:hyperboloid-ij}) as a system of linear equations in \(x_s\), \(y_s\), and \(z_s\).  In a \(K\)-dimensional environment, if \(N{\leq}K+1\), there will always be regions where distinct source locations will yield identical TDOAs.  In other words, in order to estimate position in 2D, we need at least four hydrophones, and in 3D, 5 hydrophones.
@@ -169,21 +185,20 @@ Based on Ho's error analysis \cite{Ho} \cite{Ho:2007lr}, we estimate the minimum
 We can estimate the spatial variation in position accuracy for any given sonar array geometry.  Figures (\ref{fig:squarePyramid}) and (\ref{fig:doubleTetrahedron}) depict the positional accuracy of an inverted square pyramid array and a double tetrahedron array, respectively.  We have used MATLAB to compute the Cram\'{e}r-Rao lower bound on the position of the pinger in a number of different locations, then plotted the maximum eigenvalue of the covariance matrix.
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.5]{squarePyramid.pdf}
-\caption{An inverted square pyramid array, spatial variation in positional accuracy}
-\label{fig:squarePyramid}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.4]{squarePyramid.pdf}
+		\caption{An inverted square pyramid array, spatial variation in positional accuracy}
+		\label{fig:squarePyramid}
+	\end{center}
 \end{figure}
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.5]{doubleTetrahedron.pdf}
-\caption{A double tetrahedron array, spatial variation in positional accuracy}
-\label{fig:doubleTetrahedron}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.4]{doubleTetrahedron.pdf}
+		\caption{A double tetrahedron array, spatial variation in positional accuracy}
+		\label{fig:doubleTetrahedron}
+	\end{center}
 \end{figure}
-
 
 \subsection{Planar waves, far field}
 \label{sec:far-field}
@@ -300,14 +315,14 @@ Now, considering all \(m\) measurements at once:
 A & -A \mathbf b \\
 0 & 1
 \end{array}\right)
-\left(\begin{array}{cccccc}
-\mathbf d_1 & \mathbf d_2 & \dots & \mathbf d_i & \dots & \mathbf d_m\\
-1 & 1 & \dots & 1 & \dots & 1
-\end{array}\right) &=&
-\left(\begin{array}{cccccc}
-\mathbf k_1 & \mathbf k_2 & \dots & \mathbf k_i & \dots & \mathbf k_m\\
-1 & 1 & \dots & 1 & \dots & 1
-\end{array}\right) \\
+\left(\begin{array}{cccc}
+\mathbf d_1 & \mathbf d_2 & \dots & d_m\\
+1 & 1 & \dots & 1
+\end{array}\right) && \\
+= \left(\begin{array}{cccccc}
+\mathbf k_1 & \mathbf k_2 & \dots & \mathbf k_m\\
+1 & 1 & \dots & 1
+\end{array}\right) && \\
 \left(\begin{array}{cc}
 A & -A \mathbf b \\
 0 & 1
@@ -320,7 +335,7 @@ This calibration routine has been numerically verified in MATLAB.  Adequate solu
 
 It may be simpler in practice to rotate the hydrophone array than to move the source.  We can use the AUV itself as a precision \(4 \pi\) steradians underwater rotation stage for the calibration process.
 
-\section{Passive ranging and navigation}
+\section{Passive range and navigation}
 
 In this section, we describe three different levels of information that the sonar system alone can provide: relative bearing, range rate, and range.
 
@@ -364,11 +379,11 @@ Additionally, the vehicle may determine its initial range by performing some sor
 Note that once the robot homes on the pinger, its range is automatically zero.  The competition rules permit the vehicle to seek the pinger and treasure first.  This suggests a novel mission plan:
 
 \begin{enumerate}
-\item Home on the pinger at full speed.
-\item Set the range to zero.
-\item Grab the treasure and surface.
-\item Drop the treasure and dive again.
-\item Complete the rest of the course using navigation augmented with absolute positioning.
+	\item Home on the pinger at full speed.
+	\item Set the range to zero.
+	\item Grab the treasure and surface.
+	\item Drop the treasure and dive again.
+	\item Complete the rest of the course using navigation augmented with absolute positioning.
 \end{enumerate}
 
 During the first step, the robot can log camera, IMU, and sonar data, post-processing captured images en-route to identify visual targets.  Once the zero range has been established, the robot can speed back to the exact location of the identified targets.
@@ -378,11 +393,11 @@ During the first step, the robot can log camera, IMU, and sonar data, post-proce
 If the robot is equipped with two far field type arrays, separated by a fixed distance, then we may use triangulation to determine the range.
 
 \begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.5]{triangulation_diagram.pdf}
-\caption{Two-array (four sensor) triangulation setup}
-\label{fig:triangulationDiagram}
-\end{center}
+	\begin{center}
+		\includegraphics[scale=0.5]{triangulation_diagram.pdf}
+		\caption{Two-array (four sensor) triangulation setup}
+	\label{fig:triangulationDiagram}
+	\end{center}
 \end{figure}
 
 Two far field arrays allow us to sample the direction of propagation of a sound wave at two points.  Let \(\hat\mathbf k_1\) be the direction of propagation at the first receiver, and let \(\hat\mathbf k_2\) be the direction of propagation at the second receiver.  We want to solve for the range \(R_1=b\) from the first receiver and \(R_2=a\) from the second receiver.
@@ -464,9 +479,25 @@ For many geometries, the phase distortion due to spatial filtering is negligible
 
 The SPAWAR web site claims that the TRANSDEC facility \cite{transdec-anechoic} where the AUV competition was held in 2007 is ``anechoic.''  Just what this means quantitatively is not entirely clear.  What we do know is that it has a gently sloping concrete floor covered in most places with algae.  We might assume that the algae damps bottom reflections somewhat.
 
-However, the acoustic environment of TRANSDEC will still suffer from interference due to reflections off the water's surface, producing what is known as a Lloyd's mirror interference pattern \cite{Etter}.  It will affect perceived amplitude and phase.
+However, the acoustic environment of TRANSDEC will still suffer from interference due to reflections off the water's surface, producing what is known as a Lloyd's mirror interference pattern \cite{Etter} (figure~\ref{fig:lloyd}).  It will affect perceived amplitude and phase.
 
-\begin{table}[htdp]
+The Lloyd's mirror effect will not appear immediately, though, because sound takes longer to travel along any reflected path than it does to travel straight to the receiver.  From the time that the direct ping arrives until the time that the first echo arrives the acoustic field at the receiver will be the same as if the medium was unbounded.
+
+\begin{figure}[hbt]
+	\begin{center}
+		\includegraphics[scale=0.8]{lloyd.pdf}
+		\caption{The Lloyd mirror effect, after \cite{urick1996} and \cite{Etter}. Log-log plot of sound intensity as a function of distance.  At the sharp dips where \(\cos \pi \mathit{l} / \mathit{l}_0\), the sound intensity goes to zero.}
+	\label{fig:lloyd}
+	\end{center}
+\end{figure}
+
+Let us assume that the source and receiver are at the same depth \(z\), and a distance \(R\) from each other.  The fastest single-reflection path that sound can take from the source to receiver includes a single bounce off the water's surface at a range of exactly \(R/2\).  The first echo will appear at the receiver after a delay of
+\begin{equation}
+\tau_{echo}(z,R)=(2\sqrt{z^2+(R/2)^2}-R)/c.
+\end{equation}
+where \(c\) is the speed of sound.
+
+\begin{table}[hbt]
 \caption{Delay of first surface echo for a transmitter and receiver at a depth of 3 meters, assuming the speed of sound is 1500 m/s}
 \begin{center}
 \begin{tabular}{|r|r|}
@@ -484,14 +515,6 @@ Range (m) & Delay of first echo (ms) \\
 \end{center}
 \label{tab:lloyd}
 \end{table}
-
-The Lloyd's mirror effect will not appear immediately, though, because sound takes longer to travel along any reflected path than it does to travel straight to the receiver.  From the time that the direct ping arrives until the time that the first echo arrives the acoustic field at the receiver will be the same as if the medium was unbounded.
-
-Let us assume that the source and receiver are at the same depth \(z\), and a distance \(R\) from each other.  The fastest single-reflection path that sound can take from the source to receiver includes a single bounce off the water's surface at a range of exactly \(R/2\).  The first echo will appear at the receiver after a delay of
-\begin{equation}
-\tau_{echo}(z,R)=(2\sqrt{z^2+(R/2)^2}-R)/c.
-\end{equation}
-where \(c\) is the speed of sound.
 
 From table~(\ref{tab:lloyd}) we see that at close range the first echo is entirely differentiated in time from the 1.3 ms ping.  At greater range, we can avoid the Lloyd's mirror effect by dropping the latter part of the digitized pulse from the phase determination DFT.
 
@@ -565,12 +588,15 @@ X_k(m) = e^{\frac{2 \pi i}{N} k} (X_k(m-1) - x(m-N) + x(m))
 
 Only three complex additions and one complex multiply are required to evaluate the sliding DFT.
 
-\subsection{Triggering}
+\section{Acknowledgements}
 
-\subsection{Cross-correlation}
+First, we would like to thank two recently graduated electrical engineering students, Nicholas Limparis and Steve Moskovchenko, for the countless hours they spent designing the DSP hardware for \TortugaII{}'s passive sonar system.
 
-\clearpage
+Our thanks go also to Naval Surface Warfare Center, Carderock Division, for lending us hydrophones, a pinger, and test equipment, as well as for providing us with valuable advice in acoustics and analog electronics.
 
+We are also greatful to Dr. Dave Aiken, director of the Space Systems Laboratory (SSL) at the University of Maryland, for letting us do acoustics experiments at the Neutral Buoyancy Research Facility (NBRF), in addition to the design, construction, and testing of \TortugaII{} itself.  The faculty, students, and staff of SSL are a goldmine of expert knowledge on building underwater robots.
+
+\newpage
 \bibliography{sonar}
 \bibliographystyle{unsrt}
 
