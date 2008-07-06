@@ -287,8 +287,8 @@ bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
     cvGetRectSubPix(rotatedRedSuit, onlyRedSuit, cvPoint2D32f((maxSuitX+minSuitX)/2, (maxSuitY+minSuitY)/2));
     cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
     
-    OpenCVImage showTheSuit(scaledRedSuit, false);
-    Image::showImage(&showTheSuit, "The Suit Stands Alone");
+//    OpenCVImage showTheSuit(scaledRedSuit, false);
+//    Image::showImage(&showTheSuit, "The Suit Stands Alone");
     
     int scaledRedIndex = 0;
     unsigned char* scaledRedData=(unsigned char*)scaledRedSuit->imageData;
@@ -363,8 +363,8 @@ void SuitDetector::processImage(Image* input, Image* output)
     suitMask(percentsRotatedRed, rotatedRedSuit);
     
     //rotatedRedSuit is now properly rotated and masked for red, pass it on to the histogrammer
-    OpenCVImage showThis(rotatedRedSuit,false);
-    Image::showImage(&showThis);
+//    OpenCVImage showThis(rotatedRedSuit,false);
+//    Image::showImage(&showThis);
     
     if (makeSuitHistogram(rotatedRedSuit))
     {
