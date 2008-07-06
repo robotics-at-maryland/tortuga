@@ -86,9 +86,9 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     drawBin(&input, 640 - (640/4), 480/4, 130, 25);
 
     // Process it
-    vision::OpenCVImage output(640, 480);
-    detector.processImage(&input, &output);
-    vision::Image::showImage(&output);
+    //vision::OpenCVImage output(640, 480);
+    detector.processImage(&input);//, &output);
+    //vision::Image::showImage(&output);
     double expectedX = -0.5;
     double expectedY = 0.5 * 640.0/480.0;
     math::Degree expectedAngle(25);
