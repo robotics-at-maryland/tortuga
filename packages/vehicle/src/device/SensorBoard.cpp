@@ -7,6 +7,9 @@
  * File:  packages/vision/src/device/SensorBoard.cpp
  */
 
+// Library Includes
+#include <log4cpp/Category.hh>
+
 // Project Includes
 #include "vehicle/include/device/SensorBoard.h"
 #include "vehicle/include/Events.h"
@@ -17,6 +20,8 @@
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, POWERSOURCE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, THRUSTER_UPDATE);
+
+log4cpp::Category& LOGGER(log4cpp::Category::getInstance("SensorBoard"));
 
 namespace ram {
 namespace vehicle {
@@ -33,9 +38,18 @@ SensorBoard::SensorBoard(int deviceFD,
     m_deviceFile(""),
     m_deviceFD(deviceFD)
 {
+    m_state.thrusterValues[0] = 0;
+    m_state.thrusterValues[1] = 0;
+    m_state.thrusterValues[2] = 0;
+    m_state.thrusterValues[3] = 0;
+    m_state.thrusterValues[4] = 0;
+    m_state.thrusterValues[5] = 0;
     // If we get a negative FD, don't try to talk to the board
     if (deviceFD >= 0)
         establishConnection();
+
+    // Log file header
+    LOGGER.info("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
 }
     
 
@@ -60,6 +74,9 @@ SensorBoard::SensorBoard(core::ConfigNode config,
 
     for (int i = 0; i < 11; ++i)
         update(1.0/40);
+
+    // Log file header
+    LOGGER.info("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
 }
     
 SensorBoard::~SensorBoard()
@@ -99,6 +116,21 @@ void SensorBoard::update(double timestep)
             powerSourceEvents(&state.telemetry);
             tempSensorEvents(&state.telemetry);
             thrusterEvents(&state.telemetry);
+
+            LOGGER.info("%3.1f %3.1f %3.1f %3.1f %3.1f %3.1f"
+                        " %d %d %d %d %d %d",
+                        state.telemetry.powerInfo.motorCurrents[0],
+                        state.telemetry.powerInfo.motorCurrents[1],
+                        state.telemetry.powerInfo.motorCurrents[2],
+                        state.telemetry.powerInfo.motorCurrents[3],
+                        state.telemetry.powerInfo.motorCurrents[4],
+                        state.telemetry.powerInfo.motorCurrents[5],
+                        state.thrusterValues[0],
+                        state.thrusterValues[1],
+                        state.thrusterValues[2],
+                        state.thrusterValues[3],
+                        state.thrusterValues[4],
+                        state.thrusterValues[5]);
         }
     
         // Now read depth

@@ -33,6 +33,10 @@
 // Project Includes
 #include "core/include/Logging.h"
 #include "core/include/ThreadedAppender.h"
+#include "core/include/SubsystemMaker.h"
+
+// Register controller in subsystem maker system
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::core::Logging, Logging);
 
 namespace fs = boost::filesystem;
 

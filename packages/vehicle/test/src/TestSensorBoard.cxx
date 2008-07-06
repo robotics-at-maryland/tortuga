@@ -13,12 +13,14 @@
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "vehicle/include/device/SensorBoard.h"
 #include "vehicle/include/Events.h"
 
 #include "core/include/EventConnection.h"
+#include "core/test/include/BufferedAppender.h"
 
 class TestSensorBoard : public ram::vehicle::device::SensorBoard
 {
@@ -461,4 +463,36 @@ TEST_FIXTURE(SensorBoardFixture, event_THRUSTER_UPDATE)
     
     conn->disconnect();
     delete sb;
+}
+
+
+TEST_FIXTURE(SensorBoardFixture, logging)
+{
+    BufferedAppender* appender = new BufferedAppender("Test");
+    log4cpp::Category::getInstance("SensorBoard").setAppender(appender);
+
+    // Create board
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    // Make sure the header is present
+    CHECK_EQUAL(1u, appender->logEvents.size());
+    CHECK_EQUAL("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp",
+                appender->logEvents[0].message);
+    
+    // Load some values to log into memory
+    double currents[6] = {2.3, 5.1, 2.5, 1.0, 0.0, 9.0};
+    int speeds[6] = {238, -519, 23, 1011, -900, 758};
+    
+    sb->updateDone = true;
+    for (size_t i = 0; i < LENGTH(currents); ++i)
+        sb->currentTelemetry.powerInfo.motorCurrents[i] = currents[i];
+    for (size_t i = 0; i < LENGTH(speeds); ++i)
+        sb->setThrusterValue(i, speeds[i]);
+
+    // Now do a log and check it
+    sb->update(0);
+    CHECK_EQUAL(2u, appender->logEvents.size());
+    CHECK_EQUAL("2.3 5.1 2.5 1.0 0.0 9.0 238 -519 23 1011 -900 758",
+                appender->logEvents[1].message);
 }
