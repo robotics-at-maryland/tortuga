@@ -216,6 +216,11 @@ void BinDetector::processImage(Image* input, Image* out)
             suit = DIAMOND;
             std::cout<<"Found Diamond Bin"<<std::endl;
         }
+        else if (suitFound == UNKNOWN)
+        {
+            suit = UNKNOWN;
+            std::cout<<"Found an unknown bin, rotate above it until we figure out what it is!"<<std::endl;
+        }
         else if (suitFound == NONEFOUND)
         {
             seeEmpty = true;

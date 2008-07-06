@@ -634,7 +634,7 @@ void suitMask(IplImage* percents, IplImage* base)
     {
         for (int x = 0; x < width; x++)
         {
-            if (data[count+2]>30 && data2[count+2]>175 && data2[count]<100 && data2[count+1]<100)
+            if (data[count+2]>30 && data2[count+2]>125 && data2[count]<100 && data2[count+1]<100)
             {
                 data2[count]=data2[count+1]=data2[count+2]=255;
             }
