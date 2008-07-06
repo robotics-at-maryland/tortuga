@@ -141,7 +141,7 @@ void Logging::createCategory(
             {
                 // Add appender but don't shift ownership to category
                 category->addAppender(*(iter->second));
-				m_appenders[iter->second].push_back(name);
+                m_appenders[iter->second].push_back(name);
             }
             else
             {
@@ -149,16 +149,16 @@ void Logging::createCategory(
                           << "'" << std::endl;
             }
         }
-
-        // Set priority
-		category->setPriority(
-     	    stringToPriority(config["priority"].asString("")));
     }
     else
     {
         std::cerr << "WARNING: Category: '" << name << "' has no appenders "
                   << "all logging messages will be suppressed" << std::endl;
     }
+
+    // Set priority
+    category->setPriority(
+        stringToPriority(config["priority"].asString("")));
 }
 
 log4cpp::Appender* Logging::createAppender(
@@ -192,7 +192,7 @@ log4cpp::Appender* Logging::createAppender(
     else
     {
         std::cerr << "ERROR: invalid appender type: '" << type << "'"
-                  << std::cout;
+                  << std::endl;
     }
 
     if (appender)
@@ -205,9 +205,9 @@ log4cpp::Appender* Logging::createAppender(
             layout = new log4cpp::BasicLayout;
         appender->setLayout(layout);
 
-		// Set threshold
-		appender->setThreshold(
-     	    stringToPriority(config["priority"].asString("")));
+        // Set threshold
+        appender->setThreshold(
+             stringToPriority(config["threshold"].asString("")));
 
         // Store the appender
         appenders[name] = appender;
@@ -237,7 +237,7 @@ log4cpp::Layout* Logging::createLayout(ConfigNode config)
     else
     {
         std::cerr << "ERROR: invalid layout type: '" << type << "'"
-                  << std::cout;
+                  << std::endl;
     }
 
     return layout;
@@ -247,36 +247,36 @@ log4cpp::Priority::PriorityLevel Logging::stringToPriority(std::string value)
 {
     // Build string to priority map
     std::map<std::string, log4cpp::Priority::PriorityLevel> nameToPriority;
-	nameToPriority["emergency"] = log4cpp::Priority::EMERG;
-	nameToPriority["emerg"] = log4cpp::Priority::EMERG;
-	nameToPriority["fatal"] = log4cpp::Priority::FATAL;
-	nameToPriority["alert"] = log4cpp::Priority::ALERT;
-	nameToPriority["crit"] = log4cpp::Priority::CRIT;
-	nameToPriority["critical"] = log4cpp::Priority::CRIT;
-	nameToPriority["error"] = log4cpp::Priority::ERROR;
-	nameToPriority["warn"] = log4cpp::Priority::WARN;
-	nameToPriority["warning"] = log4cpp::Priority::WARN;
-	nameToPriority["info"] = log4cpp::Priority::INFO;
-	nameToPriority["debug"] = log4cpp::Priority::DEBUG;
-	
-	// Convert to priority
-	boost::to_lower(value);
-	log4cpp::Priority::PriorityLevel priority =
-  	    log4cpp::Priority::NOTSET;
+    nameToPriority["emergency"] = log4cpp::Priority::EMERG;
+    nameToPriority["emerg"] = log4cpp::Priority::EMERG;
+    nameToPriority["fatal"] = log4cpp::Priority::FATAL;
+    nameToPriority["alert"] = log4cpp::Priority::ALERT;
+    nameToPriority["crit"] = log4cpp::Priority::CRIT;
+    nameToPriority["critical"] = log4cpp::Priority::CRIT;
+    nameToPriority["error"] = log4cpp::Priority::ERROR;
+    nameToPriority["warn"] = log4cpp::Priority::WARN;
+    nameToPriority["warning"] = log4cpp::Priority::WARN;
+    nameToPriority["info"] = log4cpp::Priority::INFO;
+    nameToPriority["debug"] = log4cpp::Priority::DEBUG;
+    
+    // Convert to priority
+    boost::to_lower(value);
+    log4cpp::Priority::PriorityLevel priority =
+        log4cpp::Priority::NOTSET;
 
-	std::map<std::string, log4cpp::Priority::PriorityLevel>::iterator iter =
-	    nameToPriority.find(value);
-	if (nameToPriority.end() != iter)
-	{
+    std::map<std::string, log4cpp::Priority::PriorityLevel>::iterator iter =
+        nameToPriority.find(value);
+    if (nameToPriority.end() != iter)
+    {
         priority = iter->second;
-	}
-	else// if (std::string("") != value)
+    }
+    else if (std::string("") != value)
     {
          std::cerr << "WARNING: priority: '" << value
                    << "' is not valid" << std::endl;
-	}
+    }
 
-	return priority;
+    return priority;
 }
     
 } // namespace core

@@ -39,14 +39,14 @@ TEST_FIXTURE(LoggingFixture, CategoryCreation)
         "     }"
         "}}"));
     core::Logging logSys(config);
-
+    
     // Make sure the categories were actually
     CHECK(log4cpp::Category::exists("Control"));
-	//	CHECK_EQUAL(log4cpp::Priority::WARN, 
-	//				log4cpp::Category::exists("Control")->getPriority());
+    CHECK_EQUAL(log4cpp::Priority::WARN, 
+                log4cpp::Category::exists("Control")->getPriority());
     CHECK(log4cpp::Category::exists("Vehicle"));
-	//	CHECK_EQUAL(log4cpp::Priority::DEBUG, 
-	//				log4cpp::Category::exists("Vehicle")->getPriority());
+    CHECK_EQUAL(log4cpp::Priority::DEBUG, 
+                log4cpp::Category::exists("Vehicle")->getPriority());
 }
 
 TEST_FIXTURE(LoggingFixture, AppenderCreation)
@@ -59,11 +59,13 @@ TEST_FIXTURE(LoggingFixture, AppenderCreation)
         "},"
         "'Appenders' : {"
         "    'screen' : {"
-        "        'type' : 'Console'"
+        "        'type' : 'Console',"
+        "        'threshold' : 'critical'"
         "    },"
         "    'file' : {"
         "        'type' : 'File',"
-        "        'fileName' : 'unittest'"
+        "        'fileName' : 'unittest',"
+        "        'threshold' : 'info'"
         "    }"
         "}}"));
     core::Logging* logSys = new core::Logging(config);
@@ -85,6 +87,12 @@ TEST_FIXTURE(LoggingFixture, AppenderCreation)
         dynamic_cast<log4cpp::FileAppender*>(appender);
     CHECK(fileAppender);
 
+    // Ensure the thresholds were set
+    CHECK_EQUAL(log4cpp::Priority::CRIT,
+                ostreamAppender->getThreshold());
+    CHECK_EQUAL(log4cpp::Priority::INFO,
+                fileAppender->getThreshold());
+    
     // Ensure that the proper logging directory was created
     fs::path logPath = core::Logging::getLogDir();
     CHECK(fs::exists(logPath));
@@ -96,9 +104,9 @@ TEST_FIXTURE(LoggingFixture, AppenderCreation)
     std::string actualLogDirName = pathName.substr(pathName.length() - 19, 16);
     CHECK_EQUAL(expectedLogDirName, actualLogDirName);
 
-	// Ensure that priorities are proper set
+    // Ensure that priorities are proper set
 
-	// Make sure all appenders are deleted
-	delete logSys;
-	CHECK(0 == category->getAppender());
+    // Make sure all appenders are deleted
+    delete logSys;
+    CHECK(0 == category->getAppender());
 }
