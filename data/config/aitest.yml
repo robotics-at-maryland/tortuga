@@ -4,9 +4,9 @@ GUI:
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
 Subsystems:    
-    VisionSystem:
-        type: VisionSystem
-        depends_on: ["EventHub", "Vehicle"]
+#    VisionSystem:
+#        type: VisionSystem
+#        depends_on: ["EventHub", "Vehicle"]
         
 #       RedLightDetector:       
 #           intialMinPixels: 400
@@ -39,10 +39,10 @@ Subsystems:
         type: TimerManager
         depends_on: ["EventHub"]
 
-    StateMachine:
-        type: StateMachine
-        depends_on: ["EventHub", "QueuedEventHub", "Controller",
-                     "MotionManager", "TimerManager", "VisionSystem"]
+#    StateMachine:
+#        type: StateMachine
+#        depends_on: ["EventHub", "QueuedEventHub", "Controller",
+#                     "MotionManager", "TimerManager", "VisionSystem"]
 
     # Object that creates the vehicle interface
     Vehicle:
@@ -64,7 +64,7 @@ Subsystems:
 
             SensorBoard:
                 type: SensorBoard
-                update_interval: 40
+                update_interval: 25
                 depthCalibSlope: 35.5
                 depthCalibIntercept: 1182
 
@@ -73,11 +73,46 @@ Subsystems:
                 type: SBPowerSource
                 id: 0
 
+            Battery2:
+                depends_on: ['SensorBoard']
+                type: SBPowerSource
+                id: 1
+
+            Batter3:
+                depends_on: ['SensorBoard']
+                type: SBPowerSource
+                id: 2
+
+            Battery4:
+                depends_on: ['SensorBoard']
+                type: SBPowerSource
+                id: 3
+
+            Shore:
+                depends_on: ['SensorBoard']
+                type: SBPowerSource
+                id: 4
+
+            Temp1:
+                depends_on: ['SensorBoard']
+                type: SBTempSensor
+                id: 0
+
+            Temp2:
+                depends_on: ['SensorBoard']
+                type: SBTempSensor
+                id: 5
+
+            Temp3:
+                depends_on: ['SensorBoard']
+                type: SBTempSensor
+                id: 6
+
             # This entry creates a thruster
             StarboardThruster:
                 depends_on: ['SensorBoard']
                 # serial: 147
-                type: Thruster
+                type: SBThruster
                 update_interval: 100
 
                 # String representing the address of the thruster
@@ -92,14 +127,14 @@ Subsystems:
             PortThruster:
                 depends_on: ['SensorBoard']
                 # serial: 149
-                type: Thruster
+                type: SBThruster
                 address: 1
                 calibration_factor: 0.4146
                 direction: 1
 
             ForeThruster:
                 depends_on: ['SensorBoard']
-                type: Thruster
+                type: SBThruster
                 # serial: 146
                 address: 2
                 calibration_factor: 0.4368
@@ -108,7 +143,7 @@ Subsystems:
             AftThruster:
                 depends_on: ['SensorBoard']
                 # Serial 148
-                type: Thruster
+                type: SBThruster
                 address: 0
                 calibration_factor: 0.3612
                 direction: -1
@@ -116,14 +151,14 @@ Subsystems:
             TopThruster:
                 depends_on: ['SensorBoard']
                 # serial: 149
-                type: Thruster
+                type: SBThruster
                 address: 4
                 calibration_factor: 0.4146
                 direction: -1
 
             BottomThruster:
                 depends_on: ['SensorBoard']
-                type: Thruster
+                type: SBThruster
                 address: 5
                 calibration_factor: 0.3652
                 direction: 1
