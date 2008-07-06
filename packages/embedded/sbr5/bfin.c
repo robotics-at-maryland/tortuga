@@ -96,18 +96,20 @@ void _ISR _U2RXInterrupt(void)
 #else
     byte t = U2RXREG;
     actLight(0);
+
+    if(sonarPtr < 12)
+        sonarBuf[sonarPtr++] = t;   /* Blargh */
+
     /* We are looking for 6 FFs in a row. */
     if(t == 0xFF)
     {
         fCount++;
         /* Start of sequence? */
-        if(fCount == 6)
+        if(fCount >= 6)
             sonarPtr = 0;
     } else
         fCount = 0;
 
-    if(sonarPtr < 12)
-        sonarBuf[sonarPtr++] = t;   /* Blargh */
 #endif
 
 }
