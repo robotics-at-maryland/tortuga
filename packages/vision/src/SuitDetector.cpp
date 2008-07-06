@@ -7,8 +7,6 @@
  * File:  packages/vision/src/SuitDetector.cpp
  */
 
-#include "stdlib.h"
-
 //Library Includes
 #include "cv.h"
 #include "highgui.h"
@@ -18,6 +16,8 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/SuitDetector.h"
 #include "vision/include/Camera.h"
+#include "vision/include/SuitHistoArrays.h"
+
 
 namespace ram {
 namespace vision {
@@ -25,13 +25,14 @@ namespace vision {
 SuitDetector::SuitDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
     Detector(eventHub),
-    cam(0)
+    cam(0),
+    blobDetector(100)
 {
     init(config);
 }
     
 SuitDetector::SuitDetector(Camera* camera) :
-    cam(camera)
+    cam(camera), blobDetector(100)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -39,11 +40,10 @@ SuitDetector::SuitDetector(Camera* camera) :
 void SuitDetector::init(core::ConfigNode)
 {
 	suit = UNKNOWN;
-	suitX = 0;
-	suitY = 0;
 	analyzedImage = cvCreateImage(cvSize(640,480), 8,3);
 	ratioImage = cvCreateImage(cvSize(640,480),8,3);
 	tempHoughImage = cvCreateImage(cvSize(640,480),8,3);
+    scaledRedSuit = cvCreateImage(cvSize(64,64),IPL_DEPTH_8U, 3);
 }
 	
 SuitDetector::~SuitDetector()
@@ -51,6 +51,7 @@ SuitDetector::~SuitDetector()
 	cvReleaseImage(&analyzedImage);
 	cvReleaseImage(&ratioImage);
 	cvReleaseImage(&tempHoughImage);
+    cvReleaseImage(&scaledRedSuit);
 }
 
 int SuitDetector::edgeRun(int startX, int startY, IplImage* img)
@@ -220,66 +221,331 @@ int SuitDetector::edgeRun(int startX, int startY, IplImage* img)
 	}	
 }
 
-void SuitDetector::processImage(Image* input, Image* output)
+//finds the bounds on the suit, assuming it broke into a maximum of two pieces.
+bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
 {
-	/*First argument to white_detect is a ratios frame, then a regular one*/
-	IplImage* image = (IplImage*)(*input);
-	cvCopyImage(image,ratioImage);//Now both are rotated 90 degrees
-	IplImage* gray = cvCreateImage(cvGetSize(image), 8, 1);
-    CvMemStorage* storage = cvCreateMemStorage(0);
-    
-	to_ratios(ratioImage);
-	redMask(ratioImage, image, 50, 100);
-	
-	unsigned int r = (unsigned int)(rand())%image->width;
-	unsigned int r2 = (unsigned int)(rand())%image->height;
-	int corners = edgeRun(r,r2,image);
-	
-	if (corners == 0)
-		printf("Club\n");
-	else if (corners == 1)
-		printf("Heart\n");
-	else if (corners == 2)
-		printf("Spade\n");
-	else if (corners == 3)
-		printf("Diamond\n");
-	
-	cvCvtColor(image, gray, CV_BGR2GRAY);
-    cvSmooth(gray, gray, CV_GAUSSIAN, 9, 9); 
-	
-    CvSeq* circles = cvHoughCircles(gray, storage, 
-        CV_HOUGH_GRADIENT, 2, gray->height/4, 200, 40);
-    int i;
-	
-    for (i = 0; i < circles->total; i++) 
+    //make sure to zero out the histogram array, regardless of whether or not we find anything.
+    for (int i = 0; i < HISTOARRSIZE; i++)
     {
-         float* p = (float*)cvGetSeqElem( circles, i );
-         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
-             3, CV_RGB(0,255,0), -1, 8, 0 );
-         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
-             cvRound(p[2]), CV_RGB(255,0,0), 3, 8, 0 );
+        histoArr[i] = 0;
     }
 
-	if (output)
-	{
-		OpenCVImage temp(image, false);
-		output->copyFrom(&temp);
-	}
-	
-	cvReleaseMemStorage(&storage);
-	cvReleaseImage(&gray);
-	
+    int minSuitX = 999999;
+    int minSuitY = 999999;
+    int maxSuitX = 0;
+    int maxSuitY = 0;
+    //            int redCX, redCY;
+    //cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 5);
+    OpenCVImage mySuit(rotatedRedSuit,false);
+    blobDetector.setMinimumBlobSize(100);
+    blobDetector.processImage(&mySuit);
+    if (!blobDetector.found())
+    {
+        return false;//no suit found, don't make a histogram
+        //                printf("Oops, we fucked up, no suit found :(\n");
+    }
+    else
+    {
+        //find biggest two blobs (hopefully should be just one, but if spade or club split..)
+        std::vector<ram::vision::BlobDetector::Blob> blobs = blobDetector.getBlobs();
+        ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
+        ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
+        ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
+        for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
+        {
+            if (blobs[blobIndex].getSize() > secondBiggest.getSize())
+            {
+                secondBiggest = blobs[blobIndex];
+                if (secondBiggest.getSize() > biggest.getSize())
+                {
+                    swapper = secondBiggest;
+                    secondBiggest = biggest;
+                    biggest = swapper;
+                }
+            }
+        }
+        minSuitX = biggest.getMinX();
+        minSuitY = biggest.getMinY();
+        maxSuitX = biggest.getMaxX();
+        maxSuitY = biggest.getMaxY();
+        
+        if (blobs.size() > 1)
+        {
+            if (minSuitX > secondBiggest.getMinX())
+                minSuitX = secondBiggest.getMinX();
+            if (minSuitY > secondBiggest.getMinY())
+                minSuitY = secondBiggest.getMinY();
+            if (maxSuitX < secondBiggest.getMaxX())
+                maxSuitX = secondBiggest.getMaxX();
+            if (maxSuitY < secondBiggest.getMaxY())
+                maxSuitY = secondBiggest.getMaxY();
+        }
+    }
+    
+    IplImage* onlyRedSuit = cvCreateImage(cvSize((maxSuitX-minSuitX+1)/4*4,(maxSuitY-minSuitY+1)/4*4), IPL_DEPTH_8U, 3);
+    cvGetRectSubPix(rotatedRedSuit, onlyRedSuit, cvPoint2D32f((maxSuitX+minSuitX)/2, (maxSuitY+minSuitY)/2));
+    cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
+    
+    int scaledRedIndex = 0;
+    unsigned char* scaledRedData=(unsigned char*)scaledRedSuit->imageData;
+    for (int y = 0; y < scaledRedSuit->height; y++)
+    {
+        for (int x = 0; x < scaledRedSuit->width; x++)
+        {
+            if (scaledRedData[scaledRedIndex]!=0)
+            {
+                histoArr[y]++;
+                histoArr[x+scaledRedSuit->height]++;
+            }
+            scaledRedIndex+=3;
+        }
+    }
+    
+    cvReleaseImage(&onlyRedSuit);
+    return true;//we made a histogram   
 }
 
-double SuitDetector::getX()
+//Input is expected to be a black rectangle that touches the four edges of the image (or fills it completely if the bin was properly rotated)
+void SuitDetector::processImage(Image* input, Image* output)
 {
-	return suitX;
+    IplImage* redSuit = (IplImage*)(*input);
+    IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
+
+    cvCvtColor(redSuit,redSuitGrayScale,CV_BGR2GRAY);
+    IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
+
+    cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    CvSeq* lines = 0;
+        
+    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+        
+    float longestLineLength = -1;
+    float slope = 0;
+    for(int i = 0; i < lines->total; i++ )
+    {
+        CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+        float lineX = line[1].x - line[0].x;
+        float lineY = line[1].y - line[0].y;
+        if (longestLineLength < (lineX * lineX + lineY * lineY))
+        {
+            slope = atan2(lineY,lineX);
+            longestLineLength = lineX * lineX + lineY * lineY;
+        }
+    }
+    
+    IplImage* rotatedRedSuit = cvCreateImage(cvGetSize(redSuit), IPL_DEPTH_8U, 3);
+    
+    float m[6];
+    CvMat M = cvMat( 2, 3, CV_32F, m );
+
+    double factor = -slope;
+    m[0] = (float)(cos(factor));
+    m[1] = (float)(sin(factor));
+    m[2] = redSuitGrayScale->width * 0.5f;
+    m[3] = -m[1];
+    m[4] = m[0];
+    m[5] = redSuitGrayScale->height * 0.5f;
+    
+    cvGetQuadrangleSubPix(redSuit, rotatedRedSuit,&M);
+    
+    IplImage* percentsRotatedRed = cvCreateImage(cvGetSize(rotatedRedSuit),IPL_DEPTH_8U, 3);
+    
+    cvCopyImage(rotatedRedSuit,percentsRotatedRed);
+    to_ratios(percentsRotatedRed);
+    //            OpenCVImage mySuit(rotatedRedSuit,false);
+    //            Image::showImage(&mySuit);
+    
+    redMask(percentsRotatedRed, rotatedRedSuit, 30, 175);
+
+    //rotatedRedSuit is now properly rotated and masked for red, pass it on to the histogrammer
+    if (makeSuitHistogram(rotatedRedSuit))
+    {
+        //Compare float array
+        int best = 999999;
+        suit = UNKNOWN;
+        int diff;
+        
+        //Hearts
+        diff = suitDifference(histoArr, heartCountsR0, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = HEART;
+        }
+
+        diff = suitDifference(histoArr, heartCountsR90, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = HEARTR90;
+        }
+
+        diff = suitDifference(histoArr, heartCountsR180, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = HEARTR180;
+        }
+
+        diff = suitDifference(histoArr, heartCountsR270, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = HEARTR270;
+        }
+
+        
+        //Spades
+        diff = suitDifference(histoArr, spadeCountsR0, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = SPADE;
+        }
+
+        diff = suitDifference(histoArr, spadeCountsR90, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = SPADER90;
+        }
+
+        diff = suitDifference(histoArr, spadeCountsR180, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = SPADER180;
+        }
+
+        diff = suitDifference(histoArr, spadeCountsR270, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = SPADER270;
+        }
+        
+        
+        //diamond
+        diff = suitDifference(histoArr, diamondCountsR0, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = DIAMOND;
+        }
+
+        diff = suitDifference(histoArr, diamondCountsR90, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = DIAMONDR90;
+        }
+
+        diff = suitDifference(histoArr, diamondCountsR180, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = DIAMONDR180;
+        }
+
+        diff = suitDifference(histoArr, diamondCountsR270, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = DIAMONDR270;
+        }
+
+        
+        //Club
+        diff = suitDifference(histoArr, clubCountsR0, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = CLUB;
+        }
+
+        diff = suitDifference(histoArr, clubCountsR90, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = CLUBR90;
+        }
+
+        diff = suitDifference(histoArr, clubCountsR180, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = CLUBR180;
+        }
+
+        diff = suitDifference(histoArr, clubCountsR270, HISTOARRSIZE);
+        if (diff < best)
+        {
+            best = diff;
+            suit = CLUBR270;
+        }
+    }
+    else
+    {
+        suit = NONEFOUND;
+    }
+    
+    cvReleaseImage(&redSuitGrayScale);
+    cvReleaseImage(&cannied);
+    cvReleaseMemStorage(&storage);
+    cvReleaseImage(&rotatedRedSuit);
+    cvReleaseImage(&percentsRotatedRed);
 }
 
-double SuitDetector::getY()
-{
-	return suitY;
-}
+//void SuitDetector::processImage(Image* input, Image* output)
+//{
+//	/*First argument to white_detect is a ratios frame, then a regular one*/
+//	IplImage* image = (IplImage*)(*input);
+//	cvCopyImage(image,ratioImage);//Now both are rotated 90 degrees
+//	IplImage* gray = cvCreateImage(cvGetSize(image), 8, 1);
+//    CvMemStorage* storage = cvCreateMemStorage(0);
+//    
+//	to_ratios(ratioImage);
+//	redMask(ratioImage, image, 50, 100);
+//	
+//	unsigned int r = (unsigned int)(rand())%image->width;
+//	unsigned int r2 = (unsigned int)(rand())%image->height;
+//	int corners = edgeRun(r,r2,image);
+//	
+//	if (corners == 0)
+//		printf("Club\n");
+//	else if (corners == 1)
+//		printf("Heart\n");
+//	else if (corners == 2)
+//		printf("Spade\n");
+//	else if (corners == 3)
+//		printf("Diamond\n");
+//	
+//	cvCvtColor(image, gray, CV_BGR2GRAY);
+//    cvSmooth(gray, gray, CV_GAUSSIAN, 9, 9); 
+//	
+//    CvSeq* circles = cvHoughCircles(gray, storage, 
+//        CV_HOUGH_GRADIENT, 2, gray->height/4, 200, 40);
+//    int i;
+//	
+//    for (i = 0; i < circles->total; i++) 
+//    {
+//         float* p = (float*)cvGetSeqElem( circles, i );
+//         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
+//             3, CV_RGB(0,255,0), -1, 8, 0 );
+//         cvCircle( image, cvPoint(cvRound(p[0]),cvRound(p[1])), 
+//             cvRound(p[2]), CV_RGB(255,0,0), 3, 8, 0 );
+//    }
+//
+//	if (output)
+//	{
+//		OpenCVImage temp(image, false);
+//		output->copyFrom(&temp);
+//	}
+//	
+//	cvReleaseMemStorage(&storage);
+//	cvReleaseImage(&gray);	
+//}
 
 Suit SuitDetector::getSuit()
 {

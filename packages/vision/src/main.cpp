@@ -29,7 +29,6 @@
 // Project Includes
 #include "vision/include/main.h"
 #include "vision/include/OpenCVImage.h"
-#include "vision/include/SuitHistoArrays.h"
 #include "vision/include/BlobDetector.h"
 
 
@@ -1518,12 +1517,13 @@ int red_blue(IplImage* img, float ratio)
 	return total;
 }
 
-int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny)
+/* Masks the image for white, all parameters must be the same size,
+   output is filled with either 0's or 255s*/
+int white_mask(IplImage* percents, IplImage* base, IplImage* output)
 {
-    static BlobDetector blobDetector(100);
 	unsigned char* data=(unsigned char*)percents->imageData;
 	unsigned char* data2=(unsigned char*)base->imageData;
-    unsigned char* data3=(unsigned char*)temp->imageData;
+	unsigned char* data3=(unsigned char*)output->imageData;
 	int width=percents->width;
 	int height=percents->height;
 	int count=0;
@@ -1533,40 +1533,29 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 	int r2=0;
 	int g2=0;
 	int b2=0;
-	int xdist=0;
-	int ydist=0;
-	int minx=999999;
-	int maxx=0;
-	int miny=999999;
-	int maxy=0;
-	for (int y=2; y<height-2; y++)
-	{
-		count=3*2+3*width*y;
-		for (int x=2; x<width-2; x++)
+	int pixelCount = 0;
+	if (percents->width != base->width || percents->width != output->width ||
+		percents->height != base->height || percents->height != output->height)
 		{
-			b=(data[count]+256)%256;
-			g=(data[count+1]+256)%256;
-			r=(data[count+2]+256)%256;
-			b2=(data2[count]+256)%256;
-			g2=(data2[count+1]+256)%256;
-			r2=(data2[count+2]+256)%256;
+			assert(false && "Unmatched image width/height in white_mask, all parameters should have same width and all parameters should have same height");
+		}
+
+	for (int y=0; y<height; y++)
+	{
+		for (int x=0; x<width; x++)
+		{
+			b=data[count];
+			g=data[count+1];
+			r=data[count+2];
+			b2=data2[count];
+			g2=data2[count+1];
+			r2=data2[count+2];
 			if (b>30 && g>30 && r>30)
 			{
 				if (b2>190 && g2>190 && r2>190)
 				{
-					data2[count]=0;
-					data2[count+1]=255;
-					data2[count+2]=0;
-                    data[count]=0;
-                    data[count+1]=0;
-                    data[count+2]=100;
-                    data3[count]=255;
-                    data3[count+1]=255;
-                    data3[count+2]=255;
-					minx=min(x,minx);
-					maxx=max(x,maxx);
-					miny=min(y,miny);
-					maxy=max(y,maxy);
+					data3[count]=data3[count+1]=data3[count+2]=255;
+					pixelCount++;
 				}
 				else
 				{
@@ -1580,333 +1569,60 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 			count+=3;
 		}
 	}
-    
-//    cout<<"Total = " << total <<endl;
-    int histoWhiteX, histoWhiteY;
-    int minX, minY, maxX, maxY;
-    int totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY,
-                               &minX, &minY, &maxX, &maxY);
-    //Erosion: cvErode( const CvArr* src, CvArr* dst, IplConvKernel* element=NULL, int iterations=1 );
-    while (totalWhite ==-1)
-    {
-        cout<<"Too many separate white pixel groups, eroding the image"<<endl;
-        cvErode(temp,temp,NULL,1);
-        totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY,
-                               &minX, &minY, &maxX, &maxY);
-    }
-//    cout<<"Histo Total = " << totalWhite << endl;
+	return pixelCount;
+}
 
-    //clear the temporary image
-    count=0;
-    for (int y=0; y<height; y++)
-    {
-        for (int x=0; x<width; x++)
-        {
-            data3[count]=data3[count+1]=data3[count+2]=0;
-            count+=3;
-        }
-    }    
-
-	count=0;
-	for (int y=miny;y<maxy;y++)
-	{
-		count=3*minx+3*width*y;
-		for (int x=minx; x<maxx; x++)
+/* masks the images for black. output is filled with 255s wherever base and percents were in black thresholds,
+filled with 0s elsewhere*/
+int black_mask(IplImage* percents, IplImage* base, IplImage* output)
+{
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
+	unsigned char* data3=(unsigned char*)output->imageData;
+	int width=percents->width;
+	int height=percents->height;
+	int count=0;
+	int r=0;
+	int g=0;
+	int b=0;
+	int r2=0;
+	int g2=0;
+	int b2=0;
+	int pixelCount = 0;
+	if (percents->width != base->width || percents->width != output->width ||
+		percents->height != base->height || percents->height != output->height)
 		{
-            b=(data[count]+256)%256;
-			g=(data[count+1]+256)%256;
-			r=(data[count+2]+256)%256;
-			b2=(data2[count]+256)%256;
-			g2=(data2[count+1]+256)%256;
-			r2=(data2[count+2]+256)%256;
-            //sum 350 b 25+ g 25+ r 25+
-			if (b2+g2+r2<350 && b>15 && g>15 && r>15)
+			assert(false && "Unmatched image width/height in white_mask, all parameters should have same width and all parameters should have same height");
+		}
+
+	for (int y=0; y<height; y++)
+	{
+		for (int x=0; x<width; x++)
+		{
+			b=data[count];
+			g=data[count+1];
+			r=data[count+2];
+			b2=data2[count];
+			g2=data2[count+1];
+			r2=data2[count+2];
+			if (b>15 && g>15 && r>15)
 			{
-				data2[count]=255;
-				data2[count+1]=0;
-				data2[count+2]=0;
-                data[count]=100;
-                data[count+1]=0;
-                data[count+2]=0;
-                data3[count]=data3[count+1]=data3[count+2]=255;
+				if (b2 + g2 + r2 <= 350)
+				{
+					data3[count]=data3[count+1]=data3[count+2]=255;
+					pixelCount++;
+				}
+				else
+				{
+                    data3[count]=data3[count+1]=data3[count+2]=0;
+				}
 			}
+			else
+			{
+                data3[count]=data3[count+1]=data3[count+2]=0;
+            }
 			count+=3;
 		}
 	}
-	
-//    cout<<"Black Total = " << total2 <<endl;
-    int histoBlackX, histoBlackY;
-    
-    int totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
-                               &minX, &minY, &maxX, &maxY);
-//    printf("Narf\n");
-    while (totalBlack ==-1)
-    {
-        cout<<"Too many separate black pixel groups, eroding the image"<<endl;
-        cvErode(temp,temp,NULL,1);
-        totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
-                               &minX, &minY, &maxX, &maxY);
-    }
-    
-//    cout<<"Histo Total = " << totalBlack << endl;
-
-//    if (totalWhite<0 || totalBlack<0)
-//    {
-//        cout<<"WHAT THE FUCK!?!? "<<totalWhite << " ," << totalBlack<<endl;
-//    }
-	if (totalWhite>0 && totalBlack>0)
-	{
-        xdist=histoBlackX-histoWhiteX;
-        ydist=histoBlackY-histoWhiteY;
-		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
-		
-//        cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-//        cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
-//        cout<<"Distance:"<<distance<<endl;
-//        cout<<"Total White Count:"<<totalWhite<<endl;
-//        cout<<"Total Black Count:"<<totalBlack<<endl;
-        
-        //distance 100, totalWhite 1000 totalBlack 1000 is good for NBRF
-		if (distance<150 && totalWhite > 1000 && totalBlack > 500)
-		{
-			//cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;
-            *binx=(histoWhiteX + histoBlackX) /2;
-            *biny=(histoWhiteY + histoBlackY) /2;
-            
-            //Start SUIT DETECTION CODE!
-            //MAKE SURE TO FREE ME:
-            //redSuit (IplImage*)
-            //redSuitGrayScale (IplImage*)
-            //cannied (IplImage*)
-            //storage (CvMemStorage*)
-            //lines (CvSeq*)
-            //rotatedRedSuit (IplImage*)
-            //percentsRotatedRed (IplImage*)
-            //ALSO IF A SUIT IS FOUND FREE ME:
-            //onlyRedSuit (IplImage*)
-            //scaledRedSuit (IplImage*)
-            //chrisArray (float*)
-            
-            //cout<<"maxX, minX, maxY, minY: " << maxX << " " << minX << " " << maxY << " " << minY <<endl;
-
-//DO NOT TOUCH THE /4*4 THIS FORCES WIDTH AND HEIGHT TO BE MULTIPLES OF FOUR, SO OPENCV DOESNT FUCK WITH ITS IMAGE STRUCTURE
-            IplImage* redSuit = cvCreateImage(cvSize((maxX-minX+1)/4*4,(maxY-minY+1)/4*4), IPL_DEPTH_8U, 3);
-            
-            cvGetRectSubPix(base, redSuit, cvPoint2D32f((maxX+minX)/2, (maxY+minY)/2));
-            IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
-            cvCvtColor(redSuit,redSuitGrayScale,CV_BGR2GRAY);
-            
-            IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
-            cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
-            
-            CvMemStorage* storage = cvCreateMemStorage(0);
-            CvSeq* lines = 0;
-            
-            lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
-            
-            float longestLineLength = -1;
-            float slope = 0;
-            for(int i = 0; i < lines->total; i++ )
-            {
-                CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
-                float lineX = line[1].x - line[0].x;
-                float lineY = line[1].y - line[0].y;
-                
-                if (longestLineLength < (lineX * lineX + lineY * lineY))
-                {
-                    slope = atan2(lineY,lineX);
-                    longestLineLength = lineX * lineX + lineY * lineY;
-                }
-            }
-            
-            IplImage* rotatedRedSuit = cvCreateImage(cvGetSize(redSuit), IPL_DEPTH_8U, 3);
-            
-            float m[6];
-            CvMat M = cvMat( 2, 3, CV_32F, m );
-
-            double factor = -slope;
-            m[0] = (float)(cos(factor));
-            m[1] = (float)(sin(factor));
-            m[2] = redSuitGrayScale->width * 0.5f;
-            m[3] = -m[1];
-            m[4] = m[0];
-            m[5] = redSuitGrayScale->height * 0.5f;
-
-            cvGetQuadrangleSubPix(redSuit, rotatedRedSuit,&M);
-            
-            IplImage* percentsRotatedRed = cvCreateImage(cvGetSize(rotatedRedSuit),IPL_DEPTH_8U, 3);
-            
-            cvCopyImage(rotatedRedSuit,percentsRotatedRed);
-            to_ratios(percentsRotatedRed);
-//            OpenCVImage mySuit(rotatedRedSuit,false);
-//            Image::showImage(&mySuit);
-            
-            //printf("This is fucking bullcrap. %d", rotatedRedSuit->dataOrder);
-            redMask(percentsRotatedRed, rotatedRedSuit, 30, 175);
-//            Image::showImage(&mySuit);
-            
-            //rotatedRedSuit->imageData[500]=rotatedRedSuit->imageData[501]=rotatedRedSuit->imageData[502]=255;
-            
-            //WIDTH * HEIGHT * 3 != IMAGESIZE!!  WIDTHSTEP = (WIDTH + WIDTH%4)* 3 WTF!!!  WIDTH+WIDTH%4 * HEIGHT * 3 = IMAGESIZE OMFG!!!
-            //printf("width: %d height: %d widthstep: %d", rotatedRedSuit->width, rotatedRedSuit->height, rotatedRedSuit->widthStep);
-            //printf("This is fucking bullcrap2. %d", rotatedRedSuit->dataOrder);
-
-//            unsigned char* rotatedRedData = (unsigned char*) rotatedRedSuit->imageData;
-            
-//            int redSuitCount = 0;
-//            int totalRed = 0;
-            int minSuitX = 999999;
-            int minSuitY = 999999;
-            int maxSuitX = 0;
-            int maxSuitY = 0;
-//            int redCX, redCY;
-            //cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 5);
-            OpenCVImage mySuit(rotatedRedSuit,false);
-            blobDetector.setMinimumBlobSize(100);
-            blobDetector.processImage(&mySuit);
-            if (!blobDetector.found())
-            {
-//                printf("Oops, we fucked up, no suit found :(\n");
-            }
-            else
-            {
-                //find biggest two blobs (hopefully should be just one, but if spade or club split..)
-                std::vector<ram::vision::BlobDetector::Blob> blobs = blobDetector.getBlobs();
-                ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
-                ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
-                ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
-                for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
-                {
-                    if (blobs[blobIndex].getSize() > secondBiggest.getSize())
-                    {
-                        secondBiggest = blobs[blobIndex];
-                        if (secondBiggest.getSize() > biggest.getSize())
-                        {
-                            swapper = secondBiggest;
-                            secondBiggest = biggest;
-                            biggest = swapper;
-                        }
-                    }
-                }
-                minSuitX = biggest.getMinX();
-                minSuitY = biggest.getMinY();
-                maxSuitX = biggest.getMaxX();
-                maxSuitY = biggest.getMaxY();
-                
-                if (blobs.size() > 1)
-                {
-                    minSuitX = min(minSuitX,secondBiggest.getMinX());
-                    minSuitY = min(minSuitY,secondBiggest.getMinY());
-                    maxSuitX = max(maxSuitX,secondBiggest.getMaxX());
-                    maxSuitY = max(maxSuitY,secondBiggest.getMaxY());                
-                }
-//            totalRed = histogram(rotatedRedSuit, &redCX, &redCY, &minSuitX, &minSuitY, &maxSuitX, &maxSuitY);
-//            if (totalRed == -1)
-//            {
-//                printf("Oops, we fucked up.  Tell Dan to use the BlobTracker instead of histogram\n");
-//            }
-//            for (int y = 0; y < rotatedRedSuit->height; y++)
-//            {
-//                for (int x = 0; x < rotatedRedSuit->width; x++)
-//                {
-//                    if (rotatedRedData[redSuitCount]==255)
-//                    {
-//                        minSuitX = min(minSuitX,x);
-//                        minSuitY = min(minSuitY,y);
-//                        maxSuitX = max(maxSuitX,x);
-//                        maxSuitY = max(maxSuitY,y);
-//                        totalRed++;
-//                    }
-//                    redSuitCount+=3;
-//                }
-//            }
-            
-//            if (totalRed < 50) //ie, no red (having red pixels also ensures our suit bounding box is realistic.
-//            {
-//                printf("No suit found :( \n");
-//            }
-//            else
-//            {
-//                printf("Found a suit!\n");
-                //DO NOT TOUCH THE /4*4 THIS FORCES WIDTH AND HEIGHT TO BE MULTIPLES OF FOUR, SO OPENCV DOESNT FUCK WITH ITS IMAGE STRUCTURE
-                IplImage* onlyRedSuit = cvCreateImage(cvSize((maxSuitX-minSuitX+1)/4*4,(maxSuitY-minSuitY+1)/4*4), IPL_DEPTH_8U, 3);
-                cvGetRectSubPix(rotatedRedSuit, onlyRedSuit, cvPoint2D32f((maxSuitX+minSuitX)/2, (maxSuitY+minSuitY)/2));
-                
-                OpenCVImage redSuit(onlyRedSuit, false);//The OpenCV image should not release onlyRedSuit when it is deleted
-                Image::showImage(&redSuit);
-                IplImage* scaledRedSuit = cvCreateImage(cvSize(64,64),IPL_DEPTH_8U, 3);
-                cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
-                int* chrisArray = (int*)(calloc(scaledRedSuit->height * 2, sizeof(float)));
-                
-                int scaledRedIndex = 0;
-                unsigned char* scaledRedData=(unsigned char*)scaledRedSuit->imageData;
-                for (int y = 0; y < scaledRedSuit->height; y++)
-                {
-                    for (int x = 0; x < scaledRedSuit->width; x++)
-                    {
-                        if (scaledRedData[scaledRedIndex]!=0)
-                        {
-                            chrisArray[y]++;
-                            chrisArray[x+64]++;
-                        }
-                        scaledRedIndex+=3;
-                    }
-                }
-//                OpenCVImage suit(scaledRedSuit, false);// The OpenCVImage should not release scaledRedSuit when it is deleted. (else I'll double free)
-//                Image::showImage(&suit);
-                
-                
-                //onlyRedSuit (IplImage*)
-                //scaledRedSuit (IplImage*)
-                //chrisArray 
-                
-                cout<<"Heart R0: " << suitDifference(chrisArray, heartCountsR0, scaledRedSuit->height*2)<<endl;
-                cout<<"Heart R90: " << suitDifference(chrisArray, heartCountsR90, scaledRedSuit->height*2)<<endl;
-                cout<<"Heart R180: " << suitDifference(chrisArray, heartCountsR180, scaledRedSuit->height*2)<<endl;
-                cout<<"Heart R270: " << suitDifference(chrisArray, heartCountsR270, scaledRedSuit->height*2)<<endl;
-
-                cout<<"Club R0: " << suitDifference(chrisArray, clubCountsR0, scaledRedSuit->height*2)<<endl;
-                cout<<"Club R90: " << suitDifference(chrisArray, clubCountsR90, scaledRedSuit->height*2)<<endl;
-                cout<<"Club R180: " << suitDifference(chrisArray, clubCountsR180, scaledRedSuit->height*2)<<endl;
-                cout<<"Club R270: " << suitDifference(chrisArray, clubCountsR270, scaledRedSuit->height*2)<<endl;
-
-                cout<<"Diamond R0: " << suitDifference(chrisArray, diamondCountsR0, scaledRedSuit->height*2)<<endl;
-                cout<<"Diamond R90: " << suitDifference(chrisArray, diamondCountsR90, scaledRedSuit->height*2)<<endl;
-                cout<<"Diamond R180: " << suitDifference(chrisArray, diamondCountsR180, scaledRedSuit->height*2)<<endl;
-                cout<<"Diamond R270: " << suitDifference(chrisArray, diamondCountsR270, scaledRedSuit->height*2)<<endl;
-
-                cout<<"Spade R0: " << suitDifference(chrisArray, spadeCountsR0, scaledRedSuit->height*2)<<endl;
-                cout<<"Spade R90: " << suitDifference(chrisArray, spadeCountsR90, scaledRedSuit->height*2)<<endl;
-                cout<<"Spade R180: " << suitDifference(chrisArray, spadeCountsR180, scaledRedSuit->height*2)<<endl;
-                cout<<"Spade R270: " << suitDifference(chrisArray, spadeCountsR270, scaledRedSuit->height*2)<<endl;
-
-                cvReleaseImage(&onlyRedSuit);
-                cvReleaseImage(&scaledRedSuit);
-                free(chrisArray);
-            }
-            //MAKE SURE TO FREE ME:
-            cvReleaseImage(&redSuit);
-            cvReleaseImage(&redSuitGrayScale);
-            cvReleaseImage(&cannied);
-            cvReleaseMemStorage(&storage);
-//            cvReleaseSeq(&lines);  No one seems to release these... apparently they just use the mem storage for storage.
-            cvReleaseImage(&rotatedRedSuit);
-            cvReleaseImage(&percentsRotatedRed);
-		}
-		else
-		{
-            //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-            //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
-			*binx=-1;
-			*biny=-1;
-		}
-        
-	}
-	return min(totalWhite,totalBlack);
+	return pixelCount;
 }
-
-
-
-
-
-

@@ -48,6 +48,16 @@ public:
         int getMaxY() { return m_maxY; }
         int getMinY() { return m_minY; }
 
+        bool containsExclusive(Blob otherBlob)
+        {
+            return (m_minX < otherBlob.m_minX && m_minY < otherBlob.m_minY && m_maxX > otherBlob.m_maxX && m_maxY > otherBlob.m_maxY);
+        }
+        
+        bool containsInclusive(Blob otherBlob)
+        {
+            return (m_minX <= otherBlob.m_minX && m_minY <= otherBlob.m_minY && m_maxX >= otherBlob.m_maxX && m_maxY >= otherBlob.m_maxY);        
+        }
+
     private:
         int m_size;
         int m_centerX;
@@ -56,6 +66,14 @@ public:
         int m_minX;
         int m_maxY;
         int m_minY;
+    };
+    class BlobComparer
+    {
+        public:
+            static bool compare(Blob b1, Blob b2)
+            {
+                return b1.getSize() > b2.getSize();
+            }
     };
     
     BlobDetector(core::ConfigNode config,

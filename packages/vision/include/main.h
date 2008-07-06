@@ -63,6 +63,9 @@ int red_blue(IplImage* img, float ratio);
  *      A work space/output image
  */
 int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny);
+
+int white_mask(IplImage* percents, IplImage* base, IplImage* output);
+int black_mask(IplImage* percents, IplImage* base, IplImage* output);
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 
@@ -110,7 +113,7 @@ void rotate90DegClockwise(IplImage* src, IplImage* dest);
 void calibrateCamera(int width, int height, int* cornerCounts, float* distortion, float* cameraMatrix, float* transVects, float* rotMat, int numImages,  CvPoint2D32f* array, CvPoint3D32f* buffer);
 int findCorners(IplImage* image, CvPoint2D32f* array);
 void undistort(IplImage* image, IplImage* dest, float* cameraMatrix, float* distortion);
-float suitDifference(float array1[], float array2[], int len);
+int suitDifference(int array1[], int array2[], int len);
 
 
 #endif // RAM_RED_LIGHT_MAIN_H_06_23_2007

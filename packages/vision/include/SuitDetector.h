@@ -14,6 +14,7 @@
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "core/include/ConfigNode.h"
+#include "vision/include/BlobDetector.h"
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -21,7 +22,11 @@
 namespace ram {
 namespace vision {
 		
-enum Suit {CLUB, SPADE, HEART, DIAMOND, UNKNOWN};
+enum Suit {CLUB, CLUBR90, CLUBR180, CLUBR270, 
+           SPADE, SPADER90, SPADER180, SPADER270, 
+           HEART, HEARTR90, HEARTR180, HEARTR270, 
+           DIAMOND, DIAMONDR90, DIAMONDR180, DIAMONDR270, 
+           UNKNOWN, NONEFOUND};
     
 class RAM_EXPORT SuitDetector : public Detector
 {
@@ -34,10 +39,9 @@ class RAM_EXPORT SuitDetector : public Detector
     void processImage(Image* input, Image* output= 0);
     void update();
     IplImage* getAnalyzedImage();
-    double getX();
-    double getY();
     Suit getSuit();
 	int edgeRun(int startx, int starty, IplImage* img);
+    bool makeSuitHistogram(IplImage*);
 	
   private:
     Camera* cam;
@@ -45,9 +49,10 @@ class RAM_EXPORT SuitDetector : public Detector
     IplImage* analyzedImage;
 	IplImage* tempHoughImage;
     void init(core::ConfigNode config);
-    double suitX;
-    double suitY;
-    
+    BlobDetector blobDetector;
+    IplImage* scaledRedSuit;
+    int histoArr[128]; //twice scaledRedSuit's height.
+    static const int HISTOARRSIZE = 128;    
 };
 	
 } // namespace vision
