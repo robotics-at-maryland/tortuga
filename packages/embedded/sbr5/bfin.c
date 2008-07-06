@@ -9,6 +9,10 @@ _FOSC( CSW_FSCM_OFF & XT_PLL8); //EC_PLL4); //ECIO );
 _FWDT ( WDT_OFF );
 
 
+
+/* Instead of sonaring, use jportal */
+//#define PORTAL
+
 #define TRIS_OUT 0
 #define TRIS_IN  1
 #define byte unsigned char
@@ -76,11 +80,33 @@ byte txPtr = 0;
 byte sonarBuf[12]; /* Put vector here */
 
 
+byte fCount = 0;
+byte sonarPtr = 0;
+
 void _ISR _U2RXInterrupt(void)
 {
     IFS1bits.U2RXIF = 0;    /* Clear RX interrupt */
+
+#ifdef PORTAL
     TMR2 = 0;
     OC3RS = ((unsigned char)(U2RXREG & 0xFF));
+#else
+    byte t = U2RXREG;
+
+    /* We are looking for 6 FFs in a row. */
+    if(t == 0xFF)
+    {
+        fCount++;
+        /* Start of sequence? */
+        if(fCount == 6)
+            sonarPtr = 0;
+    } else
+        fCount = 0;
+
+    if(sonarPtr < 12)
+        sonarBuf[sonarPtr++] = t;
+#endif
+
 }
 
 void initUart()
@@ -388,13 +414,17 @@ int main()
 
     initUart();
 
-/*
     // Uncomment this for portal mode
+
+#ifdef PORTAL
     initJPortal();
     OC3RS = 128;
     while(1);
-*/
+#else
+
+
+
+#endif
 
     while(1);
-
 }
