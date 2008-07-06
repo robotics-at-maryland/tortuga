@@ -9,7 +9,7 @@
 
 // STD Includes
 #include <algorithm>
-
+#include <iostream>
 // Library Includes
 //#include "assert.h"
 #include "cv.h"
@@ -52,6 +52,11 @@ void BinDetector::init(core::ConfigNode config)
 	whiteMaskedFrame = cvCreateImage(cvGetSize(rotated),8,3);
 	blackMaskedFrame = cvCreateImage(cvGetSize(rotated),8,3);
 	m_found=0;
+    foundHeart = false;
+    foundSpade = false;
+    foundDiamond = false;
+    foundClub = false;
+    foundEmpty = false;
     numBinsFound=0;
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
 }
@@ -70,10 +75,14 @@ void BinDetector::update()
     processImage(frame, 0);
 }
     
-void BinDetector::processImage(Image* input, Image* output)
+void BinDetector::processImage(Image* input, Image* out)
 {
 	/*First argument to white_detect is a ratios frame, then a regular one*/
 	IplImage* image =(IplImage*)(*input);
+    IplImage* output = NULL;
+    if (out != NULL)
+        output = (IplImage*)(*out);
+//    std::cout<<"startup"<<std::endl;
 	
 	//This is only right if the camera is on sideways... again.
 	//rotate90Deg(image,rotated);
@@ -86,44 +95,54 @@ void BinDetector::processImage(Image* input, Image* output)
 	cvCopyImage(image,binFrame);
 	
     //Fill in output image.
-    if (output)
+    if (out)
     {
         OpenCVImage temp(binFrame, false);
-        output->copyFrom(&temp);
+        out->copyFrom(&temp);
     }
     
 	to_ratios(image);
 	
 	//image is now in percents, binFrame is now the base image.
 	
+  //  std::cout<<"starting masks"<<std::endl;
 	/*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame);
 	/*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame);
 	
+  //  std::cout<<"masks complete"<<std::endl;
     blobDetector.setMinimumBlobSize(1000);
     OpenCVImage whiteMaskWrapper(whiteMaskedFrame,false);
     blobDetector.processImage(&whiteMaskWrapper);
+  //  std::cout<<"One blob detection done"<<std::endl;
     if (!blobDetector.found())
     {
+    //    std::cout<<"No white found"<<std::endl;
+
         //no blobs found.
-        return;
+    //    return;
     }
+  //  std::cout<<"white found"<<std::endl;
 	std::vector<BlobDetector::Blob> whiteBlobs = blobDetector.getBlobs();
 
     blobDetector.setMinimumBlobSize(500);
     OpenCVImage blackMaskWrapper(blackMaskedFrame,false);
+    //std::cout<<"blob finding black"<<std::endl;
 	blobDetector.processImage(&blackMaskWrapper);
     if (!blobDetector.found())
     {
         //no blobs found.
-        return;
+        //std::cout<<"no black found"<<std::endl;
+    //    return;
     }
-    std::vector<BlobDetector::Blob> blackBlobs = blobDetector.getBlobs();
     
+//    std::cout<<"black found"<<std::endl;
+    std::vector<BlobDetector::Blob> blackBlobs = blobDetector.getBlobs();
     std::sort(whiteBlobs.begin(), whiteBlobs.end(), 
               ram::vision::BlobDetector::BlobComparer::compare);
     std::sort(blackBlobs.begin(), blackBlobs.end(), 
               ram::vision::BlobDetector::BlobComparer::compare);
-
+//    std::cout<<"done sorting"<<std::endl;
+    
     std::vector<BlobDetector::Blob> binBlobs;
     
     for (unsigned int blackBlobIndex = 0; blackBlobIndex < blackBlobs.size(); blackBlobIndex++)
@@ -144,24 +163,67 @@ void BinDetector::processImage(Image* input, Image* output)
         }
     }
     
+//    std::cout<<"Made set of bins"<<std::endl;
+//    std::cout<<"Num bins found: " << binBlobs.size() <<std::endl;
+    
+    bool seeHeart=false;
+    bool seeDiamond=false;
+    bool seeClub=false;
+    bool seeSpade=false;
+    bool seeEmpty=false;
     //for each black blob inside a white blob (ie, for each bin blob)
     //take the rectangular portion containing the black blob and pass it off to SuitDetector
     for (unsigned int binBlobIndex = 0; binBlobIndex < binBlobs.size(); binBlobIndex++)
     {
+//        std::cout<<"bin " << binBlobIndex<<std::endl;
         BlobDetector::Blob blackBlobOfBin = binBlobs[binBlobIndex];
         IplImage* redSuit = cvCreateImage(cvSize((blackBlobOfBin.getMaxX()-blackBlobOfBin.getMinX()+1)/4*4,(blackBlobOfBin.getMaxY()-blackBlobOfBin.getMinY()+1)/4*4), IPL_DEPTH_8U, 3);
         cvGetRectSubPix(binFrame, redSuit, cvPoint2D32f((blackBlobOfBin.getMaxX()+blackBlobOfBin.getMinX())/2, (blackBlobOfBin.getMaxY()+blackBlobOfBin.getMinY())/2));
         OpenCVImage redSuitWrapper(redSuit,true);
+//        std::cout<<"starting suit detection"<<std::endl;
         suitDetector.processImage(&redSuitWrapper);
+//        std::cout<<"finished suit detection"<<std::endl;
+//        std::cout<<"Suit: " << suitDetector.getSuit()<<std::endl;
         
-        
-        //Suit suitFound = suitDetector.getSuit(); //In case we ever want to use the suit detector...
-
-
-        float binX, binY;
+        Suit suitFound = suitDetector.getSuit(); //In case we ever want to use the suit detector...
+        Suit suit = NONEFOUND;
         binX = blackBlobOfBin.getCenterX();
         binY = blackBlobOfBin.getCenterY();
         
+        if (suitFound == CLUB || suitFound == CLUBR90 || suitFound == CLUBR180 || suitFound == CLUBR270)
+        {
+            seeClub = true;
+            suit = CLUB;
+            std::cout<<"Found Club Bin"<<std::endl;
+
+        }
+        else if (suitFound == SPADE || suitFound == SPADER90 || suitFound == SPADER180 || suitFound == SPADER270)
+        {
+            seeSpade = true;
+            suit = SPADE;
+            std::cout<<"Found Spade Bin"<<std::endl;
+
+        }
+        else if (suitFound == HEART || suitFound == HEARTR90 || suitFound == HEARTR180 || suitFound == HEARTR270)
+        {
+            seeHeart = true;
+            suit = HEART;
+            std::cout<<"Found Heart Bin"<<std::endl;
+        }
+        else if (suitFound == DIAMOND || suitFound == DIAMONDR90 || suitFound == DIAMONDR180 || suitFound == DIAMONDR270)
+        {
+            seeDiamond = true;
+            suit = DIAMOND;
+            std::cout<<"Found Diamond Bin"<<std::endl;
+        }
+        else if (suitFound == NONEFOUND)
+        {
+            seeEmpty = true;
+            suit = NONEFOUND;
+            std::cout<<"Found empty Bin"<<std::endl;
+        }
+            
+//        std::cout<<"Writing to output image"<<std::endl;
         if (output)
         {
             CvPoint tl,tr,bl,br;
@@ -174,7 +236,11 @@ void BinDetector::processImage(Image* input, Image* output)
             cvLine(output, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
             cvLine(output, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
         }
+//        std::cout<<"Finished writing to output image"<<std::endl;
 
+
+//This part here just looks completely wrong... It'll pass the tests sure...
+//But I still think its completely wrong.
         binX /=640;
         binY /=480;
         
@@ -184,7 +250,7 @@ void BinDetector::processImage(Image* input, Image* output)
         binX *= 2;
         binY *= 2;
         
-        binX *= 640/480;
+        binX *= 640.0/480.0;
         
         bool stupid = true;
         //And now they're swapped... for some stupid reason.
@@ -194,9 +260,10 @@ void BinDetector::processImage(Image* input, Image* output)
             binX = binY;
             binY = swap;
         }
+
         
         m_found = true;
-        BinEventPtr event(new BinEvent(binX, binY));
+        BinEventPtr event(new BinEvent(binX, binY, suit));
 		publish(EventType::BIN_FOUND, event);
 
         // Determine Centered
@@ -213,12 +280,55 @@ void BinDetector::processImage(Image* input, Image* output)
 		{
 			m_centered = false;
 		}
-
+//        std::cout<<"End of bin"<<std::endl;
     }
     
     //Publishing bin lost events example
-    //publish(EventType::BIN_LOST, core::EventPtr(new core::Event()));
+    if (foundHeart && !seeHeart)
+    {
+        std::cout<<"Lost Heart"<<std::endl;
+        BinEventPtr event(new BinEvent(binX, binY, HEART));
+        publish(EventType::BIN_LOST, event);
+    }
+    if (foundSpade && !seeSpade)
+    {
+        std::cout<<"Lost Spade"<<std::endl;
+        BinEventPtr event(new BinEvent(binX, binY, SPADE));
+        publish(EventType::BIN_LOST, event);
+    }
+    if (foundDiamond && !seeDiamond)
+    {
+        std::cout<<"Lost Diamond"<<std::endl;
+        BinEventPtr event(new BinEvent(binX, binY, DIAMOND));
+        publish(EventType::BIN_LOST, event);
+    }
+    if (foundClub && !seeClub)
+    {
+        std::cout<<"Lost Club"<<std::endl; 
+        BinEventPtr event(new BinEvent(binX, binY, CLUB));
+        publish(EventType::BIN_LOST, event);
+    }
+    if (foundEmpty && !seeEmpty)
+    {
+        std::cout<<"Lost Empty"<<std::endl;
+        BinEventPtr event(new BinEvent(binX, binY, NONEFOUND));
+        publish(EventType::BIN_LOST, event);
+    }
+    
+    foundHeart = seeHeart;
+    foundSpade = seeSpade;
+    foundDiamond = seeDiamond;
+    foundClub = seeClub;
+    foundEmpty = seeEmpty;
+}
 
+float BinDetector::getX()
+{
+return binX;
+}
+float BinDetector::getY()
+{
+return binY;
 }
 
 void BinDetector::show(char* window)

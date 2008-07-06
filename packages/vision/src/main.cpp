@@ -623,6 +623,30 @@ typedef struct
 }Pos;
 typedef std::list<Pos> PosList;
 
+void suitMask(IplImage* percents, IplImage* base)
+{
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
+	int width=percents->width;
+	int height=percents->height;
+    int count=0;
+    for (int y =0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            if (data[count+2]>30 && data2[count+2]>175 && data2[count]<100 && data2[count+1]<100)
+            {
+                data2[count]=data2[count+1]=data2[count+2]=255;
+            }
+            else
+            {
+                data2[count]=data2[count+1]=data2[count+2]=0;
+            }
+            count+=3;
+        }
+    }
+}
+
 void redMask(IplImage* percents, IplImage* base,
              int redPercent, int redIntensity)
 {

@@ -16,6 +16,7 @@
 #include <iostream>
 
 // Project Includes
+#include "vision/include/Image.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
@@ -87,14 +88,14 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     // Process it
     vision::OpenCVImage output(640, 480);
     detector.processImage(&input, &output);
-    
+    vision::Image::showImage(&output);
     double expectedX = -0.5;
     double expectedY = 0.5 * 640.0/480.0;
     math::Degree expectedAngle(25);
     
     CHECK(detector.found());
-//    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
-//    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 
     // Check Events
     CHECK(found);
@@ -117,8 +118,8 @@ TEST_FIXTURE(BinDetectorFixture, Left)
     double expectedY = 0;
     
     CHECK(detector.found());
-//    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
-//    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 
     // Check Events
     CHECK(found);
@@ -141,8 +142,8 @@ TEST_FIXTURE(BinDetectorFixture, LowerRight)
     double expectedY = -0.5 * 640.0/480.0; 
     
     CHECK(detector.found());
-//    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
-//    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 
     // Check Events
     CHECK(found);
@@ -165,8 +166,8 @@ TEST_FIXTURE(BinDetectorFixture, CenterUp)
     double expectedY = 0 * 640.0/480.0; 
     
     CHECK(detector.found());
-//    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
-//    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 
     // Check Events
     CHECK(found);
@@ -189,8 +190,8 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
     double expectedY = 0 * 640.0/480.0; 
     
     CHECK(detector.found());
-//    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
-//    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 
     // Check Events
     CHECK(found);
@@ -216,7 +217,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
     CHECK_CLOSE(0.5, event->x, 0.05);
     CHECK_CLOSE(-0.5 * 640.0/480.0, event->y, 0.05);
 
-    // Now we lost the light
+    // Now we lost the bin
     makeColor(&input, 0, 0, 255);
     detector.processImage(&input);
     CHECK(found == false);

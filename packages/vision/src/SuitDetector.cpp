@@ -356,8 +356,8 @@ void SuitDetector::processImage(Image* input, Image* output)
     //            OpenCVImage mySuit(rotatedRedSuit,false);
     //            Image::showImage(&mySuit);
     
-    redMask(percentsRotatedRed, rotatedRedSuit, 30, 175);
-
+    suitMask(percentsRotatedRed, rotatedRedSuit);
+    
     //rotatedRedSuit is now properly rotated and masked for red, pass it on to the histogrammer
     if (makeSuitHistogram(rotatedRedSuit))
     {

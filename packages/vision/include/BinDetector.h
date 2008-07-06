@@ -36,18 +36,25 @@ class RAM_EXPORT BinDetector : public Detector
     void show(char* window);
     bool found();
     IplImage* getAnalyzedImage();
+    float getX();
+    float getY();
     
   private:
     void init(core::ConfigNode config);
 
     bool m_found;
+    bool foundHeart;
+    bool foundSpade;
+    bool foundDiamond;
+    bool foundClub;
+    bool foundEmpty;
     int numBinsFound;
     IplImage* binFrame;
     IplImage* rotated;
     IplImage* bufferFrame;
 	IplImage* whiteMaskedFrame;
 	IplImage* blackMaskedFrame;
-	
+	float binX, binY;
     Image* frame;
     Camera* cam;
     SuitDetector suitDetector;

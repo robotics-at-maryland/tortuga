@@ -69,6 +69,8 @@ int black_mask(IplImage* percents, IplImage* base, IplImage* output);
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 
+/* masks a suit from a bin*/
+void suitMask(IplImage* percents, IplImage* base);
 /** Makes all red in the image white, and everything else black
  *
  *  @param percents
