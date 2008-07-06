@@ -5,13 +5,13 @@
 #define SENSORBOARD_BFIN
 #include "uart.c"
 
-_FOSC( CSW_FSCM_OFF & XT_PLL8); //EC_PLL4); //ECIO );
+_FOSC( CSW_FSCM_OFF & XT_PLL8 & PWRT_64); //EC_PLL4); //ECIO );
 _FWDT ( WDT_OFF );
 
 
 
 /* Instead of sonaring, use jportal */
-//#define PORTAL
+// #define PORTAL
 
 #define TRIS_OUT 0
 #define TRIS_IN  1
@@ -82,6 +82,9 @@ byte sonarBuf[12]; /* Put vector here */
 
 byte fCount = 0;
 byte sonarPtr = 0;
+
+
+
 
 void _ISR _U2RXInterrupt(void)
 {
@@ -333,6 +336,16 @@ byte checkBus()
 
 
 
+void _ISR _CNInterrupt(void)
+{
+    IFS0bits.CNIF = 0;      /* Clear CN interrupt flag */
+
+    /* Don't check bus if its interrupt is disabled. Avoids a race condition */
+    if(REQ_CN_BIT == 1)
+        checkBus();
+}
+
+
 void enableBusInterrupt()
 {
     REQ_CN_BIT = 1; /* Turn on CN for the pin */
@@ -377,8 +390,16 @@ void initBus()
 int main()
 {
     long l;
+
+    TRISB = 0xFFFF;
+
     LAT_BF_RESET = 0;
     TRIS_BF_RESET = TRIS_OUT;
+
+    TRIS_RW = TRIS_IN;
+    TRIS_REQ = TRIS_IN;
+    TRIS_AKN = TRIS_IN;
+
 
     TRIS_U1_TX = TRIS_IN;
     TRIS_U1_RX = TRIS_IN;
@@ -398,6 +419,16 @@ int main()
     LAT_LED_RED = LED_ON;
 
     initBus();
+
+    while(1);
+
+    {
+
+        if(IN_REQ)
+            LAT_LED_GREEN = LED_ON;
+        else
+            LAT_LED_GREEN = ~LED_ON;
+    }
 
 
     while(IN_U1_RX != 0);            /* Wait for FPGA to initialize */

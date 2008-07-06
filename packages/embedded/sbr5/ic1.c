@@ -45,16 +45,6 @@ _FWDT ( WDT_OFF );
 #define IN_USBDETECT    _RC15
 #define TRIS_USBDETECT  _TRISC15
 
-/* The PC jumper */
-#define LAT_PCJ_L   _LATB7
-#define TRIS_PCJ_L  _TRISB7
-
-#define LAT_PCJ_H   _LATD3
-#define TRIS_PCJ_H  _TRISD3
-
-#define IN_PCJ_I    _RB8
-#define TRIS_PCJ_I  _TRISB8
-
 #define IRQ_IC2         2
 #define IRQ_IC3         1
 #define IRQ_IC4         0
@@ -123,7 +113,7 @@ _FWDT ( WDT_OFF );
 
 
 /* No sonar? No power board either...*/
-#define NUM_SLAVES  3
+#define NUM_SLAVES  6
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
@@ -222,8 +212,8 @@ void setReq(byte req, byte val)
     if(req == 4)
         _LATB3 = val;
 
-//    if(req == 5)
-//        _LATB6 = val;
+    if(req == 5)
+        _LATB7 = val;
 }
 
 
@@ -713,12 +703,6 @@ int main(void)
     byte i;
     _TRISF0 = TRIS_IN;
     TRIS_USBDETECT = TRIS_IN;
-    TRIS_PCJ_I = TRIS_IN;
-    TRIS_PCJ_L = TRIS_OUT;
-    TRIS_PCJ_H = TRIS_OUT;
-
-    LAT_PCJ_L = 0;
-    LAT_PCJ_H = 1;
 
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
@@ -770,15 +754,12 @@ int main(void)
 
     if(IN_USBDETECT == 0)
     {
-        if(IN_PCJ_I == 1)
-        {
-            showString("  Moan for me,  ", 0);
-            showString("    BITCH !     ", 1);
-        } else
-        {
-            showString("No USB link     ", 0);
-            showString("detected        ", 1);
-        }
+        showString("  Moan for me,  ", 0);
+        showString("     DAVE !     ", 1);
+
+//         showString("No USB link     ", 0);
+//         showString("detected        ", 1);
+
     }
 
     LAT_LED_ACT = ~LED_ON;
