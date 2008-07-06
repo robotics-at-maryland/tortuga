@@ -119,23 +119,23 @@ void SBPowerSource::onPowerSourceUpdate(core::EventPtr event)
 
         if (m_enabled && !psEvent->enabled)
         {
-            enabledEventType = ENABLED;
+            enabledEventType = DISABLED;
             enabledEventPtr = core::EventPtr(new core::Event);
         }
         else if (!m_enabled && psEvent->enabled)
         {
-            enabledEventType = DISABLED;
+            enabledEventType = ENABLED;
             enabledEventPtr = core::EventPtr(new core::Event);
         }
 
         if (m_inUse && !psEvent->inUse)
         {
-            inUseEventType = USING;
+            inUseEventType = NOT_USING;
             inUseEventPtr = core::EventPtr(new core::Event);
         }
         else if (!m_inUse && psEvent->inUse)
         {
-            inUseEventType = NOT_USING;
+            inUseEventType = USING;
             inUseEventPtr = core::EventPtr(new core::Event);
         }
         

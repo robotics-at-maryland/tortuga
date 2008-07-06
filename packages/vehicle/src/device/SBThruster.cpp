@@ -191,12 +191,12 @@ void SBThruster::doEnabledEvents(bool currentState, bool newState)
     
     if (currentState && !newState)
     {
-        enabledEventType = ENABLED;
+        enabledEventType = DISABLED;
         enabledEventPtr = core::EventPtr(new core::Event);
     }
     else if (!currentState && newState)
     {
-        enabledEventType = DISABLED;
+        enabledEventType = ENABLED;
         enabledEventPtr = core::EventPtr(new core::Event);
     }
 
