@@ -196,6 +196,7 @@ byte cfgRegs[16];
 #define STATE_SETSPEED_U1   4
 #define STATE_SETSPEED_U2   5
 #define STATE_MOTRSPEEDS    6
+#define STATE_SET_BARMODE   7
 
 byte busState = 0;
 byte nParam = 0;
@@ -205,7 +206,8 @@ byte p1=0;
 byte myTemperature = 255;
 
 byte ovrReg = 0;    /* Overcurrent register */
-
+byte barMode = 0;
+byte barBlinkState = 0;
 byte mSpeeds[6];
 
 /* If Master writes us data, this gets called */
@@ -265,6 +267,13 @@ void processData(byte data)
                     nParam = 0;
                     break;
                 }
+
+                case BUS_CMD_SET_BARMODE:
+                {
+                    busState = STATE_SET_BARMODE;
+                    nParam=0;
+                    break;
+                };
 
 #ifdef HAS_U1
                 case BUS_CMD_GETREPLY_U1:
@@ -509,6 +518,14 @@ void processData(byte data)
                 nParam = 0;
                 busState = STATE_TOP_LEVEL;
             }
+            break;
+        }
+
+        case STATE_SET_BARMODE:
+        {
+            setBarMode(data);
+            nParam = 0;
+            busState = STATE_TOP_LEVEL;
             break;
         }
 
@@ -871,6 +888,7 @@ void checkSafetyIndicator()
 
 }
 
+
 void checkOvrReg()
 {
     if(ovrReg)
@@ -899,6 +917,21 @@ void checkKillSwitch()
         ovrReg &= 0xC0;
     }
 }
+
+void setBarMode(byte data)
+{
+    barMode = data;
+    barBlinkState = 0;
+}
+
+
+void updateBars()
+{
+
+
+
+}
+
 
 void main()
 {

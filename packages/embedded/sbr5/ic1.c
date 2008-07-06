@@ -1473,7 +1473,7 @@ int main(void)
 
 
                 int len = readDataBlock(SLAVE_ID_SONAR);
-                if(len != 5)
+                if(len != 8)
 		        {
 			        sendByte(HOST_REPLY_FAILURE);
 			        break;
@@ -1482,7 +1482,7 @@ int main(void)
 		        sendByte(HOST_REPLY_SONAR);
 
 		        cs=0;
-                for(i=0; i<5; i++)
+                for(i=0; i<8; i++)
                 {
                     cs += rxBuf[i];
 	                sendByte(rxBuf[i]);
@@ -1491,6 +1491,28 @@ int main(void)
 		        sendByte(cs + HOST_REPLY_SONAR);
 		        break;
             }
+
+            /* May vastly change */
+            case HOST_CMD_BFRESET:
+            {
+                t1 = waitchar(1);
+
+                if(t1 != HOST_CMD_BFRESET)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_BFRESET, SLAVE_ID_SONAR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
 
             case HOST_CMD_RUNTIMEDIAG:
             {

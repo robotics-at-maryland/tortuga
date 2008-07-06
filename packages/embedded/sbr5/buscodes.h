@@ -111,9 +111,12 @@
 #define BUS_CMD_INTPOWER        0x4A
 
 #define BUS_CMD_MOTRSPEEDS      0x4B
-/* Next free is 0x4C */
 
+#define BUS_CMD_SET_BARMODE     0x4C
 
+#define BUS_CMD_BFRESET         0x4D
+
+/* Next free is 0x4E */
 
 
 
@@ -194,6 +197,11 @@
 #define HOST_REPLY_OVRLIMIT         0x27
 
 #define HOST_CMD_SET_OVRLIMIT       0x28
+
+#define HOST_CMD_BFRESET            0x29
+
+
+
 
 
 
