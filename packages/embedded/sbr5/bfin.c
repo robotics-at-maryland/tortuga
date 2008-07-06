@@ -417,6 +417,7 @@ int main()
     // Uncomment this for portal mode
 
 #ifdef PORTAL
+    disableBusInterrupt();
     initJPortal();
     OC3RS = 128;
     while(1);
