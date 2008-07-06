@@ -73,26 +73,14 @@ _FWDT ( WDT_OFF );
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
+byte sonarBuf[12]; /* Put vector here */
 
 
 void _ISR _U2RXInterrupt(void)
 {
-    byte t;
     IFS1bits.U2RXIF = 0;    /* Clear RX interrupt */
-
-
-//    t = U2RXREG;
-
-//    LAT_LED_GREEN = t & 0x01;
-//    LAT_LED_YELLOW = t & 0x02;
-//    LAT_LED_RED = t & 0x04;
-
-
-
     TMR2 = 0;
     OC3RS = ((unsigned char)(U2RXREG & 0xFF));
-
-
 }
 
 void initUart()
@@ -184,6 +172,24 @@ void processData(byte data)
                     nParam = 0;
                     break;
                 }
+
+                case BUS_CMD_BFRESET:
+                {
+                    int l;
+                    TRIS_BF_RESET = TRIS_OUT;   /* Stop the Blackfin */
+                    for(l=0; l<1000; l++);     /* Wait a little bit. Yes, but I don't care */
+                    TRIS_BF_RESET = TRIS_IN;    /* Start the Blackfin */
+                    break;
+                }
+
+                case BUS_CMD_SONAR:
+                {
+                    int i;
+                    for(i=0; i<12; i++)
+                        txBuf[i+1] = sonarBuf[i];
+                    txBuf[0] = 12;
+                    break;
+                }
             }
             break;
         }
@@ -214,6 +220,28 @@ void processData(byte data)
         }
     }
 }
+
+/* Read a byte from the bus */
+byte readBus()
+{
+    return (PORTB & 0xFF);
+}
+
+
+/* Take bus out of high-impedance state and write a byte there */
+void writeBus(byte b)
+{
+    TRISB = TRISB & 0xFF00;
+    LATB = (LATB & 0xFF00) | b;
+}
+
+
+/* Put bus in high-impedance state. */
+void freeBus()
+{
+    TRISB = TRISB | 0xFF;
+}
+
 
 /*
  * Checks if we have an incoming request. If so, handles it.
@@ -278,26 +306,6 @@ byte checkBus()
 }
 
 
-/* Read a byte from the bus */
-byte readBus()
-{
-    return (PORTB & 0xFF);
-}
-
-
-/* Take bus out of high-impedance state and write a byte there */
-void writeBus(byte b)
-{
-    TRISB = TRISB & 0xFF00;
-    LATB = (LATB & 0xFF00) | b;
-}
-
-
-/* Put bus in high-impedance state. */
-void freeBus()
-{
-    TRISB = TRISB | 0xFF;
-}
 
 void enableBusInterrupt()
 {
@@ -340,7 +348,7 @@ void initBus()
 }
 
 
-void main()
+int main()
 {
     long l;
     LAT_BF_RESET = 0;
