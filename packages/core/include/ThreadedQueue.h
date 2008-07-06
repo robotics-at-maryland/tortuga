@@ -17,10 +17,15 @@
 #include <boost/utility.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/thread/xtime.hpp>
 
 namespace ram {
 namespace core {
 
+namespace details {
+    boost::xtime add_xtime(const boost::xtime& a, const boost::xtime& b);
+}
+    
 template <typename T>
 class ThreadedQueue : boost::noncopyable
 {
@@ -74,14 +79,20 @@ public:
 
     The data paramater and return time are handled the same as popNoWait
     */
-    bool popTimedWait(const boost::xtime &xt, T& data)
+    bool popTimedWait(const boost::xtime &timeout, T& data)
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
         bool success = true;
+
+        // Boost uses and absolute timeout, so determine when we want to wake
+        // up based on the current time and how long the timeout is
+        boost::xtime now;
+        boost::xtime_get(&now, boost::TIME_UTC);
+        boost::xtime wakeUp = details::add_xtime(now, timeout);
         
         if(m_queue.empty())
         {
-            success = m_itemAvailable.timed_wait(lock, xt);
+            success = m_itemAvailable.timed_wait(lock, wakeUp);
         }
 
         if (success)
@@ -100,7 +111,7 @@ private:
     boost::mutex m_monitorMutex;
     boost::condition m_itemAvailable;
 };
-
+    
 } // namespace core
 } // namespace ram
 
