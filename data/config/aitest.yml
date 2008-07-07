@@ -4,9 +4,9 @@ GUI:
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
 Subsystems:    
-#    VisionSystem:
-#        type: VisionSystem
-#        depends_on: ["EventHub", "Vehicle"]
+    VisionSystem:
+        type: VisionSystem
+        depends_on: ["EventHub", "Vehicle"]
         
 #       RedLightDetector:       
 #           intialMinPixels: 400
@@ -39,10 +39,13 @@ Subsystems:
         type: TimerManager
         depends_on: ["EventHub"]
 
-#    StateMachine:
-#        type: StateMachine
-#        depends_on: ["EventHub", "QueuedEventHub", "Controller",
-#                     "MotionManager", "TimerManager", "VisionSystem"]
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller",
+                     "MotionManager", "TimerManager", "VisionSystem"]
+        States:
+            ram.ai.light.Seek:
+                depthGain: 0.5
 
     # Object that creates the vehicle interface
     Vehicle:
@@ -52,7 +55,7 @@ Subsystems:
         # Time between updates in ms
         update_interval: 25
      
-        depends_on: ["EventHub"]
+        depends_on: ["EventHub", "Logging"]
 
         # Pressure tranducer calibration 
         depthCalibSlope: 35.4
@@ -188,6 +191,33 @@ Subsystems:
         depends_on: ["Controller"]
         update_interval: -1
         yawGain: 50
+
+    Logging:
+        type: Logging
+        update_interval: -1
+        Appenders:
+            SBLog:
+                type: File
+                fileName: thrusters.log
+                Layout:
+                    type: Pattern
+                    pattern: "%m %r%n"
+            ControlLog:
+                type: File
+                fileName: thrusters.log
+                Layout:
+                    type: Pattern
+                    pattern: "%m %r%n"
+            Console:
+                type: Console
+                Layout:
+                    type: Pattern
+                    pattern: "%c %m %r%n"
+        Categories:
+            SensorBoard:
+                appenders: ['SBLog'] #,'Console']
+            Controller:
+                appenders: ['ControlLog'] #'Console']
 
     Controller:
         depends_on: ["Vehicle", "EventHub"]
