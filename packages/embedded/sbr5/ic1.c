@@ -341,7 +341,7 @@ void _ISR _T2Interrupt(void)
 void setMotorFailsafe()
 {
     failsafeTripped = 0;
-    PR1 = 5000;            /* Period */
+    PR1 = 10000;            /* Period */
     TMR1 = 0;               /* Reset timer */
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 1;      /* Enable interrupts */
