@@ -247,6 +247,7 @@ log4cpp::Layout* Logging::createLayout(ConfigNode config)
         patternLayout->setConversionPattern(
             config["pattern"].asString(
                 log4cpp::PatternLayout::DEFAULT_CONVERSION_PATTERN));
+        layout = patternLayout;
     }
     else if (type == "Simple")
     {

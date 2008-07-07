@@ -25,6 +25,7 @@ ThreadedAppender::~ThreadedAppender()
 {
     // Stop background thread
     unbackground(true);
+    delete m_appender;
 }
 
 void ThreadedAppender::update(double timestep)
