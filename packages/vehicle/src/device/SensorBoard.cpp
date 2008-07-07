@@ -6,7 +6,7 @@
  * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/vision/src/device/SensorBoard.cpp
  */
-
+//#include <iostream>
 // Library Includes
 #include <log4cpp/Category.hh>
 
@@ -21,7 +21,7 @@ RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, POWERSOURCE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, THRUSTER_UPDATE);
 
-log4cpp::Category& LOGGER(log4cpp::Category::getInstance("SensorBoard"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("SensorBoard"));
 
 namespace ram {
 namespace vehicle {
@@ -49,6 +49,7 @@ SensorBoard::SensorBoard(int deviceFD,
         establishConnection();
 
     // Log file header
+    std::cout << "I HAVE THIS MANY APPENDERS: " << LOGGER.getAllAppenders().size() << std::endl;
     LOGGER.info("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
 }
     
@@ -76,6 +77,26 @@ SensorBoard::SensorBoard(core::ConfigNode config,
         update(1.0/40);
 
     // Log file header
+    /*std::cout << "I HAVE '" << LOGGER.getName() << "' THIS MANY APPENDERS: " << LOGGER.getAllAppenders().size() << std::endl;
+    
+    std::vector< log4cpp::Category * > * cat = log4cpp::Category::getCurrentCategories();
+    for (size_t i = 0; i < cat->size(); ++i)
+    {
+       if ((*cat)[i] == &LOGGER)
+       {
+          std::cout << "MY CAT! ";
+       }
+       std::cout << "Name: '" << (*cat)[i]->getName() << "' Appends #"
+       << (*cat)[i]->getAllAppenders().size() << std::endl;
+       log4cpp::AppenderSet appenders = (*cat)[i]->getAllAppenders();
+       log4cpp::AppenderSet::iterator iter = appenders.begin();
+       while(iter != appenders.end())
+       {
+           std::cout << "\t Name: '" << (*iter)->getName() << "'" << std::endl;
+           iter++;
+       }
+    }l*/
+//    std::cout << "Cats: " << log4cpp::Category::getCurrentCategories()->size() << std::endl;
     LOGGER.info("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
 }
     

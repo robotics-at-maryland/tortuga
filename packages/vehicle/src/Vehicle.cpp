@@ -101,6 +101,9 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
             _addDevice(device::IDeviceMaker::newObject(params));
         }
     }
+
+    // Make sure thrusters are unsafed
+    //unsafeThrusters();
 }
 
 Vehicle::~Vehicle()
