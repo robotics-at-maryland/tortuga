@@ -204,7 +204,7 @@ Subsystems:
                     pattern: "%m %r%n"
             ControlLog:
                 type: File
-                fileName: thrusters.log
+                fileName: control.log
                 Layout:
                     type: Pattern
                     pattern: "%m %r%n"
