@@ -38,7 +38,7 @@
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::BWPDController, BWPDController);
 
 // Create category for logging
-log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
+static og4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
 
 using namespace std;
 
