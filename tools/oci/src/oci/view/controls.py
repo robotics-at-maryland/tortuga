@@ -493,7 +493,7 @@ class ThrusterCurrentDisplay(BarDisplay):
         
         # Set initial state
         if thruster.isEnabled():
-            self._enabledLED.SetState(2)
+            self._enableLED.SetState(2)
         else:
             self._enableLED.SetState(0)
 
@@ -560,6 +560,7 @@ class PowerSourceDisplay(BarDisplay):
                                               textReference = textReference)
         
         # Create custom controls
+	self._enableLED = ram.gui.led.LED(parent, state = 0)#, size = size)
         self._enableLED.SetAsciiPattern('''
         000000-----000000      
         0000---------0000
@@ -579,8 +580,9 @@ class PowerSourceDisplay(BarDisplay):
         0000=========0000
         000000=====000000
         '''.strip())
-        self._enableLED = ram.gui.led.LED(parent, state = 0)#, size = size)
+        self._enableLED.SetState(0)
 
+        self._inUseLED = ram.gui.led.LED(parent, state = 0)#, size = size)
         self._inUseLED.SetAsciiPattern('''
         000000-----000000      
         0000---------0000
@@ -600,7 +602,8 @@ class PowerSourceDisplay(BarDisplay):
         0000=========0000
         000000=====000000
         '''.strip())
-	self._inUseLED = ram.gui.led.LED(parent, state = 0)#, size = size)
+	self._inUseLED.SetState(0)
+
         controls.extend([(self._enableLED, wx.ALIGN_CENTER_VERTICAL),
                          (self._inUseLED, wx.ALIGN_CENTER_VERTICAL)])
         
