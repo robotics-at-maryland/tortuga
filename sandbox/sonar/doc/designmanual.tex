@@ -16,7 +16,9 @@
 		\includegraphics[scale=0.5]{robocrab.pdf}
 	\end{center}
 	\begin{abstract}
-		We explain the theories and methods involved in \textit{Tortuga}'s 2008 passive sonar system.  We document and support mechanical design requirements and interfaces with other subsystems. \\ This document is also meant to serve as a cumulative design manual for future revisions of \textit{Tortuga}.
+		We explain the theories and methods involved in \textit{Tortuga}'s 2008 passive sonar system.  We document and support mechanical design requirements and interfaces with other subsystems.
+		
+		This document is also meant to serve as a cumulative design manual for future revisions of \textit{Tortuga}.
 	\end{abstract}
 \end{titlepage}
 \pagestyle{headings}
@@ -266,6 +268,14 @@ The matrix equation allows us to establish a design criterion for far field arra
 Since (\ref{eq:planars-multi}) is a set of linear equations in three variables, the matrix \(A\) must have rank 3 in order to solve for \(\hat \mathbf k\).  Therefore, we need at least 4 hydrophones.
 
 We need \(A\) to be non-singular, or put differently, have a nonzero determinant.  For a \(3 \times 3\) matrix, the determinant can be interpreted as the volume of the parallelepiped spanned by the columns.  A hydrophone layout for a far field type array must therefore be noncoplanar.  The best design is the one that spans the greatest volume, given whatever practical constraints are present.
+
+\begin{figure}[htbp]
+	\begin{center}
+		\includegraphics[scale=0.2]{array-cad.jpg}
+		\caption{A far-field type 3D bearing array, featuring four hydrophones in a volume-spanning configuration.}
+		\label{fig:array-cad}
+	\end{center}
+\end{figure}
 
 \subsubsection{Calibration}
 
@@ -571,7 +581,11 @@ The complex exponential contains a constant factor of \(e^{\frac{2 \pi i}{N} kn}
 X_k(m) = e^{\frac{2 \pi i}{N} k} \sum_{n=1}^{N} {x(m-N+n) e^{- \frac{2 \pi i}{N} kn}}
 \end{equation}
 
-Now, the summations in (\ref{eq:sdft-factored}) and (\ref{eq:sdft-m-minusone}) are the same except for the starting and ending indices.  (\ref{eq:sdft-factored}) is missing the zeroth term of (\ref{eq:sdft-m-minusone}), which is \(x(m-N)\).  (\ref{eq:sdft-factored}) also has an \(N\)th term that (\ref{eq:sdft-m-minusone}) does not have, equal to \(x(m) e^{- \frac{2 \pi i}{N} k}\), or \(x(m)\).
+Now, the summations in (\ref{eq:sdft-factored}) and (\ref{eq:sdft-m-minusone}) are identical except for the starting and ending indices.
+
+The sum in (\ref{eq:sdft-factored}) is missing the zeroth term of the sum in (\ref{eq:sdft-m-minusone}), which is \(x(m-N)\).
+
+(\ref{eq:sdft-factored}) also has an \(N\)th term that (\ref{eq:sdft-m-minusone}) is missing, equal to \(x(m) e^{- \frac{2 \pi i}{N} k}\).  Since the argument of the complex exponential in this term is a multiple of \(2 \pi\), this term reduces to \(x(m)\).
 
 We can now express (\ref{eq:sdft-factored}) recursively:
 \begin{equation}
