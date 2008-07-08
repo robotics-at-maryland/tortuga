@@ -12,9 +12,12 @@
 
 // Project Includes
 #include "vision/include/Common.h"
+#include "vision/include/Suit.h"
+
 #include "core/include/Event.h"
+
 #include "math/include/Math.h"
-#include "vision/include/SuitDetector.h"
+
 // Must Be Included last
 #include "vision/include/Export.h"
 
@@ -81,13 +84,14 @@ class RAM_EXPORT BinEvent : public core::Event
 {
 public:
     BinEvent(double x, double y)
-    { this->x=x; this->y=y; this->suit = NONEFOUND;}
-    BinEvent(double x, double y, Suit s)
-    { this->x=x; this->y=y; this->suit = NONEFOUND;}
+    { this->x=x; this->y=y; this->suit = Suit::NONEFOUND;}
+    BinEvent(double x, double y, Suit::SuitType s)
+    { this->x=x; this->y=y; this->suit = s; }
     
     double x;
     double y;
-    Suit suit;
+    Suit::SuitType suit;
+    math::Degree angle;
 };
 
 typedef boost::shared_ptr<BinEvent> BinEventPtr;

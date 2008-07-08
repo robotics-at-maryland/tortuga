@@ -40,7 +40,7 @@ SuitDetector::SuitDetector(Camera* camera) :
 
 void SuitDetector::init(core::ConfigNode)
 {
-	suit = UNKNOWN;
+    suit = Suit::UNKNOWN;
 	analyzedImage = cvCreateImage(cvSize(640,480), 8,3);
 	ratioImage = cvCreateImage(cvSize(640,480),8,3);
 	tempHoughImage = cvCreateImage(cvSize(640,480),8,3);
@@ -393,7 +393,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         //Compare float array
         int best = 8000;//Unless one of the scores is below this... I don't think it should be counted
                         //threshold must change if histoArr changes size.
-        suit = UNKNOWN;
+        suit = Suit::UNKNOWN;
         int diff;
         
         //Hearts
@@ -404,7 +404,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = HEART;
+            suit = Suit::HEART;
         }
 
         diff = suitDifference(histoArr, heartCountsR90, HISTOARRSIZE);
@@ -412,7 +412,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = HEARTR90;
+            suit = Suit::HEARTR90;
         }
 
         diff = suitDifference(histoArr, heartCountsR180, HISTOARRSIZE);
@@ -420,7 +420,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = HEARTR180;
+            suit = Suit::HEARTR180;
         }
 
         diff = suitDifference(histoArr, heartCountsR270, HISTOARRSIZE);
@@ -428,7 +428,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = HEARTR270;
+            suit = Suit::HEARTR270;
         }
 
         
@@ -440,7 +440,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = SPADE;
+            suit = Suit::SPADE;
         }
 
         diff = suitDifference(histoArr, spadeCountsR90, HISTOARRSIZE);
@@ -449,7 +449,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = SPADER90;
+            suit = Suit::SPADER90;
         }
 
         diff = suitDifference(histoArr, spadeCountsR180, HISTOARRSIZE);
@@ -457,7 +457,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = SPADER180;
+            suit = Suit::SPADER180;
         }
 
         diff = suitDifference(histoArr, spadeCountsR270, HISTOARRSIZE);
@@ -465,7 +465,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = SPADER270;
+            suit = Suit::SPADER270;
         }
         
         
@@ -476,7 +476,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = DIAMOND;
+            suit = Suit::DIAMOND;
         }
 
         diff = suitDifference(histoArr, diamondCountsR90, HISTOARRSIZE);
@@ -484,7 +484,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = DIAMONDR90;
+            suit = Suit::DIAMONDR90;
         }
 
         diff = suitDifference(histoArr, diamondCountsR180, HISTOARRSIZE);
@@ -492,7 +492,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = DIAMONDR180;
+            suit = Suit::DIAMONDR180;
         }
 
         diff = suitDifference(histoArr, diamondCountsR270, HISTOARRSIZE);
@@ -500,7 +500,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = DIAMONDR270;
+            suit = Suit::DIAMONDR270;
         }
 
         
@@ -511,7 +511,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = CLUB;
+            suit = Suit::CLUB;
         }
 
         diff = suitDifference(histoArr, clubCountsR90, HISTOARRSIZE);
@@ -519,7 +519,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = CLUBR90;
+            suit = Suit::CLUBR90;
         }
 
         diff = suitDifference(histoArr, clubCountsR180, HISTOARRSIZE);
@@ -527,7 +527,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = CLUBR180;
+            suit = Suit::CLUBR180;
         }
 
         diff = suitDifference(histoArr, clubCountsR270, HISTOARRSIZE);
@@ -535,12 +535,12 @@ void SuitDetector::processImage(Image* input, Image* output)
         if (diff < best)
         {
             best = diff;
-            suit = CLUBR270;
+            suit = Suit::CLUBR270;
         }
     }
     else
     {
-        suit = NONEFOUND;
+        suit = Suit::NONEFOUND;
     }
     
     cvReleaseImage(&redSuitGrayScale);
@@ -600,7 +600,7 @@ void SuitDetector::processImage(Image* input, Image* output)
 //	cvReleaseImage(&gray);	
 //}
 
-Suit SuitDetector::getSuit()
+Suit::SuitType SuitDetector::getSuit()
 {
 	return suit;
 }

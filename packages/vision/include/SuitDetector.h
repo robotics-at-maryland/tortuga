@@ -13,25 +13,21 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
-#include "core/include/ConfigNode.h"
 #include "vision/include/BlobDetector.h"
+#include "vision/include/Suit.h"
+
+#include "core/include/ConfigNode.h"
 
 // Must be included last
 #include "vision/include/Export.h"
 
 namespace ram {
 namespace vision {
-		
-enum Suit {CLUB, CLUBR90, CLUBR180, CLUBR270, 
-           SPADE, SPADER90, SPADER180, SPADER270, 
-           HEART, HEARTR90, HEARTR180, HEARTR270, 
-           DIAMOND, DIAMONDR90, DIAMONDR180, DIAMONDR270, 
-           UNKNOWN, NONEFOUND};
     
 class RAM_EXPORT SuitDetector : public Detector
 {
   public:
-    Suit suit;
+    Suit::SuitType suit;
     SuitDetector(core::ConfigNode config,
                  core::EventHubPtr eventHub = core::EventHubPtr());
     SuitDetector(Camera*);
@@ -39,8 +35,8 @@ class RAM_EXPORT SuitDetector : public Detector
     void processImage(Image* input, Image* output= 0);
     void update();
     IplImage* getAnalyzedImage();
-    Suit getSuit();
-	int edgeRun(int startx, int starty, IplImage* img);
+    Suit::SuitType getSuit();
+    int edgeRun(int startx, int starty, IplImage* img);
     bool makeSuitHistogram(IplImage*);
 	
   private:

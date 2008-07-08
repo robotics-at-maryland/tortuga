@@ -185,46 +185,46 @@ void BinDetector::processImage(Image* input, Image* out)
 //        std::cout<<"finished suit detection"<<std::endl;
 //        std::cout<<"Suit: " << suitDetector.getSuit()<<std::endl;
         
-        Suit suitFound = suitDetector.getSuit(); //In case we ever want to use the suit detector...
-        Suit suit = NONEFOUND;
+        Suit::SuitType suitFound = suitDetector.getSuit(); //In case we ever want to use the suit detector...
+        Suit::SuitType suit = Suit::NONEFOUND;
         binX = blackBlobOfBin.getCenterX();
         binY = blackBlobOfBin.getCenterY();
         
-        if (suitFound == CLUB || suitFound == CLUBR90 || suitFound == CLUBR180 || suitFound == CLUBR270)
+        if (suitFound == Suit::CLUB || suitFound == Suit::CLUBR90 || suitFound == Suit::CLUBR180 || suitFound == Suit::CLUBR270)
         {
             seeClub = true;
-            suit = CLUB;
+            suit = Suit::CLUB;
             std::cout<<"Found Club Bin"<<std::endl;
 
         }
-        else if (suitFound == SPADE || suitFound == SPADER90 || suitFound == SPADER180 || suitFound == SPADER270)
+        else if (suitFound == Suit::SPADE || suitFound == Suit::SPADER90 || suitFound == Suit::SPADER180 || suitFound == Suit::SPADER270)
         {
             seeSpade = true;
-            suit = SPADE;
+            suit = Suit::SPADE;
             std::cout<<"Found Spade Bin"<<std::endl;
 
         }
-        else if (suitFound == HEART || suitFound == HEARTR90 || suitFound == HEARTR180 || suitFound == HEARTR270)
+        else if (suitFound == Suit::HEART || suitFound == Suit::HEARTR90 || suitFound == Suit::HEARTR180 || suitFound == Suit::HEARTR270)
         {
             seeHeart = true;
-            suit = HEART;
+            suit = Suit::HEART;
             std::cout<<"Found Heart Bin"<<std::endl;
         }
-        else if (suitFound == DIAMOND || suitFound == DIAMONDR90 || suitFound == DIAMONDR180 || suitFound == DIAMONDR270)
+        else if (suitFound == Suit::DIAMOND || suitFound == Suit::DIAMONDR90 || suitFound == Suit::DIAMONDR180 || suitFound == Suit::DIAMONDR270)
         {
             seeDiamond = true;
-            suit = DIAMOND;
+            suit = Suit::DIAMOND;
             std::cout<<"Found Diamond Bin"<<std::endl;
         }
-        else if (suitFound == UNKNOWN)
+        else if (suitFound == Suit::UNKNOWN)
         {
-            suit = UNKNOWN;
+            suit = Suit::UNKNOWN;
             std::cout<<"Found an unknown bin, rotate above it until we figure out what it is!"<<std::endl;
         }
-        else if (suitFound == NONEFOUND)
+        else if (suitFound == Suit::NONEFOUND)
         {
             seeEmpty = true;
-            suit = NONEFOUND;
+            suit = Suit::NONEFOUND;
             std::cout<<"Found empty Bin"<<std::endl;
         }
             
@@ -292,31 +292,31 @@ void BinDetector::processImage(Image* input, Image* out)
     if (foundHeart && !seeHeart)
     {
         std::cout<<"Lost Heart"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, HEART));
+        BinEventPtr event(new BinEvent(binX, binY, Suit::HEART));
         publish(EventType::BIN_LOST, event);
     }
     if (foundSpade && !seeSpade)
     {
         std::cout<<"Lost Spade"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, SPADE));
+        BinEventPtr event(new BinEvent(binX, binY, Suit::SPADE));
         publish(EventType::BIN_LOST, event);
     }
     if (foundDiamond && !seeDiamond)
     {
         std::cout<<"Lost Diamond"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, DIAMOND));
+        BinEventPtr event(new BinEvent(binX, binY, Suit::DIAMOND));
         publish(EventType::BIN_LOST, event);
     }
     if (foundClub && !seeClub)
     {
         std::cout<<"Lost Club"<<std::endl; 
-        BinEventPtr event(new BinEvent(binX, binY, CLUB));
+        BinEventPtr event(new BinEvent(binX, binY, Suit::CLUB));
         publish(EventType::BIN_LOST, event);
     }
     if (foundEmpty && !seeEmpty)
     {
         std::cout<<"Lost Empty"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, NONEFOUND));
+        BinEventPtr event(new BinEvent(binX, binY, Suit::NONEFOUND));
         publish(EventType::BIN_LOST, event);
     }
     
