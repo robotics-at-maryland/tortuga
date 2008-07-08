@@ -54,6 +54,7 @@ void RedLightDetector::init(core::ConfigNode config)
     m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
     m_redPercentage = config["redPercentage"].asDouble(40);
     m_redIntensity = config["redIntensity"].asInt(200);
+//    m_maxAspectRatio = config["maxAspectRatio"].asDouble(2)
     
     // State machine variables 
     found=false;
@@ -173,6 +174,11 @@ void RedLightDetector::processImage(Image* input, Image* output)
         boundLL.x = redBlob.getMinX();
         boundLL.y = redBlob.getMinY();
         redPixelCount = redBlob.getSize();
+
+    // Determine Aspect Ratio
+//    double boundWidth = fabs(boundUR.x - boundLL.x);
+//    double boundHeight = fabs(boundUR.y - boundLL.y);
+//    double aspectRatio = boundWidth / boundHeight;
         
         // Determine if we have actual found the light
         lightPixelRadius = sqrt((double)redPixelCount/M_PI);
