@@ -8,10 +8,10 @@
  */
 
 // STD Includes
-#include <algorithm>
 #include <iostream>
+//#include <cassert>
+
 // Library Includes
-//#include "assert.h"
 #include "cv.h"
 #include "highgui.h"
 
@@ -136,13 +136,8 @@ void BinDetector::processImage(Image* input, Image* out)
     }
     
 //    std::cout<<"black found"<<std::endl;
+    // Blobs sorted largest to smaller
     std::vector<BlobDetector::Blob> blackBlobs = blobDetector.getBlobs();
-    std::sort(whiteBlobs.begin(), whiteBlobs.end(), 
-              ram::vision::BlobDetector::BlobComparer::compare);
-    std::sort(blackBlobs.begin(), blackBlobs.end(), 
-              ram::vision::BlobDetector::BlobComparer::compare);
-//    std::cout<<"done sorting"<<std::endl;
-    
     std::vector<BlobDetector::Blob> binBlobs;
     
     for (unsigned int blackBlobIndex = 0; blackBlobIndex < blackBlobs.size(); blackBlobIndex++)

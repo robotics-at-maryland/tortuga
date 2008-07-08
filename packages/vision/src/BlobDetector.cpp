@@ -306,6 +306,12 @@ int BlobDetector::histogram(IplImage* img)
         }
     }
 
+    // Put largest blob first
+    if (m_blobs.size() > 0)
+    {
+        std::sort(m_blobs.begin(), m_blobs.end(), 
+                  BlobDetector::BlobComparer::compare);
+    }
     //Deallocate arrays
     //    cout<<"Happily reaching the end of histogram"<<endl;
     return maxCount;
