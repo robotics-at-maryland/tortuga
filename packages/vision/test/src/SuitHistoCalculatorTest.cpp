@@ -171,8 +171,8 @@ int main(int argc, char** argv) {
         {
             for (int x = 0; x < 64; ++x)
             {
-                pixelCountsAlongLeft[y] += (data[count]>0);
-                pixelCountsAlongBottom[x] += (data[count]>0);
+                pixelCountsAlongLeft[y] += ((data[count]>0)?1:0);
+                pixelCountsAlongBottom[x] += ((data[count]>0)?1:0);
                 count++;
             }
         }

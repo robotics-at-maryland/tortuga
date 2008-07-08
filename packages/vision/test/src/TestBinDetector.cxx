@@ -11,6 +11,7 @@
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 #include <cv.h>
 #include <math.h>
 #include <iostream>
@@ -28,6 +29,12 @@
 #include "math/include/Matrix3.h"
 
 using namespace ram;
+
+static boost::filesystem::path getImagesDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "vision" / "test" / "data" / "references";
+}
 
 struct BinDetectorFixture
 {
@@ -102,6 +109,30 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     CHECK(event);
     CHECK_CLOSE(expectedX, event->x, 0.05);
     CHECK_CLOSE(expectedY, event->y, 0.05);
+}
+
+//TEST_FIXTURE(BinDetectorFixture, HeartSuperSlowTest)
+//{ 
+//    for (int deg = 0; deg < 360; deg+=10)
+//    {
+//        vision::makeColor(&input, 0, 0, 255);
+//        vision::drawBin(&input, 320,240, 130, deg, vision::Heart);
+//        vision::OpenCVImage output(640,480);
+//        detector.processImage(&input, &output);
+//        vision::Image::showImage(&output);
+//    }
+//}
+
+TEST_FIXTURE(BinDetectorFixture, FourBins)
+{
+    vision::Image* ref = vision::Image::loadFromFile(
+        ((getImagesDir()/"distorted-grainy.png").string()));//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
+    
+    CHECK(ref != NULL);
+    
+    vision::OpenCVImage output(ref->getWidth(),ref->getHeight());
+    detector.processImage(ref,&output);
+    //vision::Image::showImage(&output);
 }
 
 TEST_FIXTURE(BinDetectorFixture, Left)

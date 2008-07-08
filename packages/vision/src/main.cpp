@@ -67,7 +67,7 @@ using namespace ram::vision;
 //44, 42, 40, 38, 37, 35, 33, 32, 30, 28, 26, 24, 23, 22, 20, 18,
 //17, 15, 14, 12, 11, 10, 8, 8, 6, 6, 4, 4, 2, 2, 1, 0};
 
-
+ 
 int suitDifference(int array1[], int array2[], int len)
 {
     int i = 0;

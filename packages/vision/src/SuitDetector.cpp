@@ -283,8 +283,8 @@ bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
         }
     }
 
-    int onlyRedSuitRows = (maxSuitX - minSuitX + 1) / 4 * 4;
-    int onlyRedSuitCols = (maxSuitY - minSuitY + 1) / 4 * 4;
+    int onlyRedSuitRows = (maxSuitX - minSuitX + 1);// / 4 * 4;
+    int onlyRedSuitCols = (maxSuitY - minSuitY + 1);// / 4 * 4;
 
     if (onlyRedSuitRows == 0 || onlyRedSuitCols == 0)
     {
@@ -318,6 +318,12 @@ bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
                 histoArr[x+scaledRedSuit->height]++;
             }
             scaledRedIndex+=3;
+        }
+        if (scaledRedIndex%4 == 0)
+        {}
+        else
+        { 
+            scaledRedIndex += 4 - scaledRedIndex%4;
         }
     }
     
@@ -391,10 +397,10 @@ void SuitDetector::processImage(Image* input, Image* output)
         int diff;
         
         //Hearts
-        std::cout<<"Hearts:\n";
+        //std::cout<<"Hearts:\n";
 
         diff = suitDifference(histoArr, heartCountsR0, HISTOARRSIZE);        
-        std::cout<<"R0: "<<diff<<"\n";
+        //std::cout<<"R0: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -402,7 +408,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, heartCountsR90, HISTOARRSIZE);
-        std::cout<<"R90: "<<diff<<"\n";
+        //std::cout<<"R90: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -410,7 +416,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, heartCountsR180, HISTOARRSIZE);
-        std::cout<<"R180: "<<diff<<"\n";
+        //std::cout<<"R180: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -418,7 +424,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, heartCountsR270, HISTOARRSIZE);
-        std::cout<<"R270: "<<diff<<"\n";
+        //std::cout<<"R270: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -427,9 +433,9 @@ void SuitDetector::processImage(Image* input, Image* output)
 
         
         //Spades
-        std::cout<<"Spades:\n";
+        //std::cout<<"Spades:\n";
         diff = suitDifference(histoArr, spadeCountsR0, HISTOARRSIZE);
-        std::cout<<"R0: "<<diff<<"\n";
+        //std::cout<<"R0: "<<diff<<"\n";
 
         if (diff < best)
         {
@@ -438,7 +444,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, spadeCountsR90, HISTOARRSIZE);
-        std::cout<<"R90: "<<diff<<"\n";
+        //std::cout<<"R90: "<<diff<<"\n";
 
         if (diff < best)
         {
@@ -447,7 +453,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, spadeCountsR180, HISTOARRSIZE);
-        std::cout<<"R180: "<<diff<<"\n";
+        //std::cout<<"R180: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -455,7 +461,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, spadeCountsR270, HISTOARRSIZE);
-        std::cout<<"R270: "<<diff<<"\n";
+        //std::cout<<"R270: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -464,9 +470,9 @@ void SuitDetector::processImage(Image* input, Image* output)
         
         
         //diamond
-        std::cout<<"Diamonds:\n";
+        //std::cout<<"Diamonds:\n";
         diff = suitDifference(histoArr, diamondCountsR0, HISTOARRSIZE);
-        std::cout<<"R0: "<<diff<<"\n";
+        //std::cout<<"R0: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -474,7 +480,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, diamondCountsR90, HISTOARRSIZE);
-        std::cout<<"R90: "<<diff<<"\n";
+        //std::cout<<"R90: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -482,7 +488,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, diamondCountsR180, HISTOARRSIZE);
-        std::cout<<"R180: "<<diff<<"\n";
+        //std::cout<<"R180: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -490,7 +496,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, diamondCountsR270, HISTOARRSIZE);
-        std::cout<<"R270: "<<diff<<"\n";
+        //std::cout<<"R270: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -499,9 +505,9 @@ void SuitDetector::processImage(Image* input, Image* output)
 
         
         //Club
-        std::cout<<"Clubs:\n";
+        //std::cout<<"Clubs:\n";
         diff = suitDifference(histoArr, clubCountsR0, HISTOARRSIZE);
-        std::cout<<"R0: "<<diff<<"\n";
+        //std::cout<<"R0: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -509,7 +515,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, clubCountsR90, HISTOARRSIZE);
-        std::cout<<"R90: "<<diff<<"\n";
+        //std::cout<<"R90: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -517,7 +523,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, clubCountsR180, HISTOARRSIZE);
-        std::cout<<"R180: "<<diff<<"\n";
+        //std::cout<<"R180: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
@@ -525,7 +531,7 @@ void SuitDetector::processImage(Image* input, Image* output)
         }
 
         diff = suitDifference(histoArr, clubCountsR270, HISTOARRSIZE);
-        std::cout<<"R270: "<<diff<<"\n";
+        //std::cout<<"R270: "<<diff<<"\n";
         if (diff < best)
         {
             best = diff;
