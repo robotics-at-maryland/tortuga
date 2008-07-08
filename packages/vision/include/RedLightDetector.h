@@ -16,6 +16,8 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
+#include "vision/include/BlobDetector.h"
+
 #include "core/include/ConfigNode.h"
 
 // Must be incldued last
@@ -68,6 +70,9 @@ class RAM_EXPORT RedLightDetector : public Detector
     
     Image* frame;
     Camera* cam;
+
+    /** Finds the red light */
+    BlobDetector m_blobDetector;
 
     /** Initial level of minimum red pixels (and lower bound) */
     int m_initialMinRedPixels;

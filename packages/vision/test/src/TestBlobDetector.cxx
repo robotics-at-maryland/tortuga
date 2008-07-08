@@ -63,7 +63,11 @@ TEST_FIXTURE(BlobDetectorFixture, simpleBlobs)
     // Make sure we found no blobs
     CHECK_EQUAL(2u, detector.getBlobs().size());
 
-    vision::BlobDetector::Blob blob = detector.getBlobs()[1];
+    // Ensure they are largest to smallest
+    CHECK_CLOSE(100 * 200, (detector.getBlobs()[0]).getSize(), 500);
+    CHECK_CLOSE(100 * 10, (detector.getBlobs()[1]).getSize(), 500);
+    
+    vision::BlobDetector::Blob blob = detector.getBlobs()[0];
     CHECK_EQUAL(250, blob.getMaxX());
     CHECK_EQUAL(150, blob.getMinX());
     CHECK_EQUAL(300, blob.getMaxY());
@@ -73,7 +77,7 @@ TEST_FIXTURE(BlobDetectorFixture, simpleBlobs)
     CHECK_EQUAL(200, blob.getCenterY());
 
 
-    vision::BlobDetector::Blob blob2 = detector.getBlobs()[0];
+    vision::BlobDetector::Blob blob2 = detector.getBlobs()[1];
     CHECK_EQUAL(400, blob2.getMaxX());
     CHECK_EQUAL(300, blob2.getMinX());
     CHECK_EQUAL(405, blob2.getMaxY());
@@ -132,8 +136,14 @@ TEST_FIXTURE(BlobDetectorFixture, complexBlobs)
     // Make sure we found no blobs
     CHECK_EQUAL(3u, detector.getBlobs().size());
 
+    // Ensure they are largest to smallest
+    CHECK_CLOSE(22000, (detector.getBlobs()[0]).getSize(), 500);
+    CHECK_CLOSE(16002, (detector.getBlobs()[1]).getSize(), 500);
+    CHECK_CLOSE((100 * 200) - (50 * 100),
+                (detector.getBlobs()[2]).getSize(), 500);
+    
     // Circle with chunk cut out
-    vision::BlobDetector::Blob blob = detector.getBlobs()[0];
+    vision::BlobDetector::Blob blob = detector.getBlobs()[1];
     CHECK_EQUAL(180, blob.getMaxX());
     CHECK_EQUAL(20, blob.getMinX());
     CHECK_EQUAL(470, blob.getMaxY());
@@ -143,7 +153,7 @@ TEST_FIXTURE(BlobDetectorFixture, complexBlobs)
     CHECK_EQUAL(397, blob.getCenterY());
 
     // Check the double circles
-    blob = detector.getBlobs()[1];
+    blob = detector.getBlobs()[0];
     CHECK_EQUAL(615, blob.getMaxX());
     CHECK_EQUAL(435, blob.getMinX());
     CHECK_EQUAL(365, blob.getMaxY());

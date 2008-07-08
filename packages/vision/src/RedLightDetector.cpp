@@ -70,7 +70,7 @@ void RedLightDetector::init(core::ConfigNode config)
     image=cvCreateImage(cvSize(480,640),8,3);//480 by 640 if we put the camera on sideways again...
     raw=cvCreateImage(cvGetSize(image),8,3);
     flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-    saveFrame=cvCreateImage(cvSize(640,480),8,3);    
+    saveFrame=cvCreateImage(cvSize(640,480),8,3);
 }
     
 RedLightDetector::~RedLightDetector()
@@ -150,14 +150,39 @@ void RedLightDetector::processImage(Image* input, Image* output)
     CvPoint boundLL;
     redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
     
-    int redPixelCount = histogram(flashFrame, &lightCenter.x, &lightCenter.y,
-                                  &boundUR.x, &boundUR.y,
-                                  &boundLL.x, &boundLL.y);
+    // Find the red blobs
+    m_blobDetector.setMinimumBlobSize(minRedPixels);
+    OpenCVImage temp(flashFrame, false);
+    m_blobDetector.processImage(&temp);
+    
+    // See if we have any
+    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+    int redPixelCount = 0;
 
     // Determine if the light has been found or lost
     double lightPixelRadius = 0;
-    
-    if (redPixelCount < minRedPixels)
+
+    if (blobs.size() > 0)
+    {
+        // Grab the biggest blob (always frist)
+        BlobDetector::Blob redBlob(blobs[0]);
+        lightCenter.x = redBlob.getCenterX();
+        lightCenter.y = redBlob.getCenterY();
+        boundUR.x = redBlob.getMaxX();
+        boundUR.y = redBlob.getMaxY();
+        boundLL.x = redBlob.getMinX();
+        boundLL.y = redBlob.getMinY();
+        redPixelCount = redBlob.getSize();
+        
+        // Determine if we have actual found the light
+        lightPixelRadius = sqrt((double)redPixelCount/M_PI);
+        
+        minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
+        
+        found=true; //completely ignoring the state machine for the time being.
+//	        	        cout<<"FOUND RED LIGHT "<<endl;
+    }	
+    else
     {
         // Just lost the light so issue a lost event
         if (found)
@@ -168,17 +193,6 @@ void RedLightDetector::processImage(Image* input, Image* output)
             minRedPixels = (int)(minRedPixels * m_lostMinPixelScale);
         else
             minRedPixels = m_initialMinRedPixels;
-    }	
-    else
-    {
-        // Determine if we have actual found the light
-        lightPixelRadius = sqrt((double)redPixelCount/M_PI);
-        
-        minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
-        
-        found=true; //completely ignoring the state machine for the time being.
-//	        	        cout<<"FOUND RED LIGHT "<<endl;
-
     }
 
     // Do all the needed work if the light is found

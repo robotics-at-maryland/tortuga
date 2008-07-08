@@ -16,7 +16,9 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
+
 #include "core/include/ConfigNode.h"
+
 #include "math/include/Math.h"
 
 // Must be included last
@@ -91,8 +93,10 @@ public:
     /** Returns the minimum number of pixels a blob must to be reported */
     int getMinimumBlobSize();
 
+    /** Returns all blobs bigger then minimum blob size, sorted large->small */
     std::vector<Blob> getBlobs();
-    
+
+    typedef std::vector<Blob> BlobList;
   private:
     /** Initializes the class */
     void init(core::ConfigNode config);
