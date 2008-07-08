@@ -241,7 +241,7 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
     detectorTopRemoved.processImage(&input, &out);
     CHECK(false == detectorTopRemoved.found);
 }
-/*
+
 TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
 {
     // Make sure we don't say a rectangle is a bouy
@@ -249,13 +249,33 @@ TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
     // Same area as normal circle just bad bounding box
     drawSquare(&input, 640/2, 480/2, 155, 55, 0, CV_RGB(255,0,0));
 
-    vision::Image::saveToFile(&input, "/tmp/square.png");
     detector.processImage(&input);
-    CHECK(detector.found);    
+    CHECK(false == detector.found);    
+
+    // Now flip it up right
+    makeColor(&input, 0, 0, 255);
+    drawSquare(&input, 640/2, 480/2, 55, 155, 0, CV_RGB(255,0,0));
+
+    detector.processImage(&input);
+    CHECK(false == detector.found);    
+
+    // Now test the square *with* the light and make sure we get the light
+    makeColor(&input, 0, 0, 255);
+    drawSquare(&input, 640/2, 480/2, 80, 240, 0, CV_RGB(255,0,0));
+    drawRedCircle(&input, 640/4, 480/4 * 3);
+
+    detector.processImage(&input);
+
+    double expectedX = 0.5 * 640.0/480.0;
+    double expectedY = -0.5;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found);
+
     
     // Make sure we don't except a mostly empty blob
-    vision::RedLightDetector detectorTopRemoved(
-        core::ConfigNode::fromString("{ 'minFillPercentage' : 0.25 }"));
+//    vision::RedLightDetector detectorTopRemoved(
+//        core::ConfigNode::fromString("{ 'minFillPercentage' : 0.25 }"));
 }
-*/
+
 } // SUITE(RedLightDetector)

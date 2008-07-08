@@ -38,17 +38,28 @@ public:
             m_size(size), m_centerX(centerX), m_centerY(centerY),
             m_maxX(maxX), m_minX(minX), m_maxY(maxY), m_minY(minY)
             {}
-        
-        int getSize() { return m_size; }
 
-        int getCenterX() { return m_centerX; }
-        int getCenterY() { return m_centerY; }
+        Blob& operator=(const Blob& other)
+            {
+                m_size = other.getSize();
+                m_centerX = other.getCenterX();
+                m_centerY = other.getCenterY();
+                m_maxX = other.getMaxX();
+                m_minX = other.getMinX();
+                m_maxY = other.getMaxY();
+                m_minY = other.getMinY();
+                return *this;
+            }        
+        int getSize() const { return m_size; }
+
+        int getCenterX() const { return m_centerX; }
+        int getCenterY() const { return m_centerY; }
         
-        int getMaxX() { return m_maxX; }
-        int getMinX() { return m_minX; }
+        int getMaxX() const { return m_maxX; }
+        int getMinX() const { return m_minX; }
         
-        int getMaxY() { return m_maxY; }
-        int getMinY() { return m_minY; }
+        int getMaxY() const { return m_maxY; }
+        int getMinY() const { return m_minY; }
 
         bool containsExclusive(Blob otherBlob)
         {

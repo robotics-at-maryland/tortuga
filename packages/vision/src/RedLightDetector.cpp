@@ -13,6 +13,7 @@
 
 // Library Includes
 #include "highgui.h"
+#include <boost/foreach.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -54,7 +55,7 @@ void RedLightDetector::init(core::ConfigNode config)
     m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
     m_redPercentage = config["redPercentage"].asDouble(40);
     m_redIntensity = config["redIntensity"].asInt(200);
-//    m_maxAspectRatio = config["maxAspectRatio"].asDouble(2)
+    m_maxAspectRatio = config["maxAspectRatio"].asDouble(2);
     
     // State machine variables 
     found=false;
@@ -165,28 +166,27 @@ void RedLightDetector::processImage(Image* input, Image* output)
 
     if (blobs.size() > 0)
     {
-        // Grab the biggest blob (always frist)
-        BlobDetector::Blob redBlob(blobs[0]);
-        lightCenter.x = redBlob.getCenterX();
-        lightCenter.y = redBlob.getCenterY();
-        boundUR.x = redBlob.getMaxX();
-        boundUR.y = redBlob.getMaxY();
-        boundLL.x = redBlob.getMinX();
-        boundLL.y = redBlob.getMinY();
-        redPixelCount = redBlob.getSize();
+        BlobDetector::Blob redBlob(0, 0, 0, 0, 0, 0, 0);
 
-    // Determine Aspect Ratio
-//    double boundWidth = fabs(boundUR.x - boundLL.x);
-//    double boundHeight = fabs(boundUR.y - boundLL.y);
-//    double aspectRatio = boundWidth / boundHeight;
+        // Attempt to find a valid blob
+        if (processBlobs(blobs, redBlob))
+        {
+            // Record info
+            //BlobDetector::Blob redBlob(blobs[0]);
+            lightCenter.x = redBlob.getCenterX();
+            lightCenter.y = redBlob.getCenterY();
+            boundUR.x = redBlob.getMaxX();
+            boundUR.y = redBlob.getMaxY();
+            boundLL.x = redBlob.getMinX();
+            boundLL.y = redBlob.getMinY();
+            redPixelCount = redBlob.getSize();
+            
+            lightPixelRadius = sqrt((double)redPixelCount/M_PI);
+            minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
         
-        // Determine if we have actual found the light
-        lightPixelRadius = sqrt((double)redPixelCount/M_PI);
-        
-        minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
-        
-        found=true; //completely ignoring the state machine for the time being.
+            found=true; //completely ignoring the state machine for the time being.
 //	        	        cout<<"FOUND RED LIGHT "<<endl;
+        }
     }	
     else
     {
@@ -294,7 +294,31 @@ void RedLightDetector::publishFoundEvent(double lightPixelRadius)
         publish(EventType::LIGHT_FOUND, event);
     }
 }
+    
+bool RedLightDetector::processBlobs(const BlobDetector::BlobList& blobs,
+                                    BlobDetector::Blob& outBlob)
+{
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+    {
+        double boundWidth = fabs(blob.getMaxX() - blob.getMinX());
+        double boundHeight = fabs(blob.getMaxY() - blob.getMinY());
+        double aspectRatio = boundWidth / boundHeight;
+        // Ensure its always positive
+        if (aspectRatio < 1)
+            aspectRatio = 1 / aspectRatio;
         
+        // Determine if we have actual found the light
+        if (aspectRatio < m_maxAspectRatio)
+        {
+            // Found our blob record and leave
+            outBlob = blob;
+            return true;
+        }
+    }
+    
+    return false;
+}
+    
     
 } // namespace vision
 } // namespace ram

@@ -53,6 +53,10 @@ class RAM_EXPORT RedLightDetector : public Detector
 
     // Process current state, and publishes LIGHT_FOUND event
     void publishFoundEvent(double lightPixelRadius);
+
+    /** Processes the list of all found blobs and finds the larget valid one */
+    bool processBlobs(const BlobDetector::BlobList& blobs,
+                      BlobDetector::Blob& outBlob);
     
     int lightFramesOff;
     int lightFramesOn;
@@ -86,6 +90,9 @@ class RAM_EXPORT RedLightDetector : public Detector
     /** Threshold for almost hitting the red light */
     double m_almostHitPercentage;
 
+    /** How un square are blob can be and still be considered a red light */
+    double m_maxAspectRatio;
+    
     /** Percentage of the image to remove from the top */
     double m_topRemovePercentage;
 
@@ -94,6 +101,8 @@ class RAM_EXPORT RedLightDetector : public Detector
 
     /** The threshold of the intensity of red in the image */
     int m_redIntensity;
+
+    
 
     /** The ammout the aspect ratio of the bounding box can be non-square */
     //double m_aspectRatioDeviation;
