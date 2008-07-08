@@ -282,9 +282,25 @@ bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
                 maxSuitY = secondBiggest.getMaxY();
         }
     }
+
+    int onlyRedSuitRows = (maxSuitX - minSuitX + 1) / 4 * 4;
+    int onlyRedSuitCols = (maxSuitY - minSuitY + 1) / 4 * 4;
+
+    if (onlyRedSuitRows == 0 || onlyRedSuitCols == 0)
+    {
+        return false;
+    }
+    IplImage* onlyRedSuit = cvCreateImage(
+        cvSize(onlyRedSuitRows,
+               onlyRedSuitCols),
+        IPL_DEPTH_8U,
+        3);
     
-    IplImage* onlyRedSuit = cvCreateImage(cvSize((maxSuitX-minSuitX+1)/4*4,(maxSuitY-minSuitY+1)/4*4), IPL_DEPTH_8U, 3);
-    cvGetRectSubPix(rotatedRedSuit, onlyRedSuit, cvPoint2D32f((maxSuitX+minSuitX)/2, (maxSuitY+minSuitY)/2));
+    cvGetRectSubPix(rotatedRedSuit,
+                    onlyRedSuit,
+                    cvPoint2D32f((maxSuitX+minSuitX)/2,
+                                 (maxSuitY+minSuitY)/2));
+    
     cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
     
 //    OpenCVImage showTheSuit(scaledRedSuit, false);
