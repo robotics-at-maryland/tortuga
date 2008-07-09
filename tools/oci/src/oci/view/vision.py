@@ -104,7 +104,7 @@ class VisionPanel(wx.Panel):
         eventHub = ext.core.Subsystem.getSubsystemOfType(
             ext.core.QueuedEventHub, subsystems)
         
-        vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem,
+        vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem, 
                                                        subsystems)
         
         if vision is not None:
@@ -119,10 +119,15 @@ class VisionPanel(wx.Panel):
             binPaneInfo = wx.aui.AuiPaneInfo().Name("Bin")
             binPaneInfo = binPaneInfo.Caption("Bin").Left()
             binPanel = BinPanel(parent, eventHub, vision)
+
+            ductPaneInfo = wx.aui.AuiPaneInfo().Name("Duct")
+            ductPaneInfo = ductPaneInfo.Caption("Duct").Left()
+            ductPanel = DuctPanel(parent, eventHub, vision)
             
-            return [(buoyPaneInfo, buoyPanel, [vision]),
-                    (pipePaneInfo, pipePanel, [vision]),
-                    (binPaneInfo, binPanel, [vision])]
+            return [(buoyPaneInfo, buoyPanel, [vision]), 
+                    (pipePaneInfo, pipePanel, [vision]), 
+                    (binPaneInfo, binPanel, [vision]),
+                    (ductPaneInfo, ductPanel, [vision])]
         
         return []
 
@@ -139,11 +144,11 @@ class RedLightPanel(VisionPanel):
         self._createControls("Bouy")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND,
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND, 
                                         self._onBouyFound)
         self._connections.append(conn)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_LOST,
+        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_LOST, 
                                         self._onBouyLost)
         self._connections.append(conn)
         
@@ -157,9 +162,9 @@ class RedLightPanel(VisionPanel):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
         self._createDataControl(controlName = '_azimuth', label = 'Azimuth: ')
-        self._createDataControl(controlName = '_elevation',
+        self._createDataControl(controlName = '_elevation', 
                                 label = 'Elvevation: ')
-        self._createDataControl(controlName = '_range',  label = 'Range: ')
+        self._createDataControl(controlName = '_range', label = 'Range: ')
         
     def _onBouyFound(self, event):
         self._x.Value = "% 4.2f" % event.x
@@ -184,11 +189,11 @@ class OrangePipePanel(VisionPanel):
         self._createControls("Orange Pipe")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_FOUND,
+        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_FOUND, 
                                         self._onPipeFound)
         self._connections.append(conn)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_LOST,
+        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_LOST, 
                                         self._onPipeLost)
         self._connections.append(conn)
         
@@ -219,16 +224,18 @@ class BinPanel(VisionPanel):
         VisionPanel.__init__(self, parent, *args, **kwargs)
         self._x = None
         self._y = None
+        self._angle = None
+        self._suit = None
 
         # Controls
         self._createControls("Bin")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_FOUND,
+        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_FOUND, 
                                         self._onBinFound)
         self._connections.append(conn)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_LOST,
+        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_LOST, 
                                         self._onBinLost)
         self._connections.append(conn)
         
@@ -241,14 +248,59 @@ class BinPanel(VisionPanel):
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_angle', label = 'Angle: ')
+        self._createDataControl(controlName = '_suit', label = 'Suit: ')
         
     def _onBinFound(self, event):
         self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y    
+        self._y.Value = "% 4.2f" % event.y
+        self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
+        self._suit.Value = "%s" % event.suit
         
         self.enableControls()
     
     def _onBinLost(self, event):
         self.disableControls()
-        
 
+class DuctPanel(VisionPanel):
+    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+        VisionPanel.__init__(self, parent, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._size = None
+        self._alignment = None
+
+        # Controls
+        self._createControls("Duct")
+        
+        # Events
+        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_FOUND, 
+                                        self._onDuctFound)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_LOST, 
+                                        self._onDuctLost)
+        self._connections.append(conn)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_size', label = 'Size: ')
+        self._createDataControl(controlName = '_alignment', label = 'Align: ')
+        
+    def _onDuctFound(self, event):
+        #self._x.Value = "% 4.2f" % event.x
+        #self._y.Value = "% 4.2f" % event.y
+        #self._size.Value = "% 4.2f" % event.size
+        #self._alignment.Value = "% 4.2f" % event.alignment
+        
+        self.enableControls()
+    
+    def _onDuctLost(self, event):
+        self.disableControls()

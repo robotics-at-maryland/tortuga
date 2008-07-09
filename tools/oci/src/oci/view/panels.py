@@ -96,11 +96,11 @@ class ThrusterPanel(wx.Panel):
                 paneInfo = wx.aui.AuiPaneInfo().Name("Thrusters")
                 paneInfo = paneInfo.Caption("Thrusters").Bottom()
         
-                paneInfoC = wx.aui.AuiPaneInfo().Name("ThrustersCurrents")   
+                paneInfoC = wx.aui.AuiPaneInfo().Name("TCurrents")   
                 paneInfoC = paneInfo.Caption("Thrusters Currents").Bottom()
         
                 panel = ThrusterPanel(parent, eventHub, thrusters)
-                panelC = ThrusterCurrentPanel(parent, eventHub, thrusters)
+                panelC = ThrusterCurrentPanel(parent, eventHub, [])
                 return [(paneInfo, panel, [vehicle]),
                         (paneInfoC, panelC, [vehicle])]
             
