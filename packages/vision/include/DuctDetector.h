@@ -29,14 +29,16 @@ public:
 	
 	double getX();
 	double getY();
+    double getSize();
 	
 	double getRotation();
 	
+    bool getVisible();
 	bool getAligned();
 	
 private:
 
-	double m_x, m_y, m_rotation;
+	double m_x, m_y, m_rotation, m_size;
 
 };
 
