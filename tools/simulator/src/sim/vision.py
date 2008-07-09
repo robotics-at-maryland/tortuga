@@ -220,12 +220,22 @@ class AirDuct(ram.sim.object.Object):
         orientation.ToAngleAxis(angle, vector)
         return [vector.x, vector.y, vector.z, angle.valueDegrees()]
     
+    @property
+    def position(self):
+        return self._position
+    
+    @property
+    def orientation(self):
+        return self._orientation
+    
     def load(self, data_object):
         scene, parent, node = data_object
         ram.sim.object.Object.load(self, (parent, node))
         
         # Parse config information
         basePos, orientation = parse_position_orientation(node)
+        self._position = ogre.Vector3(basePos)
+        self._orientation = orientation
         basePos = ogre.Vector3(basePos)
         baseName = node['name']
         
@@ -317,10 +327,15 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundBin = False
         self._binCentered = False
         
+        # Duct Detector variables
+        self._runDuct = False
+        self._foundDuct = False
+        
         # Find all the Buoys, Pipes and Bins
         self._bouys = sim.scene.getObjectsByInterface(IBuoy)
         self._pipes = sim.scene.getObjectsByInterface(IPipe)
         self._bins = sim.scene.getObjectsByInterface(IBin)
+        self._ducts = sim.scene.getObjectsByInterface(IDuct)
 
     def redLightDetectorOn(self):
         self._runRedLight = True
@@ -339,6 +354,12 @@ class IdealSimVision(ext.vision.VisionSystem):
         
     def binDetectorOff(self):
         self._runBin = False
+        
+    def ductDetectorOn(self):
+        self._runDuct = True
+        
+    def ductDetectorOff(self):
+        self._runDuct = False
 
     def backgrounded(self):
         return False
@@ -353,6 +374,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             self._checkOrangePipe()
         if self._runBin:
             self._checkBin()
+        if self._runDuct:
+            self._checkDuct()
     
     def _findClosest(self, objects):
         """
@@ -479,6 +502,47 @@ class IdealSimVision(ext.vision.VisionSystem):
             
         return (visible, x, y, angle)
         
+    def _forwardCheck(self, relativePos, obj):
+        """
+        Determines the whether or the object at the given relative position
+        is is visible, and if so, it returns its x, y (camera frame cordinates)
+        and angle.
+        
+        @type  relativePos: ogre.renderer.OGRE.Vector3
+        @param relativePos: The relative position to the downward object
+        
+        @rtype:  (bool, double, double, ext.math.Degree)
+        @return: (visible, x, y, angle)
+        """
+        
+        forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
+        
+        quat = forwardVector.getRotationTo(relativePos)
+        yaw = -quat.getRoll(True).valueDegrees()
+        pitch = quat.getYaw(True).valueDegrees()
+        
+        # Check to see if its the field of view
+        visible = False
+        x = 0.0
+        y = 0.0
+        angle = ext.math.Degree(0.0)
+        
+        # Check to see if its the field of view
+        if (math.fabs(yaw) <= (self._horizontalFOV/2)) and \
+           (math.fabs(pitch) <= (self._verticalFOV/2)):
+            visible = True
+        
+            x = yaw / (self._horizontalFOV/2)
+            # Negative because of the corindate system
+            y = -pitch / (self._verticalFOV/2)
+        
+            # Find relative angle
+            forwardObj = obj.orientation * ogre.Vector3.UNIT_X
+            orientation = forwardVector.getRotationTo(forwardObj)
+            angle = ext.math.Degree(orientation.getRoll(True).valueDegrees())
+            
+        return (visible, x, y, angle)
+        
     def _checkOrangePipe(self):
         pipe, relativePos = self._findClosest(self._pipes)
         pipeVisible, x, y, angle = self._downwardCheck(relativePos, pipe)
@@ -531,6 +595,45 @@ class IdealSimVision(ext.vision.VisionSystem):
                 self.publish(ext.vision.EventType.BIN_LOST, ext.core.Event())
 
         self._foundBin = binVisible
+        
+    def _checkDuct(self):
+        duct, relativePos = self._findClosest(self._ducts)
+        ductVisible, x, y, angle = self._forwardCheck(relativePos, duct)
+
+        if ductVisible and (relativePos.length() < 4.5):
+            event = ext.vision.DuctEvent(0.0, 0.0, 0.0, 0.0, False, False)
+            event.x = x
+            event.y = y
+            
+            # Magic size value
+            event.size = 1/relativePos.length() * 10;
+            
+            # TODO: Scale me
+            event.alignment = angle.valueDegrees()
+            
+            # Determine if we are aligned
+            if math.fabs(angle.valueDegrees()) < 3:
+                event.aligned = True
+            else:
+                event.aligned = False
+            event.visible = True
+            
+            self.publish(ext.vision.EventType.DUCT_FOUND, event)
+            
+#            # Check for centering
+#            toCenter = ogre.Vector2(x, y)
+#            if toCenter.normalise() < 0.08:
+#                if not self._ductCentered:
+#                    self._ductCentered = True
+#                    self.publish(ext.vision.EventType.duct_CENTERED, event)
+#            else:
+#                self._ductCentered = False
+            
+        else:
+            if self._foundDuct:
+                self.publish(ext.vision.EventType.DUCT_LOST, ext.core.Event())
+
+        self._foundDuct = ductVisible
 
 ext.core.SubsystemMaker.registerSubsystem('IdealSimVision', IdealSimVision)
 

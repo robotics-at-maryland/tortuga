@@ -274,11 +274,11 @@ class DuctPanel(VisionPanel):
         self._createControls("Duct")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_FOUND, 
+        conn = eventHub.subscribeToType(ext.vision.EventType.DUCT_FOUND, 
                                         self._onDuctFound)
         self._connections.append(conn)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_LOST, 
+        conn = eventHub.subscribeToType(ext.vision.EventType.DUCT_LOST, 
                                         self._onDuctLost)
         self._connections.append(conn)
         
@@ -295,10 +295,10 @@ class DuctPanel(VisionPanel):
         self._createDataControl(controlName = '_alignment', label = 'Align: ')
         
     def _onDuctFound(self, event):
-        #self._x.Value = "% 4.2f" % event.x
-        #self._y.Value = "% 4.2f" % event.y
-        #self._size.Value = "% 4.2f" % event.size
-        #self._alignment.Value = "% 4.2f" % event.alignment
+        self._x.Value = "% 4.2f" % event.x
+        self._y.Value = "% 4.2f" % event.y
+        self._size.Value = "% 4.2f" % event.size
+        self._alignment.Value = "% 4.2f" % event.alignment
         
         self.enableControls()
     
