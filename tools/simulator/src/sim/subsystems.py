@@ -56,7 +56,8 @@ class WindowListener(ogre.WindowEventListener):
     
 
 class Simulation(core.Subsystem):
-    SHUTDOWN = 'SIMULATION_SHUTDOWN'
+    SHUTDOWN = core.declareEventType('SIMULATION_SHUTDOWN')
+    UPDATE = core.declareEventType('UPDATE')
     
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config.get('name', 'Simulation'))
@@ -95,6 +96,7 @@ class Simulation(core.Subsystem):
         self._window = self._root.createRenderWindow("Simulator", width, height, 
                                                      False, params)
         self._debug = config.get('debug', False)
+        self._backgrounded = False
         
         # Load Scenes and grab the main one
         self._simulation.create_all_scenes()
@@ -118,8 +120,55 @@ class Simulation(core.Subsystem):
         if self._debug:
             ogrenewt.Debugger.getSingleton().init(self.scene.scene_mgr)
         
+    def rateLimit(self, rate):
+        """
+        Turns on a rate limiting mode, which tries to run the simulator at the
+        given rate.
+        
+        @type  rate: int
+        @param rate: The number of times it updates per second
+        NOT CURRENTLY USED
+        """
+        self._backgrounded = True
+        self._updateInterval = 1 / rate
+        self._lastUpdate = None
+        self._nextUpdate = ram.timer.time() + self._updateInterval 
+        
+        # Create a time which triggers the update at the desired rate
+        self._timer = ram.timer.Timer(self, Simulation.UPDATE, 
+                                      self._updateInterval)
+        
+    def _rateUpdateHandler(self, event):
+        now = ram.timer.time()
+        optimalNextUpdate = now + self._updateInterval
+        self._timer.stop()
+        
+        # Run our update
+        if self._lastUpdate is not None:
+            # Normal update
+            self.update(now - self._lastUpdate)
+        else:
+            # First update
+            self.update(self._updateInterval)
+        
+        # Check for running too slow and start the next timer
+        if self._nextUpdate < now:
+            # Update rate too fast
+            print "UPDATE RATE TOO FAST!!!"
+            self._timer = ram.timer.Timer(self, Simulation.UPDATE, 
+                                          self._updateInterval)
+            self._nextUpdate = now + self._updateInterval
+        else:
+            # Normal update rate
+            updateInterval = (now - self._nextUpdate) + self._updateInterval
+            
+            self._timer = ram.timer.Timer(self, Simulation.UPDATE, 
+                                          updateInterval)
+            
+            self._nextUpdate += self._updateInterval
+        
     def backgrounded(self):
-        return False
+        return self._backgrounded
         
     def unbackground(self, join = True):
         self.shutdown()
@@ -175,8 +224,9 @@ class Simulation(core.Subsystem):
             simGUICfg["windowTop"] = int(top)
             simGUICfg["windowLeft"] = int(left)
         guiData["SIM"] = simGUICfg
-        yaml.dump(guiData,layoutStream) 
+        yaml.dump(guiData,layoutStream)
         layoutStream.close()
+        print 'FILE DONE'
 
             
 

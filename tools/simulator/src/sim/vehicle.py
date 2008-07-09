@@ -41,6 +41,7 @@ class SimThruster(device.IThruster):
         
         self._simThruster = simThruster
         self._name = name
+        self._enabled = True
                 
     @property
     def relativePosition(self):
@@ -61,7 +62,10 @@ class SimThruster(device.IThruster):
         self.publish(device.IThruster.FORCE_UPDATE, event)
     
     def getForce(self):
-        return self._simThruster.force
+        if self._enabled:
+            return self._simThruster.force
+        else:
+            return ogre.Vector3.ZERO
     
     def getMaxForce(self):
         return self._simThruster.max_force
@@ -72,6 +76,11 @@ class SimThruster(device.IThruster):
     def update(self, timestep):
         pass
     
+    def setEnabled(self, state):
+        self._enabled = state
+    
+    def isEnabled(self):
+        return self._enabled
 
 class SimVehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
