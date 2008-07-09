@@ -16,6 +16,7 @@ import ogre.renderer.OGRE as ogre
 import ext.core
 import ext.vision
 import ext.math
+from ext.vision import Suit
 from sim.subsystems import Simulation
 from sim.vehicle import SimVehicle
 
@@ -29,13 +30,16 @@ import ram.sim.object
 
 class IBuoy(IObject):
     """ An object which you can see in the simulation"""
-    pass
 
 class IPipe(IObject):
     """ An object which you can see in the simulation"""
     pass
 
 class IBin(IObject):
+    """ An object which you can see in the simulation"""
+    pass
+
+class IDuct(IObject):
     """ An object which you can see in the simulation"""
     pass
 
@@ -84,15 +88,10 @@ class Pipe(Visual):
 class Bin(Visual):
     core.implements(IVisual, IBin)
     
-    NONE = 1
-    CLUB = 2
-    HEART = 3
-    SPADE = 4
-    DIAMOND = 5
-    
     @two_step_init
     def __init__(self):
         Visual.__init__(self)
+        self._suit = Suit.NONEFOUND
 
     def load(self, data_object):
         scene, parent, node = data_object
@@ -105,15 +104,15 @@ class Bin(Visual):
             material = 'CompElement/Bin'
             
             _type = node.get('suit', '').lower()
-            self._suit = Bin.NONE
+            self._suit = Suit.NONEFOUND
             possibleSuits = set(['heart','spade','club','diamond'])
             if _type in possibleSuits:
                 # Added the suit name to the base (first letter caps
                 material = 'CompElement/' + _type[0].upper() + _type[1:] + 'Bin'
                 
                 # Set suit type
-                typeToFlag = {'club' : Bin.CLUB, 'heart' : Bin.HEART,
-                              'spade' : Bin.SPADE, 'diamond' : Bin.DIAMOND}
+                typeToFlag = {'club' : Suit.CLUB, 'heart' : Suit.HEART,
+                              'spade' : Suit.SPADE, 'diamond' : Suit.DIAMOND}
                 self._suit = typeToFlag[_type]
 
             gfxNode['material'] = material
@@ -123,7 +122,7 @@ class Bin(Visual):
             
 
         else:
-            self._suit = Bin.NONE
+            self._suit = Suit.NONEFOUND
         Visual.load(self, (scene, parent, node))
         
     def save(self, data_object):
@@ -207,7 +206,7 @@ class BlackJackTable(ram.sim.object.Object):
         raise "Not yet implemented"
     
 class AirDuct(ram.sim.object.Object):
-    core.implements(ram.sim.object.IObject)
+    core.implements(ram.sim.object.IObject, IDuct)
     
     SEPERATION = 0.762
     
@@ -514,6 +513,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             event = ext.core.Event()
             event.x = x
             event.y = y
+            event.angle = angle
+            event.suit = bin.suit
             self.publish(ext.vision.EventType.BIN_FOUND, event)
             
             # Check for centering
