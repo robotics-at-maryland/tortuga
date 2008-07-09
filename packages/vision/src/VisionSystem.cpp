@@ -17,6 +17,7 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
+#include "vision/include/DuctDetector.h"
 #include "vision/include/GateDetector.h"
 
 #include "core/include/EventHub.h"
@@ -121,6 +122,9 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new BinDetector(config["BinDetector"], eventHub));
     m_pipelineDetector = DetectorPtr(
         new OrangePipeDetector(config["PipelineDetector"], eventHub));
+    m_ductDetector = DetectorPtr(
+        new DuctDetector(//config["DuctDetector"],
+                         eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(config["GateDetector"], eventHub));
 
@@ -166,6 +170,16 @@ void VisionSystem::pipeLineDetectorOff()
     m_downward->removeDetector(m_pipelineDetector);
 }
 
+void VisionSystem::ductDetectorOn()
+{
+    m_forward->addDetector(m_ductDetector);
+}
+
+void VisionSystem::ductDetectorOff()
+{
+    m_forward->removeDetector(m_ductDetector);
+}
+    
 void VisionSystem::gateDetectorOn()
 {
     m_forward->addDetector(m_gateDetector);

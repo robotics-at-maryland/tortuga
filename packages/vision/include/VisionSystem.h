@@ -39,6 +39,8 @@ public:
     void binDetectorOff();
     void pipeLineDetectorOn();
     void pipeLineDetectorOff();
+    void ductDetectorOn();
+    void ductDetectorOff();
     void gateDetectorOn();
     void gateDetectorOff();
 
@@ -100,6 +102,7 @@ private:
     DetectorPtr m_redLightDetector;
     DetectorPtr m_binDetector;
     DetectorPtr m_pipelineDetector;
+    DetectorPtr m_ductDetector;
     DetectorPtr m_gateDetector;
 
     /** Flag which when true enables use of back/unback and update */
