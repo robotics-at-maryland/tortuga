@@ -79,24 +79,27 @@ m_inertial = [0.1 0 -0.1732]';
 t0=0;
 te=10;
 step = 1/frequency;
-
+time = t0:step:te;
 
 
 %% simulation
-x = [q ;  w;  qd;  wd;  qhat];
-
+%x = [q ;  w;  qd;  wd;  qhat];
+x=zeros(18,length(time));
 %options=odeset;
 %options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
 %[time,x] = ode45(@rotationalSimDynamics,[t0,te],x0);
 %[time,x] = ode45(@rotationalSimDynamics,[t0,te],x0,options);
-for(t0:step:te)
-    {
+for i = 2:length(time)
+    options=odeset;
+    options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
+    [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],[x(:,i-1)]);
+    x(:,i) = x_ode(end,:);
      %simulates measurement (perfect for now). q_old and w_old are
      %initialized as q0, w0
-    q_meas = x(1);
-    w_meas = x(2);
-    qd_meas = x(1) - q_old;
-    wd_meas = x(2) - w_old;
+    %q_meas = x(1);
+    %w_meas = x(2);
+    %qd_meas = x(1) - q_old;
+    %wd_meas = x(2) - w_old;
     
      %simulates the estimation
      %the rough cut is going to just take our measured position and add a
@@ -107,7 +110,8 @@ for(t0:step:te)
     
     %simulates dynamics using dynamics.m and ode45 loop
     %
-    }
+    
+end
 
 
 
