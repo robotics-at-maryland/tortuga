@@ -1,0 +1,1 @@
+Object('sonarUtils.cpp',CCFLAGS='-Wall');
