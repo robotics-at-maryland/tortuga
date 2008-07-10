@@ -30,6 +30,56 @@ static boost::filesystem::path getImagesDir()
     return root / "packages" / "vision" / "test" / "data" / "images" / "testduct";
 }
 
+/** Draws the air duct from the side */
+enum DuctDirection {
+    DUCT_VERTICAL,
+    DUCT_HORIZONTAL
+};
+
+void drawSideDuct(vision::Image* image, int x, int y, int width = 100,
+                  DuctDirection mode = DUCT_VERTICAL)
+{
+    // Black square
+    drawSquare(image, x, y, width, width, 0, CV_RGB(0,0,0));
+
+    double stripeWidth = ((double)width/10.0);
+    double stripeOffset = (double)width/2 - stripeWidth/2;
+
+    if (DUCT_HORIZONTAL == mode)
+    {
+        // Left Yellow Stripe
+        drawSquare(image, (int)(x - stripeOffset), y, (int)stripeWidth, width,
+                   0, CV_RGB(255, 255, 0));
+        
+        // Right Yellow Stripe
+        drawSquare(image, (int)(x + stripeOffset), y, (int)stripeWidth, width,
+                   0, CV_RGB(255, 255, 0));
+    }
+    else // DUCT_VERTICAL
+    {
+        // Left Yellow Stripe
+        drawSquare(image, x, (int)(y - stripeOffset), width, (int)stripeWidth,
+                   0, CV_RGB(255, 255, 0));
+        
+        // Right Yellow Stripe
+        drawSquare(image, x, (int)(y + stripeOffset), width, (int)stripeWidth,
+                   0, CV_RGB(255, 255, 0));
+    }
+}
+
+void drawFrontDuct(vision::Image* image, int x, int y, int width = 100)
+{
+    // Draw outer ring
+    drawSideDuct(image, x, y, width, DUCT_VERTICAL);
+    drawSideDuct(image, x, y, width,  DUCT_HORIZONTAL);
+
+    // Draw inner ring
+    double innerWidth = (double)width * 0.5;
+    drawSideDuct(image, x, y, (int)innerWidth, DUCT_VERTICAL);
+    drawSideDuct(image, x, y, (int)innerWidth, DUCT_HORIZONTAL);
+}
+
+
 struct DuctDetectorFixture
 {
     DuctDetectorFixture() :
@@ -65,7 +115,7 @@ struct DuctDetectorFixture
 };
 
 SUITE(DuctDetector) {
-    
+
 TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 {
 	vision::Image* input =
@@ -180,5 +230,44 @@ TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_LOST)
     detector.processImage(&blank);
     CHECK(!event);
 }
+
+// Test some corner cases for direction
+/*
+TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
+{
+    // MAKE DETECTOR PASS ME
+    vision::OpenCVImage image(640, 480);
+    vision::OpenCVImage output(480, 640);
+    makeColor(&image, 0, 0, 255);
+    drawSideDuct(&image, 640 - (640/4), 480/4);
+
+    detector.processImage(&image, &output);
+    double expectedX = -0.5;
+    double expectedY = 0.5 * 640.0/480.0;
+    
+    CHECK(!detector.getAligned());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(0, detector.getRotation(), 0.4);
+}
+
+TEST_FIXTURE(DuctDetectorFixture, LowerRight)
+{
+    // MAKE DETECTOR PASS ME
+    vision::OpenCVImage image(640, 480);
+    vision::OpenCVImage output(480, 640);
+    makeColor(&image, 0, 0, 255);
+    drawSideDuct(&image, 640/4, 480/4 * 3);
+
+    detector.processImage(&image, &output);
+    double expectedX = 0.5;
+    double expectedY = -0.5 * 640.0/480.0;
+    
+    CHECK(!detector.getAligned());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(0, detector.getRotation(), 0.4);
+}
+*/
 
 } // SUITE(DuctDetector)

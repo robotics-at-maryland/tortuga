@@ -55,33 +55,54 @@ double max(double a, double b)
 }
 
 DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
-    Detector(eventHub)
+    Detector(eventHub),
+    m_working(new OpenCVImage(480, 640))
 {
     m_x = m_y = 0.0;
     m_rotation = M_PI/2.0;
 }
+
+DuctDetector::~DuctDetector()
+{
+    delete m_working;
+}
     
 void DuctDetector::processImage(Image* input, Image* output)
-{
-    unsigned char* data = input->getData();
-    //unsigned char* outputData = output->getData();
-    
+{   
+    // Rotate image 90 degrees counter clockwise to account for camera crap
+    if ((m_working->getWidth() != input->getHeight()) ||
+        (m_working->getHeight() != input->getWidth()))
+    {
+        // Resize if needed
+        delete m_working;
+        m_working = new OpenCVImage(input->getHeight(), input->getWidth());
+    }
+    rotate90Deg(input->asIplImage(), m_working->asIplImage());
+
+    // Grab data pointers
+    unsigned char* data = m_working->getData();
+    unsigned char* outputData = 0;
+
     if (output)
     {
-        output->copyFrom(input);
+        output->copyFrom(m_working);
+        outputData = output->getData();
     }
+
+
+    int width = m_working->getWidth();
+    int height = m_working->getHeight();
+    int *hist = new int[width];
     
-    int *hist = new int[(int)input->getWidth()];
-    
-    for (int i=0;i<(int)input->getWidth();i++)
+    for (int i=0;i<width;i++)
         hist[i] = 0;
         
     int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
     
-    for (int j=0;j<(int)input->getHeight();j++)
+    for (int j=0;j<height;j++)
     {
-        int offset = j*input->getWidth()*3;
-        for (int i=0;i<(int)input->getWidth()*3;i+=3)
+        int offset = j*width*3;
+        for (int i=0;i<width*3;i+=3)
         {
             int y = yellow(data[offset+i+2], // R
                            data[offset+i+1], // G
@@ -120,17 +141,17 @@ void DuctDetector::processImage(Image* input, Image* output)
     int index = 0;
     bool found = false;
     
-    for (int i=0;i<(int)input->getWidth();i++)
+    for (int i=0;i<width;i++)
     {
         if (hist[i] > 1 && !found)
         {
-            ps[index] = i / (double)input->getWidth();
+            ps[index] = i / (double)width;
             index ++;
             found = true;
         }
         else if (hist[i] <= 1 && found)
         {
-            ps[index] = i / (double)input->getWidth();
+            ps[index] = i / (double)width;
             index ++;
             found = false;
         }
@@ -142,22 +163,26 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     if (ps[2] > 1 && ps[3] > 1)
     {
-        int offset = static_cast<int>(m_y*input->getWidth()*3);
+        int offset = static_cast<int>(m_y*width*3);
         ps[0] = ps[1] = ps[2] = ps[3] = -10000;
         int ind = 0;
         bool found = false;
         
-        for (int i=0;i<(int)input->getWidth()*3;)
+        for (int i=0;i<width*3;)
         {
             if (!found && yellow(data[offset+i+2], data[offset+i+1], 
                                  data[offset+i]))
             {
                 ps[ind] = i/3;
-                //outputData[offset+i+2] = 255;
-                //outputData[offset+i+1] = 0;
-                //outputData[offset+i+0] = 0;
                 ind++;
                 found = true;
+
+                if (outputData)
+                {
+                    outputData[offset+i+2] = 255;
+                    outputData[offset+i+1] = 0;
+                    outputData[offset+i+0] = 0;
+                }
             }
             else if (found && !yellow(data[offset+i+2], data[offset+i+1], 
                                       data[offset+i]))
@@ -197,9 +222,9 @@ void DuctDetector::processImage(Image* input, Image* output)
         m_rotation = 2000 * (ps[3] - ps[2]);
     }
         
-    double ny = 2.0 * (m_x / 640 - 0.5) * 640.0/480.0;
-    double nx = 2.0 * (m_y / 480 - 0.5);
-    m_size = m_size / (double)input->getWidth();
+    double ny = 2.0 * (m_x / width - 0.5) * 640.0/480.0;
+    double nx = 2.0 * (m_y / height - 0.5);
+    m_size = m_size / (double)width;
         
     DuctEventPtr event(new DuctEvent(nx, ny, m_size, m_rotation, 
         getAligned(), getVisible()));

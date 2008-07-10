@@ -24,7 +24,8 @@ class RAM_EXPORT DuctDetector : public Detector
 {
 public:
 	DuctDetector(core::EventHubPtr eventHub = core::EventHubPtr());
-	
+        virtual ~DuctDetector();
+        
 	void processImage(Image* input, Image* output = 0);
 	
 	double getX();
@@ -37,7 +38,8 @@ public:
 	bool getAligned();
 	
 private:
-
+        /** Stores the image we are currently working with */
+	Image* m_working;
 	double m_x, m_y, m_rotation, m_size;
 
 };
