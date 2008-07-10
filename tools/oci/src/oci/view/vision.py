@@ -298,7 +298,10 @@ class DuctPanel(VisionPanel):
         self._x.Value = "% 4.2f" % event.x
         self._y.Value = "% 4.2f" % event.y
         self._size.Value = "% 4.2f" % event.size
-        self._alignment.Value = "% 4.2f" % event.alignment
+        if event.aligned:
+            self._alignment.Value = "% 4.2f" % event.alignment
+        else:
+            self._alignment.Value = "N/A"
         
         self.enableControls()
     

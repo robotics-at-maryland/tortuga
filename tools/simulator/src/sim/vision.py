@@ -600,19 +600,28 @@ class IdealSimVision(ext.vision.VisionSystem):
         duct, relativePos = self._findClosest(self._ducts)
         ductVisible, x, y, angle = self._forwardCheck(relativePos, duct)
 
-        if ductVisible and (relativePos.length() < 4.5):
+        if ductVisible and (relativePos.length() < 8):
             event = ext.vision.DuctEvent(0.0, 0.0, 0.0, 0.0, False, False)
             event.x = x
             event.y = y
             
             # Magic size value
-            event.size = 1/relativePos.length() * 10;
+            event.size = (8 - relativePos.length()) * 10
             
             # TODO: Scale me
-            event.alignment = angle.valueDegrees()
+            angleDeg = angle.valueDegrees()
+            if angleDeg > 90:
+                angleDeg -= 180
+            elif angleDeg < -90:
+                angleDeg += 180
             
-            # Determine if we are aligned
-            if math.fabs(angle.valueDegrees()) < 3:
+            event.alignment = angleDeg
+            
+            # Determine if we are aligned (with perpendicular offset)
+            forwardVector = duct.orientation * ogre.Vector3.UNIT_X
+            offset = relativePos.crossProduct(forwardVector).length()
+            
+            if offset < 2:
                 event.aligned = True
             else:
                 event.aligned = False
