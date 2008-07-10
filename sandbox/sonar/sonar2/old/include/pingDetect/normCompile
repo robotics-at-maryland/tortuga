@@ -1,1 +1,0 @@
-g++ pingDtest.cpp -o mytest -I . -I ../spectrum/ -I /home/levashom/auv/trunk/packages/
