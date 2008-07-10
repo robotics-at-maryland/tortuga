@@ -1,4 +1,4 @@
-
+function dx=rotationalSimDynamics(t,x)
 %% dynamics
 
 %drag

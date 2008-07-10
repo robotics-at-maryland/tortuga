@@ -1,4 +1,4 @@
-%simulate tortuga rotational dynamics
+% simulate tortuga rotational dynamics
 clc
 close all;
 clear;
@@ -8,7 +8,7 @@ clear;
 frequency = 10;
 %initial position
 axis0=[1 0 0]';
-angle0=180*pi/180;
+angle0=0*pi/180;
 q0=[axis0*sin(angle0/2); cos(angle0/2)];
 %q0=[0 0 0 1]';
 q = q0;
@@ -30,11 +30,9 @@ qhat = qhat0;
 %what0=w0;
 
 x0=[q0; w0; qd0; wd0; qhat0];
-x= [q ;  w;  qd;  wd;  qhat];
 
 %% constants
-
-%system inertia
+ %system inertia
 global H;
 %this inertia matrix is from Tom Capon's CAD model of Tortuga 2 
 % as of 2008-4-8
@@ -82,9 +80,11 @@ step = 1/frequency;
 time = t0:step:te;
 
 
-%% simulation
+% simulation
 %x = [q ;  w;  qd;  wd;  qhat];
-x=zeros(18,length(time));
+x=zeros(length(time),18);
+x(1,:) = x0';
+
 %options=odeset;
 %options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
 %[time,x] = ode45(@rotationalSimDynamics,[t0,te],x0);
@@ -92,8 +92,8 @@ x=zeros(18,length(time));
 for i = 2:length(time)
     options=odeset;
     options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
-    [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],[x(:,i-1)]);
-    x(:,i) = x_ode(end,:);
+    [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],[x(i-1,:)]);
+    x(i,:) = x_ode(end,:);
      %simulates measurement (perfect for now). q_old and w_old are
      %initialized as q0, w0
     %q_meas = x(1);
@@ -112,13 +112,8 @@ for i = 2:length(time)
     %
     
 end
-
-
-
-
-
 %% format results
-%recall that x = [q; w; qhat; bhat];
+ %recall that x = [q; w; qhat; bhat];
 %grab results
 q=x(:,1:4);%actual angular position
 w=x(:,5:7);%actual angular rate
@@ -157,7 +152,7 @@ subplot(4,1,4)
 plot(time,q(:,4),time,qd(:,4))
 ylabel('q_4')
 xlabel('time (s)')
-
+ 
 %% plot velocity response
 figure(3)
 subplot(3,1,1)
@@ -189,6 +184,5 @@ subplot(4,1,4)
 plot(time,q(:,4),time,qhat(:,4))
 ylabel('q_4')
 xlabel('time (s)')
-
 %final heading of vehicle
-%R(q(end,:))'*[1 0 0]'
+R(q(end,:))'*[1 0 0]'
