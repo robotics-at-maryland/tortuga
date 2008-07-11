@@ -20,7 +20,8 @@ import ram.event as event
 
 event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
                        'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN', 
-                       'ROLL_PORT', 'ROLL_STARBOARD'])
+                       'ROLL_PORT', 'ROLL_STARBOARD', 'STRAFE_RIGHT',
+                       'STRAFE_LEFT'])
 
 class KeyboardController(core.Subsystem):
     def __init__(self, config, deps):
@@ -28,6 +29,7 @@ class KeyboardController(core.Subsystem):
 #        self._controller = control.IController.castTo(deps[0])
         self._controller = deps[0]
         self._desiredSpeed = self._controller.getSpeed()
+        self._desiredSidewaysSpeed = self._controller.getSidewaysSpeed()
         
         # Hook into input system
         watched_buttons = {'_left' : ['TURN_LEFT'],
@@ -39,7 +41,9 @@ class KeyboardController(core.Subsystem):
                            '_pitch_up' : ['PITCH_UP'],
                            '_pitch_down' : ['PITCH_DOWN'],
                            '_roll_port' : ['ROLL_PORT'],
-                           '_roll_starboard' : ['ROLL_STARBOARD']}
+                           '_roll_starboard' : ['ROLL_STARBOARD'],
+                           '_strafe_right' : ['STRAFE_RIGHT'],
+                           '_strafe_left' : ['STRAFE_LEFT']}
         self.key_observer = input.ButtonStateObserver(self, watched_buttons)
         
     def backgrounded(self):
@@ -82,6 +86,19 @@ class KeyboardController(core.Subsystem):
         elif self._backward:
             self._desiredSpeed -= 2 * time_since_last_frame
             self._controller.setSpeed(self._desiredSpeed)
+
+        # SidewaysSpeed Control
+        if self._desiredSidewaysSpeed > 5:
+            self._desiredSidewaysSpeed = 5
+        elif self._desiredSidewaysSpeed < -5:
+            self._desiredSidewaysSpeed = -5
+            
+        if self._strafe_right:
+            self._desiredSidewaysSpeed += 2 * time_since_last_frame
+            self._controller.setSidewaysSpeed(self._desiredSidewaysSpeed)
+        elif self._strafe_left:
+            self._desiredSidewaysSpeed -= 2 * time_since_last_frame
+            self._controller.setSidewaysSpeed(self._desiredSidewaysSpeed)
             
         # Depth Control
         currentDepth = self._controller.getDepth()

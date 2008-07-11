@@ -9,13 +9,13 @@ GUI:
 
 Subsystems:
     VisionSystem:
-#        type: SimVision
+        #type: SimVision
         type: IdealSimVision
         cameraRate: 10
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
-        #maxRecordRate: 10 # Hz
+        #maxRecordRate: 5 # Hz
         #forwardFile: forward.avi
         #downwardFile: downward.avi
         #forwardPort: 50000
@@ -192,8 +192,8 @@ Subsystems:
             # Each scene must be on the given scene_path, this for example is 
             # in 'data/scenes/nxtest.xml'
             #Main: pipe.sml
-            Main: bin.sml
-            #Main: duct.sml
+            #Main: bin.sml
+            Main: duct.sml
             #Main: buoy.sml
             #Main: transdec.sml
             #Main: nxtest.sml
@@ -258,6 +258,8 @@ Subsystems:
                 H : PITCH_DOWN
                 Z : ROLL_PORT
                 X : ROLL_STARBOARD
+                N : STRAFE_LEFT
+                M : STRAFE_RIGHT
                 
                 # Misc.
                 CTRL+B : SCREENSHOT
