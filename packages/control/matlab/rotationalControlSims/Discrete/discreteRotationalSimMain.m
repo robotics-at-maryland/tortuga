@@ -5,12 +5,12 @@ clear;
 
 %% initialization
 %sampling frequency
-frequency = 10;
+frequency = 40;
 %initial position
 axis0=[1 0 0]';
-angle0=0*pi/180;
+angle0=180*pi/180;
 q0=[axis0*sin(angle0/2); cos(angle0/2)];
-%q0=[0 0 0 1]';
+%q0=[1 0 0 0]';
 q = q0;
 q_old = q0;
 %initial angular rate
