@@ -163,8 +163,6 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 	    (getImagesDir() / "unal2.png").string());
     // Blue Image with red circle in the center
 	detector.processImage(input4);
-    
-    std::cout << "ROT:" << detector.getRotation() << "\n";
 	
 	CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);

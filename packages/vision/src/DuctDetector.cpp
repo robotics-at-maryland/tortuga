@@ -54,12 +54,27 @@ double max(double a, double b)
     return b;
 }
 
+DuctDetector::DuctDetector(core::ConfigNode config,
+                           core::EventHubPtr eventHub) :
+    m_working(new OpenCVImage(480, 640)),
+    m_x(0.0),
+    m_y(0.0),
+    m_rotation(M_PI/2.0),
+    n_x(0.0),
+    n_y(0.0)
+{
+
+}
+    
 DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
     Detector(eventHub),
-    m_working(new OpenCVImage(480, 640))
+    m_working(new OpenCVImage(480, 640)),
+    m_x(0.0),
+    m_y(0.0),
+    m_rotation(M_PI/2.0),
+    n_x(0.0),
+    n_y(0.0)
 {
-    m_x = m_y = 0.0;
-    m_rotation = M_PI/2.0;
 }
 
 DuctDetector::~DuctDetector()
@@ -228,9 +243,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     if (output)
     {
-        std::cout << "center: (" << m_x << ", " << m_y << ")\n";
         CvPoint tl,tr,bl,br;
-        std::cout << minX  << " " << minY << " " << maxX << " " << maxY << "\n";
         tl.x = bl.x = std::max(minX,0);
         tr.x = br.x = std::min(maxX,width-1);
         tl.y = tr.y = std::min(minY,height-1);
@@ -243,8 +256,8 @@ void DuctDetector::processImage(Image* input, Image* output)
         cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
         
         CvPoint lightCenter;
-        lightCenter.x = m_x;
-        lightCenter.y = m_y;
+        lightCenter.x = (int)m_x;
+        lightCenter.y = (int)m_y;
         cvCircle(raw, lightCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
     }
     

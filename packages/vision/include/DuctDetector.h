@@ -23,6 +23,8 @@ namespace vision {
 class RAM_EXPORT DuctDetector : public Detector
 {
 public:
+    DuctDetector(core::ConfigNode config,
+                 core::EventHubPtr eventHub = core::EventHubPtr());
 	DuctDetector(core::EventHubPtr eventHub = core::EventHubPtr());
         virtual ~DuctDetector();
         

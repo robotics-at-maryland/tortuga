@@ -19,6 +19,7 @@
 #include "vision/include/GateDetector.h"
 #include "vision/include/FeatureDetector.h"
 #include "vision/include/SuitDetector.h"
+#include "vision/include/DuctDetector.h"
 
 namespace ram {
 namespace vision {
@@ -40,6 +41,9 @@ registerFeatureDetector("FeatureDetector");
 
 static DetectorMakerTemplate<SuitDetector>
 registerSuitDetector("SuitDetector");
+
+static DetectorMakerTemplate<DuctDetector>
+registerDuctDetector("DuctDetector");
     
 } // namespace vision
 } // namespace ram
