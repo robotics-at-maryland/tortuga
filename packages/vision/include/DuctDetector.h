@@ -41,6 +41,7 @@ private:
         /** Stores the image we are currently working with */
 	Image* m_working;
 	double m_x, m_y, m_rotation, m_size;
+    double n_x, n_y;
 
 };
 

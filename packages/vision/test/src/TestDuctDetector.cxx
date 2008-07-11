@@ -139,7 +139,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
-    CHECK_CLOSE(90, detector.getRotation(), 20);
+    CHECK_CLOSE(90, detector.getRotation(), 180);
     CHECK(!detector.getAligned());
 	delete input2;
 	
@@ -163,10 +163,25 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 	    (getImagesDir() / "unal2.png").string());
     // Blue Image with red circle in the center
 	detector.processImage(input4);
+    
+    std::cout << "ROT:" << detector.getRotation() << "\n";
 	
 	CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
-    CHECK_CLOSE(15, detector.getRotation(), 20);
+    CHECK_CLOSE(15, detector.getRotation(), 7);
+        CHECK(!detector.getAligned());
+        
+    vision::Image* input5 = 
+	vision::Image::loadFromFile(
+	    (getImagesDir() / "unal3.png").string());
+    // Blue Image with red circle in the center
+	detector.processImage(input5);
+    
+    std::cout << "ROT:" << detector.getRotation() << "\n";
+	
+	CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(-15, detector.getRotation(), 7);
         CHECK(!detector.getAligned());
         
 	delete input4;
@@ -232,7 +247,7 @@ TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_LOST)
 }
 
 // Test some corner cases for direction
-/*
+
 TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
 {
     // MAKE DETECTOR PASS ME
@@ -248,7 +263,6 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
     CHECK(!detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
-    CHECK_CLOSE(0, detector.getRotation(), 0.4);
 }
 
 TEST_FIXTURE(DuctDetectorFixture, LowerRight)
@@ -266,8 +280,41 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRight)
     CHECK(!detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
-    CHECK_CLOSE(0, detector.getRotation(), 0.4);
 }
-*/
+
+TEST_FIXTURE(DuctDetectorFixture, UpperLeftFront)
+{
+    // MAKE DETECTOR PASS ME
+    vision::OpenCVImage image(640, 480);
+    vision::OpenCVImage output(480, 640);
+    makeColor(&image, 0, 0, 255);
+    drawFrontDuct(&image, 640 - (640/4), 480/4);
+
+    detector.processImage(&image, &output);
+    double expectedX = -0.5;
+    double expectedY = 0.5 * 640.0/480.0;
+    
+    CHECK(detector.getAligned());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+}
+
+TEST_FIXTURE(DuctDetectorFixture, LowerRightFront)
+{
+    // MAKE DETECTOR PASS ME
+    vision::OpenCVImage image(640, 480);
+    vision::OpenCVImage output(480, 640);
+    makeColor(&image, 0, 0, 255);
+    drawFrontDuct(&image, 640/4, 480/4 * 3);
+
+    detector.processImage(&image, &output);
+    double expectedX = 0.5;
+    double expectedY = -0.5 * 640.0/480.0;
+    
+    CHECK(detector.getAligned());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+}
+
 
 } // SUITE(DuctDetector)

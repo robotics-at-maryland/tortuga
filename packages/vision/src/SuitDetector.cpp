@@ -55,6 +55,14 @@ SuitDetector::~SuitDetector()
     cvReleaseImage(&scaledRedSuit);
 }
 
+/* New plans:  Run the four edges of the image traveling counter clockwise, mark the
+sections of pixels touching the edges.  These are the places where the suit hits the 
+walls of the image.  Mark the first of each of these sections.  
+
+Now, run the edge of the suit, counting traversal distances with edgeRun.
+
+This will create both a count of pixels along the edges, sections along the edges, 
+and traversal distances between sections along the edges.*/
 int SuitDetector::edgeRun(int startX, int startY, IplImage* img)
 {
 	int width = img->width;
@@ -326,6 +334,7 @@ bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
             scaledRedIndex += 4 - scaledRedIndex%4;
         }
     }
+    
     
     cvReleaseImage(&onlyRedSuit);
     return true;//we made a histogram   

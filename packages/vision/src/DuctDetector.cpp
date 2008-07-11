@@ -120,6 +120,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     double oldMx = m_x;
     m_size = maxX - minX;
+    
     m_x = (minX + maxX) * 0.5;
     m_y = (minY + maxY) * 0.5;
     
@@ -219,14 +220,42 @@ void DuctDetector::processImage(Image* input, Image* output)
     }
     else
     {
-        m_rotation = 2000 * (ps[3] - ps[2]);
+        if (ps[3] - ps[2] < ps[1] - ps[0])
+            m_rotation = 2000 * (ps[3] - ps[2]);
+        else 
+            m_rotation = -2000 * (ps[1] - ps[0]);
     }
+    
+    if (output)
+    {
+        std::cout << "center: (" << m_x << ", " << m_y << ")\n";
+        CvPoint tl,tr,bl,br;
+        std::cout << minX  << " " << minY << " " << maxX << " " << maxY << "\n";
+        tl.x = bl.x = std::max(minX,0);
+        tr.x = br.x = std::min(maxX,width-1);
+        tl.y = tr.y = std::min(minY,height-1);
+        br.y = bl.y = std::max(maxY,0);
+            
+        IplImage* raw = output->asIplImage();
+        cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
+        cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
+        cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+        cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
         
-    double ny = 2.0 * (m_x / width - 0.5) * 640.0/480.0;
-    double nx = 2.0 * (m_y / height - 0.5);
-    m_size = m_size / (double)width;
+        CvPoint lightCenter;
+        lightCenter.x = m_x;
+        lightCenter.y = m_y;
+        cvCircle(raw, lightCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
+    }
+    
+    n_x = -1 * ((width / 2) - m_x);
+    n_y = (height / 2) - m_y;
+    n_x = n_x / ((double)width) * 2.0;
+    n_y = n_y / ((double)height) * 2.0;
+    n_y *= (double)height/width;
         
-    DuctEventPtr event(new DuctEvent(nx, ny, m_size, m_rotation, 
+        
+    DuctEventPtr event(new DuctEvent(n_x, n_y, m_size, m_rotation, 
         getAligned(), getVisible()));
     publish(EventType::DUCT_FOUND, event);
 
@@ -235,12 +264,12 @@ void DuctDetector::processImage(Image* input, Image* output)
     
 double DuctDetector::getX()
 {
-    return 2.0 * (m_y / 480 - 0.5);
+    return n_x;
 }
 
 double DuctDetector::getY()
 {
-    return 2.0 * (m_x / 640 - 0.5) * 640.0/480.0;
+    return n_y;
 }
 
 double DuctDetector::getSize()
