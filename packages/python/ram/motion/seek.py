@@ -139,13 +139,36 @@ class SeekPoint(Motion):
 class SeekPointToRange(SeekPoint):
     """
     Seeks a point, but stops a certain range
+    
+    @type desiredRange: float
+    @param desiredRange: The range you wish to be at relative to the target
+    
+    @type maxRangeDiff: float
+    @param maxRangeDiff: The range difference you wish your speed to max out at
     """
-    def __init__(self, target, desiredRange, maxSpeed = 0.0, depthGain = 1):
+    def __init__(self, target, desiredRange, maxRangeDiff, rangeGain = 1.0, 
+                 maxSpeed = 0.0, depthGain = 1):
         SeekPoint.__init__(self, target, maxSpeed, depthGain)
         self._desiredRange = desiredRange
+        self._maxRangeDiff = maxRangeDiff
+        self._rangeGain = rangeGain
     
     def _speedScale(self):
-        baseSpeed = SeekPoint._speedScale(self)
+        baseScale = SeekPoint._speedScale(self)
+        
+        # Pos if we are to far, neg if we are too close, then scale
+        rangeDiff = self._target.range - self._desiredRange
+        rangeScale = rangeDiff / self._maxRangeDiff
+        
+        # Find final scale, then cap
+        scale = baseScale * (rangeScale/self._rangeGain)
+        
+        if (scale < 0) and (scale < -1):
+            scale = -1
+        elif (scale > 0) and (scale > 1):
+            scale = 1
+            
+        return scale
         
         
 class ObserverControllerSeekPoint(Motion):

@@ -41,9 +41,10 @@ class TestPointTarget(unittest.TestCase):
                                     x = 0, y = 0)
         self.assertAlmostEqual(-8.485, p.relativeDepth, 3)
 
-class TestSeekPoint(support.MotionTest):
-    #def setUp(self):
-    
+class SeekPointTest(support.MotionTest):
+    def makeClass(self, *args, **kwargs):
+        return motion.seek.SeekPoint(*args, **kwargs)
+            
     def checkCommand(self, azimuth, elevation, range = 0, x = 0, y = 0,
                      yawChange = None, newDepth = None, newSpeed = None):
         """
@@ -64,7 +65,7 @@ class TestSeekPoint(support.MotionTest):
         maxSpeed = 0
         if newSpeed is not None:
             maxSpeed = 1
-        m = motion.seek.SeekPoint(target = bouy, maxSpeed = maxSpeed)
+        m = self.makeClass(target = bouy, maxSpeed = maxSpeed)
         
         # Start it and check the first results
         self.motionManager.setMotion(m)
@@ -74,6 +75,11 @@ class TestSeekPoint(support.MotionTest):
             self.assertAlmostEqual(newDepth, self.controller.depth, 3)
         if newSpeed is not None:
             self.assertAlmostEqual(newSpeed, self.controller.speed, 3)
+
+class TestSeekPoint(SeekPointTest):
+    #def setUp(self):
+    
+
     
     def testDeadAhead(self):
         # Bouy dead ahead of the vehicle
@@ -191,3 +197,58 @@ class TestSeekPoint(support.MotionTest):
         bouy.setState(azimuth = 15, elevation = 9, range = 0, x = 0, y = -2)
         self.assertAlmostEqual(-25, self.controller.yawChange, 4)
         self.assertAlmostEqual(6, self.controller.depth, 4)
+
+
+class TestSeekPointToRange(SeekPointTest):
+    def makeClass(self, *args, **kwargs):
+        
+        # These value by default make the vehicle go full forward speed
+        if not kwargs.has_key('desiredRange'):
+            kwargs['desiredRange'] = self.desiredRange
+        if not kwargs.has_key('maxRangeDiff'):
+            kwargs['maxRangeDiff'] = self.maxRangeDiff
+        
+        return motion.seek.SeekPointToRange(*args, **kwargs)
+    
+    def testOffHeadingSpeed(self):
+        # These value by default make the vehicle go full forward speed
+        self.desiredRange = -1
+        self.maxRangeDiff = 1
+        
+        # This is right at the range, we shouldn't be moving
+        self.checkCommand(azimuth = 45, elevation = 45, newSpeed = 0)
+
+        # Half way there
+        self.checkCommand(azimuth = 45/2.0, elevation = 45/2.0, newSpeed = 0.5)
+
+        # A little closer
+        self.checkCommand(azimuth = 45/2.0, elevation = 0, newSpeed = 0.6464)
+        self.checkCommand(azimuth = 0, elevation = 45/2.0, newSpeed = 0.6464)
+
+        # Dead ahead
+        self.checkCommand(azimuth = 0, elevation = 0, newSpeed = 1)
+        
+    def testRangeSpeed(self):
+        # Values are passed as the 'desiredRange' and 'maxRangeDiff' args to 
+        # the SeekTargeToRange constructor
+        self.desiredRange = 10.0
+        self.maxRangeDiff = 5.0
+        
+        # Proper range, no motion (max speed set to 1)
+        self.checkCommand(azimuth = 0, elevation = 0, range = 10, newSpeed = 0)
+        
+        # Too close, and inside maxRangeDiff
+        self.checkCommand(azimuth = 0, elevation = 0, range = 7.5, 
+                          newSpeed = -0.5)
+        
+        # Too close outside maxRangeDiff, value should be capped
+        self.checkCommand(azimuth = 0, elevation = 0, range = 2.5,
+                          newSpeed = -1)
+        
+        # Too far, and inside maxRangeDiff
+        self.checkCommand(azimuth = 0, elevation = 0, range = 12.5, 
+                          newSpeed = 0.5)
+        
+        # Too far outside maxRangeDiff, value should be capped
+        self.checkCommand(azimuth = 0, elevation = 0, range = 17,
+                          newSpeed = 1)
