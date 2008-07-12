@@ -19,6 +19,9 @@ Requires the following subsystems:
  - controller - ext.control.IController
 """
 
+# STD Imports
+import math
+
 # Project Imports
 import ext.core as core
 import ext.vision as vision
@@ -32,6 +35,10 @@ import ram.motion.duct
 THROUGH_DUCT = core.declareEventType('THROUGH_DUCT')
 
 class Searching(state.State):
+    """
+    Runs a zig-zag search pattern until it finds the duct
+    """
+    
     @staticmethod
     def transitions():
         return { vision.EventType.DUCT_FOUND : SeekingToRange }
@@ -51,16 +58,29 @@ class Searching(state.State):
         self.motionManager.stopCurrentMotion()
         
 class SeekingToRange(state.State):
+    """
+    Heads toward the duct until it reaches the desired range
+    """
+    
+    IN_RANGE = core.declareEventType('IN_RANGE')
+    
     @staticmethod
     def transitions():
         return { vision.EventType.DUCT_FOUND : SeekingToRange,
-                 vision.EventType.DUCT_LOST : Searching }
+                 vision.EventType.DUCT_LOST : Searching,
+                 SeekingToRange.IN_RANGE : SeekingToAligned }
         
     def DUCT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        azimuth = event.x * 107.0/2.0
-        elevation = event.y * 80.0/2.0
+        azimuth = event.x * -107.0/2.0
+        elevation = event.y * -80.0/2.0
         self._duct.setState(azimuth, elevation, event.size, event.x, event.y)
+        
+        rangeError = math.fabs(event.size - self._desiredRange)
+        frontDistance = math.sqrt(event.x * event.x + event.y * event.y)
+        if (rangeError < self._rangeThreshold) and \
+            (frontDistance < self._frontThreshold):
+            self.publish(SeekingToRange.IN_RANGE, core.Event())
         
     def enter(self):
         # Ensure vision system is on
@@ -70,13 +90,15 @@ class SeekingToRange(state.State):
         self._duct = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
         
         # Read in configuration settings
+        self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
+        self._frontThreshold = self._config.get('frontThreshold', 0.15)
         depthGain = self._config.get('depthGain', 1.5)
-        desiredRange = self._config.get('desiredRange', 300)
-        maxRangeDiff = self._config.get('maxRangeDiff', 500)
+        self._desiredRange = self._config.get('desiredRange', 0.3)
+        maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxSpeed = self._config.get('maxSpeed', 3)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._duct,
-            desiredRange = desiredRange,
+            desiredRange = self._desiredRange,
             maxRangeDiff = maxRangeDiff,
             maxSpeed = maxSpeed,
             depthGain = depthGain)
@@ -93,12 +115,12 @@ class SeekingToAligned(state.State):
     def transitions():
         return { vision.EventType.DUCT_FOUND : SeekingToAligned,
                  vision.EventType.DUCT_LOST : Searching,
-                 SeekingToAligned.ALIGNED : Through }
+                 SeekingToAligned.ALIGNED : Aligning }
 
     def DUCT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        azimuth = event.x * 107.0/2.0
-        elevation = event.y * 80.0/2.0
+        azimuth = event.x * -107.0/2.0
+        elevation = event.y * -80.0/2.0
         self._duct.setState(azimuth, elevation, event.size, event.x, event.y,
                             event.alignment)
         
@@ -115,8 +137,8 @@ class SeekingToAligned(state.State):
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
-        desiredRange = self._config.get('desiredRange', 300)
-        maxRangeDiff = self._config.get('maxRangeDiff', 500)
+        desiredRange = self._config.get('desiredRange', 0.3)
+        maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 45)
         maxSpeed = self._config.get('maxSpeed', 3)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
@@ -134,6 +156,54 @@ class SeekingToAligned(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()   
         
+class Aligning(state.State):
+    SETTLED = core.declareEventType('ALIGNED')
+       
+    @staticmethod
+    def transitions():
+        return { vision.EventType.DUCT_FOUND : Aligning,
+                 vision.EventType.DUCT_LOST : Searching,
+                 Aligning.SETTLED : Through }
+
+    def DUCT_FOUND(self, event):
+        """Update the state of the light, this moves the vehicle"""
+        azimuth = event.x * -107.0/2.0
+        elevation = event.y * -80.0/2.0
+        self._duct.setState(azimuth, elevation, event.size, event.x, event.y,
+                            event.alignment)
+
+    def enter(self):
+        self.timer = self.timerManager.newTimer(
+            Aligning.SETTLED, self._config.get('settleTime', 5))
+        self.timer.start()
+        
+        # Ensure vision system is on
+        self.visionSystem.ductDetectorOn()
+        
+        # Create tracking object
+        self._duct = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0)
+        
+        # Read in configuration settings
+        depthGain = self._config.get('depthGain', 1.5)
+        desiredRange = self._config.get('desiredRange', 0.3)
+        maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
+        maxAlignDiff = self._config.get('maxAlignDiff', 45)
+        maxSpeed = self._config.get('maxSpeed', 3)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+
+        motion = ram.motion.duct.DuctSeekAlign(target = self._duct,
+            desiredRange = desiredRange,
+            maxRangeDiff = maxRangeDiff,
+            maxAlignDiff = maxAlignDiff,
+            maxSpeed = maxSpeed,
+            maxSidewaysSpeed = maxSidewaysSpeed,
+            depthGain = depthGain)
+        
+        self.motionManager.setMotion(motion)
+        
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+        
 class Through(state.State):
     FORWARD_DONE = core.declareEventType('FORWARD_DONE')
     
@@ -145,7 +215,8 @@ class Through(state.State):
         self.visionSystem.ductDetectorOff()
 
         # Timer goes off in 3 seconds then sends off FORWARD_DONE
-        self.timer = self.timerManager.newTimer(Through.FORWARD_DONE, 5)
+        self.timer = self.timerManager.newTimer(
+            Through.FORWARD_DONE, self._config.get('forwardTime', 15))
         self.timer.start()
         self.controller.setSpeed(3)
     
