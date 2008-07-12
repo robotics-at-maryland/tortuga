@@ -605,11 +605,11 @@ class IdealSimVision(ext.vision.VisionSystem):
             event.x = x
             event.y = y
             
-            # Magic size value
-            event.size = (8 - relativePos.length()) * 10
+            # Runs 1 -> 0, getting smaller the closer you go
+            event.size = 1 - (8 - relativePos.length()) / 8.0
             
             # TODO: Scale me
-            angleDeg = angle.valueDegrees()
+            angleDeg = angle.valueDegrees() * -1
             if angleDeg > 90:
                 angleDeg -= 180
             elif angleDeg < -90:
@@ -621,7 +621,7 @@ class IdealSimVision(ext.vision.VisionSystem):
             forwardVector = duct.orientation * ogre.Vector3.UNIT_X
             offset = relativePos.crossProduct(forwardVector).length()
             
-            if offset < 2:
+            if (offset < 2) and (math.fabs(angleDeg) < 3):
                 event.aligned = True
             else:
                 event.aligned = False
