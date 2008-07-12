@@ -48,12 +48,23 @@ class PointTarget(ext.core.EventPublisher):
             return -1 * self.range * math.sin(elevation)
         
 class SeekPoint(Motion):
+    """
+    This points at, and drives toward a target, it controls all types of motion
+    normally.  If depthGain is set to zero, it will not control DEPTH, if
+    maxSpeed is 0 it will not control IN_PLANE.
+    """
+    
     def __init__(self, target, maxSpeed = 0.0, depthGain = 1):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
         """
-        Motion.__init__(self)
+        _type = Motion.ORIENTATION
+        if 0 != depthGain:
+            _type = _type | Motion.DEPTH
+        if 0 != maxSpeed:
+            _type = _type | Motion.IN_PLANE
+        Motion.__init__(self, _type = _type)
         
         self._running = False
         self._target = target
@@ -73,9 +84,10 @@ class SeekPoint(Motion):
         """
         
         # Determine new Depth
-        currentDepth = self._vehicle.getDepth()
-        newDepth = currentDepth - self._target.y * self._depthGain
-        self._controller.setDepth(newDepth)
+        if 0 != self._depthGain:
+            currentDepth = self._vehicle.getDepth()
+            newDepth = currentDepth - self._target.y * self._depthGain
+            self._controller.setDepth(newDepth)
     
         # Determine how to yaw the vehicle
         vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
@@ -89,7 +101,8 @@ class SeekPoint(Motion):
         self._controller.yawVehicle(yawCommand)
 
         # Drive toward light
-        self._controller.setSpeed(self._speedScale() * self._maxSpeed)
+        if self._maxSpeed != 0:
+            self._controller.setSpeed(self._speedScale() * self._maxSpeed)
 
     def _speedScale(self):
         """
@@ -123,6 +136,17 @@ class SeekPoint(Motion):
         self._controller.setSpeed(0)
         self._conn.disconnect()
 
+class SeekPointToRange(SeekPoint):
+    """
+    Seeks a point, but stops a certain range
+    """
+    def __init__(self, target, desiredRange, maxSpeed = 0.0, depthGain = 1):
+        SeekPoint.__init__(self, target, maxSpeed, depthGain)
+        self._desiredRange = desiredRange
+    
+    def _speedScale(self):
+        baseSpeed = SeekPoint._speedScale(self)
+        
         
 class ObserverControllerSeekPoint(Motion):
     def __init__(self, target, maxSpeed = 0.0):
