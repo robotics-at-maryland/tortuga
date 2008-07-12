@@ -45,8 +45,12 @@ class SeekPointTest(support.MotionTest):
     def makeClass(self, *args, **kwargs):
         return motion.seek.SeekPoint(*args, **kwargs)
             
+    def makeTarget(self, *args, **kwargs):
+        return motion.seek.PointTarget(*args, **kwargs)
+            
     def checkCommand(self, azimuth, elevation, range = 0, x = 0, y = 0,
-                     yawChange = None, newDepth = None, newSpeed = None):
+                     yawChange = None, newDepth = None, newSpeed = None,
+                     newSidewaysSpeed = None):
         """
         Checks the commands given to the controller with a certain buoy state
         
@@ -57,15 +61,21 @@ class SeekPointTest(support.MotionTest):
         @param newDepth: The expected IController.setDepth() value
         """
         # Creat bouy with the given characteristics
-        bouy = motion.seek.PointTarget(azimuth = azimuth, 
-                                       elevation = elevation, 
-                                       range = range, x = x, y = y)
+        bouy = self.makeTarget(azimuth = azimuth, elevation = elevation, 
+                               range = range, x = x, y = y)
         
         # Creat the motion to seek the target
         maxSpeed = 0
         if newSpeed is not None:
             maxSpeed = 1
-        m = self.makeClass(target = bouy, maxSpeed = maxSpeed)
+        if newSidewaysSpeed is None:
+            m = self.makeClass(target = bouy, maxSpeed = maxSpeed)
+        else:
+            maxSidewaysSpeed = 0
+            if newSidewaysSpeed is not None:
+                maxSidewaysSpeed = 1
+            m = self.makeClass(target = bouy, maxSpeed = maxSpeed,
+                               maxSidewaysSpeed = maxSidewaysSpeed)
         
         # Start it and check the first results
         self.motionManager.setMotion(m)
@@ -75,6 +85,9 @@ class SeekPointTest(support.MotionTest):
             self.assertAlmostEqual(newDepth, self.controller.depth, 3)
         if newSpeed is not None:
             self.assertAlmostEqual(newSpeed, self.controller.speed, 3)
+        if newSidewaysSpeed is not None:
+            self.assertAlmostEqual(newSidewaysSpeed, 
+                                   self.controller.sidewaysSpeed, 3)
 
 class TestSeekPoint(SeekPointTest):
     #def setUp(self):
@@ -200,14 +213,15 @@ class TestSeekPoint(SeekPointTest):
 
 
 class TestSeekPointToRange(SeekPointTest):
-    def makeClass(self, *args, **kwargs):
-        
+    def addClassArgs(self, kwargs):
         # These value by default make the vehicle go full forward speed
         if not kwargs.has_key('desiredRange'):
             kwargs['desiredRange'] = self.desiredRange
         if not kwargs.has_key('maxRangeDiff'):
             kwargs['maxRangeDiff'] = self.maxRangeDiff
-        
+                
+    def makeClass(self, *args, **kwargs):
+        self.addClassArgs(kwargs)
         return motion.seek.SeekPointToRange(*args, **kwargs)
     
     def testOffHeadingSpeed(self):

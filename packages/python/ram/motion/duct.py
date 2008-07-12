@@ -10,16 +10,17 @@ import ram.motion.seek as seek
 
 class AirDuct(seek.PointTarget):
     def __init__(self, azimuth, elevation, range, x, y, alignment):
-        ext.core.EventPublisher.__init__(self)
-        self.setState(azimuth, elevation, range, x, y, alignement,
+        seek.PointTarget.__init__(self, azimuth, elevation, range, x, y)
+        self.setState(azimuth, elevation, range, x, y, alignment,
                       publish = False)
 
-    def setState(self, azimuth, elevation, range, x, y, alignment,
+    def setState(self, azimuth, elevation, range, x, y, alignment = 0,
                  publish = True):
         self.alignment = alignment
-        self.setState(azimuth, elevation, range, x, y, publish)
+        seek.PointTarget.setState(self, azimuth, elevation, range, x, y, 
+                                  publish)
 
-class Align(seek.SeekPointToRange):
+class DuctSeekAlign(seek.SeekPointToRange):
     """
     Seeks to align with the duct at a certain range
     """
@@ -37,14 +38,24 @@ class Align(seek.SeekPointToRange):
         @type maxRangeDiff: float
         @param maxRangeDiff: The range difference you wish your speed to max out at
         """    
-        seek.SeekPointToRange.__init__(target, desiredRange, maxRangeDiff,
+        seek.SeekPointToRange.__init__(self, target, desiredRange, maxRangeDiff,
                                        rangeGain, maxSpeed, depthGain)
-        self._maxAlignDiff = maxAlignDiff
-        self._alignGain = alignGain
-        self._maxSidewaysSpeed = maxSidewaysSpeed
+        self._maxAlignDiff = float(maxAlignDiff)
+        self._alignGain = float(alignGain)
+        self._maxSidewaysSpeed = float(maxSidewaysSpeed)
+        
+    def _seek(self):
+        # Normal seek, handles depth, range, and orientation
+        seek.SeekPointToRange._seek(self)
+        
+        # Now do our sideways motion
+        if self._maxSidewaysSpeed != 0:
+            sidewaysSpeed = self._sidewaysSpeedScale() * self._maxSidewaysSpeed
+            self._controller.setSidewaysSpeed(sidewaysSpeed)
         
     def _sidewaysSpeedScale(self):
-        baseScale = SeekPoint._speedScale(self)
+        # Use the base alignment scalling
+        baseScale = seek.SeekPoint._speedScale(self)
     
         # Neg if to the right, pos if to the left 
         alignDiff = self._target.alignment * -1

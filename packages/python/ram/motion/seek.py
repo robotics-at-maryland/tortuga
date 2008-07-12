@@ -147,7 +147,8 @@ class SeekPointToRange(SeekPoint):
         @param desiredRange: The range you wish to be at relative to the target
     
         @type maxRangeDiff: float
-        @param maxRangeDiff: The range difference you wish your speed to max out at
+        @param maxRangeDiff: The range difference you wish your speed to max 
+                             out at
         """
         SeekPoint.__init__(self, target, maxSpeed, depthGain)
         self._desiredRange = desiredRange
