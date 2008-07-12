@@ -32,7 +32,7 @@ class TestDuctSeekAlign(TestSeekPointToRange):
     def makeTarget(self, *args, **kwargs):
         if not kwargs.has_key('alignment'):
             kwargs['alignment'] = self.targetAlignment
-        return duct.AirDuct(*args, **kwargs)
+        return duct.Duct(*args, **kwargs)
 
     def makeClass(self, *args, **kwargs):
         self.addClassArgs(kwargs)

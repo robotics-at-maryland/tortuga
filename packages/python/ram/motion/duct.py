@@ -8,7 +8,7 @@
 # Project Imports
 import ram.motion.seek as seek
 
-class AirDuct(seek.PointTarget):
+class Duct(seek.PointTarget):
     def __init__(self, azimuth, elevation, range, x, y, alignment):
         seek.PointTarget.__init__(self, azimuth, elevation, range, x, y)
         self.setState(azimuth, elevation, range, x, y, alignment,
