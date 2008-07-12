@@ -1,10 +1,16 @@
 //Michael Levashov
 //Performs a quadratic fit on the peak maximums and returns maximum which is closest to the fit center
 
+#ifndef RAM_SONAR_QUADFIT
+#define RAM_SONAR_QUADFIT
+
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_fit.h>
+
+namespace ram {
+namespace sonar {
 
 class sonar_quadfit
 {
@@ -26,3 +32,7 @@ class sonar_quadfit
 	~sonar_quadfit();
 	int fit(gsl_vector* y, int* maximax, double &result);
 };
+
+}//sonar
+}//ram
+#endif

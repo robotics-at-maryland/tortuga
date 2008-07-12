@@ -8,28 +8,29 @@
 #include <complex>
 
 #include "Sonar.h"
+#include "SparseSDFTSpectrum.h"
 #include "pingDetect.h"
 
 #include "fixed.h"
 #include "math/include/MatrixN.h"
 #include "math/include/Vector3.h"
 
-#include "dataset.h"
 #include "spartan.h"
+#include "dataset.h"
 
-using namespace ram::sonar;
-using namespace ram::math;
-using namespace std;
+//using namespace ram::sonar;
+//using namespace ram::math;
+//using namespace std;
 
-MatrixN hydroStructure(*hydroStructureArray, 3, 3);
+ram::math::MatrixN hydroStructure(*ram::sonar::hydroStructureArray, 3, 3);
 
 int main(int argc, char* argv[])
 {
     //kBands defined in Sonar.h!
     int thresholds[]={20,20,20,20};
     int detected;
-    pingDetect pdetect(thresholds, NCHANNELS, kBands);
-    adcdata_t sample[NCHANNELS];
+    ram::sonar::pingDetect pdetect(thresholds, ram::sonar::NCHANNELS, ram::sonar::kBands);
+    ram::sonar::adcdata_t sample[ram::sonar::NCHANNELS];
     struct dataset * dataSet = NULL;
 
     if(argc == 1)
@@ -79,7 +80,7 @@ int main(int argc, char* argv[])
 
         if(detected==15)
         {
-            cout<<"Ping detected at "<<i+1-PING_DETECT_FRAME/2<<"!\n";
+            cout<<"Ping detected at "<<i+1-ram::sonar::PING_DETECT_FRAME/2<<"!\n";
             pdetect.reset_minmax();
         }
     }

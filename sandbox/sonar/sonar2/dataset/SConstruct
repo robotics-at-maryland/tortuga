@@ -1,2 +1,0 @@
-Object('spartan.c',CCFLAGS='-Wall');
-Object('dataset.c',CCFLAGS='-Wall');

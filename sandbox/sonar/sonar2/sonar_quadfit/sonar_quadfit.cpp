@@ -1,16 +1,33 @@
-//Michael Levashov
-//Performs a quadratic fit on the peak maximums and returns maximum which is closest to the fit center
+/* Michael Levashov
+ * Performs a quadratic fit on the peak maximums and returns the center of the peak
+ * Could be modified to return the maximum closest to the center
+ * NOTE: this builds on gsl for doing fitting, but it doesn't have to.  It would be reasonably easy to write our own fitting routine, which is just matrix manipulation
+ */
 
-#include "sonar_quadfit.h"
 #include <iostream>
+#include "sonar_quadfit.h"
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_fit.h>
 
 using namespace std;
+
+/* Start off by allocating the workspaces and creating the necessary vectors.
+ * This has to be done only once, but the vectors will be re-written often
+ */
+
+namespace ram {
+namespace sonar {
 
 sonar_quadfit::sonar_quadfit(int nn)
 {
 	n=nn; //n needs to be odd!!!
 	if(n%2 == 0)  //if not odd,  at least reduce it to something better
+        {
+            cerr<<"n = "<<n<<", which is not odd in quadfit!";
 		n=n-1;
+        }
 
 	workspace = gsl_multifit_linear_alloc(n, 3);
 	X = gsl_matrix_alloc(n, 3);
@@ -54,3 +71,6 @@ int sonar_quadfit::fit(gsl_vector* y, int* maxima_x, double &result)
 
 	return status;
 }
+
+}//sonar
+}//ram

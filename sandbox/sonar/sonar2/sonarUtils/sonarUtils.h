@@ -8,9 +8,8 @@ namespace ram {
 namespace sonar {
 
 adcmath_t myAbs(adcmath_t x);
+
 int gcd(int a, int b);
-template<class T> int8_t compare(T a, T b);
-template<class T> int8_t sign(T a);
 
 } // namespace sonar
 } // namespace ram

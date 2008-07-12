@@ -1,13 +1,12 @@
 /* A class to detect the pings produced by our hydrophones
  * !!!Need to be included along with
  * Sonar.h
+ * SparseSDFTSpectrum.h
  * !!!
  */
 
 #ifndef _RAM_SONAR_PINGD
 #define _RAM_SONAR_PINGD
-
-#include "SparseSDFTSpectrum.h"
 
 using namespace std;
 

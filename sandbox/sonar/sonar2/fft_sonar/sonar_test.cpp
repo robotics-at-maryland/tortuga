@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include "/home/levashom/auv/sonar/sonarController/include/Sonar.h"
+#include "Sonar.h"
 #include "time_diff.h"
 
 using namespace ram::sonar;

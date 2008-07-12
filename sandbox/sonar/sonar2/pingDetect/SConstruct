@@ -1,9 +1,0 @@
-INCLUDES=['.','../sonar','../spectrum','../dataset','/home/levashom/auv/trunk/packages'];
-FLAGS='-Wall';
-FILES=['../sonar/sonarUtils.cpp','../dataset/spartan.o','../dataset/dataset.o','../spectrum/SparseSDFTSpectrum.cpp'];
-
-#opingDetect=Object('pingDetect.cpp', CPPPATH=INCLUDES,CFLAGS=FLAGS);
-
-if 'pingDtest' in COMMAND_LINE_TARGETS:
-    #opingDtest=Object('pingDtest.cpp', CPPPATH=INCLUDES,CFLAGS=FLAGS);
-    Program('pingDtest',source=FILES+['pingDetect.cpp','pingDtest.cpp'], CPPPATH=INCLUDES,CFLAGS=FLAGS);

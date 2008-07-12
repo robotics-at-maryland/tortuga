@@ -7,7 +7,6 @@
 
 #define MAX_SEGMENTS    2550
 
-
 struct dataset
 {
     int size;
@@ -15,10 +14,10 @@ struct dataset
     signed short * data[MAX_SEGMENTS][4];
 };
 
-#endif
 struct dataset * createDataset(int size);
 int destroyDataset(struct dataset* s);
 
 signed short getSample(struct dataset* s, int ch, int index);
 int putSample(struct dataset* s, int ch, int index, signed short value);
 struct dataset * loadDataset(const char * filename);
+#endif

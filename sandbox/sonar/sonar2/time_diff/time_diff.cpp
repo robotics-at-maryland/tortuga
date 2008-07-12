@@ -9,11 +9,19 @@
 //	maxfreq - maximum frequency of the sampling
 //	minfreq - minimum frequency of the sampling
 
+#include <cmath>
+#include <gsl/gsl_vector.h>
+#include "sonar_quadfit.h"
+#include "fft_sonar.h"
 #include "time_diff.h"
 #include <iostream>
+
 using namespace std;
 
-time_diff::time_diff(int ping_num, int ssize, int ssampfreq, int maxfreq, int minfreq)
+namespace ram {
+namespace sonar {
+
+time_diff::time_diff(int hydr_num, int ssize, int ssampfreq, int maxfreq, int minfreq)
 {
 	sampfreq=ssampfreq;
 	size=ssize;
@@ -28,7 +36,7 @@ time_diff::time_diff(int ping_num, int ssize, int ssampfreq, int maxfreq, int mi
 	transform=new double[size];
 	y=gsl_vector_alloc(n);
 	quadfit=new sonar_quadfit(n);
-	fft=new fft_sonar(ping_num, size);
+	fft=new fft_sonar(hydr_num, size);
 
 	//generate low_offsets and high_offsets to store the scanning ranges
 	//First, before the central peak
@@ -59,17 +67,19 @@ time_diff::~time_diff()
 	delete fft;
 }
 
-//Update the data values
+/* Update the data values
+ * data needs to be a 'hydr_num'-sized array of pointers to 'size'-sized arrays
+ */
 int time_diff::update(int** data)
 {
 	return fft->update_sample(data);
 }
 
 //Calculates the actual time difference between the signals
-int time_diff::calc_time_diff(int pinger1, int pinger2, double &dtime)
+int time_diff::calc_time_diff(int hydr1, int hydr2, double &dtime)
 {
 	//Fourier transform the data, multiply, transform back
-	status=fft->convolve(pinger1, pinger2, transform);
+	status=fft->convolve(hydr1, hydr2, transform);
 	if(status!=0)
 	{
 		cout<<"Error doing the convolution";
@@ -124,3 +134,6 @@ int time_diff::rangefix(int index)
 	else
 		return index;
 }
+
+}//sonar
+}//ram
