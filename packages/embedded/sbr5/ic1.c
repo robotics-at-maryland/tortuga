@@ -155,6 +155,8 @@ void freeBus()
 
 byte diagMsg=1;
 
+void checkFailsafe();
+
 /* Wait for a byte on the serial console */
 unsigned char waitchar(byte timeout)
 {
@@ -1202,6 +1204,37 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
+
+
+            case HOST_CMD_BARANIMATION:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if((t1 != 0 && t1 != 1 && t1 != 2) || (t1+HOST_CMD_BARANIMATION != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SET_BARMODE, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(t1, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
 
             case HOST_CMD_THRUSTERS:
             {

@@ -198,6 +198,9 @@ byte cfgRegs[16];
 #define STATE_MOTRSPEEDS    6
 #define STATE_SET_BARMODE   7
 
+byte readBars();
+
+
 byte busState = 0;
 byte nParam = 0;
 byte p1=0;
@@ -366,14 +369,7 @@ void processData(byte data)
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
-                    if(LAT_BAR1 == BAR_ON) txBuf[1] |= 0x01;
-                    if(LAT_BAR2 == BAR_ON) txBuf[1] |= 0x02;
-                    if(LAT_BAR3 == BAR_ON) txBuf[1] |= 0x04;
-                    if(LAT_BAR4 == BAR_ON) txBuf[1] |= 0x08;
-                    if(LAT_BAR5 == BAR_ON) txBuf[1] |= 0x10;
-                    if(LAT_BAR6 == BAR_ON) txBuf[1] |= 0x20;
-                    if(LAT_BAR7 == BAR_ON) txBuf[1] |= 0x40;
-                    if(LAT_BAR8 == BAR_ON) txBuf[1] |= 0x80;
+                    txBuf[1] = readBars();
 
                     enableBusInterrupt();
                     break;
@@ -618,6 +614,8 @@ byte checkBus()
 }
 
 
+int markerCountsLeft = 0;
+
 /*
  * Drop the first marker. I am assuming we have multiple markers. This is
  * really here to let me play with interrupts and learn how to use the
@@ -641,7 +639,9 @@ void dropMarker(byte id)
      * marker, but I would like to know the reason for this discrepantcy.
      */
 
-    PR1 = 7500;            /* Period */
+    markerCountsLeft = 16;
+
+    PR1 = 10000;            /* Period */
     TMR1 = 0;               /* Reset timer */
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 1;      /* Enable interrupts */
@@ -668,17 +668,21 @@ void actLight()
 void _ISR _T1Interrupt(void)
 {
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 0;      /* Disable interrupts */
 
     /* This timer kills both solenoids. If one marker is dropped, and another is
      * dropped before the first soleniod deactivates, the timer is reset and both
      * solenids will deactivate when the timer expires.
      */
 
-    LAT_MRKR1 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
-    LAT_MRKR2 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
+    markerCountsLeft--;
 
-    T1CONbits.TON = 0;  /* Stop Timer1 */
+    if(markerCountsLeft == 0)
+    {
+        LAT_MRKR1 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
+        LAT_MRKR2 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
+        T1CONbits.TON = 0;  /* Stop Timer1 */
+        IEC0bits.T1IE = 0;      /* Disable interrupts */
+    }
 }
 
 
@@ -918,18 +922,74 @@ void checkKillSwitch()
     }
 }
 
+void setBars(byte b)
+{
+    if(b & 0x01) LAT_BAR1 = BAR_ON; else LAT_BAR1 = ~BAR_ON;
+    if(b & 0x02) LAT_BAR2 = BAR_ON; else LAT_BAR2 = ~BAR_ON;
+    if(b & 0x04) LAT_BAR3 = BAR_ON; else LAT_BAR3 = ~BAR_ON;
+    if(b & 0x08) LAT_BAR4 = BAR_ON; else LAT_BAR4 = ~BAR_ON;
+    if(b & 0x10) LAT_BAR5 = BAR_ON; else LAT_BAR5 = ~BAR_ON;
+    if(b & 0x20) LAT_BAR6 = BAR_ON; else LAT_BAR6 = ~BAR_ON;
+    if(b & 0x40) LAT_BAR7 = BAR_ON; else LAT_BAR7 = ~BAR_ON;
+    if(b & 0x80) LAT_BAR8 = BAR_ON; else LAT_BAR8 = ~BAR_ON;
+}
+
+byte readBars()
+{
+    byte t = 0;
+    if(LAT_BAR1 == BAR_ON) t |= 0x01;
+    if(LAT_BAR2 == BAR_ON) t |= 0x02;
+    if(LAT_BAR3 == BAR_ON) t |= 0x04;
+    if(LAT_BAR4 == BAR_ON) t |= 0x08;
+    if(LAT_BAR5 == BAR_ON) t |= 0x10;
+    if(LAT_BAR6 == BAR_ON) t |= 0x20;
+    if(LAT_BAR7 == BAR_ON) t |= 0x40;
+    if(LAT_BAR8 == BAR_ON) t |= 0x80;
+    return t;
+}
+
+
+byte oldBarState = 0;
+
 void setBarMode(byte data)
 {
+    if(barMode == 0)
+        oldBarState = readBars();   /* Preserve old value of bars */
+
+    if(data == 0)
+        setBars(oldBarState);
+
     barMode = data;
     barBlinkState = 0;
 }
 
 
+const static byte redBlueAnim[]={0xC0,0x03,0x30,0x03};
+const static byte redGreenAnim[]={0x30,0xC0,0x0C,0xC0};
+byte barDelaySteps = 0;
+
 void updateBars()
 {
+    if(barMode != 0)
+    {
+        if(barDelaySteps == 0)
+            barDelaySteps = 10;
+        else
+        {
+            barDelaySteps--;
+            return;
+        }
 
+        barBlinkState++;
+        if(barBlinkState == 4)
+            barBlinkState = 0;
 
+        if(barMode == 1)
+            setBars(redBlueAnim[barBlinkState]);
 
+        if(barMode == 2)
+            setBars(redGreenAnim[barBlinkState]);
+    }
 }
 
 
@@ -940,6 +1000,8 @@ void main()
     byte writeIndex = 0;
     long l;
     ovrReg = 0; /* Clear overcurrent register */
+
+    barMode = 0;
 
     LAT_MRKR1 = ~MRKR_ON;
     LAT_MRKR2 = ~MRKR_ON;
@@ -1049,6 +1111,7 @@ void main()
     {
         checkSafetyIndicator();
         checkKillSwitch();
+        updateBars();
 
         byte rx = readTemp(0x9E);
 
@@ -1077,8 +1140,9 @@ void main()
         writeIndex++;
 
         if(writeIndex >= IHISTORY_SIZE)
+        {
             writeIndex = 0;
-
+        }
         /* Measure the voltages */
         setADC(ADC_VREF);
         refVoltage = readADC();

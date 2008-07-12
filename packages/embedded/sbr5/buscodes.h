@@ -200,6 +200,8 @@
 
 #define HOST_CMD_BFRESET            0x29
 
+#define HOST_CMD_BARANIMATION       0x2A
+
 
 
 
