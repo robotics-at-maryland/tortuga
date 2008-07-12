@@ -137,6 +137,11 @@
 #define BATT5_INUSE       0x01
 
 
+
+#define ANIMATION_NONE      0
+#define ANIMATION_REDBLUE   1
+#define ANIMATION_REDGREEN  2
+
 /* Bits of the status response */
 /* Water is present */
 #define STATUS_WATER      0x20
@@ -168,36 +173,36 @@ enum partialUpdateType_
     BATTERY_USED,
     END_OF_UPDATES,
 };
-    
+
 /** Information about the vehicles power state */
 struct powerInfo
 {
     /** Currents for motors and marker droppers */
     float motorCurrents[8];
-    
+
     /** Voltage of 12V bus, in V. */
     float v12VBus;
-    
+
     /** Voltage of 5V bus, in V */
     float v5VBus;
-    
+
     /** Current of 12V bus, in A */
     float i12VBus;
-    
+
     /** Current of 5V bus, in A */
     float i5VBus;
-    
+
     /** Current of aux (carnetix) output, in A */
-    float iAux;             
+    float iAux;
 
     /** Voltage of balanced 26V, in V. NOT IMPLEMENTED IN BALANCER r2 */
-    float v26VBus;          
+    float v26VBus;
 
     /** 0-3 are batt 1-4. 4 is external power (batt 5). In V */
     float battVoltages[5];
-    
+
     /** Battery currents. See note above. In A */
-    float battCurrents[5];  
+    float battCurrents[5];
 };
 
 /** Complete vehicle information */
@@ -219,17 +224,17 @@ struct boardInfo
     int battUsed;
 
     /** Everything related to power. See above */
-    struct powerInfo powerInfo;  
+    struct powerInfo powerInfo;
 
     /** Temperatures, in deg C
      *
      * These are scattered throughout. The first one is the sensorboard temp.
-     * The last two are distro and balancer temp (or vice versa?)  
+     * The last two are distro and balancer temp (or vice versa?)
      * The middle ones are floaties, if we even have them connected
      */
     unsigned char temperature[NUM_TEMP_SENSORS];
 };
-    
+
 /* Perform next step of update cycle.
  * Returns: SB_OK on success
  *          SB_UPDATEDONE on success and update cycle is done
@@ -350,12 +355,14 @@ int switchToInternalPower(int fd);
 int setBatteryState(int fd, int state);
 
 
+int setAnimation(int fd, int anim);
+
 // maxCurrent (mA) = (a * speed) / 6 + b*40
 // where speed=[0,255] corresponds to 0 to full speed
 int setOvrParams(int fd, int a, int b);
 int readOvrParams(int fd, int * a, int * b);
 
-/** Translates the function error return codes into text */    
+/** Translates the function error return codes into text */
 char* sbErrorToText(int ret);
 
 /** Translates the index from the boardInfo array into the sensor name */

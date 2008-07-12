@@ -395,6 +395,10 @@ int setBarState(int fd, int state)
     return simpleWrite(fd, HOST_CMD_BARS, state, 16);
 }
 
+int setAnimation(int fd, int anim)
+{
+    return simpleWrite(fd, HOST_CMD_BARANIMATION, anim, 3);
+}
 
 int displayText(int fd, int line, const char* text)
 {

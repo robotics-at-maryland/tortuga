@@ -32,7 +32,7 @@ void barCmd(int fd, int cmd)
 
 int main(int argc, char ** argv)
 {
-    if(argc < 2)
+    if(argc < 2 || ((argc == 2) && (strcmp(argv[1], "-h") == 0) ))
     {
         printf("LCD-related Commands:\n");
         printf("\tlcdshow -c  (clear screen)\n");
@@ -73,10 +73,14 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
 
+        printf("\tlcdshow -noblink (stop animation)\n");
+        printf("\tlcdshow -redgreen (start red/green animation)\n");
+        printf("\tlcdshow -redblue (start red/blue animation)\n");
+
 	    return -1;
     }
 
-    int fd = openSensorBoard("/dev/sensor");
+    int fd = openSensorBoard("/dev/ttyUSB0");
 
     if(fd == -1)
     {
@@ -578,6 +582,27 @@ int main(int argc, char ** argv)
     }
 
 
+    if(strcmp(argv[1], "-noblink") == 0)
+    {
+        setAnimation(fd, ANIMATION_NONE);
+        close(fd);
+        return 0;
+    }
+
+
+    if(strcmp(argv[1], "-redblue") == 0)
+    {
+        setAnimation(fd, ANIMATION_REDBLUE);
+        close(fd);
+        return 0;
+    }
+
+    if(strcmp(argv[1], "-redgreen") == 0)
+    {
+        setAnimation(fd, ANIMATION_REDGREEN);
+        close(fd);
+        return 0;
+    }
 
     if(strcmp(argv[1], "-tstop") == 0)
     {
