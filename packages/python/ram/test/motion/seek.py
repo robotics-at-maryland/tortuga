@@ -252,3 +252,11 @@ class TestSeekPointToRange(SeekPointTest):
         # Too far outside maxRangeDiff, value should be capped
         self.checkCommand(azimuth = 0, elevation = 0, range = 17,
                           newSpeed = 1)
+        
+    def testBothSpeeds(self):
+        self.desiredRange = 10.0
+        self.maxRangeDiff = 5.0
+        
+        # Too close, and inside maxRangeDiff
+        self.checkCommand(azimuth = 45/2.0, elevation = 45/2.0, range = 7.5, 
+                          newSpeed = -0.25)

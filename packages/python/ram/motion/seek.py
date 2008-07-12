@@ -139,15 +139,16 @@ class SeekPoint(Motion):
 class SeekPointToRange(SeekPoint):
     """
     Seeks a point, but stops a certain range
-    
-    @type desiredRange: float
-    @param desiredRange: The range you wish to be at relative to the target
-    
-    @type maxRangeDiff: float
-    @param maxRangeDiff: The range difference you wish your speed to max out at
     """
     def __init__(self, target, desiredRange, maxRangeDiff, rangeGain = 1.0, 
                  maxSpeed = 0.0, depthGain = 1):
+        """
+        @type desiredRange: float
+        @param desiredRange: The range you wish to be at relative to the target
+    
+        @type maxRangeDiff: float
+        @param maxRangeDiff: The range difference you wish your speed to max out at
+        """
         SeekPoint.__init__(self, target, maxSpeed, depthGain)
         self._desiredRange = desiredRange
         self._maxRangeDiff = maxRangeDiff
