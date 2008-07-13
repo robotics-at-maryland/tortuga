@@ -26,6 +26,7 @@ import math
 import ext.core as core
 import ext.vision as vision
 
+import ram.filter as filter
 import ram.ai.state as state
 import ram.motion as motion
 import ram.motion.search
@@ -57,7 +58,40 @@ class Searching(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
         
-class SeekingToRange(state.State):
+class FilteredState(object):
+    """
+    Provides filter on the inputs from the vision system
+    """
+    def enter(self):
+        # Read in filter size
+        filterSize = self._config.get('filterSize', 1)
+        
+        # Create filters
+        self._xFilter = filter.MovingAverageFilter(filterSize)
+        self._yFilter = filter.MovingAverageFilter(filterSize)
+        self._rangeFilter = filter.MovingAverageFilter(filterSize)
+        self._alignFilter = filter.MovingAverageFilter(filterSize)
+        
+        # Zero values
+        self._filterdX = self._xFilter.getAverage()
+        self._filterdY = self._yFilter.getAverage()
+        self._filterdRange = self._rangeFilter.getAverage()
+        self._filterdAlign = self._alignFilter.getAverage()
+        
+    def _updateFilters(self, event):
+        # Add to filters
+        self._xFilter.append(event.x)
+        self._yFilter.append(event.y)
+        self._rangeFilter.append(event.range)
+        self._alignFilter.append(event.alignment)
+        
+        # Get new result
+        self._filterdX = self._xFilter.getAverage()
+        self._filterdY = self._yFilter.getAverage()
+        self._filterdRange = self._rangeFilter.getAverage()
+        self._filterdAlign = self._alignFilter.getAverage()
+        
+class SeekingToRange(FilteredState, state.State):
     """
     Heads toward the duct until it reaches the desired range
     """
@@ -72,17 +106,22 @@ class SeekingToRange(state.State):
         
     def DUCT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        azimuth = event.x * -107.0/2.0
-        elevation = event.y * -80.0/2.0
-        self._duct.setState(azimuth, elevation, event.range, event.x, event.y)
+        self._updateFilters(event)
         
-        rangeError = math.fabs(event.range - self._desiredRange)
-        frontDistance = math.sqrt(event.x * event.x + event.y * event.y)
+        azimuth = self._filterdX * -107.0/2.0
+        elevation = self._filterdY * -80.0/2.0
+        self._duct.setState(azimuth, elevation, self._filterdRange,
+                            self._filterdX, self._filterdY)
+        
+        rangeError = math.fabs(self._filterdRange - self._desiredRange)
+        frontDistance = math.sqrt(self._filterdX ** 2 + self._filterdY ** 2)
         if (rangeError < self._rangeThreshold) and \
             (frontDistance < self._frontThreshold):
             self.publish(SeekingToRange.IN_RANGE, core.Event())
         
     def enter(self):
+        FilteredState.enter(self)
+        
         # Ensure vision system is on
         self.visionSystem.ductDetectorOn()
         
@@ -108,15 +147,18 @@ class SeekingToRange(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
         
-class DuctAlignState(object):
+class DuctAlignState(FilteredState):
     def DUCT_FOUND(self, event):
+        self._updateFilters(event)
         """Update the state of the light, this moves the vehicle"""
-        azimuth = event.x * -107.0/2.0
-        elevation = event.y * -80.0/2.0
-        self._duct.setState(azimuth, elevation, event.range, event.x, 
-                            event.y, event.alignment)
+        azimuth = self._filterdX * -107.0/2.0
+        elevation = self._filterdY * -80.0/2.0
+        self._duct.setState(azimuth, elevation, self._filterdRange, 
+                            self._filterdX, self._filterdY, self._filterdAlign)
         
     def enter(self):
+        FilteredState.enter(self)
+        
         # Ensure vision system is on
         self.visionSystem.ductDetectorOn()
         
