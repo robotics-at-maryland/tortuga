@@ -16,7 +16,7 @@ Subsystems:
 #           almostHitPixels: 61440.0
         
         # Recording Settings
-        #maxRecordRate: 5 # Hz
+        #maxRecordRate: 10 # Hz
         #forwardFile: forward.avi
         #downwardFile: downward.avi
 #        forwardPort: 50000
@@ -46,6 +46,15 @@ Subsystems:
         States:
             ram.ai.light.Seek:
                 depthGain: 0.5
+            ram.ai.duct.SeekingToRange:
+                filterSize: 10
+                desiredRange: 0.5
+            ram.ai.duct.SeekingToAligned:
+                filterSize: 10
+                desiredRange: 0.5
+            ram.ai.duct.Aligning:
+                filterSize: 10
+                desiredRange: 0.5
 
     # Object that creates the vehicle interface
     Vehicle:
