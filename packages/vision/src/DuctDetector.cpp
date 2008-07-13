@@ -243,12 +243,31 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     if (output)
     {
+        // Color all yellow pixels white
+        unsigned char* odata = output->getData();
+        unsigned char* idata = m_working->getData();
+        size_t pixels = output->getWidth() * output->getHeight();
+        for (size_t i = 0; i < pixels; ++i)
+        {
+            if (yellow(*(idata+2), *(idata+1), *idata))
+            {
+                *(odata++) = 255;
+                *(odata++) = 255;
+                *(odata++) = 255;
+            }
+            else
+            {
+                odata += 3;
+            }
+            idata += 3;
+        }
+        
         // Draw bounding box
         CvPoint tl,tr,bl,br;
-        tl.x = bl.x = std::max(minX,0);
-        tr.x = br.x = std::min(maxX,width-1);
-        tl.y = tr.y = std::min(minY,height-1);
-        br.y = bl.y = std::max(maxY,0);
+        tl.x = bl.x = std::max(minX,0) - 1;
+        tr.x = br.x = std::min(maxX,width-1) + 1;
+        tl.y = tr.y = std::min(minY,height-1) + 1;
+        br.y = bl.y = std::max(maxY,0) - 1;
             
         IplImage* raw = output->asIplImage();
         cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
@@ -260,14 +279,20 @@ void DuctDetector::processImage(Image* input, Image* output)
         CvPoint binCenter;
         binCenter.x = (int)m_x;
         binCenter.y = (int)m_y;
-        cvCircle(raw, binCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
+        if (getAligned())
+            cvCircle(raw, binCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
+        else
+            cvCircle(raw, binCenter, 10, CV_RGB(255,0,0), 2, CV_AA, 0);
 
         // Draw rotation indicator
         CvPoint rotationEnd;
         rotationEnd.y = binCenter.y;
         rotationEnd.x = binCenter.x +
             (int)((m_rotation/-90) * (double)width/2.0);
-        cvLine(raw, binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
+        if (getAligned())
+            cvLine(raw, binCenter, rotationEnd, CV_RGB(0,255,0), 3, CV_AA, 0 );
+        else
+            cvLine(raw, binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
     }
     
     n_x = -1 * ((width / 2) - m_x);
