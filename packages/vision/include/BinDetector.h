@@ -10,6 +10,9 @@
 #ifndef RAM_BIN_DETECTOR_H_06_23_2007
 #define RAM_BIN_DETECTOR_H_06_23_2007
 
+// STD Includes
+#include <list>
+
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "vision/include/Common.h"
@@ -26,33 +29,51 @@ namespace vision {
 class RAM_EXPORT BinDetector : public Detector
 {
   public:
-    class Bin : public BlobDetector::Blob
+    class Bin
     {
     public:
-        Bin(BlobDetector::Blob& blob, int id, Suit::SuitType suit);
+        Bin(double x, double y, math::Degree rotation, int id, 
+            Suit::SuitType suit);
 
-        int getId() { return m_id; }
+        /** Gets the center in normalized cordinates -1 -> 1 */
+        double getX(){ return m_normX; }
+        
+        /** Gets the center in normalized cordinates -1 -> 1 */
+        double getY() { return m_normY; }
+        
+        /** Angle of vertical */
+        math::Degree getAngle();
+        
+        int getId() const { return m_id; }
+        
         Suit::SuitType getSuit() { return m_suit; }
 
         /** Computes the distance between the blob centers */
         double distanceTo(Bin& otherBin);
-        /** Distance in pixel cordinates */
-        double distanceTo(int x, int y);
         
+        /** Distance from normalized cordinates (0,0) center, -1 -> 1 */
+        double distanceTo(double x, double y);
+        
+        bool operator==(const Bin& other) { return (m_id == other.getId()); }
+        
+        void _setId(int id) { m_id = id; }
     private:
+            
+        double m_normX;
+        double m_normY;
+        math::Degree m_angle;
         int m_id;
         Suit::SuitType m_suit;
-    };
+    };  
+
+    typedef std::list<Bin> BinList;
     
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
     ~BinDetector();
 
     void processImage(Image* input, Image* output= 0);
-    void update();
-    void show(char* window);
     bool found();
-    IplImage* getAnalyzedImage();
 
     /** X cord of the bin closest to the center of the screen */
     float getX();
@@ -63,10 +84,15 @@ class RAM_EXPORT BinDetector : public Detector
     /** Gets the suit of the bin cloest to the center of the screen */
     Suit::SuitType getSuit();
     
+    /** Gets our current set of bins, sorted close to farther from center */
+    BinDetector::BinList getBins();
+    
   private:
     void init(core::ConfigNode config);
 
     /** Processes the bin and fires off found event
+     *
+     *  It adds each process bin to the list of current bins.
      *
      *  @param bin
      *      The blob which bounds the black box of the bin
@@ -75,7 +101,8 @@ class RAM_EXPORT BinDetector : public Detector
      *  @param output
      *      Our debug output image
      */
-    void processBin(BlobDetector::Blob bin, bool detectSuit, Image* ouput = 0);
+    void processBin(BlobDetector::Blob bin, bool detectSuit, BinList& newBins,
+                    Image* ouput = 0);
 
     /** Called by process bin, if suit detection is request is true
      *
@@ -103,7 +130,6 @@ class RAM_EXPORT BinDetector : public Detector
     IplImage* bufferFrame;
     IplImage* whiteMaskedFrame;
     IplImage* blackMaskedFrame;
-    float binX, binY;
     SuitDetector suitDetector;
     BlobDetector blobDetector;
     
@@ -113,8 +139,16 @@ class RAM_EXPORT BinDetector : public Detector
     /** Whether or not we are centered */
     bool m_centered;
     
-    Suit suitCenteredOver;
+    /** The max distance between bins on different frames */
+    double m_sameBinThreshold;
     
+    /** Our current set of bins */
+	BinList m_bins;
+
+    Suit suitCenteredOver;
+
+    /** Current bin ids */
+    int m_binID;
 };
 
 } // namespace vision

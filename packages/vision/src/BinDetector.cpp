@@ -10,6 +10,7 @@
 // STD Includes
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 //#include <cassert>
 
 // Library Includes
@@ -29,11 +30,20 @@
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
 
+
+
 namespace ram {
 namespace vision {
 
-BinDetector::Bin::Bin(BlobDetector::Blob& blob, int id, Suit::SuitType suit) :
-    Blob(blob),
+static bool binToCenterComparer(BinDetector::Bin b1, BinDetector::Bin b2)
+{
+    return b1.distanceTo(0,0) < b2.distanceTo(0,0);
+}   
+    
+BinDetector::Bin::Bin(double x, double y, math::Degree angle, int id, Suit::SuitType suit) :
+    m_normX(x),
+    m_normY(y),
+    m_angle(angle),
     m_id(id),
     m_suit(suit)
 {
@@ -41,12 +51,12 @@ BinDetector::Bin::Bin(BlobDetector::Blob& blob, int id, Suit::SuitType suit) :
 
 double BinDetector::Bin::distanceTo(Bin& otherBin)
 {
-    return distanceTo(otherBin.getCenterX(), otherBin.getCenterY());
+    return distanceTo(otherBin.getX(), otherBin.getY());
 }
 
-double BinDetector::Bin::distanceTo(int x, int y)
+double BinDetector::Bin::distanceTo(double x, double y)
 {
-    math::Vector2 mCenter(getCenterX(), getCenterY());
+    math::Vector2 mCenter(getX(), getY());
     math::Vector2 otherCenter(x, y);
     return (mCenter-otherCenter).length();
 }
@@ -77,8 +87,8 @@ void BinDetector::init(core::ConfigNode config)
     foundClub = false;
     foundEmpty = false;*/
     m_runSuitDetector = false;
-    numBinsFound=0;
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
+    m_binID = 0;
 }
     
 BinDetector::~BinDetector()
@@ -103,56 +113,42 @@ void BinDetector::processImage(Image* input, Image* out)
     //Else just copy
     cvCopyImage(image,rotated);
     image=rotated;//rotated is poorly named when camera is on correctly... oh well.
-    //Set image to a newly copied space so we don't write over opencv's private memory space...
-    //since opencv has a bad habit of making assumptions about what I want to do. :)
+        
+    // Set image to a newly copied space so we don't write over opencv's 
+    // private memory space... since opencv has a bad habit of making
+    // assumptions about what I want to do. :)
     cvCopyImage(image,binFrame);
     
-    //Fill in output image.
+    // Fill in output image.
     if (out)
     {
         OpenCVImage temp(binFrame, false);
         out->copyFrom(&temp);
     }
     
+    // Make image into each pixel being the percentage of its total value
     to_ratios(image);
     
-    //image is now in percents, binFrame is now the base image.
-    
-  //  std::cout<<"starting masks"<<std::endl;
+    // Image is now in percents, binFrame is now the base image.
     /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame);
     /*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame);
-    
-  //  std::cout<<"masks complete"<<std::endl;
+
+    // Find all the white blobs
     blobDetector.setMinimumBlobSize(1000);
     OpenCVImage whiteMaskWrapper(whiteMaskedFrame,false);
     blobDetector.processImage(&whiteMaskWrapper);
-  //  std::cout<<"One blob detection done"<<std::endl;
-    if (!blobDetector.found())
-    {
-    //    std::cout<<"No white found"<<std::endl;
-
-        //no blobs found.
-    //    return;
-    }
-  //  std::cout<<"white found"<<std::endl;
     BlobDetector::BlobList whiteBlobs = blobDetector.getBlobs();
-
+    
+    // Find all the black blobs
     blobDetector.setMinimumBlobSize(500);
     OpenCVImage blackMaskWrapper(blackMaskedFrame,false);
-    //std::cout<<"blob finding black"<<std::endl;
     blobDetector.processImage(&blackMaskWrapper);
-    if (!blobDetector.found())
-    {
-        //no blobs found.
-        //std::cout<<"no black found"<<std::endl;
-    //    return;
-    }
-    
-//    std::cout<<"black found"<<std::endl;
-    // Blobs sorted largest to smaller
     BlobDetector::BlobList blackBlobs = blobDetector.getBlobs();
+
+    // List of found blobs which are bins
     BlobDetector::BlobList binBlobs;
 
+    // NOTE: all blobs sorted largest to smallest
     BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
     {
         BOOST_FOREACH(BlobDetector::Blob whiteBlob, whiteBlobs)
@@ -191,14 +187,81 @@ void BinDetector::processImage(Image* input, Image* out)
         publish(EventType::BIN_LOST, core::EventPtr(new core::Event()));
     }
     
-    // For each black blob inside a white blob (ie, for each bin blob) take the
-    // rectangular portion containing the black blob and pass it off to
-    // SuitDetector
-    BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
+    if (binBlobs.size() > 0)
     {
-        processBin(binBlob, m_runSuitDetector, out);
-    }
+        // For each black blob inside a white blob (ie, for each bin blob) 
+        // take the rectangular portion containing the black blob and pass it
+        // off to SuitDetector
+        BinList candidateBins;
+    
+        BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
+        {
+            processBin(binBlob, m_runSuitDetector, candidateBins, out);
+        }
 
+        
+        // Sort candidate bins on distance from center
+        candidateBins.sort(binToCenterComparer);
+        
+        // List of new bins
+        BinList newBins;
+        
+        // Sort through our candidate bins and match them to the old ones
+        BOOST_FOREACH(Bin candidateBin, candidateBins)
+        {
+            // Go through the list of current bins and find the closest bin
+            double currentMin = 10000;
+            Bin minBin(0,0,math::Degree(0), 0, Suit::NONEFOUND);
+            BOOST_FOREACH(Bin currentBin, m_bins)
+            {
+                double distance = currentBin.distanceTo(candidateBin);
+                if (distance < currentMin)
+                {
+                    currentMin = distance;
+                    minBin = currentBin;
+                }
+            }
+            
+            // If its close enough, we transfer the ID
+            if (currentMin < m_sameBinThreshold)
+            {
+                // Transfer Id
+                candidateBin._setId(minBin.getId());
+                // Remove from list to search against
+                m_bins.remove(minBin);
+            }
+            
+            // Store bin in our list of new bins
+            newBins.push_back(candidateBin);
+        }
+        
+        // Sort list by distance from center and copy it over the old one
+        newBins.sort(binToCenterComparer);
+        m_bins = newBins;
+        
+        // Now publish found & centered events
+        math::Vector2 toCenter(getX(), getY());
+        if (toCenter.normalise() < m_centeredLimit)
+        {
+            if(!m_centered)
+            {
+                m_centered = true;
+                BinEventPtr event(new BinEvent(getX(), getY(), getSuit()));
+                publish(EventType::BIN_CENTERED, event);
+            }
+        }
+        else
+        {
+            m_centered = false;
+        }
+        
+        BOOST_FOREACH(Bin bin, m_bins)
+        {
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+                                           bin.getSuit()));
+            publish(EventType::BIN_FOUND, event);
+        }
+    }
     
     
     //Publishing bin lost events example,
@@ -243,7 +306,7 @@ void BinDetector::processImage(Image* input, Image* out)
 
 
 void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
-                             Image* output)
+                             BinList& newBins, Image* output)
 {
     if (output)
     {
@@ -260,8 +323,8 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
         cvLine(out, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
     }
 //        std::cout<<"Finished writing to output image"<<std::endl;
-    binX = bin.getCenterX();
-    binY = bin.getCenterY();
+    double binX = bin.getCenterX();
+    double binY = bin.getCenterY();
 
     // Map the image cordinate system to one 90 degrees rotated and with the
     // center in the middle of the image, and going from -1 to 1
@@ -289,24 +352,10 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
         suit = determineSuit(bin, &wrapper, output);
     }
     
+    // Create bin add it to the list (and incremet the binID)
+    newBins.push_back(Bin(binX, binY, math::Degree(0), m_binID++, suit));
+    
     m_found = true;
-    BinEventPtr event(new BinEvent(binX, binY, suit));
-    publish(EventType::BIN_FOUND, event);
-        
-    // Determine Centered
-    math::Vector2 toCenter(binX, binY);
-    if (toCenter.normalise() < m_centeredLimit)
-    {
-        if(!m_centered)
-        {
-            m_centered = true;
-            publish(EventType::BIN_CENTERED, event);
-        }
-    }
-    else
-    {
-        m_centered = false;
-    }
 }
 
 Suit::SuitType BinDetector::determineSuit(BlobDetector::Blob bin, Image* input,
@@ -375,21 +424,30 @@ Suit::SuitType BinDetector::determineSuit(BlobDetector::Blob bin, Image* input,
     
 float BinDetector::getX()
 {
-    return binX;
+    if (m_bins.size() > 0)
+        return m_bins.front().getX();
+    else
+        return 0;
 }
 float BinDetector::getY()
 {
-    return binY;
+    if (m_bins.size() > 0)
+        return m_bins.front().getY();
+    else
+        return 0;
 }
 
-void BinDetector::show(char* window)
+Suit::SuitType BinDetector::getSuit()
 {
-    cvShowImage(window,((IplImage*)(binFrame)));
+    if (m_bins.size() > 0)
+        return m_bins.front().getSuit();
+    else
+        return Suit::NONEFOUND;
 }
 
-IplImage* BinDetector::getAnalyzedImage()
+BinDetector::BinList BinDetector::getBins()
 {
-    return (IplImage*)(binFrame);
+    return m_bins;
 }
 
 bool BinDetector::found()
