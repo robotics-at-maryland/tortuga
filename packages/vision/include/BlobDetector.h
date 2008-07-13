@@ -39,17 +39,6 @@ public:
             m_maxX(maxX), m_minX(minX), m_maxY(maxY), m_minY(minY)
             {}
 
-        Blob& operator=(const Blob& other)
-            {
-                m_size = other.getSize();
-                m_centerX = other.getCenterX();
-                m_centerY = other.getCenterY();
-                m_maxX = other.getMaxX();
-                m_minX = other.getMinX();
-                m_maxY = other.getMaxY();
-                m_minY = other.getMinY();
-                return *this;
-            }        
         int getSize() const { return m_size; }
 
         int getCenterX() const { return m_centerX; }
@@ -80,6 +69,7 @@ public:
         int m_maxY;
         int m_minY;
     };
+    
     class BlobComparer
     {
         public:

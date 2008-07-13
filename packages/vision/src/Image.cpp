@@ -124,6 +124,14 @@ void Image::blitImage(Image* toBlit, Image* src, Image* dest,
         }
     }
 }
+
+void Image::writeText(Image* image, std::string, int x, int y,
+                      int height)
+{
+    // Use cvInitFont to create font as needed
+    // Use cvPutText to draw text
+}
+    
     
 void Image::showImage(Image* image, std::string name)
 {

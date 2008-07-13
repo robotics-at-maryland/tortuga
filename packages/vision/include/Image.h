@@ -90,6 +90,10 @@ public:
                           unsigned char G = 255,
                           unsigned char B = 255,
                           int xOffset = 0, int yOffset = 0);
+
+    /** Writs the desried text at the given X, Y cordinates */
+    static void writeText(Image* image, std::string, int x, int y,
+                          int height = 10);
     
     /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
     static Image* loadFromBuffer(unsigned char* buffer, int width,

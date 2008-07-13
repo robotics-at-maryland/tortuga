@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <iostream>
+#include <cmath>
 //#include <cassert>
 
 // Library Includes
@@ -31,23 +32,37 @@ static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
 namespace ram {
 namespace vision {
 
+BinDetector::Bin::Bin(BlobDetector::Blob& blob, int id, Suit::SuitType suit) :
+    Blob(blob),
+    m_id(id),
+    m_suit(suit)
+{
+}
+
+double BinDetector::Bin::distanceTo(Bin& otherBin)
+{
+    return distanceTo(otherBin.getCenterX(), otherBin.getCenterY());
+}
+
+double BinDetector::Bin::distanceTo(int x, int y)
+{
+    math::Vector2 mCenter(getCenterX(), getCenterY());
+    math::Vector2 otherCenter(x, y);
+    return (mCenter-otherCenter).length();
+}
+    
 BinDetector::BinDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
-    Detector(eventHub), cam(0), suitDetector(config,eventHub), blobDetector(config,eventHub), m_centered(false)
+    Detector(eventHub),
+    suitDetector(config,eventHub),
+    blobDetector(config,eventHub),
+    m_centered(false)
 {
     init(config);
 }
     
-BinDetector::BinDetector(Camera* camera) :
-    cam(camera), suitDetector(cam), blobDetector(100),
-    m_centered(false)
-{
-    init(core::ConfigNode::fromString("{}"));
-}
-
 void BinDetector::init(core::ConfigNode config)
 {
-    frame = new OpenCVImage(640, 480);
     rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
     binFrame =cvCreateImage(cvGetSize(rotated),8,3);
     bufferFrame = cvCreateImage(cvGetSize(rotated),8,3);
@@ -68,18 +83,11 @@ void BinDetector::init(core::ConfigNode config)
     
 BinDetector::~BinDetector()
 {
-    delete frame;
     cvReleaseImage(&binFrame);
     cvReleaseImage(&rotated);
     cvReleaseImage(&bufferFrame);
 }
 
-void BinDetector::update()
-{
-    cam->getImage(frame);
-    processImage(frame, 0);
-}
-    
 void BinDetector::processImage(Image* input, Image* out)
 {
     /*First argument to white_detect is a ratios frame, then a regular one*/

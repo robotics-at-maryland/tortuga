@@ -26,9 +26,26 @@ namespace vision {
 class RAM_EXPORT BinDetector : public Detector
 {
   public:
+    class Bin : public BlobDetector::Blob
+    {
+    public:
+        Bin(BlobDetector::Blob& blob, int id, Suit::SuitType suit);
+
+        int getId() { return m_id; }
+        Suit::SuitType getSuit() { return m_suit; }
+
+        /** Computes the distance between the blob centers */
+        double distanceTo(Bin& otherBin);
+        /** Distance in pixel cordinates */
+        double distanceTo(int x, int y);
+        
+    private:
+        int m_id;
+        Suit::SuitType m_suit;
+    };
+    
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
-    BinDetector(Camera*);
     ~BinDetector();
 
     void processImage(Image* input, Image* output= 0);
@@ -39,8 +56,12 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** X cord of the bin closest to the center of the screen */
     float getX();
+    
     /** Y cord of the bin closest to the center of the screen */
     float getY();
+
+    /** Gets the suit of the bin cloest to the center of the screen */
+    Suit::SuitType getSuit();
     
   private:
     void init(core::ConfigNode config);
@@ -83,10 +104,9 @@ class RAM_EXPORT BinDetector : public Detector
     IplImage* whiteMaskedFrame;
     IplImage* blackMaskedFrame;
     float binX, binY;
-    Image* frame;
-    Camera* cam;
     SuitDetector suitDetector;
     BlobDetector blobDetector;
+    
     /** Maximum distance for the bin to be considred "centered" */
     double m_centeredLimit;
     
