@@ -25,27 +25,29 @@ class RAM_EXPORT DuctDetector : public Detector
 public:
     DuctDetector(core::ConfigNode config,
                  core::EventHubPtr eventHub = core::EventHubPtr());
-	DuctDetector(core::EventHubPtr eventHub = core::EventHubPtr());
+    DuctDetector(core::EventHubPtr eventHub = core::EventHubPtr());
         virtual ~DuctDetector();
         
-	void processImage(Image* input, Image* output = 0);
+    void processImage(Image* input, Image* output = 0);
 
-        /** Normalized from -1 to 1*/
-	double getX();
-        /** Normalized from -1 to 1*/
-	double getY();
-        /** 1 at the biggest 0 at the smallest */
+    /** Normalized from -1 to 1*/
+    double getX();
+    
+    /** Normalized from -1 to 1*/
+    double getY();
+    
+    /** 1 at the biggest 0 at the smallest */
     double getSize();
-	
-	double getRotation();
-	
+    
+    double getRotation();
+    
     bool getVisible();
-	bool getAligned();
-	
+    bool getAligned();
+    
 private:
-        /** Stores the image we are currently working with */
-	Image* m_working;
-	double m_x, m_y, m_rotation, m_size;
+    /** Stores the image we are currently working with */
+    Image* m_working;
+    double m_x, m_y, m_rotation, m_size;
     double n_x, n_y;
 };
 
