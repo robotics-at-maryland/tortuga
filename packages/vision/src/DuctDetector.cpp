@@ -134,7 +134,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     } 
     
     double oldMx = m_x;
-    m_size = maxX - minX;
+    m_size = ((double)(maxX - minX)) / width;
     
     m_x = (minX + maxX) * 0.5;
     m_y = (minY + maxY) * 0.5;
@@ -243,6 +243,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     if (output)
     {
+        // Draw bounding box
         CvPoint tl,tr,bl,br;
         tl.x = bl.x = std::max(minX,0);
         tr.x = br.x = std::min(maxX,width-1);
@@ -255,10 +256,18 @@ void DuctDetector::processImage(Image* input, Image* output)
         cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
         cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
         
-        CvPoint lightCenter;
-        lightCenter.x = (int)m_x;
-        lightCenter.y = (int)m_y;
-        cvCircle(raw, lightCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
+        // Draw center of bin
+        CvPoint binCenter;
+        binCenter.x = (int)m_x;
+        binCenter.y = (int)m_y;
+        cvCircle(raw, binCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
+
+        // Draw rotation indicator
+        CvPoint rotationEnd;
+        rotationEnd.y = binCenter.y;
+        rotationEnd.x = binCenter.x +
+            (int)((m_rotation/-90) * (double)width/2.0);
+        cvLine(raw, binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
     }
     
     n_x = -1 * ((width / 2) - m_x);

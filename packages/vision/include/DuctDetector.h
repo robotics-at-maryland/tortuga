@@ -29,9 +29,12 @@ public:
         virtual ~DuctDetector();
         
 	void processImage(Image* input, Image* output = 0);
-	
+
+        /** Normalized from -1 to 1*/
 	double getX();
+        /** Normalized from -1 to 1*/
 	double getY();
+        /** 1 at the biggest 0 at the smallest */
     double getSize();
 	
 	double getRotation();
@@ -44,7 +47,6 @@ private:
 	Image* m_working;
 	double m_x, m_y, m_rotation, m_size;
     double n_x, n_y;
-
 };
 
 } // namespace vision

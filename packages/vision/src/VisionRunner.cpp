@@ -112,7 +112,12 @@ bool VisionRunner::processDetectorChanges(bool canBackground)
         {
             case ADD:
             {
-                m_detectors.insert(change.second);
+                // Only insert if its not already there
+                std::set<DetectorPtr>::iterator iter =
+                    m_detectors.find(change.second);
+                
+                if (m_detectors.end() == iter)
+                    m_detectors.insert(change.second);
             }
             break;
 

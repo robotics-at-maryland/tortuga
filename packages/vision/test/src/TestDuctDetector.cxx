@@ -118,79 +118,80 @@ SUITE(DuctDetector) {
 
 TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 {
-	vision::Image* input =
-	 vision::Image::loadFromFile(
-	    (getImagesDir() / "alignment.png").string());
-	detector.processImage(input);
+    vision::Image* input =
+     vision::Image::loadFromFile(
+        (getImagesDir() / "alignment.png").string());
+    detector.processImage(input);
 
     CHECK(detector.getAligned());
     //CHECK_CLOSE(expectedValue, actualValue, maxDifference);
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(0, detector.getRotation(), 0.4);
-	delete input;
-	
-	
-	vision::Image* input2 = 
-	vision::Image::loadFromFile(
-	    (getImagesDir() / "unal0.png").string());
+    CHECK_CLOSE(0.68, detector.getSize(), 0.05);
+    delete input;
+    
+    
+    vision::Image* input2 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal0.png").string());
     // Blue Image with red circle in the center
-	detector.processImage(input2);
+    detector.processImage(input2);
 
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(90, detector.getRotation(), 180);
+    CHECK_CLOSE(0.45, detector.getSize(), 0.05);
     CHECK(!detector.getAligned());
-	delete input2;
-	
-	
-	vision::Image* input3 = 
-	vision::Image::loadFromFile(
-	    (getImagesDir() / "unal1.png").string());
+    delete input2;
+    
+    
+    vision::Image* input3 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal1.png").string());
     // Blue Image with red circle in the center
-	detector.processImage(input3);
-	
-	CHECK_CLOSE(0, detector.getX(), 0.2);
+    detector.processImage(input3);
+    
+    CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(50, detector.getRotation(), 20);
+    CHECK_CLOSE(0.51, detector.getSize(), 0.05);
     CHECK(!detector.getAligned());
-	delete input3;
-	
-	
-	
-	vision::Image* input4 = 
-	vision::Image::loadFromFile(
-	    (getImagesDir() / "unal2.png").string());
+    delete input3;
+    
+    vision::Image* input4 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal2.png").string());
     // Blue Image with red circle in the center
-	detector.processImage(input4);
-	
-	CHECK_CLOSE(0, detector.getX(), 0.2);
+    detector.processImage(input4);
+    
+    CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(15, detector.getRotation(), 7);
-        CHECK(!detector.getAligned());
+    CHECK_CLOSE(0.47, detector.getSize(), 0.05);
+    CHECK(!detector.getAligned());
+    delete input4;
         
     vision::Image* input5 = 
-	vision::Image::loadFromFile(
-	    (getImagesDir() / "unal3.png").string());
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal3.png").string());
     // Blue Image with red circle in the center
-	detector.processImage(input5);
+    detector.processImage(input5);
     
-    std::cout << "ROT:" << detector.getRotation() << "\n";
-	
-	CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(-15, detector.getRotation(), 7);
-        CHECK(!detector.getAligned());
-        
-	delete input4;
+    CHECK_CLOSE(0.51, detector.getSize(), 0.05);
+    CHECK(!detector.getAligned());
+    delete input5;
 }
 
 
 TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_FOUND)
 {
     vision::Image* input =
-	 vision::Image::loadFromFile(
-	    (getImagesDir() / "alignment.png").string());
+     vision::Image::loadFromFile(
+        (getImagesDir() / "alignment.png").string());
         
     // Process it
     detector.processImage(input);
@@ -214,8 +215,8 @@ TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_LOST)
 
     // Found duct
     vision::Image* input =
-	 vision::Image::loadFromFile(
-	    (getImagesDir() / "alignment.png").string());
+        vision::Image::loadFromFile(
+            (getImagesDir() / "alignment.png").string());
         
     // Process it
     detector.processImage(input);
