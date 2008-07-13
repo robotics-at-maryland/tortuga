@@ -134,7 +134,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     } 
     
     double oldMx = m_x;
-    m_size = ((double)(maxX - minX)) / width;
+    m_range = 1 - (((double)(maxX - minX)) / width);
     
     m_x = (minX + maxX) * 0.5;
     m_y = (minY + maxY) * 0.5;
@@ -277,7 +277,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     n_y *= (double)height/width;
         
         
-    DuctEventPtr event(new DuctEvent(n_x, n_y, m_size, m_rotation, 
+    DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 
         getAligned(), getVisible()));
     publish(EventType::DUCT_FOUND, event);
 
@@ -294,9 +294,9 @@ double DuctDetector::getY()
     return n_y;
 }
 
-double DuctDetector::getSize()
+double DuctDetector::getRange()
 {
-    return m_size;
+    return m_range;
 }
     
 double DuctDetector::getRotation()

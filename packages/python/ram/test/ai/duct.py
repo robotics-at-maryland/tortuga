@@ -53,7 +53,7 @@ class TestSeekingToRange(support.AITestCase):
         """Make sure new found events move the vehicle"""
         self.injectEvent(vision.EventType.DUCT_FOUND, 
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
-                         x = 0.5, y = -0.5, size = 400, rotation = 90,
+                         x = 0.5, y = -0.5, range = 0.6, rotation = 90,
                          aligned = False, visible = False)
         
         # Bigger numbers = deeper
@@ -77,7 +77,7 @@ class TestSeekingToRange(support.AITestCase):
         # Inject and event which has the duct ahead, and at the needed range
         self.injectEvent(vision.EventType.DUCT_FOUND, 
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
-                         x = 0.05, y = -0.1, size = 0.31, rotation = 90,
+                         x = 0.05, y = -0.1, range = 0.31, rotation = 90,
                          aligned = False, visible = False)
         
         # Make sure we get the IN_RANGE event
@@ -94,7 +94,7 @@ class AlignmentTest(object):
         # Target to the right, below, and duct misalligned left
         self.injectEvent(vision.EventType.DUCT_FOUND, 
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
-                         x = 0.5, y = -0.5, size = 400, alignment = 90,
+                         x = 0.5, y = -0.5, range = 0.6, alignment = 90,
                          aligned = False, visible = False)
         
         # Bigger numbers = deeper
@@ -124,7 +124,7 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         # Inject and event which has the duct ahead, and at the needed range
         self.injectEvent(vision.EventType.DUCT_FOUND, 
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
-                         x = 0.05, y = -0.1, size = 0.31, rotation = 2,
+                         x = 0.05, y = -0.1, range = 0.31, rotation = 2,
                          aligned = True, visible = False)
         
         # Make sure we get the ALIGNED event

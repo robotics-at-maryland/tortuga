@@ -605,8 +605,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             event.x = x
             event.y = y
             
-            # Runs 1 -> 0, getting smaller the closer you go
-            event.size = 1 - (8 - relativePos.length()) / 8.0
+            # Runs 1 -> 0, getting bigger the closer you go
+            event.range = 1 - ((8 - relativePos.length()) / 8.0)
             
             # TODO: Scale me
             angleDeg = angle.valueDegrees() * -1

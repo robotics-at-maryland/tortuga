@@ -36,8 +36,8 @@ public:
     /** Normalized from -1 to 1*/
     double getY();
     
-    /** 1 at the biggest 0 at the smallest */
-    double getSize();
+    /** 0 at the closest 1 at the father */
+    double getRange();
     
     double getRotation();
     
@@ -47,7 +47,7 @@ public:
 private:
     /** Stores the image we are currently working with */
     Image* m_working;
-    double m_x, m_y, m_rotation, m_size;
+    double m_x, m_y, m_rotation, m_range;
     double n_x, n_y;
 };
 

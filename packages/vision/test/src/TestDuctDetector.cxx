@@ -128,7 +128,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(0, detector.getRotation(), 0.4);
-    CHECK_CLOSE(0.68, detector.getSize(), 0.05);
+    CHECK_CLOSE(0.32, detector.getRange(), 0.05);
     delete input;
     
     
@@ -141,7 +141,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(90, detector.getRotation(), 180);
-    CHECK_CLOSE(0.45, detector.getSize(), 0.05);
+    CHECK_CLOSE(0.55, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
     delete input2;
     
@@ -155,7 +155,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(50, detector.getRotation(), 20);
-    CHECK_CLOSE(0.51, detector.getSize(), 0.05);
+    CHECK_CLOSE(0.49, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
     delete input3;
     
@@ -168,7 +168,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(15, detector.getRotation(), 7);
-    CHECK_CLOSE(0.47, detector.getSize(), 0.05);
+    CHECK_CLOSE(0.53, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
     delete input4;
         
@@ -181,7 +181,7 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(-15, detector.getRotation(), 7);
-    CHECK_CLOSE(0.51, detector.getSize(), 0.05);
+    CHECK_CLOSE(0.49, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
     delete input5;
 }

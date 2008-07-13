@@ -292,14 +292,14 @@ class DuctPanel(VisionPanel):
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
-        self._createDataControl(controlName = '_size', label = 'Size: ')
+        self._createDataControl(controlName = '_range', label = 'Range: ')
         self._createDataControl(controlName = '_alignment', label = 'Align: ')
         self._createDataControl(controlName = '_aligned', label = 'Aligned: ')
         
     def _onDuctFound(self, event):
         self._x.Value = "% 4.2f" % event.x
         self._y.Value = "% 4.2f" % event.y
-        self._size.Value = "% 4.2f" % event.size
+        self._range.Value = "% 4.2f" % event.range
         self._alignment.Value = "% 4.2f" % event.alignment
         self._aligned.Value = "%s" % event.aligned
         

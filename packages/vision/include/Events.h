@@ -101,16 +101,16 @@ typedef boost::shared_ptr<BinEvent> BinEventPtr;
 class RAM_EXPORT DuctEvent : public core::Event
 {
 public:
-    DuctEvent(double x, double y, double size, 
+    DuctEvent(double x, double y, double range, 
         double rotation, bool aligned, bool visible) :
-        x(x), y(y), size(size), alignment(rotation),
+        x(x), y(y), range(range), alignment(rotation),
         aligned(aligned), visible(visible)
         {
         }
     
     double x;
     double y;
-    double size;
+    double range;
     double alignment;
     bool aligned;
     bool visible;
