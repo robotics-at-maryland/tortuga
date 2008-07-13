@@ -10,6 +10,7 @@
 #include "fixed.h"
 #include "SparseSDFTSpectrum.h"
 #include "pingDetect.h"
+#include <iostream>
 
 using namespace std;
 using namespace ram::sonar;
@@ -17,7 +18,7 @@ using namespace ram::sonar;
 /* Constructor for pingDetect class.  Initializes the Fourier Transform,
  * counting variables
  */
-pingDetect::pingDetect(int* hydro_threshold, int nchan, const int* bands)
+pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands)
 {
     spectrum=new SparseSDFTSpectrum<DFT_FRAME, NCHANNELS, nKBands>(bands);
     numchan=nchan;

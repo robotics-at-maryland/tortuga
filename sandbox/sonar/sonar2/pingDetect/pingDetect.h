@@ -25,7 +25,7 @@ class pingDetect
     SparseSDFTSpectrum <DFT_FRAME, NCHANNELS, nKBands>* spectrum; //Fourier transform class
 
     public:
-    pingDetect(int* hydro_threshold, int nchan, const int* bands);
+    pingDetect(const int* hydro_threshold, int nchan, const int* bands);
     ~pingDetect();
     int p_update(adcdata_t *sample, int kBand);
     void reset_minmax();
