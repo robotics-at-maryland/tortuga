@@ -36,18 +36,46 @@ class RAM_EXPORT BinDetector : public Detector
     void show(char* window);
     bool found();
     IplImage* getAnalyzedImage();
+
+    /** X cord of the bin closest to the center of the screen */
     float getX();
+    /** Y cord of the bin closest to the center of the screen */
     float getY();
     
   private:
     void init(core::ConfigNode config);
 
+    /** Processes the bin and fires off found event
+     *
+     *  @param bin
+     *      The blob which bounds the black box of the bin
+     *  @oaram detectoSuit
+     *      True if we are to find the suit for suit detection
+     *  @param output
+     *      Our debug output image
+     */
+    void processBin(BlobDetector::Blob bin, bool detectSuit, Image* ouput = 0);
+
+    /** Called by process bin, if suit detection is request is true
+     *
+     *  @param bin
+     *      The blob which bounds the black box of the bin
+     *  @param input
+     *      The image to extract the suit from
+     *  @param outptu
+     *      Our debug output image
+     */
+    Suit::SuitType determineSuit(BlobDetector::Blob bin, Image* input,
+                                 Image* output = 0);
+    
     bool m_found;
-    bool foundHeart;
+/*    bool foundHeart;
     bool foundSpade;
     bool foundDiamond;
     bool foundClub;
-    bool foundEmpty;
+    bool foundEmpty;*/
+    /** Determines if we should try and determine the suit of the bin */
+    bool m_runSuitDetector;
     int numBinsFound;
     IplImage* binFrame;
     IplImage* rotated;
