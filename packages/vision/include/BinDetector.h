@@ -52,13 +52,13 @@ class RAM_EXPORT BinDetector : public Detector
     IplImage* binFrame;
     IplImage* rotated;
     IplImage* bufferFrame;
-	IplImage* whiteMaskedFrame;
-	IplImage* blackMaskedFrame;
-	float binX, binY;
+    IplImage* whiteMaskedFrame;
+    IplImage* blackMaskedFrame;
+    float binX, binY;
     Image* frame;
     Camera* cam;
     SuitDetector suitDetector;
-	BlobDetector blobDetector;
+    BlobDetector blobDetector;
     /** Maximum distance for the bin to be considred "centered" */
     double m_centeredLimit;
     
@@ -68,7 +68,7 @@ class RAM_EXPORT BinDetector : public Detector
     Suit suitCenteredOver;
     
 };
-	
+
 } // namespace vision
 } // namespace ram
 

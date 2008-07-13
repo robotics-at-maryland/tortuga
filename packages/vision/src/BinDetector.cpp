@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
+  (C) 2007 Robotics at Maryland
  * Copyright (C) 2007 Daniel Hakim
  * All rights reserved.
  *
@@ -43,15 +43,15 @@ BinDetector::BinDetector(Camera* camera) :
 
 void BinDetector::init(core::ConfigNode config)
 {
-	frame = new OpenCVImage(640, 480);
-	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
-	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
+    frame = new OpenCVImage(640, 480);
+    rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
+    binFrame =cvCreateImage(cvGetSize(rotated),8,3);
     bufferFrame = cvCreateImage(cvGetSize(rotated),8,3);
     memset(bufferFrame->imageData, 0,
            bufferFrame->width * bufferFrame->height * 3);
-	whiteMaskedFrame = cvCreateImage(cvGetSize(rotated),8,3);
-	blackMaskedFrame = cvCreateImage(cvGetSize(rotated),8,3);
-	m_found=0;
+    whiteMaskedFrame = cvCreateImage(cvGetSize(rotated),8,3);
+    blackMaskedFrame = cvCreateImage(cvGetSize(rotated),8,3);
+    m_found=0;
     foundHeart = false;
     foundSpade = false;
     foundDiamond = false;
@@ -63,9 +63,9 @@ void BinDetector::init(core::ConfigNode config)
     
 BinDetector::~BinDetector()
 {
-	delete frame;
-	cvReleaseImage(&binFrame);
-	cvReleaseImage(&rotated);
+    delete frame;
+    cvReleaseImage(&binFrame);
+    cvReleaseImage(&rotated);
     cvReleaseImage(&bufferFrame);
 }
 
@@ -77,23 +77,23 @@ void BinDetector::update()
     
 void BinDetector::processImage(Image* input, Image* out)
 {
-	/*First argument to white_detect is a ratios frame, then a regular one*/
-	IplImage* image =(IplImage*)(*input);
+    /*First argument to white_detect is a ratios frame, then a regular one*/
+    IplImage* image =(IplImage*)(*input);
     IplImage* output = NULL;
     if (out != NULL)
         output = (IplImage*)(*out);
 //    std::cout<<"startup"<<std::endl;
-	
-	//This is only right if the camera is on sideways... again.
-	//rotate90Deg(image,rotated);
+    
+    //This is only right if the camera is on sideways... again.
+    //rotate90Deg(image,rotated);
 
-	//Else just copy
-	cvCopyImage(image,rotated);
-	image=rotated;//rotated is poorly named when camera is on correctly... oh well.
-	//Set image to a newly copied space so we don't write over opencv's private memory space...
-	//since opencv has a bad habit of making assumptions about what I want to do. :)
-	cvCopyImage(image,binFrame);
-	
+    //Else just copy
+    cvCopyImage(image,rotated);
+    image=rotated;//rotated is poorly named when camera is on correctly... oh well.
+    //Set image to a newly copied space so we don't write over opencv's private memory space...
+    //since opencv has a bad habit of making assumptions about what I want to do. :)
+    cvCopyImage(image,binFrame);
+    
     //Fill in output image.
     if (out)
     {
@@ -101,14 +101,14 @@ void BinDetector::processImage(Image* input, Image* out)
         out->copyFrom(&temp);
     }
     
-	to_ratios(image);
-	
-	//image is now in percents, binFrame is now the base image.
-	
+    to_ratios(image);
+    
+    //image is now in percents, binFrame is now the base image.
+    
   //  std::cout<<"starting masks"<<std::endl;
-	/*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame);
-	/*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame);
-	
+    /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame);
+    /*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame);
+    
   //  std::cout<<"masks complete"<<std::endl;
     blobDetector.setMinimumBlobSize(1000);
     OpenCVImage whiteMaskWrapper(whiteMaskedFrame,false);
@@ -122,12 +122,12 @@ void BinDetector::processImage(Image* input, Image* out)
     //    return;
     }
   //  std::cout<<"white found"<<std::endl;
-	std::vector<BlobDetector::Blob> whiteBlobs = blobDetector.getBlobs();
+    std::vector<BlobDetector::Blob> whiteBlobs = blobDetector.getBlobs();
 
     blobDetector.setMinimumBlobSize(500);
     OpenCVImage blackMaskWrapper(blackMaskedFrame,false);
     //std::cout<<"blob finding black"<<std::endl;
-	blobDetector.processImage(&blackMaskWrapper);
+    blobDetector.processImage(&blackMaskWrapper);
     if (!blobDetector.found())
     {
         //no blobs found.
@@ -264,22 +264,22 @@ void BinDetector::processImage(Image* input, Image* out)
         
         m_found = true;
         BinEventPtr event(new BinEvent(binX, binY, suit));
-		publish(EventType::BIN_FOUND, event);
+        publish(EventType::BIN_FOUND, event);
 
         // Determine Centered
-		math::Vector2 toCenter(binX, binY);
-		if (toCenter.normalise() < m_centeredLimit)
-		{
-			if(!m_centered)
-			{
-				m_centered = true;
-				publish(EventType::BIN_CENTERED, event);
-			}
-		}
-		else
-		{
-			m_centered = false;
-		}
+        math::Vector2 toCenter(binX, binY);
+        if (toCenter.normalise() < m_centeredLimit)
+        {
+            if(!m_centered)
+            {
+                m_centered = true;
+                publish(EventType::BIN_CENTERED, event);
+            }
+        }
+        else
+        {
+            m_centered = false;
+        }
 //        std::cout<<"End of bin"<<std::endl;
     }
     
@@ -333,12 +333,12 @@ return binY;
 
 void BinDetector::show(char* window)
 {
-	cvShowImage(window,((IplImage*)(binFrame)));
+    cvShowImage(window,((IplImage*)(binFrame)));
 }
 
 IplImage* BinDetector::getAnalyzedImage()
 {
-	return (IplImage*)(binFrame);
+    return (IplImage*)(binFrame);
 }
 
 bool BinDetector::found()
