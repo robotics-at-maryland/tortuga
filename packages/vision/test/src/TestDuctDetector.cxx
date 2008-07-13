@@ -186,6 +186,35 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     delete input5;
 }
 
+TEST_FIXTURE(DuctDetectorFixture, range)
+{
+    vision::Image* input =
+     vision::Image::loadFromFile(
+        (getImagesDir() / "alignment.png").string());
+    detector.processImage(input);
+
+    CHECK(detector.getAligned());
+    //CHECK_CLOSE(expectedValue, actualValue, maxDifference);
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(0, detector.getRotation(), 0.4);
+    CHECK_CLOSE(0.32, detector.getRange(), 0.05);
+    delete input;
+    
+    
+    vision::Image* input2 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "far.png").string());
+    // Blue Image with red circle in the center
+    detector.processImage(input2);
+
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(20, detector.getRotation(), 40);
+    CHECK_CLOSE(0.76, detector.getRange(), 0.05);
+    CHECK(detector.getAligned());
+    delete input2;
+}
 
 TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_FOUND)
 {
