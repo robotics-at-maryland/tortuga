@@ -63,7 +63,7 @@ DuctDetector::DuctDetector(core::ConfigNode config,
     n_x(0.0),
     n_y(0.0)
 {
-
+    init(core::ConfigNode::fromString("{}"));
 }
     
 DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
@@ -81,6 +81,13 @@ DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
 DuctDetector::~DuctDetector()
 {
     delete m_working;
+}
+
+void DuctDetector::init(core::ConfigNode config)
+{
+    m_redThreshold = config["redThreshold"].asInt(120);
+    m_greenThreshold = config["greenThreshold"].asInt(120);
+    m_blueThreshold = config["blueThreshold"].asInt(25);
 }
     
 void DuctDetector::processImage(Image* input, Image* output)

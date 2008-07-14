@@ -48,7 +48,8 @@ private:
     void init(core::ConfigNode config);
     int yellow(unsigned char r, unsigned char g, unsigned char b);
 
-    double m_x, m_y, m_rotation;
+    Image* m_working;
+    double m_x, m_y, m_rotation, n_x, n_y, m_range;
     int m_greenThreshold;
     int m_redThreshold;
     int m_blueThreshold;
