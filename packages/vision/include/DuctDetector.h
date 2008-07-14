@@ -26,7 +26,7 @@ public:
     DuctDetector(core::ConfigNode config,
                  core::EventHubPtr eventHub = core::EventHubPtr());
     DuctDetector(core::EventHubPtr eventHub = core::EventHubPtr());
-        virtual ~DuctDetector();
+	virtual ~DuctDetector();
         
     void processImage(Image* input, Image* output = 0);
 
@@ -45,10 +45,13 @@ public:
     bool getAligned();
     
 private:
-    /** Stores the image we are currently working with */
-    Image* m_working;
-    double m_x, m_y, m_rotation, m_range;
-    double n_x, n_y;
+    void init(core::ConfigNode config);
+    int yellow(unsigned char r, unsigned char g, unsigned char b);
+
+    double m_x, m_y, m_rotation;
+    int m_greenThreshold;
+    int m_redThreshold;
+    int m_blueThreshold;
 };
 
 } // namespace vision

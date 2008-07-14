@@ -32,9 +32,9 @@
 namespace ram {
 namespace vision {
 
-int yellow(unsigned char r, unsigned char g, unsigned char b)
+int DuctDetector::yellow(unsigned char r, unsigned char g, unsigned char b)
 {
-if (r > 120 && g > 120 && b < 30)
+if (r > m_redThreshold && g > m_greenThreshold && b < m_blueThreshold)
     return 1;
 return 0;
 
@@ -75,6 +75,7 @@ DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
     n_x(0.0),
     n_y(0.0)
 {
+    init(core::ConfigNode::fromString("{}"));
 }
 
 DuctDetector::~DuctDetector()
