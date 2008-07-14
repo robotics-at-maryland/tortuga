@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
 	    return -1;
     }
 
-    int fd = openSensorBoard("/dev/ttyUSB0");
+    int fd = openSensorBoard("/dev/sensor");
 
     if(fd == -1)
     {
@@ -132,7 +132,12 @@ int main(int argc, char ** argv)
 			exit(1);
 		}
 
-		setSpeeds(fd, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
+		printf("Ctrl-C to quit.\n");
+		while(1)
+		{
+			setSpeeds(fd, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
+			usleep(50000);
+		}
 	}
 
     if(strcmp(argv[1], "-status") == 0)
