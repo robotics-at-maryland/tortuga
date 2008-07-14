@@ -63,7 +63,7 @@ DuctDetector::DuctDetector(core::ConfigNode config,
     n_x(0.0),
     n_y(0.0)
 {
-    init(core::ConfigNode::fromString("{}"));
+    init(config);
 }
     
 DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
@@ -87,8 +87,10 @@ void DuctDetector::init(core::ConfigNode config)
 {
     m_redThreshold = config["redThreshold"].asInt(120);
     m_greenThreshold = config["greenThreshold"].asInt(120);
-    m_blueThreshold = config["blueThreshold"].asInt(25);
+    m_blueThreshold = config["blueThreshold"].asInt(30);
+    m_erodeIterations = config["erodeIterations"].asInt(0);
 }
+    
     
 void DuctDetector::processImage(Image* input, Image* output)
 {   
@@ -121,23 +123,50 @@ void DuctDetector::processImage(Image* input, Image* output)
         hist[i] = 0;
         
     int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
+
+    // Make all yellow white, everything else
+    for (int j=0;j<height;j++)
+    {
+        int offset = j*width*3;
+        for (int i=0;i<width*3;i+=3)
+        {
+            data[offset+i+2] = data[offset+i+1] = data[offset+i] =
+                (yellow(data[offset+i+2], // R
+                        data[offset+i+1], // G
+                        data[offset+i])
+                 * 255);  // B
+        }
+    }
+
+//    for (int i=0;i<2;i++)
+    if (m_erodeIterations != 0)
+    {
+        cvErode(m_working->asIplImage(), m_working->asIplImage(), 0,
+                m_erodeIterations);
+    }
+
+    if (output)
+    {
+        output->copyFrom(m_working);
+        outputData = output->getData();
+    }
     
     for (int j=0;j<height;j++)
     {
         int offset = j*width*3;
         for (int i=0;i<width*3;i+=3)
         {
-            int y = yellow(data[offset+i+2], // R
-                           data[offset+i+1], // G
-                           data[offset+i]);  // B
-            if (y > 0)
+//            int y = yellow(data[offset+i+2], // R
+//                           data[offset+i+1], // G
+//                           data[offset+i]);  // B
+            if (data[offset+i] != 0)
             {
                 if (i/3 < minX) minX = i/3;
                 if (i/3 > maxX) maxX = i/3;
                 if (j < minY) minY = j;
                 if (j > maxY) maxY = j;
+                hist[i/3] ++;
             }
-            hist[i/3] += y;
         }
     } 
     
@@ -225,6 +254,10 @@ void DuctDetector::processImage(Image* input, Image* output)
         
         if (ps[0] < 0 || ps[1] < 0 || ps[2] < 0 || ps[3] < 0)
         {
+            // DuctEventPtr event(new DuctEvent(0, 0, 0, 0, false, false));
+            //publish(EventType::DUCT_LOST, event);
+            //delete[] hist;
+            //return;
             m_rotation = 0;
         }
         else
@@ -251,24 +284,24 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     if (output)
     {
-        // Color all yellow pixels white
-        unsigned char* odata = output->getData();
+       // Color all yellow pixels white
+/*        unsigned char* odata = output->getData();
         unsigned char* idata = m_working->getData();
         size_t pixels = output->getWidth() * output->getHeight();
         for (size_t i = 0; i < pixels; ++i)
         {
-            if (yellow(*(idata+2), *(idata+1), *idata))
+            if (*idata > 0) //yellow(*(idata+2), *(idata+1), *idata))
             {
+                *(odata++) = 0;
                 *(odata++) = 255;
-                *(odata++) = 255;
-                *(odata++) = 255;
+                *(odata++) = 0;
             }
             else
             {
                 odata += 3;
             }
             idata += 3;
-        }
+            }*/
         
         // Draw bounding box
         CvPoint tl,tr,bl,br;
@@ -344,8 +377,9 @@ bool DuctDetector::getVisible()
     
 bool DuctDetector::getAligned()
 {
-    return fabs(m_rotation) <= 2;
+    return fabs(m_rotation) <= 1;
 }
 
 } // namespace vision
 } // namespace ram
+

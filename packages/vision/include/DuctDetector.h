@@ -53,9 +53,11 @@ private:
     int m_greenThreshold;
     int m_redThreshold;
     int m_blueThreshold;
+    int m_erodeIterations;
 };
 
 } // namespace vision
 } // namespace ram
 
 #endif // RAM_DUCT_DETECTOR_H_07_03_2008
+
