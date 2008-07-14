@@ -639,7 +639,7 @@ void dropMarker(byte id)
      * marker, but I would like to know the reason for this discrepantcy.
      */
 
-    markerCountsLeft = 16;
+    markerCountsLeft = 1;
 
     PR1 = 10000;            /* Period */
     TMR1 = 0;               /* Reset timer */
