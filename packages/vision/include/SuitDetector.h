@@ -36,9 +36,12 @@ class RAM_EXPORT SuitDetector : public Detector
     void update();
     IplImage* getAnalyzedImage();
     Suit::SuitType getSuit();
-    int edgeRun(int startx, int starty, IplImage* img);
+    //Fills numBackups if numBackups!=null
+    int edgeRun(int startx, int starty, int endx, int endy, IplImage* img, int* numBackups = 0);
+    void doEdgeRunning(IplImage*);
     bool makeSuitHistogram(IplImage*);
-	
+	bool cropImage(IplImage*);
+    bool cyclicCompare(int[], int[], int[], int);
   private:
     Camera* cam;
     IplImage* ratioImage;
@@ -47,8 +50,24 @@ class RAM_EXPORT SuitDetector : public Detector
     void init(core::ConfigNode config);
     BlobDetector blobDetector;
     IplImage* scaledRedSuit;
+    int findPointsOnEdges(IplImage* img, int xPositions[], int yPositions[]);
     int histoArr[128]; //twice scaledRedSuit's height.
-    static const int HISTOARRSIZE = 128;    
+    static const int HISTOARRSIZE = 128;
+    static int HEARTMIN[]; 
+    static int HEARTMAX[]; 
+    static int HEARTSIZE;
+
+    static int SPADEMIN[]; 
+    static int SPADEMAX[]; 
+    static int SPADESIZE; 
+
+    static int CLUBMIN[];
+    static int CLUBMAX[];
+    static int CLUBSIZE;
+
+    static int DIAMONDMIN[];
+    static int DIAMONDMAX[];
+    static int DIAMONDSIZE;
 };
 	
 } // namespace vision

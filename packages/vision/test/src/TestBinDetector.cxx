@@ -8,6 +8,9 @@
  * File:  packages/vision/test/src/TestOrangePipeDetector.cxx
  */
 
+// STD Includes
+#include <iostream>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
@@ -111,17 +114,104 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     CHECK_CLOSE(expectedY, event->y, 0.05);
 }
 
-//TEST_FIXTURE(BinDetectorFixture, HeartSuperSlowTest)
-//{ 
-//    for (int deg = 0; deg < 360; deg+=10)
-//    {
-//        vision::makeColor(&input, 0, 0, 255);
-//        vision::drawBin(&input, 320,240, 130, deg, vision::Heart);
-//        vision::OpenCVImage output(640,480);
-//        detector.processImage(&input, &output);
+TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
+{ 
+    detector.setSuitDetectionOn(true);
+    int right = 0;
+    for (int deg = 0; deg < 360; deg+=10)
+    {
+        
+        vision::makeColor(&input, 0, 0, 255);
+        vision::drawBin(&input, 320,240, 200, deg, vision::Club);
+        vision::OpenCVImage output(640,480);
+        detector.processImage(&input, &output);
+        if (detector.getSuit() == vision::Suit::CLUB)
+        {
+            right++;
+        }
+        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        {
+            
+        }
+        else
+        {
+            CHECK(false);
+        }
 //        vision::Image::showImage(&output);
-//    }
-//}
+    }
+    CHECK(right >= 12);
+    
+    right = 0;
+    for (int deg = 0; deg < 360; deg+=10)
+    {
+        vision::makeColor(&input, 0, 0, 255);
+        vision::drawBin(&input, 320,240, 200, deg, vision::Spade);
+        vision::OpenCVImage output(640,480);
+        detector.processImage(&input, &output);
+        if (detector.getSuit() == vision::Suit::SPADE)
+        {
+            right++;
+        }
+        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        {
+            
+        }
+        else
+        {
+            CHECK(false);
+        }
+//        vision::Image::showImage(&output);
+    }
+    CHECK(right >= 12);
+
+    right = 0;
+    for (int deg = 0; deg < 360; deg+=10)
+    {
+        vision::makeColor(&input, 0, 0, 255);
+        vision::drawBin(&input, 320,240, 200, deg, vision::Heart);
+        vision::OpenCVImage output(640,480);
+        detector.processImage(&input, &output);
+        if (detector.getSuit() == vision::Suit::HEART)
+        {
+            right++;
+        }
+        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        {
+            
+        }
+        else
+        {
+            CHECK(false);
+        }
+//        vision::Image::showImage(&output);
+    }
+    CHECK(right >= 12);
+
+    right = 0;
+    for (int deg = 0; deg < 360; deg+=10)
+    {
+        vision::makeColor(&input, 0, 0, 255);
+        vision::drawBin(&input, 320,240, 200, deg, vision::Diamond);
+        vision::OpenCVImage output(640,480);
+        detector.processImage(&input, &output);
+        if (detector.getSuit() == vision::Suit::DIAMOND)
+        {
+            right++;
+        }
+        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        {
+            
+        }
+        else
+        {
+            CHECK(false);
+        }
+//        vision::Image::showImage(&output);
+    }
+    CHECK(right >= 12);
+
+    detector.setSuitDetectionOn(false);
+}
 
 TEST_FIXTURE(BinDetectorFixture, FourBins)
 {
@@ -130,10 +220,61 @@ TEST_FIXTURE(BinDetectorFixture, FourBins)
     
     CHECK(ref != NULL);
     
-    vision::OpenCVImage output(ref->getWidth(),ref->getHeight());
-    detector.processImage(ref,&output);
-    //vision::Image::showImage(&output);
+    detector.processImage(ref);
 }
+
+//TEST_FIXTURE(BinDetectorFixture, BinTracking)
+//{
+//    vision::makeColor(&input, 0, 0, 255);
+//    vision::drawBin(&input, 160,240, 150, 70, vision::Heart);
+    
+//    vision::drawBin(&input, 480,240, 150, 70, vision::Diamond);
+    
+//    detector.processImage(&input);
+    
+//    vision::BinDetector::BinList bins = detector.getBins();
+//    std::vector<vision::BinDetector::Bin> binVect(bins.size());
+//    std::copy(bins.begin(), bins.end(), binVect.begin());
+
+//    CHECK_EQUAL(2u, bins.size());
+    
+//    int minId = binVect[0].getId();
+//    int maxId = binVect[1].getId();
+    
+//    if (maxId < minId)
+//    {
+//        minId = minId^maxId;
+//        maxId = maxId^minId;
+//        minId = minId^maxId;
+//    }
+    
+//    CHECK_EQUAL(0, minId);
+//    CHECK_EQUAL(1, maxId);
+    
+//    vision::makeColor(&input, 0, 0, 255);
+//    vision::drawBin(&input, 160,240, 150, 70, vision::Heart);
+    
+//    vision::drawBin(&input, 480,240, 150, 70, vision::Diamond);
+
+    // Process Images
+//    detector.processImage(&input);
+//    bins = detector.getBins();
+//    binVect.reserve(bins.size());
+//    std::copy(bins.begin(), bins.end(), binVect.begin());
+
+//    minId = binVect[0].getId();
+//    maxId = binVect[1].getId();
+    
+//    if (maxId < minId)
+//    {
+//        minId = minId^maxId;
+//        maxId = maxId^minId;
+//        minId = minId^maxId;
+//    }
+    
+//    CHECK_EQUAL(0, minId);
+//    CHECK_EQUAL(1, maxId);
+//}
 
 TEST_FIXTURE(BinDetectorFixture, Left)
 {

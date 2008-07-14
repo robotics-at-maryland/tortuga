@@ -40,6 +40,15 @@ static bool binToCenterComparer(BinDetector::Bin b1, BinDetector::Bin b2)
     return b1.distanceTo(0,0) < b2.distanceTo(0,0);
 }   
     
+BinDetector::Bin::Bin() :
+    m_normX(0),
+    m_normY(0),
+    m_angle(math::Degree(0)),
+    m_id(0),
+    m_suit(Suit::NONEFOUND)
+{
+}
+    
 BinDetector::Bin::Bin(double x, double y, math::Degree angle, int id, Suit::SuitType suit) :
     m_normX(x),
     m_normY(y),
@@ -211,12 +220,15 @@ void BinDetector::processImage(Image* input, Image* out)
         {
             // Go through the list of current bins and find the closest bin
             double currentMin = 10000;
-            Bin minBin(0,0,math::Degree(0), 0, Suit::NONEFOUND);
+            Bin minBin;
             BOOST_FOREACH(Bin currentBin, m_bins)
             {
                 double distance = currentBin.distanceTo(candidateBin);
+                //std::cout << "IDC: " << candidateBin.getId() << " IDB: " << currentBin.getId()
+                //          << " Distance: " << distance << std::endl;
                 if (distance < currentMin)
                 {
+                    //std::cout << "Storing" << std::endl;
                     currentMin = distance;
                     minBin = currentBin;
                 }
@@ -229,7 +241,12 @@ void BinDetector::processImage(Image* input, Image* out)
                 candidateBin._setId(minBin.getId());
                 // Remove from list to search against
                 m_bins.remove(minBin);
+                //std::cout << "Transferring, ID now: " << candidateBin.getId() << std::endl;
             }
+            //else
+            //{
+                //std::cout << "No transfer" << std::endl;
+            //};
             
             // Store bin in our list of new bins
             newBins.push_back(candidateBin);
@@ -385,38 +402,38 @@ Suit::SuitType BinDetector::determineSuit(BlobDetector::Blob bin, Image* input,
     {
         //seeClub = true;
         suit = Suit::CLUB;
-        std::cout<<"Found Club Bin"<<std::endl;
+//        std::cout<<"Found Club Bin"<<std::endl;
         
     }
     else if (suitFound == Suit::SPADE || suitFound == Suit::SPADER90 || suitFound == Suit::SPADER180 || suitFound == Suit::SPADER270)
     {
         //seeSpade = true;
         suit = Suit::SPADE;
-        std::cout<<"Found Spade Bin"<<std::endl;
+//        std::cout<<"Found Spade Bin"<<std::endl;
         
     }
     else if (suitFound == Suit::HEART || suitFound == Suit::HEARTR90 || suitFound == Suit::HEARTR180 || suitFound == Suit::HEARTR270)
     {
         //seeHeart = true;
         suit = Suit::HEART;
-        std::cout<<"Found Heart Bin"<<std::endl;
+//        std::cout<<"Found Heart Bin"<<std::endl;
     }
     else if (suitFound == Suit::DIAMOND || suitFound == Suit::DIAMONDR90 || suitFound == Suit::DIAMONDR180 || suitFound == Suit::DIAMONDR270)
     {
         //seeDiamond = true;
         suit = Suit::DIAMOND;
-        std::cout<<"Found Diamond Bin"<<std::endl;
+//        std::cout<<"Found Diamond Bin"<<std::endl;
     }
     else if (suitFound == Suit::UNKNOWN)
     {
         suit = Suit::UNKNOWN;
-        std::cout<<"Found an unknown bin, rotate above it until we figure out what it is!"<<std::endl;
+//        std::cout<<"Found an unknown bin, rotate above it until we figure out what it is!"<<std::endl;
     }
     else if (suitFound == Suit::NONEFOUND)
     {
         //seeEmpty = true;
         suit = Suit::NONEFOUND;
-        std::cout<<"Found empty Bin"<<std::endl;
+//        std::cout<<"Found empty Bin"<<std::endl;
     }
     
     return suit;
@@ -453,6 +470,11 @@ BinDetector::BinList BinDetector::getBins()
 bool BinDetector::found()
 {
     return m_found;
+}
+
+void BinDetector::setSuitDetectionOn(bool on)
+{
+    m_runSuitDetector = on;
 }
     
 } // namespace vision

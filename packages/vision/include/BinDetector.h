@@ -32,6 +32,7 @@ class RAM_EXPORT BinDetector : public Detector
     class Bin
     {
     public:
+        Bin();
         Bin(double x, double y, math::Degree rotation, int id, 
             Suit::SuitType suit);
 
@@ -67,6 +68,7 @@ class RAM_EXPORT BinDetector : public Detector
     };  
 
     typedef std::list<Bin> BinList;
+    typedef BinList::iterator BinListIter;
     
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
@@ -86,6 +88,8 @@ class RAM_EXPORT BinDetector : public Detector
     
     /** Gets our current set of bins, sorted close to farther from center */
     BinDetector::BinList getBins();
+    
+    void setSuitDetectionOn(bool);
     
   private:
     void init(core::ConfigNode config);
