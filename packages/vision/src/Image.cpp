@@ -125,11 +125,27 @@ void Image::blitImage(Image* toBlit, Image* src, Image* dest,
     }
 }
 
-void Image::writeText(Image* image, std::string, int x, int y,
+void Image::writeText(Image* image, std::string text, int x, int y,
                       int height)
 {
+    int ymin = 0;
     // Use cvInitFont to create font as needed
+    CvFont font;
+    cvInitFont(&font, CV_FONT_HERSHEY_PLAIN, 1, 1);
+
+    // Draw black backing square
+    CvSize textSize;
+    cvGetTextSize(text.c_str(), &font, &textSize, &ymin);
+    CvPoint lowerRight = {x + textSize.width, y + textSize.height};
+    CvPoint upperLeft = {x, y};
+    
+    cvRectangle(image->asIplImage(), upperLeft, lowerRight, CV_RGB(0,0,0),
+                CV_FILLED);
+    
     // Use cvPutText to draw text
+    upperLeft.y += textSize.height;
+    cvPutText(image->asIplImage(), text.c_str(), upperLeft, &font,
+              CV_RGB(255,255,255));
 }
     
     

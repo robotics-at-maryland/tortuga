@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <sstream>
 //#include <cassert>
 
 // Library Includes
@@ -41,6 +42,7 @@ static bool binToCenterComparer(BinDetector::Bin b1, BinDetector::Bin b2)
 }   
     
 BinDetector::Bin::Bin() :
+    Blob(0, 0, 0, 0, 0, 0, 0),
     m_normX(0),
     m_normY(0),
     m_angle(math::Degree(0)),
@@ -49,7 +51,9 @@ BinDetector::Bin::Bin() :
 {
 }
     
-BinDetector::Bin::Bin(double x, double y, math::Degree angle, int id, Suit::SuitType suit) :
+BinDetector::Bin::Bin(BlobDetector::Blob blob, double x, double y,
+                      math::Degree angle, int id, Suit::SuitType suit) :
+    Blob(blob),
     m_normX(x),
     m_normY(y),
     m_angle(angle),
@@ -69,6 +73,41 @@ double BinDetector::Bin::distanceTo(double x, double y)
     math::Vector2 otherCenter(x, y);
     return (mCenter-otherCenter).length();
 }
+    
+void BinDetector::Bin::draw(Image* image)
+{
+    IplImage* out = image->asIplImage();
+    // Draw green rectangle around the blob
+    CvPoint tl,tr,bl,br;
+    tl.x = bl.x = getMinX();
+    tr.x = br.x = getMaxX();
+    tl.y = tr.y = getMinY();
+    bl.y = br.y = getMaxY();
+    cvLine(out, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0);
+    cvLine(out, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0);
+    cvLine(out, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0);
+    cvLine(out, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0);
+
+    // Now draw my id
+    std::stringstream ss;
+    ss << getId();
+    Image::writeText(image, ss.str(), tl.x, tl.y);
+
+    // Now do the suit
+    if (Suit::NONEFOUND == m_suit)
+        Image::writeText(image, "None", bl.x, bl.y);
+    else if (Suit::UNKNOWN == m_suit)
+        Image::writeText(image, "Unknown", bl.x, bl.y);
+    else if (Suit::HEART == m_suit)
+        Image::writeText(image, "Heart", bl.x, bl.y);
+    else if (Suit::DIAMOND == m_suit)
+        Image::writeText(image, "Diamond", bl.x, bl.y);
+    else if (Suit::SPADE == m_suit)
+        Image::writeText(image, "Heart", bl.x, bl.y);
+    else if (Suit::CLUB == m_suit)
+        Image::writeText(image, "Club", bl.x, bl.y);
+}
+    
     
 BinDetector::BinDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
@@ -97,6 +136,7 @@ void BinDetector::init(core::ConfigNode config)
     foundEmpty = false;*/
     m_runSuitDetector = false;
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
+    m_sameBinThreshold = config["sameBinThreshold"].asDouble(0.2);
     m_binID = 0;
 }
     
@@ -205,7 +245,7 @@ void BinDetector::processImage(Image* input, Image* out)
     
         BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
         {
-            processBin(binBlob, m_runSuitDetector, candidateBins, out);
+            processBin(binBlob, true, candidateBins, out);
         }
 
         
@@ -224,11 +264,8 @@ void BinDetector::processImage(Image* input, Image* out)
             BOOST_FOREACH(Bin currentBin, m_bins)
             {
                 double distance = currentBin.distanceTo(candidateBin);
-                //std::cout << "IDC: " << candidateBin.getId() << " IDB: " << currentBin.getId()
-                //          << " Distance: " << distance << std::endl;
                 if (distance < currentMin)
                 {
-                    //std::cout << "Storing" << std::endl;
                     currentMin = distance;
                     minBin = currentBin;
                 }
@@ -241,12 +278,7 @@ void BinDetector::processImage(Image* input, Image* out)
                 candidateBin._setId(minBin.getId());
                 // Remove from list to search against
                 m_bins.remove(minBin);
-                //std::cout << "Transferring, ID now: " << candidateBin.getId() << std::endl;
             }
-            //else
-            //{
-                //std::cout << "No transfer" << std::endl;
-            //};
             
             // Store bin in our list of new bins
             newBins.push_back(candidateBin);
@@ -274,6 +306,8 @@ void BinDetector::processImage(Image* input, Image* out)
         
         BOOST_FOREACH(Bin bin, m_bins)
         {
+            if (out)
+                bin.draw(out);
             BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
                                            bin.getSuit()));
             publish(EventType::BIN_FOUND, event);
@@ -323,22 +357,8 @@ void BinDetector::processImage(Image* input, Image* out)
 
 
 void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
-                             BinList& newBins, Image* output)
+                             BinList& newBins, Image*)
 {
-    if (output)
-    {
-        IplImage* out = output->asIplImage();
-        // Draw green rectangle around the blob
-        CvPoint tl,tr,bl,br;
-        tl.x=bl.x=bin.getMinX();
-        tr.x=br.x=bin.getMaxX();
-        tl.y=tr.y=bin.getMinY();
-        bl.y=br.y=bin.getMaxY();
-        cvLine(out, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0 );
-        cvLine(out, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0 );
-        cvLine(out, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
-        cvLine(out, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
-    }
 //        std::cout<<"Finished writing to output image"<<std::endl;
     double binX = bin.getCenterX();
     double binY = bin.getCenterY();
@@ -366,11 +386,11 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     if (detectSuit)
     {
         OpenCVImage wrapper(binFrame, false);
-        suit = determineSuit(bin, &wrapper, output);
+        suit = determineSuit(bin, &wrapper);
     }
     
     // Create bin add it to the list (and incremet the binID)
-    newBins.push_back(Bin(binX, binY, math::Degree(0), m_binID++, suit));
+    newBins.push_back(Bin(bin, binX, binY, math::Degree(0), m_binID++, suit));
     
     m_found = true;
 }

@@ -29,12 +29,12 @@ namespace vision {
 class RAM_EXPORT BinDetector : public Detector
 {
   public:
-    class Bin
+    class Bin : BlobDetector::Blob
     {
     public:
         Bin();
-        Bin(double x, double y, math::Degree rotation, int id, 
-            Suit::SuitType suit);
+        Bin(BlobDetector::Blob blob, double x, double y,
+            math::Degree rotation, int id,  Suit::SuitType suit);
 
         /** Gets the center in normalized cordinates -1 -> 1 */
         double getX(){ return m_normX; }
@@ -58,6 +58,9 @@ class RAM_EXPORT BinDetector : public Detector
         bool operator==(const Bin& other) { return (m_id == other.getId()); }
         
         void _setId(int id) { m_id = id; }
+
+        /** Draws the bounds of the bin in green, and its ID */
+        void draw(Image* image);
     private:
             
         double m_normX;
