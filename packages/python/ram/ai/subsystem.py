@@ -16,8 +16,9 @@ class AI(core.Subsystem):
         if cfg is None:
             cfg = {}
             
-        core.Subsystem.__init__(self, cfg.get('name', 'AI'),
+        core.Subsystem.__init__(self, cfg.get('name', 'Ai'),
                                 deps)
+        self._connections = []
         
         # Gather all the state machines
         stateMachines = []
@@ -31,10 +32,18 @@ class AI(core.Subsystem):
             if m.getName() == cfg.get('AIMachineName', 'StateMachine'):
                 self._stateMachine = m
                 break
-        assert (not (self._stateMachine is None)), "Could not find aistate machine"
+        #assert (not (self._stateMachine is None)), "Could not find aistate machine"
                 
         # Store inter state data
         self._data = {}
+        
+    def addConnection(self, conn):
+        self._connections.append(conn)
+        
+    def unbackground(self, join = False):
+        core.Subsystem.unbackground(self, join)
+        for conn in self._connections:
+            conn.disconnect()
         
     @property
     def mainStateMachine(self):
