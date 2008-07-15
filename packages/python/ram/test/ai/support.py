@@ -20,6 +20,7 @@ import ram.timer as timer
 import ram.motion as motion
 import ram.motion.basic
 
+from ram.ai.subsystem import AI
 from ram.test.timer import TimerTester
 from ram.test.motion.support import MockController, MockVehicle, MockTimer
 
@@ -107,9 +108,10 @@ class AITestCase(unittest.TestCase):
         self.controller = MockController(None)
         self.vehicle = MockVehicle()
         self.visionSystem = MockVisionSystem()
+        self.ai = AI()
         
         deps = [self.controller, self.timerManager, self.eventHub, 
-                self.qeventHub, self.vehicle, self.visionSystem]
+                self.qeventHub, self.vehicle, self.visionSystem, self.ai]
         
         mCfg = cfg.get('MotionManager', {})
         self.motionManager = motion.basic.MotionManager(mCfg, deps)
@@ -121,10 +123,11 @@ class AITestCase(unittest.TestCase):
     
     def tearDown(self):
         # Put back the normal timer class
+        self.ai.unbackground()
         self.mockTimer()
         self.machine.stop()
 
-    def injectEvent(self, etype, eclass = core.Event, *args, **kwargs):
+    def _createEvent(self, etype, eclass = core.Event, *args, **kwargs):
         """
         Sends and event of the desired type and class into the state machine
         
@@ -134,23 +137,33 @@ class AITestCase(unittest.TestCase):
         @type eclass: Subclass of ext.core.Event
         @param eclass: The class of the event object
         """
-        
         if kwargs.has_key('type'):
             raise ValueError, "Keyword arguments cannot contain 'type'"
         
         kwargs['type'] = etype
         event = eclass(*args)
         
+        # Set desired class attributes
+        for attr, val in kwargs.iteritems():
+            setattr(event, attr, val)
+            
+        return event
+
+    def injectEvent(self, etype, eclass = core.Event, *args, **kwargs):
+        event = self._createEvent(etype, eclass, *args, **kwargs)
+        
         sendToBranches = False
         if kwargs.has_key('sendToBranches'):
             sendToBranches = True
             del kwargs['sendToBranches']
         
-        # Set desired class attributes
-        for attr, val in kwargs.iteritems():
-            setattr(event, attr, val)
-        
         self.machine.injectEvent(event, _sendToBranches = sendToBranches)
+     
+    def publishQueuedEvent(self, publisher, etype, eclass = core.Event, *args, 
+                           **kwargs):
+        event = self._createEvent(etype, eclass, *args, **kwargs)
+        self.qeventHub.publish(etype, event)
+        self.qeventHub.publishEvents()
      
     def releaseTimer(self, eventType):
         timer = MockTimer.LOG[eventType]
@@ -212,3 +225,8 @@ class AITestCase(unittest.TestCase):
     def assertGreaterThan(self, a, b):
         if not (a > b):
             self.fail(str(a) + " is not greater than " + str(b))
+            
+    def assertAIDataValue(self, key, value):
+        self.assert_(self.ai.data.has_key(key))
+        self.assertEqual(value, self.ai.data[key])
+

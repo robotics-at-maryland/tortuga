@@ -21,12 +21,66 @@ import ram.motion.common
 
 COMPLETE = core.declareEventType('COMPLETE')
 
+# Helper functions which deal with tracking bins based on "found" and "dropped"
+# events
+def ensureBinTracking(qeventHub, ai):
+    if not ai.data.has_key('binTrackingEnabled'):
+        ai.data['currentBins'] = set()
+        ai.data['binData'] = {}
+
+
+        def binFound(event):
+            """
+            Ensures found event is stored, along with its latest data
+            """
+            id = event.id
+            ai.data['currentBins'].add(id)
+            ai.data['binData'][id] = event
+            
+        def binDropped(event):
+            """
+            Remove dropped bins from records
+            """
+            id = event.id
+            # Remove from the set of current bins
+            ai.data['currentBins'].remove(id)
+    
+            # Remove from our data list
+            binData = ai.data['binData']
+            del binData[id]
+            ai.data['binData'] = binData
+            
+        connA = qeventHub.subscribeToType(vision.EventType.BIN_FOUND, 
+                                          binFound)
+        connB = qeventHub.subscribeToType(vision.EventType.BIN_DROPPED, 
+                                          binDropped)
+    
+        ai.addConnection(connA)
+        ai.addConnection(connB)
+        
+        ai.data['binTrackingEnabled'] = True
+
 class HoveringState(state.State):
+    LOST_CURRENT_BIN = core.declareEventType('LOST_CURRENT_BIN')
+    
+    @staticmethod
+    def transitions(myState, trans = None):
+        if trans is None:
+            trans = {}
+        trans.update({vision.EventType.BIN_LOST : Searching,
+                      vision.EventType.BIN_FOUND : myState})
+        return trans
+    
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        self._bin.setState(event.x, event.y)
+        # Only listen to the current bin ID
+        if self.ai.data.get('currentBinID', 0) == event.id:
+            self._bin.setState(event.x, event.y)
 
     def enter(self):
+        # Make sure we are tracking
+        ensureBinTracking(self.queuedEventHub, self.ai)
+        
         self._bin = ram.motion.common.Target(0,0)
         motion = ram.motion.common.Hover(target = self._bin,
                                          maxSpeed = 5,
@@ -54,6 +108,9 @@ class Searching(state.State):
     def transitions():
         return { vision.EventType.BIN_FOUND : Seeking }
 
+    def BIN_FOUND(self, event):
+        self.ai.data['currentBinID'] = event.id
+
     def enter(self):
         # Turn on the vision system
         self.visionSystem.binDetectorOn()
@@ -73,9 +130,9 @@ class Seeking(HoveringState):
     """When the vehicle is moving over the found bin"""
     @staticmethod
     def transitions():
-        return { vision.EventType.BIN_LOST : Searching,
-                 vision.EventType.BIN_FOUND : Seeking,
-                 vision.EventType.BIN_CENTERED : Centering }
+        return HoveringState.transitions(Seeking,
+            { vision.EventType.BIN_CENTERED : Centering })
+
 
 class Centering(SettlingState):
     """
@@ -87,13 +144,14 @@ class Centering(SettlingState):
     
     @staticmethod
     def transitions():
-        return { vision.EventType.BIN_LOST : Searching,
-                 vision.EventType.BIN_FOUND : Centering,
-                 Centering.SETTLED : Dive }
+        return SettlingState.transitions(Centering,
+            { Centering.SETTLED : Dive })
     
     def enter(self):
         SettlingState.enter(self, Centering.SETTLED, 5)
-    
+        
+#class SeekEnd(HoveringState):
+   
 class Dive(HoveringState):
     @staticmethod
     def transitions():
@@ -117,20 +175,18 @@ class DropMarker(SettlingState):
     
     @staticmethod
     def transitions():
-        return { vision.EventType.BIN_LOST : Searching,
-                 vision.EventType.BIN_FOUND : DropMarker,
-                 DropMarker.DROPPED : Surface }
+        return SettlingState.transitions(Seeking,
+            { DropMarker.DROPPED : Surface })
 
     def enter(self):
-        SettlingState.enter(self, DropMarker.DROPPED, 5)
+        SettlingState.enter(self, DropMarker.DROPPED, 15)
         # TODO: drop marker here
         
 class Surface(HoveringState):
     @staticmethod
     def transitions():
-        return { vision.EventType.BIN_LOST : Searching,
-                 vision.EventType.BIN_FOUND : Surface,
-                 motion.basic.Motion.FINISHED : End }
+        return SettlingState.transitions(Seeking,
+            { motion.basic.Motion.FINISHED : End })
         
     def enter(self):
         # Keep centered over the bin
@@ -143,7 +199,6 @@ class Surface(HoveringState):
         
         self.motionManager.setMotion(surfaceMotion)
 
-        
 class End(state.State):
     def enter(self):
         self.visionSystem.binDetectorOff()
