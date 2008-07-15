@@ -176,6 +176,46 @@ class TestCentering(aisupport.AITestCase):
         self.injectEvent(bin.Centering.SETTLED)
         self.assertCurrentState(bin.Dive)
         
+class TestSeekEnd(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        
+        bin.ensureBinTracking(self.qeventHub, self.ai)
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        self.machine.start(bin.SeekEnd)
+        
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        self.ai.data['currentBinID'] = 0
+        self.ai.data['currentBins'] = set()
+        # Need to add multi-motion support
+        binFoundHelper(self)
+        
+        # Now test centered
+        self._centered = False
+        def centered(event):
+            self._centered = True
+        self.qeventHub.subscribeToType(bin.SeekEnd.CENTERED_, centered)
+        
+        # Test wrong ID
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         x = 0, y = 0, id = 4)
+        self.assertFalse(self._centered)
+        
+        # Proper centered (6 is proper ID changed in binFoundHelper)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         x = 0, y = 0, id = 6)
+        self.qeventHub.publishEvents()
+        self.assert_(self._centered)
+        
+    def testBinTracking(self):
+        self.ai.data['currentBinID'] = 0
+        self.ai.data['currentBins'] = set()
+        binTrackingHelper(self)
+        
+    def testCentered(self):
+
 class TestDive(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)

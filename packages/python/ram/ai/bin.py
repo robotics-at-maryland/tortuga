@@ -12,6 +12,7 @@ Currently hovers over the bin
 # Project Imports
 import ext.core as core
 import ext.vision as vision
+import ext.math as math
 
 import ram.ai.state as state
 import ram.motion as motion
@@ -71,10 +72,13 @@ class HoveringState(state.State):
                       vision.EventType.BIN_FOUND : myState})
         return trans
     
+    def _currentBin(self, event):
+        return self.ai.data.get('currentBinID', 0) == event.id
+    
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         # Only listen to the current bin ID
-        if self.ai.data.get('currentBinID', 0) == event.id:
+        if self._currentBin(event):
             self._bin.setState(event.x, event.y)
 
     def enter(self):
@@ -155,14 +159,38 @@ class SeekEnd(HoveringState):
     Goes to the right most visible bin
     """
     AT_END = core.declareEventType('AT_END')
+    CENTERED_ = core.declareEventType('CENTERED')
     
+    @staticmethod
+    def transitions():
+        return HoveringState.transitions(SeekEnd,
+            { SeekEnd.CENTERED_ : End, SeekEnd.AT_END : End })
     
     def enter(self):
-        # Fix the current left most bin, as the currently tracked bin
-        
         # Keep the hover motion going
         HoveringState.enter(self)
-    
+        
+        # Fix the current left most bin, as the currently tracked bin
+        if not self._fixLeftMostBin():
+            # If already there
+            self.publish(SeekEnd.AT_END, core.Event())
+        
+        self._centeredRange = self._config.get('centeredRange', 0.2)
+        
+    def CENTERED(self, event):
+        # Fix the current left most bin, as the currently tracked bin
+        if not self._fixLeftMostBin():
+            # If already there
+            self.publish(SeekEnd.AT_END, core.Event())
+        
+    def BIN_FOUND(self, event):
+        HoveringState.BIN_FOUND(self, event)
+
+        # Fire event if we are centered over the bin
+        if self._currentBin(event): 
+            if math.Vector2(event.x, event.y).length() < self._centeredRange:
+                self.publish(SeekEnd.CENTERED_, core.Event())
+            
     def _compareBins(self, idA, idB):
         """
         Sorts the list with the left most bin, at the start
@@ -178,16 +206,17 @@ class SeekEnd(HoveringState):
         binBx = binData[idB].x      
         type(binAx).__cmp__(binAx, binBx)
     
-    def _fixRightMostBin(self):
+    def _fixLeftMostBin(self):
         """
         Makes the current bin the left most bin, returns true if that changes
         the current bin.
         """
         # Sorted left to right
-        sortedBins = sorted(self.ai.data['currentBins'], self._compareBins)
+        currentBins = [b for b in self.ai.data['currentBins']]
+        sortedBins = sorted(currentBins, self._compareBins)
         
         # Compare to current ID
-        currentBinId = self.ai.data['currentBin']
+        currentBinId = self.ai.data['currentBinID']
         leftMostBinId = sortedBins[0]
         
         if currentBinId == leftMostBinId:
@@ -195,15 +224,16 @@ class SeekEnd(HoveringState):
             return False
         else:
             # Still more bins to go
-            self.ai.data['currentBin'] = currentBinId
+            self.ai.data['currentBinID'] = currentBinId
             return True
    
 class Dive(HoveringState):
+    
     @staticmethod
     def transitions():
-        return { vision.EventType.BIN_LOST : Searching,
-                 vision.EventType.BIN_FOUND : Dive,
-                 motion.basic.Motion.FINISHED : DropMarker }
+        return SettlingState.transitions(Dive,
+        { motion.basic.Motion.FINISHED : DropMarker })
+
         
     def enter(self):
         # Keep the hover motion going
@@ -221,7 +251,7 @@ class DropMarker(SettlingState):
     
     @staticmethod
     def transitions():
-        return SettlingState.transitions(Seeking,
+        return SettlingState.transitions(DropMarker,
             { DropMarker.DROPPED : Surface })
 
     def enter(self):
@@ -231,7 +261,7 @@ class DropMarker(SettlingState):
 class Surface(HoveringState):
     @staticmethod
     def transitions():
-        return SettlingState.transitions(Seeking,
+        return SettlingState.transitions(Surface,
             { motion.basic.Motion.FINISHED : End })
         
     def enter(self):
