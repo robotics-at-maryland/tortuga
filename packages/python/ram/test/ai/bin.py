@@ -49,13 +49,25 @@ def binTrackingHelper(self):
     self.assertAIDataValue('currentBins', set([6]))
     
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 2)
+                            vision.BinEvent, 0, 0, x = 0.3, y = -0.5, id = 2)
     self.assertAIDataValue('currentBins', set([2,6]))
     
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 3)
+                            vision.BinEvent, 0, 0, x = 0.2, y = -0.3, id = 3)
     self.assertAIDataValue('currentBins', set([2, 3, 6]))
     
+    # Check some bin data
+    self.assert_(self.ai.data.has_key('binData'))
+    binData = self.ai.data['binData']
+    self.assertEqual(0.5, binData[6].x)
+    self.assertEqual(0.3, binData[2].x)
+    self.assertEqual(0.2, binData[3].x)
+    
+    # Make sure its updated
+    self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
+                            vision.BinEvent, 0, 0, x = 0.7, y = -0.5, id = 2)
+    self.assertEqual(0.7, binData[2].x)
+        
     # Remove some
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
                             vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 3)

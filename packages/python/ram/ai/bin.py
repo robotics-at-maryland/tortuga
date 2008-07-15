@@ -150,7 +150,53 @@ class Centering(SettlingState):
     def enter(self):
         SettlingState.enter(self, Centering.SETTLED, 5)
         
-#class SeekEnd(HoveringState):
+class SeekEnd(HoveringState):
+    """
+    Goes to the right most visible bin
+    """
+    AT_END = core.declareEventType('AT_END')
+    
+    
+    def enter(self):
+        # Fix the current left most bin, as the currently tracked bin
+        
+        # Keep the hover motion going
+        HoveringState.enter(self)
+    
+    def _compareBins(self, idA, idB):
+        """
+        Sorts the list with the left most bin, at the start
+        
+        @type idA: int
+        @param idA: ID of the bin compare
+        
+        @type idB: int
+        @param idB: ID of the other bin to compare
+        """
+        binData = self.ai.data['binData']
+        binAx = binData[idA].x
+        binBx = binData[idB].x      
+        type(binAx).__cmp__(binAx, binBx)
+    
+    def _fixRightMostBin(self):
+        """
+        Makes the current bin the left most bin, returns true if that changes
+        the current bin.
+        """
+        # Sorted left to right
+        sortedBins = sorted(self.ai.data['currentBins'], self._compareBins)
+        
+        # Compare to current ID
+        currentBinId = self.ai.data['currentBin']
+        leftMostBinId = sortedBins[0]
+        
+        if currentBinId == leftMostBinId:
+            # We found the "end" bin
+            return False
+        else:
+            # Still more bins to go
+            self.ai.data['currentBin'] = currentBinId
+            return True
    
 class Dive(HoveringState):
     @staticmethod
