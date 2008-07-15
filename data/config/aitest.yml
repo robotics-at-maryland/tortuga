@@ -128,19 +128,19 @@ Subsystems:
                 update_interval: 100
 
                 # String representing the address of the thruster
-                address: 3
+                address: 1
                 # Number determined by testing
                 calibration_factor: 0.3652
                 # Number used to flip thruster forces (if thruster is reversed
                 
                 # on the vehicle)
-                direction: -1
+                direction: 1
 
             PortThruster:
                 depends_on: ['SensorBoard']
                 # serial: 149
                 type: SBThruster
-                address: 1
+                address: 0
                 calibration_factor: 0.4146
                 direction: 1
 
@@ -148,15 +148,15 @@ Subsystems:
                 depends_on: ['SensorBoard']
                 type: SBThruster
                 # serial: 146
-                address: 2
+                address: 3
                 calibration_factor: 0.4368
-                direction: 1
+                direction: -1
 
             AftThruster:
                 depends_on: ['SensorBoard']
                 # Serial 148
                 type: SBThruster
-                address: 0
+                address: 5
                 calibration_factor: 0.3612
                 direction: -1
 
@@ -164,16 +164,16 @@ Subsystems:
                 depends_on: ['SensorBoard']
                 # serial: 149
                 type: SBThruster
-                address: 4
+                address: 2
                 calibration_factor: 0.4146
-                direction: -1
+                direction: 1
 
             BottomThruster:
                 depends_on: ['SensorBoard']
                 type: SBThruster
-                address: 5
+                address: 4
                 calibration_factor: 0.3652
-                direction: 1
+                direction: -1
 
 
 
