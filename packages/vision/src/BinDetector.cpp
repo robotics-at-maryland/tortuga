@@ -233,6 +233,7 @@ void BinDetector::processImage(Image* input, Image* out)
     if (m_found && (binBlobs.size() == 0))
     {
         m_found = false;
+        m_centered = false;
         publish(EventType::BIN_LOST, core::EventPtr(new core::Event()));
     }
     
@@ -292,6 +293,12 @@ void BinDetector::processImage(Image* input, Image* out)
             event->id = bin.getId();
             publish(EventType::BIN_DROPPED, event);
         }
+
+        // Track whether we lose the bin which is centered
+        //if (m_centered)
+        //{
+        //    int centeredID;
+        //}
         
         // Sort list by distance from center and copy it over the old one
         newBins.sort(binToCenterComparer);

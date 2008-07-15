@@ -492,6 +492,28 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     CHECK(event);
     CHECK_CLOSE(0, event->x, 0.05);
     CHECK_CLOSE(0, event->y, 0.05);
+
+    // Blank image
+    centered = false;
+    found = false;
+    event = vision::BinEventPtr();
+    makeColor(&input, 0, 0, 255);
+    detector.processImage(&input);
+
+    CHECK(!event);
+    CHECK(!found);
+    CHECK(!centered);
+
+    // Now make a dead centered bin, and make sure get another centered
+    makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/2, 480/2, 130, 0);
+    detector.processImage(&input);
+
+    CHECK(found);
+    CHECK(centered);
+    CHECK(event);
+    CHECK_CLOSE(0, event->x, 0.05);
+    CHECK_CLOSE(0, event->y, 0.05);
 }
 
 TEST_FIXTURE(BinDetectorFixture, Suit)
