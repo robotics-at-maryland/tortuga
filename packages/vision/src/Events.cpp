@@ -20,6 +20,7 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, GATE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_DROPPED);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_CENTERED);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, DUCT_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, DUCT_LOST);

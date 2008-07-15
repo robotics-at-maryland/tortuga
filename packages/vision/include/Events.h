@@ -35,6 +35,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType GATE_FOUND;
     static const core::Event::EventType BIN_FOUND;
     static const core::Event::EventType BIN_LOST;
+    static const core::Event::EventType BIN_DROPPED;
     static const core::Event::EventType BIN_CENTERED;
     static const core::Event::EventType DUCT_FOUND;
     static const core::Event::EventType DUCT_LOST;
@@ -92,6 +93,7 @@ public:
     
     double x;
     double y;
+    int id;
     Suit::SuitType suit;
     math::Degree angle;
 };

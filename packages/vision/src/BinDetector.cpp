@@ -283,6 +283,15 @@ void BinDetector::processImage(Image* input, Image* out)
             // Store bin in our list of new bins
             newBins.push_back(candidateBin);
         }
+
+        // Anybody left we didn't find this iteration, so its been dropped
+        BOOST_FOREACH(Bin bin, m_bins)
+        {
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+                                           bin.getSuit()));
+            event->id = bin.getId();
+            publish(EventType::BIN_DROPPED, event);
+        }
         
         // Sort list by distance from center and copy it over the old one
         newBins.sort(binToCenterComparer);
@@ -310,6 +319,7 @@ void BinDetector::processImage(Image* input, Image* out)
                 bin.draw(out);
             BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
                                            bin.getSuit()));
+            event->id = bin.getId();
             publish(EventType::BIN_FOUND, event);
         }
     }

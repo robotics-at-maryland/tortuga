@@ -9,15 +9,18 @@
  */
 
 // STD Includes
+#include <cmath>
+#include <set>
 #include <iostream>
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/foreach.hpp>
+
 #include <cv.h>
-#include <math.h>
-#include <iostream>
 
 // Project Includes
 #include "vision/include/Image.h"
@@ -44,7 +47,9 @@ struct BinDetectorFixture
     BinDetectorFixture() :
         found(false),
         centered(false),
+        dropped(false),
         event(vision::BinEventPtr()),
+        droppedEvent(vision::BinEventPtr()),
         input(640, 480),
         eventHub(new core::EventHub()),
         detector(core::ConfigNode::fromString("{}"), eventHub)
@@ -56,6 +61,8 @@ struct BinDetectorFixture
             boost::bind(&BinDetectorFixture::centeredHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_LOST,
             boost::bind(&BinDetectorFixture::lostHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::BIN_DROPPED,
+            boost::bind(&BinDetectorFixture::droppedHandler, this, _1));
     }
 
     void foundHandler(core::EventPtr event_)
@@ -75,10 +82,18 @@ struct BinDetectorFixture
         found = false;
         event = vision::BinEventPtr();
     }
+
+    void droppedHandler(core::EventPtr event_)
+    {
+        dropped = true;
+        droppedEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
+    }
     
     bool found;
     bool centered;
+    bool dropped;
     vision::BinEventPtr event;
+    vision::BinEventPtr droppedEvent;
     vision::OpenCVImage input;
     core::EventHubPtr eventHub;
     vision::BinDetector detector;
@@ -399,6 +414,59 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
     found = true;
     detector.processImage(&input);
     CHECK(found == true);
+}
+
+TEST_FIXTURE(BinDetectorFixture, Events_BIN_DROPPED)
+{
+    // Place a set of four bins on screen
+    makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/5, 480/2, 100, 0);
+    drawBin(&input, 640/5 * 2, 480/2, 100, 0);
+    drawBin(&input, 640/5 * 3, 480/2, 100, 0);
+    drawBin(&input, 640/5 * 4, 480/2, 100, 0);
+    
+    detector.processImage(&input);
+
+    // Make sure we haven't dropped anything
+    CHECK_EQUAL(false, dropped);
+    
+    // Ensure unique IDs
+    vision::BinDetector::BinList bins = detector.getBins();
+    CHECK_EQUAL(4u, bins.size());
+    std::set<int> startingIds;
+    BOOST_FOREACH(vision::BinDetector::Bin bin, bins)
+    {
+        startingIds.insert(bin.getId());
+    }
+    CHECK_EQUAL(4u, startingIds.size());
+    
+    // Record ID of bin, then nuke it
+    makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/5, 480/2, 100, 0);
+    drawBin(&input, 640/5 * 2, 480/2, 100, 0);
+    drawBin(&input, 640/5 * 3, 480/2, 100, 0);    
+
+    detector.processImage(&input);
+    bins = detector.getBins();
+    CHECK_EQUAL(3u, bins.size());
+    std::set<int> endingIds;
+    BOOST_FOREACH(vision::BinDetector::Bin bin, bins)
+    {
+        endingIds.insert(bin.getId());
+    }
+    CHECK_EQUAL(3u, endingIds.size());
+
+    // Find the difference
+    std::set<int> lostIds;
+    std::set_difference(startingIds.begin(), startingIds.end(),
+                        endingIds.begin(), endingIds.end(),
+                        std::inserter(lostIds, lostIds.begin()));
+    CHECK_EQUAL(1u, lostIds.size());
+    
+    // Now make sure we got the right dropped event
+    CHECK(dropped);
+    CHECK(droppedEvent);
+    CHECK_EQUAL((*lostIds.begin()), droppedEvent->id);
 }
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
