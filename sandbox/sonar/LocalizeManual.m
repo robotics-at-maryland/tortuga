@@ -14,17 +14,7 @@ samplesPerHalfWavelength = samplesPerWavelength / 2;
 
 disp('Loading samples...');
 
-file = fopen(fname,'rb');
-data = fread(file, Inf, 'int16');
-fclose(file);
-A = data(1:4:end);
-B = data(2:4:end);
-C = data(3:4:end);
-D = data(4:4:end);
-%A = data(1,:);
-%B = data(2,:);
-%C = data(3,:);
-%D = data(4,:);
+[A, B, C, D] = LoadBinary(fname);
 t = (0:1/SamplingRate:(length(A)-1)/SamplingRate);
 
 
@@ -92,3 +82,4 @@ disp(direction);
 disp('Earth azimuth:');
 disp(180/pi*atan2(direction(2),direction(1)));
 end
+
