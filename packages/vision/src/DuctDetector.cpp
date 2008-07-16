@@ -202,11 +202,14 @@ void DuctDetector::processImage(Image* input, Image* output)
     for(int i = 0; i < lines->total; i++ )
     {
         CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
-        if (max(line[0].y, line[1].y) > mY && abs((double)(line[1].y - line[0].y) / (double)(line[1].x - line[0].x)) < 0.5 &&
-            sqrt(pow(line[0].x - line[1].x, 2) + pow(line[0].y - line[1].y, 2)) > 20)
+        if (max(line[0].y, line[1].y) > mY &&
+            fabs((double)(line[1].y - line[0].y) /
+                 (double)(line[1].x - line[0].x)) < 0.5 &&
+            sqrt(pow(line[0].x - line[1].x, 2) +
+                 pow(line[0].y - line[1].y, 2)) > 20)
         {
             maxLine = line;
-            mY = max(line[0].y, line[1].y);
+            mY = (int)max(line[0].y, line[1].y);
         }
         
         if (output)

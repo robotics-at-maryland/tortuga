@@ -170,15 +170,17 @@ class DuctAlignState(FilteredState):
         desiredRange = self._config.get('desiredRange', 0.3)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 45)
+        alignGain = self._config.get('alignGain', 1.0)
         maxSpeed = self._config.get('maxSpeed', 3)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._duct,
             desiredRange = desiredRange,
             maxRangeDiff = maxRangeDiff,
-            maxAlignDiff = maxAlignDiff,
+            maxAlignDiff = maxAlignDiff, 
             maxSpeed = maxSpeed,
             maxSidewaysSpeed = maxSidewaysSpeed,
+            alignGain = alignGain,
             depthGain = depthGain)
         
         self.motionManager.setMotion(motion)

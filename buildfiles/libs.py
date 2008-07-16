@@ -163,8 +163,9 @@ def setup_windows_libs():
                                  ext_deps = ['Boost']),
 
         'Boost.Regex' : Library('Boost.Regex', '1.34.1',
-                                ext_deps = ['Boost']),     
-                                [], [BOOST_REGEX_LIB], 
+                                [], [BOOST_REGEX_LIB],
+                                ext_deps = ['Boost']),
+
                                  
         'Boost.ProgramOptions' : Library('Boost.ProgramOptions','1.34.1', [],
                                          [BOOST_PROGOPT_LIB]),
