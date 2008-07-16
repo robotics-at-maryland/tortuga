@@ -57,11 +57,11 @@ static const int nKBands = 3; //number of frequency bands to examine
 static const int kBands[]= {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount};
 
 
-static const double hydroStructureArray[3][3] =
+static const double hydroStructureArray[3][3] =  //units currently in inches but it shouldn't matter
 {
-    {0,      0.984, 0,   },
-    {0.492,  0.492, 0.696},
-    {-0.492, 0.492, 0.696}
+    {0,      0.984, 0,   },    //hydrophone 1  {x, y, z}
+    {0.492,  0.492, 0.696},		//hydrophone 2  {x, y, z}
+    {-0.492, 0.492, 0.696}		//hydrophone 3  {x, y, z}
 };
 
 } // namespace sonar
