@@ -64,6 +64,14 @@ static const double hydroStructureArray[3][3] =  //units currently in inches but
     {-0.492, 0.492, 0.696}		//hydrophone 3  {x, y, z}
 };
 
+static const double hydroPlanarArray[3][2] =  //units and magnitude matter! 
+{
+    {0.566, 0.698},	//hydrophone 1  {x, y} units is meters
+    {0, 0.698},		//hydrophone 2  {x, y}
+    {0.561, 0}		//hydrophone 3  {x, y}
+};
+
+
 } // namespace sonar
 } // namespace ram
 
