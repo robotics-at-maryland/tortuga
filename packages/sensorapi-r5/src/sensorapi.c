@@ -246,9 +246,9 @@ int readTemp(int fd, unsigned char * tempData)
 
 int getSonarData(int fd, int * angle, int * distance, int * pingNumber)
 {
-    unsigned char buf[12]={HOST_CMD_SONAR, HOST_CMD_SONAR};
+    unsigned char buf[19]={HOST_CMD_SONAR, HOST_CMD_SONAR};
     int i;
-    unsigned char rawSonar[12] = {0,0,0,0,0};
+    unsigned char rawSonar[19] = {0,0,0,0,0};
 
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
@@ -256,19 +256,19 @@ int getSonarData(int fd, int * angle, int * distance, int * pingNumber)
     if(buf[0] != 0x0E)
         return SB_ERROR;
 
-    readData(fd, rawSonar, 12);
+    readData(fd, rawSonar, 19);
     readData(fd, buf, 1);
 
     unsigned char sum = 0x0E;
 
-    for(i=0; i<12; i++)
+    for(i=0; i<19; i++)
         sum = (sum+rawSonar[i]) & 0xFF;
 
     if(sum != buf[0])
         return SB_ERROR;
 
     printf("\nDebug: Received data from sonar board: < ");
-    for(i=0; i<12; i++)
+    for(i=0; i<19; i++)
         printf("0x%02X ", rawSonar[i]);
 
     printf(">\n");
