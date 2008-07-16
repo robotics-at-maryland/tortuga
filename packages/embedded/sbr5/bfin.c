@@ -79,6 +79,8 @@ byte txPtr = 0;
 
 byte sonarBuf[19]; /* Put vector here */
 
+byte portalMode = 0;
+
 
 byte fCount = 0;
 byte sonarPtr = 0;
@@ -90,28 +92,29 @@ void _ISR _U2RXInterrupt(void)
 {
     IFS1bits.U2RXIF = 0;    /* Clear RX interrupt */
 
-#ifdef PORTAL
-    TMR2 = 0;
-    OC3RS = ((unsigned char)(U2RXREG & 0xFF));
-#else
-    byte t = U2RXREG;
-    actLight(0);
-
-    if(sonarPtr < 19)
-        sonarBuf[sonarPtr++] = t;   /* Blargh */
-
-    /* We are looking for 6 FFs in a row. */
-    if(t == 0xFF)
+    if(portalMode)
     {
-        fCount++;
-        /* Start of sequence? */
-        if(fCount >= 6)
-            sonarPtr = 0;
+        TMR2 = 0;
+        OC3RS = ((unsigned char)(U2RXREG & 0xFF));
     } else
-        fCount = 0;
+    {
 
-#endif
+        byte t = U2RXREG;
+        actLight(0);
 
+        if(sonarPtr < 19)
+            sonarBuf[sonarPtr++] = t;   /* Blargh */
+
+        /* We are looking for 6 FFs in a row. */
+        if(t == 0xFF)
+        {
+            fCount++;
+            /* Start of sequence? */
+            if(fCount >= 6)
+                sonarPtr = 0;
+        } else
+            fCount = 0;
+    }
 }
 
 void initUart()
@@ -395,33 +398,36 @@ void initBus()
 
 void actLight(byte l)
 {
-#ifndef PORTAL
-    PR2 = 800;            /* Period */
-    TMR2 = 0;               /* Reset timer */
-    IFS0bits.T2IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T2IE = 1;      /* Enable interrupts */
-    T2CONbits.TCS = 0;      /* Use internal clock */
-    T2CONbits.TCKPS = 3;    /* 1:256 prescaler */
-    T2CONbits.TON = 1;      /* Start Timer2 */
+    if(!portalMode)
+    {
+        PR2 = 800;            /* Period */
+        TMR2 = 0;               /* Reset timer */
+        IFS0bits.T2IF = 0;      /* Clear interrupt flag */
+        IEC0bits.T2IE = 1;      /* Enable interrupts */
+        T2CONbits.TCS = 0;      /* Use internal clock */
+        T2CONbits.TCKPS = 3;    /* 1:256 prescaler */
+        T2CONbits.TON = 1;      /* Start Timer2 */
 
-    if(l == 0)
-        LAT_LED_GREEN = LED_ON;
-    else
-        LAT_LED_YELLOW = LED_ON;
-#endif
+        if(l == 0)
+            LAT_LED_GREEN = LED_ON;
+        else
+            LAT_LED_YELLOW = LED_ON;
+    }
 }
 
-#ifndef PORTAL
+
 /* ISR for Timer2. Used for making the ACT light pretty */
 void _ISR _T2Interrupt(void)
 {
     IFS0bits.T2IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T2IE = 0;      /* Disable interrupts */
-    LAT_LED_GREEN = ~LED_ON;
-    LAT_LED_YELLOW = ~LED_ON;
-    T2CONbits.TON = 0;  /* Stop Timer1 */
+    if(!portalMode)
+    {
+        IEC0bits.T2IE = 0;      /* Disable interrupts */
+        LAT_LED_GREEN = ~LED_ON;
+        LAT_LED_YELLOW = ~LED_ON;
+        T2CONbits.TON = 0;  /* Stop Timer1 */
+    }
 }
-#endif
 
 
 int main()
@@ -467,22 +473,38 @@ int main()
 
     TRIS_BF_RESET = TRIS_IN;    /* Start the Blackfin */
 
+    _TRISF3 = TRIS_IN;
+    _TRISF2 = TRIS_OUT;
+    _LATF2 = 1;
+
     for(l=0; l<1600000; l++);     /* Wait a little bit more before accepting commands */
 
     initUart();
 
-    // Uncomment this for portal mode
+    /* Check portal jumper */
 
-#ifdef PORTAL
-    disableBusInterrupt();
-    initJPortal();
-    OC3RS = 128;
-    while(1);
-#else
+
+
+
+    if(_RF3)  /* Jumper between PGD and PGC */
+    {
+        portalMode = 1;
+        LAT_LED_GREEN = LED_ON;
+        LAT_LED_YELLOW = LED_ON;
+        LAT_LED_RED = LED_ON;
+        disableBusInterrupt();
+        initJPortal();
+        OC3RS = 128;
+        _TRISF2 = TRIS_IN;
+        while(1);
+    } else
+        portalMode = 0;
+
+    _TRISF2 = TRIS_IN;
+
+    // Uncomment this for portal mode
     initCN();
 
-
-#endif
 
     byte i;
     byte blah[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x1F, 0xA3, 0x2B, 0xDC, 0x9E, 0x42, 0xD4, 0x7B};
