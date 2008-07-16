@@ -623,6 +623,9 @@ typedef struct
 }Pos;
 typedef std::list<Pos> PosList;
 
+//For crappy bluish camera (not on robot)
+//Use "if (data[count+2]>34 && data2[count+2]>75)// && data2[count]<75 && data2[count+1]<75)"
+
 void suitMask(IplImage* percents, IplImage* base)
 {
 	unsigned char* data=(unsigned char*)percents->imageData;
@@ -634,7 +637,7 @@ void suitMask(IplImage* percents, IplImage* base)
     {
         for (int x = 0; x < width; x++)
         {
-            if (data[count+2]>30 && data2[count+2]>125 && data2[count]<100 && data2[count+1]<100)
+            if (data[count+2]>34 && data2[count+2]>75)// && data2[count]<75 && data2[count+1]<75)
             {
                 data2[count]=data2[count+1]=data2[count+2]=255;
             }
@@ -1541,9 +1544,12 @@ int red_blue(IplImage* img, float ratio)
 	return total;
 }
 
+
+
+//Good ones are 30 and 190 for test images at least
 /* Masks the image for white, all parameters must be the same size,
    output is filled with either 0's or 255s*/
-int white_mask(IplImage* percents, IplImage* base, IplImage* output)
+int white_mask(IplImage* percents, IplImage* base, IplImage* output, unsigned char minPercentIntensity, unsigned char minIntensity)
 {
 	unsigned char* data=(unsigned char*)percents->imageData;
 	unsigned char* data2=(unsigned char*)base->imageData;
@@ -1574,9 +1580,9 @@ int white_mask(IplImage* percents, IplImage* base, IplImage* output)
 			b2=data2[count];
 			g2=data2[count+1];
 			r2=data2[count+2];
-			if (b>30 && g>30 && r>30)
+			if (b>minPercentIntensity && g>minPercentIntensity && r>minPercentIntensity)
 			{
-				if (b2>190 && g2>190 && r2>190)
+				if (b2>minIntensity && g2>minIntensity && r2>minIntensity)
 				{
 					data3[count]=data3[count+1]=data3[count+2]=255;
 					pixelCount++;
@@ -1596,6 +1602,7 @@ int white_mask(IplImage* percents, IplImage* base, IplImage* output)
 	return pixelCount;
 }
 
+//Good parameters are 15 and 350, except for stupid cam, for which drop it to 15 150
 /* masks the images for black. output is filled with 255s wherever base and percents were in black thresholds,
 filled with 0s elsewhere*/
 int black_mask(IplImage* percents, IplImage* base, IplImage* output)

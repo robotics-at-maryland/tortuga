@@ -29,7 +29,7 @@ namespace vision {
 class RAM_EXPORT BinDetector : public Detector
 {
   public:
-    class Bin : BlobDetector::Blob
+    class Bin : public BlobDetector::Blob
     {
     public:
         Bin();
@@ -44,6 +44,8 @@ class RAM_EXPORT BinDetector : public Detector
         
         /** Angle of vertical */
         math::Degree getAngle();
+        
+        void setAngle(math::Degree ang) { m_angle = ang; } //Does this work?
         
         int getId() const { return m_id; }
         
@@ -78,6 +80,12 @@ class RAM_EXPORT BinDetector : public Detector
     ~BinDetector();
 
     void processImage(Image* input, Image* output= 0);
+    
+    /** redSuit and rotatedRedSuit must be the same size, rotates redSuit,
+        which is the image containing the center of the bin into rotatedRedSuit
+    */
+    void unrotateBin(math::Radian bin, Image* redSuit, 
+                                            Image* rotatedRedSuit);
     bool found();
 
     /** X cord of the bin closest to the center of the screen */
@@ -120,8 +128,14 @@ class RAM_EXPORT BinDetector : public Detector
      *  @param outptu
      *      Our debug output image
      */
-    Suit::SuitType determineSuit(BlobDetector::Blob bin, Image* input,
+    Suit::SuitType determineSuit(Image* input,
                                  Image* output = 0);
+    
+    
+    /** Called by process bin, must be called regardless of whether we plan
+     *  to detect suits, as this function sets the angle of the bin.
+     */
+    math::Radian calculateAngleOfBin(BlobDetector::Blob bin, Image* input);
     
     bool m_found;
 /*    bool foundHeart;

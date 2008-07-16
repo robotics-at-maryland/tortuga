@@ -179,8 +179,35 @@ void BinDetector::processImage(Image* input, Image* out)
     to_ratios(image);
     
     // Image is now in percents, binFrame is now the base image.
-    /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame);
+    /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame, 25, 140);
     /*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame);
+    
+    if (output)
+    {
+    for (int count = 0; count < binFrame->width* binFrame->height * 3; count++)
+    {
+        if (whiteMaskedFrame->imageData[count] != 0)
+        {
+//            binFrame->imageData[count] = 255;
+//            output->imageData[count] = 255;
+        }
+    }
+    }
+    if (output)
+    {
+    for (int count = 0; count < binFrame->width* binFrame->height * 3; count++)
+    {
+        if (blackMaskedFrame->imageData[count] != 0)
+        {
+//            binFrame->imageData[count] = 0;
+//            output->imageData[count] = 0;
+        }
+    }
+    }
+//    if (output)
+//    {
+//    suitMask(image,output);
+//    }
 
     // Find all the white blobs
     blobDetector.setMinimumBlobSize(1000);
@@ -372,7 +399,6 @@ void BinDetector::processImage(Image* input, Image* out)
     foundEmpty = seeEmpty;*/
 }
 
-
 void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
                              BinList& newBins, Image*)
 {
@@ -380,7 +406,7 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     double binX = bin.getCenterX();
     double binY = bin.getCenterY();
 
-    // Map the image cordinate system to one 90 degrees rotated and with the
+    // Map the image coordinate system to one 90 degrees rotated and with the
     // center in the middle of the image, and going from -1 to 1
     binX /=640;
     binY /=480;
@@ -397,39 +423,97 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     float swap = binX;
     binX = binY;
     binY = swap;
-
-    // Find suit if desired
-    Suit::SuitType suit = Suit::NONEFOUND;
-    if (detectSuit)
-    {
-        OpenCVImage wrapper(binFrame, false);
-        suit = determineSuit(bin, &wrapper);
-    }
     
-    // Create bin add it to the list (and incremet the binID)
-    newBins.push_back(Bin(bin, binX, binY, math::Degree(0), m_binID++, suit));
-    
-    m_found = true;
-}
-
-Suit::SuitType BinDetector::determineSuit(BlobDetector::Blob bin, Image* input,
-                                          Image* output)
-{
     // Create the image to hold the bin blob
     int width = (bin.getMaxX()-bin.getMinX()+1)/4*4;
     int height = (bin.getMaxY()-bin.getMinY()+1)/4*4;
     OpenCVImage binImage(width, height);
-
     // Extra bin blob into image
     CvPoint2D32f binCenter = cvPoint2D32f(bin.getCenterX(), bin.getCenterY());
-    cvGetRectSubPix(input->asIplImage(), binImage.asIplImage(), binCenter);
+    cvGetRectSubPix(binFrame, binImage.asIplImage(), binCenter);
+//    Image::showImage(&binImage);
+    math::Radian angle = calculateAngleOfBin(bin, &binImage);
     
-    // Process image to find suit
-//        std::cout<<"starting suit detection"<<std::endl;
-    suitDetector.processImage(&binImage);
+    // Find suit if desired
+    Suit::SuitType suit = Suit::NONEFOUND;
+    
+    if (detectSuit)
+    {
+        OpenCVImage rotatedRedSuitWrapper(binImage.getWidth(), binImage.getHeight());
+        vision::Image::transform(&binImage, &rotatedRedSuitWrapper, -angle);
+        //Image::showImage(&rotatedRedSuitWrapper);
+        suit = determineSuit(&rotatedRedSuitWrapper);
+    }
+    
+    // Create bin add it to the list (and incremet the binID)
+    newBins.push_back(Bin(bin, binX, binY, angle, m_binID++, suit));
+    
+    m_found = true;
+}
+
+void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSuit, Image* rotatedRedSuit)
+{
+    float m[6];
+    CvMat M = cvMat( 2, 3, CV_32F, m );
+
+    double factor = -angleOfBin.valueRadians();
+    m[0] = (float)(cos(factor));
+    m[1] = (float)(sin(factor));
+    m[2] = redSuit->getWidth() * 0.5f;
+    m[3] = -m[1];
+    m[4] = m[0];
+    m[5] = redSuit->getWidth() * 0.5f;
+    
+    cvGetQuadrangleSubPix(redSuit->asIplImage(), rotatedRedSuit->asIplImage(),&M);
+}
+
+math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, Image* input)
+{
+    IplImage* redSuit = (IplImage*)(*input);
+    IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
+
+    cvCvtColor(redSuit,redSuitGrayScale,CV_BGR2GRAY);
+    IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
+
+    cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    CvSeq* lines = 0;
+        
+    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+        
+    float longestLineLength = -1;
+    float slope = 0;
+    for(int i = 0; i < lines->total; i++ )
+    {
+        CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+        float lineX = line[1].x - line[0].x;
+        float lineY = line[1].y - line[0].y;
+        if (longestLineLength < (lineX * lineX + lineY * lineY))
+        {
+            slope = atan2(lineY,lineX);
+            longestLineLength = lineX * lineX + lineY * lineY;
+        }
+    }
+    cvReleaseImage(&cannied);
+    cvReleaseMemStorage(&storage);
+    cvReleaseImage(&redSuitGrayScale);
+    return math::Radian(slope);
+}
+
+Suit::SuitType BinDetector::determineSuit(Image* input,
+                                          Image* output)
+{
 //        std::cout<<"finished suit detection"<<std::endl;
 //        std::cout<<"Suit: " << suitDetector.getSuit()<<std::endl;
 
+    if (output)
+    {
+        suitDetector.processImage(input,output);
+    }
+    else
+    {
+        suitDetector.processImage(input);
+    }   
     // Filter suit type
     Suit::SuitType suitFound = suitDetector.getSuit(); //In case we ever want to use the suit detector...
     Suit::SuitType suit = Suit::NONEFOUND;
@@ -472,7 +556,6 @@ Suit::SuitType BinDetector::determineSuit(BlobDetector::Blob bin, Image* input,
         suit = Suit::NONEFOUND;
 //        std::cout<<"Found empty Bin"<<std::endl;
     }
-    
     return suit;
 }
     

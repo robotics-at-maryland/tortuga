@@ -37,7 +37,7 @@ class RAM_EXPORT SuitDetector : public Detector
     IplImage* getAnalyzedImage();
     Suit::SuitType getSuit();
     //Fills numBackups if numBackups!=null
-    int edgeRun(int startx, int starty, int endx, int endy, IplImage* img, int* numBackups = 0);
+    int edgeRun(int startx, int starty, int endx, int endy, IplImage* img, int dir, int* numBackups = 0);
     void doEdgeRunning(IplImage*);
     bool makeSuitHistogram(IplImage*);
 	bool cropImage(IplImage*);
@@ -50,6 +50,7 @@ class RAM_EXPORT SuitDetector : public Detector
     void init(core::ConfigNode config);
     BlobDetector blobDetector;
     IplImage* scaledRedSuit;
+    int findPointsOnEdges2(IplImage* img, int xPositions[], int yPositions[]);
     int findPointsOnEdges(IplImage* img, int xPositions[], int yPositions[]);
     int histoArr[128]; //twice scaledRedSuit's height.
     static const int HISTOARRSIZE = 128;

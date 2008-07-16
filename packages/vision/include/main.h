@@ -64,7 +64,7 @@ int red_blue(IplImage* img, float ratio);
  */
 int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny);
 
-int white_mask(IplImage* percents, IplImage* base, IplImage* output);
+int white_mask(IplImage* percents, IplImage* base, IplImage* output, unsigned char minPercentIntensity = 30, unsigned char minIntensity = 190);
 int black_mask(IplImage* percents, IplImage* base, IplImage* output);
 int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey);
 int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);

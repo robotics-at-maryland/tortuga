@@ -23,21 +23,39 @@
 namespace ram {
 namespace vision {
 
-    int SuitDetector::HEARTMIN[] = {160, 150, 45, 95, 55};
-    int SuitDetector::HEARTMAX[] = {177, 165, 60, 112, 75};
-    int SuitDetector::HEARTSIZE = 5;
+//    Traversal Distances for findPointsOnEdges2 --Best Numbers For Tests
+    int SuitDetector::HEARTMIN[] = {145, 145, 90, 90};
+    int SuitDetector::HEARTMAX[] = {155, 155, 110, 110};
+    int SuitDetector::HEARTSIZE = 4;
 
-    int SuitDetector::SPADEMIN[] = {185, 270, 130, 120};
-    int SuitDetector::SPADEMAX[] = {220, 300, 150, 140};
+    int SuitDetector::SPADEMIN[] = {120, 120, 235, 235};
+    int SuitDetector::SPADEMAX[] = {130, 130, 261, 261};
     int SuitDetector::SPADESIZE = 4;
 
-    int SuitDetector::CLUBMIN[] = {128, 127, 185, 250};
-    int SuitDetector::CLUBMAX[] = {155, 150, 207, 280};
+    int SuitDetector::CLUBMIN[] = {110, 110, 209, 209};
+    int SuitDetector::CLUBMAX[] = {125, 125, 230, 230};
     int SuitDetector::CLUBSIZE = 4;
 
-    int SuitDetector::DIAMONDMIN[] = {120, 120, 120, 120};
-    int SuitDetector::DIAMONDMAX[] = {131, 131, 131, 134};
+    int SuitDetector::DIAMONDMIN[] = {123, 123, 123, 123};
+    int SuitDetector::DIAMONDMAX[] = {133, 133, 133, 133};
     int SuitDetector::DIAMONDSIZE = 4;
+
+//    Traversal Distances for findPointsOnEdges
+//    int SuitDetector::HEARTMIN[] = {160, 150, 45, 95, 55};
+//    int SuitDetector::HEARTMAX[] = {177, 165, 60, 112, 75};
+//    int SuitDetector::HEARTSIZE = 5;
+//
+//    int SuitDetector::SPADEMIN[] = {185, 275, 130, 120};
+//    int SuitDetector::SPADEMAX[] = {220, 300, 150, 140};
+//    int SuitDetector::SPADESIZE = 4;
+//
+//    int SuitDetector::CLUBMIN[] = {125, 127, 185, 250};
+//    int SuitDetector::CLUBMAX[] = {155, 150, 210, 275};
+//    int SuitDetector::CLUBSIZE = 4;
+//
+//    int SuitDetector::DIAMONDMIN[] = {120, 120, 120, 120};
+//    int SuitDetector::DIAMONDMAX[] = {131, 131, 131, 134};
+//    int SuitDetector::DIAMONDSIZE = 4;
 
 SuitDetector::SuitDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
@@ -70,6 +88,83 @@ SuitDetector::~SuitDetector()
 	cvReleaseImage(&tempHoughImage);
     cvReleaseImage(&scaledRedSuit);
 }
+
+int SuitDetector::findPointsOnEdges2(IplImage* img, int xPositions[], int yPositions[])
+{
+    int width = img->width;
+    int height = img->height;
+    int hits = 0;
+    unsigned char *data = (unsigned char*) img->imageData;
+    int x = 0;
+    int y = 0;
+    
+    x = width-1;
+    y = height/2;
+    while (x >= 0)
+    {
+        unsigned char val = data[x * 3 + y * width * 3];
+        if (val>0)
+        {
+            xPositions[0] = x;
+            yPositions[0] = y;
+            hits++;
+            break;
+        }
+        x--;
+    }
+
+    x = width/2;
+    y = 0;
+    while (y < height)
+    {
+        unsigned char val = data[x * 3 + y * width * 3];
+        if (val>0)
+        {
+            xPositions[1] = x;
+            yPositions[1] = y;
+            hits++;
+            break;
+        }
+        y++;
+    }
+    
+    x = 0;
+    y = height/2;
+    while (x < width)
+    {
+        unsigned char val = data[x * 3 + y * width * 3];
+        if (val>0)
+        {
+            xPositions[2] = x;
+            yPositions[2] = y;
+            hits++;
+            break;
+        }
+        x++;
+    }
+    
+    x = width/2;
+    y = height-1;
+    while (y >= 0)
+    {
+        unsigned char val = data[x * 3 + y * width * 3];
+        if (val>0)
+        {
+            xPositions[3] = x;
+            yPositions[3] = y;
+            hits++;
+            break;
+        }
+        y--;
+    }
+    
+    //Must hit 4 sides, or its a failure.
+    if (hits != 4)
+        return -1;
+    else
+        return 4;
+}
+
 
 //Returns -1 for failure, or the number of segments along the edges of the image.
 //If the number of segments is less than 4, this will return -1  
@@ -314,7 +409,7 @@ on edges.  Returns -1 if endX endY is never reached, so
 call this function ONLY if there is a SINGLE blob in the image
 
 startX startY must be a point along the outer rim of the image!*/
-int SuitDetector::edgeRun(int startX, int startY, int endX, int endY, IplImage* img, int* numBackups)
+int SuitDetector::edgeRun(int startX, int startY, int endX, int endY, IplImage* img, int dir, int* numBackups)
 {
 	int width = img->width;
 	int height = img->height;
@@ -329,11 +424,20 @@ int SuitDetector::edgeRun(int startX, int startY, int endX, int endY, IplImage* 
 	int DOWN=width*3;
 	int LEFT=-3;
 	
+    if (dir == 0)
+        dir = RIGHT;
+    else if (dir == 1)
+        dir = UP;
+    else if (dir == 2)
+        dir = LEFT;
+    else if (dir == 3)
+        dir = DOWN;
+    
 	//3 = right 
 	//-width*3 = up 
 	//-3 = left 
 	//width*3 = down
-	int dir = RIGHT;
+//	int dir = RIGHT;
     
     if (numBackups != NULL)
     {
@@ -379,14 +483,14 @@ int SuitDetector::edgeRun(int startX, int startY, int endX, int endY, IplImage* 
 //	startX = x;
 //	startY = y; //Should now have traversed to an edge of the shape.
 	 
-    if (startX == width -1 && startY != 0)
-        dir = UP;
-    else if (startY == 0 && startX !=0)
-        dir = LEFT;
-    else if (startX == 0 && startY != height-1)
-        dir = DOWN;
-    else if (startY == height-1 && startX != width-1)
-        dir = RIGHT;
+//    if (startX == width -1 && startY != 0)
+//        dir = UP;
+//    else if (startY == 0 && startX !=0)
+//        dir = LEFT;
+//    else if (startX == 0 && startY != height-1)
+//        dir = DOWN;
+//    else if (startY == height-1 && startX != width-1)
+//        dir = RIGHT;
         
 	int nextX;
 	int nextY;
@@ -565,6 +669,15 @@ bool SuitDetector::cropImage(IplImage* rotatedRedSuit)
     {
         return false;
     }
+        
+    onlyRedSuitRows = onlyRedSuitCols = (onlyRedSuitRows > onlyRedSuitCols ? onlyRedSuitRows : onlyRedSuitCols);
+
+
+    if (onlyRedSuitRows >= rotatedRedSuit->width || onlyRedSuitCols >= rotatedRedSuit->height)
+    {
+        return false;
+    }
+        
     IplImage* onlyRedSuit = cvCreateImage(
         cvSize(onlyRedSuitRows,
                onlyRedSuitCols),
@@ -693,57 +806,21 @@ bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
     return true;//we made a histogram   
 }
 
+
 void SuitDetector::processImage(Image* input, Image* output)
 {
-    IplImage* redSuit = (IplImage*)(*input);
-    IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
+    IplImage* rotatedRedSuit = (IplImage*)(*input);
 
-    cvCvtColor(redSuit,redSuitGrayScale,CV_BGR2GRAY);
-    IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
 
-    cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
-    CvMemStorage* storage = cvCreateMemStorage(0);
-    CvSeq* lines = 0;
-        
-    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
-        
-    float longestLineLength = -1;
-    float slope = 0;
-    for(int i = 0; i < lines->total; i++ )
-    {
-        CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
-        float lineX = line[1].x - line[0].x;
-        float lineY = line[1].y - line[0].y;
-        if (longestLineLength < (lineX * lineX + lineY * lineY))
-        {
-            slope = atan2(lineY,lineX);
-            longestLineLength = lineX * lineX + lineY * lineY;
-        }
-    }
-    
-    IplImage* rotatedRedSuit = cvCreateImage(cvGetSize(redSuit), IPL_DEPTH_8U, 3);
-    
-    float m[6];
-    CvMat M = cvMat( 2, 3, CV_32F, m );
-
-    double factor = -slope;
-    m[0] = (float)(cos(factor));
-    m[1] = (float)(sin(factor));
-    m[2] = redSuitGrayScale->width * 0.5f;
-    m[3] = -m[1];
-    m[4] = m[0];
-    m[5] = redSuitGrayScale->height * 0.5f;
-    
-    cvGetQuadrangleSubPix(redSuit, rotatedRedSuit,&M);
-    
     IplImage* percentsRotatedRed = cvCreateImage(cvGetSize(rotatedRedSuit),IPL_DEPTH_8U, 3);
     
     cvCopyImage(rotatedRedSuit,percentsRotatedRed);
     to_ratios(percentsRotatedRed);
-    //            OpenCVImage mySuit(rotatedRedSuit,false);
-    //            Image::showImage(&mySuit);
     
     suitMask(percentsRotatedRed, rotatedRedSuit);
+//    OpenCVImage mySuit(rotatedRedSuit,false);
+//    Image::showImage(&mySuit);
+
     if (cropImage(rotatedRedSuit)) //This places a cropped suit into scaledRedSuit.
     {
         doEdgeRunning(scaledRedSuit);
@@ -752,22 +829,20 @@ void SuitDetector::processImage(Image* input, Image* output)
     {
         printf("Failure to crop image properly, too small a suit?\n");
     }
-    cvReleaseImage(&redSuitGrayScale);
-    cvReleaseImage(&cannied);
-    cvReleaseMemStorage(&storage);
-    cvReleaseImage(&rotatedRedSuit);
     cvReleaseImage(&percentsRotatedRed);
 }
 
 
 void SuitDetector::doEdgeRunning(IplImage* image)
 {
+//    OpenCVImage wrapScaled(scaledRedSuit, false);
+//    Image::showImage(&wrapScaled, "The Red Suit, Cropped And Masked");
 //    printf("Starting edge running\n");
     int xPos[20];
     int yPos[20];
     int traverseDists[20];
     int numBackups = 0;
-    int numSegs = findPointsOnEdges(image,xPos,yPos);
+    int numSegs = findPointsOnEdges2(image,xPos,yPos);
     
     if (numSegs == -1)
     {
@@ -787,48 +862,69 @@ void SuitDetector::doEdgeRunning(IplImage* image)
             int startY = yPos[j];
             int endX = xPos[i];
             int endY = yPos[i];
-            traverseDists[i] = edgeRun(startX,startY,endX,endY, image, &numBackups);
+
+            traverseDists[i] = edgeRun(startX,startY,endX,endY, image, i, &numBackups);
 //            printf("(%d,%d) to (%d,%d) : %d   Backups: %d \n", startX, startY, endX, endY, traverseDists[i], numBackups);
         }
 //        printf("End of Traversal Dists \n");
     }
     
     suit = Suit::UNKNOWN;
-    if (numSegs == 5)
-    {    
-        if (cyclicCompare(traverseDists, SuitDetector::HEARTMIN, SuitDetector::HEARTMAX, SuitDetector::HEARTSIZE))
-        {
-            suit = Suit::HEART;
-        }
-    }
-    else if (numSegs == 4)
+    bool heartLike = false;
+    bool spadeLike = false;
+    bool clubLike = false;
+    bool diamondLike = false;
+    if (numSegs == SuitDetector::HEARTSIZE)
     {
-        bool spadeLike = cyclicCompare(traverseDists, SuitDetector::SPADEMIN, SuitDetector::SPADEMAX, SuitDetector::SPADESIZE);
-        bool clubLike = cyclicCompare(traverseDists, SuitDetector::CLUBMIN, SuitDetector::CLUBMAX, SuitDetector::CLUBSIZE);
-        bool diamondLike = cyclicCompare(traverseDists, SuitDetector::DIAMONDMIN, SuitDetector::DIAMONDMAX, SuitDetector::DIAMONDSIZE);
-        
-        if (spadeLike && !clubLike && !diamondLike)
-        {
-            suit = Suit::SPADE;
-        }
-        else if (clubLike && !spadeLike && !diamondLike)
-        {
-            suit = Suit::CLUB;
-        }
-        else if (diamondLike && !spadeLike && !clubLike)
-        {
-            suit = Suit::DIAMOND;
-        }
+        heartLike = cyclicCompare(traverseDists, SuitDetector::HEARTMIN, SuitDetector::HEARTMAX, SuitDetector::HEARTSIZE);
+        if (heartLike)
+            printf("Heart!");
+    }
+    if (numSegs == SuitDetector::SPADESIZE)
+    {
+        spadeLike = cyclicCompare(traverseDists, SuitDetector::SPADEMIN, SuitDetector::SPADEMAX, SuitDetector::SPADESIZE);
+        if (spadeLike)
+            printf("Spade!");
+    }
+    if (numSegs == SuitDetector::CLUBSIZE)
+    {
+        clubLike = cyclicCompare(traverseDists, SuitDetector::CLUBMIN, SuitDetector::CLUBMAX, SuitDetector::CLUBSIZE);
+        if (clubLike)
+            printf("Club!");
+    }
+    if (numSegs == SuitDetector::DIAMONDSIZE)
+    {    
+        diamondLike = cyclicCompare(traverseDists, SuitDetector::DIAMONDMIN, SuitDetector::DIAMONDMAX, SuitDetector::DIAMONDSIZE);
+        if (diamondLike)
+            printf("Diamond!");
     }
     
-//    switch(suit)
-//    {
-//        case Suit::HEART: printf("Heart!\n");break;
-//        case Suit::DIAMOND: printf("Diamond!\n");break;
-//        case Suit::SPADE: printf("Spade!\n");break;
-//        case Suit::CLUB: printf("Club!\n");break;
-//        default: printf("Unknown :(\n");
-//    }
+    if (heartLike && !spadeLike && !clubLike && !diamondLike)
+    {
+        suit = Suit::HEART;
+    }
+    if (spadeLike && !heartLike && !clubLike && !diamondLike)
+    {
+        suit = Suit::SPADE;
+    }
+    if (clubLike && !heartLike && !spadeLike && !diamondLike)
+    {
+        suit = Suit::CLUB;
+    }
+    if (diamondLike && !heartLike && !spadeLike && !clubLike)
+    {
+        suit = Suit::DIAMOND;
+    }
+
+    printf("\n");
+    switch(suit)
+    {
+        case Suit::HEART: break;//printf("Heart!\n");break;
+        case Suit::DIAMOND: break;//printf("Diamond!\n");break;
+        case Suit::SPADE: break;//printf("Spade!\n");break;
+        case Suit::CLUB: break;//printf("Club!\n");break;
+        default: printf("Unknown :( ??\n");
+    }
 }
 
 bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int size)

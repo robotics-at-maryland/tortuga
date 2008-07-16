@@ -63,6 +63,8 @@ struct BinDetectorFixture
             boost::bind(&BinDetectorFixture::lostHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_DROPPED,
             boost::bind(&BinDetectorFixture::droppedHandler, this, _1));
+        
+        detector.setSuitDetectionOn(false);
     }
 
     void foundHandler(core::EventPtr event_)
@@ -105,6 +107,8 @@ SUITE(BinDetector) {
 
 TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 {
+    detector.setSuitDetectionOn(false);
+
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin (upper left, remember image rotated 90 deg)
@@ -137,7 +141,7 @@ TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
     {
         
         vision::makeColor(&input, 0, 0, 255);
-        vision::drawBin(&input, 320,240, 200, deg, vision::Club);
+        vision::drawBin(&input, 100,100, 200, deg, vision::Club);
         vision::OpenCVImage output(640,480);
         detector.processImage(&input, &output);
         if (detector.getSuit() == vision::Suit::CLUB)
@@ -230,16 +234,19 @@ TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
 
 TEST_FIXTURE(BinDetectorFixture, FourBins)
 {
+    detector.setSuitDetectionOn(true);
     vision::Image* ref = vision::Image::loadFromFile(
         ((getImagesDir()/"distorted-grainy.png").string()));//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
     
     CHECK(ref != NULL);
     
     detector.processImage(ref);
+    detector.setSuitDetectionOn(false);
 }
 
 TEST_FIXTURE(BinDetectorFixture, BinTracking)
 {
+    detector.setSuitDetectionOn(false);
     vision::makeColor(&input, 0, 0, 255);
     vision::drawBin(&input, 160,240, 150, 70, vision::Heart);
     
@@ -293,6 +300,7 @@ TEST_FIXTURE(BinDetectorFixture, BinTracking)
 
 TEST_FIXTURE(BinDetectorFixture, Left)
 {
+    detector.setSuitDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin (left, remember image rotated 90 deg)
@@ -317,6 +325,7 @@ TEST_FIXTURE(BinDetectorFixture, Left)
 
 TEST_FIXTURE(BinDetectorFixture, LowerRight)
 {
+    detector.setSuitDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin (upper left, remember image rotated 90 deg)
@@ -341,6 +350,7 @@ TEST_FIXTURE(BinDetectorFixture, LowerRight)
 
 TEST_FIXTURE(BinDetectorFixture, CenterUp)
 {
+    detector.setSuitDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin in center sideways
@@ -365,6 +375,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterUp)
 
 TEST_FIXTURE(BinDetectorFixture, CenterSideways)
 {
+    detector.setSuitDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin in center sideways
@@ -389,6 +400,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
 {
+    detector.setSuitDetectionOn(false);
     // No light at all
     makeColor(&input, 0, 0, 255);
     
@@ -418,6 +430,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_DROPPED)
 {
+    detector.setSuitDetectionOn(false);
     // Place a set of four bins on screen
     makeColor(&input, 0, 0, 255);
     drawBin(&input, 640/5, 480/2, 100, 0);
@@ -471,6 +484,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_DROPPED)
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
 {
+    detector.setSuitDetectionOn(false);
     // Bin in the lower right
     makeColor(&input, 0, 0, 255);
     drawBin(&input, 640/4, 480/4 * 3, 130, 0);
