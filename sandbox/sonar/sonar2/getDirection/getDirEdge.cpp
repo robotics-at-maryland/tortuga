@@ -88,7 +88,7 @@ int getDirEdge(sonarPing* ping, dataset *dataSet)
     for(int i=0; i<2; i++)
         ping->direction[i]=temp_calc[i][0];
 
-    ping->direction[2]=std::sqrt(1-ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1]);
+    ping->direction[2]=-std::sqrt(1-ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1]);
 
     ping->point_num=pingpoints[0];
     ping->distance=-1;

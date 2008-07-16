@@ -51,8 +51,8 @@ static const int MAX_PING_SEP=1000;
 static const int PD_THRESHOLDS[]={50,30,30,30};
 
 //For pingDetect stuff
-//static const int frequencyOfInterest = 25000;
-static const int frequencyOfInterest = 20000;
+static const int frequencyOfInterest = 25000;
+//static const int frequencyOfInterest = 20000;
 static const int kBandOfInterest = (int) (frequencyOfInterest*DFT_FRAME/SAMPRATE);
 static const int kBandOffCenterAmount = 10;
 static const int nKBands = 3; //number of frequency bands to examine
