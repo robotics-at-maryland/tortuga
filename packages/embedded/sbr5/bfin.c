@@ -77,7 +77,7 @@ _FWDT ( WDT_OFF );
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
-byte sonarBuf[12]; /* Put vector here */
+byte sonarBuf[19]; /* Put vector here */
 
 
 byte fCount = 0;
@@ -97,7 +97,7 @@ void _ISR _U2RXInterrupt(void)
     byte t = U2RXREG;
     actLight(0);
 
-    if(sonarPtr < 12)
+    if(sonarPtr < 19)
         sonarBuf[sonarPtr++] = t;   /* Blargh */
 
     /* We are looking for 6 FFs in a row. */
@@ -218,9 +218,9 @@ void processData(byte data)
                 {
                     int i;
 
-                    for(i=0; i<12; i++)
+                    for(i=0; i<19; i++)
                         txBuf[i+1] = sonarBuf[i];
-                    txBuf[0] = 12;
+                    txBuf[0] = 19;
                     break;
                 }
             }
