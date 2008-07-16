@@ -163,11 +163,14 @@ def setup_windows_libs():
                                  ext_deps = ['Boost']),
 
         'Boost.Regex' : Library('Boost.Regex', '1.34.1',
-                                [], [BOOST_REGEX_LIB], 
                                 ext_deps = ['Boost']),     
+                                [], [BOOST_REGEX_LIB], 
                                  
         'Boost.ProgramOptions' : Library('Boost.ProgramOptions','1.34.1', [],
                                          [BOOST_PROGOPT_LIB]),
+                                         
+        'Boost.DateTime' : Library('Boost.DateTime','1.34.1', [],
+                                         [BOOST_DATE_TIME_LIB]),
         
                                  
         'Python' : Library('Python', '2.5', ['Python.h'],
