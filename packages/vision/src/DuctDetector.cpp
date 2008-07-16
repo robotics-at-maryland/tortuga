@@ -117,10 +117,6 @@ void DuctDetector::processImage(Image* input, Image* output)
 
     int width = m_working->getWidth();
     int height = m_working->getHeight();
-    int *hist = new int[width];
-    
-    for (int i=0;i<width;i++)
-        hist[i] = 0;
         
     int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
 
@@ -156,16 +152,12 @@ void DuctDetector::processImage(Image* input, Image* output)
         int offset = j*width*3;
         for (int i=0;i<width*3;i+=3)
         {
-//            int y = yellow(data[offset+i+2], // R
-//                           data[offset+i+1], // G
-//                           data[offset+i]);  // B
             if (data[offset+i] != 0)
             {
                 if (i/3 < minX) minX = i/3;
                 if (i/3 > maxX) maxX = i/3;
                 if (j < minY) minY = j;
                 if (j > maxY) maxY = j;
-                hist[i/3] ++;
             }
         }
     } 
@@ -183,106 +175,64 @@ void DuctDetector::processImage(Image* input, Image* output)
             DuctEventPtr event(new DuctEvent(0, 0, 0, 0, false, false));
             publish(EventType::DUCT_LOST, event);
         }
-        delete[] hist;
+        oldMx = -1000;
+        m_rotation = 10;
         return;
     }
     
-    
-    double ps[4];
-    ps[0] = ps[1] = -1000;
-    ps[2] = ps[3] = 1000;
-    int index = 0;
-    bool found = false;
-    
-    for (int i=0;i<width;i++)
-    {
-        if (hist[i] > 1 && !found)
-        {
-            ps[index] = i / (double)width;
-            index ++;
-            found = true;
-        }
-        else if (hist[i] <= 1 && found)
-        {
-            ps[index] = i / (double)width;
-            index ++;
-            found = false;
-        }
-        if (index >= 4)
-            break;
-    }
+    if (m_working == 0)
+        return;
     
     
-    
-    if (ps[2] > 1 && ps[3] > 1)
-    {
-        int offset = static_cast<int>(m_y*width*3);
-        ps[0] = ps[1] = ps[2] = ps[3] = -10000;
-        int ind = 0;
-        bool found = false;
-        
-        for (int i=0;i<width*3;)
-        {
-            if (!found && yellow(data[offset+i+2], data[offset+i+1], 
-                                 data[offset+i]))
-            {
-                ps[ind] = i/3;
-                ind++;
-                found = true;
+    IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(m_working->asIplImage()),
+                                               IPL_DEPTH_8U,1);
 
-                if (outputData)
-                {
-                    outputData[offset+i+2] = 255;
-                    outputData[offset+i+1] = 0;
-                    outputData[offset+i+0] = 0;
-                }
-            }
-            else if (found && !yellow(data[offset+i+2], data[offset+i+1], 
-                                      data[offset+i]))
-            {
-                found = false;
-            }
-            
-            if (ind == 4) break;
-            
-            if (found)
-                i += 3*4;
-            else
-                i += 3;
-        }
+    cvCvtColor(m_working->asIplImage(),redSuitGrayScale,CV_BGR2GRAY);
+    IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
+
+    cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    CvSeq* lines = 0;
         
-        
-        if (ps[0] < 0 || ps[1] < 0 || ps[2] < 0 || ps[3] < 0)
-        {
-            // DuctEventPtr event(new DuctEvent(0, 0, 0, 0, false, false));
-            //publish(EventType::DUCT_LOST, event);
-            //delete[] hist;
-            //return;
-            m_rotation = 0;
-        }
-        else
-        {
-            if (ps[3] - ps[2] < ps[1] - ps[0])
-            {
-                m_rotation = ( 1.0 - (double)(ps[3] - ps[2]) / 
-                    (double)(ps[1] - ps[0]) ) * 10;
-            }
-            else
-            {
-                m_rotation = ( 1.0 - (double)(ps[1] - ps[0]) / 
-                    (double)(ps[3] - ps[2]) ) * 10;
-            }
-        }
-    }
-    else
+    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+    
+    CvPoint* maxLine = 0;
+    int mY = 0;
+    
+    for(int i = 0; i < lines->total; i++ )
     {
-        if (ps[3] - ps[2] < ps[1] - ps[0])
-            m_rotation = 2000 * (ps[3] - ps[2]);
-        else 
-            m_rotation = -2000 * (ps[1] - ps[0]);
+        CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+        if (max(line[0].y, line[1].y) > mY && abs((double)(line[1].y - line[0].y) / (double)(line[1].x - line[0].x)) < 0.5 &&
+            sqrt(pow(line[0].x - line[1].x, 2) + pow(line[0].y - line[1].y, 2)) > 20)
+        {
+            maxLine = line;
+            mY = max(line[0].y, line[1].y);
+        }
+        
+        if (output)
+        {
+            IplImage* raw = output->asIplImage();
+            cvLine(raw, line[0], line[1], CV_RGB(0,255,0), 3, CV_AA, 0 );
+        }
     }
     
-    if (output)
+    if (maxLine != 0 && maxLine[1].x != maxLine[0].x)
+    {
+        if (output)
+        {
+            IplImage* raw = output->asIplImage();
+            cvLine(raw, maxLine[0], maxLine[1], CV_RGB(0,0,255), 3, CV_AA, 0 );
+        }
+        m_rotation = (double)(maxLine[1].y - maxLine[0].y) / (double)(maxLine[1].x - maxLine[0].x);
+        std::cout << m_rotation << "\n";
+    }
+    
+    cvReleaseImage(&redSuitGrayScale);
+    cvReleaseImage(&cannied);
+    cvReleaseMemStorage(&storage);
+    
+        
+    if (output && m_x > 0)
     {
        // Color all yellow pixels white
 /*        unsigned char* odata = output->getData();
@@ -320,7 +270,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         CvPoint binCenter;
         binCenter.x = (int)m_x;
         binCenter.y = (int)m_y;
-        if (getAligned())
+        if (getAligned() && getVisible())
             cvCircle(raw, binCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
         else
             cvCircle(raw, binCenter, 10, CV_RGB(255,0,0), 2, CV_AA, 0);
@@ -329,8 +279,8 @@ void DuctDetector::processImage(Image* input, Image* output)
         CvPoint rotationEnd;
         rotationEnd.y = binCenter.y;
         rotationEnd.x = binCenter.x +
-            (int)((m_rotation/-90) * (double)width/2.0);
-        if (getAligned())
+            (int)((m_rotation/-90) * (double)width/2.0) * 10;
+        if (getAligned() && getVisible())
             cvLine(raw, binCenter, rotationEnd, CV_RGB(0,255,0), 3, CV_AA, 0 );
         else
             cvLine(raw, binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
@@ -346,8 +296,6 @@ void DuctDetector::processImage(Image* input, Image* output)
     DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 
         getAligned(), getVisible()));
     publish(EventType::DUCT_FOUND, event);
-
-    delete[] hist;
 }
     
 double DuctDetector::getX()
@@ -377,7 +325,7 @@ bool DuctDetector::getVisible()
     
 bool DuctDetector::getAligned()
 {
-    return fabs(m_rotation) <= 1;
+    return fabsf(m_rotation) < 0.02;
 }
 
 } // namespace vision

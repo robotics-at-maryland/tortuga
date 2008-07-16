@@ -5,9 +5,9 @@
 #include <string.h>
 #include <iostream>
 #include "cv.h"
+#include <stdlib.h>
 
 #define MAX_FILENAME_LEN 32
-
 using namespace std;
 
 using namespace ram;
@@ -20,6 +20,7 @@ void rotate90DegClockwiseOneChannel(IplImage* src, IplImage* dest)
 {
 	char* data=src->imageData;
 	char* data2=dest->imageData;
+    
 	int width=src->width;
 	int height=src->height;
 	if (width!=dest->height || height!=dest->width)
@@ -92,17 +93,21 @@ void copy(IplImage* img1, IplImage* img2)
 
 // A Simple Camera Capture Framework
 int main(int argc, char** argv) {
+
 	cvNamedWindow("Display");
 
 	IplImage* inputImage = NULL;
 	
-	if (2 != argc)
+	if (3 != argc && 4 != argc)
     {
-		fprintf(stderr, "Argument error\nUsage: ImageAnalysisTest <image_file>\n");
+		fprintf(stderr, "Argument error\nUsage: SuitHistoCalculatorTest <SuitName> <image_file>\n OR: SuitHistoCalculatorTest <SuitName> <image_file> <Size>");
 		return -1;
     }
+    int SCALEDSUITSIZE = 128;
+    if (argc == 4)
+        SCALEDSUITSIZE = atoi(argv[3]);
 	
-	inputImage = cvLoadImage(argv[1],0);//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
+	inputImage = cvLoadImage(argv[2],0);//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
 	
 	if (inputImage==NULL)
 	{
@@ -111,9 +116,9 @@ int main(int argc, char** argv) {
 	}
 
 	// get the image data
-	cout<<"height = "<<inputImage->height <<" width = "<<inputImage->width <<endl<<"step = "<<inputImage->widthStep<<"channels = "<<inputImage->nChannels<<endl;
-	cout<<"depth = " <<inputImage->depth<< "dataOrder = "<<inputImage->dataOrder<<endl;
-	printf("color model =%c%c%c%c\n",inputImage->colorModel[0],inputImage->colorModel[1],inputImage->colorModel[2],inputImage->colorModel[3]);
+//	cout<<"height = "<<inputImage->height <<" width = "<<inputImage->width <<endl<<"step = "<<inputImage->widthStep<<"channels = "<<inputImage->nChannels<<endl;
+//	cout<<"depth = " <<inputImage->depth<< "dataOrder = "<<inputImage->dataOrder<<endl;
+//	printf("color model =%c%c%c%c\n",inputImage->colorModel[0],inputImage->colorModel[1],inputImage->colorModel[2],inputImage->colorModel[3]);
 /* IplImage
   |-- int  nChannels;     // Number of color channels (1,2,3,4)
   |-- int  depth;         // Pixel depth in bits: 
@@ -141,7 +146,7 @@ int main(int argc, char** argv) {
   |                       // OpenCV ignores this and uses widthStep instead
   |-- char colorModel[4]; // Color model - ignored by OpenCV
 */
-	IplImage* resized = cvCreateImage(cvSize(64,64),8,1);
+	IplImage* resized = cvCreateImage(cvSize(SCALEDSUITSIZE,SCALEDSUITSIZE),8,1);
     cvResize(inputImage,resized);
 	IplImage* blackAndWhite=cvCreateImage(cvGetSize(resized),8,1);
     IplImage* tempImage = cvCreateImage(cvGetSize(blackAndWhite),8,1);
@@ -153,23 +158,23 @@ int main(int argc, char** argv) {
         cvWaitKey(0);
         
         
-        printf("\nStart Of Data\n");
+//        printf("\nStart Of Data\n");
         
         printf("int pixelCounts%s%d[] = {\n", argv[1], rot);
         unsigned char* data = (unsigned char*) blackAndWhite->imageData;
         int count = 0;
-        int pixelCountsAlongLeft[64];
-        int pixelCountsAlongBottom[64];
+        int pixelCountsAlongLeft[SCALEDSUITSIZE];
+        int pixelCountsAlongBottom[SCALEDSUITSIZE];
         
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < SCALEDSUITSIZE; i++)
         {
             pixelCountsAlongLeft[i]=0;
             pixelCountsAlongBottom[i]=0;
         }
         
-        for (int y = 0; y < 64; ++y)
+        for (int y = 0; y < SCALEDSUITSIZE; ++y)
         {
-            for (int x = 0; x < 64; ++x)
+            for (int x = 0; x < SCALEDSUITSIZE; ++x)
             {
                 pixelCountsAlongLeft[y] += ((data[count]>0)?1:0);
                 pixelCountsAlongBottom[x] += ((data[count]>0)?1:0);
@@ -177,16 +182,16 @@ int main(int argc, char** argv) {
             }
         }
         
-        for (int i = 0; i < 64; i ++)
+        for (int i = 0; i < SCALEDSUITSIZE; i ++)
         {
             printf("%d, ", pixelCountsAlongLeft[i]); 
         }
         
-        for (int i = 0; i < 63; i ++)
+        for (int i = 0; i < SCALEDSUITSIZE-1; i ++)
         {
             printf("%d, ", pixelCountsAlongBottom[i]);
         }
-        printf("%d", pixelCountsAlongBottom[63]);
+        printf("%d", pixelCountsAlongBottom[SCALEDSUITSIZE-1]);
         
         printf("}\n");
     

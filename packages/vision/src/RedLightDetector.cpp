@@ -150,6 +150,10 @@ void RedLightDetector::processImage(Image* input, Image* output)
     to_ratios(image);
     CvPoint boundUR = {0};
     CvPoint boundLL = {0};
+    boundUR.x = 0;
+    boundUR.y = 0;
+    boundLL.x = 0;
+    boundLL.y = 0;
     redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
     
     // Find the red blobs
