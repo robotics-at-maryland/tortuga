@@ -10,11 +10,12 @@
 //	minfreq - minimum frequency of the sampling
 
 #include <cmath>
+#include <iostream>
 #include <gsl/gsl_vector.h>
+#include "Sonar.h"
 #include "sonar_quadfit.h"
 #include "fft_sonar.h"
 #include "time_diff.h"
-#include <iostream>
 
 using namespace std;
 
@@ -26,7 +27,7 @@ time_diff::time_diff(int hydr_num, int ssize, int ssampfreq, int maxfreq, int mi
 	sampfreq=ssampfreq;
 	size=ssize;
 	//find out how many intervals we can have
-	n=1+2*maxfreq/(maxfreq-minfreq); //Should round toward 0 during int division
+	n=1+2*(maxfreq/(maxfreq-minfreq)); //Should round toward 0 during int division
 	if(n/minfreq > size/sampfreq)
 		n=size*minfreq/sampfreq; //Should round toward 0 during int division
 	
@@ -70,9 +71,10 @@ time_diff::~time_diff()
 /* Update the data values
  * data needs to be a 'hydr_num'-sized array of pointers to 'size'-sized arrays
  */
-int time_diff::update(int** data)
+int time_diff::update(adcdata_t** data)
 {
 	return fft->update_sample(data);
+        return 0;
 }
 
 //Calculates the actual time difference between the signals

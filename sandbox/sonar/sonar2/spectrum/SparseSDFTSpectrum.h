@@ -100,10 +100,10 @@ private:
         return -1;
     }
 
-    const adcmath_t getL1AmplitudeForBinIndex(int kIdx, int channel) const
-    {
-        return myAbs(fourier[kIdx][channel].real())+myAbs(fourier[kIdx][channel].imag());
-    }
+    //const adcmath_t getL1AmplitudeForBinIndex(int kIdx, int channel) const
+    //{
+        //return myAbs(fourier[kIdx][channel].real())+myAbs(fourier[kIdx][channel].imag());
+    //}
 
     const complex<adcmath_t> &getAmplitude(int k, int channel) const
     { return fourier[getBinIndexForBin(k)][channel]; }

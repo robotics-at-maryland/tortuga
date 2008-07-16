@@ -9,6 +9,7 @@ namespace sonar {
 
 struct sonarPing {
     math::Vector3 direction;
+    int distance;
     int point_num;
 };
 

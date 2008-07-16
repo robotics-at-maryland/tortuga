@@ -22,14 +22,14 @@ class pingDetect
     adcmath_t currmax[NCHANNELS]; //current maximum value
     adcmath_t minmax[NCHANNELS]; //minima over the frames
     int threshold[NCHANNELS]; //thresholds for detecting the pings
+    int ping_detect_frame; //the width of frames over which the max is calculated
     SparseSDFTSpectrum <DFT_FRAME, NCHANNELS, nKBands>* spectrum; //Fourier transform class
 
     public:
-    pingDetect(const int* hydro_threshold, int nchan, const int* bands);
+    pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame);
     ~pingDetect();
     int p_update(adcdata_t *sample, int kBand);
     void reset_minmax();
-    double get_phase(int k, int kBand);
 }; //pingDetect
 
 }//sonar

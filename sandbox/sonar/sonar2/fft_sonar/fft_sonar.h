@@ -20,7 +20,7 @@ class fft_sonar
 	public:
 	fft_sonar(int h_num, int length);
 	~fft_sonar();
-	int update_sample(int** data);
+	int update_sample(adcdata_t** data);
 	int convolve(int hydr1, int hydr2, double* result);
 };
 

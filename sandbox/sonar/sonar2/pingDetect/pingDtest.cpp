@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     //kBands defined in Sonar.h!
     int thresholds[]={50,50,50,50};
     int detected;
-    pingDetect pdetect(thresholds, NCHANNELS, kBands);
+    pingDetect pdetect(thresholds, NCHANNELS, kBands,PING_DETECT_FRAME);
     adcdata_t sample[NCHANNELS];
     struct dataset * dataSet = NULL;
     int last_detected=0;

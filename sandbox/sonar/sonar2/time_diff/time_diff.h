@@ -31,7 +31,7 @@ class time_diff
 	time_diff(int hydr_num, int size, int sampfreq, int maxfreq, int minfreq); //number of pingers, number of data points, sampling frequency, maximum pinger freq, minimum pinger freq
 	~time_diff();
 	int calc_time_diff(int hydr1, int hydr2, double &dtime); //the number of the hydrophones to calculate the difference between, the actual time difference
-	int update(int** data); //data passed into the funstion as an array of arrays data[hydr_num][point_num]
+	int update(adcdata_t** data); //data passed into the funstion as an array of arrays data[hydr_num][point_num]
 };
 
 }//sonar

@@ -35,17 +35,21 @@ static const int NOMINAL_PING_DELAY = 1000; //in milliseconds
 static const int DETECT_SLEEP_TIME =NOMINAL_PING_DELAY/2;
 static const int MAX_SAMPLE_LENGTH = 2600; //in milliseconds
 static const int SAMPRATE = 500000;
+static const int MAX_SAMPLE_SIZE=(SAMPRATE/1000)*MAX_SAMPLE_LENGTH;
 static const int PING_DETECT_FRAME=200;
+static const int PING_DETECT_FRAME2=40;
 //static const int PING_FREQ_CHANNEL=25;
 static const int DFT_FRAME=512; //must be a power of 2!
+static const int DFT_FRAME2=128; //must be a power of 2!
 //static const float MAXIMUM_SPEED = 3;
 //static const float SAMPFREQ = 1/SAMPRATE;
 //static const float TARGETFREQ = 30000;
 static const int MAX_PINGS_PER_SET = MAX_SAMPLE_LENGTH/NOMINAL_PING_DELAY +1;
 static const int ENV_CALC_FRAME=1024; //must be a power of 2
+static const int EDGE_CALC_FRAME=1024; //must be a power of 2
 //static const int MAX_PING_SEP=(SAMPRATE*MAX_SENSOR_SEPARATION)/(100*SPEED_OF_SOUND);
 static const int MAX_PING_SEP=1000;
-static const int PD_THRESHOLDS[]={50,50,50,50};
+static const int PD_THRESHOLDS[]={50,30,30,30};
 
 //For pingDetect stuff
 //static const int frequencyOfInterest = 25000;

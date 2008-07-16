@@ -4,7 +4,7 @@
  * while ignoring false positives that are far apart
  * data is an NCHANNEL-sized array of pointers to ENV_CALC_FRAME-sized int arrays
  * The pings are extracted from the dataSet and are stored there
- * locations is a pointer to an NCHANNEL-sized array of integers storing the locations of the first points in the data arrays with respect to the dataSet
+ * locations is a pointer to an NCHANNEL-sized array of integers storing the locations of the first points in the data arrays with respect to the dataSet, starting at 0
  */
 
 #include <iostream>
@@ -32,7 +32,7 @@ int getPingChunk(adcdata_t** data, int* locations, struct dataset* dataSet)
 {
     //kBands defined in Sonar.h!
     int detected;
-    pingDetect pdetect=pingDetect(PD_THRESHOLDS, NCHANNELS, kBands);
+    pingDetect pdetect=pingDetect(PD_THRESHOLDS, NCHANNELS, kBands, PING_DETECT_FRAME);
     adcdata_t sample[NCHANNELS];
     int last_detected=0;
     int last_ping_index[NCHANNELS]={0,0,0,0};
@@ -103,14 +103,12 @@ int getPingChunk(adcdata_t** data, int* locations, struct dataset* dataSet)
             }
             else
             {
-                cout<<"SIZE: "<<dataSet->size<<endl;
-                for(int k=0; k<ENV_CALC_FRAME; k++)
-                    for(int j=0; j<NCHANNELS; j++)
-                    {
-        data[j][k] = getSample(dataSet, 0, i);
-                        //data[j][k]= getSample(dataSet, 0, k+last_ping_index[j]-ENV_CALC_FRAME+1);
-                        locations[j]=last_ping_index[j]-ENV_CALC_FRAME+1;
-                    }
+                for(int j=0; j<NCHANNELS; j++)
+                {
+                    for(int k=0; k<ENV_CALC_FRAME; k++)
+                        data[j][k]=getSample(dataSet, j, k+last_ping_index[j]-ENV_CALC_FRAME+1+DFT_FRAME/2); //might need to be tweaked
+                    locations[j]=last_ping_index[j]-ENV_CALC_FRAME+1;
+                }
 
                 return 1;
             }

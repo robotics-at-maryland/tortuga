@@ -9,11 +9,12 @@
  * In addition, the maximum expected time delay must be strictly less than half the length of the sample size.  Otherwise, there is a phase ambiguity
  */
 
-#include "fft_sonar.h"
 #include "gsl/gsl_fft_real.h"
 #include "gsl/gsl_fft_halfcomplex.h"
 #include "gsl/gsl_errno.h"
-//#include <iostream>
+
+#include "Sonar.h"
+#include "fft_sonar.h"
 
 using namespace std;
 
@@ -39,7 +40,7 @@ fft_sonar::~fft_sonar()
  * Data needs to be an 'hydr_num'-sized array of pointers to arrays of size 'size'
  */
 int
-fft_sonar::update_sample(int** data)
+fft_sonar::update_sample(adcdata_t** data)
 {
 	//Copy the data over
 	for(k=0; k<hydr_num*size; k++)

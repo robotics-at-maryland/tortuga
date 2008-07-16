@@ -1,5 +1,5 @@
 AUV_PACKAGES='/home/levashom/auv/trunk/packages';
-INCLUDES=['.','sonarUtils','spectrum','dataset','getDirection','pingDetect','sonarPing','time_diff','sonar_quadfit','fft_sonar','getPingChunk',AUV_PACKAGES];
+INCLUDES=['.','sonarUtils','spectrum','dataset','getDirection','pingDetect','sonarPing','time_diff','sonar_quadfit','fft_sonar','getPingChunk','getDirection',AUV_PACKAGES];
 
 #Build common files
 osUtils=Object('sonarUtils/sonarUtils.cpp', CPPPATH=INCLUDES);
@@ -10,7 +10,7 @@ opDetect=Object('pingDetect/pingDetect.cpp', CPPPATH=INCLUDES);
 ogetPChunk=Object('getPingChunk/getPingChunk.cpp', CPPPATH=INCLUDES, CCFLAGS='-Wall');
 #Build the program for testing ping detection
 Program('pingDetect/pingDtest',['pingDetect/pingDtest.cpp', osUtils, oDataset, oSpartan, opDetect], CPPPATH=INCLUDES);
-Program('getPingChunk/getChunkTest',['getPingChunk/getChunkTest.cpp', oDataset, oSpartan, ogetPChunk, opDetect, osUtils], CPPPATH=INCLUDES, CCFLAGS=['-Wall','-g']);
+Program('getPingChunk/getChunkTest',['getPingChunk/getChunkTest.cpp', oDataset, oSpartan, ogetPChunk, opDetect, osUtils], CPPPATH=INCLUDES, CCFLAGS=['-Wall']);
 
 oFftSonar=Object('fft_sonar/fft_sonar.cpp',CPPPATH=INCLUDES, LIBS=['gsl','blas']);
 oQuadFit=Object('sonar_quadfit/sonar_quadfit.cpp',CPPPATH=INCLUDES, LIBS=['gsl','blas']);
@@ -18,7 +18,8 @@ oTimeDiff=Object('time_diff/time_diff.cpp',CPPPATH=INCLUDES, LIBS=['gsl','blas']
 #Build the program to test the quadrature fits
 Program('sonar_quadfit/quadfit_test',['sonar_quadfit/quadfit_test.cpp',oFftSonar,oQuadFit], CPPPATH=INCLUDES, LIBS=['gsl','blas']);
 #Build program to test the time difference
-Program('time_diff/timediff_test',['time_diff/timediff_test.cpp',oTimeDiff,oQuadFit,oFftSonar],CPPPATH=INCLUDES, LIBS=['gsl','blas']);
+Program('time_diff/timediff_test',['time_diff/timediff_test.cpp',oTimeDiff,oQuadFit,oFftSonar],CPPPATH=INCLUDES, LIBS=['gsl','blas'],CCFLAGS=['-Wall']);
 
-
-
+ogetDirEnv=Object('getDirection/getDirEnvelope',['getDirection/getDirEnvelope.cpp'], CPPPATH=INCLUDES, LIBS=['gsl','blas']);
+#Program that calculates the direction vectors for the sonar
+Program('getDirection/getDirEnvTest',['getDirection/getDirEnvTest.cpp', osUtils, oDataset, oSpartan, opDetect, ogetPChunk, oTimeDiff, oQuadFit, oFftSonar, ogetDirEnv], CPPPATH=INCLUDES, LIBS=['gsl','blas'], CCFLAGS=['-Wall']);

@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     FILE* f;
 
     for(int j=0; j<NCHANNELS; j++)
-        data[j]=new adcdata_t(ENV_CALC_FRAME);
+        data[j]=new adcdata_t [ENV_CALC_FRAME];
 
     if(argc == 1)
     {
@@ -63,9 +63,9 @@ int main(int argc, char* argv[])
     }
 
     //Now, print it
-    //for(int j=0; j<ENV_CALC_FRAME; j++)
-        //for(int i=0; i<NCHANNELS; i++)
-            //fwrite(&data[i][j], sizeof(adcdata_t),1, f);
+    for(int j=0; j<ENV_CALC_FRAME; j++)
+        for(int i=0; i<NCHANNELS; i++)
+            fwrite(&data[i][j], sizeof(adcdata_t),1, f);
 
     for(int i=0; i<NCHANNELS; i++)
     {

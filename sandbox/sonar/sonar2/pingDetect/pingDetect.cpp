@@ -18,10 +18,11 @@ using namespace ram::sonar;
 /* Constructor for pingDetect class.  Initializes the Fourier Transform,
  * counting variables
  */
-pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands)
+pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame)
 {
     spectrum=new SparseSDFTSpectrum<DFT_FRAME, NCHANNELS, nKBands>(bands);
     numchan=nchan;
+    ping_detect_frame=p_detect_frame;
 
     count=0;
     detected=0;
@@ -53,13 +54,13 @@ pingDetect::p_update(adcdata_t *sample, int kBand)
     spectrum->update(sample);
     for(int k=0; k<numchan; k++)
     {
-        temp=spectrum->getL1AmplitudeForBinIndex(kBand,k);
+        temp=fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand,k));
         if(temp>currmax[k])
             currmax[k]=temp; //update the maximum
     }
 
     ++count;
-    if(count==PING_DETECT_FRAME) //if at the end of max frame
+    if(count==ping_detect_frame) //if at the end of max frame
     {
         count=0;
         for(int k=0; k<numchan; k++)
@@ -86,17 +87,4 @@ pingDetect::reset_minmax()
 {
     for(int k=0; k<numchan; k++)
         minmax[k] = adcmath_t(1) << 30;
-}
-
-/* Returns the phase of the current value in the Fourier transform
- * This is include here for simplicity/optimization purposes, since
- * the class already has a transform of the signal.
- */
-double
-pingDetect::get_phase(int k, int kBand)
-{
-    const complex<adcmath_t> &ch= spectrum->getAmplitudeForBinIndex(k, kBand);
-    complex<double> chDouble(ch.real(),ch.imag());
-
-    return arg(chDouble);
 }

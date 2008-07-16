@@ -19,19 +19,19 @@
 
 using namespace ram::sonar;
 
-clock_t clock_io(char * fname);
+//clock_t clock_io(char * fname);
 
 int main (int argc, char * const argv[])
 {
     FILE *f;
     adcdata_t sample[NCHANNELS];
     int numsamples = 0;
-    int* data[NCHANNELS];
+    adcdata_t* data[NCHANNELS];
     double tdiff;
     time_diff* mytdiff;
 
     for(int k=0; k<NCHANNELS; k++)
-        data[k]=new int[MAX_SAMPLE_LENGTH];
+        data[k]=new adcdata_t [MAX_SAMPLE_SIZE];
 
     if (argc >= 2)
     {
@@ -49,10 +49,11 @@ int main (int argc, char * const argv[])
             numsamples ++;
         }
         numsamples--; //We reached the end of file with the previous operation
+            fprintf(stderr,"%d",numsamples);
         fclose(f);
 
         //Now, send the data into the time_diff function
-        mytdiff=new time_diff(NCHANNELS, numsamples, (int)30e4, (int)32e3, (int)28e3);
+        mytdiff=new time_diff(NCHANNELS, numsamples, (int)50e4, (int)22e3, (int)18e3);
         if(mytdiff->update(&data[0])!=0)
         {
             printf("Error updating the data sample\n");

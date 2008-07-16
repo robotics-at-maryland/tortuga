@@ -23,6 +23,6 @@ else
         hold off;
         clearplot;
         x=starts(i):starts(i)+length;
-        plot(x,allChannels(1:4:size(allChannels,1)),colors(i));
+        plot(x,allChannels(i:4:size(allChannels,1)),colors(i));
     end
  end
