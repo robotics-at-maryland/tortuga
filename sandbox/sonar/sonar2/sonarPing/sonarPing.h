@@ -9,8 +9,8 @@ namespace sonar {
 
 struct sonarPing {
     math::Vector3 direction;
-    int distance;
-    int point_num;
+    double distance;
+    int point_num; //number of points that hydrophone 0 was found at
 };
 
 } //namespace ram

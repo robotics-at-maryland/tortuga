@@ -46,7 +46,6 @@ static const int DFT_FRAME2=128; //must be a power of 2!
 //static const float TARGETFREQ = 30000;
 static const int MAX_PINGS_PER_SET = MAX_SAMPLE_LENGTH/NOMINAL_PING_DELAY +1;
 static const int ENV_CALC_FRAME=1024; //must be a power of 2
-static const int EDGE_CALC_FRAME=1024; //must be a power of 2
 //static const int MAX_PING_SEP=(SAMPRATE*MAX_SENSOR_SEPARATION)/(100*SPEED_OF_SOUND);
 static const int MAX_PING_SEP=1000;
 static const int PD_THRESHOLDS[]={50,30,30,30};
