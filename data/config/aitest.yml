@@ -135,7 +135,8 @@ Subsystems:
                 
                 # on the vehicle)
                 direction: 1
-
+                # Distance from center of rotation
+                offset: 0.1983
             PortThruster:
                 depends_on: ['SensorBoard']
                 # serial: 149
@@ -143,6 +144,7 @@ Subsystems:
                 address: 0
                 calibration_factor: 0.4146
                 direction: 1
+                offset: 0.1983
 
             ForeThruster:
                 depends_on: ['SensorBoard']
@@ -151,6 +153,7 @@ Subsystems:
                 address: 3
                 calibration_factor: 0.4368
                 direction: -1
+                offset: 0.2729
 
             AftThruster:
                 depends_on: ['SensorBoard']
@@ -159,6 +162,7 @@ Subsystems:
                 address: 5
                 calibration_factor: 0.3612
                 direction: -1
+                offset: 0.4253
 
             TopThruster:
                 depends_on: ['SensorBoard']
@@ -167,6 +171,7 @@ Subsystems:
                 address: 2
                 calibration_factor: 0.4146
                 direction: 1
+                offset: 0.1967
 
             BottomThruster:
                 depends_on: ['SensorBoard']
@@ -174,6 +179,7 @@ Subsystems:
                 address: 4
                 calibration_factor: 0.3652
                 direction: -1
+                offset: 0.1967
 
 
 
@@ -190,9 +196,13 @@ Subsystems:
                 #magYBias: 0.211263
                 #magZBias: 0.243511
                 # New Electronics
-                magXBias: -0.269084
-                magYBias: 0.221182
-                magZBias: 0.243998
+                #magXBias: -0.269084
+                #magYBias: 0.221182
+                #magZBias: 0.243998
+                # Tortuga 2 first dive
+                magXBias: -0.196805
+                magYBias: 0.171669
+                magZBias: 0.251043
 
                 localMagneticPitch: 60
     RemoteController:
@@ -234,7 +244,7 @@ Subsystems:
         update_interval: 40
         orientationThreshold: 0.05
 
-        angularPGain: 7
+        angularPGain: 5
         angularDGain: 1
         speedPGain: 3
         sidewaysSpeedPGain: 3
