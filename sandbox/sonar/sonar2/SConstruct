@@ -3,7 +3,7 @@ opts.AddOptions(
     ('CC', 'The C compiler to use','gcc'),
     ('CXX', 'The C++ compiler to use', 'g++'))
 
-CXX = 'bfin-linux-uclibc-g++'
+#CXX = 'bfin-linux-uclibc-g++'
 
 AUV_PACKAGES='/home/levashom/auv/trunk/packages';
 INCLUDES=[
@@ -22,13 +22,14 @@ INCLUDES=[
     AUV_PACKAGES];
 RAMLIBS=['/home/levashom/auv/trunk/build/lib'];
 
-env = Environment(CPPPATH = INCLUDES, CCFLAGS=['-Wall','-O3'], options = opts)
+env = Environment(CPPPATH = INCLUDES, CCFLAGS=['-Wall'], options = opts)
 
 #Build common files
 osUtils = env.Object('sonarUtils/sonarUtils.cpp')
 
-oDataset = env.Object('dataset/dataset.cpp')
-oSpartan = env.Object('dataset/spartan.cpp')
+oDataset = env.Object('dataset/dataset.c')
+oSpartan = env.Object('dataset/spartan.c')
+oReport = env.Object('dataset/report.c')
 opDetect = env.Object('pingDetect/pingDetect.cpp')
 ogetPChunk = env.Object('getPingChunk/getPingChunk.cpp')
 
@@ -65,8 +66,6 @@ env.Program('getPingChunk/getChunkTest',
 #            ['getDirection/getDirEnvTest.cpp', osUtils, oDataset, oSpartan, 
 #             opDetect, ogetPChunk, oTimeDiff, oQuadFit, oFftSonar, ogetDirEnv])
 
-
-
 # Environment For ram code
 envR = env.Clone()
 
@@ -75,4 +74,7 @@ ogetDirEdge=envR.Object('getDirection/getDirEdge',
 envR.Append(LIBS=['libram_math'], LIBPATH=RAMLIBS)
 envR.Program('getDirection/getDirEdgeTest',
              ['getDirection/getDirEdgeTest.cpp', osUtils, oDataset, oSpartan, 
+              opDetect, ogetPChunk, ogetDirEdge])
+envR.Program('sonarMain/sonarMain',
+             ['sonarMain/sonarMain.cpp', osUtils, oDataset, oSpartan, oReport,
               opDetect, ogetPChunk, ogetDirEdge])

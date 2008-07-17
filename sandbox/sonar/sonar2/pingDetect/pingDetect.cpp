@@ -1,4 +1,7 @@
-/* A class to detect the pings produced by our hydrophones
+/* Michael Levashov
+ * Robotics@Maryland
+ *
+ * A class to detect the pings produced by our hydrophones
  * It operates by finding the maxima over intervals in the data.
  * From these, the smallest maximum is calculated.  When the ratio
  * of the smallest maximum to the current maximum is trigerred, the
@@ -10,9 +13,7 @@
 #include "fixed.h"
 #include "SparseSDFTSpectrum.h"
 #include "pingDetect.h"
-#include <iostream>
 
-using namespace std;
 using namespace ram::sonar;
 
 /* Constructor for pingDetect class.  Initializes the Fourier Transform,
@@ -35,7 +36,6 @@ pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, 
     }
 }
         
-
 pingDetect::~pingDetect()
 {
     delete spectrum;
@@ -54,7 +54,7 @@ pingDetect::p_update(adcdata_t *sample, int kBand)
     spectrum->update(sample);
     for(int k=0; k<numchan; k++)
     {
-        temp=fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand,k));
+        temp=adcmath_t(fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand,k)));
         if(temp>currmax[k])
             currmax[k]=temp; //update the maximum
     }

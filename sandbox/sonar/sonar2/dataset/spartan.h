@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SRAM_BASE 0x20300000
 #define SRAM_SIZE 0x100000
 
@@ -213,3 +217,7 @@
 
 int initADC();
 int captureSamples(struct dataset * s);
+
+#ifdef __cplusplus
+} //extern "C" {
+#endif

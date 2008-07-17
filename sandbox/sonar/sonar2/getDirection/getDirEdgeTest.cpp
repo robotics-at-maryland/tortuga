@@ -1,4 +1,5 @@
 //Michael Levashov
+//Robotics@Maryland
 //A small program to test the function of the getDirEdge algorithm
 
 #include <stdio.h>

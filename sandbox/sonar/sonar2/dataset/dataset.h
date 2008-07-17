@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef DATASET_H
 #define DATASET_H
 #define ALLOC_UNIT_NUMBITS 10
@@ -20,4 +24,8 @@ int destroyDataset(struct dataset* s);
 signed short getSample(struct dataset* s, int ch, int index);
 int putSample(struct dataset* s, int ch, int index, signed short value);
 struct dataset * loadDataset(const char * filename);
+#endif
+
+#ifdef __cplusplus
+} //extern "C" {
 #endif

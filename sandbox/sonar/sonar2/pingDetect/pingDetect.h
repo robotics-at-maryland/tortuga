@@ -1,4 +1,6 @@
-/* A class to detect the pings produced by our hydrophones
+/* Michael Levashov
+ * Robotics@Maryland
+ * A class to detect the pings produced by our hydrophones
  * !!!Need to be included along with
  * Sonar.h
  * SparseSDFTSpectrum.h

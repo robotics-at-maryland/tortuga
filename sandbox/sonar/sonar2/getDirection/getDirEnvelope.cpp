@@ -14,8 +14,10 @@
 #include <stdio.h>
 #include "Sonar.h"
 
+extern "C" {
 #include "spartan.h"
 #include "dataset.h"
+}
 
 #include "SparseSDFTSpectrum.h"
 #include "getPingChunk.h"

@@ -18,7 +18,8 @@ using namespace std;
 
 int main(argc, char* argv[])
 {
-    sonarPing ping[MAX_PINGS_PER_SET];
+    //sonarPing ping[MAX_PINGS_PER_SET];
+    sonarPing ping[2];
     struct dataset * dataSet = NULL;
     //hydroStructure.invert();
 

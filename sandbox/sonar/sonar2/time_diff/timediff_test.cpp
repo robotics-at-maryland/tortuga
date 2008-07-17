@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <unistd.h>
 //#include <vector>
-#define MAX_SAMPLE_LENGTH 13000
+//#define MAX_SAMPLE_LENGTH 13000
 #include "sonar_quadfit.h"
 #include "fft_sonar.h"
 #include "time_diff.h"
@@ -31,7 +31,7 @@ int main (int argc, char * const argv[])
     time_diff* mytdiff;
 
     for(int k=0; k<NCHANNELS; k++)
-        data[k]=new adcdata_t [MAX_SAMPLE_SIZE];
+        data[k]=new adcdata_t [LARGE_DATASET];
 
     if (argc >= 2)
     {

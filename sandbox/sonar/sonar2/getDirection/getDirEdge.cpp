@@ -1,4 +1,5 @@
 //Michael Levashov
+//Robotics@Maryland
 
 //#include <unistd.h>
 #include <cmath>
@@ -65,6 +66,7 @@ int getDirEdge(sonarPing* ping, dataset *dataSet)
         for(int j=0; j<ENV_CALC_FRAME; j++)
             if(data[i][j]-average[i]>absaverage[i])
             {
+            cout<<"In set pos "<<i<<" "<<j<<endl;
                 pingpoints[i]=locations[i]+j;
                 break;
             }
@@ -87,11 +89,11 @@ int getDirEdge(sonarPing* ping, dataset *dataSet)
     //Fill in the sonar ping
     for(int i=0; i<2; i++)
         ping->direction[i]=temp_calc[i][0];
-
-    ping->direction[2]=-std::sqrt(1-ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1]);
+    //force it to be positive, since we know that the pinger is below
+    ping->direction[2]=std::sqrt(1-ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1]);
 
     ping->point_num=pingpoints[0];
-    ping->distance=-1;
+    ping->distance=0;
 
     return 1;
 }

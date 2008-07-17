@@ -126,7 +126,7 @@ struct dataset * loadDataset(const char * filename)
         printf("could not stat file\n");
         return NULL;
     }
-    fprintf(stderr, "Loading a dataset of %d bytes\n", fileStat.st_size); //gives warning about %d.  Check that this is right?
+    fprintf(stderr, "Loading a dataset of %d bytes\n", (int)fileStat.st_size); //gives warning about %d.  Check that this is right?
     struct dataset * s = createDataset(fileStat.st_size / 8);
 
     if(!s)
