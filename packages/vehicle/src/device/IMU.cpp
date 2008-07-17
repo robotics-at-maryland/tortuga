@@ -14,6 +14,9 @@
 // UNIX Includes
 #include <unistd.h>  // for open()
 
+// Library Includes
+#include <log4cpp/Category.hh>
+
 // Project Includes
 #include "vehicle/include/device/IMU.h"
 #include "math/include/Helpers.h"
@@ -21,7 +24,9 @@
 #include "math/include/Matrix3.h"
 
 #include "imu/include/imuapi.h"
-    
+
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("IMU"));
+
 namespace ram {
 namespace vehicle {
 namespace device {
@@ -74,10 +79,7 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
 
     //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
     //	   m_magYBias, m_magZBias);
-
-    m_logfile.open("imu_log.txt");
-    m_logfile << "% Accel Mag Accel-Raw Mag-Raw Quat"
-              << std::endl;
+    LOGGER.info("% Accel Mag Accel-Raw Mag-Raw Quat TimeStamp");
 }
 
 IMU::~IMU()
@@ -91,7 +93,6 @@ IMU::~IMU()
 
     delete m_rawState;
     delete m_filteredState;
-    m_logfile.close();
 }
 
 
@@ -125,15 +126,7 @@ void IMU::update(double timestep)
             // Rotate into vehicle frame and filter data
             rotateAndFilterData(&newState);
 
-	    m_logfile << m_filteredAccelX.getValue() << " "
-		      << m_filteredAccelY.getValue() << " "
-		      << m_filteredAccelZ.getValue() << " "
-		      << m_filteredMagX.getValue() << " "
-		      << m_filteredMagY.getValue() << " "
-		      << m_filteredMagZ.getValue() << " ";
-	    m_logfile << newState.accelX << " " << newState.accelY << " "
-		      << newState.accelZ << " " << newState.magX << " " 
-		      << newState.magY << " " << newState.magZ << " ";
+
 
             // Use filtered data to get quaternion
             double linearAcceleration[3] = {0,0,0};
@@ -150,15 +143,11 @@ void IMU::update(double timestep)
 //            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
 //                   magnetometer[1], magnetometer[2]);
 
+            double quaternion[4] = {0,0,0,1};
             {
-                double quaternion[4] = {0,0,0,1};
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
                 
                 quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
-
-
-		m_logfile << quaternion[0] << " " << quaternion[1] << " " 
-			  << quaternion[2] << " " << quaternion[3] << std::endl;
 
                 m_orientation.x = quaternion[0];
                 m_orientation.y = quaternion[1];
@@ -170,6 +159,19 @@ void IMU::update(double timestep)
 //                       m_orientation.w);
             }
 
+            LOGGER.infoStream() << m_filteredAccelX.getValue() << " "
+                                << m_filteredAccelY.getValue() << " "
+                                << m_filteredAccelZ.getValue() << " "
+                                << m_filteredMagX.getValue() << " "
+                                << m_filteredMagY.getValue() << " "
+                                << m_filteredMagZ.getValue() << " "
+                                << newState.accelX << " "
+                                << newState.accelY << " "
+                                << newState.accelZ << " "
+                                << newState.magX << " " << newState.magY << " "
+                                << newState.magZ << " "
+                                << quaternion[0] << " " << quaternion[1] << " "
+                                << quaternion[2] << " " << quaternion[3];
 
             // TODO: Make me events
             // Nofity observers

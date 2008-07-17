@@ -12,7 +12,6 @@
 
 // STD Includes
 #include <string>
-#include <fstream>
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
@@ -147,9 +146,6 @@ private:
     core::AveragingFilter<double, FILTER_SIZE> m_filteredMagX; 
     core::AveragingFilter<double, FILTER_SIZE> m_filteredMagY;
     core::AveragingFilter<double, FILTER_SIZE> m_filteredMagZ; 
-    
-    /** Protects access to derived state */
-    std::ofstream m_logfile;
 };
 
     

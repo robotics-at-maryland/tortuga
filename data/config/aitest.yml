@@ -227,6 +227,14 @@ Subsystems:
                 Layout:
                     type: Pattern
                     pattern: "%m %r%n"
+                    
+            IMULog:
+                type: File
+                fileName: imu.log
+                Layout:
+                    type: Pattern
+                    pattern: "%m %r%n"
+                    
             Console:
                 type: Console
                 Layout:
@@ -237,6 +245,8 @@ Subsystems:
                 appenders: ['SBLog'] #,'Console']
             Controller:
                 appenders: ['ControlLog'] #'Console']
+            IMU:
+                appenders: ['IMULog'] #'Console']
 
     Controller:
         depends_on: ["Vehicle", "EventHub"]

@@ -49,7 +49,6 @@ SensorBoard::SensorBoard(int deviceFD,
         establishConnection();
 
     // Log file header
-    std::cout << "I HAVE THIS MANY APPENDERS: " << LOGGER.getAllAppenders().size() << std::endl;
     LOGGER.info("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
 }
     
