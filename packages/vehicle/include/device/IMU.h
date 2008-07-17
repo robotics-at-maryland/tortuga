@@ -105,6 +105,11 @@ private:
     static void quaternionFromIMU(double mag[3], double accel[3],
                                   double* quaternion);
     
+	static void quaternionFromRate(double* quaternionOld,
+								   double angRate[3],
+								   double deltaT,
+								   double* quaternionNew);
+
     /** Name of the serial device file */
     std::string m_devfile;
     

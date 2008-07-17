@@ -88,6 +88,24 @@ TEST_UTILITY(quatIMU, (Vector3 expVehicleMag, Vector3 expVehicleAccel,
     CHECK_ARRAY_CLOSE(expected.ptr(), result, 4, 0.0001);
 }
 
+TEST(quaternionFromRate){
+  //dummy check to make sure my test case is working correctly
+  CHECK_CLOSE(0,0,0.001);
+
+  //check to make sure qOld is correctly formed from double array
+  double qOld[] = {0, 0, 0, 1};
+  double w[] = {1, 2, 1};
+  double deltaT = 1.2;
+  double qOut[4];
+  //for now just look at qDot
+  double qExp[] = {0.5, 1, 0.5, 0};
+
+  ram::vehicle::device::IMU::quaternionFromRate(qOld,w,deltaT,qOut);
+
+  //
+  CHECK_ARRAY_CLOSE(qExp,qOut,4,0.001);
+
+}
 
 TEST_FIXTURE(IMU, quaternionFromIMU)
 {

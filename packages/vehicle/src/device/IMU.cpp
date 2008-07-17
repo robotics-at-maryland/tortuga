@@ -309,6 +309,26 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
 
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
 }
+
+  void IMU::quaternionFromRate(double* quaternionOld,
+							   double angRate[3],
+							   double deltaT,
+							   double* quaternionNew){
+
+	//reformat arguments to OGRE syntax
+	Quaternion qOld(quaternionOld[0],quaternionOld[1],
+					quaternionOld[2],quaternionOld[3]);
+	Vector3 omega(angRate[0],angRate[1],angRate[2]);
+
+	Quaternion qDot;
+
+	qDot = qOld.derivative(omega);
+
+	quaternionNew[0]=qDot.x;
+	quaternionNew[1]=qDot.y;
+	quaternionNew[2]=qDot.z;
+	quaternionNew[3]=qDot.w;
+}
     
 } // namespace device
 } // namespace vehicle
