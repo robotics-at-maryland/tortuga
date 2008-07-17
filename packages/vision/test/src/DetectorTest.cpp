@@ -169,13 +169,17 @@ int main(int argc, char** argv)
     }
 
     // Main Loop
+    bool inputing = true;
     while(1)
     {
         vision::Image* workingImage = frame;
         
         // Get one frame and process
-        camera->update(1.0 / camera->fps());
-        camera->getImage(frame);
+        if (inputing)
+        {
+            camera->update(1.0 / camera->fps());
+            camera->getImage(frame);
+        }
 
         if (runDetector)
         {
@@ -219,6 +223,11 @@ int main(int argc, char** argv)
             if (key == 't' && detector)
             {
                 runDetector = !runDetector;
+            }
+
+            if (key == 'p')
+            {
+                inputing = !inputing;
             }
         }
     }
