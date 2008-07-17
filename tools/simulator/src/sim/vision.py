@@ -92,6 +92,8 @@ class Bin(Visual):
     def __init__(self):
         Visual.__init__(self)
         self._suit = Suit.NONEFOUND
+        self.visible = False
+        self.id = 0
 
     def load(self, data_object):
         scene, parent, node = data_object
@@ -326,6 +328,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._runBin = False
         self._foundBin = False
         self._binCentered = False
+        self._binID = 1
         
         # Duct Detector variables
         self._runDuct = False
@@ -570,31 +573,74 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundPipe = pipeVisible
         
     def _checkBin(self):
-        bin, relativePos = self._findClosest(self._bins)
-        binVisible, x, y, angle = self._downwardCheck(relativePos, bin)
+        found = False
+        
+        for bin in self._bins:
+            relativePos = bin.position - self.vehicle.robot.position
+            binVisible, x, y, angle = self._downwardCheck(relativePos, bin)
 
-        if binVisible and (relativePos.length() < 4.5):
-            event = ext.core.Event()
-            event.x = x
-            event.y = y
-            event.angle = angle
-            event.suit = bin.suit
-            self.publish(ext.vision.EventType.BIN_FOUND, event)
-            
-            # Check for centering
-            toCenter = ogre.Vector2(x, y)
-            if toCenter.normalise() < 0.08:
-                if not self._binCentered:
-                    self._binCentered = True
-                    self.publish(ext.vision.EventType.BIN_CENTERED, event)
+            if binVisible and (relativePos.length() < 4.5):
+                found = True
+
+                id = self._binID
+                self._binID += 1
+                if not bin.visible:
+                    bin.id = id
+                    bin.visible = True
+                else:
+                    id = bin.id
+                
+                # Publish found event
+                event = ext.core.Event()
+                event.x = x
+                event.y = y
+                event.angle = angle
+                event.suit = bin.suit
+                event.id = id
+                self.publish(ext.vision.EventType.BIN_FOUND, event)
+            elif bin.visible:
+                event = ext.core.Event()
+                event.id = bin.id
+                self.publish(ext.vision.EventType.BIN_DROPPED, event)
+                bin.visible = False
+                
+
+        if self._foundBin and (not found):
+            self.publish(ext.vision.EventType.BIN_LOST, ext.core.Event())
+
+        # Check for centering
+        
+        # Sort list to find the closest bin
+        def cmp(a,b):
+            relativePosA = a.position - self.vehicle.robot.position
+            relativePosB = b.position - self.vehicle.robot.position
+            lenA = relativePosA.length()
+            lenB = relativePosB.length()
+            if lenA < lenB:
+                return -1
+            elif lenA > lenB:
+                return 1
+            else:
+                return 0
+        sort = sorted(self._bins, cmp)
+        
+        # Transform to image space
+        closestBin = sort[0]
+        relativePos = closestBin.position - self.vehicle.robot.position
+        binVisible, x, y, angle = self._downwardCheck(relativePos, closestBin)
+
+        toCenter = ogre.Vector2(x,y)
+        print toCenter.length()
+        if binVisible and (toCenter.normalise() < 0.08):
+            if not self._binCentered:
+                self._binCentered = True
+                event = ext.core.Event()
+                event.id = closestBin.id
+                self.publish(ext.vision.EventType.BIN_CENTERED, event)
             else:
                 self._binCentered = False
-            
-        else:
-            if self._foundBin:
-                self.publish(ext.vision.EventType.BIN_LOST, ext.core.Event())
 
-        self._foundBin = binVisible
+        self._foundBin = found
         
     def _checkDuct(self):
         duct, relativePos = self._findClosest(self._ducts)
