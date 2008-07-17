@@ -75,7 +75,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeft)
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw orange square (upper left, remember image rotated 90 deg)
-    drawSquare(&input, 640/4, 480/4, 230, 50, 25, CV_RGB(230,180,40));
+    drawSquare(&input, 640/4, 480/4, 50, 230, 25, CV_RGB(230,180,40));
 
     // Process it
     detector.processImage(&input);
@@ -102,7 +102,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Left)
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw orange square (left side)
-    drawSquare(&input, 640/4, 480/2, 230, 50, 0, CV_RGB(230,180,40));
+    drawSquare(&input, 640/4, 480/2, 50, 230, 0, CV_RGB(230,180,40));
 
     // Process it
     detector.processImage(&input);
@@ -130,7 +130,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, LowerRight)
     vision::makeColor(&input, 0, 0, 255);
     // draw orange square (upper left)
     drawSquare(&input, 640 - 640/4, 480/4 * 3,
-               230, 50, -25, CV_RGB(230,180,40));
+               50, 230, -25, CV_RGB(230,180,40));
 
     // Process it
     detector.processImage(&input);
@@ -157,7 +157,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterUp)
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw orange square in center sideways
-    drawSquare(&input, 640/2, 480/2, 230, 50, 0, CV_RGB(230,180,40));
+    drawSquare(&input, 640/2, 480/2, 50, 230, 0, CV_RGB(230,180,40));
 
     // Process it
     detector.processImage(&input);
@@ -184,14 +184,14 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterSideways)
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw orange square in center sideways
-    drawSquare(&input, 640/2, 480/2, 230, 50, 90, CV_RGB(230,180,40));
+    drawSquare(&input, 640/2, 480/2, 50, 230, 90, CV_RGB(230,180,40));
     
     // Process it
     detector.processImage(&input);
     
     double expectedX = 0;
     double expectedY = 0 * 640.0/480.0; 
-    math::Degree expectedAngle(90);
+    math::Degree expectedAngle(-90);
     
     CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
@@ -217,7 +217,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_LOST)
 
     // Now we found the pipe (lower right location)
     drawSquare(&input, 640 - 640/4, 480/4 * 3,
-               230, 50, -25, CV_RGB(230,180,40));
+               50, 230, -25, CV_RGB(230,180,40));
     detector.processImage(&input);
     CHECK(found);
     CHECK(event);
@@ -241,7 +241,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_CENTERED)
     // Pipe in the lower right
     makeColor(&input, 0, 0, 255);
     drawSquare(&input, 640 - 640/4, 480/4 * 3,
-               230, 50, 0, CV_RGB(230,180,40));
+               50, 230, 0, CV_RGB(230,180,40));
     detector.processImage(&input);
     CHECK(found);
     CHECK(event);
@@ -251,7 +251,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_CENTERED)
 
     // Now pipe is dead center
     makeColor(&input, 0, 0, 255);
-    drawSquare(&input, 640/2, 480/2, 230, 50, 0, CV_RGB(230,180,40));    
+    drawSquare(&input, 640/2, 480/2, 50, 230, 0, CV_RGB(230,180,40));    
     detector.processImage(&input);
     CHECK(found);
 

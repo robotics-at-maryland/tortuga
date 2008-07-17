@@ -138,7 +138,7 @@ TEST_FIXTURE(VisionSystemFixture, PipeDetector)
     vision::makeColor(&downwardImage, 0, 0, 255);
     // draw orange square (upper left)
     drawSquare(&downwardImage, 640/4, 480/4,
-               230, 50, 25, CV_RGB(230,180,40));
+               50, 230, 25, CV_RGB(230,180,40));
 
     // Start dectector and unbackground it
     vision.pipeLineDetectorOn();
