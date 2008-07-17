@@ -630,7 +630,6 @@ class IdealSimVision(ext.vision.VisionSystem):
         binVisible, x, y, angle = self._downwardCheck(relativePos, closestBin)
 
         toCenter = ogre.Vector2(x,y)
-        print toCenter.length()
         if binVisible and (toCenter.normalise() < 0.08):
             if not self._binCentered:
                 self._binCentered = True
