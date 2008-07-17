@@ -17,6 +17,7 @@ import ram.motion as motion
 import ram.motion.common
 
 import ram.test.ai.support as aisupport
+from ram.test import Mock
         
 # Helper functions
 
@@ -182,21 +183,33 @@ class TestSeekEnd(aisupport.AITestCase):
         
         bin.ensureBinTracking(self.qeventHub, self.ai)
         self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['currentBins'] = set([3,4])
+        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
         self.machine.start(bin.SeekEnd)
+        
+        self._centered = False
+        self._atEnd = False
+        self.qeventHub.subscribeToType(bin.SeekEnd.CENTERED_, self._centeredH)
+        self.qeventHub.subscribeToType(bin.SeekEnd.AT_END, self._atEndH)
+        
+    def _centeredH(self, event):
+        self._centered = True
+    def _atEndH(self, event):
+        self._atEnd = True
         
     def testBinFound(self):
         """Make sure the loop back works"""
         self.ai.data['currentBinID'] = 0
-        self.ai.data['currentBins'] = set()
-        # Need to add multi-motion support
+        self.ai.data['currentBins'] = set([6])
+        
         binFoundHelper(self)
+        
+    def testBinFoundCentered(self):
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
         
         # Now test centered
         self._centered = False
-        def centered(event):
-            self._centered = True
-        self.qeventHub.subscribeToType(bin.SeekEnd.CENTERED_, centered)
         
         # Test wrong ID
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
@@ -205,7 +218,7 @@ class TestSeekEnd(aisupport.AITestCase):
         
         # Proper centered (6 is proper ID changed in binFoundHelper)
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0, y = 0, id = 6)
+                         x = 0, y = 0, id = 3)
         self.qeventHub.publishEvents()
         self.assert_(self._centered)
         
@@ -215,6 +228,37 @@ class TestSeekEnd(aisupport.AITestCase):
         binTrackingHelper(self)
         
     def testCentered(self):
+        self.qeventHub.publishEvents()
+        self._centered = False
+        self._atEnd = False
+        self.assertCurrentState(bin.SeekEnd)
+        
+        # We are in the center
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([2,3,4])
+        self.ai.data['binData'] = {2 : Mock(x = -1), 3 : Mock(x = 0),
+                                   4 : Mock(x = 1)}
+        
+        self.assertFalse(self._centered)
+        self.assertFalse(self._atEnd)
+        
+        self.injectEvent(bin.SeekEnd.CENTERED_)
+        self.qeventHub.publishEvents()
+        
+        self.assertFalse(self._centered)
+        self.assertFalse(self._atEnd)
+        self.assertEqual(2, self.ai.data['currentBinID'])
+        self.assertCurrentState(bin.SeekEnd)
+        
+        # Now we are on the left, make sure another center, gets us the right
+        # result
+        self.injectEvent(bin.SeekEnd.CENTERED_)
+        self.qeventHub.publishEvents()
+        
+        self.assertFalse(self._centered)
+        self.assert_(self._atEnd)
+        self.assertEqual(2, self.ai.data['currentBinID'])
+        
 
 class TestDive(aisupport.AITestCase):
     def setUp(self):

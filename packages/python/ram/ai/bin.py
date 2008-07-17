@@ -164,7 +164,8 @@ class SeekEnd(HoveringState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(SeekEnd,
-            { SeekEnd.CENTERED_ : End, SeekEnd.AT_END : End })
+            {SeekEnd.CENTERED_ : SeekEnd, 
+             SeekEnd.AT_END : End })
     
     def enter(self):
         # Keep the hover motion going
@@ -204,7 +205,7 @@ class SeekEnd(HoveringState):
         binData = self.ai.data['binData']
         binAx = binData[idA].x
         binBx = binData[idB].x      
-        type(binAx).__cmp__(binAx, binBx)
+        return type(binAx).__cmp__(binAx, binBx)
     
     def _fixLeftMostBin(self):
         """
@@ -224,7 +225,7 @@ class SeekEnd(HoveringState):
             return False
         else:
             # Still more bins to go
-            self.ai.data['currentBinID'] = currentBinId
+            self.ai.data['currentBinID'] = leftMostBinId
             return True
    
 class Dive(HoveringState):
