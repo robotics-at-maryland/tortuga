@@ -128,11 +128,11 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     
     //vision::Image::showImage(&output);
     
-    CHECK(detector.getAligned());
+    //CHECK(detector.getAligned());
     //CHECK_CLOSE(expectedValue, actualValue, maxDifference);
-    //CHECK_CLOSE(0, detector.getX(), 0.2);
-    //CHECK_CLOSE(0, detector.getY(), 0.2);
-    CHECK_CLOSE(0, detector.getRotation(), 0.4);
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
+    //CHECK_CLOSE(0, detector.getRotation(), 0.4);
     //CHECK_CLOSE(0.32, detector.getRange(), 0.05);
     delete input;
     
@@ -143,14 +143,14 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     // Blue Image with red circle in the center
     detector.processImage(input2, &output);
 
-    //CHECK_CLOSE(0, detector.getX(), 0.2);
-    //CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
     //CHECK_CLOSE(90, detector.getRotation(), 180);
     //CHECK_CLOSE(0.55, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
     delete input2;
     
-    vision::Image::showImage(&output);
+//    vision::Image::showImage(&output);
     
     
     vision::Image* input3 = 
@@ -159,8 +159,8 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     // Blue Image with red circle in the center
     detector.processImage(input3);
     
-    //CHECK_CLOSE(0, detector.getX(), 0.2);
-    //CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(10, detector.getRotation(), 10);
     //CHECK_CLOSE(0.49, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
@@ -172,8 +172,8 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     // Blue Image with red circle in the center
     detector.processImage(input4);
     
-    //CHECK_CLOSE(0, detector.getX(), 0.2);
-    //CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(10, detector.getRotation(), 10);
     //CHECK_CLOSE(0.53, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
@@ -185,8 +185,8 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     // Blue Image with red circle in the center
     detector.processImage(input5);
     
-    //CHECK_CLOSE(0, detector.getX(), 0.2);
-    //CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
     CHECK_CLOSE(-9, detector.getRotation(), 10);
     //CHECK_CLOSE(0.49, detector.getRange(), 0.05);
     CHECK(!detector.getAligned());
@@ -281,7 +281,7 @@ TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_LOST)
     detector.processImage(&blank);
     CHECK(!event);
 }
-
+*/
 // Test some corner cases for direction
 
 TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
@@ -296,7 +296,7 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
     double expectedX = -0.5;
     double expectedY = 0.5 * 640.0/480.0;
     
-    CHECK(!detector.getAligned());
+    //CHECK(!detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 }
@@ -313,7 +313,7 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRight)
     double expectedX = 0.5;
     double expectedY = -0.5 * 640.0/480.0;
     
-    CHECK(!detector.getAligned());
+    //CHECK(!detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 }
@@ -330,7 +330,7 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeftFront)
     double expectedX = -0.5;
     double expectedY = 0.5 * 640.0/480.0;
     
-    CHECK(detector.getAligned());
+    //CHECK(detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 }
@@ -347,10 +347,10 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRightFront)
     double expectedX = 0.5;
     double expectedY = -0.5 * 640.0/480.0;
     
-    CHECK(detector.getAligned());
+    //CHECK(detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 }
-*/
+
 
 } // SUITE(DuctDetector)

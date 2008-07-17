@@ -466,18 +466,30 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     
     if (detectSuit)
     {
-        OpenCVImage rotatedRedSuitWrapper(binImage.getWidth(), binImage.getHeight());
+        // Rotate image to straight
+        OpenCVImage rotatedRedSuitWrapper(binImage.getWidth(),
+                                          binImage.getHeight());
         vision::Image::transform(&binImage, &rotatedRedSuitWrapper, -angle);
-        OpenCVImage percentsRotatedRedWrapper(rotatedRedSuitWrapper.getWidth(),rotatedRedSuitWrapper.getHeight());
-        cvCopyImage(rotatedRedSuitWrapper.asIplImage(),percentsRotatedRedWrapper.asIplImage());
+
+        // Set fields as percent of colors
+        OpenCVImage percentsRotatedRedWrapper(
+            rotatedRedSuitWrapper.getWidth(),
+            rotatedRedSuitWrapper.getHeight());
+        
+        cvCopyImage(rotatedRedSuitWrapper.asIplImage(),
+                    percentsRotatedRedWrapper.asIplImage());
         to_ratios(percentsRotatedRedWrapper.asIplImage());
         
-
-        OpenCVImage maskedRotatedRed(rotatedRedSuitWrapper.getWidth(), rotatedRedSuitWrapper.getHeight());
-        white_mask(percentsRotatedRedWrapper,rotatedRedSuitWrapper.asIplImage(), maskedRotatedRed.asIplImage(), 20, 110);        
+        // Make all the white white, everything else black
+        OpenCVImage maskedRotatedRed(rotatedRedSuitWrapper.getWidth(),
+                                     rotatedRedSuitWrapper.getHeight());
+        white_mask(percentsRotatedRedWrapper,
+                   rotatedRedSuitWrapper.asIplImage(),
+                   maskedRotatedRed.asIplImage(), 20, 110);
 
 //        drawBinImage(&maskedRotatedRed, binNum);
-        
+
+        // Attempt to fix rotation 
         bool rotatedBy90 = false;
         
         int x = maskedRotatedRed.getWidth()/2;
@@ -521,13 +533,14 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
             math::Degree ninety(90.0);
             angle = angle + ninety;
         }
-        
+
+        // Now mask just red (ie. make it white)
         suitMask(percentsRotatedRedWrapper.asIplImage(), rotatedRedSuitWrapper.asIplImage());
         
         if (cropImage(rotatedRedSuitWrapper.asIplImage(), binNum))
         {
-            //Image::showImage(&rotatedRedSuitWrapper);
             OpenCVImage wrapper(binImages[binNum],false);
+//            Image::showImage(&wrapper);
             suit = determineSuit(&wrapper);
             drawBinImage(&wrapper, binNum);
         }

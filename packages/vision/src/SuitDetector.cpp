@@ -813,26 +813,26 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     if (numSegs == SuitDetector::HEARTSIZE)
     {
         heartLike = cyclicCompare(traverseDists, SuitDetector::HEARTMIN, SuitDetector::HEARTMAX, SuitDetector::HEARTSIZE);
-        if (heartLike)
-            printf("Heart!");
+//        if (heartLike)
+//            printf("Heart!");
     }
     if (numSegs == SuitDetector::SPADESIZE)
     {
         spadeLike = cyclicCompare(traverseDists, SuitDetector::SPADEMIN, SuitDetector::SPADEMAX, SuitDetector::SPADESIZE);
-        if (spadeLike)
-            printf("Spade!");
+//        if (spadeLike)
+//            printf("Spade!");
     }
     if (numSegs == SuitDetector::CLUBSIZE)
     {
         clubLike = cyclicCompare(traverseDists, SuitDetector::CLUBMIN, SuitDetector::CLUBMAX, SuitDetector::CLUBSIZE);
-        if (clubLike)
-            printf("Club!");
+//        if (clubLike)
+//            printf("Club!");
     }
     if (numSegs == SuitDetector::DIAMONDSIZE)
     {    
         diamondLike = cyclicCompare(traverseDists, SuitDetector::DIAMONDMIN, SuitDetector::DIAMONDMAX, SuitDetector::DIAMONDSIZE);
-        if (diamondLike)
-            printf("Diamond!");
+//        if (diamondLike)
+//            printf("Diamond!");
     }
     
     if (heartLike && !spadeLike && !clubLike && !diamondLike)
@@ -859,7 +859,7 @@ void SuitDetector::doEdgeRunning(IplImage* image)
         int distRight = 127 - xPos[0];
         int distLeft = xPos[2];
         
-        printf("Dists: %d %d %d %d\n", distBot, distRight, distTop, distLeft);
+        //printf("Dists: %d %d %d %d\n", distBot, distRight, distTop, distLeft);
         
         if (distBot >= 8 && distTop >= 8 && distLeft <= 2 && distRight <= 2)
         {
@@ -873,23 +873,23 @@ void SuitDetector::doEdgeRunning(IplImage* image)
         {
             suit = Suit::CLUB;
         }
-        if (suit == Suit::SPADE)
-            printf("SPADE BY SPLIT!\n");
-        else if (suit == Suit::CLUB)
-            printf("CLUB BY SPLIT!\n");
+//        if (suit == Suit::SPADE)
+//            printf("SPADE BY SPLIT!\n");
+//        else if (suit == Suit::CLUB)
+//            printf("CLUB BY SPLIT!\n");
     }
     
-    printf("\n");
-    switch(suit)
-    {
-        case Suit::HEART: break;//printf("Heart!\n");break;
-        case Suit::DIAMOND: break;//printf("Diamond!\n");break;
-        case Suit::SPADE: break;//printf("Spade!\n");break;
-        case Suit::CLUB: break;//printf("Club!\n");break;
-        default: printf("Unknown :( ??\n");
-    }
-    if (suit == Suit::SPADE)
-        printf("What the hell...\n");
+//    printf("\n");
+//    switch(suit)
+//    {
+//        case Suit::HEART: break;//printf("Heart!\n");break;
+//        case Suit::DIAMOND: break;//printf("Diamond!\n");break;
+//        case Suit::SPADE: break;//printf("Spade!\n");break;
+//        case Suit::CLUB: break;//printf("Club!\n");break;
+//            default: printf("Unknown :( ??\n");
+//    }
+//    if (suit == Suit::SPADE)
+//        printf("What the hell...\n");
 }
 
 bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int size)
