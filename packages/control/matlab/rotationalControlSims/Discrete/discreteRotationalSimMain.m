@@ -90,26 +90,68 @@ x(1,:) = x0';
 %[time,x] = ode45(@rotationalSimDynamics,[t0,te],x0);
 %[time,x] = ode45(@rotationalSimDynamics,[t0,te],x0,options);
 for i = 2:length(time)
+    
+    % unpack data
+    x_curr = x(i-1,:)';
+    q=x_curr(1:4);
+    w=x_curr(5:7);
+    q_d=x_curr(8:11);
+    w_d=x_curr(12:14);
+    qhat=x_curr(15:18);
+    %what=x(19:21);
+
+    %fix numerical quaternion drift
+    q=q/norm(q,2);
+    q_d=q_d/norm(q_d,2);
+
+    % measurement
+    Rot = R(q);
+    a_meas = Rot * a_inertial + 0.0005*randn;
+    m_meas = Rot * m_inertial + 0.0005*randn;
+    %a_meas = Rot * a_inertial;
+    %m_meas = Rot * m_inertial;
+    w_meas=w;
+
+    % estimation
+
+    q_meas = quaternionFromnCb(nCbFromIMU(m_meas,a_meas));
+    %q_meas=q;
+
+    %quaternion estimation that requires only angular rate gyro
+    global dqhat;
+    dqhat = (1/2)*Q(qhat)*w_meas;
+    %dwhat =
+
+    % controller
+
+    %propagate desired states
+    %desire constant angular rate for now
+    global dw_d;
+    dw_d=zeros(3,1);
+    global dq_d;
+    %desired angular position varies
+    dq_d=(1/2)*Q(q_d)*w_d;
+
+    %compute attitude error qc_tilde (controller quaternion)
+    qc_tilde=quaternionProduct(q_meas,q_d);
+
+    %compute composite error metric s
+    w_r=R(qc_tilde)*w_d-lambda*qc_tilde(1:3);
+    shat=w_meas-w_r;
+
+    %compute angular rate error wc_tilde
+    wc_tilde=w_meas-R(qc_tilde)*w_d;
+
+    %d/dt(wrhat)=alpharhat
+    dw_r=R(qc_tilde)*dw_d-S(wc_tilde)*R(qc_tilde)*w_d-lambda*Q1(qc_tilde)*wc_tilde;
+global u;
+    %u=-Kd*shat+H*dw_r-S(H*w_meas)*w_r;
+    u=-Kd*shat+H*dw_r;%-S(H*w_meas)*w_r;
+    
     options=odeset;
     options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
     [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],[x(i-1,:)]);
     x(i,:) = x_ode(end,:);
-     %simulates measurement (perfect for now). q_old and w_old are
-     %initialized as q0, w0
-    %q_meas = x(1);
-    %w_meas = x(2);
-    %qd_meas = x(1) - q_old;
-    %wd_meas = x(2) - w_old;
-    
-     %simulates the estimation
-     %the rough cut is going to just take our measured position and add a
-     %small increment to it
-     %%%JAYMIT%%% What do we use as variables?  w_hat, q_hat??
-    % _______ = x(1) + ??
-    % _______ = x(2) + ??
-    
-    %simulates dynamics using dynamics.m and ode45 loop
-    %
     
 end
 %% format results
