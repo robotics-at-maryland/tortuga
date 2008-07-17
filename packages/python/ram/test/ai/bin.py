@@ -156,6 +156,11 @@ class TestCentering(aisupport.AITestCase):
         
         self.assertCurrentMotion(motion.common.Hover)
         
+        # Setup for SeekEnd
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        
+        # Make sure timer works
         self.releaseTimer(bin.Centering.SETTLED)
         self.assertCurrentState(bin.Dive)
 
@@ -174,8 +179,12 @@ class TestCentering(aisupport.AITestCase):
     
     def testSettled(self):
         """Make sure we move on after settling"""
+        # Setup for SeekEnd
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        # Inject settled event
         self.injectEvent(bin.Centering.SETTLED)
-        self.assertCurrentState(bin.Dive)
+        self.assertCurrentState(bin.SeekEnd)
         
 class TestSeekEnd(aisupport.AITestCase):
     def setUp(self):
@@ -258,6 +267,10 @@ class TestSeekEnd(aisupport.AITestCase):
         self.assertFalse(self._centered)
         self.assert_(self._atEnd)
         self.assertEqual(2, self.ai.data['currentBinID'])
+        
+    def testAtEnd(self):
+        self.injectEvent(bin.SeekEnd.AT_END)
+        self.assertCurrentState(bin.Dive)
         
 
 class TestDive(aisupport.AITestCase):

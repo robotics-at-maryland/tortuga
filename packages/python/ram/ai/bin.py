@@ -136,6 +136,9 @@ class Seeking(HoveringState):
     def transitions():
         return HoveringState.transitions(Seeking,
             { vision.EventType.BIN_CENTERED : Centering })
+        
+    def enter(self):
+        HoveringState.enter(self)
 
 
 class Centering(SettlingState):
@@ -149,10 +152,11 @@ class Centering(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Centering,
-            { Centering.SETTLED : Dive })
+            { Centering.SETTLED : SeekEnd })
     
     def enter(self):
         SettlingState.enter(self, Centering.SETTLED, 5)
+        
         
 class SeekEnd(HoveringState):
     """
@@ -165,7 +169,7 @@ class SeekEnd(HoveringState):
     def transitions():
         return HoveringState.transitions(SeekEnd,
             {SeekEnd.CENTERED_ : SeekEnd, 
-             SeekEnd.AT_END : End })
+             SeekEnd.AT_END : Dive })
     
     def enter(self):
         # Keep the hover motion going
@@ -204,8 +208,13 @@ class SeekEnd(HoveringState):
         """
         binData = self.ai.data['binData']
         binAx = binData[idA].x
-        binBx = binData[idB].x      
-        return type(binAx).__cmp__(binAx, binBx)
+        binBx = binData[idB].x
+        if binAx < binBx:
+            return -1
+        elif binAx > binBx:
+            return 1
+        return 0
+        #return type(binAx).__cmp__(binAx, binBx)
     
     def _fixLeftMostBin(self):
         """
@@ -228,6 +237,7 @@ class SeekEnd(HoveringState):
             self.ai.data['currentBinID'] = leftMostBinId
             return True
    
+   
 class Dive(HoveringState):
     
     @staticmethod
@@ -247,6 +257,7 @@ class Dive(HoveringState):
         
         self.motionManager.setMotion(diveMotion)
         
+        
 class DropMarker(SettlingState):
     DROPPED = core.declareEventType('DROPPPED')
     
@@ -258,6 +269,7 @@ class DropMarker(SettlingState):
     def enter(self):
         SettlingState.enter(self, DropMarker.DROPPED, 15)
         # TODO: drop marker here
+        
         
 class Surface(HoveringState):
     @staticmethod
@@ -275,6 +287,7 @@ class Surface(HoveringState):
             speed = self._config.get('surfaceSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(surfaceMotion)
+
 
 class End(state.State):
     def enter(self):

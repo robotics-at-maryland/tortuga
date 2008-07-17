@@ -9,7 +9,7 @@
 import ram.motion.basic as _basic
 import ram.timer as _timer
 import ram.ai.state as _state
-
+import ram.ai.subsystem as _subsystem
 
 # Ensure we are using the proper version of python
 import ram_version_check
