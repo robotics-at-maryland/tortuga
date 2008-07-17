@@ -103,6 +103,35 @@ TEST(blitImage)
     CHECK_CLOSE(*result, *expected, 0);
 }
 
+void drawPattern(vision::Image* image, int x, int y)
+{
+    vision::drawSquare(image, x, y, 128, 128, 0.0, CV_RGB(0,0,0));
+    vision::drawSquare(image, x + 35, y + 40, 25, 70, 0.0, CV_RGB(0,255,0));
 }
 
+TEST(drawImage)
+{
+    vision::OpenCVImage expected(512, 512);
+    vision::OpenCVImage src(512, 512);
+    vision::OpenCVImage result(512, 512);
+    vision::OpenCVImage toDraw(128, 128);
+
+    // Prepare src
+    vision::makeColor(&src, 255, 255, 255);
+    
+    // Prepare expected result
+    vision::makeColor(&expected, 255, 255, 255);
+    drawPattern(&expected, 345, 120);
+//    vision::Image::showImage(&expected, "Expected");
+
+    // Prepare image to draw
+    drawPattern(&toDraw, 0, 0);
+//    vision::Image::showImage(&toDraw, "To Draw");
+    
+    vision::Image::drawImage(&toDraw, 345, 120, &src, &result);
+//    vision::Image::showImage(&result, "Result");
+//    CHECK_CLOSE(((Image*)&result), *((Image*)&expected), 0);
+}
+
+}
 #endif // RAM_WINDOWS

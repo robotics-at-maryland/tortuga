@@ -273,7 +273,7 @@ void BinDetector::processImage(Image* input, Image* out)
     
         BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
         {
-            processBin(binBlob, true, candidateBins, out);
+            processBin(binBlob, m_runSuitDetector, candidateBins, out);
         }
 
         

@@ -124,7 +124,36 @@ void Image::blitImage(Image* toBlit, Image* src, Image* dest,
         }
     }
 }
+    
+void Image::drawImage(Image* toWrite, int x, int y, Image* src, Image* dest)
+{
+    // Ensure to write is smaller
+    assert((x + toWrite->getWidth()) <= src->getWidth() &&
+           "ToWrite to wide");
+    assert((y + toWrite->getHeight()) <= src->getHeight() &&
+           "ToHeight to wide");
 
+    // Copy image to dest if needed
+    if (src != dest)
+        cvCopy(src->asIplImage(), dest->asIplImage());
+
+    size_t srcWidth = src->getWidth();
+    size_t writeHeight = toWrite->getHeight();
+    size_t writeWidth = toWrite->getWidth();
+    unsigned char* destData = dest->getData();
+    unsigned char* writeData = toWrite->getData();
+
+    // Bring dest data into x,y poition
+    destData += (x * 3) + (y * 3 * srcWidth);
+    
+    for (size_t i = 0; i < writeHeight; ++i)
+    {
+        memcpy(destData, writeData, writeWidth * 3);
+        destData += (srcWidth * 3);
+        writeData += (writeWidth * 3);
+    }
+}
+    
 void Image::writeText(Image* image, std::string text, int x, int y,
                       int height)
 {

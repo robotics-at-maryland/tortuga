@@ -91,6 +91,10 @@ public:
                           unsigned char B = 255,
                           int xOffset = 0, int yOffset = 0);
 
+    /** To write must be smaller then source */
+    static void drawImage(Image* toWrite, int x, int y, Image* src,
+                          Image* dest);
+
     /** Writs the desried text at the given X, Y cordinates */
     static void writeText(Image* image, std::string, int x, int y,
                           int height = 10);
