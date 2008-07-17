@@ -289,7 +289,8 @@ void BinDetector::processImage(Image* input, Image* out)
         int binNumber = 0;
         BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
         {
-            processBin(binBlob, m_runSuitDetector, candidateBins, binNumber, out);
+            processBin(binBlob, m_runSuitDetector, candidateBins, binNumber,
+                       out);
             binNumber++;
         }
         
@@ -438,22 +439,19 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
 
     // Map the image coordinate system to one 90 degrees rotated and with the
     // center in the middle of the image, and going from -1 to 1
-    binX /=640;
-    binY /=480;
     
-    binX -= .5;
-    binY -= .5;
+    // Shift origin to the center
+    binX = -1 * ((binFrame->width / 2) - binX);
+    binY = (binFrame->height / 2) - binY;
     
-    binX *= 2;
-    binY *= 2;
+    // Normalize (-1 to 1)
+    binX = binX / ((double)(binFrame->width)) * 2.0;
+    binY = binY / ((double)(binFrame->height)) * 2.0;
     
-    binX *= 640.0/480.0;
+    // Account for the aspect ratio difference
+    // 640/480      
+    binX *= (double)binFrame->width / binFrame->height;
 
-    // Swap because of the image rotation
-    float swap = binX;
-    binX = binY;
-    binY = swap;
-    
     // Create the image to hold the bin blob
     int width = (bin.getMaxX()-bin.getMinX()+1)/4*4;
     int height = (bin.getMaxY()-bin.getMinY()+1)/4*4;

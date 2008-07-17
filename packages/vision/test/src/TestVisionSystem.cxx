@@ -162,8 +162,8 @@ TEST_FIXTURE(VisionSystemFixture, PipeDetector)
 TEST_FIXTURE(VisionSystemFixture, BinDetector)
 {
     vision::makeColor(&downwardImage, 0, 0, 255);
-    // draw orange square (upper left, remember image rotated 90 deg)
-    drawBin(&downwardImage, 640 - (640/4), 480/4, 130, 25);
+    // draw orange square (upper left)
+    drawBin(&downwardImage, 640/4, 480/4, 130, 25);
 
     // Start dectector and unbackground it
     vision.binDetectorOn();
@@ -179,8 +179,8 @@ TEST_FIXTURE(VisionSystemFixture, BinDetector)
     // Check Events
     CHECK(binFound);
     CHECK(binEvent);
-    CHECK_CLOSE(-0.5, binEvent->x, 0.05);
-    CHECK_CLOSE(0.5 * 640.0/480.0, binEvent->y, 0.1);
+    CHECK_CLOSE(-0.5 * 640.0/480.0, binEvent->x, 0.05);
+    CHECK_CLOSE(0.5, binEvent->y, 0.1);
 }
 
 } // SUITE(RedLightDetector)

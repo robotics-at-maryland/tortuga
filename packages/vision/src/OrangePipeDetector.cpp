@@ -180,7 +180,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
             m_lineX = m_lineX / ((double)(image->width)) * 2.0;
             m_lineY = m_lineY / ((double)(image->height)) * 2.0;
 
-            // Account for the aspect ra    tio difference
+            // Account for the aspect ratio difference
             // 640/480      
             m_lineX *= (double)image->width / image->height;
 
