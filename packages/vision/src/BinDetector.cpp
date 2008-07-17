@@ -516,7 +516,7 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
         
         if (rotatedBy90)
         {
-            printf("Off by 90\n");
+//            printf("Off by 90\n");
             math::Degree ninety(90.0);
             angle = angle + ninety;
         }
