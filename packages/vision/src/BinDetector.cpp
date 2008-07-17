@@ -103,7 +103,7 @@ void BinDetector::Bin::draw(Image* image)
     else if (Suit::DIAMOND == m_suit)
         Image::writeText(image, "Diamond", bl.x, bl.y);
     else if (Suit::SPADE == m_suit)
-        Image::writeText(image, "Heart", bl.x, bl.y);
+        Image::writeText(image, "Spade", bl.x, bl.y);
     else if (Suit::CLUB == m_suit)
         Image::writeText(image, "Club", bl.x, bl.y);
 }
@@ -117,6 +117,7 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_centered(false)
 {
     init(config);
+    setSuitDetectionOn(true);
 }
     
 void BinDetector::init(core::ConfigNode config)
@@ -138,6 +139,10 @@ void BinDetector::init(core::ConfigNode config)
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
     m_sameBinThreshold = config["sameBinThreshold"].asDouble(0.2);
     m_binID = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        binImages[i] = cvCreateImage(cvSize(128,128),8,3);
+    }
 }
     
 BinDetector::~BinDetector()
@@ -145,6 +150,10 @@ BinDetector::~BinDetector()
     cvReleaseImage(&binFrame);
     cvReleaseImage(&rotated);
     cvReleaseImage(&bufferFrame);
+    for (int i = 0; i < 4; i++)
+    {
+        cvReleaseImage((&binImages[i]));
+    }
 }
 
 void BinDetector::processImage(Image* input, Image* out)
@@ -153,7 +162,10 @@ void BinDetector::processImage(Image* input, Image* out)
     IplImage* image =(IplImage*)(*input);
     IplImage* output = NULL;
     if (out != NULL)
+    {
         output = (IplImage*)(*out);
+        currentOutputImage = out;
+    }
 //std::cout<<"startup"<<std::endl;
     
     //This is only right if the camera is on sideways... again.
@@ -179,7 +191,7 @@ void BinDetector::processImage(Image* input, Image* out)
     to_ratios(image);
     
     // Image is now in percents, binFrame is now the base image.
-    /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame, 25, 140);
+    /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame, 20, 110);
     /*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame);
     
     if (output)
@@ -189,7 +201,7 @@ void BinDetector::processImage(Image* input, Image* out)
         if (whiteMaskedFrame->imageData[count] != 0)
         {
 //            binFrame->imageData[count] = 255;
-//            output->imageData[count] = 255;
+              output->imageData[count] = 255;
         }
     }
     }
@@ -200,7 +212,7 @@ void BinDetector::processImage(Image* input, Image* out)
         if (blackMaskedFrame->imageData[count] != 0)
         {
 //            binFrame->imageData[count] = 0;
-//            output->imageData[count] = 0;
+            output->imageData[count] = 0;
         }
     }
     }
@@ -270,12 +282,14 @@ void BinDetector::processImage(Image* input, Image* out)
         // take the rectangular portion containing the black blob and pass it
         // off to SuitDetector
         BinList candidateBins;
-    
+        
+        int binNumber = 0;
         BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
         {
-            processBin(binBlob, m_runSuitDetector, candidateBins, out);
+            processBin(binBlob, m_runSuitDetector, candidateBins, binNumber, out);
+            binNumber++;
         }
-
+        
         
         // Sort candidate bins on distance from center
         candidateBins.sort(binToCenterComparer);
@@ -399,9 +413,22 @@ void BinDetector::processImage(Image* input, Image* out)
     foundEmpty = seeEmpty;*/
 }
 
-void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
-                             BinList& newBins, Image*)
+void BinDetector::drawBinImage(Image* imgToShow, int binNumber)
 {
+    if (!currentOutputImage)
+        return;
+    Image::drawImage(imgToShow, 
+                    binNumber * 128, 
+                    0,
+                    currentOutputImage, 
+                    currentOutputImage);
+}
+
+void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
+                             BinList& newBins, int binNum, Image*)
+{
+    if (binNum > 3)
+        return;
 //        std::cout<<"Finished writing to output image"<<std::endl;
     double binX = bin.getCenterX();
     double binY = bin.getCenterY();
@@ -431,7 +458,6 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     // Extra bin blob into image
     CvPoint2D32f binCenter = cvPoint2D32f(bin.getCenterX(), bin.getCenterY());
     cvGetRectSubPix(binFrame, binImage.asIplImage(), binCenter);
-//    Image::showImage(&binImage);
     math::Radian angle = calculateAngleOfBin(bin, &binImage);
     
     // Find suit if desired
@@ -441,9 +467,77 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     {
         OpenCVImage rotatedRedSuitWrapper(binImage.getWidth(), binImage.getHeight());
         vision::Image::transform(&binImage, &rotatedRedSuitWrapper, -angle);
-        //Image::showImage(&rotatedRedSuitWrapper);
-        suit = determineSuit(&rotatedRedSuitWrapper);
+        OpenCVImage percentsRotatedRedWrapper(rotatedRedSuitWrapper.getWidth(),rotatedRedSuitWrapper.getHeight());
+        cvCopyImage(rotatedRedSuitWrapper.asIplImage(),percentsRotatedRedWrapper.asIplImage());
+        to_ratios(percentsRotatedRedWrapper.asIplImage());
+        
+
+        OpenCVImage maskedRotatedRed(rotatedRedSuitWrapper.getWidth(), rotatedRedSuitWrapper.getHeight());
+        white_mask(percentsRotatedRedWrapper,rotatedRedSuitWrapper.asIplImage(), maskedRotatedRed.asIplImage(), 20, 110);        
+
+//        drawBinImage(&maskedRotatedRed, binNum);
+        
+        bool rotatedBy90 = false;
+        
+        int x = maskedRotatedRed.getWidth()/2;
+        for (unsigned int y = maskedRotatedRed.getHeight()/2; y >= maskedRotatedRed.getHeight()/4; y--)
+        {
+            int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
+            if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
+                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
+                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
+            {
+                //rotated by 90
+                rotatedBy90 = true;
+                break;
+            }
+            else
+            {
+                
+            }   
+        }
+
+        for (unsigned int y = maskedRotatedRed.getHeight()/2; y < maskedRotatedRed.getHeight() * 3 / 4; y++)
+        {
+            int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
+            if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
+                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
+                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
+            {
+                //rotated by 90
+                rotatedBy90 = true;
+                break;
+            }
+            else
+            {
+                
+            }
+        }
+        
+        if (rotatedBy90)
+        {
+            printf("Off by 90\n");
+            math::Degree ninety(90.0);
+            angle = angle + ninety;
+        }
+        
+        suitMask(percentsRotatedRedWrapper.asIplImage(), rotatedRedSuitWrapper.asIplImage());
+        
+        if (cropImage(rotatedRedSuitWrapper.asIplImage(), binNum))
+        {
+            //Image::showImage(&rotatedRedSuitWrapper);
+            OpenCVImage wrapper(binImages[binNum],false);
+            suit = determineSuit(&wrapper);
+            drawBinImage(&wrapper, binNum);
+        }
+        else
+        {
+            suit = Suit::UNKNOWN;
+//            printf("No suit found\n");
+        }
     }
+    
+
     
     // Create bin add it to the list (and incremet the binID)
     newBins.push_back(Bin(bin, binX, binY, angle, m_binID++, suit));
@@ -590,6 +684,96 @@ BinDetector::BinList BinDetector::getBins()
 bool BinDetector::found()
 {
     return m_found;
+}
+
+//Returns false on failure, puts suit into scaledRedSuit.
+bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
+{   
+    int minSuitX = 999999;
+    int minSuitY = 999999;
+    int maxSuitX = 0;
+    int maxSuitY = 0;
+    //            int redCX, redCY;
+//    cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 1);
+    OpenCVImage mySuit(rotatedRedSuit,false);
+    blobDetector.setMinimumBlobSize(25);
+    blobDetector.processImage(&mySuit);
+    if (!blobDetector.found())
+    {
+        return false;
+        //no suit found, don't make a histogram
+        //                printf("Oops, we fucked up, no suit found :(\n");
+    }
+    else
+    {
+        //find biggest two blobs (hopefully should be just one, but if spade or club split..)
+        std::vector<ram::vision::BlobDetector::Blob> blobs = blobDetector.getBlobs();
+        ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
+        ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
+        ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
+        for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
+        {
+            if (blobs[blobIndex].getSize() > secondBiggest.getSize())
+            {
+                secondBiggest = blobs[blobIndex];
+                if (secondBiggest.getSize() > biggest.getSize())
+                {
+                    swapper = secondBiggest;
+                    secondBiggest = biggest;
+                    biggest = swapper;
+                }
+            }
+        }
+        minSuitX = biggest.getMinX();
+        minSuitY = biggest.getMinY();
+        maxSuitX = biggest.getMaxX();
+        maxSuitY = biggest.getMaxY();
+        
+        if (blobs.size() > 1)
+        {
+            if (minSuitX > secondBiggest.getMinX())
+                minSuitX = secondBiggest.getMinX();
+            if (minSuitY > secondBiggest.getMinY())
+                minSuitY = secondBiggest.getMinY();
+            if (maxSuitX < secondBiggest.getMaxX())
+                maxSuitX = secondBiggest.getMaxX();
+            if (maxSuitY < secondBiggest.getMaxY())
+                maxSuitY = secondBiggest.getMaxY();
+        }
+    }
+
+    int onlyRedSuitRows = (maxSuitX - minSuitX + 1);// / 4 * 4;
+    int onlyRedSuitCols = (maxSuitY - minSuitY + 1);// / 4 * 4;
+
+    if (onlyRedSuitRows == 0 || onlyRedSuitCols == 0)
+    {
+        return false;
+//        binImages[binNum] = NULL;
+    }
+        
+    onlyRedSuitRows = onlyRedSuitCols = (onlyRedSuitRows > onlyRedSuitCols ? onlyRedSuitRows : onlyRedSuitCols);
+
+
+    if (onlyRedSuitRows >= rotatedRedSuit->width || onlyRedSuitCols >= rotatedRedSuit->height)
+    {
+        return false;
+//        binImages[binNum] = NULL;
+    }
+        
+    IplImage* onlyRedSuit = cvCreateImage(
+        cvSize(onlyRedSuitRows,
+               onlyRedSuitCols),
+        IPL_DEPTH_8U,
+        3);
+    
+    cvGetRectSubPix(rotatedRedSuit,
+                    onlyRedSuit,
+                    cvPoint2D32f((maxSuitX+minSuitX)/2,
+                                 (maxSuitY+minSuitY)/2));
+    
+    cvResize(onlyRedSuit, binImages[binNum], CV_INTER_LINEAR);
+    cvReleaseImage(&onlyRedSuit);
+    return true;
 }
 
 void BinDetector::setSuitDetectionOn(bool on)

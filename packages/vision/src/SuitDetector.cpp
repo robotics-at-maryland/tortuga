@@ -22,23 +22,43 @@
 
 namespace ram {
 namespace vision {
-
-//    Traversal Distances for findPointsOnEdges2 --Best Numbers For Tests
-    int SuitDetector::HEARTMIN[] = {145, 145, 90, 90};
-    int SuitDetector::HEARTMAX[] = {155, 155, 110, 110};
-    int SuitDetector::HEARTSIZE = 4;
-
-    int SuitDetector::SPADEMIN[] = {120, 120, 235, 235};
-    int SuitDetector::SPADEMAX[] = {130, 130, 261, 261};
-    int SuitDetector::SPADESIZE = 4;
-
-    int SuitDetector::CLUBMIN[] = {110, 110, 209, 209};
-    int SuitDetector::CLUBMAX[] = {125, 125, 230, 230};
+//  Traversal Distances for findPointsOnEdges2 --BestNumbers for handheld camera video
+    int SuitDetector::CLUBMIN[] = {120, 120, 200, 200};
+    int SuitDetector::CLUBMAX[] = {130, 130, 230, 230};
     int SuitDetector::CLUBSIZE = 4;
 
-    int SuitDetector::DIAMONDMIN[] = {123, 123, 123, 123};
-    int SuitDetector::DIAMONDMAX[] = {133, 133, 133, 133};
+    int SuitDetector::SPADEMIN[] = {120, 120, 190, 190};
+    int SuitDetector::SPADEMAX[] = {130, 130, 200, 200};
+    int SuitDetector::SPADESIZE = 4;
+
+    int SuitDetector::HEARTMIN[] = {100, 100, 150, 150};
+    int SuitDetector::HEARTMAX[] = {115, 115, 160, 160};
+    int SuitDetector::HEARTSIZE = 4;
+
+    int SuitDetector::DIAMONDMIN[] = {110, 110, 110, 110};
+    int SuitDetector::DIAMONDMAX[] = {120, 120, 120, 120};
     int SuitDetector::DIAMONDSIZE = 4;
+    
+    int SuitDetector::SPLITMIN[] = {110, 110, -2, -2};
+    int SuitDetector::SPLITMAX[] = {130, 130, 0, 0};
+    int SuitDetector::SPLITSIZE = 4;
+
+//    Traversal Distances for findPointsOnEdges2 --Best Numbers For Tests
+//    int SuitDetector::HEARTMIN[] = {145, 145, 90, 90};
+//    int SuitDetector::HEARTMAX[] = {155, 155, 110, 110};
+//    int SuitDetector::HEARTSIZE = 4;
+//
+//    int SuitDetector::SPADEMIN[] = {120, 120, 235, 235};
+//    int SuitDetector::SPADEMAX[] = {130, 130, 261, 261};
+//    int SuitDetector::SPADESIZE = 4;
+//
+//    int SuitDetector::CLUBMIN[] = {110, 110, 209, 209};
+//    int SuitDetector::CLUBMAX[] = {125, 125, 230, 230};
+//    int SuitDetector::CLUBSIZE = 4;
+//
+//    int SuitDetector::DIAMONDMIN[] = {123, 123, 123, 123};
+//    int SuitDetector::DIAMONDMAX[] = {133, 133, 133, 133};
+//    int SuitDetector::DIAMONDSIZE = 4;
 
 //    Traversal Distances for findPointsOnEdges
 //    int SuitDetector::HEARTMIN[] = {160, 150, 45, 95, 55};
@@ -78,7 +98,6 @@ void SuitDetector::init(core::ConfigNode)
 	analyzedImage = cvCreateImage(cvSize(640,480), 8,3);
 	ratioImage = cvCreateImage(cvSize(640,480),8,3);
 	tempHoughImage = cvCreateImage(cvSize(640,480),8,3);
-    scaledRedSuit = cvCreateImage(cvSize(128,128),IPL_DEPTH_8U, 3);
 }
 	
 SuitDetector::~SuitDetector()
@@ -86,7 +105,6 @@ SuitDetector::~SuitDetector()
 	cvReleaseImage(&analyzedImage);
 	cvReleaseImage(&ratioImage);
 	cvReleaseImage(&tempHoughImage);
-    cvReleaseImage(&scaledRedSuit);
 }
 
 int SuitDetector::findPointsOnEdges2(IplImage* img, int xPositions[], int yPositions[])
@@ -607,229 +625,140 @@ int SuitDetector::edgeRun(int startX, int startY, int endX, int endY, IplImage* 
 }
 
 
-//Returns false on failure, puts suit into scaledRedSuit.
-bool SuitDetector::cropImage(IplImage* rotatedRedSuit)
-{
-    int minSuitX = 999999;
-    int minSuitY = 999999;
-    int maxSuitX = 0;
-    int maxSuitY = 0;
-    //            int redCX, redCY;
-//    cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 1);
-    OpenCVImage mySuit(rotatedRedSuit,false);
-    blobDetector.setMinimumBlobSize(25);
-    blobDetector.processImage(&mySuit);
-    if (!blobDetector.found())
-    {
-        return false;//no suit found, don't make a histogram
-        //                printf("Oops, we fucked up, no suit found :(\n");
-    }
-    else
-    {
-        //find biggest two blobs (hopefully should be just one, but if spade or club split..)
-        std::vector<ram::vision::BlobDetector::Blob> blobs = blobDetector.getBlobs();
-        ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
-        ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
-        ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
-        for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
-        {
-            if (blobs[blobIndex].getSize() > secondBiggest.getSize())
-            {
-                secondBiggest = blobs[blobIndex];
-                if (secondBiggest.getSize() > biggest.getSize())
-                {
-                    swapper = secondBiggest;
-                    secondBiggest = biggest;
-                    biggest = swapper;
-                }
-            }
-        }
-        minSuitX = biggest.getMinX();
-        minSuitY = biggest.getMinY();
-        maxSuitX = biggest.getMaxX();
-        maxSuitY = biggest.getMaxY();
-        
-        if (blobs.size() > 1)
-        {
-            if (minSuitX > secondBiggest.getMinX())
-                minSuitX = secondBiggest.getMinX();
-            if (minSuitY > secondBiggest.getMinY())
-                minSuitY = secondBiggest.getMinY();
-            if (maxSuitX < secondBiggest.getMaxX())
-                maxSuitX = secondBiggest.getMaxX();
-            if (maxSuitY < secondBiggest.getMaxY())
-                maxSuitY = secondBiggest.getMaxY();
-        }
-    }
-
-    int onlyRedSuitRows = (maxSuitX - minSuitX + 1);// / 4 * 4;
-    int onlyRedSuitCols = (maxSuitY - minSuitY + 1);// / 4 * 4;
-
-    if (onlyRedSuitRows == 0 || onlyRedSuitCols == 0)
-    {
-        return false;
-    }
-        
-    onlyRedSuitRows = onlyRedSuitCols = (onlyRedSuitRows > onlyRedSuitCols ? onlyRedSuitRows : onlyRedSuitCols);
-
-
-    if (onlyRedSuitRows >= rotatedRedSuit->width || onlyRedSuitCols >= rotatedRedSuit->height)
-    {
-        return false;
-    }
-        
-    IplImage* onlyRedSuit = cvCreateImage(
-        cvSize(onlyRedSuitRows,
-               onlyRedSuitCols),
-        IPL_DEPTH_8U,
-        3);
-    
-    cvGetRectSubPix(rotatedRedSuit,
-                    onlyRedSuit,
-                    cvPoint2D32f((maxSuitX+minSuitX)/2,
-                                 (maxSuitY+minSuitY)/2));
-    
-    cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
-    cvReleaseImage(&onlyRedSuit);
-
-    return true;
-}
 
 
 //finds the bounds on the suit, assuming it broke into a maximum of two pieces.
-bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
-{
-    //make sure to zero out the histogram array, regardless of whether or not we find anything.
-    for (int i = 0; i < HISTOARRSIZE; i++)
-    {
-        histoArr[i] = 0;
-    }
-
-    int minSuitX = 999999;
-    int minSuitY = 999999;
-    int maxSuitX = 0;
-    int maxSuitY = 0;
-    //            int redCX, redCY;
-//    cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 1);
-    OpenCVImage mySuit(rotatedRedSuit,false);
-    blobDetector.setMinimumBlobSize(25);
-    blobDetector.processImage(&mySuit);
-    if (!blobDetector.found())
-    {
-        return false;//no suit found, don't make a histogram
-        //                printf("Oops, we fucked up, no suit found :(\n");
-    }
-    else
-    {
-        //find biggest two blobs (hopefully should be just one, but if spade or club split..)
-        std::vector<ram::vision::BlobDetector::Blob> blobs = blobDetector.getBlobs();
-        ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
-        ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
-        ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
-        for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
-        {
-            if (blobs[blobIndex].getSize() > secondBiggest.getSize())
-            {
-                secondBiggest = blobs[blobIndex];
-                if (secondBiggest.getSize() > biggest.getSize())
-                {
-                    swapper = secondBiggest;
-                    secondBiggest = biggest;
-                    biggest = swapper;
-                }
-            }
-        }
-        minSuitX = biggest.getMinX();
-        minSuitY = biggest.getMinY();
-        maxSuitX = biggest.getMaxX();
-        maxSuitY = biggest.getMaxY();
-        
-        if (blobs.size() > 1)
-        {
-            if (minSuitX > secondBiggest.getMinX())
-                minSuitX = secondBiggest.getMinX();
-            if (minSuitY > secondBiggest.getMinY())
-                minSuitY = secondBiggest.getMinY();
-            if (maxSuitX < secondBiggest.getMaxX())
-                maxSuitX = secondBiggest.getMaxX();
-            if (maxSuitY < secondBiggest.getMaxY())
-                maxSuitY = secondBiggest.getMaxY();
-        }
-    }
-
-    int onlyRedSuitRows = (maxSuitX - minSuitX + 1);// / 4 * 4;
-    int onlyRedSuitCols = (maxSuitY - minSuitY + 1);// / 4 * 4;
-
-    if (onlyRedSuitRows == 0 || onlyRedSuitCols == 0)
-    {
-        return false;
-    }
-    IplImage* onlyRedSuit = cvCreateImage(
-        cvSize(onlyRedSuitRows,
-               onlyRedSuitCols),
-        IPL_DEPTH_8U,
-        3);
-    
-    cvGetRectSubPix(rotatedRedSuit,
-                    onlyRedSuit,
-                    cvPoint2D32f((maxSuitX+minSuitX)/2,
-                                 (maxSuitY+minSuitY)/2));
-    
-    cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
-    
-//    OpenCVImage showTheSuit(scaledRedSuit, false);
-//    Image::showImage(&showTheSuit, "The Suit Stands Alone");
-    
-    int scaledRedIndex = 0;
-    unsigned char* scaledRedData=(unsigned char*)scaledRedSuit->imageData;
-    for (int y = 0; y < scaledRedSuit->height; y++)
-    {
-        for (int x = 0; x < scaledRedSuit->width; x++)
-        {
-            if (scaledRedData[scaledRedIndex]!=0)
-            {
-                histoArr[y]++;
-                histoArr[x+scaledRedSuit->height]++;
-            }
-            scaledRedIndex+=3;
-        }
-        if (scaledRedIndex%4 == 0)
-        {}
-        else
-        { 
-            scaledRedIndex += 4 - scaledRedIndex%4;
-        }
-    }
-    
-    
-    cvReleaseImage(&onlyRedSuit);
-    return true;//we made a histogram   
-}
+//bool SuitDetector::makeSuitHistogram(IplImage* rotatedRedSuit)
+//{
+//    //make sure to zero out the histogram array, regardless of whether or not we find anything.
+//    for (int i = 0; i < HISTOARRSIZE; i++)
+//    {
+//        histoArr[i] = 0;
+//    }
+//
+//    int minSuitX = 999999;
+//    int minSuitY = 999999;
+//    int maxSuitX = 0;
+//    int maxSuitY = 0;
+//    //            int redCX, redCY;
+////    cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 1);
+//    OpenCVImage mySuit(rotatedRedSuit,false);
+//    blobDetector.setMinimumBlobSize(25);
+//    blobDetector.processImage(&mySuit);
+//    if (!blobDetector.found())
+//    {
+//        return false;//no suit found, don't make a histogram
+//        //                printf("Oops, we fucked up, no suit found :(\n");
+//    }
+//    else
+//    {
+//        //find biggest two blobs (hopefully should be just one, but if spade or club split..)
+//        std::vector<ram::vision::BlobDetector::Blob> blobs = blobDetector.getBlobs();
+//        ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
+//        ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
+//        ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
+//        for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
+//        {
+//            if (blobs[blobIndex].getSize() > secondBiggest.getSize())
+//            {
+//                secondBiggest = blobs[blobIndex];
+//                if (secondBiggest.getSize() > biggest.getSize())
+//                {
+//                    swapper = secondBiggest;
+//                    secondBiggest = biggest;
+//                    biggest = swapper;
+//                }
+//            }
+//        }
+//        minSuitX = biggest.getMinX();
+//        minSuitY = biggest.getMinY();
+//        maxSuitX = biggest.getMaxX();
+//        maxSuitY = biggest.getMaxY();
+//        
+//        if (blobs.size() > 1)
+//        {
+//            if (minSuitX > secondBiggest.getMinX())
+//                minSuitX = secondBiggest.getMinX();
+//            if (minSuitY > secondBiggest.getMinY())
+//                minSuitY = secondBiggest.getMinY();
+//            if (maxSuitX < secondBiggest.getMaxX())
+//                maxSuitX = secondBiggest.getMaxX();
+//            if (maxSuitY < secondBiggest.getMaxY())
+//                maxSuitY = secondBiggest.getMaxY();
+//        }
+//    }
+//
+//    int onlyRedSuitRows = (maxSuitX - minSuitX + 1);// / 4 * 4;
+//    int onlyRedSuitCols = (maxSuitY - minSuitY + 1);// / 4 * 4;
+//
+//    if (onlyRedSuitRows == 0 || onlyRedSuitCols == 0)
+//    {
+//        return false;
+//    }
+//    IplImage* onlyRedSuit = cvCreateImage(
+//        cvSize(onlyRedSuitRows,
+//               onlyRedSuitCols),
+//        IPL_DEPTH_8U,
+//        3);
+//    
+//    cvGetRectSubPix(rotatedRedSuit,
+//                    onlyRedSuit,
+//                    cvPoint2D32f((maxSuitX+minSuitX)/2,
+//                                 (maxSuitY+minSuitY)/2));
+//    
+//    cvResize(onlyRedSuit, scaledRedSuit, CV_INTER_LINEAR);
+//    
+////    OpenCVImage showTheSuit(scaledRedSuit, false);
+////    Image::showImage(&showTheSuit, "The Suit Stands Alone");
+//    
+//    int scaledRedIndex = 0;
+//    unsigned char* scaledRedData=(unsigned char*)scaledRedSuit->imageData;
+//    for (int y = 0; y < scaledRedSuit->height; y++)
+//    {
+//        for (int x = 0; x < scaledRedSuit->width; x++)
+//        {
+//            if (scaledRedData[scaledRedIndex]!=0)
+//            {
+//                histoArr[y]++;
+//                histoArr[x+scaledRedSuit->height]++;
+//            }
+//            scaledRedIndex+=3;
+//        }
+//        if (scaledRedIndex%4 == 0)
+//        {}
+//        else
+//        { 
+//            scaledRedIndex += 4 - scaledRedIndex%4;
+//        }
+//    }
+//    
+//    
+//    cvReleaseImage(&onlyRedSuit);
+//    return true;//we made a histogram   
+//}
 
 
 void SuitDetector::processImage(Image* input, Image* output)
 {
-    IplImage* rotatedRedSuit = (IplImage*)(*input);
-
-
-    IplImage* percentsRotatedRed = cvCreateImage(cvGetSize(rotatedRedSuit),IPL_DEPTH_8U, 3);
-    
-    cvCopyImage(rotatedRedSuit,percentsRotatedRed);
-    to_ratios(percentsRotatedRed);
-    
-    suitMask(percentsRotatedRed, rotatedRedSuit);
+    IplImage* scaledRedSuit = (IplImage*)(*input);
+    //This is all done by bin detector now.
+//    IplImage* percentsRotatedRed = cvCreateImage(cvGetSize(rotatedRedSuit),IPL_DEPTH_8U, 3);
+//    cvCopyImage(rotatedRedSuit,percentsRotatedRed);
+//    to_ratios(percentsRotatedRed);
+//    suitMask(percentsRotatedRed, rotatedRedSuit);
 //    OpenCVImage mySuit(rotatedRedSuit,false);
 //    Image::showImage(&mySuit);
+//    if (cropImage(rotatedRedSuit)) //This places a cropped suit into scaledRedSuit.
+//    {
+//        doEdgeRunning(scaledRedSuit);
+//    }
+//    else
+//    {
+//        printf("Failure to crop image properly, too small a suit?\n");
+//    }
+//    cvReleaseImage(&percentsRotatedRed);
 
-    if (cropImage(rotatedRedSuit)) //This places a cropped suit into scaledRedSuit.
-    {
-        doEdgeRunning(scaledRedSuit);
-    }
-    else
-    {
-        printf("Failure to crop image properly, too small a suit?\n");
-    }
-    cvReleaseImage(&percentsRotatedRed);
+    doEdgeRunning(scaledRedSuit);
 }
 
 
@@ -855,7 +784,7 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     else 
     {
         int j = numSegs-1;
-//        printf("Traversal Distances: \n");
+        //printf("Traversal Distances: \n");
         for (int i = 0; i < numSegs; j=i++)
         {
             int startX = xPos[j];
@@ -864,9 +793,9 @@ void SuitDetector::doEdgeRunning(IplImage* image)
             int endY = yPos[i];
 
             traverseDists[i] = edgeRun(startX,startY,endX,endY, image, i, &numBackups);
-//            printf("(%d,%d) to (%d,%d) : %d   Backups: %d \n", startX, startY, endX, endY, traverseDists[i], numBackups);
+        //    printf("(%d,%d) to (%d,%d) : %d   Backups: %d \n", startX, startY, endX, endY, traverseDists[i], numBackups);
         }
-//        printf("End of Traversal Dists \n");
+        //printf("End of Traversal Dists \n");
     }
     
     suit = Suit::UNKNOWN;
@@ -874,6 +803,13 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     bool spadeLike = false;
     bool clubLike = false;
     bool diamondLike = false;
+    bool splitSuit = false;
+    
+    if (numSegs == SuitDetector::SPLITSIZE)
+    {
+        splitSuit = cyclicCompare(traverseDists, SuitDetector::SPLITMIN, SuitDetector::SPLITMAX, SuitDetector::SPLITSIZE);
+    }
+    
     if (numSegs == SuitDetector::HEARTSIZE)
     {
         heartLike = cyclicCompare(traverseDists, SuitDetector::HEARTMIN, SuitDetector::HEARTMAX, SuitDetector::HEARTSIZE);
@@ -915,7 +851,34 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     {
         suit = Suit::DIAMOND;
     }
-
+    
+    if (splitSuit || (clubLike && spadeLike))
+    {
+        int distBot = 127-yPos[3];
+        int distTop = yPos[1];
+        int distRight = 127 - xPos[0];
+        int distLeft = xPos[2];
+        
+        printf("Dists: %d %d %d %d\n", distBot, distRight, distTop, distLeft);
+        
+        if (distBot >= 8 && distTop >= 8 && distLeft <= 2 && distRight <= 2)
+        {
+            suit = Suit::SPADE;
+        }
+        else if (distBot >= 2 && distTop >= 2 && distLeft <= 8 && distRight <= 8)
+        {
+            suit = Suit::SPADE;
+        }
+        else if (distBot <2 && distTop < 2 && distLeft < 2 && distRight < 2)
+        {
+            suit = Suit::CLUB;
+        }
+        if (suit == Suit::SPADE)
+            printf("SPADE BY SPLIT!\n");
+        else if (suit == Suit::CLUB)
+            printf("CLUB BY SPLIT!\n");
+    }
+    
     printf("\n");
     switch(suit)
     {
@@ -925,6 +888,8 @@ void SuitDetector::doEdgeRunning(IplImage* image)
         case Suit::CLUB: break;//printf("Club!\n");break;
         default: printf("Unknown :( ??\n");
     }
+    if (suit == Suit::SPADE)
+        printf("What the hell...\n");
 }
 
 bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int size)

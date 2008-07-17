@@ -637,7 +637,7 @@ void suitMask(IplImage* percents, IplImage* base)
     {
         for (int x = 0; x < width; x++)
         {
-            if (data[count+2]>34 && data2[count+2]>75)// && data2[count]<75 && data2[count+1]<75)
+            if (data[count+2]>40 && data2[count+2]>50)// && data2[count]<75 && data2[count+1]<75)
             {
                 data2[count]=data2[count+1]=data2[count+2]=255;
             }
@@ -1638,7 +1638,7 @@ int black_mask(IplImage* percents, IplImage* base, IplImage* output)
 			r2=data2[count+2];
 			if (b>15 && g>15 && r>15)
 			{
-				if (b2 + g2 + r2 <= 350)
+				if (b2 + g2 + r2 <= 250)
 				{
 					data3[count]=data3[count+1]=data3[count+2]=255;
 					pixelCount++;

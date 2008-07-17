@@ -49,9 +49,9 @@ class RAM_EXPORT SuitDetector : public Detector
 	IplImage* tempHoughImage;
     void init(core::ConfigNode config);
     BlobDetector blobDetector;
-    IplImage* scaledRedSuit;
     int findPointsOnEdges2(IplImage* img, int xPositions[], int yPositions[]);
     int findPointsOnEdges(IplImage* img, int xPositions[], int yPositions[]);
+
     int histoArr[128]; //twice scaledRedSuit's height.
     static const int HISTOARRSIZE = 128;
     static int HEARTMIN[]; 
@@ -69,6 +69,10 @@ class RAM_EXPORT SuitDetector : public Detector
     static int DIAMONDMIN[];
     static int DIAMONDMAX[];
     static int DIAMONDSIZE;
+
+    static int SPLITMIN[];
+    static int SPLITMAX[];
+    static int SPLITSIZE;
 };
 	
 } // namespace vision

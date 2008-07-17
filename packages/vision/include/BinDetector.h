@@ -63,6 +63,8 @@ class RAM_EXPORT BinDetector : public Detector
 
         /** Draws the bounds of the bin in green, and its ID */
         void draw(Image* image);
+        
+
     private:
             
         double m_normX;
@@ -71,9 +73,12 @@ class RAM_EXPORT BinDetector : public Detector
         int m_id;
         Suit::SuitType m_suit;
     };  
+    
+
 
     typedef std::list<Bin> BinList;
     typedef BinList::iterator BinListIter;
+
     
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
@@ -81,6 +86,8 @@ class RAM_EXPORT BinDetector : public Detector
 
     void processImage(Image* input, Image* output= 0);
     
+    void BinDetector::drawBinImage(Image* imgToShow, int binNumber);
+
     /** redSuit and rotatedRedSuit must be the same size, rotates redSuit,
         which is the image containing the center of the bin into rotatedRedSuit
     */
@@ -103,6 +110,9 @@ class RAM_EXPORT BinDetector : public Detector
     void setSuitDetectionOn(bool);
     
   private:
+    IplImage* scaledRedSuit;
+
+  
     void init(core::ConfigNode config);
 
     /** Processes the bin and fires off found event
@@ -116,7 +126,7 @@ class RAM_EXPORT BinDetector : public Detector
      *  @param output
      *      Our debug output image
      */
-    void processBin(BlobDetector::Blob bin, bool detectSuit, BinList& newBins,
+    void processBin(BlobDetector::Blob bin, bool detectSuit, BinList& newBins, int binNum,
                     Image* ouput = 0);
 
     /** Called by process bin, if suit detection is request is true
@@ -153,7 +163,9 @@ class RAM_EXPORT BinDetector : public Detector
     IplImage* blackMaskedFrame;
     SuitDetector suitDetector;
     BlobDetector blobDetector;
-    
+    bool cropImage(IplImage* rotatedRedSuit, int binNum);
+
+    IplImage* binImages[4];
     /** Maximum distance for the bin to be considred "centered" */
     double m_centeredLimit;
     
@@ -170,6 +182,9 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** Current bin ids */
     int m_binID;
+    
+    Image* currentOutputImage;
+
 };
 
 } // namespace vision
