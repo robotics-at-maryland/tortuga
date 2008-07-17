@@ -69,7 +69,7 @@ void RedLightDetector::init(core::ConfigNode config)
 
     // Working images
     frame = new ram::vision::OpenCVImage(640,480);
-    image=cvCreateImage(cvSize(480,640),8,3);//480 by 640 if we put the camera on sideways again...
+    image=cvCreateImage(cvSize(640,480),8,3);//480 by 640 if we put the camera on sideways again...
     raw=cvCreateImage(cvGetSize(image),8,3);
     flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
     saveFrame=cvCreateImage(cvSize(640,480),8,3);
@@ -118,25 +118,22 @@ void RedLightDetector::update()
     
 void RedLightDetector::processImage(Image* input, Image* output)
 {
-    IplImage* sideways =(IplImage*)(*input);
-
     // Resize images if needed
-    if ((image->width != (int)input->getHeight()) &&
-        (image->height != (int)input->getWidth()))
+    if ((image->width != (int)input->getWidth()) &&
+        (image->height != (int)input->getHeight()))
     {
         cvReleaseImage(&image);
-        image = cvCreateImage(cvSize(input->getHeight(), input->getWidth()), 8, 3);
+        image = cvCreateImage(cvSize(input->getWidth(),
+                                     input->getHeight()), 8, 3);
         cvReleaseImage(&raw);
         raw=cvCreateImage(cvGetSize(image),8,3);
         cvReleaseImage(&flashFrame);
         flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
     }
-    
-    rotate90Deg(sideways,image);//  Don't do this unless we put the cameras on sideways again...
-	//	image=(IplImage*)(*frame);
-    cvCopyImage(image,raw);//Now both are rotated 90 degrees
-    cvCopyImage(image, flashFrame);
 
+    cvCopyImage(input->asIplImage(), image);
+    cvCopyImage(image, flashFrame);
+    
     // Remove top chunck if desired
     if (m_topRemovePercentage != 0)
     {
@@ -218,7 +215,7 @@ void RedLightDetector::processImage(Image* input, Image* output)
 
         // Account for the aspect ratio difference
         // 640/480
-        m_redLightCenterX *= (double)image->height / image->width;
+        m_redLightCenterX *= (double)image->width / image->height;
 
         publishFoundEvent(lightPixelRadius);
         
@@ -249,6 +246,8 @@ void RedLightDetector::processImage(Image* input, Image* output)
         // Only draw debug info if we found the light
         if (found)
         {
+            cvCopyImage(image, raw);
+            
             CvPoint tl,tr,bl,br;
             tl.x = bl.x = std::max(lightCenter.x-4,0);
             tr.x = br.x = std::min(lightCenter.x+4,raw->width-1);
@@ -287,12 +286,12 @@ void RedLightDetector::publishFoundEvent(double lightPixelRadius)
         event->y = m_redLightCenterY;
         event->azimuth = math::Degree(
             (78.0 / 2) * event->x * -1.0 *
-            (double)flashFrame->width/flashFrame->height);
+            (double)flashFrame->height/flashFrame->width);
         event->elevation = math::Degree((105.0 / 2) * event->y * 1);
         
         // Compute range (assume a sphere)
         double lightRadius = 0.25; // feet
-        event->range = (lightRadius * image->width) /
+        event->range = (lightRadius * image->height) /
             (lightPixelRadius * tan(78.0/2 * (M_PI/180)));
         
         publish(EventType::LIGHT_FOUND, event);

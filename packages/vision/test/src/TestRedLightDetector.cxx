@@ -31,8 +31,6 @@ void drawRedCircle(vision::Image* image, int x, int y, int radius = 50)
     cvCircle(image->asIplImage(), center, radius, CV_RGB(255, 0, 0), -1);
 }
 
-
-
 struct RedLightDetectorFixture
 {
     RedLightDetectorFixture() :
@@ -108,9 +106,9 @@ TEST_FIXTURE(RedLightDetectorFixture, CenterLight)
 
 TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
 {
-    // Blue Image with red circle in upper left (remeber image rotated 90 deg)
+    // Blue Image with red circle in upper left
     makeColor(&input, 0, 0, 255);
-    drawRedCircle(&input, 640 - (640/4), 480/4);
+    drawRedCircle(&input, 640/4, 480/4);
     
     detector.processImage(&input);
     
@@ -135,9 +133,9 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
 
 TEST_FIXTURE(RedLightDetectorFixture, LowerRight)
 {
-    // Blue Image with red circle in lower right (remeber image rotated 90 deg)
+    // Blue Image with red circle in lower right
     makeColor(&input, 0, 0, 255);
-    drawRedCircle(&input, 640/4, 480/4 * 3);
+    drawRedCircle(&input, 640 - 640/4, 480/4 * 3);
     
     detector.processImage(&input);
 
@@ -169,8 +167,8 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_LOST)
     CHECK(found == false);
     CHECK(!event);
 
-    // Now we found the light
-    drawRedCircle(&input, 640 - (640/4), 480/4);
+    // Now we found the light (Upper Left)
+    drawRedCircle(&input, 640/4, 480/4);
     detector.processImage(&input);
     CHECK(found);
     CHECK(event);
@@ -221,14 +219,14 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT)
 
 TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
 {
-    // Blue Image with red circle in upper center (remeber image rotated 90 deg)
+    // Blue Image with red circle in upper center
     makeColor(&input, 0, 0, 255);
-    drawRedCircle(&input, 640 - 60, 480/2);
+    drawRedCircle(&input, 640/2, 45);
 
     // Check with a non top removed detector
     detector.processImage(&input);
     double expectedX = 0  * 640.0/480.0;
-    double expectedY = 0.815;
+    double expectedY = 0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
     CHECK(detector.found);
@@ -260,9 +258,10 @@ TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
     CHECK(false == detector.found);    
 
     // Now test the square *with* the light and make sure we get the light
+    // (LowerRight position)
     makeColor(&input, 0, 0, 255);
     drawSquare(&input, 640/2, 480/2, 80, 240, 0, CV_RGB(255,0,0));
-    drawRedCircle(&input, 640/4, 480/4 * 3);
+    drawRedCircle(&input, 640 - 640/4, 480/4 * 3);
 
     detector.processImage(&input);
 

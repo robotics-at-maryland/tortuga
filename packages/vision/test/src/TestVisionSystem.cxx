@@ -108,9 +108,9 @@ TEST(CreateDestroy)
 
 TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 {
-    // Blue Image with red circle in upper left (remeber image rotated 90 deg)
+    // Blue Image with red circle in upper left
     makeColor(&forwardImage, 0, 0, 255);
-    drawRedCircle(&forwardImage, 640 - (640/4), 480/4);
+    drawRedCircle(&forwardImage, 640/4, 480/4);
 
     // Start dectector and unbackground it
     vision.redLightDetectorOn();
