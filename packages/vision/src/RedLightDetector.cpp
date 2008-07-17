@@ -303,15 +303,8 @@ bool RedLightDetector::processBlobs(const BlobDetector::BlobList& blobs,
 {
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
-        double boundWidth = fabs(blob.getMaxX() - blob.getMinX());
-        double boundHeight = fabs(blob.getMaxY() - blob.getMinY());
-        double aspectRatio = boundWidth / boundHeight;
-        // Ensure its always positive
-        if (aspectRatio < 1)
-            aspectRatio = 1 / aspectRatio;
-        
         // Determine if we have actual found the light
-        if (aspectRatio < m_maxAspectRatio)
+        if (blob.getAspectRatio() < m_maxAspectRatio)
         {
             // Found our blob record and leave
             outBlob = blob;

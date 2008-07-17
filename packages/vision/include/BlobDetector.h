@@ -50,14 +50,30 @@ public:
         int getMaxY() const { return m_maxY; }
         int getMinY() const { return m_minY; }
 
+        double getAspectRatio() {
+            double boundWidth = fabs(getMaxX() - getMinX());
+            double boundHeight = fabs(getMaxY() - getMinY());
+            double aspectRatio = boundWidth / boundHeight;
+            // Ensure its always positive
+            if (aspectRatio < 1)
+                aspectRatio = 1 / aspectRatio;
+            return aspectRatio;
+        }
+        
         bool containsExclusive(Blob otherBlob)
         {
-            return (m_minX < otherBlob.m_minX && m_minY < otherBlob.m_minY && m_maxX > otherBlob.m_maxX && m_maxY > otherBlob.m_maxY);
+            return (m_minX < otherBlob.m_minX &&
+                    m_minY < otherBlob.m_minY &&
+                    m_maxX > otherBlob.m_maxX &&
+                    m_maxY > otherBlob.m_maxY);
         }
         
         bool containsInclusive(Blob otherBlob)
         {
-            return (m_minX <= otherBlob.m_minX && m_minY <= otherBlob.m_minY && m_maxX >= otherBlob.m_maxX && m_maxY >= otherBlob.m_maxY);        
+            return (m_minX <= otherBlob.m_minX &&
+                    m_minY <= otherBlob.m_minY &&
+                    m_maxX >= otherBlob.m_maxX &&
+                    m_maxY >= otherBlob.m_maxY);        
         }
 
     private:

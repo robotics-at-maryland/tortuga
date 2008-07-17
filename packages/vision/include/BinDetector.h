@@ -174,9 +174,12 @@ class RAM_EXPORT BinDetector : public Detector
     
     /** The max distance between bins on different frames */
     double m_sameBinThreshold;
+
+    /** The maximum aspect ratio a blob can have and still be called a bin*/
+    double m_maxAspectRatio;
     
     /** Our current set of bins */
-	BinList m_bins;
+    BinList m_bins;
 
     Suit suitCenteredOver;
 

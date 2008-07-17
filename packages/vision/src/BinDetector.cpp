@@ -139,6 +139,7 @@ void BinDetector::init(core::ConfigNode config)
     m_runSuitDetector = false;
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
     m_sameBinThreshold = config["sameBinThreshold"].asDouble(0.2);
+    m_maxAspectRatio = config["maxAspectRatio"].asDouble(3);
     m_binID = 0;
     for (int i = 0; i < 4; i++)
     {
@@ -244,7 +245,8 @@ void BinDetector::processImage(Image* input, Image* out)
         {
             // Sadly, this totally won't work at the edges of the screen...
             // crap damn.
-            if (whiteBlob.containsInclusive(blackBlob))
+            if (whiteBlob.containsInclusive(blackBlob) &&
+                blackBlob.getAspectRatio() < m_maxAspectRatio)
             {
                 // blackBlobs[blackBlobIndex] is the black rectangle of a bin
                 binBlobs.push_back(blackBlob);
