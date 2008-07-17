@@ -135,6 +135,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     }
 
 //    for (int i=0;i<2;i++)
+    m_erodeIterations = 2;
     if (m_erodeIterations != 0)
     {
         cvErode(m_working->asIplImage(), m_working->asIplImage(), 0,
@@ -203,12 +204,12 @@ void DuctDetector::processImage(Image* input, Image* output)
     {
         CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
         if (max(line[0].y, line[1].y) > mY &&
-            fabs((double)(line[1].y - line[0].y) /
-                 (double)(line[1].x - line[0].x)) < 0.5 &&
             sqrt(pow(line[0].x - line[1].x, 2) +
-                 pow(line[0].y - line[1].y, 2)) > 20)
+                 pow(line[0].y - line[1].y, 2)) > 100)
         {
-            maxLine = line;
+            if (fabs((double)(line[1].y - line[0].y) /
+                 (double)(line[1].x - line[0].x)) < 0.5)
+                maxLine = line;
             mY = (int)max(line[0].y, line[1].y);
         }
         
