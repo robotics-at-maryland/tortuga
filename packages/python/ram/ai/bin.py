@@ -239,6 +239,9 @@ class SeekEnd(HoveringState):
    
    
 class Dive(HoveringState):
+    """
+    Gets us down to the depth we can check the suits out at
+    """
     
     @staticmethod
     def transitions():
@@ -257,6 +260,18 @@ class Dive(HoveringState):
         
         self.motionManager.setMotion(diveMotion)
         
+class Examine(HoveringState):
+    """
+    Turns on the suit detector, and determines the type of the bin
+    """
+    FOUND_TARGET = core.declareEventType('FOUND_TARGET')
+    MOVE_ON = core.declareEventType('MOVE_ON')
+        
+    @staticmethod
+    def transitions():
+        return SettlingState.transitions(Examine,
+        { Examine.FOUND_TARGET : DropMarker,
+          Examine.MOVE_ON : SurfaceToMove })
         
 class DropMarker(SettlingState):
     DROPPED = core.declareEventType('DROPPPED')
