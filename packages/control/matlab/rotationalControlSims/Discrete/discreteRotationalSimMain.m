@@ -118,19 +118,19 @@ for i = 2:length(time)
     %q_meas=q;
 
     %quaternion estimation that requires only angular rate gyro
-    global dqhat;
     dqhat = (1/2)*Q(qhat)*w_meas;
+    qhat = qhat + dqhat*step;
     %dwhat =
 
     % controller
 
     %propagate desired states
     %desire constant angular rate for now
-    global dw_d;
     dw_d=zeros(3,1);
-    global dq_d;
+    w_d = w_d + dw_d*step;
     %desired angular position varies
     dq_d=(1/2)*Q(q_d)*w_d;
+    q_d = q_d + dq_d*step;
 
     %compute attitude error qc_tilde (controller quaternion)
     qc_tilde=quaternionProduct(q_meas,q_d);
@@ -150,9 +150,11 @@ global u;
     
     options=odeset;
     options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
-    [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],[x(i-1,:)]);
-    x(i,:) = x_ode(end,:);
-    
+    [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],[x(i-1,1:7)]);
+    x(i,1:7) = x_ode(end,:);
+    x(i,8:11) = q_d;
+    x(i,12:14) = w_d;
+    x(i,15:18) = qhat;
 end
 %% format results
  %recall that x = [q; w; qhat; bhat];

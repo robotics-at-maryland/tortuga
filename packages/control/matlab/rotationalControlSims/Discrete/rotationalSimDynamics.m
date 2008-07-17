@@ -5,10 +5,6 @@ function dx=rotationalSimDynamics(t,x)
 %system inertia
 global H;
 
-%controller gain
-global Kd;
-global lambda;
-
 %drag
 global Cd;
 
@@ -21,15 +17,9 @@ global rb;
 global a_inertial;
 global m_inertial;
 global u;
-global dq_d;
-global dw_d;
-global dqhat;
 %% unpack data
 q=x(1:4);
 w=x(5:7);
-q_d=x(8:11);
-w_d=x(12:14);
-qhat=x(15:18);
 %what=x(19:21);
 
 %% dynamics
@@ -55,4 +45,4 @@ dq=(1/2)*Q(q)*w;
 
 
 %put output states into vector for ode45
-dx=[dq; dw; dq_d; dw_d; dqhat];
+dx=[dq; dw];
