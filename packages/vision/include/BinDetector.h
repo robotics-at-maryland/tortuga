@@ -86,7 +86,7 @@ class RAM_EXPORT BinDetector : public Detector
 
     void processImage(Image* input, Image* output= 0);
     
-    void BinDetector::drawBinImage(Image* imgToShow, int binNumber);
+    void drawBinImage(Image* imgToShow, int binNumber);
 
     /** redSuit and rotatedRedSuit must be the same size, rotates redSuit,
         which is the image containing the center of the bin into rotatedRedSuit
