@@ -171,16 +171,18 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
             if (m_angle > math::Radian(math::Math::HALF_PI))
                 m_angle = m_angle - math::Radian(math::Math::PI);
 
-            //lineX and lineY are fields, both are doubles
-            m_lineY=linex;
-            m_lineY/=image->width;
-            m_lineX=liney;
-            m_lineX/=image->height;
-            m_lineX -= .5;
-            m_lineY -= .5;
-            m_lineX *= 2;
-            m_lineY *= 2;
-            m_lineY *= 640.0/480.0;
+            // m_lineX and m_lineY are fields, both are doubles
+            // Shift origin to the center
+            m_lineX = -1 * ((image->width / 2) - linex);
+            m_lineY = (image->height / 2) - liney;
+    
+            // Normalize     (-1 to 1)
+            m_lineX = m_lineX / ((double)(image->width)) * 2.0;
+            m_lineY = m_lineY / ((double)(image->height)) * 2.0;
+
+            // Account for the aspect ra    tio difference
+            // 640/480      
+            m_lineX *= (double)image->width / image->height;
 
             // Fire off found event
             PipeEventPtr event(new PipeEvent(0, 0, 0));

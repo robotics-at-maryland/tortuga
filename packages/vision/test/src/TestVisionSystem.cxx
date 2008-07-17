@@ -136,8 +136,8 @@ TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 TEST_FIXTURE(VisionSystemFixture, PipeDetector)
 {
     vision::makeColor(&downwardImage, 0, 0, 255);
-    // draw orange square (upper left, remember image rotated 90 deg)
-    drawSquare(&downwardImage, 640 - (640/4), 480/4,
+    // draw orange square (upper left)
+    drawSquare(&downwardImage, 640/4, 480/4,
                230, 50, 25, CV_RGB(230,180,40));
 
     // Start dectector and unbackground it
@@ -154,11 +154,11 @@ TEST_FIXTURE(VisionSystemFixture, PipeDetector)
     // Check Events
     CHECK(pipeFound);
     CHECK(pipeEvent);
-    CHECK_CLOSE(-0.5, pipeEvent->x, 0.05);
-    CHECK_CLOSE(0.431 * 640.0/480.0, pipeEvent->y, 0.1);
+    CHECK_CLOSE(-0.5 * 640.0/480.0, pipeEvent->x, 0.05);
+    CHECK_CLOSE(0.431, pipeEvent->y, 0.1);
     CHECK_CLOSE(math::Degree(25), pipeEvent->angle, math::Degree(0.5));
 }
-    
+
 TEST_FIXTURE(VisionSystemFixture, BinDetector)
 {
     vision::makeColor(&downwardImage, 0, 0, 255);

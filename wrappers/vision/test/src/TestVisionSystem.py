@@ -64,7 +64,7 @@ class TestVisionSystem(unittest.TestCase):
             eventHub.subscribeToType(vision.EventType.LIGHT_LOST,
                                      self.redLostHandler)
     
-            # Load our test image
+            # Load our test image (really upper right)
             image = vision.Image.loadFromFile(
                 os.path.join(getConfigRoot(), 'red_light_upper_left.png'))
 
@@ -82,11 +82,13 @@ class TestVisionSystem(unittest.TestCase):
             # Check the event
             self.assert_(self.found)
             self.assert_(self.event)
-            self.assertAlmostEqual(-0.5 * 4.0/3.0, self.event.x, 2)
+            self.assertAlmostEqual(0.5 * 4.0/3.0, self.event.x, 2)
             self.assertAlmostEqual(0.5, self.event.y, 2)
             self.assertAlmostEqual(3, self.event.range, 1)
-            self.assertAlmostEqual(78.0/4, self.event.azimuth.valueDegrees(), 2)
-            self.assertAlmostEqual(105.0/4, self.event.elevation.valueDegrees(), 0)
+            self.assertAlmostEqual(-78.0/4, self.event.azimuth.valueDegrees(),
+                                   2)
+            self.assertAlmostEqual(105.0/4, self.event.elevation.valueDegrees(),
+                                   0)
 
 
 if __name__ == '__main__':
