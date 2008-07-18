@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	SDFTSpectrum<N, 1> spectrum;
+	SDFTSpectrum<16, N, 1> spectrum;
 	
 	adcdata_t sample[nChannels];
 	int64_t L1[N];
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	{
 		++sampleCount;
 		//	Update spectrogram
-		spectrum.update(sample);
+		spectrum.update(&sample[channel]);
 		
 		for (int k = 0 ; k < N ; k ++)
 		{

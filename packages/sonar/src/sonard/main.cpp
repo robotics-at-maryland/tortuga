@@ -32,9 +32,9 @@ static const int nChannels = 4;		//	Number of hydrophones
 
 static const float frequencyOfInterest = 25000;
 static const int kBandOfInterest = (int) (frequencyOfInterest / fs * N);
-static const int kBandOffCenterAmount = 10;
-static const int nKBands = 3;		//	Number of frequency bands to examine
-static const int kBands[] = {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount};
+//static const int kBandOffCenterAmount = 10;
+//static const int nKBands = 3;		//	Number of frequency bands to examine
+//static const int kBands[] = {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount};
 
 static const float holdoffTime = .1;//	Holdoff until looking for next ping (seconds)
 static const size_t holdoffSamples = (size_t) (holdoffTime * fs);// Number of samples to holdoff
@@ -49,132 +49,97 @@ static const double hydroStructureArray[3][3] =
 
 const MatrixN hydroStructure (*hydroStructureArray, 3, 3);
 
+bool elemsLessThan(int64_t *V, int len, int64_t thresh)
+{
+	bool lessThan = true;
+	for (int i = 0 ; i < len ; i ++)
+		if (V[i] >= thresh)
+			lessThan = false;
+	return lessThan;
+}
+
 int main(int argc, char *argv[])
 {
-    // Does the sliding DFT on the incoming
-    SparseSDFTSpectrum<512, nChannels, nKBands> spectrum(kBands);
-    // Does threshold based triggering on the results of the DFT
-    adcdata_t sample[nChannels];
-
-    //size_t sampleIndex = 0;
-    //size_t samplesSinceLastPing = 0;
-
-    struct dataset * dataSet = NULL;
-
-    if(argc == 1)
-    {
-        dataSet = createDataset(0xA0000);
-        if(dataSet == NULL)
-        {
-            fprintf(stderr, "Could not allocate.\n");
-            exit(1);
-        }
-        REG(ADDR_LED) = 0x02;
-        fprintf(stderr, "Recording samples...\n");
-        captureSamples(dataSet);
-        fprintf(stderr, "Analyzing samples...\n");
-        REG(ADDR_LED) = 0x01;
-    } else
-    {
-        fprintf(stderr, "Using dataset %s\n", argv[1]);
-        dataSet = loadDataset(argv[1]);
-    }
-
-    if(dataSet == NULL)
-    {
-        fprintf(stderr, "Could not load dataset!\n");
-        return -1;
-    }
-
-
-    int64_t maxL1 = 0;
-    int peakIndex = 0;
-
-    for(int i=0; i<dataSet->size; i++)
-    {
-
-        sample[0] = getSample(dataSet, 0, i);
-        sample[1] = getSample(dataSet, 1, i);
-        sample[2] = getSample(dataSet, 2, i);
-        sample[3] = getSample(dataSet, 3, i);
-
-        //  Update spectrogram
-        spectrum.update(sample);
-
-        int channel = 0;
-
-        for (int kidx = 0 ; kidx < nKBands ; kidx ++)
-        {
-            int64_t L1 = (int64_t)fixed::magL1(spectrum.getAmplitudeForBinIndex(1, channel));
-
-            if(L1 > maxL1)
-            {
-                maxL1 = L1;
-                peakIndex = i;
-            }
-        }
-    }
-
-    cerr << "Found DFT peak at sample " << peakIndex << endl;
-
-    int pingStart = 0;
-
-    pingStart = blockTrigger(dataSet, 0, peakIndex) + 20;
-
-    if(pingStart == -1)
-        return -1;
-
-    spectrum.purge();
-
-    SparseSDFTSpectrum<128, nChannels, nKBands> spectrum2(kBands);
-
-    cerr << "Feeding sample " << pingStart << "into direction finder" << endl;
-
-    for(int i=pingStart; i<pingStart+128; i++)
-    {
-        sample[0] = getSample(dataSet, 0, i);
-        sample[1] = getSample(dataSet, 1, i);
-        sample[2] = getSample(dataSet, 2, i);
-        sample[3] = getSample(dataSet, 3, i);
-        spectrum.update(sample);
-        spectrum2.update(sample);
-    }
-
-    const complex<int64_t> &ch0 = spectrum2.getAmplitudeForBinIndex(0, 0);
-    MatrixN tdoas(3, 1);
-    for (int channel = 1 ; channel < nChannels ; channel ++)
-    {
-        const complex<int64_t> &ch = spectrum2.getAmplitudeForBinIndex(0, channel);
-        tdoas[channel - 1][0] = fixed::phaseBetween(ch0, ch);
-    }
-    MatrixN direction = hydroStructure * tdoas;
-    Vector3 directionVector;
-
-    for (int i = 0 ; i < 3 ; i ++)
-        directionVector[i] = direction[i][0];
-
-    directionVector.normalise();
-    cerr << "Direction to pinger is: " << directionVector << endl;
-
-    float yaw = 180/M_PI*atan2(directionVector.y, directionVector.x);
+	SparseSDFTSpectrum<16, 300, nChannels, 1> spectrum(&kBandOfInterest);
 	
-    cerr << "Yaw is "<<yaw<<endl;
-
-    cerr << "Sending samples...";
-
-    for(int i=pingStart; i<pingStart+128; i++)
-    {
-        for(int j=0; j<4; j++)
-        {
-            putchar(getSample(dataSet, j, i) & 0xFF);
-            putchar((getSample(dataSet, j, i) >> 8) & 0xFF);
-
-//             putchar(getSample(dataSet, j, i) & 0xFF);
-//             putchar((getSample(dataSet, j, i) >> 8) && 0xFF);
-        }
-    }
-    cerr << "Done" << endl;
-
-
-    return 0;
+	const static int nQuietSamplesNeeded = 300;
+	int nQuietSamples = 0;
+	int64_t silenceThreshold = 3000;
+	int16_t samples[nChannels];
+	bool magsQuiet[nQuietSamplesNeeded];
+	bzero(magsQuiet, sizeof(bool) * nQuietSamplesNeeded);
+	int bufIdx = 0;
+	
+	unsigned long sampleIndex = 0;
+	unsigned long samplesFromPingStart = 0;
+	
+	long toas[nChannels];
+	for (int channel = 0 ; channel < nChannels ; channel ++)
+		toas[channel] = -1;
+	
+	unsigned long holdoffCounter = holdoffSamples;
+	
+	bool isLoud = true;
+	
+	bool pingMaybeStarted = false;
+	
+	while (fread(samples, sizeof(int16_t), 4, stdin))
+	{
+		++sampleIndex;
+		
+		++bufIdx;
+		if (bufIdx >= nQuietSamplesNeeded)
+			bufIdx = 0;
+		
+		spectrum.update(samples);
+		
+		nQuietSamples -= magsQuiet[bufIdx];
+		
+		int64_t mags[nChannels];
+		for (int channel = 0 ; channel < nChannels ; channel ++)
+			mags[channel] = fixed::magL1(spectrum.getAmplitudeForBinIndex(0, channel));
+		
+		magsQuiet[bufIdx] = elemsLessThan(mags, nChannels, silenceThreshold);
+		nQuietSamples += magsQuiet[bufIdx];
+		
+		bool wasLoud = isLoud;
+		isLoud = (nQuietSamples < nQuietSamplesNeeded);
+		
+		if (!isLoud)
+		{
+			samplesFromPingStart = 0;
+			pingMaybeStarted = false;
+			for (int channel = 0 ; channel < nChannels ; channel ++)
+				toas[channel] = -1;
+		}
+		if (holdoffCounter <= holdoffSamples)
+			++holdoffCounter;
+		pingMaybeStarted = pingMaybeStarted || (!wasLoud && isLoud);
+		if(pingMaybeStarted && isLoud && holdoffCounter > holdoffSamples)
+		{
+			bool pingDetected = true;
+			for (int channel = 0 ; channel < nChannels ; channel ++)
+			{
+				if (toas[channel] == -1)
+				{
+					//std::cout << "magch" << channel << ": " << mags[channel] << std::endl;
+					if (mags[channel] > silenceThreshold)
+					{
+						toas[channel] = samplesFromPingStart;
+					}
+					else
+						pingDetected = false;
+				}
+			}
+			++samplesFromPingStart;
+			if (pingDetected)
+			{
+				std::cout << "Ping at " << sampleIndex << std::endl;
+				holdoffCounter = 0;
+				samplesFromPingStart = 0;
+				for (int channel = 0 ; channel < nChannels ; channel ++)
+					toas[channel] = -1;
+			}
+		}
+	}
 }
