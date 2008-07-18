@@ -47,6 +47,27 @@
  *     adctype<5>::QUADRUPLE_WIDE::BITDEPTH   // 20
  *     adctype<5>::QUADRUPLE_WIDE::MACHINE_SIZE  // 4 (sizeof(int))
  *
+ *
+ *   Caveat: if you use adctype inside a template, you may have to precede
+ *   variable declarations with 'typename':
+ *
+ *     template<typename ADC>
+ *     class MyFilter
+ *     {
+ *     public:
+ *       MyFilter();
+ *       ~MyFilter();
+ *       // A function that returns a signed quadruple-wide number
+ *       typename ADC::QUADRUPLE_WIDE::SIGNED foo();
+ *     private:
+ *       // A single-wide signed variable initialized to 42
+ *       typename ADC::SIGNED mySigned = 42;
+ *       // A 20-element array of double-wide unsigned numbers
+ *       typename ADC::DOUBLE_WIDE::UNSIGNED myArray[20];
+ *       // A constant (no typename necessary)
+ *       size_t someSize = 3 * ADC::DOUBLE_WIDE::MACHINE_SIZE;
+ *     };
+ *
  */
 
 #ifndef _RAM_SONAR_ADCTYPES_H
