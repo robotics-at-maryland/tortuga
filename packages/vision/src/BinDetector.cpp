@@ -95,17 +95,17 @@ void BinDetector::Bin::draw(Image* image)
 
     // Now do the suit
     if (Suit::NONEFOUND == m_suit)
-        Image::writeText(image, "None", bl.x, bl.y);
+        Image::writeText(image, "None", bl.x, bl.y - 15);
     else if (Suit::UNKNOWN == m_suit)
-        Image::writeText(image, "Unknown", bl.x, bl.y);
+        Image::writeText(image, "Unknown", bl.x, bl.y - 15);
     else if (Suit::HEART == m_suit)
-        Image::writeText(image, "Heart", bl.x, bl.y);
+        Image::writeText(image, "Heart", bl.x, bl.y - 15);
     else if (Suit::DIAMOND == m_suit)
-        Image::writeText(image, "Diamond", bl.x, bl.y);
+        Image::writeText(image, "Diamond", bl.x, bl.y - 15);
     else if (Suit::SPADE == m_suit)
-        Image::writeText(image, "Spade", bl.x, bl.y);
+        Image::writeText(image, "Spade", bl.x, bl.y - 15);
     else if (Suit::CLUB == m_suit)
-        Image::writeText(image, "Club", bl.x, bl.y);
+        Image::writeText(image, "Club", bl.x, bl.y - 15);
 }
     
     
@@ -710,7 +710,7 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
     //            int redCX, redCY;
 //    cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 1);
     OpenCVImage mySuit(rotatedRedSuit,false);
-    blobDetector.setMinimumBlobSize(25);
+    blobDetector.setMinimumBlobSize(100);
     blobDetector.processImage(&mySuit);
     if (!blobDetector.found())
     {

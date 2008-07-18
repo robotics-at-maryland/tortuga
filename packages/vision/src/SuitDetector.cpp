@@ -22,26 +22,49 @@
 
 namespace ram {
 namespace vision {
-//  Traversal Distances for findPointsOnEdges2 --BestNumbers for handheld camera video
-    int SuitDetector::CLUBMIN[] = {120, 120, 200, 200};
-    int SuitDetector::CLUBMAX[] = {130, 130, 230, 230};
+
+//  Traversal Distances for findPointsOnEdges2 --BestNumbers for real video
+
+    int SuitDetector::CLUBMIN[] = {135, 135, 235, 235};
+    int SuitDetector::CLUBMAX[] = {150, 150, 260, 260};
     int SuitDetector::CLUBSIZE = 4;
 
-    int SuitDetector::SPADEMIN[] = {120, 120, 190, 190};
-    int SuitDetector::SPADEMAX[] = {130, 130, 200, 200};
+    int SuitDetector::SPADEMIN[] = {105, 105, 205, 205};
+    int SuitDetector::SPADEMAX[] = {120, 120, 225, 225};
     int SuitDetector::SPADESIZE = 4;
-
+    
     int SuitDetector::HEARTMIN[] = {100, 100, 150, 150};
-    int SuitDetector::HEARTMAX[] = {115, 115, 160, 160};
+    int SuitDetector::HEARTMAX[] = {115, 115, 170, 170};
     int SuitDetector::HEARTSIZE = 4;
 
-    int SuitDetector::DIAMONDMIN[] = {110, 110, 110, 110};
+    int SuitDetector::DIAMONDMIN[] = {105, 105, 105, 105};
     int SuitDetector::DIAMONDMAX[] = {120, 120, 120, 120};
     int SuitDetector::DIAMONDSIZE = 4;
     
     int SuitDetector::SPLITMIN[] = {110, 110, -2, -2};
     int SuitDetector::SPLITMAX[] = {130, 130, 0, 0};
     int SuitDetector::SPLITSIZE = 4;
+    
+//  Traversal Distances for findPointsOnEdges2 --BestNumbers for handheld camera video
+//    int SuitDetector::CLUBMIN[] = {120, 120, 200, 200};
+//    int SuitDetector::CLUBMAX[] = {130, 130, 230, 230};
+//    int SuitDetector::CLUBSIZE = 4;
+//
+//    int SuitDetector::SPADEMIN[] = {120, 120, 190, 190};
+//   int SuitDetector::SPADEMAX[] = {130, 130, 200, 200};
+//    int SuitDetector::SPADESIZE = 4;
+
+//    int SuitDetector::HEARTMIN[] = {100, 100, 150, 150};
+//    int SuitDetector::HEARTMAX[] = {115, 115, 160, 160};
+//    int SuitDetector::HEARTSIZE = 4;
+
+//   int SuitDetector::DIAMONDMIN[] = {110, 110, 110, 110};
+//    int SuitDetector::DIAMONDMAX[] = {120, 120, 120, 120};
+//    int SuitDetector::DIAMONDSIZE = 4;
+    
+    //  int SuitDetector::SPLITMIN[] = {110, 110, -2, -2};
+    // int SuitDetector::SPLITMAX[] = {130, 130, 0, 0};
+    // int SuitDetector::SPLITSIZE = 4;
 
 //    Traversal Distances for findPointsOnEdges2 --Best Numbers For Tests
 //    int SuitDetector::HEARTMIN[] = {145, 145, 90, 90};
@@ -784,7 +807,7 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     else 
     {
         int j = numSegs-1;
-        //printf("Traversal Distances: \n");
+//        printf("Traversal Distances: \n");
         for (int i = 0; i < numSegs; j=i++)
         {
             int startX = xPos[j];
@@ -793,9 +816,9 @@ void SuitDetector::doEdgeRunning(IplImage* image)
             int endY = yPos[i];
 
             traverseDists[i] = edgeRun(startX,startY,endX,endY, image, i, &numBackups);
-        //    printf("(%d,%d) to (%d,%d) : %d   Backups: %d \n", startX, startY, endX, endY, traverseDists[i], numBackups);
+//            printf("(%d,%d) to (%d,%d) : %d   Backups: %d \n", startX, startY, endX, endY, traverseDists[i], numBackups);
         }
-        //printf("End of Traversal Dists \n");
+//        printf("End of Traversal Dists \n");
     }
     
     suit = Suit::UNKNOWN;
