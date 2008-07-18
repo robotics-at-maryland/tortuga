@@ -846,7 +846,7 @@ class SimVision(ext.vision.VisionSystem):
         #       same way, what an odd coincidence
         # Account for the odd up vector difference between our and Ogre's 
         # default coordinate systems
-        #camera.roll(ogre.Degree(-90))
+        camera.roll(ogre.Degree(-90))
 
         return camera
 

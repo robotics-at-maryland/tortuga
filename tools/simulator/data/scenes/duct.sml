@@ -21,9 +21,9 @@ Scene:
     Cameras:
         Main:
             position: [-15, 0, 0]
-            #position: [-15, -1, -3.05]
-            #offset: [3, 0, 0]
             offset: [0, 0, 8]
+            #position: [-12, -2, -3.05]
+            #offset: [4, 0, 0]
     
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
