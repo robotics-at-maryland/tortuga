@@ -101,12 +101,14 @@ class TestTracking(aisupport.AITestCase):
 class TestSearching(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
+        self.controller.depth = 5
         self.machine.start(bin.Searching)        
     
     def testStart(self):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.binDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('preBinCruiseDepth', self.controller.depth)
                 
     def testBinFound(self):
         # Now change states
@@ -295,7 +297,216 @@ class TestDive(aisupport.AITestCase):
         
     def testDiveFinished(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(bin.DropMarker)
+        self.assertCurrentState(bin.Examine)
+        
+class TestExamine(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self._targetFound = False
+        self.qeventHub.subscribeToType(bin.Examine.FOUND_TARGET, 
+                                       self.targetFound)
+        self.machine.start(bin.Examine)
+        
+    def targetFound(self, event):
+        self._targetFound = True
+        
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(motion.common.Hover)
+        
+        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        self.releaseTimer(bin.Examine.MOVE_ON)
+        self.assertCurrentState(bin.SurfaceToMove)
+
+    def testLoadSuitConfig(self):
+        expectedSuits = set([vision.Suit.CLUB, vision.Suit.DIAMOND])
+        self.assertEqual(expectedSuits, 
+                         self.machine.currentState()._targetSuits)
+
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        # Need to add multi-motion support
+        binFoundHelper(self)
+        
+        # Test counting variables
+        
+    def assertSuitCount(self, heart = 0, spade = 0, club = 0, diamond = 0):
+        s = self.machine.currentState()
+        self.assertEqual(s._hearts, heart)
+        self.assertEqual(s._spades, spade)
+        self.assertEqual(s._clubs, club)
+        self.assertEqual(s._diamonds, diamond)
+        
+    def testSuitCount(self):
+        """
+        Make sure the right event if found after we get the right number
+        of events
+        """
+        self.ai.data['currentBinID'] = 3
+        
+        # Test blank one
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 4, suit = vision.Suit.HEART)
+        self.assertSuitCount()
+        
+        # Add some ones to populate
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.HEART)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.CLUB)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.SPADE)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.HEART)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.DIAMOND)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.CLUB)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.DIAMOND)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.CLUB)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.HEART)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.CLUB)
+
+        self.assertSuitCount(heart = 3, spade = 1, club = 4, diamond = 2)
+        
+        # No try for target found
+        self.assertFalse(self._targetFound)
+        
+        # Fire the last club and make sure we got it called
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         id = 3, suit = vision.Suit.CLUB)
+        self.qeventHub.publishEvents()
+        self.assert_(self._targetFound)
+        
+    def testBinTracking(self):
+        binTrackingHelper(self)
+        
+class TestSurfaceToMove(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.vehicle.depth = 10
+        self.ai.data['preBinCruiseDepth'] = 5.0
+        self.machine.start(bin.SurfaceToMove)
+    
+    def testStart(self):
+        """Make sure we start surfacing and are still hovering"""
+        self.assertCurrentMotion(
+            (motion.common.Hover, motion.basic.RateChangeDepth, None))
+        
+        #self.assertLessThan(self.controller.depth, 10)
+        
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        binFoundHelper(self)
+        
+    def testBinTracking(self):
+        binTrackingHelper(self)
+        
+    def testDiveFinished(self):        
+        # Make sure we go the right place
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(bin.NextBin)
+
+class TestNextBin(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        bin.ensureBinTracking(self.qeventHub, self.ai)
+        
+        self.ai.data['currentBinID'] = 4
+        self.ai.data['currentBins'] = set([3,4])
+        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.machine.start(bin.NextBin)
+        
+        self._centered = False
+        self._atEnd = False
+        self.qeventHub.subscribeToType(bin.NextBin.CENTERED_, self._centeredH)
+        self.qeventHub.subscribeToType(bin.NextBin.AT_END, self._atEndH)
+        
+    def _centeredH(self, event):
+        self._centered = True
+    def _atEndH(self, event):
+        self._atEnd = True
+        
+    def testEndStart(self):
+        self.assertFalse(self._atEnd)
+        self.assertFalse(self._centered)
+        
+        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3,4])
+        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.machine.start(bin.NextBin)
+        self.qeventHub.publishEvents()
+        
+        self.assert_(self._atEnd)
+        self.assertFalse(self._centered)
+        
+    def testStartNotEnd(self):
+        self.assertFalse(self._atEnd)
+        self.assertFalse(self._centered)
+        
+        
+        self.ai.data['currentBinID'] = 4
+        self.ai.data['currentBins'] = set([3,4])
+        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.machine.start(bin.NextBin)
+        self.qeventHub.publishEvents()
+                
+        self.assertEqual(3, self.ai.data['currentBinID'])
+        self.assertFalse(self._atEnd)
+        self.assertFalse(self._centered)
+
+
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        self.ai.data['currentBinID'] = 0
+        self.ai.data['currentBins'] = set([6])
+        
+        binFoundHelper(self)
+        
+    def testBinFoundCentered(self):
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        
+        # Now test centered
+        self._centered = False
+        
+        # Test wrong ID
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         x = 0, y = 0, id = 4)
+        self.assertFalse(self._centered)
+        
+        # Proper centered (6 is proper ID changed in binFoundHelper)
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         x = 0, y = 0, id = 3)
+        self.qeventHub.publishEvents()
+        self.assert_(self._centered)
+        
+    def testBinTracking(self):
+        self.ai.data['currentBinID'] = 0
+        self.ai.data['currentBins'] = set()
+        binTrackingHelper(self)
+        
+    def testCentered(self):
+        self.qeventHub.publishEvents()
+        self._centered = False
+        self._atEnd = False
+        self.assertCurrentState(bin.NextBin)
+        
+        self.injectEvent(bin.NextBin.CENTERED_)
+        self.assertCurrentState(bin.Examine)
+        
+    def testAtEnd(self):
+        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        self.injectEvent(bin.NextBin.AT_END)
+        self.assertCurrentState(bin.SurfaceToCruise)
         
 class TestDropMarker(aisupport.AITestCase):
     def setUp(self):
@@ -306,8 +517,9 @@ class TestDropMarker(aisupport.AITestCase):
         """Make sure we start diving"""
         self.assertCurrentMotion(motion.common.Hover)
         
+        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.releaseTimer(bin.DropMarker.DROPPED)
-        self.assertCurrentState(bin.Surface)
+        self.assertCurrentState(bin.SurfaceToCruise)
         
     def testBinFound(self):
         """Make sure the loop back works"""
@@ -318,14 +530,16 @@ class TestDropMarker(aisupport.AITestCase):
         
     def testDropped(self):
         """Make sure we move on after settling"""
+        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(bin.DropMarker.DROPPED)
-        self.assertCurrentState(bin.Surface)
+        self.assertCurrentState(bin.SurfaceToCruise)
         
 class TestSurface(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
         self.vehicle.depth = 10
-        self.machine.start(bin.Surface)
+        self.ai.data['preBinCruiseDepth'] = 5.0
+        self.machine.start(bin.SurfaceToCruise)
     
     def testStart(self):
         """Make sure we start surfacing and are still hovering"""

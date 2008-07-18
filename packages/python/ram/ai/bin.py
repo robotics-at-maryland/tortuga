@@ -106,6 +106,81 @@ class SettlingState(HoveringState):
         HoveringState.exit(self)
         self.timer.stop()
 
+class BinSortingState(HoveringState):
+    LEFT = 1
+    RIGHT = 2
+    
+    CENTERED_ = core.declareEventType('CENTERED')
+    
+    def BIN_FOUND(self, event):
+        HoveringState.BIN_FOUND(self, event)
+
+        # Fire event if we are centered over the bin
+        if self._currentBin(event): 
+            if math.Vector2(event.x, event.y).length() < self._centeredRange:
+                self.publish(BinSortingState.CENTERED_, core.Event())
+    
+    def enter(self, direction):
+        """
+        @param direction: Says whether or you want to go left or right with the 
+        bins
+        """
+        if (direction != BinSortingState.LEFT) and (direction != BinSortingState.RIGHT):
+            raise Exception("ERORR Wrong Direction")
+        self._direction = direction
+        
+        self._centeredRange = self._config.get('centeredRange', 0.2)
+        
+        HoveringState.enter(self)
+    
+    def _compareBins(self, idA, idB):
+        """
+        Sorts the list with the left most bin, at the start
+        
+        @type idA: int
+        @param idA: ID of the bin compare
+        
+        @type idB: int
+        @param idB: ID of the other bin to compare
+        """
+        binData = self.ai.data['binData']
+        binAx = binData[idA].x
+        binBx = binData[idB].x
+        
+        if self._direction == BinSortingState.LEFT:
+            if binAx < binBx:
+                return -1
+            elif binAx > binBx:
+                return 1
+        elif self._direction == BinSortingState.RIGHT:
+            if binAx > binBx:
+                return -1
+            elif binAx < binBx:
+                return 1
+        return 0
+        #return type(binAx).__cmp__(binAx, binBx)
+    
+    def _fixEdgeBin(self):
+        """
+        Makes the current bin the left/right most bin, returns true if that
+        changes the current bin.
+        """
+        # Sorted left to right
+        currentBins = [b for b in self.ai.data['currentBins']]
+        sortedBins = sorted(currentBins, self._compareBins)
+        
+        # Compare to current ID
+        currentBinId = self.ai.data['currentBinID']
+        mostEdgeBinId = sortedBins[0]
+        
+        if currentBinId == mostEdgeBinId:
+            # We found the "end" bin
+            return False
+        else:
+            # Still more bins to go
+            self.ai.data['currentBinID'] = mostEdgeBinId
+            return True
+
 class Searching(state.State):
     """When the vehicle is looking for a bin"""
     @staticmethod
@@ -118,6 +193,9 @@ class Searching(state.State):
     def enter(self):
         # Turn on the vision system
         self.visionSystem.binDetectorOn()
+
+        # Save cruising depth for later surface
+        self.ai.data['preBinCruiseDepth'] = self.controller.getDepth()
 
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
@@ -158,85 +236,34 @@ class Centering(SettlingState):
         SettlingState.enter(self, Centering.SETTLED, 5)
         
         
-class SeekEnd(HoveringState):
+class SeekEnd(BinSortingState):
     """
     Goes to the right most visible bin
     """
     AT_END = core.declareEventType('AT_END')
-    CENTERED_ = core.declareEventType('CENTERED')
     
     @staticmethod
     def transitions():
         return HoveringState.transitions(SeekEnd,
-            {SeekEnd.CENTERED_ : SeekEnd, 
+            {BinSortingState.CENTERED_ : SeekEnd, 
              SeekEnd.AT_END : Dive })
     
     def enter(self):
         # Keep the hover motion going
-        HoveringState.enter(self)
+        BinSortingState.enter(self, BinSortingState.LEFT)
         
         # Fix the current left most bin, as the currently tracked bin
-        if not self._fixLeftMostBin():
+        if not self._fixEdgeBin():
             # If already there
             self.publish(SeekEnd.AT_END, core.Event())
-        
-        self._centeredRange = self._config.get('centeredRange', 0.2)
         
     def CENTERED(self, event):
         # Fix the current left most bin, as the currently tracked bin
-        if not self._fixLeftMostBin():
+        if not self._fixEdgeBin():
             # If already there
             self.publish(SeekEnd.AT_END, core.Event())
         
-    def BIN_FOUND(self, event):
-        HoveringState.BIN_FOUND(self, event)
 
-        # Fire event if we are centered over the bin
-        if self._currentBin(event): 
-            if math.Vector2(event.x, event.y).length() < self._centeredRange:
-                self.publish(SeekEnd.CENTERED_, core.Event())
-            
-    def _compareBins(self, idA, idB):
-        """
-        Sorts the list with the left most bin, at the start
-        
-        @type idA: int
-        @param idA: ID of the bin compare
-        
-        @type idB: int
-        @param idB: ID of the other bin to compare
-        """
-        binData = self.ai.data['binData']
-        binAx = binData[idA].x
-        binBx = binData[idB].x
-        if binAx < binBx:
-            return -1
-        elif binAx > binBx:
-            return 1
-        return 0
-        #return type(binAx).__cmp__(binAx, binBx)
-    
-    def _fixLeftMostBin(self):
-        """
-        Makes the current bin the left most bin, returns true if that changes
-        the current bin.
-        """
-        # Sorted left to right
-        currentBins = [b for b in self.ai.data['currentBins']]
-        sortedBins = sorted(currentBins, self._compareBins)
-        
-        # Compare to current ID
-        currentBinId = self.ai.data['currentBinID']
-        leftMostBinId = sortedBins[0]
-        
-        if currentBinId == leftMostBinId:
-            # We found the "end" bin
-            return False
-        else:
-            # Still more bins to go
-            self.ai.data['currentBinID'] = leftMostBinId
-            return True
-   
    
 class Dive(HoveringState):
     """
@@ -246,7 +273,7 @@ class Dive(HoveringState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Dive,
-        { motion.basic.Motion.FINISHED : DropMarker })
+        { motion.basic.Motion.FINISHED : Examine })
 
         
     def enter(self):
@@ -255,12 +282,12 @@ class Dive(HoveringState):
         
         # While keeping center, dive down
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 8),
+            desiredDepth = self._config.get('depth', 10.5),
             speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)
         
-class Examine(HoveringState):
+class Examine(SettlingState):
     """
     Turns on the suit detector, and determines the type of the bin
     """
@@ -273,23 +300,123 @@ class Examine(HoveringState):
         { Examine.FOUND_TARGET : DropMarker,
           Examine.MOVE_ON : SurfaceToMove })
         
+    def BIN_FOUND(self, event):
+        SettlingState.BIN_FOUND(self, event)
+        
+        # Count the hits
+        if self._currentBin(event):
+            suit = event.suit
+            if suit == vision.Suit.HEART:
+                self._hearts += 1
+            elif suit == vision.Suit.CLUB:
+                self._clubs += 1
+            elif suit == vision.Suit.SPADE:
+                self._spades += 1
+            elif suit == vision.Suit.DIAMOND:
+                self._diamonds += 1
+                
+        # Determine if we have found something and trigger FOUND_TARGET event 
+        # if we have
+        if self._hearts >= self._foundLimit:
+            self._checkSuit(vision.Suit.HEART)
+        elif self._clubs >= self._foundLimit:
+            self._checkSuit(vision.Suit.CLUB)
+        elif self._spades >= self._foundLimit:
+            self._checkSuit(vision.Suit.SPADE)
+        elif self._diamonds >= self._foundLimit:
+            self._checkSuit(vision.Suit.DIAMOND)
+                    
+    def _loadSuitConfig(self):
+        targetSuits = self._config.get('targetSuits', ['Club', 'Diamond'])
+        
+        self._targetSuits = set()
+        for suit in targetSuits:
+            suitName = suit.upper()
+            if hasattr(vision.Suit, suitName):
+                self._targetSuits.add(getattr(vision.Suit, suitName))
+    
+    def _checkSuit(self, suit):
+        """
+        Returns true if we are looking for this suit, and publishes
+        FOUND_TARGET event.
+        """
+        if suit in self._targetSuits: 
+            self.publish(Examine.FOUND_TARGET, core.Event())
+            return True
+        return False
+        
+    def enter(self):
+        # Wait for 20 seconds while we examine things
+        SettlingState.enter(self, Examine.MOVE_ON, 20)
+        
+        self._hearts = 0
+        self._clubs = 0
+        self._spades = 0
+        self._diamonds = 0
+        self._foundLimit = self._config.get('foundCount', 5)
+        
+        # Load needed suits
+        self._loadSuitConfig()
+       
+class SurfaceToMove(HoveringState):
+    """
+    Goes back to starting cruise depth we had before we started the bins
+    """
+    @staticmethod
+    def transitions():
+        return SettlingState.transitions(SurfaceToMove,
+            { motion.basic.Motion.FINISHED : NextBin })
+        
+    def enter(self):
+        # Keep centered over the bin
+        HoveringState.enter(self)
+        
+        # Also surface
+        surfaceMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 9),
+            speed = self._config.get('surfaceSpeed', 1.0/3.0))
+        
+        self.motionManager.setMotion(surfaceMotion) 
+        
+class NextBin(BinSortingState):
+    AT_END = core.declareEventType('AT_END')
+    
+    @staticmethod
+    def transitions():
+        return HoveringState.transitions(NextBin,
+            {BinSortingState.CENTERED_ : Examine, 
+             NextBin.AT_END : SurfaceToCruise })
+    
+    def enter(self):
+        # Keep the hover motion going
+        BinSortingState.enter(self, BinSortingState.RIGHT)
+        
+        # Fix the current left most bin, as the currently tracked bin
+        if not self._fixEdgeBin():
+            # If already there
+            self.publish(NextBin.AT_END, core.Event())
+
+        
 class DropMarker(SettlingState):
     DROPPED = core.declareEventType('DROPPPED')
     
     @staticmethod
     def transitions():
         return SettlingState.transitions(DropMarker,
-            { DropMarker.DROPPED : Surface })
+            { DropMarker.DROPPED : SurfaceToCruise })
 
     def enter(self):
-        SettlingState.enter(self, DropMarker.DROPPED, 15)
+        SettlingState.enter(self, DropMarker.DROPPED, 5)
         # TODO: drop marker here
         
         
-class Surface(HoveringState):
+class SurfaceToCruise(HoveringState):
+    """
+    Goes back to starting cruise depth we had before we started the bins
+    """
     @staticmethod
     def transitions():
-        return SettlingState.transitions(Surface,
+        return SettlingState.transitions(SurfaceToCruise,
             { motion.basic.Motion.FINISHED : End })
         
     def enter(self):
@@ -298,7 +425,7 @@ class Surface(HoveringState):
         
         # Also surface
         surfaceMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 3),
+            desiredDepth = self.ai.data['preBinCruiseDepth'],
             speed = self._config.get('surfaceSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(surfaceMotion)
