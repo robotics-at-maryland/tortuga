@@ -97,14 +97,6 @@ void DuctDetector::init(core::ConfigNode config)
     
 void DuctDetector::processImage(Image* input, Image* output)
 {   
-    // Rotate image 90 degrees counter clockwise to account for camera crap
-    if ((m_working->getWidth() != input->getHeight()) ||
-        (m_working->getHeight() != input->getWidth()))
-    {
-        // Resize if needed
-        delete m_working;
-        m_working = new OpenCVImage(input->getHeight(), input->getWidth());
-    }
     m_working->copyFrom(input);
 
     // Grab data pointers
