@@ -85,8 +85,8 @@ DuctDetector::~DuctDetector()
 
 void DuctDetector::init(core::ConfigNode config)
 {
-    m_redThreshold = config["redThreshold"].asInt(130);
-    m_greenThreshold = config["greenThreshold"].asInt(130);
+    m_redThreshold = config["redThreshold"].asInt(100);
+    m_greenThreshold = config["greenThreshold"].asInt(100);
     m_blueThreshold = config["blueThreshold"].asInt(90);
     m_erodeIterations = config["erodeIterations"].asInt(1);
 }

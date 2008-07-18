@@ -142,6 +142,8 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
         (getImagesDir() / "unal0.png").string());
     // Blue Image with red circle in the center
     detector.processImage(input2, &output);
+    
+    //vision::Image::showImage(&output);
 
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
@@ -157,7 +159,9 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     vision::Image::loadFromFile(
         (getImagesDir() / "unal1.png").string());
     // Blue Image with red circle in the center
-    detector.processImage(input3);
+    detector.processImage(input3, &output);
+    
+    //vision::Image::showImage(&output);
     
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
@@ -170,7 +174,9 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     vision::Image::loadFromFile(
         (getImagesDir() / "unal2.png").string());
     // Blue Image with red circle in the center
-    detector.processImage(input4);
+    detector.processImage(input4, &output);
+    
+    //vision::Image::showImage(&output);
     
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
@@ -183,7 +189,9 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     vision::Image::loadFromFile(
         (getImagesDir() / "unal3.png").string());
     // Blue Image with red circle in the center
-    detector.processImage(input5);
+    detector.processImage(input5, &output);
+    
+    //vision::Image::showImage(&output);
     
     CHECK_CLOSE(0, detector.getX(), 0.2);
     CHECK_CLOSE(0, detector.getY(), 0.2);
