@@ -54,6 +54,7 @@ private:
     int m_redThreshold;
     int m_blueThreshold;
     int m_erodeIterations;
+    double m_alignedThreshold;
 };
 
 } // namespace vision

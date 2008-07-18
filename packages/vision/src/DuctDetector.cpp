@@ -89,6 +89,7 @@ void DuctDetector::init(core::ConfigNode config)
     m_greenThreshold = config["greenThreshold"].asInt(100);
     m_blueThreshold = config["blueThreshold"].asInt(90);
     m_erodeIterations = config["erodeIterations"].asInt(1);
+    m_alignedThreshold = config["alignedThreshold"].asDouble(0.04);
 }
     
     
@@ -329,7 +330,7 @@ bool DuctDetector::getVisible()
     
 bool DuctDetector::getAligned()
 {
-    return fabsf(m_rotation) < 0.02;
+    return fabsf(m_rotation) < m_alignedThreshold;
 }
 
 } // namespace vision
