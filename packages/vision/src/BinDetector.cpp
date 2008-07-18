@@ -710,6 +710,7 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
     //            int redCX, redCY;
 //    cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 1);
     OpenCVImage mySuit(rotatedRedSuit,false);
+    //   int size = 0;
     blobDetector.setMinimumBlobSize(100);
     blobDetector.processImage(&mySuit);
     if (!blobDetector.found())
@@ -742,7 +743,7 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
         minSuitY = biggest.getMinY();
         maxSuitX = biggest.getMaxX();
         maxSuitY = biggest.getMaxY();
-        
+
         if (blobs.size() > 1)
         {
             if (minSuitX > secondBiggest.getMinX())
@@ -753,6 +754,7 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
                 maxSuitX = secondBiggest.getMaxX();
             if (maxSuitY < secondBiggest.getMaxY())
                 maxSuitY = secondBiggest.getMaxY();
+
         }
     }
 
@@ -786,6 +788,15 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
                                  (maxSuitY+minSuitY)/2));
     
     cvResize(onlyRedSuit, binImages[binNum], CV_INTER_LINEAR);
+
+//    for (int redIndex = 2; redIndex < 128 * 128 * 3; redIndex+=3)
+//    {
+//        if (binImages[binNum]->imageData[redIndex] != 0)
+//            size++;
+//    }
+
+//    printf("Bin Num: %d, Size: %d", binNum, size);
+    
     cvReleaseImage(&onlyRedSuit);
     return true;
 }

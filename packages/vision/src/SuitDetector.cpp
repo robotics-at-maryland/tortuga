@@ -25,7 +25,7 @@ namespace vision {
 
 //  Traversal Distances for findPointsOnEdges2 --BestNumbers for real video
 
-    int SuitDetector::CLUBMIN[] = {135, 135, 235, 235};
+    int SuitDetector::CLUBMIN[] = {130, 130, 220, 220};
     int SuitDetector::CLUBMAX[] = {150, 150, 260, 260};
     int SuitDetector::CLUBSIZE = 4;
 
