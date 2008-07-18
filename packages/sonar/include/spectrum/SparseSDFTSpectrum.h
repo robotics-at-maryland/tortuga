@@ -34,12 +34,11 @@ public:
 	{
 		memcpy(this->kBands, kBands, sizeof(int) * nFreqBands);
 		//	Sample cosine and sine and store as signed 16 bit integers
-		int prefactor = 1 << (ADC::bitDepth - 1);
 		for (int kIdx = 0 ; kIdx < nFreqBands ; kIdx ++)
 		{
 			int k = kBands[kIdx];
-			coef[kIdx].real() = (typename ADC::SIGNED)((double)prefactor * std::cos(2*M_PI*(double)k/N));
-			coef[kIdx].imag() = (typename ADC::SIGNED)((double)prefactor * std::sin(2*M_PI*(double)k/N));
+			coef[kIdx].real() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX * std::cos(2*M_PI*(double)k/N));
+			coef[kIdx].imag() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX * std::sin(2*M_PI*(double)k/N));
 		}
 		purge();
 	}
@@ -72,8 +71,8 @@ public:
 				
 				typename ADC::QUADRUPLE_WIDE::SIGNED rhsRe = fourRe + diff;
 				
-				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> (ADC::bitDepth - 1);
-				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> (ADC::bitDepth - 1);
+				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> (ADC::BITDEPTH - 1);
+				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> (ADC::BITDEPTH - 1);
 			}
 		}
 	}

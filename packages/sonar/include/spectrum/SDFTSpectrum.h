@@ -30,11 +30,10 @@ public:
 	SDFTSpectrum()
 	{
 		//	Sample cosine and sine and store as signed 16 bit integers
-		int prefactor = 1 << (ADC::bitDepth - 1);
 		for (int k = 0 ; k < N ; k ++)
 		{
-			coef[k].real() = (typename ADC::SIGNED)((double)prefactor * std::cos(2*M_PI*(double)k/N));
-			coef[k].imag() = (typename ADC::SIGNED)((double)prefactor * std::sin(2*M_PI*(double)k/N));
+			coef[k].real() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX * std::cos(2*M_PI*(double)k/N));
+			coef[k].imag() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX * std::sin(2*M_PI*(double)k/N));
 		}
 		purge();
 	}
@@ -67,8 +66,8 @@ public:
 				
 				typename ADC::QUADRUPLE_WIDE::SIGNED rhsRe = fourRe + diff;
 				
-				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> 15;
-				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> 15;
+				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> (ADC::BITDEPTH - 1);
+				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> (ADC::BITDEPTH - 1);
 			}
 		}
 	}
