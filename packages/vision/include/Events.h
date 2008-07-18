@@ -39,6 +39,8 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType BIN_CENTERED;
     static const core::Event::EventType DUCT_FOUND;
     static const core::Event::EventType DUCT_LOST;
+    static const core::Event::EventType SAFE_FOUND;
+    static const core::Event::EventType SAFE_LOST;
 };
 
 class RAM_EXPORT ImageEvent : public core::Event
@@ -119,6 +121,22 @@ public:
 };
 
 typedef boost::shared_ptr<DuctEvent> DuctEventPtr;
+
+
+
+class RAM_EXPORT SafeEvent : public core::Event
+{
+  public:
+    SafeEvent(double centerX, double centerY)
+    {
+        x = centerX;
+        y = centerY;
+    }
+    double x;
+    double y;
+};
+    
+typedef boost::shared_ptr<SafeEvent> SafeEventPtr;
     
 } // namespace vision
 } // namespace ram

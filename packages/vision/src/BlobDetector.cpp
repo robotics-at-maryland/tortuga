@@ -28,6 +28,29 @@
 namespace ram {
 namespace vision {
 
+void BlobDetector::Blob::draw(Image* output)
+{
+    CvPoint tl,tr,bl,br;
+    
+    tl.x = bl.x = m_minX;
+    tr.x = br.x = m_maxX;
+    
+    tl.y = tr.y = m_minY;
+    bl.y = br.y = m_maxY;
+    
+    IplImage* raw = output->asIplImage();
+    cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
+    cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
+    cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+    cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+    
+    CvPoint c;
+    c.x = m_centerX;
+    c.y = m_centerY;
+    
+    cvCircle(raw, c, 5, CV_RGB(0,255,0), 2, CV_AA, 0); 
+}
+    
 BlobDetector::BlobDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
     Detector(eventHub),

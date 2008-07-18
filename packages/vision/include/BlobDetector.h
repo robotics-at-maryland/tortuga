@@ -38,7 +38,8 @@ public:
             m_size(size), m_centerX(centerX), m_centerY(centerY),
             m_maxX(maxX), m_minX(minX), m_maxY(maxY), m_minY(minY)
             {}
-
+        Blob():m_size(0),m_centerX(0),m_centerY(0),m_maxX(0),m_minX(0),m_maxY(0),m_minY(0)
+            {}
         int getSize() const { return m_size; }
 
         int getCenterX() const { return m_centerX; }
@@ -50,7 +51,9 @@ public:
         int getMaxY() const { return m_maxY; }
         int getMinY() const { return m_minY; }
 
+        void draw(Image*);
         double getAspectRatio() {
+
             double boundWidth = fabs(getMaxX() - getMinX());
             double boundHeight = fabs(getMaxY() - getMinY());
             double aspectRatio = boundWidth / boundHeight;
@@ -74,6 +77,15 @@ public:
                     m_minY <= otherBlob.m_minY &&
                     m_maxX >= otherBlob.m_maxX &&
                     m_maxY >= otherBlob.m_maxY);        
+        }
+
+        bool boundsIntersect(Blob otherBlob)
+        {
+            if (m_minX > otherBlob.m_maxX || m_maxX < otherBlob.m_minX)
+                return false;
+            if (m_minY > otherBlob.m_maxY || m_maxY < otherBlob.m_minY)
+                return false;
+            return true;
         }
 
     private:
