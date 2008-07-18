@@ -19,12 +19,12 @@ typedef std::complex<int64_t> complex_int64;
 inline int64_t int64_abs(const int64_t &x)
 	{ return (x < 0 ? -x : x); }
 
-inline double magL1(const complex_int64& a)
+inline int64_t magL1(const complex_int64& a)
 {
 	return int64_abs(a.real()) + int64_abs(a.imag());
 }
 
-inline double magL2(const complex_int64& a)
+inline int64_t magL2(const complex_int64& a)
 {
 	return (int64_t) std::sqrt((double)a.real()*a.real() + (double)a.imag()*a.imag());
 }
