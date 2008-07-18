@@ -193,7 +193,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     CvMemStorage* storage = cvCreateMemStorage(0);
     CvSeq* lines = 0;
         
-    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 80 );
     
     CvPoint* maxLine = 0;
     int mY = 0;
@@ -214,8 +214,8 @@ void DuctDetector::processImage(Image* input, Image* output)
                  (double)(line[1].x - line[0].x)) < 0.5)
             {
                 maxLine = line;
-                mY = (int)max(line[0].y, line[1].y);
             }
+            mY = (int)max(line[0].y, line[1].y);
         }
         
         if (output)
@@ -335,7 +335,7 @@ double DuctDetector::getRotation()
 
 bool DuctDetector::getVisible()
 {
-    return m_found;
+    return m_x >= 0 && m_found;
 }
     
 bool DuctDetector::getAligned()
