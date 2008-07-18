@@ -89,7 +89,7 @@ void DuctDetector::init(core::ConfigNode config)
 {
     m_redThreshold = config["redThreshold"].asInt(100);
     m_greenThreshold = config["greenThreshold"].asInt(100);
-    m_blueThreshold = config["blueThreshold"].asInt(45);
+    m_blueThreshold = config["blueThreshold"].asInt(50);
     m_erodeIterations = config["erodeIterations"].asInt(1);
     m_alignedThreshold = config["alignedThreshold"].asDouble(0.04);
 }
@@ -185,7 +185,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     CvMemStorage* storage = cvCreateMemStorage(0);
     CvSeq* lines = 0;
         
-    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 80 );
+    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 10 );
     
     CvPoint* maxLine = 0;
     int mY = 0;
