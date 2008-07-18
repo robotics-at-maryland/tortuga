@@ -296,6 +296,7 @@ class TestDive(aisupport.AITestCase):
         binTrackingHelper(self)
         
     def testDiveFinished(self):
+        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assertCurrentState(bin.Examine)
         
@@ -501,7 +502,7 @@ class TestNextBin(aisupport.AITestCase):
         self.assertCurrentState(bin.NextBin)
         
         self.injectEvent(bin.NextBin.CENTERED_)
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(bin.Dive)
         
     def testAtEnd(self):
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise

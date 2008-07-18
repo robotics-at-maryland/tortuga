@@ -384,7 +384,7 @@ class NextBin(BinSortingState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(NextBin,
-            {BinSortingState.CENTERED_ : Examine, 
+            {BinSortingState.CENTERED_ : Dive, 
              NextBin.AT_END : SurfaceToCruise })
     
     def enter(self):
