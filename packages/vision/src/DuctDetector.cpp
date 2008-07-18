@@ -102,7 +102,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         delete m_working;
         m_working = new OpenCVImage(input->getHeight(), input->getWidth());
     }
-    rotate90Deg(input->asIplImage(), m_working->asIplImage());
+    m_working->copyFrom(input);
 
     // Grab data pointers
     unsigned char* data = m_working->getData();
@@ -294,7 +294,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     n_y = (height / 2) - m_y;
     n_x = n_x / ((double)width) * 2.0;
     n_y = n_y / ((double)height) * 2.0;
-    n_y *= (double)height/width;
+    n_x *= (double)width/height;
         
         
     DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 

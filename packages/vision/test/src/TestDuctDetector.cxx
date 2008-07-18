@@ -298,11 +298,11 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
     vision::OpenCVImage image(640, 480);
     vision::OpenCVImage output(480, 640);
     makeColor(&image, 0, 0, 255);
-    drawSideDuct(&image, 640 - (640/4), 480/4);
+    drawSideDuct(&image, 640/4, 480/4);
 
     detector.processImage(&image, &output);
-    double expectedX = -0.5;
-    double expectedY = 0.5 * 640.0/480.0;
+    double expectedX = -0.5 * 640.0/480.0;;
+    double expectedY = 0.5;
     
     //CHECK(!detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
@@ -315,11 +315,11 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRight)
     vision::OpenCVImage image(640, 480);
     vision::OpenCVImage output(480, 640);
     makeColor(&image, 0, 0, 255);
-    drawSideDuct(&image, 640/4, 480/4 * 3);
+    drawSideDuct(&image, 640 - 640/4, 480/4 * 3);
 
     detector.processImage(&image, &output);
-    double expectedX = 0.5;
-    double expectedY = -0.5 * 640.0/480.0;
+    double expectedX = 0.5 * 640.0/480.0;;
+    double expectedY = -0.5;
     
     //CHECK(!detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
@@ -332,11 +332,11 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeftFront)
     vision::OpenCVImage image(640, 480);
     vision::OpenCVImage output(480, 640);
     makeColor(&image, 0, 0, 255);
-    drawFrontDuct(&image, 640 - (640/4), 480/4);
+    drawFrontDuct(&image, 640/4, 480/4);
 
     detector.processImage(&image, &output);
-    double expectedX = -0.5;
-    double expectedY = 0.5 * 640.0/480.0;
+    double expectedX = -0.5 * 640.0/480.0;
+    double expectedY = 0.5;
     
     //CHECK(detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
@@ -349,11 +349,11 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRightFront)
     vision::OpenCVImage image(640, 480);
     vision::OpenCVImage output(480, 640);
     makeColor(&image, 0, 0, 255);
-    drawFrontDuct(&image, 640/4, 480/4 * 3);
+    drawFrontDuct(&image, 640 - 640/4, 480/4 * 3);
 
     detector.processImage(&image, &output);
-    double expectedX = 0.5;
-    double expectedY = -0.5 * 640.0/480.0;
+    double expectedX = 0.5 * 640.0/480.0;
+    double expectedY = -0.5;
     
     //CHECK(detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
