@@ -322,14 +322,21 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
 					quaternionOld[2],quaternionOld[3]);
 	Vector3 omega(angRate[0],angRate[1],angRate[2]);
 
+	//find quaternion derivative based off old quaternion and ang rate
 	Quaternion qDot;
-
 	qDot = qOld.derivative(omega);
 
-	quaternionNew[0]=qDot.x;
-	quaternionNew[1]=qDot.y;
-	quaternionNew[2]=qDot.z;
-	quaternionNew[3]=qDot.w;
+	//trapezoidal integration
+	Quaternion qNew;
+	qNew = qNew + qDot*deltaT;
+
+	//normalize to make qNew a unit quaternion
+	qNew.normalise();
+
+	quaternionNew[0]=qNew.x;
+	quaternionNew[1]=qNew.y;
+	quaternionNew[2]=qNew.z;
+	quaternionNew[3]=qNew.w;
 }
     
 } // namespace device
