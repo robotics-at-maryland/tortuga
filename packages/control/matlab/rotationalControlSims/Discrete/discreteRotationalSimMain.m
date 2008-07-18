@@ -11,21 +11,16 @@ axis0=[1 0 0]';
 angle0=180*pi/180;
 q0=[axis0*sin(angle0/2); cos(angle0/2)];
 %q0=[1 0 0 0]';
-q = q0;
 q_old = q0;
 %initial angular rate
 w0=(pi/180)*[0 0 0]';
-w = w0;
 %initial desired position
 qd0=[0 0 0 1]';
-qd = qd0;
 %initial desired angular rate
 wd0=(pi/180)*[0 0 0]';
-wd = wd0;
 w_old = 0;
 %initial estimated position
 qhat0=q0;
-qhat = qhat0;
 %initial estimated angular rate
 %what0=w0;
 
@@ -73,6 +68,8 @@ a_inertial = [0 0 -1]';
 global m_inertial;
 m_inertial = [0.1 0 -0.1732]';
 
+% u is only constant when ode45 is running
+global u;
 %% timing (in seconds)
 t0=0;
 te=10;
@@ -144,13 +141,13 @@ for i = 2:length(time)
 
     %d/dt(wrhat)=alpharhat
     dw_r=R(qc_tilde)*dw_d-S(wc_tilde)*R(qc_tilde)*w_d-lambda*Q1(qc_tilde)*wc_tilde;
-global u;
+    
     %u=-Kd*shat+H*dw_r-S(H*w_meas)*w_r;
     u=-Kd*shat+H*dw_r;%-S(H*w_meas)*w_r;
     
     options=odeset;
     options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
-    [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],[x(i-1,1:7)]);
+    [time_ode,x_ode] = ode45(@rotationalSimDynamics,[time(i-1) time(i)],x(i-1,1:7));
     x(i,1:7) = x_ode(end,:);
     x(i,8:11) = q_d;
     x(i,12:14) = w_d;

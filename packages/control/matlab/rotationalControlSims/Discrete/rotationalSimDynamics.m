@@ -14,8 +14,8 @@ global fb;
 %vector from center of gravity (CG) to center of buoyancy (CB)
 global rb;
 
-global a_inertial;
-global m_inertial;
+%global a_inertial;
+%global m_inertial;
 global u;
 %% unpack data
 q=x(1:4);
