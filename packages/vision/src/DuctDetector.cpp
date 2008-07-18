@@ -61,7 +61,8 @@ DuctDetector::DuctDetector(core::ConfigNode config,
     m_y(0.0),
     m_rotation(M_PI/2.0),
     n_x(0.0),
-    n_y(0.0)
+    n_y(0.0),
+    m_found(false)
 {
     init(config);
 }
@@ -73,7 +74,8 @@ DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
     m_y(0.0),
     m_rotation(M_PI/2.0),
     n_x(0.0),
-    n_y(0.0)
+    n_y(0.0),
+    m_found(false)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -87,7 +89,7 @@ void DuctDetector::init(core::ConfigNode config)
 {
     m_redThreshold = config["redThreshold"].asInt(100);
     m_greenThreshold = config["greenThreshold"].asInt(100);
-    m_blueThreshold = config["blueThreshold"].asInt(90);
+    m_blueThreshold = config["blueThreshold"].asInt(45);
     m_erodeIterations = config["erodeIterations"].asInt(1);
     m_alignedThreshold = config["alignedThreshold"].asDouble(0.04);
 }
@@ -135,8 +137,6 @@ void DuctDetector::processImage(Image* input, Image* output)
         }
     }
 
-//    for (int i=0;i<2;i++)
-    m_erodeIterations = 2;
     if (m_erodeIterations != 0)
     {
         cvErode(m_working->asIplImage(), m_working->asIplImage(), 0,
@@ -182,9 +182,6 @@ void DuctDetector::processImage(Image* input, Image* output)
         return;
     }
     
-    if (m_working == 0)
-        return;
-    
     
     IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(m_working->asIplImage()),
                                                IPL_DEPTH_8U,1);
@@ -204,14 +201,21 @@ void DuctDetector::processImage(Image* input, Image* output)
     for(int i = 0; i < lines->total; i++ )
     {
         CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
-        if (max(line[0].y, line[1].y) > mY &&
+        
+        //std::cout << "ROT:" << fabs((double)(line[1].y - line[0].y) /
+        //    (double)(line[1].x - line[0].x)) << "\n";
+        //std::cout << line[0].x << " " << line[0].y << " " << line[1].x << " " << line[1].y << "\n";
+        
+        if (max(line[0].y, line[1].y) >= mY &&
             sqrt(pow(line[0].x - line[1].x, 2) +
                  pow(line[0].y - line[1].y, 2)) > 100)
         {
             if (fabs((double)(line[1].y - line[0].y) /
                  (double)(line[1].x - line[0].x)) < 0.5)
+            {
                 maxLine = line;
-            mY = (int)max(line[0].y, line[1].y);
+                mY = (int)max(line[0].y, line[1].y);
+            }
         }
         
         if (output)
@@ -223,13 +227,19 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     if (maxLine != 0 && maxLine[1].x != maxLine[0].x)
     {
+        m_found = true;
         if (output)
         {
             IplImage* raw = output->asIplImage();
-            cvLine(raw, maxLine[0], maxLine[1], CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(raw, maxLine[0], maxLine[1], CV_RGB(255,255,0), 3, CV_AA, 0 );
         }
         m_rotation = (double)(maxLine[1].y - maxLine[0].y) / (double)(maxLine[1].x - maxLine[0].x);
-        std::cout << m_rotation << "\n";
+        //std::cout << m_rotation << "\n";
+    }
+    else
+    {
+        m_found = false;
+        //std::cout << "NOT FOUND\n";
     }
     
     cvReleaseImage(&redSuitGrayScale);
@@ -237,7 +247,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     cvReleaseMemStorage(&storage);
     
         
-    if (output && m_x > 0)
+    if (0 && output && m_x > 0)
     {
        // Color all yellow pixels white
 /*        unsigned char* odata = output->getData();
@@ -325,12 +335,12 @@ double DuctDetector::getRotation()
 
 bool DuctDetector::getVisible()
 {
-    return m_x >= 0;
+    return m_found;
 }
     
 bool DuctDetector::getAligned()
 {
-    return fabsf(m_rotation) < m_alignedThreshold;
+    return m_found && fabsf(m_rotation) < m_alignedThreshold;
 }
 
 } // namespace vision
