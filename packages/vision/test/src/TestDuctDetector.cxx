@@ -217,6 +217,22 @@ TEST_FIXTURE(DuctDetectorFixture, getAlignment)
     
     */
     
+    
+    vision::Image* input7 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal4.png").string());
+    // Blue Image with red circle in the center
+    detector.processImage(input7, &output);
+    
+    //vision::Image::showImage(&output);
+    
+    CHECK_CLOSE(0, detector.getX(), 0.2);
+    CHECK_CLOSE(0, detector.getY(), 0.2);
+    CHECK_CLOSE(-1, detector.getRotation(), 1);
+    //CHECK_CLOSE(0.49, detector.getRange(), 0.05);
+    CHECK(!detector.getAligned());
+    delete input7;
+    
 }
 
 /*

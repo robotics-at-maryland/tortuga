@@ -87,6 +87,7 @@ DuctDetector::~DuctDetector()
 
 void DuctDetector::init(core::ConfigNode config)
 {
+    // get the threshold values from the config file
     m_redThreshold = config["redThreshold"].asInt(100);
     m_greenThreshold = config["greenThreshold"].asInt(100);
     m_blueThreshold = config["blueThreshold"].asInt(50);
@@ -103,6 +104,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     unsigned char* data = m_working->getData();
     unsigned char* outputData = 0;
 
+    // for debug
     if (output)
     {
         output->copyFrom(m_working);
@@ -115,7 +117,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         
     int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
 
-    // Make all yellow white, everything else
+    // Make all yellow white, everything else black (mask yellow)
     for (int j=0;j<height;j++)
     {
         int offset = j*width*3;
@@ -129,18 +131,21 @@ void DuctDetector::processImage(Image* input, Image* output)
         }
     }
 
+    // erode the image (get rid of stray white pixels)
     if (m_erodeIterations != 0)
     {
         cvErode(m_working->asIplImage(), m_working->asIplImage(), 0,
                 m_erodeIterations);
     }
 
+    //for debug
     if (output)
     {
         output->copyFrom(m_working);
         outputData = output->getData();
     }
     
+    // find the bounding box of all the yellow
     for (int j=0;j<height;j++)
     {
         int offset = j*width*3;
@@ -156,12 +161,16 @@ void DuctDetector::processImage(Image* input, Image* output)
         }
     } 
     
+    // calculate the range (basically the size of the bounding box)
     double oldMx = m_x;
     m_range = 1 - (((double)(maxX - minX)) / width);
     
+    // calculate centroid by taking the center of the bounding box
     m_x = (minX + maxX) * 0.5;
     m_y = (minY + maxY) * 0.5;
     
+    
+    // if we had sight of it last time, but not this time, throw lost event
     if (m_x < 0)
     {
         if (oldMx > 0)
@@ -175,21 +184,29 @@ void DuctDetector::processImage(Image* input, Image* output)
     }
     
     
+    // convert our image to grayscale so that it can be used with hough
     IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(m_working->asIplImage()),
                                                IPL_DEPTH_8U,1);
 
     cvCvtColor(m_working->asIplImage(),redSuitGrayScale,CV_BGR2GRAY);
+    
+    // edge detect using canny
     IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
 
     cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
     CvMemStorage* storage = cvCreateMemStorage(0);
     CvSeq* lines = 0;
         
+    // hough transform
+    // potential problem:
+    // the hough transform will take two small segments that lie on the same
+    // plane and turn them into one large segment
     lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 10 );
     
     CvPoint* maxLine = 0;
     int mY = 0;
     
+    // look for the lowest line segment
     for(int i = 0; i < lines->total; i++ )
     {
         CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
@@ -198,18 +215,24 @@ void DuctDetector::processImage(Image* input, Image* output)
         //    (double)(line[1].x - line[0].x)) << "\n";
         //std::cout << line[0].x << " " << line[0].y << " " << line[1].x << " " << line[1].y << "\n";
         
-        if (max(line[0].y, line[1].y) >= mY &&
+        // it must be lower than the current low, and must have length > 100
+        
+        //NOTE: this used to be max(line[0].y, line[1].y)
+        if ((line[0].y + line[1].y) * 0.5 >= mY &&
             sqrt(pow(line[0].x - line[1].x, 2) +
                  pow(line[0].y - line[1].y, 2)) > 100)
         {
+            // make sure the slope of the segment is reasonable
             if (fabs((double)(line[1].y - line[0].y) /
                  (double)(line[1].x - line[0].x)) < 0.5)
             {
                 maxLine = line;
             }
-            mY = (int)max(line[0].y, line[1].y);
+            //see NOTE
+            mY = (int)((line[0].y + line[1].y) * 0.5);
         }
         
+        //debug
         if (output)
         {
             IplImage* raw = output->asIplImage();
@@ -217,6 +240,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         }
     }
     
+    // if we found a line
     if (maxLine != 0 && maxLine[1].x != maxLine[0].x)
     {
         m_found = true;
@@ -225,6 +249,7 @@ void DuctDetector::processImage(Image* input, Image* output)
             IplImage* raw = output->asIplImage();
             cvLine(raw, maxLine[0], maxLine[1], CV_RGB(255,255,0), 3, CV_AA, 0 );
         }
+        // store its slope as rotation
         m_rotation = (double)(maxLine[1].y - maxLine[0].y) / (double)(maxLine[1].x - maxLine[0].x);
         //std::cout << m_rotation << "\n";
     }
@@ -234,11 +259,13 @@ void DuctDetector::processImage(Image* input, Image* output)
         //std::cout << "NOT FOUND\n";
     }
     
+    // free memory
     cvReleaseImage(&redSuitGrayScale);
     cvReleaseImage(&cannied);
     cvReleaseMemStorage(&storage);
     
         
+    // debug
     if (m_found && output && m_x > 0)
     {
        // Color all yellow pixels white
@@ -293,13 +320,14 @@ void DuctDetector::processImage(Image* input, Image* output)
             cvLine(raw, binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
     }
     
+    // convert to the crazy coordinate system
     n_x = -1 * ((width / 2) - m_x);
     n_y = (height / 2) - m_y;
     n_x = n_x / ((double)width) * 2.0;
     n_y = n_y / ((double)height) * 2.0;
     n_x *= (double)width/height;
         
-        
+    // publish found event
     DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 
         getAligned(), getVisible()));
     publish(EventType::DUCT_FOUND, event);
