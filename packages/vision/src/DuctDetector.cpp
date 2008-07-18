@@ -247,7 +247,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     cvReleaseMemStorage(&storage);
     
         
-    if (0 && output && m_x > 0)
+    if (m_found && output && m_x > 0)
     {
        // Color all yellow pixels white
 /*        unsigned char* odata = output->getData();
