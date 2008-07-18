@@ -244,11 +244,14 @@ int readTemp(int fd, unsigned char * tempData)
 }
 
 
-int getSonarData(int fd, int * angle, int * distance, int * pingNumber)
+int getSonarData(int fd, struct sonarData * sd)
 {
-    unsigned char buf[19]={HOST_CMD_SONAR, HOST_CMD_SONAR};
+    unsigned char buf[20]={HOST_CMD_SONAR, HOST_CMD_SONAR};
     int i;
-    unsigned char rawSonar[19] = {0,0,0,0,0};
+    unsigned char rawSonar[20] = {0,0,0,0,0};
+
+    if(sd == NULL)
+        return -1;
 
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
@@ -256,27 +259,34 @@ int getSonarData(int fd, int * angle, int * distance, int * pingNumber)
     if(buf[0] != 0x0E)
         return SB_ERROR;
 
-    readData(fd, rawSonar, 19);
+    readData(fd, rawSonar, 20);
     readData(fd, buf, 1);
 
     unsigned char sum = 0x0E;
 
-    for(i=0; i<19; i++)
+    for(i=0; i<20; i++)
         sum = (sum+rawSonar[i]) & 0xFF;
 
     if(sum != buf[0])
         return SB_ERROR;
 
     printf("\nDebug: Received data from sonar board: < ");
-    for(i=0; i<19; i++)
+    for(i=0; i<20; i++)
         printf("0x%02X ", rawSonar[i]);
 
     printf(">\n");
 
-    *angle = 0;
-    *distance = 0;
-    *pingNumber = rawSonar[5];
+    printf("%d\n", ((rawSonar[0]<<8) | rawSonar[1]));
 
+    sd->vectorX = ((signed short) ((rawSonar[0]<<8) | rawSonar[1])) / 10000.0;
+    sd->vectorY = ((signed short) ((rawSonar[2]<<8) | rawSonar[3])) / 10000.0;
+    sd->status = rawSonar[4];
+    sd->vectorZ = ((signed short) ((rawSonar[6]<<8) | rawSonar[7])) / 10000.0;
+
+    sd->range = (rawSonar[8]<<8) | rawSonar[9];
+
+    sd->timeStamp = (rawSonar[11]<<24) | (rawSonar[12] << 16) | (rawSonar[13] << 8) | rawSonar[14];
+    sd->sampleNo = (rawSonar[16]<<24) | (rawSonar[17] << 16) | (rawSonar[18] << 8) | rawSonar[19];
 
     return SB_OK;
 }
@@ -325,6 +335,23 @@ int simpleWrite(int fd, int cmdCode, int param, int range)
 
     if(buf[0] == 0xDF)
         return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int resetBlackfin(int fd)
+{
+    unsigned char buf[2]={HOST_CMD_BFRESET, HOST_CMD_BFRESET};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] == 0xBC)
+        return SB_OK;
+
+    if(buf[0] == 0xDF)
+        return SB_HWFAIL;
+
+    if(buf[0] == 0xCC)
+        return SB_BADCC;
 
     return SB_ERROR;
 }

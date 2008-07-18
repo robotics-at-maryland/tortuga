@@ -1,4 +1,3 @@
-
 // STD Includes
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,6 +62,10 @@ int main(int argc, char ** argv)
 		printf("\tlcdshow -setspeed a b c d e f  (set speeds)\n");
 
 
+        printf("\nSonar commands:\n");
+        printf("\tlcdshow -bfreset (reboots the Blackfin processor)\n");
+        printf("\tlcdshow -sonar (retrieve latest sonar telemetry)\n");
+
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
         printf("\tlcdshow -status (show sensor readings)\n");
@@ -72,10 +75,11 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -baroff [n] (disable bar output n)\n");
         printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
-
         printf("\tlcdshow -noblink (stop animation)\n");
         printf("\tlcdshow -redgreen (start red/green animation)\n");
         printf("\tlcdshow -redblue (start red/blue animation)\n");
+
+
 
 	    return -1;
     }
@@ -122,6 +126,25 @@ int main(int argc, char ** argv)
 
 		printf("reply was 0x%02x\n", setOvrParams(fd, atoi(argv[2]), atoi(argv[3])));
 	}
+
+    if(strcmp(argv[1], "-bfreset") == 0)
+    {
+        printf("reply was 0x%02x\n", resetBlackfin(fd));
+    }
+
+    if(strcmp(argv[1], "-sonar") == 0)
+    {
+        struct sonarData sd;
+        getSonarData(fd, &sd);
+
+        printf("Vector: \t<%5.4f %5.4f %5.4f>\n", sd.vectorX, sd.vectorY, sd.vectorZ);
+        printf("Status: \t0x%02x\n", sd.status);
+        printf("Range:  \t%u\n", sd.range);
+        printf("Timestamp:\t%u\n", sd.timeStamp);
+        printf("Sample No:\t%u\n", sd.sampleNo);
+//         printf("reply was 0x%02x\n", resetBlackfin(fd));
+    }
+
 
 	if(strcmp(argv[1], "-setspeed") == 0)
 	{

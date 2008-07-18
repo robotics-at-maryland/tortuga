@@ -235,6 +235,19 @@ struct boardInfo
     unsigned char temperature[NUM_TEMP_SENSORS];
 };
 
+
+struct sonarData
+{
+    double vectorX; /* These are good to 4 decimal places ONLY */
+    double vectorY; /* These will always be in [-1, 1] */
+    double vectorZ;
+    unsigned char status;
+    unsigned short range;
+    unsigned int timeStamp;
+    unsigned int sampleNo;
+};
+
+
 /* Perform next step of update cycle.
  * Returns: SB_OK on success
  *          SB_UPDATEDONE on success and update cycle is done
@@ -298,7 +311,9 @@ int displayText(int fd, int line, const char* text);
 **/
 int readTemp(int fd, unsigned char * tempData);
 
-int getSonarData(int fd, int * angle, int * distance, int * pingNumber);
+int getSonarData(int fd, struct sonarData * sd);
+
+int resetBlackfin(int fd);
 
 int setDiagnostics(int fd, int state);
 
