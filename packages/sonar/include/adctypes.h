@@ -58,9 +58,9 @@ public:
 	static const int bitDepth = _bitDepth;
 	typedef typename adctype1<bitRange>::SIGNED SIGNED;
 	typedef typename adctype1<bitRange>::UNSIGNED UNSIGNED;
-	typedef struct adctype<1*_bitDepth> SINGLE_PRECISION;
-	typedef struct adctype<2*_bitDepth> DOUBLE_PRECISION;
-	typedef struct adctype<4*_bitDepth> QUADRUPLE_PRECISION;
+	typedef struct adctype<1*_bitDepth> SINGLE_WIDE;
+	typedef struct adctype<2*_bitDepth> DOUBLE_WIDE;
+	typedef struct adctype<4*_bitDepth> QUADRUPLE_WIDE;
 };
 
 }} // namespace ram::sonar

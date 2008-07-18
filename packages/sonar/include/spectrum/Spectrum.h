@@ -19,14 +19,14 @@ namespace ram {
 namespace sonar {
 
 
-template<int bitDepth>
+template<typename ADC>
 class Spectrum {
 public:
 	virtual ~Spectrum() {}
 	virtual void purge() =0;
-	virtual void update(const typename adctype<bitDepth>::SIGNED *) =0;
-	virtual const std::complex<typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED> &getAmplitude(int k, int channel) const =0;
-	virtual const std::complex<typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED> &operator() (int k, int channel) const 
+	virtual void update(const typename ADC::SIGNED *) =0;
+	virtual const std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const =0;
+	virtual const std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &operator() (int k, int channel) const 
 	{ return getAmplitude(k, channel); }
 };
 

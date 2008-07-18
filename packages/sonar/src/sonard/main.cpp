@@ -60,7 +60,7 @@ bool elemsLessThan(int64_t *V, int len, int64_t thresh)
 
 int main(int argc, char *argv[])
 {
-	SparseSDFTSpectrum<16, 300, nChannels, 1> spectrum(&kBandOfInterest);
+	SparseSDFTSpectrum<adctype<16>, 300, nChannels, 1> spectrum(&kBandOfInterest);
 	
 	const static int nQuietSamplesNeeded = 300;
 	int nQuietSamples = 0;

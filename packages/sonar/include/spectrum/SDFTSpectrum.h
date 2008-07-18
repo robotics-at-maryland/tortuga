@@ -19,34 +19,34 @@
 namespace ram {
 namespace sonar {
 
-template<int bitDepth, int N, int nchannels>
-class SDFTSpectrum : Spectrum<bitDepth> {
+template<typename ADC, int N, int nchannels>
+class SDFTSpectrum : Spectrum<ADC> {
 private:
 	int idx;
-	typename adctype<bitDepth>::SIGNED data[N][nchannels];
-	std::complex<typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED> fourier[N][nchannels];
-	std::complex<typename adctype<bitDepth>::SIGNED> coef[N];
+	typename ADC::SIGNED data[N][nchannels];
+	std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> fourier[N][nchannels];
+	std::complex<typename ADC::SIGNED> coef[N];
 public:
 	SDFTSpectrum()
 	{
 		//	Sample cosine and sine and store as signed 16 bit integers
-		int prefactor = 1 << (adctype<bitDepth>::bitDepth - 1);
+		int prefactor = 1 << (ADC::bitDepth - 1);
 		for (int k = 0 ; k < N ; k ++)
 		{
-			coef[k].real() = (typename adctype<bitDepth>::SIGNED)((double)prefactor * std::cos(2*M_PI*(double)k/N));
-			coef[k].imag() = (typename adctype<bitDepth>::SIGNED)((double)prefactor * std::sin(2*M_PI*(double)k/N));
+			coef[k].real() = (typename ADC::SIGNED)((double)prefactor * std::cos(2*M_PI*(double)k/N));
+			coef[k].imag() = (typename ADC::SIGNED)((double)prefactor * std::sin(2*M_PI*(double)k/N));
 		}
 		purge();
 	}
 	
 	void purge()
 	{
-		bzero(data, sizeof(typename adctype<bitDepth>::SIGNED) * N * nchannels);
-		bzero(fourier, sizeof(std::complex<typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED>) * N);
+		bzero(data, sizeof(typename ADC::SIGNED) * N * nchannels);
+		bzero(fourier, sizeof(std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED>) * N);
 		idx = 0;
 	}
 	
-	void update(const typename adctype<bitDepth>::SIGNED *sample)
+	void update(const typename ADC::SIGNED *sample)
 	{
 		//	Slide through circular buffers
 		++idx;
@@ -55,17 +55,17 @@ public:
 		
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
-			typename adctype<bitDepth>::DOUBLE_PRECISION::SIGNED diff = sample[channel] - data[idx][channel];
+			typename ADC::DOUBLE_WIDE::SIGNED diff = sample[channel] - data[idx][channel];
 			data[idx][channel] = sample[channel];
 			for (int k = 0 ; k < N ; k ++)
 			{
 				//	Make some convenient shorthands for numbers we need
-				typename adctype<bitDepth>::SIGNED coefRe = coef[k].real();
-				typename adctype<bitDepth>::SIGNED coefIm = coef[k].imag();
-				typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED &fourRe = fourier[k][channel].real();
-				typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED &fourIm = fourier[k][channel].imag();
+				typename ADC::SIGNED coefRe = coef[k].real();
+				typename ADC::SIGNED coefIm = coef[k].imag();
+				typename ADC::QUADRUPLE_WIDE::SIGNED &fourRe = fourier[k][channel].real();
+				typename ADC::QUADRUPLE_WIDE::SIGNED &fourIm = fourier[k][channel].imag();
 				
-				typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED rhsRe = fourRe + diff;
+				typename ADC::QUADRUPLE_WIDE::SIGNED rhsRe = fourRe + diff;
 				
 				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> 15;
 				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> 15;
@@ -73,7 +73,7 @@ public:
 		}
 	}
 	
-	const std::complex<typename adctype<bitDepth>::QUADRUPLE_PRECISION::SIGNED> &getAmplitude(int k, int channel) const
+	const std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const
 	{ return fourier[k][channel]; }
 };
 
