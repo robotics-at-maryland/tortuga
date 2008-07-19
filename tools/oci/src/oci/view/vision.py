@@ -10,10 +10,13 @@ import wx
 
 # Project Imports
 import ram.core as core
+import ext.math
 import ext.core
 import ext.vision
 import ram.gui.led
 import ram.gui.view as view
+import ram.ai.subsystem
+import ram.ai.bin
 
 class VisionPanel(wx.Panel):
     core.implements(view.IPanelProvider)
@@ -106,6 +109,8 @@ class VisionPanel(wx.Panel):
         
         vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem, 
                                                        subsystems)
+        ai = ext.core.Subsystem.getSubsystemOfType(
+            ram.ai.subsystem.AI, subsystems)
         
         if vision is not None:
             buoyPaneInfo = wx.aui.AuiPaneInfo().Name("Red Light")
@@ -118,7 +123,7 @@ class VisionPanel(wx.Panel):
             
             binPaneInfo = wx.aui.AuiPaneInfo().Name("Bin")
             binPaneInfo = binPaneInfo.Caption("Bin").Left()
-            binPanel = BinPanel(parent, eventHub, vision)
+            binPanel = BinPanel(parent, eventHub, vision, ai = ai)
 
             ductPaneInfo = wx.aui.AuiPaneInfo().Name("Duct")
             ductPaneInfo = ductPaneInfo.Caption("Duct").Left()
@@ -220,13 +225,17 @@ class OrangePipePanel(VisionPanel):
         
         
 class BinPanel(VisionPanel):
-    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+    def __init__(self, parent, eventHub, vision, ai, *args, **kwargs):
         VisionPanel.__init__(self, parent, *args, **kwargs)
         self._x = None
         self._y = None
         self._angle = None
         self._suit = None
-
+        self._ai = ai
+        
+        if self._ai is not None:
+            ram.ai.bin.ensureBinTracking(eventHub, self._ai)
+        
         # Controls
         self._createControls("Bin")
         
@@ -252,12 +261,35 @@ class BinPanel(VisionPanel):
         self._createDataControl(controlName = '_suit', label = 'Suit: ')
         
     def _onBinFound(self, event):
-        self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y
-        self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
-        self._suit.Value = "%s" % event.suit
+        obj = event
+        
+        if self._ai is not None:
+            # Sorted closest to farthest
+            currentBinIDs = self._ai.data.get('currentBins', set())
+            currentBins = [b for b in currentBinIDs]
+            sortedBins = sorted(currentBins, self._distCompare)
+            obj = self._ai.data['binData'][sortedBins[0]]
+            
+        self._x.Value = "% 4.2f" % obj.x
+        self._y.Value = "% 4.2f" % obj.y
+        self._angle.Value = "% 4.2f" % obj.angle.valueDegrees()
+        self._suit.Value = "%s" % obj.suit
         
         self.enableControls()
+    
+    def _distCompare(self, aID, bID):
+        binData = self._ai.data['binData']
+        binA = binData[aID]
+        binB = binData[bID]
+        
+        aDist = ext.math.Vector2(binA.x, binA.y).length()
+        bDist = ext.math.Vector2(binB.x, binB.y).length()
+        
+        if aDist < bDist:
+            return -1
+        elif aDist > bDist:
+            return 1
+        return 0
     
     def _onBinLost(self, event):
         self.disableControls()
