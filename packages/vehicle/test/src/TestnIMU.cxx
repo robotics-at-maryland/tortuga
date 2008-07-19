@@ -107,14 +107,14 @@ TEST(quaternionFromRate){
 
 
   //another test case with different data
-  /*
+  
   double qOld2[] = {0.4082, 0.8165, 0.4082, 0.0000};
   double w2[] = {-2, 3, -1};
   double deltaT2 = 0.3;
   double qOut2[4];
   double qExp2[] = {0.0890, 0.6586, 0.7298, -0.1602};
   ram::vehicle::device::IMU::quaternionFromRate(qOld2,w2,deltaT2,qOut2);
-  CHECK_ARRAY_CLOSE(qExp2,qOut2,4,0.001);*/
+  CHECK_ARRAY_CLOSE(qExp2,qOut2,4,0.001);
 
 }
 

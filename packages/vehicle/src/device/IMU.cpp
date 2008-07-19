@@ -312,7 +312,23 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
 }
 
-  void IMU::quaternionFromRate(double* quaternionOld,
+/*
+an algorithm to estimate the current quaternion given a previous quaternion
+estimate, a current angular rate measurement, and a timestep.  this algorithm
+simply integrates the previous quaternion estimate using angular rate gyro data
+
+inputs:
+quaternionOld - a double array containing the old quaternion estimate
+angRate - a double array containing the current angular rate gyro data
+deltaT - a double quantifying the timestep from the previous time this function was called
+quaternionNew - pointer to a double array where the new quaternion estimate will be placed
+
+output: - placed in data location specified by quaternionNew pointer
+
+note: this routine uses OGRE to simplify the mathematic calculations, but the
+input/output format is designed to work in IMU.cpp which still uses double arrays
+*/
+void IMU::quaternionFromRate(double* quaternionOld,
 							   double angRate[3],
 							   double deltaT,
 							   double* quaternionNew){
@@ -328,15 +344,17 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
 
 	//trapezoidal integration
 	Quaternion qNew;
-	qNew = qNew + qDot*deltaT;
+	qNew = qOld + qDot*deltaT;
 
 	//normalize to make qNew a unit quaternion
 	qNew.normalise();
-
+	
+	//format for output
 	quaternionNew[0]=qNew.x;
 	quaternionNew[1]=qNew.y;
 	quaternionNew[2]=qNew.z;
 	quaternionNew[3]=qNew.w;
+	
 }
     
 } // namespace device
