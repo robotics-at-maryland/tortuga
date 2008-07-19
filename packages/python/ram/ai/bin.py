@@ -398,16 +398,38 @@ class NextBin(BinSortingState):
 
         
 class DropMarker(SettlingState):
-    DROPPED = core.declareEventType('DROPPPED')
+    """
+    Drops the marker on the bin, then either continues searching, or surfaces
+    based on the how many markers its dropped.
+    """
+
+    DROPPED = core.declareEventType('DROPPED_')
+    FINISHED = core.declareEventType('FINISHED')
+    CONTINUE = core.declareEventType('CONTINUE')
     
     @staticmethod
     def transitions():
         return SettlingState.transitions(DropMarker,
-            { DropMarker.DROPPED : SurfaceToCruise })
+            { DropMarker.DROPPED : DropMarker,
+              DropMarker.FINISHED : SurfaceToCruise,
+              DropMarker.CONTINUE : SurfaceToMove })
+
+    def DROPPED_(self, event):
+        markerNum = self.ai.data['markersDropped']
+        if markerNum < 2:
+            self.publish(DropMarker.CONTINUE, core.Event())
+        else:
+            self.publish(DropMarker.FINISHED, core.Event())
 
     def enter(self):
         SettlingState.enter(self, DropMarker.DROPPED, 5)
+
+        # Increment marker dropped count
+        markerNum = self.ai.data.get('markersDropped',0)
+        self.ai.data['markersDropped'] = markerNum + 1
+
         # TODO: drop marker here
+        print "\"DROPPER MARKRED #: ", markerNum, "\""
         
         
 class SurfaceToCruise(HoveringState):

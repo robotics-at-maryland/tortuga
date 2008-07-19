@@ -515,12 +515,13 @@ class TestDropMarker(aisupport.AITestCase):
         self.machine.start(bin.DropMarker)
     
     def testStart(self):
-        """Make sure we start diving"""
+        """Make sure we start diving, and drop a marker """
         self.assertCurrentMotion(motion.common.Hover)
-        
-        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        self.assertCurrentState(bin.DropMarker)
+
+#        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.releaseTimer(bin.DropMarker.DROPPED)
-        self.assertCurrentState(bin.SurfaceToCruise)
+        self.assertCurrentState(bin.SurfaceToMove)
         
     def testBinFound(self):
         """Make sure the loop back works"""
@@ -528,12 +529,46 @@ class TestDropMarker(aisupport.AITestCase):
         
     def testBinTracking(self):
         binTrackingHelper(self)
-        
-    def testDropped(self):
-        """Make sure we move on after settling"""
-        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+
+    def testDroppedFirst(self):
+        """Make sure we move on after dropping the second marker"""
+
+        # Needed to DROPPED transition handler
+        self.ai.data['markersDropped'] = 1
+
+        # Inject event and test the response
         self.injectEvent(bin.DropMarker.DROPPED)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.SurfaceToMove)
+        
+    def testDroppedSecond(self):
+        """Make sure we move on after dropping the second marker"""
+
+        # Needed to DROPPED transition handler
+        self.ai.data['markersDropped'] = 2
+        # Needed for SurfaceToCruise
+        self.ai.data['preBinCruiseDepth'] = 5.0 
+
+        # Inject event and test the response
+        self.injectEvent(bin.DropMarker.DROPPED)
+        self.qeventHub.publishEvents()
         self.assertCurrentState(bin.SurfaceToCruise)
+
+    def testFinished(self):
+        """Ensure FINISHED -> SurfaceToCruise"""
+        # Needed for SurfaceToCruise
+        self.ai.data['preBinCruiseDepth'] = 5.0 
+
+        self.injectEvent(bin.DropMarker.FINISHED)
+        self.assertCurrentState(bin.SurfaceToCruise)
+
+    def testContinue(self):
+        """Ensure CONTINUE -> SurfaceToMove"""
+        # Needed for SurfaceToCruise
+        self.ai.data['preBinCruiseDepth'] = 5.0 
+
+        self.injectEvent(bin.DropMarker.CONTINUE)
+        self.assertCurrentState(bin.SurfaceToMove)
         
 class TestSurface(aisupport.AITestCase):
     def setUp(self):
