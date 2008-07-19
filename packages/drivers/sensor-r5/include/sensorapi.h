@@ -205,6 +205,19 @@ struct powerInfo
     float battCurrents[5];
 };
 
+struct sonarData
+{
+    /** These are good to 4 decimal places ONLY */
+    double vectorX;
+    /** These will always be in [-1, 1] */
+    double vectorY;
+    double vectorZ;
+    unsigned char status;
+    unsigned short range;
+    unsigned int timeStamp;
+    unsigned int sampleNo;
+};
+    
 /** Complete vehicle information */
 struct boardInfo
 {
@@ -233,18 +246,9 @@ struct boardInfo
      * The middle ones are floaties, if we even have them connected
      */
     unsigned char temperature[NUM_TEMP_SENSORS];
-};
 
-
-struct sonarData
-{
-    double vectorX; /* These are good to 4 decimal places ONLY */
-    double vectorY; /* These will always be in [-1, 1] */
-    double vectorZ;
-    unsigned char status;
-    unsigned short range;
-    unsigned int timeStamp;
-    unsigned int sampleNo;
+    /** The latest data from the */
+    struct sonarData sonar;
 };
 
 

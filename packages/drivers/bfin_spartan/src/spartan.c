@@ -1,9 +1,18 @@
-#include "spartan.h"
-#include "dataset.h"
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/drivers/bfin_spartan/src/spartan.c
+ */
+
+// Project Includes
+#include "drivers/bfin_spartan/include/spartan.h"
+#include "drivers/bfin_spartan/include/dataset.h"
 
 #define ADDR_ADCONFIG ADDR_ADConfig1
 #define ADDR_ADPRESCALER ADDR_ADConfig2
-
 
 int initADC()
 {
@@ -33,4 +42,22 @@ int captureSamples(struct dataset * s)
         while(REG(ADDR_FIFO_EMPTY1A) != 0);
     }
     return 0;
+}
+
+void greenLightOn()
+{
+    REG(ADDR_LED) = 0x02;
+}
+
+void greenLightOff()
+{
+    REG(ADDR_LED) = 0x01;
+}
+
+void yellowLightOn()
+{
+}
+
+void yellowLightOff()
+{
 }

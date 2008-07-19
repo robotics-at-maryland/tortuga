@@ -1,11 +1,24 @@
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/drivers/bfin_spartan/src/dataset.c
+ */
+
+// STD Includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "dataset.h"
 
+// UNIX Includes
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+// Project Includes
+#include "drivers/bfin_spartan/include/dataset.h"
 
 struct dataset * createDataset(int size)
 {
@@ -114,7 +127,7 @@ int putSample(struct dataset* s, int ch, int index, signed short value)
 
     *(s->data[unit][ch]+offset) = value;
 
-    return 0;
+    return 0; //added by ML.  Otherwise, no return for non-void
 }
 
 struct dataset * loadDataset(const char * filename)
@@ -125,7 +138,7 @@ struct dataset * loadDataset(const char * filename)
         printf("could not stat file\n");
         return NULL;
     }
-    fprintf(stderr, "Loading a dataset of %d bytes\n", (int)fileStat.st_size);
+    fprintf(stderr, "Loading a dataset of %d bytes\n", (int)fileStat.st_size); //gives warning about %d.  Check that this is right?
     struct dataset * s = createDataset(fileStat.st_size / 8);
 
     if(!s)

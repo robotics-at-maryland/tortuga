@@ -14,6 +14,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "spectrum/SDFTSpectrum.h"
+#include "Sonar.h"
 
 using namespace ram::sonar;
 using namespace std;

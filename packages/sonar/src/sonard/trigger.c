@@ -1,7 +1,19 @@
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/sonar/src/sonard/trigger.c
+ */
+
+// STD Includes
 #include <stdio.h>
 #include <stdlib.h>
+
+// Project Includes
 #include "trigger.h"
-#include "dataset.h"
+#include "drivers/bfin_spartan/include/dataset.h"
 
 int blockTrigger(struct dataset * s, int ch, int highestDftSample)
 {

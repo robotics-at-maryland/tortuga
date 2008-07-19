@@ -1,10 +1,25 @@
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Steve Moskovchenko <stevenm@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steve Moskovchenko <stevenm@umd.edu>
+ * File:  packages/drivers/bfin_spartan/include/spartan.h
+ */
+
+#ifndef RAM_DRIVER_BFIN_SPARTAN_07_19_2008
+#define RAM_DRIVER_BFIN_SPARTAN_07_19_2008
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct dataset;
+    
 #define SRAM_BASE 0x20300000
 #define SRAM_SIZE 0x100000
 
-#include "dataset.h"
-
 /*
-
 
 // System timer config register:
 //  Bit 15 - Clock reset.  When high, resets clock to 0 and prevents clock increments.
@@ -143,10 +158,7 @@
 #define ADDR_FIFO_HALF1S        0x202F02C0
 #define ADDR_FIFO_STATUS2       0x202F02D0
 
-
 */
-
-
 
 // Bus addresses
 #define ADDR_ADC0           0x202F0000  //0x202F 0000
@@ -204,10 +216,6 @@
 
 #define ADDR_ADStep             0x202F0130
 
-
-
-
-
 #define ADDR_LED                0x202E0000
 #define ADDR_Testreg0           0x202E0010
 #define ADDR_Testreg1           0x202E0014
@@ -218,18 +226,19 @@
 #define ADDR_Loopback2          0x202E0028
 #define ADDR_Loopback3          0x202E002C
 
-
-
-
 #define REG(a) (*(volatile unsigned short *) a)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 int initADC();
 int captureSamples(struct dataset * s);
 
+void greenLightOn();
+void greenLightOff();
+
+void yellowLightOn();
+void yellowLightOff();
+    
 #ifdef __cplusplus
-} // extern "C"
+} // extern "C" {
 #endif
+
+#endif // RAM_DRIVER_BFIN_SPARTAN_07_19_2008
