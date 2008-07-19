@@ -100,7 +100,7 @@ namespace { // hide messy internals in an anonymous namespace
 	template<>
 	struct adctype1<2> {
 		typedef int32_t SIGNED;
-		typedef int32_t UNSIGNED;
+		typedef uint32_t UNSIGNED;
 	};
 
 	template<>
@@ -119,7 +119,6 @@ private:
 	 (_bitDepth <= 16 ? 1 : 
 	  (_bitDepth <= 32 ? 2 : 
 	   (_bitDepth <= 64 ? 3 : 4))));
-	static const uint64_t UINT64_MAX = ULLONG_MAX;
 public:
 	typedef typename adctype1<_bitRange>::SIGNED SIGNED;
 	typedef typename adctype1<_bitRange>::UNSIGNED UNSIGNED;
@@ -127,11 +126,11 @@ public:
 	typedef struct adctype<2*_bitDepth> DOUBLE_WIDE;
 	typedef struct adctype<4*_bitDepth> QUADRUPLE_WIDE;
 	
-	static const int BITDEPTH = _bitDepth;
-	static const SIGNED SIGNED_MIN = -((int64_t)1 << (_bitDepth - 1));
-	static const SIGNED SIGNED_MAX =  ((int64_t)1 << (_bitDepth - 1)) - 1;
-	static const UNSIGNED UNSIGNED_MAX = ((~((uint64_t)0)) >> (64 - _bitDepth));
-	static const size_t MACHINE_SIZE = sizeof(SIGNED);
+	static inline int BITDEPTH() { return _bitDepth; }
+	static inline SIGNED SIGNED_MIN() { return -((int64_t)1 << (_bitDepth - 1)); }
+	static inline SIGNED SIGNED_MAX() { return ((int64_t)1 << (_bitDepth - 1)) - 1; }
+	static inline UNSIGNED UNSIGNED_MAX() { return ((~((uint64_t)0)) >> (64 - _bitDepth)); }
+	static inline size_t MACHINE_SIZE() { return sizeof(SIGNED); }
 };
 
 }} // namespace ram::sonar
