@@ -44,8 +44,8 @@ class TestHover(support.MotionTest):
         
         # Different gains
         target = self.makeTarget(x = -0.5, y = 0.5)
-        m = self.makeClass(target = target, maxSpeed = 0.5,
-                           maxSidewaysSpeed = 2)
+        m = self.makeClass(target = target, speedGain = 0.5, maxSpeed = 3,
+                           sidewaysSpeedGain = 2, maxSidewaysSpeed = 3)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
@@ -55,7 +55,8 @@ class TestHover(support.MotionTest):
     def testLowerRightHover(self):
         # All gains set to 1 (default)
         target = self.makeTarget(x = 0.25, y = -1)
-        m = self.makeClass(target = target, maxSpeed = 1,
+        m = self.makeClass(target = target, speedGain = 1,
+                           sidewaysSpeedGain = 1, maxSpeed = 1,
                            maxSidewaysSpeed = 1)
         
         self.motionManager.setMotion(m)
@@ -65,8 +66,9 @@ class TestHover(support.MotionTest):
         
         # Different gains
         target = self.makeTarget(x = 0.25, y = -1)
-        m = self.makeClass(target = target, maxSpeed = 3,
-                           maxSidewaysSpeed = 0.75)
+        m = self.makeClass(target = target, speedGain = 3, 
+                           sidewaysSpeedGain = 0.75, maxSpeed = 5,
+                           maxSidewaysSpeed = 2)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)

@@ -129,8 +129,9 @@ class TestFollow(TestHover):
         
         # Different gains
         pipe = motion.pipe.Pipe(x = 0, y = -1, relativeAngle = 0)
-        m = self.makeClass(pipe = pipe, maxSpeed = 4,
-                           maxSidewaysSpeed = 2)
+        m = self.makeClass(pipe = pipe, speedGain = 4,
+                           sidewaysSpeedGain = 2, maxSpeed = 5,
+                           maxSidewaysSpeed = 5)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
@@ -151,8 +152,9 @@ class TestFollow(TestHover):
         
         # To the right, Different gains
         pipe = motion.pipe.Pipe(x = 0.25, y = 0.5, relativeAngle = 0)
-        m = self.makeClass(pipe = pipe, maxSpeed = 4,
-                           maxSidewaysSpeed = 2)
+        m = self.makeClass(pipe = pipe, speedGain = 4,
+                           sidewaysSpeedGain = 2, maxSpeed = 5,
+                           maxSidewaysSpeed = 5)
         
         self.motionManager.setMotion(m)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)

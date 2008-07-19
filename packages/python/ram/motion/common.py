@@ -35,8 +35,8 @@ class Hover(Motion):
     Base motion it centers the vehicle over the target
     """
     def __init__(self, target, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
+                 speedGain = 1.0, sidewaysSpeedGain = 1.0,
                  _type = Motion.IN_PLANE):
-                 #speedGain = 1.0, sidewaysSpeedGain = 1.0
         """
         @type  target: ram.motion.common.Target
         @param target: Target to attempt to reach
@@ -45,10 +45,15 @@ class Hover(Motion):
         
         self._running = False
         self._target = target
+
         self._maxSpeed = maxSpeed
+        self._minSpeed = -1 * maxSpeed
+
         self._maxSidewaysSpeed = maxSidewaysSpeed
-        #self._speedGain = speedGain
-        #self._sidewaysSpeedGain = sidewaysSpeedGain
+        self._minSidewaysSpeed = -1 * maxSidewaysSpeed
+
+        self._speedGain = speedGain
+        self._sidewaysSpeedGain = sidewaysSpeedGain
         
         self._conn = target.subscribe(Target.UPDATE, self._onTargetUpdate)
         
@@ -58,12 +63,26 @@ class Hover(Motion):
         
     def _setForwardSpeed(self):
         """Determin forward speed (and bound within limits)"""
-        forwardSpeed = self._target.y * self._maxSpeed
+        forwardSpeed = self._target.y * self._speedGain
+
+        # Clamp speed ranges
+        if forwardSpeed > self._maxSpeed:
+            forwardSpeed = self._maxSpeed
+        elif forwardSpeed < self._minSpeed:
+            forwardSpeed = self._minSpeed
+
         self._controller.setSpeed(forwardSpeed)
         
     def _setSidewaysSpeed(self):
         """Determine sideways speed (and bound within limits)"""
-        sidewaysSpeed = self._target.x * self._maxSidewaysSpeed
+        sidewaysSpeed = self._target.x * self._sidewaysSpeedGain
+
+        # Clamp speed ranges
+        if sidewaysSpeed > self._maxSidewaysSpeed:
+            sidewaysSpeed = self._maxSidewaysSpeed
+        elif sidewaysSpeed < self._minSidewaysSpeed:
+            sidewaysSpeed = self._minSidewaysSpeed
+
         self._controller.setSidewaysSpeed(sidewaysSpeed)
 
     def _seek(self):
