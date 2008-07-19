@@ -26,6 +26,7 @@
 #include "math/include/Matrix2.h"
 #include "math/include/Vector4.h"
 #include "math/include/Matrix4.h"
+#include "math/include/MatrixN.h"
 
 #ifndef RAM_MATLAB_CONTROL_TEST
 namespace ram {
@@ -468,6 +469,145 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
     *(rotationalTorques+2)=controlSignal[2];
 }
 
+/************************************************************************
+*/
+/*
+Matrix3 S(Vector3 e)
+{
+    return Matrix3(0, -1*e.z, e.y, e.z, 0, -1*e.x, -1*e.y, e.x, 0);
+}
+
+MatrixN Q(Quaternion q)
+{
+    Vector3 e = Vector3(q.x,q.y,q.z);
+    Matrix3 q1 = q.w*Matrix3::IDENTITY + S(e);
+    MatrixN qOut = MatrixN(4,3);
+    qOut[0][0] = q1[0][0];
+    qOut[0][1] = q1[0][1];
+    qOut[0][2] = q1[0][2];
+    qOut[1][0] = q1[1][0];
+    qOut[1][1] = q1[1][1];
+    qOut[1][2] = q1[1][2];
+    qOut[2][0] = q1[2][0];
+    qOut[2][1] = q1[2][1];
+    qOut[2][2] = q1[2][2];    
+    qOut[3][0] = -1*e.x;
+    qOut[3][1] = -1*e.y;
+    qOut[3][2] = -1*e.z;
+    return qOut;
+}
+
+Quaternion QuaternionProduct(Quaternion q1, Quaternion q2)
+{
+    Matrix3 temp1 = q2.w*Matrix3::IDENTITY - S(Vector3(q2.x,q2.y,q2.z));
+    
+    Matrix4 temp2 = temp1;
+    temp2[0][3] = -1*q2.x;
+    temp2[1][3] = -1*q2.y;
+    temp2[2][3] = -1*q2.z;
+    temp2[3][0] = -1*q2.x;
+    temp2[3][1] = -1*q2.y;
+    temp2[3][2] = -1*q2.z;
+    temp2[3][3] = q2.w;
+    
+    Vector4 q1Temp = Vector4(q1.x,q1.y,q1.z,q1.w);
+    Vector4 qtilde = temp2*q1Temp;
+    
+    Quaternion qOut = Quaternion(qtilde.x,qtilde.y,qtilde.z,qtilde.w);
+    double norm = qOut.Norm();
+    norm = 1 / norm;
+    qOut = qOut * norm;
+    return qOut;
+}
+
+Matrix3 R(Quaternion q)
+{
+    Vector3 e = Vector3(q.x,q.y,q.z);
+    double temp = q.w * q.w - e.dotProduct(e);
+    
+    Matrix3 tempMat;
+    tempMat[0][0] = e.x*e.x;
+    tempMat[0][1] = e.y*e.y;
+    tempMat[0][2] = e.z*e.z;
+    tempMat[1][0] = e.x*e.x;
+    tempMat[1][1] = e.y*e.y;
+    tempMat[1][2] = e.z*e.z;
+    tempMat[2][0] = e.x*e.x;
+    tempMat[2][1] = e.y*e.y;
+    tempMat[2][2] = e.z*e.z;
+    Matrix3 out = temp*Matrix3::IDENTITY + 2*tempMat - 2*q.w*S(e);
+    return out;
+}
+
+Matrix3 Q1(Quaternion q)
+{
+    Vector3 e = Vector3(q.x,q.y,q.z);
+    return q.w * Matrix3::IDENTITY + S(e);
+}
+
+void RotationalController(MeasuredState* measuredState,
+                          DesiredState* desiredState,
+                          ControllerState* controllerState,
+                          double dt,
+                          double* rotationalTorques)
+{
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
+        
+    Vector3 desiredAngularRate = Vector3(desiredState->angularRate);
+    
+    Quaternion desiredQuaternion = desiredState->quaternion;
+    
+    Vector3 dDesiredAngularRate = Vector3(0,0,0);
+    
+    desiredAngularRate = desiredAngularRate + dt*dDesiredAngularRate;
+    
+    MatrixN dq_d = (0.5)*Q(desiredQuaternion)*desiredAngularRate;
+    
+    Quaternion dDesiredQuaternion = Quaternion(dq_d[0][0], dq_d[1][0], dq_d[2][0], dq_d[3][0]);
+    
+    desiredQuaternion = desiredQuaternion + dt*dDesiredQuaternion;
+    
+    desiredState->angularRate[0] = desiredAngularRate.x;
+    desiredState->angularRate[1] = desiredAngularRate.y;
+    desiredState->angularRate[2] = desiredAngularRate.z;
+    desiredState->quaternion[0] = desiredQuaternion.x;
+    desiredState->quaternion[1] = desiredQuaternion.y;
+    desiredState->quaternion[2] = desiredQuaternion.z;
+    desiredState->quaternion[3] = desiredQuaternion.w;
+    
+    // Compute attitude error qc_tilde
+    Quaternion qc_tilde = QuaternionProduct(measuredState->quaternion,desiredQuaternion);
+    
+    // Compute composite error metric s
+    Vector3 q3 = Vector3(qc_tilde.x,qc_tilde.y,qc_tilde.z);
+    
+    Matrix3 rotQc = R(qc_tilde);
+    Vector3 w_r = rotQc*desiredAngularRate - controllerState->lamda*q3;
+    
+    Vector3 measuredAngularRate = Vector3(measuredState->angularRate);
+    Vector3 estimatedS = measuredAngularRate - w_r;
+    
+    // Compute anglar rate error wc_tilde
+    Vector3 wc_tilde = measuredAngularRate - rotQc*desiredAngularRate;
+    
+    Vector3 dw_r = rotQc*dDesiredAngularRate - S(wc_tilde)*rotQc*desiredAngularRate
+                    - lambda*Q1(qc_tilde)*wc_tilde;
+                    
+    Vector3 controlSignal = -1*controllerState->Kd * estimatedS + controllerState->H
+                                *dw_r;
+    
+    *(rotationalTorques)=controlSignal.x;
+    *(rotationalTorques+1)=controlSignal.y;
+    *(rotationalTorques+2)=controlSignal.z;
+}
+*/
 
 /************************************************************************
 HackedPDYawControl
