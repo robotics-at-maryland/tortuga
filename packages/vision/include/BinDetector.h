@@ -86,13 +86,13 @@ class RAM_EXPORT BinDetector : public Detector
 
     void processImage(Image* input, Image* output= 0);
     
-    void drawBinImage(Image* imgToShow, int binNumber);
+    void drawBinImage(Image* imgToShow, int binNumber, Image* output = 0);
 
     /** redSuit and rotatedRedSuit must be the same size, rotates redSuit,
         which is the image containing the center of the bin into rotatedRedSuit
     */
     void unrotateBin(math::Radian bin, Image* redSuit, 
-                                            Image* rotatedRedSuit);
+		     Image* rotatedRedSuit);
     bool found();
 
     /** X cord of the bin closest to the center of the screen */
@@ -126,8 +126,8 @@ class RAM_EXPORT BinDetector : public Detector
      *  @param output
      *      Our debug output image
      */
-    void processBin(BlobDetector::Blob bin, bool detectSuit, BinList& newBins, int binNum,
-                    Image* ouput = 0);
+    void processBin(BlobDetector::Blob bin, bool detectSuit, BinList& newBins, 
+		    int binNum, Image* ouput = 0);
 
     /** Called by process bin, if suit detection is request is true
      *
@@ -185,9 +185,6 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** Current bin ids */
     int m_binID;
-    
-    Image* currentOutputImage;
-
 };
 
 } // namespace vision

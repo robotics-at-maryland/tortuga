@@ -166,7 +166,6 @@ void BinDetector::processImage(Image* input, Image* out)
     if (out != NULL)
     {
         output = (IplImage*)(*out);
-        currentOutputImage = out;
     }
 //std::cout<<"startup"<<std::endl;
     
@@ -417,19 +416,18 @@ void BinDetector::processImage(Image* input, Image* out)
     foundEmpty = seeEmpty;*/
 }
 
-void BinDetector::drawBinImage(Image* imgToShow, int binNumber)
+void BinDetector::drawBinImage(Image* imgToShow, int binNumber,
+			       Image* output)
 {
-    if (!currentOutputImage)
-        return;
     Image::drawImage(imgToShow, 
-                    binNumber * 128, 
-                    0,
-                    currentOutputImage, 
-                    currentOutputImage);
+		     binNumber * 128, 
+		     0,
+		     output, 
+		     output);
 }
 
 void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
-                             BinList& newBins, int binNum, Image*)
+                             BinList& newBins, int binNum, Image* output)
 {
     if (binNum > 3)
         return;
@@ -542,7 +540,8 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
             OpenCVImage wrapper(binImages[binNum],false);
 //            Image::showImage(&wrapper);
             suit = determineSuit(&wrapper);
-            drawBinImage(&wrapper, binNum);
+	    if (output)
+               drawBinImage(&wrapper, binNum, output);
         }
         else
         {
@@ -559,7 +558,8 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     m_found = true;
 }
 
-void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSuit, Image* rotatedRedSuit)
+void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSuit, 
+			      Image* rotatedRedSuit)
 {
     float m[6];
     CvMat M = cvMat( 2, 3, CV_32F, m );
@@ -575,7 +575,8 @@ void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSuit, Image* ro
     cvGetQuadrangleSubPix(redSuit->asIplImage(), rotatedRedSuit->asIplImage(),&M);
 }
 
-math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, Image* input)
+math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, 
+					      Image* input)
 {
     IplImage* redSuit = (IplImage*)(*input);
     IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
@@ -613,15 +614,8 @@ Suit::SuitType BinDetector::determineSuit(Image* input,
 {
 //        std::cout<<"finished suit detection"<<std::endl;
 //        std::cout<<"Suit: " << suitDetector.getSuit()<<std::endl;
-
-    if (output)
-    {
-        suitDetector.processImage(input,output);
-    }
-    else
-    {
-        suitDetector.processImage(input);
-    }   
+    suitDetector.processImage(input,output);
+	
     // Filter suit type
     Suit::SuitType suitFound = suitDetector.getSuit(); //In case we ever want to use the suit detector...
     Suit::SuitType suit = Suit::NONEFOUND;
