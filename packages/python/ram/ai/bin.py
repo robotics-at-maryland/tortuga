@@ -87,10 +87,12 @@ class HoveringState(state.State):
         
         self._bin = ram.motion.common.Target(0,0)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
+        speedGain = self._config.get('speedGain', 5)
         motion = ram.motion.common.Hover(target = self._bin,
                                          maxSpeed = 5,
                                          maxSidewaysSpeed = 3,
-                                         sidewaysSpeedGain = sidewaysSpeedGain)
+                                         sidewaysSpeedGain = sidewaysSpeedGain,
+                                         speedGain = speedGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):

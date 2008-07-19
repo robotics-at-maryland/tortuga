@@ -71,6 +71,7 @@ class Hover(Motion):
         elif forwardSpeed < self._minSpeed:
             forwardSpeed = self._minSpeed
 
+        self._forwardSpeed = forwardSpeed
         self._controller.setSpeed(forwardSpeed)
         
     def _setSidewaysSpeed(self):
@@ -83,6 +84,7 @@ class Hover(Motion):
         elif sidewaysSpeed < self._minSidewaysSpeed:
             sidewaysSpeed = self._minSidewaysSpeed
 
+        self._sidewaysSpeed = sidewaysSpeed
         self._controller.setSidewaysSpeed(sidewaysSpeed)
 
     def _seek(self):
