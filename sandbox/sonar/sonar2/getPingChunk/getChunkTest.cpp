@@ -13,6 +13,7 @@
 #include "dataset.h"
 
 #include "SparseSDFTSpectrum.h"
+#include "pingDetect.h"
 #include "getPingChunk.h"
 
 using namespace ram::sonar;
@@ -20,10 +21,10 @@ using namespace ram::sonar;
 
 int main(int argc, char* argv[])
 {
-    //kBands defined in Sonar.h!
     struct dataset * dataSet = NULL;
     adcdata_t* data[NCHANNELS];
     int locations[NCHANNELS];
+    getPingChunk chunk;
     FILE* f;
 
     for(int j=0; j<NCHANNELS; j++)
@@ -55,7 +56,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    getPingChunk(data, locations, dataSet);
+    chunk.getChunk(data, locations, dataSet);
 
     f=fopen("out_file.bin","w");
     if (f==NULL)

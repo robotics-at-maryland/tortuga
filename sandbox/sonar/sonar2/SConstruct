@@ -22,7 +22,7 @@ INCLUDES=[
     AUV_PACKAGES];
 RAMLIBS=['/home/levashom/auv/trunk/build/lib'];
 
-env = Environment(CPPPATH = INCLUDES, CCFLAGS=['-Wall'], options = opts)
+env = Environment(CPPPATH = INCLUDES, CCFLAGS=['-Wall','-O3'], options = opts)
 
 #Build common files
 osUtils = env.Object('sonarUtils/sonarUtils.cpp')

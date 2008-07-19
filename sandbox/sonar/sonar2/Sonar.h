@@ -12,9 +12,6 @@
 #define _RAM_SONAR_SONAR_H
 
 #include <stdint.h>
-#include <assert.h>
-
-using namespace std;
 
 namespace ram {
 namespace sonar {
@@ -22,7 +19,6 @@ namespace sonar {
 //===============TYPE DEFINES=================
 typedef int16_t adcdata_t;
 typedef int32_t adcmath_t;
-//typedef int32_t adcsampleindex_t;
 
 //===============PINGER/SOUND PROPERTIES============
 static const int SPEED_OF_SOUND = 1500; //m/s
@@ -46,17 +42,19 @@ static const double hydroPlanarArray[3][2] =  //m, coordinate of hydrophones wit
 static const int DFT_FRAME=512; //pts., size of interval to do fourier over.  NOTE: MUST BE A POWER OF 2!
 static const int kBandOfInterest = (int) (frequencyOfInterest*DFT_FRAME/SAMPRATE);
 static const int kBandOffCenterAmount = 10;
-static const int nKBands = 3; //number of frequency bands to examine
-static const int kBands[]= {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount}; //Kbands relevant for DFT
+static const int nKBands = 1; //number of frequency bands to examine
+//static const int nKBands = 3; //number of frequency bands to examine
+//static const int kBands[]= {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount}; //Kbands relevant for DFT
+static const int kBands[]= {kBandOfInterest}; //Kbands relevant for DFT
 
 //---------------PING DETECTOR SETTINGS---------------
 static const int PING_DETECT_FRAME=200; //pts.,  size of frames to do max/mins over
 static const int LARGE_DATASET=int(1.25*NOMINAL_PING_DELAY*SAMPRATE/1000); //pts., size of dataset acquired to find the first ping
 static const int SMALL_DATASET=int(0.2*NOMINAL_PING_DELAY*SAMPRATE/1000+DFT_FRAME); //pts., datasets acquired once we know the approximate ping position
 static const int PD_THRESHOLDS[]={30,30,30,30}; //thresholds for ping detection on each channel, ratios of signal to noise
+static const int ENV_CALC_FRAME=1024; //the length of the piece that is extracted for calculating the ping more precisely
 
 //======================= OLD PARAMS ===============
-static const int ENV_CALC_FRAME=1024; //must be a power of 2
 
 static const double hydroStructureArray[3][3] =  //units currently in inches but it shouldn't matter
 {

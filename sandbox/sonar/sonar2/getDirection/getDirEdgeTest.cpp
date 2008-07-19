@@ -6,12 +6,18 @@
 #include <unistd.h>
 #include <cmath>
 
+#include "math/include/MatrixN.h"
+#include "math/include/Vector3.h"
+#include "sonarPing.h"
+
 #include "Sonar.h"
 
 #include "spartan.h"
 #include "dataset.h"
 
-#include "sonarPing.h"
+#include "SparseSDFTSpectrum.h"
+#include "pingDetect.h"
+#include "getPingChunk.h"
 #include "getDirEdge.h"
 
 using namespace ram::sonar;
@@ -23,6 +29,7 @@ int main(int argc, char* argv[])
     struct dataset * dataSet = NULL;
     sonarPing ping;
     int found;
+    getDirEdge edge_detector;
 
     if(argc == 1)
     {
@@ -50,7 +57,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if((found=getDirEdge(&ping, dataSet))==0)
+    if((found=edge_detector.getEdge(&ping, dataSet))==0)
         printf("No ping found\n");
     else if(found!=1)
         printf("Error finding ping %d\n",found);

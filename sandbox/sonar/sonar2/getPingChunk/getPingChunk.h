@@ -10,10 +10,26 @@
  */
 //include dataset.h before this file
 
+#ifndef _RAM_SONAR_PING_CHUNK
+#define _RAM_SONAR_PING_CHUNK
+
 namespace ram {
 namespace sonar {
 
-int getPingChunk(adcdata_t** data, int* locations, dataset* dataSet);
+class getPingChunk {
+    int detected;
+    pingDetect *pdetect;
+    adcdata_t sample[NCHANNELS];
+    int last_detected;
+    int last_ping_index[NCHANNELS];
+    int last_value[NCHANNELS];
+
+    public:
+    getPingChunk();
+    ~getPingChunk();
+    int getChunk(adcdata_t** data, int* locations, dataset* dataSet);
+};
 
 }//sonar
 }//ram
+#endif

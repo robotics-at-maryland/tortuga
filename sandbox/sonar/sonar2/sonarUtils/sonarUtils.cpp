@@ -17,14 +17,14 @@ adcmath_t myAbs(adcmath_t x)
 		return x;
 }
 
-int gcd(int a, int b)
-{
-    assert(a > 0 && b > 0);
-    if (b == 0)
-        return a;
-    else
-        return gcd(b, a % b);
-}
+//int gcd(int a, int b)
+//{
+    //assert(a > 0 && b > 0);
+    //if (b == 0)
+        //return a;
+    //else
+        //return gcd(b, a % b);
+//}
 
 } // namespace sonar
 } // namespace ram

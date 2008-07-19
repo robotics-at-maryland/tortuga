@@ -1,14 +1,29 @@
 //Michael Levashov
-
-#include "dataset.h"
-
-#include "math/include/Vector3.h"
-
-#include "sonarPing.h"
+//Robotics@Maryland
 
 namespace ram {
 namespace sonar {
 
-int getDirEdge(sonarPing* ping, dataset *dataSet);
+using namespace ram::math;
+
+class getDirEdge {
+    getPingChunk *chunk;
+    adcdata_t* data[NCHANNELS];
+    int locations[NCHANNELS];
+    int64_t total[NCHANNELS];
+    int64_t abstotal[NCHANNELS];
+    adcdata_t average[NCHANNELS];
+    adcdata_t absaverage[NCHANNELS];
+    int pingpoints[NCHANNELS];
+    int ping_found;
+    MatrixN *tdoas;
+    MatrixN *temp_calc; //A matrix for temporary calculations
+    MatrixN *hydro_array; //A matrix for storing the hydro array
+
+    public:
+    getDirEdge();
+    ~getDirEdge();
+    int getEdge(sonarPing* ping, dataset *dataSet);
+};
 } //sonar
 } //ram

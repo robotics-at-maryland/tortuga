@@ -17,12 +17,8 @@
 #ifndef _RAM_SPARSESDFTSPECTRUM_H
 #define _RAM_SPARSESDFTSPECTRUM_H
 
-#include <cmath>
-#include <string.h>
-
 #include "Sonar.h"
 #include "Spectrum.h"
-#include "sonarUtils.h"
 
 using namespace std;
 
@@ -62,7 +58,7 @@ private:
         idx = 0;
     }
     
-    void update(const int16_t *sample)
+    void update(const adcdata_t *sample)
     {
         //    Slide through circular buffers
         ++idx;
@@ -99,11 +95,6 @@ private:
                 return kIdx;
         return -1;
     }
-
-    //const adcmath_t getL1AmplitudeForBinIndex(int kIdx, int channel) const
-    //{
-        //return myAbs(fourier[kIdx][channel].real())+myAbs(fourier[kIdx][channel].imag());
-    //}
 
     const complex<adcmath_t> &getAmplitude(int k, int channel) const
     { return fourier[getBinIndexForBin(k)][channel]; }
