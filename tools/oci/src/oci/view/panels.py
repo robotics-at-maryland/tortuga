@@ -42,7 +42,8 @@ class ThrusterPanel(wx.Panel):
         for item in self._thrusterList:
             # Create Control
             label = wx.StaticText(self, wx.ID_ANY, 
-                                  item.getName().replace('Thruster',''))
+                                  self._fixName(item.getName()))
+
             bar = MultiBar(self)
             bar.minValue = item.getMinForce()
             bar.maxValue = item.getMaxForce()
@@ -62,6 +63,13 @@ class ThrusterPanel(wx.Panel):
         layout.AddGrowableRow(1)
         self.SetSizerAndFit(layout)
         
+    def _fixName(self, name):
+        name = name.replace('Thruster','')
+        name = name.replace('Starboard','Star')
+        name = name.replace('Bottom', 'Bot ')
+        name = name.replace('Aft', 'Aft ')
+        return name
+
     def _update(self, bar):
         def handler(event):
             bar.setVal(event.number)
@@ -97,10 +105,10 @@ class ThrusterPanel(wx.Panel):
                 paneInfo = paneInfo.Caption("Thrusters").Bottom()
         
                 paneInfoC = wx.aui.AuiPaneInfo().Name("TCurrents")   
-                paneInfoC = paneInfo.Caption("Thrusters Currents").Bottom()
+                paneInfoC = paneInfoC.Caption("Thrusters Currents").Bottom()
         
                 panel = ThrusterPanel(parent, eventHub, thrusters)
-                panelC = ThrusterCurrentPanel(parent, eventHub, [])
+                panelC = ThrusterCurrentPanel(parent, eventHub, thrusters)
                 return [(paneInfo, panel, [vehicle]),
                         (paneInfoC, panelC, [vehicle])]
             
@@ -376,7 +384,7 @@ class ThrusterCurrentPanel(BarDisplayPanel):
         return ThrusterCurrentDisplay(parent = self, eventHub = eventHub,
                                       thruster = sensor, sizer = sizer, 
                                       lineNum = lineNum)
-    
+
 class PowerSourcePanel(BarDisplayPanel):
     implements(IPanelProvider)
     
