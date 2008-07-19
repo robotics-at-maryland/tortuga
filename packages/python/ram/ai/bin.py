@@ -86,9 +86,11 @@ class HoveringState(state.State):
         ensureBinTracking(self.queuedEventHub, self.ai)
         
         self._bin = ram.motion.common.Target(0,0)
+        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
         motion = ram.motion.common.Hover(target = self._bin,
                                          maxSpeed = 5,
-                                         maxSidewaysSpeed = 3)
+                                         maxSidewaysSpeed = 3,
+                                         sidewaysSpeedGain = sidewaysSpeedGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):
