@@ -245,11 +245,15 @@ def _get_internal_lib(env, name):
             'thruster' : InternalLibrary('thruster', int_deps = [],
                                          ext_deps = []),
 
+            'bfin_spartan' : InternalLibrary('bfin_spartan', int_deps = [],
+                                             ext_deps = []),
+
             'math' : InternalLibrary('math', int_deps = [],
                                      ext_deps = []),
 
-            'sonar' : InternalLibrary('sonar', int_deps = [],
-                                       ext_deps = []),
+            'sonar' : InternalLibrary('sonar',
+                                      int_deps = ['math', 'bfin_spartan'],
+                                      ext_deps = []),
 
             'network' : InternalLibrary('network', int_deps = ['core'],
                                         ext_deps = []),
