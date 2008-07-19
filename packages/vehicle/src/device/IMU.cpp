@@ -23,7 +23,7 @@
 #include "math/include/Vector3.h"
 #include "math/include/Matrix3.h"
 
-#include "imu/include/imuapi.h"
+#include "drivers/imu/include/imuapi.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("IMU"));
 

@@ -61,10 +61,10 @@ def get_features():
         add_feature('vision_tools',
                 opt_dirs = {'vision' : ['tools/vision_viewer']} )
     
-        add_feature('drivers', dirs = ['packages/sensorapi-r5',
-                                       'packages/thrusterapi',
-                                       'packages/imu',
-                                       'packages/carnetix'])
+        add_feature('drivers', dirs = ['packages/drivers/sensor-r5',
+                                       'packages/drivers/thruster',
+                                       'packages/drivers/imu',
+                                       'packages/drivers/carnetix'])
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',
                                            'tools/BiasFinder'])

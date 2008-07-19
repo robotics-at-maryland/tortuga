@@ -12,7 +12,7 @@
 
 // Project Includes
 #include "vehicle/include/device/PSU.h"
-#include "carnetix/include/ctxapi.h"
+#include "drivers/carnetix/include/ctxapi.h"
 
 namespace ba = boost::assign;
 

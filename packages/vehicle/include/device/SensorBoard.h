@@ -24,7 +24,7 @@
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/AveragingFilter.h"
 
-#include "sensorapi-r5/include/sensorapi.h"
+#include "drivers/sensor-r5/include/sensorapi.h"
 
 namespace ram {
 namespace vehicle {

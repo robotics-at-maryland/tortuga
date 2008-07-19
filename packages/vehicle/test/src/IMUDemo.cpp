@@ -16,10 +16,13 @@
 
 // Project Includes
 #include "vehicle/include/device/IMU.h"
+
 #include "core/include/ConfigNode.h"
 #include "core/include/AveragingFilter.h"
-#include "imu/include/imuapi.h"
+
 #include "math/include/Quaternion.h"
+
+#include "drivers/imu/include/imuapi.h"
 
 using namespace ram::math;
 using namespace ram::core;

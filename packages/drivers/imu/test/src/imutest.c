@@ -13,7 +13,7 @@
 #include <math.h>
 
 // Project Includes
-#include "imu/include/imuapi.h"
+#include "drivers/imu/include/imuapi.h"
 
 int main(int argc, char ** argv)
 {
