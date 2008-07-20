@@ -9,6 +9,7 @@
 #include <UnitTest++/UnitTest++.h>
 #include <cstdlib>
 
+#include "Sonar.h"
 #include "spectrum/SDFTSpectrum.h"
 #include "spectrum/SparseSDFTSpectrum.h"
 

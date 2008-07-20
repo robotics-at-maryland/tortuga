@@ -60,7 +60,7 @@ getDirEdge::~getDirEdge()
     delete temp_calc;
     delete hydro_array;
     for(int j=0; j<NCHANNELS; j++)
-        delete data[j];
+        delete[] data[j];
 }
 
 int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
