@@ -43,7 +43,7 @@ envt = envb.Clone()
 conf = envt.Configure()
 envt.Append(LIBPATH = ['/opt/local/lib'], CPPPATH = ['/opt/local/include'])
 if conf.CheckLib('fftw3', language='C++', autoadd=1):
-    sources = env.Glob('src/test/src', '*.cpp')
+    sources = env.Glob('test/src', '*.cpp')
     envt = conf.Finish()
     envt.Tests(int_deps = 'sonar', source = sources)
 
