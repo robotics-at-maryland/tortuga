@@ -41,6 +41,7 @@
 /*#include "SparseSDFTSpectrum.h"
 #include "pingDetect.h"
 #include "getPingChunk.h"*/
+#define logfile cout
 
 
 using namespace ram::sonar;
@@ -48,7 +49,7 @@ using namespace ram::math;
 using namespace std;
 
 void sleepTillPing(struct timeval *start_time, int point_num);
-void getDataset(dataset *dataSet, int length);
+dataset* getDataset(dataset *dataSet, int length);
 
 int main(int argc, char* argv[])
 {
@@ -57,23 +58,22 @@ int main(int argc, char* argv[])
     int ping_found;
     int do_loop=0;
     int loop_counter=0;
-    ofstream logfile("sonar_logfile.log");
+    //ofstream logfile("sonar_logfile.log");
     struct timeval start_time;
     getDirEdge edge_detector;
 
     //Initialize the communication port to the main cpu
-    //int fd=openDevice();
-    int fd=0;
+    int fd=openDevice();
 
     //Get the starting time
     gettimeofday(&start_time, NULL);
-                    //cout<<"Start:"<<start_time.tv_sec<<" "<<start_time.tv_usec<<endl;
+    cout<<"Starting\n";
 
     //First, load the initial dataset
     if(argc == 1)
     {
-        getDataset(dataSet, LARGE_DATASET);
-        do_loop=1; //infinite loop, since I am running off the hydrophones
+        dataSet=getDataset(dataSet, LARGE_DATASET);
+        //do_loop=1; //infinite loop, since I am running off the hydrophones
     }
     else
     {
@@ -85,9 +85,8 @@ int main(int argc, char* argv[])
     {
         if(loop_counter!=0) //already loaded the dataset for the first run
         {
-            getDataset(dataSet, SMALL_DATASET);
+            dataSet=getDataset(dataSet, SMALL_DATASET);
             gettimeofday(&start_time, NULL);
-                    //cout<<"Start:"<<start_time.tv_sec<<" "<<start_time.tv_usec<<endl;
         }
 
         if(dataSet == NULL)
@@ -108,42 +107,51 @@ int main(int argc, char* argv[])
                 sleepTillPing(&start_time, ping.point_num);
 
                 //Now, send data to the main computer
-                /*reportPing(fd,
+                reportPing(fd,
                         0,
                         ping.direction[0],
                         ping.direction[1],
                         ping.direction[2],
                         (uint16_t) ping.distance,
                         (uint32_t) start_time.tv_sec,
-                        (uint32_t) start_time.tv_usec);*/
+                        (uint32_t) start_time.tv_usec);
                 cout<<"Sending "<<fd<<" "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<" "<<(uint16_t) ping.distance<<" "<<" "<<(uint32_t) start_time.tv_sec<<" "<<(uint32_t) start_time.tv_usec<<endl;
+                cout<<"Yaw: "<<180/M_PI*atan2(ping.direction[0],ping.direction[1])<<endl;
             }
         }
         loop_counter++;
     }while(do_loop);
 
-    logfile.close();
-    //closeDevice(fd);
+    closeDevice(fd);
     destroyDataset(dataSet);
 
     return 0;
 }
 
-void getDataset(dataset *dataSet, int length)
+dataset* getDataset(dataset *dataSet, int length)
 {
     if(dataSet==NULL)
+    {
+        cout<<"Making new "<<length<<endl;
         dataSet = createDataset(length);
+    }
     else
         if(dataSet->size != length)
         {
+            cout<<"Killing old "<<dataSet->size<<endl;
             destroyDataset(dataSet); //delete the previous one to change length
+            cout<<"Making new "<<length<<endl;
             dataSet = createDataset(length);
+            cout<<"Made new "<<dataSet->size<<endl;
         }
 
-
     greenLightOn();
+    cout<<"Capturing samples "<<length<<endl;
     captureSamples(dataSet);
+    cout<<"Done Capturing samples "<<dataSet->size<<endl;
     greenLightOff();
+
+    return dataSet;
 }
 
 /* Calculates how long the program needs to sleep based on the time of ping,

@@ -43,7 +43,7 @@ template<class T>
 
 //===============PINGER/SOUND PROPERTIES============
 static const int SPEED_OF_SOUND = 1500; //m/s
-static const int NOMINAL_PING_DELAY = 2000; //ms, delay between pings
+static const int NOMINAL_PING_DELAY = 1000; //ms, delay between pings
 static const double frequencyOfInterest = 25000;
 
 //===============PRACTICE PINGER (RED HERRING) PROPERTIES==============
@@ -72,7 +72,7 @@ static const int kBands[]= {kBandOfInterest, kBandRedHerring}; //Kbands relevant
 //---------------PING DETECTOR SETTINGS---------------
 static const int PING_DETECT_FRAME=200; //pts.,  size of frames to do max/mins over
 static const int LARGE_DATASET=int(1.25*NOMINAL_PING_DELAY*SAMPRATE/1000); //pts., size of dataset acquired to find the first ping
-static const int SMALL_DATASET=int(0.2*NOMINAL_PING_DELAY*SAMPRATE/1000+DFT_FRAME); //pts., datasets acquired once we know the approximate ping position
+static const int SMALL_DATASET=int(1.25*NOMINAL_PING_DELAY*SAMPRATE/1000);//+DFT_FRAME); //pts., datasets acquired once we know the approximate ping position
 static const int PD_THRESHOLDS[]={30,30,30,30}; //thresholds for ping detection on each channel, ratios of signal to noise
 static const int ENV_CALC_FRAME=1024; //the length of the piece that is extracted for calculating the ping more precisely
 
