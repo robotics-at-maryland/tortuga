@@ -60,7 +60,7 @@ CREATED_LIBRARIES = set()
 
 def SharedLibrary(env, name, _source, **kwargs):
     """
-    Simple helper function to all easier building of shared libraries that
+    Simple helper function to allow easier building of shared libraries that
     integrate with the rest of the build system.
     """
     
