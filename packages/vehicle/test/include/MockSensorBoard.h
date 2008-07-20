@@ -113,7 +113,7 @@ public:
         publish(ram::vehicle::device::SensorBoard::THRUSTER_UPDATE, event);
     }
 
-    void publicSonarUpdate(ram::math::Vector3 direction, int range,
+    void publishSonarUpdate(ram::math::Vector3 direction, int range,
                             int sec, int usec)
     {
         ram::vehicle::SonarEventPtr event(

@@ -17,6 +17,9 @@
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/ISonar.h"
 
+#include "core/include/ConfigNode.h"
+#include "core/include/ReadWriteMutex.h"
+
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
@@ -43,9 +46,11 @@ public:
 
     virtual double getRange();
     
-    virtual core::TimeVal pingTime();
+    virtual core::TimeVal getPingTime();
 
     // Not used updatable stuff
+
+    virtual std::string getName() { return Device::getName(); }
     
     virtual void update(double timestep) {}
 

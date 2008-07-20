@@ -62,7 +62,7 @@ double SBSonar::getRange()
     return m_range;
 }
     
-core::TimeVal SBSonar::pingTime()
+core::TimeVal SBSonar::getPingTime()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_pingTime;
