@@ -31,7 +31,7 @@ class pingDetect
     int numchan; //number of channels actually used
     int count; //counts how many samples were received since last update
     int detected; //stores the hydrophones that detected the ping
-    adcmath_t currmax[NCHANNELS]; //current maximum value
+    adcmath_t currmax[NCHANNELS][nKBands]; //current maximum value
     adcmath_t minmax[NCHANNELS]; //minima over the frames
     int threshold[NCHANNELS]; //thresholds for detecting the pings
     int ping_detect_frame; //the width of frames over which the max is calculated

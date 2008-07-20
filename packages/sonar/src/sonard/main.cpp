@@ -112,6 +112,7 @@ int main(int argc, char* argv[])
             {
                 logfile<<"Vector from pinger: "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<endl;
 
+                dataset_size=SMALL_DATASET;
                 sleepTillPing(&start_time, ping.point_num);
 
                 //Now, send data to the main computer
@@ -125,7 +126,6 @@ int main(int argc, char* argv[])
                         (uint32_t) start_time.tv_usec);
                 cout<<"Sending "<<fd<<" "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<" "<<(uint16_t) ping.distance<<" "<<" "<<(uint32_t) start_time.tv_sec<<" "<<(uint32_t) start_time.tv_usec<<endl;
                 cout<<"Yaw: "<<180/M_PI*atan2(ping.direction[0],ping.direction[1])<<endl;
-                dataset_size=SMALL_DATASET;
             }
         }
         loop_counter++;

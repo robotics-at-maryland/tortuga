@@ -37,7 +37,8 @@ pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, 
     for(int k=0; k<numchan; k++)
     {
         threshold[k]=hydro_threshold[k];
-        currmax[k] = 0;
+        for(int i=0; i<nKBands; i++)
+            currmax[k][i] = 0;
         minmax[k] = adcmath_t(1) << 30;
     }
 }
@@ -56,7 +57,8 @@ void pingDetect::zero_values()
 
     for(int k=0; k<numchan; k++)
     {
-        currmax[k] = 0;
+        for(int i=0; i<nKBands; i++)
+            currmax[k][i] = 0;
         minmax[k] = adcmath_t(1) << 30;
     }
 }
@@ -74,15 +76,11 @@ pingDetect::p_update(adcdata_t *sample)
     spectrum.update(sample);
     for(int channel=0; channel<numchan; channel++)
     {
-        adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum.getAmplitudeForBinIndex(0,channel)));
-        if(temp>currmax[channel])
+        for (int kBand = 0 ; kBand < nKBands ; kBand ++)
         {
-            //bool firstBandIsLoudest = true;
-            //for (int kBand = 1 ; kBand < nKBands ; kBand ++)
-                //if (adcmath_t(fixed::magL1(spectrum.getAmplitudeForBinIndex(kBand, channel))) > temp)
-                    //firstBandIsLoudest = false;
-            //if (firstBandIsLoudest)
-                currmax[channel]=temp; //update the maximum
+            adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum.getAmplitudeForBinIndex(0,channel)));
+            if(temp>currmax[channel][kBand])
+                currmax[channel][kBand]=temp; //update the maximum
         }
     }
 
@@ -92,11 +90,19 @@ pingDetect::p_update(adcdata_t *sample)
         count=0;
         for(int channel=0; channel<numchan; channel++)
         {
-            if(currmax[channel]<minmax[channel])
-                minmax[channel]=currmax[channel];
-            else if(currmax[channel] > (threshold[channel]*minmax[channel]))
-                detected += (1 << channel); //Adds 1 for channel 1, 2 for 2, 4 for 3, 8 for 4
-            currmax[channel]=0; //reset max, so that it works with the update max for loop
+            if(currmax[channel][0]<minmax[channel])
+                minmax[channel]=currmax[channel][0];
+            else if(currmax[channel][0] > (threshold[channel]*minmax[channel]))
+            {
+                bool firstBandIsLoudest = true;
+                for (int kBand = 1 ; kBand < nKBands ; kBand ++)
+                    if (currmax[channel][kBand]>currmax[channel][0])
+                        firstBandIsLoudest = false;
+                if (firstBandIsLoudest)
+                    detected += (1 << channel); //Adds 1 for channel 1, 2 for 2, 4 for 3, 8 for 4
+            }
+            for (int kBand = 0 ; kBand < nKBands ; kBand ++)
+                currmax[channel][kBand]=0; //reset max, so that it works with the update max for loop
         }
     }
 

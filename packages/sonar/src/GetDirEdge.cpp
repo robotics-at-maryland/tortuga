@@ -36,7 +36,7 @@ using namespace ram::math;
 using namespace std;
 
 getDirEdge::getDirEdge()
-    : chunk(), tdoas(3,1), temp_calc(3,3), hydro_array(3,2), ping_matr(3,2)
+    : chunk(), tdoas(3,1), temp_calc(3,3), hydro_array(3,2), ping_matr(3,2), tdoa_errors(3,1)
 {
     for(int j=0; j<NCHANNELS; j++)
         data[j]=new adcdata_t [ENV_CALC_FRAME];
@@ -45,7 +45,7 @@ getDirEdge::getDirEdge()
         for(int j=0; j<2; j++)
             hydro_array[i][j]=hydroPlanarArray[i][j];
 
-    //do inv(H'*H)*H
+    //do inv(H'*H)*H'
     temp_calc=hydro_array.transpose()*hydro_array;
     temp_calc.invert();
     temp_calc=temp_calc*hydro_array.transpose();
@@ -67,6 +67,7 @@ void getDirEdge::zero_values()
         abstotal[i]=0;
         pingpoints[i]=0;
     }
+    fit_error=0;
 }
     
 int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
@@ -98,7 +99,7 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
                 pingpoints[i]=locations[i]+j;
                 break;
             }
-        cout<<"Positions "<<i<<" "<<pingpoints[i]<<endl;
+        //cout<<"Positions "<<i<<" "<<pingpoints[i]<<endl;
     }
 
     if((pingpoints[0]==0) ||
@@ -111,13 +112,37 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
         tdoas[i][0]=(SPEED_OF_SOUND* double(pingpoints[i+1]-pingpoints[0]))/SAMPRATE;
 
     ping_matr=temp_calc*tdoas;
+    tdoa_errors=hydro_array*ping_matr-tdoas;
+
+    for(int i=0; i<NCHANNELS-1; i++)
+        fit_error+=tdoa_errors[i][0]*tdoa_errors[i][0];
+
+    cout<<"Fit error: "<<fit_error<<endl;
+    if(fit_error > PING_FIT_THRESHOLD)
+    {
+        cout<<"BAD FIT\n";
+        return 0;
+    }
 
     //Fill in the sonar ping
     for(int i=0; i<2; i++)
         ping->direction[i]=ping_matr[i][0];
     
     //force it to be positive, since we know that the pinger is below
-    ping->direction[2]=std::sqrt(1-ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1]);
+    
+    double temp=ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1];
+    if(temp > 1)
+    {
+        if(temp>VECTOR_QUAL_THRESHOLD)
+        {
+            cout<<"BAD VECTOR\n";
+            return 0;
+        }
+        else
+            ping->direction[2]=0;
+    }
+    else
+        ping->direction[2]=std::sqrt(1-temp);
 
     ping->point_num=pingpoints[0];
     ping->distance=0;

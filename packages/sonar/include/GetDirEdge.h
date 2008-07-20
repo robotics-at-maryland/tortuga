@@ -35,6 +35,8 @@ class getDirEdge {
     math::MatrixN temp_calc; //A matrix for temporary calculations
     math::MatrixN hydro_array; //A matrix for storing the hydro array
     math::MatrixN ping_matr; //A final calculated matrix multiplying the tdoas
+    math::MatrixN tdoa_errors; //A final calculated matrix multiplying the tdoas
+    float fit_error;
 
     void zero_values();
     public:

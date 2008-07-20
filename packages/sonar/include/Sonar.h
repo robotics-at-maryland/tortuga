@@ -61,6 +61,7 @@ static const double hydroPlanarArray[3][2] =  //m, coordinate of hydrophones wit
     {0.4568, 0.403}		//hydrophone 3  {x, y}
 };
 
+
 //================PROGRAM SETTINGS=================
 //-----------------DFT SETTINGS----------------------
 static const int DFT_FRAME=500; //pts., size of interval to do fourier over
@@ -75,6 +76,8 @@ static const int LARGE_DATASET=int(1.25*NOMINAL_PING_DELAY*SAMPRATE/1000); //pts
 static const int SMALL_DATASET=int(1.25*NOMINAL_PING_DELAY*SAMPRATE/1000);//+DFT_FRAME); //pts., datasets acquired once we know the approximate ping position
 static const int PD_THRESHOLDS[]={30,30,30,30}; //thresholds for ping detection on each channel, ratios of signal to noise
 static const int ENV_CALC_FRAME=1024; //the length of the piece that is extracted for calculating the ping more precisely
+static const float PING_FIT_THRESHOLD=0.05;
+static const float VECTOR_QUAL_THRESHOLD=1.2;
 
 } // namespace sonar
 } // namespace ram
