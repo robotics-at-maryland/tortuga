@@ -144,38 +144,50 @@ void IMU::update(double timestep)
             linearAcceleration[0] = m_filteredAccelX.getValue();
             linearAcceleration[1] = m_filteredAccelY.getValue();
             linearAcceleration[2] = m_filteredAccelZ.getValue();
+	    Vector3 linAccel(m_filteredAccelX.getValue(),
+			     m_filteredAccelY.getValue(),
+			     m_filteredAccelZ.getValue()); 
             
             magnetometer[0] = m_filteredMagX.getValue();
             magnetometer[1] = m_filteredMagY.getValue();
             magnetometer[2] = m_filteredMagZ.getValue();
+	    Vector3 mag(m_filteredMagX.getValue(),
+			m_filteredMagY.getValue(),
+			m_filteredMagZ.getValue());
 
+	    Vector3 angRate(m_filteredGyroX.getValue(),
+			    m_filteredGyroY.getValue(),
+			    m_filteredGyroZ.getValue());
 //            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
 //                   magnetometer[1], magnetometer[2]);
 
             double quaternion[4] = {0,0,0,1};
             {
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
+
+		//m_orientation = computeQuaternion(mag, linAccel, angRate,
+		//				  timestep, m_orientation);
                 
-				double magLength;
-				magLength = magnitude3x1(magnetometer);
-				double difference;
-				difference = magLength-m_magNominalLength;
-				difference = fabs(difference);
+		double magLength;
+		magLength = magnitude3x1(magnetometer);
+		double difference;
+		difference = magLength-m_magNominalLength;
+		difference = fabs(difference);
 				
-				if(difference < m_magCorruptThresh){
-				  quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
-				}else{
-				  double quaternionOld[4] = {0,0,0,0};
-				  quaternionOld[0] = m_orientation.x;
-				  quaternionOld[1] = m_orientation.y;
-				  quaternionOld[2] = m_orientation.z;
-				  quaternionOld[3] = m_orientation.w;
-				  double angRate[3] = {0,0,0};
-				  angRate[0] = m_filteredGyroX.getValue();
-				  angRate[1] = m_filteredGyroY.getValue();
-				  angRate[2] = m_filteredGyroZ.getValue();
-				  quaternionFromRate(quaternionOld, angRate, timestep, quaternion);
-				}
+		if(difference < m_magCorruptThresh){
+		  quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
+		}else{
+		  double quaternionOld[4] = {0,0,0,0};
+		  quaternionOld[0] = m_orientation.x;
+		  quaternionOld[1] = m_orientation.y;
+		  quaternionOld[2] = m_orientation.z;
+		  quaternionOld[3] = m_orientation.w;
+		  double omega[3] = {0,0,0};
+		  omega[0] = m_filteredGyroX.getValue();
+		  omega[1] = m_filteredGyroY.getValue();
+		  omega[2] = m_filteredGyroZ.getValue();
+		  quaternionFromRate(quaternionOld, omega, timestep, quaternion);
+		}
 
 				
 				
@@ -386,7 +398,43 @@ void IMU::quaternionFromRate(double* quaternionOld,
 	quaternionNew[3]=qNew.w;
 	
 }
-    
+ 
+
+/*
+ */
+Quaternion IMU::computeQuaternion(Vector3 mag, Vector3 accel,
+				  Vector3 angRate,
+				  double deltaT,
+				  Quaternion quaternionOld){
+  Quaternion dummy(0,0,0,1);
+  double magLength;
+  magLength = mag.length();
+  double difference;
+  difference = magLength-m_magNominalLength;
+  difference = fabs(difference);
+				
+  if(difference < m_magCorruptThresh){
+    // should update quaternionFromIMU to take OGRE arguments instead of 
+    // double arrays
+    //    quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
+  }else{
+    double quaternionOld[4] = {0,0,0,0};
+    quaternionOld[0] = m_orientation.x;
+    quaternionOld[1] = m_orientation.y;
+    quaternionOld[2] = m_orientation.z;
+    quaternionOld[3] = m_orientation.w;
+    double omega[3] = {0,0,0};
+    omega[0] = m_filteredGyroX.getValue();
+    omega[1] = m_filteredGyroY.getValue();
+    omega[2] = m_filteredGyroZ.getValue();
+    // should update quaternionFromRate to take OGRE arguments instead of
+    // double arrays
+    //    quaternionFromRate(quaternionOld, angRate, deltaT, dummy);
+  }
+
+  return dummy;
+}
+   
 } // namespace device
 } // namespace vehicle
 } // namespace ram
