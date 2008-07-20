@@ -107,9 +107,12 @@ public:
     /** Gets the current desired orientation */
     virtual math::Quaternion getDesiredOrientation() = 0;
     
+    /** Return to the home orientation */
+    virtual inline void setHomeOrientation() { setDesiredOrientation(math::Quaternion::IDENTITY); }
+	
     /** Sets the current desired orientation */
     virtual void setDesiredOrientation(math::Quaternion) = 0;
-	
+    
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
 
