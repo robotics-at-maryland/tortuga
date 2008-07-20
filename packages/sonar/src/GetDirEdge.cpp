@@ -130,7 +130,7 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
     
     //force it to be positive, since we know that the pinger is below
     
-    double temp=ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1];
+    double temp=ping->direction[0]*ping->direction[0]+ping->direction[1]*ping->direction[1];
     if(temp > 1)
     {
         if(temp>VECTOR_QUAL_THRESHOLD)

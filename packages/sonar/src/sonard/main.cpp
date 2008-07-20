@@ -66,6 +66,8 @@ int main(int argc, char* argv[])
     //Initialize the communication port to the main cpu
     int fd=openDevice();
 
+    
+
     //Get the starting time
     gettimeofday(&start_time, NULL);
     cout<<"Starting\n";
@@ -74,7 +76,7 @@ int main(int argc, char* argv[])
     if(argc == 1)
     {
         dataSet=getDataset(dataSet, dataset_size);
-        //do_loop=1; //infinite loop, since I am running off the hydrophones
+        do_loop=1; //infinite loop, since I am running off the hydrophones
     }
     else
     {
@@ -116,7 +118,7 @@ int main(int argc, char* argv[])
                 sleepTillPing(&start_time, ping.point_num);
 
                 //Now, send data to the main computer
-                reportPing(fd,
+                int r = reportPing(fd,
                         0,
                         ping.direction[0],
                         ping.direction[1],
@@ -124,6 +126,8 @@ int main(int argc, char* argv[])
                         (uint16_t) ping.distance,
                         (uint32_t) start_time.tv_sec,
                         (uint32_t) start_time.tv_usec);
+                cout<<"Report return code was "<<r<<endl;
+
                 cout<<"Sending "<<fd<<" "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<" "<<(uint16_t) ping.distance<<" "<<" "<<(uint32_t) start_time.tv_sec<<" "<<(uint32_t) start_time.tv_usec<<endl;
                 cout<<"Yaw: "<<180/M_PI*atan2(ping.direction[0],ping.direction[1])<<endl;
             }
@@ -180,7 +184,7 @@ void sleepTillPing(struct timeval *start_time, int point_num)
 
     //Figure out the time at which the ping happened
     timeradd((start_time),(&temp),(start_time));
-    //cout<<"Ping happened: "<<start_time->tv_sec<<" "<<start_time->tv_usec<<endl;
+    cout<<"Ping happened: "<<start_time->tv_sec<<" "<<start_time->tv_usec<<endl;
 
     //Figure out what time it is
     gettimeofday(&curr_time,NULL);
@@ -205,7 +209,7 @@ void sleepTillPing(struct timeval *start_time, int point_num)
     //select() sleeps for the time I have left to sleep, so I need to subtract the current time 
     //cout<<"Sleeping till: "<<temp.tv_sec<<" "<<temp.tv_usec<<endl;
     timersub(&temp, &curr_time, &temp);
-    //cout<<"Sleeping"<<temp.tv_sec<<" "<<temp.tv_usec<<endl;
+    cout<<"Sleeping"<<temp.tv_sec<<" "<<temp.tv_usec<<endl;
     //select(0,NULL,NULL,NULL,&temp);
     gettimeofday(&temp,NULL);
     //cout<<"Curr. time"<<temp.tv_sec<<" "<<temp.tv_usec<<endl;
