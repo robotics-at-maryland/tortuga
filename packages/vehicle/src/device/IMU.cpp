@@ -160,7 +160,7 @@ void IMU::update(double timestep)
 				magLength = magnitude3x1(magnetometer);
 				double difference;
 				difference = magLength-m_magNominalLength;
-				difference = abs(difference);
+				difference = fabs(difference);
 				
 				if(difference < m_magCorruptThresh){
 				  quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
