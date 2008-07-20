@@ -29,6 +29,39 @@ import ram.motion as motion
 import ram.motion.search
 import ram.motion.pipe
 
+class PipeFollowingState(state.State):
+    @staticmethod
+    def transitions(myState, trans = None):
+        if trans is None:
+            trans = {}
+        trans.update({vision.EventType.PIPE_LOST : Searching,
+                      vision.EventType.PIPE_FOUND : myState})
+        return trans
+    
+    def PIPE_FOUND(self, event):
+        """Update the state of the light, this moves the vehicle"""
+        self._pipe.setState(event.x, event.y, event.angle)
+
+    def enter(self):
+        self._pipe = ram.motion.pipe.Pipe(0,0,0)
+
+        speedGain = self._config.get('speedGain', 5)
+        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
+        yawGain = self._config.get('yawGain', 1)
+        maxSpeed = self._config.get('forwardSpeed', 5)
+        
+        motion = ram.motion.pipe.Hover(pipe = self._pipe,
+                                       maxSpeed = maxSpeed,
+                                       maxSidewaysSpeed = 3,
+                                       sidewaysSpeedGain = sidewaysSpeedGain,
+                                       speedGain = speedGain,
+                                       yawGain = yawGain)
+        self.motionManager.setMotion(motion)
+
+    def exit(self):
+        #print '"Exiting Seek, going to follow"'
+        self.motionManager.stopCurrentMotion()
+
 class Searching(state.State):
     """When the vehicle is looking for a pipe"""
     @staticmethod
@@ -50,30 +83,15 @@ class Searching(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class Seeking(state.State):
+class Seeking(PipeFollowingState):
     """When the vehicle is moving over the found pipe"""
+    
     @staticmethod
     def transitions():
-        return { vision.EventType.PIPE_LOST : Searching,
-                 vision.EventType.PIPE_FOUND : Seeking,
-                 vision.EventType.PIPE_CENTERED : Centering }
+        return PipeFollowingState.transitions(Seeking,
+            { vision.EventType.PIPE_CENTERED : Centering })
 
-    def PIPE_FOUND(self, event):
-        """Update the state of the light, this moves the vehicle"""
-        self._pipe.setState(event.x, event.y, event.angle)
-
-    def enter(self):
-        self._pipe = ram.motion.pipe.Pipe(0,0,0)
-        motion = ram.motion.pipe.Hover(pipe = self._pipe,
-                                       maxSpeed = 5,
-                                       maxSidewaysSpeed = 3)
-        self.motionManager.setMotion(motion)
-
-    def exit(self):
-        #print '"Exiting Seek, going to follow"'
-        self.motionManager.stopCurrentMotion()
-
-class Centering(state.State):
+class Centering(PipeFollowingState):
     """
     When the vehicle is settling over the pipe
     
@@ -83,30 +101,21 @@ class Centering(state.State):
     
     @staticmethod
     def transitions():
-        return { vision.EventType.PIPE_LOST : Searching,
-                 vision.EventType.PIPE_FOUND : Centering,
-                 Centering.SETTLED : AlongPipe }
-    
-    def PIPE_FOUND(self, event):
-        """Update the state of the light, this moves the vehicle"""
-        self._pipe.setState(event.x, event.y, event.angle)
+        return PipeFollowingState.transitions(Centering,
+            { Centering.SETTLED : AlongPipe })
 
     def enter(self):
         self.timer = self.timerManager.newTimer(Centering.SETTLED, 5)
         self.timer.start()
         
-        self._pipe = ram.motion.pipe.Pipe(0,0,0)
-        motion = ram.motion.pipe.Hover(pipe = self._pipe,
-                                       maxSpeed = 5,
-                                       maxSidewaysSpeed = 3)
-        self.motionManager.setMotion(motion)
+        PipeFollowingState.enter(self)
 
     def exit(self):
         #print '"Exiting Seek, going to follow"'
-        self.motionManager.stopCurrentMotion()
+        PipeFollowingState.exit(self)
         self.timer.stop()
 
-class AlongPipe(state.State):
+class AlongPipe(PipeFollowingState):
     """
     When the vehicle is following along a visible pipe
     """
@@ -130,18 +139,22 @@ class AlongPipe(state.State):
         self._lastPipeLoc = newPipeLoc
         
         # Update the targets state
-        angle = 0
+        angle = ext.math.Degree(0)
         if event.x < 0.5 and event.y < 0.5:
             angle = event.angle
-        self._pipe.setState(event.x, event.y, angle)
+        event.angle = angle
+        PipeFollowingState.PIPE_FOUND(self, event)
 
     def enter(self):
         """Makes the vehicle follow along line outlined by the pipe"""
         self._lastPipeLoc = None
+        
         self._pipe = ram.motion.pipe.Pipe(0,0,0)
+        maxSpeed = self._config.get('forwardSpeed', 5)
         motion = ram.motion.pipe.Follow(pipe = self._pipe,
-                                       maxSpeed = self._config.get('forwardSpeed', 5),
-                                       maxSidewaysSpeed = 3)
+                                        speedGain = 5,
+                                        maxSpeed = maxSpeed,
+                                        maxSidewaysSpeed = 3)
         self.motionManager.setMotion(motion)
 
     def exit(self):
