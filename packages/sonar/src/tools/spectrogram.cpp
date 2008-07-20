@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	SDFTSpectrum<adctype<16>, N, 1> spectrum;
+	SDFTSpectrum<adc<16>, N, 1> spectrum;
 	
 	adcdata_t sample[nChannels];
 	int64_t L1[N];

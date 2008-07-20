@@ -27,7 +27,7 @@ using namespace ram::sonar;
  */
 pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame)
 {
-    spectrum=new SparseSDFTSpectrum<adctype<16>, DFT_FRAME, NCHANNELS,
+    spectrum=new SparseSDFTSpectrum<adc<16>, DFT_FRAME, NCHANNELS,
         nKBands>(bands);
     numchan=nchan;
     ping_detect_frame=p_detect_frame;
@@ -61,7 +61,7 @@ pingDetect::p_update(adcdata_t *sample)
     spectrum->update(sample);
     for(int channel=0; channel<numchan; channel++)
     {
-        adctype<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum->getAmplitudeForBinIndex(0,channel)));
+        adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum->getAmplitudeForBinIndex(0,channel)));
         if(temp>currmax[channel])
 		{
 			bool firstBandIsLoudest = true;

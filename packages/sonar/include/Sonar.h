@@ -25,8 +25,8 @@ namespace ram {
 namespace sonar {
 
 
-typedef adctype<16>::SIGNED adcdata_t;
-typedef adctype<16>::DOUBLE_WIDE::SIGNED adcmath_t;
+typedef adc<16>::SIGNED adcdata_t;
+typedef adc<16>::DOUBLE_WIDE::SIGNED adcmath_t;
 typedef int32_t adcsampleindex_t;
 
 

@@ -26,8 +26,8 @@ TEST(SparseSDFTSpectrumGivesSameResultsAsDense)
 	
 	//	Large array of random inputs
 	
-	SDFTSpectrum<adctype<16>, N, nChannels> spectrum;
-	SparseSDFTSpectrum<adctype<16>, N, nChannels, nKBands> sparseSpectrum(kBands);
+	SDFTSpectrum<adc<16>, N, nChannels> spectrum;
+	SparseSDFTSpectrum<adc<16>, N, nChannels, nKBands> sparseSpectrum(kBands);
 	
 	for (int i = 0 ; i < nSamples ; i ++)
 	{
