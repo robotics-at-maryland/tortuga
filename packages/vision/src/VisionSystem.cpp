@@ -66,10 +66,10 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
 void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 {
     if (!m_forwardCamera)
-        m_forwardCamera = CameraPtr(new OpenCVCamera(0, true));
+        m_forwardCamera = CameraPtr(new OpenCVCamera(1, true));
 
     if (!m_downwardCamera)
-        m_downwardCamera = CameraPtr(new OpenCVCamera(1, false));
+        m_downwardCamera = CameraPtr(new OpenCVCamera(0, false));
 
     // Read int as bool
     m_testing = config["testing"].asInt(0) != 0;
