@@ -56,8 +56,9 @@ int main(int argc, char* argv[])
     struct dataset * dataSet = NULL;
     sonarPing ping;
     int ping_found;
-    int do_loop=0;
+    int do_loop=1; //whether to continue the main loop or not
     int loop_counter=0;
+    int dataset_size=LARGE_DATASET; //to control the size of the next data set collected
     //ofstream logfile("sonar_logfile.log");
     struct timeval start_time;
     getDirEdge edge_detector;
@@ -72,7 +73,7 @@ int main(int argc, char* argv[])
     //First, load the initial dataset
     if(argc == 1)
     {
-        dataSet=getDataset(dataSet, LARGE_DATASET);
+        dataSet=getDataset(dataSet, dataset_size);
         //do_loop=1; //infinite loop, since I am running off the hydrophones
     }
     else
@@ -85,7 +86,7 @@ int main(int argc, char* argv[])
     {
         if(loop_counter!=0) //already loaded the dataset for the first run
         {
-            dataSet=getDataset(dataSet, SMALL_DATASET);
+            dataSet=getDataset(dataSet, dataset_size);
             gettimeofday(&start_time, NULL);
         }
 
@@ -93,13 +94,20 @@ int main(int argc, char* argv[])
         {
             logfile<<"Could not load dataset!\n";
             //but maybe I'll get luckier the next time?
+            dataset_size=LARGE_DATASET;
         }
         else
         {
             if((ping_found=edge_detector.getEdge(&ping, dataSet))==0)
+            {
                 logfile<<"No ping found\n";
+                dataset_size=LARGE_DATASET;
+            }
             else if(ping_found!=1)
+            {
                 logfile<<"Error finding ping \n"<<ping_found<<endl;
+                dataset_size=LARGE_DATASET;
+            }
             else 
             {
                 logfile<<"Vector from pinger: "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<endl;
@@ -117,6 +125,7 @@ int main(int argc, char* argv[])
                         (uint32_t) start_time.tv_usec);
                 cout<<"Sending "<<fd<<" "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<" "<<(uint16_t) ping.distance<<" "<<" "<<(uint32_t) start_time.tv_sec<<" "<<(uint32_t) start_time.tv_usec<<endl;
                 cout<<"Yaw: "<<180/M_PI*atan2(ping.direction[0],ping.direction[1])<<endl;
+                dataset_size=SMALL_DATASET;
             }
         }
         loop_counter++;

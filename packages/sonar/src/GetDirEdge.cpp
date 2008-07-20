@@ -21,6 +21,9 @@
 
 #include "drivers/bfin_spartan/include/dataset.h"
 
+namespace ram {
+namespace sonar {
+
 adcdata_t myAbs(adcdata_t x)
 {
 	if (x < 0)
@@ -28,9 +31,6 @@ adcdata_t myAbs(adcdata_t x)
 	else
 		return x;
 }
-
-namespace ram {
-namespace sonar {
 
 using namespace ram::math;
 using namespace std;
