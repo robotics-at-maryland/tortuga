@@ -29,8 +29,8 @@ class RAM_EXPORT ISonar : public IDevice  // For getName
              // boost::noncopyable
 {
 public:
-    /** Generated when we get a new ping */
-    static const core::Event::EventType DIRECTION_UPDATE;
+    /** Generated when we get a new ping (ram::vehicle::SonarEvent) */
+    static const core::Event::EventType UPDATE;
     
     virtual ~ISonar();
 

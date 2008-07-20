@@ -10,7 +10,7 @@
 // Project Includes
 #include "vehicle/include/device/ISonar.h"
 
-RAM_CORE_EVENT_TYPE(ram::vehicle::device::ISonar, DIRECTION_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::ISonar, UPDATE);
 
 namespace ram {
 namespace vehicle {

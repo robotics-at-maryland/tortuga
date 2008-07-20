@@ -21,8 +21,6 @@
 
 #include "core/include/EventConnection.h"
 
-#include "math/include/Events.h"
-
 //#include "drivers/sensor-r5/include/sensorapi.h"
 
 namespace ram {
@@ -84,9 +82,7 @@ void SBSonar::onSonarUpdate(core::EventPtr event)
     }
 
     // Send event telling everyone the new pinger direction
-    math::Vector3EventPtr vevent(new math::Vector3Event);
-    vevent->vector3 = sonarEvent->direction;
-    publish(ISonar::DIRECTION_UPDATE, vevent);
+    publish(ISonar::UPDATE, sonarEvent);
 }
     
 } // namespace device
