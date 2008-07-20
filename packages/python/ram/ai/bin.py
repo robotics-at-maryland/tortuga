@@ -80,7 +80,7 @@ class HoveringState(state.State):
         """Update the state of the light, this moves the vehicle"""
         # Only listen to the current bin ID
         if self._currentBin(event):
-            self._bin.setState(event.x, event.y, math.Degree(0))
+            self._bin.setState(event.x, event.y, event.angle)
 
     def enter(self):
         # Make sure we are tracking
@@ -89,12 +89,13 @@ class HoveringState(state.State):
         self._bin = ram.motion.pipe.Pipe(0,0,0)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
         speedGain = self._config.get('speedGain', 5)
+        yawGain = self._config.get('yawGain', 1)
         motion = ram.motion.pipe.Hover(pipe = self._bin,
                                        maxSpeed = 5,
                                        maxSidewaysSpeed = 3,
                                        sidewaysSpeedGain = sidewaysSpeedGain,
                                        speedGain = speedGain,
-                                       yawGain = 0)
+                                       yawGain = yawGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):
@@ -254,6 +255,12 @@ class SeekEnd(BinSortingState):
             {BinSortingState.CENTERED_ : SeekEnd, 
              SeekEnd.AT_END : Dive })
     
+    
+    def BIN_FOUND(self, event):
+        # Cancel out angle commands (we don't want to control orientation)
+        event.angle = math.Degree(0)
+        BinSortingState.BIN_FOUND(self, event)
+        
     def enter(self):
         # Keep the hover motion going
         BinSortingState.enter(self, BinSortingState.LEFT)
@@ -368,6 +375,7 @@ class SurfaceToMove(HoveringState):
     """
     Goes back to starting cruise depth we had before we started the bins
     """
+
     @staticmethod
     def transitions():
         return SettlingState.transitions(SurfaceToMove,
@@ -392,6 +400,11 @@ class NextBin(BinSortingState):
         return HoveringState.transitions(NextBin,
             {BinSortingState.CENTERED_ : Dive, 
              NextBin.AT_END : SurfaceToCruise })
+    
+    def BIN_FOUND(self, event):
+        # Cancel out angle commands (we don't want to control orientation)
+        event.angle = math.Degree(0)
+        BinSortingState.BIN_FOUND(self, event)
     
     def enter(self):
         # Keep the hover motion going

@@ -12,6 +12,7 @@ import unittest
 import ram.ai.bin as bin
 import ext.core as core
 import ext.vision as vision
+import ext.math as math
 
 import ram.motion as motion
 import ram.motion.common
@@ -22,24 +23,34 @@ from ram.test import Mock
         
 # Helper functions
 
-def binFoundHelper(self):
+def binFoundHelper(self, shouldRotate = True):
     # Set our expected ID
     self.ai.data['currentBinID'] = 6
     
     # Test improper bin
     self.assertEqual(0, self.controller.speed)
     self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                     x = 0.5, y = -0.5, id = 3)
+                     x = 0.5, y = -0.5, id = 3, angle = math.Degree(0))
     self.assertEqual(0, self.controller.speed)
     
     # Test proper bin
     self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                     x = 0.5, y = -0.5, id = 6)
+                     x = 0.5, y = -0.5, id = 6, angle = math.Degree(0))
         
     self.assertLessThan(self.controller.speed, 0)
     self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
     self.assertEqual(self.controller.yawChange, 0)
     
+    # Test with some rotation
+    self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                     x = 0.5, y = -0.5, id = 6, angle = math.Degree(15))
+    self.assertLessThan(self.controller.speed, 0)
+    self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+    if shouldRotate:
+        self.assertGreaterThan(self.controller.yawChange, 0)
+    else:
+        self.assertEqual(self.controller.yawChange, 0)
+        
 def binTrackingHelper(self):
     """
     Tests that state proper tracks with BIN_FOUND and BIN_DROPPED
@@ -47,15 +58,18 @@ def binTrackingHelper(self):
         
     # Add some and test
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 6)
+                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 6,
+                            angle = math.Degree(0))
     self.assertAIDataValue('currentBins', set([6]))
     
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.3, y = -0.5, id = 2)
+                            vision.BinEvent, 0, 0, x = 0.3, y = -0.5, id = 2,
+                            angle = math.Degree(0))
     self.assertAIDataValue('currentBins', set([2,6]))
     
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.2, y = -0.3, id = 3)
+                            vision.BinEvent, 0, 0, x = 0.2, y = -0.3, id = 3,
+                            angle = math.Degree(0))
     self.assertAIDataValue('currentBins', set([2, 3, 6]))
     
     # Check some bin data
@@ -67,27 +81,33 @@ def binTrackingHelper(self):
     
     # Make sure its updated
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.7, y = -0.5, id = 2)
+                            vision.BinEvent, 0, 0, x = 0.7, y = -0.5, id = 2,
+                            angle = math.Degree(0))
     self.assertEqual(0.7, binData[2].x)
         
     # Remove some
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 3)
+                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 3,
+                            angle = math.Degree(0))
     self.assertAIDataValue('currentBins', set([2, 6]))
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 6)
+                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 6,
+                            angle = math.Degree(0))
     self.assertAIDataValue('currentBins', set([2]))
     
     # Add one
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 8)
+                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 8,
+                            angle = math.Degree(0))
     self.assertAIDataValue('currentBins', set([2,8]))
     
     # Remove all
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 2)
+                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 2,
+                            angle = math.Degree(0))
     self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 8)
+                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 8,
+                            angle = math.Degree(0))
     self.assertAIDataValue('currentBins', set())
    
 class TestTracking(aisupport.AITestCase):
@@ -214,7 +234,8 @@ class TestSeekEnd(aisupport.AITestCase):
         self.ai.data['currentBinID'] = 0
         self.ai.data['currentBins'] = set([6])
         
-        binFoundHelper(self)
+        # Make sure we repond to bin offset properly, but ignore orientation
+        binFoundHelper(self, False)
         
     def testBinFoundCentered(self):
         self.ai.data['currentBinID'] = 3
@@ -471,7 +492,7 @@ class TestNextBin(aisupport.AITestCase):
         self.ai.data['currentBinID'] = 0
         self.ai.data['currentBins'] = set([6])
         
-        binFoundHelper(self)
+        binFoundHelper(self, False)
         
     def testBinFoundCentered(self):
         self.ai.data['currentBinID'] = 3
@@ -482,12 +503,12 @@ class TestNextBin(aisupport.AITestCase):
         
         # Test wrong ID
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0, y = 0, id = 4)
+                         x = 0, y = 0, id = 4, angle = math.Degree(0))
         self.assertFalse(self._centered)
         
         # Proper centered (6 is proper ID changed in binFoundHelper)
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0, y = 0, id = 3)
+                         x = 0, y = 0, id = 3, angle = math.Degree(0))
         self.qeventHub.publishEvents()
         self.assert_(self._centered)
         
