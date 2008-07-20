@@ -23,3 +23,7 @@ envt.AppendUnique(CPPPATH = ['include'])
 envt.RAMProgram(target = 'sensortest', 
                 source = 'test/src/sensortest.c',
                 int_deps = 'sensor')
+
+envt.RAMProgram(target = 'lcdshow', 
+                source = 'lcdshow.c',
+                int_deps = 'sensor')

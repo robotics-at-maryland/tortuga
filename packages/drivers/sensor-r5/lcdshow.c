@@ -344,7 +344,6 @@ int main(int argc, char ** argv)
                     BATT1_ENABLED, BATT2_ENABLED, BATT3_ENABLED, BATT4_ENABLED, BATT5_ENABLED
                 };
 
-                #warning these need to use the new battery usage function
                 unsigned char useFlags[]=
                 {
                     BATT1_INUSE, BATT2_INUSE, BATT3_INUSE, BATT4_INUSE, BATT5_INUSE
