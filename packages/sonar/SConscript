@@ -58,10 +58,6 @@ envt.RAMProgram(target = 'sonard',
                 source = 'src/sonard/main.cpp',
                 int_deps = ['sonar'])
 
-envt.RAMProgram(target = 'phaseSonard',
-                source = 'src/sonard/phaseMain.cpp',
-                int_deps = ['sonar'])
-
 if not envt['bfin']:
     envt.RAMProgram(target = 'spectrogram',
                     source = 'src/tools/spectrogram.cpp',
