@@ -42,7 +42,7 @@ public:
 	};
 	virtual typename ADC::DOUBLE_WIDE::SIGNED getUnity() const
 	{
-		return getWindowSize() * ADC::SIGNED_MAX() * ADC::SIGNED_MAX();
+		return getWindowSize() * ADC::SIGNED_MAX * ADC::SIGNED_MAX;
 	}
 	virtual float getPhase(int channel) const
 	{

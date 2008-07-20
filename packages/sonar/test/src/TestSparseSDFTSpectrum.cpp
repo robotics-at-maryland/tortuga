@@ -42,8 +42,8 @@ TEST(SparseSDFTSpectrumGivesSameResultsAsDense)
 			for (int kIdx = 0 ; kIdx < nKBands ; kIdx++)
 			{
 				int k = kBands[kIdx];
-				std::complex<int64_t> denseResult = spectrum.getAmplitude(k, channel);
-				std::complex<int64_t> sparseResult = sparseSpectrum.getAmplitude(k, channel);
+				const std::complex<int64_t> denseResult = spectrum.getAmplitude(k, channel);
+				const std::complex<int64_t> sparseResult = sparseSpectrum.getAmplitude(k, channel);
 				
 				CHECK_EQUAL(denseResult, sparseResult);
 			}

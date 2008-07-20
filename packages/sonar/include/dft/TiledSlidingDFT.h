@@ -34,9 +34,9 @@ public:
 		for (int n = 0 ; n < N ; n++)
 		{
 			coefreal[n] = (typename ADC::SIGNED)
-				(cos(- 2 * M_PI * n * k / N) * ADC::SIGNED_MAX());
+				(cos(- 2 * M_PI * n * k / N) * ADC::SIGNED_MAX);
 			coefimag[n] = (typename ADC::SIGNED)
-				(sin(- 2 * M_PI * n * k / N) * ADC::SIGNED_MAX());
+				(sin(- 2 * M_PI * n * k / N) * ADC::SIGNED_MAX);
 		}
 		purge();
 	}

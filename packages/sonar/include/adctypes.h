@@ -125,12 +125,13 @@ public:
 	typedef struct adc<1*_bitDepth> SINGLE_WIDE;
 	typedef struct adc<2*_bitDepth> DOUBLE_WIDE;
 	typedef struct adc<4*_bitDepth> QUADRUPLE_WIDE;
+	typedef struct adc<1+_bitDepth> ONE_MORE_BIT;
 	
-	static inline int BITDEPTH() { return _bitDepth; }
-	static inline SIGNED SIGNED_MIN() { return -((int64_t)1 << (_bitDepth - 1)); }
-	static inline SIGNED SIGNED_MAX() { return ((int64_t)1 << (_bitDepth - 1)) - 1; }
-	static inline UNSIGNED UNSIGNED_MAX() { return ((~((uint64_t)0)) >> (64 - _bitDepth)); }
-	static inline size_t MACHINE_SIZE() { return sizeof(SIGNED); }
+	static const int BITDEPTH = _bitDepth;
+	static const SIGNED SIGNED_MIN = -((int64_t)1 << (_bitDepth - 1));
+	static const SIGNED SIGNED_MAX = ((int64_t)1 << (_bitDepth - 1)) - 1;
+	static const UNSIGNED UNSIGNED_MAX = ((~((uint64_t)0)) >> (64 - _bitDepth));
+	static const size_t MACHINE_SIZE = sizeof(SIGNED);
 };
 
 }} // namespace ram::sonar
