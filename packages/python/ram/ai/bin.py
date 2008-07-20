@@ -18,7 +18,8 @@ import ram.ai.state as state
 import ram.motion as motion
 import ram.motion.basic
 import ram.motion.search
-import ram.motion.common
+#import ram.motion.common
+import ram.motion.pipe # For the manuevering motions
 
 COMPLETE = core.declareEventType('COMPLETE')
 
@@ -79,20 +80,21 @@ class HoveringState(state.State):
         """Update the state of the light, this moves the vehicle"""
         # Only listen to the current bin ID
         if self._currentBin(event):
-            self._bin.setState(event.x, event.y)
+            self._bin.setState(event.x, event.y, math.Degree(0))
 
     def enter(self):
         # Make sure we are tracking
         ensureBinTracking(self.queuedEventHub, self.ai)
         
-        self._bin = ram.motion.common.Target(0,0)
+        self._bin = ram.motion.pipe.Pipe(0,0,0)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
         speedGain = self._config.get('speedGain', 5)
-        motion = ram.motion.common.Hover(target = self._bin,
-                                         maxSpeed = 5,
-                                         maxSidewaysSpeed = 3,
-                                         sidewaysSpeedGain = sidewaysSpeedGain,
-                                         speedGain = speedGain)
+        motion = ram.motion.pipe.Hover(pipe = self._bin,
+                                       maxSpeed = 5,
+                                       maxSidewaysSpeed = 3,
+                                       sidewaysSpeedGain = sidewaysSpeedGain,
+                                       speedGain = speedGain,
+                                       yawGain = 0)
         self.motionManager.setMotion(motion)
 
     def exit(self):

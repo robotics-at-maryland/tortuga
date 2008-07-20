@@ -15,6 +15,7 @@ import ext.vision as vision
 
 import ram.motion as motion
 import ram.motion.common
+import ram.motion.pipe
 
 import ram.test.ai.support as aisupport
 from ram.test import Mock
@@ -132,7 +133,7 @@ class TestSeeking(aisupport.AITestCase):
         self.machine.start(bin.Seeking)
     
     def testStart(self):
-        self.assertCurrentMotion(motion.common.Hover)
+        self.assertCurrentMotion(motion.pipe.Hover)
         
     def testBinFound(self):
         """Make sure new found events move the vehicle"""
@@ -156,7 +157,7 @@ class TestCentering(aisupport.AITestCase):
         self.machine.stop()
         self.machine.start(bin.Centering)
         
-        self.assertCurrentMotion(motion.common.Hover)
+        self.assertCurrentMotion(motion.pipe.Hover)
         
         # Setup for SeekEnd
         self.ai.data['currentBinID'] = 3
@@ -284,7 +285,7 @@ class TestDive(aisupport.AITestCase):
     def testStart(self):
         """Make sure we start diving"""
         self.assertCurrentMotion(
-            (motion.common.Hover, motion.basic.RateChangeDepth, None))
+            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
         #self.assertGreaterThan(self.controller.depth, 0)
                 
     def testBinFound(self):
@@ -313,7 +314,7 @@ class TestExamine(aisupport.AITestCase):
         
     def testStart(self):
         """Make sure we start diving"""
-        self.assertCurrentMotion(motion.common.Hover)
+        self.assertCurrentMotion(motion.pipe.Hover)
         
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.releaseTimer(bin.Examine.MOVE_ON)
@@ -396,7 +397,7 @@ class TestSurfaceToMove(aisupport.AITestCase):
     def testStart(self):
         """Make sure we start surfacing and are still hovering"""
         self.assertCurrentMotion(
-            (motion.common.Hover, motion.basic.RateChangeDepth, None))
+            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
         
         #self.assertLessThan(self.controller.depth, 10)
         
@@ -516,7 +517,7 @@ class TestDropMarker(aisupport.AITestCase):
     
     def testStart(self):
         """Make sure we start diving, and drop a marker """
-        self.assertCurrentMotion(motion.common.Hover)
+        self.assertCurrentMotion(motion.pipe.Hover)
         self.assertCurrentState(bin.DropMarker)
 
 #        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
@@ -580,7 +581,7 @@ class TestSurface(aisupport.AITestCase):
     def testStart(self):
         """Make sure we start surfacing and are still hovering"""
         self.assertCurrentMotion(
-            (motion.common.Hover, motion.basic.RateChangeDepth, None))
+            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
         
         #self.assertLessThan(self.controller.depth, 10)
         
