@@ -74,11 +74,9 @@ static const double hydroPlanarArray[3][2] =  //m, coordinate of hydrophones wit
 //-----------------DFT SETTINGS----------------------
 static const int DFT_FRAME=512; //pts., size of interval to do fourier over.  NOTE: MUST BE A POWER OF 2!
 static const int kBandOfInterest = (int) (frequencyOfInterest*DFT_FRAME/SAMPRATE);
-static const int kBandOffCenterAmount = 10;
-static const int nKBands = 1; //number of frequency bands to examine
-//static const int nKBands = 3; //number of frequency bands to examine
-//static const int kBands[]= {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount}; //Kbands relevant for DFT
-static const int kBands[]= {kBandOfInterest}; //Kbands relevant for DFT
+static const int kBandOffCenterAmount = 3;
+static const int nKBands = 3; //number of frequency bands to examine
+static const int kBands[]= {kBandOfInterest, kBandOfInterest - kBandOffCenterAmount, kBandOfInterest + kBandOffCenterAmount}; //Kbands relevant for DFT
 
 //---------------PING DETECTOR SETTINGS---------------
 static const int PING_DETECT_FRAME=200; //pts.,  size of frames to do max/mins over

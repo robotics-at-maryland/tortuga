@@ -51,7 +51,7 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
         sample[2] = getSample(dataSet, 2, i);
         sample[3] = getSample(dataSet, 3, i);
 
-        detected=pdetect->p_update(sample,0);
+        detected=pdetect->p_update(sample);
 
         if(i<DFT_FRAME) //The DFT initializes to 0, so I ignore all points before it
             continue;

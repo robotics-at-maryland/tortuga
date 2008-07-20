@@ -19,6 +19,11 @@ using namespace ram::sonar;
 
 /* Constructor for pingDetect class.  Initializes the Fourier Transform,
  * counting variables
+ *
+ * @param bands An array of frequency index bands to examine.
+ *              The zeroth band is taken to be the "band of interest".
+ *              A "ping" is registered only if the k-band of interest has the
+ *              greatest magnitude of all the k-bands provided.
  */
 pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame)
 {
@@ -50,28 +55,35 @@ pingDetect::~pingDetect()
  * So, the value is 0 if there were no pings found, 15 if all 4 found.
  */
 int
-pingDetect::p_update(adcdata_t *sample, int kBand)
+pingDetect::p_update(adcdata_t *sample)
 {
     detected=0;
     spectrum->update(sample);
-    for(int k=0; k<numchan; k++)
+    for(int channel=0; channel<numchan; channel++)
     {
-        temp=adcmath_t(fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand,k)));
-        if(temp>currmax[k])
-            currmax[k]=temp; //update the maximum
+        adctype<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum->getAmplitudeForBinIndex(0,channel)));
+        if(temp>currmax[channel])
+		{
+			bool firstBandIsLoudest = true;
+			for (int kBand = 0 ; kBand < nKBands ; kBand ++)
+				if (fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand, channel)) > temp)
+					firstBandIsLoudest = false;
+			if (firstBandIsLoudest)
+				currmax[channel]=temp; //update the maximum
+		}
     }
 
     ++count;
     if(count==ping_detect_frame) //if at the end of max frame
     {
         count=0;
-        for(int k=0; k<numchan; k++)
+        for(int channel=0; channel<numchan; channel++)
         {
-            if(currmax[k]<minmax[k])
-                minmax[k]=currmax[k];
-            else if(currmax[k] > (threshold[k]*minmax[k]))
-                detected += (1 << k); //Adds 1 for channel 1, 2 for 2, 4 for 3, 8 for 4
-            currmax[k]=0; //reset max, so that it works with the update max for loop
+            if(currmax[channel]<minmax[channel])
+                minmax[channel]=currmax[channel];
+            else if(currmax[channel] > (threshold[channel]*minmax[channel]))
+                detected += (1 << channel); //Adds 1 for channel 1, 2 for 2, 4 for 3, 8 for 4
+            currmax[channel]=0; //reset max, so that it works with the update max for loop
         }
     }
 
