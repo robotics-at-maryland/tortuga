@@ -449,7 +449,7 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
     double wTilde[3][3];
     
     // Proprotional component, only the first three numbers are used here, the
-    // forth (scalar) term is used above to correct a sign flipping error
+    // fourth (scalar) term is used above to correct a sign flipping error
     matrixMult3x1by3x3(PGain,qError,&proportionalSignal[0]);
     matrixMult3x1byScalar(proportionalSignal,-1,&proportionalSignal[0]);
     // Differential component
