@@ -7,16 +7,14 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		A4AD60F80E3301A0005BA8A3 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = ../data; sourceTree = SOURCE_ROOT; };
-		A4AD61020E3301A0005BA8A3 /* packages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = packages; path = ../packages; sourceTree = SOURCE_ROOT; };
-		A4AD61030E3301A0005BA8A3 /* sandbox */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sandbox; path = ../sandbox; sourceTree = SOURCE_ROOT; };
+		A4AD61020E3301A0005BA8A3 /* packages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = packages; sourceTree = "<group>"; };
+		A4AD61030E3301A0005BA8A3 /* sandbox */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sandbox; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		08FB7794FE84155DC02AAC07 /* trunk */ = {
 			isa = PBXGroup;
 			children = (
-				A4AD60F80E3301A0005BA8A3 /* data */,
 				A4AD61020E3301A0005BA8A3 /* packages */,
 				A4AD61030E3301A0005BA8A3 /* sandbox */,
 			);
@@ -148,7 +146,7 @@
 			hasScannedForEncodings = 1;
 			mainGroup = 08FB7794FE84155DC02AAC07 /* trunk */;
 			projectDirPath = "";
-			projectRoot = ..;
+			projectRoot = "";
 			targets = (
 				A4AD60B80E330142005BA8A3 /* all */,
 				A4AD60A90E330092005BA8A3 /* control */,
