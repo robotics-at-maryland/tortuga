@@ -41,7 +41,7 @@ int getDirEnvelope(sonarPing* ping, dataset* dataSet)
     double tdiff; //time difference between two signals
     int tdoas[NCHANNELS][NCHANNELS]; //a redundant array to store tdoas.  Fix later.  Tdoa's go from the 1st to the 2nd
 
-    time_diff* mytdiff=new time_diff(NCHANNELS, ENV_CALC_FRAME, frequencyOfInterest, (int)frequencyOfInterest*0.9, (int)frequencyOfInterest*1.1); //a class that calculates time differences
+    time_diff* mytdiff=new time_diff(NCHANNELS, ENV_CALC_FRAME, (int)frequencyOfInterest, (int)frequencyOfInterest*0.9, (int)frequencyOfInterest*1.1); //a class that calculates time differences
 
     for(int j=0; j<NCHANNELS; j++)
         data[j]=new adcdata_t(ENV_CALC_FRAME);
