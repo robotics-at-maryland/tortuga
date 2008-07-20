@@ -623,9 +623,42 @@ typedef struct
 }Pos;
 typedef std::list<Pos> PosList;
 
+
+void safeMask(IplImage* base)
+{
+	unsigned char* data=(unsigned char*)base->imageData;
+//    unsigned char* dataPercents = (unsigned char*) percents->imageData;
+	int width=base->width;
+	int height=base->height;
+	int count=0;
+	unsigned char r=0;
+	unsigned char g=0;
+	unsigned char b=0;
+	float r_over_g_min;
+	float r_over_g_max;
+	float b_over_r_max;
+
+    r_over_g_min=.75f;
+    r_over_g_max=2.6f;
+    b_over_r_max=1.0f;
+
+	for (int y=0; y<height; y++)
+		for (int x=0; x<width; x++)
+		{
+			b=data[count];
+			g=data[count+1];
+			r=data[count+2];
+			
+			if (r>r_over_g_min*g && r_over_g_max*g>r && b_over_r_max*r>b && r+g+b > 100)
+                data[count]=data[count+1]=data[count+2]=255;
+			else
+				data[count]=data[count+1]=data[count+2]=0;
+			count+=3;
+		}
+}
+
 //For crappy bluish camera (not on robot)
 //Use "if (data[count+2]>34 && data2[count+2]>75)// && data2[count]<75 && data2[count+1]<75)"
-
 void suitMask(IplImage* percents, IplImage* base)
 {
 	unsigned char* data=(unsigned char*)percents->imageData;

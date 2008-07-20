@@ -132,6 +132,68 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     CHECK_CLOSE(expectedX, event->x, 0.05);
     CHECK_CLOSE(expectedY, event->y, 0.05);
 }
+
+TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
+{
+    printf("Starting BinSpinAngleTest:\n");
+    detector.setSuitDetectionOn(false);
+    vision::OpenCVImage output(640,480);
+    double thresh = 3;
+    for (int deg = -180; deg < 180; deg+=13)
+    { 
+        int deg2 = deg%180;
+        if (deg2 >= 90)
+            deg2-=180;
+        else if (deg2 < -90)
+            deg2+=180;
+        vision::makeColor(&input, 0, 0, 255);
+        vision::drawBin(&input, 320, 240, 150, deg, vision::Heart);
+        detector.processImage(&input, &output);
+        CHECK(event);
+        
+        bool good = true;
+        if (event)
+        {
+            float angle = event->angle.valueDegrees();
+            good = false;
+            if (deg2 - thresh <= angle && deg2 + thresh >= angle)
+            {
+                //good
+                good = true;
+            }
+            else
+            {
+                if (angle > 90-thresh)
+                {
+                    angle-=180;
+                    if (deg2 - thresh <= angle && deg2 + thresh >= angle)
+                    {
+                        //good
+                        good = true;
+                    }
+                }
+                else if (angle < -90 + thresh)
+                {
+                    angle+=180;
+                    if (deg2 - thresh <= angle && deg2 + thresh >= angle)
+                    {
+                        //good
+                        good = true;
+                    }
+                }
+            }
+            
+            if (!good)
+            {
+                //This is guaranteed to fail, so CHECK(false) would work, but 
+                //this will display more info.
+                CHECK_CLOSE(deg2, event->angle.valueDegrees(), thresh);
+            }
+//            vision::Image::showImage(&output);
+        }
+//        printf("\n");
+    }
+}
 /*
 FIX ME: I AM BROKEN!
   

@@ -43,7 +43,7 @@ class RAM_EXPORT BinDetector : public Detector
         double getY() { return m_normY; }
         
         /** Angle of vertical */
-        math::Degree getAngle();
+        math::Degree getAngle(){ return m_angle;}
         
         void setAngle(math::Degree ang) { m_angle = ang; } //Does this work?
         
@@ -101,6 +101,9 @@ class RAM_EXPORT BinDetector : public Detector
     /** Y cord of the bin closest to the center of the screen */
     float getY();
 
+    /** angle of the bin closest to the center of the screen*/
+    math::Degree getAngle();
+
     /** Gets the suit of the bin cloest to the center of the screen */
     Suit::SuitType getSuit();
     
@@ -145,7 +148,7 @@ class RAM_EXPORT BinDetector : public Detector
     /** Called by process bin, must be called regardless of whether we plan
      *  to detect suits, as this function sets the angle of the bin.
      */
-    math::Radian calculateAngleOfBin(BlobDetector::Blob bin, Image* input);
+    math::Radian calculateAngleOfBin(BlobDetector::Blob bin, Image* input, Image* output = 0);
     
     bool m_found;
 /*    bool foundHeart;

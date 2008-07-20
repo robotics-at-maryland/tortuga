@@ -93,6 +93,10 @@ void BinDetector::Bin::draw(Image* image)
     ss << getId();
     Image::writeText(image, ss.str(), tl.x, tl.y);
 
+    std::stringstream ss2;
+    ss2 << getAngle().valueDegrees();
+    Image::writeText(image, ss2.str(), br.x-30, br.y-15);
+
     // Now do the suit
     if (Suit::NONEFOUND == m_suit)
         Image::writeText(image, "None", bl.x, bl.y - 15);
@@ -333,7 +337,7 @@ void BinDetector::processImage(Image* input, Image* out)
         BOOST_FOREACH(Bin bin, m_bins)
         {
             BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
-                                           bin.getSuit()));
+                                           bin.getSuit(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_DROPPED, event);
         }
@@ -347,7 +351,7 @@ void BinDetector::processImage(Image* input, Image* out)
         // Sort list by distance from center and copy it over the old one
         newBins.sort(binToCenterComparer);
         m_bins = newBins;
-        
+                
         // Now publish found & centered events
         math::Vector2 toCenter(getX(), getY());
         if (toCenter.normalise() < m_centeredLimit)
@@ -355,7 +359,7 @@ void BinDetector::processImage(Image* input, Image* out)
             if(!m_centered)
             {
                 m_centered = true;
-                BinEventPtr event(new BinEvent(getX(), getY(), getSuit()));
+                BinEventPtr event(new BinEvent(getX(), getY(), getSuit(), getAngle()));
                 publish(EventType::BIN_CENTERED, event);
             }
         }
@@ -369,7 +373,7 @@ void BinDetector::processImage(Image* input, Image* out)
             if (out)
                 bin.draw(out);
             BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
-                                           bin.getSuit()));
+                                           bin.getSuit(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_FOUND, event);
         }
@@ -450,87 +454,68 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     // 640/480      
     binX *= (double)binFrame->width / binFrame->height;
 
+    // Create the image to hold the bin blob, give a little bit of extra space
+    // around the black.  (10 pixels)
+    int width = (bin.getMaxX()-bin.getMinX()+31)/4*4;
+    int height = (bin.getMaxY()-bin.getMinY()+31)/4*4;
+
+
+    //Regular sizing
     // Create the image to hold the bin blob
-    int width = (bin.getMaxX()-bin.getMinX()+1)/4*4;
-    int height = (bin.getMaxY()-bin.getMinY()+1)/4*4;
+//    int width = (bin.getMaxX()-bin.getMinX()+1)/4*4;
+//    int height = (bin.getMaxY()-bin.getMinY()+1)/4*4;
     OpenCVImage binImage(width, height);
     // Extra bin blob into image
     CvPoint2D32f binCenter = cvPoint2D32f(bin.getCenterX(), bin.getCenterY());
-    cvGetRectSubPix(binFrame, binImage.asIplImage(), binCenter);
-    math::Radian angle = calculateAngleOfBin(bin, &binImage);
     
+    if (binCenter.x - width/2 - 1 < 0)
+    {
+        return;
+    }
+    if (binCenter.x + width/2 + 1 >= binFrame->width)
+    {
+        return;
+    }
+    if (binCenter.y - height/2 -1 < 0)
+    {
+        return;
+    }
+    if (binCenter.y + height/2 +1 >= binFrame->height)
+    {
+        return;
+    }
+    
+    cvGetRectSubPix(binFrame, binImage.asIplImage(), binCenter);
+    math::Radian angle = calculateAngleOfBin(bin, &binImage, &binImage);
+    //Image::showImage(&binImage);
     // Find suit if desired
     Suit::SuitType suit = Suit::NONEFOUND;
     
+    // Rotate image to straight
+    OpenCVImage rotatedRedSuitWrapper(binImage.getWidth(),
+                                          binImage.getHeight());
+    vision::Image::transform(&binImage, &rotatedRedSuitWrapper, -angle);
+    
+    // Set fields as percent of colors
+    OpenCVImage percentsRotatedRedWrapper(
+        rotatedRedSuitWrapper.getWidth(),
+        rotatedRedSuitWrapper.getHeight());
+        
+    cvCopyImage(rotatedRedSuitWrapper.asIplImage(),
+                percentsRotatedRedWrapper.asIplImage());
+    to_ratios(percentsRotatedRedWrapper.asIplImage());
+        
+    // Make all the white white, everything else black
+    OpenCVImage maskedRotatedRed(rotatedRedSuitWrapper.getWidth(),
+                                    rotatedRedSuitWrapper.getHeight());
+    white_mask(percentsRotatedRedWrapper,
+                rotatedRedSuitWrapper.asIplImage(),
+                maskedRotatedRed.asIplImage(), 20, 110);
+
     if (detectSuit)
     {
-        // Rotate image to straight
-        OpenCVImage rotatedRedSuitWrapper(binImage.getWidth(),
-                                          binImage.getHeight());
-        vision::Image::transform(&binImage, &rotatedRedSuitWrapper, -angle);
-
-        // Set fields as percent of colors
-        OpenCVImage percentsRotatedRedWrapper(
-            rotatedRedSuitWrapper.getWidth(),
-            rotatedRedSuitWrapper.getHeight());
-        
-        cvCopyImage(rotatedRedSuitWrapper.asIplImage(),
-                    percentsRotatedRedWrapper.asIplImage());
-        to_ratios(percentsRotatedRedWrapper.asIplImage());
-        
-        // Make all the white white, everything else black
-        OpenCVImage maskedRotatedRed(rotatedRedSuitWrapper.getWidth(),
-                                     rotatedRedSuitWrapper.getHeight());
-        white_mask(percentsRotatedRedWrapper,
-                   rotatedRedSuitWrapper.asIplImage(),
-                   maskedRotatedRed.asIplImage(), 20, 110);
 
 //        drawBinImage(&maskedRotatedRed, binNum);
-
-        // Attempt to fix rotation 
-        bool rotatedBy90 = false;
-        
-        int x = maskedRotatedRed.getWidth()/2;
-        for (unsigned int y = maskedRotatedRed.getHeight()/2; y >= maskedRotatedRed.getHeight()/4; y--)
-        {
-            int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
-            if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
-                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
-                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
-            {
-                //rotated by 90
-                rotatedBy90 = true;
-                break;
-            }
-            else
-            {
-                
-            }   
-        }
-
-        for (unsigned int y = maskedRotatedRed.getHeight()/2; y < maskedRotatedRed.getHeight() * 3 / 4; y++)
-        {
-            int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
-            if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
-                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
-                (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
-            {
-                //rotated by 90
-                rotatedBy90 = true;
-                break;
-            }
-            else
-            {
-                
-            }
-        }
-        
-        if (rotatedBy90)
-        {
-//            printf("Off by 90\n");
-            math::Degree ninety(90.0);
-            angle = angle + ninety;
-        }
 
         // Now mask just red (ie. make it white)
         suitMask(percentsRotatedRedWrapper.asIplImage(), rotatedRedSuitWrapper.asIplImage());
@@ -550,10 +535,67 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
         }
     }
     
+    // Attempt to fix rotation 
+    bool rotatedBy90 = false;
+        
+    int x = maskedRotatedRed.getWidth()/2;
+    for (unsigned int y = maskedRotatedRed.getHeight()/2; y >= maskedRotatedRed.getHeight()/3; y--)
+    {
+        int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
+        if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
+            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
+            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
+        {
+            //rotated by 90
+            rotatedBy90 = true;
+            break;
+        }
+        else
+        {
+            
+        }
+    }
 
+    for (unsigned int y = maskedRotatedRed.getHeight()/2; y < maskedRotatedRed.getHeight() * 2/3; y++)
+    {
+        int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
+        if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
+            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
+            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
+        {
+            //rotated by 90
+            rotatedBy90 = true;
+            break;
+        }
+        else
+        {
+            
+        }
+    }
     
+    if (rotatedBy90)
+    {
+//        printf("Off by 90 \n");
+//        math::Degree ninety(90.0);
+//        angle = angle + ninety;
+    }
+    else
+    {
+//        printf("Spot On!\n");
+    }
+        
+//    printf("Angle: %f\n", angle.valueDegrees());
+    double angInDegrees = angle.valueDegrees();
+    double angleToReturn = 90-angInDegrees;
+    
+    if (angleToReturn >= 90)
+        angleToReturn -= 180;
+    else if (angleToReturn < -90)
+        angleToReturn += 180;
+    
+    math::Degree finalJoeAngle(angleToReturn);
     // Create bin add it to the list (and incremet the binID)
-    newBins.push_back(Bin(bin, binX, binY, angle, m_binID++, suit));
+    newBins.push_back(Bin(bin, binX, binY, finalJoeAngle, m_binID++, suit));
     
     m_found = true;
 }
@@ -576,7 +618,7 @@ void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSuit,
 }
 
 math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, 
-					      Image* input)
+					      Image* input, Image* output)
 {
     IplImage* redSuit = (IplImage*)(*input);
     IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
@@ -587,26 +629,37 @@ math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin,
     cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
     CvMemStorage* storage = cvCreateMemStorage(0);
     CvSeq* lines = 0;
-        
-    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+    
+//    OpenCVImage wrapper(cannied, false);
+//    Image::showImage(&wrapper);
+    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 3, CV_PI/180, 150, 5, 50);
         
     float longestLineLength = -1;
-    float slope = 0;
+    float angle = 0;
     for(int i = 0; i < lines->total; i++ )
     {
         CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
-        float lineX = line[1].x - line[0].x;
+        float lineX = line[1].x - line[0].x; 
         float lineY = line[1].y - line[0].y;
+        
+        if (output)
+        {
+            cvLine(output->asIplImage(), line[0], line[1], CV_RGB(255,255,0), 5, CV_AA, 0 );
+        }
+//        printf("Line dimensions: %f, %f\n", lineX, lineY);
+
         if (longestLineLength < (lineX * lineX + lineY * lineY))
         {
-            slope = atan2(lineY,lineX);
+            angle = atan2(lineY,lineX);
             longestLineLength = lineX * lineX + lineY * lineY;
         }
     }
+    
+    
     cvReleaseImage(&cannied);
     cvReleaseMemStorage(&storage);
     cvReleaseImage(&redSuitGrayScale);
-    return math::Radian(slope);
+    return math::Radian(angle);
 }
 
 Suit::SuitType BinDetector::determineSuit(Image* input,
@@ -674,6 +727,13 @@ float BinDetector::getY()
         return m_bins.front().getY();
     else
         return 0;
+}
+math::Degree BinDetector::getAngle()
+{
+    if (m_bins.size() > 0)
+        return m_bins.front().getAngle();
+    else
+        return math::Degree(0);
 }
 
 Suit::SuitType BinDetector::getSuit()

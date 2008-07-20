@@ -88,10 +88,10 @@ typedef boost::shared_ptr<PipeEvent> PipeEventPtr;
 class RAM_EXPORT BinEvent : public core::Event
 {
 public:
-    BinEvent(double x, double y)
-    { this->x=x; this->y=y; this->suit = Suit::NONEFOUND;}
-    BinEvent(double x, double y, Suit::SuitType s)
-    { this->x=x; this->y=y; this->suit = s; }
+//    BinEvent(double x, double y)
+//    { this->x=x; this->y=y; this->suit = Suit::NONEFOUND;}
+    BinEvent(double x, double y, Suit::SuitType s, math::Degree angle)
+    { this->x=x; this->y=y; this->suit = s; this->angle = angle;}
     
     double x;
     double y;

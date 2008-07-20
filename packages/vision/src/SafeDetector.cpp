@@ -16,6 +16,7 @@
 #include "cv.h"
 #include "highgui.h"
 #include <log4cpp/Category.hh>
+#include <boost/foreach.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -91,14 +92,36 @@ void SafeDetector::processImage(Image* input, Image* out)
 {
     m_working->copyFrom(input);
 
-    mask_orange(m_working->asIplImage(), true, 100, true);
+    safeMask(m_working->asIplImage());
+    out->copyFrom(m_working);
 
-    blobDetector.setMinimumBlobSize(150);
+    blobDetector.setMinimumBlobSize(25);
     blobDetector.processImage(m_working);
     BlobDetector::BlobList blobs = blobDetector.getBlobs();
-    std::vector<BlobDetector::Blob> orangeBlobs(blobs.size());
-    std::copy(blobs.begin(), blobs.end(), orangeBlobs.begin());
     
+    if (blobs.size() == 0)
+        return;
+    
+    std::vector<BlobDetector::Blob> orangeBlobs;
+    
+    int totalPixels = 0;
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+    {
+        totalPixels += blob.getSize();    
+    }
+    int avgPixels = totalPixels / blobs.size();
+    
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+    {
+        if (blob.getSize() < avgPixels * 2.5)
+            orangeBlobs.push_back(blob);
+    }    
+    
+    BOOST_FOREACH(BlobDetector::Blob blob, orangeBlobs)
+    {
+//        printf("Center: %d, %d \n", blob.getCenterX(), blob.getCenterY());
+        blob.draw(out);
+    }
     if (orangeBlobs.size() >= 6)
     {
         //Possibly found treasure.
@@ -117,7 +140,7 @@ void SafeDetector::processImage(Image* input, Image* out)
         {
             for (int j = i+1; j < size; j++)
             {
-                if (blobsAreClose(orangeBlobs[i],orangeBlobs[j], 2.0))
+                if (blobsAreClose(orangeBlobs[i],orangeBlobs[j], 1.0))
                 {
                     int rooti = i;
                     int rootj = j;
@@ -182,7 +205,12 @@ void SafeDetector::processImage(Image* input, Image* out)
             m_safeY = unionBlobs[biggestCluster].getCenterY();
             m_safeBlob = unionBlobs[biggestCluster];
             m_found = true;
-            m_safeBlob.draw(m_working);
+            m_safeBlob.draw(out);
+            
+            CvPoint safeCenter;
+            safeCenter.x = m_safeBlob.getCenterX();
+            safeCenter.y = m_safeBlob.getCenterY();
+            cvCircle(out->asIplImage(), safeCenter, 10, CV_RGB(255,128,255), 2, CV_AA, 0);
 
             m_safeX = -1 * ((m_working->getWidth()/2) - m_safeX);
             m_safeY = m_working->getHeight()/2 - m_safeY;
@@ -206,7 +234,6 @@ void SafeDetector::processImage(Image* input, Image* out)
         delete[] unionBlobs;
         delete[] blobCounts;
     }
-    out->copyFrom(m_working);
 }
 
 double SafeDetector::getX()
