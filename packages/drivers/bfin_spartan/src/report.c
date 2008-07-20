@@ -79,7 +79,7 @@ int closeDevice(int fd)
 }
 
 
-#define PACKET_LENGTH 26
+#define PACKET_LENGTH 27
 int reportPing(int fd, byte status, double vectorX, double vectorY, double vectorZ,
                uint16_t range, uint32_t timeStamp, uint32_t sampleNo)
 {
@@ -134,7 +134,7 @@ int reportPing(int fd, byte status, double vectorX, double vectorY, double vecto
     buf[23] = (sampleNo >> 16) & 0xFF;
     buf[24] = (sampleNo >> 8) & 0xFF;
     buf[25] = (sampleNo & 0xFF);
-
+    buf[26] = 0x00;
     if(write(fd, buf, PACKET_LENGTH) == PACKET_LENGTH)
         return 0;
     else
