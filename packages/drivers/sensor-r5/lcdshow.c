@@ -140,8 +140,8 @@ int main(int argc, char ** argv)
         printf("Vector: \t<%5.4f %5.4f %5.4f>\n", sd.vectorX, sd.vectorY, sd.vectorZ);
         printf("Status: \t0x%02x\n", sd.status);
         printf("Range:  \t%u\n", sd.range);
-        printf("Timestamp:\t%u\n", sd.timeStamp);
-        printf("Sample No:\t%u\n", sd.sampleNo);
+        printf("Timestamp:\t%u\n", sd.timeStampSec);
+        printf("Sample No:\t%u\n", sd.timeStampUSec);
 //         printf("reply was 0x%02x\n", resetBlackfin(fd));
     }
 
