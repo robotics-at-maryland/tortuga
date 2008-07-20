@@ -1,0 +1,503 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 44;
+	objects = {
+
+/* Begin PBXFileReference section */
+		A40FEAEB0D98A74100062B86 /* sconsall.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = sconsall.sh; path = xcodewrappers/sconsall.sh; sourceTree = "<group>"; };
+		A4AD60F80E3301A0005BA8A3 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = data; sourceTree = "<group>"; };
+		A4AD61020E3301A0005BA8A3 /* packages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = packages; sourceTree = "<group>"; };
+		A4AD61030E3301A0005BA8A3 /* sandbox */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sandbox; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* trunk */ = {
+			isa = PBXGroup;
+			children = (
+				A4AD60F80E3301A0005BA8A3 /* data */,
+				A4AD61020E3301A0005BA8A3 /* packages */,
+				A4AD61030E3301A0005BA8A3 /* sandbox */,
+				A40FEAEB0D98A74100062B86 /* sconsall.sh */,
+			);
+			name = trunk;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		A400BB180E3192420071AE95 /* vision */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A400BB190E3192420071AE95 /* Build configuration list for PBXLegacyTarget "vision" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = vision;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+		A400BB1C0E31925B0071AE95 /* core */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A400BB1D0E31925B0071AE95 /* Build configuration list for PBXLegacyTarget "core" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = core;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+		A47488910E32DBA5005B288A /* math */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A47488920E32DBA5005B288A /* Build configuration list for PBXLegacyTarget "math" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = math;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+		A4AD60A90E330092005BA8A3 /* control */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A4AD60AA0E330092005BA8A3 /* Build configuration list for PBXLegacyTarget "control" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = control;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+		A4AD60B00E3300C7005BA8A3 /* vehicle */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A4AD60B10E3300C7005BA8A3 /* Build configuration list for PBXLegacyTarget "vehicle" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = vehicle;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+		A4AD60B40E3300F3005BA8A3 /* network */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A4AD60B50E3300F3005BA8A3 /* Build configuration list for PBXLegacyTarget "network" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = network;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+		A4AD60B80E330142005BA8A3 /* all */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A4AD60B90E330142005BA8A3 /* Build configuration list for PBXLegacyTarget "all" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = all;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+		D28A88AD04BDD90700651E21 /* sonar */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = 1DEB918F08733D9F0010E9CD /* Build configuration list for PBXLegacyTarget "sonar" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/lady3jane/ram-svn/trunk/xcodewrappers/sconsall.sh";
+			buildWorkingDirectory = "/Users/lady3jane/ram-svn/trunk";
+			dependencies = (
+			);
+			name = sonar;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB919308733D9F0010E9CD /* Build configuration list for PBXProject "trunk" */;
+			compatibilityVersion = "Xcode 3.0";
+			hasScannedForEncodings = 1;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* trunk */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A4AD60B80E330142005BA8A3 /* all */,
+				A4AD60A90E330092005BA8A3 /* control */,
+				A400BB1C0E31925B0071AE95 /* core */,
+				A47488910E32DBA5005B288A /* math */,
+				A4AD60B40E3300F3005BA8A3 /* network */,
+				D28A88AD04BDD90700651E21 /* sonar */,
+				A4AD60B00E3300C7005BA8A3 /* vehicle */,
+				A400BB180E3192420071AE95 /* vision */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB919008733D9F0010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		1DEB919108733D9F0010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = sonar;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		1DEB919408733D9F0010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+			};
+			name = Debug;
+		};
+		1DEB919508733D9F0010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+			};
+			name = Release;
+		};
+		A400BB1A0E3192420071AE95 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A400BB1B0E3192420071AE95 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = vision;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		A400BB1E0E31925B0071AE95 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A400BB1F0E31925B0071AE95 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = core;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		A47488930E32DBA5005B288A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A47488940E32DBA5005B288A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = math;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		A4AD60AB0E330092005BA8A3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A4AD60AC0E330092005BA8A3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = control;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		A4AD60B20E3300C7005BA8A3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A4AD60B30E3300C7005BA8A3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = vehicle;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		A4AD60B60E3300F3005BA8A3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A4AD60B70E3300F3005BA8A3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = network;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		A4AD60BA0E330142005BA8A3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = trunk;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A4AD60BB0E330142005BA8A3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = all;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB918F08733D9F0010E9CD /* Build configuration list for PBXLegacyTarget "sonar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB919008733D9F0010E9CD /* Debug */,
+				1DEB919108733D9F0010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB919308733D9F0010E9CD /* Build configuration list for PBXProject "trunk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB919408733D9F0010E9CD /* Debug */,
+				1DEB919508733D9F0010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A400BB190E3192420071AE95 /* Build configuration list for PBXLegacyTarget "vision" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A400BB1A0E3192420071AE95 /* Debug */,
+				A400BB1B0E3192420071AE95 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A400BB1D0E31925B0071AE95 /* Build configuration list for PBXLegacyTarget "core" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A400BB1E0E31925B0071AE95 /* Debug */,
+				A400BB1F0E31925B0071AE95 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A47488920E32DBA5005B288A /* Build configuration list for PBXLegacyTarget "math" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A47488930E32DBA5005B288A /* Debug */,
+				A47488940E32DBA5005B288A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4AD60AA0E330092005BA8A3 /* Build configuration list for PBXLegacyTarget "control" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4AD60AB0E330092005BA8A3 /* Debug */,
+				A4AD60AC0E330092005BA8A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4AD60B10E3300C7005BA8A3 /* Build configuration list for PBXLegacyTarget "vehicle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4AD60B20E3300C7005BA8A3 /* Debug */,
+				A4AD60B30E3300C7005BA8A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4AD60B50E3300F3005BA8A3 /* Build configuration list for PBXLegacyTarget "network" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4AD60B60E3300F3005BA8A3 /* Debug */,
+				A4AD60B70E3300F3005BA8A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4AD60B90E330142005BA8A3 /* Build configuration list for PBXLegacyTarget "all" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4AD60BA0E330142005BA8A3 /* Debug */,
+				A4AD60BB0E330142005BA8A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}
