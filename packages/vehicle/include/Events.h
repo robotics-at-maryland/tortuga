@@ -12,6 +12,7 @@
 
 // Project Includes
 #include "core/include/Event.h"
+#include "math/include/Vector3.h"
 
 namespace ram {
 namespace vehicle {
@@ -46,6 +47,20 @@ struct ThrusterEvent : public core::Event
 };
 
 typedef boost::shared_ptr<ThrusterEvent> ThrusterEventPtr;
+
+struct SonarEvent : public core::Event
+{
+    /** Unit vector from the vehicle to the pinger */
+    math::Vector3 direction;
+    /** NOT USED */
+    double range;
+    /** sec part of the timeval struct*/
+    int pingTimeSec;
+    /** usec part of the timeval struct */
+    int pingTimeUSec;
+};
+
+typedef boost::shared_ptr<SonarEvent> SonarEventPtr;
     
 } // namespace vehicle
 } // namespace ram

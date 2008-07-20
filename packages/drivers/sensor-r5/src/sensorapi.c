@@ -285,8 +285,8 @@ int getSonarData(int fd, struct sonarData * sd)
 
     sd->range = (rawSonar[8]<<8) | rawSonar[9];
 
-    sd->timeStamp = (rawSonar[11]<<24) | (rawSonar[12] << 16) | (rawSonar[13] << 8) | rawSonar[14];
-    sd->sampleNo = (rawSonar[16]<<24) | (rawSonar[17] << 16) | (rawSonar[18] << 8) | rawSonar[19];
+    sd->timeStampSec = (rawSonar[11]<<24) | (rawSonar[12] << 16) | (rawSonar[13] << 8) | rawSonar[14];
+    sd->timeStampUSec = (rawSonar[16]<<24) | (rawSonar[17] << 16) | (rawSonar[18] << 8) | rawSonar[19];
 
     return SB_OK;
 }
@@ -861,6 +861,12 @@ int partialRead(int fd, struct boardInfo * info)
             break;
         }
 
+        case SONAR:
+        {
+            retCode = getSonarData(fd, &(info->sonar));
+            break;
+        }
+        
         default:
         {
             printf("ERROR: update rolled over");

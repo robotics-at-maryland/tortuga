@@ -112,6 +112,20 @@ public:
         
         publish(ram::vehicle::device::SensorBoard::THRUSTER_UPDATE, event);
     }
+
+    void publicSonarUpdate(ram::math::Vector3 direction, int range,
+                            int sec, int usec)
+    {
+        ram::vehicle::SonarEventPtr event(
+            new ram::vehicle::SonarEvent);
+
+        event->direction = direction;
+        event->range = range;
+        event->pingTimeSec = sec;
+        event->pingTimeUSec = usec;
+        
+        publish(ram::vehicle::device::SensorBoard::SONAR_UPDATE, event);
+    }
 };
 
 #endif // RAM_VEHICLE_DEVICE_MOCKSENSORBOARD_06_12_2008

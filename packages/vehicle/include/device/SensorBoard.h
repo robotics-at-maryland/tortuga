@@ -57,6 +57,7 @@ public:
     static const core::Event::EventType POWERSOURCE_UPDATE;
     static const core::Event::EventType TEMPSENSOR_UPDATE;
     static const core::Event::EventType THRUSTER_UPDATE;
+    static const core::Event::EventType SONAR_UPDATE;
     /* @{ */
     
     /** Creates a device with the given file descriptor */
@@ -205,6 +206,9 @@ private:
 
     /** Triggers motor current events */
     void thrusterEvents(struct boardInfo* telemetry);
+
+    /** Triggers the sonar event */
+    void sonarEvent(struct boardInfo* telemetry);
     
     /** Mutex which protects access to state */
     core::ReadWriteMutex m_stateMutex;

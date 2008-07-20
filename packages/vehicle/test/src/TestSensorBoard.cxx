@@ -22,6 +22,8 @@
 #include "core/include/EventConnection.h"
 #include "core/test/include/BufferedAppender.h"
 
+#include "math/test/include/MathChecks.h"
+
 class TestSensorBoard : public ram::vehicle::device::SensorBoard
 {
 public:
@@ -460,6 +462,56 @@ TEST_FIXTURE(SensorBoardFixture, event_THRUSTER_UPDATE)
 
     CHECK_ARRAY_CLOSE(expectedCurrents, actualCurrents, 6, 0.0001);
     CHECK_ARRAY_EQUAL(expectedEnables, actualEnables, 6);
+    
+    conn->disconnect();
+    delete sb;
+}
+
+typedef std::vector<ram::vehicle::SonarEventPtr>
+SonarEventPtrList;
+
+void sonarUpdateHelper(SonarEventPtrList* list,
+                       ram::core::EventPtr event)
+{
+    list->push_back(boost::dynamic_pointer_cast<
+                    ram::vehicle::SonarEvent>(event));
+}
+
+TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    ram::math::Vector3 expectedDirection(12.5, 0.32, 8.16);
+    double expectedRange = 23;
+    int expectedSec = 1237;
+    int expectedUSec = 2822;
+
+    // Set values to be returned
+    sb->updateDone = true;
+
+    sb->currentTelemetry.sonar.vectorX = expectedDirection.x;
+    sb->currentTelemetry.sonar.vectorY = expectedDirection.y;
+    sb->currentTelemetry.sonar.vectorZ = expectedDirection.z;
+    sb->currentTelemetry.sonar.range = (short)expectedRange;
+    sb->currentTelemetry.sonar.timeStampSec = expectedSec;
+    sb->currentTelemetry.sonar.timeStampUSec = expectedUSec;
+
+    // Register handler and trigger and update
+    SonarEventPtrList eventList;
+    ram::core::EventConnectionPtr conn = sb->subscribe(
+        ram::vehicle::device::SensorBoard::SONAR_UPDATE,
+        boost::bind(sonarUpdateHelper, &eventList, _1));
+    sb->update(0);
+
+    // Check to make sure we got the proper number of updates
+    CHECK_EQUAL(1u, eventList.size());
+
+    ram::vehicle::SonarEventPtr event = eventList[0];
+
+    // Make sure the values were correct
+    CHECK_EQUAL(expectedDirection, event->direction);
+    // TODO: test range, sec, usec
     
     conn->disconnect();
     delete sb;

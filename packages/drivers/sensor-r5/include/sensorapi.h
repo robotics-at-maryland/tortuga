@@ -171,6 +171,7 @@ enum partialUpdateType_
     BATTERY_VOLTAGES,
     BATTERY_CURRENTS,
     BATTERY_USED,
+    SONAR,
     END_OF_UPDATES,
 };
 
@@ -214,8 +215,10 @@ struct sonarData
     double vectorZ;
     unsigned char status;
     unsigned short range;
-    unsigned int timeStamp;
-    unsigned int sampleNo;
+    /** Seconds part of the time when the ping occured */
+    unsigned int timeStampSec;
+    /** Microseconds part of the time when the ping occured */
+    unsigned int timeStampUSec;
 };
     
 /** Complete vehicle information */

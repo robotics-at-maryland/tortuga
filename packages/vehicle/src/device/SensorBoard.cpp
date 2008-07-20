@@ -20,6 +20,7 @@
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, POWERSOURCE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, THRUSTER_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, SONAR_UPDATE);
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("SensorBoard"));
 
@@ -136,7 +137,8 @@ void SensorBoard::update(double timestep)
             powerSourceEvents(&state.telemetry);
             tempSensorEvents(&state.telemetry);
             thrusterEvents(&state.telemetry);
-
+            sonarEvent(&state.telemetry);
+            
             LOGGER.info("%3.1f %3.1f %3.1f %3.1f %3.1f %3.1f"
                         " %d %d %d %d %d %d",
                         state.telemetry.powerInfo.motorCurrents[0],
@@ -471,6 +473,19 @@ void SensorBoard::thrusterEvents(struct boardInfo* telemetry)
         event->enabled = telemetry->thrusterState & addressToEnable[i]; 
         publish(THRUSTER_UPDATE, event);
     }
+}
+
+void SensorBoard::sonarEvent(struct boardInfo* telemetry)
+{
+    SonarEventPtr event(new SonarEvent);
+    event->direction = math::Vector3(telemetry->sonar.vectorX,
+                                     telemetry->sonar.vectorY,
+                                     telemetry->sonar.vectorZ);
+    event->range = telemetry->sonar.range;
+    event->pingTimeSec = telemetry->sonar.timeStampSec;
+    event->pingTimeUSec = telemetry->sonar.timeStampUSec;
+
+    publish(SONAR_UPDATE, event);
 }
     
 } // namespace device
