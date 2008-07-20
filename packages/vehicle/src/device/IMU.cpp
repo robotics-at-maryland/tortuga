@@ -43,6 +43,8 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_magXBias(0),
     m_magYBias(0),
     m_magZBias(0),
+	m_magCorruptThresh(100),
+	m_magNominalLength(0),
     m_orientation(0,0,0,1),
     m_rawState(0),
     m_filteredState(0)
@@ -73,10 +75,17 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_IMUToVehicleFrame[2][2] =
         config["imuToVehicleRotMatrix"][2][2].asDouble(0);
 
+	// Load Bias Values
     m_magXBias = config["magXBias"].asDouble();
     m_magYBias = config["magYBias"].asDouble();
     m_magZBias = config["magZBias"].asDouble();
 
+	// Load Magnetic Corruption Threshold, default is ridiculously large acceptable range
+	m_magCorruptThresh = config["magCorruptThresh"].asDouble(2);
+
+	// Load nominal value of magnetic vector length
+	m_magNominalLength = config["magNominalLength"].asDouble(0.24);
+	
     //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
     //	   m_magYBias, m_magZBias);
     LOGGER.info("% Accel Mag Accel-Raw Mag-Raw Quat TimeStamp");
@@ -147,8 +156,29 @@ void IMU::update(double timestep)
             {
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
                 
-                quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
+				double magLength;
+				magLength = magnitude3x1(magnetometer);
+				double difference;
+				difference = magLength-m_magNominalLength;
+				difference = abs(difference);
+				
+				if(difference < m_magCorruptThresh){
+				  quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
+				}else{
+				  double quaternionOld[4] = {0,0,0,0};
+				  quaternionOld[0] = m_orientation.x;
+				  quaternionOld[1] = m_orientation.y;
+				  quaternionOld[2] = m_orientation.z;
+				  quaternionOld[3] = m_orientation.w;
+				  double angRate[3] = {0,0,0};
+				  angRate[0] = m_filteredGyroX.getValue();
+				  angRate[1] = m_filteredGyroY.getValue();
+				  angRate[2] = m_filteredGyroZ.getValue();
+				  quaternionFromRate(quaternionOld, angRate, timestep, quaternion);
+				}
 
+				
+				
                 m_orientation.x = quaternion[0];
                 m_orientation.y = quaternion[1];
                 m_orientation.z = quaternion[2];

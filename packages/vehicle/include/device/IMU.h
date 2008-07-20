@@ -122,6 +122,12 @@ private:
     double m_magXBias;
     double m_magYBias;
     double m_magZBias;
+
+	/** Magnetic Corruption Threshold based on experimental vehicle data **/
+	double m_magCorruptThresh;
+
+	/** Nominal value of magnetic vector length obtained experimentally **/
+	double m_magNominalLength;
     
     /** Protects acces to public state */
     core::ReadWriteMutex m_orientationMutex;
