@@ -70,6 +70,10 @@ def generate(module_builder, local_ns, global_ns):
     ITempSensor = expose_device(local_ns, 'ITempSensor')
     wrappedClasses.append(ITempSensor)
 
+    # Wrap the ISonar class
+    ISonar = expose_device(local_ns, 'ISonar')
+    wrappedClasses.append(ISonar)
+
     module_builder.add_registration_code("registerIDeviceMakerClass();")
     module_builder.add_registration_code("registerIDevicePtrs();")
     wrap.add_needed_includes(wrappedClasses)
