@@ -1,3 +1,0 @@
-Import('env')
-sonard = env.Program('sonard',['main.cpp'])
-Return('sonard')

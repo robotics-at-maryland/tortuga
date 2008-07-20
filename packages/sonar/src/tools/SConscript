@@ -1,8 +1,0 @@
-Import('env')
-
-spectrogram = env.Program('spectrogram.cpp')
-chop = env.Program('chop.cpp')
-
-toolList = [spectrogram, chop]
-
-Return('toolList')
