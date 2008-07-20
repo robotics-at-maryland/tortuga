@@ -76,7 +76,7 @@ Scene:
             Graphical:
                 mesh: 'TankWallsMesh.mesh'
                 scale: [.3048, .3048, .3048]  # convert feet to meters
-                material: 'TankWallConcrete'
+                material: 'CompElement/TankWalls'
             
             Physical:
                 mass: 0

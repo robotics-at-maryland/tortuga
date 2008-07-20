@@ -27,6 +27,21 @@ material Simple/Orange
 	}
 }
 
+material CompElement/TankWalls
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture pitted-concrete.jpg
+			}
+		}
+	}
+}
+
 material CompElement/Bin
 {
 	technique

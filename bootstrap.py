@@ -53,7 +53,7 @@ def main(argv=None):
     context.globals['python_version_str'] = PYTHON_VERSION_STR
     context.globals['py_site_packages'] = site_package_dir
     context.globals['py_site_packages_suffix'] = PYTHON_SITE_PACKAGE_SUFFIX
-    context.globals['python_executable'] = os.path.realpath(sys.executable)
+    context.globals['python_executable'] = sys.executable
         
 
     # Determing and run build tasks
