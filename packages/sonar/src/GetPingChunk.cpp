@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <complex>
+#include <iostream>
 
 // Project Includes
 #include "sonar/include/PingDetect.h"
@@ -18,7 +19,7 @@
 #include "drivers/bfin_spartan/include/spartan.h"
 #include "drivers/bfin_spartan/include/dataset.h"
 
-//using namespace std;
+using namespace std;
 
 namespace ram {
 namespace sonar {
@@ -112,6 +113,7 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
                         data[j][k]=getSample(dataSet, j, k+last_ping_index[j]-ENV_CALC_FRAME+1+DFT_FRAME/2); //might need to be tweaked
                     locations[j]=last_ping_index[j]-ENV_CALC_FRAME+1;
                 }
+                cout<<"Ping Detected at "<<locations[0]<<endl;
 
                 return 1;
             }

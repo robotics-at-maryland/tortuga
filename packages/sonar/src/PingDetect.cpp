@@ -63,14 +63,14 @@ pingDetect::p_update(adcdata_t *sample)
     {
         adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum->getAmplitudeForBinIndex(0,channel)));
         if(temp>currmax[channel])
-		{
-			bool firstBandIsLoudest = true;
-			for (int kBand = 0 ; kBand < nKBands ; kBand ++)
-				if (fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand, channel)) > temp)
-					firstBandIsLoudest = false;
-			if (firstBandIsLoudest)
-				currmax[channel]=temp; //update the maximum
-		}
+        {
+            bool firstBandIsLoudest = true;
+            for (int kBand = 1 ; kBand < nKBands ; kBand ++)
+                if (fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand, channel)) > temp)
+                    firstBandIsLoudest = false;
+            if (firstBandIsLoudest)
+                currmax[channel]=temp; //update the maximum
+        }
     }
 
     ++count;
