@@ -11,6 +11,8 @@
 #ifndef _RAM_SONAR_PING_CHUNK
 #define _RAM_SONAR_PING_CHUNK
 
+#include "PingDetect.h"
+
 // Forward declare
 extern "C" {
     struct dataset;
@@ -19,8 +21,6 @@ extern "C" {
 namespace ram {
 namespace sonar {
 
-class pingDetect;
-    
 /**
  * This function is responsible for finding the pings in a chunk of data and filling an array with data that contains the pings 
  * It tries to be smart and pick out the chunks appropriate for each array,
@@ -31,7 +31,7 @@ class pingDetect;
  */
 class getPingChunk {
     int detected;
-    pingDetect *pdetect;
+    pingDetect pdetect;
     adcdata_t sample[NCHANNELS];
     int last_detected;
     int last_ping_index[NCHANNELS];

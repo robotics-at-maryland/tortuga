@@ -25,14 +25,11 @@ namespace ram {
 namespace sonar {
 
 getPingChunk::getPingChunk()
-{
-    pdetect=new pingDetect(PD_THRESHOLDS, NCHANNELS, kBands, PING_DETECT_FRAME);
-}
+	: pdetect(PD_THRESHOLDS, NCHANNELS, kBands, PING_DETECT_FRAME)
+{}
 
 getPingChunk::~getPingChunk()
-{
-    delete pdetect;
-}
+{}
 
 int
 getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet)
@@ -52,12 +49,12 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
         sample[2] = getSample(dataSet, 2, i);
         sample[3] = getSample(dataSet, 3, i);
 
-        detected=pdetect->p_update(sample);
+        detected=pdetect.p_update(sample);
 
         if(i<DFT_FRAME) //The DFT initializes to 0, so I ignore all points before it
             continue;
         else if(i==DFT_FRAME)
-            pdetect->reset_minmax();
+            pdetect.reset_minmax();
 
         if(i-last_detected>MAX_PING_SEP)
         {
@@ -101,7 +98,7 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
                (last_ping_index[2]<ENV_CALC_FRAME) || 
                (last_ping_index[3]<ENV_CALC_FRAME))
             {
-                pdetect->reset_minmax();
+                pdetect.reset_minmax();
                 for(int j=0; j<NCHANNELS; j++)
                     last_value[j]=0;
             }

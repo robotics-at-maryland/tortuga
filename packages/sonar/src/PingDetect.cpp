@@ -26,9 +26,8 @@ using namespace ram::sonar;
  *              greatest magnitude of all the k-bands provided.
  */
 pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame)
+	: spectrum(bands)
 {
-    spectrum=new SparseSDFTSpectrum<adc<16>, DFT_FRAME, NCHANNELS,
-        nKBands>(bands);
     numchan=nchan;
     ping_detect_frame=p_detect_frame;
 
@@ -45,7 +44,6 @@ pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, 
         
 pingDetect::~pingDetect()
 {
-    delete spectrum;
 }
 
 /* Updates the Fourier Transform with sample then updates the min-max
@@ -58,15 +56,15 @@ int
 pingDetect::p_update(adcdata_t *sample)
 {
     detected=0;
-    spectrum->update(sample);
+    spectrum.update(sample);
     for(int channel=0; channel<numchan; channel++)
     {
-        adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum->getAmplitudeForBinIndex(0,channel)));
+        adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum.getAmplitudeForBinIndex(0,channel)));
         if(temp>currmax[channel])
         {
             bool firstBandIsLoudest = true;
             for (int kBand = 1 ; kBand < nKBands ; kBand ++)
-                if (fixed::magL1(spectrum->getAmplitudeForBinIndex(kBand, channel)) > temp)
+                if (fixed::magL1(spectrum.getAmplitudeForBinIndex(kBand, channel)) > temp)
                     firstBandIsLoudest = false;
             if (firstBandIsLoudest)
                 currmax[channel]=temp; //update the maximum

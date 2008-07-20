@@ -35,7 +35,7 @@ class pingDetect
     adcmath_t minmax[NCHANNELS]; //minima over the frames
     int threshold[NCHANNELS]; //thresholds for detecting the pings
     int ping_detect_frame; //the width of frames over which the max is calculated
-    SparseSDFTSpectrum<adc<16>, DFT_FRAME, NCHANNELS, nKBands>* spectrum; //Fourier transform class
+    SparseSDFTSpectrum<adc<16>, DFT_FRAME, NCHANNELS, nKBands> spectrum; //Fourier transform class
 
     public:
     pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame);
