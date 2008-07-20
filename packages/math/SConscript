@@ -26,5 +26,6 @@ sources = envl.Glob('src', '*.cpp')
 envl.RAMSharedLibrary('math',  source = sources)
 
 # Tests
-envt = env.Clone()
-envt.Tests(int_deps = 'math', ext_deps = ext_deps)
+if not env['bfin']:
+    envt = env.Clone()
+    envt.Tests(int_deps = 'math', ext_deps = ext_deps)

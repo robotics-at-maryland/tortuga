@@ -56,8 +56,10 @@ def get_features():
     if os.name == 'posix':
         add_feature('network', dirs = ['packages/network'])
 
-        add_feature('sonar', dirs = ['packages/sonar'],
-                    deps = ['math', 'drivers'])
+        add_feature('sonar', dirs = 
+                    ['packages/sonar',
+                     'packages/drivers/bfin_spartan'],
+                    deps = ['math'])
         
         add_feature('vision_tools',
                 opt_dirs = {'vision' : ['tools/vision_viewer']} )
@@ -65,8 +67,8 @@ def get_features():
         add_feature('drivers', dirs = ['packages/drivers/sensor-r5',
                                        'packages/drivers/thruster',
                                        'packages/drivers/imu',
-                                       'packages/drivers/bfin_spartan',
                                        'packages/drivers/carnetix'])
+
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',
                                            'tools/BiasFinder'])

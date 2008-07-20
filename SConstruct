@@ -47,8 +47,8 @@ opts.AddOptions(
      EnumOption('variant', 'The aviable variants to build', 'release',
                 allowed_values = variants.available()),
      PathOption('build_dir', 'Path to place build products in', 'build',
-                PathOption.PathIsDirCreate)
- 
+                PathOption.PathIsDirCreate),
+     BoolOption('bfin', "Build for the Blackfin", False)
      )
 
 # Platform specific options
@@ -69,6 +69,12 @@ env = Environment(ENV = os.environ,
                   options = opts,
                   tools = ['default','gccxml','pypp'],
                   toolpath = [tpath])
+
+if env['bfin']:
+    env.Replace(CC =
+                '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-gcc')
+    env.Replace(CXX = 
+                '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-g++')
 
 Help(opts.GenerateHelpText(env))
 
