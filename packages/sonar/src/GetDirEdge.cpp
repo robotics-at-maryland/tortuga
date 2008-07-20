@@ -9,21 +9,19 @@
 
 // STD Includes
 #include <cmath>
+#include <iostream>
 
 // Project Includes
-#include "sonar/include/GetDirEdge.h"
+#include "math/include/MatrixN.h"
+
 #include "sonar/include/Sonar.h"
 #include "sonar/include/GetPingChunk.h"
 #include "sonar/include/SonarPing.h"
+#include "sonar/include/GetDirEdge.h"
 
-//#include "spartan.h"
 #include "drivers/bfin_spartan/include/dataset.h"
 
-#include "math/include/MatrixN.h"
-
-#include <iostream>
-
-int64_t myAbs(int64_t x)
+adcdata_t myAbs(adcdata_t x)
 {
 	if (x < 0)
 		return -x;
@@ -38,6 +36,30 @@ using namespace ram::math;
 using namespace std;
 
 getDirEdge::getDirEdge()
+    : chunk(), tdoas(3,1), temp_calc(3,3), hydro_array(3,2), ping_matr(3,2)
+{
+    for(int j=0; j<NCHANNELS; j++)
+        data[j]=new adcdata_t [ENV_CALC_FRAME];
+
+    for(int i=0; i<3; i++)
+        for(int j=0; j<2; j++)
+            hydro_array[i][j]=hydroPlanarArray[i][j];
+
+    //do inv(H'*H)*H
+    temp_calc=hydro_array.transpose()*hydro_array;
+    temp_calc.invert();
+    temp_calc=temp_calc*hydro_array.transpose();
+}
+
+getDirEdge::~getDirEdge()
+{
+    for(int j=0; j<NCHANNELS; j++)
+        delete[] data[j];
+}
+
+/* Resets the parameters that are normally initialized in the constructor
+ */
+void getDirEdge::zero_values()
 {
     for(int i=0; i<NCHANNELS; i++)
     {
@@ -45,31 +67,14 @@ getDirEdge::getDirEdge()
         abstotal[i]=0;
         pingpoints[i]=0;
     }
-    chunk=new getPingChunk();
-    tdoas=new MatrixN(3,1);
-    temp_calc=new MatrixN(3,3); //A matrix for temporary calculations
-    hydro_array=new MatrixN(3,2); //A matrix for storing the hydro array
-    for(int j=0; j<NCHANNELS; j++)
-        data[j]=new adcdata_t [ENV_CALC_FRAME];
 }
-
-getDirEdge::~getDirEdge()
-{
-    delete chunk;
-    delete tdoas;
-    delete temp_calc;
-    delete hydro_array;
-    for(int j=0; j<NCHANNELS; j++)
-        delete[] data[j];
-}
-
+    
 int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
 {
-    for(int i=0; i<3; i++)
-        for(int j=0; j<2; j++)
-            (*hydro_array)[i][j]=hydroPlanarArray[i][j];
+    //Zero the appropriate values
+    zero_values();
 
-    if((ping_found=chunk->getChunk(data, locations, dataSet))==0)
+    if((ping_found=chunk.getChunk(data, locations, dataSet))==0)
         return 0;
     else if(ping_found != 1)
         return -1;
@@ -103,15 +108,14 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
         return -1;
 
     for(int i=0; i<NCHANNELS-1; i++)
-        (*tdoas)[i][0]=(SPEED_OF_SOUND* double(pingpoints[i+1]-pingpoints[0]))/SAMPRATE;
-    //do inv(H'*H)*H*tdoas
-    (*temp_calc)=hydro_array->transpose()*(*hydro_array);
-    (*temp_calc).invert();
-    (*temp_calc)=((*temp_calc)*hydro_array->transpose())*(*tdoas);
+        tdoas[i][0]=(SPEED_OF_SOUND* double(pingpoints[i+1]-pingpoints[0]))/SAMPRATE;
+
+    ping_matr=temp_calc*tdoas;
 
     //Fill in the sonar ping
     for(int i=0; i<2; i++)
-        ping->direction[i]=(*temp_calc)[i][0];
+        ping->direction[i]=ping_matr[i][0];
+    
     //force it to be positive, since we know that the pinger is below
     ping->direction[2]=std::sqrt(1-ping->direction[0]*ping->direction[0]-ping->direction[1]*ping->direction[1]);
 

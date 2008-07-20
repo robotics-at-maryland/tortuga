@@ -34,7 +34,7 @@ pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, 
     count=0;
     detected=0;
 
-    for(int k=0; k<nchan; k++)
+    for(int k=0; k<numchan; k++)
     {
         threshold[k]=hydro_threshold[k];
         currmax[k] = 0;
@@ -46,6 +46,21 @@ pingDetect::~pingDetect()
 {
 }
 
+/* Re-initializes the parameters for a new calculation.
+ * Similar to the constructor
+ */
+void pingDetect::zero_values()
+{
+    count=0;
+    detected=0;
+
+    for(int k=0; k<numchan; k++)
+    {
+        currmax[k] = 0;
+        minmax[k] = adcmath_t(1) << 30;
+    }
+}
+        
 /* Updates the Fourier Transform with sample then updates the min-max
  * algorithm.
  * It returns a sum of the channel values indicating if ping was found.

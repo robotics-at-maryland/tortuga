@@ -42,6 +42,7 @@ class pingDetect
     ~pingDetect();
     int p_update(adcdata_t *sample);
     void reset_minmax();
+    void zero_values();
 }; //pingDetect
 
 }//sonar

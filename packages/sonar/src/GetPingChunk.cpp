@@ -36,6 +36,7 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
 {
     //Initialize some things
     last_detected=0;
+    pdetect.zero_values(); //re-zero the parameters, even if I already have done it again.  Doesn't hurt that much, since it was done once
     for(int i=0; i<NCHANNELS; i++)
     {
         last_ping_index[i]=0;
