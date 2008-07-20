@@ -30,7 +30,7 @@ void rand_adcdata_vector(adcdata_t *vec, int length, int seed)
 {
 	srand(seed);
 	for (int i = 0 ; i < length ; i ++)
-		vec[i] = (adcdata_t) (rand_real() * ADCDATA_MAXAMPLITUDE);
+		vec[i] = (adcdata_t) (rand_real() * adc<10>::SIGNED_MAX());
 }
 
 
@@ -39,7 +39,7 @@ void cos_adcdata_vector(adcdata_t *vec, int nchannels, int k, int N)
 	for (int n = 0 ; n < N ; n ++)
 	{
 		adcdata_t cosine = (adcdata_t) 
-		(cos(2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE);
+		(cos(2 * M_PI * n * k / N) * adc<10>::SIGNED_MAX());
 		
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 			vec[n*nchannels + channel] = cosine;
@@ -49,7 +49,7 @@ void cos_adcdata_vector(adcdata_t *vec, int nchannels, int k, int N)
 
 adcmath_t normalize_double(double y)
 {
-	return (adcmath_t) round(y * ADCDATA_MAXAMPLITUDE);
+	return (adcmath_t) round(y * adc<10>::SIGNED_MAX());
 }
 
 
