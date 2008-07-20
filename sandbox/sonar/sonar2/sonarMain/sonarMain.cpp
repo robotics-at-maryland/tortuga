@@ -96,22 +96,22 @@ int main(int argc, char* argv[])
                 sleepTillPing(&start_time, ping.point_num);
 
                 //Now, send data to the main computer
-                reportPing(fd,
+                /*reportPing(fd,
                         0,
                         ping.direction[0],
                         ping.direction[1],
                         ping.direction[2],
                         (uint16_t) ping.distance,
                         (uint32_t) start_time.tv_sec,
-                        (uint32_t) start_time.tv_usec);
-                //cout<<"Sending "<<fd<<" "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<" "<<(uint16_t) ping.distance<<" "<<" "<<(uint32_t) start_time.tv_sec<<" "<<(uint32_t) start_time.tv_usec<<endl;
+                        (uint32_t) start_time.tv_usec);*/
+                cout<<"Sending "<<fd<<" "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<" "<<(uint16_t) ping.distance<<" "<<" "<<(uint32_t) start_time.tv_sec<<" "<<(uint32_t) start_time.tv_usec<<endl;
             }
         }
         loop_counter++;
     }while(do_loop);
 
     logfile.close();
-    closeDevice(fd);
+    //closeDevice(fd);
 
     return 0;
 }

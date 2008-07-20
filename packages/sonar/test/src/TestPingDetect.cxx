@@ -9,22 +9,22 @@
 #include <cmath>
 #include <complex>
 
-#include "Sonar.h"
-#include "SparseSDFTSpectrum.h"
-#include "pingDetect.h"
+#include "sonar/include/Sonar.h"
+//#include "SparseSDFTSpectrum.h"
+#include "sonar/include/PingDetect.h"
 
-#include "fixed.h"
+#include "sonar/include/fixed/fixed.h"
 #include "math/include/MatrixN.h"
 #include "math/include/Vector3.h"
 
-#include "spartan.h"
-#include "dataset.h"
+#include "drivers/bfin_spartan/include/dataset.h"
+#include "drivers/bfin_spartan/include/spartan.h"
 
 using namespace ram::sonar;
 using namespace ram::math;
-//using namespace std;
+using namespace std;
 
-MatrixN hydroStructure(*hydroStructureArray, 3, 3);
+//MatrixN hydroStructure(*hydroStructureArray, 3, 3);
 
 int main(int argc, char* argv[])
 {
@@ -46,11 +46,11 @@ int main(int argc, char* argv[])
             fprintf(stderr, "Could not allocate.\n");
             exit(1);
         }
-        REG(ADDR_LED) = 0x02;
+        //greenLightOn();
         fprintf(stderr, "Recording samples...\n");
         captureSamples(dataSet);
         fprintf(stderr, "Analyzing samples...\n");
-        REG(ADDR_LED) = 0x01;
+        //greenLightOff();
     }
     else
     {
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
         sample[1] = getSample(dataSet, 1, i);
         sample[2] = getSample(dataSet, 2, i);
         sample[3] = getSample(dataSet, 3, i);
-        detected=pdetect.p_update(sample,0);
+        detected=pdetect.p_update(sample);
 
         if(i==DFT_FRAME)
             pdetect.reset_minmax();

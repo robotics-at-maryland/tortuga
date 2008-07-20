@@ -47,6 +47,17 @@ if conf.CheckLib('fftw3', language='C++', autoadd=1):
     envt = conf.Finish()
     envt.Tests(int_deps = 'sonar', source = sources)
 
+envt.RAMProgram(target = 'testGetChunk',
+                source = 'test/src/TestGetChunk.cxx',
+                int_deps = ['sonar'])
+
+envt.RAMProgram(target = 'testGetDirEdge',
+                source = 'test/src/TestGetDirEdge.cxx',
+                int_deps = ['sonar'])
+
+envt.RAMProgram(target = 'testPingDetect',
+                source = 'test/src/TestPingDetect.cxx',
+                int_deps = ['sonar'])
 
 # --------------------------------------------------------------------------- #
 #                               T O O L S                                     #

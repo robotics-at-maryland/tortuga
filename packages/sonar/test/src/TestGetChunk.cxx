@@ -7,14 +7,12 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "Sonar.h"
+#include "sonar/include/Sonar.h"
 
-#include "spartan.h"
-#include "dataset.h"
+#include "drivers/bfin_spartan/include/dataset.h"
+#include "drivers/bfin_spartan/include/spartan.h"
 
-#include "SparseSDFTSpectrum.h"
-#include "pingDetect.h"
-#include "getPingChunk.h"
+#include "sonar/include/GetPingChunk.h"
 
 using namespace ram::sonar;
 //using namespace ram::math;
@@ -38,11 +36,11 @@ int main(int argc, char* argv[])
             fprintf(stderr, "Could not allocate.\n");
             exit(1);
         }
-        REG(ADDR_LED) = 0x02;
+        //greenLightOn();
         fprintf(stderr, "Recording samples...\n");
         captureSamples(dataSet);
         fprintf(stderr, "Analyzing samples...\n");
-        REG(ADDR_LED) = 0x01;
+        //greenLightOff();
     }
     else
     {
