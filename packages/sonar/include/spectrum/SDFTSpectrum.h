@@ -32,8 +32,10 @@ public:
 		//	Sample cosine and sine and store as signed 16 bit integers
 		for (int k = 0 ; k < N ; k ++)
 		{
-			coef[k].real() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX() * std::cos(2*M_PI*(double)k/N));
-			coef[k].imag() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX() * std::sin(2*M_PI*(double)k/N));
+			coef[k].real() = (typename ADC::SIGNED)
+				((double)ADC::SIGNED_MAX() * std::cos(2*M_PI*(double)k/N));
+			coef[k].imag() = (typename ADC::SIGNED)
+				((double)ADC::SIGNED_MAX() * std::sin(2*M_PI*(double)k/N));
 		}
 		purge();
 	}

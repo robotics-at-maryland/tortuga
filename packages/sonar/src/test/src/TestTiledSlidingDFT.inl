@@ -14,7 +14,7 @@ struct TiledSlidingDFTTestFixture {};
 
 TEST_FIXTURE(TiledSlidingDFTTestFixture, CompareDFTRandomInput)
 {
-	TiledSlidingDFT<3, 5, 20> myDFT;
+	TiledSlidingDFT<adc<10>, 3, 5, 20> myDFT;
 	int seed = 42, countFrames = 200;
 	int countInputData = myDFT.getCountChannels() * countFrames;
 	
@@ -30,7 +30,7 @@ TEST_FIXTURE(TiledSlidingDFTTestFixture, CompareDFTRandomInput)
 
 TEST_FIXTURE(TiledSlidingDFTTestFixture, CompareDFTCosineInput)
 {
-	TiledSlidingDFT<3, 5, 20> myDFT;
+	TiledSlidingDFT<adc<10>, 3, 5, 20> myDFT;
 	int countFrames = 200;
 	int countInputData = myDFT.getCountChannels() * countFrames;
 	

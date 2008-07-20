@@ -37,8 +37,10 @@ public:
 		for (int kIdx = 0 ; kIdx < nFreqBands ; kIdx ++)
 		{
 			int k = kBands[kIdx];
-			coef[kIdx].real() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX() * std::cos(2*M_PI*(double)k/N));
-			coef[kIdx].imag() = (typename ADC::SIGNED)((double)ADC::SIGNED_MAX() * std::sin(2*M_PI*(double)k/N));
+			coef[kIdx].real() = (typename ADC::SIGNED)
+				((double)ADC::SIGNED_MAX() * std::cos(2*M_PI*(double)k/N));
+			coef[kIdx].imag() = (typename ADC::SIGNED)
+				((double)ADC::SIGNED_MAX() * std::sin(2*M_PI*(double)k/N));
 		}
 		purge();
 	}

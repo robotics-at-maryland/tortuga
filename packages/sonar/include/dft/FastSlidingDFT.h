@@ -20,14 +20,14 @@
 namespace ram {
 namespace sonar {
 
-template<int nchannels, int k, int N>
-class FastSlidingDFT : public SlidingDFT {
+template<ADC, int nchannels, int k, int N>
+class FastSlidingDFT : public SlidingDFT<ADC> {
 
 public:
 	FastSlidingDFT()
 	{
-		coefreal = cos(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE;
-		coefimag = sin(2 * M_PI * k / N) * ADCDATA_MAXAMPLITUDE;
+		coefreal = cos(2 * M_PI * k / N) * ADC::SIGNED_MAX;
+		coefimag = sin(2 * M_PI * k / N) * ADC::SIGNED_MAX;
 		purge();
 	}
 	
@@ -40,7 +40,7 @@ public:
 		curidx = 0;
 	}
 	
-	virtual void update(const adcdata_t * sample)
+	virtual void update(const typename ADC::SIGNED* sample)
 	{
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
@@ -73,7 +73,7 @@ public:
 			 *	Note that the exponent is positive; this causes the backwards shift.
 			 */
 			
-			adcmath_t tmp    = coefreal * sumreal[channel] - coefimag * sumimag[channel];
+			typename ADC::DOUBLE_WIDE::SIGNED tmp = coefreal * sumreal[channel] - coefimag * sumimag[channel];
 			sumimag[channel] = coefreal * sumimag[channel] + coefimag * sumreal[channel];
 			sumreal[channel] = tmp;
 			
@@ -97,17 +97,17 @@ public:
 	}
 	
 	
-	virtual adcmath_t getMagL1(int channel) const {return mag[channel];}
-	virtual adcmath_t getReal(int channel) const {return sumreal[channel];}
-	virtual adcmath_t getImag(int channel) const {return sumimag[channel];}
+	virtual typename ADC::DOUBLE_WIDE::SIGNED getMagL1(int channel) const {return mag[channel];}
+	virtual typename ADC::DOUBLE_WIDE::SIGNED getReal(int channel) const {return sumreal[channel];}
+	virtual typename ADC::DOUBLE_WIDE::SIGNED getImag(int channel) const {return sumimag[channel];}
 	virtual int getCountChannels() const {return nchannels;}
 	virtual int getFourierIndex() const {return k;}
 	virtual int getWindowSize() const {return N;}
 	
 private:
-	adcdata_t coefreal, coefimag;
-	adcdata_t window[nchannels][N];
-	adcmath_t sumreal[nchannels], sumimag[nchannels], mag[nchannels];
+	typename ADC::SIGNED  coefreal, coefimag;
+	typename ADC::SIGNED window[nchannels][N];
+	typename ADC::DOUBLE_WIDE::SIGNED sumreal[nchannels], sumimag[nchannels], mag[nchannels];
 	
 	int curidx;
 };

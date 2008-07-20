@@ -1,3 +1,5 @@
+#if 0
+
 /**
  * @file SlidingDFT.cpp
  *
@@ -21,27 +23,22 @@ namespace ram {
 namespace sonar {
 
 
-adcmath_t SlidingDFT::getMagL2(int channel) const
-{
-	adcmath_t re = getReal(channel);
-	adcmath_t im = getImag(channel);
-	return (adcmath_t) sqrt(double(re) * re + double(im) * im);
-}
-
-
-adcmath_t SlidingDFT::getUnity() const
+template<typename ADC>
+typename ADC::DOUBLE_WIDE::SIGNED SlidingDFT<ADC>::getUnity() const
 {
 	return getWindowSize() * ADCDATA_MAXAMPLITUDE * ADCDATA_MAXAMPLITUDE;
 }
 
 
-float SlidingDFT::getPhase(int channel) const
+template<typename ADC>
+float SlidingDFT<ADC>::getPhase(int channel) const
 {
 	assert(channel < getCountChannels());
 	return atan2f(getImag(channel), getReal(channel));
 }
 
 
+template<typename ADC>
 void SlidingDFT::println() const
 {
 	for (int channel = 0 ; channel < getCountChannels() ; channel ++)
@@ -59,3 +56,5 @@ void SlidingDFT::println() const
 
 } // namespace sonar
 } // namespace ram
+
+#endif

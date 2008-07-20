@@ -53,7 +53,7 @@ adcmath_t normalize_double(double y)
 }
 
 
-TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames, SlidingDFT &myDFT, bool shiftPhase))
+TEST_UTILITY(CheckAgainstFFTW, (const adcdata_t *adcdataSamples, int countFrames, SlidingDFT<adc<10> > &myDFT, bool shiftPhase))
 {
 	int nchannels = myDFT.getCountChannels();
 	int k = myDFT.getFourierIndex();

@@ -30,10 +30,6 @@ typedef adc<16>::DOUBLE_WIDE::SIGNED adcmath_t;
 typedef int32_t adcsampleindex_t;
 
 
-static const int BITS_ADCCOEFF = 10;
-static const int ADCDATA_MAXAMPLITUDE = (1 << (BITS_ADCCOEFF - 1)) - 1;
-
-
 int gcd(int a, int b);
 
 

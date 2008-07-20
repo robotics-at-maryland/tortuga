@@ -25,16 +25,18 @@ namespace ram {
 namespace sonar {
 
 
-template<int nchannels, int k, int N>
-class TiledSlidingDFT : public SlidingDFT {
+template<typename ADC, int nchannels, int k, int N>
+class TiledSlidingDFT : public SlidingDFT<ADC> {
 public:
 	TiledSlidingDFT()
 	{
 		assert(N % k == 0);
 		for (int n = 0 ; n < N ; n++)
 		{
-			coefreal[n] = (adcdata_t) (cos(- 2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE);
-			coefimag[n] = (adcdata_t) (sin(- 2 * M_PI * n * k / N) * ADCDATA_MAXAMPLITUDE);
+			coefreal[n] = (typename ADC::SIGNED)
+				(cos(- 2 * M_PI * n * k / N) * ADC::SIGNED_MAX());
+			coefimag[n] = (typename ADC::SIGNED)
+				(sin(- 2 * M_PI * n * k / N) * ADC::SIGNED_MAX());
 		}
 		purge();
 	}
@@ -42,16 +44,16 @@ public:
 	
 	virtual void purge()
 	{
-		bzero(sumreal, sizeof(adcmath_t) * nchannels);
-		bzero(sumimag, sizeof(adcmath_t) * nchannels);
-		bzero(mag, sizeof(adcmath_t) * nchannels);
-		bzero(windowreal, sizeof(adcmath_t) * N * nchannels);
-		bzero(windowimag, sizeof(adcmath_t) * N * nchannels);
+		bzero(sumreal, sizeof(*sumreal) * nchannels);
+		bzero(sumimag, sizeof(*sumimag) * nchannels);
+		bzero(mag, sizeof(*mag) * nchannels);
+		bzero(windowreal, sizeof(**windowreal) * N * nchannels);
+		bzero(windowimag, sizeof(**windowimag) * N * nchannels);
 		curidx = 0;
 	}
 	
 	
-	virtual void update(const adcdata_t * sample)
+	virtual void update(const typename ADC::SIGNED * sample)
 	{
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
@@ -80,8 +82,8 @@ public:
 			 *	which is simply the last term of the sum for F(k).
 			 */
 			
-			windowreal[channel][curidx] = (adcmath_t) coefreal[curidx] * sample[channel];
-			windowimag[channel][curidx] = (adcmath_t) coefimag[curidx] * sample[channel];
+			windowreal[channel][curidx] = (typename ADC::DOUBLE_WIDE::SIGNED) coefreal[curidx] * sample[channel];
+			windowimag[channel][curidx] = (typename ADC::DOUBLE_WIDE::SIGNED) coefimag[curidx] * sample[channel];
 			
 			/*	The next two lines update the real and imaginary part of the complex
 			 *	output amplitude.
@@ -115,17 +117,17 @@ public:
 	}
 	
 	
-	virtual adcmath_t getMagL1(int channel) const {return mag[channel];}
-	virtual adcmath_t getReal(int channel) const {return sumreal[channel];}
-	virtual adcmath_t getImag(int channel) const {return sumimag[channel];}
+	virtual typename ADC::DOUBLE_WIDE::SIGNED getMagL1(int channel) const {return mag[channel];}
+	virtual typename ADC::DOUBLE_WIDE::SIGNED getReal(int channel) const {return sumreal[channel];}
+	virtual typename ADC::DOUBLE_WIDE::SIGNED getImag(int channel) const {return sumimag[channel];}
 	virtual int getCountChannels() const {return nchannels;}
 	virtual int getFourierIndex() const {return k;}
 	virtual int getWindowSize() const {return N;}
 	
 private:
-	adcdata_t coefreal[N], coefimag[N];
-	adcmath_t windowreal[nchannels][N], windowimag[nchannels][N];
-	adcmath_t sumreal[nchannels], sumimag[nchannels], mag[nchannels];
+	typename ADC::SIGNED coefreal[N], coefimag[N];
+	typename ADC::DOUBLE_WIDE::SIGNED windowreal[nchannels][N], windowimag[nchannels][N];
+	typename ADC::DOUBLE_WIDE::SIGNED sumreal[nchannels], sumimag[nchannels], mag[nchannels];
 	int curidx;
 	
 };
