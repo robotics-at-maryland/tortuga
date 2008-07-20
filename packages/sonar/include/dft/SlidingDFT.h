@@ -18,6 +18,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <assert.h>
 
 
 namespace ram {
