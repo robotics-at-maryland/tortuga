@@ -270,14 +270,14 @@ int getSonarData(int fd, struct sonarData * sd)
     if(sum != buf[0])
         return SB_ERROR;
 
-    printf("\nDebug: Received data from sonar board: < ");
+/*    printf("\nDebug: Received data from sonar board: < ");
     for(i=0; i<20; i++)
         printf("0x%02X ", rawSonar[i]);
 
     printf(">\n");
 
     printf("%d\n", ((rawSonar[0]<<8) | rawSonar[1]));
-
+*/
     sd->vectorX = ((signed short) ((rawSonar[0]<<8) | rawSonar[1])) / 10000.0;
     sd->vectorY = ((signed short) ((rawSonar[2]<<8) | rawSonar[3])) / 10000.0;
     sd->status = rawSonar[4];
