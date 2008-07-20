@@ -14,7 +14,8 @@ Subsystems:
 #           lostMinPixelScale: 0.75
 #           # About 20% of the total pixels
 #           almostHitPixels: 61440.0
-        
+        BinDetector:
+            centeredLimit: 0.2
         # Recording Settings
         #maxRecordRate: 10 # Hz
         #forwardFile: forward.avi
@@ -39,10 +40,13 @@ Subsystems:
         type: TimerManager
         depends_on: ["EventHub"]
 
+    Ai:
+         type: AI
+
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller",
-                     "MotionManager", "TimerManager", "VisionSystem"]
+                     "MotionManager", "TimerManager", "VisionSystem", "Ai"]
         States:
             ram.ai.light.Seek:
                 depthGain: 0.5
@@ -55,6 +59,15 @@ Subsystems:
             ram.ai.duct.Aligning:
                 filterSize: 10
                 desiredRange: 0.5
+
+            ram.ai.bin.Seeking:
+                speedGain: 7
+                sidewaysSpeedGain: 7
+            ram.ai.bin.SeekEnd:
+                speedGain: 7
+                sidewaysSpeedGain: 7
+            ram.ai.bin.SurfaceToMove:
+                depth: 7
 
     # Object that creates the vehicle interface
     Vehicle:
@@ -200,9 +213,13 @@ Subsystems:
                 #magYBias: 0.221182
                 #magZBias: 0.243998
                 # Tortuga 2 first dive
-                magXBias: -0.196805
-                magYBias: 0.171669
-                magZBias: 0.251043
+                #magXBias: -0.196805
+                #magYBias: 0.171669
+                #magZBias: 0.251043
+                # Tortuga 2 With Everthing
+                magXBias: -0.252917
+                magYBias: 0.183411
+                magZBias: 0.25861
 
                 localMagneticPitch: 60
     RemoteController:
