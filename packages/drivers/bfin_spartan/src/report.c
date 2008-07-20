@@ -90,14 +90,11 @@ int reportPing(int fd, byte status, double vectorX, double vectorY, double vecto
     byte buf[PACKET_LENGTH] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
     /* Sanity check the vector */
-    if(vectorX > 1.0 || vectorX < -1.0)
+    if(vectorX > 1.5 || vectorX < -1.5 || vectorY > 1.5 || vectorY < -1.5 || vectorZ > 1.5 || vectorZ < -1.5)
+    {
+        printf("Warning: not reporting an out-of-range vector\n");
         return -2;
-
-    if(vectorY > 1.0 || vectorY < -1.0)
-        return -2;
-
-    if(vectorZ > 1.0 || vectorZ < -1.0)
-        return -2;
+    }
 
     /* We are sending using fractionals to four places */
     signed short vX = vectorX * 10000.0;
