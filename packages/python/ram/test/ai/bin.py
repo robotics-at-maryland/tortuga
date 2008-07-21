@@ -23,120 +23,122 @@ from ram.test import Mock
         
 # Helper functions
 
-def binFoundHelper(self, shouldRotate = True):
-    # Set our expected ID
-    self.ai.data['currentBinID'] = 6
-    
-    # Test improper bin
-    self.assertEqual(0, self.controller.speed)
-    self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                     x = 0.5, y = -0.5, id = 3, angle = math.Degree(0))
-    self.assertEqual(0, self.controller.speed)
-    
-    # Test proper bin
-    self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                     x = 0.5, y = -0.5, id = 6, angle = math.Degree(0))
+class BinTestCase(aisupport.AITestCase):
+    def injectBinFound(self, **kwargs):
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
+                         0, 0, vision.Suit.UNKNOWN, math.Degree(0), **kwargs)
+                             
+    def binFoundHelper(self, shouldRotate = True):
+        # Set our expected ID
+        self.ai.data['currentBinID'] = 6
         
-    self.assertLessThan(self.controller.speed, 0)
-    self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-    self.assertEqual(self.controller.yawChange, 0)
-    
-    # Test with some rotation
-    self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                     x = 0.5, y = -0.5, id = 6, angle = math.Degree(15))
-    self.assertLessThan(self.controller.speed, 0)
-    self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-    if shouldRotate:
-        self.assertGreaterThan(self.controller.yawChange, 0)
-        currentYawChange = self.controller.yawChange
-
-
-        # Test large rotational filtering
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0.5, y = -0.5, id = 6, angle = math.Degree(-80))
-        self.assertAlmostEqual(currentYawChange, self.controller.yawChange, 
-                               3)
+        # Test improper bin
+        self.assertEqual(0, self.controller.speed)
+        self.injectBinFound(x = 0.5, y = -0.5, id = 3, angle = math.Degree(0))
+        self.assertEqual(0, self.controller.speed)
         
-        # Test back with a normal angle
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0.5, y = -0.5, id = 6, angle = math.Degree(30))
-        self.assertGreaterThan(self.controller.yawChange, currentYawChange)
-        
-        
-    else:
+        # Test proper bin
+        self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(0))
+            
+        self.assertLessThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
         
-def binTrackingHelper(self):
-    """
-    Tests that state proper tracks with BIN_FOUND and BIN_DROPPED
-    """
+        # Test with some rotation
+        self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(15))
+        self.assertLessThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        if shouldRotate:
+            self.assertGreaterThan(self.controller.yawChange, 0)
+            currentYawChange = self.controller.yawChange
+    
+    
+            # Test large rotational filtering
+            self.injectBinFound(    x = 0.5, y = -0.5, id = 6, angle = math.Degree(-80))
+            self.assertAlmostEqual(currentYawChange, self.controller.yawChange, 
+                                   3)
+            
+            # Test back with a normal angle
+            self.injectBinFound(    x = 0.5, y = -0.5, id = 6, angle = math.Degree(30))
+            self.assertGreaterThan(self.controller.yawChange, currentYawChange)
+            
+            
+        else:
+            self.assertEqual(self.controller.yawChange, 0)
+            
+    def publishQueuedBinFound(self, **kwargs):
+        self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
+                                vision.BinEvent,
+                                0, 0, vision.Suit.UNKNOWN, math.Degree(0),
+                                **kwargs)
+    def publishQueuedBinDropped(self, **kwargs):
+        self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
+                                vision.BinEvent,
+                                0, 0, vision.Suit.UNKNOWN, math.Degree(0),
+                                **kwargs)
+            
+    def binTrackingHelper(self):
+        """
+        Tests that state proper tracks with BIN_FOUND and BIN_DROPPED
+        """
+            
+        # Add some and test
+        self.publishQueuedBinFound(x = 0.5, y = -0.5, id = 6,
+                                   angle = math.Degree(0))
+        self.assertAIDataValue('currentBins', set([6]))
         
-    # Add some and test
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 6,
-                            angle = math.Degree(0))
-    self.assertAIDataValue('currentBins', set([6]))
-    
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.3, y = -0.5, id = 2,
-                            angle = math.Degree(0))
-    self.assertAIDataValue('currentBins', set([2,6]))
-    
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.2, y = -0.3, id = 3,
-                            angle = math.Degree(0))
-    self.assertAIDataValue('currentBins', set([2, 3, 6]))
-    
-    # Check some bin data
-    self.assert_(self.ai.data.has_key('binData'))
-    binData = self.ai.data['binData']
-    self.assertEqual(0.5, binData[6].x)
-    self.assertEqual(0.3, binData[2].x)
-    self.assertEqual(0.2, binData[3].x)
-    
-    # Make sure its updated
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.7, y = -0.5, id = 2,
-                            angle = math.Degree(0))
-    self.assertEqual(0.7, binData[2].x)
+        self.publishQueuedBinFound(x = 0.3, y = -0.5, id = 2,
+                                   angle = math.Degree(0))
+        self.assertAIDataValue('currentBins', set([2,6]))
         
-    # Remove some
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 3,
-                            angle = math.Degree(0))
-    self.assertAIDataValue('currentBins', set([2, 6]))
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 6,
-                            angle = math.Degree(0))
-    self.assertAIDataValue('currentBins', set([2]))
-    
-    # Add one
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 8,
-                            angle = math.Degree(0))
-    self.assertAIDataValue('currentBins', set([2,8]))
-    
-    # Remove all
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 2,
-                            angle = math.Degree(0))
-    self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
-                            vision.BinEvent, 0, 0, x = 0.5, y = -0.5, id = 8,
-                            angle = math.Degree(0))
-    self.assertAIDataValue('currentBins', set())
+        self.publishQueuedBinFound(x = 0.2, y = -0.3, id = 3,
+                                   angle = math.Degree(0))
+        self.assertAIDataValue('currentBins', set([2, 3, 6]))
+        
+        # Check some bin data
+        self.assert_(self.ai.data.has_key('binData'))
+        binData = self.ai.data['binData']
+        self.assertEqual(0.5, binData[6].x)
+        self.assertEqual(0.3, binData[2].x)
+        self.assertEqual(0.2, binData[3].x)
+        
+        # Make sure its updated
+        self.publishQueuedBinFound(x = 0.7, y = -0.5, id = 2,
+                                angle = math.Degree(0))
+        self.assertEqual(0.7, binData[2].x)
+            
+        # Remove some
+        self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 3,
+                                angle = math.Degree(0))
+        self.assertAIDataValue('currentBins', set([2, 6]))
+        self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 6,
+                                angle = math.Degree(0))
+        self.assertAIDataValue('currentBins', set([2]))
+        
+        # Add one
+        self.publishQueuedBinFound(x = 0.5, y = -0.5, id = 8,
+                                angle = math.Degree(0))
+        self.assertAIDataValue('currentBins', set([2,8]))
+        
+        # Remove all
+        self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 2,
+                                angle = math.Degree(0))
+        self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 8,
+                                angle = math.Degree(0))
+        self.assertAIDataValue('currentBins', set())
    
-class TestTracking(aisupport.AITestCase):
+class TestTracking(BinTestCase):
     def testEnsureBinTracking(self):
         bin.ensureBinTracking(self.qeventHub, self.ai)
         self.assertAIDataValue('binTrackingEnabled', True)
     
     def testBinFoundDropped(self):
         bin.ensureBinTracking(self.qeventHub, self.ai)
-        binTrackingHelper(self)
+        self.binTrackingHelper()
     
-class TestSearching(aisupport.AITestCase):
+class TestSearching(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self.controller.depth = 5
         self.machine.start(bin.Searching)        
     
@@ -148,8 +150,7 @@ class TestSearching(aisupport.AITestCase):
                 
     def testBinFound(self):
         # Now change states
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 5)
+        self.injectBinFound(id = 5)
         self.assertCurrentState(bin.Seeking)
         
         # Make sure we record the current bin proper, and add it to our set
@@ -160,11 +161,11 @@ class TestSearching(aisupport.AITestCase):
         self.assert_(self.visionSystem.binDetector)
     
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
     
-class TestSeeking(aisupport.AITestCase):
+class TestSeeking(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self.machine.start(bin.Seeking)
     
     def testStart(self):
@@ -172,19 +173,19 @@ class TestSeeking(aisupport.AITestCase):
         
     def testBinFound(self):
         """Make sure new found events move the vehicle"""
-        binFoundHelper(self)
+        self.binFoundHelper()
 
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
     
     def testBinLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.BIN_LOST)
         self.assertCurrentState(bin.Searching)
         
-class TestCentering(aisupport.AITestCase):
+class TestCentering(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self.machine.start(bin.Centering)
         
     def testStart(self):
@@ -209,11 +210,11 @@ class TestCentering(aisupport.AITestCase):
         self.assertCurrentState(bin.Searching)
     
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
     
     def testBinFound(self):
         """Make sure the loop back works"""
-        binFoundHelper(self)
+        self.binFoundHelper()
     
     def testSettled(self):
         """Make sure we move on after settling"""
@@ -224,9 +225,9 @@ class TestCentering(aisupport.AITestCase):
         self.injectEvent(bin.Centering.SETTLED)
         self.assertCurrentState(bin.SeekEnd)
         
-class TestSeekEnd(aisupport.AITestCase):
+class TestSeekEnd(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         
         bin.ensureBinTracking(self.qeventHub, self.ai)
         self.ai.data['currentBinID'] = 3
@@ -250,7 +251,7 @@ class TestSeekEnd(aisupport.AITestCase):
         self.ai.data['currentBins'] = set([6])
         
         # Make sure we repond to bin offset properly, but ignore orientation
-        binFoundHelper(self, False)
+        self.binFoundHelper(False)
         
     def testBinFoundCentered(self):
         self.ai.data['currentBinID'] = 3
@@ -260,20 +261,18 @@ class TestSeekEnd(aisupport.AITestCase):
         self._centered = False
         
         # Test wrong ID
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0, y = 0, id = 4)
+        self.injectBinFound(x = 0, y = 0, id = 4)
         self.assertFalse(self._centered)
         
         # Proper centered (6 is proper ID changed in binFoundHelper)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0, y = 0, id = 3)
+        self.injectBinFound(x = 0, y = 0, id = 3)
         self.qeventHub.publishEvents()
         self.assert_(self._centered)
         
     def testBinTracking(self):
         self.ai.data['currentBinID'] = 0
         self.ai.data['currentBins'] = set()
-        binTrackingHelper(self)
+        self.binTrackingHelper()
         
     def testCentered(self):
         self.qeventHub.publishEvents()
@@ -312,9 +311,9 @@ class TestSeekEnd(aisupport.AITestCase):
         self.assertCurrentState(bin.Dive)
         
 
-class TestDive(aisupport.AITestCase):
+class TestDive(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self.vehicle.depth = 0
         self.machine.start(bin.Dive)
     
@@ -327,19 +326,19 @@ class TestDive(aisupport.AITestCase):
     def testBinFound(self):
         """Make sure the loop back works"""
         # Need to add multi-motion support
-        binFoundHelper(self)
+        self.binFoundHelper()
         
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
         
     def testDiveFinished(self):
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assertCurrentState(bin.Examine)
         
-class TestExamine(aisupport.AITestCase):
+class TestExamine(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self._targetFound = False
         self.qeventHub.subscribeToType(bin.Examine.FOUND_TARGET, 
                                        self.targetFound)
@@ -364,7 +363,7 @@ class TestExamine(aisupport.AITestCase):
     def testBinFound(self):
         """Make sure the loop back works"""
         # Need to add multi-motion support
-        binFoundHelper(self)
+        self.binFoundHelper()
         
         # Test counting variables
         
@@ -383,31 +382,20 @@ class TestExamine(aisupport.AITestCase):
         self.ai.data['currentBinID'] = 3
         
         # Test blank one
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 4, suit = vision.Suit.HEART)
+        self.injectBinFound(id = 4, suit = vision.Suit.HEART)
         self.assertSuitCount()
         
         # Add some ones to populate
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.HEART)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.CLUB)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.SPADE)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.HEART)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.DIAMOND)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.CLUB)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.DIAMOND)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.CLUB)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.HEART)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
+        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
+        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
 
         self.assertSuitCount(heart = 3, spade = 1, club = 4, diamond = 2)
         
@@ -415,17 +403,16 @@ class TestExamine(aisupport.AITestCase):
         self.assertFalse(self._targetFound)
         
         # Fire the last club and make sure we got it called
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
         
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
         
-class TestSurfaceToMove(aisupport.AITestCase):
+class TestSurfaceToMove(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self.vehicle.depth = 10
         self.ai.data['preBinCruiseDepth'] = 5.0
         self.machine.start(bin.SurfaceToMove)
@@ -439,10 +426,10 @@ class TestSurfaceToMove(aisupport.AITestCase):
         
     def testBinFound(self):
         """Make sure the loop back works"""
-        binFoundHelper(self)
+        self.binFoundHelper()
         
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
         
     def testDiveFinished(self):        
         # Make sure we go the right place
@@ -452,9 +439,9 @@ class TestSurfaceToMove(aisupport.AITestCase):
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assertCurrentState(bin.NextBin)
 
-class TestNextBin(aisupport.AITestCase):
+class TestNextBin(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         bin.ensureBinTracking(self.qeventHub, self.ai)
         
         self.ai.data['currentBinID'] = 4
@@ -507,7 +494,7 @@ class TestNextBin(aisupport.AITestCase):
         self.ai.data['currentBinID'] = 0
         self.ai.data['currentBins'] = set([6])
         
-        binFoundHelper(self, False)
+        self.binFoundHelper(False)
         
     def testBinFoundCentered(self):
         self.ai.data['currentBinID'] = 3
@@ -517,20 +504,18 @@ class TestNextBin(aisupport.AITestCase):
         self._centered = False
         
         # Test wrong ID
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0, y = 0, id = 4, angle = math.Degree(0))
+        self.injectBinFound(x = 0, y = 0, id = 4, angle = math.Degree(0))
         self.assertFalse(self._centered)
         
         # Proper centered (6 is proper ID changed in binFoundHelper)
-        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
-                         x = 0, y = 0, id = 3, angle = math.Degree(0))
+        self.injectBinFound(x = 0, y = 0, id = 3, angle = math.Degree(0))
         self.qeventHub.publishEvents()
         self.assert_(self._centered)
         
     def testBinTracking(self):
         self.ai.data['currentBinID'] = 0
         self.ai.data['currentBins'] = set()
-        binTrackingHelper(self)
+        self.binTrackingHelper()
         
     def testCentered(self):
         self.qeventHub.publishEvents()
@@ -546,9 +531,9 @@ class TestNextBin(aisupport.AITestCase):
         self.injectEvent(bin.NextBin.AT_END)
         self.assertCurrentState(bin.SurfaceToCruise)
         
-class TestDropMarker(aisupport.AITestCase):
+class TestDropMarker(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self.machine.start(bin.DropMarker)
     
     def testStart(self):
@@ -562,10 +547,10 @@ class TestDropMarker(aisupport.AITestCase):
         
     def testBinFound(self):
         """Make sure the loop back works"""
-        binFoundHelper(self)
+        self.binFoundHelper()
         
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
 
     def testDroppedFirst(self):
         """Make sure we move on after dropping the second marker"""
@@ -607,9 +592,9 @@ class TestDropMarker(aisupport.AITestCase):
         self.injectEvent(bin.DropMarker.CONTINUE)
         self.assertCurrentState(bin.SurfaceToMove)
         
-class TestSurface(aisupport.AITestCase):
+class TestSurface(BinTestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        BinTestCase.setUp(self)
         self.vehicle.depth = 10
         self.ai.data['preBinCruiseDepth'] = 5.0
         self.machine.start(bin.SurfaceToCruise)
@@ -623,10 +608,10 @@ class TestSurface(aisupport.AITestCase):
         
     def testBinFound(self):
         """Make sure the loop back works"""
-        binFoundHelper(self)
+        self.binFoundHelper()
         
     def testBinTracking(self):
-        binTrackingHelper(self)
+        self.binTrackingHelper()
         
     def testDiveFinished(self):
         # Subscribe to end event
