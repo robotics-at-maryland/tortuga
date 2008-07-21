@@ -9,6 +9,7 @@
 Import('env')
 envl = env.Clone()
 
+envl.Append(LIBS = ['m'])
 # Build Library (will be called 'libram_carnetix.so')
 envl.Append(CPPPATH = ['include'])
 envl.RAMSharedLibrary('sensor',  source = ['src/sensorapi.c'])

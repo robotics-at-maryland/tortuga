@@ -38,6 +38,7 @@
 #error "WRONG VERSION OF INCLUDE"
 #endif
 
+#include <math.h>
 
 int hasData(int fd, int timeout)
 {
@@ -288,6 +289,16 @@ int getSonarData(int fd, struct sonarData * sd)
     sd->timeStampSec = (rawSonar[11]<<24) | (rawSonar[12] << 16) | (rawSonar[13] << 8) | rawSonar[14];
     sd->timeStampUSec = (rawSonar[16]<<24) | (rawSonar[17] << 16) | (rawSonar[18] << 8) | rawSonar[19];
 
+
+
+
+    //printf("Vector: \t<%5.4f %5.4f %5.4f>\n", sd->vectorX, sd->vectorY, sd->vectorZ);                  
+    //printf("Status: \t0x%02x\n", sd->status);
+    //printf("Range:  \t%u\n", sd->range);
+    //printf("Timestamp:\t%u\n", sd->timeStampSec);
+    //printf("Sample No:\t%u\n", sd->timeStampUSec);
+    //printf("Yaw: %f\n", atan2(sd->vectorY, sd->vectorX) * 180.0 / 3.14159);
+    
     return SB_OK;
 }
 
