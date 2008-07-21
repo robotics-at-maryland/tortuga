@@ -33,7 +33,10 @@ typedef boost::shared_ptr<IPowerSource> IPowerSourcePtr;
 
 class ITempSensor;
 typedef boost::shared_ptr<ITempSensor> ITempSensorPtr;
-    
+
+class ISonar;
+typedef boost::shared_ptr<ISonar> ISonarPtr;
+
 class IIMU;
 typedef boost::shared_ptr<IIMU> IIMUPtr;
     

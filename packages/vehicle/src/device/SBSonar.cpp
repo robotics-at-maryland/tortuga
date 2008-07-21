@@ -30,7 +30,7 @@ namespace device {
 SBSonar::SBSonar(core::ConfigNode config,
                  core::EventHubPtr eventHub,
                  IVehiclePtr vehicle) :
-    Device(tempSensorIDToText(config["id"].asInt())),
+    Device(config["name"].asString("Sonar")),
     ISonar(eventHub),
     m_direction(math::Vector3::ZERO),
     m_range(0),
