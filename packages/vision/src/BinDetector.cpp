@@ -505,13 +505,6 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
                 percentsRotatedRedWrapper.asIplImage());
     to_ratios(percentsRotatedRedWrapper.asIplImage());
         
-    // Make all the white white, everything else black
-    OpenCVImage maskedRotatedRed(rotatedRedSuitWrapper.getWidth(),
-                                    rotatedRedSuitWrapper.getHeight());
-    white_mask(percentsRotatedRedWrapper,
-                rotatedRedSuitWrapper.asIplImage(),
-                maskedRotatedRed.asIplImage(), 20, 110);
-
     if (detectSuit)
     {
 
@@ -535,56 +528,6 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
         }
     }
     
-    // Attempt to fix rotation 
-    bool rotatedBy90 = false;
-        
-    int x = maskedRotatedRed.getWidth()/2;
-    for (unsigned int y = maskedRotatedRed.getHeight()/2; y >= maskedRotatedRed.getHeight()/3; y--)
-    {
-        int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
-        if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
-            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
-            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
-        {
-            //rotated by 90
-            rotatedBy90 = true;
-            break;
-        }
-        else
-        {
-            
-        }
-    }
-
-    for (unsigned int y = maskedRotatedRed.getHeight()/2; y < maskedRotatedRed.getHeight() * 2/3; y++)
-    {
-        int index = x * 3 + y * 3 * maskedRotatedRed.getWidth();
-        if ((unsigned char)(maskedRotatedRed.asIplImage()->imageData[index]) == 255 &&
-            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+1]) == 255 &&
-            (unsigned char)(maskedRotatedRed.asIplImage()->imageData[index+2]) == 255)
-        {
-            //rotated by 90
-            rotatedBy90 = true;
-            break;
-        }
-        else
-        {
-            
-        }
-    }
-    
-    if (rotatedBy90)
-    {
-//        printf("Off by 90 \n");
-//        math::Degree ninety(90.0);
-//        angle = angle + ninety;
-    }
-    else
-    {
-//        printf("Spot On!\n");
-    }
-        
-//    printf("Angle: %f\n", angle.valueDegrees());
     double angInDegrees = angle.valueDegrees();
     double angleToReturn = 90-angInDegrees;
     
@@ -655,7 +598,8 @@ math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin,
         }
     }
     
-    
+    if (lines->total == 0)
+        return math::Radian(-180);
     cvReleaseImage(&cannied);
     cvReleaseMemStorage(&storage);
     cvReleaseImage(&redSuitGrayScale);

@@ -638,9 +638,9 @@ void safeMask(IplImage* base)
 	float r_over_g_max;
 	float b_over_r_max;
 
-    r_over_g_min=.75f;
-    r_over_g_max=2.6f;
-    b_over_r_max=1.0f;
+    r_over_g_min=.5f;
+    r_over_g_max=1.8f;
+    b_over_r_max=1.25f;
 
 	for (int y=0; y<height; y++)
 		for (int x=0; x<width; x++)

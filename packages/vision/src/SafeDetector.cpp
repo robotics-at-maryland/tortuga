@@ -32,6 +32,7 @@ namespace vision {
 
 SafeDetector::SafeDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
+    Detector(eventHub),
     m_safeBlob(0,0,0,0,0,0,0),
     blobDetector(config,eventHub)
 {
@@ -90,18 +91,30 @@ void SafeDetector::init(core::ConfigNode config)
     
 void SafeDetector::processImage(Image* input, Image* out)
 {
+    BlobDetector::Blob empty(0,0,0,0,0,0,0);
+
     m_working->copyFrom(input);
 
     safeMask(m_working->asIplImage());
-    out->copyFrom(m_working);
+    if (out)
+        out->copyFrom(m_working);
 
     blobDetector.setMinimumBlobSize(25);
     blobDetector.processImage(m_working);
     BlobDetector::BlobList blobs = blobDetector.getBlobs();
     
     if (blobs.size() == 0)
+    {
+        if (m_found)
+        {
+            m_safeX = 0;
+            m_safeY = 0;
+            m_safeBlob = empty;
+            m_found = false;
+            publish(EventType::SAFE_LOST, core::EventPtr(new core::Event()));
+        }
         return;
-    
+    }
     std::vector<BlobDetector::Blob> orangeBlobs;
     
     int totalPixels = 0;
@@ -117,10 +130,13 @@ void SafeDetector::processImage(Image* input, Image* out)
             orangeBlobs.push_back(blob);
     }    
     
-    BOOST_FOREACH(BlobDetector::Blob blob, orangeBlobs)
+    if (out)
     {
+        BOOST_FOREACH(BlobDetector::Blob blob, orangeBlobs)
+        {
 //        printf("Center: %d, %d \n", blob.getCenterX(), blob.getCenterY());
-        blob.draw(out);
+            blob.draw(out);
+        }
     }
     if (orangeBlobs.size() >= 6)
     {
@@ -158,7 +174,6 @@ void SafeDetector::processImage(Image* input, Image* out)
             }
         }
 
-        BlobDetector::Blob empty(0,0,0,0,0,0,0);
         int biggestCluster = -1;
         int biggestClusterBlobCount = 0;
         for (int i = size-1; i >=0; i--)
@@ -205,12 +220,14 @@ void SafeDetector::processImage(Image* input, Image* out)
             m_safeY = unionBlobs[biggestCluster].getCenterY();
             m_safeBlob = unionBlobs[biggestCluster];
             m_found = true;
-            m_safeBlob.draw(out);
+            if (out)
+                m_safeBlob.draw(out);
             
             CvPoint safeCenter;
             safeCenter.x = m_safeBlob.getCenterX();
             safeCenter.y = m_safeBlob.getCenterY();
-            cvCircle(out->asIplImage(), safeCenter, 10, CV_RGB(255,128,255), 2, CV_AA, 0);
+            if (out)
+                cvCircle(out->asIplImage(), safeCenter, 10, CV_RGB(255,128,255), 2, CV_AA, 0);
 
             m_safeX = -1 * ((m_working->getWidth()/2) - m_safeX);
             m_safeY = m_working->getHeight()/2 - m_safeY;
@@ -218,10 +235,14 @@ void SafeDetector::processImage(Image* input, Image* out)
             m_safeX = m_safeX / ((double)(m_working->getWidth()));
             m_safeY = m_safeY / ((double)(m_working->getHeight()));
            
+            m_safeX *=2;
+            m_safeY *=2;
+            
+            m_safeX *= (double)((m_working->getWidth())/(double)(m_working->getHeight()));
             SafeEventPtr event(new SafeEvent(m_safeX, m_safeY));
             publish(EventType::SAFE_FOUND, event);
         }
-        else
+        else if (m_found)
         {
             m_safeX = 0;
             m_safeY = 0;
