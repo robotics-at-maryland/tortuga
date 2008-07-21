@@ -129,10 +129,15 @@ class VisionPanel(wx.Panel):
             ductPaneInfo = ductPaneInfo.Caption("Duct").Left()
             ductPanel = DuctPanel(parent, eventHub, vision)
             
+            safePaneInfo = wx.aui.AuiPaneInfo().Name("Safe")
+            safePaneInfo = safePaneInfo.Caption("Safe").Left()
+            safePanel = SafePanel(parent, eventHub, vision)
+            
             return [(buoyPaneInfo, buoyPanel, [vision]), 
                     (pipePaneInfo, pipePanel, [vision]), 
                     (binPaneInfo, binPanel, [vision]),
-                    (ductPaneInfo, ductPanel, [vision])]
+                    (ductPaneInfo, ductPanel, [vision]),
+                    (safePaneInfo, safePanel, [vision])]
         
         return []
 
@@ -223,6 +228,46 @@ class OrangePipePanel(VisionPanel):
     def _onPipeLost(self, event):
         self.disableControls()
         
+        
+class SafePanel(VisionPanel):
+    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+        VisionPanel.__init__(self, parent, *args, **kwargs)
+        self._x = None
+        self._y = None
+        #self._angle = None
+
+        # Controls
+        self._createControls("Safe")
+        
+        # Events
+        conn = eventHub.subscribeToType(ext.vision.EventType.SAFE_FOUND, 
+                                        self._onSafeFound)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ext.vision.EventType.SAFE_LOST, 
+                                        self._onSafeLost)
+        self._connections.append(conn)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+        #self._createDataControl(controlName = '_angle', label = 'Angle: ')
+        
+    def _onSafeFound(self, event):
+        self._x.Value = "% 4.2f" % event.x
+        self._y.Value = "% 4.2f" % event.y    
+        #self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
+        
+        self.enableControls()
+    
+    def _onSafeLost(self, event):
+        self.disableControls()
         
 class BinPanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, ai, *args, **kwargs):
