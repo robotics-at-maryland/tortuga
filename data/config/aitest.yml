@@ -74,9 +74,15 @@ Subsystems:
                 sidewaysSpeedGain: 7
             ram.ai.bin.SurfaceToMove:
                 depth: 7
-
             ram.ai.pipe.Seeking:
                 speedGain: 8
+
+            ram.ai.sonar.CloseSeeking:
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 2
+                forwardSpeed: 3
+                speedGain: 2
+
 
     # Object that creates the vehicle interface
     Vehicle:
