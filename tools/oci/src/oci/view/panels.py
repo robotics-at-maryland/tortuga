@@ -269,7 +269,7 @@ class SonarPanel(wx.Panel):
         
     def _update(self,event):
         direction = event.direction
-        self._x.Value = '% 6.4f' % direction.z
+        self._x.Value = '% 6.4f' % direction.x
         self._y.Value = '% 6.4f' % direction.y
         self._z.Value = '% 6.4f' % direction.z
         self._time.Value = '% 8.1f' % event.pingTimeSec
