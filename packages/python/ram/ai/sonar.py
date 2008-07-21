@@ -73,7 +73,7 @@ class Searching(state.State):
     def UPDATE(self, event):
         pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
             event.direction)
-        self.controller.yawVehicle(pingerOrientation.getYaw(True))
+        self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
 
 class FarSeeking(PingerState):
     CLOSE = core.declareEventType('CLOSE')
