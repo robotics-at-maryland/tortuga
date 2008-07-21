@@ -218,7 +218,8 @@ class SonarPanel(wx.Panel):
         self._connections = []
         self._vehicleOrientation = ext.math.Quaternion.IDENTITY;
         self._pingerOrientation = ext.math.Quaternion.IDENTITY;
-        
+        self._lastTime = 0
+
         layout =  wx.GridBagSizer(10, 10)
               
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+00.0')
@@ -286,10 +287,11 @@ class SonarPanel(wx.Panel):
         self._z.Value = '% 6.4f' % direction.z
         self._time.Value = '% 8.1f' % event.pingTimeSec
         
-
-        self._pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
-            event.direction)
-        self._pingerOrientation = self._vehicleOrientation * self._pingerOrientation 
+        if self._lastTime != event.pingTimeSec:
+	    self._lastTime = event.pingTimeSec
+            self._pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
+                event.direction)
+            self._pingerOrientation = self._vehicleOrientation * self._pingerOrientation 
         
         self._bearing.setOrientation(self._vehicleOrientation, 
                                      self._pingerOrientation)
