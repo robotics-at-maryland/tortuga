@@ -269,10 +269,10 @@ class SonarPanel(wx.Panel):
         
     def _update(self,event):
         direction = event.direction
-        self._x.Value = '% 4.1f' % direction.z
-        self._y.Value = '% 4.1f' % direction.y
-        self._z.Value = '% 4.1f' % direction.z
-        self._time.Value = '% 4.1f' % event.pingTimeSec
+        self._x.Value = '% 6.4f' % direction.z
+        self._y.Value = '% 6.4f' % direction.y
+        self._z.Value = '% 6.4f' % direction.z
+        self._time.Value = '% 8.1f' % event.pingTimeSec
         
     def _onClose(self, closeEvent):
         for conn in self._connections:
