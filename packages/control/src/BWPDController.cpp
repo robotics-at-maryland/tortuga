@@ -57,7 +57,8 @@ BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
     m_desiredState(0),
     m_measuredState(0),
     m_estimatedState(0),
-    m_controllerState(0)
+    m_controllerState(0),
+    m_buoyantTorqueCorrection(0, 0, 0)
 {   
     init(config); 
 }
@@ -313,7 +314,13 @@ bool BWPDController::atDepth()
     double difference = fabs(m_measuredState->depth - m_desiredState->depth);
     return difference <= m_depthThreshold;
 }
-    
+
+void BWPDController::setBuoyantTorqueCorrection(double x, double y, double z)
+{
+    math::Vector3 temp(x, y, z);
+    m_buoyantTorqueCorrection = temp;
+}
+
 void BWPDController::update(double timestep)
 {
     // Grab latest state (preform small hack to copy it over for the controller)
@@ -350,6 +357,8 @@ void BWPDController::update(double timestep)
                                       m_controllerState, timestep,
                                       rotationalTorque.ptr());
     }
+    
+    rotationalTorque = rotationalTorque - (orientation.Inverse() * m_buoyantTorqueCorrection).crossProduct(math::Vector3::UNIT_Z);
 
     // Actually set motor values
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);

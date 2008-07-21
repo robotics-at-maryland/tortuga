@@ -119,6 +119,8 @@ public:
     /** Returns true if the vehicle is at the desired orientation */
     virtual bool atOrientation() = 0;
     
+    virtual void setBuoyantTorqueCorrection(double x, double y, double z) =0;
+    
 protected:
     IController(std::string name,
                 core::EventHubPtr eventHub = core::EventHubPtr());

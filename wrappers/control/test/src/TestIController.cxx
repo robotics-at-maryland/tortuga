@@ -18,6 +18,7 @@
 
 // Project Includes
 #include "control/include/IController.h"
+#include "math/include/Vector3.h"
 
 class MockController : public ram::control::IController
 {
@@ -68,6 +69,8 @@ public:
     virtual void background(int) {};
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
+    
+    virtual void setBuoyantTorqueCorrection(double x, double y, double z) {};
     
     double speed;
     double sidewaysSpeed;

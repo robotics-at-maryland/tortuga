@@ -3,7 +3,7 @@
  * Copyright (C) 2007 Joseph Lisee
  * All rights reserved.
  *
- * Authory: Joseph Lisee <jlisee@umd.edu>
+ * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/control/test/src/TestControlFunctions.cxx
  */
 

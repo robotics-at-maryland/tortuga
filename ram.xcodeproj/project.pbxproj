@@ -8,6 +8,7 @@
 
 /* Begin PBXFileReference section */
 		5F6A335A0E33E65D009FA642 /* tools */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tools; sourceTree = "<group>"; };
+		5FB2FCB80E340388008ACB0D /* wrappers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = wrappers; sourceTree = "<group>"; };
 		A4AD61020E3301A0005BA8A3 /* packages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = packages; sourceTree = "<group>"; };
 		A4AD61030E3301A0005BA8A3 /* sandbox */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sandbox; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -16,9 +17,10 @@
 		08FB7794FE84155DC02AAC07 /* trunk */ = {
 			isa = PBXGroup;
 			children = (
-				5F6A335A0E33E65D009FA642 /* tools */,
 				A4AD61020E3301A0005BA8A3 /* packages */,
 				A4AD61030E3301A0005BA8A3 /* sandbox */,
+				5F6A335A0E33E65D009FA642 /* tools */,
+				5FB2FCB80E340388008ACB0D /* wrappers */,
 			);
 			name = trunk;
 			sourceTree = "<group>";

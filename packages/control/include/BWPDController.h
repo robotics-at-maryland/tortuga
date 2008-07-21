@@ -25,6 +25,8 @@
 // Must Be Included last
 #include "control/include/Export.h"
 
+#include "math/include/Vector3.h"
+
 namespace ram {
 namespace control {
 
@@ -130,6 +132,8 @@ public:
         thrusters */
     virtual void update(double timestep);
     
+    virtual void setBuoyantTorqueCorrection(double x, double y, double z);
+    
 private:
     void init(core::ConfigNode config);
 
@@ -169,6 +173,8 @@ private:
     
     /** Internal State of the controller */
     ControllerState* m_controllerState;
+    
+    math::Vector3 m_buoyantTorqueCorrection;
 };
     
 } // namespace control
