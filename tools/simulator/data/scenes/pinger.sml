@@ -20,25 +20,17 @@ Scene:
     
     Cameras:
         Main:
-            position: [-15, 0, 0]
-            offset: [0, 0, 8]
+            position: [-18, 0, 0]
+            offset: [-4, 3, 2]
     
     Robots:
-        Tortuga: 
-            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            position: [-16, -1, -2]
+        Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
     
-    Objects:
-        blackJackTable:
-            type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
-            position: [-15, 1, -4]
-            orientation: [0, 0, 1, 45]
-            
-        #blackJackTable:
-        #    type: [ram.sim.graphics.IVisual, sim.vision.Bin]
-        #    position: [-15, 1, -3.05]
-        #    orientation: [0, 0, 1, 45]
-          
+    Objects:        
+        pinger1:
+            type: [sim.sonar.IPinger, sim.sonar.Pinger]
+            position: [-15, 1, -1]
+        
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
             

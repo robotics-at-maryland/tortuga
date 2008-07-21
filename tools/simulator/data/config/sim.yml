@@ -28,6 +28,11 @@ Subsystems:
 #           # About 20% of the total pixels
 #           almostHitPixels: 61440.0
            
+    SimSonar:
+        type: SimSonar
+        depends_on: ["Simulation", "Vehicle", "EventHub"]
+        pingInterval: 2.0
+           
     EventHub:
         type: EventHub
         
@@ -67,6 +72,12 @@ Subsystems:
             ram.ai.duct.Aligning:
                 filterSize: 10
 
+            ram.ai.bin.Seeking:
+                sidewaysSpeedGain: 10
+                speedGain: 7
+            ram.ai.bin.NextBin:
+                sidewaysSpeedGain: 3
+                speedGain: 3
 #    RemoteController:
 #        type: RemoteController
 #        depends_on: ["Controller"]
@@ -203,10 +214,11 @@ Subsystems:
         Scenes:
             # Each scene must be on the given scene_path, this for example is 
             # in 'data/scenes/nxtest.xml'
-            #Main: pipe.sml
-            Main: bin.sml
+            Main: pipe.sml
+            #Main: bin.sml
             #Main: duct.sml
             #Main: buoy.sml
+            Main: pinger.sml
             #Main: transdec.sml
             #Main: nxtest.sml
 

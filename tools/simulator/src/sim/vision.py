@@ -24,7 +24,7 @@ import ram.core as core
 import ram.timer
 from ram.sim.object import IObject
 from ram.sim.graphics import IVisual, Visual
-from ram.sim.serialization import IKMLStorable, two_step_init
+from ram.sim.serialization import two_step_init
 from ram.sim.serialization import parse_position_orientation
 import ram.sim.object
 
