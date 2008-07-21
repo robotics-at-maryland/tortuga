@@ -1669,9 +1669,9 @@ int black_mask(IplImage* percents, IplImage* base, IplImage* output)
 			b2=data2[count];
 			g2=data2[count+1];
 			r2=data2[count+2];
-			if (b>15 && g>15 && r>15)
+			if (b>5 && g>5 && r>5)
 			{
-				if (b2 + g2 + r2 <= 250)
+				if (b2 + g2 + r2 <= 300)
 				{
 					data3[count]=data3[count+1]=data3[count+2]=255;
 					pixelCount++;
