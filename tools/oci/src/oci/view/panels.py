@@ -216,6 +216,8 @@ class SonarPanel(wx.Panel):
         self.Bind(wx.EVT_CLOSE, self._onClose)
         
         self._connections = []
+        self._vehicleOrientation = ext.math.Quaternion.IDENTITY;
+        self._pingerOrientation = ext.math.Quaternion.IDENTITY;
         
         layout =  wx.GridBagSizer(10, 10)
               
@@ -251,14 +253,20 @@ class SonarPanel(wx.Panel):
                               style = textStyle)
         layout.Add(self._time, (3, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
+        # Bearing Control
+        self._bearing = RotationCtrl(self, 'Bearing', style = RotationCtrl.YAW, 
+                                     offset = 0, direction = -1)
+        layout.Add(self._bearing, (4, 0), flag = wx.EXPAND,
+                   span = wx.GBSpan(1,2))
+        
         # Create graphical controls
         #self._depthbar = DepthBar(self)
         #self._depthbar.minValue = 20
-        #layout.Add(self._depthbar, (3,0), span = wx.GBSpan(1,2), 
+        #layout.Add(self._depthbar, (3,0), 
         #           flag = wx.EXPAND)
         
         layout.AddGrowableCol(1)
-        #layout.AddGrowableRow(3)
+        layout.AddGrowableRow(4)
         
         self.SetSizerAndFit(layout)
         #self.SetSizeHints(0,0,100,-1)
@@ -267,12 +275,27 @@ class SonarPanel(wx.Panel):
                                         self._update)
         self._connections.append(conn)
         
+        conn = eventHub.subscribe(ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
+                                  vehicle, self._onOrientationUpdate)
+        self._connections.append(conn)
+        
     def _update(self,event):
         direction = event.direction
         self._x.Value = '% 6.4f' % direction.x
         self._y.Value = '% 6.4f' % direction.y
         self._z.Value = '% 6.4f' % direction.z
         self._time.Value = '% 8.1f' % event.pingTimeSec
+        
+        self._pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
+            event.direction)
+        
+        self._bearing.setOrientation(self._vehicleOrientation, 
+                                     self._pingerOrientation)
+       
+    def _onOrientationUpdate(self, event):
+        self._vehicleOrientation = event.orientation
+        self._bearing.setOrientation(self._vehicleOrientation, 
+                                     self._pingerOrientation)
         
     def _onClose(self, closeEvent):
         for conn in self._connections:
