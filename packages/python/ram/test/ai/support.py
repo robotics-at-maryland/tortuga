@@ -45,6 +45,7 @@ class MockVisionSystem(core.Subsystem):
         self.pipeLineDetector = False
         self.binDetector = False
         self.ductDetector = False
+        self.downwardSafeDetector = False
          
     def redLightDetectorOn(self):
         self.redLightDetector = True
@@ -63,6 +64,12 @@ class MockVisionSystem(core.Subsystem):
         
     def binDetectorOff(self):
         self.binDetector = False
+        
+    def downwardSafeDetectorOn(self):
+        self.downwardSafeDetector = True
+        
+    def downwardSafeDetectorOff(self):
+        self.downwardSafeDetector = False
         
     def ductDetectorOn(self):
         self.ductDetector = True
