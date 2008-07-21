@@ -214,7 +214,7 @@ class TempSensor(device.ITempSensor):
         event.number = self.temp
         self.publish(device.ITempSensor.UPDATE, event)
 
-class DemoSonar(core.Subsystem, core.EventPublisher):
+class DemoSonar(core.Subsystem):
     """
     Sonar system demo, has an x and y positiion of the sonar
     
@@ -228,14 +228,12 @@ class DemoSonar(core.Subsystem, core.EventPublisher):
     @ivar _currentTime: current time accumlated by from update timestep
     """
     
-    SONAR_UPDATE = 'SONAR_UPDATE'
-    
     def __init__(self, config, deps):
-        core.Subsystem.__init__(self, config['name'])
-        core.EventPublisher.__init__(self)
+        core.Subsystem.__init__(self, config['name'], deps)
         
         self.x = 0
         self.y = 0
+        self.z = 0
         self._currentTime = 0.0
         
     def update(self, timestep):
@@ -249,11 +247,12 @@ class DemoSonar(core.Subsystem, core.EventPublisher):
         self._currentTime += timestep
         self.x = 10 * math.sin(self._currentTime)
         self.y = 10 * math.sin(self._currentTime + 3)
+        self.z = 10 * math.sin(self._currentTime + 6)
         
-        event = core.Event()
-        event.x = self.x
-        event.y = self.y
-        self.publish(DemoSonar.SONAR_UPDATE, event)
+        event = ext.vehicle.SonarEvent()
+        event.direction = ext.math.Vector3(self.x, self.y, self.z)
+        self.publish(device.ISonar.UPDATE, event)
+
         
 # Register Subsystem so it can be created from a config file
 core.SubsystemMaker.registerSubsystem('DemoSonar', DemoSonar)

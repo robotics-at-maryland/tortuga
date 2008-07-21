@@ -10,6 +10,7 @@ Subsystems:
 
     Sonar:
         type: DemoSonar
+        depends_on: ["EventHub"]
         
     Vehicle:
         type: DemoVehicle

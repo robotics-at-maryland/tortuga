@@ -206,6 +206,97 @@ class DepthPanel(wx.Panel):
         
         return []
 
+class SonarPanel(wx.Panel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub, vehicle, *args, **kwargs):
+        """Create the Control Panel"""
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+        self._connections = []
+        
+        layout =  wx.GridBagSizer(10, 10)
+              
+        textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+00.0')
+        textSize = wx.Size(textWidth, wx.DefaultSize.height) 
+        textStyle = wx.TE_RIGHT | wx.TE_READONLY
+        
+        # Create X controls
+        desiredLabel = wx.StaticText(self, label = 'X:')
+        layout.Add(desiredLabel, (0, 0), flag = wx.ALIGN_CENTER)
+        self._x = wx.TextCtrl(self, size = textSize,
+                              style = textStyle)
+        layout.Add(self._x, (0, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        # Create Y controls
+        actualLabel = wx.StaticText(self, label = 'Y:')
+        layout.Add(actualLabel, (1, 0), flag = wx.ALIGN_CENTER)
+        self._y = wx.TextCtrl(self, size = textSize,
+                              style = textStyle)
+        layout.Add(self._y, (1, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        # Create Z controls
+        actualLabel = wx.StaticText(self, label = 'Z:')
+        layout.Add(actualLabel, (2, 0), flag = wx.ALIGN_CENTER)
+        self._z = wx.TextCtrl(self, size = textSize,
+                              style = textStyle)
+        layout.Add(self._z, (2, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        # Create Time Controls
+        actualLabel = wx.StaticText(self, label = 'Time:')
+        layout.Add(actualLabel, (3, 0), flag = wx.ALIGN_CENTER)
+        self._time = wx.TextCtrl(self, size = textSize,
+                              style = textStyle)
+        layout.Add(self._time, (3, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        # Create graphical controls
+        #self._depthbar = DepthBar(self)
+        #self._depthbar.minValue = 20
+        #layout.Add(self._depthbar, (3,0), span = wx.GBSpan(1,2), 
+        #           flag = wx.EXPAND)
+        
+        layout.AddGrowableCol(1)
+        #layout.AddGrowableRow(3)
+        
+        self.SetSizerAndFit(layout)
+        #self.SetSizeHints(0,0,100,-1)
+        
+        conn = eventHub.subscribeToType(ext.vehicle.device.ISonar.UPDATE, 
+                                        self._update)
+        self._connections.append(conn)
+        
+    def _update(self,event):
+        direction = event.direction
+        self._x.Value = '% 4.1f' % direction.z
+        self._y.Value = '% 4.1f' % direction.y
+        self._z.Value = '% 4.1f' % direction.z
+        self._time.Value = '% 4.1f' % event.pingTimeSec
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+       
+        closeEvent.Skip()
+        
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+                                                        subsystems)
+
+        if (vehicle is not None) or (controller is not None):
+            paneInfo = wx.aui.AuiPaneInfo().Name("Sonar")
+            paneInfo = paneInfo.Caption("Sonar").Right()
+        
+            panel = SonarPanel(parent, eventHub, vehicle)
+            return [(paneInfo, panel, [vehicle])]
+        
+        return []
+
 class RotationPanel(wx.Panel):
     implements(IPanelProvider)
     
@@ -436,77 +527,77 @@ class PowerSourcePanel(BarDisplayPanel):
             
         return []
 
-class DemoSonarPanel(wx.Panel):
-    implements(IPanelProvider)
-    
-    def __init__(self, parent, sonar, *args, **kwargs):
-        wx.Panel.__init__(self, parent, *args, **kwargs)
-        self._connections = []
-        
-        # Create Controls
-        text = wx.StaticText(self, label = 'Sonar Position', size = (100,20))
-        
-        xLabel = wx.StaticText(self, label = 'X: ')#, size = (40,20))
-        yLabel = wx.StaticText(self, label = 'Y: ')#, size = (40,20))
-        
-        self._xText = wx.TextCtrl(self, value = '', size = (80,20), 
-                                  style = wx.TE_READONLY)
-        self._yText = wx.TextCtrl(self, value = '', size = (80,20),
-                                  style = wx.TE_READONLY)
-        
-        # Horizontal Postion sizer
-        horizontalSizer = wx.BoxSizer(wx.HORIZONTAL)
-        horizontalSizer.Add(xLabel)
-        horizontalSizer.Add(self._xText)
-        horizontalSizer.Add(yLabel)
-        horizontalSizer.Add(self._yText)
-        
-        # Vertical sizer
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(text)
-        sizer.Add(horizontalSizer)
-        
-        # Hook size up to the panel
-        self.SetSizer(sizer)
-        sizer.Fit(self)
-        self.SetMinSize(sizer.GetMinSize())
-        
-        
-        # Connect to events
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        conn = sonar.subscribe(subsystemMod.DemoSonar.SONAR_UPDATE, 
-                               self._update)
-        self._connections.append(conn)
-
-    def _onClose(self, closeEvent):
-        """
-        Disconnects from C++ events
-        
-        Ensure that functions of this object won't get called after its already
-        disctructed.
-        """
-        for conn in self._connections:
-            conn.disconnect()
-            
-        closeEvent.Skip()
-            
-    def _update(self, event):
-        """
-        Called when the power subsystem updates the power cosumption
-        """
-        self._xText.SetValue(str(event.x))
-        self._yText.SetValue(str(event.y))
-
-    @staticmethod
-    def getPanels(subsystems, parent):
-        sonar = core.Subsystem.getSubsystemOfType(subsystemMod.DemoSonar,
-                                                      subsystems)
-        
-        if sonar is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Demo Sonar")
-            paneInfo = paneInfo.Caption("Demo Sonar").Left()
-        
-            return [(paneInfo, DemoSonarPanel(parent, sonar), [sonar])]
-        
-        return []
+#class DemoSonarPanel(wx.Panel):
+#    implements(IPanelProvider)
+#    
+#    def __init__(self, parent, sonar, *args, **kwargs):
+#        wx.Panel.__init__(self, parent, *args, **kwargs)
+#        self._connections = []
+#        
+#         Create Controls
+#        text = wx.StaticText(self, label = 'Sonar Position', size = (100,20))
+#        
+#        xLabel = wx.StaticText(self, label = 'X: ')#, size = (40,20))
+#        yLabel = wx.StaticText(self, label = 'Y: ')#, size = (40,20))
+#        
+#        self._xText = wx.TextCtrl(self, value = '', size = (80,20), 
+#                                  style = wx.TE_READONLY)
+#        self._yText = wx.TextCtrl(self, value = '', size = (80,20),
+#                                  style = wx.TE_READONLY)
+#        
+#         Horizontal Postion sizer
+#        horizontalSizer = wx.BoxSizer(wx.HORIZONTAL)
+#        horizontalSizer.Add(xLabel)
+#        horizontalSizer.Add(self._xText)
+#        horizontalSizer.Add(yLabel)
+#        horizontalSizer.Add(self._yText)
+#        
+#         Vertical sizer
+#        sizer = wx.BoxSizer(wx.VERTICAL)
+#        sizer.Add(text)
+#        sizer.Add(horizontalSizer)
+#        
+#         Hook size up to the panel
+#        self.SetSizer(sizer)
+#        sizer.Fit(self)
+#        self.SetMinSize(sizer.GetMinSize())
+#        
+#        
+#         Connect to events
+#        self.Bind(wx.EVT_CLOSE, self._onClose)
+#        conn = sonar.subscribe(subsystemMod.DemoSonar.SONAR_UPDATE, 
+#                               self._update)
+#        self._connections.append(conn)
+#
+#    def _onClose(self, closeEvent):
+#        """
+#        Disconnects from C++ events
+#        
+#        Ensure that functions of this object won't get called after its already
+#        disctructed.
+#        """
+#        for conn in self._connections:
+#            conn.disconnect()
+#            
+#        closeEvent.Skip()
+#            
+#    def _update(self, event):
+#        """
+#        Called when the power subsystem updates the power cosumption
+#        """
+#        self._xText.SetValue(str(event.x))
+#        self._yText.SetValue(str(event.y))
+#
+#    @staticmethod
+#    def getPanels(subsystems, parent):
+#        sonar = core.Subsystem.getSubsystemOfType(subsystemMod.DemoSonar,
+#                                                      subsystems)
+#        
+#        if sonar is not None:
+#            paneInfo = wx.aui.AuiPaneInfo().Name("Demo Sonar")
+#            paneInfo = paneInfo.Caption("Demo Sonar").Left()
+#        
+#            return [(paneInfo, DemoSonarPanel(parent, sonar), [sonar])]
+#        
+#        return []
     
