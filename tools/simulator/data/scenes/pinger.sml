@@ -20,8 +20,8 @@ Scene:
     
     Cameras:
         Main:
-            position: [-18, 0, 0]
-            offset: [-4, 3, 2]
+            position: [-15, 0, 0]
+            offset: [0, 0, 13]
     
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
@@ -29,7 +29,7 @@ Scene:
     Objects:        
         pinger1:
             type: [sim.sonar.IPinger, sim.sonar.Pinger]
-            position: [-15, 1, -1]
+            position: [-15, 0, -1]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
