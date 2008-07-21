@@ -43,6 +43,10 @@ class IDuct(IObject):
     """ An object which you can see in the simulation"""
     pass
 
+class ISafe(IObject):
+    """ An object which you can see in the simulation"""
+    pass
+
 # TODO: Fill out the methods for the class
 
 class Buoy(Visual):
@@ -293,6 +297,23 @@ class AirDuct(ram.sim.object.Object):
 #        side = Visual()
 #        side.load((scene, parent, cfg))
 
+class Safe(Visual):
+    core.implements(IVisual, ISafe)
+    
+    @two_step_init
+    def __init__(self):
+        Visual.__init__(self)
+
+    def load(self, data_object):
+        scene, parent, node = data_object
+        if not node.has_key('Graphical'):
+            # Default mesh and scale info
+            gfxNode = {'mesh' : 'cube.1m.mesh', 
+                       'scale' : [0.3048, 0.3048, 0.3048],
+                       'material' : 'Simple/Orange' }
+            node['Graphical'] = gfxNode
+        Visual.load(self, (scene, parent, node))
+
 class IdealSimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
         # Transform arguments to create base VisionSystem class
@@ -334,11 +355,17 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._runDuct = False
         self._foundDuct = False
         
+        # Safe Detector variables
+        self._runDownSafeDetector = False
+        self._foundDownSafe = False
+        #self._pipeCentered = False
+        
         # Find all the Buoys, Pipes and Bins
         self._bouys = sim.scene.getObjectsByInterface(IBuoy)
         self._pipes = sim.scene.getObjectsByInterface(IPipe)
         self._bins = sim.scene.getObjectsByInterface(IBin)
         self._ducts = sim.scene.getObjectsByInterface(IDuct)
+        self._safes = sim.scene.getObjectsByInterface(ISafe)
 
     def redLightDetectorOn(self):
         self._runRedLight = True
@@ -364,6 +391,12 @@ class IdealSimVision(ext.vision.VisionSystem):
     def ductDetectorOff(self):
         self._runDuct = False
 
+    def downwardSafeDetectorOn(self):
+        self._runDownSafeDetector = True
+        
+    def downwardSafeDetectorOff(self):
+        self._runDownSafeDetector = False
+
     def backgrounded(self):
         return False
 
@@ -379,6 +412,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             self._checkBin()
         if self._runDuct:
             self._checkDuct()
+        if self._runDownSafeDetector:
+            self._checkDownwardSafe()
     
     def _findClosest(self, objects):
         """
@@ -688,6 +723,33 @@ class IdealSimVision(ext.vision.VisionSystem):
                 self.publish(ext.vision.EventType.DUCT_LOST, ext.core.Event())
 
         self._foundDuct = ductVisible
+        
+    def _checkDownwardSafe(self):
+        safe, relativePos = self._findClosest(self._safes)
+        safeVisible, x, y, angle = self._downwardCheck(relativePos, safe)
+
+        if safeVisible and (relativePos.length() < 7):
+            event = ext.core.Event()
+            event.x = x
+            event.y = y
+            #event.angle = angle
+            self.publish(ext.vision.EventType.SAFE_FOUND, event)
+            
+            # Check for centering
+#            toCenter = ogre.Vector2(x, y)
+#            if toCenter.normalise() < 0.08:
+#                if not self._safeCentered:
+#                    self._safeCentered = True
+#                    self.publish(ext.vision.EventType.PIPE_CENTERED, event)
+#            else:
+#                self._safeCentered = False
+            
+        else:
+            if self._foundDownSafe:
+                self.publish(ext.vision.EventType.SAFE_LOST, ext.core.Event())
+
+        self._foundDownSafe = safeVisible
+        
 
 ext.core.SubsystemMaker.registerSubsystem('IdealSimVision', IdealSimVision)
 
