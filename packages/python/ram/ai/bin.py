@@ -200,8 +200,13 @@ class BinSortingState(HoveringState):
         """
         # Compare to current ID
         currentBinId = self.ai.data['currentBinID']
-        mostEdgeBinId = sortedBins[0]
-        return mostEdgeBinId
+        if len(sortedBins) == 0:
+            #event = vision.BinEvent(0, 0, vision.Suit.UNKNOWN, math.Degree(0))
+            self.publish(vision.EventType.BIN_LOST, core.Event())
+            return None
+        else:
+            mostEdgeBinId = sortedBins[0]
+            return mostEdgeBinId
     
     def _fixEdgeBin(self):
         """
@@ -214,7 +219,9 @@ class BinSortingState(HoveringState):
         currentBinId = self.ai.data['currentBinID']
         mostEdgeBinId = self._getNextBin(sortedBins, currentBinId)
         
-        if currentBinId == mostEdgeBinId:
+        if mostEdgeBinId is None:
+            return True
+        elif (currentBinId == mostEdgeBinId):
             # We found the "end" bin
             return False
         else:
@@ -230,6 +237,7 @@ class Searching(state.State):
 
     def BIN_FOUND(self, event):
         self.ai.data['currentBinID'] = event.id
+        self.ai.data['currentBins'] = set()
 
     def enter(self):
         # Turn on the vision system
@@ -475,16 +483,21 @@ class NextBin(BinSortingState):
         Override default behaviour to return the next bin to the right
         """
         # Find where the currentBinId is in the list of sorted bins
-        startIdx = sortedBins.index(currentBinId) - 1;
-        endIdx = startIdx + 1;
+        try:
+            startIdx = sortedBins.index(currentBinId) - 1;
+            endIdx = startIdx + 1;
         
-        # Pull out the sub list of length one right after that point 
-        results = sortedBins[startIdx:endIdx]
-        if len(results) == 0:
-            # We are at the end
-            return currentBinId
-        else:
-            return results[0]
+            # Pull out the sub list of length one right after that point 
+            results = sortedBins[startIdx:endIdx]
+            if len(results) == 0:
+                # We are at the end
+                return currentBinId
+            else:
+                return results[0]
+        except ValueError:
+            # We have lost our shit
+            self.publish(vision.EventType.BIN_LOST, core.Event())
+            return None
         
     
     def BIN_FOUND(self, event):

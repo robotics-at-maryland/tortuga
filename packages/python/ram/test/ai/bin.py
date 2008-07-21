@@ -347,6 +347,16 @@ class TestSeekEnd(BinTestCase):
         self.assert_(self._atEnd)
         self.assertEqual(2, self.ai.data['currentBinID'])
         
+    def testCenteredNoBins(self):
+        # Try no more bins
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set()
+        self.assertCurrentState(bin.SeekEnd)
+        self.injectEvent(bin.SeekEnd.CENTERED_)
+        
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.Searching)
+        
     def testAtEnd(self):
         self.injectEvent(bin.SeekEnd.AT_END)
         self.assertCurrentState(bin.Dive)
@@ -531,7 +541,22 @@ class TestNextBin(BinTestCase):
         self.assertEqual(3, self.ai.data['currentBinID'])
         self.assertFalse(self._atEnd)
         self.assertFalse(self._centered)
-
+        self.assertCurrentState(bin.NextBin)
+        
+    def testMissingCurrent(self):
+        # Make sure when lose the current we do something smart
+        self.ai.data['currentBinID'] = 8
+        self.ai.data['currentBins'] = set([6,3,5,4])
+        self.ai.data['binData'] = {6 : Mock(x = -1), 3 : Mock(x = 0),
+            5 : Mock(x = 1), 4 : Mock(x = 2)}
+        self.machine.start(bin.NextBin)
+        self.qeventHub.publishEvents()
+                
+        self.assertCurrentState(bin.Searching)
+#        self.assertEqual(3, self.ai.data['currentBinID'])
+#        self.assertFalse(self._atEnd)
+#        self.assertFalse(self._centered)
+#        self.assertCurrentState(bin.NextBin)
 
     def testBinFound(self):
         """Make sure the loop back works"""
