@@ -46,6 +46,7 @@ def generate(module_builder, local_ns, global_ns):
                                 allow_empty = True):
         cls.include()
         classes.append(cls)
+
     ImageEvent = local_ns.class_('ImageEvent')
     ImageEvent.include_files.append('vision/include/Image.h')
     wrap.set_implicit_conversions([ImageEvent], False)

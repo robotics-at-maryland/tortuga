@@ -86,7 +86,7 @@ def generate(module_builder, local_ns, global_ns):
                                 allow_empty = True):
         cls.include()
         classes.append(cls)
-
+        eventsFound = True
     if eventsFound:
         wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
     
