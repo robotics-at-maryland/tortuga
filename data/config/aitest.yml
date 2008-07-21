@@ -4,9 +4,9 @@ GUI:
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
 Subsystems:    
-    VisionSystem:
-        type: VisionSystem
-        depends_on: ["EventHub", "Vehicle"]
+#    VisionSystem:
+#        type: VisionSystem
+#        depends_on: ["EventHub", "Vehicle"]
         
 #       RedLightDetector:       
 #           intialMinPixels: 400
@@ -14,8 +14,14 @@ Subsystems:
 #           lostMinPixelScale: 0.75
 #           # About 20% of the total pixels
 #           almostHitPixels: 61440.0
-        BinDetector:
-            centeredLimit: 0.2
+#        BinDetector:
+#            centeredLimit: 0.2
+#        DuctDetector:
+#            redThreshold: 100
+#            greeThreshold: 100
+#            blueThreshold: 50
+#            erodeIterations: 1
+        
         # Recording Settings
         #maxRecordRate: 10 # Hz
         #forwardFile: forward.avi
@@ -46,7 +52,7 @@ Subsystems:
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller",
-                     "MotionManager", "TimerManager", "VisionSystem", "Ai"]
+                     "MotionManager", "TimerManager", "Ai"] #,"VisionSystem"]
         States:
             ram.ai.light.Seek:
                 depthGain: 0.5
@@ -68,6 +74,9 @@ Subsystems:
                 sidewaysSpeedGain: 7
             ram.ai.bin.SurfaceToMove:
                 depth: 7
+
+            ram.ai.pipe.Seeking:
+                speedGain: 8
 
     # Object that creates the vehicle interface
     Vehicle:
@@ -92,7 +101,9 @@ Subsystems:
                 update_interval: 25
                 depthCalibSlope: 35.5
                 depthCalibIntercept: 1182
-
+            Sonar:
+                depends_on: ['SensorBoard']
+                type: SBSonar
             Battery1:
                 depends_on: ['SensorBoard']
                 type: SBPowerSource
