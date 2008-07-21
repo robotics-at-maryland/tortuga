@@ -448,6 +448,8 @@ class TestNextBin(BinTestCase):
         self.ai.data['currentBins'] = set([3,4])
         self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
         self.machine.start(bin.NextBin)
+        self.qeventHub.publishEvents()
+        assert type(self.machine.currentState()) == bin.NextBin
         
         self._centered = False
         self._atEnd = False
@@ -478,9 +480,10 @@ class TestNextBin(BinTestCase):
         self.assertFalse(self._centered)
         
         
-        self.ai.data['currentBinID'] = 4
-        self.ai.data['currentBins'] = set([3,4])
-        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.ai.data['currentBinID'] = 6
+        self.ai.data['currentBins'] = set([6,3,5,4])
+        self.ai.data['binData'] = {6 : Mock(x = -1), 3 : Mock(x = 0),
+            5 : Mock(x = 1), 4 : Mock(x = 2)}
         self.machine.start(bin.NextBin)
         self.qeventHub.publishEvents()
                 

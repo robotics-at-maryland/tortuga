@@ -185,18 +185,34 @@ class BinSortingState(HoveringState):
         return 0
         #return type(binAx).__cmp__(binAx, binBx)
     
+    def _getSortedBins(self):
+        """
+        Returns the bins sorted based desired direction, left/rigth
+        """
+        currentBins = [b for b in self.ai.data['currentBins']]
+        sortedBins = sorted(currentBins, self._compareBins)
+        return sortedBins
+    
+    def _getNextBin(self, sortedBins, currentBinId):
+        """
+        Returns the next bin out of the sorted bin list, returns currentBinId
+        if thats there is no next bin.
+        """
+        # Compare to current ID
+        currentBinId = self.ai.data['currentBinID']
+        mostEdgeBinId = sortedBins[0]
+        return mostEdgeBinId
+    
     def _fixEdgeBin(self):
         """
         Makes the current bin the left/right most bin, returns true if that
         changes the current bin.
         """
-        # Sorted left to right
-        currentBins = [b for b in self.ai.data['currentBins']]
-        sortedBins = sorted(currentBins, self._compareBins)
+        sortedBins = self._getSortedBins()
         
         # Compare to current ID
         currentBinId = self.ai.data['currentBinID']
-        mostEdgeBinId = sortedBins[0]
+        mostEdgeBinId = self._getNextBin(sortedBins, currentBinId)
         
         if currentBinId == mostEdgeBinId:
             # We found the "end" bin
@@ -418,6 +434,23 @@ class NextBin(BinSortingState):
         return HoveringState.transitions(NextBin,
             {BinSortingState.CENTERED_ : Dive, 
              NextBin.AT_END : SurfaceToCruise })
+    
+    def _getNextBin(self, sortedBins, currentBinId):
+        """
+        Override default behaviour to return the next bin to the right
+        """
+        # Find where the currentBinId is in the list of sorted bins
+        startIdx = sortedBins.index(currentBinId) - 1;
+        endIdx = startIdx + 1;
+        
+        # Pull out the sub list of length one right after that point 
+        results = sortedBins[startIdx:endIdx]
+        if len(results) == 0:
+            # We are at the end
+            return currentBinId
+        else:
+            return results[0]
+        
     
     def BIN_FOUND(self, event):
         # Cancel out angle commands (we don't want to control orientation)
