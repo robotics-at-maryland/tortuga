@@ -32,8 +32,8 @@ class FarSeeking(state.State):
         pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
             event.direction)
         
-	if self._lastTime != event.pingTimeSec:
-	    self._lastTime = event.pingTimeSec
+        if self._lastTime != event.pingTimeSec:
+            self._lastTime = event.pingTimeSec
             # x = 0, no sideways motion
             # y = 1, full forward speed
             self._pipe.setState(0, 1, pingerOrientation.getYaw(True))
@@ -43,7 +43,7 @@ class FarSeeking(state.State):
 
     def enter(self):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
-	self._lastTime = 0
+        self._lastTime = 0
 
         self._closeZ = self._config.get('closeZ', 0.8)
         speedGain = self._config.get('speedGain', 5)
