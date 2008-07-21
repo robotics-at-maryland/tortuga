@@ -9,6 +9,9 @@
 Currently hovers over the bin
 """
 
+# STD Imports
+import math as pmath
+
 # Project Imports
 import ext.core as core
 import ext.vision as vision
@@ -78,6 +81,18 @@ class HoveringState(state.State):
     
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
+        if self._first:
+            self._first = False
+            self._lastAngle = event.angle
+        else:
+            lastDegree = self._lastAngle.valueDegrees()
+            currentDegree = event.angle.valueDegrees()
+            if (pmath.fabs(lastDegree - currentDegree) > self._filterLimit):
+                event.angle = math.Degree(lastDegree)
+            else:
+                self._lastAngle = event.angle
+            
+        
         # Only listen to the current bin ID
         if self._currentBin(event):
             self._bin.setState(event.x, event.y, event.angle)
@@ -85,6 +100,9 @@ class HoveringState(state.State):
     def enter(self):
         # Make sure we are tracking
         ensureBinTracking(self.queuedEventHub, self.ai)
+        
+        self._first = True
+        self._filterLimit = self._config.get('filterLimit', 75)
         
         self._bin = ram.motion.pipe.Pipe(0,0,0)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)

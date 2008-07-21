@@ -48,6 +48,21 @@ def binFoundHelper(self, shouldRotate = True):
     self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
     if shouldRotate:
         self.assertGreaterThan(self.controller.yawChange, 0)
+        currentYawChange = self.controller.yawChange
+
+
+        # Test large rotational filtering
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         x = 0.5, y = -0.5, id = 6, angle = math.Degree(-80))
+        self.assertAlmostEqual(currentYawChange, self.controller.yawChange, 
+                               3)
+        
+        # Test back with a normal angle
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 0, 0,
+                         x = 0.5, y = -0.5, id = 6, angle = math.Degree(30))
+        self.assertGreaterThan(self.controller.yawChange, currentYawChange)
+        
+        
     else:
         self.assertEqual(self.controller.yawChange, 0)
         
