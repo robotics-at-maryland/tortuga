@@ -111,7 +111,7 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
                         data[j][k]=getSample(dataSet, j, k+last_ping_index[j]-ENV_CALC_FRAME+1+DFT_FRAME/2); //might need to be tweaked
                     locations[j]=last_ping_index[j]-ENV_CALC_FRAME+1;
                 }
-                cout<<"Ping Detected at "<<locations[0]<<endl;
+                //cout<<"Ping Detected at "<<locations[0]<<endl;
 
                 return 1;
             }

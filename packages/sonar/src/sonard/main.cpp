@@ -106,10 +106,10 @@ int main(int argc, char* argv[])
             }
             else 
             {
-                cout<<"Vector from pinger: "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<endl;
+                cout<<"Vector to pinger: "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<endl;
 
                 dataset_size=SMALL_DATASET;
-                cout<<"Yaw: "<<180/M_PI*atan2(ping.direction[0],ping.direction[1])<<endl;
+                cout<<"Yaw: "<<180/M_PI*atan2(ping.direction[1],ping.direction[0])<<endl;
                 sleepTillPing(&start_time, ping.point_num);
 
                 //Now, send data to the main computer

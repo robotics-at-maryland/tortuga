@@ -111,6 +111,8 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
     for(int i=0; i<NCHANNELS-1; i++)
         tdoas[i][0]=(SPEED_OF_SOUND* double(pingpoints[i+1]-pingpoints[0]))/SAMPRATE;
 
+    //cout<<"Distance norm: "<<tdoas[1][0]*tdoas[1][0]/(hydro_array[0][1]*hydro_array[0][1])+tdoas[2][0]*tdoas[2][0]/(hydro_array[1][0]*hydro_array[1][0])<<endl;
+
     ping_matr=temp_calc*tdoas;
     tdoa_errors=hydro_array*ping_matr-tdoas;
 
@@ -124,9 +126,9 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
         return 0;
     }
 
-    //Fill in the sonar ping
+    //Fill in the sonar ping, as a vector towards the pinger
     for(int i=0; i<2; i++)
-        ping->direction[i]=ping_matr[i][0];
+        ping->direction[i]=-ping_matr[i][0];
     
     //force it to be positive, since we know that the pinger is below
     
@@ -142,7 +144,7 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
             ping->direction[2]=0;
     }
     else
-        ping->direction[2]=std::sqrt(1-temp);
+        ping->direction[2]=-std::sqrt(1-temp);
 
     ping->point_num=pingpoints[0];
     ping->distance=0;
