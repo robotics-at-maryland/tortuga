@@ -256,6 +256,11 @@ class Seeking(HoveringState):
         return HoveringState.transitions(Seeking,
             { vision.EventType.BIN_CENTERED : Centering })
         
+    def BIN_FOUND(self, event):
+        # Disable angle tracking
+        event.angle = math.Degree(0)
+        HoveringState.BIN_FOUND(self, event)
+        
     def enter(self):
         HoveringState.enter(self)
 
@@ -272,6 +277,11 @@ class Centering(SettlingState):
     def transitions():
         return SettlingState.transitions(Centering,
             { Centering.SETTLED : SeekEnd })
+    
+    def BIN_FOUND(self, event):
+        # Cancel out angle commands (we don't want to control orientation)
+        event.angle = math.Degree(0)
+        SettlingState.BIN_FOUND(self, event)
     
     def enter(self):
         SettlingState.enter(self, Centering.SETTLED, 5)
@@ -320,8 +330,12 @@ class Dive(HoveringState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Dive,
-        { motion.basic.Motion.FINISHED : Examine })
+        { motion.basic.Motion.FINISHED : Aligning })
 
+    def BIN_FOUND(self, event):
+        # Disable angle tracking
+        event.angle = math.Degree(0)
+        HoveringState.BIN_FOUND(self, event)
         
     def enter(self):
         # Keep the hover motion going
@@ -333,6 +347,22 @@ class Dive(HoveringState):
             speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)
+        
+class Aligning(SettlingState):
+    """
+    When the vehicle is settling over the bin
+    
+    @cvar SETTLED: Event fired when vehile has settled over the bin
+    """
+    ALIGNED = core.declareEventType('ALIGNED')
+    
+    @staticmethod
+    def transitions():
+        return SettlingState.transitions(Aligning,
+            { Aligning.ALIGNED : Examine })
+    
+    def enter(self):
+        SettlingState.enter(self, Aligning.ALIGNED, 5)
         
 class Examine(SettlingState):
     """
@@ -414,6 +444,11 @@ class SurfaceToMove(HoveringState):
     def transitions():
         return SettlingState.transitions(SurfaceToMove,
             { motion.basic.Motion.FINISHED : NextBin })
+        
+    def BIN_FOUND(self, event):
+        # Disable angle tracking
+        event.angle = math.Degree(0)
+        HoveringState.BIN_FOUND(self, event)
         
     def enter(self):
         # Keep centered over the bin

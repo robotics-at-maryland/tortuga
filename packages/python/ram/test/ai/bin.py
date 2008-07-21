@@ -173,7 +173,7 @@ class TestSeeking(BinTestCase):
         
     def testBinFound(self):
         """Make sure new found events move the vehicle"""
-        self.binFoundHelper()
+        self.binFoundHelper(False)
 
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -181,8 +181,8 @@ class TestSeeking(BinTestCase):
     def testBinLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.BIN_LOST)
-        self.assertCurrentState(bin.Searching)
-        
+        self.assertCurrentState(bin.Searching)        
+
 class TestCentering(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
@@ -201,8 +201,49 @@ class TestCentering(BinTestCase):
         
         # Make sure timer works
         self.releaseTimer(bin.Centering.SETTLED)
+        # Its dive, and not SeekEnd because we are already at the end
         self.assertCurrentState(bin.Dive)
-
+        
+    def testBinLost(self):
+        """Make sure we search when we lose the bin"""
+        self.injectEvent(vision.EventType.BIN_LOST)
+        self.assertCurrentState(bin.Searching)
+    
+    def testBinTracking(self):
+        self.binTrackingHelper()
+    
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        self.binFoundHelper(False)
+    
+    def testSettled(self):
+        """Make sure we move on after settling"""
+        # Setup for SeekEnd
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        # Inject settled event
+        self.injectEvent(bin.Centering.SETTLED)
+        self.assertCurrentState(bin.SeekEnd)
+        
+class TestAligning(BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        self.machine.start(bin.Aligning)
+        
+    def testStart(self):
+        """Make sure the motion and the timer are setup properly"""
+        self.machine.stop()
+        self.machine.start(bin.Aligning)
+        
+        self.assertCurrentMotion(motion.pipe.Hover)
+        
+        # Setup for SeekEnd
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        
+        # Make sure timer works
+        self.releaseTimer(bin.Aligning.ALIGNED)
+        self.assertCurrentState(bin.Examine)
         
     def testBinLost(self):
         """Make sure we search when we lose the bin"""
@@ -222,8 +263,8 @@ class TestCentering(BinTestCase):
         self.ai.data['currentBinID'] = 3
         self.ai.data['currentBins'] = set([3])
         # Inject settled event
-        self.injectEvent(bin.Centering.SETTLED)
-        self.assertCurrentState(bin.SeekEnd)
+        self.injectEvent(bin.Aligning.ALIGNED)
+        self.assertCurrentState(bin.Examine)
         
 class TestSeekEnd(BinTestCase):
     def setUp(self):
@@ -326,7 +367,7 @@ class TestDive(BinTestCase):
     def testBinFound(self):
         """Make sure the loop back works"""
         # Need to add multi-motion support
-        self.binFoundHelper()
+        self.binFoundHelper(False)
         
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -334,7 +375,7 @@ class TestDive(BinTestCase):
     def testDiveFinished(self):
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(bin.Aligning)
         
 class TestExamine(BinTestCase):
     def setUp(self):
@@ -426,7 +467,7 @@ class TestSurfaceToMove(BinTestCase):
         
     def testBinFound(self):
         """Make sure the loop back works"""
-        self.binFoundHelper()
+        self.binFoundHelper(False)
         
     def testBinTracking(self):
         self.binTrackingHelper()
