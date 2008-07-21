@@ -83,6 +83,7 @@ class SimSonar(ext.core.Subsystem):
         relativePos.normalise()
         event.direction = ext.math.Vector3(relativePos.x, relativePos.y,
             relativePos.z)
+        event.pingTimeSec = int(ram.timer.time())
         self.publish(ext.vehicle.device.ISonar.UPDATE, event)
       
 ext.core.SubsystemMaker.registerSubsystem('SimSonar', SimSonar)      
