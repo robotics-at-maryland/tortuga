@@ -18,6 +18,7 @@
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/DuctDetector.h"
+#include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
 
 #include "core/include/EventHub.h"
@@ -58,6 +59,8 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_redLightDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
+    m_ductDetector(DetectorPtr()),
+    m_downwardSafeDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
@@ -123,8 +126,9 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_pipelineDetector = DetectorPtr(
         new OrangePipeDetector(config["PipelineDetector"], eventHub));
     m_ductDetector = DetectorPtr(
-        new DuctDetector(//config["DuctDetector"],
-                         eventHub));
+        new DuctDetector(config["DuctDetector"], eventHub));
+    m_downwardSafeDetector = DetectorPtr(
+        new SafeDetector(config["SafeDetector"], eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(config["GateDetector"], eventHub));
 
@@ -178,6 +182,16 @@ void VisionSystem::ductDetectorOn()
 void VisionSystem::ductDetectorOff()
 {
     m_forward->removeDetector(m_ductDetector);
+}
+
+void VisionSystem::downwardSafeDetectorOn()
+{
+    m_downward->addDetector(m_downwardSafeDetector);
+}
+    
+void VisionSystem::downwardSafeDetectorOff()
+{
+    m_downward->removeDetector(m_downwardSafeDetector);
 }
     
 void VisionSystem::gateDetectorOn()
