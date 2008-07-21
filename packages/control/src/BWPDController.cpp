@@ -358,7 +358,7 @@ void BWPDController::update(double timestep)
                                       rotationalTorque.ptr());
     }
     
-    rotationalTorque = rotationalTorque - (orientation.Inverse() * m_buoyantTorqueCorrection).crossProduct(math::Vector3::UNIT_Z);
+//    rotationalTorque = rotationalTorque - (orientation.Inverse() * m_buoyantTorqueCorrection).crossProduct(math::Vector3::UNIT_Z);
 
     // Actually set motor values
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
