@@ -111,8 +111,8 @@ void DownwardDuctDetector::processImage(Image* input, Image* output)
         if (output)
         {
             CvPoint ductCenter;
-            ductCenter.x = m_x;
-            ductCenter.y = m_y;
+            ductCenter.x = (int)m_x;
+            ductCenter.y = (int)m_y;
             cvCircle(output->asIplImage(), ductCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
         }
             
