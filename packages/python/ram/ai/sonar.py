@@ -28,8 +28,8 @@ class PingerState(state.State):
         return trans
     
     def _isNewPing(self, event):
-        if self._lastTime != event.pingTimeSec:
-            self._lastTime = event.pingTimeSec
+        if self._lastTime != event.pingTimeUSec:
+            self._lastTime = event.pingTimeUSec
             return True
         return False
     
@@ -66,14 +66,28 @@ class PingerState(state.State):
         
 
 class Searching(state.State):
+    CHANGE = core.declareEventType("CHANGE")
+
     @staticmethod
     def transitions():
-        return { vehicle.device.ISonar.UPDATE : CloseSeeking }
+        return { vehicle.device.ISonar.UPDATE : Searching,
+	         Searching.CHANGE : CloseSeeking }
         
     def UPDATE(self, event):
-        pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
-            event.direction)
-        self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
+        if self._first:
+            pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
+                event.direction)
+	    print pingerOrientation.getYaw(True).valueDegrees()
+            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
+	   
+	    self.timer = self.timerManager.newTimer(Searching.CHANGE, 4)
+	    self.timer.start()
+	    self._first = False
+
+    def enter(self):
+        self._first = True
+    def exit(self):
+        self.timer.stop()
 
 class FarSeeking(PingerState):
     CLOSE = core.declareEventType('CLOSE')
