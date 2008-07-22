@@ -17,6 +17,7 @@
 #include "vehicle/include/Common.h"
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/IDepthSensor.h"
+#include "vehicle/include/device/IMarkerDropper.h"
 
 #include "core/include/Event.h"
 #include "core/include/Updatable.h"
@@ -38,6 +39,7 @@ namespace device {
  */
 class SensorBoard : public Device, // for getName, boost::noncopyable
                     public IDepthSensor,
+                    public IMarkerDropper,
                     public core::Updatable
 {
 public:
