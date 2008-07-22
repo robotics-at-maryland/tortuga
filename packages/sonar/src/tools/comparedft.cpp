@@ -69,11 +69,9 @@ int main(int argc, char *argv[])
 		myadc::QUADRUPLE_WIDE::SIGNED diffs[N];
 		for (int k = 0 ; k < N ; k ++)
 		{
-			const complex<myadc::QUADRUPLE_WIDE::SIGNED>& sdftCmplx = sdftSpectrum.getAmplitude(k, 0);
-			const complex<myadc::QUADRUPLE_WIDE::SIGNED>& fftwCmplx = fftwSpectrum.getAmplitude(k, 0);
-			const myadc::QUADRUPLE_WIDE::SIGNED diff1 = fixed::int64_abs(sdftCmplx.real() - fftwCmplx.real());
-			const myadc::QUADRUPLE_WIDE::SIGNED diff2 = fixed::int64_abs(sdftCmplx.imag() - fftwCmplx.imag());
-			diffs[k] = std::max(diff1, diff2);
+			const complex<myadc::DOUBLE_WIDE::SIGNED> anomaly =
+				sdftSpectrum.getAmplitude(k, 0) - fftwSpectrum.getAmplitude(k, 0);
+			diffs[k] = std::max(fixed::abs(anomaly.real()), fixed::abs(anomaly.imag()));
 		}
 		if (i >= begin && i < end && (i % skip == 0))
 			fwrite(diffs, sizeof(*diffs), N, stdout);
