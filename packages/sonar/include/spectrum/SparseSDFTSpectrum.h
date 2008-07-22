@@ -27,7 +27,7 @@ private:
 	int idx;
 	typename ADC::SIGNED data[N][nchannels];
 	std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> fourier[nFreqBands][nchannels];
-	std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> coef[nFreqBands];
+	std::complex<typename ADC::SIGNED> coef[nFreqBands];
 	int kBands[nFreqBands];
 public:
 	SparseSDFTSpectrum(const int *kBands)

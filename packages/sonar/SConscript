@@ -42,10 +42,12 @@ envt = envb.Clone()
 # Only build fftw3 if its here
 conf = envt.Configure()
 envt.Append(LIBPATH = ['/opt/local/lib'], CPPPATH = ['/opt/local/include'])
+have_fftw3 = False
 if conf.CheckLib('fftw3', language='C++', autoadd=1):
     sources = env.Glob('test/src', '*.cpp')
     envt = conf.Finish()
     envt.Tests(int_deps = 'sonar', source = sources)
+    have_fftw3 = True
 
 envt.RAMProgram(target = 'testGetChunk',
                 source = 'test/src/TestGetChunk.cxx',
@@ -78,3 +80,10 @@ if not envt['bfin']:
     envt.RAMProgram(target = 'chop',
                     source = 'src/tools/chop.cpp',
                     int_deps = ['sonar'])
+    
+    if have_fftw3:
+        envt.Append(CPPPATH = ['/opt/local/include'], LIBPATH = ['/opt/local/lib'], LIBS = ['fftw3'])
+        envt.RAMProgram(target = 'chop',
+                        source = 'src/tools/chop.cpp',
+                        int_deps = ['sonar'],
+						ext_deps = ['Boost.ProgramOptions'])
