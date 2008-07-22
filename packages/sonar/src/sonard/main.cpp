@@ -21,7 +21,6 @@
 // STD includes
 #include <unistd.h>
 #include <iostream>
-#include <fstream>
 
 // UNIX Includes
 #include <sys/time.h>
@@ -54,10 +53,13 @@ int main(int argc, char* argv[])
     struct dataset * dataSet = NULL;
     sonarPing ping;
     int ping_found;
-    int do_loop=1; //whether to continue the main loop or not
+    int do_loop=0; //whether to continue the main loop or not
+    int status=0;   //FOUR states: 0-couldn't find with large dataset,  1-couldn't find with small, 2-found with large, 3-found with small
     int loop_counter=0;
-    int dataset_size=LARGE_DATASET; //to control the size of the next data set collected
     struct timeval start_time;
+    struct timeval curr_time;
+    struct timeval temp_time;
+    int sleep_time;
     getDirEdge edge_detector;
 
     //Initialize the communication port to the main cpu
@@ -70,13 +72,14 @@ int main(int argc, char* argv[])
     //First, load the initial dataset
     if(argc == 1)
     {
-        dataSet=getDataset(dataSet, dataset_size);
+        dataSet=getDataset(dataSet, status);
         do_loop=1; //infinite loop, since I am running off the hydrophones
     }
     else
     {
         cout<<"Using dataset \n"<<argv[1]<<endl;
         dataSet = loadDataset(argv[1]);
+        do_loop=0;
     }
 
     do
@@ -84,45 +87,74 @@ int main(int argc, char* argv[])
         if(loop_counter!=0) //already loaded the dataset for the first run
         {
             gettimeofday(&start_time, NULL);
-            dataSet=getDataset(dataSet, dataset_size);
+            dataSet=getDataset(dataSet, status);
         }
 
         if(dataSet == NULL)
         {
             cout<<"Could not load dataset!\n"; //but maybe I'll get luckier the next time?
-            dataset_size=LARGE_DATASET;
+            status=0;
         }
         else
         {
             if((ping_found=edge_detector.getEdge(&ping, dataSet))==0)
             {
                 cout<<"No ping found\n";
-                dataset_size=LARGE_DATASET;
+                if(status>1) status=1;
+                else status=0;
             }
             else if(ping_found!=1)
             {
                 cout<<"Error finding ping \n"<<ping_found<<endl;
-                dataset_size=LARGE_DATASET;
+                if(status>1) status=1;
+                else status=0;
             }
             else 
             {
-                cout<<"Vector to pinger: "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<endl;
+                if(status==0) status=2; //jump two states at once
+                else if(status<4) status++;
 
-                dataset_size=SMALL_DATASET;
-                cout<<"Yaw: "<<180/M_PI*atan2(ping.direction[1],ping.direction[0])<<endl;
-                sleepTillPing(&start_time, ping.point_num);
+                //Find how far into the time sample the ping was found
+                temp_time.tv_sec=ping.point_num/SAMPRATE;
+                temp_time.tv_usec=(((ping.point_num-(SAMPRATE*temp_time.tv_sec))*1000)/SAMPRATE)*1000;
 
+                //Figure out the time at which the ping happened
+                timeradd((&start_time),(&temp_time),(&start_time));
+
+                //Figure out what time it is
+                gettimeofday(&curr_time,NULL);
+
+                //Figure out how long ago the ping happened
+                timersub((&curr_time), (&start_time), (&temp_time));
+
+                cout<<"Ping happened: "<<temp_time.tv_sec*1000+temp_time.tv_usec/1000<<" "<<loop_counter<<endl;
                 //Now, send data to the main computer
                 reportPing(fd,
-                        0,
+                        status,
                         ping.direction[0],
                         ping.direction[1],
                         ping.direction[2],
                         (uint16_t) ping.distance,
-                        (uint32_t) start_time.tv_sec,
-                        (uint32_t) start_time.tv_usec);
+                        (uint32_t) temp_time.tv_sec*1000+temp_time.tv_usec/1000,
+                        (uint32_t) loop_counter);
 
-                //cout<<"Sending "<<fd<<" "<<ping.direction[0]<<" "<<ping.direction[1]<<" "<<ping.direction[2]<<" "<<(uint16_t) ping.distance<<" "<<" "<<(uint32_t) start_time.tv_sec<<" "<<(uint32_t) start_time.tv_usec<<endl;
+                //Now find out when we need to wake up
+                sleep_time=(NOMINAL_PING_DELAY-(SMALL_DATASET*500)/SAMPRATE)*1000;
+                temp_time.tv_sec=int(sleep_time)/int(1000000);
+                temp_time.tv_usec=sleep_time%1000000;
+                timeradd((&temp_time),(&start_time),(&temp_time));
+
+                while(timercmp((&curr_time), (&temp_time), >)) //check if we are past that point, add sleep intervals until we reach it
+                {
+                    sleep_time=NOMINAL_PING_DELAY*1000;
+                    temp_time.tv_usec+=sleep_time;
+                    temp_time.tv_sec+=int(temp_time.tv_usec)/int(1000000);
+                    temp_time.tv_usec=int(temp_time.tv_usec)%int(1000000);
+                }
+
+                //select() sleeps for the time I have left to sleep, so I need to subtract the current time 
+                timersub(&temp_time, &curr_time, &temp_time);
+                select(0,NULL,NULL,NULL,&temp_time);
             }
         }
         loop_counter++;
@@ -134,70 +166,25 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-dataset* getDataset(dataset *dataSet, int length)
+dataset* getDataset(dataset *dataSet, int status)
 {
+    int length;  
+
+    if(status==0 || status==1)
+        length=LARGE_DATASET;
+    else
+        length=SMALL_DATASET;
+
     if(dataSet==NULL)
     {
-        //cout<<"Making new "<<length<<endl;
         dataSet = createDataset(length);
     }
-    else
-        if(dataSet->size != length)
-        {
-            //cout<<"Killing old "<<dataSet->size<<endl;
-            destroyDataset(dataSet); //delete the previous one to change length
-            //cout<<"Making new "<<length<<endl;
-            dataSet = createDataset(length);
-            //cout<<"Made new "<<dataSet->size<<endl;
-        }
+    else if(dataSet->size != length)
+        dataSet->size =length;//change the length.  HAS TO BE SMALLER THAN ORIGINAL
 
-    greenLightOn();
-    //cout<<"Capturing samples "<<length<<endl;
+    //greenLightOn();
     captureSamples(dataSet);
-    //cout<<"Done Capturing samples "<<dataSet->size<<endl;
-    greenLightOff();
+    //greenLightOff();
 
     return dataSet;
-}
-
-/* Calculates how long the program needs to sleep based on the time of ping,
- * current time and the nominal time between pings
- * Sets temp to the time that you want to sleep until
- */
-
-void sleepTillPing(struct timeval *start_time, int point_num)
-{
-    struct timeval curr_time;
-    struct timeval temp;
-    int sleep_time;
-
-    //Find how far into the time sample the ping was found
-    temp.tv_sec=point_num/SAMPRATE;
-    temp.tv_usec=(((point_num-(SAMPRATE*temp.tv_sec))*1000)/SAMPRATE)*1000;
-    temp.tv_usec=(((point_num-(SAMPRATE*temp.tv_sec))*1000)/SAMPRATE)*1000;
-
-    //Figure out the time at which the ping happened
-    timeradd((start_time),(&temp),(start_time));
-    cout<<"Ping happened: "<<start_time->tv_sec<<" "<<start_time->tv_usec<<endl;
-
-    //Figure out what time it is
-    gettimeofday(&curr_time,NULL);
-
-    //Now find out when we need to wake up
-    sleep_time=(NOMINAL_PING_DELAY-(SMALL_DATASET*500)/SAMPRATE)*1000;
-    temp.tv_sec=int(sleep_time)/int(1000000);
-    temp.tv_usec=sleep_time%1000000;
-    timeradd((&temp),(start_time),(&temp));
-
-    while(timercmp((&curr_time), (&temp), >)) //check if we are past that point, add sleep intervals until we reach it
-    {
-        sleep_time=NOMINAL_PING_DELAY*1000;
-        temp.tv_usec+=sleep_time;
-        temp.tv_sec+=int(temp.tv_usec)/int(1000000);
-        temp.tv_usec=int(temp.tv_usec)%int(1000000);
-    }
-
-    //select() sleeps for the time I have left to sleep, so I need to subtract the current time 
-    timersub(&temp, &curr_time, &temp);
-    select(0,NULL,NULL,NULL,&temp);
 }

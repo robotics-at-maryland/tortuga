@@ -95,12 +95,11 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
         for(int j=0; j<ENV_CALC_FRAME; j++)
             if(data[i][j]-average[i]>absaverage[i])
             {
-            //cout<<"In set pos "<<i<<" "<<j<<endl;
                 pingpoints[i]=locations[i]+j;
                 break;
             }
-        //cout<<"Positions "<<i<<" "<<pingpoints[i]<<endl;
     }
+    cout<<"Positions "<<" "<<pingpoints[0]<<"/"<<dataSet->size<<endl;
 
     if((pingpoints[0]==0) ||
        (pingpoints[1]==0) ||
@@ -119,7 +118,7 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
     for(int i=0; i<NCHANNELS-1; i++)
         fit_error+=tdoa_errors[i][0]*tdoa_errors[i][0];
 
-    cout<<"Fit error: "<<fit_error<<endl;
+    //cout<<"Fit error: "<<fit_error<<endl;
     if(fit_error > PING_FIT_THRESHOLD)
     {
         cout<<"BAD FIT\n";
