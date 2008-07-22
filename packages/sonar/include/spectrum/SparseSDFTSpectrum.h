@@ -47,8 +47,8 @@ public:
 	
 	void purge()
 	{
-		bzero(data, sizeof(typename ADC::SIGNED) * N * nchannels);
-		bzero(fourier, sizeof(std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED>) * nFreqBands);
+		bzero(data, sizeof(**data) * N * nchannels);
+		bzero(fourier, sizeof(**fourier) * nFreqBands * nchannels);
 		idx = 0;
 	}
 	
