@@ -19,6 +19,14 @@ import ram.motion as motion
 import ram.motion.common
 import ram.test.motion.support as support
 
+#test PIDLoop
+class TestPIDLoop(unittest.TestCase):
+    def testInputOutput(self):
+        expected = 4;
+        actual = motion.common.PIDLoop(expected)
+        self.assertAlmostEquals(expected, actual, 3)
+        #self.assertAlmostEquals(arg1, arg2, num_decimal_places)
+
 class TestHover(support.MotionTest):
     def makeClass(self, *args, **kwags):
         return motion.common.Hover(*args, **kwags)

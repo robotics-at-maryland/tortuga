@@ -13,6 +13,16 @@ import ram.core as core
 from ram.motion.basic import Motion
 import ext.core
 
+# basic SISO PID control loop
+#
+# intended to be a generic PID control loop
+# note that the user is expected to maintain copies of the controller gains
+# as well as maintain copies of sum and xOld
+def PIDLoop(a)
+
+    return a
+
+
 class Target(ext.core.EventPublisher):
     """
     Represents a target with an X, Y position below the vehicle
