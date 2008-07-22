@@ -32,11 +32,11 @@ class SafeTrackingState(state.State):
     def enter(self):
         self._safe = ram.motion.common.Target(0,0)
 
-        speedGain = self._config.get('speedGain', 5)
-        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
+        speedGain = self._config.get('speedGain', 3)
+        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',1)
         #yawGain = self._config.get('yawGain', 1)
-        maxSpeed = self._config.get('maxSpeed', 5)
-        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        maxSpeed = self._config.get('maxSpeed', 3)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1)
         
         motion = ram.motion.common.Hover(target = self._safe,
                                          maxSpeed = maxSpeed,
