@@ -51,11 +51,12 @@ Subsystems:
 
     StateMachine:
         type: StateMachine
-        depends_on: ["EventHub", "QueuedEventHub", "Controller",
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             ram.ai.light.Seek:
                 depthGain: 0.5
+
             ram.ai.duct.SeekingToRange:
                 filterSize: 10
                 desiredRange: 0.5
@@ -67,17 +68,24 @@ Subsystems:
                 desiredRange: 0.5
 
             ram.ai.bin.Seeking:
-                speedGain: 7
-                sidewaysSpeedGain: 7
+                speedGain: 4
+                maxSpeed: 3
+                sidewaysSpeedGain: 4
+                maxSidewaysSpeed: 3
             ram.ai.bin.SeekEnd:
+                #maxSpeed: 2
                 speedGain: 7
                 sidewaysSpeedGain: 7
+                #maxSidewaysSpeed: 1.5
             ram.ai.bin.SurfaceToMove:
                 depth: 7
-            ram.ai.pipe.Seeking:
-                speedGain: 8
             ram.ai.bin.Dive:
                 depth: 9.8
+            ram.ai.bin.Alinging:
+                speedGain: 7
+
+            ram.ai.pipe.Seeking:
+                speedGain: 8
 
             ram.ai.sonar.CloseSeeking:
                 maxSidewaysSpeed: 3
@@ -109,6 +117,9 @@ Subsystems:
                 update_interval: 25
                 depthCalibSlope: 35.5
                 depthCalibIntercept: 1182
+            MarkerDropper:
+                type: SBMarkerDropper
+                depends_on: ["SensorBoard"]
             Sonar:
                 depends_on: ['SensorBoard']
                 type: SBSonar
