@@ -13,75 +13,126 @@
 #include "Spectrum.h"
 #include <string.h>
 #include <fftw3.h>
+#include <iostream>
 
 namespace ram {
 namespace sonar {
 
-template<int N, int nchannels>
-class FFTWSpectrum {
+template<typename ADC, int N, int nchannels>
+class FFTWSpectrum : Spectrum<ADC> {
 private:
+	
+	/**
+	 * The index into the circular data buffer
+	 */
 	int idx;
-	int16_t data[N][nchannels];
-	double *in_re;			//	Pointer to input array
-	fftw_complex *out_c;	//	Pointer to output array
-	fftw_plan plan;			//	FFTW3 planner structure
+	
+	/** 
+	 * Time-domain input data
+	 */
+	typename ADC::SIGNED data[N][nchannels];
+	
+	/**
+	 * Array for storing the time-domain input data after it has been cast
+	 * to doubles for feeding to FFTW3
+	 */
+	double dataDouble[N][nchannels];	//	Array for casting data to doubles
+	
+	/**
+	 * Array of complex fixed-point numbers for storing the output in its final
+	 * fixed point form
+	 */
+	std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> fourier[N][nchannels];
+	
+	/**
+	 * Array of complex doubles for storing output from FFTW3
+	 */
+	std::complex<double> fourierDouble[N][nchannels];
+	
+	/**
+	 * Planner structure
+	 */
+	fftw_plan plan;
 public:
 	FFTWSpectrum()
 	{
-		in_re = (double*) fftw_malloc(sizeof(double) * N * nchannels);
-		out_c = (fftw_complex*) fftw_malloc(sizeof(double) * N * 2 * nchannels);
-		int twiceN = 2 * N;
+		double* in_re = *dataDouble;
+		fftw_complex* out_c = reinterpret_cast<fftw_complex*> (*fourierDouble);
+		const int dim = N;
+		
+		purge();
+		
 		plan = fftw_plan_many_dft_r2c(
-			1,			//	rank
-			&N,			//	n
-			nChannels,	//	howmany
-			in_re,		//	in
-			&N,			//	inembed
-			nChannels,	//	istride
+			1,			//	rank (1-dimensional)
+			&dim,		//	n (size of fourier window)
+			nchannels,	//	howmany (number of data series a.k.a. channels)
+			in_re,		//	in (pointer to time domain input)
+			NULL,		//	inembed
+			nchannels,	//	istride
 			1,			//	idist
 			out_c,		//	out
-			&twiceN,	//	onembed
-			nChannels,	//	ostride
+			NULL,		//	onembed
+			nchannels,	//	ostride
 			1,			//	odist
 			FFTW_PATIENT);
-		purge();
 	}
 	
-	~FFTW3Spectrum()
+	~FFTWSpectrum()
 	{
 		fftw_destroy_plan(plan);
-		fftw_free(in_re);
-		fftw_free(out_c);
 	}
 	
 	void purge()
 	{
-		bzero(data, sizeof(int16_t) * N * nchannels);
-		idx = 0;
+		bzero(data, sizeof(**data) * N * nchannels);
+		bzero(fourier, sizeof(**fourier) * N * nchannels);
+		idx = N - 1;
 	}
 	
-	void update(const int16_t *sample)
+	void update(const typename ADC::SIGNED* sample)
 	{
+		//	Pump the new data into the array.
+		memcpy(data[idx], sample, sizeof(*sample) * nchannels);
+		
+		//	Increment the index into the circular buffer.
 		++idx;
 		if (idx == N)
 			idx = 0;
 		
-		for (int i = idx ; i < N ; i ++)
-			for (int channel = 0 ; channel < nchannels ; channel ++)
-				in_re[N * channel + (i-idx)] = data[i][channel];
-		for (int i = 0 ; i < idx ; i ++)
-			for (int channel = 0 ; channel < nchannels ; channel ++)
-				in_re[N * channel + (N-idx+i)] = data[i][channel];
+		//	Convert the data to floating point format and flatten out the
+		//	circular buffer.
+		for (int channel = 0 ; channel < nchannels ; channel ++)
+		{
+			for (int i = idx ; i < N ; i ++)
+				dataDouble[i - idx][channel] = (double)(data[i][channel]);
+			for (int i = 0 ; i < idx ; i ++)
+				dataDouble[i + N - idx][channel] = (double)(data[i][channel]);
+		}
 		
+		//	Run FFTW.
 		fftw_execute(plan);
+		
+		//	Copy the results to fixed-point format.
+		for (int channel = 0 ; channel < nchannels ; channel ++)
+		{
+			//	FFTW thinks it's smart because it takes care of aliasing.
+			for (int k = 0 ; 2*k < N ; k ++)
+			{
+				fourier[k][channel].real() = fourierDouble[k][channel].real();
+				fourier[k][channel].imag() = fourierDouble[k][channel].imag();
+			}
+			for (int k = N / 2 ; k < N ; k ++)
+			{
+				fourier[k][channel].real() = fourierDouble[N - k][channel].real();
+				fourier[k][channel].imag() = -fourierDouble[N - k][channel].imag();
+			}
+		}
+		
 	}
 	
 	const std::complex<int64_t> &getAmplitude(int k, int channel) const
 	{
-		int64_t re = out_c[2*(channel * N + k)];
-		int64_t im = out_c[2*(channel * N + k)+1];
-		std::complex<int64_t> result(re, im);
-		return result;
+		return fourier[k][channel];
 	}
 };
 

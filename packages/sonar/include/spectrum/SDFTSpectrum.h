@@ -44,11 +44,12 @@ public:
 	{
 		bzero(data, sizeof(**data) * N * nchannels);
 		bzero(fourier, sizeof(**fourier) * N);
-		idx = 0;
+		idx = N - 1;
 	}
 	
 	void update(const typename ADC::SIGNED *sample)
 	{
+		memcpy(data[idx], sample, sizeof(*sample)*nchannels);
 		//	Slide through circular buffers
 		++idx;
 		if (idx == N)
@@ -57,7 +58,6 @@ public:
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
 			typename ADC::DOUBLE_WIDE::SIGNED diff = sample[channel] - data[idx][channel];
-			data[idx][channel] = sample[channel];
 			for (int k = 0 ; k < N ; k ++)
 			{
 				//	Make some convenient shorthands for numbers we need
