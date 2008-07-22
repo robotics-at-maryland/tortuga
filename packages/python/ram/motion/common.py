@@ -13,14 +13,66 @@ import ram.core as core
 from ram.motion.basic import Motion
 import ext.core
 
-# basic SISO PID control loop
+# basic SISO PID regulator control loop
 #
-# intended to be a generic PID control loop
+# NOTE: this is a setpoint regulator designed to converge to a single setpoint
+#
+# this is ***NOT*** a tracking controller, so it is not designed to 
+#follow trajectories
+#
+# intended to be a generic PID regulator control loop
 # note that the user is expected to maintain copies of the controller gains
 # as well as maintain copies of sum and xOld
-def PIDLoop(a):
+#
+# usage: if you have a measurable state x that you desire to go to the constant
+#         value xd, then call this function for as long as you wish x to stay
+#         at xd (even after x reaches xd).  
+#
+# input:
+#    x - measured state
+#    xd - desired state
+#    dt - change in time from previous PIDLoop function call
+#    dtTooSmall - smallest realistic value you expect dt could be
+#    dtTooBig - largest realistic value you expect dt could be
+#    kp - proportional gain
+#    kd - derivative gain
+#    ki - integral gain
+#    sum - integral of (x-xd) w.r.t. time
+#    xOld - previous x measurement 
+#
+# output:
+#    u - control signal
+#    xOld - new value for xOld
+#    sum - new value of integral value
+#
+def PIDLoop(x,xd,dt,dtTooSmall,dtTooBig,kp,kd,ki,sum,xOld):
+    #make sure that everything is float
+    x = float(x)
+    xd = float(xd)
+    dt = float(dt)
+    dtTooSmall = float(dtTooSmall)
+    dtTooBig = float(dtTooBig)
+    #don't need to worry about gains since int*float=float
+    sum = float(sum)
+    xOld = float(xOld)
 
-    return a
+    if dt < dtTooSmall:
+        dt = dtTooSmall
+    elif dt > dtTooBig:
+        dt = dtTooBig
+
+    #P term
+    error = x - xd
+    #I term
+    sum = sum + error*dt
+    #D term
+    xDot = (x-xOld)/dt
+    #save old state
+    xOld=x
+    #compute control
+    u=-kp*error-kd*xDot-ki*sum
+
+    return (u,sum,xOld)
 
 
 class Target(ext.core.EventPublisher):
