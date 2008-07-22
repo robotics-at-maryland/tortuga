@@ -75,7 +75,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_imu(device::IIMUPtr()),
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr()),
-    m_markerDropperName(config["MarkerDropperName"].asString("SensorBoard")),
+    m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
     m_markerDropper(device::IMarkerDropperPtr())
 {
     // Create devices
