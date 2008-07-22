@@ -77,7 +77,9 @@ _FWDT ( WDT_OFF );
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
-byte sonarBuf[19]; /* Put vector here */
+byte sonarBuf[SONAR_PACKET_LEN]; /* Put vector here */
+byte sonarRxBuf[SONAR_PACKET_LEN];
+
 
 byte portalMode = 0;
 
@@ -85,7 +87,8 @@ byte portalMode = 0;
 byte fCount = 0;
 byte sonarPtr = 0;
 
-
+void disableUartInterrupt();
+void enableUartInterrupt();
 
 
 void _ISR _U2RXInterrupt(void)
@@ -100,10 +103,18 @@ void _ISR _U2RXInterrupt(void)
     {
 
         byte t = U2RXREG;
+	byte i;
         actLight(0);
 
-        if(sonarPtr < 19)
-            sonarBuf[sonarPtr++] = t;   /* Blargh */
+        if(sonarPtr < SONAR_PACKET_LEN)
+            sonarRxBuf[sonarPtr++] = t;   /* Blargh */
+
+	if(sonarPtr >= SONAR_PACKET_LEN)
+	{
+	    for(i=0; i<SONAR_PACKET_LEN; i++)
+		sonarBuf[i] = sonarRxBuf[i];
+	}
+
 
         /* We are looking for 6 FFs in a row. */
         if(t == 0xFF)
@@ -126,7 +137,7 @@ void initUart()
     U2STAbits.UTXEN = 1;   // Enable transmit
     U2STAbits.UTXISEL=1;    /* Generate interrupt only when buffer is empty */
     U2STAbits.URXISEL=0;    /* Generate interrupt when a byte comes in */
-    IEC1bits.U2RXIE = 1;    /* Enable RX interrupt */
+    _U2RXIE = 1;    /* Enable RX interrupt */
 }
 
 void initJPortal()
@@ -134,6 +145,8 @@ void initJPortal()
     TRIS_PWM = 0;        /* Un-tristate the PWM output */
     OC3CON = 0x0000;
     OC3CONbits.OCTSEL = 0;  /* Use Timer2 */
+    IEC0bits.T2IE = 0;      /* Disable T2 interrupt */
+    IEC0bits.CNIE = 0;      /* Disable CN interrupts */
     OC3CONbits.OCM = 0x6;   /* PWM, fault pin disabled */
     PR2 = 255;
     OC3RS = 0;
@@ -221,10 +234,12 @@ void processData(byte data)
                 {
                     int i;
 
-                    for(i=0; i<19; i++)
+                    _U2RXIE = 0;
+		    for(i=0; i<SONAR_PACKET_LEN; i++)
                         txBuf[i+1] = sonarBuf[i];
-                    txBuf[0] = 19;
-                    break;
+                    txBuf[0] = SONAR_PACKET_LEN;
+                    _U2RXIE = 1;
+		    break;
                 }
             }
             break;
@@ -507,9 +522,8 @@ int main()
 
 
     byte i;
-    byte blah[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x1F, 0xA3, 0x2B, 0xDC, 0x9E, 0x42, 0xD4, 0x7B};
-    for(i=0; i<12; i++)
-        sonarBuf[i] = blah[i];
+    for(i=0; i<SONAR_PACKET_LEN; i++)
+        sonarBuf[i] = 0;
 
     while(1);
 }

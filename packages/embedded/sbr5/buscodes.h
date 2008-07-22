@@ -204,11 +204,6 @@
 
 
 
-
-
-
-
-
 #define CMD_BAR1_OFF     0x00
 #define CMD_BAR2_OFF     0x01
 #define CMD_BAR3_OFF     0x02
@@ -240,3 +235,7 @@
 #define CMD_BATT3_ON      0x07
 #define CMD_BATT4_ON      0x08
 #define CMD_BATT5_ON      0x09
+
+
+
+#define SONAR_PACKET_LEN 20

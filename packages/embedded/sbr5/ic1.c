@@ -1486,7 +1486,7 @@ int main(void)
 
 
                 int len = readDataBlock(SLAVE_ID_SONAR);
-                if(len != 19)
+                if(len != SONAR_PACKET_LEN)
 		        {
 			        sendByte(HOST_REPLY_FAILURE);
 			        break;
@@ -1495,7 +1495,7 @@ int main(void)
 		        sendByte(HOST_REPLY_SONAR);
 
 		        byte cs=0;
-                for(i=0; i<19; i++)
+                for(i=0; i<SONAR_PACKET_LEN; i++)
                 {
                     cs += rxBuf[i];
 	                sendByte(rxBuf[i]);
