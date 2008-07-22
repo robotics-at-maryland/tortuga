@@ -15,3 +15,7 @@ Subsystems:
     Vehicle:
         type: DemoVehicle
         depends_on: ["EventHub"]
+        
+    StateMachine:
+        type: DemoStateMachine
+        depends_on: ["EventHub"]

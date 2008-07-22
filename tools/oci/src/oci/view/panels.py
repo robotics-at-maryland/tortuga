@@ -26,6 +26,8 @@ import ext.vehicle.device
 import ext.control
 import ext.core as core
 
+import ram.ai.state 
+
 class ThrusterPanel(wx.Panel):
     implements(IPanelProvider)
     
@@ -203,6 +205,83 @@ class DepthPanel(wx.Panel):
         
             panel = DepthPanel(parent, eventHub, vehicle, controller)
             return [(paneInfo, panel, [vehicle])]
+        
+        return []
+
+class AIPanel(wx.Panel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub, stateMachine, *args, **kwargs):
+        """Create the Control Panel"""
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+        self._connections = []
+
+        layout =  wx.GridBagSizer(10, 10)
+              
+        textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+00.0')
+        textSize = wx.Size(textWidth, wx.DefaultSize.height) 
+        textStyle = wx.TE_RIGHT | wx.TE_READONLY
+        
+        # Create Current controls
+        currentLabel = wx.StaticText(self, label = 'Current State')
+        layout.Add(currentLabel, (0, 0), flag = wx.ALIGN_CENTER)
+        self._currentState = wx.TextCtrl(self, size = textSize,
+                                         style = textStyle)
+        layout.Add(self._currentState, (1, 0), 
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        # Create Last controls
+        lastLabel = wx.StaticText(self, label = 'Last State')
+        layout.Add(lastLabel, (2, 0), flag = wx.ALIGN_CENTER)
+        self._lastState = wx.TextCtrl(self, size = textSize,
+                                      style = textStyle)
+        layout.Add(self._lastState, (3, 0), 
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+
+        layout.AddGrowableCol(0)
+        #layout.AddGrowableRow(1)
+        
+        self.SetSizerAndFit(layout)
+        #self.SetSizeHints(0,0,100,-1)
+        
+        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_ENTERED,
+                                        self._onEntered)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_EXITED,
+                                        self._onExited)
+        self._connections.append(conn)
+        
+    def _onEntered(self,event):
+        self._currentState.Value = '%s' % event.state.__class__.__name__
+        
+    def _onExited(self,event):
+        self._lastState.Value = '%s' % event.state.__class__.__name__
+       
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+       
+        closeEvent.Skip()
+        
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
+                                                    subsystems)
+
+        if machine is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("AI")
+            paneInfo = paneInfo.Caption("AI").Right()
+        
+            panel = AIPanel(parent, eventHub, machine)
+            return [(paneInfo, panel, [machine])]
         
         return []
 

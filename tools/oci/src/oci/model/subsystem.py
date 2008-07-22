@@ -14,6 +14,8 @@ import ext.core as core
 import ext.vehicle as vehicle
 import ext.vehicle.device as device
 
+import ram.ai.state
+from ram.test import Mock
 
 class Vehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
@@ -90,6 +92,40 @@ class Vehicle(vehicle.IVehicle):
         pass
 
 core.SubsystemMaker.registerSubsystem('DemoVehicle', Vehicle)
+
+class A(object):
+    pass
+
+class B(object):
+    pass
+
+class DemoMachine(ram.ai.state.Machine):
+    def __init__(self, cfg = None, deps = None):
+        ram.ai.state.Machine.__init__(self, cfg, deps)
+        self._currentTime = 0
+        
+    def update(self, timestep):
+        self._currentTime += timestep
+        event = core.Event()
+        exitEvent = core.Event()
+        
+        if math.sin(self._currentTime) > 0:
+            event.state = A()
+            exitEvent.state = B()
+        else:
+            event.state = B()
+            exitEvent.state = A()
+            
+        self.publish(ram.ai.state.Machine.STATE_EXITED, exitEvent)
+        self.publish(ram.ai.state.Machine.STATE_ENTERED, event)
+    
+    def backgrounded(self):
+        return False
+
+    def unbackground(self, join):
+        pass
+
+core.SubsystemMaker.registerSubsystem('DemoStateMachine', DemoMachine)
 
 class Thruster(device.IThruster):  
     def __init__(self, eventHub, name, offset):
