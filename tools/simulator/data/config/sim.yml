@@ -102,6 +102,12 @@ Subsystems:
             ram.ai.safe.Settling:
                 offset: -0.35
                 
+            ram.ai.sonar.FarSeeking:
+                speedGain: 4
+                maxSpeed: 3
+                sidewaysSpeedGain: 4
+                maxSidewaysSpeed: 4
+                
 #    RemoteController:
 #        type: RemoteController
 #        depends_on: ["Controller"]
@@ -242,8 +248,8 @@ Subsystems:
             #Main: bin.sml
             #Main: duct.sml
             #Main: buoy.sml
-            #Main: pinger.sml
-            Main: safe.sml
+            Main: pinger.sml
+            #Main: safe.sml
             #Main: transdec.sml
             #Main: nxtest.sml
 

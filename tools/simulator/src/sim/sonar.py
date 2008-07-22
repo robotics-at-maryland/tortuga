@@ -65,6 +65,8 @@ class SimSonar(ext.core.Subsystem):
             self._pinger = self._pingers[0]
         else:
             self._pinger = None
+        
+        self._sampleCount = 0
 
     def backgrounded(self):
         return False
@@ -83,7 +85,8 @@ class SimSonar(ext.core.Subsystem):
         relativePos.normalise()
         event.direction = ext.math.Vector3(relativePos.x, relativePos.y,
             relativePos.z)
-        event.pingTimeSec = int(ram.timer.time())
+        self._sampleCount += 1
+        event.pingTimeUSec = self._sampleCount
         self.publish(ext.vehicle.device.ISonar.UPDATE, event)
       
 ext.core.SubsystemMaker.registerSubsystem('SimSonar', SimSonar)      
