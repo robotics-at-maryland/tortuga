@@ -99,7 +99,7 @@ void SafeDetector::processImage(Image* input, Image* out)
     if (out)
         out->copyFrom(m_working);
 
-    blobDetector.setMinimumBlobSize(25);
+    blobDetector.setMinimumBlobSize(50);
     blobDetector.processImage(m_working);
     BlobDetector::BlobList blobs = blobDetector.getBlobs();
     
