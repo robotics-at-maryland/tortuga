@@ -202,6 +202,8 @@
 
 #define HOST_CMD_BARANIMATION       0x2A
 
+#define HOST_CMD_SET_BARS           0x2B
+
 
 
 #define CMD_BAR1_OFF     0x00

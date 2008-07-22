@@ -120,8 +120,6 @@ static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
 static const unsigned char cdSafety[]={0xBA, 0xDB, 0xEE, 0xEF, 0x4A};
 
 
-void processRuntimeDiag();
-
 
 byte failsafeTripped = 0;   /* Gets set to 1 */
 
@@ -174,7 +172,7 @@ unsigned char waitchar(byte timeout)
     {
         if(diagMsg && waitTime++ == DIAG_TIMEOUT)
         {
-            processRuntimeDiag();
+//             processRuntimeDiag();
             waitTime=0;
         }
         checkFailsafe();
@@ -446,19 +444,6 @@ int pollStartSw()
     return rxBuf[0] & 0x01;
 }
 
-
-byte pollThrusterState()
-{
-#warning WRITE NEW THRUSTER STATE FUNCTION
-    return -1;
-}
-
-
-/* Run a bit of the run-time diagnostic message system */
-void processRuntimeDiag()
-{
-#warning WRITE NEW RUNTIME DIAGNOSTIC FUNCTION
-}
 
 
 void checkChip(unsigned char * str, byte irq)
@@ -1229,6 +1214,34 @@ int main(void)
                     break;
                 }
 
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
+            case HOST_CMD_SET_BARS:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if(t1+HOST_CMD_SET_BARS != t2)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SET_BARS, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(t1, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
 
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
