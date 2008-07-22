@@ -72,7 +72,7 @@ class HoveringState(state.State):
     def transitions(myState, trans = None):
         if trans is None:
             trans = {}
-        trans.update({vision.EventType.BIN_LOST : Searching,
+        trans.update({vision.EventType.BIN_LOST : Recover,
                       vision.EventType.BIN_FOUND : myState})
         return trans
     
@@ -97,6 +97,9 @@ class HoveringState(state.State):
         # Only listen to the current bin ID
         if self._currentBin(event):
             self._bin.setState(event.x, event.y, event.angle)
+            
+            self.ai.data["lastBinX"] = event.x
+            self.ai.data["lastBinY"] = event.y
 
     def enter(self):
         # Make sure we are tracking
@@ -273,6 +276,39 @@ class Seeking(HoveringState):
     def enter(self):
         HoveringState.enter(self)
 
+class Recover(state.State):
+    TIMEOUT = core.declareEventType("TIMEOUT")
+    
+    @staticmethod
+    def transitions():
+        return { vision.EventType.BIN_FOUND : Seeking,
+                 Recover.TIMEOUT : Searching }
+    
+    def enter(self):
+        self.timer = self.timerManager.newTimer(Recover.TIMEOUT, 
+                                                self._config.get('timeout', 5))
+        
+        self._bin = ram.motion.common.Target(self.ai.data["lastBinX"],
+                                             self.ai.data["lastBinY"])
+
+        speedGain = self._config.get('speedGain', 5)
+        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
+        #yawGain = self._config.get('yawGain', 1)
+        maxSpeed = self._config.get('maxSpeed', 5)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        
+        motion = ram.motion.common.Hover(target = self._bin,
+                                         maxSpeed = maxSpeed,
+                                         maxSidewaysSpeed = maxSidewaysSpeed,
+                                         sidewaysSpeedGain = sidewaysSpeedGain,
+                                         speedGain = speedGain)
+        self.motionManager.setMotion(motion)
+        
+
+        self.timer.start()
+
+    def exit(self):
+        self.timer.stop()
 
 class Centering(SettlingState):
     """

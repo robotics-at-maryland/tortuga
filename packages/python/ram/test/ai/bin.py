@@ -180,8 +180,39 @@ class TestSeeking(BinTestCase):
     
     def testBinLost(self):
         """Make sure losing the light goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
         self.injectEvent(vision.EventType.BIN_LOST)
-        self.assertCurrentState(bin.Searching)        
+        self.assertCurrentState(bin.Recover)   
+        
+class TestRecover(aisupport.AITestCase):
+    def testStart(self):
+        self.ai.data["lastBinX"] = 0.5
+        self.ai.data["lastBinY"] = -0.5
+        
+        self.machine.start(bin.Recover)
+        
+        self.assertLessThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Make sure timer works
+        self.releaseTimer(bin.Recover.TIMEOUT)
+        # Its dive, and not SeekEnd because we are already at the end
+        self.assertCurrentState(bin.Searching)
+        
+    def testFound(self):
+        self.ai.data["lastBinX"] = 0.5
+        self.ai.data["lastBinY"] = -0.5
+        
+        self.machine.start(bin.Recover)
+        
+        self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
+                         0, 0, vision.Suit.UNKNOWN, math.Degree(0))
+        self.assertCurrentState(bin.Seeking)
+
 
 class TestCentering(BinTestCase):
     def setUp(self):
@@ -206,8 +237,12 @@ class TestCentering(BinTestCase):
         
     def testBinLost(self):
         """Make sure we search when we lose the bin"""
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
         self.injectEvent(vision.EventType.BIN_LOST)
-        self.assertCurrentState(bin.Searching)
+        self.assertCurrentState(bin.Recover)
     
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -247,8 +282,12 @@ class TestAligning(BinTestCase):
         
     def testBinLost(self):
         """Make sure we search when we lose the bin"""
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
         self.injectEvent(vision.EventType.BIN_LOST)
-        self.assertCurrentState(bin.Searching)
+        self.assertCurrentState(bin.Recover)
     
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -354,8 +393,12 @@ class TestSeekEnd(BinTestCase):
         self.assertCurrentState(bin.SeekEnd)
         self.injectEvent(bin.SeekEnd.CENTERED_)
         
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
         self.qeventHub.publishEvents()
-        self.assertCurrentState(bin.Searching)
+        self.assertCurrentState(bin.Recover)
         
     def testAtEnd(self):
         self.injectEvent(bin.SeekEnd.AT_END)
@@ -550,9 +593,13 @@ class TestNextBin(BinTestCase):
         self.ai.data['binData'] = {6 : Mock(x = -1), 3 : Mock(x = 0),
             5 : Mock(x = 1), 4 : Mock(x = 2)}
         self.machine.start(bin.NextBin)
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
         self.qeventHub.publishEvents()
                 
-        self.assertCurrentState(bin.Searching)
+        self.assertCurrentState(bin.Recover)
 #        self.assertEqual(3, self.ai.data['currentBinID'])
 #        self.assertFalse(self._atEnd)
 #        self.assertFalse(self._centered)
