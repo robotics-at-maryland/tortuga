@@ -9,6 +9,7 @@
 # Project Imports
 import ext.core as core
 import ext.vision as vision
+import ext.math as math
 
 import ram.ai.state as state
 import ram.motion as motion
@@ -26,7 +27,7 @@ class SafeTrackingState(state.State):
     
     def SAFE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        self._pipe.setState(event.x, event.y)#, event.angle)
+        self._safe.setState(event.x, event.y)#, event.angle)
 
     def enter(self):
         self._safe = ram.motion.common.Target(0,0)
@@ -49,6 +50,21 @@ class SafeTrackingState(state.State):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
         
+class SafeCentering(SafeTrackingState):
+    CENTERED = core.declareEventType('CENTERED')
+    
+    def SAFE_FOUND(self, event):
+        SafeTrackingState.SAFE_FOUND(self, event)
+        
+        if math.Vector2(event.x, event.y).length() < self._centeredRange:
+            self.publish(Seeking.CENTERED, core.Event())
+
+            
+    def enter(self):
+        self._centeredRange = self._config.get('centertedRange', 0.2)
+        SafeTrackingState.enter(self)
+        
+        
 class Searching(state.State):
     """When the vehicle is looking for the treasure"""
     @staticmethod
@@ -70,10 +86,119 @@ class Searching(state.State):
 #    def exit(self):
 #        self.motionManager.stopCurrentMotion()
     
-class Seeking(SafeTrackingState):
-    """When the vehicle is moving over the found pipe"""
+class Seeking(SafeCentering):
+    """When the vehicle is moving to get over the safe"""
     
     @staticmethod
     def transitions():
-        return SafeTrackingState.transitions(Seeking)
-            
+        return SafeTrackingState.transitions(Seeking,
+            { Seeking.CENTERED : Dive })
+        
+class Dive(SafeTrackingState):
+    """Diving to the pre-grab depth"""
+
+    @staticmethod
+    def transitions():
+        return SafeTrackingState.transitions(Dive,
+            { ram.motion.basic.Motion.FINISHED : Offseting })
+        
+    def enter(self):
+        safeDepth = self._config.get('safeDepth', 22)
+        offset = self._config.get('depthOffset', 2)
+        diveRate = self._config.get('diveRate', 0.4)
+        
+        targetDepth = safeDepth - offset
+        diveMotion = motion.basic.RateChangeDepth(targetDepth, diveRate)
+        self.motionManager.setMotion(diveMotion)
+        
+        SafeTrackingState.enter(self)
+        
+class Offseting(SafeCentering):
+    """Moves the treasure under the grabber of the vehicle"""
+    @staticmethod
+    def transitions():
+        return SafeCentering.transitions(Offseting,
+            { SafeCentering.CENTERED : Settling })
+
+    def SAFE_FOUND(self, event):
+        event.y = event.y - self._offset
+        SafeCentering.SAFE_FOUND(self, event)
+        
+    def enter(self):
+        self._offset = self._config.get('offset', -0.7)
+        SafeCentering.enter(self)
+        
+class Settling(SafeTrackingState):
+    """Settles over the offseted safe in preperation for the grab"""
+    
+    SETTLED = core.declareEventType('SETTLED')
+    
+    @staticmethod
+    def transitions():
+        return SafeTrackingState.transitions(Settling,
+            { Settling.SETTLED : Grabbing })
+        
+    def SAFE_FOUND(self, event):
+        event.y = event.y - self._offset
+        SafeTrackingState.SAFE_FOUND(self, event)
+
+    def enter(self):
+        self.timer = self.timerManager.newTimer(Settling.SETTLED, 
+                                                self._config.get('duration', 5))
+        self.timer.start()
+        
+        self._offset = self._config.get('offset', -0.7)
+        SafeTrackingState.enter(self)
+
+    def exit(self):
+        SafeTrackingState.exit(self)
+        self.timer.stop()
+        
+class Grabbing(state.State):
+    """Does the diving grab of the treasure"""
+    
+    GRABBED = core.declareEventType('GRABBED')
+    
+    @staticmethod
+    def transitions():
+        return {Grabbing.GRABBED : Surface,
+                ram.motion.basic.Motion.FINISHED : Surface }
+    
+    def enter(self):
+        # Timer to expire motion
+        self.timer = self.timerManager.newTimer(Grabbing.GRABBED, 
+                                                self._config.get('duration', 10))
+        
+        # Setup dive
+        safeDepth = self._config.get('safeDepth', 22)
+        offset = self._config.get('depthOffset', 2)
+        diveRate = self._config.get('diveRate', 0.5)
+        
+        targetDepth = safeDepth + offset
+        diveMotion = motion.basic.RateChangeDepth(targetDepth, diveRate)
+        self.motionManager.setMotion(diveMotion)
+        
+        self.timer.start()
+
+    def exit(self):
+        self.timer.stop()
+        
+class Surface(state.State):
+    """Diving to the pre-grab depth"""
+
+    @staticmethod
+    def transitions():
+        return { ram.motion.basic.Motion.FINISHED : End }
+        
+    def enter(self):
+        depth = self._config.get('depth', 0)
+        diveRate = self._config.get('diveRate', 0.4)
+        
+        diveMotion = motion.basic.RateChangeDepth(depth, diveRate)
+        self.motionManager.setMotion(diveMotion)
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+    
+class End(state.State):
+    pass
