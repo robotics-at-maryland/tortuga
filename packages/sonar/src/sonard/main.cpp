@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     sonarPing ping;
     int ping_found;
     int do_loop=0; //whether to continue the main loop or not
-    int status=0;   //FOUR states: 0-couldn't find with large dataset,  1-couldn't find with small, 2-found with large, 3-found with small
+    int status=-1;   //FOUR states: 0-couldn't find with large dataset,  1-couldn't find with small, 2-found with large, 3-found with small
     int loop_counter=0;
     struct timeval start_time;
     struct timeval curr_time;
@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
     //Get the starting time
     cout<<"Starting\n";
     gettimeofday(&start_time, NULL);
+            //cout<<"Now: "<<start_time.tv_sec<<" "<<start_time.tv_usec<<endl;
 
     //First, load the initial dataset
     if(argc == 1)
@@ -87,6 +88,7 @@ int main(int argc, char* argv[])
         if(loop_counter!=0) //already loaded the dataset for the first run
         {
             gettimeofday(&start_time, NULL);
+            //cout<<"Now: "<<start_time.tv_sec<<" "<<start_time.tv_usec<<endl;
             dataSet=getDataset(dataSet, status);
         }
 
@@ -111,8 +113,8 @@ int main(int argc, char* argv[])
             }
             else 
             {
-                if(status==0) status=2; //jump two states at once
-                else if(status<4) status++;
+                if(status<1) status+=2; //jump two states at once
+                else if(status<3) status++;
 
                 //Find how far into the time sample the ping was found
                 temp_time.tv_sec=ping.point_num/SAMPRATE;
@@ -121,13 +123,14 @@ int main(int argc, char* argv[])
                 //Figure out the time at which the ping happened
                 timeradd((&start_time),(&temp_time),(&start_time));
 
+                cout<<"Ping found at "<<start_time.tv_sec<<" "<<start_time.tv_usec<<" "<<loop_counter<<endl;
+
                 //Figure out what time it is
                 gettimeofday(&curr_time,NULL);
 
                 //Figure out how long ago the ping happened
                 timersub((&curr_time), (&start_time), (&temp_time));
 
-                cout<<"Ping happened: "<<temp_time.tv_sec*1000+temp_time.tv_usec/1000<<" "<<loop_counter<<endl;
                 //Now, send data to the main computer
                 reportPing(fd,
                         status,
@@ -170,7 +173,7 @@ dataset* getDataset(dataset *dataSet, int status)
 {
     int length;  
 
-    if(status==0 || status==1)
+    if(status<2)
         length=LARGE_DATASET;
     else
         length=SMALL_DATASET;

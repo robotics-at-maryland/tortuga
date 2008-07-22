@@ -76,8 +76,10 @@ static const int LARGE_DATASET=int(1.25*NOMINAL_PING_DELAY*SAMPRATE/1000); //pts
 static const int SMALL_DATASET=int(0.2*NOMINAL_PING_DELAY*SAMPRATE/1000);//+DFT_FRAME); //pts., datasets acquired once we know the approximate ping position
 static const int PD_THRESHOLDS[]={30,30,30,30}; //thresholds for ping detection on each channel, ratios of signal to noise
 static const int ENV_CALC_FRAME=1024; //the length of the piece that is extracted for calculating the ping more precisely
+//---------------PING QUALITY SETTINGS-----------------
 static const float PING_FIT_THRESHOLD=0.1;
 static const float VECTOR_QUAL_THRESHOLD=1.2;
+static const int FREQ_REJECT_RATIO=2; //the ratio of primary to secondary (false) frequencies for which the ping is assumed to be false and is rejected
 
 } // namespace sonar
 } // namespace ram

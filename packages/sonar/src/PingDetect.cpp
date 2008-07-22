@@ -78,7 +78,7 @@ pingDetect::p_update(adcdata_t *sample)
     {
         for (int kBand = 0 ; kBand < nKBands ; kBand ++)
         {
-            adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum.getAmplitudeForBinIndex(0,channel)));
+            adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum.getAmplitudeForBinIndex(kBand,channel)));
             if(temp>currmax[channel][kBand])
                 currmax[channel][kBand]=temp; //update the maximum
         }
@@ -96,7 +96,7 @@ pingDetect::p_update(adcdata_t *sample)
             {
                 bool firstBandIsLoudest = true;
                 for (int kBand = 1 ; kBand < nKBands ; kBand ++)
-                    if (currmax[channel][kBand]>currmax[channel][0])
+                    if ((FREQ_REJECT_RATIO*currmax[channel][kBand])>currmax[channel][0])
                         firstBandIsLoudest = false;
                 if (firstBandIsLoudest)
                     detected += (1 << channel); //Adds 1 for channel 1, 2 for 2, 4 for 3, 8 for 4

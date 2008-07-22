@@ -99,7 +99,7 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
                 break;
             }
     }
-    cout<<"Positions "<<" "<<pingpoints[0]<<"/"<<dataSet->size<<endl;
+    //cout<<"Positions "<<" "<<pingpoints[0]<<"/"<<dataSet->size<<endl;
 
     if((pingpoints[0]==0) ||
        (pingpoints[1]==0) ||
