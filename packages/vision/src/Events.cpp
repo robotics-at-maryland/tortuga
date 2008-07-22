@@ -49,5 +49,7 @@ RAM_VISION_BINEVENT;
 static ram::core::SpecificEventConverter<ram::vision::DuctEvent>
 RAM_VISION_DUCTEVENT;
 
+static ram::core::SpecificEventConverter<ram::vision::SafeEvent>
+RAM_VISION_SAFEEVENT;
 
 #endif // RAM_WITH_WRAPPERS
