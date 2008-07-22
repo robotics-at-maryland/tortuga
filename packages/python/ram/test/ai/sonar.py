@@ -61,7 +61,7 @@ class TestSeeking(aisupport.AITestCase):
         
         # TODO: Figure out why these stopped passing
         #self.assertGreaterThan(self.controller.speed, 0)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 0)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
         #self.assertGreaterThan(self.controller.yawChange, 0)
         
         self.assertCurrentState(sonar.FarSeeking)
@@ -71,7 +71,7 @@ class TestSeeking(aisupport.AITestCase):
                          direction = ext.math.Vector3(0.8, -0.5, -0.1))
         
         self.assertGreaterThan(self.controller.speed, 0)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 0)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
         self.assertLessThan(self.controller.yawChange, 0)
         
         self.assertCurrentState(sonar.FarSeeking)
