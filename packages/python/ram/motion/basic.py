@@ -331,6 +331,7 @@ class RateChangeDepth(Motion):
         Motion._finish(self)
 
     def stop(self):
+        self._timer.stop()
         self._conn.disconnect()
         
 class ChangeHeading(Motion):
