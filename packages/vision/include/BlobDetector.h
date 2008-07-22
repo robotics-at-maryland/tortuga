@@ -78,6 +78,14 @@ public:
                     m_maxX >= otherBlob.m_maxX &&
                     m_maxY >= otherBlob.m_maxY);        
         }
+        
+        bool containsInclusive(Blob otherBlob, int addToBounds)
+        {
+            return (m_minX-addToBounds <= otherBlob.m_minX &&
+                    m_minY-addToBounds <= otherBlob.m_minY &&
+                    m_maxX+addToBounds >= otherBlob.m_maxX &&
+                    m_maxY+addToBounds >= otherBlob.m_maxY); 
+        }
 
         bool boundsIntersect(Blob otherBlob)
         {

@@ -144,6 +144,12 @@ void BinDetector::init(core::ConfigNode config)
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
     m_sameBinThreshold = config["sameBinThreshold"].asDouble(0.2);
     m_maxAspectRatio = config["maxAspectRatio"].asDouble(3);
+    
+    m_blackMaskMinimumPercent = config["blackMaskMinimumPercent"].asInt(10);
+    m_blackMaskMaxTotalIntensity = config["blackMaskMaxTotalIntensity"].asInt(350);
+    
+    m_whiteMaskMinimumPercent = config["whiteMaskMinimumPercent"].asInt(30);
+    m_whiteMaskMinimumIntensity = config["whiteMaskMinimumIntensity"].asInt(190);
     m_binID = 0;
     for (int i = 0; i < 4; i++)
     {
@@ -196,8 +202,8 @@ void BinDetector::processImage(Image* input, Image* out)
     to_ratios(image);
     
     // Image is now in percents, binFrame is now the base image.
-    /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame, 20, 110);
-    /*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame);
+    /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame, m_whiteMaskMinimumPercent, m_whiteMaskMinimumIntensity);
+    /*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame, m_blackMaskMinimumPercent, m_blackMaskMaxTotalIntensity);
     
     if (output)
     {
@@ -241,6 +247,18 @@ void BinDetector::processImage(Image* input, Image* out)
     // List of found blobs which are bins
     BlobDetector::BlobList binBlobs;
 
+//    BOOST_FOREACH(BlobDetector::Blob whiteBlob, whiteBlobs)
+//    {
+//        if (output)
+//            whiteBlob.draw(out);
+//    }
+//    
+//    BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
+//    {
+//        if (output)
+//            blackBlob.draw(out);
+//    }
+
     // NOTE: all blobs sorted largest to smallest
     BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
     {
@@ -248,7 +266,7 @@ void BinDetector::processImage(Image* input, Image* out)
         {
             // Sadly, this totally won't work at the edges of the screen...
             // crap damn.
-            if (whiteBlob.containsInclusive(blackBlob) &&
+            if (whiteBlob.containsInclusive(blackBlob,2) &&
                 blackBlob.getAspectRatio() < m_maxAspectRatio)
             {
                 // blackBlobs[blackBlobIndex] is the black rectangle of a bin
@@ -263,6 +281,13 @@ void BinDetector::processImage(Image* input, Image* out)
                 //Not a bin.
             }
         }
+    }
+    
+    if (out)
+    {
+        std::stringstream ss;
+        ss << binBlobs.size();
+        Image::writeText(out, ss.str(),0,200);
     }
     
 //    std::cout<<"Made set of bins"<<std::endl;
@@ -468,20 +493,12 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     // Extra bin blob into image
     CvPoint2D32f binCenter = cvPoint2D32f(bin.getCenterX(), bin.getCenterY());
     
-    if (binCenter.x - width/2 - 1 < 0)
+    if ((binCenter.x - width/2 - 1 < 0) || 
+        (binCenter.x + width/2 + 1 >= binFrame->width) ||
+        (binCenter.y - height/2 -1 < 0) ||
+        (binCenter.y + height/2 +1 >= binFrame->height))
     {
-        return;
-    }
-    if (binCenter.x + width/2 + 1 >= binFrame->width)
-    {
-        return;
-    }
-    if (binCenter.y - height/2 -1 < 0)
-    {
-        return;
-    }
-    if (binCenter.y + height/2 +1 >= binFrame->height)
-    {
+        newBins.push_back(Bin(bin, binX, binY, math::Degree(0), m_binID++, Suit::UNKNOWN));
         return;
     }
     
@@ -599,7 +616,7 @@ math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin,
     }
     
     if (lines->total == 0)
-        return math::Radian(-180);
+        return math::Degree(-180);
     cvReleaseImage(&cannied);
     cvReleaseMemStorage(&storage);
     cvReleaseImage(&redSuitGrayScale);

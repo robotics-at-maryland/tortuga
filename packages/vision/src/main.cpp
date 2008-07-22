@@ -1638,7 +1638,7 @@ int white_mask(IplImage* percents, IplImage* base, IplImage* output, unsigned ch
 //Good parameters are 15 and 350, except for stupid cam, for which drop it to 15 150
 /* masks the images for black. output is filled with 255s wherever base and percents were in black thresholds,
 filled with 0s elsewhere*/
-int black_mask(IplImage* percents, IplImage* base, IplImage* output)
+int black_mask(IplImage* percents, IplImage* base, IplImage* output, unsigned char minPercentIntensity, int maxTotalIntensity)
 {
 	unsigned char* data=(unsigned char*)percents->imageData;
 	unsigned char* data2=(unsigned char*)base->imageData;
@@ -1669,9 +1669,9 @@ int black_mask(IplImage* percents, IplImage* base, IplImage* output)
 			b2=data2[count];
 			g2=data2[count+1];
 			r2=data2[count+2];
-			if (b>5 && g>5 && r>5)
+			if (b>minPercentIntensity && g>minPercentIntensity && r>minPercentIntensity)
 			{
-				if (b2 + g2 + r2 <= 300)
+				if (b2 + g2 + r2 <= maxTotalIntensity)
 				{
 					data3[count]=data3[count+1]=data3[count+2]=255;
 					pixelCount++;

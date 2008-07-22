@@ -69,6 +69,7 @@ class RAM_EXPORT BinDetector : public Detector
             
         double m_normX;
         double m_normY;
+        
         math::Degree m_angle;
         int m_id;
         Suit::SuitType m_suit;
@@ -188,6 +189,11 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** Current bin ids */
     int m_binID;
+    
+    int m_blackMaskMinimumPercent;
+    int m_blackMaskMaxTotalIntensity;        
+    int m_whiteMaskMinimumPercent;
+    int m_whiteMaskMinimumIntensity;
 };
 
 } // namespace vision
