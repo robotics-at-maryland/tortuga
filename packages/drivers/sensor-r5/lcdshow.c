@@ -612,7 +612,14 @@ int main(int argc, char ** argv)
 
     if(strcmp(argv[1], "-setbars") == 0)
     {
-        int t = atoi(argv[2]);
+    	if(argc == 1)
+	{
+	    printf("Segmentation fault\n");
+	    close(fd);
+	    return -1;
+	}
+    
+    	int t = atoi(argv[2]);
 
         setBarOutputs(fd, t);
 
