@@ -65,7 +65,7 @@ class TransSeekingTestCase(object):
         #self.assertLessThan(self.controller.sidewaysSpeed, 0)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
                 
-        self.assertCurrentState(sonar.CloseSeeking)
+        self.assertCurrentState(self._myClass)
         
     def testUpdateRight(self):
         # To the right
@@ -78,11 +78,12 @@ class TransSeekingTestCase(object):
         #self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         
-        self.assertCurrentState(sonar.CloseSeeking) 
+        self.assertCurrentState(self._myClass)
         
 class TestCloseSeeking(TransSeekingTestCase, aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
+        self._myClass = sonar.FarSeeking
         self.machine.start(sonar.FarSeeking)
         
     def testClose(self):
@@ -95,6 +96,7 @@ class TestCloseSeeking(TransSeekingTestCase, aisupport.AITestCase):
 class TestCloseSeeking(TransSeekingTestCase, aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
+        self._myClass = sonar.CloseSeeking
         self.machine.start(sonar.CloseSeeking)
         
     def testClose(self):
@@ -113,7 +115,16 @@ class TestCloseSeeking(TransSeekingTestCase, aisupport.AITestCase):
         self.assert_(self.machine.complete)
         self.assert_(self._complete)
 
+class TestHovering(TransSeekingTestCase, aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self._myClass = sonar.Hovering
+        self.machine.start(sonar.Hovering)
         
-        
-        
-#class TestCloseSee
+    def testClose(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE, vehicle.SonarEvent, 
+                         direction = ext.math.Vector3(-0.1, -0.1, -0.9),
+                         pingTimeUSec = 11)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(sonar.Hovering)
+

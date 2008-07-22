@@ -109,6 +109,9 @@ class TranslationSeeking(PingerState):
 
 # 0.65
 class FarSeeking(TranslationSeeking):
+    """
+    Approaches the pinger from a far away difference
+    """
     @staticmethod
     def transitions():
         return TranslationSeeking.transitions(FarSeeking, 
@@ -119,6 +122,9 @@ class FarSeeking(TranslationSeeking):
         self._closeZ = self._config.get('midRangeZ', 0.65)
                  
 class CloseSeeking(TranslationSeeking):
+    """
+    For when we are close to the pinger
+    """
     @staticmethod
     def transitions():
         return TranslationSeeking.transitions(CloseSeeking, 
@@ -128,6 +134,13 @@ class CloseSeeking(TranslationSeeking):
         PingerState._loadSettings(self)
         self._closeZ = self._config.get('closeZ', 0.8)
     
+class Hovering(TranslationSeeking):
+    """
+    Just hovers over the pinger
+    """
+    @staticmethod
+    def transitions():
+        return TranslationSeeking.transitions(Hovering)
 
 class End(state.State):
     def enter(self):
