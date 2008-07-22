@@ -470,6 +470,39 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
 }
 
 /************************************************************************
+AdaptiveRotationalController(MeasuredState,DesiredState,ControllerState,dt,translationalForces)
+
+AdaptiveRotationalController is a modified version of the adaptive spacecraft controller described in:
+Egeland, O., and Godhavn, J.-M., "Passivity-based adaptive attitude control of a rigid spacecraft", IEEE Transactions on Automatic Control, 39(4), pp. 842-845, 1994.
+The controller has been modified by Joseph Gland to adaptively learn the following parameters: inertia, drag, buoyancy
+
+assumes the quaternion is written as
+
+q = [e(0)*sin(phi/2); e(1)*sin(phi/2); e(2)*sin(phi/2); cos(phi/2)]
+
+
+
+returns
+          - rotationalTorques, the torques used to rotate the vehicle as
+            written in the vehicle's coord frame.  torques are in Newton*meters
+*/
+void AdaptiveRotationalController(MeasuredState* measuredState,
+                                   DesiredState* desiredState,
+                                   ControllerState* controllerState,
+                                   double dt,
+                                   double* rotationalTorques)
+{
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
+}
+
+/************************************************************************
 */
 /*
 Matrix3 S(Vector3 e)

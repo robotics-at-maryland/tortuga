@@ -17,6 +17,7 @@
 #include "math/include/Matrix2.h"
 #include "math/include/Vector4.h"
 #include "math/include/Matrix4.h"
+#include "math/include/MatrixN.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -63,9 +64,17 @@ struct RAM_EXPORT EstimatedState{
 };
 
 struct RAM_EXPORT ControllerState{
+
+  /* ROTATIONAL CONTROL GAINS */
+  //for nonlinear PD control
     double angularPGain;
     double angularDGain;
     double inertiaEstimate[3][3];
+	//for nonlinear adaptive controller
+	double adaptCtrlRotK;//controller gain
+	double adaptCtrlRotLambda;//replacement model pole
+	double adaptCtrlRotGamma;//adaptation gain
+	math::MatrixN adaptCtrlParams;//parameter estimate vector
     
     /* DEPTH CONTROL GAINS*/
     //for depth P control
@@ -105,6 +114,12 @@ void RAM_EXPORT translationalController(MeasuredState* measuredState,
                                         double* translationalForces);
 
 void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
+                                              DesiredState* desiredState,
+                                              ControllerState* controllerState,
+                                              double dt,
+                                              double* rotationalTorques);
+
+void RAM_EXPORT AdaptiveRotationalController(MeasuredState* measuredState,
                                               DesiredState* desiredState,
                                               ControllerState* controllerState,
                                               double dt,

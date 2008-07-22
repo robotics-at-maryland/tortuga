@@ -435,8 +435,33 @@ void BWPDController::init(core::ConfigNode config)
     m_desiredState->depth = config["desiredDepth"].asDouble(0);
     
     // Set controller state from config file (defaults hard coded)
+	
+	/* Rotational Gains */
+	// nonlinear PD controller
     m_controllerState->angularPGain = config["angularPGain"].asDouble(1);
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
+	
+	// nonlinear adaptive controller
+	m_controllerState->adaptCtrlRotK = config["adaptCtrlRotK"].asDouble(1);
+	m_controllerState->adaptCtrlRotLambda = config["adaptCtrlRotLambda"].asDouble(1);
+	m_controllerState->adaptCtrlRotGamma = config["adaptCtrlRotGamma"].asDouble(1);
+	m_controllerState->adaptCtrlParams.resize(12,1);
+	m_controllerState->adaptCtrlParams[0][0] = config["adaptCtrlParams"][0].asDouble(0.5);
+	m_controllerState->adaptCtrlParams[1][0] = config["adaptCtrlParams"][1].asDouble(0);
+	m_controllerState->adaptCtrlParams[2][0] = config["adaptCtrlParams"][2].asDouble(-0.1);
+	m_controllerState->adaptCtrlParams[3][0] = config["adaptCtrlParams"][3].asDouble(1);
+	m_controllerState->adaptCtrlParams[4][0] = config["adaptCtrlParams"][4].asDouble(0);
+	m_controllerState->adaptCtrlParams[5][0] = config["adaptCtrlParams"][5].asDouble(1);
+	m_controllerState->adaptCtrlParams[6][0] = config["adaptCtrlParams"][6].asDouble(0);
+	m_controllerState->adaptCtrlParams[7][0] = config["adaptCtrlParams"][7].asDouble(0);	
+	m_controllerState->adaptCtrlParams[8][0] = config["adaptCtrlParams"][8].asDouble(0);
+	m_controllerState->adaptCtrlParams[9][0] = config["adaptCtrlParams"][9].asDouble(1);
+	m_controllerState->adaptCtrlParams[10][0] = config["adaptCtrlParams"][10].asDouble(2);
+	m_controllerState->adaptCtrlParams[11][0] = config["adaptCtrlParams"][11].asDouble(2);
+
+	
+
+	/* Translationcal Gains */
 
     m_controllerState->depthControlType = config["depthControlType"].asInt(1);
     m_controllerState->dtMin = config["dtMin"].asDouble(.1);
