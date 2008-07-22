@@ -322,6 +322,72 @@ void BinDetector::processImage(Image* input, Image* out)
             binNumber++;
         }
         
+        if (candidateBins.size() > 1 && candidateBins.size() <= 4)
+        {
+            int curX = -1;
+            int curY = -1;
+            int prevX = -1;
+            int prevY = -1;
+            
+            double innerAngles[3];//If you change this from a 3, also change the loops below
+            int angleCounter = 0;
+            BOOST_FOREACH(Bin bin, candidateBins)
+            {
+                prevX = curX;
+                prevY = curY;
+                curX = bin.getCenterX();
+                curY = bin.getCenterY();
+                
+                if (prevX == -1 && prevY == -1)
+                {
+                    // the first one
+                }
+                else
+                {
+                    CvPoint prev;
+                    CvPoint cur;
+                    prev.x = prevX;
+                    prev.y = prevY;
+                    cur.x = curX;
+                    cur.y = curY;
+                    
+                    //Swap so we always get answers mod 180.
+                    if (prev.x > cur.x || (prev.x == cur.x && prev.y > cur.y))
+                    {
+                        CvPoint swap = prev;
+                        prev = cur;
+                        cur = swap;
+                    }
+                    
+                    double innerAng = atan2(cur.y - prev.y,cur.x - prev.x);
+                    
+                    if (out)
+                    {
+                        cvLine(output, prev, cur, CV_RGB(255,0,0), 5, CV_AA, 0 );                    
+                    }
+                    innerAngles[angleCounter] = innerAng;
+                    angleCounter++;
+                }
+            }
+        
+            double sinTotal = 0;
+            double cosTotal = 0;
+            for (int i = 0; i < angleCounter && i < 3; i++)
+            {
+                sinTotal+=sin(innerAngles[i]);
+                cosTotal+=cos(innerAngles[i]);
+            }
+            
+            double finalAngleAcrossBins = atan2(sinTotal,cosTotal);
+    //        printf("final angle across bins %f:\n", finalAngleAcrossBins);
+            
+            math::Radian angleAcrossBins(finalAngleAcrossBins);
+            
+            math::Degree finalInnerAngleForJoe(angleAcrossBins.valueDegrees());
+//            printf("Final Inner Angle For Joe: %f\n", finalInnerAngleForJoe.valueDegrees());
+            BinEventPtr event(new BinEvent(finalInnerAngleForJoe));
+            publish(EventType::MULTI_BIN_ANGLE, event);
+        }
         
         // Sort candidate bins on distance from center
         candidateBins.sort(binToCenterComparer);
@@ -357,6 +423,7 @@ void BinDetector::processImage(Image* input, Image* out)
             // Store bin in our list of new bins
             newBins.push_back(candidateBin);
         }
+
 
         // Anybody left we didn't find this iteration, so its been dropped
         BOOST_FOREACH(Bin bin, m_bins)

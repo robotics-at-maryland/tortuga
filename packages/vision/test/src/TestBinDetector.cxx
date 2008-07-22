@@ -48,6 +48,7 @@ struct BinDetectorFixture
         found(false),
         centered(false),
         dropped(false),
+        receivedMultiBinAngleEvent(false),
         event(vision::BinEventPtr()),
         droppedEvent(vision::BinEventPtr()),
         input(640, 480),
@@ -63,7 +64,8 @@ struct BinDetectorFixture
             boost::bind(&BinDetectorFixture::lostHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_DROPPED,
             boost::bind(&BinDetectorFixture::droppedHandler, this, _1));
-        
+        eventHub->subscribeToType(vision::EventType::MULTI_BIN_ANGLE,
+            boost::bind(&BinDetectorFixture::multiBinAngleHandler, this, _1));
         detector.setSuitDetectionOn(false);
     }
 
@@ -91,9 +93,17 @@ struct BinDetectorFixture
         droppedEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
     }
     
+    void multiBinAngleHandler(core::EventPtr event_)
+    {
+        multiBinAngleEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
+        receivedMultiBinAngleEvent = true;
+    }
+    
     bool found;
     bool centered;
     bool dropped;
+    bool receivedMultiBinAngleEvent;
+    vision::BinEventPtr multiBinAngleEvent;
     vision::BinEventPtr event;
     vision::BinEventPtr droppedEvent;
     vision::OpenCVImage input;
@@ -104,6 +114,138 @@ struct BinDetectorFixture
 SUITE(BinDetector) {
 
 // TODO Test upright, and onside angle
+
+TEST_FIXTURE(BinDetectorFixture, multiBinAngles3)
+{
+    detector.setSuitDetectionOn(false);
+    vision::OpenCVImage output(640, 480);
+    receivedMultiBinAngleEvent = false;
+    
+    vision::makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/5, 480/4, 125, 90);
+    drawBin(&input, 640*2/5 + 5, 480/4 + 640/5, 125, 90);
+    drawBin(&input, 640*3/5 - 3, 480/4 + 640*2/5, 125, 90);
+    drawBin(&input, 640*4/5, 480/4 + 640*3/5, 125, 90);
+    
+    detector.processImage(&input, &output);
+    CHECK(receivedMultiBinAngleEvent);
+    CHECK(multiBinAngleEvent);
+    
+    if (receivedMultiBinAngleEvent);
+    {
+        receivedMultiBinAngleEvent = false;
+        CHECK_CLOSE(45, multiBinAngleEvent->angle.valueDegrees(),2);
+    }
+//    vision::Image::showImage(&output);
+}
+
+TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
+{
+    detector.setSuitDetectionOn(false);
+    vision::OpenCVImage output(640,480);
+    receivedMultiBinAngleEvent = false;
+    
+    vision::makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/4, 480/4, 125, 90);
+    drawBin(&input, 640/2, 480/4 + 640/4, 125, 90);
+    
+    detector.processImage(&input, &output);
+    CHECK(receivedMultiBinAngleEvent);
+    CHECK(multiBinAngleEvent);
+    
+    if (receivedMultiBinAngleEvent);
+    {
+        receivedMultiBinAngleEvent = false;
+        CHECK_CLOSE(45, multiBinAngleEvent->angle.valueDegrees(),.25);
+    }
+//    vision::Image::showImage(&output);
+
+    vision::makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640*3/4, 480/4, 125, 90);
+    drawBin(&input, 640/2, 480/4 + 640/4, 125, 90);
+    
+    detector.processImage(&input, &output);
+    CHECK(receivedMultiBinAngleEvent);
+    CHECK(multiBinAngleEvent);
+    
+    if (receivedMultiBinAngleEvent);
+    {
+        receivedMultiBinAngleEvent = false;
+        CHECK_CLOSE(-45, multiBinAngleEvent->angle.valueDegrees(),.25);
+    }
+//    vision::Image::showImage(&output);
+}
+
+TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
+{
+    printf("Starting Multi Bin Angles\n");
+    detector.setSuitDetectionOn(false);
+    vision::OpenCVImage output(640,480);
+    receivedMultiBinAngleEvent = false;
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    detector.processImage(&input, &output);
+    CHECK(!receivedMultiBinAngleEvent);
+    
+    drawBin(&input, 640/2, 480/4, 125, 90);
+    
+    detector.processImage(&input, &output);
+    CHECK(!receivedMultiBinAngleEvent);
+    
+    drawBin(&input, 640/2, 480*3/4, 125, 90);
+    detector.processImage(&input, &output);
+    CHECK(receivedMultiBinAngleEvent);
+    CHECK(multiBinAngleEvent);
+    
+    if (receivedMultiBinAngleEvent)
+    {
+        receivedMultiBinAngleEvent = false;
+        CHECK_CLOSE(90, multiBinAngleEvent->angle.valueDegrees(),.25);
+    }
+//    vision::Image::showImage(&output);
+
+    vision::makeColor(&input, 0, 0, 255);
+    detector.processImage(&input, &output);
+    CHECK(!receivedMultiBinAngleEvent);
+    
+    drawBin(&input, 640/4, 480/3, 125, 0);
+    drawBin(&input, 640/4, 480*2/3, 125, 0);
+    
+    detector.processImage(&input, &output);
+    CHECK(receivedMultiBinAngleEvent);
+    CHECK(multiBinAngleEvent);
+    
+    if (receivedMultiBinAngleEvent)
+    {
+        receivedMultiBinAngleEvent = false;
+        CHECK_CLOSE(90, multiBinAngleEvent->angle.valueDegrees(),.25);
+    }
+    
+//    vision::Image::showImage(&output);
+
+    vision::makeColor(&input, 0, 0, 255);
+    detector.processImage(&input, &output);
+    CHECK(!receivedMultiBinAngleEvent);
+    
+    drawBin(&input, 640/4, 480/3, 125, 0);
+    drawBin(&input, 640*3/4, 480/3, 125, 0);
+    
+    detector.processImage(&input, &output);
+    CHECK(receivedMultiBinAngleEvent);
+    CHECK(multiBinAngleEvent);
+    
+    if (receivedMultiBinAngleEvent)
+    {
+        receivedMultiBinAngleEvent = false;
+        CHECK_CLOSE(0, multiBinAngleEvent->angle.valueDegrees(),.25);
+    }
+    
+//    vision::Image::showImage(&output);
+
+
+    printf("Ending Multi Bin Angles\n");
+
+}
 
 TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 {

@@ -37,6 +37,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType BIN_LOST;
     static const core::Event::EventType BIN_DROPPED;
     static const core::Event::EventType BIN_CENTERED;
+    static const core::Event::EventType MULTI_BIN_ANGLE;
     static const core::Event::EventType DUCT_FOUND;
     static const core::Event::EventType DUCT_LOST;
     static const core::Event::EventType DOWN_DUCT_FOUND;
@@ -94,6 +95,9 @@ public:
 //    { this->x=x; this->y=y; this->suit = Suit::NONEFOUND;}
     BinEvent(double x, double y, Suit::SuitType s, math::Degree angle)
     { this->x=x; this->y=y; this->suit = s; this->angle = angle;}
+    
+    BinEvent(math::Degree angle)
+    {this->x = 0; this->y = 0; this->suit = Suit::UNKNOWN; this->angle = angle;}
     
     double x;
     double y;
