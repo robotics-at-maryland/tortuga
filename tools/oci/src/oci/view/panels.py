@@ -364,10 +364,10 @@ class SonarPanel(wx.Panel):
         self._x.Value = '% 6.4f' % direction.x
         self._y.Value = '% 6.4f' % direction.y
         self._z.Value = '% 6.4f' % direction.z
-        self._time.Value = '% 8.1f' % event.pingTimeSec
+        self._time.Value = '% 8.1f' % event.pingTimeUSec
         
-        if self._lastTime != event.pingTimeSec:
-	    self._lastTime = event.pingTimeSec
+        if self._lastTime != event.pingTimeUSec:
+	    self._lastTime = event.pingTimeUSec
             self._pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
             self._pingerOrientation = self._vehicleOrientation * self._pingerOrientation 
