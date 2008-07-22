@@ -18,7 +18,7 @@ import ext.core
 # intended to be a generic PID control loop
 # note that the user is expected to maintain copies of the controller gains
 # as well as maintain copies of sum and xOld
-def PIDLoop(a)
+def PIDLoop(a):
 
     return a
 
