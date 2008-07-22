@@ -438,6 +438,11 @@ int setAnimation(int fd, int anim)
     return simpleWrite(fd, HOST_CMD_BARANIMATION, anim, 3);
 }
 
+int setBarOutputs(int fd, int bars)
+{
+    return simpleWrite(fd, HOST_CMD_SET_BARS, bars, 256);
+}
+
 int displayText(int fd, int line, const char* text)
 {
     if(line!=0 && line!=1)
@@ -877,7 +882,7 @@ int partialRead(int fd, struct boardInfo * info)
             retCode = getSonarData(fd, &(info->sonar));
             break;
         }
-        
+
         default:
         {
             printf("ERROR: update rolled over");

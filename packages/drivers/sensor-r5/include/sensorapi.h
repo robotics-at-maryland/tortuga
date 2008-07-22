@@ -220,7 +220,7 @@ struct sonarData
     /** Microseconds part of the time when the ping occured */
     unsigned int timeStampUSec;
 };
-    
+
 /** Complete vehicle information */
 struct boardInfo
 {
@@ -376,8 +376,8 @@ int switchToInternalPower(int fd);
 
 int setBatteryState(int fd, int state);
 
-
 int setAnimation(int fd, int anim);
+int setBarOutputs(int fd, int bars);
 
 // maxCurrent (mA) = (a * speed) / 6 + b*40
 // where speed=[0,255] corresponds to 0 to full speed

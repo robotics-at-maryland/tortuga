@@ -75,6 +75,7 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -baroff [n] (disable bar output n)\n");
         printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
         printf("\tlcdshow -s  (begin start sequence)\n");
+        printf("\tlcdshow -setbars n (set bar outputs)\n");
         printf("\tlcdshow -noblink (stop animation)\n");
         printf("\tlcdshow -redgreen (start red/green animation)\n");
         printf("\tlcdshow -redblue (start red/blue animation)\n");
@@ -603,6 +604,17 @@ int main(int argc, char ** argv)
             for(i=0; i<8; i++)
                 barCmd(fd, cmdList[i]);
         }
+
+        close(fd);
+        return 0;
+    }
+
+
+    if(strcmp(argv[1], "-setbars") == 0)
+    {
+        int t = atoi(argv[2]);
+
+        setBarOutputs(fd, t);
 
         close(fd);
         return 0;
