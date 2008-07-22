@@ -292,6 +292,7 @@ class RateChangeDepth(Motion):
         self._rate = float(rate)
         self._interval = 1 / float(rate)
         self._conn = None
+        self._timer = None
         
     def _start(self):
         # Ensure the controller is consistent with vehicle
@@ -331,8 +332,10 @@ class RateChangeDepth(Motion):
         Motion._finish(self)
 
     def stop(self):
-        self._timer.stop()
-        self._conn.disconnect()
+        if self._timer is not None:
+            self._timer.stop()
+        if self._conn is not None:
+            self._conn.disconnect()
         
 class ChangeHeading(Motion):
     def __init__(self, desiredHeading, steps):
