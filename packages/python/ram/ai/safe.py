@@ -16,6 +16,8 @@ import ram.motion as motion
 #import ram.motion.search
 import ram.motion.common
 
+COMPLETE = core.declareEventType('COMPLETE')
+
 class SafeTrackingState(state.State):
     @staticmethod
     def transitions(myState, trans = None):
@@ -201,4 +203,5 @@ class Surface(state.State):
         self.motionManager.stopCurrentMotion()
     
 class End(state.State):
-    pass
+    def enter(self):
+        self.publish(COMPLETE, core.Event())

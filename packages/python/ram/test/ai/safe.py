@@ -190,6 +190,22 @@ class TestSurface(aisupport.AITestCase):
         
     def testStart(self):
         self.assertCurrentMotion(ram.motion.basic.RateChangeDepth)
+
+    def testComplete(self):
+        # Subscribe to end event
+        self._complete = False
+        def complete(event):
+            self._complete = True
+        self.qeventHub.subscribeToType(safe.COMPLETE, complete)
+        
+        # Start up and inject event
+        self.machine.start(safe.Surface)
+        self.injectEvent(ram.motion.basic.Motion.FINISHED)
+        self.qeventHub.publishEvents()
+        
+        # Check to make sure it worked
+        self.assert_(self.machine.complete)
+        self.assert_(self._complete)
         
     def testFinished(self):
         self.injectEvent(ram.motion.basic.Motion.FINISHED)
