@@ -190,6 +190,8 @@ class TestSeeking(BinTestCase):
         
 class TestRecover(aisupport.AITestCase):
     def testStart(self):
+        self.vehicle.depth = 9
+	self.controller.depth = 9
         self.ai.data["lastBinX"] = 0.5
         self.ai.data["lastBinY"] = -0.5
         
@@ -197,7 +199,8 @@ class TestRecover(aisupport.AITestCase):
         
         self.assertLessThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        
+        self.assertLessThan(self.controller.depth, 9)
+
         # Make sure timer works
         self.releaseTimer(bin.Recover.TIMEOUT)
         # Its dive, and not SeekEnd because we are already at the end

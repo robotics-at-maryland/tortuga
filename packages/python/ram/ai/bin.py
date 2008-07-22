@@ -112,9 +112,11 @@ class HoveringState(state.State):
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
         speedGain = self._config.get('speedGain', 5)
         yawGain = self._config.get('yawGain', 1)
+	maxSpeed = self._config.get('maxSpeed', 5)
+	maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
         motion = ram.motion.pipe.Hover(pipe = self._bin,
-                                       maxSpeed = 5,
-                                       maxSidewaysSpeed = 3,
+                                       maxSpeed = maxSpeed,
+                                       maxSidewaysSpeed = maxSidewaysSpeed,
                                        sidewaysSpeedGain = sidewaysSpeedGain,
                                        speedGain = speedGain,
                                        yawGain = yawGain)
@@ -305,6 +307,10 @@ class Recover(state.State):
         self.motionManager.setMotion(motion)
         
 
+        motion = ram.motion.basic.RateChangeDepth(
+	    self.ai.data.get("preBinCruiseDepth", 7), 0.3)
+        self.motionManager.setMotion(motion)
+
         self.timer.start()
 
     def exit(self):
@@ -389,7 +395,7 @@ class Dive(HoveringState):
         # While keeping center, dive down
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 10.5),
-            speed = self._config.get('diveSpeed', 0.4))
+            speed = self._config.get('diveSpeed', 0.3))
         
         self.motionManager.setMotion(diveMotion)
         
@@ -584,6 +590,7 @@ class DropMarker(SettlingState):
         self.ai.data['markersDropped'] = markerNum + 1
 
         # TODO: drop marker here
+	self.vehicle.dropMarker()
         print "\"DROPPER MARKRED #: ", markerNum, "\""
         
         
