@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "vision/include/DuctDetector.h"
+#include "vision/include/DownwardDuctDetector.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Image.h"
 #include "vision/include/Events.h"
@@ -79,6 +80,19 @@ void drawFrontDuct(vision::Image* image, int x, int y, int width = 100)
     drawSideDuct(image, x, y, (int)innerWidth, DUCT_HORIZONTAL);
 }
 
+void drawDuctBottom(vision::Image* image, int minX, int maxX, int minY, int maxY, int width = 20)
+{
+    // Bottom Yellow Stripe
+    drawSquare(image, (minX + maxX)/2, minY + width/2, maxX - minX, width,
+                0, CV_RGB(255, 255, 0));
+
+    drawSquare(image, (minX + maxX)/2, maxY - width/2, maxX - minX, width,
+                0, CV_RGB(255, 255, 0));
+
+    drawSquare(image, (minX + maxX)/2, (minY + maxY) / 2, width, maxY - minY,
+                0, CV_RGB(255, 255, 0));
+}
+
 
 struct DuctDetectorFixture
 {
@@ -87,12 +101,33 @@ struct DuctDetectorFixture
         event(vision::DuctEventPtr()),
         //input(640, 480),
         eventHub(new core::EventHub()),
-        detector(eventHub)
+        detector(eventHub),
+        downDetector(eventHub)
     {
         eventHub->subscribeToType(vision::EventType::DUCT_FOUND,
             boost::bind(&DuctDetectorFixture::foundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::DUCT_LOST,
             boost::bind(&DuctDetectorFixture::lostHandler, this, _1));
+
+        eventHub->subscribeToType(vision::EventType::DOWN_DUCT_FOUND,
+            boost::bind(&DuctDetectorFixture::downFoundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::DOWN_DUCT_LOST,
+            boost::bind(&DuctDetectorFixture::downLostHandler, this, _1));
+
+    }
+
+    void downFoundHandler(core::EventPtr event_)
+    {
+        found = true;
+        event = boost::dynamic_pointer_cast<vision::DuctEvent>(event_);    
+//        printf("down found\n");
+    }
+
+    void downLostHandler(core::EventPtr event_)
+    {
+        found = false;
+        event = vision::DuctEventPtr();
+//        printf("down lost\n");
     }
 
     void foundHandler(core::EventPtr event_)
@@ -112,10 +147,63 @@ struct DuctDetectorFixture
     //vision::OpenCVImage input;
     core::EventHubPtr eventHub;
     vision::DuctDetector detector;
+    vision::DownwardDuctDetector downDetector;
 };
 
 SUITE(DuctDetector) {
 
+TEST_FIXTURE(DuctDetectorFixture, downwardDuctDetector)
+{
+    vision::OpenCVImage input(640,480);
+    vision::OpenCVImage output(640,480);
+    
+    vision::makeColor(&input, 0, 0, 255);
+    downDetector.processImage(&input, &output);
+    CHECK(!event);
+    CHECK(!found);
+    
+    drawDuctBottom(&input, 0, 640, 0, 480);
+    downDetector.processImage(&input, &output);
+    CHECK(event);
+    CHECK(found);
+    if (event)
+    {
+        CHECK_CLOSE(0, event->x, 0.2);
+        CHECK_CLOSE(0, event->y, 0.2);
+    }
+    
+//    vision::Image::showImage(&output);
+    vision::makeColor(&input, 0, 0, 255);
+    downDetector.processImage(&input, &output);
+    CHECK(!event);
+    CHECK(!found);
+//    printf("Finished downwardDuctDetector\n");
+}
+
+TEST_FIXTURE(DuctDetectorFixture, downTest2)
+{
+    vision::OpenCVImage input(640,480);
+    vision::OpenCVImage output(640,480);
+    
+    vision::makeColor(&input, 0, 0, 255);
+    
+    drawDuctBottom(&input, 0, 320, 0, 240);
+    downDetector.processImage(&input, &output);
+    CHECK(event);
+    CHECK(found);
+    if (event)
+    {
+        CHECK_CLOSE(-.66, event->x, 0.2);
+        CHECK_CLOSE(.5, event->y, 0.2);
+    }
+    
+//    vision::Image::showImage(&output);
+    vision::makeColor(&input, 0, 0, 255);
+    downDetector.processImage(&input, &output);
+    CHECK(!event);
+    CHECK(!found);
+//    printf("Finished downTest2\n");
+}
 
 TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 {

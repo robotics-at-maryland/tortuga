@@ -193,6 +193,8 @@ TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
         }
 //        printf("\n");
     }
+    printf("Finished BinSpinAngleTest:\n");
+
 }
 /*
 FIX ME: I AM BROKEN!
