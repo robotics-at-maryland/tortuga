@@ -26,7 +26,7 @@ class SparseSDFTSpectrum : Spectrum<ADC> {
 private:
 	int idx;
 	typename ADC::SIGNED data[N][nchannels];
-	std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> fourier[nFreqBands][nchannels];
+	std::complex<typename ADC::DOUBLE_WIDE::SIGNED> fourier[nFreqBands][nchannels];
 	std::complex<typename ADC::SIGNED> coef[nFreqBands];
 	int kBands[nFreqBands];
 public:
@@ -68,18 +68,18 @@ public:
 				//	Make some convenient shorthands for numbers we need
 				typename ADC::SIGNED coefRe = coef[kIdx].real();
 				typename ADC::SIGNED coefIm = coef[kIdx].imag();
-				typename ADC::QUADRUPLE_WIDE::SIGNED &fourRe = fourier[kIdx][channel].real();
-				typename ADC::QUADRUPLE_WIDE::SIGNED &fourIm = fourier[kIdx][channel].imag();
+				typename ADC::DOUBLE_WIDE::SIGNED &fourRe = fourier[kIdx][channel].real();
+				typename ADC::DOUBLE_WIDE::SIGNED &fourIm = fourier[kIdx][channel].imag();
 				
 				typename ADC::QUADRUPLE_WIDE::SIGNED rhsRe = fourRe + diff;
 				
-				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> (ADC::BITDEPTH - 1);
-				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> (ADC::BITDEPTH - 1);
+				fourRe = (typename ADC::DOUBLE_WIDE::SIGNED)(((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * rhsRe - (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * fourIm) >> (ADC::BITDEPTH - 1));
+				fourIm = (typename ADC::DOUBLE_WIDE::SIGNED)(((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * fourIm + (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * rhsRe) >> (ADC::BITDEPTH - 1));
 			}
 		}
 	}
 	
-	const typename std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &getAmplitudeForBinIndex(int kIdx, int channel) const
+	const typename std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &getAmplitudeForBinIndex(int kIdx, int channel) const
 	{ return fourier[kIdx][channel]; }
 	
 	int getBinIndexForBin(int k) const
@@ -90,7 +90,7 @@ public:
 		return -1;
 	}
 	
-	const std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const
+	const std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const
 	{ return fourier[getBinIndexForBin(k)][channel]; }
 };
 

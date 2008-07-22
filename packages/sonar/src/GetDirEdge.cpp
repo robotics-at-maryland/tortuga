@@ -14,6 +14,7 @@
 // Project Includes
 #include "math/include/MatrixN.h"
 
+#include "sonar/include/fixed/fixed.h"
 #include "sonar/include/Sonar.h"
 #include "sonar/include/GetPingChunk.h"
 #include "sonar/include/SonarPing.h"
@@ -23,14 +24,6 @@
 
 namespace ram {
 namespace sonar {
-
-adcdata_t myAbs(adcdata_t x)
-{
-	if (x < 0)
-		return -x;
-	else
-		return x;
-}
 
 using namespace ram::math;
 using namespace std;
@@ -88,7 +81,7 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
         average[i]=total[i]/ENV_CALC_FRAME;
 
         for(int j=0; j<ENV_CALC_FRAME; j++)
-            abstotal[i]+=myAbs(data[i][j]-average[i]);
+            abstotal[i]+=fixed::abs(data[i][j]-average[i]);
 
         absaverage[i]=abstotal[i]/ENV_CALC_FRAME;
 

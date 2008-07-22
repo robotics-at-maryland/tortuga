@@ -25,8 +25,8 @@ public:
 	virtual ~Spectrum() {}
 	virtual void purge() =0;
 	virtual void update(const typename ADC::SIGNED *) =0;
-	virtual const std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const =0;
-	virtual const std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &operator() (int k, int channel) const 
+	virtual const std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const =0;
+	virtual const std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &operator() (int k, int channel) const 
 	{ return getAmplitude(k, channel); }
 };
 

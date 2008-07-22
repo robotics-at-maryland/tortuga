@@ -23,17 +23,16 @@ TEST(SparseSDFTSpectrumGivesSameResultsAsDense)
 	static const int N = 512;						//	Fourier window size
 	static const int nKBands = 5;					//	Number of k-values to examine
 	static const int kBands[5] = {0, 20, 9, 501, 3};//	k-values we want to examine
+	typedef adc<16> myadc;
 	
-	//	Large array of random inputs
-	
-	SDFTSpectrum<adc<16>, N, nChannels> spectrum;
-	SparseSDFTSpectrum<adc<16>, N, nChannels, nKBands> sparseSpectrum(kBands);
+	SDFTSpectrum<myadc, N, nChannels> spectrum;
+	SparseSDFTSpectrum<myadc, N, nChannels, nKBands> sparseSpectrum(kBands);
 	
 	for (int i = 0 ; i < nSamples ; i ++)
 	{
 		adcdata_t sample[nChannels];
 		for (int channel = 0 ; channel < nChannels ; channel ++)
-			sample[channel] = (adcdata_t)(((double)rand() / RAND_MAX) * (1 << 15));
+			sample[channel] = (adcdata_t)(((double)rand() / RAND_MAX) * myadc::SIGNED_MAX);
 		
 		spectrum.update(sample);
 		sparseSpectrum.update(sample);
@@ -42,8 +41,8 @@ TEST(SparseSDFTSpectrumGivesSameResultsAsDense)
 			for (int kIdx = 0 ; kIdx < nKBands ; kIdx++)
 			{
 				int k = kBands[kIdx];
-				const std::complex<int64_t> denseResult = spectrum.getAmplitude(k, channel);
-				const std::complex<int64_t> sparseResult = sparseSpectrum.getAmplitude(k, channel);
+				const std::complex<myadc::DOUBLE_WIDE::SIGNED>& denseResult = spectrum.getAmplitude(k, channel);
+				const std::complex<myadc::DOUBLE_WIDE::SIGNED>& sparseResult = sparseSpectrum.getAmplitude(k, channel);
 				
 				CHECK_EQUAL(denseResult, sparseResult);
 			}

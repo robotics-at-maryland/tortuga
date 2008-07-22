@@ -42,7 +42,7 @@ private:
 	 * Array of complex fixed-point numbers for storing the output in its final
 	 * fixed point form
 	 */
-	std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> fourier[N][nchannels];
+	std::complex<typename ADC::DOUBLE_WIDE::SIGNED> fourier[N][nchannels];
 	
 	/**
 	 * Array of complex doubles for storing output from FFTW3
@@ -130,7 +130,7 @@ public:
 		
 	}
 	
-	const std::complex<int64_t> &getAmplitude(int k, int channel) const
+	const std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const
 	{
 		return fourier[k][channel];
 	}

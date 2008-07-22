@@ -24,7 +24,7 @@ class SDFTSpectrum : Spectrum<ADC> {
 private:
 	int idx;
 	typename ADC::SIGNED data[N][nchannels];
-	std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> fourier[N][nchannels];
+	std::complex<typename ADC::DOUBLE_WIDE::SIGNED> fourier[N][nchannels];
 	std::complex<typename ADC::SIGNED> coef[N];
 public:
 	SDFTSpectrum()
@@ -63,18 +63,18 @@ public:
 				//	Make some convenient shorthands for numbers we need
 				typename ADC::SIGNED coefRe = coef[k].real();
 				typename ADC::SIGNED coefIm = coef[k].imag();
-				typename ADC::QUADRUPLE_WIDE::SIGNED &fourRe = fourier[k][channel].real();
-				typename ADC::QUADRUPLE_WIDE::SIGNED &fourIm = fourier[k][channel].imag();
+				typename ADC::DOUBLE_WIDE::SIGNED &fourRe = fourier[k][channel].real();
+				typename ADC::DOUBLE_WIDE::SIGNED &fourIm = fourier[k][channel].imag();
 				
-				typename ADC::QUADRUPLE_WIDE::SIGNED rhsRe = fourRe + diff;
+				typename ADC::DOUBLE_WIDE::SIGNED rhsRe = (int32_t)fourRe + (int32_t)diff;
 				
-				fourRe = (coefRe * rhsRe - coefIm * fourIm) >> (ADC::BITDEPTH - 1);
-				fourIm = (coefRe * fourIm + coefIm * rhsRe) >> (ADC::BITDEPTH - 1);
+				fourRe = (typename ADC::DOUBLE_WIDE::SIGNED) (((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * rhsRe - (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * fourIm) >> (ADC::BITDEPTH - 1));
+				fourIm = (typename ADC::DOUBLE_WIDE::SIGNED) (((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * fourIm + (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * rhsRe) >> (ADC::BITDEPTH - 1));
 			}
 		}
 	}
 	
-	const std::complex<typename ADC::QUADRUPLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const
+	const std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const
 	{ return fourier[k][channel]; }
 };
 

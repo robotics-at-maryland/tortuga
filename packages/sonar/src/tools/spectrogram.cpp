@@ -15,21 +15,16 @@
 
 #include "spectrum/SDFTSpectrum.h"
 #include "Sonar.h"
+#include "fixed/fixed.h"
 
 using namespace ram::sonar;
 using namespace std;
 namespace po = boost::program_options;
 
-int64_t myAbs(int64_t x)
-{
-	if (x < 0)
-		return -x;
-	else
-		return x;
-}
-
 static const int nChannels = 4;
 static const int N = 512;
+
+typedef adc<16> myadc;
 
 int main(int argc, char *argv[])
 {
@@ -63,12 +58,12 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	
-	SDFTSpectrum<adc<16>, N, 1> spectrum;
+	SDFTSpectrum<myadc, N, 1> spectrum;
 	
-	adcdata_t sample[nChannels];
-	int64_t L1[N];
+	myadc::SIGNED sample[nChannels];
+	myadc::DOUBLE_WIDE::SIGNED L1[N];
 	int sampleCount = 0;
-	while (fread(sample, sizeof(adcdata_t), nChannels, stdin) == (size_t)nChannels)
+	while (fread(sample, sizeof(myadc::SIGNED), nChannels, stdin) == (size_t)nChannels)
 	{
 		++sampleCount;
 		//	Update spectrogram
@@ -76,11 +71,10 @@ int main(int argc, char *argv[])
 		
 		for (int k = 0 ; k < N ; k ++)
 		{
-			const complex<int64_t> &cmplx = spectrum.getAmplitude(k, channel);
-			L1[k] = (myAbs(cmplx.real()) + myAbs(cmplx.imag()));
+			L1[k] = fixed::magL1(spectrum.getAmplitude(k, channel));
 		}
 		if (sampleCount >= begin && (sampleCount < end || end < 0) && (sampleCount % skip == 0))
-			fwrite(L1, sizeof(int64_t), N, stdout);
+			fwrite(L1, sizeof(myadc::DOUBLE_WIDE::SIGNED), N, stdout);
 	}
 	return 0;
 }

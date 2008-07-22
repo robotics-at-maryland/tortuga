@@ -21,11 +21,10 @@ TEST(FFTWSpectrumGivesSameResultsAsSDFT)
 	static const int nSamples = 100;			//	Number of samples
 	static const int nChannels = 1;				//	Number of input channels
 	static const int N = 512;					//	Fourier window size
+	typedef adc<16> myadc;
 	
-	//	Large array of random inputs
-	
-	FFTWSpectrum<adc<16>, N, nChannels> refSpectrum;
-	SDFTSpectrum<adc<16>, N, nChannels> sbjSpectrum;
+	FFTWSpectrum<myadc, N, nChannels> refSpectrum;
+	SDFTSpectrum<myadc, N, nChannels> sbjSpectrum;
 	
 	for (int i = 0 ; i < nSamples ; i ++)
 	{
@@ -39,8 +38,8 @@ TEST(FFTWSpectrumGivesSameResultsAsSDFT)
 		for (int channel = 0 ; channel < nChannels ; channel ++)
 			for (int k = 0 ; k < N ; k++)
 			{
-				const std::complex<int64_t> refResult = refSpectrum.getAmplitude(k, channel);
-				const std::complex<int64_t> sbjResult = sbjSpectrum.getAmplitude(k, channel);
+				const std::complex<myadc::DOUBLE_WIDE::SIGNED>& refResult = refSpectrum.getAmplitude(k, channel);
+				const std::complex<myadc::DOUBLE_WIDE::SIGNED>& sbjResult = sbjSpectrum.getAmplitude(k, channel);
 				//	Answer diverges from FFTW as the spectrum analzyer becomes older.
 				//	Need to quantify rate of divergence.
 				CHECK_CLOSE(refResult.real(), sbjResult.real(), 4096);
