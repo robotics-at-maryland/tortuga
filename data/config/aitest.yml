@@ -92,7 +92,27 @@ Subsystems:
                 sidewaysSpeedGain: 2
                 forwardSpeed: 3
                 speedGain: 2
-
+          
+            ram.ai.safe.Seeking:
+                sidewaysSpeedGain: 4
+                maxSidewaysSpeed: 2
+            ram.ai.safe.Dive:
+                safeDepth: 21.5
+                depthOffset: 1.0
+                diveRate: 0.3
+            ram.ai.safe.Grabbing:
+                safeDepth: 21.5
+            ram.ai.safe.Offsetting:
+                speedGain: 2
+                offset: -0.4
+                centeredRange: 0.5
+            ram.ai.safe.Settling:
+                speedGain: 3.5
+                maxSpeed: 1.2
+                sidewaysSpeedGain: 4
+                maxSidewaysSpeed: 1.5
+                offset: -0.5
+                duration: 10
 
     # Object that creates the vehicle interface
     Vehicle:
