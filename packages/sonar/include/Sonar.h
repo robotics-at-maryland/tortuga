@@ -30,17 +30,6 @@ typedef adc<16>::DOUBLE_WIDE::SIGNED adcmath_t;
 typedef int32_t adcsampleindex_t;
 
 
-int gcd(int a, int b);
-
-
-template<class T>
-	int8_t compare(T a, T b);
-
-
-template<class T>
-	int8_t sign(T);
-
-
 //===============PINGER/SOUND PROPERTIES============
 static const int SPEED_OF_SOUND = 1500; //m/s
 static const int NOMINAL_PING_DELAY = 2000; //ms, delay between pings
