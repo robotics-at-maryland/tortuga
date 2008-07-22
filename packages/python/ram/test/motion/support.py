@@ -75,12 +75,16 @@ class MockVehicle(vehicle.IVehicle):
         vehicle.IVehicle.__init__(self, "Vehicle", eventHub)
         self.depth = 0
         self.orientation = ext.math.Quaternion.IDENTITY
-        
+        self.markersDropped = 0
+
     def getDepth(self):
         return self.depth
     
     def getOrientation(self):
         return self.orientation
+
+    def dropMarker(self):
+        self.markersDropped += 1
     
     def publishOrientationUpdate(self, vehicleOrientation):
         event = ext.math.OrientationEvent()
