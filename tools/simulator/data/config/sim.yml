@@ -92,6 +92,16 @@ Subsystems:
                 speedGain: 3
             ram.ai.bin.Examine:
                 targetSuits: ['Diamond', 'Heart']
+                
+            ram.ai.safe.Dive:
+                safeDepth: 15
+            ram.ai.safe.Grabging:
+                safeDepth: 15
+            ram.ai.safe.Offseting:
+                offset: -0.35
+            ram.ai.safe.Settling:
+                offset: -0.35
+                
 #    RemoteController:
 #        type: RemoteController
 #        depends_on: ["Controller"]
