@@ -91,11 +91,20 @@ Yinertia2=[-w_meas(2)*w_r(3) w_meas(2)*w_r(2)-w_meas(3)*w_r(3) w_meas(3)*w_r(2);
            dw_r(2) dw_r(3)-w_meas(2)*w_r(1) -w_meas(3)*w_r(1);
            w_meas(2)*w_r(1) dw_r(2)+w_meas(3)*w_r(1) dw_r(3)];
        
-Ybuoyancy=[
+Ybuoyancy=[0 -Rot(3,3) Rot(2,3);
+           Rot(3,3) 0 -Rot(1,3);
+           -Rot(2,3) Rot(1,3) 0];
+       
+Ydrag=[-w_meas(1)*abs(w_meas(1)) 0 0;
+       0 -w_meas(2)*abs(w_meas(2)) 0;
+       0 0 -w_meas(3)*abs(w_meas(3))];
 
 
 Y=[Yinertia1 Yinertia2 Ybuoyancy Ydrag];
 
+u=-Kd*shat+H*dw_r+Y*ahat;
+
+dahat=-Gamma*Y'*shat;
 
 %% dynamics
 
@@ -120,4 +129,4 @@ dq=(1/2)*Q(q)*w;
 
 
 %put output states into vector for ode45
-dx=[dq; dw; dq_d; dw_d; dqhat];
+dx=[dq; dw; dq_d; dw_d; dqhat; dahat];
