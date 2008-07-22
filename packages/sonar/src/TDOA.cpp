@@ -53,17 +53,5 @@ adcsampleindex_t tdoa_xcorr(const SonarChunk &f, const SonarChunk &g)
 }
 
 
-adcsampleindex_t tdoa_phase(const SonarChunk &a, const SonarChunk &b)
-{
-    return (adcsampleindex_t)((a.getPhase() - b.getPhase()) / M_PI * 33 - a.startIndex + b.startIndex);
-}
-
-
-adcsampleindex_t tdoa_phaseonly(const SonarChunk &a, const SonarChunk &b)
-{
-    return (adcsampleindex_t)((a.getPhase() - b.getPhase()) / M_PI * 33);
-}
-
-
 } // namespace sonar
 } // namespace ram
