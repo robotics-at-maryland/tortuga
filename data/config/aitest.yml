@@ -4,9 +4,9 @@ GUI:
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
 Subsystems:    
-#    VisionSystem:
-#        type: VisionSystem
-#        depends_on: ["EventHub", "Vehicle"]
+    VisionSystem:
+        type: VisionSystem
+        depends_on: ["EventHub", "Vehicle"]
         
 #       RedLightDetector:       
 #           intialMinPixels: 400
@@ -14,13 +14,13 @@ Subsystems:
 #           lostMinPixelScale: 0.75
 #           # About 20% of the total pixels
 #           almostHitPixels: 61440.0
-#        BinDetector:
-#            centeredLimit: 0.2
-#        DuctDetector:
-#            redThreshold: 100
-#            greeThreshold: 100
-#            blueThreshold: 50
-#            erodeIterations: 1
+        BinDetector:
+            centeredLimit: 0.2
+        DuctDetector:
+            redThreshold: 100
+            greeThreshold: 100
+            blueThreshold: 50
+            erodeIterations: 1
         
         # Recording Settings
         #maxRecordRate: 10 # Hz
@@ -52,7 +52,7 @@ Subsystems:
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller",
-                     "MotionManager", "TimerManager", "Ai"] #,"VisionSystem"]
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             ram.ai.light.Seek:
                 depthGain: 0.5
@@ -76,6 +76,8 @@ Subsystems:
                 depth: 7
             ram.ai.pipe.Seeking:
                 speedGain: 8
+            ram.ai.bin.Dive:
+                depth: 9.8
 
             ram.ai.sonar.CloseSeeking:
                 maxSidewaysSpeed: 3

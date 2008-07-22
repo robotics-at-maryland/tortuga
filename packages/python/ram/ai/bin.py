@@ -85,12 +85,13 @@ class HoveringState(state.State):
             self._first = False
             self._lastAngle = event.angle
         else:
-            lastDegree = self._lastAngle.valueDegrees()
-            currentDegree = event.angle.valueDegrees()
-            if (pmath.fabs(lastDegree - currentDegree) > self._filterLimit):
-                event.angle = math.Degree(lastDegree)
-            else:
-                self._lastAngle = event.angle
+            if pmath.fabs(event.angle.valueDegrees()) < 95:
+                lastDegree = self._lastAngle.valueDegrees()
+                currentDegree = event.angle.valueDegrees()
+                if (pmath.fabs(lastDegree - currentDegree) > self._filterLimit):
+                    event.angle = math.Degree(lastDegree)
+                else:
+                    self._lastAngle = event.angle
             
         
         # Only listen to the current bin ID
