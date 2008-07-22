@@ -196,7 +196,8 @@ byte cfgRegs[16];
 #define STATE_SETSPEED_U1   4
 #define STATE_SETSPEED_U2   5
 #define STATE_MOTRSPEEDS    6
-#define STATE_SET_BARMODE   7
+#define STATE_SET_BARMODE   7   /* Which animation, if any */
+#define STATE_SET_BARS      8   /* Sets state of all bits at once */
 
 byte readBars();
 
@@ -246,6 +247,13 @@ void processData(byte data)
                 case BUS_CMD_WRITE_REG:
                 {
                     busState = STATE_WRITE_CMD;
+                    nParam = 0;
+                    break;
+                }
+
+                case BUS_CMD_SET_BARS:
+                {
+                    busState = STATE_SET_BARS;
                     nParam = 0;
                     break;
                 }
@@ -520,6 +528,14 @@ void processData(byte data)
         case STATE_SET_BARMODE:
         {
             setBarMode(data);
+            nParam = 0;
+            busState = STATE_TOP_LEVEL;
+            break;
+        }
+
+        case STATE_SET_BARS:
+        {
+            setBars(data);
             nParam = 0;
             busState = STATE_TOP_LEVEL;
             break;

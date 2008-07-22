@@ -113,10 +113,10 @@
 #define BUS_CMD_MOTRSPEEDS      0x4B
 
 #define BUS_CMD_SET_BARMODE     0x4C
-
 #define BUS_CMD_BFRESET         0x4D
 
-/* Next free is 0x4E */
+#define BUS_CMD_SET_BARS         0x4E
+/* Next free is 0x4F */
 
 
 
