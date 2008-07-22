@@ -328,11 +328,14 @@ void BinDetector::processImage(Image* input, Image* out)
             int curY = -1;
             int prevX = -1;
             int prevY = -1;
-            
+            int binsCenterX = 0;
+            int binsCenterY = 0;
             double innerAngles[3];//If you change this from a 3, also change the loops below
             int angleCounter = 0;
             BOOST_FOREACH(Bin bin, candidateBins)
             {
+                binsCenterX += bin.getCenterX();
+                binsCenterY += bin.getCenterY();
                 prevX = curX;
                 prevY = curY;
                 curX = bin.getCenterX();
@@ -369,7 +372,7 @@ void BinDetector::processImage(Image* input, Image* out)
                     angleCounter++;
                 }
             }
-        
+            
             double sinTotal = 0;
             double cosTotal = 0;
             for (int i = 0; i < angleCounter && i < 3; i++)
@@ -379,6 +382,17 @@ void BinDetector::processImage(Image* input, Image* out)
             }
             
             double finalAngleAcrossBins = atan2(sinTotal,cosTotal);
+            
+            CvPoint drawStart, drawEnd;
+            drawStart.x = binsCenterX/(angleCounter+1);
+            drawStart.y = binsCenterY/(angleCounter+1);
+            
+            drawEnd.x = drawStart.x + cosTotal / (angleCounter) * 250;
+            drawEnd.y = drawStart.y + sinTotal / (angleCounter) * 250;
+            if (out)
+            {
+                cvLine(output, drawStart, drawEnd, CV_RGB(255,255,0),5, CV_AA,0); 
+            }
     //        printf("final angle across bins %f:\n", finalAngleAcrossBins);
             
             math::Radian angleAcrossBins(finalAngleAcrossBins);
