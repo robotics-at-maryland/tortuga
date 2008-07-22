@@ -51,6 +51,9 @@ def generate(module_builder, local_ns, global_ns):
     ImageEvent.include_files.append('vision/include/Image.h')
     wrap.set_implicit_conversions([ImageEvent], False)
 
+    BinEvent = local_ns.class_('BinEvent')
+    wrap.set_implicit_conversions([BinEvent], False)
+
     if eventsFound:
         wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
 
