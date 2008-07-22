@@ -66,7 +66,7 @@ public:
 				typename ADC::DOUBLE_WIDE::SIGNED &fourRe = fourier[k][channel].real();
 				typename ADC::DOUBLE_WIDE::SIGNED &fourIm = fourier[k][channel].imag();
 				
-				typename ADC::DOUBLE_WIDE::SIGNED rhsRe = (int32_t)fourRe + (int32_t)diff;
+				typename ADC::DOUBLE_WIDE::SIGNED rhsRe = fourRe + diff;
 				
 				fourRe = (typename ADC::DOUBLE_WIDE::SIGNED) (((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * rhsRe - (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * fourIm) >> (ADC::BITDEPTH - 1));
 				fourIm = (typename ADC::DOUBLE_WIDE::SIGNED) (((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * fourIm + (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * rhsRe) >> (ADC::BITDEPTH - 1));
