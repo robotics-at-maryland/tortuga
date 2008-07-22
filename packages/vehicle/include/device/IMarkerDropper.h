@@ -14,7 +14,7 @@
 #include <string>
 
 // Project Includes
-//#include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/device/IDevice.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
@@ -23,7 +23,7 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-class RAM_EXPORT IMarkerDropper //: public IDevice         // For getName
+class RAM_EXPORT IMarkerDropper : public IDevice // For getName
              // boost::noncopyable
 {
 public:
@@ -32,7 +32,7 @@ public:
     virtual void dropMarker() = 0;
     
 protected:
-//    IMarkerDropper(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IMarkerDropper(core::EventHubPtr eventHub = core::EventHubPtr());  
 };
     
 } // namespace device

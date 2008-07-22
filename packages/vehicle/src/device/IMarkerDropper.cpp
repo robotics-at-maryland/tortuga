@@ -14,11 +14,11 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-/*IMarkerDropper::IMarkerDropper(core::EventHubPtr eventHub) :
+IMarkerDropper::IMarkerDropper(core::EventHubPtr eventHub) :
     IDevice(eventHub)
 {
 }
-*/
+
 IMarkerDropper::~IMarkerDropper()
 {
 }

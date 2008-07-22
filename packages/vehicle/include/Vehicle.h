@@ -95,7 +95,7 @@ protected:
     device::IDepthSensorPtr getDepthSensor();
 
     /** Grabs the marker dropper device */
-    device::IMarkerDropper* getMarkerDropper();
+    device::IMarkerDropperPtr getMarkerDropper();
     
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
@@ -125,7 +125,7 @@ private:
     vehicle::device::IDepthSensorPtr m_depthSensor;
 
     std::string m_markerDropperName;
-    vehicle::device::IMarkerDropper* m_markerDropper;
+    vehicle::device::IMarkerDropperPtr m_markerDropper;
 };
     
 } // namespace vehicle

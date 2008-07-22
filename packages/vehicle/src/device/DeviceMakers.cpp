@@ -24,6 +24,7 @@
 #include "vehicle/include/device/SBTempSensor.h"
 #include "vehicle/include/device/SBThruster.h"
 #include "vehicle/include/device/SBSonar.h"
+#include "vehicle/include/device/SBMarkerDropper.h"
 #endif
 
 // Register each device with the factor system
@@ -40,6 +41,8 @@ RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBThruster,
                                    SBThruster);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBSonar,
                                    SBSonar);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBMarkerDropper,
+                                   SBMarkerDropper);
 #endif
 
 

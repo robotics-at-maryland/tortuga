@@ -76,7 +76,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr()),
     m_markerDropperName(config["MarkerDropperName"].asString("SensorBoard")),
-    m_markerDropper(0)
+    m_markerDropper(device::IMarkerDropperPtr())
 {
     // Create devices
     if (config.exists("Devices"))
@@ -321,12 +321,12 @@ device::IDepthSensorPtr Vehicle::getDepthSensor()
     return m_depthSensor;
 }
 
-device::IMarkerDropper* Vehicle::getMarkerDropper()
+device::IMarkerDropperPtr Vehicle::getMarkerDropper()
 {
     if (!m_markerDropper)
     {
-        m_markerDropper = //device::IDevice::castTo<device::IMarkerDropper>(
-            (device::IMarkerDropper*)(getDevice(m_depthSensorName).get());
+        m_markerDropper = device::IDevice::castTo<device::IMarkerDropper>(
+            getDevice(m_markerDropperName));
     }
     return m_markerDropper;
 }

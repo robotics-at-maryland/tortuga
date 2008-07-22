@@ -39,7 +39,6 @@ namespace device {
  */
 class SensorBoard : public Device, // for getName, boost::noncopyable
                     public IDepthSensor,
-                    public IMarkerDropper,
                     public core::Updatable
 {
 public:
