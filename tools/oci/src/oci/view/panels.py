@@ -327,7 +327,7 @@ class SonarPanel(wx.Panel):
         layout.Add(self._z, (2, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Time Controls
-        actualLabel = wx.StaticText(self, label = 'Time:')
+        actualLabel = wx.StaticText(self, label = 'Sp#:')
         layout.Add(actualLabel, (3, 0), flag = wx.ALIGN_CENTER)
         self._time = wx.TextCtrl(self, size = textSize,
                               style = textStyle)
