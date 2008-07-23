@@ -79,7 +79,7 @@ int closeDevice(int fd)
 }
 
 
-#define PACKET_LENGTH 27
+#define PACKET_LENGTH 28
 int reportPing(int fd, byte status, double vectorX, double vectorY, double vectorZ,
                uint16_t range, uint32_t timeStamp, uint32_t sampleNo)
 {
@@ -101,37 +101,45 @@ int reportPing(int fd, byte status, double vectorX, double vectorY, double vecto
     signed short vY = vectorY * 10000.0;
     signed short vZ = vectorZ * 10000.0;
 
+    buf[6] = 0x00;  /* A freaking sentinel byte */
+
     /* All values big-endian */
-    buf[6] = (vX >> 8) & 0xFF;
-    buf[7] = (vX & 0xFF);
+    buf[7] = (vX >> 8) & 0xFF;
+    buf[8] = (vX & 0xFF);
 
-    buf[8] = (vY >> 8) & 0xFF;
-    buf[9] = (vY & 0xFF);
+    buf[9] = (vY >> 8) & 0xFF;
+    buf[10] = (vY & 0xFF);
 
-    buf[10] = status;
+    buf[11] = status;
 
-    buf[11] = 0x00; /* Sentinel byte */
+    buf[12] = 0x00; /* Sentinel byte */
 
-    buf[12] = (vZ >> 8) & 0xFF;
-    buf[13] = (vZ & 0xFF);
+    buf[13] = (vZ >> 8) & 0xFF;
+    buf[14] = (vZ & 0xFF);
 
-    buf[14] = (range >> 8) & 0xFF;
-    buf[15] = (range & 0xFF);
+    buf[15] = (range >> 8) & 0xFF;
+    buf[16] = (range & 0xFF);
 
-    buf[16] = 0x00; /* Sentinel byte */
+    buf[17] = 0x00; /* Sentinel byte */
 
-    buf[17] = (timeStamp >> 24) & 0xFF;
-    buf[18] = (timeStamp >> 16) & 0xFF;
-    buf[19] = (timeStamp >> 8) & 0xFF;
-    buf[20] = (timeStamp & 0xFF);
+    buf[18] = (timeStamp >> 24) & 0xFF;
+    buf[19] = (timeStamp >> 16) & 0xFF;
+    buf[20] = (timeStamp >> 8) & 0xFF;
+    buf[21] = (timeStamp & 0xFF);
 
-    buf[21] = 0x00; /* Sentinel byte */
+    buf[22] = 0x00; /* Sentinel byte */
 
-    buf[22] = (sampleNo >> 24) & 0xFF;
-    buf[23] = (sampleNo >> 16) & 0xFF;
-    buf[24] = (sampleNo >> 8) & 0xFF;
-    buf[25] = (sampleNo & 0xFF);
-    buf[26] = 0x00;
+    buf[23] = (sampleNo >> 24) & 0xFF;
+    buf[24] = (sampleNo >> 16) & 0xFF;
+    buf[25] = (sampleNo >> 8) & 0xFF;
+    buf[26] = (sampleNo & 0xFF);
+
+    byte cs = 0;
+    for(i=6; i<27; i++)
+        cs += buf[i];
+
+    buf[27] = cs;
+    buf[28] = 0x00;
     if(write(fd, buf, PACKET_LENGTH) == PACKET_LENGTH)
         return 0;
     else
