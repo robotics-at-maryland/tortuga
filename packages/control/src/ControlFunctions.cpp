@@ -532,6 +532,8 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 	qd.normalise();
 	//	std::cout << "qd =  " << qd.x << " " << qd.y << " " << qd.z << " " << qd.w << std::endl;
 
+	//TODO: save to desiredStruct!!!!!
+
 	/****************************
        compute error metrics
 	*****************************/
@@ -551,13 +553,13 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 	Vector3 epsilon_c_tilde(qc_tilde.x, qc_tilde.y, qc_tilde.z);
 	
 	//compute composite error metrics
-	Vector3 w_r = RotMatc_tilde*wd-(controllerState->adaptCtrlRotLambda)*epsilon_c_tilde;
-	Vector3 shat = w-w_r;
+	Vector3 wr = RotMatc_tilde*wd-(controllerState->adaptCtrlRotLambda)*epsilon_c_tilde;
+	Vector3 shat = w-wr;
 
 	//compute angular rate error
 	Vector3 wc_tilde = w-RotMatc_tilde*wd;
 
-	//compute derivative of w_r
+	//compute derivative of wr
 	Matrix3 S;//temp skew symmetric matrix
 	Matrix3 Q1;//temp Q1 matrix (subset of Q matrix)
 	S.ToSkewSymmetric(epsilon_c_tilde);
@@ -570,16 +572,87 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 	Q1[2][0]=S[2][0];
 	Q1[2][1]=S[2][1];
 	Q1[2][2]=qc_tilde.w+S[2][2];
-	Vector3 dw_r = RotMatc_tilde*dwd;
+	Vector3 dwr = RotMatc_tilde*dwd;
 	S.ToSkewSymmetric(wc_tilde);
-	dw_r=dw_r-S*RotMatc_tilde*wd;
-	dw_r=dw_r-(controllerState->adaptCtrlRotLambda)*Q1*wc_tilde;
+	dwr=dwr-S*RotMatc_tilde*wd;
+	dwr=dwr-(controllerState->adaptCtrlRotLambda)*Q1*wc_tilde;
+
+	/**********************************
+	  compute parameterization matrix
+	 **********************************/
+
+	//rotation matrix from vehicle quaternion
+	Matrix3 Rot;
+	q.ToRotationMatrix(Rot);
+
+	//the dreaded parameterization matrix
+	MatrixN Y(3,12);
+	//inertia terms
+	Y[0][0]=dwr[0];
+	Y[0][1]=dwr[1]-w[0]*wr[2];
+	Y[0][2]=dwr[2]+w[0]*wr[1];
+	Y[1][0]=w[0]*wr[2];
+	Y[1][1]=dwr[0]+w[1]*wr[2];
+	Y[1][2]=-w[0]*wr[0]+w[2]*wr[2];
+	Y[2][0]=-w[0]*wr[1];
+	Y[2][1]=w[0]*wr[0]-w[1]*wr[1];
+	Y[2][2]=dwr[0]-w[2]*wr[1];
+	//more inertia terms
+	Y[0][3]=-w[1]*wr[2];
+	Y[0][4]=w[1]*wr[1]-w[2]*wr[2];
+	Y[0][5]=w[2]*wr[1];
+	Y[1][3]=dwr[1];
+	Y[1][4]=dwr[2]-w[1]*wr[0];
+	Y[1][5]=-w[2]*wr[0];
+	Y[2][3]=w[1]*wr[0];
+	Y[2][4]=dwr[1]+w[2]*wr[0];
+	Y[2][5]=dwr[2];
+	//buoyancy terms
+	Y[0][6]=0;
+	Y[0][7]=-Rot[2][2];
+	Y[0][8]=Rot[1][2];
+	Y[1][6]=Rot[2][2];
+	Y[1][7]=0;
+	Y[1][8]=-Rot[0][2];
+	Y[2][6]=-Rot[1][2];
+	Y[2][7]=Rot[0][2];
+	Y[2][8]=0;
+	//drag terms
+	Y[0][9]=-w[0]*fabs(w[0]);
+	Y[0][10]=0;
+	Y[0][11]=0;
+	Y[1][9]=0;
+	Y[1][10]=-w[1]*fabs(w[1]);
+	Y[1][11]=0;
+	Y[2][9]=0;
+	Y[2][10]=0;
+	Y[2][11]=-w[2]*fabs(w[2]);
+
+	/**********************************
+	  adaptation law
+	 **********************************/
 
 
-	//	double rotationalTorques[3];
-	rotationalTorques[0] = dw_r[0];
-	rotationalTorques[1] = dw_r[1];
-	rotationalTorques[2] = dw_r[2];
+	//use parameter adaptation law
+	MatrixN Ytranspose = Y.transpose();
+	MatrixN dahat = -(controllerState->adaptCtrlRotGamma)*Ytranspose*shat;
+	
+	//integrate parameter estimates
+	(controllerState->adaptCtrlParams) = (controllerState->adaptCtrlParams)+dahat*dt;
+	//TODO: store in controllerState
+
+	/**********************************
+	  control law
+	 **********************************/
+
+	MatrixN adaptiveTerm = Y*(controllerState->adaptCtrlParams);
+
+	Vector3 output(adaptiveTerm[0][0],adaptiveTerm[1][0],adaptiveTerm[2][0]);
+	output = output-(controllerState->adaptCtrlRotK)*shat;
+ 
+	rotationalTorques[0] = output[0];
+	rotationalTorques[1] = output[1];
+	rotationalTorques[2] = output[2];
 }
 
 /************************************************************************
