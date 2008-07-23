@@ -492,6 +492,7 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
                                    double dt,
                                    double* rotationalTorques)
 {
+
   //be extra safe about dt values
     if(dt < controllerState->dtMin)
     {
@@ -508,13 +509,33 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 	Quaternion q(measuredState->quaternion);
 	//format angular rate desired for OGRE
 	Vector3 wd(desiredState->angularRate);
-	//derivative of angular rate desired
-	Vector3 dwd(0,0,0);
 	//format angular rate for OGRE
 	Vector3 w(measuredState->angularRate);
+
+
+	/****************************
+       propagate desired states 
+	*****************************/
+	
+	//integrate desired angular velocity
+	//derivative of angular rate desired
+	Vector3 dwd(0,0,0);
+	//simple integration
+	wd = wd+dwd*dt;
+	
+	//integrate desired angular position
 	//compute derivative of quaternion desired
 	Quaternion dqd = qd.derivative(wd);
-	
+	//simple integration
+	qd = qd+dqd*dt;
+	//fix numerical drift
+	qd.normalise();
+	//	std::cout << "qd =  " << qd.x << " " << qd.y << " " << qd.z << " " << qd.w << std::endl;
+
+	/****************************
+       compute error metrics
+	*****************************/
+
 	//compute error quaternion
 	//WARNING!!! I had to "transpose" the quaternion order here.  
 	//Is this a problem with the errorQuaternion function (ie backwards)?
@@ -528,19 +549,37 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 
 	//extract vector portion of qc_tilde
 	Vector3 epsilon_c_tilde(qc_tilde.x, qc_tilde.y, qc_tilde.z);
-
 	
 	//compute composite error metrics
 	Vector3 w_r = RotMatc_tilde*wd-(controllerState->adaptCtrlRotLambda)*epsilon_c_tilde;
 	Vector3 shat = w-w_r;
 
 	//compute angular rate error
-	Vector3 wc_tilde = w -RotMatc_tilde*wd;
+	Vector3 wc_tilde = w-RotMatc_tilde*wd;
+
+	//compute derivative of w_r
+	Matrix3 S;//temp skew symmetric matrix
+	Matrix3 Q1;//temp Q1 matrix (subset of Q matrix)
+	S.ToSkewSymmetric(epsilon_c_tilde);
+	Q1[0][0]=qc_tilde.w+S[0][0];
+	Q1[0][1]=S[0][1];
+	Q1[0][2]=S[0][2];
+	Q1[1][0]=S[1][0];
+	Q1[1][1]=qc_tilde.w+S[1][1];
+	Q1[1][2]=S[1][2];
+	Q1[2][0]=S[2][0];
+	Q1[2][1]=S[2][1];
+	Q1[2][2]=qc_tilde.w+S[2][2];
+	Vector3 dw_r = RotMatc_tilde*dwd;
+	S.ToSkewSymmetric(wc_tilde);
+	dw_r=dw_r-S*RotMatc_tilde*wd;
+	dw_r=dw_r-(controllerState->adaptCtrlRotLambda)*Q1*wc_tilde;
+
 
 	//	double rotationalTorques[3];
-	rotationalTorques[0] = wc_tilde[0];
-	rotationalTorques[1] = wc_tilde[1];
-	rotationalTorques[2] = wc_tilde[2];
+	rotationalTorques[0] = dw_r[0];
+	rotationalTorques[1] = dw_r[1];
+	rotationalTorques[2] = dw_r[2];
 }
 
 /************************************************************************
