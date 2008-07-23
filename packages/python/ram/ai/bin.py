@@ -128,12 +128,22 @@ class HoveringState(state.State):
         yawGain = self._config.get('yawGain', 1)
         maxSpeed = self._config.get('maxSpeed', 5)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        
+        iSpeedGain = self._config.get('iSpeedGain', 0)
+        iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0)
+        dSpeedGain = self._config.get('dSpeedGain', 0)
+        dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0)
+        
         motion = ram.motion.pipe.Hover(pipe = self._bin,
                                        maxSpeed = maxSpeed,
                                        maxSidewaysSpeed = maxSidewaysSpeed,
                                        sidewaysSpeedGain = sidewaysSpeedGain,
                                        speedGain = speedGain,
-                                       yawGain = yawGain)
+                                       yawGain = yawGain,
+                                       iSpeedGain = iSpeedGain,
+                                       iSidewaysSpeedGain = iSidewaysSpeedGain,
+                                       dSpeedGain = dSpeedGain,
+                                       dSidewaysSpeedGain = dSidewaysSpeedGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):
