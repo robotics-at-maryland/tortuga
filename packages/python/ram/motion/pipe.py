@@ -40,7 +40,9 @@ class Hover(common.Hover):
     """
     def __init__(self, pipe, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
                  speedGain = 1.0, sidewaysSpeedGain = 1.0, 
-                 yawGain = 1.0):
+                 yawGain = 1.0,
+                 iSpeedGain = 0.0, dSpeedGain = 0.0, iSidewaysSpeedGain = 0.0,
+                 dSidewaysSpeedGain = 0.0):
         """
         @type  pipe: ram.motion.pipe.Pipe
         @param pipe: Target to attempt to reach
@@ -48,7 +50,10 @@ class Hover(common.Hover):
         common.Hover.__init__(self, pipe, maxSpeed, maxSidewaysSpeed,
                               _type = Motion.IN_PLANE | Motion.ORIENTATION,
                               speedGain = speedGain, 
-                              sidewaysSpeedGain = sidewaysSpeedGain)
+                              sidewaysSpeedGain = sidewaysSpeedGain,
+                              iSpeedGain = iSpeedGain, dSpeedGain = dSpeedGain, 
+                              iSidewaysSpeedGain = iSidewaysSpeedGain,
+                              dSidewaysSpeedGain = dSidewaysSpeedGain)
         
         self._pipe = pipe
         

@@ -9,6 +9,7 @@
 import math
 
 # Project Imports
+import ram.timer
 import ram.core as core
 from ram.motion.basic import Motion
 import ext.core
@@ -98,14 +99,16 @@ class Hover(Motion):
     """
     def __init__(self, target, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
                  speedGain = 1.0, sidewaysSpeedGain = 1.0,
-                 _type = Motion.IN_PLANE):
+                 _type = Motion.IN_PLANE,
+                 iSpeedGain = 0.0, dSpeedGain = 0.0, iSidewaysSpeedGain = 0.0,
+                 dSidewaysSpeedGain = 0.0):
         """
         @type  target: ram.motion.common.Target
         @param target: Target to attempt to reach
         """
         Motion.__init__(self, _type = _type)
         
-        #self._lastRunTime = 0.0
+
         self._running = False
         self._target = target
 
@@ -113,15 +116,17 @@ class Hover(Motion):
         self._minSpeed = -1 * maxSpeed
         self._sumSpeed = 0.0
         self._oldSpeed = 0.0
-        self._iSpeedGain = 0.0
-        self._dSpeedGain = 0.0
+        self._iSpeedGain = iSpeedGain
+        self._dSpeedGain = dSpeedGain
+        self._lastSpeedRunTime = 0.0
 
         self._maxSidewaysSpeed = maxSidewaysSpeed
         self._minSidewaysSpeed = -1 * maxSidewaysSpeed
         self._sumSidewaysSpeed = 0.0
         self._oldSidewaysSpeed = 0.0
-        self._iSidewaysSpeedGain = 0.0
-        self._dSidewaysSpeedGain = 0.0
+        self._iSidewaysSpeedGain = iSidewaysSpeedGain
+        self._dSidewaysSpeedGain = dSidewaysSpeedGain
+        self._lastSidewaysSpeedRunTime = 0.0
 
         self._speedGain = speedGain
         self._sidewaysSpeedGain = sidewaysSpeedGain
@@ -134,10 +139,18 @@ class Hover(Motion):
         
     def _setForwardSpeed(self):
         """Determin forward speed (and bound within limits)"""
+        
+        # Compute time since the last run
+        deltaT = 0.0
+        now = ram.timer.time()
+        if self._lastSpeedRunTime != 0.0:
+            deltaT = now - self._lastSpeedRunTime
+        self._lastSpeedRunTime = now
+        
         forwardSpeed, sum, old = PIDLoop(
             x = self._controller.getSpeed(), 
             xd = self._target.y, 
-            dt = 0.0, # Ignore for now
+            dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
             kp = self._speedGain, 
@@ -159,11 +172,18 @@ class Hover(Motion):
         
     def _setSidewaysSpeed(self):
         """Determine sideways speed (and bound within limits)"""
-        #sidewaysSpeed = self._target.x * self._sidewaysSpeedGain
+        
+        # Compute time since the last run
+        deltaT = 0.0
+        now = ram.timer.time()
+        if self._lastSidewaysSpeedRunTime != 0.0:
+            deltaT = now - self._lastSidewaysSpeedRunTime
+        self._lastSidewaysSpeedRunTime = now
+        
         sidewaysSpeed, sum, old = PIDLoop(
             x = self._controller.getSidewaysSpeed(), 
             xd = self._target.x, 
-            dt = 0.0, # Ignore for now
+            dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
             kp = self._sidewaysSpeedGain, 
