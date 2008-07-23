@@ -149,6 +149,8 @@ int reportPing(int fd, byte status, double vectorX, double vectorY, double vecto
         return 0;
 
     printf("retcode was %d\n", retCode);
+
+    return -3;
 }
 
 
