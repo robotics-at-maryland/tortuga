@@ -135,6 +135,8 @@ int reportPing(int fd, byte status, double vectorX, double vectorY, double vecto
     buf[26] = (sampleNo & 0xFF);
 
     byte cs = 0;
+    
+    int i=0;
     for(i=6; i<27; i++)
         cs += buf[i];
 
