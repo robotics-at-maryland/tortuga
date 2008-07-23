@@ -45,6 +45,9 @@ void SafeDetector::init(core::ConfigNode config)
     m_safeX = 0;
     m_safeY = 0;
     m_working = new OpenCVImage(640,480);
+    m_rOverGMin = config["rOverGMin"].asDouble(.5);
+    m_rOverGMax = config["rOverGMax"].asDouble(1.8);
+    m_bOverRMax = config["bOverRMin"].asDouble(.7);
 }
     
     SafeDetector::~SafeDetector()
@@ -95,11 +98,11 @@ void SafeDetector::processImage(Image* input, Image* out)
 
     m_working->copyFrom(input);
 
-    safeMask(m_working->asIplImage());
+    safeMask(m_working->asIplImage(), m_rOverGMin, m_rOverGMax, m_bOverRMax);
     if (out)
         out->copyFrom(m_working);
 
-    blobDetector.setMinimumBlobSize(50);
+    blobDetector.setMinimumBlobSize(100);
     blobDetector.processImage(m_working);
     BlobDetector::BlobList blobs = blobDetector.getBlobs();
     

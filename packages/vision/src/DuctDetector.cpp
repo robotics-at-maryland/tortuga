@@ -40,6 +40,23 @@ return 0;
 
 }
 
+int DuctDetector::yellow2(unsigned char r, unsigned char g, unsigned char b)
+{
+    double minRedOverGreen=.5;
+    double maxRedOverGreen=1.5;
+    double minRedOverBlue=1.0;
+    double minGreenOverBlueOnRedFailureForInsideDuct=2.0;
+    if (g * minRedOverGreen <= r && g * maxRedOverGreen >= r && b * minRedOverBlue <= r)
+    {
+        return 1;
+    }
+    else if (r <= 30 && g >= b * minGreenOverBlueOnRedFailureForInsideDuct)
+    {
+        return 1;
+    }
+    return 0;
+}
+
 double min(double a, double b)
 {
     if (a < b)
@@ -124,7 +141,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         for (int i=0;i<width*3;i+=3)
         {
             data[offset+i+2] = data[offset+i+1] = data[offset+i] =
-                (yellow(data[offset+i+2], // R
+                (yellow2(data[offset+i+2], // R
                         data[offset+i+1], // G
                         data[offset+i])
                  * 255);  // B

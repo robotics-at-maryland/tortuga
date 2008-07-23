@@ -47,6 +47,11 @@ class RAM_EXPORT SafeDetector : public Detector
     void init(core::ConfigNode config);
     double m_safeX;
     double m_safeY;
+    
+    double m_rOverGMin;
+    double m_rOverGMax;
+    double m_bOverRMax;
+    
     BlobDetector::Blob m_safeBlob;
     bool m_found;
     Image* m_working;
