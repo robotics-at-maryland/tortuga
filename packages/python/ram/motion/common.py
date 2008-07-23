@@ -105,14 +105,23 @@ class Hover(Motion):
         """
         Motion.__init__(self, _type = _type)
         
+        #self._lastRunTime = 0.0
         self._running = False
         self._target = target
 
         self._maxSpeed = maxSpeed
         self._minSpeed = -1 * maxSpeed
+        self._sumSpeed = 0.0
+        self._oldSpeed = 0.0
+        self._iSpeedGain = 0.0
+        self._dSpeedGain = 0.0
 
         self._maxSidewaysSpeed = maxSidewaysSpeed
         self._minSidewaysSpeed = -1 * maxSidewaysSpeed
+        self._sumSidewaysSpeed = 0.0
+        self._oldSidewaysSpeed = 0.0
+        self._iSidewaysSpeedGain = 0.0
+        self._dSidewaysSpeedGain = 0.0
 
         self._speedGain = speedGain
         self._sidewaysSpeedGain = sidewaysSpeedGain
@@ -125,8 +134,20 @@ class Hover(Motion):
         
     def _setForwardSpeed(self):
         """Determin forward speed (and bound within limits)"""
-        forwardSpeed = self._target.y * self._speedGain
-
+        forwardSpeed, sum, old = PIDLoop(
+            x = self._controller.getSpeed(), 
+            xd = self._target.y, 
+            dt = 0.0, # Ignore for now
+            dtTooSmall = 1.0/100.0, 
+            dtTooBig = 1.0, 
+            kp = self._speedGain, 
+            kd = self._iSpeedGain, 
+            ki = self._dSpeedGain,
+            sum = self._sumSpeed, 
+            xOld = self._oldSpeed)
+        self._sumSpeed = sum
+        self._oldSpeed = old
+        
         # Clamp speed ranges
         if forwardSpeed > self._maxSpeed:
             forwardSpeed = self._maxSpeed
@@ -138,7 +159,20 @@ class Hover(Motion):
         
     def _setSidewaysSpeed(self):
         """Determine sideways speed (and bound within limits)"""
-        sidewaysSpeed = self._target.x * self._sidewaysSpeedGain
+        #sidewaysSpeed = self._target.x * self._sidewaysSpeedGain
+        sidewaysSpeed, sum, old = PIDLoop(
+            x = self._controller.getSidewaysSpeed(), 
+            xd = self._target.x, 
+            dt = 0.0, # Ignore for now
+            dtTooSmall = 1.0/100.0, 
+            dtTooBig = 1.0, 
+            kp = self._sidewaysSpeedGain, 
+            kd = self._iSidewaysSpeedGain, 
+            ki = self._dSidewaysSpeedGain,
+            sum = self._sumSidewaysSpeed, 
+            xOld = self._oldSidewaysSpeed)
+        self._sumSidewaysSpeed = sum
+        self._oldSidewaysSpeed = old
 
         # Clamp speed ranges
         if sidewaysSpeed > self._maxSidewaysSpeed:

@@ -110,6 +110,8 @@ class TestAlongPipe(aisupport.AITestCase):
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(0, self.controller.yawChange)
+        self.controller.speed = 0
+        self.controller.sidewaysSpeed = 0
         
         # The inside range case
         self.injectEvent(vision.EventType.PIPE_FOUND, vision.PipeEvent,0,0,0, 
@@ -117,6 +119,9 @@ class TestAlongPipe(aisupport.AITestCase):
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertGreaterThan(self.controller.yawChange, 0)
+        self.controller.speed = 0
+        self.controller.sidewaysSpeed = 0
+        
     
         # Test the transition to a new pipe (ie, now pipes in front)
         self.called = False

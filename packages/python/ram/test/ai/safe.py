@@ -99,6 +99,8 @@ class TestOffseting(aisupport.AITestCase):
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
+        self.controller.speed = 0
+        self.controller.sidewaysSpeed = 0
         
         # Make sure event when  is centered we still want to move
         self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
@@ -107,6 +109,8 @@ class TestOffseting(aisupport.AITestCase):
         self.assertAlmostEqual(0, self.controller.speed, 3)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
+        self.controller.speed = 0
+        self.controller.sidewaysSpeed = 0
         
         # Safe below us
         self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 

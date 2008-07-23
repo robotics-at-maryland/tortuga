@@ -39,6 +39,8 @@ class BinTestCase(aisupport.AITestCase):
         self.assertEqual(0, self.controller.speed)
         self.injectBinFound(x = 0.5, y = -0.5, id = 3, angle = math.Degree(0))
         self.assertEqual(0, self.controller.speed)
+        self.controller.speed = 0
+        self.controller.sidewaysSpeed = 0
         
         # Test proper bin
         self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(0))
@@ -46,23 +48,27 @@ class BinTestCase(aisupport.AITestCase):
         self.assertLessThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
+        self.controller.speed = 0
+        self.controller.sidewaysSpeed = 0
         
         # Test with some rotation
         self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(15))
         self.assertLessThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        self.controller.speed = 0
+        self.controller.sidewaysSpeed = 0
+        
         if shouldRotate:
             self.assertGreaterThan(self.controller.yawChange, 0)
             currentYawChange = self.controller.yawChange
     
     
             # Test large rotational filtering
-            self.injectBinFound(    x = 0.5, y = -0.5, id = 6, angle = math.Degree(-80))
-            self.assertAlmostEqual(currentYawChange, self.controller.yawChange, 
-                                   3)
+            self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(-80))
+            self.assertAlmostEqual(currentYawChange, self.controller.yawChange, 3)
             
             # Test back with a normal angle
-            self.injectBinFound(    x = 0.5, y = -0.5, id = 6, angle = math.Degree(30))
+            self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(30))
             self.assertGreaterThan(self.controller.yawChange, currentYawChange)
             
             
