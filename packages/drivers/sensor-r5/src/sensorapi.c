@@ -302,13 +302,15 @@ int getSonarData(int fd, struct sonarData * sd)
 
     sd->timeStampUSec = (rawSonar[16]<<24) | (rawSonar[17] << 16) | (rawSonar[18] << 8) | rawSonar[19];
 
-    if(rawSonar[20] != 0x00)
-        errorCount++;
-
-
     if(errorCount)
+    {
         printf("Sonar: %d bytes messed up\n", errorCount);
+        printf("\nDebug: Received data from sonar board: < ");
+        for(i=0; i<20; i++)
+            printf("0x%02X ", rawSonar[i]);
 
+        printf(">\n");
+    }
 
     //printf("Vector: \t<%5.4f %5.4f %5.4f>\n", sd->vectorX, sd->vectorY, sd->vectorZ);
     //printf("Status: \t0x%02x\n", sd->status);
