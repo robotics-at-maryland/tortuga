@@ -79,7 +79,7 @@ dw_r=R(qc_tilde)*dw_d-S(wc_tilde)*R(qc_tilde)*w_d-lambda*Q1(qc_tilde)*wc_tilde;
 %u=-Kd*shat+H*dw_r;%-S(H*w_meas)*w_r;
 
 %find rotation matrix
-Rot = R(q);
+Rot = R(q_meas);
 
 %parameterization matrix divided in four
 %Y=[Yinertia1 Yinertia2 Ybuoyancy Ydrag]
@@ -102,7 +102,8 @@ Ydrag=[-w_meas(1)*abs(w_meas(1)) 0 0;
 
 Y=[Yinertia1 Yinertia2 Ybuoyancy Ydrag];
 
-u=-Kd*shat+H*dw_r+Y*ahat;
+%u=-Kd*shat+H*dw_r+Y*ahat;
+u=-Kd*shat+Y*ahat;
 
 dahat=-Gamma*Y'*shat;
 
