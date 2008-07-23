@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 	while(1)
 	{
 
-    int ret = reportPing(fd, argc, 0.123456, 0.0, -0.98765,
+    int ret = reportPing(fd, argc, -0.0039, 0.0, -0.98765,
                          43210, time(0), 0xDEADBEEF);
 
     printf("result was %d\n", ret);

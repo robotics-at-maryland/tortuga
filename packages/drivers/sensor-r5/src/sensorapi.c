@@ -247,9 +247,9 @@ int readTemp(int fd, unsigned char * tempData)
 
 int getSonarData(int fd, struct sonarData * sd)
 {
-    unsigned char buf[20]={HOST_CMD_SONAR, HOST_CMD_SONAR};
+    unsigned char buf[22]={HOST_CMD_SONAR, HOST_CMD_SONAR};
     int i;
-    unsigned char rawSonar[20] = {0,0,0,0,0};
+    unsigned char rawSonar[22] = {0,0,0,0,0};
 
     if(sd == NULL)
         return -1;
@@ -260,12 +260,12 @@ int getSonarData(int fd, struct sonarData * sd)
     if(buf[0] != 0x0E)
         return SB_ERROR;
 
-    readData(fd, rawSonar, 20);
+    readData(fd, rawSonar, 22);
     readData(fd, buf, 1);
 
     unsigned char sum = 0x0E;
 
-    for(i=0; i<20; i++)
+    for(i=0; i<22; i++)
         sum = (sum+rawSonar[i]) & 0xFF;
 
     if(sum != buf[0])
@@ -281,26 +281,38 @@ int getSonarData(int fd, struct sonarData * sd)
 */
     int errorCount = 0;
 
-    sd->vectorX = ((signed short) ((rawSonar[0]<<8) | rawSonar[1])) / 10000.0;
-    sd->vectorY = ((signed short) ((rawSonar[2]<<8) | rawSonar[3])) / 10000.0;
-    sd->status = rawSonar[4];
-
-    if(rawSonar[5] != 0x00)
+    if(rawSonar[0] != 0x00)
         errorCount++;
 
-    sd->vectorZ = ((signed short) ((rawSonar[6]<<8) | rawSonar[7])) / 10000.0;
+    sd->vectorX = ((signed short) ((rawSonar[1]<<8) | rawSonar[2])) / 10000.0;
+    sd->vectorY = ((signed short) ((rawSonar[3]<<8) | rawSonar[4])) / 10000.0;
+    sd->status = rawSonar[5];
 
-    sd->range = (rawSonar[8]<<8) | rawSonar[9];
-
-    if(rawSonar[10] != 0x00)
+    if(rawSonar[6] != 0x00)
         errorCount++;
 
-    sd->timeStampSec = (rawSonar[11]<<24) | (rawSonar[12] << 16) | (rawSonar[13] << 8) | rawSonar[14];
+    sd->vectorZ = ((signed short) ((rawSonar[7]<<8) | rawSonar[8])) / 10000.0;
 
-    if(rawSonar[15] != 0x00)
+    sd->range = (rawSonar[9]<<8) | rawSonar[10];
+
+    if(rawSonar[11] != 0x00)
         errorCount++;
 
-    sd->timeStampUSec = (rawSonar[16]<<24) | (rawSonar[17] << 16) | (rawSonar[18] << 8) | rawSonar[19];
+    sd->timeStampSec = (rawSonar[12]<<24) | (rawSonar[13] << 16) | (rawSonar[14] << 8) | rawSonar[15];
+
+    if(rawSonar[16] != 0x00)
+        errorCount++;
+
+    sd->timeStampUSec = (rawSonar[17]<<24) | (rawSonar[18] << 16) | (rawSonar[19] << 8) | rawSonar[20];
+
+
+    unsigned char cs = 0;
+
+    for(i=0; i<21; i++)
+        cs += rawSonar[i];
+
+    if(rawSonar[21] != cs)
+        printf("Sonar checksum mismatch: expected %02x, got %02x\n", rawSonar[21], cs);
 
     if(errorCount)
     {
