@@ -119,7 +119,7 @@ class Bin(state.State):
         self.stateMachine.start(state.Branch(bin.Searching))
         
         # Create out timeout
-        timeout = self._config.get('timeout',160)
+        timeout = self._config.get('timeout',240)
         self.timer = self.timerManager.newTimer(Bin.TIMEOUT, timeout)
                   
         self.timer.start()
@@ -135,7 +135,7 @@ class Pipe3(state.State):
     
     @staticmethod
     def transitions():
-        return { pipe.Centering.SETTLED : End,
+        return { pipe.Centering.SETTLED : PingerDive,
                  'GO' : state.Branch(pipe.Searching) }
     
     def enter(self):

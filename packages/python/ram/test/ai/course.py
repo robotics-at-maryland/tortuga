@@ -204,7 +204,7 @@ class TestPipe3(PipeTestCase):
         Make sure that we move onto the light once we get over the pipe
         """
         PipeTestCase.checkSettled(self) # End of course
-        self.assert_(self.machine.complete)
+	self.assertCurrentState(course.PingerDive)
 
 class TestPingerDiver(support.AITestCase):
     def setUp(self):

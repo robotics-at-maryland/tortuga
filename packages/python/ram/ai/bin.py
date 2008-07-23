@@ -328,6 +328,7 @@ class Recover(state.State):
         self.timer.start()
 
     def exit(self):
+        self.motionManager.stopCurrentMotion()
         self.timer.stop()
 
 class Centering(SettlingState):

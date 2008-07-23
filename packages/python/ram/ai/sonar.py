@@ -41,7 +41,7 @@ class PingerState(state.State):
         return pingerOrientation.getYaw(True)
     
     def _loadSettings(self):
-        self._closeZ = self._config.get('closeZ', 0.8)
+        self._closeZ = self._config.get('closeZ', 0.85)
         self._speedGain = self._config.get('speedGain', 5)
         self._yawGain = self._config.get('yawGain', 1)
         self._maxSpeed = self._config.get('maxSpeed', 1)
