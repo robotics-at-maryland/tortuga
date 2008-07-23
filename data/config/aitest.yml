@@ -89,9 +89,19 @@ Subsystems:
                 yawGain: 0.4
             ram.ai.bin.Alinging:
                 speedGain: 7
-                sidewaysSpeedGain: 4
+                dSpeedGain: 1.5
+                iSpeedGain: 0.5
+                sidewaysSpeedGain: 8
+                dSidewaysSpeedGain: 1.5
+                iSidewaysSpeedGain: 0.5
             ram.ai.bin.Examine:
-                targetSuits: ['Spade', 'Club']
+                targetSuits: ['Diamond', 'Heart']
+                speedGain: 5
+                dSpeedGain: 1.5
+                iSpeedGain: 0.5
+                sidewaysSpeedGain: 8
+                dSidewaysSpeedGain: 1.5
+                iSidewaysSpeedGain: 0.5
 
             ram.ai.pipe.Seeking:
                 speedGain: 8
@@ -129,8 +139,10 @@ Subsystems:
             ram.ai.safe.Offsetting:
                 speedGain: 1.5
                 maxSpeed: 1.2
+                sidewaysSpeedGain: 1.5
+                maxSidewaysSpeed: 1.2
                 offset: -0.4
-                centeredRange: 0.5
+                centeredRange: 0.6
                 sanity: YES
             ram.ai.safe.Settling:
                 speedGain: 0.7
