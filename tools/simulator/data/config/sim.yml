@@ -248,11 +248,11 @@ Subsystems:
             #Main: bin.sml
             #Main: duct.sml
             #Main: buoy.sml
-            Main: pinger.sml
+            #Main: pinger.sml
             #Main: safe.sml
             #Main: transdec.sml
             #Main: nxtest.sml
-
+            Main: safePing.sml
         
         Graphics:
             Plugins:
