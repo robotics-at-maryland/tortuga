@@ -73,26 +73,34 @@ class HoveringState(state.State):
         if trans is None:
             trans = {}
         trans.update({vision.EventType.BIN_LOST : Recover,
-                      vision.EventType.BIN_FOUND : myState})
+                      vision.EventType.BIN_FOUND : myState,
+                      vision.EventType.MULTI_BIN_ANGLE : myState})
         return trans
     
     def _currentBin(self, event):
         return self.ai.data.get('currentBinID', 0) == event.id
     
+    def MULTI_BIN_ANGLE(self, event):
+        self._multiAngle = event.angle
+    
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        if self._first:
-            self._first = False
-            self._lastAngle = event.angle
+        if not self._useMultiAngle:
+            # Use only the bin angle
+            if self._first:
+                self._first = False
+                self._lastAngle = event.angle
+            else:
+                if pmath.fabs(event.angle.valueDegrees()) < 95:
+                    lastDegree = self._lastAngle.valueDegrees()
+                    currentDegree = event.angle.valueDegrees()
+                    if (pmath.fabs(lastDegree - currentDegree) > self._filterLimit):
+                        event.angle = math.Degree(lastDegree)
+                    else:
+                        self._lastAngle = event.angle
         else:
-            if pmath.fabs(event.angle.valueDegrees()) < 95:
-                lastDegree = self._lastAngle.valueDegrees()
-                currentDegree = event.angle.valueDegrees()
-                if (pmath.fabs(lastDegree - currentDegree) > self._filterLimit):
-                    event.angle = math.Degree(lastDegree)
-                else:
-                    self._lastAngle = event.angle
-            
+            # Using the array of bin angle instead instead
+            event.angle = self._multiAngle
         
         # Only listen to the current bin ID
         if self._currentBin(event):
@@ -101,10 +109,16 @@ class HoveringState(state.State):
             self.ai.data["lastBinX"] = event.x
             self.ai.data["lastBinY"] = event.y
 
-    def enter(self):
+    def enter(self, useMultiAngle = False):
+        """
+        Use multiAngle determines whether or not you listen to the bin angle
+        or the angle of the array of the bins
+        """
         # Make sure we are tracking
         ensureBinTracking(self.queuedEventHub, self.ai)
         
+        self._useMultiAngle = useMultiAngle
+        self._multiAngle = math.Degree(0)
         self._first = True
         self._filterLimit = self._config.get('filterLimit', 75)
         
@@ -112,8 +126,8 @@ class HoveringState(state.State):
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
         speedGain = self._config.get('speedGain', 5)
         yawGain = self._config.get('yawGain', 1)
-	maxSpeed = self._config.get('maxSpeed', 5)
-	maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        maxSpeed = self._config.get('maxSpeed', 5)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
         motion = ram.motion.pipe.Hover(pipe = self._bin,
                                        maxSpeed = maxSpeed,
                                        maxSidewaysSpeed = maxSidewaysSpeed,
@@ -127,11 +141,11 @@ class HoveringState(state.State):
         self.motionManager.stopCurrentMotion()
 
 class SettlingState(HoveringState):
-    def enter(self, eventType, eventTime):
+    def enter(self, eventType, eventTime, useMultiAngle = False):
         self.timer = self.timerManager.newTimer(eventType, eventTime)
         self.timer.start()
         
-        HoveringState.enter(self)
+        HoveringState.enter(self, useMultiAngle)
 
     def exit(self):
         HoveringState.exit(self)
@@ -151,7 +165,7 @@ class BinSortingState(HoveringState):
             if math.Vector2(event.x, event.y).length() < self._centeredRange:
                 self.publish(BinSortingState.CENTERED_, core.Event())
     
-    def enter(self, direction):
+    def enter(self, direction, useMultiAngle = False):
         """
         @param direction: Says whether or you want to go left or right with the 
         bins
@@ -162,7 +176,7 @@ class BinSortingState(HoveringState):
         
         self._centeredRange = self._config.get('centeredRange', 0.2)
         
-        HoveringState.enter(self)
+        HoveringState.enter(self, useMultiAngle = useMultiAngle)
     
     def _compareBins(self, idA, idB):
         """
@@ -335,7 +349,7 @@ class Centering(SettlingState):
         SettlingState.BIN_FOUND(self, event)
     
     def enter(self):
-        SettlingState.enter(self, Centering.SETTLED, 5)
+        SettlingState.enter(self, Centering.SETTLED, 5, useMultiAngle = True)
         
         
 class SeekEnd(BinSortingState):
@@ -358,7 +372,8 @@ class SeekEnd(BinSortingState):
         
     def enter(self):
         # Keep the hover motion going
-        BinSortingState.enter(self, BinSortingState.LEFT)
+        BinSortingState.enter(self, BinSortingState.LEFT,
+                              useMultiAngle = True)
         
         # Fix the current left most bin, as the currently tracked bin
         if not self._fixEdgeBin():
@@ -389,8 +404,8 @@ class Dive(HoveringState):
         HoveringState.BIN_FOUND(self, event)
         
     def enter(self):
-        # Keep the hover motion going
-        HoveringState.enter(self)
+        # Keep the hover motion going (and use the bin angle)
+        HoveringState.enter(self, useMultiAngle = True)
         
         # While keeping center, dive down
         diveMotion = motion.basic.RateChangeDepth(
@@ -550,7 +565,8 @@ class NextBin(BinSortingState):
     
     def enter(self):
         # Keep the hover motion going
-        BinSortingState.enter(self, BinSortingState.RIGHT)
+        BinSortingState.enter(self, BinSortingState.RIGHT,
+                              useMultiAngle = True)
         
         # Fix the current left most bin, as the currently tracked bin
         if not self._fixEdgeBin():

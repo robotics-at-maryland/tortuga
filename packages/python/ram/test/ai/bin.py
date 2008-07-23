@@ -27,8 +27,11 @@ class BinTestCase(aisupport.AITestCase):
     def injectBinFound(self, **kwargs):
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
                          0, 0, vision.Suit.UNKNOWN, math.Degree(0), **kwargs)
+    def injectMultiBinAngle(self, **kwargs):
+        self.injectEvent(vision.EventType.MULTI_BIN_ANGLE, vision.BinEvent, 
+                         0, 0, vision.Suit.UNKNOWN, math.Degree(0), **kwargs)
                              
-    def binFoundHelper(self, shouldRotate = True):
+    def binFoundHelper(self, shouldRotate = True, useMultiAngle = False):
         # Set our expected ID
         self.ai.data['currentBinID'] = 6
         
@@ -65,6 +68,34 @@ class BinTestCase(aisupport.AITestCase):
             
         else:
             self.assertEqual(self.controller.yawChange, 0)
+           
+
+        if useMultiAngle:
+            # Reset values
+            self.controller.yawChange = 0 
+            self.controller.speed = 0
+            self.controller.sidewaysSpeed = 0
+            
+            # Test Left (First multi bin event, then the found to start us moving)
+            self.injectMultiBinAngle(x = 0.5, y = -0.5, id = 6, 
+                                     angle = math.Degree(15))
+            # This found angle should be ignored
+            self.injectBinFound(x = 0, y = 0, id = 6, angle = math.Degree(0))
+            
+            # Ensure that the x & y are ignored and we yaw properly
+            self.assertAlmostEqual(0, self.controller.speed, 3)
+            self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
+            self.assertGreaterThan(self.controller.yawChange, 0)
+            
+            # Test Right
+            self.injectMultiBinAngle(x = 0.5, y = -0.5, id = 6, 
+                                     angle = math.Degree(-15))
+            self.injectBinFound(x = 0, y = 0, id = 6, angle = math.Degree(0))
+            
+            # Ensure that the x & y are ignored and we yaw properly
+            self.assertAlmostEqual(0, self.controller.speed, 3)
+            self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
+            self.assertLessThan(self.controller.yawChange, 0)
             
     def publishQueuedBinFound(self, **kwargs):
         self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
@@ -253,7 +284,7 @@ class TestCentering(BinTestCase):
     
     def testBinFound(self):
         """Make sure the loop back works"""
-        self.binFoundHelper(False)
+        self.binFoundHelper(False, useMultiAngle = True)
     
     def testSettled(self):
         """Make sure we move on after settling"""
@@ -335,7 +366,7 @@ class TestSeekEnd(BinTestCase):
         self.ai.data['currentBins'] = set([6])
         
         # Make sure we repond to bin offset properly, but ignore orientation
-        self.binFoundHelper(False)
+        self.binFoundHelper(False, useMultiAngle = True)
         
     def testBinFoundCentered(self):
         self.ai.data['currentBinID'] = 3
@@ -424,7 +455,7 @@ class TestDive(BinTestCase):
     def testBinFound(self):
         """Make sure the loop back works"""
         # Need to add multi-motion support
-        self.binFoundHelper(False)
+        self.binFoundHelper(False, useMultiAngle = True)
         
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -614,7 +645,7 @@ class TestNextBin(BinTestCase):
         self.ai.data['currentBinID'] = 0
         self.ai.data['currentBins'] = set([6])
         
-        self.binFoundHelper(False)
+        self.binFoundHelper(False, useMultiAngle = True)
         
     def testBinFoundCentered(self):
         self.ai.data['currentBinID'] = 3
