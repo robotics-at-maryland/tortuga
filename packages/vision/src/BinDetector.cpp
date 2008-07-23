@@ -397,7 +397,7 @@ void BinDetector::processImage(Image* input, Image* out)
             
             math::Radian angleAcrossBins(finalAngleAcrossBins);
             
-            math::Degree finalInnerAngleForJoe(angleAcrossBins.valueDegrees());
+            math::Degree finalInnerAngleForJoe(-angleAcrossBins.valueDegrees());
 //            printf("Final Inner Angle For Joe: %f\n", finalInnerAngleForJoe.valueDegrees());
             BinEventPtr event(new BinEvent(finalInnerAngleForJoe));
             publish(EventType::MULTI_BIN_ANGLE, event);
