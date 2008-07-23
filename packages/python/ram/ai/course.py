@@ -22,6 +22,11 @@ import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
 import ram.ai.bin as bin
+import ram.ai.safe as safe
+import ram.ai.sonar as sonar
+
+import ram.motion as motion
+import ram.motion.basic
 
 class Gate(state.State):
     """
@@ -75,7 +80,8 @@ class Light(state.State):
         self.stateMachine.start(state.Branch(light.Searching))
         
         # Create out timeout
-        self.timer = self.timerManager.newTimer(Light.TIMEOUT, 60)
+        self.timer = self.timerManager.newTimer(Light.TIMEOUT,
+                                                self._config.get('timeout',60))
         self.timer.start()
     
     def exit(self):
@@ -113,7 +119,9 @@ class Bin(state.State):
         self.stateMachine.start(state.Branch(bin.Searching))
         
         # Create out timeout
-        self.timer = self.timerManager.newTimer(Bin.TIMEOUT, 60)
+        timeout = self._config.get('timeout',160)
+        self.timer = self.timerManager.newTimer(Bin.TIMEOUT, timeout)
+                  
         self.timer.start()
     
     def exit(self):
@@ -138,5 +146,120 @@ class Pipe3(state.State):
         self.stateMachine.stopBranch(pipe.Searching)
         self.visionSystem.pipeLineDetectorOff()
     
+class PingerDive(state.State):
+    """
+    Changes to the depth for proper sonar operation
+    """
+    @staticmethod
+    def transitions():
+        return { motion.basic.Motion.FINISHED : Pinger }
+
+    def enter(self):
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 7),
+            speed = self._config.get('diveSpeed', 0.4))
+        
+        self.motionManager.setMotion(diveMotion)
+        
+class Pinger(state.State):
+    """
+    Move until we are over the pinger
+    """
+    @staticmethod
+    def transitions():
+        return {  sonar.COMPLETE : SafeDive,
+                 'GO' : state.Branch(sonar.Searching) }
+    
+    def enter(self):
+        # Branch off state machine for finding the sonar
+        self.stateMachine.start(state.Branch(sonar.Searching))
+        
+    def exit(self):
+        self.stateMachine.stopBranch(sonar.Searching)
+
+class SafeDive(state.State):
+    """
+    Dive to a depth at which we can activate the safe vision system.  The sonar
+    system is active during this time.
+    """
+    @staticmethod
+    def transitions():
+        return { motion.basic.Motion.FINISHED : Safe,
+                 'GO' : state.Branch(sonar.Hovering) } 
+
+    def enter(self):
+        # Activate the sonar system
+        self.stateMachine.start(state.Branch(sonar.Hovering))
+        
+        # Start our dive
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 10),
+            speed = self._config.get('diveSpeed', 0.3))
+        
+        self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        self.stateMachine.stopBranch(sonar.Hovering)
+
+class Safe(state.State):
+    """
+    Grabs the safe and surfaces to a predefined depth, when it times out, it
+    goes into a recovering mode, and does a normal surface.
+    """
+    
+    TIMEOUT = core.declareEventType('TIMEOUT')
+    
+    @staticmethod
+    def transitions():
+        return { safe.COMPLETE : Octagaon,
+                 Safe.TIMEOUT : Octagaon,
+                 'GO' : state.Branch(safe.Searching) }
+    
+    def enter(self):
+        self.stateMachine.start(state.Branch(safe.Searching))
+        
+        # Create out timeout
+        # TODO: base the timeout off an offset from how much time we have left
+        # in the mission
+        timeout = self._config.get('timeout', 60)
+        self.timer = self.timerManager.newTimer(Safe.TIMEOUT, timeout)
+               
+        self.timer.start()
+    
+    def exit(self):
+        self.stateMachine.stopBranch(safe.Searching)
+        self.visionSystem.downwardSafeDetectorOff()
+
+class RecoverFromSafe(state.State):
+    """
+    Gets us back in the octagon if the safe fails for some reason.
+    
+    Dives to good pinger depth, and activates the sonar
+    """
+    pass
+
+class Octagaon(state.State):
+    """
+    Surface in the octagon with or without the treasure, but with the sonar on
+    """
+    @staticmethod
+    def transitions():
+        return { motion.basic.Motion.FINISHED : End,
+                 'GO' : state.Branch(sonar.Searching) } 
+
+    def enter(self):
+        # Activate the sonar system
+        self.stateMachine.start(state.Branch(sonar.Hovering))
+        
+        # Start our dive
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 0),
+            speed = self._config.get('diveSpeed', 0.3))
+        
+        self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        self.stateMachine.stopBranch(sonar.Hovering)
+
 class End(state.End):
     pass

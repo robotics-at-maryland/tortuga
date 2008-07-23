@@ -18,6 +18,12 @@ import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
 import ram.ai.bin as bin
+import ram.ai.sonar as sonar
+import ram.ai.safe as safe
+
+import ram.motion as motion
+import ram.motion.basic
+import ram.motion.pipe
 
 import ram.test.ai.support as support
 
@@ -200,4 +206,121 @@ class TestPipe3(PipeTestCase):
         PipeTestCase.checkSettled(self) # End of course
         self.assert_(self.machine.complete)
 
+class TestPingerDiver(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.vehicle.depth = 0
+        self.machine.start(course.PingerDive)
+    
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+                
+    def testDiveFinished(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(course.Pinger)
+
+class TestPinger(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.machine.start(course.Pinger)
         
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(course.Pinger)
+        self.assertCurrentBranches([sonar.Searching])
+
+    def testComplete(self):
+        """
+        Make sure that we move on once we hit the light
+        """
+        
+        self.injectEvent(sonar.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.SafeDive)
+        
+        # Make sure the pinger seeking branch is gone
+        self.assertFalse(self.machine.branches.has_key(sonar.Searching))
+
+class TestSafeDive(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.vehicle.depth = 0
+        self.machine.start(course.SafeDive)
+    
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(
+            (motion.pipe.Hover, motion.basic.RateChangeDepth,
+             motion.pipe.Hover))
+        
+        self.assertCurrentState(course.SafeDive)
+        self.assertCurrentBranches([sonar.Hovering])
+                
+    def testDiveFinished(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(course.Safe)
+        
+        # Make sure the pinger seeking branch is gone
+        self.assertFalse(self.machine.branches.has_key(sonar.Hovering))
+        
+class TestSafe(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.vehicle.depth = 5
+        self.machine.start(course.Safe)
+        
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(course.Safe)
+        self.assertCurrentBranches([safe.Searching])
+
+    def testComplete(self):
+        """
+        Make sure that we move on once we hit the light
+        """
+        self.injectEvent(safe.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Octagaon)
+        
+        # Make sure the safe grabbing branch is gone
+        self.assertFalse(self.machine.branches.has_key(safe.Searching))
+        
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(course.Safe)
+        
+        # Release timer
+        self.releaseTimer(course.Safe.TIMEOUT)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.Octagaon)
+        self.assertFalse(self.machine.branches.has_key(safe.Searching))
+
+class TestOctagon(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.vehicle.depth = 5
+        self.machine.start(course.Octagaon)
+    
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(
+            (motion.pipe.Hover, motion.basic.RateChangeDepth,
+             motion.pipe.Hover))
+        
+        self.assertCurrentState(course.Octagaon)
+        self.assertCurrentBranches([sonar.Hovering])
+                
+    def testDiveFinished(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assert_(self.machine.complete)
+        
+        # Make sure the pinger seeking branch is gone
+        self.assertFalse(self.machine.branches.has_key(sonar.Hovering))

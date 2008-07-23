@@ -86,8 +86,11 @@ class Searching(state.State):
 
     def enter(self):
         self._first = True
+        self.timer = None
+        
     def exit(self):
-        self.timer.stop()
+        if self.timer is not None:
+            self.timer.stop()
 
 class TranslationSeeking(PingerState):
     CLOSE = core.declareEventType('CLOSE')    
