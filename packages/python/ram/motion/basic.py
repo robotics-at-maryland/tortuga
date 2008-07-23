@@ -302,7 +302,10 @@ class RateChangeDepth(Motion):
         absDepthDifference = pmath.fabs(currentDepth - self._desiredHeading)
 
         self._stepCount = absDepthDifference / (self._speed / self._rate)
-        self._stepSize = (self._desiredHeading - currentDepth) / self._stepCount
+        if self._stepCount != 0:
+            self._stepSize = (self._desiredHeading - currentDepth) / self._stepCount
+        else:
+            self._stepSize = 0.0001
         self._stepCount = int(self._stepCount)
         
         self._timer  = timer.Timer(self, RateChangeDepth.NEXT_DEPTH,
