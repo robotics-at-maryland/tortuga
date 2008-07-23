@@ -1023,7 +1023,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_SWITCHPOWER != t2))
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_SWITCHPOWER) & 0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1149,7 +1149,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_MARKER != t2))
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_MARKER)&0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1174,7 +1174,7 @@ int main(void)
                 const static unsigned char blCommands[]=
                         {BUS_CMD_LCD_LIGHT_OFF, BUS_CMD_LCD_LIGHT_ON, BUS_CMD_LCD_LIGHT_FLASH};
 
-                if((t1 != 0 && t1 != 1 && t1 != 2) || (t1+HOST_CMD_BACKLIGHT != t2))
+                if((t1 != 0 && t1 != 1 && t1 != 2) || (((t1+HOST_CMD_BACKLIGHT)&0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1196,7 +1196,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1 && t1 != 2) || (t1+HOST_CMD_BARANIMATION != t2))
+                if((t1 != 0 && t1 != 1 && t1 != 2) || (((t1+HOST_CMD_BARANIMATION)&0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1225,7 +1225,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if(t1+HOST_CMD_SET_BARS != t2)
+                if(((t1+HOST_CMD_SET_BARS)&0xFF) != t2)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1304,7 +1304,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if(t1 + HOST_CMD_BARS != t2 || t1 > 15)
+                if(((t1 + HOST_CMD_BARS)&0xFF) != t2 || t1 > 15)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1339,7 +1339,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if(t1 + HOST_CMD_BATTCTL != t2 || t1 > 9)
+                if(((t1 + HOST_CMD_BATTCTL)&0xFF) != t2 || t1 > 9)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1545,7 +1545,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_RUNTIMEDIAG != t2))
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_RUNTIMEDIAG)&0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
