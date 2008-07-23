@@ -63,6 +63,26 @@ class TestHover(support.MotionTest):
         m = motion.common.Hover(target = target)
         self.assertEquals(motion.basic.Motion.IN_PLANE, m.type)
     
+#    def testPID1_X(self):
+#        x = 1
+#        xd = 2
+#        dt = 1
+#        dtMin = 0.1
+#        dtMax = 4
+#        kp = 10
+#        kd = 3
+#        ki = 1
+#        sum = 3
+#        xOld = 5
+#        expectedControl = 20
+#        actualControl, sum, xOld = motion.common.PIDLoop(x,xd,dt,dtMin,dtMax,kp,kd,ki,sum,xOld)
+#        self.assertAlmostEquals(actualControl, expectedControl, 3)
+#        
+#        self.controller.speed = x
+#        target = self.makeTarget(x = xd, y = 0)
+#        m = self.makeClass(target = target, maxSpeed = 5,
+#                           speedGain = kp, iSpeedGain = ki, dSpeedGain = kd)
+    
     def testUpperLeftHover(self):
         # All gains set to 1 (default)
         target = self.makeTarget(x = -0.5, y = 0.5)

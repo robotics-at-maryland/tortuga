@@ -141,25 +141,28 @@ class Hover(Motion):
         """Determin forward speed (and bound within limits)"""
         
         # Compute time since the last run
-        deltaT = 0.0
+        deltaT = 1.0/40.0
         now = ram.timer.time()
         if self._lastSpeedRunTime != 0.0:
             deltaT = now - self._lastSpeedRunTime
         self._lastSpeedRunTime = now
         
         forwardSpeed, sum, old = PIDLoop(
-            x = self._controller.getSpeed(), 
-            xd = self._target.y, 
+            x = self._target.y,
+            xd = 0, 
             dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
             kp = self._speedGain, 
-            kd = self._iSpeedGain, 
-            ki = self._dSpeedGain,
+            kd = self._dSpeedGain, 
+            ki = self._iSpeedGain,
             sum = self._sumSpeed, 
             xOld = self._oldSpeed)
         self._sumSpeed = sum
         self._oldSpeed = old
+        
+        # Flip speed
+        forwardSpeed *= -1
         
         # Clamp speed ranges
         if forwardSpeed > self._maxSpeed:
@@ -181,18 +184,21 @@ class Hover(Motion):
         self._lastSidewaysSpeedRunTime = now
         
         sidewaysSpeed, sum, old = PIDLoop(
-            x = self._controller.getSidewaysSpeed(), 
-            xd = self._target.x, 
+            x = self._target.x,
+            xd = 0,
             dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
             kp = self._sidewaysSpeedGain, 
-            kd = self._iSidewaysSpeedGain, 
-            ki = self._dSidewaysSpeedGain,
+            kd = self._dSidewaysSpeedGain, 
+            ki = self._iSidewaysSpeedGain,
             sum = self._sumSidewaysSpeed, 
             xOld = self._oldSidewaysSpeed)
         self._sumSidewaysSpeed = sum
         self._oldSidewaysSpeed = old
+        
+        # Flip sign
+        sidewaysSpeed *= -1
 
         # Clamp speed ranges
         if sidewaysSpeed > self._maxSidewaysSpeed:
