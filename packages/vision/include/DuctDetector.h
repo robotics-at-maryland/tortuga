@@ -14,6 +14,7 @@
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "core/include/ConfigNode.h"
+#include "vision/include/BlobDetector.h"
 
 #include "vision/include/Export.h"
 
@@ -43,13 +44,18 @@ public:
     
     bool getVisible();
     bool getAligned();
+    bool blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, double growThresh);
     
 private:
     void init(core::ConfigNode config);
     int yellow(unsigned char r, unsigned char g, unsigned char b);
     int yellow2(unsigned char r, unsigned char g, unsigned char b);
-
+    BlobDetector::Blob fullDuct;
+    BlobDetector blobDetector;
     Image* m_working;
+    Image* m_workingPercents;
+    Image* m_blackMasked;
+    Image* m_yellowMasked;
     double m_x, m_y, m_rotation, n_x, n_y, m_range;
     int m_greenThreshold;
     int m_redThreshold;
@@ -57,6 +63,7 @@ private:
     int m_erodeIterations;
     double m_alignedThreshold;
     bool m_found;
+    bool containsOne;
 };
 
 } // namespace vision

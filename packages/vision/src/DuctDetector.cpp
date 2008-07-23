@@ -12,6 +12,7 @@
 #include <cmath>
 #include <iostream>
 #include <math.h>
+#include <vector>
 
 // Library Includes
 //#include "highgui.h"
@@ -22,6 +23,7 @@
 #include "vision/include/DuctDetector.h"
 #include "vision/include/Events.h"
 #include "vision/include/main.h"
+#include <boost/foreach.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159
@@ -40,18 +42,57 @@ return 0;
 
 }
 
+bool DuctDetector::blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, double growThresh)
+{
+    int minX = b1.getMinX();
+    int maxX = b1.getMaxX();
+    int minY = b1.getMinY();
+    int maxY = b1.getMaxY();
+    
+    int minX2 = b2.getMinX();
+    int maxX2 = b2.getMaxX();
+    int minY2 = b2.getMinY();
+    int maxY2 = b2.getMaxY();
+
+    int b1Width = maxX - minX;
+    int b2Width = maxX2 - minX2;
+
+    int b1Height = maxY - minY;
+    int b2Height = maxY2 - minY2;
+    
+    BlobDetector::Blob b1Bigger((int)(b1.getSize()*growThresh),
+                                b1.getCenterX(),
+                                b1.getCenterY(),
+                                maxX + (int)(b1Width * growThresh),
+                                minX - (int)(b1Width * growThresh),
+                                maxY + (int)(b1Height * growThresh),
+                                minY - (int)(b1Height * growThresh));
+    
+    BlobDetector::Blob b2Bigger((int)(b2.getSize()*growThresh),
+                                b2.getCenterX(),
+                                b2.getCenterY(),
+                                maxX2 + (int)(b2Width * growThresh),
+                                minX2 - (int)(b2Width * growThresh),
+                                maxY2 + (int)(b2Height * growThresh),
+                                minY2 - (int)(b2Height * growThresh));
+
+    return b1Bigger.boundsIntersect(b2Bigger);
+}
+
+
 int DuctDetector::yellow2(unsigned char r, unsigned char g, unsigned char b)
 {
     double minRedOverGreen=.5;
     double maxRedOverGreen=1.5;
     double minRedOverBlue=1.0;
-    double minGreenOverBlueOnRedFailureForInsideDuct=2.0;
-    if (g * minRedOverGreen <= r && g * maxRedOverGreen >= r && b * minRedOverBlue <= r)
+    double minGreenOverBlueOnRedFailureForInsideDuct=1.1;
+    //Yellow
+    if (g * minRedOverGreen <= r && g * maxRedOverGreen >= r && b * minRedOverBlue <= r && r + b + g > 125)
     {
         return 1;
     }
-    else if (r <= 30 && g >= b * minGreenOverBlueOnRedFailureForInsideDuct)
-    {
+    else if (r <= 50 && r < b && g >= b * minGreenOverBlueOnRedFailureForInsideDuct && r+b+g > 150)
+    {//Dark greenish yellowish blackish stuff
         return 1;
     }
     return 0;
@@ -73,26 +114,39 @@ double max(double a, double b)
 
 DuctDetector::DuctDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
-    m_working(new OpenCVImage(480, 640)),
+    Detector(eventHub),
+    fullDuct(0,0,0,0,0,0,0),
+    blobDetector(config,eventHub),
+    m_working(new OpenCVImage(640, 480)),
+    m_workingPercents(new OpenCVImage(640,480)),
+    m_blackMasked(new OpenCVImage(640,480)),
+    m_yellowMasked(new OpenCVImage(640,480)),
     m_x(0.0),
     m_y(0.0),
     m_rotation(M_PI/2.0),
     n_x(0.0),
     n_y(0.0),
-    m_found(false)
+    m_found(false),
+    containsOne(false)
 {
     init(config);
 }
     
 DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
     Detector(eventHub),
-    m_working(new OpenCVImage(480, 640)),
+    fullDuct(0,0,0,0,0,0,0),
+    blobDetector(),
+    m_working(new OpenCVImage(640, 480)),
+    m_workingPercents(new OpenCVImage(640,480)),
+    m_blackMasked(new OpenCVImage(640,480)),
+    m_yellowMasked(new OpenCVImage(640,480)),
     m_x(0.0),
     m_y(0.0),
     m_rotation(M_PI/2.0),
     n_x(0.0),
     n_y(0.0),
-    m_found(false)
+    m_found(false),
+    containsOne(false)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -100,6 +154,9 @@ DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
 DuctDetector::~DuctDetector()
 {
     delete m_working;
+    delete m_workingPercents;
+    delete m_blackMasked;
+    delete m_yellowMasked;
 }
 
 void DuctDetector::init(core::ConfigNode config)
@@ -108,246 +165,307 @@ void DuctDetector::init(core::ConfigNode config)
     m_redThreshold = config["redThreshold"].asInt(100);
     m_greenThreshold = config["greenThreshold"].asInt(100);
     m_blueThreshold = config["blueThreshold"].asInt(50);
-    m_erodeIterations = config["erodeIterations"].asInt(1);
-    m_alignedThreshold = config["alignedThreshold"].asDouble(0.04);
+    m_erodeIterations = config["erodeIterations"].asInt(3);
+    m_alignedThreshold = config["alignedThreshold"].asDouble(5);
 }
     
-    
 void DuctDetector::processImage(Image* input, Image* output)
-{   
+{
+/* TODO:  Merge yellow blobs together before checking whether any contain
+          black blobs, turn merging by intersection into a function of blobs
+          or blob detector or something, because its really useful.
+          
+          also... fix all the damn false positives on the duct detection...*/
+    BlobDetector::Blob empty(0,0,0,0,0,0,0);
     m_working->copyFrom(input);
-
+    m_workingPercents->copyFrom(m_working);
+    m_blackMasked->copyFrom(m_working);
+    m_yellowMasked->copyFrom(m_working);
+    to_ratios(m_workingPercents->asIplImage());
+    
+    
     // Grab data pointers
-    unsigned char* data = m_working->getData();
     unsigned char* outputData = 0;
-
-    // for debug
-    if (output)
-    {
-        output->copyFrom(m_working);
-        outputData = output->getData();
-    }
-
-
+    unsigned char* data = m_working->getData();
+    unsigned char* yellowData = m_yellowMasked->getData();
     int width = m_working->getWidth();
     int height = m_working->getHeight();
         
-    int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
-
-    // Make all yellow white, everything else black (mask yellow)
-    for (int j=0;j<height;j++)
+//    int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
+    
+    black_mask(m_workingPercents->asIplImage(),m_working->asIplImage(), m_blackMasked->asIplImage(), 5, 300);
+    
+    int count = 0;
+    for (int y = 0; y < height; y++)
     {
-        int offset = j*width*3;
-        for (int i=0;i<width*3;i+=3)
+        for (int x = 0; x < width; x++)
         {
-            data[offset+i+2] = data[offset+i+1] = data[offset+i] =
-                (yellow2(data[offset+i+2], // R
-                        data[offset+i+1], // G
-                        data[offset+i])
-                 * 255);  // B
+            if (yellow2(data[count+2],data[count+1],data[count]))
+            {
+                yellowData[count]=yellowData[count+1]=yellowData[count+2] = 255;
+            }
+            else
+            {
+                yellowData[count]=yellowData[count+1]=yellowData[count+2] = 0;            
+            }
+            count+=3;
         }
     }
 
-    // erode the image (get rid of stray white pixels)
+// erode the image (get rid of stray white pixels)
     if (m_erodeIterations != 0)
     {
-        cvErode(m_working->asIplImage(), m_working->asIplImage(), 0,
+        cvErode(m_blackMasked->asIplImage(), m_blackMasked->asIplImage(), 0,
                 m_erodeIterations);
     }
+    cvDilate(m_yellowMasked->asIplImage(), m_yellowMasked->asIplImage(), 0, 3);
 
     //for debug
     if (output)
     {
         output->copyFrom(m_working);
         outputData = output->getData();
-    }
-    
-    // find the bounding box of all the yellow
-    for (int j=0;j<height;j++)
-    {
-        int offset = j*width*3;
-        for (int i=0;i<width*3;i+=3)
+        unsigned char* blackData = m_blackMasked->getData();
+
+        int count = 0;
+        for (int y = 0; y < height; y++)
         {
-            if (data[offset+i] != 0)
+            for (int x = 0; x < width; x++)
             {
-                if (i/3 < minX) minX = i/3;
-                if (i/3 > maxX) maxX = i/3;
-                if (j < minY) minY = j;
-                if (j > maxY) maxY = j;
+                if (yellowData[count] == 255)
+                {
+                    outputData[count+1]=outputData[count+2]=255;
+                    outputData[count]=0;
+                }
+                else
+                {
+                    outputData[count]=outputData[count+1]=outputData[count+2]=0;
+                }
+                count+=3;
             }
         }
-    } 
-    
-    // calculate the range (basically the size of the bounding box)
-    double oldMx = m_x;
-    m_range = 1 - (((double)(maxX - minX)) / width);
-    
-    // calculate centroid by taking the center of the bounding box
-    m_x = (minX + maxX) * 0.5;
-    m_y = (minY + maxY) * 0.5;
-    
-    
-    // if we had sight of it last time, but not this time, throw lost event
-    if (m_x < 0)
-    {
-        if (oldMx > 0)
+        count=0;
+        for (int y = 0; y < height; y++)
         {
-            DuctEventPtr event(new DuctEvent(0, 0, 0, 0, false, false));
-            publish(EventType::DUCT_LOST, event);
-        }
-        oldMx = -1000;
-        m_rotation = 10;
-        return;
-    }
-    
-    
-    // convert our image to grayscale so that it can be used with hough
-    IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(m_working->asIplImage()),
-                                               IPL_DEPTH_8U,1);
-
-    cvCvtColor(m_working->asIplImage(),redSuitGrayScale,CV_BGR2GRAY);
-    
-    // edge detect using canny
-    IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
-
-    cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
-    CvMemStorage* storage = cvCreateMemStorage(0);
-    CvSeq* lines = 0;
-        
-    // hough transform
-    // potential problem:
-    // the hough transform will take two small segments that lie on the same
-    // plane and turn them into one large segment
-    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 10 );
-    
-    CvPoint* maxLine = 0;
-    int mY = 0;
-    
-    // look for the lowest line segment
-    for(int i = 0; i < lines->total; i++ )
-    {
-        CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
-        
-        //std::cout << "ROT:" << fabs((double)(line[1].y - line[0].y) /
-        //    (double)(line[1].x - line[0].x)) << "\n";
-        //std::cout << line[0].x << " " << line[0].y << " " << line[1].x << " " << line[1].y << "\n";
-        
-        // it must be lower than the current low, and must have length > 100
-        
-        //NOTE: this used to be max(line[0].y, line[1].y)
-        if ((line[0].y + line[1].y) * 0.5 >= mY &&
-            sqrt(pow(line[0].x - line[1].x, 2) +
-                 pow(line[0].y - line[1].y, 2)) > 100)
-        {
-            // make sure the slope of the segment is reasonable
-            if (fabs((double)(line[1].y - line[0].y) /
-                 (double)(line[1].x - line[0].x)) < 0.5)
+            for (int x = 0; x < width; x++)
             {
-                maxLine = line;
+                if (blackData[count] == 255 && outputData[count+1]==0)
+                {
+                    outputData[count]=outputData[count+1]=outputData[count+2]=255;
+                }
+                count+=3;
             }
-            //see NOTE
-            mY = (int)((line[0].y + line[1].y) * 0.5);
-        }
-        
-        //debug
-        if (output)
-        {
-            IplImage* raw = output->asIplImage();
-            cvLine(raw, line[0], line[1], CV_RGB(0,255,0), 3, CV_AA, 0 );
         }
     }
     
-    // if we found a line
-    if (maxLine != 0 && maxLine[1].x != maxLine[0].x)
+    blobDetector.setMinimumBlobSize(500);
+    blobDetector.processImage(m_yellowMasked);
+    BlobDetector::BlobList yellowBlobs = blobDetector.getBlobs();
+
+    blobDetector.setMinimumBlobSize(750);
+    blobDetector.processImage(m_blackMasked);
+    BlobDetector::BlobList blackBlobs = blobDetector.getBlobs();
+    
+    if (output)
+    {
+        BOOST_FOREACH(BlobDetector::Blob blob, blackBlobs)
+        {
+            blob.draw(output);
+        }
+        BOOST_FOREACH(BlobDetector::Blob blob, yellowBlobs)
+        {
+            blob.draw(output);
+        }
+    }
+    
+    int minEntranceX = 10000;
+    int minEntranceY = 10000;
+    int maxEntranceX = -10000;
+    int maxEntranceY = -10000;
+    containsOne = false;
+    BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
+    {
+        BOOST_FOREACH(BlobDetector::Blob yellowBlob, yellowBlobs)
+        {
+            if (yellowBlob.containsInclusive(blackBlob,3))
+            {
+                containsOne = true;
+                minEntranceX = min(minEntranceX, blackBlob.getMinX());
+                minEntranceY = min(minEntranceY, blackBlob.getMinY());
+                maxEntranceX = max(maxEntranceX, blackBlob.getMaxX());
+                maxEntranceY = max(maxEntranceY, blackBlob.getMaxY());
+            }
+        }
+    }
+    
+    if (output)
+    {
+        CvPoint tl,tr,bl,br;
+        tl.x = bl.x = std::max(minEntranceX,0) - 1;
+        tr.x = br.x = std::min(maxEntranceX,width-1) + 1;
+        tl.y = tr.y = std::min(minEntranceY,height-1) + 1;
+        br.y = bl.y = std::max(maxEntranceY,0) - 1;
+        
+        IplImage* raw = output->asIplImage();
+        cvLine(raw, tl, tr, CV_RGB(255,0,0), 3, CV_AA, 0 );
+        cvLine(raw, tl, bl, CV_RGB(255,0,0), 3, CV_AA, 0 );
+        cvLine(raw, tr, br, CV_RGB(255,0,0), 3, CV_AA, 0 );
+        cvLine(raw, bl, br, CV_RGB(255,0,0), 3, CV_AA, 0 );
+    }
+    
+    if (containsOne || (yellowBlobs.size() >=2 && blackBlobs.size() >= 1))
     {
         m_found = true;
-        if (output)
-        {
-            IplImage* raw = output->asIplImage();
-            cvLine(raw, maxLine[0], maxLine[1], CV_RGB(255,255,0), 3, CV_AA, 0 );
-        }
-        // store its slope as rotation
-        m_rotation = (double)(maxLine[1].y - maxLine[0].y) / (double)(maxLine[1].x - maxLine[0].x);
-        //std::cout << m_rotation << "\n";
     }
     else
     {
-        m_found = false;
-        //std::cout << "NOT FOUND\n";
+        if (m_found)
+        {
+            DuctEventPtr event(new DuctEvent(0, 0, 0, 0, false, false));
+            publish(EventType::DUCT_LOST, event);
+            m_found = false;
+        }
     }
     
-    // free memory
-    cvReleaseImage(&redSuitGrayScale);
-    cvReleaseImage(&cannied);
-    cvReleaseMemStorage(&storage);
-    
-        
-    // debug
-    if (m_found && output && m_x > 0)
+    std::vector<BlobDetector::Blob> allBlobs;
+    BOOST_FOREACH(BlobDetector::Blob blob, blackBlobs)
     {
-       // Color all yellow pixels white
-/*        unsigned char* odata = output->getData();
-        unsigned char* idata = m_working->getData();
-        size_t pixels = output->getWidth() * output->getHeight();
-        for (size_t i = 0; i < pixels; ++i)
+        allBlobs.push_back(blob);
+    }    
+    BOOST_FOREACH(BlobDetector::Blob blob, yellowBlobs)
+    {
+        allBlobs.push_back(blob);
+    }
+
+    ///START OF COPY PASTE
+    //////////////////////
+    
+    int size = allBlobs.size();
+    int* blobUnionizer = new int[size];
+    BlobDetector::Blob* unionBlobs = new BlobDetector::Blob[size];
+    int* blobCounts = new int[size];
+    for (int i = 0; i < size; i++)
+    {
+        blobUnionizer[i] = i;
+        unionBlobs[i] = allBlobs[i];
+        blobCounts[i] = 1;
+    }
+    
+    for (int i = 0; i < size; i ++)
+    {
+        for (int j = i+1; j < size; j++)
         {
-            if (*idata > 0) //yellow(*(idata+2), *(idata+1), *idata))
+            if (blobsAreClose(allBlobs[i],allBlobs[j], .025))
             {
-                *(odata++) = 0;
-                *(odata++) = 255;
-                *(odata++) = 0;
+                int rooti = i;
+                int rootj = j;
+                
+                while (rooti != blobUnionizer[rooti])
+                    rooti = blobUnionizer[rooti];
+
+                while (rootj != blobUnionizer[rootj])
+                    rootj = blobUnionizer[rootj];
+
+                int minRoot = (rooti < rootj)? rooti : rootj;
+
+                blobUnionizer[i] = blobUnionizer[j] = minRoot;
             }
-            else
+        }
+    }
+
+    int biggestCluster = -1;
+    int biggestClusterBlobCount = 0;
+    for (int i = size-1; i >=0; i--)
+    {
+        if (blobUnionizer[i] == i)
+        {
+            if (blobCounts[i] > biggestClusterBlobCount)
             {
-                odata += 3;
+                biggestClusterBlobCount = blobCounts[i];
+                biggestCluster = i;
             }
-            idata += 3;
-            }*/
+            continue;
+        }
+
+        BlobDetector::Blob curBlob = unionBlobs[i];
+        BlobDetector::Blob parentBlob = unionBlobs[blobUnionizer[i]];
+
+        int minX = (curBlob.getMinX() < parentBlob.getMinX())?curBlob.getMinX():parentBlob.getMinX();
+
+        int minY = (curBlob.getMinY() < parentBlob.getMinY())?curBlob.getMinY():parentBlob.getMinY();
+
+        int maxX = (curBlob.getMaxX() > parentBlob.getMaxX())?curBlob.getMaxX():parentBlob.getMaxX();
+
+        int maxY = (curBlob.getMaxY() > parentBlob.getMaxY())?curBlob.getMaxY():parentBlob.getMaxY();
         
-        // Draw bounding box
-        CvPoint tl,tr,bl,br;
-        tl.x = bl.x = std::max(minX,0) - 1;
-        tr.x = br.x = std::min(maxX,width-1) + 1;
-        tl.y = tr.y = std::min(minY,height-1) + 1;
-        br.y = bl.y = std::max(maxY,0) - 1;
-            
-        IplImage* raw = output->asIplImage();
-        cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
-        cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
-        cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-        cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+        int centerX = (minX + maxX) / 2;
+        int centerY = (minY + maxY) / 2;
         
+        
+        BlobDetector::Blob newBlob(curBlob.getSize() + parentBlob.getSize(),
+                     centerX,centerY,maxX,minX,maxY,minY);
+
+        unionBlobs[blobUnionizer[i]] = newBlob;
+        blobCounts[blobUnionizer[i]] += blobCounts[i];
+
+        blobCounts[i] = -1;
+        unionBlobs[i] = empty;
+        blobUnionizer[i] = -1;
+    }
+        
+    BlobDetector::Blob fullDuct = unionBlobs[biggestCluster];
+    
+    if (m_found && containsOne)
+        m_rotation = (fullDuct.getCenterX() - ((minEntranceX + maxEntranceX) / 2));
+    else
+        m_rotation = 0;
+                
+    if (output)
+    {
+        fullDuct.draw(output);
+    }
+    
+    delete[] blobUnionizer;
+    delete[] unionBlobs;
+    delete[] blobCounts;    
+    
+    
+    if (m_found && output)
+    {
         // Draw center of bin
         CvPoint binCenter;
-        binCenter.x = (int)m_x;
-        binCenter.y = (int)m_y;
+        binCenter.x = (int)fullDuct.getCenterX();
+        binCenter.y = (int)fullDuct.getCenterY();
         if (getAligned() && getVisible())
-            cvCircle(raw, binCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
+            cvCircle(output->asIplImage(), binCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
         else
-            cvCircle(raw, binCenter, 10, CV_RGB(255,0,0), 2, CV_AA, 0);
+            cvCircle(output->asIplImage(), binCenter, 10, CV_RGB(255,0,0), 2, CV_AA, 0);
 
         // Draw rotation indicator
         CvPoint rotationEnd;
         rotationEnd.y = binCenter.y;
-        rotationEnd.x = binCenter.x +
-            (int)((m_rotation/-90) * (double)width/2.0) * 10;
+        rotationEnd.x = binCenter.x - m_rotation;
         if (getAligned() && getVisible())
-            cvLine(raw, binCenter, rotationEnd, CV_RGB(0,255,0), 3, CV_AA, 0 );
+        {
+            cvLine(output->asIplImage(), binCenter, rotationEnd, CV_RGB(0,255,0), 3, CV_AA, 0 );
+        }
         else
-            cvLine(raw, binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
+            cvLine(output->asIplImage(), binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
     }
+    //////////////////////
+    ///END OF COPY PASTE
     
-    // convert to the crazy coordinate system
-    n_x = -1 * ((width / 2) - m_x);
-    n_y = (height / 2) - m_y;
-    n_x = n_x / ((double)width) * 2.0;
-    n_y = n_y / ((double)height) * 2.0;
-    n_x *= (double)width/height;
-        
-    // publish found event
-    DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 
-        getAligned(), getVisible()));
-    publish(EventType::DUCT_FOUND, event);
+    //    // convert to the crazy coordinate system
+    //    n_x = -1 * ((width / 2) - m_x);
+    //    n_y = (height / 2) - m_y;
+    //    n_x = n_x / ((double)width) * 2.0;
+    //    n_y = n_y / ((double)height) * 2.0;
+    //    n_x *= (double)width/height;
+    //        
+    //    // publish found event
+    //    DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 
+    //        getAligned(), getVisible()));
+    //    publish(EventType::DUCT_FOUND, event);
 }
     
 double DuctDetector::getX()
@@ -377,7 +495,7 @@ bool DuctDetector::getVisible()
     
 bool DuctDetector::getAligned()
 {
-    return m_found && fabsf(m_rotation) < m_alignedThreshold;
+    return m_found && fabsf(m_rotation) < m_alignedThreshold && abs(fullDuct.getCenterX() - m_working->getWidth()/2) < 25 && abs(fullDuct.getCenterY() - m_working->getHeight()/2) < 25 && containsOne;
 }
 
 } // namespace vision
