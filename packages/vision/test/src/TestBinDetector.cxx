@@ -134,7 +134,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles3)
     if (receivedMultiBinAngleEvent);
     {
         receivedMultiBinAngleEvent = false;
-        CHECK_CLOSE(45, multiBinAngleEvent->angle.valueDegrees(),2);
+        CHECK_CLOSE(-45, multiBinAngleEvent->angle.valueDegrees(),2);
     }
 //    vision::Image::showImage(&output);
 }
@@ -156,7 +156,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
     if (receivedMultiBinAngleEvent);
     {
         receivedMultiBinAngleEvent = false;
-        CHECK_CLOSE(45, multiBinAngleEvent->angle.valueDegrees(),.25);
+        CHECK_CLOSE(-45, multiBinAngleEvent->angle.valueDegrees(),.25);
     }
 //    vision::Image::showImage(&output);
 
@@ -171,7 +171,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
     if (receivedMultiBinAngleEvent);
     {
         receivedMultiBinAngleEvent = false;
-        CHECK_CLOSE(-45, multiBinAngleEvent->angle.valueDegrees(),.25);
+        CHECK_CLOSE(45, multiBinAngleEvent->angle.valueDegrees(),.25);
     }
 //    vision::Image::showImage(&output);
 }
@@ -200,7 +200,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     if (receivedMultiBinAngleEvent)
     {
         receivedMultiBinAngleEvent = false;
-        CHECK_CLOSE(90, multiBinAngleEvent->angle.valueDegrees(),.25);
+        CHECK_CLOSE(-90, multiBinAngleEvent->angle.valueDegrees(),.25);
     }
 //    vision::Image::showImage(&output);
 
@@ -218,7 +218,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     if (receivedMultiBinAngleEvent)
     {
         receivedMultiBinAngleEvent = false;
-        CHECK_CLOSE(90, multiBinAngleEvent->angle.valueDegrees(),.25);
+        CHECK_CLOSE(-90, multiBinAngleEvent->angle.valueDegrees(),.25);
     }
     
 //    vision::Image::showImage(&output);
