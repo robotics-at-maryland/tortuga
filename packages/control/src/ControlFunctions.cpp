@@ -510,21 +510,37 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 	Vector3 wd(desiredState->angularRate);
 	//derivative of angular rate desired
 	Vector3 dwd(0,0,0);
+	//format angular rate for OGRE
+	Vector3 w(measuredState->angularRate);
 	//compute derivative of quaternion desired
 	Quaternion dqd = qd.derivative(wd);
 	
 	//compute error quaternion
-	Quaternion qc_tilde = q.errorQuaternion(qd);
+	//WARNING!!! I had to "transpose" the quaternion order here.  
+	//Is this a problem with the errorQuaternion function (ie backwards)?
+	//	Quaternion qc_tilde = q.errorQuaternion(qd);
+	Quaternion qc_tilde = qd.errorQuaternion(q);
+	//	std::cout << "qc = " << qc_tilde.x << " " << qc_tilde.y << " " << qc_tilde.z << " " << qc_tilde.w << std::endl;
 
 	//compute rotation matrix
 	Matrix3 RotMatc_tilde;
 	qc_tilde.ToRotationMatrix(RotMatc_tilde);
 
-	//compute composite error metrics
-	//Vector3 w_r = 
+	//extract vector portion of qc_tilde
+	Vector3 epsilon_c_tilde(qc_tilde.x, qc_tilde.y, qc_tilde.z);
+
 	
+	//compute composite error metrics
+	Vector3 w_r = RotMatc_tilde*wd-(controllerState->adaptCtrlRotLambda)*epsilon_c_tilde;
+	Vector3 shat = w-w_r;
+
+	//compute angular rate error
+	Vector3 wc_tilde = w -RotMatc_tilde*wd;
+
 	//	double rotationalTorques[3];
-	rotationalTorques[0] = RotMatc_tilde[0][0];
+	rotationalTorques[0] = wc_tilde[0];
+	rotationalTorques[1] = wc_tilde[1];
+	rotationalTorques[2] = wc_tilde[2];
 }
 
 /************************************************************************

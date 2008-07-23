@@ -159,7 +159,89 @@ TEST(AdaptiveRotationalController)
 	state.adaptCtrlParams[10][0]=2;
 	state.adaptCtrlParams[11][0]=2;
 
+	state.dtMin=0.01;
+	state.dtMax=1;
+
+	double act_torques[3];
+	double expect_torques[3] = {0,0,0};
+	control::AdaptiveRotationalController(&measured, &desired, &state,
+										  0.2, act_torques);
+	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.0001);
+
+	//TEST 2
+	//	control::DesiredState desired;
+	/*	desired.speed=0;
+	desired.sidewaysSpeed=0;
+	desired.depth=0;*/
+	desired.quaternion[0]=0;
+	desired.quaternion[1]=0;
+	desired.quaternion[2]=0.7071;
+	desired.quaternion[3]=0.7071;
+	desired.angularRate[0]=0;
+	desired.angularRate[1]=0;
+	desired.angularRate[2]=0;
+										   
+	//	control::MeasuredState measured;
+	/*	measured.depth=0;
+	measured.linearAcceleration[0]=0;
+	measured.linearAcceleration[1]=0;
+	measured.linearAcceleration[2]=0;
+	measured.magneticField[0]=0;
+	measured.magneticField[1]=0;
+	measured.magneticField[2]=0;*/
+	measured.quaternion[0]=0;
+	measured.quaternion[1]=0;
+	measured.quaternion[2]=0;
+	measured.quaternion[3]=1;
+	measured.angularRate[0]=0;
+	measured.angularRate[1]=0;
+	measured.angularRate[2]=0;
+
+	//	control::ControllerState state;
+	/*	state.angularPGain=10;
+	state.angularDGain=1;
+	state.inertiaEstimate[0][0]=0.201;
+	state.inertiaEstimate[0][1]=0;
+	state.inertiaEstimate[0][2]=0;
+	state.inertiaEstimate[1][0]=0;
+	state.inertiaEstimate[1][1]=1.288;
+	state.inertiaEstimate[1][2]=0;
+	state.inertiaEstimate[2][0]=0;
+	state.inertiaEstimate[2][1]=0;
+	state.inertiaEstimate[2][2]=1.288;
+	state.depthPGain=0;
+	state.speedPGain=0;*/
+	state.adaptCtrlRotK=1;
+	state.adaptCtrlRotLambda=1;
+	state.adaptCtrlRotGamma=1;
 	
+	state.adaptCtrlParams.resize(12,1);
+	state.adaptCtrlParams[0][0]=0.5;
+	state.adaptCtrlParams[1][0]=0;
+	state.adaptCtrlParams[2][0]=-0.1;
+	state.adaptCtrlParams[3][0]=1;
+	state.adaptCtrlParams[4][0]=0;
+	state.adaptCtrlParams[5][0]=1;
+	state.adaptCtrlParams[6][0]=0;
+	state.adaptCtrlParams[7][0]=0;
+	state.adaptCtrlParams[8][0]=0;
+	state.adaptCtrlParams[9][0]=1;
+	state.adaptCtrlParams[10][0]=2;
+	state.adaptCtrlParams[11][0]=2;
+
+	state.dtMin=0.01;
+	state.dtMax=1;
+
+	//double act_torques[3];
+	//double expect_torques[3] = {0,0,-0.7071};
+	expect_torques[0] = 0;
+	expect_torques[1] = 0;
+	expect_torques[2] = 0;
+	control::AdaptiveRotationalController(&measured, &desired, &state,
+										  0.1, act_torques);
+	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.0001);
+
+
 	/*
     // Testing Yaw Control
     double exp_rotTorques[3] = {0, 0, -3.5497};
