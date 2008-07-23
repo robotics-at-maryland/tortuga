@@ -609,12 +609,15 @@ class IdealSimVision(ext.vision.VisionSystem):
         
     def _checkBin(self):
         found = False
+        visibleBins = 0
+        lastAngle = ext.math.Degree(0)
         
         for bin in self._bins:
             relativePos = bin.position - self.vehicle.robot.position
             binVisible, x, y, angle = self._downwardCheck(relativePos, bin)
 
             if binVisible and (relativePos.length() < 4.5):
+                visibleBins += 1
                 found = True
 
                 id = self._binID
@@ -633,13 +636,22 @@ class IdealSimVision(ext.vision.VisionSystem):
                 event.suit = bin.suit
                 event.id = id
                 self.publish(ext.vision.EventType.BIN_FOUND, event)
+                
+                # Record angle for use in the multi bin event
+                lastAngle = angle
             elif bin.visible:
                 event = ext.core.Event()
                 event.id = bin.id
                 self.publish(ext.vision.EventType.BIN_DROPPED, event)
                 bin.visible = False
                 
-
+        # Multi Bin Angle Event
+        if visibleBins > 1:
+            event = ext.core.Event()
+            event.angle = lastAngle
+            self.publish(ext.vision.EventType.MULTI_BIN_ANGLE, event)
+        
+        # Lost Event
         if self._foundBin and (not found):
             self.publish(ext.vision.EventType.BIN_LOST, ext.core.Event())
 

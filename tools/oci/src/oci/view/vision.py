@@ -289,6 +289,10 @@ class BinPanel(VisionPanel):
                                         self._onBinFound)
         self._connections.append(conn)
         
+        conn = eventHub.subscribeToType(ext.vision.EventType.MULTI_BIN_ANGLE, 
+                                        self._onMultiBinAngle)
+        self._connections.append(conn)
+        
         conn = eventHub.subscribeToType(ext.vision.EventType.BIN_LOST, 
                                         self._onBinLost)
         self._connections.append(conn)
@@ -303,7 +307,11 @@ class BinPanel(VisionPanel):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
         self._createDataControl(controlName = '_angle', label = 'Angle: ')
+        self._createDataControl(controlName = '_multiAngle', label = 'M-Ang: ')
         self._createDataControl(controlName = '_suit', label = 'Suit: ')
+        
+    def _onMultiBinAngle(self, event):
+        self._multiAngle.Value = "% 4.2f" % event.angle.valueDegrees()
         
     def _onBinFound(self, event):
         obj = event
