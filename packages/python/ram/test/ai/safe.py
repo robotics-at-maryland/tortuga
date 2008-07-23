@@ -84,12 +84,12 @@ class TestDive(aisupport.AITestCase):
         
     def testFinished(self):
         self.injectEvent(ram.motion.basic.Motion.FINISHED)
-        self.assertCurrentState(safe.Offseting)
+        self.assertCurrentState(safe.Offsetting)
         
 class TestOffseting(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.machine.start(safe.Offseting)
+        self.machine.start(safe.Offsetting)
 
     def testPipeFound(self):
         # Safe above us
@@ -116,10 +116,10 @@ class TestOffseting(aisupport.AITestCase):
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         
-        self.assertCurrentState(safe.Offseting)
+        self.assertCurrentState(safe.Offsetting)
         
     def testCentering(self):
-        self.assertCurrentState(safe.Offseting)
+        self.assertCurrentState(safe.Offsetting)
         self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
                          x = 0.1, y = -0.75)#, angle = math.Degree(15.0))
         self.qeventHub.publishEvents()

@@ -102,7 +102,7 @@ class Dive(SafeTrackingState):
     @staticmethod
     def transitions():
         return SafeTrackingState.transitions(Dive,
-            { ram.motion.basic.Motion.FINISHED : Offseting })
+            { ram.motion.basic.Motion.FINISHED : Offsetting })
         
     def enter(self):
         safeDepth = self._config.get('safeDepth', 22)
@@ -115,11 +115,11 @@ class Dive(SafeTrackingState):
         
         SafeTrackingState.enter(self)
         
-class Offseting(SafeCentering):
+class Offsetting(SafeCentering):
     """Moves the treasure under the grabber of the vehicle"""
     @staticmethod
     def transitions():
-        return SafeCentering.transitions(Offseting,
+        return SafeCentering.transitions(Offsetting,
             { SafeCentering.CENTERED : Settling })
 
     def SAFE_FOUND(self, event):
