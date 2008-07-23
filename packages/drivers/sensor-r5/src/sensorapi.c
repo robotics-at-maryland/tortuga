@@ -279,26 +279,44 @@ int getSonarData(int fd, struct sonarData * sd)
 
     printf("%d\n", ((rawSonar[0]<<8) | rawSonar[1]));
 */
+    int errorCount = 0;
+
     sd->vectorX = ((signed short) ((rawSonar[0]<<8) | rawSonar[1])) / 10000.0;
     sd->vectorY = ((signed short) ((rawSonar[2]<<8) | rawSonar[3])) / 10000.0;
     sd->status = rawSonar[4];
+
+    if(rawSonar[5] != 0x00)
+        errorCount++;
+
     sd->vectorZ = ((signed short) ((rawSonar[6]<<8) | rawSonar[7])) / 10000.0;
 
     sd->range = (rawSonar[8]<<8) | rawSonar[9];
 
+    if(rawSonar[10] != 0x00)
+        errorCount++;
+
     sd->timeStampSec = (rawSonar[11]<<24) | (rawSonar[12] << 16) | (rawSonar[13] << 8) | rawSonar[14];
+
+    if(rawSonar[15] != 0x00)
+        errorCount++;
+
     sd->timeStampUSec = (rawSonar[16]<<24) | (rawSonar[17] << 16) | (rawSonar[18] << 8) | rawSonar[19];
 
+    if(rawSonar[20] != 0x00)
+        errorCount++;
 
 
+    if(errorCount)
+        printf("Sonar: %d bytes messed up\n", errorCount);
 
-    //printf("Vector: \t<%5.4f %5.4f %5.4f>\n", sd->vectorX, sd->vectorY, sd->vectorZ);                  
+
+    //printf("Vector: \t<%5.4f %5.4f %5.4f>\n", sd->vectorX, sd->vectorY, sd->vectorZ);
     //printf("Status: \t0x%02x\n", sd->status);
     //printf("Range:  \t%u\n", sd->range);
     //printf("Timestamp:\t%u\n", sd->timeStampSec);
     //printf("Sample No:\t%u\n", sd->timeStampUSec);
     //printf("Yaw: %f\n", atan2(sd->vectorY, sd->vectorX) * 180.0 / 3.14159);
-    
+
     return SB_OK;
 }
 
