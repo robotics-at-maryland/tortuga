@@ -492,6 +492,7 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
                                    double dt,
                                    double* rotationalTorques)
 {
+  //be extra safe about dt values
     if(dt < controllerState->dtMin)
     {
         dt = controllerState->dtMin;
@@ -500,6 +501,30 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
     {
         dt = controllerState->dtMax;
     }
+
+	//format quaternion desired for OGRE
+	Quaternion qd(desiredState->quaternion);
+	//format actual quaternion for OGRE
+	Quaternion q(measuredState->quaternion);
+	//format angular rate desired for OGRE
+	Vector3 wd(desiredState->angularRate);
+	//derivative of angular rate desired
+	Vector3 dwd(0,0,0);
+	//compute derivative of quaternion desired
+	Quaternion dqd = qd.derivative(wd);
+	
+	//compute error quaternion
+	Quaternion qc_tilde = q.errorQuaternion(qd);
+
+	//compute rotation matrix
+	Matrix3 RotMatc_tilde;
+	qc_tilde.ToRotationMatrix(RotMatc_tilde);
+
+	//compute composite error metrics
+	//Vector3 w_r = 
+	
+	//	double rotationalTorques[3];
+	rotationalTorques[0] = RotMatc_tilde[0][0];
 }
 
 /************************************************************************
