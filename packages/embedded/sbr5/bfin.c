@@ -102,29 +102,32 @@ void _ISR _U2RXInterrupt(void)
     } else
     {
 
-        byte t = U2RXREG;
-	    byte i;
-        actLight(0);
-
-        if(sonarPtr < SONAR_PACKET_LEN)
-            sonarRxBuf[sonarPtr++] = t;   /* Blargh */
-
-	    if(sonarPtr >= SONAR_PACKET_LEN)
-	    {
-	        for(i=0; i<SONAR_PACKET_LEN; i++)
-		        sonarBuf[i] = sonarRxBuf[i];
-	    }
-
-
-        /* We are looking for 6 FFs in a row. */
-        if(t == 0xFF)
+        while(U2STAbits.URXDA)
         {
-            fCount++;
-            /* Start of sequence? */
-            if(fCount >= 6)
-                sonarPtr = 0;
-        } else
-            fCount = 0;
+            byte t = U2RXREG;
+	        byte i;
+            actLight(0);
+
+            if(sonarPtr < SONAR_PACKET_LEN)
+                sonarRxBuf[sonarPtr++] = t;   /* Blargh */
+
+	        if(sonarPtr == SONAR_PACKET_LEN)
+	        {
+	            for(i=0; i<SONAR_PACKET_LEN; i++)
+		            sonarBuf[i] = sonarRxBuf[i];
+	        }
+
+
+            /* We are looking for 6 FFs in a row. */
+            if(t == 0xFF)
+            {
+                fCount++;
+                /* Start of sequence? */
+                if(fCount >= 6)
+                    sonarPtr = 0;
+            } else
+                fCount = 0;
+        }
     }
 }
 

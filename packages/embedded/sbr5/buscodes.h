@@ -240,4 +240,4 @@
 
 
 
-#define SONAR_PACKET_LEN 20
+#define SONAR_PACKET_LEN 22
