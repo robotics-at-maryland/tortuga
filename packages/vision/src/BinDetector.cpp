@@ -387,8 +387,8 @@ void BinDetector::processImage(Image* input, Image* out)
             drawStart.x = binsCenterX/(angleCounter+1);
             drawStart.y = binsCenterY/(angleCounter+1);
             
-            drawEnd.x = drawStart.x + cosTotal / (angleCounter) * 250;
-            drawEnd.y = drawStart.y + sinTotal / (angleCounter) * 250;
+            drawEnd.x = (int)(drawStart.x + cosTotal / (angleCounter) * 250);
+            drawEnd.y = (int)(drawStart.y + sinTotal / (angleCounter) * 250);
             if (out)
             {
                 cvLine(output, drawStart, drawEnd, CV_RGB(255,255,0),5, CV_AA,0); 
