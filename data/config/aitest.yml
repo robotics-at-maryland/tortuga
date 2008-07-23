@@ -120,24 +120,24 @@ Subsystems:
             ram.ai.safe.Dive:
                 safeDepth: 7.2
                 #safeDepth: 21.5 # NBRF Bottom
-                depthOffset: 1.0
+                depthOffset: 0.7
                 diveRate: 0.3
             ram.ai.safe.Grabbing:
                 safeDepth: 7.2
                 #safeDepth: 21.5
                 depthOffset: 1.75
             ram.ai.safe.Offsetting:
-                speedGain: 0
-                maxSpeed: 5 #1.2
+                speedGain: 1.5
+                maxSpeed: 1.2
                 offset: -0.4
                 centeredRange: 0.5
                 sanity: YES
             ram.ai.safe.Settling:
-                speedGain: 0 #0.7
+                speedGain: 0.7
                 maxSpeed: 1.2
                 sidewaysSpeedGain: 4
                 maxSidewaysSpeed: 1.5
-                offset: -0.5
+                offset: -0.55
                 duration: 15
 
             ram.ai.course.PingerDive:
