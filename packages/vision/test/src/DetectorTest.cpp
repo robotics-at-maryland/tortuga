@@ -280,7 +280,8 @@ vision::DetectorPtr createDetector(std::string detectorType,
                 BOOST_FOREACH(std::string nodeName, nodeNames)
                 {
                     core::ConfigNode subsysCfg(cfg[nodeName]);
-                    if ("VisionSystem" == subsysCfg["type"].asString("NONE"))
+                    if (("VisionSystem" == subsysCfg["type"].asString("NONE"))||
+                        ("SimVision" == subsysCfg["type"].asString("NONE")))
                     {
                         std::cout << "Looking in config section" << std::endl;
                         // Attempt to find in the list of detectors

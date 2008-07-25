@@ -62,6 +62,7 @@ private:
     int m_blueThreshold;
     int m_erodeIterations;
     double m_alignedThreshold;
+    int m_centerAlignedThreshold;
     bool m_found;
     bool containsOne;
 };

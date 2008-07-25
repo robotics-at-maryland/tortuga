@@ -167,6 +167,7 @@ void DuctDetector::init(core::ConfigNode config)
     m_blueThreshold = config["blueThreshold"].asInt(50);
     m_erodeIterations = config["erodeIterations"].asInt(3);
     m_alignedThreshold = config["alignedThreshold"].asDouble(5);
+    m_centerAlignedThreshold = config["centerAlignedThreshold"].asInt(25);
 }
     
 void DuctDetector::processImage(Image* input, Image* output)
@@ -193,13 +194,15 @@ void DuctDetector::processImage(Image* input, Image* output)
         
 //    int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
     
-    black_mask(m_workingPercents->asIplImage(),m_working->asIplImage(), m_blackMasked->asIplImage(), 5, 300);
+    black_mask(m_workingPercents->asIplImage(),m_working->asIplImage(), m_blackMasked->asIplImage(),
+               5, 300);
     
     int count = 0;
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
+            //if (yellow(data[count+2],data[count+1],data[count]))
             if (yellow2(data[count+2],data[count+1],data[count]))
             {
                 yellowData[count]=yellowData[count+1]=yellowData[count+2] = 255;
@@ -211,6 +214,7 @@ void DuctDetector::processImage(Image* input, Image* output)
             count+=3;
         }
     }
+//    Image::showImage(m_yellowMasked);
 
 // erode the image (get rid of stray white pixels)
     if (m_erodeIterations != 0)
@@ -290,10 +294,10 @@ void DuctDetector::processImage(Image* input, Image* output)
             if (yellowBlob.containsInclusive(blackBlob,3))
             {
                 containsOne = true;
-                minEntranceX = min(minEntranceX, blackBlob.getMinX());
-                minEntranceY = min(minEntranceY, blackBlob.getMinY());
-                maxEntranceX = max(maxEntranceX, blackBlob.getMaxX());
-                maxEntranceY = max(maxEntranceY, blackBlob.getMaxY());
+                minEntranceX = std::min(minEntranceX, blackBlob.getMinX());
+                minEntranceY = std::min(minEntranceY, blackBlob.getMinY());
+                maxEntranceX = std::max(maxEntranceX, blackBlob.getMaxX());
+                maxEntranceY = std::max(maxEntranceY, blackBlob.getMaxY());
             }
         }
     }
@@ -444,7 +448,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         // Draw rotation indicator
         CvPoint rotationEnd;
         rotationEnd.y = binCenter.y;
-        rotationEnd.x = binCenter.x - m_rotation;
+        rotationEnd.x = (int)(binCenter.x - m_rotation);
         if (getAligned() && getVisible())
         {
             cvLine(output->asIplImage(), binCenter, rotationEnd, CV_RGB(0,255,0), 3, CV_AA, 0 );
@@ -452,6 +456,36 @@ void DuctDetector::processImage(Image* input, Image* output)
         else
             cvLine(output->asIplImage(), binCenter, rotationEnd, CV_RGB(255,0,0), 3, CV_AA, 0 );
     }
+
+    if (m_found)
+    {
+        // Shift origin to the center
+        //n_x = -1 * ((input->getWidth() / 2) - fullDuct.getCenterX());
+        //n_y = (input->getHeight() / 2) - fullDuct.getCenterY();
+        // These temps needed because of some wierd overflow issue
+        int temp = (input->getHeight() / 2);
+        int temp2 = temp - fullDuct.getCenterY();
+        n_y = temp2;
+        temp = (input->getWidth() / 2);
+        temp2 = temp - fullDuct.getCenterX();
+        n_x = -1 * temp2;
+
+        // Normalize (-1 to 1)
+        n_x = n_x / ((double)(input->getWidth())) * 2.0;
+        n_y = n_y / ((double)(input->getHeight())) * 2.0;
+
+        // Account for the aspect ratio difference
+        // 640/480
+        n_x *= (double)input->getWidth() / input->getHeight();
+
+        // Calculate range
+        m_range = 1 - ((double)(fullDuct.getMaxY() - fullDuct.getMinY()) / (double)input->getHeight());
+        
+        DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 
+                                         getAligned(), getVisible()));
+        publish(EventType::DUCT_FOUND, event);
+    }
+    
     //////////////////////
     ///END OF COPY PASTE
     
@@ -495,7 +529,11 @@ bool DuctDetector::getVisible()
     
 bool DuctDetector::getAligned()
 {
-    return m_found && fabsf(m_rotation) < m_alignedThreshold && abs(fullDuct.getCenterX() - m_working->getWidth()/2) < 25 && abs(fullDuct.getCenterY() - m_working->getHeight()/2) < 25 && containsOne;
+    return m_found &&
+        fabsf(m_rotation) < m_alignedThreshold &&
+        abs(fullDuct.getCenterX() - m_working->getWidth()/2) < m_centerAlignedThreshold &&
+        abs(fullDuct.getCenterY() - m_working->getHeight()/2) < m_centerAlignedThreshold &&
+        containsOne;
 }
 
 } // namespace vision
