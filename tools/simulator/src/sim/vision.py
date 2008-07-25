@@ -894,7 +894,8 @@ class SimVision(ext.vision.VisionSystem):
             ogre.TEX_TYPE_2D, width, height, 0, ogre.PixelFormat.PF_B8G8R8,
             ogre.TU_RENDERTARGET)
         rttTex = texture.getBuffer().getRenderTarget();
-        rttTex.addViewport(camera)
+        viewport = rttTex.addViewport(camera)
+        viewport.setBackgroundColour(ogre.ColourValue(200,200,200))
 
         setattr(self, camera.name + 'Texture', texture)
 
