@@ -309,7 +309,11 @@ class Recover(state.State):
     def transitions():
         return { vision.EventType.BIN_FOUND : Seeking,
                  Recover.TIMEOUT : Searching }
-    
+
+    def BIN_FOUND(self, event):
+        self.ai.data['currentBinID'] = event.id
+        self.ai.data['currentBins'] = set()        
+
     def enter(self):
         self.timer = self.timerManager.newTimer(Recover.TIMEOUT, 
                                                 self._config.get('timeout', 5))

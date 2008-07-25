@@ -218,7 +218,7 @@ class Aligning(DuctAlignState, state.State):
         DuctAlignState.enter(self)
         
         self.timer = self.timerManager.newTimer(
-            Aligning.SETTLED, self._config.get('settleTime', 5))
+            Aligning.SETTLED, self._config.get('settleTime', 15))
         self.timer.start()
         
     def exit(self):
@@ -239,6 +239,7 @@ class Through(state.State):
         self.timer = self.timerManager.newTimer(
             Through.FORWARD_DONE, self._config.get('forwardTime', 15))
         self.timer.start()
+        self.controller.setSidewaysSpeed(0)
         self.controller.setSpeed(3)
     
     def exit(self):

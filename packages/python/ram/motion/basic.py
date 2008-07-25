@@ -411,6 +411,7 @@ class RateChangeHeading(Motion):
         self._rate = float(rate)
         self._interval = 1 / float(rate)
         self._conn = None
+        self._timer = None
         
         self._rotFactor = 0.0
         self._rotProgress = 0.0
@@ -467,7 +468,10 @@ class RateChangeHeading(Motion):
         Motion._finish(self)
 
     def stop(self):
-        self._conn.disconnect()
+        if self._conn is not None:
+            self._conn.disconnect()
+        if self._timer is not None:
+            self._timer.stop()
         
 class MoveDirection(Motion):
     """
