@@ -96,14 +96,17 @@ Subsystems:
             ram.ai.bin.Examine:
                 targetSuits: ['Diamond', 'Heart']
                 
+            ram.ai.safe.Seeking:
+                sidewaysSpeedGain: 2
             ram.ai.safe.Dive:
                 safeDepth: 15
             ram.ai.safe.Grabging:
                 safeDepth: 15
-            ram.ai.safe.Offseting:
+            ram.ai.safe.Offsetting:
                 offset: -0.35
             ram.ai.safe.Settling:
                 offset: -0.35
+                #duration: 500
                 
             ram.ai.sonar.FarSeeking:
                 speedGain: 4
@@ -247,14 +250,14 @@ Subsystems:
         Scenes:
             # Each scene must be on the given scene_path, this for example is 
             # in 'data/scenes/nxtest.xml'
-            #Main: pipe.sml
-            #Main: bin.sml
-            Main: duct.sml
-            #Main: buoy.sml
-            #Main: pinger.sml
-            #Main: safe.sml
+            #Main: objectives/pipe.sml
+            #Main: objectives/bin.sml
+            #Main: objectives/duct.sml
+            #Main: objectives/buoy.sml
+            #Main: objectives/pinger.sml
+            #Main: objectives/safe.sml
             #Main: transdec.sml
-            #Main: nxtest.sml
+            Main: nxtest.sml
             #Main: safePing.sml
             #Main: shortCourse.sml
         
