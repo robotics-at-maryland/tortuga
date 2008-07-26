@@ -108,6 +108,8 @@ class Hover(Motion):
         """
         Motion.__init__(self, _type = _type)
         
+        self._xDesired = 0
+        self._yDesired = 0
 
         self._running = False
         self._target = target
@@ -149,7 +151,7 @@ class Hover(Motion):
         
         forwardSpeed, sum, old = PIDLoop(
             x = self._target.y,
-            xd = 0, 
+            xd = self._xDesired, 
             dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
@@ -185,7 +187,7 @@ class Hover(Motion):
         
         sidewaysSpeed, sum, old = PIDLoop(
             x = self._target.x,
-            xd = 0,
+            xd = self._yDesired,
             dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
@@ -233,4 +235,7 @@ class Hover(Motion):
         self._running = False
         self._controller.setSpeed(0)
         self._controller.setSidewaysSpeed(0)
-        self._conn.disconnect()
+        if self._conn is not None:
+            self._conn.disconnect()
+            self._conn = None
+        
