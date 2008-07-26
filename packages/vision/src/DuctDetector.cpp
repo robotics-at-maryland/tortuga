@@ -34,7 +34,7 @@
 namespace ram {
 namespace vision {
 
-bool DuctDetector::blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, double growThresh)
+bool DuctDetector::blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, double growThreshX, double growThreshY)
 {
     int minX = b1.getMinX();
     int maxX = b1.getMaxX();
@@ -52,21 +52,21 @@ bool DuctDetector::blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, d
     int b1Height = maxY - minY;
     int b2Height = maxY2 - minY2;
     
-    BlobDetector::Blob b1Bigger((int)(b1.getSize()*growThresh),
+    BlobDetector::Blob b1Bigger((int)(b1.getSize()),
                                 b1.getCenterX(),
                                 b1.getCenterY(),
-                                maxX + (int)(b1Width * growThresh),
-                                minX - (int)(b1Width * growThresh),
-                                maxY + (int)(b1Height * growThresh),
-                                minY - (int)(b1Height * growThresh));
+                                maxX + (int)(b1Width * growThreshX),
+                                minX - (int)(b1Width * growThreshX),
+                                maxY + (int)(b1Height * growThreshY),
+                                minY - (int)(b1Height * growThreshY));
     
-    BlobDetector::Blob b2Bigger((int)(b2.getSize()*growThresh),
+    BlobDetector::Blob b2Bigger((int)(b2.getSize()),
                                 b2.getCenterX(),
                                 b2.getCenterY(),
-                                maxX2 + (int)(b2Width * growThresh),
-                                minX2 - (int)(b2Width * growThresh),
-                                maxY2 + (int)(b2Height * growThresh),
-                                minY2 - (int)(b2Height * growThresh));
+                                maxX2 + (int)(b2Width * growThreshX),
+                                minX2 - (int)(b2Width * growThreshX),
+                                maxY2 + (int)(b2Height * growThreshY),
+                                minY2 - (int)(b2Height * growThreshY));
 
     return b1Bigger.boundsIntersect(b2Bigger);
 }
@@ -152,6 +152,84 @@ DuctDetector::~DuctDetector()
     delete m_yellowMasked;
 }
 
+void DuctDetector::mergeBlobs(std::vector<BlobDetector::Blob> *allBlobs,std::vector<BlobDetector::Blob> *allBlobsMerged, double growThreshX, double growThreshY, double minXOverYForStretching)
+{
+    BlobDetector::Blob empty(0,0,0,0,0,0,0);
+    int size = allBlobs->size();
+    int* blobUnionizer = new int[size];
+    BlobDetector::Blob* unionBlobs = new BlobDetector::Blob[size];
+    int* blobCounts = new int[size];
+    for (int i = 0; i < size; i++)
+    {
+        blobUnionizer[i] = i;
+        unionBlobs[i] = (*allBlobs)[i];
+        blobCounts[i] = 1;
+    }
+    
+    for (int i = 0; i < size; i ++)
+    {
+        for (int j = i+1; j < size; j++)
+        {
+            bool blobsClose = false;
+            double XOverY = ((double)((*allBlobs)[i].getMaxX() - (*allBlobs)[i].getMinX()))/(double)(((*allBlobs)[i].getMaxY() - (*allBlobs)[i].getMinY()));
+            double XOverY2 = ((double)((*allBlobs)[j].getMaxX() - (*allBlobs)[j].getMinX()))/(double)(((*allBlobs)[j].getMaxY() - (*allBlobs)[j].getMinY()));
+            
+            if (XOverY >= minXOverYForStretching || XOverY2 >= minXOverYForStretching)
+                blobsClose = blobsAreClose((*allBlobs)[i],(*allBlobs)[j], growThreshX, growThreshY);
+            else
+                blobsClose = blobsAreClose((*allBlobs)[i],(*allBlobs)[j], 0, 0);
+            if (blobsClose)
+            {
+                int rooti = i;
+                int rootj = j;
+                
+                while (rooti != blobUnionizer[rooti])
+                    rooti = blobUnionizer[rooti];
+
+                while (rootj != blobUnionizer[rootj])
+                    rootj = blobUnionizer[rootj];
+
+                int minRoot = (rooti < rootj)? rooti : rootj;
+                blobUnionizer[i] = blobUnionizer[j] = minRoot;
+            }
+        }
+    }
+
+    for (int i = size-1; i >=0; i--)
+    {
+        if (blobUnionizer[i] == i)
+        {
+            allBlobsMerged->push_back(unionBlobs[i]);
+            continue;
+        }
+
+        BlobDetector::Blob curBlob = unionBlobs[i];
+        BlobDetector::Blob parentBlob = unionBlobs[blobUnionizer[i]];
+
+        int minX = (curBlob.getMinX() < parentBlob.getMinX())?curBlob.getMinX():parentBlob.getMinX();
+        int minY = (curBlob.getMinY() < parentBlob.getMinY())?curBlob.getMinY():parentBlob.getMinY();
+        int maxX = (curBlob.getMaxX() > parentBlob.getMaxX())?curBlob.getMaxX():parentBlob.getMaxX();
+        int maxY = (curBlob.getMaxY() > parentBlob.getMaxY())?curBlob.getMaxY():parentBlob.getMaxY();
+        
+        int centerX = (minX + maxX) / 2;
+        int centerY = (minY + maxY) / 2;
+        
+        
+        BlobDetector::Blob newBlob(curBlob.getSize() + parentBlob.getSize(),
+                     centerX,centerY,maxX,minX,maxY,minY);
+
+        unionBlobs[blobUnionizer[i]] = newBlob;
+        blobCounts[blobUnionizer[i]] += blobCounts[i];
+
+        blobCounts[i] = -1;
+        unionBlobs[i] = empty;
+        blobUnionizer[i] = -1;
+    }
+    delete[] blobUnionizer;
+    delete[] unionBlobs;
+    delete[] blobCounts;    
+} 
+
 void DuctDetector::init(core::ConfigNode config)
 {
     // get the threshold values from the config file
@@ -187,7 +265,6 @@ void DuctDetector::processImage(Image* input, Image* output)
     unsigned char* yellowData = m_yellowMasked->getData();
     int width = m_working->getWidth();
     int height = m_working->getHeight();
-        
 //    int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
     
     black_mask(m_workingPercents->asIplImage(),m_working->asIplImage(), m_blackMasked->asIplImage(),
@@ -261,7 +338,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     blobDetector.setMinimumBlobSize(500);
     blobDetector.processImage(m_yellowMasked);
     BlobDetector::BlobList yellowBlobs = blobDetector.getBlobs();
-
+        
     blobDetector.setMinimumBlobSize(750);
     blobDetector.processImage(m_blackMasked);
     BlobDetector::BlobList blackBlobs = blobDetector.getBlobs();
@@ -278,14 +355,26 @@ void DuctDetector::processImage(Image* input, Image* output)
         }
     }
     
+
     int minEntranceX = 10000;
     int minEntranceY = 10000;
     int maxEntranceX = -10000;
     int maxEntranceY = -10000;
     containsOne = false;
+
+    std::vector<BlobDetector::Blob> yellowBlobMerger;
+    std::vector<BlobDetector::Blob> yellowBlobMergeResults;
+    
+    BOOST_FOREACH(BlobDetector::Blob blob, yellowBlobs)
+    {
+        yellowBlobMerger.push_back(blob);
+    }
+    
+    mergeBlobs(&yellowBlobMerger, &yellowBlobMergeResults,.5,.025, 1.5);
+
     BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
     {
-        BOOST_FOREACH(BlobDetector::Blob yellowBlob, yellowBlobs)
+        BOOST_FOREACH(BlobDetector::Blob yellowBlob, yellowBlobMergeResults)
         {
             if (yellowBlob.containsInclusive(blackBlob,3))
             {
@@ -331,90 +420,23 @@ void DuctDetector::processImage(Image* input, Image* output)
     BOOST_FOREACH(BlobDetector::Blob blob, blackBlobs)
     {
         allBlobs.push_back(blob);
-    }    
+    }
     BOOST_FOREACH(BlobDetector::Blob blob, yellowBlobs)
     {
         allBlobs.push_back(blob);
     }
 
-    ///START OF COPY PASTE
-    //////////////////////
+    std::vector<BlobDetector::Blob> resultBlobs;
+    mergeBlobs(&allBlobs, &resultBlobs,.025,.025, 0);
     
-    int size = allBlobs.size();
-    int* blobUnionizer = new int[size];
-    BlobDetector::Blob* unionBlobs = new BlobDetector::Blob[size];
-    int* blobCounts = new int[size];
-    for (int i = 0; i < size; i++)
-    {
-        blobUnionizer[i] = i;
-        unionBlobs[i] = allBlobs[i];
-        blobCounts[i] = 1;
-    }
+    BlobDetector::Blob fullDuct;
     
-    for (int i = 0; i < size; i ++)
+    BOOST_FOREACH(BlobDetector::Blob blob, resultBlobs)
     {
-        for (int j = i+1; j < size; j++)
-        {
-            if (blobsAreClose(allBlobs[i],allBlobs[j], .025))
-            {
-                int rooti = i;
-                int rootj = j;
-                
-                while (rooti != blobUnionizer[rooti])
-                    rooti = blobUnionizer[rooti];
-
-                while (rootj != blobUnionizer[rootj])
-                    rootj = blobUnionizer[rootj];
-
-                int minRoot = (rooti < rootj)? rooti : rootj;
-
-                blobUnionizer[i] = blobUnionizer[j] = minRoot;
-            }
-        }
+        if (fullDuct.getSize() < blob.getSize())
+            fullDuct = blob;
     }
-
-    int biggestCluster = -1;
-    int biggestClusterBlobCount = 0;
-    for (int i = size-1; i >=0; i--)
-    {
-        if (blobUnionizer[i] == i)
-        {
-            if (blobCounts[i] > biggestClusterBlobCount)
-            {
-                biggestClusterBlobCount = blobCounts[i];
-                biggestCluster = i;
-            }
-            continue;
-        }
-
-        BlobDetector::Blob curBlob = unionBlobs[i];
-        BlobDetector::Blob parentBlob = unionBlobs[blobUnionizer[i]];
-
-        int minX = (curBlob.getMinX() < parentBlob.getMinX())?curBlob.getMinX():parentBlob.getMinX();
-
-        int minY = (curBlob.getMinY() < parentBlob.getMinY())?curBlob.getMinY():parentBlob.getMinY();
-
-        int maxX = (curBlob.getMaxX() > parentBlob.getMaxX())?curBlob.getMaxX():parentBlob.getMaxX();
-
-        int maxY = (curBlob.getMaxY() > parentBlob.getMaxY())?curBlob.getMaxY():parentBlob.getMaxY();
-        
-        int centerX = (minX + maxX) / 2;
-        int centerY = (minY + maxY) / 2;
-        
-        
-        BlobDetector::Blob newBlob(curBlob.getSize() + parentBlob.getSize(),
-                     centerX,centerY,maxX,minX,maxY,minY);
-
-        unionBlobs[blobUnionizer[i]] = newBlob;
-        blobCounts[blobUnionizer[i]] += blobCounts[i];
-
-        blobCounts[i] = -1;
-        unionBlobs[i] = empty;
-        blobUnionizer[i] = -1;
-    }
-        
-    BlobDetector::Blob fullDuct = unionBlobs[biggestCluster];
-    
+                                
     if (m_found && containsOne)
         m_rotation = (fullDuct.getCenterX() - ((minEntranceX + maxEntranceX) / 2));
     else
@@ -424,14 +446,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     {
         fullDuct.draw(output);
     }
-    
-    delete[] blobUnionizer;
-    delete[] unionBlobs;
-    delete[] blobCounts;    
-    
-    //////////////////////
-    ///END OF COPY PASTE
-    
+        
     if (m_found && output)
     {
         // Draw center of bin
