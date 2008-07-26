@@ -102,10 +102,12 @@ class OffsettingHover(motion.common.Hover):
             currentVal = self._target.y
         return currentVal
   
+    def _getAbsDifference(self):
+        """The difference between the wanted desired and the actual"""
+        return pmath.fabs(self._getCurrentVal() - self._offset)
+  
     def _onTimer(self, event):
-        absDifference = pmath.fabs(self._getCurrentVal() - self._offset)
-        
-        if (self._stepCount > 0) and (absDifference > 0.0001):
+        if (self._stepCount > 0) and (self._getAbsDifference() > 0.0001):
             if self._direction == OffsettingHover.X:
                 self._xDesired += self._stepSize
             else:

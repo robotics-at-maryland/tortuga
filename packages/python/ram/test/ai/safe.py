@@ -86,49 +86,78 @@ class TestDive(aisupport.AITestCase):
         self.injectEvent(ram.motion.basic.Motion.FINISHED)
         self.assertCurrentState(safe.Offsetting)
         
-class TestOffseting(aisupport.AITestCase):
+def offsetMotionHelper(self):
+    # Safe above us
+    self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
+                 x = 0.5, y = -0.5)#, angle = math.Degree(15.0))
+    
+    self.assertGreaterThan(self.controller.speed, 0)
+    self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+    self.assertAlmostEqual(0, self.controller.yawChange, 3)
+    self.controller.speed = 0
+    self.controller.sidewaysSpeed = 0
+    
+    # Make sure event when  is centered we still want to move
+    self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
+                     x = 0.5, y = -0.7)#, angle = math.Degree(15.0))
+    
+    self.assertAlmostEqual(0, self.controller.speed, 3)
+    self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+    self.assertAlmostEqual(0, self.controller.yawChange, 3)
+    self.controller.speed = 0
+    self.controller.sidewaysSpeed = 0
+    
+    # Safe below us
+    self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
+                     x = 0.5, y = -0.9)#, angle = math.Degree(15.0))
+    
+    self.assertLessThan(self.controller.speed, 0)
+    self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+    self.assertAlmostEqual(0, self.controller.yawChange, 3)
+        
+
+class TestOffsetting(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
         self.machine.start(safe.Offsetting)
+        
+    def testStart(self):
+        self.assertCurrentMotion(motion.safe.OffsettingHover)
+        
+    def testOffsetting(self):
+        mockTimer = \
+            support.MockTimer.LOG[motion.safe.OffsettingHover.NEXT_OFFSET]
+        self.assert_(mockTimer.repeat)
+        self.assertEqual(mockTimer.sleepTime, 0.1)
+
+        # Check five steps
+        for i in xrange(0, 100):
+            mockTimer.finish()
+            self.qeventHub.publishEvents()
+        self.assertCurrentState(safe.Centering)
+        
+        # Make sure changing our desired has the proper effect
+        offsetMotionHelper(self)
+        
+    def testFinished(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(safe.Centering)
+        
+class TestCentering(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(safe.Centering)
 
     def testPipeFound(self):
-        # Safe above us
-        self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
-                     x = 0.5, y = -0.5)#, angle = math.Degree(15.0))
-        
-        self.assertGreaterThan(self.controller.speed, 0)
-        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        self.assertAlmostEqual(0, self.controller.yawChange, 3)
-        self.controller.speed = 0
-        self.controller.sidewaysSpeed = 0
-        
-        # Make sure event when  is centered we still want to move
-        self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
-                         x = 0.5, y = -0.7)#, angle = math.Degree(15.0))
-        
-        self.assertAlmostEqual(0, self.controller.speed, 3)
-        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        self.assertAlmostEqual(0, self.controller.yawChange, 3)
-        self.controller.speed = 0
-        self.controller.sidewaysSpeed = 0
-        
-        # Safe below us
-        self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
-                         x = 0.5, y = -0.9)#, angle = math.Degree(15.0))
-        
-        self.assertLessThan(self.controller.speed, 0)
-        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        self.assertAlmostEqual(0, self.controller.yawChange, 3)
-        
-        self.assertCurrentState(safe.Offsetting)
+        offsetMotionHelper(self)
+        self.assertCurrentState(safe.Centering)
         
     def testCentering(self):
-        self.assertCurrentState(safe.Offsetting)
+        self.assertCurrentState(safe.Centering)
         self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
                          x = 0.1, y = -0.75)#, angle = math.Degree(15.0))
         self.qeventHub.publishEvents()
         self.assertCurrentState(safe.Settling)
-        
         
 class TestSettling(aisupport.AITestCase):
     def setUp(self):

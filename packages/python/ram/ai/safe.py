@@ -13,6 +13,7 @@ import ext.math as math
 
 import ram.ai.state as state
 import ram.motion as motion
+import ram.motion.safe
 #import ram.motion.search
 import ram.motion.common
 
@@ -36,22 +37,26 @@ class SafeTrackingState(state.State):
 
         speedGain = self._config.get('speedGain', 3)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',1)
-        #yawGain = self._config.get('yawGain', 1)
         maxSpeed = self._config.get('maxSpeed', 3)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1)
         
-        motion = ram.motion.common.Hover(target = self._safe,
-                                         maxSpeed = maxSpeed,
-                                         maxSidewaysSpeed = maxSidewaysSpeed,
-                                         sidewaysSpeedGain = sidewaysSpeedGain,
-                                         speedGain = speedGain)
-                                       #yawGain = yawGain)
+        motion = self._createMotion(maxSpeed, maxSidewaysSpeed, 
+                                    sidewaysSpeedGain, speedGain)
+
         self.motionManager.setMotion(motion)
 
     def exit(self):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
         
+    def _createMotion(self, maxSpeed, maxSidewaysSpeed, sidewaysSpeedGain,
+                      speedGain):
+        return ram.motion.common.Hover(target = self._safe,
+            maxSpeed = maxSpeed,
+            maxSidewaysSpeed = maxSidewaysSpeed,
+            sidewaysSpeedGain = sidewaysSpeedGain,
+            speedGain = speedGain)
+    
 class SafeCentering(SafeTrackingState):
     CENTERED = core.declareEventType('CENTERED')
     
@@ -114,14 +119,39 @@ class Dive(SafeTrackingState):
         self.motionManager.setMotion(diveMotion)
         
         SafeTrackingState.enter(self)
+
         
-class Offsetting(SafeCentering):
+class Offsetting(SafeTrackingState):
     """Moves the treasure under the grabber of the vehicle"""
     @staticmethod
     def transitions():
-        return SafeCentering.transitions(Offsetting,
-            { SafeCentering.CENTERED : Settling })
+        return SafeTrackingState.transitions(Offsetting,
+            { motion.basic.Motion.FINISHED : Centering })
+        
+    def enter(self):
+        self._offset = self._config.get('offset', -0.7)
+        self._speed = self._config.get('offsetSpeed', 0.08)
+        SafeTrackingState.enter(self)
+        
+    def _createMotion(self, maxSpeed, maxSidewaysSpeed, sidewaysSpeedGain,
+                      speedGain):
+        return motion.safe.OffsettingHover(target = self._safe,
+            direction = motion.safe.OffsettingHover.Y,
+            offset = self._offset,
+            speed = self._speed,
+            maxSpeed = maxSpeed,
+            maxSidewaysSpeed = maxSidewaysSpeed,
+            sidewaysSpeedGain = sidewaysSpeedGain,
+            speedGain = speedGain)
 
+        
+class Centering(SafeCentering):
+    """Centers over the offsetted safe"""
+    @staticmethod
+    def transitions():
+        return SafeCentering.transitions(Centering,
+            { SafeCentering.CENTERED : Settling })
+        
     def SAFE_FOUND(self, event):
         event.y = event.y - self._offset
         SafeCentering.SAFE_FOUND(self, event)
@@ -129,6 +159,7 @@ class Offsetting(SafeCentering):
     def enter(self):
         self._offset = self._config.get('offset', -0.7)
         SafeCentering.enter(self)
+
         
 class Settling(SafeTrackingState):
     """Settles over the offseted safe in preperation for the grab"""
