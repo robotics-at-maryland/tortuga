@@ -21,20 +21,17 @@
 #ifdef RAM_POSIX
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/resource.h>
 
-#ifdef RAM_POSIX
-    #ifdef RAM_LINUX
-        // Only Linux support thread affinity on POSIX platforms
-        #include <sys/syscall.h>
-        #include <unistd.h>
-        #define gettid(NOT_USED) ((pid_t)syscall(SYS_gettid))
-    #elif defined(RAM_DARWIN)
-        #include <sys/types.h>
-        #include <sys/sysctl.h>
-    #endif // RAM_LINUX
-#else
-    #error "Unsupported platform"
-#endif // RAM_POSIX
+#ifdef RAM_LINUX
+    // Only Linux support thread affinity on POSIX platforms
+    #include <sys/syscall.h>
+    #include <unistd.h>
+    #define gettid(NOT_USED) ((pid_t)syscall(SYS_gettid))
+#elif defined(RAM_DARWIN)
+    #include <sys/types.h>
+    #include <sys/sysctl.h>
+#endif // RAM_LINUX
 
 #elif defined(RAM_WINDOWS) 
     #include <windows.h> // For Sleep()
@@ -137,7 +134,8 @@ struct timeval *elapse_time(struct timeval *tv, unsigned msec) {
 Updatable::Updatable() :
     m_backgrounded(0),
     m_interval(100),
-    m_priority(RT_NORMAL_PRIORITY),
+    m_priority(NORMAL_PRIORITY),
+    m_priorityValue(NORMAL_PRIORITY_VALUE),
     m_affinity(-1),
     m_settingChange(0),
     m_backgroundThread(0),
@@ -208,8 +206,11 @@ void Updatable::setPriority(Priority priority)
     // Set value if needed
     boost::mutex::scoped_lock lock(m_upStateMutex);
 
-    if (priorityValue != m_priority)
+    
+    if (priority != m_priority)
     {
+        m_priority = priority;
+        m_priorityValue = priorityValue;
         // Set priority change flag
         m_settingChange |= PRIORITY;
     }
@@ -337,9 +338,12 @@ void Updatable::loop()
         {
             boost::mutex::scoped_lock lock(m_upStateMutex);
             if (m_settingChange & PRIORITY)
-                void setThreadPriority();
+                setThreadPriority();
+
             if (m_settingChange & AFFINITY)
-                void setThreadAffinity();
+                setThreadAffinity();
+
+            m_settingChange = 0;
         }
         
         if (in_background)
@@ -487,7 +491,15 @@ void Updatable::setThreadPriority()
         case LOW_PRIORITY:
         {
 #ifdef RAM_POSIX
-            // Use "setpriority" here
+            int which = 0;
+            int who = 0;
+#ifdef RAM_DARWIN
+            which = PRIO_DARWIN_THREAD;
+#else
+            who = gettid();
+#endif 
+            if(setpriority(which, who, m_priorityValue))
+                perror("ERROR setpriority");
 
 #elif defined(RAM_WINDOWS)
             // Not yet implemented
@@ -531,7 +543,14 @@ void Updatable::setThreadPriority()
 void Updatable::setThreadAffinity()
 {
 #ifdef RAM_LINUX
-    // use sched_set_affinity()
+    // Create a mask which runs us on the proper CPU
+    cpu_set_t cpuMask;
+    CPU_ZERO(&cpuMask);
+    CPU_SET(m_affinity, &cpuMask);
+    
+    if(sched_setaffinity(0, sizeof(cpuMask), &cpuMask))
+        perror("ERROR sched_setaffinity");
+
 #elif defined(RAM_DARWIN)
     // Not supported    
 #elif defined(RAM_WINDOWS)

@@ -97,6 +97,7 @@ private:
 
     /** The priority of the running background thread */
     Priority m_priority;
+    int m_priorityValue;
 
     /** The core which background thread will run on */
     int m_affinity;
