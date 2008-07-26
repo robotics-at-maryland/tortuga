@@ -42,7 +42,8 @@ class RAM_EXPORT SafeDetector : public Detector
     /** Y cord of the bin closest to the center of the screen */
     double getY();
 
-    bool blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, double growThresh);
+    bool blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2,
+                       double growThresh);
   private:
     void init(core::ConfigNode config);
     double m_safeX;

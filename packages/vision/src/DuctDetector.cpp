@@ -34,14 +34,6 @@
 namespace ram {
 namespace vision {
 
-int DuctDetector::yellow(unsigned char r, unsigned char g, unsigned char b)
-{
-if (r > m_redThreshold && g > m_greenThreshold && b < m_blueThreshold)
-    return 1;
-return 0;
-
-}
-
 bool DuctDetector::blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, double growThresh)
 {
     int minX = b1.getMinX();
@@ -80,18 +72,19 @@ bool DuctDetector::blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, d
 }
 
 
-int DuctDetector::yellow2(unsigned char r, unsigned char g, unsigned char b)
+int DuctDetector::yellow(unsigned char r, unsigned char g, unsigned char b)
 {
-    double minRedOverGreen=.5;
-    double maxRedOverGreen=1.5;
-    double minRedOverBlue=1.0;
-    double minGreenOverBlueOnRedFailureForInsideDuct=1.1;
     //Yellow
-    if (g * minRedOverGreen <= r && g * maxRedOverGreen >= r && b * minRedOverBlue <= r && r + b + g > 125)
+    if ((g * m_minRedOverGreen <= r) &&
+        (g * m_maxRedOverGreen >= r) &&
+        (b * m_minRedOverBlue <= r) &&
+        (r + b + g > 125))
     {
         return 1;
     }
-    else if (r <= 50 && r < b && g >= b * minGreenOverBlueOnRedFailureForInsideDuct && r+b+g > 150)
+    else if ((r <= 50) && (r < b) &&
+             (g >= (b * m_minGreenOverBlueOnRedFailureForInsideDuct)) &&
+             (r+b+g > 150))
     {//Dark greenish yellowish blackish stuff
         return 1;
     }
@@ -162,9 +155,12 @@ DuctDetector::~DuctDetector()
 void DuctDetector::init(core::ConfigNode config)
 {
     // get the threshold values from the config file
-    m_redThreshold = config["redThreshold"].asInt(100);
-    m_greenThreshold = config["greenThreshold"].asInt(100);
-    m_blueThreshold = config["blueThreshold"].asInt(50);
+    m_minRedOverGreen = config["minRedOverGreen"].asDouble(0.5);
+    m_maxRedOverGreen = config["maxRedOverGreen"].asDouble(1.5);
+    m_minRedOverBlue = config["minRedOverBlue"].asDouble(1.0);
+    m_minGreenOverBlueOnRedFailureForInsideDuct =
+        config["minGreenOverBlueOnRedFailureForInsideDuct"].asDouble(1.1);
+    
     m_erodeIterations = config["erodeIterations"].asInt(3);
     m_alignedThreshold = config["alignedThreshold"].asDouble(5);
     m_centerAlignedThreshold = config["centerAlignedThreshold"].asInt(25);
@@ -203,7 +199,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         for (int x = 0; x < width; x++)
         {
             //if (yellow(data[count+2],data[count+1],data[count]))
-            if (yellow2(data[count+2],data[count+1],data[count]))
+            if (yellow(data[count+2],data[count+1],data[count]))
             {
                 yellowData[count]=yellowData[count+1]=yellowData[count+2] = 255;
             }
@@ -433,6 +429,8 @@ void DuctDetector::processImage(Image* input, Image* output)
     delete[] unionBlobs;
     delete[] blobCounts;    
     
+    //////////////////////
+    ///END OF COPY PASTE
     
     if (m_found && output)
     {
@@ -486,8 +484,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         publish(EventType::DUCT_FOUND, event);
     }
     
-    //////////////////////
-    ///END OF COPY PASTE
+
     
     //    // convert to the crazy coordinate system
     //    n_x = -1 * ((width / 2) - m_x);

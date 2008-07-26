@@ -44,25 +44,32 @@ public:
     
     bool getVisible();
     bool getAligned();
-    bool blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, double growThresh);
+    bool blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2,
+                       double growThresh);
     
 private:
     void init(core::ConfigNode config);
-    int yellow(unsigned char r, unsigned char g, unsigned char b);
-    int yellow2(unsigned char r, unsigned char g, unsigned char b);
+    inline int yellow(unsigned char r, unsigned char g, unsigned char b);
+    
     BlobDetector::Blob fullDuct;
     BlobDetector blobDetector;
     Image* m_working;
     Image* m_workingPercents;
     Image* m_blackMasked;
     Image* m_yellowMasked;
+
     double m_x, m_y, m_rotation, n_x, n_y, m_range;
-    int m_greenThreshold;
-    int m_redThreshold;
-    int m_blueThreshold;
+
+    // Configurable variables
+    double m_minRedOverGreen;
+    double m_maxRedOverGreen;
+    double m_minRedOverBlue;
+    double m_minGreenOverBlueOnRedFailureForInsideDuct;
     int m_erodeIterations;
     double m_alignedThreshold;
     int m_centerAlignedThreshold;
+
+    // More member variables
     bool m_found;
     bool containsOne;
 };
