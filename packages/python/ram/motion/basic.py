@@ -330,8 +330,7 @@ class RateChangeDepth(Motion):
         """
         Finishes off the motion, disconnects events, and putlishes finish event
         """
-        self._timer.stop()
-        self._conn.disconnect()
+        self.stop()
         Motion._finish(self)
 
     def stop(self):
