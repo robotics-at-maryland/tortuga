@@ -45,7 +45,9 @@ public:
     bool getVisible();
     bool getAligned();
     bool blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2,
-                       double growThresh);
+                       double growThreshX,double growThreshY);
+                       
+    void mergeBlobs(std::vector<BlobDetector::Blob>* blobsToMerge, std::vector<BlobDetector::Blob>* mergedBlobs, double growThreshX, double growThreshY, double minXOverYForStretching);
     
 private:
     void init(core::ConfigNode config);
