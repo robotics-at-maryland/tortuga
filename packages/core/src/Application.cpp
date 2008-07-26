@@ -14,10 +14,13 @@
  
 // STD Includes
 #include <utility>
+#include <map>
 
 // Library Includes
 #include <boost/foreach.hpp>
+#include <boost/assign/list_of.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 // Project Includes
 #include "core/include/Application.h"
@@ -28,6 +31,27 @@
 namespace ram {
 namespace core {
 
+typedef std::map<std::string, IUpdatable::Priority> StringPriorityMap;
+IUpdatable::Priority stringToPriority(std::string str)
+{
+    // Maps string to priority
+    static StringPriorityMap str2Priority = boost::assign::map_list_of
+        ("rt_high", IUpdatable::RT_HIGH_PRIORITY)
+        ("rt_normal", IUpdatable::RT_NORMAL_PRIORITY)
+        ("rt_low", IUpdatable::RT_LOW_PRIORITY)
+        ("high", IUpdatable::HIGH_PRIORITY)
+        ("normal", IUpdatable::NORMAL_PRIORITY)
+        ("low", IUpdatable::LOW_PRIORITY);
+    
+    // Make it lower case
+    boost::algorithm::to_lower(str);
+
+    StringPriorityMap::iterator iter = str2Priority.find(str);
+    assert(iter != str2Priority.end());
+
+    return iter->second;
+}
+    
 Application::Application(std::string configPath) :
     m_running(false)
 {
@@ -71,6 +95,18 @@ Application::Application(std::string configPath) :
             ConfigNode cfg(sysConfig[name]);
             if (cfg.exists("update_interval"))
                 m_subsystems[name]->background(cfg["update_interval"].asInt());
+
+
+            if (cfg.exists("priority"))
+            {
+                m_subsystems[name]->setPriority(
+                    stringToPriority(cfg["priority"].asString()));
+            }
+
+            if (cfg.exists("affinity"))
+            {
+                m_subsystems[name]->setAffinity(cfg["affinity"].asInt());
+            }
         }
     }
 }

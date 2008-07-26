@@ -40,6 +40,9 @@ static bf::path getConfigRoot()
     return root / "packages" / "core" / "test" / "data";
 }
 
+SUITE(Application)
+{
+
 TEST(getSubsystem)
 {
     bf::path path(getConfigRoot() / "simpleSubsystem.yml");
@@ -147,3 +150,36 @@ TEST(mainLoop)
         }
     }
 }
+
+TEST(setPriority)
+{
+    bf::path path(getConfigRoot() / "prioritySubsystems.yml");
+    ram::core::Application app(path.string());
+
+    MockSubsystem* subsystem =
+        dynamic_cast<MockSubsystem*>(app.getSubsystem("SystemA").get());
+    CHECK(subsystem);
+    CHECK_EQUAL(ram::core::IUpdatable::LOW_PRIORITY, subsystem->getPriority());
+
+    subsystem =
+        dynamic_cast<MockSubsystem*>(app.getSubsystem("BSystem").get());
+    CHECK_EQUAL(ram::core::IUpdatable::NORMAL_PRIORITY,
+                subsystem->getPriority());
+}
+
+TEST(setAffinity)
+{
+    bf::path path(getConfigRoot() / "affinitySubsystems.yml");
+    ram::core::Application app(path.string());
+
+    MockSubsystem* subsystem =
+        dynamic_cast<MockSubsystem*>(app.getSubsystem("SystemA").get());
+    CHECK(subsystem);
+    CHECK_EQUAL(-1, subsystem->getAffinity());
+
+    subsystem =
+        dynamic_cast<MockSubsystem*>(app.getSubsystem("BSystem").get());
+    CHECK_EQUAL(1, subsystem->getAffinity());
+}
+
+} // SUITE(Application)
