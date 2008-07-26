@@ -151,7 +151,7 @@ class Hover(Motion):
         
         forwardSpeed, sum, old = PIDLoop(
             x = self._target.y,
-            xd = self._xDesired, 
+            xd = self._yDesired, 
             dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
@@ -187,7 +187,7 @@ class Hover(Motion):
         
         sidewaysSpeed, sum, old = PIDLoop(
             x = self._target.x,
-            xd = self._yDesired,
+            xd = self._xDesired,
             dt = deltaT,
             dtTooSmall = 1.0/100.0, 
             dtTooBig = 1.0, 
