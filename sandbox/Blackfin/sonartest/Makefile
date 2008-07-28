@@ -1,5 +1,5 @@
-# PATH=/opt/uClinux/bfin-linux-uclibc/bin
-# CC = bfin-linux-uclibc-gcc
+PATH=/opt/uClinux/bfin-linux-uclibc/bin
+CC = bfin-linux-uclibc-gcc
 CFLAGS = -O3
 
 all: adctest readtest sramtest chrt testreport

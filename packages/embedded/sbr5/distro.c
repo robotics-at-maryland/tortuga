@@ -132,6 +132,8 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_OVR     _LATA9
 #define TRIS_LED_OVR    _TRISA9
 
+
+
 /* Motor controller and marker currents */
 #define ADC_IM1         0x09
 #define ADC_IM2         0x08

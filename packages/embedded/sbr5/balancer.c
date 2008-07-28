@@ -39,6 +39,8 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
+#define BBR3
+
 
 /* Level specification for battery inputs */
 #define BATT_ON     1
@@ -59,19 +61,41 @@ _FWDT ( WDT_OFF );
 #define IN_BATT5    _RG12
 #define TRIS_BATT5  _TRISG12
 
-/* We know this one is active low */
-#define IN_WTRSEN   _RB15
-#define TRIS_WTRSEN _TRISB15
-#define WATER_CN_BIT  (CNEN1bits.CN12IE)
 
+#ifdef BBR3
+    /* Rev 3 only */
+    #define IN_BATT6    _RG1
+    #define TRIS_BATT6  _TRISG1
+#endif
+
+#ifdef BBR2
+    /* We know this one is active low */
+    #define IN_WTRSEN   _RB15
+    #define TRIS_WTRSEN _TRISB15
+    #define WATER_CN_BIT  (CNEN1bits.CN12IE)
+#endif
+
+#ifdef BBR3
+    /* We know this one is active low */
+    #define IN_WTRSEN   _RB2
+    #define TRIS_WTRSEN _TRISB2
+    #define WATER_CN_BIT  (CNEN1bits.CN4IE)
+#endif
 
 /* Power kill output level specification */
 #define PWRKILL_ON  0
 
-/* Power kill pin assignment */
-#define LAT_PWRKILL _LATB14
-#define TRIS_PWRKILL _TRISB14
+#ifdef BBR2
+    /* Power kill pin assignment */
+    #define LAT_PWRKILL _LATB14
+    #define TRIS_PWRKILL _TRISB14
+#endif
 
+#ifdef BBR3
+    /* Power kill pin assignment */
+    #define LAT_PWRKILL _LATD14
+    #define TRIS_PWRKILL _TRISD14
+#endif
 
 
 /* Level specification for battery control outputs */
@@ -94,6 +118,10 @@ _FWDT ( WDT_OFF );
 #define LAT_BATT5_CTL   _LATG13
 #define TRIS_BATT5_CTL  _TRISG13
 
+#ifdef BBR3
+    #define LAT_BATT5_CTL   _LATG0
+    #define TRIS_BATT5_CTL  _TRISG0
+#endif
 
 /* LED level specification */
 #define LED_ON          0
@@ -121,7 +149,10 @@ _FWDT ( WDT_OFF );
 #define ADC_B4I     0x06
 #define ADC_B5I     0x04
 
-
+#ifdef BBR3
+    #define ADC_B6V     0x0F
+    #define ADC_B6I     0x0E
+#endif
 
 unsigned int vBatt[6];
 unsigned int iBatt[5];
@@ -603,7 +634,14 @@ void _ISR _T2Interrupt(void)
 void initADC()
 {
 
-    ADPCFG = 0x8000; // all PORTB = Digital; RB2 = analog
+#ifdef BBR2
+    ADPCFG = 0x8000;
+#endif
+
+#ifdef BBR3
+    ADPCFG = 0x8000;
+#endif
+
     ADCON1 = 0x0000; // SAMP bit = 0 ends sampling ...
     // and starts converting
     ADCHS = 0x0002; // Connect RB2/AN2 as CH0 input ..

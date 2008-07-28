@@ -38,8 +38,39 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_ACT     _LATF1
 #define TRIS_LED_ACT    _TRISF1
 
-#define LAT_LED_ERR     _LATB6
-#define TRIS_LED_ERR    _TRISB6
+
+#define SBR7
+
+
+#ifdef SBR5
+    #define LAT_LED_ERR     _LATB6
+    #define TRIS_LED_ERR    _TRISB6
+
+    #define LAT_IRQ0     _LATB0
+    #define LAT_IRQ1     _LATB1
+    #define LAT_IRQ2     _LATB2
+    #define LAT_IRQ3     _LATB4
+    #define LAT_IRQ4     _LATB3
+    #define LAT_IRQ5     _LATB7
+
+    #define USB_PRESENT     1
+#else
+
+    #define LAT_LED_ERR     _LATF0
+    #define TRIS_LED_ERR    _TRISF0
+
+    #define LAT_IRQ0     _LATB0
+    #define LAT_IRQ1     _LATB1
+    #define LAT_IRQ2     _LATB2
+    #define LAT_IRQ3     _LATB4
+    #define LAT_IRQ4     _LATB6
+    #define LAT_IRQ5     _LATB7
+
+    #define USB_PRESENT     0
+#endif
+
+
+
 
 /* USB detection */
 #define IN_USBDETECT    _RC15
@@ -198,22 +229,22 @@ void initBus()
 void setReq(byte req, byte val)
 {
     if(req == 0)
-        _LATB0 = val;
+        LAT_IRQ0 = val;   /* IRQ 0 - B0 */
 
     if(req == 1)
-        _LATB1 = val;
+        LAT_IRQ1 = val;   /* IRQ 1 - B1 */
 
     if(req == 2)
-        _LATB2 = val;
+        LAT_IRQ2 = val;   /* IRQ 2 - B2 */
 
     if(req == 3)
-        _LATB4 = val;
+        LAT_IRQ3 = val;   /* IRQ 3 - B4 */
 
     if(req == 4)
-        _LATB3 = val;
+        LAT_IRQ4 = val;   /* IRQ 4 - B3 */
 
     if(req == 5)
-        _LATB7 = val;
+        LAT_IRQ5 = val;   /* IRQ 5 - B7 */
 }
 
 
@@ -739,7 +770,7 @@ int main(void)
     LAT_LED_ACT = ~LED_ON;
 
 
-    if(IN_USBDETECT == 0)
+    if(IN_USBDETECT != USB_PRESENT)
     {
         showString("  Moan for me,  ", 0);
         showString("     DAVE !     ", 1);
@@ -752,7 +783,7 @@ int main(void)
     LAT_LED_ACT = ~LED_ON;
     LAT_LED_ERR = LED_ON;
 
-    while(IN_USBDETECT == 0)
+    while(IN_USBDETECT != USB_PRESENT)
     {
         for(j=0; j<50000; j++);
         LAT_LED_ACT = ~LAT_LED_ACT;
