@@ -36,6 +36,7 @@ TEST(FFTWSpectrumGivesSameResultsAsSDFT)
 		sbjSpectrum.update(sample);
 		
 		for (int channel = 0 ; channel < nChannels ; channel ++)
+        {
 			for (int k = 0 ; k < N ; k++)
 			{
 				const std::complex<myadc::DOUBLE_WIDE::SIGNED>& refResult = refSpectrum.getAmplitude(k, channel);
@@ -45,5 +46,6 @@ TEST(FFTWSpectrumGivesSameResultsAsSDFT)
 				CHECK_CLOSE(refResult.real(), sbjResult.real(), 4096);
 				CHECK_CLOSE(refResult.imag(), sbjResult.imag(), 4096);
 			}
+        }
 	}
 }

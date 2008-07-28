@@ -27,7 +27,7 @@ inline T magL1(const std::complex<T>& a)
 template<typename T>
 inline T magL2(const std::complex<T>& a)
 {
-	return (T)std::sqrt((double)a.real()*a.real() + (double)a.imag*a.imag());
+	return (T)std::sqrt((double)a.real()*a.real() + (double)a.imag()*a.imag());
 }
 
 template<typename T>

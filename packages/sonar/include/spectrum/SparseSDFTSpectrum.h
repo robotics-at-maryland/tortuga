@@ -54,12 +54,6 @@ public:
 	
 	void update(const typename ADC::SIGNED *sample)
 	{
-		memcpy(data[idx], sample, sizeof(*sample) * nchannels);
-		//	Slide through circular buffers
-		++idx;
-		if (idx == N)
-			idx = 0;
-		
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
 			typename ADC::DOUBLE_WIDE::SIGNED diff = sample[channel] - data[idx][channel];
@@ -77,6 +71,13 @@ public:
 				fourIm = (typename ADC::DOUBLE_WIDE::SIGNED)(((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * fourIm + (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * rhsRe) >> (ADC::BITDEPTH - 1));
 			}
 		}
+        
+        //  Overwrite the old samples
+		memcpy(data[idx], sample, sizeof(*sample) * nchannels);
+		//	Slide through circular buffers
+		++idx;
+		if (idx == N)
+			idx = 0;
 	}
 	
 	const typename std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &getAmplitudeForBinIndex(int kIdx, int channel) const

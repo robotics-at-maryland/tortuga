@@ -22,6 +22,9 @@ namespace sonar {
 template<typename ADC, int N, int nchannels>
 class SDFTSpectrum : Spectrum<ADC> {
 private:
+    /**
+     * Index into the circular buffer referring to the oldest sample.
+     */
 	int idx;
 	typename ADC::SIGNED data[N][nchannels];
 	std::complex<typename ADC::DOUBLE_WIDE::SIGNED> fourier[N][nchannels];
@@ -49,12 +52,6 @@ public:
 	
 	void update(const typename ADC::SIGNED *sample)
 	{
-		memcpy(data[idx], sample, sizeof(*sample)*nchannels);
-		//	Slide through circular buffers
-		++idx;
-		if (idx == N)
-			idx = 0;
-		
 		for (int channel = 0 ; channel < nchannels ; channel ++)
 		{
 			typename ADC::DOUBLE_WIDE::SIGNED diff = sample[channel] - data[idx][channel];
@@ -72,6 +69,13 @@ public:
 				fourIm = (typename ADC::DOUBLE_WIDE::SIGNED) (((typename ADC::QUADRUPLE_WIDE::SIGNED)coefRe * fourIm + (typename ADC::QUADRUPLE_WIDE::SIGNED)coefIm * rhsRe) >> (ADC::BITDEPTH - 1));
 			}
 		}
+        
+        //  Overwrite the old samples
+        memcpy(data[idx], sample, sizeof(*sample)*nchannels);
+		//	Slide through circular buffers
+		++idx;
+		if (idx == N)
+			idx = 0;
 	}
 	
 	const std::complex<typename ADC::DOUBLE_WIDE::SIGNED> &getAmplitude(int k, int channel) const

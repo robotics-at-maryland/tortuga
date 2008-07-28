@@ -20,7 +20,7 @@ namespace sonar {
 
 /**
  * A class to detect the pings produced by our hydrophones
- * It operates by xbfinding the maxima over intervals in the data.
+ * It operates by finding the maxima over intervals in the data.
  * From these, the smallest maximum is calculated.  When the ratio
  * of the smallest maximum to the current maximum is trigerred, the
  * ping is said to be found for that particular channel.
@@ -42,7 +42,7 @@ class pingDetect
     ~pingDetect();
     int p_update(adcdata_t *sample);
     void reset_minmax();
-    void zero_values();
+    void purge();
 }; //pingDetect
 
 }//sonar
