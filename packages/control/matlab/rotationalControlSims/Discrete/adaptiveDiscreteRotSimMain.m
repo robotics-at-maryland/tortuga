@@ -178,11 +178,11 @@ for i = 2:length(time)
 
     Y=[Yinertia1 Yinertia2 Ybuoyancy Ydrag];
 
-    u=-Kd*shat+H*dw_r+Y*ahat;
-
     dahat=-Gamma*Y'*shat;
     
     ahat = ahat + dahat*step;
+    
+    u=-Kd*shat+Y*ahat;
     
     options=odeset;
     options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
