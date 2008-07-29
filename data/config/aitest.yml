@@ -17,10 +17,30 @@ Subsystems:
         BinDetector:
             centeredLimit: 0.2
         DuctDetector:
-            redThreshold: 100
-            greeThreshold: 100
-            blueThreshold: 50
-            erodeIterations: 1
+            minRedOverGreen: 0.5
+            maxRedOverGreen: 1.5
+            minRedOverBlue: 1.0
+            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+            maxRedFailureThresh: 50
+            minTotalRGB: 125
+            minTotalRGBOnFailure: 150
+            erodeIterations: 3
+            dilateIterations: 3
+            minBlackPercent: 5
+            maxBlackTotal: 300
+            defaultGrowThreshX: 0.05
+            defaultGrowThreshY: 0.05
+            minXOverYToUpGrowThresh:1.5
+            uppedGrowThreshX: 0.5
+            uppedGrowThreshY: 0.05
+        DownwardDuctDetector:
+            minRedOverGreen: 0.5
+            maxRedOverGreen: 1.5
+            minRedOverBlue: 1.0
+            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+            maxRedFailureThresh: 50
+            minTotalRGB: 125
+            minTotalRGBOnFailure: 150
         SafeDetector:
             rOverGMin: 0.5
             rOverGMax: 1.8

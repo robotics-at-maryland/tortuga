@@ -71,20 +71,22 @@ bool DuctDetector::blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2, d
     return b1Bigger.boundsIntersect(b2Bigger);
 }
 
-
-int DuctDetector::yellow(unsigned char r, unsigned char g, unsigned char b)
+  //minTotalRGB should be like 125
+  //minTotalRGB on failure should be like 150
+  //maxRedFailureThresh should be like 50.
+int DuctDetector::yellow(unsigned char r, unsigned char g, unsigned char b, double minRedOverGreen, double maxRedOverGreen, double minRedOverBlue, double minGreenOverBlueOnFailure, int maxRedFailureThresh, int minTotalRGB, int minTotalRGBOnFailure)
 {
     //Yellow
-    if ((g * m_minRedOverGreen <= r) &&
-        (g * m_maxRedOverGreen >= r) &&
-        (b * m_minRedOverBlue <= r) &&
-        (r + b + g > 125))
+    if ((g * minRedOverGreen <= r) &&
+        (g * maxRedOverGreen >= r) &&
+        (b * minRedOverBlue <= r) &&
+        (r + b + g >= minTotalRGB))
     {
         return 1;
     }
-    else if ((r <= 50) && (r < b) &&
-             (g >= (b * m_minGreenOverBlueOnRedFailureForInsideDuct)) &&
-             (r+b+g > 150))
+    else if ((r <= maxRedFailureThresh) && (r < b) &&
+             (g >= (b * minGreenOverBlueOnFailure)) &&
+             (r+b+g >= minTotalRGBOnFailure))
     {//Dark greenish yellowish blackish stuff
         return 1;
     }
@@ -253,6 +255,10 @@ void DuctDetector::init(core::ConfigNode config)
     m_minGreenOverBlueOnRedFailureForInsideDuct =
         config["minGreenOverBlueOnRedFailureForInsideDuct"].asDouble(1.1);
     
+    m_maxRedFailureThresh = config["maxRedFailureThresh"].asInt(50);
+    m_minTotalRGB = config["minTotalRGB"].asInt(125);
+    m_minTotalRGBOnFailure = config["minTotalRGBOnFailure"].asInt(150);
+    
     m_erodeIterations = config["erodeIterations"].asInt(3);
     m_dilateIterations = config["dilateIterations"].asInt(3);
     m_alignedThreshold = config["alignedThreshold"].asDouble(5);
@@ -307,7 +313,11 @@ void DuctDetector::processImage(Image* input, Image* output)
         for (int x = 0; x < width; x++)
         {
             //if (yellow(data[count+2],data[count+1],data[count]))
-            if (yellow(data[count+2],data[count+1],data[count]))
+            if (yellow(data[count+2],data[count+1],data[count],
+		       m_minRedOverGreen, m_maxRedOverGreen, m_minRedOverBlue,
+		       m_minGreenOverBlueOnRedFailureForInsideDuct,
+		       m_maxRedFailureThresh, m_minTotalRGB, 
+		       m_minTotalRGBOnFailure))
             {
                 yellowData[count]=yellowData[count+1]=yellowData[count+2] = 255;
             }

@@ -32,14 +32,21 @@ public:
     
 private:
     void init(core::ConfigNode config);
-    int yellow(unsigned char r, unsigned char g, unsigned char b);
-
+    int yellow(unsigned char r, unsigned char g, unsigned char b, double minRedOverGreen, double maxRedOverGreen, double minRedOverBlue, double minGreenOverBlueOnFailure, int maxRedFailureThresh, int minTotalRGB, int minTotalRGBOnFailure);
     Image* m_working;
     double m_x, m_y;
     bool m_found;
-    int m_greenThreshold;
-    int m_redThreshold;
-    int m_blueThreshold;
+    
+    // Configurable variables
+    double m_minRedOverGreen;
+    double m_maxRedOverGreen;
+    double m_minRedOverBlue;
+    double m_minGreenOverBlueOnRedFailureForInsideDuct;
+
+    int m_maxRedFailureThresh; //default 50
+    int m_minTotalRGB;         //default 125
+    int m_minTotalRGBOnFailure;//Default 150
+    
 };
 
 } // namespace vision

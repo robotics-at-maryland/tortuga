@@ -51,7 +51,7 @@ public:
     
 private:
     void init(core::ConfigNode config);
-    inline int yellow(unsigned char r, unsigned char g, unsigned char b);
+    inline int yellow(unsigned char r, unsigned char g, unsigned char b, double minRedOverGreen, double maxRedOverGreen, double minRedOverBlue, double minGreenOverBlueOnFailure, int maxRedFailureThresh, int minTotalRGB, int minTotalRGBOnFailure);
     
     BlobDetector::Blob m_fullDuct;
     BlobDetector blobDetector;
@@ -67,6 +67,11 @@ private:
     double m_maxRedOverGreen;
     double m_minRedOverBlue;
     double m_minGreenOverBlueOnRedFailureForInsideDuct;
+
+    int m_maxRedFailureThresh; //default 50
+    int m_minTotalRGB;         //default 125
+    int m_minTotalRGBOnFailure;//Default 150
+
     int m_erodeIterations;
     int m_dilateIterations;
     double m_alignedThreshold;

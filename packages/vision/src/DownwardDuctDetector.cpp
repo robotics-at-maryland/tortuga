@@ -21,12 +21,23 @@
 namespace ram {
 namespace vision {
 
-int DownwardDuctDetector::yellow(unsigned char r, unsigned char g, unsigned char b)
+int DownwardDuctDetector::yellow(unsigned char r, unsigned char g, unsigned char b, double minRedOverGreen, double maxRedOverGreen, double minRedOverBlue, double minGreenOverBlueOnFailure, int maxRedFailureThresh, int minTotalRGB, int minTotalRGBOnFailure)
 {
-if (r > m_redThreshold && g > m_greenThreshold && b < m_blueThreshold)
-    return 1;
-return 0;
-
+    //Yellow
+    if ((g * minRedOverGreen <= r) &&
+        (g * maxRedOverGreen >= r) &&
+        (b * minRedOverBlue <= r) &&
+        (r + b + g >= minTotalRGB))
+    {
+        return 1;
+    }
+    else if ((r <= maxRedFailureThresh) && (r < b) &&
+             (g >= (b * minGreenOverBlueOnFailure)) &&
+             (r+b+g >= minTotalRGBOnFailure))
+    {//Dark greenish yellowish blackish stuff
+        return 1;
+    }
+    return 0;
 }
 
 DownwardDuctDetector::DownwardDuctDetector(core::ConfigNode config,
@@ -58,9 +69,15 @@ DownwardDuctDetector::~DownwardDuctDetector()
 void DownwardDuctDetector::init(core::ConfigNode config)
 {
     // get the threshold values from the config file
-    m_redThreshold = config["redThreshold"].asInt(100);
-    m_greenThreshold = config["greenThreshold"].asInt(100);
-    m_blueThreshold = config["blueThreshold"].asInt(50);
+    m_minRedOverGreen = config["minRedOverGreen"].asDouble(0.5);
+    m_maxRedOverGreen = config["maxRedOverGreen"].asDouble(1.5);
+    m_minRedOverBlue = config["minRedOverBlue"].asDouble(1.0);
+    m_minGreenOverBlueOnRedFailureForInsideDuct =
+        config["minGreenOverBlueOnRedFailureForInsideDuct"].asDouble(1.1);
+    
+    m_maxRedFailureThresh = config["maxRedFailureThresh"].asInt(50);
+    m_minTotalRGB = config["minTotalRGB"].asInt(125);
+    m_minTotalRGBOnFailure = config["minTotalRGBOnFailure"].asInt(150);
 }
     
 void DownwardDuctDetector::processImage(Image* input, Image* output)
@@ -81,7 +98,11 @@ void DownwardDuctDetector::processImage(Image* input, Image* output)
     {
         for (int x = 0; x < width; x++)
         {
-            if (yellow(data[count+2],data[count+1],data[count]))
+            if (yellow(data[count+2],data[count+1],data[count],
+		       m_minRedOverGreen, m_maxRedOverGreen, m_minRedOverBlue,
+		       m_minGreenOverBlueOnRedFailureForInsideDuct,
+		       m_maxRedFailureThresh, m_minTotalRGB, 
+		       m_minTotalRGBOnFailure))
             {
                 data[count] = 255;
                 data[count+1] = 255;
