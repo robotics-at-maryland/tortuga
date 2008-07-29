@@ -739,9 +739,15 @@ int main(int argc, char ** argv)
 
     if(strcmp(argv[1], "-s") == 0)
     {
+        displayText(fd, 0, "Please attach   ");
+        displayText(fd, 1, "Start magnet    ");
+
+        while((readStatus(fd) & STATUS_STARTSW) == 0);
+
+        displayText(fd, 0, "Ready to start  ");
     	displayText(fd, 1, "");
-	    displayText(fd, 0, "Ready to start");
-	    while((readStatus(fd) & STATUS_STARTSW) == 0);
+
+	    while((readStatus(fd) & STATUS_STARTSW) == 1);
 	    displayText(fd, 0, "Running...");
 	    close(fd);
 	    return 0;
