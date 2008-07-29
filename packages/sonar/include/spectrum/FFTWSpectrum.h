@@ -57,7 +57,7 @@ public:
 	FFTWSpectrum()
 	{
 		double* in_re = *dataDouble;
-		fftw_complex* out_c = reinterpret_cast<fftw_complex*> (*fourierDouble);
+		fftw_complex* out_c = (fftw_complex*) ((void*)(*fourierDouble));
 		const int dim = N;
 		
 		purge();

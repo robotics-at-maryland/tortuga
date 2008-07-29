@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
 		("begin,b", po::value<long>(&begin)->default_value(0), "Begin at sample b")
 		("end,e", po::value<long>(&end)->default_value(1000), "End at sample e)")
 		("scale,x", po::value<float>(&scale)->default_value(1.0), "Fraction of full scale amplitude to use for generating sample waveforms")
-        ("waveform,w", po::value<int>((int*)&waveformType)->default_value(WAVEFORM_WHITENOISE), "Waveform type")
-        ("anomaly,a", po::value<int>((int*)&anomalyType)->default_value(ANOMALY_DIFF_MAG), "Anomaly type")
+        ("waveform,w", po::value<int>((int*)(void*)&waveformType)->default_value(WAVEFORM_WHITENOISE), "Waveform type")
+        ("anomaly,a", po::value<int>((int*)(void*)&anomalyType)->default_value(ANOMALY_DIFF_MAG), "Anomaly type")
 		;
 		
 		po::variables_map vm;
