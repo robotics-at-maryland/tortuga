@@ -48,6 +48,9 @@ void SafeDetector::init(core::ConfigNode config)
     m_rOverGMin = config["rOverGMin"].asDouble(.5);
     m_rOverGMax = config["rOverGMax"].asDouble(1.8);
     m_bOverRMax = config["bOverRMax"].asDouble(.7);
+    m_erodeIterations = config["erodeIterations"].asInt(0);
+    m_dilateIterations = config["dilateIterations"].asInt(0);
+    m_minTotal = config["minTotal"].asInt(100);
 }
     
     SafeDetector::~SafeDetector()
@@ -98,7 +101,21 @@ void SafeDetector::processImage(Image* input, Image* out)
 
     m_working->copyFrom(input);
 
-    safeMask(m_working->asIplImage(), m_rOverGMin, m_rOverGMax, m_bOverRMax);
+    if (m_erodeIterations > 0)
+      {
+	cvErode(m_working->asIplImage(),
+	    m_working->asIplImage(),
+	    0,
+	    m_erodeIterations);
+      }
+    if (m_dilateIterations > 0)
+      {
+	cvDilate(m_working->asIplImage(), 
+		 m_working->asIplImage(),
+		 0, 
+		 m_dilateIterations);
+      }
+    safeMask(m_working->asIplImage(), m_rOverGMin, m_rOverGMax, m_bOverRMax, m_minTotal);
     if (out)
         out->copyFrom(m_working);
 

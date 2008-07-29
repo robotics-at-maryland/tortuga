@@ -52,7 +52,11 @@ class RAM_EXPORT SafeDetector : public Detector
     double m_rOverGMin;
     double m_rOverGMax;
     double m_bOverRMax;
-    
+    int m_minTotal;
+
+    int m_erodeIterations;
+    int m_dilateIterations;    
+
     BlobDetector::Blob m_safeBlob;
     bool m_found;
     Image* m_working;

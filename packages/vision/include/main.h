@@ -73,7 +73,7 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy);
 void suitMask(IplImage* percents, IplImage* base);
 
 /* masks a treasure*/
-void safeMask(IplImage* base, double rOverGMin, double rOverGMax, double bOverRMax);
+void safeMask(IplImage* base, double rOverGMin, double rOverGMax, double bOverRMax, int minTotalForNotBlack);
 
 /** Makes all red in the image white, and everything else black
  *

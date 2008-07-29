@@ -624,7 +624,7 @@ typedef struct
 typedef std::list<Pos> PosList;
 
 
-void safeMask(IplImage* base, double r_over_g_min, double r_over_g_max, double b_over_r_max)
+void safeMask(IplImage* base, double r_over_g_min, double r_over_g_max, double b_over_r_max, int minTotal)
 {
 	unsigned char* data=(unsigned char*)base->imageData;
 //    unsigned char* dataPercents = (unsigned char*) percents->imageData;
@@ -646,7 +646,7 @@ void safeMask(IplImage* base, double r_over_g_min, double r_over_g_max, double b
 			g=data[count+1];
 			r=data[count+2];
 			
-			if (r>r_over_g_min*g && r_over_g_max*g>r && b_over_r_max*r>b && r+g+b > 100)
+			if (r>r_over_g_min*g && r_over_g_max*g>r && b_over_r_max*r>b && r+g+b >= minTotal)
                 data[count]=data[count+1]=data[count+2]=255;
 			else
 				data[count]=data[count+1]=data[count+2]=0;
