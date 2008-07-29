@@ -373,8 +373,9 @@ TEST(AVFormat)
     }
     ram::core::TimeVal end = ram::core::TimeVal::timeOfDay();
     ram::core::TimeVal difference = end - start;
-    printf("Encoded %d frames in  %f seconds\n",
-           (int)STREAM_DURATION * STREAM_FRAME_RATE, difference.get_double());
+    printf("Encoded %d frames in  %f seconds, %f seconds/frame\n",
+           (int)STREAM_DURATION * STREAM_FRAME_RATE, difference.get_double(),
+           difference.get_double()/(STREAM_DURATION * STREAM_FRAME_RATE));
 
     /* close each codec */
     if (video_st)
