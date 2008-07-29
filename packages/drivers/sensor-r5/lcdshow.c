@@ -742,15 +742,21 @@ int main(int argc, char ** argv)
         displayText(fd, 0, "Please attach   ");
         displayText(fd, 1, "Start magnet    ");
 
-        while((readStatus(fd) & STATUS_STARTSW) == 0);
+        while((readStatus(fd) & STATUS_STARTSW) == 0)
+	{
+		usleep(100*1000);
+	}
 
         displayText(fd, 0, "Ready to start  ");
     	displayText(fd, 1, "");
 
-	    while((readStatus(fd) & STATUS_STARTSW) == 1);
-	    displayText(fd, 0, "Running...");
-	    close(fd);
-	    return 0;
+    	while((readStatus(fd) & STATUS_STARTSW))
+	{
+		usleep(100*1000);
+	}
+	displayText(fd, 0, "Running...");
+	close(fd);
+	return 0;
     }
 
 
