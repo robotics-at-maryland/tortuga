@@ -60,7 +60,6 @@ int main(int argc, char* argv[])
     struct timeval curr_time;
     struct timeval temp_time;
     int sleep_time;
-    getDirEdge edge_detector;
 
     //Initialize the communication port to the main cpu
     int fd=openDevice();
@@ -69,20 +68,31 @@ int main(int argc, char* argv[])
     cout<<"Starting\n";
     gettimeofday(&start_time, NULL);
             //cout<<"Now: "<<start_time.tv_sec<<" "<<start_time.tv_usec<<endl;
-
-    //First, load the initial dataset
-    if(argc == 1)
+    
+    int myKBands[nKBands];
+    for (int i = 0 ; i < nKBands ; i ++)
+        myKBands[i] = kBands[i];
+    for (int argIndex = 1 ; argIndex < argc ; argIndex ++)
+    {
+        if (strcmp(argv[argIndex], "--swap-bands") == 0)
+        {
+            cout << "Swapping bands" << endl;
+            int temp = myKBands[0];
+            myKBands[0] = myKBands[1];
+            myKBands[1] = temp;
+        } else {
+            cout<<"Using dataset \n"<<argv[argIndex]<<endl;
+            dataSet = loadDataset(argv[argIndex]);
+            do_loop=0;
+        }
+    }
+    if(dataSet == NULL)
     {
         dataSet=getDataset(dataSet, status);
         do_loop=1; //infinite loop, since I am running off the hydrophones
     }
-    else
-    {
-        cout<<"Using dataset \n"<<argv[1]<<endl;
-        dataSet = loadDataset(argv[1]);
-        do_loop=0;
-    }
-
+    getDirEdge edge_detector(myKBands);
+    
     do
     {
         if(loop_counter!=0) //already loaded the dataset for the first run

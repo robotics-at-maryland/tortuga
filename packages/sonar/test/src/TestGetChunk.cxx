@@ -22,13 +22,23 @@ int main(int argc, char* argv[])
     struct dataset * dataSet = NULL;
     adcdata_t* data[NCHANNELS];
     int locations[NCHANNELS];
-    getPingChunk chunk;
-    FILE* f;
-
-    for(int j=0; j<NCHANNELS; j++)
-        data[j]=new adcdata_t [ENV_CALC_FRAME];
-
-    if(argc == 1)
+    
+    int myKBands[nKBands];
+    for (int i = 0 ; i < nKBands ; i ++)
+        myKBands[i] = kBands[i];
+    for (int argIndex = 1 ; argIndex < argc ; argIndex ++)
+    {
+        if (strcmp(argv[argIndex], "--swap-bands") == 0)
+        {
+            int temp = myKBands[0];
+            myKBands[0] = myKBands[1];
+            myKBands[1] = temp;
+        } else {
+            fprintf(stderr, "Using dataset %s\n", argv[argIndex]);
+            dataSet = loadDataset(argv[argIndex]);
+        }
+    }
+    if(dataSet == NULL)
     {
         dataSet = createDataset(0xA0000*2);
         if(dataSet == NULL)
@@ -42,11 +52,12 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Analyzing samples...\n");
         //greenLightOff();
     }
-    else
-    {
-        fprintf(stderr, "Using dataset %s\n", argv[1]);
-        dataSet = loadDataset(argv[1]);
-    }
+
+    getPingChunk chunk(myKBands);
+    FILE* f;
+
+    for(int j=0; j<NCHANNELS; j++)
+        data[j]=new adcdata_t [ENV_CALC_FRAME];
 
     if(dataSet == NULL)
     {
@@ -54,8 +65,14 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    chunk.getChunk(data, locations, dataSet);
+    int result = chunk.getChunk(data, locations, dataSet);
 
+    if (result != 1)
+    {
+        fprintf(stderr, "Did not find a ping!\n");
+        return -1;
+    }
+    
     f=fopen("out_file.bin","w");
     if (f==NULL)
     {

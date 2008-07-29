@@ -24,7 +24,7 @@ using namespace std;
 namespace ram {
 namespace sonar {
 
-getPingChunk::getPingChunk()
+getPingChunk::getPingChunk(const int* kBands)
 	: pdetect(PD_THRESHOLDS, NCHANNELS, kBands, PING_DETECT_FRAME)
 {}
 

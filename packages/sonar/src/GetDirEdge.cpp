@@ -28,8 +28,8 @@ namespace sonar {
 using namespace ram::math;
 using namespace std;
 
-getDirEdge::getDirEdge()
-    : chunk(), tdoas(3,1), temp_calc(3,3), hydro_array(3,2), ping_matr(3,2), tdoa_errors(3,1)
+getDirEdge::getDirEdge(const int* kBands)
+    : chunk(kBands), tdoas(3,1), temp_calc(3,3), hydro_array(3,2), ping_matr(3,2), tdoa_errors(3,1)
 {
     for(int j=0; j<NCHANNELS; j++)
         data[j]=new adcdata_t [ENV_CALC_FRAME];

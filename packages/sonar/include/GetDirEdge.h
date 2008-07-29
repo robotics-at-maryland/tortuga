@@ -39,7 +39,7 @@ private:
      */
     void purge();
 public:
-    getDirEdge();
+    getDirEdge(const int* kBands);
     ~getDirEdge();
     
     /**
