@@ -120,7 +120,7 @@ TEST_FIXTURE(RecorderFixture, Update)
     {
         movieCamera.update(0);
         movieCamera.getImage(actual);
-        CHECK_CLOSE(*expectedImage, *actual, 1);
+        CHECK_CLOSE(*expectedImage, *actual, 1.5);
     }    
     delete actual;
 

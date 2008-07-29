@@ -53,7 +53,7 @@ TEST(BGR_YUV420P)
     struct SwsContext *YUV420PToBGR = sws_getContext(640, 480,
                                                      middleFormat,
                                                      640, 480,
-                                                     PIX_FMT_RGB24, //YUV420P,
+                                                     PIX_FMT_BGR24, //YUV420P,
                                                      SWS_BICUBIC, NULL, NULL, NULL);
 
     
@@ -67,7 +67,7 @@ TEST(BGR_YUV420P)
 
     int ret = sws_scale(BGRToYUV420P, startPicture.data, startPicture.linesize,
                         0, 480, yuvPicture.data, yuvPicture.linesize);
-    CHECK_EQUAL(0, ret);
+//    CHECK_EQUAL(0, ret);
 
     // Now lets go back
     AVPicture resultPicture;
@@ -75,19 +75,15 @@ TEST(BGR_YUV420P)
                    result.getWidth(), result.getHeight());
     
     ret = sws_scale(YUV420PToBGR, yuvPicture.data, yuvPicture.linesize,
-              0, 480, resultPicture.data, resultPicture.linesize);
-    CHECK_EQUAL(0, ret);
-
-//    vision::Image::showImage(&start, "Start");
-//    vision::Image::showImage(&yuv420P, "YUV420P");
-//    vision::Image::showImage(&result, "Result");
+                    0, 480, resultPicture.data, resultPicture.linesize);
+//    CHECK_EQUAL(0, ret);
 
     // Free up resources
     sws_freeContext(BGRToYUV420P);
     sws_freeContext(YUV420PToBGR);
 
     // Check results
-    // TODO: This currently fails
+    CHECK_CLOSE(*((vision::Image*)&start), *((vision::Image*)&result), 2);
 }
 
 } // SUITE(SWScale)

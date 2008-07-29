@@ -32,8 +32,11 @@ extern "C" {
 
 #undef exit
 
+// Project Includes
+#include "core/include/TimeVal.h"
+
 /* 5 seconds stream duration */
-#define STREAM_DURATION   5.0
+#define STREAM_DURATION   10.0
 #define STREAM_FRAME_RATE 25 /* 25 images/s */
 #define STREAM_NB_FRAMES  ((int)(STREAM_DURATION * STREAM_FRAME_RATE))
 #define STREAM_PIX_FMT PIX_FMT_YUV420P /* default pix_fmt */
@@ -64,10 +67,10 @@ static AVStream *add_video_stream(AVFormatContext *oc, CodecID codec_id)
     c->codec_type = CODEC_TYPE_VIDEO;
 
     /* put sample parameters */
-    c->bit_rate = 400000 / 1000;
+    c->bit_rate = 800000 * 4;
     /* resolution must be a multiple of two */
-    c->width = 352;
-    c->height = 288;
+    c->width = 640;
+    c->height = 480;
     /* time base: this is the fundamental unit of time (in seconds) in terms
        of which frame timestamps are represented. for fixed-fps content,
        timebase should be 1/framerate and timestamp increments should be
@@ -254,7 +257,6 @@ static void write_video_frame(AVFormatContext *oc, AVStream *st)
             pkt.size= out_size;
 
             /* write the compressed frame in the media file */
-            printf("Staring frame write\n");
             ret = av_write_frame(oc, &pkt);
         } else {
             ret = 0;
@@ -264,7 +266,6 @@ static void write_video_frame(AVFormatContext *oc, AVStream *st)
         fprintf(stderr, "Error while writing video frame\n");
         exit(1);
     }
-    printf("Done\n");
     frame_count++;
 }
 
@@ -285,11 +286,11 @@ static void close_video(AVFormatContext *oc, AVStream *st)
 
 TEST(AVFormat)
 {
-    const char *filename = "test.mpeg4";
-    AVOutputFormat *fmt;
-    AVFormatContext *oc;
-    AVStream *video_st;
-    double  video_pts;
+    const char *filename = "test.avi";
+    AVOutputFormat *fmt = NULL;
+    AVFormatContext *oc = NULL;
+    AVStream *video_st = NULL;
+    double  video_pts = 0.0;
     int i;
 
     /* initialize libavcodec, and register all codecs and formats */
@@ -307,6 +308,7 @@ TEST(AVFormat)
         exit(1);
     }
     printf("Format gotten\n");
+
     /* allocate the output media context */
     oc = av_alloc_format_context();
     if (!oc) {
@@ -315,21 +317,25 @@ TEST(AVFormat)
     }
     oc->oformat = fmt;
     snprintf(oc->filename, sizeof(oc->filename), "%s", filename);
-
-    /* add the audio and video streams using the default format codecs
-       and initialize the codecs */
-    video_st = NULL;
-    if (fmt->video_codec != CODEC_ID_NONE) {
-        video_st = add_video_stream(oc, fmt->video_codec);
-    }
-
+    
     /* set the output parameters (must be done even if no
        parameters). */
     if (av_set_parameters(oc, NULL) < 0) {
         fprintf(stderr, "Invalid output format parameters\n");
         exit(1);
     }
+    
+    /* Set CodecID manually */    
+    oc->video_codec_id = CODEC_ID_MPEG4; //CODEC_ID_MPEG2VIDEO;
+    
+    /* add the audio and video streams using the default format codecs
+       and initialize the codecs */
+    video_st = NULL;
+    if (fmt->video_codec != CODEC_ID_NONE) {
+        video_st = add_video_stream(oc, oc->video_codec_id); //fmt->video_codec);
+    }
 
+    
     dump_format(oc, 0, filename, 1);
 
     /* now that all the parameters are set, we can open the audio and
@@ -349,8 +355,9 @@ TEST(AVFormat)
     /* write the stream header, if any */
     av_write_header(oc);
     int a = 0;
+
+    ram::core::TimeVal start = ram::core::TimeVal::timeOfDay();
     for(;;) {
-        printf("Iteration: %d, PT: %f\n",a, video_pts);
         a += 1;
         /* compute current audio and video time */
         if (video_st)
@@ -364,6 +371,10 @@ TEST(AVFormat)
         /* write interleaved audio and video frames */
         write_video_frame(oc, video_st);
     }
+    ram::core::TimeVal end = ram::core::TimeVal::timeOfDay();
+    ram::core::TimeVal difference = end - start;
+    printf("Encoded %d frames in  %f seconds\n",
+           (int)STREAM_DURATION * STREAM_FRAME_RATE, difference.get_double());
 
     /* close each codec */
     if (video_st)
