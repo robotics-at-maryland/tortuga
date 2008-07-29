@@ -347,9 +347,9 @@ TEST_FIXTURE(DuctDetectorFixture, range)
 				  (getImagesDir() / "alignment.png").string());
     
     vision::OpenCVImage output(640,480);
-    vision::Image::showImage(input);
+    //vision::Image::showImage(input);
     detector.processImage(input,&output);
-    vision::Image::showImage(&output);
+    //vision::Image::showImage(&output);
     CHECK(detector.getAligned());
     //CHECK_CLOSE(expectedValue, actualValue, maxDifference);
     CHECK_CLOSE(0, detector.getX(), 0.1);
@@ -363,9 +363,9 @@ TEST_FIXTURE(DuctDetectorFixture, range)
     vision::Image::loadFromFile(
         (getImagesDir() / "far.png").string());
     // Blue Image with red circle in the center
-    vision::Image::showImage(input2);
+    //vision::Image::showImage(input2);
     detector.processImage(input2, &output);
-    vision::Image::showImage(&output);
+    //vision::Image::showImage(&output);
     CHECK_CLOSE(0, detector.getX(), 0.1);
     CHECK_CLOSE(0, detector.getY(), 0.1);
     CHECK_CLOSE(29, detector.getRotation(), 10);
@@ -374,7 +374,7 @@ TEST_FIXTURE(DuctDetectorFixture, range)
     delete input2;
 }
 
-/*
+
 TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_FOUND)
 {
     vision::Image* input =
@@ -413,7 +413,7 @@ TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_LOST)
     CHECK(event->visible);
     CHECK_CLOSE(0, event->x, 0.2);
     CHECK_CLOSE(0, event->y, 0.2);
-    CHECK_CLOSE(0, event->alignment, 0.4);
+    CHECK_CLOSE(0, event->alignment, 10);
     
     // Lost Duct
     detector.processImage(&blank);
@@ -426,16 +426,15 @@ TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_LOST)
     CHECK(event->visible);
     CHECK_CLOSE(0, event->x, 0.2);
     CHECK_CLOSE(0, event->y, 0.2);
-    CHECK_CLOSE(0, event->alignment, 0.4);
+    CHECK_CLOSE(0, event->alignment, 10);
     
     // Now make sure we get found again
     detector.processImage(&blank);
     CHECK(!event);
 }
-*/
+
 // Test some corner cases for direction
 
-/*
 TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
 {
     // MAKE DETECTOR PASS ME
@@ -448,7 +447,7 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
     double expectedX = -0.5 * 640.0/480.0;;
     double expectedY = 0.5;
     
-    //CHECK(!detector.getAligned());
+    CHECK(!detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 }
@@ -502,7 +501,7 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRightFront)
     //CHECK(detector.getAligned());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
-}*/
+}
 
 
 } // SUITE(DuctDetector)
