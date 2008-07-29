@@ -69,7 +69,7 @@ static const int ENV_CALC_FRAME=1024; //the length of the piece that is extracte
 //---------------PING QUALITY SETTINGS-----------------
 static const float PING_FIT_THRESHOLD=0.1;
 static const float VECTOR_QUAL_THRESHOLD=1.2;
-static const int FREQ_REJECT_RATIO=2; //the ratio of primary to secondary (false) frequencies for which the ping is assumed to be false and is rejected
+static const float FREQ_REJECT_RATIO=1.1; //the ratio of primary to secondary (false) frequencies for which the ping is assumed to be false and is rejected
 
 } // namespace sonar
 } // namespace ram
