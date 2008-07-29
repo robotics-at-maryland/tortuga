@@ -24,7 +24,7 @@ Subsystems:
         SafeDetector:
             rOverGMin: 0.5
             rOverGMax: 1.8
-            bOverRMin: 0.65
+            bOverRMax: 0.65
         # Recording Settings
         #maxRecordRate: 10 # Hz
         #forwardFile: forward.avi

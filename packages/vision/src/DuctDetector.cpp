@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2008 Robotics at Maryland
  * Copyright (C) 2008 Chris Giles

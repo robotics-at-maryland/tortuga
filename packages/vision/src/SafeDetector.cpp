@@ -47,7 +47,7 @@ void SafeDetector::init(core::ConfigNode config)
     m_working = new OpenCVImage(640,480);
     m_rOverGMin = config["rOverGMin"].asDouble(.5);
     m_rOverGMax = config["rOverGMax"].asDouble(1.8);
-    m_bOverRMax = config["bOverRMin"].asDouble(.7);
+    m_bOverRMax = config["bOverRMax"].asDouble(.7);
 }
     
     SafeDetector::~SafeDetector()
