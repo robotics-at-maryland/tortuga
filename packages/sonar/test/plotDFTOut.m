@@ -9,7 +9,7 @@ function plotDFTOut(fname, kBands)
   M = length(dat)/N;
   dat = reshape(dat, N, M);
   
-  if nargin == 0
+  if nargin == 1
     kBands = 0:(N-1);
   end
 
