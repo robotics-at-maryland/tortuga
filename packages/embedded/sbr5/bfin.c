@@ -233,6 +233,18 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_BFIN_STOP:
+                {
+                    TRIS_BF_RESET = TRIS_OUT;   /* Stop the Blackfin */
+                    break;
+                }
+
+                case BUS_CMD_BFIN_START:
+                {
+                    TRIS_BF_RESET = TRIS_IN;   /* Start the Blackfin */
+                    break;
+                }
+
                 case BUS_CMD_SONAR:
                 {
                     int i;
@@ -488,9 +500,6 @@ int main()
     LAT_LED_YELLOW = ~LED_ON;
     LAT_LED_GREEN = LED_ON;
 
-
-    TRIS_BF_RESET = TRIS_IN;    /* Start the Blackfin */
-
     _TRISF3 = TRIS_IN;
     _TRISF2 = TRIS_OUT;
     _LATF2 = 1;
@@ -506,6 +515,9 @@ int main()
 
     if(_RF3)  /* Jumper between PGD and PGC */
     {
+
+        TRIS_BF_RESET = TRIS_IN;    /* Start the Blackfin */
+
         portalMode = 1;
         LAT_LED_GREEN = LED_ON;
         LAT_LED_YELLOW = LED_ON;

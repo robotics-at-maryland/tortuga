@@ -63,6 +63,8 @@ int main(int argc, char ** argv)
 
 
         printf("\nSonar commands:\n");
+        printf("\tlcdshow -bfstart (starts the Blackfin processor)\n");
+        printf("\tlcdshow -bfstop (stops the Blackfin processor)\n");
         printf("\tlcdshow -bfreset (reboots the Blackfin processor)\n");
         printf("\tlcdshow -sonar (retrieve latest sonar telemetry)\n");
 
@@ -131,6 +133,16 @@ int main(int argc, char ** argv)
     if(strcmp(argv[1], "-bfreset") == 0)
     {
         printf("reply was 0x%02x\n", resetBlackfin(fd));
+    }
+
+    if(strcmp(argv[1], "-bfstart") == 0)
+    {
+        printf("reply was 0x%02x\n", startBlackfin(fd));
+    }
+
+    if(strcmp(argv[1], "-bfstop") == 0)
+    {
+        printf("reply was 0x%02x\n", stopBlackfin(fd));
     }
 
     if(strcmp(argv[1], "-sonar") == 0)
@@ -618,7 +630,7 @@ int main(int argc, char ** argv)
 	    close(fd);
 	    return -1;
 	}
-    
+
     	int t = atoi(argv[2]);
 
         setBarOutputs(fd, t);

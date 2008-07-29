@@ -399,6 +399,16 @@ int resetBlackfin(int fd)
     return SB_ERROR;
 }
 
+int startBlackfin(int fd)
+{
+    return simpleWrite(fd, HOST_CMD_BFIN_STATE, 1, 2);
+}
+
+int stopBlackfin(int fd)
+{
+    return simpleWrite(fd, HOST_CMD_BFIN_STATE, 0, 2);
+}
+
 int switchToExternalPower(int fd)
 {
     return simpleWrite(fd, HOST_CMD_SWITCHPOWER, 1, 2);

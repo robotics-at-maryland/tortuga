@@ -115,8 +115,11 @@
 #define BUS_CMD_SET_BARMODE     0x4C
 #define BUS_CMD_BFRESET         0x4D
 
-#define BUS_CMD_SET_BARS         0x4E
-/* Next free is 0x4F */
+#define BUS_CMD_SET_BARS        0x4E
+
+#define BUS_CMD_BFIN_STOP       0x4F
+#define BUS_CMD_BFIN_START      0x50
+/* Next free is 0x51 */
 
 
 
@@ -203,6 +206,9 @@
 #define HOST_CMD_BARANIMATION       0x2A
 
 #define HOST_CMD_SET_BARS           0x2B
+
+#define HOST_CMD_BFIN_STATE         0x2C
+
 
 
 

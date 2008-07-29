@@ -320,6 +320,9 @@ int readTemp(int fd, unsigned char * tempData);
 
 int getSonarData(int fd, struct sonarData * sd);
 
+
+int startBlackfin(int fd);
+int stopBlackfin(int fd);
 int resetBlackfin(int fd);
 
 int setDiagnostics(int fd, int state);

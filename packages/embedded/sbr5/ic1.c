@@ -39,7 +39,7 @@ _FWDT ( WDT_OFF );
 #define TRIS_LED_ACT    _TRISF1
 
 
-#define SBR7
+#define SBR5
 
 
 #ifdef SBR5
@@ -772,8 +772,8 @@ int main(void)
 
     if(IN_USBDETECT != USB_PRESENT)
     {
-        showString("  Moan for me,  ", 0);
-        showString("     DAVE !     ", 1);
+        showString("   Self-Test    ", 0);
+        showString("    Complete    ", 1);
 
 //         showString("No USB link     ", 0);
 //         showString("detected        ", 1);
@@ -1212,6 +1212,31 @@ int main(void)
                 }
 
                 if(busWriteByte(blCommands[t1], SLAVE_ID_LCD) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
+            case HOST_CMD_BFIN_STATE:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                const static unsigned char bfCommands[]=
+                        {BUS_CMD_BFIN_STOP, BUS_CMD_BFIN_START};
+
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_BFIN_STATE)&0xFF) != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(bfCommands[t1], SLAVE_ID_SONAR) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
