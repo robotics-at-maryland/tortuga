@@ -38,6 +38,12 @@ inline double phaseBetween(const std::complex<T>& a, const std::complex<T>& b)
 	return arg(aDbl*conj(bDbl));
 }
 
+template<typename T>
+inline T round(const double& a)
+{
+    return (T)std::floor(a+0.5);
+}
+
 extern "C" long PseudoPolarize(long *argx, long *argy);
 
 inline long fixed_atan2(long &x, long &y)
