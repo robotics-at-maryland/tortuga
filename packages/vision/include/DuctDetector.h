@@ -47,13 +47,13 @@ public:
     bool blobsAreClose(BlobDetector::Blob b1, BlobDetector::Blob b2,
                        double growThreshX,double growThreshY);
                        
-    void mergeBlobs(std::vector<BlobDetector::Blob>* blobsToMerge, std::vector<BlobDetector::Blob>* mergedBlobs, double growThreshX, double growThreshY, double minXOverYForStretching);
+    void mergeBlobs(std::vector<BlobDetector::Blob>* blobsToMerge, std::vector<BlobDetector::Blob>* mergedBlobs);
     
 private:
     void init(core::ConfigNode config);
     inline int yellow(unsigned char r, unsigned char g, unsigned char b);
     
-    BlobDetector::Blob fullDuct;
+    BlobDetector::Blob m_fullDuct;
     BlobDetector blobDetector;
     Image* m_working;
     Image* m_workingPercents;
@@ -68,12 +68,23 @@ private:
     double m_minRedOverBlue;
     double m_minGreenOverBlueOnRedFailureForInsideDuct;
     int m_erodeIterations;
+    int m_dilateIterations;
     double m_alignedThreshold;
     int m_centerAlignedThreshold;
+    int m_minBlackPercent;
+    int m_maxBlackTotal;
+    
+    double m_defaultGrowThreshX;
+    double m_defaultGrowThreshY;
+    double m_minXOverYToUpGrowThresh;
+    double m_uppedGrowThreshX;
+    double m_uppedGrowThreshY;
+    
 
     // More member variables
     bool m_found;
     bool containsOne;
+    bool m_possiblyAligned;
 };
 
 } // namespace vision

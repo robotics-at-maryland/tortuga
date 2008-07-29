@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2008 Robotics at Maryland
  * Copyright (C) 2008 Chris Giles
@@ -108,7 +109,7 @@ double max(double a, double b)
 DuctDetector::DuctDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
     Detector(eventHub),
-    fullDuct(0,0,0,0,0,0,0),
+    m_fullDuct(0,0,0,0,0,0,0),
     blobDetector(config,eventHub),
     m_working(new OpenCVImage(640, 480)),
     m_workingPercents(new OpenCVImage(640,480)),
@@ -127,7 +128,7 @@ DuctDetector::DuctDetector(core::ConfigNode config,
     
 DuctDetector::DuctDetector(core::EventHubPtr eventHub) :
     Detector(eventHub),
-    fullDuct(0,0,0,0,0,0,0),
+    m_fullDuct(0,0,0,0,0,0,0),
     blobDetector(),
     m_working(new OpenCVImage(640, 480)),
     m_workingPercents(new OpenCVImage(640,480)),
@@ -152,13 +153,19 @@ DuctDetector::~DuctDetector()
     delete m_yellowMasked;
 }
 
-void DuctDetector::mergeBlobs(std::vector<BlobDetector::Blob> *allBlobs,std::vector<BlobDetector::Blob> *allBlobsMerged, double growThreshX, double growThreshY, double minXOverYForStretching)
+void DuctDetector::mergeBlobs(std::vector<BlobDetector::Blob> *allBlobs,
+			      std::vector<BlobDetector::Blob> *allBlobsMerged)
 {
+  //    printf("Starting merge blobs\n");
     BlobDetector::Blob empty(0,0,0,0,0,0,0);
     int size = allBlobs->size();
+    //    printf("Size: %d\n",size);
     int* blobUnionizer = new int[size];
     BlobDetector::Blob* unionBlobs = new BlobDetector::Blob[size];
     int* blobCounts = new int[size];
+    double growThreshX = m_defaultGrowThreshX;
+    double growThreshY = m_defaultGrowThreshY;
+    
     for (int i = 0; i < size; i++)
     {
         blobUnionizer[i] = i;
@@ -174,10 +181,16 @@ void DuctDetector::mergeBlobs(std::vector<BlobDetector::Blob> *allBlobs,std::vec
             double XOverY = ((double)((*allBlobs)[i].getMaxX() - (*allBlobs)[i].getMinX()))/(double)(((*allBlobs)[i].getMaxY() - (*allBlobs)[i].getMinY()));
             double XOverY2 = ((double)((*allBlobs)[j].getMaxX() - (*allBlobs)[j].getMinX()))/(double)(((*allBlobs)[j].getMaxY() - (*allBlobs)[j].getMinY()));
             
-            if (XOverY >= minXOverYForStretching || XOverY2 >= minXOverYForStretching)
-                blobsClose = blobsAreClose((*allBlobs)[i],(*allBlobs)[j], growThreshX, growThreshY);
-            else
-                blobsClose = blobsAreClose((*allBlobs)[i],(*allBlobs)[j], 0, 0);
+	    
+            if (XOverY >= m_minXOverYToUpGrowThresh ||
+		XOverY2 >= m_minXOverYToUpGrowThresh)
+	    {
+	      growThreshX = m_uppedGrowThreshX;
+	      growThreshY = m_uppedGrowThreshY;
+	    }
+	    
+	    blobsClose = blobsAreClose((*allBlobs)[i],(*allBlobs)[j], growThreshX, growThreshY);
+
             if (blobsClose)
             {
                 int rooti = i;
@@ -191,6 +204,8 @@ void DuctDetector::mergeBlobs(std::vector<BlobDetector::Blob> *allBlobs,std::vec
 
                 int minRoot = (rooti < rootj)? rooti : rootj;
                 blobUnionizer[i] = blobUnionizer[j] = minRoot;
+		
+		//		printf("%d = %d = %d.\n",i,j,minRoot);
             }
         }
     }
@@ -240,24 +255,38 @@ void DuctDetector::init(core::ConfigNode config)
         config["minGreenOverBlueOnRedFailureForInsideDuct"].asDouble(1.1);
     
     m_erodeIterations = config["erodeIterations"].asInt(3);
+    m_dilateIterations = config["dilateIterations"].asInt(3);
     m_alignedThreshold = config["alignedThreshold"].asDouble(5);
     m_centerAlignedThreshold = config["centerAlignedThreshold"].asInt(25);
+    
+    m_minBlackPercent = config["minBlackPercent"].asInt(5);
+    m_maxBlackTotal = config["maxBlackTotal"].asInt(300);
+    
+    m_defaultGrowThreshX = config["defaultGrowThreshX"].asDouble(.05);
+    m_defaultGrowThreshY = config["defaultGrowThreshY"].asDouble(.05);
+    m_minXOverYToUpGrowThresh = 
+      config["minXOverYToUpGrowThresh"].asDouble(1.5);
+    m_uppedGrowThreshX = config["uppedGrowThreshX"].asDouble(.5);
+    m_uppedGrowThreshY = config["uppedGrowThreshY"].asDouble(.05);
 }
     
 void DuctDetector::processImage(Image* input, Image* output)
 {
+  //  printf("\n");
 /* TODO:  Merge yellow blobs together before checking whether any contain
           black blobs, turn merging by intersection into a function of blobs
           or blob detector or something, because its really useful.
           
           also... fix all the damn false positives on the duct detection...*/
     BlobDetector::Blob empty(0,0,0,0,0,0,0);
+    
+    m_fullDuct = empty;
     m_working->copyFrom(input);
     m_workingPercents->copyFrom(m_working);
     m_blackMasked->copyFrom(m_working);
     m_yellowMasked->copyFrom(m_working);
     to_ratios(m_workingPercents->asIplImage());
-    
+    m_possiblyAligned = false;
     
     // Grab data pointers
     unsigned char* outputData = 0;
@@ -267,8 +296,11 @@ void DuctDetector::processImage(Image* input, Image* output)
     int height = m_working->getHeight();
 //    int minX = 1000, minY = 1000, maxX = -10000, maxY = -10000;
     
-    black_mask(m_workingPercents->asIplImage(),m_working->asIplImage(), m_blackMasked->asIplImage(),
-               5, 300);
+    black_mask(m_workingPercents->asIplImage(),
+	       m_working->asIplImage(), 
+	       m_blackMasked->asIplImage(),
+               m_minBlackPercent, 
+	       m_maxBlackTotal);
     
     int count = 0;
     for (int y = 0; y < height; y++)
@@ -295,8 +327,13 @@ void DuctDetector::processImage(Image* input, Image* output)
         cvErode(m_blackMasked->asIplImage(), m_blackMasked->asIplImage(), 0,
                 m_erodeIterations);
     }
-    cvDilate(m_yellowMasked->asIplImage(), m_yellowMasked->asIplImage(), 0, 3);
-
+    if (m_dilateIterations != 0)
+    {
+        cvDilate(m_yellowMasked->asIplImage(), 
+		 m_yellowMasked->asIplImage(),
+		 0,
+		 m_dilateIterations);
+    }
     //for debug
     if (output)
     {
@@ -345,7 +382,7 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     if (output)
     {
-        BOOST_FOREACH(BlobDetector::Blob blob, blackBlobs)
+              BOOST_FOREACH(BlobDetector::Blob blob, blackBlobs)
         {
             blob.draw(output);
         }
@@ -370,7 +407,7 @@ void DuctDetector::processImage(Image* input, Image* output)
         yellowBlobMerger.push_back(blob);
     }
     
-    mergeBlobs(&yellowBlobMerger, &yellowBlobMergeResults,.5,.025, 1.5);
+    mergeBlobs(&yellowBlobMerger, &yellowBlobMergeResults);
 
     BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
     {
@@ -427,32 +464,180 @@ void DuctDetector::processImage(Image* input, Image* output)
     }
 
     std::vector<BlobDetector::Blob> resultBlobs;
-    mergeBlobs(&allBlobs, &resultBlobs,.025,.025, 0);
-    
-    BlobDetector::Blob fullDuct;
+    mergeBlobs(&allBlobs, &resultBlobs);
     
     BOOST_FOREACH(BlobDetector::Blob blob, resultBlobs)
     {
-        if (fullDuct.getSize() < blob.getSize())
-            fullDuct = blob;
+        if (m_fullDuct.getSize() < blob.getSize())
+            m_fullDuct = blob;
     }
-                                
+    
     if (m_found && containsOne)
-        m_rotation = (fullDuct.getCenterX() - ((minEntranceX + maxEntranceX) / 2));
+    {
+        //Seeing the entrance must set the rotation to rotate us to the entrance.
+        //If we also see the exit, we will override this rotation to aim us through
+        //containsOne is true, so we see entrance!
+        m_rotation = (m_fullDuct.getCenterX() - ((minEntranceX + maxEntranceX) / 2));
+	
+	//Draw lines to all edges of the bin, see how far you get before you hit
+	//a side (yellow or black)
+	//If you can't go x amount in all directions, youre not really aligned.
+	//Alternately, if you hit a wall, you're not really aligned.
+	int toTop = 0;
+	int toBottom = 0;
+	int toLeft = 0;
+	int toRight = 0;
+	
+	unsigned char* yellowData = (unsigned char*) m_yellowMasked->getData();
+	unsigned char* blackData = (unsigned char*) m_blackMasked->getData();
+	int x = m_fullDuct.getCenterX();
+	int y = m_fullDuct.getCenterY();
+	for (y = m_fullDuct.getCenterY(); y <= m_fullDuct.getMaxY(); y++)
+	{
+	    int index = 3 * x + 3 * y * width;
+	    if (yellowData[index] == 255 || blackData[index] == 255)
+	    {
+      	        break;
+	    }
+	    toBottom++;
+	}
+
+	if (y == m_fullDuct.getMaxY()+1) //We hit edge... lame.
+        {
+	    toBottom = 0;
+        }
+	
+	x = m_fullDuct.getCenterX();
+	y = m_fullDuct.getCenterY();
+	for (y = m_fullDuct.getCenterY(); y >= m_fullDuct.getMinY(); y--)
+	{
+	    int index = 3 * x + 3 * y * width;
+	    if (yellowData[index] == 255 || blackData[index] == 255)
+	    {
+      	        break;
+	    }
+	    toTop++;
+	}
+	
+	if (y == m_fullDuct.getMinY()-1) //We hit edge... lame.
+        {
+	    toTop = 0;
+        }
+
+	x = m_fullDuct.getCenterX();
+	y = m_fullDuct.getCenterY();
+	for (x = m_fullDuct.getCenterX(); x >= m_fullDuct.getMinX(); x--)
+	{
+	    int index = 3 * x + 3 * y * width;
+	    if (yellowData[index] == 255 || blackData[index] == 255)
+	    {
+      	        break;
+	    }
+	    toLeft++;
+	}
+
+	if (x == m_fullDuct.getMinX()-1) //We hit edge... lame...
+        {
+            //This probably means the left side has totally disappeared,
+	    //Force it to move a little more to the right.
+	    toLeft = 0;
+	    m_rotation=-10;
+	    if (output)
+	    {
+	        CvPoint top;
+	        CvPoint bottom;
+		bottom.x = top.x = m_fullDuct.getMinX();
+		top.y = 0;
+		bottom.y = height-1;
+
+		cvLine(output->asIplImage(),
+		       top, 
+		       bottom, 
+		       CV_RGB(255,0,0), 3, CV_AA, 0 );
+	    }
+        }
+
+	x = m_fullDuct.getCenterX();
+	y = m_fullDuct.getCenterY();
+	for (x = m_fullDuct.getCenterX(); x <= m_fullDuct.getMaxX(); x++)
+	{
+	    int index = 3 * x + 3 * y * width;
+	    if (yellowData[index] == 255 || blackData[index] == 255)
+	    {
+      	        break;
+	    }
+	    toRight++;
+	}
+
+	if (x == m_fullDuct.getMaxX()+1) //We hit edge... lame.
+	{   
+	    //This probably means right side has totally disappeared.
+	    //Force it to move a little more to the left.
+            toRight = 0;
+	    m_rotation=10;
+	    if (output)
+	    {
+	        CvPoint top;
+	        CvPoint bottom;
+		bottom.x = top.x = m_fullDuct.getMaxX();
+		top.y = 0;
+		bottom.y = height-1;
+
+		cvLine(output->asIplImage(),
+		       top, 
+		       bottom, 
+		       CV_RGB(255,0,0), 3, CV_AA, 0 );
+	    }
+	}
+
+	if (toLeft > 20 && toRight > 20 && toTop > 20 && toBottom > 20)
+	{
+	    m_possiblyAligned = true;
+	    BlobDetector::Blob exitBlob(0, 
+				      m_fullDuct.getCenterX() + (toRight - toLeft)/2,
+				      m_fullDuct.getCenterY() + (toBottom - toTop)/2,
+				      m_fullDuct.getCenterX() + toRight, 
+				      m_fullDuct.getCenterX() - toLeft, 
+				      m_fullDuct.getCenterY() + toBottom,
+				      m_fullDuct.getCenterY() - toTop);
+
+	    //Seeing the exit blob will override the rotation necessary
+	    m_rotation = -(m_fullDuct.getCenterX() - exitBlob.getCenterX());
+	    
+	    if (output)
+	    {
+     	        exitBlob.draw(output);
+		CvPoint exitCenter;
+		exitCenter.x = exitBlob.getCenterX();
+		exitCenter.y = exitBlob.getCenterY();
+		cvCircle(output->asIplImage(), 
+			 exitCenter,
+			 10, 
+			 CV_RGB(128,128,128), 
+			 2, 
+			 CV_AA, 
+			 0);
+	    }
+        }
+	else
+	{
+	    m_possiblyAligned = false;
+	}
+    }
     else
         m_rotation = 0;
                 
     if (output)
     {
-        fullDuct.draw(output);
+        m_fullDuct.draw(output);
     }
         
     if (m_found && output)
     {
         // Draw center of bin
         CvPoint binCenter;
-        binCenter.x = (int)fullDuct.getCenterX();
-        binCenter.y = (int)fullDuct.getCenterY();
+        binCenter.x = (int)m_fullDuct.getCenterX();
+        binCenter.y = (int)m_fullDuct.getCenterY();
         if (getAligned() && getVisible())
             cvCircle(output->asIplImage(), binCenter, 10, CV_RGB(0,255,0), 2, CV_AA, 0);
         else
@@ -473,14 +658,14 @@ void DuctDetector::processImage(Image* input, Image* output)
     if (m_found)
     {
         // Shift origin to the center
-        //n_x = -1 * ((input->getWidth() / 2) - fullDuct.getCenterX());
-        //n_y = (input->getHeight() / 2) - fullDuct.getCenterY();
+        //n_x = -1 * ((input->getWidth() / 2) - m_fullDuct.getCenterX());
+        //n_y = (input->getHeight() / 2) - m_fullDuct.getCenterY();
         // These temps needed because of some wierd overflow issue
         int temp = (input->getHeight() / 2);
-        int temp2 = temp - fullDuct.getCenterY();
+        int temp2 = temp - m_fullDuct.getCenterY();
         n_y = temp2;
         temp = (input->getWidth() / 2);
-        temp2 = temp - fullDuct.getCenterX();
+        temp2 = temp - m_fullDuct.getCenterX();
         n_x = -1 * temp2;
 
         // Normalize (-1 to 1)
@@ -492,12 +677,14 @@ void DuctDetector::processImage(Image* input, Image* output)
         n_x *= (double)input->getWidth() / input->getHeight();
 
         // Calculate range
-        m_range = 1 - ((double)(fullDuct.getMaxY() - fullDuct.getMinY()) / (double)input->getHeight());
+        m_range = 1 - ((double)(m_fullDuct.getMaxY() - m_fullDuct.getMinY()) / (double)input->getHeight()); 
         
         DuctEventPtr event(new DuctEvent(n_x, n_y, m_range, m_rotation, 
                                          getAligned(), getVisible()));
         publish(EventType::DUCT_FOUND, event);
     }
+
+
     
 
     
@@ -530,7 +717,7 @@ double DuctDetector::getRange()
 }
     
 double DuctDetector::getRotation()
-{
+ {
     return m_rotation;
 }
 
@@ -541,10 +728,12 @@ bool DuctDetector::getVisible()
     
 bool DuctDetector::getAligned()
 {
-    return m_found &&
+  //    printf("%d, %d, %f, %d, %d, %d\n\n", m_found, m_possiblyAligned, m_rotation, m_fullDuct.getCenterX(), m_fullDuct.getCenterY(), containsOne);
+    
+    return m_found && m_possiblyAligned && 
         fabsf(m_rotation) < m_alignedThreshold &&
-        abs(fullDuct.getCenterX() - m_working->getWidth()/2) < m_centerAlignedThreshold &&
-        abs(fullDuct.getCenterY() - m_working->getHeight()/2) < m_centerAlignedThreshold &&
+        abs(m_fullDuct.getCenterX() - m_working->getWidth()/2) < m_centerAlignedThreshold &&
+        abs(m_fullDuct.getCenterY() - m_working->getHeight()/2) < m_centerAlignedThreshold &&
         containsOne;
 }
 

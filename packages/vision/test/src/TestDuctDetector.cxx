@@ -25,11 +25,11 @@
 
 using namespace ram;
 
-//static boost::filesystem::path getImagesDir()
-//{
-//    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
-//    return root / "packages" / "vision" / "test" / "data" / "images" / "testduct";
-//}
+static boost::filesystem::path getImagesDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "vision" / "test" / "data" / "images" / "testduct";
+}
 
 /** Draws the air duct from the side */
 enum DuctDirection {
@@ -94,6 +94,23 @@ void drawDuctBottom(vision::Image* image, int minX, int maxX, int minY, int maxY
 }
 
 
+const std::string DUCT_CONFIG = "{\n"
+"'minRedOverGreen' : 0.9,\n"
+"'maxRedOverGreen' : 1.1,\n"
+"'minRedOverBlue' : 2.0,\n"
+"'minGreenOverBlueOnRedFailureForInsideDuct' : 1.1,\n"
+"'minBlackPercent' : 15,\n"
+"'maxBlackTotal' : 100,\n"
+"'dilateIterations' : 0,\n"
+"'erodeIterations' : 0,\n"
+"'defaultGrowThreshX' : 0.05,\n"
+"'defaultGrowThreshY' : 0.05,\n"
+"'minXOverYToUpGrowThresh' : 1.5,\n"
+"'uppedGrowThreshX' : 0.5,\n"
+"'uppedGrowThreshY' : 0.05"
+"}";
+
+
 struct DuctDetectorFixture
 {
     DuctDetectorFixture() :
@@ -101,7 +118,7 @@ struct DuctDetectorFixture
         event(vision::DuctEventPtr()),
         //input(640, 480),
         eventHub(new core::EventHub()),
-        detector(eventHub),
+        detector(core::ConfigNode::fromString(DUCT_CONFIG), eventHub),
         downDetector(eventHub)
     {
         eventHub->subscribeToType(vision::EventType::DUCT_FOUND,
@@ -205,142 +222,140 @@ TEST_FIXTURE(DuctDetectorFixture, downTest2)
 //    printf("Finished downTest2\n");
 }
 
-TEST_FIXTURE(DuctDetectorFixture, reminder)
-{
-    printf("ALL DUCT DETECTION TESTS DISABLED!! TURN THEM BACK ON WHEN IT WORKS!\n");
-}
-//TEST_FIXTURE(DuctDetectorFixture, getAlignment)
+//TEST_FIXTURE(DuctDetectorFixture, reminder)
 //{
-//    vision::OpenCVImage output(480, 640);
-//
-//    vision::Image* input =
-//     vision::Image::loadFromFile(
-//        (getImagesDir() / "alignment.png").string());
-//    detector.processImage(input, &output);
-//    
-//    //vision::Image::showImage(&output);
-//    
-//    //CHECK(detector.getAligned());
-//    //CHECK_CLOSE(0, detector.getX(), 0.2);
-//    //CHECK_CLOSE(0, detector.getY(), 0.2);
-//    //CHECK_CLOSE(0, detector.getRotation(), 0.1);
-//    delete input;
-//    
-//    
-//    
-//    vision::Image* input2 = 
-//    vision::Image::loadFromFile(
-//        (getImagesDir() / "unal0.png").string());
-//    // Blue Image with red circle in the center
-//    detector.processImage(input2, &output);
-//    
-//    //vision::Image::showImage(&output);
-//
-//    CHECK_CLOSE(0, detector.getX(), 0.2);
-//    CHECK_CLOSE(0, detector.getY(), 0.2);
-//    CHECK(!detector.getAligned());
-//    delete input2;
-//    
-//    
-//    
-//    vision::Image* input3 = 
-//    vision::Image::loadFromFile(
-//        (getImagesDir() / "unal1.png").string());
-//    // Blue Image with red circle in the center
-//    detector.processImage(input3, &output);
-//    
-//    //vision::Image::showImage(&output);
-//    
-//    CHECK_CLOSE(0, detector.getX(), 0.2);
-//    CHECK_CLOSE(0, detector.getY(), 0.2);
-//    CHECK_CLOSE(1, detector.getRotation(), 1);
-//    CHECK(!detector.getAligned());
-//    delete input3;
-//    
-//    
-//    
-//    vision::Image* input4 = 
-//    vision::Image::loadFromFile(
-//        (getImagesDir() / "unal2.png").string());
-//    // Blue Image with red circle in the center
-//    detector.processImage(input4, &output);
-//    
-//    //vision::Image::showImage(&output);
-//    
-//    CHECK_CLOSE(0, detector.getX(), 0.2);
-//    CHECK_CLOSE(0, detector.getY(), 0.2);
-//    CHECK_CLOSE(1, detector.getRotation(), 1);
-//    CHECK(!detector.getAligned());
-//    delete input4;
-//    
-//    
-//    
-//        
-//    vision::Image* input5 = 
-//    vision::Image::loadFromFile(
-//        (getImagesDir() / "unal3.png").string());
-//    // Blue Image with red circle in the center
-//    detector.processImage(input5, &output);
-//    
-//    //vision::Image::showImage(&output);
-//    
-//    CHECK_CLOSE(0, detector.getX(), 0.2);
-//    CHECK_CLOSE(0, detector.getY(), 0.2);
-//    CHECK_CLOSE(-1, detector.getRotation(), 1);
-//    //CHECK_CLOSE(0.49, detector.getRange(), 0.05);
-//    CHECK(!detector.getAligned());
-//    delete input5;
-//    
-//    
-//    /*
-//    
-//    vision::Image* input6 = 
-//    vision::Image::loadFromFile(
-//        (getImagesDir() / "negativeAlign.png").string());
-//    // Blue Image with red circle in the center
-//    detector.processImage(input6, &output);
-//    
-//    //vision::Image::showImage(&output);
-//    
-//    CHECK_CLOSE(-1, detector.getRotation(), 1);
-//    //CHECK_CLOSE(0.49, detector.getRange(), 0.05);
-//    CHECK(!detector.getAligned());
-//    delete input6;
-//    
-//    */
-//    
-//    
-//    vision::Image* input7 = 
-//    vision::Image::loadFromFile(
-//        (getImagesDir() / "unal4.png").string());
-//    // Blue Image with red circle in the center
-//    detector.processImage(input7, &output);
-//    
-////    vision::Image::showImage(&output);
-//    
-//    CHECK_CLOSE(0, detector.getX(), 0.2);
-//    CHECK_CLOSE(0, detector.getY(), 0.2);
-//    CHECK_CLOSE(-1, detector.getRotation(), 1);
-//    //CHECK_CLOSE(0.49, detector.getRange(), 0.05);
-//    CHECK(!detector.getAligned());
-//    delete input7;
-//    
+//    printf("ALL DUCT DETECTION TESTS DISABLED!! TURN THEM BACK ON WHEN IT WORKS!\n");
 //}
-
-/*
-TEST_FIXTURE(DuctDetectorFixture, range)
+TEST_FIXTURE(DuctDetectorFixture, getAlignment)
 {
+    vision::OpenCVImage output(480, 640);
+
     vision::Image* input =
      vision::Image::loadFromFile(
         (getImagesDir() / "alignment.png").string());
-    detector.processImage(input);
 
+
+    detector.processImage(input, &output);
+    
+    //    vision::Image::showImage(&output);
+    
+    CHECK(detector.getAligned());
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK_CLOSE(0, detector.getRotation(), 10);//These are pixel counts...
+    delete input;
+
+    
+    
+    vision::Image* input2 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal0.png").string());
+    // Blue Image with red circle in the center
+
+    //    vision::Image::showImage(input2);
+    detector.processImage(input2, &output);
+    //    vision::Image::showImage(&output);
+
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK(!detector.getAligned());
+    delete input2;
+    
+    
+    
+    vision::Image* input3 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal1.png").string());
+    // Blue Image with red circle in the center
+    //vision::Image::showImage(input3);
+    detector.processImage(input3, &output);
+    //vision::Image::showImage(&output);
+    
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK_CLOSE(93, detector.getRotation(), 10);
+    CHECK(!detector.getAligned());
+    delete input3;
+    
+    
+    //    printf("Test 4\n");
+    vision::Image* input4 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal2.png").string());
+    // Blue Image with red circle in the center
+    //vision::Image::showImage(input4);
+    detector.processImage(input4, &output);
+    //vision::Image::showImage(&output);
+    
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK_CLOSE(40, detector.getRotation(), 10);
+    CHECK(!detector.getAligned()); 
+    delete input4;
+    //printf("End Test 4\n");
+    
+
+        
+    vision::Image* input5 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal3.png").string());
+    // Blue Image with red circle in the center
+    //    vision::Image::showImage(input5);   
+    detector.processImage(input5, &output);
+    //vision::Image::showImage(&output);
+    
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK_CLOSE(-33, detector.getRotation(), 10);
+    CHECK_CLOSE(0.36, detector.getRange(), 0.05);
+    CHECK(!detector.getAligned());
+    delete input5;
+        
+    vision::Image* input6 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "negativeAlign.png").string());
+    // Blue Image with red circle in the center
+    //    vision::Image::showImage(input6);
+    detector.processImage(input6, &output);
+    //vision::Image::showImage(&output);
+    
+    CHECK_CLOSE(-120, detector.getRotation(), 10);
+    CHECK_CLOSE(.25, detector.getRange(), 0.05);
+    CHECK(!detector.getAligned());
+    delete input6;
+    
+    vision::Image* input7 = 
+    vision::Image::loadFromFile(
+        (getImagesDir() / "unal4.png").string());
+    // Blue Image with red circle in the center
+    //    vision::Image::showImage(input7);
+    detector.processImage(input7, &output);
+    // vision::Image::showImage(&output);
+    
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK_CLOSE(-115, detector.getRotation(), 10);
+    CHECK_CLOSE(0.38, detector.getRange(), 0.05);
+    CHECK(!detector.getAligned());
+    delete input7;   
+}
+
+TEST_FIXTURE(DuctDetectorFixture, range)
+{
+    vision::Image* input =
+      vision::Image::loadFromFile(
+				  (getImagesDir() / "alignment.png").string());
+    
+    vision::OpenCVImage output(640,480);
+    vision::Image::showImage(input);
+    detector.processImage(input,&output);
+    vision::Image::showImage(&output);
     CHECK(detector.getAligned());
     //CHECK_CLOSE(expectedValue, actualValue, maxDifference);
-    CHECK_CLOSE(0, detector.getX(), 0.2);
-    CHECK_CLOSE(0, detector.getY(), 0.2);
-    CHECK_CLOSE(0, detector.getRotation(), 0.4);
-    CHECK_CLOSE(0.32, detector.getRange(), 0.05);
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK_CLOSE(0, detector.getRotation(), 10);
+    CHECK_CLOSE(0.15, detector.getRange(), 0.05);
     delete input;
     
     
@@ -348,16 +363,18 @@ TEST_FIXTURE(DuctDetectorFixture, range)
     vision::Image::loadFromFile(
         (getImagesDir() / "far.png").string());
     // Blue Image with red circle in the center
-    detector.processImage(input2);
-
-    CHECK_CLOSE(0, detector.getX(), 0.2);
-    CHECK_CLOSE(0, detector.getY(), 0.2);
-    CHECK_CLOSE(10, detector.getRotation(), 10);
+    vision::Image::showImage(input2);
+    detector.processImage(input2, &output);
+    vision::Image::showImage(&output);
+    CHECK_CLOSE(0, detector.getX(), 0.1);
+    CHECK_CLOSE(0, detector.getY(), 0.1);
+    CHECK_CLOSE(29, detector.getRotation(), 10);
     CHECK_CLOSE(0.76, detector.getRange(), 0.05);
-    CHECK(detector.getAligned());
+    CHECK(!detector.getAligned());
     delete input2;
 }
 
+/*
 TEST_FIXTURE(DuctDetectorFixture, Events_DUCT_FOUND)
 {
     vision::Image* input =
