@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 		
 		for (int k = 0 ; k < N ; k ++)
 		{
-			L1[k] = fixed::magL1(spectrum.getAmplitude(k, channel));
+			L1[k] = fixed::magL1(spectrum.getAmplitude(k, 0));
 		}
 		if (sampleCount >= begin && (sampleCount < end || end < 0) && (sampleCount % skip == 0))
 			fwrite(L1, sizeof(myadc::DOUBLE_WIDE::SIGNED), N, stdout);
