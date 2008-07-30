@@ -34,8 +34,6 @@ SensorBoard::SensorBoard(int deviceFD,
     Device(config["name"].asString()),
     m_depthCalibSlope(config["depthCalibSlope"].asDouble()),
     m_depthCalibIntercept(config["depthCalibIntercept"].asDouble()),
-    m_calibratedDepth(false),
-    m_depthOffset(0),
     m_deviceFile(""),
     m_deviceFD(deviceFD)
 {
@@ -60,8 +58,6 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     Device(config["name"].asString()),
     m_depthCalibSlope(config["depthCalibSlope"].asDouble()),
     m_depthCalibIntercept(config["depthCalibIntercept"].asDouble()),
-    m_calibratedDepth(false),
-    m_depthOffset(0),
     m_deviceFile(config["deviceFile"].asString("/dev/sensor")),
     m_deviceFD(-1)
 {
@@ -158,25 +154,8 @@ void SensorBoard::update(double timestep)
         // Now read depth
         ret = readDepth();
         double depth = (((double)ret) - m_depthCalibIntercept) /
-            m_depthCalibSlope - m_depthOffset; 
-                
-        if (m_calibratedDepth)
-        {
-            // Only record depth after we are calibrated
-            state.depth = depth;
-        }
-        else
-        {
-            // If we aren't calibrated, take values
-            m_depthFilter.addValue(depth);
-            
-            // After five values, take the reading
-            if (5 == m_depthFilter.getSize())
-            {
-                m_calibratedDepth = true;
-                m_depthOffset = m_depthFilter.getValue();
-            }
-        }
+            m_depthCalibSlope; 
+         state.depth = depth;
     } // end deviceMutex lock
     
     // Copy the values back

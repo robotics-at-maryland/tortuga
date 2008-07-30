@@ -220,9 +220,9 @@ private:
     // Hacked depth calibration stuff
     double m_depthCalibSlope;
     double m_depthCalibIntercept;
-    bool m_calibratedDepth;
-    core::AveragingFilter<double, 5> m_depthFilter;
-    double m_depthOffset;
+    //bool m_calibratedDepth;
+    //core::AveragingFilter<double, 5> m_depthFilter;
+    //double m_depthOffset;
     
     /** The device file to open the file descriptor from */
     std::string m_deviceFile;
