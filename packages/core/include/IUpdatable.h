@@ -51,6 +51,16 @@ public:
     /** Returns the current priority of the background thread */
     virtual Priority getPriority() = 0;
 
+    /** Converts given string (ie: "low", "rt_high") to a Priority
+     *
+     * @warning
+     *     This will assert if the string does not match properly
+     *
+     * @param str
+     *     Case insensitive.
+     */
+    static IUpdatable::Priority stringToPriority(std::string str);
+    
     /** Set which CPU core you wish the background thread to run
      *
      *  By default it will run on any core.
