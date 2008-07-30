@@ -9,16 +9,16 @@ GUI:
 
 Subsystems:
     VisionSystem:
-        #type: SimVision
-        type: IdealSimVision
+        type: SimVision
+        #type: IdealSimVision
         cameraRate: 10
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
-        #maxRecordRate: 10 # Hz
+        maxRecordRate: 10 # Hz
         #forwardFile: forward.avi
         #downwardFile: downward.avi
-        #forwardPort: 50000
+        forwardPort: 50000
         #downwardPort: 57002
 
 #       RedLightDetector:       
@@ -31,6 +31,19 @@ Subsystems:
         DuctDetector:
             centerAlignedThreshold: 50
             alignedThreshold: 2
+            minRedOverGreen: 0.9
+            maxRedOverGreen: 1.1
+            minRedOverBlue: 2.0
+            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+            minBlackPercent: 15
+            maxBlackTotal: 100
+            dilateIterations: 0
+            erodeIterations: 0
+            defaultGrowThreshX: 0.05
+            defaultGrowThreshY: 0.05
+            minXOverYToUpGrowThresh: 1.5
+            uppedGrowThreshX: 0.5
+            uppedGrowThreshY: 0.05
     SimSonar:
         type: SimSonar
         depends_on: ["Simulation", "Vehicle", "EventHub"]
@@ -69,16 +82,10 @@ Subsystems:
                      
         States:
             ram.ai.duct.SeekingToRange:
-                filterSize: 10
-            ram.ai.duct.SeekingToAligned:
-                filterSize: 10
-            ram.ai.duct.Aligning:
-                filterSize: 10
-                     
-        States:
-            ram.ai.duct.SeekingToRange:
                 desiredRange: 0.5
+                depthGain: 5
             ram.ai.duct.SeekingToAligned:
+                depthGain: 5
                 alignGain: 0.2
                 desiredRange: 0.5
                 maxAlignDiff: 2
@@ -86,6 +93,9 @@ Subsystems:
                 alignGain: 0.2
                 desiredRange: 0.3
                 maxAlignDiff: 2
+                depthGain: 5
+            ram.ai.duct.Through:
+                forwardTime: 30
 
             ram.ai.bin.Seeking:
                 sidewaysSpeedGain: 10
@@ -252,12 +262,12 @@ Subsystems:
             # in 'data/scenes/nxtest.xml'
             #Main: objectives/pipe.sml
             #Main: objectives/bin.sml
-            #Main: objectives/duct.sml
+            Main: objectives/duct.sml
             #Main: objectives/buoy.sml
             #Main: objectives/pinger.sml
             #Main: objectives/safe.sml
             #Main: transdec.sml
-            Main: nxtest.sml
+            #Main: nxtest.sml
             #Main: safePing.sml
             #Main: shortCourse.sml
         
