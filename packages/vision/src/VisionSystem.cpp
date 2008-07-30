@@ -13,6 +13,8 @@
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/FileRecorder.h"
 #include "vision/include/NetworkRecorder.h"
+#include "vision/include/FFMPEGRecorder.h"
+#include "vision/include/FFMPEGNetworkRecorder.h"
 
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BinDetector.h"
@@ -83,34 +85,38 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Recorders
     if (config.exists("forwardFile"))
     {
-        m_forwardRecorder = new FileRecorder(m_forwardCamera.get(),
-                                             Recorder::MAX_RATE,
-                                             config["forwardFile"].asString(),
-                                             maxRecordRate);
+        m_forwardRecorder = new FFMPEGRecorder(
+            m_forwardCamera.get(),
+            Recorder::MAX_RATE,
+            config["forwardFile"].asString(),
+            maxRecordRate);
     }
     else if (config.exists("forwardPort"))
     {
-        m_forwardRecorder = new NetworkRecorder(m_forwardCamera.get(),
-                                                Recorder::MAX_RATE,
-                                                config["forwardPort"].asInt(),
-                                                maxRecordRate);
+        m_forwardRecorder = new FFMPEGNetworkRecorder(
+            m_forwardCamera.get(),
+            Recorder::MAX_RATE,
+            config["forwardPort"].asInt(),
+            maxRecordRate);
     }
         
 
     if (config.exists("downwardFile"))
     {
-        m_downwardRecorder = new FileRecorder(m_downwardCamera.get(),
-                                              Recorder::MAX_RATE,
-                                              config["downwardFile"].asString(),
-                                              maxRecordRate);
+        m_downwardRecorder = new FFMPEGRecorder(
+            m_downwardCamera.get(),
+            Recorder::MAX_RATE,
+            config["downwardFile"].asString(),
+            maxRecordRate);
 
     }
     else if (config.exists("downwardPort"))
     {
-        m_downwardRecorder = new NetworkRecorder(m_downwardCamera.get(),
-                                                 Recorder::MAX_RATE,
-                                                 config["downwardPort"].asInt(),
-                                                 maxRecordRate);
+        m_downwardRecorder = new FFMPEGNetworkRecorder(
+            m_downwardCamera.get(),
+            Recorder::MAX_RATE,
+            config["downwardPort"].asInt(),
+            maxRecordRate);
     }
     
     
