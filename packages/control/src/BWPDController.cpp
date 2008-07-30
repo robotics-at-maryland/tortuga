@@ -39,6 +39,7 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::BWPDController, BWPDController);
 
 // Create category for logging
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
+//static log4cpp::Category& ADPT_LOGGER(log4cpp::Category::getInstance("AdaptCtrl"));
 
 using namespace std;
 
@@ -269,7 +270,7 @@ void BWPDController::yawVehicle(double degrees)
 
   math::OrientationEventPtr event(new math::OrientationEvent());
   event->orientation = math::Quaternion(m_desiredState->quaternion);
-  publish(IController::DESIRED_ORIENTATION_UPDATE, event);
+   publish(IController::DESIRED_ORIENTATION_UPDATE, event);
 
 
   if(atOrientation())
@@ -353,7 +354,9 @@ void BWPDController::update(double timestep)
         	                m_controllerState, m_estimatedState,
 				timestep, translationalForce.ptr());
 
-        BongWiePDRotationalController(m_measuredState, m_desiredState,
+        BongWiePDRotationalController(
+	//AdaptiveRotationalController(
+	                              m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
                                       rotationalTorque.ptr());
     }
@@ -403,7 +406,19 @@ void BWPDController::update(double timestep)
          << rotationalTorque[2] << " "
          << translationalForce[0] << " "
          << translationalForce[1] << " "
-         << translationalForce[2];
+         << translationalForce[2] << " "
+         << m_controllerState->adaptCtrlParams[0][0] << " "
+         << m_controllerState->adaptCtrlParams[1][0] << " "
+	 << m_controllerState->adaptCtrlParams[2][0] << " "
+	 << m_controllerState->adaptCtrlParams[3][0] << " "
+	 << m_controllerState->adaptCtrlParams[4][0] << " "
+	 << m_controllerState->adaptCtrlParams[5][0] << " "
+	 << m_controllerState->adaptCtrlParams[6][0] << " "
+	 << m_controllerState->adaptCtrlParams[7][0] << " "
+	 << m_controllerState->adaptCtrlParams[8][0] << " "
+	 << m_controllerState->adaptCtrlParams[9][0] << " "
+	 << m_controllerState->adaptCtrlParams[10][0] << " "
+	 << m_controllerState->adaptCtrlParams[11][0];
 }
 
 void BWPDController::init(core::ConfigNode config)
@@ -442,9 +457,12 @@ void BWPDController::init(core::ConfigNode config)
     m_controllerState->angularDGain = config["angularDGain"].asDouble(1);
 	
 	// nonlinear adaptive controller
-	m_controllerState->adaptCtrlRotK = config["adaptCtrlRotK"].asDouble(1);
-	m_controllerState->adaptCtrlRotLambda = config["adaptCtrlRotLambda"].asDouble(1);
-	m_controllerState->adaptCtrlRotGamma = config["adaptCtrlRotGamma"].asDouble(1);
+	m_controllerState->adaptCtrlRotK = 
+	    config["adaptCtrlRotK"].asDouble(1);
+	m_controllerState->adaptCtrlRotLambda = 
+	    config["adaptCtrlRotLambda"].asDouble(1);
+	m_controllerState->adaptCtrlRotGamma = 
+	    config["adaptCtrlRotGamma"].asDouble(1);
 	m_controllerState->adaptCtrlParams.resize(12,1);
 	m_controllerState->adaptCtrlParams[0][0] = config["adaptCtrlParams"][0].asDouble(0.5);
 	m_controllerState->adaptCtrlParams[1][0] = config["adaptCtrlParams"][1].asDouble(0);
@@ -591,7 +609,10 @@ void BWPDController::init(core::ConfigNode config)
     m_estimatedState->xHat2Depth.y = 0;
     
     LOGGER.info("% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq"
-                " TranForce");
+                " TranForce AdaptCtrlParams(12 values)");
+    LOGGER.infoStream() << "% AdaptGains: K" << m_controllerState->adaptCtrlRotK 
+        << " Gamma: " << m_controllerState->adaptCtrlRotGamma
+	<< " Lambda: " << m_controllerState->adaptCtrlRotLambda;
 }
 
 void BWPDController::publishAtDepth()
