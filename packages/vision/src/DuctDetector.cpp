@@ -598,8 +598,8 @@ void DuctDetector::processImage(Image* input, Image* output)
 		       CV_RGB(255,0,0), 3, CV_AA, 0 );
 	    }
 	}
-
-	if (toLeft > 20 && toRight > 20 && toTop > 20 && toBottom > 20)
+        //turns out theres a hole at the top of the duct
+	if (toLeft > 20 && toRight > 20 /*&& toTop > 20*/ && toBottom > 20)
 	{
 	    m_possiblyAligned = true;
 	    BlobDetector::Blob exitBlob(0, 
