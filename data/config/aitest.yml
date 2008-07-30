@@ -30,7 +30,7 @@ Subsystems:
             maxBlackTotal: 300
             defaultGrowThreshX: 0.05
             defaultGrowThreshY: 0.05
-            minXOverYToUpGrowThresh:1.5
+            minXOverYToUpGrowThresh: 1.5
             uppedGrowThreshX: 0.5
             uppedGrowThreshY: 0.05
         DownwardDuctDetector:
@@ -42,16 +42,17 @@ Subsystems:
             minTotalRGB: 125
             minTotalRGBOnFailure: 150
         SafeDetector:
-            rOverGMin: 0.5
-            rOverGMax: 1.8
-            bOverRMax: 0.65
+            rOverGMin: 0.9
+            rOverGMax: 4.0
+            bOverRMax: 0.55
             erodeIterations: 0
             dilateIterations: 0
             minTotal: 100
+
         # Recording Settings
-        #maxRecordRate: 10 # Hz
-        #forwardFile: forward.avi
-        #downwardFile: downward.avi
+        maxRecordRate: 10 # Hz
+        forwardFile: forward.avi
+        downwardFile: downward.avi
 #        forwardPort: 50000
     
     EventHub:
@@ -151,14 +152,14 @@ Subsystems:
                 sidewaysSpeedGain: 4
                 maxSidewaysSpeed: 2
             ram.ai.safe.Dive:
-                safeDepth: 7.2
+                safeDepth: 6 #7.2
                 #safeDepth: 21.5 # NBRF Bottom
                 depthOffset: 0.7
                 diveRate: 0.3
             ram.ai.safe.Grabbing:
-                safeDepth: 7.2
+                safeDepth: 6 #7.2
                 #safeDepth: 21.5
-                depthOffset: 1.75
+                depthOffset: 1.3
             ram.ai.safe.Offsetting:
                 speedGain: 1.5
                 maxSpeed: 1.2
@@ -167,13 +168,15 @@ Subsystems:
                 offset: -0.4
                 centeredRange: 0.6
                 sanity: YES
+            ram.ai.safe.Centering:
+                offset: -0.4
             ram.ai.safe.Settling:
                 speedGain: 0.7
                 maxSpeed: 1.2
                 sidewaysSpeedGain: 4
                 maxSidewaysSpeed: 1.5
-                offset: -0.55
-                duration: 15
+                offset: -0.4
+                duration: 5
 
             ram.ai.course.PingerDive:
                 depth: 1.5
@@ -187,12 +190,13 @@ Subsystems:
         type: Vehicle
         # Time between updates in ms
         update_interval: 25
-     
+        priority: high
+
         depends_on: ["EventHub", "Logging"]
 
         # Pressure tranducer calibration 
         depthCalibSlope: 35.4
-        depthCalibIntercept: 1183
+        depthCalibIntercept: 1192
 
         # The list of devices to create for the vehicle
         Devices:
@@ -201,6 +205,7 @@ Subsystems:
             SensorBoard:
                 type: SensorBoard
                 update_interval: 25
+                priority: high
                 depthCalibSlope: 35.5
                 depthCalibIntercept: 1182
             MarkerDropper:
@@ -315,6 +320,7 @@ Subsystems:
             IMU:
                 type: IMU
                 update_interval: 5
+                priority: high
                 # These are in VEHICLE FRAME
                 # Pre-thruster change out
                 #magXBias: -0.229488
@@ -336,7 +342,8 @@ Subsystems:
                 magXBias: -0.252917
                 magYBias: 0.183411
                 magZBias: 0.25861
-
+                # Set me to zero to ignore mag.
+                magCorruptThresh: 0.0
                 localMagneticPitch: 60
     RemoteController:
         type: RemoteController
@@ -385,7 +392,13 @@ Subsystems:
         depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
         update_interval: 40
+        priority: high
+
         orientationThreshold: 0.05
+
+        adaptCtrlRotK: 5
+        adaptCtrlRotGamma: 1
+
 
         angularPGain: 5
         angularDGain: 1
@@ -399,7 +412,7 @@ Subsystems:
 #                  [0, 0, 1.5]]
 
         desiredSpeed: 0
-        desiredDepth: 0
+        desiredDepth: 0.2
         desiredQuaternion: [0, 0, 0, 1]
 
         # Picks kind of depth controller
