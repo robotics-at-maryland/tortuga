@@ -42,6 +42,12 @@ FFMPEGNetworkRecorder::FFMPEGNetworkRecorder(
 
     //printf("Video encoding\n");
 
+    /* must be called before using avcodec lib */
+    avcodec_init();
+
+    /* register all the codecs */
+    avcodec_register_all();
+    
     // find the mpeg1 video encoder */
     AVCodec *codec = avcodec_find_encoder(CODEC_ID_MPEG4);
     if (!codec) {
