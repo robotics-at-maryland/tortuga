@@ -437,6 +437,7 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 //				numPerEight=0;
 //				for (int z=0; z<8;z++)
 //				{
+//				
 //					if (dest[count]>5 && dest[count+1]>5 && dest[count+2]>5)
 //					{
 //						numPerEight++;
@@ -647,7 +648,7 @@ void safeMask(IplImage* base, double r_over_g_min, double r_over_g_max, double b
 			r=data[count+2];
 			
 			if (r>r_over_g_min*g && r_over_g_max*g>r && b_over_r_max*r>b && r+g+b >= minTotal)
-                data[count]=data[count+1]=data[count+2]=255;
+                                data[count]=data[count+1]=data[count+2]=255;
 			else
 				data[count]=data[count+1]=data[count+2]=0;
 			count+=3;
@@ -717,7 +718,7 @@ void redMask(IplImage* percents, IplImage* base,
           {
 				data2[count]=data2[count+1]=data2[count+2]=0;
           }
-			count+=3;
+		count+=3;
 		}
 	}
 }

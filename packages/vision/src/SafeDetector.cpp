@@ -100,7 +100,7 @@ void SafeDetector::processImage(Image* input, Image* out)
     BlobDetector::Blob empty(0,0,0,0,0,0,0);
 
     m_working->copyFrom(input);
-
+	
     if (m_erodeIterations > 0)
       {
 	cvErode(m_working->asIplImage(),
