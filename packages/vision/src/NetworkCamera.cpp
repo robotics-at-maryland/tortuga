@@ -11,7 +11,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cerrno>
-#include <iostream>
+//#include <iostream>
 
 // System Includes
 #ifdef RAM_POSIX
@@ -88,13 +88,14 @@ NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port) :
         assert(false && "connect");
     }
 
-    
+//    std::cout << "Reading header" << std::endl;
     // Read first no data packet to get width and height
     ImagePacketHeader header = {0, 0, 0};
     readPacketHeader(&header);
     m_width = header.width;
     m_height = header.height;
     m_fps = 30;
+//    std::cout << "Got Header" << std::endl;
 }
 
 NetworkCamera::~NetworkCamera()
@@ -114,10 +115,11 @@ NetworkCamera::~NetworkCamera()
 
 void NetworkCamera::update(double timestep)
 {
+//    std::cout << "UPDATE" << std::endl;
     // Read header
     ImagePacketHeader header;
     readPacketHeader(&header);
-
+    
     // TODO: Don't ignore this return value
     {                                                                       
         boost::mutex::scoped_lock lock(m_specsMutex);                     
@@ -157,7 +159,7 @@ void NetworkCamera::update(double timestep)
     if (header.dataSize)
     {
 #ifdef RAM_NETWORK_COMPRESSION
-        decompress(m_compressedBuffer, m_imageBuffer);
+        decompress(m_compressedBuffer, header.dataSize, m_imageBuffer);
         OpenCVImage newImage(m_imageBuffer, header.width, header.height,
                              false);
 #else
@@ -188,8 +190,10 @@ size_t NetworkCamera::fps()
 }
 
 void NetworkCamera::decompress(unsigned char* compressedBuffer,
+                               size_t compressedSize,
                                unsigned char* outputBuffer)
 {
+//    std::cout << "Norm decompress" << std::endl;
     char scratch[QLZ_SCRATCH_DECOMPRESS] = {0};
     memset(scratch, 0, QLZ_SCRATCH_DECOMPRESS);
     /*size_t newSize = */qlz_decompress((char*)compressedBuffer,

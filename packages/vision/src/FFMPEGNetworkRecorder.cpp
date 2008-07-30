@@ -43,7 +43,7 @@ FFMPEGNetworkRecorder::FFMPEGNetworkRecorder(
     //printf("Video encoding\n");
 
     // find the mpeg1 video encoder */
-    AVCodec *codec = avcodec_find_encoder(CODEC_ID_MPEG1VIDEO);
+    AVCodec *codec = avcodec_find_encoder(CODEC_ID_MPEG4);
     if (!codec) {
         fprintf(stderr, "codec not found\n");
         assert(false && "codec not found");
@@ -54,10 +54,10 @@ FFMPEGNetworkRecorder::FFMPEGNetworkRecorder(
     // put sample parameters
     m_codecContext->bit_rate = 400000;
     // Resolution must be a multiple of two
-    m_codecContext->width = 352;
-    m_codecContext->height = 288;
+    m_codecContext->width = 640;
+    m_codecContext->height = 480;
     // Frames per second
-    m_codecContext->time_base= (AVRational){1,25};
+    m_codecContext->time_base= (AVRational){1,5};
     m_codecContext->gop_size = 10; // emit one intra frame every ten frames
     m_codecContext->max_b_frames=1;
     m_codecContext->pix_fmt = PIX_FMT_YUV420P;
@@ -76,7 +76,12 @@ FFMPEGNetworkRecorder::FFMPEGNetworkRecorder(
                                       m_codecContext->height,
                                       m_codecContext->pix_fmt,
                                       sws_flags, NULL, NULL, NULL);
-
+    if (!m_convertContext)
+    {
+        fprintf(stderr, "Could not create conversion context\n");
+        assert(false && "Could not create conversion context\n");
+    }
+    
     // Allocate picture used for encoding
     m_picture = allocPicture(m_codecContext->pix_fmt, m_codecContext->width,
                              m_codecContext->height);
@@ -97,21 +102,24 @@ FFMPEGNetworkRecorder::~FFMPEGNetworkRecorder()
 
     avcodec_close(m_codecContext);
     av_free(m_codecContext);
+    av_free(m_picture->data[0]);
+    av_free(m_picture);
 }
 
 size_t FFMPEGNetworkRecorder::compress(Image* toCompress,
                                        unsigned char* output,
                                        size_t outputSize)
 {
-    AVPicture tmpPicture;
-    avpicture_fill(&tmpPicture, toCompress->getData(), PIX_FMT_BGR24,
-                   toCompress->getWidth(), toCompress->getHeight());
+    AVFrame tmpPicture;
+    avpicture_fill((AVPicture*)&tmpPicture, toCompress->getData(),
+                   PIX_FMT_BGR24, toCompress->getWidth(),
+                   toCompress->getHeight());
     sws_scale(m_convertContext, tmpPicture.data,
               tmpPicture.linesize, 0, m_codecContext->height,
               m_picture->data,
               m_picture->linesize);
     return avcodec_encode_video(m_codecContext, (uint8_t*)output,
-                                outputSize, (AVFrame*)&tmpPicture);
+                                outputSize, m_picture);
 }
 
 AVFrame* FFMPEGNetworkRecorder::allocPicture(int pix_fmt, int width, int height)

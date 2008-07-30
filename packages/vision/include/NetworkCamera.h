@@ -50,6 +50,7 @@ public:
 protected:
     /** Decompresses the incoming buffer */
     virtual void decompress(unsigned char* compressedBuffer,
+                            size_t compressedSize,
                             unsigned char* outputBuffer);
     
 private:
