@@ -48,17 +48,8 @@ def main(argv = None):
 
     # Create our C++ app
     app = ext.core.Application(options.configPath)      
-
-    vehicle = app.getSubsystem('Vehicle')
-
-    for i in xrange(1,100):
-        vehicle.update(0)
-
-    batt1 = vehicle.getDevice('Batt 1')
-    print "Battery 1: %f (A) %f (V) %d (Enabled)" % \
-        (batt1.getVoltage(), batt1.getCurrent(), batt1.enabled())
-
-    return 0
+    app.mainLoop()
+    
 
 
 if __name__ == "__main__":
