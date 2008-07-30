@@ -153,7 +153,7 @@ void EventHub::unbackground(bool)
 
 bool EventHub::backgrounded()
 {
-    return false;
+    return true;
 }
     
 } // namespace core

@@ -36,7 +36,13 @@ class AI(core.Subsystem):
                 
         # Store inter state data
         self._data = {}
-        
+    
+    def update(self, timeStep):
+        pass
+
+    def backgrounded(self):
+        return True
+
     def addConnection(self, conn):
         self._connections.append(conn)
         
@@ -44,7 +50,10 @@ class AI(core.Subsystem):
         core.Subsystem.unbackground(self, join)
         for conn in self._connections:
             conn.disconnect()
-        
+    def backgrounded(self):
+        return True
+
+
     @property
     def mainStateMachine(self):
         return self._stateMachine

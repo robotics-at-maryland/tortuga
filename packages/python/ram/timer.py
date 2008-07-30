@@ -188,4 +188,6 @@ class TimerManager(ext.core.Subsystem):
         return Timer(self, eventType, duration)
 
 
+    def backgrounded(self):
+        return True
 ext.core.registerSubsystem('TimerManager', TimerManager)

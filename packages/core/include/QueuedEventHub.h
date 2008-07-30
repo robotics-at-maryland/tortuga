@@ -58,7 +58,9 @@ public:
     
     /** Has the same effect as publishEvents() */
     virtual void update(double timestep);
-    
+
+    virtual bool backgrounded() { return false; }
+
 private:
     /** Publishes the event to all subscribers */
     void _publish(EventPtr event);

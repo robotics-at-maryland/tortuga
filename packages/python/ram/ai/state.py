@@ -143,6 +143,11 @@ class Machine(core.Subsystem):
             
             self._subsystems[name] = subsystem
 
+    def update(self, timeStep):
+        pass
+    def backgrounded(self):
+        return True
+
     def currentState(self):
         return self._currentState
 
