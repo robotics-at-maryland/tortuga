@@ -91,7 +91,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
             config["forwardFile"].asString(),
             maxRecordRate);
     }
-    else if (config.exists("forwardPort"))
+    if (config.exists("forwardPort"))
     {
         m_forwardRecorder = new NetworkRecorder(
             m_forwardCamera.get(),
@@ -110,7 +110,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
             maxRecordRate);
 
     }
-    else if (config.exists("downwardPort"))
+    if (config.exists("downwardPort"))
     {
         m_downwardRecorder = new NetworkRecorder(
             m_downwardCamera.get(),
