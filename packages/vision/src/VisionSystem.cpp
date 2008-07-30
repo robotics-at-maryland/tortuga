@@ -93,7 +93,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     }
     else if (config.exists("forwardPort"))
     {
-        m_forwardRecorder = new FFMPEGNetworkRecorder(
+        m_forwardRecorder = new NetworkRecorder(
             m_forwardCamera.get(),
             Recorder::MAX_RATE,
             config["forwardPort"].asInt(),
@@ -112,7 +112,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     }
     else if (config.exists("downwardPort"))
     {
-        m_downwardRecorder = new FFMPEGNetworkRecorder(
+        m_downwardRecorder = new NetworkRecorder(
             m_downwardCamera.get(),
             Recorder::MAX_RATE,
             config["downwardPort"].asInt(),

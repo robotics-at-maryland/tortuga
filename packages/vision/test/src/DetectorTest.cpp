@@ -365,8 +365,8 @@ vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
         signal(SIGPIPE,brokenPipeHandler);
 #endif
         vision::Recorder* r =
-//            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
-            new vision::FFMPEGNetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
+            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
+//            new vision::FFMPEGNetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
         return r;
     }
 
@@ -402,8 +402,8 @@ vision::Camera* createCamera(std::string input)
             boost::lexical_cast<boost::uint16_t>(what.str(2));
         std::cout << "Streaming images from host: \"" << hostname
                   << "\" on port " << port << std::endl;
-//        return new vision::NetworkCamera(hostname, port);
-        return new vision::FFMPEGNetworkCamera(hostname, port);
+        return new vision::NetworkCamera(hostname, port);
+//        return new vision::FFMPEGNetworkCamera(hostname, port);
     }
 	
 	if (boost::regex_match(input, image))
