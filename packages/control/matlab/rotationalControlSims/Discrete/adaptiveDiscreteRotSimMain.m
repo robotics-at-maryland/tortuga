@@ -13,7 +13,7 @@ q0=[axis0*sin(angle0/2); cos(angle0/2)];
 %q0=[1 0 0 0]';
 q_old = q0;
 %initial angular rate
-w0=(pi/180)*[0 0 0]';
+w0=(pi/180)*[10 0 0]';
 %initial desired position
 qd0=[0 0 0 1]';
 %initial desired angular rate
@@ -130,6 +130,8 @@ for i = 2:length(time)
 
     % controller
 
+    % error metrics
+    
     %propagate desired states
     %desire constant angular rate for now
     dw_d=zeros(3,1);
@@ -151,12 +153,11 @@ for i = 2:length(time)
     %d/dt(wrhat)=alpharhat
     dw_r=R(qc_tilde)*dw_d-S(wc_tilde)*R(qc_tilde)*w_d-lambda*Q1(qc_tilde)*wc_tilde;
     
-    %u=-Kd*shat+H*dw_r-S(H*w_meas)*w_r;
-    %u=-Kd*shat+H*dw_r;%-S(H*w_meas)*w_r;
     
     %find rotation matrix
     Rot = R(q_meas);
 
+    
     %parameterization matrix divided in four
     %Y=[Yinertia1 Yinertia2 Ybuoyancy Ydrag]
     Yinertia1=[dw_r(1) dw_r(2)-w_meas(1)*w_r(3) dw_r(3)+w_meas(1)*w_r(2);
@@ -178,9 +179,89 @@ for i = 2:length(time)
 
     Y=[Yinertia1 Yinertia2 Ybuoyancy Ydrag];
 
+    %adaptation law
+    
     dahat=-Gamma*Y'*shat;
     
     ahat = ahat + dahat*step;
+    
+    %hacky parametric dead zone
+    
+    if(ahat(1)>2)
+        ahat(1)=2;
+    end
+    if(ahat(1)<-2)
+        ahat(1)=-2;
+    end
+    if(ahat(2)>1)
+        ahat(2)=1;
+    end
+    if(ahat(2)<-1)
+        ahat(2)=-1;
+    end
+    if(ahat(3)>0.5)
+        ahat(3)=0.5;
+    end
+    if(ahat(3)<-0.5)
+        ahat(3)=-0.5;
+    end
+    if(ahat(4)>2)
+        ahat(4)=2;
+    end
+    if(ahat(4)<-2)
+        ahat(4)=-2;
+    end
+    if(ahat(5)>1)
+        ahat(5)=1;
+    end
+    if(ahat(5)<-1)
+        ahat(5)=-1;
+    end
+    if(ahat(6)>2)
+        ahat(6)=2;
+    end
+    if(ahat(6)<-2)
+        ahat(6)=-2;
+    end
+    if(ahat(7)>1)
+        ahat(7)=1;
+    end
+    if(ahat(7)<-1)
+        ahat(7)=-1;
+    end
+    if(ahat(8)>1)
+        ahat(8)=1;
+    end
+    if(ahat(8)<-1)
+        ahat(8)=-1;
+    end
+    if(ahat(9)>1)
+        ahat(9)=1;
+    end
+    if(ahat(9)<-1)
+        ahat(9)=-1;
+    end
+    if(ahat(10)>5)%should be 5
+        ahat(10)=5;
+    end
+    if(ahat(10)<4)%should be 0
+        ahat(10)=4;
+    end
+    if(ahat(11)>4)
+        ahat(11)=4;
+    end
+    if(ahat(11)<0)
+        ahat(11)=0;
+    end
+    if(ahat(12)>5)
+        ahat(12)=5;
+    end
+    if(ahat(12)<0)
+        ahat(12)=0;
+    end
+    
+    
+    %control law
     
     u=-Kd*shat+Y*ahat;
     
@@ -202,6 +283,7 @@ qd=x(:,8:11);%desired angular position
 wd=x(:,12:14);%desired angular rate
 qhat=x(:,15:18);%estimated angular position
 %what=x(:,19:21);%estimated angular rate
+ahat=x(:,19:30);
 
 %% plot errors
 %storage arrays for error metrics
@@ -267,3 +349,53 @@ xlabel('time (s)')
 % xlabel('time (s)')
 % %final heading of vehicle
 % R(q(end,:))'*[1 0 0]'
+
+%% plot learned values - inertia
+figure(5)
+subplot(3,2,1)
+plot(time,H(1,1)*ones(length(time),1),time,ahat(:,1),'linewidth',4)
+ylabel('H_1_,_1')
+subplot(3,2,2)
+plot(time,H(1,2)*ones(length(time),1),time,ahat(:,2),'linewidth',4)
+ylabel('H_1_,_2')
+legend('estimated','actual')
+subplot(3,2,3)
+plot(time,H(1,3)*ones(length(time),1),time,ahat(:,3),'linewidth',4)
+ylabel('H_1_,_3')
+subplot(3,2,4)
+plot(time,H(2,2)*ones(length(time),1),time,ahat(:,4),'linewidth',4)
+ylabel('H_2_,_2')
+subplot(3,2,5)
+plot(time,H(2,3)*ones(length(time),1),time,ahat(:,5),'linewidth',4)
+ylabel('H_2_,_3')
+xlabel('Time')
+subplot(3,2,6)
+plot(time,H(3,3)*ones(length(time),1),time,ahat(:,6),'linewidth',4)
+ylabel('H_3_,_3')
+xlabel('time (s)')
+
+%% plot learned values - buoyancy
+figure(6)
+subplot(3,1,1)
+plot(time,rb(1)*fb*ones(length(time),1),time,ahat(:,7),'linewidth',4)
+ylabel('r_b_1*f_b')
+subplot(3,1,2)
+plot(time,rb(2)*fb*ones(length(time),1),time,ahat(:,8),'linewidth',4)
+ylabel('r_b_2*f_b')
+subplot(3,1,3)
+plot(time,rb(3)*fb*ones(length(time),1),time,ahat(:,9),'linewidth',4)
+ylabel('r_b_3*f_b')
+xlabel('time (s)')
+
+%% plot learned values - drag
+figure(7)
+subplot(3,1,1)
+plot(time,Cd(1,1)*ones(length(time),1),time,ahat(:,10),'linewidth',4)
+ylabel('C_d_1')
+subplot(3,1,2)
+plot(time,Cd(2,2)*ones(length(time),1),time,ahat(:,11),'linewidth',4)
+ylabel('C_d_2')
+subplot(3,1,3)
+plot(time,Cd(3,3)*ones(length(time),1),time,ahat(:,12),'linewidth',4)
+ylabel('C_d_3')
+xlabel('time (s)')

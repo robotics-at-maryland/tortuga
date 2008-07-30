@@ -14,7 +14,7 @@ function Qout=Q(q)
 % usage:
 % dq/dt = 0.5*Q(q)*w
 %
-   e = q(1:3);
+   e = [q(1) q(2) q(3)]';
    n = q(4);
 
    Q1=n*eye(3)+S(e);

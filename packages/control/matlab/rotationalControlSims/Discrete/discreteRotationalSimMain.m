@@ -13,7 +13,7 @@ q0=[axis0*sin(angle0/2); cos(angle0/2)];
 %q0=[1 0 0 0]';
 q_old = q0;
 %initial angular rate
-w0=(pi/180)*[0 0 0]';
+w0=(pi/180)*[10 0 0]';
 %initial desired position
 qd0=[0 0 0 1]';
 %initial desired angular rate
@@ -208,22 +208,72 @@ plot(time,w(:,3)*180/pi,time,wd(:,3)*180/pi)
 ylabel('w_3 in deg/s')
 xlabel('time (s)')
 
-%% plot gyro only quaternion estimation
-figure(4)
-subplot(4,1,1)
-plot(time,q(:,1),time,qhat(:,1))
-ylabel('q_1')
-legend('actual','estimated')
-title('Quaternion Estimation by Gryo Integration')
-subplot(4,1,2)
-plot(time,q(:,2),time,qhat(:,2))
-ylabel('q_2')
-subplot(4,1,3)
-plot(time,q(:,3),time,qhat(:,3))
-ylabel('q_3')
-subplot(4,1,4)
-plot(time,q(:,4),time,qhat(:,4))
-ylabel('q_4')
+% %% plot gyro only quaternion estimation
+% figure(4)
+% subplot(4,1,1)
+% plot(time,q(:,1),time,qhat(:,1))
+% ylabel('q_1')
+% legend('actual','estimated')
+% title('Quaternion Estimation by Gryo Integration')
+% subplot(4,1,2)
+% plot(time,q(:,2),time,qhat(:,2))
+% ylabel('q_2')
+% subplot(4,1,3)
+% plot(time,q(:,3),time,qhat(:,3))
+% ylabel('q_3')
+% subplot(4,1,4)
+% plot(time,q(:,4),time,qhat(:,4))
+% ylabel('q_4')
+% xlabel('time (s)')
+% %final heading of vehicle
+% R(q(end,:))'*[1 0 0]'
+
+%% plot learned values - inertia
+figure(5)
+subplot(3,2,1)
+plot(time,H(1,1)*ones(length(time),1),time,ahat(:,1),'linewidth',4)
+ylabel('H_1_,_1')
+subplot(3,2,2)
+plot(time,H(1,2)*ones(length(time),1),time,ahat(:,2),'linewidth',4)
+ylabel('H_1_,_2')
+legend('estimated','actual')
+subplot(3,2,3)
+plot(time,H(1,3)*ones(length(time),1),time,ahat(:,3),'linewidth',4)
+ylabel('H_1_,_3')
+subplot(3,2,4)
+plot(time,H(2,2)*ones(length(time),1),time,ahat(:,4),'linewidth',4)
+ylabel('H_2_,_2')
+subplot(3,2,5)
+plot(time,H(2,3)*ones(length(time),1),time,ahat(:,5),'linewidth',4)
+ylabel('H_2_,_3')
+xlabel('Time')
+subplot(3,2,6)
+plot(time,H(3,3)*ones(length(time),1),time,ahat(:,6),'linewidth',4)
+ylabel('H_3_,_3')
 xlabel('time (s)')
-%final heading of vehicle
-R(q(end,:))'*[1 0 0]'
+
+%% plot learned values - buoyancy
+figure(6)
+subplot(3,1,1)
+plot(time,rb(1)*fb*ones(length(time),1),time,ahat(:,7),'linewidth',4)
+ylabel('r_b_1*f_b')
+subplot(3,1,2)
+plot(time,rb(2)*fb*ones(length(time),1),time,ahat(:,8),'linewidth',4)
+ylabel('r_b_2*f_b')
+subplot(3,1,3)
+plot(time,rb(3)*fb*ones(length(time),1),time,ahat(:,9),'linewidth',4)
+ylabel('r_b_3*f_b')
+xlabel('time (s)')
+
+%% plot learned values - drag
+figure(7)
+subplot(3,1,1)
+plot(time,Cd(1,1)*ones(length(time),1),time,ahat(:,10),'linewidth',4)
+ylabel('C_d_1')
+subplot(3,1,2)
+plot(time,Cd(2,2)*ones(length(time),1),time,ahat(:,11),'linewidth',4)
+ylabel('C_d_2')
+subplot(3,1,3)
+plot(time,Cd(3,3)*ones(length(time),1),time,ahat(:,12),'linewidth',4)
+ylabel('C_d_3')
+xlabel('time (s)')

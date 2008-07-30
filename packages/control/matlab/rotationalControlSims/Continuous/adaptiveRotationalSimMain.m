@@ -6,14 +6,14 @@ clear;
 %% initialization
 
 %initial position
-axis0=[1 1 1]';
+axis0=[1 0 0]';
 angle0=30*pi/180;
 q0=[axis0*sin(angle0/2); cos(angle0/2)];
 q0=q0/norm(q0);
 %q0=[0 0 0 1]';
 
 %initial angular rate
-w0=(pi/180)*[0 0 0]';
+w0=(pi/180)*[0 10 0]';
 
 %initial desired position
 qd0=[0 0 0 1]';
@@ -31,7 +31,14 @@ qhat0=q0;
 %fb - buoyant force
 %cd - drag parameters (model is c*w*abs(w))
 %      h                rb    c
-ahat0=[0.5 0 -0.1 1 0 1 0 0 0 1 2 2]';
+
+% "real" parameters
+% H = [0.4515, 0.0009, -0.0176; 0.0009, 1.8272, 0.0132; -0.0176 0.0132 1.8618]
+% buoyancy = [0 0 0.2]
+% drag = [1 5 5]
+ahat0=[0.5 0 -0.1 1 0 1 0 0 0 1 2 2]';%normal guess (controller adapts fine)
+%ahat0=zeros(12,1);
+%ahat0=[-500 3000 120 -40 30 9990 20 -110 220 980 -20 20]';
 
 %initial estimated angular rate
 %what0=w0;
@@ -55,13 +62,13 @@ H=(0.45359/39.37^2)*H;
 
 %controller gain
 global Kd;
-Kd=5*eye(3);%typically choose Kd=1*eye(3)
+Kd=6*eye(3);%typically choose Kd=1*eye(3)
 %replacement model pole
 global lambda;
 lambda=1;%typically choose lambda=1
 %adaptation gain matrix
 global Gamma;
-Gamma=1;%can be matrix (12x12) or scalar
+Gamma=3;%can be matrix (12x12) or scalar
 
 %drag constants
 global Cd;
@@ -73,7 +80,7 @@ fb=4;%newtons, i made this number up
 %fb=8;%newtons, i made this number up
 %vector from center of gravity (CG) to center of buoyancy (CB)
 global rb;
-rb=[0 0 0.05]';%meters, i made these numbers up
+rb=[0.005 0 0.05]';%meters, i made these numbers up
 %rb=[0 0 1]';%meters, i made these numbers up
 
 % gravity and magnetic vectors in earth's(inertial) frame
@@ -211,13 +218,13 @@ xlabel('time (s)')
 %% plot learned values - drag
 figure(7)
 subplot(3,1,1)
-plot(time,Cd(1)*ones(length(time),1),time,ahat(:,10),'linewidth',4)
+plot(time,Cd(1,1)*ones(length(time),1),time,ahat(:,10),'linewidth',4)
 ylabel('C_d_1')
 subplot(3,1,2)
-plot(time,Cd(2)*ones(length(time),1),time,ahat(:,11),'linewidth',4)
+plot(time,Cd(2,2)*ones(length(time),1),time,ahat(:,11),'linewidth',4)
 ylabel('C_d_2')
 subplot(3,1,3)
-plot(time,Cd(3)*ones(length(time),1),time,ahat(:,12),'linewidth',4)
+plot(time,Cd(3,3)*ones(length(time),1),time,ahat(:,12),'linewidth',4)
 ylabel('C_d_3')
 xlabel('time (s)')
 

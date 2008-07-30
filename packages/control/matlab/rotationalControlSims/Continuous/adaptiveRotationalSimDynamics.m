@@ -38,11 +38,11 @@ q_d=q_d/norm(q_d,2);
 
 %% measurement
 Rot = R(q);
-%a_meas = Rot * a_inertial + 0.0005*randn; 
-%m_meas = Rot * m_inertial + 0.0005*randn;
-a_meas = Rot * a_inertial;
-m_meas = Rot * m_inertial;
-w_meas=w;
+a_meas = Rot * a_inertial + 0.0005*randn; 
+m_meas = Rot * m_inertial + 0.0005*randn;
+%a_meas = Rot * a_inertial;
+%m_meas = Rot * m_inertial;
+w_meas=w + 0.005*randn;
 
 %% estimation
 
