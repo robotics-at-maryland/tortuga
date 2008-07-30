@@ -15,6 +15,8 @@
 
 // Library Includes
 #include <boost/foreach.hpp>
+#include <boost/assign/list_of.hpp>
+#include <boost/algorithm/string.hpp>
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
@@ -40,6 +42,27 @@ using namespace ram::vehicle::device;
 
 namespace ram {
 namespace vehicle {
+
+typedef std::map<std::string, core::IUpdatable::Priority> StringPriorityMap;
+core::IUpdatable::Priority stringToPriority(std::string str)
+{
+    //Maps string to priority
+    static StringPriorityMap str2Priority = boost::assign::map_list_of
+        ("rt_high", core::IUpdatable::RT_HIGH_PRIORITY)
+        ("rt_normal", core::IUpdatable::RT_NORMAL_PRIORITY)
+        ("rt_low", core::IUpdatable::RT_LOW_PRIORITY)
+        ("high", core::IUpdatable::HIGH_PRIORITY)
+        ("normal", core::IUpdatable::NORMAL_PRIORITY)
+        ("low", core::IUpdatable::LOW_PRIORITY);
+    
+    // Make it lower case
+    boost::algorithm::to_lower(str);
+    
+    StringPriorityMap::iterator iter = str2Priority.find(str);
+    assert(iter != str2Priority.end());
+    
+    return iter->second;
+}
 
 // Lets us have a shared pointer, with no ownership requirements
 struct null_deleter
@@ -288,6 +311,12 @@ void Vehicle::background(int interval)
             core::ConfigNode devCfg(deviceConfig[device->getName()]);
             if (devCfg.exists("update_interval"))
                 device->background(devCfg["update_interval"].asInt());
+
+	    if (devCfg.exists("priority"))
+	        device->setPriority(stringToPriority(devCfg["priority"].asString()));
+
+            if (devCfg.exists("affinity"))
+                device->setAffinity(devCfg["affinity"].asInt());
         }
     }
     
