@@ -130,7 +130,7 @@ class Offsetting(SafeTrackingState):
         
     def enter(self):
         self._offset = self._config.get('offset', -0.7)
-        self._speed = self._config.get('offsetSpeed', 0.08)
+        self._speed = self._config.get('offsetSpeed', 0.06)
         SafeTrackingState.enter(self)
         
     def _createMotion(self, maxSpeed, maxSidewaysSpeed, sidewaysSpeedGain,
