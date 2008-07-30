@@ -39,6 +39,7 @@ struct Fixture
     control::BWPDController controller;
 };
 
+/*
 TEST_FIXTURE(Fixture, YawControl)
 {
     // First is north along horizontal (desired)
@@ -66,7 +67,7 @@ TEST_FIXTURE(Fixture, RollControl)
 
     controller.update(1);
     //CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
-}
+    }*/
 
 TEST_FIXTURE(Fixture, yawVehicle)
 {

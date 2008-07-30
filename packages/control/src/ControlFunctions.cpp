@@ -532,7 +532,15 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 	qd.normalise();
 	//	std::cout << "qd =  " << qd.x << " " << qd.y << " " << qd.z << " " << qd.w << std::endl;
 
-	//TODO: save to desiredStruct!!!!!
+
+	desiredState->angularRate[0] = wd[0];
+	desiredState->angularRate[1] = wd[1];
+	desiredState->angularRate[2] = wd[2];
+
+	desiredState->quaternion[0] = qd.x;
+	desiredState->quaternion[1] = qd.y;
+	desiredState->quaternion[2] = qd.z;
+	desiredState->quaternion[3] = qd.w;
 
 	/****************************
        compute error metrics
@@ -637,9 +645,83 @@ void AdaptiveRotationalController(MeasuredState* measuredState,
 	MatrixN Ytranspose = Y.transpose();
 	MatrixN dahat = -(controllerState->adaptCtrlRotGamma)*Ytranspose*shat;
 	
-	//integrate parameter estimates
+	//integrate parameter estimates & store in controllerState
 	(controllerState->adaptCtrlParams) = (controllerState->adaptCtrlParams)+dahat*dt;
-	//TODO: store in controllerState
+
+	//implement dead zone to prevent parameter drift  - limits hardcoded
+	//inertia
+	if(controllerState->adaptCtrlParams[0][0]>2){
+	  controllerState->adaptCtrlParams[0][0] = 2;
+	}
+	if(controllerState->adaptCtrlParams[0][0]<-2){
+	  controllerState->adaptCtrlParams[0][0] = -2;
+	}
+	if(controllerState->adaptCtrlParams[1][0]>1){
+	  controllerState->adaptCtrlParams[1][0] = 1;
+	}
+	if(controllerState->adaptCtrlParams[1][0]<-1){
+	  controllerState->adaptCtrlParams[1][0] = -1;
+	}
+	if(controllerState->adaptCtrlParams[2][0]>0.5){
+	  controllerState->adaptCtrlParams[2][0] = 0.5;
+	}
+	if(controllerState->adaptCtrlParams[2][0]<-0.5){
+	  controllerState->adaptCtrlParams[2][0] = -0.5;
+	}
+	if(controllerState->adaptCtrlParams[3][0]>2){
+	  controllerState->adaptCtrlParams[3][0] = 2;
+	}
+	if(controllerState->adaptCtrlParams[3][0]<-2){
+	  controllerState->adaptCtrlParams[3][0] = -2;
+	}
+	if(controllerState->adaptCtrlParams[4][0]>1){
+	  controllerState->adaptCtrlParams[4][0] = 1;
+	}
+	if(controllerState->adaptCtrlParams[4][0]<-1){
+	  controllerState->adaptCtrlParams[4][0] = -1;
+	}
+	if(controllerState->adaptCtrlParams[5][0]>2){
+	  controllerState->adaptCtrlParams[5][0] = 2;
+	}
+	if(controllerState->adaptCtrlParams[5][0]<-2){
+	  controllerState->adaptCtrlParams[5][0] = -2;
+	}
+	if(controllerState->adaptCtrlParams[6][0]>1){
+	  controllerState->adaptCtrlParams[6][0] = 1;
+	}
+	if(controllerState->adaptCtrlParams[6][0]<-1){
+	  controllerState->adaptCtrlParams[6][0] = -1;
+	}
+	if(controllerState->adaptCtrlParams[7][0]>1){
+	  controllerState->adaptCtrlParams[7][0] = 1;
+	}
+	if(controllerState->adaptCtrlParams[7][0]<-1){
+	  controllerState->adaptCtrlParams[7][0] = -1;
+	}
+	if(controllerState->adaptCtrlParams[8][0]>1){
+	  controllerState->adaptCtrlParams[8][0] = 1;
+	}
+	if(controllerState->adaptCtrlParams[8][0]<-1){
+	  controllerState->adaptCtrlParams[8][0] = -1;
+	}
+	if(controllerState->adaptCtrlParams[9][0]>5){
+	  controllerState->adaptCtrlParams[9][0] = 5;
+	}
+	if(controllerState->adaptCtrlParams[9][0]<0){
+	  controllerState->adaptCtrlParams[9][0] = 0;
+	}
+	if(controllerState->adaptCtrlParams[10][0]>4){
+	  controllerState->adaptCtrlParams[10][0] = 4;
+	}
+	if(controllerState->adaptCtrlParams[10][0]<0){
+	  controllerState->adaptCtrlParams[10][0] = 0;
+	}
+	if(controllerState->adaptCtrlParams[11][0]>5){
+	  controllerState->adaptCtrlParams[11][0] = 5;
+	}
+	if(controllerState->adaptCtrlParams[11][0]<0){
+	  controllerState->adaptCtrlParams[11][0] = 0;
+	}
 
 	/**********************************
 	  control law
