@@ -90,7 +90,7 @@ TEST_FIXTURE(RecorderFixture, Update)
     for (int i = 0; i < 20; ++i)
     {
         vision::Image* image = new vision::OpenCVImage(640,480);
-        vision::makeColor(image, i * 20, 0, 0);
+        vision::makeColor(image, i * 20, i * 10, i * 5);
         images.push_back(image);
     }
 
@@ -114,7 +114,7 @@ TEST_FIXTURE(RecorderFixture, Update)
     {
         movieCamera.update(0);
         movieCamera.getImage(actual);
-        CHECK_CLOSE(*expectedImage, *actual, 1.5);
+        CHECK_CLOSE(*expectedImage, *actual, 4);
     }
     delete actual;
 

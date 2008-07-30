@@ -210,11 +210,8 @@ void NetworkRecorder::recordFrame(Image* image)
                 m_compressedBuffer = (unsigned char*)malloc(m_bufferSize);
             }
         }
-        
-        char scratch[QLZ_SCRATCH_DECOMPRESS];
-        size_t newSize = qlz_compress((void*)image->getData(),
-                                      (char*)m_compressedBuffer,
-                                      dataSize, scratch);
+
+        size_t newSize = compress(image, m_compressedBuffer, m_bufferSize);
         {
             boost::mutex::scoped_lock lock(m_mutex);
             dataSize = newSize;
@@ -238,6 +235,16 @@ void NetworkRecorder::recordFrame(Image* image)
     }
 }
 
+size_t NetworkRecorder::compress(Image* toCompress, unsigned char* output,
+                                 size_t)
+{
+    size_t dataSize = toCompress->getWidth() * toCompress->getHeight() * 3;
+    
+    char scratch[QLZ_SCRATCH_DECOMPRESS];
+    return qlz_compress((void*)toCompress->getData(), (char*)output,
+                        dataSize, scratch);
+}
+    
 void NetworkRecorder::setupListenSocket()
 {
     // Drop out if setup has already been done

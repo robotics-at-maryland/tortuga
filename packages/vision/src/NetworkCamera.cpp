@@ -157,10 +157,7 @@ void NetworkCamera::update(double timestep)
     if (header.dataSize)
     {
 #ifdef RAM_NETWORK_COMPRESSION
-        char scratch[QLZ_SCRATCH_DECOMPRESS] = {0};
-        memset(scratch, 0, QLZ_SCRATCH_DECOMPRESS);
-        /*size_t newSize = */qlz_decompress((char*)m_compressedBuffer,
-                                            (void*)m_imageBuffer, scratch);
+        decompress(m_compressedBuffer, m_imageBuffer);
         OpenCVImage newImage(m_imageBuffer, header.width, header.height,
                              false);
 #else
@@ -190,6 +187,15 @@ size_t NetworkCamera::fps()
     return m_fps;
 }
 
+void NetworkCamera::decompress(unsigned char* compressedBuffer,
+                               unsigned char* outputBuffer)
+{
+    char scratch[QLZ_SCRATCH_DECOMPRESS] = {0};
+    memset(scratch, 0, QLZ_SCRATCH_DECOMPRESS);
+    /*size_t newSize = */qlz_decompress((char*)compressedBuffer,
+                                        (void*)outputBuffer, scratch);
+}
+    
 void NetworkCamera::readPacketHeader(ImagePacketHeader* packetHeader)
 {
     recieve(packetHeader, sizeof(ImagePacketHeader));

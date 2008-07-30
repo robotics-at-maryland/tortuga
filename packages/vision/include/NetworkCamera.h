@@ -47,6 +47,11 @@ public:
 
     virtual size_t fps();
 
+protected:
+    /** Decompresses the incoming buffer */
+    virtual void decompress(unsigned char* compressedBuffer,
+                            unsigned char* outputBuffer);
+    
 private:
     /** Reads a packet off the socket, and transforms to host order
      *

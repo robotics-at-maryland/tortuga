@@ -332,18 +332,6 @@ void FFMPEGRecorder::openVideo()
         fprintf(stderr, "Could not allocate picture\n");
         assert(false && "Could not allocate picture\n");
     }
-
-    /* if the output format is not YUV420P, then a temporary YUV420P
-       picture is needed too. It is then converted to the required
-       output format */
-/*    tmp_picture = NULL;
-    if (c->pix_fmt != PIX_FMT_YUV420P) {
-        tmp_picture = alloc_picture(PIX_FMT_YUV420P, c->width, c->height);
-        if (!tmp_picture) {
-            fprintf(stderr, "Could not allocate temporary picture\n");
-            exit(1);
-        }
-        }*/
 }
 
 AVFrame* FFMPEGRecorder::allocPicture(int pix_fmt, int width, int height)
