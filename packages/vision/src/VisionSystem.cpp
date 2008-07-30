@@ -37,8 +37,10 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     Subsystem(config["name"].asString("VisionSystem"), deps),
     m_forwardCamera(CameraPtr()),
     m_downwardCamera(CameraPtr()),
-    m_forwardRecorder(0),
-    m_downwardRecorder(0),
+    m_forwardFileRecorder(0),
+    m_downwardFileRecorder(0),
+    m_forwardNetworkRecorder(0),
+    m_downwardNetworkRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
@@ -54,8 +56,10 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     Subsystem("VisionSystem", deps),
     m_forwardCamera(forward),
     m_downwardCamera(downward),
-    m_forwardRecorder(0),
-    m_downwardRecorder(0),
+    m_forwardFileRecorder(0),
+    m_downwardFileRecorder(0),
+    m_forwardNetworkRecorder(0),
+    m_downwardNetworkRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
@@ -81,11 +85,12 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
     // Max number of frames per second to record
     int maxRecordRate = config["maxRecordRate"].asInt(5);
+    int maxStreamRate = config["maxStreamRate"].asInt(5);
     
     // Recorders
     if (config.exists("forwardFile"))
     {
-        m_forwardRecorder = new FFMPEGRecorder(
+        m_forwardFileRecorder = new FFMPEGRecorder(
             m_forwardCamera.get(),
             Recorder::MAX_RATE,
             config["forwardFile"].asString(),
@@ -93,17 +98,17 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     }
     if (config.exists("forwardPort"))
     {
-        m_forwardRecorder = new NetworkRecorder(
+        m_forwardNetworkRecorder = new NetworkRecorder(
             m_forwardCamera.get(),
             Recorder::MAX_RATE,
             config["forwardPort"].asInt(),
-            maxRecordRate);
+            maxStreamRate);
     }
         
 
     if (config.exists("downwardFile"))
     {
-        m_downwardRecorder = new FFMPEGRecorder(
+        m_downwardFileRecorder = new FFMPEGRecorder(
             m_downwardCamera.get(),
             Recorder::MAX_RATE,
             config["downwardFile"].asString(),
@@ -112,11 +117,11 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     }
     if (config.exists("downwardPort"))
     {
-        m_downwardRecorder = new NetworkRecorder(
+        m_downwardNetworkRecorder = new NetworkRecorder(
             m_downwardCamera.get(),
             Recorder::MAX_RATE,
             config["downwardPort"].asInt(),
-            maxRecordRate);
+            maxStreamRate);
     }
     
     
@@ -152,8 +157,10 @@ VisionSystem::~VisionSystem()
     m_forwardCamera->unbackground(true);
     m_downwardCamera->unbackground(true);
 
-    delete m_forwardRecorder;
-    delete m_downwardRecorder;
+    delete m_forwardFileRecorder;
+    delete m_downwardFileRecorder;
+    delete m_forwardNetworkRecorder;
+    delete m_downwardNetworkRecorder;
     
     // Shutdown our detectors running on our cameras
     delete m_forward;
@@ -229,10 +236,14 @@ void VisionSystem::setPriority(core::IUpdatable::Priority priority)
     m_forward->setPriority(priority);
     m_downward->setPriority(priority);
 
-    if (m_forwardRecorder)
-        m_forwardRecorder->setPriority(priority);
-    if (m_downwardRecorder)
-        m_downwardRecorder->setPriority(priority);        
+    if (m_forwardFileRecorder)
+        m_forwardFileRecorder->setPriority(priority);
+    if (m_downwardFileRecorder)
+        m_downwardFileRecorder->setPriority(priority);
+    if (m_forwardNetworkRecorder)
+        m_forwardNetworkRecorder->setPriority(priority);
+    if (m_downwardNetworkRecorder)
+        m_downwardNetworkRecorder->setPriority(priority);        
 }
     
 void VisionSystem::background(int interval)
@@ -247,10 +258,14 @@ void VisionSystem::background(int interval)
     m_downward->background(interval);
 
     // Start recorders
-    if (m_forwardRecorder)
-        m_forwardRecorder->background(interval);
-    if (m_downwardRecorder)
-        m_downwardRecorder->background(interval);    
+    if (m_forwardFileRecorder)
+        m_forwardFileRecorder->background(interval);
+    if (m_downwardFileRecorder)
+        m_downwardFileRecorder->background(interval);
+    if (m_forwardNetworkRecorder)
+        m_forwardNetworkRecorder->background(interval);
+    if (m_downwardNetworkRecorder)
+        m_downwardNetworkRecorder->background(interval);    
 }
         
 void VisionSystem::unbackground(bool join)
@@ -266,10 +281,14 @@ void VisionSystem::unbackground(bool join)
     m_downward->unbackground(join);
 
     // Stop recorders
-    if (m_forwardRecorder)
-        m_forwardRecorder->unbackground(join);
-    if (m_downwardRecorder)
-        m_downwardRecorder->unbackground(join);    
+    if (m_forwardFileRecorder)
+        m_forwardFileRecorder->unbackground(join);
+    if (m_downwardFileRecorder)
+        m_downwardFileRecorder->unbackground(join);
+    if (m_forwardNetworkRecorder)
+        m_forwardNetworkRecorder->unbackground(join);
+    if (m_downwardNetworkRecorder)
+        m_downwardNetworkRecorder->unbackground(join);    
 }
 
 void VisionSystem::update(double timestep)
@@ -285,10 +304,14 @@ void VisionSystem::update(double timestep)
     m_downward->update(timestep);
 
     // Update the recorders to record the data
-    if (m_forwardRecorder)
-        m_forwardRecorder->update(timestep);
-    if (m_downwardRecorder)
-        m_downwardRecorder->update(timestep);
+    if (m_forwardFileRecorder)
+        m_forwardFileRecorder->update(timestep);
+    if (m_downwardFileRecorder)
+        m_downwardFileRecorder->update(timestep);
+    if (m_forwardNetworkRecorder)
+        m_forwardNetworkRecorder->update(timestep);
+    if (m_downwardNetworkRecorder)
+        m_downwardNetworkRecorder->update(timestep);
 }
     
 } // namespace vision

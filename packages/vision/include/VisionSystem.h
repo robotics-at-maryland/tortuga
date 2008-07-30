@@ -95,8 +95,10 @@ private:
     CameraPtr m_forwardCamera;
     CameraPtr m_downwardCamera;
 
-    Recorder* m_forwardRecorder;
-    Recorder* m_downwardRecorder;
+    Recorder* m_forwardFileRecorder;
+    Recorder* m_downwardFileRecorder;
+    Recorder* m_forwardNetworkRecorder;
+    Recorder* m_downwardNetworkRecorder;
     
     VisionRunner* m_forward;
     VisionRunner* m_downward;
