@@ -90,7 +90,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Recorders
     if (config.exists("forwardFile"))
     {
-        m_forwardFileRecorder = new FFMPEGRecorder(
+        m_forwardFileRecorder = new FileRecorder( //new FFMPEGRecorder(
             m_forwardCamera.get(),
             Recorder::MAX_RATE,
             config["forwardFile"].asString(),
@@ -108,7 +108,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
     if (config.exists("downwardFile"))
     {
-        m_downwardFileRecorder = new FFMPEGRecorder(
+        m_downwardFileRecorder = new FileRecorder( //new FFMPEGRecorder(
             m_downwardCamera.get(),
             Recorder::MAX_RATE,
             config["downwardFile"].asString(),
