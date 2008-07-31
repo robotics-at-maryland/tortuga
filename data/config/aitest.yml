@@ -87,9 +87,9 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             ram.ai.gate.Dive:
-                depth: 1.5
+                depth: 7
             ram.ai.gate.Forward:
-                time: 4
+                time: 20
 
             ram.ai.light.Seek:
                 depthGain: 0.5

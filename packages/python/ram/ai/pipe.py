@@ -62,6 +62,21 @@ class PipeFollowingState(state.State):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
 
+class Dive(state.State):
+    @staticmethod
+    def transitions():
+        return { motion.basic.Motion.FINISHED : Searching }
+    
+    def enter(self):
+        # Go to 5 feet in 5 increments
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 7),
+            speed = self._config.get('speed', 1.0/3.0))
+        self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+
 class Searching(state.State):
     """When the vehicle is looking for a pipe"""
     @staticmethod

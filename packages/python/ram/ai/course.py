@@ -113,14 +113,14 @@ class Pipe2(state.State):
     @staticmethod
     def transitions():
         return { pipe.Centering.SETTLED : Bin,
-                'GO' : state.Branch(pipe.Searching) }
+                'GO' : state.Branch(pipe.Dive) }
     
     def enter(self):
         # Branch off state machine for finding the pipe
-        self.stateMachine.start(state.Branch(pipe.Searching))
+        self.stateMachine.start(state.Branch(pipe.Dive))
         
     def exit(self):
-        self.stateMachine.stopBranch(pipe.Searching)
+        self.stateMachine.stopBranch(pipe.Dive)
         self.visionSystem.pipeLineDetectorOff()
     
 class Bin(state.State):
@@ -153,14 +153,14 @@ class Pipe3(state.State):
     @staticmethod
     def transitions():
         return { pipe.Centering.SETTLED : PingerDive,
-                 'GO' : state.Branch(pipe.Searching) }
+                 'GO' : state.Branch(pipe.Dive) }
     
     def enter(self):
         # Branch off state machine for finding the pipe
-        self.stateMachine.start(state.Branch(pipe.Searching))
+        self.stateMachine.start(state.Branch(pipe.Dive))
         
     def exit(self):
-        self.stateMachine.stopBranch(pipe.Searching)
+        self.stateMachine.stopBranch(pipe.Dive)
         self.visionSystem.pipeLineDetectorOff()
     
 class PingerDive(state.State):
