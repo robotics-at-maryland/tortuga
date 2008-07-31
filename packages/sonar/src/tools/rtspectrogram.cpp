@@ -40,19 +40,19 @@ int main(int argc, char *argv[])
         myKBands[i] = zerothBand + i;
         freqs[i] = (float)myKBands[i] / DFT_FRAME * SAMPRATE / 1000;
     }
-	SparseSDFTSpectrum<myadc, N, NCHANNELS, numRows> spectrum(myKBands);
-	
-	myadc::SIGNED sample[NCHANNELS];
-	int sampleCount = 0;
-	while (fread(sample, sizeof(myadc::SIGNED), NCHANNELS, stdin) == (size_t)NCHANNELS)
-	{
-		++sampleCount;
-		//	Update spectrogram
-		spectrum.update(sample);
-        for (int channel = 0 ; channel < NCHANNELS ; channel ++)
-            for (int i = 0 ; i < numRows ; i ++)
-                hist[channel][i] += fixed::magL1(spectrum.getAmplitudeForBinIndex(i, channel));
-	}
+    
+    {
+        SparseSDFTSpectrum<myadc, N, NCHANNELS, numRows> spectrum(myKBands);
+        myadc::SIGNED sample[NCHANNELS];
+        while (fread(sample, sizeof(myadc::SIGNED), NCHANNELS, stdin) == (size_t)NCHANNELS)
+        {
+            //	Update spectrogram
+            spectrum.update(sample);
+            for (int channel = 0 ; channel < NCHANNELS ; channel ++)
+                for (int i = 0 ; i < numRows ; i ++)
+                    hist[channel][i] += fixed::magL1(spectrum.getAmplitudeForBinIndex(i, channel));
+        }
+    }
     myadc::QUADRUPLE_WIDE::SIGNED histMax = 1;
     for (int i = 0 ; i < numRows ; i ++)
     {
