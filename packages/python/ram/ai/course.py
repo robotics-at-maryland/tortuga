@@ -212,10 +212,10 @@ class SafeDive(state.State):
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 10),
             speed = self._config.get('diveSpeed', 0.3))
-        
         self.motionManager.setMotion(diveMotion)
         
     def exit(self):
+        self.motionManager.stopCurrentMotion()
         self.stateMachine.stopBranch(sonar.Hovering)
 
 class Safe(state.State):
