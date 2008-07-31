@@ -22,7 +22,7 @@
 
 using namespace ram::sonar;
 
-static const int skip = 2;
+static const int skip = 8;
 static const int N = DFT_FRAME / skip;
 static const int numRows = 23;
 static const int numCols = 70;
