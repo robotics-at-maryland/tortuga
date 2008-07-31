@@ -32,7 +32,7 @@ namespace vision {
     int SuitDetector::SPADEMAX[] = {120, 120, 195, 195};
     int SuitDetector::SPADESIZE = 4;
 
-    int SuitDetector::HEARTMIN[] = {100, 100, 140, 160};
+    int SuitDetector::HEARTMIN[] = {100, 100, 140, 140};
     int SuitDetector::HEARTMAX[] = {115, 115, 170, 170};
     int SuitDetector::HEARTSIZE = 4;
 
@@ -828,7 +828,7 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     else 
     {
         int j = numSegs-1;
-        printf("Traversal Distances: \n");
+        //printf("Traversal Distances: \n");
         for (int i = 0; i < numSegs; j=i++)
         {
             int startX = xPos[j];
@@ -837,9 +837,9 @@ void SuitDetector::doEdgeRunning(IplImage* image)
             int endY = yPos[i];
 
             traverseDists[i] = edgeRun(startX,startY,endX,endY, image, i, &numBackups);
-            printf("(%d,%d) to (%d,%d) : %d   Backups: %d \n", startX, startY, endX, endY, traverseDists[i], numBackups);
+            //printf("(%d,%d) to (%d,%d) : %d   Backups: %d \n", startX, startY, endX, endY, traverseDists[i], numBackups);
         }
-        printf("End of Traversal Dists \n");
+        //printf("End of Traversal Dists \n");
     }
     
     suit = Suit::UNKNOWN;
@@ -857,26 +857,26 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     if (numSegs == SuitDetector::HEARTSIZE)
     {
         heartLike = cyclicCompare(traverseDists, SuitDetector::HEARTMIN, SuitDetector::HEARTMAX, SuitDetector::HEARTSIZE);
-        if (heartLike)
-            printf("Heart!");
+//        if (heartLike)
+//            printf("Heart!");
     }
     if (numSegs == SuitDetector::SPADESIZE)
     {
         spadeLike = cyclicCompare(traverseDists, SuitDetector::SPADEMIN, SuitDetector::SPADEMAX, SuitDetector::SPADESIZE);
-        if (spadeLike)
-            printf("Spade!");
+//        if (spadeLike)
+//            printf("Spade!");
     }
     if (numSegs == SuitDetector::CLUBSIZE)
     {
         clubLike = cyclicCompare(traverseDists, SuitDetector::CLUBMIN, SuitDetector::CLUBMAX, SuitDetector::CLUBSIZE);
-        if (clubLike)
-            printf("Club!");
+//        if (clubLike)
+//            printf("Club!");
     }
     if (numSegs == SuitDetector::DIAMONDSIZE)
     {    
         diamondLike = cyclicCompare(traverseDists, SuitDetector::DIAMONDMIN, SuitDetector::DIAMONDMAX, SuitDetector::DIAMONDSIZE);
-        if (diamondLike)
-            printf("Diamond!");
+//        if (diamondLike)
+//            printf("Diamond!");
     }
     
     if (heartLike && !spadeLike && !clubLike && !diamondLike)
@@ -923,15 +923,15 @@ void SuitDetector::doEdgeRunning(IplImage* image)
 //            printf("CLUB BY SPLIT!\n");
     }
     
-    printf("\n");
-    switch(suit)
-    {
-        case Suit::HEART: break;//printf("Heart!\n");break;
-        case Suit::DIAMOND: break;//printf("Diamond!\n");break;
-        case Suit::SPADE: break;//printf("Spade!\n");break;
-        case Suit::CLUB: break;//printf("Club!\n");break;
-            default: printf("Unknown :( ??\n");
-    }
+//    printf("\n");
+//    switch(suit)
+//    {
+//        case Suit::HEART: break;//printf("Heart!\n");break;
+//        case Suit::DIAMOND: break;//printf("Diamond!\n");break;
+//        case Suit::SPADE: break;//printf("Spade!\n");break;
+//        case Suit::CLUB: break;//printf("Club!\n");break;
+//            default: printf("Unknown :( ??\n");
+//    }
 //    if (suit == Suit::SPADE)
 //        printf("What the hell...\n");
 }
