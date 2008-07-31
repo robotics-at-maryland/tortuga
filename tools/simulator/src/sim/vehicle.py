@@ -113,6 +113,9 @@ class SimVehicle(vehicle.IVehicle):
                 thrusters.append(device)
         return thrusters
     
+    def dropMarker(self):
+        pass
+    
     def getDevice(self, name):
         return self._devices[name]
     
