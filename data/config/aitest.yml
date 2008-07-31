@@ -68,10 +68,10 @@ Subsystems:
 
         # Recording Settings
         maxStreamRate: 1 # Hz
-        maxRecordRate: 5 # Hz
-        forwardFile: forward.avi
+        maxRecordRate: 10 # Hz
+        #forwardFile: forward.avi
         downwardFile: downward.avi
-        forwardPort: 50000
+        #forwardPort: 50000
         downwardPort: 50001
     
     EventHub:
@@ -101,7 +101,7 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             ram.ai.gate.Dive:
-                depth: 4
+                depth: 4 
             ram.ai.gate.Forward:
                 time: 20
 
@@ -159,22 +159,22 @@ Subsystems:
                 speedGain: 8
 
             ram.ai.sonar.CloseSeeking:
-                maxSidewaysSpeed: 3
-                sidewaysSpeedGain: 4
-                forwardSpeed: 3
-                speedGain: 4
+                maxSidewaysSpeed: 1
+                sidewaysSpeedGain: 2
+                maxSpeed: 1
+                speedGain: 2
                 closeZ: 0.95
             ram.ai.sonar.FarSeeking:
-                maxSidewaysSpeed: 3
-                sidewaysSpeedGain: 4
-                forwardSpeed: 3
-                speedGain: 4
+                maxSidewaysSpeed: 4
+                sidewaysSpeedGain: 8
+                maxSpeed: 4
+                speedGain: 8
                 midRangeZ: 0.8
             ram.ai.sonar.Hovering:
-                maxSidewaysSpeed: 3
-                sidewaysSpeedGain: 2
-                forwardSpeed: 3
-                speedGain: 2
+                maxSidewaysSpeed: 1
+                sidewaysSpeedGain: 1
+                maxSpeed: 1
+                speedGain: 1
 
             ram.ai.sonarSafe.Dive:
                 safeDepth: 10
