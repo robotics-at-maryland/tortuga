@@ -46,11 +46,11 @@ RedLightDetector::RedLightDetector(Camera* camera) :
 void RedLightDetector::init(core::ConfigNode config)
 {
     // Detection variables
-    m_initialMinRedPixels = config["intialMinPixels"].asInt(400);
+    m_initialMinRedPixels = config["initialMinPixels"].asInt(400);
     minRedPixels = m_initialMinRedPixels;
     
-    m_foundMinPixelScale = config["lostMinPixelScale"].asDouble(0.85);
-    m_lostMinPixelScale = config["foundMinPixelScale"].asDouble(0.75);
+    m_foundMinPixelScale = config["foundMinPixelScale"].asDouble(0.85);
+    m_lostMinPixelScale = config["lostMinPixelScale"].asDouble(0.75);
     m_almostHitPercentage = config["almostHitPercentage"].asDouble(0.2);
     m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
     m_redPercentage = config["redPercentage"].asDouble(40);
@@ -243,11 +243,11 @@ void RedLightDetector::processImage(Image* input, Image* output)
 
     if (output)
     {
+        cvCopyImage(flashFrame, raw);            
         // Only draw debug info if we found the light
         if (found)
         {
-            cvCopyImage(image, raw);
-            
+//            cvCopyImage(image, raw);
             CvPoint tl,tr,bl,br;
             tl.x = bl.x = std::max(lightCenter.x-4,0);
             tr.x = br.x = std::min(lightCenter.x+4,raw->width-1);
@@ -301,6 +301,7 @@ void RedLightDetector::publishFoundEvent(double lightPixelRadius)
 bool RedLightDetector::processBlobs(const BlobDetector::BlobList& blobs,
                                     BlobDetector::Blob& outBlob)
 {
+    //Assumed sorted biggest to smallest by BlobDetector.
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
         // Determine if we have actual found the light
