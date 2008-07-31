@@ -124,6 +124,7 @@ class Centering(PipeFollowingState):
         self.timer.start()
         
         PipeFollowingState.enter(self)
+        
 
     def exit(self):
         #print '"Exiting Seek, going to follow"'
