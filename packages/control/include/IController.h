@@ -118,6 +118,9 @@ public:
 
     /** Returns true if the vehicle is at the desired orientation */
     virtual bool atOrientation() = 0;
+
+    /** Loads current orientation into desired (fixes offset in roll and pitch) */
+    virtual void holdCurrentHeading() = 0;
     
     virtual void setBuoyantTorqueCorrection(double x, double y, double z) =0;
     

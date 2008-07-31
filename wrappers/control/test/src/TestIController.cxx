@@ -57,6 +57,8 @@ public:
     
     virtual bool atDepth() { return atdepth; }
 
+    virtual void holdCurrentHeading() {}
+    
     virtual void setPriority(ram::core::IUpdatable::Priority) {};
     virtual ram::core::IUpdatable::Priority getPriority() {
         return ram::core::IUpdatable::NORMAL_PRIORITY;
