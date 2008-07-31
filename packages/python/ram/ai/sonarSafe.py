@@ -22,12 +22,13 @@ import ram.ai.safe as safe
 
 COMPLETE = core.declareEventType('COMPLETE')
         
-class SonarDive(TranslationSeeking):
+# TODO: Merge me back into ram.ai.safe module
+class Dive(TranslationSeeking):
     """Diving to the pre-grab depth"""
 
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(SonarDive,
+        return TranslationSeeking.transitions(Dive,
             { ram.motion.basic.Motion.FINISHED : Grabbing })
         
     def enter(self):

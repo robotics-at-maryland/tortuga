@@ -21,10 +21,10 @@ import ram.motion.pipe
 import ram.test.ai.support as aisupport
 
 
-class SonarDive(aisupport.AITestCase):
+class TestDive(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.machine.start(sonarSafe.SonarDive)
+        self.machine.start(sonarSafe.Dive)
 
     def testStart(self):
         self.assertCurrentMotion((motion.pipe.Hover, 
