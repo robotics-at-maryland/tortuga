@@ -9,16 +9,30 @@ Subsystems:
         depends_on: ["EventHub", "Vehicle"]
 
         RedLightDetector:
-           initialMinPixels: 150
-           foundMinPixelScale: 0.85
-           lostMinPixelScale: 0.75
-           almostHitPercentage: 0.2
-           topRemovePercentage: 0.0
-           redPercentage: 38.0
-           redIntensity: 150
-           maxAspectRatio: 2.0
+            initialMinPixels: 150
+            foundMinPixelScale: 0.85
+            lostMinPixelScale: 0.75
+            almostHitPercentage: 0.2
+            topRemovePercentage: 0.0
+            redPercentage: 38.0
+            redIntensity: 150
+            maxAspectRatio: 2.0
+        OrangePipeDetector:
+            rOverGMin: 0.75
+            rOverGMax: 1.5
+            bOverRMax: 0.75
+            centeredLimit: 0.1
+            minBrightness: 100
+            erodeIterations: 3
         BinDetector:
             centeredLimit: 0.2
+            sameBinThreshold: 0.2
+            maxAspectRatio: 3
+            blackMaskMinimumPercent: 10
+            blackMaskMaxTotalIntensity: 350
+            whiteMaskMinimumPercent: 30
+            whiteMaskMinimumIntensity: 190
+            incrediblyWashedOut: 1
         DuctDetector:
             minRedOverGreen: 0.5
             maxRedOverGreen: 1.5
