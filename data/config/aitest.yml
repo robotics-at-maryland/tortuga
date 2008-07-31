@@ -176,6 +176,14 @@ Subsystems:
                 forwardSpeed: 3
                 speedGain: 2
 
+            ram.ai.sonarSafe.Dive:
+                safeDepth: 10
+                depthOffset: 1
+                diveRate: 0.3
+            ram.ai.sonarSafe.Grabbing:
+                safeDepth: 10 
+                depthOffset: 1
+
             ram.ai.safe.Seeking:
                 sidewaysSpeedGain: 4
                 maxSidewaysSpeed: 2
@@ -207,6 +215,11 @@ Subsystems:
             ram.ai.course.PingerDive:
                 depth: 1.5
             ram.ai.course.SafeDive:
+                depth: 5
+
+            ram.ai.sonarCourse.PingerDive:
+                depth: 1.5
+            ram.ai.sonarCourse.SafeDive:
                 depth: 5
 
     # Object that creates the vehicle interface
@@ -419,7 +432,8 @@ Subsystems:
         type: BWPDController
         update_interval: 40
         priority: high
-
+        holdCurrentHeading: 1 # Set to 0 to always point north
+      
         orientationThreshold: 0.05
 
         adaptCtrlRotK: 5
