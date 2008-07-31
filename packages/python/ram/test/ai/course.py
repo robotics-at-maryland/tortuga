@@ -184,8 +184,8 @@ class TestBin(support.AITestCase):
         """
         self.assertCurrentState(course.Bin)
         
-        self.assertCurrentBranches([bin.Searching])
-        self.assert_(self.visionSystem.binDetector)
+        self.assertCurrentBranches([bin.Dive])
+        #self.assert_(self.visionSystem.binDetector)
         
     def testComplete(self):
         """
@@ -196,8 +196,8 @@ class TestBin(support.AITestCase):
         self.assertCurrentState(course.Pipe3)
         
         # Make sure the light seeking branch is gone
-        self.assertFalse(self.machine.branches.has_key(bin.Searching))
-        self.assertFalse(self.visionSystem.binDetector)
+        self.assertFalse(self.machine.branches.has_key(bin.Dive))
+        #self.assertFalse(self.visionSystem.binDetector)
         
     def testTimeout(self):
         """
@@ -212,8 +212,8 @@ class TestBin(support.AITestCase):
         
         # Test that the timeout worked properly
         self.assertCurrentState(course.Pipe3)
-        self.assertFalse(self.machine.branches.has_key(bin.Searching))
-        self.assertFalse(self.visionSystem.binDetector)
+        self.assertFalse(self.machine.branches.has_key(bin.Dive))
+        #self.assertFalse(self.visionSystem.binDetector)
         
 class TestPipe3(PipeTestCase):
     def setUp(self):

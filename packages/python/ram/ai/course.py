@@ -130,10 +130,10 @@ class Bin(state.State):
     def transitions():
         return { bin.COMPLETE : Pipe3,
                  Bin.TIMEOUT : Pipe3,
-                 'GO' : state.Branch(light.Searching) }
+                 'GO' : state.Branch(bin.Dive) }
 
     def enter(self):
-        self.stateMachine.start(state.Branch(bin.Searching))
+        self.stateMachine.start(state.Branch(bin.Dive))
         
         # Create out timeout
         timeout = self._config.get('timeout',240)
@@ -142,7 +142,7 @@ class Bin(state.State):
         self.timer.start()
     
     def exit(self):
-        self.stateMachine.stopBranch(bin.Searching)
+        self.stateMachine.stopBranch(bin.Dive)
         self.visionSystem.binDetectorOff()
 
 class Pipe3(state.State):

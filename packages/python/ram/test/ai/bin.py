@@ -164,6 +164,20 @@ class BinTestCase(aisupport.AITestCase):
                                 angle = math.Degree(0))
         self.assertAIDataValue('currentBins', set())
    
+class TestDive(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(bin.Dive)
+    
+    def testStart(self):
+        """Make sure we are diving with no detector on"""
+        self.assertFalse(self.visionSystem.binDetector)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+    def testFinish(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(bin.Searching)
+   
 class TestTracking(BinTestCase):
     def testEnsureBinTracking(self):
         bin.ensureBinTracking(self.qeventHub, self.ai)

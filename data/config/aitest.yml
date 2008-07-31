@@ -104,6 +104,8 @@ Subsystems:
                 filterSize: 10
                 desiredRange: 0.5
 
+            ram.ai.bin.Dive:
+                depth: 7
             ram.ai.bin.Seeking:
                 speedGain: 3
                 maxSpeed: 3
