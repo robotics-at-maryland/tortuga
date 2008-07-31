@@ -17,6 +17,8 @@
 #include "Sonar.h"
 #include "fixed/fixed.h"
 
+#include "drivers/bfin_spartan/include/dataset.h"
+
 using namespace ram::sonar;
 
 static const int N = DFT_FRAME;
@@ -29,6 +31,12 @@ typedef adc<16> myadc;
 
 int main(int argc, char *argv[])
 {
+    struct dataset* data;
+    if (argc == 2)
+        data = loadDataset(argv[1]);
+    else
+        data = createDataset(0xA0000);
+    
     int myKBands[numRows];
     float freqs[numRows];
     myadc::QUADRUPLE_WIDE::SIGNED hist[NCHANNELS][numRows];
@@ -51,6 +59,8 @@ int main(int argc, char *argv[])
                     hist[channel][i] += fixed::magL1(spectrum.getAmplitudeForBinIndex(i, channel));
         }
     }
+    destroyDataset(data);
+    
     myadc::QUADRUPLE_WIDE::SIGNED histMax = 1;
     for (int i = 0 ; i < numRows ; i ++)
     {
