@@ -423,8 +423,11 @@ class Dive(HoveringState):
         HoveringState.enter(self, useMultiAngle = True)
         
         # While keeping center, dive down
-        diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 10.5),
+        binDepth = self._config.get('binDepth', 11)
+        offset = self._config.get('offset', 1.5)
+        
+        diveMotion = motion.basic.RateChangeDepth(    
+            desiredDepth = binDepth - offset,
             speed = self._config.get('diveSpeed', 0.3))
         
         self.motionManager.setMotion(diveMotion)
@@ -536,8 +539,11 @@ class SurfaceToMove(HoveringState):
         HoveringState.enter(self)
         
         # Also surface
+        binDepth = self._config.get('binDepth', 11)
+        offset = self._config.get('offset', 2)
+        
         surfaceMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 9),
+            desiredDepth = binDepth - offset,
             speed = self._config.get('surfaceSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(surfaceMotion) 
@@ -621,7 +627,7 @@ class DropMarker(SettlingState):
         self.ai.data['markersDropped'] = markerNum + 1
 
         # TODO: drop marker here
-	self.vehicle.dropMarker()
+        self.vehicle.dropMarker()
         print "\"DROPPER MARKRED #: ", markerNum, "\""
         
         
