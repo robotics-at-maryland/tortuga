@@ -13,6 +13,8 @@ This module tests the ram.ai.course state Machine
 import unittest
 
 # Project Imports
+import ext.vision as vision
+
 import ram.ai.course as course
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
@@ -58,6 +60,15 @@ class TestGate(support.AITestCase):
         
         # Make sure we branched to the right state machine
         self.assertCurrentBranches([gate.Dive])
+        self.assert_(self.visionSystem.pipeLineDetector)
+        self.assertAIDataValue('foundPipeEarly', False)
+        
+    def testPipeFound(self):
+        self.assertCurrentState(course.Gate)
+        self.injectEvent(vision.EventType.PIPE_FOUND, vision.PipeEvent, 0, 
+                         0, 0)
+        self.assertCurrentState(course.Pipe1)
+        self.assertAIDataValue('foundPipeEarly', True)
         
     def testGateComplete(self):
         # Make sure we have moved onto the next state
@@ -66,6 +77,9 @@ class TestGate(support.AITestCase):
         
         # Make sure the gate.Dive branch is gone
         self.assertFalse(self.machine.branches.has_key(gate.Dive))
+        
+        # Make sure we are watching for the pipe
+        self.assert_(self.visionSystem.pipeLineDetector)
         
 class TestPipe1(PipeTestCase):
     def setUp(self):
@@ -78,6 +92,16 @@ class TestPipe1(PipeTestCase):
         """
         PipeTestCase.checkStart(self, course.Pipe1)
         self.assert_(self.visionSystem.pipeLineDetector)
+        
+    def testEarlyEnter(self):
+        # Stop machine, and restart as if we found the pipe early
+        self.machine.stop()
+        
+        self.ai.data['foundPipeEarly'] = True
+        self.machine.start(course.Pipe1)
+        
+        self.assertCurrentState(course.Pipe1)
+        self.assertCurrentBranches([pipe.Seeking])
         
     def testSettled(self):
         """

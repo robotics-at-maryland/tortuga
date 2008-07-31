@@ -17,6 +17,8 @@ Requires the following subsystems:
 
 # Project Imports
 import ext.core as core
+import ext.vision as vision
+
 import ram.ai.state as state
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
@@ -35,14 +37,21 @@ class Gate(state.State):
     @staticmethod
     def transitions():
         return { gate.COMPLETE : Pipe1,
+                 vision.EventType.PIPE_FOUND : Pipe1,
                  'GO' : state.Branch(gate.Dive) }
 
+    def PIPE_FOUND(self, event):
+        self.ai.data['foundPipeEarly'] = True
+
     def enter(self):
+        self.ai.data['foundPipeEarly'] = False
         self.exited = False
-    
-    def enter(self):
+        
         # Branch of state machine for gate
         self.stateMachine.start(state.Branch(gate.Dive))
+        
+        # Start up pipe detector
+        self.visionSystem.pipeLineDetectorOn()
         
     def exit(self):
         self.exited = True
@@ -57,14 +66,22 @@ class Pipe1(state.State):
     @staticmethod
     def transitions():
         return { pipe.Centering.SETTLED : Light,
-                 'GO' : state.Branch(pipe.Searching) }
+                 'GATE' : state.Branch(pipe.Searching),
+                 'PIPE' : state.Branch(pipe.Seeking) }
     
     def enter(self):
         # Branch off state machine for finding the pipe
-        self.stateMachine.start(state.Branch(pipe.Searching))
+        if self.ai.data.get('foundPipeEarly', False):
+            self.stateMachine.start(state.Branch(pipe.Seeking))
+        else:
+            self.stateMachine.start(state.Branch(pipe.Searching))
         
     def exit(self):
-        self.stateMachine.stopBranch(pipe.Searching)
+        if self.ai.data.get('foundPipeEarly', False):
+            self.stateMachine.stopBranch(pipe.Seeking)
+        else:
+            self.stateMachine.stopBranch(pipe.Searching)
+
         self.visionSystem.pipeLineDetectorOff()
         
 class Light(state.State):

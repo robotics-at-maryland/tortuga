@@ -131,7 +131,7 @@ class TestOffsetting(aisupport.AITestCase):
         self.assertEqual(mockTimer.sleepTime, 0.1)
 
         # Check five steps
-        for i in xrange(0, 100):
+        for i in xrange(0, 200):
             mockTimer.finish()
             self.qeventHub.publishEvents()
         self.assertCurrentState(safe.Centering)
