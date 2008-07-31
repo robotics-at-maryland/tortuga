@@ -173,7 +173,7 @@ class PingerDive(state.State):
 
     def enter(self):
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 7),
+            desiredDepth = self._config.get('depth', 3),
             speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)
@@ -261,22 +261,18 @@ class Octagaon(state.State):
     """
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : End,
-                 'GO' : state.Branch(sonar.Searching) } 
+        return { motion.basic.Motion.FINISHED : End }
 
     def enter(self):
-        # Activate the sonar system
-        self.stateMachine.start(state.Branch(sonar.Hovering))
-        
         # Start our dive
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 0),
             speed = self._config.get('diveSpeed', 0.3))
         
         self.motionManager.setMotion(diveMotion)
-        
-    def exit(self):
-        self.stateMachine.stopBranch(sonar.Hovering)
+
+    def stop(self):
+        self.motionManager.stopCurrentMotion()
 
 class End(state.End):
     pass

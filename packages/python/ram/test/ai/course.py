@@ -339,16 +339,11 @@ class TestOctagon(support.AITestCase):
     
     def testStart(self):
         """Make sure we start diving"""
-        self.assertCurrentMotion(
-            (motion.pipe.Hover, motion.basic.RateChangeDepth,
-             motion.pipe.Hover))
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
         
         self.assertCurrentState(course.Octagaon)
-        self.assertCurrentBranches([sonar.Hovering])
                 
     def testDiveFinished(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assert_(self.machine.complete)
-        
-        # Make sure the pinger seeking branch is gone
-        self.assertFalse(self.machine.branches.has_key(sonar.Hovering))
+
