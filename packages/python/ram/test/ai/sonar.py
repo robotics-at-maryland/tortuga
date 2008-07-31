@@ -80,11 +80,28 @@ class TransSeekingTestCase(object):
         
         self.assertCurrentState(self._myClass)
         
-class TestCloseSeeking(TransSeekingTestCase, aisupport.AITestCase):
+class TestFarSeeking(TransSeekingTestCase, aisupport.AITestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.sonar.FarSeeking' : {
+                        'maxSpeed' : 7,
+                        'sidewaysSpeedGain' : 8,
+                    },
+                }
+            }
+        }
+        aisupport.AITestCase.setUp(self, cfg = cfg)
         self._myClass = sonar.FarSeeking
         self.machine.start(sonar.FarSeeking)
+        
+    def testStart(self):
+        self.assertCurrentMotion(motion.pipe.Hover)
+        hoverMotion = self.motionManager.currentMotion
+
+        self.assertEquals(7, hoverMotion._maxSpeed)
+        self.assertEquals(8, hoverMotion._sidewaysSpeedGain)
         
     def testClose(self):
         self.injectEvent(vehicle.device.ISonar.UPDATE, vehicle.SonarEvent, 

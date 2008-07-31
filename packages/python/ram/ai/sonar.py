@@ -53,7 +53,7 @@ class PingerState(state.State):
         self._lastTime = 0
 
         self._loadSettings()
-        
+
         motion = ram.motion.pipe.Hover(pipe = self._pipe, 
                                        maxSpeed = self._maxSpeed, 
                                        maxSidewaysSpeed = self._maxSidewaysSpeed, 
@@ -121,7 +121,7 @@ class FarSeeking(TranslationSeeking):
             { TranslationSeeking.CLOSE : CloseSeeking } ) 
                  
     def _loadSettings(self):
-        PingerState._loadSettings(self)
+        TranslationSeeking._loadSettings(self)
         self._closeZ = self._config.get('midRangeZ', 0.65)
                  
 class CloseSeeking(TranslationSeeking):
