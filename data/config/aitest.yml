@@ -115,9 +115,11 @@ Subsystems:
                 sidewaysSpeedGain: 7
                 #maxSidewaysSpeed: 1.5
             ram.ai.bin.SurfaceToMove:
-                depth: 7
+                binDepth: 11 # old depth: 7
+                offset: 4
             ram.ai.bin.Dive:
-                depth: 9.8
+                binDepth: 11 # old depth: 9.8
+                offset: 1.2
                 yawGain: 0.4
             ram.ai.bin.Centering:
                 yawGain: 0.4
