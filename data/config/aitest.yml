@@ -50,10 +50,12 @@ Subsystems:
             minTotal: 100
 
         # Recording Settings
-        maxRecordRate: 10 # Hz
+        maxStreamRate: 1 # Hz
+        maxRecordRate: 5 # Hz
         forwardFile: forward.avi
         downwardFile: downward.avi
-#        forwardPort: 50000
+        forwardPort: 50000
+        downwardPort: 50001
     
     EventHub:
         type: EventHub
@@ -81,6 +83,11 @@ Subsystems:
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
+            ram.ai.gate.Dive:
+                depth: 1.5
+            ram.ai.gate.Forward:
+                time: 4
+
             ram.ai.light.Seek:
                 depthGain: 0.5
 
@@ -343,7 +350,7 @@ Subsystems:
                 magYBias: 0.183411
                 magZBias: 0.25861
                 # Set me to zero to ignore mag.
-                magCorruptThresh: 0.0
+                #magCorruptThresh: 0.0
                 localMagneticPitch: 60
     RemoteController:
         type: RemoteController
