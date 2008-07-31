@@ -95,7 +95,7 @@ Subsystems:
                 maxAlignDiff: 2
                 depthGain: 5
             ram.ai.duct.Through:
-                forwardTime: 30
+                forwardTime: 40
 
             ram.ai.bin.Seeking:
                 sidewaysSpeedGain: 10
