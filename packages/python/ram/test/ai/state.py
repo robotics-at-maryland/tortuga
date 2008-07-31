@@ -137,6 +137,30 @@ class BranchedEnd(state.End):
     def exit(self):
         self.exited = True
 
+# States which attempt to find the loopback error
+class First(state.State):
+    @staticmethod
+    def transitions():
+        return { "GO" : Second }
+    
+class Second(state.State):
+    @staticmethod
+    def transitions():
+        return { "GO" : Simple }
+    
+class FirstParent(state.State):
+    @staticmethod
+    def transitions():
+        return { "GO" : SecondParent }
+        
+class SecondParent(state.State):
+    @staticmethod
+    def transitions():
+        return { "BOB" : End }
+    
+    def enter(self):
+        self.stateMachine.start(state.Branch(First))
+    
 # --------------------------------------------------------------------------- #
 #                                 T E S T S                                   #
 # --------------------------------------------------------------------------- #
@@ -454,6 +478,27 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(0, len(self.machine.branches))
         self.assertFalse(self.machine.branches.has_key(Start))
         
+    def testDoubleTransitions(self):
+        self.machine.start(First)
+        self.assertEqual(First, type(self.machine.currentState()))
+        
+        self.machine.injectEvent(self._makeEvent("GO", value = 1))
+        self.assertEqual(Second, type(self.machine.currentState()))
+        
+    def testDoubleBranchTransitions(self):
+        # Start us up
+        self.machine.start(FirstParent)
+        self.assertEqual(FirstParent, type(self.machine.currentState()))
+        
+        self.machine.injectEvent(self._makeEvent("GO", value = 1))
+        self.assertEqual(SecondParent, type(self.machine.currentState()))
+        
+        # Make sure I branched properly
+        self.assert_(self.machine.branches.has_key(First))
+        branch = self.machine.branches[First]
+        
+        cstate = branch.currentState()
+        self.assertEqual(First, type(cstate))
         
 # Testing of State Class
 class StateTestConfig(state.State):
