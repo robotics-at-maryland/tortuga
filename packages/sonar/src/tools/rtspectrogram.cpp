@@ -18,6 +18,7 @@
 #include "fixed/fixed.h"
 
 #include "drivers/bfin_spartan/include/dataset.h"
+#include "drivers/bfin_spartan/include/spartan.h"
 
 using namespace ram::sonar;
 
@@ -29,58 +30,85 @@ static const char channelMark[] = "0123";
 
 typedef adc<16> myadc;
 
+int grabSamples(struct dataset* data, myadc::SIGNED* samples, int i)
+{
+    for (int channel = 0 ; channel < NCHANNELS ; channel ++)
+    {
+        myadc::SIGNED result = getSample(data, channel, i);
+        if (result == -1)
+            return false;
+        else
+            samples[channel] = result;
+    }
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
+    bool do_loop = false;
     struct dataset* data;
     if (argc == 2)
+    {
         data = loadDataset(argv[1]);
-    else
+    } else {
         data = createDataset(0xA0000);
+        captureSamples(data);
+    }
     
     int myKBands[numRows];
     float freqs[numRows];
     myadc::QUADRUPLE_WIDE::SIGNED hist[NCHANNELS][numRows];
     bzero(*hist, sizeof(**hist) * NCHANNELS * numRows);
+    
+    int sampleCount = 0;
     for (int i = 0 ; i < numRows ; i ++)
     {
         myKBands[i] = zerothBand + i;
         freqs[i] = (float)myKBands[i] / DFT_FRAME * SAMPRATE / 1000;
     }
     
+    do
     {
         SparseSDFTSpectrum<myadc, N, NCHANNELS, numRows> spectrum(myKBands);
         myadc::SIGNED sample[NCHANNELS];
-        while (fread(sample, sizeof(myadc::SIGNED), NCHANNELS, stdin) == (size_t)NCHANNELS)
+        while (grabSamples(data, sample, sampleCount))
         {
+            ++sampleCount;
             //	Update spectrogram
             spectrum.update(sample);
             for (int channel = 0 ; channel < NCHANNELS ; channel ++)
                 for (int i = 0 ; i < numRows ; i ++)
                     hist[channel][i] += fixed::magL1(spectrum.getAmplitudeForBinIndex(i, channel));
         }
-    }
-    destroyDataset(data);
-    
-    myadc::QUADRUPLE_WIDE::SIGNED histMax = 1;
-    for (int i = 0 ; i < numRows ; i ++)
-    {
-        myadc::QUADRUPLE_WIDE::SIGNED histSum = 0;
-        for (int channel = 0 ; channel < NCHANNELS ; channel ++)
-            histSum += hist[channel][i];
-        if (histSum > histMax)
-            histMax = histSum;
-    }
-    for (int i = 0 ; i < numRows ; i ++)
-    {
-        std::cout << ' ' << std::setw(4) << std::setprecision(3) << freqs[i] << " |";
-        for (int channel = 0 ; channel < NCHANNELS ; channel ++)
+        
+        myadc::QUADRUPLE_WIDE::SIGNED histMax = 1;
+        for (int i = 0 ; i < numRows ; i ++)
         {
-            const int numMarks = (int) ((double)hist[channel][i] / histMax * numCols);
-            const char markChar = channelMark[channel];
-            for (int j = 0 ; j < numMarks; j ++)
-                std::cout << markChar;
+            myadc::QUADRUPLE_WIDE::SIGNED histSum = 0;
+            for (int channel = 0 ; channel < NCHANNELS ; channel ++)
+                histSum += hist[channel][i];
+            if (histSum > histMax)
+                histMax = histSum;
         }
-        std::cout << std::endl;
-    }
-	return 0;
+        for (int i = 0 ; i < numRows ; i ++)
+        {
+            std::cout << ' ' << std::setw(4) << std::setprecision(3) << freqs[i] << " |";
+            for (int channel = 0 ; channel < NCHANNELS ; channel ++)
+            {
+                const int numMarks = (int) ((double)hist[channel][i] / histMax * numCols);
+                const char markChar = channelMark[channel];
+                for (int j = 0 ; j < numMarks; j ++)
+                    std::cout << markChar;
+            }
+            std::cout << std::endl;
+        }
+        
+        if (do_loop)
+        {
+            captureSamples(data);
+            spectrum.purge();
+        }
+    } while (do_loop);
+    destroyDataset(data);
+    return 0;
 }
