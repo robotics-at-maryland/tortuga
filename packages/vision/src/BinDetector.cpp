@@ -29,7 +29,7 @@
 
 #include "math/include/Vector2.h"
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
+//static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
 
 
 
@@ -150,6 +150,8 @@ void BinDetector::init(core::ConfigNode config)
     
     m_whiteMaskMinimumPercent = config["whiteMaskMinimumPercent"].asInt(30);
     m_whiteMaskMinimumIntensity = config["whiteMaskMinimumIntensity"].asInt(190);
+
+    m_incrediblyWashedOutImages = (bool)(config["incrediblyWashedOut"].asInt(0));
     m_binID = 0;
     for (int i = 0; i < 4; i++)
     {
@@ -175,7 +177,7 @@ void BinDetector::processImage(Image* input, Image* out)
     IplImage* output = NULL;
     if (out != NULL)
     {
-        output = (IplImage*)(*out);
+        output = out->asIplImage();
     }
 //std::cout<<"startup"<<std::endl;
     
@@ -203,8 +205,45 @@ void BinDetector::processImage(Image* input, Image* out)
     
     // Image is now in percents, binFrame is now the base image.
     /*int totalWhiteCount = */white_mask(image,binFrame, whiteMaskedFrame, m_whiteMaskMinimumPercent, m_whiteMaskMinimumIntensity);
-    /*int totalBlackCount = */black_mask(image,binFrame, blackMaskedFrame, m_blackMaskMinimumPercent, m_blackMaskMaxTotalIntensity);
-    
+
+if (!m_incrediblyWashedOutImages)
+{
+    black_mask(image,
+               binFrame,
+               blackMaskedFrame,
+               m_blackMaskMinimumPercent,
+               m_blackMaskMaxTotalIntensity);
+}
+else
+{    
+    //unsigned char* imgData = (unsigned char*)(image->imageData);
+    unsigned char* blackMaskData = (unsigned char*)(blackMaskedFrame->imageData);
+    unsigned char* binFrameData = (unsigned char*)(binFrame->imageData);
+    for (int count = 0; count < binFrame->width * binFrame->height * 3; count+=3)
+    {
+	//unsigned char b2 = imgData[count];
+	//unsigned char g2 = imgData[count+1];
+	//unsigned char r2 = imgData[count+2];
+
+        unsigned char b = binFrameData[count];
+	//unsigned char g = binFrameData[count+1];
+        unsigned char r = binFrameData[count+2];
+
+        if (r < b/2 )//||(b2 >= m_blackMaskMinimumPercent && g2 >= m_blackMaskMinimumPercent && r2 >= m_blackMaskMinimumPercent && r + b + g < m_blackMaskMaxTotalIntensity))
+        {
+            blackMaskData[count]=255;
+            blackMaskData[count+1]=255;
+            blackMaskData[count+2]=255;
+        }
+        else
+        {
+            blackMaskData[count]=0;
+            blackMaskData[count+1]=0;
+            blackMaskData[count+2]=255;
+        }
+    }
+}
+
     if (output)
     {
     for (int count = 0; count < binFrame->width* binFrame->height * 3; count++)
@@ -218,12 +257,23 @@ void BinDetector::processImage(Image* input, Image* out)
     }
     if (output)
     {
-    for (int count = 0; count < binFrame->width* binFrame->height * 3; count++)
+    for (int count = 0; count < binFrame->width* binFrame->height * 3; count+=3)
     {
         if (blackMaskedFrame->imageData[count] != 0)
         {
 //            binFrame->imageData[count] = 0;
             output->imageData[count] = 0;
+            output->imageData[count+1] = 0;
+            output->imageData[count+2] = 0;
+        }
+        else if (blackMaskedFrame->imageData[count+2] != 0 && whiteMaskedFrame->imageData[count] == 0)//if r > b/2 and its not white...
+        {
+              binFrame->imageData[count] = 0;
+              binFrame->imageData[count+1] = 0;
+              binFrame->imageData[count+2] = 255;
+            output->imageData[count] = 0;
+            output->imageData[count+1] = 0;
+            output->imageData[count+2] = 255;
         }
     }
     }
@@ -233,13 +283,13 @@ void BinDetector::processImage(Image* input, Image* out)
 //    }
 
     // Find all the white blobs
-    blobDetector.setMinimumBlobSize(1000);
+    blobDetector.setMinimumBlobSize(2500);
     OpenCVImage whiteMaskWrapper(whiteMaskedFrame,false);
     blobDetector.processImage(&whiteMaskWrapper);
     BlobDetector::BlobList whiteBlobs = blobDetector.getBlobs();
     
     // Find all the black blobs
-    blobDetector.setMinimumBlobSize(500);
+    blobDetector.setMinimumBlobSize(1500);
     OpenCVImage blackMaskWrapper(blackMaskedFrame,false);
     blobDetector.processImage(&blackMaskWrapper);
     BlobDetector::BlobList blackBlobs = blobDetector.getBlobs();
@@ -840,6 +890,8 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
         maxSuitX = biggest.getMaxX();
         maxSuitY = biggest.getMaxY();
 
+        if (!m_incrediblyWashedOutImages)//A fancy way to say that at transdec, the suits don't get split.
+        {
         if (blobs.size() > 1)
         {
             if (minSuitX > secondBiggest.getMinX())
@@ -851,6 +903,7 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
             if (maxSuitY < secondBiggest.getMaxY())
                 maxSuitY = secondBiggest.getMaxY();
 
+        }
         }
     }
 

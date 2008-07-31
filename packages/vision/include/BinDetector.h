@@ -194,6 +194,7 @@ class RAM_EXPORT BinDetector : public Detector
     int m_blackMaskMaxTotalIntensity;        
     int m_whiteMaskMinimumPercent;
     int m_whiteMaskMinimumIntensity;
+    bool m_incrediblyWashedOutImages;
 };
 
 } // namespace vision

@@ -190,7 +190,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     drawBin(&input, 640/2, 480/4, 125, 90);
     
     detector.processImage(&input, &output);
-    CHECK(!receivedMultiBinAngleEvent);
+    CHECK(!receivedMultiBinAngleEvent); 
     
     drawBin(&input, 640/2, 480*3/4, 125, 90);
     detector.processImage(&input, &output);
