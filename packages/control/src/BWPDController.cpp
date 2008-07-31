@@ -80,6 +80,9 @@ BWPDController::BWPDController(core::ConfigNode config,
     m_controllerState(0)
 {
     init(config);
+
+    if (config["holdCurrentHeading"].asInt(0))
+        holdCurrentHeading();
 }
 
 BWPDController::~BWPDController()

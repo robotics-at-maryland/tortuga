@@ -89,6 +89,9 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
     //	   m_magYBias, m_magZBias);
     LOGGER.info("% Accel Mag Accel-Raw Mag-Raw Quat TimeStamp");
+
+    for (int i = 0; i < 5; ++i)
+        update(1/50.0);
 }
 
 IMU::~IMU()
