@@ -1277,7 +1277,8 @@ int guess_line(IplImage* img)
 }
 		
 
-int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict)
+int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict,
+		double r_over_g_min, double r_over_g_max, double b_over_r_max)
 {
 	strict=true;
 	unsigned char* data=(unsigned char*)img->imageData;
@@ -1288,23 +1289,23 @@ int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict)
 	int r=0;
 	int g=0;
 	int b=0;
-	float r_over_g_min;
-	float r_over_g_max;
-	float b_over_r_max;
+//	float r_over_g_min;
+//	float r_over_g_max;
+//	float b_over_r_max;
 	int acceptable=0;
 
-	if (!strict)
-	{
-		r_over_g_min=1.0f;
-		r_over_g_max=2.1f;
-		b_over_r_max=0.6f;
-	}
-	else//(strict)
-	{
-		r_over_g_min=1.0f;
-		r_over_g_max=2.0f;
-		b_over_r_max=0.4f;
-	}
+//	if (!strict)
+//	{
+//		r_over_g_min=1.0f;
+//		r_over_g_max=2.1f;
+//		b_over_r_max=0.6f;
+//	}
+//	else//(strict)
+//	{
+//		r_over_g_min=1.0f;
+//		r_over_g_max=2.0f;
+//		b_over_r_max=0.4f;
+//	}
 
 //Competition Values	
 //	if (!strict)

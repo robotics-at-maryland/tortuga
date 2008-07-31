@@ -46,7 +46,7 @@ int guess_line(IplImage* img);
  *  @param strict
  *      Whether or not to use a strict orange filtering
  */
-int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict);
+int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict, double rOverGMin, double rOverGMax, double bOverRMax);
 
 int angle_from_center(int argxs[], IplImage* img);
 void correct(IplImage* img);
