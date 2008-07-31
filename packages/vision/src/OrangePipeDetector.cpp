@@ -57,6 +57,10 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
     m_minBrightness = config["minBrightness"].asInt(100);
     m_erodeIterations = config["erodeIterations"].asInt(3);
+
+    m_rOverGMin = config["rOverGMin"].asDouble(1.0);
+    m_rOverGMax = config["rOverGMax"].asDouble(2.0);
+    m_bOverRMax = config["bOverRMax"].asDouble(0.4);
 }
 
 bool OrangePipeDetector::found()
@@ -127,7 +131,10 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
         // center line
 
         // Can see the pipe, find pixels with a strict filtering
-        int orange_count = mask_orange(image,true, m_minBrightness, true);
+        int orange_count = mask_orange(image,true, m_minBrightness, true,
+                                       m_rOverGMin, 
+                                       m_rOverGMax, 
+                                       m_bOverRMax);
         
         if (orange_count < 250)
             pipeFound = false;
@@ -135,8 +142,11 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     else
     {
         // Can't current see the pipe, find pixels with non-strict filtering
-        int orange_count = mask_orange(image,true, m_minBrightness, false);
-        if (orange_count > 1000)//this number is in pixels.
+        int orange_count = mask_orange(image,true, m_minBrightness, false,
+                                       m_rOverGMin, 
+                                       m_rOverGMax, 
+                                       m_bOverRMax);
+         if (orange_count > 1000)//this number is in pixels.
             pipeFound = true;
     }
     

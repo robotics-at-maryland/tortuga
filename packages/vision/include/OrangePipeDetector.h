@@ -61,6 +61,9 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
     Image* m_frame;
     Camera* m_cam;
 
+    double m_rOverGMin;
+    double m_rOverGMax;
+    double m_bOverRMax;
     bool m_found;
 
     /** Maximum distance for the pipe to be considred "centered" */
