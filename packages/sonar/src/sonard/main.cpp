@@ -69,25 +69,25 @@ int main(int argc, char* argv[])
     gettimeofday(&start_time, NULL);
             //cout<<"Now: "<<start_time.tv_sec<<" "<<start_time.tv_usec<<endl;
     
+    if (!((argc == nKBands + 1) || (argc == nKBands + 2)))
+    {
+        cerr << nKBands + 1 << " or " << nKBands + 2 << " input parameters are required." << endl;
+        return -1;
+    }
     int myKBands[nKBands];
     for (int i = 0 ; i < nKBands ; i ++)
-        myKBands[i] = kBands[i];
-    for (int argIndex = 1 ; argIndex < argc ; argIndex ++)
     {
-        if (strcmp(argv[argIndex], "--swap-bands") == 0)
-        {
-            cout << "Swapping bands" << endl;
-            int temp = myKBands[0];
-            myKBands[0] = myKBands[1];
-            myKBands[1] = temp;
-        } else {
-            cout<<"Using dataset \n"<<argv[argIndex]<<endl;
-            dataSet = loadDataset(argv[argIndex]);
-            do_loop=0;
-        }
+        myKBands[i] = fixed::round<int>(atof(argv[1 + i])*DFT_FRAME/SAMPRATE);
+        double freqEquiv = (double)myKBands[i] * SAMPRATE / DFT_FRAME;
+        std::cout << "Band " << i << " set to " << myKBands[i]
+            << " (" << freqEquiv << " kHz" << std::endl;
     }
-    if(dataSet == NULL)
+    if (argc == nKBands + 2)
     {
+        cout<<"Using dataset \n"<<argv[nKBands+1]<<endl;
+        dataSet = loadDataset(argv[nKBands+1]);
+        do_loop=0;
+    } else {
         dataSet=getDataset(dataSet, status);
         do_loop=1; //infinite loop, since I am running off the hydrophones
     }

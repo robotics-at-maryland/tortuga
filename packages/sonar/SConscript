@@ -73,7 +73,12 @@ envt.RAMProgram(target = 'sonard',
                 source = 'src/sonard/main.cpp',
                 int_deps = ['sonar'])
 
+envt.RAMProgram(target = 'rtspectrogram',
+                source = 'src/tools/rtspectrogram.cpp',
+                int_deps = ['sonar'])
+
 if not envt['bfin']:
+    envt.Append(CPPFLAGS = ['-O3'])
     envt.RAMProgram(target = 'spectrogram',
                     source = 'src/tools/spectrogram.cpp',
                     int_deps = ['sonar'],
