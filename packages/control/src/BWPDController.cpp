@@ -316,6 +316,37 @@ bool BWPDController::atDepth()
     return difference <= m_depthThreshold;
 }
 
+  /*
+used to load the current heading into desiredState
+desiredState->quaternion will be "level" in horizontal plane
+the vehicle should be upright when using this function, otherwise
+OGRE's interpretation of yaw and upright will be nonsensical
+   */
+  void BWPDController::holdCurrentHeading(){
+
+    //get current orientation
+    //math::Quaternion q(m_measuredState->quaternion);
+    math::Quaternion qCurrent(m_vehicle->getOrientation());
+
+    //find approximation of vehicle yaw based off orientation
+    math::Radian yaw = qCurrent.getYaw();
+
+    //compute "level" quaternion based off yaw value
+    math::Quaternion q(math::Radian(yaw),math::Vector3::UNIT_Z);
+
+    //save to desiredState
+    m_desiredState->quaternion[0] = q.x;
+    m_desiredState->quaternion[1] = q.y;
+    m_desiredState->quaternion[2] = q.z;
+    m_desiredState->quaternion[3] = q.w;
+
+
+    //we want to hold a desired position, so we'll want angular rate to be zero
+    m_desiredState->angularRate[0] = 0;
+    m_desiredState->angularRate[1] = 0;
+    m_desiredState->angularRate[2] = 0;
+  }
+
 void BWPDController::setBuoyantTorqueCorrection(double x, double y, double z)
 {
     math::Vector3 temp(x, y, z);

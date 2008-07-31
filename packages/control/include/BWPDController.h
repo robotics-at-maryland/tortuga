@@ -101,6 +101,9 @@ public:
     /** @copydoc IController::atDepth() */
     virtual bool atDepth();
 
+    /** loads current orientation into desired (fixes offset in roll and pitch)*/
+    virtual void holdCurrentHeading();
+
     virtual void setPriority(core::IUpdatable::Priority priority) {
         Updatable::setPriority(priority);
     }

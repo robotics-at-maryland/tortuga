@@ -319,6 +319,44 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     CHECK_EQUAL(orientation, actualOrientation);
 }
 
+TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
+{
+
+  /*
+    Test 1
+   */
+
+    // Set the current "measured" orientation
+    math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
+    vehicle->orientation = orientation;
+
+    // Tell the controller to hold current heading (ignoring roll and pitch)
+    controller.holdCurrentHeading();
+
+    // Create the expected orientation and make sure the desired orientation
+    // was set properly based on the vehicle current orientation
+    math::Quaternion expectedOrientation(math::Degree(15), 
+					 math::Vector3::UNIT_Z);
+
+    CHECK_EQUAL(expectedOrientation, controller.getDesiredOrientation());
+
+    /*
+      Test 2
+     */
+    
+    // set the current "measured" orientation
+    math::Quaternion orientation2(0.0028, 0.0028, 0.7071, 0.7071);
+    vehicle->orientation = orientation2;
+
+    // tell the controller to hold current heading
+    controller.holdCurrentHeading();
+    
+    // expected output
+    math::Quaternion expectedOrientation2(0, 0, 0.7071, 0.7071);
+
+    CHECK_CLOSE(expectedOrientation2, controller.getDesiredOrientation(),0.001);
+
+}
 
 TEST(BWPDControllerLogging)
 {
@@ -339,3 +377,8 @@ TEST(BWPDControllerLogging)
     CHECK_EQUAL(3u, appender->logEvents.size());
     CHECK(std::string("") !=  appender->logEvents[2].message);
 }
+
+/*
+TEST(holdOrientation){
+  
+}*/
