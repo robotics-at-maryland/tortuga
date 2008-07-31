@@ -322,8 +322,10 @@ desiredState->quaternion will be "level" in horizontal plane
 the vehicle should be upright when using this function, otherwise
 OGRE's interpretation of yaw and upright will be nonsensical
    */
-  void BWPDController::holdCurrentHeading(){
 
+void BWPDController::holdCurrentHeading()
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
     //get current orientation
     //math::Quaternion q(m_measuredState->quaternion);
     math::Quaternion qCurrent(m_vehicle->getOrientation());
@@ -345,7 +347,11 @@ OGRE's interpretation of yaw and upright will be nonsensical
     m_desiredState->angularRate[0] = 0;
     m_desiredState->angularRate[1] = 0;
     m_desiredState->angularRate[2] = 0;
-  }
+
+    math::OrientationEventPtr event(new math::OrientationEvent());
+    event->orientation = math::Quaternion(m_desiredState->quaternion);
+    publish(IController::DESIRED_ORIENTATION_UPDATE, event);
+}
 
 void BWPDController::setBuoyantTorqueCorrection(double x, double y, double z)
 {
