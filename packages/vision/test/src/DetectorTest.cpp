@@ -317,6 +317,7 @@ vision::DetectorPtr createDetector(std::string detectorType,
     }
     else
     {
+	std::cout << "---No Config File Specified!--- Using Default Values"<<std::endl;
         std::stringstream ss;
         ss << "{ 'type' : '" << detectorType << "'}";
         core::ConfigNode cfg(core::ConfigNode::fromString(ss.str()));
