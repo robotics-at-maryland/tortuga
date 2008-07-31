@@ -60,8 +60,6 @@ int main(int argc, char *argv[])
     
     int myKBands[numRows];
     float freqs[numRows];
-    myadc::QUADRUPLE_WIDE::SIGNED hist[NCHANNELS][numRows];
-    bzero(*hist, sizeof(**hist) * NCHANNELS * numRows);
     
     for (int i = 0 ; i < numRows ; i ++)
     {
@@ -72,6 +70,9 @@ int main(int argc, char *argv[])
     SparseSDFTSpectrum<myadc, N, NCHANNELS, numRows> spectrum(myKBands);
     do
     {
+        myadc::QUADRUPLE_WIDE::SIGNED hist[NCHANNELS][numRows];
+        bzero(*hist, sizeof(**hist) * NCHANNELS * numRows);
+        
         int sampleCount = 0;
         myadc::SIGNED sample[NCHANNELS];
         while ((do_loop || skip * sampleCount < datasetSize) && grabSamples(data, sample, skip * sampleCount))
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])
         if (do_loop)
         {
             captureSamples(data);
+            spectrum.purge();
         }
     } while (do_loop);
     destroyDataset(data);
