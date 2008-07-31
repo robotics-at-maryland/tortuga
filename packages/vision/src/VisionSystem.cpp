@@ -25,6 +25,7 @@
 
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
+#include "core/include/Logging.h"
 
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
@@ -32,6 +33,11 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
 namespace ram {
 namespace vision {
 
+std::string getVideoPath(std::string fileName)
+{
+    return (core::Logging::getLogDir() / fileName).string();
+}
+    
 VisionSystem::VisionSystem(core::ConfigNode config,
                            core::SubsystemList deps) :
     Subsystem(config["name"].asString("VisionSystem"), deps),
@@ -93,7 +99,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         m_forwardFileRecorder = new FileRecorder( //new FFMPEGRecorder(
             m_forwardCamera.get(),
             Recorder::MAX_RATE,
-            config["forwardFile"].asString(),
+            getVideoPath(config["forwardFile"].asString()),
             maxRecordRate);
     }
     if (config.exists("forwardPort"))
@@ -111,7 +117,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         m_downwardFileRecorder = new FileRecorder( //new FFMPEGRecorder(
             m_downwardCamera.get(),
             Recorder::MAX_RATE,
-            config["downwardFile"].asString(),
+            getVideoPath(config["downwardFile"].asString()),
             maxRecordRate);
 
     }
