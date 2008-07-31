@@ -7,13 +7,16 @@ Subsystems:
     VisionSystem:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
-        
-#       RedLightDetector:       
-#           intialMinPixels: 400
-#           foundMinPixelScale: 0.85
-#           lostMinPixelScale: 0.75
-#           # About 20% of the total pixels
-#           almostHitPixels: 61440.0
+
+        RedLightDetector:
+           initialMinPixels: 150
+           foundMinPixelScale: 0.85
+           lostMinPixelScale: 0.75
+           almostHitPercentage: 0.2
+           topRemovePercentage: 0.0
+           redPercentage: 38.0
+           redIntensity: 150
+           maxAspectRatio: 2.0
         BinDetector:
             centeredLimit: 0.2
         DuctDetector:
