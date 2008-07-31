@@ -22,11 +22,13 @@
 
 using namespace ram::sonar;
 
-static const int N = DFT_FRAME;
+static const int skip = 2;
+static const int N = DFT_FRAME / skip;
 static const int numRows = 23;
 static const int numCols = 70;
-static const int zerothBand = 20;
+static const int zerothBand = 10;
 static const char channelMark[] = "0123";
+static const int datasetSize = 0xA0000;
 
 typedef adc<16> myadc;
 
@@ -51,8 +53,9 @@ int main(int argc, char *argv[])
     {
         data = loadDataset(argv[1]);
     } else {
-        data = createDataset(0xA0000);
+        data = createDataset(datasetSize);
         captureSamples(data);
+        do_loop = true;
     }
     
     int myKBands[numRows];
@@ -60,18 +63,18 @@ int main(int argc, char *argv[])
     myadc::QUADRUPLE_WIDE::SIGNED hist[NCHANNELS][numRows];
     bzero(*hist, sizeof(**hist) * NCHANNELS * numRows);
     
-    int sampleCount = 0;
     for (int i = 0 ; i < numRows ; i ++)
     {
         myKBands[i] = zerothBand + i;
-        freqs[i] = (float)myKBands[i] / DFT_FRAME * SAMPRATE / 1000;
+        freqs[i] = (float)myKBands[i] / N * SAMPRATE / skip / 1000;
     }
     
+    SparseSDFTSpectrum<myadc, N, NCHANNELS, numRows> spectrum(myKBands);
     do
     {
-        SparseSDFTSpectrum<myadc, N, NCHANNELS, numRows> spectrum(myKBands);
+        int sampleCount = 0;
         myadc::SIGNED sample[NCHANNELS];
-        while (grabSamples(data, sample, sampleCount))
+        while ((do_loop || skip * sampleCount < datasetSize) && grabSamples(data, sample, skip * sampleCount))
         {
             ++sampleCount;
             //	Update spectrogram
@@ -106,7 +109,6 @@ int main(int argc, char *argv[])
         if (do_loop)
         {
             captureSamples(data);
-            spectrum.purge();
         }
     } while (do_loop);
     destroyDataset(data);
