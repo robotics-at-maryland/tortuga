@@ -29,8 +29,6 @@ typedef adc<16> myadc;
 
 int main(int argc, char *argv[])
 {
-	//long skip, begin, end;
-    
     int myKBands[numRows];
     float freqs[numRows];
     myadc::QUADRUPLE_WIDE::SIGNED hist[NCHANNELS][numRows];
@@ -67,7 +65,7 @@ int main(int argc, char *argv[])
         std::cout << ' ' << std::setw(4) << std::setprecision(3) << freqs[i] << " |";
         for (int channel = 0 ; channel < NCHANNELS ; channel ++)
         {
-            const int numMarks = (double)hist[channel][i] / histMax * numCols;
+            const int numMarks = (int) ((double)hist[channel][i] / histMax * numCols);
             const char markChar = channelMark[channel];
             for (int j = 0 ; j < numMarks; j ++)
                 std::cout << markChar;
