@@ -101,14 +101,19 @@ Subsystems:
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
+            # Gate sub task
             ram.ai.gate.Dive:
                 depth: 4 
+                speed: 0.33
             ram.ai.gate.Forward:
-                time: 20
+                time: 30
+                speed: 2
  
+            # Light/Bouy sub task
             ram.ai.light.Seek:
                 depthGain: 0.5
 
+            # Duct Sub task
             ram.ai.duct.SeekingToRange:
                 filterSize: 10
                 desiredRange: 0.5
@@ -119,6 +124,7 @@ Subsystems:
                 filterSize: 10
                 desiredRange: 0.5
 
+            # Bin Sub task
             ram.ai.bin.Dive:
                 depth: 7
             ram.ai.bin.Seeking:
@@ -156,9 +162,11 @@ Subsystems:
                 dSidewaysSpeedGain: 1.5
                 iSidewaysSpeedGain: 0.5
 
+            # Bin sub task
             ram.ai.pipe.Seeking:
                 speedGain: 8
 
+            # Sonar subtask
             ram.ai.sonar.CloseSeeking:
                 maxSidewaysSpeed: 1
                 sidewaysSpeedGain: 2
@@ -177,7 +185,7 @@ Subsystems:
                 maxSpeed: 1
                 speedGain: 2
 
-            
+            # Vision Safe subtask
             ram.ai.safe.Seeking:
                 sidewaysSpeedGain: 4
                 maxSidewaysSpeed: 2
@@ -206,15 +214,7 @@ Subsystems:
                 offset: -0.4
                 duration: 5
 
-            ram.ai.course.PingerDive:
-                depth: 1.5
-            ram.ai.course.SafeDive:
-                depth: 8
-
-            # Gate + Safe + Octagon Mission
-            ram.ai.sonarCourse.PingerDive:
-                depth: 1.5
-
+            # SONAR & Safe subtask
             ram.ai.sonarSafe.Settling:
                 maxSidewaysSpeed: 3
                 sidewaysSpeedGain: 3
@@ -242,6 +242,22 @@ Subsystems:
                 #depthOffset: 1.5
                 safeDepth: 10.5
                 depthOffset: 1
+
+            # Gate + Pipes + Bouy + Bins + VisSafe + Octagon Mission
+            ram.ai.course.PingerDive:
+                depth: 1.5
+            ram.ai.course.SafeDive:
+                depth: 8
+
+            # Gate + Safe + Octagon Mission
+            ram.ai.sonarCourse.PingerDive:
+                depth: 1.5
+
+            # Gate + Buoy + Safe + Octagon Mission
+            ram.ai.buoySonarCourse.Light:
+                timeout: 40
+            ram.ai.buoySonarCourse.PingerDive:
+                depth: 1.5
 
     # Object that creates the vehicle interface
     Vehicle:
