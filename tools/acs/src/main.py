@@ -25,6 +25,9 @@ import ext.core
 import ext.math
 import ext.control
 
+import ram.ai.gate
+import ram.ai.sonarCourse
+
 try:
     import ctypes
     ctypes.cdll.LoadLibrary("libram_network.so")
@@ -47,10 +50,30 @@ def main(argv = None):
     (options, args) = parser.parse_args(argv)
 
     # Create our C++ app
-    app = ext.core.Application(options.configPath)      
+    app = ext.core.Application(options.configPath)
+
+    # Hackish way to grab state machine then start the vehicle
+    stateMachine = app.getSubsystem("StateMachine")
+    stateMachine.start(ram.ai.sonarCourse.Gate)
+
     app.mainLoop()
     
+    # Built a list of subsystems
+    #subsystems = []
+    #names = app.getSubsystemNames()
+    #for i in xrange(0, len(names)):
+    #    subsystems.append(app.getSubsystem(names[i]))
 
+    # Filter that list based on what is backgrounded or not
+    #runningSubsystems = [s for s in subsystems if not s.backgrounded()]
+
+    #print "Running subsystems",runningSubsystems
+    #print "Subsystems",type(subsystems)
+    #for subsystem in subsystems:
+    #    print subsystem.unbackground(True)
+    #del subsystems
+    #del runningSubsystems
+    #del app
 
 if __name__ == "__main__":
     try:
