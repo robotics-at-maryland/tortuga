@@ -37,14 +37,13 @@ class Settling(TranslationSeeking):
         
         TranslationSeeking.enter(self)
     
-# TODO: Merge me back into ram.ai.safe module
 class Dive(TranslationSeeking):
     """Diving to the pre-grab depth"""
 
     @staticmethod
     def transitions():
         return TranslationSeeking.transitions(Dive,
-            { ram.motion.basic.Motion.FINISHED : Grabbing })
+            { ram.motion.basic.Motion.FINISHED : PreGrabSettling })
         
     def enter(self):
         safeDepth = self._config.get('safeDepth', 22)
@@ -54,6 +53,22 @@ class Dive(TranslationSeeking):
         targetDepth = safeDepth - offset
         diveMotion = motion.basic.RateChangeDepth(targetDepth, diveRate)
         self.motionManager.setMotion(diveMotion)
+        
+        TranslationSeeking.enter(self)
+        
+class PreGrabSettling(TranslationSeeking):
+    SETTLED = core.declareEventType('SETTLED')
+    
+    @staticmethod
+    def transitions():
+        return TranslationSeeking.transitions(PreGrabSettling,
+            { PreGrabSettling.SETTLED : Grabbing })
+    
+    def enter(self):
+        duration = self._config.get('duration', 10)
+        self.timer = self.timerManager.newTimer(PreGrabSettling.SETTLED, 
+                                                duration)
+        self.timer.start()
         
         TranslationSeeking.enter(self)
         

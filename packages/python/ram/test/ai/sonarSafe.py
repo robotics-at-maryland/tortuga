@@ -81,8 +81,27 @@ class TestDive(GainsTestCase, aisupport.AITestCase):
         
     def testFinished(self):
         self.injectEvent(ram.motion.basic.Motion.FINISHED)
+        self.assertCurrentState(sonarSafe.PreGrabSettling)
+
+class TestSettling(GainsTestCase, aisupport.AITestCase):
+    def setUp(self):
+        GainsTestCase.setUp(self, 'ram.ai.sonarSafe.PreGrabSettling')
+        self.machine.start(sonarSafe.PreGrabSettling)
+
+    def testStart(self):
+        # Make sure we are doing the normal pinger state stuff
+        self.assertCurrentMotion(motion.pipe.Hover)
+        
+    def testStartTimer(self):
+        self.machine.stop()
+        self.machine.start(sonarSafe.PreGrabSettling)
+
+        self.releaseTimer(sonarSafe.PreGrabSettling.SETTLED)
         self.assertCurrentState(sonarSafe.Grabbing)
 
+    def testSettle(self):
+        self.injectEvent(sonarSafe.PreGrabSettling.SETTLED)
+        self.assertCurrentState(sonarSafe.Grabbing)
  
 class TestGrabbing(aisupport.AITestCase):
     def setUp(self):
