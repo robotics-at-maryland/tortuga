@@ -219,7 +219,7 @@ Subsystems:
                 forwardSpeed: 3
                 speedGain: 2
             ram.ai.sonarSafe.Dive:
-                safeDepth: 10
+                safeDepth: 10.5
                 depthOffset: 1
                 diveRate: 0.2
                 maxSidewaysSpeed: 3
@@ -227,7 +227,7 @@ Subsystems:
                 forwardSpeed: 3
                 speedGain: 2
             ram.ai.sonarSafe.Grabbing:
-                safeDepth: 10 
+                safeDepth: 10.5
                 depthOffset: 1
 
     # Object that creates the vehicle interface
