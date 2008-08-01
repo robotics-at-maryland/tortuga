@@ -502,7 +502,7 @@ double hough(IplImage* img, int* linex, int* liney)
 		cvLine( color_dst, pt1, pt2, CV_RGB(255,0,0), 3, CV_AA, 0 );
 	}
 #else
-	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 3, CV_PI/180, 50, 70, 10 );
 	CvPoint start,end;
 	
 	start.x=start.y=end.x=end.y=0;
