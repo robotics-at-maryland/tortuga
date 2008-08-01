@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
         
         int sampleCount = 0;
         myadc::SIGNED sample[NCHANNELS];
-        while ((do_loop || skip * sampleCount < datasetSize) && grabSamples(data, sample, skip * sampleCount))
+        while ((do_loop || skip * sampleCount < datasetSize - 1) && grabSamples(data, sample, skip * sampleCount))
         {
             ++sampleCount;
             //	Update spectrogram

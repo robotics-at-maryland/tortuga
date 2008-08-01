@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
         myKBands[i] = fixed::round<int>(atof(argv[1 + i])*DFT_FRAME/SAMPRATE);
         double freqEquiv = (double)myKBands[i] * SAMPRATE / DFT_FRAME;
         std::cout << "Band " << i << " set to " << myKBands[i]
-            << " (" << freqEquiv << " kHz" << std::endl;
+            << " (" << freqEquiv << " kHz)" << std::endl;
     }
     if (argc == nKBands + 2)
     {
