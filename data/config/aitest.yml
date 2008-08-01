@@ -106,7 +106,7 @@ Subsystems:
                 depth: 4 
                 speed: 0.33
             ram.ai.gate.Forward:
-                time: 30
+                time: 105
                 speed: 2
  
             # Light/Bouy sub task
@@ -255,7 +255,7 @@ Subsystems:
 
             # Gate + Buoy + Safe + Octagon Mission
             ram.ai.buoySonarCourse.Light:
-                timeout: 40
+                timeout: 1
             ram.ai.buoySonarCourse.PingerDive:
                 depth: 1.5
 
