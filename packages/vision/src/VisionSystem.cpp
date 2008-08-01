@@ -235,7 +235,7 @@ void VisionSystem::redLightDetectorOff()
 
 void VisionSystem::setPriority(core::IUpdatable::Priority priority)
 {
-    assert(m_testing && "Can't background when not testing");
+//    assert(m_testing && "Can't background when not testing");
     m_forwardCamera->setPriority(priority);
     m_downwardCamera->setPriority(priority);
 
