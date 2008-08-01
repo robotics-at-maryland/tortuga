@@ -69,11 +69,11 @@ Subsystems:
 
         # Recording Settings
         maxStreamRate: 1 # Hz
-        maxRecordRate: 10 # Hz
-        #forwardFile: forward.avi
+        maxRecordRate: 5 # Hz
+        forwardFile: forward.avi
         downwardFile: downward.avi
-        forwardPort: 50000
-        downwardPort: 50001
+        #forwardPort: 50000
+        #downwardPort: 50001
     
     EventHub:
         type: EventHub
