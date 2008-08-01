@@ -98,6 +98,8 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     
 SensorBoard::~SensorBoard()
 {
+    Updatable::unbackground(true);
+
     boost::mutex::scoped_lock lock(m_deviceMutex);
     if (m_deviceFD >= 0)
     {
