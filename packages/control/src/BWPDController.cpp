@@ -522,7 +522,7 @@ void BWPDController::init(core::ConfigNode config)
 	/* Translationcal Gains */
 
     m_controllerState->depthControlType = config["depthControlType"].asInt(1);
-    m_controllerState->dtMin = config["dtMin"].asDouble(.1);
+    m_controllerState->dtMin = config["dtMin"].asDouble(0.001);
     m_controllerState->dtMax = config["dtMax"].asDouble(2.0);
 
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
