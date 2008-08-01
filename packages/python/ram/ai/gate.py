@@ -39,7 +39,7 @@ class Wait(state.State):
 class Dive(state.State):
     @staticmethod
     def transitions():
-        return {motion.basic.Motion.FINISHED : Forward}
+        return { motion.basic.Motion.FINISHED : Forward }
     
     def enter(self):
         # Go to 5 feet in 5 increments
