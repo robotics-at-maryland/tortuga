@@ -53,10 +53,10 @@ class Light(state.State):
     def transitions():
         return { light.LIGHT_HIT : PingerDive,
                  Light.TIMEOUT : PingerDive,
-                 'GO' : state.Branch(light.Searching) }
+                 'GO' : state.Branch(light.Dive) }
     
     def enter(self):
-        self.stateMachine.start(state.Branch(light.Searching))
+        self.stateMachine.start(state.Branch(light.Dive))
         
         # Create out timeout
         timeout = self._config.get('timeout', 40)
@@ -64,7 +64,7 @@ class Light(state.State):
         self.timer.start()
     
     def exit(self):
-        self.stateMachine.stopBranch(light.Searching)
+        self.stateMachine.stopBranch(light.Dive)
         self.visionSystem.redLightDetectorOff()
 
 class PingerDive(course.PingerDive):

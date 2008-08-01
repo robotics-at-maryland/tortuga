@@ -18,6 +18,20 @@ import ram.motion as motion
 import ram.motion.search
 
 import ram.test.ai.support as support
+
+class TestDive(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.machine.start(light.Dive)
+    
+    def testStart(self):
+        """Make sure we are diving with no detector on"""
+        self.assertFalse(self.visionSystem.redLightDetector)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+    def testFinish(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(light.Searching)
         
 class TestSearching(support.AITestCase):
     def setUp(self):

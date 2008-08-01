@@ -30,6 +30,21 @@ import ram.motion.seek
 
 LIGHT_HIT = core.declareEventType('LIGHT_HIT')
 
+class Dive(state.State):
+    @staticmethod
+    def transitions():
+        return { motion.basic.Motion.FINISHED : Searching }
+    
+    def enter(self):
+        # Go to 5 feet in 5 increments
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('depth', 9.5),
+            speed = self._config.get('speed', 1.0/3.0))
+        self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+
 class Searching(state.State):
     @staticmethod
     def transitions():

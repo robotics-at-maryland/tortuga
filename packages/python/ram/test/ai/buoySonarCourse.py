@@ -64,8 +64,8 @@ class TestLight(support.AITestCase):
         """
         self.assertCurrentState(buoySonarCourse.Light)
         
-        self.assertCurrentBranches([light.Searching])
-        self.assert_(self.visionSystem.redLightDetector)
+        self.assertCurrentBranches([light.Dive])
+        #self.assert_(self.visionSystem.redLightDetector)
         
     def testLightHit(self):
         """
@@ -89,12 +89,12 @@ class TestLight(support.AITestCase):
         
         # Release timer
         self.assertEqual(
-            60, MockTimer.LOG[buoySonarCourse.Light.TIMEOUT]._sleepTime)
+            40, MockTimer.LOG[buoySonarCourse.Light.TIMEOUT]._sleepTime)
         self.releaseTimer(buoySonarCourse.Light.TIMEOUT)
         
         # Test that the timeout worked properly
         self.assertCurrentState(buoySonarCourse.PingerDive)
-        self.assertFalse(self.machine.branches.has_key(light.Searching))
+        self.assertFalse(self.machine.branches.has_key(light.Dive))
         self.assertFalse(self.visionSystem.redLightDetector)
           
 class TestPingerDiver(support.AITestCase):
