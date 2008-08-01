@@ -100,7 +100,7 @@ class TestSafe(support.AITestCase):
         Make sure that when we start we are doing the right thing
         """
         self.assertCurrentState(sonarCourse.Safe)
-        self.assertCurrentBranches([sonarSafe.Dive])
+        self.assertCurrentBranches([sonarSafe.Settling])
 
     def testComplete(self):
         """
@@ -110,7 +110,7 @@ class TestSafe(support.AITestCase):
         self.assertCurrentState(sonarCourse.Octagaon)
         
         # Make sure the safe grabbing branch is gone
-        self.assertFalse(self.machine.branches.has_key(sonarSafe.Dive))
+        self.assertFalse(self.machine.branches.has_key(sonarSafe.Settling))
         
     def testTimeout(self):
         """

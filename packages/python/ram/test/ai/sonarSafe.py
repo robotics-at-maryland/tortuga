@@ -20,9 +20,35 @@ import ram.motion.pipe
 
 import ram.test.ai.support as aisupport
 
-class TestSettling(aisupport.AITestCase):
+class GainsTestCase(object):
+    def setUp(self, stateName):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    stateName : {
+                        'maxSpeed' : 10,
+                        'maxSidewaysSpeed'  : 9,
+                        'speedGain' : 8,
+                        'sidewaysSpeedGain' : 7
+                    },
+                }
+            }
+        }
+        aisupport.AITestCase.setUp(self, cfg = cfg)
+        
+    def getCurrentMotion(self):
+        return self.motionManager.currentMotion        
+    def testGains(self):
+        # Test config options & gains
+        m = self.getCurrentMotion()
+        self.assertEqual(10, m._maxSpeed)
+        self.assertEqual(9, m._maxSidewaysSpeed)
+        self.assertEqual(8, m._speedGain)
+        self.assertEqual(7, m._sidewaysSpeedGain)
+        
+class TestSettling(GainsTestCase, aisupport.AITestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        GainsTestCase.setUp(self, 'ram.ai.sonarSafe.Settling')
         self.machine.start(sonarSafe.Settling)
 
     def testStart(self):
@@ -40,9 +66,12 @@ class TestSettling(aisupport.AITestCase):
         self.injectEvent(sonarSafe.Settling.SETTLED)
         self.assertCurrentState(sonarSafe.Dive)
 
-class TestDive(aisupport.AITestCase):
+class TestDive(GainsTestCase, aisupport.AITestCase):
+    def getCurrentMotion(self):
+        return self.motionManager.currentMotion[0]
+    
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        GainsTestCase.setUp(self, 'ram.ai.sonarSafe.Dive')
         self.machine.start(sonarSafe.Dive)
 
     def testStart(self):
@@ -57,9 +86,31 @@ class TestDive(aisupport.AITestCase):
  
 class TestGrabbing(aisupport.AITestCase):
     def setUp(self):
-        aisupport.AITestCase.setUp(self)
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.sonarSafe.Grabbing' : {
+                        'safeDepth' : 8,
+                        'depthOffset' : 2,
+                        'diveRate' : 0.8,
+                    },
+                }
+            }
+        }
+        aisupport.AITestCase.setUp(self, cfg = cfg)
         self.vehicle.depth = 5
         self.machine.start(sonarSafe.Grabbing)
+
+    def testConfig(self):
+        m = self.motionManager.currentMotion
+        self.assertEqual(8 + 2, m._desiredDepth)
+        self.assertAlmostEqual(0.8, m._speed, 5)
+        
+    #def testDive(self):
+    #    for i in xrange(0, 300):
+    #        self.releaseTimer(motion.basic.RateChangeDepth.NEXT_DEPTH)
+    #        self.qeventHub.publishEvents()
+    #    self.assertAlmostEqual(10, self.controller.depth)
         
     def testStart(self):
         """Make sure the motion and the timer are setup properly"""

@@ -289,7 +289,7 @@ class RateChangeDepth(Motion):
 
         Motion.__init__(self, _type = Motion.DEPTH)
 
-        self._desiredHeading = desiredDepth
+        self._desiredDepth = desiredDepth
         self._speed = float(speed)
         self._rate = float(rate)
         self._interval = 1 / float(rate)
@@ -301,11 +301,11 @@ class RateChangeDepth(Motion):
         currentDepth = self._vehicle.getDepth()
         self._controller.setDepth(currentDepth)
         
-        absDepthDifference = pmath.fabs(currentDepth - self._desiredHeading)
+        absDepthDifference = pmath.fabs(currentDepth - self._desiredDepth)
 
         self._stepCount = absDepthDifference / (self._speed / self._rate)
         if self._stepCount != 0:
-            self._stepSize = (self._desiredHeading - currentDepth) / self._stepCount
+            self._stepSize = (self._desiredDepth - currentDepth) / self._stepCount
         else:
             self._stepSize = 0.0001
         self._stepCount = int(self._stepCount)
@@ -319,7 +319,7 @@ class RateChangeDepth(Motion):
 
     def _onTimer(self, event):
         setDepth = self._controller.getDepth()
-        depthDiff = pmath.fabs(setDepth - self._desiredHeading)
+        depthDiff = pmath.fabs(setDepth - self._desiredDepth)
         
         if (self._stepCount > 0) and (depthDiff > 0.0001):
             self._controller.setDepth(self._controller.getDepth() + \

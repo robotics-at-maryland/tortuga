@@ -77,10 +77,10 @@ class Safe(course.Safe):
     def transitions():
         return { safe.COMPLETE : Octagaon,
                  Safe.TIMEOUT : Octagaon,
-                 'GO' : state.Branch(sonarSafe.Dive) }
+                 'GO' : state.Branch(sonarSafe.Settling) }
     
     def enter(self):
-        self.stateMachine.start(state.Branch(sonarSafe.Dive))
+        self.stateMachine.start(state.Branch(sonarSafe.Settling))
         
         # Create out timeout
         # TODO: base the timeout off an offset from how much time we have left
@@ -91,7 +91,7 @@ class Safe(course.Safe):
         self.timer.start()
     
     def exit(self):
-        self.stateMachine.stopBranch(sonarSafe.Dive)
+        self.stateMachine.stopBranch(sonarSafe.Settling)
         self.visionSystem.downwardSafeDetectorOff()
 
 class Octagaon(course.Octagaon):
