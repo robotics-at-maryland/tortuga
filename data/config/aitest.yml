@@ -176,14 +176,6 @@ Subsystems:
                 maxSpeed: 1
                 speedGain: 1
 
-            ram.ai.sonarSafe.Dive:
-                safeDepth: 10
-                depthOffset: 1
-                diveRate: 0.3
-            ram.ai.sonarSafe.Grabbing:
-                safeDepth: 10 
-                depthOffset: 1
-
             ram.ai.safe.Seeking:
                 sidewaysSpeedGain: 4
                 maxSidewaysSpeed: 2
@@ -217,10 +209,26 @@ Subsystems:
             ram.ai.course.SafeDive:
                 depth: 5
 
+            # Gate + Safe + Octagon Mission
             ram.ai.sonarCourse.PingerDive:
                 depth: 1.5
-            ram.ai.sonarCourse.SafeDive:
-                depth: 5
+
+            ram.ai.sonarSafe.Settling:
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 2
+                forwardSpeed: 3
+                speedGain: 2
+            ram.ai.sonarSafe.Dive:
+                safeDepth: 10
+                depthOffset: 1
+                diveRate: 0.2
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 2
+                forwardSpeed: 3
+                speedGain: 2
+            ram.ai.sonarSafe.Grabbing:
+                safeDepth: 10 
+                depthOffset: 1
 
     # Object that creates the vehicle interface
     Vehicle:
