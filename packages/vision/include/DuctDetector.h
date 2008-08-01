@@ -59,6 +59,8 @@ private:
     Image* m_workingPercents;
     Image* m_blackMasked;
     Image* m_yellowMasked;
+    IplImage* m_src;
+    IplImage* m_dst;    
 
     double m_x, m_y, m_rotation, n_x, n_y, m_range;
 

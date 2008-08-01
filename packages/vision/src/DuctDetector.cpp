@@ -152,6 +152,8 @@ DuctDetector::~DuctDetector()
     delete m_workingPercents;
     delete m_blackMasked;
     delete m_yellowMasked;
+    cvReleaseImage(&m_src);
+    cvReleaseImage(&m_dst);
 }
 
 void DuctDetector::mergeBlobs(std::vector<BlobDetector::Blob> *allBlobs,
@@ -243,7 +245,7 @@ void DuctDetector::mergeBlobs(std::vector<BlobDetector::Blob> *allBlobs,
     }
     delete[] blobUnionizer;
     delete[] unionBlobs;
-    delete[] blobCounts;    
+    delete[] blobCounts;
 } 
 
 void DuctDetector::init(core::ConfigNode config)
@@ -273,6 +275,9 @@ void DuctDetector::init(core::ConfigNode config)
       config["minXOverYToUpGrowThresh"].asDouble(1.5);
     m_uppedGrowThreshX = config["uppedGrowThreshX"].asDouble(.5);
     m_uppedGrowThreshY = config["uppedGrowThreshY"].asDouble(.05);
+
+    m_src = cvCreateImage(cvSize(640,480), 8, 1);
+    m_dst = cvCreateImage(cvSize(640,480), 8, 1);
 }
     
 void DuctDetector::processImage(Image* input, Image* output)
@@ -287,11 +292,34 @@ void DuctDetector::processImage(Image* input, Image* output)
     
     m_fullDuct = empty;
     m_working->copyFrom(input);
+    if (m_working->asIplImage()->width != m_src->width 
+        || m_working->asIplImage()->height != m_src->height)
+    {
+        cvReleaseImage(&m_src);
+        cvReleaseImage(&m_dst);
+
+        m_src = cvCreateImage(cvGetSize(m_working->asIplImage()),8,1);
+        m_dst = cvCreateImage(cvGetSize(m_working->asIplImage()),8,1);
+    }
+    if (output)
+    {
+        output->copyFrom(m_working);
+    }
     m_workingPercents->copyFrom(m_working);
     m_blackMasked->copyFrom(m_working);
     m_yellowMasked->copyFrom(m_working);
     to_ratios(m_workingPercents->asIplImage());
     m_possiblyAligned = false;
+    
+    cvCvtColor(m_working->asIplImage(),m_src,CV_BGR2GRAY);
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    CvSeq* lines = 0;
+    cvCanny(m_src, m_dst, 50, 200, 3 );
+    
+    lines = cvHoughLines2(m_dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 70, 30 );
+    CvPoint start,end;
+	
+    start.x=start.y=end.x=end.y=0;
     
     // Grab data pointers
     unsigned char* outputData = 0;
@@ -323,7 +351,7 @@ void DuctDetector::processImage(Image* input, Image* output)
             }
             else
             {
-                yellowData[count]=yellowData[count+1]=yellowData[count+2] = 0;            
+                yellowData[count]=yellowData[count+1]=yellowData[count+2] = 0;
             }
             count+=3;
         }
@@ -346,7 +374,6 @@ void DuctDetector::processImage(Image* input, Image* output)
     //for debug
     if (output)
     {
-        output->copyFrom(m_working);
         outputData = output->getData();
         unsigned char* blackData = m_blackMasked->getData();
 
@@ -380,6 +407,20 @@ void DuctDetector::processImage(Image* input, Image* output)
             }
         }
     }
+
+if (output)
+{
+    for(int i = 0; i < lines->total; i++ )
+    {
+        CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+        start.x += line[0].x;
+        start.y += line[0].y;
+        end.x += line[1].x;
+        end.y += line[1].y;
+        cvLine(output->asIplImage(), line[0], line[1], CV_RGB(255,0,0), 3, CV_AA, 0 );
+    }
+}   
+
     
     blobDetector.setMinimumBlobSize(500);
     blobDetector.processImage(m_yellowMasked);
