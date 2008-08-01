@@ -84,32 +84,10 @@ class TestPinger(support.AITestCase):
         """
         
         self.injectEvent(sonar.COMPLETE, sendToBranches = True)
-        self.assertCurrentState(sonarCourse.SafeDive)
-        
-        # Make sure the pinger seeking branch is gone
-        self.assertFalse(self.machine.branches.has_key(sonar.Searching))
-
-class TestSafeDive(support.AITestCase):
-    def setUp(self):
-        support.AITestCase.setUp(self)
-        self.vehicle.depth = 0
-        self.machine.start(sonarCourse.SafeDive)
-    
-    def testStart(self):
-        """Make sure we start diving"""
-        self.assertCurrentMotion(
-            (motion.pipe.Hover, motion.basic.RateChangeDepth,
-             motion.pipe.Hover))
-        
-        self.assertCurrentState(sonarCourse.SafeDive)
-        self.assertCurrentBranches([sonar.Hovering])
-                
-    def testDiveFinished(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
         self.assertCurrentState(sonarCourse.Safe)
         
         # Make sure the pinger seeking branch is gone
-        self.assertFalse(self.machine.branches.has_key(sonar.Hovering))
+        self.assertFalse(self.machine.branches.has_key(sonar.Searching))
         
 class TestSafe(support.AITestCase):
     def setUp(self):

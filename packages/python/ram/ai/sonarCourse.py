@@ -62,18 +62,8 @@ class Pinger(course.Pinger):
     """
     @staticmethod
     def transitions():
-        return {  sonar.COMPLETE : SafeDive,
+        return {  sonar.COMPLETE : Safe,
                  'GO' : state.Branch(sonar.Searching) }
-
-class SafeDive(course.SafeDive):
-    """
-    Dive to a depth at which we can activate the safe vision system.  The sonar
-    system is active during this time.
-    """
-    @staticmethod
-    def transitions():
-        return { motion.basic.Motion.FINISHED : Safe,
-                 'GO' : state.Branch(sonar.Hovering) } 
 
 class Safe(course.Safe):
     """
@@ -103,14 +93,6 @@ class Safe(course.Safe):
     def exit(self):
         self.stateMachine.stopBranch(sonarSafe.Dive)
         self.visionSystem.downwardSafeDetectorOff()
-
-class RecoverFromSafe(state.State):
-    """
-    Gets us back in the octagon if the safe fails for some reason.
-    
-    Dives to good pinger depth, and activates the sonar
-    """
-    pass
 
 class Octagaon(course.Octagaon):
     """

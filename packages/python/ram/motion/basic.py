@@ -216,7 +216,9 @@ class Motion(object):
         """
         Raises, motion finished event.
         """
-        self.publish(Motion.FINISHED, core.Event())
+        event = core.Event()
+        event.motion = self
+        self.publish(Motion.FINISHED, event)
         
     def stop(self):
         pass

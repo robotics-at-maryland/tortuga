@@ -17,18 +17,33 @@ import ram.motion.safe
 #import ram.motion.search
 import ram.motion.common
 
-from ram.ai.sonar import TranslationSeeking
+from ram.ai.sonar import PingerState
 import ram.ai.safe as safe
 
 COMPLETE = core.declareEventType('COMPLETE')
         
+class Settling(PingerState):
+    SETTLED = core.declareEventType('SETTLED')
+    
+    @staticmethod
+    def transitions():
+        return PingerState.transitions(Settling,
+            { Settling.SETTLED : Dive })
+    
+    def enter(self):
+        duration = self._config.get('duration', 20)
+        self.timer = self.timerManager.newTimer(Settling.SETTLED, duration)
+        self.timer.start()
+        
+        PingerState.enter(self)
+    
 # TODO: Merge me back into ram.ai.safe module
-class Dive(TranslationSeeking):
+class Dive(PingerState):
     """Diving to the pre-grab depth"""
 
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(Dive,
+        return PingerState.transitions(Dive,
             { ram.motion.basic.Motion.FINISHED : Grabbing })
         
     def enter(self):
@@ -40,7 +55,7 @@ class Dive(TranslationSeeking):
         diveMotion = motion.basic.RateChangeDepth(targetDepth, diveRate)
         self.motionManager.setMotion(diveMotion)
         
-        TranslationSeeking.enter(self)
+        PingerState.enter(self)
         
 class Grabbing(safe.Grabbing):
     @staticmethod

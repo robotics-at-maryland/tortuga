@@ -20,6 +20,25 @@ import ram.motion.pipe
 
 import ram.test.ai.support as aisupport
 
+class TestSettling(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(sonarSafe.Settling)
+
+    def testStart(self):
+        # Make sure we are doing the normal pinger state stuff
+        self.assertCurrentMotion(motion.pipe.Hover)
+        
+    def testStartTimer(self):
+        self.machine.stop()
+        self.machine.start(sonarSafe.Settling)
+
+        self.releaseTimer(sonarSafe.Settling.SETTLED)
+        self.assertCurrentState(sonarSafe.Dive)
+
+    def testSettle(self):
+        self.injectEvent(sonarSafe.Settling.SETTLED)
+        self.assertCurrentState(sonarSafe.Dive)
 
 class TestDive(aisupport.AITestCase):
     def setUp(self):
