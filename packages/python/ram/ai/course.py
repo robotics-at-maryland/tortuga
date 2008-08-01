@@ -173,7 +173,7 @@ class PingerDive(state.State):
 
     def enter(self):
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 3),
+            desiredDepth = self._config.get('depth', 2),
             speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)
