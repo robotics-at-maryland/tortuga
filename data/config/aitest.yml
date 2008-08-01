@@ -7,6 +7,7 @@ Subsystems:
     VisionSystem:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
+        priority: "low"
 
         RedLightDetector:
             initialMinPixels: 150
@@ -71,7 +72,7 @@ Subsystems:
         maxRecordRate: 10 # Hz
         #forwardFile: forward.avi
         downwardFile: downward.avi
-        #forwardPort: 50000
+        forwardPort: 50000
         downwardPort: 50001
     
     EventHub:
@@ -104,7 +105,7 @@ Subsystems:
                 depth: 4 
             ram.ai.gate.Forward:
                 time: 20
-
+ 
             ram.ai.light.Seek:
                 depthGain: 0.5
 
