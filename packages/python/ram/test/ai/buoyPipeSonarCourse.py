@@ -141,7 +141,7 @@ class TestPipe(PipeTestCase):
         # Release timer
         self.assertEqual(
             20, MockTimer.LOG[buoyPipeSonarCourse.Pipe.TIMEOUT]._sleepTime)
-        self.releaseTimer(buoyipeSonarCourse.Pipe.TIMEOUT)
+        self.releaseTimer(buoyPipeSonarCourse.Pipe.TIMEOUT)
         
         # Test that the timeout worked properly
         self.assertCurrentState(buoyPipeSonarCourse.Light)
