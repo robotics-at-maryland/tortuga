@@ -8,13 +8,25 @@ Subsystems:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
         priority: "low"
-
+        
+        AdaptiveThresher:
+            foobared: true
+            initialMinPixels: 150
+            foundMinPixelScale: 0.85
+            lostMinPixelScale: 0.75
+            almostHitPercentage: 0.2
+            topRemovePercentage: 0.33
+            bottomRemovePercentage: 0.33
+            redPercentage: 38.0
+            redIntensity: 150
+            maxAspectRatio: 2.0
         RedLightDetector:
             initialMinPixels: 150
             foundMinPixelScale: 0.85
             lostMinPixelScale: 0.75
             almostHitPercentage: 0.2
-            topRemovePercentage: 0.0
+            topRemovePercentage: 0.33
+            bottomRemovePercentage: 0.3
             redPercentage: 38.0
             redIntensity: 150
             maxAspectRatio: 2.0
