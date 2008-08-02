@@ -110,6 +110,10 @@ Subsystems:
                 speed: 2
  
             # Light/Bouy sub task
+            ram.ai.light.Searching:
+                sweepAngle: 0
+                speed: 2
+
             ram.ai.light.Seek:
                 depthGain: 0.5
 

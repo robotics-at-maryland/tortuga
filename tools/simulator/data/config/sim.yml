@@ -15,10 +15,10 @@ Subsystems:
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
-        maxRecordRate: 10 # Hz
+        #maxRecordRate: 10 # Hz
         #forwardFile: forward.avi
         #downwardFile: downward.avi
-        forwardPort: 50000
+        #forwardPort: 50000
         #downwardPort: 57002
 
 #       RedLightDetector:       
@@ -105,12 +105,12 @@ Subsystems:
                 speedGain: 3
             ram.ai.bin.Examine:
                 targetSuits: ['Diamond', 'Heart']
-                
-            ram.ai.sonarSafe.Dive:
-                safeDepth: 15
-            ram.ai.sonarSafe.Grabbing:
-                safeDepth: 15
-                
+            
+            ram.ai.sonarCourse.PingerDive:
+                depth: 1.5
+            ram.ai.sonarCourse.SafeDive:
+                depth: 5
+    
             ram.ai.safe.Dive:
                 safeDepth: 15
             ram.ai.safe.Grabbing:
@@ -121,12 +121,75 @@ Subsystems:
                 offset: -0.35
             ram.ai.safe.Settling:
                 offset: -0.35
-                
+
+            # Gate sub task
+            ram.ai.gate.Dive:
+                depth: 4 
+                speed: 0.33
+            ram.ai.gate.Forward:
+                time: 30
+                speed: 2
+
+            # Light/Bouy sub task
+            ram.ai.light.Searching:
+                sweepAngle: 0
+                speed: 2
+            ram.ai.light.Seek:
+                depthGain: 0.5
+
+            # Sonar subtask
+            ram.ai.sonar.CloseSeeking:
+                maxSidewaysSpeed: 1
+                sidewaysSpeedGain: 2
+                maxSpeed: 1
+                speedGain: 2
+                closeZ: 0.98
             ram.ai.sonar.FarSeeking:
-                speedGain: 4
+                maxSidewaysSpeed: 2.5
+                sidewaysSpeedGain: 6
+                maxSpeed: 2.5
+                speedGain: 6
+                midRangeZ: 0.8
+            ram.ai.sonar.Hovering:
+                maxSidewaysSpeed: 1
+                sidewaysSpeedGain: 2
+                maxSpeed: 1
+                speedGain: 2
+
+            # SONAR & Safe subtask
+            ram.ai.sonarSafe.Settling:
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 3
                 maxSpeed: 3
-                sidewaysSpeedGain: 4
-                maxSidewaysSpeed: 4
+                speedGain: 3
+            ram.ai.sonarSafe.Dive:
+                #Hilton Pool
+                #safeDepth: 6.5
+                #depthOffset: 1
+                safeDepth: 10.5
+                depthOffset: 1
+                diveRate: 0.2
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 3
+                maxSpeed: 3
+                speedGain: 3
+            ram.ai.sonarSafe.PreGrabSettling:
+                maxSidewaysSpeed: 2
+                sidewaysSpeedGain: 2
+                maxSpeed: 2
+                speedGain: 2
+            ram.ai.sonarSafe.Grabbing:
+                # Hilton Pool
+                #safeDepth: 6.5
+                #depthOffset: 1.5
+                safeDepth: 10.5
+                depthOffset: 1
+
+            # Gate + Buoy + Safe + Octagon Mission
+            ram.ai.buoySonarCourse.Light:
+                timeout: 40
+            ram.ai.buoySonarCourse.PingerDive:
+                depth: 1.5
                 
 #    RemoteController:
 #        type: RemoteController
@@ -138,6 +201,7 @@ Subsystems:
         
         depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
+        holdCurrentHeading: 1
         #update_interval: 10
         ##################################
         ##GAINS SHOULD NEVER BE NEGATIVE##
@@ -244,7 +308,6 @@ Subsystems:
         #parameters for depth LQG controller with integrator
 
         desiredSpeed: 0
-        desiredDepth: 2
         desiredQuaternion: [0, 0, 0, 1]
 
 #    RemoteController:
@@ -271,8 +334,8 @@ Subsystems:
             #Main: objectives/pinger.sml
             #Main: objectives/safe.sml
             #Main: transdec.sml
-            #Main: nxtest.sml
-            Main: safePing.sml
+            Main: nxtest.sml
+            #Main: safePing.sml
             #Main: shortCourse.sml
         
         Graphics:
