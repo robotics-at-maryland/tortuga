@@ -271,7 +271,7 @@ Subsystems:
 
             # Gate + Buoy + Safe + Octagon Mission
             ram.ai.buoySonarCourse.Light:
-                timeout: 1
+                timeout: 40
             ram.ai.buoySonarCourse.PingerDive:
                 depth: 1.5
 
