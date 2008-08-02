@@ -178,10 +178,6 @@ Subsystems:
                 dSidewaysSpeedGain: 1.5
                 iSidewaysSpeedGain: 0.5
 
-            # Bin sub task
-            ram.ai.pipe.Seeking:
-                speedGain: 8
-
             # Sonar subtask
             ram.ai.sonar.CloseSeeking:
                 maxSidewaysSpeed: 1
@@ -273,6 +269,16 @@ Subsystems:
             ram.ai.buoySonarCourse.Light:
                 timeout: 40
             ram.ai.buoySonarCourse.PingerDive:
+                depth: 1.5
+
+            # Gate + Pipe + Buoy + Safe + Octagon Mission
+            ram.ai.buoyPipeSonarCourse.Gate:
+                pipeDelay: 30
+            ram.ai.buoyPipeSonarCourse.Pipe:
+                timeout: 20
+            ram.ai.buoyPipeSonarCourse.Light:
+                timeout: 40
+            ram.ai.buoyPipeSonarCourse.PingerDive:
                 depth: 1.5
 
     # Object that creates the vehicle interface

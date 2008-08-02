@@ -90,8 +90,8 @@ class Searching(state.State):
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
             legTime = 5,
-            sweepAngle = 20,
-            speed = self._config.get('forwardSpeed', 3))
+            sweepAngle = 0,
+            speed = self._config.get('forwardSpeed', 2))
 
         self.motionManager.setMotion(zigZag)
 

@@ -134,6 +134,9 @@ class TestPipe(PipeTestCase):
         """
         Make sure that the timeout works properly
         """
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['gateOrientation'] = expected
+        
         # Restart with a working timer
         self.machine.stop()
         self.machine.start(buoyPipeSonarCourse.Pipe)
@@ -145,8 +148,12 @@ class TestPipe(PipeTestCase):
         
         # Test that the timeout worked properly
         self.assertCurrentState(buoyPipeSonarCourse.Light)
+        
+        #self.qeventHub.publishEvents()
+        #self.assertCurrentState(buoyPipeSonarCourse.Light)
         self.assertFalse(self.machine.branches.has_key(pipe.Dive))
         self.assertFalse(self.visionSystem.pipeLineDetector)
+        self.assertEqual(expected, self.controller.desiredOrientation)
         
 class TestLight(support.AITestCase):
     def setUp(self):

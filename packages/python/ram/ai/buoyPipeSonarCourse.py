@@ -71,18 +71,24 @@ class Pipe(state.State):
     """
     Find and hover over the second pipe in the course
     """
-    TIMEOUT = core.declareEventType('TIMEOUT')
+    TIMEOUT = core.declareEventType('TIMEOUT_')
     MOVE_ON = core.declareEventType('MOVE_ON')
     
     @staticmethod
     def transitions():
         return { vision.EventType.PIPE_LOST : Pipe,
+                 Pipe.TIMEOUT : Pipe,
                  pipe.Centering.SETTLED : Light,
                  Pipe.MOVE_ON : Light,
-                 Pipe.TIMEOUT : Light,
                 'GO' : state.Branch(pipe.Dive) }
     
     def PIPE_LOST(self, event):
+        self._moveOn()
+        
+    def TIMEOUT_(self, event):
+        self._moveOn()
+        
+    def _moveOn(self):
         # Go back to the gates orientation
         self.controller.setDesiredOrientation(self.ai.data['gateOrientation'])
         
