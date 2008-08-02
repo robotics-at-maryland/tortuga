@@ -118,7 +118,7 @@ Subsystems:
                 depth: 4 
                 speed: 0.33
             ram.ai.gate.Forward:
-                time: 105
+                time: 40
                 speed: 2
  
             # Light/Bouy sub task
