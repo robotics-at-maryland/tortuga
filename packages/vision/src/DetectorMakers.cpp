@@ -22,6 +22,7 @@
 #include "vision/include/DuctDetector.h"
 #include "vision/include/DownwardDuctDetector.h"
 #include "vision/include/SafeDetector.h"
+#include "vision/include/AdaptiveThresher.h"
 
 namespace ram {
 namespace vision {
@@ -52,6 +53,9 @@ registerDownwardDuctDetector("DownwardDuctDetector");
 
 static DetectorMakerTemplate<SafeDetector>
 registerSafeDetector("SafeDetector");
+
+static DetectorMakerTemplate<AdaptiveThresher>
+registerAdaptiveThresherDetector("AdaptiveThresher");
     
 } // namespace vision
 } // namespace ram

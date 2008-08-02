@@ -240,6 +240,28 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
     CHECK(false == detectorTopRemoved.found);
 }
 
+TEST_FIXTURE(RedLightDetectorFixture, RemoveBottom)
+{
+    // Blue Image with red circle in upper center
+    makeColor(&input, 0, 0, 255);
+    drawRedCircle(&input, 640/2, 435);
+
+    // Check with a non top removed detector
+    detector.processImage(&input);
+    double expectedX = 0  * 640.0/480.0;
+    double expectedY = -0.808;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found);
+
+    // Create a detector which remove the top of the window
+    vision::RedLightDetector detectorBottomRemoved(
+        core::ConfigNode::fromString("{ 'bottomRemovePercentage' : 0.25 }"));
+
+    vision::OpenCVImage out(480, 640);
+    detectorBottomRemoved.processImage(&input, &out);
+    CHECK(false == detectorBottomRemoved.found);
+}
 TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
 {
     // Make sure we don't say a rectangle is a bouy

@@ -53,6 +53,7 @@ void RedLightDetector::init(core::ConfigNode config)
     m_lostMinPixelScale = config["lostMinPixelScale"].asDouble(0.75);
     m_almostHitPercentage = config["almostHitPercentage"].asDouble(0.2);
     m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
+    m_bottomRemovePercentage = config["bottomRemovePercentage"].asDouble(0);
     m_redPercentage = config["redPercentage"].asDouble(40);
     m_redIntensity = config["redIntensity"].asInt(200);
     m_maxAspectRatio = config["maxAspectRatio"].asDouble(2);
@@ -134,13 +135,22 @@ void RedLightDetector::processImage(Image* input, Image* output)
     cvCopyImage(input->asIplImage(), image);
     cvCopyImage(image, flashFrame);
     
-    // Remove top chunck if desired
+    // Remove top chunk if desired
     if (m_topRemovePercentage != 0)
     {
         int linesToRemove = (int)(m_topRemovePercentage * image->height);
         size_t bytesToBlack = linesToRemove * image->width * 3;
         memset(image->imageData, 0, bytesToBlack);
         memset(flashFrame->imageData, 0, bytesToBlack);
+    }
+
+    if (m_bottomRemovePercentage != 0)
+    {
+//        printf("Removing \n");
+        int linesToRemove = (int)(m_bottomRemovePercentage * image->height);
+        size_t bytesToBlack = linesToRemove * image->width * 3;
+        memset(&(image->imageData[image->width * image->height * 3 - bytesToBlack]), 0, bytesToBlack);
+        memset(&(flashFrame->imageData[flashFrame->width * flashFrame->height * 3 - bytesToBlack]), 0, bytesToBlack);
     }
 
     // Process Image
