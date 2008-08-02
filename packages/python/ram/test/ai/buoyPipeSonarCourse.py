@@ -16,6 +16,7 @@ import unittest
 # TODO: Clean up these imports
 import ext.math as math
 import ext.vision as vision
+import ext.core as core
 
 import ram.ai.course as course
 import ram.ai.gate as gate
@@ -35,8 +36,8 @@ import ram.test.ai.support as support
 from ram.test.motion.support import MockTimer
 
 class PipeTestCase(support.AITestCase):
-    def setUp(self, testState = pipe.Searching):
-        support.AITestCase.setUp(self)
+    def setUp(self, testState = pipe.Searching, cfg = None):
+        support.AITestCase.setUp(self, cfg = cfg)
         self.testState = testState
     
     def checkStart(self, currentState):
@@ -88,7 +89,8 @@ class TestGate(support.AITestCase):
         self.assert_(self.visionSystem.pipeLineDetectorOn)
         
     def testFoundPipe(self):
-        self.injectEvent(vision.EventType.PIPE_FOUND)
+        self.injectEvent(vision.EventType.PIPE_FOUND, vision.PipeEvent, 0, 
+                         0, 0)
         self.assertCurrentState(buoyPipeSonarCourse.Pipe)
         
         # Make sure the gate.Dive branch is gone
@@ -104,7 +106,18 @@ class TestGate(support.AITestCase):
      
 class TestPipe(PipeTestCase):
     def setUp(self):
-        PipeTestCase.setUp(self, pipe.Dive)
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.buoyPipeSonarCourse.Pipe' : {
+                        'aquireTimeout' : 37,
+                        'doTimeout' : 27,
+                    },
+                }
+            }
+        }
+        
+        PipeTestCase.setUp(self, pipe.Dive, cfg = cfg)
         self.machine.start(buoyPipeSonarCourse.Pipe)
         
     def testStart(self):
@@ -130,6 +143,31 @@ class TestPipe(PipeTestCase):
         self.assertCurrentState(buoyPipeSonarCourse.Light)
         self.assertEqual(expected, self.controller.desiredOrientation)
         
+    def testPipeFound(self):
+        # Grab the current running timer
+        timer = MockTimer.LOG[buoyPipeSonarCourse.Pipe.TIMEOUT]
+        
+        # Inject found event and make sure it cancels timer, starts new one
+        self.injectEvent(vision.EventType.PIPE_FOUND)
+        self.assert_(timer.stopped)
+        self.assert_(MockTimer.LOG.has_key(buoyPipeSonarCourse.Pipe.DO_TIMEOUT))
+        
+        # Make sure repeated events don't create new timers
+        timer = MockTimer.LOG[buoyPipeSonarCourse.Pipe.DO_TIMEOUT]
+        self.injectEvent(vision.EventType.PIPE_FOUND)
+        timer2 = MockTimer.LOG[buoyPipeSonarCourse.Pipe.DO_TIMEOUT]
+        self.assertEqual(timer, timer2)
+
+        # Check the timer config
+        self.assertEqual(27, timer._sleepTime)
+        
+        # Release the time and make sure we move on
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['gateOrientation'] = expected
+        self.releaseTimer(buoyPipeSonarCourse.Pipe.DO_TIMEOUT)
+        self.assertCurrentState(buoyPipeSonarCourse.Light)
+        self.assertEqual(expected, self.controller.desiredOrientation)
+        
     def testTimeout(self):
         """
         Make sure that the timeout works properly
@@ -143,7 +181,7 @@ class TestPipe(PipeTestCase):
         
         # Release timer
         self.assertEqual(
-            20, MockTimer.LOG[buoyPipeSonarCourse.Pipe.TIMEOUT]._sleepTime)
+            37, MockTimer.LOG[buoyPipeSonarCourse.Pipe.TIMEOUT]._sleepTime)
         self.releaseTimer(buoyPipeSonarCourse.Pipe.TIMEOUT)
         
         # Test that the timeout worked properly

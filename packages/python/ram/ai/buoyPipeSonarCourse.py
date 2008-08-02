@@ -72,20 +72,35 @@ class Pipe(state.State):
     Find and hover over the second pipe in the course
     """
     TIMEOUT = core.declareEventType('TIMEOUT_')
+    DO_TIMEOUT = core.declareEventType('DO_TIMEOUT_')
     MOVE_ON = core.declareEventType('MOVE_ON')
     
     @staticmethod
     def transitions():
         return { vision.EventType.PIPE_LOST : Pipe,
+                 vision.EventType.PIPE_FOUND : Pipe,
                  Pipe.TIMEOUT : Pipe,
+                 Pipe.DO_TIMEOUT : Pipe,
                  pipe.Centering.SETTLED : Light,
                  Pipe.MOVE_ON : Light,
                 'GO' : state.Branch(pipe.Dive) }
-    
     def PIPE_LOST(self, event):
         self._moveOn()
         
+    def PIPE_FOUND(self, event):
+        self.timer.stop()
+        
+        if self.doTimer is None:
+            timeout = self._config.get('doTimeout', 20)
+            self.doTimer = self.timerManager.newTimer(Pipe.DO_TIMEOUT, 
+                                                      timeout)
+            self.doTimer.start()
+        
+        
     def TIMEOUT_(self, event):
+        self._moveOn()
+        
+    def DO_TIMEOUT_(self, event):
         self._moveOn()
         
     def _moveOn(self):
@@ -99,9 +114,12 @@ class Pipe(state.State):
         # Branch off state machine for finding the pipe
         self.stateMachine.start(state.Branch(pipe.Dive))
         
-        timeout = self._config.get('timeout', 20)
+        timeout = self._config.get('aquireTimeout', 20)
         self.timer = self.timerManager.newTimer(Pipe.TIMEOUT, timeout)
         self.timer.start()
+        
+        # Set default value do timer, so we only create it once
+        self.doTimer = None
         
     def exit(self):
         self.stateMachine.stopBranch(pipe.Dive)

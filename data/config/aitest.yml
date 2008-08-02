@@ -275,7 +275,8 @@ Subsystems:
             ram.ai.buoyPipeSonarCourse.Gate:
                 pipeDelay: 30
             ram.ai.buoyPipeSonarCourse.Pipe:
-                timeout: 20
+                aquireTimeout: 20
+                doTimeout: 20
             ram.ai.buoyPipeSonarCourse.Light:
                 timeout: 40
             ram.ai.buoyPipeSonarCourse.PingerDive:

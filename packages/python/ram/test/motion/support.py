@@ -101,6 +101,7 @@ class MockTimer(timer.Timer):
         
         self.sleepTime = sleepTime
         self.started = False
+        self.stopped = False
         self.repeat = repeat
         
         # Log the timer so we can reference it in our tests
@@ -111,6 +112,10 @@ class MockTimer(timer.Timer):
         
     def start(self):
         self.started = True
+        
+    def stop(self):
+        MockTimer.ORIG.stop(self)
+        self.stopped = True
         
     def finish(self):
         """
