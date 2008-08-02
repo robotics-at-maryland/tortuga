@@ -55,10 +55,13 @@ class Searching(state.State):
         self.visionSystem.redLightDetectorOn()
 
         # Create zig zag search to 
+        self._legTime = self._config.get('legTime', 15)
+        self._sweepAngle = self._config.get('sweepAngle', 60)
+        self._speed = self._config.get('speed', 2.5)
         zigZag = motion.search.ForwardZigZag(
-            legTime = 15,
-            sweepAngle = 60,
-            speed = 2.5)
+            legTime = self._legTime,
+            sweepAngle = self._sweepAngle,
+            speed = self._speed)
         self.motionManager.setMotion(zigZag)
 
     def exit(self):

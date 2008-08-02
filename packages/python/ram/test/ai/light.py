@@ -35,14 +35,30 @@ class TestDive(support.AITestCase):
         
 class TestSearching(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
-        self.machine.start(light.Searching)        
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.light.Searching' : {
+                        'legTime' : 10,
+                        'sweepAngle'  : 9,
+                        'speed' : 8,
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(light.Searching)
     
     def testStart(self):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.redLightDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
                 
+    def testConfig(self):
+        self.assertEqual(10, self.machine.currentState()._legTime)
+        self.assertEqual(9, self.machine.currentState()._sweepAngle)
+        self.assertEqual(8, self.machine.currentState()._speed)
+            
     def testLightFound(self):
         # Now change states
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 
