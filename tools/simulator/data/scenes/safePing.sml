@@ -29,7 +29,7 @@ Scene:
     Objects:        
         pinger:
             type: [sim.sonar.IPinger, sim.sonar.Pinger]
-            position: [-15, 3, -1]
+            position: [-15, 3, -4]
         safe:
             type: [sim.vision.ISafe, sim.vision.Safe]
             position: [-15, 3, -5]
