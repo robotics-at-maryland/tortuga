@@ -195,7 +195,18 @@ class TestPipe(PipeTestCase):
         
 class TestLight(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.buoyPipeSonarCourse.Light' : {
+                        'timeout' : 97,
+                        'doTimeout' : 108,
+                    },
+                }
+            }
+        }
+        
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(buoyPipeSonarCourse.Light)
         
     def testStart(self):
@@ -229,13 +240,35 @@ class TestLight(support.AITestCase):
         
         # Release timer
         self.assertEqual(
-            40, MockTimer.LOG[buoyPipeSonarCourse.Light.TIMEOUT]._sleepTime)
+            97, MockTimer.LOG[buoyPipeSonarCourse.Light.TIMEOUT]._sleepTime)
         self.releaseTimer(buoyPipeSonarCourse.Light.TIMEOUT)
         
         # Test that the timeout worked properly
         self.assertCurrentState(buoyPipeSonarCourse.PingerDive)
         self.assertFalse(self.machine.branches.has_key(light.Dive))
         self.assertFalse(self.visionSystem.redLightDetector)
+        
+    def testLightFound(self):
+        # Grab the current running timer
+        timer = MockTimer.LOG[buoyPipeSonarCourse.Light.TIMEOUT]
+        
+        # Inject found event and make sure it cancels timer, starts new one
+        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        self.assert_(timer.stopped)
+        self.assert_(MockTimer.LOG.has_key(buoyPipeSonarCourse.Light.DO_TIMEOUT))
+        
+        # Make sure repeated events don't create new timers
+        timer = MockTimer.LOG[buoyPipeSonarCourse.Light.DO_TIMEOUT]
+        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        timer2 = MockTimer.LOG[buoyPipeSonarCourse.Light.DO_TIMEOUT]
+        self.assertEqual(timer, timer2)
+
+        # Check the timer config
+        self.assertEqual(108, timer._sleepTime)
+        
+        # Release the time and make sure we move on
+        self.releaseTimer(buoyPipeSonarCourse.Light.DO_TIMEOUT)
+        self.assertCurrentState(buoyPipeSonarCourse.PingerDive)
           
 class TestPingerDiver(support.AITestCase):
     def setUp(self):

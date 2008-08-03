@@ -88,6 +88,7 @@ class Pipe(state.State):
         self._moveOn()
         
     def PIPE_FOUND(self, event):
+        # Stop old
         self.timer.stop()
         
         if self.doTimer is None:
@@ -127,12 +128,25 @@ class Pipe(state.State):
         
 class Light(state.State):
     TIMEOUT = core.declareEventType('TIMEOUT')
+    DO_TIMEOUT = core.declareEventType('DO_TIMEOUT_')
     
     @staticmethod
     def transitions():
-        return { light.LIGHT_HIT : PingerDive,
+        return { vision.EventType.LIGHT_FOUND : Light,
+                 light.LIGHT_HIT : PingerDive,
                  Light.TIMEOUT : PingerDive,
+                 Light.DO_TIMEOUT : PingerDive,
                  'GO' : state.Branch(light.Dive) }
+    
+    def LIGHT_FOUND(self, event):
+        # Stop old
+        self.timer.stop()
+        
+        if self.doTimer is None:
+            timeout = self._config.get('doTimeout', 1)
+            self.doTimer = self.timerManager.newTimer(Light.DO_TIMEOUT, 
+                                                      timeout)
+            self.doTimer.start()
     
     def enter(self):
         self.stateMachine.start(state.Branch(light.Dive))
@@ -141,6 +155,9 @@ class Light(state.State):
         timeout = self._config.get('timeout', 40)
         self.timer = self.timerManager.newTimer(Light.TIMEOUT, timeout)
         self.timer.start()
+        
+        # Set time to none
+        self.doTimer = None
     
     def exit(self):
         self.stateMachine.stopBranch(light.Dive)
