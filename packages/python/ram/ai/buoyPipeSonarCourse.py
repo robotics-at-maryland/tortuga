@@ -143,7 +143,7 @@ class Light(state.State):
         self.timer.stop()
         
         if self.doTimer is None:
-            timeout = self._config.get('doTimeout', 1)
+            timeout = self._config.get('doTimeout', 25)
             self.doTimer = self.timerManager.newTimer(Light.DO_TIMEOUT, 
                                                       timeout)
             self.doTimer.start()
