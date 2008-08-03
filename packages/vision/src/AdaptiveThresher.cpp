@@ -26,7 +26,7 @@ namespace ram {
 namespace vision {
 
 AdaptiveThresher::AdaptiveThresher(core::ConfigNode config,
-                 core::EventHubPtr eventHub) : Detector(eventHub), m_working(640,480), m_lightDetector(config,eventHub)
+                 core::EventHubPtr eventHub) : Detector(eventHub), m_working(640,480)//, m_lightDetector(config,eventHub)
 {
     pixelSearchRange = 2;
     setUnionTable = (int*)malloc(640*480*sizeof(int));
@@ -37,6 +37,7 @@ AdaptiveThresher::AdaptiveThresher(core::ConfigNode config,
     curWidth = 640;
     curHeight = 480;
     distThreshSquared = 50;
+//    cannied = cvCreateImage(CvSize(640,480), 8, 1);
 }
 
 AdaptiveThresher::~AdaptiveThresher()
@@ -49,6 +50,7 @@ void AdaptiveThresher::processImage(Image* in, Image* out)
     m_working.copyFrom(out);
     segmentImage(in,&m_working);
 //    m_lightDetector.processImage(&m_working, out);
+    findCircle();
     out->copyFrom(&m_working);
 }
 
@@ -267,6 +269,31 @@ void AdaptiveThresher::segmentImage(Image* in, Image* out)
             count += 3;
         }
     }
+}
+
+void AdaptiveThresher::findCircle()
+{
+    IplImage* img = cvCreateImage(cvSize(m_working.getWidth(), m_working.getHeight()), 8, 1);
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    unsigned char * data = (unsigned char *)m_working.getData();
+    unsigned char * data2 = (unsigned char *)img->imageData;
+    int len = m_working.getWidth() * m_working.getHeight() * 3;
+    
+    int count = 0;
+    for (int i = 2; i < len ; i+=3)
+    {
+        data2[count] = data[i];
+        count++;
+    }
+    CvSeq* circles = cvHoughCircles(img, storage, CV_HOUGH_GRADIENT, 2, 75, 200, 100);
+    
+    for (int i = 0; i < circles->total; i++)
+    {
+        float* p = (float*) cvGetSeqElem(circles,i);
+        cvCircle(m_working, cvPoint(cvRound(p[0]), cvRound(p[1])),p[2], CV_RGB(255,0,0), 3, 8, 0);
+    }
+
+    cvReleaseImage(&img);
 }
 
 }//vision

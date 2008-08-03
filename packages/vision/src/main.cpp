@@ -462,7 +462,7 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	//this returns an angle, or -10 (HOUGH_ERROR) on error
 double hough(IplImage* img, int* linex, int* liney)
 {
-	IplImage* color_dst =img;//cvLoadImage("DSC00099.jpg", 0 );
+	IplImage* color_dst = img;//cvLoadImage("DSC00099.jpg", 0 );
 	IplImage* src = cvCreateImage(cvGetSize(img), 8, 1);
 	cvCvtColor(img,src,CV_BGR2GRAY);
 	
@@ -558,8 +558,8 @@ double hough(IplImage* img, int* linex, int* liney)
 		
 		cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
 		cvReleaseImage(&src);
-        cvReleaseImage(&dst);
-        cvReleaseMemStorage(&storage);
+                cvReleaseImage(&dst);
+                cvReleaseMemStorage(&storage);
 
 		return angle;
 	}

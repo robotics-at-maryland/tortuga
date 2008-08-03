@@ -35,8 +35,11 @@ class RAM_EXPORT AdaptiveThresher : public Detector
         int distThreshSquared;
         void processImage(Image* in, Image* out);
         void segmentImage(Image* in, Image* out);
+        void findCircle();
         OpenCVImage m_working;
-        RedLightDetector m_lightDetector;
+//        RedLightDetector m_lightDetector;
+        IplImage* cannied;
+        IplImage* houghCircled;        
 };
 
 
