@@ -43,10 +43,12 @@ class Gate(course.Gate):
                  'GO' : state.Branch(gate.Dive) }
         
     def enter(self):
-        course.Gate.enter(self)
-        
-        self.visionSystem.pipeLineDetectorOff()
-        
+        self.ai.data['foundPipeEarly'] = False
+	self.exited = False
+		            
+	# Branch of state machine for gate
+	self.stateMachine.start(state.Branch(gate.Dive))
+
 
 class PingerDive(course.PingerDive):
     """
