@@ -45,7 +45,7 @@ class PipeFollowingState(state.State):
     def enter(self):
         self._pipe = ram.motion.pipe.Pipe(0,0,0)
 
-        speedGain = self._config.get('speedGain', 5)
+        speedGain = self._config.get('speedGain', 7)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
         yawGain = self._config.get('yawGain', 1)
         maxSpeed = self._config.get('forwardSpeed', 5)
@@ -70,7 +70,7 @@ class Dive(state.State):
     def enter(self):
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 7),
+            desiredDepth = self._config.get('depth', 6),
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         

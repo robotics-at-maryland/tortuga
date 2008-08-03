@@ -186,10 +186,10 @@ Subsystems:
                 speedGain: 2
                 closeZ: 0.98
             ram.ai.sonar.FarSeeking:
-                maxSidewaysSpeed: 2.5
-                sidewaysSpeedGain: 6
-                maxSpeed: 2.5
-                speedGain: 6
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 7
+                maxSpeed: 3
+                speedGain: 7
                 midRangeZ: 0.8
             ram.ai.sonar.Hovering:
                 maxSidewaysSpeed: 1
@@ -253,7 +253,7 @@ Subsystems:
                 #safeDepth: 6.5
                 #depthOffset: 1.5
                 safeDepth: 10.5
-                depthOffset: 1
+                depthOffset: 1.5
 
             # Gate + Pipes + Bouy + Bins + VisSafe + Octagon Mission
             ram.ai.course.PingerDive:
