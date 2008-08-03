@@ -239,9 +239,9 @@ void AdaptiveThresher::segmentImage(Image* in, Image* out)
         for (int x = 0; x < width; x++)
         {
             
-            data2[count] = colorsToIndicesB[setUnionTable[indexIntoUnionTable]];
-            data2[count+1] = colorsToIndicesG[setUnionTable[indexIntoUnionTable]];
-            data2[count+2] = colorsToIndicesR[setUnionTable[indexIntoUnionTable]];
+            data2[count] = (unsigned char)colorsToIndicesB[setUnionTable[indexIntoUnionTable]];
+            data2[count+1] = (unsigned char)colorsToIndicesG[setUnionTable[indexIntoUnionTable]];
+            data2[count+2] = (unsigned char)colorsToIndicesR[setUnionTable[indexIntoUnionTable]];
 //            if (colorsToIndicesB[setUnionTable[indexIntoUnionTable]] >= backgroundB)
 //	        data2[count] = colorsToIndicesB[setUnionTable[indexIntoUnionTable]] - backgroundB;
 //            else
@@ -290,7 +290,8 @@ void AdaptiveThresher::findCircle()
     for (int i = 0; i < circles->total; i++)
     {
         float* p = (float*) cvGetSeqElem(circles,i);
-        cvCircle(m_working, cvPoint(cvRound(p[0]), cvRound(p[1])),p[2], CV_RGB(255,0,0), 3, 8, 0);
+        cvCircle(m_working, cvPoint(cvRound(p[0]), cvRound(p[1])),(int)p[2],
+                 CV_RGB(255,0,0), 3, 8, 0);
     }
 
     cvReleaseImage(&img);
