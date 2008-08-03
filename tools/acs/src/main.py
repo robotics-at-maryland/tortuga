@@ -57,8 +57,8 @@ def main(argv = None):
     # Hackish way to grab state machine then start the vehicle
     stateMachine = app.getSubsystem("StateMachine")
     #stateMachine.start(ram.ai.sonarCourse.Gate)
-    #stateMachine.start(ram.ai.buoySonarCourse.Gate)
-    stateMachine.start(ram.ai.buoyPipeSonarCourse.Gate)
+    stateMachine.start(ram.ai.buoySonarCourse.Gate)
+    #stateMachine.start(ram.ai.buoyPipeSonarCourse.Gate)
 
     app.mainLoop()
     
