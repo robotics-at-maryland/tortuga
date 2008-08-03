@@ -94,7 +94,6 @@ class Safe(course.Safe):
     
     def exit(self):
         self.stateMachine.stopBranch(sonarSafe.Settling)
-        self.visionSystem.downwardSafeDetectorOff()
 
 class Octagaon(course.Octagaon):
     """
