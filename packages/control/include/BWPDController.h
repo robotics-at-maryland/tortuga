@@ -16,8 +16,6 @@
 
 #include "vehicle/include/Common.h"
 
-#include "pattern/include/Subject.h"
-
 #include "core/include/ConfigNode.h"
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"

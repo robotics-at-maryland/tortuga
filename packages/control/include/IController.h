@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/control/include/Controller.h
+ * File:  packages/control/include/IController.h
  */
 
-#ifndef RAM_CONTROL_ICONTROL_07_03_2007
-#define RAM_CONTROL_ICONTROL_07_03_2007
+#ifndef RAM_CONTROL_ICONTROLLER_07_03_2007
+#define RAM_CONTROL_ICONTROLLER_07_03_2007
 
 // STD Includes
 #include <string>
@@ -132,4 +132,4 @@ protected:
 } // namespace control
 } // namespace ram
 
-#endif // RAM_CONTROL_ICONTROL_07_03_2007
+#endif // RAM_CONTROL_ICONTROLLER_07_03_2007
