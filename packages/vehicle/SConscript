@@ -17,13 +17,18 @@ sources.extend(env.Glob('src/device', '*.cpp'))
 # sources.remove('src/IVehicle.cpp')
 
 # If we aren't building the drivers, remove the sources that depend on them
+excludedDevices = ['IMU',
+                   'PSU',
+                   'SensorBoard',
+                   'SBMarkerDropper',
+                   'SBPowerSource',
+                   'SBThruster',
+                   'SBTempSensor',
+                   'SBSonar']
 if not env.HasFeature('drivers'):
-    # Remove hardware vehicle
-    sources.remove('src/Vehicle.cpp')
-
     # Remove hardware devices
-    sources.remove('src/device/IMU.cpp')
-    sources.remove('src/device/PSU.cpp')
+    for deviceName in excludedDevices:
+        sources.remove('src/device/' + deviceName + '.cpp')
 
 # Build Procducts (library will be called 'libram_vehicle.so')
 envl.RAMSharedLibrary('vehicle',  source = sources)
@@ -45,7 +50,13 @@ if env.HasFeature('drivers'):
 # Unit Tests
 exclude_list = []
 if not env.HasFeature('drivers'):
-    exclude_list.extend(['test/src/TestnIMU.cxx',
-                         'test/src/TestTortuga.cxx'])
+    # Slight list hacks until we fix the source code names
+    excludedDevices[excludedDevices.index('IMU')] = 'nIMU'
+    excludedDevices.remove('SBMarkerDropper')
+    excludedDevices.remove('PSU')
+    
+    for deviceName in excludedDevices:
+        exclude_list.append('test/src/Test' + deviceName + '.cxx')
+
 envt = env.Clone()
 envt.Tests(int_deps = 'vehicle', exclude = exclude_list)
