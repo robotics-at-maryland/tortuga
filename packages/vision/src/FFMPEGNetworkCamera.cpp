@@ -7,7 +7,7 @@
  * File:  packages/vision/include/NetworkCamera.cpp
  */
 
-//#include <iostream>
+
 // Library Includes
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -29,13 +29,13 @@ FFMPEGNetworkCamera::FFMPEGNetworkCamera(std::string hostname,
     m_convertContext(0),
     m_picture(0)
 {
-    /* must be called before using avcodec lib */
+    // must be called before using avcodec lib
     avcodec_init();
 
-    /* register all the codecs */
+    // register all the codecs
     avcodec_register_all();
     
-    /* find the mpeg1 video decoder */
+    // find the mpeg1 video decoder
     AVCodec* codec = avcodec_find_decoder(CODEC_ID_MPEG4);
     if (!codec)
     {
@@ -48,15 +48,16 @@ FFMPEGNetworkCamera::FFMPEGNetworkCamera(std::string hostname,
     m_codecContext->width = 640;
     m_codecContext->height = 480;
 
-    
+
+    // we do not send complete frames
     if(codec->capabilities&CODEC_CAP_TRUNCATED)
-        m_codecContext->flags|= CODEC_FLAG_TRUNCATED; /* we do not send complete frames */
+        m_codecContext->flags|= CODEC_FLAG_TRUNCATED; 
 
-    /* For some codecs, such as msmpeg4 and mpeg4, width and height
-       MUST be initialized there because this information is not
-       available in the bitstream. */
+    // For some codecs, such as msmpeg4 and mpeg4, width and height
+    // MUST be initialized there because this information is not
+    // available in the bitstream.
 
-    /* open it */
+    // open it
     if (avcodec_open(m_codecContext, codec) < 0)
     {
         fprintf(stderr, "could not open codec\n");
@@ -104,23 +105,35 @@ void FFMPEGNetworkCamera::decompress(unsigned char* compressedBuffer,
                                      size_t compressedSize,
                                      unsigned char* outputBuffer)
 {
-    // Decompress image
     int gotPicture = 0;
-    /*int len =*/ avcodec_decode_video(m_codecContext, m_picture, &gotPicture,
-                                   (uint8_t*)compressedBuffer, compressedSize);
-//    std::cout << "CLen: " << compressedSize << " Len: " << len
-//              << " ELen: " << width() * height() * 3 << " Got: "
-//              << gotPicture << std::endl;
-//    assert(got_picture && "Error did not get picture");
-    // Convert into the output buffer
-    AVFrame tmpPicture;
-    avpicture_fill((AVPicture*)&tmpPicture,
-                   (uint8_t*)outputBuffer, PIX_FMT_BGR24,
-                   width(), height());
-    sws_scale(m_convertContext, m_picture->data,
-              m_picture->linesize, 0, height(),
-              tmpPicture.data,
-              tmpPicture.linesize);
+    uint8_t* inbufPtr = compressedBuffer;
+    int size = (int)compressedSize;
+    int len = -1;
+
+    // Loop through the compressed image buffer grabbing frames when we get
+    // them
+    while (size > 0)
+    {
+        len = avcodec_decode_video(m_codecContext, m_picture, &gotPicture,
+                                   inbufPtr, size);
+        if (len < 0)
+            assert(false && "Error while decoding frame");
+        
+        if (gotPicture)
+        {
+            AVFrame tmpPicture;
+            avpicture_fill((AVPicture*)&tmpPicture,
+                           (uint8_t*)outputBuffer, PIX_FMT_BGR24,
+                           width(), height());
+            sws_scale(m_convertContext, m_picture->data,
+                      m_picture->linesize, 0, height(),
+                      tmpPicture.data,
+                      tmpPicture.linesize);
+        }
+        
+        size -= len;
+        inbufPtr += len;
+    }
 }
 
 AVFrame* FFMPEGNetworkCamera::allocPicture(int pix_fmt, int width, int height)

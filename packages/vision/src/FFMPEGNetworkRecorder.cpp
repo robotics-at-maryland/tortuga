@@ -7,6 +7,7 @@
  * File:  packages/vision/include/FFMPEGnetworkRecorder.h
  */
 
+
 // Library Includes
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -35,20 +36,13 @@ FFMPEGNetworkRecorder::FFMPEGNetworkRecorder(
     // Stop background thread
     unbackground(true);
 
-    //int i, out_size, size, x, y, outbuf_size;
-    //FILE *f;
-    //AVFrame *picture;
-    //uint8_t *outbuf, *picture_buf;
-
-    //printf("Video encoding\n");
-
-    /* must be called before using avcodec lib */
+    // must be called before using avcodec lib
     avcodec_init();
 
-    /* register all the codecs */
+    // register all the codecs
     avcodec_register_all();
     
-    // find the mpeg1 video encoder */
+    // find the mpeg4 video encoder
     AVCodec *codec = avcodec_find_encoder(CODEC_ID_MPEG4);
     if (!codec) {
         fprintf(stderr, "codec not found\n");
@@ -124,8 +118,9 @@ size_t FFMPEGNetworkRecorder::compress(Image* toCompress,
               tmpPicture.linesize, 0, m_codecContext->height,
               m_picture->data,
               m_picture->linesize);
-    return avcodec_encode_video(m_codecContext, (uint8_t*)output,
+    int size = avcodec_encode_video(m_codecContext, (uint8_t*)output,
                                 outputSize, m_picture);
+    return size;
 }
 
 AVFrame* FFMPEGNetworkRecorder::allocPicture(int pix_fmt, int width, int height)
