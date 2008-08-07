@@ -19,7 +19,10 @@
 // Project Includes
 #include "core/include/Event.h"
 #include "core/include/Subsystem.h"
+
 #include "math/include/Quaternion.h"
+
+#include "control/include/IDepthController.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -30,7 +33,8 @@ namespace control {
 class IController;
 typedef boost::shared_ptr<IController> IControllerPtr;
     
-class RAM_EXPORT IController : public core::Subsystem
+class RAM_EXPORT IController : public core::Subsystem,
+                               public IDepthController
 {
 public:
     /**
@@ -67,12 +71,6 @@ public:
     /** How fast the vehicle is going side to side (positive = right) */
     virtual void setSidewaysSpeed(double speed) = 0;
 
-    /** Sets the current heading in degrees off north */
-//    virtual void setHeading(double degrees) = 0;
-
-    /** Sets the desired depth of the sub in meters */
-    virtual void setDepth(double depth) = 0;
-
     /** Gets the current speed, a value between -5 and 5 */
     virtual double getSpeed() = 0;
 
@@ -82,18 +80,6 @@ public:
      *      A value between -5 (left) and 5 (right)
      */
     virtual double getSidewaysSpeed() = 0;
-    
-    /** The current heading of th*/
-//    virtual double getHeading() = 0;
-
-    /** Current desired depth of the sub in meters */
-    virtual double getDepth() = 0;
-    
-    /** Grab current estimated depth*/
-    virtual double getEstimatedDepth() = 0;
-    
-    /** Grab current estimated depth velocity (depthDot)*/
-    virtual double getEstimatedDepthDot() = 0;
 
     /** Yaws the desired vehicle state by the desired number of degrees */
     virtual void yawVehicle(double degrees) = 0;
@@ -113,9 +99,6 @@ public:
     /** Sets the current desired orientation */
     virtual void setDesiredOrientation(math::Quaternion) = 0;
     
-    /** Returns true if the vehicle is at the desired depth */
-    virtual bool atDepth() = 0;
-
     /** Returns true if the vehicle is at the desired orientation */
     virtual bool atOrientation() = 0;
 
