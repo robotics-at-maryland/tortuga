@@ -25,17 +25,20 @@ Scene:
 
     
     Robots:
-        Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
+        Tortuga: 
+            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
+            position: [-17, -1, 0]
+            orientation: [0, 0, 1, 45]
     
     Objects:        
         pipe1:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-15, 1, -3.05]
-            orientation: [0, 0, 1, 45]
+            orientation: [0, 0, 1, 20]
                 
         buoy:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-11.46, 4.54, -1.5]
+            position: [-11.46, 4.54, -2.9]
             orientation: [0, 0, 1, 45]
 
         pipe2:
@@ -54,10 +57,17 @@ Scene:
             position: [2.310471,0.901365,-3.050000]
             orientation: [0, 0, 1, -90]
         
-        airDuct:
-              type: [ram.sim.object.IObject, sim.vision.AirDuct]
-              position: [3, -7,-2.5]
-              orientation: [0, 0, 1, -45]
+#        airDuct:
+#              type: [ram.sim.object.IObject, sim.vision.AirDuct]
+#              position: [3, -7,-2.5]
+#              orientation: [0, 0, 1, -45]
+
+        pinger:
+            type: [sim.sonar.IPinger, sim.sonar.Pinger]
+            position: [6, -11,-4]
+        safe:
+            type: [sim.vision.ISafe, sim.vision.Safe]
+            position: [6, -11,-3.1]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
