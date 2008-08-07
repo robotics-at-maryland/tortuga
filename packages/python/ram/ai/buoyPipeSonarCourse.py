@@ -74,6 +74,7 @@ class Pipe(state.State):
     TIMEOUT = core.declareEventType('TIMEOUT_')
     DO_TIMEOUT = core.declareEventType('DO_TIMEOUT_')
     MOVE_ON = core.declareEventType('MOVE_ON')
+    LOST_TIMEOUT = core.declareEventType('LOST_TIMEOUT_')
     
     @staticmethod
     def transitions():
@@ -81,11 +82,17 @@ class Pipe(state.State):
                  vision.EventType.PIPE_FOUND : Pipe,
                  Pipe.TIMEOUT : Pipe,
                  Pipe.DO_TIMEOUT : Pipe,
+                 Pipe.LOST_TIMEOUT : Pipe,
                  pipe.Centering.SETTLED : Light,
                  Pipe.MOVE_ON : Light,
                 'GO' : state.Branch(pipe.Dive) }
+        
     def PIPE_LOST(self, event):
-        self._moveOn()
+        if self.lostTimer is None:
+            timeout = self._config.get('lostTimeout', 2)
+            self.lostTimer = self.timerManager.newTimer(Pipe.LOST_TIMEOUT, 
+                                                        timeout)
+            self.lostTimer.start()
         
     def PIPE_FOUND(self, event):
         # Stop old
@@ -97,6 +104,13 @@ class Pipe(state.State):
                                                       timeout)
             self.doTimer.start()
         
+        # Remove the lost timer if needed
+        if self.lostTimer is not None:
+            self.lostTimer.stop()
+            self.lostTimer = None
+        
+    def LOST_TIMEOUT_(self, event):
+        self._moveOn()
         
     def TIMEOUT_(self, event):
         self._moveOn()
@@ -121,6 +135,7 @@ class Pipe(state.State):
         
         # Set default value do timer, so we only create it once
         self.doTimer = None
+        self.lostTimer = None
         
     def exit(self):
         self.stateMachine.stopBranch(pipe.Dive)

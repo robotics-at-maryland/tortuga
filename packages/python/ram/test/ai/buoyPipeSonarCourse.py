@@ -139,6 +139,24 @@ class TestPipe(PipeTestCase):
         self.injectEvent(vision.EventType.PIPE_LOST)
         self.assertCurrentState(buoyPipeSonarCourse.Pipe)
         
+        # Now the timer is active, make sure we don't create new ones
+        timer = MockTimer.LOG[buoyPipeSonarCourse.Pipe.LOST_TIMEOUT]
+        self.injectEvent(vision.EventType.PIPE_LOST)
+        self.assertCurrentState(buoyPipeSonarCourse.Pipe)
+        timer2 = MockTimer.LOG[buoyPipeSonarCourse.Pipe.LOST_TIMEOUT]
+        self.assertEqual(timer, timer2)
+
+        # Release the time and make sure we move on
+        self.releaseTimer(buoyPipeSonarCourse.Pipe.LOST_TIMEOUT)
+        self.assertCurrentState(buoyPipeSonarCourse.Light)
+        self.assertEqual(expected, self.controller.desiredOrientation)
+        
+    def testLostTimeout(self):
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['gateOrientation'] = expected
+        
+        self.assertCurrentState(buoyPipeSonarCourse.Pipe)
+        self.injectEvent(buoyPipeSonarCourse.Pipe.LOST_TIMEOUT)
         self.qeventHub.publishEvents()
         self.assertCurrentState(buoyPipeSonarCourse.Light)
         self.assertEqual(expected, self.controller.desiredOrientation)
