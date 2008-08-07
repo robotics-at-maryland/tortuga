@@ -49,21 +49,36 @@ SUITE(TestFixed)
         CHECK_EQUAL((unsigned)22,  fixed::round<unsigned>(21.999999));
     }
     
-    /*
-    TEST(RoundToBit)
+    TEST(TruncateWithRoundOnePlace)
     {
-        CHECK_EQUAL(2,  fixed::roundToBit(4, 1));
-        CHECK_EQUAL(3,  fixed::roundToBit(5, 1));
-        CHECK_EQUAL(3,  fixed::roundToBit(6, 1));
-        CHECK_EQUAL(1,  fixed::roundToBit(1, 1));
-        CHECK_EQUAL(0,  fixed::roundToBit(0, 1));
-        CHECK_EQUAL(-2, fixed::roundToBit(-4, 1));
-        CHECK_EQUAL(-3, fixed::roundToBit(-5, 1));
-        CHECK_EQUAL(-3, fixed::roundToBit(-6, 1));
-        CHECK_EQUAL(-1, fixed::roundToBit(-1, 1));
+        CHECK_EQUAL(2,  fixed::truncateWithRound(4,  1)); //  0b0100 -->  0b0010
+        CHECK_EQUAL(3,  fixed::truncateWithRound(5,  1)); //  0b0101 -->  0b0011
+        CHECK_EQUAL(3,  fixed::truncateWithRound(6,  1)); //  0b0110 -->  0b0011
+        CHECK_EQUAL(1,  fixed::truncateWithRound(1,  1)); //  0b0001 -->  0b0001
+        CHECK_EQUAL(0,  fixed::truncateWithRound(0,  1)); //  0b0000 -->  0b0000
+        CHECK_EQUAL(-2, fixed::truncateWithRound(-4, 1)); // -0b0100 --> -0b0010
+        CHECK_EQUAL(-3, fixed::truncateWithRound(-5, 1)); // -0b0101 --> -0b0011
+        CHECK_EQUAL(-3, fixed::truncateWithRound(-6, 1)); // -0b0110 --> -0b0011
+        CHECK_EQUAL(-1, fixed::truncateWithRound(-1, 1)); // -0b0001 --> -0b0001
     }
-    */
-        
+    
+    TEST(TruncateWithRoundTwoPlaces)
+    {
+        CHECK_EQUAL(2,  fixed::truncateWithRound(6,  2)); //  0b0110 -->  0b0010
+        CHECK_EQUAL(1,  fixed::truncateWithRound(5,  2)); //  0b0101 -->  0b0001
+        CHECK_EQUAL(1,  fixed::truncateWithRound(4,  2)); //  0b0100 -->  0b0001
+        CHECK_EQUAL(1,  fixed::truncateWithRound(3,  2)); //  0b0011 -->  0b0001
+        CHECK_EQUAL(1,  fixed::truncateWithRound(2,  2)); //  0b0010 -->  0b0001
+        CHECK_EQUAL(0,  fixed::truncateWithRound(1,  2)); //  0b0001 -->  0b0000
+        CHECK_EQUAL(0,  fixed::truncateWithRound(0,  2)); //  0b0000 -->  0b0000
+        CHECK_EQUAL(-2, fixed::truncateWithRound(-6, 2)); // -0b0110 --> -0b0010
+        CHECK_EQUAL(-1, fixed::truncateWithRound(-5, 2)); // -0b0101 --> -0b0001
+        CHECK_EQUAL(-1, fixed::truncateWithRound(-4, 2)); // -0b0100 --> -0b0001
+        CHECK_EQUAL(-1, fixed::truncateWithRound(-3, 2)); // -0b0011 --> -0b0001
+        CHECK_EQUAL(-1, fixed::truncateWithRound(-2, 2)); // -0b0010 --> -0b0001
+        CHECK_EQUAL(0,  fixed::truncateWithRound(-1, 2)); // -0b0001 -->  0b0000
+    }
+    
     TEST(AbsoluteValue)
     {
         CHECK_EQUAL(1,  fixed::abs(1));

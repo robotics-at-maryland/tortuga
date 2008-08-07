@@ -67,34 +67,21 @@ inline T round(const double& a)
 }
 
 /**
- * Round and truncate an integer or unsigned integer to the nearest bit \a whichBit.
+ * Truncate an integer in binary by \a whichBit places, 
+ * rounding to the (\a whichBit + 1) least significant bit.
  *
  * For example, if \a whichBit is 1, then the return value will have 1 less 
  * significant bit than the input \a a.
  */
-/*
 template<typename T>
-inline T roundToBit(const T& a, short unsigned whichBit)
+inline T truncateWithRound(const T& a, short unsigned whichBit)
 {
- // This doesn't work.  Don't use it.
-    T mask = ((T)1) << (whichBit - 1);
-    if (a > 0)
-    {
-        if ((a & mask) >> (whichBit - 1))
-            return (a >> whichBit) + 1;
-        else
-            return (a >> whichBit);
-    } else if (a < 0) {
-        if (!((a & mask) >> (whichBit - 1)))
-            return (a >> whichBit);
-        else
-            return (a >> whichBit) + 1;
-    } else {
-        return 0;
-    }
-    //return (a + (((T)1) << (whichBit - 1))) >> whichBit;
+    if (a >= 0)
+        return (a + ((T)1 << (whichBit - 1))) >> whichBit;
+    else
+        return -((-a + ((T)1 << (whichBit - 1))) >> whichBit);
 }
-*/
+
 
 extern "C" long PseudoPolarize(long *argx, long *argy);
 
