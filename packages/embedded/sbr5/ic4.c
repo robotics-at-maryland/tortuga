@@ -440,13 +440,12 @@ void initADC()
 void main()
 {
     byte i;
+    initBus();
 
     for(i=0; i<16; i++)
         cfgRegs[i] = 65;
 
-
     initADC();
-    initBus();
     initInterruptUarts();
 
     while(1);

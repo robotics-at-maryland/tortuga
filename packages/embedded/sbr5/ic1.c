@@ -1,3 +1,6 @@
+#define SBR5
+//#define SBR7
+
 #include <p30fxxxx.h>
 #include "buscodes.h"
 #include <stdio.h>
@@ -38,8 +41,6 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_ACT     _LATF1
 #define TRIS_LED_ACT    _TRISF1
 
-
-#define SBR5
 
 
 #ifdef SBR5
@@ -143,8 +144,12 @@ _FWDT ( WDT_OFF );
 #define DIAG_TIMEOUT     25000
 
 
-/* No sonar? No power board either...*/
+/* How many chips are in the POST list? */
 #define NUM_SLAVES  6
+
+static const unsigned char postList[]={IRQ_IC2, IRQ_IC3, IRQ_IC4, IRQ_DISTRO, IRQ_BALANCER, IRQ_SONAR};
+
+
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
@@ -372,7 +377,8 @@ void _ISR _T2Interrupt(void)
 void setMotorFailsafe()
 {
     failsafeTripped = 0;
-    PR1 = 10000;            /* Period */
+    /* 43945 = 3 sec */
+    PR1 = 21972;            /* Period */
     TMR1 = 0;               /* Reset timer */
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 1;      /* Enable interrupts */
@@ -715,6 +721,70 @@ void checkFailsafe()
 }
 
 
+void blink(byte n)
+{
+    long j;
+    byte i;
+    for(i=0; i<n; i++)
+    {
+        LAT_LED_ACT = LED_ON;
+        for(j=0; j<30000; j++);
+        LAT_LED_ACT = ~LED_ON;
+        for(j=0; j<50000; j++);
+   }
+   for(j=0; j<100000; j++);
+}
+
+/* If OK, returns 0. If error, returns non 0 */
+byte pingChip(byte irq)
+{
+    switch(busWriteByte(BUS_CMD_PING, irq))
+    {
+        case BUS_ERROR:
+        case BUS_FAILURE:
+            return 1;
+        break;
+
+        case 0:
+        {
+            byte len = readDataBlock(irq);
+
+            switch(len)
+            {
+                case 0:
+                    return 0;
+                break;
+
+                case BUS_ERROR:
+                case BUS_FAILURE:
+                default:
+                    return 1;
+            }
+            break;
+        }
+    }
+    return 0;
+}
+
+/* If there is a problem, ERR light is on and ACT light blinks (1+num of failed irq) times */
+/* .. because blinking 0 times is hard to see */
+void post()
+{
+    byte i, j;
+    for(i=0; i<NUM_SLAVES; i++)
+    {
+        if(pingChip(postList[i]) != 0) /* Someone failed */
+        {
+            LAT_LED_ERR = LED_ON;
+            for(j=0; j<4; j++)
+            {
+                /* Flash error light forever */
+                blink(postList[i]+1);
+            }
+        }
+    }
+}
+
 int main(void)
 {
     long j=0;
@@ -722,44 +792,58 @@ int main(void)
     _TRISF0 = TRIS_IN;
     TRIS_USBDETECT = TRIS_IN;
 
-    for(i=0; i<NUM_SLAVES; i++)
-        setReq(i, 0);
-
     ADPCFG = 0xFFFF;
     LATB = 0;
     TRISB = 0x100;
 
-    initBus();
-
-#ifdef HAS_UART
-    initInterruptUarts();
-#endif
+    for(i=0; i<NUM_SLAVES; i++)
+        setReq(i, 0);
 
     LAT_LED_ACT = LED_ON;
     LAT_LED_ERR = LED_ON;
-
 
     TRIS_LED_ACT = TRIS_OUT;
     TRIS_LED_ERR = TRIS_OUT;
 
 
-    for(j=0; j<20000; j++);
+
+    initBus();
+
+#ifdef HAS_UART
+//     blink(1);
+
+    initInterruptUarts();
+#endif
+
+//     blink(2);
+    /* Don't run POST until we've given SONAR enough time to start */
+    for(j=0; j<1500000; j++);
 
 
     LAT_LED_ACT = ~LED_ON;
     LAT_LED_ERR = ~LED_ON;
 
+    post();
 
     for(j=0; j<20000; j++);
 
     unsigned char emptyLine[]="                ";
 
+//     blink(3);
+
     showString(emptyLine, 0);
+
+//     blink(4);
+
     showString(emptyLine, 1);
+
+//     blink(5);
 
     for(j=0; j<25000; j++);
 
     showString("Diagnostic?", 0);
+
+//     blink(6);
 
     for(j=0; j<25000 && (pollStartSw() == 0); j++);
 

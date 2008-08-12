@@ -144,7 +144,9 @@ _FWDT ( WDT_OFF );
 #define ADC_IM7         0x04
 #define ADC_IM8         0x05
 
+
 /* The reference input. Hasn't been attached yet */
+/* On R4, this is 18V ISEN */
 #define ADC_VREF        0x0A
 
 /* 5V and 12V voltage and current sensing */
@@ -154,6 +156,7 @@ _FWDT ( WDT_OFF );
 #define ADC_I5V         0x0E
 #define ADC_I12V        0x0F
 
+/* On R4, this is 18V ISEN */
 #define ADC_IAUX        0x0D
 
 

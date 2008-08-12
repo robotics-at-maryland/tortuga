@@ -1,3 +1,8 @@
+// #define BBR2
+#define BBR3
+
+
+
 #include <p30fxxxx.h>
 #include <string.h>
 #include "buscodes.h"
@@ -39,7 +44,7 @@ _FWDT ( WDT_OFF );
 #define RW_READ     0
 #define RW_WRITE    1
 
-#define BBR3
+
 
 
 /* Level specification for battery inputs */
@@ -130,8 +135,8 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_STA     _LATF7
 #define TRIS_LED_STA    _TRISF7
 
-#define LAT_LED_ERR     _LATF8
-#define TRIS_LED_ERR    _TRISF8
+#define LAT_LED_BATTLOW     _LATF8
+#define TRIS_LED_BATTLOW    _TRISF8
 
 
 /* ADC Inputs */
@@ -625,7 +630,6 @@ void _ISR _T2Interrupt(void)
 }
 
 
-
 /*
  * Initialize ADC for depth sensor. All this code really needs to be split up
  * into different files, each one different for each slave. But for now, write
@@ -726,6 +730,88 @@ unsigned int avgRow(byte r)
     return t >> IHISTORY_LOG2;
 }
 
+
+void initBattlowLight()
+{
+    PR3 = 100;              /* Period */
+    TMR3 = 0;               /* Reset timer */
+    IFS0bits.T3IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T3IE = 1;      /* Enable interrupts */
+    T3CONbits.TCS = 0;      /* Use internal clock */
+    T3CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T3CONbits.TON = 1;      /* Start Timer3 */
+}
+
+byte battlowState = 0;  /* 0 = off, 1 = on */
+byte battlowEnabled = 1;
+
+int battlowOffTime()
+{
+    long vb = 0;
+
+    #ifdef BBR2
+        byte nBatt = 0;
+        if(IN_BATT5 == BATT_ON) {vb += vBatt[4]; nBatt++;}
+        if(IN_BATT4 == BATT_ON) {vb += vBatt[3]; nBatt++;}
+        if(IN_BATT3 == BATT_ON) {vb += vBatt[2]; nBatt++;}
+        if(IN_BATT2 == BATT_ON) {vb += vBatt[1]; nBatt++;}
+        if(IN_BATT1 == BATT_ON) {vb += vBatt[0]; nBatt++;}
+
+        if(nBatt == 0)
+            vb = 0;
+        else
+            vb /= nBatt;
+    #endif
+
+    #ifdef BBR3
+        vb = vBatt[5];   /* 29000 - 24000 */
+    #endif
+//     vb += 5000;
+
+
+
+    vb -= 24500;
+    if(vb <= 0)
+        vb = 1;
+
+    vb *= 3;
+
+    if(vb > 9000)
+    {
+        battlowEnabled = 0;
+        return 50;
+    } else
+        battlowEnabled = 1;
+
+    return vb;
+}
+
+
+/* ISR for Timer3. Used for making the battery low indicator pretty */
+void _ISR _T3Interrupt(void)
+{
+    IFS0bits.T3IF = 0;      /* Clear interrupt flag */
+    LAT_LED_BATTLOW = ~LED_ON;
+
+    if(battlowState == 0) /* Light was off */
+    {
+        battlowState = 1;
+
+        if(battlowEnabled == 1)
+            LAT_LED_BATTLOW = LED_ON;
+
+        PR3 = 200;  /* Turn light on for X much */
+    } else
+    {
+        battlowState = 0;
+        LAT_LED_BATTLOW = ~LED_ON;
+        PR3 = battlowOffTime();  /* Turn light off for X much */
+    }
+}
+
+
+
+
 void main()
 {
     byte writeIndex = 0;
@@ -758,20 +844,22 @@ void main()
     TRIS_PWRKILL = TRIS_OUT;
 
     TRIS_LED_STA = TRIS_OUT;
-    TRIS_LED_ERR = TRIS_OUT;
+    TRIS_LED_BATTLOW = TRIS_OUT;
 
     LAT_LED_STA = LED_ON;
-    LAT_LED_ERR = LED_ON;
+    LAT_LED_BATTLOW = LED_ON;
 
 
     initBus();
     LAT_LED_STA = LED_ON;
-    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_BATTLOW = ~LED_ON;
 
   //  while(1);
 
     initADC();
     initI2C();
+
+    initBattlowLight();
 
 #ifdef HAS_UART
     initInterruptUarts();
@@ -780,7 +868,7 @@ void main()
     for(l=0; l<50000; l++);
 
     LAT_LED_STA = LED_ON;
-    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_BATTLOW = ~LED_ON;
 
     for(l=0; l<50000; l++);
 
@@ -837,7 +925,6 @@ void main()
 
         if(writeIndex >= IHISTORY_SIZE)
             writeIndex = 0;
-
 
         /* Calculate running averages of the battery currents */
          for(i=0; i<5; i++)
