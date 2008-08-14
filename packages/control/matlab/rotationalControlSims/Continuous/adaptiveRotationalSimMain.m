@@ -32,6 +32,10 @@ qhat0=q0;
 %cd - drag parameters (model is c*w*abs(w))
 %      h                rb    c
 
+%ahat0=[0.5 0 -0.1 1 0 1 0 0 0 1 2 2]';
+%ahat0=zeros(12,1);
+
+
 % "real" parameters
 % H = [0.4515, 0.0009, -0.0176; 0.0009, 1.8272, 0.0132; -0.0176 0.0132 1.8618]
 % buoyancy = [0 0 0.2]
@@ -159,6 +163,7 @@ subplot(3,1,3)
 plot(time,wd(:,3)*180/pi,time,w(:,3)*180/pi,'linewidth',4)
 ylabel('w_3 in deg/s')
 xlabel('time (s)')
+
 
 %% plot gyro only quaternion estimation
 % figure(4)
