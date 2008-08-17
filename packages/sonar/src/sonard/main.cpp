@@ -1,10 +1,10 @@
-/*
- * Copyright (C) 2008 Robotics at Maryland
- * Copyright (C) 2008 Michael Levashov
- * All rights reserved.
+/**
+ * @file packages/sonar/src/sonard/main.cpp
  *
- * Author: Michael Levashov
- * File:  packages/sonar/src/sonard/main.cpp
+ * @author Michael Levashov
+ * @author Copyright (C) 2008 Robotics at Maryland
+ * @author Copyright (C) 2008 Michael Levashov
+ * @author All rights reserved.
  */
 
 /* 

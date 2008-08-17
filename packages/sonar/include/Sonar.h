@@ -40,7 +40,7 @@ static const double frequencyOfInterest = 25000;
 static const double frequencyRedHerring = 27000;
 
 //===============ARRAY PROPERTIES==================
-static const int NCHANNELS = 4; // CHANGING THIS PARAMETER IS NOT SUPPORTED
+static const unsigned short NCHANNELS = 4; // CHANGING THIS PARAMETER IS NOT SUPPORTED
 static const int SAMPRATE = 500000; //Hz, sampling rate of the array
 static const int MAX_SENSOR_SEPARATION = 1000; //mm, determines maximum alllowable distance between pings, make it slightly larger than the real value
 static const int MAX_PING_SEP=(SAMPRATE*MAX_SENSOR_SEPARATION)/(1000*SPEED_OF_SOUND); //pts., maximum separation between adjacent pings

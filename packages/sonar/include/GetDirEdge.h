@@ -1,10 +1,10 @@
-/*
- * Copyright (C) 2008 Robotics at Maryland
- * Copyright (C) 2008 Michael Levashov
- * All rights reserved.
+/**
+ * @file packages/sonar/include/GetDirEdge.h
  *
- * Author: Michael Levashov
- * File:  packages/sonar/include/GetDirEdge.h
+ * @author Michael Levashov
+ * @author Copyright (C) 2008 Robotics at Maryland
+ * @author Copyright (C) 2008 Michael Levashov
+ * @author All rights reserved.
  */
 
 // Project Includes
