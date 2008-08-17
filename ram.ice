@@ -93,6 +93,18 @@ module ram
             idempotent double getCurrent();
         };
         
+        interface IVoltageProvider extends IDevice
+        {
+            idempotent double getVoltage();
+        };
+        
+        interface IPowerSource extends ICurrentProvider, IVoltageProvider
+        {
+            idempotent bool isEnabled();
+            idempotent bool inUse();
+            void setEnabled(bool state);
+        };
+        
         interface IDepthSensor extends IDevice
         {
             idempotent double getDepth();
@@ -108,26 +120,6 @@ module ram
         interface IMarkerDropper extends IDevice
         {
             void dropMarker();
-        };
-        
-        interface IPowerSource extends IDevice
-        {
-            idempotent bool isEnabled();
-            idempotent bool inUse();
-            void setEnabled(bool state);
-        };
-        
-        sequence<double> DoubleSeq;
-        sequence<string> StringSeq;
-        interface IPSU extends IDevice
-        {
-            idempotent double getBatteryVoltage();
-            idempotent double getBatteryCurrent();
-            idempotent double getTotalWattage();
-            idempotent DoubleSeq getVoltages();
-            idempotent DoubleSeq getCurrents();
-            idempotent DoubleSeq getWattages();
-            idempotent StringSeq getSupplyNames();
         };
         
         interface ISonar extends IDevice
@@ -167,16 +159,12 @@ module ram
             void dropMarker();
 		};
         
-        interface IVoltageProvider extends IDevice
-        {
-            idempotent double getVoltage();
-        };
-        
         exception CannotCreateException
         {
             string reason;
         };
 		
+        dictionary<string, IVehicle*> VehicleDictionary;
 		interface IVehicleFactory
 		{
 			IVehicle* getVehicleByName(string vehicleName)
