@@ -75,29 +75,34 @@ module ram
 	
 	module vehicle
 	{
-        interface ICurrentProvider
+        interface IDevice
+        {
+            idempotent string getName();
+        };
+        
+        interface ICurrentProvider extends IDevice
         {
             idempotent double getCurrent();
         };
         
-        interface IDepthSensor
+        interface IDepthSensor extends IDevice
         {
             idempotent double getDepth();
         };
         
-        interface IIMU
+        interface IIMU extends IDevice
         {
             idempotent math::Vector3 getLinearAcceleration();
             idempotent math::Vector3 getAngularRate();
             idempotent math::Quaternion getOrientation();
         };
         
-        interface IMarkerDropper
+        interface IMarkerDropper extends IDevice
         {
             void dropMarker();
         };
         
-        interface IPowerSource
+        interface IPowerSource extends IDevice
         {
             idempotent bool isEnabled();
             idempotent bool inUse();
@@ -106,7 +111,7 @@ module ram
         
         sequence<double> DoubleSeq;
         sequence<string> StringSeq;
-        interface IPSU
+        interface IPSU extends IDevice
         {
             idempotent double getBatteryVoltage();
             idempotent double getBatteryCurrent();
@@ -117,19 +122,19 @@ module ram
             idempotent StringSeq getSupplyNames();
         };
         
-        interface ISonar
+        interface ISonar extends IDevice
         {
             idempotent math::Vector3 getDirection();
             idempotent double getRange();
             idempotent core::TimeVal getPingTime();
         };
         
-        interface ITempSensor
+        interface ITempSensor extends IDevice
         {
             idempotent int getTemp();
         };
         
-        interface IThruster
+        interface IThruster extends IDevice
         {
             void setForce(double newtons);
             idempotent double getForce();
@@ -140,8 +145,10 @@ module ram
             void setEnabled(bool tf);
         };
         
+        dictionary<string, IDevice*> DeviceDictionary;
 		interface IVehicle
 		{
+            idempotent DeviceDictionary getDevices();
             idempotent double getDepth();
             idempotent math::Vector3 getLinearAcceleration();
             idempotent math::Vector3 getAngularRate();
@@ -152,7 +159,7 @@ module ram
             void dropMarker();
 		};
         
-        interface IVoltageProvider
+        interface IVoltageProvider extends IDevice
         {
             idempotent double getVoltage();
         };
