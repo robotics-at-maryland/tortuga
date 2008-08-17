@@ -1,6 +1,5 @@
 #include <Ice/Ice.h>
-#include <control/MockController.h>
-#include <ram/sim/vehicle/VehicleFactory.h>
+#include <ram/mock/MockVehicleFactory.h>
 
 using namespace std;
 
@@ -12,9 +11,8 @@ main(int argc, char* argv[])
     try {
         ic = Ice::initialize(argc, argv);
         Ice::ObjectAdapterPtr adapter
-		= ic->createObjectAdapterWithEndpoints(
-											   "SimulatorAdapter", "default -p 10000");
-        Ice::ObjectPtr object = new ram::sim::vehicle::VehicleFactory;
+		= ic->createObjectAdapterWithEndpoints("MockAdapter", "default -p 10000");
+        Ice::ObjectPtr object = new ram::mock::MockVehicleFactory;
         adapter->add(object, ic->stringToIdentity("factory"));
         adapter->activate();
         ic->waitForShutdown();

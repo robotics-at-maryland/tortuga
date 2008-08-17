@@ -2,16 +2,24 @@
 #define _RAM_MOCK_MOCKDEPTHSENSOR_H
 
 #include <ram.h>
-#include <stdlib.h>
 #include "MockUtil.h"
 
 namespace ram {
-    class MockIMU : virtual public vehicle::IIMU
-    {
-    public:
-        virtual double getDepth(const ::Ice::Current&c)
-        { return randDouble(25); }
-    };
+    namespace mock {
+        class MockDepthSensor : virtual public vehicle::IDepthSensor
+        {
+        private:
+            std::string name;
+        public:
+            MockDepthSensor(std::string mName) : name(mName) {}
+            
+            virtual std::string getName(const ::Ice::Current&c)
+            { return name; }
+            
+            virtual double getDepth(const ::Ice::Current&c)
+            { return randUpTo(25); }
+        };
+    }
 }
 
 #endif
