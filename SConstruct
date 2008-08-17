@@ -22,8 +22,6 @@ env.Command('build/python/ram_ice.py',
 nativeIceLib = env.Library('build/native/ram.cpp')
 env.Append(LIBS = [nativeIceLib])
 
-#env.Program(['build/testserver.cpp', 'build/ram/sim/vehicle/VehicleFactory.cpp', 'build/ram/sim/vehicle/Vehicle.cpp'])
 env.Program(['build/mockserver.cpp'])
 
-#env.Install('build/python','python/testclient.py')
 env.Install('build/python','python/mockclient.py')
