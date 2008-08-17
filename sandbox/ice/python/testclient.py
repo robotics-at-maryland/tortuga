@@ -7,15 +7,19 @@ status = 0
 ic = None
 try:
 	ic = Ice.initialize(sys.argv)
-	base = ic.stringToProxy("MockController:default -p 10000")
-	ctrl = ram.control.ControllerPrx.checkedCast(base)
-	if not ctrl:
+	base = ic.stringToProxy("factory:default -p 10000")
+	factory = ram.vehicle.IVehicleFactoryPrx.checkedCast(base)
+	if not factory:
 		raise RuntimeError("Invalid proxy")
 	
-	for i in range(1000):
-		print "Setting speed to", i
-		ctrl.setSpeed(float(i))
-		print "Speed is now", ctrl.getSpeed()
+	try:
+		vehicle1 = factory.getVehicleByName("The Yellow Submarine")
+	except:
+		traceback.print_exc()
+	try:
+		vehicle2 = factory.getVehicleByName("The Blue Submarine")
+	except:
+		traceback.print_exc()
 except:
 	traceback.print_exc()
 	status = 1

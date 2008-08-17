@@ -1,5 +1,10 @@
 import os
+
+# Import path from environment
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
+
+env.SConscript('deps/OgreNewt.SConscript')
+
 env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '#include', '#build/native'])
 env.Append(LIBPATH = ['/opt/local/lib'])
 env.Append(LIBS = ['Ice', 'IceUtil'])
@@ -17,6 +22,6 @@ env.Command('build/python/ram_ice.py',
 nativeIceLib = env.Library('build/native/ram.cpp')
 env.Append(LIBS = [nativeIceLib])
 
-env.Program('build/testserver.cpp')
+env.Program(['build/testserver.cpp', 'build/ram/sim/vehicle/VehicleFactory.cpp', 'build/ram/sim/vehicle/Vehicle.cpp'])
 
 env.Install('build/python','python/testclient.py')
