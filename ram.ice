@@ -5,16 +5,21 @@ module ram
     {
         class TimeVal
         {
+            // Methods not yet implemented
+            /*
             idempotent long seconds();
             idempotent long microseconds();
             idempotent long getDouble();
             idempotent bool equal(TimeVal other);
+            */
         };
     };
     
 	module math
 	{
 		class Vector3 {
+            // Methods not yet implemented
+            /*
 			idempotent double Dot(Vector3 v);
 			idempotent double Norm();
 			idempotent double NormSquared();
@@ -25,7 +30,7 @@ module ram
 			idempotent Vector3 Multiply(double s);
 			idempotent Vector3 Negate();
 			idempotent Vector3 CrossProduct(Vector3 v);
-			
+			*/
 			double x;
 			double y;
 			double z;
@@ -33,6 +38,8 @@ module ram
 		
 		class Quaternion
 		{
+            // Methods not yet implemented
+            /*
 			idempotent double Dot(Quaternion q);
 			idempotent double Norm();
 			idempotent double NormSquared();
@@ -46,7 +53,8 @@ module ram
 			idempotent Quaternion Negate();
 			
 			idempotent Vector3 MultiplyVector(Vector3 v);
-			
+			*/
+            
 			double w;
 			double x;
 			double y;
