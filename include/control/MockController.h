@@ -4,7 +4,7 @@
 #include <ram.h>
 #include <iostream>
 
-class MockController : public ram::control::Controller
+class MockController : public ram::control::IController
 {
 public:
     virtual void setSpeed(double speed_, const Ice::Current&)

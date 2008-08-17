@@ -1,34 +1,36 @@
 module ram
 {
 	
+    module core
+    {
+        class TimeVal
+        {
+            idempotent long seconds();
+            idempotent long microseconds();
+            idempotent long getDouble();
+            idempotent bool equal(TimeVal other);
+        };
+    };
+    
 	module math
 	{
-		class Vector {
-			idempotent double Dot(Vector v);
+		class Vector3 {
+			idempotent double Dot(Vector3 v);
 			idempotent double Norm();
 			idempotent double NormSquared();
 			
-			idempotent Vector Normalize();
-			idempotent Vector Add(Vector v);
-			idempotent Vector Subtract(Vector v);
-			idempotent Vector Multiply(double s);
-			idempotent Vector Negate();
-			idempotent Vector CrossProduct(Vector v);
+			idempotent Vector3 Normalize();
+			idempotent Vector3 Add(Vector3 v);
+			idempotent Vector3 Subtract(Vector3 v);
+			idempotent Vector3 Multiply(double s);
+			idempotent Vector3 Negate();
+			idempotent Vector3 CrossProduct(Vector3 v);
 			
 			double x;
 			double y;
 			double z;
 		};
 		
-		struct Quaternion
-		{
-			double w;
-			double x;
-			double y;
-			double z;
-		};
-		
-		/*
 		class Quaternion
 		{
 			idempotent double Dot(Quaternion q);
@@ -43,80 +45,127 @@ module ram
 			idempotent Quaternion Inverse();
 			idempotent Quaternion Negate();
 			
-			idempotent Vector MultiplyVector(Vector v);
+			idempotent Vector3 MultiplyVector(Vector3 v);
 			
 			double w;
 			double x;
 			double y;
 			double z;
 		};
-		*/
 	};
 	
 	module control
 	{
-		interface Controller
+		interface IController
 		{
-			/**
-			 * Set the current speed, clamped between -5 and 5
-			 */
 			void setSpeed(double speed);
-			
-			/**
-			 * Sets the desired depth of the sub in meters
-			 */
 			void setDepth(double depth);
-
-			/**
-			 * Gets the current speed, a value between -5 and 5
-			 */
 			idempotent double getSpeed();
-
-			/**
-			 * Current desired depth of the sub in meters
-			 */
 			idempotent double getDepth();
-			
-			/**
-			 * Grab current estimated depth
-			 */
 			double getEstimatedDepth();
-			
-			/**
-			 * Grab current estimated depth velocity (depthDot)
-			 */
 			double getEstimatedDepthDot();
-
-			/**
-			 * Yaws the desired vehicle state by the desired number of degrees
-			 */
 			void yawVehicle(double degrees);
-
-			/**
-			 * Pitches the desired vehicle state by the desired number of degrees
-			 */
 			void pitchVehicle(double degrees);
-
-			/**
-			 * Rolls the desired vehicle state by the desired number of degrees
-			 */
 			void rollVehicle(double degrees);
-
-			/**
-			 * Gets the current desired orientation
-			 */
 			idempotent math::Quaternion getDesiredOrientation();
-			
-			/**
-			 * Returns true if the vehicle is at the desired depth
-			 */
 			idempotent bool atDepth();
-			
-			/**
-			 * Returns true if the vehicle is at the desired orientation
-			 */
 			idempotent bool atOrientation();
-			
+		};
+	};
+	
+	module vehicle
+	{
+        interface ICurrentProvider
+        {
+            idempotent double getCurrent();
+        };
+        
+        interface IDepthSensor
+        {
+            idempotent double getDepth();
+        };
+        
+        interface IIMU
+        {
+            idempotent math::Vector3 getLinearAcceleration();
+            idempotent math::Vector3 getAngularRate();
+            idempotent math::Quaternion getOrientation();
+        };
+        
+        interface IMarkerDropper
+        {
+            void dropMarker();
+        };
+        
+        interface IPowerSource
+        {
+            idempotent bool isEnabled();
+            idempotent bool inUse();
+            void setEnabled(bool state);
+        };
+        
+        sequence<double> DoubleSeq;
+        sequence<string> StringSeq;
+        interface IPSU
+        {
+            idempotent double getBatteryVoltage();
+            idempotent double getBatteryCurrent();
+            idempotent double getTotalWattage();
+            idempotent DoubleSeq getVoltages();
+            idempotent DoubleSeq getCurrents();
+            idempotent DoubleSeq getWattages();
+            idempotent StringSeq getSupplyNames();
+        };
+        
+        interface ISonar
+        {
+            idempotent math::Vector3 getDirection();
+            idempotent double getRange();
+            idempotent core::TimeVal getPingTime();
+        };
+        
+        interface ITempSensor
+        {
+            idempotent int getTemp();
+        };
+        
+        interface IThruster
+        {
+            void setForce(double newtons);
+            idempotent double getForce();
+            idempotent double getMaxForce();
+            idempotent double getMinForce();
+            idempotent double getOffset();
+            idempotent bool isEnabled();
+            void setEnabled(bool tf);
+        };
+        
+		interface IVehicle
+		{
+            idempotent double getDepth();
+            idempotent math::Vector3 getLinearAcceleration();
+            idempotent math::Vector3 getAngularRate();
+            idempotent math::Quaternion getOrientation();
+            void applyForcesAndTorques();
+            void safeThrusters();
+            void unsafeThrusters();
+            void dropMarker();
+		};
+        
+        interface IVoltageProvider
+        {
+            idempotent double getVoltage();
+        };
+        
+        exception CannotCreateException
+        {
+            string reason;
+        };
+		
+		interface IVehicleFactory
+		{
+			IVehicle* getVehicleByName(string vehicleName)
+                throws CannotCreateException;
 		};
 	};
 	
