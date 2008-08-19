@@ -3,8 +3,6 @@ import os
 # Import path from environment
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
 
-#env.SConscript('deps/OgreNewt.SConscript')
-
 env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '#include', '#build/native'])
 env.Append(LIBPATH = ['/opt/local/lib'])
 env.Append(LIBS = ['Ice', 'IceUtil'])
