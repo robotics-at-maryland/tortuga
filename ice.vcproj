@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Ice-3.3.0\include&quot;;marshal"
+				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\src;&quot;C:\Ice-3.3.0\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;C:\Ice-3.3.0&quot;;&quot;$(InputDir)marshal&quot;"
+				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\src;&quot;C:\Ice-3.3.0\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
