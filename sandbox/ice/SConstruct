@@ -9,24 +9,21 @@ env.Append(LIBPATH = ['/opt/local/lib'])
 env.Append(LIBS = ['Ice', 'IceUtil'])
 env.BuildDir('build','src')
 
-# Construct ICE stubs for C++
+
+# NATIVE MARSHALING CODE FOR C++
+##############################
+
 env.Command(['build/native/ram.cpp','build/native/ram.h'], 
 	'ram.ice', 'slice2cpp --output-dir build/native $SOURCES')
-
-
-# NATIVE MARSHALING CODE
-##############################
-
-# Construct ICE stubs for Python
-env.Command('build/python/ram_ice.py', 
-	'ram.ice', 'slice2py --output-dir build/python $SOURCES')
-
-
-# NATIVE MARSHALING CODE
-##############################
-
 nativeIceLib = env.Library('build/native/ram.cpp')
 env.Append(LIBS = [nativeIceLib])
+
+
+# NATIVE MARSHALING CODE FOR PYTHON
+##############################
+
+env.Command('build/python/ram_ice.py', 
+	'ram.ice', 'slice2py --output-dir build/python $SOURCES')
 
 
 # MOCK SERVER
