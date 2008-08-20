@@ -21,7 +21,7 @@ module ram
             // Methods not yet implemented
             /*
 			idempotent double Dot(Vector3 v);
-			idempotent double Norm();
+            idempotent double Norm();
 			idempotent double NormSquared();
 			
 			idempotent Vector3 Normalize();
@@ -30,7 +30,7 @@ module ram
 			idempotent Vector3 Multiply(double s);
 			idempotent Vector3 Negate();
 			idempotent Vector3 CrossProduct(Vector3 v);
-			*/
+            */
 			double x;
 			double y;
 			double z;

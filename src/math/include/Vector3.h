@@ -54,27 +54,21 @@ namespace impl {
             scaling factors can be represented by a vector, depending on how
             you interpret the values.
     */
-    class RAM_EXPORT Vector3
+    class RAM_EXPORT Vector3 : virtual public ::ram::math::Vector3
     {
-    public:
-		Real x, y, z;
+    //public:
+	//	Real x, y, z;
 
     public:
+        inline Vector3(::Ice::Double x, ::Ice::Double y, ::Ice::Double z)
+            : ::ram::math::Vector3(x, y, z) {}
+        
         inline Vector3()
-        {
-        }
-
-        inline Vector3( const Real fX, const Real fY, const Real fZ )
-            : x( fX ), y( fY ), z( fZ )
-        {
-        }
-
+        {}
+        
         inline explicit Vector3( const Real afCoordinate[3] )
-            : x( afCoordinate[0] ),
-              y( afCoordinate[1] ),
-              z( afCoordinate[2] )
-        {
-        }
+            : ::ram::math::Vector3(afCoordinate[0] , afCoordinate[1] , afCoordinate[2])
+        {}
 
         inline explicit Vector3( const int afCoordinate[3] )
         {
@@ -84,23 +78,15 @@ namespace impl {
         }
 
         inline explicit Vector3( Real* const r )
-            : x( r[0] ), y( r[1] ), z( r[2] )
-        {
-        }
+            : ::ram::math::Vector3(r[0], r[1], r[2]) {}
 
-        inline explicit Vector3( const Real scaler )
-            : x( scaler )
-            , y( scaler )
-            , z( scaler )
-        {
-        }
+        inline explicit Vector3( const Real scalar )
+            : ::ram::math::Vector3(scalar, scalar, scalar) {}
 
 
-        inline Vector3( const Vector3& rkVector )
-            : x( rkVector.x ), y( rkVector.y ), z( rkVector.z )
-        {
-        }
-
+        inline Vector3( const ::ram::math::Vector3& rkVector )
+            : ::ram::math::Vector3(rkVector.x, rkVector.y, rkVector.z) {}
+        
 		inline Real operator [] ( const size_t i ) const
         {
             assert( i < 3 );
@@ -774,6 +760,7 @@ namespace impl {
             o << "Vector3(" << v.x << ", " << v.y << ", " << v.z << ")";
             return o;
         }
+        
     };
 
 } // namespace impl

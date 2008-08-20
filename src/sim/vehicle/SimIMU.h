@@ -16,10 +16,10 @@ namespace ram {
             { return name; }
             
             virtual math::Vector3Ptr getLinearAcceleration(const ::Ice::Current&c)
-            { return new math::Vector3; /* TODO */ }
+            { return new math::impl::Vector3; /* TODO */ }
             
             virtual math::Vector3Ptr getAngularRate(const ::Ice::Current&c)
-            { return new math::Vector3; /* TODO */ }
+            { return new math::impl::Vector3; /* TODO */ }
             
             virtual math::QuaternionPtr getOrientation(const ::Ice::Current&c)
             { return new math::Quaternion; /* TODO */ }

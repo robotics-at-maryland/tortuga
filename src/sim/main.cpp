@@ -32,8 +32,8 @@ void initialize()
 	test = new Shader();
 	if (!test->loadShaderFile("shaders/test.glsl"))
 	{
-		std::cout << "Errors compiling shader\n";
-		std::cout << test->getErrors();
+		std::cerr << "Errors compiling shader" << std::endl;
+		std::cerr << test->getErrors() << std::endl;
 	}
 }
 

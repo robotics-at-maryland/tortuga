@@ -3,6 +3,7 @@
 
 #include <ram.h>
 #include <stdlib.h>
+#include "math/include/Vector3.h"
 
 namespace ram {
     namespace mock {
@@ -25,7 +26,7 @@ namespace ram {
         
         ::ram::math::Vector3Ptr randVector(double max = 1000)
         {
-            return new ::ram::math::Vector3(randPlusMinus(max), randPlusMinus(max), randPlusMinus(max));
+            return new ::ram::math::impl::Vector3(randPlusMinus(max), randPlusMinus(max), randPlusMinus(max));
         }
         
         ::ram::math::QuaternionPtr randQuat(double max = 1000)
