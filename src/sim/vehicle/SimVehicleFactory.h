@@ -2,6 +2,7 @@
 #define _RAM_SIM_SIMVEHICLEFACTORY_H
 
 #include <ram.h>
+#include <Ice/Ice.h>
 #include "SimVehicle.h"
 
 namespace ram {

@@ -4,7 +4,7 @@ import os
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
 
 env.Append(FRAMEWORKS = ['OpenGL', 'GLUT'])
-env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '#src', '#build/native'])
+env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '#build/native', '#src'])
 env.Append(LIBPATH = ['/opt/local/lib'])
 env.Append(LIBS = ['Ice', 'IceUtil'])
 env.BuildDir('build','src')

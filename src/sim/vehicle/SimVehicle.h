@@ -2,6 +2,7 @@
 #define _RAM_SIM_SIMVEHICLE_H
 
 #include <ram.h>
+#include <Ice/Ice.h>
 #include "SimIMU.h"
 #include "SimPowerSource.h"
 #include "SimDepthSensor.h"
@@ -31,14 +32,14 @@ namespace ram {
             { devices.push_back(prx); }
         public:
             SimVehicle(const ::Ice::Current&c)
-            {
+            {/*
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimIMU("Yoyodyne Propulsion Systems IMU"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Absolute Pressure Sensor"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimPowerSource("Battery 1"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Bottom Ranging Sonar"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimPowerSource("Acme Thermonuclear Reactor"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Surface Ranging Sonar"))));
-            }
+            */}
             
             inline virtual vehicle::DeviceList getDevices(const ::Ice::Current&c)
             { return devices; }
