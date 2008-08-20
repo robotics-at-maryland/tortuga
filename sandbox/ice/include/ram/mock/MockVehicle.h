@@ -11,24 +11,24 @@ namespace ram {
         class MockVehicle : virtual public vehicle::IVehicle
         {
         private:
-            vehicle::DeviceDictionary devices;
+            vehicle::DeviceList devices;
             vehicle::IIMUPrx getFirstIMU()
             {
-                for (vehicle::DeviceDictionary::iterator iter = devices.begin();
+                for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
-                    if (iter->second->ice_isA("::ram::vehicle::IIMU"))
-                        return vehicle::IIMUPrx::uncheckedCast(iter->second);
+                    if ((*iter)->ice_isA("::ram::vehicle::IIMU"))
+                        return vehicle::IIMUPrx::uncheckedCast(*iter);
             }
             vehicle::IDepthSensorPrx getFirstDepthSensor()
             {
-                for (vehicle::DeviceDictionary::iterator iter = devices.begin();
+                for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
-                    if (iter->second->ice_isA("::ram::vehicle::IDepthSensor"))
-                        return vehicle::IDepthSensorPrx::uncheckedCast(iter->second);
+                    if ((*iter)->ice_isA("::ram::vehicle::IDepthSensor"))
+                        return vehicle::IDepthSensorPrx::uncheckedCast(*iter);
             }
             
             void addDevice(vehicle::IDevicePrx prx)
-            { devices[prx->getName()] = prx; }
+            { devices.push_back(prx); }
         public:
             MockVehicle(const ::Ice::Current&c)
             {
@@ -40,8 +40,22 @@ namespace ram {
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockDepthSensor("Surface Ranging Sonar"))));
             }
             
-            inline virtual vehicle::DeviceDictionary getDevices(const ::Ice::Current&c)
+            inline virtual vehicle::DeviceList getDevices(const ::Ice::Current&c)
             { return devices; }
+            
+            inline virtual vehicle::IDevicePrx getDeviceByName(const std::string& name, const ::Ice::Current&c)
+            {
+                for (vehicle::DeviceList::iterator iter = devices.begin();
+                    iter != devices.end() ; iter++)
+                    if ((*iter)->getName() == name)
+                        return *iter;
+                // Throw an exception if no matching device was found.
+                vehicle::DeviceNotFoundException e;
+                e.reason = "Could not find a device named '";
+                e.reason += name;
+                e.reason += "'.";
+                throw e;
+            }
             
             inline virtual double getDepth(const ::Ice::Current&c)
             { return getFirstDepthSensor()->getDepth(); }

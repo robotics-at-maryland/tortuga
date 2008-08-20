@@ -83,6 +83,11 @@ module ram
 	
 	module vehicle
 	{
+        exception DeviceNotFoundException
+        {
+            string reason;
+        };
+		
         interface IDevice
         {
             idempotent string getName();
@@ -145,10 +150,12 @@ module ram
             void setEnabled(bool tf);
         };
         
-        dictionary<string, IDevice*> DeviceDictionary;
+        sequence<IDevice*> DeviceList;
 		interface IVehicle
 		{
-            idempotent DeviceDictionary getDevices();
+            idempotent DeviceList getDevices();
+            idempotent IDevice* getDeviceByName(string name)
+                throws DeviceNotFoundException;
             idempotent double getDepth();
             idempotent math::Vector3 getLinearAcceleration();
             idempotent math::Vector3 getAngularRate();

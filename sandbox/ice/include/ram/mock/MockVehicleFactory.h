@@ -28,7 +28,7 @@ namespace ram {
                     std::cerr << "The vehicle '" << name << "' does not exist.  Creating it now." << std::endl;
                     vehicles[name] = vehicle::IVehiclePrx::uncheckedCast(c.adapter->addWithUUID(new MockVehicle(c)));
                 }
-                std::cerr << "Retrieving vehicle '" << name << '.' << std::endl;
+                std::cerr << "Retrieving vehicle '" << name << "'." << std::endl;
                 return vehicles[name];
             }
         };
