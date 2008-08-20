@@ -1,3 +1,11 @@
+#if defined(__APPLE__) || defined(MACOSX)
+    #include <GLUT/glut.h>
+    #include <OpenGL/gl.h>
+#else
+    #include <GL/glut.h>
+    #include <GL/gl.h>
+#endif
+
 #include <GL/glut.h>
 
 
