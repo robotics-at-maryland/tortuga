@@ -24,14 +24,14 @@ namespace ram {
         T randPlusMinus(T max)
         { return randBetween(-max, max); }
         
-        ::ram::math::Vector3Ptr randVector(double max = 1000)
+        transport::Vector3Ptr randVector(double max = 1000)
         {
-            return new ::ram::math::impl::Vector3(randPlusMinus(max), randPlusMinus(max), randPlusMinus(max));
+            return new math::Vector3(randPlusMinus(max), randPlusMinus(max), randPlusMinus(max));
         }
         
-        ::ram::math::QuaternionPtr randQuat(double max = 1000)
+        transport::QuaternionPtr randQuat(double max = 1000)
         {
-            return new ::ram::math::Quaternion(randPlusMinus(max), randPlusMinus(max), randPlusMinus(max), randPlusMinus(max));
+            return new math::Quaternion(randPlusMinus(max), randPlusMinus(max), randPlusMinus(max), randPlusMinus(max));
         }
     }
 }

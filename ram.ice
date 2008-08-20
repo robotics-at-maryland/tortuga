@@ -15,22 +15,9 @@ module ram
         };
     };
     
-	module math
+	module transport
 	{
 		class Vector3 {
-            // Methods not yet implemented
-            /*
-			idempotent double Dot(Vector3 v);
-            idempotent double Norm();
-			idempotent double NormSquared();
-			
-			idempotent Vector3 Normalize();
-			idempotent Vector3 Add(Vector3 v);
-			idempotent Vector3 Subtract(Vector3 v);
-			idempotent Vector3 Multiply(double s);
-			idempotent Vector3 Negate();
-			idempotent Vector3 CrossProduct(Vector3 v);
-            */
 			double x;
 			double y;
 			double z;
@@ -38,23 +25,6 @@ module ram
 		
 		class Quaternion
 		{
-            // Methods not yet implemented
-            /*
-			idempotent double Dot(Quaternion q);
-			idempotent double Norm();
-			idempotent double NormSquared();
-			
-			idempotent Quaternion Normalize();
-			idempotent Quaternion Add(Quaternion q);
-			idempotent Quaternion Subtract(Quaternion q);
-			idempotent Quaternion MultiplyQuaternion(Quaternion q);
-			idempotent Quaternion MultiplyScalar(double s);
-			idempotent Quaternion Inverse();
-			idempotent Quaternion Negate();
-			
-			idempotent Vector3 MultiplyVector(Vector3 v);
-			*/
-            
 			double w;
 			double x;
 			double y;
@@ -75,7 +45,7 @@ module ram
 			void yawVehicle(double degrees);
 			void pitchVehicle(double degrees);
 			void rollVehicle(double degrees);
-			idempotent math::Quaternion getDesiredOrientation();
+			idempotent transport::Quaternion getDesiredOrientation();
 			idempotent bool atDepth();
 			idempotent bool atOrientation();
 		};
@@ -117,9 +87,9 @@ module ram
         
         interface IIMU extends IDevice
         {
-            idempotent math::Vector3 getLinearAcceleration();
-            idempotent math::Vector3 getAngularRate();
-            idempotent math::Quaternion getOrientation();
+            idempotent transport::Vector3 getLinearAcceleration();
+            idempotent transport::Vector3 getAngularRate();
+            idempotent transport::Quaternion getOrientation();
         };
         
         interface IMarkerDropper extends IDevice
@@ -129,7 +99,7 @@ module ram
         
         interface ISonar extends IDevice
         {
-            idempotent math::Vector3 getDirection();
+            idempotent transport::Vector3 getDirection();
             idempotent double getRange();
             idempotent core::TimeVal getPingTime();
         };
@@ -157,9 +127,9 @@ module ram
             idempotent IDevice* getDeviceByName(string name)
                 throws DeviceNotFoundException;
             idempotent double getDepth();
-            idempotent math::Vector3 getLinearAcceleration();
-            idempotent math::Vector3 getAngularRate();
-            idempotent math::Quaternion getOrientation();
+            idempotent transport::Vector3 getLinearAcceleration();
+            idempotent transport::Vector3 getAngularRate();
+            idempotent transport::Quaternion getOrientation();
             void applyForcesAndTorques();
             void safeThrusters();
             void unsafeThrusters();

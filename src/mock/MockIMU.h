@@ -17,13 +17,13 @@ namespace ram {
             virtual std::string getName(const ::Ice::Current&c)
             { return name; }
             
-            virtual math::Vector3Ptr getLinearAcceleration(const ::Ice::Current&c)
+            virtual transport::Vector3Ptr getLinearAcceleration(const ::Ice::Current&c)
             { return randVector(); }
             
-            virtual math::Vector3Ptr getAngularRate(const ::Ice::Current&c)
+            virtual transport::Vector3Ptr getAngularRate(const ::Ice::Current&c)
             { return randVector(); }
             
-            virtual math::QuaternionPtr getOrientation(const ::Ice::Current&c)
+            virtual transport::QuaternionPtr getOrientation(const ::Ice::Current&c)
             { return randQuat(); }
         };
     }

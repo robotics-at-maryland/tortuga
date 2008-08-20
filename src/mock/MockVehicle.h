@@ -60,13 +60,13 @@ namespace ram {
             inline virtual double getDepth(const ::Ice::Current&c)
             { return getFirstDepthSensor()->getDepth(); }
             
-            inline virtual math::Vector3Ptr getLinearAcceleration(const ::Ice::Current&c)
+            inline virtual transport::Vector3Ptr getLinearAcceleration(const ::Ice::Current&c)
             { return getFirstIMU()->getLinearAcceleration(); }
             
-            inline virtual math::Vector3Ptr getAngularRate(const ::Ice::Current&c)
+            inline virtual transport::Vector3Ptr getAngularRate(const ::Ice::Current&c)
             { return getFirstIMU()->getAngularRate(); }
             
-            inline virtual math::QuaternionPtr getOrientation(const ::Ice::Current&c)
+            inline virtual transport::QuaternionPtr getOrientation(const ::Ice::Current&c)
             { return getFirstIMU()->getOrientation(); }
             
             inline virtual void applyForcesAndTorques(const ::Ice::Current&c)

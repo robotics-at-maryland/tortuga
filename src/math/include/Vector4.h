@@ -41,7 +41,6 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
-namespace impl {
 
     /** 4-dimensional homogenous vector.
     */
@@ -401,7 +400,6 @@ namespace impl {
     };
 
 
-} // namespace impl
 } // namespace math
 } // namespace ram
 

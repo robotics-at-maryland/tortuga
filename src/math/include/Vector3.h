@@ -45,7 +45,6 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
-namespace impl {
 
     /** Standard 3-dimensional vector.
         @remarks
@@ -54,21 +53,24 @@ namespace impl {
             scaling factors can be represented by a vector, depending on how
             you interpret the values.
     */
-    class RAM_EXPORT Vector3 : virtual public ::ram::math::Vector3
+    class RAM_EXPORT Vector3 : virtual public transport::Vector3
     {
-    //public:
-	//	Real x, y, z;
-
     public:
-        inline Vector3(::Ice::Double x, ::Ice::Double y, ::Ice::Double z)
-            : ::ram::math::Vector3(x, y, z) {}
-        
-        inline Vector3()
-        {}
-        
+        inline Vector3() : transport::Vector3()
+        {
+        }
+
+        inline Vector3( const Real fX, const Real fY, const Real fZ )
+            : transport::Vector3(fX, fY, fZ )
+        {
+        }
+
         inline explicit Vector3( const Real afCoordinate[3] )
-            : ::ram::math::Vector3(afCoordinate[0] , afCoordinate[1] , afCoordinate[2])
-        {}
+            : transport::Vector3(afCoordinate[0],
+              afCoordinate[1],
+              afCoordinate[2] )
+        {
+        }
 
         inline explicit Vector3( const int afCoordinate[3] )
         {
@@ -78,15 +80,21 @@ namespace impl {
         }
 
         inline explicit Vector3( Real* const r )
-            : ::ram::math::Vector3(r[0], r[1], r[2]) {}
+            : transport::Vector3(r[0], r[1], r[2])
+        {
+        }
 
         inline explicit Vector3( const Real scalar )
-            : ::ram::math::Vector3(scalar, scalar, scalar) {}
+            : transport::Vector3(scalar, scalar, scalar)
+        {
+        }
 
 
-        inline Vector3( const ::ram::math::Vector3& rkVector )
-            : ::ram::math::Vector3(rkVector.x, rkVector.y, rkVector.z) {}
-        
+        inline Vector3( const transport::Vector3& rkVector )
+            : transport::Vector3(rkVector.x, rkVector.y, rkVector.z)
+        {
+        }
+
 		inline Real operator [] ( const size_t i ) const
         {
             assert( i < 3 );
@@ -760,10 +768,8 @@ namespace impl {
             o << "Vector3(" << v.x << ", " << v.y << ", " << v.z << ")";
             return o;
         }
-        
     };
 
-} // namespace impl
 } // namespace math
 } // namespace ram
 

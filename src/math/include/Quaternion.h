@@ -51,6 +51,9 @@ Torus Knot Software Ltd.
 // Project Includes
 #include "math/include/Math.h"
 
+// ICE
+#include <ram.h>
+
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
@@ -60,14 +63,13 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
-namespace impl {
 
     class Matrix3;
     class Vector3;
     
     /** Implementation of a Quaternion, i.e. a rotation around an axis.
     */
-    class RAM_EXPORT Quaternion
+    class RAM_EXPORT Quaternion : virtual public transport::Quaternion
     {
     public:
         inline Quaternion (
@@ -271,8 +273,6 @@ namespace impl {
         static const Quaternion ZERO;
         static const Quaternion IDENTITY;
 
-		Real x, y, z, w;
-
         /** Function for writing to a stream. Outputs "Quaternion(w, x, y, z)" with w,x,y,z
             being the member values of the quaternion.
         */
@@ -290,7 +290,7 @@ namespace impl {
         
     };
 
-} // namespace impl
+
 } // namespace math
 } // namespace ram
 
