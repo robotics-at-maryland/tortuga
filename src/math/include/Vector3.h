@@ -33,6 +33,9 @@ Torus Knot Software Ltd.
 #include "math/include/Math.h"
 #include "math/include/Quaternion.h"
 
+// ICE
+#include <ram.h>
+
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES

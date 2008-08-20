@@ -54,7 +54,7 @@ bool Shader::loadShaderString(std::string vertex, std::string pixel)
 	glCompileShader(vertexShader);
 	glCompileShader(pixelShader);
 
-	int status;
+	GLint status;
 	char log[2048];
 
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status); 
