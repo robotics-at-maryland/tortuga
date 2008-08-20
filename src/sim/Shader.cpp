@@ -286,7 +286,7 @@ void Shader::bind()
 bool Shader::supportsShaders()
 {
 	// TODO fix
-	if ( glewIsSupported("GL_VERSION_2_0"))
+	if (GLEW_ARB_vertex_shader && GLEW_ARB_fragment_shader)
 		return true;
 	return false;
 }

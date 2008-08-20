@@ -23,6 +23,12 @@ void handle_kill(int);
 
 void initialize()
 {
+	if (!Shader::supportsShaders())
+	{
+		std::cerr << "No support for shaders\n";
+		return;
+	}
+
 	test = new Shader();
 	if (!test->loadShaderFile("shaders/test.glsl"))
 	{
