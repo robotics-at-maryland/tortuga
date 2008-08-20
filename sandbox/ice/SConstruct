@@ -32,7 +32,7 @@ env.Append(LIBS = [nativeIceLib])
 # MOCK SERVER
 ##############################
 
-env.Program(['build/mockserver.cpp'])
+env.Program('build/mockserver', ['build/mock/MockServer.cpp'])
 
 
 # MOCK CLIENT

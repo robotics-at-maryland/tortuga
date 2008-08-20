@@ -1,5 +1,5 @@
 #include <Ice/Ice.h>
-#include <ram/mock/MockVehicleFactory.h>
+#include "MockVehicleFactory.h"
 
 using namespace std;
 
