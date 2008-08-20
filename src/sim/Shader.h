@@ -21,13 +21,11 @@ public:
 	void setUniform(std::string name, float v0, float v1);
 	void setUniform(std::string name, float v0, float v1, float v2);
 	void setUniform(std::string name, float v0, float v1, float v2, float v3);
-	void setUniform(std::string name, float *v, int count);
 
 	void setUniform(std::string name, int v0);
 	void setUniform(std::string name, int v0, int v1);
 	void setUniform(std::string name, int v0, int v1, int v2);
 	void setUniform(std::string name, int v0, int v1, int v2, int v3);
-	void setUniform(std::string name, int *v, int count);
 
 	void setUniform(std::string name, const Vec2& v);
 	void setUniform(std::string name, const Vec3& v);

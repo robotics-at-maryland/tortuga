@@ -1,13 +1,3 @@
-#if defined(__APPLE__) || defined(MACOSX)
-    #include <GL/glew.h>
-	#include <GLUT/glut.h>
-	#include <OpenGL/gl.h>
-#else
-	#include <GL/glew.h>
-	#include <GL/glut.h>
-	#include <GL/gl.h>
-#endif
-
 #include <cstdlib>
 #include <iostream>
 #include <Ice/Ice.h>
@@ -26,36 +16,21 @@ void ice_stop();
 
 int main(int argc, char **argv)
 {
-    // Initalize GLUT
     glutInit(&argc, argv);
-   
-    // RGB+Alpha mode, double buffered
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-    
-    // Set window size
-    glutInitWindowSize(320, 240);
-    
-    // Position where the window will appear
-    glutInitWindowPosition(100, 100);
+    glutInitWindowSize(800, 600);
     
     // If you want full screen:
     // glutFullScreen();
     
-    // Create window and set the title
     win = glutCreateWindow("Robotics@Maryland Vehicle Simulator");
     
     // Set callbacks
     glutDisplayFunc(disp);
+	glutIdleFunc(disp);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyb);
-    
-    // Define color we use to clear the screen
-    glClearColor(0.0, 0.0, 0.0, 0.0);
 
-	if (Shader::supportsShaders())
-		std::cout << "Shaders supported!\n";
-	else
-		std::cout << "Shaders not supported.\n";
     
     // ICE initialization
     {
@@ -81,7 +56,6 @@ int main(int argc, char **argv)
         }
     }
     
-    // Enter run loop
     glutMainLoop();
     
     return 0;
@@ -95,6 +69,16 @@ void reshape(int width, int height)
 
 void disp()
 {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glColor3f(1, 0, 0);
+	glBegin(GL_LINES);
+	glVertex3f(-1.0f, -1.0f, 0.5f);
+	glVertex3f(1.0f, 1.0f, 0.5f);
+	glEnd();
+
+	glutSwapBuffers();
 }
 
 

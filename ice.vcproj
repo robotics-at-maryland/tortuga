@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\src;&quot;C:\Ice-3.3.0\include&quot;"
+				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\marshal;&quot;$(SolutionDir)src&quot;;&quot;C:\Ice-3.3.0\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\src;&quot;C:\Ice-3.3.0\include&quot;"
+				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\marshal;&quot;$(SolutionDir)src&quot;;&quot;C:\Ice-3.3.0\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -183,6 +183,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\src\sim\GraphicsUtils.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\sim\main.cpp"
 				>
 			</File>
@@ -200,6 +204,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\src\sim\GraphicsUtils.h"
+				>
+			</File>
 			<File
 				RelativePath=".\src\sim\Shader.h"
 				>

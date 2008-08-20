@@ -25,6 +25,17 @@ typedef ram::math::impl::Quaternion Quat;
 
 // Graphics
 
+#if defined(__APPLE__) || defined(MACOSX)
+    #include <GL/glew.h>
+	#include <GLUT/glut.h>
+	#include <OpenGL/gl.h>
+#else
+	#include <GL/glew.h>
+	#include <GL/glut.h>
+	#include <GL/gl.h>
+#endif
+
 #include "Shader.h"
+#include "GraphicsUtils.h"
 
 #endif

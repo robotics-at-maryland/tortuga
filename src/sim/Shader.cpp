@@ -31,13 +31,13 @@ Shader::Shader() : vertexShader(0), pixelShader(0), program(0), compiled(false),
 Shader::~Shader()
 {
 	if (compiled)
-		cleanup();
+		cleanup(program, vertexShader, pixelShader);
 }
 
 bool Shader::loadShaderString(std::string vertex, std::string pixel)
 {
 	if (compiled)
-		cleanup();
+		cleanup(program, vertexShader, pixelShader);
 	
 	compiled = false;
 	errors = "";
@@ -93,10 +93,10 @@ bool Shader::loadShaderString(std::string shader)
 	size_t vp = shader.find("[vertex]");
 	size_t fp = shader.find("[pixel]");
 
-	if (vp == string::npos || fp == string::npos)
+	if (vp == std::string::npos || fp == std::string::npos)
 	{
 		if (compiled)
-			cleanup();
+			cleanup(program, vertexShader, pixelShader);
 		compiled = false;
 		errors = "[vertex] / [pixel] could not be found in the source string";
 		return false;
@@ -127,7 +127,7 @@ bool Shader::loadShaderFile(std::string vertex, std::string pixel)
 	if (fp == NULL)
 	{
 		if (compiled)
-			cleanup();
+			cleanup(program, vertexShader, pixelShader);
 		compiled = false;
 		errors = "could not open source file: " + vertex;
 		return false;
@@ -140,7 +140,7 @@ bool Shader::loadShaderFile(std::string vertex, std::string pixel)
 		if (count > 0) 
 		{
 			content = new char[sizeof(char) * (count+1)];
-			count = fread(content,sizeof(char),count,fp);
+			count = (int)fread(content,sizeof(char),count,fp);
 			content[count] = '\0';
 		}
 		fclose(fp);
@@ -153,7 +153,7 @@ bool Shader::loadShaderFile(std::string vertex, std::string pixel)
 	if (fp == NULL)
 	{
 		if (compiled)
-			cleanup();
+			cleanup(program, vertexShader, pixelShader);
 		compiled = false;
 		errors = "could not open source file: " + pixel;
 		return false;
@@ -166,7 +166,7 @@ bool Shader::loadShaderFile(std::string vertex, std::string pixel)
 		if (count > 0) 
 		{
 			content = new char[sizeof(char) * (count+1)];
-			count = fread(content,sizeof(char),count,fp);
+			count = (int)fread(content,sizeof(char),count,fp);
 			content[count] = '\0';
 		}
 		fclose(fp);
@@ -188,7 +188,7 @@ bool Shader::loadShaderFile(std::string shader)
 	if (fp == NULL)
 	{
 		if (compiled)
-			cleanup();
+			cleanup(program, vertexShader, pixelShader);
 		compiled = false;
 		errors = "could not open source file: " + shader;
 		return false;
@@ -201,7 +201,7 @@ bool Shader::loadShaderFile(std::string shader)
 		if (count > 0) 
 		{
 			content = new char[sizeof(char) * (count+1)];
-			count = fread(content,sizeof(char),count,fp);
+			count = (int)fread(content,sizeof(char),count,fp);
 			content[count] = '\0';
 		}
 		fclose(fp);
@@ -233,11 +233,6 @@ void Shader::setUniform(std::string name, float v0, float v1, float v2, float v3
 	glUniform4f(glGetUniformLocation(program, name.c_str()), v0, v1, v2, v3); 
 }
 
-void Shader::setUniform(std::string name, float *v, int count)
-{
-	glUniformfv(glGetUniformLocation(program, name.c_str()), count, v); 
-}
-
 void Shader::setUniform(std::string name, int v0)
 {
 	glUniform1i(glGetUniformLocation(program, name.c_str()), v0); 
@@ -256,11 +251,6 @@ void Shader::setUniform(std::string name, int v0, int v1, int v2)
 void Shader::setUniform(std::string name, int v0, int v1, int v2, int v3)
 {
 	glUniform4i(glGetUniformLocation(program, name.c_str()), v0, v1, v2, v3);
-}
-
-void Shader::setUniform(std::string name, int *v, int count)
-{
-	glUniformiv(glGetUniformLocation(program, name.c_str()), count, v);
 }
 
 void Shader::setUniform(std::string name, const Vec2& v)
