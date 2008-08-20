@@ -44,4 +44,5 @@ env.Install('build/python','python/mockclient.py')
 # SIMULATOR
 ##############################
 
-env.Program('build/sim', env.Glob('src/sim/*.cpp'));
+simSource = env.Glob('src/sim/*.cpp') + env.Glob('src/sim/vehicle/*.cpp')
+env.Program('build/sim', simSource);
