@@ -1,5 +1,5 @@
 #if defined(__APPLE__) || defined(MACOSX)
-	#include <OpenGL/glew.h>
+    #include <GL/glew.h>
 	#include <GLUT/glut.h>
 	#include <OpenGL/gl.h>
 #else

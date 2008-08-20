@@ -45,4 +45,5 @@ env.Install('build/python','python/mockclient.py')
 ##############################
 
 simSource = env.Glob('src/sim/*.cpp') + env.Glob('src/sim/vehicle/*.cpp')
+env.Append(LIBS = ['GLEW'])
 env.Program('build/sim', simSource);
