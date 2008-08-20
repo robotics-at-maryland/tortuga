@@ -15,6 +15,7 @@
 
 namespace ram {
 namespace math {
+namespace impl {
 
 void RAM_EXPORT tilde(double w[3], double * ptilde);
 double RAM_EXPORT sign(double variable);
@@ -60,6 +61,8 @@ void RAM_EXPORT rotationRoll(double phi, double * pMatrix);
 void RAM_EXPORT rotationPitch(double theta, double * pMatrix);
 void RAM_EXPORT rotationYaw(double psi, double * pMatrix);
 
+    
+} // namespace impl
 } // namespace math
 } // namespace ram
     

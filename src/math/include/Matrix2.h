@@ -71,6 +71,7 @@ edited by Joseph Gland and Jaymit Patel on 2008-2-19
 
 namespace ram {
 namespace math {
+namespace impl {
 
     /** A 2x2 matrix 
         @note
@@ -256,6 +257,8 @@ namespace math {
 Vector2 operator* (const Vector2& rkPoint, const Matrix2& rkMatrix);
 Matrix2 operator* (Real fScalar, const Matrix2& rkMatrix);
     
+    
+} // namespace impl
 } // namespace math
 } // namespace ram
 

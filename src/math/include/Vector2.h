@@ -47,6 +47,7 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
+namespace impl {
 
     /** Standard 2-dimensional vector.
         @remarks
@@ -533,6 +534,8 @@ namespace math {
 
     };
 
+    
+} // namespace impl
 } // namespace math
 } // namespace ram
 

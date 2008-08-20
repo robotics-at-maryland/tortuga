@@ -43,6 +43,7 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
+namespace impl {
 
     /** Class encapsulating a standard 4x4 homogenous matrix.
         @remarks
@@ -622,6 +623,8 @@ namespace math {
             );
     }
 
+    
+} // namespace impl
 } // namespace math
 } // namespace ram
 

@@ -28,6 +28,7 @@
 
 namespace ram {
 namespace math {
+namespace impl {
 
 class RAM_EXPORT MatrixN
 {
@@ -422,6 +423,8 @@ inline MatrixN operator * (Real scalar, const MatrixN& mat)
 	return out;
 }
 
+    
+} // namespace impl
 } // namespace math
 } // namespace ram
 

@@ -11,13 +11,13 @@
 #include "math/include/Matrix4.h"
 #include "math/include/Quaternion.h"
 
-typedef ram::math::Vector2 Vec2;
-typedef ram::math::Vector3 Vec3;
-typedef ram::math::Vector4 Vec4;
-typedef ram::math::Matrix2 Mat2;
-typedef ram::math::Matrix3 Mat3;
-typedef ram::math::Matrix4 Mat4;
-typedef ram::math::Quaternion Quat;
+typedef ram::math::impl::Vector2 Vec2;
+typedef ram::math::impl::Vector3 Vec3;
+typedef ram::math::impl::Vector4 Vec4;
+typedef ram::math::impl::Matrix2 Mat2;
+typedef ram::math::impl::Matrix3 Mat3;
+typedef ram::math::impl::Matrix4 Mat4;
+typedef ram::math::impl::Quaternion Quat;
 
 // Simulation
 

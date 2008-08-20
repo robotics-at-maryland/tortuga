@@ -46,6 +46,7 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
+namespace impl {
 
     class Degree;
     
@@ -632,6 +633,8 @@ namespace math {
 		return Degree ( a / b.valueDegrees() );
 	}
     
+    
+} // namespace impl
 } // namespace math
 } // namespace ram
 

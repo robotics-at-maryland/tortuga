@@ -26,6 +26,7 @@
 
 namespace ram {
 namespace math {
+namespace impl {
 
     /** N-dimensional homogenous vector.
     */
@@ -494,7 +495,9 @@ namespace math {
         }
 
     };
-}
-}
+    
+} // namespace impl
+} // namespace math
+} // namespace ram
 
 #endif

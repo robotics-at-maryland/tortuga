@@ -63,6 +63,7 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
+namespace impl {
 
     /** A 3x3 matrix which can represent rotations around axes.
         @note
@@ -365,6 +366,8 @@ namespace math {
         friend class Matrix4;
     };
 
+    
+} // namespace impl
 } // namespace math
 } // namespace ram
 

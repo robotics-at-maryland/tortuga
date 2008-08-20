@@ -60,6 +60,7 @@ Torus Knot Software Ltd.
 
 namespace ram {
 namespace math {
+namespace impl {
 
     class Matrix3;
     class Vector3;
@@ -289,7 +290,7 @@ namespace math {
         
     };
 
-
+} // namespace impl
 } // namespace math
 } // namespace ram
 

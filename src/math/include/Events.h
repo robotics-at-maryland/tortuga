@@ -17,6 +17,7 @@
 
 namespace ram {
 namespace math {
+namespace impl {
 
 struct OrientationEvent : public core::Event
 {
@@ -38,7 +39,8 @@ struct NumericEvent : public core::Event
 };
 
 typedef boost::shared_ptr<NumericEvent> NumericEventPtr;
-    
+
+} // namespace impl
 } // namespace math
 } // namespace ram
 
