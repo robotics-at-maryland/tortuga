@@ -105,13 +105,13 @@ bool Shader::loadShaderString(std::string shader)
 	std::string vertex, pixel;
 	if (vp < fp)
 	{
-		vertex = shader.substr(vp+8, fp);
+		vertex = shader.substr(vp+8, fp-8);
 		pixel = shader.substr(fp+8);
 	}
 	else
 	{
 		vertex = shader.substr(vp+8);
-		pixel = shader.substr(fp+8, vp);
+		pixel = shader.substr(fp+8, vp-8);
 	}
 
 	return loadShaderString(vertex, pixel);

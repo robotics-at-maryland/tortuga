@@ -5,6 +5,9 @@
 
 #include "Sim.h"
 
+// Globals
+Shader *test;
+
 // OpenGL callbacks
 static int win;
 void reshape(int width, int height);
@@ -17,6 +20,16 @@ void ice_stop();
 
 // Signal handlers
 void handle_kill(int);
+
+void initialize()
+{
+	test = new Shader();
+	if (!test->loadShaderFile("shaders/test.glsl"))
+	{
+		std::cout << "Errors compiling shader\n";
+		std::cout << test->getErrors();
+	}
+}
 
 int main(int argc, char **argv)
 {
@@ -62,6 +75,8 @@ int main(int argc, char **argv)
             return status;
         }
     }
+
+	initialize();
     
     std::cerr << "Starting GLUT main loop." << std::endl;
     
@@ -81,11 +96,8 @@ void disp()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glColor3f(1, 0, 0);
-	glBegin(GL_LINES);
-	glVertex3f(-1.0f, -1.0f, 0.5f);
-	glVertex3f(1.0f, 1.0f, 0.5f);
-	glEnd();
+	glColor3f(1, 0.5f, 0.5f);
+	GraphicsUtils::drawText(50, 50, "This is Text!!!!");
 
 	glutSwapBuffers();
 }
@@ -105,6 +117,7 @@ void keyb(unsigned char key, int x, int y)
 
 void ice_stop()
 {
+	std::cerr.flush();
     if (ic) {
         std::cerr << "Attempting to shut down ICE." << std::endl;
         try {
