@@ -22,4 +22,6 @@ env.Append(LIBS = [nativeIceLib])
 
 env.Program(['build/mockserver.cpp'])
 
+env.Program('build/sim', env.Glob('src/sim/*.cpp'));
+
 env.Install('build/python','python/mockclient.py')
