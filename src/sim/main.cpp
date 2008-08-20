@@ -1,16 +1,18 @@
 #if defined(__APPLE__) || defined(MACOSX)
-    #include <GLUT/glut.h>
-    #include <OpenGL/gl.h>
+	#include <OpenGL/glew.h>
+	#include <GLUT/glut.h>
+	#include <OpenGL/gl.h>
 #else
-    #include <GL/glut.h>
-    #include <GL/gl.h>
+	#include <GL/glew.h>
+	#include <GL/glut.h>
+	#include <GL/gl.h>
 #endif
 
 #include <cstdlib>
 #include <iostream>
 #include <Ice/Ice.h>
 
-#include "vehicle/SimVehicleFactory.h"
+#include "Sim.h"
 
 // OpenGL callbacks
 static int win;
@@ -26,7 +28,7 @@ int main(int argc, char **argv)
 {
     // Initalize GLUT
     glutInit(&argc, argv);
-    
+   
     // RGB+Alpha mode, double buffered
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
     
@@ -49,6 +51,11 @@ int main(int argc, char **argv)
     
     // Define color we use to clear the screen
     glClearColor(0.0, 0.0, 0.0, 0.0);
+
+	if (Shader::supportsShaders())
+		std::cout << "Shaders supported!\n";
+	else
+		std::cout << "Shaders not supported.\n";
     
     // ICE initialization
     {
