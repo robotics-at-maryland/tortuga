@@ -29,10 +29,12 @@ typedef ram::math::impl::Quaternion Quat;
     #include <GL/glew.h>
 	#include <GLUT/glut.h>
 	#include <OpenGL/gl.h>
+	#include <OpenGL/glu.h>
 #else
 	#include <GL/glew.h>
 	#include <GL/glut.h>
 	#include <GL/gl.h>
+	#include <GL/glu.h>
 #endif
 
 #include "Shader.h"

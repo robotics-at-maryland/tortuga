@@ -286,7 +286,7 @@ void Shader::bind()
 bool Shader::supportsShaders()
 {
 	// TODO fix
-	if (GLEW_ARB_shader_objects && GLEW_ARB_shading_language_100)
+	if (gluCheckExtension((const GLubyte*)"GL_ARB_shading_language_100") == GL_TRUE)
 		return true;
 	//if ( glewIsSupported("GL_VERSION_2_0"))
 	//	return true;
