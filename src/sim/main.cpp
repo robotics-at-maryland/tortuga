@@ -57,7 +57,8 @@ int main(int argc, char **argv)
     }
     
     glutMainLoop();
-    
+
+	exit(0);
     return 0;
 }
 

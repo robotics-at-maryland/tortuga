@@ -63,7 +63,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="iced.lib iceutild.lib glut32.lib opengl32.lib glew32.lib"
+				AdditionalDependencies="iced.lib iceutild.lib glut32.lib opengl32.lib glew32.lib glu32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\Ice-3.3.0\lib"
 				GenerateDebugInformation="true"
