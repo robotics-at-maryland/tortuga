@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <signal.h>
 #include <iostream>
 #include <Ice/Ice.h>
 
@@ -13,6 +14,9 @@ void keyb(unsigned char key, int x, int y);
 // ICE callbacks
 static Ice::CommunicatorPtr ic;
 void ice_stop();
+
+// Signal handlers
+void handle_kill(int);
 
 int main(int argc, char **argv)
 {
@@ -36,6 +40,9 @@ int main(int argc, char **argv)
     {
         int status = 0;
         atexit(ice_stop);
+        signal(SIGTERM, handle_kill);
+        signal(SIGABRT, handle_kill);
+        signal(SIGINT, handle_kill);
         try {
             ic = Ice::initialize(argc, argv);
             Ice::ObjectAdapterPtr adapter
@@ -56,9 +63,10 @@ int main(int argc, char **argv)
         }
     }
     
+    std::cerr << "Starting GLUT main loop." << std::endl;
+    
     glutMainLoop();
 
-	exit(0);
     return 0;
 }
 
@@ -97,8 +105,8 @@ void keyb(unsigned char key, int x, int y)
 
 void ice_stop()
 {
-    std::cerr << "Attempting to shut down ICE." << std::endl;
     if (ic) {
+        std::cerr << "Attempting to shut down ICE." << std::endl;
         try {
             ic->destroy();
             std::cerr << "ICE is now down." << std::endl;
@@ -106,4 +114,12 @@ void ice_stop()
             std::cerr << "Could not destroy ICE: " << e << std::endl;
         }
     }
+}
+
+
+void handle_kill(int a)
+{
+    std::cerr << "Terminating program." << std::endl;
+    glutDestroyWindow(win);
+    exit(1);
 }
