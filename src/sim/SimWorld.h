@@ -28,19 +28,19 @@ namespace ram {
             : motionState(), body(mass, &motionState, collisionShape, localInertia) {}
             virtual ~RigidBody() {}
             
-            inline const btVector3& getLinearVelocity() const
+            const btVector3& getLinearVelocity() const
             { return body.getLinearVelocity(); }
             
-            inline const btVector3& getAngularVelocity() const
+            const btVector3& getAngularVelocity() const
             { return body.getAngularVelocity(); }
             
-            inline const btVector3& getCenterOfMassPosition() const
+            const btVector3& getCenterOfMassPosition() const
             { return body.getCenterOfMassPosition(); }
             
-            inline const btTransform& getCenterOfMassTransform const
+            const btTransform& getCenterOfMassTransform() const
             { return body.getCenterOfMassTransform(); }
             
-            inline btQuaternion getOrientation() const
+            btQuaternion getOrientation() const
             { return body.getOrientation(); }
             
         protected:

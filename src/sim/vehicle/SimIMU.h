@@ -2,6 +2,8 @@
 #define _RAM_SIM_SIMIMU_H
 
 #include <ram.h>
+#include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
 #include "SimDevice.h"
 
 namespace ram {

@@ -3,6 +3,7 @@
 
 #include <ram.h>
 
+#include "SimVehicle.h"
 #include "SimDevice.h"
 
 namespace ram {
@@ -12,16 +13,16 @@ namespace ram {
         private:
             btVector3 localPos;
             SimVehicle& parent;
-            btScalar depth = 0;
+            btScalar depth;
         public:
-            SimDepthSensor(SimVehicle& mParent, std::string mName) : SimDevice(mName), parent(mParent) {}
+            SimDepthSensor(SimVehicle& mParent, std::string mName) : SimDevice(mName), parent(mParent), depth(0), localPos(0, 0, 0) {}
             
             virtual double getDepth(const ::Ice::Current&c)
             { return depth; }
             
             virtual void stepSimulation(SimWorld& world, btScalar timeStep)
             {
-                depth = world.getGravity().dot(parent.getCenterOfMassPosition() + btTransform(parent.getOrientation()) * localPos) * world.getFluidDensity();
+                depth = world.getFluidLevel() + (parent.getCenterOfMassTransform() * localPos).dot(world.getGravity().normalized());
             }
         };
     }

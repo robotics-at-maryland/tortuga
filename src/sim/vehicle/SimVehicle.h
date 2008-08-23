@@ -3,9 +3,7 @@
 
 #include <ram.h>
 #include <Ice/Ice.h>
-#include "SimIMU.h"
-#include "SimPowerSource.h"
-#include "SimDepthSensor.h"
+#include "SimDevice.h"
 #include "../SimWorld.h"
 
 namespace ram {
@@ -14,6 +12,7 @@ namespace ram {
         private:
             btBoxShape collisionShape;
             vehicle::DeviceList devices;
+            std::vector<SimDevice*> deviceServants;
             
             vehicle::IIMUPrx getFirstIMU() {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
@@ -29,21 +28,13 @@ namespace ram {
                         return vehicle::IDepthSensorPrx::uncheckedCast(*iter);
             }
             
-            void addDevice(vehicle::IDevicePrx prx)
-            { devices.push_back(prx); }
-        public:
-            SimVehicle(const ::Ice::Current&c)
-            : collisionShape(btVector3(0.25,0.25,0.75)), BuoyantBody(80, &collisionShape, btVector3(5, 5, 10))
+            void addDevice(SimDevice* dev, const ::Ice::Current&c)
             {
-                setBuoyantVolume(0.1);
-                setCenterOfBuoyancyPosition(btVector3(0.05,0,0.005));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimIMU("Yoyodyne Propulsion Systems IMU"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Absolute Pressure Sensor"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimPowerSource("Battery 1"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Bottom Ranging Sonar"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimPowerSource("Acme Thermonuclear Reactor"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Surface Ranging Sonar"))));
+                devices.push_back(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(dev)));
+                deviceServants.push_back(dev);
             }
+        public:
+            SimVehicle(const ::Ice::Current&c);
             
             inline virtual vehicle::DeviceList getDevices(const ::Ice::Current&c)
             { return devices; }
@@ -86,9 +77,13 @@ namespace ram {
             inline virtual void dropMarker(const ::Ice::Current&c)
             { /* TODO */ }
             
+        protected:
             virtual void stepSimulation(SimWorld& world, btScalar timeStep)
             {
-                for (vehicle::
+                BuoyantBody::stepSimulation(world, timeStep);
+                for (std::vector<SimDevice*>::iterator iter = deviceServants.begin();
+                     iter != deviceServants.end() ; iter++)
+                    (*iter)->stepSimulation(world, timeStep);
             }
             
         };
