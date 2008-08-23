@@ -22,7 +22,7 @@ try:
     print 'Loading Ice client runtime...'
     ic = Ice.initialize(sys.argv)
     base = ic.stringToProxy("factory:default -p 10000")
-    factory = ram.vehicle.IVehicleFactoryPrx.checkedCast(base)
+    factory = ram.vehicle.VehicleFactoryPrx.checkedCast(base)
     if not factory:
         raise RuntimeError("Invalid proxy")
 except:
