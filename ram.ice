@@ -25,10 +25,10 @@ module ram
 		
 		class Quaternion
 		{
-			double w;
 			double x;
 			double y;
 			double z;
+			double w;
 		};
 	};
 	
