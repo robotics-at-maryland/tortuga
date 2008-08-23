@@ -34,7 +34,7 @@ module ram
 	
 	module control
 	{
-		interface IController
+		interface Controller
 		{
 			void setSpeed(double speed);
 			void setDepth(double depth);
@@ -58,58 +58,58 @@ module ram
             string reason;
         };
 		
-        interface IDevice
+        interface Device
         {
             idempotent string getName();
         };
         
-        interface ICurrentProvider extends IDevice
+        interface CurrentProvider extends Device
         {
             idempotent double getCurrent();
         };
         
-        interface IVoltageProvider extends IDevice
+        interface VoltageProvider extends Device
         {
             idempotent double getVoltage();
         };
         
-        interface IPowerSource extends ICurrentProvider, IVoltageProvider
+        interface PowerSource extends CurrentProvider, VoltageProvider
         {
             idempotent bool isEnabled();
             idempotent bool inUse();
             void setEnabled(bool state);
         };
         
-        interface IDepthSensor extends IDevice
+        interface DepthSensor extends Device
         {
             idempotent double getDepth();
         };
         
-        interface IIMU extends IDevice
+        interface IMU extends Device
         {
             idempotent transport::Vector3 getLinearAcceleration();
             idempotent transport::Vector3 getAngularRate();
             idempotent transport::Quaternion getOrientation();
         };
         
-        interface IMarkerDropper extends IDevice
+        interface MarkerDropper extends Device
         {
             void dropMarker();
         };
         
-        interface ISonar extends IDevice
+        interface Sonar extends Device
         {
             idempotent transport::Vector3 getDirection();
             idempotent double getRange();
             idempotent core::TimeVal getPingTime();
         };
         
-        interface ITempSensor extends IDevice
+        interface TempSensor extends Device
         {
             idempotent int getTemp();
         };
         
-        interface IThruster extends IDevice
+        interface Thruster extends Device
         {
             void setForce(double newtons);
             idempotent double getForce();
@@ -120,11 +120,11 @@ module ram
             void setEnabled(bool tf);
         };
         
-        sequence<IDevice*> DeviceList;
+        sequence<Device*> DeviceList;
 		interface IVehicle
 		{
-            idempotent DeviceList getDevices();
-            idempotent IDevice* getDeviceByName(string name)
+            idempotent vehicle::DeviceList getDevices();
+            idempotent vehicle::Device* getDeviceByName(string name)
                 throws DeviceNotFoundException;
             idempotent double getDepth();
             idempotent transport::Vector3 getLinearAcceleration();
@@ -142,7 +142,7 @@ module ram
         };
 		
         dictionary<string, IVehicle*> VehicleDictionary;
-		interface IVehicleFactory
+		interface VehicleFactory
 		{
 			IVehicle* getVehicleByName(string vehicleName)
                 throws CannotCreateException;

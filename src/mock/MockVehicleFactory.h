@@ -6,7 +6,7 @@
 
 namespace ram {
     namespace mock {
-        class MockVehicleFactory : virtual public vehicle::IVehicleFactory
+        class MockVehicleFactory : virtual public vehicle::VehicleFactory
         {
         private:
             vehicle::VehicleDictionary vehicles;

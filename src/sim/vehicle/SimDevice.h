@@ -6,7 +6,7 @@
 
 namespace ram {
     namespace sim {
-        class SimDevice : virtual public vehicle::IDevice, public PhysicsUpdatable
+        class SimDevice : virtual public vehicle::Device, public PhysicsUpdatable
         {
             friend class SimVehicle;
         private:

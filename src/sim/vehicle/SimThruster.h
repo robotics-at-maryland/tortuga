@@ -8,7 +8,7 @@
 
 namespace ram {
     namespace sim {
-        class SimThruster : virtual public vehicle::IThruster, public SimDevice, public BuoyantBody
+        class SimThruster : virtual public vehicle::Thruster, public SimDevice, public BuoyantBody
         {
         private:
             btTransform localTransform;

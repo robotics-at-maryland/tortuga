@@ -3,18 +3,14 @@
 
 #include <ram.h>
 #include "MockUtil.h"
+#include "MockDevice.h"
 
 namespace ram {
     namespace mock {
-        class MockDepthSensor : virtual public vehicle::IDepthSensor
+        class MockDepthSensor : virtual public vehicle::DepthSensor, public MockDevice
         {
-        private:
-            std::string name;
         public:
-            MockDepthSensor(std::string mName) : name(mName) {}
-            
-            virtual std::string getName(const ::Ice::Current&c)
-            { return name; }
+            MockDepthSensor(const std::string& name) : MockDevice(name) {}
             
             virtual double getDepth(const ::Ice::Current&c)
             { return randUpTo(25); }

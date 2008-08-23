@@ -2,20 +2,15 @@
 #define _RAM_MOCK_MOCKIMU_H
 
 #include <ram.h>
-#include <stdlib.h>
 #include "MockUtil.h"
+#include "MockDevice.h"
 
 namespace ram {
     namespace mock {
-        class MockIMU : virtual public vehicle::IIMU
+        class MockIMU : virtual public vehicle::IMU, public MockDevice
         {
-        private:
-            std::string name;
         public:
-            MockIMU(std::string mName) : name(mName) {}
-            
-            virtual std::string getName(const ::Ice::Current&c)
-            { return name; }
+            MockIMU(const std::string& name) : MockDevice(name) {}
             
             virtual transport::Vector3Ptr getLinearAcceleration(const ::Ice::Current&c)
             { return randVector(); }

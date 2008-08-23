@@ -12,38 +12,38 @@ namespace ram {
         {
         private:
             vehicle::DeviceList devices;
-            vehicle::IIMUPrx getFirstIMU()
+            vehicle::IMUPrx getFirstIMU()
             {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
-                    if ((*iter)->ice_isA("::ram::vehicle::IIMU"))
-                        return vehicle::IIMUPrx::uncheckedCast(*iter);
+                    if ((*iter)->ice_isA("::ram::vehicle::IMU"))
+                        return vehicle::IMUPrx::uncheckedCast(*iter);
             }
-            vehicle::IDepthSensorPrx getFirstDepthSensor()
+            vehicle::DepthSensorPrx getFirstDepthSensor()
             {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
-                    if ((*iter)->ice_isA("::ram::vehicle::IDepthSensor"))
-                        return vehicle::IDepthSensorPrx::uncheckedCast(*iter);
+                    if ((*iter)->ice_isA("::ram::vehicle::DepthSensor"))
+                        return vehicle::DepthSensorPrx::uncheckedCast(*iter);
             }
             
-            void addDevice(vehicle::IDevicePrx prx)
+            void addDevice(vehicle::DevicePrx prx)
             { devices.push_back(prx); }
         public:
             MockVehicle(const ::Ice::Current&c)
             {
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockIMU("Yoyodyne Propulsion Systems IMU"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockDepthSensor("Absolute Pressure Sensor"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockPowerSource("Battery 1"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockDepthSensor("Bottom Ranging Sonar"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockPowerSource("Acme Thermonuclear Reactor"))));
-                addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockDepthSensor("Surface Ranging Sonar"))));
+                addDevice(vehicle::DevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockIMU("Yoyodyne Propulsion Systems IMU"))));
+                addDevice(vehicle::DevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockDepthSensor("Absolute Pressure Sensor"))));
+                addDevice(vehicle::DevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockPowerSource("Battery 1"))));
+                addDevice(vehicle::DevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockDepthSensor("Bottom Ranging Sonar"))));
+                addDevice(vehicle::DevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockPowerSource("Acme Thermonuclear Reactor"))));
+                addDevice(vehicle::DevicePrx::uncheckedCast(c.adapter->addWithUUID(new MockDepthSensor("Surface Ranging Sonar"))));
             }
             
             inline virtual vehicle::DeviceList getDevices(const ::Ice::Current&c)
             { return devices; }
             
-            inline virtual vehicle::IDevicePrx getDeviceByName(const std::string& name, const ::Ice::Current&c)
+            inline virtual vehicle::DevicePrx getDeviceByName(const std::string& name, const ::Ice::Current&c)
             {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)

@@ -9,7 +9,7 @@
 
 namespace ram {
     namespace sim {
-        class SimVehicleFactory : virtual public vehicle::IVehicleFactory {
+        class SimVehicleFactory : virtual public vehicle::VehicleFactory {
         private:
             vehicle::VehicleDictionary vehicles;
             SimWorld& dynamicsWorld;

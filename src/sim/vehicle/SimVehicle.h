@@ -14,23 +14,23 @@ namespace ram {
             vehicle::DeviceList devices;
             std::vector<SimDevice*> deviceServants;
             
-            vehicle::IIMUPrx getFirstIMU() {
+            vehicle::IMUPrx getFirstIMU() {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
-                    if ((*iter)->ice_isA("::ram::vehicle::IIMU"))
-                        return vehicle::IIMUPrx::uncheckedCast(*iter);
+                    if ((*iter)->ice_isA("::ram::vehicle::IMU"))
+                        return vehicle::IMUPrx::uncheckedCast(*iter);
             }
             
-            vehicle::IDepthSensorPrx getFirstDepthSensor() {
+            vehicle::DepthSensorPrx getFirstDepthSensor() {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
-                    if ((*iter)->ice_isA("::ram::vehicle::IDepthSensor"))
-                        return vehicle::IDepthSensorPrx::uncheckedCast(*iter);
+                    if ((*iter)->ice_isA("::ram::vehicle::DepthSensor"))
+                        return vehicle::DepthSensorPrx::uncheckedCast(*iter);
             }
             
             void addDevice(SimDevice* dev, const ::Ice::Current&c)
             {
-                devices.push_back(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(dev)));
+                devices.push_back(vehicle::DevicePrx::uncheckedCast(c.adapter->addWithUUID(dev)));
                 deviceServants.push_back(dev);
             }
         public:
@@ -39,7 +39,7 @@ namespace ram {
             inline virtual vehicle::DeviceList getDevices(const ::Ice::Current&c)
             { return devices; }
             
-            inline virtual vehicle::IDevicePrx getDeviceByName(const std::string& name, const ::Ice::Current&c)
+            inline virtual vehicle::DevicePrx getDeviceByName(const std::string& name, const ::Ice::Current&c)
             {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)

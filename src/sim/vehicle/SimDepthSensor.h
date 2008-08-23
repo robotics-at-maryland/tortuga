@@ -8,7 +8,7 @@
 
 namespace ram {
     namespace sim {
-        class SimDepthSensor : virtual public vehicle::IDepthSensor, public SimDevice
+        class SimDepthSensor : virtual public vehicle::DepthSensor, public SimDevice
         {
         private:
             btVector3 localPos;

@@ -6,7 +6,7 @@
 
 namespace ram {
     namespace sim {
-        class SimPowerSource : virtual public vehicle::IPowerSource, public SimDevice
+        class SimPowerSource : virtual public vehicle::PowerSource, public SimDevice
         {
         public:
             SimPowerSource(std::string mName) : SimDevice(mName) {}

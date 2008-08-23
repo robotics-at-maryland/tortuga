@@ -3,19 +3,16 @@
 
 #include <ram.h>
 #include "MockUtil.h"
+#include "MockDevice.h"
 
 namespace ram {
     namespace mock {
-        class MockPowerSource : virtual public vehicle::IPowerSource
+        class MockPowerSource : virtual public vehicle::PowerSource, public MockDevice
         {
         private:
             bool enabled;
-            std::string name;
         public:
-            MockPowerSource(std::string mName) : name(mName), enabled(true) {}
-            
-            virtual std::string getName(const ::Ice::Current&c)
-            { return name; }
+            MockPowerSource(const std::string& name) : MockDevice(name), enabled(true) {}
             
             virtual bool isEnabled(const ::Ice::Current&c)
             { return enabled; }

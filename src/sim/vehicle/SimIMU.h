@@ -8,7 +8,7 @@
 
 namespace ram {
     namespace sim {
-        class SimIMU : virtual public vehicle::IIMU, public SimDevice
+        class SimIMU : virtual public vehicle::IMU, public SimDevice
         {
         private:
             SimVehicle& parent;
