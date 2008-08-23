@@ -1,15 +1,19 @@
 #include <cstdlib>
 #include <signal.h>
 #include <iostream>
+#include <sys/time.h>
+
 #include <Ice/Ice.h>
 
 #include "Sim.h"
+#include "SimWorld.h"
 
 // Globals
 Shader *test;
 
 // OpenGL callbacks
 static int win;
+static timeval lastDrawn;
 void reshape(int width, int height);
 void disp();
 void keyb(unsigned char key, int x, int y);
@@ -17,6 +21,9 @@ void keyb(unsigned char key, int x, int y);
 // ICE callbacks
 static Ice::CommunicatorPtr ic;
 void ice_stop();
+
+// Simulation world
+ram::sim::SimWorld world;
 
 // Signal handlers
 void handle_kill(int);
@@ -48,6 +55,7 @@ int main(int argc, char **argv)
     
     win = glutCreateWindow("Robotics@Maryland Vehicle Simulator");
     
+    
     // Set callbacks
     glutDisplayFunc(disp);
 	glutIdleFunc(disp);
@@ -66,7 +74,7 @@ int main(int argc, char **argv)
             ic = Ice::initialize(argc, argv);
             Ice::ObjectAdapterPtr adapter
             = ic->createObjectAdapterWithEndpoints("SimAdapter", "default -p 10000");
-            Ice::ObjectPtr object = new ram::sim::SimVehicleFactory;
+            Ice::ObjectPtr object = new ram::sim::SimVehicleFactory(world);
             adapter->add(object, ic->stringToIdentity("factory"));
             adapter->activate();
         } catch (const Ice::Exception& e) {
@@ -86,6 +94,7 @@ int main(int argc, char **argv)
     
     std::cerr << "Starting GLUT main loop." << std::endl;
     
+    gettimeofday(&lastDrawn, NULL);
     glutMainLoop();
 
     return 0;
@@ -94,17 +103,32 @@ int main(int argc, char **argv)
 
 void reshape(int width, int height)
 {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glViewport(0, 0, width, height);
+    gluPerspective(35, (float)width/height, 0.1, 1000);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 
 void disp()
 {
+    timeval now;
+    gettimeofday(&now, NULL);
+    btScalar elapsedSeconds = now.tv_sec - lastDrawn.tv_sec + (now.tv_usec - lastDrawn.tv_usec)/1000000.0;
+    lastDrawn = now;
+    
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glColor3f(1, 0.5f, 0.5f);
-	GraphicsUtils::drawText(50, 50, "This is Text!!!!");
-
+    glPushMatrix();
+    gluLookAt(0,30,10, 0,0,12, 0,0,1);
+    world.stepSimulation(elapsedSeconds, 20);
+    world.debugDraw();
+    glPopMatrix();
+    
+    //glFlush();
 	glutSwapBuffers();
 }
 

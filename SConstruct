@@ -41,6 +41,16 @@ env.Install('build/python','python/mockclient.py')
 # SIMULATOR
 ##############################
 
+env.Append(CPPPATH = ['#deps/bullet-2.70/src'])
+env.Append(LIBPATH = ['#deps/bullet-2.70/src/BulletDynamics/Debug'])
+env.Append(LIBS = ['LibBulletDynamics'])
+env.Append(LIBPATH = ['#deps/bullet-2.70/src/BulletCollision/Debug'])
+env.Append(LIBS = ['LibBulletCollision'])
+env.Append(LIBPATH = ['#deps/bullet-2.70/src/LinearMath/Debug'])
+env.Append(LIBS = ['LibLinearMath'])
+env.Append(LIBPATH = ['#deps/bullet-2.70/Demos/OpenGL/Debug'])
+env.Append(LIBS = ['LibOpenGLSupport'])
+env.Append(CPPPATH = ['#deps/bullet-2.70/Demos/OpenGL'])
 simSource = env.Glob('src/sim/*.cpp') + env.Glob('src/sim/vehicle/*.cpp')
 env.Append(LIBS = ['GLEW'])
 env.Program('build/sim', simSource);

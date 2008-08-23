@@ -3,20 +3,20 @@
 
 #include <ram.h>
 
+#include "SimDevice.h"
+
 namespace ram {
     namespace sim {
-        class SimDepthSensor : virtual public vehicle::IDepthSensor
+        class SimDepthSensor : virtual public vehicle::IDepthSensor, public SimDevice
         {
-        private:
-            std::string name;
         public:
-            SimDepthSensor(std::string mName) : name(mName) {}
-            
-            virtual std::string getName(const ::Ice::Current&c)
-            { return name; }
+            SimDepthSensor(std::string mName) : SimDevice(mName) {}
             
             virtual double getDepth(const ::Ice::Current&c)
             { return 0; /* TODO */ }
+            
+            virtual void stepSimulation(SimWorld& world, btScalar timeStep)
+            { /* TODO */ }
         };
     }
 }

@@ -2,18 +2,14 @@
 #define _RAM_SIM_SIMIMU_H
 
 #include <ram.h>
+#include "SimDevice.h"
 
 namespace ram {
     namespace sim {
-        class SimIMU : virtual public vehicle::IIMU
+        class SimIMU : virtual public vehicle::IIMU, public SimDevice
         {
-        private:
-            std::string name;
         public:
-            SimIMU(std::string mName) : name(mName) {}
-            
-            virtual std::string getName(const ::Ice::Current&c)
-            { return name; }
+            SimIMU(std::string mName) : SimDevice(mName) {}
             
             virtual transport::Vector3Ptr getLinearAcceleration(const ::Ice::Current&c)
             { return new math::Vector3; /* TODO */ }
@@ -23,6 +19,9 @@ namespace ram {
             
             virtual transport::QuaternionPtr getOrientation(const ::Ice::Current&c)
             { return new math::Quaternion; /* TODO */ }
+            
+            virtual void stepSimulation(SimWorld& world, btScalar timeStep)
+            { /* TODO */ }
         };
     }
 }

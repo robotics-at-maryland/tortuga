@@ -2,22 +2,22 @@
 #define _RAM_SIM_SIMVEHICLEFACTORY_H
 
 #include <ram.h>
-#include <Ice/Ice.h>
 #include "SimVehicle.h"
+#include "../SimWorld.h"
+
+#include <Ice/Ice.h>
 
 namespace ram {
     namespace sim {
-        class SimVehicleFactory : virtual public vehicle::IVehicleFactory
-        {
+        class SimVehicleFactory : virtual public vehicle::IVehicleFactory {
         private:
             vehicle::VehicleDictionary vehicles;
+            SimWorld& dynamicsWorld;
         public:
-            SimVehicleFactory()
-            {
+            SimVehicleFactory(SimWorld& world) : dynamicsWorld(world) {
                 std::cerr << "Creating MockVehicleFactory." << std::endl;
             }
-            ~SimVehicleFactory()
-            {
+            ~SimVehicleFactory() {
                 std::cerr << "Destroying MockVehicleFactory." << std::endl;
             }
             inline virtual vehicle::IVehiclePrx getVehicleByName(const ::std::string& name, const ::Ice::Current& c = ::Ice::Current())
@@ -27,7 +27,9 @@ namespace ram {
                 if (vehicles.find(name) == vehicles.end())
                 {
                     std::cerr << "The vehicle '" << name << "' does not exist.  Creating it now." << std::endl;
-                    vehicles[name] = vehicle::IVehiclePrx::uncheckedCast(c.adapter->addWithUUID(new SimVehicle(c)));
+                    SimVehicle* newVehicle = new SimVehicle(c);
+                    vehicles[name] = vehicle::IVehiclePrx::uncheckedCast(c.adapter->addWithUUID(newVehicle));
+                    dynamicsWorld.addRigidBody(newVehicle);
                 }
                 std::cerr << "Retrieving vehicle '" << name << "'." << std::endl;
                 return vehicles[name];

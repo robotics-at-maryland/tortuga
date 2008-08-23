@@ -6,22 +6,23 @@
 #include "SimIMU.h"
 #include "SimPowerSource.h"
 #include "SimDepthSensor.h"
+#include "../SimWorld.h"
 
 namespace ram {
     namespace sim {
-        class SimVehicle : virtual public vehicle::IVehicle
-        {
+        class SimVehicle : virtual public vehicle::IVehicle, public BuoyantBody {
         private:
+            btBoxShape collisionShape;
             vehicle::DeviceList devices;
-            vehicle::IIMUPrx getFirstIMU()
-            {
+            
+            vehicle::IIMUPrx getFirstIMU() {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
                     if ((*iter)->ice_isA("::ram::vehicle::IIMU"))
                         return vehicle::IIMUPrx::uncheckedCast(*iter);
             }
-            vehicle::IDepthSensorPrx getFirstDepthSensor()
-            {
+            
+            vehicle::IDepthSensorPrx getFirstDepthSensor() {
                 for (vehicle::DeviceList::iterator iter = devices.begin();
                     iter != devices.end() ; iter++)
                     if ((*iter)->ice_isA("::ram::vehicle::IDepthSensor"))
@@ -32,14 +33,17 @@ namespace ram {
             { devices.push_back(prx); }
         public:
             SimVehicle(const ::Ice::Current&c)
-            {/*
+            : collisionShape(btVector3(0.25,0.25,0.75)), BuoyantBody(80, &collisionShape, btVector3(5, 5, 10))
+            {
+                setBuoyantVolume(0.1);
+                setCenterOfBuoyancyPosition(btVector3(0.05,0,0.005));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimIMU("Yoyodyne Propulsion Systems IMU"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Absolute Pressure Sensor"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimPowerSource("Battery 1"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Bottom Ranging Sonar"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimPowerSource("Acme Thermonuclear Reactor"))));
                 addDevice(vehicle::IDevicePrx::uncheckedCast(c.adapter->addWithUUID(new SimDepthSensor("Surface Ranging Sonar"))));
-            */}
+            }
             
             inline virtual vehicle::DeviceList getDevices(const ::Ice::Current&c)
             { return devices; }

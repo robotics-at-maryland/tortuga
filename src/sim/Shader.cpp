@@ -285,6 +285,7 @@ void Shader::bind()
 
 bool Shader::supportsShaders()
 {
+    return false;
 	// TODO fix
 	const GLubyte* extensions = glGetString(GL_EXTENSIONS);
 	if (gluCheckExtension((const GLubyte*)"GL_ARB_shading_language_100", extensions) == GL_TRUE)
