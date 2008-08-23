@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\marshal;&quot;$(SolutionDir)src&quot;;&quot;C:\Ice-3.3.0\include&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\bullet\Demos\OpenGL&quot;;&quot;C:\Program Files\bullet\src&quot;;C:\Users\Owner\Desktop\ice\marshal;&quot;$(SolutionDir)src&quot;;&quot;C:\Ice-3.3.0\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,9 +63,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="iced.lib iceutild.lib glut32.lib opengl32.lib glew32.lib glu32.lib"
+				AdditionalDependencies="iced.lib iceutild.lib glut32.lib opengl32.lib glew32.lib glu32.lib libbulletdynamics.lib libbulletcollision.lib libbulletmath.lib libbulletopenglsupport.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\Ice-3.3.0\lib"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\bullet\out\release8\libs&quot;;&quot;C:\Ice-3.3.0\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\Users\Owner\Desktop\ice\marshal;&quot;$(SolutionDir)src&quot;;&quot;C:\Ice-3.3.0\include&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\bullet\Demos\OpenGL&quot;;&quot;C:\Program Files\bullet\src&quot;;C:\Users\Owner\Desktop\ice\marshal;&quot;$(SolutionDir)src&quot;;&quot;C:\Ice-3.3.0\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -139,9 +139,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ice iceutil"
+				AdditionalDependencies="ice iceutil glut32.lib opengl32.lib glew32.lib glu32.lib libbulletdynamics.lib libbulletcollision.lib libbulletmath.lib libbulletopenglsupport.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\Ice-3.3.0\lib"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\bullet\out\release8\libs&quot;;&quot;C:\Ice-3.3.0\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
