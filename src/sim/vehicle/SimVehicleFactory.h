@@ -26,12 +26,12 @@ namespace ram {
                 // to the dictionary
                 if (vehicles.find(name) == vehicles.end())
                 {
-                    std::cerr << "The vehicle '" << name << "' does not exist.  Creating it now." << std::endl;
+                    // std::cerr << "The vehicle '" << name << "' does not exist.  Creating it now." << std::endl;
                     SimVehicle* newVehicle = new SimVehicle(c);
                     vehicles[name] = vehicle::IVehiclePrx::uncheckedCast(c.adapter->addWithUUID(newVehicle));
                     dynamicsWorld.addRigidBody(newVehicle);
                 }
-                std::cerr << "Retrieving vehicle '" << name << "'." << std::endl;
+                // std::cerr << "Retrieving vehicle '" << name << "'." << std::endl;
                 return vehicles[name];
             }
         };

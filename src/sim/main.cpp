@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <iostream>
 #include <sys/time.h>
+#include <boost/lexical_cast.hpp>
 
 #include <Ice/Ice.h>
 
@@ -16,6 +17,7 @@ static int win;
 static timeval lastDrawn;
 void reshape(int width, int height);
 void disp();
+void idle();
 void keyb(unsigned char key, int x, int y);
 
 // ICE callbacks
@@ -58,7 +60,7 @@ int main(int argc, char **argv)
     
     // Set callbacks
     glutDisplayFunc(disp);
-	glutIdleFunc(disp);
+	glutIdleFunc(idle);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyb);
 
@@ -128,8 +130,15 @@ void disp()
     world.debugDraw();
     glPopMatrix();
     
-    //glFlush();
+    GraphicsUtils::drawText(20, 40, "Frame rate       : " + boost::lexical_cast<std::string>(int(1/elapsedSeconds)) + " FPS");
+    
 	glutSwapBuffers();
+}
+
+
+void idle()
+{
+    glutPostRedisplay();
 }
 
 

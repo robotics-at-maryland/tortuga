@@ -2,7 +2,7 @@
 #include "GraphicsUtils.h"
 #include "Sim.h"
 
-void GraphicsUtils::drawText(int x, int y, std::string text)
+void GraphicsUtils::drawText(int x, int y, const std::string& text)
 {
 	int len, i;
 

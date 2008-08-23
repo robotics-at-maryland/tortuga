@@ -6,7 +6,10 @@
 #include <btBulletDynamicsCommon.h>
 #include <GLDebugDrawer.h>
 
+#include <boost/lexical_cast.hpp>
 #include <list>
+
+#include "GraphicsUtils.h"
 
 namespace ram {
     namespace sim {
@@ -110,7 +113,7 @@ namespace ram {
             inline void removeRigidBody(RigidBody* body)
             {
                 IceUtil::RecMutex::Lock lock(physicsMutex);
-                std::cerr << "Removing a rigid body." << std::endl;
+                // std::cerr << "Removing a rigid body." << std::endl;
                 bodies.remove(body);
                 body->detachFromWorld(btWorld);
             }
@@ -118,7 +121,7 @@ namespace ram {
             inline void addRigidBody(RigidBody* body)
             {
                 IceUtil::RecMutex::Lock lock(physicsMutex);
-                std::cerr << "Adding a rigid body." << std::endl;
+                // std::cerr << "Adding a rigid body." << std::endl;
                 bodies.push_back(body);
                 body->attachToWorld(btWorld);
             }
@@ -127,6 +130,7 @@ namespace ram {
             {
                 IceUtil::RecMutex::Lock lock(physicsMutex);
                 btWorld.debugDrawWorld();
+                GraphicsUtils::drawText(20, 20, "Collision objects: " + boost::lexical_cast<std::string>(btWorld.getNumCollisionObjects()));
             }
         };
         
