@@ -85,6 +85,12 @@ namespace ram {
             
             inline virtual void dropMarker(const ::Ice::Current&c)
             { /* TODO */ }
+            
+            virtual void stepSimulation(SimWorld& world, btScalar timeStep)
+            {
+                for (vehicle::
+            }
+            
         };
     }
 }

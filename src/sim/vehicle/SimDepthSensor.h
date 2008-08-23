@@ -9,14 +9,20 @@ namespace ram {
     namespace sim {
         class SimDepthSensor : virtual public vehicle::IDepthSensor, public SimDevice
         {
+        private:
+            btVector3 localPos;
+            SimVehicle& parent;
+            btScalar depth = 0;
         public:
-            SimDepthSensor(std::string mName) : SimDevice(mName) {}
+            SimDepthSensor(SimVehicle& mParent, std::string mName) : SimDevice(mName), parent(mParent) {}
             
             virtual double getDepth(const ::Ice::Current&c)
-            { return 0; /* TODO */ }
+            { return depth; }
             
             virtual void stepSimulation(SimWorld& world, btScalar timeStep)
-            { /* TODO */ }
+            {
+                depth = world.getGravity().dot(parent.getCenterOfMassPosition() + btTransform(parent.getOrientation()) * localPos) * world.getFluidDensity();
+            }
         };
     }
 }

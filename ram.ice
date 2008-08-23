@@ -120,10 +120,9 @@ module ram
             void setEnabled(bool tf);
         };
         
-        sequence<IDevice*> DeviceList;
 		interface IVehicle
 		{
-            idempotent DeviceList getDevices();
+            idempotent Ice::StringSeq getDeviceNames();
             idempotent IDevice* getDeviceByName(string name)
                 throws DeviceNotFoundException;
             idempotent double getDepth();
