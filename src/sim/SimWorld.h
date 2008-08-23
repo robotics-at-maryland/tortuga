@@ -1,7 +1,7 @@
 #ifndef _RAM_SIM_SIMWORLD_H
 #define _RAM_SIM_SIMWORLD_H
 
-#include <IceUtil/Mutex.h>
+#include <IceUtil/RecMutex.h>
 
 #include <btBulletDynamicsCommon.h>
 #include <GLDebugDrawer.h>
@@ -64,7 +64,7 @@ namespace ram {
             
             std::list<RigidBody*> bodies;
             
-            IceUtil::Mutex physicsMutex;
+            IceUtil::RecMutex physicsMutex;
         public:
             SimWorld()
             : broadphase(btVector3(-10000,-10000,-10000), btVector3(10000,10000,10000), 16834),
@@ -83,7 +83,7 @@ namespace ram {
             
             inline int	stepSimulation( btScalar timeStep,int maxSubSteps=1, btScalar fixedTimeStep=btScalar(1.)/btScalar(60.))
             {
-                IceUtil::Mutex::Lock lock(physicsMutex);
+                IceUtil::RecMutex::Lock lock(physicsMutex);
                 btWorld.setDebugDrawer(&gDebugDrawer);
                 btWorld.getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
                 for (std::list<RigidBody*>::iterator iter = bodies.begin();
@@ -109,7 +109,7 @@ namespace ram {
             
             inline void removeRigidBody(RigidBody* body)
             {
-                IceUtil::Mutex::Lock lock(physicsMutex);
+                IceUtil::RecMutex::Lock lock(physicsMutex);
                 std::cerr << "Removing a rigid body." << std::endl;
                 bodies.remove(body);
                 body->detachFromWorld(btWorld);
@@ -117,7 +117,7 @@ namespace ram {
             
             inline void addRigidBody(RigidBody* body)
             {
-                IceUtil::Mutex::Lock lock(physicsMutex);
+                IceUtil::RecMutex::Lock lock(physicsMutex);
                 std::cerr << "Adding a rigid body." << std::endl;
                 bodies.push_back(body);
                 body->attachToWorld(btWorld);
@@ -125,7 +125,7 @@ namespace ram {
             
             inline void debugDraw()
             {
-                IceUtil::Mutex::Lock lock(physicsMutex);
+                IceUtil::RecMutex::Lock lock(physicsMutex);
                 btWorld.debugDrawWorld();
             }
         };

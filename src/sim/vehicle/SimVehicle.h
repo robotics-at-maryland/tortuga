@@ -36,6 +36,15 @@ namespace ram {
         public:
             SimVehicle(const ::Ice::Current&c);
             
+            ~SimVehicle()
+            {
+                /*
+                for (std::vector<SimDevice*>::iterator iter = deviceServants.begin();
+                    iter != deviceServants.end() ; iter++)
+                    delete *iter;
+                 */
+            }
+            
             inline virtual vehicle::DeviceList getDevices(const ::Ice::Current&c)
             { return devices; }
             
