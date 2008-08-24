@@ -5,6 +5,7 @@
 
 #include <btBulletDynamicsCommon.h>
 #include <GLDebugDrawer.h>
+#include <BulletCollision/CollisionShapes/btEmptyShape.h>
 
 #include <boost/lexical_cast.hpp>
 #include <list>
@@ -28,7 +29,7 @@ namespace ram {
             btRigidBody body;
         public:
             RigidBody(btScalar mass, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0))
-            : motionState(), body(mass, &motionState, collisionShape, localInertia) {}
+            : motionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, -10))), body(mass, &motionState, collisionShape, localInertia) {}
             virtual ~RigidBody() {}
             
             const btVector3& getLinearVelocity() const
@@ -102,7 +103,7 @@ namespace ram {
             
             inline btScalar getFluidLevel() const
             {
-                return 10; /* water level, defined to be 0 */
+                return 0; /* water level, defined to be 0 */
             }
             
             inline btVector3 getGravity() const
@@ -129,7 +130,10 @@ namespace ram {
             inline void debugDraw()
             {
                 IceUtil::RecMutex::Lock lock(physicsMutex);
+                //glPushMatrix();
+                //camera.getCenterOfMassTransform().invert().
                 btWorld.debugDrawWorld();
+                //glPopMatrix();
                 GraphicsUtils::drawText(20, 20, "Collision objects: " + boost::lexical_cast<std::string>(btWorld.getNumCollisionObjects()));
             }
         };
@@ -146,9 +150,9 @@ namespace ram {
             BuoyantBody(btScalar mass, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0))
             : RigidBody(mass, collisionShape, localInertia),
             wetLinearDamping(0.8),
-            dryLinearDamping(0),
+            dryLinearDamping(0.2),
             wetAngularDamping(0.8),
-            dryAngularDamping(0) {}
+            dryAngularDamping(0.2) {}
             
             virtual ~BuoyantBody() {}
             

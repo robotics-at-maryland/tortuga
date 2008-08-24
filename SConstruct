@@ -7,7 +7,7 @@ env.Append(FRAMEWORKS = ['OpenGL', 'GLUT'])
 env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '#build/native', '#src'])
 env.Append(LIBPATH = ['/opt/local/lib'])
 env.Append(LIBS = ['Ice', 'IceUtil'])
-env.Append(CPPFLAGS = ['-O3'])
+# env.Append(CPPFLAGS = ['-O3'])
 env.BuildDir('build','src')
 
 

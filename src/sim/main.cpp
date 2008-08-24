@@ -8,17 +8,23 @@
 
 #include "Sim.h"
 #include "SimWorld.h"
+#include "Camera.h"
 
 // Globals
 Shader *test;
-
-// OpenGL callbacks
 static int win;
 static timeval lastDrawn;
+ram::sim::Camera cam;
+
+// OpenGL callbacks
+int mouseX, mouseY;
+btScalar elapsedSeconds = 0;
 void reshape(int width, int height);
 void disp();
 void idle();
 void keyb(unsigned char key, int x, int y);
+void mouse(int button, int state, int x, int y);
+void mouseMotion(int x, int y);
 
 // ICE callbacks
 static Ice::CommunicatorPtr ic;
@@ -63,6 +69,8 @@ int main(int argc, char **argv)
 	glutIdleFunc(idle);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyb);
+    glutMotionFunc(mouseMotion);
+    glutMouseFunc(mouse);
 
     
     // ICE initialization
@@ -118,14 +126,17 @@ void disp()
 {
     timeval now;
     gettimeofday(&now, NULL);
-    btScalar elapsedSeconds = now.tv_sec - lastDrawn.tv_sec + (now.tv_usec - lastDrawn.tv_usec)/1000000.0;
+    elapsedSeconds = now.tv_sec - lastDrawn.tv_sec + (now.tv_usec - lastDrawn.tv_usec)/1000000.0;
     lastDrawn = now;
     
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPushMatrix();
-    gluLookAt(0,30,10, 0,0,12, 0,0,1);
+    glRotatef(-90, 1, 0, 0);
+    glTranslatef(0,20,-2);
+    cam.glTransform();
+    //gluLookAt(0,100,0, 0,0,0, 0,0,1);
     world.stepSimulation(elapsedSeconds, 20);
     world.debugDraw();
     glPopMatrix();
@@ -150,7 +161,40 @@ void keyb(unsigned char key, int x, int y)
             glutDestroyWindow(win);
             exit(0);
             break;
+        case 'a':
+            cam.tumbleYaw(2);
+            break;
+        case 's':
+            cam.tumblePitch(-2);
+            break;
+        case 'd':
+            cam.tumbleYaw(-2);
+            break;
+        case 'w':
+            cam.tumblePitch(2);
+            break;
     }
+}
+
+
+void mouse(int button, int state, int x, int y)
+{
+    if (state == GLUT_DOWN)
+    {
+        mouseX = x;
+        mouseY = y;
+    }
+}
+
+
+void mouseMotion(int x, int y)
+{
+    const double degPerSecondPerPixel = 80;
+    cam.tumbleYaw(degPerSecondPerPixel*elapsedSeconds*(x-mouseX));
+    cam.tumblePitch(degPerSecondPerPixel*elapsedSeconds*(y-mouseY));
+    
+    mouseX = x;
+    mouseY = y;
 }
 
 
