@@ -4,7 +4,7 @@
 namespace ram {
     namespace sim {
         
-        Camera::Camera() : yaw(0), pitch(0), roll(0) {} //transform(btQuaternion(0, 0, 0, 1)) {}
+        Camera::Camera() : yaw(0), pitch(0), roll(0), dollyDist(0) {} //transform(btQuaternion(0, 0, 0, 1)) {}
         
         void Camera::tumbleYaw(float deg)
         {
@@ -24,8 +24,19 @@ namespace ram {
             //transform *= btTransform(btQuaternion(btVector3(1, 0, 0), deg));
         }
         
+        void Camera::dollyIn(float meters)
+        {
+            dollyDist -= meters;
+        }
+        
+        void Camera::dollyOut(float meters)
+        {
+            dollyDist += meters;
+        }
+        
         void Camera::glTransform()
         {
+            glTranslatef(0,dollyDist,0);
             glRotatef(pitch, 1, 0, 0);
             glRotatef(roll, 0, 1, 0);
             glRotatef(yaw, 0, 0, 1);

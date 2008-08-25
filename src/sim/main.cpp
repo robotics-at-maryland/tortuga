@@ -18,6 +18,7 @@ ram::sim::Camera cam;
 
 // OpenGL callbacks
 int mouseX, mouseY;
+int modifiers = 0;
 btScalar elapsedSeconds = 0;
 void reshape(int width, int height);
 void disp();
@@ -155,23 +156,12 @@ void idle()
 
 void keyb(unsigned char key, int x, int y)
 {
+    modifiers = glutGetModifiers();
     switch (key)
     {
         case 'q':
             glutDestroyWindow(win);
             exit(0);
-            break;
-        case 'a':
-            cam.tumbleYaw(2);
-            break;
-        case 's':
-            cam.tumblePitch(-2);
-            break;
-        case 'd':
-            cam.tumbleYaw(-2);
-            break;
-        case 'w':
-            cam.tumblePitch(2);
             break;
     }
 }
@@ -183,16 +173,24 @@ void mouse(int button, int state, int x, int y)
     {
         mouseX = x;
         mouseY = y;
+        modifiers = glutGetModifiers();
     }
 }
 
 
 void mouseMotion(int x, int y)
 {
-    const double degPerSecondPerPixel = 80;
-    cam.tumbleYaw(degPerSecondPerPixel*elapsedSeconds*(x-mouseX));
-    cam.tumblePitch(degPerSecondPerPixel*elapsedSeconds*(y-mouseY));
-    
+    double mouseVelX = elapsedSeconds * (x - mouseX);
+    double mouseVelY = elapsedSeconds * (y - mouseY);
+    if (modifiers && GLUT_ACTIVE_SHIFT)
+    {
+        const double metersPerSecond = 60;
+        cam.dollyOut(metersPerSecond * mouseVelY);
+    } else {
+        const double degPerSecondPerPixel = 80;
+        cam.tumbleYaw(degPerSecondPerPixel * mouseVelX);
+        cam.tumblePitch(degPerSecondPerPixel * mouseVelY);
+    }
     mouseX = x;
     mouseY = y;
 }

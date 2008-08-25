@@ -7,7 +7,7 @@ namespace ram {
     namespace sim {
         class Camera {
         private:
-            float yaw, pitch, roll;
+            float yaw, pitch, roll, dollyDist;
             //btTransform transform;
         public:
             Camera();
@@ -21,7 +21,15 @@ namespace ram {
             /// Tumble the camera about the +x axis.
             void tumbleRoll(float degrees);
             
-            /// Transform the current OpenGL matrix
+            /// Dolly in (move straight into the screen)
+            void dollyIn(float meters);
+            
+            /// Dolly out (move straight out of the screen)
+            void dollyOut(float meters);
+            
+            
+            
+            /// Transform the current OpenGL matrix to look through this camera
             void glTransform();
         };
     }
