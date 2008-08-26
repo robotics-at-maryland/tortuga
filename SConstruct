@@ -42,6 +42,10 @@ env.Install('build/python','python/mockclient.py')
 # SIMULATOR
 ##############################
 
+env.Append(FRAMEWORKS = ['Cocoa'])
+env.Append(LIBS = ['SDL'])
+env.Append(LIBS = ['SDLmain'])
+env.Append(CPPPATH = ['/opt/local/include/SDL'])
 env.Append(CPPPATH = ['#deps/bullet-2.70/src'])
 env.Append(LIBPATH = ['#deps/bullet-2.70/src/BulletDynamics/Debug'])
 env.Append(LIBS = ['LibBulletDynamics'])

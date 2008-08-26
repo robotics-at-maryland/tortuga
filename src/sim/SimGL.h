@@ -7,14 +7,15 @@
  * @author Copyright 2008 Robotics@Maryland. All rights reserved.
  */
 
+#ifndef _RAM_SIM_SIMGL_H
+#define _RAM_SIM_SIMGL_H
+
 #if defined(__APPLE__) || defined(MACOSX)
-    #include <GL/glew.h>
-	#include <GLUT/glut.h>
-	#include <OpenGL/gl.h>
-	#include <OpenGL/glu.h>
+    #include <GLUT/glut.h>
 #else
-	#include <GL/glew.h>
-	#include <GL/glut.h>
-	#include <GL/gl.h>
-	#include <GL/glu.h>
+    #include <GL/glut.h>
+#endif
+
+#include <SDL_opengl.h>
+
 #endif
