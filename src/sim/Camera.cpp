@@ -54,10 +54,11 @@ namespace ram {
         
         void Camera::glTransform()
         {
+            glTranslatef(trackLeftDist, dollyDist, trackUpDist);
             glRotatef(pitch, 1, 0, 0);
             glRotatef(roll, 0, 1, 0);
             glRotatef(yaw, 0, 0, 1);
-            glTranslatef(trackLeftDist, dollyDist, trackUpDist);
+            // TODO Camera does not orbit "center of screen"
         }
         
     }

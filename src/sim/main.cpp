@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <signal.h>
 #include <iostream>
-#include <sys/time.h>
 #include <boost/lexical_cast.hpp>
 
 #include <Ice/Ice.h>
@@ -15,8 +14,6 @@
 
 // Globals
 //Shader *test;
-static int win;
-static timeval lastDrawn;
 ram::sim::Camera cam;
 double dollyRate = 4;
 double tumbleRate = 1;
@@ -165,8 +162,19 @@ void reshape(int width, int height)
     glLoadIdentity();
     glViewport(0, 0, width, height);
     gluPerspective(35, (float)width/height, 0.1, 1000);
+    
+    GLfloat fogColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
+    glFogi(GL_FOG_MODE, GL_EXP);
+    glFogfv(GL_FOG_COLOR, fogColor);
+    glFogf(GL_FOG_DENSITY, 0.05f);
+    glHint(GL_FOG_HINT, GL_DONT_CARE);
+    glFogf(GL_FOG_START, 1.0f);
+    glFogf(GL_FOG_END, 10000.0f);
+    glEnable(GL_FOG);
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
 }
 
 
@@ -177,13 +185,13 @@ void disp(double elapsedSeconds)
 
     glPushMatrix();
     glRotatef(-90, 1, 0, 0);
-    glTranslatef(0,20,-2);
+    glTranslatef(0,20,0);
     cam.glTransform();
     world.stepSimulation(elapsedSeconds, 20);
     world.debugDraw();
     glPopMatrix();
     
-    GraphicsUtils::drawText(20, 40, "Frame rate       : " + boost::lexical_cast<std::string>(int(1/elapsedSeconds)) + " FPS");
+    //GraphicsUtils::drawText(20, 40, "Frame rate       : " + boost::lexical_cast<std::string>(int(1/elapsedSeconds)) + " FPS");
 }
 
 
