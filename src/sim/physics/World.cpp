@@ -11,44 +11,44 @@ namespace ram {
             
             World::~World() {}
             
-            void step(float dt)
+            void World::step(float dt)
             {
                 // TODO
             }
             
-            float getGravity() const
+            float World::getGravity() const
             {
                 return gravity;
             }
             
-            void setGravity(float g)
+            void World::setGravity(float g)
             {
                 gravity = g;
             }
             
-            float getFluidDensity() const
+            float World::getFluidDensity() const
             {
                 return fluidDensity;
             }
             
-            void setFluidDensity(float density)
+            void World::setFluidDensity(float density)
             {
                 fluidDensity = density;
             }
             
-            void stepIntegrate(Body& body, float dt)
+            void World::stepIntegrate(Body& body, float dt)
             {
                 if (body.isStatic()) return;
                 
                 // Update linear coordinates
                 body.addForceWorld(math::Vector3(0, 0, -body.mass * gravity));
-                body.worldPosition += body.worldVelocity * dt + 0.5 * dt * dt * body.inverseMass * body.worldForce;
-                body.worldVelocity += dt * body.inverseMass * body.worldForce;
+                body.worldPosition += body.worldLinearVelocity * dt + 0.5f * dt * dt * body.inverseMass * body.worldForce;
+                body.worldLinearVelocity += dt * body.inverseMass * body.worldForce;
                 
                 // Update angular coordiantes
-                Vector3 worldAngularAcceleration = body.worldOrientation * (body.inverseMomentOfInertia * body.getTorqueBody()) * body.worldOrientation.conj();
-                body.worldOrientation += 0.5 * (dt * body.worldAngularVelocity + 0.5 * dt * dt * worldAngularAcceleration);
-                body.worldOrientation.normalize();
+                math::Vector3 worldAngularAcceleration = body.worldOrientation.Transform(body.inverseMomentOfInertia * body.getTorqueBody());
+                body.worldOrientation = body.worldOrientation + 0.5f * math::Quaternion(dt * body.worldAngularVelocity + 0.5f * dt * dt * worldAngularAcceleration);
+                body.worldOrientation.normalise();
                 body.worldAngularVelocity += dt * worldAngularAcceleration;
                 
                 body.clearForceAndTorque();

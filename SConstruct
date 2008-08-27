@@ -56,6 +56,6 @@ env.Append(LIBS = ['LibLinearMath'])
 env.Append(LIBPATH = ['#deps/bullet-2.70/Demos/OpenGL/Debug'])
 env.Append(LIBS = ['LibOpenGLSupport'])
 env.Append(CPPPATH = ['#deps/bullet-2.70/Demos/OpenGL'])
-simSource = env.Glob('src/sim/*.cpp') + env.Glob('src/sim/vehicle/*.cpp')
+simSource = env.Glob('src/sim/*.cpp') + env.Glob('src/sim/vehicle/*.cpp') + env.Glob('src/math/src/*.cpp'), env.Glob('src/sim/physics/*.cpp')
 env.Append(LIBS = ['GLEW'])
 env.Program('build/sim', simSource);

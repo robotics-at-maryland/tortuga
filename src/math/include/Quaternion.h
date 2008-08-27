@@ -113,6 +113,10 @@ namespace math {
         {
             this->FromAxes(akAxis);
         }
+        inline Quaternion(const Vector3& akAxis)
+        {
+            this->FromAxes(&akAxis);
+        }
 		/// Construct a quaternion from 4 manual w/x/y/z values
 		inline Quaternion(Real* valptr)
 		{
@@ -185,6 +189,12 @@ namespace math {
 			z = rkQ.z;
 			return *this;
 		}
+        
+        inline Quaternion operator+ (const Vector3& rkQ) const
+        {
+            return operator+(Quaternion(rkQ));
+        }
+        
         Quaternion operator+ (const Quaternion& rkQ) const;
         Quaternion operator- (const Quaternion& rkQ) const;
         Quaternion operator* (const Quaternion& rkQ) const;
@@ -212,7 +222,7 @@ namespace math {
         Quaternion Log () const;
 
         // rotation of a vector by a quaternion
-        Vector3 operator* (const Vector3& rkVector) const;
+        Vector3 Transform (const Vector3& rkVector) const;
 
    		/** Calculate the local roll element of this quaternion.
 		@param reprojectAxis By default the method returns the 'intuitive' result

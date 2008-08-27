@@ -609,11 +609,11 @@ namespace math {
             // Rotate up vector by random amount around this
             Quaternion q;
             q.FromAngleAxis( Radian(Math::UnitRandom() * Math::TWO_PI), *this );
-            newUp = q * newUp;
+            newUp = q.Transform(newUp);
 
             // Finally rotate this by given angle around randomised up
             q.FromAngleAxis( angle, newUp );
-            return q * (*this);
+            return q.Transform(*this);
         }
 #ifndef OGRE_FORCE_ANGLE_TYPES
         inline Vector3 randomDeviant(

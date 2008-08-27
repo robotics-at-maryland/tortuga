@@ -9,7 +9,11 @@ namespace ram {
     namespace sim {
         namespace physics {
             class World;
-            class Shape;
+            class Shape
+            {
+            public:
+                Shape();
+            };
             
             class Body {
                 friend class World;
@@ -63,9 +67,9 @@ namespace ram {
                 float inverseMass;
                 bool hasInfiniteMass;
                 float volume;
-                math::Matrix3 bodyMomentOfInertia;
+                math::Matrix3 inverseMomentOfInertia;
                 math::Vector3 collisionShapeOffset;
-                Shape collisionShape;                
+                Shape collisionShape;
                 
                 // Kinematic coordinates
                 /// Quaternion that transforms body frame coordinates to world coordinates

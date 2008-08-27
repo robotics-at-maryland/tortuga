@@ -411,7 +411,7 @@ namespace math {
         return kResult;
     }
     //-----------------------------------------------------------------------
-    Vector3 Quaternion::operator* (const Vector3& v) const
+    Vector3 Quaternion::Transform (const Vector3& v) const
     {
 		// nVidia SDK implementation
 		Vector3 uv, uuv;

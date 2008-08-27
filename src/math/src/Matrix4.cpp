@@ -235,7 +235,7 @@ namespace math {
         // Because we're inverting, order is translation, rotation, scale
         // So make translation relative to scale & rotation
         invTranslate *= invScale; // scale
-        invTranslate = invRot * invTranslate; // rotate
+        invTranslate = invRot.Transform(invTranslate); // rotate
 
         // Next, make a 3x3 rotation matrix and apply inverse scale
         Matrix3 rot3x3, scale3x3;

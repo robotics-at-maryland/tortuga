@@ -1,6 +1,8 @@
 #ifndef _RAM_SIM_PHYSICS_WORLD_H
 #define _RAM_SIM_PHYSICS_WORLD_H
 
+#include "Body.h"
+
 namespace ram {
     namespace sim {
         namespace physics {
