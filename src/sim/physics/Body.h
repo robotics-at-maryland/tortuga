@@ -1,10 +1,15 @@
 #ifndef _RAM_SIM_PHYSICS_BODY_H
 #define _RAM_SIM_PHYSICS_BODY_H
 
+#include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
+#include "math/include/Matrix3.h"
+
 namespace ram {
     namespace sim {
         namespace physics {
             class World;
+            class Shape;
             
             class Body {
                 friend class World;
@@ -56,7 +61,7 @@ namespace ram {
                 // Physical composition
                 float mass;
                 float inverseMass;
-                bool hasInfinteMass;
+                bool hasInfiniteMass;
                 float volume;
                 math::Matrix3 bodyMomentOfInertia;
                 math::Vector3 collisionShapeOffset;
@@ -74,7 +79,7 @@ namespace ram {
                 math::Vector3 worldTorque;
                 
                 // Helper routines
-                void clearForcesAndTorques();
+                void clearForceAndTorque();
             };
         }
     }

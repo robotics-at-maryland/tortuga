@@ -1,13 +1,16 @@
 #include "Body.h"
 
-#include <cmath>
-#include <cfloat>
+#include <limits>
+#include <assert.h>
 
 namespace ram {
     namespace sim {
         namespace physics {
             
-            Body::Body() {}
+            Body::Body()
+            {
+                makeStatic();
+            }
             
             Body::~Body() {}
             
@@ -20,7 +23,7 @@ namespace ram {
             {
                 assert(mMass >= 0.0);
                 
-                if (isinff(mMass) || std::numeric_limits<float>::max()) {
+                if (mMass == std::numeric_limits<float>::infinity() || mMass == std::numeric_limits<float>::max()) {
                     makeStatic();
                 } else {
                     hasInfiniteMass = false;
@@ -33,7 +36,7 @@ namespace ram {
             {
                 inverseMass = 0.0;
                 mass = std::numeric_limits<float>::infinity();
-                isStatic = true;
+                hasInfiniteMass = true;
             }
             
             bool isStatic()
@@ -101,7 +104,7 @@ namespace ram {
                 return worldOrientation.conj() * worldTorque * worldOrientation;
             }
             
-            void Body::clearForcesAndTorques()
+            void Body::clearForceAndTorque()
             {
                 worldForce = 0;
                 worldTorque = 0;
