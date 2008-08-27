@@ -14,3 +14,15 @@ a C++ application that will provide a factory service that creates mock vehicles
 Then fire up another shell in this directory and type "build/python/mockclient.py".
 This will provide you with a Python shell from which you can create and manipulate
 vehicles served by "build/mockserver".
+
+
+
+NOTES
+-----
+
+ * Always create an ICE servant using `new' and assign it to a smart pointer.
+   ex.   IVehiclePtr vehicle = new MockVehicle();
+ * If a servant class needs to put resources into the physics simulator and the
+   graphics renderer, those resources should be initialized upon construction
+   of the servant class and destroyed upon its destruction.  We will avoid
+   `zombie' servants wherever possible.

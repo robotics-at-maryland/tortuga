@@ -26,7 +26,8 @@ namespace ram {
                 if (vehicles.find(name) == vehicles.end())
                 {
                     std::cerr << "The vehicle '" << name << "' does not exist.  Creating it now." << std::endl;
-                    vehicles[name] = vehicle::IVehiclePrx::uncheckedCast(c.adapter->addWithUUID(new MockVehicle(c)));
+                    vehicle::IVehiclePtr vehiclePtr = new MockVehicle(c);
+                    vehicles[name] = vehicle::IVehiclePrx::uncheckedCast(c.adapter->addWithUUID(vehiclePtr));
                 }
                 std::cerr << "Retrieving vehicle '" << name << "'." << std::endl;
                 return vehicles[name];
