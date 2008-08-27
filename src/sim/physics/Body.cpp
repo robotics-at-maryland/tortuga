@@ -1,5 +1,8 @@
 #include "Body.h"
 
+#include <cmath>
+#include <cfloat>
+
 namespace ram {
     namespace sim {
         namespace physics {
@@ -8,33 +11,100 @@ namespace ram {
             
             Body::~Body() {}
             
-            float Body::getMass() const {
+            float Body::getMass() const
+            {
                 return mass;
             }
             
-            void Body::setMass(float mMass) {
-                inverseMass = 1.0 / mass;
+            void Body::setMass(float mMass)
+            {
+                assert(mMass >= 0.0);
+                
+                if (isinff(mMass) || std::numeric_limits<float>::max()) {
+                    makeStatic();
+                } else {
+                    hasInfiniteMass = false;
+                    mass = mMass;
+                    inverseMass = 1.0 / mass;
+                }
             }
             
-            void Body::addForceBody(const math::Vector3& force) {
+            void Body::makeStatic()
+            {
+                inverseMass = 0.0;
+                mass = std::numeric_limits<float>::infinity();
+                isStatic = true;
             }
             
-            /// Add a force in world coordinates.
-            void addForceWorld(const math::Vector3& force);
+            bool isStatic()
+            {
+                return hasInfiniteMass;
+            }
             
-            /// Add a torque in body coordinates.
-            void addTorqueBody(const math::Vector3& force);
+            void Body::addForceBody(const math::Vector3& force)
+            {
+                if (isStatic()) return;
+                addForceWorld(worldOrientation * force * worldOrientation.conj());
+            }
             
-            /// Add a torque in world coordinates.
-            void addTorqueWorld(const math::Vector3& force);
+            void Body::addForceWorld(const math::Vector3& force)
+            {
+                if (isStatic()) return;
+                worldForce += force;
+            }
             
-            /// Add a force at an offset in body coordinates.
-            void addRelForceBody(const math::Vector3& force,
-                                 const math::Vector3& position);
+            void Body::addTorqueBody(const math::Vector3& force)
+            {
+                if (isStatic()) return;
+                addTorqueWorld(worldOrientation * force * worldOrientation.conj());
+            }
             
-            /// Add a force at an offset in world coordinates.
-            void addRelForceWorld(const math::Vector3& force,
-                                  const math::Vector3& position);
+            void addTorqueWorld(const math::Vector3& force)
+            {
+                if (isStatic()) return;
+                worldTorque += torque;
+            }
+            
+            void Body::addRelForceBody(const math::Vector3& force,
+                                       const math::Vector3& position)
+            {
+                if (isStatic()) return;
+                addForceBody(force);
+                addTorqueBody(Vector3::cross(position, force));
+            }
+            
+            void Body::addRelForceWorld(const math::Vector3& force,
+                                        const math::Vector3& position)
+            {
+                if (isStatic()) return;
+                addForceWorld(force);
+                addTorqueWorld(Vector3::cross(position - worldPosition, force));
+            }
+            
+            const math::Vector3& Body::getForceWorld() const
+            {
+                return worldForce;
+            }
+            
+            const math::Vector3 Body::getForceBody() const
+            {
+                return worldOrientation.conj() * worldTorque * worldOrientation;
+            }
+            
+            const math::Vector3& Body::getTorqueWorld() const
+            {
+                return worldTorque;
+            }
+            
+            const math::Vector3 Body::getTorqueBody() const
+            {
+                return worldOrientation.conj() * worldTorque * worldOrientation;
+            }
+            
+            void Body::clearForcesAndTorques()
+            {
+                worldForce = 0;
+                worldTorque = 0;
             
         }
     }
