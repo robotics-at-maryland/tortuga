@@ -12,7 +12,7 @@ namespace ram {
             class Shape
             {
             public:
-                Shape();
+                inline Shape() {}
             };
             
             class Body {
