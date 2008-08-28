@@ -1,11 +1,9 @@
-# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Robotics@Maryland
 # Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  SConstruct
-
-EnsureSConsVersion(0, 96, 93)
 
 # STD Imports
 import os
@@ -19,9 +17,6 @@ import buildfiles.helpers as helpers
 import buildfiles.platfrm as platfrm
 import buildfiles.features as features
 import buildfiles.variants as variants
-
-# Ensure we are using the proper version of python
-import ram_version_check
 
 
 # --------------------------------------------------------------------------- #
@@ -63,11 +58,11 @@ if os.name == 'posix':
 # --------------------------------------------------------------------------- #
 
 # Setup the build environment
-tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
+tpath =  '#buildfiles/tools'
 
 env = Environment(ENV = os.environ,
                   options = opts,
-                  tools = ['default','gccxml','pypp'],
+                  tools = ['default'],
                   toolpath = [tpath])
 
 if env['bfin']:
@@ -130,7 +125,7 @@ else:
     
     # These Warnings are disabled from the command line because the cause 
     # problems with STD headers and are just too pedantic (!)
-    # 4820 = Had to add pading to structure/class
+    # 4820 = Had to add padding to structure/class
     # 4625 = Copy constructor not accesible in base class
     # 4626 = Assignement Operator is not accisble in base class
     # 4710 = inline was requested but not preformed

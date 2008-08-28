@@ -1,7 +1,0 @@
-.. raw:: html
-
-  <head><meta http-equiv="refresh" content="0; URL=./documentation/tutorials/tutorials.html"/></head>
-  <body>
-      Automatic redirection failed, please go to
-      <a href="./documentation/tutorials/tutorials.html">./documentation/tutorials/tutorials.html</a>
-  </body>

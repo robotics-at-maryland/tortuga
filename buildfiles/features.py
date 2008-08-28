@@ -46,13 +46,6 @@ def get_features():
     add_feature('control', dirs = ['packages/control'],
                 deps = ['math', 'core', 'vehicle'])
     
-    add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
-                    {'control' : ['wrappers/control'],
-                     'math' : ['wrappers/math'],
-                     'vehicle' : ['wrappers/vehicle'],
-                     'vision' : ['wrappers/vision'],
-                     'core' : ['wrappers/core']})
-                     
     if os.name == 'posix':
         add_feature('network', dirs = ['packages/network'])
 
@@ -152,9 +145,9 @@ def setup_environment(env):
     env['FEATURES'] = feature_map
 
     # Generate Feature.h file
-    env.Command('packages/core/include/Feature.h',
-                SCons.Node.Python.Value(feature_list),
-                write_feature_h)
+    #env.Command('packages/core/include/Feature.h',
+    #            SCons.Node.Python.Value(feature_list),
+    #            write_feature_h)
 
     # Place 'HasFeature function in the enviornment
     from SCons.Script.SConscript import SConsEnvironment # just do this once

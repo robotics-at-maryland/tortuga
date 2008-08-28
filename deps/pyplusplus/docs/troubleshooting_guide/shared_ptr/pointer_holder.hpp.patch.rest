@@ -1,7 +1,0 @@
-Download: `pointer_holder.hpp.patch`_
-
-.. _`pointer_holder.hpp.patch` : pointer_holder.hpp.patch
-
-.. code-block::
-     :language: diff
-     :source-file: ./pointer_holder.hpp.patch

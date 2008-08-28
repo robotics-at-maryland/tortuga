@@ -1,9 +1,0 @@
-Subsystems:
-    A:
-        type: LoopSubsystem
-    B:
-        type: LoopSubsystem
-    C:
-        type: LoopSubsystem
-    D:
-        type: LoopSubsystem

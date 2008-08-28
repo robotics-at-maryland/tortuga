@@ -8,7 +8,7 @@
  */
 
 // Project Includes
-#include "core/include/Feature.h"
+//#include "core/include/Feature.h"
 
 // This section is only needed when we are compiling the wrappers
 // This registers converters to work around some issues with Boost.Python

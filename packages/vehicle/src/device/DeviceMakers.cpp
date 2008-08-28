@@ -11,7 +11,7 @@
 // the factory system to a minimum
 
 // Project Includes
-#include "core/include/Feature.h"
+//#include "core/include/Feature.h"
 
 #include "vehicle/include/device/IDeviceMaker.h"
 
