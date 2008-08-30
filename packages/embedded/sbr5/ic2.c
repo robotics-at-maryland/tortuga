@@ -538,7 +538,8 @@ void main()
 
 
     initInterruptUarts();
-    byte data1[] = "IC1 FAIL        ";
+                  
+    byte data1[] = "Self test...    ";
 
     for(i=0; i<16; i++)
     {
