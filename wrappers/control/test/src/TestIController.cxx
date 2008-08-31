@@ -72,8 +72,6 @@ public:
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
     
-    virtual void setBuoyantTorqueCorrection(double x, double y, double z) {};
-    
     double speed;
     double sidewaysSpeed;
     double depth;

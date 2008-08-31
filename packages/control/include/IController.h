@@ -79,9 +79,6 @@ public:
     /** Gets the current desired orientation */
     virtual math::Quaternion getDesiredOrientation() = 0;
     
-    /** Return to the home orientation */
-    virtual inline void setHomeOrientation() { setDesiredOrientation(math::Quaternion::IDENTITY); }
-	
     /** Sets the current desired orientation */
     virtual void setDesiredOrientation(math::Quaternion) = 0;
     
@@ -90,8 +87,6 @@ public:
 
     /** Loads current orientation into desired (fixes offset in roll and pitch) */
     virtual void holdCurrentHeading() = 0;
-    
-    virtual void setBuoyantTorqueCorrection(double x, double y, double z) =0;
     
 protected:
     IController(std::string name,
