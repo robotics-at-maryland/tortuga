@@ -386,13 +386,17 @@ public:
 		resize(rows, cols-1);
 	}
 
-	//in place
+	/** In place LU factorization
+         *  @todo Document my parameter
+         */
 	bool factorLU(int *index, Real *det = NULL);
 
-	//in place
+	/** In place LU Solve
+         *  @todo Document my parameters
+         */
 	void solveLU(Real *x, Real *b, const int *index) const;
 
-	//in place
+	/** In place matrix inversion */
 	bool invert();
 
         /** Preform an inplace Cholesky Factorization
