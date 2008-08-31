@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
- * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
@@ -10,15 +10,8 @@
 #ifndef RAM_CONTROL_IDEPTHCONTROLLER_08_07_2008
 #define RAM_CONTROL_IDEPTHCONTROLLER_08_07_2008
 
-// STD Includes
-#include <string>
-
 // Library Includes
 #include <boost/shared_ptr.hpp>
-
-// Project Includes
-#include "core/include/Event.h"
-#include "core/include/Subsystem.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -28,7 +21,8 @@ namespace control {
 
 class IDepthController;
 typedef boost::shared_ptr<IDepthController> IDepthControllerPtr;
-    
+
+/** Defines the interface for a depth controller */
 class RAM_EXPORT IDepthController
 {
 public:

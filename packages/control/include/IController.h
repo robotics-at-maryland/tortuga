@@ -23,6 +23,7 @@
 #include "math/include/Quaternion.h"
 
 #include "control/include/IDepthController.h"
+#include "control/include/ITranslationalController.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -34,7 +35,8 @@ class IController;
 typedef boost::shared_ptr<IController> IControllerPtr;
     
 class RAM_EXPORT IController : public core::Subsystem,
-                               public IDepthController
+                               public IDepthController,
+                               public ITranslationalController
 {
 public:
     /**
@@ -64,22 +66,6 @@ public:
     static const core::Event::EventType AT_ORIENTATION;
 
     /* @{ */
-    
-    /** Set the current speed, clamped between -5 and 5 */
-    virtual void setSpeed(double speed) = 0;
-
-    /** How fast the vehicle is going side to side (positive = right) */
-    virtual void setSidewaysSpeed(double speed) = 0;
-
-    /** Gets the current speed, a value between -5 and 5 */
-    virtual double getSpeed() = 0;
-
-    /** Gets the current sideways speed
-     *
-     *  @return
-     *      A value between -5 (left) and 5 (right)
-     */
-    virtual double getSidewaysSpeed() = 0;
 
     /** Yaws the desired vehicle state by the desired number of degrees */
     virtual void yawVehicle(double degrees) = 0;
