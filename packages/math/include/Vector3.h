@@ -37,11 +37,11 @@ Torus Knot Software Ltd.
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
 
+// ICE
+#include <ram_ice.h>
+
 // Must Be Included last
 #include "math/include/Export.h"
-
-// ICE
-//#include <ram_ice.h>
 
 namespace ram {
 namespace math {
@@ -53,53 +53,48 @@ namespace math {
             scaling factors can be represented by a vector, depending on how
             you interpret the values.
     */
-    class RAM_EXPORT Vector3
+    class RAM_EXPORT Vector3 : public transport::Vector3
     {
     public:
-		Real x, y, z;
-
-    public:
-        inline Vector3()
+        inline Vector3() : transport::Vector3()
         {
         }
-
+		
         inline Vector3( const Real fX, const Real fY, const Real fZ )
-            : x( fX ), y( fY ), z( fZ )
+		: transport::Vector3(fX, fY, fZ )
         {
         }
-
+		
         inline explicit Vector3( const Real afCoordinate[3] )
-            : x( afCoordinate[0] ),
-              y( afCoordinate[1] ),
-              z( afCoordinate[2] )
+		: transport::Vector3(afCoordinate[0],
+							 afCoordinate[1],
+							 afCoordinate[2] )
         {
         }
-
+		
         inline explicit Vector3( const int afCoordinate[3] )
         {
             x = (Real)afCoordinate[0];
             y = (Real)afCoordinate[1];
             z = (Real)afCoordinate[2];
         }
-
+		
         inline explicit Vector3( Real* const r )
-            : x( r[0] ), y( r[1] ), z( r[2] )
+		: transport::Vector3(r[0], r[1], r[2])
         {
         }
-
-        inline explicit Vector3( const Real scaler )
-            : x( scaler )
-            , y( scaler )
-            , z( scaler )
+		
+        inline explicit Vector3( const Real scalar )
+		: transport::Vector3(scalar, scalar, scalar)
         {
         }
-
-
-        inline Vector3( const Vector3& rkVector )
-            : x( rkVector.x ), y( rkVector.y ), z( rkVector.z )
+		
+		
+        inline Vector3( const transport::Vector3& rkVector )
+		: transport::Vector3(rkVector.x, rkVector.y, rkVector.z)
         {
         }
-
+		
 		inline Real operator [] ( const size_t i ) const
         {
             assert( i < 3 );

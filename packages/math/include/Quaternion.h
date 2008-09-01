@@ -55,6 +55,9 @@ Torus Knot Software Ltd.
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
 
+// ICE
+#include <ram_ice.h>
+
 // Must Be Included last
 #include "math/include/Export.h"
 
@@ -66,11 +69,11 @@ namespace math {
     
     /** Implementation of a Quaternion, i.e. a rotation around an axis.
     */
-    class RAM_EXPORT Quaternion
+    class RAM_EXPORT Quaternion : public transport::Quaternion
     {
     public:
         inline Quaternion (
-            Real fX = 0.0, Real fY = 0.0, Real fZ = 0.0, Real fW = 1.0)
+						   Real fX = 0.0, Real fY = 0.0, Real fZ = 0.0, Real fW = 1.0)
 		{
 			w = fW;
 			x = fX;
@@ -269,8 +272,6 @@ namespace math {
         // special values
         static const Quaternion ZERO;
         static const Quaternion IDENTITY;
-
-		Real x, y, z, w;
 
         /** Function for writing to a stream. Outputs "Quaternion(w, x, y, z)" with w,x,y,z
             being the member values of the quaternion.

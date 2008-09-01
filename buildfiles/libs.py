@@ -228,7 +228,8 @@ def _get_internal_lib(env, name):
                                        ext_deps = ['OpenCV', 'Boost.Thread']),
             
             'ice' : InternalLibrary('ice', int_deps = [],
-                                       ext_deps = ['Slice']),
+                                       ext_deps = ['Slice'],
+                                       CPPPATH = ['#build/packages/ice']),
             
             'pattern' : InternalLibrary('pattern', int_deps = [],
                                         ext_deps = ['Boost', 'Boost.Thread']),
@@ -514,7 +515,7 @@ class Library(object):
      
 class InternalLibrary(Library):
     def __init__(self, name, int_deps, ext_deps, strict_version = False,
-                 libraries = None):
+                 libraries = None, CPPPATH = None):
         """
         This allows easy inclusion of internal libraries, it automatically pulls
         in all needed settings for libraries it dependends on.
@@ -548,12 +549,16 @@ class InternalLibrary(Library):
         
         # This is here to prevent a recursion error
         self._adding_int_depends = False
+        if self.CPPPATH is not None:
+            self.CPPPATH = CPPPATH
 
     def setup_environment(self, env, building_self = False):
         # Include self in library list
         if not building_self:
             variant_suffix = env['VARIANT'].suffix
             env.AppendUnique(LIBS = ['ram_' + self.name + variant_suffix])
+            if self.CPPPATH is not None:
+                env.AppendUnique(CPPPATH = self.CPPPATH)
 
         self.setup_dependents(env)
 
