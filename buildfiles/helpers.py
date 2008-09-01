@@ -18,6 +18,23 @@ import libs
 if 'nt' == os.name:
     MSVS_PROJECTS = []
 
+def slice2cpp(env, target, source):
+    if not(SCons.Util.is_List(source)):
+        source = [source]
+    results = []
+    for srcName in source:
+        src = env.File(srcName)
+        outDir = os.path.dirname(env.subst('${TARGET.path}', target=src))
+        results += env.Command(
+            [env.subst('${SOURCE.filebase}.h', source=src), env.subst('${SOURCE.filebase}.cpp', source=src)],
+            src,
+            env.subst('slice2cpp --output-dir ' + outDir + ' ${SOURCE}', source=src))
+    return results
+
+slic2cppBld = env.Builder(action = slice2cpp,
+        src_suffix = 'ice')
+
+env.Append(BUILDERS = {'Slice2cpp' : slice2cpp})
 def glob(env, path, pattern):
     """
     Returns the list of paths relative to the current SConscript directory
@@ -270,6 +287,7 @@ def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary
     env['BUILDERS']['RAMProgram'] = Program
     env['BUILDERS']['Tests'] = Tests
+    env['BUILDERS']['Slice2cpp'] = slic2cppBld
     from SCons.Script.SConscript import SConsEnvironment # just do this once
     SConsEnvironment.Glob = glob
 
