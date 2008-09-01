@@ -1,2 +1,1 @@
 zope
-_zope_interface_coptimizations

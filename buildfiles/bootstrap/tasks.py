@@ -33,45 +33,45 @@ setup_directories = Task(
     )
 
 # Install Python Modules
-install_pygccxml = Task(
-    'Install Pygccxml',
-    namespaces = 'pygccxml',
-    targets = '${py_site_packages}/pygccxml',
-    workdir = '${deps_dir}/pygccxml',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
-install_pyplusplus = Task(
-    'Install Py++',
-    namespaces = 'pyplusplus',
-    targets = '${py_site_packages}/pyplusplus',
-    workdir = '${deps_dir}/pyplusplus',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
-install_pyserial = Task(
-    'Install PySerial',
-    namespaces = 'pyserial',
-    targets = '${py_site_packages}/serial',
-    workdir = '${deps_dir}/pyserial',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
-install_pyyaml = Task(
-    'Install PyYaml',
-    namespaces = 'pyyaml',
-    targets = '${py_site_packages}/yaml',
-    workdir = '${deps_dir}/pyyaml',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
+#install_pygccxml = Task(
+#    'Install Pygccxml',
+#    namespaces = 'pygccxml',
+#    targets = '${py_site_packages}/pygccxml',
+#    workdir = '${deps_dir}/pygccxml',
+#    commands = [pythonExecutable + ' setup.py install'
+#                '  --prefix=${ram_prefix}'],
+#    dependencies = (setup_directories,)
+#    )
+#
+#install_pyplusplus = Task(
+#    'Install Py++',
+#    namespaces = 'pyplusplus',
+#    targets = '${py_site_packages}/pyplusplus',
+#    workdir = '${deps_dir}/pyplusplus',
+#    commands = [pythonExecutable + ' setup.py install'
+#                '  --prefix=${ram_prefix}'],
+#    dependencies = (setup_directories,)
+#    )
+#
+#install_pyserial = Task(
+#    'Install PySerial',
+#    namespaces = 'pyserial',
+#    targets = '${py_site_packages}/serial',
+#    workdir = '${deps_dir}/pyserial',
+#    commands = [pythonExecutable + ' setup.py install'
+#                '  --prefix=${ram_prefix}'],
+#    dependencies = (setup_directories,)
+#    )
+#
+#install_pyyaml = Task(
+#    'Install PyYaml',
+#    namespaces = 'pyyaml',
+#    targets = '${py_site_packages}/yaml',
+#    workdir = '${deps_dir}/pyyaml',
+#    commands = [pythonExecutable + ' setup.py install'
+#                '  --prefix=${ram_prefix}'],
+#    dependencies = (setup_directories,)
+#    )
 
 
 install_scons = Task(
@@ -100,8 +100,9 @@ install_python_modules = Task(
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
      commands = [],
-     dependencies = (install_pygccxml, install_pyplusplus, install_pyserial,
-                     install_pyyaml, install_scons, install_zope_interface)
+     #dependencies = (install_pygccxml, install_pyplusplus, install_pyserial,
+     #                install_pyyaml, install_scons, install_zope_interface)
+     dependencies = (install_scons, install_zope_interface)
     )
 
 # Generate Environment File
