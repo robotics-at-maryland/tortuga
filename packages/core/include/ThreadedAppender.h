@@ -15,11 +15,11 @@
 
 // Library Includes
 #include <log4cpp/Appender.hh>
-#include <log4cpp/LoggingEvent.hh>
 
 // Project Includes
 #include "core/include/Updatable.h"
 #include "core/include/ThreadedQueue.h"
+#include "core/include/LoggingEvent.h"
 
 namespace ram {
 namespace core {
@@ -58,7 +58,7 @@ public:
     
 private:
     /** Queues up log events to be written to the file */
-    ThreadedQueue<log4cpp::LoggingEvent> m_logEvents;
+    ThreadedQueue<LoggingEvent> m_logEvents;
 
     /** The appender we are wrapper*/
     log4cpp::Appender* m_appender;
