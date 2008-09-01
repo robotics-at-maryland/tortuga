@@ -11,6 +11,7 @@ import sys
 import glob as _glob
 import subprocess
 import SCons
+import SCons.Builder
 
 # Build System imports
 import libs
@@ -31,10 +32,8 @@ def slice2cpp(env, target, source):
             env.subst('slice2cpp --output-dir ' + outDir + ' ${SOURCE}', source=src))
     return results
 
-slic2cppBld = env.Builder(action = slice2cpp,
-        src_suffix = 'ice')
+slice2cppBld = SCons.Builder.Builder(action = slice2cpp, src_suffix = 'ice')
 
-env.Append(BUILDERS = {'Slice2cpp' : slice2cpp})
 def glob(env, path, pattern):
     """
     Returns the list of paths relative to the current SConscript directory
@@ -287,7 +286,7 @@ def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary
     env['BUILDERS']['RAMProgram'] = Program
     env['BUILDERS']['Tests'] = Tests
-    env['BUILDERS']['Slice2cpp'] = slic2cppBld
+    env['BUILDERS']['Slice2cpp'] = slice2cppBld
     from SCons.Script.SConscript import SConsEnvironment # just do this once
     SConsEnvironment.Glob = glob
 
