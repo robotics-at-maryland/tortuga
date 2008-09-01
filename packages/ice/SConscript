@@ -10,8 +10,8 @@ Import('env')
 envl = env.Clone()
 
 # Generate marshaling code
-sliceSources = envl.Slice2cpp('ram.ice')
+sliceSources = envl.Slice2cpp('ram_ice.ice')
 
 # Build Library (will be called 'libram_ice.so')
-envl.Append(CPPPATH = ['.'])
+envl.Append(CPPPATH = ['#build/packages/ice'])
 envl.RAMSharedLibrary('ice', source = sliceSources)

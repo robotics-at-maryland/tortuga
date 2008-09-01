@@ -40,6 +40,9 @@ Torus Knot Software Ltd.
 // Must Be Included last
 #include "math/include/Export.h"
 
+// ICE
+//#include <ram_ice.h>
+
 namespace ram {
 namespace math {
 
