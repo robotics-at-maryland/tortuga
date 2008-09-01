@@ -18,6 +18,11 @@ The results above suggest that ICE method invocation incurs around 7.5 times the
 overhead as native method invocation.  Its performance level is substantially
 higher than Python's, but not as high as Java's or C++'s.
 
+These numbers were recorded on 2.16 GHz Intel Core 2 Duo MacBook Pro.
+
+Longer run times, but almost identical run time ratios,
+have been observed on a single core 1.25 GHz PowerMac G4.
+
 (see: http://blog.dhananjaynene.com/2008/07/performance-comparison-c-java-python-ruby-jython-jruby-groovy/)
 
 Note that this measures only time overhead.  ICE invocation may make use of other
