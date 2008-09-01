@@ -87,7 +87,10 @@ def setup_posix_libs():
     EXTERNAL_LIBS = {
         'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
                                     'wx-config'),
+        
         'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
+        
+        'Slice' : PkgConfigLibrary('Ice', '3.3.0', ['Ice/Ice.h']),
         
         'log4cpp' : PkgConfigLibrary('log4cpp', '1.0', ['log4cpp/Export.hh']),
 
@@ -224,6 +227,9 @@ def _get_internal_lib(env, name):
                                        int_deps = ['pattern', 'core', 'math'],
                                        ext_deps = ['OpenCV', 'Boost.Thread']),
             
+            'ice' : InternalLibrary('ice', int_deps = [],
+                                       ext_deps = ['Slice']),
+            
             'pattern' : InternalLibrary('pattern', int_deps = [],
                                         ext_deps = ['Boost', 'Boost.Thread']),
             
@@ -249,7 +255,7 @@ def _get_internal_lib(env, name):
             'bfin_spartan' : InternalLibrary('bfin_spartan', int_deps = [],
                                              ext_deps = []),
 
-            'math' : InternalLibrary('math', int_deps = [],
+            'math' : InternalLibrary('math', int_deps = ['ice'],
                                      ext_deps = []),
 
             'sonar' : InternalLibrary('sonar',
@@ -272,7 +278,7 @@ def _get_internal_lib(env, name):
         return INTERNAL_LIBS[name]
     else:
         print 'Could not find internal library named: "%s"' % name
-        print 'Please update "_get_instal_lib" in "buildfiles/libs.py"'
+        print 'Please update "_get_internal_lib" in "buildfiles/libs.py"'
         sys.exit(1)
 
 # --------------------------------------------------------------------------- #

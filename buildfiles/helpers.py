@@ -26,13 +26,13 @@ def slice2cpp(env, target, source):
     for srcName in source:
         src = env.File(srcName)
         outDir = os.path.dirname(env.subst('${TARGET.path}', target=src))
-        results += env.Command(
-            [env.subst('${SOURCE.filebase}.h', source=src), env.subst('${SOURCE.filebase}.cpp', source=src)],
-            src,
-            env.subst('slice2cpp --output-dir ' + outDir + ' ${SOURCE}', source=src))
+        cppFilePath = env.subst('${SOURCE.filebase}.cpp', source=src)
+        hFilePath   = env.subst('${SOURCE.filebase}.h', source=src)
+        targetNames = [cppFilePath, hFilePath]
+        sliceCom = env.subst('/opt/local/bin/slice2cpp --output-dir ' + outDir + ' ${SOURCE}', source=src)
+        env.Command(targetNames, src, sliceCom)
+        results += [cppFilePath]
     return results
-
-slice2cppBld = SCons.Builder.Builder(action = slice2cpp, src_suffix = 'ice')
 
 def glob(env, path, pattern):
     """
@@ -286,7 +286,7 @@ def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary
     env['BUILDERS']['RAMProgram'] = Program
     env['BUILDERS']['Tests'] = Tests
-    env['BUILDERS']['Slice2cpp'] = slice2cppBld
+    env['BUILDERS']['Slice2cpp'] = slice2cpp
     from SCons.Script.SConscript import SConsEnvironment # just do this once
     SConsEnvironment.Glob = glob
 

@@ -1,0 +1,17 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Leo Singer <aronnax@umd.edu>
+# All rights reserved.
+#
+# Author: Leo Singer <aronnax@umd.edu>
+# File:  packages/ice/SConscript
+
+# Pull in build environment from parent SConstruct
+Import('env')
+envl = env.Clone()
+
+# Generate marshaling code
+sliceSources = envl.Slice2cpp('ram.ice')
+
+# Build Library (will be called 'libram_ice.so')
+envl.Append(CPPPATH = ['.'])
+envl.RAMSharedLibrary('ice', source = sliceSources)

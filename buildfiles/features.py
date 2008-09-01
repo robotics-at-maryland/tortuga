@@ -33,15 +33,16 @@ def get_features():
     # List of features in the build
     
     # See the "add_feature" function in the "SUPPORT" section of the file below
-    # for more information    
+    # for more information
     add_feature('core', dirs = ['packages/core'])
+    add_feature('ice', dirs = ['packages/ice'])
     add_feature('pattern', dirs = ['packages/pattern'])
     add_feature('math', dirs = ['packages/math'])
     add_feature('vision', dirs = ['packages/vision'],
                 deps = ['pattern', 'core', 'math'])
 	
     add_feature('vehicle', dirs = ['packages/vehicle'],
-                    deps = ['math', 'core', 'pattern'])
+                    deps = ['math', 'core', 'pattern', 'ice'])
     
     add_feature('control', dirs = ['packages/control'],
                 deps = ['math', 'core', 'vehicle'])
