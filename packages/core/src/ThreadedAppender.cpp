@@ -30,7 +30,7 @@ ThreadedAppender::~ThreadedAppender()
 
 void ThreadedAppender::update(double timestep)
 {
-    log4cpp::LoggingEvent event("", "", "", 1);
+    LoggingEvent event("", "", "", 1);
 
     // Clear all current events
     while(m_logEvents.popNoWait(event))

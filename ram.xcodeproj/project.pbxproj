@@ -256,7 +256,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = core;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
