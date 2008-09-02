@@ -9,13 +9,12 @@
 Import('env')
 envl = env.Clone()
 
-# Generate marshaling code
+# Generate marshaling code for C++
 sliceSources = envl.Slice2cpp('ram_ice.ice')
+
+# Generate marshaling code for Python
+envl.Slice2py('ram_ice.ice')
 
 # Build Library (will be called 'libram_ice.so')
 envl.Append(CPPPATH = ['#build/packages/ice'])
 envl.RAMSharedLibrary('ice', source = sliceSources)
-
-envp = env.Clone()
-envp.RAMProgram('mockserver', env.Glob('mock', '*.cpp'),
-				int_deps = ['ice', 'math'])

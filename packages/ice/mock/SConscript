@@ -1,0 +1,12 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Leo Singer <aronnax@umd.edu>
+# All rights reserved.
+#
+# Author: Leo Singer <aronnax@umd.edu>
+# File:  packages/ice/SConscript
+
+# Pull in build environment from parent SConstruct
+Import('env')
+env = env.Clone()
+env.RAMProgram('mockserver', env.Glob('','*.cpp'),
+				int_deps = ['ice', 'math'])

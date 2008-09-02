@@ -36,6 +36,7 @@ def get_features():
     # for more information
     add_feature('core', dirs = ['packages/core'])
     add_feature('ice', dirs = ['packages/ice'])
+    add_feature('mock', dirs = ['packages/ice/mock'], deps=['math', 'ice'])
     add_feature('pattern', dirs = ['packages/pattern'])
     add_feature('math', dirs = ['packages/math'])
     add_feature('vision', dirs = ['packages/vision'],

@@ -10,12 +10,16 @@
 		5F6A335A0E33E65D009FA642 /* tools */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tools; sourceTree = "<group>"; };
 		A4AD61020E3301A0005BA8A3 /* packages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = packages; sourceTree = SOURCE_ROOT; };
 		A4AD61030E3301A0005BA8A3 /* sandbox */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sandbox; sourceTree = "<group>"; };
+		A4AD8FD60E6D8DED001A5600 /* buildfiles */ = {isa = PBXFileReference; lastKnownFileType = folder; path = buildfiles; sourceTree = "<group>"; };
+		A4AD8FF90E6D8DED001A5600 /* scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = scripts; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		08FB7794FE84155DC02AAC07 /* trunk */ = {
 			isa = PBXGroup;
 			children = (
+				A4AD8FD60E6D8DED001A5600 /* buildfiles */,
+				A4AD8FF90E6D8DED001A5600 /* scripts */,
 				A4AD61020E3301A0005BA8A3 /* packages */,
 				A4AD61030E3301A0005BA8A3 /* sandbox */,
 				5F6A335A0E33E65D009FA642 /* tools */,
@@ -124,6 +128,20 @@
 			passBuildSettingsInEnvironment = 1;
 			productName = trunk;
 		};
+		A4AD902C0E6D9D03001A5600 /* ice */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
+			buildConfigurationList = A4AD902D0E6D9D03001A5600 /* Build configuration list for PBXLegacyTarget "ice" */;
+			buildPhases = (
+			);
+			buildToolPath = ram.xcodeproj/scons_adapter.sh;
+			buildWorkingDirectory = "";
+			dependencies = (
+			);
+			name = ice;
+			passBuildSettingsInEnvironment = 1;
+			productName = trunk;
+		};
 		D28A88AD04BDD90700651E21 /* sonar */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "$(ACTION) $(PRODUCT_NAME)";
@@ -158,6 +176,7 @@
 				D28A88AD04BDD90700651E21 /* sonar */,
 				A4AD60B00E3300C7005BA8A3 /* vehicle */,
 				A400BB180E3192420071AE95 /* vision */,
+				A4AD902C0E6D9D03001A5600 /* ice */,
 			);
 		};
 /* End PBXProject section */
@@ -174,7 +193,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = sonar;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -226,7 +245,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = vision;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -254,7 +273,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = core;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -282,7 +301,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = math;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -310,7 +329,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = control;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -338,7 +357,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = vehicle;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -366,7 +385,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = network;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -394,7 +413,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = trunk;
+				PRODUCT_NAME = all;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -407,6 +426,34 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = all;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		A4AD902E0E6D9D03001A5600 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = ice;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		A4AD902F0E6D9D03001A5600 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = sonar;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -491,6 +538,15 @@
 			buildConfigurations = (
 				A4AD60BA0E330142005BA8A3 /* Debug */,
 				A4AD60BB0E330142005BA8A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4AD902D0E6D9D03001A5600 /* Build configuration list for PBXLegacyTarget "ice" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4AD902E0E6D9D03001A5600 /* Debug */,
+				A4AD902F0E6D9D03001A5600 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
