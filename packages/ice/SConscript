@@ -15,3 +15,7 @@ sliceSources = envl.Slice2cpp('ram_ice.ice')
 # Build Library (will be called 'libram_ice.so')
 envl.Append(CPPPATH = ['#build/packages/ice'])
 envl.RAMSharedLibrary('ice', source = sliceSources)
+
+envp = env.Clone()
+envp.RAMProgram('mockserver', env.Glob('mock', '*.cpp'),
+				int_deps = ['ice', 'math'])
