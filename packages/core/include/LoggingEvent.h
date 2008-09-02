@@ -1,85 +1,76 @@
 /*
- * LoggingEvent.hh
- * with copy constructors added by Leo Singer <aronnax@umd.edu>
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Joseph Lisee <jlisee@umd.edu>
+ * All rights reserved.
  *
- * Copyright 2000, LifeLine Networks BV (www.lifeline.nl). All rights reserved.
- * Copyright 2000, Bastiaan Bakker. All rights reserved.
- *
- * See the COPYING file for the terms of usage and distribution.
+ * Author: Leo Singer <aronnax@umd.edu>
+ * File:  packages/core/include/LoggingEvent.h
  */
 
-#ifndef _RAM_CORE_LOGGINGEVENT_H
-#define _RAM_CORE_LOGGINGEVENT_H
+#ifndef RAM_CORE_LOGGINGEVENT_H_09_01_2008
+#define RAM_CORE_LOGGINGEVENT_H_09_01_2008
 
+// Library Includes
 #include <log4cpp/LoggingEvent.hh>
 
-/**
- * The top level namespace for all 'Log for C++' types and classes.
- **/
-namespace ram { namespace core {
+namespace ram {
+namespace core {
 
-    /**
-     * The internal representation of logging events. When a affirmative
-     * logging decision is made a <code>LoggingEvent</code> instance is
-     * created. This instance is passed around the different log4cpp
-     * components.
-     *
-     * <p>This class is of concern to those wishing to extend log4cpp. 
-     **/
-    struct LoggingEvent : log4cpp::LoggingEvent {
-    public:
-        /**
-         * Instantiate a LoggingEvent from the supplied parameters.
-         *
-         * <p>Except <code>timeStamp</code> all the other fields of
-         * <code>LoggingEvent</code> are filled when actually needed.
-         * <p>
-         * @param category The category of this event.
-         * @param message  The message of this event.
-         * @param ndc The nested diagnostic context of this event. 
-         * @param priority The priority of this event.
-         **/
-        inline LoggingEvent(const std::string& category, const std::string& message, 
-                            const std::string& ndc, log4cpp::Priority::Value priority) :
-        log4cpp::LoggingEvent(category, message, ndc, priority) {}
-        
-        inline LoggingEvent(const LoggingEvent& other) :
-        log4cpp::LoggingEvent(other.categoryName, other.message, other.ndc, other.priority)
-        {
-            *(const_cast<std::string*>(&threadName)) = *(&(other.threadName));
-            priority = other.priority;
-            timeStamp = other.timeStamp;
-        }
-        
-        inline LoggingEvent(const log4cpp::LoggingEvent& other) :
-        log4cpp::LoggingEvent(other.categoryName, other.message, other.ndc, other.priority)
-        {
-            *(const_cast<std::string*>(&threadName)) = *(&(other.threadName));
-            priority = other.priority;
-            timeStamp = other.timeStamp;
-        }
-        
-        LoggingEvent& LoggingEvent::operator=(const LoggingEvent& other)
-        {
-            *(const_cast<std::string*>(&categoryName)) = *(&(other.categoryName));
-            *(const_cast<std::string*>(&message)) = *(&(other.message));
-            *(const_cast<std::string*>(&ndc)) = *(&(other.ndc));
-            *(const_cast<std::string*>(&threadName)) = *(&(other.threadName));
-            priority = other.priority;
-            timeStamp = other.timeStamp;
-            return *this;
-        }
-        
-        operator log4cpp::LoggingEvent()
-        {
-            log4cpp::LoggingEvent lge(categoryName, message, ndc, priority);
-            *(const_cast<std::string*>(&(lge.threadName))) = *(&(threadName));
-            lge.timeStamp = timeStamp;
-            return lge;
-        }
-        
-    };
-}}
+/** Subclass of standard Log4Cpp event to allow copying */
+struct LoggingEvent : log4cpp::LoggingEvent
+{
+    /** Standard Log4cpp constructor see there docs */
+    inline LoggingEvent(const std::string& category,
+                        const std::string& message, 
+                        const std::string& ndc,
+                        log4cpp::Priority::Value priority) :
+    log4cpp::LoggingEvent(category, message, ndc, priority) {}
 
-#endif // _RAM_CORE_LOGGINGEVENT_HH
+    /** Copy constructor */
+    inline LoggingEvent(const LoggingEvent& other) :
+        log4cpp::LoggingEvent(other.categoryName, other.message, other.ndc,
+                              other.priority)
+    {
+        *(const_cast<std::string*>(&threadName)) = *(&(other.threadName));
+        priority = other.priority;
+        timeStamp = other.timeStamp;
+    }
+
+    /** Allows copy constructing from a log4cpp::LoggingEvent */
+    inline LoggingEvent(const log4cpp::LoggingEvent& other) :
+        log4cpp::LoggingEvent(other.categoryName, other.message, other.ndc,
+                              other.priority)
+    {
+        *(const_cast<std::string*>(&threadName)) = *(&(other.threadName));
+        priority = other.priority;
+        timeStamp = other.timeStamp;
+    }
+
+    /** Standard copy assignment operator */
+    LoggingEvent& operator=(const LoggingEvent& other)
+    {
+        *(const_cast<std::string*>(&categoryName)) = *(&(other.categoryName));
+        *(const_cast<std::string*>(&message)) = *(&(other.message));
+        *(const_cast<std::string*>(&ndc)) = *(&(other.ndc));
+        *(const_cast<std::string*>(&threadName)) = *(&(other.threadName));
+        priority = other.priority;
+        timeStamp = other.timeStamp;
+        return *this;
+    }
+
+    /** Allows conversion to log4cpp::LoggingEvent for better integration */
+    operator log4cpp::LoggingEvent()
+    {
+        log4cpp::LoggingEvent lge(categoryName, message, ndc, priority);
+        *(const_cast<std::string*>(&(lge.threadName))) = *(&(threadName));
+        lge.timeStamp = timeStamp;
+        return lge;
+    }
+    
+};
+    
+} // namespace core
+} // namespace ram
+
+#endif // RAM_CORE_LOGGINGEVENT_H_09_01_2008
 
