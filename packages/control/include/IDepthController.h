@@ -13,6 +13,9 @@
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
+// Project Includes
+#include "math/include/Vector3.h"
+
 // Must Be Included last
 #include "control/include/Export.h"
 
@@ -42,6 +45,19 @@ public:
     
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
+};
+
+class IDepthControllerImp;
+typedef boost::shared_ptr<IDepthControllerImp> IDepthControllerImpPtr;
+
+/** Provides an interface for a implementation of a Depth Controller */
+class RAM_EXPORT IDepthControllerImp : public IDepthController
+{
+  public:
+    virtual ~IDepthControllerImp() {}
+
+    /** Gets the needed vehicle force based on current vehicle state */
+    virtual math::Vector3 depthUpdate(math::Quaternion orienation) = 0;
 };
     
 } // namespace control

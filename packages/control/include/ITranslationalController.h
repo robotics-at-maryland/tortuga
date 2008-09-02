@@ -44,6 +44,20 @@ public:
      */
     virtual double getSidewaysSpeed() = 0;
 };
+
+class ITranslationalControllerImp;
+typedef boost::shared_ptr<ITranslationalControllerImp>
+ITranslationalControllerImpPtr;
+
+/** Provides an interface for a implementation of a Translational Controller */
+class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
+{
+  public:
+    virtual ~ITranslationalControllerImp() {}
+
+    /** Gets the needed vehicle force based on current vehicle state */
+    virtual math::Vector3 translationalUpdate(math::Quaternion orienation) = 0;
+};
     
 } // namespace control
 } // namespace ram

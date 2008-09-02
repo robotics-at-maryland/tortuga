@@ -21,7 +21,8 @@ namespace control {
 
 class IRotationalController;
 typedef boost::shared_ptr<IRotationalController> IRotationalControllerPtr;
-    
+
+/** Defines the interface for controler which controls orientation */
 class RAM_EXPORT IRotationalController
 {
 public:
@@ -47,6 +48,20 @@ public:
 
     /** Loads current orientation into desired (fixes offset in roll and pitch) */
     virtual void holdCurrentHeading() = 0;
+};
+
+class IRotationalControllerImp;
+typedef boost::shared_ptr<IRotationalControllerImp> IRotationalControllerImpPtr;
+
+/** Provides an interface for a implementation of a Rotational Controller */
+class RAM_EXPORT IRotationalControllerImp : public IRotationalController
+{
+  public:
+    virtual ~IRotationalControllerImp() {}
+
+    /** Gets the needed vehicle torque based on current vehicle state */
+    virtual math::Vector3 rotationalUpdate(math::Quaternion orienation,
+                                           math::Vector3 angularRate) = 0;
 };
     
 } // namespace control
