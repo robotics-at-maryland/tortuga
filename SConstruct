@@ -7,7 +7,6 @@ env.Append(FRAMEWORKS = ['OpenGL', 'GLUT'])
 env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '#build/native', '#src'])
 env.Append(LIBPATH = ['/opt/local/lib'])
 env.Append(LIBS = ['Ice', 'IceUtil'])
-# env.Append(CPPFLAGS = ['-O3'])
 env.BuildDir('build','src')
 
 
@@ -56,5 +55,5 @@ env.Append(LIBS = ['LibLinearMath'])
 env.Append(LIBPATH = ['#deps/bullet-2.70/Demos/OpenGL/Debug'])
 env.Append(LIBS = ['LibOpenGLSupport'])
 env.Append(CPPPATH = ['#deps/bullet-2.70/Demos/OpenGL'])
-simSource = env.Glob('src/sim/*.cpp') + env.Glob('src/sim/vehicle/*.cpp') + env.Glob('src/math/src/*.cpp'), env.Glob('src/sim/physics/*.cpp')
+simSource = env.Glob('src/sim/*.cpp') + env.Glob('src/sim/vehicle/*.cpp') + env.Glob('src/math/src/*.cpp') + env.Glob('src/sim/physics/*.cpp') + env.Glob('src/sim/physics/shape/*.cpp')
 env.Program('build/sim', simSource);

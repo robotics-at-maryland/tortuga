@@ -4,21 +4,17 @@
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 #include "math/include/Matrix3.h"
+#include "shape/Shape.h"
 
 namespace ram {
     namespace sim {
         namespace physics {
             class World;
-            class Shape
-            {
-            public:
-                inline Shape() {}
-            };
-            
             class Body {
                 friend class World;
             public:
                 Body();
+                Body(shape::Shape shape, float mass);
                 ~Body();
                 
                 /// Get the body's mass
@@ -56,6 +52,8 @@ namespace ram {
                 void addRelForceWorld(const math::Vector3& force,
                                       const math::Vector3& position);
                 
+                void debugDraw();
+                
                 const math::Vector3& getForceWorld() const;
                 const math::Vector3 getForceBody() const;
                 const math::Vector3& getTorqueWorld() const;
@@ -69,7 +67,7 @@ namespace ram {
                 float volume;
                 math::Matrix3 inverseMomentOfInertia;
                 math::Vector3 collisionShapeOffset;
-                Shape collisionShape;
+                shape::Shape collisionShape;
                 
                 // Kinematic coordinates
                 /// Quaternion that transforms body frame coordinates to world coordinates
