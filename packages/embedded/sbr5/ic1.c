@@ -778,7 +778,7 @@ void post()
             LAT_LED_ERR = LED_ON;
             for(j=0; j<4; j++)
             {
-                /* Flash error light forever */
+                /* Flash error light 3 times */
                 blink(postList[i]+1);
             }
         }
