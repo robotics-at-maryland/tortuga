@@ -1,4 +1,4 @@
-OIS_ROOT=/usr
+OIS_ROOT=$(RAM_ROOT_DIR)
 CFLAGS=-DSAITEK
 
 all: oisserver oisclient keepalive
