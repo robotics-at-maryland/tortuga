@@ -19,8 +19,8 @@ function waveEquationIntegrate
   % Set up initial pressure field
   P = zeros(100);
   Pold = P;
-  % Place a patch of white noise in the center
-  P(40:50,48:52) = rand(1);
+  % Disturb a patch in the middle of the tank
+  P(40:50,48:52) = 1;
 
   % Set up speed of sound squared table
   % Slow air-like layer above
