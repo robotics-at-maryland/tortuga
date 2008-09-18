@@ -434,11 +434,17 @@ void BWPDController::update(double timestep)
          << m_measuredState->quaternion[1] << " "
          << m_measuredState->quaternion[2] << " "
          << m_measuredState->quaternion[3] << " "
+	 << m_measuredState->angularRate[0] << " "
+	 << m_measuredState->angularRate[1] << " "
+	 << m_measuredState->angularRate[2] << " "
          << m_measuredState->depth << " "
          << m_desiredState->quaternion[0] << " "
          << m_desiredState->quaternion[1] << " "
          << m_desiredState->quaternion[2] << " "
          << m_desiredState->quaternion[3] << " "
+         << m_desiredState->angularRate[0] << " " 
+	 << m_desiredState->angularRate[1] << " "
+ 	 << m_desiredState->angularRate[2] << " "
          << m_desiredState->depth << " "
          << m_desiredState->speed << " "
          << rotationalTorque[0] << " "
@@ -648,7 +654,7 @@ void BWPDController::init(core::ConfigNode config)
     m_estimatedState->xHat2Depth.x = 0;
     m_estimatedState->xHat2Depth.y = 0;
     
-    LOGGER.info("% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq"
+    LOGGER.info("% Time M-Quat M-AngRate M-Depth D-Quat D-AngRate D-Depth D-Speed RotTorq"
                 " TranForce AdaptCtrlParams(12 values)");
     LOGGER.infoStream() << "% AdaptGains: K" << m_controllerState->adaptCtrlRotK 
         << " Gamma: " << m_controllerState->adaptCtrlRotGamma
