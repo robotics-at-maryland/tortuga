@@ -5,7 +5,7 @@ function waveEquationIntegrate
 % The sample setup below is in 2D.
 %
 % NOTE ABOUT UNITS.
-%  Time and distance scale are folded into the parameter
+% Time and distance scale are folded into the parameter
 % csq, which stands for "c squared", or speed of sound squared.
 % If the time step is dt, and the distance scale is dx, and the
 % speed of sound is c, then csq is given by:
@@ -27,7 +27,8 @@ function waveEquationIntegrate
   % Fast water-like layer below
   csq = ones(size(P))*0.4;
   csq(1:20,:) = 0.02;
-  % Make edges of screen totally reflective
+  % Make edges of screen totally opaque.
+  % Otherwise, the edges wrap around.
   csq(1,:) = 0;
   csq(:,1) = 0;
   csq(end,:) = 0;
@@ -54,6 +55,7 @@ function [Pnew, P] = waveEquationUpdate(P, Pold, csq)
 % Output parameters:
 %   Pnew  The pressure at the next time step
 %   P     The pressure at the current time step
+
   nDimensions = length(size(P));
   Pnew = 2 * P .* (1 - csq * nDimensions) - Pold;
   for dimension=1:nDimensions
