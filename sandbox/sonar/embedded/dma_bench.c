@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   double dmaMemcpyRate = sizeof(*src) * BIG_SIZE * ITERS / dmaMemcpySeconds;
   
   printf("memcpy (MBps):     %0.23f\n", memcpyRate * 0.000001);
-  printf("dma_memcpy (MBps): %0.23f\n", dmaMemcpySeconds * 0.000001);
+  printf("dma_memcpy (MBps): %0.23f\n", dmaMemcpyRate * 0.000001);
 
   return 0;
 }
