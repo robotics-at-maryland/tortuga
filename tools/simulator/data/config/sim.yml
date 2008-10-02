@@ -217,7 +217,7 @@ Subsystems:
         #                       (3 for observer control for a 4d depth state)
         #                       (4 for observer control with scaling for a 4d depth state)
         #                       (5 for PID control)
-        depthControlType: 5
+        depthControlType: 1
         dtMin: .001
         dtMax: .05
         #parameters for depth P controller
