@@ -558,8 +558,8 @@ Subsystems:
         depthKi: 0.5
         depthKd: 10
         # PID 3
-        #depthKp: 40
-        #depthKi: 0.5
+        #depthKp: 80
+        #depthKi: 0.2
         #depthKd: 30
         # PID 2
         #depthKp: 60

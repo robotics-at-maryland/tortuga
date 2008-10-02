@@ -217,7 +217,7 @@ Subsystems:
         #                       (3 for observer control for a 4d depth state)
         #                       (4 for observer control with scaling for a 4d depth state)
         #                       (5 for PID control)
-        depthControlType: 4
+        depthControlType: 5
         dtMin: .001
         dtMax: .05
         #parameters for depth P controller
@@ -241,14 +241,14 @@ Subsystems:
         #depthKd: 20
 
         # PID 3
-        # depthKp: 40
-        # depthKi: 0.5
-        # depthKd: 30
+        depthKp: 80
+        depthKi: 0.2
+        depthKd: 30
 
         # PID 4
-        depthKp: 30
-        depthKi: 0.5
-        depthKd: 10
+        #depthKp: 30
+        #depthKi: 0.5
+        #depthKd: 10
              
 
         depthSumError: 0
@@ -266,6 +266,30 @@ Subsystems:
 
         depthOCGainK: [1, 2]
         depthOCGainL: [3, 4]
+
+        # Observer Control for 4d depth state (controllers 3 and 4)
+        # low gains:
+        depthOCIA4: [-0.355, -539.9952, -1.6815, 0,
+                      0, -8.4250, 1.0, 0,
+                      0.05, -22.1456, -0.575, 0,
+                      -0.355, -0.5952, -1.6815, 0]
+        depthOCIB4: [539.4, 8.425, 22.1456, 0]
+        depthOCIC4: [0, 0, 0, 1]
+        # K gains: -2  L gains: -15
+        #depthOCIA4: [-6, -70409, -199, 0,
+        #               0, -45, 1.0, 0,
+        #               0, -667, -1, 0,
+        #              -6, -185, -199, 0]
+        #depthOCIB4: [70224, 45, 667, 0]
+        #depthOCIC4: [0, 0, 0, 1]
+        # K gains: -2  L gains: -10
+        #depthOCIA4: [-6, -20242, -240, 0,
+        #              0, -29, 1.0, 0,
+        #              0, -283, -1, 0,
+        #             -6, -244, -248, 0]
+        #depthOCIB4: [19998, 29, 283, 0]
+        #depthOCIC4: [0, 0, 0, 1]
+
         #parameters for depth observer controller with integrator
         #depthOCIA4: [-0.355, -539.9952, -1.6815, 0, 
         #            0, -8.4250, 1.0, 0, 
@@ -281,12 +305,12 @@ Subsystems:
         #depthOCIB4: [70224, 45, 667, 0]
         #depthOCIC4: [0, 0, 0, 1]
         # K gains: -2       L gains: -10
-        depthOCIA4: [-6, -20242, -248, 0, 
-                    0, -29, 1.0, 0, 
-                    0, -283, -1, 0, 
-                    -6, -244, -248, 0]
-        depthOCIB4: [19998, 29, 283, 0]
-        depthOCIC4: [0, 0, 0, 1]
+        #depthOCIA4: [-6, -20242, -248, 0, 
+        #            0, -29, 1.0, 0, 
+        #            0, -283, -1, 0, 
+        #            -6, -244, -248, 0]
+        #depthOCIB4: [19998, 29, 283, 0]
+        #depthOCIC4: [0, 0, 0, 1]
 
         #parameters for ***discrete*** depth observer controller with integrator
         # K gains: -2      L gains: -100
@@ -308,6 +332,7 @@ Subsystems:
         #parameters for depth LQG controller with integrator
 
         desiredSpeed: 0
+        desiredDepth: 1
         desiredQuaternion: [0, 0, 0, 1]
 
 #    RemoteController:
