@@ -34,6 +34,8 @@ public:
     void setCamera(vision::Camera* camera);
     
 private:
+	friend class MediaControlPanel;
+
     /** Draws the given image on screen */
     void onPaint(wxPaintEvent& event);
     

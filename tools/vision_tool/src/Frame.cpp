@@ -17,6 +17,7 @@
 // Project Includes
 #include "Frame.h"
 #include "CameraView.h"
+#include "MediaControlPanel.h"
 #include "vision/include/OpenCVCamera.h"
 
 namespace ram {
@@ -33,7 +34,7 @@ END_EVENT_TABLE()
 
 Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxFrame((wxFrame *)NULL, -1, title, pos, size),
-    m_view(0)
+    m_view(0), mediaControlPanel(0)
 {
     // File Menu
     wxMenu *menuFile = new wxMenu;
@@ -53,6 +54,8 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     m_view = new CameraView(this);
     sizer->Add(m_view, 1, wxEXPAND);
+	this->mediaControlPanel = new MediaControlPanel(this->m_view, this);
+	sizer->Add(this->mediaControlPanel, 0, wxEXPAND, 0);
     SetSizer(sizer);
 }
 

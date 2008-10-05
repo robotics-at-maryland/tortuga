@@ -18,6 +18,7 @@ namespace tools {
 namespace visionvwr {
 
 class CameraView;
+class MediaControlPanel;
 
 enum
 {
@@ -40,6 +41,8 @@ private:
     void onOpenCamera(wxCommandEvent& event);
     
     CameraView* m_view;
+
+	MediaControlPanel *mediaControlPanel;
     
     DECLARE_EVENT_TABLE()
 };
