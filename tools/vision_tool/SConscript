@@ -19,6 +19,6 @@ envl.Append(CPPPATH = 'include')
 if 'posix' == os.name:
     envl.AppendUnique(CCFLAGS = ['-fno-strict-aliasing'])
 
-envl.RAMProgram(target = 'Viewer', source = sources,
+envl.RAMProgram(target = 'VisionTool', source = sources,
                int_deps = ['vision'], ext_deps = ['wxWidgets'])
 

@@ -62,7 +62,8 @@ def get_features():
                     deps = ['math'])
         
         add_feature('vision_tools',
-                opt_dirs = {'vision' : ['tools/vision_viewer']} )
+                opt_dirs = {'vision' : ['tools/vision_viewer',
+                                        'tools/vision_tool'] })
     
         add_feature('drivers', dirs = ['packages/drivers/sensor-r5',
                                        'packages/drivers/thruster',
