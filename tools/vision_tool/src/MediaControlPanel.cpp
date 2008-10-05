@@ -29,7 +29,8 @@ MediaControlPanel::~MediaControlPanel()
 
 void MediaControlPanel::MediaControlPanel::onPlay(wxCommandEvent& event)
 {
-	this->controlledView->m_timer->Start(100);
+	if (this->controlledView->m_camera!=NULL)
+		this->controlledView->m_timer->Start(100);
 }
 void MediaControlPanel::MediaControlPanel::onStop(wxCommandEvent& event)
 {
