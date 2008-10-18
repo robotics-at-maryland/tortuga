@@ -17,9 +17,8 @@ namespace ram {
 namespace tools {
 namespace visionvwr {
 
-class CameraView;
 class MediaControlPanel;
-
+class GLMovie;
 enum
 {
     ID_Quit = 1,
@@ -40,9 +39,8 @@ private:
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
     
-    CameraView* m_view;
-
 	MediaControlPanel *mediaControlPanel;
+	GLMovie *movie;
     
     DECLARE_EVENT_TABLE()
 };

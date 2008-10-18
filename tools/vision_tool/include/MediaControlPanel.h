@@ -10,7 +10,7 @@ namespace ram {
 namespace tools {
 namespace visionvwr {
 
-class CameraView;
+class GLMovie;
 
 class MediaControlPanel : public wxPanel
 {
@@ -18,7 +18,7 @@ class MediaControlPanel : public wxPanel
 		wxButton *play;
 		wxButton *stop;
 
-		CameraView *controlledView;
+		GLMovie *controlledMovie;
 
 		enum MEDIA_CONTROL_PANEL_BUTTON_IDS {MEDIA_CONTROL_PANEL_BUTTON_PLAY, MEDIA_CONTROL_PANEL_BUTTON_STOP};
 
@@ -26,7 +26,7 @@ class MediaControlPanel : public wxPanel
 		void onStop(wxCommandEvent& event);
 	protected:
 	public:
-		MediaControlPanel(CameraView *controlledView, wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+		MediaControlPanel(GLMovie *controlledMovie, wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 		~MediaControlPanel();
 	
 	DECLARE_EVENT_TABLE()

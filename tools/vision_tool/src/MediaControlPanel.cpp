@@ -1,5 +1,5 @@
 #include "MediaControlPanel.h"
-#include "CameraView.h"
+#include "GLMovie.h"
 
 namespace ram {
 namespace tools {
@@ -10,9 +10,9 @@ BEGIN_EVENT_TABLE(MediaControlPanel, wxPanel)
 	EVT_BUTTON(MediaControlPanel::MEDIA_CONTROL_PANEL_BUTTON_STOP, MediaControlPanel::onStop)
 END_EVENT_TABLE()
 
-MediaControlPanel::MediaControlPanel(CameraView *controlledView, wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxPanel(parent, id, pos, size)
+MediaControlPanel::MediaControlPanel(GLMovie *controlledMovie, wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxPanel(parent, id, pos, size)
 {
-	this->controlledView=controlledView;
+	this->controlledMovie=controlledMovie;
 
 	this->play=new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_PLAY, wxT("Play"));
 	this->stop=new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_STOP, wxT("Stop"));
@@ -29,12 +29,12 @@ MediaControlPanel::~MediaControlPanel()
 
 void MediaControlPanel::MediaControlPanel::onPlay(wxCommandEvent& event)
 {
-	if (this->controlledView->m_camera!=NULL)
-		this->controlledView->m_timer->Start(100);
+	if (this->controlledMovie->m_camera!=NULL)
+		this->controlledMovie->m_timer->Start(100);
 }
 void MediaControlPanel::MediaControlPanel::onStop(wxCommandEvent& event)
 {
-	this->controlledView->m_timer->Stop();
+	this->controlledMovie->m_timer->Stop();
 }
 
 }

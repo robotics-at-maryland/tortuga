@@ -86,7 +86,7 @@ def setup_posix_libs():
     global EXTERNAL_LIBS
     EXTERNAL_LIBS = {
         'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
-                                    'wx-config'),
+                                    'wx-config', lib_flag='--libs std,gl'),
         'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
         
         'log4cpp' : PkgConfigLibrary('log4cpp', '1.0', ['log4cpp/Export.hh']),

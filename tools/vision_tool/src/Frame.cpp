@@ -16,9 +16,10 @@
 
 // Project Includes
 #include "Frame.h"
-#include "CameraView.h"
+#include "GLMovie.h"
 #include "MediaControlPanel.h"
 #include "vision/include/OpenCVCamera.h"
+#include "GLMovie.h"
 
 namespace ram {
 namespace tools {
@@ -34,7 +35,7 @@ END_EVENT_TABLE()
 
 Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxFrame((wxFrame *)NULL, -1, title, pos, size),
-    m_view(0), mediaControlPanel(0)
+    mediaControlPanel(0), movie(0)
 {
     // File Menu
     wxMenu *menuFile = new wxMenu;
@@ -52,9 +53,9 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     
     // Add CameraView panel full screen
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    m_view = new CameraView(this);
-    sizer->Add(m_view, 1, wxEXPAND);
-	this->mediaControlPanel = new MediaControlPanel(this->m_view, this);
+	this->movie=new GLMovie(this);
+	sizer->Add(this->movie, 1, wxEXPAND, 0);
+	this->mediaControlPanel = new MediaControlPanel(this->movie, this);
 	sizer->Add(this->mediaControlPanel, 0, wxEXPAND, 0);
     SetSizer(sizer);
 }
@@ -77,14 +78,15 @@ void Frame::onOpenFile(wxCommandEvent& event)
     {
         vision::OpenCVCamera* camera =
             new vision::OpenCVCamera(std::string(filename.mb_str()));
-        m_view->setCamera(camera);
+        this->movie->setCamera(camera);
+	this->movie->nextFrame();
     }
 }
 
 void Frame::onOpenCamera(wxCommandEvent& event)
 {
     vision::OpenCVCamera* camera = new vision::OpenCVCamera();
-    m_view->setCamera(camera);
+    movie->setCamera(camera);
 }
     
 } // namespace visionvwr
