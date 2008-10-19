@@ -88,12 +88,12 @@ namespace ram {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glBindTexture(GL_TEXTURE_2D, this->textureid);
-	
+
 	glBegin(GL_QUADS);
-	glTexCoord2f(1.0f, 1.0f); glVertex2f(0.0f, 0.0f);
-	glTexCoord2f(1.0f, 0.0f); glVertex2f(0.0f, 100.0f);
-	glTexCoord2f(0.0f, 0.0f); glVertex2f(100.0f, 100.0f);
-	glTexCoord2f(0.0f, 1.0f); glVertex2f(100.0f, 0.0f);
+	glTexCoord2f(0.0f, 1.0f); glVertex2i(0, 0);
+	glTexCoord2f(0.0f, 0.0f); glVertex2i(0, 300);
+	glTexCoord2f(1.0f, 0.0f); glVertex2i(300, 300);
+	glTexCoord2f(1.0f, 1.0f); glVertex2i(300, 0);
 	glEnd();
 	
 	//Finish drawing.  Send all drawing commands now.
@@ -186,17 +186,14 @@ namespace ram {
 	    break;
 	  }
 
-	//TODO: Testing: Clear the texture to black to see if anything happens.
-	//memset(this->imageData, 0, this->oldWidth*this->oldHeight*3);
-
 	//Do the texture.
 	glBindTexture(GL_TEXTURE_2D, this->textureid);
 	//TODO: Fix in case of BGR
 	//Load the texture into memory.
 	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, this->oldWidth, this->oldHeight, GL_RGB, GL_UNSIGNED_BYTE, this->imageData);
 	//Set parameters for the texture.
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       }
 
       unsigned char* GLMovie::getData() const
