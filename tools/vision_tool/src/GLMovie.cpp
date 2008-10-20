@@ -89,11 +89,34 @@ namespace ram {
 
 	glBindTexture(GL_TEXTURE_2D, this->textureid);
 
+	//Find out where to draw the quad.
+	int left, right, top, bottom;
+	if (oldWidth==0 || oldHeight==0)
+	{
+		left=right=top=bottom=0;
+	}
+	else if (myHeight-oldHeight<myWidth-oldWidth)
+	{
+		bottom=0;
+		top=myHeight;
+		int screenWidth=oldWidth*myHeight/oldHeight;
+		left=(myWidth-screenWidth)/2;
+		right=left+screenWidth;
+	}
+	else
+	{
+		left=0;
+		right=myWidth;
+		int screenHeight=myWidth*oldHeight/oldWidth;
+		bottom=(myHeight-screenHeight)/2;
+		top=bottom+screenHeight;
+	}
+
 	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 1.0f); glVertex2i(0, 0);
-	glTexCoord2f(0.0f, 0.0f); glVertex2i(0, 300);
-	glTexCoord2f(1.0f, 0.0f); glVertex2i(300, 300);
-	glTexCoord2f(1.0f, 1.0f); glVertex2i(300, 0);
+	glTexCoord2f(0.0f, 1.0f); glVertex2i(left, bottom);
+	glTexCoord2f(0.0f, 0.0f); glVertex2i(left, top);
+	glTexCoord2f(1.0f, 0.0f); glVertex2i(right, top);
+	glTexCoord2f(1.0f, 1.0f); glVertex2i(right, bottom);
 	glEnd();
 	
 	//Finish drawing.  Send all drawing commands now.
