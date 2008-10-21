@@ -131,8 +131,8 @@ def get_wx_prefix():
     if platform.system() == 'Darwin':
     	cmd = "python -c 'import wx;print(wx.__file__)'"
     	try:
-    		wx_imported_path = execute_like_backticks(cmd)
-    	except CommandReturnedNOnZeroError:
+            	wx_imported_path = execute_like_backticks(cmd)
+    	except CommandReturnedNonZeroError:
 			print 'Please install wxPython 2.8.x from http://www.wxpython.org'
 			raise
         return os.path.dirname(wx_imported_path)
