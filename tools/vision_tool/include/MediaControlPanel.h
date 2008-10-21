@@ -6,13 +6,16 @@
 #include <wx/msgdlg.h>
 #include <wx/sizer.h>
 
-namespace ram {
-namespace tools {
-namespace visionvwr {
+namespace ram
+{
+namespace tools
+{
+namespace visionvwr
+{
 
 class GLMovie;
 
-class MediaControlPanel : public wxPanel
+class MediaControlPanel: public wxPanel
 {
 	private:
 		wxButton *play;
@@ -20,16 +23,21 @@ class MediaControlPanel : public wxPanel
 
 		GLMovie *controlledMovie;
 
-		enum MEDIA_CONTROL_PANEL_BUTTON_IDS {MEDIA_CONTROL_PANEL_BUTTON_PLAY, MEDIA_CONTROL_PANEL_BUTTON_STOP};
+		enum MEDIA_CONTROL_PANEL_BUTTON_IDS
+		{
+			MEDIA_CONTROL_PANEL_BUTTON_PLAY, MEDIA_CONTROL_PANEL_BUTTON_STOP
+		};
 
 		void onPlay(wxCommandEvent& event);
 		void onStop(wxCommandEvent& event);
 	protected:
 	public:
-		MediaControlPanel(GLMovie *controlledMovie, wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+		MediaControlPanel(GLMovie *controlledMovie, wxWindow *parent,
+				wxWindowID id = wxID_ANY, const wxPoint &pos =
+						wxDefaultPosition, const wxSize &size = wxDefaultSize);
 		~MediaControlPanel();
-	
-	DECLARE_EVENT_TABLE()
+
+DECLARE_EVENT_TABLE()
 };
 }
 }

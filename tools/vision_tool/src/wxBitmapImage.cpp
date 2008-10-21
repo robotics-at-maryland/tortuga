@@ -14,148 +14,151 @@
 // Project Includes
 #include "wxBitmapImage.h"
 
-namespace ram {
-namespace tools {
-namespace visionvwr {
+namespace ram
+{
+namespace tools
+{
+namespace visionvwr
+{
 
 typedef wxPixelData<wxBitmap, wxNativePixelFormat> PixelData;
-    
+
 wxBitmapImage::wxBitmapImage(int width, int height) :
-    m_bitmap(new wxBitmap(width, height))
+	m_bitmap(new wxBitmap(width, height))
 {
 }
 
 wxBitmapImage::~wxBitmapImage()
 {
-    delete m_bitmap;
+	delete m_bitmap;
 }
-    
-void wxBitmapImage::copyFrom (const Image* src)
+
+void wxBitmapImage::copyFrom(const Image* src)
 {
-    // Handle self copy
-    if (this == src)
-        return;
+	// Handle self copy
+	if (this == src)
+		return;
 
-    int width = (int)src->getWidth();
-    int height = (int)src->getHeight();
-    
-    // Ensure bitmap is of the proper size
-    if ((m_bitmap->GetWidth() != width) || (m_bitmap->GetHeight() != height))
-    {
-        delete m_bitmap;
-        m_bitmap = new wxBitmap(src->getWidth(), src->getHeight());
-    }
-    
-    PixelData bitmapData(*m_bitmap);
-    if ( !bitmapData )
-    {
-        assert(false && "Could not use wxPixelData to convert wxBitmap");
-    }
+	int width = (int) src->getWidth();
+	int height = (int) src->getHeight();
 
-    // Iterator allows cross platform access to bitmap data
-    PixelData::Iterator p(bitmapData);
+	// Ensure bitmap is of the proper size
+	if ((m_bitmap->GetWidth() != width) || (m_bitmap->GetHeight() != height))
+	{
+		delete m_bitmap;
+		m_bitmap = new wxBitmap(src->getWidth(), src->getHeight());
+	}
 
-    unsigned char* imageData = src->getData();
-    size_t length = width * height;
+	PixelData bitmapData(*m_bitmap);
+	if (!bitmapData)
+	{
+		assert(false && "Could not use wxPixelData to convert wxBitmap");
+	}
 
-    // Copy from source to the wxBitmap
-    switch(src->getPixelFormat())
-    {
-        case vision::Image::PF_RGB_8:
-        {
-            for (size_t i = 0; i < length; ++i)
-            {
-                p.Red() = *imageData; 
-                p.Green() = *(imageData + 1);
-                p.Blue() = *(imageData + 2);
+	// Iterator allows cross platform access to bitmap data
+	PixelData::Iterator p(bitmapData);
 
-                ++p;
-                imageData += 3;
-            }            
-        }
-        break;
+	unsigned char* imageData = src->getData();
+	size_t length = width * height;
 
-        case vision::Image::PF_BGR_8:
-        {
-            for (size_t i = 0; i < length; ++i)
-            {
-                p.Blue() = *imageData;
-                p.Green() = *(imageData + 1);
-                p.Red() = *(imageData + 2);
+	// Copy from source to the wxBitmap
+	switch (src->getPixelFormat())
+	{
+		case vision::Image::PF_RGB_8:
+		{
+			for (size_t i = 0; i < length; ++i)
+			{
+				p.Red() = *imageData;
+				p.Green() = *(imageData + 1);
+				p.Blue() = *(imageData + 2);
 
-                ++p;
-                imageData += 3;
-            }
-        }
-        break;
-            
-        default:
-        {
-            assert("Unsupported pixel format");
-        }
-        break;
-    }
+				++p;
+				imageData += 3;
+			}
+		}
+			break;
 
-    // Copy Other members
-    //m_own = src->getOwnership();
+		case vision::Image::PF_BGR_8:
+		{
+			for (size_t i = 0; i < length; ++i)
+			{
+				p.Blue() = *imageData;
+				p.Green() = *(imageData + 1);
+				p.Red() = *(imageData + 2);
+
+				++p;
+				imageData += 3;
+			}
+		}
+			break;
+
+		default:
+		{
+			assert("Unsupported pixel format");
+		}
+			break;
+	}
+
+	// Copy Other members
+	//m_own = src->getOwnership();
 }
 
 unsigned char* wxBitmapImage::getData() const
 {
-    assert(false && "wxBitmapImage::getData Not implemented");
+	assert(false && "wxBitmapImage::getData Not implemented");
 }
-    
+
 size_t wxBitmapImage::getWidth() const
 {
-    return m_bitmap->GetWidth();
+	return m_bitmap->GetWidth();
 }
 
 size_t wxBitmapImage::getHeight() const
 {
-    return m_bitmap->GetHeight();
+	return m_bitmap->GetHeight();
 }
 
 vision::Image::PixelFormat wxBitmapImage::getPixelFormat() const
 {
-    return vision::Image::PF_RGB_8;
+	return vision::Image::PF_RGB_8;
 }
 
 const wxBitmap* wxBitmapImage::getBitmap()
 {
-    return m_bitmap;
+	return m_bitmap;
 }
-    
+
 bool wxBitmapImage::getOwnership() const
 {
-    assert(false && "wxBitmapImage::getOwnership Not implemented");
+	assert(false && "wxBitmapImage::getOwnership Not implemented");
 }
-    
+
 unsigned char* wxBitmapImage::setData(unsigned char* data, bool ownership)
 {
-    assert(false && "wxBitmapImage::setData Not implemented");
+	assert(false && "wxBitmapImage::setData Not implemented");
 }
 
-void  wxBitmapImage::setSize(int width, int height)
+void wxBitmapImage::setSize(int width, int height)
 {
-    assert(false && "wxBitmapImage::setSize Not implemented");
+	assert(false && "wxBitmapImage::setSize Not implemented");
 }
 
-void  wxBitmapImage::setPixelFormat(Image::PixelFormat format)
+void wxBitmapImage::setPixelFormat(Image::PixelFormat format)
 {
-    assert(false && "wxBitmapImage::setPixelFormat Not implemented");
+	assert(false && "wxBitmapImage::setPixelFormat Not implemented");
 }
 
-wxBitmapImage::operator IplImage* ()
+wxBitmapImage::operator IplImage*()
 {
-    assert(false && "wxBitmapImage::operator IplImage*Not implemented");
+	assert(false && "wxBitmapImage::operator IplImage*Not implemented");
 }
 
 IplImage* wxBitmapImage::asIplImage() const
 {
-    assert(false && "wxBitmapImage::asIplImage Not implemented");
+	assert(false && "wxBitmapImage::asIplImage Not implemented");
 }
-    
+
 } // namespace visionvwr
 } // namespace tools
 } // namespace ram
-    
+

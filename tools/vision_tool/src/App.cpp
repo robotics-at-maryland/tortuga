@@ -11,20 +11,22 @@
 #include "App.h"
 #include "Frame.h"
 
-IMPLEMENT_APP(ram::tools::visionvwr::App)
+IMPLEMENT_APP( ram::tools::visionvwr::App)
 
-namespace ram {
-namespace tools {
-namespace visionvwr {
+namespace ram
+{
+namespace tools
+{
+namespace visionvwr
+{
 
 bool App::OnInit()
 {
-    Frame* frame = new Frame( _T("Vision Viewer"), wxPoint(50,50),
-                              wxSize(450,340) );
-    frame->Show(TRUE);
-    SetTopWindow(frame);
-    return TRUE;
-} 
+	Frame* frame = new Frame(_T("Vision Viewer"), wxPoint(50, 50), wxSize(450, 340));
+	frame->Show(TRUE);
+	SetTopWindow(frame);
+	return TRUE;
+}
 
 } // namespace visionvwr
 } // namespace tools

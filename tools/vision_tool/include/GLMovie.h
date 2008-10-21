@@ -5,72 +5,73 @@
 #include <wx/timer.h>
 #include "vision/include/Image.h"
 
-namespace ram{
-  namespace tools{
-    namespace visionvwr{
+namespace ram
+{
+namespace tools
+{
+namespace visionvwr
+{
 
-      class GLMovie : public wxGLCanvas, vision::Image
-      {
-	friend class MediaControlPanel;
+class GLMovie: public wxGLCanvas, vision::Image
+{
+		friend class MediaControlPanel;
 
-      private:
-	GLuint textureid;
-	void applyTexture();
-	void render();
-	void onPaint(wxPaintEvent &event);
-	void initGL();
-	void onSize(wxSizeEvent &event);
-	void onTimer(wxTimerEvent &event);
-        /** The source of the new images */
-        vision::Camera* m_camera;
-	unsigned char *imageData;
-	//If the image size changes, the imageData will need to be reallocated.  Since it may be slow to reallocate every frame, this will prevent that from happening.
-	int oldWidth, oldHeight;
-	//Whether OpenGL has been initialized.  It seems wxGLCanvas hasn't actually initialized OpenGL in the constructor.
-	bool initialized;
+	private:
+		GLuint textureid;
+		void applyTexture();
+		void render();
+		void onPaint(wxPaintEvent &event);
+		void initGL();
+		void onSize(wxSizeEvent &event);
+		void onTimer(wxTimerEvent &event);
+		/** The source of the new images */
+		vision::Camera* m_camera;
+		int imageWidth, imageHeight;
+		//Whether OpenGL has been initialized.  It seems wxGLCanvas hasn't actually initialized OpenGL in the constructor.
+		bool initialized;
 
-	wxTimer *m_timer;
-      protected:
-      public:
-	GLMovie(wxWindow *parent);
-	~GLMovie();
+		wxTimer *m_timer;
+	protected:
+	public:
+		GLMovie(wxWindow *parent);
+		~GLMovie();
 
-	void setCamera(vision::Camera *camera);
+		void setCamera(vision::Camera *camera);
 
-	//!Prepares the next frame by loading it as a texture but does not necessarily render with the new frame.	
-	void nextFrame();
+		//!Prepares the next frame by loading it as a texture but does not necessarily render with the new frame.
+		void nextFrame();
 
-	virtual void copyFrom (const Image* src);
-    
-	//virtual unsigned char* getData() const;
+		virtual void copyFrom(const Image* src);
 
-	virtual size_t getWidth() const;
+		//virtual unsigned char* getData() const;
 
-	virtual size_t getHeight() const;
+		virtual size_t getWidth() const;
 
-	virtual vision::Image::PixelFormat getPixelFormat() const;
+		virtual size_t getHeight() const;
 
-	const wxBitmap* getBitmap();
-	    
-	// Not Implemented yet for the wxBitmap
-	virtual unsigned char* getData() const;
-	    
-	virtual bool getOwnership() const;
-	    
-	virtual unsigned char* setData(unsigned char* data,
-	                               bool ownership = true);
+		virtual vision::Image::PixelFormat getPixelFormat() const;
 
-	virtual void setSize(int width, int height);
-	  
-	virtual void setPixelFormat(vision::Image::PixelFormat format);
+		const wxBitmap* getBitmap();
 
-	virtual operator IplImage*();
+		// Not Implemented yet for the wxBitmap
+		virtual unsigned char* getData() const;
 
-	virtual IplImage* asIplImage() const;
-	
-	DECLARE_EVENT_TABLE()
-      };
-    }
-  }
+		virtual bool getOwnership() const;
+
+		virtual unsigned char* setData(unsigned char* data, bool ownership =
+				true);
+
+		virtual void setSize(int width, int height);
+
+		virtual void setPixelFormat(vision::Image::PixelFormat format);
+
+		virtual operator IplImage*();
+
+		virtual IplImage* asIplImage() const;
+
+DECLARE_EVENT_TABLE()
+};
+}
+}
 }
 #endif
