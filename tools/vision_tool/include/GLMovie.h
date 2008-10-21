@@ -26,11 +26,18 @@ class GLMovie: public wxGLCanvas, vision::Image
 		void onTimer(wxTimerEvent &event);
 		/** The source of the new images */
 		vision::Camera* m_camera;
-		int imageWidth, imageHeight;
+		//The size of the movie (in pixels).
+        int movieWidth, movieHeight;
+        //The size of the image texture (in pixels).  The imageWidth and imageHeight should be the next power of 2 greater than movieWidth and movieHeight.
+        int imageWidth, imageHeight;
 		//Whether OpenGL has been initialized.  It seems wxGLCanvas hasn't actually initialized OpenGL in the constructor.
 		bool initialized;
 
 		wxTimer *m_timer;
+
+        unsigned char *imageData;
+
+        int nextPowerOf2(int a);
 	protected:
 	public:
 		GLMovie(wxWindow *parent);

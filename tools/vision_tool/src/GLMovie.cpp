@@ -25,10 +25,13 @@ void GLMovie::onPaint(wxPaintEvent &event)
 GLMovie::GLMovie(wxWindow *parent) :
 	wxGLCanvas(parent, -1, wxDefaultPosition)
 {
-	this->imageWidth = 0;
-	this->imageHeight = 0;
+	this->movieWidth = 0;
+	this->movieHeight = 0;
+    this->imageWidth = 0;
+    this->imageHeight = 0;
 	this->m_camera = NULL;
 	this->initialized = false;
+    this->imageData = NULL;
 	this->m_timer = new wxTimer(this, ID_TIMER);
 }
 void GLMovie::setCamera(vision::Camera *camera)
@@ -48,6 +51,7 @@ void GLMovie::initGL()
 }
 GLMovie::~GLMovie()
 {
+    delete[] this->imageData;
 	//Free the allocated texture.
 	glDeleteTextures(1, &this->textureid);
 }
@@ -89,15 +93,15 @@ void GLMovie::render()
 
 	//Find out where to draw the quad.
 	int left, right, top, bottom;
-	if (imageWidth == 0 || imageHeight == 0)
+	if (movieWidth == 0 || movieHeight == 0)
 	{
 		left = right = top = bottom = 0;
 	}
-	else if (myHeight - imageHeight < myWidth - imageWidth)
+	else if (myHeight - movieHeight < myWidth - movieWidth)
 	{
 		bottom = 0;
 		top = myHeight;
-		int screenWidth = imageWidth * myHeight / imageHeight;
+		int screenWidth = movieWidth * myHeight / movieHeight;
 		left = (myWidth - screenWidth) / 2;
 		right = left + screenWidth;
 	}
@@ -105,19 +109,31 @@ void GLMovie::render()
 	{
 		left = 0;
 		right = myWidth;
-		int screenHeight = myWidth * imageHeight / imageWidth;
+		int screenHeight = myWidth * movieHeight / movieWidth;
 		bottom = (myHeight - screenHeight) / 2;
 		top = bottom + screenHeight;
 	}
 
+    float texRight, texBottom;
+    if (this->imageWidth!=0 && this->imageHeight!=0)
+    {
+        texRight = (float)this->movieWidth/(float)this->imageWidth;
+        texBottom = (float)this->movieHeight/(float)this->imageHeight;
+    }
+    else
+    {
+        texRight=1.0f;
+        texBottom=1.0f;
+    }
+
 	glBegin(GL_QUADS);
-	glTexCoord2f(0.0f, 1.0f);
+	glTexCoord2f(0.0f, texBottom);
 	glVertex2i(left, bottom);
 	glTexCoord2f(0.0f, 0.0f);
 	glVertex2i(left, top);
-	glTexCoord2f(1.0f, 0.0f);
+	glTexCoord2f(texRight, 0.0f);
 	glVertex2i(right, top);
-	glTexCoord2f(1.0f, 1.0f);
+	glTexCoord2f(texRight, texBottom);
 	glVertex2i(right, bottom);
 	glEnd();
 
@@ -150,58 +166,75 @@ void GLMovie::nextFrame()
 	m_camera->getImage(this);
 }
 
+int GLMovie::nextPowerOf2(int a)
+{
+    return (int) pow(2, (int)(log(a)/log(2))+1);
+}
+
 void GLMovie::copyFrom(const Image* src)
 {
 	// Handle self copy
 	if (this == src)
 		return;
 
-	this->imageWidth = (int) src->getWidth();
-	this->imageHeight = (int) src->getHeight();
-	/*int width = (int) src->getWidth();
-	int height = (int) src->getHeight();
+    int width = (int) src->getWidth();
+    int height = (int) src->getHeight();
 
-	// Ensure bitmap is of the proper size
-	if (width != this->oldWidth && height != this->oldHeight)
+    //Ensure the image is of the appropriate size.
+	if (width != this->movieWidth && height != this->movieHeight)
 	{
-		delete this->imageData;
-		this->imageData = new unsigned char[width * height * 3];
+        this->movieWidth = width;
+    	this->movieHeight = height;
+        this->imageWidth = nextPowerOf2(this->movieWidth);
+        this->imageHeight = nextPowerOf2(this->movieHeight);
+		delete[] this->imageData;
+		this->imageData = new unsigned char[this->imageWidth * this->imageHeight * 3];
 	}
-	//Store the heights.
-	this->oldWidth = width;
-	this->oldHeight = height;
 
 	unsigned char* srcImageData = src->getData();
 	unsigned char* currentImageData = this->imageData;
-	size_t length = width * height;
 
 	// Copy from source to the wxBitmap
 	switch (src->getPixelFormat())
 	{
 		case vision::Image::PF_RGB_8:
 		{
-			for (size_t i = 0; i < length; ++i)
+			for (int i = 0; i < this->imageHeight; ++i)
 			{
-				currentImageData[0] = *srcImageData;
-				currentImageData[1] = *(srcImageData + 1);
-				currentImageData[2] = *(srcImageData + 2);
+                for (int j = 0; j < this->imageWidth; ++j)
+                {
+                    if (i<this->movieHeight && j < this->movieWidth)
+                    {
+       				    currentImageData[0] = *srcImageData;
+	    			    currentImageData[1] = *(srcImageData + 1);
+	    			    currentImageData[2] = *(srcImageData + 2);
 
-				srcImageData += 3;
-				currentImageData += 3;
+	    			    srcImageData += 3;
+                    }
+                    
+	    			currentImageData += 3;
+                }
 			}
 		}
 			break;
 
-		case vision::Image::PF_BGR_8:
+        case vision::Image::PF_BGR_8:
 		{
-			for (size_t i = 0; i < length; ++i)
+			for (int i = 0; i < this->imageHeight; ++i)
 			{
-				currentImageData[2] = *srcImageData;
-				currentImageData[1] = *(srcImageData + 1);
-				currentImageData[0] = *(srcImageData + 2);
+                for (int j = 0; j < this->imageWidth; ++j)
+                {
+                    if (i<this->movieHeight && j < this->movieWidth)
+                    {
+       				    currentImageData[2] = *srcImageData;
+	     			    currentImageData[1] = *(srcImageData + 1);
+    				    currentImageData[0] = *(srcImageData + 2);
 
-				srcImageData += 3;
-				currentImageData += 3;
+	    			    srcImageData += 3;
+                    }
+                    
+	    			currentImageData += 3;
+                }
 			}
 		}
 			break;
@@ -217,16 +250,19 @@ void GLMovie::copyFrom(const Image* src)
 	glBindTexture(GL_TEXTURE_2D, this->textureid);
 	//TODO: Fix in case of BGR
 	//Load the texture into memory.
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, this->oldWidth, this->oldHeight,
-			GL_RGB, GL_UNSIGNED_BYTE, this->imageData);
+	/*gluBuild2DMipmaps(GL_TEXTURE_2D, 3, this->movieWidth, this->movieHeight,
+			GL_RGB, GL_UNSIGNED_BYTE, this->imageData);*/
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, this->imageWidth, this->imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, this->imageData);
 	//Set parameters for the texture.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);*/
-	
-	glBindTexture(GL_TEXTURE_2D, this->textureid);
-	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, this->imageWidth, this->imageHeight, GL_RGB, GL_UNSIGNED_BYTE, src->getData());
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+    
+
+	/*glBindTexture(GL_TEXTURE_2D, this->textureid);
+	gluBuild2DMipmaps(GL_TEXTURE_2D, 3, this->imageWidth, this->imageHeight, GL_BGR, GL_UNSIGNED_BYTE, src->getData());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);*/
 }
 
 unsigned char* GLMovie::getData() const
@@ -236,12 +272,12 @@ unsigned char* GLMovie::getData() const
 
 size_t GLMovie::getWidth() const
 {
-	return this->imageWidth;
+	return this->movieWidth;
 }
 
 size_t GLMovie::getHeight() const
 {
-	return this->imageHeight;
+	return this->movieHeight;
 }
 
 vision::Image::PixelFormat GLMovie::getPixelFormat() const
