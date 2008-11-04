@@ -454,9 +454,15 @@ Subsystems:
         type: Logging
         update_interval: -1
         Appenders:
-            SBLog:
+            ThrusterLog:
                 type: File
                 fileName: thrusters.log
+                Layout:
+                    type: Pattern
+                    pattern: "%m %r%n"
+            PowerLog:
+                type: File
+                fileName: power.log
                 Layout:
                     type: Pattern
                     pattern: "%m %r%n"
@@ -480,8 +486,10 @@ Subsystems:
                     type: Pattern
                     pattern: "%c %m %r%n"
         Categories:
-            SensorBoard:
-                appenders: ['SBLog'] #,'Console']
+            Thruster:
+                appenders: ['ThrusterLog'] #,'Console']
+            Power:
+                appenders: ['PowerLog'] #,'Console']
             Controller:
                 appenders: ['ControlLog'] #'Console']
             IMU:

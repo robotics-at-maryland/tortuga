@@ -22,7 +22,10 @@ RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, THRUSTER_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, SONAR_UPDATE);
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("SensorBoard"));
+static log4cpp::Category& s_thrusterLog
+(log4cpp::Category::getInstance("Thruster"));
+static log4cpp::Category& s_powerLog
+(log4cpp::Category::getInstance("Power"));
 
 namespace ram {
 namespace vehicle {
@@ -48,7 +51,11 @@ SensorBoard::SensorBoard(int deviceFD,
         establishConnection();
 
     // Log file header
-    LOGGER.info("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
+    s_thrusterLog.info("% MC1 MC2 MC3 MC4 MC5 MC6"
+                       " TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
+    s_powerLog.info("% iBatt1 iBatt2 iBatt3 iBatt4 iShore "
+                    "vBatt1 vBatt2 vBatt3 vBatt4 vShore "
+                    "i5V_Bus i12V_Bus v5V_Bus v12V_Bus TimeStamp");
 }
     
 
@@ -73,27 +80,11 @@ SensorBoard::SensorBoard(core::ConfigNode config,
         update(1.0/40);
 
     // Log file header
-    /*std::cout << "I HAVE '" << LOGGER.getName() << "' THIS MANY APPENDERS: " << LOGGER.getAllAppenders().size() << std::endl;
-    
-    std::vector< log4cpp::Category * > * cat = log4cpp::Category::getCurrentCategories();
-    for (size_t i = 0; i < cat->size(); ++i)
-    {
-       if ((*cat)[i] == &LOGGER)
-       {
-          std::cout << "MY CAT! ";
-       }
-       std::cout << "Name: '" << (*cat)[i]->getName() << "' Appends #"
-       << (*cat)[i]->getAllAppenders().size() << std::endl;
-       log4cpp::AppenderSet appenders = (*cat)[i]->getAllAppenders();
-       log4cpp::AppenderSet::iterator iter = appenders.begin();
-       while(iter != appenders.end())
-       {
-           std::cout << "\t Name: '" << (*iter)->getName() << "'" << std::endl;
-           iter++;
-       }
-    }l*/
-//    std::cout << "Cats: " << log4cpp::Category::getCurrentCategories()->size() << std::endl;
-    LOGGER.info("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
+    s_thrusterLog.info("% MC1 MC2 MC3 MC4 MC5 MC6"
+                       " TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
+    s_powerLog.info("% iBatt1 iBatt2 iBatt3 iBatt4 iShore "
+                    "vBatt1 vBatt2 vBatt3 vBatt4 vShore "
+                    "i5V_Bus i12V_Bus v5V_Bus v12V_Bus TimeStamp");
 }
     
 SensorBoard::~SensorBoard()
@@ -136,21 +127,41 @@ void SensorBoard::update(double timestep)
             tempSensorEvents(&state.telemetry);
             thrusterEvents(&state.telemetry);
             sonarEvent(&state.telemetry);
-            
-            LOGGER.info("%3.1f %3.1f %3.1f %3.1f %3.1f %3.1f"
-                        " %d %d %d %d %d %d",
-                        state.telemetry.powerInfo.motorCurrents[0],
-                        state.telemetry.powerInfo.motorCurrents[1],
-                        state.telemetry.powerInfo.motorCurrents[2],
-                        state.telemetry.powerInfo.motorCurrents[3],
-                        state.telemetry.powerInfo.motorCurrents[4],
-                        state.telemetry.powerInfo.motorCurrents[5],
-                        state.thrusterValues[0],
-                        state.thrusterValues[1],
-                        state.thrusterValues[2],
-                        state.thrusterValues[3],
-                        state.thrusterValues[4],
-                        state.thrusterValues[5]);
+
+            // Thruster logging data
+            s_thrusterLog.info("%3.1f %3.1f %3.1f %3.1f %3.1f %3.1f" // Current
+                               " %d %d %d %d %d %d",                 // Command
+                               state.telemetry.powerInfo.motorCurrents[0],
+                               state.telemetry.powerInfo.motorCurrents[1],
+                               state.telemetry.powerInfo.motorCurrents[2],
+                               state.telemetry.powerInfo.motorCurrents[3],
+                               state.telemetry.powerInfo.motorCurrents[4],
+                               state.telemetry.powerInfo.motorCurrents[5],
+                               state.thrusterValues[0],
+                               state.thrusterValues[1],
+                               state.thrusterValues[2],
+                               state.thrusterValues[3],
+                               state.thrusterValues[4],
+                               state.thrusterValues[5]);
+
+            // Power Logging Data
+            s_powerLog.info("%3.1f %3.1f %3.1f %3.1f %3.1f " // Batt Current
+                            "%3.1f %3.1f %3.1f %3.1f %3.1f " // Batt Voltage
+                            "%3.1f %3.1f %3.1f %3.1f",       // Bus I, Bus V
+                            state.telemetry.powerInfo.battCurrents[0],
+                            state.telemetry.powerInfo.battCurrents[1],
+                            state.telemetry.powerInfo.battCurrents[2],
+                            state.telemetry.powerInfo.battCurrents[3],
+                            state.telemetry.powerInfo.battCurrents[4],
+                            state.telemetry.powerInfo.battVoltages[0],
+                            state.telemetry.powerInfo.battVoltages[1],
+                            state.telemetry.powerInfo.battVoltages[2],
+                            state.telemetry.powerInfo.battVoltages[3],
+                            state.telemetry.powerInfo.battVoltages[4],
+                            state.telemetry.powerInfo.i5VBus,
+                            state.telemetry.powerInfo.i12VBus,
+                            state.telemetry.powerInfo.v5VBus,
+                            state.telemetry.powerInfo.v12VBus);
         }
     
         // Now read depth

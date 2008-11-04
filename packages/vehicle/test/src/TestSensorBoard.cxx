@@ -518,10 +518,10 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
 }
 
 
-TEST_FIXTURE(SensorBoardFixture, logging)
+TEST_FIXTURE(SensorBoardFixture, ThrusterLogging)
 {
     BufferedAppender* appender = new BufferedAppender("Test");
-    log4cpp::Category::getInstance("SensorBoard").setAppender(appender);
+    log4cpp::Category::getInstance("Thruster").setAppender(appender);
 
     // Create board
     TestSensorBoard* sb = new TestSensorBoard(
@@ -529,8 +529,6 @@ TEST_FIXTURE(SensorBoardFixture, logging)
 
     // Make sure the header is present
     CHECK_EQUAL(1u, appender->logEvents.size());
-	//    CHECK_EQUAL("% MC1 MC2 MC3 MC4 MC5 MC6 TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp",
-	//                appender->logEvents[0].message);
     
     // Load some values to log into memory
     double currents[6] = {2.3, 5.1, 2.5, 1.0, 0.0, 9.0};
@@ -546,5 +544,46 @@ TEST_FIXTURE(SensorBoardFixture, logging)
     sb->update(0);
     CHECK_EQUAL(2u, appender->logEvents.size());
     CHECK_EQUAL("2.3 5.1 2.5 1.0 0.0 9.0 238 -519 23 1011 -900 758",
+                appender->logEvents[1].message);
+}
+
+
+TEST_FIXTURE(SensorBoardFixture, PowerLogging)
+{
+    BufferedAppender* appender = new BufferedAppender("Test");
+    log4cpp::Category::getInstance("Power").setAppender(appender);
+
+    // Create board
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    // Make sure the header is present
+    CHECK_EQUAL(1u, appender->logEvents.size());
+    
+    // Load some values to log into memory
+    double battCurrents[5] = {2.3, 5.1, 2.5, 1.0, 0.5};
+    double battVoltages[5] = {20.5, 23.0, 19.9, 22.8, 2.0};
+    double i5V = 1.5;
+    double i12V = 2.3;
+    double v5V = 5.9;
+    double v12V = 11.9;
+    
+    sb->updateDone = true;
+    for (size_t i = 0; i < LENGTH(battCurrents); ++i)
+        sb->currentTelemetry.powerInfo.battCurrents[i] = battCurrents[i];
+    for (size_t i = 0; i < LENGTH(battVoltages); ++i)
+        sb->currentTelemetry.powerInfo.battVoltages[i] = battVoltages[i];
+    sb->currentTelemetry.powerInfo.i5VBus = i5V;
+    sb->currentTelemetry.powerInfo.i12VBus = i12V;
+    sb->currentTelemetry.powerInfo.v5VBus = v5V;
+    sb->currentTelemetry.powerInfo.v12VBus = v12V;
+
+
+    // Now do a log and check it
+    sb->update(0);
+    CHECK_EQUAL(2u, appender->logEvents.size());
+    CHECK_EQUAL("2.3 5.1 2.5 1.0 0.5 "
+                "20.5 23.0 19.9 22.8 2.0 "
+                "1.5 2.3 5.9 11.9",
                 appender->logEvents[1].message);
 }
