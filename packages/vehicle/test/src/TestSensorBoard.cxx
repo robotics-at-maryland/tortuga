@@ -517,7 +517,6 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
     delete sb;
 }
 
-
 TEST_FIXTURE(SensorBoardFixture, ThrusterLogging)
 {
     BufferedAppender* appender = new BufferedAppender("Test");
@@ -585,5 +584,31 @@ TEST_FIXTURE(SensorBoardFixture, PowerLogging)
     CHECK_EQUAL("2.3 5.1 2.5 1.0 0.5 "
                 "20.5 23.0 19.9 22.8 2.0 "
                 "1.5 2.3 5.9 11.9",
+                appender->logEvents[1].message);
+}
+
+TEST_FIXTURE(SensorBoardFixture, TempLogging)
+{
+    BufferedAppender* appender = new BufferedAppender("Test");
+    log4cpp::Category::getInstance("Temp").setAppender(appender);
+
+    // Create board
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    // Make sure the header is present
+    CHECK_EQUAL(1u, appender->logEvents.size());
+    
+    // Load some values to log into memory
+    char temps[7] = {23, 52, 1, 0, 24, 58, 46};
+    
+    sb->updateDone = true;
+    for (size_t i = 0; i < LENGTH(temps); ++i)
+        sb->currentTelemetry.temperature[i] = temps[i];
+
+    // Now do a log and check it
+    sb->update(0);
+    CHECK_EQUAL(2u, appender->logEvents.size());
+    CHECK_EQUAL("23 52 1 0 24 58 46",
                 appender->logEvents[1].message);
 }

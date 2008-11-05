@@ -26,6 +26,18 @@ static log4cpp::Category& s_thrusterLog
 (log4cpp::Category::getInstance("Thruster"));
 static log4cpp::Category& s_powerLog
 (log4cpp::Category::getInstance("Power"));
+static log4cpp::Category& s_tempLog
+(log4cpp::Category::getInstance("Temp"));
+
+static void setupLogging() {
+    s_thrusterLog.info("%% MC1 MC2 MC3 MC4 MC5 MC6"
+                       " TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
+    s_powerLog.info("%% iBatt1 iBatt2 iBatt3 iBatt4 iShore "
+                    "vBatt1 vBatt2 vBatt3 vBatt4 vShore "
+                    "i5V_Bus i12V_Bus v5V_Bus v12V_Bus TimeStamp");
+    s_tempLog.info("%% \"Sensor Board\" Unused Unused Unused Unused "
+                   "\"Distro Board\" \"Balancer Board\"");
+}
 
 namespace ram {
 namespace vehicle {
@@ -51,11 +63,7 @@ SensorBoard::SensorBoard(int deviceFD,
         establishConnection();
 
     // Log file header
-    s_thrusterLog.info("% MC1 MC2 MC3 MC4 MC5 MC6"
-                       " TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
-    s_powerLog.info("% iBatt1 iBatt2 iBatt3 iBatt4 iShore "
-                    "vBatt1 vBatt2 vBatt3 vBatt4 vShore "
-                    "i5V_Bus i12V_Bus v5V_Bus v12V_Bus TimeStamp");
+    setupLogging();
 }
     
 
@@ -80,11 +88,7 @@ SensorBoard::SensorBoard(core::ConfigNode config,
         update(1.0/40);
 
     // Log file header
-    s_thrusterLog.info("% MC1 MC2 MC3 MC4 MC5 MC6"
-                       " TV1 TV2 TV3 TV4 TV5 TV6 TimeStamp");
-    s_powerLog.info("% iBatt1 iBatt2 iBatt3 iBatt4 iShore "
-                    "vBatt1 vBatt2 vBatt3 vBatt4 vShore "
-                    "i5V_Bus i12V_Bus v5V_Bus v12V_Bus TimeStamp");
+    setupLogging();
 }
     
 SensorBoard::~SensorBoard()
@@ -162,6 +166,16 @@ void SensorBoard::update(double timestep)
                             state.telemetry.powerInfo.i12VBus,
                             state.telemetry.powerInfo.v5VBus,
                             state.telemetry.powerInfo.v12VBus);
+
+            // Temp Logging data
+            s_tempLog.info("%d %d %d %d %d %d %d",
+                           (int)state.telemetry.temperature[0],
+                           (int)state.telemetry.temperature[1],
+                           (int)state.telemetry.temperature[2],
+                           (int)state.telemetry.temperature[3],
+                           (int)state.telemetry.temperature[4],
+                           (int)state.telemetry.temperature[5],
+                           (int)state.telemetry.temperature[6]);
         }
     
         // Now read depth
