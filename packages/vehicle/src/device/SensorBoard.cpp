@@ -112,6 +112,7 @@ void SensorBoard::update(double timestep)
         state = m_state;
     }
 
+    int partialRet = SB_ERROR;
     {
         boost::mutex::scoped_lock lock(m_deviceMutex);
     
@@ -124,66 +125,68 @@ void SensorBoard::update(double timestep)
                   state.thrusterValues[5]);
     
         // Do a partial read
-        int ret = partialRead(&state.telemetry);
-        if (ret == SB_UPDATEDONE)
-        {
-            powerSourceEvents(&state.telemetry);
-            tempSensorEvents(&state.telemetry);
-            thrusterEvents(&state.telemetry);
-            sonarEvent(&state.telemetry);
-
-            // Thruster logging data
-            s_thrusterLog.info("%3.1f %3.1f %3.1f %3.1f %3.1f %3.1f" // Current
-                               " %d %d %d %d %d %d",                 // Command
-                               state.telemetry.powerInfo.motorCurrents[0],
-                               state.telemetry.powerInfo.motorCurrents[1],
-                               state.telemetry.powerInfo.motorCurrents[2],
-                               state.telemetry.powerInfo.motorCurrents[3],
-                               state.telemetry.powerInfo.motorCurrents[4],
-                               state.telemetry.powerInfo.motorCurrents[5],
-                               state.thrusterValues[0],
-                               state.thrusterValues[1],
-                               state.thrusterValues[2],
-                               state.thrusterValues[3],
-                               state.thrusterValues[4],
-                               state.thrusterValues[5]);
-
-            // Power Logging Data
-            s_powerLog.info("%3.1f %3.1f %3.1f %3.1f %3.1f " // Batt Current
-                            "%3.1f %3.1f %3.1f %3.1f %3.1f " // Batt Voltage
-                            "%3.1f %3.1f %3.1f %3.1f",       // Bus I, Bus V
-                            state.telemetry.powerInfo.battCurrents[0],
-                            state.telemetry.powerInfo.battCurrents[1],
-                            state.telemetry.powerInfo.battCurrents[2],
-                            state.telemetry.powerInfo.battCurrents[3],
-                            state.telemetry.powerInfo.battCurrents[4],
-                            state.telemetry.powerInfo.battVoltages[0],
-                            state.telemetry.powerInfo.battVoltages[1],
-                            state.telemetry.powerInfo.battVoltages[2],
-                            state.telemetry.powerInfo.battVoltages[3],
-                            state.telemetry.powerInfo.battVoltages[4],
-                            state.telemetry.powerInfo.i5VBus,
-                            state.telemetry.powerInfo.i12VBus,
-                            state.telemetry.powerInfo.v5VBus,
-                            state.telemetry.powerInfo.v12VBus);
-
-            // Temp Logging data
-            s_tempLog.info("%d %d %d %d %d %d %d",
-                           (int)state.telemetry.temperature[0],
-                           (int)state.telemetry.temperature[1],
-                           (int)state.telemetry.temperature[2],
-                           (int)state.telemetry.temperature[3],
-                           (int)state.telemetry.temperature[4],
-                           (int)state.telemetry.temperature[5],
-                           (int)state.telemetry.temperature[6]);
-        }
+        partialRet = partialRead(&state.telemetry);
     
-        // Now read depth
-        ret = readDepth();
+        // Now read depth and set its state
+        int ret = readDepth();
         double depth = (((double)ret) - m_depthCalibIntercept) /
             m_depthCalibSlope; 
          state.depth = depth;
     } // end deviceMutex lock
+
+    // If we have done a full update of telem, trigger events and log
+    if (partialRet == SB_UPDATEDONE)
+    {
+        powerSourceEvents(&state.telemetry);
+        tempSensorEvents(&state.telemetry);
+        thrusterEvents(&state.telemetry);
+        sonarEvent(&state.telemetry);
+        
+        // Thruster logging data
+        s_thrusterLog.info("%3.1f %3.1f %3.1f %3.1f %3.1f %3.1f" // Current
+                           " %d %d %d %d %d %d",                 // Command
+                           state.telemetry.powerInfo.motorCurrents[0],
+                           state.telemetry.powerInfo.motorCurrents[1],
+                           state.telemetry.powerInfo.motorCurrents[2],
+                           state.telemetry.powerInfo.motorCurrents[3],
+                           state.telemetry.powerInfo.motorCurrents[4],
+                           state.telemetry.powerInfo.motorCurrents[5],
+                           state.thrusterValues[0],
+                           state.thrusterValues[1],
+                           state.thrusterValues[2],
+                           state.thrusterValues[3],
+                           state.thrusterValues[4],
+                           state.thrusterValues[5]);
+        
+        // Power Logging Data
+        s_powerLog.info("%3.1f %3.1f %3.1f %3.1f %3.1f " // Batt Current
+                        "%3.1f %3.1f %3.1f %3.1f %3.1f " // Batt Voltage
+                        "%3.1f %3.1f %3.1f %3.1f",       // Bus I, Bus V
+                        state.telemetry.powerInfo.battCurrents[0],
+                        state.telemetry.powerInfo.battCurrents[1],
+                        state.telemetry.powerInfo.battCurrents[2],
+                        state.telemetry.powerInfo.battCurrents[3],
+                        state.telemetry.powerInfo.battCurrents[4],
+                        state.telemetry.powerInfo.battVoltages[0],
+                        state.telemetry.powerInfo.battVoltages[1],
+                        state.telemetry.powerInfo.battVoltages[2],
+                        state.telemetry.powerInfo.battVoltages[3],
+                        state.telemetry.powerInfo.battVoltages[4],
+                        state.telemetry.powerInfo.i5VBus,
+                        state.telemetry.powerInfo.i12VBus,
+                        state.telemetry.powerInfo.v5VBus,
+                        state.telemetry.powerInfo.v12VBus);
+        
+        // Temp Logging data
+        s_tempLog.info("%d %d %d %d %d %d %d",
+                       (int)state.telemetry.temperature[0],
+                       (int)state.telemetry.temperature[1],
+                       (int)state.telemetry.temperature[2],
+                       (int)state.telemetry.temperature[3],
+                       (int)state.telemetry.temperature[4],
+                       (int)state.telemetry.temperature[5],
+                       (int)state.telemetry.temperature[6]);
+    } // end partialRet == SB_UPDATEDONE
     
     // Copy the values back
     {
