@@ -5,15 +5,24 @@
  *      Author: david
  */
 
-#include "RunningMedianTree.h"
+#include "DoubleHeap.h"
+#include "DoubleHeapTest.h"
 
 #include <iostream>
 
+#define VALUE 5
+#define heap DoubleHeapTest<double>
+
 int main (char** argv, unsigned int argc) {
-	RunningMedianTree<double> test = RunningMedianTree<double>(32);
-	for (int i = -32; i < 16; ++i) {
-		test.push (i);
-		std::cout << "inserted: " << i << ", median: " << test.median() << "\n";
+	heap test = heap(VALUE);
+	//test.printInsertion(std::cout);
+	double v;
+	for (double i = 0; i <= VALUE * 2; ++i) {
+		v = test.push (i);
+		std::cout << "inserted: " << i << " replaced: " << v << " median: " << test.median() << "\n";
+		test.printHeap(std::cout);
+		test.printInsertion(std::cout);
+		std::cout << std::endl;
 	}
 	return 0;
 }
