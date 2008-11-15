@@ -14,13 +14,13 @@ function waveEquationIntegrate
 %
 
   % Number of iterations
-  nIters = 300;
+  nIters = 3000;
   
   % Set up initial pressure field
-  P = zeros(100);
+  P = zeros(60);
   Pold = P;
   % Disturb a patch in the middle of the tank
-  P(40:50,48:52) = 1;
+  P(40:42,29:31) = 1;
 
   % Set up speed of sound squared table
   % Slow air-like layer above

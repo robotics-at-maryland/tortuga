@@ -18,8 +18,8 @@ function [XX,ZZ] = kalman()
   etadot = dyaw*v*sin(v*t);
   
   # Pingers
-  px = [-10;10;0;0];#10/sqrt(2);-10/sqrt(2)];
-  py = [0;0;10;-10];#10/sqrt(2);-10/sqrt(2)];
+  px = [-10;10];%;0;0];#10/sqrt(2);-10/sqrt(2)];
+  py = [0;0];%;10;-10];#10/sqrt(2);-10/sqrt(2)];
   th = (px*x+py*y)./sqrt((px.*px+py.*py)*(x.*x+y.*y)) - repmat(eta,size(px,1),1);
   
   # Noise
