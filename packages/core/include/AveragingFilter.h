@@ -18,7 +18,13 @@ template <class T, int SIZE>
 class AveragingFilter
 {
 public:
-    AveragingFilter(T initialValue = 0.0) :
+    AveragingFilter() : size(0), maxSize(SIZE), start(0), total(0.0)
+    {
+        for (int i = 0 ; i < maxSize ; ++i)
+            array[i] = 0.0;
+    }
+    
+    AveragingFilter(T initialValue) :
         size(0),
         maxSize(SIZE),
         start(0),
