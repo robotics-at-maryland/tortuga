@@ -21,8 +21,8 @@ using namespace ram::sonar;
 typedef adc<16> myadc;
 const static unsigned int SAMPLE_RATE = 44100;
 const static unsigned int N = 800;
-const static unsigned int displayStride = 1;
-const static unsigned int avgStride = 8;
+static unsigned int displayStride = 1;
+static unsigned int avgStride = 8;
 const static unsigned int nPastSpectra = 800;
 static uint32_t pastSpectra[nPastSpectra][N];
 static unsigned int iPastSpectra = 0;
@@ -122,6 +122,14 @@ static void glutKeyboardCallback(unsigned char key, int x, int y)
         ++clampFactor;
     else if (key == '-' && clampFactor != 0)
         --clampFactor;
+    else if (key == ']')
+        ++avgStride;
+    else if (key == '[' && avgStride != 1)
+        --avgStride;
+    else if (key == ';')
+        ++displayStride;
+    else if (key == '\'' && displayStride != 1)
+        --displayStride;
     else if (key == 'q')
         exit(EXIT_SUCCESS);
 }
