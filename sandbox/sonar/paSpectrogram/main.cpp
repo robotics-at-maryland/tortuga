@@ -70,7 +70,7 @@ static int paAudioReceivedCallback(const void* inputBuffer,
                 if (clampFactor*avg >= mag[k])
                     resid = 0;
                 else
-                    resid = mag[k];
+                    resid = mag[k] - clampFactor*avg;
                 // Right shift by eight bits because the lowest eight bits of the
                 // color represents the alpha channel, which isn't visible.
                 resid <<= 8;
