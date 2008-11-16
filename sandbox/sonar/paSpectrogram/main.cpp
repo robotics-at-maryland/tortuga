@@ -13,18 +13,21 @@
 using namespace ram::sonar;
 using namespace ram::core;
 
-typedef adc<8> myadc;
+typedef adc<16> myadc;
 const static int SAMPLE_RATE = 44100;
 const static int N = 800;
 const static int stride = 1;
+const static int avgStride = 8;
 const static int nPastSpectra = 800;
-static uint8_t pastSpectra[nPastSpectra][N];
+static uint32_t pastSpectra[nPastSpectra][N];
 static int iPastSpectra = 0;
 static int sampleNumber = 0;
+static int sampleNumber1 = 0;
+static unsigned int clampFactor = 0;
 
 static SDFTSpectrum<myadc, N, 1> spectrum;
 static DoubleHeap<myadc::DOUBLE_WIDE::UNSIGNED>* medianFilters[N];
-static AveragingFilter<myadc::DOUBLE_WIDE::UNSIGNED, stride*N*100> avgFilters[N];
+static AveragingFilter<myadc::DOUBLE_WIDE::UNSIGNED, stride*N> avgFilters[N];
 
 static int paAudioReceivedCallback(const void* inputBuffer,
                                    void* output,
@@ -35,25 +38,30 @@ static int paAudioReceivedCallback(const void* inputBuffer,
 {
     for (int i = 0 ; i < framesPerBuffer ; i ++)
     {
-        sampleNumber += 1;
+        ++sampleNumber;
+        ++sampleNumber1;
         spectrum.update(&((myadc::SIGNED*)inputBuffer)[i]);
-        for (int k = 0 ; k < N ; k ++)
-            avgFilters[k].addValue(fixed::magL1(spectrum.getAmplitude(k, 0)));
-        if (sampleNumber == stride)
+        if (sampleNumber1 >= avgStride)
         {
             for (int k = 0 ; k < N ; k ++)
             {
                 myadc::DOUBLE_WIDE::UNSIGNED mag = fixed::magL1(spectrum.getAmplitude(k, 0));
-                myadc::DOUBLE_WIDE::UNSIGNED avg = avgFilters[k].getValue();
-                //medianFilters[k]->push(mag);
-                //myadc::DOUBLE_WIDE::UNSIGNED avg = medianFilters[k]->median();
+                medianFilters[k]->push(mag);
+            }
+            sampleNumber1 = 0;
+        }
+        if (sampleNumber >= stride)
+        {
+            for (int k = 0 ; k < N ; k ++)
+            {
+                myadc::DOUBLE_WIDE::UNSIGNED mag = fixed::magL1(spectrum.getAmplitude(k, 0));
+                myadc::DOUBLE_WIDE::UNSIGNED avg = medianFilters[k]->median();
                 myadc::DOUBLE_WIDE::UNSIGNED resid;
-                if (avg > mag)
-                    resid = 0.5*avg;
+                if (clampFactor*avg >= mag && clampFactor != 0)
+                    resid = 0;
                 else
-                    resid = mag - 0.5*avg;
-                if (resid > (1 << 8))
-                    resid = 1 << 8;
+                    resid = mag;
+                resid <<= 8;
                 pastSpectra[iPastSpectra][k] = resid;
             }
             ++iPastSpectra;
@@ -69,9 +77,9 @@ static void glutDisplayCallback()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glRasterPos2i(0,0);
-    glDrawPixels(N, nPastSpectra-iPastSpectra+1, GL_GREEN, GL_UNSIGNED_BYTE, pastSpectra[iPastSpectra]);
+    glDrawPixels(N, nPastSpectra-iPastSpectra+1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, pastSpectra[iPastSpectra]);
     glRasterPos2i(0, nPastSpectra-iPastSpectra);
-    glDrawPixels(N, iPastSpectra-1, GL_GREEN, GL_UNSIGNED_BYTE, pastSpectra[0]);
+    glDrawPixels(N, iPastSpectra-1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, pastSpectra[0]);
     glutSwapBuffers();
 }
 
@@ -80,26 +88,35 @@ static void glutIdleCallback()
     glutPostRedisplay();
 }
 
+static void glutKeyboardCallback(unsigned char key, int x, int y)
+{
+    if (key == '+' || key == '=')
+        ++clampFactor;
+    else if (clampFactor != 0)
+        --clampFactor;
+}
+
 int main(int argc, char* argv[])
 {
     for (int k = 0 ; k < N ; k ++)
-        medianFilters[k] = new DoubleHeap<myadc::DOUBLE_WIDE::UNSIGNED>(81);
+        medianFilters[k] = new DoubleHeap<myadc::DOUBLE_WIDE::UNSIGNED>(205);
     PaStream* paStream;
     PaError paErr;
     paErr = Pa_Initialize();
     if (paErr != paNoError) goto paError;
     
-    paErr = Pa_OpenDefaultStream(&paStream, 1, 0, paInt8, SAMPLE_RATE,
+    paErr = Pa_OpenDefaultStream(&paStream, 1, 0, paInt16, SAMPLE_RATE,
                                  paFramesPerBufferUnspecified,
                                  paAudioReceivedCallback, NULL);
     if (paErr != paNoError) goto paError;
     
     glutInit(&argc, argv);
     glutInitWindowSize(N, nPastSpectra);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
     glutCreateWindow("Spectrogram");
     glutDisplayFunc(glutDisplayCallback);
     glutIdleFunc(glutIdleCallback);
+    glutKeyboardFunc(glutKeyboardCallback);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     gluOrtho2D(0, N, 0, nPastSpectra);
     
