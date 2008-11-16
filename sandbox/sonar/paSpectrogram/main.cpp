@@ -19,15 +19,15 @@
 using namespace ram::sonar;
 
 typedef adc<16> myadc;
-const static int SAMPLE_RATE = 44100;
-const static int N = 800;
-const static int displayStride = 1;
-const static int avgStride = 8;
-const static int nPastSpectra = 800;
+const static unsigned int SAMPLE_RATE = 44100;
+const static unsigned int N = 800;
+const static unsigned int displayStride = 1;
+const static unsigned int avgStride = 8;
+const static unsigned int nPastSpectra = 800;
 static uint32_t pastSpectra[nPastSpectra][N];
-static int iPastSpectra = 0;
-static int displayStrideCounter = 0;
-static int avgStrideCounter = 0;
+static unsigned int iPastSpectra = 0;
+static unsigned int displayStrideCounter = 0;
+static unsigned int avgStrideCounter = 0;
 static unsigned int clampFactor = 0;
 
 static SDFTSpectrum<myadc, N, 1> spectrum;
