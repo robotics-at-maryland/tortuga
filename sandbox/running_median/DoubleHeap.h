@@ -1,8 +1,8 @@
-/*
- * DoubleHeap.h
+/**
+ * @file DoubleHeap.h
  *
- *  Created on: Nov 8, 2008
- *      Author: David Love
+ * Created on: Nov 8, 2008
+ * @author David Love
  */
 
 #ifndef DOUBLEHEAP_H_
@@ -14,11 +14,13 @@
 
 #define FATHER(i) ((2 * (i)) - 1)
 #define MOTHER(i) ((2 * (i)) - 2)
-#define CHILD(i) (0 - floor (((float) ((0 - (i)) - 1)) / ((float) 2)))
+//#define CHILD(i) (0 - floor (((float) ((0 - (i)) - 1)) / ((float) 2)))
+#define CHILD(i) (- (( - (i) - 1) >> 1))
 
 #define SON(i) ((2 * (i)) + 1)
 #define DAUGHTER(i) ((2 * (i)) + 2)
-#define PARENT(i) floor (((float) ((i) - 1)) / ((float) 2))
+//#define PARENT(i) floor (((float) ((i) - 1)) / ((float) 2))
+#define PARENT(i) (((i) - 1) >> 1)
 
 #define LARGER(i,j) (heap[(i)].data > heap[(j)].data ? (i) : (j))
 #define SMALLER(i,j) (heap[(i)].data < heap[(j)].data ? (i) : (j))
@@ -44,16 +46,10 @@ protected:
 	int insertionOrderIndex;
 	int* insertionOrder;
 	CircularArray<Node> heap;
-	bool exists(int i) {
-		if (i >= upperK) {
-			return false;
-		}
-		if (i <= lowerK) {
-			return false;
-		}
-		return true;
+	inline bool exists(int i) {
+        return (i < upperK && i > lowerK);
 	}
-	void swap(int& i, int& j) {
+	inline void swap(int& i, int& j) {
 		Node tempN = heap[i];
 		heap[i] = heap[j];
 		heap[j] = tempN;
@@ -62,7 +58,7 @@ protected:
 		insertionOrder[heap[j].order] = tempI;
 		i = j;
 	}
-	void balance(int i) {
+	inline void balance(int i) {
 		// move T2 nodes down to root
 		int j = CHILD(i);
 		while (i < 0 && exists(j) && heap[i].data < heap[j].data) {
@@ -104,7 +100,7 @@ public:
 	~DoubleHeap() {
 		delete insertionOrder;
 	}
-	T& push(T& data) {
+	inline const T& push(const T& data) {
 		int i = insertionOrder[insertionOrderIndex];
 		if (size < max) {
 			if (i > 0)
@@ -113,7 +109,7 @@ public:
 				lowerK = i - 1;
 			++size;
 		}
-		T v = heap[i].data;
+		const T& v = heap[i].data;
 		heap[i].data = data;
 		heap[i].order = insertionOrderIndex++;
 		if (insertionOrderIndex >= max)
@@ -121,7 +117,7 @@ public:
 		balance(i);
 		return v;
 	}
-	T& median() {
+	inline const T& median() {
 		return heap[0].data;
 	}
 };
