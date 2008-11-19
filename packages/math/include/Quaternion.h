@@ -63,6 +63,11 @@ namespace math {
 
     class Matrix3;
     class Vector3;
+#ifndef __GCCXML__
+    class Matrix4;
+    class Vector4;
+    class MatrixN;
+#endif // __GCCXML__
     
     /** Implementation of a Quaternion, i.e. a rotation around an axis.
     */
@@ -284,8 +289,15 @@ namespace math {
 
         /** Find the error quaternion between this quaternion and other quat. */
         Quaternion errorQuaternion(Quaternion other);
-		
-		Quaternion derivative(Vector3 velocity);
+
+        /** Compute the derivative of a quaternion based on kinematic relationship to angular velocity */
+        Quaternion derivative(Vector3 velocity);
+
+#ifndef __GCCXML__
+        /** Create a Q matrix (used for q_dot=0.5*Q(q)*w */
+	void toQ(MatrixN& result);
+#endif // __GCCXML__
+
         
     };
 
