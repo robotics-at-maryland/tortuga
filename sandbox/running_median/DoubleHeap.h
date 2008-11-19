@@ -10,21 +10,18 @@
 
 #include "CircularArray.h"
 
-//#include <math.h>
 #include <cassert>
 
 #define FATHER(i) ((2 * (i)) - 1)
 #define MOTHER(i) ((2 * (i)) - 2)
-//#define CHILD(i) (0 - floor (((float) ((0 - (i)) - 1)) / ((float) 2)))
 #define CHILD(i) (- (( - (i) - 1) >> 1))
 
 #define SON(i) ((2 * (i)) + 1)
 #define DAUGHTER(i) ((2 * (i)) + 2)
-//#define PARENT(i) floor (((float) ((i) - 1)) / ((float) 2))
 #define PARENT(i) (((i) - 1) >> 1)
 
-#define LARGER(i,j) (this->m_heap[(i)].m_data > this->m_heap[(j)].m_data ? (i) : (j))
-#define SMALLER(i,j) (this->m_heap[(i)].m_data < this->m_heap[(j)].m_data ? (i) : (j))
+#define LARGER(i,j) (m_heap[(i)].m_data > m_heap[(j)].m_data ? (i) : (j))
+#define SMALLER(i,j) (m_heap[(i)].m_data < m_heap[(j)].m_data ? (i) : (j))
 
 #define NEXTT1(i) (exists(DAUGHTER(i)) ? LARGER(DAUGHTER(i), SON(i)) : SON(i))
 #define NEXTT2(i) (exists(MOTHER(i)) ? SMALLER(MOTHER(i), FATHER(i)) : FATHER(i))
@@ -42,19 +39,18 @@ protected:
 	int m_upperK;
 	int m_lowerK;
 	int m_insertionOrderIndex;
-	bool m_seeding;
 	int* m_insertionOrder;
 	CircularArray<Node> m_heap;
-	inline bool exists(int i) {
+	inline bool exists(int i) const {
         return (i < m_upperK && i > m_lowerK);
 	}
 	inline void swap(int& i, int& j) {
 		Node tempN = m_heap[i];
 		m_heap[i] = m_heap[j];
 		m_heap[j] = tempN;
-		int tempI = m_insertionOrder[m_heap[i].m_data];
-		m_insertionOrder[m_heap[i].m_data] = m_insertionOrder[m_heap[j].m_data];
-		m_insertionOrder[m_heap[j].m_data] = tempI;
+		int tempI = m_insertionOrder[m_heap[i].m_order];
+		m_insertionOrder[m_heap[i].m_order] = m_insertionOrder[m_heap[j].m_order];
+		m_insertionOrder[m_heap[j].m_order] = tempI;
 		i = j;
 	}
 	inline void balance(int i) {
@@ -86,13 +82,11 @@ protected:
 public:
 	DoubleHeap(unsigned int window) :
 		m_max(window), m_size(0), m_upperK(1), m_lowerK(-1), m_insertionOrderIndex(0),
-				m_seeding (false), m_insertionOrder(new int[window]), m_heap(CircularArray<Node> (
+				m_insertionOrder(new int[window]), m_heap(CircularArray<Node> (
 						window)) {
-		assert ((window - 1) % 4 == 0);
-		//m_insertionOrder[0] = 0;
-		for (int i = 1; i <= m_max; ++i) {
+        assert ((window - 1) % 4 == 0);
+		for (int i = 1; i <= m_max; ++i)
 			m_insertionOrder[i - 1] = (i % 2 ? -1 : 1) * (i / 2);
-		}
 	}
 	~DoubleHeap() {
 		delete m_insertionOrder;
@@ -108,22 +102,18 @@ public:
 		}
 		const T& v = m_heap[i].m_data;
 		m_heap[i].m_data = data;
-		m_heap[i].m_data = m_insertionOrderIndex++;
-		if (m_insertionOrderIndex == m_max)
+		m_heap[i].m_order = m_insertionOrderIndex++;
+		if (m_insertionOrderIndex >= m_max)
 			m_insertionOrderIndex = 0;
-		if (m_seeding && m_size == m_max) {
-		    // sort
-		    m_seeding = true;
-		}
 		balance(i);
 		return v;
 	}
 	inline const T& median() {
 		return m_heap[0].m_data;
 	}
-	inline const unsigned int size () {
-	    return m_size;
-	}
+    inline const unsigned int size() const {
+        return m_size;
+    }
 };
 
 #endif /* DOUBLEHEAP_H_ */
