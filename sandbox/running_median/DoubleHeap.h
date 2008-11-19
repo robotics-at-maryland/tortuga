@@ -20,8 +20,8 @@
 #define DAUGHTER(i) ((2 * (i)) + 2)
 #define PARENT(i) (((i) - 1) >> 1)
 
-#define LARGER(i,j) (m_heap[(i)].m_data > m_heap[(j)].m_data ? (i) : (j))
-#define SMALLER(i,j) (m_heap[(i)].m_data < m_heap[(j)].m_data ? (i) : (j))
+#define LARGER(i,j) (this->m_heap[(i)].m_data > this->m_heap[(j)].m_data ? (i) : (j))
+#define SMALLER(i,j) (this->m_heap[(i)].m_data < this->m_heap[(j)].m_data ? (i) : (j))
 
 #define NEXTT1(i) (exists(DAUGHTER(i)) ? LARGER(DAUGHTER(i), SON(i)) : SON(i))
 #define NEXTT2(i) (exists(MOTHER(i)) ? SMALLER(MOTHER(i), FATHER(i)) : FATHER(i))
@@ -103,7 +103,7 @@ public:
 		const T& v = m_heap[i].m_data;
 		m_heap[i].m_data = data;
 		m_heap[i].m_order = m_insertionOrderIndex++;
-		if (m_insertionOrderIndex >= m_max)
+		if (m_insertionOrderIndex == m_max)
 			m_insertionOrderIndex = 0;
 		balance(i);
 		return v;

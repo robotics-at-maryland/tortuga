@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <vector>
+#include <list>
 #include <cstdlib>
 #include <sys/time.h>
 #include <cassert>
@@ -66,15 +67,24 @@ void accuracyTest(int samples, int window, std::ostream& out)
     int fail = 0;
     for (int i = 0; i < data.size(); ++i)
     {
+        vector1.insert (vector1.begin(), data[i]);
         heap.push(data[i]);
-        if (heap.size() >= window)
+        if (vector1.size() >= window)
         {
             out << "Insertion " << i << "\n";
             //heap.validate (0);
-            vector1 = vector2 = heap.samples();
-            median1 = vector1[vector1.size() / 2];
+            /*
+             * vector1 = vector2 = heap.samples();
+             * median1 = vector1[vector1.size() / 2];
+             * std::sort(vector2.begin(), vector2.end());
+             * median2 = vector2[vector2.size() / 2];
+             */
+            vector2 = vector1;
             std::sort(vector2.begin(), vector2.end());
             median2 = vector2[vector2.size() / 2];
+            vector2 = heap.samples();
+            std::sort (vector2.begin(), vector2.end());
+            median1 = vector2[vector2.size() / 2];
             if (heap.median() != median1 || heap.median() != median2 || median1
                     != median2)
             {
@@ -86,6 +96,7 @@ void accuracyTest(int samples, int window, std::ostream& out)
                 printVector(vector2, out);
                 ++fail;
             }
+            vector1.pop_back();
         }
     }
     fail = data.size() - fail;
@@ -172,7 +183,7 @@ int main(char** argv, unsigned int argc)
     std::cout << "Using window size " << window << " for testing.\n";
     std::cout << "Testing heap accuracy.\n";
     accuracyTest(10000, window, std::cout);
-    std::cout << "Testing heap speed.\n";
-    speedTest(100000000, window, std::cout);
+    //std::cout << "Testing heap speed.\n";
+    //speedTest(100000000, window, std::cout);
     return 0;
 }
