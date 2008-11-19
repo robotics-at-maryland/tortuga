@@ -10,7 +10,8 @@
 
 #include "CircularArray.h"
 
-#include <math.h>
+//#include <math.h>
+#include <cassert>
 
 #define FATHER(i) ((2 * (i)) - 1)
 #define MOTHER(i) ((2 * (i)) - 2)
@@ -22,8 +23,8 @@
 //#define PARENT(i) floor (((float) ((i) - 1)) / ((float) 2))
 #define PARENT(i) (((i) - 1) >> 1)
 
-#define LARGER(i,j) (heap[(i)].data > heap[(j)].data ? (i) : (j))
-#define SMALLER(i,j) (heap[(i)].data < heap[(j)].data ? (i) : (j))
+#define LARGER(i,j) (this->m_heap[(i)].m_data > this->m_heap[(j)].m_data ? (i) : (j))
+#define SMALLER(i,j) (this->m_heap[(i)].m_data < this->m_heap[(j)].m_data ? (i) : (j))
 
 #define NEXTT1(i) (exists(DAUGHTER(i)) ? LARGER(DAUGHTER(i), SON(i)) : SON(i))
 #define NEXTT2(i) (exists(MOTHER(i)) ? SMALLER(MOTHER(i), FATHER(i)) : FATHER(i))
@@ -33,92 +34,95 @@ class DoubleHeap {
 protected:
 	// the node type
 	struct Node {
-		T data;
-		int order;
-		Node() :
-			order(-1) {
-		}
+		T m_data;
+		int m_order;
 	};
-	const unsigned int max;
-	unsigned int size;
-	int upperK;
-	int lowerK;
-	int insertionOrderIndex;
-	int* insertionOrder;
-	CircularArray<Node> heap;
+	const unsigned int m_max;
+	unsigned int m_size;
+	int m_upperK;
+	int m_lowerK;
+	int m_insertionOrderIndex;
+	bool m_seeding;
+	int* m_insertionOrder;
+	CircularArray<Node> m_heap;
 	inline bool exists(int i) {
-        return (i < upperK && i > lowerK);
+        return (i < m_upperK && i > m_lowerK);
 	}
 	inline void swap(int& i, int& j) {
-		Node tempN = heap[i];
-		heap[i] = heap[j];
-		heap[j] = tempN;
-		int tempI = insertionOrder[heap[i].order];
-		insertionOrder[heap[i].order] = insertionOrder[heap[j].order];
-		insertionOrder[heap[j].order] = tempI;
+		Node tempN = m_heap[i];
+		m_heap[i] = m_heap[j];
+		m_heap[j] = tempN;
+		int tempI = m_insertionOrder[m_heap[i].m_data];
+		m_insertionOrder[m_heap[i].m_data] = m_insertionOrder[m_heap[j].m_data];
+		m_insertionOrder[m_heap[j].m_data] = tempI;
 		i = j;
 	}
 	inline void balance(int i) {
 		// move T2 nodes down to root
 		int j = CHILD(i);
-		while (i < 0 && exists(j) && heap[i].data < heap[j].data) {
+		while (i < 0 && exists(j) && m_heap[i].m_data < m_heap[j].m_data) {
 			swap(i, j);
 			j = CHILD(i);
 		}
 		// move T1 nodes up to root
 		j = PARENT(i);
-		while (i > 0 && exists(j) && heap[i].data > heap[j].data) {
+		while (i > 0 && exists(j) && m_heap[i].m_data > m_heap[j].m_data) {
 			swap(i, j);
 			j = PARENT(i);
 		}
 		// move T2 nodes up to the leaves
 		j = NEXTT2(i);
-		while (i <= 0 && exists(j) && heap[i].data > heap[j].data) {
+		while (i <= 0 && exists(j) && m_heap[i].m_data > m_heap[j].m_data) {
 			swap(i, j);
 			j = NEXTT2(i);
 		}
 		// move T1 nodes down to the leaves
 		j = NEXTT1(i);
-		while (i >= 0 && exists(j) && heap[i].data < heap[j].data) {
+		while (i >= 0 && exists(j) && m_heap[i].m_data < m_heap[j].m_data) {
 			swap(i, j);
 			j = NEXTT1(i);
 		}
 	}
 public:
 	DoubleHeap(unsigned int window) :
-		max(window), size(0), upperK(1), lowerK(-1), insertionOrderIndex(0),
-				insertionOrder(new int[window]), heap(CircularArray<Node> (
+		m_max(window), m_size(0), m_upperK(1), m_lowerK(-1), m_insertionOrderIndex(0),
+				m_seeding (false), m_insertionOrder(new int[window]), m_heap(CircularArray<Node> (
 						window)) {
-		if ((window - 1) % 4) {
-			throw "window size does not satisfy 4k + 1";
-		}
-		//insertionOrder[0] = 0;
-		for (int i = 1; i <= max; ++i) {
-			insertionOrder[i - 1] = (i % 2 ? -1 : 1) * (i / 2);
+		assert ((window - 1) % 4 == 0);
+		//m_insertionOrder[0] = 0;
+		for (int i = 1; i <= m_max; ++i) {
+			m_insertionOrder[i - 1] = (i % 2 ? -1 : 1) * (i / 2);
 		}
 	}
 	~DoubleHeap() {
-		delete insertionOrder;
+		delete m_insertionOrder;
 	}
 	inline const T& push(const T& data) {
-		int i = insertionOrder[insertionOrderIndex];
-		if (size < max) {
+		int i = m_insertionOrder[m_insertionOrderIndex];
+		if (m_size < m_max) {
 			if (i > 0)
-				upperK = i + 1;
+				m_upperK = i + 1;
 			else
-				lowerK = i - 1;
-			++size;
+				m_lowerK = i - 1;
+			++m_size;
 		}
-		const T& v = heap[i].data;
-		heap[i].data = data;
-		heap[i].order = insertionOrderIndex++;
-		if (insertionOrderIndex >= max)
-			insertionOrderIndex = 0;
+		const T& v = m_heap[i].m_data;
+		m_heap[i].m_data = data;
+		m_heap[i].m_data = m_insertionOrderIndex++;
+		if (m_insertionOrderIndex == m_max)
+			m_insertionOrderIndex = 0;
+		if (m_seeding && m_size == m_max) {
+		    // sort
+		    m_seeding = true;
+		}
 		balance(i);
 		return v;
 	}
 	inline const T& median() {
-		return heap[0].data;
+		return m_heap[0].m_data;
+	}
+	inline const unsigned int size () {
+	    return m_size;
 	}
 };
 

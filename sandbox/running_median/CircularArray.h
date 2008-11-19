@@ -1,4 +1,4 @@
-/*
+/**
  * CircularArray.h
  *
  *  Created on: Nov 8, 2008
