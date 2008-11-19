@@ -114,6 +114,7 @@ void FFMPEGNetworkCamera::decompress(unsigned char* compressedBuffer,
     // them
     while (size > 0)
     {
+        // Decompress the input data with our current codec into m_picture
         len = avcodec_decode_video(m_codecContext, m_picture, &gotPicture,
                                    inbufPtr, size);
         if (len < 0)
@@ -121,10 +122,16 @@ void FFMPEGNetworkCamera::decompress(unsigned char* compressedBuffer,
         
         if (gotPicture)
         {
+            // We got a new image, convert the result into RGB format placed in the
+            // raw pixel outputBuffer
+
+            // Temp container wrapping outputBuffer for use in the conversion function
             AVFrame tmpPicture;
             avpicture_fill((AVPicture*)&tmpPicture,
                            (uint8_t*)outputBuffer, PIX_FMT_BGR24,
                            width(), height());
+
+            // Convert from m_picture to tmpPicture, placing the result into outputBuffer
             sws_scale(m_convertContext, m_picture->data,
                       m_picture->linesize, 0, height(),
                       tmpPicture.data,
