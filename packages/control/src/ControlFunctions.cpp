@@ -384,8 +384,94 @@ double depthObserverController4Discrete(MeasuredState* measuredState,
 		
     return depthControlSignal;
 }
+
 /************************************************************************
-BongWiePDControl(MeasuredState,DesiredState,ControllerState,dt,translationalForces)
+BongWiePDRotationalController(MeasuredState,DesiredState,ControllerState,dt,rotationalTorques)
+
+function BongWiePDControl.m is an encapsulation of the nonlinear eigenaxis
+rotational controller described in Bong Wie's book "Space Vehicle Dynamics
+and Control"
+
+assumes the quaternion is written as
+
+q = [e(0)*sin(phi/2); e(1)*sin(phi/2); e(2)*sin(phi/2); cos(phi/2)]
+
+for simplicity assumes desired angular velocity is zero
+
+
+returns
+          - rotationalTorques, the torques used to rotate the vehicle as
+            written in the vehicle's coord frame.  torques are in Newton*meters
+*/
+void BongWiePDRotationalControllerOld(MeasuredState* measuredState,
+                                   DesiredState* desiredState,
+                                   ControllerState* controllerState,
+                                   double dt,
+                                   double* rotationalTorques)
+{
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
+
+    // Generate proportional controller gain matrix
+    double PGain[3][3];
+    matrixMult3x3byScalar(controllerState->inertiaEstimate,
+                          controllerState->angularPGain,&PGain[0][0]);
+
+    // Generate derivative controller gain matrix
+    double DGain[3][3];
+    matrixMult3x3byScalar(controllerState->inertiaEstimate,
+                          controllerState->angularDGain,&DGain[0][0]);
+
+    // Compute quaternion error
+    double qError[4];
+    findErrorQuaternion(desiredState->quaternion,
+                        measuredState->quaternion,&qError[0]);
+    // Use the scalar term of error quaternion to eliminate sign flipping
+    double scalarTermSign = qError[3] / fabs(qError[3]);
+    matrixMult4x1byScalar(&qError[0], scalarTermSign, &qError[0]);
+    
+    // Angular rate error assumed to be measured angular rate
+    double wError[3];
+    wError[0]=measuredState->angularRate[0];
+    wError[1]=measuredState->angularRate[1];
+    wError[2]=measuredState->angularRate[2];
+
+    // Final control law
+    double controlSignal[3];
+    double proportionalSignal[3];
+    double differentialSignal[3];
+    double gyroscopicSignal[3];
+    double wTilde[3][3];
+    
+    // Proprotional component, only the first three numbers are used here, the
+    // fourth (scalar) term is used above to correct a sign flipping error
+    matrixMult3x1by3x3(PGain,qError,&proportionalSignal[0]);
+    matrixMult3x1byScalar(proportionalSignal,-1,&proportionalSignal[0]);
+    // Differential component
+    matrixMult3x1by3x3(DGain,wError,&differentialSignal[0]);
+    matrixMult3x1byScalar(differentialSignal,-1,&differentialSignal[0]);
+    // Gyroscopic component
+    tilde(measuredState->angularRate,&wTilde[0][0]);
+    matrixMult3x1by3x3(controllerState->inertiaEstimate,
+                        measuredState->angularRate,&gyroscopicSignal[0]);
+    matrixMult3x1by3x3(wTilde,gyroscopicSignal,&gyroscopicSignal[0]);
+    // Sum the components
+    matrixAdd3x1and3x1(proportionalSignal,differentialSignal,&controlSignal[0]);
+    matrixAdd3x1and3x1(controlSignal,gyroscopicSignal,&controlSignal[0]);
+    //save to memory
+    *(rotationalTorques)=controlSignal[0];
+    *(rotationalTorques+1)=controlSignal[1];
+    *(rotationalTorques+2)=controlSignal[2];
+}
+
+/************************************************************************
+BongWiePDRotationalController(MeasuredState,DesiredState,ControllerState,dt,rotationalTorques)
 
 function BongWiePDControl.m is an encapsulation of the nonlinear eigenaxis
 rotational controller described in Bong Wie's book "Space Vehicle Dynamics
@@ -468,6 +554,7 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
     *(rotationalTorques+1)=controlSignal[1];
     *(rotationalTorques+2)=controlSignal[2];
 }
+
 
 /************************************************************************
 AdaptiveRotationalController(MeasuredState,DesiredState,ControllerState,dt,translationalForces)

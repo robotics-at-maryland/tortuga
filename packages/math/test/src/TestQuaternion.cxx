@@ -127,3 +127,15 @@ TEST(quaternionDerivative)
 	CHECK_CLOSE(expected,result,0.0001);
 }
 
+TEST(toQ)
+{
+  MatrixN big(4,4);
+  big.identity();
+  CHECK_EQUAL(big.getRows(),4);
+  CHECK_EQUAL(big.getCols(),4);
+  Quaternion q(0,0,0,1);
+  //q.toQ(big.ptr());
+  //CHECK_EQUAL(big.getRows(),4);
+  //CHECK_EQUAL(big.getCols(),3);
+  
+}

@@ -386,6 +386,11 @@ public:
 		resize(rows, cols-1);
 	}
 
+	// Pointer accessor for direct copying
+	//inline Real* ptr(){
+	//  return &rows;
+	//}
+
 	/** In place LU factorization
          *  @todo Document my parameter
          */
