@@ -21,7 +21,7 @@
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
-#define RAM_MATRIXN_RC(r,c) r*cols+c
+#define RAM_MATRIXN_RC(r,c) (r) * (cols) + (c)
 
 // Must Be Included last
 #include "math/include/Export.h"
@@ -312,12 +312,12 @@ public:
 			Real *newData = new Real[rows_ * cols_];
 			for (int i=0;i<rows_;i++)
 			{
-				for (int j=0;j<cols_;j++)
+			  for (int j=0;j<cols_;j++)
 				{
-					if (i < rows && j < cols)
-						newData[RAM_MATRIXN_RC(i,j)] = data[RAM_MATRIXN_RC(i,j)];
-					else
-						newData[RAM_MATRIXN_RC(i,j)] = 0;
+				  if (i < rows && j < cols)
+					newData[i * cols_ + j] = data[i * cols + j];
+				  else
+					newData[i * cols_ + j] = 0;
 				}
 			}
 			delete[] data;
@@ -387,9 +387,9 @@ public:
 	}
 
 	// Pointer accessor for direct copying
-	//inline Real* ptr(){
-	//  return &rows;
-	//}
+	inline Real* ptr(){
+	  return data;
+	}
 
 	/** In place LU factorization
          *  @todo Document my parameter

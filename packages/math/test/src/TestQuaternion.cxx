@@ -129,13 +129,14 @@ TEST(quaternionDerivative)
 
 TEST(toQ)
 {
-  MatrixN big(4,4);
+  MatrixN big(5,5);
   big.identity();
-  CHECK_EQUAL(big.getRows(),4);
-  CHECK_EQUAL(big.getCols(),4);
+  CHECK_EQUAL(big.getRows(),5);
+  CHECK_EQUAL(big.getCols(),5);
   Quaternion q(0,0,0,1);
-  //q.toQ(big.ptr());
-  //CHECK_EQUAL(big.getRows(),4);
-  //CHECK_EQUAL(big.getCols(),3);
+  //q.toQ(&big);
+  big.resize(4,3);
+  CHECK_EQUAL(big.getRows(),4);
+  CHECK_EQUAL(big.getCols(),3);
   
 }

@@ -295,7 +295,7 @@ namespace math {
 
 #ifndef __GCCXML__
         /** Create a Q matrix (used for q_dot=0.5*Q(q)*w */
-	void toQ(MatrixN& result);
+	void toQ(MatrixN* result);
 #endif // __GCCXML__
 
         

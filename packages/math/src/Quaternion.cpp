@@ -677,9 +677,9 @@ namespace math {
 	}
 
   // create a Q matrix (used for q_dot=0.5*Q(q)*w )
-  void Quaternion::toQ(MatrixN& result){
-    result.resize(4,3);
-    result.zero();
+  void Quaternion::toQ(MatrixN* result){
+    result->resize(4,3);
+    //result.zero();
 
   }
 	
