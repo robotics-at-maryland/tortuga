@@ -679,7 +679,17 @@ namespace math {
   // create a Q matrix (used for q_dot=0.5*Q(q)*w )
   void Quaternion::toQ(MatrixN* result){
     result->resize(4,3);
-    //result.zero();
+    (*result)[0][0] = 0;
+    (*result)[1][1] = 0;
+    (*result)[2][2] = 0;
+    //    result->zero();
+
+    //create a temporary matrix to make this function easier to write
+    //MatrixN temp(result->getRows(),result->getCols());
+    //temp.zero();
+    //*result = temp;//should copy temp to result location
+
+
 
   }
 	
