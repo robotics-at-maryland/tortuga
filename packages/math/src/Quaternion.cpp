@@ -650,7 +650,7 @@ namespace math {
 		velocityN[2][0]=velocity[2];
 		//std::cout << "velocityN = " << velocityN[0][0] << " " << velocityN[1][0] << " " << velocityN[2][0] << std::endl;
 		//find Q(q)=[eta*eye(3)+S(epsilon); -epsilon']
-		Matrix3 S;
+		/*		Matrix3 S;
 		S.ToSkewSymmetric(epsilon);
 		//the Q matrix
 		MatrixN Q(4,3);
@@ -665,7 +665,9 @@ namespace math {
 		Q[2][2]=eta+S[2][2];
 		Q[3][0]=-epsilon[0];
 		Q[3][1]=-epsilon[1];
-		Q[3][2]=-epsilon[2];
+		Q[3][2]=-epsilon[2];*/
+		MatrixN Q;
+		this.toQ(Q);
 		//std::cout << "Q = " << Q[0][0] << " " << Q[0][1] << " " << Q[0][2] << std::endl;
 		//result vector
 		MatrixN result(4,1);
