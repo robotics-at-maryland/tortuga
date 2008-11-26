@@ -123,8 +123,19 @@ TEST(quaternionDerivative)
 	Vector3 w(2,-4,-3);
 	Quaternion expected(1.0286,-1.2067,-2.0897,0.6075);
 	Quaternion result = q.derivative(w);
-	
-	CHECK_CLOSE(expected,result,0.0001);
+	CHECK_CLOSE(expected,result,0.0002);
+
+	Quaternion q2(0,0,0.9659,0.2588);
+	Vector3 w2(0,0,3);
+	Quaternion expected2(0,0,0.3882,-1.4489);
+	Quaternion result2 = q2.derivative(w2);
+	CHECK_CLOSE(expected,result,0.0002);
+
+	Quaternion q3(-0.9659,-2.8978,0.9659,0.2588);
+	Vector3 w3(-2,-2,-3);
+	Quaternion expected3(5.0538,-2.6736,-2.3201,-2.4148);
+	Quaternion result3 = q3.derivative(w3);
+	CHECK_CLOSE(expected,result,0.0002);
 }
 
 TEST(toQ)
