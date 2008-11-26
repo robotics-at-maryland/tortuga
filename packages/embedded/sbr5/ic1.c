@@ -892,6 +892,13 @@ int main(void)
 
         long t1, t2;
 
+        //TODO:do we have to do anything with TRIS_LED_ACT?
+        if(IN_USBDETECT != USB_PRESENT)//if we dont see the Mini up...
+        {
+	        blink(5);
+	        showString("lost mini...    ", 0);
+	        showString("                ", 1);
+        }
         switch(c)
         {
             case HOST_CMD_SYNC:
