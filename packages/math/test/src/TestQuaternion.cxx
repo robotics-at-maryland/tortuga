@@ -129,21 +129,33 @@ TEST(quaternionDerivative)
 
 TEST(toQ)
 {
+  //create a result array that is too big
   MatrixN big(5,5);
   big.identity();
   CHECK_EQUAL(big.getRows(),5);
   CHECK_EQUAL(big.getCols(),5);
+
+  //test trivial case (result should be resized as well)
   Quaternion q(0,0,0,1);
   q.toQ(&big);
-
-  double arrayZero[] = {0,0,0,0,0,0,0,0,0,0,0,0};
-  MatrixN zeroMat(arrayZero,4,3);
-  CHECK_CLOSE(big,zeroMat,0.5);
-
-  //  big.resize(4,3);
-  //  CHECK_EQUAL(big.getRows(),4);
-  //  CHECK_EQUAL(big.getCols(),3);
+  CHECK_EQUAL(big.getRows(),4);
+  CHECK_EQUAL(big.getCols(),3);
+  double expArray[] = {1,0,0,0,1,0,0,0,1,0,0,0};
+  MatrixN expMat(expArray,4,3);
+  CHECK_CLOSE(expMat,big,0.0005);
   
-
+  //test yawed orientation case
+  Quaternion q2(0,0,0.9659,0.2588);
+  q2.toQ(&big);
+  double expArray2[]={0.2588, -0.9659, 0, 0.9659,0.2588,0,0,0,0.2588,0,0,-0.9659};
+  MatrixN expMat2(expArray2,4,3);
+  CHECK_CLOSE(expMat2,big,0.0005);
+  
+  //test terribly confusing orientation
+  Quaternion q3(-0.9659,1.9319,-1.9319,0.2588);
+  q3.toQ(&big);
+  double expArray3[]={0.2588,1.9319,1.9319,-1.9319,0.2588,0.9659,-1.9319,-0.9659,0.2588,0.9659,-1.9319,1.9319};
+  MatrixN expMat3(expArray3,4,3);
+  CHECK_CLOSE(expMat3,big,0.0005);
 
 }

@@ -678,18 +678,29 @@ namespace math {
 
   // create a Q matrix (used for q_dot=0.5*Q(q)*w )
   void Quaternion::toQ(MatrixN* result){
+    //ensure output matrix is proper size
     result->resize(4,3);
-    (*result)[0][0] = 0;
-    (*result)[1][1] = 0;
-    (*result)[2][2] = 0;
-    //    result->zero();
+    //break up input quaternion into vector and scalar components
+    Vector3 epsilon(x, y, z);
+    double  eta;
+    eta = w;
 
-    //create a temporary matrix to make this function easier to write
-    //MatrixN temp(result->getRows(),result->getCols());
-    //temp.zero();
-    //*result = temp;//should copy temp to result location
-
-
+    //find Q(q)=[eta*eye(3)+S(epsilon); -epsilon']
+    Matrix3 S;
+    S.ToSkewSymmetric(epsilon);
+    //the Q matrix
+    (*result)[0][0]=S[0][0]+eta;
+    (*result)[0][1]=S[0][1];
+    (*result)[0][2]=S[0][2];
+    (*result)[1][0]=S[1][0];
+    (*result)[1][1]=S[1][1]+eta;
+    (*result)[1][2]=S[1][2];
+    (*result)[2][0]=S[2][0];
+    (*result)[2][1]=S[2][1];
+    (*result)[2][2]=S[2][2]+eta;
+    (*result)[3][0]=-epsilon[0];
+    (*result)[3][1]=-epsilon[1];
+    (*result)[3][2]=-epsilon[2];
 
   }
 	
