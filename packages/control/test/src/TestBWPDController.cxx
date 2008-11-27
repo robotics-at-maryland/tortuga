@@ -39,7 +39,8 @@ struct Fixture
     control::BWPDController controller;
 };
 
-/*
+
+//use these to test the normal PD rotational controller
 TEST_FIXTURE(Fixture, YawControl)
 {
     // First is north along horizontal (desired)
@@ -48,7 +49,7 @@ TEST_FIXTURE(Fixture, YawControl)
     
     math::Vector3 exp_rotTorque(0, 0, -3.5497);
     controller.update(1);
-    //CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
+    CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
 }
 
 TEST_FIXTURE(Fixture, PitchControl)
@@ -57,7 +58,7 @@ TEST_FIXTURE(Fixture, PitchControl)
     vehicle->orientation = math::Quaternion(0, 0.2164, 0, 0.9763);
 
     controller.update(1);
-    //CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
+    CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
 }
 
 TEST_FIXTURE(Fixture, RollControl)
@@ -66,8 +67,8 @@ TEST_FIXTURE(Fixture, RollControl)
     vehicle->orientation = math::Quaternion(-0.3827, 0, 0, 0.9239);
 
     controller.update(1);
-    //CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
-    }*/
+    CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
+}
 
 TEST_FIXTURE(Fixture, yawVehicle)
 {

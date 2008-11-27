@@ -287,7 +287,11 @@ namespace math {
             return o;
         }
 
-        /** Find the error quaternion between this quaternion and other quat. */
+        /** Find the error quaternion between this quaternion and the other quaternion. This function is written formally as:
+q_tilde = q1 (x) q2^-1 where (x) indicates the tensor product
+usage:
+q_tilde = q1.errorQuaternion(q2);
+The q_tilde quaternion defines the rotation from the frame defined by q2 to the frame defined by q1.*/
         Quaternion errorQuaternion(Quaternion other);
 
         /** Compute the derivative of a quaternion based on kinematic relationship to angular velocity */
