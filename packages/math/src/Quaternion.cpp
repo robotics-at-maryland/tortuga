@@ -626,10 +626,20 @@ namespace math {
     {
         Quaternion result;
         
+	/*this is backwards!!!!!
         result.x =  (w * q.x) + (z * q.y) - (y * q.z) - (x * q.w);
         result.y = (-z * q.x) + (w * q.y) + (x * q.z) - (y * q.w);
         result.z =  (y * q.x) - (x * q.y) + (w * q.z) - (z * q.w);
         result.w =  (x * q.x) + (y * q.y) + (z * q.z) + (w * q.w);
+	*/
+
+	//ensure quaternions are of unit length
+	(*this).normalise();
+	q.normalise();
+        result.x =  (q.w * x) + (q.z * y) - (q.y * z) - (q.x * w);
+        result.y = -(q.z * x) + (q.w * y) + (q.x * z) - (q.y * w);
+        result.z =  (q.y * x) - (q.x * y) + (q.w * z) - (q.z * w);
+        result.w =  (q.x * x) + (q.y * y) + (q.z * z) + (q.w * w);
 
         return result;
     }

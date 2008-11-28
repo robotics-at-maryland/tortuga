@@ -105,6 +105,8 @@ TEST(getRollPitchYaw)
 
 TEST(errorQuaternion)
 {
+  /*
+    //i suspect this test case is "backwards"
     Quaternion quatA(Quaternion::IDENTITY);
     Quaternion quatB(Degree(45), Vector3::UNIT_Y);
 
@@ -113,7 +115,30 @@ TEST(errorQuaternion)
     
     Quaternion result = quatA.errorQuaternion(quatB);
 
-    CHECK_CLOSE(expected, result, 0.0001);
+    CHECK_CLOSE(expected, result, 0.0001);*/
+
+    //simple test
+    Quaternion quatA1(0,0,0.2756,0.9613);
+    Quaternion quatB1(0,0,0,1);
+    Quaternion result1 = quatA1.errorQuaternion(quatB1);
+    Quaternion expected1(0,0,0.2756,0.9613);
+    CHECK_CLOSE(expected1,result1,0.0001);
+    
+
+    //more complicated test
+    Quaternion quatA2(-0.3320,0.6640,-0.6640,0.0890);
+    Quaternion quatB2(-0.7913,0,0.1583,0.5906);
+    Quaternion result2 = quatA2.errorQuaternion(quatB2);
+    Quaternion expected2(-0.0206,0.9702,0.1192,0.2102);
+    CHECK_CLOSE(expected2,result2,0.0001);
+
+    //same test as above but q_meas and q_des are not unit quaternions
+    
+    Quaternion quatA3(-0.9659,1.9319,-1.9319,0.2588);
+    Quaternion quatB3(-1.2941,0,0.2588,0.9659);
+    Quaternion result3 = quatA3.errorQuaternion(quatB3);
+    Quaternion expected3(-0.0206,0.9702,0.1192,0.2102);
+    CHECK_CLOSE(expected3,result3,0.0001);
 }
 
 

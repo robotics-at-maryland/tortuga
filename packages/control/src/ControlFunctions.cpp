@@ -514,7 +514,7 @@ void rotationalPDController(MeasuredState* measuredState,
     Quaternion q_meas(measuredState->quaternion);
     Quaternion q_des(desiredState->quaternion);
     //i think this should be q_tilde = q_meas.errorQuaternion(q_des) 
-    q_tilde = q_des.errorQuaternion(q_meas);  
+    q_tilde = q_meas.errorQuaternion(q_des);  
     //break up quaternion into vector and scalar parts for later convenience
     Vector3 epsilon_tilde(q_tilde.x, q_tilde.y, q_tilde.z);
     double eta_tilde = q_tilde.w;
@@ -621,9 +621,9 @@ void adaptiveRotationalController(MeasuredState* measuredState,
 
 	//compute error quaternion
 	//WARNING!!! I had to "transpose" the quaternion order here.  
-	//Is this a problem with the errorQuaternion function (ie backwards)?
-	//	Quaternion qc_tilde = q.errorQuaternion(qd);
-	Quaternion qc_tilde = qd.errorQuaternion(q);
+	//Is this a problem with the errorQuaternion function (ie backwards)?  YES, i just changed it back
+	//	Quaternion qc_tilde = q.errorQuaternion(qd);  it should be this
+	Quaternion qc_tilde = q.errorQuaternion(qd);
 	//	std::cout << "qc = " << qc_tilde.x << " " << qc_tilde.y << " " << qc_tilde.z << " " << qc_tilde.w << std::endl;
 
 	//compute rotation matrix
