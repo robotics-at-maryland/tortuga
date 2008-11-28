@@ -32,6 +32,9 @@ envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
 wrapped_headers = ['IController.h']
+
+if env.HasFeature('core'):
+    wrapped_headers.append('Events.h')
 wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
 
 # Tests

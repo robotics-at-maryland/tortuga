@@ -72,6 +72,18 @@ public:
      */
     static const core::Event::EventType AT_ORIENTATION;
 
+    /** Sent to adjust the display parameter name and count
+     *
+     *  Type is ram::control::ParamSetupEvent
+     */
+    static const core::Event::EventType PARAM_SETUP;
+
+    /** Sent to update the value of the displayed parameters
+     *
+     *  Type is ram::control::ParamUpdateEvent
+     */
+    static const core::Event::EventType PARAM_UPDATE;
+
     /* @{ */
     
 protected:
