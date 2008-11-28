@@ -70,7 +70,7 @@ TEST(BongWiePDRotationalController)
     // Testing Yaw Control
     double exp_rotTorques[3] = {0, 0, -3.5497};
     double act_rotTorques[3] = {0};
-    control::BongWiePDRotationalController(&measured, &desired, &state,
+    control::rotationalPDController(&measured, &desired, &state,
                                            1, act_rotTorques);
     CHECK_ARRAY_CLOSE(exp_rotTorques, act_rotTorques, 3, 0.0001);
 
@@ -80,7 +80,7 @@ TEST(BongWiePDRotationalController)
     control::MeasuredState measured2 = {0, {0}, {0}, 
                                        {0, 0.2164, 0, 0.9763},
                                        {0}};
-    control::BongWiePDRotationalController(&measured2, &desired, &state,
+    control::rotationalPDController(&measured2, &desired, &state,
                                            1, act_rotTorques);
     CHECK_ARRAY_CLOSE(exp_rotTorques2, act_rotTorques, 3, 0.0001);
 
@@ -89,7 +89,7 @@ TEST(BongWiePDRotationalController)
     control::MeasuredState measured3 = {0, {0}, {0}, 
                                         {-0.3827, 0, 0, 0.9239},
                                        {0}};
-    control::BongWiePDRotationalController(&measured3, &desired, &state,
+    control::rotationalPDController(&measured3, &desired, &state,
                                            1, act_rotTorques);
     CHECK_ARRAY_CLOSE(exp_rotTorques3, act_rotTorques, 3, 0.0001);
 }
@@ -164,7 +164,7 @@ TEST(AdaptiveRotationalController)
 
 	double act_torques[3];
 	double expect_torques[3] = {0,0,0};
-	control::AdaptiveRotationalController(&measured, &desired, &state,
+	control::adaptiveRotationalController(&measured, &desired, &state,
 										  0.2, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.0001);
 
@@ -238,7 +238,7 @@ TEST(AdaptiveRotationalController)
 	expect_torques[0] = 0;
 	expect_torques[1] = 0;
 	expect_torques[2] = 0.7071;
-	control::AdaptiveRotationalController(&measured, &desired, &state,
+	control::adaptiveRotationalController(&measured, &desired, &state,
 										  0.1, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.0001);
 
@@ -312,7 +312,7 @@ TEST(AdaptiveRotationalController)
 	expect_torques[0] = 0.9192;
 	expect_torques[1] = 0;
 	expect_torques[2] = 0;
-	control::AdaptiveRotationalController(&measured, &desired, &state,
+	control::adaptiveRotationalController(&measured, &desired, &state,
 										  0.3, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.01);
 
@@ -387,7 +387,7 @@ TEST(AdaptiveRotationalController)
 	expect_torques[0] = 0.4582;
 	expect_torques[1] = 0;
 	expect_torques[2] = 0.0142;
-	control::AdaptiveRotationalController(&measured, &desired, &state,
+	control::adaptiveRotationalController(&measured, &desired, &state,
 										  0.05, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.01);
 

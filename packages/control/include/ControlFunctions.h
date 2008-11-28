@@ -113,13 +113,13 @@ void RAM_EXPORT translationalController(MeasuredState* measuredState,
                                         double dt,
                                         double* translationalForces);
 
-void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
+void RAM_EXPORT rotationalPDController(MeasuredState* measuredState,
                                               DesiredState* desiredState,
                                               ControllerState* controllerState,
                                               double dt,
                                               double* rotationalTorques);
 
-void RAM_EXPORT AdaptiveRotationalController(MeasuredState* measuredState,
+void RAM_EXPORT adaptiveRotationalController(MeasuredState* measuredState,
                                               DesiredState* desiredState,
                                               ControllerState* controllerState,
                                               double dt,

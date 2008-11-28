@@ -394,8 +394,14 @@ void BWPDController::update(double timestep)
         	                m_controllerState, m_estimatedState,
 				timestep, translationalForce.ptr());
 
-        BongWiePDRotationalController(
-	//AdaptiveRotationalController(
+	/*
+	  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	  MAKE SURE THAT YOU ADJUST THE 
+	  testBWPDController.cxx FILE ACCORDINGLY
+	  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	*/
+        rotationalPDController(
+	//adaptiveRotationalController(
 	                              m_measuredState, m_desiredState,
                                       m_controllerState, timestep,
                                       rotationalTorque.ptr());

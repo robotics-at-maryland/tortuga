@@ -488,12 +488,14 @@ returns
           - rotationalTorques, the torques used to rotate the vehicle as
             written in the vehicle's coord frame.  torques are in Newton*meters
 */
-void BongWiePDRotationalController(MeasuredState* measuredState,
+void rotationalPDController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
                                    double dt,
                                    double* rotationalTorques)
 {
+
+  //don't need this timing information in this function, but will keep it here in case it is needed in the future
     if(dt < controllerState->dtMin)
     {
         dt = controllerState->dtMin;
@@ -503,56 +505,40 @@ void BongWiePDRotationalController(MeasuredState* measuredState,
         dt = controllerState->dtMax;
     }
 
-    // Generate proportional controller gain matrix
-    double PGain[3][3];
-    matrixMult3x3byScalar(controllerState->inertiaEstimate,
-                          controllerState->angularPGain,&PGain[0][0]);
 
-    // Generate derivative controller gain matrix
-    double DGain[3][3];
-    matrixMult3x3byScalar(controllerState->inertiaEstimate,
-                          controllerState->angularDGain,&DGain[0][0]);
+    //put inertia estimate in OGRE
+    Matrix3 J(controllerState->inertiaEstimate);
 
-    // Compute quaternion error
-    double qError[4];
-    findErrorQuaternion(desiredState->quaternion,
-                        measuredState->quaternion,&qError[0]);
-    // Use the scalar term of error quaternion to eliminate sign flipping
-    double scalarTermSign = qError[3] / fabs(qError[3]);
-    matrixMult4x1byScalar(&qError[0], scalarTermSign, &qError[0]);
+    //compute error quaternion
+    Quaternion q_tilde;
+    Quaternion q_meas(measuredState->quaternion);
+    Quaternion q_des(desiredState->quaternion);
+    //i think this should be q_tilde = q_meas.errorQuaternion(q_des) 
+    q_tilde = q_des.errorQuaternion(q_meas);  
+    //break up quaternion into vector and scalar parts for later convenience
+    Vector3 epsilon_tilde(q_tilde.x, q_tilde.y, q_tilde.z);
+    double eta_tilde = q_tilde.w;
+
+    //compute angular rate error
+    Vector3 w_error(measuredState->angularRate[0],
+		    measuredState->angularRate[1],
+		    measuredState->angularRate[2]);
+
+    //compute matrix needed for gyroscopic term
+    Matrix3 w_tilde;
+    w_tilde.ToSkewSymmetric(w_error);
+
+    //compute control signal
+    Vector3 u;
+    double kp = controllerState->angularPGain;
+    double kd = controllerState->angularDGain;
+    u = - kp*J*sign(eta_tilde)*epsilon_tilde - kd*J*w_error + w_tilde*J*w_error;
+
+    //put back into non-OGRE format
+    *(rotationalTorques)=u[0];
+    *(rotationalTorques+1)=u[1];
+    *(rotationalTorques+2)=u[2];
     
-    // Angular rate error assumed to be measured angular rate
-    double wError[3];
-    wError[0]=measuredState->angularRate[0];
-    wError[1]=measuredState->angularRate[1];
-    wError[2]=measuredState->angularRate[2];
-
-    // Final control law
-    double controlSignal[3];
-    double proportionalSignal[3];
-    double differentialSignal[3];
-    double gyroscopicSignal[3];
-    double wTilde[3][3];
-    
-    // Proprotional component, only the first three numbers are used here, the
-    // fourth (scalar) term is used above to correct a sign flipping error
-    matrixMult3x1by3x3(PGain,qError,&proportionalSignal[0]);
-    matrixMult3x1byScalar(proportionalSignal,-1,&proportionalSignal[0]);
-    // Differential component
-    matrixMult3x1by3x3(DGain,wError,&differentialSignal[0]);
-    matrixMult3x1byScalar(differentialSignal,-1,&differentialSignal[0]);
-    // Gyroscopic component
-    tilde(measuredState->angularRate,&wTilde[0][0]);
-    matrixMult3x1by3x3(controllerState->inertiaEstimate,
-                        measuredState->angularRate,&gyroscopicSignal[0]);
-    matrixMult3x1by3x3(wTilde,gyroscopicSignal,&gyroscopicSignal[0]);
-    // Sum the components
-    matrixAdd3x1and3x1(proportionalSignal,differentialSignal,&controlSignal[0]);
-    matrixAdd3x1and3x1(controlSignal,gyroscopicSignal,&controlSignal[0]);
-    //save to memory
-    *(rotationalTorques)=controlSignal[0];
-    *(rotationalTorques+1)=controlSignal[1];
-    *(rotationalTorques+2)=controlSignal[2];
 }
 
 
@@ -573,7 +559,7 @@ returns
           - rotationalTorques, the torques used to rotate the vehicle as
             written in the vehicle's coord frame.  torques are in Newton*meters
 */
-void AdaptiveRotationalController(MeasuredState* measuredState,
+void adaptiveRotationalController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
                                    double dt,
