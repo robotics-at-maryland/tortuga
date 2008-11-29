@@ -19,6 +19,7 @@ import ext.vehicle.device as device
 import oci.model.subsystem as subsystemMod
 import ram.gui.led
 
+
 class MultiBar(wx.PyControl):
     RED = wx.Colour(255, 0, 0, 100)
     GREEN = wx.Colour(0, 255, 0, 100)
@@ -452,6 +453,10 @@ class BarDisplay(object):
             conn.disconnect()
         
 class TempSensorDisplay(BarDisplay):
+    """
+    Customizes BarDisplay to display temp data properly and links it the events
+    from the ITempSensor.
+    """
     def __init__(self, parent, eventHub, tempSensor, sizer, lineNum):
         BarDisplay.__init__(self, parent, eventHub, tempSensor, sizer, lineNum,
                             format = "%2d")
@@ -468,6 +473,11 @@ class TempSensorDisplay(BarDisplay):
         self._updateControls(event.number)
                     
 class ThrusterCurrentDisplay(BarDisplay):
+    """
+    Customizes the BarDisplay to add an 'Enabled' LED.  It does this by
+    subscribing to the proper IThruster events.
+    """
+    
     def __init__(self, parent, eventHub, thruster, sizer, lineNum):
         BarDisplay.__init__(self, parent, eventHub, thruster, sizer, lineNum,
                             format = '%4.2f')
@@ -518,6 +528,12 @@ class ThrusterCurrentDisplay(BarDisplay):
         self._updateControls(event.number)
                     
 class PowerSourceDisplay(BarDisplay):
+    """
+    A class which customizes the BarDisplay to add 'Enabled' and 'In Use' LEDs
+    to each channel displayed.  To do this it subscribes to the proper
+    IPowerSource events, and customizes the display for the standard LED class.
+    """
+    
     VOLTAGE = 1
     CURRENT = 2
     
@@ -559,7 +575,7 @@ class PowerSourceDisplay(BarDisplay):
                                               colorList, valueList,
                                               textReference = textReference)
         
-        # Create custom controls
+        # Create custom LEDs which stand in as "Enabled" or "In Use" indicators
 	self._enableLED = ram.gui.led.LED(parent, state = 0)#, size = size)
         self._enableLED.SetAsciiPattern('''
         000000-----000000      
