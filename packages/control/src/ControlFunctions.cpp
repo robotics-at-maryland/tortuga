@@ -406,6 +406,7 @@ returns
 void BongWiePDRotationalControllerOld(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
+				   EstimatedState* estimatedState,
                                    double dt,
                                    double* rotationalTorques)
 {
@@ -491,6 +492,7 @@ returns
 void rotationalPDController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
+			           EstimatedState* estimatedState,
                                    double dt,
                                    double* rotationalTorques)
 {
@@ -543,6 +545,100 @@ void rotationalPDController(MeasuredState* measuredState,
 
 
 /************************************************************************
+rotationalGryoObsPDController(MeasuredState,DesiredState,ControllerState,dt,rotationalTorques)
+
+observer is from "A Coupled Nonlinear Spacecraft Attitude Controller and Observer
+With an Unkown Constant Gyro Bias and Gyro Noise" by J. Thienel and R. M. Sanner as
+seen in IEEE Trans on Automatic Control, Vol 48, No 11,  November 2003
+
+controller is from the nonlinear eigenaxis
+rotational controller described in Bong Wie's book "Space Vehicle Dynamics
+and Control"
+
+
+assumes the quaternion is written as
+
+q = [e(0)*sin(phi/2); e(1)*sin(phi/2); e(2)*sin(phi/2); cos(phi/2)]
+
+for simplicity assumes desired angular velocity is zero
+
+
+returns
+          - rotationalTorques, the torques used to rotate the vehicle as
+            written in the vehicle's coord frame.  torques are in Newton*meters
+*/
+void rotationalGyroObsPDController(MeasuredState* measuredState,
+                                   DesiredState* desiredState,
+                                   ControllerState* controllerState,
+				   EstimatedState* estimatedState,
+                                   double dt,
+                                   double* rotationalTorques)
+{
+
+  //ensure we don't divide by or multiply by dt=0
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
+
+
+    //grab data and put in OGRE format
+    Matrix3 J(controllerState->inertiaEstimate);
+    Quaternion q_meas(measuredState->quaternion);
+    Quaternion q_des(desiredState->quaternion);
+    Vector3 w(measuredState->angularRate[0],
+	      measuredState->angularRate[1],
+	      measuredState->angularRate[2]);
+    //ensure quaternions are of unit length
+    q_meas.normalise();
+    q_des.normalise();
+
+    
+    /* OBSERVER */
+    //verify old quaternion estimate is unit length
+    controllerState->qhatold=controllerState->qhatold.normalise();
+    
+
+
+    /* CONTROLLER */
+
+    //compute error quaternion for controller
+    Quaternion qtc;//QTC = Quaternion Tilde Controller 
+    qtc = q_meas.errorQuaternion(q_des);  
+    //break up quaternion into vector and scalar parts for later convenience
+    Vector3 epsilon_tc(qtc.x, qtc.y, qtc.z);
+    double eta_tc = qtc.w;
+
+    //compute angular rate error
+    Vector3 w_error(measuredState->angularRate[0],
+		    measuredState->angularRate[1],
+		    measuredState->angularRate[2]);
+
+    //compute matrix needed for gyroscopic term
+    Matrix3 w_tilde;
+    w_tilde.ToSkewSymmetric(w_error);
+
+    //compute control signal
+    Vector3 u;
+    double kp = controllerState->angularPGain;
+    double kd = controllerState->angularDGain;
+    u = - kp*J*sign(eta_tc)*epsilon_tc - kd*J*w_error + w_tilde*J*w_error;
+
+    //put back into non-OGRE format
+    *(rotationalTorques)=u[0];
+    *(rotationalTorques+1)=u[1];
+    *(rotationalTorques+2)=u[2];
+    
+}
+
+
+
+
+/************************************************************************
 AdaptiveRotationalController(MeasuredState,DesiredState,ControllerState,dt,translationalForces)
 
 AdaptiveRotationalController is a modified version of the adaptive spacecraft controller described in:
@@ -562,6 +658,7 @@ returns
 void adaptiveRotationalController(MeasuredState* measuredState,
                                    DesiredState* desiredState,
                                    ControllerState* controllerState,
+				  EstimatedState* estimatedState,
                                    double dt,
                                    double* rotationalTorques)
 {

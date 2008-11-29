@@ -401,9 +401,12 @@ void BWPDController::update(double timestep)
 	  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	*/
         rotationalPDController(
-	//adaptiveRotationalController(
-	                              m_measuredState, m_desiredState,
-                                      m_controllerState, timestep,
+			       //adaptiveRotationalController(
+	                              m_measuredState, 
+				      m_desiredState,
+                                      m_controllerState, 
+				      m_estimatedState,
+				      timestep,
                                       rotationalTorque.ptr());
     }
     
@@ -529,7 +532,16 @@ void BWPDController::init(core::ConfigNode config)
 	m_controllerState->adaptCtrlParams[10][0] = config["adaptCtrlParams"][10].asDouble(2);
 	m_controllerState->adaptCtrlParams[11][0] = config["adaptCtrlParams"][11].asDouble(2);
 
+	// gyro bias observer controller
+	m_estimatedState->qhat[0] = config["obsQhat"][0].asDouble(0);
+	m_estimatedState->qhat[1] = config["obsQhat"][1].asDouble(0);
+	m_estimatedState->qhat[2] = config["obsQhat"][2].asDouble(0);
+	m_estimatedState->qhat[3] = config["obsQhat"][3].asDouble(1);
 	
+	m_estimatedState->dqhat[0] = config["obsDqhat"][0].asDouble(0);
+	m_estimatedState->dqhat[1] = config["obsDqhat"][1].asDouble(0);
+	m_estimatedState->dqhat[2] = config["obsDqhat"][2].asDouble(0);
+	m_estimatedState->dqhat[3] = config["obsDqhat"][3].asDouble(0);
 
 	/* Translationcal Gains */
 

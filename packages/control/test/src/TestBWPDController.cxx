@@ -41,6 +41,7 @@ struct Fixture
 
 
 //use these to test the normal PD rotational controller
+/*
 TEST_FIXTURE(Fixture, YawControl)
 {
     // First is north along horizontal (desired)
@@ -69,6 +70,13 @@ TEST_FIXTURE(Fixture, RollControl)
     controller.update(1);
     CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
 }
+
+TEST_FIXTURE(Fixture, YawRateControl)
+{
+  vehicle->orientation = math::Quaternion(0,0,0,1);
+  vehicle->angularRate = math::Vector3(0,0,5);
+  
+  }*/
 
 TEST_FIXTURE(Fixture, yawVehicle)
 {

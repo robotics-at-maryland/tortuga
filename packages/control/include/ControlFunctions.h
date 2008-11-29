@@ -61,20 +61,40 @@ struct RAM_EXPORT EstimatedState{
     math::Vector2 xHat2Depth;  //<- want to use this, but having trouble
     //double xHat2;
     math::Vector4 xHat4Depth;
+
+    //for gyro bias observer controller
+    math::Quaternion qhat;//current attitude estimate
+    math::Vector3 what;//current angular rate estimate
+    math::Vector3 bhat;//current gyro bias estimate
+    math::Quaternion dqhat;//current attitude estimate rate
+    math::Vector3 dbhat;//current gyro bias estimate rate
+
 };
 
 struct RAM_EXPORT ControllerState{
 
   /* ROTATIONAL CONTROL GAINS */
+
   //for nonlinear PD control
     double angularPGain;
     double angularDGain;
     double inertiaEstimate[3][3];
+
 	//for nonlinear adaptive controller
 	double adaptCtrlRotK;//controller gain
 	double adaptCtrlRotLambda;//replacement model pole
 	double adaptCtrlRotGamma;//adaptation gain
 	math::MatrixN adaptCtrlParams;//parameter estimate vector
+
+	//for gyro bias observer controller
+	double gyroObsGain;//observer gain
+	math::Quaternion qhatold;//previous attitude estimate
+	math::Vector3 whatold;//previous angular rate estimate
+	math::Vector3 bhatold;//previous gyro bias estimate
+	math::Quaternion dqhatold;//previous attitude estimate rate
+	math::Vector3 dbhatold;//previous gyro bias estimate rate
+	
+
     
     /* DEPTH CONTROL GAINS*/
     //for depth P control
@@ -114,14 +134,23 @@ void RAM_EXPORT translationalController(MeasuredState* measuredState,
                                         double* translationalForces);
 
 void RAM_EXPORT rotationalPDController(MeasuredState* measuredState,
+                                       DesiredState* desiredState,
+                                       ControllerState* controllerState,
+				       EstimatedState* estimatedState,
+                                       double dt,
+                                       double* rotationalTorques);
+
+void RAM_EXPORT rotationalGyroObsPDController(MeasuredState* measuredState,
                                               DesiredState* desiredState,
                                               ControllerState* controllerState,
+					      EstimatedState* estimatedState,
                                               double dt,
                                               double* rotationalTorques);
 
 void RAM_EXPORT adaptiveRotationalController(MeasuredState* measuredState,
                                               DesiredState* desiredState,
                                               ControllerState* controllerState,
+					     EstimatedState* estimatedState,
                                               double dt,
                                               double* rotationalTorques);
                                    
