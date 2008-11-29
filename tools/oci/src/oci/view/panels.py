@@ -28,6 +28,52 @@ import ext.core as core
 
 import ram.ai.state 
 
+class BasePanel(wx.Panel):
+    def __init__(self, parent, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        self._connections = []
+        self._generatedControls = []
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+    def _createControls(self, name):
+        # Creat box around controls
+        box = wx.StaticBox(parent = self, label = name)
+        topSizer = wx.StaticBoxSizer(box)
+        
+        self.sizer = wx.FlexGridSizer(0, 2, 10, 10)
+        topSizer.Add(self.sizer, 1, wx.EXPAND)
+        
+        # Create controls
+        self._createDataControls()
+
+        # Start off greyed out
+        for control in self._generatedControls:
+            control.Enable(False)
+        
+        self.SetSizerAndFit(topSizer)
+
+    def _createDataControls(self):
+        pass
+
+    def _getTextSize(self):
+        textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+0.000')
+        return wx.Size(textWidth, wx.DefaultSize.height)         
+        
+    def _createDataControl(self, controlName, label):
+        textSize = self._getTextSize()
+        textStyle = wx.TE_RIGHT | wx.TE_READONLY
+        
+        desiredLabel = wx.StaticText(self, label = label)
+        self.sizer.Add(desiredLabel, 1, flag = wx.ALIGN_RIGHT)
+        
+        control = wx.TextCtrl(self, size = textSize, style = textStyle)
+        setattr(self, controlName, control)
+        self._generatedControls.append(control)
+        self.sizer.Add(control, proportion = 1 , flag = wx.ALIGN_CENTER)
+
 class ThrusterPanel(wx.Panel):
     implements(IPanelProvider)
     
@@ -631,6 +677,72 @@ class PowerSourcePanel(BarDisplayPanel):
                 return [(paneInfoV, panelV, [vehicle]), 
                         (paneInfoC, panelC, [vehicle])]
             
+        return []
+
+class ControlDebugPanel(BasePanel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub):
+        BasePanel.__init__(self, parent)#, *args, **kwargs)
+        self._configured = False
+        self._count = 0
+    
+        # Controls
+        self._createControls("Controller")
+        
+        # Events
+        conn = eventHub.subscribeToType(ext.control.IController.PARAM_SETUP,
+                                        self._onParamSetup)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ext.control.IController.PARAM_UPDATE,
+                                        self._onParamUpdate)
+        self._connections.append(conn)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+    
+    def _onParamSetup(self, event):
+        """
+        Called when the controller configures its update
+        """
+        assert not self._configured
+        self._count = len(event.labels)
+        
+        # Iterate over each label this is ugly because of a current bug in the
+        # wrapping of C++ containers, typeof(event.labes) == vector<string>
+        for i in xrange(0, len(event.labels)):
+            labelName = event.labels[i]
+            self._createDataControl(controlName = '_' + str(i),
+                                    label = labelName + ': ')
+        
+        self._configured = True
+        
+        # Reset sizer
+        #self.SetSizerAndFit(self.GetSizer())
+
+    def _onParamUpdate(self, event):
+        assert len(event.values)  == self._count
+        
+        # Go through value and match it up to its control
+        for i in xrange(0, len(event.values)):
+            labelControl = getattr(self, '_' + str(i))
+            labelControl.Value = "% 4.2f" % event.values[i]
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        controller = core.Subsystem.getSubsystemOfType(
+            ext.control.IController, subsystems)
+        
+        if controller is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Controller")
+            paneInfo = paneInfo.Caption("Controller").Right()
+        
+            panel = ControlDebugPanel(parent, eventHub)
+            return [(paneInfo, panel, [controller])]
+        
         return []
 
 #class DemoSonarPanel(wx.Panel):

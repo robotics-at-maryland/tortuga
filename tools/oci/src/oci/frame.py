@@ -80,7 +80,7 @@ class MainFrame(wx.Frame):
         self.SetMenuBar(mb)
         
         self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self._paneHide)
-        self.Bind(wx.EVT_CLOSE,self._onClose)            
+        self.Bind(wx.EVT_CLOSE,self._onClose)
 
 
     def _buildMenuBar(self):

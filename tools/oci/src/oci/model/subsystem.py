@@ -13,6 +13,8 @@ import ext.math
 import ext.core as core
 import ext.vehicle as vehicle
 import ext.vehicle.device as device
+import ext.vision as vision
+import ext.control as control
 
 import ram.ai.state
 from ram.test import Mock
@@ -293,3 +295,73 @@ class DemoSonar(core.Subsystem):
 # Register Subsystem so it can be created from a config file
 core.SubsystemMaker.registerSubsystem('DemoSonar', DemoSonar)
         
+class DemoVisionSystem(vision.VisionSystem):
+    def __init__(self, config, deps_):
+        # Initialize super class with fake cameras
+        config = core.ConfigNode.fromString(str(config))
+        deps = core.SubsystemList()
+        for d in deps_:
+            deps.append(d)
+        
+        cam1 = vision.Camera(640,480)
+        cam2 = vision.Camera(640,480)
+        vision.VisionSystem.__init__(self, cam1, cam2, config, deps)
+        
+        self._currentTime = 0;
+
+    def update(self, timestep):
+        self._currentTime += timestep
+        
+        sinVal = math.sin(self._currentTime)
+
+        event = vision.RedLightEvent(sinVal, sinVal)
+
+        if sinVal >= 0:
+            self.publish(vision.EventType.LIGHT_FOUND, event)
+        else:
+            self.publish(vision.EventType.LIGHT_LOST, event)
+    
+    def backgrounded(self):
+        return False
+    
+    def background(self, interval):
+        pass
+    
+# Register Subsystem so it can be created from a config file
+core.SubsystemMaker.registerSubsystem('DemoVisionSystem', DemoVisionSystem)
+
+class DemoController(control.IController):
+    def __init__(self, config, deps):
+        eventHub = core.Subsystem.getSubsystemOfExactType(core.EventHub, deps)
+        control.IController.__init__(self, config["name"], eventHub)
+        self._currentTime = 0;
+        self._started = False
+
+    def update(self, timestep):
+        if not self._started:
+            self._setupDebug()
+            self._started = True
+        
+        self._currentTime += timestep
+
+        event = control.ParamUpdateEvent()
+        event.values.append(math.sin(self._currentTime))
+        event.values.append(math.sin(self._currentTime + 1))
+        event.values.append(math.sin(self._currentTime + 2))
+        self.publish(control.IController.PARAM_UPDATE, event)
+
+    def backgrounded(self):
+        return False
+    
+    def unbackground(self, join):
+        pass
+    
+    def _setupDebug(self):
+        event = control.ParamSetupEvent()
+        event.labels.append("P Gain")
+        event.labels.append("D Gain")
+        event.labels.append("I Gain")
+        self.publish(control.IController.PARAM_SETUP, event)
+    
+# Register Subsystem so it can be created from a config file
+core.SubsystemMaker.registerSubsystem('DemoController', DemoController)

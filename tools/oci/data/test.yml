@@ -19,3 +19,11 @@ Subsystems:
     StateMachine:
         type: DemoStateMachine
         depends_on: ["EventHub"]
+        
+    VisionSystem:
+        type: DemoVisionSystem
+        depends_on: ["EventHub"]
+        
+    Controller:
+        type: DemoController
+        depends_on: ["EventHub"]

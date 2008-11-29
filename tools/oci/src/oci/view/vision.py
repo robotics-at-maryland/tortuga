@@ -17,21 +17,16 @@ import ram.gui.led
 import ram.gui.view as view
 import ram.ai.subsystem
 import ram.ai.bin
+from oci.view.panels import BasePanel
 
-class VisionPanel(wx.Panel):
+class VisionPanel(BasePanel):
     core.implements(view.IPanelProvider)
     
     def __init__(self, parent, *args, **kwargs):
-        wx.Panel.__init__(self, parent, *args, **kwargs)
-        self._connections = []
-        self._generatedControls = []
+        BasePanel.__init__(self, parent, *args, **kwargs)
         self._controlsShowing = True
         self._hide = None
         self._bouyLED = None
-        
-    def _onClose(self, closeEvent):
-        for conn in self._connections:
-            conn.disconnect()
         
     def _createControls(self, name):
         # Creat box around controls
@@ -62,22 +57,6 @@ class VisionPanel(wx.Panel):
 
     def _createDataControls(self):
         pass
-
-    def _getTextSize(self):
-        textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+0.000')
-        return wx.Size(textWidth, wx.DefaultSize.height)         
-        
-    def _createDataControl(self, controlName, label):
-        textSize = self._getTextSize()
-        textStyle = wx.TE_RIGHT | wx.TE_READONLY
-        
-        desiredLabel = wx.StaticText(self, label = label)
-        self.sizer.Add(desiredLabel, 1, flag = wx.ALIGN_RIGHT)
-        
-        control = wx.TextCtrl(self, size = textSize, style = textStyle)
-        setattr(self, controlName, control)
-        self._generatedControls.append(control)
-        self.sizer.Add(control, proportion = 1 , flag = wx.ALIGN_CENTER)
 
     def _onButton(self, event):
         if self._controlsShowing:
