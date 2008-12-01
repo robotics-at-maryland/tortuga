@@ -533,15 +533,53 @@ void BWPDController::init(core::ConfigNode config)
 	m_controllerState->adaptCtrlParams[11][0] = config["adaptCtrlParams"][11].asDouble(2);
 
 	// gyro bias observer controller
-	m_estimatedState->qhat[0] = config["obsQhat"][0].asDouble(0);
-	m_estimatedState->qhat[1] = config["obsQhat"][1].asDouble(0);
-	m_estimatedState->qhat[2] = config["obsQhat"][2].asDouble(0);
-	m_estimatedState->qhat[3] = config["obsQhat"][3].asDouble(1);
-	
-	m_estimatedState->dqhat[0] = config["obsDqhat"][0].asDouble(0);
-	m_estimatedState->dqhat[1] = config["obsDqhat"][1].asDouble(0);
-	m_estimatedState->dqhat[2] = config["obsDqhat"][2].asDouble(0);
-	m_estimatedState->dqhat[3] = config["obsDqhat"][3].asDouble(0);
+	// stuff from estimated state struct
+	//qhat = [0,0,0,1]'
+	m_estimatedState->qhat[0] = config["gyroQhat"][0].asDouble(0);
+	m_estimatedState->qhat[1] = config["gyroQhat"][1].asDouble(0);
+	m_estimatedState->qhat[2] = config["gyroQhat"][2].asDouble(0);
+	m_estimatedState->qhat[3] = config["gyroQhat"][3].asDouble(1);
+	//what = [0,0,0]'
+	m_estimatedState->what[0] = config["gyroWhat"][0].asDouble(0);
+	m_estimatedState->what[1] = config["gyroWhat"][1].asDouble(0);
+	m_estimatedState->what[2] = config["gyroWhat"][2].asDouble(0);
+	//bhat = [0,0,0]'
+	m_estimatedState->bhat[0] = config["gyroBhat"][0].asDouble(0);
+	m_estimatedState->bhat[1] = config["gyroBhat"][1].asDouble(0);
+	m_estimatedState->bhat[2] = config["gyroBhat"][2].asDouble(0);
+	//dqhat = [0,0,0,0]'
+	m_estimatedState->dqhat[0] = config["gyroDqhat"][0].asDouble(0);
+	m_estimatedState->dqhat[1] = config["gyroDqhat"][1].asDouble(0);
+	m_estimatedState->dqhat[2] = config["gyroDqhat"][2].asDouble(0);
+	m_estimatedState->dqhat[3] = config["gyroDqhat"][3].asDouble(0);
+	//dbhat = [0,0,0]'
+	m_estimatedState->dbhat[0] = config["gyroDbhat"][0].asDouble(0);
+	m_estimatedState->dbhat[1] = config["gyroDbhat"][1].asDouble(0);
+	m_estimatedState->dbhat[2] = config["gyroDbhat"][2].asDouble(0);
+	// stuff from controller state struct
+	m_controllerState->gyroObsGain = config["gyroObsGain"].asDouble(1);
+	//qhatold = [0,0,0,1]'
+	m_controllerState->qhatold[0] = config["gyroQhatold"][0].asDouble(0);
+	m_controllerState->qhatold[1] = config["gyroQhatold"][1].asDouble(0);
+	m_controllerState->qhatold[2] = config["gyroQhatold"][2].asDouble(0);
+	m_controllerState->qhatold[3] = config["gyroQhatold"][3].asDouble(1);
+	//whatold = [0,0,0]'
+	m_controllerState->whatold[0] = config["gyroWhatold"][0].asDouble(0);
+	m_controllerState->whatold[1] = config["gyroWhatold"][1].asDouble(0);
+	m_controllerState->whatold[2] = config["gyroWhatold"][2].asDouble(0);
+	//bhatold = [0,0,0]'
+	m_controllerState->bhatold[0] = config["gyroBhatold"][0].asDouble(0);
+	m_controllerState->bhatold[1] = config["gyroBhatold"][1].asDouble(0);
+	m_controllerState->bhatold[2] = config["gyroBhatold"][2].asDouble(0);
+	//dqhatold = [0,0,0,0]'
+	m_controllerState->dqhatold[0] = config["gyroDqhatold"][0].asDouble(0);
+	m_controllerState->dqhatold[1] = config["gyroDqhatold"][1].asDouble(0);
+	m_controllerState->dqhatold[2] = config["gyroDqhatold"][2].asDouble(0);
+	m_controllerState->dqhatold[3] = config["gyroDqhatold"][3].asDouble(0);
+	//dbhatold = [0,0,0]'
+	m_controllerState->dbhatold[0] = config["gyroDbhatold"][0].asDouble(0);
+	m_controllerState->dbhatold[1] = config["gyroDbhatold"][1].asDouble(0);
+	m_controllerState->dbhatold[2] = config["gyroDbhatold"][2].asDouble(0);
 
 	/* Translationcal Gains */
 
