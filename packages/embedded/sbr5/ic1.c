@@ -194,7 +194,7 @@ void checkFailsafe();
 /* Wait for a byte on the serial console */
 unsigned char waitchar(byte timeout)
 {
-    long waitTime=0;
+    long waitTime=0, j;
     byte x;
 
     U1STAbits.OERR = 0;
@@ -204,13 +204,41 @@ unsigned char waitchar(byte timeout)
 
     checkFailsafe();
 
-    while(U1STAbits.URXDA == 0)
+    while(U1STAbits.URXDA == 0) /* While no data available */
     {
-        if(diagMsg && waitTime++ == DIAG_TIMEOUT)
+        /* Do we not have USB? */
+        if(IN_USBDETECT != USB_PRESENT)
         {
-//             processRuntimeDiag();
-            waitTime=0;
+            /* One light on, one light off */
+            LAT_LED_ACT = ~LED_ON;
+            LAT_LED_ERR = LED_ON;
+
+            /* This is an infinite loop but we don't expect     */
+            /* to receive any data while USB is not attached    */
+            while(IN_USBDETECT != USB_PRESENT)
+            {
+                /* Flip both lights after a delay */
+                for(j=0; j<50000; j++);
+                LAT_LED_ACT = ~LAT_LED_ACT;
+                LAT_LED_ERR = ~LAT_LED_ERR;
+
+                /* We will only be checking the motor timeout every */
+                /* iteration of the blink, but that happens often   */
+                /* enough that this is effective */
+                checkFailsafe();
+            }
+
+            /* Turn off the lights once USB comes back.             */
+            /* The current command will probably require resyncing  */
+            /* but let's not bother resetting our state machine     */
+            /* because if the computer just turned on, it will      */
+            /* have to open the board from scratch and sync with it */
+            LAT_LED_ACT = ~LED_ON;
+            LAT_LED_ERR = ~LED_ON;
         }
+
+        /* We need to check the failsafe timeout */
+        /* If failsafe tripped, send motor-off commands */
         checkFailsafe();
     }
 
@@ -387,7 +415,7 @@ void setMotorFailsafe()
     T1CONbits.TON = 1;      /* Start Timer1 */
 }
 
-/* ISR for Timer2. Used for making the ACT light pretty */
+/* ISR for Timer1. Used for the motor failsafe */
 void _ISR _T1Interrupt(void)
 {
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
