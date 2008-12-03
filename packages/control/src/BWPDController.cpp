@@ -400,8 +400,9 @@ void BWPDController::update(double timestep)
 	  testBWPDController.cxx FILE ACCORDINGLY
 	  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	*/
-        rotationalPDController(
+	//        rotationalPDController(
 			       //adaptiveRotationalController(
+			       rotationalGyroObsPDController(
 	                              m_measuredState, 
 				      m_desiredState,
                                       m_controllerState, 
@@ -439,6 +440,7 @@ void BWPDController::update(double timestep)
         
     
     // Log values
+    /* old logging (for depth, PD rotational control, adaptive rotational control)
     LOGGER.infoStream() << m_measuredState->quaternion[0] << " "
          << m_measuredState->quaternion[1] << " "
          << m_measuredState->quaternion[2] << " "
@@ -474,6 +476,41 @@ void BWPDController::update(double timestep)
 	 << m_controllerState->adaptCtrlParams[9][0] << " "
 	 << m_controllerState->adaptCtrlParams[10][0] << " "
 	 << m_controllerState->adaptCtrlParams[11][0];
+    */
+    // logging for gyro bias observer controller
+    LOGGER.infoStream() << m_measuredState->quaternion[0] << " "
+         << m_measuredState->quaternion[1] << " "
+         << m_measuredState->quaternion[2] << " "
+         << m_measuredState->quaternion[3] << " "
+	 << m_measuredState->angularRate[0] << " "
+	 << m_measuredState->angularRate[1] << " "
+	 << m_measuredState->angularRate[2] << " "
+         << m_measuredState->depth << " "
+         << m_desiredState->quaternion[0] << " "
+         << m_desiredState->quaternion[1] << " "
+         << m_desiredState->quaternion[2] << " "
+         << m_desiredState->quaternion[3] << " "
+         << m_desiredState->angularRate[0] << " " 
+	 << m_desiredState->angularRate[1] << " "
+ 	 << m_desiredState->angularRate[2] << " "
+         << m_desiredState->depth << " "
+         << m_desiredState->speed << " "
+         << rotationalTorque[0] << " "
+         << rotationalTorque[1] << " "
+         << rotationalTorque[2] << " "
+         << translationalForce[0] << " "
+         << translationalForce[1] << " "
+         << translationalForce[2] << " "
+			<< m_estimatedState->qhat[0] << " "
+			<< m_estimatedState->qhat[1] << " "
+			<< m_estimatedState->qhat[2] << " "
+			<< m_estimatedState->qhat[3] << " "
+			<< m_estimatedState->what[0] << " "
+			<< m_estimatedState->what[1] << " "
+			<< m_estimatedState->what[2] << " "
+			<< m_estimatedState->bhat[0] << " "
+			<< m_estimatedState->bhat[1] << " "
+			<< m_estimatedState->bhat[2];
 }
 
 void BWPDController::init(core::ConfigNode config)
@@ -710,11 +747,16 @@ void BWPDController::init(core::ConfigNode config)
     m_estimatedState->xHat2Depth.x = 0;
     m_estimatedState->xHat2Depth.y = 0;
     
-    LOGGER.info("% Time M-Quat M-AngRate M-Depth D-Quat D-AngRate D-Depth D-Speed RotTorq"
-                " TranForce AdaptCtrlParams(12 values)");
-    LOGGER.infoStream() << "% AdaptGains: K" << m_controllerState->adaptCtrlRotK 
+    /* old logging header
+    LOGGER.info("% M-Quat M-AngRate M-Depth D-Quat D-AngRate D-Depth D-Speed RotTorq"
+    " TranForce AdaptCtrlParams(12 values) Time");*/
+    /* for adaptive rotational controller gains
+     LOGGER.infoStream() << "% AdaptGains: K" << m_controllerState->adaptCtrlRotK 
         << " Gamma: " << m_controllerState->adaptCtrlRotGamma
-	<< " Lambda: " << m_controllerState->adaptCtrlRotLambda;
+	<< " Lambda: " << m_controllerState->adaptCtrlRotLambda;*/
+    //gyro bias observer controller header
+    LOGGER.info("% M-Quat M-AngRate M-Depth D-Quat D-AngRate D-Depth D-Speed RotTorq TransForce qhat what bhat");
+
 }
 
 void BWPDController::publishAtDepth()

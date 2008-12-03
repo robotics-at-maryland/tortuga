@@ -73,6 +73,10 @@ struct RAM_EXPORT EstimatedState{
 
 struct RAM_EXPORT ControllerState{
 
+  //used by a variety of controllers to prevent multiply/divide by zero problems
+    double dtMin;
+    double dtMax;
+
   /* ROTATIONAL CONTROL GAINS */
 
   //for nonlinear PD control
@@ -99,8 +103,6 @@ struct RAM_EXPORT ControllerState{
     /* DEPTH CONTROL GAINS*/
     //for depth P control
     double depthPGain;
-    double dtMin;
-    double dtMax;
     //for depth PID control
     double depthKi;
     double depthKp;

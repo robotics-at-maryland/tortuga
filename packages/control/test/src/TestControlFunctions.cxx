@@ -12,6 +12,7 @@
 
 // Project Includes
 #include "control/include/ControlFunctions.h"
+#include "math/test/include/MathChecks.h"
 
 using namespace ram;
 
@@ -104,6 +105,119 @@ TEST(BongWiePDRotationalController)
 				    &estimated,
                                            1, act_rotTorques);
     CHECK_ARRAY_CLOSE(exp_rotTorques3, act_rotTorques, 3, 0.0001);
+}
+
+TEST(GyroBiasObserverController){
+  control::DesiredState desired;
+  control::MeasuredState measured;
+  control::ControllerState controller;
+  control::EstimatedState estimated;
+
+  //case 1
+  //perfect estimates, no orientation/rate error
+  desired.quaternion[0]=0;
+  desired.quaternion[1]=0;
+  desired.quaternion[2]=0;
+  desired.quaternion[3]=1;
+  desired.angularRate[0]=0;
+  desired.angularRate[1]=0;
+  desired.angularRate[2]=0;
+  
+  measured.quaternion[0]=0;
+  measured.quaternion[1]=0;
+  measured.quaternion[2]=0;
+  measured.quaternion[3]=1;
+  measured.angularRate[0]=0;
+  measured.angularRate[1]=0;
+  measured.angularRate[2]=0;
+
+  controller.dtMin=0.1;
+  controller.dtMax=2;
+  controller.gyroObsGain=1;
+
+  estimated.qhat.x=0;
+  estimated.qhat.y=0;
+  estimated.qhat.z=0;
+  estimated.qhat.w=1;
+  estimated.what[0]=0;
+  estimated.what[1]=0;
+  estimated.what[2]=0;
+  estimated.bhat[0]=0;
+  estimated.bhat[1]=0;
+  estimated.bhat[2]=0;
+  estimated.dqhat.x=0;
+  estimated.dqhat.y=0;
+  estimated.dqhat.z=0;
+  estimated.dqhat.w=1;
+  estimated.dbhat[0]=0;
+  estimated.dbhat[1]=0;
+  estimated.dbhat[2]=0;
+
+
+  double act_torques[3] = {0,0,0};
+  control::rotationalGyroObsPDController(&measured, &desired, &controller, &estimated, 1, act_torques);
+
+  math::Quaternion qhatExp(0,0,0,1);
+  CHECK_CLOSE(qhatExp,estimated.qhat,0.0002);
+
+
+
+  //case 3
+  //horribly confusing case
+  desired.quaternion[0]=0;
+  desired.quaternion[1]=0;
+  desired.quaternion[2]=0;
+  desired.quaternion[3]=1;
+  desired.angularRate[0]=0;
+  desired.angularRate[1]=0;
+  desired.angularRate[2]=0;
+  
+  measured.quaternion[0]=-0.3005;
+  measured.quaternion[1]=0.9016;
+  measured.quaternion[2]=0.3005;
+  measured.quaternion[3]=0.0805;
+  measured.angularRate[0]=1;
+  measured.angularRate[1]=2;
+  measured.angularRate[2]=1;
+
+  controller.dtMin=0.1;
+  controller.dtMax=2;
+  controller.gyroObsGain=1;
+
+  estimated.qhat.x=0;
+  estimated.qhat.y=0;
+  estimated.qhat.z=0;
+  estimated.qhat.w=1;
+  estimated.what[0]=0;
+  estimated.what[1]=0;
+  estimated.what[2]=0;
+  estimated.bhat[0]=0;
+  estimated.bhat[1]=0;
+  estimated.bhat[2]=0;
+  estimated.dqhat.x=0;
+  estimated.dqhat.y=0;
+  estimated.dqhat.z=0;
+  estimated.dqhat.w=0;
+  estimated.dbhat[0]=0;
+  estimated.dbhat[1]=0;
+  estimated.dbhat[2]=0;
+
+
+  double act_torques3[3] = {0,0,0};
+  control::rotationalGyroObsPDController(&measured, &desired, &controller, &estimated, 1, act_torques3);
+
+
+  math::Quaternion qhatoldExp3(0, 0, 0, 1);
+  CHECK_CLOSE(qhatoldExp3,controller.qhatold,0.0002);
+
+  math::Quaternion dqhatoldExp3(0, 0, 0, 0);
+  CHECK_CLOSE(dqhatoldExp3,controller.dqhatold,0.0002);
+
+  math::Quaternion dqhatExp3(-1.1991,1.2506,0.1152,0);
+  CHECK_CLOSE(dqhatExp3,estimated.dqhat,0.0002);
+
+  math::Quaternion qhatExp3(-0.4527,0.4722,0.0435,0.7551);
+  CHECK_CLOSE(qhatExp3,estimated.qhat,0.0002);
 }
 
 TEST(AdaptiveRotationalController)

@@ -598,13 +598,70 @@ void rotationalGyroObsPDController(MeasuredState* measuredState,
     q_des.normalise();
 
     
-    /* OBSERVER */
-    //verify old quaternion estimate is unit length
+    /*****************
+      OBSERVER 
+    *******************/
+
+    //ensure old quaternion estimate is unit length
     controllerState->qhatold=controllerState->qhatold.normalise();
+
+    //copy previous state estimates to controller state
+    controllerState->qhatold = estimatedState->qhat;
+    controllerState->whatold = estimatedState->what;
+    controllerState->bhatold = estimatedState->bhat;
+    controllerState->dqhatold = estimatedState->dqhat;
+    controllerState->dbhatold = estimatedState->dbhat;
+
+    //compute attitude prediction error
+    Quaternion qto;//QTO = Quaternion Tilde Observer
+    qto = q_meas.errorQuaternion(controllerState->qhatold);
+    //break up quaternion into vector and scalar parts for later convenience
+    Vector3 epsilon_to(qto.x, qto.y, qto.z);
+    double eta_to = qto.w;
+
+    //estimate current gyro bias and gyro bias rate
+    //compute current gyro bias rate from attitude prediction error
+    estimatedState->dbhat = -0.5 * sign(eta_to) * epsilon_to;
+    //integrate (trapezoidal used) to estimate gyro bias
+    estimatedState->bhat = controllerState->bhatold+0.5*(estimatedState->dbhat+controllerState->dbhatold)*dt;
     
+    //estimate current angular rate
+    estimatedState->what = w - estimatedState->bhat;
 
+    //estimate current attitude
+    //first create a blank rotation matrix
+    Matrix3 Rtranspose;
+    //compute R'(qto)  (note that OGRE's rotation matrix is the transpose of R(q) )
+    qto.ToRotationMatrix(Rtranspose);
+    //now create a blank Q matrix
+    MatrixN Q(4,3);
+    //compute Q(qhatold)
+    controllerState->qhatold.toQ(&Q);
+    //compute attitude estimate rate from observer dynamics eq
+    //why can't i use:
+    //estimatedState->dqhat = 0.5*Q*RtranN*(estimatedState->what+controllerState->gyroObsGain*sign(eta_to)*epsilon_to);
+    MatrixN temp(4,1);
+    //make more things MatrixN
+    MatrixN RtranN(Rtranspose);
+    MatrixN whatN(estimatedState->what);
+    MatrixN epsilon_toN(epsilon_to);
+    temp = 0.5*Q*RtranN*(whatN+controllerState->gyroObsGain*sign(eta_to)*epsilon_toN);
+    estimatedState->dqhat.x=temp[0][0];
+    estimatedState->dqhat.y=temp[1][0];
+    estimatedState->dqhat.z=temp[2][0];
+    estimatedState->dqhat.w=temp[3][0];
+    //integrate (trapezoidal used) to estimate attitude 
+    estimatedState->qhat = controllerState->qhatold+0.5*(estimatedState->dqhat+controllerState->dqhatold)*dt;
+    estimatedState->qhat.normalise();
+    /*
+    estimatedState->qhat.x=temp[0][0];
+    estimatedState->qhat.y=temp[1][0];
+    estimatedState->qhat.z=temp[2][0];
+    estimatedState->qhat.w=temp[3][0];*/
 
-    /* CONTROLLER */
+    /*****************
+      CONTROLLER 
+    ******************/
 
     //compute error quaternion for controller
     Quaternion qtc;//QTC = Quaternion Tilde Controller 
