@@ -163,6 +163,31 @@ TEST(quaternionDerivative)
 	CHECK_CLOSE(expected,result,0.0002);
 }
 
+TEST(ToRotationMatrix)
+{
+  //simple case
+  Quaternion q(0,0,0,1);
+  Matrix3 exp(1,0,0,0,1,0,0,0,1);
+  Matrix3 actual;
+  q.ToRotationMatrix(actual);
+  CHECK_CLOSE(exp,actual,0.0002);
+
+  //yawed case
+  Quaternion q2(0,0,0.9659,0.2588);
+  Matrix3 exp2(-0.866,0.5,0,-0.5,-0.866,0,0,0,1);
+  Matrix3 actual2;
+  q2.ToRotationMatrix(actual2);
+  CHECK_CLOSE(exp2.Transpose(),actual2,0.0002);
+  //CAUTION!  OGRE's default rotation matrix is the transpose of the rotation matrix you like to use!
+
+  //horribly confusing case
+  Quaternion q3(-0.332,0.664,-0.664,0.089);
+  Matrix3 exp3(-0.7637,-0.5591,0.3228,-0.3228,-0.1023,-0.9409,0.5591,-0.8228,-0.1023);
+  Matrix3 actual3;
+  q3.ToRotationMatrix(actual3);
+  CHECK_CLOSE(exp3.Transpose(),actual3,0.0002);
+}
+
 TEST(toQ)
 {
   //create a result array that is too big

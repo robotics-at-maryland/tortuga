@@ -126,7 +126,7 @@ namespace math {
 		{
 			assert( i < 4 );
 
-			return *(&w+i);
+			return *(ptr() + i);
 		}
 
 		/// Array accessor operator
@@ -134,7 +134,7 @@ namespace math {
 		{
 			assert( i < 4 );
 
-			return *(&w+i);
+			return *(ptr() + i);
 		}
 
 		/// Pointer accessor for direct copying
@@ -150,6 +150,13 @@ namespace math {
 		}
 
 		void FromRotationMatrix (const Matrix3& kRot);
+
+		/*
+		 * This creates a rotation matrix that represents the attitude
+		 * of the reference frame with respect to the attitude of the
+		 * quaternion.  OGRE's rotation matrix is the transpose of R(q)
+		 * as shown in Dr. Sanner's and Joseph Galante's work.
+		 */
         void ToRotationMatrix (Matrix3& kRot) const;
         void FromAngleAxis (const Radian& rfAngle, const Vector3& rkAxis);
         void ToAngleAxis (Radian& rfAngle, Vector3& rkAxis) const;
