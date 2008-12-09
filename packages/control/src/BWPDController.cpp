@@ -402,7 +402,8 @@ void BWPDController::update(double timestep)
 	*/
 	//        rotationalPDController(
 			       //adaptiveRotationalController(
-			       rotationalGyroObsPDController(
+	       rotationalGyroObsPDController(
+	//	rotationalGyroObsPDControllerSwitch(
 	                              m_measuredState, 
 				      m_desiredState,
                                       m_controllerState, 
@@ -595,6 +596,7 @@ void BWPDController::init(core::ConfigNode config)
 	m_estimatedState->dbhat[2] = config["gyroDbhat"][2].asDouble(0);
 	// stuff from controller state struct
 	m_controllerState->gyroObsGain = config["gyroObsGain"].asDouble(1);
+	m_controllerState->gyroPDType = config["gyroPDType"].asInt(0);
 	//qhatold = [0,0,0,1]'
 	m_controllerState->qhatold[0] = config["gyroQhatold"][0].asDouble(0);
 	m_controllerState->qhatold[1] = config["gyroQhatold"][1].asDouble(0);

@@ -692,6 +692,266 @@ void rotationalGyroObsPDController(MeasuredState* measuredState,
     
 }
 
+/************************************************************************
+rotationalGryoObsPDControllerSwitch(MeasuredState,DesiredState,ControllerState,dt,rotationalTorques)
+
+observer is from "A Coupled Nonlinear Spacecraft Attitude Controller and Observer
+With an Unkown Constant Gyro Bias and Gyro Noise" by J. Thienel and R. M. Sanner as
+seen in IEEE Trans on Automatic Control, Vol 48, No 11,  November 2003
+
+controller is from the nonlinear eigenaxis
+rotational controller described in Bong Wie's book "Space Vehicle Dynamics
+and Control"
+
+using the variable gyroPDType, one can select which angular position and velocity estimates are used in the PD Controller:
+gyroPDType = 0  : use q and w as directly measured by the IMU
+gyroPDType = 1  : use q directly measured from IMU, w=what from the observer
+gyroPDType = 2  : use q=qhat and w=what from the observer
+
+assumes the quaternion is written as
+
+q = [e(0)*sin(phi/2); e(1)*sin(phi/2); e(2)*sin(phi/2); cos(phi/2)]
+
+for simplicity assumes desired angular velocity is zero
+
+
+returns
+          - rotationalTorques, the torques used to rotate the vehicle as
+            written in the vehicle's coord frame.  torques are in Newton*meters
+*/
+void rotationalGyroObsPDControllerSwitch(MeasuredState* measuredState,
+                                   DesiredState* desiredState,
+                                   ControllerState* controllerState,
+				   EstimatedState* estimatedState,
+                                   double dt,
+                                   double* rotationalTorques)
+{
+
+  //ensure we don't divide by or multiply by dt=0
+    if(dt < controllerState->dtMin)
+    {
+        dt = controllerState->dtMin;
+    }
+    if(dt > controllerState->dtMax)
+    {
+        dt = controllerState->dtMax;
+    }
+
+
+    //grab data and put in OGRE format
+    Matrix3 J(controllerState->inertiaEstimate);
+    Quaternion q_meas(measuredState->quaternion);
+    Quaternion q_des(desiredState->quaternion);
+    Vector3 w(measuredState->angularRate[0],
+	      measuredState->angularRate[1],
+	      measuredState->angularRate[2]);
+    //ensure quaternions are of unit length
+    q_meas.normalise();
+    q_des.normalise();
+
+    
+    /*****************
+      OBSERVER 
+    *******************/
+
+    //ensure old quaternion estimate is unit length
+    controllerState->qhatold=controllerState->qhatold.normalise();
+
+    //copy previous state estimates to controller state
+    controllerState->qhatold = estimatedState->qhat;
+    controllerState->whatold = estimatedState->what;
+    controllerState->bhatold = estimatedState->bhat;
+    controllerState->dqhatold = estimatedState->dqhat;
+    controllerState->dbhatold = estimatedState->dbhat;
+
+    //compute attitude prediction error
+    Quaternion qto;//QTO = Quaternion Tilde Observer
+    qto = q_meas.errorQuaternion(controllerState->qhatold);
+    //break up quaternion into vector and scalar parts for later convenience
+    Vector3 epsilon_to(qto.x, qto.y, qto.z);
+    double eta_to = qto.w;
+
+    //estimate current gyro bias and gyro bias rate
+    //compute current gyro bias rate from attitude prediction error
+    estimatedState->dbhat = -0.5 * sign(eta_to) * epsilon_to;
+    //integrate (trapezoidal used) to estimate gyro bias
+    estimatedState->bhat = controllerState->bhatold+0.5*(estimatedState->dbhat+controllerState->dbhatold)*dt;
+    
+    //estimate current angular rate
+    estimatedState->what = w - estimatedState->bhat;
+
+    //estimate current attitude
+    //first create a blank rotation matrix
+    Matrix3 Rtranspose;
+    //compute R'(qto)  (note that OGRE's rotation matrix is the transpose of R(q) )
+    qto.ToRotationMatrix(Rtranspose);
+    //now create a blank Q matrix
+    MatrixN Q(4,3);
+    //compute Q(qhatold)
+    controllerState->qhatold.toQ(&Q);
+    //compute attitude estimate rate from observer dynamics eq
+    //why can't i use:
+    //estimatedState->dqhat = 0.5*Q*RtranN*(estimatedState->what+controllerState->gyroObsGain*sign(eta_to)*epsilon_to);
+    MatrixN temp(4,1);
+    //make more things MatrixN
+    MatrixN RtranN(Rtranspose);
+    MatrixN whatN(estimatedState->what);
+    MatrixN epsilon_toN(epsilon_to);
+    temp = 0.5*Q*RtranN*(whatN+controllerState->gyroObsGain*sign(eta_to)*epsilon_toN);
+    estimatedState->dqhat.x=temp[0][0];
+    estimatedState->dqhat.y=temp[1][0];
+    estimatedState->dqhat.z=temp[2][0];
+    estimatedState->dqhat.w=temp[3][0];
+    //integrate (trapezoidal used) to estimate attitude 
+    estimatedState->qhat = controllerState->qhatold+0.5*(estimatedState->dqhat+controllerState->dqhatold)*dt;
+    estimatedState->qhat.normalise();
+    /*
+    estimatedState->qhat.x=temp[0][0];
+    estimatedState->qhat.y=temp[1][0];
+    estimatedState->qhat.z=temp[2][0];
+    estimatedState->qhat.w=temp[3][0];*/
+
+    /*****************
+      CONTROLLER 
+    ******************/
+
+    //declarations
+    Quaternion qtc;//QTC = Quaternion Tilde Controller
+    Vector3 epsilon_tc;//break up quaternion into vector and scalar parts for later convenience
+    double eta_tc;
+    Vector3 w_error;
+    Matrix3 w_tilde;
+    Vector3 u;
+    double kp = controllerState->angularPGain;
+    double kd = controllerState->angularDGain;
+
+    switch(controllerState->gyroPDType){
+      case 0: 
+	//use position and velocity measurements
+	//compute error quaternion for controller 
+	qtc = q_meas.errorQuaternion(q_des);  
+	//break up quaternion into vector and scalar parts for later convenience
+	//Vector3 epsilon_tc(qtc.x, qtc.y, qtc.z);
+	//double eta_tc = qtc.w;
+	epsilon_tc.x=qtc.x;
+	epsilon_tc.y=qtc.y;
+	epsilon_tc.z=qtc.z;
+	eta_tc=qtc.w;
+
+	//compute angular rate error
+	//Vector3 w_error(measuredState->angularRate[0],
+	//		measuredState->angularRate[1],
+	//		measuredState->angularRate[2]);
+	w_error.x = measuredState->angularRate[0];
+	w_error.y = measuredState->angularRate[1];
+	w_error.z = measuredState->angularRate[2];
+
+	//compute matrix needed for gyroscopic term
+	//Matrix3 w_tilde;
+	w_tilde.ToSkewSymmetric(w_error);
+
+	//compute control signal
+	//	Vector3 u;
+	///double kp = controllerState->angularPGain;
+	//double kd = controllerState->angularDGain;
+	u = - kp*J*sign(eta_tc)*epsilon_tc - kd*J*w_error + w_tilde*J*w_error;
+	break;
+      case 1:
+	//use position measurements and velocity estimates
+	//use position and velocity measurements
+	//compute error quaternion for controller
+	//Quaternion qtc;//QTC = Quaternion Tilde Controller 
+	qtc = q_meas.errorQuaternion(q_des);  
+	//break up quaternion into vector and scalar parts for later convenience
+	//Vector3 epsilon_tc(qtc.x, qtc.y, qtc.z);
+	//double eta_tc = qtc.w;
+	epsilon_tc.x=qtc.x;
+	epsilon_tc.y=qtc.y;
+	epsilon_tc.z=qtc.z;
+	eta_tc=qtc.w;
+
+	//compute angular rate error
+	//Vector3 w_error;
+	w_error = estimatedState->what;
+
+	//compute matrix needed for gyroscopic term
+	//Matrix3 w_tilde;
+	w_tilde.ToSkewSymmetric(w_error);
+
+	//compute control signal
+	//Vector3 u;
+	//double kp = controllerState->angularPGain;
+	//double kd = controllerState->angularDGain;
+	u = - kp*J*sign(eta_tc)*epsilon_tc - kd*J*w_error + w_tilde*J*w_error;
+	break;
+      case 2:
+	//use position and velocity estimates
+	//use position and velocity measurements
+	//compute error quaternion for controller
+	//Quaternion qtc;//QTC = Quaternion Tilde Controller 
+	qtc = (estimatedState->qhat).errorQuaternion(q_des);  
+	//break up quaternion into vector and scalar parts for later convenience
+	//Vector3 epsilon_tc(qtc.x, qtc.y, qtc.z);
+	//double eta_tc = qtc.w;
+	epsilon_tc.x=qtc.x;
+	epsilon_tc.y=qtc.y;
+	epsilon_tc.z=qtc.z;
+	eta_tc=qtc.w;
+
+	//compute angular rate error
+	//Vector3 w_error;
+	w_error = estimatedState->what;
+
+	//compute matrix needed for gyroscopic term
+	//Matrix3 w_tilde;
+	w_tilde.ToSkewSymmetric(w_error);
+
+	//compute control signal
+	//Vector3 u;
+	//double kp = controllerState->angularPGain;
+	//double kd = controllerState->angularDGain;
+	u = - kp*J*sign(eta_tc)*epsilon_tc - kd*J*w_error + w_tilde*J*w_error;
+	break;
+      default:
+	//use position and velocity measurements
+	//use position and velocity measurements
+	//compute error quaternion for controller
+	//Quaternion qtc;//QTC = Quaternion Tilde Controller 
+	qtc = q_meas.errorQuaternion(q_des);  
+	//break up quaternion into vector and scalar parts for later convenience
+	//Vector3 epsilon_tc(qtc.x, qtc.y, qtc.z);
+	//double eta_tc = qtc.w;
+	epsilon_tc.x=qtc.x;
+	epsilon_tc.y=qtc.y;
+	epsilon_tc.z=qtc.z;
+	eta_tc=qtc.w;
+
+	//compute angular rate error
+	//	Vector3 w_error(measuredState->angularRate[0],
+	//	measuredState->angularRate[1],
+	//	measuredState->angularRate[2]);
+	w_error.x = measuredState->angularRate[0];
+	w_error.y = measuredState->angularRate[1];
+	w_error.z = measuredState->angularRate[2];
+
+	//compute matrix needed for gyroscopic term
+	//Matrix3 w_tilde;
+	w_tilde.ToSkewSymmetric(w_error);
+
+	//compute control signal
+	//Vector3 u;
+	//double kp = controllerState->angularPGain;
+	//double kd = controllerState->angularDGain;
+	u = - kp*J*sign(eta_tc)*epsilon_tc - kd*J*w_error + w_tilde*J*w_error;
+    }
+
+    //put back into non-OGRE format
+    *(rotationalTorques)=u[0];
+    *(rotationalTorques+1)=u[1];
+    *(rotationalTorques+2)=u[2];
+    
+}
+
 
 
 

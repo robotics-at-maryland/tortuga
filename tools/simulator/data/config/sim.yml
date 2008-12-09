@@ -210,6 +210,9 @@ Subsystems:
         angularDGain: 1
         speedPGain: 3
         sidewaysSpeedPGain: 3
+
+        #Select type of Rotational Gyro Bias Controller
+        gyroPDType: 0
         
         #Select type of Depth Controller
         # set depthControlType = (1 for P control) 

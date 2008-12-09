@@ -91,6 +91,7 @@ struct RAM_EXPORT ControllerState{
 	math::MatrixN adaptCtrlParams;//parameter estimate vector
 
 	//for gyro bias observer controller
+	int gyroPDType;//used by rotationalGyroObsPDControllerSwitch
 	double gyroObsGain;//observer gain
 	math::Quaternion qhatold;//previous attitude estimate
 	math::Vector3 whatold;//previous angular rate estimate
@@ -143,6 +144,13 @@ void RAM_EXPORT rotationalPDController(MeasuredState* measuredState,
                                        double* rotationalTorques);
 
 void RAM_EXPORT rotationalGyroObsPDController(MeasuredState* measuredState,
+                                              DesiredState* desiredState,
+                                              ControllerState* controllerState,
+					      EstimatedState* estimatedState,
+                                              double dt,
+                                              double* rotationalTorques);
+
+void RAM_EXPORT rotationalGyroObsPDControllerSwitch(MeasuredState* measuredState,
                                               DesiredState* desiredState,
                                               ControllerState* controllerState,
 					      EstimatedState* estimatedState,
