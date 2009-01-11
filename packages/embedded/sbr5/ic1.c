@@ -1,5 +1,19 @@
-#define SBR5
-//#define SBR7
+/*
+    SBR5 = Define this for Sensor Board Revision 5.
+           This is the first generation of the backplane-aware sensor board.
+           This board is listed as SensorBoardRev5 in Eagle
+
+    SBR7 = Define this for Sensor Board Revision 7. This
+           This is the second generation of the backplane-aware sensor board.
+           Originally two were made.
+           This is listed as SensorBoardRev7 in Eagle and was made at Goddard
+           only a few days before leaving.
+*/
+
+//#define SBR5
+#define SBR7
+
+
 
 #include <p30fxxxx.h>
 #include "buscodes.h"
@@ -147,6 +161,13 @@ _FWDT ( WDT_OFF );
 /* How many chips are in the POST list? */
 #define NUM_SLAVES  6
 
+
+#ifndef SBR5
+    #ifndef SBR7
+        #error You have to define a board revision- SBR5 or SBR7. See ic1.c
+    #endif
+#endif
+
 static const unsigned char postList[]={IRQ_IC2, IRQ_IC3, IRQ_IC4, IRQ_DISTRO, IRQ_BALANCER, IRQ_SONAR};
 
 
@@ -155,6 +176,7 @@ static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
 static const unsigned char cdSafety[]={0xBA, 0xDB, 0xEE, 0xEF, 0x4A};
 
+signed int waitchar(byte timeout);
 
 
 byte failsafeTripped = 0;   /* Gets set to 1 */
@@ -191,8 +213,12 @@ byte diagMsg=1;
 
 void checkFailsafe();
 
+#define ERR_NOUSB   -1
+
 /* Wait for a byte on the serial console */
-unsigned char waitchar(byte timeout)
+/* Returns 0-255 for byte read, or -1 if USB error */
+/* Timeout is not implemented... but in two years it seems this is fine */
+signed int waitchar(byte timeout)
 {
     long waitTime=0, j;
     byte x;
@@ -204,37 +230,14 @@ unsigned char waitchar(byte timeout)
 
     checkFailsafe();
 
-    while(U1STAbits.URXDA == 0) /* While no data available */
+    /* Spin in while loop until we receive a byte */
+    while(U1STAbits.URXDA == 0)
     {
         /* Do we not have USB? */
         if(IN_USBDETECT != USB_PRESENT)
         {
-            /* One light on, one light off */
-            LAT_LED_ACT = ~LED_ON;
-            LAT_LED_ERR = LED_ON;
-
-            /* This is an infinite loop but we don't expect     */
-            /* to receive any data while USB is not attached    */
-            while(IN_USBDETECT != USB_PRESENT)
-            {
-                /* Flip both lights after a delay */
-                for(j=0; j<50000; j++);
-                LAT_LED_ACT = ~LAT_LED_ACT;
-                LAT_LED_ERR = ~LAT_LED_ERR;
-
-                /* We will only be checking the motor timeout every */
-                /* iteration of the blink, but that happens often   */
-                /* enough that this is effective */
-                checkFailsafe();
-            }
-
-            /* Turn off the lights once USB comes back.             */
-            /* The current command will probably require resyncing  */
-            /* but let's not bother resetting our state machine     */
-            /* because if the computer just turned on, it will      */
-            /* have to open the board from scratch and sync with it */
-            LAT_LED_ACT = ~LED_ON;
-            LAT_LED_ERR = ~LED_ON;
+            /* If USB goes away, we give up */
+            return ERR_NOUSB;
         }
 
         /* We need to check the failsafe timeout */
@@ -242,6 +245,8 @@ unsigned char waitchar(byte timeout)
         checkFailsafe();
     }
 
+    /* Byte is unsigned char and X is defined as byte, so any */
+    /* values returned will be in the 0-255 range             */
     x = U1RXREG;
     U1STAbits.URXDA = 0;
     return x;
@@ -379,7 +384,7 @@ int busWriteByte(byte data, byte req)
     return 0;
 }
 
-
+/* Turn on the yellow LED and set a timer to turn it off about 0.1s later */
 void actLight()
 {
     PR2 = 100;            /* Period */
@@ -398,7 +403,7 @@ void _ISR _T2Interrupt(void)
     IFS0bits.T2IF = 0;      /* Clear interrupt flag */
     IEC0bits.T2IE = 0;      /* Disable interrupts */
     LAT_LED_ACT = ~LED_ON;
-    T2CONbits.TON = 0;  /* Stop Timer1 */
+    T2CONbits.TON = 0;      /* Stop Timer2 */
 }
 
 
@@ -708,6 +713,10 @@ void simpleCmd(byte cmdCode, byte replyCode, byte slaveId, byte busCmd)
 }
 
 
+/* Check if our timeout has occurred, and if so,
+   - send out speed commands to set speed to 0
+   - safe all thrusters in case that didn't work
+*/
 void checkFailsafe()
 {
     if(failsafeTripped == 1)
@@ -748,7 +757,8 @@ void checkFailsafe()
     }
 }
 
-
+/* Flash the yellow LED on and off n times */
+/* Will block until the blinking is done */
 void blink(byte n)
 {
     long j;
@@ -833,17 +843,12 @@ int main(void)
     TRIS_LED_ACT = TRIS_OUT;
     TRIS_LED_ERR = TRIS_OUT;
 
-
-
     initBus();
 
 #ifdef HAS_UART
-//     blink(1);
-
     initInterruptUarts();
 #endif
 
-//     blink(2);
     /* Don't run POST until we've given SONAR enough time to start */
     for(j=0; j<1500000; j++);
 
@@ -857,21 +862,12 @@ int main(void)
 
     unsigned char emptyLine[]="                ";
 
-//     blink(3);
-
     showString(emptyLine, 0);
-
-//     blink(4);
-
     showString(emptyLine, 1);
-
-//     blink(5);
 
     for(j=0; j<25000; j++);
 
     showString("Diagnostic?", 0);
-
-//     blink(6);
 
     for(j=0; j<25000 && (pollStartSw() == 0); j++);
 
@@ -913,20 +909,42 @@ int main(void)
 
     while(1)
     {
-//         LAT_LED_ACT = ~LED_ON;
         actLight();
-        byte c = waitchar(0);
-//         LAT_LED_ACT = LED_ON;
+        byte c = waitchar(0);   // This returns if USb disappears
+
+/*
+        Try this again after optoisolation got put in...
+        if(IN_USBDETECT != USB_PRESENT)
+        {
+            showString("Lost Mini...    ", 0);
+            showString("                ", 1);
+
+            LAT_LED_ACT = ~LED_ON;  // Red on
+            LAT_LED_ERR = LED_ON;   // Yellow off
+
+            while(IN_USBDETECT != USB_PRESENT)
+            {
+                for(j=0; j<50000; j++);
+                LAT_LED_ACT = ~LAT_LED_ACT;
+                LAT_LED_ERR = ~LAT_LED_ERR;
+            }
+
+            showString("USB Restored...", 0);
+        }*/
 
         long t1, t2;
 
         //TODO:do we have to do anything with TRIS_LED_ACT?
-        if(IN_USBDETECT != USB_PRESENT)//if we dont see the Mini up...
+            // no. it is always an output. -steve
+
+        // Neil's old code, here commented out for now
+/*        if(IN_USBDETECT != USB_PRESENT)//if we dont see the Mini up...
         {
 	        blink(5);
 	        showString("lost mini...    ", 0);
 	        showString("                ", 1);
-        }
+        }*/
+
         switch(c)
         {
             case HOST_CMD_SYNC:
@@ -2008,3 +2026,10 @@ int main(void)
         }
     }
 }
+
+
+#ifdef SBR5
+    #ifdef SBR7
+        #error You defined SBR5 and SBR7. So, which is it?
+    #endif
+#endif
