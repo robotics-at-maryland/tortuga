@@ -48,8 +48,8 @@ class wxOgre(wx.PyControl):
     
     def _init_ogre(self):
         """
-        Hook ogre up to the control.  On Linus you must have called "Show()" on 
-        your main frame before creating any wxOgre widgets!.
+        Hook ogre up to the control.  On Linus you must have called \"Show()\"
+        on your main frame before creating any wxOgre widgets!.
         """
         self._create_ogre_window()
         self._render_window.update()
