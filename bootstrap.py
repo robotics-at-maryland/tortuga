@@ -26,7 +26,7 @@ def main(argv=None):
     parser = OptionParser()
     parser.set_defaults(task = str(DEFULT_TASKS), prefix = DEFAULT_PREFIX)
     parser.add_option('-t','--task', nargs = 1,
-                      help = 'Bootstrap tasks to run')
+                      help = 'Bootstrap tasks to run', default = None)
     parser.add_option('-p','--prefix', nargs = 1,    
                       help = 'The prefix to install all packages into'
                              ' [default: %default]')
@@ -57,7 +57,9 @@ def main(argv=None):
         
 
     # Determing and run build tasks
-    if len(args) > 0:
+    if options.task is not None:
+        tasks = [options.task]
+    elif len(args) > 0:
         tasks = args
     else:
         tasks = DEFULT_TASKS
