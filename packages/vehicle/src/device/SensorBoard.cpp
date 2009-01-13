@@ -479,7 +479,7 @@ void SensorBoard::thrusterEvents(struct boardInfo* telemetry)
         ThrusterEventPtr event(new ThrusterEvent);
         event->address = i;
         event->current = telemetry->powerInfo.motorCurrents[i];
-        event->enabled = telemetry->thrusterState & addressToEnable[i]; 
+        event->enabled = telemetry->thrusterState & addressToEnable[i];
         publish(THRUSTER_UPDATE, event);
     }
 }
