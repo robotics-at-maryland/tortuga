@@ -93,34 +93,34 @@ def setup_posix_libs():
 
         'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 
                                                         'gdk/gdk.h']),
-        'Boost' : BoostLibrary('Boost', (1,34,1), []),
+        'Boost' : BoostLibrary('Boost', (1,37,None), []),
 
         'USB': PkgConfigLibrary('libusb', '0.1', ['usb.h']),
 
-        'Boost.Python' : BoostLibrary('Boost.Python', (1,34,1), [],
+        'Boost.Python' : BoostLibrary('Boost.Python', (1,37,None), [],
                                       [BOOST_PYTHON_LIB], 
                                       ext_deps = ['Python']),
 
-        'Boost.Thread' : BoostLibrary('Boost.Thread', (1,34,1), [],
+        'Boost.Thread' : BoostLibrary('Boost.Thread', (1,37,None), [],
                                       [BOOST_THREAD_LIB]),
 
-        'Boost.Signals' : BoostLibrary('Boost.Signals', (1,34,1), [],
+        'Boost.Signals' : BoostLibrary('Boost.Signals', (1,37,None), [],
                                       [BOOST_SIGNALS_LIB]),
         
-        'Boost.Graph' : BoostLibrary('Boost.Graph', (1,34,1), [],
+        'Boost.Graph' : BoostLibrary('Boost.Graph', (1,37,None), [],
                                        [BOOST_GRAPH_LIB]),
         
-        'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,34,1), [],
+        'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,37,None), [],
                                           [BOOST_FILESYSTEM_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
-                                              (1,34,1), [],
+                                              (1,37,None), [],
                                              [BOOST_PROGOPT_LIB]),
 
-        'Boost.Regex' : BoostLibrary('Boost.Regex', (1,34,1), [],
+        'Boost.Regex' : BoostLibrary('Boost.Regex', (1,37,None), [],
                                      [BOOST_REGEX_LIB]),
 
-        'Boost.DateTime' : BoostLibrary('Boost.DateTime', (1,34,1), [],
+        'Boost.DateTime' : BoostLibrary('Boost.DateTime', (1,37,None), [],
                                      [BOOST_DATE_TIME_LIB]),
         
         'Python' : PythonLib('2.5'),
@@ -710,7 +710,7 @@ class PythonLib(ConfigLibrary):
             run_shell_cmd(self.tool_name + ' --ldflags', 
                           "Could not execute python2.5-config")
  
-        env.MergeFlags([ldflags, includes])
+        env.MergeFlags([ldflags, includes, '-DBOOST_PYTHON_NO_PY_SIGNATURES'])
 #        ConfigLibrary.setup_environment(self, env)
 #        env.Append(CCFLAGS = removed)
 
@@ -771,7 +771,6 @@ class BoostLibrary(Library):
             self.patch_ver = version[2]
         else:
             self.patch_ver = 0
-            
 
         # Generate the flags to include the needed libraries
         if type(libraries) is not list:
@@ -779,8 +778,11 @@ class BoostLibrary(Library):
         else:
             self.libraries = libraries
 
-        version_str = '%d_%d_%d' % (self.major_ver, self.minor_ver,
-                                    self.patch_ver)
+        if self.patch_ver is None:
+            version_str = '%d_%d' % (self.major_ver, self.minor_ver)
+        else:
+            version_str = '%d_%d_%d' % (self.major_ver, self.minor_ver,
+                                        self.patch_ver)
         include_path = os.path.join(os.environ['RAM_ROOT_DIR'], 'include',
 
                                     'boost-' + version_str)
