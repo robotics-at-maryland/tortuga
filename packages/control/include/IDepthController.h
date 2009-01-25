@@ -57,7 +57,8 @@ class RAM_EXPORT IDepthControllerImp : public IDepthController
     virtual ~IDepthControllerImp() {}
 
     /** Gets the needed vehicle force based on current vehicle state */
-    virtual math::Vector3 depthUpdate(math::Quaternion orienation) = 0;
+    virtual math::Vector3 depthUpdate(double depth,
+                                      math::Quaternion orienation) = 0;
 };
     
 } // namespace control

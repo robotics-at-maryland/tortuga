@@ -221,7 +221,6 @@ class Machine(core.Subsystem):
         
         transitionTable = type(self._currentState).transitions()
         nextState = transitionTable.get(event.type, None)
-
         if nextState is not None:
             # Determine if we are branching
             branching = False

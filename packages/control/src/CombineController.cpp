@@ -58,90 +58,117 @@ CombineController::~CombineController()
 {
     unbackground(true);
 }
-    
+
+
+// Translational controller methods
 void CombineController::setSpeed(double speed)
 {
+    m_transController->setSpeed(speed);
 }
 
 void CombineController::setSidewaysSpeed(double speed)
 {
-}
-
-void CombineController::setDepth(double depth)
-{
-
+    m_transController->setSidewaysSpeed(speed);
 }
 
 double CombineController::getSpeed()
 {
-    return 0;
+    return m_transController->getSpeed();
 }
 
 double CombineController::getSidewaysSpeed()
 {
-    return 0;
+    return m_transController->getSidewaysSpeed();
+}
+    
+// Depth controller methods
+void CombineController::setDepth(double depth)
+{
+    m_depthController->setDepth(depth);
 }
 
 double CombineController::getDepth()
 {
-    return 0;
+    return m_depthController->getDepth();
 }
-
-
 
 double CombineController::getEstimatedDepth()
 {
-    return 0;
+    return m_depthController->getEstimatedDepth();
 }
 
 double CombineController::getEstimatedDepthDot()
 {
-    return 0;
+    return m_depthController->getEstimatedDepthDot();
 }
-    
+
+// Rotational controller methods
 void CombineController::rollVehicle(double degrees)
 {
-
+    m_rotController->rollVehicle(degrees);
 }
 
 void CombineController::pitchVehicle(double degrees)
 {
-
+    m_rotController->pitchVehicle(degrees);
 }
 
 void CombineController::yawVehicle(double degrees)
 {
-
+    m_rotController->yawVehicle(degrees);
 }
 
 math::Quaternion CombineController::getDesiredOrientation()
 {
-    return math::Quaternion::IDENTITY;
+    return m_rotController->getDesiredOrientation();
 }
 
-void CombineController::setDesiredOrientation(math::Quaternion newQuaternion)
+void CombineController::setDesiredOrientation(math::Quaternion newOrientation)
 {
-
+    m_rotController->setDesiredOrientation(newOrientation);
 }
     
 bool CombineController::atOrientation()
 {
-    return true;
-}
-
-bool CombineController::atDepth()
-{
-    return true;
+    return m_rotController->atOrientation();
 }
 
 void CombineController::holdCurrentHeading()
 {
-
+    m_rotController->holdCurrentHeading();
 }
+
+// Misc Methods
+bool CombineController::atDepth()
+{
+    return m_depthController->atDepth();
+}
+
 
 void CombineController::update(double timestep)
 {
+    // Get vehicle state
+    math::Vector3 linearAcceleration(m_vehicle->getLinearAcceleration());
+    math::Quaternion orientation(m_vehicle->getOrientation());
+    math::Vector3 angularRate(m_vehicle->getAngularRate());
+    double depth = m_vehicle->getDepth();
+    
+    // Update controllers
+    math::Vector3 inPlaneControlForce(
+        m_transController->translationalUpdate(orientation));
+    math::Vector3 depthControlForce(
+        m_depthController->depthUpdate(depth, orientation));
+    math::Vector3 rotControlTorque(
+        m_rotController->rotationalUpdate(orientation, angularRate));
+    
+    // Combine into desired rotational control and torque
+    math::Vector3 translationalForce(inPlaneControlForce + depthControlForce);
+    math::Vector3 rotationalTorque(rotControlTorque);
 
+    // Actually set motor values
+    m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
+
+    /// TODO: Figure out how to factor out base functionality
 }
         
 } // namespace control

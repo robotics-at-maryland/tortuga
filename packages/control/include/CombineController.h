@@ -27,7 +27,7 @@ namespace control {
 /** A class whichs allows easy combine of fundamental controllers
  *
  *  This class easily lets you change out just the rotational, or just the
- *  depth just the in plane controller.  Which allow for much easier over
+ *  depth just the in plane controller.  Which allows for much easier over
  *  all experimentation with controllers.
  */
 class RAM_EXPORT CombineController : public IController,
@@ -41,18 +41,14 @@ public:
 
     virtual ~CombineController();
 
-    // In plane controller setters
+    // Translational controller methods
     virtual void setSpeed(double speed);
     virtual void setSidewaysSpeed(double speed);
-
-    // Depth controller setters
-    virtual void setDepth(double depth);
-
-    // In plane controller getters
     virtual double getSpeed();
     virtual double getSidewaysSpeed();
     
-    // Depth controller getters
+    // Depth controller methods
+    virtual void setDepth(double depth);
     virtual double getDepth();
     virtual double getEstimatedDepth();
     virtual double getEstimatedDepthDot();
@@ -63,12 +59,11 @@ public:
     virtual void rollVehicle(double degrees);
     virtual math::Quaternion getDesiredOrientation();
     virtual void setDesiredOrientation(math::Quaternion);
+    virtual bool atOrientation();
+    virtual void holdCurrentHeading();
 
     // Misc methods
     virtual bool atDepth();
-    virtual bool atOrientation();
-    virtual void holdCurrentHeading();
-    virtual void setBuoyantTorqueCorrection(double x, double y, double z){};
 
     // Updatable methods
     virtual void update(double timeStep);
@@ -99,7 +94,12 @@ public:
     virtual bool backgrounded() {
         return Updatable::backgrounded();
     };
-//protected:
+    
+private:
+    vehicle::IVehiclePtr m_vehicle;
+    ITranslationalControllerImpPtr m_transController;
+    IDepthControllerImpPtr m_depthController;
+    IRotationalControllerImpPtr m_rotController;
 };
     
 } // namespace control

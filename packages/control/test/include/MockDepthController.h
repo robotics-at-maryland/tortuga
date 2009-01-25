@@ -32,8 +32,9 @@ public:
     
     virtual bool atDepth() { return true; }
 
-    virtual ram::math::Vector3 depthUpdate(ram::math::Quaternion ) {
-        return ram::math::Vector3::ZERO; }
+    virtual ram::math::Vector3 depthUpdate(double depth,
+                                           math::Quaternion orienation)
+        { return ram::math::Vector3::ZERO; }
 };
 
 #endif	// RAM_CONTROL_TEST_DEPTHCONTROLLER_09_01_2008
