@@ -110,10 +110,10 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
 }
 
 Vehicle::~Vehicle()
-{    
+{
     // For safeties sake send a zero torque and force command which will kill
     // any current thruster power
-    for (int i = 0; i < 2; ++i) 
+    for (int i = 0; i < 2; ++i)
     {
         applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
         usleep(30 * 1000);

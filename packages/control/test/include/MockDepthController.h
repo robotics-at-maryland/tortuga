@@ -33,7 +33,7 @@ public:
     virtual bool atDepth() { return true; }
 
     virtual ram::math::Vector3 depthUpdate(double depth,
-                                           math::Quaternion orienation)
+                                           ram::math::Quaternion orienation)
         { return ram::math::Vector3::ZERO; }
 };
 
