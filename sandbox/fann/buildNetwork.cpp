@@ -1,6 +1,6 @@
 /*
- *  build.cpp
- *  NNImageRecognition
+ *  buildNetwork.cpp
+ *  fannTest
  *
  *  Created by David Love on 1/22/09.
  *  Copyright 2009 __MyCompanyName__. All rights reserved.
@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <string>
-//#include <map>
 
 // only new boost API's
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -24,14 +23,12 @@
 #include <opencv/highgui.h>
 
 // neural network for differentiating images
-#include "imageNetwork.h"
-
+#include "imageNetwork.hpp"
 // utility function(s)
-#include "cvToFloat.h"
+#include "imageSupport.hpp"
 
 // function prototypes
 void usage();
-unsigned int loadImages (const char* path, float** &imageData);
 
 int main (int argc, char * const argv[]) {
 	// check for enough args
@@ -52,49 +49,13 @@ int main (int argc, char * const argv[]) {
 	// TODO: try to load from file first
 	imageNetwork test = imageNetwork (images, height, width);
 	// load each set of training images
-	float** imagesData;
-	unsigned int setSize;
 	for (int image = 5; image < argc; ++image) {
-		setSize = loadImages (argv[image], imagesData);
-		test.addTrainData(image, images, imagesData);
-		free (imagesData);
 	}
 	// save the network
 	test.save (std::string (argv[4]), true);
 	// done
     std::cout << "Yup\n";
     return 0;
-}
-
-// load a directory of images into a grayscale float array
-unsigned int loadImages (const char* path, float** &imagesData) {
-	int images = 0;
-	float* image;
-	bf::path directory (path);
-	if (!bf::exists (directory)) {
-		return 0;
-	}
-	bf::directory_iterator end;
-	IplImage* img;
-	for (bf::directory_iterator itr (directory); itr != end; ++itr) {
-		img = 0;
-		// 0 in the flags forces image to be loaded as grayscale
-		img=cvLoadImage(itr->path().file_string().c_str(),0);
-		if (img) {
-			++images;
-			imagesData = (float**) realloc (imagesData, sizeof (float**) * (images + 1) * img->height * img->width);
-			image = cvToFloat(img);
-			memcpy(imagesData[images],image, sizeof (float*) * img->height * img->width);
-			free (image);
-			++images;
-			image = cvToFlippedFloat (img);
-			memcpy(imagesData[images],image, sizeof (float*) * img->height * img->width);
-			free (image);
-			cvReleaseImage (&img);
-		}
-	}
-	//TODO: finish this
-	return images;
 }
 
 // print usage

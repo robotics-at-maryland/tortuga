@@ -1,6 +1,6 @@
 /**
  *  imageNetwork.cpp
- *  NNImageRecognition
+ *  fannTest
  *
  *  Created by David Love on 1/22/09.
  *  Copyright 2009 __MyCompanyName__. All rights reserved.
@@ -11,7 +11,7 @@
 #include <iostream>
 
 // header for this file
-#include "imageNetwork.h"
+#include "imageNetwork.hpp"
 
 // defines to simplify stuff
 #define INPUT_SIZE m_net.get_num_input()
@@ -26,7 +26,7 @@
 #define DATA_MIN -1.0
 #define DATA_MAX 1.0
 #define MAX_EPOCHS 1000
-#define REPORT_EPOCHS 25
+#define REPORT_EPOCHS 50
 #define DESIRED_ERROR 0.125
 #define MIN_WEIGHT -1.0
 #define MAX_WEIGHT 1.0
@@ -99,12 +99,18 @@ imageNetwork::imageNetwork (const std::string &file, bool loadTrainingData) {
 /**
  * Train an imageNetwork to recognize a given image based on an array of similar image data.
  **/
-bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, float** imagesData) {
-	fann_type** inputData = imagesData;
-	fann_type** outputData = (fann_type**) malloc (sizeof (fann_type) * images * OUTPUT_SIZE);
-	training_data newData = training_data ();
+bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, const imageArray &imagesData) {
 	if (imageIndex > OUTPUT_SIZE) {
 		return false;
+	}
+	fann_type** inputData = (fann_type**) malloc (sizeof (fann_type) * images * INPUT_SIZE);
+	fann_type** outputData = (fann_type**) malloc (sizeof (fann_type) * images * OUTPUT_SIZE);
+	training_data newData = training_data ();
+	// copy over the vector of image data into a nice single block of memory for the training_data object
+	for (int i = 0; i < images; ++i) {
+		for (int j = 0; j < INPUT_SIZE; ++j) {
+			inputData[i][j] = imagesData[i][j];
+		}
 	}
 	// construct an array to clamp output data to the correct values
 	//     MAX for the node representing this image, MIN for the others
@@ -124,6 +130,7 @@ bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, f
 	m_data.scale_output_train_data (DATA_MAX, DATA_MIN);
 	// add the new data o the old data
 	m_data.merge_train_data(newData);
+	free (inputData);
 	free (outputData);
 	return true;
 }

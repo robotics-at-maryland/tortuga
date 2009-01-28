@@ -3,8 +3,8 @@ CHEADERS =
 CSOURCE = 
 COBJECTS = ${CSOURCE:.c=.o}
 
-CXXHEADERS = cvToFloat.h imageNetwork.h
-CXXSOURCE = buildNetwork.cpp imageNetwork.cpp
+CXXHEADERS = imageNetwork.hpp imageSupport.hpp
+CXXSOURCE = buildNetwork.cpp imageNetwork.cpp imageSupport.cpp
 CXXOBJECTS = ${CXXSOURCE:.cpp=.o}
 
 INCDIR = /opt/ram/local/include
