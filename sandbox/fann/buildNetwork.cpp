@@ -7,8 +7,9 @@
  *
  */
 
-#include <iostream>
+#include <map>
 #include <string>
+#include <iostream>
 
 // only new boost API's
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -16,11 +17,6 @@
 #include <boost/filesystem.hpp>
 // because I'm lazy
 #define bf boost::filesystem
-
-// for images
-#include <opencv/cv.h>
-//#include <opencv/cv.hpp>
-#include <opencv/highgui.h>
 
 // neural network for differentiating images
 #include "imageNetwork.hpp"
@@ -48,9 +44,17 @@ int main (int argc, char * const argv[]) {
     // build the testing network
 	// TODO: try to load from file first
 	imageNetwork test = imageNetwork (images, height, width);
-	// load each set of training images
+	// map a number to each imageDirectory
+	std::map<int, imageDirectory> imageSets;
+	// load each set of training images, printing the index for each path along the way
 	for (int image = 5; image < argc; ++image) {
+		imageSets.insert(std::make_pair (image - 5, imageDirectory (std::string(argv[image]))));
+		test.addTrainData(image - 5	, imageSets.find(image - 5)->second.size(), imageSets.find(image - 5)->second.getImages());
+		test.addTrainData(image - 5	, imageSets.find(image - 5)->second.size(), imageSets.find(image - 5)->second.getImages(true));
+		std::cout << "Directory: " << imageSets.find(image - 5)->second.path() << " assigned index: " << (image - 5) << "\n";
 	}
+	// train the network
+	test.runTraining();
 	// save the network
 	test.save (std::string (argv[4]), true);
 	// done
@@ -66,9 +70,9 @@ void usage () {
 	std::cout << "\theight:\tThe height in pixels of every training imaged and the images to\n\t\tbe recognized.\n";
 	std::cout << "\twidth:\tThe width in pixels of every training image and the images to\n\t\tbe recognized.\n";
 	std::cout << "\tnetworkName:\tThe file in which to store the network.  If this file\n\t\talready exists it will "
-			  << "be opened and the network in it will be\n\t\ttrained further, if not it will be created and "
-			  << "saved in this\n\t\tfile.\n";
+	<< "be opened and the network in it will be\n\t\ttrained further, if not it will be created and "
+	<< "saved in this\n\t\tfile.\n";
 	std::cout << "\ttrainingImages:\tA path to a set of images on which to train the network.\n\t\tThere should be "
-			  << "one of these for each of the images to be\n\t\trecognized.  In other words, the number of these "
-			  << "should be\n\t\tequal to the value of 'images'.\n";
+	<< "one of these for each of the images to be\n\t\trecognized.  In other words, the number of these "
+	<< "should be\n\t\tequal to the value of 'images'.\n";
 }

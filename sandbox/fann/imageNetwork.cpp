@@ -30,6 +30,7 @@
 #define DESIRED_ERROR 0.125
 #define MIN_WEIGHT -1.0
 #define MAX_WEIGHT 1.0
+#define MAX_SIZE_FACTOR 0.5
 
 using namespace FANN;
 
@@ -40,13 +41,14 @@ imageNetwork::imageNetwork (const unsigned int images, const unsigned int imageH
 	// the size of the input layer
 	const int inputSize = imageHeight * imageWidh;
 	// an array of layer sizes - starting with input and ending with output
-	unsigned int layerSizes[NUM_LAYERS];
+	/*unsigned int layerSizes[NUM_LAYERS];
 	const int interval = (inputSize - images) / (NUM_LAYERS - 1);
 	for (int i = 0; i < NUM_LAYERS; ++i) {
 		layerSizes[i] = inputSize - (interval * i);
-	}
+	}*/
 	// setup the network structure - if this doesn't work we're boned
-	assert (m_net.create_sparse_array (CONNECTION_RATE, NUM_LAYERS, layerSizes)); 
+	//assert (m_net.create_sparse_array (CONNECTION_RATE, NUM_LAYERS, layerSizes));
+	assert (m_net.create_shortcut (2, inputSize, images));
 	// give the network a learning rate
 	m_net.set_learning_rate (LEARNING_RATE);
 	// set layer activation levels
@@ -103,10 +105,13 @@ bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, c
 	if (imageIndex > OUTPUT_SIZE) {
 		return false;
 	}
+	bool empty = (m_data.length_train_data() == 0);
 	fann_type** inputData = (fann_type**) malloc (sizeof (fann_type) * images * INPUT_SIZE);
 	fann_type** outputData = (fann_type**) malloc (sizeof (fann_type) * images * OUTPUT_SIZE);
 	training_data newData = training_data ();
 	// copy over the vector of image data into a nice single block of memory for the training_data object
+	// yes this is very inneficient, when I get a chance to look into how the create_train_from_callback works
+	// I might be able to improve this signifigantly, but this way was quick and easy
 	for (int i = 0; i < images; ++i) {
 		for (int j = 0; j < INPUT_SIZE; ++j) {
 			inputData[i][j] = imagesData[i][j];
@@ -123,13 +128,21 @@ bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, c
 			}
 		}
 	}
+	if (empty) {
+		// create the new data set
+		m_data.set_train_data (images, images, inputData, images, outputData);
+		// scale the new data to the max and min input/output values
+		m_data.scale_input_train_data (DATA_MAX, DATA_MIN);
+		m_data.scale_output_train_data (DATA_MAX, DATA_MIN);
+	} else {
 	// create the new data set
 	newData.set_train_data (images, images, inputData, images, outputData);
 	// scale the new data to the max and min input/output values
-	m_data.scale_input_train_data (DATA_MAX, DATA_MIN);
-	m_data.scale_output_train_data (DATA_MAX, DATA_MIN);
+	newData.scale_input_train_data (DATA_MAX, DATA_MIN);
+	newData.scale_output_train_data (DATA_MAX, DATA_MIN);
 	// add the new data o the old data
 	m_data.merge_train_data(newData);
+	}
 	free (inputData);
 	free (outputData);
 	return true;
@@ -141,14 +154,36 @@ bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, c
 bool imageNetwork::runTraining () {
 	// shuffle the training data so that it is given to the network in random order
 	m_data.shuffle_train_data();
-	m_net.train_on_data (m_data, MAX_EPOCHS, REPORT_EPOCHS, DESIRED_ERROR);
+	m_net.train_on_data (m_data, MAX_SIZE_FACTOR * INPUT_SIZE * OUTPUT_SIZE, REPORT_EPOCHS, DESIRED_ERROR);
 	return true;
+}
+
+/**
+ * Run the network on a given input and use the largest output as the image determination.
+ **/
+int imageNetwork::run (std::vector<fann_type> inputs) {
+	int highest_out = 0;
+	fann_type* outputData;
+	fann_type* inputData = (fann_type*) malloc (sizeof (fann_type) * INPUT_SIZE);
+	for (int i = 0; i < INPUT_SIZE; ++i) {
+		inputData[i] = inputs[i];
+	}
+	outputData = m_net.run (inputData);
+	for (int i = 0; i < OUTPUT_SIZE; ++i) {
+		if (outputData[i] > outputData[highest_out]) {
+			highest_out = i;
+		}
+	}
+	m_out = outputData[highest_out];
+	free (inputData);
+	free (outputData);
+	return highest_out;
 }
 
 /**
  * Save an imageNetwork such that it can be re-red and then either run or trained more.
  **/
-bool imageNetwork::save (const std::string &file, bool saveTrainingData) {
+const bool imageNetwork::save (const std::string &file, bool saveTrainingData) {
 	std::string netName;
 	std::string trainName;
 	if (file.substr (file.size() - 5, 4) == ".irn") {
@@ -175,7 +210,7 @@ bool imageNetwork::save (const std::string &file, bool saveTrainingData) {
  * Save an imageNetwork with a fixed point representation such that it will run efficently
  * but can longer be trained.
  **/
-int imageNetwork::saveFinal (const std::string &file, bool saveTrainingData) {
+const int imageNetwork::saveFinal (const std::string &file, bool saveTrainingData) {
 	std::string netName;
 	std::string trainName;
 	int precision = 0;

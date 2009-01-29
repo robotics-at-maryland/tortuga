@@ -10,6 +10,8 @@
 #ifndef IMAGE_SUPPORT_H
 #define IMAGE_SUPPORT_H
 
+#include <vector>
+
 // only new boost API's
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 // boost filesystem libs
@@ -28,8 +30,16 @@ private:
 	imageArray m_imagesReversed;
 public:
 	imageDirectory (const bf::path& directory);
-	inline const imageArray& getImages (bool reversed = false);
+	inline const bf::path& path() { return m_directory; }
 	inline const unsigned int size() { return m_images.size(); }
+	inline const std::vector<fann_type>& getImage (unsigned int index) { return m_images[index]; }
+	inline const imageArray& getImages (bool reversed = false) {
+		if (reversed) {
+			return m_imagesReversed;
+		} else {
+			return m_images;
+		}
+	}
 };
-
+	
 #endif // IMAGE_SUPPORT_H
