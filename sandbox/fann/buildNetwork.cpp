@@ -48,7 +48,7 @@ int main (int argc, char * const argv[]) {
 	std::map<int, imageDirectory> imageSets;
 	// load each set of training images, printing the index for each path along the way
 	for (int image = 5; image < argc; ++image) {
-		imageSets.insert(std::make_pair (image - 5, imageDirectory (std::string(argv[image]))));
+		imageSets.insert(std::make_pair (image - 5, imageDirectory (bf::path(argv[image]))));
 		test.addTrainData(image - 5	, imageSets.find(image - 5)->second.size(), imageSets.find(image - 5)->second.getImages());
 		test.addTrainData(image - 5	, imageSets.find(image - 5)->second.size(), imageSets.find(image - 5)->second.getImages(true));
 		std::cout << "Directory: " << imageSets.find(image - 5)->second.path() << " assigned index: " << (image - 5) << "\n";

@@ -132,14 +132,14 @@ bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, c
 		// create the new data set
 		m_data.set_train_data (images, images, inputData, images, outputData);
 		// scale the new data to the max and min input/output values
-		m_data.scale_input_train_data (DATA_MAX, DATA_MIN);
-		m_data.scale_output_train_data (DATA_MAX, DATA_MIN);
+		m_data.scale_input_train_data (DATA_MIN, DATA_MAX);
+		m_data.scale_output_train_data (DATA_MIN, DATA_MAX);
 	} else {
 	// create the new data set
 	newData.set_train_data (images, images, inputData, images, outputData);
 	// scale the new data to the max and min input/output values
-	newData.scale_input_train_data (DATA_MAX, DATA_MIN);
-	newData.scale_output_train_data (DATA_MAX, DATA_MIN);
+	newData.scale_input_train_data (DATA_MIN, DATA_MAX);
+	newData.scale_output_train_data (DATA_MIN, DATA_MAX);
 	// add the new data o the old data
 	m_data.merge_train_data(newData);
 	}
