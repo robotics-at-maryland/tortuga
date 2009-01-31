@@ -45,6 +45,9 @@ int main (int argc, char * const argv[]) {
 	// load the image
 	IplImage* img;
 	img=cvLoadImage(argv[2],0);
+	if (!img) {
+		std::cout << "Could not load image: " << argv[2];
+	}
 	int size = img->width * img->height;
 	for (int i = 0; i < size; ++i) {
 		image.push_back (*(img->imageData + i * img->widthStep));
@@ -54,7 +57,7 @@ int main (int argc, char * const argv[]) {
 	result = test.run(image);
 	accuracy = test.resultValue();
 	// output the results
-	std::cout << "Result image index: " << result << " certainty: " << (accuracy * 100) << "\n";
+	std::cout << "Result image index: " << result << " certainty: " << (accuracy * 100) << "%\n";
 	// done
     std::cout << "Yup\n";
     return 0;

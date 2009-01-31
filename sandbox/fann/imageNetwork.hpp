@@ -33,6 +33,7 @@ public:
 	bool runTraining ();
 	int run (std::vector<fann_type> inputs);
 	inline const fann_type resultValue () { return m_out; }
+	inline const void print () { m_net.print_parameters(); }
 	const bool save (const std::string &file, bool saveTrainingData);
 	const int saveFinal (const std::string &file, bool saveTrainingData);
 };

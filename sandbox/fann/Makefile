@@ -18,8 +18,8 @@ LIBS = -lcv -lcxcore -lhighgui -lfann -lboost_filesystem-xgcc40-mt -lboost_syste
 CC = gcc
 GENERAL = -pipe -Wno-sign-compare
 NODEBUG = -O3 $(GENERAL)
-DEBUG = -g -ggdb $(GENERAL)
-CFLAGS = $(DEBUG)
+DEBUG = -ggdb2 $(GENERAL)
+CFLAGS = $(NODEBUG)
 
 # default - just go wild!
 all: $(EXECUTABLES)

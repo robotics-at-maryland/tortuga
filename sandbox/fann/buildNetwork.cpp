@@ -53,8 +53,12 @@ int main (int argc, char * const argv[]) {
 		test.addTrainData(image - 5	, imageSets.find(image - 5)->second.size(), imageSets.find(image - 5)->second.getImages(true));
 		std::cout << "Directory: " << imageSets.find(image - 5)->second.path() << " assigned index: " << (image - 5) << "\n";
 	}
+	// print the original network
+	test.print ();
 	// train the network
-	test.runTraining();
+	test.runTraining ();
+	// print the trained network
+	test.print ();
 	// save the network
 	test.save (std::string (argv[4]), true);
 	// done
