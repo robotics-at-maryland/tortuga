@@ -1,45 +1,49 @@
 import os
 import sys
 import getpass
-import platform
+
+this_module_dir_path = os.path.abspath ( os.path.dirname( sys.modules[__name__].__file__) )
 
 class boost:
     libs = ''
     include = ''
-    
+
 class python:
     libs = ''
     include = ''
 
 class gccxml:
-    executable = ''
+    gccxml_09_path = os.path.join( this_module_dir_path, '..', 'gccxml_bin', 'v09', sys.platform, 'bin' )
+
+    gccxml_path = gccxml_09_path
+    gccxml_version = '__GCCXML_09__'
+
+    executable = gccxml_path
 
 class scons:
-    compiler = ''
     suffix = ''
     cmd_build = ''
     cmd_clean = ''
     ccflags = []
 
-# Setup the MRBC
-scons.cmd_build = 'scons --file=%s'
-scons.cmd_clean = 'scons --clean --file=%s'
+if 'roman' in getpass.getuser():
 
-if platform.system() == 'Linux':
-    prefix = os.path.join(os.environ['RAM_ROOT_DIR'])
-    lib = os.path.join(prefix, 'lib')
-    include = os.path.join(prefix, 'include')
-    
-    scons.suffix = '.so'
-    scons.compiler = 'g++'
-    
-    boost.libs = [lib]
-    boost.include = os.path.join(include, 'boost-1_34_1')
-    python.include = '/usr/include/python2.5'
-    gccxml.executable = os.path.join(prefix, 'bin','gccxml')
-else:
-    raise "Environment Not Configured"
+    scons.cmd_build = 'scons --file=%s'
+    scons.cmd_clean = 'scons --clean --file=%s'
 
+    if sys.platform == 'win32':
+        scons.suffix = '.pyd'
+        scons.ccflags = ['/MD', '/EHsc', '/GR', '/Zc:wchar_t', '/Zc:forScope', '-DBOOST_PYTHON_NO_PY_SIGNATURES' ]
+        boost.libs = [ 'd:/dev/boost_svn/bin.v2/libs/python/build/msvc-7.1/release' ]
+        boost.include = 'd:/dev/boost_svn'
+        python.libs = 'e:/python25/libs'
+        python.include = 'e:/python25/include'
+    else:
+        scons.suffix = '.so'
+        scons.ccflags = ['-DBOOST_PYTHON_NO_PY_SIGNATURES' ]
+        boost.libs = ['/home/roman/include/libs' ]
+        boost.include = '/home/roman/boost_svn'
+        python.include = '/usr/include/python2.5'
 
 _my_path = None
 try:

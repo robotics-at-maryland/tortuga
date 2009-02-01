@@ -16,7 +16,7 @@ Solutions
 
 There are two possible solutions to the problem. The first one is to fix 
 Boost.Python library: `pointer_holder.hpp.patch`_ . The patch was contributed
-to the library ( 8-December-2006 ) and some day it will be commited to the CVS.
+to the library ( 8-December-2006 ) and some day it will be committed to the CVS.
 
 It is also possible to solve the problem, without changing Boost.Python library:
 
@@ -94,12 +94,4 @@ Download
 .. _`Py++` : ./../pyplusplus.html
 .. _`pygccxml` : http://www.language-binding.net/pygccxml/pygccxml.html
 .. _`SourceForge`: http://sourceforge.net/index.php
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
 

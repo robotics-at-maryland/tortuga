@@ -61,7 +61,7 @@ If it doesn't than:
 Call policies
 -------------
 
-Consider next use case:
+Consider the following use case:
 
 .. code-block:: C++
 
@@ -144,7 +144,7 @@ This part of the algorithm is responsible to recognize the pair of "get" and "se
 accessors, which constructs the property. `Py++`_ does it by analyzing name and
 type of the accessors.
 
-`Py++`_ understands next coding conventions:
+`Py++`_ understands the following coding conventions:
 
 * lowercase_with_underscores
 * UpperCamel
@@ -153,16 +153,14 @@ type of the accessors.
 It is also aware of few common prefixes for set\\get accessors: get, is, has, set,
 <<empty prefix for get accessor>>.
 
+-------------
+Documentation
+-------------
+You can use ``doc`` attribute to specify the property documentation. If you
+don't, than `Py++`_ will construct documentation, which will describe from what
+functions this property was built from.
+
 .. _`Py++` : ./../pyplusplus.html
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
-

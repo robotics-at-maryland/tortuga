@@ -32,8 +32,13 @@ class function_transformation_t:
     def unique_name( self ):
         if None is self.__unique_name:
             obj = md5.new()
-            obj.update( self.__function.mangled )
-            self.__unique_name = self.__function.name + '_' + obj.hexdigest()
+            if self.__function.mangled: # free functions don't have a mangled value
+                obj.update( self.__function.mangled )
+            else:
+                obj.update( self.__function.decl_string )
+                obj.update( self.__function.location.file_name )
+                obj.update( str( self.__function.location.line ) )
+            self.__unique_name = self.__function.name + '_' + obj.hexdigest ()
         return self.__unique_name
 
     @property

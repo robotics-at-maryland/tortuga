@@ -1,0 +1,65 @@
+=========================================
+How to register an exception translation?
+=========================================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+Boost.Python provides functionality to translate any C++ exception to a Python one.
+`Py++`_ provides a convenient API to do this.
+
+By the way, be sure to take a look on "`troubleshooting guide - exceptions`_".
+The guide will introduces a complete solution for handling exceptions within
+Python scripts.
+
+.. _`troubleshooting guide - exceptions` :  ./../../troubleshooting_guide/exceptions/exceptions.html
+
+--------
+Solution
+--------
+
+`Boost.Python exception translator documentation`_ contains a complete explanation
+what should be done. I will use that example, to show how it could be done with
+`Py++`_:
+
+.. code-block:: Python
+
+   from pyplusplus import module_builder_t
+
+   mb = module_builder_t( ... )
+   my_exception = mb.class_( 'my_exception' )
+
+   translate_code = 'PyErr_SetString(PyExc_RuntimeError, exc.what();'
+   my_exception.exception_translation_code = translate_code
+
+That's all, really. `Py++`_ will generate for you the ``translate`` function
+definition and than will register it.
+
+I think this is a most popular use case - translate a C++ exception to a string
+and than to create an instance of Python built-in exception. That is exactly why
+`Py++`_ provides additional API:
+
+.. code-block:: Python
+
+   mb = module_builder_t( ... )
+   my_exception = mb.class_( 'my_exception' )
+
+   my_exception.translate_exception_to_string( 'PyExc_RuntimeError', 'exc.what()')
+
+The first argument of ``translate_exception_to_string`` method is exception type,
+The second one is a string - code that converts your exception to ``const char*``.
+
+As you see, it is really simple to add exception translation to your project.
+
+One more point, in both pieces of code I used "``exc``" as the name of ``my_exception``
+class instance. This is a predefined name. I am not going to change it without
+any good reason, any time soon :-).
+
+.. _`Boost.Python exception translator documentation` : http://boost.org/libs/python/doc/v2/exception_translator.html
+.. _`Py++` : ./../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org

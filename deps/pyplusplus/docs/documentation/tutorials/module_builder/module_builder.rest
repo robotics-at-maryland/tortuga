@@ -114,8 +114,8 @@ module_builder_t.build_code_creator
 
 Now it is a time to create module code creator. Do you remember, in introduction
 to `Py++`_, I told you that before writing code to disc, `Py++`_ will create some
-kind of `AST`_. Well this is done by calling ``module_builder_t.build_code_creator``
-function. Right now, the only important argument to the function is ``module_name``.
+kind of `AST`_. Well calling module_builder_t.build_code_creator function does this.
+Right now, the only important argument to the function is ``module_name``.
 Self explained, is it?
 
 
@@ -126,7 +126,7 @@ do it with one line of code only:
 
 .. code-block:: Python
 
-  mb.code_creator.license = your license text
+  mb.code_creator.license = <<<your license text>>>
 
 After you call this function, I recommend you not to change declarations
 configuration. In most cases the change will take effect, in some cases it will
@@ -167,12 +167,4 @@ That's all. I hope you enjoyed.
 .. _`SourceForge`: http://sourceforge.net/index.php
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
 

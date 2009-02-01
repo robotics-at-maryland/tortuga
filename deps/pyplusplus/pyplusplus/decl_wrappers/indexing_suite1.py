@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -24,24 +24,31 @@ class indexing_suite1_t( object ):
     indexing suite.
     """
 
-    def __init__( self, container_class, container_traits, no_proxy=None, derived_policies=None ):
+    def __init__( self, container_class, no_proxy=None, derived_policies=None ):
         object.__init__( self )
         self.__no_proxy = no_proxy
         self.__derived_policies = derived_policies
         self.__container_class = container_class
-        self.__container_traits = container_traits
         self.__include_files = None
+        self.__element_type = None
 
-    def _get_container_class( self ):
+    @property
+    def container_class( self ):
+        """reference to the parent( STD container ) class"""
         return self.__container_class
-    container_class = property( _get_container_class
-                                , doc="Reference to STD container class" )
 
-    def _get_element_type(self):
-        return self.__container_traits.element_type( self.container_class )
-    element_type = property( _get_element_type
-                            , doc="Reference to container value_type( mapped_type ) type" )
-
+    @property
+    def element_type(self):
+        """reference to container value_type( mapped_type ) type"""
+        if self.__element_type is None:
+            self.__element_type = self.container_class.container_traits.element_type( self.container_class )
+        return self.__element_type
+        
+    @property
+    def container_traits( self ):
+        "reference to container traits. See pygccxml documentation for more information."
+        return self.container_class.container_traits
+    
     def _get_no_proxy( self ):
         if self.__no_proxy is None:
             self.__no_proxy = python_traits.is_immutable( self.element_type )

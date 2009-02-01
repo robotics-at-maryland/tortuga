@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -32,7 +32,7 @@ class global_variable_base_t( registration_based.registration_based_t
 
     def _get_system_headers_impl( self ):
         return []
-    
+
 class global_variable_t( global_variable_base_t ):
     """
     Creates boost.python code that exposes global variable.
@@ -56,7 +56,7 @@ class global_variable_t( global_variable_base_t ):
         else:
             obj_identifier = algorithm.create_identifier( self, '::boost::python::object' )
             ref_identifier = algorithm.create_identifier( self, '::boost::ref' )
-            result.append( ' = %s( %s( %s ) );' % ( obj_identifier, ref_identifier, self.decl_identifier ) )       
+            result.append( ' = %s( %s( %s ) );' % ( obj_identifier, ref_identifier, self.decl_identifier ) )
         return ''.join( result )
 
 class array_gv_t( global_variable_base_t ):
@@ -74,7 +74,7 @@ class array_gv_t( global_variable_base_t ):
     def _create_impl( self ):
         if self.declaration.already_exposed:
             return ''
-        
+
         answer = []
         answer.append( algorithm.create_identifier( self, '::boost::python::scope' ) )
         answer.append( '().attr("%s")' % self.alias )
@@ -112,7 +112,8 @@ class array_gv_wrapper_t( code_creator.code_creator_t
     def _get_wrapper_creator_type(self):
         return declarations.free_function_type_t.create_decl_string(
                 return_type=self.wrapper_type
-                , arguments_types=[] )
+                , arguments_types=[]
+                , with_defaults=False)
     wrapper_creator_type = property( _get_wrapper_creator_type )
 
     def _get_wrapper_creator_name(self):
@@ -121,7 +122,7 @@ class array_gv_wrapper_t( code_creator.code_creator_t
 
     def _create_namespaces(self):
         ns_names = declarations.declaration_path( self.declaration.parent )
-        if len(ns_names) > 1 and ns_names[0] == '::':
+        if len(ns_names) >= 1 and ns_names[0] == '::':
             ns_names = ns_names[1:]
         return ns_names
 
@@ -140,7 +141,7 @@ class array_gv_wrapper_t( code_creator.code_creator_t
     def _create_impl( self ):
         if self.declaration.already_exposed:
             return ''
-        
+
         answer = [self._create_namespaces_name()]
         answer.append( self.wrapper_type.decl_string )
         answer.append( ''.join([ self.wrapper_creator_name, '(){']) )
@@ -156,3 +157,28 @@ class array_gv_wrapper_t( code_creator.code_creator_t
 
     def _get_system_headers_impl( self ):
         return [code_repository.array_1.file_name]
+
+class global_variable_addressof_t( global_variable_base_t ):
+    """
+    Creates boost.python code that exposes address of global variable.
+
+    This functionality is pretty powerful if you use it with "ctypes" -
+    standard package.
+    """
+    def __init__(self, variable ):
+        global_variable_base_t.__init__( self, variable=variable )
+
+    def _create_impl(self):
+        if self.declaration.already_exposed:
+            return ''
+
+        assert isinstance( self.declaration, pygccxml.declarations.variable_t )
+        result = []
+        #TODO: porting to 64Bit is welcome
+        result.append( algorithm.create_identifier( self, '::boost::python::scope' ) )
+        result.append( '().attr("%s")' % self.alias )
+        result.append( ' = boost::uint32_t( boost::addressof( %s ) );' % self.decl_identifier )
+        return ''.join( result )
+
+    def _get_system_headers_impl( self ):
+        return [code_repository.ctypes_integration.file_name]

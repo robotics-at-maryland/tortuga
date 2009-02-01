@@ -36,15 +36,57 @@ to the PyOgre bindings (when I last used them). "
   Lakin Wecker, the author of `Python-OGRE`_ project
 
 "... Py++ allows the wrappers to be "automagically" created, which means it's much
-easier to keep things up to date (the maintainence on the Py++ based wrapper is
+easier to keep things up to date (the maintenance on the Py++ based wrapper is
 tiny compared to any other system I've used). It also allows us to wrap other
 libraries fairly easily. "
 
   Andy Miller, a developer of `Python-OGRE`_ project
 
+"... I tried Py++ and it indeed automatically handles the case I outlined above
+concerning C-array members, and with much less tedious writing of registration
+code. I also found it convenient to use to insert some other C++ code for each
+of my structures that normally I wrote by hand. The API docs and examples on your
+webpage were very helpful. "
+
+  David Carpman
+
+
+"... I started a few months ago to develop a set of Python bindings for 
+OpenCascade modeling/visualization library. After a quick tour to evaluate 
+different solutions, my choice lead me to Py++, which is a very convenient 
+tool : I was able to achieve the first release of my project only two weeks after 
+the project start !"
+
+  Paviot Thomas
+
 ------------------
 Who is using Py++?
 ------------------
+
+* European Space Agency - `ReSP`_ project
+
+  `ReSP`_ is an Open-Source hardware simulation platform targeted for
+  multiprocessor systems. ReSP will provide a framework for composing a
+  system by connecting components chosen from a given repository or
+  developped by the designer. ReSP will provide also also a framework for
+  fault injection campaigns for the analysis of the reliability level of the
+  system.
+
+  `ReSP`_ engineers are developping the simulator core in Python language for exploiting
+  reflective capabilities (missing in a pure C++ environment) that can be
+  exploited for connecting components in a dynamic way and for enabling
+  non-intrusive fault injection activity. Components will be described in
+  SystemC and TLM libraries that are high level hardware description
+  languages based on C++.
+
+  .. _`ReSP` : http://www.resp-sim.org/?page_id=2
+
+* Allen Bierbaum, the author of `PyOpenSG`_ project, is using `Py++`_ to create
+  Python bindings for `OpenSG`_
+
+  `OpenSG`_ - is a portable scenegraph system to create realtime graphics
+  programs, e.g. for virtual reality applications.
+
 
 * Matthias Baas, the author of `Python Computer Graphics Kit`_ project, is using
   `Py++`_ to create Python bindings for `Maya C++ SDK`__.
@@ -66,11 +108,6 @@ Who is using Py++?
 
     .. _`CEGUI` : http://www.cegui.org.uk/wiki/index.php/Main_Page
 
-  * `Newton`_ - Newton Game Dynamics, a closed source (but free) physics and
-    collisions library.
-
-    .. _`Newton` : http://www.newtondynamics.com/apache2-default/
-
   * `ODE`_ - an open source, high performance library for simulating rigid body
     dynamics.
 
@@ -78,15 +115,26 @@ Who is using Py++?
 
   * `OIS`_ - an object oriented input system.
 
-    .. _`OIS` : http://www.wreckedgames.com/wiki/index.php/WreckedLibs:OIS
+    .. _`OIS` : http://www.wreckedgames.com/forum/
+    
+  * All in all, `Python-OGRE`_ project contains bindings for more than 30 libraries.
+    You can find code generation scripts here: https://python-ogre.svn.sourceforge.net/svnroot/python-ogre/trunk/python-ogre/code_generators/
 
-* Nicolas Tessore is using `Py++`_ to create Python bindings for `NifTools`_
-  project. You can read in his `blog`_ what he thinks about `Py++`_.
+* `Rising Sun Pictures`_ company is using `Py++`_ to create Python bindings for 
+  `Apple Shake API`_. `PyShake`_ enables running of Python code from within Shake
+  and by exposing the Shake API to Python.
+  
+  .. _`Rising Sun Pictures` : http://open.rsp.com.au/
+  .. _`Apple Shake API` : http://www.apple.com/shake/
+  .. _`PyShake` :  http://open.rsp.com.au/projects/pyshake
 
-  .. _`NifTools` : http://www.niftools.org/wiki/index.php/NIF_File_Format_Library_and_Tools
-  .. _`blog` : http://ni-te.de/blog/?p=10
+* Paviot Thomas, the author of `pythonOCC`_ project, is using `Py++`_ to create 
+  Python bindings for `OpenCascade`_, a 3D modeling & numerical simulation library.
 
-* I am :-). I created Python bindings for next libraries:
+  .. _`pythonOCC` : http://www.minerva-plm.org/pythonOCC/
+  .. _`OpenCascade` : http://www.opencascade.org/
+
+* I am :-). I created Python bindings for the following libraries:
 
   * `Boost.Date_Time`_
   * `Boost.CRC`_
@@ -103,13 +151,8 @@ Who is using Py++?
 .. _`Py++` : ./pyplusplus.html
 .. _`Python Computer Graphics Kit` : http://cgkit.sourceforge.net/
 .. _`TnFOX`: http://www.nedprod.com/TnFOX/
-.. _`PyOpenSG`: https://realityforge.vrsource.org/view/PyOpenSG/WebHome
-.. _`Python-OGRE` : http://python-ogre.python-hosting.com/
+.. _`Python-OGRE` : http://www.python-ogre.org
 .. _`OGRE` : http://www.ogre3d.org/index.php?option=com_content&task=view&id=19&Itemid=79
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
+.. _`PyOpenSG` : https://realityforge.vrsource.org/trac/pyopensg
+.. _`OpenSG` : http://opensg.vrsource.org/trac
+

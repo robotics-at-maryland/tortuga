@@ -395,10 +395,3 @@ Second goal was a little bit different. During my presentation I have shown that
 multi-language development plus code generation are very powerfull tools.
 
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

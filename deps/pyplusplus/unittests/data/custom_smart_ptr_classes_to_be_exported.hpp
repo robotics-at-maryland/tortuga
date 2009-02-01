@@ -8,7 +8,7 @@ public:
     virtual int get_value(void) const = 0;
 };
 
-typedef my_smart_ptr_t<controller_i> controller_ptr_i;
+typedef smart_ptrs::my_smart_ptr_t<controller_i> controller_ptr_i;
 
 struct multiply_x_t : controller_i{
     multiply_x_t( int value )
@@ -27,7 +27,7 @@ private:
     int m_value;
 };
 
-typedef my_smart_ptr_t<multiply_x_t> multiply_x_ptr_t;
+typedef smart_ptrs::my_smart_ptr_t<multiply_x_t> multiply_x_ptr_t;
 
 struct add_x_t : controller_i{
     add_x_t( int value )
@@ -47,19 +47,19 @@ private:
 };
 
 
-struct add_x_ptr_t : public my_smart_ptr_t< add_x_t >{
+struct add_x_ptr_t : public smart_ptrs::my_smart_ptr_t< add_x_t >{
 
     explicit add_x_ptr_t(add_x_t* rep)
-    : my_smart_ptr_t<add_x_t>(rep)
+    : smart_ptrs::my_smart_ptr_t<add_x_t>(rep)
     {}
 
     add_x_ptr_t(const add_x_ptr_t& r)
-    : my_smart_ptr_t<add_x_t>(r)
+    : smart_ptrs::my_smart_ptr_t<add_x_t>(r)
     {}
 
     //added by me( Roman ), to allow implicit conversion between add_x_ptr_t and add_x_ptr_t
-    //operator my_smart_ptr_t<resource_t>() const {
-    //    return my_smart_ptr_t<resource_t>( *this );
+    //operator smart_ptrs::my_smart_ptr_t<resource_t>() const {
+    //    return smart_ptrs::my_smart_ptr_t<resource_t>( *this );
     //}
 
     /// Operator used to convert a add_x_ptr_t to a add_x_ptr_t
@@ -101,7 +101,7 @@ ref_get_value( controllers::controller_ptr_i& a ){
 }
 
 //inline int
-//val_get_value( my_smart_ptr_t< controllers::add_x_t > a ){
+//val_get_value( smart_ptrs::my_smart_ptr_t< controllers::add_x_t > a ){
 //    return a->get_value();
 //}
 

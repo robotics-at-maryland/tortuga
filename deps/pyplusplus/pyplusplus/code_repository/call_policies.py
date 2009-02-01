@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -14,7 +14,7 @@ namespace = "pyplusplus::call_policies"
 file_name = call_policies.PYPP_CALL_POLICIES_HEADER_FILE
 
 code = \
-"""// Copyright 2004 Roman Yakovenko.
+"""// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -23,10 +23,13 @@ code = \
 #define call_policies_pyplusplus_hpp__
 
 #include "boost/python.hpp"
+#include "boost/cstdint.hpp"
 #include "boost/mpl/int.hpp"
 #include "boost/function.hpp"
-#include "boost/python/object/class_detail.hpp"
+#include "boost/utility/addressof.hpp"
 #include "boost/type_traits/is_same.hpp"
+#include "boost/python/object/class_detail.hpp"
+
 namespace pyplusplus{ namespace call_policies{
 
 namespace bpl = boost::python;
@@ -37,19 +40,19 @@ namespace memory_managers{
         template< typename T>
         static void deallocate_array(T*){}
     };
-    
+
     struct delete_{
         template< typename T>
         static void deallocate_array(T* arr){
             delete[] arr;
         }
-    };    
-    
+    };
+
 }/*memory_managers*/
 
 
 namespace detail{
-    
+
 struct make_value_holder{
 
     template <class T>
@@ -62,7 +65,6 @@ struct make_value_holder{
             return bpl::incref( p_value.ptr() );
         }
     }
-
 };
 
 template <class R>
@@ -72,21 +74,62 @@ struct return_pointee_value_requires_a_pointer_return_type
 # endif
 ;
 
+struct make_addressof_holder{
+
+    template <class T>
+    static PyObject* execute(T* p){
+        if (p == 0){
+            return bpl::detail::none();
+        }
+        else{
+            boost::uint32_t addressof_p = reinterpret_cast< boost::uint32_t >( p );
+            bpl::object p_address( addressof_p );
+            return bpl::incref( p_address.ptr() );
+        }
+    }
+
+};
+
+template <class R>
+struct return_addressof_value_requires_a_pointer_return_type
+# if defined(__GNUC__) && __GNUC__ >= 3 || defined(__EDG__)
+{}
+# endif
+;
+
+
 } //detail
 
 struct return_pointee_value{
 
     template <class T>
     struct apply{
-    
+
         BOOST_STATIC_CONSTANT( bool, ok = boost::is_pointer<T>::value );
-        
+
         typedef typename boost::mpl::if_c<
             ok
             , bpl::to_python_indirect<T, detail::make_value_holder>
             , detail::return_pointee_value_requires_a_pointer_return_type<T>
         >::type type;
-    
+
+    };
+
+};
+
+struct return_addressof{
+
+    template <class T>
+    struct apply{
+
+        BOOST_STATIC_CONSTANT( bool, ok = boost::is_pointer<T>::value );
+
+        typedef typename boost::mpl::if_c<
+            ok
+            , bpl::to_python_indirect<T, detail::make_addressof_holder>
+            , detail::return_addressof_value_requires_a_pointer_return_type<T>
+        >::type type;
+
     };
 
 };
@@ -131,7 +174,7 @@ public:
         BOOST_STATIC_CONSTANT( bool, ok = boost::is_pointer<T>::value );
         typedef details::as_tuple_impl<size, MemoryManager, MakeObjectCallPolicies> type;
     };
-    
+
 };
 
 } /*arrays*/

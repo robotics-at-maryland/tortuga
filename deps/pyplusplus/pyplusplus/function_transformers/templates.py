@@ -55,6 +55,20 @@ class virtual_mem_fun:
         , '}'
     ]))
 
+#TODO: FT for constructor
+#~ class constructor:
+    #~ #User cannot apply transformation on constructor of abstract class
+    #~ #It is not possible to create an instance of such class
+    #~ body = Template( os.linesep.join([
+          #~ 'std::auto_ptr<$exposed_class> $unique_function_name( $arg_declarations ){'
+        #~ , '    $declare_variables'
+        #~ , '    $pre_call'
+        #~ , '    std::auto_ptr<$exposed_class> $result( new $exposed_class($arg_expressions) );'
+        #~ , '    $post_call'
+        #~ , '    return $result;'
+        #~ , '}'
+    #~ ]))
+
 
 def substitute( text, **keywd ):
     return Template( text ).substitute( **keywd )

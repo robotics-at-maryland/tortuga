@@ -1,0 +1,39 @@
+====================
+custom_call_policies
+====================
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+``custom_call_policies`` is a special call policy, which allows you to integrate
+the call policies, you defined, with `Py++`_
+
+-------
+Example
+-------
+
+.. code-block:: Python
+
+  from pyplusplus import module_builder
+  from pyplusplus.module_builder import call_policies
+
+  mb = module_builder.module_builder_t( ... )
+  mb.free_function( ... ).call_policies \
+      = call_policies.custom_call_policies( <<<your call policies code>>> )
+
+  Optionally you can specify name of the header file, which should be included:
+
+.. code-block:: Python
+
+   mb.free_function( ... ).call_policies \
+      = call_policies.custom_call_policies( <<<your call policies code>>>, "xyz.hpp" )
+
+
+.. _`Py++` : ./../../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

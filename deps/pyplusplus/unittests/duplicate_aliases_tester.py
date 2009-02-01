@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -21,6 +21,7 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
     def customize(self, mb):
         classes = mb.classes( lambda decl: 'duplicate_aliases' in decl.name )
         classes.alias = 'duplicate_aliases'
+        classes.wrapper_alias = 'wrapper_duplicate_aliases'
     
     def run_tests( self, module):
         #check compilation

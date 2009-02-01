@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -44,6 +44,7 @@ from enum import enum_t
 
 from calldef import free_function_t
 from calldef import mem_fun_t
+from calldef import make_constructor_t
 
 from calldef import mem_fun_pv_t
 from calldef import mem_fun_pv_wrapper_t
@@ -68,6 +69,7 @@ from calldef import static_method_t
 from calldef import casting_operator_t
 from calldef import mem_fun_overloads_t
 from calldef import free_fun_overloads_t
+from calldef import destructor_wrapper_t
 from calldef import casting_constructor_t
 from calldef import constructor_wrapper_t
 from calldef import mem_fun_overloads_class_t
@@ -82,11 +84,16 @@ from calldef_transformed import free_fun_transformed_t
 from calldef_transformed import free_fun_transformed_wrapper_t
 from calldef_transformed import mem_fun_v_transformed_t
 from calldef_transformed import mem_fun_v_transformed_wrapper_t
+#TODO: FT for constructor
+#~ from calldef_transformed import constructor_transformed_t
+#~ from calldef_transformed import constructor_transformed_wrapper_t
+
 
 from global_variable import global_variable_base_t
 from global_variable import global_variable_t
 from global_variable import array_gv_t
 from global_variable import array_gv_wrapper_t
+from global_variable import global_variable_addressof_t
 
 from member_variable import member_variable_base_t
 from member_variable import member_variable_t
@@ -97,6 +104,7 @@ from member_variable import array_mv_t
 from member_variable import array_mv_wrapper_t
 from member_variable import mem_var_ref_t
 from member_variable import mem_var_ref_wrapper_t
+from member_variable import member_variable_addressof_t
 
 from class_declaration import class_t
 from class_declaration import class_wrapper_t
@@ -128,3 +136,6 @@ from exception_translator import exception_translator_register_t
 from opaque_type_registrator import opaque_type_registrator_t
 
 from properties import property_t
+
+from ctypes_integration_creators import expose_this_t
+from ctypes_integration_creators import expose_sizeof_t

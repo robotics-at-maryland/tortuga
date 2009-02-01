@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -9,6 +9,7 @@ import sort_algorithms
 import dependencies_manager
 import opaque_types_manager
 import call_policies_resolver
+import fake_constructors_manager
 
 from pygccxml import declarations
 from pyplusplus import decl_wrappers
@@ -18,17 +19,6 @@ from pyplusplus import _logging_
 
 ACCESS_TYPES = declarations.ACCESS_TYPES
 VIRTUALITY_TYPES = declarations.VIRTUALITY_TYPES
-
-#TODO: don't export functions that returns non const pointer to fundamental types
-#TODO: add print decl_wrapper.readme messages
-#class Foo{
-#      union {
-#           struct {
-#                   float r,g,b,a;
-#           };
-#           float val[4];
-#       };
-# };
 
 class creator_t( declarations.decl_visitor_t ):
     """Creating code creators.
@@ -52,7 +42,7 @@ class creator_t( declarations.decl_visitor_t ):
                   , types_db=None
                   , target_configuration=None
                   , enable_indexing_suite=True
-                  , doc_extractor=None):
+                  , doc_extractor=None ):
         """Constructor.
 
         @param decls: Declarations that should be exposed in the final module.
@@ -62,6 +52,7 @@ class creator_t( declarations.decl_visitor_t ):
         @param types_db: ...todo...
         @param target_configuration: A target configuration object can be used to customize the generated source code to a particular compiler or a particular version of Boost.Python.
         @param doc_extractor: callable, that takes as argument declaration reference and returns documentation string
+        @param already_exposed_dbs: list of files/directories other modules, this module depends on, generated their code too
         @type decls: list of declaration_t
         @type module_name: str
         @type boost_python_ns_name: str
@@ -69,6 +60,7 @@ class creator_t( declarations.decl_visitor_t ):
         @type types_db: L{types_database_t<types_database.types_database_t>}
         @type target_configuration: L{target_configuration_t<code_creators.target_configuration_t>}
         @type doc_extractor: callable
+        @type already_exposed_dbs: list of strings
         """
         declarations.decl_visitor_t.__init__(self)
         self.logger = _logging_.loggers.module_builder
@@ -88,14 +80,19 @@ class creator_t( declarations.decl_visitor_t ):
         if not self.__types_db:
             self.__types_db = types_database.types_database_t()
 
-        self.__extmodule = code_creators.module_t()
+        global_ns = declarations.get_global_namespace(decls)
+        self.__extmodule = code_creators.module_t( global_ns )
         if boost_python_ns_name:
             bp_ns_alias = code_creators.namespace_alias_t( alias=boost_python_ns_name
                                                            , full_namespace_name='::boost::python' )
             self.__extmodule.adopt_creator( bp_ns_alias )
 
         self.__module_body = code_creators.module_body_t( name=module_name )
+
         self.__extmodule.adopt_creator( self.__module_body )
+
+        self.__opaque_types_manager = opaque_types_manager.manager_t( self.__extmodule )
+        self.__dependencies_manager = dependencies_manager.manager_t(self.decl_logger)
 
         prepared_decls = self._prepare_decls( decls, doc_extractor )
         self.__decls = sort_algorithms.sort( prepared_decls )
@@ -105,19 +102,43 @@ class creator_t( declarations.decl_visitor_t ):
         self.__array_1_registered = set() #(type.decl_string,size)
         self.__free_operators = []
         self.__exposed_free_fun_overloads = set()
-        self.__opaque_types_manager = opaque_types_manager.manager_t( self.__extmodule )
-        self.__dependencies_manager = dependencies_manager.manager_t(self.decl_logger)
-        
-    def _prepare_decls( self, decls, doc_extractor ):
-        decls = declarations.make_flatten( decls )
+        self.__fc_manager = fake_constructors_manager.manager_t( global_ns )
 
-        for decl in decls:
+    def __print_readme( self, decl ):
+        readme = decl.readme()
+        if not readme:
+            return
+
+        if not decl.exportable:
+            reason = readme[0]
+            readme = readme[1:]
+            self.decl_logger.warn( "%s;%s" % ( decl, reason ) )
+
+        for msg in readme:
+            self.decl_logger.warn( "%s;%s" % ( decl, msg ) )
+
+    def _prepare_decls( self, decls, doc_extractor ):
+        to_be_exposed = []
+        for decl in declarations.make_flatten( decls ):
             if decl.ignore:
                 continue
-            
-            if decl.already_exposed:
+
+            if isinstance( decl, declarations.namespace_t ):
                 continue
-            
+
+            if not decl.exportable:
+                #leave only decls that user wants to export and that could be exported
+                self.__print_readme( decl )
+                continue
+
+            if decl.already_exposed:
+                #check wether this is already exposed in other module
+                continue
+
+            if isinstance( decl.parent, declarations.namespace_t ):
+                #leave only declarations defined under namespace, but remove namespaces
+                to_be_exposed.append( decl )
+
             #Right now this functionality introduce a bug: declarations that should
             #not be exported for some reason are not marked as such. I will need to
             #find out.
@@ -128,29 +149,13 @@ class creator_t( declarations.decl_visitor_t ):
 
             #if isinstance( decl, declarations.variable_t ):
                 #self.__types_db.update( decl )
-            if doc_extractor and decl.exportable:
+
+            if doc_extractor:
                 decl.documentation = doc_extractor( decl )
 
-            readme = decl.readme()
-            if not readme:
-                continue
-            
-            if not decl.exportable:
-                reason = readme[0]
-                readme = readme[1:]
-                self.decl_logger.warn( "%s;%s" % ( decl, reason ) )
+            self.__print_readme( decl )
 
-            for msg in readme:
-                self.decl_logger.warn( "%s;%s" % ( decl, msg ) )
-
-        #leave only declarations defined under namespace, but remove namespaces
-        decls = filter( lambda x: not isinstance( x, declarations.namespace_t ) \
-                                   and isinstance( x.parent, declarations.namespace_t )
-                         , decls )
-        #leave only decls that user wants to export and that could be exported
-        decls = filter( lambda x: x.ignore == False and x.exportable == True, decls )
-
-        return decls
+        return to_be_exposed
 
     def _adopt_free_operator( self, operator ):
         def adopt_operator_impl( operator, found_creators ):
@@ -175,16 +180,15 @@ class creator_t( declarations.decl_visitor_t ):
                           , self.__extmodule.body.creators )
             adopt_operator_impl( operator, found )
         else:
-            arg_type = declarations.base_type( operator.arguments[0].type )
-            if isinstance( arg_type, declarations.fundamental_t ):
-                arg_type = declarations.base_type( operator.arguments[1].type )
-            elif isinstance( arg_type, declarations.declarated_t ) and arg_type.declaration.ignore:
-                arg_type = declarations.base_type( operator.arguments[1].type )
-            else:
-                pass
-            assert isinstance( arg_type, declarations.declarated_t )
-            found = find( lambda decl: arg_type.declaration is decl
-                          , self.__extmodule.body.creators )
+            #select all to be exposed declarations
+            included = filter( lambda decl: decl.ignore == False, operator.class_types )
+            if not included:
+                msg = 'Py++ bug found!' \
+                      ' For some reason Py++ decided to expose free operator "%s", when all class types related to the operator definition are excluded.' \
+                      ' Please report this bug. Thanks! '
+                raise RuntimeError( msg % str( operator ) )
+
+            found = find( lambda decl: included[0] is decl, self.__extmodule.body.creators )
             adopt_operator_impl( operator, found )
 
     def _is_registered_smart_pointer_creator( self, creator, db ):
@@ -231,10 +235,14 @@ class creator_t( declarations.decl_visitor_t ):
         ctext_t = code_creators.custom_text_t
         for cls_creator in class_creators:
             cls_decl = cls_creator.declaration
-            #uc = user code
-            uc_creators = map( lambda uc: ctext_t( uc.text, uc.works_on_instance )
-                                      , cls_decl.registration_code )
-            cls_creator.adopt_creators( uc_creators )
+
+            uc_creators_head = map( lambda uc: ctext_t( uc.text, uc.works_on_instance )
+                                    , cls_decl.registration_code_head )
+            cls_creator.adopt_creators( uc_creators_head, 0 )
+
+            uc_creators_tail = map( lambda uc: ctext_t( uc.text, uc.works_on_instance )
+                                    , cls_decl.registration_code_tail )
+            cls_creator.adopt_creators( uc_creators_tail )
 
             uc_creators = map( lambda uc: ctext_t( uc.text ), cls_decl.wrapper_code )
             if uc_creators:
@@ -245,6 +253,21 @@ class creator_t( declarations.decl_visitor_t ):
             self.__extmodule.adopt_creators( uc_creators, insert_pos )
             cls_creator.associated_decl_creators.extend( uc_creators )
 
+    def __get_exposed_containers(self):
+        """list of exposed declarations, which were not ``included``, but still  
+        were exposed. For example, std containers
+        
+        std containers exposed by Py++, even if the user didn't ``include`` them.
+        """
+        cmp_by_name = lambda cls1, cls2: cmp( cls1.decl_string, cls2.decl_string )
+        used_containers = list( self.__types_db.used_containers )
+        used_containers = filter( lambda cls: cls.indexing_suite.include_files
+                                  , used_containers )
+        used_containers.sort( cmp_by_name )                                                                    
+        used_containers = filter( lambda cnt: cnt.already_exposed == False
+                                  , used_containers )
+        return used_containers
+        
     def _treat_indexing_suite( self ):
         def create_explanation(cls):
             msg = '//WARNING: the next line of code will not compile, because "%s" does not have operator== !'
@@ -263,14 +286,8 @@ class creator_t( declarations.decl_visitor_t ):
         creators = []
         created_value_traits = set()
 
-        cmp_by_name = lambda cls1, cls2: cmp( cls1.decl_string, cls2.decl_string )
-        used_containers = list( self.__types_db.used_containers )
-        used_containers = filter( lambda cls: cls.indexing_suite.include_files
-                                  , used_containers )
-        used_containers.sort( cmp_by_name )
-        for cls in used_containers:            
-            for msg in cls.readme():
-                self.decl_logger.warn( "%s;%s" % ( cls, msg ) )
+        for cls in self.__get_exposed_containers():
+            self.__print_readme( cls )
 
             cls_creator = create_cls_cc( cls )
             self.__dependencies_manager.add_exported( cls )
@@ -290,12 +307,14 @@ class creator_t( declarations.decl_visitor_t ):
                 class_traits = declarations.class_traits
                 if not ( None is element_type ) and class_traits.is_my_case( element_type ):
                     value_cls = class_traits.get_declaration( element_type )
-                    if value_cls not in created_value_traits:
+                    has_prerequisits = value_cls.less_than_comparable \
+                                       and value_cls.equality_comparable
+                    if ( not has_prerequisits ) and ( value_cls not in created_value_traits ):
                         created_value_traits.add( value_cls )
                         element_type_cc = code_creators.value_traits_t( value_cls )
                         self.__extmodule.adopt_declaration_creator( element_type_cc )
                 cls_creator.adopt_creator( code_creators.indexing_suite2_t(cls) )
-                
+
         creators.reverse()
         self.__module_body.adopt_creators( creators, 0 )
 
@@ -320,7 +339,7 @@ class creator_t( declarations.decl_visitor_t ):
             creator.target_configuration = self.__target_configuration
         #last action.
         self._append_user_code()
-        
+
         add_include = self.__extmodule.add_include
         #add system headers
         system_headers = self.__extmodule.get_system_headers( recursive=True, unique=True )
@@ -328,21 +347,25 @@ class creator_t( declarations.decl_visitor_t ):
              , system_headers )
         #add user defined header files
         if decl_headers is None:
-            decl_headers = declarations.declaration_files( self.__decls )        
+            decl_headers = declarations.declaration_files( self.__decls )
         map( lambda header: add_include( header, user_defined=False, system=False )
              , decl_headers )
-        
+
         self.__dependencies_manager.inform_user()
-        
+
         return self.__extmodule
 
     def visit_member_function( self ):
-        fwrapper = None
         self.__types_db.update( self.curr_decl )
         self.__dependencies_manager.add_exported( self.curr_decl )
+
+        if self.__fc_manager.is_fake_constructor( self.curr_decl ):
+            return
+
+        fwrapper = None
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-        
+
         maker_cls, fwrapper_cls = creators_wizard.find_out_mem_fun_creator_classes( self.curr_decl )
 
         maker = None
@@ -367,7 +390,7 @@ class creator_t( declarations.decl_visitor_t ):
                 maker = maker_cls( function=self.curr_decl )
             self.curr_code_creator.adopt_creator( maker )
             self.__opaque_types_manager.register_opaque( maker, self.curr_decl )
-        
+
         if self.curr_decl.has_static:
             #static_method should be created only once.
             found = filter( lambda creator: isinstance( creator, code_creators.static_method_t )
@@ -381,19 +404,36 @@ class creator_t( declarations.decl_visitor_t ):
     def visit_constructor( self ):
         self.__types_db.update( self.curr_decl )
         self.__dependencies_manager.add_exported( self.curr_decl )
-        if self.curr_decl.allow_implicit_conversion:
-            maker = code_creators.casting_constructor_t( constructor=self.curr_decl )
-            self.__module_body.adopt_creator( maker )
 
         cwrapper = None
         if self.curr_decl.parent.is_wrapper_needed():
             class_wrapper = self.curr_code_creator.wrapper
             cwrapper = code_creators.constructor_wrapper_t( constructor=self.curr_decl )
             class_wrapper.adopt_creator( cwrapper )
+        #TODO: FT for constructor
+            #~ if self.curr_decl.transformations:
+                #~ cwrapper = code_creators.constructor_transformed_wrapper_t( constructor=self.curr_decl )
+                #~ class_wrapper.adopt_creator( cwrapper )
+        #~ else:
+            #~ if self.curr_decl.transformations:
+                #~ cwrapper = code_creators.constructor_transformed_wrapper_t( constructor=self.curr_decl )
+                #~ class_wrapper.adopt_creator( cwrapper )
+                #~ self.__module_body.adopt_creator( cwrapper )
+                #~ self.curr_code_creator.associated_decl_creators.append( cwrapper )
+        #~ maker = None
+        #~ if self.curr_decl.transformations:
+            #~ maker = code_creators.constructor_transformed_t( constructor=self.curr_decl )
+        #~ else:
         maker = code_creators.constructor_t( constructor=self.curr_decl, wrapper=cwrapper )
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
         self.curr_code_creator.adopt_creator( maker )
+
+        if self.curr_decl.allow_implicit_conversion:
+            maker = code_creators.casting_constructor_t( constructor=self.curr_decl )
+            #casting constructor will be generated in the same file as class
+            self.curr_code_creator.adopt_creator( maker )
+
 
     def visit_destructor( self ):
         pass
@@ -411,13 +451,13 @@ class creator_t( declarations.decl_visitor_t ):
         self.__dependencies_manager.add_exported( self.curr_decl )
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-        
+
         self.__types_db.update( self.curr_decl )
         if not self.curr_decl.parent.is_abstract and not declarations.is_reference( self.curr_decl.return_type ):
             maker = code_creators.casting_operator_t( operator=self.curr_decl )
             self.__module_body.adopt_creator( maker )
             self.__opaque_types_manager.register_opaque( maker, self.curr_decl )
-            
+
         #what to do if class is abstract
         maker = code_creators.casting_member_operator_t( operator=self.curr_decl )
         self.curr_code_creator.adopt_creator( maker )
@@ -426,6 +466,12 @@ class creator_t( declarations.decl_visitor_t ):
     def visit_free_function( self ):
         if self.curr_decl in self.__exposed_free_fun_overloads:
             return
+
+        if self.__fc_manager.is_fake_constructor( self.curr_decl ):
+            self.__types_db.update( self.curr_decl )
+            self.__dependencies_manager.add_exported( self.curr_decl )
+            return
+
         elif self.curr_decl.use_overload_macro:
             parent_decl = self.curr_decl.parent
             names = set( map( lambda decl: decl.name
@@ -450,7 +496,7 @@ class creator_t( declarations.decl_visitor_t ):
                     self.curr_code_creator.adopt_creator( overloads_reg )
                     overloads_reg.associated_decl_creators.append( overloads_cls_creator )
                     self.__opaque_types_manager.register_opaque( overloads_reg, overloads )
-                    
+
                     ctext_t = code_creators.custom_text_t
                     for f in overloads:
                         uc_creators = map( lambda uc: ctext_t( uc.text ), f.declaration_code )
@@ -462,7 +508,7 @@ class creator_t( declarations.decl_visitor_t ):
             self.__dependencies_manager.add_exported( self.curr_decl )
             if None is self.curr_decl.call_policies:
                 self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-            
+
             maker = None
             if self.curr_decl.transformations:
                 wrapper = code_creators.free_fun_transformed_wrapper_t( self.curr_decl )
@@ -479,7 +525,7 @@ class creator_t( declarations.decl_visitor_t ):
             insert_pos = self.__extmodule.creators.index( self.__module_body )
             self.__extmodule.adopt_creators( uc_creators, insert_pos )
             maker.associated_decl_creators.extend( uc_creators )
-            
+
     def visit_free_operator( self ):
         self.__types_db.update( self.curr_decl )
         self.__free_operators.append( self.curr_decl )
@@ -524,7 +570,11 @@ class creator_t( declarations.decl_visitor_t ):
         exportable_members = self.curr_decl.get_exportable_members(sort_algorithms.sort)
 
         wrapper = None
-        cls_cc = code_creators.class_t( class_inst=self.curr_decl )
+        cls_cc = None
+        if cls_decl.introduces_new_scope:
+            cls_cc = code_creators.class_t( class_inst=self.curr_decl )
+        else:
+            cls_cc = self.curr_code_creator
 
         if self.curr_decl.is_wrapper_needed():
             wrapper = code_creators.class_wrapper_t( declaration=self.curr_decl
@@ -537,23 +587,33 @@ class creator_t( declarations.decl_visitor_t ):
                 self.curr_code_creator.wrapper.adopt_creator( wrapper )
             else:
                 self.__extmodule.adopt_declaration_creator( wrapper )
-            if declarations.has_trivial_copy( self.curr_decl ):
-                #~ #I don't know but sometimes boost.python requieres
-                #~ #to construct wrapper from wrapped classe
-                copy_constr = self.curr_decl.constructor( lambda c: c.is_copy_constructor, recursive=False )
-                if not self.curr_decl.noncopyable and copy_constr.is_artificial:
-                    cccc = code_creators.copy_constructor_wrapper_t( constructor=copy_constr )
-                    wrapper.adopt_creator( cccc )
-                null_constr = declarations.find_trivial_constructor(self.curr_decl)
-                if null_constr and null_constr.is_artificial:
-                    #this constructor is not going to be exposed
-                    tcons = code_creators.null_constructor_wrapper_t( constructor=null_constr )
-                    wrapper.adopt_creator( tcons )
+
+            #next constructors are not present in code, but compiler generated
+            #Boost.Python requiers them to be declared in the wrapper class
+            noncopyable_vars = self.curr_decl.find_noncopyable_vars()
+
+            copy_constr = self.curr_decl.find_copy_constructor()
+            if not self.curr_decl.noncopyable and copy_constr and copy_constr.is_artificial:
+                cccc = code_creators.copy_constructor_wrapper_t( constructor=copy_constr)
+                wrapper.adopt_creator( cccc )
+
+            trivial_constr = self.curr_decl.find_trivial_constructor()
+            if trivial_constr and trivial_constr.is_artificial and not noncopyable_vars:
+                tcons = code_creators.null_constructor_wrapper_t( constructor=trivial_constr )
+                wrapper.adopt_creator( tcons )
 
         exposed = self.expose_overloaded_mem_fun_using_macro( cls_decl, cls_cc )
 
-        cls_parent_cc.adopt_creator( cls_cc )
+        if cls_decl.introduces_new_scope:
+            cls_parent_cc.adopt_creator( cls_cc )
         self.curr_code_creator = cls_cc
+
+        if cls_decl.expose_this:
+            cls_cc.adopt_creator( code_creators.expose_this_t( cls_decl ) )
+
+        if cls_decl.expose_sizeof:
+            cls_cc.adopt_creator( code_creators.expose_sizeof_t( cls_decl ) )
+
         for decl in exportable_members:
             if decl in exposed:
                 continue
@@ -585,6 +645,15 @@ class creator_t( declarations.decl_visitor_t ):
         for property_def in cls_decl.properties:
             cls_cc.adopt_creator( code_creators.property_t(property_def) )
 
+        if wrapper and cls_decl.destructor_code:
+            destructor = code_creators.destructor_wrapper_t( class_=cls_decl )
+            wrapper.adopt_creator( destructor )
+
+        for fc in cls_decl.fake_constructors:
+            if self.__fc_manager.should_generate_code( fc ):
+                self.__dependencies_manager.add_exported( fc )
+                cls_cc.adopt_creator( code_creators.make_constructor_t( fc ) )
+
         self.curr_decl = cls_decl
         self.curr_code_creator = cls_parent_cc
 
@@ -615,7 +684,19 @@ class creator_t( declarations.decl_visitor_t ):
     def visit_variable(self):
         self.__types_db.update( self.curr_decl )
         self.__dependencies_manager.add_exported( self.curr_decl )
-        
+
+        if self.curr_decl.expose_address:
+            creator_type = None
+            if isinstance( self.curr_decl.parent, declarations.namespace_t ):
+                creator_type = code_creators.global_variable_addressof_t
+            else:
+                creator_type = code_creators.member_variable_addressof_t
+            self.curr_code_creator.adopt_creator( creator_type(self.curr_decl) )
+            return
+
+        if not self.curr_decl.expose_value:
+            return
+
         if declarations.is_array( self.curr_decl.type ):
             if self._register_array_1( self.curr_decl.type ):
                 array_1_registrator = code_creators.array_1_registrator_t( array_type=self.curr_decl.type )

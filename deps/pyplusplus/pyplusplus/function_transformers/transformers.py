@@ -38,7 +38,7 @@ def remove_ref_or_ptr( type_ ):
         return declarations.remove_reference( type_ )
     else:
         raise TypeError( 'Type should be reference or pointer, got %s.' % type_ )
-    
+
 
 # output_t
 class output_t( transformer.transformer_t ):
@@ -61,7 +61,7 @@ class output_t( transformer.transformer_t ):
         """
         self.arg = self.get_argument( arg_ref )
         self.arg_index = self.function.arguments.index( self.arg )
-        
+
         if not is_ref_or_ptr( self.arg.type ):
             raise ValueError( '%s\nin order to use "output" transformation, argument %s type must be a reference or a pointer (got %s).' ) \
                   % ( function, self.arg_ref.name, arg.type)
@@ -79,13 +79,13 @@ class output_t( transformer.transformer_t ):
         #declaring new variable, which will keep result
         var_name = controller.declare_variable( remove_ref_or_ptr( self.arg.type ), self.arg.name )
         #adding just declared variable to the original function call expression
-        controller.modify_arg_expression( self.arg_index, var_name )        
+        controller.modify_arg_expression( self.arg_index, var_name )
         #adding the variable to return variables list
         controller.return_variable( var_name )
 
     def __configure_v_mem_fun_default( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def __configure_v_mem_fun_override( self, controller ):
         controller.remove_py_arg( self.arg_index )
         tmpl = string.Template(
@@ -97,10 +97,10 @@ class output_t( transformer.transformer_t ):
 
     def configure_mem_fun( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_free_fun(self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_virtual_mem_fun( self, controller ):
         self.__configure_v_mem_fun_default( controller.default_controller )
         self.__configure_v_mem_fun_override( controller.override_controller )
@@ -108,14 +108,14 @@ class output_t( transformer.transformer_t ):
 # input_t
 class type_modifier_t(transformer.transformer_t):
     """Change/modify type of the argument.
-    
+
     Right now compiler should be able to use implicit conversion
     """
 
     def __init__(self, function, arg_ref, modifier):
         """Constructor.
 
-        modifier is callable, which take the type of the argument and should return 
+        modifier is callable, which take the type of the argument and should return
         new type
         """
         transformer.transformer_t.__init__( self, function )
@@ -132,23 +132,23 @@ class type_modifier_t(transformer.transformer_t):
         if not declarations.is_convertible( w_arg.type, self.arg.type ):
             casting_code = 'reinterpret_cast< %s >( %s )' % ( self.arg.type, w_arg.name )
             controller.modify_arg_expression(self.arg_index, casting_code)
-            
+
     def __configure_v_mem_fun_default( self, controller ):
         self.__configure_sealed( controller )
 
     def configure_mem_fun( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_free_fun(self, controller ):
         self.__configure_sealed( controller )
 
     def configure_virtual_mem_fun( self, controller ):
-        self.__configure_v_mem_fun_default( controller.default_controller ) 
+        self.__configure_v_mem_fun_default( controller.default_controller )
 
     def required_headers( self ):
         """Returns list of header files that transformer generated code depends on."""
         return []
-        
+
 # input_t
 class input_t(type_modifier_t):
     """Handles a single input variable.
@@ -175,6 +175,35 @@ class input_t(type_modifier_t):
     def __str__(self):
         return "input(%s)"%(self.arg.name)
 
+# input_t
+class from_address_t(type_modifier_t):
+    """Handles a single input variable.
+
+    Replaces the actual argument type with some integral type, so you
+    can use ctypes package.
+
+    void do_smth(int** image) -> do_smth(unsigned int addressof_image)
+
+    """
+
+    def __init__(self, function, arg_ref):
+        """Constructor.
+
+        The specified argument must be a reference or a pointer.
+
+        @param idx: Index of the argument that is an output value (the first arg has index 1).
+        @type idx: int
+        """
+        modifier = lambda type_: declarations.FUNDAMENTAL_TYPES[ 'unsigned int' ]
+        type_modifier_t.__init__( self, function, arg_ref, modifier )
+
+        if not is_ptr_or_array( self.arg.type ):
+            raise ValueError( '%s\nin order to use "from_address_t" transformation, argument %s type must be a pointer or a array (got %s).' ) \
+                  % ( function, self.arg_ref.name, arg.type)
+
+    def __str__(self):
+        return "from_address(%s)"%(self.arg.name)
+
 # inout_t
 class inout_t(transformer.transformer_t):
     """Handles a single input/output variable.
@@ -193,7 +222,7 @@ class inout_t(transformer.transformer_t):
         transformer.transformer_t.__init__( self, function )
         self.arg = self.get_argument( arg_ref )
         self.arg_index = self.function.arguments.index( self.arg )
-        
+
         if not is_ref_or_ptr( self.arg.type ):
             raise ValueError( '%s\nin order to use "inout" transformation, argument %s type must be a reference or a pointer (got %s).' ) \
                   % ( function, self.arg_ref.name, arg.type)
@@ -206,21 +235,21 @@ class inout_t(transformer.transformer_t):
         w_arg.type = remove_ref_or_ptr( self.arg.type )
         #adding the variable to return variables list
         controller.return_variable( w_arg.name )
-    
+
     def __configure_v_mem_fun_default( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def __configure_v_mem_fun_override( self, controller ):
         tmpl = string.Template(
             '$name = boost::python::extract< $type >( pyplus_conv::get_out_argument( $py_result, "$name" ) );' )
         store_py_result_in_arg = tmpl.substitute( name=self.arg.name
-                                                  , type=self.arg.type.decl_string
+                                                  , type=remove_ref_or_ptr( self.arg.type ).decl_string
                                                   , py_result=controller.py_result_variable.name )
         controller.add_py_post_call_code( store_py_result_in_arg )
 
     def configure_mem_fun( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_free_fun(self, controller ):
         self.__configure_sealed( controller )
 
@@ -241,7 +270,7 @@ _seq2vector = string.Template( os.linesep.join([
                  'pyplus_conv::ensure_uniform_sequence< $type >( $pylist );'
                , 'pyplus_conv::copy_sequence( $pylist, std::back_inserter( $native_array), boost::type< $type >() );']))
 
-_arr2seq = string.Template( 
+_arr2seq = string.Template(
             'pyplus_conv::copy_container( $native_array, $native_array + $array_size, pyplus_conv::list_inserter( $pylist ) );' )
 
 class input_static_array_t(transformer.transformer_t):
@@ -258,10 +287,10 @@ class input_static_array_t(transformer.transformer_t):
         @type size: int
         """
         transformer.transformer_t.__init__( self, function )
-        
+
         self.arg = self.get_argument( arg_ref )
         self.arg_index = self.function.arguments.index( self.arg )
-        
+
         if not is_ptr_or_array( self.arg.type ):
             raise ValueError( '%s\nin order to use "input_array" transformation, argument %s type must be a array or a pointer (got %s).' ) \
                   % ( function, self.arg.name, self.arg.type)
@@ -285,40 +314,40 @@ class input_static_array_t(transformer.transformer_t):
         native_array = controller.declare_variable( self.array_item_type
                                                     , "native_" + self.arg.name
                                                     , '[%d]' % self.array_size )
-            
+
         copy_pylist2arr = _seq2arr.substitute( type=self.array_item_type
                                                 , pylist=w_arg.name
                                                 , array_size=self.array_size
                                                 , native_array=native_array )
-        
+
         controller.add_pre_call_code( copy_pylist2arr )
-        
-        controller.modify_arg_expression( self.arg_index, native_array )        
+
+        controller.modify_arg_expression( self.arg_index, native_array )
 
     def __configure_v_mem_fun_default( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def __configure_v_mem_fun_override( self, controller ):
         global _arr2seq
         pylist = controller.declare_py_variable( declarations.dummy_type_t( 'boost::python::list' )
                                                  , 'py_' + self.arg.name )
-        
+
         copy_arr2pylist = _arr2seq.substitute( native_array=self.arg.name
                                                 , array_size=self.array_size
                                                 , pylist=pylist )
-                            
+
         controller.add_py_pre_call_code( copy_arr2pylist )
 
     def configure_mem_fun( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_free_fun(self, controller ):
         self.__configure_sealed( controller )
 
     def configure_virtual_mem_fun( self, controller ):
         self.__configure_v_mem_fun_override( controller.override_controller )
         self.__configure_v_mem_fun_default( controller.default_controller )
-        
+
 
 # s - static
 class output_static_array_t(transformer.transformer_t):
@@ -365,16 +394,16 @@ class output_static_array_t(transformer.transformer_t):
                                                     , '[%d]' % self.array_size )
 
         #adding just declared variable to the original function call expression
-        controller.modify_arg_expression( self.arg_index, native_array )        
+        controller.modify_arg_expression( self.arg_index, native_array )
 
         # Declare a Python list which will receive the output...
         pylist = controller.declare_variable( declarations.dummy_type_t( "boost::python::list" )
                                               , 'py_' + self.arg.name )
-    
+
         copy_arr2pylist = _arr2seq.substitute( native_array=native_array
                                                , array_size=self.array_size
                                                , pylist=pylist )
-        
+
         controller.add_post_call_code( copy_arr2pylist )
 
         #adding the variable to return variables list
@@ -393,16 +422,16 @@ class output_static_array_t(transformer.transformer_t):
                                           , py_result=controller.py_result_variable.name
                                           , name=self.arg.name )
         controller.add_py_post_call_code( get_ref_to_seq )
-        
+
         copy_pylist2arr = _seq2arr.substitute( type=self.array_item_type
                                                , pylist=seq
                                                , array_size=self.array_size
                                                , native_array=self.arg.name )
         controller.add_py_post_call_code( copy_pylist2arr )
-        
+
     def configure_mem_fun( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_free_fun(self, controller ):
         self.__configure_sealed( controller )
 
@@ -420,11 +449,11 @@ class input_c_buffer_t(transformer.transformer_t):
     def __init__(self, function, buffer_arg_ref, size_arg_ref):
         """Constructor.
 
-        @param buffer_arg_ref: "reference" to the buffer argument 
+        @param buffer_arg_ref: "reference" to the buffer argument
         @param buffer_arg_ref: "reference" to argument, which holds buffer size
         """
         transformer.transformer_t.__init__( self, function )
-        
+
         self.buffer_arg = self.get_argument( buffer_arg_ref )
         self.buffer_arg_index = self.function.arguments.index( self.buffer_arg )
 
@@ -453,55 +482,55 @@ class input_c_buffer_t(transformer.transformer_t):
         global _seq2arr
         w_buffer_arg = controller.find_wrapper_arg( self.buffer_arg.name )
         w_buffer_arg.type = declarations.dummy_type_t( "boost::python::object" )
-        
+
         controller.remove_wrapper_arg( self.size_arg.name )
 
-        size_var = controller.declare_variable( 
+        size_var = controller.declare_variable(
                           declarations.remove_const( self.size_arg.type )
                         , self.size_arg.name
                         , ' = boost::python::len(%s)' % w_buffer_arg.name )
-        
+
         # Declare a variable that will hold the C array...
-        buffer_var = controller.declare_variable( 
+        buffer_var = controller.declare_variable(
                           declarations.dummy_type_t( "std::vector< %s >" % self.buffer_item_type.decl_string )
                         , "native_" + self.buffer_arg.name )
 
         controller.add_pre_call_code( '%s.reserve( %s );' % ( buffer_var, size_var ) )
-        
+
         copy_pylist2arr = _seq2vector.substitute( type=self.buffer_item_type
                                                   , pylist=w_buffer_arg.name
                                                   , native_array=buffer_var )
-        
+
         controller.add_pre_call_code( copy_pylist2arr )
-        
-        controller.modify_arg_expression( self.buffer_arg_index, '&%s[0]' % buffer_var )        
-        controller.modify_arg_expression( self.size_arg_index, '%s' % size_var )        
+
+        controller.modify_arg_expression( self.buffer_arg_index, '&%s[0]' % buffer_var )
+        controller.modify_arg_expression( self.size_arg_index, '%s' % size_var )
 
     def __configure_v_mem_fun_default( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def __configure_v_mem_fun_override( self, controller ):
         raise NotImplementedError()
         #global _arr2seq
         #pylist = controller.declare_py_variable( declarations.dummy_type_t( 'boost::python::list' )
                                                  #, 'py_' + self.arg.name )
-        
+
         #copy_arr2pylist = _arr2seq.substitute( native_array=self.arg.name
                                                 #, array_size=self.array_size
                                                 #, pylist=pylist )
-                            
+
         #controller.add_py_pre_call_code( copy_arr2pylist )
 
     def configure_mem_fun( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_free_fun(self, controller ):
         self.__configure_sealed( controller )
 
     def configure_virtual_mem_fun( self, controller ):
         self.__configure_v_mem_fun_override( controller.override_controller )
         self.__configure_v_mem_fun_default( controller.default_controller )
-        
+
 
 class transfer_ownership_t(type_modifier_t):
     """see http://boost.org/libs/python/doc/v2/faq.html#ownership
@@ -524,19 +553,23 @@ class transfer_ownership_t(type_modifier_t):
         naked_type = declarations.remove_declarated( naked_type )
         w_arg.type = declarations.dummy_type_t( 'std::auto_ptr< %s >' % naked_type.decl_string )
         controller.modify_arg_expression(self.arg_index, w_arg.name + '.release()' )
-            
+
     def __configure_v_mem_fun_default( self, controller ):
         self.__configure_sealed( controller )
 
     def configure_mem_fun( self, controller ):
         self.__configure_sealed( controller )
-        
+
     def configure_free_fun(self, controller ):
         self.__configure_sealed( controller )
 
     def configure_virtual_mem_fun( self, controller ):
-        raise NotImplementedError()
-        
+        raise NotImplementedError(self.__class__.__name__)
+
+#TODO: FT for constructor
+    #~ def configure_constructor( self, controller ):
+        #~ self.__configure_sealed( controller )
+
     def required_headers( self ):
         """Returns list of header files that transformer generated code depends on."""
         return []

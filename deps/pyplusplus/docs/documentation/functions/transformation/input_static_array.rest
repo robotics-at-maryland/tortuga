@@ -1,0 +1,78 @@
+==================================
+``input_static_array`` transformer
+==================================
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+"input_static_array" transformer works on native static arrays. It handles the
+translation between `Python`_ object, passed as argument that represent a sequence,
+and the array. Size of array should be predefined.
+
+"input_static_array" transformer takes as first argument name or index of the
+original function argument. The argument should have "array" or "pointer" type.
+The second argument should an integer value, which represents array size.
+
+-------
+Example
+-------
+
+.. code-block:: C++
+
+   struct vector3{
+
+       void init( int values[3] ){
+           x = values[0];
+           y = values[1];
+           z = values[2];
+       }
+
+       int x,y,z;
+   };
+
+In order to expose ``init`` member function we need to create small wrapper:
+The following `Py++`_ code does it for you:
+
+  .. code-block:: Python
+
+     from pyplusplus import module_builder
+     from pyplusplus import function_transformers as FT
+
+     mb = module_builder.module_builder_t( ... )
+     v3 = mb.class_( 'vector3' )
+     v3.mem_fun( 'init' ).add_transformation( FT.input_static_array( 0, 3 ) )
+
+What you see below is the relevant pieces of generated code:
+
+  .. code-block:: C++
+
+     #include "__convenience.pypp.hpp" //Py++ header file, which contains few convenience function
+
+     namespace bp = boost::python;
+
+     static void init_418e52f4a347efa6b7e123b96f32a73c( ::ft::vector3 & inst, boost::python::object values ){
+         int native_values[3];
+         pyplus_conv::ensure_uniform_sequence< int >( values, 3 );
+         pyplus_conv::copy_sequence( values, pyplus_conv::array_inserter( native_values, 3 ) );
+         inst.init(native_values);
+     }
+
+     BOOST_PYTHON_MODULE(...){
+         ...
+         bp::class_< ft::vector3 >( "vector3", "documentation" )
+        .def( "init"
+              , &init_418e52f4a347efa6b7e123b96f32a73c
+              , ( bp::arg("inst"), bp::arg("values") ) )
+        .def_readwrite( "x", &ft::vector3::x )
+        .def_readwrite( "y", &ft::vector3::y )
+        .def_readwrite( "z", &ft::vector3::z );
+     }
+
+.. _`Py++` : ./../../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

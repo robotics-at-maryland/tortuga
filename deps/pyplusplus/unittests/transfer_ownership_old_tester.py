@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -34,7 +34,7 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
     def customize( self, mb ):
         event_clss = mb.classes( lambda cls: cls.name in ( 'event_t', 'do_nothing_t' ) )
         for cls in event_clss:
-            cls.class_type = cls.CLASS_TYPE.WRAPPER            
+            cls.exposed_class_type = cls.EXPOSED_CLASS_TYPE.WRAPPER            
             cls.held_type = 'std::auto_ptr< %s >' % cls.wrapper_alias
             cls.add_registration_code( register_sptr % 'std::auto_ptr< %s >' % cls.decl_string, False )
             cls.add_registration_code( impl_conv_code % { 'from' : cls.wrapper_alias

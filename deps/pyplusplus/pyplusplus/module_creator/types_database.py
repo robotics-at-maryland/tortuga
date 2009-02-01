@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -75,7 +75,7 @@ class types_database_t( object ):
             container_cls.indexing_suite.element_type
         except RuntimeError:
             decls_logger = _logging_.loggers.declarations
-            if not messages.filter_disabled_msgs([messages.W1042], container_cls.disabled_messaged ):
+            if not messages.filter_disabled_msgs([messages.W1042], container_cls.disabled_messages ):
                 return #user disabled property warning        
             decls_logger.warn( "%s;%s" % ( container_cls, messages.W1042 ) )        
         self.__containers.add( container_cls )

@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -122,6 +122,27 @@ class readme_tester_t( unittest.TestCase ):
         minus_minus = xxx.operator( symbol='--' )
         self.failUnless( 1 == len( minus_minus.readme() ), os.linesep.join( minus_minus.readme() ) )
 
+
+class use_function_signature_bug_tester_t( unittest.TestCase ):
+    CODE = \
+    """
+    struct base{
+        void f();
+    };
+
+    struct derived : public base {
+        void f(int i);
+        using base::f;
+    };    
+    """
+    def test(self):
+        mb = module_builder.module_builder_t(
+            [ module_builder.create_text_fc( self.CODE )]
+            , gccxml_path=autoconfig.gccxml.executable )
+        d = mb.class_( 'derived' )
+        f = d.mem_fun( 'f' )
+        self.failUnless( f.create_with_signature == True )
+
 class class_multiple_files_tester_t(unittest.TestCase):
     CLASS_DEF = \
     """
@@ -184,7 +205,8 @@ class class_multiple_files_tester_t(unittest.TestCase):
         mb.build_code_creator('x_class_multi')
         mb.split_module( autoconfig.build_dir
                         , [ mb.class_( '::tester::x' ) ]
-                        , on_unused_file_found=lambda fpath: fpath )
+                        , on_unused_file_found=lambda fpath: fpath
+                        , use_files_sum_repository=True)
 
 
 class split_sequence_tester_t(unittest.TestCase):
@@ -201,6 +223,86 @@ class doc_extractor_tester_t( unittest.TestCase ):
         escaped_doc = module_builder.doc_extractor_i.escape_doc('Hello "Py++"')
         self.failUnless( escaped_doc == '"Hello \\"Py++\\""' )
 
+class exclude_erronious_tester_t( unittest.TestCase ):    
+    def test(self):
+        
+        code = """
+            namespace xyz{
+            
+                struct good{};
+                
+                typedef void (*ff1)( int, int );
+                
+                void f_bad( ff1 );
+                
+            }
+        """
+        
+        mb = module_builder.module_builder_t( 
+                [ module_builder.create_text_fc( code ) ]
+                , gccxml_path=autoconfig.gccxml.executable )
+        
+        xyz = mb.namespace( name='xyz' )
+        xyz.include()
+        
+        xyz.exclude(compilation_errors=True)
+        
+        self.failUnless( xyz.ignore == False )
+        self.failUnless( xyz.class_( 'good' ).ignore == False )
+        self.failUnless( xyz.free_fun( 'f_bad' ).ignore == True )
+
+class exclude_ellipsis_tester_t( unittest.TestCase ):    
+    def test(self):
+        
+        code = """
+            namespace xyz{
+                void do_smth( int, ... );
+            }
+        """
+        
+        mb = module_builder.module_builder_t( 
+                [ module_builder.create_text_fc( code ) ]
+                , gccxml_path=autoconfig.gccxml.executable )
+        
+        do_smth = mb.free_fun( 'do_smth' )
+        
+        self.failUnless( do_smth.exportable == False )
+        print do_smth.why_not_exportable()
+
+class constructors_code_tester_t( unittest.TestCase ):    
+    def test(self):
+        
+        code = """
+            namespace xyz{
+                struct Y;
+                
+                struct X{
+                    X();
+                    X( const X& );       
+                    X( Y* );
+                };
+            }
+        """
+        
+        mb = module_builder.module_builder_t( 
+                [ module_builder.create_text_fc( code ) ]
+                , gccxml_path=autoconfig.gccxml.executable )
+        
+        x = mb.class_( 'X' )
+        x.include()
+        x.constructors().body = '    //all constructors body'
+        x.null_constructor_body = '    //null constructor body'
+        x.copy_constructor_body = '    //copy constructor body'
+        
+        mb.build_code_creator( 'XXX' )
+        code = mb.code_creator.create()
+        tmp = code.split( x.null_constructor_body )
+        self.failUnless( len( tmp ) == 2 )
+        tmp = code.split( x.copy_constructor_body )
+        self.failUnless( len( tmp ) == 2 )
+        tmp = code.split( '    //all constructors body' )
+        self.failUnless( len( tmp ) == 2 )
+
 def create_suite():
     suite = unittest.TestSuite()
     suite.addTest( unittest.makeSuite(doc_extractor_tester_t))
@@ -212,8 +314,10 @@ def create_suite():
     suite.addTest( unittest.makeSuite(class_multiple_files_tester_t))
     suite.addTest( unittest.makeSuite(readme_tester_t))
     suite.addTest( unittest.makeSuite(split_sequence_tester_t))
-
-
+    suite.addTest( unittest.makeSuite(exclude_erronious_tester_t))
+    suite.addTest( unittest.makeSuite(use_function_signature_bug_tester_t))
+    suite.addTest( unittest.makeSuite(exclude_ellipsis_tester_t))
+    suite.addTest( unittest.makeSuite(constructors_code_tester_t))
     return suite
 
 def run_suite():

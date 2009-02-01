@@ -32,7 +32,7 @@ I thought about few possible solutions to the problem. My first attempt was to
 add a missing functionality to Boost.Python library. Well, I quickly found out
 that the task is not a trivial one.
 
-The next solution, I thought about, was to expose the exception class as-is and
+The following solution, I thought about, was to expose the exception class as-is and
 to define new class in Python, which derives from it and the built-in ``Exception``.
 I implemented it and when I run the code I've got ``TypeError``:
 "Error when calling the metaclass bases multiple bases have instance lay-out conflict".
@@ -71,12 +71,4 @@ Download
 .. _`Py++` : ./../pyplusplus.html
 .. _`pygccxml` : http://www.language-binding.net/pygccxml/pygccxml.html
 .. _`SourceForge`: http://sourceforge.net/index.php
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
 

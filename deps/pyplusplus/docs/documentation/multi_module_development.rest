@@ -8,7 +8,7 @@ Multi-module development
 Introduction
 ------------
 
-It is a common practises to construct final program or a package from few
+It is a common practices to construct final program or a package from few
 different dependent or independent C++ libraries. Many time these libraries
 reuse classes\\functions defined in some other library. I think this is a must
 requirement from a code generator to be able to expose these libraries to `Python`_ ,
@@ -70,7 +70,7 @@ to `Py++`_ that the declaration is already exposed in another module:
   mb_core.build_code_creator( 'png' )
   mb.write_module( 'png.cpp' )
 
-`Py++`_ will generate code very similar to the next one:
+`Py++`_ will generate code very similar to the the following one:
 
 .. code-block:: C++
 
@@ -126,6 +126,29 @@ to `Py++`_ that the declaration is already exposed in another module:
 As you can see "png.cpp" file doesn't contains code, which exposes ``core::image_i``
 class.
 
+
+-----------------------
+Semi-automatic solution
+-----------------------
+
+``already_exposed`` solution is pretty good when you mix hand-written modules with
+the Py++ generated ones. It doesn't work/scale for "true" multi-module development. 
+This is exactly the reason why `Py++`_ offers "semi automatic" solution.
+
+For every exposed module, `Py++`_ generates "exposed_decl.pypp.txt" file. This
+file contains the list of all parsed declarations and whether they were included
+or excluded. Later, when you work on another module, you can tell `Py++`_ that 
+the current module depends on the previously generated one. `Py++`_ will load 
+"exposed_decl.pypp.txt" file and update the declarations.
+
+Usage example:
+
+.. code-block:: Python
+
+   mb = module_builder_t( ... )   
+   mb.register_module_dependency( <<<other module generated code directory>>> )
+
+
 ------
 Caveat
 ------
@@ -138,12 +161,4 @@ of any base class to be exposed\\registered before a derive one.
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
 

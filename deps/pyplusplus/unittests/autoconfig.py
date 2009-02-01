@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -11,15 +11,18 @@ import unittest
 #__pychecker__ = 'limit=1000'
 #import pychecker.checker
 
+this_module_dir_path = os.path.abspath ( os.path.dirname( sys.modules[__name__].__file__) )
 
-build_dir = os.path.abspath( os.path.join( os.curdir, 'temp' ) )
-data_directory = os.path.abspath( os.path.join( os.curdir, 'data' ) )
-sys.path.append( os.path.join( os.curdir, '..' ) )
+data_directory = os.path.join( this_module_dir_path, 'data' )
+build_directory = os.path.join( this_module_dir_path, 'temp' )
+build_dir = build_directory 
+
+sys.path.append( os.path.dirname( this_module_dir_path ) )
 
 from environment import scons, boost, python, gccxml
 
 class scons_config:
-    libs = ['boost_python-gcc41']
+    libs = ['boost_python']
     libpath = [ python.libs ] + boost.libs
     cpppath = [ boost.include, python.include ]
     include_dirs = cpppath + [data_directory]
@@ -27,16 +30,17 @@ class scons_config:
     @staticmethod
     def create_sconstruct():
         code = [
-            "SharedLibrary( target=r'%(target)s'"
-          , "    , source=[ %(sources)s ]"
-          , "    , LIBS=[ %s ]" % ','.join( [ 'r"%s"' % lib for lib in scons_config.libs ] )
-          , "    , LIBPATH=[ %s ]" % ','.join( [ 'r"%s"' % path for path in scons_config.libpath ] )
-          , "    , CPPPATH=[ %s ]" % ','.join( [ 'r"%s"' % path for path in scons_config.include_dirs] )
-          , "    , CCFLAGS=[ %s ]" % ','.join( [ 'r"%s"' % flag for flag in scons.ccflags ] )
-          , "    , SHLIBPREFIX=''"
-          , "    , CXX='%s'" % scons.compiler
-          , "    , SHLIBSUFFIX='%s'" % scons.suffix #explicit better then implicit
-          , ")" ]
+              "env = Environment()"
+            , "env.SharedLibrary( target=r'%(target)s'"
+            , "    , source=[ %(sources)s ]"
+            , "    , LIBS=[ %s ]" % ','.join( [ 'r"%s"' % lib for lib in scons_config.libs ] )
+            , "    , LIBPATH=[ %s ]" % ','.join( [ 'r"%s"' % path for path in scons_config.libpath ] )
+            , "    , CPPPATH=[ %s ]" % ','.join( [ 'r"%s"' % path for path in scons_config.include_dirs] )
+            , "    , CCFLAGS=[ %s ]" % ','.join( [ 'r"%s"' % flag for flag in scons.ccflags ] )
+            , "    , SHLIBPREFIX=''"
+            , "    , SHLIBSUFFIX='%s'" % scons.suffix #explicit better then implicit
+            , ")"
+            , "env.AddPostAction('%(target)s', 'mt.exe -nologo -manifest %(target)s.pyd.manifest -outputresource:%(target)s.pyd;2'  )" ]          
         return os.linesep.join( code )
 
 #I need this in order to allow Python to load just compiled modules
@@ -44,13 +48,13 @@ sys.path.append( build_dir )
 
 os.chdir( build_dir )
 
-if sys.platform == 'linux2':
-    LD_LIBRARY_PATH = 'LD_LIBRARY_PATH'
-    if not os.environ.has_key( LD_LIBRARY_PATH ) \
-       or not set( scons_config.libpath ).issubset( set( os.environ[LD_LIBRARY_PATH].split(':') ) ):
-        #see http://hathawaymix.org/Weblog/2004-12-30
-        print 'error: LD_LIBRARY_PATH has not been set'
-else:
+#~ if sys.platform == 'linux2':
+    #~ LD_LIBRARY_PATH = 'LD_LIBRARY_PATH'
+    #~ if not os.environ.has_key( LD_LIBRARY_PATH ) \
+       #~ or not set( scons_config.libpath ).issubset( set( os.environ[LD_LIBRARY_PATH].split(':') ) ):
+        #~ #see http://hathawaymix.org/Weblog/2004-12-30
+        #~ print 'error: LD_LIBRARY_PATH has not been set'
+if sys.platform == 'win32':
     PATH = os.environ.get( 'PATH', '' )
     PATH=PATH + ';' + ';'.join( scons_config.libpath )
     os.environ['PATH'] = PATH

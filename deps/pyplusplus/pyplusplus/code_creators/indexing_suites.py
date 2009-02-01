@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -17,13 +17,13 @@ class indexing_suite1_t( registration_based.registration_based_t
         registration_based.registration_based_t.__init__( self )
         declaration_based.declaration_based_t.__init__( self, declaration=container )
 
-    def _get_configuration( self ):
+    @property
+    def configuration( self ):        
         return self.declaration.indexing_suite
-    configuration = property( _get_configuration )
 
-    def _get_container( self ):
+    @property
+    def container( self ):
         return self.declaration
-    container = property( _get_container )
 
     def guess_suite_name( self ):
         if self.container.name.startswith( 'vector' ):
@@ -33,7 +33,7 @@ class indexing_suite1_t( registration_based.registration_based_t
 
     def _create_suite_declaration( self ):
         suite_identifier = algorithm.create_identifier( self, self.guess_suite_name() )
-        args = [ self.container.decl_string ]
+        args = [ self.container.partial_decl_string ]
         try:
             no_proxy = str( self.configuration.no_proxy ).lower()
         except:
@@ -51,7 +51,7 @@ class indexing_suite1_t( registration_based.registration_based_t
 
     def _get_system_headers_impl( self ):
         return self.configuration.include_files
-
+        
 class indexing_suite2_t( registration_based.registration_based_t
                          , declaration_based.declaration_based_t ):
     def __init__(self, container ):
@@ -169,9 +169,13 @@ class value_traits_t( code_creator.code_creator_t
         pass # for inner class this code will generate error :-((((
 
     def _create_impl( self ):
-        if self.declaration.already_exposed:
-            return ''
+        #if self.declaration.already_exposed:
+        #    return ''
+        #This is the error to skip generation in case the class is already exposed,
+        #because we still expose container, so it needs to know how to work with 
+        #the value_type
         return self.generate_value_traits()
 
     def _get_system_headers_impl( self ):
         return ['boost/python/suite/indexing/value_traits.hpp']
+        

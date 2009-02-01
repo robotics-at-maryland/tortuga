@@ -59,3 +59,10 @@ def transfer_ownership( *args, **keywd ):
     def creator( function ):
         return transformers.transfer_ownership_t( function, *args, **keywd )
     return creator
+
+def from_address( *args, **keywd ):
+    def creator( function ):
+        return transformers.from_address_t( function, *args, **keywd )
+    return creator
+
+

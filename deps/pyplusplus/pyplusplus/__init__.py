@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -15,11 +15,11 @@ step is a I{declaration tree} that represents all declarations found
 in the headers. You can then modify (decorate) this tree to customize
 the bindings. After that, a I{code creators} tree is created where
 each node represents a block of C++ source code. So you can change any piece of
-code befor it is written to disk. As a last step, these source code blocks are 
-finally written into one or more C++ source files, which can then be compiled to 
+code befor it is written to disk. As a last step, these source code blocks are
+finally written into one or more C++ source files, which can then be compiled to
 generate the final Python module.
 
-If you are just starting with U{Py++<http://www.language-binding.net>}, 
+If you are just starting with U{Py++<http://www.language-binding.net>},
 then consider to read documentation of L{module_builder} package.
 """
 
@@ -34,7 +34,14 @@ import messages
 
 from _logging_ import multi_line_formatter_t
 
-__version__ = '0.8.6'
+__version__ = '1.0.0'
+
+import pygccxml
+if not hasattr( pygccxml, '__revision__' ) or pygccxml.__revision__ < 1080:
+    msg = 'This revision of Py++ requieres pygccxml revision to be ' \
+          'greater or equal to %d. ' \
+          'Please install right pygccxml version.'          
+    raise AssertionError( msg % pygccxml.__revision__ )
 
 #Known issues:
 #3.
@@ -46,7 +53,7 @@ __version__ = '0.8.6'
 #~ > >             In one header file you define class, in an other you
 #~ > > define function that takes
 #~ > >             as argument shared_ptr to the class.
-#~ > 
+#~ >
 #~ > You don't need to use a shared_ptr holder for that purpose.  The
 #~ > *only* reason you'd ever want to use a share_ptr holder is if you
 #~ > expect people to wrap functions taking non-const references to these

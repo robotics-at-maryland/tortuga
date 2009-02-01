@@ -1,11 +1,11 @@
 Hello!
 
-I'm pleased to announce the 0.8.5 release of Py++. 
+I'm pleased to announce the 1.0 release of Py++.
 
 What is Py++?
 =============
 
-Py++ is an object-oriented framework for creating a code generator for 
+Py++ is an object-oriented framework for creating a code generator for
 Boost.Python library.
 
 Where is Py++?
@@ -18,38 +18,28 @@ Download: http://language-binding.net/pyplusplus/download.html
 What's new?
 ===========
 
-Features 
+Features
 --------
 
-* Added "Function Transformation" feature:
-  http://language-binding.net/pyplusplus/documentation/functions/transformation/transformation.html
+* Algorightm, which defines what virtual functions should be redefined was improved.
 
-* Added new functionality, which allows you to control messages and warnings: 
-  http://language-binding.net/pyplusplus/documentation/feedback.html#how-to-disable-warning-s
+* Exposing "C" code became easier - Py++ is able to generate ``ctypes`` friendly code.
 
-* Adding new algorithm, which controls the registration order of the functions.
-  http://language-binding.net/pyplusplus/documentation/functions/registration_order.html
+* Support for ``boost::python::make_constructor`` functionality was added.
+
+* Support for unions and unnamed classes was added.
+
+Bug fixes
+---------
+
+* Indexing Suite V2 - few bugs were fixed. 
   
-* Added new "Py++" defined "return_pointee_value" call policy:
-  http://language-binding.net/pyplusplus/documentation/functions/call_policies.html#py-defined-call-policies
   
-* Opaque types are fully supported:
-  http://language-binding.net/pyplusplus/documentation/functions/call_policies.html#special-case
+Contributors:
+
+* Julian Scheid
+* Oliver Schweitzer
 
 
-Small features
---------------
-
-* It is possible to configure "Py++" to generate faster ( compilation time )
-  code for indexing suite version 2. See API documentation.
-
-* The algorithm, which finds all class properties was improved. Now it provides 
-  a better way to control properties creation. A property that would hide another 
-  exposed declaration will not be registered\\created.
-
-* Work around for "custom smart pointer as member variable" Boost.Python bug
-  was introduced.
-
-
-For a more complete list, please see the news:
+For a more complete list, with links to documentation, please see the news:
 http://language-binding.net/pyplusplus/history/history.html
