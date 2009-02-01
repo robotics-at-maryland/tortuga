@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -65,3 +65,12 @@ def join( name, args ):
     """returns name< argument_1, argument_2, ..., argument_n >"""
     global __THE_PARSER
     return __THE_PARSER.join( name, args )
+
+def normalize( decl_string ):
+    """returns decl_string, which contains "normalized" spaces
+    
+    this functionality allows to implement comparison of 2 different string
+    which are actually same: x::y< z > and x::y<z>
+    """
+    global __THE_PARSER
+    return __THE_PARSER.normalize( decl_string )

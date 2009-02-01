@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -7,9 +7,39 @@
 
 import types
 
-def declaration_path( decl ):
+def declaration_path( decl, with_defaults=True ):
     """
     returns a list of parent declarations names
+
+    @param decl: declaration for which declaration path should be calculated
+    @type decl: L{declaration_t}
+
+    @return: [names], where first item contains top parent name and last item
+             contains decl name
+    """
+    if not decl:
+        return []
+    if not decl.cache.declaration_path:
+        result = [ decl.name ]
+        parent = decl.parent
+        while parent:
+            if parent.cache.declaration_path:
+                result.reverse()
+                decl.cache.declaration_path = parent.cache.declaration_path + result
+                return decl.cache.declaration_path
+            else:
+                result.append( parent.name )
+                parent = parent.parent
+        result.reverse()
+        decl.cache.declaration_path = result
+        return result
+    else:
+        return decl.cache.declaration_path
+
+def partial_declaration_path( decl ):
+    """
+    returns a list of parent declarations names without template arguments that
+    have default value
 
     @param decl: declaration for which declaration path should be calculated
     @type decl: L{declaration_t}
@@ -22,19 +52,50 @@ def declaration_path( decl ):
     #calculation.
     if not decl:
         return []
-    if not decl.cache.declaration_path:
-        result = [ decl.name ]
+    if not decl.cache.partial_declaration_path:
+        result = [ decl.partial_name ]
         parent = decl.parent
         while parent:
-            result.append( parent.name )
-            parent = parent.parent
+            if parent.cache.partial_declaration_path:
+                result.reverse()
+                decl.cache.partial_declaration_path \
+                    = parent.cache.partial_declaration_path + result
+                return decl.cache.partial_declaration_path
+            else:
+                result.append( parent.partial_name )
+                parent = parent.parent
         result.reverse()
-        decl.cache.declaration_path = result
+        decl.cache.partial_declaration_path = result
         return result
     else:
-        return decl.cache.declaration_path
+        return decl.cache.partial_declaration_path
 
-def full_name( decl ):
+def get_named_parent( decl ):
+    """
+    returns a reference to a named parent declaration
+
+    @param decl: the child declaration
+    @type decl: L{declaration_t}
+
+    @return: reference to L{declaration_t} or None if not found
+    """
+    if not decl:
+        return None
+
+    parent = decl.parent
+    while parent and ( not parent.name or parent.name == '::' ):
+        parent = parent.parent
+    return parent
+
+
+def full_name_from_declaration_path( dpath ):
+    ##Here I have lack of knowledge:
+    ##TODO: "What is the full name of declaration declared in unnamed namespace?"
+    result = filter( None, dpath )
+    result = result[0] + '::'.join( result[1:] )
+    return result
+
+def full_name( decl, with_defaults=True ):
     """
     returns full name of the declaration
     @param decl: declaration for which full name should be calculated. If decl
@@ -46,17 +107,15 @@ def full_name( decl ):
     """
     if None is decl:
         raise RuntimeError( "Unable to generate full name for None object!" )
-    if not decl.cache.full_name:
-        decl_path = declaration_path( decl )
-        ##Here I have lack of knowledge:
-        ##TODO: "What is the full name of declaration declared in unnamed namespace?"
-        result = filter( None, decl_path )
-        result = result[0] + '::'.join( result[1:] )
-        decl.cache.full_name = result
-        return result
-    else:
+    if with_defaults:
+        if not decl.cache.full_name:
+            decl.cache.full_name = full_name_from_declaration_path( declaration_path( decl ) )
         return decl.cache.full_name
-
+    else:
+        if not decl.cache.full_partial_name:
+            decl.cache.full_partial_name \
+                = full_name_from_declaration_path( partial_declaration_path( decl ) )
+        return decl.cache.full_partial_name
 
 def make_flatten( decl_or_decls ):
     """

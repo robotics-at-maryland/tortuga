@@ -137,7 +137,7 @@ classes defined by the package:
 
 * cache - classes, those one will help you to eliminate unnecessary parsing
 
-* patchers - classes, that fix `GCC-XML`_ generated declarations. ( Yes, sometimes
+* patchers - classes, which fix `GCC-XML`_ generated declarations. ( Yes, sometimes
   GCC-XML generates wrong description of C++ declaration. )
 
 Parser classes
@@ -184,7 +184,7 @@ Parser configuration classes
 
 
 ``file_configuration_t`` - a class, that contains some data and description how
-to treat the data. ``file_configuration_t`` can contain reference to the next types
+to treat the data. ``file_configuration_t`` can contain reference to the the following types
 of data:
 
 (1) path to C++ source file
@@ -227,9 +227,8 @@ Cache classes
 
 There are few cache classes, which implements different cache strategies. 
 
-1. ``file_configuration_t`` class, that keeps pass to C++ source file and path to
-   `GCC-XML`_ generated XML file. This class is not a cache class, but it also 
-   allows you to save your time.
+1. ``file_configuration_t`` class, that keeps path to C++ source file and path to
+   `GCC-XML`_ generated XML file. 
 
 2. ``file_cache_t`` class, will save all declarations from all files within single
    binary file.
@@ -277,7 +276,7 @@ bugs are fixed, only if I am 101% sure, that this is the right thing to do.
 Summary
 -------
 
-Thats all. I hope I was clear, at least I tried. Any way, `pygccxml`_ is an open 
+That's all. I hope I was clear, at least I tried. Any way, `pygccxml`_ is an open 
 source project. You always can take a look on the source code. If you need more 
 information please read API documentation.
 
@@ -289,10 +288,3 @@ information please read API documentation.
 .. _`parser package UML diagram` : ./parser_uml.png
 .. _`ReleaseForge` : http://releaseforge.sourceforge.net
 .. _`boost::type_traits` : http://www.boost.org/libs/type_traits/index.html
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

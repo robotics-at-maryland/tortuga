@@ -1,10 +1,11 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
 import os
 import sys
+import pprint
 import unittest
 import tempfile
 import autoconfig
@@ -16,6 +17,12 @@ from pygccxml.utils import *
 from pygccxml.parser import *
 from pygccxml.declarations import *
 
+def is_sub_path( root, some_path ):
+    root = normalize_path( root )
+    some_path = normalize_path( some_path )
+    return some_path.startswith( root )
+    
+
 class core_t( parser_test_case.parser_test_case_t ):
     """Tests core algorithms of GCC-XML and GCC-XML file reader.
     Those most white-box testing.
@@ -23,29 +30,7 @@ class core_t( parser_test_case.parser_test_case_t ):
     global_ns = None
     def __init__(self, *args ):
         parser_test_case.parser_test_case_t.__init__( self, *args )
-        self.test_files = [ 'core_ns_join_1.hpp'
-                            , 'core_ns_join_2.hpp'
-                            , 'core_ns_join_3.hpp'
-                            , 'core_membership.hpp'
-                            , 'core_class_hierarchy.hpp'
-                            , 'core_types.hpp'
-                            , 'core_diamand_hierarchy_base.hpp'
-                            , 'core_diamand_hierarchy_derived1.hpp'
-                            , 'core_diamand_hierarchy_derived2.hpp'
-                            , 'core_diamand_hierarchy_final_derived.hpp'
-                            , 'core_overloads_1.hpp'
-                            , 'core_overloads_2.hpp'
-                            , 'abstract_classes.hpp'
-        ]
         self.global_ns = None
-
-    def setUp(self):
-        if not core_t.global_ns:
-            decls = parse( self.test_files, self.config, self.COMPILATION_MODE )
-            core_t.global_ns = pygccxml.declarations.get_global_namespace( decls )
-            if self.INIT_OPTIMIZER:
-                core_t.global_ns.init_optimizer()
-        self.global_ns = core_t.global_ns
 
     def test_top_parent(self):
         enum = self.global_ns.enum( '::ns::ns32::E33' )
@@ -88,7 +73,9 @@ class core_t( parser_test_case.parser_test_case_t ):
                          , 'There are 2 or more instances of ns namespace.' )
 
     def _test_ns_membership(self, ns, enum_name ):
-        unnamed_enum = ns.enum( '', recursive=False )
+        unnamed_enum = ns.enum( lambda d: d.name == '' \
+                                          and is_sub_path( autoconfig.data_directory, d.location.file_name )
+                                , recursive=False )
         self.failUnless( unnamed_enum in ns.declarations
                          , "namespace '%s' does not contains unnamed enum." % ns.name )
 
@@ -105,7 +92,10 @@ class core_t( parser_test_case.parser_test_case_t ):
 
     def _test_class_membership( self, class_inst, enum_name, access ):
         #getting enum through get_members function
-        nested_enum1 = class_inst.enum( name=enum_name, function=access_type_matcher_t( access ) )
+        if class_inst.compiler == compilers.MSVC_PDB_9:
+            nested_enum1 = class_inst.enum( name=enum_name )
+        else:
+            nested_enum1 = class_inst.enum( name=enum_name, function=access_type_matcher_t( access ) )
 
         #getting enum through declarations property
         nested_enum2 = class_inst.enum( enum_name )
@@ -136,9 +126,15 @@ class core_t( parser_test_case.parser_test_case_t ):
         self.failUnless( std.mangled, 'mangled name of std namespace should be different from None' )
 
     def _test_is_based_and_derived(self, base, derived, access):
-        self.failUnless( hierarchy_info_t( derived, access ) in base.derived
+        dhi_v = hierarchy_info_t( derived, access, True )
+        dhi_not_v = hierarchy_info_t( derived, access, False )
+        self.failUnless( dhi_v in base.derived or dhi_not_v in base.derived
                          , "base class '%s' doesn't has derived class '%s'" %( base.name, derived.name ) )
-        self.failUnless( hierarchy_info_t( base, access ) in derived.bases
+
+        bhi_v = hierarchy_info_t( base, access, True )
+        bhi_not_v = hierarchy_info_t( base, access, False )
+
+        self.failUnless( bhi_v in derived.bases or bhi_not_v in derived.bases
                          , "derive class '%s' doesn't has base class '%s'" %( derived.name, base.name ) )
 
     def test_class_hierarchy(self):
@@ -180,6 +176,7 @@ class core_t( parser_test_case.parser_test_case_t ):
 
     def test_fundamental_types(self):
         #check whether all build in types could be constructed
+        errors = []
         for fundamental_type_name, fundamental_type in FUNDAMENTAL_TYPES.iteritems():
             if 'complex' in fundamental_type_name:
                 continue #I check this in an other tester
@@ -188,9 +185,13 @@ class core_t( parser_test_case.parser_test_case_t ):
             typedef_name = 'typedef_' + fundamental_type_name.replace( ' ', '_' )
             typedef = self.global_ns.decl( decl_type=typedef_t, name=typedef_name )
             self.failUnless( typedef, "unable to find typedef to build-in type '%s'" % fundamental_type_name )
-            self.failUnless( typedef.type.decl_string == fundamental_type.decl_string
-                             , "there is a difference between typedef base type name('%s') and expected one('%s')" \
+            if typedef.type.decl_string != fundamental_type.decl_string:
+                errors.append( "there is a difference between typedef base type name('%s') and expected one('%s')"
                                % (typedef.type.decl_string, fundamental_type.decl_string) )
+        if self.global_ns.compiler != compilers.MSVC_PDB_9:
+            self.failIf( errors, pprint.pformat( errors ) )
+        else:
+            self.failUnless( 5 == len( errors ), pprint.pformat( errors ) )
 
     def test_compound_types(self):
         typedef_inst = self.global_ns.decl( decl_type=typedef_t, name='typedef_const_int' )
@@ -250,7 +251,6 @@ class core_t( parser_test_case.parser_test_case_t ):
                          , "member function type class should be '%s' instead of '%s'" \
                            % ( members_pointers.decl_string, function_type.class_inst.decl_string ) )
 
-        self.failUnless( function_type.has_const, " 'member_function_ptr_t' should be const function." )
         self.failUnless( isinstance( function_type.return_type, int_t )
                          , "return function type of typedef 'member_function_ptr_t' should be '%s' instead of '%s' " \
                            %( 'int_t', function_type.return_type.__class__.__name__ ) )
@@ -261,7 +261,13 @@ class core_t( parser_test_case.parser_test_case_t ):
                          , "first argument of function of typedef 'member_function_ptr_t' should be '%s' instead of '%s' " \
                            %( 'double_t', function_type.arguments_types[0].__class__.__name__ ) )
 
+        if self.global_ns.compiler != compilers.MSVC_PDB_9:
+            self.failUnless( function_type.has_const, " 'member_function_ptr_t' should be const function." )
+
     def test_member_variable_type(self):
+        if self.global_ns.compiler == compilers.MSVC_PDB_9:
+            return
+
         mv = self.global_ns.decl( decl_type=typedef_t, name='member_variable_ptr_t')
         self._test_type_composition( mv.type, pointer_t, member_variable_type_t )
 
@@ -282,6 +288,14 @@ class core_t( parser_test_case.parser_test_case_t ):
                            % ( 4, len(do_nothings) ) )
         for index, do_nothing in enumerate(do_nothings):
             others = do_nothings[:index] + do_nothings[index+1:]
+            if set( do_nothing.overloads ) != set( others ):
+                print '\nexisting: '
+                for x in do_nothing.overloads:
+                    print str(x)
+                print '\nexpected: '
+                for x in others:
+                    print str(x)
+
             self.failUnless( set( do_nothing.overloads ) == set( others )
                              , "there is a difference between expected function overloads and existing ones." )
 
@@ -294,37 +308,92 @@ class core_t( parser_test_case.parser_test_case_t ):
         implementation = ns.class_( 'implementation' )
         self.failUnless( not implementation.is_abstract, "class 'implementation' should not be abstract" )
 
+    def test_versioning(self):
+        for d in self.global_ns.decls():
+            self.failUnless( d.compiler )
 
-class core_all_at_once_t( core_t ):
+    def test_byte_size( self ):
+        mptrs = self.global_ns.class_( 'members_pointers_t' )
+        self.failUnless( mptrs.byte_size != 0 )
+
+    def test_byte_align( self ):
+        mptrs = self.global_ns.class_( 'members_pointers_t' )
+        if mptrs.compiler != compilers.MSVC_PDB_9:
+            self.failUnless( mptrs.byte_align != 0 )
+
+    def test_byte_offset( self ):
+        mptrs = self.global_ns.class_( 'members_pointers_t' )
+        self.failUnless( mptrs.var( 'xxx' ).byte_offset != 0 )
+
+class pdb_based_core_tester_t( core_t ):
+    def __init__(self, *args ):
+        core_t.__init__( self, *args )
+        self.global_ns = autoconfig.get_pdb_global_ns()
+
+class core_gccxml_t( core_t ):
+    """Tests core algorithms of GCC-XML and GCC-XML file reader.
+    Those most white-box testing.
+    """
+    global_ns = None
+    def __init__(self, *args ):
+        core_t.__init__( self, *args )
+        self.test_files = [ 'core_ns_join_1.hpp'
+                            , 'core_ns_join_2.hpp'
+                            , 'core_ns_join_3.hpp'
+                            , 'core_membership.hpp'
+                            , 'core_class_hierarchy.hpp'
+                            , 'core_types.hpp'
+                            , 'core_diamand_hierarchy_base.hpp'
+                            , 'core_diamand_hierarchy_derived1.hpp'
+                            , 'core_diamand_hierarchy_derived2.hpp'
+                            , 'core_diamand_hierarchy_final_derived.hpp'
+                            , 'core_overloads_1.hpp'
+                            , 'core_overloads_2.hpp'
+                            , 'abstract_classes.hpp'
+        ]
+        self.global_ns = None
+
+    def setUp(self):
+        if not core_t.global_ns:
+            decls = parse( self.test_files, self.config, self.COMPILATION_MODE )
+            core_t.global_ns = pygccxml.declarations.get_global_namespace( decls )
+            if self.INIT_OPTIMIZER:
+                core_t.global_ns.init_optimizer()
+        self.global_ns = core_t.global_ns
+
+class core_all_at_once_t( core_gccxml_t ):
     COMPILATION_MODE = COMPILATION_MODE.ALL_AT_ONCE
     INIT_OPTIMIZER = True
     def __init__(self, *args):
-        core_t.__init__(self, *args)
+        core_gccxml_t.__init__(self, *args)
 
-class core_all_at_once_no_opt_t( core_t ):
+class core_all_at_once_no_opt_t( core_gccxml_t ):
     COMPILATION_MODE = COMPILATION_MODE.ALL_AT_ONCE
     INIT_OPTIMIZER = False
     def __init__(self, *args):
-        core_t.__init__(self, *args)
+        core_gccxml_t.__init__(self, *args)
 
-class core_file_by_file_t( core_t ):
+class core_file_by_file_t( core_gccxml_t ):
     COMPILATION_MODE = COMPILATION_MODE.FILE_BY_FILE
     INIT_OPTIMIZER = True
     def __init__(self, *args):
-        core_t.__init__(self, *args)
+        core_gccxml_t.__init__(self, *args)
 
-class core_file_by_file_no_opt_t( core_t ):
+class core_file_by_file_no_opt_t( core_gccxml_t ):
     COMPILATION_MODE = COMPILATION_MODE.FILE_BY_FILE
     INIT_OPTIMIZER = False
     def __init__(self, *args):
-        core_t.__init__(self, *args)
+        core_gccxml_t.__init__(self, *args)
 
 def create_suite():
     suite = unittest.TestSuite()
-    suite.addTest( unittest.makeSuite(core_all_at_once_t))
-    suite.addTest( unittest.makeSuite(core_all_at_once_no_opt_t))
-    suite.addTest( unittest.makeSuite(core_file_by_file_t))
-    suite.addTest( unittest.makeSuite(core_file_by_file_no_opt_t))
+    if autoconfig.cxx_parsers_cfg.gccxml:
+        suite.addTest( unittest.makeSuite(core_all_at_once_t))
+        suite.addTest( unittest.makeSuite(core_all_at_once_no_opt_t))
+        suite.addTest( unittest.makeSuite(core_file_by_file_t))
+        suite.addTest( unittest.makeSuite(core_file_by_file_no_opt_t))
+    if autoconfig.cxx_parsers_cfg.pdb_loader:
+        suite.addTest( unittest.makeSuite(pdb_based_core_tester_t))
     return suite
 
 def run_suite():

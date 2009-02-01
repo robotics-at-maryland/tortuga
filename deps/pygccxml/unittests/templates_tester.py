@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -58,6 +58,11 @@ class tester_t( unittest.TestCase ):
 
     def test_bug_is_tmpl_inst(self):
         self.failUnless( False == declarations.templates.is_instantiation( "::FX::QMemArray<unsigned char>::setRawData" ) )
+
+    def test_split_bug_fptr(self):
+        x = 'map<std::string, bool (*)(std::string&, Ogre::MaterialScriptContext&), std::less<std::string>, std::allocator<std::pair<std::string const, bool (*)(std::string&, Ogre::MaterialScriptContext&)> > >'
+        name, args = declarations.templates.split( x )
+        self.failUnless( len(x) == 4 )
 
 def create_suite():
     suite = unittest.TestSuite()    

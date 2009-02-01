@@ -1,4 +1,4 @@
-// Copyright 2004 Roman Yakovenko.
+// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,6 +13,11 @@ enum ENumbers{ e0, e1, e2, e3, e4, e5, e6, e7, e8, e9 };
 class data{
 public:
     enum EColor{ red, green, blue, black, white };
+private:
+    enum EPrivColor{ priv_red, priv_green, priv_blue, priv_black, priv_white };
+
+    void do_smth(EPrivColor x){}
+	EColor favorite_color;
 };
 
 } }

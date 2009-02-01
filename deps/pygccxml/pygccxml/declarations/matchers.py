@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -177,6 +177,7 @@ class declaration_matcher_t( matcher_base_t ):
                 else:
                     self.__opt_is_full_name = False
                     self.__decl_name_only = self.__opt_tmpl_name
+                self.__name = templates.normalize( name )            
             else:
                 if '::' in self.__name:
                     self.__opt_is_full_name = True
@@ -223,20 +224,22 @@ class declaration_matcher_t( matcher_base_t ):
 
     def check_name( self, decl ):
         assert not None is self.name
-
         if self.__opt_is_tmpl_inst:
             if not self.__opt_is_full_name:
-                if self.name != decl.name:
+                if self.name != templates.normalize( decl.name ) \
+                   and self.name != templates.normalize( decl.partial_name ):
                     return False
-            else:
-                if self.name != algorithm.full_name( decl ):
+            else:                
+                if self.name != templates.normalize( algorithm.full_name( decl, with_defaults=True ) ) \
+                   and self.name != templates.normalize( algorithm.full_name( decl, with_defaults=False ) ):
                     return False
         else:
             if not self.__opt_is_full_name:
-                if decl.name != self.name:
+                if self.name != decl.name and self.name != decl.partial_name:
                     return False
             else:
-                if self.name != algorithm.full_name( decl ):
+                if self.name != algorithm.full_name( decl, with_defaults=True ) \
+                   and self.name != algorithm.full_name( decl, with_defaults=False ):
                     return False
         return True
 

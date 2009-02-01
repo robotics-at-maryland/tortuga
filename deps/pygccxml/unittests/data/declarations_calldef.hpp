@@ -1,4 +1,4 @@
-// Copyright 2004 Roman Yakovenko.
+// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -59,6 +59,16 @@ namespace std{
 
 std::iostream& operator<<( std::iostream&, const calldefs_t& );
 std::iostream& operator>>( std::iostream&, calldefs_t& );
+
+namespace ellipsis_tester{
+
+struct ellipsis{
+    void do_smth( int, ... );
+};
+
+void do_smth_else( int, ... );
+
+}//ellipsis_tester
 
 } }
 

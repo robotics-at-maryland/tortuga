@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -10,6 +10,7 @@ defines base class for L{namespace_t} and L{class_t} classes
 import time
 import algorithm
 import filtering
+import templates
 import declaration
 import mdecl_wrapper
 from pygccxml import utils
@@ -62,6 +63,9 @@ class scopedef_t( declaration.declaration_t ):
     RECURSIVE_DEFAULT = True
     ALLOW_EMPTY_MDECL_WRAPPER = False
 
+    declaration_not_found_t = matcher_module.matcher.declaration_not_found_t
+    multiple_declarations_found_t = matcher_module.matcher.multiple_declarations_found_t
+
     _impl_matchers = {} #this class variable is used to prevent recursive imports
     _impl_decl_types = {} #this class variable is used to prevent recursive imports
     _impl_all_decl_types = [] #this class variable is used to prevent recursive imports
@@ -75,6 +79,7 @@ class scopedef_t( declaration.declaration_t ):
         self._type2decls_nr = {}
         self._type2name2decls_nr = {}
         self._all_decls = None
+        self._all_decls_not_recursive = None
 
     def _get_logger( self ):
         return utils.loggers.queries_engine
@@ -86,7 +91,12 @@ class scopedef_t( declaration.declaration_t ):
 
     def _get__cmp__items(self):
         """implementation details"""
-        items = [ self._sorted_list( self.declarations ) ]
+        items = []
+        if self._optimized:
+            #in this case we don't need to build class internal declarations list
+            items.append( self._sorted_list( self._all_decls_not_recursive ) )
+        else:
+            items.append( self._sorted_list( self.declarations ) )
         items.extend( self._get__cmp__scope_items() )
         return items
 
@@ -95,16 +105,24 @@ class scopedef_t( declaration.declaration_t ):
             return False
         return self._sorted_list( self.declarations[:] ) \
                == other._sorted_list( other.declarations[:] )
+        #self_decls = self._all_decls_not_recursive
+        #if not self._optimized:
+            #self_decls = self._sorted_list( self.declarations[:] )
+        #other_decls = other._all_decls_not_recursive[:]
+        #if not other._optimized:
+            #other_decls = other._sorted_list( other.declarations[:] )
+        #else:
+            #return  self_decls == other_decls
 
     def _get_declarations_impl(self):
         raise NotImplementedError()
 
     def _get_declarations(self):
-        return self._get_declarations_impl()
-    declarations = property( _get_declarations,
-                             doc="""A list of children declarations.
-                             @type: list of L{declaration_t}
-                             """)
+        if True == self._optimized:
+            return self._all_decls_not_recursive
+        else:
+            return self._get_declarations_impl()
+    declarations = property( _get_declarations, doc="list of children L{declarations<declaration_t>}" )
 
     def remove_declaration( self, decl ):
         raise NotImplementedError()
@@ -136,6 +154,7 @@ class scopedef_t( declaration.declaration_t ):
         self._type2decls_nr = {}
         self._type2name2decls_nr = {}
         self._all_decls = None
+        self._all_decls_not_recursive = None
 
         map( lambda decl: decl.clear_optimizer()
              , filter( lambda decl: isinstance( decl, scopedef_t )
@@ -165,7 +184,8 @@ class scopedef_t( declaration.declaration_t ):
             self._type2name2decls[ dtype ] = {}
             self._type2name2decls_nr[ dtype ] = {}
 
-        self._all_decls = algorithm.make_flatten( self.declarations )
+        self._all_decls_not_recursive = self.declarations
+        self._all_decls = algorithm.make_flatten( self._all_decls_not_recursive )
         for decl in self._all_decls:
             types = self.__decl_types( decl )
             for type_ in types:
@@ -182,7 +202,8 @@ class scopedef_t( declaration.declaration_t ):
                     name2decls_nr[ decl.name ].append( decl )
 
         map( lambda decl: decl.init_optimizer()
-             , filter( lambda decl: isinstance( decl, scopedef_t ),  self.declarations ) )
+             , filter( lambda decl: isinstance( decl, scopedef_t )
+                       ,  self._all_decls_not_recursive ) )
         if self.name == '::':
             self._logger.debug( "preparing data structures for query optimizer - done( %f seconds ). "
                                 % ( time.clock() - start_time ) )
@@ -193,7 +214,7 @@ class scopedef_t( declaration.declaration_t ):
             return name
         else:
             return function
-        
+
     def _build_operator_name( self, name, function, symbol ):
         """implementation details"""
         def add_operator( sym ):
@@ -253,7 +274,6 @@ class scopedef_t( declaration.declaration_t ):
         if matcher_args.has_key('allow_empty'):
             del matcher_args['allow_empty']
 
-
         matcher = match_class( **matcher_args )
         if matcher.decl_type:
             return matcher.decl_type
@@ -282,8 +302,15 @@ class scopedef_t( declaration.declaration_t ):
             decls = self.declarations
             if recursive:
                 decls = algorithm.make_flatten( self.declarations )
+            if decl_type:
+                decls = filter( lambda d: isinstance( d, decl_type ), decls )
             return decls
 
+        if name and templates.is_instantiation( name ):
+            #templates has tricky mode to compare them, so lets check the whole
+            #range
+            name = None
+        
         if name and decl_type:
             matcher = scopedef_t._impl_matchers[ scopedef_t.decl ]( name=name )
             if matcher.is_full_name():
@@ -313,7 +340,7 @@ class scopedef_t( declaration.declaration_t ):
                 return self._all_decls
             else:
                 self._logger.debug( 'non recursive query has not been optimized ( hint: query does not contain type and/or name )' )
-                return self.declarations
+                return self._all_decls_not_recursive
 
     def _find_single( self, match_class, **keywds ):
         """implementation details"""
@@ -399,7 +426,7 @@ class scopedef_t( declaration.declaration_t ):
                                   , header_file=header_file
                                   , recursive=recursive)
     var = variable #small alias
-    
+
     def variables( self, name=None, function=None, type=None, header_dir=None, header_file=None, recursive=None, allow_empty=None ):
         """returns a set of variable declarations, that are matched defined criterias"""
         return self._find_multiple( self._impl_matchers[ scopedef_t.variable ]
@@ -411,7 +438,7 @@ class scopedef_t( declaration.declaration_t ):
                                     , recursive=recursive
                                     , allow_empty=allow_empty)
     vars = variables #small alias
-    
+
     def calldef( self, name=None, function=None, return_type=None, arg_types=None, header_dir=None, header_file=None, recursive=None ):
         """returns reference to "calldef" declaration, that is matched defined criterias"""
         return self._find_single( self._impl_matchers[ scopedef_t.calldef ]
@@ -476,7 +503,7 @@ class scopedef_t( declaration.declaration_t ):
                                   , header_file=header_file
                                   , recursive=recursive )
     mem_fun = member_function
-    
+
     def member_functions( self, name=None, function=None, return_type=None, arg_types=None, header_dir=None, header_file=None, recursive=None, allow_empty=None ):
         """returns a set of member function declarations, that are matched defined criterias"""
         return self._find_multiple( self._impl_matchers[ scopedef_t.member_function ]
@@ -490,7 +517,7 @@ class scopedef_t( declaration.declaration_t ):
                                     , recursive=recursive
                                     , allow_empty=allow_empty)
     mem_funs = member_functions
-    
+
     def constructor( self, name=None, function=None, return_type=None, arg_types=None, header_dir=None, header_file=None, recursive=None ):
         """returns reference to constructor declaration, that is matched defined criterias"""
         return self._find_single( self._impl_matchers[ scopedef_t.constructor ]
@@ -528,7 +555,7 @@ class scopedef_t( declaration.declaration_t ):
                                   , header_dir=header_dir
                                   , header_file=header_file
                                   , recursive=recursive )
-
+    mem_oper = member_operator
     def member_operators( self, name=None, function=None, symbol=None, return_type=None, arg_types=None, header_dir=None, header_file=None, recursive=None, allow_empty=None ):
         """returns a set of member operator declarations, that are matched defined criterias"""
         return self._find_multiple( self._impl_matchers[ scopedef_t.member_operator ]
@@ -542,6 +569,7 @@ class scopedef_t( declaration.declaration_t ):
                                     , header_file=header_file
                                     , recursive=recursive
                                     , allow_empty=allow_empty)
+    mem_opers = member_operators
 
     def casting_operator( self, name=None, function=None, return_type=None, arg_types=None, header_dir=None, header_file=None, recursive=None ):
         """returns reference to casting operator declaration, that is matched defined criterias"""

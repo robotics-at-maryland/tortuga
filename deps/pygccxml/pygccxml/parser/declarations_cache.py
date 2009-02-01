@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -9,7 +9,7 @@ import md5
 import time
 import cPickle 
 from pygccxml import utils
-
+import config as cxx_parsers_cfg
 
 def file_signature( filename ):
     if not os.path.isfile( filename ):
@@ -33,9 +33,11 @@ def configuration_signature( config ):
         to be different between runs.
     """
     sig = md5.new()
-    sig.update(str(config.gccxml_path))
+    if isinstance( config, cxx_parsers_cfg.gccxml_configuration_t ):
+        sig.update(str(config.gccxml_path))
     sig.update(str(config.working_directory))
-    sig.update(str(config.cflags))
+    if isinstance( config, cxx_parsers_cfg.gccxml_configuration_t ):
+        sig.update(str(config.cflags))
     for p in config.include_paths:
         sig.update(str(p))
     for s in config.define_symbols:
