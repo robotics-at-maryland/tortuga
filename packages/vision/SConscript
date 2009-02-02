@@ -28,6 +28,10 @@ if env.HasFeature('wrappers'):
 
 # Sources
 sources = env.Glob('src', '*.cpp')
+
+# Add in ffmpeg libraries specifally on Mac OS X
+if envl['RAM_OS'] == 'darwin':
+  envl.Append(LIBS = ['avcodec', 'avformat', 'swscale', 'avutil'])
 	
 # Build Library (will be called 'libram_vision.so')
 # All build settings for the library are stored in buildfiles/libs.py

@@ -386,7 +386,7 @@ class TestMoveDirection(support.MotionTest):
         self.motionManager.setMotion(m)
         
         self.assertAlmostEqual(0, self.controller.speed, 4)
-        self.assertEqual(-5, self.controller.sidewaysSpeed)
+        self.assertAlmostEqual(-5, self.controller.sidewaysSpeed, 4)
         
     def testOffset(self):
         # Vehicle pointed 30 degrees left
@@ -399,7 +399,7 @@ class TestMoveDirection(support.MotionTest):
         
         expectedSpeed = pmath.sqrt(2)/2.0 * 5
         self.assertAlmostEqual(expectedSpeed, self.controller.speed, 4)
-        self.assertEqual(-expectedSpeed, self.controller.sidewaysSpeed)
+        self.assertAlmostEqual(-expectedSpeed, self.controller.sidewaysSpeed,4)
 
     def testOrientationUpdate(self):
         """Make sure we update when we get an orientation event"""
@@ -410,7 +410,7 @@ class TestMoveDirection(support.MotionTest):
         self.motionManager.setMotion(m)
         
         self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertEqual(6, self.controller.sidewaysSpeed)
+        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
 
         # Change vehicle orientation
         orientation = math.Quaternion(math.Degree(-45), math.Vector3.UNIT_Z)

@@ -20,20 +20,22 @@ from buildfiles.common.util import run_shell_cmd
 
 # Constants
 if platform.system() == 'Darwin':
-    BOOST_PYTHON_LIB = 'boost_python-mt-1_34_1'
-    BOOST_THREAD_LIB = 'boost_thread-mt-1_34_1'
-    BOOST_SIGNALS_LIB = 'boost_signals-mt-1_34_1'
-    BOOST_GRAPH_LIB = 'boost_graph-mt-1_34_1'
-    BOOST_FILESYSTEM_LIB = 'boost_filesystem-mt-1_34_1'
-    BOOST_PROGOPT_LIB = 'boost_program_options-mt-1_34_1'
-    BOOST_REGEX_LIB = 'boost_regex-mt-1_34_1'
-    BOOST_DATE_TIME_LIB = 'boost_date_time-mt-1_34_1'
+    BOOST_PYTHON_LIB = 'boost_python-xgcc40-mt'
+    BOOST_THREAD_LIB = 'boost_thread-xgcc40-mt'
+    BOOST_SIGNALS_LIB = 'boost_signals-xgcc40-mt'
+    BOOST_GRAPH_LIB = 'boost_graph-xgcc40-mt'
+    BOOST_FILESYSTEM_LIB = 'boost_filesystem-xgcc40-mt'
+    BOOST_SYSTEM_LIB = 'boost_system-xgcc40-mt'
+    BOOST_PROGOPT_LIB = 'boost_program_options-xgcc40-mt'
+    BOOST_REGEX_LIB = 'boost_regex-xgcc40-mt'
+    BOOST_DATE_TIME_LIB = 'boost_date_time-xgcc40-mt'
 elif platform.system() == 'Linux':
     BOOST_PYTHON_LIB = 'boost_python-gcc42-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc42-mt'
     BOOST_SIGNALS_LIB = 'boost_signals-gcc42-mt'
     BOOST_GRAPH_LIB = 'boost_graph-gcc42-mt'
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-gcc42-mt'
+    BOOST_SYSTEM_LIB = 'boost_system-gcc42-mt'
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc42-mt'
     BOOST_REGEX_LIB = 'boost_regex-gcc42-mt'
     BOOST_DATE_TIME_LIB = 'boost_date_time-gcc42-mt'
@@ -112,6 +114,9 @@ def setup_posix_libs():
         
         'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,37,None), [],
                                           [BOOST_FILESYSTEM_LIB]),
+
+        'Boost.System' : BoostLibrary('Boost.System', (1,37,None), [],
+                                          [BOOST_SYSTEM_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
                                               (1,37,None), [],
@@ -233,6 +238,7 @@ def _get_internal_lib(env, name):
                                                  'Boost.Signals',
                                                  'Boost.Filesystem',
                                                  'Boost.DateTime',
+                                                 'Boost.System',
                                                  'log4cpp']),
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
@@ -802,8 +808,10 @@ class BoostLibrary(Library):
     def check_version(self, env):
         conf = env.Configure()
 
-        ver_num = self.major_ver * 100000 + self.minor_ver * 1000 + \
-                  self.patch_ver
+        patch_ver = self.patch_ver
+        if patch_ver is None:
+            patch_ver = 0
+        ver_num = self.major_ver * 100000 + self.minor_ver * 1000 + patch_ver
         
         conf.TryCompile("""
         #include <boost/version.hpp>
