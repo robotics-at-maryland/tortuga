@@ -17,7 +17,10 @@ sources = envl.Glob('src', '*.cpp')
 envl.Append(CPPPATH = 'include')
 
 if 'posix' == os.name:
-    envl.AppendUnique(CCFLAGS = ['-fno-strict-aliasing'])
+    envl.AppendUnique(CCFLAGS = ['-fno-strict-aliasing', 
+                                 '-Wno-deprecated-declarations'])
+if envl['RAM_OS'] == 'darwin':
+    envl.AppendUnique(FRAMEWORKS = ['OpenGL'])
 
 envl.RAMProgram(target = 'VisionTool', source = sources,
                int_deps = ['vision'], ext_deps = ['wxWidgets'])
