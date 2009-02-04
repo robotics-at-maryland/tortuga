@@ -4,87 +4,87 @@ GUI:
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
 Subsystems:    
-    VisionSystem:
-        type: VisionSystem
-        depends_on: ["EventHub", "Vehicle"]
-        priority: "low"
+#    VisionSystem:
+#        type: VisionSystem
+#        depends_on: ["EventHub", "Vehicle"]
+#        priority: "low"
         
-        AdaptiveThresher:
-            foobared: true
-            initialMinPixels: 150
-            foundMinPixelScale: 0.85
-            lostMinPixelScale: 0.75
-            almostHitPercentage: 0.2
-            topRemovePercentage: 0.33
-            bottomRemovePercentage: 0.33
-            redPercentage: 38.0
-            redIntensity: 150
-            maxAspectRatio: 2.0
-        RedLightDetector:
-            initialMinPixels: 150
-            foundMinPixelScale: 0.85
-            lostMinPixelScale: 0.75
-            almostHitPercentage: 0.2
-            topRemovePercentage: 0.33
-            bottomRemovePercentage: 0.3
-            redPercentage: 38.0
-            redIntensity: 150
-            maxAspectRatio: 2.0
-        OrangePipeDetector:
-            rOverGMin: 0.75
-            rOverGMax: 1.5
-            bOverRMax: 0.75
-            centeredLimit: 0.1
-            minBrightness: 100
-            erodeIterations: 3
-        BinDetector:
-            centeredLimit: 0.2
-            sameBinThreshold: 0.2
-            maxAspectRatio: 3
-            blackMaskMinimumPercent: 10
-            blackMaskMaxTotalIntensity: 350
-            whiteMaskMinimumPercent: 30
-            whiteMaskMinimumIntensity: 190
-            incrediblyWashedOut: 1
-        DuctDetector:
-            minRedOverGreen: 0.5
-            maxRedOverGreen: 1.5
-            minRedOverBlue: 1.0
-            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
-            maxRedFailureThresh: 50
-            minTotalRGB: 125
-            minTotalRGBOnFailure: 150
-            erodeIterations: 3
-            dilateIterations: 3
-            minBlackPercent: 5
-            maxBlackTotal: 300
-            defaultGrowThreshX: 0.05
-            defaultGrowThreshY: 0.05
-            minXOverYToUpGrowThresh: 1.5
-            uppedGrowThreshX: 0.5
-            uppedGrowThreshY: 0.05
-        DownwardDuctDetector:
-            minRedOverGreen: 0.5
-            maxRedOverGreen: 1.5
-            minRedOverBlue: 1.0
-            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
-            maxRedFailureThresh: 50
-            minTotalRGB: 125
-            minTotalRGBOnFailure: 150
-        SafeDetector:
-            rOverGMin: 0.9
-            rOverGMax: 4.0
-            bOverRMax: 0.55
-            erodeIterations: 0
-            dilateIterations: 0
-            minTotal: 100
-
-        # Recording Settings
-        maxStreamRate: 1 # Hz
-        maxRecordRate: 5 # Hz
-        forwardFile: forward.avi
-        downwardFile: downward.avi
-        #forwardPort: 50000
+#        AdaptiveThresher:
+#            foobared: true
+#            initialMinPixels: 150
+#            foundMinPixelScale: 0.85
+#            lostMinPixelScale: 0.75
+#            almostHitPercentage: 0.2
+#            topRemovePercentage: 0.33
+#            bottomRemovePercentage: 0.33
+#            redPercentage: 38.0
+#            redIntensity: 150
+#            maxAspectRatio: 2.0
+#        RedLightDetector:
+#            initialMinPixels: 150
+#            foundMinPixelScale: 0.85
+#            lostMinPixelScale: 0.75
+#            almostHitPercentage: 0.2
+#            topRemovePercentage: 0.33
+#            bottomRemovePercentage: 0.3
+#            redPercentage: 38.0
+#            redIntensity: 150
+#            maxAspectRatio: 2.0
+#        OrangePipeDetector:
+#            rOverGMin: 0.75
+#            rOverGMax: 1.5
+#            bOverRMax: 0.75
+#            centeredLimit: 0.1
+#            minBrightness: 100
+#            erodeIterations: 3
+#        BinDetector:
+#            centeredLimit: 0.2
+#            sameBinThreshold: 0.2
+#            maxAspectRatio: 3
+#            blackMaskMinimumPercent: 10
+#            blackMaskMaxTotalIntensity: 350
+#            whiteMaskMinimumPercent: 30
+#            whiteMaskMinimumIntensity: 190
+#            incrediblyWashedOut: 1
+#        DuctDetector:
+#            minRedOverGreen: 0.5
+#            maxRedOverGreen: 1.5
+#            minRedOverBlue: 1.0
+#            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+#            maxRedFailureThresh: 50
+#            minTotalRGB: 125
+##            minTotalRGBOnFailure: 150
+#            erodeIterations: 3
+#            dilateIterations: 3
+#            minBlackPercent: 5
+##            maxBlackTotal: 300
+#            defaultGrowThreshX: 0.05
+#            defaultGrowThreshY: 0.05
+#            minXOverYToUpGrowThresh: 1.5
+#            uppedGrowThreshX: 0.5
+##            uppedGrowThreshY: 0.05
+#        DownwardDuctDetector:
+#            minRedOverGreen: 0.5
+#            maxRedOverGreen: 1.5
+#            minRedOverBlue: 1.0
+#            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+#            maxRedFailureThresh: 50
+##            minTotalRGB: 125
+#            minTotalRGBOnFailure: 150
+#        SafeDetector:
+#            rOverGMin: 0.9
+#            rOverGMax: 4.0
+#            bOverRMax: 0.55
+#            erodeIterations: 0
+#            dilateIterations: 0
+#            minTotal: 100
+#
+#        # Recording Settings
+#        maxStreamRate: 1 # Hz
+#        maxRecordRate: 5 # Hz
+#        forwardFile: forward.avi
+#        downwardFile: downward.avi
+#        #forwardPort: 50000
         #downwardPort: 50001
     
     EventHub:
@@ -111,7 +111,7 @@ Subsystems:
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
-                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+                     "MotionManager", "TimerManager", "Ai"] #, "VisionSystem"]
         States:
             # Gate sub task
             ram.ai.gate.Dive:
@@ -454,9 +454,15 @@ Subsystems:
         type: Logging
         update_interval: -1
         Appenders:
-            SBLog:
+            ThrusterLog:
                 type: File
                 fileName: thrusters.log
+                Layout:
+                    type: Pattern
+                    pattern: "%m %r%n"
+            PowerLog:
+                type: File
+                fileName: power.log
                 Layout:
                     type: Pattern
                     pattern: "%m %r%n"
@@ -480,8 +486,10 @@ Subsystems:
                     type: Pattern
                     pattern: "%c %m %r%n"
         Categories:
-            SensorBoard:
-                appenders: ['SBLog'] #,'Console']
+            Thruster:
+                appenders: ['ThrusterLog'] #,'Console']
+            Power:
+                appenders: ['PowerLog'] #, 'Console']
             Controller:
                 appenders: ['ControlLog'] #'Console']
             IMU:
@@ -496,9 +504,11 @@ Subsystems:
       
         orientationThreshold: 0.05
 
-        adaptCtrlRotK: 5
+        adaptCtrlRotK: 1
+        adaptCtrlRotLambda: 1
         adaptCtrlRotGamma: 1
 
+        gyroPDType: 0
 
         angularPGain: 5
         angularDGain: 1
@@ -512,7 +522,7 @@ Subsystems:
 #                  [0, 0, 1.5]]
 
         desiredSpeed: 0
-        desiredDepth: 0.2
+        desiredDepth: 0.7
         desiredQuaternion: [0, 0, 0, 1]
 
         # Picks kind of depth controller
@@ -546,7 +556,7 @@ Subsystems:
         #depthOCIC4: [0, 0, 0, 1]
         # K gains: -2  L gains: -10
         #depthOCIA4: [-6, -20242, -240, 0,
-        #              0, -29, 1.0, 0,
+        #             0, -29, 1.0, 0,
         #              0, -283, -1, 0,
         #             -6, -244, -248, 0]
         #depthOCIB4: [19998, 29, 283, 0]
@@ -554,9 +564,9 @@ Subsystems:
 
         # Settings for PID Depth Controller (#5)
         # PID 4
-        depthKp: 30
-        depthKi: 0.5
-        depthKd: 10
+        #depthKp: 30
+        #depthKi: 0.5
+        #depthKd: 10
         # PID 3
         #depthKp: 80
         #depthKi: 0.2
@@ -568,4 +578,12 @@ Subsystems:
         # PID 1
         #depthKp: 10
         #depthKi: 0.2
+        #depthKd: 4
+        # PID 5
+        #depthKp: 20
+        #depthKi: 0.2
+        #depthKd: 4
+        # PID 6
+        #depthKp: 20
+        #depthKi: 1
         #depthKd: 4
