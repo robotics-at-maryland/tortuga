@@ -2,9 +2,9 @@ clc;
 clear;
 close all
 
-imu_log = load('no_desired_change/imu.log');
+imu_log = load('systematic_turns/imu.log');
 
-control_log = load('no_desired_change/control.log');
+control_log = load('systematic_turns/control.log');
 
 % mag fields are columns 4-6 from img_log
 mag = imu_log(:,4:6);
@@ -59,17 +59,17 @@ xlabel('time(s)')
 
 % plots norm of mag and mag_raw
 figure(2)
-plot(time,mag_norm,time,mag_raw_norm)
+subplot(4,1,1); plot(time,mag_norm,time,mag_raw_norm)
 legend('mag','mag-raw');
 axis tight
 ylabel('Mag Norm')
-xlabel('time(s)')
-
-% plots angle b/w accel and mag vectors
-figure(3)
-subplot(2,1,1); plot(time2,torq_mag);
+subplot(4,1,2); plot(time2,torq_mag);
 ylabel('rot torq magnitude')
-subplot(2,1,2); plot(time,theta)
+subplot(4,1,3); plot(time,theta)
 axis([0 time(end) 0 pi/4])
 ylabel('theta(radians)')
+xlabel('time(s)')
+subplot(4,1,4); plot(time,slidingMedian(theta,100))
+axis([0 time(end) 0 pi/4])
+ylabel('filtered theta(radians)')
 xlabel('time(s)')
