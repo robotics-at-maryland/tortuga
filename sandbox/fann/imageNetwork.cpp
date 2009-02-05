@@ -14,9 +14,9 @@
 #include "imageNetwork.hpp"
 
 // defines to simplify stuff
-#define INPUT_SIZE m_net.get_num_input()
-#define OUTPUT_SIZE m_net.get_num_output()
-#define TRAIN_SIZE m_data.length_train_data()
+//#define INPUT_SIZE m_net.get_num_input()
+//#define OUTPUT_SIZE m_net.get_num_output()
+//#define TRAIN_SIZE m_data.length_train_data()
 
 // variables I created
 #define MAX_SIZE_FACTOR 0.25
@@ -48,17 +48,17 @@ using namespace FANN;
 /**
  * Build an imageNetwork designd to handle a certian number of images of a given size. 
  **/
-imageNetwork::imageNetwork (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidh) {
+imageNetwork::imageNetwork (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth) {
 	// the size of the input layer
-	const int inputSize = imageHeight * imageWidh;
+	const int inputSize = imageHeight * imageWidth;
 	
 #ifndef USE_CASCADE
 	// an array of layer sizes - starting with input and ending with output
 	unsigned int layerSizes[NUM_LAYERS];
-	 const int interval = (inputSize - images) / (NUM_LAYERS - 1);
-	 for (int i = 0; i < NUM_LAYERS; ++i) {
-	 layerSizes[i] = inputSize - (interval * i);
-	 }
+	const int interval = (inputSize - images) / (NUM_LAYERS - 1);
+	for (int i = 0; i < NUM_LAYERS; ++i) {
+		layerSizes[i] = inputSize - (interval * i);
+	}
 #endif
 	
 	// setup the network structure - if this doesn't work we're boned, hence the assert
@@ -132,31 +132,31 @@ imageNetwork::imageNetwork (const std::string &file, bool loadTrainingData) {
  * Train an imageNetwork to recognize a given image based on an array of similar image data.
  **/
 bool imageNetwork::addTrainData (unsigned int imageIndex, unsigned int images, const imageArray &imagesData) {
-	if (imageIndex > OUTPUT_SIZE) {
+	if (imageIndex > m_net.get_num_output()) {
 		return false;
 	}
 	bool empty = (m_data.length_train_data() == 0);
 	fann_type** inputData = (fann_type**) malloc (sizeof (fann_type*) * images);
 	for (int i = 0; i < images; ++i) {
-		inputData[i] = (fann_type*) malloc (sizeof (fann_type) * INPUT_SIZE);
+		inputData[i] = (fann_type*) malloc (sizeof (fann_type) * m_net.get_num_input());
 	}
 	fann_type** outputData = (fann_type**) malloc (sizeof (fann_type) * images);
 	for (int i = 0; i < images; ++i) {
-		outputData[i] = (fann_type*) malloc (sizeof (fann_type) * OUTPUT_SIZE);
+		outputData[i] = (fann_type*) malloc (sizeof (fann_type) * m_net.get_num_output());
 	}
 	training_data newData = training_data ();
 	// copy over the vector of image data into a nice single block of memory for the training_data object
 	// yes this is very inneficient, when I get a chance to look into how the create_train_from_callback works
 	// I might be able to improve this signifigantly, but this way was quick and easy
 	for (int i = 0; i < images; ++i) {
-		for (int j = 0; j < INPUT_SIZE; ++j) {
+		for (int j = 0; j < m_net.get_num_input(); ++j) {
 			inputData[i][j] = imagesData[i][j];
 		}
 	}
 	// construct an array to clamp output data to the correct values
 	//     MAX for the node representing this image, MIN for the others
 	for (int i = 0; i < images; ++i) {
-		for (int j = 0; j < OUTPUT_SIZE; ++j) {
+		for (int j = 0; j < m_net.get_num_output(); ++j) {
 			if (j == imageIndex) {
 				outputData[i][j] = DATA_MAX;
 			} else {
@@ -209,12 +209,12 @@ bool imageNetwork::runTraining () {
 int imageNetwork::run (std::vector<fann_type> inputs) {
 	int highest_out = 0;
 	fann_type* outputData;
-	fann_type* inputData = (fann_type*) malloc (sizeof (fann_type) * INPUT_SIZE);
-	for (int i = 0; i < INPUT_SIZE; ++i) {
+	fann_type* inputData = (fann_type*) malloc (sizeof (fann_type) * m_net.get_num_input());
+	for (int i = 0; i < m_net.get_num_input(); ++i) {
 		inputData[i] = inputs[i];
 	}
 	outputData = m_net.run (inputData);
-	for (int i = 0; i < OUTPUT_SIZE; ++i) {
+	for (int i = 0; i < m_net.get_num_input(); ++i) {
 		if (outputData[i] > outputData[highest_out]) {
 			highest_out = i;
 		}

@@ -27,7 +27,7 @@ private:
 	training_data m_data;
 	fann_type m_out;
 public:
-	imageNetwork (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidh);
+	imageNetwork (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth);
 	imageNetwork (const std::string &file, bool loadTrainingData = true);
 	bool addTrainData (unsigned int imageindex, unsigned int images, const imageArray &imageData);
 	bool runTraining ();
