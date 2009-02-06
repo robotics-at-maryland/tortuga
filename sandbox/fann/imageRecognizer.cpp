@@ -34,24 +34,26 @@
 #define MAX_EPOCHS 6250
 #define REPORT_EPOCHS 25
 #define REPORT_NEURONS 1
-#define DESIRED_ERROR 0.000001
+#define DESIRED_ERROR 0.0
 #define MIN_WEIGHT -0.0
 #define MAX_WEIGHT 1.0
 #define MIN_INIT_WEIGHT -0.1
 #define MAX_INIT_WEIGHT 0.1
-#define CASCADE_MULTIPLIER 0.95
-#define CASCADE_MAX_OUT_EPOCHS 250
-#define BIT_FAIL_LIMIT 0.35
+#define BIT_FAIL_LIMIT 0.15
+
+// cascade only fann variables
 #define CASCADE_OUTPUT_CHANGE 0.1
 #define CASCADE_CANDIDATE_CHANGE 0.25
 #define CASCADE_GROUPS 5
 #define CASCADE_CANDIDATE_LIMIT 750
+#define CASCADE_MULTIPLIER 0.95
+#define CASCADE_MAX_OUT_EPOCHS 250
 
 // static members
 std::vector<IplImage*> imageRecognizer::s_trainImages;
 unsigned int imageRecognizer::s_trainIndex;
 
-imageRecognizer::imageRecognizer (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth): m_canTrain (true), m_maxIndex (0) {
+imageRecognizer::imageRecognizer (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth): m_canTrain (true), m_maxIndex (0), m_outValue (0) {
 	// the size of the input layer
 	const int inputSize = imageHeight * imageWidth;
 
@@ -148,29 +150,49 @@ void imageRecognizer::runTraining () {
 	m_data.scale_train_data(DATA_MIN, DATA_MAX);
 #ifdef USE_CASCADE
 	m_net.reset_MSE();
-	m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);
+	m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);	
+	m_net.set_train_stop_function (FANN::STOPFUNC_BIT);
 	m_net.cascadetrain_on_data (m_data, MAX_SIZE_FACTOR * m_net.get_total_neurons(), REPORT_NEURONS, DESIRED_ERROR);
 #endif
 	m_net.reset_MSE();
-	m_net.set_training_algorithm (FANN::TRAIN_BATCH);
+	m_net.set_training_algorithm (FANN::TRAIN_BATCH);	
+	m_net.set_train_stop_function (FANN::STOPFUNC_MSE);
 	m_net.train_on_data (m_data, MAX_EPOCHS, REPORT_EPOCHS, DESIRED_ERROR);
 }
 
-const void imageRecognizer::test () {
+const void imageRecognizer::runTest () {
 	float MSE = 0.0;
 	m_net.reset_MSE();
 	m_net.test_data (m_data);
 	std::cout << "Test result: " << MSE << " MSE: " << m_net.get_MSE() << " Bit fail: " << m_net.get_bit_fail() << "\n";
 }
 
-int imageRecognizer::run (const IplImage* input) {
+int imageRecognizer::run (IplImage* input) {
 	int highest_out = 0;
 	fann_type* outputData;
-	IplImage* grayInput = cvCreateImage (cvSize(input->height, input->width), input->depth, 1);
-	cvCvtColor (input, grayInput, CV_BGR2GRAY);
+	IplImage* grayInput = input;
+	if (m_outValue) {
+		free (m_outValue);
+	}
+	if (input->nChannels == 4) {
+		grayInput = cvCreateImage (cvSize(input->height, input->width), input->depth, 1);
+		cvCvtColor (input, grayInput, CV_BGR2GRAY);
+	}
 	fann_type* inputData = (fann_type*) malloc (sizeof (fann_type) * m_net.get_num_input());
-	for (int i = 0; i < m_net.get_num_input(); ++i) {
+	/*for (int i = 0; i < m_net.get_num_input(); ++i) {
 		inputData[i] = (*(grayInput->imageData + (i * grayInput->widthStep)));
+	}*/
+	int w, h, i = 0;
+	for (w = 0; w < input->width; ++w) {
+		for (h = 0; h < input->height; ++h) {
+			inputData[i++] = (input->imageData + (w * input->widthStep))[h];
+		}
+	}
+	if (i < m_net.get_num_input()) {
+		std::cerr << "Warn: training image data seems to be missing.\n";
+		while (i < m_net.get_num_input()) {
+			inputData[i++] = 0;
+		}
 	}
 	outputData = m_net.run (inputData);
 	for (int i = 0; i < m_net.get_num_input(); ++i) {
@@ -178,10 +200,11 @@ int imageRecognizer::run (const IplImage* input) {
 			highest_out = i;
 		}
 	}
-	m_outValue = outputData[highest_out];
-	cvReleaseImage(&grayInput);
+	m_outValue = outputData;
+	if (input != grayInput) {
+		cvReleaseImage(&grayInput);
+	}
 	free (inputData);
-	free (outputData);
 	return highest_out;
 }
 
@@ -206,14 +229,37 @@ const bool imageRecognizer::save (const BF::path &file, bool saveTrainingData) {
 	return value;
 }
 
+void printImage (IplImage* img) {
+	std::cout << "Image:\n";
+	std::cout << "\tChannels: " << img->nChannels << "\n";
+	std::cout << "\tBit Depth: " << img->depth << "\n";
+	std::cout << "\tHeight, Width: " << img->height << "," << img->width << "\n";
+	std::cout << "\tImage Size: " << img->imageSize << "\n";
+}
+int Acount = 0;
+int Bcount = 0;
 void imageRecognizer::trainingCallback (unsigned int setNum, unsigned int inputs, unsigned int outputs, fann_type* input, fann_type* output) {
 	IplImage* img = cvCreateImage (cvSize (s_trainImages[setNum]->height, s_trainImages[setNum]->width), s_trainImages[setNum]->depth, 1);
+	if (!img) {
+		std::cout << "imageRecognizer says: OpenCV won't give me image memory.\n";
+		return;
+	}
 	if (s_trainImages[setNum]->nChannels == 4) {
 		cvCvtColor(s_trainImages[setNum], img, CV_BGR2GRAY);
 	}
-	for (int i = 0; i < inputs; ++i) {
-		input[i] = (*(img->imageData + (i * img->widthStep)));
+	int w, h, i = 0;
+	for (w = 0; w < img->width; ++w) {
+		for (h = 0; h < img->height; ++h) {
+			input[i++] = (img->imageData + (w * img->widthStep))[h];
+		}
 	}
+	if (i < inputs) {
+		std::cerr << "Warn: training image data seems to be missing.\n";
+		while (i < inputs) {
+			input[i++] = 0;
+		}
+	}
+	Bcount = 0;
 	for (int i = 0; i < outputs; ++i) {
 		if (i == s_trainIndex) {
 			output[i] = DATA_MAX;

@@ -30,7 +30,7 @@ private:
 	FANN::neural_net m_net;
 	FANN::training_data m_data;
 	BF::path m_file;
-	fann_type m_outValue;
+	fann_type* m_outValue;
 	const bool m_canTrain;
 	unsigned int m_maxIndex;
 	static std::vector<IplImage*> s_trainImages;
@@ -40,10 +40,10 @@ public:
 	imageRecognizer (const BF::path &file, bool loadTrainingData = true);
 	int addTrainData (const std::vector<IplImage*> &images);
 	void runTraining ();
-	int run (const IplImage* input);
-	const void test ();
+	int run (IplImage* input);
+	const void runTest ();
 	const bool save (const BF::path &file, bool saveTrainingData = true);
-	inline const fann_type resultValue () { return m_outValue; }
+	inline const fann_type resultValue (unsigned int index) { return m_outValue[index]; }
 	inline const void print () { m_net.print_parameters(); }
 	static void trainingCallback (unsigned int setNum, unsigned int inputs, unsigned int outputs, fann_type* input, fann_type* output);
 };

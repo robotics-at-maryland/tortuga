@@ -3,16 +3,16 @@ CHEADERS =
 CSOURCE = 
 COBJECTS = ${CSOURCE:.c=.o}
 
-CXXHEADERS = imageNetwork.hpp imageSupport.hpp
-CXXSOURCE = imageNetwork.cpp imageSupport.cpp
+CXXHEADERS = imageRecognizer.hpp
+CXXSOURCE = imageRecognizer.cpp
 CXXOBJECTS = ${CXXSOURCE:.cpp=.o}
 
-EXESOURCE = buildNetwork.cpp testNetwork.cpp
+EXESOURCE = network.cpp
 EXEOBJECTS = ${EXESOURCE:.cpp=.o}
 EXECUTABLES = ${EXEOBJECTS:.o=}
 
-INCDIR = /opt/ram/local/include
-LIBDIR = /opt/ram/local/lib
+INCDIR = -I/opt/ram/local/include/boost-1_37 -I/opt/ram/local/include
+LIBDIR = -L/opt/ram/local/lib
 LIBS = -lcv -lcxcore -lhighgui -lfann -lboost_filesystem-xgcc40-mt -lboost_system-xgcc40-mt -lstdc++
 
 CC = gcc
@@ -25,28 +25,25 @@ CFLAGS = $(NODEBUG)
 all: $(EXECUTABLES)
 
 # specific executable build rules
-buildNetwork: imageNetwork.o imageSupport.o buildNetwork.o
-	$(CC) $(CFLAGS) -L$(LIBDIR) $(LIBS) -o buildNetwork $^
-	
-testNetwork: testNetwork.o imageNetwork.o 
-	$(CC) $(CFLAGS) -L$(LIBDIR) $(LIBS) -o testNetwork $^
+network: network.o imageRecognizer.o
+	$(CC) $(CFLAGS) $(LIBDIR) $(LIBS) -o $@ $^
 
 # general executable build rules - may link to uneeded objects (No longer needed)
 #$(EXECUTABLES): $(EXEOBJECTS) $(CXXOBJECTS) $(COBJECTS)
-#	$(CC) $(CFLAGS) -L$(LIBDIR) $(LIBS) -o $@ $(COBJECTS) $(CXXOBJECTS) $@.o
+#	$(CC) $(CFLAGS) $(LIBDIR) $(LIBS) -o $@ $(COBJECTS) $(CXXOBJECTS) $@.o
 
 # how to build c objects
 $(COBJECTS): $(CSOURCE) $(CHEADERS)
-	$(CC) $(CFLAGS) -I$(INCDIR) -x c -c -o $*.o $*.c
+	$(CC) $(CFLAGS) $(INCDIR) -x c -c -o $*.o $*.c
 
 # how to build c++ objects
 $(CXXOBJECTS): $(CXXSOURCE) $(CXXHEADERS) $(CHEADERS) $(EXESOURCE)
-	$(CC) $(CFLAGS) -I$(INCDIR) -x c++ -c -o $*.o $*.cpp
+	$(CC) $(CFLAGS) $(INCDIR) -x c++ -c -o $*.o $*.cpp
 
 # how to build executable (main) cpp objects
 # identical to the CXXOBJECTS rule except that the CXXSOURCE is not a dependancy
 $(EXEOBJECTS): $(CXXHEADERS) $(CHEADERS) $(EXESOURCE)
-	$(CC) $(CFLAGS) -I$(INCDIR) -x c++ -c -o $*.o $*.cpp
+	$(CC) $(CFLAGS) $(INCDIR) -x c++ -c -o $*.o $*.cpp
 
 # get rid of everything so we can start over
 clean:

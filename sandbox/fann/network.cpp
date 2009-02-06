@@ -49,11 +49,13 @@ int main (int argc, char * const argv[]) {
 	// print the original network
 	test.print ();
 	// train the network
+	std::cout << "Beginning training.\n";
 	test.runTraining ();
 	// print the trained network
 	test.print ();
 	// test the network
-	test.test ();
+	std::cout << "Running a network test.\n";
+	test.runTest ();
 	// save the network
 	dirPath = BF::path (argv[4]);
 	test.save (dirPath);
