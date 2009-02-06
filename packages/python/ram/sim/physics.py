@@ -11,6 +11,7 @@ import ogre.physics.OgreNewt as OgreNewt
 
 
 # Project Imports
+import ram.sim as sim
 import ram.core as core
 import ram.event as event
 import ram.sim.util as util
@@ -211,15 +212,15 @@ class Body(Object):
         # TODO: Improve collision support
         col = None
         if shape_type == 'box':
-            size = Ogre.Vector3(shape_props['size'])
+            size = sim.OgreVector3(shape_props['size'])
             col = OgreNewt.Box(scene.world, size)
         elif shape_type == 'mesh':
             # Fix this by later (we shouldn't need a node!!!)
             name = 'TREE_HACK' + str(Body._tree_mesh_hack)
             Body._tree_mesh_hack += 1
             mesh_name = shape_props['mesh_name']
-            scale = Ogre.Vector3(shape_props.get('mesh_scale',
-                                                 Ogre.Vector3(1,1,1)))
+            scale = sim.OgreVector3(shape_props.get('mesh_scale',
+                                                    Ogre.Vector3(1,1,1)))
             
             tree_ent = scene.scene_mgr.createEntity(name, mesh_name)
 
@@ -302,7 +303,7 @@ class Body(Object):
     
     @staticmethod
     def _make_force_pos_pair(force, pos):
-        return (Ogre.Vector3(force), Ogre.Vector3(pos))
+        return (sim.OgreVector3(force), sim.OgreVector3(pos))
     
     # IBody Methods
     class material(core.cls_property):
@@ -313,7 +314,7 @@ class Body(Object):
         def fget(self):
             return self._gravity
         def fset(self, gravity):
-            self._gravity = Ogre.Vector3(gravity)
+            self._gravity = sim.OgreVector3(gravity)
             
     class position(core.cls_property):
         def fget(self):
@@ -344,7 +345,7 @@ class Body(Object):
         def fget(self):
             return self._force
         def fset(self, force):
-            self._force = Ogre.Vector3(force)
+            self._force = sim.OgreVector3(force)
     
     def add_local_force(self, force, pos):
         self._local_force.append(Body._make_force_pos_pair(force, pos))
@@ -375,7 +376,7 @@ class Body(Object):
         def fget(self):
             return self._torque
         def fset(self, torque):
-            self._torque = Ogre.Vector3(torque)
+            self._torque = sim.OgreVector3(torque)
     
         
     def set_buoyancy(self, normal):

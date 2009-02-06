@@ -172,7 +172,7 @@ class Simulation(Singleton, Module):
         
         # Start up Ogre piecewise, passing a default empty config if needed
         self._load_ogre_plugins(config.get('Plugins', {}))
-        self._create_render_system(config.get('Rendering',{}))
+        self._create_render_system(config.get('RenderSystem',{}))
         self._ogre_root.initialise(False)
         
     def _load_ogre_plugins(self, config):
@@ -271,7 +271,9 @@ class Simulation(Singleton, Module):
         try:
             type = config.get('type', defaults.render_system)
             type_name = typemap[type]
-            for renderer in self._ogre_root.getAvailableRenderers():
+            renderers = self._ogre_root.getAvailableRenderers()
+            for i in xrange(0, len(renderers)):
+                renderer = renderers[i]
                 if type_name == renderer.getName():
                     render_system = renderer
                 
@@ -285,7 +287,7 @@ class Simulation(Singleton, Module):
         
         
         # Load our options from the custom config system
-        render_system_opts = config.get(type, defaults.render_system_options)          
+        render_system_opts = config.get(type, defaults.render_system_options)
         for name, value in render_system_opts:
             render_system.setConfigOption(name, value)
 

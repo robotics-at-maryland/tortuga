@@ -20,6 +20,7 @@ from ext.vision import Suit
 from sim.subsystems import Simulation
 from sim.vehicle import SimVehicle
 
+import ram.sim
 import ram.core as core
 import ram.timer
 from ram.sim.object import IObject
@@ -163,7 +164,7 @@ class BlackJackTable(ram.sim.object.Object):
         
         # Parse config information
         basePos, orientation = parse_position_orientation(node)
-        basePos = ogre.Vector3(basePos)
+        basePos = ram.sim.OgreVector3(basePos)
         baseOffset = orientation * ogre.Vector3(0, BlackJackTable.SEPERATION, 0)
         baseName = node['name']
         
@@ -240,9 +241,9 @@ class AirDuct(ram.sim.object.Object):
         
         # Parse config information
         basePos, orientation = parse_position_orientation(node)
-        self._position = ogre.Vector3(basePos)
+        self._position = ram.sim.OgreVector3(basepos)
         self._orientation = orientation
-        basePos = ogre.Vector3(basePos)
+        basePos = ram.sim.OgreVector3(basepos)
         baseName = node['name']
         
         sideOffset = orientation * ogre.Vector3(0, AirDuct.SEPERATION, 0)
@@ -910,7 +911,7 @@ class SimVision(ext.vision.VisionSystem):
 
         # Align and Position
         camera.position = position
-        camera.lookAt(camera.position + ogre.Vector3(direction))
+        camera.lookAt(camera.position + ram.sim.OgreVector3(direction))
         camera.nearClipDistance = 0.05
         node.attachObject(camera)
 

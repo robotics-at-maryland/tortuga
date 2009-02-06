@@ -22,7 +22,8 @@ import logging
 import ogre.renderer.OGRE as Ogre
 #import ogre.io.OIS as OIS
 
-# Project Imports   
+# Project Imports
+import ram.sim as sim
 import ram.event as event
 import ram.core as core
 from ram.core import fixed_update, Component, implements, Interface, Attribute, cls_property
@@ -73,7 +74,6 @@ class Visual(Object):
         # Apply scalling and normalized normals if object is actually scalled
         if scale != Ogre.Vector3(1,1,1):
             self._node.setScale(scale)
-            entity.setNormaliseNormals(True)       
             
         self._node.position = position
         self._node.orientation = orientation
@@ -100,7 +100,7 @@ class Visual(Object):
         gfx_node = node['Graphical'] 
         mesh = gfx_node['mesh']
         material = gfx_node['material']
-        scale = Ogre.Vector3(gfx_node.get('scale', Ogre.Vector3(1,1,1)))
+        scale = sim.OgreVector3(gfx_node.get('scale', Ogre.Vector3(1,1,1)))
         
         # Handle special mesh generation
         if mesh.startswith('PLANE'):
@@ -163,7 +163,7 @@ class Camera(Component):
     
     def __init__(self, name, scene, position, offset, orientation,
                  near_clip = 0.5):
-        offset = Ogre.Vector3(offset)
+        offset = sim.OgreVector3(offset)
         
         self._camera = scene.scene_mgr.createCamera(name)
         self._camera.nearClipDistance = near_clip
