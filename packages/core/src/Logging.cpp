@@ -38,7 +38,10 @@
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::core::Logging, Logging);
 
+
 namespace fs = boost::filesystem;
+
+std::map<boost::filesystem::path, bool> ram::core::Logging::s_loggingDirExists;
 
 namespace ram {
 namespace core {
@@ -75,7 +78,8 @@ Logging::~Logging()
         delete appender;
     }
 }
-
+    
+// Static 
 boost::filesystem::path Logging::getLogDir()
 {
     // Gets the current time only once
@@ -89,7 +93,16 @@ boost::filesystem::path Logging::getLogDir()
     fs::path root(getenv("RAM_SVN_DIR"));
     
     // The resulting path
-    return root / "logs" / dateName;
+    fs::path logDir = root / "logs" / dateName;
+
+    if (s_loggingDirExists.end() == s_loggingDirExists.find(logDir))
+    {
+        if (!fs::exists(logDir))
+            fs::create_directories(logDir);
+        s_loggingDirExists[logDir] = true;
+    }
+
+    return logDir;
 }
 
 void Logging::init(ConfigNode config)
@@ -191,13 +204,7 @@ log4cpp::Appender* Logging::createAppender(
         appender = new log4cpp::OstreamAppender(name, &std::cout);
     }
     else if (type == "File")
-    {
-        // Make sure log directory exists
-        fs::path path(getLogDir());
-        
-        if (!fs::exists(path))
-            fs::create_directories(path);
-            
+    {            
         // Determine file path
         std::string fileName = config["fileName"].asString(name);
         std::string filePath = (getLogDir() / fileName).string();

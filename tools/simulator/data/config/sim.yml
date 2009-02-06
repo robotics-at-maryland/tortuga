@@ -373,7 +373,6 @@ Subsystems:
                 'C:\Libraries\PythonOgre\plugins',
                 'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
                 '/home/lsinger/ram_deps/python-ogre-snapshot/plugins',
-                '/home/jlisee/tmp/development/root/usr/lib/OGRE',
                 '/opt/ram/local/lib/OGRE']
                 
                 plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 

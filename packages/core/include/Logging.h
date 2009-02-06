@@ -44,8 +44,7 @@ public:
     /** Gets the directory where all log files will be placed */
     static boost::filesystem::path getLogDir();
 
-
-        virtual void setPriority(core::IUpdatable::Priority priority) {
+    virtual void setPriority(core::IUpdatable::Priority priority) {
         Updatable::setPriority(priority);
     }
     
@@ -91,8 +90,11 @@ private:
     /** Creates a layout from the given config section */
     log4cpp::Layout* createLayout(ConfigNode config);
 
-	/** Translates a string into a priority level (case insensitive) */
-	log4cpp::Priority::PriorityLevel stringToPriority(std::string value);
+    /** Translates a string into a priority level (case insensitive) */
+    log4cpp::Priority::PriorityLevel stringToPriority(std::string value);
+
+    /** Tracks whether or not the log directory exists */
+    static std::map<boost::filesystem::path, bool> s_loggingDirExists;
     
     /** A list of the appenders current being used */
     std::map<log4cpp::Appender*, std::vector<std::string> > m_appenders;
