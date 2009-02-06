@@ -919,22 +919,15 @@ int main(void)
             showString("Lost Mini...    ", 0);
             showString("                ", 1);
 
-	    /* Set one LED on and the other off */
             LAT_LED_ACT = ~LED_ON;  // Red on
             LAT_LED_ERR = LED_ON;   // Yellow off
 
-	    /* While USB is lost, flip the states of both LEDs to
-	     * create that back-and-forth blinking effect */
             while(IN_USBDETECT != USB_PRESENT)
             {
                 for(j=0; j<50000; j++);
                 LAT_LED_ACT = ~LAT_LED_ACT;
                 LAT_LED_ERR = ~LAT_LED_ERR;
             }
-
-	    /* Turn lights off since we are done */
-	    LAT_LED_ACT = ~LED_ON;
-	    LAT_LED_ERR = ~LED_ON;
 
             showString("USB Restored...", 0);
         }
@@ -943,6 +936,14 @@ int main(void)
 
         //TODO:do we have to do anything with TRIS_LED_ACT?
             // no. it is always an output. -steve
+
+        // Neil's old code, here commented out for now
+/*        if(IN_USBDETECT != USB_PRESENT)//if we dont see the Mini up...
+        {
+	        blink(5);
+	        showString("lost mini...    ", 0);
+	        showString("                ", 1);
+        }*/
 
         switch(c)
         {
