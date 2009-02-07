@@ -643,8 +643,6 @@ class DropMarker(SettlingState):
 
         # TODO: drop marker here
         self.vehicle.dropMarker()
-        print "\"DROPPER MARKRED #: ", markerNum, "\""
-        
         
 class SurfaceToCruise(HoveringState):
     """
