@@ -150,6 +150,13 @@ class RAM_EXPORT BinDetector : public Detector
      *  to detect suits, as this function sets the angle of the bin.
      */
     math::Radian calculateAngleOfBin(BlobDetector::Blob bin, Image* input, Image* output = 0);
+
+    /** Extracts the image of the suit an into a binImage of #binNum
+     *
+     *  The result is 128x128 pixels, and should be bounded around all of the
+     *  red in the center of the bin.
+     */
+    bool cropImage(IplImage* rotatedRedSuit, int binNum);
     
     bool m_found;
 /*    bool foundHeart;
@@ -167,7 +174,6 @@ class RAM_EXPORT BinDetector : public Detector
     IplImage* blackMaskedFrame;
     SuitDetector suitDetector;
     BlobDetector blobDetector;
-    bool cropImage(IplImage* rotatedRedSuit, int binNum);
 
     IplImage* binImages[4];
     /** Maximum distance for the bin to be considred "centered" */

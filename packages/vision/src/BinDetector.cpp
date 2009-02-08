@@ -246,36 +246,36 @@ else
 
     if (output)
     {
-    for (int count = 0; count < binFrame->width* binFrame->height * 3; count++)
-    {
-        if (whiteMaskedFrame->imageData[count] != 0)
+        // Make all white, solid white in the output
+        int size = binFrame->width* binFrame->height * 3;
+        for (int count = 0; count < size; count++)
         {
+            if (whiteMaskedFrame->imageData[count] != 0)
+            {
 //            binFrame->imageData[count] = 255;
-              output->imageData[count] = 255;
+                output->imageData[count] = 255;
+            }
         }
-    }
-    }
-    if (output)
-    {
-    for (int count = 0; count < binFrame->width* binFrame->height * 3; count+=3)
-    {
-        if (blackMaskedFrame->imageData[count] != 0)
+
+        for (int count = 0; count < size; count+=3)
         {
-//            binFrame->imageData[count] = 0;
-            output->imageData[count] = 0;
-            output->imageData[count+1] = 0;
-            output->imageData[count+2] = 0;
+            if (blackMaskedFrame->imageData[count] != 0)
+            {
+//               binFrame->imageData[count] = 0;
+                output->imageData[count] = 0;
+                output->imageData[count+1] = 0;
+                output->imageData[count+2] = 0;
+            }
+            else if (blackMaskedFrame->imageData[count+2] != 0 && whiteMaskedFrame->imageData[count] == 0)//if r > b/2 and its not white...
+            {
+                binFrame->imageData[count] = 0;
+                binFrame->imageData[count+1] = 0;
+                binFrame->imageData[count+2] = 255;
+                output->imageData[count] = 0;
+                output->imageData[count+1] = 0;
+                output->imageData[count+2] = 255;
+            }
         }
-        else if (blackMaskedFrame->imageData[count+2] != 0 && whiteMaskedFrame->imageData[count] == 0)//if r > b/2 and its not white...
-        {
-              binFrame->imageData[count] = 0;
-              binFrame->imageData[count+1] = 0;
-              binFrame->imageData[count+2] = 255;
-            output->imageData[count] = 0;
-            output->imageData[count+1] = 0;
-            output->imageData[count+2] = 255;
-        }
-    }
     }
 //    if (output)
 //    {
@@ -371,7 +371,8 @@ else
                        out);
             binNumber++;
         }
-        
+
+        // Determine the angle of the bin array
         if (candidateBins.size() > 1 && candidateBins.size() <= 4)
         {
             int curX = -1;
@@ -451,7 +452,7 @@ else
 //            printf("Final Inner Angle For Joe: %f\n", finalInnerAngleForJoe.valueDegrees());
             BinEventPtr event(new BinEvent(finalInnerAngleForJoe));
             publish(EventType::MULTI_BIN_ANGLE, event);
-        }
+        } // angle of bin array
         
         // Sort candidate bins on distance from center
         candidateBins.sort(binToCenterComparer);
@@ -534,46 +535,6 @@ else
             publish(EventType::BIN_FOUND, event);
         }
     }
-    
-    
-    //Publishing bin lost events example,
-    // This is invalid!
-/*    if (foundHeart && !seeHeart)
-    {
-        std::cout<<"Lost Heart"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, Suit::HEART));
-        publish(EventType::BIN_LOST, event);
-    }
-    if (foundSpade && !seeSpade)
-    {
-        std::cout<<"Lost Spade"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, Suit::SPADE));
-        publish(EventType::BIN_LOST, event);
-    }
-    if (foundDiamond && !seeDiamond)
-    {
-        std::cout<<"Lost Diamond"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, Suit::DIAMOND));
-        publish(EventType::BIN_LOST, event);
-    }
-    if (foundClub && !seeClub)
-    {
-        std::cout<<"Lost Club"<<std::endl; 
-        BinEventPtr event(new BinEvent(binX, binY, Suit::CLUB));
-        publish(EventType::BIN_LOST, event);
-    }
-    if (foundEmpty && !seeEmpty)
-    {
-        std::cout<<"Lost Empty"<<std::endl;
-        BinEventPtr event(new BinEvent(binX, binY, Suit::NONEFOUND));
-        publish(EventType::BIN_LOST, event);
-        }
-    
-    foundHeart = seeHeart;
-    foundSpade = seeSpade;
-    foundDiamond = seeDiamond;
-    foundClub = seeClub;
-    foundEmpty = seeEmpty;*/
 }
 
 void BinDetector::drawBinImage(Image* imgToShow, int binNumber,
