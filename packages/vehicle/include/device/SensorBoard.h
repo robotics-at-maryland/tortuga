@@ -60,6 +60,8 @@ public:
     static const core::Event::EventType THRUSTER_UPDATE;
     static const core::Event::EventType SONAR_UPDATE;
     /* @{ */
+
+    static int NUMBER_OF_MARKERS;
     
     /** Creates a device with the given file descriptor */
     SensorBoard(int deviceFD,
@@ -89,7 +91,7 @@ public:
     virtual void setPriority(core::IUpdatable::Priority priority) {
         Updatable::setPriority(priority);
     }
-    
+
     virtual core::IUpdatable::Priority getPriority() {
         return Updatable::getPriority();
     }
@@ -97,12 +99,12 @@ public:
     virtual void setAffinity(size_t affinity) {
         Updatable::setAffinity(affinity);
     }
-    
+
     virtual int getAffinity() {
         return Updatable::getAffinity();
     }
 
-   virtual void background(int interval) {
+    virtual void background(int interval) {
         Updatable::background(interval);
     };
     
@@ -143,8 +145,12 @@ public:
      */
     virtual void setThrusterEnable(int address, bool state);
 
-    /** Drops a marker (currently only works twice) */
-    virtual void dropMarker();
+    /** Drops a marker (currently only works twice)
+     *
+     *  @return
+     *      The number of the marker dropped, -1 if all markers are used.
+     */
+    virtual int dropMarker();
 
    /** Returns true if the vehicle can draw power from the power source
      *

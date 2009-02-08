@@ -27,7 +27,8 @@ SBMarkerDropper::SBMarkerDropper(core::ConfigNode config,
                                  IVehiclePtr vehicle) :
     Device(config["name"].asString("MarkerDropper")),
     IMarkerDropper(eventHub),
-    m_sensorBoard(SensorBoardPtr())
+    m_sensorBoard(SensorBoardPtr()),
+    m_markersDropped(0)
 {
     m_sensorBoard = IDevice::castTo<SensorBoard>(
         vehicle->getDevice("SensorBoard"));
@@ -39,8 +40,23 @@ SBMarkerDropper::~SBMarkerDropper()
 
 void SBMarkerDropper::dropMarker()
 {
-    m_sensorBoard->dropMarker();
+    if (-1 != m_sensorBoard->dropMarker())
+    {
+        m_markersDropped++;
+        publish(MARKER_DROPPED, core::EventPtr(new core::Event()));
+    }
 }
+
+int SBMarkerDropper::markersLeft()
+{
+    return SensorBoard::NUMBER_OF_MARKERS - m_markersDropped;
+}
+
+int SBMarkerDropper::initalMarkerCount()
+{
+    return SensorBoard::NUMBER_OF_MARKERS;
+}
+
     
 } // namespace device
 } // namespace vehicle

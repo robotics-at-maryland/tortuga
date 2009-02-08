@@ -40,11 +40,16 @@ public:
                     IVehiclePtr vehicle = IVehiclePtr());
     
     virtual ~SBMarkerDropper();
-    
-    virtual void dropMarker();
 
+    // IMarkerDropper methods
+    virtual void dropMarker();
+    virtual int markersLeft();
+    virtual int initalMarkerCount();
+
+    // IDevice methods
     virtual std::string getName() { return Device::getName(); }
-    
+
+    // IUpdatable methods
     virtual void update(double timestep) {}
 
     virtual void setPriority(core::IUpdatable::Priority) {}
@@ -77,6 +82,9 @@ private:
 
     /** MARKERDROPPER_UPDATE event connection */
     core::EventConnectionPtr m_connection;
+
+    /** Number of markers dropped */
+    int m_markersDropped;
 };
     
 } // namespace device
