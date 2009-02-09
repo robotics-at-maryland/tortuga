@@ -86,6 +86,8 @@ EXTERNAL_LIBS = None
 
 def setup_posix_libs():
     global EXTERNAL_LIBS
+    ram_root = os.environ['RAM_ROOT_DIR']
+    ram_include = ram_root + '/include'
     EXTERNAL_LIBS = {
         'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
                                     'wx-config', lib_flag='--libs std,gl'),
@@ -131,7 +133,10 @@ def setup_posix_libs():
         'Python' : PythonLib('2.5'),
 
         'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
-                                        ['UnitTest++/UnitTest++.h'])
+                                        ['UnitTest++/UnitTest++.h']),
+		
+		'FANN' : Library('FANN', '2.1.0', ['fann.h','floatfann.h'],
+                           ['floatfann', 'fann'], ram_include)
         }
 
 def setup_windows_libs():
@@ -187,7 +192,11 @@ def setup_windows_libs():
         
         'OpenCV' : Library('OpenCV', '1.0', ['opencv/cv.h'],
                            ['cv', 'cxcore','highgui','cxts','cvaux','ml'],
-                           CPPPATH = ram_include + '/opencv')
+                           CPPPATH = ram_include + '/opencv'),
+		
+		'FANN' : Library('FANN', '2.1.0', ['floatfann.h','fann.h'],
+                           ['floatfann', 'fann'])
+
     }                               
         
 def _get_external_lib(name):
@@ -227,7 +236,7 @@ def _get_internal_lib(env, name):
         INTERNAL_LIBS = {
             'vision' : InternalLibrary('vision',
                                        int_deps = ['pattern', 'core', 'math'],
-                                       ext_deps = ['OpenCV', 'Boost.Thread']),
+                                       ext_deps = ['OpenCV', 'Boost.Thread', 'FANN']),
             
             'pattern' : InternalLibrary('pattern', int_deps = [],
                                         ext_deps = ['Boost', 'Boost.Thread']),

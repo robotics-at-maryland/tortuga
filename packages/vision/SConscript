@@ -71,6 +71,11 @@ envt.RAMProgram(target = 'DetectorTest',
                 int_deps = ['vision'],
                 ext_deps = ['Boost.ProgramOptions', 'Boost.Regex'])
 
+# Network Trainer
+envt.RAMProgram(target = 'NetworkTrainer',
+		source = 'test/src/NetworkTrainer.cpp',
+		int_deps = ['vision'])
+
 # Unit Tests
 envt = env.Clone()
 envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'])
