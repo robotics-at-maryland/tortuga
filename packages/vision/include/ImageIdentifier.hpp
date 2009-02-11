@@ -26,6 +26,7 @@
 
 namespace ram {
 namespace vision {
+    
 class ImageIdentifier {
 private:
 	FANN::neural_net m_net;
@@ -50,5 +51,6 @@ private:
 	static IplImage* grayscale (IplImage* src);
 	inline static const fann_type getPixel (IplImage* src, unsigned int w, unsigned int h) { return (src->imageData + (w * src->widthStep))[h]; }
 };
-}
-}
+    
+} // namespace vision
+} // namespace ram
