@@ -18,13 +18,9 @@
 
 extern "C" {
 struct AVFormatContext;
-typedef struct AVFormatContext;
 struct AVStream;
-typedef struct AVStream;
 struct AVOutputFormat;
-typedef struct AVOutputFormat;
 struct AVFrame;
-typedef struct AVFrame;
 struct SwsContext;
 }
 

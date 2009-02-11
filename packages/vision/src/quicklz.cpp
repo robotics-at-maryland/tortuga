@@ -231,7 +231,7 @@ static size_t qlz_compress_core(const unsigned char *source, unsigned char *dest
 				if (*(o + 3) != *(src + 3))
 				{
 					cword_val = (cword_val >> 1) | (1U << 31);
-					fast_write(3 - 2 | (hash << 4), dst, 2);
+					fast_write((3 - 2) | (hash << 4), dst, 2);
 					src += 3;
 					dst += 2;
 				}
