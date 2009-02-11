@@ -2,6 +2,7 @@
 // STD Includes
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 #include <unistd.h>
 
 // Project Includes
