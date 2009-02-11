@@ -77,7 +77,8 @@ void clearBuf(int fd)
 {
     unsigned char c;
     while(hasData(fd, 0))
-        read(fd, &c, 1);
+      if (1 != read(fd, &c, 1))
+	break;
 }
 
 
