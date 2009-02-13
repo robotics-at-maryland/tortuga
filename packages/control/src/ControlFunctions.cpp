@@ -99,6 +99,12 @@ void translationalController(MeasuredState* measuredState,
                                                                 controllerState,
                                                                 estimatedState,dt);
             break;
+    case 6 :
+            depthObserverController4Discrete(measuredState, desiredState,
+                                        controllerState,
+                                        estimatedState,
+                                        dt);
+                                        break;
 
 	default :
 	    depthControlSignal=depthPController(measuredState,desiredState,controllerState);
