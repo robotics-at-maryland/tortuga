@@ -16,10 +16,10 @@ clear
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
 % 'lqgid' for a DISCRETE TIME observer controller with integral augmentation
-controlType = 'lqgid';
+controlType = 'LQGID';
 
 %frequency of control/actuation loop
-frequency=40;%Hz
+frequency=25;%Hz
 
 %global variables for various controllers
 global x_hat;%estimated state vector
@@ -71,7 +71,7 @@ dt=time(2)-time(1);
 %delay =0.05;
 
 %desired depth
-xd=15;
+xd=5;
 %desired depth_dot (downward velocity)
 
 
@@ -160,28 +160,27 @@ elseif strcmp('LQGID',upper(controlType))==1
 % K_a = place(A_a,B_a,[-2 -2.1 -2.2]);
 % L_a = (place(A_a',C_a',[-100 -100.2 -100.4]))';
   
-A_c = 1.0e+04 *[0.0000    1.2217   -0.0469         0;
-    0.0000   -0.0000   -0.0000         0;
-    0.0000   -0.0009   -0.0000         0;
-   -0.0000    0.2932    0.0049    0.0001];
-B_c = 1.0e+04 *[-1.2221;
-    0.0001;
-    0.0009;
-   -0.2937];
-C_c = [0     0     0     1];
-
-% K_a = place(A_a,B_a,[-10 -10.1 -10.2]);
-% L_a = (place(A_a',C_a',[-100 -100.2 -100.4]))';
-  
-% A_c = 1.0e+04 *[0.0000    1.9696   -0.0334         0;
+% A_c = 1.0e+04 *[0.0000    1.2217   -0.0469         0;
 %     0.0000   -0.0000   -0.0000         0;
-%     0.0000   -0.0004   -0.0000         0;
-%    -0.0000    1.4139    0.0189    0.0001];
-% B_c = 1.0e+04 *[-1.9993;
+%     0.0000   -0.0009   -0.0000         0;
+%    -0.0000    0.2932    0.0049    0.0001];
+% B_c = 1.0e+04 *[-1.2221;
 %     0.0001;
-%     0.0004;
-%    -1.4508];
+%     0.0009;
+%    -0.2937];
 % C_c = [0     0     0     1];
+
+% K_a = place(A_a,B_a,[-0.7 -0.6 -0.5]);
+% L_a = (place(A_a',C_a',[-7 -6 -5]))';
+A_c = [0.9501 -114.3028   -2.8764         0;
+    0.0000    0.4482    0.0277         0;
+    0.0019   -2.8158    0.9146         0;
+   -0.0481    3.5461   -0.2331    1.0000];
+B_c =[  114.1389;
+    0.5518;
+    2.8157;
+   -3.7101];
+C_c = [0     0     0     1];
 end    
 
 %create array to store actual vehicle states
