@@ -25,32 +25,36 @@
 #include "vision/include/Image.h"
 
 namespace ram {
-namespace vision {
-    
-class ImageIdentifier {
-private:
-	FANN::neural_net m_net;
-	FANN::training_data m_data;
-	boost::filesystem::path m_file;
-	fann_type* m_outValue;
-	const bool m_canTrain;
-	unsigned int m_maxIndex;
-	unsigned int m_trainIndex;
-public:
-	ImageIdentifier (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth);
-	ImageIdentifier (const boost::filesystem::path &file, bool loadTrainingData = true);
-	int addTrainData (const std::vector<Image*> &images);
-	void runTraining ();
-	int run (Image* input);
-	const void runTest ();
-	const bool save (const boost::filesystem::path &file, bool saveTrainingData = true);
-	inline const fann_type resultValue (unsigned int index) { return m_outValue[index]; }
-	inline const void print () { m_net.print_parameters(); }
-private:
-	void loadImage (IplImage* src, fann_type* target);
-	static IplImage* grayscale (IplImage* src);
-	inline static const fann_type getPixel (IplImage* src, unsigned int w, unsigned int h) { return (src->imageData + (w * src->widthStep))[h]; }
-};
-    
-} // namespace vision
+	namespace vision {
+		
+		class ImageIdentifier {
+		private:
+			FANN::neural_net m_net;
+			fann_type* m_outValue;
+		public:
+			/** Build a new ImageIdentifier **/
+			ImageIdentifier (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth);
+			/** Reconstruct an ImageIdentifier from a saved file **/
+			ImageIdentifier (const boost::filesystem::path &file);
+			/** Train on a given set of data **/
+			void runTraining (FANN::training_data &data);
+			/** Run the ImageIdentifier on a given input image **/
+			int run (Image* input);
+			/** Test the ImageIdentifier with a set of training data **/
+			const void runTest (FANN::training_data &data);
+			/** Save this ImageIdentifier to a file **/
+			const bool save (const boost::filesystem::path &file);
+			/** Get the value of a given output neuron **/
+			inline const fann_type resultValue (unsigned int index) { return m_outValue[index]; }
+			/** Print a representation of this ImageIdentifier's fann network internals **/
+			inline const void print () { m_net.print_parameters(); }
+			/** Add a set of images to a set fo training data for use with this ImageIdentifier **/
+			bool addTrainData (unsigned int imageIndex, FANN::training_data &data, const std::vector<Image*> &images);
+		private:
+			void loadImage (IplImage* src, fann_type* target);
+			static IplImage* grayscale (IplImage* src);
+			inline static const fann_type getPixel (IplImage* src, unsigned int w, unsigned int h) { return (src->imageData + (w * src->widthStep))[h]; }
+		};
+		
+	} // namespace vision
 } // namespace ram

@@ -46,11 +46,13 @@ int main (int argc, char * const argv[]) {
 	std::vector<rv::Image*> imageList;
 	boost::filesystem::path dirPath;
 	int index;
+	FANN::training_data data;
 	// load each set of training images, printing the index for each path along the way
 	for (int dir = 5; dir < argc; ++dir) {
+		index = dir - 5;
 		dirPath = boost::filesystem::path (argv[dir]);
 		imageList = loadDirectory (dirPath);
-		index = test.addTrainData (imageList);
+		test.addTrainData (index, data, imageList);
 		std::cout << "Directory: '" << argv[dir] << "' assigned index: " << index << "\n";
 		for (unsigned int i = 0; i < imageList.size(); ++i) {
 			delete imageList[i];
@@ -61,12 +63,12 @@ int main (int argc, char * const argv[]) {
 	test.print ();
 	// train the network
 	std::cout << "Beginning training.\n";
-	test.runTraining ();
+	test.runTraining (data);
 	// print the trained network
 	test.print ();
 	// test the network
 	std::cout << "Running a network test (using existing training data).\n";
-	test.runTest ();
+	test.runTest (data);
 	// save the network
 	dirPath = boost::filesystem::path (argv[4]);
 	test.save (dirPath);
