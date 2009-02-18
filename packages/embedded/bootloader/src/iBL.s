@@ -77,7 +77,7 @@ __reset:
         MOV W0, SPLIM
         NOP                       ; Add NOP to follow SPLIM initialization
 
-        ; Uart init
+/*      ; Uart init
         mov #0x8420, W0           ; W0 = 0x8420 -> 1000 0100 0010 0000b
         mov W0, U1MODE            ; Enable UART with Alternate IO, AutoBaud and 8N1
         clr U1STA
@@ -98,7 +98,7 @@ __reset:
         ; Start Autobaud detection
         mov #0x0004, W0           ; W0 = 0x0004
         rcall WaitRising          ; Wait until the first Rising edge is detected
-        clr TMR3                  ; Clear content of the Timer 3 timer register
+        clr TMR3                  ; Clear content of the Timer 3 timer register*/
 ByteLoop:
         rcall WaitRising
         dec W0, W0                ; W0--
@@ -109,11 +109,11 @@ ByteLoop:
         asr W0, #7, W0            ; W0 = ((Tend - Tini + 64) / 128)
         dec W0, W0                ; W0--
 
-        ; Uart re-init
+/*        ; Uart re-init
         mov W0, U1BRG             ; U1BRG = W0 -> Configs UART with the detected baudrate
         bclr U1MODE, #ABAUD       ; Disable AutoBaud
         bset U1STA, #UTXEN        ; Enable transmition
-        bra SendAck
+        bra SendAck*/
 
 StartFrame:
         btss U1STA, #URXDA        ; Wait until a character is received
