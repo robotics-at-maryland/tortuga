@@ -680,7 +680,8 @@ void BWPDController::init(core::ConfigNode config)
                                                    config["depthOCIC4"][3].asDouble(0));
         m_estimatedState->xHat4Depth = math::Vector4(0,0,0,0);
             break;
-	case 4 :
+        case 4 :
+	case 6 :
         m_controllerState->depthA4 = math::Matrix4(config["depthOCIA4"][0].asDouble(0),
                                                    config["depthOCIA4"][1].asDouble(0),
                                                    config["depthOCIA4"][2].asDouble(0),
