@@ -85,7 +85,9 @@ void OpenCVImage::copyFrom (const Image* src)
     cvReleaseImageHeader(&tmp_img);
     
     // Copy Other members
-    m_own = src->getOwnership();
+    //m_own = src->getOwnership();
+    // copying this makes no sense, we now have a totally new copy, so we own it
+    m_own = true;
 }
     
 OpenCVImage::~OpenCVImage()
@@ -141,7 +143,9 @@ void  OpenCVImage::setSize(int width, int height)
     IplImage* old = m_img;
     
     m_img = cvCreateImage(cvSize(width, height), 8, 3);
-    cvCopy(old, m_img);
+    //cvCopy(old, m_img);
+    // this doesn't work, so let's use the right function instead
+    cvResize (old, m_img);
     
     cvReleaseImage(&old);
 }

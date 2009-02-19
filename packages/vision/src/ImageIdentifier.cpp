@@ -10,20 +10,23 @@
 // standard stuff
 #include <iostream>
 #include <sstream>
+#include <math.h>
 
 // for change_extension
 #include <boost/filesystem/convenience.hpp>
 
+#include "vision/include/OpenCVImage.h"
+
 // header for this class
 #include "vision/include/ImageIdentifier.hpp"
-
-// variables I created
-#define MAX_SIZE_FACTOR 0.1
-#define NUM_LAYERS 3
 
 // network design parameters
 #define USE_CASCADE
 #define PYRAMID_NETWORK
+
+// variables I created
+#define MAX_SIZE_FACTOR 0.1
+#define NUM_LAYERS 3
 
 // variables used by fann
 #define CONNECTION_RATE 0.75
@@ -35,7 +38,7 @@
 #define MAX_EPOCHS 6250
 #define REPORT_EPOCHS 25
 #define REPORT_NEURONS 1
-#define DESIRED_ERROR 0.0
+#define DESIRED_ERROR 0.0001
 #define MIN_WEIGHT -0.0
 #define MAX_WEIGHT 1.0
 #define MIN_INIT_WEIGHT -0.1
@@ -71,9 +74,9 @@ namespace ram {
 			
 			// setup the network structure - if this doesn't work we're boned, hence the assert
 #ifdef USE_CASCADE
-			assert (m_net.create_shortcut_array (NUM_LAYERS, layerSizes) && "Failed to create neural network.");
+			assert (m_net.create_shortcut_array (NUM_LAYERS, layerSizes) && "Failed to create neural network.\n");
 #else
-			assert (m_net.create_sparse_array (CONNECTION_RATE, NUM_LAYERS, layerSizes) && "Failed to create neural network.");
+			assert (m_net.create_sparse_array (CONNECTION_RATE, NUM_LAYERS, layerSizes) && "Failed to create neural network.\n");
 #endif
 			
 			// set some parameters
@@ -99,7 +102,15 @@ namespace ram {
 			m_net.randomize_weights(MIN_INIT_WEIGHT, MAX_INIT_WEIGHT);
 		}
 		
+        ImageIdentifier::ImageIdentifier (const std::string &file) {
+            loadFromFile (boost::filesystem::path (file));
+        }
+        
 		ImageIdentifier::ImageIdentifier (const boost::filesystem::path &file) {
+            loadFromFile (file);
+		}
+        
+        void ImageIdentifier::loadFromFile (const boost::filesystem::path &file) {
 			boost::filesystem::path net = file;
 			if (boost::filesystem::exists (net)) {
 				if (!m_net.create_from_file(net.file_string())) {
@@ -115,7 +126,7 @@ namespace ram {
 					std::cerr << "Error: network file '" << file << "' does not exist.\n";
 				}
 			}
-		}
+        }
 		
 		void ImageIdentifier::runTraining (FANN::training_data &data) {
 			data.scale_train_data(DATA_MIN, DATA_MAX);
@@ -139,8 +150,14 @@ namespace ram {
 		}
 		
 		int ImageIdentifier::run (Image* input) {
+            const unsigned int size = sqrt (m_net.get_num_input());
+            std::cout << "Inputs: " << m_net.get_num_input() << " New Size: " << size << "!!!!!!!!!!!\n";
+            print();
 			unsigned int highest_out = 0;
-			IplImage* grayInput = grayscale (*input);
+            Image* resized = new OpenCVImage (size, size);
+            resized->copyFrom (input);
+            resized->setSize (size, size);
+			IplImage* grayInput = grayscale (*resized);
 			fann_type* inputData = new fann_type[m_net.get_num_input()];
 			if (m_outValue) {
 				free (m_outValue);
@@ -153,6 +170,7 @@ namespace ram {
 				}
 			}
 			cvReleaseImage(&grayInput);
+            delete resized;
 			delete inputData;
 			return highest_out;
 		}
@@ -171,14 +189,18 @@ namespace ram {
 		}
 		
 		bool ImageIdentifier::addTrainData (unsigned int imageIndex, FANN::training_data &data, const std::vector<Image*> &images) {
+            const unsigned int size = sqrt (m_net.get_num_input());
 			if (images.size() == 0 || imageIndex >= m_net.get_num_input()) {
 				return false;
 			}
+            Image* resized = new OpenCVImage (size, size);
 			IplImage* gray;
 			fann_type** input = new fann_type*[images.size()];
 			fann_type** output = new fann_type*[images.size()];
 			for (unsigned int i = 0; i < images.size(); ++i) {
-				gray = grayscale (images[i]->asIplImage());
+                resized->copyFrom (images[i]);
+                resized->setSize (size, size);
+				gray = grayscale (*resized);
 				input[i] = new fann_type[m_net.get_num_input()];
 				if (gray) {
 					loadImage (gray, input[i]);
@@ -204,6 +226,7 @@ namespace ram {
 				delete input[i];
 				delete output[i];
 			}
+            delete resized;
 			delete input;
 			delete output;
 			return true;
@@ -217,7 +240,7 @@ namespace ram {
 				}
 			}
 			if (u < m_net.get_num_input()) {
-				std::cout << "ImageIdentifier warning: image data is incomplete.";
+				std::cout << "ImageIdentifier warning: image data is incomplete.\n";
 				while (u < m_net.get_num_input()) {
 					target[u++] = DATA_MIN;
 				}

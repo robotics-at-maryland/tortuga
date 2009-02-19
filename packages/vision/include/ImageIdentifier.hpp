@@ -7,6 +7,9 @@
  * File:  packages/vision/include/ImageIdentifier.hpp
  */
 
+#ifndef RAM_VISION_IMAGE_IDENTIFIER_HPP
+#define RAM_VISION_IMAGE_IDENTIFIER_HPP
+
 // standard stuff
 #include <vector>
 
@@ -24,16 +27,21 @@
 // ram image header
 #include "vision/include/Image.h"
 
+// thingus
+#include "vision/include/Export.h"
+
 namespace ram {
 	namespace vision {
-		
-		class ImageIdentifier {
+
+		class RAM_EXPORT ImageIdentifier {
 		private:
 			FANN::neural_net m_net;
 			fann_type* m_outValue;
 		public:
 			/** Build a new ImageIdentifier **/
 			ImageIdentifier (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth);
+			/** Reconstruct an ImageIdentifier from a saved file **/
+			ImageIdentifier (const std::string &file);
 			/** Reconstruct an ImageIdentifier from a saved file **/
 			ImageIdentifier (const boost::filesystem::path &file);
 			/** Train on a given set of data **/
@@ -51,10 +59,17 @@ namespace ram {
 			/** Add a set of images to a set fo training data for use with this ImageIdentifier **/
 			bool addTrainData (unsigned int imageIndex, FANN::training_data &data, const std::vector<Image*> &images);
 		private:
+            /** Load this network from a file **/
+            void loadFromFile (const boost::filesystem::path &file);
+            /** Load an image's data into an array of fann_types **/
 			void loadImage (IplImage* src, fann_type* target);
+            /** Make an image grayscale **/
 			static IplImage* grayscale (IplImage* src);
+            /** Get a single pixel form an image (assumes it's a grayscale image) **/
 			inline static const fann_type getPixel (IplImage* src, unsigned int w, unsigned int h) { return (src->imageData + (w * src->widthStep))[h]; }
 		};
 		
 	} // namespace vision
 } // namespace ram
+
+#endif
