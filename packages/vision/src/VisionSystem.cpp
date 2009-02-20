@@ -10,7 +10,7 @@
 // Project Includes
 #include "vision/include/VisionSystem.h"
 #include "vision/include/VisionRunner.h"
-#include "vision/include/OpenCVCamera.h"
+#include "vision/include/DC1394Camera.h"
 #include "vision/include/FileRecorder.h"
 #include "vision/include/NetworkRecorder.h"
 #include "vision/include/FFMPEGRecorder.h"
@@ -81,10 +81,10 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
 void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 {
     if (!m_forwardCamera)
-        m_forwardCamera = CameraPtr(new OpenCVCamera(1, true));
+        m_forwardCamera = CameraPtr(new DC1394Camera((size_t)1));
 
     if (!m_downwardCamera)
-        m_downwardCamera = CameraPtr(new OpenCVCamera(0, false));
+        m_downwardCamera = CameraPtr(new DC1394Camera((size_t)0));
 
     // Read int as bool
     m_testing = config["testing"].asInt(0) != 0;

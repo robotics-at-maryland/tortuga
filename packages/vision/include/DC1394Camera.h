@@ -33,6 +33,8 @@ class RAM_EXPORT DC1394Camera : public Camera
 public:
     /** Opens the first firewire camera found on the bus */
     DC1394Camera();
+
+    DC1394Camera(size_t num);
     
     /** Open specific camera by its GUI */
     DC1394Camera(uint64_t guid);

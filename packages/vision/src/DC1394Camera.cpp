@@ -51,6 +51,27 @@ DC1394Camera::DC1394Camera() :
     dc1394_camera_free_list(list);
 }
 
+DC1394Camera::DC1394Camera(size_t num) :
+    m_width(0),
+    m_height(0),
+    m_fps(0),
+    m_camera(0),
+    m_newFrame(0)
+{
+    initLibDC1394();
+
+    // Grab our list of cameras 
+    dc1394camera_list_t * list;
+    dc1394error_t err = dc1394_camera_enumerate(s_libHandle, &list);
+    assert(DC1394_SUCCESS == err && "Failed to enumerate cameras");
+    assert(list->num > 0 && "No cameras found");
+    assert(num < list->num && "Num too large");
+
+    // Create with the first camera 
+    init(list->ids[num].guid);
+
+    dc1394_camera_free_list(list);
+}   
 
 DC1394Camera::DC1394Camera(uint64_t guid) :
     m_width(0),
@@ -72,6 +93,7 @@ DC1394Camera::~DC1394Camera()
     
     dc1394_video_set_transmission(m_camera, DC1394_OFF);
     dc1394_capture_stop(m_camera);
+    dc1394_camera_set_power(m_camera, DC1394_OFF);
     dc1394_camera_free(m_camera);
 
     free(m_newFrame->image);

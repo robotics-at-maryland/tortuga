@@ -91,7 +91,7 @@ int main(int argc, char** argv)
             ("output,o", po::value<std::string>(&output),
              "File or network port to send images to")
             ("input", po::value<std::string>(&input),
-             "Video/Image file, camera #, hostname:port")
+             "Video/Image file, camera # (>= 100 == firewire), hostname:port")
             ("detector", po::value<std::string>(&detectorName)->
              default_value("RedLightDetector"), "Detector to run on the input")
             ("config,c", po::value<std::string>(&configPath)->
@@ -392,10 +392,11 @@ vision::Camera* createCamera(std::string input)
     if (boost::regex_match(input, camnum))
     {
         int camnum = boost::lexical_cast<int>(input);
-        if (camnum >= 10)
+        if (camnum >= 100)
         {
-            std::cout << "Using DC1394 Camera" << std::endl;
-            return new vision::DC1394Camera();
+            size_t num = (size_t)camnum - 100;
+            std::cout << "DC1394 Camera num:" << num << std::endl;
+            return new vision::DC1394Camera(num);
         }
         else
         {
