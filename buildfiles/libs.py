@@ -134,9 +134,13 @@ def setup_posix_libs():
 
         'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
                                         ['UnitTest++/UnitTest++.h']),
-		
-		'FANN' : Library('FANN', '2.1.0', ['fann.h','floatfann.h'],
-                           ['floatfann', 'fann'], ram_include)
+        
+        'FANN' : Library('FANN', '2.1.0', ['fann.h','floatfann.h'],
+                           ['floatfann', 'fann'], ram_include),
+        
+        'libdc1394' : PkgConfigLibrary('libdc1394-2', '0.22',
+                                       ['dc1394/dc1394.h']),
+
         }
 
 def setup_windows_libs():
@@ -165,7 +169,7 @@ def setup_windows_libs():
                                  ['boost/thread.hpp'], [BOOST_THREAD_LIB], 
                                  ext_deps = ['Boost']),
                                       
-		'Boost.Signals' : Library('Boost.Signals', '1.34.1',
+        'Boost.Signals' : Library('Boost.Signals', '1.34.1',
                                  [], [BOOST_SIGNALS_LIB], 
                                  ext_deps = ['Boost']),
                                  
@@ -193,9 +197,9 @@ def setup_windows_libs():
         'OpenCV' : Library('OpenCV', '1.0', ['opencv/cv.h'],
                            ['cv', 'cxcore','highgui','cxts','cvaux','ml'],
                            CPPPATH = ram_include + '/opencv'),
-		
-		'FANN' : Library('FANN', '2.1.0', ['floatfann.h','fann.h'],
-                           ['floatfann', 'fann'])
+        
+        'FANN' : Library('FANN', '2.1.0', ['floatfann.h','fann.h'],
+                         ['floatfann', 'fann'])
 
     }                               
         
@@ -236,7 +240,8 @@ def _get_internal_lib(env, name):
         INTERNAL_LIBS = {
             'vision' : InternalLibrary('vision',
                                        int_deps = ['pattern', 'core', 'math'],
-                                       ext_deps = ['OpenCV', 'Boost.Thread', 'FANN']),
+                                       ext_deps = ['OpenCV', 'Boost.Thread',
+                                                   'FANN', 'libdc1394']),
             
             'pattern' : InternalLibrary('pattern', int_deps = [],
                                         ext_deps = ['Boost', 'Boost.Thread']),

@@ -20,7 +20,6 @@
 #include <boost/foreach.hpp>
 
 // Project Includes
-#include "vision/include/OpenCVCamera.h"
 #include "vision/include/ImageCamera.h"
 #include "vision/include/Image.h"
 #include "vision/include/NetworkCamera.h"
@@ -32,6 +31,8 @@
 #include "vision/include/NetworkRecorder.h"
 #include "vision/include/FFMPEGNetworkRecorder.h"
 #include "vision/include/FFMPEGNetworkCamera.h"
+#include "vision/include/OpenCVCamera.h"
+#include "vision/include/DC1394Camera.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
@@ -391,8 +392,16 @@ vision::Camera* createCamera(std::string input)
     if (boost::regex_match(input, camnum))
     {
         int camnum = boost::lexical_cast<int>(input);
-        std::cout << "Forward Camera #" << camnum << std::endl;
-        return new vision::OpenCVCamera(camnum, true);
+        if (camnum >= 10)
+        {
+            std::cout << "Using DC1394 Camera" << std::endl;
+            return new vision::DC1394Camera();
+        }
+        else
+        {
+            std::cout << "Using OpenCV Camera #" << camnum << std::endl;
+            return new vision::OpenCVCamera(camnum, true);
+        }
     }
 
     boost::smatch what;
