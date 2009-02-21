@@ -53,16 +53,6 @@ install_pyplusplus = Task(
     dependencies = (setup_directories,)
     )
 
-install_pyserial = Task(
-    'Install PySerial',
-    namespaces = 'pyserial',
-    targets = '${py_site_packages}/serial',
-    workdir = '${deps_dir}/pyserial',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
 install_pyyaml = Task(
     'Install PyYaml',
     namespaces = 'pyyaml',
