@@ -89,6 +89,8 @@ public:
 
     virtual std::string toString();
 private:
+    static void importIfNeeded(boost::python::object pyObj);
+    
     boost::python::object m_pyobj;
 
     std::string m_debugPath;

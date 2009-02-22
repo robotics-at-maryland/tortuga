@@ -1,0 +1,10 @@
+Base:
+    Sub:
+        count: 100
+        type: Test.Good
+        # Importation of "standard settings"
+        IMPORT: packages/core/test/data/impMeSubSub.yml
+        
+    IMPORT: packages/core/test/data/impMeSub.yml
+    
+IMPORT: packages/core/test/data/impMe.yml
