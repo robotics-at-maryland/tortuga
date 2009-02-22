@@ -134,8 +134,8 @@ ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
         if ((m_pyobj.ptr() != Py_None) &&
             PyObject_HasAttrString (m_pyobj.ptr(), "has_key"))
         {
-            // Run the imports if needed
-            importIfNeeded(m_pyobj);
+            // Run the includes if needed
+            includeIfNeeded(m_pyobj);
             if (m_pyobj.attr("has_key")(key))
             {
                 return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key], debugPath));
@@ -295,38 +295,40 @@ std::string PythonConfigNodeImp::toString()
     }
 }
 
-void PythonConfigNodeImp::importIfNeeded(boost::python::object pyObj)
+void PythonConfigNodeImp::includeIfNeeded(boost::python::object pyObj)
 {
     try {
-        py::object main_module((py::handle<>(py::borrowed(
-             PyImport_AddModule("__main__")))));
+        // Only include if there is an include tag and we haven't already done
+        // an include
+        if ((!pyObj.attr("has_key")("INCLUDE_LOADED")) &&
+            (pyObj.attr("has_key")("INCLUDE")))
+        {
+            py::object main_module((py::handle<>(py::borrowed(
+                PyImport_AddModule("__main__")))));
 
-        py::object main_namespace = main_module.attr("__dict__");
-        main_namespace["node"] = pyObj;
+            py::object main_namespace = main_module.attr("__dict__");
+            main_namespace["node"] = pyObj;
         
-        std::stringstream ss;
-        ss << "import yaml, os, os.path\n"
-            // Only load if we have already not done an import
-           << "if not node.has_key('IMPORT_LOADED') and "
-           << "        node.has_key('IMPORT'):\n"
-            // All paths are resolved from the root of the SVN dir
-           << "    basePath = os.environ['RAM_SVN_DIR']\n"
-           << "    filePath = node['IMPORT'].replace('/', os.sep)\n"
-           << "    fullPath = os.path.join(basePath, filePath)\n"
-           << "    cfg = yaml.load(file(os.path.normpath(fullPath)))\n"
-            // Place all loaded item into the key
-           << "    for key, val in cfg.iteritems():\n"
-           << "        node[key] = val\n"
-            // Mark it already loaded
-           << "    node['IMPORT_LOADED'] = True";
+            std::stringstream ss;
+            ss << "import yaml, os, os.path\n"
+                // All paths are resolved from the root of the SVN dir
+               << "basePath = os.environ['RAM_SVN_DIR']\n"
+               << "filePath = node['INCLUDE'].replace('/', os.sep)\n"
+               << "fullPath = os.path.join(basePath, filePath)\n"
+               << "cfg = yaml.load(file(os.path.normpath(fullPath)))\n"
+                // Place all loaded item into the key
+               << "for key, val in cfg.iteritems():\n"
+               << "    node[key] = val\n"
+                // Mark it already loaded
+               << "node['INCLUDE_LOADED'] = True";
         
-        py::object obj(py::handle<> (PyRun_String(ss.str().c_str(),
-                                                  Py_file_input,
-                                                  main_namespace.ptr(),
-                                                  main_namespace.ptr())));
-
+            py::object obj(py::handle<> (PyRun_String(ss.str().c_str(),
+                                                      Py_file_input,
+                                                      main_namespace.ptr(),
+                                                      main_namespace.ptr())));
+        }
     } catch(py::error_already_set err) {
-        printf("Error during import:\n");
+        printf("Error during include:\n");
         PyErr_Print();
 
         throw err;

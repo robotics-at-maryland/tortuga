@@ -30,7 +30,7 @@ static std::string getConfigFile()
 {
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
     return (root / "packages" / "core" / "test" / "data" /
-            "test_imp.yml").file_string();
+            "testInclude.yml").file_string();
 }
 
     
@@ -130,7 +130,7 @@ TEST_FIXTURE(TestPythonConfigNode, set)
     CHECK_EQUAL("MyVal", configNode["Map"]["TestSet"].asString());
 }
 
-TEST_FIXTURE(TestPythonConfigNode, import)
+TEST_FIXTURE(TestPythonConfigNode, include)
 {
     configNode = ConfigNode::fromFile(getConfigFile());
     
@@ -154,6 +154,9 @@ TEST_FIXTURE(TestPythonConfigNode, import)
     // Test deep import
     CHECK_EQUAL(57.6, sub["setting"].asDouble());
     CHECK_EQUAL("Bob", sub["mode"].asString());
+
+    // Test recursive import
+    CHECK_EQUAL(67, configNode["Other"]["recVal"].asInt());
 }
 
 
