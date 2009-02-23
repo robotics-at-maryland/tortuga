@@ -13,11 +13,16 @@
 namespace ram {
 namespace vision {
 
+<<<<<<< .mine
+ImageDetector::ImageDetector(core::ConfigNode config, core::EventHubPtr eventHub) :
+    Detector(eventHub), m_identifier (config["SavedImageIdentifierNetwork"].asString ("")), m_lastResult (-1)
+=======
 ImageDetector::ImageDetector(core::ConfigNode config,
                              core::EventHubPtr eventHub) :
     Detector(eventHub),
     m_identifier(config["SavedImageIdentifierNetwork"].asString("")),
     m_lastResult (-1)
+>>>>>>> .r4782
 {
 }
 

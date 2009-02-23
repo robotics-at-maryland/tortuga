@@ -10,6 +10,8 @@
 #include <iostream>
 #include <vector>
 
+#include <boost/filesystem/convenience.hpp>
+
 #include "vision/include/Image.h"
 #include "vision/include/ImageIdentifier.hpp"
 
@@ -51,6 +53,7 @@ int main (int argc, char * const argv[]) {
 	for (int dir = 5; dir < argc; ++dir) {
 		index = dir - 5;
 		dirPath = boost::filesystem::path (argv[dir]);
+        if (boost::filesystem::basename (dirPath) != "") {
 		imageList = loadDirectory (dirPath);
 		test.addTrainData (index, data, imageList);
 		std::cout << "Directory: '" << argv[dir] << "' assigned index: " << index << "\n";
@@ -58,6 +61,7 @@ int main (int argc, char * const argv[]) {
 			delete imageList[i];
 		}
 		imageList.clear();
+    }
 	}
 	// print the original network
 	test.print ();
@@ -85,11 +89,13 @@ std::vector<rv::Image*> ram::NetworkTrainer::loadDirectory (boost::filesystem::p
 		return imageList;
 	}
 	for (boost::filesystem::directory_iterator itr (dir); itr != end; ++itr) {
+        if (boost::filesystem::basename (itr->path()) != "") {
 		img = rv::Image::loadFromFile(itr->path().file_string());
 		if (img) {
 			// store the original image
 			imageList.push_back (img);
 		}
+        }
 	}
 	return imageList;
 }

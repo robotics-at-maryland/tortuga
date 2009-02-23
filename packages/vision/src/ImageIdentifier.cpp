@@ -142,26 +142,21 @@ namespace ram {
 			m_net.train_on_data (data, MAX_EPOCHS, REPORT_EPOCHS, DESIRED_ERROR);
 		}
 		
-		const void ImageIdentifier::runTest (FANN::training_data &data) {
+		const void ImageIdentifier::runTest (FANN::training_data &data, std::ostream &out) {
 			float MSE = 0.0;
 			m_net.reset_MSE();
 			m_net.test_data (data);
-			std::cout << "Test result: " << MSE << " MSE: " << m_net.get_MSE() << " Bit fail: " << m_net.get_bit_fail() << "\n";
+			out << "Test result: " << MSE << " MSE: " << m_net.get_MSE() << " Bit fail: " << m_net.get_bit_fail() << "\n";
 		}
 		
 		int ImageIdentifier::run (Image* input) {
             const unsigned int size = sqrt (m_net.get_num_input());
-            std::cout << "Inputs: " << m_net.get_num_input() << " New Size: " << size << "!!!!!!!!!!!\n";
-            print();
 			unsigned int highest_out = 0;
             Image* resized = new OpenCVImage (size, size);
             resized->copyFrom (input);
             resized->setSize (size, size);
 			IplImage* grayInput = grayscale (*resized);
 			fann_type* inputData = new fann_type[m_net.get_num_input()];
-			if (m_outValue) {
-				free (m_outValue);
-			}
 			loadImage (grayInput, inputData);
 			m_outValue = m_net.run (inputData);
 			for (unsigned int i = 0; i < m_net.get_num_input(); ++i) {
@@ -179,7 +174,7 @@ namespace ram {
 			bool value;
 			boost::filesystem::path net = file;
 			boost::filesystem::path training = file;
-			if (boost::filesystem::extension (net) != "irn") {
+			if (boost::filesystem::extension (net) != ".irn") {
 				net = boost::filesystem::path (net.file_string() + ".irn");
 				value = m_net.save (net.file_string());
 			} else {

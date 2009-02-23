@@ -12,6 +12,7 @@
 
 // standard stuff
 #include <vector>
+#include <iostream>
 
 // boost file stuff
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -49,7 +50,7 @@ namespace ram {
 			/** Run the ImageIdentifier on a given input image **/
 			int run (Image* input);
 			/** Test the ImageIdentifier with a set of training data **/
-			const void runTest (FANN::training_data &data);
+			const void runTest (FANN::training_data &data, std::ostream &out = std::cout);
 			/** Save this ImageIdentifier to a file **/
 			const bool save (const boost::filesystem::path &file);
 			/** Get the value of a given output neuron **/
