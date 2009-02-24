@@ -66,5 +66,7 @@ SUITE(FANNSuitDetector) {
                     CHECK (detector.getSuit() == results[i++]);
                 }
             }
+        }
+    }
     
 } // SUITE(FANNSuitDetector)
