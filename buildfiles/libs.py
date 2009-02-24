@@ -138,7 +138,7 @@ def setup_posix_libs():
         'FANN' : Library('FANN', '2.1.0', ['fann.h','floatfann.h'],
                            ['floatfann', 'fann'], ram_include),
         
-        'libdc1394' : PkgConfigLibrary('libdc1394-2', '0.22',
+        'libdc1394' : PkgConfigLibrary('libdc1394-2', '2.0.2',
                                        ['dc1394/dc1394.h']),
 
         }
