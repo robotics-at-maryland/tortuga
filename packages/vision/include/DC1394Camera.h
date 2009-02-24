@@ -70,17 +70,11 @@ private:
      */
     static void shutdownLibDC1394();
     
-    // Hack so this will work with new versions of libdc1394 that compile on mac
-#if (__APPLE__)
-    uint32_t m_width;
-    uint32_t m_height;
-#else
     /** Calculated from the video mode chosen for the camera */
-    size_t m_width;
+    uint32_t m_width;
     
     /** Calculated from the video mode chosen for the camera */
-    size_t m_height;
-#endif
+    uint32_t m_height;
     
     /** Calculated from the underlying chosen framerate */
     double m_fps;
