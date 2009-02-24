@@ -53,6 +53,10 @@ SUITE(FANNSuitDetector) {
         vision::Image* img;
         boost::filesystem::directory_iterator end;
         boost::filesystem::path dir = getImagesDir();
+
+        // Directory must exist, because this test has to run, the rest of the
+        // test is not run to avoid extra error statements
+        CHECK(boost::filesystem::exists (dir));
         if (boost::filesystem::exists (dir)) {
             int results[4] = { vision::Suit::CLUB, vision::Suit::DIAMOND, vision::Suit::HEART, vision::Suit::SPADE };
             unsigned int i = 0;
@@ -63,9 +67,12 @@ SUITE(FANNSuitDetector) {
                         detector.processImage(img);
                     }
                     std::cout << "i: " << i << " detector.getSuit(): " << detector.getSuit() << " results[i]: " << results[i] << "\n";
-                    CHECK (detector.getSuit() == results[i++]);
+                    CHECK_EQUAL(results[i++], detector.getSuit());
                 }
             }
+
+            // Make sure we ran all four suit tests
+            CHECK_EQUAL(4u, i);
         }
     }
     
