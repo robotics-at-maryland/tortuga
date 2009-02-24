@@ -44,7 +44,6 @@ struct FANNSuitDetectorFixture
 };
 
 SUITE(FANNSuitDetector) {
-<<<<<<< .mine
     
     TEST_FIXTURE(FANNSuitDetectorFixture, FANNSuitDetectorTest)
     {
@@ -67,45 +66,5 @@ SUITE(FANNSuitDetector) {
                     CHECK (detector.getSuit() == results[i++]);
                 }
             }
-=======
-
-TEST_FIXTURE(FANNSuitDetectorFixture, FANNSuitDetectorTest)
-{
-    core::ConfigNode config = core::ConfigNode::fromString (
-        "{ 'SavedImageIdentifierNetwork' : '" + getSuitNetworkFile() + "' }");
-    vision::FANNSuitDetector detector = vision::FANNSuitDetector (config);
-    boost::filesystem::directory_iterator end;
-    boost::filesystem::path dir = getImagesDir();
-//    int results[4] = { vision::Suit::CLUB, vision::Suit::DIAMOND,
-//                       vision::Suit::HEART, vision::Suit::SPADE };
-//    unsigned int i = 0;
-
-    // Ensure the images directory exists
-    CHECK (boost::filesystem::exists (dir));    
-
-    
-/*  Broken: tests were not running due to extension really being ".jpg" not
-    "jpg", when that issue was fixed tests start to crash    
-    for (boost::filesystem::directory_iterator itr (dir); itr != end; ++itr) {
-        if (boost::filesystem::extension(itr->path()) == ".jpg") {
-            // Open image and ensure it was loaded properly
-            vision::Image* img =
-                vision::Image::loadFromFile(itr->path().file_string());
-            CHECK(img);
-            // Process the image, then make sure we get the right suit
-            detector.processImage(img);
-            CHECK_EQUAL(detector.getSuit(), results[i++]);
->>>>>>> .r4782
-        }
-<<<<<<< .mine
-        std::cout << "done\n";
-    }
-=======
-    }
-    // Did not process the proper number of images
-    CHECK_EQUAL(i, 4u);
-*/
-}
->>>>>>> .r4782
     
 } // SUITE(FANNSuitDetector)
