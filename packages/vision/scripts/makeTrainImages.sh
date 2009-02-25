@@ -36,8 +36,6 @@ convert $NEWORIG +contrast $NEWBASE-constrast2$EXTENSION
 convert $NEWORIG -emboss 2x2 $NEWBASE-emboss2$EXTENSION
 convert $NEWORIG -emboss 3x3 $NEWBASE-emboss3$EXTENSION
 convert $NEWORIG -emboss 4x4 $NEWBASE-emboss4$EXTENSION
-convert $NEWORIG -emboss 5x5 $NEWBASE-emboss5$EXTENSION
-convert $NEWORIG -emboss 6x6 $NEWBASE-emboss6$EXTENSION
 
 # digital enhancement and equalization
 convert $NEWORIG -enhance $NEWBASE-enhance$EXTENSION
@@ -74,7 +72,6 @@ convert $NEWORIG -spread 1 $NEWBASE-spread1$EXTENSION
 convert $NEWORIG -spread 2 $NEWBASE-spread2$EXTENSION
 convert $NEWORIG -spread 3 $NEWBASE-spread3$EXTENSION
 convert $NEWORIG -spread 4 $NEWBASE-spread4$EXTENSION
-convert $NEWORIG -spread 5 $NEWBASE-spread5$EXTENSION
 
 # swirl images around
 convert $NEWORIG -swirl 5 $NEWBASE-swirl5$EXTENSION
@@ -90,9 +87,6 @@ convert $NEWORIG -swirl -25 $NEWBASE-swirl-25$EXTENSION
 
 # make wavy images
 convert $NEWORIG -wave 3x3 $NEWBASE-wave3x3$EXTENSION
-convert $NEWORIG -wave 3x5 $NEWBASE-wave3x5$EXTENSION
-convert $NEWORIG -wave 5x3 $NEWBASE-wave5x3$EXTENSION
-convert $NEWORIG -wave 5x5 $NEWBASE-wave5x5$EXTENSION
 
 # now make some flipped images
 for I in $( ls $OUTDIR ); do

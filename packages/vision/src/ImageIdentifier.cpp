@@ -20,79 +20,62 @@
 // header for this class
 #include "vision/include/ImageIdentifier.hpp"
 
-// network design parameters
-#define USE_CASCADE
-#define PYRAMID_NETWORK
-
-// variables I created
-#define MAX_SIZE_FACTOR 0.1
-#define NUM_LAYERS 3
-
-// variables used by fann
-#define CONNECTION_RATE 0.75
-#define LEARNING_RATE 0.2
-#define LEARNING_MOMENTUM 0.125
-#define INITIAL_STEEPNESS 0.5
 #define DATA_MIN 0.0
 #define DATA_MAX 1.0
-#define MAX_EPOCHS 6250
-#define REPORT_EPOCHS 25
-#define REPORT_NEURONS 1
-#define DESIRED_ERROR 0.0001
 #define MIN_WEIGHT -0.0
 #define MAX_WEIGHT 1.0
-#define MIN_INIT_WEIGHT -0.1
-#define MAX_INIT_WEIGHT 0.1
-#define BIT_FAIL_LIMIT 0.15
-
-// cascade only fann variables
-#define CASCADE_OUTPUT_CHANGE 0.1
-#define CASCADE_CANDIDATE_CHANGE 0.25
-#define CASCADE_GROUPS 5
-#define CASCADE_CANDIDATE_LIMIT 750
-#define CASCADE_MULTIPLIER 0.95
-#define CASCADE_MAX_OUT_EPOCHS 250
+#define MIN_INIT_WEIGHT -0.8
+#define MAX_INIT_WEIGHT 0.8
 
 namespace ram {
 	namespace vision {
-		ImageIdentifier::ImageIdentifier (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth) {
+		ImageIdentifier::ImageIdentifier (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth, core::ConfigNode config) {
 			// the size of the input layer
 			const int inputSize = imageHeight * imageWidth;
+            
+            // some config stuff
+            m_cascade = config["UseCascade"].asInt(1);
+            m_maxEpochs = config["MaxEpochs"].asInt(6250);
+            m_sizeFactor = config["MaxSizeFactor"].asDouble(0.1);
+            m_reportEpochs = config["ReportEpochs"].asInt(25);
+            m_reportNeurons = config["ReportNeurons"].asInt(1);
+            m_desiredError = config["DesiredError"].asDouble(0.0001);
 			
 			// an array of layer sizes - starting with input and ending with output
-			unsigned int layerSizes[NUM_LAYERS];
-#ifdef PYRAMID_NETWORK
-			const int interval = (inputSize - images) / (NUM_LAYERS - 1);
-			for (int i = 0; i < NUM_LAYERS; ++i) {
-				layerSizes[i] = inputSize - (interval * i);
-			}
-#else
-			for (int i = 0; i < NUM_LAYERS; ++i) {
-				layerSizes[i] = (i == NUM_LAYERS - 1 ? images : inputSize);
-			}
-#endif
+            int layers = config["Layers"].asInt(3);
+			unsigned int layerSizes[layers];
+            if (config["PyramidNetwork"].asInt(1)) { 
+                const int interval = (inputSize - images) / (layers - 1);
+                for (int i = 0; i < layers; ++i) {
+                    layerSizes[i] = inputSize - (interval * i);
+                }
+            } else {
+                for (int i = 0; i < layers; ++i) {
+                    layerSizes[i] = (i == layers - 1 ? images : inputSize);
+                }
+            }
 			
 			// setup the network structure - if this doesn't work we're boned, hence the assert
-#ifdef USE_CASCADE
-			assert (m_net.create_shortcut_array (NUM_LAYERS, layerSizes) && "Failed to create neural network.\n");
-#else
-			assert (m_net.create_sparse_array (CONNECTION_RATE, NUM_LAYERS, layerSizes) && "Failed to create neural network.\n");
-#endif
+            if (m_cascade) {
+                assert (m_net.create_shortcut_array (layers, layerSizes) && "Failed to create neural network.\n");
+            } else {
+                assert (m_net.create_sparse_array (config["ConnectionRate"].asDouble(0.75), layers, layerSizes) && "Failed to create neural network.\n");
+            }
 			
 			// set some parameters
-#ifdef USE_CASCADE
-			m_net.set_cascade_weight_multiplier (CASCADE_MULTIPLIER);
-			m_net.set_cascade_max_out_epochs (CASCADE_MAX_OUT_EPOCHS);
-			m_net.set_cascade_output_change_fraction (CASCADE_OUTPUT_CHANGE);
-			m_net.set_cascade_candidate_change_fraction (CASCADE_CANDIDATE_CHANGE);
-			m_net.set_cascade_num_candidate_groups (CASCADE_GROUPS);
-			m_net.set_cascade_candidate_limit (CASCADE_CANDIDATE_LIMIT);
-#endif
-			m_net.set_learning_rate (LEARNING_RATE);
-			m_net.set_learning_momentum(LEARNING_MOMENTUM);
-			m_net.set_activation_steepness_hidden(INITIAL_STEEPNESS);
-			m_net.set_activation_steepness_output(INITIAL_STEEPNESS);
-			m_net.set_bit_fail_limit (BIT_FAIL_LIMIT);
+            if (m_cascade) {
+                m_net.set_cascade_weight_multiplier (config["CascadeMultiplier"].asDouble(0.95));
+                m_net.set_cascade_max_out_epochs (config["CascadeMaxOutEpochs"].asInt(250));
+                m_net.set_cascade_output_change_fraction (config["CascadeOutputChange"].asDouble(0.20));
+                m_net.set_cascade_candidate_change_fraction (config["CascadeCandidateChange"].asDouble(0.25));
+                m_net.set_cascade_num_candidate_groups (config["CascadeGroups"].asInt(2));
+                m_net.set_cascade_candidate_limit (config["CascadeCandidateLimit"].asInt(750));
+            }
+			m_net.set_learning_rate (config["LearningRate"].asDouble(0.35));
+			m_net.set_learning_momentum(config["LearningMomentum"].asDouble(0.2));
+			m_net.set_activation_steepness_hidden(config["InitialSteepness"].asDouble(0.5));
+			m_net.set_activation_steepness_output(config["InitialSteepness"].asDouble(0.5));
+			m_net.set_bit_fail_limit (config["BitFailLimit"].asDouble(0.15));
 			m_net.set_activation_function_hidden (FANN::SIGMOID_STEPWISE);
 			m_net.set_activation_function_output (FANN::SIGMOID_STEPWISE);
 			m_net.set_train_error_function (FANN::ERRORFUNC_LINEAR);	
@@ -130,16 +113,16 @@ namespace ram {
 		
 		void ImageIdentifier::runTraining (FANN::training_data &data) {
 			data.scale_train_data(DATA_MIN, DATA_MAX);
-#ifdef USE_CASCADE
-			m_net.reset_MSE();
-			m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);	
-			m_net.set_train_stop_function (FANN::STOPFUNC_BIT);
-			m_net.cascadetrain_on_data (data, MAX_SIZE_FACTOR * m_net.get_total_neurons(), REPORT_NEURONS, DESIRED_ERROR);
-#endif
+            if (m_cascade) {
+                m_net.reset_MSE();
+                m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);	
+                m_net.set_train_stop_function (FANN::STOPFUNC_BIT);
+                m_net.cascadetrain_on_data (data, m_sizeFactor * m_net.get_total_neurons(), m_reportNeurons, m_desiredError);
+            }
 			m_net.reset_MSE();
 			m_net.set_training_algorithm (FANN::TRAIN_BATCH);	
 			m_net.set_train_stop_function (FANN::STOPFUNC_MSE);
-			m_net.train_on_data (data, MAX_EPOCHS, REPORT_EPOCHS, DESIRED_ERROR);
+			m_net.train_on_data (data, m_maxEpochs, m_reportEpochs, m_desiredError);
 		}
 		
 		const void ImageIdentifier::runTest (FANN::training_data &data, std::ostream &out) {
