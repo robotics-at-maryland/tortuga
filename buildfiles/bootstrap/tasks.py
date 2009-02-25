@@ -90,7 +90,7 @@ install_python_modules = Task(
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
      commands = [],
-     dependencies = (install_pygccxml, install_pyplusplus, install_pyserial,
+     dependencies = (install_pygccxml, install_pyplusplus,
                      install_pyyaml, install_scons, install_zope_interface)
     )
 
