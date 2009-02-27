@@ -29,6 +29,7 @@ if platform.system() == 'Darwin':
     BOOST_PROGOPT_LIB = 'boost_program_options-xgcc40-mt'
     BOOST_REGEX_LIB = 'boost_regex-xgcc40-mt'
     BOOST_DATE_TIME_LIB = 'boost_date_time-xgcc40-mt'
+    BOOST_SERIALIZATION_LIB = 'boost_serialization-xgcc40-mt'
 elif platform.system() == 'Linux':
     BOOST_PYTHON_LIB = 'boost_python-gcc42-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc42-mt'
@@ -39,6 +40,7 @@ elif platform.system() == 'Linux':
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc42-mt'
     BOOST_REGEX_LIB = 'boost_regex-gcc42-mt'
     BOOST_DATE_TIME_LIB = 'boost_date_time-gcc42-mt'
+    BOOST_SERIALIZATION_LIB = 'boost_serialization-gcc42-mt'
 elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'
@@ -119,6 +121,10 @@ def setup_posix_libs():
 
         'Boost.System' : BoostLibrary('Boost.System', (1,37,None), [],
                                           [BOOST_SYSTEM_LIB]),
+
+        'Boost.Serialization' : BoostLibrary('Boost.Serialization', 
+                                             (1,37,None), [],
+                                             [BOOST_SERIALIZATION_LIB]),
 
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
                                               (1,37,None), [],
@@ -229,7 +235,7 @@ def _get_internal_lib(env, name):
     """
     Maps internal library name with the information needed to build it
     """
-    vehicle_int_deps = ['core', 'pattern','math']
+    vehicle_int_deps = ['core', 'pattern','math','logging']
     if env.HasFeature('drivers'):
         vehicle_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster'])
     
@@ -285,7 +291,10 @@ def _get_internal_lib(env, name):
 
             'vehicle' : InternalLibrary('vehicle',
                                         int_deps = vehicle_int_deps,
-                                        ext_deps = [])
+                                        ext_deps = []),
+
+            'logging' : InternalLibrary('logging', int_deps = ['core'],
+                                        ext_deps = ['Boost.Serialization']),
             }
 
     if INTERNAL_LIBS.has_key(name):
