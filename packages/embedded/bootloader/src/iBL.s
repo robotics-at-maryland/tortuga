@@ -33,6 +33,14 @@
         config __FGS, CODE_PROT_OFF         ;Set Code Protection Off for the
                                             ;General Segment
 
+;make sure the following register is actually the read/write signal register, also #define them (or equivalent)
+;also, verify which way is read/write
+/*#define IN_RW       _RE8
+#define TRIS_RW     _TRISE8
+
+#define RW_READ     0
+#define RW_WRITE    1
+*/
 ;******************************************************************************
 ; Program Specific Constants (literals used in code)
 ;******************************************************************************
@@ -49,10 +57,13 @@
           .equ C_WRITE, 0x02
           .equ C_VERSION, 0x03
           .equ C_USER, 0x0F
-          .equ MAX_WORD_ROW, 64
+          .equ MAX_WORD_ROW, 48						; 96 byte packets(each word is 2 bytes)
 
           .equ MAJOR_VERSION, 0x01
           .equ MINOR_VERSION, 0x01
+
+          .equ RW_PIN PORTE,8							; the R/W signal pin
+          .equ TRIS_RW TRISE,8							; the R/W TRIS pin
 
 ;******************************************************************************
 ; Global Declarations:
@@ -239,6 +250,9 @@ MinorLRise:
 EndRising:
         bclr IFS0, #IC1IF         ; Clear Interrupt Flag
         return
+
+GetReadOrWrite:
+
 
 ;******************************************************************************
 ReceiveChar:
