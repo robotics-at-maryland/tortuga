@@ -40,7 +40,8 @@ namespace ram {
 			FANN::neural_net m_net;
 			fann_type* m_outValue;
             bool m_cascade;
-            int m_maxEpochs, m_sizeFactor, m_reportEpochs, m_reportNeurons, m_desiredError;
+            float m_sizeFactor;
+            int m_maxEpochs, m_reportEpochs, m_reportNeurons, m_desiredError;
 		public:
 			/** Build a new ImageIdentifier **/
 			ImageIdentifier (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth, core::ConfigNode config = ram::core::ConfigNode::fromString("{}"));

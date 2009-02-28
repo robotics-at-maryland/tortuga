@@ -35,8 +35,8 @@ namespace ram {
             
             // some config stuff
             m_cascade = config["UseCascade"].asInt(1);
-            m_maxEpochs = config["MaxEpochs"].asInt(6250);
-            m_sizeFactor = config["MaxSizeFactor"].asDouble(0.1);
+            m_maxEpochs = config["MaxEpochs"].asInt(7500);
+            m_sizeFactor = config["MaxSizeFactor"].asDouble(0.01);
             m_reportEpochs = config["ReportEpochs"].asInt(25);
             m_reportNeurons = config["ReportNeurons"].asInt(1);
             m_desiredError = config["DesiredError"].asDouble(0.0001);
@@ -68,14 +68,14 @@ namespace ram {
                 m_net.set_cascade_max_out_epochs (config["CascadeMaxOutEpochs"].asInt(250));
                 m_net.set_cascade_output_change_fraction (config["CascadeOutputChange"].asDouble(0.20));
                 m_net.set_cascade_candidate_change_fraction (config["CascadeCandidateChange"].asDouble(0.25));
-                m_net.set_cascade_num_candidate_groups (config["CascadeGroups"].asInt(2));
+                m_net.set_cascade_num_candidate_groups (config["CascadeGroups"].asInt(3));
                 m_net.set_cascade_candidate_limit (config["CascadeCandidateLimit"].asInt(750));
             }
 			m_net.set_learning_rate (config["LearningRate"].asDouble(0.35));
 			m_net.set_learning_momentum(config["LearningMomentum"].asDouble(0.2));
 			m_net.set_activation_steepness_hidden(config["InitialSteepness"].asDouble(0.5));
 			m_net.set_activation_steepness_output(config["InitialSteepness"].asDouble(0.5));
-			m_net.set_bit_fail_limit (config["BitFailLimit"].asDouble(0.15));
+			m_net.set_bit_fail_limit (config["BitFailLimit"].asDouble(0.10));
 			m_net.set_activation_function_hidden (FANN::SIGMOID_STEPWISE);
 			m_net.set_activation_function_output (FANN::SIGMOID_STEPWISE);
 			m_net.set_train_error_function (FANN::ERRORFUNC_LINEAR);	

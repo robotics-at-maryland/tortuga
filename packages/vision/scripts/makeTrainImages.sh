@@ -15,11 +15,16 @@ OUTDIR=$PWD/$BASENAME
 NEWBASE=$OUTDIR/$BASENAME
 NEWORIG=$NEWBASE$EXTENSION
 
+# after generation processing stuff
+FINAL="-edge 2"
+#FLIPPED="yes" # flip vertically 
+#FLOPPED="yes" # flop horizontally
+
 # make the new output directory
 mkdir $OUTDIR
 
 # make the new original
-convert $IN -monochrome -resize $SIZEx$SIZE $NEWORIG
+convert $IN -monochrome -negate -resize $SIZEx$SIZE $NEWORIG
 
 # make several blured images
 convert $NEWORIG -blur 2x2 $NEWBASE-blur2$EXTENSION
@@ -89,14 +94,26 @@ convert $NEWORIG -swirl -25 $NEWBASE-swirl-25$EXTENSION
 convert $NEWORIG -wave 3x3 $NEWBASE-wave3x3$EXTENSION
 
 # now make some flipped images
+if [ "$FLIPPED" ]; then
 for I in $( ls $OUTDIR ); do
     convert $OUTDIR/$I -flip $OUTDIR/$( basename -s $EXTENSION $I )-flipped$EXTENSION
 done
+fi
 
 # and now some flopped images
+if [ "$FLOPPED" ]; then
 for I in $( ls $OUTDIR ); do
     convert $OUTDIR/$I -flop $OUTDIR/$( basename -s $EXTENSION $I )-flopped$EXTENSION
 done
+fi
+
+# now do some final processing
+if [ "$FINAL" ]; then
+for I in $( ls $OUTDIR ); do
+	convert $OUTDIR/$I $FINAL $OUTDIR/$I # $OUTDIR/$( basename -s $EXTENSION $I )
+	# mv $OUTDIR/$( basename -s $EXTENSION $I) $I
+done
+fi
 
 # NOTE: there are some ImageMagick filters that were tried but aren't useful
 # edge: the ImageMagick edge detection filter, makes while outlines and the rest of the image becomes black
