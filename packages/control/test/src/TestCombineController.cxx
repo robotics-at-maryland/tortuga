@@ -225,13 +225,17 @@ TEST_FIXTURE(CombineControllerFixture, update)
     controller.update(timestep);
 
     // Check depth controller
+    CHECK_EQUAL(timestep, depthController->timestep);
     CHECK_EQUAL(depth, depthController->updateDepth);
     CHECK_EQUAL(orientation, depthController->orientation);
     
     // Check translational controller
+    CHECK_EQUAL(timestep, transController->timestep);
+    CHECK_EQUAL(linearAcceleration, transController->linearAcceleration);
     CHECK_EQUAL(orientation, transController->orientation);
 
     // Check rotational controller
+    CHECK_EQUAL(timestep, rotController->timestep);
     CHECK_EQUAL(angularRate, rotController->angularRate);
     CHECK_EQUAL(orientation, rotController->orientation);
 

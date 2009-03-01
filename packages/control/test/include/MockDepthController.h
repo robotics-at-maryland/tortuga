@@ -24,6 +24,7 @@ public:
         estimatedDepthDot(0),
         atDepthValue(false),
         updateDepth(0),
+        timestep(0),
         orientation(ram::math::Quaternion::IDENTITY),
         force(0, 0, 0)
         {}
@@ -40,9 +41,9 @@ public:
     
     virtual bool atDepth() { return atDepthValue; }
 
-    virtual ram::math::Vector3 depthUpdate(double depth,
+    virtual ram::math::Vector3 depthUpdate(double timestep_, double depth,
                                            ram::math::Quaternion orientation_)
-        {
+        { timestep = timestep_;
         updateDepth = depth;
         orientation = orientation_;
         return force; }
@@ -53,6 +54,7 @@ public:
     double estimatedDepthDot;
     double atDepthValue;
     double updateDepth;
+    double timestep;
     ram::math::Quaternion orientation;
     ram::math::Vector3 force;
 };

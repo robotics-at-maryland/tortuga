@@ -20,6 +20,7 @@ class MockTranslationalController :
 public: 
     MockTranslationalController(ram::core::ConfigNode) :
         speedSet(0), speed(0), sidewaysSpeedSet(0), sidewaysSpeed(0),
+        timestep(0), linearAcceleration(0, 0, 0),
         orientation(ram::math::Quaternion::IDENTITY),
         force(0, 0, 0)
         {}
@@ -35,8 +36,11 @@ public:
 
     virtual double getSidewaysSpeed() { return sidewaysSpeed; }
 
-    virtual ram::math::Vector3 translationalUpdate(
+    virtual ram::math::Vector3 translationalUpdate(double timestep_,
+        ram::math::Vector3 linearAcceleration_,
         ram::math::Quaternion orientation_) {
+        timestep = timestep_;
+        linearAcceleration = linearAcceleration_;
         orientation = orientation_;
         return force; }
 
@@ -44,6 +48,8 @@ public:
     double speed;
     double sidewaysSpeedSet;
     double sidewaysSpeed;
+    double timestep;
+    ram::math::Vector3 linearAcceleration;
     ram::math::Quaternion orientation;
     ram::math::Vector3 force;
 };

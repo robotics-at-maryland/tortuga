@@ -49,7 +49,9 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
     virtual ~ITranslationalControllerImp() {}
 
     /** Gets the needed vehicle force based on current vehicle state */
-    virtual math::Vector3 translationalUpdate(math::Quaternion orienation) = 0;
+    virtual math::Vector3 translationalUpdate(double timestep,
+                                              math::Vector3 linearAcceleration,
+                                              math::Quaternion orienation) = 0;
 };
     
 } // namespace control

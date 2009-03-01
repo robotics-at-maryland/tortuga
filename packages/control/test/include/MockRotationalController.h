@@ -26,6 +26,7 @@ public:
         desiredOrientationSet(ram::math::Quaternion::IDENTITY),
         atOrientationValue(false),
         holdCurrentHeadingCount(0),
+        timestep(0),
         orientation(ram::math::Quaternion::IDENTITY),
         angularRate(0, 0, 0),
         torque(0, 0, 0)
@@ -49,9 +50,10 @@ public:
 
     virtual void holdCurrentHeading() { holdCurrentHeadingCount++; }
 
-    virtual ram::math::Vector3 rotationalUpdate(
+    virtual ram::math::Vector3 rotationalUpdate(double timestep_,
         ram::math::Quaternion orientation_,
         ram::math::Vector3 angularRate_) {
+        timestep = timestep_;
         orientation = orientation_;
         angularRate = angularRate_;
         return torque; }
@@ -63,6 +65,7 @@ public:
     ram::math::Quaternion desiredOrientationSet;
     bool atOrientationValue;
     int holdCurrentHeadingCount;
+    double timestep;
     ram::math::Quaternion orientation;
     ram::math::Vector3 angularRate;
     ram::math::Vector3 torque;
