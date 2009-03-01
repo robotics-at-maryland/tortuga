@@ -12,6 +12,7 @@
 
 // Project Includes
 #include "control/include/ControllerMaker.h"
+#include "control/include/Common.h"
 
 /*namespace ram {
 namespace control {

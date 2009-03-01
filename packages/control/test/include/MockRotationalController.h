@@ -18,29 +18,54 @@ class MockRotationalController :
     public ram::control::IRotationalControllerImp
 {
 public:
-    MockRotationalController(ram::core::ConfigNode)
+    MockRotationalController(ram::core::ConfigNode) :
+        yaw(0),
+        pitch(0),
+        roll(0),
+        desiredOrientation(ram::math::Quaternion::IDENTITY),
+        desiredOrientationSet(ram::math::Quaternion::IDENTITY),
+        atOrientationValue(false),
+        holdCurrentHeadingCount(0),
+        orientation(ram::math::Quaternion::IDENTITY),
+        angularRate(0, 0, 0),
+        torque(0, 0, 0)
         {}
     
     virtual ~MockRotationalController() {}
 
-    virtual void yawVehicle(double /*degrees*/) {}
+    virtual void yawVehicle(double degrees) { yaw = degrees; }
 
-    virtual void pitchVehicle(double /*degrees*/) {}
+    virtual void pitchVehicle(double degrees) { pitch = degrees; }
 
-    virtual void rollVehicle(double /*degrees*/) {}
+    virtual void rollVehicle(double degrees) { roll = degrees; }
 
     virtual ram::math::Quaternion getDesiredOrientation() {
-        return ram::math::Quaternion::IDENTITY; }
+        return desiredOrientation; }
     
-    virtual void setDesiredOrientation(ram::math::Quaternion) {}
+    virtual void setDesiredOrientation(ram::math::Quaternion orientation) {
+        desiredOrientationSet = orientation; }
     
-    virtual bool atOrientation() { return true; }
+    virtual bool atOrientation() { return atOrientationValue; }
 
-    virtual void holdCurrentHeading() {}
+    virtual void holdCurrentHeading() { holdCurrentHeadingCount++; }
 
     virtual ram::math::Vector3 rotationalUpdate(
-        ram::math::Quaternion /*orientation*/,
-        ram::math::Vector3 /*angularRate*/) { return ram::math::Vector3::ZERO; }
+        ram::math::Quaternion orientation_,
+        ram::math::Vector3 angularRate_) {
+        orientation = orientation_;
+        angularRate = angularRate_;
+        return torque; }
+
+    double yaw;
+    double pitch;
+    double roll;
+    ram::math::Quaternion desiredOrientation;
+    ram::math::Quaternion desiredOrientationSet;
+    bool atOrientationValue;
+    int holdCurrentHeadingCount;
+    ram::math::Quaternion orientation;
+    ram::math::Vector3 angularRate;
+    ram::math::Vector3 torque;
 };
 
 #endif	// RAM_CONTROL_TEST_ROTATIONALCONTROLLER_09_01_2008

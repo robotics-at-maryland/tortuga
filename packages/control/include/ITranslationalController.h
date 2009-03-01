@@ -19,9 +19,6 @@
 namespace ram {
 namespace control {
 
-class ITranslationalController;
-typedef boost::shared_ptr<ITranslationalController> ITranslationalControllerPtr;
-
 /** Defines the interface for controler which controls in plane motion */
 class RAM_EXPORT ITranslationalController 
 {
@@ -44,10 +41,6 @@ public:
      */
     virtual double getSidewaysSpeed() = 0;
 };
-
-class ITranslationalControllerImp;
-typedef boost::shared_ptr<ITranslationalControllerImp>
-ITranslationalControllerImpPtr;
 
 /** Provides an interface for a implementation of a Translational Controller */
 class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController

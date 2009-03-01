@@ -17,22 +17,35 @@
 class MockTranslationalController :
     public ram::control::ITranslationalControllerImp
 {
-public:
-    MockTranslationalController(ram::core::ConfigNode)
+public: 
+    MockTranslationalController(ram::core::ConfigNode) :
+        speedSet(0), speed(0), sidewaysSpeedSet(0), sidewaysSpeed(0),
+        orientation(ram::math::Quaternion::IDENTITY),
+        force(0, 0, 0)
         {}
     
     virtual ~MockTranslationalController() {}
 
-    virtual void setSpeed(double) {}
+    virtual void setSpeed(double speed_) { speedSet = speed_; }
 
-    virtual void setSidewaysSpeed(double) {}
+    virtual void setSidewaysSpeed(double sidewaysSpeed_) {
+        sidewaysSpeedSet = sidewaysSpeed_; }
 
-    virtual double getSpeed() { return 0; }
+    virtual double getSpeed() { return speed; }
 
-    virtual double getSidewaysSpeed() { return 0; }
+    virtual double getSidewaysSpeed() { return sidewaysSpeed; }
 
-    virtual ram::math::Vector3 translationalUpdate(ram::math::Quaternion) {
-        return ram::math::Vector3::ZERO; }
+    virtual ram::math::Vector3 translationalUpdate(
+        ram::math::Quaternion orientation_) {
+        orientation = orientation_;
+        return force; }
+
+    double speedSet;
+    double speed;
+    double sidewaysSpeedSet;
+    double sidewaysSpeed;
+    ram::math::Quaternion orientation;
+    ram::math::Vector3 force;
 };
 
 #endif	// RAM_CONTROL_TEST_TRANSLATIONALCONTROLLER_09_01_2008

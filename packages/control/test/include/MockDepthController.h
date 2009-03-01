@@ -17,24 +17,44 @@
 class MockDepthController : public ram::control::IDepthControllerImp
 {
 public:
-    MockDepthController(ram::core::ConfigNode)
+    MockDepthController(ram::core::ConfigNode) :
+        depth(0),
+        depthSet(0),
+        estimatedDepth(0),
+        estimatedDepthDot(0),
+        atDepthValue(false),
+        updateDepth(0),
+        orientation(ram::math::Quaternion::IDENTITY),
+        force(0, 0, 0)
         {}
     
     virtual ~MockDepthController() {}
 
-    virtual void setDepth(double) { return; }
+    virtual void setDepth(double depth) { depthSet = depth; }
 
-    virtual double getDepth() { return 0; }
+    virtual double getDepth() { return depth; }
     
-    virtual double getEstimatedDepth() { return 0; }
+    virtual double getEstimatedDepth() { return estimatedDepth; }
     
-    virtual double getEstimatedDepthDot() { return 0; }
+    virtual double getEstimatedDepthDot() { return estimatedDepthDot; }
     
-    virtual bool atDepth() { return true; }
+    virtual bool atDepth() { return atDepthValue; }
 
     virtual ram::math::Vector3 depthUpdate(double depth,
-                                           ram::math::Quaternion orienation)
-        { return ram::math::Vector3::ZERO; }
+                                           ram::math::Quaternion orientation_)
+        {
+        updateDepth = depth;
+        orientation = orientation_;
+        return force; }
+
+    double depth;
+    double depthSet;
+    double estimatedDepth;
+    double estimatedDepthDot;
+    double atDepthValue;
+    double updateDepth;
+    ram::math::Quaternion orientation;
+    ram::math::Vector3 force;
 };
 
 #endif	// RAM_CONTROL_TEST_DEPTHCONTROLLER_09_01_2008

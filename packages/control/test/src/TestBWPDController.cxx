@@ -331,9 +331,7 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
 TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
 {
 
-  /*
-    Test 1
-   */
+    // Test 1
 
     // Set the current "measured" orientation
     math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
@@ -349,9 +347,7 @@ TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
 
     CHECK_EQUAL(expectedOrientation, controller.getDesiredOrientation());
 
-    /*
-      Test 2
-     */
+    // Test 2
     
     // set the current "measured" orientation
     math::Quaternion orientation2(0.0028, 0.0028, 0.7071, 0.7071);

@@ -22,9 +22,6 @@
 namespace ram {
 namespace control {
 
-class IDepthController;
-typedef boost::shared_ptr<IDepthController> IDepthControllerPtr;
-
 /** Defines the interface for a depth controller */
 class RAM_EXPORT IDepthController
 {
@@ -46,9 +43,6 @@ public:
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
 };
-
-class IDepthControllerImp;
-typedef boost::shared_ptr<IDepthControllerImp> IDepthControllerImpPtr;
 
 /** Provides an interface for a implementation of a Depth Controller */
 class RAM_EXPORT IDepthControllerImp : public IDepthController

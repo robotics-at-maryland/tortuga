@@ -14,7 +14,10 @@
 #include "control/include/IDepthController.h"
 #include "control/include/IRotationalController.h"
 #include "control/include/ITranslationalController.h"
+#include "control/include/Common.h"
+
 #include "pattern/include/Maker.h"
+
 #include "core/include/ConfigNodeKeyExtractor.h"
 
 // Must Be Included last
@@ -113,7 +116,7 @@ struct TranslationalControllerImpMakerTemplate :
 };
 
 // ------------------------------------------------------------------------- //
-//       T R A N S L A T I O N A L   C O N T R O L L E R   M A K E R         //
+//          R O T A T I O N A L   C O N T R O L L E R   M A K E R            //
 // ------------------------------------------------------------------------- //
 
 typedef pattern::Maker<

@@ -13,6 +13,10 @@
 
 // Project Includes
 #include "control/include/CombineController.h"
+#include "control/include/ITranslationalController.h"
+#include "control/include/IDepthController.h"
+#include "control/include/IRotationalController.h"
+#include "control/include/ControllerMaker.h"
 
 #include "vehicle/include/IVehicle.h"
 
@@ -39,19 +43,17 @@ namespace control {
 
 CombineController::CombineController(vehicle::IVehiclePtr vehicle,
                                      core::ConfigNode config) :
-    IController(config["name"].asString())//,
-//    m_vehicle(vehicle)
+    ControllerBase(vehicle, config)
 {   
-//    init(config); 
+    init(config); 
 }
 
+    
 CombineController::CombineController(core::ConfigNode config,
-                               core::SubsystemList deps) :
-    IController(config["name"].asString(),
-                core::Subsystem::getSubsystemOfType<core::EventHub>(deps))//,
-//    m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),
+                                     core::SubsystemList deps) :
+    ControllerBase(config, deps)
 {
-//    init(config);
+    init(config);
 }
 
 CombineController::~CombineController()
@@ -59,8 +61,22 @@ CombineController::~CombineController()
     unbackground(true);
 }
 
-
-// Translational controller methods
+void CombineController::init(core::ConfigNode config)
+{
+    // Create In plane controller
+    core::ConfigNode node(config["TranslationalController"]);
+    m_transController =
+        TranslationalControllerImpMaker::newObject(node);
+    
+    // Create depth controller
+    node = config["DepthController"];
+    m_depthController = DepthControllerImpMaker::newObject(node);
+    
+    // Create rotational controller
+    node = config["RotationalController"];
+    m_rotController = RotationalControllerImpMaker::newObject(node);
+}
+    
 void CombineController::setSpeed(double speed)
 {
     m_transController->setSpeed(speed);
@@ -86,7 +102,7 @@ void CombineController::setDepth(double depth)
 {
     m_depthController->setDepth(depth);
 }
-
+    
 double CombineController::getDepth()
 {
     return m_depthController->getDepth();
@@ -102,6 +118,11 @@ double CombineController::getEstimatedDepthDot()
     return m_depthController->getEstimatedDepthDot();
 }
 
+bool CombineController::atDepth()
+{
+    return m_depthController->atDepth();
+}
+    
 // Rotational controller methods
 void CombineController::rollVehicle(double degrees)
 {
@@ -138,21 +159,14 @@ void CombineController::holdCurrentHeading()
     m_rotController->holdCurrentHeading();
 }
 
-// Misc Methods
-bool CombineController::atDepth()
+void CombineController::doUpdate(const double& timestep,
+                                 const math::Vector3& linearAcceleration,
+                                 const math::Quaternion& orientation,
+                                 const math::Vector3& angularRate,
+                                 const double& depth,
+                                 math::Vector3& translationalForceOut,
+                                 math::Vector3& rotationalTorqueOut)
 {
-    return m_depthController->atDepth();
-}
-
-
-void CombineController::update(double timestep)
-{
-    // Get vehicle state
-    math::Vector3 linearAcceleration(m_vehicle->getLinearAcceleration());
-    math::Quaternion orientation(m_vehicle->getOrientation());
-    math::Vector3 angularRate(m_vehicle->getAngularRate());
-    double depth = m_vehicle->getDepth();
-    
     // Update controllers
     math::Vector3 inPlaneControlForce(
         m_transController->translationalUpdate(orientation));
@@ -162,14 +176,25 @@ void CombineController::update(double timestep)
         m_rotController->rotationalUpdate(orientation, angularRate));
     
     // Combine into desired rotational control and torque
-    math::Vector3 translationalForce(inPlaneControlForce + depthControlForce);
-    math::Vector3 rotationalTorque(rotControlTorque);
-
-    // Actually set motor values
-    m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
-
-    /// TODO: Figure out how to factor out base functionality
+    translationalForceOut = inPlaneControlForce + depthControlForce;
+    rotationalTorqueOut = rotControlTorque;
 }
-        
+
+ITranslationalControllerPtr CombineController::getTranslationalController()
+{
+    return m_transController;
+}
+   
+IDepthControllerPtr CombineController::getDepthController()
+{
+    return m_depthController;
+}
+    
+IRotationalControllerPtr CombineController::getRotationalController()
+{
+    return m_rotController;
+}
+
+    
 } // namespace control
 } // namespace ram

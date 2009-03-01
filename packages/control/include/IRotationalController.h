@@ -46,7 +46,15 @@ public:
     /** Returns true if the vehicle is at the desired orientation */
     virtual bool atOrientation() = 0;
 
-    /** Loads current orientation into desired (fixes offset in roll and pitch) */
+    /** Loads current orientation into desired (fixes offset in roll and pitch)
+     *
+     *  The desired state quaternion will be "level" in horizontal plane, this
+     *  will reverse slight offsets in roll and pitch.
+     *
+     *  @warning
+     *      The vehicle should be upright when using this function, otherwise
+     *      the interpretation of yaw and upright will be nonsensical.
+     */
     virtual void holdCurrentHeading() = 0;
 };
 
