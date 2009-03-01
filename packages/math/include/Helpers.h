@@ -40,8 +40,9 @@ void RAM_EXPORT matrixMult3x3byScalar(double matrix[3][3], double scalar,
                            double* const presult);
 void RAM_EXPORT matrixMult3x1by3x3(double bigMatrix[3][3], double littleMatrix[3],
                         double* const presult);
-void RAM_EXPORT matrixMult4x4by4x1(double big[4][4], double little[4],
-                        double* const presult);
+void RAM_EXPORT matrixMult4x4by4x1(const double big[4][4],
+                                   const double little[4],
+                                   double* const presult);
 void RAM_EXPORT matrixMult3x3by3x3(double a[3][3], double b[3][3], double* presult);
 void RAM_EXPORT crossProduct3x1by3x1(double a[3], double b[3], double * presult);
 
@@ -50,7 +51,8 @@ void RAM_EXPORT quaternionToEulerAxis(double q[4], double* pphi, double* pe);
 void RAM_EXPORT findErrorQuaternion(double qc[4], double q[4], double * pqe);
 void RAM_EXPORT rotationMatrixFromQuaternion(double q[4], double * pRot);
 void RAM_EXPORT quaternionFromEulerAxis(double e[3], double et, double * pQ);
-void RAM_EXPORT quaternionCrossProduct(double q1[4], double q2[4], double * pQ);
+void RAM_EXPORT quaternionCrossProduct(const double q1[4],
+                                       const double q2[4], double * pQ);
 
 double RAM_EXPORT getDistance(double a[3], double b[3]);
 void RAM_EXPORT getQuaternionErrorMatrix(double q[4], double * pMatrix);

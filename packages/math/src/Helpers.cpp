@@ -209,7 +209,7 @@ void matrixMult3x3by3x3(double a[3][3], double b[3][3], double* presult){
 * pre-multiplies a 4x1 matrix by a 4x4  (ie result[4][1]=bigMatrix[4][4]*littleMatrix[4][1])
 *
 */
-void matrixMult4x4by4x1(double big[4][4], double little[4], double* const presult){
+void matrixMult4x4by4x1(const double big[4][4], const double little[4], double* const presult){
     *(presult) = big[0][0]*little[0]+big[0][1]*little[1]+big[0][2]*little[2]+big[0][3]*little[3];
     *(presult+1) = big[1][0]*little[0]+big[1][1]*little[1]+big[1][2]*little[2]+big[1][3]*little[3];
     *(presult+2) = big[2][0]*little[0]+big[2][1]*little[1]+big[2][2]*little[2]+big[2][3]*little[3];
@@ -441,7 +441,8 @@ q - a quaternion with the parameterization:
                where euler axis = [e1,e2,e3] and euler angle = et (radians!)
 
 */
-void quaternionCrossProduct(double q1[4], double q2[4],  double * pQ){
+void quaternionCrossProduct(const double q1[4], const double q2[4],
+                            double * pQ){
   //generate quaternion cross product matrix
   double qRotMatrix[4][4];
 
