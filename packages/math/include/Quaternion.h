@@ -46,6 +46,7 @@ Torus Knot Software Ltd.
 // STD Includes
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <ostream>
 
 // Project Includes

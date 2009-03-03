@@ -78,7 +78,10 @@ int syncBoard(int fd)
 
     /* Eat the incoming buffer */
     while(hasData(fd, 0))
-        read(fd, buf, 1);
+    {
+      if (1 != read(fd, buf, 1))
+	return SB_ERROR;
+    }
 
     int i;
 

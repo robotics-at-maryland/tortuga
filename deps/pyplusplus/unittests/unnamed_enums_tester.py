@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -17,6 +17,13 @@ class unnamed_enums_tester_t(fundamental_tester_base.fundamental_tester_base_t):
             self
             , unnamed_enums_tester_t.EXTENSION_NAME
             , *args )
+
+    def customize( self, mb ):
+        enum_user_t = mb.class_( 'enum_user_t' )
+        if '0.9' in enum_user_t.compiler:
+            for do_smth in enum_user_t.mem_funs( lambda x: x.name.startswith( 'do_smth' ) ):
+                do_smth.arguments[0].default_value \
+                    = 'unnamed_enums::enum_holder_t::' + do_smth.arguments[0].default_value
 
     def run_tests(self, module):        
         self.failUnless( module.OK == 1 )

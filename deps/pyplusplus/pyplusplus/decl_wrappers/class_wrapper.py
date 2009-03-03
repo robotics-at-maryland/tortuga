@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -74,19 +74,19 @@ class class_common_details_t( object ):
     indexing_suite_version = property( _get_indexing_suite_version, _set_indexing_suite_version
                                        , doc="indexing suite version")
 
-    def _get_indexing_suite( self ):
+    @property
+    def indexing_suite( self ):
+        """reference to indexing suite configuration class.
+
+        If the class is not STD container, this property will contain None"
+        """
         if self._indexing_suite is None:
-            for container_traits in declarations.all_container_traits:
-                if container_traits.is_my_case( self ):
-                    if self._isuite_version == 1:
-                        self._indexing_suite = isuite1.indexing_suite1_t( self, container_traits )
-                    else:
-                        self._indexing_suite = isuite2.indexing_suite2_t( self, container_traits )
-                    break
+            if self.container_traits:
+                if self._isuite_version == 1:
+                    self._indexing_suite = isuite1.indexing_suite1_t( self )
+                else:
+                    self._indexing_suite = isuite2.indexing_suite2_t( self )
         return self._indexing_suite
-    indexing_suite = property( _get_indexing_suite
-                               , doc="reference to indexing suite configuration class. " \
-                                    +"If the class is not STD container, returns None")
 
     def guess_always_expose_using_scope_value( self ):
         if isinstance( self.indexing_suite, isuite2.indexing_suite2_t ) \
@@ -105,7 +105,7 @@ class class_common_details_t( object ):
             else:
                 self._always_expose_using_scope = False
         return self._always_expose_using_scope
-        
+
     def _set_always_expose_using_scope( self, value ):
         self._always_expose_using_scope = value
     always_expose_using_scope = property( _get_always_expose_using_scope, _set_always_expose_using_scope
@@ -134,12 +134,12 @@ class class_common_details_t( object ):
     less_than_comparable = property( _get_less_than_comparable, _set_less_than_comparable
                                      , doc="indicates existence of public operator<. " \
                                           +"Default value is calculated, based on information presented in the declarations tree" )
-        
+
     def _get_opaque( self ):
         return self._opaque
 
     def _set_opaque( self, value ):
-        self._opaque = value        
+        self._opaque = value
         self.ignore = value #don't expose opaque type
 
     opaque = property( _get_opaque, _set_opaque
@@ -147,20 +147,6 @@ class class_common_details_t( object ):
                             +"Thus it will be able to generate code, that uses " \
                             +" BOOST_PYTHON_OPAQUE_SPECIALIZED_TYPE_ID macro in a right places." )
 
-    def _get_already_exposed_impl( self ):
-        if not self.indexing_suite:
-            return self._already_exposed 
-        try:
-            et = self.indexing_suite.element_type
-            et = declarations.remove_const( et )
-            et = declarations.remove_pointer( et )
-            et = declarations.remove_declarated( et )
-            if isinstance(et, declarations.declaration_t):
-                return et._already_exposed
-            return False
-        except:
-            return False
-    
     @property
     def class_var_name(self):
         return self.alias + '_exposer'
@@ -177,12 +163,15 @@ class class_declaration_t( class_common_details_t
 class class_t( class_common_details_t
                , scopedef_wrapper.scopedef_t
                , declarations.class_t):
-    
+
     class EXPOSED_CLASS_TYPE:
         DECLARED = 'declared'
         WRAPPER = 'wrapper'
         ALL = ( DECLARED, WRAPPER )
-        
+
+    FAKE_CONSTRUCTOR_TYPES = ( declarations.member_function_t, declarations.free_function_t )
+    FAKE_CONSTRUCTOR_TYPE_NAMES = 'member and free functions'
+
     def __init__(self, *arguments, **keywords):
         class_common_details_t.__init__( self )
         declarations.class_t.__init__(self, *arguments, **keywords )
@@ -191,18 +180,38 @@ class class_t( class_common_details_t
         self._redefine_operators = False
         self._held_type = None
         self._noncopyable = None
-        self._wrapper_alias = self._generate_valid_name() + "_wrapper"
-        self._registration_code = []
+        self._wrapper_alias = None
+        self._registration_code_head = []
+        self._registration_code_tail = []
         self._declaration_code = []
         self._wrapper_code = []
-        self._null_constructor_body = ''
-        self._copy_constructor_body = ''
+        self._destructor_code = []
         self._exception_translation_code = None
         self._properties = []
         self._redefined_funcs = None
         self._require_self_reference  = False
         self._exposed_class_type = self.EXPOSED_CLASS_TYPE.DECLARED
-        
+        self._expose_this = None
+        self._expose_sizeof = None
+        self._fake_constructors = []
+        self._no_init = None
+
+    @property
+    def fake_constructors(self):
+        """list of fake constructors"""
+        return self._fake_constructors
+
+    def add_fake_constructors( self, f ):
+        """f - reference to a calldef_t object or list of them
+
+        boost::python::make_constructor allows to register a C++ function, as a
+        class constructor.
+        """
+        if isinstance( f, declarations.calldef_t ):
+            self._fake_constructors.add( f )
+        else:
+            self._fake_constructors.extend( f )
+
     def _get_redefine_operators( self ):
         return self._redefine_operators
     def _set_redefine_operators( self, new_value ):
@@ -238,6 +247,8 @@ class class_t( class_common_details_t
                                  +"Default value is calculated, based on information presented in the declarations tree" )
 
     def _get_wrapper_alias( self ):
+        if None is self._wrapper_alias:
+            self._wrapper_alias = self._generate_valid_name(self.partial_name) + "_wrapper"
         return self._wrapper_alias
     def _set_wrapper_alias( self, walias ):
         self._wrapper_alias = walias
@@ -248,17 +259,33 @@ class class_t( class_common_details_t
     def declaration_code( self ):
         """
         List of strings, that contains valid C++ code, that will be added to
-        the class registration section
+        the class declaration section
         """
         return self._declaration_code
 
     @property
-    def registration_code( self ):
+    def registration_code_head( self ):
         """
         List of strings, that contains valid C++ code, that will be added to
+        the head of the class registration section
+        """
+        return self._registration_code_head
+
+    @property
+    def registration_code_tail( self ):
+        """
+        List of strings, that contains valid C++ code, that will be added to
+        the tail of the class registration section
+        """
+        return self._registration_code_tail
+
+    @property
+    def registration_code( self ):
+        """
+        List of strings, that contains all C++ code, that will be added to
         the class registration section
         """
-        return self._registration_code
+        return self.registration_code_head + self.registration_code_tail
 
     @property
     def wrapper_code( self ):
@@ -269,18 +296,40 @@ class class_t( class_common_details_t
         return self._wrapper_code
 
     def _get_null_constructor_body(self):
-        return self._null_constructor_body
+        c = self.find_trivial_constructor()
+        if c:
+            return c.body
+        else:
+            return ''        
     def _set_null_constructor_body(self, body):
-        self._null_constructor_body = body
+        c = self.find_trivial_constructor()
+        if c:
+            c.body = body
     null_constructor_body = property( _get_null_constructor_body, _set_null_constructor_body
-                                      , doc="null constructor code, that will be added as is to the null constructor of class-wrapper")
+                                      , doc="null constructor code, that will be added as is to the null constructor of class-wrapper" )
 
     def _get_copy_constructor_body(self):
-        return self._copy_constructor_body
+        c = self.find_copy_constructor()
+        if c:
+            return c.body
+        else:
+            return ''        
+
     def _set_copy_constructor_body(self, body):
-        self._copy_constructor_body = body
+        c = self.find_copy_constructor()
+        if c:
+            c.body = body
     copy_constructor_body = property( _get_copy_constructor_body, _set_copy_constructor_body
                                       , doc="copy constructor code, that will be added as is to the copy constructor of class-wrapper")
+
+    @property
+    def destructor_code(self):
+        """list of code to be added to wrapper destructor"""
+        return self._destructor_code
+
+    def add_destructor_code(self, code):
+        """adds code to the class-wrapper destructor"""
+        self._destructor_code.append( code )
 
     @property
     def exception_argument_name( self ):
@@ -323,13 +372,20 @@ class class_t( class_common_details_t
         """adds the code to the declaration section"""
         self.declaration_code.append( user_text.user_text_t( code ) )
 
-    def add_registration_code( self, code, works_on_instance=True ):
+    def add_registration_code( self, code, works_on_instance=True, tail=True ):
         """adds the code to the class registration section
 
-        works_on_instance: If true, the custom code can be applied directly to obj inst.
-        Example: ObjInst."CustomCode"
+        @param works_on_instance: If true, the custom code can be applied directly to obj inst. Example: ObjInst.code
+        @type works_on_instance: bool
+
+        @param tail: if True, the custom code is appended to the end of the class registration code.
+        @type tail: bool
         """
-        self.registration_code.append( user_text.class_user_text_t( code, works_on_instance ) )
+        if tail:
+            self.registration_code_tail.append( user_text.class_user_text_t( code, works_on_instance ) )
+        else:
+            self.registration_code_head.append( user_text.class_user_text_t( code, works_on_instance ) )
+
     #preserving backward computability
     add_code = add_registration_code
 
@@ -339,14 +395,24 @@ class class_t( class_common_details_t
 
     def set_constructors_body( self, body ):
         """Sets the body for all constructors"""
-        self.constructors().body = body
+        constrs = self.constructors(allow_empty=True, recursive=False)
+        if constrs:
+            constrs.body = body
         self.null_constructor_body = body
         self.copy_constructor_body = body
 
     def _exportable_impl( self ):
         if not self.name:
-            return messages.W1018
-            #it is possible to do so, but not for unnamed classes defined under namespace.
+            named_parent = declarations.get_named_parent( self )
+            if not named_parent:
+                return messages.W1057 % str( self )
+            if isinstance( named_parent, declarations.namespace_t ):
+                return messages.W1018 % str( self )
+        if self.class_type == declarations.CLASS_TYPES.UNION:
+            if self.is_wrapper_needed():
+                return messages.W1059 % str( self )
+            if self.name:
+                return messages.W1060 % str( self )
         if isinstance( self.parent, declarations.namespace_t ):
             return ''
         if not self in self.parent.public_members:
@@ -369,7 +435,7 @@ class class_t( class_common_details_t
         vfunction_selector = lambda member: isinstance( member, declarations.member_function_t ) \
                                             and member.virtuality == declarations.VIRTUALITY_TYPES.PURE_VIRTUAL
         members.extend( filter( vfunction_selector, self.private_members ) )
-        
+
         def is_exportable( decl ):
             #filter out non-public member operators - Py++ does not support them right now
             if isinstance( decl, declarations.member_operator_t ) \
@@ -380,7 +446,7 @@ class class_t( class_common_details_t
                 return False
             if decl.ignore == True or decl.exportable == False:
                 return False
-            return True                
+            return True
         #-#if declarations.has_destructor( self ) \
         #-#   and not declarations.has_public_destructor( self ):
         members = filter( is_exportable, members )
@@ -409,7 +475,7 @@ class class_t( class_common_details_t
     def add_properties( self, recognizer=None, exclude_accessors=False ):
         props = properties.find_properties( self, recognizer, exclude_accessors )
         self.properties.extend( props )
-                        
+
     def add_static_property( self, name, fget, fset=None, doc='' ):
         """adds new static property to the class"""
         self._properties.append( properties.property_t( name, fget, fset, doc, True ) )
@@ -441,22 +507,27 @@ class class_t( class_common_details_t
         all_included = declarations.custom_matcher_t( lambda decl: decl.ignore == False and decl.exportable )
         all_protected = declarations.access_type_matcher_t( 'protected' ) & all_included
         all_pure_virtual = declarations.virtuality_type_matcher_t( VIRTUALITY_TYPES.PURE_VIRTUAL )
+        all_virtual = declarations.virtuality_type_matcher_t( VIRTUALITY_TYPES.VIRTUAL ) \
+                      & ( declarations.access_type_matcher_t( 'public' ) \
+                          | declarations.access_type_matcher_t( 'protected' ))
         all_not_pure_virtual = ~all_pure_virtual
 
         query = all_protected | all_pure_virtual
+        mf_query = query | all_virtual
         relevant_opers = declarations.custom_matcher_t( lambda decl: decl.symbol in ('()', '[]') )
-        funcs = set()
-        defined_funcs = set()
+        funcs = []
+        defined_funcs = []
 
         for base in self.recursive_bases:
             if base.access == ACCESS_TYPES.PRIVATE:
                 continue
             base_cls = base.related_class
-            funcs.update( base_cls.member_functions( query, allow_empty=True ) )
-            funcs.update( base_cls.member_operators( relevant_opers & query, allow_empty=True ) )
 
-            defined_funcs.update( base_cls.member_functions( all_not_pure_virtual, allow_empty=True ) )
-            defined_funcs.update( base_cls.member_operators( all_not_pure_virtual & relevant_opers, allow_empty=True ) )
+            funcs.extend( base_cls.member_functions( mf_query, recursive=False, allow_empty=True ) )
+            funcs.extend( base_cls.member_operators( relevant_opers & query, recursive=False, allow_empty=True ) )
+
+            defined_funcs.extend( base_cls.member_functions( all_not_pure_virtual, recursive=False, allow_empty=True ) )
+            defined_funcs.extend( base_cls.member_operators( all_not_pure_virtual & relevant_opers, recursive=False, allow_empty=True ) )
 
         not_reimplemented_funcs = set()
         is_same_function = declarations.is_same_function
@@ -469,6 +540,10 @@ class class_t( class_common_details_t
                 #should test whether this function has been added or not
                 for f_impl in not_reimplemented_funcs:
                     if is_same_function( f, f_impl ):
+                        if declarations.is_base_and_derived( f_impl.parent, f.parent ):
+                            #add function from the most derived class
+                            not_reimplemented_funcs.remove( f_impl )
+                            not_reimplemented_funcs.add( f )
                         break
                 else:
                     #should test whether this function is implemented in base class
@@ -480,9 +555,47 @@ class class_t( class_common_details_t
                                 break
                         else:
                             not_reimplemented_funcs.add( f )
-        functions = list( not_reimplemented_funcs )
+        functions = filter( lambda f: ( False == f.ignore and True == f.exportable )
+                                      or all_pure_virtual( f )
+                            , list( not_reimplemented_funcs ) )
+
+
+        #Boost.Python is not able to call for non-virtual function, from the base
+        #class if there is a virtual function with the same within base class
+        #See override_bug tester for more information
+
+        def buggy_bpl_filter( f ):
+            if f.parent is self:
+                return False
+            if f.access_type != ACCESS_TYPES.PUBLIC:
+                return False
+            if f.virtuality != VIRTUALITY_TYPES.NOT_VIRTUAL:
+                return False
+            #we need to check that we don't have "same" function in this class
+            this_funs = self.decls( name=f.name
+                                    , decl_type=declarations.calldef_t
+                                    , recursive=False
+                                    , allow_empty=True )
+            for this_f in this_funs:
+                if is_same_function( this_f, f ):
+                    #there is already the function in the class, so no need to redefined it
+                    return False
+            else:
+                return True
+
+        tmp = {} # id : f
+        for redefined_f in functions:
+            #redefined is virtual, I am not interested in virtual functions
+            for rfo in redefined_f.overloads:
+                if id(rfo) in tmp:
+                    continue
+                if buggy_bpl_filter( rfo ):
+                    tmp[ id(rfo) ] = rfo
+        functions.extend( tmp.values() )
+
         functions.sort( cmp=lambda f1, f2: cmp( ( f1.name, f1.location.as_tuple() )
                                                 , ( f2.name, f2.location.as_tuple() ) ) )
+
         self._redefined_funcs = functions
         return self._redefined_funcs
 
@@ -501,6 +614,9 @@ class class_t( class_common_details_t
         if self.copy_constructor_body:
             explanation.append( messages.W1022 )
 
+        if self.destructor_code:
+            explanation.append( messages.W1055 )
+
         redefined_funcs = self.redefined_funcs()
         if redefined_funcs:
             funcs = map( lambda f: f.name, redefined_funcs )
@@ -510,14 +626,7 @@ class class_t( class_common_details_t
             if isinstance( member, declarations.destructor_t ):
                 continue
             if isinstance( member, declarations.variable_t ):
-                if member.bits:
-                    explanation.append( messages.W1024 % member.name )
-                if declarations.is_pointer( member.type ):
-                    explanation.append( messages.W1025 % member.name )
-                if declarations.is_reference( member.type ):
-                    explanation.append( messages.W1026 % member.name )
-                if declarations.is_array( member.type ):
-                    explanation.append( messages.W1027 % member.name)
+                explanation.extend( member.is_wrapper_needed() )
             if isinstance( member, declarations.class_t ) and member.is_wrapper_needed():
                 explanation.append( messages.W1028 % member.name)
             if isinstance( member, declarations.calldef_t ):
@@ -530,7 +639,16 @@ class class_t( class_common_details_t
         return explanation
 
     def _readme_impl( self ):
-        return self.is_wrapper_needed()
+        explanation = self.is_wrapper_needed()
+        for fc in self.fake_constructors:
+            if fc.ignore:
+                explanation.append( messages.W1062 % ( str( self ), str( fc ) ) )
+            if not fc.exportable:
+                explanation.append( messages.W1063 % ( str( self ), str( fc ) ) )
+            if not isinstance( fc, self.FAKE_CONSTRUCTOR_TYPES ):
+                explanation.append( messages.W1064
+                                    % ( str( fc ), str( self ), self.FAKE_CONSTRUCTOR_TYPE_NAMES ) )
+        return explanation
 
     def guess_always_expose_using_scope_value( self ):
         def is_assign( oper ):
@@ -544,7 +662,7 @@ class class_t( class_common_details_t
         #MSVC 7.1 has problem with taking reference to operator=
         if self.member_operators( is_assign, allow_empty=True, recursive=False ):
             return impl_details.GUESS_VALUES.ALWAYS_TRUE
-        return super(class_t, self).guess_always_expose_using_scope_value()    
+        return super(class_t, self).guess_always_expose_using_scope_value()
 
     def _get_require_self_reference(self):
         return self._require_self_reference
@@ -552,3 +670,65 @@ class class_t( class_common_details_t
         self._require_self_reference = require_self_reference
     require_self_reference = property( _get_require_self_reference, _set_require_self_reference
                      , doc="boolean, if True the first argument to the constructor will be reference to self object" )
+
+    def _get_expose_this( self ):
+        return self._expose_this
+    def _set_expose_this( self, new_value ):
+        self._expose_this = new_value
+    expose_this = property( _get_expose_this, _set_expose_this
+                           , doc="boolean, if True an object address( this pointer ) will be exposed to Python as integer.")
+
+    def _get_expose_sizeof( self ):
+        return self._expose_sizeof
+    def _set_expose_sizeof( self, new_value ):
+        self._expose_sizeof = new_value
+    expose_sizeof = property( _get_expose_sizeof, _set_expose_sizeof
+                              , doc="boolean, if True the sizeof(obj) will be exposed to Python as integer.")
+
+    @property
+    def introduces_new_scope(self):
+        """returns True, if during exposing this class, new scope will be created
+
+        For example, anonymous structs will be exposed in a parent scope.
+        """
+        if not self.name:
+            return False
+        elif self.class_type == declarations.CLASS_TYPES.UNION:
+            return False
+        else:
+            return True
+
+    def _get_no_init( self ):
+        if None is self._no_init and False == bool( self.indexing_suite ):
+            #select all public constructors and exclude copy constructor
+            cs = self.constructors( lambda c: not c.is_copy_constructor and c.access_type == 'public'
+                                    , recursive=False, allow_empty=True )
+            
+            has_suitable_constructor = bool( cs )
+            if cs and len(cs) == 1 and cs[0].is_trivial_constructor and self.find_noncopyable_vars():
+                has_suitable_constructor = False
+    
+            has_nonpublic_destructor = declarations.has_destructor( self ) \
+                                       and not declarations.has_public_destructor( self )
+    
+            trivial_constructor = self.find_trivial_constructor()
+    
+            if has_nonpublic_destructor \
+               or ( self.is_abstract and not self.is_wrapper_needed() ) \
+               or not has_suitable_constructor:
+                self._no_init = True
+            elif not trivial_constructor or trivial_constructor.access_type != 'public':
+                exportable_cs = filter( lambda c: c.exportable and c.ignore == False
+                                        , cs )
+                if not exportable_cs:
+                    self._no_init = True
+            else:
+                pass
+        if None is self._no_init:
+            self._no_init = False
+        return self._no_init
+    def _set_no_init( self, value ):
+        self._no_init = value
+        
+    no_init = property( _get_no_init, _set_no_init
+                        , doc="If True, class will be registered with 'boost::python::no_init'" )

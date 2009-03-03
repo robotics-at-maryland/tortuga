@@ -3,9 +3,10 @@
 
 #include <assert.h>
 
-
 //The smart_ptr_t class has been created based on Ogre::SharedPtr class
 //http://www.ogre3d.org/docs/api/html/OgreSharedPtr_8h-source.html
+
+namespace smart_pointers{
 
 template<class T> 
 class smart_ptr_t {    
@@ -128,6 +129,7 @@ protected:
     }
 };
 
+} //smart_pointers
 
 #endif //smart_ptr_t_19_09_2006
 

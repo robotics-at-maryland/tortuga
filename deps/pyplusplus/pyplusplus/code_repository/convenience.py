@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -13,7 +13,7 @@ namespace = "pyplusplus::convenience"
 file_name = "__convenience.pypp.hpp"
 
 code = \
-"""// Copyright 2004 Roman Yakovenko.
+"""// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -35,15 +35,21 @@ raise_error( PyObject *exception, const char *message ){
    boost::python::throw_error_already_set();
 }
 
-inline void
-ensure_sequence( boost::python::object seq, index_type expected_length=-1 ){
-    PyObject* seq_impl = seq.ptr();
-
-    if( !PySequence_Check( seq_impl ) ){
+inline index_type sequence_len(boost::python::object const& obj){
+    if( !PySequence_Check( obj.ptr() ) ){
         raise_error( PyExc_TypeError, "Sequence expected" );
     }
 
-    index_type length = PySequence_Length( seq_impl );
+    index_type result = PyObject_Length( obj.ptr() );
+    if( PyErr_Occurred() ){
+        boost::python::throw_error_already_set();
+    }
+    return result;
+}
+
+inline void
+ensure_sequence( boost::python::object seq, index_type expected_length=-1 ){
+    index_type length = sequence_len( seq );
     if( expected_length != -1 && length != expected_length ){
         std::stringstream err;
         err << "Expected sequence length is " << expected_length << ". "
@@ -56,7 +62,7 @@ template< class ExpectedType >
 void ensure_uniform_sequence( boost::python::object seq, index_type expected_length=-1 ){
     ensure_sequence( seq, expected_length );
 
-    index_type length = boost::python::len( seq );
+    index_type length = sequence_len( seq );
     for( index_type index = 0; index < length; ++index ){
         boost::python::object item = seq[index];
 
@@ -86,7 +92,7 @@ void copy_container( Iterator begin, Iterator end, Inserter inserter ){
 
 template< class Inserter >
 void copy_sequence( boost::python::object const& seq, Inserter inserter ){
-    index_type length = boost::python::len( seq );
+    index_type length = sequence_len( seq );
     for( index_type index = 0; index < length; ++index ){
         inserter = seq[index];
     }
@@ -94,7 +100,7 @@ void copy_sequence( boost::python::object const& seq, Inserter inserter ){
 
 template< class Inserter, class TItemType >
 void copy_sequence( boost::python::object const& seq, Inserter inserter, boost::type< TItemType > ){
-    index_type length = boost::python::len( seq );
+    index_type length = sequence_len( seq );
     for( index_type index = 0; index < length; ++index ){
         boost::python::object item = seq[index];
         inserter = boost::python::extract< TItemType >( item );

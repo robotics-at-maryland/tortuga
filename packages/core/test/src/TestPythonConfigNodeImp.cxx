@@ -18,19 +18,22 @@
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
 
-#ifdef RAM_POSIX
-static const std::string CONFIG_PATH("/packages/core/test/data/test.yml");
-#else
-static const std::string CONFIG_PATH("\\packages\\core\\\test\\data\\\test.yml");
-#endif // RAM_POSIX
-
 namespace ram {
 namespace core {
 
+static std::string getConfigFile()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return (root / "packages" / "core" / "test" / "data" /
+            "testInclude.yml").file_string();
+}
+
+    
 const std::string BASIC_CFG(
     "{'TestInt': 10, "
     " 'TestDouble': 23.5,"
@@ -126,6 +129,36 @@ TEST_FIXTURE(TestPythonConfigNode, set)
     configNode["Map"].set("TestSet", "MyVal");
     CHECK_EQUAL("MyVal", configNode["Map"]["TestSet"].asString());
 }
+
+TEST_FIXTURE(TestPythonConfigNode, include)
+{
+    configNode = ConfigNode::fromFile(getConfigFile());
+    
+    // Make sure original values are there
+    CHECK(configNode.exists("Base"));
+    ConfigNode base = configNode["Base"];
+    CHECK(base.exists("Sub"));
+    ConfigNode sub = base["Sub"];
+    
+    CHECK_EQUAL(100, sub["count"].asInt());
+    CHECK_EQUAL("Test.Good", sub["type"].asString());
+
+    // Test the base level import
+    CHECK(configNode.exists("Other"));
+    CHECK_EQUAL(1, configNode["Other"]["key"].asInt());
+    
+    // Test import of mid-level import
+    CHECK(base.exists("Sys2"));
+    CHECK_EQUAL("Sonar", base["Sys2"]["type"].asString());
+    
+    // Test deep import
+    CHECK_EQUAL(57.6, sub["setting"].asDouble());
+    CHECK_EQUAL("Bob", sub["mode"].asString());
+
+    // Test recursive import
+    CHECK_EQUAL(67, configNode["Other"]["recVal"].asInt());
+}
+
 
 #ifndef RAM_WINDOWS // Can't seem to get the file path right on windows
 TEST_FIXTURE(TestPythonConfigNode, fromFile)

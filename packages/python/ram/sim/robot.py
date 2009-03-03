@@ -11,6 +11,7 @@ import yaml
 
 # Project Impports
 import ram.core as core
+import ram.sim as sim
 
 import ram.sim.defaults as defaults 
 from ram.sim.util import Vector, Quat, SimulationError
@@ -80,7 +81,7 @@ class KMLRobotLoader(core.Component, KMLLoader):
         robot.name = rbt_node['name']
         main_part = Part()
         main_part.load((scene, None, rbt_node))
-        
+
         # We don't want the body to stop responding to forces
         main_part._body.setAutoFreeze(False)
         robot._main_part = main_part
@@ -180,7 +181,7 @@ class Part(Body, Visual):
         self.set_buoyancy(buoyantPlaneUp)
         
         self._body.angularDamping = (10,10,10)
-        print self._body.angularDamping
+        #print self._body.angularDamping
         #self.gravity = (0,0,0)
         
     def save(self, data_object):
@@ -232,10 +233,12 @@ class Thruster(Visual):
         if self._node._getDerivedPosition().z > 0:
             forceToApply = 0
         
-        force = Ogre.Vector3(self.direction) * forceToApply
+        force = sim.OgreVector3(self.direction) * forceToApply
         self.parent.add_local_force(force, self._force_pos)
         
         # Redraw force lines
+        self._thrust_line.estimateVertexCount(1)
+        self._thrust_line.estimateIndexCount(1)
         self._thrust_line.beginUpdate(0)
         self._draw_thrust_line(forceToApply)
         self._thrust_line.end()
@@ -246,7 +249,6 @@ class Thruster(Visual):
         base_pt = Ogre.Vector3(0,0,0)
         # Direction must be reversed because we are showing water flow
         thrust_pt = (orientation * -self.direction) * force
-
         self._thrust_line.position(base_pt)
         self._thrust_line.position(thrust_pt)
 
@@ -269,23 +271,24 @@ class Thruster(Visual):
         self._node = self.parent._node.createChildSceneNode()
         self._node.attachObject(entity)
 
-        pscale = self.parent._node.scale;
+        pscale = self.parent._node.getScale()
         iscale = Ogre.Vector3((1 / pscale.x),(1 / pscale.y),(1 / pscale.z))
 
         if scale != Ogre.Vector3(1,1,1):
             self._node.setScale(scale * iscale)
-            entity.setNormaliseNormals(True)       
         
-        self._node.position = Ogre.Vector3(position) * iscale
+        self._node.position = sim.OgreVector3(position) * iscale
         self._node.orientation = orientation
-        
+
         self._thrust_line = scene.scene_mgr.createManualObject(self.name + "manual");
         self._thrust_line.dynamic = True
         
+        self._thrust_line.estimateVertexCount(1)
+        self._thrust_line.estimateIndexCount(1)
         self._thrust_line.begin("BaseRedNoLighting", Ogre.RenderOperation.OT_LINE_STRIP);
         self._draw_thrust_line(self._force)
         self._thrust_line.end()
-                
+        
         self._node.attachObject(self._thrust_line)
         
     def load(self, data_object):
@@ -297,12 +300,12 @@ class Thruster(Visual):
         gfx_node = kml_node['Graphical'] 
         mesh = gfx_node['mesh']
         material = gfx_node['material']
-        scale = Ogre.Vector3(gfx_node['scale'])
+        scale = sim.OgreVector3(gfx_node['scale'])
         
         position, orientation = parse_position_orientation(kml_node)
-        self._force_pos = Ogre.Vector3(position)
+        self._force_pos = sim.OgreVector3(position)
         
-        direction = Ogre.Vector3(kml_node['direction'])
+        direction = sim.OgreVector3(kml_node['direction'])
         min_force = kml_node['min_force']
         max_force = kml_node['max_force']
         Thruster._create(self, scene, direction, min_force, max_force, mesh, 

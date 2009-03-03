@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -26,8 +26,8 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
                                                     , type=declarations.class_t)
         found = find( matcher, mb.code_creator.body.creators )
         self.failUnless( found )
-        self.failUnless( not found.wrapper )
-        self.failUnless( 0 == len( found.creators ) )
+        self.failUnless( found.wrapper )
+        #self.failUnless( 0 == len( found.creators ) )
             
     def run_tests(self, module):        
         pass

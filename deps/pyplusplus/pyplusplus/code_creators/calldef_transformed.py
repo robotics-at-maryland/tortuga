@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko
+# Copyright 2004-2008 Roman Yakovenko
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -392,7 +392,7 @@ class mem_fun_v_transformed_wrapper_t( calldef_wrapper_t ):
         tmpl_values['py_arg_expressions'] = ''
         if cntrl.py_arg_expressions:
             tmpl_values['py_arg_expressions'] \
-                = ', ' + declarations.call_invocation.join( '', cntrl.py_arg_expressions )
+                = ', ' + self.PARAM_SEPARATOR.join( cntrl.py_arg_expressions )
             
         tmpl_values['save_py_result'] = "bpl::object %s = " % cntrl.py_result_variable.name
         tmpl_values['py_return'] = ''
@@ -421,3 +421,80 @@ class mem_fun_v_transformed_wrapper_t( calldef_wrapper_t ):
         files = super( mem_fun_v_transformed_wrapper_t, self )._get_system_headers_impl()
         files.append( code_repository.convenience.file_name )
         return files
+
+
+class constructor_transformed_t( calldef_t ):
+    def __init__( self, constructor, wrapper=None ):
+        calldef_t.__init__( self, function=constructor, wrapper=wrapper )
+
+    @property
+    def ft( self ): #function transformation
+        return self.declaration.transformations[0]
+
+    @property 
+    def controller( self ):
+        return self.ft.controller
+        
+    def create_call_policies( self ):
+        return ''
+
+    def _create_impl( self ):
+        make_constructor = algorithm.create_identifier( self, 'boost::python::make_constructor' )
+        
+        code = 'def( "__init__, %s( &::%s ) )' % self.wrapper.wrapper_name()
+        if not self.works_on_instance:
+            code = self.parent.class_var_name + '.' + code + ';'
+        return code
+
+#TODO: FT for constructor
+#~ class constructor_transformed_wrapper_t( calldef_wrapper_t ):
+    #~ def __init__( self, constructor ):
+        #~ calldef_wrapper_t.__init__( self, function=constructor )
+
+    #~ @property
+    #~ def ft( self ): #function transformation
+        #~ return self.declaration.transformations[0]
+
+    #~ @property 
+    #~ def controller( self ):
+        #~ return self.ft.controller
+
+    #~ def resolve_function_ref( self ):
+        #~ raise NotImplementedError()
+
+    #~ def wrapper_name( self ):
+        #~ return self.ft.unique_name()
+
+    #~ def create_fun_definition(self):
+        #~ cntrl = self.controller
+
+        #~ tmpl_values = dict()
+
+        #~ tmpl_values['unique_function_name'] = self.wrapper_name()
+        #~ tmpl_values['exposed_class'] = self.decl_identifier
+        #~ tmpl_values['arg_declarations'] = self.args_declaration()
+        #~ tmpl_values['result'] = self.ft.result_variable
+        
+        #~ tmpl_values['declare_variables'] \
+            #~ = os.linesep + os.linesep.join( map( lambda var: self.indent( var.declare_var_string() )
+                                                 #~ , cntrl.variables ) )
+                
+        #~ tmpl_values['pre_call'] = os.linesep + self.indent( os.linesep.join( cntrl.pre_call ) )
+
+        #~ tmpl_values['arg_expressions'] = self.PARAM_SEPARATOR.join( cntrl.arg_expressions )
+        #~ return_stmt_creator = calldef_utils.return_stmt_creator_t( self
+                                    #~ , self.controller
+                                    #~ , self.controller.result_variable
+                                    #~ , self.controller.return_variables )
+
+        #~ tmpl_values['post_call'] = os.linesep + self.indent( os.linesep.join( cntrl.post_call ) )
+        #~ if return_stmt_creator.pre_return_code:
+            #~ tmpl_values['post_call'] \
+                #~ = os.linesep.join([ tmpl_values['post_call']
+                                    #~ , self.indent( return_stmt_creator.pre_return_code )])
+            
+        #~ f_def = self.controller.template.substitute(tmpl_values)
+        #~ return remove_duplicate_linesep( f_def )
+        
+    #~ def _create_impl(self):
+        #~ return self.create_fun_definition()

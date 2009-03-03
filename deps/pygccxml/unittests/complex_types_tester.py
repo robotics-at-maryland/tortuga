@@ -1,8 +1,9 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
+import sys
 import unittest
 import autoconfig
 import parser_test_case
@@ -30,8 +31,9 @@ class tester_t( parser_test_case.parser_test_case_t ):
         pass 
 
 def create_suite():
-    suite = unittest.TestSuite()        
-    suite.addTest( unittest.makeSuite(tester_t))
+    suite = unittest.TestSuite()
+    if sys.platform != 'win32':
+        suite.addTest( unittest.makeSuite(tester_t))
     return suite
 
 def run_suite():

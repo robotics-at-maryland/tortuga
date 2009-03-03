@@ -1,112 +1,113 @@
 """
-extracting from C++ doxygen documented file
-Author G.D.
+Fixed and improved version based on "extracting from C++ doxygen documented file Author G.D." and py++ code.
+
+Distributed under the Boost Software License, Version 1.0. (See
+accompanying file LICENSE_1_0.txt or copy at
+http://www.boost.org/LICENSE_1_0.txt)
 """
 
-class doc_extractor:
-    """
-    extracts doxigen styled documentation from source
-    or generates from description
-    """
-    def __init__(self):
-        #for caching source
-        self.file_name  = None
-        self.source = None
-        
-    def __call__(self, declaration):
-        try:
-            if self.file_name != declaration.location.file_name:            
-                self.file_name = declaration.location.file_name
-                self.source = open(declaration.location.file_name).readlines()
-                
-            find_block_end = False
-            doc_lines = []
-            for lcount in xrange(declaration.location.line - 1, -1, -1):
-                line = source[lcount]
-                if not find_block_end:
-                    try:
-                        if line.rstrip()[-2:] == "*/":
-                            find_block_end = True
-                    except:
-                        pass
-                if  find_block_end:
-                    try:
-                        if line.lstrip()[:2] == "/*":
-                            find_block_end = False
-                    except:
-                        pass
-                final_str = clear_str(line)
-                if not find_block_end and code(line):
-                    break
-                if final_str:
-                    doc_lines.insert(0, final_str)
-            
-            if doc_lines:
-                doc_lines.insert(0, self.get_generic_doc())
-                return ''.join(doc_lines)
-                
-        except:
-            pass
-        
-        return self.get_generic_doc(declaration)
-    
-    def get_generic_doc(self, declaration):
-        """
-        generate call information about function or method
-        """
-        try:
-            return "Help on %s\n" % str(declaration)
-        except:
-            pass
-        
-        return ''
-                
+class doxygen_doc_extractor:
+	"""
+	Extracts Doxigen styled documentation from source
+	or generates from description.
+	"""
+	def __init__(self):
+		#for caching source
+		self.file_name = None
+		self.source = None
+	#__init__
 
-def clear_str(str):
-    """
-    replace */! by Space and \breaf, \fn, \param, ...
-    """
-    clean = lambda str, sym, change2 = '': str.replace(sym, change2)
+	def __call__(self, declaration):
+		try:
+			if self.file_name != declaration.location.file_name:
+				self.file_name = declaration.location.file_name
+				self.source = open(declaration.location.file_name).readlines()
 
-    str = reduce(clean, [str, '/', '*', '!', "\brief", "\fn",\
-     "@brief", "@fn", "@ref", "\ref"])
-     
-    str = clean(str, "@param", "Param: ")
-    str = clean(str, "\param", "Param: ")
-    str = clean(str, "@ingroup", "Group")
-    str = clean(str, "\ingroup", "Group")
-    str = clean(str, "@return", "It return")
-    str = clean(str, "\return", "It return")
-    return "  " + str.lstrip()
+			find_block_end = False
+			doc_lines = []
+			for lcount in xrange(declaration.location.line-2, -1, -1):
+				line = self.source[lcount]
+				if not find_block_end:
+					try:
+						print line.rstrip()[-2:]
+						if line.rstrip()[-2:] == "*/":
+							find_block_end = True
+					except:
+						pass
+				if find_block_end:
+					try:
+						if line.lstrip()[:2] == "/*":
+							find_block_end = False
+					except:
+						pass
+				final_str = self.clear_str(line)
+				if not find_block_end and self.is_code(line):
+					break
+				if final_str:
+					doc_lines.insert(0, final_str)
+		except:
+			pass
+		finally:
+			if doc_lines:
+				final_doc_lines = [ line.replace("\n","\\n") for line in doc_lines[:-1] ]
+				final_doc_lines.append(doc_lines[-1].replace("\n",""))
+				#final_doc_lines.insert(0, self.get_generic_doc(declaration))
+				return '\"' + ''.join(final_doc_lines) + '\"'
+			else:
+				return '\"\"'
+				#return '\"'+self.get_generic_doc(declaration)+'\"'
+	#__call__()
 
-    
-def code(str):
-    """
-    detect str is code?
-    """
-    try:
-        beg = str.lstrip()[:2]
-        return  beg != "//" and beg != "/*"
-    except:
-        pass
-    return False
+	#def get_generic_doc(self, declaration):
+		#"""
+		#Generate call information about function or method
+		#"""
+		#try:
+			#return "Help on %s" % str(declaration)
+		#except:
+			#pass
+		#return ''
+	##get_generic_doc()
 
-if __name__ == '__main__':
-    class loc:
-        def __init__(self, f, l):
-            self.file_name = f
-            self.line = l
-            
-    class x_decl:
-        def __init__(self, str, file_name, line):
-            self.str  = str
-            self.location = loc(file_name, line)
-            
-        def __str__(self):
-            return self.str
-        
-    print doc_extractor()(x_decl("myfunc(int x, int y)","core.h",45))
-    print doc_extractor()(x_decl("","core.h",209))
-    
+	def clear_str(self, tmp_str):
+		"""
+		Replace */! by Space and \breaf, \fn, \param, ...
+		"""
+		clean = lambda tmp_str, sym, change2 = '': tmp_str.replace(sym, change2)
+	
+		tmp_str = reduce(clean, [tmp_str, '/', '*', '!', "\\brief", "\\fn",\
+		"@brief", "@fn", "@ref", "\\ref", "\"", "\'", "\\c"])
+			
+		tmp_str = clean(tmp_str, "@param", "Param:")
+		tmp_str = clean(tmp_str, "@see", "See:")
+		tmp_str = clean(tmp_str, "@pre", "Pre-condition:")
+		tmp_str = clean(tmp_str, "@throws", "Throws:")
+		tmp_str = clean(tmp_str, "@throw", "Throw:")
+		tmp_str = clean(tmp_str, "@todo", "TODO:")
+		tmp_str = clean(tmp_str, "\param", "Param:")
+		tmp_str = clean(tmp_str, "@ingroup", "Group")
+		tmp_str = clean(tmp_str, "\ingroup", "Group")
+		tmp_str = clean(tmp_str, "@return", "It return")
+		tmp_str = clean(tmp_str, "\\return", "It return")
+		tmp_str = clean(tmp_str, "\\warning", "Warning:")
+		tmp_str = clean(tmp_str, "\\WARNING", "Warning:")
+		tmp_str = clean(tmp_str, "@dot", "[Dot]")
+		tmp_str = clean(tmp_str, "@enddot", "[/Dot]")
+		tmp_str = clean(tmp_str, "@code", "[Code]")
+		tmp_str = clean(tmp_str, "@endcode", "[/Code]")
+		return tmp_str.lstrip()
+	#clean_str()
+	
+	def is_code(self, tmp_str):
+		"""
+		Detect if tmp_str is code
+		"""
+		try:
+			beg = tmp_str.lstrip()[:2]
+			return  beg != "//" and beg != "/*"
+		except:
+			pass
+		return False
+	#is_code()
 
-            
+#class doxygen_doc_extractor

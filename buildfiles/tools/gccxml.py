@@ -10,7 +10,7 @@ This module contains a custom GCC-XML tool for SCons
 """
 
 import os
-
+import platform
 import SCons.Builder
 import SCons.Tool
 
@@ -32,6 +32,9 @@ def generate(env):
 
     gccxml_dir = os.path.dirname(gccxml_path)
     extra = ''
+    if platform.system() == 'Linux':
+        extra += '--gccxml-compiler g++-4.2'
+
     if os.name != 'posix':
         extra = '--gccxml-config "' + os.path.abspath(os.path.join(gccxml_dir, 'gccxml_config')) +'"'
         extra += ' --gccxml-cxxflags " /DWIN32 /D_WINDOWS /W3 /Zm1000 /EHsc /GR /MT" '

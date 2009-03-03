@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -42,11 +42,16 @@ class tester_t( parser_test_case.parser_test_case_t ):
                 self.failUnless( controller( decl.type )
                                  , 'for type "%s" the answer to the question "%s" should be True' 
                                  % ( decl.type.decl_string, ns_name ) )
+            elif isinstance( decl, declarations.calldef_t ) and decl.name.startswith( 'test_' ):
+                continue
             else:
                 self.failUnless( controller( decl )
                                  , 'for type "%s" the answer to the question "%s" should be True' 
                                  % ( decl.decl_string, ns_name ) )
         for decl in ns_no.declarations:
+            if isinstance( decl, declarations.calldef_t ) and decl.name.startswith( 'test_' ):
+                continue
+
             self.failIf( controller( decl )
                          , 'for type "%s" the answer to the question "%s" should be False' 
                             % ( decl.decl_string, ns_name ) )
@@ -111,6 +116,9 @@ class tester_t( parser_test_case.parser_test_case_t ):
     def test_is_std_wostream(self):
         self.__test_type_category( 'is_std_wostream', declarations.is_std_wostream )
 
+    def test_is_calldef_pointer(self):
+        self.__test_type_category( 'is_calldef_pointer', declarations.is_calldef_pointer )
+
     def test_has_trivial_constructor(self):
         self.__test_type_category( 'has_trivial_constructor', declarations.has_trivial_constructor )
 
@@ -123,8 +131,8 @@ class tester_t( parser_test_case.parser_test_case_t ):
     def test_has_any_non_copyconstructor(self):
         self.__test_type_category( 'has_any_non_copyconstructor', declarations.has_any_non_copyconstructor)
 
-    def test_has_trivial_copy(self):
-        self.__test_type_category( 'has_trivial_copy', declarations.has_trivial_copy )
+    def test_has_copy_constructor(self):
+        self.__test_type_category( 'has_copy_constructor', declarations.has_copy_constructor )
 
     def test_is_base_and_derived(self):
         ns = declarations.find_declaration( self.declarations
@@ -231,9 +239,21 @@ class tester_t( parser_test_case.parser_test_case_t ):
         for tester in filter( lambda decl: decl.name.startswith( 'x' ), ns_is_convertible.declarations ):
             self.__is_convertible_impl( tester )
         
+class missing_decls_tester_t(unittest.TestCase):
+    def __init__(self, *args ):
+        unittest.TestCase.__init__(self, *args)
+    def test( self ):
+        config =  autoconfig.cxx_parsers_cfg.gccxml
+        code = "struct const_item{ const int values[10]; };"
+        global_ns = parser.parse_string( code , config )[0]
+        ci = global_ns.class_( 'const_item' )
+        self.failUnless( len( ci.declarations ) == 3 )
+        #copy constructor, destructor, variable
+          
 def create_suite():
     suite = unittest.TestSuite()        
     suite.addTest( unittest.makeSuite(tester_t))
+    suite.addTest( unittest.makeSuite(missing_decls_tester_t))
     return suite
 
 def run_suite():

@@ -1,11 +1,12 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
+import pprint
 import unittest
 import autoconfig
-import pprint
+
 
 import pygccxml
 from pygccxml.utils import *
@@ -13,10 +14,17 @@ from pygccxml.parser import *
 from pygccxml.declarations import *
 
 class parser_test_case_t( unittest.TestCase ):
+
+    CXX_PARSER_CFG = None
+
     def __init__(self, *args):
         unittest.TestCase.__init__(self, *args)
-        self.config = config.config_t( gccxml_path=autoconfig.gccxml_path
-                                       , working_directory=autoconfig.data_directory )
+        if self.CXX_PARSER_CFG:
+            self.config = self.CXX_PARSER_CFG.clone()
+        elif autoconfig.cxx_parsers_cfg.gccxml:
+            self.config = autoconfig.cxx_parsers_cfg.gccxml.clone()
+        else:
+            pass
 
     def _test_type_composition( self, type, expected_compound, expected_base ):
         self.failUnless( isinstance( type, expected_compound)

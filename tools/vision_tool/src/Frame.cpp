@@ -7,6 +7,9 @@
  * File:  tools/vision_viewer/src/App.cpp
  */
 
+// This include must be first because of Mac header defines
+#include "vision/include/OpenCVCamera.h"
+
 // Library Includes
 #include <wx/frame.h>
 #include <wx/menu.h>
@@ -18,7 +21,6 @@
 #include "Frame.h"
 #include "GLMovie.h"
 #include "MediaControlPanel.h"
-#include "vision/include/OpenCVCamera.h"
 #include "GLMovie.h"
 
 namespace ram

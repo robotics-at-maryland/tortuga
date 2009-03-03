@@ -137,8 +137,8 @@ class TestZigZag(support.MotionTest):
         m = motion.search.ZigZag(legTime = 6, sweepAngle = 0, speed = 5)
         self.motionManager.setMotion(m)
         
-        self.assertEqual(5, self.controller.speed)
-        self.assertEqual(0, self.controller.sidewaysSpeed)
+        self.assertAlmostEqual(5, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
         
     def testRightLeftSpeeds(self):
         # Vehicle pointed striagh ahead
@@ -148,7 +148,7 @@ class TestZigZag(support.MotionTest):
         self.motionManager.setMotion(m)
         
         self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertEqual(5, self.controller.sidewaysSpeed)
+        self.assertAlmostEqual(5, self.controller.sidewaysSpeed, 5)
         
         
     def testNormal(self):

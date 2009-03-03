@@ -32,6 +32,9 @@ public:
         memset(thrusterValues, 0, sizeof(int) * 6);
         memset(powerSourceEnables, false, sizeof(bool) * 6);
         memset(powerSourceUsed, false, sizeof(bool) * 6);
+
+        // Init other values
+        markerDropNum = -1;
     }    
     virtual ~MockSensorBoard() {}
 
@@ -67,13 +70,15 @@ public:
         powerSourceEnables[address] = state;
     }
     
-    virtual void dropMarker() {}
+    virtual int dropMarker() { return markerDropNum; }
 
     bool thrusterEnables[6];
     int thrusterValues[6];
 
     bool powerSourceEnables[6];
     bool powerSourceUsed[6];
+
+    int markerDropNum;
     
     void publishPowerSourceUpdate(int id, bool enabled, bool inUse,
                                   double voltage, double current)

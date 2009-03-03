@@ -24,9 +24,9 @@ a reference to an integer. More over, I want those functions names to end with
   query = query & ~declarations.access_type_matcher_t( 'public' )
   global_ns.member_functions( function=query, arg_types=[None, 'int &'] )
 
-The example is complex, but still readable. In many cases you will find your
-self looking for one or many declarations using one or two properties of that
-declaration(s). For example:
+The example is complex, but still readable. In many cases you will find 
+yourself, looking for one or many declarations, using one or two declaration properties.
+For example:
 
 .. code-block:: Python
 
@@ -38,7 +38,7 @@ This call will return all namespaces with name 'details'.
 User interface
 --------------
 
-As you already know, ``pygccxml.declarations`` package defines next classes:
+As you already know, ``pygccxml.declarations`` package defines the following classes:
 
 * ``scopedef_t`` - base class for all classes, that can contain other declarations
 
@@ -67,6 +67,7 @@ methods:
                         header_file=None,
                         recursive=None )
   
+  mem_fun = member_function #just an alias
   
   def member_functions( self,
                         name=None,
@@ -77,6 +78,8 @@ methods:
                         header_file=None,
                         recursive=None,
                         allow_empty=None )
+  mem_funs = member_functions 
+
 
 As you can see, from the method arguments you can search for member function
 by:
@@ -105,8 +108,8 @@ by:
 
   * ``return_type``
 
-    Function return type. This argument can be Python string or an object that
-    describes C++ type.
+    the function return type. This argument can be string or an object that describes 
+    C++ type.
 
     .. code-block:: Python
 
@@ -129,7 +132,7 @@ by:
 
       mem_funcs = my_class.member_functions( arg_types=[ None, 'int'] ) 
 
-    ``mem_funcs`` will contain all member functions, that have two arguments
+    ``mem_funcs`` will contain all member functions, which have two arguments
     and type of second argument is ``int``.
 
   * ``header_dir``
@@ -201,9 +204,9 @@ should have `call policies`_. For example:
       ...
   };
 
-`Call policies`_ of the member function ``clone`` is ``return_value_policy<manage_new_object>()``.
-Next code applies `call policies`_ on all ``clone`` member functions within the
-project.
+``clone`` member function `call policies`_ is ``return_value_policy<manage_new_object>()``.
+The following code applies the `call policies`_ on all ``clone`` member functions within the
+project:
 
 .. code-block:: Python
 
@@ -213,7 +216,7 @@ project.
 
 
 Another example, from `Py++`_ project. Sometimes it is desirable to
-exclude declaration, from being exported to Python. Next code will exclude
+exclude declaration, from being exported to Python. The following code will exclude
 ``clone`` member function from being exported:
 
 .. code-block:: Python
@@ -223,7 +226,7 @@ exclude declaration, from being exported to Python. Next code will exclude
 As you can see this class allows you to write less code. Basically using this
 class you don't have to write loops. If will do it for you. Also if you insist to
 write loops, ``mdecl_wrapper_t`` class implements ``__len__``, ``__getitem__``
-and ``__iter__`` methods. So you can write next code:
+and ``__iter__`` methods. So you can write the following code:
 
 .. code-block:: Python
 
@@ -293,10 +296,3 @@ query method, you can take a look on API documentation or into source code.
 .. _`parser package UML diagram` : ./parser_uml.png
 .. _`ReleaseForge` : http://releaseforge.sourceforge.net
 .. _`boost::type_traits` : http://www.boost.org/libs/type_traits/index.html
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

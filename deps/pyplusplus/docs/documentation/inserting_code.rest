@@ -16,7 +16,7 @@ almost any place.
 Insert code to module
 ---------------------
 
-Almost every ``Boost.Python`` module has next structure:
+Almost every ``Boost.Python`` module has the following structure:
 
 .. code-block:: C++
 
@@ -58,7 +58,7 @@ Insert code to class
 --------------------
 
 ``class_t`` declaration defines few methods, which add user code to the generated one.
-Lets take a look on next use case:
+Lets take a look on the following use case:
 
 .. code-block:: C++
 
@@ -100,7 +100,7 @@ functions:
   This method will add the code to the declaration section within the module.
 
   If you split your module to few files, `Py++`_ will add this code to the
-  cpp file, class registration code will be written in.
+  "cpp" file, class registration code will be written in.
 
   Attention: there is no defined order between wrapper code and declaration section
   code. If you have dependencies between code from declaration section and class
@@ -119,7 +119,7 @@ functions:
     win = window_t( )
     height, width = win.get_size()
 
-  If you will pass ``works_on_instance=False`` next code will be generated:
+  If you will pass ``works_on_instance=False`` the following code will be generated:
 
   .. code-block:: C++
 
@@ -153,13 +153,13 @@ Insert code to class wrapper
 ----------------------------
 
 There are use cases, when you have to add code to `class wrapper`_. Please take a
-look on next thread: http://mail.python.org/pipermail/c++-sig/2006-June/010791.html .
+look on the following thread: http://mail.python.org/pipermail/c++-sig/2006-June/010791.html .
 
 
 .. _`class wrapper` : http://boost.org/libs/python/doc/tutorial/doc/html/python/exposing.html#python.class_virtual_functions
 
 
-The short description is next: there are classes with parent/child relationship.
+The short description is the following: there are classes with parent/child relationship.
 Parent keeps child class instances using raw pointer. When parent die, it also
 destroys children classes. It is not an option to switch to ``boost::shared_ptr``.
 
@@ -182,16 +182,23 @@ Solution
   def inject_code( cls ):
       constructors = cls.constructors()
       constructors.body = class instance registration code
-      cls.null_constructor_body = class instance registration code
-      cls.copy_constructor_body = class instance registration code
-
-      cls.add_wrapper_code( destructor declaration and definition code )
-      cls.add_wrapper_code( the new class variable definition code )
+      #if you need to add code to default or copy constructor only
+      #than you can you the following shortcuts
+      cls.null_constructor_body = <<<your code>>>
+      cls.copy_constructor_body = <<<your code>>>
+      #which will update the appropriate ``body`` property.
+	  
+	  #If you want to add code to the class destructor,
+	  #use ``add_destructor_code`` method
+	  cls.add_destructor_code( <<<your code>>> )
+      
+	  #If you need to add new class variables:		   
+      cls.add_wrapper_code( <<<variable declaration>>> )
 
 .. code-block:: Python
 
   mb = module_builder_t( ... )
-  for cls in mb.classes( relevant classes only ):
+  for cls in mb.classes( <<<relevant classes only>>> ):
     inject_code( cls )
 
 ------------
@@ -242,10 +249,3 @@ time later.
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

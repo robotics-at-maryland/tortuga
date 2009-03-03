@@ -16,9 +16,7 @@
 
 extern "C" {
 struct AVCodecContext;
-typedef struct AVCodecContext;
 struct AVFrame;
-typedef struct AVFrame;
 struct SwsContext;
 }
 

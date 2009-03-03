@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -11,18 +11,26 @@ import namespace
 import compound
 import algorithm
 import module_body
+import declaration_based
 import include_directories
+from pygccxml import utils
 
 class module_t(compound.compound_t):
     """This class represents the source code for the entire extension module.
 
     The root of the code creator tree is always a module_t object.
     """
-    def __init__(self):
+    def __init__(self, global_ns):
         """Constructor.
         """
         compound.compound_t.__init__(self)
         self.__body = None
+        self.__global_ns = global_ns
+        
+    @property
+    def global_ns(self):
+        "reference to global_ns ( namespace_t ) declaration"
+        return self.__global_ns
             
     def _get_include_dirs(self):
         include_dirs = algorithm.creator_finder.find_by_class_instance( 
@@ -173,3 +181,19 @@ class module_t(compound.compound_t):
 
     def add_declaration_code( self, code, position ):        
         self.adopt_declaration_creator( custom.custom_text_t( code ) )
+        
+    @utils.cached    
+    def specially_exposed_decls(self):
+        """list of exposed declarations, which were not ``included``, but still  
+        were exposed. For example, std containers.
+        """
+        decls = set()
+        #select all declaration based code creators
+        ccs = filter( lambda cc: isinstance( cc, declaration_based.declaration_based_t )
+                      , algorithm.make_flatten_list( self ) )
+        #leave only "ignored"                       
+        ccs = filter( lambda cc: cc.declaration.ignore == True, ccs )
+        
+        decls = map( lambda cc: cc.declaration, ccs )
+        
+        return set( decls )

@@ -75,6 +75,7 @@ public:
     
 private:
     bool m_own;
+    bool m_ownHeader;
     IplImage* m_img;
 };
 

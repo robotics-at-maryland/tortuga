@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -23,27 +23,26 @@ class declaration_based_t:
         if name == None:
             name = self.declaration.name
         return algorithm.create_valid_name( name )
-            
-    def _get_declaration(self):
+        
+    @property
+    def declaration(self):
+        """The declaration this code creator is based on.
+        @type: L{decl_wrapper_t<decl_wrappers.decl_wrapper_t>}
+        """
         return self._decl
-    declaration = property( _get_declaration,
-                            doc="""The declaration this code creator is based on.
-                            @type: L{decl_wrapper_t<decl_wrappers.decl_wrapper_t>}
-                            """)
 
     def _get_alias_impl( self ):
         return self.declaration.alias
     
-    def _get_alias(self):
-        return self._get_alias_impl()
-    
+    def _get_alias(self):  
+        return self._get_alias_impl()    
     def _set_alias(self, alias):
         self.declaration.alias = alias
     alias = property( _get_alias, _set_alias )
     
-    def _get_decl_identifier( self ):
-        return algorithm.create_identifier( self, self.declaration.decl_string )
-    decl_identifier = property( _get_decl_identifier )
+    @property
+    def decl_identifier( self ):
+        return algorithm.create_identifier( self, self.declaration.partial_decl_string )
     
     @property
     def documentation( self ):

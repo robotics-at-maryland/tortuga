@@ -64,7 +64,7 @@ class transformer_t(object):
         
         @param controller: instance of L{mem_fun_controller_t} class
         """
-        pass
+        raise NotImplementedError(self.__class__.__name__)
     
     def configure_free_fun( self, controller ):
         """Transformers should overridde the method, in order to define custom 
@@ -72,7 +72,7 @@ class transformer_t(object):
         
         @param controller: instance of L{free_fun_controller_t} class
         """        
-        pass
+        raise NotImplementedError(self.__class__.__name__)
     
     def configure_virtual_mem_fun( self, controller ):
         """Transformers should overridde the method, in order to define custom 
@@ -80,5 +80,14 @@ class transformer_t(object):
         
         @param controller: instance of L{virtual_mem_fun_controller_t} class
         """        
-        pass
+        raise NotImplementedError(self.__class__.__name__)
+
+#TODO: FT for constructor
+    #~ def configure_constructor( self, controller ):
+        #~ """Transformers should overridde the method, in order to define custom 
+        #~ transformation for constructor.
+        
+        #~ @param controller: instance of L{constructor_controller_t} class
+        #~ """        
+        #~ raise NotImplementedError(self.__class__.__name__)
         

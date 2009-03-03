@@ -21,3 +21,19 @@ except ImportError:
         __path = __os.path.join(pythonOgreHome, 'packages_2.5')
         if __sys.path.count(__path) == 0:
             __sys.path.insert(0, __path)
+
+import ogre.renderer.OGRE as __OGRE
+__OGRE.Vector3.ZERO = __OGRE.Vector3().ZERO
+__OGRE.Vector3.UNIT_X = __OGRE.Vector3().UNIT_X
+__OGRE.Vector3.UNIT_Y = __OGRE.Vector3().UNIT_Y
+__OGRE.Vector3.UNIT_Z = __OGRE.Vector3().UNIT_Z
+__OGRE.Quaternion.IDENTITY = __OGRE.Quaternion().IDENTITY
+
+def OgreVector3(args):
+    if type(args) is __OGRE.Vector3:
+        return __OGRE.Vector3(args.x, args.y, args.z)
+    else:
+        assert len(args) == 3
+        return __OGRE.Vector3(args[0], args[1], args[2])
+
+    

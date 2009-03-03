@@ -1,7 +1,10 @@
-#include "GLMovie.h"
-#include <wx/dcclient.h>
-#include "vision/include/Camera.h"
 
+// Project Includes
+#include "vision/include/Camera.h"
+#include "GLMovie.h"
+
+// Library Includes
+#include <wx/dcclient.h>
 #include <wx/msgdlg.h>
 
 namespace ram

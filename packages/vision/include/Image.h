@@ -139,6 +139,7 @@ public:
 
     /** Provieded for OpenCV Compatibiltiy */
     virtual IplImage* asIplImage() const = 0;
+
 };
 
 } // namespace vision

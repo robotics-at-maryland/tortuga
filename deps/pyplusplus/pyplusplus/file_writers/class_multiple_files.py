@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -29,8 +29,18 @@ class class_multiple_files_t(multiple_files.multiple_files_t):
        alias + _main h/cpp this class will contain main registration function.
     """
 
-    def __init__(self, extmodule, directory_path, huge_classes, num_of_functions_per_file=20):
-        multiple_files.multiple_files_t.__init__(self, extmodule, directory_path)
+    def __init__( self
+                  , extmodule
+                  , directory_path
+                  , huge_classes
+                  , num_of_functions_per_file=20
+                  , files_sum_repository=None
+                  , encoding='ascii'):
+        multiple_files.multiple_files_t.__init__(self
+                                                 , extmodule
+                                                 , directory_path
+                                                 , files_sum_repository=files_sum_repository
+                                                 , encoding=encoding)
         self.huge_classes = huge_classes
         self.num_of_functions_per_file = num_of_functions_per_file
         self.internal_splitters = [
@@ -103,7 +113,7 @@ class class_multiple_files_t(multiple_files.multiple_files_t):
 
         #relevant header file
         head_headers = [ self.create_base_fname( class_creator, pattern + self.HEADER_EXT ) ]
-        source_code.append( self.create_include_code( creators, head_headers ) )
+        source_code.append( self.create_include_code( creators, tail_headers=head_headers ) )
 
         source_code.append( '' )
         source_code.append( self.create_namespaces_code( creators ) )

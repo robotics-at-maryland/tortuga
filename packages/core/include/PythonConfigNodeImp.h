@@ -89,6 +89,10 @@ public:
 
     virtual std::string toString();
 private:
+    /** Helper function used to make sure we have run the needed include
+        statements */
+    static void includeIfNeeded(boost::python::object pyObj);
+    
     boost::python::object m_pyobj;
 
     std::string m_debugPath;

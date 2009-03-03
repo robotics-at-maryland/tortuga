@@ -27,6 +27,9 @@ Torus Knot Software Ltd.
 -----------------------------------------------------------------------------
 */
 
+// STD Includes
+#include <cstdlib>
+
 // Library Includes
 #include "math/include/Math.h"
 #include "math/include/Vector3.h"

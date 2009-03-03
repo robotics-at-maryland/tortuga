@@ -11,7 +11,7 @@ Introduction
 Things get a little bit complex, when you have to export overloaded functions.
 In general the solution is to explicitly say to compiler what function you
 want to export, by specifying its type. Before we proceed, please take a look
-on next class:
+on the following class:
 
 .. code-block:: C++
 
@@ -76,11 +76,11 @@ and have a weakness.
 Overloaded template function
 ----------------------------
 
-I am sure you already know next fact, but still I want to remind it:
+I am sure you already know the following fact, but still I want to remind it:
 
 * `GCC-XML`_ doesn't report about un-instantiated templates
 
-It is very important to understand it. Lets take a look on next source code:
+It is very important to understand it. Lets take a look on the following source code:
 
 .. code-block:: C++
 
@@ -167,15 +167,7 @@ problem. The problem and work around described in `default arguments`_ document.
 .. _`default arguments` : ./default_args.html
 
 
-.. _`Py++` : ./../pyplusplus.html
+.. _`Py++` : ./../../pyplusplus.html
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

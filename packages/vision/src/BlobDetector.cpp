@@ -11,6 +11,7 @@
 
 // STD Includes
 #include <math.h>
+#include <limits.h>
 #include <cstdlib>
 #include <cassert>
 #include <algorithm>

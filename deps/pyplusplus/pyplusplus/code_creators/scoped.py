@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -15,3 +15,4 @@ class scoped_t(declaration_based.declaration_based_t, compound.compound_t):
     def _create_impl(self):
         #template method pattern should be used.
         raise NotImplementedError()
+    

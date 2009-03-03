@@ -1,10 +1,15 @@
-// Copyright 2004 Roman Yakovenko.
+// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
 #ifndef __core_types_hpp__
 #define __core_types_hpp__
+
+#include <iostream>
+
+#define USE_SYMBOL( X ) enum{ x##__LINE__ = sizeof(X) };
+
 
 namespace core{ namespace types{
 
@@ -29,6 +34,8 @@ typedef double typedef_double;
 typedef long double typedef_long_double;
 
 typedef const int typedef_const_int;
+USE_SYMBOL( typedef_const_int );
+
 typedef int * typedef_pointer_int;
 typedef int& typedef_reference_int;
 typedef const unsigned int * const typedef_const_unsigned_int_const_pointer;
@@ -44,13 +51,21 @@ typedef int (*function_ptr)(int, double);
 struct exception{};
 
 struct members_pointers_t{
-    int some_function( double ) const throw( exception );
+	int some_function( double hi, int i ){
+		return 0;
+	}
+	int some_function( double hi) const throw( exception ){
+		return 0;
+	};
     int m_some_const_member;
+    int xxx;
 };
 
 typedef int (members_pointers_t::*member_function_ptr_t)( double )const;
 
 typedef int (members_pointers_t::*member_variable_ptr_t);
+
+member_variable_ptr_t member_variable_ptr_ = 0;
 
 } }
 

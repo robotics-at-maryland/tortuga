@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -18,6 +18,8 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
             , *args )
                                                                     
     def customize(self, mb ):
+        mb.enum( 'Chisla' ).include()
+        
         color = mb.enumeration( 'color' )
         color.alias = 'Color'
         color.value_aliases['red'] = 'RED'

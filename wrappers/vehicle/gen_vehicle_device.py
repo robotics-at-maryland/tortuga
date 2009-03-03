@@ -13,6 +13,8 @@ from pyplusplus import messages
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
+import pyplusplus.decl_wrappers.decl_wrapper_printer as decl_printer
+
 def expose_device(local_ns, name, register = True):
     print 'NAME:',name
     device = local_ns.class_(name)
@@ -38,11 +40,8 @@ def generate(module_builder, local_ns, global_ns):
         cls.include()
         cls.already_exposed = True
 
-#    for cls in global_ns.classes():
-#        print cls
-
-    wrap.make_already_exposed(global_ns, 'ram::core', ['EventPublisher'],
-                              no_implicit_conversion = True)
+    module_builder.class_('::ram::core::EventPublisher').already_exposed = True
+    module_builder.class_('::ram::core::IUpdatable').already_exposed = True
 
     wrappedClasses = []
 
@@ -74,10 +73,15 @@ def generate(module_builder, local_ns, global_ns):
     ISonar = expose_device(local_ns, 'ISonar')
     wrappedClasses.append(ISonar)
 
+    # Wrap the IMarkerDropper class
+    IMarkerDropper = expose_device(local_ns, 'IMarkerDropper')
+    wrappedClasses.append(IMarkerDropper)
+
     module_builder.add_registration_code("registerIDeviceMakerClass();")
     module_builder.add_registration_code("registerIDevicePtrs();")
     wrap.add_needed_includes(wrappedClasses)
-    return ['wrappers/vehicle/include/RegisterFunctions.h']
+    return ['wrappers/vehicle/include/RegisterFunctions.h',
+            'core/include/Event.h']
     # Wrap IMU class
 #    IMU = expose_device(local_ns, 'IMU', False);
 #    IMU.include_files.append( "imu/include/imuapi.h" )

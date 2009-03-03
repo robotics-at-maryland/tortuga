@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -7,8 +7,9 @@ import os
 import sys
 import unittest
 import autoconfig
+from pyplusplus import utils
 import fundamental_tester_base
-
+from pygccxml import declarations
 from pyplusplus import module_builder
 from pyplusplus.module_builder import call_policies
 
@@ -19,11 +20,22 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         fundamental_tester_base.fundamental_tester_base_t.__init__(
             self
             , tester_t.EXTENSION_NAME
+            , indexing_suite_version=2
             , *args )
         self.files = []
 
     def customize( self, mb ):
         mb.global_ns.exclude()
+
+        nm_t = declarations.remove_declarated( mb.global_ns.typedef( 'naive_matrix_t' ).type ) 
+        nm_t.include()
+
+        exposed_db = utils.exposed_decls_db_t()
+        
+        exposed_db.register_decls( mb.global_ns, [] )
+        exposed_db.save( autoconfig.build_dir )
+        mb.register_module_dependency( autoconfig.build_dir )
+        
         sm = mb.global_ns.namespace( name='split_module' )
         sm.include()
         sm.class_( 'op_struct' ).exclude()
@@ -41,6 +53,7 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         nested = item.class_( 'nested_t' )
         nested.add_declaration_code( '//hello nested decl' )
         nested.add_registration_code( '//hello nested reg', False )
+        mb.free_fun( 'create_empty_mapping' ).include()
 
     def generate_source_files( self, mb ):
         files = mb.split_module( autoconfig.build_dir, on_unused_file_found=lambda fpath: fpath )

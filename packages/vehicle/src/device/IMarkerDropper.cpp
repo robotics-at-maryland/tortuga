@@ -10,6 +10,8 @@
 // Project Includes
 #include "vehicle/include/device/IMarkerDropper.h"
 
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IMarkerDropper, MARKER_DROPPED);
+
 namespace ram {
 namespace vehicle {
 namespace device {

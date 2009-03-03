@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -30,7 +30,7 @@ class member_variable_base_t( registration_based.registration_based_t
     def _set_wrapper( self, new_wrapper ):
         self._wrapper = new_wrapper
     wrapper = property( _get_wrapper, _set_wrapper )
-    
+
     def _get_system_headers_impl( self ):
         files = []
         if self.declaration.getter_call_policies:
@@ -61,7 +61,9 @@ class member_variable_t( member_variable_base_t ):
         answer.append('"%s"' % self.alias)
         answer.append( self.PARAM_SEPARATOR )
 
-        call_pol = call_policies.return_value_policy( call_policies.reference_existing_object ).create( self )
+        #according to David Abrahams:
+        #http://mail.python.org/pipermail/c++-sig/2003-January/003276.html
+        call_pol = call_policies.return_internal_reference().create( self )
         make_function = algorithm.create_identifier( self, '::boost::python::make_function' )
 
         answer.append( '%(mk_func)s( (%(getter_type)s)(&%(wfname)s), %(call_pol)s )'
@@ -71,11 +73,11 @@ class member_variable_t( member_variable_base_t ):
                            , 'call_pol' : call_pol } )
 
         #don't generate setter method, right now I don't know how to do it.
-        if False and self.wrapper.has_setter:
+        if self.wrapper.has_setter:
             answer.append( self.PARAM_SEPARATOR )
             call_pol = ''
             if not self.declaration.type_qualifiers.has_static:
-                call_pol = ", " + call_policies.with_custodian_and_ward_postcall( 0, 1 ).crate(self)
+                call_pol = ", " + call_policies.with_custodian_and_ward_postcall( 1, 2 ).create(self)
             answer.append( '%(mk_func)s( (%(setter_type)s)(&%(wfname)s)%(call_pol)s )'
                        % { 'mk_func' : make_function
                            , 'setter_type' : self.wrapper.setter_type
@@ -128,12 +130,12 @@ class member_variable_t( member_variable_base_t ):
                 doc = self.documentation
             add_property = 'add_property'
         add_property_args = [ '"%s"' % self.alias ]
-        getter_code = declarations.call_invocation.join( 
+        getter_code = declarations.call_invocation.join(
                           make_getter
                         , [ '&' + self.decl_identifier
                             , self.declaration.getter_call_policies.create( self ) ]
                         , os.linesep + self.indent( self.PARAM_SEPARATOR, 6) )
-        
+
         add_property_args.append( getter_code )
         if not self.declaration.is_read_only:
             setter_code = ''
@@ -141,14 +143,14 @@ class member_variable_t( member_variable_base_t ):
             if self.declaration.setter_call_policies \
                and not self.declaration.setter_call_policies.is_default():
                    setter_args.append( self.declaration.setter_call_policies.create( self ) )
-            setter_code = declarations.call_invocation.join( 
+            setter_code = declarations.call_invocation.join(
                               make_setter
                             , setter_args
                             , os.linesep + self.indent( self.PARAM_SEPARATOR, 6) )
             add_property_args.append( setter_code)
         if doc:
             add_property_args.append( doc )
-        return declarations.call_invocation.join( 
+        return declarations.call_invocation.join(
                     add_property
                     , add_property_args
                     , os.linesep + self.indent( self.PARAM_SEPARATOR, 4 ) )
@@ -220,7 +222,8 @@ class member_variable_wrapper_t( code_creator.code_creator_t
 
         return declarations.free_function_type_t.create_decl_string(
                 return_type=self.declaration.type
-                , arguments_types=arguments_types )
+                , arguments_types=arguments_types
+                , with_defaults=False)
     getter_type = property( _get_getter_type )
 
     def _get_setter_full_name(self):
@@ -235,7 +238,8 @@ class member_variable_wrapper_t( code_creator.code_creator_t
 
         return declarations.free_function_type_t.create_decl_string(
                 return_type=declarations.void_t()
-                , arguments_types=arguments_types )
+                , arguments_types=arguments_types
+                , with_defaults=False)
     setter_type = property( _get_setter_type )
 
     def _get_has_setter( self ):
@@ -342,7 +346,8 @@ class bit_field_wrapper_t( code_creator.code_creator_t
                 return_type=self.declaration.type
                 , class_decl_string=self.parent.full_name
                 , arguments_types=[]
-                , has_const=True )
+                , has_const=True
+                , with_defaults=False)
     getter_type = property( _get_getter_type )
 
     def _get_setter_full_name(self):
@@ -354,7 +359,8 @@ class bit_field_wrapper_t( code_creator.code_creator_t
                 return_type=declarations.void_t()
                 , class_decl_string=self.parent.full_name
                 , arguments_types=[self.declaration.type]
-                , has_const=False )
+                , has_const=False
+                , with_defaults=False)
     setter_type = property( _get_setter_type )
 
     def _get_has_setter( self ):
@@ -385,7 +391,7 @@ class array_mv_t( member_variable_base_t ):
         answer = []
         answer.append( 'typedef %s;' % self.wrapper.wrapper_creator_type.create_typedef( 'array_wrapper_creator' ) )
         answer.append( os.linesep * 2 )
-        
+
         doc = ''
         if self.declaration.type_qualifiers.has_static:
             answer.append( self.parent.class_var_name + '.add_static_property' )
@@ -419,7 +425,7 @@ class array_mv_t( member_variable_base_t ):
         answer.append( os.linesep )
         answer.append( '}' )
         return ''.join( answer )
-    
+
     def _get_system_headers_impl( self ):
         return []
 
@@ -439,7 +445,7 @@ class array_mv_wrapper_t( code_creator.code_creator_t
     @property
     def wrapper_type( self ):
         tmpl = "%(namespace)s::%(constness)sarray_1_t< %(item_type)s, %(array_size)d>"
-        
+
         constness = ''
         if declarations.is_const( self.declaration.type ):
             constness = 'const_'
@@ -457,14 +463,14 @@ class array_mv_wrapper_t( code_creator.code_creator_t
         if declarations.is_const( self.declaration.type ):
             wrapped_cls_type = declarations.const_t( wrapped_cls_type )
         return declarations.reference_t( wrapped_cls_type )
-    
+
     @property
     def wrapper_creator_type(self):
         return declarations.free_function_type_t(
                 return_type=self.wrapper_type
                 , arguments_types=[self.wrapped_class_type] )
-    
-    @property 
+
+    @property
     def wrapper_creator_name(self):
         return '_'.join( ['pyplusplus', self.declaration.name, 'wrapper'] )
 
@@ -488,7 +494,7 @@ class array_mv_wrapper_t( code_creator.code_creator_t
 
     def _get_system_headers_impl( self ):
         return [code_repository.array_1.file_name]
-    
+
 
 class mem_var_ref_t( member_variable_base_t ):
     """
@@ -619,7 +625,7 @@ class mem_var_ref_wrapper_t( code_creator.code_creator_t
             return False
         if declarations.has_destructor( decl ) and not declarations.has_public_destructor( decl ):
             return False
-        if not declarations.has_trivial_copy(decl):
+        if not declarations.has_copy_constructor(decl):
             return False
         return True
     has_setter = property( _get_has_setter )
@@ -638,3 +644,42 @@ class mem_var_ref_wrapper_t( code_creator.code_creator_t
 
     def _get_system_headers_impl( self ):
         return []
+
+class member_variable_addressof_t( member_variable_base_t ):
+    """
+    Creates boost.python code that exposes address of member variable.
+
+    This functionality is pretty powerful if you use it with "ctypes" -
+    standard package.
+
+    """
+    def __init__(self, variable, wrapper=None ):
+        member_variable_base_t.__init__( self, variable=variable, wrapper=wrapper )
+
+    def _create_m_var( self ):
+        answer = [ 'add_property' ]
+        answer.append( '( ' )
+        answer.append('"%s"' % self.alias)
+        answer.append( self.PARAM_SEPARATOR )
+        answer.append( 'pyplus_conv::make_addressof_getter(&%s)'
+                       % self.decl_identifier )
+        if self.documentation:
+            answer.append( self.PARAM_SEPARATOR )
+            answer.append( self.documentation )
+        answer.append( ' ) ' )
+        return ''.join( answer )
+
+    def _create_s_var( self ):
+        return 'def( %(def_visitor)s("%(name)s", %(var)s) )' \
+               % {   'def_visitor' : 'pyplus_conv::register_addressof_static_var'
+                   , 'name' : self.alias
+                   , 'var' : self.decl_identifier }
+
+
+    def _create_impl( self ):
+        if self.declaration.type_qualifiers.has_static:
+            return self._create_s_var()
+        else:
+            return self._create_m_var()
+    def _get_system_headers_impl( self ):
+        return [code_repository.ctypes_integration.file_name]

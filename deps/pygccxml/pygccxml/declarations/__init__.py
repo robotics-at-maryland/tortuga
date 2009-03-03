@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -6,6 +6,9 @@
 """
 contains classes that describe different C++ declarations
 """
+
+import compilers
+
 from dependencies import dependency_info_t
 from declaration import location_t
 from declaration import declaration_t
@@ -25,6 +28,7 @@ from typedef import typedef_t
 from cpptypes import type_t
 from cpptypes import dummy_type_t
 from cpptypes import unknown_t
+from cpptypes import ellipsis_t
 from cpptypes import fundamental_t
 from cpptypes import void_t
 from cpptypes import char_t
@@ -49,6 +53,7 @@ from cpptypes import volatile_t
 from cpptypes import const_t
 from cpptypes import pointer_t
 from cpptypes import reference_t
+from cpptypes import restrict_t
 from cpptypes import array_t
 from cpptypes import calldef_type_t
 from cpptypes import free_function_type_t
@@ -72,9 +77,11 @@ from cpptypes import jboolean_t
 from variable import variable_t
 
 from algorithm import full_name
+from algorithm import full_name_from_declaration_path
 from algorithm import make_flatten
 from algorithm import apply_visitor
 from algorithm import declaration_path
+from algorithm import get_named_parent
 from algorithm import find_declaration
 from algorithm import match_declaration_t
 from algorithm import find_all_declarations
@@ -136,6 +143,7 @@ from type_traits import is_std_string
 from type_traits import is_std_wstring
 from type_traits import is_std_ostream
 from type_traits import is_std_wostream
+from type_traits import is_calldef_pointer
 
 from type_traits import is_unary_operator
 from type_traits import is_binary_operator
@@ -153,7 +161,8 @@ from type_traits import remove_declarated
 
 from type_traits import has_destructor
 from type_traits import has_public_less
-from type_traits import has_trivial_copy
+from type_traits import has_copy_constructor
+has_trivial_copy = has_copy_constructor #backward comp mode will be removed
 from type_traits import has_public_equal
 from type_traits import has_public_assign
 from type_traits import has_public_destructor
@@ -163,12 +172,14 @@ from type_traits import find_trivial_constructor
 from type_traits import has_public_binary_operator
 from type_traits import has_any_non_copyconstructor
 
+from type_traits import auto_ptr_traits
 from type_traits import smart_pointer_traits
+from type_traits import internal_type_traits
 
 from container_traits import list_traits
 from container_traits import deque_traits
 from container_traits import queue_traits
-from container_traits import priority_queue
+from container_traits import priority_queue_traits
 from container_traits import vector_traits
 from container_traits import stack_traits
 from container_traits import map_traits
@@ -179,34 +190,19 @@ from container_traits import set_traits
 from container_traits import hash_set_traits
 from container_traits import multiset_traits
 from container_traits import hash_multiset_traits
+from container_traits import find_container_traits
 
 from function_traits import is_same_function
 
-all_container_traits = \
-[
-    list_traits
-    , deque_traits
-    , queue_traits
-    , priority_queue
-    , vector_traits
-    , stack_traits
-    , map_traits
-    , multimap_traits
-    , hash_map_traits
-    , hash_multimap_traits
-    , set_traits
-    , hash_set_traits
-    , multiset_traits
-    , hash_multiset_traits
-]
-"""list, that contains all STD container traits classes"""
+all_container_traits = container_traits.container_traits
+"""tuple of all STD container traits classes"""
 
 sequential_container_traits = \
 [
     list_traits
     , deque_traits
     , queue_traits
-    , priority_queue
+    , priority_queue_traits
     , vector_traits
     , stack_traits
     , set_traits

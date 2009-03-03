@@ -354,7 +354,6 @@ Subsystems:
                 type: OpenGL
                 
                 OpenGL:
-                    - [Colour Depth, '32']
                     - [FSAA, '0']
                     - [RTT Preferred Mode, 'FBO']
                     - [VSync, 'No']

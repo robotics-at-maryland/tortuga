@@ -23,6 +23,7 @@ namespace vision {
 
 OpenCVImage::OpenCVImage(int width, int height) :
     m_own(true),
+    m_ownHeader(true),
     m_img(0)
     
 {
@@ -36,6 +37,7 @@ OpenCVImage::OpenCVImage(int width, int height) :
     
 OpenCVImage::OpenCVImage(IplImage* image, bool ownership) :
     m_own(ownership),
+    m_ownHeader(ownership),
     m_img(image)
 {
 }
@@ -43,6 +45,7 @@ OpenCVImage::OpenCVImage(IplImage* image, bool ownership) :
 OpenCVImage::OpenCVImage(unsigned char* data, int width, int height,
                          bool ownership) :
     m_own(ownership),
+    m_ownHeader(true),
     m_img(0)
 {
     assert(data && "Image data can't be null");
@@ -85,13 +88,23 @@ void OpenCVImage::copyFrom (const Image* src)
     cvReleaseImageHeader(&tmp_img);
     
     // Copy Other members
-    m_own = src->getOwnership();
+    //m_own = src->getOwnership();
+    // copying this makes no sense, we now have a totally new copy, so we own it
+    //m_own = true;
 }
     
 OpenCVImage::~OpenCVImage()
 {
     if (m_own)
+    {
+        assert(m_img && "Error can't free empty OpenCV image");
         cvReleaseImage(&m_img);
+    }
+    else if (m_ownHeader)
+    {
+        // If we don't own the buffer but we do own the header release it
+        cvReleaseImageHeader(&m_img);
+    }
 }
 
 unsigned char* OpenCVImage::getData() const
@@ -141,7 +154,9 @@ void  OpenCVImage::setSize(int width, int height)
     IplImage* old = m_img;
     
     m_img = cvCreateImage(cvSize(width, height), 8, 3);
-    cvCopy(old, m_img);
+    //cvCopy(old, m_img);
+    // this doesn't work, so let's use the right function instead
+    cvResize (old, m_img);
     
     cvReleaseImage(&old);
 }

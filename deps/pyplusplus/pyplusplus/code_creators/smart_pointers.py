@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -106,7 +106,7 @@ class smart_pointers_converter_t( registration_based.registration_based_t
     smart_ptr = property( _get_smart_ptr, _set_smart_ptr )    
 
     def _instantiate_smart_ptr( self, decl ):
-        identifier = algorithm.create_identifier( self, decl.decl_string )
+        identifier = algorithm.create_identifier( self, decl.partial_decl_string )
         return templates.join( self.smart_ptr, [identifier] )
     
     def _create_impl(self): 

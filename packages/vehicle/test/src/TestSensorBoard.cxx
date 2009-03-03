@@ -299,14 +299,22 @@ TEST_FIXTURE(SensorBoardFixture, setPowerSourceEnabled)
 
 TEST_FIXTURE(SensorBoardFixture, dropMarker)
 {
-    TestSensorBoard* sb = new TestSensorBoard(
+    TestSensorBoard* testSb = new TestSensorBoard(
         ram::core::ConfigNode::fromString(BLANK_CONFIG));
+    ram::vehicle::device::SensorBoard* sb =
+        (ram::vehicle::device::SensorBoard*)testSb;
 
-    ((ram::vehicle::device::SensorBoard*)sb)->dropMarker();
-    CHECK_EQUAL(0, sb->markerDropped);
-    ((ram::vehicle::device::SensorBoard*)sb)->dropMarker();
-    CHECK_EQUAL(1, sb->markerDropped);
-    delete sb;
+    // Drop first marker
+    CHECK_EQUAL(0, sb->dropMarker());
+    CHECK_EQUAL(0, testSb->markerDropped);
+    // Drop second marker
+    CHECK_EQUAL(1, sb->dropMarker());
+    CHECK_EQUAL(1, testSb->markerDropped);
+    // Drop non-existent marker
+    CHECK_EQUAL(-1, sb->dropMarker());
+    CHECK_EQUAL(1, testSb->markerDropped);
+
+    delete testSb;
 }
 
 typedef std::vector<ram::vehicle::PowerSourceEventPtr>

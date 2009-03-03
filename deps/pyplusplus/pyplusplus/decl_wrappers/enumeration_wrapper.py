@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -75,3 +75,8 @@ class enumeration_t(decl_wrapper.decl_wrapper_t, declarations.enumeration_t):
             if len( set( name2value.keys() ) ) != len( set( name2value.values() ) ):
                 msgs.append( messages.W1032 )
         return msgs
+
+    def _exportable_impl( self ):
+        if not self.parent.name:
+            return messages.W1057 % str( self )
+        return ''

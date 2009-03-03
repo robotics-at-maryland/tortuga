@@ -22,6 +22,9 @@ RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, TEMPSENSOR_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, THRUSTER_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, SONAR_UPDATE);
 
+// Current vehicle 
+int ram::vehicle::device::SensorBoard::NUMBER_OF_MARKERS = 2;
+
 static log4cpp::Category& s_thrusterLog
 (log4cpp::Category::getInstance("Thruster"));
 static log4cpp::Category& s_powerLog
@@ -330,20 +333,20 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
     }
 }
 
-void SensorBoard::dropMarker()
+int SensorBoard::dropMarker()
 {
     static int markerNum = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
+    int markerDropped = -1;
     if (markerNum <= 1)
     {
         dropMarker(markerNum);
+        markerDropped = markerNum;
         markerNum++;
     }
-    else
-    {
-        // Report an error
-    }
+
+    return markerDropped;
 }
     
 void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)

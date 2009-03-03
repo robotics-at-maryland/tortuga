@@ -17,21 +17,21 @@ struct derived_t : base_i{
 // Some smart pointer classes does not have reach interface as boost ones.
 // In order to provide same level of convenience, users are forced to create
 // classes, which derive from smart pointer class.
-struct derived_ptr_t : public smart_ptr_t< derived_t >{
+struct derived_ptr_t : public smart_pointers::smart_ptr_t< derived_t >{
 
     derived_ptr_t()
-    : smart_ptr_t< derived_t >()
+    : smart_pointers::smart_ptr_t< derived_t >()
     {}
 
     explicit derived_ptr_t(derived_t* rep)
-    : smart_ptr_t<derived_t>(rep)
+    : smart_pointers::smart_ptr_t<derived_t>(rep)
     {}
 
     derived_ptr_t(const derived_ptr_t& r)
-    : smart_ptr_t<derived_t>(r) {}
+    : smart_pointers::smart_ptr_t<derived_t>(r) {}
 
-    derived_ptr_t( const smart_ptr_t< base_i >& r)
-    : smart_ptr_t<derived_t>()
+    derived_ptr_t( const smart_pointers::smart_ptr_t< base_i >& r)
+    : smart_pointers::smart_ptr_t<derived_t>()
     {
         m_managed = static_cast<derived_t*>(r.get());
         m_use_count = r.use_count_ptr();
@@ -41,7 +41,7 @@ struct derived_ptr_t : public smart_ptr_t< derived_t >{
         }
     }
 
-    derived_ptr_t& operator=(const smart_ptr_t< base_i >& r)
+    derived_ptr_t& operator=(const smart_pointers::smart_ptr_t< base_i >& r)
     {
         if (m_managed == static_cast<derived_t*>(r.get()))
             return *this;
@@ -63,8 +63,8 @@ derived_ptr_t create_derived(){
     return derived_ptr_t( new derived_t() );
 }
 
-smart_ptr_t< base_i > create_base(){
-    return smart_ptr_t< base_i >( new derived_t() );
+smart_pointers::smart_ptr_t< base_i > create_base(){
+    return smart_pointers::smart_ptr_t< base_i >( new derived_t() );
 }
 
 
@@ -72,25 +72,25 @@ smart_ptr_t< base_i > create_base(){
 // the argument is the instance of a derived class.
 //
 // This is the explanation David Abrahams gave:
-//   Naturally; there is no instance of smart_ptr_t<base_i> anywhere in the
+//   Naturally; there is no instance of smart_pointers::smart_ptr_t<base_i> anywhere in the
 //   Python object for the reference to bind to. The rules are the same as in C++:
 //
-//   int f(smart_ptr_t<base>& x);
-//   smart_ptr_t<derived> y;
+//   int f(smart_pointers::smart_ptr_t<base>& x);
+//   smart_pointers::smart_ptr_t<derived> y;
 //   int z = f(y);               // fails to compile
 
 inline int
-ref_get_value( smart_ptr_t< base_i >& a ){
+ref_get_value( smart_pointers::smart_ptr_t< base_i >& a ){
     return a->get_value();
 }
 
 inline int
-val_get_value( smart_ptr_t< base_i > a ){
+val_get_value( smart_pointers::smart_ptr_t< base_i > a ){
     return a->get_value();
 }
 
 inline int
-const_ref_get_value( const smart_ptr_t< base_i >& a ){
+const_ref_get_value( const smart_pointers::smart_ptr_t< base_i >& a ){
     return a->get_value();
 }
 
@@ -103,13 +103,13 @@ struct numeric_t{
     int value;
 };
 
-smart_ptr_t< numeric_t > create_numeric( int value ){
-    smart_ptr_t< numeric_t > num( new numeric_t() );
+smart_pointers::smart_ptr_t< numeric_t > create_numeric( int value ){
+    smart_pointers::smart_ptr_t< numeric_t > num( new numeric_t() );
     num->value = value;
     return num;
 }
 
-int get_numeric_value( smart_ptr_t< numeric_t > n ){
+int get_numeric_value( smart_pointers::smart_ptr_t< numeric_t > n ){
     if( n.get() ){
         return n->value;
     }
@@ -138,9 +138,9 @@ struct buffer_holder_t{
     : data( new buffer_t() )
     {}
         
-    smart_ptr_t< buffer_t > get_data(){ return data; }
+    smart_pointers::smart_ptr_t< buffer_t > get_data(){ return data; }
     
-    smart_ptr_t< buffer_t > data;
+    smart_pointers::smart_ptr_t< buffer_t > data;
 };
 
 }

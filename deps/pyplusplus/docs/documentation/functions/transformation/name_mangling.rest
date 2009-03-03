@@ -18,7 +18,7 @@ Why?
 
 I am sure you want to ask why and where `Py++`_ uses name mangling? `Py++`_ uses
 name mangling to create function-wrappers for overloaded and\\or free functions.
-Consider next use case:
+Consider the following use case:
 
   .. code-block:: C++
 
@@ -79,15 +79,8 @@ There are two main reasons for such implementation\\behaviour:
 2. If you forgot to give an alias to a function, your users will still be able
    to call the function. So no need to rush and create new release.
 
-.. _`Py++` : ./../pyplusplus.html
+.. _`Py++` : ./../../../pyplusplus.html
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

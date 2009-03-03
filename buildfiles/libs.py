@@ -20,23 +20,27 @@ from buildfiles.common.util import run_shell_cmd
 
 # Constants
 if platform.system() == 'Darwin':
-    BOOST_PYTHON_LIB = 'boost_python-mt-1_34_1'
-    BOOST_THREAD_LIB = 'boost_thread-mt-1_34_1'
-    BOOST_SIGNALS_LIB = 'boost_signals-mt-1_34_1'
-    BOOST_GRAPH_LIB = 'boost_graph-mt-1_34_1'
-    BOOST_FILESYSTEM_LIB = 'boost_filesystem-mt-1_34_1'
-    BOOST_PROGOPT_LIB = 'boost_program_options-mt-1_34_1'
-    BOOST_REGEX_LIB = 'boost_regex-mt-1_34_1'
-    BOOST_DATE_TIME_LIB = 'boost_date_time-mt-1_34_1'
+    BOOST_PYTHON_LIB = 'boost_python-xgcc40-mt'
+    BOOST_THREAD_LIB = 'boost_thread-xgcc40-mt'
+    BOOST_SIGNALS_LIB = 'boost_signals-xgcc40-mt'
+    BOOST_GRAPH_LIB = 'boost_graph-xgcc40-mt'
+    BOOST_FILESYSTEM_LIB = 'boost_filesystem-xgcc40-mt'
+    BOOST_SYSTEM_LIB = 'boost_system-xgcc40-mt'
+    BOOST_PROGOPT_LIB = 'boost_program_options-xgcc40-mt'
+    BOOST_REGEX_LIB = 'boost_regex-xgcc40-mt'
+    BOOST_DATE_TIME_LIB = 'boost_date_time-xgcc40-mt'
+    BOOST_SERIALIZATION_LIB = 'boost_serialization-xgcc40-mt'
 elif platform.system() == 'Linux':
     BOOST_PYTHON_LIB = 'boost_python-gcc42-mt'
     BOOST_THREAD_LIB = 'boost_thread-gcc42-mt'
     BOOST_SIGNALS_LIB = 'boost_signals-gcc42-mt'
     BOOST_GRAPH_LIB = 'boost_graph-gcc42-mt'
     BOOST_FILESYSTEM_LIB = 'boost_filesystem-gcc42-mt'
+    BOOST_SYSTEM_LIB = 'boost_system-gcc42-mt'
     BOOST_PROGOPT_LIB = 'boost_program_options-gcc42-mt'
     BOOST_REGEX_LIB = 'boost_regex-gcc42-mt'
     BOOST_DATE_TIME_LIB = 'boost_date_time-gcc42-mt'
+    BOOST_SERIALIZATION_LIB = 'boost_serialization-gcc42-mt'
 elif platform.system() == 'Windows' or platform.system() == 'Microsoft':
     BOOST_PYTHON_LIB = 'boost_python-vc80-mt-1_34_1'
     BOOST_THREAD_LIB = 'boost_thread-vc80-mt-1_34_1'
@@ -84,6 +88,8 @@ EXTERNAL_LIBS = None
 
 def setup_posix_libs():
     global EXTERNAL_LIBS
+    ram_root = os.environ['RAM_ROOT_DIR']
+    ram_include = ram_root + '/include'
     EXTERNAL_LIBS = {
         'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
                                     'wx-config', lib_flag='--libs std,gl'),
@@ -93,40 +99,54 @@ def setup_posix_libs():
 
         'GTK+ 2.0' : PkgConfigLibrary('gtk+-2.0', '2', ['gtk/gtk.h', 
                                                         'gdk/gdk.h']),
-        'Boost' : BoostLibrary('Boost', (1,34,1), []),
+        'Boost' : BoostLibrary('Boost', (1,37,None), []),
 
         'USB': PkgConfigLibrary('libusb', '0.1', ['usb.h']),
 
-        'Boost.Python' : BoostLibrary('Boost.Python', (1,34,1), [],
+        'Boost.Python' : BoostLibrary('Boost.Python', (1,37,None), [],
                                       [BOOST_PYTHON_LIB], 
                                       ext_deps = ['Python']),
 
-        'Boost.Thread' : BoostLibrary('Boost.Thread', (1,34,1), [],
+        'Boost.Thread' : BoostLibrary('Boost.Thread', (1,37,None), [],
                                       [BOOST_THREAD_LIB]),
 
-        'Boost.Signals' : BoostLibrary('Boost.Signals', (1,34,1), [],
+        'Boost.Signals' : BoostLibrary('Boost.Signals', (1,37,None), [],
                                       [BOOST_SIGNALS_LIB]),
         
-        'Boost.Graph' : BoostLibrary('Boost.Graph', (1,34,1), [],
+        'Boost.Graph' : BoostLibrary('Boost.Graph', (1,37,None), [],
                                        [BOOST_GRAPH_LIB]),
         
-        'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,34,1), [],
+        'Boost.Filesystem' : BoostLibrary('Boost.Filesystem', (1,37,None), [],
                                           [BOOST_FILESYSTEM_LIB]),
 
+        'Boost.System' : BoostLibrary('Boost.System', (1,37,None), [],
+                                          [BOOST_SYSTEM_LIB]),
+
+        'Boost.Serialization' : BoostLibrary('Boost.Serialization', 
+                                             (1,37,None), [],
+                                             [BOOST_SERIALIZATION_LIB]),
+
         'Boost.ProgramOptions' : BoostLibrary('Boost.ProgramOptions',
-                                              (1,34,1), [],
+                                              (1,37,None), [],
                                              [BOOST_PROGOPT_LIB]),
 
-        'Boost.Regex' : BoostLibrary('Boost.Regex', (1,34,1), [],
+        'Boost.Regex' : BoostLibrary('Boost.Regex', (1,37,None), [],
                                      [BOOST_REGEX_LIB]),
 
-        'Boost.DateTime' : BoostLibrary('Boost.DateTime', (1,34,1), [],
+        'Boost.DateTime' : BoostLibrary('Boost.DateTime', (1,37,None), [],
                                      [BOOST_DATE_TIME_LIB]),
         
         'Python' : PythonLib('2.5'),
 
         'UnitTest++' : PkgConfigLibrary('UnitTest++', '1.3',
-                                        ['UnitTest++/UnitTest++.h'])
+                                        ['UnitTest++/UnitTest++.h']),
+        
+        'FANN' : Library('FANN', '2.1.0', ['fann.h','floatfann.h'],
+                           ['floatfann', 'fann'], ram_include),
+        
+        'libdc1394' : PkgConfigLibrary('libdc1394-2', '2.0.2',
+                                       ['dc1394/dc1394.h']),
+
         }
 
 def setup_windows_libs():
@@ -155,7 +175,7 @@ def setup_windows_libs():
                                  ['boost/thread.hpp'], [BOOST_THREAD_LIB], 
                                  ext_deps = ['Boost']),
                                       
-		'Boost.Signals' : Library('Boost.Signals', '1.34.1',
+        'Boost.Signals' : Library('Boost.Signals', '1.34.1',
                                  [], [BOOST_SIGNALS_LIB], 
                                  ext_deps = ['Boost']),
                                  
@@ -182,7 +202,11 @@ def setup_windows_libs():
         
         'OpenCV' : Library('OpenCV', '1.0', ['opencv/cv.h'],
                            ['cv', 'cxcore','highgui','cxts','cvaux','ml'],
-                           CPPPATH = ram_include + '/opencv')
+                           CPPPATH = ram_include + '/opencv'),
+        
+        'FANN' : Library('FANN', '2.1.0', ['floatfann.h','fann.h'],
+                         ['floatfann', 'fann'])
+
     }                               
         
 def _get_external_lib(name):
@@ -211,7 +235,7 @@ def _get_internal_lib(env, name):
     """
     Maps internal library name with the information needed to build it
     """
-    vehicle_int_deps = ['core', 'pattern','math']
+    vehicle_int_deps = ['core', 'pattern','math','logging']
     if env.HasFeature('drivers'):
         vehicle_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster'])
     
@@ -222,7 +246,8 @@ def _get_internal_lib(env, name):
         INTERNAL_LIBS = {
             'vision' : InternalLibrary('vision',
                                        int_deps = ['pattern', 'core', 'math'],
-                                       ext_deps = ['OpenCV', 'Boost.Thread']),
+                                       ext_deps = ['OpenCV', 'Boost.Thread',
+                                                   'FANN', 'libdc1394']),
             
             'pattern' : InternalLibrary('pattern', int_deps = [],
                                         ext_deps = ['Boost', 'Boost.Thread']),
@@ -233,6 +258,7 @@ def _get_internal_lib(env, name):
                                                  'Boost.Signals',
                                                  'Boost.Filesystem',
                                                  'Boost.DateTime',
+                                                 'Boost.System',
                                                  'log4cpp']),
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
@@ -265,7 +291,10 @@ def _get_internal_lib(env, name):
 
             'vehicle' : InternalLibrary('vehicle',
                                         int_deps = vehicle_int_deps,
-                                        ext_deps = [])
+                                        ext_deps = []),
+
+            'logging' : InternalLibrary('logging', int_deps = ['core'],
+                                        ext_deps = ['Boost.Serialization']),
             }
 
     if INTERNAL_LIBS.has_key(name):
@@ -710,7 +739,7 @@ class PythonLib(ConfigLibrary):
             run_shell_cmd(self.tool_name + ' --ldflags', 
                           "Could not execute python2.5-config")
  
-        env.MergeFlags([ldflags, includes])
+        env.MergeFlags([ldflags, includes, '-DBOOST_PYTHON_NO_PY_SIGNATURES'])
 #        ConfigLibrary.setup_environment(self, env)
 #        env.Append(CCFLAGS = removed)
 
@@ -771,7 +800,6 @@ class BoostLibrary(Library):
             self.patch_ver = version[2]
         else:
             self.patch_ver = 0
-            
 
         # Generate the flags to include the needed libraries
         if type(libraries) is not list:
@@ -779,8 +807,11 @@ class BoostLibrary(Library):
         else:
             self.libraries = libraries
 
-        version_str = '%d_%d_%d' % (self.major_ver, self.minor_ver,
-                                    self.patch_ver)
+        if self.patch_ver is None:
+            version_str = '%d_%d' % (self.major_ver, self.minor_ver)
+        else:
+            version_str = '%d_%d_%d' % (self.major_ver, self.minor_ver,
+                                        self.patch_ver)
         include_path = os.path.join(os.environ['RAM_ROOT_DIR'], 'include',
 
                                     'boost-' + version_str)
@@ -800,8 +831,10 @@ class BoostLibrary(Library):
     def check_version(self, env):
         conf = env.Configure()
 
-        ver_num = self.major_ver * 100000 + self.minor_ver * 1000 + \
-                  self.patch_ver
+        patch_ver = self.patch_ver
+        if patch_ver is None:
+            patch_ver = 0
+        ver_num = self.major_ver * 100000 + self.minor_ver * 1000 + patch_ver
         
         conf.TryCompile("""
         #include <boost/version.hpp>

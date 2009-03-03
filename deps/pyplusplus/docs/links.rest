@@ -58,7 +58,7 @@ Help resources
 * http://boost.cvs.sourceforge.net/boost/boost/libs/python/test/ - `Boost.Python`_
   unit tests. They could be very, very helpful.
 
-* http://svn.sourceforge.net/viewvc/pygccxml/pyplusplus_dev/unittests/ - `Py++`_
+* http://pygccxml.svn.sourceforge.net/viewvc/pygccxml/pyplusplus_dev/unittests/ - `Py++`_
   unit tests. They could be even more helpful!
 
 -------------
@@ -78,11 +78,11 @@ Mailing lists
 
 
 ----------------------------------
-Libraries inspired by Boost.Python 
+Libraries inspired by Boost.Python
 ----------------------------------
 
 * `Luabind`_ - interfacing C++ and `Lua`_
-  
+
 .. _`Luabind` : http://www.rasterbar.com/products/luabind/docs.html
 .. _`Lua` : http://www.lua.org/
 
@@ -96,11 +96,25 @@ Libraries inspired by Boost.Python
 .. _`Sq Plus` : http://wiki.squirrel-lang.org/default.aspx/SquirrelWiki/SqPlus.html
 .. _`Squirrel` : http://wiki.squirrel-lang.org/
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
+-----------------------------
+Projects inspired by Py++ :-)
+-----------------------------
+
+* `PyBindGen`_ -  a new project for producing Python extensions
+
+.. _`PyBindGen` : https://launchpad.net/pybindgen
+
+-----
+Blogs
+-----
+
+* http://www.shocksolution.com/math_tools/boost.python/index.html - this site
+  contains few useful Boost.Python examples and tutorials.
+
+-------------
+Build systems
+-------------
+
+http://www.scons.org/wiki/GCCXMLBuilder - Joseph Lisee shows how to integrate
+Py++ scripts with Scons.
 

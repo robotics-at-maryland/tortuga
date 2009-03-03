@@ -39,6 +39,7 @@ edited by Joseph Gland and Jaymit Patel on 2008-2-19
 
 // STD Includes
 #include <ostream>
+#include <cstring>
 
 // Project Includes
 #include "math/include/Vector2.h"

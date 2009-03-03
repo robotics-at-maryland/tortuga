@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -29,6 +29,7 @@ class tester_t( parser_test_case.parser_test_case_t ):
         traits = declarations.vector_traits
         self.failUnless( traits.is_my_case( container ) )
         self.failUnless( declarations.is_same( value_type, traits.element_type( container ) ) )
+        self.failUnless( traits.is_sequence( container ) )
         
     def test_global_ns( self ):
         value_type = self.global_ns.class_( '_0_' )
@@ -54,6 +55,16 @@ class tester_t( parser_test_case.parser_test_case_t ):
             if not struct.name.endswith( '_' ):
                 continue
             self.failUnless( not traits.is_my_case( struct.typedef( 'container' ) ) )
+    
+    def test_declaration( self ):
+        cnt = 'std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >,std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >@::std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >,std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >'
+        traits = declarations.find_container_traits( cnt )
+        self.failUnless( declarations.vector_traits is traits)
+
+    def test_element_type( self ):
+        do_nothing = self.global_ns.free_fun( 'do_nothing' )
+        v = declarations.remove_reference( declarations.remove_declarated( do_nothing.arguments[0].type )) 
+        declarations.vector_traits.element_type( v )
     
 def create_suite():
     suite = unittest.TestSuite()        

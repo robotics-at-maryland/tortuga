@@ -37,6 +37,8 @@ def get_features():
     add_feature('core', dirs = ['packages/core'])
     add_feature('pattern', dirs = ['packages/pattern'])
     add_feature('math', dirs = ['packages/math'])
+    add_feature('logging', dirs = ['packages/logging'],
+                deps = ['core'])
     add_feature('vision', dirs = ['packages/vision'],
                 deps = ['pattern', 'core', 'math'])
 	
