@@ -12,7 +12,7 @@ plot(0:0.05:35,5)
 title('Observer Controllers')
 ylabel('Depth Units')
 xlabel('Time (s)')
-legend('P Controller','Continous Observer Controller (lowgains)','Discrete Observer Controller (lowgains)','Discrete Observer Controller (K=2,L=15)')
+legend('P Controller','Continous Observer Controller (lowgains)','Continous Observer Controller With Scaling(lowgains)','Continous Observer Controller  With Scaling(K=2,L=15)')
 hold off;
 
 figure(2)
@@ -26,9 +26,9 @@ plot(0:0.05:18,5)
 title('PID Controllers')
 ylabel('Depth Units')
 xlabel('Time (s)')
-legend('P Controller','PID Controller (10,0.2,4)','PID Controller (4)','PID Controller (5)','PID Controller (6)');
+legend('P Controller','PID Controller (10,0.2,4)','PID Controller (30,0.5,10)','PID Controller (20,0.2,4)','PID Controller (20,1,4)');
 hold off
 
 r = r'
 %'steady state rise time settling time overshoot sserror';
-save depthData.txt r -ASCII
+%save depthData.txt r -ASCII
