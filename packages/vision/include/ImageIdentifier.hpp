@@ -40,8 +40,8 @@ namespace ram {
 			FANN::neural_net m_net;
 			fann_type* m_outValue;
             bool m_cascade;
-            float m_sizeFactor;
-            int m_maxEpochs, m_reportEpochs, m_reportNeurons, m_desiredError;
+            float m_sizeFactor, m_desiredError;
+            int m_maxEpochs, m_reportEpochs, m_reportNeurons;
 		public:
 			/** Build a new ImageIdentifier **/
 			ImageIdentifier (const unsigned int images, const unsigned int imageHeight, const unsigned int imageWidth, core::ConfigNode config = ram::core::ConfigNode::fromString("{}"));
@@ -63,13 +63,13 @@ namespace ram {
 			inline const void print () { m_net.print_parameters(); }
 			/** Add a set of images to a set fo training data for use with this ImageIdentifier **/
 			bool addTrainData (unsigned int imageIndex, FANN::training_data &data, const std::vector<Image*> &images);
+            /** Make an image grayscale **/
+			static IplImage* grayscale (IplImage* src);
 		private:
             /** Load this network from a file **/
             void loadFromFile (const boost::filesystem::path &file);
             /** Load an image's data into an array of fann_types **/
 			void loadImage (IplImage* src, fann_type* target);
-            /** Make an image grayscale **/
-			static IplImage* grayscale (IplImage* src);
             /** Get a single pixel form an image (assumes it's a grayscale image) **/
 			inline static const fann_type getPixel (IplImage* src, unsigned int w, unsigned int h) { return (src->imageData + (w * src->widthStep))[h]; }
 		};

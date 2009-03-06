@@ -39,7 +39,7 @@
 #define MAX_WEIGHT 1.0
 #define MIN_INIT_WEIGHT -0.1
 #define MAX_INIT_WEIGHT 0.1
-#define BIT_FAIL_LIMIT 0.15
+#define BIT_FAIL_LIMIT 0.01
 
 // cascade only fann variables
 #define CASCADE_OUTPUT_CHANGE 0.1

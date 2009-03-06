@@ -7,6 +7,10 @@
  * File:  packages/vision/src/FANNSuiteDetector.cpp
  */
 
+#include <opencv/cv.h>
+
+#include "vision/include/OpenCVImage.h"
+
 // header for this class
 #include "vision/include/FANNSuitDetector.hpp"
 
@@ -30,11 +34,15 @@ FANNSuitDetector::FANNSuitDetector(core::ConfigNode config,
     
 void FANNSuitDetector::processImage(Image* input, Image* output)
 {
+    IplImage* edgeImage = cvCreateImage (cvSize (input->getWidth(), input->getHeight()), IPL_DEPTH_8U, 1);
+    IplImage* newIn = ImageIdentifier::grayscale (input->asIplImage());
+    Image* edges = new OpenCVImage (edgeImage);
+    cvCanny (newIn, edges->asIplImage(), 25, 200, 3);
+    m_analyzed = edges->asIplImage();
+    m_imageDetector.processImage(edges);
     if (output) {
-        //(*output) = (*input);
+        output->copyFrom (edges);
     }
-    m_analyzed = input->asIplImage();
-    m_imageDetector.processImage(input);
 }
     
 IplImage* FANNSuitDetector::getAnalyzedImage()

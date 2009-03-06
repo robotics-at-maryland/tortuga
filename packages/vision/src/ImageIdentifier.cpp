@@ -36,7 +36,7 @@ namespace ram {
             // some config stuff
             m_cascade = config["UseCascade"].asInt(1);
             m_maxEpochs = config["MaxEpochs"].asInt(7500);
-            m_sizeFactor = config["MaxSizeFactor"].asDouble(0.01);
+            m_sizeFactor = config["MaxSizeFactor"].asDouble(0.1);
             m_reportEpochs = config["ReportEpochs"].asInt(25);
             m_reportNeurons = config["ReportNeurons"].asInt(1);
             m_desiredError = config["DesiredError"].asDouble(0.0001);
@@ -113,16 +113,14 @@ namespace ram {
 		
 		void ImageIdentifier::runTraining (FANN::training_data &data) {
 			data.scale_train_data(DATA_MIN, DATA_MAX);
+			m_net.reset_MSE();	
+            m_net.set_train_stop_function (FANN::STOPFUNC_MSE);
+            m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);
             if (m_cascade) {
-                m_net.reset_MSE();
-                m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);	
-                m_net.set_train_stop_function (FANN::STOPFUNC_BIT);
                 m_net.cascadetrain_on_data (data, m_sizeFactor * m_net.get_total_neurons(), m_reportNeurons, m_desiredError);
+            } else {
+                m_net.train_on_data (data, m_maxEpochs, m_reportEpochs, m_desiredError);
             }
-			m_net.reset_MSE();
-			m_net.set_training_algorithm (FANN::TRAIN_BATCH);	
-			m_net.set_train_stop_function (FANN::STOPFUNC_MSE);
-			m_net.train_on_data (data, m_maxEpochs, m_reportEpochs, m_desiredError);
 		}
 		
 		const void ImageIdentifier::runTest (FANN::training_data &data, std::ostream &out) {
