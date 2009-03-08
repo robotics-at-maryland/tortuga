@@ -11,14 +11,17 @@
 #include <iostream>
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
 #include <log4cpp/Category.hh>
 
 // Project Includes
 #include "math/test/include/MathChecks.h"
 #include "math/include/Events.h"
+
 #include "vehicle/test/include/MockVehicle.h"
+
 #include "control/include/BWPDController.h"
-//#include "control/test/include/ControllerTests.h"
+#include "control/test/include/RotationalControllerTests.h"
 
 #include "core/test/include/BufferedAppender.h"
 
@@ -80,31 +83,22 @@ TEST_FIXTURE(Fixture, YawRateControl)
 
 TEST_FIXTURE(Fixture, yawVehicle)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Z);
-    controller.yawVehicle(30);
-    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+    TEST_UTILITY_FUNC(yawVehicle)(&controller);
 }
 
 TEST_FIXTURE(Fixture, pitchVehicle)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Y);
-    controller.pitchVehicle(30);
-    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+    TEST_UTILITY_FUNC(pitchVehicle)(&controller);
 }
 
 TEST_FIXTURE(Fixture, rollVehicle)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
-    controller.rollVehicle(30);
-    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+    TEST_UTILITY_FUNC(rollVehicle)(&controller);
 }
 
 TEST_FIXTURE(Fixture, setDesiredOrientation)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
-    controller.setDesiredOrientation(expected);
-    math::Quaternion actual(controller.getDesiredOrientation());
-    CHECK_EQUAL(expected, actual);
+    TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
 }
 
 TEST_FIXTURE(Fixture, DepthControl)
@@ -251,30 +245,10 @@ TEST_FIXTURE(Fixture, Event_DESIRED_ORIENTATION_UPDATE)
 
 TEST_FIXTURE(Fixture, atOrientation)
 {
-    // Yawed 15 degrees left
-    math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
-    vehicle->orientation = orientation;
-    controller.update(1);
-
-    // 15 degrees left of desired
-    controller.yawVehicle(30);
-    CHECK_EQUAL(false, controller.atOrientation());
-
-    // 15 degrees right of desired
-    controller.yawVehicle(-30);
-    CHECK_EQUAL(false, controller.atOrientation());
-
-    // 2.5 degrees right of desired
-    controller.yawVehicle(12.5);
-    CHECK_EQUAL(true, controller.atOrientation());
-
-    // 2.5 degrees left of desired
-    controller.yawVehicle(5);
-    CHECK_EQUAL(true, controller.atOrientation());
-
-    // Desired = Actual
-    controller.yawVehicle(-2.5);
-    CHECK_EQUAL(true, controller.atOrientation());
+    TEST_UTILITY_FUNC(atOrientation)
+        (&controller,
+         boost::bind(&MockVehicle::_setOrientation, vehicle, _1),
+         boost::bind(&control::BWPDController::update, &controller, 1.0));
 }
 
 TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
@@ -330,37 +304,11 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
 
 TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
 {
-
-    // Test 1
-
-    // Set the current "measured" orientation
-    math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
-    vehicle->orientation = orientation;
-
-    // Tell the controller to hold current heading (ignoring roll and pitch)
-    controller.holdCurrentHeading();
-
-    // Create the expected orientation and make sure the desired orientation
-    // was set properly based on the vehicle current orientation
-    math::Quaternion expectedOrientation(math::Degree(15), 
-					 math::Vector3::UNIT_Z);
-
-    CHECK_EQUAL(expectedOrientation, controller.getDesiredOrientation());
-
-    // Test 2
-    
-    // set the current "measured" orientation
-    math::Quaternion orientation2(0.0028, 0.0028, 0.7071, 0.7071);
-    vehicle->orientation = orientation2;
-
-    // tell the controller to hold current heading
-    controller.holdCurrentHeading();
-    
-    // expected output
-    math::Quaternion expectedOrientation2(0, 0, 0.7071, 0.7071);
-
-    CHECK_CLOSE(expectedOrientation2, controller.getDesiredOrientation(),0.001);
-
+    // Runs the test, passing it a function object which lets the test method
+    // set the actual orientation of the vehicle
+    TEST_UTILITY_FUNC(holdCurrentHeading)
+        (&controller,
+         boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
 }
 
 /*

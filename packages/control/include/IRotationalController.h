@@ -13,6 +13,10 @@
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
+// Project Includes
+#include "math/include/Quaternion.h"
+#include "math/include/Vector3.h"
+
 // Must Be Included last
 #include "control/include/Export.h"
 
@@ -69,7 +73,7 @@ class RAM_EXPORT IRotationalControllerImp : public IRotationalController
 
     /** Gets the needed vehicle torque based on current vehicle state */
     virtual math::Vector3 rotationalUpdate(double timestep,
-                                           math::Quaternion orienation,
+                                           math::Quaternion orientation,
                                            math::Vector3 angularRate) = 0;
 };
     
