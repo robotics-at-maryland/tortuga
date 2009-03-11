@@ -12,8 +12,9 @@ depth_d = a(end,16);
 y = depth_a;
 
 
-m = 20;
+m =28;
 kd = 11.5;
+buoy = .02; % Buoyant Force
 
 % A,B,C,D as defined by the system
 A = [0 1;0 -kd/m]; % k is our drag coeff.   m is mass
@@ -31,22 +32,24 @@ Ak_prev = Ak; % Our A matrix is LTI
 
 % initial x estimate: [depth depth_dot]
 x0 = [depth_a(1); 0];
-x_prev = x0;
+x_prev = x0; 
 
-uorig = a(:,23);  %unused
-for i = 1:length(uorig)
-    u(i) = limitU(a(i,23));
+% uorig = a(:,23);  %unused
+% for i = 1:length(uorig)
+%     u(i) = limitU(a(i,23));
+% 
+% end
 
-end
+u = -a(:,23);  %unused
+
 
 u_prev = u(1);
 %this is just an example and we are constantly diving
 
-Rv = .10; %This is the covariance of our noise matrices and is artbitrarily chosen
-Rn = .10; %This is the covariance of our noise matrices and is artbitrarily chosen
+Rv = 0.050; %This is the covariance of our noise matrices and is artbitrarily chosen
+Rn = .050; %This is the covariance of our noise matrices and is artbitrarily chosen
 
 % initial Covariance:
-%P0 = [1.7 .5; 1.7 .5];
 P0 = [1 0; 0 1];
 nbar = 0; %assumed
 vbar = 0; %assumed
@@ -55,16 +58,15 @@ I = eye(2,2); %always identity but only the size will change
 P_prev = P0;
 
 
-t_end = 2500;
-buoy = .02; % Buoyant Force
+t_end = length(depth_a);
 
 for t=1:t_end
     % Updating the predicted state and covariance forward in time
-    x_pred = Ak*x_prev + Bk*u_prev + [0;buoy*Ts];
-    P_pred = Ak_prev*P_prev*Ak_prev' + Bk*Rv*Bk'; 
+    x_pred = Ak*x_prev + Bk*u_prev + [0;-buoy/m*Ts];
+    P_pred = Ak_prev*P_prev*Ak_prev' + Bk*Rv*Bk';   
     % Using the measured value along with the updated state
-    K = P_pred*Ck'*inv(Ck*P_pred*Ck' + Rn');
-    Blah(:,t) = K;
+    K = P_pred*Ck'*inv(Ck*P_pred*Ck' + Rn);
+    KalmanGains(:,t) = K;
     x(:,t) = x_pred + K*(y(t) - Ck*x_pred); % y will be from our log files of real dives There may be a noise term added on here nex to Ck*xpred
     P_prev = (I - K*Ck)*P_pred;
     x_prev = x(:,t);
@@ -72,17 +74,28 @@ for t=1:t_end
 end
 
 t=1:t_end;
+t = t*Ts;
+t2= 1:t_end+4;
+t2 = t2*Ts;
+% subplot(2,1,1)
 hold on
-plot(depth_a,'r');
-plot(x(1,t)),'y';
-%axis([0 2500 -10 15]);
-x;
-hold off;
+plot(t,depth_a,'r');
+plot(t,x(1,:),'b');
+ylabel('Depth (ft)'); xlabel('Time (sec)');
+legend('Measured Depth','Estimated Depth')
+hold off
+% subplot(2,1,2)
+% hold on
+% plot(t2,a(:,23),'r');
+% plot(t2,u,'b');
+% ylabel(''); xlabel('Time (sec)');
+% legend('Original Control Signal','Limited Control Signal')
+% hold off
 
 figure;
 subplot(2,1,1);
-plot(t,Blah(1,:))
-ylabel('blah1')
+plot(t,KalmanGains(1,:))
+ylabel('Kalman Gain X'); xlabel('Time (sec)');
 subplot(2,1,2);
-plot(t,Blah(2,:))
-ylabel('blah2')
+plot(t,KalmanGains(2,:))
+ylabel('Kalman Gai X_dot'); xlabel('Time (sec)');
