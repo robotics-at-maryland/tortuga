@@ -40,17 +40,17 @@ x_prev = x0;
 % 
 % end
 
-u = -a(:,23);  %unused
+u = -a(:,23); 
 
 
 u_prev = u(1);
 %this is just an example and we are constantly diving
 
-Rv = 0.050; %This is the covariance of our noise matrices and is artbitrarily chosen
-Rn = .050; %This is the covariance of our noise matrices and is artbitrarily chosen
+Rv = 0.550; %This is the covariance of our process noise and is artbitrarily chosen
+Rn = 1.1e-4; %This is the covariance of our sensor noise and is determined by finding the variance of the depth sensor readings for a constant depth
 
 % initial Covariance:
-P0 = [1 0; 0 1];
+P0 = [1e-4 0; 0 1];
 nbar = 0; %assumed
 vbar = 0; %assumed
 I = eye(2,2); %always identity but only the size will change
@@ -62,13 +62,14 @@ t_end = length(depth_a);
 
 for t=1:t_end
     % Updating the predicted state and covariance forward in time
-    x_pred = Ak*x_prev + Bk*u_prev + [0;-buoy/m*Ts];
+    x_pred = Ak*x_prev + Bk*u_prev + Bk*(-buoy);
     P_pred = Ak_prev*P_prev*Ak_prev' + Bk*Rv*Bk';   
     % Using the measured value along with the updated state
     K = P_pred*Ck'*inv(Ck*P_pred*Ck' + Rn);
     KalmanGains(:,t) = K;
     x(:,t) = x_pred + K*(y(t) - Ck*x_pred); % y will be from our log files of real dives There may be a noise term added on here nex to Ck*xpred
     P_prev = (I - K*Ck)*P_pred;
+    P(:,t) = P_pred(:);%converts matrix into a vector
     x_prev = x(:,t);
     u_prev = u(t);
 end
