@@ -114,6 +114,9 @@ public:
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
 
+    void _setOrientation(ram::math::Quaternion quat) {
+      orientation = quat; }
+
     double depth;
     ram::math::Vector3 linearAcceleration;
     ram::math::Vector3 angularRate;
