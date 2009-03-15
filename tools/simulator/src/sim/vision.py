@@ -44,6 +44,10 @@ class IBin(IObject):
     """ An object which you can see in the simulation"""
     pass
 
+class ITarget(IObject):
+    """ An object which you can see in the simulation"""
+    pass
+
 class IDuct(IObject):
     """ An object which you can see in the simulation"""
     pass
@@ -155,9 +159,95 @@ class BarbedWire(ram.sim.object.Object):
                'position' : position, 
                'orientation' : self._toAxisAngleArray(drawOrientation) ,
                'Graphical' : gfxNode}
-        self._front = Visual()
-        self._front.load((scene, parent, cfg))
+        self._back = Visual()
+        self._back.load((scene, parent, cfg))
         
+class Target(ram.sim.object.Object):
+    core.implements(ram.sim.object.IObject, ITarget)
+    
+    # The size of the target opening
+    SEPERATION = 0.4572
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+        self._position = ogre.Vector3.ZERO
+        self._orientation = ogre.Quaternion.IDENTITY
+    
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+    
+    @property
+    def position(self):
+        return self._position
+    
+    @property
+    def orientation(self):
+        return self._orientation
+    
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+        
+        # Parse config information
+        basepos, orientation = parse_position_orientation(node)
+        self._position = ram.sim.OgreVector3(basepos)
+        self._orientation = orientation
+        basePos = ram.sim.OgreVector3(basepos)
+        baseName = node['name']
+        
+        sideOffset = orientation * ogre.Vector3(0, Target.SEPERATION/2, 0)
+        upDownOffset = orientation * ogre.Vector3(0, 0, Target.SEPERATION/2)
+        drawOrientation = orientation * ogre.Quaternion(
+            ogre.Degree(90), ogre.Vector3.UNIT_Z)
+        
+        # Shared graphics node
+        gfxNode = {'mesh': 'cylinder.mesh', 
+                   'material' : 'Simple/Green',
+                   'scale': [0.508, 0.0508/2, 0.0508/2] }
+        
+        # Create Top Pipe
+        position = basePos + (upDownOffset * 1)
+        cfg = {'name' : baseName + 'TargetTop', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(drawOrientation) ,
+               'Graphical' : gfxNode}
+        pipe = Visual()
+        pipe.load((scene, parent, cfg))
+        
+        # Create Bottom Pipe
+        position = basePos + (upDownOffset * -1)
+        cfg = {'name' : baseName + 'TargetBottom', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(drawOrientation) ,
+               'Graphical' : gfxNode}
+        pipe = Visual()
+        pipe.load((scene, parent, cfg))
+
+        # Flip them so they point up and down
+        drawOrientation = drawOrientation * ogre.Quaternion(
+            ogre.Degree(90), ogre.Vector3.UNIT_Y)
+        
+        # Create Left Pipe
+        position = basePos + (sideOffset * 1)
+        cfg = {'name' : baseName + 'TargetLeft', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(drawOrientation) ,
+               'Graphical' : gfxNode}
+        pipe = Visual()
+        pipe.load((scene, parent, cfg))
+        
+        # Create Right Pipe
+        position = basePos + (sideOffset * -1)
+        cfg = {'name' : baseName + 'TargetRight', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(drawOrientation) ,
+               'Graphical' : gfxNode}
+        pipe = Visual()
+        pipe.load((scene, parent, cfg))
 
 class Bin(Visual):
     """
