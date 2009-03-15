@@ -7,6 +7,9 @@
  * File:  packages/control/test/include/MockDepthControllerBase.h
  */
 
+#ifndef RAM_CONTROL_TEST_MOCKDEPTHCONTROLLERBASE_H_03_15_2009
+#define RAM_CONTROL_TEST_MOCKDEPTHCONTROLLERBASE_H_03_15_2009
+
 // Project Includes
 #include "control/include/DepthControllerBase.h"
 
@@ -25,3 +28,5 @@ public:
         return ram::math::Vector3::ZERO;
     }
 };
+
+#endif // RAM_CONTROL_TEST_MOCKDEPTHCONTROLLERBASE_H_03_15_2009

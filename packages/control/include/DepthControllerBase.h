@@ -59,7 +59,7 @@ private:
     /** When we are within this limit atDepth returns */
     double m_depthThreshold;
 
-    /** Syncs asscess to the desired state */
+    /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
     /** The current desired depth */

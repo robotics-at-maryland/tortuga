@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/control/src/RotationalControllerBase.h
+ * File:  packages/control/src/DepthControllerBase.h
  */
 
 // STD Includes

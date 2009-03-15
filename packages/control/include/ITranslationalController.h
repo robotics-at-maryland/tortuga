@@ -10,8 +10,9 @@
 #ifndef RAM_CONTROL_ITRANSLATIONALCONTROLLER_08_31_2008
 #define RAM_CONTROL_ITRANSLATIONALCONTROLLER_08_31_2008
 
-// Library Includes
-#include <boost/shared_ptr.hpp>
+// Project Includes
+#include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -28,7 +29,7 @@ public:
     /** Set the current speed, clamped between -5 and 5 */
     virtual void setSpeed(double speed) = 0;
 
-    /** How fast the vehicle is going side to side (positive = right) */
+    /** Set how fast the vehicle is going side to side (positive = right) */
     virtual void setSidewaysSpeed(double speed) = 0;
 
     /** Gets the current speed, a value between -5 and 5 */
@@ -51,7 +52,7 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
     /** Gets the needed vehicle force based on current vehicle state */
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
-                                              math::Quaternion orienation) = 0;
+                                              math::Quaternion orientation) = 0;
 };
     
 } // namespace control

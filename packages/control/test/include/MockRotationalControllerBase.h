@@ -7,6 +7,9 @@
  * File:  packages/control/test/include/MockRotationalControllerBase.h
  */
 
+#ifndef RAM_CONTROL_TEST_MOCKROTATIONALCONTROLLERBASE_H_03_08_2009
+#define RAM_CONTROL_TEST_MOCKROTATIONALCONTROLLERBASE_H_03_08_2009
+
 // Project Includes
 #include "control/include/RotationalControllerBase.h"
 
@@ -27,3 +30,5 @@ public:
             return ram::math::Vector3::ZERO;
         }
 };
+
+#endif // RAM_CONTROL_TEST_MOCKROTATIONALCONTROLLERBASE_H_03_15_2009

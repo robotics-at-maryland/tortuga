@@ -23,6 +23,7 @@
 #include "control/include/BWPDController.h"
 #include "control/test/include/RotationalControllerTests.h"
 #include "control/test/include/DepthControllerTests.h"
+#include "control/test/include/TranslationalControllerTests.h"
 
 #include "core/test/include/BufferedAppender.h"
 
@@ -302,6 +303,17 @@ TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
         (&controller,
          boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
 }
+
+TEST_FIXTURE(Fixture, setGetSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSpeed)(&controller);
+}
+
+TEST_FIXTURE(Fixture, setGetSidewaysSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
+}
+
 
 /*
 made a change to log gyro controller, this test case breaks

@@ -10,11 +10,9 @@
 #ifndef RAM_CONTROL_IDEPTHCONTROLLER_08_07_2008
 #define RAM_CONTROL_IDEPTHCONTROLLER_08_07_2008
 
-// Library Includes
-#include <boost/shared_ptr.hpp>
-
 // Project Includes
 #include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
 
 // Must Be Included last
 #include "control/include/Export.h"

@@ -51,5 +51,5 @@ TEST_FIXTURE(DepthControllerBaseFixture, atDepth)
          boost::bind(&dummy));
 }
 
-} // SUITE(RotationalControllerBase)
+} // SUITE(DepthControllerBase)
 

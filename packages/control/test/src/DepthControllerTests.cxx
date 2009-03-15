@@ -17,7 +17,7 @@ using namespace ram;
 
 TEST_UTILITY_IMP(setGetDepth, (ram::control::IDepthController* controller))
 {
-    double depth;
+    double depth = 6.7;
     controller->setDepth(depth);
     CHECK_EQUAL(depth, controller->getDepth());
 }

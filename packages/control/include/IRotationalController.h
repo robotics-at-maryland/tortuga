@@ -10,9 +10,6 @@
 #ifndef RAM_CONTROL_IROTATIONALCONTROLLER_08_31_2008
 #define RAM_CONTROL_IROTATIONALCONTROLLER_08_31_2008
 
-// Library Includes
-#include <boost/shared_ptr.hpp>
-
 // Project Includes
 #include "math/include/Quaternion.h"
 #include "math/include/Vector3.h"
@@ -22,9 +19,6 @@
 
 namespace ram {
 namespace control {
-
-class IRotationalController;
-typedef boost::shared_ptr<IRotationalController> IRotationalControllerPtr;
 
 /** Defines the interface for controler which controls orientation */
 class RAM_EXPORT IRotationalController
@@ -61,9 +55,6 @@ public:
      */
     virtual void holdCurrentHeading() = 0;
 };
-
-class IRotationalControllerImp;
-typedef boost::shared_ptr<IRotationalControllerImp> IRotationalControllerImpPtr;
 
 /** Provides an interface for a implementation of a Rotational Controller */
 class RAM_EXPORT IRotationalControllerImp : public IRotationalController
