@@ -36,6 +36,10 @@ class IPipe(IObject):
     """ An object which you can see in the simulation"""
     pass
 
+class IBarbedWire(IObject):
+    """ An object which you can see in the simulation"""
+    pass
+
 class IBin(IObject):
     """ An object which you can see in the simulation"""
     pass
@@ -89,8 +93,76 @@ class Pipe(Visual):
         
     def save(self, data_object):
         raise "Not yet implemented"
+    
+class BarbedWire(ram.sim.object.Object):
+    core.implements(ram.sim.object.IObject, IBarbedWire)
+    
+    SEPERATION = 1.2192
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+        self._front = None
+        self._back = None
+    
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+    
+    @property
+    def position(self):
+        return self._position
+    
+    @property
+    def orientation(self):
+        return self._orientation
+    
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+        
+        # Parse config information
+        basepos, orientation = parse_position_orientation(node)
+        self._position = ram.sim.OgreVector3(basepos)
+        self._orientation = orientation
+        basePos = ram.sim.OgreVector3(basepos)
+        baseName = node['name']
+        
+        frontBackOffset = \
+            orientation * ogre.Vector3(BarbedWire.SEPERATION/2, 0, 0)
+        drawOrientation = orientation * ogre.Quaternion(
+            ogre.Degree(90), ogre.Vector3.UNIT_Z)
+        
+        # Shared graphics node
+        gfxNode = {'mesh': 'cylinder.mesh', 
+                   'material' : 'Simple/Green',
+                   'scale': [1.8288, 0.0508, 0.0508] }
+        
+        # Create Front Pipe
+        position = basePos + (frontBackOffset * -1)
+        cfg = {'name' : baseName + 'BarbedWireFront', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(drawOrientation) ,
+               'Graphical' : gfxNode}
+        self._front = Visual()
+        self._front.load((scene, parent, cfg))
+        
+        # Create Back Pipe
+        position = basePos + (frontBackOffset * 1)
+        cfg = {'name' : baseName + 'BarbedWireBack', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(drawOrientation) ,
+               'Graphical' : gfxNode}
+        self._front = Visual()
+        self._front.load((scene, parent, cfg))
+        
 
 class Bin(Visual):
+    """
+    Represents a single competition bin
+    """
     core.implements(IVisual, IBin)
     
     @two_step_init
@@ -140,6 +212,9 @@ class Bin(Visual):
         return self._suit
     
 class BlackJackTable(ram.sim.object.Object):
+    """
+    Represents the array of bins in the competition
+    """
     core.implements(ram.sim.object.IObject)
     
     SEPERATION = 0.64008
@@ -240,7 +315,7 @@ class AirDuct(ram.sim.object.Object):
         ram.sim.object.Object.load(self, (parent, node))
         
         # Parse config information
-        basePos, orientation = parse_position_orientation(node)
+        basepos, orientation = parse_position_orientation(node)
         self._position = ram.sim.OgreVector3(basepos)
         self._orientation = orientation
         basePos = ram.sim.OgreVector3(basepos)
