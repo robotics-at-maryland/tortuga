@@ -117,6 +117,10 @@ public:
     void _setOrientation(ram::math::Quaternion quat) {
       orientation = quat; }
 
+    void _setDepth(double depth_) {
+        depth = depth_; }
+
+    
     double depth;
     ram::math::Vector3 linearAcceleration;
     ram::math::Vector3 angularRate;
