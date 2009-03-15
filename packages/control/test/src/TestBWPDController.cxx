@@ -22,6 +22,7 @@
 
 #include "control/include/BWPDController.h"
 #include "control/test/include/RotationalControllerTests.h"
+#include "control/test/include/DepthControllerTests.h"
 
 #include "core/test/include/BufferedAppender.h"
 
@@ -127,24 +128,10 @@ TEST_FIXTURE(Fixture, DepthControl)
 
 TEST_FIXTURE(Fixture, atDepth)
 {
-    // This assumes the default threshold for depth is 0.5
-    vehicle->depth = 4;
-    controller.update(1);
-    
-    controller.setDepth(5);
-    CHECK_EQUAL(false, controller.atDepth());
-
-    controller.setDepth(3);
-    CHECK_EQUAL(false, controller.atDepth());
-
-    controller.setDepth(4.3);
-    CHECK_EQUAL(true, controller.atDepth());
-
-    controller.setDepth(3.7);
-    CHECK_EQUAL(true, controller.atDepth());
-    
-    controller.setDepth(4);
-    CHECK(controller.atDepth());
+    TEST_UTILITY_FUNC(atDepth)
+        (&controller,
+         boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+         boost::bind(&control::BWPDController::update, &controller, 1.0));
 }
 
 void depthHelper(double* result, ram::core::EventPtr event)

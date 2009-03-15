@@ -37,17 +37,28 @@ public:
                           const double& depth_,
                           ram::math::Vector3& translationalForceOut_,
                           ram::math::Vector3& rotationalTorqueOut_)
-        {
-            timestep = timestep_;
-            linearAcceleration = linearAcceleration_;
-            orientation = orientation_;
-            angularRate = angularRate_;
-            depth = depth_;
-            translationalForceOut_ = translationalForceOut;
-            rotationalTorqueOut_ = rotationalTorqueOut;
-        }
+    {
+        timestep = timestep_;
+        linearAcceleration = linearAcceleration_;
+        orientation = orientation_;
+        angularRate = angularRate_;
+        depth = depth_;
+        translationalForceOut_ = translationalForceOut;
+        rotationalTorqueOut_ = rotationalTorqueOut;
+    }
 
-    
+    virtual void _newDepthSet(const double& newDepth)
+    {
+        newDepthSet(newDepth);
+    }
+
+    virtual void _newDesiredOrientationSet(
+        const ram::math::Quaternion& newOrientation)
+    {
+        newDesiredOrientationSet(newOrientation);
+    }
+   
+
     virtual void setSpeed(double speed_) {}
     virtual void setSidewaysSpeed(double sidewaysSpeed_) {}
     virtual double getSpeed() { return 0; }

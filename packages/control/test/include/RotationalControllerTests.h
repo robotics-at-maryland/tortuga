@@ -7,8 +7,8 @@
  * File:  packages/control/test/include/RotationalControllerTests.h
  */
 
-#ifndef RAM_CONTROL_TEST_ROTATIONALCONTROLLERTESTS_03_01_2008
-#define RAM_CONTROL_TEST_ROTATIONALCONTROLLERTESTS_03_01_2008
+#ifndef RAM_CONTROL_TEST_ROTATIONALCONTROLLERTESTS_03_01_2009
+#define RAM_CONTROL_TEST_ROTATIONALCONTROLLERTESTS_03_01_2009
 
 // Library Includes
 #include <boost/function.hpp>
@@ -38,4 +38,4 @@ TEST_UTILITY_FWD(atOrientation,
                   boost::function<void(ram::math::Quaternion)> setOrientation,
                   boost::function<void (void)> update));
 
-#endif // RAM_CONTROL_TEST_ROTATIONALCONTROLLERTESTS_03_01_2008
+#endif // RAM_CONTROL_TEST_ROTATIONALCONTROLLERTESTS_03_01_2009

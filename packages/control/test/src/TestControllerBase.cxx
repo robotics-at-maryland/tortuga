@@ -34,7 +34,7 @@ struct ControlBaseFixture
     MockControllerBaseImp mockController;
 };
 
-
+SUITE(ControllerBase) {
 
 TEST_FIXTURE(ControlBaseFixture, yawVehicleHelper)
 {
@@ -121,3 +121,39 @@ TEST_FIXTURE(ControlBaseFixture, update)
     CHECK_EQUAL(mockController.translationalForceOut, vehicle->force);
     CHECK_EQUAL(mockController.rotationalTorqueOut, vehicle->torque);
 }
+
+void depthHelper(double* result, ram::core::EventPtr event)
+{
+    ram::math::NumericEventPtr nevent =
+        boost::dynamic_pointer_cast<ram::math::NumericEvent>(event);
+    *result = nevent->number;
+}
+
+TEST_FIXTURE(ControlBaseFixture, newDepthSet)
+{
+    double actualDesiredDepth = 0;
+    double actualDepth = 0;
+    
+    // Subscribe to the events
+    mockController.subscribe(ram::control::IController::DESIRED_DEPTH_UPDATE,
+                             boost::bind(depthHelper, &actualDesiredDepth, _1));
+    mockController.subscribe(ram::control::IController::AT_DEPTH,
+                             boost::bind(depthHelper, &actualDepth, _1));
+
+    // Set atDepth and the current value
+    mockController.atDepthValue = false;
+    mockController.desiredDepth = 0;
+    
+    // Test desired depth update
+    mockController._newDepthSet(5.6);
+    CHECK_EQUAL(5.6, actualDesiredDepth);
+    CHECK_EQUAL(0, actualDepth);
+
+    // Test at depth update
+    mockController.atDepthValue = true;
+    mockController._newDepthSet(2.8);
+    CHECK_EQUAL(2.8, actualDesiredDepth);
+    CHECK_EQUAL(2.8, actualDepth);
+}
+
+} // SUITE(ControllerBase)
