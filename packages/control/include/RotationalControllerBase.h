@@ -22,7 +22,7 @@
 namespace ram {
 namespace control {
 
-/** Implements every method except rotationalUpdate
+/** Class to make implementation of an IRotationalController simpler
  *
  *  Makes implementing IRotationalControllerImp much easier.
  */
@@ -47,7 +47,7 @@ public:
 
     virtual void holdCurrentHeading();
 
-    /** Does housing keeping work, called first in every override
+    /** Does housing keeping work, should be called first in every override
      *
      *  When this method is overridden to implement your controller, call this
      *  method first with the same arguments you are given.
@@ -60,7 +60,7 @@ private:
     /** Does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);
     
-    /** When we are within this limit we send of the atOrientation is true */
+    /** When we are within this limit atOrientation returns true */
     double m_orientationThreshold;
 
     /** Syncs asscess to the desired state */

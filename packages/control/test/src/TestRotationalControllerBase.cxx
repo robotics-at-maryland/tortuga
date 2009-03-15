@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
- * Copyright (C) 2007 Joseph Lisee
+ * Copyright (C) 2009 Robotics at Maryland
+ * Copyright (C) 2009 Joseph Lisee
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/control/test/src/TestControlFunctions.cxx
+ * File:  packages/control/test/src/TestRotationalControllerBase.cxx
  */
 
 // Library Includes
@@ -13,9 +13,6 @@
 
 // Project Includes
 #include "math/test/include/MathChecks.h"
-#include "math/include/Events.h"
-
-#include "vehicle/test/include/MockVehicle.h"
 
 #include "control/include/RotationalControllerBase.h"
 #include "control/test/include/MockRotationalControllerBase.h"

@@ -17,6 +17,8 @@
 #include "control/include/IDepthController.h"
 #include "core/test/include/Macros.h"
 
+TEST_UTILITY_FWD(setGetDepth, (ram::control::IDepthController* controller));
+
 /** Tests whether the IDepthController::atDepth function is working
  *
  *  Note: this assumes the threshold is 0.5.

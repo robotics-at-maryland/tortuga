@@ -15,6 +15,13 @@
 
 using namespace ram;
 
+TEST_UTILITY_IMP(setGetDepth, (ram::control::IDepthController* controller))
+{
+    double depth;
+    controller->setDepth(depth);
+    CHECK_EQUAL(depth, controller->getDepth());
+}
+
 TEST_UTILITY_IMP(atDepth,
                  (control::IDepthController* controller,
                   boost::function<void(double)> setDepth,

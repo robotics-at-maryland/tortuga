@@ -126,6 +126,11 @@ TEST_FIXTURE(Fixture, DepthControl)
     CHECK_CLOSE(exp_tranForce, vehicle->force, 0.0001);
 }
 
+TEST_FIXTURE(Fixture, setGetDepth)
+{
+    TEST_UTILITY_FUNC(setGetDepth)(&controller);
+}
+
 TEST_FIXTURE(Fixture, atDepth)
 {
     TEST_UTILITY_FUNC(atDepth)
