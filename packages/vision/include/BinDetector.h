@@ -112,6 +112,19 @@ class RAM_EXPORT BinDetector : public Detector
     BinDetector::BinList getBins();
     
     void setSuitDetectionOn(bool);
+
+    /** Turns on and off the logging of properly extracted suit images to disk
+     *
+     *  This places all the suit images in <log_dir>/suits/<suit_type>
+     *  directory.  Where <log_dir> is the runs log directory, and <suit_type>
+     *  is heart, spade, club, diamond, or unknown.
+     *
+     *  This only works when you are display debug images as well.
+     *
+     *  @param value
+     *      True if you wish to log, false if not.
+     */
+    void setSuitImageLogging(bool value);
     
   private:
     IplImage* scaledRedSuit;
@@ -157,6 +170,9 @@ class RAM_EXPORT BinDetector : public Detector
      *  red in the center of the bin.
      */
     bool cropImage(IplImage* rotatedRedSuit, int binNum);
+
+    /** Logs the image of the suit to file based on the suit type */
+    void logSuitImage(Image* image, Suit::SuitType suit);
     
     bool m_found;
 /*    bool foundHeart;
@@ -166,6 +182,8 @@ class RAM_EXPORT BinDetector : public Detector
     bool foundEmpty;*/
     /** Determines if we should try and determine the suit of the bin */
     bool m_runSuitDetector;
+    /** Determines whether or not we should write suit images to disk */
+    bool m_logSuitImages;
     int numBinsFound;
     IplImage* binFrame;
     IplImage* rotated;

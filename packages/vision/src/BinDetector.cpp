@@ -19,6 +19,7 @@
 #include "highgui.h"
 #include <log4cpp/Category.hh>
 #include <boost/foreach.hpp>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -28,6 +29,8 @@
 #include "vision/include/Events.h"
 
 #include "math/include/Vector2.h"
+
+#include "core/include/Logging.h"
 
 //static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
 
@@ -152,6 +155,8 @@ void BinDetector::init(core::ConfigNode config)
     m_whiteMaskMinimumIntensity = config["whiteMaskMinimumIntensity"].asInt(190);
 
     m_incrediblyWashedOutImages = (bool)(config["incrediblyWashedOut"].asInt(0));
+    m_logSuitImages = (bool)(config["logSuitImages"].asInt(0));
+    
     m_binID = 0;
     for (int i = 0; i < 4; i++)
     {
@@ -628,7 +633,12 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
 //            Image::showImage(&wrapper);
             suit = determineSuit(&wrapper);
 	    if (output)
+            {
                drawBinImage(&wrapper, binNum, output);
+
+               if (m_logSuitImages)
+                   logSuitImage(&wrapper, suit);
+            }
         }
         else
         {
@@ -915,6 +925,53 @@ void BinDetector::setSuitDetectionOn(bool on)
 {
     m_runSuitDetector = on;
 }
+
+void BinDetector::setSuitImageLogging(bool value)
+{
+    m_logSuitImages = value;
+}
+
+void BinDetector::logSuitImage(Image* image, Suit::SuitType suit)
+{
+    static int saveCount = 1;
     
+    if (saveCount == 1)
+    {
+        // First run, make sure all the directories are created
+        std::string names[] = {"heart", "spade", "diamond", "club", "unknown"};
+        boost::filesystem::path base = core::Logging::getLogDir();
+
+        for (int i = 0; i < 5; ++i)
+        {
+            boost::filesystem::path suitDir = base / names[i];
+            if (!boost::filesystem::exists(suitDir))
+                boost::filesystem::create_directories(suitDir);
+        }
+    }
+
+    // Determine the directory to place the image based on suit
+    boost::filesystem::path base = core::Logging::getLogDir();
+    boost::filesystem::path baseDir;
+    switch (suit)
+    {
+        case Suit::HEART: baseDir = base / "heart"; break;
+        case Suit::SPADE: baseDir = base / "spead"; break;
+        case Suit::DIAMOND: baseDir = base / "diamond"; break;
+        case Suit::CLUB: baseDir = base / "club"; break;
+        case Suit::UNKNOWN: baseDir = base / "unknown"; break;
+            
+        default: baseDir = base / "error"; break;
+    }
+
+    // Determine the final path
+    std::stringstream ss;
+    ss << saveCount << ".png";
+    boost::filesystem::path fullPath =  baseDir / ss.str();
+    
+    // Save the image and increment our counter
+    Image::saveToFile(image, fullPath.string());
+    saveCount++;
+}
+
 } // namespace vision
 } // namespace ram
