@@ -13,4 +13,5 @@
 <path>/opt/ram/local/lib/python2.5/site-packages</path>
 <path>/home/jlisee/tmp/python-ogre-snapshot/packages_2.5</path>
 </pydev_pathproperty>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
 </pydev_project>
