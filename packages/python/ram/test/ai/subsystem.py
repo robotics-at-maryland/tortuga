@@ -14,6 +14,8 @@ import ram.ai as ai
 import ram.ai.subsystem
 
 from ram.test import Mock
+from ram.test.ai.task import TaskA, TaskB, TaskC
+
 
 class TestAI(unittest.TestCase):
     def testCreate(self):
@@ -67,5 +69,20 @@ class TestAI(unittest.TestCase):
         aiSys.unbackground()
         self.assert_(self.connA)
         self.assert_(self.connB)
+    
+    def testGetNextTask(self):
+        # Create an AI subsystem with a proper order of tasks
+        stateMachine = ai.state.Machine({'name' : 'MyMachine'})
+        deps = core.SubsystemList()
+        deps.append(stateMachine)
+        aiSys = ai.subsystem.AI(
+            {'AIMachineName' : 'MyMachine',
+             'taskOrder' : ['ram.test.ai.task.TaskA',
+                            'ram.test.ai.task.TaskB',
+                            'ram.test.ai.task.TaskC']}, deps)
         
+        # Check to make sure the order is proper
+        self.assertEqual(TaskB, aiSys.getNextTask(TaskA))
+        self.assertEqual(TaskC, aiSys.getNextTask(TaskB))
+        self.assertEqual(ai.task.End, aiSys.getNextTask(TaskC))
         

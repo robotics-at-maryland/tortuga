@@ -31,27 +31,30 @@ class Task(state.State):
     Encapsulates a single AI task, like completing an objective.  It allows for
     the implementation and testing of such tasks without concern for what comes
     before, or after said task.
+    
+    It queries the AI subsystem to ask which state is after itself, and 
+    replaces the marker ram.ai.task.Next state with that state.
     """
     def __init__(self, config = None, **subsystems):
         # Call the super class
-        state.State.__init__(config, **subsystems)
+        state.State.__init__(self, config, **subsystems)
         
         # Dynamically create our event
         self._timeoutEvent = core.declareEventType(
-            'TIMEOUT' + self.__class__.__name__)
+            'TIMEOUT_' + self.__class__.__name__)
         
-        # Read in config information to allow 
-        self._nextState = None
+        # From the AI grab our next task
+        self._nextState = self.ai.getNextTask(type(self))
     
         
-    def transitions():
+    def transitions(self):
         """
         A dynamic transition function which allows you to wire together a 
         missions dynamically.
         """
         baseTrans = self._transitions()
         newTrans = {}
-        for eventType, nextState in baseTrans:
+        for eventType, nextState in baseTrans.iteritems():
             # Catch the timeout event and replace with our class specific 
             # timeout event type
             if eventType == TIMEOUT:
@@ -63,4 +66,6 @@ class Task(state.State):
                 nextState = self._nextState
             
             # Store the event
-            newTrans[eventType] = nextState 
+            newTrans[eventType] = nextState
+            
+        return newTrans

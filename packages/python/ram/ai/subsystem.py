@@ -8,6 +8,8 @@
 # Project Imports
 import ext.core as core
 import ram.ai as ai
+import ram.ai.task
+from ram.logloader import resolve
 
 class AI(core.Subsystem):
     """
@@ -40,15 +42,33 @@ class AI(core.Subsystem):
                 
         # Store inter state data
         self._data = {}
+        
+        
+        # Build list of next states
+        self._nextTaskMap = {}
+        taskOrder = cfg.get('taskOrder', None)
+        if taskOrder is None:
+            taskOrder = []
+        for i, taskName  in enumerate(taskOrder):
+            # Determine which task is really next
+            nextTask = 'ram.ai.task.End'
+            if i != (len(taskOrder) - 1):
+                nextTask = taskOrder[i + 1]
+            
+            # Resolve dotted task names into classes
+            taskClass = resolve(taskName)
+            nextClass = resolve(nextTask)
+            
+            # Store the results
+            self._nextTaskMap[taskClass] = nextClass
+            
     
+    # IUpdatable methods
     def update(self, timeStep):
         pass
 
     def backgrounded(self):
         return True
-
-    def addConnection(self, conn):
-        self._connections.append(conn)
         
     def unbackground(self, join = False):
         core.Subsystem.unbackground(self, join)
@@ -57,14 +77,21 @@ class AI(core.Subsystem):
     def backgrounded(self):
         return True
 
-
+    # Properties
     @property
     def mainStateMachine(self):
         return self._stateMachine
 
     @property
     def data(self):
-        return self._data 
+        return self._data
+
+    # Other methods
+    def addConnection(self, conn):
+        self._connections.append(conn)
+
+    def getNextTask(self, task):
+        return self._nextTaskMap[task]
     
     
 core.registerSubsystem('AI', AI)

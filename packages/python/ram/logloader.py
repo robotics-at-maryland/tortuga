@@ -85,7 +85,7 @@ def setup_logger(logger_cfg, config):
     handlers = _install_handlers(config, formatters)
     return _create_logger(config, handlers, "UNKNOWN")
 
-def _resolve(name):
+def resolve(name):
     """Resolve a dotted name to a global object."""
     name = string.split(name, '.')
     used = name.pop(0)
@@ -120,7 +120,7 @@ def _create_formatters(config):
         if "class" in opts:
             class_name = opts["class"]
             if class_name:
-                c = _resolve(class_name)
+                c = resolve(class_name)
         f = c(fs, dfs)
         formatters[form] = f
         

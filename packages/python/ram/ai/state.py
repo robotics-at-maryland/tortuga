@@ -273,14 +273,6 @@ class Machine(core.Subsystem):
         Does all the house keeping when entering a new state
         """
         
-        # Subscribe to every event of the desired type
-        transitionTable = newStateClass.transitions()
-        if self._qeventHub is not None:
-            for eventType in transitionTable.iterkeys():
-                conn = self._qeventHub.subscribeToType(eventType, 
-                                                       self.injectEvent)
-                self._connections.append(conn)
-        
         # Look up config based on full dotted name of state class
         fullClassName = '%s.%s' % (newStateClass.__module__, 
                                    newStateClass.__name__)
@@ -296,9 +288,20 @@ class Machine(core.Subsystem):
         # along as well
         newState = newStateClass(config, **self._subsystems)
         newState.publish = self.publish
+        
+        # Subscribe to every event of the desired type
+        transitionTable = newState.transitions()
+        if self._qeventHub is not None:
+            for eventType in transitionTable.iterkeys():
+                conn = self._qeventHub.subscribeToType(eventType, 
+                                                       self.injectEvent)
+                self._connections.append(conn)
+        
+        # Actual enter the state and record it as our new current state
         self._currentState = newState
         self._currentState.enter()
         
+        # Notify everyone we just entered the state
         event = core.Event()
         event.state = self._currentState
         self.publish(Machine.STATE_ENTERED, event)
