@@ -46,6 +46,18 @@ class Task(state.State):
         # From the AI grab our next task
         self._nextState = self.ai.getNextTask(type(self))
     
+        # Timeout related values, set later on
+        self._hasTimeout = False
+        self._timeoutDuration = None
+        self._timer = None
+    
+    @property
+    def timeoutEvent(self):
+        return self._timeoutEvent
+    
+    @property
+    def timeoutDuration(self):
+        return self._timeoutDuration
         
     def transitions(self):
         """
@@ -59,6 +71,7 @@ class Task(state.State):
             # timeout event type
             if eventType == TIMEOUT:
                 eventType = self._timeoutEvent
+                self._hasTimeout = True
                 
             # If the next state is the special Next marker state, swap it out
             # for the real next state
@@ -69,3 +82,20 @@ class Task(state.State):
             newTrans[eventType] = nextState
             
         return newTrans
+    
+    def enter(self, defaultTimeout = None):
+        if self._hasTimeout:
+            # Get timeout duration from configuration file
+            if defaultTimeout is None:
+                self._timeoutDuration = self._config.get('timeout')
+            else:
+                self._timeoutDuration = self._config.get('timeout', 
+                                                          defaultTimeout)
+            # Start our actual timeout timer
+            self._timer = self.timerManager.newTimer(self._timeoutEvent, 
+                                                    self._timeoutDuration)
+            self._timer.start()
+            
+    def exit(self):
+        if self._timer is not None:
+            self._timer.stop()

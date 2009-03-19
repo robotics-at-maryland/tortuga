@@ -97,7 +97,7 @@ class AITestCase(unittest.TestCase):
             
             self._timerMocked = True
     
-    def setUp(self, extraDeps = None, cfg = None):
+    def setUp(self, extraDeps = None, cfg = None, **subsystems):
         self._timerMocked = False
         # Replace the Timer class with the Mock one
         self.mockTimer()
@@ -115,7 +115,9 @@ class AITestCase(unittest.TestCase):
         self.controller = MockController(None)
         self.vehicle = MockVehicle()
         self.visionSystem = MockVisionSystem()
-        self.ai = AI()
+        
+        aCfg = cfg.get('Ai', {})
+        self.ai = AI(aCfg)
         
         deps = [self.controller, self.timerManager, self.eventHub, 
                 self.qeventHub, self.vehicle, self.visionSystem, self.ai]
