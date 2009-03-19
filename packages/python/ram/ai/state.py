@@ -219,7 +219,7 @@ class Machine(core.Subsystem):
         if not self._started:
             raise Exception("Machine must be started")
         
-        transitionTable = type(self._currentState).transitions()
+        transitionTable = self._currentState.transitions()
         nextState = transitionTable.get(event.type, None)
         if nextState is not None:
             # Determine if we are branching

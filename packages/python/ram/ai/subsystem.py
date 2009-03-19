@@ -10,6 +10,10 @@ import ext.core as core
 import ram.ai as ai
 
 class AI(core.Subsystem):
+    """
+    The subsystem which forms the core of the AI.  It allows for data storage
+    and transfer between states, as well the management of the task system.
+    """
     def __init__(self, cfg = None, deps = None):
         if deps is None:
             deps = []
