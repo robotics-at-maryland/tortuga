@@ -97,7 +97,7 @@ class AITestCase(unittest.TestCase):
             
             self._timerMocked = True
     
-    def setUp(self, extraDeps = None, cfg = None, **subsystems):
+    def setUp(self, extraDeps = None, cfg = None):
         self._timerMocked = False
         # Replace the Timer class with the Mock one
         self.mockTimer()

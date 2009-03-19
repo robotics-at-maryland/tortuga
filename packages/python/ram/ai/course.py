@@ -19,6 +19,7 @@ Requires the following subsystems:
 import ext.core as core
 import ext.vision as vision
 
+import ram.ai.task as task
 import ram.ai.state as state
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
@@ -30,20 +31,22 @@ import ram.ai.sonar as sonar
 import ram.motion as motion
 import ram.motion.basic
 
-class Gate(state.State):
+class Gate(task.Task):
     """
     This State overseas the completion of the gate objective
     """
     @staticmethod
-    def transitions():
-        return { gate.COMPLETE : Pipe1,
-                 vision.EventType.PIPE_FOUND : Pipe1,
+    def _transitions():
+        return { gate.COMPLETE : task.Next,
+                 vision.EventType.PIPE_FOUND : task.Next,
                  'GO' : state.Branch(gate.Dive) }
 
     def PIPE_FOUND(self, event):
         self.ai.data['foundPipeEarly'] = True
 
     def enter(self):
+        task.Task.enter(self)
+        
         self.ai.data['foundPipeEarly'] = False
         self.exited = False
         
@@ -54,22 +57,26 @@ class Gate(state.State):
         self.visionSystem.pipeLineDetectorOn()
         
     def exit(self):
+        task.Task.exit(self)
+        
         self.exited = True
         if (self.stateMachine.branches.has_key(gate.Dive)):
             self.stateMachine.stopBranch(gate.Dive)
     
-class Pipe1(state.State):
+class Pipe1(task.Task):
     """
     Find and hover over the first pipe in the course
     """
     
     @staticmethod
-    def transitions():
-        return { pipe.Centering.SETTLED : Light,
+    def _transitions():
+        return { pipe.Centering.SETTLED : task.Next,
                  'GATE' : state.Branch(pipe.Searching),
                  'PIPE' : state.Branch(pipe.Seeking) }
     
     def enter(self):
+        task.Task.enter(self)
+        
         # Branch off state machine for finding the pipe
         if self.ai.data.get('foundPipeEarly', False):
             self.stateMachine.start(state.Branch(pipe.Seeking))
@@ -77,6 +84,8 @@ class Pipe1(state.State):
             self.stateMachine.start(state.Branch(pipe.Searching))
         
     def exit(self):
+        task.Task.enter(self)
+        
         if self.ai.data.get('foundPipeEarly', False):
             self.stateMachine.stopBranch(pipe.Seeking)
         else:
@@ -84,127 +93,124 @@ class Pipe1(state.State):
 
         self.visionSystem.pipeLineDetectorOff()
         
-class Light(state.State):
-    TIMEOUT = core.declareEventType('TIMEOUT')
-    
+class Light(task.Task):
     @staticmethod
-    def transitions():
-        return { light.LIGHT_HIT : Pipe2,
-                 Light.TIMEOUT : Pipe2,
+    def _transitions():
+        return { light.LIGHT_HIT : task.Next,
+                 task.TIMEOUT : task.Next,
                  'GO' : state.Branch(light.Searching) }
     
     def enter(self):
+        task.Task.enter(self, defaultTimeout = 60)
         self.stateMachine.start(state.Branch(light.Searching))
-        
-        # Create out timeout
-        self.timer = self.timerManager.newTimer(Light.TIMEOUT,
-                                                self._config.get('timeout',60))
-        self.timer.start()
     
     def exit(self):
+        task.Task.exit(self)
         self.stateMachine.stopBranch(light.Searching)
         self.visionSystem.redLightDetectorOff()
     
-class Pipe2(state.State):
+class Pipe2(task.Task):
     """
     Find and hover over the second pipe in the course
     """
     
     @staticmethod
-    def transitions():
-        return { pipe.Centering.SETTLED : Bin,
+    def _transitions():
+        return { pipe.Centering.SETTLED : task.Next,
                 'GO' : state.Branch(pipe.Dive) }
     
     def enter(self):
+        task.Task.enter(self)
         # Branch off state machine for finding the pipe
         self.stateMachine.start(state.Branch(pipe.Dive))
         
     def exit(self):
+        task.Task.exit(self)
         self.stateMachine.stopBranch(pipe.Dive)
         self.visionSystem.pipeLineDetectorOff()
     
-class Bin(state.State):
-    TIMEOUT = core.declareEventType('TIMEOUT')
-    
+class Bin(task.Task):
     @staticmethod
-    def transitions():
-        return { bin.COMPLETE : Pipe3,
-                 Bin.TIMEOUT : Pipe3,
+    def _transitions():
+        return { bin.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
                  'GO' : state.Branch(bin.Dive) }
 
     def enter(self):
+        task.Task.enter(self)
         self.stateMachine.start(state.Branch(bin.Dive))
-        
-        # Create out timeout
-        timeout = self._config.get('timeout',240)
-        self.timer = self.timerManager.newTimer(Bin.TIMEOUT, timeout)
-                  
-        self.timer.start()
     
     def exit(self):
+        task.Task.exit(self)
         self.stateMachine.stopBranch(bin.Dive)
         self.visionSystem.binDetectorOff()
 
-class Pipe3(state.State):
+class Pipe3(task.Task):
     """
     Find and hover over the second pipe in the course
     """
     
     @staticmethod
-    def transitions():
-        return { pipe.Centering.SETTLED : PingerDive,
+    def _transitions():
+        return { pipe.Centering.SETTLED : task.Next,
                  'GO' : state.Branch(pipe.Dive) }
     
     def enter(self):
+        task.Task.enter(self)
         # Branch off state machine for finding the pipe
         self.stateMachine.start(state.Branch(pipe.Dive))
         
     def exit(self):
+        task.Task.exit(self)
         self.stateMachine.stopBranch(pipe.Dive)
         self.visionSystem.pipeLineDetectorOff()
     
-class PingerDive(state.State):
+class PingerDive(task.Task):
     """
     Changes to the depth for proper sonar operation
     """
     @staticmethod
-    def transitions():
-        return { motion.basic.Motion.FINISHED : Pinger }
+    def _transitions():
+        return { motion.basic.Motion.FINISHED : task.Next }
 
     def enter(self):
+        task.Task.enter(self)
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 2),
             speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)
         
-class Pinger(state.State):
+class Pinger(task.Task):
     """
     Move until we are over the pinger
     """
     @staticmethod
-    def transitions():
-        return {  sonar.COMPLETE : SafeDive,
+    def _transitions():
+        return {  sonar.COMPLETE : task.Next,
                  'GO' : state.Branch(sonar.Searching) }
     
     def enter(self):
+        task.Task.enter(self)
         # Branch off state machine for finding the sonar
         self.stateMachine.start(state.Branch(sonar.Searching))
         
     def exit(self):
+        task.Task.exit(self)
         self.stateMachine.stopBranch(sonar.Searching)
 
-class SafeDive(state.State):
+class SafeDive(task.Task):
     """
     Dive to a depth at which we can activate the safe vision system.  The sonar
     system is active during this time.
     """
     @staticmethod
-    def transitions():
-        return { motion.basic.Motion.FINISHED : Safe,
+    def _transitions():
+        return { motion.basic.Motion.FINISHED : task.Next,
                  'GO' : state.Branch(sonar.Hovering) } 
 
     def enter(self):
+        task.Task.enter(self)
         # Activate the sonar system
         self.stateMachine.start(state.Branch(sonar.Hovering))
         
@@ -215,6 +221,7 @@ class SafeDive(state.State):
         self.motionManager.setMotion(diveMotion)
         
     def exit(self):
+        task.Task.exit(self)
         self.motionManager.stopCurrentMotion()
         self.stateMachine.stopBranch(sonar.Hovering)
 

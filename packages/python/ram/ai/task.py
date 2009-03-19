@@ -33,7 +33,8 @@ class Task(state.State):
     before, or after said task.
     
     It queries the AI subsystem to ask which state is after itself, and 
-    replaces the marker ram.ai.task.Next state with that state.
+    replaces the marker ram.ai.task.Next state with that state. It also also
+    handles all the timeout machinery internally.
     """
     def __init__(self, config = None, **subsystems):
         # Call the super class

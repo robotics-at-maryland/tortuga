@@ -16,6 +16,7 @@ import unittest
 import ext.vision as vision
 
 import ram.ai.course as course
+import ram.ai.task as task
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
@@ -30,8 +31,8 @@ import ram.motion.pipe
 import ram.test.ai.support as support
 
 class PipeTestCase(support.AITestCase):
-    def setUp(self, testState = pipe.Searching):
-        support.AITestCase.setUp(self)
+    def setUp(self, testState = pipe.Searching, cfg = None):
+        support.AITestCase.setUp(self, cfg = cfg)
         self.testState = testState
     
     def checkStart(self, currentState):
@@ -56,7 +57,9 @@ class PipeTestCase(support.AITestCase):
 
 class TestGate(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Gate', 'ram.ai.course.Pipe1'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Gate)
         
     def testStart(self):
@@ -87,7 +90,9 @@ class TestGate(support.AITestCase):
         
 class TestPipe1(PipeTestCase):
     def setUp(self):
-        PipeTestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Pipe1', 'ram.ai.course.Light'] } }
+        PipeTestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Pipe1)
         
     def testStart(self):
@@ -115,7 +120,9 @@ class TestPipe1(PipeTestCase):
         
 class TestLight(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Light', 'ram.ai.course.Pipe2'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Light)
         
     def testStart(self):
@@ -148,7 +155,7 @@ class TestLight(support.AITestCase):
         self.machine.start(course.Light)
         
         # Release timer
-        self.releaseTimer(course.Light.TIMEOUT)
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
         
         # Test that the timeout worked properly
         self.assertCurrentState(course.Pipe2)
@@ -157,7 +164,9 @@ class TestLight(support.AITestCase):
         
 class TestPipe2(PipeTestCase):
     def setUp(self):
-        PipeTestCase.setUp(self, pipe.Dive)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Pipe2', 'ram.ai.course.Bin'] } }
+        PipeTestCase.setUp(self, pipe.Dive, cfg)
         self.machine.start(course.Pipe2)
         
     def testStart(self):
@@ -175,7 +184,9 @@ class TestPipe2(PipeTestCase):
         
 class TestBin(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Bin', 'ram.ai.course.Pipe3'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Bin)
         
     def testStart(self):
@@ -197,7 +208,7 @@ class TestBin(support.AITestCase):
         
         # Make sure the light seeking branch is gone
         self.assertFalse(self.machine.branches.has_key(bin.Dive))
-        #self.assertFalse(self.visionSystem.binDetector)
+        self.assertFalse(self.visionSystem.binDetector)
         
     def testTimeout(self):
         """
@@ -208,16 +219,18 @@ class TestBin(support.AITestCase):
         self.machine.start(course.Bin)
         
         # Release timer
-        self.releaseTimer(course.Bin.TIMEOUT)
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
         
         # Test that the timeout worked properly
         self.assertCurrentState(course.Pipe3)
         self.assertFalse(self.machine.branches.has_key(bin.Dive))
-        #self.assertFalse(self.visionSystem.binDetector)
+        self.assertFalse(self.visionSystem.binDetector)
         
 class TestPipe3(PipeTestCase):
     def setUp(self):
-        PipeTestCase.setUp(self, pipe.Dive)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Pipe3', 'ram.ai.course.PingerDive'] } }
+        PipeTestCase.setUp(self, pipe.Dive, cfg)
         self.machine.start(course.Pipe3)
         
     def testStart(self):
@@ -236,7 +249,9 @@ class TestPipe3(PipeTestCase):
 
 class TestPingerDiver(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.PingerDive', 'ram.ai.course.Pinger'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.vehicle.depth = 0
         self.machine.start(course.PingerDive)
     
@@ -250,7 +265,9 @@ class TestPingerDiver(support.AITestCase):
 
 class TestPinger(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Pinger', 'ram.ai.course.SafeDive'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Pinger)
         
     def testStart(self):
@@ -273,7 +290,9 @@ class TestPinger(support.AITestCase):
 
 class TestSafeDive(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.SafeDive', 'ram.ai.course.Safe'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.vehicle.depth = 0
         self.machine.start(course.SafeDive)
     

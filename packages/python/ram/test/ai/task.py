@@ -27,21 +27,27 @@ EVENT_F = core.declareEventType('F')
 
 class TaskA(task.Task):
     DEFAULT_TIMEOUT = 16
-    def _transitions(self):
+    @staticmethod
+    def _transitions():
         return {EVENT_A : task.Next,
                 EVENT_B : task.Next,
                 task.TIMEOUT : task.Next }
+        
     def enter(self):
         task.Task.enter(self, TaskA.DEFAULT_TIMEOUT)
 
 class TaskB(task.Task):
-    def _transitions(self):
+    
+    @staticmethod
+    def _transitions():
         return {EVENT_C : task.Next,
                 EVENT_D : task.Next,
                 task.TIMEOUT : task.Next }
 
 class TaskC(task.Task):
-    def _transitions(self):
+    
+    @staticmethod
+    def _transitions():
         return {EVENT_E : task.Next,
                 EVENT_F : task.Next }
 
