@@ -314,7 +314,9 @@ class TestSafeDive(support.AITestCase):
         
 class TestSafe(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Safe', 'ram.ai.course.Octagaon'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.vehicle.depth = 5
         self.machine.start(course.Safe)
         
@@ -344,7 +346,7 @@ class TestSafe(support.AITestCase):
         self.machine.start(course.Safe)
         
         # Release timer
-        self.releaseTimer(course.Safe.TIMEOUT)
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
         
         # Test that the timeout worked properly
         self.assertCurrentState(course.Octagaon)
@@ -352,7 +354,8 @@ class TestSafe(support.AITestCase):
 
 class TestOctagon(support.AITestCase):
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.Octagaon'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.vehicle.depth = 5
         self.machine.start(course.Octagaon)
     

@@ -225,32 +225,26 @@ class SafeDive(task.Task):
         self.motionManager.stopCurrentMotion()
         self.stateMachine.stopBranch(sonar.Hovering)
 
-class Safe(state.State):
+class Safe(task.Task):
     """
     Grabs the safe and surfaces to a predefined depth, when it times out, it
     goes into a recovering mode, and does a normal surface.
     """
-    
-    TIMEOUT = core.declareEventType('TIMEOUT')
-    
+        
     @staticmethod
-    def transitions():
-        return { safe.COMPLETE : Octagaon,
-                 Safe.TIMEOUT : Octagaon,
+    def _transitions():
+        return { safe.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
                  'GO' : state.Branch(safe.Searching) }
     
     def enter(self):
-        self.stateMachine.start(state.Branch(safe.Searching))
-        
-        # Create out timeout
         # TODO: base the timeout off an offset from how much time we have left
         # in the mission
-        timeout = self._config.get('timeout', 60)
-        self.timer = self.timerManager.newTimer(Safe.TIMEOUT, timeout)
-               
-        self.timer.start()
+        task.Task.enter(self, defaultTimeout = 60)
+        self.stateMachine.start(state.Branch(safe.Searching))
     
     def exit(self):
+        task.Task.exit(self)
         self.stateMachine.stopBranch(safe.Searching)
         self.visionSystem.downwardSafeDetectorOff()
 
@@ -262,15 +256,16 @@ class RecoverFromSafe(state.State):
     """
     pass
 
-class Octagaon(state.State):
+class Octagaon(task.Task):
     """
     Surface in the octagon with or without the treasure, but with the sonar on
     """
     @staticmethod
-    def transitions():
-        return { motion.basic.Motion.FINISHED : End }
+    def _transitions():
+        return { motion.basic.Motion.FINISHED : task.Next }
 
     def enter(self):
+        task.Task.enter(self)
         # Start our dive
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 0),
@@ -279,7 +274,5 @@ class Octagaon(state.State):
         self.motionManager.setMotion(diveMotion)
 
     def stop(self):
+        task.Task.exit(self)
         self.motionManager.stopCurrentMotion()
-
-class End(state.End):
-    pass
