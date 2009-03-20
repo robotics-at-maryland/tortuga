@@ -955,7 +955,7 @@ void BinDetector::logSuitImage(Image* image, Suit::SuitType suit)
     switch (suit)
     {
         case Suit::HEART: baseDir = base / "heart"; break;
-        case Suit::SPADE: baseDir = base / "spead"; break;
+        case Suit::SPADE: baseDir = base / "spade"; break;
         case Suit::DIAMOND: baseDir = base / "diamond"; break;
         case Suit::CLUB: baseDir = base / "club"; break;
         case Suit::UNKNOWN: baseDir = base / "unknown"; break;
