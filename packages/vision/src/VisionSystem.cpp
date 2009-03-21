@@ -52,7 +52,8 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_redLightDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
-    m_gateDetector(DetectorPtr())
+    m_gateDetector(DetectorPtr()),
+    m_targetDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -73,7 +74,8 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_pipelineDetector(DetectorPtr()),
     m_ductDetector(DetectorPtr()),
     m_downwardSafeDetector(DetectorPtr()),
-    m_gateDetector(DetectorPtr())
+    m_gateDetector(DetectorPtr()),
+    m_targetDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -148,7 +150,9 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new SafeDetector(config["SafeDetector"], eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(config["GateDetector"], eventHub));
-
+    //m_targetDetector = DetectorPtr(
+    //    new TargetDetector(config["TargetDetector"], eventHub));
+    
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
     m_downwardCamera->background(-1);
@@ -233,6 +237,17 @@ void VisionSystem::redLightDetectorOff()
     m_forward->removeDetector(m_redLightDetector);
 }
 
+void VisionSystem::targetDetectorOn()
+{
+    //m_forward->addDetector(m_targetDetector);
+}
+
+void VisionSystem::targetDetectorOff()
+{
+    //m_forward->removeDetector(m_targetDetector);
+}
+
+    
 void VisionSystem::setPriority(core::IUpdatable::Priority priority)
 {
 //    assert(m_testing && "Can't background when not testing");

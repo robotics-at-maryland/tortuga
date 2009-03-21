@@ -44,6 +44,8 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType DOWN_DUCT_LOST;
     static const core::Event::EventType SAFE_FOUND;
     static const core::Event::EventType SAFE_LOST;
+    static const core::Event::EventType TARGET_FOUND;
+    static const core::Event::EventType TARGET_LOST;
 };
 
 class RAM_EXPORT ImageEvent : public core::Event
@@ -141,6 +143,26 @@ class RAM_EXPORT SafeEvent : public core::Event
 };
     
 typedef boost::shared_ptr<SafeEvent> SafeEventPtr;
+
+class RAM_EXPORT TargetEvent : public core::Event
+{
+  public:
+    TargetEvent(double centerX, double centerY, double squareNess_,
+                double range_) :
+        x(centerX),
+        y(centerY),
+        squareNess(squareNess_),
+        range(range_)
+    {
+    }
+    double x;
+    double y;
+    double squareNess;
+    double range;
+};
+    
+typedef boost::shared_ptr<TargetEvent> TargetEventPtr;
+
     
 } // namespace vision
 } // namespace ram

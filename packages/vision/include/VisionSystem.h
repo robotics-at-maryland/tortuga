@@ -45,6 +45,8 @@ public:
     void downwardSafeDetectorOff();
     void gateDetectorOn();
     void gateDetectorOff();
+    void targetDetectorOn();
+    void targetDetectorOff();
 
     /** Calls setPriority on Cameras, VisionRunners, and Recorders
      *
@@ -109,6 +111,7 @@ private:
     DetectorPtr m_ductDetector;
     DetectorPtr m_downwardSafeDetector;
     DetectorPtr m_gateDetector;
+    DetectorPtr m_targetDetector;
 
     /** Flag which when true enables use of back/unback and update */
     bool m_testing;
