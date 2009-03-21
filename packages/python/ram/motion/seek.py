@@ -50,11 +50,28 @@ class PointTarget(ext.core.EventPublisher):
 class SeekPoint(Motion):
     """
     This points at, and drives toward a target, it controls all types of motion
-    normally.  If depthGain is set to zero, it will not control DEPTH, if
-    maxSpeed is 0 it will not control IN_PLANE.
+    normally.  In the translate mode 
+    
+    @type  target:  PointTarget
+    @param target: The target we are seeking
+    
+    @type  maxSpeed: float
+    @param maxSpeed: Max forward speed, if 0 and no translate is false it will 
+                     not control IN_PLANE
+    
+    @type  depthGain: float
+    @param depthGain: Gain for depth control, if 0 will not control DEPTH
+    
+    @type  translate: bool
+    @param translate: If true, side-side translation is used to center the 
+                      target instead of yaw control.
+                      
+    @type  translateGain: float
+    @param translateGain: Gain for side-side motion
     """
     
-    def __init__(self, target, maxSpeed = 0.0, depthGain = 1):
+    def __init__(self, target, maxSpeed = 0.0, depthGain = 1, 
+                 translate = False, translateGain = 1):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -62,7 +79,7 @@ class SeekPoint(Motion):
         _type = Motion.ORIENTATION
         if 0 != depthGain:
             _type = _type | Motion.DEPTH
-        if 0 != maxSpeed:
+        if 0 != maxSpeed or translate:
             _type = _type | Motion.IN_PLANE
         Motion.__init__(self, _type = _type)
         
@@ -70,6 +87,8 @@ class SeekPoint(Motion):
         self._target = target
         self._maxSpeed = maxSpeed
         self._depthGain = depthGain
+        self._translate = translate
+        self._translateGain = translateGain
         self._conn = target.subscribe(PointTarget.UPDATE, self._onBouyUpdate)
         
     def _start(self):
@@ -89,16 +108,21 @@ class SeekPoint(Motion):
             newDepth = currentDepth - self._target.y * self._depthGain
             self._controller.setDepth(newDepth)
     
-        # Determine how to yaw the vehicle
-        vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
-        vehicleHeading = vehicleHeading.valueDegrees()
-        absoluteTargetHeading = vehicleHeading + self._target.azimuth
-        
-        desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
-        desiredHeading = desiredHeading.valueDegrees()
-        
-        yawCommand = absoluteTargetHeading - desiredHeading
-        self._controller.yawVehicle(yawCommand)
+        # Do pointing control
+        if not self._translate:
+            # Determine how to yaw the vehicle
+            vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+            vehicleHeading = vehicleHeading.valueDegrees()
+            absoluteTargetHeading = vehicleHeading + self._target.azimuth
+            
+            desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
+            desiredHeading = desiredHeading.valueDegrees()
+            
+            yawCommand = absoluteTargetHeading - desiredHeading
+            self._controller.yawVehicle(yawCommand)
+        else:
+            sidewaysSpeed = -1 * self._target.x * self._translateGain
+            self._controller.setSidewaysSpeed(sidewaysSpeed)
 
         # Drive toward light
         if self._maxSpeed != 0:
@@ -141,7 +165,8 @@ class SeekPointToRange(SeekPoint):
     Seeks a point, but stops a certain range
     """
     def __init__(self, target, desiredRange, maxRangeDiff, rangeGain = 1.0, 
-                 maxSpeed = 0.0, depthGain = 1):
+                 maxSpeed = 0.0, depthGain = 1, translate = False, 
+                 translateGain = 1):
         """
         @type desiredRange: float
         @param desiredRange: The range you wish to be at relative to the target
@@ -150,7 +175,8 @@ class SeekPointToRange(SeekPoint):
         @param maxRangeDiff: The range difference you wish your speed to max 
                              out at
         """
-        SeekPoint.__init__(self, target, maxSpeed, depthGain)
+        SeekPoint.__init__(self, target, maxSpeed, depthGain, translate,
+                           translateGain)
         self._desiredRange = desiredRange
         self._maxRangeDiff = maxRangeDiff
         self._rangeGain = rangeGain

@@ -50,7 +50,7 @@ class SeekPointTest(support.MotionTest):
             
     def checkCommand(self, azimuth, elevation, range = 0, x = 0, y = 0,
                      yawChange = None, newDepth = None, newSpeed = None,
-                     newSidewaysSpeed = None):
+                     newSidewaysSpeed = None, translate = False):
         """
         Checks the commands given to the controller with a certain buoy state
         
@@ -60,21 +60,25 @@ class SeekPointTest(support.MotionTest):
         @type  newDepth: float
         @param newDepth: The expected IController.setDepth() value
         """
-        # Creat bouy with the given characteristics
-        bouy = self.makeTarget(azimuth = azimuth, elevation = elevation, 
+        # Creat Buoy with the given characteristics
+        Buoy = self.makeTarget(azimuth = azimuth, elevation = elevation, 
                                range = range, x = x, y = y)
         
         # Creat the motion to seek the target
         maxSpeed = 0
         if newSpeed is not None:
             maxSpeed = 1
-        if newSidewaysSpeed is None:
-            m = self.makeClass(target = bouy, maxSpeed = maxSpeed)
+        if newSidewaysSpeed is None or translate:
+            if not translate:
+                m = self.makeClass(target = Buoy, maxSpeed = maxSpeed)
+            else:
+                m = self.makeClass(target = Buoy, maxSpeed = maxSpeed,
+                                   translate = True)
         else:
             maxSidewaysSpeed = 0
             if newSidewaysSpeed is not None:
                 maxSidewaysSpeed = 1
-            m = self.makeClass(target = bouy, maxSpeed = maxSpeed,
+            m = self.makeClass(target = Buoy, maxSpeed = maxSpeed,
                                maxSidewaysSpeed = maxSidewaysSpeed)
         
         # Start it and check the first results
@@ -95,7 +99,7 @@ class TestSeekPoint(SeekPointTest):
 
     
     def testDeadAhead(self):
-        # Bouy dead ahead of the vehicle
+        # Buoy dead ahead of the vehicle
         # Make sure no vehicle heading or depth changes are ordered
         self.checkCommand(azimuth = 0, elevation = 0, range = 10, 
                           yawChange = 0, newDepth = 0, newSpeed = 1)
@@ -116,21 +120,21 @@ class TestSeekPoint(SeekPointTest):
         
     def testBelow(self):
         # Setup the vehicle and the controller, such that the vehicle is 
-        # actually in a 0.5 foot oscilation around the target depth
+        # actually in a 0.5 foot oscillation around the target depth
         self.vehicle.depth = 5
         self.controller.depth = 4.5
         
-        # Bouy dead ahead and 5 feet below current vehicle position
+        # Buoy dead ahead and 5 feet below current vehicle position
         # Make sure we only change a depth
         self.checkCommand(azimuth = 0, elevation = 0, y = -0.75, yawChange = 0, 
                           newDepth = 5.75)
         
     def testAbove(self):
-        # Same oscilation issue as above
+        # Same oscillation issue as above
         self.vehicle.depth = 10
         self.controller.depth = 10.5
         
-        # Bouy dead ahead and 2.588 feet above the current vehicle
+        # Buoy dead ahead and 2.588 feet above the current vehicle
         # Make sure we only change depth
         self.checkCommand(azimuth = 0, elevation = 0, y = 0.5, yawChange = 0, 
                           newDepth = 9.5)
@@ -142,7 +146,7 @@ class TestSeekPoint(SeekPointTest):
         self.vehicle.orientation = \
             math.Quaternion(math.Degree(-15), math.Vector3.UNIT_Z)
         
-        # Bouy at same depth and 45 degress left of vehicle's heading
+        # Buoy at same depth and 45 degrees left of vehicle's heading
         # Make sure we only rotate relative to the controllers desired 
         # orientation
         self.checkCommand(azimuth = 45, elevation = 0, yawChange = 20, 
@@ -154,9 +158,15 @@ class TestSeekPoint(SeekPointTest):
         self.vehicle.orientation = \
             math.Quaternion(math.Degree(10), math.Vector3.UNIT_Z)
             
-        # Bouy dead ahead and 45 degress left of vehicle's heading
+        # Buoy dead ahead and 45 degrees left of vehicle's heading
         self.checkCommand(azimuth = 45, elevation = 0, yawChange = 70, 
                           newDepth = 0)
+        
+    def testTranslateLeft(self):
+        # Buoy in the left part of the frame
+        self.checkCommand(azimuth = 45, elevation = 0, x = -0.5, 
+                          translate = True, newSidewaysSpeed = 0.5)
+        
 
     def testRight(self):
         # Turning away from light at -30 Degrees off North
@@ -165,7 +175,7 @@ class TestSeekPoint(SeekPointTest):
         self.vehicle.orientation = \
             math.Quaternion(math.Degree(-15), math.Vector3.UNIT_Z)
        
-        # Bouy at same depth and 15 degress right of vehicle's heading
+        # Buoy at same depth and 15 degrees right of vehicle's heading
         # Make sure we only rotate relative to the controllers desired 
         # orientation
         self.checkCommand(azimuth = -15, elevation = 0, yawChange = -40, 
@@ -177,17 +187,22 @@ class TestSeekPoint(SeekPointTest):
         self.vehicle.orientation = \
             math.Quaternion(math.Degree(10), math.Vector3.UNIT_Z)
             
-        # Bouy dead ahead and 20 degress right of vehicle's heading
+        # Buoy dead ahead and 20 degrees right of vehicle's heading
         self.checkCommand(azimuth = -20, elevation = 0, yawChange = -5, 
                           newDepth = 0)
+
+    def testTranslateRight(self):
+        # Buoy in the right part of the frame
+        self.checkCommand(azimuth = -45, elevation = 0, x = 0.5, 
+                          translate = True, newSidewaysSpeed = -0.5)
 
     def testTrack(self):
         self.vehicle.depth = 5
         
-        # Creat bouy ahead of the vehicle
-        bouy = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0,
+        # Create Buoy ahead of the vehicle
+        Buoy = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0,
                                        x = 0, y = 0)
-        m = motion.seek.SeekPoint(target = bouy)
+        m = motion.seek.SeekPoint(target = Buoy)
         self.motionManager.setMotion(m)
         
         # Make sure we aren't going anywhere
@@ -195,19 +210,19 @@ class TestSeekPoint(SeekPointTest):
         self.assertAlmostEqual(5, self.controller.depth, 3)
 
         # Update the buoy and make sure the motion updates the controller
-        bouy.setState(azimuth = 15, elevation = 30, range = 0, y = 1, x = 0)
+        Buoy.setState(azimuth = 15, elevation = 30, range = 0, y = 1, x = 0)
         self.assertAlmostEqual(15, self.controller.yawChange, 4)
         self.assertAlmostEqual(4, self.controller.depth, 4)
 
         # Make sure a second update works
-        bouy.setState(azimuth = -25, elevation = -30, range = 0, y = -1, x = 0)
+        Buoy.setState(azimuth = -25, elevation = -30, range = 0, y = -1, x = 0)
         self.assertAlmostEqual(-25, self.controller.yawChange, 4)
         self.assertAlmostEqual(6, self.controller.depth, 4)
 
         # Stop motion and make sure updates there is not a change in the
         # controller from further state changes
         m.stop()
-        bouy.setState(azimuth = 15, elevation = 9, range = 0, x = 0, y = -2)
+        Buoy.setState(azimuth = 15, elevation = 9, range = 0, x = 0, y = -2)
         self.assertAlmostEqual(-25, self.controller.yawChange, 4)
         self.assertAlmostEqual(6, self.controller.depth, 4)
 
