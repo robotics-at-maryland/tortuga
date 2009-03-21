@@ -30,6 +30,7 @@ import ram.motion.basic
 import ram.motion.pipe
 
 import ram.test.ai.support as support
+from ram.test.motion.support import MockTimer
 
 class PipeTestCase(support.AITestCase):
     def setUp(self, testState = pipe.Searching, cfg = None):
@@ -125,12 +126,13 @@ class TestLight(support.AITestCase):
                         ['ram.ai.course.Light', 'ram.ai.course.Pipe2'] } }
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Light)
+        self._stateType = course.Light
         
     def testStart(self):
         """
         Make sure that when we start we are doing the right thing
         """
-        self.assertCurrentState(course.Light)
+        self.assertCurrentState(self._stateType)
         
         self.assertCurrentBranches([light.Start])
         #self.assert_(self.visionSystem.redLightDetector)
@@ -153,7 +155,7 @@ class TestLight(support.AITestCase):
         """
         # Restart with a working timer
         self.machine.stop()
-        self.machine.start(course.Light)
+        self.machine.start(self._stateType)
         
         # Release timer
         self.releaseTimer(self.machine.currentState().timeoutEvent)
@@ -162,6 +164,47 @@ class TestLight(support.AITestCase):
         self.assertCurrentState(course.Pipe2)
         self.assertFalse(self.machine.branches.has_key(light.Start))
         self.assertFalse(self.visionSystem.redLightDetector)
+       
+class TestLight(TestLight):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.course.LightStaged' : {
+                        'timeout' : 97,
+                        'doTimeout' : 108,
+                    },
+                }
+            },
+            'Ai' : {'taskOrder' : ['ram.ai.course.LightStaged', 
+                                   'ram.ai.course.Pipe2'] }
+        }
+        
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.LightStaged)
+        self._stateType = course.LightStaged
+     
+    def testLightFound(self):
+        # Grab the current running timer
+        timer = MockTimer.LOG[self.machine.currentState().timeoutEvent]
+        
+        # Inject found event and make sure it cancels timer, starts new one
+        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        self.assert_(timer.stopped)
+        self.assert_(MockTimer.LOG.has_key(course.LightStaged.DO_TIMEOUT))
+        
+        # Make sure repeated events don't create new timers
+        timer = MockTimer.LOG[course.LightStaged.DO_TIMEOUT]
+        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        timer2 = MockTimer.LOG[course.LightStaged.DO_TIMEOUT]
+        self.assertEqual(timer, timer2)
+
+        # Check the timer config
+        self.assertEqual(108, timer._sleepTime)
+        
+        # Release the time and make sure we move on
+        self.releaseTimer(course.LightStaged.DO_TIMEOUT)
+        self.assertCurrentState(course.Pipe2)
         
 class TestPipe2(PipeTestCase):
     def setUp(self):

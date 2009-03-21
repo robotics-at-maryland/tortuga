@@ -104,14 +104,45 @@ class Light(task.Task):
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(light.Start) }
     
-    def enter(self):
-        task.Task.enter(self, defaultTimeout = 60)
+    def enter(self, defaultTimeout = 60):
+        task.Task.enter(self, defaultTimeout = defaultTimeout)
         self.stateMachine.start(state.Branch(light.Start))
     
     def exit(self):
         task.Task.exit(self)
         self.stateMachine.stopBranch(light.Start)
         self.visionSystem.redLightDetectorOff()
+    
+class LightStaged(Light):
+    """
+    Does the light task in such with intermediate timers, that attempt to quit
+    early if the light is lost.
+    """
+    DO_TIMEOUT = core.declareEventType('DO_TIMEOUT_')
+    
+    @staticmethod
+    def _transitions():
+        trans = Light._transitions()
+        trans.update({
+            vision.EventType.LIGHT_FOUND : LightStaged,
+            LightStaged.DO_TIMEOUT : task.Next })
+        return trans
+    
+    def LIGHT_FOUND(self, event):
+        # Stop old
+        self._timer.stop()
+        
+        if self.doTimer is None:
+            timeout = self._config.get('doTimeout', 25)
+            self.doTimer = self.timerManager.newTimer(LightStaged.DO_TIMEOUT, 
+                                                      timeout)
+            self.doTimer.start()
+            
+    def enter(self):
+        Light.enter(self, defaultTimeout = 40)
+        
+        # Set time to none
+        self.doTimer = None
     
 class Pipe2(task.Task):
     """
