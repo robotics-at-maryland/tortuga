@@ -24,7 +24,7 @@
 #include "vision/include/FANNSuitDetector.hpp"
 
 using namespace ram;
-
+/*
 static boost::filesystem::path getImagesDir()
 {
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
@@ -38,13 +38,13 @@ static std::string getSuitNetworkFile()
     return (root / "packages" / "vision" / "test" / "data" /
             "suits.irn").file_string();
 }
-
+*/
 struct FANNSuitDetectorFixture
 {
 };
 
 SUITE(FANNSuitDetector) {
-    
+  /*    
     TEST_FIXTURE(FANNSuitDetectorFixture, FANNSuitDetectorTest)
     {
       
@@ -76,5 +76,5 @@ SUITE(FANNSuitDetector) {
             CHECK_EQUAL(4u, i);
 	    }
     }
-    
+  */
 } // SUITE(FANNSuitDetector)
