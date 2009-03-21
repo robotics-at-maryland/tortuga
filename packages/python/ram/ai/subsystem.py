@@ -62,6 +62,18 @@ class AI(core.Subsystem):
             # Store the results
             self._nextTaskMap[taskClass] = nextClass
             
+        # Build list of failure tasks
+        self._failureTaskMap = {}
+        failureTasks = cfg.get('failureTasks', None)
+        if failureTasks is None:
+            failureTasks = {}
+        for taskName, failTaskName in failureTasks.iteritems():
+            # Resolve dotted task names into classes
+            taskClass = resolve(taskName)
+            failureTaskClass = resolve(failTaskName)
+            
+            # Store results
+            self._failureTaskMap[taskClass] = failureTaskClass
     
     # IUpdatable methods
     def update(self, timeStep):
@@ -91,7 +103,19 @@ class AI(core.Subsystem):
         self._connections.append(conn)
 
     def getNextTask(self, task):
+        """
+        Returns the task which will be transitioned to when the given task 
+        transitions to the next task.
+        """
         return self._nextTaskMap[task]
+    
+    def getFailureState(self, task):
+        """
+        Returns the state which will be transitioned to when the given task
+        fails in an unrecoverable way.  Recoverable failure are handled 
+        internally by that task. 
+        """
+        return self._failureTaskMap.get(task, None)
     
     
 core.registerSubsystem('AI', AI)

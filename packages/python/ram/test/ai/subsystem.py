@@ -14,7 +14,7 @@ import ram.ai as ai
 import ram.ai.subsystem
 
 from ram.test import Mock
-from ram.test.ai.task import TaskA, TaskB, TaskC
+from ram.test.ai.task import TaskA, TaskB, TaskC, BRecovery, CRecovery
 
 
 class TestAI(unittest.TestCase):
@@ -70,19 +70,44 @@ class TestAI(unittest.TestCase):
         self.assert_(self.connA)
         self.assert_(self.connB)
     
+    cfg = {'AIMachineName' : 'MyMachine',
+             'taskOrder' : ['ram.test.ai.task.TaskA',
+                            'ram.test.ai.task.TaskB',
+                            'ram.test.ai.task.TaskC'],
+             'failureTasks' : {
+                 'ram.test.ai.task.TaskB' : 'ram.test.ai.task.BRecovery',
+                 'ram.test.ai.task.TaskC' : 'ram.test.ai.task.CRecovery'}
+             }
+    
     def testGetNextTask(self):
+        """
+        Tests to make sure the AI properly builds the next task data based on 
+        the configuration file.
+        """
+        
         # Create an AI subsystem with a proper order of tasks
         stateMachine = ai.state.Machine({'name' : 'MyMachine'})
         deps = core.SubsystemList()
         deps.append(stateMachine)
-        aiSys = ai.subsystem.AI(
-            {'AIMachineName' : 'MyMachine',
-             'taskOrder' : ['ram.test.ai.task.TaskA',
-                            'ram.test.ai.task.TaskB',
-                            'ram.test.ai.task.TaskC']}, deps)
+        aiSys = ai.subsystem.AI(TestAI.cfg, deps)
         
         # Check to make sure the order is proper
         self.assertEqual(TaskB, aiSys.getNextTask(TaskA))
         self.assertEqual(TaskC, aiSys.getNextTask(TaskB))
         self.assertEqual(ai.task.End, aiSys.getNextTask(TaskC))
         
+    def testGetFailureState(self):
+        """
+        Tests to make sure the AI properly determines the state to go to on 
+        failure based on the configuration file.
+        """
+        
+        # Create an AI subsystem with a proper order of tasks
+        stateMachine = ai.state.Machine({'name' : 'MyMachine'})
+        deps = core.SubsystemList()
+        deps.append(stateMachine)
+        aiSys = ai.subsystem.AI(TestAI.cfg, deps)
+        
+        self.assertEqual(None, aiSys.getFailureState(TaskA))
+        self.assertEqual(BRecovery, aiSys.getFailureState(TaskB))
+        self.assertEqual(CRecovery, aiSys.getFailureState(TaskC))

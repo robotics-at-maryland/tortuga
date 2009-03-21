@@ -20,6 +20,12 @@ class Next(state.State):
     """
     pass
 
+class Failure(state.State):
+    """
+    Special state denotes that the task failed in an *unrecoverable* way.
+    """
+    pass
+
 class End(state.State):
     """
     Special state that denotes the complete end of the state machine
@@ -46,6 +52,7 @@ class Task(state.State):
         
         # From the AI grab our next task
         self._nextState = self.ai.getNextTask(type(self))
+        self._failureState = self.ai.getFailureState(type(self))
     
         # Timeout related values, set later on
         self._hasTimeout = False
@@ -74,10 +81,17 @@ class Task(state.State):
                 eventType = self._timeoutEvent
                 self._hasTimeout = True
                 
-            # If the next state is the special Next marker state, swap it out
-            # for the real next state
+            
             if nextState == Next:
+                # If the next state is the special Next marker state, swap it 
+                # out for the real next state
                 nextState = self._nextState
+            elif nextState == Failure:
+                # If that state is the special failure marker state, swap it 
+                # out for the real failure state
+                if self._failureState is None:
+                    raise "ERROR: transition to non existent failure state"
+                nextState = self._failureState
             
             # Store the event
             newTrans[eventType] = nextState

@@ -12,7 +12,7 @@ import unittest
 import ext.core as core
 import ram.ai as ai
 import ram.ai.subsystem
-import ram.ai.state
+import ram.ai.state as state
 import ram.ai.task as task
 from ram.logloader import resolve
 
@@ -24,6 +24,9 @@ EVENT_C = core.declareEventType('C')
 EVENT_D = core.declareEventType('D')
 EVENT_E = core.declareEventType('E')
 EVENT_F = core.declareEventType('F')
+
+EVENT_B_FAIL = core.declareEventType('B_FAIL')
+EVENT_C_FAIL = core.declareEventType('C_FAIL')
 
 class TaskA(task.Task):
     DEFAULT_TIMEOUT = 16
@@ -37,20 +40,31 @@ class TaskA(task.Task):
         task.Task.enter(self, TaskA.DEFAULT_TIMEOUT)
 
 class TaskB(task.Task):
-    
     @staticmethod
     def _transitions():
         return {EVENT_C : task.Next,
                 EVENT_D : task.Next,
+                EVENT_B_FAIL : task.Failure,
                 task.TIMEOUT : task.Next }
 
 class TaskC(task.Task):
-    
     @staticmethod
     def _transitions():
         return {EVENT_E : task.Next,
-                EVENT_F : task.Next }
+                EVENT_F : task.Next,
+                EVENT_C_FAIL : task.Failure }
 
+class BRecovery(state.State):
+    """Test state just used to know we went to the proper failure state"""
+    @staticmethod
+    def transitions():
+        return {EVENT_F : BRecovery }
+    
+class CRecovery(state.State):
+    """Test state just used to know we went to the proper failure state"""
+    @staticmethod
+    def transitions():
+        return {EVENT_F : CRecovery }
 
 class TestTask(support.AITestCase):
     CFG_TIMEOUT = 47
@@ -60,7 +74,11 @@ class TestTask(support.AITestCase):
             'Ai' : {
                 'taskOrder' : ['ram.test.ai.task.TaskA',
                                'ram.test.ai.task.TaskB',
-                               'ram.test.ai.task.TaskC']
+                               'ram.test.ai.task.TaskC'],
+                'failureTasks' : {
+                    'ram.test.ai.task.TaskB' : 'ram.test.ai.task.BRecovery',
+                    'ram.test.ai.task.TaskC' : 'ram.test.ai.task.CRecovery'
+                 }
             },
             'StateMachine' : { 
                 'States' : { 
@@ -77,6 +95,8 @@ class TestTask(support.AITestCase):
         self.TaskAcls = resolve('ram.test.ai.task.TaskA')
         self.TaskBcls = resolve('ram.test.ai.task.TaskB')
         self.TaskCcls = resolve('ram.test.ai.task.TaskC')
+        self.BRecoverycls = resolve('ram.test.ai.task.BRecovery')
+        self.CRecoverycls = resolve('ram.test.ai.task.CRecovery')
         
     def testNextTransitions(self):
         """
@@ -117,6 +137,15 @@ class TestTask(support.AITestCase):
         
         self._injectEvent(EVENT_E)
         self.assert_(self.machine.complete)
+    
+        # Now do the failure tasks
+        self.machine.start(self.TaskBcls)
+        self._injectEvent(EVENT_B_FAIL)
+        self.assertEquals(self.BRecoverycls, type(self.machine.currentState()))
+        
+        self.machine.start(self.TaskCcls)
+        self._injectEvent(EVENT_C_FAIL)
+        self.assertEquals(self.CRecoverycls, type(self.machine.currentState()))
         
     def testDefaultTimeout(self):
         """
