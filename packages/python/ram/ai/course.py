@@ -64,7 +64,7 @@ class Gate(task.Task):
         if (self.stateMachine.branches.has_key(gate.Dive)):
             self.stateMachine.stopBranch(gate.Dive)
     
-class Pipe1(task.Task):
+class PipeGate(task.Task):
     """
     Find and hover over the first pipe in the course
     """
@@ -144,9 +144,9 @@ class LightStaged(Light):
         # Set time to none
         self.doTimer = None
     
-class Pipe2(task.Task):
+class Pipe(task.Task):
     """
-    Find and hover over the second pipe in the course
+    Find and hover a pipe in the course
     """
     
     @staticmethod
@@ -179,26 +179,6 @@ class Bin(task.Task):
         task.Task.exit(self)
         self.stateMachine.stopBranch(bin.Dive)
         self.visionSystem.binDetectorOff()
-
-class Pipe3(task.Task):
-    """
-    Find and hover over the second pipe in the course
-    """
-    
-    @staticmethod
-    def _transitions():
-        return { pipe.Centering.SETTLED : task.Next,
-                 'GO' : state.Branch(pipe.Dive) }
-    
-    def enter(self):
-        task.Task.enter(self)
-        # Branch off state machine for finding the pipe
-        self.stateMachine.start(state.Branch(pipe.Dive))
-        
-    def exit(self):
-        task.Task.exit(self)
-        self.stateMachine.stopBranch(pipe.Dive)
-        self.visionSystem.pipeLineDetectorOff()
     
 class PingerDive(task.Task):
     """

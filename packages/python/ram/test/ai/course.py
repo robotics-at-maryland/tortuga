@@ -60,7 +60,7 @@ class PipeTestCase(support.AITestCase):
 class TestGate(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Gate', 'ram.ai.course.Pipe1'] } }
+                        ['ram.ai.course.Gate', 'ram.ai.course.PipeGate'] } }
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Gate)
         
@@ -76,13 +76,13 @@ class TestGate(support.AITestCase):
         self.assertCurrentState(course.Gate)
         self.injectEvent(vision.EventType.PIPE_FOUND, vision.PipeEvent, 0, 
                          0, 0)
-        self.assertCurrentState(course.Pipe1)
+        self.assertCurrentState(course.PipeGate)
         self.assertAIDataValue('foundPipeEarly', True)
         
     def testGateComplete(self):
         # Make sure we have moved onto the next state
         self.injectEvent(gate.COMPLETE, sendToBranches = True)
-        self.assertCurrentState(course.Pipe1)
+        self.assertCurrentState(course.PipeGate)
         
         # Make sure the gate.Dive branch is gone
         self.assertFalse(self.machine.branches.has_key(gate.Dive))
@@ -90,18 +90,18 @@ class TestGate(support.AITestCase):
         # Make sure we are watching for the pipe
         self.assert_(self.visionSystem.pipeLineDetector)
         
-class TestPipe1(PipeTestCase):
+class TestPipeGate(PipeTestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Pipe1', 'ram.ai.course.Light'] } }
+                        ['ram.ai.course.PipeGate', 'ram.ai.course.Light'] } }
         PipeTestCase.setUp(self, cfg = cfg)
-        self.machine.start(course.Pipe1)
+        self.machine.start(course.PipeGate)
         
     def testStart(self):
         """
         Make sure that when we start we are doing the right thing
         """
-        PipeTestCase.checkStart(self, course.Pipe1)
+        PipeTestCase.checkStart(self, course.PipeGate)
         self.assert_(self.visionSystem.pipeLineDetector)
         
     def testEarlyEnter(self):
@@ -109,9 +109,9 @@ class TestPipe1(PipeTestCase):
         self.machine.stop()
         
         self.ai.data['foundPipeEarly'] = True
-        self.machine.start(course.Pipe1)
+        self.machine.start(course.PipeGate)
         
-        self.assertCurrentState(course.Pipe1)
+        self.assertCurrentState(course.PipeGate)
         self.assertCurrentBranches([pipe.Seeking])
         
     def testSettled(self):
@@ -123,7 +123,7 @@ class TestPipe1(PipeTestCase):
 class TestLight(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Light', 'ram.ai.course.Pipe2'] } }
+                        ['ram.ai.course.Light', 'ram.ai.course.Pipe'] } }
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Light)
         self._stateType = course.Light
@@ -143,7 +143,7 @@ class TestLight(support.AITestCase):
         """
         
         self.injectEvent(light.LIGHT_HIT, sendToBranches = True)
-        self.assertCurrentState(course.Pipe2)
+        self.assertCurrentState(course.Pipe)
         
         # Make sure the light seeking branch is gone
         self.assertFalse(self.machine.branches.has_key(light.Start))
@@ -161,7 +161,7 @@ class TestLight(support.AITestCase):
         self.releaseTimer(self.machine.currentState().timeoutEvent)
         
         # Test that the timeout worked properly
-        self.assertCurrentState(course.Pipe2)
+        self.assertCurrentState(course.Pipe)
         self.assertFalse(self.machine.branches.has_key(light.Start))
         self.assertFalse(self.visionSystem.redLightDetector)
        
@@ -177,7 +177,7 @@ class TestLight(TestLight):
                 }
             },
             'Ai' : {'taskOrder' : ['ram.ai.course.LightStaged', 
-                                   'ram.ai.course.Pipe2'] }
+                                   'ram.ai.course.Pipe'] }
         }
         
         support.AITestCase.setUp(self, cfg = cfg)
@@ -204,20 +204,20 @@ class TestLight(TestLight):
         
         # Release the time and make sure we move on
         self.releaseTimer(course.LightStaged.DO_TIMEOUT)
-        self.assertCurrentState(course.Pipe2)
+        self.assertCurrentState(course.Pipe)
         
-class TestPipe2(PipeTestCase):
+class TestPipe(PipeTestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Pipe2', 'ram.ai.course.Bin'] } }
+                        ['ram.ai.course.Pipe', 'ram.ai.course.Bin'] } }
         PipeTestCase.setUp(self, pipe.Dive, cfg)
-        self.machine.start(course.Pipe2)
+        self.machine.start(course.Pipe)
         
     def testStart(self):
         """
         Make sure that when we start we are doing the right thing
         """
-        PipeTestCase.checkStart(self, course.Pipe2)
+        PipeTestCase.checkStart(self, course.Pipe)
         #self.assert_(self.visionSystem.pipeLineDetector)
         
     def testSettled(self):
@@ -229,7 +229,7 @@ class TestPipe2(PipeTestCase):
 class TestBin(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Bin', 'ram.ai.course.Pipe3'] } }
+                        ['ram.ai.course.Bin', 'ram.ai.course.Pipe'] } }
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Bin)
         
@@ -248,7 +248,7 @@ class TestBin(support.AITestCase):
         """
         
         self.injectEvent(bin.COMPLETE, sendToBranches = True)
-        self.assertCurrentState(course.Pipe3)
+        self.assertCurrentState(course.Pipe)
         
         # Make sure the light seeking branch is gone
         self.assertFalse(self.machine.branches.has_key(bin.Dive))
@@ -266,30 +266,9 @@ class TestBin(support.AITestCase):
         self.releaseTimer(self.machine.currentState().timeoutEvent)
         
         # Test that the timeout worked properly
-        self.assertCurrentState(course.Pipe3)
+        self.assertCurrentState(course.Pipe)
         self.assertFalse(self.machine.branches.has_key(bin.Dive))
         self.assertFalse(self.visionSystem.binDetector)
-        
-class TestPipe3(PipeTestCase):
-    def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Pipe3', 'ram.ai.course.PingerDive'] } }
-        PipeTestCase.setUp(self, pipe.Dive, cfg)
-        self.machine.start(course.Pipe3)
-        
-    def testStart(self):
-        """
-        Make sure that when we start we are doing the right thing
-        """
-        PipeTestCase.checkStart(self, course.Pipe3)
-        #self.assert_(self.visionSystem.pipeLineDetector)
-        
-    def testSettled(self):
-        """
-        Make sure that we move onto the light once we get over the pipe
-        """
-        PipeTestCase.checkSettled(self) # End of course
-	self.assertCurrentState(course.PingerDive)
 
 class TestPingerDiver(support.AITestCase):
     def setUp(self):
