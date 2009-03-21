@@ -28,6 +28,17 @@ class VisionPanel(BasePanel):
         self._hide = None
         self._bouyLED = None
         
+        # Make sure we shut down all events on close
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+    def _subscribeToType(self, eventHub, eventType, handler):
+        """
+        Subscribes the event of the desired type, with the given handler and
+        adds the connections to our list of connections.
+        """
+        conn = eventHub.subscribeToType(eventType, handler)
+        self._connections.append(conn)
+                
     def _createControls(self, name):
         # Creat box around controls
         box = wx.StaticBox(parent = self, label = name)
@@ -112,11 +123,16 @@ class VisionPanel(BasePanel):
             safePaneInfo = safePaneInfo.Caption("Safe").Left()
             safePanel = SafePanel(parent, eventHub, vision)
             
+            targetPaneInfo = wx.aui.AuiPaneInfo().Name("Target")
+            targetPaneInfo = targetPaneInfo.Caption("Target").Left()
+            targetPanel = TargetPanel(parent, eventHub, vision)
+            
             return [(buoyPaneInfo, buoyPanel, [vision]), 
                     (pipePaneInfo, pipePanel, [vision]), 
                     (binPaneInfo, binPanel, [vision]),
                     (ductPaneInfo, ductPanel, [vision]),
-                    (safePaneInfo, safePanel, [vision])]
+                    (safePaneInfo, safePanel, [vision]),
+                    (targetPaneInfo, targetPanel, [vision])]
         
         return []
 
@@ -133,20 +149,12 @@ class RedLightPanel(VisionPanel):
         self._createControls("Bouy")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_FOUND, 
-                                        self._onBouyFound)
-        self._connections.append(conn)
-        
-        conn = eventHub.subscribeToType(ext.vision.EventType.LIGHT_LOST, 
-                                        self._onBouyLost)
-        self._connections.append(conn)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        
-    def _onClose(self, closeEvent):
-        for conn in self._connections:
-            conn.disconnect()
-        
+        self._subscribeToType(eventHub, ext.vision.EventType.LIGHT_FOUND, 
+                              self._onBouyFound)
+                
+        self._subscribeToType(eventHub, ext.vision.EventType.LIGHT_LOST, 
+                              self._onBouyLost)
+                
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
@@ -178,19 +186,11 @@ class OrangePipePanel(VisionPanel):
         self._createControls("Orange Pipe")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_FOUND, 
+        self._subscribeToType(eventHub, ext.vision.EventType.PIPE_FOUND, 
                                         self._onPipeFound)
-        self._connections.append(conn)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.PIPE_LOST, 
-                                        self._onPipeLost)
-        self._connections.append(conn)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        
-    def _onClose(self, closeEvent):
-        for conn in self._connections:
-            conn.disconnect()
+        self._subscribeToType(eventHub, ext.vision.EventType.PIPE_LOST, 
+                             self._onPipeLost)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -219,19 +219,11 @@ class SafePanel(VisionPanel):
         self._createControls("Safe")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.SAFE_FOUND, 
-                                        self._onSafeFound)
-        self._connections.append(conn)
+        self._subscribeToType(eventHub, ext.vision.EventType.SAFE_FOUND, 
+                             self._onSafeFound)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.SAFE_LOST, 
-                                        self._onSafeLost)
-        self._connections.append(conn)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        
-    def _onClose(self, closeEvent):
-        for conn in self._connections:
-            conn.disconnect()
+        self._subscribeToType(eventHub, ext.vision.EventType.SAFE_LOST, 
+                             self._onSafeLost)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -264,23 +256,14 @@ class BinPanel(VisionPanel):
         self._createControls("Bin")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_FOUND, 
-                                        self._onBinFound)
-        self._connections.append(conn)
+        self._subscribeToType(eventHub, ext.vision.EventType.BIN_FOUND, 
+                             self._onBinFound)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.MULTI_BIN_ANGLE, 
-                                        self._onMultiBinAngle)
-        self._connections.append(conn)
+        self._subscribeToType(eventHub, ext.vision.EventType.MULTI_BIN_ANGLE, 
+                             self._onMultiBinAngle)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.BIN_LOST, 
-                                        self._onBinLost)
-        self._connections.append(conn)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        
-    def _onClose(self, closeEvent):
-        for conn in self._connections:
-            conn.disconnect()
+        self._subscribeToType(eventHub, ext.vision.EventType.BIN_LOST, 
+                              self._onBinLost)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -336,22 +319,14 @@ class DuctPanel(VisionPanel):
         self._aligned = None
 
         # Controls
-        self._createControls("Duct")
+        self._createControls("Target")
         
         # Events
-        conn = eventHub.subscribeToType(ext.vision.EventType.DUCT_FOUND, 
-                                        self._onDuctFound)
-        self._connections.append(conn)
+        self._subscribeToType(eventHub, ext.vision.EventType.DUCT_FOUND, 
+                             self._onTargetFound)
         
-        conn = eventHub.subscribeToType(ext.vision.EventType.DUCT_LOST, 
-                                        self._onDuctLost)
-        self._connections.append(conn)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-        
-    def _onClose(self, closeEvent):
-        for conn in self._connections:
-            conn.disconnect()
+        self._subscribeToType(eventHub, ext.vision.EventType.DUCT_LOST, 
+                             self._onTargetLost)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -360,7 +335,7 @@ class DuctPanel(VisionPanel):
         self._createDataControl(controlName = '_alignment', label = 'Align: ')
         self._createDataControl(controlName = '_aligned', label = 'Aligned: ')
         
-    def _onDuctFound(self, event):
+    def _onTargetFound(self, event):
         self._x.Value = "% 4.2f" % event.x
         self._y.Value = "% 4.2f" % event.y
         self._range.Value = "% 4.2f" % event.range
@@ -369,5 +344,41 @@ class DuctPanel(VisionPanel):
         
         self.enableControls()
     
-    def _onDuctLost(self, event):
+    def _onTargetLost(self, event):
+        self.disableControls()
+
+class TargetPanel(VisionPanel):
+    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+        VisionPanel.__init__(self, parent, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._size = None
+        self._alignment = None
+        self._aligned = None
+
+        # Controls
+        self._createControls("Target")
+        
+        # Events
+        self._subscribeToType(eventHub, ext.vision.EventType.TARGET_FOUND, 
+                             self._onTargetFound)
+        
+        self._subscribeToType(eventHub, ext.vision.EventType.TARGET_LOST, 
+                             self._onTargetLost)
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_range', label = 'Range: ')
+        self._createDataControl(controlName = '_squareNess', label = 'SQ-Ns: ')
+        
+    def _onTargetFound(self, event):
+        self._x.Value = "% 4.2f" % event.x
+        self._y.Value = "% 4.2f" % event.y
+        self._squareNess.Value = "% 4.2f" % event.squareNess
+        self._range.Value = "% 4.2f" % event.range
+        
+        self.enableControls()
+    
+    def _onTargetLost(self, event):
         self.disableControls()

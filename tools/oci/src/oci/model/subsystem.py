@@ -314,12 +314,16 @@ class DemoVisionSystem(vision.VisionSystem):
         
         sinVal = math.sin(self._currentTime)
 
-        event = vision.RedLightEvent(sinVal, sinVal)
+        eventLight = vision.RedLightEvent(sinVal, sinVal)
+        eventTarget = vision.TargetEvent(sinVal, sinVal * -1, sinVal * -2, 
+                                   sinVal * -3)
 
         if sinVal >= 0:
-            self.publish(vision.EventType.LIGHT_FOUND, event)
+            self.publish(vision.EventType.LIGHT_FOUND, eventLight)
+            self.publish(vision.EventType.TARGET_LOST, eventTarget)
         else:
-            self.publish(vision.EventType.LIGHT_LOST, event)
+            self.publish(vision.EventType.LIGHT_LOST, eventLight)
+            self.publish(vision.EventType.TARGET_FOUND, eventTarget)
     
     def backgrounded(self):
         return False
