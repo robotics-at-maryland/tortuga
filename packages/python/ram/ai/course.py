@@ -34,16 +34,26 @@ import ram.motion.basic
 
 class Gate(task.Task):
     """
-    This State overseas the completion of the gate objective
+    This State overseas the completion of the gate objective.  It turns on the 
+    pipe detector after a certain delay, so it can catch the pipe as it drives
+    through the gate if needed.
     """
+    
+    PIPE_ON = core.declareEventType('PIPE_ON_')
+    
     @staticmethod
     def _transitions():
         return { gate.COMPLETE : task.Next,
                  vision.EventType.PIPE_FOUND : task.Next,
+                 Gate.PIPE_ON : Gate,
                  'GO' : state.Branch(gate.Dive) }
 
     def PIPE_FOUND(self, event):
         self.ai.data['foundPipeEarly'] = True
+
+    def PIPE_ON_(self, event):
+        """Turn pipe detector on after a delay"""
+        self.visionSystem.pipeLineDetectorOn()
 
     def enter(self):
         task.Task.enter(self)
@@ -54,8 +64,14 @@ class Gate(task.Task):
         # Branch of state machine for gate
         self.stateMachine.start(state.Branch(gate.Dive))
         
-        # Start up pipe detector
-        self.visionSystem.pipeLineDetectorOn()
+        # Save current heading
+        self.ai.data['gateOrientation'] = \
+            self.controller.getDesiredOrientation()
+        
+        # Setup timer to trigger pipe detector after a certain delay
+        delay = self._config.get('pipeDelay', 30)
+        self.timer = self.timerManager.newTimer(Gate.PIPE_ON, delay)
+        self.timer.start()
         
     def exit(self):
         task.Task.exit(self)
@@ -63,6 +79,26 @@ class Gate(task.Task):
         self.exited = True
         if (self.stateMachine.branches.has_key(gate.Dive)):
             self.stateMachine.stopBranch(gate.Dive)
+    
+class Pipe(task.Task):
+    """
+    Find and hover a pipe in the course
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { pipe.Centering.SETTLED : task.Next,
+                'GO' : state.Branch(pipe.Dive) }
+    
+    def enter(self, defaultTimeout = 60):
+        task.Task.enter(self, defaultTimeout = defaultTimeout)
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(pipe.Dive))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(pipe.Dive)
+        self.visionSystem.pipeLineDetectorOff()
     
 class PipeGate(task.Task):
     """
@@ -85,13 +121,82 @@ class PipeGate(task.Task):
             self.stateMachine.start(state.Branch(pipe.Searching))
         
     def exit(self):
-        task.Task.enter(self)
+        task.Task.exit(self)
         
         if self.ai.data.get('foundPipeEarly', False):
             self.stateMachine.stopBranch(pipe.Seeking)
         else:
             self.stateMachine.stopBranch(pipe.Searching)
 
+        self.visionSystem.pipeLineDetectorOff()
+        
+class PipeStaged(Pipe):
+    """
+    Find and hover over the second pipe in the course
+    """
+    DO_TIMEOUT = core.declareEventType('DO_TIMEOUT_')
+    MOVE_ON = core.declareEventType('MOVE_ON')
+    LOST_TIMEOUT = core.declareEventType('LOST_TIMEOUT_')
+    
+    @staticmethod
+    def _transitions():
+        trans = Pipe._transitions()
+        trans.update({ vision.EventType.PIPE_LOST : PipeStaged,
+                 vision.EventType.PIPE_FOUND : PipeStaged,
+                 task.TIMEOUT : PipeStaged,
+                 PipeStaged.DO_TIMEOUT : PipeStaged,
+                 PipeStaged.LOST_TIMEOUT : PipeStaged,
+                 PipeStaged.MOVE_ON : task.Next })
+        return trans
+        
+    def PIPE_LOST(self, event):
+        if self.lostTimer is None:
+            timeout = self._config.get('lostTimeout', 2)
+            self.lostTimer = \
+                self.timerManager.newTimer(PipeStaged.LOST_TIMEOUT, timeout)
+            self.lostTimer.start()
+        
+    def PIPE_FOUND(self, event):
+        # Stop old
+        self._timer.stop()
+        
+        if self.doTimer is None:
+            timeout = self._config.get('doTimeout', 20)
+            self.doTimer = \
+                self.timerManager.newTimer(PipeStaged.DO_TIMEOUT, timeout)
+            self.doTimer.start()
+        
+        # Remove the lost timer if needed
+        if self.lostTimer is not None:
+            self.lostTimer.stop()
+            self.lostTimer = None
+        
+    def LOST_TIMEOUT_(self, event):
+        self._moveOn()
+        
+    def TIMEOUT_PIPESTAGED(self, event):
+        self._moveOn()
+        
+    def DO_TIMEOUT_(self, event):
+        self._moveOn()
+        
+    def _moveOn(self):
+        # Go back to the gates orientation
+        self.controller.setDesiredOrientation(self.ai.data['gateOrientation'])
+        
+        # Move on to the Light hitting task
+        self.publish(PipeStaged.MOVE_ON, core.Event())
+    
+    def enter(self):
+        Pipe.enter(self, defaultTimeout = 20)
+        
+        # Set default value do timer, so we only create it once
+        self.doTimer = None
+        self.lostTimer = None
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(pipe.Dive)
         self.visionSystem.pipeLineDetectorOff()
         
 class Light(task.Task):
@@ -143,26 +248,6 @@ class LightStaged(Light):
         
         # Set time to none
         self.doTimer = None
-    
-class Pipe(task.Task):
-    """
-    Find and hover a pipe in the course
-    """
-    
-    @staticmethod
-    def _transitions():
-        return { pipe.Centering.SETTLED : task.Next,
-                'GO' : state.Branch(pipe.Dive) }
-    
-    def enter(self):
-        task.Task.enter(self)
-        # Branch off state machine for finding the pipe
-        self.stateMachine.start(state.Branch(pipe.Dive))
-        
-    def exit(self):
-        task.Task.exit(self)
-        self.stateMachine.stopBranch(pipe.Dive)
-        self.visionSystem.pipeLineDetectorOff()
     
 class Bin(task.Task):
     @staticmethod
@@ -304,7 +389,7 @@ class Octagaon(task.Task):
         
         self.motionManager.setMotion(diveMotion)
 
-    def stop(self):
+    def exit(self):
         task.Task.exit(self)
         self.motionManager.stopCurrentMotion()
 

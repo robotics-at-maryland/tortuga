@@ -14,6 +14,7 @@ import unittest
 
 # Project Imports
 import ext.vision as vision
+import ext.math as math
 
 import ram.ai.course as course
 import ram.ai.task as task
@@ -69,9 +70,25 @@ class TestGate(support.AITestCase):
         
         # Make sure we branched to the right state machine
         self.assertCurrentBranches([gate.Dive])
-        self.assert_(self.visionSystem.pipeLineDetector)
+        self.assertFalse(self.visionSystem.pipeLineDetector)
         self.assertAIDataValue('foundPipeEarly', False)
+    
+    def testStoreDesiredQuaternion(self):
+        # Setup a desired orientation
+        expected = math.Quaternion(math.Degree(45), math.Vector3.UNIT_Z)
+        self.controller.desiredOrientation = expected
         
+        # Restart state machine so it loads the orientation
+        self.machine.stop()
+        self.machine.start(course.Gate)
+        
+        # Make sure we have the desired quaterion saved properly
+        self.assertAIDataValue('gateOrientation', expected)
+    
+    def testPipeOn(self):
+        self.releaseTimer(course.Gate.PIPE_ON)
+        self.assert_(self.visionSystem.pipeLineDetectorOn)
+    
     def testPipeFound(self):
         self.assertCurrentState(course.Gate)
         self.injectEvent(vision.EventType.PIPE_FOUND, vision.PipeEvent, 0, 
@@ -89,6 +106,27 @@ class TestGate(support.AITestCase):
         
         # Make sure we are watching for the pipe
         self.assert_(self.visionSystem.pipeLineDetector)
+        
+class TestPipe(PipeTestCase):
+    def setUp(self):
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Pipe', 'ram.ai.course.Bin'] } }
+        PipeTestCase.setUp(self, pipe.Dive, cfg)
+        self.machine.start(course.Pipe)
+        
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        PipeTestCase.checkStart(self, course.Pipe)
+        #self.assert_(self.visionSystem.pipeLineDetector)
+        
+    def testSettled(self):
+        """
+        Make sure that we move onto the light once we get over the pipe
+        """
+        PipeTestCase.checkSettled(self, course.Bin)
+        
         
 class TestPipeGate(PipeTestCase):
     def setUp(self):
@@ -119,6 +157,115 @@ class TestPipeGate(PipeTestCase):
         Make sure that we move onto the light once we get over the pipe
         """
         PipeTestCase.checkSettled(self, course.Light)
+        
+class TestPipeStaged(PipeTestCase):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.course.PipeStaged' : {
+                        'timeout' : 37,
+                        'doTimeout' : 27,
+                    },
+                }
+            },
+            'Ai' : {'taskOrder' : ['ram.ai.course.PipeStaged', 
+                                   'ram.ai.course.LightStaged'] }
+        }
+        
+        PipeTestCase.setUp(self, pipe.Dive, cfg = cfg)
+        self.machine.start(course.PipeStaged)
+        
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        PipeTestCase.checkStart(self, course.PipeStaged)
+        #self.assert_(self.visionSystem.pipeLineDetector)
+        
+    def testSettled(self):
+        """
+        Make sure that we move onto the light once we get over the pipe
+        """
+        PipeTestCase.checkSettled(self, course.LightStaged)
+        
+    def testPipeLost(self):
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['gateOrientation'] = expected
+        self.injectEvent(vision.EventType.PIPE_LOST)
+        self.assertCurrentState(course.PipeStaged)
+        
+        # Now the timer is active, make sure we don't create new ones
+        timer = MockTimer.LOG[course.PipeStaged.LOST_TIMEOUT]
+        self.injectEvent(vision.EventType.PIPE_LOST)
+        self.assertCurrentState(course.PipeStaged)
+        timer2 = MockTimer.LOG[course.PipeStaged.LOST_TIMEOUT]
+        self.assertEqual(timer, timer2)
+
+        # Release the time and make sure we move on
+        self.releaseTimer(course.PipeStaged.LOST_TIMEOUT)
+        self.assertCurrentState(course.LightStaged)
+        self.assertEqual(expected, self.controller.desiredOrientation)
+        
+    def testLostTimeout(self):
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['gateOrientation'] = expected
+        
+        self.assertCurrentState(course.PipeStaged)
+        self.injectEvent(course.PipeStaged.LOST_TIMEOUT)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(course.LightStaged)
+        self.assertEqual(expected, self.controller.desiredOrientation)
+        
+    def testPipeFound(self):
+        # Grab the current running timer
+        timer = MockTimer.LOG[self.machine.currentState().timeoutEvent]
+        
+        # Inject found event and make sure it cancels timer, starts new one
+        self.injectEvent(vision.EventType.PIPE_FOUND)
+        self.assert_(timer.stopped)
+        self.assert_(MockTimer.LOG.has_key(course.PipeStaged.DO_TIMEOUT))
+        
+        # Make sure repeated events don't create new timers
+        timer = MockTimer.LOG[course.PipeStaged.DO_TIMEOUT]
+        self.injectEvent(vision.EventType.PIPE_FOUND)
+        timer2 = MockTimer.LOG[course.PipeStaged.DO_TIMEOUT]
+        self.assertEqual(timer, timer2)
+
+        # Check the timer config
+        self.assertEqual(27, timer._sleepTime)
+        
+        # Release the time and make sure we move on
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['gateOrientation'] = expected
+        self.releaseTimer(course.PipeStaged.DO_TIMEOUT)
+        self.assertCurrentState(course.LightStaged)
+        self.assertEqual(expected, self.controller.desiredOrientation)
+        
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['gateOrientation'] = expected
+        
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(course.PipeStaged)
+        
+        # Release timer
+        self.assertEqual(37, 
+            MockTimer.LOG[self.machine.currentState().timeoutEvent]._sleepTime)
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.LightStaged)
+        
+        #self.qeventHub.publishEvents()
+        #self.assertCurrentState(course.LightStaged)
+        self.assertFalse(self.machine.branches.has_key(pipe.Dive))
+        self.assertFalse(self.visionSystem.pipeLineDetector)
+        self.assertEqual(expected, self.controller.desiredOrientation)
         
 class TestLight(support.AITestCase):
     def setUp(self):
@@ -205,26 +352,6 @@ class TestLight(TestLight):
         # Release the time and make sure we move on
         self.releaseTimer(course.LightStaged.DO_TIMEOUT)
         self.assertCurrentState(course.Pipe)
-        
-class TestPipe(PipeTestCase):
-    def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Pipe', 'ram.ai.course.Bin'] } }
-        PipeTestCase.setUp(self, pipe.Dive, cfg)
-        self.machine.start(course.Pipe)
-        
-    def testStart(self):
-        """
-        Make sure that when we start we are doing the right thing
-        """
-        PipeTestCase.checkStart(self, course.Pipe)
-        #self.assert_(self.visionSystem.pipeLineDetector)
-        
-    def testSettled(self):
-        """
-        Make sure that we move onto the light once we get over the pipe
-        """
-        PipeTestCase.checkSettled(self, course.Bin)
         
 class TestBin(support.AITestCase):
     def setUp(self):
