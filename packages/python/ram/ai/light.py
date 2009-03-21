@@ -30,7 +30,11 @@ import ram.motion.seek
 
 LIGHT_HIT = core.declareEventType('LIGHT_HIT')
 
-class Dive(state.State):
+class Start(state.State):
+    """
+    Does all the setup work for the light task.  Currently this involves just
+    going to the proper depth to begin the search for the light.
+    """
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }

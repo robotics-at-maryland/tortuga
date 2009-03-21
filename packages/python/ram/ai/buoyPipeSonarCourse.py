@@ -151,7 +151,7 @@ class Light(state.State):
                  light.LIGHT_HIT : PingerDive,
                  Light.TIMEOUT : PingerDive,
                  Light.DO_TIMEOUT : PingerDive,
-                 'GO' : state.Branch(light.Dive) }
+                 'GO' : state.Branch(light.Start) }
     
     def LIGHT_FOUND(self, event):
         # Stop old
@@ -164,7 +164,7 @@ class Light(state.State):
             self.doTimer.start()
     
     def enter(self):
-        self.stateMachine.start(state.Branch(light.Dive))
+        self.stateMachine.start(state.Branch(light.Start))
         
         # Create out timeout
         timeout = self._config.get('timeout', 40)
@@ -175,7 +175,7 @@ class Light(state.State):
         self.doTimer = None
     
     def exit(self):
-        self.stateMachine.stopBranch(light.Dive)
+        self.stateMachine.stopBranch(light.Start)
         self.visionSystem.redLightDetectorOff()
 
 class PingerDive(course.PingerDive):

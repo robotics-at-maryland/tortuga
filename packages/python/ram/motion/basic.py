@@ -296,6 +296,16 @@ class RateChangeDepth(Motion):
         self._conn = None
         self._timer = None
         
+    # Properties
+    @property
+    def desiredDepth(self):
+        return self._desiredDepth
+    
+    @property
+    def speed(self):
+        return self._speed
+        
+    # Methods
     def _start(self):
         # Ensure the controller is consistent with vehicle
         currentDepth = self._vehicle.getDepth()

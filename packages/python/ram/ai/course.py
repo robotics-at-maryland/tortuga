@@ -26,6 +26,7 @@ import ram.ai.pipe as pipe
 import ram.ai.light as light
 import ram.ai.bin as bin
 import ram.ai.safe as safe
+import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
 
 import ram.motion as motion
@@ -94,19 +95,22 @@ class Pipe1(task.Task):
         self.visionSystem.pipeLineDetectorOff()
         
 class Light(task.Task):
+    """
+    Task for completion of the light objective within a certain timelimit.
+    """
     @staticmethod
     def _transitions():
         return { light.LIGHT_HIT : task.Next,
                  task.TIMEOUT : task.Next,
-                 'GO' : state.Branch(light.Searching) }
+                 'GO' : state.Branch(light.Start) }
     
     def enter(self):
         task.Task.enter(self, defaultTimeout = 60)
-        self.stateMachine.start(state.Branch(light.Searching))
+        self.stateMachine.start(state.Branch(light.Start))
     
     def exit(self):
         task.Task.exit(self)
-        self.stateMachine.stopBranch(light.Searching)
+        self.stateMachine.stopBranch(light.Start)
         self.visionSystem.redLightDetectorOff()
     
 class Pipe2(task.Task):
@@ -225,7 +229,7 @@ class SafeDive(task.Task):
         self.motionManager.stopCurrentMotion()
         self.stateMachine.stopBranch(sonar.Hovering)
 
-class Safe(task.Task):
+class SafeVision(task.Task):
     """
     Grabs the safe and surfaces to a predefined depth, when it times out, it
     goes into a recovering mode, and does a normal surface.
@@ -248,13 +252,29 @@ class Safe(task.Task):
         self.stateMachine.stopBranch(safe.Searching)
         self.visionSystem.downwardSafeDetectorOff()
 
-class RecoverFromSafe(state.State):
+class SafeSonar(task.Task):
     """
-    Gets us back in the octagon if the safe fails for some reason.
+    Grabs the safe and surfaces to a predefined depth, when it times out, it
+    goes into a recovering mode, and does a normal surface.
+    """
     
-    Dives to good pinger depth, and activates the sonar
-    """
-    pass
+    @staticmethod
+    def _transitions():
+        return { safe.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
+                 'GO' : state.Branch(sonarSafe.Settling) }
+    
+    def enter(self):
+        # TODO: base the timeout off an offset from how much time we have left
+        # in the mission
+        task.Task.enter(self, defaultTimeout = 500)
+        
+        self.stateMachine.start(state.Branch(sonarSafe.Settling))
+    
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(sonarSafe.Settling)
+        self.visionSystem.downwardSafeDetectorOff()
 
 class Octagaon(task.Task):
     """
@@ -276,3 +296,11 @@ class Octagaon(task.Task):
     def stop(self):
         task.Task.exit(self)
         self.motionManager.stopCurrentMotion()
+
+class RecoverFromSafe(task.Task):
+    """
+    Gets us back in the octagon if the safe fails for some reason.
+    
+    Dives to good pinger depth, and activates the sonar
+    """
+    pass

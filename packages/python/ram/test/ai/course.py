@@ -23,6 +23,7 @@ import ram.ai.light as light
 import ram.ai.bin as bin
 import ram.ai.sonar as sonar
 import ram.ai.safe as safe
+import ram.ai.sonarSafe as sonarSafe
 
 import ram.motion as motion
 import ram.motion.basic
@@ -131,8 +132,8 @@ class TestLight(support.AITestCase):
         """
         self.assertCurrentState(course.Light)
         
-        self.assertCurrentBranches([light.Searching])
-        self.assert_(self.visionSystem.redLightDetector)
+        self.assertCurrentBranches([light.Start])
+        #self.assert_(self.visionSystem.redLightDetector)
         
     def testLightHit(self):
         """
@@ -143,7 +144,7 @@ class TestLight(support.AITestCase):
         self.assertCurrentState(course.Pipe2)
         
         # Make sure the light seeking branch is gone
-        self.assertFalse(self.machine.branches.has_key(light.Searching))
+        self.assertFalse(self.machine.branches.has_key(light.Start))
         self.assertFalse(self.visionSystem.redLightDetector)
         
     def testTimeout(self):
@@ -159,7 +160,7 @@ class TestLight(support.AITestCase):
         
         # Test that the timeout worked properly
         self.assertCurrentState(course.Pipe2)
-        self.assertFalse(self.machine.branches.has_key(light.Searching))
+        self.assertFalse(self.machine.branches.has_key(light.Start))
         self.assertFalse(self.visionSystem.redLightDetector)
         
 class TestPipe2(PipeTestCase):
@@ -290,8 +291,8 @@ class TestPinger(support.AITestCase):
 
 class TestSafeDive(support.AITestCase):
     def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.SafeDive', 'ram.ai.course.Safe'] } }
+        cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.SafeDive', 
+                                       'ram.ai.course.SafeVision'] } }
         support.AITestCase.setUp(self, cfg = cfg)
         self.vehicle.depth = 0
         self.machine.start(course.SafeDive)
@@ -307,24 +308,24 @@ class TestSafeDive(support.AITestCase):
                 
     def testDiveFinished(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(course.Safe)
+        self.assertCurrentState(course.SafeVision)
         
         # Make sure the pinger seeking branch is gone
         self.assertFalse(self.machine.branches.has_key(sonar.Hovering))
         
-class TestSafe(support.AITestCase):
+class TestSafeVision(support.AITestCase):
     def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.Safe', 'ram.ai.course.Octagaon'] } }
+        cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.SafeVision', 
+                                       'ram.ai.course.Octagaon'] } }
         support.AITestCase.setUp(self, cfg = cfg)
         self.vehicle.depth = 5
-        self.machine.start(course.Safe)
+        self.machine.start(course.SafeVision)
         
     def testStart(self):
         """
         Make sure that when we start we are doing the right thing
         """
-        self.assertCurrentState(course.Safe)
+        self.assertCurrentState(course.SafeVision)
         self.assertCurrentBranches([safe.Searching])
 
     def testComplete(self):
@@ -343,7 +344,7 @@ class TestSafe(support.AITestCase):
         """
         # Restart with a working timer
         self.machine.stop()
-        self.machine.start(course.Safe)
+        self.machine.start(course.SafeVision)
         
         # Release timer
         self.releaseTimer(self.machine.currentState().timeoutEvent)
@@ -351,6 +352,46 @@ class TestSafe(support.AITestCase):
         # Test that the timeout worked properly
         self.assertCurrentState(course.Octagaon)
         self.assertFalse(self.machine.branches.has_key(safe.Searching))
+
+class TestSafeSonar(support.AITestCase):
+    def setUp(self):
+        cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.SafeSonar', 
+                                       'ram.ai.course.Octagaon'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.vehicle.depth = 5
+        self.machine.start(course.SafeSonar)
+        
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(course.SafeSonar)
+        self.assertCurrentBranches([sonarSafe.Settling])
+
+    def testComplete(self):
+        """
+        Make sure that we move on once we hit the light
+        """
+        self.injectEvent(safe.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Octagaon)
+        
+        # Make sure the safe grabbing branch is gone
+        self.assertFalse(self.machine.branches.has_key(sonarSafe.Settling))
+        
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(course.SafeSonar)
+        
+        # Release timer
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.Octagaon)
+        self.assertFalse(self.machine.branches.has_key(sonarSafe.Dive))
 
 class TestOctagon(support.AITestCase):
     def setUp(self):

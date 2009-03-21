@@ -19,15 +19,34 @@ import ram.motion.search
 
 import ram.test.ai.support as support
 
-class TestDive(support.AITestCase):
+class TestStart(support.AITestCase):
+    DEPTH = 5
+    SPEED = 1
+    
     def setUp(self):
-        support.AITestCase.setUp(self)
-        self.machine.start(light.Dive)
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.light.Start' : {
+                        'depth' : TestStart.DEPTH,
+                        'speed'  : TestStart.SPEED
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(light.Start)
     
     def testStart(self):
         """Make sure we are diving with no detector on"""
         self.assertFalse(self.visionSystem.redLightDetector)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+    def testConfig(self):
+        self.assertEqual(TestStart.DEPTH, 
+                         self.motionManager.currentMotion.desiredDepth)
+        self.assertEqual(TestStart.SPEED, 
+                         self.motionManager.currentMotion.speed)
         
     def testFinish(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
@@ -53,7 +72,7 @@ class TestSearching(support.AITestCase):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.redLightDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
-                
+        
     def testConfig(self):
         self.assertEqual(10, self.machine.currentState()._legTime)
         self.assertEqual(9, self.machine.currentState()._sweepAngle)
