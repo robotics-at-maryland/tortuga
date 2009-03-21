@@ -29,7 +29,7 @@ Scene:
     Objects:        
         buoy1:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-15, 1, -1]
+            position: [-15, 1, -2]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

@@ -526,12 +526,17 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundDownSafe = False
         #self._pipeCentered = False
         
+        # Target Detector variables
+        self._runTarget = False
+        self._foundTarget = False
+        
         # Find all the Buoys, Pipes and Bins
         self._bouys = sim.scene.getObjectsByInterface(IBuoy)
         self._pipes = sim.scene.getObjectsByInterface(IPipe)
         self._bins = sim.scene.getObjectsByInterface(IBin)
         self._ducts = sim.scene.getObjectsByInterface(IDuct)
         self._safes = sim.scene.getObjectsByInterface(ISafe)
+        self._targets = sim.scene.getObjectsByInterface(ITarget)
 
     def redLightDetectorOn(self):
         self._runRedLight = True
@@ -563,6 +568,12 @@ class IdealSimVision(ext.vision.VisionSystem):
     def downwardSafeDetectorOff(self):
         self._runDownSafeDetector = False
 
+    def targetDetectorOn(self):
+        self._runTarget = True
+        
+    def targetDetectorOff(self):
+        self._runTarget = False
+
     def backgrounded(self):
         return False
 
@@ -580,6 +591,9 @@ class IdealSimVision(ext.vision.VisionSystem):
             self._checkDuct()
         if self._runDownSafeDetector:
             self._checkDownwardSafe()
+        if self._runTarget:
+            self._checkTarget()
+        
     
     def _findClosest(self, objects):
         """
@@ -605,39 +619,6 @@ class IdealSimVision(ext.vision.VisionSystem):
                     closest = (o, toObj)
 
         return closest
-    
-    
-    def _checkRedLight(self):
-        """
-        Check for the red light
-        """
-        # Determine orientation to the buoy
-        bouy, relativePos = self._findClosest(self._bouys)
-        lightVisible, x, y, azimuth, elevation, angle = \
-            self._forwardCheck(relativePos, bouy)
-
-        if lightVisible and (relativePos.length() < 3):
-            # Pack data into the event
-            event = ext.core.Event()
-            event.x = x
-            event.y = y
-            event.azimuth = azimuth
-            event.elevation = elevation
-            
-            # Convert to feet
-            event.range = relativePos.length() * 3.2808399
-            
-            self.publish(ext.vision.EventType.LIGHT_FOUND, event)
-
-            if relativePos.length() < 0.5:
-                self.publish(ext.vision.EventType.LIGHT_ALMOST_HIT,
-                             ext.core.Event())
-            
-        else:
-            if self._foundLight:
-                self.publish(ext.vision.EventType.LIGHT_LOST, ext.core.Event())
-
-        self._foundLight = lightVisible
         
     def _downwardCheck(self, relativePos, obj):
         """
@@ -740,6 +721,65 @@ class IdealSimVision(ext.vision.VisionSystem):
             angle = ext.math.Degree(orientation.getRoll(True).valueDegrees())
             
         return (visible, x, y, azimuth, elevation, angle)
+        
+    def _checkRedLight(self):
+        """
+        Check for the red light
+        """
+        # Determine orientation to the buoy
+        bouy, relativePos = self._findClosest(self._bouys)
+        lightVisible, x, y, azimuth, elevation, angle = \
+            self._forwardCheck(relativePos, bouy)
+
+        if lightVisible and (relativePos.length() < 3):
+            # Pack data into the event
+            event = ext.core.Event()
+            event.x = x
+            event.y = y
+            event.azimuth = azimuth
+            event.elevation = elevation
+            
+            # Convert to feet
+            event.range = relativePos.length() * 3.2808399
+            
+            self.publish(ext.vision.EventType.LIGHT_FOUND, event)
+
+            if relativePos.length() < 0.5:
+                self.publish(ext.vision.EventType.LIGHT_ALMOST_HIT,
+                             ext.core.Event())
+            
+        else:
+            if self._foundLight:
+                self.publish(ext.vision.EventType.LIGHT_LOST, ext.core.Event())
+
+        self._foundLight = lightVisible
+        
+    def _checkTarget(self):
+        """
+        Check for the Target (ie. "Machine Gun Nest")
+        """
+        # Determine orientation to the target
+        target, relativePos = self._findClosest(self._targets)
+        targetVisible, x, y, azimuth, elevation, angle = \
+            self._forwardCheck(relativePos, target)
+
+        if targetVisible and (relativePos.length() < 3):
+            # Pack data into the event
+            event = ext.core.Event()
+            event.x = x
+            event.y = y
+            event.squareNess =  math.cos(angle.valueRadians())
+            
+            # Convert to feet
+            event.range = relativePos.length() * 3.2808399
+            
+            self.publish(ext.vision.EventType.TARGET_FOUND, event)
+            
+        else:
+            if self._foundTarget:
+                self.publish(ext.vision.EventType.TARGET_LOST, ext.core.Event())
+
+        self._foundTarget = targetVisible
         
     def _checkOrangePipe(self):
         pipe, relativePos = self._findClosest(self._pipes)
