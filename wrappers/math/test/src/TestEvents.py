@@ -23,6 +23,20 @@ if TEST:
             self.eventHub = core.EventHub()
             self.qeventHub = core.QueuedEventHub(self.eventHub)
             self.epub = core.EventPublisher()
+
+        def testProps(self):
+            # Get all of our event class 
+            eventTypes = []
+            for val in dir(math):
+                obj = getattr(math, val)
+                if isinstance(obj, type(core.Event)):
+                    if issubclass(obj, core.Event):
+                        eventTypes.append(obj)
+
+            # Make sure they have the core event type props
+            for eType in eventTypes:
+                self.assert_(hasattr(eType, 'type'))
+                self.assert_(hasattr(eType, 'sender'))
             
         def testNumericEvent(self):
             def handler(event):

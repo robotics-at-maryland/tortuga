@@ -78,6 +78,7 @@ def generate(module_builder, local_ns, global_ns):
     eventsFound = False
     for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
                                 allow_empty = True):
+        eventsFound = True
         cls.include()
         classes.append(cls)
 
