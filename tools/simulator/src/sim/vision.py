@@ -611,30 +611,18 @@ class IdealSimVision(ext.vision.VisionSystem):
         """
         Check for the red light
         """
-        # Determine orientation to the bouy
-        lightVisible = False
+        # Determine orientation to the buoy
         bouy, relativePos = self._findClosest(self._bouys)
-        forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
-        
-        quat = forwardVector.getRotationTo(relativePos)
-        yaw = -quat.getRoll(True).valueDegrees()
-        pitch = quat.getYaw(True).valueDegrees()
-        
-        # Check to see if its the field of view
-        if (math.fabs(yaw) <= (self._horizontalFOV/2)) and \
-           (math.fabs(pitch) <= (self._verticalFOV/2)):
-            lightVisible = True
-        
-        if lightVisible and (relativePos.length() < 3):
-            event = ext.core.Event()
+        lightVisible, x, y, azimuth, elevation, angle = \
+            self._forwardCheck(relativePos, bouy)
 
-            event.x = yaw / (self._horizontalFOV/2)
-            # Negative because of the corindate system
-            event.y = -pitch / (self._verticalFOV/2)
-            
-            # These have to be swaped as well
-            event.azimuth = ext.math.Degree(-yaw)
-            event.elevation = ext.math.Degree(-pitch)
+        if lightVisible and (relativePos.length() < 3):
+            # Pack data into the event
+            event = ext.core.Event()
+            event.x = x
+            event.y = y
+            event.azimuth = azimuth
+            event.elevation = elevation
             
             # Convert to feet
             event.range = relativePos.length() * 3.2808399
@@ -729,6 +717,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         visible = False
         x = 0.0
         y = 0.0
+        azimuth = ext.math.Degree(0.0)
+        elevation = ext.math.Degree(0.0) 
         angle = ext.math.Degree(0.0)
         
         # Check to see if its the field of view
@@ -740,12 +730,16 @@ class IdealSimVision(ext.vision.VisionSystem):
             # Negative because of the corindate system
             y = -pitch / (self._verticalFOV/2)
         
+            # These have to be swaped as well
+            azimuth = ext.math.Degree(-yaw)
+            elevation = ext.math.Degree(-pitch)
+        
             # Find relative angle
             forwardObj = obj.orientation * ogre.Vector3.UNIT_X
             orientation = forwardVector.getRotationTo(forwardObj)
             angle = ext.math.Degree(orientation.getRoll(True).valueDegrees())
             
-        return (visible, x, y, angle)
+        return (visible, x, y, azimuth, elevation, angle)
         
     def _checkOrangePipe(self):
         pipe, relativePos = self._findClosest(self._pipes)
@@ -856,7 +850,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         
     def _checkDuct(self):
         duct, relativePos = self._findClosest(self._ducts)
-        ductVisible, x, y, angle = self._forwardCheck(relativePos, duct)
+        ductVisible, x, y, azimuth, elevation, angle = \
+            self._forwardCheck(relativePos, duct)
 
         if ductVisible and (relativePos.length() < 8):
             event = ext.vision.DuctEvent(0.0, 0.0, 0.0, 0.0, False, False)
