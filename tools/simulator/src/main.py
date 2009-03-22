@@ -16,7 +16,11 @@ import ext.core
 
 try:
     import ctypes
-    ctypes.cdll.LoadLibrary("libram_network.so")
+    import platform
+    end = 'so'
+    if 'Darwin' == platform.system():
+        end = 'dylib'
+    ctypes.cdll.LoadLibrary("libram_network." + end)
 except OSError, e:
     print e
 
