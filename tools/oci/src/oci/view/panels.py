@@ -521,11 +521,11 @@ class PayloadPanel(wx.Panel):
         return leds
 
     def _markerDropped(self, event):
-        self._markersLeds[self._markersDropped].SetState(0)
+        self._markersLeds[self._markersDropped].SetState(3)
         self._markersDropped += 1
     
     def _torpedoLaunched(self, event):
-        self._torpLeds[self._torpedosLaunched].SetState(0)
+        self._torpLeds[self._torpedosLaunched].SetState(3)
         self._torpedosLaunched += 1
         
     @staticmethod
