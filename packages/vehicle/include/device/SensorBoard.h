@@ -61,6 +61,7 @@ public:
     /* @{ */
 
     static int NUMBER_OF_MARKERS;
+    static int NUMBER_OF_TORPEDOS;
     
     /** Creates a device with the given file descriptor */
     SensorBoard(int deviceFD,
@@ -144,13 +145,20 @@ public:
      */
     virtual void setThrusterEnable(int address, bool state);
 
-    /** Drops a marker (currently only works twice)
+    /** Drops a marker (works only NUMBER_MARKERS times)
      *
      *  @return
      *      The number of the marker dropped, -1 if all markers are used.
      */
     virtual int dropMarker();
 
+    /** Fire a torpedo (works only NUMBER_TORPEDOS times)
+     *
+     *  @return
+     *      The number of the torpedo fired, -1 if all torpedos are used.
+     */
+    virtual int fireTorpedo();
+    
    /** Returns true if the vehicle can draw power from the power source
      *
      *  @param address
@@ -188,6 +196,8 @@ protected:
     virtual void setBatteryState(int state);
     
     virtual void dropMarker(int markerNum);
+
+    virtual void fireTorpedo(int torpedoNum);
 
     virtual void syncBoard();
     

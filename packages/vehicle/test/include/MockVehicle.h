@@ -83,6 +83,8 @@ public:
     
     virtual void dropMarker() {assert(false && "Method not implemented");}
 
+    virtual void fireTorpedo() {assert(false && "Method not implemented");}
+
     virtual int startStatus()
     {
         assert(false && "Method not implemented");

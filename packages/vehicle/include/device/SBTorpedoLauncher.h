@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/include/device/SBMarkerDropper.h
+ * File:  packages/vision/include/device/SBTorpedoLauncher.h
  */
 
-#ifndef RAM_VEHICLE_DEVICE_SBMARKERDROPPER_07_21_2008
-#define RAM_VEHICLE_DEVICE_SBMARKERDROPPER_07_21_2008
+#ifndef RAM_VEHICLE_DEVICE_SBTORPEDOLAUNCHER_03_22_2008
+#define RAM_VEHICLE_DEVICE_SBTORPEDOLAUNCHER_03_22_2008
 
 // STD Includesb
 #include <string>
@@ -28,18 +28,18 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-/** Implements the IPayloadSet with the SensorBoard class to drop markers */
-class RAM_EXPORT SBMarkerDropper :
+/** Implements the IPayloadSet with the SensorBoard class to fire torpedos */
+class RAM_EXPORT SBTorpedoLauncher :
         public Device, // for getName
         public IPayloadSet
         // boost::noncopyable
 {
 public:
-    SBMarkerDropper(core::ConfigNode config,
-                    core::EventHubPtr eventHub = core::EventHubPtr(),
-                    IVehiclePtr vehicle = IVehiclePtr());
+    SBTorpedoLauncher(core::ConfigNode config,
+                      core::EventHubPtr eventHub = core::EventHubPtr(),
+                      IVehiclePtr vehicle = IVehiclePtr());
     
-    virtual ~SBMarkerDropper();
+    virtual ~SBTorpedoLauncher();
 
     // IPayloadSet methods
     virtual void releaseObject();
@@ -80,15 +80,15 @@ private:
     /** Sensor Board from which to access the hardware */
     SensorBoardPtr m_sensorBoard;
 
-    /** MARKERDROPPER_UPDATE event connection */
+    /** TORPEDOLAUNCHER_UPDATE event connection */
     //core::EventConnectionPtr m_connection;
 
-    /** Number of markers dropped */
-    int m_markersDropped;
+    /** Number of torpedos fired, updated by releaseObject */
+    int m_torpedosFired;
 };
     
 } // namespace device
 } // namespace vehicle
 } // namespace ram
 
-#endif // RAM_VEHICLE_DEVICE_SBMARKERDROPPER_07_21_2008
+#endif // RAM_VEHICLE_DEVICE_SBTORPEDOLAUNCHER_03_22_2008

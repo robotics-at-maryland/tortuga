@@ -76,7 +76,9 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr()),
     m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
-    m_markerDropper(device::IPayloadSetPtr())
+    m_markerDropper(device::IPayloadSetPtr()),
+    m_torpedoLauncherName(config["TorpedoLauncherName"].asString("TorpedoLauncher")),
+    m_torpedoLauncher(device::IPayloadSetPtr())
 {
     // Create devices
     if (config.exists("Devices"))
@@ -199,6 +201,11 @@ void Vehicle::unsafeThrusters()
 void Vehicle::dropMarker()
 {
     getMarkerDropper()->releaseObject();
+}
+
+void Vehicle::fireTorpedo()
+{
+    getTorpedoLauncher()->releaseObject();
 }
     
 void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
@@ -337,6 +344,17 @@ device::IPayloadSetPtr Vehicle::getMarkerDropper()
     }
     return m_markerDropper;
 }
+
+device::IPayloadSetPtr Vehicle::getTorpedoLauncher()
+{
+    if (!m_torpedoLauncher)
+    {
+        m_torpedoLauncher = device::IDevice::castTo<device::IPayloadSet>(
+            getDevice(m_torpedoLauncherName));
+    }
+    return m_torpedoLauncher;
+}
+
     
 bool Vehicle::lookupThrusterDevices()
 {

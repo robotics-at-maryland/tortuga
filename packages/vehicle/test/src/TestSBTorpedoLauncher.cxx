@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/packages/vehicle/test/src/TestSBMarkerDropper.cxx
+ * File:  packages/packages/vehicle/test/src/TestSBTorpedoLauncher.cxx
  */
 
 // Library Includes
@@ -12,7 +12,7 @@
 #include <boost/bind.hpp>
 
 // Project Includes
-#include "vehicle/include/device/SBMarkerDropper.h"
+#include "vehicle/include/device/SBTorpedoLauncher.h"
 #include "vehicle/include/device/SensorBoard.h"
 
 #include "vehicle/test/include/MockVehicle.h"
@@ -27,20 +27,20 @@ static const std::string SB_CONFIG(
 
 static const std::string BLANK_CONFIG("{}");
 
-struct SBMarkerDropperFixture
+struct SBTorpedoLauncherFixture
 {
-    SBMarkerDropperFixture() :
+    SBTorpedoLauncherFixture() :
         vehicle(new MockVehicle),
         ivehicle(vehicle),
         sensorBoard(new MockSensorBoard(
                         ram::core::ConfigNode::fromString(SB_CONFIG))),
-        dropper(0)
+        launcher(0)
     {
         vehicle->devices["SensorBoard"] =
             ram::vehicle::device::SensorBoardPtr(sensorBoard);
     }
     
-    ~SBMarkerDropperFixture()
+    ~SBTorpedoLauncherFixture()
     {
         // Don't delete vehicle, sensorBoard, handled by smart pointers
     }
@@ -48,83 +48,83 @@ struct SBMarkerDropperFixture
     MockVehicle* vehicle;
     ram::vehicle::IVehiclePtr ivehicle;
     MockSensorBoard* sensorBoard;
-    ram::vehicle::device::IPayloadSet* dropper;
+    ram::vehicle::device::IPayloadSet* launcher;
 };
 
-TEST_FIXTURE(SBMarkerDropperFixture, releaseObject)
+TEST_FIXTURE(SBTorpedoLauncherFixture, releaseObject)
 {
-    dropper = new ram::vehicle::device::SBMarkerDropper(
+    launcher = new ram::vehicle::device::SBTorpedoLauncher(
         ram::core::ConfigNode::fromString(BLANK_CONFIG),
         ram::core::EventHubPtr(), ivehicle);
 
-    sensorBoard->markerDropNum = 0;
-    dropper->releaseObject();
+    sensorBoard->torpedoFireNum = 0;
+    launcher->releaseObject();
 }
 
-TEST_FIXTURE(SBMarkerDropperFixture, objectCount)
+TEST_FIXTURE(SBTorpedoLauncherFixture, objectCount)
 {
-    dropper = new ram::vehicle::device::SBMarkerDropper(
+    launcher = new ram::vehicle::device::SBTorpedoLauncher(
         ram::core::ConfigNode::fromString(BLANK_CONFIG),
         ram::core::EventHubPtr(), ivehicle);
 
-    CHECK_EQUAL(MockSensorBoard::NUMBER_OF_MARKERS,
-                dropper->initialObjectCount());
+    CHECK_EQUAL(MockSensorBoard::NUMBER_OF_TORPEDOS,
+                launcher->initialObjectCount());
 
-    int expectedCount = dropper->initialObjectCount() - 1;
+    int expectedCount = launcher->initialObjectCount() - 1;
 
     // Release an object
-    sensorBoard->markerDropNum = 0;
-    dropper->releaseObject();
+    sensorBoard->torpedoFireNum = 0;
+    launcher->releaseObject();
 
     // Check the count
-    CHECK_EQUAL(expectedCount, dropper->objectCount());
+    CHECK_EQUAL(expectedCount, launcher->objectCount());
 }
 
-TEST_FIXTURE(SBMarkerDropperFixture, initialObjectCount)
+TEST_FIXTURE(SBTorpedoLauncherFixture, initialObjectCount)
 {
-    dropper = new ram::vehicle::device::SBMarkerDropper(
+    launcher = new ram::vehicle::device::SBTorpedoLauncher(
         ram::core::ConfigNode::fromString(BLANK_CONFIG),
         ram::core::EventHubPtr(), ivehicle);
 
-    CHECK_EQUAL(MockSensorBoard::NUMBER_OF_MARKERS,
-                dropper->initialObjectCount());
-    CHECK_EQUAL(dropper->objectCount(), dropper->initialObjectCount());
+    CHECK_EQUAL(MockSensorBoard::NUMBER_OF_TORPEDOS,
+                launcher->initialObjectCount());
+    CHECK_EQUAL(launcher->objectCount(), launcher->initialObjectCount());
 }
 
 typedef std::vector<ram::core::EventPtr>
-MarkerDropperEventPtrList;
+TorpedoLauncherEventPtrList;
 
-void markerDroppedHelper(MarkerDropperEventPtrList* list,
+void torpedoLauncherHelper(TorpedoLauncherEventPtrList* list,
                           ram::core::EventPtr event)
 {
     list->push_back(event);
 }
 
-TEST_FIXTURE(SBMarkerDropperFixture, event_OBJECT_RELEASED)
+TEST_FIXTURE(SBTorpedoLauncherFixture, event_OBJECT_RELEASED)
 {
-    dropper = new ram::vehicle::device::SBMarkerDropper(
+    launcher = new ram::vehicle::device::SBTorpedoLauncher(
         ram::core::ConfigNode::fromString(BLANK_CONFIG),
         ram::core::EventHubPtr(), ivehicle);
 
     // Register for the event
-    MarkerDropperEventPtrList eventList;
-    ram::core::EventConnectionPtr conn = dropper->subscribe(
+    TorpedoLauncherEventPtrList eventList;
+    ram::core::EventConnectionPtr conn = launcher->subscribe(
         ram::vehicle::device::IPayloadSet::OBJECT_RELEASED,
-        boost::bind(markerDroppedHelper, &eventList, _1));
+        boost::bind(torpedoLauncherHelper, &eventList, _1));
     
     // Real marker drops
-    sensorBoard->markerDropNum = 0;
-    dropper->releaseObject();
+    sensorBoard->torpedoFireNum = 0;
+    launcher->releaseObject();
     CHECK_EQUAL(1u, eventList.size());
     
-    sensorBoard->markerDropNum = 1;
-    dropper->releaseObject();
+    sensorBoard->torpedoFireNum = 1;
+    launcher->releaseObject();
     CHECK_EQUAL(2u, eventList.size());
 
     // Now a bad marker drop (should be no event)
-    sensorBoard->markerDropNum = -1;
-    dropper->releaseObject();
+    sensorBoard->torpedoFireNum = -1;
+    launcher->releaseObject();
     CHECK_EQUAL(2u, eventList.size());
     
-    delete dropper;
+    delete launcher;
 }

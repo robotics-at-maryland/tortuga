@@ -24,6 +24,7 @@ RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, SONAR_UPDATE);
 
 // Current vehicle 
 int ram::vehicle::device::SensorBoard::NUMBER_OF_MARKERS = 2;
+int ram::vehicle::device::SensorBoard::NUMBER_OF_TORPEDOS = 2;
 
 static log4cpp::Category& s_thrusterLog
 (log4cpp::Category::getInstance("Thruster"));
@@ -339,7 +340,7 @@ int SensorBoard::dropMarker()
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
     int markerDropped = -1;
-    if (markerNum <= 1)
+    if (markerNum < NUMBER_OF_MARKERS)
     {
         dropMarker(markerNum);
         markerDropped = markerNum;
@@ -348,6 +349,23 @@ int SensorBoard::dropMarker()
 
     return markerDropped;
 }
+
+int SensorBoard::fireTorpedo()
+{
+    static int torpedoNum = 0;
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    
+    int torpedoFired = -1;
+    if (torpedoNum < NUMBER_OF_TORPEDOS)
+    {
+        fireTorpedo(torpedoNum);
+        torpedoFired = torpedoNum;
+        torpedoNum++;
+    }
+
+    return torpedoFired;
+}
+
     
 void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
 {
@@ -389,6 +407,11 @@ void SensorBoard::dropMarker(int markerNum)
     handleReturn(::dropMarker(m_deviceFD, markerNum));
 }
 
+void SensorBoard::fireTorpedo(int torpedoNum)
+{
+//    handleReturn(::fireTorpedo(m_deviceFD, torpedoNum));
+}
+    
 void SensorBoard::syncBoard()
 {
     if (SB_ERROR == ::syncBoard(m_deviceFD))

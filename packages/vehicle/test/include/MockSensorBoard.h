@@ -35,6 +35,7 @@ public:
 
         // Init other values
         markerDropNum = -1;
+        torpedoFireNum = -1;
     }    
     virtual ~MockSensorBoard() {}
 
@@ -72,6 +73,8 @@ public:
     
     virtual int dropMarker() { return markerDropNum; }
 
+    virtual int fireTorpedo() { return torpedoFireNum; }
+
     bool thrusterEnables[6];
     int thrusterValues[6];
 
@@ -79,6 +82,7 @@ public:
     bool powerSourceUsed[6];
 
     int markerDropNum;
+    int torpedoFireNum;
     
     void publishPowerSourceUpdate(int id, bool enabled, bool inUse,
                                   double voltage, double current)

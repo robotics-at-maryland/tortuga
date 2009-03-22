@@ -51,6 +51,8 @@ public:
 
     virtual void dropMarker();
 
+    virtual void fireTorpedo();
+    
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque);
 
@@ -96,6 +98,9 @@ protected:
 
     /** Grabs the marker dropper device */
     device::IPayloadSetPtr getMarkerDropper();
+
+    /** Grabs the torpedo launcher device */
+    device::IPayloadSetPtr getTorpedoLauncher();
     
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
@@ -126,6 +131,9 @@ private:
 
     std::string m_markerDropperName;
     vehicle::device::IPayloadSetPtr m_markerDropper;
+
+    std::string m_torpedoLauncherName;
+    vehicle::device::IPayloadSetPtr m_torpedoLauncher;
 };
     
 } // namespace vehicle

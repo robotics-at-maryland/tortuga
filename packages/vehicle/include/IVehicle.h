@@ -99,8 +99,12 @@ public:
     /** Turns <b>OFF</b> the thruster safety */
     virtual void unsafeThrusters() = 0;
 
-    /** Drop a marker */
+    /** Drop a marker from the bottom of the vehicle */
     virtual void dropMarker() = 0;
+
+    /** Fire torpedo from the front of the vehicle */
+    virtual void fireTorpedo() = 0;
+    
 protected:
     IVehicle(std::string name,
              core::EventHubPtr eventHub = core::EventHubPtr());
