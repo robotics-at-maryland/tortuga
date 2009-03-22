@@ -1,4 +1,4 @@
-/*
+o/*
  * Copyright (C) 2008 Robotics at Maryland
  * Copyright (C) 2008 David Love <loved@umd.edu>
  * All rights reserved.
@@ -140,7 +140,7 @@ namespace ram {
 			fann_type* inputData = new fann_type[m_net.get_num_input()];
 			loadImage (grayInput, inputData);
 			m_outValue = m_net.run (inputData);
-			for (unsigned int i = 0; i < m_net.get_num_input(); ++i) {
+			for (unsigned int i = 0; i < m_net.get_num_output(); ++i) {
 				if (m_outValue[i] > m_outValue[highest_out]) {
 					highest_out = i;
 				}
