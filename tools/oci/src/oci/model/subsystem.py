@@ -28,6 +28,11 @@ class Vehicle(vehicle.IVehicle):
         self._currentTime = 0.0
         self._depth = 0.0
         self._orientation = ext.math.Quaternion(0, 0, 0, 0)
+        
+        self._markerDropper = PayloadSet(eventHub, 'MarkerDropper')
+        self._devices[self._markerDropper.getName()] = self._markerDropper
+        self._torpedoLauncher = PayloadSet(eventHub, 'TorpedoLauncher', 4)
+        self._devices[self._torpedoLauncher.getName()] = self._torpedoLauncher
 
         self._addThruster(eventHub, 'PortThruster', 1)
         self._addThruster(eventHub, 'StarboardThruster', 2)
@@ -52,6 +57,12 @@ class Vehicle(vehicle.IVehicle):
         
     def _addTempSensor(self, eventHub, name, offset):
         self._devices[name] = TempSensor(eventHub, name, offset)
+
+    def dropMarker(self):
+        self._markerDropper.releaseObject()
+        
+    def fireTorpedo(self):
+        self._torpedoLauncher.releaseObject()
 
     def backgrounded(self):
         return False
@@ -128,6 +139,32 @@ class DemoMachine(ram.ai.state.Machine):
         pass
 
 core.SubsystemMaker.registerSubsystem('DemoStateMachine', DemoMachine)
+
+class PayloadSet(device.IPayloadSet):
+    def __init__(self, eventHub, name, count = 2):
+        device.IPayloadSet.__init__(self, eventHub)
+        
+        self._name = name
+        self._initialCount = count
+        self._count = count
+        
+    def update(self, timeStep):
+        pass
+        
+    def getName(self):
+        return self._name
+        
+    def initialObjectCount(self):
+        return self._initialCount
+    
+    def objectCount(self):
+        return self._count
+    
+    def releaseObject(self):
+        if self._count != 0:
+            self._count -= 1
+            event = core.Event()
+            self.publish(device.IPayloadSet.OBJECT_RELEASED, event)
 
 class Thruster(device.IThruster):  
     def __init__(self, eventHub, name, offset):

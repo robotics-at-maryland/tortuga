@@ -449,6 +449,102 @@ class SonarPanel(wx.Panel):
         
         return []
 
+class PayloadPanel(wx.Panel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub, vehicle, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        self._connections = []
+        self._markersLeds = []
+        self._torpLeds = []
+        self._markersDropped = 0
+        self._torpedosLaunched = 0
+        
+        # Subscribe to events
+        markerDropper = vehicle.getDevice('MarkerDropper')
+        conn = eventHub.subscribe(
+            ext.vehicle.device.IPayloadSet.OBJECT_RELEASED, markerDropper,
+            self._markerDropped)
+        self._connections.append(conn)
+            
+        torpedoLauncher = vehicle.getDevice('TorpedoLauncher')
+        conn = eventHub.subscribe(
+            ext.vehicle.device.IPayloadSet.OBJECT_RELEASED, torpedoLauncher,
+            self._torpedoLaunched)
+        self._connections.append(conn)
+        
+        
+        
+        # Determine the size of the sizer
+        markerCount = markerDropper.initialObjectCount()
+        torpedoCount = torpedoLauncher.initialObjectCount()
+        if markerCount > torpedoCount:
+            raise "ERROR marker count bigger then torpedo count, FIX ME!!"
+        
+        sizerWidth = markerCount + 1
+        overWidth = 0
+        if sizerWidth < (torpedoCount + 1):
+            sizerWidth = (torpedoCount + 1)
+            overWidth = torpedoCount - markerCount
+        
+        # Flexible grid around controls
+        self.sizer = wx.FlexGridSizer(0, sizerWidth, 10, 10)
+        
+        # Create controls
+        self._markersLeds = self._createPayloadRow("Markers", sizerWidth - 1)
+        self._torpLeds = self._createPayloadRow("Trops", sizerWidth - 1)
+        
+        self.SetSizerAndFit(self.sizer)
+        
+        # Hide extra marker controls if needed
+        if overWidth > 0:
+            idxStart = markerCount + 1;
+            for idx in xrange(idxStart, idxStart + overWidth):
+                self.sizer.Hide(idx)
+        
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+    def _createPayloadRow(self, label, count):
+        # Create Label
+        desiredLabel = wx.StaticText(self, label = label)
+        self.sizer.Add(desiredLabel, 1, flag = wx.ALIGN_RIGHT)
+        
+        # Create Row of LEDs
+        leds = []
+        for i in xrange(0, count):
+            led = ram.gui.led.LED(self, state = 2)
+            led.MinSize = led.GetSize()
+            self.sizer.Add(led, 1, flag = wx.ALIGN_CENTER)
+            leds.append(led)
+        return leds
+
+    def _markerDropped(self, event):
+        self._markersLeds[self._markersDropped].SetState(0)
+        self._markersDropped += 1
+    
+    def _torpedoLaunched(self, event):
+        self._torpLeds[self._torpedosLaunched].SetState(0)
+        self._torpedosLaunched += 1
+        
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
+                                                        subsystems)
+
+        if (vehicle is not None) or (controller is not None):
+            paneInfo = wx.aui.AuiPaneInfo().Name("Payload")
+            paneInfo = paneInfo.Caption("Payload").Right()
+        
+            panel = PayloadPanel(parent, eventHub, vehicle)
+            return [(paneInfo, panel, [vehicle])]
+        
+        return []
+
 class RotationPanel(wx.Panel):
     implements(IPanelProvider)
     

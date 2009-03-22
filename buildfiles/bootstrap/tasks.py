@@ -16,6 +16,7 @@ from buildit.task import Task
 
 # Project Imports
 from buildfiles.common.commands import *
+import buildfiles.variants as variants
 
 pythonExecutable = '"%s"' % sys.executable
 
@@ -29,7 +30,8 @@ setup_directories = Task(
                 Mkdir('${ram_prefix}/lib/pkgconfig/'),
                 Mkdir('${ram_prefix}/include/'),
                 Mkdir('${ram_prefix}/bin/'),
-                Mkdir('${ram_prefix}/man/')],
+                Mkdir('${ram_prefix}/man/'),
+                Mkdir('${ram_prefix}/pkgs/')],
     )
 
 # Install Python Modules
@@ -89,10 +91,42 @@ install_python_modules = Task(
     'Install Python Modules',
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
-     commands = [],
      dependencies = (install_pygccxml, install_pyplusplus,
                      install_pyyaml, install_scons, install_zope_interface)
     )
+
+# Package Installation
+
+# Small hack to find arch
+#arch = 'x86'
+#if 'big' == sys.byteorder:
+#    arch = 'ppc'
+
+#get_package_list = Task(
+#    'Get Package List',
+#    namespaces = 'bootstrap',
+#    workdir = '${buildoutdir}',
+#    commands = [Download('${ram_prefix}/pkgs/packages.txt',
+#                         'https://ram.umd.edu/software/' + arch + '/'
+#                         variants.get_platform() + '/packages.txt')]
+#    dependencies = (setup_directories,)
+#    )
+
+#download_packages = Task(
+#    'Download Packages',
+#    namespaces = 'bootstrap',
+#    workdir = '${buildoutdir}',
+#    commands = [DownloadPackages('${ram_prefix}/pkgs/packages.txt',
+#                                 '${ram_prefix}')]
+#    dependencies = (get_package_list,)
+#   )
+
+#pkgs = Task(
+#    'Install Packages',
+#     namespaces = 'bootstrap',
+#     workdir = '${buildoutdir}',
+#     dependencies = (unpack_packages)
+#    )
 
 # Generate Environment File
 

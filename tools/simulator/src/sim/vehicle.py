@@ -82,6 +82,27 @@ class SimThruster(device.IThruster):
     def isEnabled(self):
         return self._enabled
 
+class SimPayloadSet(device.IPayloadSet):
+    def __init__(self, eventHub, name, count = 2, simSpawner = None):
+        device.IPayloadSet.__init__(self, eventHub)
+        
+        self._spawner = simSpawner
+        self._name = name
+        self._initialCount = count
+        self._count = count
+        
+    def initialObjectCount(self):
+        return self._initialCount
+    
+    def objectCount(self):
+        return self._count
+    
+    def releaseObject(self):
+        if self._count != 0:
+            self._count -= 1
+            event = core.Event()
+            self.publish(device.IPayloadSet.OBJECT_RELEASED, event)
+
 class SimVehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
         eventHub = core.Subsystem.getSubsystemOfExactType(core.EventHub, deps)
@@ -114,6 +135,10 @@ class SimVehicle(vehicle.IVehicle):
         return thrusters
     
     def dropMarker(self):
+        # TODO: Add object here and have it throw the proper event
+        pass
+    
+    def fireTorpedo(self):
         pass
     
     def getDevice(self, name):
