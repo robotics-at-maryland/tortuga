@@ -23,7 +23,7 @@ class TestGate(support.AITestCase):
         cfg = {
             'StateMachine' : {
                 'States' : {
-                    'ram.ai.gate.Dive' : {
+                    'ram.ai.gate.Start' : {
                         'depth' : 7,
                         'speed' : 2,
                     },
@@ -37,7 +37,7 @@ class TestGate(support.AITestCase):
         support.AITestCase.setUp(self, cfg = cfg)
     
     def testDive(self):
-        self.machine.start(gate.Dive)
+        self.machine.start(gate.Start)
         
         # Ensure we actually started diving
         self.assertCurrentMotion(motion.basic.RateChangeDepth)

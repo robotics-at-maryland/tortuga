@@ -68,12 +68,12 @@ class TestSeeking(aisupport.AITestCase):
         self.injectEvent(vision.EventType.SAFE_FOUND, vision.SafeEvent,0,0, 
                          x = 0.1, y = -0.1)#, angle = math.Degree(15.0))
         self.qeventHub.publishEvents()
-        self.assertCurrentState(safe.Dive)
+        self.assertCurrentState(safe.PreGrabDive)
         
-class TestDive(aisupport.AITestCase):
+class TestPreGrabDive(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.machine.start(safe.Dive)
+        self.machine.start(safe.PreGrabDive)
         
     def testPipeFound(self):
         safeFoundHelper(self)

@@ -34,9 +34,14 @@ class Wait(state.State):
     @staticmethod
     def transitions():
         # TODO: Replace with a start event from the vehicle or sensor board
-        return {"Start" : Dive}
+        return {"Start" : Start}
     
-class Dive(state.State):
+class Start(state.State):
+    """
+    Gets the vehicle to the proper depth, so the forward charge through the 
+    gate can happen.
+    """
+    
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Forward }
@@ -52,6 +57,10 @@ class Dive(state.State):
         self.motionManager.stopCurrentMotion()
     
 class Forward(state.State):
+    """
+    A simple timed forward run through the gate.
+    """
+    
     DONE = core.declareEventType('DONE')
 
     @staticmethod

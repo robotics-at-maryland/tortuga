@@ -99,14 +99,14 @@ class Seeking(SafeCentering):
     @staticmethod
     def transitions():
         return SafeTrackingState.transitions(Seeking,
-            { Seeking.CENTERED : Dive })
+            { Seeking.CENTERED : PreGrabDive })
         
-class Dive(SafeTrackingState):
+class PreGrabDive(SafeTrackingState):
     """Diving to the pre-grab depth"""
 
     @staticmethod
     def transitions():
-        return SafeTrackingState.transitions(Dive,
+        return SafeTrackingState.transitions(PreGrabDive,
             { ram.motion.basic.Motion.FINISHED : Offsetting })
         
     def enter(self):

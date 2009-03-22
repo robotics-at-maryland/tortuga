@@ -164,10 +164,10 @@ class BinTestCase(aisupport.AITestCase):
                                 angle = math.Degree(0))
         self.assertAIDataValue('currentBins', set())
    
-class TestDive(aisupport.AITestCase):
+class TestStart(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.machine.start(bin.Dive)
+        self.machine.start(bin.Start)
     
     def testStart(self):
         """Make sure we are diving with no detector on"""

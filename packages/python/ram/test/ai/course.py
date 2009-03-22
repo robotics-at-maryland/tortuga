@@ -69,7 +69,7 @@ class TestGate(support.AITestCase):
         self.assertCurrentState(course.Gate)
         
         # Make sure we branched to the right state machine
-        self.assertCurrentBranches([gate.Dive])
+        self.assertCurrentBranches([gate.Start])
         self.assertFalse(self.visionSystem.pipeLineDetector)
         self.assertAIDataValue('foundPipeEarly', False)
     
@@ -102,7 +102,7 @@ class TestGate(support.AITestCase):
         self.assertCurrentState(course.PipeGate)
         
         # Make sure the gate.Dive branch is gone
-        self.assertFalse(self.machine.branches.has_key(gate.Dive))
+        self.assertFalse(self.machine.branches.has_key(gate.Start))
         
         # Make sure we are watching for the pipe
         self.assert_(self.visionSystem.pipeLineDetector)
@@ -111,7 +111,7 @@ class TestPipe(PipeTestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
                         ['ram.ai.course.Pipe', 'ram.ai.course.Bin'] } }
-        PipeTestCase.setUp(self, pipe.Dive, cfg)
+        PipeTestCase.setUp(self, pipe.Start, cfg)
         self.machine.start(course.Pipe)
         
     def testStart(self):
@@ -173,7 +173,7 @@ class TestPipeStaged(PipeTestCase):
                                    'ram.ai.course.LightStaged'] }
         }
         
-        PipeTestCase.setUp(self, pipe.Dive, cfg = cfg)
+        PipeTestCase.setUp(self, pipe.Start, cfg = cfg)
         self.machine.start(course.PipeStaged)
         
     def testStart(self):
@@ -263,7 +263,7 @@ class TestPipeStaged(PipeTestCase):
         
         #self.qeventHub.publishEvents()
         #self.assertCurrentState(course.LightStaged)
-        self.assertFalse(self.machine.branches.has_key(pipe.Dive))
+        self.assertFalse(self.machine.branches.has_key(pipe.Start))
         self.assertFalse(self.visionSystem.pipeLineDetector)
         self.assertEqual(expected, self.controller.desiredOrientation)
         
@@ -366,7 +366,7 @@ class TestBin(support.AITestCase):
         """
         self.assertCurrentState(course.Bin)
         
-        self.assertCurrentBranches([bin.Dive])
+        self.assertCurrentBranches([bin.Start])
         #self.assert_(self.visionSystem.binDetector)
         
     def testComplete(self):
@@ -378,7 +378,7 @@ class TestBin(support.AITestCase):
         self.assertCurrentState(course.Pipe)
         
         # Make sure the light seeking branch is gone
-        self.assertFalse(self.machine.branches.has_key(bin.Dive))
+        self.assertFalse(self.machine.branches.has_key(bin.Start))
         self.assertFalse(self.visionSystem.binDetector)
         
     def testTimeout(self):
@@ -394,24 +394,8 @@ class TestBin(support.AITestCase):
         
         # Test that the timeout worked properly
         self.assertCurrentState(course.Pipe)
-        self.assertFalse(self.machine.branches.has_key(bin.Dive))
+        self.assertFalse(self.machine.branches.has_key(bin.Start))
         self.assertFalse(self.visionSystem.binDetector)
-
-class TestPingerDiver(support.AITestCase):
-    def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.PingerDive', 'ram.ai.course.Pinger'] } }
-        support.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.depth = 0
-        self.machine.start(course.PingerDive)
-    
-    def testStart(self):
-        """Make sure we start diving"""
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
-                
-    def testDiveFinished(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(course.Pinger)
 
 class TestPinger(support.AITestCase):
     def setUp(self):
@@ -425,7 +409,7 @@ class TestPinger(support.AITestCase):
         Make sure that when we start we are doing the right thing
         """
         self.assertCurrentState(course.Pinger)
-        self.assertCurrentBranches([sonar.Searching])
+        self.assertCurrentBranches([sonar.Start])
 
     def testComplete(self):
         """
@@ -436,7 +420,7 @@ class TestPinger(support.AITestCase):
         self.assertCurrentState(course.SafeDive)
         
         # Make sure the pinger seeking branch is gone
-        self.assertFalse(self.machine.branches.has_key(sonar.Searching))
+        self.assertFalse(self.machine.branches.has_key(sonar.Start))
 
 class TestSafeDive(support.AITestCase):
     def setUp(self):

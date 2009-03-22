@@ -22,6 +22,12 @@ import ram.motion.pipe
 COMPLETE = core.declareEventType('COMPLETE')
 
 class PingerState(state.State):
+    """
+    Base state for the using the Sonar data to hover toward and over the Pinger.
+    
+    Base classes are required to update the actual target with new Sonar 
+    information.
+    """
     @staticmethod
     def transitions(myState, trans = None):
         if trans is None:
@@ -65,14 +71,36 @@ class PingerState(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
         
+class Start(state.State):
+    """
+    Changes to the depth for proper sonar operation, then starts the search.
+    """
+    @staticmethod
+    def transitions():
+        return { motion.basic.Motion.FINISHED : Searching }
+
+    def enter(self):
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self._config.get('diveDepth', 2),
+            speed = self._config.get('diveSpeed', 0.4))
+        
+        self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
 
 class Searching(state.State):
+    """
+    Waits for a ping to happen, and when it gets one, turns toward the source.
+    Then it waits for 4 seconds, to allow the any disturbances in pinger data 
+    from the vehicles rotation to die down, and then moves on to the next state. 
+    """
     CHANGE = core.declareEventType("CHANGE")
 
     @staticmethod
     def transitions():
         return { vehicle.device.ISonar.UPDATE : Searching,
-	         Searching.CHANGE : FarSeeking }
+	             Searching.CHANGE : FarSeeking }
         
     def UPDATE(self, event):
         if self._first:
@@ -93,6 +121,10 @@ class Searching(state.State):
             self.timer.stop()
 
 class TranslationSeeking(PingerState):
+    """
+    Feeds the pinger data into the target and causes the vehicle to translate
+    toward the pinger.
+    """
     CLOSE = core.declareEventType('CLOSE')    
     
     def _loadSettings(self):
@@ -113,7 +145,9 @@ class TranslationSeeking(PingerState):
 # 0.65
 class FarSeeking(TranslationSeeking):
     """
-    Approaches the pinger from a far away difference
+    Approaches the pinger from a far away range, it moves quicker, and can 
+    possibly lose pings.  If this is used close to a pinger, it can and *will*
+    overshoot.
     """
     @staticmethod
     def transitions():
@@ -126,7 +160,8 @@ class FarSeeking(TranslationSeeking):
                  
 class CloseSeeking(TranslationSeeking):
     """
-    For when we are close to the pinger
+    For when we are close to the pinger, moves slow enough that it should not 
+    miss any pings or overshoot but is too slow to use from far away.
     """
     @staticmethod
     def transitions():

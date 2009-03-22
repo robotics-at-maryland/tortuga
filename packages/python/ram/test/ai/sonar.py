@@ -19,6 +19,38 @@ import ram.motion.pipe
 
 import ram.test.ai.support as aisupport
 
+class TestStart(aisupport.AITestCase):
+    DEPTH = 10
+    DIVE_SPEED = 3.2
+    
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.sonar.Start' : {
+                        'diveDepth' : TestStart.DEPTH,
+                        'diveSpeed' : TestStart.DIVE_SPEED,
+                    },
+                }
+            },
+        }
+        aisupport.AITestCase.setUp(self, cfg = cfg)
+        self.vehicle.depth = 0
+        self.machine.start(sonar.Start)
+    
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+    def testConfig(self):
+        m = self.motionManager.currentMotion
+        self.assertEqual(TestStart.DEPTH, m.desiredDepth)
+        self.assertEqual(TestStart.DIVE_SPEED, m.speed)
+                
+    def testDiveFinished(self):
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(sonar.Searching)
+
 class TestSearching(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)

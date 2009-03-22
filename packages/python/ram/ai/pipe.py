@@ -62,7 +62,7 @@ class PipeFollowingState(state.State):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
 
-class Dive(state.State):
+class Start(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }

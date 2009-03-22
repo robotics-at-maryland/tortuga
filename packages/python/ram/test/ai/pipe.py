@@ -18,10 +18,10 @@ import ram.motion.pipe
 
 import ram.test.ai.support as aisupport
 
-class TestDive(aisupport.AITestCase):
+class TestStart(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.machine.start(pipe.Dive)
+        self.machine.start(pipe.Start)
     
     def testStart(self):
         """Make sure we are diving with no detector on"""

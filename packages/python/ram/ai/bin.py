@@ -66,6 +66,11 @@ def ensureBinTracking(qeventHub, ai):
         ai.data['binTrackingEnabled'] = True
 
 class HoveringState(state.State):
+    """
+    Base state for hovering over the bins or the array of bins.  It can use 
+    either angle of the entire array, or of the current bin.
+    """
+    
     LOST_CURRENT_BIN = core.declareEventType('LOST_CURRENT_BIN')
     
     @staticmethod
@@ -91,7 +96,10 @@ class HoveringState(state.State):
                 self._first = False
                 self._lastAngle = event.angle
             else:
+                # Only allow sane angles (less then 95)
                 if pmath.fabs(event.angle.valueDegrees()) < 95:
+                    # Don't accept a new angle if it varies to much from the 
+                    # last given angle
                     lastDegree = self._lastAngle.valueDegrees()
                     currentDegree = event.angle.valueDegrees()
                     if (pmath.fabs(lastDegree - currentDegree) > self._filterLimit):
@@ -151,6 +159,9 @@ class HoveringState(state.State):
         self.motionManager.stopCurrentMotion()
 
 class SettlingState(HoveringState):
+    """
+    A specialization of the hover state which hovers for the given time.
+    """
     def enter(self, eventType, eventTime, useMultiAngle = False):
         self.timer = self.timerManager.newTimer(eventType, eventTime)
         self.timer.start()
@@ -162,6 +173,11 @@ class SettlingState(HoveringState):
         self.timer.stop()
 
 class BinSortingState(HoveringState):
+    """
+    A specialization of the hover state which lets the user shift the bin
+    currently being hovered over to left or right most bin.  
+    """
+    
     LEFT = 1
     RIGHT = 2
     
@@ -178,7 +194,7 @@ class BinSortingState(HoveringState):
     def enter(self, direction, useMultiAngle = False):
         """
         @param direction: Says whether or you want to go left or right with the 
-        bins
+                          bins
         """
         if (direction != BinSortingState.LEFT) and (direction != BinSortingState.RIGHT):
             raise Exception("ERORR Wrong Direction")
@@ -187,6 +203,31 @@ class BinSortingState(HoveringState):
         self._centeredRange = self._config.get('centeredRange', 0.2)
         
         HoveringState.enter(self, useMultiAngle = useMultiAngle)
+    
+    def fixEdgeBin(self):
+        """
+        Makes the current bin the left/right most bin, returns true if that
+        changes the current bin.
+        
+        @rtype: bool
+        @return: True if we changed to a new Bin, False if not.
+        """
+        sortedBins = self._getSortedBins()
+        
+        # Compare to current ID
+        currentBinId = self.ai.data['currentBinID']
+        mostEdgeBinId = self._getNextBin(sortedBins, currentBinId)
+        
+        if mostEdgeBinId is None:
+            return True
+        elif (currentBinId == mostEdgeBinId):
+            # We found the "end" bin
+            return False
+        else:
+            # Still more bins to go
+            self.ai.data['currentBinID'] = mostEdgeBinId
+            return True
+
     
     def _compareBins(self, idA, idB):
         """
@@ -217,7 +258,7 @@ class BinSortingState(HoveringState):
     
     def _getSortedBins(self):
         """
-        Returns the bins sorted based desired direction, left/rigth
+        Returns the bins sorted based desired direction, left/right
         """
         currentBins = [b for b in self.ai.data['currentBins']]
         sortedBins = sorted(currentBins, self._compareBins)
@@ -238,28 +279,10 @@ class BinSortingState(HoveringState):
             mostEdgeBinId = sortedBins[0]
             return mostEdgeBinId
     
-    def _fixEdgeBin(self):
-        """
-        Makes the current bin the left/right most bin, returns true if that
-        changes the current bin.
-        """
-        sortedBins = self._getSortedBins()
-        
-        # Compare to current ID
-        currentBinId = self.ai.data['currentBinID']
-        mostEdgeBinId = self._getNextBin(sortedBins, currentBinId)
-        
-        if mostEdgeBinId is None:
-            return True
-        elif (currentBinId == mostEdgeBinId):
-            # We found the "end" bin
-            return False
-        else:
-            # Still more bins to go
-            self.ai.data['currentBinID'] = mostEdgeBinId
-            return True
-
-class Dive(state.State):
+class Start(state.State):
+    """
+    Gets us to proper depth to start the actual bin search.
+    """
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }
@@ -362,7 +385,8 @@ class Recover(state.State):
 
 class Centering(SettlingState):
     """
-    When the vehicle is settling over the bin
+    When the vehicle is settling over the first found bin, it uses the angle of
+    entire bin array this time.
     
     @cvar SETTLED: Event fired when vehile has settled over the bin
     """
@@ -406,13 +430,13 @@ class SeekEnd(BinSortingState):
                               useMultiAngle = True)
         
         # Fix the current left most bin, as the currently tracked bin
-        if not self._fixEdgeBin():
+        if not self.fixEdgeBin():
             # If already there
             self.publish(SeekEnd.AT_END, core.Event())
         
     def CENTERED(self, event):
         # Fix the current left most bin, as the currently tracked bin
-        if not self._fixEdgeBin():
+        if not self.fixEdgeBin():
             # If already there
             self.publish(SeekEnd.AT_END, core.Event())
         
@@ -605,7 +629,7 @@ class NextBin(BinSortingState):
                               useMultiAngle = True)
         
         # Fix the current left most bin, as the currently tracked bin
-        if not self._fixEdgeBin():
+        if not self.fixEdgeBin():
             # If already there
             self.publish(NextBin.AT_END, core.Event())
 
