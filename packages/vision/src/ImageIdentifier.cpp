@@ -1,4 +1,4 @@
-o/*
+/*
  * Copyright (C) 2008 Robotics at Maryland
  * Copyright (C) 2008 David Love <loved@umd.edu>
  * All rights reserved.
