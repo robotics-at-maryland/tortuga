@@ -20,6 +20,9 @@ Scene:
     
     Cameras:
         Main:
+            #Off to the side
+            #position: [-16, 0, -2]
+            #offset: [0, 8, 0]
             position: [-15, 0, 0]
             offset: [0, 0, 8]
             #position: [-12, -2, -3.05]

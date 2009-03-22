@@ -27,7 +27,7 @@ import ext.vehicle as vehicle
 import ext.vehicle.device as device
 import ext.math as math
 import sim.subsystems as subsystems
-
+import ram.sim.scene as scene
 
 def convertToVector3(vType, vector):
     return vType(vector.x, vector.y, vector.z)
@@ -83,13 +83,22 @@ class SimThruster(device.IThruster):
         return self._enabled
 
 class SimPayloadSet(device.IPayloadSet):
-    def __init__(self, eventHub, name, count = 2, simSpawner = None):
+    def __init__(self, eventHub, name, count = 2, scene = None, robot = None,
+                 marker = True):
         device.IPayloadSet.__init__(self, eventHub)
         
-        self._spawner = simSpawner
+        self._scene = scene
+        self._marker = marker
+        self._robot = robot
         self._name = name
         self._initialCount = count
         self._count = count
+        
+    def getName(self):
+        return self._name
+        
+    def update(self, timestep):
+        pass
         
     def initialObjectCount(self):
         return self._initialCount
@@ -99,9 +108,86 @@ class SimPayloadSet(device.IPayloadSet):
     
     def releaseObject(self):
         if self._count != 0:
-            self._count -= 1
+            
             event = core.Event()
             self.publish(device.IPayloadSet.OBJECT_RELEASED, event)
+            
+            # Bail out early if there is no scene
+            if self._scene is None:
+                self._count -= 1
+                return
+            
+            if self._marker:
+                self._spawnMarker()
+            else:
+                self._spawnTorpedo()
+            
+            self._count -= 1
+            
+    def _spawnMarker(self):
+        # Now lets spawn an object
+        obj = scene.SceneObject()
+        position = self._robot._main_part._node.position
+
+        # 30cm below robot
+        position.z = position.z - 0.10
+        position.x = position.x + 0.15
+        position.y = position.y + 0.30 - (self._count * 0.2)
+        print self._count, 0.30 - (self._count * 0.2)
+        orientation = ogre.Quaternion(ogre.Degree(90), ogre.Vector3.UNIT_X)
+
+        cfg = {
+            'name' : self._name + str(self._count),
+            'position' : position,
+            'orientation' : orientation,
+            'Graphical' : {
+                'mesh' : 'cylinder.mesh', 
+                'scale' : [0.0762, 0.0127, 0.0127],
+                'material' : 'Simple/Red' 
+            },
+            'Physical' : {
+                'mass' : 0.01, 
+                'center_of_mass' : [0, 0, 0.0127], # Top heavy
+                'Shape' : {
+                    'type' : 'cylinder',
+                    'radius' : 0.0127,
+                    'height' : 0.0762
+                }
+            }
+        }
+        obj.load((self._scene, None, cfg))
+        self._scene._objects.append(obj)
+                     
+    def _spawnTorpedo(self):
+        # Now lets spawn an object
+        obj = scene.SceneObject()
+        position = self._robot._main_part._node.position
+
+        # 30cm below robot
+        position.x = position.x + 0.40
+        position.y = position.y + 0.30 - (self._count * 0.2)
+        orientation = ogre.Quaternion(ogre.Degree(90), ogre.Vector3.UNIT_X)
+        cfg = {
+            'name' : self._name + str(self._count),
+            'position' : position,
+            'orientation' : orientation,
+            'Graphical' : {
+                'mesh' : 'cylinder.mesh', 
+                'scale' : [0.127, 0.0127, 0.0127],
+                'material' : 'Simple/Red' 
+            },
+            'Physical' : {
+                'mass' : 0.005,
+                'Shape' : {
+                    'type' : 'cylinder',
+                    'radius' : 0.0127,
+                    'height' : 0.0127
+                }
+            }
+        }
+        obj.load((self._scene, None, cfg))
+        obj._body.setVelocity(ogre.Vector3(10, 0, 0))
+        self._scene._objects.append(obj)  
 
 class SimVehicle(vehicle.IVehicle):
     def __init__(self, config, deps):
@@ -114,17 +200,30 @@ class SimVehicle(vehicle.IVehicle):
         self._devices = {}
     
         # Add Sim Thruster objects
-        self._addThruster(eventHub, 'PortThruster', self.robot.parts.left_thruster)
-        self._addThruster(eventHub, 'StarboardThruster', self.robot.parts.right_thruster)
-        self._addThruster(eventHub, 'AftThruster', self.robot.parts.aft_thruster)
-        self._addThruster(eventHub, 'ForeThruster', self.robot.parts.front_thruster)
-        self._addThruster(eventHub, 'TopThruster', self.robot.parts.top_thruster)
-        self._addThruster(eventHub, 'BotThruster', self.robot.parts.bot_thruster)
+        self._addDevice(SimThruster(eventHub, 'PortThruster', 
+                                    self.robot.parts.left_thruster))
+        self._addDevice(SimThruster(eventHub, 'StarboardThruster', 
+                                    self.robot.parts.right_thruster))
+        self._addDevice(SimThruster(eventHub, 'AftThruster', 
+                          self.robot.parts.aft_thruster))
+        self._addDevice(SimThruster(eventHub, 'ForeThruster', 
+                          self.robot.parts.front_thruster))
+        self._addDevice(SimThruster(eventHub, 'TopThruster', 
+                          self.robot.parts.top_thruster))
+        self._addDevice(SimThruster(eventHub, 'BotThruster', 
+                          self.robot.parts.bot_thruster))
 
-    def _addThruster(self, eventHub, name, simThruster):
-        thruster = SimThruster(eventHub, name, simThruster)
-        self._devices[name] = thruster
-        setattr(self, name[0].lower() + name[1:], thruster)
+        # Add payload sets
+        self._addDevice(SimPayloadSet(eventHub, 'MarkerDropper', count = 2, 
+                                      scene = sim.scene, robot = self.robot))
+        self._addDevice(SimPayloadSet(eventHub, 'TorpedoLauncher', count = 2,
+                                      scene = sim.scene, robot = self.robot, 
+                                      marker = False))     
+    
+    def _addDevice(self, device):
+        name = device.getName()
+        self._devices[name] = device
+        setattr(self, name[0].lower() + name[1:], device)
     
     def getThrusters(self):
         thrusters = []
@@ -135,11 +234,10 @@ class SimVehicle(vehicle.IVehicle):
         return thrusters
     
     def dropMarker(self):
-        # TODO: Add object here and have it throw the proper event
-        pass
+        self.markerDropper.releaseObject()
     
     def fireTorpedo(self):
-        pass
+        self.torpedoLauncher.releaseObject()
     
     def getDevice(self, name):
         return self._devices[name]
