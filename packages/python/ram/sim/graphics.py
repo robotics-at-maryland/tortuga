@@ -65,7 +65,8 @@ class Visual(Object):
     def _create(self, scene, mesh, material, position, orientation, scale):
         # Create the graphical representation of the object
         entity = scene.scene_mgr.createEntity(self.name, mesh)
-        entity.setMaterialName(material)
+        if material is not None:
+            entity.setMaterialName(material)
         
         # Attach graphical entity to a new node in the scene graph
         self._node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
@@ -99,7 +100,7 @@ class Visual(Object):
         
         gfx_node = node['Graphical'] 
         mesh = gfx_node['mesh']
-        material = gfx_node['material']
+        material = gfx_node.get('material', None)
         scale = sim.OgreVector3(gfx_node.get('scale', Ogre.Vector3(1,1,1)))
         
         # Handle special mesh generation

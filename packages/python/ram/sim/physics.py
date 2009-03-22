@@ -253,13 +253,13 @@ class Body(Object):
         physical_node = node.get('Physical', None)
         if physical_node is None:
             msg = 'Object "%s" needs a "Phsyical" section' % node['name']
-            raise SimulationError(msg)
+            raise PhysicsError(msg)
 
         # Find shape type and its properties
         shape_node = physical_node.get('Shape', None)
         if shape_node is None:
             msg = 'Object "%s" needs a "Physical.Shape" section' % node['name']
-            raise SimulationError(msg)
+            raise PhysicsError(msg)
         
         shape_type = shape_node['type'].lower() 
         shape_props = {}
