@@ -120,9 +120,13 @@ class Visual(Object):
             plane = Ogre.Plane(norm, 0 );
             group_name = gfx_node.get('group', Ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME)
             
+            xsegments = int(width)
+            ysegments = int(height)
+            
             Ogre.MeshManager.getSingletonPtr().createPlane(mesh, \
                 group_name, plane, width, height, upVector = upvec,
-                uTile = utile, vTile = vtile)
+                uTile = utile, vTile = vtile, xsegments = xsegments, 
+                ysegments = ysegments)
             Visual._plane_count += 1
         
         # Orientation defaults: IDENTITY, Position: (0,0,0)

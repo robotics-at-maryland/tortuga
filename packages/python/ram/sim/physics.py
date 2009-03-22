@@ -214,6 +214,9 @@ class Body(Object):
         if shape_type == 'box':
             size = sim.OgreVector3(shape_props['size'])
             col = OgreNewt.Box(scene.world, size)
+        elif shape_type == 'cylinder':
+            col = OgreNewt.Cylinder(scene.world, shape_props['radius'], 
+                                    shape_props['height'])
         elif shape_type == 'mesh':
             # Fix this by later (we shouldn't need a node!!!)
             name = 'TREE_HACK' + str(Body._tree_mesh_hack)
