@@ -22,9 +22,13 @@ import ext.vision
 
 try:
     import ctypes
-    ctypes.cdll.LoadLibrary("libram_network.so")
-except:
-    pass
+    import platform
+    end = 'so'
+    if 'Darwin' == platform.system():
+        end = 'dylib'
+    ctypes.CDLL("libram_network." + end, mode = ctypes.RTLD_GLOBAL)
+except OSError, e:
+    print e
 
 def main():            
     # Parse command line options

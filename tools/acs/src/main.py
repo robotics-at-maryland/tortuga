@@ -32,10 +32,13 @@ import ram.ai.buoyPipeSonarCourse
 
 try:
     import ctypes
-    ctypes.cdll.LoadLibrary("libram_network.so")
-    #ctypes.cdll.LoadLibrary("libram_network_d.so")
-except:
-    pass
+    import platform
+    end = 'so'
+    if 'Darwin' == platform.system():
+        end = 'dylib'
+    ctypes.CDLL("libram_network." + end, mode = ctypes.RTLD_GLOBAL)
+except OSError, e:
+    print e
 
 def main(argv = None):
     if argv is None:

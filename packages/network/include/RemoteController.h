@@ -61,15 +61,9 @@ class RAM_EXPORT RemoteController :
         return Updatable::getAffinity();
     }
     
-    virtual void background(int interval)
-    {
-        core::Updatable::background(interval);
-    }
+    virtual void background(int interval);
 
-    virtual void unbackground(bool join = false)
-    {
-        core::Updatable::unbackground(join);
-    }
+    virtual void unbackground(bool join = false);
 
     virtual bool backgrounded()
     {
@@ -90,6 +84,9 @@ class RAM_EXPORT RemoteController :
      */
     bool processMessage(unsigned char cmd, signed char param = 0);
 
+    /** The port to listen on*/
+    int m_port;
+    
     /** Socket to recieve on */
     int m_sockfd;
 

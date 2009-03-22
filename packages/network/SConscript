@@ -5,6 +5,8 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/network/SConscript
 
+# Build System imports
+import buildfiles.libs as libs
 
 # Copy Our Build Environment
 Import('env')
@@ -20,9 +22,11 @@ int_deps = []
 #if env.HasFeature('wrappers'):
 #    ext_deps = ['Boost.Python']
 
-if not env.HasFeature('control'):
-    int_deps.append('control')
-    sources.remove('src/RemoteController.cpp')
+#if env.HasFeature('control'):
+#    libs.add_internal(envl, 'control')
+#else:
+#    sources.remove('src/RemoteController.cpp')
+
 
 # Build Procducts (library will be called 'libram_network.so')
 envl.RAMSharedLibrary('network',  source = sources, ext_deps = ext_deps)

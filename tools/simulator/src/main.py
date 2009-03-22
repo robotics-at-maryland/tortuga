@@ -20,7 +20,7 @@ try:
     end = 'so'
     if 'Darwin' == platform.system():
         end = 'dylib'
-    ctypes.cdll.LoadLibrary("libram_network." + end)
+    ctypes.CDLL("libram_network." + end, mode = ctypes.RTLD_GLOBAL)
 except OSError, e:
     print e
 

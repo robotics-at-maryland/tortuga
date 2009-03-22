@@ -120,7 +120,8 @@ if os.name == 'posix':
                                 '-Wall',   # All Warnings
                                 '-Werror', # Warnings as Errors
                                 '-fmessage-length=0'] # For gathering stats
-                     ) 
+                     )
+    env.AppendUnique(LINKFLAGS = ['-Wl,-E'])
 else:
     env.AppendUnique(CCFLAGS = ['/W3',   # Level 3 out of 4 warnings
                                 '/WX',   # Warnings as Errors
