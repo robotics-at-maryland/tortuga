@@ -756,7 +756,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         
     def _checkTarget(self):
         """
-        Check for the Target (ie. "Machine Gun Nest")
+        Check for the Target (ie. "Machine Gun Nest"), the squareness is just
+        an approximation. 
         """
         # Determine orientation to the target
         target, relativePos = self._findClosest(self._targets)
