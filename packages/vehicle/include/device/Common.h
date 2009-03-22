@@ -46,8 +46,8 @@ typedef boost::shared_ptr<IPSU> IPSUPtr;
 class IDepthSensor;
 typedef boost::shared_ptr<IDepthSensor> IDepthSensorPtr;
 
-class IMarkerDropper;
-typedef boost::shared_ptr<IMarkerDropper> IMarkerDropperPtr;
+class IPayloadSet;
+typedef boost::shared_ptr<IPayloadSet> IPayloadSetPtr;
     
 class SensorBoard;
 typedef boost::shared_ptr<SensorBoard> SensorBoardPtr;

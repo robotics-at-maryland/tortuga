@@ -23,7 +23,7 @@
 #include "vehicle/include/device/IThruster.h"
 #include "vehicle/include/device/IIMU.h"
 #include "vehicle/include/device/IDepthSensor.h"
-#include "vehicle/include/device/IMarkerDropper.h"
+#include "vehicle/include/device/IPayloadSet.h"
 
 //#include "sensorapi-r5/include/sensorapi.h"
 
@@ -76,7 +76,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr()),
     m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
-    m_markerDropper(device::IMarkerDropperPtr())
+    m_markerDropper(device::IPayloadSetPtr())
 {
     // Create devices
     if (config.exists("Devices"))
@@ -198,7 +198,7 @@ void Vehicle::unsafeThrusters()
 
 void Vehicle::dropMarker()
 {
-    getMarkerDropper()->dropMarker();
+    getMarkerDropper()->releaseObject();
 }
     
 void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
@@ -328,11 +328,11 @@ device::IDepthSensorPtr Vehicle::getDepthSensor()
     return m_depthSensor;
 }
 
-device::IMarkerDropperPtr Vehicle::getMarkerDropper()
+device::IPayloadSetPtr Vehicle::getMarkerDropper()
 {
     if (!m_markerDropper)
     {
-        m_markerDropper = device::IDevice::castTo<device::IMarkerDropper>(
+        m_markerDropper = device::IDevice::castTo<device::IPayloadSet>(
             getDevice(m_markerDropperName));
     }
     return m_markerDropper;

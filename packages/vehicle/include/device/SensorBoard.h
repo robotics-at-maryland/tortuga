@@ -17,7 +17,6 @@
 #include "vehicle/include/Common.h"
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/IDepthSensor.h"
-#include "vehicle/include/device/IMarkerDropper.h"
 
 #include "core/include/Event.h"
 #include "core/include/Updatable.h"

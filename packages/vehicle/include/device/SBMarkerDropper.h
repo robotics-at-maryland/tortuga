@@ -16,7 +16,7 @@
 // Project Includes
 #include "vehicle/include/Common.h"
 #include "vehicle/include/device/Device.h"
-#include "vehicle/include/device/IMarkerDropper.h"
+#include "vehicle/include/device/IPayloadSet.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
@@ -28,10 +28,10 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-/** Implements the IMarkerDropper with the SensorBoard class */
+/** Implements the IPayloadSet with the SensorBoard class */
 class RAM_EXPORT SBMarkerDropper :
         public Device, // for getName
-        public IMarkerDropper
+        public IPayloadSet
         // boost::noncopyable
 {
 public:
@@ -41,10 +41,10 @@ public:
     
     virtual ~SBMarkerDropper();
 
-    // IMarkerDropper methods
-    virtual void dropMarker();
-    virtual int markersLeft();
-    virtual int initalMarkerCount();
+    // IPayloadSet methods
+    virtual void releaseObject();
+    virtual int objectCount();
+    virtual int initialObjectCount();
 
     // IDevice methods
     virtual std::string getName() { return Device::getName(); }

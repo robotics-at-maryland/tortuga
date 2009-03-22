@@ -73,9 +73,9 @@ def generate(module_builder, local_ns, global_ns):
     ISonar = expose_device(local_ns, 'ISonar')
     wrappedClasses.append(ISonar)
 
-    # Wrap the IMarkerDropper class
-    IMarkerDropper = expose_device(local_ns, 'IMarkerDropper')
-    wrappedClasses.append(IMarkerDropper)
+    # Wrap the IPayloadSet class
+    IPayloadSet = expose_device(local_ns, 'IPayloadSet')
+    wrappedClasses.append(IPayloadSet)
 
     module_builder.add_registration_code("registerIDeviceMakerClass();")
     module_builder.add_registration_code("registerIDevicePtrs();")

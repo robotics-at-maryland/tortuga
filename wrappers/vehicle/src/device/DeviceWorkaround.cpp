@@ -17,7 +17,7 @@
 #include "vehicle/include/device/IPowerSource.h"
 #include "vehicle/include/device/ITempSensor.h"
 #include "vehicle/include/device/ISonar.h"
-#include "vehicle/include/device/IMarkerDropper.h"
+#include "vehicle/include/device/IPayloadSet.h"
 
 namespace bp = boost::python;
 
@@ -41,7 +41,7 @@ void registerIDevicePtrs()
     bp::implicitly_convertible< ram::vehicle::device::ISonarPtr,
                                 ram::vehicle::device::IDevicePtr>();
 
-    bp::register_ptr_to_python< ram::vehicle::device::IMarkerDropperPtr >();
-    bp::implicitly_convertible< ram::vehicle::device::IMarkerDropperPtr,
+    bp::register_ptr_to_python< ram::vehicle::device::IPayloadSetPtr >();
+    bp::implicitly_convertible< ram::vehicle::device::IPayloadSetPtr,
                                 ram::vehicle::device::IDevicePtr>();
 }

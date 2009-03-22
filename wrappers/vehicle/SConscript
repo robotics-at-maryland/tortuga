@@ -39,7 +39,7 @@ dev_wrapped_headers = ['device/Common.h',
                        'device/IThruster.h',
                        'device/IPowerSource.h',
                        'device/ITempSensor.h',
-                       'device/IMarkerDropper.h',
+                       'device/IPayloadSet.h',
                        'device/ISonar.h']
 
 # Tests
