@@ -121,7 +121,8 @@ if os.name == 'posix':
                                 '-Werror', # Warnings as Errors
                                 '-fmessage-length=0'] # For gathering stats
                      )
-    env.AppendUnique(LINKFLAGS = ['-Wl,-E'])
+    if 'Darwin' != platform.system():
+        env.AppendUnique(LINKFLAGS = ['-Wl,-E'])
 else:
     env.AppendUnique(CCFLAGS = ['/W3',   # Level 3 out of 4 warnings
                                 '/WX',   # Warnings as Errors
