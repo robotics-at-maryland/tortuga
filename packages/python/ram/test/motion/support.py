@@ -31,6 +31,7 @@ class MockController(control.IController):
         self.speed = 0
         self.sidewaysSpeed = 0
         self.desiredOrientation = ext.math.Quaternion.IDENTITY
+        self.headingHolds = 0
         
     def setDepth(self, depth):
         self.depth = depth
@@ -49,6 +50,9 @@ class MockController(control.IController):
     
     def getSidewaysSpeed(self):
         return self.sidewaysSpeed
+
+    def holdCurrentHeading(self):
+        self.headingHolds += 1
         
     def yawVehicle(self, yawChange):
         self.yawChange = yawChange
@@ -76,6 +80,7 @@ class MockVehicle(vehicle.IVehicle):
         self.depth = 0
         self.orientation = ext.math.Quaternion.IDENTITY
         self.markersDropped = 0
+        self.torpedosFired = 0
 
     def getDepth(self):
         return self.depth
@@ -85,6 +90,9 @@ class MockVehicle(vehicle.IVehicle):
 
     def dropMarker(self):
         self.markersDropped += 1
+
+    def fireTorpedo(self):
+        self.torpedosFired += 1
     
     def publishOrientationUpdate(self, vehicleOrientation):
         event = ext.math.OrientationEvent()

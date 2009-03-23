@@ -46,6 +46,7 @@ class MockVisionSystem(core.Subsystem):
         self.binDetector = False
         self.ductDetector = False
         self.downwardSafeDetector = False
+        self.targetDetector = False
          
     def redLightDetectorOn(self):
         self.redLightDetector = True
@@ -76,6 +77,12 @@ class MockVisionSystem(core.Subsystem):
         
     def ductDetectorOff(self):
         self.ductDetector = False
+        
+    def targetDetectorOn(self):
+        self.targetDetector = True
+        
+    def targetDetectorOff(self):
+        self.targetDetector = False
         
 class AITestCase(unittest.TestCase):
     TIMER_ORIG = timer.Timer
