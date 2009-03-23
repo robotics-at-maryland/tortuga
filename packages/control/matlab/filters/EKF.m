@@ -40,7 +40,7 @@ x_prev = x0;
 % 
 % end
 
-u = -a(:,23); 
+u = -a(:,23);  %This is flipping our control signal because we use positive signal to dive
 
 
 u_prev = u(1);
@@ -67,7 +67,7 @@ for t=1:t_end
     % Using the measured value along with the updated state
     K = P_pred*Ck'*inv(Ck*P_pred*Ck' + Rn);
     KalmanGains(:,t) = K;
-    x(:,t) = x_pred + K*(y(t) - Ck*x_pred); % y will be from our log files of real dives There may be a noise term added on here nex to Ck*xpred
+    x(:,t) = x_pred + K*(y(t) - Ck*x_pred); % y will be from our log files of real dives
     P_prev = (I - K*Ck)*P_pred;
     P(:,t) = P_pred(:);%converts matrix into a vector
     x_prev = x(:,t);
