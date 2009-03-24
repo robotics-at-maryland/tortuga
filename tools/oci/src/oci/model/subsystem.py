@@ -353,14 +353,19 @@ class DemoVisionSystem(vision.VisionSystem):
 
         eventLight = vision.RedLightEvent(sinVal, sinVal)
         eventTarget = vision.TargetEvent(sinVal, sinVal * -1, sinVal * -2, 
-                                   sinVal * -3)
+                                         sinVal * -3)
+        eventBarbedWire = vision.BarbedWireEvent(sinVal, sinVal * -1,
+                                                 sinVal * -2, sinVal * -3,
+                                                 sinVal * -4, sinVal * -5)
 
         if sinVal >= 0:
             self.publish(vision.EventType.LIGHT_FOUND, eventLight)
             self.publish(vision.EventType.TARGET_LOST, eventTarget)
+            self.publish(vision.EventType.BARBED_WIRE_FOUND, eventBarbedWire)
         else:
             self.publish(vision.EventType.LIGHT_LOST, eventLight)
             self.publish(vision.EventType.TARGET_FOUND, eventTarget)
+            self.publish(vision.EventType.BARBED_WIRE_LOST, eventBarbedWire)
     
     def backgrounded(self):
         return False

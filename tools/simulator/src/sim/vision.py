@@ -130,6 +130,14 @@ class BarbedWire(ram.sim.object.Object):
     @property
     def orientation(self):
         return self._orientation
+
+    @property
+    def front(self):
+        return self._front
+
+    @property
+    def back(self):
+        return self._back
     
     def load(self, data_object):
         scene, parent, node = data_object
@@ -605,7 +613,11 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Target Detector variables
         self._runTarget = False
         self._foundTarget = False
-        
+
+        # BarbedWire Detector Variables
+        self._runBarbedWire = False
+        self._foundBarbedWire = False
+                
         # Find all the Buoys, Pipes and Bins
         self._bouys = sim.scene.getObjectsByInterface(IBuoy)
         self._pipes = sim.scene.getObjectsByInterface(IPipe)
@@ -613,6 +625,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._ducts = sim.scene.getObjectsByInterface(IDuct)
         self._safes = sim.scene.getObjectsByInterface(ISafe)
         self._targets = sim.scene.getObjectsByInterface(ITarget)
+        self._barbedWires = sim.scene.getObjectsByInterface(IBarbedWire)
 
     def redLightDetectorOn(self):
         self._runRedLight = True
@@ -650,6 +663,12 @@ class IdealSimVision(ext.vision.VisionSystem):
     def targetDetectorOff(self):
         self._runTarget = False
 
+    def barbedWireDetectorOn(self):
+        self._runBarbedWire = True
+
+    def barbedWireDetectorOff(self):
+        self._runBarbedWire = False
+
     def backgrounded(self):
         return False
 
@@ -669,7 +688,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             self._checkDownwardSafe()
         if self._runTarget:
             self._checkTarget()
-        
+        if self._runBarbedWire:
+            self._checkBarbedWire()
     
     def _findClosest(self, objects):
         """
@@ -860,6 +880,90 @@ class IdealSimVision(ext.vision.VisionSystem):
                 self.publish(ext.vision.EventType.TARGET_LOST, ext.core.Event())
 
         self._foundTarget = targetVisible
+
+    def _checkBarbedWire(self):
+        """
+        Check for the Target (ie. "Machine Gun Nest"), the squareness is just
+        an approximation. 
+        """
+        # Grab both pipes determine the relative angle of the whole barbed
+        # wire set
+        barbedWire, relativePos = self._findClosest(self._barbedWires)
+        visible, x, y, azimuth, elevation, angle = \
+            self._forwardCheck(relativePos, barbedWire)
+        frontPipe = barbedWire.front
+        backPipe = barbedWire.back
+
+        # Get stats on both pipes
+        relPosFront = frontPipe.position - self.vehicle.robot.position
+        relPosBack = backPipe.position - self.vehicle.robot.position
+
+        frontVisible, frontX, frontY, azimuth, elevation, frontAngle = \
+            self._forwardCheck(relPosFront, frontPipe)
+        backVisible, backX, backY, azimuth, elevation, backAngle = \
+            self._forwardCheck(relPosBack, backPipe)
+
+        # Fill out default event state variables
+        event = ext.core.Event()
+        event.bottomX = 0
+        event.bottomY = 0
+        event.bottomWidth = -1
+
+        # Determine width
+        objWidth = math.fabs(math.cos(angle.valueRadians())) * 2
+        availFrontWidth = math.tan(self._horizontalFOV) * relFrontPos.length()
+        availBackWidth = math.tan(self._horizontalFOV) * relBackPos.length()
+        frontWidth = objWidth / availFrontWidth
+        backWidth = objWidth / availBackWidth
+        if frontWidth > 1:
+            frontWidth = 1
+        if backWidth > 1:
+            backWidth = 1
+
+        if (frontVisible and not backVisible) and (relPosFront.length() < 3):
+            # Only see the front
+            event = ext.core.Event()
+            event.topY = frontX
+            event.topY = frontY
+            event.topWith =  frontWidth
+            
+            self.publish(ext.vision.EventType.BARBED_WIRE_FOUND, event)
+        if (backVisible and not frontVisible) and (relPosBack.length() < 3):
+            # Only see the back
+            event = ext.core.Event()
+            event.topY = backX
+            event.topY = backY
+            event.topWith =  backWidth
+            
+            self.publish(ext.vision.EventType.BARBED_WIRE_FOUND, event)
+        if (frontVisible and backVisible) and (relPosFront.length() < 3) \
+               and (relPosBack.length() < 3):
+            # See both
+            event = ext.core.Event()
+            # Assign values based on which pipe is ontop
+            if backPipe.Y < frontPipe.Y:
+                event.topY = frontX
+                event.topY = frontY
+                event.topWith =  frontWidth
+                event.bottomY = backX
+                event.bottomY = backY
+                event.bottomWith =  backWidth
+            else:
+                event.topY = backX
+                event.topY = backY
+                event.topWith =  backWidth
+                event.bottomY = frontX
+                event.bottomY = frontY
+                event.bottomWith =  frontWidth
+            
+            self.publish(ext.vision.EventType.BARBED_WIRE_FOUND, event)
+        else:
+            if self._foundBarbedWire:
+                self.publish(ext.vision.EventType.BARBED_WIRE_LOST,
+                             ext.core.Event())
+
+        self._foundBarbedWire = frontVisible | backVisible
+
         
     def _checkOrangePipe(self):
         pipe, relativePos = self._findClosest(self._pipes)

@@ -126,12 +126,18 @@ class VisionPanel(BasePanel):
             targetPaneInfo = wx.aui.AuiPaneInfo().Name("Target")
             targetPaneInfo = targetPaneInfo.Caption("Target").Left()
             targetPanel = TargetPanel(parent, eventHub, vision)
-            
+
+            #barbedWirePaneInfo = wx.aui.AuiPaneInfo().Name("BarbedWire")
+            #barbedWirePaneInfo = \
+            #    barbedWirePaneInfo.Caption("BarbedWire").Left()
+            #barbedWirePanel = BarbedWirePanel(parent, eventHub, vision)
+
             return [(buoyPaneInfo, buoyPanel, [vision]), 
                     (pipePaneInfo, pipePanel, [vision]), 
                     (binPaneInfo, binPanel, [vision]),
                     (ductPaneInfo, ductPanel, [vision]),
                     (safePaneInfo, safePanel, [vision]),
+                    #(barbedWirePaneInfo, barbedWirePanel, [vision]),
                     (targetPaneInfo, targetPanel, [vision])]
         
         return []
@@ -381,4 +387,46 @@ class TargetPanel(VisionPanel):
         self.enableControls()
     
     def _onTargetLost(self, event):
+        self.disableControls()
+
+class BarbedWirePanel(VisionPanel):
+    def __init__(self, parent, eventHub, vision, *args, **kwargs):
+        VisionPanel.__init__(self, parent, *args, **kwargs)
+        self._topX = None
+        self._topY = None
+        self._topWidth = None
+        self._bottomX = None
+        self._bottomY = None
+        self._bottomWidth = None
+
+        # Controls
+        self._createControls("BarbedWire")
+        
+        # Events
+        self._subscribeToType(eventHub, ext.vision.EventType.TARGET_FOUND, 
+                             self._onBarbedWireFound)
+        
+        self._subscribeToType(eventHub, ext.vision.EventType.TARGET_LOST, 
+                             self._onBarbedWireLost)
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_topX', label = 'Top X: ')
+        self._createDataControl(controlName = '_topY', label = 'Top Y: ')
+        self._createDataControl(controlName = '_topY', label = 'Top Width: ')
+        self._createDataControl(controlName = '_bottomX', label = 'Bot X: ')
+        self._createDataControl(controlName = '_bottomY', label = 'Bot Y: ')
+        self._createDataControl(controlName = '_bottomY',
+                                label = 'Bot Width: ')
+        
+    def _onBarbedWireFound(self, event):
+        self._topX.Value = "% 4.2f" % event.topX
+        self._topY.Value = "% 4.2f" % event.topY
+        self._topWidth.Value = "% 4.2f" % event.topWidth
+        self._bottomX.Value = "% 4.2f" % event.bottomX
+        self._bottomY.Value = "% 4.2f" % event.bottomY
+        self._bottomWidth.Value = "% 4.2f" % event.bottomWidth
+        
+        self.enableControls()
+    
+    def _onBarbedWireLost(self, event):
         self.disableControls()
