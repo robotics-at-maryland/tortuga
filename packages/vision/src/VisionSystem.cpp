@@ -53,7 +53,8 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
-    m_targetDetector(DetectorPtr())
+    m_targetDetector(DetectorPtr()),
+    m_barbedWireDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -152,6 +153,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new GateDetector(config["GateDetector"], eventHub));
     //m_targetDetector = DetectorPtr(
     //    new TargetDetector(config["TargetDetector"], eventHub));
+    //m_BarbedWireDetector = DetectorPtr(
+    //    new BarbedWireDetector(config["BarbedWireDetector"], eventHub));
     
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
@@ -247,7 +250,16 @@ void VisionSystem::targetDetectorOff()
     //m_forward->removeDetector(m_targetDetector);
 }
 
-    
+void VisionSystem::barbedWireDetectorOn()
+{
+    //m_forward->addDetector(m_BarbedWireDetector);
+}
+
+void VisionSystem::barbedWireDetectorOff()
+{
+    //m_forward->removeDetector(m_BarbedWireDetector);
+}
+   
 void VisionSystem::setPriority(core::IUpdatable::Priority priority)
 {
 //    assert(m_testing && "Can't background when not testing");
