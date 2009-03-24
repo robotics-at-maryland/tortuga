@@ -40,6 +40,9 @@ public:
     
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
+
+    /** Makes the current actual depth the desired depth */
+    virtual void holdCurrentDepth() = 0;
 };
 
 /** Provides an interface for a implementation of a Depth Controller */

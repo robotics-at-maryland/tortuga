@@ -122,6 +122,11 @@ bool CombineController::atDepth()
 {
     return m_depthController->atDepth();
 }
+
+void CombineController::holdCurrentDepth()
+{
+    m_depthController->holdCurrentDepth();
+}
     
 // Rotational controller methods
 void CombineController::rollVehicle(double degrees)

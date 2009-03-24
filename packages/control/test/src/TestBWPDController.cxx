@@ -140,6 +140,14 @@ TEST_FIXTURE(Fixture, atDepth)
          boost::bind(&control::BWPDController::update, &controller, 1.0));
 }
 
+TEST_FIXTURE(Fixture, holdCurrentDepth)
+{
+    TEST_UTILITY_FUNC(holdCurrentDepth)
+        (&controller,
+         boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+         boost::bind(&control::BWPDController::update, &controller, 1.0));
+}
+
 void depthHelper(double* result, ram::core::EventPtr event)
 {
     ram::math::NumericEventPtr nevent =

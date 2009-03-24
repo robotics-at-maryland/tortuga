@@ -69,6 +69,7 @@ public:
     virtual double getEstimatedDepth() { return 0; }
     virtual double getEstimatedDepthDot() { return 0; }
     virtual bool atDepth() { return atDepthValue; }
+    virtual void holdCurrentDepth() {}
 
     virtual void yawVehicle(double /*degrees*/) {}
     virtual void pitchVehicle(double /*degrees*/) {}

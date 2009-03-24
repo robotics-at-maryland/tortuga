@@ -26,7 +26,8 @@ public:
         updateDepth(0),
         timestep(0),
         orientation(ram::math::Quaternion::IDENTITY),
-        force(0, 0, 0)
+        force(0, 0, 0),
+        holdCurrentDepthCount(0)
         {}
     
     virtual ~MockDepthController() {}
@@ -40,6 +41,8 @@ public:
     virtual double getEstimatedDepthDot() { return estimatedDepthDot; }
     
     virtual bool atDepth() { return atDepthValue; }
+
+    virtual void holdCurrentDepth() { holdCurrentDepthCount++; }
 
     virtual ram::math::Vector3 depthUpdate(double timestep_, double depth,
                                            ram::math::Quaternion orientation_)
@@ -57,6 +60,7 @@ public:
     double timestep;
     ram::math::Quaternion orientation;
     ram::math::Vector3 force;
+    int holdCurrentDepthCount;
 };
 
 #endif	// RAM_CONTROL_TEST_DEPTHCONTROLLER_09_01_2008

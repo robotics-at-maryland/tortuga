@@ -150,6 +150,13 @@ TEST_FIXTURE(CombineControllerFixture, atDepth)
     CHECK_EQUAL(atDepth, controller.atDepth());
 }
 
+TEST_FIXTURE(CombineControllerFixture, holdCurrentDepth)
+{
+    CHECK_EQUAL(0, depthController->holdCurrentDepthCount);
+    controller.holdCurrentDepth();
+    CHECK_EQUAL(1, depthController->holdCurrentDepthCount);
+}
+
 // Translational methods
 TEST_FIXTURE(CombineControllerFixture, yawVehicle)
 {

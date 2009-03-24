@@ -83,6 +83,8 @@ BWPDController::BWPDController(core::ConfigNode config,
 
     if (config["holdCurrentHeading"].asInt(0))
         holdCurrentHeading();
+    if (config["holdCurrentDepth"].asInt(0))
+        holdCurrentDepth();
 }
 
 BWPDController::~BWPDController()
@@ -319,6 +321,12 @@ bool BWPDController::atDepth()
     return difference <= m_depthThreshold;
 }
 
+void BWPDController::holdCurrentDepth()
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
+    m_desiredState->depth = m_vehicle->getDepth();
+}
+    
   /*
 used to load the current heading into desiredState
 desiredState->quaternion will be "level" in horizontal plane

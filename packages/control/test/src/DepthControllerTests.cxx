@@ -47,3 +47,20 @@ TEST_UTILITY_IMP(atDepth,
     CHECK(controller->atDepth());
 }
 
+TEST_UTILITY_IMP(holdCurrentDepth,
+                 (ram::control::IDepthController* controller,
+                  boost::function<void(double)> setDepth,
+                  boost::function<void (void)> update))
+{
+    // Lock in current depth
+    setDepth(4);
+    update();
+
+    // Check Normall setting
+    controller->setDepth(5);
+    CHECK_EQUAL(5, controller->getDepth());
+
+    // Hold and make sure we have changed
+    controller->holdCurrentDepth();
+    CHECK_EQUAL(4, controller->getDepth());
+}

@@ -99,6 +99,8 @@ public:
     /** @copydoc IController::atDepth() */
     virtual bool atDepth();
 
+    virtual void holdCurrentDepth();
+
     /** loads current orientation into desired (fixes offset in roll and pitch)*/
     virtual void holdCurrentHeading();
 

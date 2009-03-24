@@ -51,5 +51,14 @@ TEST_FIXTURE(DepthControllerBaseFixture, atDepth)
          boost::bind(&dummy));
 }
 
+TEST_FIXTURE(DepthControllerBaseFixture, holdCurrentDepth)
+{
+    TEST_UTILITY_FUNC(holdCurrentDepth)
+        (&controller,
+         boost::bind(&control::IDepthControllerImp::depthUpdate,
+                     &controller, 0.0, _1, math::Quaternion::IDENTITY),
+         boost::bind(&dummy));
+}
+
 } // SUITE(DepthControllerBase)
 

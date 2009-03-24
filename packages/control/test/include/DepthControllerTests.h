@@ -28,4 +28,11 @@ TEST_UTILITY_FWD(atDepth,
                   boost::function<void(double)> setDepth,
                   boost::function<void (void)> update));
 
+/** Tests whether hte IDepthController::holdCurrentDepth function is working*/
+TEST_UTILITY_FWD(holdCurrentDepth,
+                 (ram::control::IDepthController* controller,
+                  boost::function<void(double)> setDepth,
+                  boost::function<void (void)> update));
+
+
 #endif // RAM_CONTROL_TEST_DEPTHCONTROLLERTESTS_03_14_2009

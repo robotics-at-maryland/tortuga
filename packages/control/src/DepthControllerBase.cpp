@@ -38,10 +38,17 @@ double DepthControllerBase::getDepth()
     
 bool DepthControllerBase::atDepth()
 {
+    // Don't lock here for now, causes a dead lock somewhere
     double difference = fabs(m_currentDepth - m_desiredDepth);
     return difference <= m_depthThreshold;
 }
 
+void DepthControllerBase::holdCurrentDepth()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    m_desiredDepth = m_currentDepth;
+}
+    
 math::Vector3 DepthControllerBase::depthUpdate(double timestep, double depth,
                                                math::Quaternion orienation)
 { 

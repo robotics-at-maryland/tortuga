@@ -61,6 +61,7 @@ public:
     virtual double getEstimatedDepth();
     virtual double getEstimatedDepthDot();
     virtual bool atDepth();
+    virtual void holdCurrentDepth();
     /* @{ */
     
     /**

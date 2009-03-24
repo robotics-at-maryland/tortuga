@@ -45,6 +45,8 @@ public:
     
     virtual bool atDepth();
 
+    virtual void holdCurrentDepth();
+
     /** Does housing keeping work, should be called first in every override
      *
      *  When this method is overridden to implement your controller, call this
