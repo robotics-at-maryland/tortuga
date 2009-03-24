@@ -46,6 +46,8 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType SAFE_LOST;
     static const core::Event::EventType TARGET_FOUND;
     static const core::Event::EventType TARGET_LOST;
+    static const core::Event::EventType BARBED_WIRE_FOUND;
+    static const core::Event::EventType BARBED_WIRE_LOST;
 };
 
 class RAM_EXPORT ImageEvent : public core::Event
@@ -162,6 +164,29 @@ class RAM_EXPORT TargetEvent : public core::Event
 };
     
 typedef boost::shared_ptr<TargetEvent> TargetEventPtr;
+
+class RAM_EXPORT BarbedWireEvent : public core::Event
+{
+  public:
+    BarbedWireEvent(double topX_, double topY_, double topWidth_,
+                    double bottomX_, double bottomY_, double bottomWidth_) :
+        topX(topX_),
+        topY(topY_),
+        topWidth(topWidth),
+        bottomX(bottomX_),
+        bottomY(bottomY_),
+        bottomWidth(bottomWidth)
+    {
+    }
+    double topX;
+    double topY;
+    double topWidth;
+    double bottomX;
+    double bottomY;
+    double bottomWidth;
+};
+    
+typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;
 
     
 } // namespace vision

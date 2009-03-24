@@ -31,6 +31,8 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, SAFE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, SAFE_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, TARGET_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, TARGET_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_LOST);
 
 // This section is only needed when we are compiling the wrappers
 // This registers converters to work around some issues with Boost.Python
@@ -56,5 +58,8 @@ RAM_VISION_SAFEEVENT;
 
 static ram::core::SpecificEventConverter<ram::vision::TargetEvent>
 RAM_VISION_TARGETEVENT;
+
+static ram::core::SpecificEventConverter<ram::vision::BarbedWireEvent>
+RAM_VISION_BARBED_WIREEVENT;
 
 #endif // RAM_WITH_WRAPPERS
