@@ -8,6 +8,7 @@
 # STD Imports
 import math
 import ctypes
+import random
 
 # Library Imports
 import ogre.renderer.OGRE as ogre
@@ -54,6 +55,13 @@ class IDuct(IObject):
 
 class ISafe(IObject):
     """ An object which you can see in the simulation"""
+    pass
+
+class ICourse(IObject):
+    """
+    Generates a course based on the given input, can apply randomness to said
+    input.  This allows an entire new configurtion to be built very easily
+    """
     pass
 
 # TODO: Fill out the methods for the class
@@ -480,6 +488,76 @@ class Safe(Visual):
             node['Graphical'] = gfxNode
         Visual.load(self, (scene, parent, node))
 
+class Course(ram.sim.object.Object):
+    core.implements(ram.sim.object.IObject, ICourse)
+    
+    SEPERATION = 1.2192
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+    
+    def load(self, data_object):
+        scene, parent, cfg = data_object
+        ram.sim.object.Object.load(self, (parent, cfg))
+        
+        names = cfg['order']
+        startPos = cfg['startPos']
+        curPos = ext.math.Vector2(float(startPos[0]), float(startPos[1]))
+        curHeading = 0
+        seed = cfg.get('seed', -1)
+
+        # Define usable variables
+        rotMatrix = ext.math.Matrix2()
+        if -1 != seed:
+            random.seed(seed)
+        
+        for i, name in enumerate(names):
+            # Read in the configuration information
+            pCfg = cfg[name]
+            type_ = pCfg['type']
+            pos = [curPos.x, curPos.y, self._readRandom(pCfg['depth'])]
+            heading = self._readRandom(pCfg.get('heading',0)) + curHeading
+    
+            # Build the configuration and load the object
+            objCfg = {
+                'name' : name,
+                'type' : type_,
+                'position' : pos,
+                'orientation' : [0, 0, 1, -heading],
+            }
+            self._createObject(scene, objCfg)
+    
+            # Determine the new current position and heading
+            if i < (len(names) - 1):
+                # New heading
+                curHeading = heading
+                
+                # New current position
+                if pCfg.has_key('distance'):
+                    distToNext = self._readRandom(pCfg['distance'])
+                    rotMatrix.fromAngle(ext.math.Degree(curHeading))
+                    offset = rotMatrix * ext.math.Vector2.UNIT_X * distToNext
+                    curPos = curPos + offset
+                
+                # Add in the offset
+                if pCfg.has_key('offset'):
+                    offsetDist = pCfg['offset']
+                    rotMatrix.fromAngle(ext.math.Degree(-90 + curHeading))
+                    offset = rotMatrix * ext.math.Vector2.UNIT_X * offsetDist
+                    curPos = curPos + offset 
+    
+    def _readRandom(self, val):
+        if type(val) is list:
+            val = random.uniform(val[0], val[1])
+        return val
+        
+    def _createObject(self, scene, cfg):
+        iface_name, class_name = cfg['type']
+        obj = core.Component.create(iface_name, class_name)
+        obj.load((scene, None, cfg))
+        scene._objects.append(obj)
+        
 class IdealSimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
         # Transform arguments to create base VisionSystem class

@@ -20,8 +20,8 @@ Scene:
     
     Cameras:
         Main:
-            position: [-13, 6, 0]
-            offset: [0, 0, 15]
+            position: [-5, 5, 0]
+            offset: [0, 0, 45]
 
     
     Robots:
@@ -39,30 +39,30 @@ Scene:
             pipe1:
                 type: [sim.vision.IPipe, sim.vision.Pipe]
                 heading: -45
-                distance: 5
+                distance: [2,7] #5
                 depth: -3.05
             
             buoy:
                 type: [sim.vision.IBuoy, sim.vision.Buoy]
-                distance: 5
+                distance: [2,7]#5
                 depth: -2.9
 
             pipe2:
                 type: [sim.vision.IPipe, sim.vision.Pipe]
-                heading: 75
-                distance: 7
+                heading: [0,80] #75
+                distance: [2,7] #7
                 depth: -3.05
 
             blackJackTable:
                 type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
-                distance: 7
+                distance: [2,7] #7
                 offset: 1
                 depth: -3.05
                 
             pipe3:
                 type: [sim.vision.IPipe, sim.vision.Pipe]
-                heading: 60
-                distance: 13
+                heading: [0,80] #60
+                distance: [2,13] #13
                 offset: 3
                 depth: -3.05
 
