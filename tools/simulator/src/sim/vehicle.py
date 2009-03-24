@@ -128,26 +128,26 @@ class SimPayloadSet(device.IPayloadSet):
         # Now lets spawn an object
         obj = scene.SceneObject()
         position = self._robot._main_part._node.position
+        robotOrient = self._robot._main_part._node.orientation
 
         # 30cm below robot
-        position.z = position.z - 0.10
-        position.x = position.x + 0.15
-        position.y = position.y + 0.30 - (self._count * 0.2)
-        print self._count, 0.30 - (self._count * 0.2)
+        offset = ogre.Vector3(0.15, 0.30 - (self._count * 0.2), -0.10)
+        position = position + robotOrient * offset 
         orientation = ogre.Quaternion(ogre.Degree(90), ogre.Vector3.UNIT_X)
 
         cfg = {
             'name' : self._name + str(self._count),
             'position' : position,
-            'orientation' : orientation,
             'Graphical' : {
                 'mesh' : 'cylinder.mesh', 
                 'scale' : [0.0762, 0.0127, 0.0127],
-                'material' : 'Simple/Red' 
+                'material' : 'Simple/Red',
+                'orientation' : orientation * robotOrient
             },
             'Physical' : {
                 'mass' : 0.01, 
                 'center_of_mass' : [0, 0, 0.0127], # Top heavy
+                'orientation' : orientation * robotOrient,
                 'Shape' : {
                     'type' : 'cylinder',
                     'radius' : 0.0127,
@@ -162,22 +162,24 @@ class SimPayloadSet(device.IPayloadSet):
         # Now lets spawn an object
         obj = scene.SceneObject()
         position = self._robot._main_part._node.position
+        robotOrient = self._robot._main_part._node.orientation
 
         # 30cm below robot
-        position.x = position.x + 0.40
-        position.y = position.y + 0.30 - (self._count * 0.2)
-        orientation = ogre.Quaternion(ogre.Degree(90), ogre.Vector3.UNIT_X)
+        offset = ogre.Vector3(0.4, 0.30 - (self._count * 0.2), 0)
+        position = position + robotOrient * offset 
+        
         cfg = {
             'name' : self._name + str(self._count),
             'position' : position,
-            'orientation' : orientation,
             'Graphical' : {
                 'mesh' : 'cylinder.mesh', 
                 'scale' : [0.127, 0.0127, 0.0127],
-                'material' : 'Simple/Red' 
+                'material' : 'Simple/Red',
+                'orientation' : robotOrient 
             },
             'Physical' : {
                 'mass' : 0.005,
+                'orientation' : robotOrient,
                 'Shape' : {
                     'type' : 'cylinder',
                     'radius' : 0.0127,
@@ -186,7 +188,7 @@ class SimPayloadSet(device.IPayloadSet):
             }
         }
         obj.load((self._scene, None, cfg))
-        obj._body.setVelocity(ogre.Vector3(10, 0, 0))
+        obj._body.setVelocity(robotOrient * ogre.Vector3(10, 0, 0))
         self._scene._objects.append(obj)  
 
 class SimVehicle(vehicle.IVehicle):

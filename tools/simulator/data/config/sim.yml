@@ -202,6 +202,7 @@ Subsystems:
         depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
         holdCurrentHeading: 1
+        holdCurrentDepth: 1
         #update_interval: 10
         ##################################
         ##GAINS SHOULD NEVER BE NEGATIVE##
@@ -365,6 +366,7 @@ Subsystems:
             #Main: objectives/safe.sml
             #Main: transdec.sml
             #Main: nxtest.sml
+            #Main: gen_course.sml
             #Main: safePing.sml
             #Main: shortCourse.sml
             #Main: nbrf_tank.sml

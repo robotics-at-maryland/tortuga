@@ -23,19 +23,22 @@ Scene:
             #Off to the side
             #position: [-16, 0, -2]
             #offset: [0, 8, 0]
-            position: [-15, 0, 0]
-            offset: [0, 0, 8]
+            position: [-15, -1, -3]
+            offset: [-5, 0, 2.8]
             #position: [-12, -2, -3.05]
             #offset: [4, 0, 0]
     
     Robots:
-        Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
+        Tortuga: 
+            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
+            position: [-17, 0, -3]
+            #orientation: [0, 0, 1, -200]
     
     Objects:
-        BarbedWire:
+        Target:
               type: [ram.sim.object.IObject, sim.vision.Target]
-              position: [-15, 0, -3.5814]
-              #position: [-15, -1, -3.5814]
+              #position: [-15, 0, -3.5814]
+              position: [-15, -1, -3]
               orientation: [0, 0, 1, 45]
           
         water:

@@ -491,8 +491,6 @@ class Safe(Visual):
 class Course(ram.sim.object.Object):
     core.implements(ram.sim.object.IObject, ICourse)
     
-    SEPERATION = 1.2192
-    
     @two_step_init
     def __init__(self):
         ram.sim.object.Object.__init__(self)
@@ -787,7 +785,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         
             x = yaw / (self._horizontalFOV/2)
             # Negative because of the corindate system
-            y = -pitch / (self._verticalFOV/2)
+            y = math.fabs(pitch / (self._verticalFOV/2))
+            if relativePos.z < 0:
+                y = -y
+
         
             # These have to be swaped as well
             azimuth = ext.math.Degree(-yaw)
@@ -847,7 +848,7 @@ class IdealSimVision(ext.vision.VisionSystem):
             event = ext.core.Event()
             event.x = x
             event.y = y
-            event.squareNess =  math.cos(angle.valueRadians())
+            event.squareNess =  math.fabs(math.cos(angle.valueRadians()))
             
             # Convert to feet
             event.range = relativePos.length() * 3.2808399
