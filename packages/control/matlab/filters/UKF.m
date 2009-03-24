@@ -1,62 +1,64 @@
-% This is an Unscented Kalman Filter for a system with 2 states
+% This is an Extended Kalman Filter Written by Joseph Galante, Alex Janas,
+% and Jaymit Patel on 3/24/2009
 clc;
 clear all;
 close all;
-offset = 1;
 
+% Loads the logged depth file:
+%      depth_m = measured depth
+%      depth_a = 5 pt averaged depth = y
+%      depth_d = desired depth
 a = load('control.log');
-depth_m = a(offset+4:end,8);
-depth_a = 1/5*(a(offset:end-4,8)+a(offset+1:end-3,8)+a(offset+2:end-2,8)+a(offset+3:end-1,8)+a(offset+4:end,8));
+depth_m = a(54:end,8);
+depth_a = 1/5*(a(1:end-4,8)+a(2:end-3,8)+a(3:end-2,8)+a(4:end-1,8)+a(5:end,8));
 depth_d = a(end,16);
 y = depth_a;
-m =28;
-kd = 11.5;
+u = -a(:,23);  %Control Signal values (flipped)
+
+
+% Constants
+m =28;      % Vehicle Mass (kg)
+kd = 11.5;  % Drag Coefficient
 buoy = .02; % Buoyant Force
+Ts = -1/1000 * (a(2,34) - a(3,34)); % This is our sampling time delay
+alpha = 10^-2; % Spread of sigma points
+beta = 2; %Prior knowledge about distribution of x: Optimal for gaussian
+
+Rv = [1 1; 0 1]; % Covariance of sensor noise: Determined by finding variance of the depth sensor readings for a constant depth 
+                 % Rv = 0.550;                 
+Rn = 1.1e-4;  % Covariance of process noise: Artbitrarily chosen
+              % Rn = [1 0; 0 1];
+              
 
 % A,B,C,D as defined by the system
-A = [0 1;0 -kd/m]; % k is our drag coeff.   m is mass
+A = [0 1;0 -kd/m];
 B = [0; 1/m];
 C = [1, 0];
 D = [0];
+[Ak Bk Ck Dk] = dssdata(c2d(ss(A,B,C,D),Ts)); % Discretizes system
 
-Ts = -1/1000 * (a(2,34) - a(3,34)); % This is our sampling time delay
 
-
-[Ak Bk Ck Dk] = dssdata(c2d(ss(A,B,C,D),Ts)); % This discretizes our system
+% Initialize Parameters
+P0 = [1e-4 0; 0 1]; % Initial Covariance Matrix
 Ak_prev = Ak; % Our A matrix is LTI
+x0 = [depth_a(1); 0]; % Initial x estimate: [depth depth_dot]
 
-% initial x estimate: [depth depth_dot]
-x0 = [depth_a(1); 0];
+
+u_prev = u(1);
 x_prev = x0;
-
-u = -a(:,23);  %This is flipping our control signal because we use positive signal to 
-u_prev = u(1); 
-
-
-% initial Covariance:
-P0 = [1e-4 0; 0 1];
 P_prev = P0;
 
-% process noise covariance
-Rv = [1 0; 0 1]; %This is the covariance of our process noise and is artbitrarily chosen
-% Rn = [1 1; 0 1]; %This is the covariance of our sensor noise and is determined by finding the variance of the depth sensor readings for a constant depth
-
-% Rv = 0.550; 
-Rn = 1.1e-4; 
-
-% alpha: spread of sigma points
-alpha = 10^-2;
-% beta: prior knowledge about the distribution of x
-beta = 2; %optimal for gaussian
-
-t_end = length(depth_a);
 
 
-L = 2; % state dimension only 2 for this example
+
+% UKF Specific Parameters
+L = 2; % State dimension: 2 for this example [depth; DepthDot]
 K = 3-L;
-lambda = alpha^2*(L+K) - L; %?????????
+lambda = alpha^2*(L+K) - L; % This formula was listed but should we use it?
 gamma = sqrt(L+lambda);
 
+
+t_end = length(depth_a);
 for t = 1:t_end
     % calculate sigma points and then time update them (See page 228 unscented transformation)
     sigma(:,1) = x_prev;
