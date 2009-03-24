@@ -165,7 +165,7 @@ class TestSeekPoint(SeekPointTest):
     def testTranslateLeft(self):
         # Buoy in the left part of the frame
         self.checkCommand(azimuth = 45, elevation = 0, x = -0.5, 
-                          translate = True, newSidewaysSpeed = 0.5)
+                          translate = True, newSidewaysSpeed = -0.5)
         
 
     def testRight(self):
@@ -194,7 +194,7 @@ class TestSeekPoint(SeekPointTest):
     def testTranslateRight(self):
         # Buoy in the right part of the frame
         self.checkCommand(azimuth = -45, elevation = 0, x = 0.5, 
-                          translate = True, newSidewaysSpeed = -0.5)
+                          translate = True, newSidewaysSpeed = 0.5)
 
     def testTrack(self):
         self.vehicle.depth = 5

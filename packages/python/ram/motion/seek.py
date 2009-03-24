@@ -121,7 +121,7 @@ class SeekPoint(Motion):
             yawCommand = absoluteTargetHeading - desiredHeading
             self._controller.yawVehicle(yawCommand)
         else:
-            sidewaysSpeed = -1 * self._target.x * self._translateGain
+            sidewaysSpeed = self._target.x * self._translateGain
             self._controller.setSidewaysSpeed(sidewaysSpeed)
 
         # Drive toward light
