@@ -39,7 +39,9 @@ class DuctSeekAlign(seek.SeekPointToRange):
         @param maxRangeDiff: The range difference you wish your speed to max out at
         """    
         seek.SeekPointToRange.__init__(self, target, desiredRange, maxRangeDiff,
-                                       rangeGain, maxSpeed, depthGain)
+                                       rangeGain = rangeGain, 
+                                       maxSpeed = maxSpeed, 
+                                       depthGain = depthGain)
         self._maxAlignDiff = float(maxAlignDiff)
         self._alignGain = float(alignGain)
         self._maxSidewaysSpeed = float(maxSidewaysSpeed)

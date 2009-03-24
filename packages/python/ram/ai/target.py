@@ -60,7 +60,7 @@ class FilteredState(object):
         self._xFilter.append(event.x)
         self._yFilter.append(event.y)
         self._rangeFilter.append(event.range)
-        self._alignFilter.append(event.squareNess)
+        self._alignFilter.append(event.squareNess - 1)
         
         # Get new result
         self._filterdX = self._xFilter.getAverage()
@@ -118,7 +118,7 @@ class RangeXYHold(FilteredState, state.State):
         depthGain = self._config.get('depthGain', 1.5)
         self._desiredRange = self._config.get('desiredRange', 3)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
-        maxSpeed = self._config.get('maxSpeed', 3)
+        maxSpeed = self._config.get('maxSpeed', 0.75)
         translateGain = self._config.get('translateGain', 1)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._target,
@@ -212,7 +212,7 @@ class SeekingToRange(RangeXYHold):
     @staticmethod
     def transitions():
         return RangeXYHold.transitions(SeekingToRange, {
-            RangeXYHold.IN_RANGE : FireTorpedos }) #SeekingToAligned })
+            RangeXYHold.IN_RANGE : SeekingToAligned })
 
 class FireTorpedos(RangeXYHold):
     """
@@ -287,14 +287,15 @@ class FireTorpedos(RangeXYHold):
             # All torpedos fired, lets get out of this state
             self.publish(FireTorpedos.MOVE_ON, core.Event())
         
-class DuctAlignState(FilteredState):
+class TargetAlignState(FilteredState):
     def TARGET_FOUND(self, event):
         self._updateFilters(event)
         """Update the state of the light, this moves the vehicle"""
         azimuth = self._filterdX * -107.0/2.0
         elevation = self._filterdY * -80.0/2.0
         self._target.setState(azimuth, elevation, self._filterdRange, 
-                            self._filterdX, self._filterdY, self._filterdAlign)
+                              self._filterdX, self._filterdY, 
+                              self._filterdAlign * self._alignSign)
         
     def enter(self):
         FilteredState.enter(self)
@@ -304,15 +305,16 @@ class DuctAlignState(FilteredState):
         
         # Create tracking object
         self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0)
+        self._alignSign = 1
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
-        desiredRange = self._config.get('desiredRange', 0.3)
+        desiredRange = self._config.get('desiredRange', 3)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
-        maxAlignDiff = self._config.get('maxAlignDiff', 45)
+        maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
         alignGain = self._config.get('alignGain', 1.0)
-        maxSpeed = self._config.get('maxSpeed', 3)
-        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        maxSpeed = self._config.get('maxSpeed', 0.75)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._target,
             desiredRange = desiredRange,
@@ -328,24 +330,60 @@ class DuctAlignState(FilteredState):
     def exit(self):
         self.motionManager.stopCurrentMotion()   
         
-class SeekingToAligned(DuctAlignState, state.State):
+class SeekingToAligned(TargetAlignState, state.State):
+    """
+    Holds the target at range and in the center of the field of view while 
+    rotating around it.  If its rotating the wrong direction is will reverse
+    that direction and keep going until its close enough to aligned.
+    """
     ALIGNED = core.declareEventType('ALIGNED')
+    CHECK_DIRECTION = core.declareEventType('CHECK_DIRECTION_')
     
     @staticmethod
     def transitions():
         return { vision.EventType.TARGET_FOUND : SeekingToAligned,
                  vision.EventType.TARGET_LOST : FindAttempt,
-                 SeekingToAligned.ALIGNED : Aligning }
+                 SeekingToAligned.CHECK_DIRECTION : SeekingToAligned,
+                 SeekingToAligned.ALIGNED : FireTorpedos }
 
     def TARGET_FOUND(self, event):
-        DuctAlignState.TARGET_FOUND(self, event)
-        
+        # Record first squareNess and every squareness
+        if self._firstEvent:
+            self._startSquareNess = event.squareNess
+            self._firstEvent = False
+        self._currentSquareNess = event.squareNess
+            
         # Publish aligned event if needed
-        if event.squareNess > 0.9:
+        if event.squareNess > self._minSquareNess:
             self.publish(SeekingToAligned.ALIGNED, core.Event())
-    
+            
+        # Update motion
+        TargetAlignState.TARGET_FOUND(self, event)
+
+    def CHECK_DIRECTION_(self, event):
+        if self._currentSquareNess < self._startSquareNess:
+            self._alignSign *= -1
+            
+    def enter(self):
+        TargetAlignState.enter(self)
+
+        self._firstEvent = True
+        self._startSquareNess = None
+        self._currentSquareNess = None
         
-class Aligning(DuctAlignState, state.State):
+        # Start timer
+        self._minSquareNess = self._config.get('minSquareNess', 0.9)
+        self._delay = self._config.get('checkDelay', 4)
+        self._timer = self.timerManager.newTimer(
+            SeekingToAligned.CHECK_DIRECTION, self._delay)
+        self._timer.start()
+        
+    def exit(self):
+        TargetAlignState.exit(self)
+        self._timer.stop()
+    
+# The next two states are extra states, not sure if they are needed    
+class Aligning(TargetAlignState, state.State):
     SETTLED = core.declareEventType('ALIGNED')
        
     @staticmethod
@@ -355,14 +393,14 @@ class Aligning(DuctAlignState, state.State):
                  Aligning.SETTLED : Through }
 
     def enter(self):
-        DuctAlignState.enter(self)
+        TargetAlignState.enter(self)
         
         self.timer = self.timerManager.newTimer(
             Aligning.SETTLED, self._config.get('settleTime', 15))
         self.timer.start()
         
     def exit(self):
-        DuctAlignState.exit(self)
+        TargetAlignState.exit(self)
         self.timer.stop()
         
 class Through(state.State):

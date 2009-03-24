@@ -156,7 +156,7 @@ class TestSeekingToRange(TestRangeXYHold):
         TestRangeXYHold.testInRange(self)
 
         # Make sure we ended up in the right place
-        self.assertCurrentState(target.FireTorpedos)
+        self.assertCurrentState(target.SeekingToAligned)
 
 class TestFireTorpedos(TestRangeXYHold):
     def setUp(self):
@@ -202,20 +202,20 @@ class AlignmentTest(object):
     def testStart(self):
         self.assertCurrentMotion(motion.duct.DuctSeekAlign)
     
-    def testDuctFound(self):
+    def testTargetFound(self):
         """Make sure new found events move the vehicle"""
-        # Target to the right, below, and duct misalligned left
+        # Target to the right, below, and target misalligned right
         self.injectEvent(vision.EventType.TARGET_FOUND, 
                          vision.TargetEvent, 0, 0, 0, 0,
-                         x = 0.5, y = -0.5, range = 0.6, squareNess = 1)
+                         x = 0.5, y = -0.5, range = 3.5, squareNess = 0.5)
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.speed, 0)
-        self.assertLessThan(self.controller.sidewaysSpeed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertLessThan(self.controller.yawChange, 0)
     
-    def testDuctLost(self):
+    def testTargetLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.TARGET_LOST)
         self.assertCurrentState(target.FindAttempt)
@@ -233,7 +233,7 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         self.qeventHub.subscribeToType(target.SeekingToAligned.ALIGNED, 
                                        aligned)
         
-        # Inject and event which has the duct ahead, and at the needed range
+        # Inject and event which has the target ahead, and at the needed range
         self.injectEvent(vision.EventType.TARGET_FOUND, 
                          vision.TargetEvent, 0, 0, 0, 0,
                          x = 0.05, y = -0.1, range = 0.31, squareNess = 1)
@@ -241,7 +241,44 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         # Make sure we get the ALIGNED event
         self.qeventHub.publishEvents()
         self.assert_(self._aligned)
-        self.assertCurrentState(target.Aligning)
+        self.assertCurrentState(target.FireTorpedos)
+        
+    def _sendSquareNessEvent(self, squareNess):
+        self.injectEvent(vision.EventType.TARGET_FOUND, 
+                         vision.TargetEvent, 0, 0, 0, 0,
+                         x = 0, y = 0, range = 3, squareNess = squareNess)
+        
+    def testCheckSquareNessBad(self):
+        # Inject and event which has the target ahead, and at the needed range
+        self._sendSquareNessEvent(0.75)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Squareness getting worse
+        self._sendSquareNessEvent(0.5)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Check on squareness 
+        self.releaseTimer(target.SeekingToAligned.CHECK_DIRECTION)
+        
+        # Inject another update and make sure the sign has flipped
+        self._sendSquareNessEvent(0.5)
+        self.assertLessThan(self.controller.sidewaysSpeed, 0)
+        
+    def testCheckSquareNessGood(self):
+        # Inject and event which has the target ahead, and at the needed range
+        self._sendSquareNessEvent(0.5)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Squareness getting worse
+        self._sendSquareNessEvent(0.75)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Check on squareness 
+        self.releaseTimer(target.SeekingToAligned.CHECK_DIRECTION)
+        
+        # Inject another update and make sure the sign hasn't flipped
+        self._sendSquareNessEvent(0.75)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         
 class TestAligning(AlignmentTest, support.AITestCase):
     def setUp(self):
