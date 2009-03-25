@@ -911,8 +911,10 @@ class IdealSimVision(ext.vision.VisionSystem):
 
         # Determine width
         objWidth = math.fabs(math.cos(angle.valueRadians())) * 2
-        availFrontWidth = math.tan(self._horizontalFOV) * relFrontPos.length()
-        availBackWidth = math.tan(self._horizontalFOV) * relBackPos.length()
+        availFrontWidth = math.fabs(math.tan(math.radians(self._horizontalFOV)) \
+             * relPosFront.length())
+        availBackWidth = math.fabs(math.tan(math.radians(self._horizontalFOV)) \
+             * relPosBack.length())
         frontWidth = objWidth / availFrontWidth
         backWidth = objWidth / availBackWidth
         if frontWidth > 1:
@@ -920,41 +922,38 @@ class IdealSimVision(ext.vision.VisionSystem):
         if backWidth > 1:
             backWidth = 1
 
-        if (frontVisible and not backVisible) and (relPosFront.length() < 3):
+        if (frontVisible and not backVisible) and (relPosFront.length() < 6):
             # Only see the front
-            event = ext.core.Event()
-            event.topY = frontX
+            event.topX = frontX
             event.topY = frontY
-            event.topWith =  frontWidth
+            event.topWidth =  frontWidth
             
             self.publish(ext.vision.EventType.BARBED_WIRE_FOUND, event)
-        if (backVisible and not frontVisible) and (relPosBack.length() < 3):
+        if (backVisible and not frontVisible) and (relPosBack.length() < 6):
             # Only see the back
-            event = ext.core.Event()
-            event.topY = backX
+            event.topX = backX
             event.topY = backY
-            event.topWith =  backWidth
+            event.topWidth =  backWidth
             
             self.publish(ext.vision.EventType.BARBED_WIRE_FOUND, event)
-        if (frontVisible and backVisible) and (relPosFront.length() < 3) \
-               and (relPosBack.length() < 3):
+        if (frontVisible and backVisible) and (relPosFront.length() < 6) \
+               and (relPosBack.length() < 6):
             # See both
-            event = ext.core.Event()
             # Assign values based on which pipe is ontop
-            if backPipe.Y < frontPipe.Y:
-                event.topY = frontX
+            if backY < frontY:
+                event.topX = frontX
                 event.topY = frontY
-                event.topWith =  frontWidth
-                event.bottomY = backX
+                event.topWidth =  frontWidth
+                event.bottomX = backX
                 event.bottomY = backY
-                event.bottomWith =  backWidth
+                event.bottomWidth =  backWidth
             else:
-                event.topY = backX
+                event.topX = backX
                 event.topY = backY
-                event.topWith =  backWidth
-                event.bottomY = frontX
+                event.topWidth =  backWidth
+                event.bottomX = frontX
                 event.bottomY = frontY
-                event.bottomWith =  frontWidth
+                event.bottomWidth =  frontWidth
             
             self.publish(ext.vision.EventType.BARBED_WIRE_FOUND, event)
         else:
