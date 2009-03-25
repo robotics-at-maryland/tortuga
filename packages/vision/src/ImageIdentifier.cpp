@@ -117,7 +117,7 @@ namespace ram {
             m_net.set_train_stop_function (FANN::STOPFUNC_MSE);
             m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);
             if (m_cascade) {
-                m_net.cascadetrain_on_data (data, m_sizeFactor * m_net.get_total_neurons(), m_reportNeurons, m_desiredError);
+                m_net.cascadetrain_on_data (data, (unsigned int)m_sizeFactor * m_net.get_total_neurons(), m_reportNeurons, m_desiredError);
             } else {
                 m_net.train_on_data (data, m_maxEpochs, m_reportEpochs, m_desiredError);
             }
@@ -131,7 +131,7 @@ namespace ram {
 		}
 		
 		int ImageIdentifier::run (Image* input) {
-            const unsigned int size = sqrt (m_net.get_num_input());
+                    const unsigned int size = (unsigned int)sqrt (m_net.get_num_input());
 			unsigned int highest_out = 0;
             Image* resized = new OpenCVImage (size, size);
             resized->copyFrom (input);
@@ -165,7 +165,7 @@ namespace ram {
 		}
 		
 		bool ImageIdentifier::addTrainData (unsigned int imageIndex, FANN::training_data &data, const std::vector<Image*> &images) {
-            const unsigned int size = sqrt (m_net.get_num_input());
+                    const unsigned int size = (unsigned int)sqrt (m_net.get_num_input());
 			if (images.size() == 0 || imageIndex >= m_net.get_num_input()) {
 				return false;
 			}
