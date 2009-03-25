@@ -110,183 +110,61 @@ BOOL client_started = NO;
 
 /* Triggered by the button being pressed */
 -(IBAction) pressed_why_button:(id)sender{
- 
-    
-    /* Existence Question */
-    if(sender == self.why_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Why are you alive?"];
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title 
-                                                        message:nil
-                                                       delegate:nil
-                                              cancelButtonTitle:@"Alive?"
-                                              otherButtonTitles:nil];
-        [alert show];
-        [alert release];
-        [title release];
-    }
+    [self create_client:PORT :(char **)IP_ADDR];
     
     /* Increases the speed */
-    if(sender == self.increase_speed_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Increasing Speed"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.increase_speed_button){
        
         [self send_command:sockfd :CMD_INCSPEED :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
     }
     
     /* Decrease the speed */
-    if(sender == self.decrease_speed_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Decreasing Speed"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.decrease_speed_button){
         
         [self send_command:sockfd :CMD_DECSPEED :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
+  
     }
     
     /* Ascend */
-    if(sender == self.ascend_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Ascending (Surfacing)"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.ascend_button){
         
         [self send_command:sockfd :CMD_ASCEND :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
+
     }
     
     /* Descend */
-    if(sender == self.descend_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Descending (Diving)"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.descend_button){
         
         [self send_command:sockfd :CMD_DESCEND :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
+
     }
     
     /*Turn left */
-    if(sender == self.turn_left_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Turning Left"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.turn_left_button){
         
         [self send_command:sockfd :CMD_TURNLEFT :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
+       
     }
     
     /*Turn Right*/
-    if(sender == self.turn_right_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Turning Right"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.turn_right_button){
         
         [self send_command:sockfd :CMD_TURNRIGHT :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
+
     }
     
     /*Zero Speed */
-    if(sender == self.zero_speed_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Reducing Speed to 0"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.zero_speed_button){
         
         [self send_command:sockfd :CMD_ZEROSPEED :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
+      
     }
     
     /* Emergency Stop */
-    if(sender == self.emergency_stop_button && client_started == YES){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Emergency Stop"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
+    if(sender == self.emergency_stop_button){
         
         [self send_command:sockfd :CMD_EMERGSTOP :PARAM];
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
-    }
-    
-    /* Starts the client */
-    if(sender == self.start_client_button && client_started == NO){
-        client_started = YES;
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Starting the Client"];
-        UIAlertView *speed_up_alert = [[UIAlertView alloc] initWithTitle:title 
-                                                                 message:nil
-                                                                delegate:nil
-                                                       cancelButtonTitle:@"OK"
-                                                       otherButtonTitles:nil];
-        /*start the client */
-        [self create_client:PORT :(char **)IP_ADDR];
-        /*Test send */
-        [self send_command:sockfd :0 :0];
-        /* Hides the button after the client starts */
-        self.start_client_button.hidden = YES;
-        
-        
-        [speed_up_alert show];
-        [speed_up_alert release];
-        [title release];
-    }
-    if(client_started == NO){
-        NSString *title = [[NSString alloc] initWithFormat:
-                           @"Start the Client!!"];
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title 
-                                                        message:nil
-                                                       delegate:nil
-                                              cancelButtonTitle:@"OK"
-                                              otherButtonTitles:nil];
-        [alert show];
-        [alert release];
-        [title release];
+      
     }
     
 }
