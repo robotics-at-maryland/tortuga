@@ -4,19 +4,19 @@
 %                                   double dt,
 %                                   double* rotationalTorques)
 %
-
-%% input goes here
-dt = 0.025;%time step
-dtMin = 0.001;%from vehicle sim
-dtMax = 0.05;%from vehicle sim
-w = [pi/4 0 0]';%actual angular rate
-wd = [0 0 0]';%desired angular rate
-q = [[1 0 0]'*sin((pi/4)/2); cos((pi/4)/2)];%actual position
-qd = [[1 0 0]'*sin(0/2); cos(0/2)];%desired position
-adaptCtrlRotLambda = 1;
-adaptCtrlRotGamma = 6;
-adaptCtrlRotK = 3;
-adaptCtrlParams = zeros(12,1);
+function [rotationalTorques] = AdaptiveRotationalControllerTestCaseGenerator(dt,dtMin,dtMax,w,wd,q,qd,adaptCtrlRotLambda,adaptCtrlRotGamma,adaptCtrlRotK,adaptCtrlParams)
+% sample input 
+%dt = 0.025;%time step
+%dtMin = 0.001;%from vehicle sim
+%dtMax = 0.05;%from vehicle sim
+%w = [pi/4 0 0]';%actual angular rate
+%wd = [0 0 0]';%desired angular rate
+%q = [[1 0 0]'*sin((pi/4)/2); cos((pi/4)/2)];%actual position
+%qd = [[1 0 0]'*sin(0/2); cos(0/2)];%desired position
+%adaptCtrlRotLambda = 1;
+%adaptCtrlRotGamma = 6;
+%adaptCtrlRotK = 3;
+%adaptCtrlParams = zeros(12,1);
 
 %  //be extra safe about dt values
     if(dt < dtMin)
@@ -247,5 +247,4 @@ output = output-adaptCtrlRotK*shat;
 %rotationalTorques[0] = output[0];
 %rotationalTorques[1] = output[1];
 %rotationalTorques[2] = output[2];
-rotationalTorques=output
-
+rotationalTorques=output;
