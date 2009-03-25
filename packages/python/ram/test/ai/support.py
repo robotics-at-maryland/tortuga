@@ -47,6 +47,7 @@ class MockVisionSystem(core.Subsystem):
         self.ductDetector = False
         self.downwardSafeDetector = False
         self.targetDetector = False
+        self.barbedWireDetector = False
          
     def redLightDetectorOn(self):
         self.redLightDetector = True
@@ -83,6 +84,13 @@ class MockVisionSystem(core.Subsystem):
         
     def targetDetectorOff(self):
         self.targetDetector = False
+
+    def barbedWireDetectorOn(self):
+        self.barbedWireDetector = True
+        
+    def barbedWireDetectorOff(self):
+        self.barbedWireDetector = False
+
         
 class AITestCase(unittest.TestCase):
     TIMER_ORIG = timer.Timer
