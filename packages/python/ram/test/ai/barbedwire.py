@@ -125,7 +125,7 @@ class TestRangeXYHold(support.AITestCase):
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.speed, 0)
-        self.assertLessThan(self.controller.sidewaysSpeed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
     
     def testTargetLost(self):
