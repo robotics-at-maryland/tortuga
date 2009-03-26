@@ -10,6 +10,8 @@
 
 #include "vision/include/Events.h"
 
+namespace boost{
+namespace serialization{
 
 template <class Archive> void serialize(Archive &ar, ram::vision::ImageEventPtr &t, const unsigned int file_version)
 {
@@ -44,9 +46,9 @@ template <class Archive> void serialize(Archive &ar, ram::vision::BinEventPtr &t
 }
 template <class Archive> void serialize(Archive &ar, ram::vision::DuctEventPtr &t, const unsigned int file_version)
 {
+  printf("Calling serialize for DuctEvent.\n");
   ar & t->y;
   ar & t->x;
-  ar & t->y;
   ar & t->range;
   ar & t->alignment;
   ar & t->aligned;
@@ -57,5 +59,7 @@ template <class Archive> void serialize(Archive &ar, ram::vision::SafeEventPtr &
   ar & t->x;
   ar & t->y;
 }
+} // serialization
+} // boost
 
 #endif
