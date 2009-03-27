@@ -3,6 +3,7 @@
 clc;
 clear all;
 close all;
+print_out = 1; %This is to print our everything
 
 % Loads the logged depth file:
 %      depth_m = measured depth
@@ -20,14 +21,14 @@ u = -a(:,23);  %Control Signal values (flipped)
 m =28;      % Vehicle Mass (kg)
 kd = 11.5;  % Drag Coefficient
 buoy = .02; % Buoyant Force
-Ts = -1/1000 * (a(2,34) - a(3,34)); % This is our sampling time delay
+Ts = 1/1000 * (a(3,34) - a(2,34)); % This is our sampling time delay
 alpha = 10^-2; % Spread of sigma points
 beta = 2; %Prior knowledge about distribution of x: Optimal for gaussian
 
-Rv = [1 1; 0 1]; % Covariance of sensor noise: Determined by finding variance of the depth sensor readings for a constant depth 
-                 % Rv = 0.550;                 
+% Covariance of sensor noise: Determined by finding variance of the depth sensor readings for a constant depth 
+                 Rv = 0.550; % Arbitrarily Chosen                 
 Rn = 1.1e-4;  % Covariance of process noise: Artbitrarily chosen
-              % Rn = [1 0; 0 1];
+Rn = 0;              % Rn = [1 0; 0 1];
               
 
 % A,B,C,D as defined by the system
@@ -59,10 +60,11 @@ gamma = sqrt(L+lambda);
 
 
 t_end = length(depth_a);
-for t = 1:t_end
+% for t = 1:t_end
+for t = 1:2
     % calculate sigma points and then time update them (See page 228 unscented transformation)
     sigma(:,1) = x_prev;
-    temp1 = sqrt( (L+lambda)*P_prev);
+    temp1 = chol((L+lambda)*P_prev );
     sigma_predict(:,1) = Ak*sigma(:,1) + Bk*u_prev + Bk*(-buoy);
 
     for q=2:2*L+1
@@ -75,9 +77,10 @@ for t = 1:t_end
         sigma_predict(:,q) = Ak*sigma(:,q) + Bk*u_prev + Bk*(-buoy); %Check on Bk stuff to make sure we right
     end
 
-sigma;
-sigma_predict;
-
+if print_out == 1
+    sigma
+    sigma_predict
+end
 
     %%%%%%%%%%%% update predicted state estimates %%%
     x_pred = lambda/(L+lambda)*sigma_predict(:,1);
@@ -85,23 +88,25 @@ sigma_predict;
         x_pred = x_pred + 1/(2*(L+lambda))*sigma_predict(:,i);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    
-    
+if print_out == 1    
+    x_pred
+end
     %%%%%%%%% update predicted covariance estimate
-    P_pred = (lambda/(L+lambda)+1-alpha^2+beta)*(sigma_predict(:,1)-x_pred)*(sigma_predict(:,1)-x_pred)'+Rv;
+    P_pred = (lambda/(L+lambda)+1-alpha^2+beta)*(sigma_predict(:,1)-x_pred)*(sigma_predict(:,1)-x_pred)'+ Bk*Rv*Bk';
     for i = 2:(2*L+1)
-        P_pred = P_pred + 1/(2*(L+lambda))*(sigma_predict(:,i)-x_pred)*(sigma_predict(:,i)-x_pred)'+Rv;
+        P_pred = P_pred + 1/(2*(L+lambda))*(sigma_predict(:,i)-x_pred)*(sigma_predict(:,i)-x_pred)'+ Bk*Rv*Bk';
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    
+if print_out == 1 
+    P_pred
+end
     %%%%%%%%%%%%% augment sigma points then use for Sigma measured
         % Note we are using the "alternate method on pg 233 bottom
     sigma_pred_aug(:,1) = x_pred;
-    temp1 = sqrt( (L+lambda)*P_pred);
+    temp1 = chol( (L+lambda)*P_pred);
     sigma_pred_aug(:,1) = Ak*sigma_pred_aug(:,1) + Bk*u_prev + Bk*(-buoy);
-
+    sigma_meas(:,1) = Ck*sigma_pred_aug(:,1);
+    
     for q=2:2*L+1
         if q <= L+1
             sigma_pred_aug(:,q) = x_pred + temp1(:,q-1);
@@ -112,6 +117,11 @@ sigma_predict;
     end
     
     %%%%%%%%%%%%%%%%%%%%
+ 
+if print_out == 1
+    sigma_pred_aug
+    sigma_meas
+end
     
 
     % update predicted measured state
@@ -120,10 +130,14 @@ sigma_predict;
         y_pred = y_pred + 1/(2*(L+lambda))*sigma_meas(:,i);
     end
 
+if print_out == 1
+    y_pred
+end
+    
     % calculate Pyy
     Pyy = (lambda/(L+lambda)+1-alpha^2+beta)*(sigma_meas(:,1) - y_pred)*(sigma_meas(:,1) - y_pred)'+Rn;
     for i = 2:(2*L+1)
-        Pyy = Pyy + 1/(2*(L+lambda))*(sigma_meas(:,i) - y_pred)*(sigma_meas(:,i) - y_pred)'+Rn;
+        Pyy = Pyy + 1/(2*(L+lambda))*(sigma_meas(:,i) - y_pred)*(sigma_meas(:,i) - y_pred)'+ Rn;
     end
 
     % calculate Pxy
@@ -134,6 +148,11 @@ sigma_predict;
 
     % update kalman gain
     K = Pxy*(Pyy^-1);
+  
+ if print_out ==1
+     Pyy
+     Pxy
+ end
     
     % calculate final state estimate: meas & pred
     x(:,t) = x_pred + K*(y(t)-y_pred);
@@ -143,6 +162,12 @@ sigma_predict;
 
     x_prev = x(:,t);
     P_prev = P;
+    
+    if print_out ==1
+        x(:,t)
+        x_prev
+        P_prev
+    end
 end
 
 
@@ -157,7 +182,7 @@ t2 = t2*Ts;
 % ylabel('Depth (ft)'); xlabel('Time (sec)');
 % legend('Measured Depth','Estimated Depth')
 % hold off
-% 
+
 % figure;
 % subplot(2,1,1);
 % plot(t,KalmanGains(1,:))
