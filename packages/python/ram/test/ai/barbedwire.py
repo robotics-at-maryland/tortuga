@@ -107,20 +107,32 @@ class TestSearching(support.AITestCase):
         self.assert_(self.visionSystem.barbedWireDetector)
         
 class TestRangeXYHold(support.AITestCase):
-    def setUp(self, stateType = barbedwire.RangeXYHold):
+    def setUp(self, stateType = barbedwire.RangeXYHold, cfg = None):
+        if cfg is None:
+            cfg = {}
         self._stateType = stateType
-        support.AITestCase.setUp(self)
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(stateType)
+    
+        # Subscribe to in range event
+        self._inRange = False
+        def inRange(event):
+            self._inRange = True
+        self.qeventHub.subscribeToType(barbedwire.SeekingToRange.IN_RANGE, 
+                                       inRange)
+    
+    def _injectFoundEvent(self, topX, topY, topWidth):
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
+                         topX = topX, topY = topY, topWidth = topWidth,
+                         bottomWidth = -1)
     
     def testStart(self):
         self.assertCurrentMotion(motion.seek.SeekPointToRange)
         
     def testTargetFound(self):
         """Make sure new found events move the vehicle"""
-        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
-                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
-                         topX = 0.5, topY = -0.5, topWidth = 0.25,
-                         bottomWidth = -1)
+        self._injectFoundEvent(topX = 0.5, topY = -0.5, topWidth = 0.25)
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
@@ -134,21 +146,43 @@ class TestRangeXYHold(support.AITestCase):
         self.assertCurrentState(barbedwire.FindAttempt)
         
     def testInRange(self):
-        # Subscribe to in range event
-        self._inRange = False
-        def inRange(event):
-            self._inRange = True
-        self.qeventHub.subscribeToType(barbedwire.SeekingToRange.IN_RANGE, 
-                                       inRange)
-        
         # Inject and event which has the duct ahead, and at the needed range
-        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
-                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
-                         topX = 0.05, topY = -0.1, topWidth = 0.53,
-                         bottomWidth = -1)
+        self._injectFoundEvent(topX = 0.05, topY = 0.5, topWidth = 0.53)
+
+        # Make sure we get the IN_RANGE event
+        self.qeventHub.publishEvents()
+        self.assert_(self._inRange)
+
+class TestRangeXYHoldNoDepth(TestRangeXYHold):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.barbedwire.RangeXYHold' : {
+                        'yZero' : 0,
+                        'depthGain' : 0,
+                    },
+                }
+            }
+        }
+        TestRangeXYHold.setUp(self, cfg = cfg)
+        
+    def testTargetFound(self):
+        self._injectFoundEvent(topX = 0.5, topY = -0.5, topWidth = 0.25)
+        
+        # Bigger numbers = deeper
+        self.assertEqual(self.controller.depth, 0)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        self.assertEqual(self.controller.yawChange, 0)
+        
+    def testInRange(self):
+        # Inject and event which has the duct ahead, and at the needed range
+        self._injectFoundEvent(topX = 0.05, topY = -0.5, topWidth = 0.53)
         
         # Make sure we get the IN_RANGE event
         self.qeventHub.publishEvents()
+        self.assert_(self._inRange)
 
 class TestSeekingToRange(TestRangeXYHold):
     def setUp(self):
@@ -173,7 +207,7 @@ class AlignmentTest(object):
                          bottomX = 0.75, bottomY = -0.75, bottomWidth = 0.2)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        #self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertLessThan(self.controller.sidewaysSpeed, 0)
         self.assertGreaterThan(self.controller.yawChange, 0)

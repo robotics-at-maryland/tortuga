@@ -190,6 +190,24 @@ Subsystems:
                 timeout: 40
             ram.ai.buoySonarCourse.PingerDive:
                 depth: 1.5
+
+            # Barbed wire AI
+            ram.ai.barbedwire.Start:
+                diveDepth: 11
+            
+            ram.ai.barbedwire.SeekingToRange:
+                desiredRange: 0.8
+                depthGain: 0
+                translateGain: 2.5 
+                
+            ram.ai.barbedwire.SeekingToAligned:
+                desiredRange: 0.7
+                maxSidewaysSpeed: 2
+                depthGain: 0
+                
+            ram.ai.barbedwire.Aligning:
+                desiredRange: 0.8
+                depthGain: 0
                 
     RemoteController:
         type: RemoteController
@@ -359,8 +377,8 @@ Subsystems:
             #Main: objectives/pipe.sml
             #Main: objectives/bin.sml
             #Main: objectives/duct.sml
-            #Main: objectives/barbedwire.sml
-            Main: objectives/target.sml
+            Main: objectives/barbedwire.sml
+            #Main: objectives/target.sml
             #Main: objectives/buoy.sml
             #Main: objectives/pinger.sml
             #Main: objectives/safe.sml

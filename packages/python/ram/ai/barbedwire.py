@@ -92,15 +92,23 @@ class RangeXYHold(FilteredState, state.State):
         # Todo: consider filter removal
         #self._updateFilters(event)
         
-        # We ignore azimuth and elevation because we aren't using them
+        # Determine y value based on whether we are ignoring depth or not, 
+        # also take into account any offset we wish to hold the object at.
+        y = 0
+        if self._depthGain != 0:
+            y = event.topY - self._yZero
+        
+        # Width == 1 when we are close, so inversion is needed to get range 
         range = 1 - event.topWidth
-        self._target.setState(0, 0, range = range,
-                              x = event.topX, y = event.topY)
+        
+        # Finally set the state (We ignore azimuth and elevation because we 
+        # aren't using them)
+        self._target.setState(0, 0, range = range, x = event.topX, y = y)
         
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
         rangeError = math.fabs(range - self._desiredRange)
-        frontDistance = math.sqrt(event.topX ** 2 + event.topY ** 2)
+        frontDistance = math.sqrt(event.topX ** 2 + y ** 2)
         if (rangeError < self._rangeThreshold) and \
             (frontDistance < self._frontThreshold):
             self.publish(SeekingToRange.IN_RANGE, core.Event())
@@ -115,9 +123,10 @@ class RangeXYHold(FilteredState, state.State):
         self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
         
         # Read in configuration settings
+        self._yZero = self._config.get('yZero', 0.5)
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
-        depthGain = self._config.get('depthGain', 1.5)
+        self._depthGain = self._config.get('depthGain', 1.5)
         self._desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxSpeed = self._config.get('maxSpeed', 0.75)
@@ -127,7 +136,7 @@ class RangeXYHold(FilteredState, state.State):
             desiredRange = self._desiredRange,
             maxRangeDiff = maxRangeDiff,
             maxSpeed = maxSpeed,
-            depthGain = depthGain,
+            depthGain = self._depthGain,
             translate = True,
             translateGain = translateGain)
         
@@ -240,7 +249,7 @@ class TargetAlignState(FilteredState):
         self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0)
         
         # Read in configuration settings
-        depthGain = self._config.get('depthGain', 1.5)
+        depthGain = self._config.get('depthGain', 0)
         desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
