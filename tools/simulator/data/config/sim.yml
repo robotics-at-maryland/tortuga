@@ -369,6 +369,7 @@ Subsystems:
     Simulation:
         type: Simulation
         scene_path: ['%(RAM_SVN_DIR)s/tools/simulator/data/scenes']
+        vehicleView: False
         #debug: 0
         
         Scenes:

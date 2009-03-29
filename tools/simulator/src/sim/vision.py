@@ -1221,10 +1221,10 @@ class SimVision(ext.vision.VisionSystem):
                                                              nonNone = True)
 
         # Creates ogre.renderer.OGRE.Camera and attaches it to the vehicle
-        forwardOgreCamera = self._createCamera('_forward', (0.5, 0, 0),
-                                               (1, 0, 0))
-        downwardOgreCamera = self._createCamera('_downward', (0.5, 0, -0.1),
-                                               (0, 0, -1))
+        forwardOgreCamera = Simulation._createCamera(
+            self.vehicle.robot, '_forward', (0.5, 0, 0), (1, 0, 0))
+        downwardOgreCamera = Simulation._createCamera( 
+            self.vehicle.robot, '_downward', (0.5, 0, -0.1), (0, 0, -1))
         
         # Create _forwardCamera, _forwardBuffer, and _forwardTexture
         self._setupCameraRendering(forwardOgreCamera, 640, 480)
@@ -1282,32 +1282,6 @@ class SimVision(ext.vision.VisionSystem):
         viewport.setBackgroundColour(ogre.ColourValue(200,200,200))
 
         setattr(self, camera.name + 'Texture', texture)
-
-    def _createCamera(self, name, position, direction):
-        """Lets hack on a camera (integrate better in the future)"""
-        
-        node = self.vehicle.robot._main_part._node
-        sceneMgr = ogre.Root.getSingleton().getSceneManager('Main')
-
-        # Create camera and attached it to our ourself
-        camera = sceneMgr.createCamera(name)
-
-        # Align and Position
-        camera.position = position
-        camera.lookAt(camera.position + ram.sim.OgreVector3(direction))
-        camera.nearClipDistance = 0.05
-        node.attachObject(camera)
-
-        # This needs be set from the config file (only VERTICAL FOV)
-        camera.FOVy = ogre.Degree(78)
-
-        # NOTE: Fix not needed because camera on the vehicle is offset in the
-        #       same way, what an odd coincidence
-        # Account for the odd up vector difference between our and Ogre's 
-        # default coordinate systems
-        camera.roll(ogre.Degree(-90))
-
-        return camera
 
     def saveForwardCameraSnapshot(self, filename):
         """

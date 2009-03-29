@@ -108,11 +108,36 @@ class Simulation(core.Subsystem):
         
         event.register_handlers({'SCREENSHOT' : self._onScreenshot})
         
+        # Determine camera settings
+        margin = 0.005
+        width = 0.5 - 1.5 * margin
+        height = width * 0.75
+        top = 1 - margin - height
+        mainHeight = 1 - 2*margin - height
+        if not config.get('vehicleView'):
+            mainHeight = 1
+        
         # Setup viewport
         camera = self.scene.get_camera('Main').camera    
         camera.setAutoAspectRatio(True)
-        viewport = self._window.addViewport(camera)
+        viewport = self._window.addViewport(camera, height = mainHeight)
         viewport._updateDimensions()
+        
+        if config.get('vehicleView'):
+            robot = self.scene._robots['Tortuga']
+            forwardCamera = Simulation._createCamera(
+                robot, '_forward', (0.5, 0, 0), (1, 0, 0))
+            viewport = self._window.addViewport(forwardCamera, ZOrder = 1, 
+                                                top = top, left = margin, 
+                                                height = height, width = width)
+            viewport._updateDimensions()
+        
+            downwardCamera = Simulation._createCamera( 
+                robot, '_downward', (0.5, 0, -0.1), (0, 0, -1))
+            viewport = self._window.addViewport(downwardCamera, ZOrder = 2, 
+                                                top = top, left = 0.5 + margin/2, 
+                                                height = height, width = width)
+            viewport._updateDimensions()
         
         self._simulation.start()
 
@@ -235,6 +260,34 @@ class Simulation(core.Subsystem):
         layoutStream.close()
         print 'FILE DONE'
 
-            
+    @staticmethod
+    def _createCamera(robot, name, position, direction):
+        """Lets hack on a camera (integrate better in the future)"""
+        
+        sceneMgr = ogre.Root.getSingleton().getSceneManager('Main')
+        if sceneMgr.hasCamera(name):
+            return sceneMgr.getCamera(name) 
+        
+        node = robot._main_part._node
+        
+        # Create camera and attached it to our ourself
+        camera = sceneMgr.createCamera(name)
+
+        # Align and Position
+        camera.position = position
+        camera.lookAt(camera.position + ram.sim.OgreVector3(direction))
+        camera.nearClipDistance = 0.05
+        node.attachObject(camera)
+
+        # This needs be set from the config file (only VERTICAL FOV)
+        camera.FOVy = ogre.Degree(78)
+
+        # NOTE: Fix not needed because camera on the vehicle is offset in the
+        #       same way, what an odd coincidence
+        # Account for the odd up vector difference between our and Ogre's 
+        # default coordinate systems
+        camera.roll(ogre.Degree(-90))
+
+        return camera
 
 core.SubsystemMaker.registerSubsystem('Simulation', Simulation)
