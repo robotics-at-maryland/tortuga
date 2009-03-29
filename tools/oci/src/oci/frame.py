@@ -94,9 +94,11 @@ class MainFrame(wx.Frame):
         # Create the layouts menu
         menu = wx.Menu()
 
-        menuItem = menu.Append(-1, '&Save Layout')
+        menuItem = menu.Append(-1, '&Save Layout\tCtrl+S')
         self.Bind(wx.EVT_MENU, self._onSaveLayout, menuItem)
-        menuItem = menu.Append(-1, '&Delete Layout')
+        menuItem = menu.Append(-1, '&Load Layout\tCtrl+L')
+        self.Bind(wx.EVT_MENU, self._onLoadLayout, menuItem)
+        menuItem = menu.Append(-1, '&Delete Layout\tCtrl+D')
         self.Bind(wx.EVT_MENU, self._onDeleteLayout, menuItem)
 
         menu.AppendSeparator()
@@ -221,6 +223,14 @@ class MainFrame(wx.Frame):
                 menu = mb.GetMenu(mb.FindMenu("Layouts"))
                 self._addLayoutMenuItem(menu, name)
                 mb.Refresh()
+
+    def _onLoadLayout(self, event):
+        choice = wx.GetSingleChoice(message = 'Select layout to load',
+                                    caption = 'Load Layout', parent = self,
+                                    choices = self._layoutCfgs.keys())
+        
+        if 0 != len(choice):
+            self._loadLayout(self._layoutCfgs[choice])
 
     def _onDeleteLayout(self, event):
         choice = wx.GetSingleChoice(message = 'Select layout to delete',
