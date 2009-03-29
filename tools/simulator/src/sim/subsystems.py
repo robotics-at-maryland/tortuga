@@ -214,8 +214,15 @@ class Simulation(core.Subsystem):
             pass
         
         # Grab window metrics
-        width, height, colorDepth, left, top = self._window.getMetrics()
+        width = 0
+        height = 0
+        colorDepth = 0
+        left = 0
+        top = 0
+        result = self._window.getMetrics(width, height, colorDepth, left, top)
+        width, height, colorDepth, left, top = result            
         
+        # Record results from file
         layoutStream = file(self._guiFileName, 'w+')
         simGUICfg = guiData.get("SIM", {})
         simGUICfg["windowWidth"] = int(width)

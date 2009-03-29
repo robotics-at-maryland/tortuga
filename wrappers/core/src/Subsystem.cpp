@@ -87,8 +87,14 @@ public:
     }
 
     virtual void unbackground( bool join=false ){
-        bp::override func_unbackground = this->get_override( "unbackground" );
-        func_unbackground( join );
+        try {
+            bp::override func_unbackground =
+                this->get_override( "unbackground" );
+            func_unbackground( join );
+        } catch(bp::error_already_set err) {
+            PyErr_Print();
+            throw err;
+        }
     }
 };
 

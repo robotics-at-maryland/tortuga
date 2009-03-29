@@ -178,7 +178,6 @@ class MainFrame(wx.Frame):
         guiData["windowSize"] = self.GetSize()
         guiData["windowPos"] = self.GetPosition()
         guiData["paneLayout"] = self._mgr.SavePerspective()
-        guiData["shellHistory"] = self._shell.history
         return guiData
         
     def _addSubsystemPanels(self, subsystems):
@@ -262,6 +261,7 @@ class MainFrame(wx.Frame):
         # Update the layouts
         self._layoutCfgs['Default'] = self._getLayoutData()
         guiData['Layouts'] = self._layoutCfgs
+        guiData['shellHistory'] = self._shell.history
         
         # Write Config YAML data
         layoutStream = file(self.guiDataFile, 'w+')
