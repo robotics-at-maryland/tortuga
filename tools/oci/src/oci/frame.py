@@ -93,8 +93,12 @@ class MainFrame(wx.Frame):
         
         # Create the layouts menu
         menu = wx.Menu()
-        menuItem = menu.Append(-1, 'Save Layout')
+
+        menuItem = menu.Append(-1, '&Save Layout')
         self.Bind(wx.EVT_MENU, self._onSaveLayout, menuItem)
+        menuItem = menu.Append(-1, '&Delete Layout')
+        self.Bind(wx.EVT_MENU, self._onDeleteLayout, menuItem)
+
         menu.AppendSeparator()
         
         for name in self._layoutCfgs.iterkeys():
@@ -228,7 +232,7 @@ class MainFrame(wx.Frame):
             mb = self.GetMenuBar()
             menu = mb.GetMenu(mb.FindMenu("Layouts"))
             menuItemId = menu.FindItem(choice)
-            menu.Delete(menuItemI)    
+            menu.Delete(menuItemId)
             mb.Refresh()
             
             # Remove from cfgs
