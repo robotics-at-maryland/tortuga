@@ -70,6 +70,7 @@ class MainFrame(wx.Frame):
         # Load settings from the configuration file
         self._layoutCfgs = guiData.get('Layouts', {})
         self._loadLayout(self._layoutCfgs.get('Default', {}))
+        self._shell.history = guiData.get("shellHistory", [])
 
         # Create the menu bar
         mb = self._buildMenuBar()
