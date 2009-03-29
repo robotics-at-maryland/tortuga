@@ -28,6 +28,7 @@ import ext.vehicle.device as device
 import ext.math as math
 import sim.subsystems as subsystems
 import ram.sim.scene as scene
+import ram.sim.graphics as graphics
 
 def convertToVector3(vType, vector):
     return vType(vector.x, vector.y, vector.z)
@@ -199,7 +200,15 @@ class SimVehicle(vehicle.IVehicle):
         
         sim = core.Subsystem.getSubsystemOfType(subsystems.Simulation, deps)
         self.robot = sim.scene._robots['Tortuga']
+        self._scene = sim.scene
         self._devices = {}
+        
+        # Markers variables
+        self._markers = []
+        self._markerCount = 0
+        self._dropMarkers = config.get('markers', True)
+        self._markerInterval = config.get('markerInterval', 1)
+        self._timeSinceLastMarker = self._markerInterval
     
         # Add Sim Thruster objects
         self._addDevice(SimThruster(eventHub, 'PortThruster', 
@@ -349,5 +358,35 @@ class SimVehicle(vehicle.IVehicle):
         event = core.Event()
         event.number = self.getDepth()
         self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
+        
+        # Drop a visual marker if needed
+        if self._dropMarkers:
+            self._timeSinceLastMarker += timeSinceUpdate
+            if self._timeSinceLastMarker >= self._markerInterval:
+                self._spawnMarker()
+                self._timeSinceLastMarker = 0
+
+    def _spawnMarker(self):
+        # Now lets spawn an object
+        obj = graphics.Visual()
+        position = self.robot._main_part._node.position
+
+        cfg = {
+            'name' : 'marker_' + str(self._markerCount),
+            'position' : position,
+            'Graphical' : {
+                'mesh' : 'sphere.50cm.mesh', 
+                'scale' : [0.075, 0.075, 0.075],
+                'material' : 'Simple/Red',
+            }
+        }
+        obj.load((self._scene, None, cfg))
+        #self._scene._objects.append(obj)
+        self._markers.append(obj)
+        self._markerCount += 1
+        
+    def setMarkerVisibility(self, value):
+        for marker in self._markers:
+            marker.visible = value
 
 core.SubsystemMaker.registerSubsystem('SimVehicle', SimVehicle)

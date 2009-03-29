@@ -1155,7 +1155,7 @@ class RenderCameraListener(ogre.RenderTargetListener):
     memory, then ejects them into the vision system.
     """
     
-    def __init__(self, camera, buffer_, texture, updateInterval):
+    def __init__(self, vehicle, camera, buffer_, texture, updateInterval):
         """
         @type  camera: ext.vision.Camera
         @param camera: The camera to send the render image to
@@ -1168,6 +1168,7 @@ class RenderCameraListener(ogre.RenderTargetListener):
         """
         
         ogre.RenderTargetListener.__init__(self)
+        self._vehicle = vehicle
         self._camera = camera
         self._bufferAddress = ctypes.addressof(buffer_)
         self._texture = texture
@@ -1176,7 +1177,12 @@ class RenderCameraListener(ogre.RenderTargetListener):
         self._image = None
         self._lastTime = 0
 
+    def preRenderTargetUpdate(self, renderTargetEvent):
+        self._vehicle.setMarkerVisibility(False)
+
     def postRenderTargetUpdate(self, renderTargetEvent):
+        self._vehicle.setMarkerVisibility(True)
+        
         now = ram.timer.time()
         if 0 == self._lastTime:
             timePassed = self._updateInterval
@@ -1245,13 +1251,13 @@ class SimVision(ext.vision.VisionSystem):
         self._cameraUpdateInterval = 1.0 / cameraRate
 
         # Setup render target listeners to do the copying of images
-        self._forwardCameraListener = RenderCameraListener(
+        self._forwardCameraListener = RenderCameraListener(self.vehicle,
             self._forwardCamera, self._forwardBuffer, self._forwardTexture,
             self._cameraUpdateInterval)
         self._forwardTexture.getBuffer().getRenderTarget().addListener(
             self._forwardCameraListener)
         
-        self._downwardCameraListener = RenderCameraListener(
+        self._downwardCameraListener = RenderCameraListener(self.vehicle,
             self._downwardCamera, self._downwardBuffer, self._downwardTexture,
             self._cameraUpdateInterval)
         self._downwardTexture.getBuffer().getRenderTarget().addListener(

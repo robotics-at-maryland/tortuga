@@ -87,6 +87,12 @@ class Visual(Object):
         def fget(self):
             return self._node.orientation
             
+    class visible(core.cls_property):
+        def fset(self, value):
+            self._node.setVisible(value)
+        def fget(self):
+            return self._node.isVisible()
+            
     # IStorable Methods
     def load(self, data_object):
         """
