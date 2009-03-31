@@ -49,6 +49,11 @@ Scene:
 
         pipe3:
             type: [sim.vision.IPipe, sim.vision.Pipe]
+            position: [-3, 3, -4]
+            orientation: [0, 0, 1, 15]
+
+        pipe4:
+            type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [1, 3.81,-4]
             orientation: [0, 0, 1, -45]
 

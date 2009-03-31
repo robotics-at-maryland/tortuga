@@ -72,6 +72,16 @@ Subsystems:
         depends_on: ["EventHub"]
 
     Ai:
+        # Demo course without the barbed wire
+        #taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+        #            'ram.ai.course.Light', 'ram.ai.course.Pipe',
+        #            'ram.ai.course.Bin']
+
+        # Demo course with the barbed wire                    
+        taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+                    'ram.ai.course.Light', 'ram.ai.course.Pipe2',
+                    'ram.ai.course.BarbedWire',
+                    'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
         type: AI
 
     StateMachine:
@@ -81,6 +91,11 @@ Subsystems:
                      
                      
         States:
+            # Course wide settings
+            ram.ai.course.Pipe:
+                pipesToFind: 3
+        
+            # Duct settings
             ram.ai.duct.SeekingToRange:
                 desiredRange: 0.5
                 depthGain: 5
@@ -100,6 +115,12 @@ Subsystems:
             ram.ai.bin.Seeking:
                 sidewaysSpeedGain: 10
                 speedGain: 7
+            ram.ai.bin.Dive:
+                binDepth: 15.4
+                offset: 2.25
+            ram.ai.bin.SurfaceToMove:
+                binDepth: 15.4
+                offset: 5
             ram.ai.bin.NextBin:
                 sidewaysSpeedGain: 3
                 speedGain: 3
@@ -111,7 +132,7 @@ Subsystems:
             ram.ai.sonarCourse.SafeDive:
                 depth: 5
     
-            ram.ai.safe.Dive:
+            ram.ai.safe.PreGrabDive:
                 safeDepth: 15
             ram.ai.safe.Grabbing:
                 safeDepth: 15
@@ -123,9 +144,9 @@ Subsystems:
                 offset: -0.35
 
             # Gate sub task
-            ram.ai.gate.Dive:
+            ram.ai.gate.Start:
                 depth: 4 
-                speed: 0.33
+                speed: 1
             ram.ai.gate.Forward:
                 time: 30
                 speed: 2
@@ -197,6 +218,7 @@ Subsystems:
             
             ram.ai.barbedwire.SeekingToRange:
                 desiredRange: 0.8
+                maxSpeed: 2.0
                 depthGain: 0
                 translateGain: 2.5 
                 
@@ -208,6 +230,9 @@ Subsystems:
             ram.ai.barbedwire.Aligning:
                 desiredRange: 0.8
                 depthGain: 0
+                
+            ram.ai.barbedwire.Through:
+                forwardTime: 20
                 
     RemoteController:
         type: RemoteController
@@ -369,7 +394,7 @@ Subsystems:
     Simulation:
         type: Simulation
         scene_path: ['%(RAM_SVN_DIR)s/tools/simulator/data/scenes']
-        vehicleView: False
+        vehicleView: True
         #debug: 0
         
         Scenes:
@@ -378,7 +403,7 @@ Subsystems:
             #Main: objectives/pipe.sml
             #Main: objectives/bin.sml
             #Main: objectives/duct.sml
-            Main: objectives/barbedwire.sml
+            #Main: objectives/barbedwire.sml
             #Main: objectives/target.sml
             #Main: objectives/buoy.sml
             #Main: objectives/pinger.sml
@@ -388,7 +413,7 @@ Subsystems:
             #Main: gen_course.sml
             #Main: safePing.sml
             #Main: shortCourse.sml
-            #Main: nbrf_tank.sml
+            Main: nbrf_tank.sml
         
         Graphics:
             Plugins:
