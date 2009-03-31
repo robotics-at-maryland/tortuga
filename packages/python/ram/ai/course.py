@@ -24,6 +24,7 @@ import ram.ai.state as state
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
+import ram.ai.barbedwire as barbedwire
 import ram.ai.bin as bin
 import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
@@ -85,13 +86,34 @@ class Pipe(task.Task):
     Find and hover a pipe in the course
     """
     
+    COMPLETE = core.declareEventType('COMPLETE')
+    
     @staticmethod
-    def _transitions():
-        return { pipe.Centering.SETTLED : task.Next,
+    def _transitions(currentState = None):
+        if currentState is None:
+            currentState = Pipe
+        return { pipe.Centering.SETTLED : currentState,
+                 Pipe.COMPLETE : task.Next,
                 'GO' : state.Branch(pipe.Start) }
+        
+    def SETTLED(self, event):
+        """
+        Sends a complete event after enough pipes have been found
+        """
+        
+        # We found a pipe increment the count
+        self._pipeCount += 1
+        
+        if self._pipeCount >= self._pipesToFind:
+            # We found enough pipes move on
+            self.publish(Pipe.COMPLETE, core.Event())
     
     def enter(self, defaultTimeout = 60):
         task.Task.enter(self, defaultTimeout = defaultTimeout)
+        
+        self._pipesToFind = self._config.get('pipesToFind', 1)
+        self._pipeCount = 0
+        
         # Branch off state machine for finding the pipe
         self.stateMachine.start(state.Branch(pipe.Start))
         
@@ -99,6 +121,10 @@ class Pipe(task.Task):
         task.Task.exit(self)
         self.stateMachine.stopBranch(pipe.Start)
         self.visionSystem.pipeLineDetectorOff()
+        
+    @property
+    def pipesToFind(self):
+        return self._pipesToFind
     
 class PipeGate(task.Task):
     """
@@ -140,7 +166,7 @@ class PipeStaged(Pipe):
     
     @staticmethod
     def _transitions():
-        trans = Pipe._transitions()
+        trans = Pipe._transitions(PipeStaged)
         trans.update({ vision.EventType.PIPE_LOST : PipeStaged,
                  vision.EventType.PIPE_FOUND : PipeStaged,
                  task.TIMEOUT : PipeStaged,
@@ -198,6 +224,21 @@ class PipeStaged(Pipe):
         task.Task.exit(self)
         self.stateMachine.stopBranch(pipe.Start)
         self.visionSystem.pipeLineDetectorOff()
+       
+class Pipe1(Pipe):
+    @staticmethod
+    def _transitions():
+        return Pipe._transitions(Pipe1)
+
+class Pipe2(Pipe):
+    @staticmethod
+    def _transitions():
+        return Pipe._transitions(Pipe2)
+
+class Pipe3(Pipe):
+    @staticmethod
+    def _transitions():
+        return Pipe._transitions(Pipe3)
         
 class Light(task.Task):
     """
@@ -248,6 +289,25 @@ class LightStaged(Light):
         
         # Set time to none
         self.doTimer = None
+    
+class BarbedWire(task.Task):
+    """
+    Task for completion of the BarbedWire objective within a certain timelimit.
+    """
+    @staticmethod
+    def _transitions():
+        return { barbedwire.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
+                 'GO' : state.Branch(barbedwire.Start) }
+    
+    def enter(self, defaultTimeout = 120):
+        task.Task.enter(self, defaultTimeout = defaultTimeout)
+        self.stateMachine.start(state.Branch(barbedwire.Start))
+    
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(barbedwire.Start)
+        self.visionSystem.redLightDetectorOff()
     
 class Bin(task.Task):
     @staticmethod

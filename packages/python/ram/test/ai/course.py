@@ -21,6 +21,7 @@ import ram.ai.task as task
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
+import ram.ai.barbedwire as barbedwire
 import ram.ai.bin as bin
 import ram.ai.sonar as sonar
 import ram.ai.safe as safe
@@ -44,6 +45,7 @@ class PipeTestCase(support.AITestCase):
         
     def checkSettled(self, nextState = None):
         self.injectEvent(pipe.Centering.SETTLED, sendToBranches = True)
+        self.qeventHub.publishEvents()
         if not (nextState is None):
             self.assertCurrentState(nextState)
         
@@ -125,6 +127,49 @@ class TestPipe(PipeTestCase):
         """
         Make sure that we move onto the light once we get over the pipe
         """
+        PipeTestCase.checkSettled(self, course.Bin)
+        
+class TestPipeMultiple(PipeTestCase):
+    """
+    Tests the Pipe state machine when its trying to find multiple pipes
+    """
+    PIPES_TO_FIND = 2
+    
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.course.Pipe' : {
+                        'pipesToFind' : TestPipeMultiple.PIPES_TO_FIND,
+                    },
+                }
+            }, 
+            'Ai' : {'taskOrder' : 
+                    ['ram.ai.course.Pipe', 'ram.ai.course.Bin'] } 
+        }
+        
+        PipeTestCase.setUp(self, pipe.Start, cfg)
+        self.machine.start(course.Pipe)
+        
+        
+    def testConfig(self):
+        """
+        Make sure the configuration settings are read properly
+        """
+        cstate = self.machine.currentState()
+        self.assertEqual(self.PIPES_TO_FIND, cstate.pipesToFind)
+        
+    def testSettled(self):
+        """
+        Make sure that we move onto the light once we get over the pipe
+        """
+        
+        # Send one settle event and make sure we are still in the proper state
+        self.injectEvent(pipe.Centering.SETTLED, sendToBranches = True)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(course.Pipe)
+        
+        # Now run the normal check to ensure we end properly
         PipeTestCase.checkSettled(self, course.Bin)
         
         
@@ -312,7 +357,7 @@ class TestLight(support.AITestCase):
         self.assertFalse(self.machine.branches.has_key(light.Start))
         self.assertFalse(self.visionSystem.redLightDetector)
        
-class TestLight(TestLight):
+class TestLightStaged(TestLight):
     def setUp(self):
         cfg = {
             'StateMachine' : {
@@ -352,6 +397,51 @@ class TestLight(TestLight):
         # Release the time and make sure we move on
         self.releaseTimer(course.LightStaged.DO_TIMEOUT)
         self.assertCurrentState(course.Pipe)
+        
+class TestBarbedWire(support.AITestCase):
+    def setUp(self):
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.BarbedWire', 'ram.ai.course.Pipe'] } }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.BarbedWire)
+        self._stateType = course.BarbedWire
+        
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(self._stateType)
+        
+        self.assertCurrentBranches([barbedwire.Start])
+        #self.assert_(self.visionSystem.barbedWireDetector)
+        
+    def testLightHit(self):
+        """
+        Make sure that we move on once we hit the light
+        """
+        
+        self.injectEvent(barbedwire.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Pipe)
+        
+        # Make sure the light seeking branch is gone
+        self.assertFalse(self.machine.branches.has_key(barbedwire.Start))
+        self.assertFalse(self.visionSystem.barbedWireDetector)
+        
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(self._stateType)
+        
+        # Release timer
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(barbedwire.Start))
+        self.assertFalse(self.visionSystem.barbedWireDetector)
         
 class TestBin(support.AITestCase):
     def setUp(self):
