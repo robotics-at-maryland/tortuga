@@ -141,7 +141,12 @@ class Machine(core.Subsystem):
             name = subsystem.getName()
             name = name[0].lower() + name[1:]
             
+            # Set subsystem up
             self._subsystems[name] = subsystem
+            
+            # Handle special AI case where it needs a reference to us
+            if name.lower() == 'ai' and hasattr(subsystem, '_stateMachine'):
+                subsystem._stateMachine = self
 
     def update(self, timeStep):
         pass

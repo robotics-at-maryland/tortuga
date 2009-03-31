@@ -15,7 +15,7 @@ import ram.ai.subsystem
 
 from ram.test import Mock
 from ram.test.ai.task import TaskA, TaskB, TaskC, BRecovery, CRecovery
-
+from ram.test.ai.support import AITestCase
 
 class TestAI(unittest.TestCase):
     def testCreate(self):
@@ -70,7 +70,10 @@ class TestAI(unittest.TestCase):
         self.assert_(self.connA)
         self.assert_(self.connB)
     
-    cfg = {'AIMachineName' : 'MyMachine',
+    
+class TestAI(AITestCase):
+    def setUp(self):
+        cfg = {'Ai' : {
              'taskOrder' : ['ram.test.ai.task.TaskA',
                             'ram.test.ai.task.TaskB',
                             'ram.test.ai.task.TaskC'],
@@ -78,6 +81,8 @@ class TestAI(unittest.TestCase):
                  'ram.test.ai.task.TaskB' : 'ram.test.ai.task.BRecovery',
                  'ram.test.ai.task.TaskC' : 'ram.test.ai.task.CRecovery'}
              }
+        }
+        AITestCase.setUp(self, cfg = cfg)
     
     def testGetNextTask(self):
         """
@@ -85,29 +90,27 @@ class TestAI(unittest.TestCase):
         the configuration file.
         """
         
-        # Create an AI subsystem with a proper order of tasks
-        stateMachine = ai.state.Machine({'name' : 'MyMachine'})
-        deps = core.SubsystemList()
-        deps.append(stateMachine)
-        aiSys = ai.subsystem.AI(TestAI.cfg, deps)
-        
         # Check to make sure the order is proper
-        self.assertEqual(TaskB, aiSys.getNextTask(TaskA))
-        self.assertEqual(TaskC, aiSys.getNextTask(TaskB))
-        self.assertEqual(ai.task.End, aiSys.getNextTask(TaskC))
+        self.assertEqual(TaskB, self.ai.getNextTask(TaskA))
+        self.assertEqual(TaskC, self.ai.getNextTask(TaskB))
+        self.assertEqual(ai.task.End, self.ai.getNextTask(TaskC))
         
     def testGetFailureState(self):
         """
         Tests to make sure the AI properly determines the state to go to on 
         failure based on the configuration file.
         """
+                
+        self.assertEqual(None, self.ai.getFailureState(TaskA))
+        self.assertEqual(BRecovery, self.ai.getFailureState(TaskB))
+        self.assertEqual(CRecovery, self.ai.getFailureState(TaskC))
         
-        # Create an AI subsystem with a proper order of tasks
-        stateMachine = ai.state.Machine({'name' : 'MyMachine'})
-        deps = core.SubsystemList()
-        deps.append(stateMachine)
-        aiSys = ai.subsystem.AI(TestAI.cfg, deps)
+    def testStartStop(self):
         
-        self.assertEqual(None, aiSys.getFailureState(TaskA))
-        self.assertEqual(BRecovery, aiSys.getFailureState(TaskB))
-        self.assertEqual(CRecovery, aiSys.getFailureState(TaskC))
+        # Start up the AI and make sure we in the proper state
+        self.ai.start()
+        self.assertEqual(TaskA, type(self.machine.currentState()))
+        
+        # Now stop it and make sure we are no longer in a state
+        self.ai.stop()
+        self.assertEqual(None, self.machine.currentState())

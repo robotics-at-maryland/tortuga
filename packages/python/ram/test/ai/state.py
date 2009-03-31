@@ -13,6 +13,7 @@ import StringIO
 # Project Imports
 import ext.core as core
 import ram.ai.state as state
+import ram.ai.subsystem as aisys
 
 # --------------------------------------------------------------------------- #
 #                      S U P P P O R T    O B J E C T S                       #
@@ -499,6 +500,11 @@ class TestStateMachine(unittest.TestCase):
         
         cstate = branch.currentState()
         self.assertEqual(First, type(cstate))
+        
+    def testAiSet(self):
+        ai = aisys.AI()
+        machine = state.Machine(deps = [ai])
+        self.assertEquals(machine, ai.mainStateMachine)
         
 # Testing of State Class
 class StateTestConfig(state.State):

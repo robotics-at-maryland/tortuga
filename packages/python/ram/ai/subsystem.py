@@ -46,6 +46,8 @@ class AI(core.Subsystem):
         
         # Build list of next states
         self._nextTaskMap = {}
+        self._taskOrder = []
+        
         taskOrder = cfg.get('taskOrder', None)
         if taskOrder is None:
             taskOrder = []
@@ -61,6 +63,9 @@ class AI(core.Subsystem):
             
             # Store the results
             self._nextTaskMap[taskClass] = nextClass
+            
+            # Record the current class
+            self._taskOrder.append(taskClass)
             
         # Build list of failure tasks
         self._failureTaskMap = {}
@@ -99,6 +104,18 @@ class AI(core.Subsystem):
         return self._data
 
     # Other methods
+    def start(self):
+        """
+        Starts the state machine with the first task from the task list
+        """
+        self._stateMachine.start(self._taskOrder[0])
+    
+    def stop(self):
+        """
+        Stops the currently running state machine.
+        """
+        self._stateMachine.stop()
+    
     def addConnection(self, conn):
         self._connections.append(conn)
 
