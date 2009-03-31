@@ -275,7 +275,7 @@ class Bin(Visual):
     def __init__(self):
         Visual.__init__(self)
         self._suit = Suit.NONEFOUND
-        self.visible = False
+        self._visible = False
         self.id = 0
 
     def load(self, data_object):
@@ -972,6 +972,12 @@ class IdealSimVision(ext.vision.VisionSystem):
             event = ext.core.Event()
             event.x = x
             event.y = y
+            
+            if angle.valueDegrees() < -90:
+                angle = ext.math.Degree(angle.valueDegrees() + 180)
+            elif angle.valueDegrees() > 90:
+                angle = ext.math.Degree(angle.valueDegrees() - 180)
+            
             event.angle = angle
             self.publish(ext.vision.EventType.PIPE_FOUND, event)
             
@@ -1005,9 +1011,9 @@ class IdealSimVision(ext.vision.VisionSystem):
 
                 id = self._binID
                 self._binID += 1
-                if not bin.visible:
+                if not bin._visible:
                     bin.id = id
-                    bin.visible = True
+                    bin._visible = True
                 else:
                     id = bin.id
                 
@@ -1022,11 +1028,11 @@ class IdealSimVision(ext.vision.VisionSystem):
                 
                 # Record angle for use in the multi bin event
                 lastAngle = angle
-            elif bin.visible:
+            elif bin._visible:
                 event = ext.core.Event()
                 event.id = bin.id
                 self.publish(ext.vision.EventType.BIN_DROPPED, event)
-                bin.visible = False
+                bin._visible = False
                 
         # Multi Bin Angle Event
         if visibleBins > 1:
