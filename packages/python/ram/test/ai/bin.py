@@ -314,6 +314,21 @@ class TestCentering(BinTestCase):
         # Inject settled event
         self.injectEvent(bin.Centering.SETTLED)
         self.assertCurrentState(bin.SeekEnd)
+
+    def testStoreDesiredQuaternion(self):
+        # Setup a desired orientation                                       
+        expected = math.Quaternion(math.Degree(45), math.Vector3.UNIT_Z)
+        self.controller.desiredOrientation = expected
+
+        # Setup for SeekEnd
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        # Send SETTLED event
+        self.injectEvent(bin.Centering.SETTLED)
+
+        # Make sure we have the desired quaterion saved properly             
+        self.assertAIDataValue('binArrayOrientation', expected)
+        self.assertEqual(1, self.controller.headingHolds)
         
 class TestAligning(BinTestCase):
     def setUp(self):
@@ -380,6 +395,18 @@ class TestSeekEnd(BinTestCase):
     def _atEndH(self, event):
         self._atEnd = True
         
+    def testStart(self):
+        # Setup data for turn hold
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['binArrayOrientation'] = expected
+
+        # Restart the state machine
+        self.machine.stop()
+        self.machine.start(bin.SeekEnd)
+
+        # Make sure we have the proper orientation
+        self.assertEqual(expected, self.controller.desiredOrientation)
+
     def testBinFound(self):
         """Make sure the loop back works"""
         self.ai.data['currentBinID'] = 0
@@ -465,12 +492,24 @@ class TestDive(BinTestCase):
         BinTestCase.setUp(self)
         self.vehicle.depth = 0
         self.machine.start(bin.Dive)
-    
+
     def testStart(self):
         """Make sure we start diving"""
         self.assertCurrentMotion(
             (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
         #self.assertGreaterThan(self.controller.depth, 0)
+
+    def testBinArrayOrientation(self):
+        # Setup data for turn hold
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['binArrayOrientation'] = expected
+
+        # Restart the state machine
+        self.machine.stop()
+        self.machine.start(bin.Dive)
+
+        # Make sure we have the proper orientation
+        self.assertEqual(expected, self.controller.desiredOrientation)
                 
     def testBinFound(self):
         """Make sure the loop back works"""

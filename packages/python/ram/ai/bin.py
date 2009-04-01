@@ -331,7 +331,7 @@ class Seeking(HoveringState):
     def transitions():
         return HoveringState.transitions(Seeking,
             { vision.EventType.BIN_CENTERED : Centering })
-        
+ 
     def BIN_FOUND(self, event):
         # Disable angle tracking
         event.angle = math.Degree(0)
@@ -390,13 +390,24 @@ class Centering(SettlingState):
     
     @cvar SETTLED: Event fired when vehile has settled over the bin
     """
-    SETTLED = core.declareEventType('SETTLED')
+    SETTLED = core.declareEventType('SETTLED_')
     
     @staticmethod
     def transitions():
         return SettlingState.transitions(Centering,
             { Centering.SETTLED : SeekEnd })
     
+    def SETTLED_(self, event):
+        """
+        Records the orientation of the array when we are first centered over it
+        """
+        if not self.ai.data.has_key('binArrayOrientation'):
+            # Level ourselves out
+            self.controller.holdCurrentHeading()
+            # Store result heding
+            self.ai.data['binArrayOrientation'] = \
+                self.controller.getDesiredOrientation()
+
     def BIN_FOUND(self, event):
         # Cancel out angle commands (we don't want to control orientation)
         event.angle = math.Degree(0)
@@ -429,6 +440,11 @@ class SeekEnd(BinSortingState):
         BinSortingState.enter(self, BinSortingState.LEFT,
                               useMultiAngle = True)
         
+        # Set orientation to match the initial orientation
+        if self.ai.data.has_key('binArrayOrientation'):
+            self.controller.setDesiredOrientation(
+                self.ai.data['binArrayOrientation'])
+
         # Fix the current left most bin, as the currently tracked bin
         if not self.fixEdgeBin():
             # If already there
@@ -461,6 +477,11 @@ class Dive(HoveringState):
         # Keep the hover motion going (and use the bin angle)
         HoveringState.enter(self, useMultiAngle = True)
         
+        # Set orientation to match the initial orientation
+        if self.ai.data.has_key('binArrayOrientation'):
+            self.controller.setDesiredOrientation(
+                self.ai.data['binArrayOrientation'])
+
         # While keeping center, dive down
         binDepth = self._config.get('binDepth', 11)
         offset = self._config.get('offset', 1.5)
