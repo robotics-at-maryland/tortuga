@@ -65,11 +65,11 @@ Scene:
 
         pinger:
             type: [sim.sonar.IPinger, sim.sonar.Pinger]
-            position: [2.7432, -3.3528, -7.5]
+            position: [0, 0, -7.5]
             
         safe:
             type: [sim.vision.ISafe, sim.vision.Safe]
-            position: [2.7432, -3.3528, -7]
+            position: [0, 0, -7]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

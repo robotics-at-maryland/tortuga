@@ -73,15 +73,16 @@ Subsystems:
 
     Ai:
         # Demo course without the barbed wire
-        #taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-        #            'ram.ai.course.Light', 'ram.ai.course.Pipe',
-        #            'ram.ai.course.Bin']
+        taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+                    'ram.ai.course.Light', 'ram.ai.course.Pipe',
+                    'ram.ai.course.Bin', 'ram.ai.course.Pinger',
+                    'ram.ai.course.Octagaon']
 
         # Demo course with the barbed wire                    
-        taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-                    'ram.ai.course.Light', 'ram.ai.course.Pipe2',
-                    'ram.ai.course.BarbedWire',
-                    'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
+        #taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+        #            'ram.ai.course.Light', 'ram.ai.course.Pipe2',
+        #            'ram.ai.course.BarbedWire',
+        #            'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
         type: AI
 
     StateMachine:
@@ -159,6 +160,8 @@ Subsystems:
                 depthGain: 0.5
 
             # Sonar subtask
+            ram.ai.sonar.Start:
+                diveDepth: 11
             ram.ai.sonar.CloseSeeking:
                 maxSidewaysSpeed: 1
                 sidewaysSpeedGain: 2
