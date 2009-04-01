@@ -513,19 +513,26 @@ class Examine(SettlingState):
     Turns on the suit detector, and determines the type of the bin
     """
     FOUND_TARGET = core.declareEventType('FOUND_TARGET')
+    DETERMINE_SUIT = core.declareEventType('DETERMINE_SUIT_')
     MOVE_ON = core.declareEventType('MOVE_ON')
         
     @staticmethod
     def transitions():
         return SettlingState.transitions(Examine,
         { Examine.FOUND_TARGET : DropMarker,
+          Examine.DETERMINE_SUIT : Examine,
           Examine.MOVE_ON : SurfaceToMove })
         
     def BIN_FOUND(self, event):
+        """
+        Tallies bin hits
+        """
         SettlingState.BIN_FOUND(self, event)
         
         # Count the hits
         if self._currentBin(event):
+            self._totalHits += 1
+            
             suit = event.suit
             if suit == vision.Suit.HEART:
                 self._hearts += 1
@@ -536,16 +543,37 @@ class Examine(SettlingState):
             elif suit == vision.Suit.DIAMOND:
                 self._diamonds += 1
                 
-        # Determine if we have found something and trigger FOUND_TARGET event 
-        # if we have
-        if self._hearts >= self._foundLimit:
-            self._checkSuit(vision.Suit.HEART)
-        elif self._clubs >= self._foundLimit:
-            self._checkSuit(vision.Suit.CLUB)
-        elif self._spades >= self._foundLimit:
-            self._checkSuit(vision.Suit.SPADE)
-        elif self._diamonds >= self._foundLimit:
-            self._checkSuit(vision.Suit.DIAMOND)
+    def DETERMINE_SUIT_(self, event):
+        """
+        Determine if we have found something and trigger FOUND_TARGET event 
+        if we have
+        """
+        
+        # Bail out if we have found nothing
+        if 0 == self._totalHits:
+            self.publish(Examine.MOVE_ON, core.Event())
+            return
+        
+        # Convert to percentage of total hits
+        hearts = float(self._hearts) / self._totalHits
+        clubs = float(self._clubs) / self._totalHits
+        spades = float(self._spades) / self._totalHits
+        diamonds = float(self._diamonds) / self._totalHits
+        
+        # See if any of the types is over the needed percentage
+        foundTarget = False
+        if hearts >= self._foundLimit:
+            foundTarget = self._checkSuit(vision.Suit.HEART)
+        elif clubs >= self._foundLimit:
+            foundTarget = self._checkSuit(vision.Suit.CLUB)
+        elif spades >= self._foundLimit:
+            foundTarget = self._checkSuit(vision.Suit.SPADE)
+        elif diamonds >= self._foundLimit:
+            foundTarget = self._checkSuit(vision.Suit.DIAMOND)
+            
+        # If we didn't find anything, time to move on
+        if not foundTarget:
+            self.publish(Examine.MOVE_ON, core.Event())
                     
     def _loadSuitConfig(self):
         targetSuits = self._config.get('targetSuits', ['Club', 'Diamond'])
@@ -568,13 +596,14 @@ class Examine(SettlingState):
         
     def enter(self):
         # Wait for 20 seconds while we examine things
-        SettlingState.enter(self, Examine.MOVE_ON, 20)
+        SettlingState.enter(self, Examine.DETERMINE_SUIT, 5)
         
         self._hearts = 0
         self._clubs = 0
         self._spades = 0
         self._diamonds = 0
-        self._foundLimit = self._config.get('foundCount', 5)
+        self._totalHits = 0
+        self._foundLimit = self._config.get('foundLimit', 0.8)
         
         # Load needed suits
         self._loadSuitConfig()

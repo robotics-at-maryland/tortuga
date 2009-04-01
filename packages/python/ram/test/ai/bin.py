@@ -540,7 +540,8 @@ class TestExamine(BinTestCase):
         self.assertCurrentMotion(motion.pipe.Hover)
         
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
-        self.releaseTimer(bin.Examine.MOVE_ON)
+        self.releaseTimer(bin.Examine.DETERMINE_SUIT)
+        self.qeventHub.publishEvents()
         self.assertCurrentState(bin.SurfaceToMove)
 
     def testLoadSuitConfig(self):
@@ -590,10 +591,53 @@ class TestExamine(BinTestCase):
         # No try for target found
         self.assertFalse(self._targetFound)
         
-        # Fire the last club and make sure we got it called
+    def testFoundSuit(self):
+        # Send in a bunch of events
+        self.ai.data['currentBinID'] = 3 
         self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        
+        # Make sure we haven't done anything yet
+        self.assertCurrentState(bin.Examine)
+        self.assertFalse(self._targetFound)
+        
+        # Now release the determine event and make sure we have moved on
+        self.releaseTimer(bin.Examine.DETERMINE_SUIT)   
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
+        self.assertCurrentState(bin.DropMarker)
+        
+    def testNoSuitFound(self):
+        # Send in a bunch of events
+        self.ai.data['currentBinID'] = 3 
+        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
+        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
+        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        
+        # Make sure we haven't done anything yet
+        self.assertCurrentState(bin.Examine)
+        self.assertFalse(self._targetFound)
+        
+        # Now release the determine event and make sure we have moved on
+        self.releaseTimer(bin.Examine.DETERMINE_SUIT)   
+        self.qeventHub.publishEvents()
+        self.assertFalse(self._targetFound)
+        self.assertCurrentState(bin.SurfaceToMove)
         
     def testBinTracking(self):
         self.binTrackingHelper()
