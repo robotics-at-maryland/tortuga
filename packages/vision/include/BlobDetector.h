@@ -51,7 +51,7 @@ public:
         int getMaxY() const { return m_maxY; }
         int getMinY() const { return m_minY; }
 
-        void draw(Image*);
+        void draw(Image*, bool centroid = true);
         double getAspectRatio() {
 
             double boundWidth = fabs(getMaxX() - getMinX());

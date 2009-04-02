@@ -9,9 +9,11 @@
 
 // STD Includes
 #include <iostream>
+#include <algorithm>
 
 // Library Includes
 #include "cv.h"
+#include "cxcore.h"
 #include "highgui.h"
 
 // Project Includes
@@ -32,14 +34,16 @@ OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     Detector(eventHub),
     m_cam(0),
-    m_centered(false)
+    m_centered(false),
+    m_noHough(false)
 {
     init(config);
 }
     
 OrangePipeDetector::OrangePipeDetector(Camera* camera) :
     m_cam(camera),
-    m_centered(false)
+    m_centered(false),
+    m_noHough(false)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -61,6 +65,8 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_rOverGMin = config["rOverGMin"].asDouble(1.0);
     m_rOverGMax = config["rOverGMax"].asDouble(2.0);
     m_bOverRMax = config["bOverRMax"].asDouble(0.4);
+
+    m_noHough = 0 != config["noHough"].asInt(0);
 }
 
 bool OrangePipeDetector::found()
@@ -105,6 +111,11 @@ void OrangePipeDetector::update()
     processImage(m_frame, 0);
 }
 
+void OrangePipeDetector::setHough(bool value)
+{
+    m_noHough = value;
+}
+
 void OrangePipeDetector::processImage(Image* input, Image* output)
 {
     //Plan is:  Search out orange with a strict orange filter, as soon as we
@@ -122,7 +133,6 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     cvCopyImage(image,m_rotated);//Poorly named if the cameras not on sideways... oh well.
     image=m_rotated;
     
-
     bool pipeFound = m_found;
     if (pipeFound)
     {
@@ -165,58 +175,78 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     {
         // 3 x 3 default erosion element, default 3 iterations.
         cvErode(image, image, 0, m_erodeIterations);
-        
-        double angle = hough(image,&linex,&liney);
+
+        // Don't run hough if we aren't using it
+        double angle = HOUGH_ERROR;
+        if (!m_noHough)
+        {
+            int dummy;
+            angle = hough(image,&dummy,&dummy);
+        }
+
+        // Determine the centroid of the pipe
+        int dummy; 
+        histogram(image, &linex,&liney,&dummy,&dummy,&dummy,&dummy);
+
         if (angle==HOUGH_ERROR)
         {
-            m_lineX=-1;
-            m_lineY=-1;
+            // Hough failed lets do this manually, first find all blobs
+            m_blobDetector.setMinimumBlobSize(200);
+            OpenCVImage temp(image, false);
+            m_blobDetector.processImage(&temp);
+            BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+
+            if (blobs.size() > 0) 
+            {
+                bool debug = output != 0;
+                angle = findPipeAngle(blobs[0], image, debug);
+            }
+        }
+
+        // If we have an error, just the angle to "zero", note that is really
+        // -90 degrees because we add 90 degrees in the next step
+        if (angle == HOUGH_ERROR)
+            angle = -1.57079633;
+
+        // Make angle between 90 and -90
+        m_angle = math::Radian(angle) + math::Degree(90);
+        if (m_angle > math::Radian(math::Math::HALF_PI))
+            m_angle = m_angle - math::Radian(math::Math::PI);
+
+        // m_lineX and m_lineY are fields, both are doubles
+        // Shift origin to the center
+        m_lineX = -1 * ((image->width / 2) - linex);
+        m_lineY = (image->height / 2) - liney;
+        
+        // Normalize     (-1 to 1)
+        m_lineX = m_lineX / ((double)(image->width)) * 2.0;
+        m_lineY = m_lineY / ((double)(image->height)) * 2.0;
+        
+        // Account for the aspect ratio difference
+        // 640/480      
+        m_lineX *= (double)image->width / image->height;
+        
+        // Fire off found event
+        PipeEventPtr event(new PipeEvent(0, 0, 0));
+        event->x = m_lineX;
+        event->y = m_lineY;
+        event->angle = m_angle;
+        publish(EventType::PIPE_FOUND, event);
+
+        // Determine Centered
+        math::Vector2 toCenter(m_lineX, m_lineY);
+        if (toCenter.normalise() < m_centeredLimit)
+        {
+            if(!m_centered)
+            {
+                m_centered = true;
+                publish(EventType::PIPE_CENTERED, event);
+            }
         }
         else
         {
-            int dummy;
-            histogram(image, &linex,&liney,&dummy,&dummy,&dummy,&dummy);//uh oh.
-            // Make angle between 90 and -90
-            m_angle = math::Radian(angle) + math::Degree(90);
-            if (m_angle > math::Radian(math::Math::HALF_PI))
-                m_angle = m_angle - math::Radian(math::Math::PI);
-
-            // m_lineX and m_lineY are fields, both are doubles
-            // Shift origin to the center
-            m_lineX = -1 * ((image->width / 2) - linex);
-            m_lineY = (image->height / 2) - liney;
-    
-            // Normalize     (-1 to 1)
-            m_lineX = m_lineX / ((double)(image->width)) * 2.0;
-            m_lineY = m_lineY / ((double)(image->height)) * 2.0;
-
-            // Account for the aspect ratio difference
-            // 640/480      
-            m_lineX *= (double)image->width / image->height;
-
-            // Fire off found event
-            PipeEventPtr event(new PipeEvent(0, 0, 0));
-            event->x = m_lineX;
-            event->y = m_lineY;
-            event->angle = m_angle;
-            publish(EventType::PIPE_FOUND, event);
-
-            // Determine Centered
-            math::Vector2 toCenter(m_lineX, m_lineY);
-            if (toCenter.normalise() < m_centeredLimit)
-            {
-                if(!m_centered)
-                {
-                    m_centered = true;
-                    publish(EventType::PIPE_CENTERED, event);
-                }
-            }
-            else
-            {
-                m_centered = false;
-            }
+            m_centered = false;
         }
-        
     }
     
     if (output)
@@ -224,10 +254,92 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
         CvPoint center;
         center.x = linex;
         center.y = liney;
-        cvCircle(image, center, 5, CV_RGB(0, 255, 0), -1);
+        cvCircle(image, center, 5, CV_RGB(0, 0, 255), -1);
         OpenCVImage temp(image, false);
         output->copyFrom(&temp);
     }
+}
+
+double OrangePipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob, 
+                                         IplImage* image, bool debug)
+{
+    // Determine the size of the square we are going to draw and our blob 
+    // finding thresholds
+    int width = pipeBlob.getMaxX() - pipeBlob.getMinX();
+    int height = pipeBlob.getMaxY() - pipeBlob.getMinY();
+    int squareSize = width;
+    if (height > squareSize)
+      squareSize = height;
+
+    int drawSize = squareSize / 2;
+    int minBlobSize = ((squareSize / 4) * (squareSize / 4)) / 4;
+
+    // Draw square to eliminate the central area of the pipe
+    math::Vector2 upperLeft(-drawSize/2, drawSize/2);
+    math::Vector2 upperRight(drawSize/2, drawSize/2);
+    math::Vector2 lowerLeft(-drawSize/2, -drawSize/2);
+    math::Vector2 lowerRight(drawSize/2, -drawSize/2);
+
+    CvPoint pts[4];
+    pts[0].x = (int)upperLeft.x + pipeBlob.getCenterX();
+    pts[0].y = (int)upperLeft.y + pipeBlob.getCenterY();
+    pts[1].x = (int)upperRight.x + pipeBlob.getCenterX();
+    pts[1].y = (int)upperRight.y + pipeBlob.getCenterY();
+    pts[2].x = (int)lowerRight.x + pipeBlob.getCenterX();
+    pts[2].y = (int)lowerRight.y + pipeBlob.getCenterY();
+    pts[3].x = (int)lowerLeft.x + pipeBlob.getCenterX();
+    pts[3].y = (int)lowerLeft.y + pipeBlob.getCenterY();
+
+    // Finally lets draw the image
+    cvFillConvexPoly(image, pts, 4, CV_RGB(0,0,0));
+
+    // Find all blobs inside the pipe blob
+    m_blobDetector.setMinimumBlobSize(minBlobSize);
+    OpenCVImage temp(image, false);
+    m_blobDetector.processImage(&temp);
+    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+
+    if (blobs.size() >= 2)
+    {
+        // Get the start and end coordinates from the blob centers      
+        math::Vector2 start(blobs[0].getCenterX(), blobs[0].getCenterY());
+        math::Vector2 end(blobs[1].getCenterX(), blobs[1].getCenterY());
+        if (start.y > end.y)
+            std::swap(start, end);
+
+        // Determine the angle of the pipe
+        int xdiff = (end.x - start.x);    //deal with y's being flipped
+        int ydiff = -1*(end.y - start.y);
+        double angle = atan2((double)(ydiff/(double)image->height),
+                             (double)(xdiff/(double)image->height));
+
+        // If we are debugging draw up some debug data
+        if (debug)
+        {
+            // Center of are start and end points
+            CvPoint startPt;
+            startPt.x = start.x;
+            startPt.y = start.y;
+            cvCircle(image, startPt, 5, CV_RGB(0, 255, 0), -1);
+            CvPoint endPt;
+            endPt.x = end.x;
+            endPt.y = end.y;
+            cvCircle(image, endPt, 5, CV_RGB(255, 0, 0), -1);
+            
+            // Line which connects the centroids
+            cvLine(image, startPt, endPt, CV_RGB(255,0,255), 3, CV_AA, 0);
+        
+            // Bounds of blobs
+            OpenCVImage temp(image, false);
+            pipeBlob.draw(&temp, false);
+            blobs[0].draw(&temp, false);
+            blobs[1].draw(&temp, false);
+        }
+    
+        return angle;
+    }
+    
+    return HOUGH_ERROR;
 }
 
 } // namespace vision

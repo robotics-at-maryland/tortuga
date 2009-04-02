@@ -206,6 +206,36 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterSideways)
     //CHECK_CLOSE(expectedAngle, event->angle, math::Degree(0.5));
 }
 
+TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeftNoHough)
+{
+    // Disable hough to use blob based system instead
+    detector.setHough(true);
+
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // draw orange square (upper left, remember image rotated 90 deg)
+    drawSquare(&input, 640/4, 480/4, 50, 230, 25, CV_RGB(230,180,40));
+
+    // Process it
+    detector.processImage(&input);
+    
+    double expectedX = -0.5 * 640.0/480.0;
+    double expectedY = 0.5;
+    math::Degree expectedAngle(25);
+    
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(1));
+
+    // Check Events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.05);
+    CHECK_CLOSE(expectedY, event->y, 0.05);
+    CHECK_CLOSE(expectedAngle, event->angle, math::Degree(1));
+}
+
 TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_LOST)
 {
     // No light at all

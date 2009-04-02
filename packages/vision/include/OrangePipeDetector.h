@@ -14,6 +14,7 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
+#include "vision/include/BlobDetector.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Math.h"
 
@@ -40,14 +41,23 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
     double getY();
     math::Degree getAngle();
     void update();
-
     
+    /** Turns on and off the use of the hough detector for angle */
+    void setHough(bool value);
     void show(char* window);
     IplImage* getAnalyzedImage();
     
     
   private:
     void init(core::ConfigNode config);
+
+    /** Determines the angle of the pipe inside the given blob 
+     *  
+     *  @return The angle of the pipe in radians (will have 90 degs added to 
+     *          it).  It will return HOUGH_ERROR if it didn't find anything.
+     */
+    double findPipeAngle(BlobDetector::Blob pipeBlob, IplImage* image,
+			 bool debug = false);
 
     /** Angle of the pipe */
     math::Radian m_angle;
@@ -77,6 +87,12 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
 
     /** Number of times to erode the masked image before the hough */
     int m_erodeIterations;
+
+    /** Disabled use of hough */
+    bool m_noHough;
+
+    /** Finds the pipe blobs */
+    BlobDetector m_blobDetector;
 };
     
 } // namespace vision

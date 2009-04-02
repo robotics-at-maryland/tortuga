@@ -29,7 +29,7 @@
 namespace ram {
 namespace vision {
 
-void BlobDetector::Blob::draw(Image* output)
+void BlobDetector::Blob::draw(Image* output, bool centroid)
 {
     CvPoint tl,tr,bl,br;
     
@@ -44,12 +44,15 @@ void BlobDetector::Blob::draw(Image* output)
     cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
     cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
     cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-    
-    CvPoint c;
-    c.x = m_centerX;
-    c.y = m_centerY;
-    
-    cvCircle(raw, c, 5, CV_RGB(0,255,0), 2, CV_AA, 0); 
+
+    if (centroid)
+    {
+        CvPoint c;
+	c.x = m_centerX;
+	c.y = m_centerY;
+	
+	cvCircle(raw, c, 5, CV_RGB(0,255,0), 2, CV_AA, 0); 
+    }
 }
     
 BlobDetector::BlobDetector(core::ConfigNode config,
