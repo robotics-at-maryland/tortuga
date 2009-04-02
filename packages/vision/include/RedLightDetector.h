@@ -44,6 +44,11 @@ class RAM_EXPORT RedLightDetector : public Detector
     
     /** Center of the red light in the local vertical, -1 to 1 */
     double getY();
+
+    /** The percent of the top of the image blacked out */
+    void setTopRemovePercentage(double percent);
+    /** The percent of the bottom of the image blacked out */
+    void setBottomRemovePercentage(double percent);
     
     void show(char* window);
     IplImage* getAnalyzedImage();

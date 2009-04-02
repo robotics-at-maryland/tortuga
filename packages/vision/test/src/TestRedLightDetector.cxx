@@ -217,6 +217,40 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT)
     CHECK_CLOSE(math::Degree(0), event->elevation, math::Degree(0.4));
 }
 
+TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT_TOPBOT)
+{
+    // Remove the top and bottom of the image
+    detector.setBottomRemovePercentage(0.25);
+    detector.setTopRemovePercentage(0.25);
+
+    // Blue Image with red circle in the center
+    makeColor(&input, 0, 0, 255);
+    drawRedCircle(&input, 640/2, 240, 100);
+
+    // Process it
+    detector.processImage(&input);
+
+    double expectedX = 0 * 640.0/480.0;
+    double expectedY = 0;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found);
+
+    // Check the events
+
+    // LIGHT_ALMOST_HIT
+    CHECK(almostHit);
+    
+    // LIGHT_FOUND
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.005);
+    CHECK_CLOSE(expectedY, event->y, 0.005);
+    CHECK_CLOSE(1.48185, event->range, 0.1);
+    CHECK_CLOSE(math::Degree(0), event->azimuth, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(0), event->elevation, math::Degree(0.4));
+}
+
 TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
 {
     // Blue Image with red circle in upper center

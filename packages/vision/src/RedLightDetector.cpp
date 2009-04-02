@@ -95,6 +95,16 @@ double RedLightDetector::getY()
     return m_redLightCenterY;
 }
 
+void RedLightDetector::setTopRemovePercentage(double percent)
+{
+    m_topRemovePercentage = percent;
+}
+
+void RedLightDetector::setBottomRemovePercentage(double percent)
+{
+    m_bottomRemovePercentage = percent;
+}
+
 void RedLightDetector::show(char* window)
 {
     //Chris:  If you want to see an image other than the raw image with a box drawn if light found
@@ -230,8 +240,11 @@ void RedLightDetector::processImage(Image* input, Image* output)
         publishFoundEvent(lightPixelRadius);
         
         // Tell the watcher we are really freaking close to the light
-        int pixelThreshold = (int)(input->getHeight() * input->getWidth() *
-                                   m_almostHitPercentage);
+	int pixelSize = (int)(input->getHeight() * input->getWidth());
+	pixelSize = (int)(pixelSize * (1 - m_topRemovePercentage -
+				       m_bottomRemovePercentage));
+
+        int pixelThreshold = (int)(pixelSize * m_almostHitPercentage);
         if (redPixelCount > pixelThreshold)
         {
             publish(EventType::LIGHT_ALMOST_HIT,
