@@ -37,6 +37,12 @@ C = [1, 0];
 D = [0];
 [Ak Bk Ck Dk] = dssdata(c2d(ss(A,B,C,D),Ts)); % Discretizes system
 
+%discretize Rn
+Gamma=[-A B*Rv*B'; zeros(2) A'];
+vanLoan=expm(Gamma*Ts);
+F=vanLoan(3:4,3:4)';
+Q=F*vanLoan(1:2,3:4);
+
 
 %Initializes parameters
 P0 = [1e-4 0; 0 1]; % Initial Covariance Matrix
@@ -64,7 +70,7 @@ t_end = length(depth_a);
 for t=1:t_end
     % Updating the predicted state and covariance forward in time
     x_pred = Ak*x_prev + Bk*u_prev + Bk*(-buoy);
-    P_pred = Ak_prev*P_prev*Ak_prev' + Bk*Rv*Bk';   
+    P_pred = Ak_prev*P_prev*Ak_prev' + Q;   
     % Using the measured value along with the updated state
     K = P_pred*Ck'*inv(Ck*P_pred*Ck' + Rn);
     KalmanGains(:,t) = K;
