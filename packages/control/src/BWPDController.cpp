@@ -307,6 +307,11 @@ void BWPDController::setDesiredOrientation(math::Quaternion newQuaternion)
 	math::OrientationEventPtr event(new math::OrientationEvent());
 	event->orientation = math::Quaternion(m_desiredState->quaternion);
 	publish(IController::DESIRED_ORIENTATION_UPDATE, event);
+
+    if(atOrientation())
+    {
+        publishAtOrientation();
+    }
 }
     
 bool BWPDController::atOrientation()

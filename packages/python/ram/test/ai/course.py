@@ -328,6 +328,9 @@ class TestLight(support.AITestCase):
         
         self.assertCurrentBranches([light.Start])
         #self.assert_(self.visionSystem.redLightDetector)
+
+        # Make sure we held the current heading
+        self.assertEqual(1, self.controller.headingHolds)
         
     def testLightHit(self):
         """
@@ -335,6 +338,9 @@ class TestLight(support.AITestCase):
         """
         
         self.injectEvent(light.LIGHT_HIT, sendToBranches = True)
+        self.controller.publishAtOrientation(math.Quaternion.IDENTITY)
+        self.qeventHub.publishEvents();
+
         self.assertCurrentState(course.Pipe)
         
         # Make sure the light seeking branch is gone
@@ -356,6 +362,28 @@ class TestLight(support.AITestCase):
         self.assertCurrentState(course.Pipe)
         self.assertFalse(self.machine.branches.has_key(light.Start))
         self.assertFalse(self.visionSystem.redLightDetector)
+
+    def testOrientationReset(self):
+        """
+        Tests to make sure we go back to the proper orientation after we have
+        hit the light
+        """
+        # Setup a desired orientation
+        expected = math.Quaternion(math.Degree(45), math.Vector3.UNIT_Z)
+        self.controller.desiredOrientation = expected
+
+        # Restart with so we have a set orientation
+        self.machine.stop()
+        self.machine.start(self._stateType)
+
+        # Hit the light
+        self.injectEvent(light.LIGHT_HIT, sendToBranches = True)
+        self.controller.publishAtOrientation(math.Quaternion.IDENTITY)
+        self.qeventHub.publishEvents();
+        self.assertCurrentState(course.Pipe)
+
+        # Make sure we are not at the proper orientation
+        self.assertEqual(expected, self.controller.desiredOrientation)
        
 class TestLightStaged(TestLight):
     def setUp(self):

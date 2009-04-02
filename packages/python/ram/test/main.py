@@ -47,11 +47,12 @@ def main(argv = None):
     # Recursively walk the path 
     for root, dirs, files in os.walk(testDir):
         # Only take *.py files in add the directory
-        pathes = [os.path.join(root,f) for f in files if f.endswith('.py')]
+        pathes = [os.path.join(root,f) for f in files 
+                  if f.endswith('.py') and not f.startswith('.')]
 
         # Remove __init__ files
         pathes = [p for p in pathes if 0 == p.count('__init__')]
-                                          
+
         for path in pathes:
             mod = importFromPath(path)
 

@@ -94,26 +94,31 @@ class MockVisionSystem(core.Subsystem):
         
 class AITestCase(unittest.TestCase):
     TIMER_ORIG = timer.Timer
-    
+    __timerMocked = False
+
     def mockSleep(self, seconds):
         self.seconds = seconds
     
     def mockTimer(self):
-        if self._timerMocked:
+        if AITestCase.__timerMocked:
             assert timer.Timer == MockTimer
             # Put the original timer class back
             timer.Timer = AITestCase.TIMER_ORIG
-            
-            self._timerMocked = False
+
+            AITestCase.__timerMocked = False
         else:
             assert timer.Timer != MockTimer
             # Replace Timer with out Mock Timer Class
             timer.Timer = MockTimer
-            
-            self._timerMocked = True
+
+            AITestCase.__timerMocked = True
     
     def setUp(self, extraDeps = None, cfg = None):
-        self._timerMocked = False
+        # Handle case where the timer is still mocked for some reason, we make
+        # sure to un mock it
+        if AITestCase.__timerMocked:
+            self.mockTimer()
+
         # Replace the Timer class with the Mock one
         self.mockTimer()
         
@@ -127,7 +132,7 @@ class AITestCase(unittest.TestCase):
         self.eventHub = core.EventHub()
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         self.timerManager = timer.TimerManager(deps = [self.eventHub])
-        self.controller = MockController(None)
+        self.controller = MockController(self.eventHub)
         self.vehicle = MockVehicle()
         self.visionSystem = MockVisionSystem()
         

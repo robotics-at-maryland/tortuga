@@ -18,6 +18,7 @@ Requires the following subsystems:
 # Project Imports
 import ext.core as core
 import ext.vision as vision
+import ext.control as control
 
 import ram.ai.task as task
 import ram.ai.state as state
@@ -242,16 +243,45 @@ class Pipe3(Pipe):
         
 class Light(task.Task):
     """
-    Task for completion of the light objective within a certain timelimit.
+    Task for completion of the light objective within a certain timelimit. It
+    also remembers its initial orientation and returns to that orientation 
+    before moving onto the next state.
     """
+    
+    MOVE_ON = core.declareEventType('MOVE_ON')
+
     @staticmethod
-    def _transitions():
-        return { light.LIGHT_HIT : task.Next,
+    def _transitions(thisState = None):
+        if thisState is None:
+            thisState = Light
+        return { light.LIGHT_HIT : thisState,
+                 control.IController.AT_ORIENTATION : thisState,
+                 Light.MOVE_ON : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(light.Start) }
     
+    def AT_ORIENTATION(self, event):
+        """
+        Moves on from this state only after we have succesfully hit the light
+        """
+        if self._hit:
+            self.publish(Light.MOVE_ON, core.Event())
+
+    def LIGHT_HIT(self, event):
+        """
+        Rotates the vehicle back to its initial orientation
+        """
+        self.controller.setDesiredOrientation(self._initialOrientation)
+        self._hit = True
+
     def enter(self, defaultTimeout = 60):
         task.Task.enter(self, defaultTimeout = defaultTimeout)
+        self._hit = False
+
+        # Save current orientation
+        self.controller.holdCurrentHeading()
+        self._initialOrientation = self.controller.getDesiredOrientation()
+        
         self.stateMachine.start(state.Branch(light.Start))
     
     def exit(self):
@@ -268,7 +298,7 @@ class LightStaged(Light):
     
     @staticmethod
     def _transitions():
-        trans = Light._transitions()
+        trans = Light._transitions(LightStaged)
         trans.update({
             vision.EventType.LIGHT_FOUND : LightStaged,
             LightStaged.DO_TIMEOUT : task.Next })
