@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface poloViewController : UIViewController {
-
+	IBOutlet UIView* myView;
 }
 
 @end

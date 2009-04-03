@@ -22,6 +22,7 @@
 		5F7AB76A0F85AEA700F8AC81 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7AB7690F85AEA700F8AC81 /* CFNetwork.framework */; };
 		5F7AB7BE0F85B4EB00F8AC81 /* AdapterContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F7AB7BD0F85B4EB00F8AC81 /* AdapterContainer.m */; };
 		5F7AB7C20F85B64900F8AC81 /* PoloI.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F7AB7C10F85B64900F8AC81 /* PoloI.m */; };
+		5F7AB8F70F85E31300F8AC81 /* MarcoI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F7AB8F60F85E31300F8AC81 /* MarcoI.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +48,8 @@
 		5F7AB7BD0F85B4EB00F8AC81 /* AdapterContainer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AdapterContainer.m; sourceTree = "<group>"; };
 		5F7AB7C00F85B64900F8AC81 /* PoloI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PoloI.h; sourceTree = "<group>"; };
 		5F7AB7C10F85B64900F8AC81 /* PoloI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PoloI.m; sourceTree = "<group>"; };
+		5F7AB8F50F85E31300F8AC81 /* MarcoI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarcoI.h; path = ../../blackfin/marco/MarcoI.h; sourceTree = SOURCE_ROOT; };
+		5F7AB8F60F85E31300F8AC81 /* MarcoI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarcoI.cpp; path = ../../blackfin/marco/MarcoI.cpp; sourceTree = SOURCE_ROOT; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -93,6 +96,8 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				5F7AB8F50F85E31300F8AC81 /* MarcoI.h */,
+				5F7AB8F60F85E31300F8AC81 /* MarcoI.cpp */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -226,6 +231,7 @@
 				5F7AB7200F85A99D00F8AC81 /* marcopolo.m in Sources */,
 				5F7AB7BE0F85B4EB00F8AC81 /* AdapterContainer.m in Sources */,
 				5F7AB7C20F85B64900F8AC81 /* PoloI.m in Sources */,
+				5F7AB8F70F85E31300F8AC81 /* MarcoI.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

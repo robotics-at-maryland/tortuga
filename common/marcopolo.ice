@@ -2,11 +2,11 @@ module ram
 {
 	module marcopolo
 	{
-		sequence<int> IntList;
+		sequence<short> ShortList;
 		
 		struct Snapshot
 		{
-			IntList samples;
+			ShortList samples;
 		};
 		
 		class Polo

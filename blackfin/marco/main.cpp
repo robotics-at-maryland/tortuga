@@ -9,19 +9,25 @@
 
 #include <IceE/IceE.h>
 #include <iostream>
+#include <marcopolo.h>
+#include "MarcoI.h"
+
 
 using namespace std;
 
 int main(int argc, char* argv[])
 {
 	int status = 0;
-	Ice::CommunicatorPtr ic;
+    Ice::CommunicatorPtr ic;
+	
 	try {
 		ic = Ice::initialize(argc, argv);
 		Ice::ObjectAdapterPtr adapter
 		= ic->createObjectAdapterWithEndpoints("MarcoAdapter", "default -p 10000");
 		
-		/// TODO: create object adapter
+		Ice::ObjectPtr object = new MarcoI;
+		adapter->add(object, ic->stringToIdentity("Marco"));
+		adapter->activate();
 		
 		ic->waitForShutdown();
 	} catch (const Ice::Exception& e) {
@@ -39,5 +45,6 @@ int main(int argc, char* argv[])
 			status = 1;
 		}
 	}
+	
 	return status;
 }
