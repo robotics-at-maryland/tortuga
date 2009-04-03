@@ -206,6 +206,8 @@
 			inputPaths = (
 			);
 			outputPaths = (
+				"${BUILD_DIR}/generated/marcopolo.h",
+				"${BUILD_DIR}/generated/marcopolo.m",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
