@@ -520,6 +520,21 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
     // Make sure the values were correct
     CHECK_EQUAL(expectedDirection, event->direction);
     // TODO: test range, sec, usec
+
+    // Do another update and make sure we don't have another event
+    sb->updateDone = true;
+    sb->update(0);
+    CHECK_EQUAL(1u, eventList.size());
+
+    // Now change the timestamp and update again
+    expectedSec = 174855;
+    expectedUSec = 47856;
+    sb->currentTelemetry.sonar.timeStampSec = expectedSec;
+    sb->currentTelemetry.sonar.timeStampUSec = expectedUSec;
+
+    sb->updateDone = true;
+    sb->update(0);
+    CHECK_EQUAL(2u, eventList.size());
     
     conn->disconnect();
     delete sb;

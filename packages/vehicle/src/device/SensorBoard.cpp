@@ -512,15 +512,28 @@ void SensorBoard::thrusterEvents(struct boardInfo* telemetry)
 
 void SensorBoard::sonarEvent(struct boardInfo* telemetry)
 {
-    SonarEventPtr event(new SonarEvent);
-    event->direction = math::Vector3(telemetry->sonar.vectorX,
-                                     telemetry->sonar.vectorY,
-                                     telemetry->sonar.vectorZ);
-    event->range = telemetry->sonar.range;
-    event->pingTimeSec = telemetry->sonar.timeStampSec;
-    event->pingTimeUSec = telemetry->sonar.timeStampUSec;
+    static unsigned int previousSec = 0;
+    static unsigned int previousUsec = 0;
 
-    publish(SONAR_UPDATE, event);
+    // Only publish an event if the time stamp is chanced
+    if ((previousSec != telemetry->sonar.timeStampSec) ||
+        (previousUsec != telemetry->sonar.timeStampUSec))
+    {
+        // Create and pack our new event
+        SonarEventPtr event(new SonarEvent);
+        event->direction = math::Vector3(telemetry->sonar.vectorX,
+                                         telemetry->sonar.vectorY,
+                                         telemetry->sonar.vectorZ);
+        event->range = telemetry->sonar.range;
+        event->pingTimeSec = telemetry->sonar.timeStampSec;
+        event->pingTimeUSec = telemetry->sonar.timeStampUSec;
+        
+        publish(SONAR_UPDATE, event);
+
+        // Record the previous timestamp
+        previousSec = telemetry->sonar.timeStampSec;
+        previousUsec = telemetry->sonar.timeStampUSec;
+    }
 }
     
 } // namespace device
