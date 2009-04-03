@@ -1,4 +1,4 @@
-% This is an Extended Kalman Filter Written by Joseph Galante, Alex Janas,
+% This is an Unscented Kalman Filter Written by Joseph Galante, Alex Janas,
 % and Jaymit Patel on 3/24/2009
 clc;
 clear all;
@@ -26,10 +26,12 @@ kd = 11.5;  % Drag Coefficient
 buoy = .02; % Buoyant Force
 Ts = 1/1000 * (a(3,34) - a(2,34)); % This is our sampling time delay
 alpha = 10^-2; % Spread of sigma points
-beta = 2; %Prior knowledge about distribution of x: Optimal for gaussian
-      %Covariance of sensor noise: Determined by finding variance of the depth sensor readings for a constant depth 
-      Rv = 0.550; % Arbitrarily Chosen                 
-      Rn = 1.1e-4;  % Covariance of process noise: Artbitrarily chosen
+beta = 2; %Prior knowledge about distribution of x: Optimal for gaussian 
+Rv = 0.550; % Covariance of process noise: artbitrarily chosen              
+% Covariance of sensor noise: determined by finding the variance of the
+% depth sensor readings for a constant depth.  NOTE THIS IS FOR CONTINUOUS
+% TIME!!!!!!!  NEED TO DISCRETIZE
+Rn = 1.1e-4;  
       
               
 
@@ -42,8 +44,11 @@ C = [1, 0];
 D = [0];
 [Ak Bk Ck Dk] = dssdata(c2d(ss(A,B,C,D),Ts)); % Discretizes system
 
-
-
+%discretize Rv
+Gamma=[-A B*Rv*B'; zeros(2) A'];
+vanLoan=expm(Gamma*Ts);
+F=vanLoan(3:4,3:4)';
+Q=F*vanLoan(1:2,3:4);
 
 
 % Initialize Parameters
@@ -59,47 +64,51 @@ P_prev = P0;
 
 % UKF Specific Parameters
 L = 2; % State dimension: 2 for this example [depth; DepthDot]
-K = 3-L;
-lambda = alpha^2*(L+K) - L; % This formula was listed but should we use it?
+lambda = alpha^2*(L+(3-L)) - L; % This formula was listed but should we use it?
 gamma = sqrt(L+lambda);
 
-
+%calculate weights
+Wm=[lambda/(L+lambda)];
+Wc=[lambda/(L+lambda)+1-alpha^2+beta];
+for i=1:2*L
+    Wi=1/(2*(L+lambda));
+    Wm=[Wm Wi];
+    Wc=[Wc Wi];
+end
 
 
 
 t_end = length(depth_a);
 % for t = 1:t_end
 for t = 1:t_end
-    % calculate sigma points and then time update them (See page 228 unscented transformation)
-    sigma(:,1) = x_prev;
+    % calculate sigma points and then time update them (See page 228
+    % unscented transformation)
+    %sigma points for time k-1
     temp1 = chol((L+lambda)*P_prev );
-    sigma_predict(:,1) = Ak*sigma(:,1) + Bk*u_prev + Bk*(-buoy);
+    temp1 = [zeros(2,1) temp1 -temp1];
+    for q=1:2*L+1
+        sigma(:,q) = x_prev + temp1(:,q);
+    end
 
-    for q=2:2*L+1
-        if q <= L+1
-            sigma(:,q) = x_prev + temp1(:,q-1);
-        else
-            sigma(:,q) = x_prev - temp1(:,q-(L+1));
-        end
-
-        sigma_predict(:,q) = Ak*sigma(:,q) + Bk*u_prev + Bk*(-buoy); %Check on Bk stuff to make sure we right
+    %predict sigma for time k
+    for q=1:2*L+1
+        sigma_predict(:,q) = Ak*sigma(:,q) + Bk*u_prev + Bk*(-buoy);
     end
 
 
-
     %%%%%%%%%%%% update predicted state estimates %%%
-    x_pred = lambda/(L+lambda)*sigma_predict(:,1);
-    for i = 2:(2*L+1)
-        x_pred = x_pred + 1/(2*(L+lambda))*sigma_predict(:,i);
+    x_pred = 0;
+    for i = 1:(2*L+1)
+        x_pred = x_pred + Wm(i)*sigma_predict(:,i);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
     %%%%%%%%% update predicted covariance estimate
-    P_pred = (lambda/(L+lambda)+1-alpha^2+beta)*(sigma_predict(:,1)-x_pred)*(sigma_predict(:,1)-x_pred)'+ Bk*Rv*Bk';
-    for i = 2:(2*L+1)
-        P_pred = P_pred + (1/(2*(L+lambda)))*(sigma_predict(:,i)-x_pred)*(sigma_predict(:,i)-x_pred)'+ Bk*Rv*Bk';
+    P_pred = Q;
+    for i = 1:(2*L+1)
+        P_pred = P_pred + Wc(i)*(sigma_predict(:,i)-x_pred)*(sigma_predict(:,i)-x_pred)';
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -125,22 +134,22 @@ for t = 1:t_end
 
 
     % update predicted measured state
-    y_pred = lambda/(L+lambda)*sigma_meas(:,1);
-    for i = 2:(2*L+1)
-        y_pred = y_pred + 1/(2*(L+lambda))*sigma_meas(:,i);
+    y_pred = 0;
+    for i = 1:(2*L+1)
+        y_pred = y_pred + Wm(i)*sigma_meas(:,i);
     end
 
 
     % calculate Pyy
-    Pyy = (lambda/(L+lambda)+1-alpha^2+beta)*(sigma_meas(:,1) - y_pred)*(sigma_meas(:,1) - y_pred)'+Rn;
-    for i = 2:(2*L+1)
-        Pyy = Pyy + 1/(2*(L+lambda))*(sigma_meas(:,i) - y_pred)*(sigma_meas(:,i) - y_pred)'+ Rn;
+    Pyy = Rn;
+    for i = 1:(2*L+1)
+        Pyy = Pyy + Wc(i)*(sigma_meas(:,i) - y_pred)*(sigma_meas(:,i) - y_pred)';
     end
 
     % calculate Pxy
-    Pxy = (lambda/(L+lambda)+1-alpha^2+beta)*(sigma_pred_aug(:,1) - x_pred)*(sigma_meas(:,1) - y_pred)';
-    for i = 2:(2*L+1)
-        Pxy = Pxy + 1/(2*(L+lambda))*(sigma_pred_aug(:,i) - x_pred)*(sigma_meas(:,i) - y_pred)';
+    Pxy = 0;
+    for i = 1:(2*L+1)
+        Pxy = Pxy + Wc(i)*(sigma_pred_aug(:,i) - x_pred)*(sigma_meas(:,i) - y_pred)';
     end
 
     % update kalman gain
