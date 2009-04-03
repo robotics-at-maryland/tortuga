@@ -66,6 +66,9 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_rOverGMax = config["rOverGMax"].asDouble(2.0);
     m_bOverRMax = config["bOverRMax"].asDouble(0.4);
 
+    m_minPixels = config["minPixels"].asInt(3000);
+    m_minPixelsFound = config["minPixelsFound"].asInt(250);
+
     m_noHough = 0 != config["noHough"].asInt(0);
 }
 
@@ -146,7 +149,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
                                        m_rOverGMax, 
                                        m_bOverRMax);
         
-        if (orange_count < 250)
+        if (orange_count < m_minPixelsFound)
             pipeFound = false;
     }
     else
@@ -156,7 +159,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
                                        m_rOverGMin, 
                                        m_rOverGMax, 
                                        m_bOverRMax);
-         if (orange_count > 1000)//this number is in pixels.
+         if (orange_count > m_minPixels)//this number is in pixels.
             pipeFound = true;
     }
     

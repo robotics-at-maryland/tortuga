@@ -93,6 +93,9 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
 
     /** Finds the pipe blobs */
     BlobDetector m_blobDetector;
+
+    int m_minPixels;
+    int m_minPixelsFound;
 };
     
 } // namespace vision

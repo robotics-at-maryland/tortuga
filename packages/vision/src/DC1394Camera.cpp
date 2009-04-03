@@ -192,15 +192,14 @@ void DC1394Camera::init(uint64_t guid)
     err = dc1394_video_set_framerate(m_camera, frameRate);
     assert(DC1394_SUCCESS == err && "Could not set framerate");
 
-    err = dc1394_capture_setup(m_camera, DMA_BUFFER_SIZE,
-                               DC1394_CAPTURE_FLAGS_DEFAULT);
-           
-    assert(DC1394_SUCCESS == err && "Could not setup camera make sure"
-           " that the video mode and framerate are supported by your camera");
-
     // Start data transfer
     err = dc1394_video_set_transmission(m_camera, DC1394_ON);
     assert(DC1394_SUCCESS == err && "Could not start camera iso transmission");
+
+    err = dc1394_capture_setup(m_camera, DMA_BUFFER_SIZE,
+                               DC1394_CAPTURE_FLAGS_DEFAULT);
+    assert(DC1394_SUCCESS == err && "Could not setup camera make sure"
+           " that the video mode and framerate are supported by your camera");
 }
     
 void DC1394Camera::initLibDC1394()
