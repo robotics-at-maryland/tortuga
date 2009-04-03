@@ -1,7 +1,8 @@
-ICETARGET=/opt/IceE-1.3.0-bfin
+ICETARGET=/opt/IceE-1.3.0
 ICEHOST=/opt/IceE-1.3.0
 SLICE2CPPE=${ICEHOST}/bin/slice2cppe
-CXX=/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-g++ -I. -I${ICETARGET}/include -L${ICETARGET}/lib -lIceE -lIceEC -lpthread
+#CXX=/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-g++ -I. -I${ICETARGET}/include -L${ICETARGET}/lib -lpthread -lIceE
+CXX=g++ -I. -I${ICETARGET}/include -L${ICETARGET}/lib -lpthread -lIceE -lrt
 
 all : marco
 
