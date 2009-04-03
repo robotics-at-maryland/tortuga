@@ -114,11 +114,11 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai"] #, "VisionSystem"]
         States:
             # Gate sub task
-            ram.ai.gate.Dive:
-                depth: 4 
+            ram.ai.gate.Start:
+                depth: 5 
                 speed: 0.33
             ram.ai.gate.Forward:
-                time: 40
+                time: 15
                 speed: 2
  
             # Light/Bouy sub task
@@ -441,6 +441,17 @@ Subsystems:
                 magXBias: -0.252917
                 magYBias: 0.183411
                 magZBias: 0.25861
+                # Tortuga 2 2009
+                #magXBias: -0.229603
+                #magYBias: 0.186896
+                #magZBias: 0.193137
+                #magXBias: -0.233928
+                #magYBias: 0.179984
+                #magZBias: 0.204735
+                # Tortuga 2 2009 Water
+                #magXBias: -0.252213
+                #magYBias: 0.167808
+                #magZBias: 0.185655
                 # Set me to zero to ignore mag.
                 #magCorruptThresh: 0.0
                 localMagneticPitch: 60
@@ -448,11 +459,11 @@ Subsystems:
         type: RemoteController
         depends_on: ["Controller"]
         update_interval: -1
-        yawGain: 50
+        yawGain: 500
 
     Logging:
         type: Logging
-        update_interval: -1
+        #update_interval: -1
         Appenders:
             ThrusterLog:
                 type: File
@@ -487,13 +498,13 @@ Subsystems:
                     pattern: "%c %m %r%n"
         Categories:
             Thruster:
-                appenders: ['ThrusterLog'] #,'Console']
+                appenders: [] #'ThrusterLog'] #,'Console']
             Power:
-                appenders: ['PowerLog'] #, 'Console']
+                appenders: [] #'PowerLog'] #, 'Console']
             Controller:
-                appenders: ['ControlLog'] #'Console']
+                appenders: [] #'ControlLog'] #'Console']
             IMU:
-                appenders: ['IMULog'] #'Console']
+                appenders: [] #'IMULog'] #'Console']
 
     Controller:
         depends_on: ["Vehicle", "EventHub"]
