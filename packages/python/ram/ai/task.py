@@ -102,7 +102,7 @@ class Task(state.State):
         if self._hasTimeout:
             # Get timeout duration from configuration file
             if defaultTimeout is None:
-                self._timeoutDuration = self._config.get('timeout')
+                self._timeoutDuration = self._config['timeout']
             else:
                 self._timeoutDuration = self._config.get('timeout', 
                                                           defaultTimeout)

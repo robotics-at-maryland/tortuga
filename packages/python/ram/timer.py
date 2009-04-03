@@ -122,7 +122,7 @@ class Timer(threading.Thread):
         
         self._eventPublisher = eventPublisher
         self._eventType = eventType
-        self._sleepTime = duration
+        self._sleepTime = float(duration)
         self._running = True
         self._repeat = repeat
         

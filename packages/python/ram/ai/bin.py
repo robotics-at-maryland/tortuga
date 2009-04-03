@@ -531,9 +531,13 @@ class Examine(SettlingState):
         
         # Count the hits
         if self._currentBin(event):
-            self._totalHits += 1
-            
             suit = event.suit
+
+            # Only count total hits if its known
+            if suit != vision.Suit.UNKNOWN:
+                self._totalHits += 1
+
+            # Count hits hear
             if suit == vision.Suit.HEART:
                 self._hearts += 1
             elif suit == vision.Suit.CLUB:

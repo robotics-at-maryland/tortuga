@@ -156,7 +156,7 @@ class AlongPipe(PipeFollowingState):
         
         # Update the targets state
         angle = ext.math.Degree(0)
-        if event.x < 0.5 and event.y < 0.5:
+        if event.x < self._angleDistance and event.y < self._angleDistance:
             angle = event.angle
         event.angle = angle
         PipeFollowingState.PIPE_FOUND(self, event)
@@ -164,7 +164,8 @@ class AlongPipe(PipeFollowingState):
     def enter(self):
         """Makes the vehicle follow along line outlined by the pipe"""
         self._lastPipeLoc = None
-        
+        self._angleDistance = self._config.get('angleDistance', 0.5)
+
         self._pipe = ram.motion.pipe.Pipe(0,0,0)
         maxSpeed = self._config.get('forwardSpeed', 5)
         motion = ram.motion.pipe.Follow(pipe = self._pipe,
@@ -189,7 +190,9 @@ class BetweenPipes(state.State):
     
     def enter(self):
         """We have driving off the 'end' of the pipe set a timeout"""
-        self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 15)
+        forwardTime = self._config.get('forwardTime', 15)
+        self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 
+						forwardTime)
         self.timer.start()
         
         self.controller.setSpeed(self._config.get('forwardSpeed', 5))

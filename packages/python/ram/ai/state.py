@@ -149,7 +149,8 @@ class Machine(core.Subsystem):
                 subsystem._stateMachine = self
 
     def update(self, timeStep):
-        pass
+        print 'STATE UPDATE'
+	
     def backgrounded(self):
         return True
 

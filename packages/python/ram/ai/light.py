@@ -86,8 +86,9 @@ class Seek(state.State):
     def enter(self):
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
         depthGain = self._config.get('depthGain', 1.5)
+        speed = self._config.get('speed', 3)
         motion = ram.motion.seek.SeekPoint(target = self._light,
-                                           maxSpeed = 3,
+                                           maxSpeed = speed,
                                            depthGain = depthGain)
         self.motionManager.setMotion(motion)
 
@@ -105,9 +106,11 @@ class Hit(state.State):
         self.visionSystem.redLightDetectorOff()
 
         # Timer goes off in 3 seconds then sends off FORWARD_DONE
-        self.timer = self.timerManager.newTimer(Hit.FORWARD_DONE, 3)
+        duration = self._config.get('duration', 3)
+        speed = self._config.get('speed', 3)
+        self.timer = self.timerManager.newTimer(Hit.FORWARD_DONE, duration)
         self.timer.start()
-        self.controller.setSpeed(3)
+        self.controller.setSpeed(speed)
     
     def exit(self):
         self.timer.stop()

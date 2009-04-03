@@ -604,6 +604,12 @@ class TestExamine(BinTestCase):
         self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
         self.injectBinFound(id = 3, suit = vision.Suit.HEART)
         self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+
+        # Put in a bunch of unknowns to make sure they aren't part of it
+        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
+        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
+        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
+        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
         
         # Make sure we haven't done anything yet
         self.assertCurrentState(bin.Examine)

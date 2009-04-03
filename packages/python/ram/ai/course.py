@@ -347,7 +347,7 @@ class Bin(task.Task):
                  'GO' : state.Branch(bin.Start) }
 
     def enter(self):
-        task.Task.enter(self)
+        task.Task.enter(self, defaultTimeout = 600)
         self.stateMachine.start(state.Branch(bin.Start))
     
     def exit(self):

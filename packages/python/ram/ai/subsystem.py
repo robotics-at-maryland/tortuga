@@ -82,7 +82,7 @@ class AI(core.Subsystem):
     
     # IUpdatable methods
     def update(self, timeStep):
-        pass
+        print 'AI'
 
     def backgrounded(self):
         return True
