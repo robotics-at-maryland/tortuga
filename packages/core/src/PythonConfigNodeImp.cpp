@@ -276,7 +276,8 @@ void PythonConfigNodeImp::set(std::string key, std::string str)
     try {
         m_pyobj[key] = py::str(str);
     } catch(py::error_already_set err) {
-        printf("ConfigNode (set) Error:\n");
+        printf("ConfigNode (set) at: %s with key: %s Error:\n",
+	       m_debugPath.c_str(), key.c_str());
         PyErr_Print();
 
         throw err;
