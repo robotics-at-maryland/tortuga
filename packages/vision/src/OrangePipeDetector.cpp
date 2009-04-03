@@ -308,8 +308,8 @@ double OrangePipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
             std::swap(start, end);
 
         // Determine the angle of the pipe
-        int xdiff = (end.x - start.x);    //deal with y's being flipped
-        int ydiff = -1*(end.y - start.y);
+        int xdiff = (int)(end.x - start.x);    //deal with y's being flipped
+        int ydiff = (int)(-1*(end.y - start.y));
         double angle = atan2((double)(ydiff/(double)image->height),
                              (double)(xdiff/(double)image->height));
 
@@ -318,12 +318,12 @@ double OrangePipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
         {
             // Center of are start and end points
             CvPoint startPt;
-            startPt.x = start.x;
-            startPt.y = start.y;
+            startPt.x = (int)start.x;
+            startPt.y = (int)start.y;
             cvCircle(image, startPt, 5, CV_RGB(0, 255, 0), -1);
             CvPoint endPt;
-            endPt.x = end.x;
-            endPt.y = end.y;
+            endPt.x = (int)end.x;
+            endPt.y = (int)end.y;
             cvCircle(image, endPt, 5, CV_RGB(255, 0, 0), -1);
             
             // Line which connects the centroids
