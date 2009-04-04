@@ -22,16 +22,17 @@
 		5F7AB76A0F85AEA700F8AC81 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F7AB7690F85AEA700F8AC81 /* CFNetwork.framework */; };
 		5F7AB7BE0F85B4EB00F8AC81 /* AdapterContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F7AB7BD0F85B4EB00F8AC81 /* AdapterContainer.m */; };
 		5F7AB7C20F85B64900F8AC81 /* PoloI.m in Sources */ = {isa = PBXBuildFile; fileRef = 5F7AB7C10F85B64900F8AC81 /* PoloI.m */; };
-		5F7AB8F70F85E31300F8AC81 /* MarcoI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F7AB8F60F85E31300F8AC81 /* MarcoI.cpp */; };
+		A4E4ACF20F86D42F002AFA66 /* OscilloscopeView.m in Sources */ = {isa = PBXBuildFile; fileRef = A4E4ACF10F86D42F002AFA66 /* OscilloscopeView.m */; };
+		A4E4AD3F0F86D84F002AFA66 /* GridView.m in Sources */ = {isa = PBXBuildFile; fileRef = A4E4AD3E0F86D84F002AFA66 /* GridView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator2.2.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		1D3623240D0F684500981E51 /* poloAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = poloAppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* poloAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = poloAppDelegate.m; sourceTree = "<group>"; };
 		1D6058910D05DD3D006BFB54 /* polo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = polo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator2.2.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator2.2.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
 		2899E5210DE3E06400AC0155 /* poloViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = poloViewController.xib; sourceTree = "<group>"; };
 		28AD733E0D9D9553002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		28D7ACF60DDB3853001CB0EB /* poloViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = poloViewController.h; sourceTree = "<group>"; };
@@ -42,15 +43,17 @@
 		5F7AB71E0F85A99D00F8AC81 /* marcopolo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = marcopolo.h; sourceTree = "<group>"; };
 		5F7AB71F0F85A99D00F8AC81 /* marcopolo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = marcopolo.m; sourceTree = "<group>"; };
 		5F7AB74E0F85ACF400F8AC81 /* libIceObjC.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libIceObjC.a; path = "/opt/IceTouch-0.1.0/lib/simulator/libIceObjC.a"; sourceTree = "<absolute>"; };
-		5F7AB7620F85AE8700F8AC81 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		5F7AB7690F85AEA700F8AC81 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		5F7AB7620F85AE8700F8AC81 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator2.2.sdk/System/Library/Frameworks/Security.framework; sourceTree = DEVELOPER_DIR; };
+		5F7AB7690F85AEA700F8AC81 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator2.2.sdk/System/Library/Frameworks/CFNetwork.framework; sourceTree = DEVELOPER_DIR; };
 		5F7AB7BC0F85B4EB00F8AC81 /* AdapterContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AdapterContainer.h; sourceTree = "<group>"; };
 		5F7AB7BD0F85B4EB00F8AC81 /* AdapterContainer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AdapterContainer.m; sourceTree = "<group>"; };
 		5F7AB7C00F85B64900F8AC81 /* PoloI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PoloI.h; sourceTree = "<group>"; };
 		5F7AB7C10F85B64900F8AC81 /* PoloI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PoloI.m; sourceTree = "<group>"; };
-		5F7AB8F50F85E31300F8AC81 /* MarcoI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarcoI.h; path = ../../blackfin/marco/MarcoI.h; sourceTree = SOURCE_ROOT; };
-		5F7AB8F60F85E31300F8AC81 /* MarcoI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarcoI.cpp; path = ../../blackfin/marco/MarcoI.cpp; sourceTree = SOURCE_ROOT; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A4E4ACF00F86D42F002AFA66 /* OscilloscopeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscilloscopeView.h; sourceTree = "<group>"; };
+		A4E4ACF10F86D42F002AFA66 /* OscilloscopeView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OscilloscopeView.m; sourceTree = "<group>"; };
+		A4E4AD3D0F86D84F002AFA66 /* GridView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GridView.h; sourceTree = "<group>"; };
+		A4E4AD3E0F86D84F002AFA66 /* GridView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GridView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +76,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				A4E4ACF00F86D42F002AFA66 /* OscilloscopeView.h */,
+				A4E4ACF10F86D42F002AFA66 /* OscilloscopeView.m */,
 				1D3623240D0F684500981E51 /* poloAppDelegate.h */,
 				1D3623250D0F684500981E51 /* poloAppDelegate.m */,
 				28D7ACF60DDB3853001CB0EB /* poloViewController.h */,
@@ -81,6 +86,8 @@
 				5F7AB7BD0F85B4EB00F8AC81 /* AdapterContainer.m */,
 				5F7AB7C00F85B64900F8AC81 /* PoloI.h */,
 				5F7AB7C10F85B64900F8AC81 /* PoloI.m */,
+				A4E4AD3D0F86D84F002AFA66 /* GridView.h */,
+				A4E4AD3E0F86D84F002AFA66 /* GridView.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -96,8 +103,6 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
-				5F7AB8F50F85E31300F8AC81 /* MarcoI.h */,
-				5F7AB8F60F85E31300F8AC81 /* MarcoI.cpp */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -211,8 +216,8 @@
 			inputPaths = (
 			);
 			outputPaths = (
-				"${BUILD_DIR}/generated/marcopolo.h",
-				"${BUILD_DIR}/generated/marcopolo.m",
+				"$(BUILD_DIR)/generated/marcopolo.h",
+				"$(BUILD_DIR)/generated/marcopolo.m",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -231,7 +236,8 @@
 				5F7AB7200F85A99D00F8AC81 /* marcopolo.m in Sources */,
 				5F7AB7BE0F85B4EB00F8AC81 /* AdapterContainer.m in Sources */,
 				5F7AB7C20F85B64900F8AC81 /* PoloI.m in Sources */,
-				5F7AB8F70F85E31300F8AC81 /* MarcoI.cpp in Sources */,
+				A4E4ACF20F86D42F002AFA66 /* OscilloscopeView.m in Sources */,
+				A4E4AD3F0F86D84F002AFA66 /* GridView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,7 +294,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
-				SDKROOT = iphoneos2.2.1;
+				SDKROOT = iphonesimulator2.2;
 				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
 			};
 			name = Debug;
@@ -308,7 +314,7 @@
 				LIBRARY_SEARCH_PATHS = "/opt/IceTouch-0.1.0/lib/simulator";
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
-				SDKROOT = iphoneos2.2.1;
+				SDKROOT = iphonesimulator2.2;
 				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
 			};
 			name = Release;

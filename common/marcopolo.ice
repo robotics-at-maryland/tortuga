@@ -18,8 +18,8 @@ module ram
 		{
 			idempotent void setChannelEnabled(int channel, bool enabled);
 			idempotent bool getChannelEnabled(int channel);
-			idempotent void setTrigger(int channel, int level);
-			void registerPolo(Polo* p);
+			idempotent void setTrigger(int channel, short level);
+			idempotent void registerPolo(Polo* p);
 		};
 	};
 };

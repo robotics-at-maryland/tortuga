@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 		
 		id<ICEObjectAdapter> adapter =
 		[communicator createObjectAdapterWithEndpoints: @"PoloAdapter"
-											 endpoints: @"default -p 10000"];
+											 endpoints: @"default -p 10001"];
 		[AdapterContainer setSharedAdapter: adapter];
 		
 		status = UIApplicationMain(argc, argv, nil, nil);
