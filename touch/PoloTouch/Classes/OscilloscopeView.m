@@ -75,7 +75,7 @@
         CGContextSetLineWidth(context, 2);
         
         CGContextTranslateCTM(context, 0, self.bounds.size.height/2);
-        CGContextScaleCTM(context, 1.0f, 0.1f);
+        CGContextScaleCTM(context, 1.0f, -0.1f);
         
         CGContextBeginPath(context);
         CGContextMoveToPoint(context, 0, data[0]);

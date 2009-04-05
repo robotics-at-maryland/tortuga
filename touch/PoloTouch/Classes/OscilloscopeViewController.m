@@ -106,6 +106,14 @@
     [mMarcoPrx setTriggerEdge:edge];
 }
 
+- (IBAction)adjustTriggerLevel:(id)sender
+{
+    if ([sender selectedSegmentIndex] == 0)
+        [mMarcoPrx decrementTriggerLevel:10];
+    else
+        [mMarcoPrx incrementTriggerLevel:10];
+}
+
 - (IBAction)incrementTriggerLevel:(id)sender { [mMarcoPrx incrementTriggerLevel:10]; }
 - (IBAction)decrementTriggerLevel:(id)sender { [mMarcoPrx decrementTriggerLevel:10]; }
 

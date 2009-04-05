@@ -27,8 +27,7 @@
 - (IBAction)toggleTriggerToolbar:(id)sender;
 
 - (IBAction)setTriggerEdge:(id)sender;
-- (IBAction)incrementTriggerLevel:(id)sender;
-- (IBAction)decrementTriggerLevel:(id)sender;
+- (IBAction)adjustTriggerLevel:(id)sender;
 
 - (void)reportData:(rammarcopoloSnapshot*)snap;
 - (void)triggerChanged:(short)newLevel;
