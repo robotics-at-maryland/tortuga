@@ -14,4 +14,8 @@
 {
     [mOscilloscopeViewController reportData:snap];
 }
+-(void) triggerChanged:(short)newLevel current:(ICECurrent *)current
+{
+    [mOscilloscopeViewController triggerChanged:newLevel];
+}
 @end

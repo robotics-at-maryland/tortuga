@@ -37,6 +37,7 @@
             NSString* prxString = [NSString stringWithFormat:@"Marco:tcp -h %@ -p 10000", [mURL absoluteString]];
             id<ICEObjectPrx> prx = [[SharedIce sharedCommunicator] stringToProxy:prxString];
             mMarcoPrx = [rammarcopoloMarcoPrx checkedCast:prx];
+            [mMarcoPrx retain];
         }
         
         {
@@ -76,10 +77,36 @@
     [self.navigationController popViewControllerAnimated: YES];
 }
 
+- (IBAction)toggleTriggerToolbar:(id)sender
+{
+    static bool toolbarVisible = false;
+    if (toolbarVisible)
+    {
+        [mTriggerToolbar removeFromSuperview];
+        toolbarVisible = false;
+    } else {
+        [self.view addSubview:mTriggerToolbar];
+        toolbarVisible = true;
+    }
+}
+
+
 -(void) reportData:(rammarcopoloSnapshot*)snap
 {
     [mOscilloscopeView setSnapshot:snap];
 }
 
+-(void) triggerChanged:(short)newLevel
+{
+    [mOscilloscopeView triggerChanged:newLevel];
+}
+
+- (IBAction)setTriggerEdge:(id)sender {
+    BOOL edge = [sender selectedSegmentIndex] == 0;
+    [mMarcoPrx setTriggerEdge:edge];
+}
+
+- (IBAction)incrementTriggerLevel:(id)sender { [mMarcoPrx incrementTriggerLevel:10]; }
+- (IBAction)decrementTriggerLevel:(id)sender { [mMarcoPrx decrementTriggerLevel:10]; }
 
 @end

@@ -17,13 +17,21 @@
 
     IBOutlet OscilloscopeView* mOscilloscopeView;
     IBOutlet GridView* mGridView;
+    IBOutlet UIToolbar* mTriggerToolbar;
     
     IBOutlet PoloI* mPoloI;
     id<rammarcopoloMarcoPrx> mMarcoPrx;
     NSURL* mURL;
     
 }
--(void) reportData:(rammarcopoloSnapshot*)snap;
+- (IBAction)toggleTriggerToolbar:(id)sender;
+
+- (IBAction)setTriggerEdge:(id)sender;
+- (IBAction)incrementTriggerLevel:(id)sender;
+- (IBAction)decrementTriggerLevel:(id)sender;
+
+- (void)reportData:(rammarcopoloSnapshot*)snap;
+- (void)triggerChanged:(short)newLevel;
 - (IBAction)disconnect: (id)sender;
 - (id)initWithNibNameAndHost:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil host:(NSURL *)host;
 @end

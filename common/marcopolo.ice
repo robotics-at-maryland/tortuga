@@ -7,18 +7,26 @@ module ram
 		struct Snapshot
 		{
 			ShortList samples;
+            short triggerLevel;
 		};
 		
 		class Polo
 		{
 			void reportData(Snapshot snap);
+            void triggerChanged(short newLevel);
 		};
 		
 		class Marco
 		{
 			idempotent void setChannelEnabled(int channel, bool enabled);
 			idempotent bool getChannelEnabled(int channel);
-			idempotent void setTrigger(int channel, short level);
+            
+            idempotent void setTriggerEdge(bool rising);
+            idempotent void setTriggerChannel(int channel);
+            
+            void incrementTriggerLevel(short amount);
+            void decrementTriggerLevel(short amount);
+            
 			idempotent void registerPolo(Polo* p);
 		};
 	};

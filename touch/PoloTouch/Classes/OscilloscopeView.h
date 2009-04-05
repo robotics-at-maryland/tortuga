@@ -12,6 +12,8 @@
 
 @interface OscilloscopeView : UIView {
     rammarcopoloSnapshot* mSnapshot;
+    short triggerLevel;
 }
 - (void)setSnapshot:(rammarcopoloSnapshot*)snapshot;
+- (void)triggerChanged:(short)newLevel;
 @end

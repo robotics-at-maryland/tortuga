@@ -25,6 +25,18 @@
 }
 
 
+- (void)triggerChanged:(short)newLevel
+{
+    /*
+    @synchronized(self)
+    {
+        triggerLevel = newLevel;
+    }
+    [self performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
+     */
+}
+
+
 - (rammarcopoloSnapshot*)snapshot
 {
     return mSnapshot;
@@ -38,7 +50,6 @@
     }
     return self;
 }
-
 
 - (void)drawRect:(CGRect)rect {
     rammarcopoloSnapshot* snapshot = nil;
@@ -54,6 +65,7 @@
     if (snapshot != nil)
     {
         short* data = (short*)[[snapshot samples] bytes];
+        triggerLevel = snapshot.triggerLevel;
 
         CGContextRef context = UIGraphicsGetCurrentContext();
         
@@ -74,6 +86,14 @@
             CGContextAddLineToPoint(context, i, data[i]);
         }
         
+        CGContextStrokePath(context);
+        
+        CGColorRef triggerLevelColor = CGColorCreateGenericGray(0.15f, 1.0f);
+        CGContextSetStrokeColorWithColor(context, triggerLevelColor);
+        CGColorRelease(triggerLevelColor);
+        CGContextBeginPath(context);
+        CGContextMoveToPoint(context, 0, triggerLevel);
+        CGContextAddLineToPoint(context, self.bounds.size.width, triggerLevel);
         CGContextStrokePath(context);
         
         CGContextRestoreGState(context);
