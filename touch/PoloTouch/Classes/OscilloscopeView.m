@@ -71,7 +71,9 @@
         
         CGContextSaveGState(context);
         
-        CGContextSetStrokeColorWithColor(context, CGColorGetConstantColor(kCGColorBlack));
+        CGColorRef waveformColor = CGColorCreateGenericCMYK(1.0f, 0.0f, 0.0f, 0.2f, 1.0f);
+        CGContextSetStrokeColorWithColor(context, waveformColor);
+        CGColorRelease(waveformColor);
         CGContextSetLineWidth(context, 2);
         
         CGContextTranslateCTM(context, 0, self.bounds.size.height/2);

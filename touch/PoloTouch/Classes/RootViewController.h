@@ -11,4 +11,5 @@
 @interface RootViewController : UIViewController {
     IBOutlet UITextField* textFieldHost;
 }
+- (IBAction)startSession:(id)sender;
 @end

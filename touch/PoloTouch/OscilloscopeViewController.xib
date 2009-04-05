@@ -253,9 +253,11 @@
 				<reference key="NSSuperview"/>
 				<bool key="IBUIOpaque">NO</bool>
 				<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
+				<int key="IBUIBarStyle">1</int>
 				<object class="NSMutableArray" key="IBUIItems">
 					<bool key="EncodedWithXMLCoder">YES</bool>
 					<object class="IBUIBarButtonItem" id="340047792">
+						<bool key="IBUIEnabled">NO</bool>
 						<string key="IBUITitle">Trigger</string>
 						<reference key="IBUIToolbar" ref="841835064"/>
 					</object>

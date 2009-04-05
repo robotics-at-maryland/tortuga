@@ -55,7 +55,7 @@
 
 
 
-- (void)goForward
+- (IBAction)startSession:(id)sender
 {
     // Navigation logic may go here. Create and push another view controller.
     OscilloscopeViewController* oscilloscopeViewController = [[OscilloscopeViewController alloc] initWithNibNameAndHost:@"OscilloscopeViewController" bundle: nil host: [NSURL URLWithString: [textFieldHost text]]];
