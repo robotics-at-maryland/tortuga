@@ -212,7 +212,7 @@
 							<reference ref="4"/>
 						</object>
 					</object>
-					<object class="IBUISegmentedControl" id="330864052">
+					<object class="IBUISegmentedControl" id="176146706">
 						<reference key="NSNextResponder" ref="841835064"/>
 						<int key="NSvFlags">292</int>
 						<string key="NSFrame">{{358, 9}, {51, 30}}</string>
@@ -271,8 +271,8 @@
 						<reference key="IBUICustomView" ref="699631291"/>
 						<reference key="IBUIToolbar" ref="841835064"/>
 					</object>
-					<object class="IBUIBarButtonItem" id="696458587">
-						<reference key="IBUICustomView" ref="330864052"/>
+					<object class="IBUIBarButtonItem" id="363599137">
+						<reference key="IBUICustomView" ref="176146706"/>
 						<reference key="IBUIToolbar" ref="841835064"/>
 					</object>
 					<object class="IBUIBarButtonItem" id="639299269">
@@ -402,11 +402,20 @@
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
 						<string key="label">adjustTriggerLevel:</string>
-						<reference key="source" ref="330864052"/>
+						<reference key="source" ref="176146706"/>
 						<reference key="destination" ref="372490531"/>
 						<int key="IBEventType">13</int>
 					</object>
 					<int key="connectionID">109</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">setTriggerChannel:</string>
+						<reference key="source" ref="699631291"/>
+						<reference key="destination" ref="372490531"/>
+						<int key="IBEventType">13</int>
+					</object>
+					<int key="connectionID">110</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -490,7 +499,7 @@
 							<reference ref="639299269"/>
 							<reference ref="470960010"/>
 							<reference ref="452956662"/>
-							<reference ref="696458587"/>
+							<reference ref="363599137"/>
 						</object>
 						<reference key="parent" ref="360949347"/>
 					</object>
@@ -548,17 +557,17 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">108</int>
-						<reference key="object" ref="696458587"/>
+						<reference key="object" ref="363599137"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="330864052"/>
+							<reference ref="176146706"/>
 						</object>
 						<reference key="parent" ref="841835064"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">107</int>
-						<reference key="object" ref="330864052"/>
-						<reference key="parent" ref="696458587"/>
+						<reference key="object" ref="176146706"/>
+						<reference key="parent" ref="363599137"/>
 					</object>
 				</object>
 			</object>
@@ -633,7 +642,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">109</int>
+			<int key="maxID">110</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -663,11 +672,13 @@
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<string>adjustTriggerLevel:</string>
 							<string>disconnect:</string>
+							<string>setTriggerChannel:</string>
 							<string>setTriggerEdge:</string>
 							<string>toggleTriggerToolbar:</string>
 						</object>
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
 							<string>id</string>
 							<string>id</string>
 							<string>id</string>

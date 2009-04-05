@@ -114,7 +114,9 @@
         [mMarcoPrx incrementTriggerLevel:10];
 }
 
-- (IBAction)incrementTriggerLevel:(id)sender { [mMarcoPrx incrementTriggerLevel:10]; }
-- (IBAction)decrementTriggerLevel:(id)sender { [mMarcoPrx decrementTriggerLevel:10]; }
+- (IBAction)setTriggerChannel:(id)sender
+{
+    [mMarcoPrx setTriggerChannel:[sender selectedSegmentIndex]];
+}
 
 @end

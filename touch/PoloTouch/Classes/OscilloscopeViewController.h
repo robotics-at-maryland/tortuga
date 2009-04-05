@@ -28,6 +28,7 @@
 
 - (IBAction)setTriggerEdge:(id)sender;
 - (IBAction)adjustTriggerLevel:(id)sender;
+- (IBAction)setTriggerChannel:(id)sender;
 
 - (void)reportData:(rammarcopoloSnapshot*)snap;
 - (void)triggerChanged:(short)newLevel;
