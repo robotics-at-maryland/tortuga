@@ -36,6 +36,20 @@
 				<int key="NSvFlags">292</int>
 				<object class="NSMutableArray" key="NSSubviews">
 					<bool key="EncodedWithXMLCoder">YES</bool>
+					<object class="IBUIImageView" id="468870739">
+						<reference key="NSNextResponder" ref="266052452"/>
+						<int key="NSvFlags">256</int>
+						<string key="NSFrame">{{-47, -19}, {600, 610}}</string>
+						<reference key="NSSuperview" ref="266052452"/>
+						<bool key="IBUIOpaque">NO</bool>
+						<bool key="IBUIClipsSubviews">YES</bool>
+						<int key="IBUIContentMode">4</int>
+						<bool key="IBUIMultipleTouchEnabled">YES</bool>
+						<object class="NSCustomResource" key="IBUIImage">
+							<string key="NSClassName">NSImage</string>
+							<string key="NSResourceName">skynet.jpg</string>
+						</object>
+					</object>
 					<object class="IBUIToolbar" id="61912251">
 						<reference key="NSNextResponder" ref="266052452"/>
 						<int key="NSvFlags">266</int>
@@ -44,7 +58,7 @@
 							<object class="IBUITextField" id="858427895">
 								<reference key="NSNextResponder" ref="61912251"/>
 								<int key="NSvFlags">292</int>
-								<string key="NSFrame">{{215, 7}, {206, 31}}</string>
+								<string key="NSFrame">{{153, 7}, {268, 31}}</string>
 								<reference key="NSSuperview" ref="61912251"/>
 								<bool key="IBUIOpaque">NO</bool>
 								<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -71,11 +85,11 @@
 						<reference key="NSSuperview" ref="266052452"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
-						<int key="IBUIBarStyle">1</int>
+						<int key="IBUIBarStyle">2</int>
 						<object class="NSMutableArray" key="IBUIItems">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<object class="IBUIBarButtonItem" id="372226191">
-								<string key="IBUITitle">Audio Host Address</string>
+								<string key="IBUITitle">Host Address</string>
 								<reference key="IBUIToolbar" ref="61912251"/>
 							</object>
 							<object class="IBUIBarButtonItem" id="22487398">
@@ -170,6 +184,7 @@
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<reference ref="61912251"/>
+							<reference ref="468870739"/>
 						</object>
 						<reference key="parent" ref="360949347"/>
 					</object>
@@ -215,6 +230,11 @@
 						<int key="objectID">68</int>
 						<reference key="object" ref="858427895"/>
 						<reference key="parent" ref="22487398"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">72</int>
+						<reference key="object" ref="468870739"/>
+						<reference key="parent" ref="266052452"/>
 					</object>
 				</object>
 			</object>
@@ -265,7 +285,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">70</int>
+			<int key="maxID">72</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
