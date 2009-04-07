@@ -61,7 +61,6 @@ P_prev = P0;
 
 
 
-
 % UKF Specific Parameters
 L = 2; % State dimension: 2 for this example [depth; DepthDot]
 lambda = alpha^2*(L+(3-L)) - L; % This formula was listed but should we use it?
@@ -85,7 +84,7 @@ for t = 1:t_end
     % unscented transformation)
     %sigma points for time k-1
     temp1 = chol((L+lambda)*P_prev );
-    temp1 = [zeros(2,1) temp1 -temp1];
+    temp1 = [zeros(L,1) temp1 -temp1];
     for q=1:2*L+1
         sigma(:,q) = x_prev + temp1(:,q);
     end
@@ -116,19 +115,16 @@ for t = 1:t_end
 
     %%%%%%%%%%%%% augment sigma points then use for Sigma measured
     % Note we are using the "alternate method on pg 233 bottom
-    sigma_pred_aug(:,1) = x_pred;
-    temp1 = chol( (L+lambda)*P_pred);
-    sigma_meas(:,1) = Ck*sigma_pred_aug(:,1);
-
-    for q=2:2*L+1
-        if q <= L+1
-            sigma_pred_aug(:,q) = x_pred + temp1(:,q-1);
-        else
-            sigma_pred_aug(:,q) = x_pred - temp1(:,q-(L+1));
-        end
+    temp2 = chol( (L+lambda)*P_pred);
+    temp2 = [zeros(L,1) temp2 -temp2];
+    
+    for q=1:2*L+1
+        sigma_pred_aug(:,q) = x_pred + temp2(:,q);
+    end
+    
+    for q=1:2*L+1
         sigma_meas(:,q) = Ck*sigma_pred_aug(:,q); %Dk should be here but its 0
     end
-
     %%%%%%%%%%%%%%%%%%%%
 
 
