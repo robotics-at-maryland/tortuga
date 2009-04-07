@@ -6,7 +6,6 @@ close all;
 
 
 
-
 % Loads the logged depth file:
 %      depth_m = measured depth
 %      depth_a = 5 pt averaged depth = y
@@ -17,6 +16,8 @@ depth_a = 1/5*(a(1:end-4,8)+a(2:end-3,8)+a(3:end-2,8)+a(4:end-1,8)+a(5:end,8));
 depth_d = a(end,16);
 y = depth_a;
 u = -a(:,23);  %Control Signal values (flipped)
+
+
 
 
 %Constants
@@ -37,6 +38,7 @@ C = [1, 0];
 D = [0];
 [Ak Bk Ck Dk] = dssdata(c2d(ss(A,B,C,D),Ts)); % Discretizes system
 
+
 %discretize Rn
 Gamma=[-A B*Rv*B'; zeros(2) A'];
 vanLoan=expm(Gamma*Ts);
@@ -44,29 +46,35 @@ F=vanLoan(3:4,3:4)';
 Q=F*vanLoan(1:2,3:4);
 
 
+
 %Initializes parameters
 P0 = [1e-4 0; 0 1]; % Initial Covariance Matrix
 Ak_prev = Ak; % "A" matrix is LTI so Ak_prev and Ak wont change
 x0 = [depth_a(1); 0]; % initial x estimate: [depth depth_dot]
 
-x_prev = x0;
-P_prev = P0;
-u_prev = u(1);
+
+
+
 
 
 % Thruster Limiting Code (Wont be needed once our log files provide limited values)
-% uorig = a(:,23);  %unused
-% for i = 1:length(uorig)
-%     u(i) = limitU(a(i,23));
-% 
-% end
-
-
-I = eye(2,2); %always identity but only the size will change
+ uorig = a(:,23);  %unused
+ for i = 1:length(uorig)
+     u(i) = limitU(a(i,23));
+ 
+ end
 
 
 
+
+I = eye(size(P0));
+x_prev = x0;
+P_prev = P0;
+u_prev = u(1);
 t_end = length(depth_a);
+
+
+
 for t=1:t_end
     % Updating the predicted state and covariance forward in time
     x_pred = Ak*x_prev + Bk*u_prev + Bk*(-buoy);
