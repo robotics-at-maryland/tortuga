@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "SDL.h"
 extern "C" {
-#include <avformat.h>
+#include <libavformat/avformat.h>
 }
 #include "movie.h"
 
@@ -10,11 +10,11 @@ int main(int argc, char *argv[]) {
 
 	SDL_Init(SDL_INIT_VIDEO| SDL_INIT_TIMER);
 
-	screen = SDL_SetVideoMode(720, 480, 24, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode(640, 480, 24, SDL_SWSURFACE);
 
 	av_register_all();
 
-	Movie *movie = new Movie("movie_goes_here");
+	Movie *movie = new Movie(argv[1]);
 	SDL_Event event;
 	bool done = false;
 	while (!done && SDL_WaitEvent(&event)) {

@@ -1,6 +1,7 @@
 extern "C" {
-#include <avformat.h>
-#include <avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
 }
 /*
  * movie.h
@@ -44,6 +45,9 @@ private:
 	int width, height;
 	int videoStreamIndex;
 	int currentFrame;
+
+        struct SwsContext* m_convertContext;
+    
 	/**
 	 * Used as a helper function for the seeking functions.
 	 */
