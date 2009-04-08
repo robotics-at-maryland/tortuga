@@ -51,11 +51,25 @@ size_t ImageCamera::height()
     return m_height;
 }
 
-size_t ImageCamera::fps()
+double ImageCamera::fps()
 {
     return m_fps;
 }
     
+double ImageCamera::duration()
+{
+    return 0;
+}
+
+void ImageCamera::seekToTime(double seconds)
+{
+}
+
+double ImageCamera::currentTime()
+{
+    return 0;
+}
+
 bool ImageCamera::backgrounded()
 {
     return _backgrounded;

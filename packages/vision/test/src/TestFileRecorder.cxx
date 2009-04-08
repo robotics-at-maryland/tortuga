@@ -7,9 +7,6 @@
  * File:  packages/vision/test/src/TestFileRecorder.cxx
  */
 
-// Not tested yet on windows or Mac, so just go for Linux
-#ifdef RAM_LINUX
-
 // STD Includes
 #include <sstream>
 #include <string>
@@ -69,8 +66,8 @@ struct RecorderFixture
     {
         // Remove movie file
         bf::path movieFile(filename);
-        if (bf::exists(movieFile))
-            bf::remove(movieFile);
+	if (bf::exists(movieFile))
+	    bf::remove(movieFile);
             
         delete camera;
     }
@@ -116,11 +113,15 @@ TEST_FIXTURE(RecorderFixture, Update)
     CHECK_EQUAL(640u, movieCamera.width());
     CHECK_EQUAL(480u, movieCamera.height());
     
-    BOOST_FOREACH(vision::Image* expectedImage, images)
+    //    BOOST_FOREACH(vision::Image* expectedImage, images)
+    for (int i = 0; i < 20; ++i)
     {
         movieCamera.update(0);
         movieCamera.getImage(actual);
-        CHECK_CLOSE(*expectedImage, *actual, 1.5);
+	//        CHECK_CLOSE(*expectedImage, *actual, 1.5);
+        CHECK_CLOSE(*images[i], *actual, 1.5);
+	//	if (i > 0)
+	//	  CHECK_CLOSE(*images[i - 1], *actual, 0);
     }    
     delete actual;
 
@@ -133,5 +134,3 @@ TEST_FIXTURE(RecorderFixture, Update)
 }
 
 } // SUITE(FileRecorder)
-
-#endif // RAM_LINUX

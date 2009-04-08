@@ -58,9 +58,23 @@ public:
         return m_height;
     }
 
-    virtual size_t fps()
+    virtual double fps()
     {
         return 30;
+    }
+
+    virtual double duration()
+    {
+        return 0; 
+    }
+
+    virtual void seekToTime(double seconds)
+    {
+    }
+
+    virtual double currentTime()
+    {
+        return 0;
     }
 
     // Override these to be compatible with users

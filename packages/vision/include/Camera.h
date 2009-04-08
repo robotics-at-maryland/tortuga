@@ -99,7 +99,13 @@ public:
     virtual size_t height() = 0;
 
     /** Returns the current FPS of the camera */
-    virtual size_t fps() = 0;
+    virtual double fps() = 0;
+    
+    /** Length of the image source in seconds (0 for live feeds) */
+    virtual double duration() = 0;
+
+    /** Seek to a specific time in the video (does nothing for live feeds) */
+    virtual void seekToTime(double seconds) = 0;
 
     /** Start the camera running the background */
     virtual void background(int rate = -1);

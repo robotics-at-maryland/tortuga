@@ -49,7 +49,13 @@ public:
     
     virtual size_t height();
 
-    virtual size_t fps();
+    virtual double fps();
+
+    virtual double duration();
+
+    virtual void seekToTime(double seconds);
+
+    virtual double currentTime();
 
     ///TODO: Overload background so that we flush the buffer of images before
     // we start caputuring

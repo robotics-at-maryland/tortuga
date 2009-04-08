@@ -36,7 +36,13 @@ public:
 
     virtual size_t height();
 
-    virtual size_t fps();
+    virtual double fps();
+
+    virtual double duration();
+
+    virtual void seekToTime(double seconds);
+
+    virtual double currentTime();
     
     virtual bool backgrounded();
 

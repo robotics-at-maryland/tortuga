@@ -149,9 +149,23 @@ size_t DC1394Camera::height()
     return m_height;
 }
 
-size_t DC1394Camera::fps()
+double DC1394Camera::fps()
 {
-    return (size_t)m_fps;    
+    return m_fps;
+}
+
+double DC1394Camera::duration()
+{
+    return 0;
+}
+
+void DC1394Camera::seekToTime(double seconds)
+{
+}
+
+double DC1394Camera::currentTime()
+{
+    return 0;
 }
 
 void DC1394Camera::init(uint64_t guid)

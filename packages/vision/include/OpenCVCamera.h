@@ -44,7 +44,11 @@ public:
     
     virtual size_t height();
 
-    virtual size_t fps();
+    virtual double fps();
+
+    virtual double duration();
+
+    virtual void seekToTime(double seconds);
 
 protected:
     /** Preforms a calbration during the copy if possible

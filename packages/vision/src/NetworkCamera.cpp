@@ -183,10 +183,24 @@ size_t NetworkCamera::height()
     return m_height;
 }
 
-size_t NetworkCamera::fps()
+double NetworkCamera::fps()
 {
     boost::mutex::scoped_lock lock(m_specsMutex);
     return m_fps;
+}
+
+double NetworkCamera::duration()
+{
+    return 0;
+}
+  
+void NetworkCamera::seekToTime(double seconds)
+{
+}
+
+double NetworkCamera::currentTime()
+{
+    return 0;
 }
 
 void NetworkCamera::decompress(unsigned char* compressedBuffer,
