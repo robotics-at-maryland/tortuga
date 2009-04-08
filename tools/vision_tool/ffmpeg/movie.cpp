@@ -78,77 +78,69 @@ Movie::~Movie() {
 void Movie::handleError() {
     printf("%s", "An error occurred.\n");
 }
+
 void Movie::readFrame() {
+    int valid=0;
+    static bool bFirstTime = true;
+    static AVPacket pkt;
     static double accuDur = 0;
-    int frameFinished = 0;
-    bool gotFrame = false;
-    AVPacket packet = {0};
+    int got_picture;
     int64_t timestamp;
-    
+
     double timeBase = av_q2d(pFormatContext->streams[videoStreamIndex]->time_base);
 
-    for (int i = 0; i < 20; ++i)
+    // First time we're called, set packet.data to NULL to indicate it
+    // doesn't have to be freed
+    if (bFirstTime) {
+        bFirstTime = false;
+        pkt.data = NULL;
+    }
+
+    // free last packet if exist
+    if (pkt.data != NULL) {
+        av_free_packet (&pkt);
+    }
+
+    // get the next frame
+    while ((0 == valid) && (av_read_frame(pFormatContext, &pkt) >= 0)) 
     {
-    memset(&packet, 0, sizeof(packet));
-    gotFrame = false;
-    printf("%s", "FRAME\n");
-    while (av_read_frame(pFormatContext, &packet) >= 0 && !gotFrame) {
-        printf("%s", "Try\n");
-        if (packet.stream_index == videoStreamIndex) {
-            int ret = 1;
-            printf("%s", "LOOPED\n");
-            while((ret != 0))
-            {
-                printf("Try decode, finished? %d pData: %p pSize: %d\n", 1 == frameFinished,
-                       packet.data, packet.size);
-                ret = avcodec_decode_video(pCodecContext, pFrame, &frameFinished,
-                                           packet.data, packet.size);
-                
-                if (packet.pts != AV_NOPTS_VALUE)
-                    timestamp = packet.pts;
-                else
-                    timestamp = packet.dts;
-                //gotFrame = 0 != frameFinished;            
-                accuDur += packet.duration * timeBase;
-                printf("TS: %lld Ret: %d (P: %lld D: %lld AD: %f) (Pkt. Dur.: %f)",
-                       timestamp, ret, packet.pts, packet.dts, accuDur, packet.duration * timeBase);
-                if (frameFinished) {
-                    gotFrame = true;
-                    double time = timestamp * timeBase; 
-                
-                    printf(" (Frame #: %d, Time? %f)\n", this->currentFrame + 1, time);
-                    sws_scale(m_convertContext, pFrame->data,
-                              pFrame->linesize, 0, getHeight(),
-                              pFrameRGB->data,
-                              pFrameRGB->linesize);
-                    
-/*                img_convert((AVPicture *) pFrameRGB, PIX_FMT_RGB24,
-                        (AVPicture*) pFrame, pCodecContext->pix_fmt,
-                        pCodecContext->width, pCodecContext->height);*/
-                    this->currentFrame++;
-                } else {
-                    printf("%s","\n");
-                }
+        if( pkt.stream_index != videoStreamIndex ) continue;
 
-                memset(&packet, 0, sizeof(packet));
-                int frameFinished = 0;
-                //if (ret == 0)
-                //    frameFinished = true;
-                //printf("Post Ret: %d psize: %d frame? %d\n\n", ret, packet.size, (int)frameFinished);
-                }
+        avcodec_decode_video(pCodecContext, 
+                             pFrame, &got_picture, 
+                             pkt.data, pkt.size);
+
+	if (pkt.pts != AV_NOPTS_VALUE)
+	    timestamp = pkt.pts;
+	else
+	    timestamp = pkt.dts;
+	//gotFrame = 0 != frameFinished;            
+	accuDur += pkt.duration * timeBase;
+	printf("TS: %lld (P: %lld D: %lld AD: %f) (Pkt. Dur.: %f)",
+	       timestamp, pkt.pts, pkt.dts, accuDur, pkt.duration * timeBase);
+
+        if (got_picture) 
+        {
+            // we have a new picture, so memorize it
+	    double time = timestamp * timeBase; 
+	    printf(" (Frame #: %d, Time? %f)\n", this->currentFrame + 1, time);
+
+	    this->currentFrame++;
+	    sws_scale(m_convertContext, pFrame->data,
+		      pFrame->linesize, 0, getHeight(),
+		      pFrameRGB->data,
+		      pFrameRGB->linesize);
+	    valid = 1;
         } else {
-            printf("Skipped packet\n");
-        }
-        
-        av_free_packet(&packet);
+            printf("%s", "\n\n");
+	}
     }
-    }
-/*    printf("Try decode, finished? %d pData: %p pSize: %d\n", 1 == frameFinished,
-           NULL, 0);
-    int ret  = avcodec_decode_video(pCodecContext, pFrame, &frameFinished, NULL, 0);
-    printf("Ret: %d Finished? %d\nd", ret, 1 == frameFinished);*/
-
+    
+    // return if we have a new picture or not
+    //    return valid;
 }
+
+
 int Movie::getNumBytes() {
     return this->numBytes;
 }
