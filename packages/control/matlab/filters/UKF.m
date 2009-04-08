@@ -3,7 +3,7 @@
 clc;
 clear all;
 close all;
-print_out = 1; %This is to print our everything
+print_out = 1; %This is to print out everything
 
 % Loads the logged depth file:
 %      depth_m = measured depth
@@ -83,7 +83,7 @@ for t = 1:t_end
     % calculate sigma points and then time update them (See page 228
     % unscented transformation)
     %sigma points for time k-1
-    temp1 = chol((L+lambda)*P_prev );
+    temp1 = sqrt(L+lambda)*chol(P_prev );
     temp1 = [zeros(L,1) temp1 -temp1];
     for q=1:2*L+1
         sigma(:,q) = x_prev + temp1(:,q);
@@ -115,7 +115,7 @@ for t = 1:t_end
 
     %%%%%%%%%%%%% augment sigma points then use for Sigma measured
     % Note we are using the "alternate method on pg 233 bottom
-    temp2 = chol( (L+lambda)*P_pred);
+    temp2 = sqrt(L+lambda)*chol(P_pred);
     temp2 = [zeros(L,1) temp2 -temp2];
     
     for q=1:2*L+1
@@ -149,7 +149,7 @@ for t = 1:t_end
     end
 
     % update kalman gain
-    K = Pxy*(Pyy^-1);
+    K = Pxy*inv(Pyy);
 
 
 
@@ -164,6 +164,7 @@ for t = 1:t_end
         y_pred
         Pyy
         Pxy
+        K
     end
     %%%%%%%%%%%%%%%
 
