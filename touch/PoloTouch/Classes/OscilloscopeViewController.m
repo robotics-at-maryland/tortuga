@@ -28,13 +28,22 @@
 }
 */
 
+- (void)connectionFailed:(NSException*)ex {
+    [[[UIAlertView alloc] initWithTitle:@"Connection failed" message:[ex reason] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:nil] show];
+}
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
+{
+    [self disconnect:self];
+}
+
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     @try {
         {
-            NSString* prxString = [NSString stringWithFormat:@"Marco:tcp -h %@ -p 10000", [mURL absoluteString]];
+            NSString* prxString = [NSString stringWithFormat:@"Marco:default -h %@ -p 10000", [mURL absoluteString]];
             id<ICEObjectPrx> prx = [[SharedIce sharedCommunicator] stringToProxy:prxString];
             mMarcoPrx = [rammarcopoloMarcoPrx checkedCast:prx];
             [mMarcoPrx retain];
@@ -46,14 +55,8 @@
             [mMarcoPrx registerPolo: poloPrx];
         }
     } @catch (NSException* ex) {
-        UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Connection failed" message:[ex reason] delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:nil];
-        [alert show];
+        [self connectionFailed:ex];
     }
-}
-
-- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex
-{
-    [self disconnect:self];
 }
 
 // Override to allow orientations other than the default portrait orientation.
@@ -102,21 +105,33 @@
 }
 
 - (IBAction)setTriggerEdge:(id)sender {
-    BOOL edge = [sender selectedSegmentIndex] == 0;
-    [mMarcoPrx setTriggerEdge:edge];
+    @try {
+        BOOL edge = [sender selectedSegmentIndex] == 0;
+        [mMarcoPrx setTriggerEdge:edge];
+    } @catch (NSException* ex) {
+        [self connectionFailed:ex];
+    }
 }
 
 - (IBAction)adjustTriggerLevel:(id)sender
 {
-    if ([sender selectedSegmentIndex] == 0)
-        [mMarcoPrx decrementTriggerLevel:10];
-    else
-        [mMarcoPrx incrementTriggerLevel:10];
+    @try {
+        if ([sender selectedSegmentIndex] == 0)
+            [mMarcoPrx decrementTriggerLevel:10];
+        else
+            [mMarcoPrx incrementTriggerLevel:10];
+    } @catch (NSException* ex) {
+        [self connectionFailed:ex];
+    }
 }
 
 - (IBAction)setTriggerChannel:(id)sender
 {
-    [mMarcoPrx setTriggerChannel:[sender selectedSegmentIndex]];
+    @try {
+        [mMarcoPrx setTriggerChannel:[sender selectedSegmentIndex]];
+    } @catch (NSException* ex) {
+        [self connectionFailed:ex];
+    }
 }
 
 @end
