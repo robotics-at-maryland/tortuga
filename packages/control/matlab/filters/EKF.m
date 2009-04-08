@@ -39,7 +39,7 @@ D = [0];
 [Ak Bk Ck Dk] = dssdata(c2d(ss(A,B,C,D),Ts)); % Discretizes system
 
 
-%discretize Rn
+%discretize Rv
 Gamma=[-A B*Rv*B'; zeros(2) A'];
 vanLoan=expm(Gamma*Ts);
 F=vanLoan(3:4,3:4)';
