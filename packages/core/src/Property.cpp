@@ -24,15 +24,14 @@ THE SOFTWARE.
 
 -----------------------------------------------------------------------------
 */
-#include "OgreMVCStableHeaders.h"
-#include "OgreMVCProperty.h"
 
-#include "OgreStringConverter.h"
+// Project Includes
+#include "core/include/Property.h"
 
-#include <istream>
+namespace ram {
+namespace core {
 
-namespace OgreMVC
-{
+/*    
 	//---------------------------------------------------------------------
 	PropertySet::PropertySet()
 	{
@@ -174,98 +173,7 @@ namespace OgreMVC
 
 
 	}
-	//---------------------------------------------------------------------
-	void PropertySet::save(std::ostream& s)
-	{
-		s << "PROPBEGIN";
 
-		for (PropertyMap::iterator i = mPropertyMap.begin(); i != mPropertyMap.end(); ++i)
-		{
-			s << i->second->getName();
-			s << (int)i->second->getType();
-			s << i->second->getValue();
-		}
-
-		s << "PROPEND";
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::load(std::istream& s)
-	{
-		std::istream::pos_type startpos = s.tellg();
-		std::string tst;
-		// check sentinel
-		s >> tst;
-		if (tst != "PROPBEGIN")
-		{
-			s.seekg(startpos);
-			throw std::exception("Deserialise - not a property section");
-		}
-
-		while (tst != "PROPEND")
-		{
-			PropertyType ptype;
-			int tmp;
-			s >> tmp;
-			ptype = (PropertyType)tmp;
-			switch(ptype)
-			{
-			case PT_INT:
-				{
-					int i;
-					s >> i;
-					set(tst, i);
-				}
-				break;
-			case PT_FLOAT:
-				{
-					float f;
-					s >> f;
-					set(tst, f);
-				}
-				break;
-			case PT_STRING:
-				{
-					std::string v;
-					s >> v;
-					set(tst, v);
-				}
-				break;
-			case PT_VECTOR2:
-				{
-					std::string v;
-					s >> v;
-					set(tst, Ogre::StringConverter::parseVector2(v));
-				}
-				break;
-			case PT_VECTOR3:
-				{
-					std::string v;
-					s >> v;
-					set(tst, Ogre::StringConverter::parseVector3(v));
-				}
-				break;
-			case PT_VECTOR4:
-				{
-					std::string v;
-					s >> v;
-					set(tst, Ogre::StringConverter::parseVector4(v));
-				}
-				break;
-			case PT_COLOUR:
-				{
-					std::string v;
-					s >> v;
-					set(tst, Ogre::StringConverter::parseColourValue(v));
-				}
-				break;
-
-			}
-
-
-		}
-
-
-	}
 
 	//---------------------------------------------------------------------
 	//---------------------------------------------------------------------
@@ -389,6 +297,6 @@ namespace OgreMVC
 		setPropertyImpl(name, val, PT_QUATERNION);
 	}
 	//---------------------------------------------------------------------
-
-}
-
+        */
+} // namespace core
+} // namespace ram
