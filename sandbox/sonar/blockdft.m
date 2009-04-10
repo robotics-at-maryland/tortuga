@@ -65,7 +65,7 @@ for blockNum=6:blockCount
   % If the maximum harmonic contains more than .2 of the power of the
   % signal, and the maximum occurs at the same harmonic on each channel,
   % and a trigger has not already occurred, then set a trigger.
-  if !triggered && max(max(dft))>.2 && sameMax
+  if !triggered && max(max(dft))>.3 && sameMax
     
     % Trigger set.
     triggered = 1;
@@ -98,7 +98,7 @@ for blockNum=6:blockCount
       contextBeforeStart -= contextAfterStop-N;
       contextAfterStop = N;
     end
-    skip = 32;
+    skip = 8;
     contextBeforeRange=contextBeforeStart:skip:(blockStartIndex-1);
     contextAfterRange=(blockStopIndex+1):skip:contextAfterStop;
     blockRange=blockStartIndex:skip:blockStopIndex;
