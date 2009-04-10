@@ -44,11 +44,6 @@ int main(int argc, char** argv)
     }
 	CvCapture *capture = cvCaptureFromFile(argv[1]);
 
-	for (int i=0; i<300;i++)
-		cvQueryFrame( capture );
-		//Skip some frames in case video starts out all white
-
-
 	if (capture == NULL)
 	{
 		/* Either the video didn't exist OR it uses a codec OpenCV
