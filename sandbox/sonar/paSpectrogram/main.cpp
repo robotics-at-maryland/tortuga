@@ -1,3 +1,4 @@
+#include "../../../packages/core/include/AveragingFilter.h"
 #include "../../../packages/sonar/include/spectrum/SDFTSpectrum.h"
 #include "../../../packages/sonar/include/adctypes.h"
 #include "../../../packages/sonar/include/fixed/fixed.h"
@@ -17,12 +18,13 @@
 
 
 using namespace ram::sonar;
+using namespace ram::core;
 
 typedef adc<16> myadc;
-const static unsigned int SAMPLE_RATE = 44100;
-const static unsigned int N = 800;
+const static unsigned int SAMPLE_RATE = 4000;
+const static unsigned int N = 200;
 static unsigned int displayStride = 1;
-static unsigned int avgStride = 8;
+static unsigned int avgStride = 1;
 const static unsigned int nPastSpectra = 800;
 static uint32_t pastSpectra[nPastSpectra][N];
 static unsigned int iPastSpectra = 0;
@@ -32,7 +34,8 @@ static unsigned int clampFactor = 0;
 
 static SDFTSpectrum<myadc, N, 1> spectrum;
 myadc::DOUBLE_WIDE::UNSIGNED mag[N];
-static DoubleHeap<myadc::DOUBLE_WIDE::UNSIGNED>* medianFilters[N];
+//static DoubleHeap<myadc::DOUBLE_WIDE::UNSIGNED>* medianFilters[N];
+AveragingFilter<myadc::DOUBLE_WIDE::SIGNED, 4410> avgFilters[N];
 
 static int paAudioReceivedCallback(const void* inputBuffer,
                                    void* output,
@@ -56,7 +59,8 @@ static int paAudioReceivedCallback(const void* inputBuffer,
         if (avgStrideCounter >= avgStride)
         {
             for (int k = 0 ; k < N ; k ++)
-                medianFilters[k]->push(mag[k]);
+                avgFilters[k].addValue(mag[k]);
+                //medianFilters[k]->push(mag[k]);
             avgStrideCounter = 0;
         }
         
@@ -65,7 +69,7 @@ static int paAudioReceivedCallback(const void* inputBuffer,
         {
             for (int k = 0 ; k < N ; k ++)
             {
-                const myadc::DOUBLE_WIDE::UNSIGNED avg = medianFilters[k]->median();
+                const myadc::DOUBLE_WIDE::UNSIGNED avg = avgFilters[k].getValue();//medianFilters[k]->median();
                 myadc::DOUBLE_WIDE::UNSIGNED resid;
                 if (clampFactor*avg >= mag[k])
                     resid = 0;
@@ -137,8 +141,9 @@ static void glutKeyboardCallback(unsigned char key, int x, int y)
 int main(int argc, char* argv[])
 {
     // Initialize median filters
-    for (int k = 0 ; k < N ; k ++)
-        medianFilters[k] = new DoubleHeap<myadc::DOUBLE_WIDE::UNSIGNED>(205);
+    //for (int k = 0 ; k < N ; k ++)
+        //medianFilters[k] = new DoubleHeap<myadc::DOUBLE_WIDE::UNSIGNED>(205);
+        //avgFilters[k] = new AveragingFilter<myadc::DOUBLE_WIDE::UNSIGNED, 4410>();
     
     // Initialize PortAudio
     PaStream* paStream;

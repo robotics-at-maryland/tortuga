@@ -12,6 +12,22 @@
 		A4082E5A0ECF28380093F90A /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E580ECF28380093F90A /* GLUT.framework */; };
 		A4082E5B0ECF28380093F90A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E590ECF28380093F90A /* OpenGL.framework */; };
 		A4082E610ECF287B0093F90A /* libportaudio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E600ECF287B0093F90A /* libportaudio.a */; };
+		A4410B7C0F42ABD400F10BB7 /* ExpWindowDFT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F001A0F39736200FFC6B0 /* ExpWindowDFT.cpp */; };
+		A4410B7D0F42ABD400F10BB7 /* ExpWindowSpectrogram.hpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F001C0F39736200FFC6B0 /* ExpWindowSpectrogram.hpp */; };
+		A4410B800F42ABD400F10BB7 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E580ECF28380093F90A /* GLUT.framework */; };
+		A4410B810F42ABD400F10BB7 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E590ECF28380093F90A /* OpenGL.framework */; };
+		A4410B820F42ABD400F10BB7 /* libportaudio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E600ECF287B0093F90A /* libportaudio.a */; };
+		A4410B840F42ABD400F10BB7 /* paSpectrogram.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6859E8B029090EE04C91782 /* paSpectrogram.1 */; };
+		A4410B8B0F42AC1000F10BB7 /* main2TierDFT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4410B8A0F42AC1000F10BB7 /* main2TierDFT.cpp */; };
+		A49F001E0F39736200FFC6B0 /* ExpWindowDFT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F001A0F39736200FFC6B0 /* ExpWindowDFT.cpp */; };
+		A49F001F0F39736200FFC6B0 /* ExpWindowSpectrogram.hpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F001C0F39736200FFC6B0 /* ExpWindowSpectrogram.hpp */; };
+		A49F00260F39E1F600FFC6B0 /* ExpWindowDFT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F001A0F39736200FFC6B0 /* ExpWindowDFT.cpp */; };
+		A49F00270F39E1F600FFC6B0 /* ExpWindowSpectrogram.hpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F001C0F39736200FFC6B0 /* ExpWindowSpectrogram.hpp */; };
+		A49F00290F39E1F600FFC6B0 /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E580ECF28380093F90A /* GLUT.framework */; };
+		A49F002A0F39E1F600FFC6B0 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E590ECF28380093F90A /* OpenGL.framework */; };
+		A49F002B0F39E1F600FFC6B0 /* libportaudio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A4082E600ECF287B0093F90A /* libportaudio.a */; };
+		A49F002D0F39E1F600FFC6B0 /* paSpectrogram.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6859E8B029090EE04C91782 /* paSpectrogram.1 */; };
+		A49F00330F39E23100FFC6B0 /* mainExpWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A49F00220F39E1EA00FFC6B0 /* mainExpWindow.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +41,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		A4410B830F42ABD400F10BB7 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				A4410B840F42ABD400F10BB7 /* paSpectrogram.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		A49F002C0F39E1F600FFC6B0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				A49F002D0F39E1F600FFC6B0 /* paSpectrogram.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +69,14 @@
 		A4082E580ECF28380093F90A /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = /System/Library/Frameworks/GLUT.framework; sourceTree = "<absolute>"; };
 		A4082E590ECF28380093F90A /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		A4082E600ECF287B0093F90A /* libportaudio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libportaudio.a; path = /opt/local/lib/libportaudio.a; sourceTree = "<absolute>"; };
+		A4410B880F42ABD400F10BB7 /* pa2TierDFTSpectrogram */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pa2TierDFTSpectrogram; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4410B8A0F42AC1000F10BB7 /* main2TierDFT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main2TierDFT.cpp; sourceTree = "<group>"; };
+		A49F001A0F39736200FFC6B0 /* ExpWindowDFT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExpWindowDFT.cpp; sourceTree = "<group>"; };
+		A49F001B0F39736200FFC6B0 /* ExpWindowDFT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExpWindowDFT.h; sourceTree = "<group>"; };
+		A49F001C0F39736200FFC6B0 /* ExpWindowSpectrogram.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ExpWindowSpectrogram.hpp; sourceTree = "<group>"; };
+		A49F001D0F39736200FFC6B0 /* ExpWindowSpectrogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExpWindowSpectrogram.h; sourceTree = "<group>"; };
+		A49F00220F39E1EA00FFC6B0 /* mainExpWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mainExpWindow.cpp; sourceTree = "<group>"; };
+		A49F00310F39E1F600FFC6B0 /* paExpWindowSpectrogram */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = paExpWindowSpectrogram; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4A25DDB0ECFE4D400448FE6 /* readme.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
 		C6859E8B029090EE04C91782 /* paSpectrogram.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = paSpectrogram.1; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -45,6 +89,26 @@
 				A4082E5A0ECF28380093F90A /* GLUT.framework in Frameworks */,
 				A4082E5B0ECF28380093F90A /* OpenGL.framework in Frameworks */,
 				A4082E610ECF287B0093F90A /* libportaudio.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4410B7F0F42ABD400F10BB7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4410B800F42ABD400F10BB7 /* GLUT.framework in Frameworks */,
+				A4410B810F42ABD400F10BB7 /* OpenGL.framework in Frameworks */,
+				A4410B820F42ABD400F10BB7 /* libportaudio.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A49F00280F39E1F600FFC6B0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A49F00290F39E1F600FFC6B0 /* GLUT.framework in Frameworks */,
+				A49F002A0F39E1F600FFC6B0 /* OpenGL.framework in Frameworks */,
+				A49F002B0F39E1F600FFC6B0 /* libportaudio.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,7 +132,13 @@
 		08FB7795FE84155DC02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				A4410B8A0F42AC1000F10BB7 /* main2TierDFT.cpp */,
+				A49F001A0F39736200FFC6B0 /* ExpWindowDFT.cpp */,
+				A49F001B0F39736200FFC6B0 /* ExpWindowDFT.h */,
+				A49F001C0F39736200FFC6B0 /* ExpWindowSpectrogram.hpp */,
+				A49F001D0F39736200FFC6B0 /* ExpWindowSpectrogram.h */,
 				08FB7796FE84155DC02AAC07 /* main.cpp */,
+				A49F00220F39E1EA00FFC6B0 /* mainExpWindow.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -77,6 +147,8 @@
 			isa = PBXGroup;
 			children = (
 				8DD76F6C0486A84900D96B5E /* paSpectrogram */,
+				A49F00310F39E1F600FFC6B0 /* paExpWindowSpectrogram */,
+				A4410B880F42ABD400F10BB7 /* pa2TierDFTSpectrogram */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,6 +182,42 @@
 			productReference = 8DD76F6C0486A84900D96B5E /* paSpectrogram */;
 			productType = "com.apple.product-type.tool";
 		};
+		A4410B7A0F42ABD400F10BB7 /* pa2TierDFTSpectrogram */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4410B850F42ABD400F10BB7 /* Build configuration list for PBXNativeTarget "pa2TierDFTSpectrogram" */;
+			buildPhases = (
+				A4410B7B0F42ABD400F10BB7 /* Sources */,
+				A4410B7F0F42ABD400F10BB7 /* Frameworks */,
+				A4410B830F42ABD400F10BB7 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = pa2TierDFTSpectrogram;
+			productInstallPath = "$(HOME)/bin";
+			productName = paSpectrogram;
+			productReference = A4410B880F42ABD400F10BB7 /* pa2TierDFTSpectrogram */;
+			productType = "com.apple.product-type.tool";
+		};
+		A49F00230F39E1F600FFC6B0 /* paExpWindowSpectrogram */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A49F002E0F39E1F600FFC6B0 /* Build configuration list for PBXNativeTarget "paExpWindowSpectrogram" */;
+			buildPhases = (
+				A49F00240F39E1F600FFC6B0 /* Sources */,
+				A49F00280F39E1F600FFC6B0 /* Frameworks */,
+				A49F002C0F39E1F600FFC6B0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = paExpWindowSpectrogram;
+			productInstallPath = "$(HOME)/bin";
+			productName = paSpectrogram;
+			productReference = A49F00310F39E1F600FFC6B0 /* paExpWindowSpectrogram */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -123,6 +231,8 @@
 			projectRoot = "";
 			targets = (
 				8DD76F620486A84900D96B5E /* paSpectrogram */,
+				A49F00230F39E1F600FFC6B0 /* paExpWindowSpectrogram */,
+				A4410B7A0F42ABD400F10BB7 /* pa2TierDFTSpectrogram */,
 			);
 		};
 /* End PBXProject section */
@@ -133,6 +243,28 @@
 			buildActionMask = 2147483647;
 			files = (
 				8DD76F650486A84900D96B5E /* main.cpp in Sources */,
+				A49F001E0F39736200FFC6B0 /* ExpWindowDFT.cpp in Sources */,
+				A49F001F0F39736200FFC6B0 /* ExpWindowSpectrogram.hpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A4410B7B0F42ABD400F10BB7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4410B7C0F42ABD400F10BB7 /* ExpWindowDFT.cpp in Sources */,
+				A4410B7D0F42ABD400F10BB7 /* ExpWindowSpectrogram.hpp in Sources */,
+				A4410B8B0F42AC1000F10BB7 /* main2TierDFT.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A49F00240F39E1F600FFC6B0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A49F00260F39E1F600FFC6B0 /* ExpWindowDFT.cpp in Sources */,
+				A49F00270F39E1F600FFC6B0 /* ExpWindowSpectrogram.hpp in Sources */,
+				A49F00330F39E23100FFC6B0 /* mainExpWindow.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +325,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = /opt/local/include;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-m128bit-long-double",
+				);
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
 			};
@@ -214,8 +350,86 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = /opt/local/include;
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-m128bit-long-double",
+				);
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
+			};
+			name = Release;
+		};
+		A4410B860F42ABD400F10BB7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_GLIBCXX_DEBUG=1",
+					"_GLIBCXX_DEBUG_PEDANTIC=1",
+				);
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
+				PRODUCT_NAME = pa2TierDFTSpectrogram;
+			};
+			name = Debug;
+		};
+		A4410B870F42ABD400F10BB7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
+				PRODUCT_NAME = pa2TierDFTSpectrogram;
+			};
+			name = Release;
+		};
+		A49F002F0F39E1F600FFC6B0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_GLIBCXX_DEBUG=1",
+					"_GLIBCXX_DEBUG_PEDANTIC=1",
+				);
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
+				PRODUCT_NAME = paExpWindowSpectrogram;
+			};
+			name = Debug;
+		};
+		A49F00300F39E1F600FFC6B0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
+				PRODUCT_NAME = paExpWindowSpectrogram;
 			};
 			name = Release;
 		};
@@ -236,6 +450,24 @@
 			buildConfigurations = (
 				1DEB923608733DC60010E9CD /* Debug */,
 				1DEB923708733DC60010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4410B850F42ABD400F10BB7 /* Build configuration list for PBXNativeTarget "pa2TierDFTSpectrogram" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4410B860F42ABD400F10BB7 /* Debug */,
+				A4410B870F42ABD400F10BB7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A49F002E0F39E1F600FFC6B0 /* Build configuration list for PBXNativeTarget "paExpWindowSpectrogram" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A49F002F0F39E1F600FFC6B0 /* Debug */,
+				A49F00300F39E1F600FFC6B0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
