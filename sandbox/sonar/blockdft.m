@@ -35,7 +35,7 @@ blockCount = floor(N/blockSize);
 triggered = 0;
 
 % Loop over each blockSize set of samples
-for blockNum=6:blockCount
+for blockNum=10:blockCount
   
   % Index where block starts
   blockStartIndex = (blockNum-1)*blockSize+1;
@@ -84,6 +84,25 @@ for blockNum=6:blockCount
     end
     hold off;
     
+    % Find the rising edges.
+    quietThresh = 150;
+    lookBackAmount=16*blockSize;
+    edgeFound = zeros(4,1);
+    edgeIndex = repmat(blockStartIndex,4,1);
+    for lookBack=0:lookBackAmount
+      for channel=1:4
+	if !edgeFound(channel)
+	  lookBackRange = (blockStartIndex:blockStopIndex)-lookBack;
+	  lookBackBlock = dat(channel, lookBackRange);
+	  if sum(abs(lookBackBlock) > quietThresh) < blockSize/20
+	    edgeFound(channel) = 1;
+	    edgeIndex(channel) = blockStopIndex - lookBack;
+	    disp(sprintf("channel %d at lag %d", channel, lookBack));
+	  end
+	end
+      end
+    end
+    
     % Plot the waveform of the bock we are looking at, plus a few blocks
     % before and after for context.
     figure(2);
@@ -114,15 +133,26 @@ for blockNum=6:blockCount
     end
     hold off;
     axis('auto');
-    drawnow;
-    pause;
-  end
-  
-  if triggered
-    holdoff -= 1;
-    if holdoff <= 0
-      triggered = 0;
+    
+    for channel=1:4
+      figure(3);
+      subplot(4,1,channel);
+      tMin = edgeIndex(channel) - 5*blockSize;
+      tMax = edgeIndex(channel) + 5*blockSize;
+      tRng = tMin:tMax;
+      y = dat(channel, tRng);
+      yMin = min(y);
+      yMax = max(y);
+      plot(tRng, y, 'b', [edgeIndex(channel),edgeIndex(channel)], \
+	   [yMin,yMax], 'r');
+      axis([tMin tMax yMin yMax]);
+    end
+    
+    if triggered
+      holdoff -= 1;
+      if holdoff <= 0
+	triggered = 0;
+      end
     end
   end
-end
 end
