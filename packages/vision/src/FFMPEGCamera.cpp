@@ -1,193 +1,240 @@
 /*
- * movie.cpp
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 John Edmonds
+ * All rights reserved.
  *
- *  Created on: Nov 17, 2008
- *      Author: jack
+ * Author: John "Jack" Edmonds <pocketcookies2@gmail.com>
+ * File:  packages/vision/include/FFMPEGCamera.h
  */
 
+
+// STD Includes
 #define __STDC_CONSTANT_MACROS
 #include <cstring>
 #include <stdint.h>
+
+// Project Includes
 #include "vision/include/FFMPEGCamera.h"
+#include "vision/include/OpenCVImage.h"
 
+namespace ram {
+namespace vision {
 
-Movie::Movie(char *filename) {
-    this->currentFrame = 0;
-    if (av_open_input_file(&pFormatContext, filename, NULL, 0, NULL))
-        handleError();
-    if (av_find_stream_info(pFormatContext) < 0)
-        handleError();
-    dump_format(pFormatContext, 0, filename, false);
+FFMPEGCamera::FFMPEGCamera(std::string filename) :
+    m_width(0),
+    m_height(0),
+    m_fps(0),
+    m_duration(0),
+    m_currentTime(0),
+    m_timeBase(0),
+    m_videoStreamIndex(0),
+    m_formatContext(0),
+    m_codecContext(0),
+    m_frame(0),
+    m_RGBframe(0),
+    m_pictureBuffer(0),
+    m_currentFrame(0),
+    m_convertContext(0)
+{
+    int ret = 0;
+    this->m_currentFrame = 0;
 
-    videoStreamIndex = -1;
-    for (unsigned int i = 0; i < pFormatContext->nb_streams; i++) {
-        if (pFormatContext->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
-            videoStreamIndex = i;
+    // Register all codecs and formats (can be called many times)
+    av_register_all();
+    
+    // Open up the av container and the streams it contains
+    ret = av_open_input_file(&m_formatContext, filename.c_str(), NULL, 0,
+                             NULL);
+    assert(0 == ret && "Error opening given file");
+    
+    ret = av_find_stream_info(m_formatContext);
+    assert(ret >= 0 && "Error opening stream inside file");
+    dump_format(m_formatContext, 0, filename.c_str(), false);
+
+    // Attempt to find a video stream
+    m_videoStreamIndex = -1;
+    for (unsigned int i = 0; i < m_formatContext->nb_streams; i++)
+    {
+        if (m_formatContext->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+        {
+            m_videoStreamIndex = i;
             break;
         }
     }
-    if (videoStreamIndex == -1)
-        handleError();
+    assert(m_videoStreamIndex != -1 && "Could not find video stream in file");
 
-        AVRational rawTimeBase = pFormatContext->streams[videoStreamIndex]->time_base;
-        int64_t duration = pFormatContext->streams[videoStreamIndex]->duration;
-        double frameRate = av_q2d(pFormatContext->streams[videoStreamIndex]->r_frame_rate);
-        double timeBase = av_q2d(rawTimeBase);
-        printf("TimeBase: %f (%d/%d), FPS: %f (R: %f) Duration: %f\n",
-               timeBase, rawTimeBase.num, rawTimeBase.den, 1/timeBase, frameRate, duration * timeBase);
-        
-    pCodecContext = pFormatContext->streams[videoStreamIndex]->codec;
-    pCodec = avcodec_find_decoder(pCodecContext->codec_id);
-    if (pCodec == NULL)
-        handleError();
+    // Determine the duration
+    int64_t rawDuration =
+        m_formatContext->streams[m_videoStreamIndex]->duration;
+    double m_timeBase =
+        av_q2d(m_formatContext->streams[m_videoStreamIndex]->time_base);
+    m_duration = rawDuration * m_timeBase;
+
+    // Look up the frame rate
+    m_fps = av_q2d(m_formatContext->streams[m_videoStreamIndex]->r_frame_rate);
+
+    // Grab the codec for the stream and make sure we can decode it
+    m_codecContext = m_formatContext->streams[m_videoStreamIndex]->codec;
+    AVCodec* pCodec = avcodec_find_decoder(m_codecContext->codec_id);
+    assert(pCodec != NULL && "Error finding decoder for the needed codec");
+
     /*if (pCodec->capabilities & CODEC_CAP_TRUNCATED)
-     pCodecContext->flags |= CODEC_FLAG_TRUNCATED;*/
-    if (avcodec_open(pCodecContext, pCodec) < 0)
-        handleError();
+     m_codecContext->flags |= CODEC_FLAG_TRUNCATED;*/
+    ret = avcodec_open(m_codecContext, pCodec);
+    assert(ret == 0 && "Error opening codec");
 
-    pFrame = avcodec_alloc_frame();
-    pFrameRGB = avcodec_alloc_frame();
+    // Get the width and hieght of our video stream
+    m_width = m_codecContext->width;
+    m_height = m_codecContext->height;
+    
+    // Allocate our temporaty storage buffers and images
+    m_frame = avcodec_alloc_frame();
+    m_RGBframe = avcodec_alloc_frame();
 
-    numBytes = avpicture_get_size(PIX_FMT_RGB24, pCodecContext->width,
-            pCodecContext->height);
-    buffer = (uint8_t*) av_malloc(numBytes * sizeof(uint8_t));
-
-    this->width = pCodecContext->width;
-    this->height = pCodecContext->height;
-    avpicture_fill((AVPicture*) pFrameRGB, buffer, PIX_FMT_RGB24,
-            pCodecContext->width, pCodecContext->height);
+    size_t numBytes = avpicture_get_size(PIX_FMT_RGB24, m_codecContext->width,
+                                         m_codecContext->height);
+    m_pictureBuffer = (uint8_t*) av_malloc(numBytes * sizeof(uint8_t));
+    
+    avpicture_fill((AVPicture*) m_RGBframe, m_pictureBuffer, PIX_FMT_RGB24,
+                   m_codecContext->width, m_codecContext->height);
 
 
-        m_convertContext = sws_getContext(pCodecContext->width,
-                                          pCodecContext->height,
-                                          pCodecContext->pix_fmt,
-                                          pCodecContext->width,
-                                          pCodecContext->height,
-                                          PIX_FMT_BGR24,
-                                          SWS_BICUBIC, NULL, NULL, NULL);
-
+    // Create conversion context that goes from the codec color format to BGR
+    m_convertContext = sws_getContext(m_codecContext->width,
+                                      m_codecContext->height,
+                                      m_codecContext->pix_fmt,
+                                      m_codecContext->width,
+                                      m_codecContext->height,
+                                      PIX_FMT_BGR24,
+                                      SWS_BICUBIC, NULL, NULL, NULL);
 }
 
-Movie::~Movie() {
-    av_free(buffer);
-    av_free(this->pFrameRGB);
-    av_free(this->pFrame);
-    av_close_input_file(this->pFormatContext);
+FFMPEGCamera::~FFMPEGCamera()
+{
+    av_free(m_pictureBuffer);
+    av_free(this->m_RGBframe);
+    av_free(this->m_frame);
+    av_close_input_file(this->m_formatContext);
 }
 
-void Movie::handleError() {
-    printf("%s", "An error occurred.\n");
+void FFMPEGCamera::update(double timestep)
+{
+    // Grab the next frame
+    readNextFrame();
+
+    // Copy image to public side of the interface
+    Image* newImage = new OpenCVImage(m_pictureBuffer, 640, 480, false);
+
+    // Notfiy everyone that the image is uploaded
+    capturedImage(newImage);
+
+    // Remove the temp image
+    delete newImage;
 }
 
-void Movie::readFrame() {
-    int valid=0;
-    static bool bFirstTime = true;
-    static AVPacket pkt;
-    static double accuDur = 0;
-    int got_picture;
-    int64_t timestamp;
-
-    double timeBase = av_q2d(pFormatContext->streams[videoStreamIndex]->time_base);
+    
+void FFMPEGCamera::readNextFrame()
+{
+    static bool firstTime = true;
+    static AVPacket pkt= {0};
+    int valid = 0;
+    int gotPicture = 0;
 
     // First time we're called, set packet.data to NULL to indicate it
     // doesn't have to be freed
-    if (bFirstTime) {
-        bFirstTime = false;
+    if (firstTime)
+    {
+        firstTime = false;
         pkt.data = NULL;
     }
 
-    // free last packet if exist
-    if (pkt.data != NULL) {
-        av_free_packet (&pkt);
-    }
+    // Free last packet if exist
+    if (pkt.data != NULL)
+        av_free_packet(&pkt);
 
-    // get the next frame
-    while ((0 == valid) && (av_read_frame(pFormatContext, &pkt) >= 0)) 
+    // Get the next frame
+    while ((0 == valid) && (av_read_frame(m_formatContext, &pkt) >= 0)) 
     {
-        if( pkt.stream_index != videoStreamIndex ) continue;
+        // If its not a packet from our stream, keep going
+        if( pkt.stream_index != m_videoStreamIndex ) continue;
 
-        avcodec_decode_video(pCodecContext, 
-                             pFrame, &got_picture, 
+        // Decode the packet
+        avcodec_decode_video(m_codecContext, 
+                             m_frame, &gotPicture, 
                              pkt.data, pkt.size);
 
-	if (pkt.pts != (int)AV_NOPTS_VALUE)
-	    timestamp = pkt.pts;
-	else
-	    timestamp = pkt.dts;
-	//gotFrame = 0 != frameFinished;            
-	accuDur += pkt.duration * timeBase;
-	printf("TS: %lld (P: %lld D: %lld AD: %f) (Pkt. Dur.: %f)",
-	       timestamp, pkt.pts, pkt.dts, accuDur, pkt.duration * timeBase);
-
-        if (got_picture) 
+        // See if we have a new frame
+        if (gotPicture) 
         {
-            // we have a new picture, so memorize it
-	    double time = timestamp * timeBase; 
-	    printf(" (Frame #: %d, Time? %f)\n", this->currentFrame + 1, time);
+            // Grab the curretn timestamp
+            int64_t timestamp;
+            if (pkt.pts != (int)AV_NOPTS_VALUE)
+                timestamp = pkt.pts;
+            else
+                timestamp = pkt.dts;
+            m_currentTime = timestamp * m_timeBase;
 
-	    this->currentFrame++;
-	    sws_scale(m_convertContext, pFrame->data,
-		      pFrame->linesize, 0, getHeight(),
-		      pFrameRGB->data,
-		      pFrameRGB->linesize);
+            // Convert the frame
+	    this->m_currentFrame++;
+	    sws_scale(m_convertContext, m_frame->data,
+		      m_frame->linesize, 0, height(),
+		      m_RGBframe->data,
+		      m_RGBframe->linesize);
 	    valid = 1;
-        } else {
-            printf("%s", "\n\n");
 	}
     }
+}
+
+
+size_t FFMPEGCamera::width()
+{
+    return m_width;
+}
     
-    // return if we have a new picture or not
-    //    return valid;
+size_t FFMPEGCamera::height()
+{
+    return m_height;
 }
 
-
-int Movie::getNumBytes() {
-    return this->numBytes;
-}
-AVFrame *Movie::getPFrameRGB() {
-    return this->pFrameRGB;
-}
-int Movie::getWidth() {
-    return this->width;
-}
-int Movie::getHeight() {
-    return this->height;
-}
-void Movie::seekBy(int frames) {
-    seekTo(this->currentFrame += frames);
-/*    int avseekFlag;
-    if (frames < 0)
-        avseekFlag = AVSEEK_FLAG_BACKWARD;
-    else
-        avseekFlag = 0;
-        this->currentFrame += frames;
-        int64_t seekTarget = this->currentFrame * 2;
-//    int64_t seekTarget = av_rescale_q(this->currentFrame, AV_TIME_BASE_Q,
-//            this->pFormatContext->streams[this->videoStreamIndex]->time_base);
-        printf("SeekBy, target: %ld\n", seekTarget);
-    av_seek_frame(this->pFormatContext, this->videoStreamIndex, seekTarget,
-            avseekFlag);
-                        this->flushPackets();*/
+double FFMPEGCamera::fps()
+{
+    return m_fps;
 }
 
-void Movie::seekTo(int frame) {
+double FFMPEGCamera::duration()
+{
+    return m_duration;
+}
+
+void FFMPEGCamera::seekToTime(double seconds)
+{
+}
+
+double FFMPEGCamera::currentTime()
+{
+    return m_currentTime;
+}
+    
+void FFMPEGCamera::seekBy(int frames) {
+    seekTo(this->m_currentFrame += frames);
+}
+
+void FFMPEGCamera::seekTo(int frame) {
     int avseekFlag;
-    if (frame < this->currentFrame)
+    if (frame < this->m_currentFrame)
         avseekFlag = AVSEEK_FLAG_BACKWARD;
     else
         avseekFlag = 0;
         
-        this->currentFrame = frame;
-        int64_t seekTarget = this->currentFrame * 2; // THIS 2 is Magic! haven't figured it out yet
-//    int64_t seekTarget = av_rescale_q(this->currentFrame, AV_TIME_BASE_Q,
-//            this->pFormatContext->streams[this->videoStreamIndex]->time_base);
+        this->m_currentFrame = frame;
+        int64_t seekTarget = this->m_currentFrame * 2; // THIS 2 is Magic! haven't figured it out yet
+//    int64_t seekTarget = av_rescale_q(this->m_currentFrame, AV_TIME_BASE_Q,
+//            this->m_formatContext->streams[this->m_videoStreamIndex]->time_base);
         printf("SeekTo, target: %lld\n", seekTarget);
-    av_seek_frame(this->pFormatContext, this->videoStreamIndex, seekTarget,
+    av_seek_frame(this->m_formatContext, this->m_videoStreamIndex, seekTarget,
             avseekFlag);
-    this->flushPackets();
+    avcodec_flush_buffers(this->m_codecContext);
 }
 
-
-void Movie::flushPackets() {
-    avcodec_flush_buffers(this->pCodecContext);
-}
+} // namespace vision
+} // namespace ram

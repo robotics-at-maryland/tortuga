@@ -20,33 +20,34 @@
 // Project Includes
 #include "vision/include/FileRecorder.h"
 #include "vision/include/OpenCVImage.h"
-#include "vision/include/OpenCVCamera.h"
+#include "vision/include/FFMPEGCamera.h"
 
 #include "vision/test/include/MockCamera.h"
 #include "vision/test/include/UnitTestChecks.h"
 #include "vision/test/include/Utility.h"
 
+//#include "core/include/TimeVal.h"
 
 using namespace ram;
 namespace bf = boost::filesystem;
 
-SUITE(FileRecorder) {
+SUITE(FFMPEGRecorder) {
 
 static int IMAGE_COUNT = 10;
     
-struct RecorderFixture
+struct Fixture
 {
-    RecorderFixture() :
+    Fixture() :
         camera(new MockCamera(0)),
         filename("")
     {
         std::stringstream ss;
-        ss << "TestFileRecorderTestMovie" << "_" << vision::getPid() << ".avi";
+        ss << "FFMPEGCameraTestMovie" << "_" << vision::getPid() << ".avi";
         filename = ss.str();
         camera->_fps = 30;
     }
 
-    ~RecorderFixture()
+    ~Fixture()
     {
         // Remove movie file
         bf::path movieFile(filename);
@@ -60,13 +61,8 @@ struct RecorderFixture
     std::string filename;
 };
     
-TEST_FIXTURE(RecorderFixture, CreateDestroy)
-{
-    vision::FileRecorder recorder(camera, vision::Recorder::NEXT_FRAME,
-                                  filename);
-}
 
-TEST_FIXTURE(RecorderFixture, Update)
+TEST_FIXTURE(Fixture, Update)
 {
     vision::FileRecorder recorder(camera, vision::Recorder::NEXT_FRAME,
                                   filename);
@@ -91,7 +87,7 @@ TEST_FIXTURE(RecorderFixture, Update)
 
     // Check Results
     vision::Image* actual = new vision::OpenCVImage(640, 480);
-    vision::OpenCVCamera movieCamera(filename.c_str());
+    vision::FFMPEGCamera movieCamera(filename.c_str());
 
     CHECK_EQUAL(30u, movieCamera.fps());
     CHECK_EQUAL(640u, movieCamera.width());
@@ -114,4 +110,4 @@ TEST_FIXTURE(RecorderFixture, Update)
     
 }
 
-} // SUITE(FileRecorder)
+} // SUITE(FFMPEGRecorder)

@@ -30,23 +30,14 @@
 #include "vision/test/include/UnitTestChecks.h"
 #include "vision/test/include/Utility.h"
 
-#include "core/include/TimeVal.h"
-
-// System Includes
-#ifdef RAM_POSIX
-#include <unistd.h>
-#else
-#include <windows.h>
-#endif
 
 using namespace ram;
 namespace bf = boost::filesystem;
 
-// In TestFileRecorder.cxx
-int getPid();
-
 SUITE(FFMPEGRecorder) {
 
+static int IMAGE_COUNT = 10;
+    
 struct RecorderFixture
 {
     RecorderFixture() :
@@ -54,7 +45,7 @@ struct RecorderFixture
         filename("")
     {
         std::stringstream ss;
-        ss << "FFMPEGRecorderTestMovie" << "_" << getPid() << ".avi";
+        ss << "FFMPEGRecorderTestMovie" << "_" << vision::getPid() << ".avi";
         filename = ss.str();
         camera->_fps = 30;
     }
@@ -85,9 +76,9 @@ TEST_FIXTURE(RecorderFixture, Update)
         vision::FFMPEGRecorder(camera, vision::Recorder::NEXT_FRAME, filename);
     recorder->unbackground(true);
 
-    // Generate 20 images
+    // Generate IMAGE_COUNT images
     std::vector<vision::Image*> images;
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < IMAGE_COUNT; ++i)
     {
         vision::Image* image = new vision::OpenCVImage(640,480);
         vision::makeColor(image, i * 20, i * 10, i * 5);

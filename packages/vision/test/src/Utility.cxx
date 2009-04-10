@@ -19,6 +19,14 @@
 
 #include "math/include/Matrix2.h"
 
+// System Includes
+#ifdef RAM_POSIX
+#include <unistd.h>
+#else
+#include <windows.h>
+#endif
+
+
 static boost::filesystem::path getImagesDir()
 {
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
@@ -136,6 +144,16 @@ void drawCircle(vision::Image* image, int x, int y, int radius,
     center.y = y;
     cvCircle(image->asIplImage(), center, radius, color, -1);
 }
+
+int getPid()
+{
+#ifdef RAM_POSIX
+    return getpid();
+#else
+    return (int)GetCurrentThreadId();
+#endif
+}
+
     
 } // namespace vision
 } // namespace ram

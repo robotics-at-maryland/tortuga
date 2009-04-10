@@ -40,6 +40,9 @@ void drawBin(vision::Image* image, int x, int y, int width, double angle,
 
 void drawCircle(vision::Image* image, int x, int y, int radius,
 		CvScalar color);
+
+/** Get the process ID of the current process */    
+int getPid();
     
 } // namespace vision
 } // namespace ram
