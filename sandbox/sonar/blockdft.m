@@ -18,6 +18,9 @@ N = length(dat);
 % Close the data file.
 fclose(fid);
 
+% Subtract off the mean.
+dat -= repmat(mean(dat,2), 1, length(dat));
+
 % ADC sample rate
 sampRate = 500000;
 
@@ -32,7 +35,7 @@ blockCount = floor(N/blockSize);
 triggered = 0;
 
 % Loop over each blockSize set of samples
-for blockNum=1:blockCount
+for blockNum=6:blockCount
   
   % Index where block starts
   blockStartIndex = (blockNum-1)*blockSize+1;
@@ -52,7 +55,7 @@ for blockNum=1:blockCount
   % Look at harmonics between 10 and 20, roughly 20 kHz to 40 kHz.
   dft = dft(:,10:20);
   
-  % Find the moust powerful harmonic in the range [10,20].
+  % Find the most powerful harmonic in the range [10,20].
   [dummy,dftMax] = max(dft,[],2);
   
   % Determine if the maximum occurs at the same harmonic on all channels.
@@ -62,13 +65,15 @@ for blockNum=1:blockCount
   % If the maximum harmonic contains more than .2 of the power of the
   % signal, and the maximum occurs at the same harmonic on each channel,
   % and a trigger has not already occurred, then set a trigger.
-  if max(max(dft))>.2 && sameMax && !triggered
+  if !triggered && max(max(dft))>.2 && sameMax
     
     % Trigger set.
     triggered = 1;
+    holdoffAmount = 0.002; % 1 microsecond
+    holdoff = floor(holdoffAmount*sampRate);
     
     % Announce the frequency that we have detected.
-    disp(sprintf("Signal at %f %kHz", \
+    disp(sprintf("Signal at %f kHz", \
 		 sampRate/blockSize*(dftMax+10)/1000));
 
     % Plot the spectrum of the block.
@@ -111,10 +116,13 @@ for blockNum=1:blockCount
     axis('auto');
     drawnow;
     pause;
-  elseif max(max(dft))<.001
-    % Else if the trigger is set, but the signal has died down again,
-    % then unset the trigger.
-    triggered = 0;
+  end
+  
+  if triggered
+    holdoff -= 1;
+    if holdoff <= 0
+      triggered = 0;
+    end
   end
 end
 end
