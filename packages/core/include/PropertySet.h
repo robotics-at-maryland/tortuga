@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include <map>
 
 // Project Includes
+#include "core/include/ConfigNode.h"
 #include "core/include/Property.h"
 
 namespace ram {
@@ -56,25 +57,28 @@ public:
     /** Create the property object for you, which uses the given ptr */
     template <typename T>
     void addProperty(const std::string& name, const std::string& desc, 
-                     boost::any defaultValue, T* valuePtr)
-    {
-        addProperty(core::PropertyPtr(
-                        new core::VariableProperty<T>(name, desc, defaultValue,
-                                                      valuePtr)));
-    }
+                     T defaultValue, T* valuePtr);
 
     /** Create the property object for you, which uses the getter and setter */
     template <typename T>
     void addProperty(const std::string& name, const std::string& desc, 
-                     boost::any defaultValue,
+                     T defaultValue,
                      typename FunctionProperty<T>::GetterFunc getter,
-                     typename FunctionProperty<T>::SetterFunc setter)
-    {
-        addProperty(core::PropertyPtr(
-            new core::FunctionProperty<T>(name, desc, defaultValue, getter,
-                                          setter)));
+                     typename FunctionProperty<T>::SetterFunc setter);
 
-    }
+    /** Create the property object for you, load from the config */
+    template <typename T>
+    void addProperty(core::ConfigNode config, bool requireInConfig,
+                     const std::string& name, const std::string& desc, 
+                     T defaultValue, T* valuePtr);
+
+    /** Create the property object for you, load from the config */
+    template <typename T>
+    void addProperty(core::ConfigNode config, bool requireInConfig,
+                     const std::string& name, const std::string& desc,
+                     T defaultValue,
+                     typename FunctionProperty<T>::GetterFunc getter,
+                     typename FunctionProperty<T>::SetterFunc setter);
 
     
     /** Gets the property object for a given property name. 
@@ -93,6 +97,18 @@ public:
     std::vector<std::string> getPropertyNames();
     
 protected:
+    /** Loads the value into the given property */
+    template <typename T>
+    void loadValueFromConfig(core::ConfigNode config, core::PropertyPtr prop,
+                             bool requireInConfig);
+
+
+    /** Specialized by type to do the actual loading */
+    template <typename T>
+    void loadValueFromNode(core::ConfigNode config, core::ConfigNode valueNode,
+                           core::PropertyPtr prop);
+
+    
     typedef std::map<std::string, PropertyPtr> PropertyMap;
     typedef PropertyMap::value_type PropertyMapPair;
     
@@ -102,5 +118,8 @@ protected:
    
 } // namespace core
 } // namespace ram
+
+// Include our template definitions
+#include "core/include/PropertySetDetail.h"
 
 #endif // RAM_CORE_PROPERTYSET_H_04_10_2009

@@ -63,11 +63,56 @@ TEST_FIXTURE(Fixture, addPropertySpecial)
 
     // Have it build a function property for us
     int value3;
-    propSet.addProperty<int>("val3", "A test auto func", 5,
-                             boost::bind(getter, &value3),
-                             boost::bind(setter, &value3, _1));
+    propSet.addProperty("val3", "A test auto func", 5,
+                        boost::bind(getter, &value3),
+                        boost::bind(setter, &value3, _1));
 }
 
+TEST_FIXTURE(Fixture, addPropertyConfig)
+{
+    ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
+            "{ 'boolVal' : 0,"
+            "  'intVal' : 56,"
+            "  'doubleVal' : 123.4,"
+            "  'vector2Val' : [2, 3],"
+            "  'vector3Val' : [5, 6, 7],"
+            "  'quatVal' : [0, 1, 0, 0] }"));
+    
+    // Test bool loading
+    bool boolVal = true;
+    propSet.addProperty(config, true, "boolVal", "", true, &boolVal);
+    CHECK_EQUAL(false, boolVal);
+
+    // Test int loading
+    int intVal = 8;
+    propSet.addProperty(config, true, "intVal", "", 8, &intVal);
+    CHECK_EQUAL(56, intVal);
+
+    // Test double loading
+    double doubleVal = 9.6;
+    propSet.addProperty(config, true, "doubleVal", "", 9.6, &doubleVal);
+    CHECK_EQUAL(123.4, doubleVal);
+
+#ifdef RAM_WITH_MATH
+    // Test Vector2 loading
+    math::Vector2 vector2Val(math::Vector2::ZERO);
+    propSet.addProperty(config, true, "vector2Val", "", math::Vector2(1, 2),
+                        &vector2Val);
+    CHECK_EQUAL(math::Vector2(2, 3), vector2Val);
+
+    // Test Vector3 loading
+    math::Vector3 vector3Val(math::Vector3::ZERO);
+    propSet.addProperty(config, true, "vector3Val", "", math::Vector3(1, 2, 3),
+                        &vector3Val);
+    CHECK_EQUAL(math::Vector3(5, 6, 7), vector3Val);
+
+    // Test Quaternion loading
+    math::Quaternion quatVal(math::Quaternion::IDENTITY);
+    propSet.addProperty(config, true, "quatVal", "", math::Quaternion(1,2,3,4),
+                        &quatVal);
+    CHECK_EQUAL(math::Quaternion(0, 1, 0, 0), quatVal);
+#endif // RAM_WITH_MATH
+}
 
 TEST_FIXTURE(Fixture, hetProperty)
 {
