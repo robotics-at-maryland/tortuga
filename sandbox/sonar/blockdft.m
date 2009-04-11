@@ -46,26 +46,35 @@ for blockNum=10:blockCount
   % Copy block into an array for convenience
   block = dat(:,blockStartIndex:blockStopIndex);
   
-  % Take the DFT of each channel, and find its magnitude squared.
-  dft = abs(fft(block,[],2)).^2;
+  % Simulate an integer DFT.
+  dft = round(fft(block,[],2));
   
-  % Normalize the DFT to the total signal power.
-  dft = dft./repmat(sum(dft,2),1,size(dft,2));
+  % Square, bit shift, and add to find power in each channel.
+  dft = bitshift(real(dft).*real(dft),-16) + \
+        bitshift(imag(dft).*imag(dft),-16);
+  dft = uint16(dft);
+  
+  % Find the total power in the signal.
+  totalPower = sum(uint32(dft),2);
   
   % Look at harmonics between 10 and 20, roughly 20 kHz to 40 kHz.
   dft = dft(:,10:20);
   
   % Find the most powerful harmonic in the range [10,20].
-  [dummy,dftMax] = max(dft,[],2);
+  [maxPower,dftMax] = max(dft,[],2);
   
   % Determine if the maximum occurs at the same harmonic on all channels.
   sameMax = all(dftMax == dftMax(1));
   dftMax = dftMax(1);
   
+  % Determine if all the maxima were loud enough, accounting for at
+  % least 1/3 of the total power.
+  loudEnough = any(3 .* uint32(maxPower) > totalPower);
+  
   % If the maximum harmonic contains more than .2 of the power of the
   % signal, and the maximum occurs at the same harmonic on each channel,
   % and a trigger has not already occurred, then set a trigger.
-  if !triggered && max(max(dft))>.3 && sameMax
+  if !triggered && sameMax && loudEnough
     
     % Trigger set.
     triggered = 1;
@@ -73,8 +82,9 @@ for blockNum=10:blockCount
     holdoff = floor(holdoffAmount*sampRate/blockSize);
     
     % Announce the frequency that we have detected.
-    disp(sprintf("Signal at %f kHz", \
-		 sampRate/blockSize*(dftMax+8)/1000));
+    disp(sprintf("Signal at %0.4f kHz, block %d", \
+		 sampRate/blockSize*(dftMax+8)/1000,
+		 blockNum-1));
 
     % Plot the spectrum of the block.
     figure(1);
@@ -97,10 +107,19 @@ for blockNum=10:blockCount
 	  if sum(abs(lookBackBlock) > quietThresh) < blockSize/20
 	    edgeFound(channel) = 1;
 	    edgeIndex(channel) = blockStopIndex - lookBack;
-	    disp(sprintf("channel %d at lag %d", channel, lookBack));
 	  end
 	end
       end
+    end
+    
+    for channel=1:4
+      if edgeFound(channel)
+	disp(sprintf("   channel %d at lag %d", channel-1, blockStopIndex-edgeIndex(channel)));
+      end
+    end
+    if all(edgeFound)
+      tdoas = -(edgeIndex(1)-edgeIndex(2:4));
+      disp(sprintf("   TDOAS: %d %d %d", tdoas(1), tdoas(2), tdoas(3)));
     end
     
     % Plot the waveform of the bock we are looking at, plus a few blocks
