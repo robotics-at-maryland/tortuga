@@ -10,6 +10,7 @@
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/bind.hpp>
 #include <boost/assign/list_of.hpp>
 
 // Project Includes
@@ -39,6 +40,34 @@ TEST_FIXTURE(Fixture, addProperty)
     // Add the property
     propSet.addProperty(prop);
 }
+
+void setter(int* ref, int val)
+{
+    *ref = val;
+}
+
+int getter(int* ref)
+{
+    return *ref;
+}
+
+
+TEST_FIXTURE(Fixture, addPropertySpecial)
+{
+    // Add the property
+    propSet.addProperty(prop);
+
+    // Have it build a variable property for us
+    int value2;
+    propSet.addProperty("val2", "A test auto var", 5, &value2);
+
+    // Have it build a function property for us
+    int value3;
+    propSet.addProperty<int>("val3", "A test auto func", 5,
+                             boost::bind(getter, &value3),
+                             boost::bind(setter, &value3, _1));
+}
+
 
 TEST_FIXTURE(Fixture, hetProperty)
 {
@@ -74,6 +103,8 @@ TEST_FIXTURE(Fixture, getPropertyNames)
     std::vector<std::string> propNames = boost::assign::list_of("val")("val 2");
     CHECK_ARRAY_EQUAL(propNames, propSet.getPropertyNames(), propNames.size());
 }
+
+
 
 
 } // SUITE(PropertySet)

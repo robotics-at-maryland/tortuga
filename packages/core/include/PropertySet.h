@@ -53,6 +53,30 @@ public:
      */
     void addProperty(PropertyPtr prop);
 
+    /** Create the property object for you, which uses the given ptr */
+    template <typename T>
+    void addProperty(const std::string& name, const std::string& desc, 
+                     boost::any defaultValue, T* valuePtr)
+    {
+        addProperty(core::PropertyPtr(
+                        new core::VariableProperty<T>(name, desc, defaultValue,
+                                                      valuePtr)));
+    }
+
+    /** Create the property object for you, which uses the getter and setter */
+    template <typename T>
+    void addProperty(const std::string& name, const std::string& desc, 
+                     boost::any defaultValue,
+                     typename FunctionProperty<T>::GetterFunc getter,
+                     typename FunctionProperty<T>::SetterFunc setter)
+    {
+        addProperty(core::PropertyPtr(
+            new core::FunctionProperty<T>(name, desc, defaultValue, getter,
+                                          setter)));
+
+    }
+
+    
     /** Gets the property object for a given property name. 
      *    @remarks
      *        Note that this property will need to be cast to a templated
