@@ -36,6 +36,7 @@
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
+#include "core/include/PropertySet.h"
 
 namespace po = boost::program_options;
 using namespace ram;
@@ -56,6 +57,9 @@ vision::DetectorPtr createDetector(std::string dectorType,
 vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
                                              core::ConfigNode cfg,
                                              std::string& nodeUsed);
+
+/** Print out all the detectors properties and values */
+void dumpDetectorProperties(vision::DetectorPtr detector);
 
 // Handle a corner case on Mac OSX
 void brokenPipeHandler(int signum);
@@ -314,6 +318,7 @@ vision::DetectorPtr createDetector(std::string detectorType,
                       << configPath << "\"" << std::endl;
         }
 
+        dumpDetectorProperties(detector);
         return detector;
     }
     else
@@ -327,6 +332,7 @@ vision::DetectorPtr createDetector(std::string detectorType,
             vision::DetectorMakerParamType(cfg, core::EventHubPtr()));
     }
 
+    dumpDetectorProperties(detector);
     return detector;
 }
 
@@ -351,6 +357,22 @@ vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
     }
     
     return vision::DetectorPtr();
+}
+
+void dumpDetectorProperties(vision::DetectorPtr detector)
+{
+    core::PropertySetPtr propSet(detector->getPropertySet());
+    std::vector<std::string> propNames = propSet->getPropertyNames();
+    if (propNames.size() > 0)
+    {
+        std::cout << "Detector has the following properties:" << std::endl;
+        BOOST_FOREACH(std::string propName, propNames)
+        {
+            core::PropertyPtr prop(propSet->getProperty(propName));
+            std::cout << "\t" << propName << ": " << prop->toString()
+                      << std::endl;
+        }
+    }
 }
 
 vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
