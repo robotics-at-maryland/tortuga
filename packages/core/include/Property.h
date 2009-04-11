@@ -69,6 +69,9 @@ public:
              PropertyType pType, boost::any defaultValue) :
         m_name(name), m_desc(desc), m_type(pType), m_default(defaultValue) 
 	{}
+    
+    virtual ~Property()
+    {}
 
     /// Get the name of the property
     const std::string& getName() const { return m_name; }
