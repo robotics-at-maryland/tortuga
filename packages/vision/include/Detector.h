@@ -11,6 +11,7 @@
 #define RAM_VISION_DETECTOR_H_02_07_2008
 
 // Project Includes
+#include "core/include/Forward.h"
 #include "core/include/EventPublisher.h"
 #include "vision/include/Common.h"
 
@@ -30,8 +31,15 @@ public:
      */
     virtual void processImage(Image* input, Image* output = 0) = 0;
 
+    /** Get the set of properties for this object */
+    virtual core::PropertySetPtr getPropertySet();
+    
 protected:
     Detector(core::EventHubPtr eventHub = core::EventHubPtr());
+
+private:
+    /** Holds all the properties for this detector */
+    core::PropertySetPtr m_propertySet;
 };
     
 } // namespace vision

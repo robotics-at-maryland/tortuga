@@ -118,6 +118,9 @@ FFMPEGCamera::FFMPEGCamera(std::string filename) :
 
 FFMPEGCamera::~FFMPEGCamera()
 {
+    // Have to stop background capture before we release the capture!
+    cleanup();
+    
     av_free(m_pictureBuffer);
     av_free(this->m_RGBframe);
     av_free(this->m_frame);

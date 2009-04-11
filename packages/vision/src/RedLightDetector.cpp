@@ -22,6 +22,8 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/Events.h"
 
+#include "core/include/PropertySet.h"
+
 #ifndef M_PI
 #define M_PI 3.14159
 #endif
@@ -46,17 +48,45 @@ RedLightDetector::RedLightDetector(Camera* camera) :
 void RedLightDetector::init(core::ConfigNode config)
 {
     // Detection variables
-    m_initialMinRedPixels = config["initialMinPixels"].asInt(400);
+    // NOTE: The property set automatically loads the value from the given
+    //       config if its present, if not it uses the default value presented.
+    core::PropertySetPtr propSet(getPropertySet());
+    propSet->addProperty(config, false, "initialMinPixels",
+        "Red pixel count required for blob to a buoy",
+        400, &m_initialMinRedPixels);
     minRedPixels = m_initialMinRedPixels;
+
+    propSet->addProperty(config, false, "foundMinPixelScale",
+        "Scale value for the buoy pixel count when its found",
+        0.85, &m_foundMinPixelScale);
     
-    m_foundMinPixelScale = config["foundMinPixelScale"].asDouble(0.85);
-    m_lostMinPixelScale = config["lostMinPixelScale"].asDouble(0.75);
-    m_almostHitPercentage = config["almostHitPercentage"].asDouble(0.2);
-    m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
-    m_bottomRemovePercentage = config["bottomRemovePercentage"].asDouble(0);
-    m_redPercentage = config["redPercentage"].asDouble(40);
-    m_redIntensity = config["redIntensity"].asInt(200);
-    m_maxAspectRatio = config["maxAspectRatio"].asDouble(2);
+    propSet->addProperty(config, false, "lostMinPixelScale",
+        "Scale value for the buoy pixel count before its found",
+        0.75, &m_lostMinPixelScale);
+
+    propSet->addProperty(config, false, "almostHitPercentage",
+        "% of visible screen at which point the ball is considered \"hit\"",
+        0.2, &m_almostHitPercentage);
+
+    propSet->addProperty(config, false, "topRemovePercentage",
+        "% of the screen from the top to be blacked out",
+        0.0, &m_topRemovePercentage);
+
+    propSet->addProperty(config, false, "bottomRemovePercentage",
+        "% of the screen from the bottom to be blacked out",
+        0.0, &m_bottomRemovePercentage);
+
+    propSet->addProperty(config, false, "redPercentage",
+        "Minimum % of total color in the pixel which must be red",
+        40.0, &m_redPercentage);
+
+    propSet->addProperty(config, false, "redIntensity",
+        "Minimum absolute intensity of the red pixel value",
+        200, &m_redIntensity);
+
+    propSet->addProperty(config, false, "maxAspectRatio",
+        "Max aspect ratio of the blob",
+        2.0, &m_maxAspectRatio);
     
     // State machine variables 
     found=false;
