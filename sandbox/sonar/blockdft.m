@@ -69,12 +69,12 @@ for blockNum=10:blockCount
     
     % Trigger set.
     triggered = 1;
-    holdoffAmount = 0.002; % 1 microsecond
-    holdoff = floor(holdoffAmount*sampRate);
+    holdoffAmount = 0.1; % 100 milliseconds
+    holdoff = floor(holdoffAmount*sampRate/blockSize);
     
     % Announce the frequency that we have detected.
     disp(sprintf("Signal at %f kHz", \
-		 sampRate/blockSize*(dftMax+10)/1000));
+		 sampRate/blockSize*(dftMax+8)/1000));
 
     % Plot the spectrum of the block.
     figure(1);
@@ -86,7 +86,7 @@ for blockNum=10:blockCount
     
     % Find the rising edges.
     quietThresh = 150;
-    lookBackAmount=16*blockSize;
+    lookBackAmount=8*blockSize;
     edgeFound = zeros(4,1);
     edgeIndex = repmat(blockStartIndex,4,1);
     for lookBack=0:lookBackAmount
