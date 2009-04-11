@@ -29,6 +29,9 @@ THE SOFTWARE.
 #ifndef RAM_CORE_PROPERTY_H_04_09_2009
 #define RAM_CORE_PROPERTY_H_04_09_2009
 
+// STD Includes
+#include <sstream>
+
 // Library Includes
 #include <boost/any.hpp>
 #include <boost/function.hpp>
@@ -94,6 +97,9 @@ public:
 
     /// Get the default value of this property
     boost::any getDefaultValue() const { return m_default; }
+
+    /// Returns the value of the property as a string
+    virtual std::string toString() const = 0;
     
     /**
      * @defgroup Get value as methods
@@ -262,6 +268,12 @@ public:
         m_valuePtr(valuePtr)
     {}
 
+    virtual std::string toString() const
+    {
+        std::stringstream ss;
+        ss << *m_valuePtr;
+        return ss.str();
+    }
 
 protected:    
     virtual void setValue(const boost::any& value)
@@ -299,6 +311,13 @@ public:
         m_setter(setter) 
         {}
 
+    virtual std::string toString() const
+    {
+        std::stringstream ss;
+        ss << m_getter();
+        return ss.str();
+    }
+    
 protected:    
     virtual void setValue(const boost::any& value)
     {

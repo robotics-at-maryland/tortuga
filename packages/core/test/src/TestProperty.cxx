@@ -73,4 +73,16 @@ TEST_FIXTURE(PropertyFixture, functionProperty)
     CHECK_EQUAL(expectedVal, prop.getAsInt());    
 }
 
+TEST_FIXTURE(PropertyFixture, toString)
+{
+    // Create the property
+    int value = 5;
+    core::VariableProperty<int> prop("val", "A test property", 5, &value);
+
+    // Set the property
+    std::string expected("5");
+    CHECK_EQUAL(expected, prop.toString());
+}
+
+
 } // SUITE(PROPERTY)
