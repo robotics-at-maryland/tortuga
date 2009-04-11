@@ -10,17 +10,18 @@
 #ifndef RAM_VISION_FFMPEGCAMERA_H_11_17_2008
 #define RAM_VISION_FFMPEGCAMERA_H_11_17_2008
 
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
-}
-
 // Project Includes
 #include "vision/include/Camera.h"
 
 // Must be included last
 #include "vision/include/Export.h"
+
+extern "C" {
+struct AVFormatContext;
+struct AVCodecContext;
+struct AVFrame;
+struct SwsContext;
+}
 
 namespace ram {
 namespace vision {

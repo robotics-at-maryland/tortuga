@@ -13,6 +13,13 @@
 #include <cstring>
 #include <stdint.h>
 
+// Library Includes
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
+}
+
 // Project Includes
 #include "vision/include/FFMPEGCamera.h"
 #include "vision/include/OpenCVImage.h"
