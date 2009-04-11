@@ -32,6 +32,7 @@ THE SOFTWARE.
 // Library Includes
 #include <boost/any.hpp>
 #include <boost/function.hpp>
+#include <boost/static_assert.hpp>
 
 // Project Includes
 #include "core/include/Feature.h"
@@ -54,16 +55,19 @@ public:
     /// The type of a property
     enum PropertyType
     {
-        PT_INT = 0,
-        PT_DOUBLE = 1,
-        PT_BOOL = 2,
-//        PT_STRING = 3,
+        PT_STARTVAL = 0,
+        PT_INT,
+        PT_DOUBLE,
+        PT_BOOL,
+//        PT_STRING,
         
 #ifdef RAM_WITH_MATH
-        PT_VECTOR2 = 4,
-        PT_VECTOR3 = 5,
-        PT_QUATERNION = 6
+        PT_VECTOR2,
+        PT_VECTOR3,
+        PT_QUATERNION,
 #endif // RAM_WITH_MATH
+        
+        PT_END
     };
 
 
@@ -74,9 +78,7 @@ public:
         @param defaultValue The default value of the property
     */
     Property(const std::string& name, const std::string& desc, 
-             PropertyType pType, boost::any defaultValue) :
-        m_name(name), m_desc(desc), m_type(pType), m_default(defaultValue) 
-	{}
+             PropertyType pType, boost::any defaultValue);
     
     virtual ~Property()
     {}
@@ -208,7 +210,42 @@ private:
     boost::any m_default;
 };
 
+/** Helper template that turns type into PropertyType */
+template <typename V>
+Property::PropertyType getPropertyType()
+{
+    // Opps, you are using a desired type
+    BOOST_STATIC_ASSERT(sizeof(V) == 0);
+    return Property::PT_STARTVAL;
+}
 
+/** Template specialization for int -> PT_INT */
+template <>
+Property::PropertyType getPropertyType<int>();
+
+/** Template specialization for int -> PT_DOUBLE */
+template <>
+Property::PropertyType getPropertyType<double>();
+
+/** Template specialization for int -> PT_BOOL */    
+template <>
+Property::PropertyType getPropertyType<bool>();
+
+#ifdef RAM_WITH_MATH
+/** Template specialization for int -> PT_VECTOR2 */    
+template <>
+Property::PropertyType getPropertyType<math::Vector2>();
+
+/** Template specialization for int -> PT_VECTOR3 */        
+template <>
+Property::PropertyType getPropertyType<math::Vector3>();
+
+/** Template specialization for int -> PT_QUATERNION */            
+template <>
+Property::PropertyType getPropertyType<math::Quaternion>();
+#endif // RAM_WITH_MATH
+
+    
 /** A property which bases it values on a pointer to a varialbe */
 template <typename T>
 class VariableProperty : public Property
@@ -217,13 +254,14 @@ public:
     typedef T ValueType;
     
     /** Construct a property which is able to directly call a given 
-        getter and setter on a specific object instance, via functors.
-    */
+     *   getter and setter on a specific object instance, via functors.
+     */
     VariableProperty(const std::string& name, const std::string& desc, 
-                     PropertyType pType, boost::any defaultValue, T* valuePtr) :
-        Property(name, desc, pType, defaultValue),
+                     boost::any defaultValue, T* valuePtr) :
+        Property(name, desc, getPropertyType<T>(), defaultValue),
         m_valuePtr(valuePtr)
-     {}
+    {}
+
 
 protected:    
     virtual void setValue(const boost::any& value)
@@ -240,6 +278,7 @@ private:
     T* m_valuePtr;
 };
 
+
 /** A property which bases its value on getter and setter functions */
 template <typename T>
 class FunctionProperty : public Property
@@ -253,12 +292,12 @@ public:
         getter and setter on a specific object instance, via functors.
     */
     FunctionProperty(const std::string& name, const std::string& desc, 
-                     PropertyType pType, boost::any defaultValue,
-                     GetterFunc getter, SetterFunc setter) :
-        Property(name, desc, pType, defaultValue), 
+                     boost::any defaultValue, GetterFunc getter,
+                     SetterFunc setter) :
+        Property(name, desc, getPropertyType<T>(), defaultValue), 
         m_getter(getter),
         m_setter(setter) 
-     {}
+        {}
 
 protected:    
     virtual void setValue(const boost::any& value)
@@ -276,168 +315,6 @@ private:
     GetterFunc m_getter;
     SetterFunc m_setter;
 };
-
-/*
-/// Map from property name to shared definition
-    typedef std::map<std::string, PropertyDef> PropertyDefMap;
-
-/// Base interface for an instance of a property.
-    class PropertyBase
-    {
-    public:
-        /// Constructor
-        PropertyBase(PropertyDef* def) : mDef(def) {}
-        virtual ~PropertyBase() {}
-
-        /// Get the name of the property
-        const std::string& getName() const { return mDef->getName(); }
-
-        /// Get the description of the property
-        const std::string& getDescription() const { return mDef->getDescription(); }
-
-        /// Get the type of the property
-        PropertyType getType() const { return mDef->getType(); }
-
-        /// Get the default value of this property
-        boost::any getDefaultValue() const { return mDef->getDefaultValue(); }
-
-
-
-
-    protected:
-        // disallow default construction
-        PropertyBase() {}
-        PropertyDef* mDef;
-
-    };*/
-
-/// Property instance with passthrough calls to a given object.
-// };
-
-    /** A simple structure designed just as a holder of property values between
-        the instances of objects they might target. There is just enough information
-        here to be able to interpret the results accurately but no more.
-    */
-/*    struct PropertyValue
-    {
-        PropertyType propType;
-        boost::any val;
-        };*/
-    /// Defines a transferable map of properties using wrapped value types (boost::any)
-//    typedef std::map<std::string, PropertyValue> PropertyValueMap;
-
-
-    /** Defines a complete set of properties for a single object instance.
-    */
-/*    class PropertySet
-    {
-    public:
-        PropertySet();
-        ~PropertySet();*/
-
-        /** Adds a property to this set. 
-        @remarks
-            The PropertySet is responsible for deleting this object.
-        */
-        //void addProperty(PropertyBase* prop);
-
-        /** Gets the property object for a given property name. 
-        @remarks
-            Note that this property will need to be cast to a templated property
-            compatible with the type you will be setting. You might find the 
-            overloaded set and get<type> methods quicker if 
-            you already know the type.
-        */
-/*        PropertyBase* getProperty(const std::string& name) const;
-
-        /// Reports whether this property set contains a named property.
-        bool hasProperty(const std::string& name) const;
-
-        typedef std::map<std::string, PropertyBase*> PropertyMap;
-        typedef Ogre::MapIterator<PropertyMap> PropertyIterator;
-        /// Get an iterator over the available properties
-        PropertyIterator getPropertyIterator();*/
-
-        /** Gets an independently usable collection of property values from the
-            current state.
-        */
-        //PropertyValueMap getValueMap() const;
-/*
-        /// Sets the current state from a given value map.
-        void setValueMap(const PropertyValueMap& values);
-
-        // Get a named property value as an integer
-        int getInt(const std::string& name) const;
-        // Get a named property value as a float
-        float getFloat(const std::string& name) const;
-        // Get a named property value as a string
-        std::string getString(const std::string& name) const;
-        // Get a named property value as a Vector2
-        math::Vector2 getVector2(const std::string& name) const;
-        // Get a named property value as a Vector3
-        math::Vector3 getVector3(const std::string& name) const;
-        // Get a named property value as a Vector4
-        math::Vector4 getVector4(const std::string& name) const;
-        // Get a named property value as a colour
-        math::ColourValue getColour(const std::string& name) const;
-        // Get a named property value as a boolean
-        bool getBool(const std::string& name) const;
-        // Get a named property value as a quaternion
-        math::Quaternion getQuat(const std::string& name) const;
-
-        // Set a named property value as an integer
-        void set(const std::string& name, int val);
-        // Set  a named property value as a float
-        void set(const std::string& name, float val);
-        // Set a named property value as a string
-        void set(const std::string& name, const std::string& val);
-        // Set a named property value as a string
-        void set(const std::string& name, const char* val);
-        // Set a named property value as a Vector2
-        void set(const std::string& name, const math::Vector2& val);
-        // Set a named property value as a Vector3
-        void set(const std::string& name, const math::Vector3& val);
-        // Set a named property value as a Vector4
-        void set(const std::string& name, const math::Vector4& val);
-        // Set a named property value as a colour
-        void set(const std::string& name, const math::ColourValue& val);
-        // Set a named property value as a boolean
-        void set(const std::string& name, bool val);
-        // Set a named property value as a quaternion
-        void set(const std::string& name, const math::Quaternion& val);
-
-        /// Save-to-stream method.
-        void save(std::ostream& stream);
-
-        /// Load-from-stream method.
-        void load(std::istream& stream);
-
-
-    protected:
-        PropertyMap mPropertyMap;
-
-        /// Set a named property value, internal implementation (type match required)
-        template <typename T>
-        void setPropertyImpl(const std::string& name, T val, PropertyType typeCheck)
-        {
-            PropertyBase* baseProp = getProperty(name);
-            if (baseProp->getType() != typeCheck)
-                throw std::exception("Type not correct");
-            static_cast<Property<T>*>(baseProp)->set(val);
-        }
-
-        /// Set a named property value, internal implementation (type match required)
-        template <typename T>
-        void getPropertyImpl(const std::string& name, T& refVal, PropertyType typeCheck) const
-        {
-            PropertyBase* baseProp = getProperty(name);
-            if (baseProp->getType() != typeCheck)
-                throw std::exception("Type not correct");
-            refVal = static_cast<Property<T>*>(baseProp)->get();
-        }
-
-    };
-*/
    
 } // namespace core
 } // namespace ram

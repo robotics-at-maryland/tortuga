@@ -29,8 +29,7 @@ TEST_FIXTURE(PropertyFixture, variableProperty)
 {
     // Create the property
     int value;
-    core::VariableProperty<int> prop("val", "A test property",
-                                     core::Property::PT_INT, 5, &value);
+    core::VariableProperty<int> prop("val", "A test property", 5, &value);
 
     // Set the property
     int expectedVal = 10;
@@ -40,7 +39,7 @@ TEST_FIXTURE(PropertyFixture, variableProperty)
     CHECK_EQUAL(expectedVal, value);
 
     // Check to make the property now reports the new value
-    CHECK_EQUAL(expectedVal, prop.getAsInt());    
+    CHECK_EQUAL(expectedVal, prop.getAsInt());
 }
 
 
@@ -58,8 +57,7 @@ TEST_FIXTURE(PropertyFixture, functionProperty)
 {
     // Create the property
     int value;
-    core::FunctionProperty<int> prop("val", "A test property",
-                                     core::Property::PT_INT, 5,
+    core::FunctionProperty<int> prop("val", "A test property", 5,
                                      boost::bind(getter, &value),
                                      boost::bind(setter, &value, _1));
                                     

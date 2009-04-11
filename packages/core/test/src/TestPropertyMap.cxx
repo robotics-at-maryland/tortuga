@@ -24,8 +24,8 @@ struct Fixture {
     Fixture()
     {
         prop = core::PropertyPtr(
-            new core::VariableProperty<int>("val", "A test property",
-                                            core::Property::PT_INT, 5, &value));
+            new core::VariableProperty<int>("val", "A test property", 5,
+                                            &value));
     }
 
     core::PropertySet propSet;
@@ -65,8 +65,7 @@ TEST_FIXTURE(Fixture, hasProperty)
 TEST_FIXTURE(Fixture, getPropertyNames)
 {
     core::PropertyPtr prop2(
-        new core::VariableProperty<int>("val 2", "property",
-                                        core::Property::PT_INT, 6, &value));
+        new core::VariableProperty<int>("val 2", "property", 6, &value));
 
     // Add the properties
     propSet.addProperty(prop);

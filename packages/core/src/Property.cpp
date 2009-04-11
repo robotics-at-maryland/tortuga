@@ -25,278 +25,69 @@ THE SOFTWARE.
 -----------------------------------------------------------------------------
 */
 
+// STD Includes
+#include <cassert>
+
 // Project Includes
 #include "core/include/Property.h"
 
 namespace ram {
 namespace core {
 
-/*    
-	//---------------------------------------------------------------------
-	PropertySet::PropertySet()
-	{
+Property::Property(const std::string& name, const std::string& desc, 
+                   PropertyType pType, boost::any defaultValue) :
+    m_name(name), m_desc(desc), m_type(pType), m_default(defaultValue) 
+{
+    assert((PT_STARTVAL < pType) && (pType < PT_END) &&
+           "Invalid property type");
+}
 
-	}
-	//---------------------------------------------------------------------
-	PropertySet::~PropertySet()
-	{
-		for (PropertyMap::iterator i = mPropertyMap.begin(); i != mPropertyMap.end(); ++i)
-		{
-			delete i->second;
-		}
-		mPropertyMap.clear();
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::addProperty(PropertyBase* prop)
-	{
-		std::pair<PropertyMap::iterator, bool> retPair = 
-			mPropertyMap.insert(PropertyMap::value_type(prop->getName(), prop));
-		if (!retPair.second)
-			throw std::exception("Duplicate property entry!");
-	}
-	//---------------------------------------------------------------------
-	bool PropertySet::hasProperty(const std::string& name) const
-	{
-		PropertyMap::const_iterator i = mPropertyMap.find(name);
-		return i != mPropertyMap.end();
-	}
-	//---------------------------------------------------------------------
-	PropertyBase* PropertySet::getProperty(const std::string& name) const
-	{
-		PropertyMap::const_iterator i = mPropertyMap.find(name);
-		if (i != mPropertyMap.end())
-			return i->second;
-		else
-			throw std::exception("Property not found");
+    
+template <>
+Property::PropertyType getPropertyType<int>()
+{
+    return Property::PT_INT;
+}
 
-	}
-	//---------------------------------------------------------------------
-	PropertySet::PropertyIterator PropertySet::getPropertyIterator()
-	{
-		return PropertyIterator(mPropertyMap.begin(), mPropertyMap.end());
-	}
-	//---------------------------------------------------------------------
-	PropertyValueMap PropertySet::getValueMap() const
-	{
-		PropertyValueMap ret;
-		for (PropertyMap::const_iterator i = mPropertyMap.begin(); i != mPropertyMap.end(); ++i)
-		{
-			PropertyValue val;
-			val.propType = i->second->getType();
-			switch(val.propType)
-			{
-			case PT_INT:
-				val.val = Ogre::Any(static_cast<Property<int>*>(i->second)->get());
-				break;
-			case PT_FLOAT:
-				val.val = Ogre::Any(static_cast<Property<float>*>(i->second)->get());
-				break;
-			case PT_STRING:
-				val.val = Ogre::Any(static_cast<Property<std::string>*>(i->second)->get());
-				break;
-			case PT_VECTOR2:
-				val.val = Ogre::Any(static_cast<Property<Ogre::Vector2>*>(i->second)->get());
-				break;
-			case PT_VECTOR3:
-				val.val = Ogre::Any(static_cast<Property<Ogre::Vector3>*>(i->second)->get());
-				break;
-			case PT_VECTOR4:
-				val.val = Ogre::Any(static_cast<Property<Ogre::Vector4>*>(i->second)->get());
-				break;
-			case PT_COLOUR:
-				val.val = Ogre::Any(static_cast<Property<Ogre::ColourValue>*>(i->second)->get());
-				break;
-			case PT_BOOL:
-				val.val = Ogre::Any(static_cast<Property<bool>*>(i->second)->get());
-				break;
-			case PT_QUATERNION:
-				val.val = Ogre::Any(static_cast<Property<Ogre::Quaternion>*>(i->second)->get());
-				break;
-
-			};
-			ret[i->second->getName()] = val;
-		}
-
-		return ret;
+template <>
+Property::PropertyType getPropertyType<double>()
+{
+    return Property::PT_DOUBLE;
+}
 
 
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::setValueMap(const PropertyValueMap& values)
-	{
-		for (PropertyValueMap::const_iterator i = values.begin(); i != values.end(); ++i)
-		{
-			PropertyMap::iterator j = mPropertyMap.find(i->first);
-			if (j != mPropertyMap.end())
-			{
-				// matching properties
-				// check type
-				if (j->second->getType() != i->second.propType)
-				{
-					throw std::exception("Non-matching type provided");
-				}
-				switch(i->second.propType)
-				{
-				case PT_INT:
-					static_cast<Property<int>*>(j->second)->set(Ogre::any_cast<int>(i->second.val));
-					break;
-				case PT_FLOAT:
-					static_cast<Property<float>*>(j->second)->set(Ogre::any_cast<float>(i->second.val));
-					break;
-				case PT_STRING:
-					static_cast<Property<std::string>*>(j->second)->set(Ogre::any_cast<std::string>(i->second.val));
-					break;
-				case PT_VECTOR2:
-					static_cast<Property<Ogre::Vector2>*>(j->second)->set(Ogre::any_cast<Ogre::Vector2>(i->second.val));
-					break;
-				case PT_VECTOR3:
-					static_cast<Property<Ogre::Vector3>*>(j->second)->set(Ogre::any_cast<Ogre::Vector3>(i->second.val));
-					break;
-				case PT_VECTOR4:
-					static_cast<Property<Ogre::Vector4>*>(j->second)->set(Ogre::any_cast<Ogre::Vector4>(i->second.val));
-					break;
-				case PT_COLOUR:
-					static_cast<Property<Ogre::ColourValue>*>(j->second)->set(Ogre::any_cast<Ogre::ColourValue>(i->second.val));
-					break;
-				case PT_BOOL:
-					static_cast<Property<bool>*>(j->second)->set(Ogre::any_cast<bool>(i->second.val));
-					break;
-				case PT_QUATERNION:
-					static_cast<Property<Ogre::Quaternion>*>(j->second)->set(Ogre::any_cast<Ogre::Quaternion>(i->second.val));
-					break;
+template <>
+Property::PropertyType getPropertyType<bool>()
+{
+    return Property::PT_BOOL;
+}
 
-				};
+    
+#ifdef RAM_WITH_MATH
+
+template <>
+Property::PropertyType getPropertyType<math::Vector2>()
+{
+    return Property::PT_VECTOR2;
+}
 
 
-			}
-		}
+template <>
+Property::PropertyType getPropertyType<math::Vector3>()
+{
+    return Property::PT_VECTOR3;
+}
 
 
-	}
+template <>
+Property::PropertyType getPropertyType<math::Quaternion>()
+{
+    return Property::PT_QUATERNION;
+}
 
-
-	//---------------------------------------------------------------------
-	//---------------------------------------------------------------------
-	// Can't really template these without getting potentially nasty casting errors
-	// when assigning convertible types (e.g. int / float) because type is not
-	// static
-	//---------------------------------------------------------------------
-	int PropertySet::getInt(const std::string& name) const
-	{
-		int ret;
-		getPropertyImpl(name, ret, PT_INT);
-		return ret;
-	}
-	//---------------------------------------------------------------------
-	float PropertySet::getFloat(const std::string& name) const
-	{
-		float ret;
-		getPropertyImpl(name, ret, PT_FLOAT);
-		return ret;
-	}
-	//---------------------------------------------------------------------
-	std::string PropertySet::getString(const std::string& name) const
-	{
-		std::string ret;
-		getPropertyImpl(name, ret, PT_STRING);
-		return ret;
-	}
-	//---------------------------------------------------------------------
-	Ogre::Vector2 PropertySet::getVector2(const std::string& name) const
-	{
-		Ogre::Vector2 ret;
-		getPropertyImpl(name, ret, PT_VECTOR2);
-		return ret;
-
-	}
-	//---------------------------------------------------------------------
-	Ogre::Vector3 PropertySet::getVector3(const std::string& name) const
-	{
-		Ogre::Vector3 ret;
-		getPropertyImpl(name, ret, PT_VECTOR3);
-		return ret;
-	}
-	//---------------------------------------------------------------------
-	Ogre::Vector4 PropertySet::getVector4(const std::string& name) const
-	{
-		Ogre::Vector4 ret;
-		getPropertyImpl(name, ret, PT_VECTOR4);
-		return ret;
-	}
-	//---------------------------------------------------------------------
-	Ogre::ColourValue PropertySet::getColour(const std::string& name) const
-	{
-		Ogre::ColourValue ret;
-		getPropertyImpl(name, ret, PT_COLOUR);
-		return ret;
-
-	}
-	//---------------------------------------------------------------------
-	bool PropertySet::getBool(const std::string& name) const
-	{
-		bool ret;
-		getPropertyImpl(name, ret, PT_BOOL);
-		return ret;
-	}
-	//---------------------------------------------------------------------
-	Ogre::Quaternion PropertySet::getQuat(const std::string& name) const
-	{
-		Ogre::Quaternion ret;
-		getPropertyImpl(name, ret, PT_QUATERNION);
-		return ret;
-
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, int val)
-	{
-		setPropertyImpl(name, val, PT_INT);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, float val)
-	{
-		setPropertyImpl(name, val, PT_FLOAT);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, const std::string& val)
-	{
-		setPropertyImpl(name, val, PT_STRING);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, const char* val)
-	{
-		setPropertyImpl(name, std::string(val), PT_STRING);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, const Ogre::Vector2& val)
-	{
-		setPropertyImpl(name, val, PT_VECTOR2);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, const Ogre::Vector3& val)
-	{
-		setPropertyImpl(name, val, PT_VECTOR3);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, const Ogre::Vector4& val)
-	{
-		setPropertyImpl(name, val, PT_VECTOR4);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, const Ogre::ColourValue& val)
-	{
-		setPropertyImpl(name, val, PT_COLOUR);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, bool val)
-	{
-		setPropertyImpl(name, val, PT_BOOL);
-	}
-	//---------------------------------------------------------------------
-	void PropertySet::set(const std::string& name, const Ogre::Quaternion& val)
-	{
-		setPropertyImpl(name, val, PT_QUATERNION);
-	}
-	//---------------------------------------------------------------------
-        */
+    
+#endif // RAM_WITH_MATH
+    
+    
 } // namespace core
 } // namespace ram
