@@ -34,9 +34,14 @@ THE SOFTWARE.
 #include <boost/function.hpp>
 
 // Project Includes
-/*#include "math/include/Vector2.h"
+#include "core/include/Feature.h"
+#include "core/include/Forward.h"
+
+#ifdef RAM_WITH_MATH
+#include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
-#include "math/include/Quaternion.h"*/
+#include "math/include/Quaternion.h"
+#endif
 
 namespace ram {
 namespace core {
@@ -51,11 +56,14 @@ public:
     {
         PT_INT = 0,
         PT_DOUBLE = 1,
-//        PT_STRING = 2,
-//        PT_VECTOR2 = 3,
-//        PT_VECTOR3 = 4,
-        PT_BOOL = 7,
-//        PT_QUATERNION = 8
+        PT_BOOL = 2,
+//        PT_STRING = 3,
+        
+#ifdef RAM_WITH_MATH
+        PT_VECTOR2 = 4,
+        PT_VECTOR3 = 5,
+        PT_QUATERNION = 6
+#endif // RAM_WITH_MATH
     };
 
 
@@ -104,7 +112,15 @@ public:
         return ret;
     }
     
-/*    /// Get a named property value as a Vector2
+    /// Get a named property value as a boolean
+    virtual bool getAsBool() const {
+        bool ret; 
+        getPropertyImpl(ret, PT_BOOL);
+        return ret;
+    }
+
+#ifdef RAM_WITH_MATH    
+    /// Get a named property value as a Vector2
     virtual math::Vector2 getAsVector2() const {
         math::Vector2 ret; 
         getPropertyImpl(ret, PT_VECTOR2);
@@ -116,21 +132,15 @@ public:
         math::Vector3 ret; 
         getPropertyImpl(ret, PT_VECTOR3);
         return ret;
-        }*/
-    
-    /// Get a named property value as a boolean
-    virtual bool getAsBool() const {
-        bool ret; 
-        getPropertyImpl(ret, PT_BOOL);
-        return ret;
-    }
+        }
 
-/*    /// Get a named property value as a quaternion
+    /// Get a named property value as a quaternion
     virtual math::Quaternion getAsQuat() const {
         math::Quaternion ret; 
         getPropertyImpl(ret, PT_QUATERNION);
         return ret;
-        }*/
+    }
+#endif // RAM_WITH_MATH
     
     /* }@ */
 
@@ -144,21 +154,23 @@ public:
 
     /// Set property as a float
     virtual void set(double val) { setPropertyImpl(val, PT_DOUBLE); }
+    
+    /// Set property as a boolean
+    virtual void set(bool val) { setPropertyImpl(val, PT_BOOL); }
 
-/*    /// Set property as a Vector2
+#ifdef RAM_WITH_MATH    
+    /// Set property as a Vector2
     virtual void set(const math::Vector2& val)
         { setPropertyImpl(val, PT_VECTOR2); }
 
     /// Set property as a Vector3
     virtual void set(const math::Vector3& val)
-    { setPropertyImpl(val, PT_VECTOR3); }*/
+    { setPropertyImpl(val, PT_VECTOR3); }
 
-    /// Set property as a boolean
-    virtual void set(bool val) { setPropertyImpl(val, PT_BOOL); }
-
-/*    /// Set property as a quaternion
+    /// Set property as a quaternion
     virtual void set(const math::Quaternion& val)
-    { setPropertyImpl(val, PT_QUATERNION); }*/
+    { setPropertyImpl(val, PT_QUATERNION); }
+#endif // RAM_WITH_MATH    
 
     /* }@ */    
 
