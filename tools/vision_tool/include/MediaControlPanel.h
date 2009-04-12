@@ -12,42 +12,62 @@
 
 // Library Includes
 #include <wx/panel.h>
-#include <wx/button.h>
-#include <wx/msgdlg.h>
-#include <wx/sizer.h>
+
+// Project Includes
+#include "Forward.h"
+
+// Forward Declarations
+class wxButton;
+class wxStaticText;
+class wxTimer;
 
 namespace ram {
 namespace tools {
 namespace visionvwr {
     
-class GLMovie;
-
 class MediaControlPanel: public wxPanel
 {
 
 public:
-    MediaControlPanel(GLMovie *controlledMovie, wxWindow *parent,
-                      wxWindowID id = wxID_ANY, const wxPoint &pos =
-                      wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    MediaControlPanel(GLMovie *controlledMovie, wxTimer* timer,
+                      wxWindow *parent, wxWindowID id = wxID_ANY,
+                      const wxPoint &pos = wxDefaultPosition,
+                      const wxSize &size = wxDefaultSize);
     ~MediaControlPanel();
 
-DECLARE_EVENT_TABLE()
-
-private:
-    wxButton *play;
-    wxButton *stop;
+    void update();
     
-    GLMovie *controlledMovie;
+private:
+    wxButton* m_play;
+    wxButton* m_stop;
+    wxStaticText* m_text;
+
+    /** The object that is decoding the movie */
+    GLMovie* m_controlledMovie;
+    
+    /** The timer that drives the whole process */
+    wxTimer* m_timer;
     
     enum MEDIA_CONTROL_PANEL_BUTTON_IDS
     {
         MEDIA_CONTROL_PANEL_BUTTON_PLAY, MEDIA_CONTROL_PANEL_BUTTON_STOP
     };
-    
+
+    /** Handler for play button press */
     void onPlay(wxCommandEvent& event);
+
+    /** Handler for stop button press */
     void onStop(wxCommandEvent& event);
 
+    /** Updates the displayed time */
+    void updateTimeDisplay();
 
+    /** Breaks up the time into its hours minutes and seconds */
+    static void breakUpTime(const double inSeconds, int& outHours,
+                            int& outMinutes, double& outSeconds);
+    
+    
+    DECLARE_EVENT_TABLE()
 };
 
 } // namespace visionvwr

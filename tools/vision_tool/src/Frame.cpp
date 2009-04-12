@@ -9,6 +9,7 @@
 
 // This include must be first because of Mac header defines
 #include "vision/include/OpenCVCamera.h"
+#include "vision/include/FFMPEGCamera.h"
 
 // Library Includes
 #include <wx/frame.h>
@@ -16,6 +17,7 @@
 #include <wx/sizer.h>
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
+#include <wx/timer.h>
 
 // Project Includes
 #include "Frame.h"
@@ -26,18 +28,20 @@
 namespace ram {
 namespace tools {
 namespace visionvwr {
-    
+
+static int ID_TIMER = 5;    
 BEGIN_EVENT_TABLE(Frame, wxFrame)
-EVT_MENU(ID_Quit, Frame::onQuit)
+    EVT_MENU(ID_Quit, Frame::onQuit)
     EVT_MENU(ID_About, Frame::onAbout)
     EVT_MENU(ID_OpenFile, Frame::onOpenFile)
     EVT_MENU(ID_OpenCamera, Frame::onOpenCamera)
+    EVT_TIMER(ID_TIMER, Frame::onTimer)
 END_EVENT_TABLE()
 
 
 Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxFrame((wxFrame *)NULL, -1, title, pos, size),
-    mediaControlPanel(0), movie (0)
+    m_mediaControlPanel(0), m_movie (0)
 {
     // File Menu
     wxMenu *menuFile = new wxMenu;
@@ -51,13 +55,16 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     menuBar->Append( menuFile, _T("&File") );
     
     SetMenuBar( menuBar );
+
+    // Timer which drives the process
+    m_timer = new wxTimer(this, ID_TIMER);
     
     // Add CameraView panel full screen
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    this->movie=new GLMovie(this);
-    sizer->Add(this->movie, 1, wxEXPAND, 0);
-    this->mediaControlPanel = new MediaControlPanel(this->movie, this);
-    sizer->Add(this->mediaControlPanel, 0, wxEXPAND, 0);
+    m_movie=new GLMovie(this);
+    sizer->Add(m_movie, 1, wxEXPAND, 0);
+    m_mediaControlPanel = new MediaControlPanel(m_movie, m_timer, this);
+    sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
     SetSizer(sizer);
 }
 
@@ -76,19 +83,28 @@ void Frame::onOpenFile(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector(_T("Choose a video file to open"));
     if ( !filename.empty() )
-        {
-            vision::OpenCVCamera* camera =
-                new vision::OpenCVCamera(std::string(filename.mb_str()));
-            this->movie->setCamera(camera);
-            this->movie->nextFrame();
-        }
+    {
+        vision::FFMPEGCamera* camera =
+            new vision::FFMPEGCamera(std::string(filename.mb_str()));
+        m_movie->setCamera(camera);
+        m_movie->nextFrame();
+    }
 }
     
 void Frame::onOpenCamera(wxCommandEvent& event)
 {
     vision::OpenCVCamera* camera = new vision::OpenCVCamera();
-    movie->setCamera(camera);
+    m_movie->setCamera(camera);
 }
+
+void Frame::onTimer(wxTimerEvent &event)
+{
+    m_movie->nextFrame();
+    m_movie->Refresh();
+    
+    m_mediaControlPanel->update();
+}
+    
 
 } // namespace visionvwr
 } // namespace tools

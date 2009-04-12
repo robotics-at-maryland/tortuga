@@ -19,10 +19,9 @@ namespace ram {
 namespace tools {
 namespace visionvwr {
 
-static int ID_TIMER = 5;
+
 BEGIN_EVENT_TABLE(GLMovie, wxGLCanvas)
     EVT_PAINT(GLMovie::onPaint) EVT_SIZE(GLMovie::onSize)
-    EVT_TIMER(ID_TIMER, GLMovie::onTimer)
 END_EVENT_TABLE()
 
 void GLMovie::onPaint(wxPaintEvent &event)
@@ -40,7 +39,6 @@ GLMovie::GLMovie(wxWindow *parent) :
     this->m_camera = NULL;
     this->initialized = false;
     this->imageData = NULL;
-    this->m_timer = new wxTimer(this, ID_TIMER);
 }
 void GLMovie::setCamera(vision::Camera *camera)
 {
@@ -218,7 +216,7 @@ void GLMovie::copyFrom(const Image* src)
                 {
                     if (i<this->movieHeight && j < this->movieWidth)
                     {
-                           currentImageData[0] = *srcImageData;
+                        currentImageData[0] = *srcImageData;
                         currentImageData[1] = *(srcImageData + 1);
                         currentImageData[2] = *(srcImageData + 2);
 
@@ -331,12 +329,6 @@ GLMovie::operator IplImage*()
 IplImage* GLMovie::asIplImage() const
 {
     assert(false && "GLMovie::asIplImage Not implemented");
-}
-
-void GLMovie::onTimer(wxTimerEvent &event)
-{
-    this->nextFrame();
-    Refresh();
 }
 
 } // namespace visionvwr

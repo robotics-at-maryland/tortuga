@@ -13,12 +13,16 @@
 // Library Includes
 #include <wx/frame.h>
 
+// Project Includes
+#include "Forward.h"
+
+// Forward Declarations
+class wxTimer;
+class wxTimerEvent;
+
 namespace ram {
 namespace tools {
 namespace visionvwr {
-
-class MediaControlPanel;
-class GLMovie;
     
 enum
 {
@@ -36,10 +40,12 @@ private:
     void onAbout(wxCommandEvent& event);
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
+    void onTimer(wxTimerEvent& event);
     
-    MediaControlPanel *mediaControlPanel;
-    GLMovie *movie;
-    
+    MediaControlPanel* m_mediaControlPanel;
+    GLMovie* m_movie;
+    wxTimer* m_timer;
+
     DECLARE_EVENT_TABLE()
 };
 

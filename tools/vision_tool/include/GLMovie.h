@@ -12,7 +12,6 @@
 
 // Library Includes
 #include <wx/glcanvas.h>
-#include <wx/timer.h>
 
 // Project Includes
 #include "vision/include/Image.h"
@@ -31,7 +30,7 @@ public:
     
     /** Prepares the next frame by loading it as a texture but does not
         necessarily render with the new frame. */
-    void nextFrame(); 
+    void nextFrame();
 
 
     // Image methods TODO: Integrate me a different way
@@ -72,7 +71,6 @@ private:
     void onPaint(wxPaintEvent &event);
     void initGL();
     void onSize(wxSizeEvent &event);
-    void onTimer(wxTimerEvent &event);
     
     /** The source of the new images */
     vision::Camera* m_camera;
@@ -84,8 +82,6 @@ private:
     //Whether OpenGL has been initialized.  It seems wxGLCanvas hasn't actually initialized OpenGL in the constructor.
     bool initialized;
     
-    wxTimer *m_timer;
-
     unsigned char *imageData;
 
     int nextPowerOf2(int a);
