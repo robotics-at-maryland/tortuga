@@ -42,6 +42,13 @@ public:
     void setCamera(vision::Camera* camera);
     
 private:
+    /** Determines the current type of formatting we are using */
+    enum FORMAT_OPTION {
+        FORMAT_HOURS,
+        FORMAT_MINUTES,
+        FORMAT_SECONDS
+    };
+    
     /** Shows the current movie progress and lets the user adjust it */
     wxSlider* m_slider;
     
@@ -53,6 +60,10 @@ private:
     
     /** The timer that drives the whole process */
     wxTimer* m_timer;
+
+    /** Format string used */
+    FORMAT_OPTION m_format;
+    
     
     enum MEDIA_CONTROL_PANEL_BUTTON_IDS
     {
@@ -68,6 +79,10 @@ private:
     /** Updates the displayed time */
     void updateTimeDisplay();
 
+    /** Determine the type of time format we need */
+    void determineTimeFormat();
+    
+    
     /** Breaks up the time into its hours minutes and seconds */
     static void breakUpTime(const double inSeconds, int& outHours,
                             int& outMinutes, double& outSeconds);

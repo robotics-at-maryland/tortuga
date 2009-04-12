@@ -42,14 +42,15 @@ MediaControlPanel::MediaControlPanel(wxTimer* timer,
     m_slider(0),
     m_text(0),
     m_camera(0),
-    m_timer(timer)
+    m_timer(timer),
+    m_format(FORMAT_SECONDS)
 {
     wxButton* play = new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_PLAY,
                                   wxT("Play"));
     wxButton* stop = new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_STOP,
                                   wxT("Stop"));
     m_slider = new wxSlider(this, wxID_ANY, 0, 0, 100);
-    m_text = new wxStaticText(this, wxID_ANY, wxT(""));
+    m_text = new wxStaticText(this, wxID_ANY, wxT("0.00 / 0.00"));
     m_text->SetWindowStyle(wxALIGN_RIGHT);
 
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -77,7 +78,8 @@ void MediaControlPanel::update()
 void MediaControlPanel::setCamera(vision::Camera* camera)
 {
     m_camera = camera;
-    
+
+    // Update slider
     double fps = m_camera->fps();
     if (fps == 0.0)
         fps = 30;
@@ -86,6 +88,12 @@ void MediaControlPanel::setCamera(vision::Camera* camera)
         duration = 100;
 
     m_slider->SetRange(0, (int)fps*duration);
+
+    // Update text display
+    determineTimeFormat();
+    updateTimeDisplay();
+    GetSizer()->RecalcSizes();
+    GetSizer()->Layout();
 }
     
 void MediaControlPanel::onPlay(wxCommandEvent& event)
@@ -118,31 +126,49 @@ void MediaControlPanel::updateTimeDisplay()
     double totalSeconds;
     breakUpTime(m_camera->duration(), totalHours,
                 totalMinutes, totalSeconds);
-
     
     // Print based on how much information we have
     wxString label;
-    if (totalHours != 0)
+    switch (m_format)
     {
-        label = wxString::Format(wxT("%02d:%02d:%4.2f / %02d:%02d:%4.2f"),
-                                 hours, minutes, seconds, totalHours,
-                                 totalMinutes, totalSeconds);
-    }
-    else if (totalMinutes != 0)
-    {
-        label = wxString::Format(wxT("%02d:%4.2f / %02d:%4.2f"),
-                                 minutes, seconds, totalMinutes, totalSeconds);
-    }
-    else
-    {
-        label = wxString::Format(wxT("%4.2f / %4.2f"), seconds, totalSeconds);
-    }
+        case FORMAT_HOURS:
+            label = wxString::Format(wxT("%02d:%02d:%4.2f / %02d:%02d:%4.2f"),
+                                     hours, minutes, seconds, totalHours,
+                                     totalMinutes, totalSeconds);
+            break;
+            
+        case FORMAT_MINUTES:
+            label = wxString::Format(wxT("%02d:%4.2f / %02d:%4.2f"),
+                                     minutes, seconds, totalMinutes,
+                                     totalSeconds);
+            break;
 
+        case FORMAT_SECONDS:
+            label = wxString::Format(wxT("%4.2f / %4.2f"), seconds,
+                                     totalSeconds);
+            break;
+    }
 
     
     m_text->SetLabel(label);
 }
 
+void MediaControlPanel::determineTimeFormat()
+{
+    int totalHours;
+    int totalMinutes;
+    double totalSeconds;
+    breakUpTime(m_camera->duration(), totalHours,
+                totalMinutes, totalSeconds);
+    
+    if (0 != totalHours)
+        m_format = FORMAT_HOURS;
+    else if (0 != totalMinutes)
+        m_format = FORMAT_MINUTES;
+    else
+        m_format = FORMAT_SECONDS;
+}
+    
 void MediaControlPanel::breakUpTime(const double inSeconds, int& outHours,
                                     int& outMinutes, double& outSeconds)
 {

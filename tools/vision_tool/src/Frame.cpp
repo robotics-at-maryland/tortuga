@@ -67,6 +67,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     sizer->Add(m_movie, 1, wxEXPAND, 0);
     m_mediaControlPanel = new MediaControlPanel(m_timer, this);
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
+    sizer->SetSizeHints(this);
     SetSizer(sizer);
 }
 

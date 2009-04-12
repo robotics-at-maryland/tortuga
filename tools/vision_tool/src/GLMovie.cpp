@@ -30,7 +30,7 @@ void GLMovie::onPaint(wxPaintEvent &event)
     this->render();
 }
 GLMovie::GLMovie(wxWindow *parent) :
-    wxGLCanvas(parent, -1, wxDefaultPosition)
+    wxGLCanvas(parent, -1, wxDefaultPosition, wxSize(640,480))
 {
     this->movieWidth = 0;
     this->movieHeight = 0;
