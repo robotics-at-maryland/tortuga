@@ -12,6 +12,7 @@
 #define __STDC_CONSTANT_MACROS
 #include <cstring>
 #include <stdint.h>
+#include <cstdio>
 
 // Library Includes
 extern "C" {
@@ -144,7 +145,7 @@ void FFMPEGCamera::update(double timestep)
 }
 
     
-void FFMPEGCamera::readNextFrame()
+void FFMPEGCamera::readNextFrame(bool hurryUp)
 {
     static bool firstTime = true;
     static AVPacket pkt= {0};
@@ -163,6 +164,9 @@ void FFMPEGCamera::readNextFrame()
     if (pkt.data != NULL)
         av_free_packet(&pkt);
 
+    if (hurryUp)
+        m_codecContext->hurry_up = 1;
+    
     // Get the next frame
     while ((0 == valid) && (av_read_frame(m_formatContext, &pkt) >= 0)) 
     {
@@ -173,7 +177,7 @@ void FFMPEGCamera::readNextFrame()
         avcodec_decode_video(m_codecContext, 
                              m_frame, &gotPicture, 
                              pkt.data, pkt.size);
-
+        
         // See if we have a new frame
         if (gotPicture) 
         {
@@ -184,16 +188,21 @@ void FFMPEGCamera::readNextFrame()
             else
                 timestamp = pkt.dts;
             m_currentTime = timestamp * m_timeBase;
-
+            
             // Convert the frame
 	    this->m_currentFrame++;
-	    sws_scale(m_convertContext, m_frame->data,
-		      m_frame->linesize, 0, height(),
-		      m_RGBframe->data,
-		      m_RGBframe->linesize);
+            if (!hurryUp)
+            {
+                sws_scale(m_convertContext, m_frame->data,
+                          m_frame->linesize, 0, height(),
+                          m_RGBframe->data,
+                          m_RGBframe->linesize);
+            }
 	    valid = 1;
 	}
     }
+
+    m_codecContext->hurry_up = 0;
 }
 
 
@@ -220,7 +229,18 @@ double FFMPEGCamera::duration()
 void FFMPEGCamera::seekToTime(double seconds)
 {
     int frameNum = (int)seconds * fps();
-    seekTo(frameNum);
+    seekTo(frameNum - 1);
+
+    // Read frames until we get to the right place
+
+    double lastTime = -1;
+    double secondToLastTime = -1;
+    do
+    {
+        secondToLastTime = lastTime;
+        lastTime = currentTime();
+        readNextFrame(true);
+    } while ((currentTime() < seconds) && (lastTime != secondToLastTime));
 }
 
 double FFMPEGCamera::currentTime()

@@ -63,8 +63,12 @@ public:
     void seekTo(int frame);
     
 private:
-    /** Read the next frame from the video file */
-    void readNextFrame();
+    /** Read the next frame from the video file
+     *
+     *  @param hurryUp
+     *      Don't decode frames for display, just advance through the file
+     */
+    void readNextFrame(bool hurryUp = false);
     
     /** Calculated from the video mode chosen for the camera */
     size_t m_width;
