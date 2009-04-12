@@ -63,8 +63,6 @@ public:
     DECLARE_EVENT_TABLE()
     
 private:
-    friend class MediaControlPanel;
-    
     GLuint textureid;
     void applyTexture();
     void render();

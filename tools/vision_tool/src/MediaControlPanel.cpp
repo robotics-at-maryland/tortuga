@@ -17,6 +17,7 @@
 #include <wx/stattext.h>
 #include <wx/timer.h>
 #include <wx/slider.h>
+#include <wx/event.h>
 
 // Project Includes
 #include "MediaControlPanel.h"
@@ -35,15 +36,17 @@ BEGIN_EVENT_TABLE(MediaControlPanel, wxPanel)
                MediaControlPanel::onStop)
 END_EVENT_TABLE()
 
-MediaControlPanel::MediaControlPanel(wxTimer* timer,
+MediaControlPanel::MediaControlPanel(GLMovie* movie, wxTimer* timer,
                                      wxWindow *parent, wxWindowID id,
                                      const wxPoint &pos, const wxSize &size) :
     wxPanel(parent, id, pos, size),
     m_slider(0),
     m_text(0),
     m_camera(0),
+    m_movie(movie),
     m_timer(timer),
-    m_format(FORMAT_SECONDS)
+    m_format(FORMAT_SECONDS),
+    m_sliderDown(false)
 {
     wxButton* play = new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_PLAY,
                                   wxT("Play"));
@@ -60,6 +63,14 @@ MediaControlPanel::MediaControlPanel(wxTimer* timer,
     sizer->Add(m_text, 0, wxALIGN_CENTER | wxALL, 5);
     sizer->SetSizeHints(this);
     SetSizer(sizer);
+
+    // Connect slider events
+    Connect(m_slider->GetId(), wxEVT_SCROLL_THUMBTRACK,
+            wxScrollEventHandler(MediaControlPanel::onThumbTrack));
+    Connect(m_slider->GetId(), wxEVT_SCROLL_THUMBRELEASE,
+            wxScrollEventHandler(MediaControlPanel::onThumbRelease));
+    Connect(m_slider->GetId(), wxEVT_SCROLL_CHANGED,
+            wxScrollEventHandler(MediaControlPanel::onScrollChanged));
 }
     
 MediaControlPanel::~MediaControlPanel()
@@ -71,7 +82,11 @@ void MediaControlPanel::update()
     if (0 != m_camera)
     {
         updateTimeDisplay();
-        m_slider->SetValue((int)(m_camera->currentTime() * m_camera->fps()));
+        if (!m_sliderDown)
+        {
+            m_slider->SetValue(
+                (int)(m_camera->currentTime() * m_camera->fps()));
+        }
     }
 }
 
@@ -80,14 +95,17 @@ void MediaControlPanel::setCamera(vision::Camera* camera)
     m_camera = camera;
 
     // Update slider
-    double fps = m_camera->fps();
-    if (fps == 0.0)
-        fps = 30;
-    double duration = m_camera->duration();
-    if (duration == 0.0)
-        duration = 100;
-
-    m_slider->SetRange(0, (int)fps*duration);
+    if (!m_sliderDown)
+    {
+        double fps = m_camera->fps();
+        if (fps == 0.0)
+            fps = 30;
+        double duration = m_camera->duration();
+        if (duration == 0.0)
+            duration = 100;
+        
+        m_slider->SetRange(0, (int)fps*duration);
+    }
 
     // Update text display
     determineTimeFormat();
@@ -112,6 +130,39 @@ void MediaControlPanel::onStop(wxCommandEvent& event)
     m_timer->Stop();
 }
 
+void MediaControlPanel::onThumbTrack(wxScrollEvent& event)
+{
+    m_sliderDown = true;
+    updateBasedOnSliderEvent(event);
+}
+
+void MediaControlPanel::onThumbRelease(wxScrollEvent& event)
+{
+    m_sliderDown = false;
+}
+
+void MediaControlPanel::onScrollChanged(wxScrollEvent& event)
+{
+    updateBasedOnSliderEvent(event);
+}
+
+void MediaControlPanel::updateBasedOnSliderEvent(wxScrollEvent& event)
+{
+    if (m_camera)
+    {
+        double timeStamp = event.GetPosition() / m_camera->fps();
+        m_camera->seekToTime(timeStamp);
+
+        if (!m_timer->IsRunning())
+        {
+            m_movie->nextFrame();
+            m_movie->Refresh();
+        }
+
+        updateTimeDisplay();
+    }
+}
+    
 void MediaControlPanel::updateTimeDisplay()
 {
     // Split time up into hours minutes and seconds

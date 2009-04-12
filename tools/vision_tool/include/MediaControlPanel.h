@@ -22,6 +22,7 @@
 class wxSlider;
 class wxStaticText;
 class wxTimer;
+class wxScrollEvent;
 
 namespace ram {
 namespace tools {
@@ -31,7 +32,7 @@ class MediaControlPanel: public wxPanel
 {
 
 public:
-    MediaControlPanel(wxTimer* timer, wxWindow *parent,
+    MediaControlPanel(GLMovie* m_movie, wxTimer* timer, wxWindow *parent,
                       wxWindowID id = wxID_ANY,
                       const wxPoint &pos = wxDefaultPosition,
                       const wxSize &size = wxDefaultSize);
@@ -57,13 +58,18 @@ private:
 
     /** The object that is decoding the movie */
     vision::Camera* m_camera;
+
+    /** The current movie we are displaying */
+    GLMovie* m_movie;
     
     /** The timer that drives the whole process */
     wxTimer* m_timer;
 
     /** Format string used */
     FORMAT_OPTION m_format;
-    
+
+    /** Records whether or not the slider is down */
+    bool m_sliderDown;
     
     enum MEDIA_CONTROL_PANEL_BUTTON_IDS
     {
@@ -76,6 +82,18 @@ private:
     /** Handler for stop button press */
     void onStop(wxCommandEvent& event);
 
+    /** Thrown as the user drags the slider, updates movie position */
+    void onThumbTrack(wxScrollEvent& event);
+
+    /** Thrown when the user stops dragged the slider, updates movie pos */
+    void onThumbRelease(wxScrollEvent& event);
+
+    /** When the user stops dragging the slider, or click on the slider*/
+    void onScrollChanged(wxScrollEvent& event);
+
+    /** Updates the movie position based on a slider event */
+    void updateBasedOnSliderEvent(wxScrollEvent& event);
+    
     /** Updates the displayed time */
     void updateTimeDisplay();
 

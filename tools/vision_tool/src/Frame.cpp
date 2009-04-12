@@ -65,7 +65,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     m_movie=new GLMovie(this);
     sizer->Add(m_movie, 1, wxEXPAND, 0);
-    m_mediaControlPanel = new MediaControlPanel(m_timer, this);
+    m_mediaControlPanel = new MediaControlPanel(m_movie, m_timer, this);
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
     sizer->SetSizeHints(this);
     SetSizer(sizer);
