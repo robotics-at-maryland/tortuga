@@ -89,16 +89,27 @@ TEST_FIXTURE(Fixture, Update)
     vision::Image* actual = new vision::OpenCVImage(640, 480);
     vision::FFMPEGCamera movieCamera(filename.c_str());
 
+    // Lets check some other stuff
+    CHECK_CLOSE(30.0, movieCamera.fps(), 0.01);
+    //CHECK_CLOSE(IMAGE_COUNT/30.0, movieCamera.duration(), 0.01);
+    
     CHECK_EQUAL(30u, movieCamera.fps());
     CHECK_EQUAL(640u, movieCamera.width());
     CHECK_EQUAL(480u, movieCamera.height());
-    
+
+    int frameNum = 0;
     BOOST_FOREACH(vision::Image* expectedImage, images)
     {
         movieCamera.update(0);
         movieCamera.getImage(actual);
 
+        // Make sure we got the right frame
         CHECK_CLOSE(*expectedImage, *actual, 1.5);
+
+        // Make sure we got the right time
+        CHECK_CLOSE(frameNum/30.0, movieCamera.currentTime(), 0.01);
+        
+        frameNum++;
     }    
     delete actual;
 

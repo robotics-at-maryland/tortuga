@@ -107,6 +107,9 @@ public:
     /** Seek to a specific time in the video (does nothing for live feeds) */
     virtual void seekToTime(double seconds) = 0;
 
+    /** Get the current time in the video (0 for live feeds) */
+    virtual double currentTime() = 0;
+    
     /** Start the camera running the background */
     virtual void background(int rate = -1);
     

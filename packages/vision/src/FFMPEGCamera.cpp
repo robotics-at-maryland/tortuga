@@ -73,8 +73,9 @@ FFMPEGCamera::FFMPEGCamera(std::string filename) :
     // Determine the duration
     int64_t rawDuration =
         m_formatContext->streams[m_videoStreamIndex]->duration;
-    double m_timeBase =
-        av_q2d(m_formatContext->streams[m_videoStreamIndex]->time_base);
+    AVRational rawTimeBase =
+        m_formatContext->streams[m_videoStreamIndex]->time_base;
+    m_timeBase = av_q2d(rawTimeBase);
     m_duration = rawDuration * m_timeBase;
 
     // Look up the frame rate

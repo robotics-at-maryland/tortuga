@@ -125,6 +125,11 @@ void OpenCVCamera::seekToTime(double seconds)
 {
 }
 
+double OpenCVCamera::currentTime()
+{
+    return 0;
+}
+    
 void OpenCVCamera::copyToPublic(Image* newImage, Image* publicImage)
 {
     // Only calibration if we its possible

@@ -50,6 +50,8 @@ public:
 
     virtual void seekToTime(double seconds);
 
+    virtual double currentTime();
+
 protected:
     /** Preforms a calbration during the copy if possible
      *  
