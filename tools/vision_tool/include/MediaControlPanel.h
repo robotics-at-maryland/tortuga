@@ -14,10 +14,12 @@
 #include <wx/panel.h>
 
 // Project Includes
+#include "vision/include/Forward.h"
+
 #include "Forward.h"
 
 // Forward Declarations
-class wxButton;
+class wxSlider;
 class wxStaticText;
 class wxTimer;
 
@@ -29,21 +31,25 @@ class MediaControlPanel: public wxPanel
 {
 
 public:
-    MediaControlPanel(GLMovie *controlledMovie, wxTimer* timer,
-                      wxWindow *parent, wxWindowID id = wxID_ANY,
+    MediaControlPanel(wxTimer* timer, wxWindow *parent,
+                      wxWindowID id = wxID_ANY,
                       const wxPoint &pos = wxDefaultPosition,
                       const wxSize &size = wxDefaultSize);
     ~MediaControlPanel();
 
     void update();
+
+    void setCamera(vision::Camera* camera);
     
 private:
-    wxButton* m_play;
-    wxButton* m_stop;
+    /** Shows the current movie progress and lets the user adjust it */
+    wxSlider* m_slider;
+    
+    /** Text box displays the current time */
     wxStaticText* m_text;
 
     /** The object that is decoding the movie */
-    GLMovie* m_controlledMovie;
+    vision::Camera* m_camera;
     
     /** The timer that drives the whole process */
     wxTimer* m_timer;

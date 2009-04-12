@@ -16,6 +16,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/timer.h>
+#include <wx/slider.h>
 
 // Project Includes
 #include "MediaControlPanel.h"
@@ -34,25 +35,27 @@ BEGIN_EVENT_TABLE(MediaControlPanel, wxPanel)
                MediaControlPanel::onStop)
 END_EVENT_TABLE()
 
-MediaControlPanel::MediaControlPanel(GLMovie *controlledMovie, wxTimer* timer,
+MediaControlPanel::MediaControlPanel(wxTimer* timer,
                                      wxWindow *parent, wxWindowID id,
                                      const wxPoint &pos, const wxSize &size) :
     wxPanel(parent, id, pos, size),
-    m_play(0),
-    m_stop(0),
-    m_controlledMovie(controlledMovie),
+    m_slider(0),
+    m_text(0),
+    m_camera(0),
     m_timer(timer)
 {
-    m_play = new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_PLAY,
-                          wxT("Play"));
-    m_stop = new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_STOP,
-                          wxT("Stop"));
+    wxButton* play = new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_PLAY,
+                                  wxT("Play"));
+    wxButton* stop = new wxButton(this, MEDIA_CONTROL_PANEL_BUTTON_STOP,
+                                  wxT("Stop"));
+    m_slider = new wxSlider(this, wxID_ANY, 0, 0, 100);
     m_text = new wxStaticText(this, wxID_ANY, wxT(""));
     m_text->SetWindowStyle(wxALIGN_RIGHT);
 
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_play, 0, 0, 0);
-    sizer->Add(m_stop, 0, 0, 0);
+    sizer->Add(play, 0, 0, 0);
+    sizer->Add(stop, 0, 0, 0);
+    sizer->Add(m_slider, 1, wxALIGN_CENTER, 0);
     sizer->Add(m_text, 0, wxALIGN_CENTER | wxALL, 5);
     sizer->SetSizeHints(this);
     SetSizer(sizer);
@@ -64,14 +67,32 @@ MediaControlPanel::~MediaControlPanel()
 
 void MediaControlPanel::update()
 {
-    updateTimeDisplay();
+    if (0 != m_camera)
+    {
+        updateTimeDisplay();
+        m_slider->SetValue((int)(m_camera->currentTime() * m_camera->fps()));
+    }
 }
 
+void MediaControlPanel::setCamera(vision::Camera* camera)
+{
+    m_camera = camera;
+    
+    double fps = m_camera->fps();
+    if (fps == 0.0)
+        fps = 30;
+    double duration = m_camera->duration();
+    if (duration == 0.0)
+        duration = 100;
+
+    m_slider->SetRange(0, (int)fps*duration);
+}
+    
 void MediaControlPanel::onPlay(wxCommandEvent& event)
 {
-    if (m_controlledMovie->m_camera != NULL)
+    if (0 != m_camera)
     {
-        double fps = m_controlledMovie->m_camera->fps();
+        double fps = m_camera->fps();
         if (fps == 0.0)
             fps = 30;
         m_timer->Start((int)(1000 / fps));
@@ -89,13 +110,13 @@ void MediaControlPanel::updateTimeDisplay()
     int hours;
     int minutes;
     double seconds;
-    breakUpTime(m_controlledMovie->m_camera->currentTime(), hours, minutes,
+    breakUpTime(m_camera->currentTime(), hours, minutes,
                 seconds);
 
     int totalHours;
     int totalMinutes;
     double totalSeconds;
-    breakUpTime(m_controlledMovie->m_camera->duration(), totalHours,
+    breakUpTime(m_camera->duration(), totalHours,
                 totalMinutes, totalSeconds);
 
     

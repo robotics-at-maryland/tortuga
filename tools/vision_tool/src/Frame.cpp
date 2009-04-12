@@ -41,7 +41,9 @@ END_EVENT_TABLE()
 
 Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxFrame((wxFrame *)NULL, -1, title, pos, size),
-    m_mediaControlPanel(0), m_movie (0)
+    m_mediaControlPanel(0),
+    m_movie (0),
+    m_camera(0)
 {
     // File Menu
     wxMenu *menuFile = new wxMenu;
@@ -63,7 +65,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     m_movie=new GLMovie(this);
     sizer->Add(m_movie, 1, wxEXPAND, 0);
-    m_mediaControlPanel = new MediaControlPanel(m_movie, m_timer, this);
+    m_mediaControlPanel = new MediaControlPanel(m_timer, this);
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
     SetSizer(sizer);
 }
@@ -84,17 +86,24 @@ void Frame::onOpenFile(wxCommandEvent& event)
     wxString filename = wxFileSelector(_T("Choose a video file to open"));
     if ( !filename.empty() )
     {
-        vision::FFMPEGCamera* camera =
-            new vision::FFMPEGCamera(std::string(filename.mb_str()));
-        m_movie->setCamera(camera);
+        if (m_camera)
+            delete m_camera;
+        
+        m_camera = new vision::FFMPEGCamera(std::string(filename.mb_str()));
+        m_movie->setCamera(m_camera);
+        m_mediaControlPanel->setCamera(m_camera);
         m_movie->nextFrame();
     }
 }
     
 void Frame::onOpenCamera(wxCommandEvent& event)
 {
-    vision::OpenCVCamera* camera = new vision::OpenCVCamera();
-    m_movie->setCamera(camera);
+    if (m_camera)
+        delete m_camera;
+    
+    m_camera = new vision::OpenCVCamera();
+    m_movie->setCamera(m_camera);
+    m_mediaControlPanel->setCamera(m_camera);
 }
 
 void Frame::onTimer(wxTimerEvent &event)

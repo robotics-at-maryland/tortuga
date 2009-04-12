@@ -16,6 +16,8 @@
 // Project Includes
 #include "Forward.h"
 
+#include "vision/include/Forward.h"
+
 // Forward Declarations
 class wxTimer;
 class wxTimerEvent;
@@ -45,7 +47,8 @@ private:
     MediaControlPanel* m_mediaControlPanel;
     GLMovie* m_movie;
     wxTimer* m_timer;
-
+    vision::Camera* m_camera;
+    
     DECLARE_EVENT_TABLE()
 };
 
