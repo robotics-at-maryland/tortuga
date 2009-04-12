@@ -219,6 +219,8 @@ double FFMPEGCamera::duration()
 
 void FFMPEGCamera::seekToTime(double seconds)
 {
+    int frameNum = (int)seconds * fps();
+    seekTo(frameNum);
 }
 
 double FFMPEGCamera::currentTime()
@@ -237,13 +239,11 @@ void FFMPEGCamera::seekTo(int frame) {
     else
         avseekFlag = 0;
         
-        this->m_currentFrame = frame;
-        int64_t seekTarget = this->m_currentFrame * 2; // THIS 2 is Magic! haven't figured it out yet
-//    int64_t seekTarget = av_rescale_q(this->m_currentFrame, AV_TIME_BASE_Q,
-//            this->m_formatContext->streams[this->m_videoStreamIndex]->time_base);
-        printf("SeekTo, target: %lld\n", seekTarget);
+    this->m_currentFrame = frame;
+    int64_t seekTarget = this->m_currentFrame;
+    
     av_seek_frame(this->m_formatContext, this->m_videoStreamIndex, seekTarget,
-            avseekFlag);
+                  avseekFlag);
     avcodec_flush_buffers(this->m_codecContext);
 }
 
