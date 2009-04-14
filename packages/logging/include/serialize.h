@@ -15,13 +15,13 @@ namespace serialization{
 
 template <class Archive> void serialize(Archive &ar, ram::vision::ImageEventPtr &t, const unsigned int file_version)
 {
-  ar & t->image;
+  //ar & t->image;
 }
 template <class Archive> void serialize(Archive &ar, ram::vision::RedLightEventPtr &t, const unsigned int file_version)
 {
   ar & t->y;
-  ar & t->azimuth;
-  ar & t->elevation;
+  ar & (*((double*)(&t->azimuth)));
+  ar & (*((double*)(&t->elevation)));
   ar & t->range;
   ar & t->x;
   ar & t->y;
