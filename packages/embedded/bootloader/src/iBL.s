@@ -88,7 +88,62 @@ __reset:
         MOV W0, SPLIM
         NOP                       ; Add NOP to follow SPLIM initialization
 
-/*      ; Uart init
+
+
+
+
+
+/*
+ * Bus = D1 D0 E5-E0
+ * Akn = D2
+ * RW  = E8
+ */
+
+
+;TRIS = 1 ->input
+;TRIS = 0 ->output
+
+;D1(MSB)-D0,E5-E0(LSB)
+
+
+
+
+		/*i dont know how to do the IRQ stuff so im skipping that*/
+
+		;check this
+
+		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
+		NOP
+		BTSS PORTE, #8		;is RW==1 ie WRITE mode? if so, skip next instruction
+		goto ReadBus 		;read the BUS so we can swab the nybbles
+		/*else, send NACK->we are going to skip this cuz i dunno how*/
+
+		SWAP W2				;swap the nybbles
+;what is timeout and how do we set it?
+
+
+
+
+
+ReadBus:					;read E5:E0->W1		D1:D0->W2
+		MOV 0x003F, W0		;we want to set the TRIS E5-E0 pins to read
+		MOV W0, TRISE		;actually do it.
+		MOV 0x0003, W0		;we want to set the TRIS D1-D0 pins to read
+		MOV W0, TRISD		;actually do it.
+		MOV LATE, W1		;read contents of Port E
+		MOV LATD, W2		;read contents of Port D
+		AND 0x003F, W1		;only store the lowest 6 bits in W1
+		AND 0x0003, W2		;only store the lowest 2 bits in W2
+		IOR W2, W1, W2		;now we have the full byte on the bus stored in W2
+		return
+;apparently we can write a whole byte at once by writing to a latch. the problem is that we need to write to parts of D and E
+
+
+
+
+
+
+		/*      ; Uart init
         mov #0x8420, W0           ; W0 = 0x8420 -> 1000 0100 0010 0000b
         mov W0, U1MODE            ; Enable UART with Alternate IO, AutoBaud and 8N1
         clr U1STA
@@ -110,7 +165,7 @@ __reset:
         mov #0x0004, W0           ; W0 = 0x0004
         rcall WaitRising          ; Wait until the first Rising edge is detected
         clr TMR3                  ; Clear content of the Timer 3 timer register*/
-ByteLoop:
+/*ByteLoop:
         rcall WaitRising
         dec W0, W0                ; W0--
         bra NZ, ByteLoop          ; if W0 != 0 jump to ByteLoop
@@ -118,7 +173,7 @@ ByteLoop:
         mov TMR3, W0              ; W0 = TMR3
         add #0x40, W0             ; For rounding: +64 >> 7 is equal to +0.5
         asr W0, #7, W0            ; W0 = ((Tend - Tini + 64) / 128)
-        dec W0, W0                ; W0--
+        dec W0, W0                ; W0--*/
 
 /*        ; Uart re-init
         mov W0, U1BRG             ; U1BRG = W0 -> Configs UART with the detected baudrate
