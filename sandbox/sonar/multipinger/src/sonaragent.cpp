@@ -31,6 +31,7 @@
 
 #include <queue>
 #include <vector>
+#include <stdio.h>
 
 using namespace std;
 
@@ -68,12 +69,12 @@ struct BlockStatRecordSynopsis {
 BlockStatRecord noiseFloor;
 BlockStatRecord blockStatRecordBuffer[STATRECORD_BLOCKCOUNT];
 vector<BlockStatRecordSynopsis> noiseFloorBlocks(NOISEFLOOR_BLOCKCOUNT);
-//priority_queue<BlockStatRecordSynopsis, vector<BlockStatRecordSynopsis>, less<BlockStatRecordSynopsis> > noiseFloorBlocks(NOISEFLOOR_BLOCKCOUNT);
 int holdoff = 0;
 unsigned short blockIndex = 0;
 unsigned short blockStatIndex = 0;
 unsigned short noiseFloorWorkIndex = 0;
 unsigned short noiseFloorWorkOffset = 0;
+unsigned short savedBlockIndex = 0;
 
 int16_t blocks[NCHANNELS][HOLDOFF_BLOCKCOUNT][BLOCKSIZE];
 
@@ -84,13 +85,20 @@ int16_t blocks[NCHANNELS][HOLDOFF_BLOCKCOUNT][BLOCKSIZE];
  */
 bool isBlockAvailable()
 {
-    /// TODO: implement
-    return false;
+    /// TODO: implement for Blackfin
+    return true;
 }
 
 void readBlock(int blockIndex)
 {
-    /// TODO: implement
+    /// TODO: implement for Blackfin
+    int16_t temp[BLOCKSIZE][NCHANNELS];
+    
+    fread(*temp, sizeof(temp), 1, stdin);
+    
+    for (int i = 0 ; i < BLOCKSIZE ; i ++)
+        for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+            blocks[channel][blockIndex][i] = temp[i][channel];
 }
 
 void waitBlockAvailable()
@@ -145,15 +153,16 @@ int main(int argc, char** argv)
             // the average variance of the noise floor.
             if (stat.averageVariance > 4 * noiseFloor.averageVariance)
             {
+                bool triggered;
+                
                 // TODO: evaluate spectral density check
-                /*
                 if (triggered)
                 {
                     noiseFloorWorkIndex = 0;
                     noiseFloorWorkOffset = blockStatIndex;
+                    savedBlockIndex = blockIndex;
                     holdoff = HOLDOFF_BLOCKCOUNT;
                 }
-                */
             }
         }
         
@@ -209,6 +218,13 @@ int main(int argc, char** argv)
             } else if (noiseFloorWorkIndex == NOISEFLOOR_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT + 1) {
                 
                 // TODO: look back through the list to find the rising edge, then report.
+                for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+                {
+                    for (unsigned int lookBackBlock = 0 ; lookBackBlock < LOOKBACK_BLOCKCOUNT ; lookBackBlock ++)
+                    {
+                        
+                    }
+                }
                 
             }
             
