@@ -1,0 +1,23 @@
+import os
+
+rootEnv = Environment(ENV = os.environ, PATH = os.environ['PATH'])
+rootEnv['INSTALLPATH'] = '#/install/$DISTNAME'
+rootEnv.Append(CPPPATH = ['#/include'])
+
+for distname in ['native', 'bfin']:
+    env = rootEnv.Clone()
+    env['DISTNAME'] = distname
+    
+    if distname is 'native':
+        env.Append(CPPFLAGS = ['-Wall', '-g'])
+        continue
+    elif distname is 'bfin':
+        t = Tool('bfin-linux-uclibc', ['buildfiles/tools'])
+        env['OBJSUFFIX'] = '.bfin.o'
+        if t.exists(env):
+            t(env)
+        else:
+            print('Tool not found: bfin-linux-uclibc')
+            continue
+    
+    env.SConscript(dirs=['src'], exports='env', variant_dir='build/$DISTNAME', duplicate=0)
