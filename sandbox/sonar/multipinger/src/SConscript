@@ -1,3 +1,6 @@
 Import('env')
 
-env.Install(env['INSTALLPATH'], env.Program('livecat.c'))
+livecat = env.Program('livecat.c')
+sonaragent = env.Program('sonaragent.cpp')
+
+env.Install(env['INSTALLPATH'], [livecat, sonaragent])
