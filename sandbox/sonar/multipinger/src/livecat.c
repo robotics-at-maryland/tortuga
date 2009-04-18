@@ -1,3 +1,11 @@
+/**
+ * @file src/livecat.c
+ * Dump sonar waveforms live over TCP/IP, a la Netcat
+ *
+ * @author Leo Singer
+ *
+ */
+
 #include "addresses.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -20,7 +28,7 @@ int main(int argc, char** argv)
 {
     if (argc < 4)
     {
-        fprintf(stderr, "usage: dump <address> <port> <seconds>\n");
+        fprintf(stderr, "usage: livecat <address> <port> <seconds>\n");
         return EXIT_FAILURE;
     }
     
