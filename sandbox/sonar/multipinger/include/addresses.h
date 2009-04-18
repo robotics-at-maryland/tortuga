@@ -147,4 +147,6 @@
 #define ADDR_ADSTATE1			0x202F0210
 #define ADDR_ADSTATE2			0x202F0214
 
+#define REG(a) (*(volatile unsigned short *) a)
+
 #endif

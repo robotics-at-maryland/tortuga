@@ -68,7 +68,7 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
     
-    fprintf(stderr, "About to collect %d blocks of %d samples.\n", nBlocks, BLOCKSIZE);
+    fprintf(stderr, "About to collect %lu blocks of %d samples.\n", nBlocks, BLOCKSIZE);
     fprintf(stderr, "Waiting for connection...");
     fflush(stderr);
     while (connect(sockfd, (struct sockaddr*)&addr, sizeof(struct sockaddr)) < 0)
