@@ -14,6 +14,7 @@ namespace ram {
 namespace vision {
 
 class Camera;
+class Image;
     
 } // namespace vision
 } // namespace ram
