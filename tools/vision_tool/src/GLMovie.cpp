@@ -11,9 +11,13 @@
 #include <wx/dcclient.h>
 #include <wx/msgdlg.h>
 
+#include <boost/bind.hpp>
+
 // Project Includes
-#include "vision/include/Camera.h"
 #include "GLMovie.h"
+#include "Model.h"
+
+#include "vision/include/Events.h"
 
 namespace ram {
 namespace tools {
@@ -21,7 +25,8 @@ namespace visionvwr {
 
 
 BEGIN_EVENT_TABLE(GLMovie, wxGLCanvas)
-    EVT_PAINT(GLMovie::onPaint) EVT_SIZE(GLMovie::onSize)
+    EVT_PAINT(GLMovie::onPaint)
+    EVT_SIZE(GLMovie::onSize)
 END_EVENT_TABLE()
 
 void GLMovie::onPaint(wxPaintEvent &event)
@@ -29,21 +34,22 @@ void GLMovie::onPaint(wxPaintEvent &event)
     //When this widget is asked to paint, it should perform the OpenGL rendering.
     this->render();
 }
-GLMovie::GLMovie(wxWindow *parent) :
+GLMovie::GLMovie(wxWindow *parent, Model* model) :
     wxGLCanvas(parent, -1, wxDefaultPosition, wxSize(640,480))
 {
     this->movieWidth = 0;
     this->movieHeight = 0;
     this->imageWidth = 0;
     this->imageHeight = 0;
-    this->m_camera = NULL;
+    this->m_model = model;
     this->initialized = false;
     this->imageData = NULL;
+
+    // Subscribe to new
+    m_model->subscribe(Model::NEW_IMAGE,
+                       boost::bind(&GLMovie::onNewImage, this, _1));
 }
-void GLMovie::setCamera(vision::Camera *camera)
-{
-    this->m_camera = camera;
-}
+
 void GLMovie::initGL()
 {
     //Seems to occur in all samples.
@@ -168,12 +174,13 @@ void GLMovie::onSize(wxSizeEvent &event)
     // glcanvas is always one size behind.
     Update();
 }
-void GLMovie::nextFrame()
+    
+void GLMovie::onNewImage(core::EventPtr event)
 {
-    if (m_camera == NULL)
-        return;
-    m_camera->update(0);
-    m_camera->getImage(this);
+    // TODO: pull image out of event
+    vision::ImageEventPtr imageEvent =
+        boost::static_pointer_cast<vision::ImageEvent>(event);
+    this->copyFrom(imageEvent->image);
 }
 
 int GLMovie::nextPowerOf2(int a)

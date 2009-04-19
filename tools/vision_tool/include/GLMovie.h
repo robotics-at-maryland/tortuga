@@ -15,6 +15,9 @@
 
 // Project Includes
 #include "vision/include/Image.h"
+#include "core/include/Forward.h"
+
+#include "Forward.h"
 
 namespace ram {
 namespace tools {
@@ -23,16 +26,9 @@ namespace visionvwr {
 class GLMovie: public wxGLCanvas, vision::Image
 {
 public:
-    GLMovie(wxWindow *parent);
+    GLMovie(wxWindow *parent, Model* model);
     ~GLMovie();
     
-    void setCamera(vision::Camera *camera);
-    
-    /** Prepares the next frame by loading it as a texture but does not
-        necessarily render with the new frame. */
-    void nextFrame();
-
-
     // Image methods TODO: Integrate me a different way
     virtual void copyFrom(const Image* src);
     
@@ -63,15 +59,19 @@ public:
     DECLARE_EVENT_TABLE()
     
 private:
-    GLuint textureid;
     void applyTexture();
     void render();
-    void onPaint(wxPaintEvent &event);
     void initGL();
+    
+    void onPaint(wxPaintEvent &event);
     void onSize(wxSizeEvent &event);
+    void onNewImage(core::EventPtr event);
+    
+   
+    GLuint textureid;
     
     /** The source of the new images */
-    vision::Camera* m_camera;
+    Model* m_model;
     
     //The size of the movie (in pixels).
     int movieWidth, movieHeight;

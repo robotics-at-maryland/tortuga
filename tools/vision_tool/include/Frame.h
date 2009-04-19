@@ -42,12 +42,11 @@ private:
     void onAbout(wxCommandEvent& event);
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
-    void onTimer(wxTimerEvent& event);
+//    void onTimer(wxTimerEvent& event);
     
     MediaControlPanel* m_mediaControlPanel;
     GLMovie* m_movie;
-    wxTimer* m_timer;
-    vision::Camera* m_camera;
+    Model* m_model;
     
     DECLARE_EVENT_TABLE()
 };

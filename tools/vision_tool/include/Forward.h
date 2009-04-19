@@ -16,6 +16,7 @@ namespace visionvwr {
     
 class GLMovie;
 class MediaControlPanel;
+class Model;
     
 } // namespace visionvwr
 } // namespace tools

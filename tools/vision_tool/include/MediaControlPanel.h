@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "vision/include/Forward.h"
+#include "core/include/Forward.h"
 
 #include "Forward.h"
 
@@ -32,50 +33,27 @@ class MediaControlPanel: public wxPanel
 {
 
 public:
-    MediaControlPanel(GLMovie* m_movie, wxTimer* timer, wxWindow *parent,
+    MediaControlPanel(Model* model, wxWindow *parent,
                       wxWindowID id = wxID_ANY,
                       const wxPoint &pos = wxDefaultPosition,
                       const wxSize &size = wxDefaultSize);
     ~MediaControlPanel();
-
-    void update();
-
-    void setCamera(vision::Camera* camera);
     
 private:
     /** Determines the current type of formatting we are using */
     enum FORMAT_OPTION {
+        FORMAT_LIVE,
         FORMAT_HOURS,
         FORMAT_MINUTES,
         FORMAT_SECONDS
     };
+
+    /** Handler for when a new image is ready */
+    void onNewImage(core::EventPtr event);
     
-    /** Shows the current movie progress and lets the user adjust it */
-    wxSlider* m_slider;
+    /** Handler for when the video source changes*/
+    void onImageSourceChanged(core::EventPtr event);
     
-    /** Text box displays the current time */
-    wxStaticText* m_text;
-
-    /** The object that is decoding the movie */
-    vision::Camera* m_camera;
-
-    /** The current movie we are displaying */
-    GLMovie* m_movie;
-    
-    /** The timer that drives the whole process */
-    wxTimer* m_timer;
-
-    /** Format string used */
-    FORMAT_OPTION m_format;
-
-    /** Records whether or not the slider is down */
-    bool m_sliderDown;
-    
-    enum MEDIA_CONTROL_PANEL_BUTTON_IDS
-    {
-        MEDIA_CONTROL_PANEL_BUTTON_PLAY, MEDIA_CONTROL_PANEL_BUTTON_STOP
-    };
-
     /** Handler for play button press */
     void onPlay(wxCommandEvent& event);
 
@@ -104,8 +82,23 @@ private:
     /** Breaks up the time into its hours minutes and seconds */
     static void breakUpTime(const double inSeconds, int& outHours,
                             int& outMinutes, double& outSeconds);
+
     
+    /** Shows the current movie progress and lets the user adjust it */
+    wxSlider* m_slider;
     
+    /** Text box displays the current time */
+    wxStaticText* m_text;
+
+    /** The object that is decoding the movie */
+    Model* m_model;
+
+    /** Format string used */
+    FORMAT_OPTION m_format;
+
+    /** Records whether or not the slider is down */
+    bool m_sliderDown;
+        
     DECLARE_EVENT_TABLE()
 };
 
