@@ -2,10 +2,12 @@ Import('env')
 
 env = env.Clone()
 
-if (env['DISTNAME'] is 'native'):
-    env.Append(CPPPATH = '/opt/local/include')
-    env.Append(LIBPATH = '/opt/local/lib')
-    env.Append(LIBS    = 'fftw3')
+if env['DISTNAME'] is 'native':
+    env.Append(CPPPATH = ['/opt/local/include'])
+    env.Append(LIBPATH = ['/opt/local/lib'])
+    env.Append(LIBS    = ['fftw3'])
+elif env['DISTNAME'] is 'bfin':
+    env.Append(LIBS    = ['m', 'bfdsp'])
 
 livecat = env.Program('livecat.c')
 sonaragent = env.Program('sonaragent.cpp')

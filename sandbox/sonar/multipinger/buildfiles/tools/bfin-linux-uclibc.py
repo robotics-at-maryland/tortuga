@@ -18,6 +18,7 @@ def generate(env):
     SCons.Tool.ar.generate(env)
     SCons.Tool.link.generate(env)
     env['CC'] = toolfamily+'gcc'
+    env['CXX'] = toolfamily+'g++'
     env['AS'] = toolfamily+'gcc'
     env['RANLIB'] = toolfamily+'ranlib'
     env['AR'] = toolfamily+'ar'

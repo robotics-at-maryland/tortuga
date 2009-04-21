@@ -64,7 +64,7 @@ fftw_complex fftwOut[BLOCKSIZE];
 
 typedef struct {
     int16_t re, im;
-} complex_int16_t;
+} complex_fract16;
 
 #endif
 
@@ -107,7 +107,7 @@ int16_t blocks[NCHANNELS][HOLDOFF_BLOCKCOUNT][BLOCKSIZE];
 
 
 // Storage for the DFT
-complex_int16_t dft[BLOCKSIZE];
+complex_fract16 dft[BLOCKSIZE];
 uint16_t power[BLOCKSIZE];
 
 
@@ -128,7 +128,7 @@ static bool isBlockAvailable()
 static void readBlock(int blockIndex)
 {
 #ifdef __BFIN
-    for (int i = 0 ; i < BLOCKSIZE ; i ++)
+    for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
     {
         blocks[0][blockIndex][i] = REG(ADDR_FIFO_OUT1A);
         blocks[1][blockIndex][i] = REG(ADDR_FIFO_OUT1B);
@@ -154,7 +154,7 @@ static void initDFT()
 {
 #ifdef __BFIN
     // Generate twiddle factor table for FFT
-    twidfftrad4_fr16(fftTwid, BLOCKSIZE);
+    twidfftrad4_fr16(rfftTwid, BLOCKSIZE);
 #else
     fftwPlan = fftw_plan_dft_r2c_1d(BLOCKSIZE, fftwIn, fftwOut, FFTW_PATIENT);
 #endif
