@@ -15,6 +15,8 @@
 #include "vision/include/Camera.h"
 #include "vision/include/Export.h"
 
+#include "core/include/ConfigNode.h"
+
 // Forward Declartions
 struct __dc1394_camera; 
 typedef struct __dc1394_camera dc1394camera_t;
@@ -32,12 +34,12 @@ class RAM_EXPORT DC1394Camera : public Camera
 {
 public:
     /** Opens the first firewire camera found on the bus */
-    DC1394Camera();
+    DC1394Camera(core::ConfigNode config);
 
-    DC1394Camera(size_t num);
+    DC1394Camera(core::ConfigNode config, size_t num);
     
     /** Open specific camera by its GUI */
-    DC1394Camera(uint64_t guid);
+    DC1394Camera(core::ConfigNode config, uint64_t guid);
 
     /** Shuts down the camera */
     virtual ~DC1394Camera();
@@ -62,7 +64,14 @@ public:
     
 private:
     /** Init with the camera with the given GUID */
-    void init(uint64_t guid);
+    void init(core::ConfigNode config, uint64_t guid);
+
+    /** Sets the brightness to the desired value (or auto) */
+    void setBrightness(uint32_t value, bool makeAuto = false);
+
+    /** Sets teh brightness to the desired value (or auto) */
+    void setWhiteBalance(uint32_t uValue, uint32_t vValue,
+                         bool makeAuto = false);
     
     /** Initializes libdc1394 if needed
      *

@@ -8,7 +8,19 @@ Subsystems:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
         priority: "low"
-        
+
+        # Camera configuration
+        ForwardCamera:
+            brightness: auto # 275
+            uValue: auto # 100
+            vValue: auto # 100
+            
+        DownwardCamera:
+            brightness: auto # 275
+            uValue: auto # 100
+            vValue: auto # 100
+
+        # Detector configuration
         AdaptiveThresher:
             foobared: true
             initialMinPixels: 150
