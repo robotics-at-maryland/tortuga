@@ -18,6 +18,7 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/FFMPEGCamera.h"
+#include "vision/include/Events.h"
 
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, IMAGE_SOURCE_CHANGED);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, NEW_IMAGE);
@@ -34,10 +35,16 @@ Model::Model() :
     m_timer(new wxTimer(this)),
     m_newImage(new vision::OpenCVImage(640, 480))
 {
+    Connect(m_timer->GetId(), wxEVT_TIMER,
+            wxTimerEventHandler(Model::onTimer));
 }
 
 Model::~Model()
 {
+    m_timer->Stop();
+    delete m_camera;
+    delete m_timer;
+    delete m_newImage;
 }
     
 void Model::openFile(std::string filename)
@@ -46,7 +53,9 @@ void Model::openFile(std::string filename)
         delete m_camera;
         
     m_camera = new vision::FFMPEGCamera(filename);
+    
     sendImageSourceChanged();
+    sendNewImage();
 }
     
 void Model::openCamera(int num)
@@ -58,7 +67,9 @@ void Model::openCamera(int num)
         m_camera = new vision::OpenCVCamera();
     else
         m_camera = new vision::OpenCVCamera(num, true);
+    
     sendImageSourceChanged();
+    sendNewImage();
 }
 
 
@@ -99,7 +110,10 @@ double Model::duration()
 void Model::seekToTime(double seconds)
 {
     if (m_camera)
+    {
         m_camera->seekToTime(seconds);
+        sendNewImage();
+    }
 }
     
 
@@ -113,19 +127,23 @@ double Model::currentTime()
 
 void Model::onTimer(wxTimerEvent &event)
 {
-    /// TODO: copy new image into m_newImage
-    
     sendNewImage();
 }
     
 void Model::sendNewImage()
 {
+    // Grab the latest image
+    m_camera->update(0);
+    m_camera->getImage(m_newImage);
 
+    // Send the event
+    vision::ImageEventPtr event(new vision::ImageEvent(m_newImage));
+    publish(NEW_IMAGE, event);
 }
     
 void Model::sendImageSourceChanged()
 {
-
+    publish(IMAGE_SOURCE_CHANGED, core::EventPtr(new core::Event));
 }
 
 

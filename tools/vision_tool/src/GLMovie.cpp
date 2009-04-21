@@ -177,10 +177,14 @@ void GLMovie::onSize(wxSizeEvent &event)
     
 void GLMovie::onNewImage(core::EventPtr event)
 {
-    // TODO: pull image out of event
     vision::ImageEventPtr imageEvent =
         boost::static_pointer_cast<vision::ImageEvent>(event);
+
+    // Copy the data to our local buffer
     this->copyFrom(imageEvent->image);
+
+    // Update the display
+    Refresh();
 }
 
 int GLMovie::nextPowerOf2(int a)

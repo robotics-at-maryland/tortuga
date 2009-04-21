@@ -55,9 +55,6 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     menuBar->Append( menuFile, _T("&File") );
     
     SetMenuBar( menuBar );
-
-    // Timer which drives the process
-//    m_timer = new wxTimer(this, ID_TIMER);
     
     // Add CameraView panel full screen
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
@@ -88,36 +85,13 @@ void Frame::onOpenFile(wxCommandEvent& event)
     if ( !filename.empty() )
     {
         m_model->openFile(std::string(filename.mb_str()));
-/*        
-        if (m_camera)
-            delete m_camera;
-        
-        m_camera = new vision::FFMPEGCamera(std::string(filename.mb_str()));
-        m_movie->setCamera(m_camera);
-        m_mediaControlPanel->setCamera(m_camera);
-        m_movie->nextFrame();*/
     }
 }
     
 void Frame::onOpenCamera(wxCommandEvent& event)
 {
     m_model->openCamera();
-/*    if (m_camera)
-        delete m_camera;
-    
-    m_camera = new vision::OpenCVCamera();
-    m_movie->setCamera(m_camera);
-    m_mediaControlPanel->setCamera(m_camera);*/
-}
-
-/*void Frame::onTimer(wxTimerEvent &event)
-{
-    m_movie->nextFrame();
-    m_movie->Refresh();
-    
-    m_mediaControlPanel->update();
-    }*/
-    
+}    
 
 } // namespace visionvwr
 } // namespace tools

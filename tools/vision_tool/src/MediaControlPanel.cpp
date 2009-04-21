@@ -157,12 +157,6 @@ void MediaControlPanel::updateBasedOnSliderEvent(wxScrollEvent& event)
     double timeStamp = event.GetPosition() / fps;
     m_model->seekToTime(timeStamp);
     updateTimeDisplay();
-    
-/*    if (!m_timer->IsRunning())
-    {
-        m_movie->nextFrame();
-            m_movie->Refresh();
-            }*/
 }
     
 void MediaControlPanel::updateTimeDisplay()
