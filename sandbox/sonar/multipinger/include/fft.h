@@ -1,3 +1,12 @@
+/**
+ * fft.h
+ * Wrapper class providing a uniform interface to an FFT via
+ * Blackfin's libbfdsp or fftw3.
+ *
+ * @author Leo Singer
+ *
+ */
+
 #ifndef _RAM_SONAR_FFT_H
 #define _RAM_SONAR_FFT_H
 
