@@ -13,8 +13,14 @@ elif env['DISTNAME'] is 'bfin':
     fr16patch = env.Library('fr16patch', ['cos_fr16.asm', 'sin_fr16.asm'])
     env.Append(LIBS = [fr16patch])
 
-livecat = env.Program('livecat.c')
+
+
 bffft = env.Program('bffft.cpp')
 sonaragent = env.Program('sonaragent.cpp')
+progs = [bffft, sonaragent]
 
-env.Install(env['INSTALLPATH'], [bffft, livecat, sonaragent])
+if env['DISTNAME'] is 'bfin':
+    livecat = env.Program('livecat.c')
+    progs += [livecat]
+
+env.Install(env['INSTALLPATH'], progs)

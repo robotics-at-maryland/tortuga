@@ -1,6 +1,10 @@
 #ifndef _ADDRESSES_H
 #define _ADDRESSES_H
 
+#ifndef __BFIN
+#error This header file can only be used with the Blackfin toolchain
+#endif
+
 // System timer config register:
 //  Bit 15 - Clock reset.  When high, resets clock to 0 and prevents clock increments.
 //							When low, clock functions normally
