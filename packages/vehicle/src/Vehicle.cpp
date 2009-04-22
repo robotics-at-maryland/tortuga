@@ -18,6 +18,7 @@
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
+#include "vehicle/include/Utility.h"
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/include/device/IThruster.h"
@@ -73,6 +74,9 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_bottomThruster(device::IThrusterPtr()),
     m_imuName(config["IMUName"].asString("IMU")),
     m_imu(device::IIMUPtr()),
+    m_hasMagBoom(false),
+    m_magBoomName(config["MagBoomName"].asString("")),
+    m_magBoom(device::IIMUPtr()),
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr()),
     m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
@@ -106,6 +110,10 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
             _addDevice(device::IDeviceMaker::newObject(params));
         }
     }
+
+    // If we specified a name of the mag boom we actually have one
+    if (m_magBoomName.size() > 0)
+        m_hasMagBoom = true;
 
     // Make sure thrusters are unsafed
     //unsafeThrusters();
@@ -169,7 +177,16 @@ math::Vector3 Vehicle::getAngularRate()
     
 math::Quaternion Vehicle::getOrientation()
 {
-    return getIMU()->getOrientation();
+    if (m_hasMagBoom)
+    {
+        return Utility::quaternionFromMagAccel(
+            getMagBoom()->getMagnetometer(),
+            getIMU()->getLinearAcceleration());
+    }
+    else
+    {
+        return getIMU()->getOrientation();
+    }
 }
     
 void Vehicle::safeThrusters()
@@ -323,6 +340,17 @@ device::IIMUPtr Vehicle::getIMU()
     if (!m_imu)
         m_imu = device::IDevice::castTo<device::IIMU>(getDevice(m_imuName));
     return m_imu;
+}
+
+device::IIMUPtr Vehicle::getMagBoom()
+{
+    assert(m_hasMagBoom && "No bag present can't get it");
+    if (!m_magBoom)
+    {
+        m_magBoom = device::IDevice::castTo<device::IIMU>(
+            getDevice(m_magBoomName));
+    }
+    return m_magBoom;
 }
 
 device::IDepthSensorPtr Vehicle::getDepthSensor()

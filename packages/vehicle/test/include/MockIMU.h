@@ -23,6 +23,9 @@ public:
     virtual ram::math::Vector3 getLinearAcceleration() 
     	{ return linearAcceleration; }
 
+    virtual ram::math::Vector3 getMagnetometer()
+    	{ return magnetometer; }
+    
     virtual ram::math::Vector3 getAngularRate()
     	{ return angularRate; }
     
@@ -30,6 +33,7 @@ public:
      	{ return orientation; }
     
     ram::math::Vector3 linearAcceleration;
+    ram::math::Vector3 magnetometer;
     ram::math::Vector3 angularRate;
     ram::math::Quaternion orientation;
 

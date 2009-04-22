@@ -92,6 +92,9 @@ public:
 protected:
     /** Grabs the IMU from the current list of devices */
     device::IIMUPtr getIMU();
+
+    /** Grabs the Mag Boom IMU from the current list of devices */
+    device::IIMUPtr getMagBoom();
     
     /** Grabs the depth sensor from the current list of devices*/
     device::IDepthSensorPtr getDepthSensor();
@@ -125,7 +128,11 @@ private:
 
     std::string m_imuName;
     vehicle::device::IIMUPtr m_imu;
-
+    
+    bool m_hasMagBoom;
+    std::string m_magBoomName;
+    vehicle::device::IIMUPtr m_magBoom;
+    
     std::string m_depthSensorName;
     vehicle::device::IDepthSensorPtr m_depthSensor;
 

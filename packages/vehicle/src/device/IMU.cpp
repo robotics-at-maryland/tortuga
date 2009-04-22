@@ -238,6 +238,13 @@ math::Vector3 IMU::getLinearAcceleration()
                          m_filteredState->accelZ);
 }
 
+math::Vector3 IMU::getMagnetometer()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return math::Vector3(m_filteredState->magX, m_filteredState->magY,
+                         m_filteredState->magZ);
+}
+    
 math::Vector3 IMU::getAngularRate()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);

@@ -57,6 +57,8 @@ public:
     
     virtual math::Vector3 getLinearAcceleration();
 
+    virtual math::Vector3 getMagnetometer();
+    
     virtual math::Vector3 getAngularRate();
 
     virtual math::Quaternion getOrientation();

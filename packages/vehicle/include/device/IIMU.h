@@ -23,7 +23,8 @@
 namespace ram {
 namespace vehicle {
 namespace device {
-    
+
+/** Abstract interface for Intertial Measurement Units */    
 class RAM_EXPORT IIMU : public IDevice         // For getName
              // boost::noncopyable
 {
@@ -32,8 +33,11 @@ public:
 
     virtual math::Vector3 getLinearAcceleration() = 0;
 
-    virtual math::Vector3 getAngularRate() = 0;
+    virtual math::Vector3 getMagnetometer() = 0;
     
+    virtual math::Vector3 getAngularRate() = 0;
+
+    /** The orientation derived from the current mag & accel data */
     virtual math::Quaternion getOrientation() = 0;
     
 protected:
