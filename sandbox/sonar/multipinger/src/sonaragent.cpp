@@ -97,6 +97,7 @@ BlockStatRecord noiseFloor;
 BlockStatRecord blockStatRecordBuffer[STATRECORD_BLOCKCOUNT];
 vector<BlockStatRecordSynopsis> noiseFloorBlocks(NOISEFLOOR_BLOCKCOUNT);
 int holdoff = 0;
+int triggerHarmonic;
 unsigned short blockIndex = 0;
 unsigned short blockStatIndex = 0;
 unsigned short workIndex = 0;
@@ -154,7 +155,7 @@ static void initDFT()
 {
 #ifdef __BFIN
     // Generate twiddle factor table for FFT
-    twidfftrad4_fr16(rfftTwid, BLOCKSIZE);
+    twidfftrad2_fr16(rfftTwid, BLOCKSIZE);
 #else
     fftwPlan = fftw_plan_dft_r2c_1d(BLOCKSIZE, fftwIn, fftwOut, FFTW_PATIENT);
 #endif
@@ -194,6 +195,156 @@ static int16_t iabs(int16_t a)
         return a;
 }
 
+static void updateBlockStatistics(int blockIndex)
+{
+    // Update statistics for this block
+    BlockStatRecord& stat = blockStatRecordBuffer[blockStatIndex];
+    
+    int32_t sumOfMeans = 0;
+    uint64_t sumOfMeansOfSquares = 0;
+    
+    for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+    {
+        int32_t sum = 0;
+        uint64_t sumOfSquares = 0;
+        
+        for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
+        {
+            const int16_t& sample = blocks[channel][blockIndex][i];
+            sum += sample;
+            sumOfSquares += (int32_t)sample*sample;
+        }
+        
+        const int16_t mean = sum >> LOG2_BLOCKSIZE;
+        const uint32_t meanOfSquares = sumOfSquares >> LOG2_BLOCKSIZE;
+        
+        stat.mean[channel] = mean;
+        stat.meanOfSquares[channel] = meanOfSquares;
+        sumOfMeans += mean;
+        sumOfMeansOfSquares += meanOfSquares;
+    }
+    
+    stat.averageVariance =
+    ((uint32_t)(sumOfMeansOfSquares >> LOG2_NCHANNELS)) - 
+    ((uint32_t)(((uint64_t)((int64_t)sumOfMeans*sumOfMeans)) >> (LOG2_NCHANNELS * 2)));
+}
+
+#if 0
+
+enum {
+    SAVE_WAVEFORM, DISCARD_WAVEFORM
+};
+
+inline int16_t getNextSample(uint8_t channel)
+{
+#ifdef __BFIN
+    return REG((ADDR_FIFO_OUT1B - ADDR_FIFO_OUT1A) * channel + ADDR_FIFO_OUT1A);
+#else
+    /// TODO: implement
+#endif
+}
+
+template<int mode>
+static void updateBlockStatistics(int blockIndex)
+{
+    // Update statistics for this block
+    BlockStatRecord& stat = blockStatRecordBuffer[blockStatIndex];
+    
+    int32_t sumOfMeans = 0;
+    uint64_t sumOfMeansOfSquares = 0;
+    
+    for (uint8_t channel = 0 ; channel < NCHANNELS ; channel ++)
+    {
+        int32_t sum = 0;
+        uint64_t sumOfSquares = 0;
+        
+        for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
+        {
+            const int16_t& sample = blocks[channel][blockIndex][i];
+            sum += sample;
+            sumOfSquares += (int32_t)sample*sample;
+        }
+        
+        const int16_t mean = sum >> LOG2_BLOCKSIZE;
+        const uint32_t meanOfSquares = sumOfSquares >> LOG2_BLOCKSIZE;
+        
+        stat.mean[channel] = mean;
+        stat.meanOfSquares[channel] = meanOfSquares;
+        sumOfMeans += mean;
+        sumOfMeansOfSquares += meanOfSquares;
+    }
+    
+    stat.averageVariance =
+    ((uint32_t)(sumOfMeansOfSquares >> LOG2_NCHANNELS)) - 
+    ((uint32_t)(((uint64_t)((int64_t)sumOfMeans*sumOfMeans)) >> (LOG2_NCHANNELS * 2)));
+}
+
+#endif
+
+/**
+ * Determine which harmonic, if any, produced a trigger.
+ *
+ * @return an integer in [HARMONIC_MIN, HARMONIC_MAX] if a trigger occurred
+ *         -1 if no triger occurred
+ */
+static int getTriggerHarmonic(int blockIndex)
+{
+    bool pingFound = true;
+    bool loudEnough = false;
+    int globalMaxPowerIndex;
+    
+    // Evaluate spectral density check
+    for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+    {
+        // Compute DFT of current channel
+        doDFT(channel);
+        
+        // Compute power in each channel (some arbitrary scaling to prevent overflow)
+        for (unsigned int k = 0 ; k < BLOCKSIZE ; k ++)
+            power[k] = (uint16_t)(((uint32_t)iabs(dft[k].re)*(uint16_t)iabs(dft[k].re)) >> 16)
+            + (uint16_t)(((uint32_t)iabs(dft[k].im)*(uint16_t)iabs(dft[k].im)) >> 16);
+        
+        // Compute total power in spectrum by summing the power at every harmonic
+        // Note: could use Parseval's theorem, except for round-off error
+        uint32_t totalPower = 0;
+        for (unsigned int k = 0 ; k < BLOCKSIZE ; k ++)
+            totalPower += power[k];
+        
+        // Compute the maximum harmonic and its index
+        int maxPowerIndex = HARMONIC_MIN;
+        uint16_t maxPowerValue = power[HARMONIC_MIN];
+        for (unsigned int k = HARMONIC_MIN+1 ; k < HARMONIC_MAX ; k ++)
+        {
+            uint16_t powerValue = power[k];
+            if (powerValue > maxPowerValue)
+            {
+                maxPowerValue = powerValue;
+                maxPowerIndex = k;
+            }
+        }
+        
+        // If the harmonic with the most power accounted for less than a
+        // third of the signal's total power, then discard the block.
+        if ((uint32_t)maxPowerValue * 3 >= totalPower)
+            loudEnough = true;
+        
+        // If the maximum harmonic was different for any channel, then
+        // discard the block.
+        if (channel == 0)
+        {
+            globalMaxPowerIndex = maxPowerIndex;
+        } else if (globalMaxPowerIndex != maxPowerIndex) {
+            pingFound = false;
+            break;
+        }
+    }
+    
+    if (pingFound && loudEnough)
+        return globalMaxPowerIndex;
+    else
+        return -1;
+}
+
 int main(int argc, char** argv)
 {
     initDFT();
@@ -204,104 +355,13 @@ int main(int argc, char** argv)
         waitBlockAvailable();
         readBlock(blockIndex);
         
-        
-        
-        
-        // Update statistics for this block
-        BlockStatRecord& stat = blockStatRecordBuffer[blockStatIndex];
-        {
-            int32_t sumOfMeans = 0;
-            uint64_t sumOfMeansOfSquares = 0;
-            
-            for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
-            {
-                int32_t sum = 0;
-                uint64_t sumOfSquares = 0;
-                
-                for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
-                {
-                    const int16_t& sample = blocks[channel][blockIndex][i];
-                    sum += sample;
-                    sumOfSquares += (int32_t)sample*sample;
-                }
-                
-                const int16_t mean = sum >> LOG2_BLOCKSIZE;
-                const uint32_t meanOfSquares = sumOfSquares >> LOG2_BLOCKSIZE;
-                
-                stat.mean[channel] = mean;
-                stat.meanOfSquares[channel] = meanOfSquares;
-                sumOfMeans += mean;
-                sumOfMeansOfSquares += meanOfSquares;
-            }
-            
-            stat.averageVariance =
-            ((uint32_t)(sumOfMeansOfSquares >> LOG2_NCHANNELS)) - 
-            ((uint32_t)(((uint64_t)((int64_t)sumOfMeans*sumOfMeans)) >> (LOG2_NCHANNELS * 2)));
-        }
-        
-        
-        
+        updateBlockStatistics(blockIndex);
         
         // If the holdoff counter is <= 0, then we should be seeking a trigger.
         if (holdoff <= 0)
         {
-            bool triggered;
-            {
-                bool pingFound = true;
-                bool loudEnough = false;
-                int globalMaxPowerIndex;
-                
-                // Evaluate spectral density check
-                for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
-                {
-                    // Compute DFT of current channel
-                    doDFT(channel);
-                    
-                    // Compute power in each channel (some arbitrary scaling to prevent overflow)
-                    for (unsigned int k = 0 ; k < BLOCKSIZE ; k ++)
-                        power[k] = (uint16_t)(((uint32_t)iabs(dft[k].re)*(uint16_t)iabs(dft[k].re)) >> 16)
-                                 + (uint16_t)(((uint32_t)iabs(dft[k].im)*(uint16_t)iabs(dft[k].im)) >> 16);
-                    
-                    // Compute total power in spectrum by summing the power at every harmonic
-                    // Note: could use Parseval's theorem, except for round-off error
-                    uint32_t totalPower = 0;
-                    for (unsigned int k = 0 ; k < BLOCKSIZE ; k ++)
-                        totalPower += power[k];
-                    
-                    // Compute the maximum harmonic and its index
-                    int maxPowerIndex = HARMONIC_MIN;
-                    uint16_t maxPowerValue = power[HARMONIC_MIN];
-                    for (unsigned int k = HARMONIC_MIN+1 ; k < HARMONIC_MAX ; k ++)
-                    {
-                        uint16_t powerValue = power[k];
-                        if (powerValue > maxPowerValue)
-                        {
-                            maxPowerValue = powerValue;
-                            maxPowerIndex = k;
-                        }
-                    }
-                    
-                    // If the harmonic with the most power accounted for less than a
-                    // third of the signal's total power, then discard the block.
-                    if ((uint32_t)maxPowerValue * 3 >= totalPower)
-                        loudEnough = true;
-                    
-                    // If the maximum harmonic was different for any channel, then
-                    // discard the block.
-                    if (channel == 0)
-                    {
-                        globalMaxPowerIndex = maxPowerIndex;
-                    } else if (globalMaxPowerIndex != maxPowerIndex) {
-                        pingFound = false;
-                        break;
-                    }
-                }
-                
-                triggered = pingFound && loudEnough;
-            }
-            
-            
-            if (triggered)
+            triggerHarmonic = getTriggerHarmonic(blockIndex);
+            if (triggerHarmonic != -1)
             {
                 workIndex = 0;
                 triggerOriginBlockIndex = blockStatIndex;
@@ -461,6 +521,8 @@ int main(int argc, char** argv)
                 {
                     // TODO: report ping
                 }
+                
+                ++workIndex;
                 
             }
             

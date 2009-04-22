@@ -19,11 +19,11 @@ def generate(env):
     SCons.Tool.link.generate(env)
     env['CC'] = toolfamily+'gcc'
     env['CXX'] = toolfamily+'g++'
-    env['AS'] = toolfamily+'gcc'
+    env['AS'] = toolfamily+'as'
     env['RANLIB'] = toolfamily+'ranlib'
     env['AR'] = toolfamily+'ar'
     env['BIN2HEX'] = toolfamily+'bin2hex'
     env['CCFLAGS'] = []
     env['OBJSUFFIX'] = '.o'
     env['PROGSUFFIX'] = '.coff'
-    env['ASCOM']     = '$AS $ASFLAGS -o $TARGET -c $SOURCES'
+    env['ASCOM']     = '$AS $ASFLAGS -o $TARGET $SOURCES'

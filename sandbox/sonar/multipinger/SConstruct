@@ -13,6 +13,7 @@ for distname in ['native', 'bfin']:
         env.Append(CPPFLAGS = ['-g'])
     elif distname is 'bfin':
         t = Tool('bfin-linux-uclibc', ['buildfiles/tools'])
+        env.Append(ASFLAGS = ['-mfdpic'])
         env.Replace(OBJSUFFIX = '.bfin.o')
         if t.exists(env):
             t(env)
