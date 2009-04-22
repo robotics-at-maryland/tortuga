@@ -42,30 +42,16 @@ static const unsigned int NOISEFLOOR_WORKSIZE = 64;
 static const unsigned int HARMONIC_MIN = 10;
 static const unsigned int HARMONIC_MAX = 20;
 static const unsigned int HARMONIC_COUNT = HARMONIC_MAX - HARMONIC_MIN;
+static const unsigned int SAMPFREQ = 500000;
 
+#include "fft.h"
 #include <queue>
 #include <vector>
 #include <stdio.h>
+#include <assert.h>
 
 #ifdef __BFIN
 #include "addresses.h"
-#include <filter.h>
-#include <fract_complex.h>
-#include <fract_math.h>
-
-complex_fract16 rfftTwid[BLOCKSIZE];
-
-#else
-#include <fftw3.h>
-
-fftw_plan fftwPlan;
-double fftwIn[BLOCKSIZE];
-fftw_complex fftwOut[BLOCKSIZE];
-
-typedef struct {
-    int16_t re, im;
-} complex_fract16;
-
 #endif
 
 using namespace std;
@@ -93,23 +79,23 @@ struct BlockStatRecordSynopsis {
     }
 };
 
-BlockStatRecord noiseFloor;
-BlockStatRecord blockStatRecordBuffer[STATRECORD_BLOCKCOUNT];
-vector<BlockStatRecordSynopsis> noiseFloorBlocks(NOISEFLOOR_BLOCKCOUNT);
-int holdoff = 0;
-int triggerHarmonic;
-unsigned short blockIndex = 0;
-unsigned short blockStatIndex = 0;
-unsigned short workIndex = 0;
-unsigned short triggerOriginBlockIndex = 0;
-unsigned short savedBlockIndex = 0;
+static BlockStatRecord noiseFloor;
+static BlockStatRecord blockStatRecordBuffer[STATRECORD_BLOCKCOUNT];
+static vector<BlockStatRecordSynopsis> noiseFloorBlocks(NOISEFLOOR_BLOCKCOUNT);
+static int holdoff = 0;
+static int triggerHarmonic;
+static unsigned short blockIndex = 0;
+static unsigned short blockStatIndex = 0;
+static unsigned short workIndex = 0;
+static unsigned short savedBlockStatIndex = 0;
+static unsigned short savedBlockIndex = 0;
 
-int16_t blocks[NCHANNELS][HOLDOFF_BLOCKCOUNT][BLOCKSIZE];
+static int16_t blocks[NCHANNELS][HOLDOFF_BLOCKCOUNT][BLOCKSIZE];
 
 
 // Storage for the DFT
-complex_fract16 dft[BLOCKSIZE];
-uint16_t power[BLOCKSIZE];
+static ram::sonar::fft_fract16<BLOCKSIZE> fft;
+static uint16_t power[BLOCKSIZE];
 
 
 /**
@@ -123,61 +109,6 @@ static bool isBlockAvailable()
     return REG(ADDR_FIFO_COUNT1A) >= BLOCKSIZE;
 #else
     return true;
-#endif
-}
-
-static void readBlock(int blockIndex)
-{
-#ifdef __BFIN
-    for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
-    {
-        blocks[0][blockIndex][i] = REG(ADDR_FIFO_OUT1A);
-        blocks[1][blockIndex][i] = REG(ADDR_FIFO_OUT1B);
-        blocks[2][blockIndex][i] = REG(ADDR_FIFO_OUT2A);
-        blocks[3][blockIndex][i] = REG(ADDR_FIFO_OUT2B);
-    }
-#else
-    int16_t temp[BLOCKSIZE][NCHANNELS];
-    
-    if (1 != fread(*temp, sizeof(temp), 1, stdin))
-    {
-        printf("--------------------\n");
-        exit(0);
-    }
-    
-    for (uint16_t i = 0 ; i < BLOCKSIZE ; i ++)
-        for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
-            blocks[channel][blockIndex][i] = temp[i][channel];
-#endif
-}
-
-static void initDFT()
-{
-#ifdef __BFIN
-    // Generate twiddle factor table for FFT
-    twidfftrad2_fr16(rfftTwid, BLOCKSIZE);
-#else
-    fftwPlan = fftw_plan_dft_r2c_1d(BLOCKSIZE, fftwIn, fftwOut, FFTW_PATIENT);
-#endif
-}
-
-static void doDFT(int channel)
-{
-#ifdef __BFIN
-    int block_exponent;
-    // Fourier transform the current block.
-    rfft_fr16(blocks[channel][blockIndex], dft, rfftTwid, 1, BLOCKSIZE, &block_exponent, 0);    
-#else
-    for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
-        fftwIn[i] = blocks[channel][blockIndex][i];
-    
-    fftw_execute(fftwPlan);
-    
-    for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
-    {
-        dft[i].re = fftwOut[i][0];
-        dft[i].im = fftwOut[i][1];
-    }    
 #endif
 }
 
@@ -195,57 +126,48 @@ static int16_t iabs(int16_t a)
         return a;
 }
 
-static void updateBlockStatistics(int blockIndex)
-{
-    // Update statistics for this block
-    BlockStatRecord& stat = blockStatRecordBuffer[blockStatIndex];
-    
-    int32_t sumOfMeans = 0;
-    uint64_t sumOfMeansOfSquares = 0;
-    
-    for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
-    {
-        int32_t sum = 0;
-        uint64_t sumOfSquares = 0;
-        
-        for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
-        {
-            const int16_t& sample = blocks[channel][blockIndex][i];
-            sum += sample;
-            sumOfSquares += (int32_t)sample*sample;
-        }
-        
-        const int16_t mean = sum >> LOG2_BLOCKSIZE;
-        const uint32_t meanOfSquares = sumOfSquares >> LOG2_BLOCKSIZE;
-        
-        stat.mean[channel] = mean;
-        stat.meanOfSquares[channel] = meanOfSquares;
-        sumOfMeans += mean;
-        sumOfMeansOfSquares += meanOfSquares;
-    }
-    
-    stat.averageVariance =
-    ((uint32_t)(sumOfMeansOfSquares >> LOG2_NCHANNELS)) - 
-    ((uint32_t)(((uint64_t)((int64_t)sumOfMeans*sumOfMeans)) >> (LOG2_NCHANNELS * 2)));
-}
-
-#if 0
-
 enum {
     SAVE_WAVEFORM, DISCARD_WAVEFORM
 };
 
-inline int16_t getNextSample(uint8_t channel)
+static inline int16_t getNextSample(uint8_t channel)
 {
 #ifdef __BFIN
     return REG((ADDR_FIFO_OUT1B - ADDR_FIFO_OUT1A) * channel + ADDR_FIFO_OUT1A);
 #else
-    /// TODO: implement
+    static int16_t buf[BLOCKSIZE][NCHANNELS];
+    static unsigned int idx[NCHANNELS];
+    static bool initialized = false;
+    if (!initialized)
+    {
+        for (unsigned int ch = 0 ; ch < NCHANNELS ; ch ++)
+            idx[ch] = BLOCKSIZE;
+        initialized = true;
+    }
+    
+    if (idx[channel] == BLOCKSIZE)
+    {
+        // Make sure that if we are advancing past the current block that every 
+        // channel has been fully consumed
+        for (unsigned int ch = 0 ; ch < NCHANNELS ; ch ++)
+            assert(idx[channel] == BLOCKSIZE);
+        
+        if (1 != fread(*buf, sizeof(buf), 1, stdin))
+        {
+            printf("--------------------\n");
+            exit(0);
+        }
+        
+        for (unsigned int ch = 0 ; ch < NCHANNELS ; ch ++)
+            idx[ch] = 0;
+    }
+    
+    return buf[idx[channel]++][channel];
 #endif
 }
 
 template<int mode>
-static void updateBlockStatistics(int blockIndex)
+static void readBlockAndUpdateStats()
 {
     // Update statistics for this block
     BlockStatRecord& stat = blockStatRecordBuffer[blockStatIndex];
@@ -260,9 +182,12 @@ static void updateBlockStatistics(int blockIndex)
         
         for (unsigned int i = 0 ; i < BLOCKSIZE ; i ++)
         {
-            const int16_t& sample = blocks[channel][blockIndex][i];
+            const int16_t sample = getNextSample(channel);
             sum += sample;
             sumOfSquares += (int32_t)sample*sample;
+            
+            if (mode == SAVE_WAVEFORM)
+                blocks[channel][blockIndex][i] = sample;
         }
         
         const int16_t mean = sum >> LOG2_BLOCKSIZE;
@@ -278,8 +203,6 @@ static void updateBlockStatistics(int blockIndex)
     ((uint32_t)(sumOfMeansOfSquares >> LOG2_NCHANNELS)) - 
     ((uint32_t)(((uint64_t)((int64_t)sumOfMeans*sumOfMeans)) >> (LOG2_NCHANNELS * 2)));
 }
-
-#endif
 
 /**
  * Determine which harmonic, if any, produced a trigger.
@@ -297,12 +220,12 @@ static int getTriggerHarmonic(int blockIndex)
     for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
     {
         // Compute DFT of current channel
-        doDFT(channel);
+        fft.doDFT(blocks[channel][blockIndex]);
         
         // Compute power in each channel (some arbitrary scaling to prevent overflow)
         for (unsigned int k = 0 ; k < BLOCKSIZE ; k ++)
-            power[k] = (uint16_t)(((uint32_t)iabs(dft[k].re)*(uint16_t)iabs(dft[k].re)) >> 16)
-            + (uint16_t)(((uint32_t)iabs(dft[k].im)*(uint16_t)iabs(dft[k].im)) >> 16);
+            power[k] = (uint16_t)(((uint32_t)iabs(fft.dftOut[k].re)*(uint16_t)iabs(fft.dftOut[k].re)) >> 16)
+            + (uint16_t)(((uint32_t)iabs(fft.dftOut[k].im)*(uint16_t)iabs(fft.dftOut[k].im)) >> 16);
         
         // Compute total power in spectrum by summing the power at every harmonic
         // Note: could use Parseval's theorem, except for round-off error
@@ -347,28 +270,46 @@ static int getTriggerHarmonic(int blockIndex)
 
 int main(int argc, char** argv)
 {
-    initDFT();
     
+    // Initialize noise floor statistics and also waveform records
+    {
+        for (blockStatIndex = 0 ; blockStatIndex < STATRECORD_BLOCKCOUNT ; blockStatIndex ++)
+        {
+            waitBlockAvailable();
+            readBlockAndUpdateStats<DISCARD_WAVEFORM>();
+        }
+        blockStatIndex = 0;
+    }
+    
+    
+    // Main loop
     while (1)
     {
-        // Wait for data available, then read it.
+        // Wait for data available.
         waitBlockAvailable();
-        readBlock(blockIndex);
-        
-        updateBlockStatistics(blockIndex);
         
         // If the holdoff counter is <= 0, then we should be seeking a trigger.
         if (holdoff <= 0)
         {
-            triggerHarmonic = getTriggerHarmonic(blockIndex);
-            if (triggerHarmonic != -1)
+            readBlockAndUpdateStats<SAVE_WAVEFORM>();
+            
+            // Wait LOOKBACK_BLOCKCOUNT blocks after a holdoff period has ended
+            // so that the waveform record gets re-filled
+            if ((unsigned int)(-holdoff) < LOOKBACK_BLOCKCOUNT)
             {
-                workIndex = 0;
-                triggerOriginBlockIndex = blockStatIndex;
-                savedBlockIndex = blockIndex;
-                holdoff = HOLDOFF_BLOCKCOUNT;
+                --holdoff;
+            } else {
+                triggerHarmonic = getTriggerHarmonic(blockIndex);
+                if (triggerHarmonic != -1)
+                {
+                    workIndex = 0;
+                    savedBlockStatIndex = blockStatIndex;
+                    savedBlockIndex = blockIndex;
+                    holdoff = HOLDOFF_BLOCKCOUNT;
+                }
             }
-        }
+        } else
+            readBlockAndUpdateStats<DISCARD_WAVEFORM>();
         
         
         
@@ -385,12 +326,12 @@ int main(int argc, char** argv)
                 // First step: take the NOISEFLOOR_BLOCKCOUNT most recent
                 // of the past STATRECORD_BLOCKCOUNT statistics records.
                 for ( ; workIndex < NOISEFLOOR_BLOCKCOUNT ; workIndex ++)
-                    noiseFloorBlocks[workIndex] = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + triggerOriginBlockIndex - workIndex) % STATRECORD_BLOCKCOUNT];
+                    noiseFloorBlocks[workIndex] = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + savedBlockStatIndex - workIndex) % STATRECORD_BLOCKCOUNT];
                 
                 // Max-heapify them.
                 make_heap(noiseFloorBlocks.begin(), noiseFloorBlocks.end());
                 
-            } else if (workIndex < NOISEFLOOR_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT) {
+            } else if (workIndex < STATRECORD_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT) {
                 
                 // Spread the following work over however many iterations of the
                 // main loop that it takes.  After every NOISEFLOOR_WORKSIZE
@@ -401,13 +342,13 @@ int main(int argc, char** argv)
                     
                     unsigned short endIndex =
                     min(workIndex + NOISEFLOOR_WORKSIZE,
-                        NOISEFLOOR_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT);
+                        STATRECORD_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT);
                     
                     // Process the next NOISEFLOOR_WORKSIZE statistics records.
                     for ( ; workIndex < endIndex ; workIndex ++)
                     {
                         // Get a reference to the next record.
-                        const BlockStatRecord& temp = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + triggerOriginBlockIndex - workIndex) % STATRECORD_BLOCKCOUNT];
+                        const BlockStatRecord& temp = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + savedBlockStatIndex - workIndex) % STATRECORD_BLOCKCOUNT];
                         
                         // If this block has a lower average variance than the
                         // current max in the heap, then replace the max in the
@@ -422,7 +363,7 @@ int main(int argc, char** argv)
                     
                 } while (!isBlockAvailable());
                 
-            } else if (workIndex == NOISEFLOOR_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT) {
+            } else if (workIndex == STATRECORD_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT) {
                 
                 // After the least NOISEFLOOR_BLOCKCOUNT of the past 
                 // STATRECORD_BLOCKCOUNT statistics records have been
@@ -453,7 +394,7 @@ int main(int argc, char** argv)
                 
                 ++workIndex;
                 
-            } else if (workIndex == NOISEFLOOR_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT + 1) {
+            } else if (workIndex == STATRECORD_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT + 1) {
                 
                 bool pingFound = true;
                 
@@ -476,7 +417,7 @@ int main(int argc, char** argv)
                     // Find the latest block which is completely "quiet".
                     for (lookBackBlock = 0 ; lookBackBlock < LOOKBACK_BLOCKCOUNT - 1 ; lookBackBlock ++)
                     {
-                        const BlockStatRecord& lookBackStat = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + triggerOriginBlockIndex - lookBackBlock) % STATRECORD_BLOCKCOUNT];
+                        const BlockStatRecord& lookBackStat = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + savedBlockStatIndex - lookBackBlock) % STATRECORD_BLOCKCOUNT];
                         const uint32_t blockVariance = (uint64_t)lookBackStat.meanOfSquares[channel] + noiseMeanSquared - twiceNoiseMean * lookBackStat.mean[channel];
                         
                         if (blockVariance <= twiceNoiseVariance)
@@ -490,8 +431,8 @@ int main(int argc, char** argv)
                         break;
                     }
                     
-                    const int absLookBackBlock = (STATRECORD_BLOCKCOUNT + triggerOriginBlockIndex - lookBackBlock + 1) % STATRECORD_BLOCKCOUNT;
-                    const int absLookBackBlock2 = (STATRECORD_BLOCKCOUNT + triggerOriginBlockIndex - lookBackBlock ) % STATRECORD_BLOCKCOUNT;
+                    const int absLookBackBlock = (LOOKBACK_BLOCKCOUNT + savedBlockIndex - lookBackBlock + 1) % LOOKBACK_BLOCKCOUNT;
+                    const int absLookBackBlock2 = (LOOKBACK_BLOCKCOUNT + savedBlockIndex - lookBackBlock ) % LOOKBACK_BLOCKCOUNT;
                     
                     uint32_t diffsSquared[BLOCKSIZE];
                     for (uint16_t i = 0 ; i < BLOCKSIZE ; i ++)
@@ -520,6 +461,11 @@ int main(int argc, char** argv)
                 if (pingFound)
                 {
                     // TODO: report ping
+                    float freq = (float)triggerHarmonic*SAMPFREQ/BLOCKSIZE*0.001f;
+                    printf("signal at %02.3f kHz, block %d\n", freq, blockIndex);
+                    for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+                        printf("   channel %d at lag %d\n", channel, lags[channel]);
+                    printf("   TDOAS: %d %d %d\n", lags[1]-lags[0],lags[2]-lags[0],lags[3]-lags[0]);
                 }
                 
                 ++workIndex;
