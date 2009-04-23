@@ -23,6 +23,7 @@
 #include "Frame.h"
 #include "GLMovie.h"
 #include "MediaControlPanel.h"
+#include "DetectorControlPanel.h"
 #include "Model.h"
 
 namespace ram {
@@ -58,10 +59,16 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     
     // Add CameraView panel full screen
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
     m_movie=new GLMovie(this, m_model);
     sizer->Add(m_movie, 1, wxEXPAND, 0);
+
     m_mediaControlPanel = new MediaControlPanel(m_model, this);
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
+
+    wxPanel* detectorControlPanel = new DetectorControlPanel(m_model, this);
+    sizer->Add(detectorControlPanel, 0, wxEXPAND, 0);
+
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 }

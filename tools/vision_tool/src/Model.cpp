@@ -163,6 +163,9 @@ void Model::changeToDetector(std::string detectorType)
     // Make the detector
     m_detector = vision::DetectorMaker::newObject(
         std::make_pair(config, core::EventHubPtr()));
+
+    // Update display without getting a new image from the source
+    sendNewImage(false);
 }
 
 
@@ -172,6 +175,9 @@ void Model::disableDetector()
     m_detector = vision::DetectorPtr();
     // Change the image we are sending to the latest image form the image source
     m_imageToSend = m_latestImage;
+
+    // Update display without getting a new image from the source
+    sendNewImage(false);
 }
 
 void Model::detectorSettingsChanged()
