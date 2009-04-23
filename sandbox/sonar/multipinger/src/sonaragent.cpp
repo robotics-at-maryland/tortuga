@@ -51,6 +51,10 @@ static const unsigned int SAMPFREQ = 500000;
 #include <stdio.h>
 #include <assert.h>
 
+#ifdef DEBUG
+#include <cmath>
+#endif
+
 #ifdef __BFIN
 #include "addresses.h"
 #endif
@@ -58,8 +62,8 @@ static const unsigned int SAMPFREQ = 500000;
 using namespace std;
 
 struct BlockStatRecord {
-    int16_t mean[NCHANNELS];
-    uint32_t meanOfSquares[NCHANNELS];
+    int32_t sum[NCHANNELS];
+    uint64_t sumOfSquares[NCHANNELS];
     uint32_t averageVariance;
 };
 
@@ -99,6 +103,8 @@ static ram::sonar::fft_fract16<BLOCKSIZE> fft;
 static uint16_t power[BLOCKSIZE];
 
 
+
+
 /**
  * Determine if a block can be read from the ADCs.
  * @return true if at least @c BLOCKSIZE samples are available to be read,
@@ -112,6 +118,9 @@ static bool isBlockAvailable()
     return true;
 #endif
 }
+
+
+
 
 static void waitBlockAvailable()
 {
@@ -130,6 +139,9 @@ static int16_t iabs(int16_t a)
 enum {
     SAVE_WAVEFORM, DISCARD_WAVEFORM
 };
+
+
+
 
 static inline int16_t getNextSample(uint8_t channel)
 {
@@ -167,14 +179,15 @@ static inline int16_t getNextSample(uint8_t channel)
 #endif
 }
 
+
+
 template<int mode>
 static void readBlockAndUpdateStats()
 {
     // Update statistics for this block
     BlockStatRecord& stat = blockStatRecordBuffer[blockStatIndex];
     
-    int32_t sumOfMeans = 0;
-    uint64_t sumOfMeansOfSquares = 0;
+    uint64_t sumOfVariances = 0;
     
     for (uint8_t channel = 0 ; channel < NCHANNELS ; channel ++)
     {
@@ -191,18 +204,13 @@ static void readBlockAndUpdateStats()
                 blocks[channel][blockIndex][i] = sample;
         }
         
-        const int16_t mean = sum >> LOG2_BLOCKSIZE;
-        const uint32_t meanOfSquares = sumOfSquares >> LOG2_BLOCKSIZE;
+        stat.sum[channel] = sum;
+        stat.sumOfSquares[channel] = sumOfSquares;
         
-        stat.mean[channel] = mean;
-        stat.meanOfSquares[channel] = meanOfSquares;
-        sumOfMeans += mean;
-        sumOfMeansOfSquares += meanOfSquares;
+        sumOfVariances += sumOfSquares - (((uint64_t)((int64_t)sum*sum)) >> LOG2_BLOCKSIZE);
     }
     
-    stat.averageVariance =
-    ((uint32_t)(sumOfMeansOfSquares >> LOG2_NCHANNELS)) - 
-    ((uint32_t)(((uint64_t)((int64_t)sumOfMeans*sumOfMeans)) >> (LOG2_NCHANNELS * 2)));
+    stat.averageVariance = sumOfVariances >> LOG2_BLOCKSIZE;
 }
 
 /**
@@ -370,10 +378,10 @@ int main(int argc, char** argv)
                 // STATRECORD_BLOCKCOUNT statistics records have been
                 // found, estimate the mean and variance of the noise floor.
                 
-                int32_t sumOfMeans[NCHANNELS];
-                uint64_t sumOfMeansOfSquares[NCHANNELS];
-                bzero(sumOfMeans, sizeof(*sumOfMeans)*NCHANNELS);
-                bzero(sumOfMeansOfSquares, sizeof(*sumOfMeansOfSquares)*NCHANNELS);
+                int64_t sumOfSums[NCHANNELS];
+                uint64_t sumOfSumsOfSquares[NCHANNELS];
+                bzero(sumOfSums, sizeof(*sumOfSums)*NCHANNELS);
+                bzero(sumOfSumsOfSquares, sizeof(*sumOfSumsOfSquares)*NCHANNELS);
                 
                 for (vector<BlockStatRecordSynopsis>::iterator it = noiseFloorBlocks.begin() ;
                      it != noiseFloorBlocks.end() ; ++it)
@@ -382,15 +390,15 @@ int main(int argc, char** argv)
                     for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
                     {
                         const BlockStatRecord& rec = *(it->stat);
-                        sumOfMeans[channel] += rec.mean[channel];
-                        sumOfMeansOfSquares[channel] += rec.meanOfSquares[channel];
+                        sumOfSums[channel] += rec.sum[channel];
+                        sumOfSumsOfSquares[channel] += rec.sumOfSquares[channel];
                     }
                 }
                 
                 for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
                 {
-                    noiseFloor.mean[channel] = sumOfMeans[channel] >> LOG2_NOISEFLOOR_BLOCKCOUNT;
-                    noiseFloor.meanOfSquares[channel] = sumOfMeansOfSquares[channel] >> LOG2_NOISEFLOOR_BLOCKCOUNT;
+                    noiseFloor.sum[channel] = sumOfSums[channel] >> LOG2_NOISEFLOOR_BLOCKCOUNT;
+                    noiseFloor.sumOfSquares[channel] = sumOfSumsOfSquares[channel] >> LOG2_NOISEFLOOR_BLOCKCOUNT;
                 }
                 
                 ++workIndex;
@@ -410,15 +418,17 @@ int main(int argc, char** argv)
                 // Look back through the list to find the rising edge, then report.
                 for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
                 {
-                    const int16_t& mean = noiseFloor.mean[channel];
-                    const uint32_t& meanOfSquares = noiseFloor.meanOfSquares[channel];
-                    const uint32_t noiseMeanSquared = (int32_t)mean*mean;
-                    const int32_t twiceNoiseMean = 2 * mean;
-                    const uint32_t noiseVariance = meanOfSquares - noiseMeanSquared;
-                    const uint32_t twiceNoiseVariance = 2*noiseVariance;
+                    const uint64_t& noiseSumOfSquares = noiseFloor.sumOfSquares[channel];
+                    const int32_t& noiseSum = noiseFloor.sum[channel];
+                    const uint64_t noiseSumSquared = (int64_t)noiseSum*noiseSum;
+                    const int64_t noiseTwiceSum = 2 * noiseSum;
                     
+                    const int16_t noiseMean = noiseSum >> LOG2_BLOCKSIZE;
+                    
+                    const uint64_t noiseVariance = noiseSumOfSquares - (noiseSumSquared >> LOG2_BLOCKSIZE);
+                    const uint64_t noiseTwiceVariance = 2 * noiseVariance;
 #ifdef DEBUG
-                    printf(" %d | %10d | %d \n", channel, mean, noiseVariance);
+                    printf(" %d | %10d | %d \n", channel, noiseMean, (int)std::sqrt((uint32_t)(noiseVariance >> LOG2_BLOCKSIZE)));
 #endif
                     
                     unsigned int lookBackBlock;
@@ -427,9 +437,9 @@ int main(int argc, char** argv)
                     for (lookBackBlock = 0 ; lookBackBlock < LOOKBACK_BLOCKCOUNT - 1 ; lookBackBlock ++)
                     {
                         const BlockStatRecord& lookBackStat = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + savedBlockStatIndex - lookBackBlock) % STATRECORD_BLOCKCOUNT];
-                        const uint32_t blockVariance = (uint64_t)lookBackStat.meanOfSquares[channel] + noiseMeanSquared - twiceNoiseMean * lookBackStat.mean[channel];
+                        const uint32_t blockVariance = (uint64_t)lookBackStat.sumOfSquares[channel] + (((int64_t)noiseSumSquared - noiseTwiceSum * lookBackStat.sum[channel]) >> LOG2_BLOCKSIZE);
                         
-                        if (blockVariance <= twiceNoiseVariance)
+                        if (blockVariance <= noiseTwiceVariance)
                             break;
                     }
                     
@@ -447,7 +457,7 @@ int main(int argc, char** argv)
                     for (uint16_t i = 0 ; i < BLOCKSIZE ; i ++)
                     {
                         const int16_t& sample = blocks[channel][absLookBackBlock][i];
-                        const int16_t diff = sample - mean;
+                        const int16_t diff = sample - noiseMean;
                         diffsSquared[i] = (int32_t)diff*diff;
                     }
                     
@@ -457,12 +467,12 @@ int main(int argc, char** argv)
                     
                     for (int16_t i = BLOCKSIZE - 1 ; i >= 0 ; i--)
                     {
-                        if ((sumOfDiffsSquared >> LOG2_BLOCKSIZE) <= twiceNoiseVariance)
+                        if ((sumOfDiffsSquared >> LOG2_BLOCKSIZE) <= noiseTwiceVariance)
                             lags[channel] = BLOCKSIZE - 1 - i + lookBackBlock*BLOCKSIZE;
                         
                         sumOfDiffsSquared -= diffsSquared[i];
                         const int16_t& sample = blocks[channel][absLookBackBlock2][i];
-                        const int16_t diff = sample - mean;
+                        const int16_t diff = sample - noiseMean;
                         sumOfDiffsSquared += (int32_t)diff*diff;
                     }
                 }

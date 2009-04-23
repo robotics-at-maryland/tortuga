@@ -10,7 +10,8 @@ for distname in ['native', 'bfin']:
     env['DISTNAME'] = distname
     
     if distname is 'native':
-        env.Append(CPPFLAGS = ['-g', '-DDEBUG'])
+        env.Append(CPPFLAGS = ['-g'])
+        #env.Append(CPPFLAGS = ['-DDEBUG'])
     elif distname is 'bfin':
         t = Tool('bfin-linux-uclibc', ['buildfiles/tools'])
         env.Append(ASFLAGS = ['-mfdpic'])
