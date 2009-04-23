@@ -7,6 +7,9 @@
  * File:  tools/vision_viewer/include/Model.h
  */
 
+// STD Includes
+#include <utility>
+
 // Library Includes
 #include <wx/timer.h>
 
@@ -14,11 +17,15 @@
 #include "Model.h"
 
 #include "core/include/EventPublisher.h"
+
 #include "vision/include/Camera.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/FFMPEGCamera.h"
+#include "vision/include/Detector.h"
+#include "vision/include/DetectorMaker.h"
 #include "vision/include/Events.h"
+
 
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, IMAGE_SOURCE_CHANGED);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, NEW_IMAGE);
@@ -33,7 +40,11 @@ END_EVENT_TABLE()
 Model::Model() :
     m_camera(0),
     m_timer(new wxTimer(this)),
-    m_newImage(new vision::OpenCVImage(640, 480))
+    m_latestImage(new vision::OpenCVImage(640, 480)),
+    m_detectorInput(new vision::OpenCVImage(640, 480)),
+    m_detectorOutput(new vision::OpenCVImage(640, 480)),
+    m_imageToSend(m_latestImage),
+    m_detector(vision::DetectorPtr())
 {
     Connect(m_timer->GetId(), wxEVT_TIMER,
             wxTimerEventHandler(Model::onTimer));
@@ -44,7 +55,9 @@ Model::~Model()
     m_timer->Stop();
     delete m_camera;
     delete m_timer;
-    delete m_newImage;
+    delete m_latestImage;
+    delete m_detectorInput;
+    delete m_detectorOutput;
 }
     
 void Model::openFile(std::string filename)
@@ -125,19 +138,71 @@ double Model::currentTime()
         return 0;
 }
 
+std::vector<std::string> Model::getDetectorNames()
+{
+    return vision::DetectorMaker::getRegisteredKeys();
+}
+
+void Model::changeToDetector(std::string detectorType)
+{
+    // Make sure we are displaying the results of the detector
+    m_imageToSend = m_detectorOutput;
+
+    // Make sure we have a valid detector
+    if (!vision::DetectorMaker::isKeyRegistered(detectorType))
+    {
+        std::cerr << "Detector '" << detectorType
+                  << "' is not a valid detector" << std::endl;
+	assert(false && "Not a valid detector");
+    }
+    
+    // Setup the configuration file
+    core::ConfigNode config(core::ConfigNode::fromString("{}"));
+    config.set("type", detectorType);
+
+    // Make the detector
+    m_detector = vision::DetectorMaker::newObject(
+        std::make_pair(config, core::EventHubPtr()));
+}
+
+
+void Model::disableDetector()
+{
+    // Drop reference to the detector, which delete it
+    m_detector = vision::DetectorPtr();
+    // Change the image we are sending to the latest image form the image source
+    m_imageToSend = m_latestImage;
+}
+
+void Model::detectorSettingsChanged()
+{
+    // Send a new image, but just reprocess the currently captured one
+    sendNewImage(false);
+}
+
 void Model::onTimer(wxTimerEvent &event)
 {
-    sendNewImage();
+    if (m_camera)
+        sendNewImage();
 }
     
-void Model::sendNewImage()
+void Model::sendNewImage(bool grabFromSource)
 {
     // Grab the latest image
-    m_camera->update(0);
-    m_camera->getImage(m_newImage);
+    if (grabFromSource)
+    {
+        m_camera->update(0);
+	m_camera->getImage(m_latestImage);
+    }
+    // If we havea  detector process the image so we can show the debug result
+    if (m_detector)
+    {
+        m_detectorInput->copyFrom(m_latestImage);
+	m_detector->processImage(m_detectorInput, m_detectorOutput);
+    }
 
     // Send the event
-    vision::ImageEventPtr event(new vision::ImageEvent(m_newImage));
+    vision::ImageEventPtr event(new vision::ImageEvent(m_imageToSend));
     publish(NEW_IMAGE, event);
 }
     

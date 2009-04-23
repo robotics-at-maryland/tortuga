@@ -12,13 +12,14 @@
 
 // STD Includes
 #include <string>
+#include <vector>
 
 // Library Includes
 #include <wx/event.h>
 
 // Core Includes
 #include "core/include/EventPublisher.h"
-#include "vision/include/Forward.h"
+#include "vision/include/Common.h"
 
 class wxTimerEvent;
 class wxTimer;
@@ -80,12 +81,51 @@ public:
     double currentTime();
 
     /* @{ */
+
+    /**
+     * \defgroup Detector Methods
+     */
+    /* @{ */
+
+    /** Gets all the names of the current detectors */
+    std::vector<std::string> getDetectorNames();
+
+    /** Changes the detector we are currently using 
+     *
+     *  @param detectorName
+     *      A valid detector name, must be one of the ones returned by
+     *      Model::getDetectorNames().
+     */
+    void changeToDetector(std::string detectorName);
+
+    /** Stops use of the current detector */
+    void disableDetector();
+
+    /** Indicate you have changed detector settings 
+     *
+     *  This cause a reprosses of the latest image, and a sending of a NEW_IMAGE
+     *  event so that image we be displayed.
+     */
+    void detectorSettingsChanged();
+
+    /* @} */
+    
 private:
     /** Called when its time to get a new image from the image source */
     void onTimer(wxTimerEvent &event);
 
-    /** Send a NEW_IMAGE event*/
-    void sendNewImage();
+    /** */
+    
+    /** Send a NEW_IMAGE event, after grabing and processing a new image
+     *
+     *  If a detector is on, this will send the debug image from the detector
+     *  after running the latest image through it.  If there is no detector it
+     *  will just send the raw camera images.
+     *
+     *  @param grabFromSource
+     *      If true it grabs an from the image source for process and sending.
+     */
+    void sendNewImage(bool grabFromSource = true);
 
     /** Send a IMAGE_SOURCE_CHANGED event*/
     void sendImageSourceChanged();
@@ -96,7 +136,20 @@ private:
     /** Timer used to trigger reading of new images */
     wxTimer* m_timer;
 
-    vision::Image* m_newImage;
+    /** The latest image decoded from the image source */
+    vision::Image* m_latestImage;
+
+    /** The image we give to the detector itself */
+    vision::Image* m_detectorInput;
+
+    /** The image we give as a debug image to the detector*/
+    vision::Image* m_detectorOutput;
+
+    /** The image pointer sent out in NEW_IMAGE events*/
+    vision::Image* m_imageToSend;
+
+    /** The current detector we are using to process images */
+    vision::DetectorPtr m_detector;
 
     DECLARE_EVENT_TABLE()
 };
