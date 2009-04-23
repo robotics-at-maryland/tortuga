@@ -102,6 +102,10 @@ def Program(env, target, source, *args, **kwargs):
     libraries, and makes program depend on them being installed.
     """
 
+    # See if we should be doing an install
+    install = kwargs.pop('install', False)
+    resources = kwargs.pop('resources', [])
+
     # Make sure settings for dependent libaries is included
     add_int_deps(env, kwargs.get('int_deps', []))
     add_ext_deps(env, kwargs.get('ext_deps', []))
@@ -110,6 +114,23 @@ def Program(env, target, source, *args, **kwargs):
     
     if env['RAM_OS'] == 'windows':
         add_msvs_project(env, prog, source)
+
+    if install:
+        if env['RAM_OS'] == 'darwin':
+            # Determine the locations inside the bundle
+            appName = target[0] + '.app'
+            bundleFileLoc = os.path.join(env['BIN_DIR'], appName, 'Contents')
+            bundleExeLoc = os.path.join(bundleFileLoc, 'MacOS')
+
+            # Install the exe
+            env.Install(dir = bundleExeLoc, source = prog)
+
+            # Install the resources
+            if len(resources) > 0:
+                env.Install(dir = bundleFileLoc, source = resources)
+        else:
+            env.Install(dir = env['BIN_DIR'], source = prog)
+        
 
     return prog
 

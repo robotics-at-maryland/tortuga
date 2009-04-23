@@ -23,5 +23,6 @@ if envl['RAM_OS'] == 'darwin':
     envl.AppendUnique(FRAMEWORKS = ['OpenGL'])
 
 envl.RAMProgram(target = 'VisionTool', source = sources,
-               int_deps = ['vision'], ext_deps = ['wxWidgets'])
+               int_deps = ['vision'], ext_deps = ['wxWidgets'],
+	       install = True, resources = ['Info.plist'])
 
