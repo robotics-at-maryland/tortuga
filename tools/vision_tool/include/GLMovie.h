@@ -79,6 +79,8 @@ private:
     int imageWidth, imageHeight;
     //Whether OpenGL has been initialized.  It seems wxGLCanvas hasn't actually initialized OpenGL in the constructor.
     bool initialized;
+
+    bool m_inRender;
     
     unsigned char *imageData;
 

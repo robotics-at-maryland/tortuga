@@ -31,11 +31,12 @@ END_EVENT_TABLE()
 
 void GLMovie::onPaint(wxPaintEvent &event)
 {
-    //When this widget is asked to paint, it should perform the OpenGL rendering.
+    //When this widget is asked to paint, it should perform the OpenGL rendering
     this->render();
 }
 GLMovie::GLMovie(wxWindow *parent, Model* model) :
-    wxGLCanvas(parent, -1, wxDefaultPosition, wxSize(640,480))
+    wxGLCanvas(parent, -1, wxDefaultPosition, wxSize(640,480)),
+    m_inRender(false)
 {
     this->movieWidth = 0;
     this->movieHeight = 0;
@@ -69,6 +70,12 @@ GLMovie::~GLMovie()
 }
 void GLMovie::render()
 {
+    // Prevent odd recursive Mac OS 10.5 bug
+    if (m_inRender)
+        return;
+    else
+        m_inRender = true;
+
     if (!initialized)
     {
         //Initiate OpenGL.
@@ -156,6 +163,8 @@ void GLMovie::render()
 
     //Show the results.
     SwapBuffers();
+
+    m_inRender = false;
 }
 void GLMovie::onSize(wxSizeEvent &event)
 {
