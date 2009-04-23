@@ -31,12 +31,13 @@
 
 static const unsigned int LOG2_BLOCKSIZE = 8;
 static const unsigned int LOG2_NCHANNELS = 2;
-static const unsigned int NCHANNELS = 4;
-static const unsigned int BLOCKSIZE = 1 << LOG2_BLOCKSIZE;
+static const unsigned int LOG2_NOISEFLOOR_BLOCKCOUNT = 8;
+static const unsigned int NCHANNELS = 1 << LOG2_NCHANNELS; // 4
+static const unsigned int BLOCKSIZE = 1 << LOG2_BLOCKSIZE; // 256
 static const unsigned int HOLDOFF_BLOCKCOUNT  = 128;
 static const unsigned int LOOKBACK_BLOCKCOUNT = 16;
 static const unsigned int STATRECORD_BLOCKCOUNT = 4096;
-static const unsigned int NOISEFLOOR_BLOCKCOUNT = 256;
+static const unsigned int NOISEFLOOR_BLOCKCOUNT = 1 << LOG2_NOISEFLOOR_BLOCKCOUNT; // 256
 static const unsigned int NOISEFLOOR_WORKSIZE = 64;
 
 static const unsigned int HARMONIC_MIN = 10;
@@ -388,8 +389,8 @@ int main(int argc, char** argv)
                 
                 for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
                 {
-                    noiseFloor.mean[channel] = sumOfMeans[channel] >> LOG2_NCHANNELS;
-                    noiseFloor.meanOfSquares[channel] = sumOfMeansOfSquares[channel] >> LOG2_NCHANNELS;
+                    noiseFloor.mean[channel] = sumOfMeans[channel] >> LOG2_NOISEFLOOR_BLOCKCOUNT;
+                    noiseFloor.meanOfSquares[channel] = sumOfMeansOfSquares[channel] >> LOG2_NOISEFLOOR_BLOCKCOUNT;
                 }
                 
                 ++workIndex;
@@ -397,6 +398,10 @@ int main(int argc, char** argv)
             } else if (workIndex == STATRECORD_BLOCKCOUNT - HOLDOFF_BLOCKCOUNT + 1) {
                 
                 bool pingFound = true;
+                
+#ifdef DEBUG
+                    printf("Ch | Noise mean | Noise variance\n");
+#endif
                 
                 
                 uint16_t lags[NCHANNELS];
@@ -408,9 +413,13 @@ int main(int argc, char** argv)
                     const int16_t& mean = noiseFloor.mean[channel];
                     const uint32_t& meanOfSquares = noiseFloor.meanOfSquares[channel];
                     const uint32_t noiseMeanSquared = (int32_t)mean*mean;
-                    const uint32_t twiceNoiseMean = 2 * mean;
+                    const int32_t twiceNoiseMean = 2 * mean;
                     const uint32_t noiseVariance = meanOfSquares - noiseMeanSquared;
                     const uint32_t twiceNoiseVariance = 2*noiseVariance;
+                    
+#ifdef DEBUG
+                    printf(" %d | %10d | %d \n", channel, mean, noiseVariance);
+#endif
                     
                     unsigned int lookBackBlock;
                     
