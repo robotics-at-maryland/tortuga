@@ -109,15 +109,15 @@
 #define ADDR_FIFO_STATUS1		0x202F0108
 #define ADDR_FIFO_STATUS2		0x202F010C
 
-// ADC Config register:
+// ADC Config register:  Default value is 0x4044
 //	0 - AD1_M0 = set to 0 to sample 2 channels and select the channel with A0
-//	1 - AD1_M1 (always 0)
-//	2 - AD1_A0
-//	3 - AD1_CS
-//	4 - AD2_M0
-//	5 - AD2_M1 (always 0)
-//	6 - AD2_A0
-//	7 - AD2_CS
+//	1 - AD1_M1 (write 0)
+//	2 - AD1_A0 = set to 0 for low-gain side, 1 for high-gain side
+//	3 - AD1_CS (write 0)
+//	4 - AD2_M0 = set to 0 to sample 2 channels and select the channel with A0
+//	5 - AD2_M1 (write 0)
+//	6 - AD2_A0 = set to 0 for low-gain side, 1 for high-gain side
+//	7 - AD2_CS (write 0)
 //	12:8 - x
 //	13 - FIFO Reset.  When high, clears the FIFO without affecting any other ADC operations.
 //				NOTE:  When bringing the FIFO out of reset from either a FIFO reset or ADC reset,
@@ -130,7 +130,7 @@
 //			bit counter, data latches, and sample count.
 #define ADDR_ADCONFIG			0x202F0100
 
-// ADC Prescaler register:
+// ADC Prescaler register:  Default value is 0x0004
 //   On reset, this value is latched into the ADC module and used to determine the sample frequency.
 //   Sample frequency = 500ksps / (ADPRESCALER+1)
 #define ADDR_ADPRESCALER		0x202F0104
