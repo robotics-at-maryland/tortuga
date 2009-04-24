@@ -25,6 +25,7 @@
 // Forward Declarations
 class wxCommandEvent;
 class wxChoice;
+class wxCloseEvent;
 
 namespace ram {
 namespace tools {
@@ -46,6 +47,9 @@ private:
 
     /** Called when reset to defaults button is pressed */
     void onReset(wxCommandEvent& event);
+
+    /** If possible it will hide the frame instead of showing closing */
+    void onClose(wxCloseEvent& event);
 
     /** The object that is decoding the movie */
     Model* m_model;

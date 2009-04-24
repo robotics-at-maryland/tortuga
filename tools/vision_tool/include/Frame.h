@@ -18,10 +18,6 @@
 
 #include "vision/include/Forward.h"
 
-// Forward Declarations
-class wxTimer;
-class wxTimerEvent;
-
 namespace ram {
 namespace tools {
 namespace visionvwr {
@@ -42,11 +38,12 @@ private:
     void onAbout(wxCommandEvent& event);
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
-//    void onTimer(wxTimerEvent& event);
+    void onShowHideDetector(wxCommandEvent& event);
     
     MediaControlPanel* m_mediaControlPanel;
     GLMovie* m_movie;
     Model* m_model;
+    wxFrame* m_detectorFrame;
     
     DECLARE_EVENT_TABLE()
 };

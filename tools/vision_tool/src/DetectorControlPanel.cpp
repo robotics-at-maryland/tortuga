@@ -77,6 +77,8 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
             wxCommandEventHandler(DetectorControlPanel::onDetectorChanged));
     Connect(reset->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(DetectorControlPanel::onReset));
+    Connect(GetId(), wxEVT_CLOSE_WINDOW,
+	    wxCloseEventHandler(DetectorControlPanel::onClose));
 }
     
 DetectorControlPanel::~DetectorControlPanel()
@@ -139,6 +141,14 @@ void DetectorControlPanel::onReset(wxCommandEvent& event)
     {
 	propControl->setToDefault();
     }
+}
+
+void DetectorControlPanel::onClose(wxCloseEvent& event)
+{
+    if (event.CanVeto())
+        Hide();
+    else
+        Destroy();
 }
     
 } // namespace visionvwr

@@ -50,10 +50,10 @@ MediaControlPanel::MediaControlPanel(Model* model,
     m_text->SetWindowStyle(wxALIGN_RIGHT);
 
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(play, 0, 0, 0);
-    sizer->Add(stop, 0, 0, 0);
-    sizer->Add(m_slider, 1, wxALIGN_CENTER, 0);
-    sizer->Add(m_text, 0, wxALIGN_CENTER | wxALL, 5);
+    sizer->Add(play, 0, wxALL, 3);
+    sizer->Add(stop, 0, wxTOP | wxBOTTOM, 3);
+    sizer->Add(m_slider, 1, wxALIGN_CENTER | wxTOP | wxBOTTOM, 3);
+    sizer->Add(m_text, 0, wxALIGN_CENTER | wxALL, 3);
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 

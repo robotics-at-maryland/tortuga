@@ -18,6 +18,7 @@
 #include <wx/msgdlg.h>
 #include <wx/filedlg.h>
 #include <wx/timer.h>
+#include <wx/button.h>
 
 // Project Includes
 #include "Frame.h"
@@ -56,15 +57,24 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     menuBar->Append( menuFile, _T("&File") );
     
     SetMenuBar( menuBar );
-    
-    // Add CameraView panel full screen
+
+    // Create out controls
+    m_mediaControlPanel = new MediaControlPanel(m_model, this);
+    m_movie=new GLMovie(this, m_model);
+    wxButton* detectorHide = new wxButton(this, wxID_ANY, 
+					  wxT("Show/Hide Detector"));
+					  
+    // Place controls in the sizer
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_movie=new GLMovie(this, m_model);
-    sizer->Add(m_movie, 1, wxEXPAND, 0);
-
-    m_mediaControlPanel = new MediaControlPanel(m_model, this);
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
+
+    wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
+    row->Add(detectorHide, 0, wxALL, 3);
+    //row->Add(m_choice, 1, wxALIGN_CENTER | wxALL, 3);
+    sizer->Add(row, 0, wxEXPAND, 0);
+
+    sizer->Add(m_movie, 1, wxEXPAND, 0);
 
     sizer->SetSizeHints(this);
     SetSizer(sizer);
@@ -74,18 +84,22 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     framePosition.x += GetSize().GetWidth();
     wxSize frameSize(GetSize().GetWidth()/2, GetSize().GetHeight());
 
-    wxFrame* detectorFrame = 
+    m_detectorFrame = 
       new wxFrame(this, wxID_ANY, _T("Detector Control"), framePosition, 
 		  frameSize);
 
     // Add a sizer and the detector control panel to it
     sizer = new wxBoxSizer(wxVERTICAL);
     wxPanel* detectorControlPanel = new DetectorControlPanel(m_model, 
-							     detectorFrame);
+							     m_detectorFrame);
     sizer->Add(detectorControlPanel, 0, wxEXPAND, 0);
-    //sizer->SetSizeHints(detectorFrame);
-    detectorFrame->SetSizer(sizer);
-    detectorFrame->Show();
+
+    m_detectorFrame->SetSizer(sizer);
+    m_detectorFrame->Show();
+
+    // Register for events
+    Connect(detectorHide->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(Frame::onShowHideDetector));
 }
 
 void Frame::onQuit(wxCommandEvent& WXUNUSED(event))
@@ -114,6 +128,12 @@ void Frame::onOpenCamera(wxCommandEvent& event)
 {
     m_model->openCamera();
 }    
+
+void Frame::onShowHideDetector(wxCommandEvent& event)
+{
+    // Toggle the shown status of the frame
+    m_detectorFrame->Show(!m_detectorFrame->IsShown());
+}
 
 } // namespace visionvwr
 } // namespace tools
