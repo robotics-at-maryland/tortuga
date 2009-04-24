@@ -43,6 +43,18 @@ void PropertySet::addProperty(core::ConfigNode config, bool requireInConfig,
     addProperty(prop);
     loadValueFromConfig<T>(config, prop, requireInConfig);
 }
+
+template <typename T>
+void PropertySet::addProperty(core::ConfigNode config, bool requireInConfig,
+                              const std::string& name, const std::string& desc, 
+                              T defaultValue, T* valuePtr, T min, T max)
+{
+    core::PropertyPtr prop(
+        new core::VariableProperty<T>(name, desc, defaultValue, valuePtr, min, 
+                                      max));
+    addProperty(prop);
+    loadValueFromConfig<T>(config, prop, requireInConfig);
+}
     
 template <typename T>
 void PropertySet::addProperty(core::ConfigNode config, bool requireInConfig,

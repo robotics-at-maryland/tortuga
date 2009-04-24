@@ -82,6 +82,18 @@ public:
     */
     Property(const std::string& name, const std::string& desc, 
              PropertyType pType, boost::any defaultValue);
+
+    /* Construct a property.
+        @param name The name of the property
+        @param desc A (potentially) long description of the property
+        @param pType The type of the property
+        @param defaultValue The default value of the property
+	@param min The minimum value
+	@param max The maximum value
+    */
+    Property(const std::string& name, const std::string& desc, 
+             PropertyType pType, boost::any defaultValue, boost::any min,
+	     boost::any max);
     
     virtual ~Property()
     {}
@@ -97,6 +109,15 @@ public:
 
     /// Get the default value of this property
     boost::any getDefaultValue() const { return m_default; }
+    
+    /// True if the property has a min and max
+    bool hasMinMax() const { return m_hasMinMax; }
+
+    /// Get the minimum value of the property
+    boost::any getMinValue() const { return m_min; }
+
+    /// Get the maximum value of the property
+    boost::any getMaxValue() const { return m_max; }
 
     /// Returns the value of the property as a string
     virtual std::string toString() const = 0;
@@ -214,6 +235,9 @@ private:
     std::string m_desc;
     PropertyType m_type;
     boost::any m_default;
+    bool m_hasMinMax;
+    boost::any m_min;
+    boost::any m_max;
 };
 
 /** Helper template that turns type into PropertyType */
@@ -268,6 +292,14 @@ public:
         m_valuePtr(valuePtr)
     {}
 
+    /** Same as normal constructor except with min/max values*/
+    VariableProperty(const std::string& name, const std::string& desc, 
+                     boost::any defaultValue, T* valuePtr,
+		     boost::any min, boost::any max) :
+        Property(name, desc, getPropertyType<T>(), defaultValue, min, max),
+        m_valuePtr(valuePtr)
+    {}
+
     virtual std::string toString() const
     {
         std::stringstream ss;
@@ -307,6 +339,15 @@ public:
                      boost::any defaultValue, GetterFunc getter,
                      SetterFunc setter) :
         Property(name, desc, getPropertyType<T>(), defaultValue), 
+        m_getter(getter),
+        m_setter(setter) 
+        {}
+
+    /** Same as normal constructor except with min and max values*/
+    FunctionProperty(const std::string& name, const std::string& desc, 
+                     boost::any defaultValue, GetterFunc getter,
+                     SetterFunc setter, boost::any min, boost::any max) :
+        Property(name, desc, getPropertyType<T>(), defaultValue, min, max), 
         m_getter(getter),
         m_setter(setter) 
         {}

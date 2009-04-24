@@ -73,6 +73,7 @@ TEST_FIXTURE(Fixture, addPropertyConfig)
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString(
             "{ 'boolVal' : 0,"
             "  'intVal' : 56,"
+            "  'intVal2' : 0,"
             "  'doubleVal' : 123.4,"
             "  'vector2Val' : [2, 3],"
             "  'vector3Val' : [5, 6, 7],"
@@ -92,6 +93,12 @@ TEST_FIXTURE(Fixture, addPropertyConfig)
     double doubleVal = 9.6;
     propSet.addProperty(config, true, "doubleVal", "", 9.6, &doubleVal);
     CHECK_EQUAL(123.4, doubleVal);
+
+    // Test int with min/max (just make sure we can call it)
+    propSet.addProperty(config, true, "intVal2", "", 8, &intVal, 0, 28);
+    core::PropertyPtr prop2 = propSet.getProperty("intVal2");
+    CHECK_EQUAL(0, boost::any_cast<int>(prop2->getMinValue()));
+    CHECK_EQUAL(28, boost::any_cast<int>(prop2->getMaxValue()));
 
 #ifdef RAM_WITH_MATH
     // Test Vector2 loading
@@ -114,7 +121,7 @@ TEST_FIXTURE(Fixture, addPropertyConfig)
 #endif // RAM_WITH_MATH
 }
 
-TEST_FIXTURE(Fixture, hetProperty)
+TEST_FIXTURE(Fixture, getProperty)
 {
     // Add the property
     propSet.addProperty(prop);

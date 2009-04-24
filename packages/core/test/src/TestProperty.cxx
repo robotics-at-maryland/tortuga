@@ -40,6 +40,12 @@ TEST_FIXTURE(PropertyFixture, variableProperty)
 
     // Check to make the property now reports the new value
     CHECK_EQUAL(expectedVal, prop.getAsInt());
+
+    // Test min and max
+    core::VariableProperty<int> prop2("val2", "A test property", 5, &value, 2, 
+				      13);
+    CHECK_EQUAL(2, boost::any_cast<int>(prop2.getMinValue()));
+    CHECK_EQUAL(13, boost::any_cast<int>(prop2.getMaxValue()));
 }
 
 
@@ -71,6 +77,18 @@ TEST_FIXTURE(PropertyFixture, functionProperty)
 
     // Check to make the property now reports the new value
     CHECK_EQUAL(expectedVal, prop.getAsInt());    
+
+    // Ensure it doesn't have a min/max
+    CHECK_EQUAL(false, prop.hasMinMax());
+
+     // Test min and max
+    core::FunctionProperty<int> prop2("val2", "A test property", 5,
+				      boost::bind(getter, &value),
+				      boost::bind(setter, &value, _1),
+				      0, 10);
+    CHECK(prop2.hasMinMax());
+    CHECK_EQUAL(0, boost::any_cast<int>(prop2.getMinValue()));
+    CHECK_EQUAL(10, boost::any_cast<int>(prop2.getMaxValue()));
 }
 
 TEST_FIXTURE(PropertyFixture, toString)

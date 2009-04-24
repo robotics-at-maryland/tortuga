@@ -72,6 +72,12 @@ public:
                      const std::string& name, const std::string& desc, 
                      T defaultValue, T* valuePtr);
 
+    /** Create the property object for you, load from the config with min/max*/
+    template <typename T>
+    void addProperty(core::ConfigNode config, bool requireInConfig,
+                     const std::string& name, const std::string& desc, 
+                     T defaultValue, T* valuePtr, T min, T max);
+
     /** Create the property object for you, load from the config */
     template <typename T>
     void addProperty(core::ConfigNode config, bool requireInConfig,

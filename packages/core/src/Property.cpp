@@ -36,12 +36,22 @@ namespace core {
 
 Property::Property(const std::string& name, const std::string& desc, 
                    PropertyType pType, boost::any defaultValue) :
-    m_name(name), m_desc(desc), m_type(pType), m_default(defaultValue) 
+    m_name(name), m_desc(desc), m_type(pType), m_default(defaultValue),
+    m_hasMinMax(false)
 {
     assert((PT_STARTVAL < pType) && (pType < PT_END) &&
            "Invalid property type");
 }
 
+Property::Property(const std::string& name, const std::string& desc, 
+                   PropertyType pType, boost::any defaultValue,
+		   boost::any min, boost::any max) :
+    m_name(name), m_desc(desc), m_type(pType), m_default(defaultValue), 
+    m_hasMinMax(true), m_min(min), m_max(max)
+{
+    assert((PT_STARTVAL < pType) && (pType < PT_END) &&
+           "Invalid property type");
+}
     
 template <>
 Property::PropertyType getPropertyType<int>()
