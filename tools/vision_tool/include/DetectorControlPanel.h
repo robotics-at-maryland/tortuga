@@ -10,6 +10,9 @@
 #ifndef RAM_TOOLS_VISION_TOOL_DETECTORCONTROLPANEL_H_04_23_2009
 #define RAM_TOOLS_VISION_TOOL_DETECTORCONTROLPANEL_H_04_23_2009
 
+// STD Includes
+#include <vector>
+
 // Library Includes
 #include <wx/panel.h>
 
@@ -41,11 +44,17 @@ private:
     /** When the user stops dragging the slider, or click on the slider*/
     void onDetectorChanged(wxCommandEvent& event);
 
+    /** Called when reset to defaults button is pressed */
+    void onReset(wxCommandEvent& event);
+
     /** The object that is decoding the movie */
     Model* m_model;
 
     /** Selection box for the current detector */
     wxChoice* m_choice;
+
+    /** The list of the current set of controls for the detectors properties */
+    std::vector<PropertyControl*> m_propControls;
         
     DECLARE_EVENT_TABLE()
 };

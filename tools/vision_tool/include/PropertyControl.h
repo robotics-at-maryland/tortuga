@@ -35,6 +35,9 @@ public:
 		    const wxPoint &pos = wxDefaultPosition,
 		    const wxSize &size = wxDefaultSize);
     ~PropertyControl();
+
+    /** Returns the property to its default value */
+    void setToDefault();
     
 private:
     /** Called every time the text in the box changes */
@@ -43,8 +46,8 @@ private:
     /** Called when the user presses enter in the text box */
     void onEnter(wxCommandEvent& event);
 
-    /** Gets the value of the property as a string*/
-    wxString getPropertyAsString();
+    /** Sets the property based on the given text */
+    void setPropertyValue(wxString value);
 
     /** The property we are editing */
     core::PropertyPtr m_prop;
@@ -58,6 +61,9 @@ private:
     /** Object running the detector */
     Model* m_model;
         
+    /** The original value of the property */
+    wxString m_defaultValue;
+
     DECLARE_EVENT_TABLE()
 };
 

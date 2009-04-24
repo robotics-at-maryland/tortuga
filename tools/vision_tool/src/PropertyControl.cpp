@@ -36,7 +36,8 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
     m_prop(property),
     m_text(0),
     m_label(0),
-    m_model(model)
+    m_model(model),
+    m_defaultValue(m_prop->toString().c_str(), wxConvUTF8)
 {
     // Label for the property
     wxString propName(m_prop->getName().c_str(), wxConvUTF8);
@@ -44,8 +45,7 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
     m_label->SetWindowStyle(wxALIGN_LEFT);
 
     // Create the text box
-    wxString propValue(m_prop->toString().c_str(), wxConvUTF8);
-    m_text = new wxTextCtrl(this, wxID_ANY, propValue, wxDefaultPosition,
+    m_text = new wxTextCtrl(this, wxID_ANY, m_defaultValue, wxDefaultPosition,
 			    wxDefaultSize, wxTE_RIGHT | wxTE_PROCESS_ENTER);
 
     // Create our size and inser the controls
@@ -68,6 +68,14 @@ PropertyControl::~PropertyControl()
 {
 }
 
+void PropertyControl::setToDefault()
+{
+    // Reset underlying property
+    setPropertyValue(m_defaultValue);
+    // Set the text box to reflect that
+    m_text->SetValue(m_defaultValue);
+}
+
 void PropertyControl::onTextUpdated(wxCommandEvent& event)
 {
     wxString propValue(m_prop->toString().c_str(), wxConvUTF8);
@@ -84,7 +92,11 @@ void PropertyControl::onTextUpdated(wxCommandEvent& event)
 
 void PropertyControl::onEnter(wxCommandEvent& event)
 {
-    wxString value = m_text->GetValue();
+    setPropertyValue(m_text->GetValue());
+}
+
+void PropertyControl::setPropertyValue(wxString value)
+{
     bool converted = false;
     switch (m_prop->getType())
     {

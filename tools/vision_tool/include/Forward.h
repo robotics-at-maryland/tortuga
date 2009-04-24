@@ -16,6 +16,7 @@ namespace visionvwr {
     
 class GLMovie;
 class MediaControlPanel;
+class PropertyControl;
 class Model;
     
 } // namespace visionvwr

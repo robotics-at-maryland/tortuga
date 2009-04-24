@@ -16,6 +16,7 @@
 #include <wx/stattext.h>
 #include <wx/statline.h>
 #include <wx/event.h>
+#include <wx/button.h>
 
 #include <boost/foreach.hpp>
 
@@ -52,15 +53,21 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
     }
     m_choice->SetSelection(0);
 
+    // Button that will reset to default values
+    wxButton* reset = new wxButton(this, wxID_ANY, wxT("Reset to Defaults"));
+
     // Create our size and insert the controls
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-
+    
+    // Detector Change Controls
     wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
     row->Add(text, 0, wxALIGN_LEFT | wxALL, 3);
     row->Add(m_choice, 1, wxALIGN_CENTER | wxALL, 3);
 
+    // Add All the elements to the main sizer
     sizer->Add(row, 0, wxEXPAND, 0);
     sizer->Add(new wxStaticLine(this), 0, wxEXPAND | wxALL, 3);
+    sizer->Add(reset, 0, wxALIGN_CENTER | wxALL, 3);
 
     sizer->SetSizeHints(this);
     SetSizer(sizer);
@@ -68,6 +75,8 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
     // Connect to our events
     Connect(m_choice->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
             wxCommandEventHandler(DetectorControlPanel::onDetectorChanged));
+    Connect(reset->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(DetectorControlPanel::onReset));
 }
     
 DetectorControlPanel::~DetectorControlPanel()
@@ -85,27 +94,34 @@ void DetectorControlPanel::onDetectorChanged(wxCommandEvent& event)
         m_model->changeToDetector(selection);
 
     // Drop all the old properties
+    
     wxSizer *sizer = GetSizer();
-    while (sizer->GetChildren().GetCount() > 2)
+    BOOST_FOREACH(PropertyControl* propControl, m_propControls)
     {
-        wxWindow* win = sizer->GetItem(2)->GetWindow();
-        sizer->Remove(2);
-        win->Destroy();
+        sizer->Remove(propControl);
+	propControl->Destroy();
     }
+    m_propControls.clear();
 
     // Now lets get a list of the properties
     core::PropertySetPtr propSet = m_model->getDetectorPropertySet();
     if (propSet)
     {
         std::vector<std::string> propNames = propSet->getPropertyNames();
-
+	int insertPos = 2;
         BOOST_FOREACH(std::string name, propSet->getPropertyNames())
         {
+            // Create the new property control
             core::PropertyPtr property(propSet->getProperty(name));
             wxSize size(GetSize().GetWidth(), wxDefaultSize.GetHeight());
-            sizer->Add(new PropertyControl(property, m_model, this, wxID_ANY, 
-                                           wxDefaultPosition, size), 
-                       1, wxEXPAND | wxALL, 3);
+	    PropertyControl* propControl = 
+	      new PropertyControl(property, m_model, this, wxID_ANY, 
+				  wxDefaultPosition, size);
+
+	    // Add the new property to our sizer and list
+	    sizer->Insert(insertPos, propControl, 1, wxEXPAND | wxALL, 3);
+	    m_propControls.push_back(propControl);
+	    insertPos++;
         }
     }
 
@@ -115,6 +131,14 @@ void DetectorControlPanel::onDetectorChanged(wxCommandEvent& event)
     SetSize(GetSize());
     Refresh();
     Update();
+}
+
+void DetectorControlPanel::onReset(wxCommandEvent& event)
+{
+    BOOST_FOREACH(PropertyControl* propControl, m_propControls)
+    {
+	propControl->setToDefault();
+    }
 }
     
 } // namespace visionvwr
