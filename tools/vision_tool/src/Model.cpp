@@ -17,6 +17,7 @@
 #include "Model.h"
 
 #include "core/include/EventPublisher.h"
+#include "core/include/PropertySet.h"
 
 #include "vision/include/Camera.h"
 #include "vision/include/OpenCVImage.h"
@@ -180,10 +181,18 @@ void Model::disableDetector()
     sendNewImage(false);
 }
 
-void Model::detectorSettingsChanged()
+void Model::detectorPropertiesChanged()
 {
     // Send a new image, but just reprocess the currently captured one
     sendNewImage(false);
+}
+
+core::PropertySetPtr Model::getDetectorPropertySet()
+{
+    core::PropertySetPtr propSet;
+    if (m_detector)
+        propSet = m_detector->getPropertySet();
+    return propSet;
 }
 
 void Model::onTimer(wxTimerEvent &event)

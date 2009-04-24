@@ -14,15 +14,17 @@
 #include <wx/choice.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/statline.h>
 #include <wx/event.h>
 
 #include <boost/foreach.hpp>
 
 // Project Includes
 #include "DetectorControlPanel.h"
+#include "PropertyControl.h"
 #include "Model.h"
 
-#include "vision/include/Camera.h"
+#include "core/include/PropertySet.h"
 
 namespace ram {
 namespace tools {
@@ -50,10 +52,16 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
     }
     m_choice->SetSelection(0);
 
-    // Create our size and inser the controls
-    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(text, 0, 0, 0);
-    sizer->Add(m_choice, 1, wxALIGN_CENTER, 0);
+    // Create our size and insert the controls
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
+    row->Add(text, 0, wxALIGN_LEFT | wxALL, 3);
+    row->Add(m_choice, 1, wxALIGN_CENTER | wxALL, 3);
+
+    sizer->Add(row, 0, wxEXPAND, 0);
+    sizer->Add(new wxStaticLine(this), 0, wxEXPAND | wxALL, 3);
+
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 
@@ -75,6 +83,36 @@ void DetectorControlPanel::onDetectorChanged(wxCommandEvent& event)
         m_model->disableDetector();
     else
         m_model->changeToDetector(selection);
+
+    // Drop all the old properties
+    wxSizer *sizer = GetSizer();
+    while (sizer->GetChildren().GetCount() > 2)
+    {
+        wxWindow* win = sizer->GetItem(2)->GetWindow();
+        sizer->Remove(2);
+        win->Destroy();
+    }
+
+    // Now lets get a list of the properties
+    core::PropertySetPtr propSet = m_model->getDetectorPropertySet();
+    std::vector<std::string> propNames = propSet->getPropertyNames();
+
+    BOOST_FOREACH(std::string name, propSet->getPropertyNames())
+    {
+        core::PropertyPtr property(propSet->getProperty(name));
+        wxSize size(GetSize().GetWidth(), wxDefaultSize.GetHeight());
+        sizer->Add(new PropertyControl(property, this, wxID_ANY, 
+				       wxDefaultPosition, size), 
+		   1, wxEXPAND | wxALL, 3);
+    }
+
+    sizer->SetSizeHints(this);
+
+    // Attempt to reset everything
+    sizer->Layout();
+    SetSize(GetSize());
+    Refresh();
+    Update();
 }
     
 } // namespace visionvwr

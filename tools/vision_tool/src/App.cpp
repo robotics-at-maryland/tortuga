@@ -20,7 +20,7 @@ namespace visionvwr {
 bool App::OnInit()
 {
     Frame* frame = new Frame(_T("Vision Viewer"), wxPoint(50, 50),
-                             wxSize(450, 340));
+                             wxSize(640, 480));
     frame->Show(TRUE);
     SetTopWindow(frame);
     return TRUE;

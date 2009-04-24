@@ -19,6 +19,7 @@
 
 // Core Includes
 #include "core/include/EventPublisher.h"
+#include "core/include/Forward.h"
 #include "vision/include/Common.h"
 
 class wxTimerEvent;
@@ -106,7 +107,10 @@ public:
      *  This cause a reprosses of the latest image, and a sending of a NEW_IMAGE
      *  event so that image we be displayed.
      */
-    void detectorSettingsChanged();
+    void detectorPropertiesChanged();
+
+    /** Gets the set of properties for the current detector */
+    core::PropertySetPtr getDetectorPropertySet();
 
     /* @} */
     

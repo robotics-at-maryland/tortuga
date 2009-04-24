@@ -66,11 +66,26 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     m_mediaControlPanel = new MediaControlPanel(m_model, this);
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
 
-    wxPanel* detectorControlPanel = new DetectorControlPanel(m_model, this);
-    sizer->Add(detectorControlPanel, 0, wxEXPAND, 0);
-
     sizer->SetSizeHints(this);
     SetSizer(sizer);
+
+    // Create the seperate frame for the detector panel
+    wxPoint framePosition = GetPosition();
+    framePosition.x += GetSize().GetWidth();
+    wxSize frameSize(GetSize().GetWidth()/2, GetSize().GetHeight());
+
+    wxFrame* detectorFrame = 
+      new wxFrame(this, wxID_ANY, _T("Detector Control"), framePosition, 
+		  frameSize);
+
+    // Add a sizer and the detector control panel to it
+    sizer = new wxBoxSizer(wxVERTICAL);
+    wxPanel* detectorControlPanel = new DetectorControlPanel(m_model, 
+							     detectorFrame);
+    sizer->Add(detectorControlPanel, 0, wxEXPAND, 0);
+    //sizer->SetSizeHints(detectorFrame);
+    detectorFrame->SetSizer(sizer);
+    detectorFrame->Show();
 }
 
 void Frame::onQuit(wxCommandEvent& WXUNUSED(event))
