@@ -21,6 +21,7 @@
 class wxCommandEvent;
 class wxTextCtrl;
 class wxStaticText;
+class wxCheckBox;
 
 namespace ram {
 namespace tools {
@@ -46,6 +47,9 @@ private:
     /** Called when the user presses enter in the text box */
     void onEnter(wxCommandEvent& event);
 
+    /** Handles the check box being checked on and off */
+    void onCheck(wxCommandEvent& event);
+
     /** Sets the property based on the given text */
     void setPropertyValue(wxString value);
 
@@ -54,6 +58,9 @@ private:
 
     /** Text box the users edits  */
     wxTextCtrl* m_text;
+
+    /** Used for boolean properties */
+    wxCheckBox* m_checkBox;
 
     /** Label for the detector */
     wxStaticText* m_label;

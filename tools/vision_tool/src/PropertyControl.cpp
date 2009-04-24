@@ -15,6 +15,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/event.h>
+#include <wx/checkbox.h>
 
 // Project Includes
 #include "PropertyControl.h"
@@ -35,33 +36,70 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
     wxPanel(parent, id, pos, size),
     m_prop(property),
     m_text(0),
+    m_checkBox(0),
     m_label(0),
     m_model(model),
     m_defaultValue(m_prop->toString().c_str(), wxConvUTF8)
 {
     // Label for the property
     wxString propName(m_prop->getName().c_str(), wxConvUTF8);
+    wxString toolTip(m_prop->getDescription().c_str(), wxConvUTF8);
     m_label = new wxStaticText(this, wxID_ANY, propName);
     m_label->SetWindowStyle(wxALIGN_LEFT);
+    m_label->SetToolTip(toolTip);
 
-    // Create the text box
-    m_text = new wxTextCtrl(this, wxID_ANY, m_defaultValue, wxDefaultPosition,
-			    wxDefaultSize, wxTE_RIGHT | wxTE_PROCESS_ENTER);
-
-    // Create our size and inser the controls
+    // Create our size and insert starting controls
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_label, 0, wxALIGN_LEFT | wxALL, 3);
-    sizer->Add(m_text, 1, wxEXPAND | wxALIGN_CENTER | wxALL, 3);
-    sizer->SetSizeHints(this);
-    SetSizer(sizer);
 
-    // Connect button event
-    m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
+    // Create the controls for our specific property
+    switch (m_prop->getType())
+    {
+        case core::Property::PT_INT:
+        case core::Property::PT_DOUBLE:
+	    {
+                m_text = new wxTextCtrl(this, wxID_ANY, m_defaultValue, 
+					wxDefaultPosition, wxDefaultSize, 
+					wxTE_RIGHT | wxTE_PROCESS_ENTER);
+		m_text->SetToolTip(toolTip);
+
+		m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
 		    wxCommandEventHandler(PropertyControl::onTextUpdated), NULL,
 		    this);
-    m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_ENTER,
+		m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_ENTER,
 		    wxCommandEventHandler(PropertyControl::onEnter), NULL,
 		    this);
+
+		sizer->Add(m_text, 1, wxEXPAND | wxALIGN_CENTER | wxALL, 3);
+	    }
+            break;
+
+        case core::Property::PT_BOOL:
+	    {
+                m_checkBox = new wxCheckBox(this, wxID_ANY, wxT(""));
+		m_checkBox->SetValue(m_prop->getAsBool());
+		m_checkBox->SetToolTip(toolTip);
+
+		m_checkBox->Connect(m_checkBox->GetId(), 
+		    wxEVT_COMMAND_CHECKBOX_CLICKED,
+		    wxCommandEventHandler(PropertyControl::onCheck), NULL, 
+		    this);
+
+		m_checkBox->SetToolTip(toolTip);
+
+		sizer->AddStretchSpacer();
+		sizer->Add(m_checkBox, 0, wxALL, 3);
+	    }
+	    break;
+	
+        default:
+	    break;
+    }
+
+
+
+    sizer->SetSizeHints(this);
+    SetSizer(sizer);
 }
     
 PropertyControl::~PropertyControl()
@@ -93,6 +131,12 @@ void PropertyControl::onTextUpdated(wxCommandEvent& event)
 void PropertyControl::onEnter(wxCommandEvent& event)
 {
     setPropertyValue(m_text->GetValue());
+}
+
+void PropertyControl::onCheck(wxCommandEvent& event)
+{
+    m_prop->set(m_checkBox->GetValue());
+    m_model->detectorPropertiesChanged();
 }
 
 void PropertyControl::setPropertyValue(wxString value)
