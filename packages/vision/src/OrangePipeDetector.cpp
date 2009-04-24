@@ -16,6 +16,8 @@
 #include "cxcore.h"
 #include "highgui.h"
 
+#include <boost/foreach.hpp>
+
 // Project Includes
 #include "vision/include/main.h"
 #include "vision/include/OrangePipeDetector.h"
@@ -24,6 +26,8 @@
 #include "vision/include/Events.h"
 
 #include "math/include/Vector2.h"
+
+#include "core/include/PropertySet.h"
 
 using namespace std;
 
@@ -58,18 +62,40 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_rotated = cvCreateImage(cvSize(640,480),8,3);//480 by 640 if camera is on sideways, else 640 by 480.
     m_lineX=m_lineY=0;
     
-    m_centeredLimit = config["centeredLimit"].asDouble(0.1);
-    m_minBrightness = config["minBrightness"].asInt(100);
-    m_erodeIterations = config["erodeIterations"].asInt(3);
+    // Detection variables
+    // NOTE: The property set automatically loads the value from the given
+    //       config if its present, if not it uses the default value presented.
+    core::PropertySetPtr propSet(getPropertySet());
 
-    m_rOverGMin = config["rOverGMin"].asDouble(1.0);
-    m_rOverGMax = config["rOverGMax"].asDouble(2.0);
-    m_bOverRMax = config["bOverRMax"].asDouble(0.4);
+    propSet->addProperty(config, false, "centeredLimit",
+        "Max distance from the center for the pipe to be considered centered",
+        0.1, &m_centeredLimit);
 
-    m_minPixels = config["minPixels"].asInt(3000);
-    m_minPixelsFound = config["minPixelsFound"].asInt(250);
+    propSet->addProperty(config, false, "minBrightness",
+        "Minimum brighness for orange",
+        100, &m_minBrightness);
 
-    m_noHough = 0 != config["noHough"].asInt(0);
+    propSet->addProperty(config, false, "erodeIterations",
+        "How many times to erode the filtered image",
+        3, &m_erodeIterations);
+
+    propSet->addProperty(config, false, "rOverGMin",
+        "Red/Green minimum ratio", 1.0, &m_rOverGMin);
+    propSet->addProperty(config, false, "rOverGMax",
+        "Red/Green maximum ratio", 2.0, &m_rOverGMax);
+    propSet->addProperty(config, false, "bOverRMax",
+        "Blue/Red maximum ratio",  0.4, &m_bOverRMax);
+
+    propSet->addProperty(config, false, "minPixels",
+        "Minimum pixels for a blob to be considered a pipe",
+        3000, &m_minPixels);
+    propSet->addProperty(config, false, "minPixelsFound",
+        "Minimum pixels for a blob, if we found the blob last frame",
+        250, &m_minPixelsFound);
+
+    propSet->addProperty(config, false, "noHough",
+        "Use custom angle finder instead of hough",
+        false, &m_noHough);
 }
 
 bool OrangePipeDetector::found()
@@ -302,11 +328,20 @@ double OrangePipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
     m_blobDetector.processImage(&temp);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
-    if (blobs.size() >= 2)
+    BlobDetector::BlobList internalBlobs;
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+    {
+        if (pipeBlob.containsInclusive(blob))
+            internalBlobs.push_back(blob);
+    }
+
+    if (internalBlobs.size() >= 2)
     {
         // Get the start and end coordinates from the blob centers      
-        math::Vector2 start(blobs[0].getCenterX(), blobs[0].getCenterY());
-        math::Vector2 end(blobs[1].getCenterX(), blobs[1].getCenterY());
+        math::Vector2 start(internalBlobs[0].getCenterX(), 
+                            internalBlobs[0].getCenterY());
+        math::Vector2 end(internalBlobs[1].getCenterX(), 
+                          internalBlobs[1].getCenterY());
         if (start.y > end.y)
             std::swap(start, end);
 
@@ -335,8 +370,8 @@ double OrangePipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
             // Bounds of blobs
             OpenCVImage temp(image, false);
             pipeBlob.draw(&temp, false);
-            blobs[0].draw(&temp, false);
-            blobs[1].draw(&temp, false);
+            internalBlobs[0].draw(&temp, false);
+            internalBlobs[1].draw(&temp, false);
         }
     
         return angle;
