@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "core/include/Forward.h"
+#include "Forward.h"
 
 // Forward Declarations
 class wxCommandEvent;
@@ -29,8 +30,8 @@ class PropertyControl : public wxPanel
 {
 
 public:
-    PropertyControl(core::PropertyPtr property, wxWindow *parent,
-		    wxWindowID id = wxID_ANY,
+    PropertyControl(core::PropertyPtr property, Model* model,
+                    wxWindow *parent, wxWindowID id = wxID_ANY,
 		    const wxPoint &pos = wxDefaultPosition,
 		    const wxSize &size = wxDefaultSize);
     ~PropertyControl();
@@ -53,6 +54,9 @@ private:
 
     /** Label for the detector */
     wxStaticText* m_label;
+
+    /** Object running the detector */
+    Model* m_model;
         
     DECLARE_EVENT_TABLE()
 };

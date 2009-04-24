@@ -65,7 +65,7 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 
-    // Connect button event
+    // Connect to our events
     Connect(m_choice->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
             wxCommandEventHandler(DetectorControlPanel::onDetectorChanged));
 }
@@ -95,20 +95,22 @@ void DetectorControlPanel::onDetectorChanged(wxCommandEvent& event)
 
     // Now lets get a list of the properties
     core::PropertySetPtr propSet = m_model->getDetectorPropertySet();
-    std::vector<std::string> propNames = propSet->getPropertyNames();
-
-    BOOST_FOREACH(std::string name, propSet->getPropertyNames())
+    if (propSet)
     {
-        core::PropertyPtr property(propSet->getProperty(name));
-        wxSize size(GetSize().GetWidth(), wxDefaultSize.GetHeight());
-        sizer->Add(new PropertyControl(property, this, wxID_ANY, 
-				       wxDefaultPosition, size), 
-		   1, wxEXPAND | wxALL, 3);
+        std::vector<std::string> propNames = propSet->getPropertyNames();
+
+        BOOST_FOREACH(std::string name, propSet->getPropertyNames())
+        {
+            core::PropertyPtr property(propSet->getProperty(name));
+            wxSize size(GetSize().GetWidth(), wxDefaultSize.GetHeight());
+            sizer->Add(new PropertyControl(property, m_model, this, wxID_ANY, 
+                                           wxDefaultPosition, size), 
+                       1, wxEXPAND | wxALL, 3);
+        }
     }
 
-    sizer->SetSizeHints(this);
-
     // Attempt to reset everything
+    sizer->SetSizeHints(this);
     sizer->Layout();
     SetSize(GetSize());
     Refresh();

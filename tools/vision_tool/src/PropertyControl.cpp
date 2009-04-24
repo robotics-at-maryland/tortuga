@@ -18,6 +18,7 @@
 
 // Project Includes
 #include "PropertyControl.h"
+#include "Model.h"
 
 #include "core/include/Property.h"
 
@@ -28,13 +29,14 @@ namespace visionvwr {
 BEGIN_EVENT_TABLE(PropertyControl, wxPanel)
 END_EVENT_TABLE()
     
-PropertyControl::PropertyControl(core::PropertyPtr property,
+PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
 				 wxWindow *parent, wxWindowID id,
 				 const wxPoint &pos, const wxSize &size) :
     wxPanel(parent, id, pos, size),
     m_prop(property),
     m_text(0),
-    m_label(0)
+    m_label(0),
+    m_model(model)
 {
     // Label for the property
     wxString propName(m_prop->getName().c_str(), wxConvUTF8);
@@ -107,7 +109,10 @@ void PropertyControl::onEnter(wxCommandEvent& event)
     }
 
     if (converted)
+    {
         m_label->SetBackgroundColour(wxNullColour);
+        m_model->detectorPropertiesChanged();
+    }
 }
     
 } // namespace visionvwr
