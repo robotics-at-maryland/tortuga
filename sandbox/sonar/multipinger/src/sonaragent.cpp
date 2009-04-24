@@ -427,6 +427,7 @@ int main(int argc, char** argv)
                     
                     const uint64_t noiseVariance = noiseSumOfSquares - (noiseSumSquared >> LOG2_BLOCKSIZE);
                     const uint64_t noiseTwiceVariance = 2 * noiseVariance;
+                    
 #ifdef DEBUG
                     printf(" %d | %10d | %d \n", channel, noiseMean, (int)std::sqrt((uint32_t)(noiseVariance >> LOG2_BLOCKSIZE)));
 #endif
@@ -437,7 +438,7 @@ int main(int argc, char** argv)
                     for (lookBackBlock = 0 ; lookBackBlock < LOOKBACK_BLOCKCOUNT - 1 ; lookBackBlock ++)
                     {
                         const BlockStatRecord& lookBackStat = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + savedBlockStatIndex - lookBackBlock) % STATRECORD_BLOCKCOUNT];
-                        const uint32_t blockVariance = (uint64_t)lookBackStat.sumOfSquares[channel] + (((int64_t)noiseSumSquared - noiseTwiceSum * lookBackStat.sum[channel]) >> LOG2_BLOCKSIZE);
+                        const uint64_t blockVariance = (int64_t)lookBackStat.sumOfSquares[channel] + (((int64_t)noiseSumSquared - noiseTwiceSum*lookBackStat.sum[channel]) >> LOG2_BLOCKSIZE);
                         
                         if (blockVariance <= noiseTwiceVariance)
                             break;
@@ -451,13 +452,13 @@ int main(int argc, char** argv)
                     }
                     
                     const int absLookBackBlock = (LOOKBACK_BLOCKCOUNT + savedBlockIndex - lookBackBlock + 1) % LOOKBACK_BLOCKCOUNT;
-                    const int absLookBackBlock2 = (LOOKBACK_BLOCKCOUNT + savedBlockIndex - lookBackBlock ) % LOOKBACK_BLOCKCOUNT;
+                    const int absLookBackBlock2 = (LOOKBACK_BLOCKCOUNT + savedBlockIndex - lookBackBlock) % LOOKBACK_BLOCKCOUNT;
                     
                     uint32_t diffsSquared[BLOCKSIZE];
                     for (uint16_t i = 0 ; i < BLOCKSIZE ; i ++)
                     {
                         const int16_t& sample = blocks[channel][absLookBackBlock][i];
-                        const int16_t diff = sample - noiseMean;
+                        const int32_t diff = sample - noiseMean;
                         diffsSquared[i] = (int32_t)diff*diff;
                     }
                     
@@ -465,16 +466,25 @@ int main(int argc, char** argv)
                     for (uint16_t i = 0 ; i < BLOCKSIZE ; i ++)
                         sumOfDiffsSquared += diffsSquared[i];
                     
-                    for (int16_t i = BLOCKSIZE - 1 ; i >= 0 ; i--)
                     {
-                        if ((sumOfDiffsSquared >> LOG2_BLOCKSIZE) <= noiseTwiceVariance)
-                            lags[channel] = BLOCKSIZE - 1 - i + lookBackBlock*BLOCKSIZE;
-                        
-                        sumOfDiffsSquared -= diffsSquared[i];
-                        const int16_t& sample = blocks[channel][absLookBackBlock2][i];
-                        const int16_t diff = sample - noiseMean;
-                        sumOfDiffsSquared += (int32_t)diff*diff;
+                        int16_t i;
+                        for (i = BLOCKSIZE - 1 ; i >= 0 ; i--)
+                        {
+                            if (sumOfDiffsSquared <= noiseTwiceVariance)
+                            {
+                                lags[channel] = BLOCKSIZE - 1 - i + lookBackBlock*BLOCKSIZE;
+                                break;
+                            }
+                            
+                            sumOfDiffsSquared -= diffsSquared[i];
+                            const int16_t& sample = blocks[channel][absLookBackBlock2][i];
+                            const int32_t diff = sample - noiseMean;
+                            sumOfDiffsSquared += (int32_t)diff*diff;
+                        }
+                        if (i == -1)
+                            pingFound = false;
                     }
+                    
                 }
                 
                 if (pingFound)
