@@ -73,18 +73,18 @@ void OrangePipeDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "minBrightness",
         "Minimum brighness for orange",
-        100, &m_minBrightness);
+        100, &m_minBrightness, 0, 255);
 
     propSet->addProperty(config, false, "erodeIterations",
         "How many times to erode the filtered image",
         3, &m_erodeIterations);
 
     propSet->addProperty(config, false, "rOverGMin",
-        "Red/Green minimum ratio", 1.0, &m_rOverGMin);
+       "Red/Green minimum ratio", 1.0, &m_rOverGMin, 0.0, 5.0);
     propSet->addProperty(config, false, "rOverGMax",
-        "Red/Green maximum ratio", 2.0, &m_rOverGMax);
+        "Red/Green maximum ratio", 2.0, &m_rOverGMax, 0.0, 5.0);
     propSet->addProperty(config, false, "bOverRMax",
-        "Blue/Red maximum ratio",  0.4, &m_bOverRMax);
+        "Blue/Red maximum ratio",  0.4, &m_bOverRMax, 0.0, 5.0);
 
     propSet->addProperty(config, false, "minPixels",
         "Minimum pixels for a blob to be considered a pipe",
