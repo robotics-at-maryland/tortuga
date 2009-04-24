@@ -426,7 +426,7 @@ int main(int argc, char** argv)
                     const int16_t noiseMean = noiseSum >> LOG2_BLOCKSIZE;
                     
                     const uint64_t noiseVariance = noiseSumOfSquares - (noiseSumSquared >> LOG2_BLOCKSIZE);
-                    const uint64_t noiseTwiceVariance = 2 * noiseVariance;
+                    const uint64_t noiseThreshold = 3 * noiseVariance;
                     
 #ifdef DEBUG
                     printf(" %d | %10d | %d \n", channel, noiseMean, (int)std::sqrt((uint32_t)(noiseVariance >> LOG2_BLOCKSIZE)));
@@ -440,7 +440,7 @@ int main(int argc, char** argv)
                         const BlockStatRecord& lookBackStat = blockStatRecordBuffer[(STATRECORD_BLOCKCOUNT + savedBlockStatIndex - lookBackBlock) % STATRECORD_BLOCKCOUNT];
                         const uint64_t blockVariance = (int64_t)lookBackStat.sumOfSquares[channel] + (((int64_t)noiseSumSquared - noiseTwiceSum*lookBackStat.sum[channel]) >> LOG2_BLOCKSIZE);
                         
-                        if (blockVariance <= noiseTwiceVariance)
+                        if (blockVariance <= noiseThreshold)
                             break;
                     }
                     
@@ -470,9 +470,9 @@ int main(int argc, char** argv)
                         int16_t i;
                         for (i = BLOCKSIZE - 1 ; i >= 0 ; i--)
                         {
-                            if (sumOfDiffsSquared <= noiseTwiceVariance)
+                            if (sumOfDiffsSquared <= noiseThreshold)
                             {
-                                lags[channel] = BLOCKSIZE - 1 - i + lookBackBlock*BLOCKSIZE;
+                                lags[channel] = LOOKBACK_BLOCKCOUNT*BLOCKSIZE - (- 1 - i + lookBackBlock*BLOCKSIZE);
                                 break;
                             }
                             
@@ -490,11 +490,38 @@ int main(int argc, char** argv)
                 if (pingFound)
                 {
                     // TODO: report ping
+                    
+#ifdef DEBUG
+                    static int pingCount = 0;
+                    
                     float freq = (float)triggerHarmonic*SAMPFREQ/BLOCKSIZE*0.001f;
                     printf("signal at %02.3f kHz, block %d\n", freq, blockIndex);
                     for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
                         printf("   channel %d at lag %d\n", channel, lags[channel]);
                     printf("   TDOAS: %d %d %d\n", lags[1]-lags[0],lags[2]-lags[0],lags[3]-lags[0]);
+                    
+                    char fname[256];
+                    sprintf(fname, "ping%d.out", pingCount++);
+                    
+                    FILE* fid = fopen(fname, "w");
+                    if (fid == NULL)
+                    {
+                        perror("fopen");
+                        exit(EXIT_FAILURE);
+                    }
+                    fwrite(lags, sizeof(lags), 1, fid);
+                    for (int i = 0 ; i < LOOKBACK_BLOCKCOUNT ; i ++)
+                    {
+                        int absBlock = (savedBlockIndex + i + 1) % LOOKBACK_BLOCKCOUNT;
+                        int16_t buf[BLOCKSIZE][NCHANNELS];
+                        for (int channel = 0 ; channel < NCHANNELS ; channel ++)
+                            for (int j = 0 ; j < BLOCKSIZE ; j ++)
+                                buf[j][channel] = blocks[channel][absBlock][j];
+                        fwrite(buf, sizeof(buf), 1, fid);
+                    }
+                    fclose(fid);
+#endif
+                    
                 }
                 
                 ++workIndex;
