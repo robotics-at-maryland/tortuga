@@ -22,6 +22,9 @@ class wxCommandEvent;
 class wxTextCtrl;
 class wxStaticText;
 class wxCheckBox;
+class wxSlider;
+class wxSizer;
+class wxScrollEvent;
 
 namespace ram {
 namespace tools {
@@ -50,8 +53,20 @@ private:
     /** Handles the check box being checked on and off */
     void onCheck(wxCommandEvent& event);
 
+    /** Called when the slider moves */
+    void onSliderUpdate(wxScrollEvent& event);
+
     /** Sets the property based on the given text */
     void setPropertyValue(wxString value);
+
+    /** Sets up the non-slider int/double property controls  */
+    void setupNormalIntDoubleControls(wxSizer* sizer, wxString toolTip);
+
+    /** Sets up the slider based int/double property controls  */
+    void setupMinMaxIntDoubleControls(wxSizer* sizer, wxString toolTip);
+
+    /** Sets up the controls for bool property */
+    void setupBoolControls(wxSizer* sizer, wxString toolTip);
 
     /** The property we are editing */
     core::PropertyPtr m_prop;
@@ -61,6 +76,12 @@ private:
 
     /** Used for boolean properties */
     wxCheckBox* m_checkBox;
+
+    /** Slider for changing property value */
+    wxSlider* m_slider;
+
+    /** Scales the value in the slider to the properties range */
+    double m_sliderScale;
 
     /** Label for the detector */
     wxStaticText* m_label;

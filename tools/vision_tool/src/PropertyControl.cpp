@@ -16,6 +16,8 @@
 #include <wx/stattext.h>
 #include <wx/event.h>
 #include <wx/checkbox.h>
+#include <wx/dcclient.h>
+#include <wx/slider.h>
 
 // Project Includes
 #include "PropertyControl.h"
@@ -37,6 +39,8 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
     m_prop(property),
     m_text(0),
     m_checkBox(0),
+    m_slider(0),
+    m_sliderScale(1),
     m_label(0),
     m_model(model),
     m_defaultValue(m_prop->toString().c_str(), wxConvUTF8)
@@ -58,37 +62,16 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
         case core::Property::PT_INT:
         case core::Property::PT_DOUBLE:
 	    {
-                m_text = new wxTextCtrl(this, wxID_ANY, m_defaultValue, 
-					wxDefaultPosition, wxDefaultSize, 
-					wxTE_RIGHT | wxTE_PROCESS_ENTER);
-		m_text->SetToolTip(toolTip);
-
-		m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-		    wxCommandEventHandler(PropertyControl::onTextUpdated), NULL,
-		    this);
-		m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_ENTER,
-		    wxCommandEventHandler(PropertyControl::onEnter), NULL,
-		    this);
-
-		sizer->Add(m_text, 1, wxEXPAND | wxALIGN_CENTER | wxALL, 3);
+	      if (m_prop->hasMinMax())
+		  setupMinMaxIntDoubleControls(sizer, toolTip);
+	      else
+	          setupNormalIntDoubleControls(sizer, toolTip);
 	    }
             break;
 
         case core::Property::PT_BOOL:
 	    {
-                m_checkBox = new wxCheckBox(this, wxID_ANY, wxT(""));
-		m_checkBox->SetValue(m_prop->getAsBool());
-		m_checkBox->SetToolTip(toolTip);
-
-		m_checkBox->Connect(m_checkBox->GetId(), 
-		    wxEVT_COMMAND_CHECKBOX_CLICKED,
-		    wxCommandEventHandler(PropertyControl::onCheck), NULL, 
-		    this);
-
-		m_checkBox->SetToolTip(toolTip);
-
-		sizer->AddStretchSpacer();
-		sizer->Add(m_checkBox, 0, wxALL, 3);
+	      setupBoolControls(sizer, toolTip);
 	    }
 	    break;
 	
@@ -139,6 +122,25 @@ void PropertyControl::onCheck(wxCommandEvent& event)
     m_model->detectorPropertiesChanged();
 }
 
+void PropertyControl::onSliderUpdate(wxScrollEvent& event)
+{
+    switch (m_prop->getType())
+    {
+        case core::Property::PT_INT:
+      	    m_prop->set((int)event.GetPosition());
+	    break;
+        case core::Property::PT_DOUBLE:
+      	    m_prop->set(event.GetPosition() / m_sliderScale);
+            break;
+        default:
+     	    assert(false && "Error improper type for slider");
+	    break;
+    }
+
+    m_text->SetValue(wxString(m_prop->toString().c_str(), wxConvUTF8));
+    m_model->detectorPropertiesChanged();
+}
+
 void PropertyControl::setPropertyValue(wxString value)
 {
     bool converted = false;
@@ -170,7 +172,100 @@ void PropertyControl::setPropertyValue(wxString value)
         m_model->detectorPropertiesChanged();
     }
 }
-    
+  
+void PropertyControl::setupNormalIntDoubleControls(wxSizer* sizer,
+						   wxString toolTip)
+{
+    m_text = new wxTextCtrl(this, wxID_ANY, m_defaultValue, 
+			    wxDefaultPosition, wxDefaultSize, 
+			    wxTE_RIGHT | wxTE_PROCESS_ENTER);
+    m_text->SetToolTip(toolTip);
+  
+    m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
+		    wxCommandEventHandler(PropertyControl::onTextUpdated), NULL,
+		    this);
+    m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_ENTER,
+		    wxCommandEventHandler(PropertyControl::onEnter), NULL,
+		    this);
+  
+    sizer->Add(m_text, 1, wxEXPAND | wxALIGN_CENTER | wxALL, 3);
+}
+
+void PropertyControl::setupMinMaxIntDoubleControls(wxSizer* sizer, 
+						   wxString toolTip)
+{
+    assert(m_prop->hasMinMax() && "Property must have a min & max");
+
+    // Find the proper range of values for the slider
+    int minValue = 0;
+    int maxValue = 100;
+    int currentValue = 0;
+
+    switch (m_prop->getType())
+    {
+        case core::Property::PT_INT:
+	    {
+                minValue = boost::any_cast<int>(m_prop->getMinValue());
+		maxValue = boost::any_cast<int>(m_prop->getMaxValue());
+		currentValue = m_prop->getAsInt();
+	    }
+	    break;
+        case core::Property::PT_DOUBLE:
+	    {
+	        minValue = (int)boost::any_cast<double>(m_prop->getMinValue());
+	        maxValue = (int)boost::any_cast<double>(m_prop->getMaxValue());
+
+	        m_sliderScale = 100;
+	        minValue *= m_sliderScale;
+	        maxValue *= m_sliderScale;
+		currentValue = (int)(m_prop->getAsDouble() * m_sliderScale);
+	    }
+            break;
+        default:
+            assert(false && "Error wrong property type");
+	    break;
+    }
+  
+    // Create the slider
+    m_slider = new wxSlider(this, wxID_ANY, currentValue, minValue, maxValue);
+    m_slider->SetToolTip(toolTip);
+
+    Connect(m_slider->GetId(), wxEVT_SCROLL_THUMBTRACK,
+            wxScrollEventHandler(PropertyControl::onSliderUpdate));
+    Connect(m_slider->GetId(), wxEVT_SCROLL_CHANGED,
+            wxScrollEventHandler(PropertyControl::onSliderUpdate));
+
+    sizer->Add(m_slider, 1, wxEXPAND | wxALIGN_CENTER | wxALL, 3);
+
+
+
+    // Create the text box
+    wxWindowDC temp(this);
+    wxSize textSize = temp.GetTextExtent(_T("00000"));
+    m_text = new wxTextCtrl(this, wxID_ANY, m_defaultValue, wxDefaultPosition, 
+			    textSize, wxTE_READONLY);
+    m_text->SetToolTip(toolTip);
+    sizer->Add(m_text, 0, wxEXPAND | wxALL, 3);
+}
+
+void PropertyControl::setupBoolControls(wxSizer* sizer, wxString toolTip)
+{
+    m_checkBox = new wxCheckBox(this, wxID_ANY, wxT(""));
+    m_checkBox->SetValue(m_prop->getAsBool());
+    m_checkBox->SetToolTip(toolTip);
+  
+    m_checkBox->Connect(m_checkBox->GetId(), 
+			wxEVT_COMMAND_CHECKBOX_CLICKED,
+			wxCommandEventHandler(PropertyControl::onCheck), NULL, 
+			this);
+  
+    m_checkBox->SetToolTip(toolTip);
+  
+    sizer->AddStretchSpacer();
+    sizer->Add(m_checkBox, 0, wxALL, 3);
+}
+
+  
 } // namespace visionvwr
 } // namespace tools
 } // namespace ram
