@@ -19,6 +19,7 @@
 #include <wx/button.h>
 
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "DetectorControlPanel.h"
@@ -72,9 +73,13 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 
+    // Subscribe to model events
+    m_model->subscribe(Model::DETECTOR_CHANGED,
+        boost::bind(&DetectorControlPanel::onDetectorChanged, this, _1));
+
     // Connect to our events
     Connect(m_choice->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
-            wxCommandEventHandler(DetectorControlPanel::onDetectorChanged));
+            wxCommandEventHandler(DetectorControlPanel::onDetectorSelected));
     Connect(reset->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(DetectorControlPanel::onReset));
     Connect(GetId(), wxEVT_CLOSE_WINDOW,
@@ -85,7 +90,7 @@ DetectorControlPanel::~DetectorControlPanel()
 {
 }
 
-void DetectorControlPanel::onDetectorChanged(wxCommandEvent& event)
+void DetectorControlPanel::onDetectorSelected(wxCommandEvent& event)
 {
     int selectionPos = m_choice->GetSelection();
     std::string selection(m_choice->GetString(selectionPos).mb_str()); 
@@ -94,9 +99,11 @@ void DetectorControlPanel::onDetectorChanged(wxCommandEvent& event)
         m_model->disableDetector();
     else
         m_model->changeToDetector(selection);
+}
 
+void DetectorControlPanel::onDetectorChanged(core::EventPtr event)
+{
     // Drop all the old properties
-    
     wxSizer *sizer = GetSizer();
     BOOST_FOREACH(PropertyControl* propControl, m_propControls)
     {

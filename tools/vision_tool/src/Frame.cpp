@@ -19,6 +19,8 @@
 #include <wx/filedlg.h>
 #include <wx/timer.h>
 #include <wx/button.h>
+#include <wx/textctrl.h>
+#include <wx/utils.h>
 
 // Project Includes
 #include "Frame.h"
@@ -61,6 +63,13 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     // Create out controls
     m_mediaControlPanel = new MediaControlPanel(m_model, this);
     m_movie=new GLMovie(this, m_model);
+
+    wxButton* config = new wxButton(this, wxID_ANY, wxT("Config File"));
+    wxString defaultPath;
+    wxGetEnv(_T("RAM_SVN_DIR"), &defaultPath);
+    m_configText = new wxTextCtrl(this, wxID_ANY, defaultPath, 
+				  wxDefaultPosition, wxDefaultSize, 
+				  wxTE_READONLY);
     wxButton* detectorHide = new wxButton(this, wxID_ANY, 
 					  wxT("Show/Hide Detector"));
 					  
@@ -70,8 +79,9 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
 
     wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
+    row->Add(config, 0, wxALL, 3);
+    row->Add(m_configText, 1, wxALIGN_CENTER | wxTOP | wxBOTTOM, 3);
     row->Add(detectorHide, 0, wxALL, 3);
-    //row->Add(m_choice, 1, wxALIGN_CENTER | wxALL, 3);
     sizer->Add(row, 0, wxEXPAND, 0);
 
     sizer->Add(m_movie, 1, wxEXPAND, 0);
@@ -100,6 +110,8 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     // Register for events
     Connect(detectorHide->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(Frame::onShowHideDetector));
+    Connect(config->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(Frame::onSetConfigPath));
 }
 
 void Frame::onQuit(wxCommandEvent& WXUNUSED(event))
@@ -122,6 +134,7 @@ void Frame::onOpenFile(wxCommandEvent& event)
     {
         m_model->openFile(std::string(filename.mb_str()));
     }
+
 }
     
 void Frame::onOpenCamera(wxCommandEvent& event)
@@ -133,6 +146,17 @@ void Frame::onShowHideDetector(wxCommandEvent& event)
 {
     // Toggle the shown status of the frame
     m_detectorFrame->Show(!m_detectorFrame->IsShown());
+}
+
+void Frame::onSetConfigPath(wxCommandEvent& event)
+{
+    wxString filename = wxFileSelector(_T("Choose a config file"),
+				       m_configText->GetValue());
+    if ( !filename.empty() )
+    {
+        m_configText->SetValue(filename);
+	m_model->setConfigPath(std::string(filename.mb_str()));
+    }
 }
 
 } // namespace visionvwr

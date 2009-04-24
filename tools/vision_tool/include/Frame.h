@@ -18,6 +18,9 @@
 
 #include "vision/include/Forward.h"
 
+// Forward Decl.
+class wxTextCtrl;
+
 namespace ram {
 namespace tools {
 namespace visionvwr {
@@ -39,12 +42,14 @@ private:
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
     void onShowHideDetector(wxCommandEvent& event);
-    
+    void onSetConfigPath(wxCommandEvent& event);
+
     MediaControlPanel* m_mediaControlPanel;
     GLMovie* m_movie;
     Model* m_model;
     wxFrame* m_detectorFrame;
-    
+    wxTextCtrl* m_configText;
+
     DECLARE_EVENT_TABLE()
 };
 

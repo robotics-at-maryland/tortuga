@@ -13,6 +13,8 @@
 // Library Includes
 #include <wx/timer.h>
 
+#include <boost/foreach.hpp>
+
 // Core Includes
 #include "Model.h"
 
@@ -30,6 +32,7 @@
 
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, IMAGE_SOURCE_CHANGED);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, NEW_IMAGE);
+RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, DETECTOR_CHANGED);
 
 namespace ram {
 namespace tools {
@@ -45,7 +48,9 @@ Model::Model() :
     m_detectorInput(new vision::OpenCVImage(640, 480)),
     m_detectorOutput(new vision::OpenCVImage(640, 480)),
     m_imageToSend(m_latestImage),
-    m_detector(vision::DetectorPtr())
+    m_detector(vision::DetectorPtr()),
+    m_detectorType(""),
+    m_configPath("")
 {
     Connect(m_timer->GetId(), wxEVT_TIMER,
             wxTimerEventHandler(Model::onTimer));
@@ -61,6 +66,12 @@ Model::~Model()
     delete m_detectorOutput;
 }
     
+void Model::setConfigPath(std::string configPath)
+{
+    m_configPath = configPath;
+    changeToDetector(m_detectorType);
+}
+
 void Model::openFile(std::string filename)
 {
     if (m_camera)
@@ -156,17 +167,41 @@ void Model::changeToDetector(std::string detectorType)
                   << "' is not a valid detector" << std::endl;
 	assert(false && "Not a valid detector");
     }
-    
-    // Setup the configuration file
-    core::ConfigNode config(core::ConfigNode::fromString("{}"));
-    config.set("type", detectorType);
 
-    // Make the detector
-    m_detector = vision::DetectorMaker::newObject(
-        std::make_pair(config, core::EventHubPtr()));
+    if (m_configPath.size() > 0)
+    {
+        std::string nodeUsed;
+        core::ConfigNode cfg(core::ConfigNode::fromFile(m_configPath));
+
+        // Attempt to find at the base level
+        m_detector = createDetectorFromConfig(detectorType, cfg, nodeUsed);
+
+        if (!m_detector)
+        {
+	    cfg = findVisionSystemConfig(cfg, nodeUsed);
+	    if (nodeUsed.size() > 0)
+	    {
+	        m_detector = createDetectorFromConfig(detectorType, cfg, 
+						      nodeUsed);
+	    }
+	}
+    }
+
+    if (!m_detector)
+    {
+        // Setup the configuration file
+        m_detectorType = detectorType;
+	core::ConfigNode config(core::ConfigNode::fromString("{}"));
+	config.set("type", m_detectorType);
+
+	// Make the detector
+	m_detector = vision::DetectorMaker::newObject(
+            std::make_pair(config, core::EventHubPtr()));
+    }
 
     // Update display without getting a new image from the source
     sendNewImage(false);
+    sendDetectorChanged();
 }
 
 
@@ -174,11 +209,13 @@ void Model::disableDetector()
 {
     // Drop reference to the detector, which delete it
     m_detector = vision::DetectorPtr();
+    m_detectorType = "";
     // Change the image we are sending to the latest image form the image source
     m_imageToSend = m_latestImage;
 
     // Update display without getting a new image from the source
     sendNewImage(false);
+    sendDetectorChanged();
 }
 
 void Model::detectorPropertiesChanged()
@@ -224,6 +261,62 @@ void Model::sendNewImage(bool grabFromSource)
 void Model::sendImageSourceChanged()
 {
     publish(IMAGE_SOURCE_CHANGED, core::EventPtr(new core::Event));
+}
+
+void Model::sendDetectorChanged()
+{
+    publish(DETECTOR_CHANGED, core::EventPtr(new core::Event));
+}
+
+core::ConfigNode Model::findVisionSystemConfig(core::ConfigNode cfg,
+					       std::string& nodeUsed)
+{
+    core::ConfigNode config(core::ConfigNode::fromString("{}"));
+    // Attempt to find the section deeper in the file
+    if (cfg.exists("Subsystems"))
+    {
+        cfg = cfg["Subsystems"];
+        
+        // Attempt to find a VisionSystem subsystem
+        core::NodeNameList nodeNames(cfg.subNodes());
+        BOOST_FOREACH(std::string nodeName, nodeNames)
+        {
+            core::ConfigNode subsysCfg(cfg[nodeName]);
+            if (("VisionSystem" == subsysCfg["type"].asString("NONE"))||
+                ("SimVision" == subsysCfg["type"].asString("NONE")))
+            {
+                config = subsysCfg;
+                std::stringstream ss;
+                ss << "Subsystem:" << nodeName << ":" << nodeUsed;
+                nodeUsed = ss.str();
+            }
+        }
+    }
+
+    return config;
+}
+
+vision::DetectorPtr Model::createDetectorFromConfig(std::string detectorType,
+						    core::ConfigNode cfg,
+						    std::string& nodeUsed)
+{
+    core::NodeNameList nodeNames(cfg.subNodes());
+    // Go through each section and check its type
+    BOOST_FOREACH(std::string nodeName, nodeNames)
+    {
+        core::ConfigNode cfgSection(cfg[nodeName]);
+        if ((detectorType == cfgSection["type"].asString("NONE"))
+             || (nodeName == detectorType))
+        {
+            nodeUsed = nodeName;
+            cfgSection.set("type", detectorType);
+            return vision::DetectorMaker::newObject(
+                vision::DetectorMakerParamType(cfgSection,
+                                               core::EventHubPtr()));
+        }
+    }
+    
+    return vision::DetectorPtr();
 }
 
 

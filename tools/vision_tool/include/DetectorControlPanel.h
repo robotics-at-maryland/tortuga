@@ -42,8 +42,11 @@ public:
     ~DetectorControlPanel();
     
 private:
-    /** When the user stops dragging the slider, or click on the slider*/
-    void onDetectorChanged(wxCommandEvent& event);
+    /** When the user selects a detector from the drop down box */
+    void onDetectorSelected(wxCommandEvent& event);
+
+    /** Called when the model says the detector changed */
+    void onDetectorChanged(core::EventPtr event);
 
     /** Called when reset to defaults button is pressed */
     void onReset(wxCommandEvent& event);

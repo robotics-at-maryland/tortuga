@@ -19,6 +19,7 @@
 
 // Core Includes
 #include "core/include/EventPublisher.h"
+#include "core/include/ConfigNode.h"
 #include "core/include/Forward.h"
 #include "vision/include/Common.h"
 
@@ -43,12 +44,23 @@ public:
     /** Signals there is a new image ready to display */
     static const core::Event::EventType NEW_IMAGE;
 
+    /** Trigered whenever a new detector is selected */
+    static const core::Event::EventType DETECTOR_CHANGED;
+
     /* @{ */
 
 
     Model();
     ~Model();
     
+    /** Set the path to the config file to be used for settings
+     *
+     *  Changing this path will cause the current detector to be recreated 
+     *  using settings this config file.  It will also reload firewire cameras
+     *  if one is currently in use.
+     */
+    void setConfigPath(std::string configPath);
+
     /**
      * \defgroup Video playback methods
      */
@@ -134,6 +146,19 @@ private:
     /** Send a IMAGE_SOURCE_CHANGED event*/
     void sendImageSourceChanged();
     
+    /** Sends the DETECTOR_CHANGED event */
+    void sendDetectorChanged();
+
+    /** Attempts to find the vision system configuration section */
+    core::ConfigNode findVisionSystemConfig(core::ConfigNode cfg,
+					    std::string& nodeUsed);
+
+    /** Attempts to create a detector by using settings from the given config */
+    vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
+						 core::ConfigNode cfg,
+						 std::string& nodeUsed);
+
+
     /** Source of the images when send to clients */
     vision::Camera* m_camera;
 
@@ -154,6 +179,12 @@ private:
 
     /** The current detector we are using to process images */
     vision::DetectorPtr m_detector;
+
+    /** The type of the current detector */
+    std::string m_detectorType;
+
+    /** The path to our current config file */
+    std::string m_configPath;
 
     DECLARE_EVENT_TABLE()
 };
