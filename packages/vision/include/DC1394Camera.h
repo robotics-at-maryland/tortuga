@@ -72,6 +72,9 @@ private:
     /** Sets teh brightness to the desired value (or auto) */
     void setWhiteBalance(uint32_t uValue, uint32_t vValue,
                          bool makeAuto = false);
+
+    /** Balance the white values */
+    void balanceWhite();
     
     /** Initializes libdc1394 if needed
      *
@@ -102,8 +105,27 @@ private:
     
     /** Handle for the library */
     static dc1394_t* s_libHandle;
+    
     /** The number of cameras around, a reference count for s_libHandle */
     static size_t s_camCount;
+
+    /** Use own custom white balance */
+    bool m_customWhiteBalance;
+    
+    /** Whether or not the whitebalance is supported by the camera */
+    bool m_hasWhiteBalance;
+
+    /** Maximum white balance value */
+    unsigned int m_whiteMax;
+
+    /** Minimum white balance value */
+    unsigned int m_whiteMin;
+
+    /** U or Blue value of the white balance*/
+    unsigned int m_uValue;
+
+    /** V or Red value of the white balance */
+    unsigned int m_vValue;
 };
 
 } // namespace vision

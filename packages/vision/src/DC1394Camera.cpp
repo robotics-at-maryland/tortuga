@@ -38,7 +38,13 @@ DC1394Camera::DC1394Camera(core::ConfigNode config) :
     m_height(0),
     m_fps(0),
     m_camera(0),
-    m_newFrame(0)
+    m_newFrame(0),
+    m_customWhiteBalance(false),
+    m_hasWhiteBalance(false),
+    m_whiteMax(0),
+    m_whiteMin(0),
+    m_uValue(0),
+    m_vValue(0)
 {
     initLibDC1394();
 
@@ -59,7 +65,13 @@ DC1394Camera::DC1394Camera(core::ConfigNode config, size_t num) :
     m_height(0),
     m_fps(0),
     m_camera(0),
-    m_newFrame(0)
+    m_newFrame(0),
+    m_customWhiteBalance(false),
+    m_hasWhiteBalance(false),
+    m_whiteMax(0),
+    m_whiteMin(0),
+    m_uValue(0),
+    m_vValue(0)
 {
     initLibDC1394();
 
@@ -137,6 +149,9 @@ void DC1394Camera::update(double timestep)
         *(data + 2) = tmp;
         data += 3;
     }
+
+    if (m_customWhiteBalance)
+        balanceWhite();
     
     capturedImage(newImage);
     delete newImage;
@@ -186,6 +201,20 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
     dc1394video_mode_t videoMode = DC1394_VIDEO_MODE_640x480_YUV411;
     dc1394framerate_t frameRate = DC1394_FRAMERATE_30;
 
+    // Check for the whitebalance feature
+    dc1394feature_info_t whiteBalance;
+    whiteBalance.id = DC1394_FEATURE_WHITE_BALANCE;
+    err = dc1394_feature_get(m_camera, &whiteBalance);
+    assert(DC1394_SUCCESS == err && "Could not get white balance feature info");
+    m_hasWhiteBalance = (whiteBalance.available == DC1394_TRUE);
+
+    if (m_hasWhiteBalance)
+    {
+        err = dc1394_feature_whitebalance_get_value(m_camera, &m_uValue,
+                                                    &m_vValue);
+        std::cout << "Current U: " << m_uValue << " V: " << m_vValue << std::endl;
+    }
+    
     // Actually set the values if the user wants to
     if (config.exists("uValue") && config.exists("vValue"))
     {
@@ -195,7 +224,19 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
             boost::to_lower_copy(config["vValue"].asString()) == "auto";
         bool autoVal = uAuto && vAuto;
 
+        bool uCustom =
+            boost::to_lower_copy(config["uValue"].asString()) == "custom";
+        bool vCustom =
+            boost::to_lower_copy(config["vValue"].asString()) == "custom";
+        bool custom = uCustom && vCustom;
+        
         if ((uAuto || vAuto) && !autoVal)
+        {
+            assert(false &&
+                   "Both Whitebalance values must either be auto or manual");
+        }
+
+        if ((uCustom || vCustom) && !custom)
         {
             assert(false &&
                    "Both Whitebalance values must either be auto or manual");
@@ -204,6 +245,12 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         if (autoVal)
         {
             setWhiteBalance(0, 0, true);
+        }
+        else if (custom)
+        {
+            std::cout << "Using custom white balance" << std::endl;
+            m_customWhiteBalance = custom;
+            setWhiteBalance(m_uValue, m_vValue);
         }
         else
         {
@@ -336,6 +383,10 @@ void DC1394Camera::setWhiteBalance(uint32_t uValue, uint32_t vValue,
                                       DC1394_FEATURE_MODE_MANUAL);
         assert(DC1394_SUCCESS == err && "Could not set whitebalance to manual");
 
+        // Store the values
+        m_whiteMax = whiteBalance.max;
+        m_whiteMin = whiteBalance.min;
+        
         // Error on out of bounds values
         if (((uValue > whiteBalance.max) || (uValue < whiteBalance.min)) ||
             ((vValue > whiteBalance.max) || (vValue < whiteBalance.min)))
@@ -351,6 +402,80 @@ void DC1394Camera::setWhiteBalance(uint32_t uValue, uint32_t vValue,
     }
 }
 
+void DC1394Camera::balanceWhite()
+{
+    std::cout << "Balancing U: " << m_vValue << " V: " << m_uValue
+              << " Min: " << m_whiteMin << " Max: " << m_whiteMax << std::endl;
+    
+    // Gather RGB statistics
+    unsigned char* data = m_newFrame->image;
+    size_t numPixels = m_width * m_height;
+    double avg_r = 0, avg_g = 0, avg_b = 0;
+    
+    for (size_t i = 0; i < numPixels; ++i)
+    {
+        avg_b += *data;
+        avg_g += *(data + 1);
+        avg_r += *(data + 2);
+        
+        data += 3;
+    }
+
+    // Determine average values
+    avg_r /= numPixels;
+    avg_g /= numPixels;
+    avg_b /= numPixels;
+    std::cout << "Avg R: " << avg_r << " G: " << avg_g << " B: " << avg_b;
+    
+    /// TODO: Make this tweakable?
+    double th = 5;
+    double vGain = 2.5;
+    double uGain = 2.5;
+    
+    // Handle zero based white balance
+    if (m_vValue < 1)
+        m_vValue = (m_whiteMax + m_whiteMin) / 2;
+    if (m_uValue < 1)
+        m_uValue = (m_whiteMax + m_whiteMin) / 2;
+
+    // Update white balance values
+    if((avg_r - avg_g) > th) {
+        std::cout << " Gain V: " << avg_g/avg_r * vGain;
+        m_vValue =  (unsigned int)((m_vValue*avg_g)/avg_r) * vGain;
+    } else if ((avg_g - avg_r) > th) {
+        std::cout << " Gain V: " << avg_r/avg_g * vGain;
+        m_vValue =  (unsigned int)((m_vValue*avg_r)/avg_g) * vGain;
+    }
+ 
+    if((avg_b - avg_g) > th) {
+        std::cout << " Gain U: " << avg_g/avg_b * uGain << std::endl;
+        m_uValue =  (unsigned int)((m_uValue*avg_g)/avg_b) * uGain;
+    } else if ((avg_g - avg_b) > th) {
+        std::cout << " Gain U: " << avg_b/avg_g * uGain << std::endl;
+        m_uValue =  (unsigned int)((m_uValue*avg_b)/avg_g) * uGain;
+    }
+
+    std::cout << "Balance U: " << m_vValue << " V: " << m_uValue << std::endl;
+    
+    // Clamp with min and maximum values
+    if (m_vValue > m_whiteMax)
+        m_vValue = m_whiteMax;
+    else if (m_vValue < m_whiteMin)
+        m_vValue = m_whiteMin;
+
+    if (m_uValue > m_whiteMax)
+        m_uValue = m_whiteMax;
+    else if (m_uValue < m_whiteMin)
+        m_uValue = m_whiteMin;
+    
+    // Set the new values
+    dc1394error_t err =
+        dc1394_feature_whitebalance_set_value(m_camera, m_uValue, m_vValue);
+    assert(DC1394_SUCCESS == err && "Could not set whitebalance");
+
+    std::cout << "Done Balance U: " << m_vValue << " V: " << m_uValue << std::endl << std::endl;
+}
+    
     
 void DC1394Camera::initLibDC1394()
 {
