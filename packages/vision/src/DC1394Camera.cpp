@@ -151,7 +151,16 @@ void DC1394Camera::update(double timestep)
     }
 
     if (m_customWhiteBalance)
+    {
         balanceWhite();
+    }
+    else
+    {
+        err = dc1394_feature_whitebalance_get_value(m_camera, &m_uValue,
+                                                    &m_vValue);
+        std::cout << "Current U: " << m_uValue << " V: " << m_vValue 
+		  << std::endl;
+    }
     
     capturedImage(newImage);
     delete newImage;
@@ -427,33 +436,39 @@ void DC1394Camera::balanceWhite()
     avg_b /= numPixels;
     std::cout << "Avg R: " << avg_r << " G: " << avg_g << " B: " << avg_b;
     
+
     /// TODO: Make this tweakable?
     double th = 5;
-    double vGain = 2.5;
-    double uGain = 2.5;
+    double vGain = 1;
+    double uGain = 1;
     
+
+    // Update white balance values
+    if((avg_r - avg_g) > th) {
+        std::cout << " Gain V: " << avg_g/avg_r * vGain;
+	m_vValue = m_vValue - 1;
+	//     m_vValue =  (unsigned int)((m_vValue*avg_g)/avg_r) * vGain;
+    } else if ((avg_g - avg_r) > th) {
+        std::cout << " Gain V: " << avg_r/avg_g * vGain;
+	m_vValue = m_vValue + 1;
+        //m_vValue =  (unsigned int)((m_vValue*avg_g)/avg_r) * vGain;
+    }
+ 
+    if((avg_b - avg_g) > th) {
+        std::cout << " Gain U: " << avg_g/avg_b * uGain << std::endl;
+	m_uValue = m_uValue - 1;
+        //m_uValue =  (unsigned int)((m_uValue*avg_g)/avg_b) * uGain;
+    } else if ((avg_g - avg_b) > th) {
+        std::cout << " Gain U: " << avg_b/avg_g * uGain << std::endl;
+	m_uValue = m_uValue + 1;
+	// m_uValue =  (unsigned int)((m_uValue*avg_g)/avg_b) * uGain;
+    }
+
     // Handle zero based white balance
     if (m_vValue < 1)
         m_vValue = (m_whiteMax + m_whiteMin) / 2;
     if (m_uValue < 1)
         m_uValue = (m_whiteMax + m_whiteMin) / 2;
-
-    // Update white balance values
-    if((avg_r - avg_g) > th) {
-        std::cout << " Gain V: " << avg_g/avg_r * vGain;
-        m_vValue =  (unsigned int)((m_vValue*avg_g)/avg_r) * vGain;
-    } else if ((avg_g - avg_r) > th) {
-        std::cout << " Gain V: " << avg_r/avg_g * vGain;
-        m_vValue =  (unsigned int)((m_vValue*avg_r)/avg_g) * vGain;
-    }
- 
-    if((avg_b - avg_g) > th) {
-        std::cout << " Gain U: " << avg_g/avg_b * uGain << std::endl;
-        m_uValue =  (unsigned int)((m_uValue*avg_g)/avg_b) * uGain;
-    } else if ((avg_g - avg_b) > th) {
-        std::cout << " Gain U: " << avg_b/avg_g * uGain << std::endl;
-        m_uValue =  (unsigned int)((m_uValue*avg_b)/avg_g) * uGain;
-    }
 
     std::cout << "Balance U: " << m_vValue << " V: " << m_uValue << std::endl;
     
