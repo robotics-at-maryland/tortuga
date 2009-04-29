@@ -36,10 +36,46 @@ public:
      */
     virtual void filterImage(Image* input);
 
+
+    /**
+     * @defgroup Set/Get methods for channel low and high values
+     */
+    /* @{ */
+
+    void setChannel1Low(int value);
+    void setChannel1High(int value);
+
+    void setChannel2Low(int value);
+    void setChannel2High(int value);
+
+    void setChannel3Low(int value);
+    void setChannel3High(int value);
+
+    int getChannel1Low();
+    int getChannel1High();
+
+    int getChannel2Low();
+    int getChannel2High();
+
+    int getChannel3Low();
+    int getChannel3High();
+
+
+    /* @} */
 private:
-    unsigned char m_channel1Range[255];
-    unsigned char m_channel2Range[255];
-    unsigned char m_channel3Range[255];
+    /** Sets the up range lookup tables based on the current highs and lows */
+    void setupRanges();
+
+    unsigned char m_channel1Low; 
+    unsigned char m_channel1High;
+    unsigned char m_channel2Low; 
+    unsigned char m_channel2High;
+    unsigned char m_channel3Low; 
+    unsigned char m_channel3High;
+    
+    unsigned char m_channel1Range[256];
+    unsigned char m_channel2Range[256];
+    unsigned char m_channel3Range[256];
 };
     
 } // namespace vision
