@@ -59,4 +59,48 @@ TEST_FIXTURE(ColorFilterFixture, CenterLight)
     CHECK_CLOSE(&expected, &input, 0);
 }
 
+TEST_FIXTURE(ColorFilterFixture, testGetSet)
+{
+    vision::ColorFilter filter(0, 0, 0, 0, 0, 0);
+
+    filter.setChannel1High(100);
+    filter.setChannel2High(120);
+    filter.setChannel3High(140);
+    filter.setChannel1Low(20);
+    filter.setChannel2Low(40);
+    filter.setChannel3Low(60);
+
+    CHECK_EQUAL(20, filter.getChannel1Low());
+    CHECK_EQUAL(40, filter.getChannel2Low());
+    CHECK_EQUAL(60, filter.getChannel3Low());
+    CHECK_EQUAL(100, filter.getChannel1High());
+    CHECK_EQUAL(120, filter.getChannel2High());
+    CHECK_EQUAL(140, filter.getChannel3High());
+
+    // Test to make sure it keeps the low values within range
+    filter.setChannel1Low(110);
+    filter.setChannel2Low(130);
+    filter.setChannel3Low(140);
+
+    CHECK_EQUAL(100, filter.getChannel1Low());
+    CHECK_EQUAL(120, filter.getChannel2Low());
+    CHECK_EQUAL(140, filter.getChannel3Low());
+    CHECK_EQUAL(100, filter.getChannel1High());
+    CHECK_EQUAL(120, filter.getChannel2High());
+    CHECK_EQUAL(140, filter.getChannel3High());
+
+    filter.setChannel1High(20);
+    filter.setChannel2High(40);
+    filter.setChannel3High(60);
+
+    CHECK_EQUAL(20, filter.getChannel1Low());
+    CHECK_EQUAL(40, filter.getChannel2Low());
+    CHECK_EQUAL(60, filter.getChannel3Low());
+    CHECK_EQUAL(20, filter.getChannel1High());
+    CHECK_EQUAL(40, filter.getChannel2High());
+    CHECK_EQUAL(60, filter.getChannel3High());
+}
+
+
+
 } // SUITE(ColorFilter)
