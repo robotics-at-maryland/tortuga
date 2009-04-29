@@ -96,7 +96,7 @@ int main(int argc, char** argv)
         int i;
         for (i = 0 ; i < BLOCKSIZE ; i ++)
         {
-            while(REG(ADDR_FIFO_EMPTY1A) != 0)
+            while(REG(ADDR_FIFO_COUNT1A) < BLOCKSIZE)
                 ; // Busy wait until samples available
             
             block[i][0] = REG(ADDR_FIFO_OUT1A);
