@@ -86,6 +86,15 @@ public:
                      typename FunctionProperty<T>::GetterFunc getter,
                      typename FunctionProperty<T>::SetterFunc setter);
 
+
+    /** Create the property object for you, load from the config with min/max */
+    template <typename T>
+    void addProperty(core::ConfigNode config, bool requireInConfig,
+                     const std::string& name, const std::string& desc,
+                     T defaultValue,
+                     typename FunctionProperty<T>::GetterFunc getter,
+                     typename FunctionProperty<T>::SetterFunc setter,
+		     T min, T max);
     
     /** Gets the property object for a given property name. 
      *    @remarks
