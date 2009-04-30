@@ -56,6 +56,9 @@ private:
     /** Called when the slider moves */
     void onSliderUpdate(wxScrollEvent& event);
 
+    /** The overall property set has changed update our displayed values */
+    void onPropertiesChanged(core::EventPtr event);
+
     /** Sets the property based on the given text */
     void setPropertyValue(wxString value);
 
@@ -70,6 +73,9 @@ private:
 
     /** The property we are editing */
     core::PropertyPtr m_prop;
+
+    /** Connection for the properties change event*/
+    core::EventConnectionPtr m_propChangeConnection;
 
     /** Text box the users edits  */
     wxTextCtrl* m_text;

@@ -47,6 +47,9 @@ public:
     /** Trigered whenever a new detector is selected */
     static const core::Event::EventType DETECTOR_CHANGED;
 
+    /** Sent when the properties of a detector have been updated */
+    static const core::Event::EventType DETECTOR_PROPERTIES_CHANGED;
+
     /* @{ */
 
 

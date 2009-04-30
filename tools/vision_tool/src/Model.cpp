@@ -33,6 +33,7 @@
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, IMAGE_SOURCE_CHANGED);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, NEW_IMAGE);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, DETECTOR_CHANGED);
+RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, DETECTOR_PROPERTIES_CHANGED);
 
 namespace ram {
 namespace tools {
@@ -160,6 +161,9 @@ void Model::changeToDetector(std::string detectorType)
     // Make sure we are displaying the results of the detector
     m_imageToSend = m_detectorOutput;
 
+    // Drop our detector
+    m_detector = vision::DetectorPtr();
+
     // Make sure we have a valid detector
     if (!vision::DetectorMaker::isKeyRegistered(detectorType))
     {
@@ -222,6 +226,9 @@ void Model::detectorPropertiesChanged()
 {
     // Send a new image, but just reprocess the currently captured one
     sendNewImage(false);
+
+    // Tell everyone our properties have been updated
+    publish(DETECTOR_PROPERTIES_CHANGED, core::EventPtr(new core::Event));
 }
 
 core::PropertySetPtr Model::getDetectorPropertySet()
