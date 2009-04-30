@@ -74,7 +74,7 @@ def python_version_str():
     Gets the python version string, ie: python2.5 for Python 2.5.x
     """
     python_version = sys.version_info[0:2]
-    assert (2,5) == python_version # Check Python Version
+    assert (2,5) == python_version or (2,6) == python_version # Check Python Version
     return 'python%d.%d' % python_version
 
 def ram_prefix():

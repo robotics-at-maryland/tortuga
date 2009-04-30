@@ -24,18 +24,22 @@ TEST(ChangeMe)
 {
   std::ostringstream ofs;
   ram::vision::RedLightEventPtr myRedLightEventPointer(new ram::vision::RedLightEvent(1.2, 2.7));
+  //ram::vision::RedLightEvent *testEvent=myRedLightEventPointer.get();
   myRedLightEventPointer->azimuth=Degree(3.2);
   myRedLightEventPointer->elevation=Degree(3.3);
   myRedLightEventPointer->range=3.4;
   myRedLightEventPointer->pixCount=3.7;
+  ram::core::EventPtr myEventPtr=myRedLightEventPointer;
   {
     boost::archive::text_oarchive oa(ofs);
-    oa << (const ram::vision::RedLightEventPtr) myRedLightEventPointer;
+    oa.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
+    oa << myEventPtr;
   }
   std::istringstream ifs(ofs.str());
   ram::vision::RedLightEventPtr myRedLightEventPointer2(new ram::vision::RedLightEvent(1.5, 2.5));
   {
     boost::archive::text_iarchive iar(ifs);
+    iar.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
     iar >> myRedLightEventPointer2;
   }
   CHECK_EQUAL(myRedLightEventPointer2->x, myRedLightEventPointer->x);
