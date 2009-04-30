@@ -67,6 +67,7 @@ class RAM_EXPORT RedLightEvent : public core::Event
 public:
     RedLightEvent(double x, double y)
         {this->x=x; this->y=y;}
+    RedLightEvent() {}
 
     math::Degree azimuth;
     math::Degree elevation;
