@@ -23,12 +23,28 @@
 
 using namespace ram;
 
-void drawTarget(vision::Image* image, int x, int y, int size = 50)
+
+void drawTarget(vision::Image* image, int x, int y, int width = 100)
 {
-    CvPoint center;
-    center.x = x;
-    center.y = y;
-    cvCircle(image->asIplImage(), center, size, CV_RGB(0, 255, 0), -1);
+    // Determine setup 
+    double stripeWidth = ((double)width/10.0);
+    double stripeOffset = (double)width/2 - stripeWidth/2;
+
+    // Bottem green section
+    drawSquare(image, (int)(x - stripeOffset), y, (int)stripeWidth, width,
+	       0, CV_RGB(0, 255, 0));
+        
+    // Top green section
+    drawSquare(image, (int)(x + stripeOffset), y, (int)stripeWidth, width,
+	       0, CV_RGB(0, 255, 0));
+
+    // Left green section
+    drawSquare(image, x, (int)(y - stripeOffset), width, (int)stripeWidth,
+	       0, CV_RGB(0, 255, 0));
+        
+    // Right green section
+    drawSquare(image, x, (int)(y + stripeOffset), width, (int)stripeWidth,
+	       0, CV_RGB(0, 255, 0));
 }
 
 struct TargetDetectorFixture
@@ -57,6 +73,24 @@ struct TargetDetectorFixture
         found = false;
         event = vision::TargetEventPtr();
     }
+
+    void processImage(vision::Image* image, bool show = false)
+    {
+        if (show)
+	{
+	    vision::OpenCVImage input(640, 480);
+	    input.copyFrom(image);
+	    vision::Image::showImage(&input, "Input");
+
+	    vision::OpenCVImage output(640, 480);
+	    detector.processImage(image, &output);
+	    vision::Image::showImage(&output, "Output");
+	}
+	else
+        {
+            detector.processImage(image);
+	}
+    }
     
     bool found;
     vision::TargetEventPtr event;
@@ -74,7 +108,7 @@ TEST_FIXTURE(TargetDetectorFixture, CenterLight)
     drawTarget(&input, 640/2, 240);
 
     // Process it
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
@@ -95,7 +129,7 @@ TEST_FIXTURE(TargetDetectorFixture, UpperLeft)
     makeColor(&input, 120, 120, 255);
     drawTarget(&input, 640/4, 480/4);
     
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = -0.5 * 640.0/480.0;
     double expectedY = 0.5;
@@ -116,7 +150,7 @@ TEST_FIXTURE(TargetDetectorFixture, LowerRight)
     makeColor(&input, 120, 120, 255);
     drawTarget(&input, 640 - 640/4, 480/4 * 3);
     
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = 0.5 * 640.0/480.0;
     double expectedY = -0.5;
@@ -136,13 +170,13 @@ TEST_FIXTURE(TargetDetectorFixture, Events_TARGET_LOST)
     // No light at all
     makeColor(&input, 120, 120, 255);
     
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found == false);
     CHECK(!event);
 
     // Now we found the light (Upper Left)
     drawTarget(&input, 640/4, 480/4);
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found);
     CHECK(event);
     CHECK_CLOSE(-0.5 * 640.0/480.0, event->x, 0.005);
@@ -150,13 +184,13 @@ TEST_FIXTURE(TargetDetectorFixture, Events_TARGET_LOST)
 
     // Now we lost the light
     makeColor(&input, 120, 120, 255);
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found == false);
     CHECK(!event);
 
     // Make sure we don't get another lost event
     found = true;
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found == true);
 }
 
@@ -164,10 +198,10 @@ TEST_FIXTURE(TargetDetectorFixture, RemoveTop)
 {
     // Blue Image with red circle in upper center
     makeColor(&input, 120, 120, 255);
-    drawTarget(&input, 640/2, 45);
+    drawTarget(&input, 640/2, 45, 90);
 
     // Check with a non top removed detector
-    detector.processImage(&input);
+    processImage(&input);
     double expectedX = 0  * 640.0/480.0;
     double expectedY = 0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
@@ -186,10 +220,10 @@ TEST_FIXTURE(TargetDetectorFixture, RemoveBottom)
 {
     // Blue Image with red circle in upper center
     makeColor(&input, 120, 120, 255);
-    drawTarget(&input, 640/2, 435);
+    drawTarget(&input, 640/2, 435, 90);
 
     // Check with a non top removed detector
-    detector.processImage(&input);
+    processImage(&input);
     double expectedX = 0  * 640.0/480.0;
     double expectedY = -0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
@@ -211,14 +245,14 @@ TEST_FIXTURE(TargetDetectorFixture, oddShapes)
     // Same area as normal circle just bad bounding box
     drawSquare(&input, 640/2, 480/2, 155, 55, 0, CV_RGB(255,0,0));
 
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(false == detector.found());    
 
     // Now flip it up right
     makeColor(&input, 120, 120, 255);
     drawSquare(&input, 640/2, 480/2, 55, 155, 0, CV_RGB(255,0,0));
 
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(false == detector.found());    
 
     // Now test the square *with* the light and make sure we get the light
@@ -227,7 +261,7 @@ TEST_FIXTURE(TargetDetectorFixture, oddShapes)
     drawSquare(&input, 640/2, 480/2, 80, 240, 0, CV_RGB(255,0,0));
     drawTarget(&input, 640 - 640/4, 480/4 * 3);
 
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = 0.5 * 640.0/480.0;
     double expectedY = -0.5;

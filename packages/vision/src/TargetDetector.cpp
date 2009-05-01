@@ -73,7 +73,7 @@ void TargetDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "minGreenPixels",
         "The minimum pixel count of the green target blob",
-        5000, &m_minGreenPixels, 0, 50000);
+        500, &m_minGreenPixels, 0, 50000);
 
     // Color filter properties
     propSet->addProperty(config, false, "filtYMin",
@@ -194,6 +194,8 @@ void TargetDetector::processImage(Image* input, Image* output)
 
     // Find all non-green blob with a green blob around them
 
+    // Filter those based on criteria like similar aspect ratios and size
+
     // Return the biggest one
 
     if (m_found)
@@ -242,10 +244,16 @@ void TargetDetector::processImage(Image* input, Image* output)
 	    outData += 3;
 	}
 
+	// Draw all blobs
+	BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+	{
+	    blob.draw(output, false);
+	}
+
 	// Draw our target blob if we found it
 	if (m_found)
 	{
-            targetBlob.draw(output);
+       	    targetBlob.draw(output, true);
 	}
     }
 
