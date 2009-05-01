@@ -34,7 +34,7 @@ static const unsigned int LOG2_NCHANNELS = 2;
 static const unsigned int LOG2_NOISEFLOOR_BLOCKCOUNT = 8;
 static const unsigned int NCHANNELS = 1 << LOG2_NCHANNELS; // 4
 static const unsigned int BLOCKSIZE = 1 << LOG2_BLOCKSIZE; // 256
-static const unsigned int HOLDOFF_BLOCKCOUNT  = 128;
+static const unsigned int HOLDOFF_BLOCKCOUNT  = 64;
 static const unsigned int LOOKBACK_BLOCKCOUNT = 16;
 static const unsigned int STATRECORD_BLOCKCOUNT = 4096;
 static const unsigned int NOISEFLOOR_BLOCKCOUNT = 1 << LOG2_NOISEFLOOR_BLOCKCOUNT; // 256
@@ -221,6 +221,11 @@ static void readBlockAndUpdateStats()
  */
 static int getTriggerHarmonic(int blockIndex)
 {
+    if (blockStatRecordBuffer[blockStatIndex].averageVariance > 1e6)
+        return 0;
+    else
+        return -1;
+#if 0
     bool pingFound = true;
     bool loudEnough = false;
     int globalMaxPowerIndex;
@@ -237,7 +242,8 @@ static int getTriggerHarmonic(int blockIndex)
             + (uint16_t)(((uint32_t)iabs(fft.dftOut[k].im)*(uint16_t)iabs(fft.dftOut[k].im)) >> 16);
         
         // Compute total power in spectrum by summing the power at every harmonic
-        // Note: could use Parseval's theorem, except for round-off error
+        // Note: could use Parseval's theorem, except that round-off error might
+        // cause trouble.
         uint32_t totalPower = 0;
         for (unsigned int k = 0 ; k < BLOCKSIZE ; k ++)
             totalPower += power[k];
@@ -257,8 +263,8 @@ static int getTriggerHarmonic(int blockIndex)
         
         // If the harmonic with the most power accounted for less than a
         // third of the signal's total power, then discard the block.
-        if ((uint32_t)maxPowerValue * 3 >= totalPower)
-            loudEnough = true;
+        //if ((uint32_t)maxPowerValue * 3 >= totalPower)
+        //    loudEnough = true;
         
         // If the maximum harmonic was different for any channel, then
         // discard the block.
@@ -275,6 +281,7 @@ static int getTriggerHarmonic(int blockIndex)
         return globalMaxPowerIndex;
     else
         return -1;
+#endif
 }
 
 int main(int argc, char** argv)
