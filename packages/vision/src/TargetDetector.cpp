@@ -43,6 +43,9 @@ TargetDetector::TargetDetector(core::ConfigNode config,
     m_targetCenterY(0),
     m_squareNess(0),
     m_distance(0),
+    m_minGreenPixels(0),
+    m_erodeIterations(0),
+    m_dilateIterations(0),
     m_maxAspectRatio(0),
     m_topRemovePercentage(0),
     m_bottomRemovePercentage(0)
@@ -75,6 +78,14 @@ void TargetDetector::init(core::ConfigNode config)
         "The minimum pixel count of the green target blob",
         500, &m_minGreenPixels, 0, 50000);
 
+    propSet->addProperty(config, false, "erodeIterations",
+        "How many times to erode the filtered image",
+	0, &m_erodeIterations, 0, 10);
+
+    propSet->addProperty(config, false, "dilateIterations",
+        "How many times to dilate the filtered image",
+         0, &m_dilateIterations, 0, 10);
+
     // Color filter properties
     propSet->addProperty(config, false, "filtYMin",
         "Min blue value for a green pixel",  1,
@@ -105,6 +116,8 @@ void TargetDetector::init(core::ConfigNode config)
         "Max red value for a green pixel",  119, //119,
 	boost::bind(&ColorFilter::getChannel3High, m_filter),
 	boost::bind(&ColorFilter::setChannel3High, m_filter, _1), 0, 255);
+
+    /// TODO: add a found pixel drop off
 }
     
 TargetDetector::~TargetDetector()
@@ -169,13 +182,52 @@ void TargetDetector::processImage(Image* input, Image* output)
 
     // Filter the image so all green is white, and everything else is black
     m_filter->filterImage(m_image);
-    
+
+    if (m_erodeIterations)
+    {
+      cvErode(m_image->asIplImage(), m_image->asIplImage(), 0, 
+	      m_erodeIterations);
+    }
+    if (m_dilateIterations)
+    {
+      cvDilate(m_image->asIplImage(), m_image->asIplImage(), 0, 
+	       m_dilateIterations);
+    }
+
     // Find all the green blobs
     m_blobDetector.setMinimumBlobSize(m_minGreenPixels);
     m_blobDetector.processImage(m_image);
     std::vector<BlobDetector::Blob> blobs = m_blobDetector.getBlobs();
     BlobDetector::Blob targetBlob;
+
+    /// TODO: consider detection stragies for side on blob
+    /// TODO: do some blob merging as needed
+
+    // Invert the images and find all the non-green blobs
+    unsigned char* data = m_image->getData();
+    size_t numPixels = m_image->getHeight() * m_image->getWidth();
     
+    for (size_t i = 0; i < numPixels; ++i)
+    {
+        if (*data)
+	{
+	    *data = 0; // B
+	    *(data + 1) = 0; // G
+	    *(data + 2) = 0; // R
+	}	
+	else
+	{
+	    *data = 255; // B
+	    *(data + 1) = 255; // G
+	    *(data + 2) = 255; // R
+	}
+	data += 3;
+    }
+
+    m_blobDetector.setMinimumBlobSize(300);
+    m_blobDetector.processImage(m_image);
+    std::vector<BlobDetector::Blob> nullBlobs = m_blobDetector.getBlobs();
+
     if (blobs.size() > 0)
     {
         m_found = true;
@@ -189,12 +241,10 @@ void TargetDetector::processImage(Image* input, Image* output)
 	m_found = false;
     }
 
-    
-    // Invert the images and find all the non-green blobs
-
     // Find all non-green blob with a green blob around them
 
     // Filter those based on criteria like similar aspect ratios and size
+    // Also you can filter based on the how much of the combine space they take
 
     // Return the biggest one
 
@@ -224,7 +274,7 @@ void TargetDetector::processImage(Image* input, Image* output)
     if (output)
     {
         // Make the output exactly match the input
-        output->copyFrom(m_image);
+        output->copyFrom(input);
 
 	// Color all found pixels pink
 	unsigned char* inData = m_image->getData();
@@ -233,7 +283,7 @@ void TargetDetector::processImage(Image* input, Image* output)
 	
 	for (size_t i = 0; i < numPixels; ++i)
         {
-	    if (*inData)
+            if (!(*inData))
 	    {
 	        *outData = 147; // B
 		*(outData + 1) = 20; // G
@@ -248,12 +298,20 @@ void TargetDetector::processImage(Image* input, Image* output)
 	BOOST_FOREACH(BlobDetector::Blob blob, blobs)
 	{
 	    blob.draw(output, false);
+	    blob.drawStats(output);
+	}
+
+	BOOST_FOREACH(BlobDetector::Blob blob, nullBlobs)
+	{
+	    blob.draw(output, false, 255, 0, 0);
+	    blob.drawStats(output);
 	}
 
 	// Draw our target blob if we found it
 	if (m_found)
 	{
        	    targetBlob.draw(output, true);
+	    targetBlob.drawStats(output);
 	}
     }
 

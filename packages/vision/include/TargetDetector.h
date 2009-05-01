@@ -49,7 +49,17 @@ class RAM_EXPORT TargetDetector : public Detector
   private:
     void init(core::ConfigNode config);
 
-    /** Processes the list of all found blobs and finds the larget valid one */
+    /** Filters the image so that all green is white */
+    //void filterForGreen();
+
+    /** Find target blob candidates: use the null blobs that are inside the
+     * Green blobs and combine to fill most of the space the green blob as well
+     * as have centroids pretty close together.
+     * Second method is to use the horizontal and vertical runner techniques
+     * to attempt to find the bounds of the internal space
+     */
+    
+    /** Processes the list of all found blobs and finds the larget valid one  */
     bool processBlobs(const BlobDetector::BlobList& blobs,
                       BlobDetector::Blob& outBlob);
 
@@ -79,6 +89,12 @@ class RAM_EXPORT TargetDetector : public Detector
 
     /** The minimum pixel count of the green target blob */
     int m_minGreenPixels;
+
+    /** How many times to erode the green filtered elements */
+    int m_erodeIterations;
+
+    /** How many times to dilate the green filtered elements */
+    int m_dilateIterations;
 
     /** Finds the red light */
     BlobDetector m_blobDetector;

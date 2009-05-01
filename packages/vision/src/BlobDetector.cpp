@@ -16,6 +16,7 @@
 #include <cassert>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 // Library Includes
 #include "cv.h"
@@ -29,7 +30,10 @@
 namespace ram {
 namespace vision {
 
-void BlobDetector::Blob::draw(Image* output, bool centroid)
+void BlobDetector::Blob::draw(Image* output, bool centroid,
+			      unsigned char R,
+			      unsigned char G,
+			      unsigned char B)
 {
     CvPoint tl,tr,bl,br;
     
@@ -40,10 +44,10 @@ void BlobDetector::Blob::draw(Image* output, bool centroid)
     bl.y = br.y = m_maxY;
     
     IplImage* raw = output->asIplImage();
-    cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
-    cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
-    cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-    cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+    cvLine(raw, tl, tr, CV_RGB(R, G, B), 3, CV_AA, 0 );
+    cvLine(raw, tl, bl, CV_RGB(R, G, B), 3, CV_AA, 0 );
+    cvLine(raw, tr, br, CV_RGB(R, G, B), 3, CV_AA, 0 );
+    cvLine(raw, bl, br, CV_RGB(R, G, B), 3, CV_AA, 0 );
 
     if (centroid)
     {
@@ -53,6 +57,26 @@ void BlobDetector::Blob::draw(Image* output, bool centroid)
 	
 	cvCircle(raw, c, 5, CV_RGB(0,255,0), 2, CV_AA, 0); 
     }
+}
+
+void BlobDetector::Blob::drawStats(Image* output)
+{
+    CvPoint tl,tr,bl,br;
+    
+    tl.x = bl.x = m_minX;
+    tr.x = br.x = m_maxX;
+    
+    tl.y = tr.y = m_minY;
+    bl.y = br.y = m_maxY;
+
+    // Aspect ratio
+    std::stringstream ss;
+    ss << getAspectRatio();
+    Image::writeText(output, ss.str(), bl.x, bl.y - 15);
+
+    std::stringstream ss2;
+    ss2 << m_size;
+    Image::writeText(output, ss2.str(), bl.x, bl.y - 30);
 }
     
 BlobDetector::BlobDetector(core::ConfigNode config,
