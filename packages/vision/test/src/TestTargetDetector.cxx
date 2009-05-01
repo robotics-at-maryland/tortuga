@@ -1,0 +1,244 @@
+/*
+ * Copyright (C) 2009 Robotics at Maryland
+ * Copyright (C) 2009 Joseph Lisee <jlisee@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Joseph Lisee <jlisee@umd.edu>
+ * File:  packages/vision/test/src/TestTargetDetector.cxx
+ */
+
+// Library Includes
+#include <UnitTest++/UnitTest++.h>
+#include <boost/bind.hpp>
+
+// Project Includes
+#include "vision/include/TargetDetector.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/Events.h"
+#include "vision/test/include/Utility.h"
+
+#include "core/include/EventHub.h"
+
+
+
+using namespace ram;
+
+void drawTarget(vision::Image* image, int x, int y, int size = 50)
+{
+    CvPoint center;
+    center.x = x;
+    center.y = y;
+    cvCircle(image->asIplImage(), center, size, CV_RGB(0, 255, 0), -1);
+}
+
+struct TargetDetectorFixture
+{
+    TargetDetectorFixture() :
+        found(false),
+        event(vision::TargetEventPtr()),
+        input(640, 480),
+        eventHub(new core::EventHub()),
+        detector(core::ConfigNode::fromString("{}"), eventHub)
+    {
+        eventHub->subscribeToType(vision::EventType::TARGET_FOUND,
+            boost::bind(&TargetDetectorFixture::foundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::TARGET_LOST,
+            boost::bind(&TargetDetectorFixture::lostHandler, this, _1));
+    }
+
+    void foundHandler(core::EventPtr event_)
+    {
+        found = true;
+        event = boost::dynamic_pointer_cast<vision::TargetEvent>(event_);
+    }
+
+    void lostHandler(core::EventPtr event_)
+    {
+        found = false;
+        event = vision::TargetEventPtr();
+    }
+    
+    bool found;
+    vision::TargetEventPtr event;
+    vision::OpenCVImage input;
+    core::EventHubPtr eventHub;
+    vision::TargetDetector detector;
+};
+
+SUITE(TargetDetector) {
+    
+TEST_FIXTURE(TargetDetectorFixture, CenterLight)
+{
+    // Blue Image with red circle in the center
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640/2, 240);
+
+    // Process it
+    detector.processImage(&input);
+
+    double expectedX = 0 * 640.0/480.0;
+    double expectedY = 0;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found());
+
+    // Check the events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.005);
+    CHECK_CLOSE(expectedY, event->y, 0.005);
+}
+
+TEST_FIXTURE(TargetDetectorFixture, UpperLeft)
+{
+    // Blue Image with red circle in upper left
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640/4, 480/4);
+    
+    detector.processImage(&input);
+
+    double expectedX = -0.5 * 640.0/480.0;
+    double expectedY = 0.5;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found());
+
+    // Check the events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.005);
+    CHECK_CLOSE(expectedY, event->y, 0.005);
+}
+
+TEST_FIXTURE(TargetDetectorFixture, LowerRight)
+{
+    // Blue Image with red circle in lower right
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640 - 640/4, 480/4 * 3);
+    
+    detector.processImage(&input);
+
+    double expectedX = 0.5 * 640.0/480.0;
+    double expectedY = -0.5;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found());
+
+    // Check the events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.005);
+    CHECK_CLOSE(expectedY, event->y, 0.005);
+}
+
+TEST_FIXTURE(TargetDetectorFixture, Events_TARGET_LOST)
+{
+    // No light at all
+    makeColor(&input, 120, 120, 255);
+    
+    detector.processImage(&input);
+    CHECK(found == false);
+    CHECK(!event);
+
+    // Now we found the light (Upper Left)
+    drawTarget(&input, 640/4, 480/4);
+    detector.processImage(&input);
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(-0.5 * 640.0/480.0, event->x, 0.005);
+    CHECK_CLOSE(0.5, event->y, 0.005);
+
+    // Now we lost the light
+    makeColor(&input, 120, 120, 255);
+    detector.processImage(&input);
+    CHECK(found == false);
+    CHECK(!event);
+
+    // Make sure we don't get another lost event
+    found = true;
+    detector.processImage(&input);
+    CHECK(found == true);
+}
+
+TEST_FIXTURE(TargetDetectorFixture, RemoveTop)
+{
+    // Blue Image with red circle in upper center
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640/2, 45);
+
+    // Check with a non top removed detector
+    detector.processImage(&input);
+    double expectedX = 0  * 640.0/480.0;
+    double expectedY = 0.808;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found());
+
+    // Create a detector which remove the top of the window
+    vision::TargetDetector detectorTopRemoved(
+        core::ConfigNode::fromString("{ 'topRemovePercentage' : 0.25 }"));
+
+    detectorTopRemoved.processImage(&input);
+    CHECK(false == detectorTopRemoved.found());
+}
+
+TEST_FIXTURE(TargetDetectorFixture, RemoveBottom)
+{
+    // Blue Image with red circle in upper center
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640/2, 435);
+
+    // Check with a non top removed detector
+    detector.processImage(&input);
+    double expectedX = 0  * 640.0/480.0;
+    double expectedY = -0.808;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found());
+
+    // Create a detector which remove the top of the window
+    vision::TargetDetector detectorBottomRemoved(
+        core::ConfigNode::fromString("{ 'bottomRemovePercentage' : 0.25 }"));
+
+    detectorBottomRemoved.processImage(&input);
+    CHECK(false == detectorBottomRemoved.found());
+}
+/*
+TEST_FIXTURE(TargetDetectorFixture, oddShapes)
+{
+    // Make sure we don't say a rectangle is a bouy
+    makeColor(&input, 120, 120, 255);
+    // Same area as normal circle just bad bounding box
+    drawSquare(&input, 640/2, 480/2, 155, 55, 0, CV_RGB(255,0,0));
+
+    detector.processImage(&input);
+    CHECK(false == detector.found());    
+
+    // Now flip it up right
+    makeColor(&input, 120, 120, 255);
+    drawSquare(&input, 640/2, 480/2, 55, 155, 0, CV_RGB(255,0,0));
+
+    detector.processImage(&input);
+    CHECK(false == detector.found());    
+
+    // Now test the square *with* the light and make sure we get the light
+    // (LowerRight position)
+    makeColor(&input, 120, 120, 255);
+    drawSquare(&input, 640/2, 480/2, 80, 240, 0, CV_RGB(255,0,0));
+    drawTarget(&input, 640 - 640/4, 480/4 * 3);
+
+    detector.processImage(&input);
+
+    double expectedX = 0.5 * 640.0/480.0;
+    double expectedY = -0.5;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found());
+
+    
+    // Make sure we don't except a mostly empty blob
+//    vision::TargetDetector detectorTopRemoved(
+//        core::ConfigNode::fromString("{ 'minFillPercentage' : 0.25 }"));
+}*/
+
+} // SUITE(TargetDetector)

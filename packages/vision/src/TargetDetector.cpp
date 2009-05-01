@@ -41,6 +41,8 @@ TargetDetector::TargetDetector(core::ConfigNode config,
     m_found(false),
     m_targetCenterX(0),
     m_targetCenterY(0),
+    m_squareNess(0),
+    m_distance(0),
     m_maxAspectRatio(0),
     m_topRemovePercentage(0),
     m_bottomRemovePercentage(0)
@@ -55,6 +57,7 @@ void TargetDetector::init(core::ConfigNode config)
     //       config if its present, if not it uses the default value presented.
     core::PropertySetPtr propSet(getPropertySet());
 
+    // Hack properties to deal noise from the surface of the water
     propSet->addProperty(config, false, "topRemovePercentage",
         "% of the screen from the top to be blacked out",
         0.0, &m_topRemovePercentage, 0.0, 1.0);
@@ -63,47 +66,55 @@ void TargetDetector::init(core::ConfigNode config)
         "% of the screen from the bottom to be blacked out",
         0.0, &m_bottomRemovePercentage, 0.0, 1.0);
 
+    // Standard tuning properties
     propSet->addProperty(config, false, "maxAspectRatio",
         "Max aspect ratio of the blob",
         2.0, &m_maxAspectRatio, 0.0, 10.0);
 
-    propSet->addProperty(config, false, "filtBMin",
-        "Min blue value for a green pixel",  0,
+    propSet->addProperty(config, false, "minGreenPixels",
+        "The minimum pixel count of the green target blob",
+        5000, &m_minGreenPixels, 0, 50000);
+
+    // Color filter properties
+    propSet->addProperty(config, false, "filtYMin",
+        "Min blue value for a green pixel",  1,
 	boost::bind(&ColorFilter::getChannel1Low, m_filter),
 	boost::bind(&ColorFilter::setChannel1Low, m_filter, _1), 0, 255);
 
-    propSet->addProperty(config, false, "filtBMax",
+    propSet->addProperty(config, false, "filtYMax",
         "Max blue value for a green pixel",  255,
 	boost::bind(&ColorFilter::getChannel1High, m_filter),
 	boost::bind(&ColorFilter::setChannel1High, m_filter, _1), 0, 255);
 
-    propSet->addProperty(config, false, "filtGMin",
-        "Min green value for a green pixel",  0,
+    propSet->addProperty(config, false, "filtUMin",
+        "Min green value for a green pixel",  0,//80,
 	boost::bind(&ColorFilter::getChannel2Low, m_filter),
 	boost::bind(&ColorFilter::setChannel2Low, m_filter, _1), 0, 255);
 
-    propSet->addProperty(config, false, "filtGMax",
-        "Max green value for a green pixel",  255,
+    propSet->addProperty(config, false, "filtUMax",
+	"Max green value for a green pixel",  255, //141,
 	boost::bind(&ColorFilter::getChannel2High, m_filter),
 	boost::bind(&ColorFilter::setChannel2High, m_filter, _1), 0, 255);
 
-    propSet->addProperty(config, false, "filtRMin",
-        "Min red value for a green pixel",  0,
+    propSet->addProperty(config, false, "filtVMin",
+	"Min red value for a green pixel",  0, //98,
 	boost::bind(&ColorFilter::getChannel3Low, m_filter),
 	boost::bind(&ColorFilter::setChannel3Low, m_filter, _1), 0, 255);
 
-    propSet->addProperty(config, false, "filtRMax",
-        "Max red value for a green pixel",  255,
+    propSet->addProperty(config, false, "filtVMax",
+        "Max red value for a green pixel",  119, //119,
 	boost::bind(&ColorFilter::getChannel3High, m_filter),
 	boost::bind(&ColorFilter::setChannel3High, m_filter, _1), 0, 255);
-
-    // Working images
-    //    frame = new ram::vision::OpenCVImage(640,480);
 }
     
 TargetDetector::~TargetDetector()
 {
-  //    delete frame;
+    delete m_image;
+}
+
+bool TargetDetector::found()
+{
+    return m_found;
 }
 
 double TargetDetector::getX()
@@ -128,145 +139,122 @@ void TargetDetector::setBottomRemovePercentage(double percent)
     
 void TargetDetector::processImage(Image* input, Image* output)
 {
-   m_image->copyFrom(input);
-
-   // Filter the image
-   m_filter->filterImage(m_image);
-
-   // Do the debug display
-   if (output)
+   // Ensure our working image is the same size
+   if ((m_image->getWidth() != input->getWidth()) || 
+       (m_image->getHeight() != input->getHeight()))
    {
-       // Make the output exactly match the input
-       output->copyFrom(input);
-
-       // Color all found pixels pink
-       unsigned char* inData = m_image->getData();
-       unsigned char* outData = output->getData();
-       size_t numPixels = input->getHeight() * input->getWidth();
-    
-       for (size_t i = 0; i < numPixels; ++i)
-       {
-    	   if (*inData)
-	   {
-	     *outData = 147; // B
-	     *(outData + 1) = 20; // G
-	     *(outData + 2) = 255; // R
-	   }
-        
-	   inData += 3;
-	   outData += 3;
-       }
+       m_image->copyFrom(input);
    }
+   
+    // Copy to our working image and convert to YUV
+    cvCvtColor(input->asIplImage(), m_image->asIplImage(), CV_BGR2YCrCb);
 
-  /*    // Resize images if needed
-    if ((image->width != (int)input->getWidth()) &&
-        (image->height != (int)input->getHeight()))
-    {
-        cvReleaseImage(&image);
-        image = cvCreateImage(cvSize(input->getWidth(),
-                                     input->getHeight()), 8, 3);
-        cvReleaseImage(&raw);
-        raw=cvCreateImage(cvGetSize(image),8,3);
-        cvReleaseImage(&flashFrame);
-        flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-    }
-
-    cvCopyImage(input->asIplImage(), image);
-    cvCopyImage(image, flashFrame);
-    
-    // Remove top chunk if desired
+    // Remove top and bottom chunks if desired
     if (m_topRemovePercentage != 0)
     {
-        int linesToRemove = (int)(m_topRemovePercentage * image->height);
-        size_t bytesToBlack = linesToRemove * image->width * 3;
-        memset(image->imageData, 0, bytesToBlack);
-        memset(flashFrame->imageData, 0, bytesToBlack);
+        int linesToRemove = (int)(m_topRemovePercentage * m_image->getHeight());
+        size_t bytesToBlack = linesToRemove * m_image->getWidth() * 3;
+        memset(m_image->getData(), 0, bytesToBlack);
     }
 
     if (m_bottomRemovePercentage != 0)
     {
-//        printf("Removing \n");
-        int linesToRemove = (int)(m_bottomRemovePercentage * image->height);
-        size_t bytesToBlack = linesToRemove * image->width * 3;
-        memset(&(image->imageData[image->width * image->height * 3 - bytesToBlack]), 0, bytesToBlack);
-        memset(&(flashFrame->imageData[flashFrame->width * flashFrame->height * 3 - bytesToBlack]), 0, bytesToBlack);
+        int linesToRemove = 
+	    (int)(m_bottomRemovePercentage * m_image->getHeight());
+        size_t bytesToBlack = linesToRemove * m_image->getWidth() * 3;
+	int startIdx = 
+            m_image->getWidth() * m_image->getHeight() * 3 - bytesToBlack;
+        memset(&(m_image->getData()[startIdx]), 0, bytesToBlack);
     }
 
-    // Process Image
-    to_ratios(image);
-    CvPoint boundUR = {0};
-    CvPoint boundLL = {0};
-    boundUR.x = 0;
-    boundUR.y = 0;
-    boundLL.x = 0;
-    boundLL.y = 0;
-    redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
+    // Filter the image so all green is white, and everything else is black
+    m_filter->filterImage(m_image);
     
-    // Find the red blobs
-    m_blobDetector.setMinimumBlobSize(minRedPixels);
-    OpenCVImage temp(flashFrame, false);
-    m_blobDetector.processImage(&temp);
+    // Find all the green blobs
+    m_blobDetector.setMinimumBlobSize(m_minGreenPixels);
+    m_blobDetector.processImage(m_image);
+    std::vector<BlobDetector::Blob> blobs = m_blobDetector.getBlobs();
+    BlobDetector::Blob targetBlob;
     
-    // See if we have any
-    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
-    int redPixelCount = 0;
-
-    // Determine if the light has been found or lost
-    double lightPixelRadius = 0;
-
     if (blobs.size() > 0)
     {
-        BlobDetector::Blob redBlob(0, 0, 0, 0, 0, 0, 0);
-
-        // Attempt to find a valid blob
-        if (processBlobs(blobs, redBlob))
-        {
-            // Record info
-            //BlobDetector::Blob redBlob(blobs[0]);
-            lightCenter.x = redBlob.getCenterX();
-            lightCenter.y = redBlob.getCenterY();
-            boundUR.x = redBlob.getMaxX();
-            boundUR.y = redBlob.getMaxY();
-            boundLL.x = redBlob.getMinX();
-            boundLL.y = redBlob.getMinY();
-            redPixelCount = redBlob.getSize();
-            
-            lightPixelRadius = sqrt((double)redPixelCount/M_PI);
-            minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
-        
-            found=true; //completely ignoring the state machine for the time being.
-//	        	        cout<<"FOUND RED LIGHT "<<endl;
-        }
-    }	
+        m_found = true;
+	targetBlob = blobs[0];
+    }
     else
     {
         // Just lost the light so issue a lost event
-        if (found)
-            publish(EventType::LIGHT_LOST, core::EventPtr(new core::Event()));
-            
-        found=false; //Completely ignoring the state machine for the time being.
-        if (minRedPixels > m_initialMinRedPixels)
-            minRedPixels = (int)(minRedPixels * m_lostMinPixelScale);
-        else
-            minRedPixels = m_initialMinRedPixels;
+        if (m_found)
+            publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+	m_found = false;
     }
+
+    
+    // Invert the images and find all the non-green blobs
+
+    // Find all non-green blob with a green blob around them
+
+    // Return the biggest one
+
+    if (m_found)
+    {
+        // Shift origin to the center
+        m_targetCenterX = 
+    	    -1 * ((m_image->getWidth() / 2.0) - (double)targetBlob.getCenterX());
+        m_targetCenterY = 
+            (m_image->getHeight() / 2.0) - (double)targetBlob.getCenterY();
+    
+        // Normalize (-1 to 1)
+        m_targetCenterX = 
+	    m_targetCenterX / ((double)(m_image->getWidth())) * 2.0;
+        m_targetCenterY = 
+	    m_targetCenterY / ((double)(m_image->getHeight())) * 2.0;
+
+        // Account for the aspect ratio difference
+        // 640/480
+        m_targetCenterX *= (double)m_image->getWidth() / m_image->getHeight();
+
+        publishFoundEvent();
+    }
+    
+
+    // Do the debug display
+    if (output)
+    {
+        // Make the output exactly match the input
+        output->copyFrom(m_image);
+
+	// Color all found pixels pink
+	unsigned char* inData = m_image->getData();
+	unsigned char* outData = output->getData();
+	size_t numPixels = input->getHeight() * input->getWidth();
+	
+	for (size_t i = 0; i < numPixels; ++i)
+        {
+	    if (*inData)
+	    {
+	        *outData = 147; // B
+		*(outData + 1) = 20; // G
+		*(outData + 2) = 255; // R
+	    }
+	    
+	    inData += 3;
+	    outData += 3;
+	}
+
+	// Draw our target blob if we found it
+	if (m_found)
+	{
+            targetBlob.draw(output);
+	}
+    }
+
+  /*    // Resize images if needed
+
 
     // Do all the needed work if the light is found
     if (found)
     {
-        // Shift origin to the center
-        m_targetCenterX = -1 * ((image->width / 2) - lightCenter.x);
-        m_targetCenterY = (image->height / 2) - lightCenter.y;
-    
-        // Normalize (-1 to 1)
-        m_targetCenterX = m_targetCenterX / ((double)(image->width)) * 2.0;
-        m_targetCenterY = m_targetCenterY / ((double)(image->height)) * 2.0;
-
-        // Account for the aspect ratio difference
-        // 640/480
-        m_targetCenterX *= (double)image->width / image->height;
-
-        publishFoundEvent(lightPixelRadius);
         
         // Tell the watcher we are really freaking close to the light
 	int pixelSize = (int)(input->getHeight() * input->getWidth());
@@ -328,27 +316,19 @@ void TargetDetector::processImage(Image* input, Image* output)
 	}*/
 }
 
-  /*void TargetDetector::publishFoundEvent(double lightPixelRadius)
+void TargetDetector::publishFoundEvent()
 {
-    if (found)
+    if (m_found)
     {
-        TargetEventPtr event(new TargetEvent(0, 0));
+        TargetEventPtr event(new TargetEvent(
+	    m_targetCenterX,
+	    m_targetCenterY,
+	    m_squareNess,
+	    m_distance));
         
-        event->x = m_targetCenterX;
-        event->y = m_targetCenterY;
-        event->azimuth = math::Degree(
-            (78.0 / 2) * event->x * -1.0 *
-            (double)flashFrame->height/flashFrame->width);
-        event->elevation = math::Degree((105.0 / 2) * event->y * 1);
-        
-        // Compute range (assume a sphere)
-        double lightRadius = 0.25; // feet
-        event->range = (lightRadius * image->height) /
-            (lightPixelRadius * tan(78.0/2 * (M_PI/180)));
-        
-        publish(EventType::LIGHT_FOUND, event);
+        publish(EventType::TARGET_FOUND, event);
     }
-    }*/
+}
     
 bool TargetDetector::processBlobs(const BlobDetector::BlobList& blobs,
                                     BlobDetector::Blob& outBlob)

@@ -53,17 +53,32 @@ class RAM_EXPORT TargetDetector : public Detector
     bool processBlobs(const BlobDetector::BlobList& blobs,
                       BlobDetector::Blob& outBlob);
 
+    /** Publish the found event with the latest target information */
+    void publishFoundEvent();
+    
     /** Filters for the green in the water */
     ColorFilter* m_filter;
 
     /** Working scratch image */
     Image* m_image;
 
+    /** Wether or not the target is found */
     bool m_found;
     
+    /** The location for the X center of the target */
     double m_targetCenterX;
 
+    /** The location for the Y center of the target */
     double m_targetCenterY;
+
+    /** 1 when the area inside the target is perfectly square, < 1 otherwise */
+    double m_squareNess;
+
+    /** 0 When the target fills the screen, goes to 1 as it shrinks */
+    double m_distance;
+
+    /** The minimum pixel count of the green target blob */
+    int m_minGreenPixels;
 
     /** Finds the red light */
     BlobDetector m_blobDetector;
