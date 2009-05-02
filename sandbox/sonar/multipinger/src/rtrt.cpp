@@ -37,13 +37,6 @@ uint64_t ssqrBuf[N][NCHANNELS];
 complex<float> sdftComplex[NCHANNELS];
 uint64_t ssqr[NCHANNELS];
 
-// Probability peak finding
-static const unsigned int probBufLen = 64;
-static const unsigned int probBufLenMask = probBufLen - 1;
-float probBuf[probBufLen][NCHANNELS];
-bool probBitonicBuf[probBufLen][NCHANNELS];
-int olderHalfBitonicCount = probBufLen / 2, newerHalfBitonicCount = probBufLen / 2;
-
 template<class T>
 T absSquared(const complex<T>& z)
 { return z.real() * z.real() + z.imag() * z.imag(); }
@@ -51,10 +44,6 @@ T absSquared(const complex<T>& z)
 int main(int argc, char* argv[])
 {
     unsigned int idx = 0;
-    
-    for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
-        for (unsigned int i = 0 ; i < probBufLen ; i ++)
-            probBitonicBuf[i][channel] = 1;
     
     int16_t sample[NCHANNELS];
     
@@ -96,24 +85,6 @@ int main(int argc, char* argv[])
             const float prob = pdf(ssqrNoise, ssqrDelayed) * pdf(sdftPing, sdft) / (pdf(ssqrPing, ssqrDelayed) + pdf(sdftNoise, sdft));
             probScaled[channel] = 1000 * prob;
 #endif
-            {
-                const uint8_t probBufNewestIndex = idx & probBufLenMask;
-                const uint8_t probBufPreNewestIndex = (idx - 1) & probBufLenMask;
-                const uint8_t probBufMiddleNewestIndex = (idx + probBufLen / 2) & probBufLenMask;
-                const uint8_t probBufPreMiddleNewestIndex = (idx + probBufLen / 2 - 1) & probBufLenMask;
-                
-                olderHalfBitonicCount -= probBitonicBuf[probBufNewestIndex][channel];
-                newerHalfBitonicCount -= probBitonicBuf[probBufMiddleNewestIndex][channel];
-                
-                probBuf[probBufNewestIndex][channel] = prob;
-                probBitonicBuf[probBufNewestIndex][channel] = (probBuf[probBufPreNewestIndex][channel] >= probBuf[probBufNewestIndex][channel]);
-                probBitonicBuf[probBufMiddleNewestIndex][channel] = (probBuf[probBufPreMiddleNewestIndex][channel] <= probBuf[probBufMiddleNewestIndex][channel]);
-                
-                olderHalfBitonicCount += probBitonicBuf[probBufMiddleNewestIndex][channel];
-                newerHalfBitonicCount += probBitonicBuf[probBufNewestIndex][channel];
-                
-                fprintf(stderr, "%d %d\n", olderHalfBitonicCount, newerHalfBitonicCount);
-            }
         }
         
         fwrite(probScaled, sizeof(probScaled), 1, stdout);
