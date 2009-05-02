@@ -17,7 +17,8 @@ elif env['DISTNAME'] is 'bfin':
 
 bffft = env.Program('bffft.cpp')
 sonaragent = env.Program('sonaragent.cpp')
-progs = [bffft, sonaragent]
+rtrt = env.Program('rtrt.cpp')
+progs = [bffft, sonaragent, rtrt]
 
 if env['DISTNAME'] is 'bfin':
     livecat = env.Program('livecat.c')
