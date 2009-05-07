@@ -52,12 +52,21 @@ struct SonarEvent : public core::Event
 {
     /** Unit vector from the vehicle to the pinger */
     math::Vector3 direction;
+
     /** NOT USED */
     double range;
+
     /** sec part of the timeval struct*/
     int pingTimeSec;
+
     /** usec part of the timeval struct */
     int pingTimeUSec;
+
+    /** Incremented for every new ping heard */
+    int pingCount;
+
+    /** The pinger from which the ping was found */
+    unsigned char pinger;
 };
 
 typedef boost::shared_ptr<SonarEvent> SonarEventPtr;

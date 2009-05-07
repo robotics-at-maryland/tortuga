@@ -41,7 +41,7 @@ public:
     virtual double getRange() = 0;
 
     /** The time the ping was heard */
-    virtual core::TimeVal getPingTime() = 0;
+    virtual core::TimeVal getPingTime() = 0;    
     
 protected:
     ISonar(core::EventHubPtr eventHub = core::EventHubPtr());  
