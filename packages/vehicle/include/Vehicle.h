@@ -39,6 +39,8 @@ public:
     
     virtual double getDepth();
 
+    virtual math::Vector2 getPosition();
+
     math::Vector3 getLinearAcceleration();
 
     math::Vector3 getAngularRate();

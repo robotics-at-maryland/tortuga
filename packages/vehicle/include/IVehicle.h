@@ -22,6 +22,7 @@
 #include "core/include/Subsystem.h"
 #include "core/include/Event.h"
 #include "math/include/Vector3.h"
+#include "math/include/Vector2.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
@@ -52,8 +53,11 @@ public:
     /** When the vehicles angular rate changes (ram::math::Vector3Event) */
     //static const core::Event::EventType ANGULAR_RATE_UPDATE;
     
-    /** When the vehicles depth changes changes (ram::math::NumericEvent) */
+    /** When the vehicles depth changes (ram::math::NumericEvent) */
     static const core::Event::EventType DEPTH_UPDATE;
+
+    /** When the vehicles position changes (ram::math::Vector2Event) */
+    static const core::Event::EventType POSITION_UPDATE;
     
     /* @{ */
 
@@ -68,10 +72,14 @@ public:
     
     /** Return the current vehicle depth in feet */
     virtual double getDepth() = 0;
+
+    /** The position in place position of the vehicle, in world frame */
+    virtual math::Vector2 getPosition() = 0;
     
     /** The linear of acceleration (w/gravity) in the vehicle's local frame */
     virtual math::Vector3 getLinearAcceleration() = 0;
 
+    /** The rate of the vehicle rotation in the local frame */
     virtual math::Vector3 getAngularRate() = 0;
     
     /** The orientation of the vehicle relative to North with zero roll */

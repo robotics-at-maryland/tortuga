@@ -165,6 +165,11 @@ double Vehicle::getDepth()
     return getDepthSensor()->getDepth();
 }
 
+math::Vector2 Vehicle::getPosition()
+{
+    return math::Vector2::ZERO;
+}
+
 math::Vector3 Vehicle::getLinearAcceleration()
 {
     return getIMU()->getLinearAcceleration();
@@ -266,7 +271,7 @@ void Vehicle::_addDevice(device::IDevicePtr device)
 void Vehicle::update(double timestep)
 {
     if (m_devices.end() != m_devices.find(m_imuName))
-    {    
+    {
         math::OrientationEventPtr oevent(new math::OrientationEvent());
         oevent->orientation = getOrientation();
         publish(IVehicle::ORIENTATION_UPDATE, oevent);
@@ -278,6 +283,8 @@ void Vehicle::update(double timestep)
         nevent->number = getDepth();
         publish(IVehicle::DEPTH_UPDATE, nevent);
     }
+
+    /// TODO Send the position update
 }
 
 void Vehicle::setPriority(core::IUpdatable::Priority priority)
@@ -313,8 +320,8 @@ void Vehicle::background(int interval)
             if (devCfg.exists("update_interval"))
                 device->background(devCfg["update_interval"].asInt());
 
-	    if (devCfg.exists("priority"))
-	        device->setPriority(
+            if (devCfg.exists("priority"))
+                device->setPriority(
                     IUpdatable::stringToPriority(devCfg["priority"].asString()));
 
             if (devCfg.exists("affinity"))
