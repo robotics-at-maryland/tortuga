@@ -309,7 +309,12 @@ class DemoSonar(core.Subsystem):
         self.x = 0
         self.y = 0
         self.z = 0
+        self.x2 = 0
+        self.y2 = 0
+        self.z2 = 0
         self._currentTime = 0.0
+        self._pingCount = 1
+        self._mainPing = True
         
     def update(self, timestep):
         """
@@ -323,9 +328,22 @@ class DemoSonar(core.Subsystem):
         self.x = 10 * math.sin(self._currentTime)
         self.y = 10 * math.sin(self._currentTime + 3)
         self.z = 10 * math.sin(self._currentTime + 6)
+        self.x2 = 10 * math.sin(self._currentTime + 9)
+        self.y2 = 10 * math.sin(self._currentTime + 12)
+        self.z2 = 10 * math.sin(self._currentTime + 15)
         
         event = ext.vehicle.SonarEvent()
-        event.direction = ext.math.Vector3(self.x, self.y, self.z)
+        event.pingCount = self._pingCount        
+
+        if self._mainPing:
+            event.direction = ext.math.Vector3(self.x, self.y, self.z)
+            event.pingerID = 0
+        else:
+            event.direction = ext.math.Vector3(self.x2, self.y2, self.z2)
+            event.pingerID = 1
+
+        self._mainPing = not self._mainPing
+        self._pingCount += 1
         self.publish(device.ISonar.UPDATE, event)
 
         

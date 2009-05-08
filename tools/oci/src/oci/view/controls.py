@@ -237,6 +237,7 @@ class RotationCtrl(wx.Panel):
         self.desiredRotVal = 0
         self.offset = offset
         self.direction = direction
+        self.auxRotations = []
         
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         #self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
@@ -253,6 +254,27 @@ class RotationCtrl(wx.Panel):
         elif style & RotationCtrl.YAW:
             self.rotVal = (quat.getYaw(True)).valueRadians()
             self.desiredRotVal = (desiredQuat.getYaw(True)).valueRadians()
+
+        self.Refresh()
+
+    def setMultipleOrientations(self, orientations):
+        assert(len(orientations) >= 2)
+        
+        # Normal updates
+        quat = orientations[0]
+        desiredQuat = orientations[1]
+        self.setOrientation(quat, desiredQuat)
+
+        # Update the rest
+        style = self.GetWindowStyle()
+        self.auxRotations = []
+        for quat in orientations[2:]:
+            if style & RotationCtrl.ROLL:
+                self.auxRotations.append((quat.getRoll(True)).valueRadians())
+            elif style & RotationCtrl.PITCH:
+                self.auxRotations.append((quat.getPitch(True)).valueRadians())
+            elif style & RotationCtrl.YAW:
+                self.auxRotations.append((quat.getYaw(True)).valueRadians())
 
         self.Refresh()
     
@@ -316,27 +338,50 @@ class RotationCtrl(wx.Panel):
         desiredRotVal = (self.desiredRotVal + self.offset) * self.direction
 
         # Draw the current triangle        
+        self._drawMainTriangle(gc, trianglePath, rotVal)
+
+        # Draw the desired path
+        self._drawAuxTriangle(gc = gc, trianglePath = trianglePath,
+                              rotVal = desiredRotVal,
+                              penColour = wx.Colour(0, 0, 0, 128),
+                              brushColour = wx.Colour(0, 255, 0, 90))
+
+        # Draw the extra tiangles
+        for rot in self.auxRotations:
+            self._drawAuxTriangle(gc = gc, trianglePath = trianglePath,
+                                  rotVal = rot,
+                                  penColour = wx.Colour(0, 0, 0, 128),
+                                  brushColour = wx.Colour(0, 0, 255, 90))
+
+    def _drawMainTriangle(self, gc, trianglePath, rotVal):
+        # Rotate into place
         gc.Rotate(rotVal) 
+
+        # Actually do the draw
         gc.DrawPath(trianglePath)
 
         # Reset rotation to draw the desired rotation triangle
         gc.Rotate(-rotVal)
-        
-        desiredPath = gc.CreatePath()
-        desiredPath.AddPath(trianglePath)        
-        desiredPath.CloseSubpath()
-        
-        xform = gc.CreateMatrix()
-        xform.Rotate(desiredRotVal)
-        desiredPath.Transform(xform)
-        
-        pen = wx.Pen(wx.Colour(0, 0, 0, 128),3)
-        gc.SetPen(pen)
-        brush = wx.Brush(wx.Colour(0, 255, 0, 90))
-        gc.SetBrush(brush)
-        gc.DrawPath(desiredPath)
-        
     
+    def _drawAuxTriangle(self, gc, trianglePath, rotVal, penColour,
+                         brushColour):
+        # Create our path for the triangle
+        auxPath = gc.CreatePath()
+        auxPath.AddPath(trianglePath)        
+        auxPath.CloseSubpath()
+        
+        # Rotate the path by the desired ammount
+        xform = gc.CreateMatrix()
+        xform.Rotate(rotVal)
+        auxPath.Transform(xform)
+        
+        # Create pen and brush for the path then draw it
+        pen = wx.Pen(penColour, 3)
+        gc.SetPen(pen)
+        brush = wx.Brush(brushColour)
+        gc.SetBrush(brush)
+        gc.DrawPath(auxPath)        
+
 
     def getTextExtent(self, gc, dc, text):
         if "wxGTK" in wx.PlatformInfo:

@@ -342,8 +342,8 @@ class SonarPanel(wx.Panel):
         
         self._connections = []
         self._vehicleOrientation = ext.math.Quaternion.IDENTITY;
-        self._pingerOrientation = ext.math.Quaternion.IDENTITY;
-        self._lastTime = 0
+        self._pingerOrientations = [ext.math.Quaternion.IDENTITY];
+        self._lastPingCount = 0
 
         layout =  wx.GridBagSizer(10, 10)
               
@@ -412,19 +412,25 @@ class SonarPanel(wx.Panel):
         self._z.Value = '% 6.4f' % direction.z
         self._pingCount.Value = '% 8.1f' % event.pingCount
         
-        if self._lastTime != event.pingTimeUSec:
-	    self._lastTime = event.pingTimeUSec
-            self._pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
+        if self._lastPingCount != event.pingCount:
+	    self._lastPingCount = event.pingCount
+            pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
-            self._pingerOrientation = self._vehicleOrientation * self._pingerOrientation 
-        
-        self._bearing.setOrientation(self._vehicleOrientation, 
-                                     self._pingerOrientation)
+            pingerOrientation = self._vehicleOrientation * pingerOrientation 
+            
+            # Expand pinger orientations
+            while (event.pingerID + 1) > len(self._pingerOrientations):
+                self._pingerOrientations.append(ext.math.Quaternion.IDENTITY)
+            self._pingerOrientations[event.pingerID] = pingerOrientation
        
+        orientations = [self._vehicleOrientation]
+        orientations.extend(self._pingerOrientations)
+        self._bearing.setMultipleOrientations(orientations)
+
     def _onOrientationUpdate(self, event):
-        self._vehicleOrientation = event.orientation
-        self._bearing.setOrientation(self._vehicleOrientation, 
-                                     self._pingerOrientation)
+        orientations = [event.orientation]
+        orientations.extend(self._pingerOrientations)
+        self._bearing.setMultipleOrientations(orientations)
         
     def _onClose(self, closeEvent):
         for conn in self._connections:
