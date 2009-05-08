@@ -11,6 +11,7 @@ the rest of the system
 """
 
 import time
+from encodings import ascii
 
 # Library Imports
 import os
@@ -58,6 +59,23 @@ class WindowListener(ogre.WindowEventListener):
 class Simulation(core.Subsystem):
     SHUTDOWN = core.declareEventType('SIMULATION_SHUTDOWN')
     UPDATE = core.declareEventType('UPDATE')
+
+    def _getGUIFileName(self, config):
+        guiBasePath = ''
+        if wx.GetApp() is not None:
+            guiBasePath = wx.StandardPaths.Get().GetUserConfigDir()
+        else:
+            homePath = os.path.abspath(os.environ.get('HOME', '~/'))
+            if wx.Platform == '__WXMAC__':
+                guiBasePath = os.path.join(homePath, 'Library', 'Preferences')
+            else:
+                guiBasePath = homePath
+
+        guiFileName = config.get('guiConfig', 'ramsim.yml')
+        if wx.Platform == '__WXGTK__':
+            guiFileName = '.' + guiFileName
+        guiFileName = os.path.abspath(os.path.join(guiBasePath, guiFileName))
+        return guiFileName
     
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config.get('name', 'Simulation'))
@@ -67,12 +85,7 @@ class Simulation(core.Subsystem):
         self._root = ogre.Root.getSingleton()
         
         # Load data file
-        self._guiFileName = config.get('guiConfig', 'ramsim.yml')
-        guiBasePath = wx.StandardPaths.Get().GetUserConfigDir()
-        if wx.Platform == '__WXGTK__':
-            self._guiFileName = '.' + self._guiFileName
-        self._guiFileName = \
-            os.path.abspath(os.path.join(guiBasePath, self._guiFileName))
+        self._guiFileName = self._getGUIFileName(config)
         guiData = {}
         try:
             stream = file(self._guiFileName, 'r')

@@ -375,9 +375,9 @@ class SonarPanel(wx.Panel):
         # Create Time Controls
         actualLabel = wx.StaticText(self, label = 'Sp#:')
         layout.Add(actualLabel, (3, 0), flag = wx.ALIGN_CENTER)
-        self._time = wx.TextCtrl(self, size = textSize,
+        self._pingCount = wx.TextCtrl(self, size = textSize,
                               style = textStyle)
-        layout.Add(self._time, (3, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(self._pingCount, (3, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Bearing Control
         self._bearing = RotationCtrl(self, 'Bearing', style = RotationCtrl.YAW, 
@@ -410,7 +410,7 @@ class SonarPanel(wx.Panel):
         self._x.Value = '% 6.4f' % direction.x
         self._y.Value = '% 6.4f' % direction.y
         self._z.Value = '% 6.4f' % direction.z
-        self._time.Value = '% 8.1f' % event.pingTimeUSec
+        self._pingCount.Value = '% 8.1f' % event.pingCount
         
         if self._lastTime != event.pingTimeUSec:
 	    self._lastTime = event.pingTimeUSec

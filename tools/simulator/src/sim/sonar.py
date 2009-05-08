@@ -25,10 +25,16 @@ class IPinger(IObject):
     
 class Pinger(Visual):
     core.implements(IVisual, IPinger)
+
+    PING_COUNT = 0
     
     @two_step_init
     def __init__(self):
         Visual.__init__(self)
+        self._vehicle = None
+        self._sonarSys = None
+        self._timeSinceLastPing = 0
+        self._pingInterval = 0
 
     def load(self, data_object):
         scene, parent, node = data_object
@@ -39,9 +45,40 @@ class Pinger(Visual):
                        'material' : 'Simple/Orange' }
             node['Graphical'] = gfxNode
         Visual.load(self, (scene, parent, node))
-        
+
+        self._pingerID = node.get('ID', 0)
+        self._pingInterval = node.get('pingInterval', 2)
+        self._timeSinceLastPing = -1 * node.get('delay', 0)
+
     def save(self, data_object):
         raise "Not yet implemented"
+        
+    def setup(self, vehicle, sonarSys):
+        self._vehicle = vehicle
+        self._sonarSys = sonarSys
+
+    def update(self, timeSinceLastUpdate):
+        self._timeSinceLastPing += timeSinceLastUpdate
+        if self._timeSinceLastPing >= self._pingInterval:
+            if self._vehicle is not None:
+                self._doPing()
+            self._timeSinceLastPing = 0
+            
+    def _doPing(self):
+        event = ext.vehicle.SonarEvent()
+
+        relativePos = self.position - self._vehicle.robot.position
+        relativePos = self._vehicle.robot.orientation.Inverse() * relativePos 
+        relativePos.normalise()
+        event.direction = ext.math.Vector3(relativePos.x, relativePos.y,
+            relativePos.z)
+
+        self.PING_COUNT += 1
+        event.pingCount = self.PING_COUNT
+
+        event.pingerID = self._pingerID
+
+        self._sonarSys.publish(ext.vehicle.device.ISonar.UPDATE, event)
     
 class SimSonar(ext.core.Subsystem):
     def __init__(self, config, deps):
@@ -53,40 +90,17 @@ class SimSonar(ext.core.Subsystem):
                                                     nonNone = True)
         self.vehicle = ext.core.Subsystem.getSubsystemOfType(SimVehicle, deps, 
                                                              nonNone = True)
-        
-        # How long since its been since a ping
-        self._pingInterval = config.get('pingInterval', 2)
-        self._timeSinceLastPing = 10
 
         # Grab the pinger object
         self._pingers = sim.scene.getObjectsByInterface(IPinger)
-        assert len(self._pingers) <= 1
-        if len(self._pingers) >= 1:
-            self._pinger = self._pingers[0]
-        else:
-            self._pinger = None
-        
-        self._sampleCount = 0
+        assert len(self._pingers) <= 2
+        for pinger in self._pingers:
+            pinger.setup(vehicle = self.vehicle, sonarSys = self)
 
     def backgrounded(self):
-        return False
+        return True
         
     def update(self, timeSinceLastUpdate):
-        self._timeSinceLastPing += timeSinceLastUpdate
-        if self._timeSinceLastPing > self._pingInterval:
-            if self._pinger is not None:
-                self._doPing()
-                self._timeSinceLastPing = 0
-            
-    def _doPing(self):
-        event = ext.vehicle.SonarEvent()
-        relativePos = self._pinger.position - self.vehicle.robot.position
-        relativePos = self.vehicle.robot.orientation.Inverse() * relativePos 
-        relativePos.normalise()
-        event.direction = ext.math.Vector3(relativePos.x, relativePos.y,
-            relativePos.z)
-        self._sampleCount += 1
-        event.pingTimeUSec = self._sampleCount
-        self.publish(ext.vehicle.device.ISonar.UPDATE, event)
+        print "ERROR, should not be updating"
       
 ext.core.SubsystemMaker.registerSubsystem('SimSonar', SimSonar)      
