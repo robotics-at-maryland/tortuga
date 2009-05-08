@@ -13,7 +13,7 @@ clear
 close all
 
 %system properties
-c=11.5;%robot drag (vehicle assumed to have symmetric drag)
+c=4.5;%11.5;%robot drag (vehicle assumed to have symmetric drag)
 m=28;%robot mass (in kg)
 
 
@@ -60,7 +60,7 @@ D = [0 0; 0 0];
 
 
 %covariance of process noise (arbitrarily chosen) 
-Rv_cont=diag([8 8]);%in N   CONTINUOUS TIME, needs discretization
+Rv_cont=1e-122*diag([2 2]);%in N   CONTINUOUS TIME, needs discretization
 %Rv_cont=1e-8*diag([8 8]);
 %covariance of sensor noise
 Rn=(pi/180)*diag([2 2]);%in radian
@@ -98,18 +98,18 @@ Areal=[0 0 1 0 0 0 0 0;
 P0 = diag([2 2 .5 .5 4 4 4 4]); % Initial Covariance Matrix
 Ak_prev = Ak; % "A" matrix is LTI so Ak_prev and Ak wont change
 %initial state estimate
-xhat0 = [ 6;  % x       
-       -4;  % y            
-       10;  % x_dot
-       -10;  % y_dot
+xhat0 = [ 52.5;  % x       
+       101;  % y            
+       0;  % x_dot
+        0;  % y_dot
        -50;  % x1  (Pinger 1)
        100;  % y1  (Pinger 1)
        50;   % x2 (Pinger 2)
        100];% y2 (Pinger 2)
 
 %true initial state   
-x0 = [3; %x
-      -2; %y
+x0 = [ 52; %x
+      100; %y
       0; %x_dot
       0; %y_dot
       -50; %x1
@@ -121,7 +121,9 @@ x0 = [3; %x
   
 I = eye(size(P0));
 xhat_prev = xhat0;
+xhat = xhat0;
 x_prev = x0;
+x = x0;
 P_prev = P0;
 
 %storage variables
@@ -133,7 +135,7 @@ Cv=[chol(Rv(1:4,1:4))' zeros(4,4); zeros(4,4) zeros(4,4)];
 Cn=chol(Rn)';
 
 %% run simulation
-for k=1:floor(t_end/Ts)
+for k=2:floor(t_end/Ts)
     %%%%%%%%%%%%% simulate the real world
     %simulate process noise
     noise_process=Cv*randn(n,1);
