@@ -514,11 +514,16 @@ void SensorBoard::sonarEvent(struct boardInfo* telemetry)
 {
     static unsigned int previousSec = 0;
     static unsigned int previousUsec = 0;
+    static unsigned int pingCount = 0;
 
     // Only publish an event if the time stamp is chanced
     if ((previousSec != telemetry->sonar.timeStampSec) ||
         (previousUsec != telemetry->sonar.timeStampUSec))
     {
+
+        // Increment the amount of pings we have heard
+        pingCount++;
+
         // Create and pack our new event
         SonarEventPtr event(new SonarEvent);
         event->direction = math::Vector3(telemetry->sonar.vectorX,
@@ -528,6 +533,7 @@ void SensorBoard::sonarEvent(struct boardInfo* telemetry)
         event->pingTimeSec = telemetry->sonar.timeStampSec;
         event->pingTimeUSec = telemetry->sonar.timeStampUSec;
         event->pingerID = telemetry->sonar.pingerID;
+        event->pingCount = pingCount;
         
         publish(SONAR_UPDATE, event);
 

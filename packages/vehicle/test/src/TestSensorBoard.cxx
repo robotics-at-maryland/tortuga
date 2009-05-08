@@ -525,6 +525,7 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
     CHECK_EQUAL(expectedSec, event->pingTimeSec);
     CHECK_EQUAL(expectedUSec, event->pingTimeUSec);
     CHECK_EQUAL(expectedPingerID, event->pingerID);
+    CHECK_EQUAL(1, event->pingCount);
 
     // Do another update and make sure we don't have another event
     sb->updateDone = true;
@@ -540,6 +541,10 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
     sb->updateDone = true;
     sb->update(0);
     CHECK_EQUAL(2u, eventList.size());
+
+    // Make sure the ping count updated
+    event = eventList[1];
+    CHECK_EQUAL(2, event->pingCount);
     
     conn->disconnect();
     delete sb;
