@@ -344,45 +344,58 @@ class SonarPanel(wx.Panel):
         self._vehicleOrientation = ext.math.Quaternion.IDENTITY;
         self._pingerOrientations = [ext.math.Quaternion.IDENTITY];
         self._lastPingCount = 0
-
+        self._currentPingerID = 0
+        
         layout =  wx.GridBagSizer(10, 10)
               
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+00.0')
         textSize = wx.Size(textWidth, wx.DefaultSize.height) 
         textStyle = wx.TE_RIGHT | wx.TE_READONLY
         
+        # Create Pinger selection controls
+        label = wx.StaticText(self, label = 'Pinger:')
+        layout.Add(label, (0, 0), flag = wx.ALIGN_CENTER)
+
+        size = wx.Size(10, wx.DefaultSize.height)
+        self._pingerChoice = wx.Choice(self, id = wx.ID_ANY, size = size)
+        self._pingerChoice.Append('0')
+        self._pingerChoice.SetSelection(0)
+        self._pingerChoice.Bind(wx.EVT_CHOICE, self._onPingerChoice)
+        layout.Add(self._pingerChoice, (0, 1), 
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
+
         # Create X controls
         desiredLabel = wx.StaticText(self, label = 'X:')
-        layout.Add(desiredLabel, (0, 0), flag = wx.ALIGN_CENTER)
+        layout.Add(desiredLabel, (1, 0), flag = wx.ALIGN_CENTER)
         self._x = wx.TextCtrl(self, size = textSize,
                               style = textStyle)
-        layout.Add(self._x, (0, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(self._x, (1, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Y controls
         actualLabel = wx.StaticText(self, label = 'Y:')
-        layout.Add(actualLabel, (1, 0), flag = wx.ALIGN_CENTER)
+        layout.Add(actualLabel, (2, 0), flag = wx.ALIGN_CENTER)
         self._y = wx.TextCtrl(self, size = textSize,
                               style = textStyle)
-        layout.Add(self._y, (1, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(self._y, (2, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Z controls
         actualLabel = wx.StaticText(self, label = 'Z:')
-        layout.Add(actualLabel, (2, 0), flag = wx.ALIGN_CENTER)
+        layout.Add(actualLabel, (3, 0), flag = wx.ALIGN_CENTER)
         self._z = wx.TextCtrl(self, size = textSize,
                               style = textStyle)
-        layout.Add(self._z, (2, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(self._z, (3, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Time Controls
         actualLabel = wx.StaticText(self, label = 'Sp#:')
-        layout.Add(actualLabel, (3, 0), flag = wx.ALIGN_CENTER)
+        layout.Add(actualLabel, (4, 0), flag = wx.ALIGN_CENTER)
         self._pingCount = wx.TextCtrl(self, size = textSize,
                               style = textStyle)
-        layout.Add(self._pingCount, (3, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(self._pingCount, (4, 1), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Bearing Control
         self._bearing = RotationCtrl(self, 'Bearing', style = RotationCtrl.YAW, 
                                      offset = 0, direction = -1)
-        layout.Add(self._bearing, (4, 0), flag = wx.EXPAND,
+        layout.Add(self._bearing, (5, 0), flag = wx.EXPAND,
                    span = wx.GBSpan(1,2))
         
         # Create graphical controls
@@ -392,7 +405,7 @@ class SonarPanel(wx.Panel):
         #           flag = wx.EXPAND)
         
         layout.AddGrowableCol(1)
-        layout.AddGrowableRow(4)
+        layout.AddGrowableRow(5)
         
         self.SetSizerAndFit(layout)
         #self.SetSizeHints(0,0,100,-1)
@@ -407,25 +420,30 @@ class SonarPanel(wx.Panel):
         
     def _update(self,event):
         direction = event.direction
-        self._x.Value = '% 6.4f' % direction.x
-        self._y.Value = '% 6.4f' % direction.y
-        self._z.Value = '% 6.4f' % direction.z
+        if self._currentPingerID == event.pingerID:
+            self._x.Value = '% 6.4f' % direction.x
+            self._y.Value = '% 6.4f' % direction.y
+            self._z.Value = '% 6.4f' % direction.z
         self._pingCount.Value = '% 8.1f' % event.pingCount
         
+        # Expand pinger orientations and pinger ID list
+        while (event.pingerID + 1) > len(self._pingerOrientations):
+            self._pingerChoice.Append(str(len(self._pingerOrientations)))
+            self._pingerOrientations.append(ext.math.Quaternion.IDENTITY)
+
         if self._lastPingCount != event.pingCount:
 	    self._lastPingCount = event.pingCount
             pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
             pingerOrientation = self._vehicleOrientation * pingerOrientation 
-            
-            # Expand pinger orientations
-            while (event.pingerID + 1) > len(self._pingerOrientations):
-                self._pingerOrientations.append(ext.math.Quaternion.IDENTITY)
             self._pingerOrientations[event.pingerID] = pingerOrientation
        
         orientations = [self._vehicleOrientation]
         orientations.extend(self._pingerOrientations)
         self._bearing.setMultipleOrientations(orientations)
+
+    def _onPingerChoice(self, event):
+        self._currentPingerID = event.GetSelection()
 
     def _onOrientationUpdate(self, event):
         orientations = [event.orientation]
