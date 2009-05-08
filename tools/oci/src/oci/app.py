@@ -44,7 +44,7 @@ class Application(wx.App):
         self._configPath = configPath
         
         # Now call parent class
-        wx.App.__init__(self)
+        wx.App.__init__(self, 0)
     
     
     def OnInit(self):
@@ -76,6 +76,7 @@ class Application(wx.App):
         frame = oci.frame.MainFrame(guiCfg, subsystems)
                                       
         frame.Show(True)
+        frame.Bind(wx.EVT_CLOSE, self._onClose)
         self.SetTopWindow(frame)
         
         # Setup Update timer and start timer loop
@@ -97,6 +98,13 @@ class Application(wx.App):
         del self._app
         
         return 0
+
+    def _onClose(self, event):
+        """
+        Closes the timer when the main application closes
+        """
+        self.timer.Stop()
+        event.Skip()
         
     def _getTime(self):
         """
