@@ -14,6 +14,7 @@ RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, ORIENTATION_UPDATE);
 //RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, LINEAR_ACCEL_UPDATE);
 //RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, ANGULAR_RATE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, DEPTH_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::IVehicle, POSITION_UPDATE);
 
 namespace ram {
 namespace vehicle {

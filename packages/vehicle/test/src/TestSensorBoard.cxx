@@ -494,7 +494,7 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
     double expectedRange = 23;
     int expectedSec = 1237;
     int expectedUSec = 2822;
-    unsigned char expectedPinger = 0;
+    unsigned char expectedPingerID = 3;
 
     // Set values to be returned
     sb->updateDone = true;
@@ -505,7 +505,7 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
     sb->currentTelemetry.sonar.range = (short)expectedRange;
     sb->currentTelemetry.sonar.timeStampSec = expectedSec;
     sb->currentTelemetry.sonar.timeStampUSec = expectedUSec;
-    sb->currentTelemetry.sonar.pinger = expectedPinger;
+    sb->currentTelemetry.sonar.pingerID = expectedPingerID;
 
     // Register handler and trigger and update
     SonarEventPtrList eventList;
@@ -524,7 +524,7 @@ TEST_FIXTURE(SensorBoardFixture, event_SONAR_UPDATE)
     CHECK_EQUAL(expectedRange, event->range);
     CHECK_EQUAL(expectedSec, event->pingTimeSec);
     CHECK_EQUAL(expectedUSec, event->pingTimeUSec);
-    CHECK_EQUAL(expectedPinger, event->pinger);
+    CHECK_EQUAL(expectedPingerID, event->pingerID);
 
     // Do another update and make sure we don't have another event
     sb->updateDone = true;

@@ -527,6 +527,7 @@ void SensorBoard::sonarEvent(struct boardInfo* telemetry)
         event->range = telemetry->sonar.range;
         event->pingTimeSec = telemetry->sonar.timeStampSec;
         event->pingTimeUSec = telemetry->sonar.timeStampUSec;
+        event->pingerID = telemetry->sonar.pingerID;
         
         publish(SONAR_UPDATE, event);
 

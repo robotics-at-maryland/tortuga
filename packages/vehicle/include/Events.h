@@ -66,7 +66,7 @@ struct SonarEvent : public core::Event
     int pingCount;
 
     /** The pinger from which the ping was found */
-    unsigned char pinger;
+    unsigned char pingerID;
 };
 
 typedef boost::shared_ptr<SonarEvent> SonarEventPtr;

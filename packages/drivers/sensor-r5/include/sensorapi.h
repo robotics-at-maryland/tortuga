@@ -220,7 +220,7 @@ struct sonarData
     /** Microseconds part of the time when the ping occured */
     unsigned int timeStampUSec;
     /** Identifies which pinger the ping came from */
-    unsigned char pinger;
+    unsigned char pingerID;
 };
 
 /** Complete vehicle information */
