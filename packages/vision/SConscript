@@ -76,6 +76,12 @@ envt.RAMProgram(target = 'NetworkTrainer',
 		source = 'test/src/NetworkTrainer.cpp',
 		int_deps = ['vision'])
 
+# FFTW based programs 
+conf = envt.Configure()
+if conf.CheckLib('fftw3', language='C++', autoadd=1):
+   # Place FFTW3 programs here
+   pass
+
 # Unit Tests
 envt = env.Clone()
 envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'])
