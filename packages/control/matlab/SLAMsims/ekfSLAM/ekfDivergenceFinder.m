@@ -34,7 +34,7 @@ rectangle ('position', [x0(5,end)-2.5,x0(6,end)-2.5, 5, 5], 'curvature', [1, 1],
 rectangle ('position', [x0(7,end)-2.5,x0(8,end)-2.5, 5, 5], 'curvature', [1, 1],'LineWidth',2)
 rectangle ('position', [min(xtotal),min(ytotal), max(xtotal)-min(xtotal), max(ytotal)-min(ytotal)],'LineWidth',2)
 wbar = waitbar(0,'Plotting the end of humanity...');
-
+daspect([1 1 1])
 
 
 color = [1 1 1;  %This uses RGB values to give intensity for the # of failures
