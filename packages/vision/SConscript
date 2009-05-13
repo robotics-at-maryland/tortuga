@@ -77,10 +77,10 @@ envt.RAMProgram(target = 'NetworkTrainer',
 		int_deps = ['vision'])
 
 # FFTW based programs 
-conf = envt.Configure()
-if conf.CheckLib('fftw3', language='C++', autoadd=1):
-   # Place FFTW3 programs here
-   pass
+#envt.RAMProgram(target = 'PhaseCorrelation',
+#		source = 'test/src/PhaseCorrelation.cpp',
+#		int_deps = ['vision'], ext_deps = ['fftw'])
+
 
 # Unit Tests
 envt = env.Clone()
