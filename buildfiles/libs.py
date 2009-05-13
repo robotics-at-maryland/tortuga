@@ -94,6 +94,8 @@ def setup_posix_libs():
         'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
                                     'wx-config', lib_flag='--libs std,gl'),
         'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
+
+        'fftw' : PkgConfigLibrary('fftw3', '3.2.1', ['fftw3.h']),
         
         'log4cpp' : PkgConfigLibrary('log4cpp', '1.0', ['log4cpp/Export.hh']),
 
