@@ -77,9 +77,9 @@ envt.RAMProgram(target = 'NetworkTrainer',
 		int_deps = ['vision'])
 
 # FFTW based programs 
-#envt.RAMProgram(target = 'PhaseCorrelation',
-#		source = 'test/src/PhaseCorrelation.cpp',
-#		int_deps = ['vision'], ext_deps = ['fftw'])
+envt.RAMProgram(target = 'PhaseCorrelation',
+		source = 'test/src/phase_correlation.cpp',
+		int_deps = ['vision'], ext_deps = ['fftw'])
 
 
 # Unit Tests
