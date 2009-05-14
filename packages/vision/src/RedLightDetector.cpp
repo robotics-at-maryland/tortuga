@@ -255,18 +255,9 @@ void RedLightDetector::processImage(Image* input, Image* output)
     // Do all the needed work if the light is found
     if (found)
     {
-        // Shift origin to the center
-        m_redLightCenterX = -1 * ((image->width / 2) - lightCenter.x);
-        m_redLightCenterY = (image->height / 2) - lightCenter.y;
-    
-        // Normalize (-1 to 1)
-        m_redLightCenterX = m_redLightCenterX / ((double)(image->width)) * 2.0;
-        m_redLightCenterY = m_redLightCenterY / ((double)(image->height)) * 2.0;
-
-        // Account for the aspect ratio difference
-        // 640/480
-        m_redLightCenterX *= (double)image->width / image->height;
-
+        // Transform to the AI's coordinates then publish the event
+        Detector::imageToAICoordinates(input, lightCenter.x, lightCenter.y,
+				       m_redLightCenterX, m_redLightCenterY);
         publishFoundEvent(lightPixelRadius);
         
         // Tell the watcher we are really freaking close to the light

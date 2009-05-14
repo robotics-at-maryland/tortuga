@@ -33,6 +33,27 @@ public:
 
     /** Get the set of properties for this object */
     virtual core::PropertySetPtr getPropertySet();
+
+    /** Transfrom from OpenCV image coordinates to AI cordinates 
+     *
+     *  AI coordinates have the origin at the center, +Y up and +X to the 
+     *  right.  Y goes from 1 to -1 and X goes from width/height to
+     *  -width/height.
+     *
+     *  @param image
+     *      The image the coordinates were taken from.
+     *  @param imageX
+     *      The x coordinate in the image frame.
+     *  @param imageY
+     *      The y coordinate in the image frame.
+     *  @param outX
+     *      The value which will be changed the X coordinate in AI frame
+     *  @param outY
+     *      The value which will be changed the Y coordinate in AI frame
+     */
+    static void imageToAICoordinates(const Image* image, 
+				     const int& imageX, const int& imageY,
+				     double& outX, double& outY);
     
 protected:
     Detector(core::EventHubPtr eventHub = core::EventHubPtr());

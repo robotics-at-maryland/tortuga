@@ -557,24 +557,15 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
 {
     if (binNum > 3)
         return;
-//        std::cout<<"Finished writing to output image"<<std::endl;
-    double binX = bin.getCenterX();
-    double binY = bin.getCenterY();
 
-    // Map the image coordinate system to one 90 degrees rotated and with the
-    // center in the middle of the image, and going from -1 to 1
-    
-    // Shift origin to the center
-    binX = -1 * ((binFrame->width / 2) - binX);
-    binY = (binFrame->height / 2) - binY;
-    
-    // Normalize (-1 to 1)
-    binX = binX / ((double)(binFrame->width)) * 2.0;
-    binY = binY / ((double)(binFrame->height)) * 2.0;
-    
-    // Account for the aspect ratio difference
-    // 640/480      
-    binX *= (double)binFrame->width / binFrame->height;
+    // Get the bin center in AI coordinates
+    OpenCVImage temp(binFrame, false);
+    double binX = 0;
+    double binY = 0;
+    Detector::imageToAICoordinates(&temp, bin.getCenterX(), bin.getCenterY(),
+				   binX, binY);
+//        std::cout<<"Finished writing to output image"<<std::endl;
+
 
     // Create the image to hold the bin blob, give a little bit of extra space
     // around the black.  (10 pixels)

@@ -707,24 +707,9 @@ if (output)
 
     if (m_found)
     {
-        // Shift origin to the center
-        //n_x = -1 * ((input->getWidth() / 2) - m_fullDuct.getCenterX());
-        //n_y = (input->getHeight() / 2) - m_fullDuct.getCenterY();
-        // These temps needed because of some wierd overflow issue
-        int temp = (input->getHeight() / 2);
-        int temp2 = temp - m_fullDuct.getCenterY();
-        n_y = temp2;
-        temp = (input->getWidth() / 2);
-        temp2 = temp - m_fullDuct.getCenterX();
-        n_x = -1 * temp2;
-
-        // Normalize (-1 to 1)
-        n_x = n_x / ((double)(input->getWidth())) * 2.0;
-        n_y = n_y / ((double)(input->getHeight())) * 2.0;
-
-        // Account for the aspect ratio difference
-        // 640/480
-        n_x *= (double)input->getWidth() / input->getHeight();
+        // Transform results to the AI coordinate frame
+        Detector::imageToAICoordinates(input, m_fullDuct.getCenterX(),
+				       m_fullDuct.getCenterY(), n_x, n_y);
 
         // Calculate range
         m_range = 1 - ((double)(m_fullDuct.getMaxY() - m_fullDuct.getMinY()) / (double)input->getHeight()); 

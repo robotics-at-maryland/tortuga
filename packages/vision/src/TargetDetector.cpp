@@ -250,21 +250,11 @@ void TargetDetector::processImage(Image* input, Image* output)
 
     if (m_found)
     {
-        // Shift origin to the center
-        m_targetCenterX = 
-    	    -1 * ((m_image->getWidth() / 2.0) - (double)targetBlob.getCenterX());
-        m_targetCenterY = 
-            (m_image->getHeight() / 2.0) - (double)targetBlob.getCenterY();
-    
-        // Normalize (-1 to 1)
-        m_targetCenterX = 
-	    m_targetCenterX / ((double)(m_image->getWidth())) * 2.0;
-        m_targetCenterY = 
-	    m_targetCenterY / ((double)(m_image->getHeight())) * 2.0;
-
-        // Account for the aspect ratio difference
-        // 640/480
-        m_targetCenterX *= (double)m_image->getWidth() / m_image->getHeight();
+        Detector::imageToAICoordinates(m_image, 
+				       targetBlob.getCenterX(),
+				       targetBlob.getCenterY(),
+				       m_targetCenterX,
+				       m_targetCenterY);
 
         publishFoundEvent();
     }
