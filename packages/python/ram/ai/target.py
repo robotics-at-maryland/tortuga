@@ -116,6 +116,8 @@ class RangeXYHold(FilteredState, state.State):
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
         depthGain = self._config.get('depthGain', 1.5)
+        iDepthGain = self._config.get('iDepthGain', 0.75)
+        dDepthGain = self._config.get('dDepthGain', 0.25)
         self._desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
         maxSpeed = self._config.get('maxSpeed', 1)
@@ -126,6 +128,8 @@ class RangeXYHold(FilteredState, state.State):
             maxRangeDiff = maxRangeDiff,
             maxSpeed = maxSpeed,
             depthGain = depthGain,
+            iDepthGain = iDepthGain,
+            dDepthGain = dDepthGain,
             translate = True,
             translateGain = translateGain)
         
@@ -309,6 +313,9 @@ class TargetAlignState(FilteredState):
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
+        iDepthGain = self._config.get('iDepthGain', 0.75)
+        dDepthGain = self._config.get('dDepthGain', 0.25)
+        
         desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
@@ -323,7 +330,9 @@ class TargetAlignState(FilteredState):
             maxSpeed = maxSpeed,
             maxSidewaysSpeed = maxSidewaysSpeed,
             alignGain = alignGain,
-            depthGain = depthGain)
+            depthGain = depthGain,
+            iDepthGain = iDepthGain,
+            dDepthGain = dDepthGain)
         
         self.motionManager.setMotion(motion)
         

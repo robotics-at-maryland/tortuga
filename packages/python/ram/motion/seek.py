@@ -11,6 +11,7 @@ import math
 # Project Imports
 import ram.core as core
 from ram.motion.basic import Motion
+import ram.motion.common as common
 import ext.core
 
 class PointTarget(ext.core.EventPublisher):
@@ -71,7 +72,8 @@ class SeekPoint(Motion):
     """
     
     def __init__(self, target, maxSpeed = 0.0, depthGain = 1, 
-                 translate = False, translateGain = 1):
+                 translate = False, translateGain = 1, iDepthGain = 0,
+                 dDepthGain = 0):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -86,10 +88,17 @@ class SeekPoint(Motion):
         self._running = False
         self._target = target
         self._maxSpeed = maxSpeed
-        self._depthGain = depthGain
         self._translate = translate
         self._translateGain = translateGain
+        
+        self._depthGain = depthGain
+        self._iDepthGain = iDepthGain
+        self._dDepthGain = dDepthGain
+        self._sumDepth = 0;
+        self._oldDepth = 0;
+        
         self._conn = target.subscribe(PointTarget.UPDATE, self._onBouyUpdate)
+        
         
     def _start(self):
         self._running = True
@@ -103,9 +112,21 @@ class SeekPoint(Motion):
         """
         
         # Determine new Depth
-        if 0 != self._depthGain:
+        if 0 != self._depthGain:        
+            dtDepth, self._sumDepth, self._oldDepth = common.PIDLoop(
+                x = self._target.y,
+                xd = 0, 
+                dt = 1.0/40.0,
+                dtTooSmall = 1.0/100.0, 
+                dtTooBig = 1.0, 
+                kp = self._depthGain, 
+                kd = self._dDepthGain, 
+                ki = self._iDepthGain,
+                sum = self._sumDepth, 
+                xOld = self._oldDepth)
+            
             currentDepth = self._vehicle.getDepth()
-            newDepth = currentDepth - self._target.y * self._depthGain
+            newDepth = currentDepth + dtDepth
             self._controller.setDepth(newDepth)
     
         # Do pointing control
@@ -166,7 +187,7 @@ class SeekPointToRange(SeekPoint):
     """
     def __init__(self, target, desiredRange, maxRangeDiff, rangeGain = 1.0, 
                  maxSpeed = 0.0, depthGain = 1, translate = False, 
-                 translateGain = 1):
+                 translateGain = 1, iDepthGain = 0, dDepthGain = 0):
         """
         @type desiredRange: float
         @param desiredRange: The range you wish to be at relative to the target
@@ -176,7 +197,7 @@ class SeekPointToRange(SeekPoint):
                              out at
         """
         SeekPoint.__init__(self, target, maxSpeed, depthGain, translate,
-                           translateGain)
+                           translateGain, iDepthGain, dDepthGain)
         self._desiredRange = desiredRange
         self._maxRangeDiff = maxRangeDiff
         self._rangeGain = rangeGain
