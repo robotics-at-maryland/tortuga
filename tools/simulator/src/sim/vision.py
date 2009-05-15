@@ -701,6 +701,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         closest = None
         obj = None
         relativePos = None
+        robotPos = self.vehicle.robot.position + \
+            (self.vehicle.robot.orientation * ogre.Vector3(0.5, 0, 0))
         
         for o in objects:
             toObj = o.position - self.vehicle.robot.position
@@ -825,6 +827,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         """
         Check for the red light
         """
+        # Drop out if we have no buoys
+        if self._bouys is None:
+            return
+        
         # Determine orientation to the buoy
         bouy, relativePos = self._findClosest(self._bouys)
         lightVisible, x, y, azimuth, elevation, angle = \
@@ -858,6 +864,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         Check for the Target (ie. "Machine Gun Nest"), the squareness is just
         an approximation. 
         """
+        # Drop out if we have no targets
+        if self._targets is None:
+            return
+        
         # Determine orientation to the target
         target, relativePos = self._findClosest(self._targets)
         targetVisible, x, y, azimuth, elevation, angle = \
@@ -886,6 +896,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         Check for the Target (ie. "Machine Gun Nest"), the squareness is just
         an approximation. 
         """
+        # Drop out if we have no Barbed Wire
+        if self._barbedWires is None:
+            return
+        
         # Grab both pipes determine the relative angle of the whole barbed
         # wire set
         barbedWire, relativePos = self._findClosest(self._barbedWires)
@@ -965,6 +979,10 @@ class IdealSimVision(ext.vision.VisionSystem):
 
         
     def _checkOrangePipe(self):
+        # Drop out if we have no Pipes
+        if self._pipes is None:
+            return
+        
         pipe, relativePos = self._findClosest(self._pipes)
         pipeVisible, x, y, angle = self._downwardCheck(relativePos, pipe)
 
@@ -997,12 +1015,18 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundPipe = pipeVisible
         
     def _checkBin(self):
+        # Drop out if we have no Bins
+        if self._bins is None:
+            return
+        
         found = False
         visibleBins = 0
         lastAngle = ext.math.Degree(0)
-        
+        robotPos = self.vehicle.robot.position + \
+            (self.vehicle.robot.orientation * ogre.Vector3(0.5, 0, 0))
+
         for bin in self._bins:
-            relativePos = bin.position - self.vehicle.robot.position
+            relativePos = bin.position - robotPos
             binVisible, x, y, angle = self._downwardCheck(relativePos, bin)
 
             if binVisible and (relativePos.length() < 4.5):
@@ -1078,6 +1102,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundBin = found
         
     def _checkDuct(self):
+        # Drop out if we have no Ducts
+        if self._ducts is None:
+            return
+        
         duct, relativePos = self._findClosest(self._ducts)
         ductVisible, x, y, azimuth, elevation, angle = \
             self._forwardCheck(relativePos, duct)
@@ -1127,6 +1155,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundDuct = ductVisible
         
     def _checkDownwardSafe(self):
+        # Drop out if we have no Safes
+        if self._safes is None:
+            return
+        
         safe, relativePos = self._findClosest(self._safes)
         safeVisible, x, y, angle = self._downwardCheck(relativePos, safe)
 
