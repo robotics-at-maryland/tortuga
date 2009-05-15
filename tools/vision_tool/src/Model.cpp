@@ -70,7 +70,8 @@ Model::~Model()
 void Model::setConfigPath(std::string configPath)
 {
     m_configPath = configPath;
-    changeToDetector(m_detectorType);
+    if (m_detectorType.size() > 0)
+        changeToDetector(m_detectorType);
 }
 
 void Model::openFile(std::string filename)
