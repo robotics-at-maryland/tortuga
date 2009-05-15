@@ -316,9 +316,9 @@ class Searching(state.State):
 
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
-            legTime = 5,
-            sweepAngle = 45,
-            speed = 2.5)
+            legTime = self._config.get('legTime', 5),
+            sweepAngle = self._config.get('sweepAngle', 45),
+            speed = self._config.get('speed', 2.5))
 
         self.motionManager.setMotion(zigZag)
 
@@ -419,7 +419,7 @@ class Centering(SettlingState):
         
 class SeekEnd(BinSortingState):
     """
-    Goes to the right most visible bin
+    Goes to the left most visible bin
     """
     AT_END = core.declareEventType('AT_END')
     

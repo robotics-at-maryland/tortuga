@@ -118,8 +118,8 @@ class RangeXYHold(FilteredState, state.State):
         depthGain = self._config.get('depthGain', 1.5)
         self._desiredRange = self._config.get('desiredRange', 3)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
-        maxSpeed = self._config.get('maxSpeed', 0.75)
-        translateGain = self._config.get('translateGain', 1)
+        maxSpeed = self._config.get('maxSpeed', 1)
+        translateGain = self._config.get('translateGain', 2)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._target,
             desiredRange = self._desiredRange,
