@@ -11,7 +11,7 @@ Subsystems:
     VisionSystem:
         #type: SimVision
         type: IdealSimVision
-        cameraRate: 10
+        #cameraRate: 10
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
@@ -74,7 +74,7 @@ Subsystems:
     Ai:
         # Demo course without the barbed wire
         taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-                    'ram.ai.course.Light', 'ram.ai.course.Pipe',
+                    'ram.ai.course.Light', 'ram.ai.course.Pipe1',
                     'ram.ai.course.Bin', 'ram.ai.course.Pinger',
                     'ram.ai.course.Octagaon']
 
@@ -95,6 +95,8 @@ Subsystems:
             # Course wide settings
             ram.ai.course.Pipe:
                 pipesToFind: 3
+            ram.ai.course.Gate:
+                pipeDelay: 0
         
             # Duct settings
             ram.ai.duct.SeekingToRange:
@@ -113,14 +115,17 @@ Subsystems:
             ram.ai.duct.Through:
                 forwardTime: 40
 
+            ram.ai.bin.Searching:
+                sweepAngle: 0
+                speed: 5
             ram.ai.bin.Seeking:
                 sidewaysSpeedGain: 10
                 speedGain: 7
             ram.ai.bin.Dive:
-                binDepth: 15.4
+                binDepth: 12 #15.4
                 offset: 2.25
             ram.ai.bin.SurfaceToMove:
-                binDepth: 15.4
+                binDepth: 12 #15.4
                 offset: 5
             ram.ai.bin.NextBin:
                 sidewaysSpeedGain: 3
@@ -147,12 +152,14 @@ Subsystems:
             # Gate sub task
             ram.ai.gate.Start:
                 depth: 4 
-                speed: 1
+                speed: 3
             ram.ai.gate.Forward:
                 time: 30
-                speed: 2
+                speed: 3
 
             # Light/Bouy sub task
+            ram.ai.light.Start:
+                speed: 3
             ram.ai.light.Searching:
                 sweepAngle: 0
                 speed: 2
@@ -218,24 +225,28 @@ Subsystems:
             # Barbed wire AI
             ram.ai.barbedwire.Start:
                 diveDepth: 11
-            
             ram.ai.barbedwire.SeekingToRange:
                 desiredRange: 0.8
                 maxSpeed: 2.0
                 depthGain: 0
                 translateGain: 2.5 
-                
             ram.ai.barbedwire.SeekingToAligned:
                 desiredRange: 0.7
                 maxSidewaysSpeed: 2
                 depthGain: 0
-                
             ram.ai.barbedwire.Aligning:
                 desiredRange: 0.8
                 depthGain: 0
-                
             ram.ai.barbedwire.Through:
                 forwardTime: 20
+            
+            # Pipe AI
+            ram.ai.pipe.BetweenPipes:
+                forwardTime: 15
+            ram.ai.pipe.Start:
+                speed: 3
+            ram.ai.pipe.Searching:
+                speed: 4
                 
     RemoteController:
         type: RemoteController
@@ -404,7 +415,7 @@ Subsystems:
             # Each scene must be on the given scene_path, this for example is 
             # in 'data/scenes/nxtest.xml'
             #Main: objectives/pipe.sml
-            #Main: objectives/bin.sml
+            Main: objectives/bin.sml
             #Main: objectives/duct.sml
             #Main: objectives/barbedwire.sml
             #Main: objectives/target.sml
@@ -416,7 +427,7 @@ Subsystems:
             #Main: gen_course.sml
             #Main: safePing.sml
             #Main: shortCourse.sml
-            Main: nbrf_tank.sml
+            #Main: nbrf_tank.sml
         
         Graphics:
             Plugins:
@@ -441,15 +452,15 @@ Subsystems:
         Input:
             KeyMap:
                 # Camera Controls
-                W : CAM_FORWARD
-                A : CAM_LEFT 
-                S : CAM_BACK 
-                D : CAM_RIGHT
-                Q : CAM_UP 
-                E : CAM_DOWN
-                R : CAM_ZOOM_IN
-                F : CAM_ZOOM_OUT
-                V : CAM_TOGGLE_FOLLOW
+                #W : CAM_FORWARD
+                #A : CAM_LEFT 
+                #S : CAM_BACK 
+                #D : CAM_RIGHT
+                #Q : CAM_UP 
+                #E : CAM_DOWN
+                #R : CAM_ZOOM_IN
+                #F : CAM_ZOOM_OUT
+                #V : CAM_TOGGLE_FOLLOW
                 
                 NUMPAD8 : CAM_FORWARD
                 NUMPAD4 : CAM_LEFT 
@@ -465,19 +476,19 @@ Subsystems:
                 NUMPAD3 : CAM_YAW_RIGHT
                 
                 # Vehicle Controls
-                I : THRUST_FORE
-                K : THRUST_BACK
-                G : THRUST_KILL
-                J : TURN_LEFT
-                L : TURN_RIGHT
-                U : SURFACE
-                O : DIVE
-                Y : PITCH_UP
-                H : PITCH_DOWN
-                Z : ROLL_PORT
-                X : ROLL_STARBOARD
-                N : STRAFE_LEFT
-                M : STRAFE_RIGHT
+                #I : THRUST_FORE
+                #K : THRUST_BACK
+                #G : THRUST_KILL
+                #J : TURN_LEFT
+                #L : TURN_RIGHT
+                #U : SURFACE
+                #O : DIVE
+                #Y : PITCH_UP
+                #H : PITCH_DOWN
+                #Z : ROLL_PORT
+                #X : ROLL_STARBOARD
+                #N : STRAFE_LEFT
+                #M : STRAFE_RIGHT
                 
                 # Misc.
                 CTRL+B : SCREENSHOT
