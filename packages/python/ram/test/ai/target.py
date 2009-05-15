@@ -143,7 +143,7 @@ class TestRangeXYHold(support.AITestCase):
         # Inject and event which has the duct ahead, and at the needed range
         self.injectEvent(vision.EventType.TARGET_FOUND, 
                          vision.TargetEvent, 0, 0, 0, 0,
-                         x = 0.05, y = -0.1, range = 3.03, squareNess = 1)
+                         x = 0.05, y = -0.1, range = 0.53, squareNess = 1)
         
         # Make sure we get the IN_RANGE event
         self.qeventHub.publishEvents()

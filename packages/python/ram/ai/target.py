@@ -116,8 +116,8 @@ class RangeXYHold(FilteredState, state.State):
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
         depthGain = self._config.get('depthGain', 1.5)
-        self._desiredRange = self._config.get('desiredRange', 3)
-        maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
+        self._desiredRange = self._config.get('desiredRange', 0.5)
+        maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
         maxSpeed = self._config.get('maxSpeed', 1)
         translateGain = self._config.get('translateGain', 2)
         
@@ -309,12 +309,12 @@ class TargetAlignState(FilteredState):
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
-        desiredRange = self._config.get('desiredRange', 3)
-        maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
+        desiredRange = self._config.get('desiredRange', 0.5)
+        maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
         alignGain = self._config.get('alignGain', 1.0)
         maxSpeed = self._config.get('maxSpeed', 0.75)
-        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._target,
             desiredRange = desiredRange,
