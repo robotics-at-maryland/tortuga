@@ -1,5 +1,5 @@
 /*
-  (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Robotics at Maryland
  * Copyright (C) 2007 Daniel Hakim
  * All rights reserved.
  *
@@ -45,36 +45,16 @@ static bool binToCenterComparer(BinDetector::Bin b1, BinDetector::Bin b2)
 }   
     
 BinDetector::Bin::Bin() :
-    Blob(0, 0, 0, 0, 0, 0, 0),
-    m_normX(0),
-    m_normY(0),
-    m_angle(math::Degree(0)),
-    m_id(0),
+    TrackedBlob(),
     m_suit(Suit::NONEFOUND)
 {
 }
     
 BinDetector::Bin::Bin(BlobDetector::Blob blob, double x, double y,
                       math::Degree angle, int id, Suit::SuitType suit) :
-    Blob(blob),
-    m_normX(x),
-    m_normY(y),
-    m_angle(angle),
-    m_id(id),
+    TrackedBlob(blob, x, y, angle, id),
     m_suit(suit)
 {
-}
-
-double BinDetector::Bin::distanceTo(Bin& otherBin)
-{
-    return distanceTo(otherBin.getX(), otherBin.getY());
-}
-
-double BinDetector::Bin::distanceTo(double x, double y)
-{
-    math::Vector2 mCenter(getX(), getY());
-    math::Vector2 otherCenter(x, y);
-    return (mCenter-otherCenter).length();
 }
     
 void BinDetector::Bin::draw(Image* image)

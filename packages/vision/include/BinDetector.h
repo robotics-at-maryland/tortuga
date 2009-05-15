@@ -18,6 +18,7 @@
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "vision/include/BlobDetector.h"
+#include "vision/include/TrackedBlob.h"
 #include "vision/include/SuitDetector.h"
 
 // Must be included last
@@ -29,53 +30,22 @@ namespace vision {
 class RAM_EXPORT BinDetector : public Detector
 {
   public:
-    class Bin : public BlobDetector::Blob
+    class Bin : public TrackedBlob
     {
     public:
         Bin();
         Bin(BlobDetector::Blob blob, double x, double y,
             math::Degree rotation, int id,  Suit::SuitType suit);
 
-        /** Gets the center in normalized cordinates -1 -> 1 */
-        double getX(){ return m_normX; }
-        
-        /** Gets the center in normalized cordinates -1 -> 1 */
-        double getY() { return m_normY; }
-        
-        /** Angle of vertical */
-        math::Degree getAngle(){ return m_angle;}
-        
-        void setAngle(math::Degree ang) { m_angle = ang; } //Does this work?
-        
-        int getId() const { return m_id; }
-        
         Suit::SuitType getSuit() { return m_suit; }
-
-        /** Computes the distance between the blob centers */
-        double distanceTo(Bin& otherBin);
-        
-        /** Distance from normalized cordinates (0,0) center, -1 -> 1 */
-        double distanceTo(double x, double y);
-        
-        bool operator==(const Bin& other) { return (m_id == other.getId()); }
-        
-        void _setId(int id) { m_id = id; }
 
         /** Draws the bounds of the bin in green, and its ID */
         void draw(Image* image);
         
 
     private:
-            
-        double m_normX;
-        double m_normY;
-        
-        math::Degree m_angle;
-        int m_id;
         Suit::SuitType m_suit;
-    };  
-    
-
+    };
 
     typedef std::list<Bin> BinList;
     typedef BinList::iterator BinListIter;
