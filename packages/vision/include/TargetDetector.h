@@ -49,8 +49,13 @@ class RAM_EXPORT TargetDetector : public Detector
   private:
     void init(core::ConfigNode config);
 
-    /** Filters the image so that all green is white */
-    //void filterForGreen();
+    /** Filters the image so that all green is white
+     *
+     *  Note the applies the top and bottom remove steps as well as the desired
+     *  erosion and dilation steps.  It produces an image ready to be processed
+     *  by the other portions of the algorithm.
+     */
+    void filterForGreen(Image* input);
 
     /** Find target blob candidates: use the null blobs that are inside the
      * Green blobs and combine to fill most of the space the green blob as well
@@ -59,9 +64,12 @@ class RAM_EXPORT TargetDetector : public Detector
      * to attempt to find the bounds of the internal space
      */
     
-    /** Processes the list of all found blobs and finds the larget valid one  */
-    bool processBlobs(const BlobDetector::BlobList& blobs,
-                      BlobDetector::Blob& outBlob);
+    /** Processes the list of all found blobs and finds all valid targets
+     *
+     *  This current only checks for aspect ratio constraints.
+     */
+    bool processGreenBlobs(const BlobDetector::BlobList& blobs,
+                           BlobDetector::BlobList& outBlobs);
 
     /** Publish the found event with the latest target information */
     void publishFoundEvent();
@@ -85,7 +93,7 @@ class RAM_EXPORT TargetDetector : public Detector
     double m_squareNess;
 
     /** 0 When the target fills the screen, goes to 1 as it shrinks */
-    double m_distance;
+    double m_range;
 
     /** The minimum pixel count of the green target blob */
     int m_minGreenPixels;
@@ -99,8 +107,11 @@ class RAM_EXPORT TargetDetector : public Detector
     /** Finds the red light */
     BlobDetector m_blobDetector;
 
-    /** How un square are blob can be and still be considered a target */
+    /** How "skinny" a blob can be and still be considered a target */
     double m_maxAspectRatio;
+
+    /** How "fat" a blob can be and still be considered a target */
+    double m_minAspectRatio;
     
     /** Percentage of the image to remove from the top */
     double m_topRemovePercentage;

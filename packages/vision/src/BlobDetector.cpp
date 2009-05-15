@@ -71,13 +71,28 @@ void BlobDetector::Blob::drawStats(Image* output)
 
     // Aspect ratio
     std::stringstream ss;
-    ss << getAspectRatio();
+    ss.precision(2);
+    ss << "A:" << getTrueAspectRatio();
     Image::writeText(output, ss.str(), bl.x, bl.y - 15);
 
     std::stringstream ss2;
-    ss2 << m_size;
+    ss2 << "P:" << m_size;
     Image::writeText(output, ss2.str(), bl.x, bl.y - 30);
 }
+
+
+void BlobDetector::Blob::drawTextUL(Image* output, std::string text,
+                                    int xOffset, int yOffset)
+{
+    Image::writeText(output, text, m_minX + xOffset, m_minY + yOffset);
+}
+
+void BlobDetector::Blob::drawTextUR(Image* output, std::string text,
+                                    int xOffset, int yOffset)
+{
+    Image::writeText(output, text, m_maxX + xOffset, m_minY + yOffset);
+}
+
     
 BlobDetector::BlobDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :

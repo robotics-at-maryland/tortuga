@@ -20,6 +20,7 @@
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/DuctDetector.h"
+#include "vision/include/TargetDetector.h"
 #include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
 
@@ -153,8 +154,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new SafeDetector(config["SafeDetector"], eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(config["GateDetector"], eventHub));
-    //m_targetDetector = DetectorPtr(
-    //    new TargetDetector(config["TargetDetector"], eventHub));
+    m_targetDetector = DetectorPtr(
+        new TargetDetector(config["TargetDetector"], eventHub));
     //m_BarbedWireDetector = DetectorPtr(
     //    new BarbedWireDetector(config["BarbedWireDetector"], eventHub));
     
@@ -244,12 +245,12 @@ void VisionSystem::redLightDetectorOff()
 
 void VisionSystem::targetDetectorOn()
 {
-    //m_forward->addDetector(m_targetDetector);
+    m_forward->addDetector(m_targetDetector);
 }
 
 void VisionSystem::targetDetectorOff()
 {
-    //m_forward->removeDetector(m_targetDetector);
+    m_forward->removeDetector(m_targetDetector);
 }
 
 void VisionSystem::barbedWireDetectorOn()

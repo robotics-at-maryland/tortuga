@@ -136,6 +136,39 @@ void drawBin(vision::Image* image, int x, int y, int width,
     }
 }
 
+
+void drawTarget(vision::Image* image, int x, int y, int height, int width)
+{
+    if (-1 == width)
+        width = height;
+    
+    // Determine setup 
+    double stripeWidth = ((double)width/10.0);
+    double stripeXOffset = (double)width/2 - stripeWidth/2;
+    double stripeYOffset = (double)height/2 - stripeWidth/2;
+
+
+    // Left green section
+    drawSquare(image, (int)(x - stripeXOffset), y, (int)stripeWidth, height,
+	       0, CV_RGB(0, 255, 0));
+        
+
+    // Right green section
+    drawSquare(image, (int)(x + stripeXOffset), y, (int)stripeWidth, height,
+	       0, CV_RGB(0, 255, 0));
+
+
+    // Top green section
+    drawSquare(image, x, (int)(y - stripeYOffset), width, (int)stripeWidth,
+	       0, CV_RGB(0, 255, 0));
+
+
+    // Bottem green section
+    drawSquare(image, x, (int)(y + stripeYOffset), width, (int)stripeWidth,
+	       0, CV_RGB(0, 255, 0));
+}
+
+    
 void drawCircle(vision::Image* image, int x, int y, int radius,
 		CvScalar color)
 {

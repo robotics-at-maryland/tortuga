@@ -51,23 +51,41 @@ public:
         int getMaxY() const { return m_maxY; }
         int getMinY() const { return m_minY; }
 
+        int getHeight() const { return getMaxY() - getMinY(); }
+
+        int getWidth() const { return getMaxX() - getMinX(); }
+
         void draw(Image*, bool centroid = true, 
 		  unsigned char R = 0,
 		  unsigned char G = 0,
 		  unsigned char B = 255);
 	void drawStats(Image* image);
 
+        /** Draws text in the upper right hand corner of the blob */
+        void drawTextUL(Image* image, std::string text, int xOffset = 0,
+                        int yOffset = 0);
 
-        double getAspectRatio() {
-
-            double boundWidth = fabs(getMaxX() - getMinX());
-            double boundHeight = fabs(getMaxY() - getMinY());
-            double aspectRatio = boundWidth / boundHeight;
+        /** Draws text in the upper right hand corner of the blob */
+        void drawTextUR(Image* image, std::string text, int xOffset = 0,
+                        int yOffset = 0);
+        
+        /** Retuns an aspect ratio all ways greater then one */
+        double getAspectRatio() const {
+            double aspectRatio = getTrueAspectRatio();
             // Ensure its always positive
             if (aspectRatio < 1)
                 aspectRatio = 1 / aspectRatio;
             return aspectRatio;
         }
+
+        /** Returns an aspect ratio that goes from 0 - inf */
+        double getTrueAspectRatio() const {
+
+            double boundWidth = getHeight();
+            double boundHeight = getWidth();
+            return boundWidth / boundHeight;
+        }
+
         
         bool containsExclusive(Blob otherBlob)
         {

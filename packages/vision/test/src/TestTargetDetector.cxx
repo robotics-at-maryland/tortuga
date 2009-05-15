@@ -23,30 +23,6 @@
 
 using namespace ram;
 
-
-void drawTarget(vision::Image* image, int x, int y, int width = 100)
-{
-    // Determine setup 
-    double stripeWidth = ((double)width/10.0);
-    double stripeOffset = (double)width/2 - stripeWidth/2;
-
-    // Bottem green section
-    drawSquare(image, (int)(x - stripeOffset), y, (int)stripeWidth, width,
-	       0, CV_RGB(0, 255, 0));
-        
-    // Top green section
-    drawSquare(image, (int)(x + stripeOffset), y, (int)stripeWidth, width,
-	       0, CV_RGB(0, 255, 0));
-
-    // Left green section
-    drawSquare(image, x, (int)(y - stripeOffset), width, (int)stripeWidth,
-	       0, CV_RGB(0, 255, 0));
-        
-    // Right green section
-    drawSquare(image, x, (int)(y + stripeOffset), width, (int)stripeWidth,
-	       0, CV_RGB(0, 255, 0));
-}
-
 struct TargetDetectorFixture
 {
     TargetDetectorFixture() :
@@ -103,15 +79,16 @@ SUITE(TargetDetector) {
     
 TEST_FIXTURE(TargetDetectorFixture, CenterLight)
 {
-    // Blue Image with red circle in the center
+    // Blue Image with green target in the center
     makeColor(&input, 120, 120, 255);
-    drawTarget(&input, 640/2, 240);
+    drawTarget(&input, 640/2, 240, 200);
 
     // Process it
     processImage(&input);
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
+    double expectedRange = 1.0 - 200.0/480;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
     CHECK(detector.found());
@@ -121,11 +98,12 @@ TEST_FIXTURE(TargetDetectorFixture, CenterLight)
     CHECK(event);
     CHECK_CLOSE(expectedX, event->x, 0.005);
     CHECK_CLOSE(expectedY, event->y, 0.005);
+    CHECK_CLOSE(expectedRange, event->range, 0.005);
 }
 
 TEST_FIXTURE(TargetDetectorFixture, UpperLeft)
 {
-    // Blue Image with red circle in upper left
+    // Blue Image with green target in upper left
     makeColor(&input, 120, 120, 255);
     drawTarget(&input, 640/4, 480/4);
     
@@ -133,6 +111,7 @@ TEST_FIXTURE(TargetDetectorFixture, UpperLeft)
 
     double expectedX = -0.5 * 640.0/480.0;
     double expectedY = 0.5;
+    double expectedRange = 1.0 - 100.0/480;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
     CHECK(detector.found());
@@ -142,11 +121,12 @@ TEST_FIXTURE(TargetDetectorFixture, UpperLeft)
     CHECK(event);
     CHECK_CLOSE(expectedX, event->x, 0.005);
     CHECK_CLOSE(expectedY, event->y, 0.005);
+    CHECK_CLOSE(expectedRange, event->range, 0.005);
 }
 
 TEST_FIXTURE(TargetDetectorFixture, LowerRight)
 {
-    // Blue Image with red circle in lower right
+    // Blue Image with green target in lower right
     makeColor(&input, 120, 120, 255);
     drawTarget(&input, 640 - 640/4, 480/4 * 3);
     
@@ -164,6 +144,41 @@ TEST_FIXTURE(TargetDetectorFixture, LowerRight)
     CHECK_CLOSE(expectedX, event->x, 0.005);
     CHECK_CLOSE(expectedY, event->y, 0.005);
 }
+
+TEST_FIXTURE(TargetDetectorFixture, SquareNess)
+{
+    // Perfect
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640/2, 480/2, 100, 100);
+    processImage(&input);
+    
+    double expectedSquareness = 1;
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedSquareness, event->squareNess, 0.005);
+    
+    // Skinny
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640/2, 480/2, 200, 100);
+    processImage(&input);
+    
+    expectedSquareness = 0.5;
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedSquareness, event->squareNess, 0.005);
+
+
+    // Skinnier
+    makeColor(&input, 120, 120, 255);
+    drawTarget(&input, 640/2, 480/2, 300, 100);
+    processImage(&input);
+    
+    expectedSquareness = 1.0/3.0;
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedSquareness, event->squareNess, 0.005);
+}
+
 
 TEST_FIXTURE(TargetDetectorFixture, Events_TARGET_LOST)
 {

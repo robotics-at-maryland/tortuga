@@ -35,6 +35,12 @@ struct VisionSystemFixture
         
         pipeFound(false),
         pipeEvent(vision::PipeEventPtr()),
+
+        binFound(false),
+        binEvent(vision::BinEventPtr()),
+        
+        targetFound(false),
+        targetEvent(vision::TargetEventPtr()),
         
         forwardImage(640, 480),
         forwardCamera(new MockCamera(&forwardImage)),
@@ -54,6 +60,8 @@ struct VisionSystemFixture
             boost::bind(&VisionSystemFixture::pipeFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_FOUND,
             boost::bind(&VisionSystemFixture::binFoundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::TARGET_FOUND,
+            boost::bind(&VisionSystemFixture::targetFoundHandler, this, _1));
     }
 
     void redFoundHandler(core::EventPtr event_)
@@ -73,7 +81,13 @@ struct VisionSystemFixture
         binFound = true;
         binEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
     }
-    
+
+    void targetFoundHandler(core::EventPtr event_)
+    {
+        targetFound = true;
+        targetEvent = boost::dynamic_pointer_cast<vision::TargetEvent>(event_);
+    }
+  
     
     bool redFound;
     vision::RedLightEventPtr redEvent;
@@ -83,6 +97,9 @@ struct VisionSystemFixture
 
     bool binFound;
     vision::BinEventPtr binEvent;
+
+    bool targetFound;
+    vision::TargetEventPtr targetEvent;
     
     vision::OpenCVImage forwardImage;
     MockCamera* forwardCamera;
@@ -168,7 +185,7 @@ TEST_FIXTURE(VisionSystemFixture, BinDetector)
     // Start dectector and unbackground it
     vision.binDetectorOn();
     vision.unbackground(true);
-    forwardCamera->background(0);
+    downwardCamera->background(0);
     
     // Process the current camera image
     vision.update(0);
@@ -182,5 +199,35 @@ TEST_FIXTURE(VisionSystemFixture, BinDetector)
     CHECK_CLOSE(-0.5 * 640.0/480.0, binEvent->x, 0.05);
     CHECK_CLOSE(0.5, binEvent->y, 0.1);
 }
+
+TEST_FIXTURE(VisionSystemFixture, TargetDetector)
+{
+    // Blue Image with green target in the center
+    vision::makeColor(&forwardImage, 120, 120, 255);
+    drawTarget(&forwardImage, 640/2, 240, 200, 100);
+
+    // Start dectector and unbackground it
+    vision.targetDetectorOn();
+    vision.unbackground(true);
+    forwardCamera->background(0);
+    
+    // Process the current camera image
+    vision.update(0);
+    vision.targetDetectorOff();
+
+    double expectedX = 0 * 640.0/480.0;
+    double expectedY = 0;
+    double expectedRange = 1.0 - 200.0/480;
+    double expectedSquareness = 0.5;
+
+    // Check the events
+    CHECK(targetFound);
+    CHECK(targetEvent);
+    CHECK_CLOSE(expectedX, targetEvent->x, 0.005);
+    CHECK_CLOSE(expectedY, targetEvent->y, 0.005);
+    CHECK_CLOSE(expectedRange, targetEvent->range, 0.005);
+    CHECK_CLOSE(expectedSquareness, targetEvent->squareNess, 0.005);
+}
+
 
 } // SUITE(RedLightDetector)

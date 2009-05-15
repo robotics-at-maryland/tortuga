@@ -38,6 +38,9 @@ enum TestSuitType
 void drawBin(vision::Image* image, int x, int y, int width, double angle,
              TestSuitType suitType = None);
 
+void drawTarget(vision::Image* image, int x, int y, int height = 100,
+                int width = -1);
+    
 void drawCircle(vision::Image* image, int x, int y, int radius,
 		CvScalar color);
 
