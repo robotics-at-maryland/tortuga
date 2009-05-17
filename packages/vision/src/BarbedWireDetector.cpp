@@ -250,7 +250,7 @@ bool BarbedWireDetector::processPipes(const PipeDetector::PipeList& pipes,
     BOOST_FOREACH(PipeDetector::Pipe pipe, getPipes())
     {
         // Determine if we have a valid green pipe
-        if (pipe.getAngle().valueDegrees() > m_minAngle)
+        if (fabs(pipe.getAngle().valueDegrees()) > m_minAngle)
         {
             outPipes.push_back(pipe);
             foundPipes = true;

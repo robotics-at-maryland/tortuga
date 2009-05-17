@@ -134,6 +134,35 @@ TEST_FIXTURE(BarbedWireDetectorFixture, DoublePipe)
     CHECK_CLOSE(expectedBottomWidth, event->bottomWidth, 0.000001);
 }
 
+TEST_FIXTURE(BarbedWireDetectorFixture, OddAngle)
+{
+    // Top pipe that is off angle, bottom pipe that is good
+    makeColor(&input, 120, 120, 255);
+    drawSquare(&input, 400, 240, 400, 400/31, 35, CV_RGB(0, 255, 0));
+    drawSquare(&input, 400, 480/4 * 3, 300, 300/31, 0, CV_RGB(0, 255, 0));
+
+    // Process it
+    processImage(&input);
+
+    double expectedTopX = 1.0/3.0;
+    double expectedTopY = -0.5;
+    double expectedTopWidth = 300.0/640.0;
+
+    double expectedBottomX = 0;
+    double expectedBottomY = 0;
+    double expectedBottomWidth = -1;
+    
+    // Check the events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedTopX, event->topX, 0.005);
+    CHECK_CLOSE(expectedTopY, event->topY, 0.005);
+    CHECK_CLOSE(expectedTopWidth, event->topWidth, 0.005);
+    CHECK_CLOSE(expectedBottomX, event->bottomX, 0.000001);
+    CHECK_CLOSE(expectedBottomY, event->bottomY, 0.000001);
+    CHECK_CLOSE(expectedBottomWidth, event->bottomWidth, 0.000001);
+}
+
 
 /*
 
@@ -213,7 +242,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, SquareNess)
     CHECK(found);
     CHECK(event);
     CHECK_CLOSE(expectedSquareness, event->squareNess, 0.005);
-}
+    }*/
 
 
 TEST_FIXTURE(BarbedWireDetectorFixture, Events_BARBED_WIRE_LOST)
@@ -226,14 +255,17 @@ TEST_FIXTURE(BarbedWireDetectorFixture, Events_BARBED_WIRE_LOST)
     CHECK(!event);
 
     // Now we found the light (Upper Left)
-    drawBarbedWire(&input, 640/4, 480/4);
+    drawSquare(&input, 640/4, 480/4, 300, 300/31, 0, CV_RGB(0, 255, 0));
+    drawSquare(&input, 640/4, 480/2, 200, 200/31, 0, CV_RGB(0, 255, 0));
+
     processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(-0.5 * 640.0/480.0, event->x, 0.005);
-    CHECK_CLOSE(0.5, event->y, 0.005);
-
-    // Now we lost the light
+    CHECK_CLOSE(-0.5 * 640.0/480.0, event->topX, 0.005);
+    CHECK_CLOSE(0.5, event->topY, 0.005);
+    CHECK_CLOSE(300.0/640.0, event->topWidth, 0.005);
+    
+    // Now we lost the barbed wire
     makeColor(&input, 120, 120, 255);
     processImage(&input);
     CHECK(found == false);
@@ -249,15 +281,29 @@ TEST_FIXTURE(BarbedWireDetectorFixture, RemoveTop)
 {
     // Blue Image with red circle in upper center
     makeColor(&input, 120, 120, 255);
-    drawBarbedWire(&input, 640/2, 45, 90);
+    drawSquare(&input, 640/2, 45, 300, 300/31, 0, CV_RGB(0, 255, 0));
 
+    
     // Check with a non top removed detector
     processImage(&input);
-    double expectedX = 0  * 640.0/480.0;
-    double expectedY = 0.808;
-    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
-    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
-    CHECK(detector.found());
+
+    double expectedTopX = 0 * 640.0/480.0;
+    double expectedTopY = 0.808;
+    double expectedTopWidth = 300.0/640.0;
+
+    double expectedBottomX = 0;
+    double expectedBottomY = 0;
+    double expectedBottomWidth = -1;
+    
+    // Check the events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedTopX, event->topX, 0.005);
+    CHECK_CLOSE(expectedTopY, event->topY, 0.005);
+    CHECK_CLOSE(expectedTopWidth, event->topWidth, 0.005);
+    CHECK_CLOSE(expectedBottomX, event->bottomX, 0.000001);
+    CHECK_CLOSE(expectedBottomY, event->bottomY, 0.000001);
+    CHECK_CLOSE(expectedBottomWidth, event->bottomWidth, 0.000001);
 
     // Create a detector which remove the top of the window
     vision::BarbedWireDetector detectorTopRemoved(
@@ -271,15 +317,28 @@ TEST_FIXTURE(BarbedWireDetectorFixture, RemoveBottom)
 {
     // Blue Image with red circle in upper center
     makeColor(&input, 120, 120, 255);
-    drawBarbedWire(&input, 640/2, 435, 90);
-
+    drawSquare(&input, 640/2, 435, 500, 500/31, 0, CV_RGB(0, 255, 0));
+    
     // Check with a non top removed detector
     processImage(&input);
-    double expectedX = 0  * 640.0/480.0;
-    double expectedY = -0.808;
-    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
-    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
-    CHECK(detector.found());
+
+    double expectedTopX = 0 * 640.0/480.0;
+    double expectedTopY = -0.808;
+    double expectedTopWidth = 500.0/640.0;
+
+    double expectedBottomX = 0;
+    double expectedBottomY = 0;
+    double expectedBottomWidth = -1;
+    
+    // Check the events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedTopX, event->topX, 0.005);
+    CHECK_CLOSE(expectedTopY, event->topY, 0.005);
+    CHECK_CLOSE(expectedTopWidth, event->topWidth, 0.005);
+    CHECK_CLOSE(expectedBottomX, event->bottomX, 0.000001);
+    CHECK_CLOSE(expectedBottomY, event->bottomY, 0.000001);
+    CHECK_CLOSE(expectedBottomWidth, event->bottomWidth, 0.000001);
 
     // Create a detector which remove the top of the window
     vision::BarbedWireDetector detectorBottomRemoved(
@@ -287,7 +346,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, RemoveBottom)
 
     detectorBottomRemoved.processImage(&input);
     CHECK(false == detectorBottomRemoved.found());
-} */
+}
 /*
 TEST_FIXTURE(BarbedWireDetectorFixture, oddShapes)
 {
