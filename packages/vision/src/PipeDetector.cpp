@@ -85,20 +85,16 @@ PipeDetector::Pipe::Pipe(BlobDetector::Blob blob, Image* sourceImage,
 
     
 PipeDetector::PipeDetector(core::ConfigNode config,
-                                       core::EventHubPtr eventHub) :
+                           core::EventHubPtr eventHub,
+                           int minPixels, int foundMinPixels) :
     Detector(eventHub),
     m_noHough(false)
 {
-    init(config);
+    init(config, minPixels, foundMinPixels);
 }
     
-PipeDetector::PipeDetector(Camera* camera) :
-    m_noHough(false)
-{
-    init(core::ConfigNode::fromString("{}"));
-}
-
-void PipeDetector::init(core::ConfigNode config)
+void PipeDetector::init(core::ConfigNode config, int minPixels,
+                        int foundMinPixels)
 {    
     // Detection variables
     // NOTE: The property set automatically loads the value from the given
@@ -107,10 +103,10 @@ void PipeDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "minPixels",
         "Minimum pixels for a blob to be considered a pipe",
-        3000, &m_minPixels);
+        minPixels, &m_minPixels);
     propSet->addProperty(config, false, "minPixelsFound",
         "Minimum pixels for a blob, if we found the blob last frame",
-        2500, &m_minPixelsFound);
+        foundMinPixels, &m_minPixelsFound);
 
     propSet->addProperty(config, false, "noHough",
         "Use custom angle finder instead of hough",
@@ -193,7 +189,7 @@ bool PipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
         squareSize = height;
     
     int drawSize = squareSize / 2;
-    int minBlobSize = ((squareSize / 4) * (squareSize / 4)) / 4;
+    int minBlobSize = pipeBlob.getSize() / 5;
     
     // Draw square to eliminate the central area of the pipe
     math::Vector2 upperLeft(-drawSize/2, drawSize/2);

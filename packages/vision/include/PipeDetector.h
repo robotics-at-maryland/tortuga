@@ -45,8 +45,8 @@ class RAM_EXPORT PipeDetector  : public Detector
     typedef PipeList::iterator PipeListIter;
     
     PipeDetector(core::ConfigNode config,
-                       core::EventHubPtr eventHub = core::EventHubPtr());
-    PipeDetector(Camera*);
+                 core::EventHubPtr eventHub = core::EventHubPtr(),
+                 int minPixels = 3000, int foundMinPixels = 2500);
     ~PipeDetector();
 
     /** Set whether or not to attempt to use the hough detector*/
@@ -61,7 +61,8 @@ class RAM_EXPORT PipeDetector  : public Detector
     PipeList getPipes();  
     
   private:
-    void init(core::ConfigNode config);
+    void init(core::ConfigNode config,
+              int minPixels, int foundMinPixels);
 
     /** Determines the angle of the pipe inside the given blob 
      *

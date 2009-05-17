@@ -173,10 +173,10 @@ class RAM_EXPORT BarbedWireEvent : public core::Event
                     double bottomX_, double bottomY_, double bottomWidth_) :
         topX(topX_),
         topY(topY_),
-        topWidth(topWidth),
+        topWidth(topWidth_),
         bottomX(bottomX_),
         bottomY(bottomY_),
-        bottomWidth(bottomWidth)
+        bottomWidth(bottomWidth_)
     {
     }
     double topX;

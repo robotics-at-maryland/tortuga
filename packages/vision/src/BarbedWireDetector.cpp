@@ -32,7 +32,7 @@ namespace vision {
 
 BarbedWireDetector::BarbedWireDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
-    PipeDetector(config, eventHub),
+    PipeDetector(config, eventHub, 500, 400),
     m_filter(new ColorFilter(0, 255, 0, 255, 0, 255)),
     m_image(new OpenCVImage(640, 480)),
     m_found(false),
@@ -121,8 +121,34 @@ void BarbedWireDetector::processImage(Image* input, Image* output)
     // Filter for green
     filterForGreen(m_image);
 
+    // Do the debug display of the filtering
+    if (output)
+    {
+        // Make the output exactly match the input
+        output->copyFrom(input);
+
+	// Color all found pixels pink
+	unsigned char* inData = m_image->getData();
+	unsigned char* outData = output->getData();
+	size_t numPixels = input->getHeight() * input->getWidth();
+	
+	for (size_t i = 0; i < numPixels; ++i)
+        {
+            if ((*inData))
+	    {
+	        *outData = 147; // B
+		*(outData + 1) = 20; // G
+		*(outData + 2) = 255; // R
+	    }
+	    
+	    inData += 3;
+	    outData += 3;
+	}
+    }
+
+    
     // Find all of our pipes
-    PipeDetector::processImage(input, output);
+    PipeDetector::processImage(m_image, output);
 
     // Filter for pipes of the right angle
     PipeDetector::PipeList candidatePipes = getPipes();
@@ -151,7 +177,8 @@ void BarbedWireDetector::processImage(Image* input, Image* output)
         
         // Get the top pipe and its width 
         Pipe topPipe = pipes[0];
-        double topWidth = ((double)topPipe.getWidth()) / input->getWidth();
+        double topWidth = ((double)topPipe.getWidth()) /
+            ((double)input->getWidth());
 
         // Create the barbed wire event, and assume there is no bottom pipe
         BarbedWireEventPtr event(new BarbedWireEvent(topPipe.getX(),
@@ -173,30 +200,6 @@ void BarbedWireDetector::processImage(Image* input, Image* output)
     }
     
 
-    // Do the debug display
-    if (output)
-    {
-        // Make the output exactly match the input
-        output->copyFrom(input);
-
-	// Color all found pixels pink
-	unsigned char* inData = m_image->getData();
-	unsigned char* outData = output->getData();
-	size_t numPixels = input->getHeight() * input->getWidth();
-	
-	for (size_t i = 0; i < numPixels; ++i)
-        {
-            if ((*inData))
-	    {
-	        *outData = 147; // B
-		*(outData + 1) = 20; // G
-		*(outData + 2) = 255; // R
-	    }
-	    
-	    inData += 3;
-	    outData += 3;
-	}
-    }
 
     /// TODO: consider detection stragies for side on blob
     /// TODO: do some blob merging as needed
