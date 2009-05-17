@@ -45,6 +45,7 @@ typedef boost::shared_ptr<Property> PropertyPtr;
 class PropertySet;
 typedef boost::shared_ptr<PropertySet> PropertySetPtr;
 
+class ConfigNode;
     
 } // namespace core
 } // namespace ram

@@ -66,7 +66,7 @@ TEST_FIXTURE(PipeDetectorFixture, UpperLeft)
     drawSquare(&input, 640/4, 480/4, 50, 230, 25, CV_RGB(255,255,255));
 
     // Process it
-    processImage(&input, true);
+    processImage(&input);
     
     double expectedX = -0.5 * 640.0/480.0;
     double expectedY = 0.5;

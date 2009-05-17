@@ -9,10 +9,17 @@
 
 // STD Includes 
 #include <cstring>
+#include <sstream>
+
+// Boost Includes
+#include "boost/bind.hpp"
 
 // Project Includes
 #include "vision/include/ColorFilter.h"
 #include "vision/include/Image.h"
+
+#include "core/include/PropertySet.h"
+#include "core/include/ConfigNode.h"
 
 namespace ram {
 namespace vision {
@@ -188,6 +195,82 @@ int ColorFilter::getChannel3Low()
 int ColorFilter::getChannel3High()
 {      
     return m_channel3High;
+}
+    
+void ColorFilter::addPropertiesToSet(
+    core::PropertySetPtr propSet, core::ConfigNode* config,
+    std::string channel1Name, std::string channel1Desc,
+    std::string channel2Name, std::string channel2Desc,
+    std::string channel3Name, std::string channel3Desc,
+    int channel1LowDefault, int channel1HighDefault,
+    int channel2LowDefault, int channel2HighDefault,
+    int channel3LowDefault, int channel3HighDefault)
+{
+    propSet->addProperty(*config, false,
+        getShortChannelName(channel1Name, false),
+        getChannelDescription(channel1Desc, false), channel1LowDefault,
+	boost::bind(&ColorFilter::getChannel1Low, this),
+	boost::bind(&ColorFilter::setChannel1Low, this, _1), 0, 255);
+
+    propSet->addProperty(*config, false,
+        getShortChannelName(channel1Name, true),
+        getChannelDescription(channel1Desc, true), channel1HighDefault,
+	boost::bind(&ColorFilter::getChannel1High, this),
+	boost::bind(&ColorFilter::setChannel1High, this, _1), 0, 255);
+    
+    propSet->addProperty(*config, false,
+        getShortChannelName(channel2Name, false),
+        getChannelDescription(channel2Desc, false), channel2LowDefault,
+	boost::bind(&ColorFilter::getChannel2Low, this),
+	boost::bind(&ColorFilter::setChannel2Low, this, _1), 0, 255);
+
+    propSet->addProperty(*config, false,
+        getShortChannelName(channel2Name, true),
+        getChannelDescription(channel2Desc, true), channel2HighDefault,
+	boost::bind(&ColorFilter::getChannel2High, this),
+	boost::bind(&ColorFilter::setChannel2High, this, _1), 0, 255);
+
+    propSet->addProperty(*config, false,
+        getShortChannelName(channel3Name, false),
+        getChannelDescription(channel3Desc, false), channel3LowDefault,
+	boost::bind(&ColorFilter::getChannel3Low, this),
+	boost::bind(&ColorFilter::setChannel3Low, this, _1), 0, 255);
+
+    propSet->addProperty(*config, false,
+        getShortChannelName(channel3Name, true),
+        getChannelDescription(channel3Desc, true), channel3HighDefault,
+	boost::bind(&ColorFilter::getChannel3High, this),
+	boost::bind(&ColorFilter::setChannel3High, this, _1), 0, 255);
+
+}
+
+
+std::string ColorFilter::getShortChannelName(std::string shortName, bool isMin)
+{
+    std::stringstream ss;
+    ss << "filt " << shortName;
+
+    if (isMin)
+        ss << " Min";
+    else
+        ss << " Max";
+
+    return ss.str();
+}
+    
+std::string ColorFilter::getChannelDescription(std::string descriptionName,
+                                               bool isMin)
+{
+    std::stringstream ss;
+
+    if (isMin)
+        ss << "Min ";
+    else
+        ss << "Max ";
+
+    ss << descriptionName << " value for a pixel of the desired color";
+    
+    return ss.str();
 }
     
 } // namespace vision

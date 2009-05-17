@@ -93,35 +93,13 @@ void TargetDetector::init(core::ConfigNode config)
          0, &m_dilateIterations, 0, 10);
 
     // Color filter properties
-    propSet->addProperty(config, false, "filtYMin",
-        "Min blue value for a green pixel",  1,
-	boost::bind(&ColorFilter::getChannel1Low, m_filter),
-	boost::bind(&ColorFilter::setChannel1Low, m_filter, _1), 0, 255);
-
-    propSet->addProperty(config, false, "filtYMax",
-        "Max blue value for a green pixel",  255,
-	boost::bind(&ColorFilter::getChannel1High, m_filter),
-	boost::bind(&ColorFilter::setChannel1High, m_filter, _1), 0, 255);
-
-    propSet->addProperty(config, false, "filtUMin",
-        "Min green value for a green pixel",  0,//80,
-	boost::bind(&ColorFilter::getChannel2Low, m_filter),
-	boost::bind(&ColorFilter::setChannel2Low, m_filter, _1), 0, 255);
-
-    propSet->addProperty(config, false, "filtUMax",
-	"Max green value for a green pixel",  132, //141,
-	boost::bind(&ColorFilter::getChannel2High, m_filter),
-	boost::bind(&ColorFilter::setChannel2High, m_filter, _1), 0, 255);
-
-    propSet->addProperty(config, false, "filtVMin",
-	"Min red value for a green pixel",  0, //98,
-	boost::bind(&ColorFilter::getChannel3Low, m_filter),
-	boost::bind(&ColorFilter::setChannel3Low, m_filter, _1), 0, 255);
-
-    propSet->addProperty(config, false, "filtVMax",
-        "Max red value for a green pixel",  119, //119,
-	boost::bind(&ColorFilter::getChannel3High, m_filter),
-	boost::bind(&ColorFilter::setChannel3High, m_filter, _1), 0, 255);
+    m_filter->addPropertiesToSet(propSet, &config,
+                                 "Y", "Luma",
+                                 "U", "Blue Chrominance",
+                                 "V", "Red Chrominance",
+                                 1, 255,  // Y defaults
+                                 0, 132,  // U defaults (80,141)
+                                 0, 119); // V defaults (98, 119)
 
     /// TODO: add a found pixel drop off
 }

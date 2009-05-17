@@ -10,9 +10,12 @@
 #ifndef RAM_VISION_COLORFILTER_H_04_28_2009
 #define RAM_VISION_COLORFILTER_H_04_28_2009
 
+// STD Includes
+#include <string>
+
 // Project Includes
-#include "core/include/Forward.h"
 #include "vision/include/Common.h"
+#include "core/include/Forward.h"
 
 // Must be incldued last
 #include "vision/include/Export.h"
@@ -60,12 +63,28 @@ public:
     int getChannel3Low();
     int getChannel3High();
 
-
     /* @} */
+
+    /** Adds properties for all three channels */
+    void addPropertiesToSet(core::PropertySetPtr propSet,
+                            core::ConfigNode* config,
+                            std::string channel1Name, std::string channel1Desc,
+                            std::string channel2Name, std::string channel2Desc,
+                            std::string channel3Name, std::string channel3Desc,
+                            int channel1LowDefault, int channel1HighDefault,
+                            int channel2LowDefault, int channel2HighDefault,
+                            int channel3LowDefault, int channel3HighDefault);
+    
 private:
     /** Sets the up range lookup tables based on the current highs and lows */
     void setupRanges();
 
+    /** Gets the short name for a channel based on the name */
+    std::string getShortChannelName(std::string shortName, bool isMin);
+
+    /** Gets the description for a channel based on the name */
+    std::string getChannelDescription(std::string descriptionName, bool isMin);
+    
     unsigned char m_channel1Low; 
     unsigned char m_channel1High;
     unsigned char m_channel2Low; 
