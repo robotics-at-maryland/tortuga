@@ -259,7 +259,7 @@ TEST_FIXTURE(PipeDetectorFixture, DoubleFlat)
     // Process it
     detector.getPropertySet()->getProperty("minPixels")->set(500);
     detector.setHough(true);
-    processImage(testInput, true);
+    processImage(testInput);
     delete testInput;
     
     double expectedTopX = 0 * 640.0/480.0;
