@@ -41,6 +41,9 @@ struct VisionSystemFixture
         
         targetFound(false),
         targetEvent(vision::TargetEventPtr()),
+
+        barbedWireFound(false),
+        barbedWireEvent(vision::BarbedWireEventPtr()),
         
         forwardImage(640, 480),
         forwardCamera(new MockCamera(&forwardImage)),
@@ -62,8 +65,28 @@ struct VisionSystemFixture
             boost::bind(&VisionSystemFixture::binFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::TARGET_FOUND,
             boost::bind(&VisionSystemFixture::targetFoundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::BARBED_WIRE_FOUND,
+            boost::bind(&VisionSystemFixture::barbedWireFoundHandler,this,_1));
     }
 
+    void runDetectorForward()
+    {
+        vision.unbackground(true);
+        forwardCamera->background(0);
+    
+        // Process the current camera image
+        vision.update(0);
+    }
+
+    void runDetectorDownward()
+    {
+        vision.unbackground(true);
+        downwardCamera->background(0);
+        
+        // Process the current camera image
+        vision.update(0);
+    }
+    
     void redFoundHandler(core::EventPtr event_)
     {
         redFound = true;
@@ -87,7 +110,14 @@ struct VisionSystemFixture
         targetFound = true;
         targetEvent = boost::dynamic_pointer_cast<vision::TargetEvent>(event_);
     }
-  
+
+    void barbedWireFoundHandler(core::EventPtr event_)
+    {
+        barbedWireFound = true;
+        barbedWireEvent =
+            boost::dynamic_pointer_cast<vision::BarbedWireEvent>(event_);
+    }
+ 
     
     bool redFound;
     vision::RedLightEventPtr redEvent;
@@ -100,6 +130,9 @@ struct VisionSystemFixture
 
     bool targetFound;
     vision::TargetEventPtr targetEvent;
+
+    bool barbedWireFound;
+    vision::BarbedWireEventPtr barbedWireEvent;
     
     vision::OpenCVImage forwardImage;
     MockCamera* forwardCamera;
@@ -131,13 +164,10 @@ TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
 
     // Start dectector and unbackground it
     vision.redLightDetectorOn();
-    vision.unbackground(true);
-    forwardCamera->background(0);
-    
-    // Process the current camera image
-    vision.update(0);
+    runDetectorForward();
     vision.redLightDetectorOff();
-
+    forwardCamera->unbackground(true);
+    
     // Check the events
     CHECK(redFound);
     CHECK(redEvent);
@@ -159,14 +189,9 @@ TEST_FIXTURE(VisionSystemFixture, PipeDetector)
 
     // Start dectector and unbackground it
     vision.pipeLineDetectorOn();
-    vision.unbackground(true);
-    forwardCamera->background(0);
-    
-    // Process the current camera image
-    vision.update(0);
+    runDetectorDownward();
     vision.pipeLineDetectorOff();
-
-    forwardCamera->unbackground(true);
+    downwardCamera->unbackground(true);
 
     // Check Events
     CHECK(pipeFound);
@@ -184,14 +209,9 @@ TEST_FIXTURE(VisionSystemFixture, BinDetector)
 
     // Start dectector and unbackground it
     vision.binDetectorOn();
-    vision.unbackground(true);
-    downwardCamera->background(0);
-    
-    // Process the current camera image
-    vision.update(0);
+    runDetectorDownward();
     vision.binDetectorOff();
-
-    forwardCamera->unbackground(true);
+    downwardCamera->unbackground(true);
 
     // Check Events
     CHECK(binFound);
@@ -208,12 +228,12 @@ TEST_FIXTURE(VisionSystemFixture, TargetDetector)
 
     // Start dectector and unbackground it
     vision.targetDetectorOn();
-    vision.unbackground(true);
-    forwardCamera->background(0);
+    runDetectorForward();
+    vision.targetDetectorOff();
+    forwardCamera->unbackground(true);
     
     // Process the current camera image
     vision.update(0);
-    vision.targetDetectorOff();
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
@@ -229,5 +249,36 @@ TEST_FIXTURE(VisionSystemFixture, TargetDetector)
     CHECK_CLOSE(expectedSquareness, targetEvent->squareNess, 0.005);
 }
 
+TEST_FIXTURE(VisionSystemFixture, BarbedWireDetector)
+{
+    // Blue Image with green pipe in the center (horizontal)
+    makeColor(&forwardImage, 120, 120, 255);
+    drawSquare(&forwardImage, 320, 240, 400, 400/31, 0, CV_RGB(0, 255, 0));
+    drawSquare(&forwardImage, 320, 480/4*3, 200, 200/31, 0, CV_RGB(0, 255, 0));
+
+    // Process it
+    vision.barbedWireDetectorOn();
+    runDetectorForward();
+    vision.barbedWireDetectorOff();
+    forwardCamera->unbackground(true);
+
+    double expectedTopX = 0;
+    double expectedTopY = 0;
+    double expectedTopWidth = 400.0/640.0;
+
+    double expectedBottomX = 0;
+    double expectedBottomY = -0.5;
+    double expectedBottomWidth = 200.0/640.0;
+    
+    // Check the events
+    CHECK(barbedWireFound);
+    CHECK(barbedWireEvent);
+    CHECK_CLOSE(expectedTopX, barbedWireEvent->topX, 0.005);
+    CHECK_CLOSE(expectedTopY, barbedWireEvent->topY, 0.005);
+    CHECK_CLOSE(expectedTopWidth, barbedWireEvent->topWidth, 0.005);
+    CHECK_CLOSE(expectedBottomX, barbedWireEvent->bottomX, 0.000001);
+    CHECK_CLOSE(expectedBottomY, barbedWireEvent->bottomY, 0.000001);
+    CHECK_CLOSE(expectedBottomWidth, barbedWireEvent->bottomWidth, 0.000001);
+}
 
 } // SUITE(RedLightDetector)

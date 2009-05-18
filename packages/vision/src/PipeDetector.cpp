@@ -141,6 +141,9 @@ void PipeDetector::processImage(Image* input, Image* output)
         m_blobDetector.setMinimumBlobSize(m_minPixels);
     m_blobDetector.processImage(input);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+
+    //if (output)
+    //    output->copyFrom(input);
     
     // Determine the angle of the blobs
     PipeList candidatePipes;
@@ -148,7 +151,15 @@ void PipeDetector::processImage(Image* input, Image* output)
     {
         math::Degree angle;
         if (findPipeAngle(pipeBlob, angle, input, output))
+        {
             candidatePipes.push_back(Pipe(pipeBlob, input, angle, 0));
+        }
+        else
+        {
+            candidatePipes.push_back(Pipe(pipeBlob, input, math::Degree(0), 0));
+            if (output)
+                pipeBlob.draw(output, false);
+        }
     }
     
     // Filter blobs for correct "pipeness"
@@ -182,20 +193,21 @@ bool PipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
 {
     // Determine the size of the square we are going to draw and our blob 
     // finding thresholds
-    int width = pipeBlob.getMaxX() - pipeBlob.getMinX();
-    int height = pipeBlob.getMaxY() - pipeBlob.getMinY();
+    int width = pipeBlob.getWidth();
+    int height = pipeBlob.getHeight();
     int squareSize = width;
     if (height > squareSize)
         squareSize = height;
     
-    int drawSize = squareSize / 2;
-    int minBlobSize = pipeBlob.getSize() / 5;
+    int drawWidth = std::min(squareSize / 2, width);
+    int drawHeight = std::min(squareSize / 2, height);
+    int minBlobSize = pipeBlob.getSize() / 8;
     
     // Draw square to eliminate the central area of the pipe
-    math::Vector2 upperLeft(-drawSize/2, drawSize/2);
-    math::Vector2 upperRight(drawSize/2, drawSize/2);
-    math::Vector2 lowerLeft(-drawSize/2, -drawSize/2);
-    math::Vector2 lowerRight(drawSize/2, -drawSize/2);
+    math::Vector2 upperLeft(-drawWidth/2, drawHeight/2);
+    math::Vector2 upperRight(drawWidth/2, drawHeight/2);
+    math::Vector2 lowerLeft(-drawWidth/2, -drawHeight/2);
+    math::Vector2 lowerRight(drawWidth/2, -drawHeight/2);
     
     CvPoint pts[4];
     pts[0].x = (int)upperLeft.x + pipeBlob.getCenterX();
@@ -209,6 +221,9 @@ bool PipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
 
     // Finally lets draw the image
     cvFillConvexPoly(input->asIplImage(), pts, 4, CV_RGB(0,0,0));
+    //if (output)
+    //    cvFillConvexPoly(output->asIplImage(), pts, 4, CV_RGB(0,0,0));
+
     
     // Find all blobs inside the pipe blob
     m_blobDetector.setMinimumBlobSize(minBlobSize);
@@ -220,6 +235,8 @@ bool PipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
     {
         if (pipeBlob.containsInclusive(blob))
             internalBlobs.push_back(blob);
+        else if (output)
+            blob.draw(output, false);
     }
     
     if (internalBlobs.size() >= 2)

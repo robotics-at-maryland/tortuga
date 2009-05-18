@@ -198,8 +198,22 @@ void BarbedWireDetector::processImage(Image* input, Image* output)
         // Notify every that we have found the barbed wired
         publish(EventType::BARBED_WIRE_FOUND, event);
     }
-    
 
+    if (output && m_found && pipes.size() > 1)
+    {
+        // Draw a line which connects our two pipes
+        CvPoint startPt;
+        startPt.x = pipes[0].getCenterX();
+        startPt.y = pipes[0].getCenterY();
+        
+        CvPoint endPt;
+        endPt.x = pipes[1].getCenterX();
+        endPt.y = pipes[1].getCenterY();
+        
+        cvLine(output->asIplImage(), startPt, endPt, CV_RGB(255,0,0), 3, CV_AA,
+               0);
+    }
+    
 
     /// TODO: consider detection stragies for side on blob
     /// TODO: do some blob merging as needed

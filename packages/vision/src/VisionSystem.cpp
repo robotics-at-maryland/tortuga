@@ -21,6 +21,7 @@
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/DuctDetector.h"
 #include "vision/include/TargetDetector.h"
+#include "vision/include/BarbedWireDetector.h"
 #include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
 
@@ -156,8 +157,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new GateDetector(config["GateDetector"], eventHub));
     m_targetDetector = DetectorPtr(
         new TargetDetector(config["TargetDetector"], eventHub));
-    //m_BarbedWireDetector = DetectorPtr(
-    //    new BarbedWireDetector(config["BarbedWireDetector"], eventHub));
+    m_barbedWireDetector = DetectorPtr(
+        new BarbedWireDetector(config["BarbedWireDetector"], eventHub));
     
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
@@ -255,12 +256,12 @@ void VisionSystem::targetDetectorOff()
 
 void VisionSystem::barbedWireDetectorOn()
 {
-    //m_forward->addDetector(m_BarbedWireDetector);
+    m_forward->addDetector(m_barbedWireDetector);
 }
 
 void VisionSystem::barbedWireDetectorOff()
 {
-    //m_forward->removeDetector(m_BarbedWireDetector);
+    m_forward->removeDetector(m_barbedWireDetector);
 }
    
 void VisionSystem::setPriority(core::IUpdatable::Priority priority)
