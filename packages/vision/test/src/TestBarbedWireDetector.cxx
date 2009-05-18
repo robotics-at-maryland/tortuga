@@ -18,7 +18,7 @@
 #include "vision/test/include/Utility.h"
 
 #include "core/include/EventHub.h"
-
+#include "core/include/PropertySet.h"
 
 
 using namespace ram;
@@ -110,7 +110,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, DoublePipe)
     // Blue Image with green pipe in the center (horizontal)
     makeColor(&input, 120, 120, 255);
     drawSquare(&input, 320, 240, 400, 400/31, 0, CV_RGB(0, 255, 0));
-    drawSquare(&input, 320, 480/4 * 3, 200, 200/31, 0, CV_RGB(0, 255, 0));
+    drawSquare(&input, 200, 480/4 * 3, 200, 200/31, 0, CV_RGB(0, 255, 0));
 
     // Process it
     processImage(&input);
@@ -119,7 +119,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, DoublePipe)
     double expectedTopY = 0;
     double expectedTopWidth = 400.0/640.0;
 
-    double expectedBottomX = 0;
+    double expectedBottomX = (-120.0/320.0) * 640.0/480.0;
     double expectedBottomY = -0.5;
     double expectedBottomWidth = 200.0/640.0;
     
@@ -142,6 +142,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, OddAngle)
     drawSquare(&input, 400, 480/4 * 3, 300, 300/31, 0, CV_RGB(0, 255, 0));
 
     // Process it
+    detector.getPropertySet()->getProperty("minAngle")->set(70.0);
     processImage(&input);
 
     double expectedTopX = 1.0/3.0;

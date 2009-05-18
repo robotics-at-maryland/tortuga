@@ -64,7 +64,7 @@ void BarbedWireDetector::init(core::ConfigNode config)
     // Standard tuning properties
     propSet->addProperty(config, false, "minAngle",
         "The minimum angle a barbed wire pipe can have (Degrees)",
-        70.0, &m_minAngle, 45.0, 90.0);
+        40.0, &m_minAngle, 0.0, 90.0);
 
     propSet->addProperty(config, false, "erodeIterations",
         "How many times to erode the filtered image",
@@ -173,7 +173,7 @@ void BarbedWireDetector::processImage(Image* input, Image* output)
     if (m_found)
     {
         // Stort pipes by X
-        std::sort(pipes.begin(), pipes.end(), &BarbedWireDetector::pipeXSorter);
+        std::sort(pipes.begin(), pipes.end(), &BarbedWireDetector::pipeYSorter);
         
         // Get the top pipe and its width 
         Pipe topPipe = pipes[0];
@@ -274,10 +274,10 @@ bool BarbedWireDetector::processPipes(const PipeDetector::PipeList& pipes,
     return foundPipes;
 }
 
-bool BarbedWireDetector::pipeXSorter(PipeDetector::Pipe pipe1,
+bool BarbedWireDetector::pipeYSorter(PipeDetector::Pipe pipe1,
                                      PipeDetector::Pipe pipe2)
 {
-    return pipe1.getX() < pipe2.getX();
+    return pipe1.getY() > pipe2.getY();
 }
         
 } // namespace vision

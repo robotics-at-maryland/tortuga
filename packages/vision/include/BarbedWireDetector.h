@@ -58,8 +58,8 @@ class RAM_EXPORT BarbedWireDetector : public PipeDetector
                       PipeDetector::PipeList& outPipes);
 
 
-    /** Sorts pipe by there X coordinate, largest (highest in image) first */
-    static bool pipeXSorter(PipeDetector::Pipe pipe1, PipeDetector::Pipe pipe2);
+    /** Sorts pipe by there Y coordinate, largest (highest in image) first */
+    static bool pipeYSorter(PipeDetector::Pipe pipe1, PipeDetector::Pipe pipe2);
     
     /** Filters for the green in the water */
     ColorFilter* m_filter;
