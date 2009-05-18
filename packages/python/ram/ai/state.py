@@ -154,6 +154,18 @@ class Machine(core.Subsystem):
     def backgrounded(self):
         return True
 
+    def background(self, interval):
+        # Add really nasty cirular reference to the AI subsystem
+        for name, sys in self._subsystems.iteritems():
+            if name.lower() == 'ai' and hasattr(sys, '_stateMachine'):
+                sys._stateMachine = self
+
+    def unbackground(self, force):
+        # Remove really nasty cirular reference to the AI subsystem
+        for name, sys in self._subsystems.iteritems():
+            if name.lower() == 'ai' and hasattr(sys, '_stateMachine'):
+                sys._stateMachine = None
+
     def currentState(self):
         return self._currentState
 
