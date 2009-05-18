@@ -50,6 +50,21 @@ class TestPIDLoop(unittest.TestCase):
         expectedControl = 309.9000
         actualControl, sum, xOld = motion.common.PIDLoop(x,xd,dt,dtMin,dtMax,kp,kd,ki,sum,xOld)
         self.assertAlmostEquals(actualControl, expectedControl,3)
+        
+    def testPIDcase2(self):
+        x = -4
+        xd = 12
+        dt = 10
+        dtMin = 0.1
+        dtMax = 20
+        kp = 0.5
+        kd = 4
+        ki = 1.1
+        sum = 7
+        xOld = -50
+        expectedControl = 157.9
+        actualControl, sum, xOld = motion.common.PIDLoop(x,xd,dt,dtMin,dtMax,kp,kd,ki,sum,xOld)
+        self.assertAlmostEquals(actualControl, expectedControl,3)
 
 class TestHover(support.MotionTest):
     def makeClass(self, *args, **kwags):
