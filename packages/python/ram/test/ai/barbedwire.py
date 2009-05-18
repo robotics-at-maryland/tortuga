@@ -207,7 +207,7 @@ class AlignmentTest(object):
                          bottomX = 0.75, bottomY = -0.75, bottomWidth = 0.2)
         
         # Bigger numbers = deeper
-        #self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertLessThan(self.controller.sidewaysSpeed, 0)
         self.assertGreaterThan(self.controller.yawChange, 0)
@@ -217,10 +217,10 @@ class AlignmentTest(object):
         self.injectEvent(vision.EventType.BARBED_WIRE_LOST)
         self.assertCurrentState(barbedwire.FindAttempt)
 
-    def _sendAlignEvent(self, topX, bottomX):
+    def _sendAlignEvent(self, topX, bottomX, topY = 0.5):
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
                          vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
-                         topX = topX, topY = -0.1, topWidth = 0.5,
+                         topX = topX, topY = topY, topWidth = 0.5,
                          bottomX = bottomX, bottomY = -0.5,
                          bottomWidth = 0.3)
         
@@ -228,6 +228,7 @@ class AlignmentTest(object):
         # Inject and event which has the target ahead, and at the needed range
         # Top pipe on right, bottom pipe on left, vehicle should go right
         self._sendAlignEvent(topX = 0, bottomX = -0.5)
+        self.assertEqual(self.controller.depth, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(0, self.controller.speed)
         self.assertEqual(0, self.controller.yawChange)
@@ -235,9 +236,25 @@ class AlignmentTest(object):
         # Inject and event which has the target ahead, and at the needed range
         # Top pipe on left, bottom pipe on right, vehicle should go left
         self._sendAlignEvent(topX = 0, bottomX = 0.5)
+        self.assertEqual(self.controller.depth, 0)
         self.assertLessThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(0, self.controller.speed)
         self.assertEqual(0, self.controller.yawChange)
+
+    def testDepth(self):
+        # Ensure no change when the gain is zero
+        state = self.machine.currentState()
+        state._depthGain = 0
+
+        self._sendAlignEvent(topX = 0, bottomX = 0, topY = 0.1)
+        self.assertEqual(self.controller.depth, 0)
+        
+        # Ensure we have change when the gain is not zero
+        state._depthGain = 1
+
+        # Top pipe is a little low, so we need to dive more
+        self._sendAlignEvent(topX = 0, bottomX = 0, topY = 0.1)
+        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
 
 
 class TestSeekingToAligned(AlignmentTest, support.AITestCase):

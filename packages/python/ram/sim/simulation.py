@@ -82,7 +82,9 @@ class Simulation(Singleton, Module):
         del self._scenes
         print 'Shutting down Ogre'
         self._ogre_root.shutdown()
+        print 'Shutting down Complete'
         del self._ogre_root
+        print 'Reference deleted'
         
     def update(self, time_since_last_update):
         """

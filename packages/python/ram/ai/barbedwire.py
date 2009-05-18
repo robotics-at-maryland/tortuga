@@ -108,6 +108,7 @@ class RangeXYHold(FilteredState, state.State):
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
         rangeError = math.fabs(range - self._desiredRange)
+        #print "RE",rangeError,"AR",rge,"DR",self._desiredRange
         frontDistance = math.sqrt(event.topX ** 2 + y ** 2)
         if (rangeError < self._rangeThreshold) and \
             (frontDistance < self._frontThreshold):
@@ -233,10 +234,17 @@ class TargetAlignState(FilteredState):
         """Update the state of the light, this moves the vehicle"""
         azimuth = event.topX * -107.0/2.0
         elevation = event.topY * -80.0/2.0
+        
+        # Determine y value based on whether we are ignoring depth or not, 
+        # also take into account any offset we wish to hold the object at.
+        y = 0
+        if self._depthGain != 0:
+            y = event.topY - self._yZero
+        
         range = 1 - event.topWidth
         alignment = event.bottomX - event.topX
         self._target.setState(azimuth, elevation, range = range,
-                              x = event.topX, y = event.topY, 
+                              x = event.topX, y = y, 
                               alignment = alignment)
         
     def enter(self):
@@ -249,7 +257,8 @@ class TargetAlignState(FilteredState):
         self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0)
         
         # Read in configuration settings
-        depthGain = self._config.get('depthGain', 0)
+        self._yZero = self._config.get('yZero', 0.5)
+        self._depthGain = self._config.get('depthGain', 1)
         desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
@@ -264,7 +273,7 @@ class TargetAlignState(FilteredState):
             maxSpeed = maxSpeed,
             maxSidewaysSpeed = maxSidewaysSpeed,
             alignGain = alignGain,
-            depthGain = depthGain)
+            depthGain = self._depthGain)
         
         self.motionManager.setMotion(motion)
         
@@ -290,7 +299,7 @@ class SeekingToAligned(TargetAlignState, state.State):
     def BARBED_WIRE_FOUND(self, event):
         # Publish aligned event if needed
         alignment = math.fabs(event.topX - event.bottomX)
-        if alignment < self._maxAlignment:
+        if alignment < self._minAlignment:
             self.publish(SeekingToAligned.ALIGNED, core.Event())
             
         # Update motion
@@ -300,7 +309,7 @@ class SeekingToAligned(TargetAlignState, state.State):
         TargetAlignState.enter(self)
         
         # Record threshold
-        self._maxAlignment = self._config.get('maxAlignment', 0.1)
+        self._minAlignment = self._config.get('minAlignment', 0.1)
         
     
 # The next two states are extra states, not sure if they are needed    
