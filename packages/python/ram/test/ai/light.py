@@ -97,11 +97,18 @@ class TestSeek(support.AITestCase):
         
     def testLightFound(self):
         """Make sure new found events move the vehicle"""
+        # Light  dead ahead and below us
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = -0.5, azimuth = math.Degree(15))
         
-        # Bigger numbers = deeper
+        # Bigger numbers = deeper, and we want to go deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.yawChange, 0)
+        
+        # Smaller numbers = shallow, and we want to go shallower
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
+                         0, y = 0.5, azimuth = math.Degree(15))
+        self.assertLessThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
     
     def testLightLost(self):
