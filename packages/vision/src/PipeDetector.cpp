@@ -198,9 +198,12 @@ bool PipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
     int squareSize = width;
     if (height > squareSize)
         squareSize = height;
-    
-    int drawWidth = std::min(squareSize / 2, width);
-    int drawHeight = std::min(squareSize / 2, height);
+
+    // The two is added to deal with a little bit of round off which can make
+    // the blacking out box, just a little bit too small.  This result in one
+    // long blob instead of two seperate ones
+    int drawWidth = std::min(squareSize / 2, width) + 2;
+    int drawHeight = std::min(squareSize / 2, height) + 2;
     int minBlobSize = pipeBlob.getSize() / 8;
     
     // Draw square to eliminate the central area of the pipe
@@ -235,8 +238,6 @@ bool PipeDetector::findPipeAngle(BlobDetector::Blob pipeBlob,
     {
         if (pipeBlob.containsInclusive(blob))
             internalBlobs.push_back(blob);
-        else if (output)
-            blob.draw(output, false);
     }
     
     if (internalBlobs.size() >= 2)

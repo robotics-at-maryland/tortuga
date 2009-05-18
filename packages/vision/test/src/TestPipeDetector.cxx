@@ -248,5 +248,39 @@ TEST_FIXTURE(PipeDetectorFixture, DoubleClose)
     CHECK_CLOSE(expectedBottomAngle, bottomPipe.getAngle(), math::Degree(2));
 }
 
+TEST_FIXTURE(PipeDetectorFixture, DoubleFlat)
+{
+    // Draw two rectangles such that the top one overlaps a little with the
+    // bottom one and makes it drop from view, this was due to a bug in the
+    // angle detection code
+    vision::Image* testInput= vision::Image::loadFromFile(
+        (getImagesDir() / "testpipedetector" / "two_flat.png").string());
+
+    // Process it
+    detector.getPropertySet()->getProperty("minPixels")->set(500);
+    detector.setHough(true);
+    processImage(testInput, true);
+    delete testInput;
+    
+    double expectedTopX = 0 * 640.0/480.0;
+    double expectedTopY = 166.0/240.0;
+    math::Degree expectedTopAngle(90);
+    double expectedBottomX = 0 * 640.0/480.0;
+    double expectedBottomY = 96.0/240.0;
+    math::Degree expectedBottomAngle(-90);
+    
+    CHECK(detector.found());
+    CHECK_EQUAL(2u, pipes.size());
+
+    vision::PipeDetector::Pipe topPipe = pipes[0];
+    vision::PipeDetector::Pipe bottomPipe = pipes[1];
+    CHECK_CLOSE(expectedTopX, topPipe.getX(), 0.05);
+    CHECK_CLOSE(expectedTopY, topPipe.getY(), 0.05);
+    CHECK_CLOSE(expectedTopAngle, topPipe.getAngle(), math::Degree(2));
+    CHECK_CLOSE(expectedBottomX, bottomPipe.getX(), 0.05);
+    CHECK_CLOSE(expectedBottomY, bottomPipe.getY(), 0.05);
+    CHECK_CLOSE(expectedBottomAngle, bottomPipe.getAngle(), math::Degree(2));
+}
+
 
 } // SUITE(PipeDetector)
