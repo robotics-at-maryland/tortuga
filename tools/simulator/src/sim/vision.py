@@ -158,7 +158,7 @@ class BarbedWire(ram.sim.object.Object):
         # Shared graphics node
         gfxNode = {'mesh': 'cylinder.mesh', 
                    'material' : 'Simple/Green',
-                   'scale': [1.8288, 0.0508, 0.0508] }
+                   'scale': [1.8288, 0.0508/2, 0.0508/2] }
         
         # Create Front Pipe
         position = basePos + (frontBackOffset * -1)
