@@ -87,12 +87,24 @@ install_zope_interface = Task(
     dependencies = (setup_directories,)
     )
 
+symlink_python = Task(
+    'Make Symlink to Proper Python Version',
+    namespaces = 'python_symlink',
+    targets = '${buildoutdir}/scripts/link_done',
+    workdir = '${buildoutdir}',
+    commands = ['ln -sf ' + pythonExecutable + 
+		' ${buildoutdir}/scripts/python', 
+		'touch ${buildoutdir}/scripts/link_done'],
+    dependencies = (setup_directories,)
+    )
+
 install_python_modules = Task(
     'Install Python Modules',
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
      dependencies = (install_pygccxml, install_pyplusplus,
-                     install_pyyaml, install_scons, install_zope_interface)
+                     install_pyyaml, install_scons, install_zope_interface,
+		     symlink_python)
     )
 
 # Package Installation
