@@ -207,38 +207,38 @@ void ColorFilter::addPropertiesToSet(
     int channel3LowDefault, int channel3HighDefault)
 {
     propSet->addProperty(*config, false,
-        getShortChannelName(channel1Name, false),
-        getChannelDescription(channel1Desc, false), channel1LowDefault,
+        getShortChannelName(channel1Name, true),
+        getChannelDescription(channel1Desc, true), channel1LowDefault,
 	boost::bind(&ColorFilter::getChannel1Low, this),
 	boost::bind(&ColorFilter::setChannel1Low, this, _1), 0, 255);
 
     propSet->addProperty(*config, false,
-        getShortChannelName(channel1Name, true),
-        getChannelDescription(channel1Desc, true), channel1HighDefault,
+        getShortChannelName(channel1Name, false),
+        getChannelDescription(channel1Desc, false), channel1HighDefault,
 	boost::bind(&ColorFilter::getChannel1High, this),
 	boost::bind(&ColorFilter::setChannel1High, this, _1), 0, 255);
     
     propSet->addProperty(*config, false,
-        getShortChannelName(channel2Name, false),
-        getChannelDescription(channel2Desc, false), channel2LowDefault,
+        getShortChannelName(channel2Name, true),
+        getChannelDescription(channel2Desc, true), channel2LowDefault,
 	boost::bind(&ColorFilter::getChannel2Low, this),
 	boost::bind(&ColorFilter::setChannel2Low, this, _1), 0, 255);
 
     propSet->addProperty(*config, false,
-        getShortChannelName(channel2Name, true),
-        getChannelDescription(channel2Desc, true), channel2HighDefault,
+        getShortChannelName(channel2Name, false),
+        getChannelDescription(channel2Desc, false), channel2HighDefault,
 	boost::bind(&ColorFilter::getChannel2High, this),
 	boost::bind(&ColorFilter::setChannel2High, this, _1), 0, 255);
 
     propSet->addProperty(*config, false,
-        getShortChannelName(channel3Name, false),
-        getChannelDescription(channel3Desc, false), channel3LowDefault,
+        getShortChannelName(channel3Name, true),
+        getChannelDescription(channel3Desc, true), channel3LowDefault,
 	boost::bind(&ColorFilter::getChannel3Low, this),
 	boost::bind(&ColorFilter::setChannel3Low, this, _1), 0, 255);
 
     propSet->addProperty(*config, false,
-        getShortChannelName(channel3Name, true),
-        getChannelDescription(channel3Desc, true), channel3HighDefault,
+        getShortChannelName(channel3Name, false),
+        getChannelDescription(channel3Desc, false), channel3HighDefault,
 	boost::bind(&ColorFilter::getChannel3High, this),
 	boost::bind(&ColorFilter::setChannel3High, this, _1), 0, 255);
 
