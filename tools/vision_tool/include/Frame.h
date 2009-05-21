@@ -38,10 +38,15 @@ public:
     
 private:
     void onQuit(wxCommandEvent& event);
+    void onClose(wxCloseEvent& event);
     void onAbout(wxCommandEvent& event);
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
     void onShowHideDetector(wxCommandEvent& event);
+
+    /** If possible it will hide the frame instead of showing closing */
+    void onDetectorFrameClose(wxCloseEvent& event);
+
     void onSetConfigPath(wxCommandEvent& event);
 
     MediaControlPanel* m_mediaControlPanel;

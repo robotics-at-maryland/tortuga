@@ -21,6 +21,7 @@
 #include <wx/button.h>
 #include <wx/textctrl.h>
 #include <wx/utils.h>
+#include <wx/filename.h>
 
 // Project Includes
 #include "Frame.h"
@@ -112,13 +113,22 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
             wxCommandEventHandler(Frame::onShowHideDetector));
     Connect(config->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(Frame::onSetConfigPath));
+    //    Connect(GetId(), wxEVT_CLOSE_WINDOW,
+    //	    wxCloseEventHandler(Frame::onClose), this);
+    //    Connect(m_detectorFrame->GetId(), wxEVT_CLOSE_WINDOW,
+    //	    wxCloseEventHandler(Frame::onDetectorFrameClose), this);
 }
 
 void Frame::onQuit(wxCommandEvent& WXUNUSED(event))
 {
-    // Stop video playback when we shut down
     m_model->stop();    
     Close(true);
+}
+
+void Frame::onClose(wxCloseEvent& event)
+{
+    // Stop video playback when we shut down
+    Destroy();
 }
     
 void Frame::onAbout(wxCommandEvent& WXUNUSED(event))
@@ -129,12 +139,19 @@ void Frame::onAbout(wxCommandEvent& WXUNUSED(event))
 
 void Frame::onOpenFile(wxCommandEvent& event)
 {
-    wxString filename = wxFileSelector(_T("Choose a video file to open"));
-    if ( !filename.empty() )
+    wxString filepath = wxFileSelector(_T("Choose a video file to open"));
+    if ( !filepath.empty() )
     {
-        m_model->openFile(std::string(filename.mb_str()));
-    }
+        // Have the model open the file
+        m_model->openFile(std::string(filepath.mb_str()));
 
+	// Place the file name in the title bar
+	wxString filename;
+	wxString extension;
+	wxFileName::SplitPath(filepath, NULL, &filename, &extension);
+	SetTitle(wxString(_T("Vision Viewer - ")) + filename + _T(".") + 
+		 extension);
+    }
 }
     
 void Frame::onOpenCamera(wxCommandEvent& event)
@@ -148,6 +165,20 @@ void Frame::onShowHideDetector(wxCommandEvent& event)
     m_detectorFrame->Show(!m_detectorFrame->IsShown());
 }
 
+void Frame::onDetectorFrameClose(wxCloseEvent& event)
+{
+    // If we don't have to close, just hide the window
+    if (event.CanVeto())
+    {
+        m_detectorFrame->Hide();
+	event.Veto();
+    }
+    else
+    {
+        m_detectorFrame->Destroy();
+    }
+}
+    
 void Frame::onSetConfigPath(wxCommandEvent& event)
 {
     wxString filename = wxFileSelector(_T("Choose a config file"),
