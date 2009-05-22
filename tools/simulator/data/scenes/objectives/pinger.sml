@@ -24,12 +24,21 @@ Scene:
             offset: [0, 0, 13]
     
     Robots:
-        Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-    
+        Tortuga: 
+            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
+            position: [-18, 0, -1.5]
+            
     Objects:        
         pinger1:
             type: [sim.sonar.IPinger, sim.sonar.Pinger]
-            position: [-15, 0, -1]
+            position: [-15, -2, -1]
+            ID: 0
+            
+        pinger2:
+            type: [sim.sonar.IPinger, sim.sonar.Pinger]
+            position: [-15, 2, -1]
+            ID: 1
+            delay: 1
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

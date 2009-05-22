@@ -73,8 +73,8 @@ class Pinger(Visual):
         event.direction = ext.math.Vector3(relativePos.x, relativePos.y,
             relativePos.z)
 
-        self.PING_COUNT += 1
-        event.pingCount = self.PING_COUNT
+        Pinger.PING_COUNT += 1
+        event.pingCount = Pinger.PING_COUNT
 
         event.pingerID = self._pingerID
 

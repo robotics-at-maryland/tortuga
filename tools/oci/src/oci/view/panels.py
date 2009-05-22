@@ -345,6 +345,7 @@ class SonarPanel(wx.Panel):
         self._pingerOrientations = [ext.math.Quaternion.IDENTITY];
         self._lastPingCount = 0
         self._currentPingerID = 0
+        self._pingerEvents = {}
         
         layout =  wx.GridBagSizer(10, 10)
               
@@ -419,6 +420,33 @@ class SonarPanel(wx.Panel):
         self._connections.append(conn)
         
     def _update(self,event):
+        # Store the event
+        self._pingerEvents[event.pingerID] = event
+            
+        # Update the numeric displays
+        self._updateNumericDisplay(event)
+        
+        # Expand pinger orientations and pinger ID list
+        while (event.pingerID + 1) > len(self._pingerOrientations):
+            self._pingerChoice.Append(str(len(self._pingerOrientations)))
+            self._pingerOrientations.append(ext.math.Quaternion.IDENTITY)
+
+        # Only do an update if we got a new ping
+        if self._lastPingCount != event.pingCount:
+            self._lastPingCount = event.pingCount
+            # Correct the pinger orientation from relative to absolute
+            relPingerOrientation = \
+                ext.math.Vector3.UNIT_X.getRotationTo(event.direction)
+            absPingerOrientation = \
+                self._vehicleOrientation * relPingerOrientation 
+            self._pingerOrientations[event.pingerID] = absPingerOrientation
+       
+        # Build up and send the set of orientations to display on the gauge
+        orientations = [self._vehicleOrientation]
+        orientations.extend(self._pingerOrientations)
+        self._bearing.setMultipleOrientations(orientations)
+
+    def _updateNumericDisplay(self, event):
         direction = event.direction
         if self._currentPingerID == event.pingerID:
             self._x.Value = '% 6.4f' % direction.x
@@ -426,27 +454,13 @@ class SonarPanel(wx.Panel):
             self._z.Value = '% 6.4f' % direction.z
         self._pingCount.Value = '% 8.1f' % event.pingCount
         
-        # Expand pinger orientations and pinger ID list
-        while (event.pingerID + 1) > len(self._pingerOrientations):
-            self._pingerChoice.Append(str(len(self._pingerOrientations)))
-            self._pingerOrientations.append(ext.math.Quaternion.IDENTITY)
-
-        if self._lastPingCount != event.pingCount:
-	    self._lastPingCount = event.pingCount
-            pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
-                event.direction)
-            pingerOrientation = self._vehicleOrientation * pingerOrientation 
-            self._pingerOrientations[event.pingerID] = pingerOrientation
-       
-        orientations = [self._vehicleOrientation]
-        orientations.extend(self._pingerOrientations)
-        self._bearing.setMultipleOrientations(orientations)
-
     def _onPingerChoice(self, event):
         self._currentPingerID = event.GetSelection()
+        self._updateNumericDisplay(self._pingerEvents[self._currentPingerID])
 
     def _onOrientationUpdate(self, event):
-        orientations = [event.orientation]
+        self._vehicleOrientation = event.orientation
+        orientations = [self._vehicleOrientation]
         orientations.extend(self._pingerOrientations)
         self._bearing.setMultipleOrientations(orientations)
         

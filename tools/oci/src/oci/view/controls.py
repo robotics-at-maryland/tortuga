@@ -346,8 +346,10 @@ class RotationCtrl(wx.Panel):
                               penColour = wx.Colour(0, 0, 0, 128),
                               brushColour = wx.Colour(0, 255, 0, 90))
 
-        # Draw the extra tiangles
-        for rot in self.auxRotations:
+        # Draw the extra triangles
+        auxRots = [((r + self.offset) * self.direction) \
+                   for r in self.auxRotations]
+        for rot in auxRots:
             self._drawAuxTriangle(gc = gc, trianglePath = trianglePath,
                                   rotVal = rot,
                                   penColour = wx.Colour(0, 0, 0, 128),
