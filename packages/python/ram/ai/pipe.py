@@ -43,10 +43,16 @@ class PipeFollowingState(state.State):
         self._pipe.setState(event.x, event.y, event.angle)
 
     def enter(self):
-        self._pipe = ram.motion.pipe.Pipe(0,0,0)
+        self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
 
         speedGain = self._config.get('speedGain', 7)
-        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
+        dSpeedGain = self._config.get('dSpeedGain', 1)
+        iSpeedGain = self._config.get('iSpeedGain', 0.5)
+        
+        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 3)
+        iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0.25)
+        dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0.5)
+        
         yawGain = self._config.get('yawGain', 1)
         maxSpeed = self._config.get('forwardSpeed', 5)
         
@@ -54,7 +60,11 @@ class PipeFollowingState(state.State):
                                        maxSpeed = maxSpeed,
                                        maxSidewaysSpeed = 3,
                                        sidewaysSpeedGain = sidewaysSpeedGain,
+                                       iSidewaysSpeedGain = iSidewaysSpeedGain,
+                                       dSidewaysSpeedGain = dSidewaysSpeedGain,
                                        speedGain = speedGain,
+                                       dSpeedGain = dSpeedGain,
+                                       iSpeedGain = iSpeedGain,
                                        yawGain = yawGain)
         self.motionManager.setMotion(motion)
 
@@ -166,7 +176,7 @@ class AlongPipe(PipeFollowingState):
         self._lastPipeLoc = None
         self._angleDistance = self._config.get('angleDistance', 0.5)
 
-        self._pipe = ram.motion.pipe.Pipe(0,0,0)
+        self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
         maxSpeed = self._config.get('forwardSpeed', 5)
         motion = ram.motion.pipe.Follow(pipe = self._pipe,
                                         speedGain = 5,

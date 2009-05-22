@@ -86,8 +86,8 @@ class Seek(state.State):
     def enter(self):
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
         depthGain = self._config.get('depthGain', 1.5)
-        iDepthGain = self._config.get('iDepthGain', 0.75)
-        dDepthGain = self._config.get('dDepthGain', 0.325)
+        iDepthGain = self._config.get('iDepthGain', 0.325)
+        dDepthGain = self._config.get('dDepthGain', 0.75)
         speed = self._config.get('speed', 3)
         motion = ram.motion.seek.SeekPoint(target = self._light,
                                            maxSpeed = speed,
