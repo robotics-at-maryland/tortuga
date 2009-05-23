@@ -111,7 +111,7 @@ void MediaControlPanel::onImageSourceChanged(core::EventPtr event)
         else
         {
             m_slider->Enable();
-            m_slider->SetRange(0, (int)fps*duration);
+            m_slider->SetRange(0, (int)(fps*duration));
         }
     }
 

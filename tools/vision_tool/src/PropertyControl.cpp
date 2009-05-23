@@ -258,10 +258,10 @@ void PropertyControl::setupMinMaxIntDoubleControls(wxSizer* sizer,
                 minValue = (int)boost::any_cast<double>(m_prop->getMinValue());
                 maxValue = (int)boost::any_cast<double>(m_prop->getMaxValue());
 
-                m_sliderScale = 100;
-                minValue *= m_sliderScale;
-                maxValue *= m_sliderScale;
-                currentValue = (int)(m_prop->getAsDouble() * m_sliderScale);
+	        m_sliderScale = 100;
+	        minValue = (int)(minValue * m_sliderScale);
+	        maxValue = (int)(maxValue * m_sliderScale);
+		currentValue = (int)(m_prop->getAsDouble() * m_sliderScale);
             }
             break;
         default:
