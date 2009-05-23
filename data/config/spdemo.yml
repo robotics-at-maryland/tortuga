@@ -1,5 +1,6 @@
 GUI:
     updateRate: 5
+    singleSubsystem: 1
 
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
@@ -8,7 +9,17 @@ Subsystems:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
         priority: "low"
-        
+       
+        ForwardCamera:
+            brightness: auto # 275
+            uValue: auto # 100
+            vValue: auto # 100
+
+        DownwardCamera:
+            brightness: auto # 275
+            uValue: auto # 100
+            vValue: auto # 100
+
         AdaptiveThresher:
             foobared: true
             initialMinPixels: 150
@@ -36,6 +47,8 @@ Subsystems:
             bOverRMax: 0.75
             centeredLimitt: 0.4
             minBrightness: 100
+            minPixels: 3000
+            minPixelsFound: 2000
             erodeIterations: 2
         BinDetector:
             centeredLimit: 0.2
@@ -83,7 +96,7 @@ Subsystems:
         maxStreamRate: 1 # Hz
         maxRecordRate: 5 # Hz
         #forwardFile: forward.avi
-        #downwardFile: downward.avi
+        downwardFile: downward.avi
         #forwardPort: 50000
         #downwardPort: 50001
     
@@ -132,16 +145,16 @@ Subsystems:
             ram.ai.pipe.Start:
                 depth: 7
             ram.ai.pipe.AlongPipe:
-                angleDistance: 0.0
+                angleDistance: 0.1
 
             # Light/Bouy sub task
             ram.ai.light.Start:
-                depth: 11.25
+                depth: 10.5
             ram.ai.light.Searching:
                 sweepAngle: 0
                 speed: 2
             ram.ai.light.Seek:
-                depthGain: 0.5
+                depthGain: 0
                 speed: 2
             ram.ai.light.Hit:
                 duration: 2
@@ -160,7 +173,7 @@ Subsystems:
 
             # Bin Sub task
             ram.ai.bin.Start:
-                depth: 7
+                depth: 8
             ram.ai.bin.Seeking:
                 speedGain: 3
                 maxSpeed: 3
@@ -206,8 +219,8 @@ Subsystems:
                 speedGain: 2
                 closeZ: 0.98
             ram.ai.sonar.FarSeeking:
-                maxSidewaysSpeed: 3
-                sidewaysSpeedGain: 7
+                maxSidewaysSpeed: 1
+                sidewaysSpeedGain: 2
                 maxSpeed: 3
                 speedGain: 7
                 midRangeZ: 0.8
@@ -458,9 +471,14 @@ Subsystems:
                 #magYBias: 0.171669
                 #magZBias: 0.251043
                 # Tortuga 2 With Everthing
-                magXBias: -0.252917
-                magYBias: 0.183411
-                magZBias: 0.25861
+                #magXBias: -0.252917
+                #magYBias: 0.183411
+                #magZBias: 0.25861
+                # Tortuga 2 Redo
+                magXBias: -0.2160
+                magYBias: 0.1899
+                magZBias: 0.2010
+                
                 # Set me to zero to ignore mag.
                 #magCorruptThresh: 0.0
                 localMagneticPitch: 60

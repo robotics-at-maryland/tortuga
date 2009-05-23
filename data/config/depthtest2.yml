@@ -1,5 +1,6 @@
 GUI:
     updateRate: 5
+    singleSubsystem: 1
 
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
