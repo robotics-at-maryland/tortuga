@@ -28,7 +28,7 @@ TEST(ChangeMe)
   myRedLightEventPointer->azimuth=Degree(3.2);
   myRedLightEventPointer->elevation=Degree(3.3);
   myRedLightEventPointer->range=3.4;
-  myRedLightEventPointer->pixCount=3.7;
+  myRedLightEventPointer->pixCount=3;
   ram::core::EventPtr myEventPtr=myRedLightEventPointer;
   {
     boost::archive::text_oarchive oa(ofs);
