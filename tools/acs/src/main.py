@@ -26,9 +26,10 @@ import ext.math
 import ext.control
 
 import ram.ai.gate
-import ram.ai.sonarCourse
-import ram.ai.buoySonarCourse
-import ram.ai.buoyPipeSonarCourse
+#import ram.ai.sonarCourse
+#import ram.ai.buoySonarCourse
+#import ram.ai.buoyPipeSonarCourse
+import ram.ai.sonar
 
 try:
     import ctypes
@@ -60,10 +61,15 @@ def main(argv = None):
     # Hackish way to grab state machine then start the vehicle
     stateMachine = app.getSubsystem("StateMachine")
     #stateMachine.start(ram.ai.sonarCourse.Gate)
-    stateMachine.start(ram.ai.buoySonarCourse.Gate)
+    #stateMachine.start(ram.ai.buoySonarCourse.Gate)
     #stateMachine.start(ram.ai.buoyPipeSonarCourse.Gate)
+    #stateMachine.start(ram.ai.sonar.Searching)
 
-    app.mainLoop()
+    # Run the main loop such that only the QueuedEventHub is being updated,
+    # and its waits for events, basically leave all the CPU to other stuff
+    queuedEventHub = app.getSubsystem("QueuedEventHub")
+    queuedEventHub.setWaitUpdate(True)
+    app.mainLoop(singleSubsystem = True)
     
     # Built a list of subsystems
     #subsystems = []

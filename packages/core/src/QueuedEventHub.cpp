@@ -30,7 +30,8 @@ QueuedEventHub::QueuedEventHub(ram::core::EventHubPtr eventHub,
     m_imp(new QueuedEventHubImp()),
     // Send all incomming events to be queued, and store the resulting connection
     m_connection(eventHub->subscribeToAll(
-        boost::bind(&QueuedEventHubImp::queueEvent, m_imp.get(), _1)))
+        boost::bind(&QueuedEventHubImp::queueEvent, m_imp.get(), _1))),
+    m_waitUpdate(false)
 {
     m_imp->setPublishFunction(boost::bind(&QueuedEventHub::_publish, this, _1));
 }
@@ -42,7 +43,8 @@ QueuedEventHub::QueuedEventHub(ConfigNode config, SubsystemList deps) :
     m_imp(new QueuedEventHubImp()),
     // Send all incomming events to be queued and store the resulting connection
     m_connection(m_hub->subscribeToAll(
-            boost::bind(&QueuedEventHubImp::queueEvent, m_imp, _1)))
+        boost::bind(&QueuedEventHubImp::queueEvent, m_imp, _1))),
+    m_waitUpdate(false)
 {
     m_imp->setPublishFunction(boost::bind(&QueuedEventHub::_publish, this, _1));
 }
@@ -50,6 +52,11 @@ QueuedEventHub::QueuedEventHub(ConfigNode config, SubsystemList deps) :
 QueuedEventHub::~QueuedEventHub()
 {
     m_connection->disconnect();
+}
+
+void QueuedEventHub::setWaitUpdate(bool value)
+{
+    m_waitUpdate = value;
 }
 
 void QueuedEventHub::publish(EventPtr event)
@@ -76,7 +83,10 @@ int QueuedEventHub::waitAndPublishEvents()
     
 void QueuedEventHub::update(double)
 {
-    m_imp->publishEvents();
+    if (m_waitUpdate)
+        waitAndPublishEvents();
+    else
+        publishEvents();
 }
 
 void QueuedEventHub::_publish(EventPtr event)

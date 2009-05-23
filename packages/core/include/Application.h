@@ -53,9 +53,14 @@ public:
      *  Every Subsystem which returns false from backgrounded(), will be
      *  updated in a continous loop, as fast as possible.  It will stop when
      *  stopMainLoop() is called.
-     *  
+     *
+     *  @param singleSubsystem
+     *      If true, the system will only run if a single subsystem is
+     *      backgrounded at a time, this helps catch bugs related to process
+     *      running in the main loop when they shouldn't.
+     *
      */
-    void mainLoop();
+    void mainLoop(bool singleSubsystem = false);
 
     /** Stops the loop started by the mainLoop() */
     void stopMainLoop();

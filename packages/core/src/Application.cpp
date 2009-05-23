@@ -114,7 +114,7 @@ std::vector<std::string> Application::getSubsystemNames()
     return m_order;
 }
 
-void Application::mainLoop()
+void Application::mainLoop(bool singleSubsystem)
 {
     m_running = true;
     
@@ -124,6 +124,7 @@ void Application::mainLoop()
     // Run until stopMainLoop is called
     while (m_running)
     {
+        int updated = 0;
         // Update each subsystem which isn't backgrounded
         BOOST_FOREACH(Pair item, m_subsystems)
         {
@@ -131,12 +132,17 @@ void Application::mainLoop()
 
             if (!subsystem->backgrounded())
             {
+                updated++;
+                
                 now.now();
                 TimeVal timeSinceLastUpdate(now - m_lastUpdate[item.first]);
                 subsystem->update(timeSinceLastUpdate.get_double());
                 m_lastUpdate[item.first] = now;
             }
         }
+
+        assert(((updated == 1) || (!singleSubsystem)) &&
+               "Single subsystem is updating multiple subsystems");
     }
 }
 

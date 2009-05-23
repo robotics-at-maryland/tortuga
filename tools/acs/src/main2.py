@@ -60,6 +60,11 @@ def main(argv = None):
     #stateMachine.start(ram.ai.buoySonarCourse.Gate)
     #stateMachine.start(ram.ai.buoyPipeSonarCourse.Gate)
 
+
+    # Run the main loop such that only the QueuedEventHub is being updated,
+    # and its waits for events, basically leave all the CPU to other stuff
+    queuedEventHub = app.getSubsystem("QueuedEventHub")
+    queuedEventHub.setWaitUpdate(True)
     app.mainLoop()
     
     # Built a list of subsystems

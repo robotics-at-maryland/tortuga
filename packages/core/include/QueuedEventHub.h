@@ -44,6 +44,9 @@ public:
 
     virtual ~QueuedEventHub();
 
+    /** When set to true, update function waits for events before returning */
+    void setWaitUpdate(bool value);
+    
     /** Places the event on the intneral event queue*/
     virtual void publish(EventPtr event);
 
@@ -73,6 +76,9 @@ private:
 
     /// Connection EventHub being queued
     EventConnectionPtr m_connection;
+
+    /** When true we use waitAndPublish instead of Publish */
+    bool m_waitUpdate;
 };
     
 } // namespace core

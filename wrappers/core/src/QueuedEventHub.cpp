@@ -30,6 +30,8 @@ void registerQueuedEventHubClass()
             bp::init<ram::core::EventHubPtr, bp::optional<std::string> >(
             (bp::arg("eventHub"),
              bp::arg("name") = std::string("QueuedEventHub")) ))
+        .def("setWaitUpdate",
+             &ram::core::QueuedEventHub::setWaitUpdate)
         .def("publishEvents",
              &ram::core::QueuedEventHub::publishEvents)
         .def("waitAndPublishEvents",
