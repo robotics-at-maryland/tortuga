@@ -53,6 +53,7 @@ class Application(wx.App):
         self._lastTime = 0.0
         self._updateInterval = 0.0
         self._heartBeat = 0
+        self._singleSubsystem = False
 
         # Create config file
         config = {}
@@ -73,11 +74,12 @@ class Application(wx.App):
 
         # Create the Main Frame
         guiCfg = config.get('GUI', {})
-        frame = oci.frame.MainFrame(guiCfg, subsystems)
+        self._singleSubsystem = guiCfg.get('singleSubsystem', False)
+        self._frame = oci.frame.MainFrame(guiCfg, subsystems)
                                       
-        frame.Show(True)
-        frame.Bind(wx.EVT_CLOSE, self._onClose)
-        self.SetTopWindow(frame)
+        self._frame.Show(True)
+        self._frame.Bind(wx.EVT_CLOSE, self._onClose)
+        self.SetTopWindow(self._frame)
         
         # Setup Update timer and start timer loop
         self.timer = wx.Timer()
@@ -137,11 +139,19 @@ class Application(wx.App):
         names = self._app.getSubsystemNames()
         subsystemIter = (self._app.getSubsystem(names[i]) for i in 
                          xrange(0, len(names)) )
+
+        updated = 0
         for subsystem in subsystemIter:
             if not subsystem.backgrounded():
+                updated += 1
                 subsystem.update(timeSinceLastIteration)
-        
         self._lastTime = currentTime
+
+        if self._singleSubsystem and (updated != 1):
+            # Shit hit the fan, close the application
+            self._frame.Close(True)
+            print "ERROR: Single subsystem and multiple updates"
+            raise Exception("ERROR: Single subsystem and multiple updates")
         
         # If we have run over into the next intervale, just wait an entire 
         # interval
