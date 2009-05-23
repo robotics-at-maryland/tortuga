@@ -356,18 +356,19 @@ class SeekingToAligned(TargetAlignState, state.State):
                  SeekingToAligned.ALIGNED : FireTorpedos }
 
     def TARGET_FOUND(self, event):
-        # Record first squareNess and every squareness
-        if self._firstEvent:
-            self._startSquareNess = event.squareNess
-            self._firstEvent = False
-        self._currentSquareNess = event.squareNess
-            
-        # Publish aligned event if needed
-        if event.squareNess > self._minSquareNess:
-            self.publish(SeekingToAligned.ALIGNED, core.Event())
-            
         # Update motion
         TargetAlignState.TARGET_FOUND(self, event)
+
+        # Record first squareNess and every squareness
+        squareNess = self._filterdAlign + 1
+        if self._firstEvent:
+            self._startSquareNess = squareNess
+            self._firstEvent = False
+        self._currentSquareNess = squareNess
+            
+        # Publish aligned event if needed
+        if squareNess > self._minSquareNess:
+            self.publish(SeekingToAligned.ALIGNED, core.Event())
 
     def CHECK_DIRECTION_(self, event):
         if self._currentSquareNess < self._startSquareNess:
