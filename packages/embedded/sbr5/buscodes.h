@@ -67,12 +67,14 @@
 #define BUS_CMD_BATT3_OFF       0x2A
 #define BUS_CMD_BATT4_OFF       0x2B
 #define BUS_CMD_BATT5_OFF       0x2C
+#define BUS_CMD_BATT6_OFF       0x51
 
 #define BUS_CMD_BATT1_ON        0x2D
 #define BUS_CMD_BATT2_ON        0x2E
 #define BUS_CMD_BATT3_ON        0x2F
 #define BUS_CMD_BATT4_ON        0x30
 #define BUS_CMD_BATT5_ON        0x31
+#define BUS_CMD_BATT6_ON        0x52
 
 
 /* Bars (LED and fan) on distro board */
@@ -119,15 +121,21 @@
 
 #define BUS_CMD_BFIN_STOP       0x4F
 #define BUS_CMD_BFIN_START      0x50
-/* Next free is 0x51 */
+/* NOTE: Since there was no space for BATT6_ON and
+ * BATT6_OFF I used 0x51 and 0x52 above
+ * --Kit (5/23/2009) */
+/* Next free is 0x53 */
 
 
 
 
 
 
-
-
+/* Can someone define what host commands are??
+ * I think they're what IC1 gets from the host,
+ * but nothing is particularly well defined in
+ * this file...
+ * --Kit (5/23/2009) */
 #define HOST_CMD_SYNC               0xFF
 
 #define HOST_CMD_PING               0x00
@@ -211,39 +219,17 @@
 
 
 
-
-#define CMD_BAR1_OFF     0x00
-#define CMD_BAR2_OFF     0x01
-#define CMD_BAR3_OFF     0x02
-#define CMD_BAR4_OFF     0x03
-#define CMD_BAR5_OFF     0x04
-#define CMD_BAR6_OFF     0x05
-#define CMD_BAR7_OFF     0x06
-#define CMD_BAR8_OFF     0x07
-
-#define CMD_BAR1_ON    0x08
-#define CMD_BAR2_ON    0x09
-#define CMD_BAR3_ON    0x0A
-#define CMD_BAR4_ON    0x0B
-#define CMD_BAR5_ON    0x0C
-#define CMD_BAR6_ON    0x0D
-#define CMD_BAR7_ON    0x0E
-#define CMD_BAR8_ON    0x0F
+/* So we have host commands, Bus commands,
+ * and then we had a section with commands.
+ *
+ * I couldn't find any reference to them, and everything
+ * compiled without, so I deleted the section.
+ *
+ * --Kit (5/23/2009) */
 
 
-
-#define CMD_BATT1_OFF     0x00
-#define CMD_BATT2_OFF     0x01
-#define CMD_BATT3_OFF     0x02
-#define CMD_BATT4_OFF     0x03
-#define CMD_BATT5_OFF     0x04
-
-#define CMD_BATT1_ON      0x05
-#define CMD_BATT2_ON      0x06
-#define CMD_BATT3_ON      0x07
-#define CMD_BATT4_ON      0x08
-#define CMD_BATT5_ON      0x09
-
-
-
+/* Another mysterious define, Hooray! This one *sounds*
+ * self-explanitory, and yet, is it important? Why is
+ * it in Buscodes.h?
+ * --Kit (5/23/2009) */
 #define SONAR_PACKET_LEN 22
