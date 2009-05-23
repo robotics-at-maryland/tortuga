@@ -222,8 +222,10 @@
 /* So we have host commands, Bus commands,
  * and then we had a section with commands.
  *
- * I couldn't find any reference to them, and everything
- * compiled without, so I deleted the section.
+ * These turned out to be a reference to the array
+ * for turning batteries and bars on and off for
+ * lcdshow.  They're defined in
+ * ../../drivers/sensor-r5/include/sensorapi.h
  *
  * --Kit (5/23/2009) */
 
