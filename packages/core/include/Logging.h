@@ -1,3 +1,5 @@
+
+
 /*
  * Copyright (C) 2008 Robotics at Maryland
  * Copyright (C) 2008 Joseph Lisee <jlisee@umd.edu>
@@ -49,30 +51,19 @@ public:
     }
     
     // IUpdatable methods
-    virtual void update(double) {}
+    virtual void update(double);
     
-    virtual IUpdatable::Priority getPriority() {
-        return Updatable::getPriority();
-    }
+    virtual IUpdatable::Priority getPriority();
 
-    virtual void setAffinity(size_t affinity) {
-        Updatable::setAffinity(affinity);
-    }
+    virtual void setAffinity(size_t affinity);
     
-    virtual int getAffinity() {
-        return Updatable::getAffinity();
-    }
+    virtual int getAffinity();
     
-    virtual void background(int interval) {
-        Updatable::background(interval);
-    };
+    virtual void background(int interval);
     
-    virtual void unbackground(bool join = false) {
-        Updatable::unbackground(join);
-    };
-    virtual bool backgrounded() {
-        return Updatable::backgrounded();
-    };
+    virtual void unbackground(bool join = false);
+    
+    virtual bool backgrounded();
     
 private:
     /** Creates all parts of the underlying logging system */

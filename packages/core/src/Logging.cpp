@@ -78,7 +78,42 @@ Logging::~Logging()
         delete appender;
     }
 }
+
+void Logging::update(double)
+{
+    assert(false && "Can't unbackground logger");
+}
     
+IUpdatable::Priority Logging::getPriority()
+{
+    return Updatable::getPriority();
+}
+
+void Logging::setAffinity(size_t affinity)
+{
+    Updatable::setAffinity(affinity);
+}
+    
+int Logging::getAffinity()
+{
+    return Updatable::getAffinity();
+}
+    
+void Logging::background(int interval)
+{
+    assert(false && "Can't background logger");
+}
+    
+void Logging::unbackground(bool join)
+{
+    assert(false && "Can't unbackground logger");
+}
+
+bool Logging::backgrounded()
+{
+    return true;
+}
+
 // Static 
 boost::filesystem::path Logging::getLogDir()
 {
