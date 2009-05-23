@@ -14,7 +14,7 @@
 namespace ram {
 namespace vision {
 
-ImageCamera::ImageCamera(size_t width, size_t height, size_t fps) :
+ImageCamera::ImageCamera(size_t width, size_t height, double fps) :
     _backgrounded(false),
     m_fps(fps),
     m_width(width),

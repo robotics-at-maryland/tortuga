@@ -22,7 +22,7 @@ namespace vision {
 class RAM_EXPORT ImageCamera : public ram::vision::Camera
 {
 public:
-    ImageCamera(size_t width, size_t height, size_t fps);
+    ImageCamera(size_t width, size_t height, double fps);
 
     virtual ~ImageCamera();
 
@@ -52,7 +52,7 @@ public:
 
 protected:
     bool _backgrounded;
-    size_t m_fps;
+    double m_fps;
     size_t m_width;
     size_t m_height;
 };

@@ -228,7 +228,7 @@ double FFMPEGCamera::duration()
 
 void FFMPEGCamera::seekToTime(double seconds)
 {
-    int frameNum = (int)seconds * fps();
+    int frameNum = (int)(seconds * fps());
     seekTo(frameNum - 1);
 
     // Read frames until we get to the right place

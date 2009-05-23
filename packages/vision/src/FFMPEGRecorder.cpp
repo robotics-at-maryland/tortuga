@@ -59,7 +59,7 @@ FFMPEGRecorder::FFMPEGRecorder(Camera* camera, Recorder::RecordingPolicy policy,
            "Invalid recording policy");
     
     // Determine video FPS (default to 30)
-    int fps = camera->fps();
+    int fps = (int)(camera->fps());
     if (0 == fps)
         fps = 30;
 
