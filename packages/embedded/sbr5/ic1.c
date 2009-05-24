@@ -56,7 +56,6 @@ _FWDT ( WDT_OFF );
 #define TRIS_LED_ACT    _TRISF1
 
 
-
 #ifdef SBR5
     #define LAT_LED_ERR     _LATB6
     #define TRIS_LED_ERR    _TRISB6
@@ -1464,6 +1463,8 @@ int main(void)
                 cs += t1 + HOST_CMD_THRUSTERS;
 
 
+                /* If you mess with these arrays, please remember to update */
+                /* the sensorapi.h in ../../drivers/sensor-r5/include */
                 const static unsigned char tkCommands[]=
                 {
                     BUS_CMD_THRUSTER1_OFF, BUS_CMD_THRUSTER2_OFF,
@@ -1504,6 +1505,8 @@ int main(void)
                 }
 
 
+                /* If you mess with these arrays, please remember to update */
+                /* the sensorapi.h in ../../drivers/sensor-r5/include */
                 const static unsigned char barCommands[]=
                 {
                     BUS_CMD_BAR1_OFF, BUS_CMD_BAR2_OFF,
@@ -1539,15 +1542,17 @@ int main(void)
                 }
 
 
+                /* If you mess with these arrays, please remember to update */
+                /* the sensorapi.h in ../../drivers/sensor-r5/include */
                 const static unsigned char battCommands[]=
                 {
                     BUS_CMD_BATT1_OFF, BUS_CMD_BATT2_OFF,
                     BUS_CMD_BATT3_OFF, BUS_CMD_BATT4_OFF,
-                    BUS_CMD_BATT5_OFF,
+                    BUS_CMD_BATT5_OFF, BUS_CMD_BATT6_OFF,
 
                     BUS_CMD_BATT1_ON, BUS_CMD_BATT2_ON,
                     BUS_CMD_BATT3_ON, BUS_CMD_BATT4_ON,
-                    BUS_CMD_BATT5_ON
+                    BUS_CMD_BATT5_ON, BUS_CMD_BATT6_ON
                 };
 
                 if(busWriteByte(battCommands[t1], SLAVE_ID_BATTSTAT) != 0)
