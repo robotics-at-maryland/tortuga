@@ -248,12 +248,12 @@ void ColorFilter::addPropertiesToSet(
 std::string ColorFilter::getShortChannelName(std::string shortName, bool isMin)
 {
     std::stringstream ss;
-    ss << "filt " << shortName;
+    ss << "filt" << shortName;
 
     if (isMin)
-        ss << " Min";
+        ss << "Min";
     else
-        ss << " Max";
+        ss << "Max";
 
     return ss.str();
 }

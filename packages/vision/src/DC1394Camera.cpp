@@ -154,13 +154,6 @@ void DC1394Camera::update(double timestep)
     {
         balanceWhite();
     }
-    else
-    {
-        err = dc1394_feature_whitebalance_get_value(m_camera, &m_uValue,
-                                                    &m_vValue);
-        std::cout << "Current U: " << m_uValue << " V: " << m_vValue 
-		  << std::endl;
-    }
     
     capturedImage(newImage);
     delete newImage;
