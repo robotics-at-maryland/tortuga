@@ -5,104 +5,98 @@ GUI:
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
 Subsystems:    
-    VisionSystem:
-        type: VisionSystem
-        depends_on: ["EventHub", "Vehicle"]
-        priority: "low"
+#    VisionSystem:
+#        type: VisionSystem
+#        depends_on: ["EventHub", "Vehicle"]
+#        priority: "low"
        
-        ForwardCamera:
-            brightness: auto # 275
-            uValue: 90 # 80 (NBRF sun) # 100
-            vValue: 80 # 90 (NBRF sun) # 100
+#        ForwardCamera:
+#            brightness: auto # 275
+#            uValue: auto # 100
+#            vValue: auto # 100
 
-        DownwardCamera:
-            brightness: auto # 275
-            uValue: 90 # 80 (NBRF sun) # 100
-            vValue: 80 # 90 (NBRF sun) # 100
+#        DownwardCamera:
+#            brightness: auto # 275
+#            uValue: auto # 100
+#            vValue: auto # 100
 
-        AdaptiveThresher:
-            foobared: true
-            initialMinPixels: 150
-            foundMinPixelScale: 0.85
-            lostMinPixelScale: 0.75
-            almostHitPercentage: 0.2
-            topRemovePercentage: 0.33
-            bottomRemovePercentage: 0.33
-            redPercentage: 38.0
-            redIntensity: 150
-            maxAspectRatio: 2.0
-        RedLightDetector:
-            initialMinPixels: 150
-            foundMinPixelScale: 0.85
-            lostMinPixelScale: 0.75
-            almostHitPercentage: 0.17
-            topRemovePercentage: 0.25
-            bottomRemovePercentage: 0.25
-            redPercentage: 38.0
-            redIntensity: 150
-            maxAspectRatio: 2.0
-        OrangePipeDetector:
-            rOverGMin: 0.75
-            rOverGMax: 1.5
-            bOverRMax: 0.75
-            centeredLimitt: 0.4
-            minBrightness: 100
-            minPixels: 3000
-            minPixelsFound: 2000
-            erodeIterations: 2
-        BinDetector:
-            centeredLimit: 0.2
-            sameBinThreshold: 0.2
-            maxAspectRatio: 3
-            blackMaskMinimumPercent: 10
-            blackMaskMaxTotalIntensity: 350
-            whiteMaskMinimumPercent: 30
-            whiteMaskMinimumIntensity: 190
-            incrediblyWashedOut: 0
-        DuctDetector:
-            minRedOverGreen: 0.5
-            maxRedOverGreen: 1.5
-            minRedOverBlue: 1.0
-            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
-            maxRedFailureThresh: 50
-            minTotalRGB: 125
-            minTotalRGBOnFailure: 150
-            erodeIterations: 3
-            dilateIterations: 3
-            minBlackPercent: 5
-            maxBlackTotal: 300
-            defaultGrowThreshX: 0.05
-            defaultGrowThreshY: 0.05
-            minXOverYToUpGrowThresh: 1.5
-            uppedGrowThreshX: 0.5
-            uppedGrowThreshY: 0.05
-        DownwardDuctDetector:
-            minRedOverGreen: 0.5
-            maxRedOverGreen: 1.5
-            minRedOverBlue: 1.0
-            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
-            maxRedFailureThresh: 50
-            minTotalRGB: 125
-            minTotalRGBOnFailure: 150
-        SafeDetector:
-            rOverGMin: 0.9
-            rOverGMax: 4.0
-            bOverRMax: 0.55
-            erodeIterations: 0
-            dilateIterations: 0
-            minTotal: 100
-
-        TargetDetector:
-            filtUMax: 79
-            filtUMin: 0
-            filtVMax: 145
-            filtVMin: 0
-
+#        AdaptiveThresher:
+#            foobared: true
+#            initialMinPixels: 150
+#            foundMinPixelScale: 0.85
+#            lostMinPixelScale: 0.75
+#            almostHitPercentage: 0.2
+#            topRemovePercentage: 0.33
+#            bottomRemovePercentage: 0.33
+#            redPercentage: 38.0
+#            redIntensity: 150
+#            maxAspectRatio: 2.0
+#        RedLightDetector:
+#            initialMinPixels: 150
+#            foundMinPixelScale: 0.85
+#            lostMinPixelScale: 0.75
+#            almostHitPercentage: 0.17
+#            topRemovePercentage: 0.25
+#            bottomRemovePercentage: 0.25
+#            redPercentage: 38.0
+#            redIntensity: 150
+#            maxAspectRatio: 2.0
+#        OrangePipeDetector:
+#            rOverGMin: 0.75
+#            rOverGMax: 1.5
+#            bOverRMax: 0.75
+#            centeredLimitt: 0.4
+#            minBrightness: 100
+#            minPixels: 3000
+#            minPixelsFound: 2000
+#            erodeIterations: 2
+#        BinDetector:
+#            centeredLimit: 0.2
+#            sameBinThreshold: 0.2
+#            maxAspectRatio: 3
+#            blackMaskMinimumPercent: 10
+#            blackMaskMaxTotalIntensity: 350
+#            whiteMaskMinimumPercent: 30
+#            whiteMaskMinimumIntensity: 190
+#            incrediblyWashedOut: 0
+#        DuctDetector:
+#            minRedOverGreen: 0.5
+#            maxRedOverGreen: 1.5
+#            minRedOverBlue: 1.0
+#            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+#            maxRedFailureThresh: 50
+#            minTotalRGB: 125
+#            minTotalRGBOnFailure: 150
+#            erodeIterations: 3
+#            dilateIterations: 3
+#            minBlackPercent: 5
+#            maxBlackTotal: 300
+#            defaultGrowThreshX: 0.05
+#            defaultGrowThreshY: 0.05
+#            minXOverYToUpGrowThresh: 1.5
+#            uppedGrowThreshX: 0.5
+#            uppedGrowThreshY: 0.05
+#        DownwardDuctDetector:
+#            minRedOverGreen: 0.5
+#            maxRedOverGreen: 1.5
+#            minRedOverBlue: 1.0
+#            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+#            maxRedFailureThresh: 50
+#            minTotalRGB: 125
+#            minTotalRGBOnFailure: 150
+#        SafeDetector:
+#            rOverGMin: 0.9
+#            rOverGMax: 4.0
+#            bOverRMax: 0.55
+#            erodeIterations: 0
+#            dilateIterations: 0
+#            minTotal: 100
+#
         # Recording Settings
-        maxStreamRate: 1 # Hz
-        maxRecordRate: 5 # Hz
-        forwardFile: forward.avi
-        #downwardFile: downward.avi
+#        maxStreamRate: 1 # Hz
+#        maxRecordRate: 5 # Hz
+        #forwardFile: forward.avi
+#        downwardFile: downward.avi
         #forwardPort: 50000
         #downwardPort: 50001
     
@@ -135,7 +129,7 @@ Subsystems:
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
-                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+                     "MotionManager", "TimerManager", "Ai"] #, "VisionSystem"]
         States:
             ram.ai.course.Pipe:
                 pipesToFind: 3
@@ -176,31 +170,6 @@ Subsystems:
             ram.ai.duct.Aligning:
                 filterSize: 10
                 desiredRange: 0.5
-
-            # Target Task
-            ram.ai.target.Start:
-                diveDepth: 12.25
-            ram.ai.target.SeekingToRange:
-                depthGain: 0 #0.125
-                #iDepthGain: 0.05
-                #dDepthGain: 0.1
-            ram.ai.target.SeekingToAligned:
-                depthGain: 0 #0.125
-                #iDepthGain: 0.05
-                #dDepthGain: 0.1
-                minSquareNess: 0.96
-                alignGain: 0.5
-                filterSize: 1
-                desiredRange: 0.45
-            ram.ai.target.FireTorpedos:
-                depthGain: 0 #0.125
-                #iDepthGain: 0.05
-                #dDepthGain: 0.1
-                frontThreshold: 0.15
-                desiredRange: 0.4
-                rangeThreshold: 0.03
-                filterSize: 1
-                
 
             # Bin Sub task
             ram.ai.bin.Start:
@@ -377,7 +346,7 @@ Subsystems:
             TorpedoLauncher:
                 type: SBTorpedoLauncher
                 depends_on: ['SensorBoard']
-            Sonar:
+            Sonar: 
                 depends_on: ['SensorBoard']
                 type: SBSonar
             Battery1:
