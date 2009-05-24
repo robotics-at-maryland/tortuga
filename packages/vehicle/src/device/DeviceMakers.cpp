@@ -25,6 +25,7 @@
 #include "vehicle/include/device/SBThruster.h"
 #include "vehicle/include/device/SBSonar.h"
 #include "vehicle/include/device/SBMarkerDropper.h"
+#include "vehicle/include/device/SBTorpedoLauncher.h"
 #endif
 
 // Register each device with the factor system
@@ -43,6 +44,8 @@ RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBSonar,
                                    SBSonar);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBMarkerDropper,
                                    SBMarkerDropper);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBTorpedoLauncher,
+                                   SBTorpedoLauncher);
 #endif
 
 
