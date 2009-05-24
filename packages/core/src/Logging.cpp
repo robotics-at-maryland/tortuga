@@ -81,7 +81,7 @@ Logging::~Logging()
 
 void Logging::update(double)
 {
-    assert(false && "Can't unbackground logger");
+    assert(false && "Can't update logger");
 }
     
 IUpdatable::Priority Logging::getPriority()
@@ -106,7 +106,7 @@ void Logging::background(int interval)
     
 void Logging::unbackground(bool join)
 {
-    assert(false && "Can't unbackground logger");
+//    assert(false && "Can't unbackground logger");
 }
 
 bool Logging::backgrounded()
