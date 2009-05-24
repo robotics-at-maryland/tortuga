@@ -309,6 +309,9 @@ int getSonarData(int fd, struct sonarData * sd)
     sd->timeStampUSec = (rawSonar[17]<<24) | (rawSonar[18] << 16) | (rawSonar[19] << 8) | rawSonar[20];
 
 
+    /// TODO: Put which pinger we are going for in the message
+    sd->pingerID = 0;
+    
     unsigned char cs = 0;
 
     for(i=0; i<21; i++)
