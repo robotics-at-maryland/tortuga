@@ -58,6 +58,49 @@ class PipeTestCase(support.AITestCase):
         
         # For the time being this is off
         self.assertFalse(self.visionSystem.pipeLineDetector)
+        
+    def injectPipeEvent(self, x, y, angle):
+        self.injectEvent(vision.EventType.PIPE_FOUND, vision.PipeEvent,0,0,0, 
+                         x = x, y = y, angle = angle, sendToBranches = True)    
+
+class TestPipeBias(PipeTestCase):
+    def setUp(self):
+        cfg = { 'Ai' : {'taskOrder' : 
+                        ['ram.ai.course.Pipe', 'ram.ai.course.Bin'] }, 
+                'StateMachine' : {
+                    'States' : {
+                        'ram.ai.course.Pipe' : {
+                            'biasDirection' : 0
+                        }
+                    }
+                }
+            }
+        PipeTestCase.setUp(self, pipe.Start, cfg)
+        self.machine.start(course.Pipe)
+        
+    def testDirection(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentBranchState(pipe.Start, pipe.Start)
+        
+        # Get us from the start state to the Seeking state
+        self.injectEvent(motion.basic.Motion.FINISHED, sendToBranches = True)
+        self.assertCurrentBranchState(pipe.Start, pipe.Searching)
+        
+        self.injectPipeEvent(x = 0, y = 0, angle = math.Degree(0))
+        self.assertCurrentBranchState(pipe.Start, pipe.Seeking)
+        
+        # Now make sure the biasing has taken effect
+        
+        # Now lets test biasing with vehicle at -80, and pipe 75 to the left
+        # The bias is 0 degrees (north), absolute pipe direction is -155 deg.
+        self.vehicle.orientation = math.Quaternion(math.Degree(-80),
+                                                   math.Vector3.UNIT_Z)
+        self.controller.setDesiredOrientation(self.vehicle.orientation)
+        
+        self.injectPipeEvent(x = 0, y = -0, angle = math.Degree(-75))
+        self.assertGreaterThan(self.controller.yawChange, 0)
 
 
 class TestGate(support.AITestCase):

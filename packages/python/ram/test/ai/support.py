@@ -223,6 +223,14 @@ class AITestCase(unittest.TestCase):
         """
         self.assertEquals(stateType, type(self.machine.currentState()))
         
+    def assertCurrentBranchState(self, branchState, stateType):
+        """
+        Compares the type of the current state machine state to the given one
+        """
+        self.assert_(self.machine.branches.has_key(branchState))
+        branch = self.machine.branches[branchState]
+        self.assertEquals(stateType, type(branch.currentState()))
+        
     def assertCurrentMotion(self, motionType):
         """
         Compares the type of the current motion to the given one

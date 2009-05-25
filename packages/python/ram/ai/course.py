@@ -114,11 +114,15 @@ class Pipe(task.Task):
         
         self._pipesToFind = self._config.get('pipesToFind', 1)
         self._pipeCount = 0
+        self.ai.data['pipeBiasDirection'] = \
+            self._config.get('biasDirection', None)
         
         # Branch off state machine for finding the pipe
         self.stateMachine.start(state.Branch(pipe.Start))
         
     def exit(self):
+        del self.ai.data['pipeBiasDirection']
+        
         task.Task.exit(self)
         self.stateMachine.stopBranch(pipe.Start)
         self.visionSystem.pipeLineDetectorOff()

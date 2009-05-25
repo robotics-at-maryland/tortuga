@@ -19,6 +19,9 @@ Requires the following subsystems:
  - controller - ext.control.IController
 """
 
+# Python imports
+import math
+
 # Project Imports
 import ext.core as core
 import ext.vision as vision
@@ -40,10 +43,35 @@ class PipeFollowingState(state.State):
     
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        self._pipe.setState(event.x, event.y, event.angle)
+        
+        angle = event.angle
+        
+        # Only do work if we are biasing the direction
+        if self._biasDirection is not None:
+            # Find absolute vehicle direction
+            vehicleOrientation = self.vehicle.getOrientation()
+            vehicleDirection = vehicleOrientation.getYaw(True)
+        
+            # Determine absolute pipe direction
+            absPipeDirection = ext.math.Degree(vehicleDirection + angle)
+            
+            # Check difference between actual and "biasDirection"
+            difference = self._biasDirection - absPipeDirection
+            if math.fabs(difference.valueDegrees()) > 90:
+                # We are pointing the wrong direction, so lets switch it around
+                if angle.valueDegrees() < 0:
+                    angle = ext.math.Degree(180) + angle
+                else:
+                    angle = ext.math.Degree(-180) + angle
+        
+        self._pipe.setState(event.x, event.y, angle)
 
     def enter(self):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
+
+        self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
+        if self._biasDirection is not None:
+            self._biasDirection = ext.math.Degree(self._biasDirection)
 
         speedGain = self._config.get('speedGain', 7)
         dSpeedGain = self._config.get('dSpeedGain', 1)
@@ -173,11 +201,19 @@ class AlongPipe(PipeFollowingState):
 
     def enter(self):
         """Makes the vehicle follow along line outlined by the pipe"""
+        
+        # Initial settings
+        PipeFollowingState.enter(self)
+        
+        # Stop default motion created above
+        self.motionManager.stopCurrentMotion()
+
+        # Load our configuration settings
         self._lastPipeLoc = None
         self._angleDistance = self._config.get('angleDistance', 0.5)
-
-        self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
         maxSpeed = self._config.get('forwardSpeed', 5)
+        
+        # Create our new motion to follow the pipe
         motion = ram.motion.pipe.Follow(pipe = self._pipe,
                                         speedGain = 5,
                                         maxSpeed = maxSpeed,
