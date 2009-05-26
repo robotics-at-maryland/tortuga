@@ -59,11 +59,18 @@ TEST_FIXTURE(Thruster, setForce)
     thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
-
+    sensorBoard->mainBusVoltage = 1.0;
     
     CHECK_EQUAL(0, sensorBoard->thrusterValues[5]);
     thruster->setForce(2.5);
-    CHECK(sensorBoard->thrusterValues[5] > 0);
+    int thrustValue = sensorBoard->thrusterValues[5];
+    CHECK(thrustValue > 0);
+
+    // Double the voltage, and check to make sure the output is halved
+    sensorBoard->mainBusVoltage = 2.0;
+    thruster->setForce(2.5);
+    CHECK_CLOSE(thrustValue/2, sensorBoard->thrusterValues[5], 2);
+
     delete thruster;
     
     // Now with reverse direction
@@ -92,7 +99,7 @@ TEST_FIXTURE(Thruster, getForce)
     thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
         ivehicle);
-
+    sensorBoard->mainBusVoltage = 1.0;
     
     thruster->setForce(2.5);
     CHECK_EQUAL(2.5, thruster->getForce());

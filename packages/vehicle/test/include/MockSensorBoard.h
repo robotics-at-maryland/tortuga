@@ -34,6 +34,7 @@ public:
         memset(powerSourceUsed, false, sizeof(bool) * 6);
 
         // Init other values
+        mainBusVoltage = 0.0;
         markerDropNum = -1;
         torpedoFireNum = -1;
     }    
@@ -70,6 +71,8 @@ public:
         assert(address <= 4 && address >=0 && "Invalid Address");
         powerSourceEnables[address] = state;
     }
+
+    virtual double getMainBusVoltage() { return mainBusVoltage; }
     
     virtual int dropMarker() { return markerDropNum; }
 
@@ -83,6 +86,8 @@ public:
 
     int markerDropNum;
     int torpedoFireNum;
+
+    double mainBusVoltage;
     
     void publishPowerSourceUpdate(int id, bool enabled, bool inUse,
                                   double voltage, double current)

@@ -183,6 +183,14 @@ public:
      */
     virtual void setPowerSouceEnabled(int address, bool state);
 
+    /** This returns the voltage of the main bus
+     *
+     *   This does so by calculting the average voltage of all currently
+     *   in use power sources.  Its currently needed because we don't monitor
+     *   the main bus voltage directly.
+     */
+    virtual double getMainBusVoltage();
+
 protected:
     // Makes easy access to the sensor board and allows testing
     virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6);
@@ -207,6 +215,7 @@ private:
         double depth;
         int thrusterValues[6];
         struct boardInfo telemetry;
+        double mainBusVoltage;
     };
 
     /** Opens the FD if needed and syncs with the board */
@@ -226,6 +235,9 @@ private:
     /** Triggers the sonar event */
     void sonarEvent(struct boardInfo* telemetry);
     
+    /** Calculates the bus voltage for getMainBusVoltage */
+    double calculateMainBusVoltage(struct boardInfo* telemetry);
+
     /** Mutex which protects access to state */
     core::ReadWriteMutex m_stateMutex;
 

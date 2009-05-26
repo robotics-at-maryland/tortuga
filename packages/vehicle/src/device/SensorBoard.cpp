@@ -138,6 +138,14 @@ void SensorBoard::update(double timestep)
          state.depth = depth;
     } // end deviceMutex lock
 
+    // If we got the battery use status or the latest voltages recompute bus
+    // Voltage
+    if ((state.telemetry.updateState == BATTERY_VOLTAGES) ||
+        (state.telemetry.updateState == BATTERY_USED))
+    {
+        state.mainBusVoltage = calculateMainBusVoltage(&state.telemetry);
+    }
+
     // If we have done a full update of telem, trigger events and log
     if (partialRet == SB_UPDATEDONE)
     {
@@ -332,6 +340,12 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
         
         setBatteryState(val);
     }
+}
+
+double SensorBoard::getMainBusVoltage()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_state.mainBusVoltage;
 }
 
 int SensorBoard::dropMarker()
@@ -541,6 +555,32 @@ void SensorBoard::sonarEvent(struct boardInfo* telemetry)
         previousSec = telemetry->sonar.timeStampSec;
         previousUsec = telemetry->sonar.timeStampUSec;
     }
+}
+
+double SensorBoard::calculateMainBusVoltage(struct boardInfo* telemetry)
+{
+    static int addressToEnable[] = {
+        BATT1_INUSE,
+        BATT2_INUSE,
+        BATT3_INUSE,
+        BATT4_INUSE,
+        BATT5_INUSE,
+    };
+
+    int battCount = sizeof(addressToEnable)/sizeof(int);
+    double totalVoltage = 0;
+    int inUseCount = 0;
+
+    for (int i = 0; i < battCount; ++i)
+    {
+        if (addressToEnable[i] & telemetry->battUsed)
+        {
+            totalVoltage += telemetry->powerInfo.battVoltages[i];
+            inUseCount++;
+        }
+    }
+
+    return totalVoltage / inUseCount;
 }
     
 } // namespace device

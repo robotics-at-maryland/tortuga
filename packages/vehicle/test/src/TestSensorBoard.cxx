@@ -297,6 +297,30 @@ TEST_FIXTURE(SensorBoardFixture, setPowerSourceEnabled)
     delete sb;
 }
 
+TEST_FIXTURE(SensorBoardFixture, getMainBusVoltage)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+    
+    // Enable only 3 power sources
+    sb->currentTelemetry.battUsed = BATT1_INUSE | BATT2_INUSE | BATT4_INUSE;
+
+    // Set voltages for all
+    sb->currentTelemetry.powerInfo.battVoltages[0] = 1.0;
+    sb->currentTelemetry.powerInfo.battVoltages[1] = 2.0;
+    sb->currentTelemetry.powerInfo.battVoltages[2] = 3.0;
+    sb->currentTelemetry.powerInfo.battVoltages[3] = 4.0;
+    sb->currentTelemetry.powerInfo.battVoltages[4] = 5.0;
+
+    sb->currentTelemetry.updateState = BATTERY_VOLTAGES;
+
+    // Do an update to read in the values
+    sb->update(1.0/40.0);
+
+    // Check average 2.33 ~= (1 + 2 + 4) / 3
+    CHECK_CLOSE(7.0/3.0, sb->getMainBusVoltage(), 0.0001);
+}
+
 TEST_FIXTURE(SensorBoardFixture, dropMarker)
 {
     TestSensorBoard* testSb = new TestSensorBoard(
