@@ -10,8 +10,11 @@ import math
 
 # Project Imports
 import ram.core as core
-from ram.motion.basic import Motion
+import ram.timer as timer
 import ram.motion.common as common
+from ram.motion.basic import Motion
+
+
 import ext.core
 
 class PointTarget(ext.core.EventPublisher):
@@ -73,7 +76,8 @@ class SeekPoint(Motion):
     
     def __init__(self, target, maxSpeed = 0.0, depthGain = 1, 
                  translate = False, translateGain = 1, iDepthGain = 0,
-                 dDepthGain = 0, iTranslateGain = 0, dTranslateGain = 0):
+                 dDepthGain = 0, iTranslateGain = 0, dTranslateGain = 0,
+                 yawGain = 1.0):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -89,6 +93,8 @@ class SeekPoint(Motion):
         self._target = target
         self._maxSpeed = maxSpeed
         
+        self._yawGain = yawGain 
+        
         self._translate = translate
         self._translateGain = translateGain
         self._iTranslateGain = iTranslateGain
@@ -101,6 +107,8 @@ class SeekPoint(Motion):
         self._dDepthGain = dDepthGain
         self._sumDepth = 0;
         self._oldDepth = 0;
+        
+        self._lastSeekTime = 0.0
         
         self._conn = target.subscribe(PointTarget.UPDATE, self._onBouyUpdate)
         
@@ -115,13 +123,19 @@ class SeekPoint(Motion):
 
         @note: Everything is in DEGREES!
         """
+        # Compute time since the last run
+        deltaT = 1.0/40.0
+        now = timer.time()
+        if self._lastSeekTime != 0.0:
+            deltaT = now - self._lastSeekTime
+        self._lastSeekTime = now
         
         # Determine new Depth
         if 0 != self._depthGain:        
             dtDepth, self._sumDepth, self._oldDepth = common.PIDLoop(
                 x = self._target.y,
                 xd = 0, 
-                dt = 1.0/40.0,
+                dt = deltaT,
                 dtTooSmall = 1.0/100.0, 
                 dtTooBig = 1.0, 
                 kp = self._depthGain, 
@@ -145,12 +159,12 @@ class SeekPoint(Motion):
             desiredHeading = desiredHeading.valueDegrees()
             
             yawCommand = absoluteTargetHeading - desiredHeading
-            self._controller.yawVehicle(yawCommand)
+            self._controller.yawVehicle(yawCommand * self._yawGain)
         else:
             sidewaysSpeed, self._sumX, self._oldX = common.PIDLoop(
                 x = self._target.x,
                 xd = 0, 
-                dt = 1.0/40.0,
+                dt = deltaT,
                 dtTooSmall = 1.0/100.0, 
                 dtTooBig = 1.0, 
                 kp = self._translateGain, 
@@ -165,7 +179,7 @@ class SeekPoint(Motion):
         if self._maxSpeed != 0:
             self._controller.setSpeed(self._speedScale() * self._maxSpeed)
 
-    def _speedScale(self):
+    def _speedScale(self, timeSinceLastRun = 0.0):
         """
         Scales the speed based on far from the center of the field of view
         the light is.  It uses both azimuth & elevation, with a max moving angle
@@ -204,7 +218,7 @@ class SeekPointToRange(SeekPoint):
     def __init__(self, target, desiredRange, maxRangeDiff, rangeGain = 1.0, 
                  maxSpeed = 0.0, depthGain = 1, translate = False, 
                  translateGain = 1, iDepthGain = 0, dDepthGain = 0,
-                 iTranslateGain = 0, dTranslateGain = 0):
+                 iTranslateGain = 0, dTranslateGain = 0, yawGain = 1.0):
         """
         @type desiredRange: float
         @param desiredRange: The range you wish to be at relative to the target
@@ -213,9 +227,13 @@ class SeekPointToRange(SeekPoint):
         @param maxRangeDiff: The range difference you wish your speed to max 
                              out at
         """
-        SeekPoint.__init__(self, target, maxSpeed, depthGain, translate,
-                           translateGain, iDepthGain, dDepthGain,
-                           iTranslateGain, dTranslateGain)
+        SeekPoint.__init__(self, target, 
+                           maxSpeed = maxSpeed, depthGain = depthGain, 
+                           translate = translate, translateGain = translateGain, 
+                           iDepthGain = iDepthGain, dDepthGain = dDepthGain,
+                           iTranslateGain = iTranslateGain, 
+                           dTranslateGain = dTranslateGain, yawGain = yawGain)
+        
         self._desiredRange = desiredRange
         self._maxRangeDiff = maxRangeDiff
         self._rangeGain = rangeGain
