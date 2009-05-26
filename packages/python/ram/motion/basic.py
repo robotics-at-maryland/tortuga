@@ -486,10 +486,14 @@ class RateChangeHeading(Motion):
         
 class MoveDirection(Motion):
     """
-    Moves and asbsolute direction regardless of orientation
+    Moves an absolute direction regardless of orientation
     """
     
     def __init__(self, desiredHeading, speed):
+        """
+        @type desiredHeading: double
+        @param desiredHeading: compass heading in degrees (0 = north, + counter clockwise)
+        """
         Motion.__init__(self, _type = Motion.IN_PLANE)
         
         self._speed = speed
