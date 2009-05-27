@@ -94,12 +94,12 @@ void TargetDetector::init(core::ConfigNode config)
 
     // Color filter properties
     m_filter->addPropertiesToSet(propSet, &config,
-                                 "Y", "Luma",
+                                 "L", "L*",
                                  "U", "Blue Chrominance",
                                  "V", "Red Chrominance",
-                                 1, 255,  // Y defaults
-                                 0, 132,  // U defaults (80,141)
-                                 0, 119); // V defaults (98, 119)
+                                 0, 255,  // L defaults
+                                 0, 75,  // U defaults (0, 75) //(80,141)
+                                 137, 247); // V defaults (137, 181) //(98, 119)
 
     /// TODO: add a found pixel drop off
 }
@@ -144,7 +144,7 @@ void TargetDetector::processImage(Image* input, Image* output)
     }
 
     // Copy to our working image and convert to YUV
-    cvCvtColor(input->asIplImage(), m_image->asIplImage(), CV_BGR2YCrCb);
+    cvCvtColor(input->asIplImage(), m_image->asIplImage(), CV_BGR2Luv);
 
     // Filter for green
     filterForGreen(m_image);
