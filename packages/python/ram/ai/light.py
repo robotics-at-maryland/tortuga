@@ -94,11 +94,13 @@ class Align(state.State):
         dDepthGain = self._config.get('dDepthGain', 0.5)
         desiredRange = self._config.get('desiredRange', 5)
         speed = self._config.get('speed', 3)
-        motion = ram.motion.seek.SeekPointToRange(target = self._light, desiredRange = desiredRange,
-                                           maxRangeDiff = 5, maxSpeed = speed,
-                                           depthGain = depthGain,
-                                           iDepthGain = iDepthGain,
-                                           dDepthGain = dDepthGain)
+        motion = ram.motion.seek.SeekPointToRange(target = self._light,
+                                                  desiredRange = desiredRange,
+                                                  maxRangeDiff = 5,
+                                                  maxSpeed = speed,
+                                                  depthGain = depthGain,
+                                                  iDepthGain = iDepthGain,
+                                                  dDepthGain = dDepthGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):
@@ -108,11 +110,26 @@ class Seek(state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_LOST : Searching,
+                 vision.EventType.LIGHT_FOUND : Seek,
                  vision.EventType.LIGHT_ALMOST_HIT : Hit }
 
+    def LIGHT_FOUND(self, event):
+        """Update the state of the light, this moves the vehicle"""
+        self._light.setState(event.azimuth, event.elevation, event.range,
+                             event.x, event.y)
+
     def enter(self):
+        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
+        depthGain = self._config.get('depthGain', 0)
+        iDepthGain = self._config.get('iDepthGain', 0)
+        dDepthGain = self._config.get('dDepthGain', 0)
         speed = self._config.get('speed', 3)
-        self.controller.setSpeed(speed)
+        motion = ram.motion.seek.SeekPoint(target = self._light,
+                                                  maxSpeed = speed,
+                                                  depthGain = depthGain,
+                                                  iDepthGain = iDepthGain,
+                                                  dDepthGain = dDepthGain)
+        self.motionManager.setMotion(motion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()

@@ -164,9 +164,6 @@ Subsystems:
                 sweepAngle: 0
                 speed: 2
             ram.ai.light.Seek:
-                depthGain: 0.5
-                iDepthGain: 0.25
-                dDepthGain: 0.125
                 speed: 2
                 
             # Target AI
@@ -434,9 +431,9 @@ Subsystems:
             #Main: objectives/pipe.sml
             #Main: objectives/bin.sml
             #Main: objectives/duct.sml
-            Main: objectives/barbedwire.sml
+            #Main: objectives/barbedwire.sml
             #Main: objectives/target.sml
-            #Main: objectives/buoy.sml
+            Main: objectives/buoy.sml
             #Main: objectives/pinger.sml
             #Main: objectives/safe.sml
             #Main: transdec.sml

@@ -128,9 +128,25 @@ class TestSeek(support.AITestCase):
         self.machine.start(light.Seek)
     
     def testStart(self):
-        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertCurrentMotion(motion.seek.SeekPoint)
         
-    def testSearching(self):
+    def testLightFound(self):
+        """Make sure new found events move the vehicle"""
+        # Light  dead ahead and below us
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
+                         0, y = -0.5, azimuth = math.Degree(15))
+        
+        # Bigger numbers = deeper, and the vehicle should not change depth
+        self.assertEqual(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.yawChange, 0)
+        
+        # Smaller numbers = shallow, and the vehicle should not change depth
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
+                         0, y = 0.5, azimuth = math.Degree(15))
+        self.assertEqual(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.yawChange, 0)
+    
+    def testLightLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.LIGHT_LOST)
         self.assertCurrentState(light.Searching)
