@@ -61,18 +61,23 @@ int main( int argc, char** argv )
 	
 	/* print it */
 	fprintf( stdout, "Maxval at (%d, %d) = %2.4f\n", maxloc.x, maxloc.y, maxval );
+	cvScale(poc, poc, 1.0/(maxval-minval), 
+		1.0*(-minval)/(maxval-minval));
 	
 	/* display images and free memory */
 	cvNamedWindow( "tpl", CV_WINDOW_AUTOSIZE );
 	cvNamedWindow( "ref", CV_WINDOW_AUTOSIZE );	
+	cvNamedWindow( "poc", CV_WINDOW_AUTOSIZE );	
 	
 	cvShowImage( "tpl", tpl );
 	cvShowImage( "ref", ref );
+	cvShowImage( "poc", poc );
 	
 	cvWaitKey( 0 );
 	
 	cvDestroyWindow( "tpl" );
 	cvDestroyWindow( "ref" );	
+	cvDestroyWindow( "poc" );	
 	
 	cvReleaseImage( &tpl );
 	cvReleaseImage( &ref );
