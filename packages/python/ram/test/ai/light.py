@@ -82,18 +82,19 @@ class TestSearching(support.AITestCase):
         # Now change states
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 
                          0)
-        self.assertCurrentState(light.Seek)
+        self.assertCurrentState(light.Align)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.redLightDetector)
-        
-class TestSeek(support.AITestCase):
+
+
+class TestAlign(support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
-        self.machine.start(light.Seek)
+        self.machine.start(light.Align)
     
     def testStart(self):
-        self.assertCurrentMotion(motion.seek.SeekPoint)
+        self.assertCurrentMotion(motion.seek.SeekPointToRange)
         
     def testLightFound(self):
         """Make sure new found events move the vehicle"""
@@ -116,8 +117,26 @@ class TestSeek(support.AITestCase):
         self.injectEvent(vision.EventType.LIGHT_LOST)
         self.assertCurrentState(light.Searching)
         
-    def testHit(self):
+    def testSeek(self):
         """Make sure we try to hit the light when close"""
+        self.injectEvent(ram.motion.seek.SeekPoint.POINT_ALIGNED)
+        self.assertCurrentState(light.Seek)
+        
+class TestSeek(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.machine.start(light.Seek)
+    
+    def testStart(self):
+        self.assertGreaterThan(self.controller.speed, 0)
+        
+    def testSearching(self):
+        """Make sure losing the light goes back to search"""
+        self.injectEvent(vision.EventType.LIGHT_LOST)
+        self.assertCurrentState(light.Searching)
+        
+    def testHit(self):
+        """Make sure finding the light changes to hit"""
         self.injectEvent(vision.EventType.LIGHT_ALMOST_HIT)
         self.assertCurrentState(light.Hit)
         

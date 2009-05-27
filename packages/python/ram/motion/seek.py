@@ -74,6 +74,8 @@ class SeekPoint(Motion):
     @param translateGain: Gain for side-side motion
     """
     
+    POINT_ALIGNED = ext.core.declareEventType('POINT_ALIGNED')
+    
     def __init__(self, target, maxSpeed = 0.0, depthGain = 1, 
                  translate = False, translateGain = 1, iDepthGain = 0,
                  dDepthGain = 0, iTranslateGain = 0, dTranslateGain = 0,
@@ -89,6 +91,7 @@ class SeekPoint(Motion):
             _type = _type | Motion.IN_PLANE
         Motion.__init__(self, _type = _type)
         
+        self._first = True
         self._running = False
         self._target = target
         self._maxSpeed = maxSpeed
@@ -178,6 +181,14 @@ class SeekPoint(Motion):
         # Drive toward light
         if self._maxSpeed != 0:
             self._controller.setSpeed(self._speedScale() * self._maxSpeed)
+        
+        if self._alignment() <= 0.05 and not self._first:
+            self.publish(SeekPoint.POINT_ALIGNED, ext.core.Event())
+
+        self._first = False
+    def _alignment(self):
+        vect = ext.math.Vector2(self._target.x, self._target.y)
+        return vect.length()
 
     def _speedScale(self, timeSinceLastRun = 0.0):
         """

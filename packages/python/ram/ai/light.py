@@ -23,12 +23,14 @@ Requires the following subsystems:
 import ext.core as core
 import ext.vision as vision
 
+import ram.filter as filter
 import ram.ai.state as state
 import ram.motion as motion
 import ram.motion.search
 import ram.motion.seek
 
 LIGHT_HIT = core.declareEventType('LIGHT_HIT')
+
 
 class Start(state.State):
     """
@@ -49,10 +51,12 @@ class Start(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
+
+
 class Searching(state.State):
     @staticmethod
     def transitions():
-        return { vision.EventType.LIGHT_FOUND : Seek }
+        return { vision.EventType.LIGHT_FOUND : Align }
 
     def enter(self):
         # Turn on the vision system
@@ -70,13 +74,13 @@ class Searching(state.State):
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
-
-class Seek(state.State):
+        
+class Align(state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_LOST : Searching,
-                 vision.EventType.LIGHT_FOUND : Seek,
-                 vision.EventType.LIGHT_ALMOST_HIT : Hit }
+                 vision.EventType.LIGHT_FOUND : Align,
+                 ram.motion.seek.SeekPoint.POINT_ALIGNED : Seek }
 
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -85,16 +89,30 @@ class Seek(state.State):
 
     def enter(self):
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
-        depthGain = self._config.get('depthGain', 1.5)
-        iDepthGain = self._config.get('iDepthGain', 0.325)
-        dDepthGain = self._config.get('dDepthGain', 0.75)
+        depthGain = self._config.get('depthGain', 3)
+        iDepthGain = self._config.get('iDepthGain', 0.5)
+        dDepthGain = self._config.get('dDepthGain', 0.5)
+        desiredRange = self._config.get('desiredRange', 5)
         speed = self._config.get('speed', 3)
-        motion = ram.motion.seek.SeekPoint(target = self._light,
-                                           maxSpeed = speed,
+        motion = ram.motion.seek.SeekPointToRange(target = self._light, desiredRange = desiredRange,
+                                           maxRangeDiff = 5, maxSpeed = speed,
                                            depthGain = depthGain,
                                            iDepthGain = iDepthGain,
                                            dDepthGain = dDepthGain)
         self.motionManager.setMotion(motion)
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+
+class Seek(state.State):
+    @staticmethod
+    def transitions():
+        return { vision.EventType.LIGHT_LOST : Searching,
+                 vision.EventType.LIGHT_ALMOST_HIT : Hit }
+
+    def enter(self):
+        speed = self._config.get('speed', 3)
+        self.controller.setSpeed(speed)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()

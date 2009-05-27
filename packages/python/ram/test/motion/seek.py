@@ -226,6 +226,33 @@ class TestSeekPoint(SeekPointTest):
         self.assertAlmostEqual(-25, self.controller.yawChange, 4)
         self.assertAlmostEqual(6, self.controller.depth, 4)
 
+    def _handlePointAligned(self, event):
+        self._aligned = True
+        
+    def testAlignEvent(self):
+        # Subscribe to align event
+        self._aligned = False
+        self.qeventHub.subscribeToType(
+            ram.motion.seek.SeekPoint.POINT_ALIGNED,
+            self._handlePointAligned)
+        
+        # Create our point to seek
+        Buoy = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0,
+                                       x = 0, y = 0)
+        
+        # Start up the motion
+        Buoy.setState(azimuth = 50, elevation = 30, range = 0, x = 1, y = 1)
+        m = motion.seek.SeekPoint(target = Buoy)
+        self.motionManager.setMotion(m)
+        
+        # Feed data which doesn't trigger the event
+        self.qeventHub.publishEvents()
+        self.assertFalse(self._aligned)
+        
+        # Feed data which does trigger the event
+        Buoy.setState(azimuth = 0, elevation = 0, range = 0, y = 0, x = 0)
+        self.qeventHub.publishEvents()
+        self.assertTrue(self._aligned)
 
 class TestSeekPointToRange(SeekPointTest):
     def addClassArgs(self, kwargs):
