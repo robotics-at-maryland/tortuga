@@ -16,6 +16,8 @@
 
 #include "core/include/ConfigNode.h"
 
+#include "math/include/Vector2.h"
+
 // Must be incldued last
 #include "vision/include/Export.h"
 
@@ -33,6 +35,16 @@ class RAM_EXPORT VelocityDetector : public Detector
 
     void processImage(Image* input, Image* output= 0);
     
+    /** Gives the motion of the camera in pixels per frame
+     *
+     *  @todo
+     *      Make me time based, ie. pixels per second
+     */
+    math::Vector2 getVelocity();
+
+    /** Sets all flags such that only phase correlation is used */
+    void usePhaseCorrelation();
+
   private:
     void init(core::ConfigNode config);
 
@@ -48,6 +60,9 @@ class RAM_EXPORT VelocityDetector : public Detector
     /** Result of phase correlation on the image (64 bit float format) */
     IplImage* m_phaseResult;
 
+    /** Scale the debug phase correlation velocity line */
+    double m_phaseLineScale;
+
     // Algorithm independent members
 
     /** Attempt phase correlation on the image */
@@ -58,6 +73,9 @@ class RAM_EXPORT VelocityDetector : public Detector
 
     /** The last frame we recieved, use to compare against */
     Image* m_lastFrame;
+
+    /** The last velocity we calculated */
+    math::Vector2 m_velocity;
 };
 	
 } // namespace vision

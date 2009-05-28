@@ -46,14 +46,10 @@ void VelocityDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "usePhaseCorrelation",
         "Run the phase correlation algorithim", false, &m_usePhaseCorrelation);
-
-    /*    propSet->addProperty(config, false, "initialMinPixels",
-        "Red pixel count required for blob to a buoy",
-        400, &m_initialMinRedPixels);
-
-    propSet->addProperty(config, false, "foundMinPixelScale",
-        "Scale value for the buoy pixel count when its found",
-        0.85, &m_foundMinPixelScale);*/
+    
+    propSet->addProperty(config, false, "phaseLineScale",
+        "Scale red line draw by the phase correlation",
+	 1.0, &m_phaseLineScale, 1.0, 50.0);
 
     // Initialize grey scale images
     m_currentGreyScale = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 1);
@@ -103,6 +99,16 @@ void VelocityDetector::processImage(Image* input, Image* output)
 
     // We are done with our work now last save the input for later use
     m_lastFrame->copyFrom(input);
+}
+
+math::Vector2 VelocityDetector::getVelocity()
+{
+    return m_velocity;
+}
+
+void VelocityDetector::usePhaseCorrelation()
+{
+    m_usePhaseCorrelation = true;
 }
 
 void VelocityDetector::phasePhaseCorrelation(Image* output)
@@ -190,23 +196,53 @@ void VelocityDetector::phasePhaseCorrelation(Image* output)
     double  minval, maxval;
     cvMinMaxLoc(m_phaseResult, &minval, &maxval, &minloc, &maxloc, 0);
 
-    // Transform coordinates properly (deal with odd quadrant issue)
-    double outX = -1 * ((m_currentFrame->getWidth() / 2.0) - (double)maxloc.x);
-    double outY = (m_currentFrame->getHeight() / 2.0) - (double)maxloc.y;
-    outX *= -1;
-    outY *= -1;
+    // Transform coordinates by moving the origin to the center, and 
+    // swapping quadrants diagonally
+    int quadrantWidth = m_currentFrame->getWidth() / 2;
+    int quadrantHeight = m_currentFrame->getHeight() / 2;
+    double outX = 0;
+    double outY = 0;
+    if ((maxloc.x < quadrantWidth) && (maxloc.y < quadrantHeight))
+    {
+        // Upper left quadrant
+        outX = (double)maxloc.x;
+	outY = - (double)maxloc.y;
+    } 
+    else if ((maxloc.x >= quadrantWidth) && (maxloc.y < quadrantHeight))
+    {
+        // Upper right quadrant
+        outX = -((double)m_currentFrame->getWidth() - (double)maxloc.x);
+	outY = - (double)maxloc.y;
+    }
+    else if ((maxloc.x < quadrantWidth) && (maxloc.y >= quadrantHeight))
+    {
+        // Lower left quadrant
+        outX = (double)maxloc.x;
+	outY = ((double)m_currentFrame->getHeight() - (double)maxloc.y);
+    } 
+    else if ((maxloc.x >= quadrantWidth) && (maxloc.y >= quadrantHeight))
+    {
+        // Lower right quadrant
+        outX = -((double)m_currentFrame->getWidth() - (double)maxloc.x);
+	outY = ((double)m_currentFrame->getHeight() - (double)maxloc.y);
+    }
+    else 
+    {
+        assert(false && "Should not be here");
+    }
+    
+    // Assign velocity
+    m_velocity = math::Vector2(outX, outY);
 
     if (output)
     {
         CvPoint start;
 	start.x = output->getWidth() / 2;
 	start.y = output->getHeight() / 2;
-	//start.x = 0;
-	//start.y = 0;
 	CvPoint end;
-	end.x = start.x + ((int)outX);
-	end.y = start.x - ((int)outY);
-	cvLine(output->asIplImage(), start, end, CV_RGB(255,0,0), 2, CV_AA, 0 );
+	end.x = start.x + ((int)(outX*m_phaseLineScale));
+	end.y = start.y - ((int)(outY*m_phaseLineScale));
+	cvLine(output->asIplImage(), start, end, CV_RGB(255,0,0), 1, CV_AA, 0);
     }
 
 
