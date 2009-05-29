@@ -257,7 +257,7 @@ class SeekPointToRange(SeekPoint):
         rangeScale = rangeDiff / self._maxRangeDiff
         
         # Find final scale, then cap
-        scale = baseScale * (rangeScale/self._rangeGain)
+        scale = baseScale * (rangeScale * self._rangeGain)
         
         if (scale < 0) and (scale < -1):
             scale = -1
