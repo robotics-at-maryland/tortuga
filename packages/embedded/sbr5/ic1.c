@@ -216,7 +216,7 @@ void checkFailsafe();
 
 /* Wait for a byte on the serial console */
 /* Returns 0-255 for byte read, or -1 if USB error */
-/* Timeout is not implemented... but in two years it seems this is fine */
+/* Timeout is not implemented... but in two years it seems this has been fine */
 signed int waitchar(byte timeout)
 {
     long waitTime=0, j;
@@ -1210,7 +1210,7 @@ int main(void)
             }
 
 
-            // [S  K  W B1 B2 B3 B4 B5]
+            // [0 0 0 0 0 0 S K] [W 0 B6 B5 B4 B3 B2 B1]
             case HOST_CMD_BOARDSTATUS:
             {
                 t1 = waitchar(1);
@@ -1234,6 +1234,8 @@ int main(void)
                     break;
                 }
 
+                /* Now that all the formailities are done, we get the byte from the */
+                /* Balancer Board, store it in the first byte of the message. */
                 t1 = rxBuf[0];
 //#endif
 
@@ -1251,8 +1253,15 @@ int main(void)
                     break;
                 }
 
+                /* t2 is the second reply byte
+                 * If you modify what bit this is stored in, be sure to mark
+                 * the change in sensorapi.h status bits for kill switch */
+                t2= rxBuf[0] & 0x01;
+
+                /* This was pre the 2 byte status reply
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x40;
+                */
 
 
                 /* Read start switch from another chip......... */
@@ -1268,12 +1277,18 @@ int main(void)
                     break;
                 }
 
+                /* Check the byte, and or it in to bit 2 in packet t2 */
+                t2 |= (rxBuf[0] & 0x01) << 1;
+
+                /* This was the pre-2 byte status reply
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x80;
+                */
 
                 sendByte(HOST_REPLY_BOARDSTATUS);
+                sendByte(t2);
                 sendByte(t1);
-                sendByte(HOST_REPLY_BOARDSTATUS+t1);
+                sendByte(HOST_REPLY_BOARDSTATUS+t1+t2);
 
                 break;
             }
