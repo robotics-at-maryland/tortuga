@@ -183,10 +183,39 @@ int simpleRead(int fd, int cmdCode, int replyCode)
 }
 
 
-
+/* The pre-2-byte status reply
 int readStatus(int fd)
 {
     return simpleRead(fd, HOST_CMD_BOARDSTATUS, HOST_REPLY_BOARDSTATUS);
+}*/
+
+int readStatus(int fd)
+{
+    int ret= 0;
+    unsigned char buf[4];
+    buf[0]= buf[1]= HOST_CMD_BOARDSTATUS;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] != HOST_REPLY_BOARDSTATUS) {
+        printf("Bad reply while attempting to recieve status! \
+                (Expected %02x, got %02x)\n", HOST_REPLY_BOARDSTATUS, buf[0]);
+        return SB_ERROR;
+    }
+
+    readData(fd, buf, 3);
+    if(buf[2] != ((buf[0]+buf[1]+HOST_REPLY_BOARDSTATUS) & 0xFF)) {
+        printf("Bad checksum while recieving status!\n");
+        return SB_ERROR;
+    }
+
+    /* Now we store the two bytes in one int. */
+    ret|= buf[0];
+    ret<<= 8;
+    ret|= buf[1];
+
+    return ret;
 }
 
 
@@ -203,7 +232,7 @@ int readBatteryEnables(int fd)
 
 int readBatteryUsage(int fd)
 {
-    return readStatus(fd);
+    return readStatus(fd) & 0x3F;
 }
 
 
@@ -695,7 +724,7 @@ int readBoardVoltages(int fd, struct powerInfo * info)
 
 int readBatteryVoltages(int fd, struct powerInfo * info)
 {
-    unsigned char buf[14] = {HOST_CMD_BATTVOLTAGE, HOST_CMD_BATTVOLTAGE};
+    unsigned char buf[16] = {HOST_CMD_BATTVOLTAGE, HOST_CMD_BATTVOLTAGE};
     int i=0, cs=0;
 
     if(info == NULL)
@@ -717,19 +746,18 @@ int readBatteryVoltages(int fd, struct powerInfo * info)
         return SB_ERROR;
     }
 
-    readData(fd, buf+1, 13);
+    readData(fd, buf+1, 15);
 
     for(i=0; i<13; i++)
         cs += buf[i];
 
-    if((cs & 0xFF) != buf[13])
+    if((cs & 0xFF) != buf[15])
     {
         printf("bad cc in voltages!\n");
         return SB_BADCC;
     }
 
-
-    for(i=0; i<5; i++)
+    for(i=0; i<6; i++)
         info->battVoltages[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
 
     info->v26VBus = ((buf[5*2+1] << 8) | (buf[5*2+2])) / 1000.0;
@@ -761,18 +789,18 @@ int readBatteryCurrents(int fd, struct powerInfo * info)
         return SB_ERROR;
     }
 
-    readData(fd, buf+1, 11);
+    readData(fd, buf+1, 13);
 
     for(i=0; i<11; i++)
         cs += buf[i];
 
-    if((cs & 0xFF) != buf[11])
+    if((cs & 0xFF) != buf[13])
     {
         printf("bad cc in currents!\n");
         return SB_BADCC;
     }
 
-    for(i=0; i<5; i++)
+    for(i=0; i<6; i++)
         info->battCurrents[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
 
     return SB_OK;
