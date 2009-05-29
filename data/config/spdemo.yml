@@ -97,7 +97,13 @@ Subsystems:
             filtUMin: 0
             filtVMax: 145
             filtVMin: 0
-
+ 
+        BarbedWireDetector:
+            bottomRemovePercentage: 0.1
+            filtVMax: 247
+            filtVMin: 121
+            filtUMax: 75
+            filtUMin: 0
         # Recording Settings
         maxStreamRate: 1 # Hz
         maxRecordRate: 5 # Hz
@@ -201,6 +207,48 @@ Subsystems:
                 rangeThreshold: 0.03
                 filterSize: 1
                 
+
+            ram.ai.barbedwire.SeekingToRange:
+                depthGain: 0
+                iDepthGain: 0
+                dDepthGain: 0
+                desiredRange: 0.7
+                translateGain: 2.5
+                maxSpeed: 1.5
+                maxRangeDiff: 0.5
+                rangeGain: 2.5
+            ram.ai.barbedwire.SeekingToAligned:
+                depthGain: 0
+                alignGain: 0.1
+                minAlignment: 0.1
+                maxSidewaysSpeed: 1.0
+                maxSpeed: 3
+                maxRangeDiff: 0.5
+                rangeGain: 5
+                desiredRange: 0.7
+            ram.ai.barbedwire.SeekingToRange2:                
+                depthGain: 0
+                iDepthGain: 0 
+                dDepthGain: 0 
+                desiredRange: 0.5
+                translateGain: 2.5
+                maxSpeed: 3
+                maxRangeDiff: 0.5
+                rangeGain: 5
+            ram.ai.barbedwire.SeekingToAligned2:                
+                depthGain: 0 
+                alignGain: 0.1
+                minAlignment: 0.3 
+                maxSidewaysSpeed: 1.0
+                maxSpeed: 3
+                maxRangeDiff: 0.5
+                rangeGain: 5
+                desiredRange: 0.5
+            ram.ai.barbedwire.Aligning:
+                depthGain: 0
+                alignGain: 0.1
+                maxSidewaysSpeed: 2.0
+                desiredRange: 0.5
 
             # Bin Sub task
             ram.ai.bin.Start:
