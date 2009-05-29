@@ -135,7 +135,8 @@ class RangeXYHold(FilteredState, state.State):
         self._desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxSpeed = self._config.get('maxSpeed', 0.75)
-        
+        rangeGain = self._config.get('rangeGain', 1)      
+  
         translateGain = self._config.get('translateGain', 1)
         iTranslateGain = self._config.get('iTranslateGain', 0.125)
         dTranslateGain = self._config.get('dTranslateGain', 0.25)
@@ -144,6 +145,7 @@ class RangeXYHold(FilteredState, state.State):
             desiredRange = self._desiredRange,
             maxRangeDiff = maxRangeDiff,
             maxSpeed = maxSpeed,
+            rangeGain = rangeGain,
             depthGain = self._depthGain,
             iDepthGain = iDepthGain,
             dDepthGain = dDepthGain,
@@ -236,6 +238,16 @@ class SeekingToRange(RangeXYHold):
     def transitions():
         return RangeXYHold.transitions(SeekingToRange, {
             RangeXYHold.IN_RANGE : SeekingToAligned })
+
+class SeekingToRange2(RangeXYHold):
+    """
+    Heads toward the target until it reaches the desired range
+    """
+    
+    @staticmethod
+    def transitions():
+        return RangeXYHold.transitions(SeekingToRange2, {
+            RangeXYHold.IN_RANGE : SeekingToAligned2 })
         
 class TargetAlignState(FilteredState):
     def BARBED_WIRE_FOUND(self, event):
@@ -309,7 +321,38 @@ class SeekingToAligned(TargetAlignState, state.State):
 
     def BARBED_WIRE_FOUND(self, event):
         # Publish aligned event if needed
-        alignment = math.fabs(event.topX - event.bottomX)
+        alignment = math.fabs(event.topX) + math.fabs(event.bottomX)
+        if alignment < self._minAlignment:
+            self.publish(SeekingToAligned.ALIGNED, core.Event())
+            
+        # Update motion
+        TargetAlignState.BARBED_WIRE_FOUND(self, event)
+        
+    def enter(self):
+        TargetAlignState.enter(self)
+        
+        # Record threshold
+        self._minAlignment = self._config.get('minAlignment', 0.1)
+
+class SeekingToAligned2(TargetAlignState, state.State):
+    """
+    Holds the target at range and in the center of the field of view while 
+    rotating around it.  If its rotating the wrong direction is will reverse
+    that direction and keep going until its close enough to aligned.
+    """
+    ALIGNED = core.declareEventType('ALIGNED')
+    CHECK_DIRECTION = core.declareEventType('CHECK_DIRECTION_')
+    
+    @staticmethod
+    def transitions():
+        return { vision.EventType.BARBED_WIRE_FOUND : SeekingToAligned2,
+                 vision.EventType.BARBED_WIRE_LOST : FindAttempt,
+                 SeekingToAligned.CHECK_DIRECTION : SeekingToAligned2,
+                 SeekingToAligned.ALIGNED : Aligning }
+
+    def BARBED_WIRE_FOUND(self, event):
+        # Publish aligned event if needed
+        alignment = math.fabs(event.topX) + math.fabs(event.bottomX)
         if alignment < self._minAlignment:
             self.publish(SeekingToAligned.ALIGNED, core.Event())
             
