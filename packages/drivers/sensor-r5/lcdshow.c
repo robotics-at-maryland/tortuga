@@ -354,18 +354,18 @@ int main(int argc, char ** argv)
 
                 unsigned char enableFlags[]=
                 {
-                    BATT1_ENABLED, BATT2_ENABLED, BATT3_ENABLED, BATT4_ENABLED, BATT5_ENABLED
+                    BATT1_ENABLED, BATT2_ENABLED, BATT3_ENABLED, BATT4_ENABLED, BATT5_ENABLED, BATT6_ENABLED
                 };
 
                 unsigned char useFlags[]=
                 {
-                    BATT1_INUSE, BATT2_INUSE, BATT3_INUSE, BATT4_INUSE, BATT5_INUSE
+                    BATT1_INUSE, BATT2_INUSE, BATT3_INUSE, BATT4_INUSE, BATT5_INUSE, BATT6_INUSE
                 };
 
                 int i;
 
                 printf("\tBAT\t Voltage\t Current   EN?\tUsed?\n");
-                for(i=0; i<5; i++)
+                for(i=0; i<6; i++)
                 {
                     printf("\t");
                     if(i != 4)
