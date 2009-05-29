@@ -1949,7 +1949,7 @@ int main(void)
 
                 int len = readDataBlock(SLAVE_ID_VLOW);
 
-                if(len != 10)
+                if(len != 12)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1959,7 +1959,7 @@ int main(void)
 
                 byte cs=0;
 
-                for(i=0; i<10; i++)
+                for(i=0; i<12; i++)
                 {
                     cs += rxBuf[i];
                     sendByte(rxBuf[i]);
@@ -1986,7 +1986,7 @@ int main(void)
 
                 int len = readDataBlock(SLAVE_ID_BATTSTAT);
 
-                if(len != 12)
+                if(len != 14)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1996,7 +1996,7 @@ int main(void)
 
                 byte cs=0;
 
-                for(i=0; i<12; i++)
+                for(i=0; i<14; i++)
                 {
                     cs += rxBuf[i];
                     sendByte(rxBuf[i]);
@@ -2024,7 +2024,7 @@ int main(void)
 
                 int len = readDataBlock(SLAVE_ID_BATTSTAT);
 
-                if(len != 10)
+                if(len != 12)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -2034,7 +2034,7 @@ int main(void)
 
                 byte cs=0;
 
-                for(i=0; i<10; i++)
+                for(i=0; i<12; i++)
                 {
                     cs += rxBuf[i];
                     sendByte(rxBuf[i]);
