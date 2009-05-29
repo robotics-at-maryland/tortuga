@@ -107,7 +107,7 @@ class HoveringState(state.State):
                     else:
                         self._lastAngle = event.angle
         else:
-            # Using the array of bin angle instead instead
+            # Using the array of bin angle instead
             event.angle = self._multiAngle
         
         # Only listen to the current bin ID
@@ -475,7 +475,7 @@ class Dive(HoveringState):
         
     def enter(self):
         # Keep the hover motion going (and use the bin angle)
-        HoveringState.enter(self, useMultiAngle = True)
+        HoveringState.enter(self, useMultiAngle = False)
         
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):
@@ -496,7 +496,7 @@ class Aligning(SettlingState):
     """
     When the vehicle is settling over the bin
     
-    @cvar SETTLED: Event fired when vehile has settled over the bin
+    @cvar SETTLED: Event fired when vehicle has settled over the bin
     """
     ALIGNED = core.declareEventType('ALIGNED')
     
@@ -519,7 +519,7 @@ class Examine(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Examine,
-        { Examine.FOUND_TARGET : DropMarker,
+        { Examine.FOUND_TARGET : PreDropDive,
           Examine.DETERMINE_SUIT : Examine,
           Examine.MOVE_ON : SurfaceToMove })
         
@@ -611,6 +611,52 @@ class Examine(SettlingState):
         
         # Load needed suits
         self._loadSuitConfig()
+        
+class PreDropDive(Dive):
+    """
+    Drop down before dropping the marker.
+    """
+    
+    @staticmethod
+    def transitions():
+        return SettlingState.transitions(PreDropDive,
+        { motion.basic.Motion.FINISHED : SettleBeforeDrop })
+        
+    def enter(self):
+        # Keep the hover motion going (and use the bin angle)
+        HoveringState.enter(self, useMultiAngle = False)
+        
+        # Set orientation to match the initial orientation
+        if self.ai.data.has_key('binArrayOrientation'):
+            self.controller.setDesiredOrientation(
+                self.ai.data['binArrayOrientation'])
+
+        # While keeping center, dive down
+        binDepth = self._config.get('binDepth', 11)
+        offset = self._config.get('offset', 0.5)
+        
+        diveMotion = motion.basic.RateChangeDepth(    
+            desiredDepth = binDepth - offset,
+            speed = self._config.get('diveSpeed', 0.3))
+        
+        self.motionManager.setMotion(diveMotion)
+        
+class SettleBeforeDrop(SettlingState):
+    """
+    Gives the vehicle some time to settle over the bins before dropping the
+    marker
+    """
+    
+    SETTLED = core.declareEventType('SETTLED')
+    
+    @staticmethod
+    def transitions():
+        return SettlingState.transitions(SettleBeforeDrop,
+            { SettleBeforeDrop.SETTLED : DropMarker })
+    
+    def enter(self):
+        settleTime = self._config.get('settleTime', 3)
+        SettlingState.enter(self, SettleBeforeDrop.SETTLED, settleTime)
        
 class SurfaceToMove(HoveringState):
     """

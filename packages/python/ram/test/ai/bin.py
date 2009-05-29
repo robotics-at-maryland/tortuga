@@ -242,7 +242,7 @@ class TestSeeking(BinTestCase):
 class TestRecover(aisupport.AITestCase):
     def testStart(self):
         self.vehicle.depth = 9
-	self.controller.depth = 9
+        self.controller.depth = 9
         self.ai.data["lastBinX"] = 0.5
         self.ai.data["lastBinY"] = -0.5
         
@@ -514,7 +514,7 @@ class TestDive(BinTestCase):
     def testBinFound(self):
         """Make sure the loop back works"""
         # Need to add multi-motion support
-        self.binFoundHelper(False, useMultiAngle = True)
+        self.binFoundHelper(False, useMultiAngle = False)
         
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -619,7 +619,7 @@ class TestExamine(BinTestCase):
         self.releaseTimer(bin.Examine.DETERMINE_SUIT)   
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
-        self.assertCurrentState(bin.DropMarker)
+        self.assertCurrentState(bin.PreDropDive)
         
     def testNoSuitFound(self):
         # Send in a bunch of events
@@ -647,6 +647,88 @@ class TestExamine(BinTestCase):
         
     def testBinTracking(self):
         self.binTrackingHelper()
+        
+class TestPreDropDive(BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        self.vehicle.depth = 0
+        self.machine.start(bin.PreDropDive)
+
+    def testStart(self):
+        """Make sure we start diving"""
+        self.assertCurrentMotion(
+            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
+        #self.assertGreaterThan(self.controller.depth, 0)
+
+    def testBinArrayOrientation(self):
+        # Setup data for turn hold
+        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        self.ai.data['binArrayOrientation'] = expected
+
+        # Restart the state machine
+        self.machine.stop()
+        self.machine.start(bin.PreDropDive)
+
+        # Make sure we have the proper orientation
+        self.assertEqual(expected, self.controller.desiredOrientation)
+                
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        # Need to add multi-motion support
+        self.binFoundHelper(False, useMultiAngle = False)
+        
+    def testBinTracking(self):
+        self.binTrackingHelper()
+        
+    def testDiveFinished(self):
+        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.assertCurrentState(bin.SettleBeforeDrop)
+    
+class TestSettleBeforeDrop(BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        self.machine.start(bin.SettleBeforeDrop)
+        
+    def testStart(self):
+        """Make sure the motion and the timer are setup properly"""
+        self.machine.stop()
+        self.machine.start(bin.SettleBeforeDrop)
+        
+        self.assertCurrentMotion(motion.pipe.Hover)
+        
+        # Setup for SeekEnd
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        
+        # Make sure timer works
+        self.releaseTimer(bin.SettleBeforeDrop.SETTLED)
+        self.assertCurrentState(bin.DropMarker)
+        
+    def testBinLost(self):
+        """Make sure we search when we lose the bin"""
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BIN_LOST)
+        self.assertCurrentState(bin.Recover)
+    
+    def testBinTracking(self):
+        self.binTrackingHelper()
+    
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        self.binFoundHelper()
+    
+    def testSettled(self):
+        """Make sure we move on after settling"""
+        # Setup for SeekEnd
+        self.ai.data['currentBinID'] = 3
+        self.ai.data['currentBins'] = set([3])
+        # Inject settled event
+        self.injectEvent(bin.SettleBeforeDrop.SETTLED)
+        self.assertCurrentState(bin.DropMarker)
         
 class TestSurfaceToMove(BinTestCase):
     def setUp(self):
