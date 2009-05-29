@@ -82,8 +82,6 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -redgreen (start red/green animation)\n");
         printf("\tlcdshow -redblue (start red/blue animation)\n");
 
-
-
 	    return -1;
     }
 
@@ -284,7 +282,8 @@ int main(int argc, char ** argv)
             (ret & BATT2_ENABLED) ? '2' : '-',
             (ret & BATT3_ENABLED) ? '3' : '-',
             (ret & BATT4_ENABLED) ? '4' : '-',
-            (ret & BATT5_ENABLED) ? '5' : '-');
+            (ret & BATT5_ENABLED) ? '5' : '-',
+            (ret & BATT6_ENABLED) ? '6' : '-');
 
             if(ret == 0x00)
                 printf("  (All off ? ? ? ? ?)");
@@ -306,7 +305,8 @@ int main(int argc, char ** argv)
             (ret & BATT2_INUSE) ? '2' : '-',
             (ret & BATT3_INUSE) ? '3' : '-',
             (ret & BATT4_INUSE) ? '4' : '-',
-            (ret & BATT5_INUSE) ? '5' : '-');
+            (ret & BATT5_INUSE) ? '5' : '-',
+            (ret & BATT6_INUSE) ? '6' : '-');
 
             bStat = ret;
 
