@@ -277,7 +277,7 @@ int main(int argc, char ** argv)
         else
         {
             printf("\nBatt enables:   0x%02X\t", ret);
-            printf("[%c%c%c%c%c]",
+            printf("[%c%c%c%c%c%c]",
             (ret & BATT1_ENABLED) ? '1' : '-',
             (ret & BATT2_ENABLED) ? '2' : '-',
             (ret & BATT3_ENABLED) ? '3' : '-',
@@ -300,7 +300,7 @@ int main(int argc, char ** argv)
         else
         {
             printf("\nBatt in use :   0x%02X\t", ret);
-            printf("[%c%c%c%c%c]",
+            printf("[%c%c%c%c%c%c]",
             (ret & BATT1_INUSE) ? '1' : '-',
             (ret & BATT2_INUSE) ? '2' : '-',
             (ret & BATT3_INUSE) ? '3' : '-',
