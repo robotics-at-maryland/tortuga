@@ -73,17 +73,21 @@
 
 
 /* Inputs to the battery control command */
+/* There's an array in ic1.c (../../embedded/sbr5/ic1.c) */
+/* which defines which command is in which position here */
 #define CMD_BATT1_OFF     0x00
 #define CMD_BATT2_OFF     0x01
 #define CMD_BATT3_OFF     0x02
 #define CMD_BATT4_OFF     0x03
 #define CMD_BATT5_OFF     0x04
+#define CMD_BATT6_OFF     0x05
 
-#define CMD_BATT1_ON      0x05
-#define CMD_BATT2_ON      0x06
-#define CMD_BATT3_ON      0x07
-#define CMD_BATT4_ON      0x08
-#define CMD_BATT5_ON      0x09
+#define CMD_BATT1_ON      0x06
+#define CMD_BATT2_ON      0x07
+#define CMD_BATT3_ON      0x08
+#define CMD_BATT4_ON      0x09
+#define CMD_BATT5_ON      0x0A
+#define CMD_BATT6_ON      0x0B
 
 
 /* Bits of the thruster state response */
@@ -120,21 +124,23 @@
 /* Bits of the battery state response */
 /* Ie, is the battery enabled? Does not imply the battery is actually in use */
 /* For that, see below. */
-#define BATT1_ENABLED      0x10
-#define BATT2_ENABLED      0x08
+#define BATT1_ENABLED      0x01
+#define BATT2_ENABLED      0x02
 #define BATT3_ENABLED      0x04
-#define BATT4_ENABLED      0x02
-#define BATT5_ENABLED      0x01
+#define BATT4_ENABLED      0x08
+#define BATT5_ENABLED      0x10
+#define BATT6_ENABLED      0x20
 
 
 
 /* Bits of the battery utilization response */
 /* Ie, is the battery actually being used? */
-#define BATT1_INUSE       0x10
-#define BATT2_INUSE       0x08
+#define BATT1_INUSE       0x01
+#define BATT2_INUSE       0x02
 #define BATT3_INUSE       0x04
-#define BATT4_INUSE       0x02
-#define BATT5_INUSE       0x01
+#define BATT4_INUSE       0x08
+#define BATT5_INUSE       0x10
+#define BATT6_INUSE       0x20
 
 
 
@@ -144,13 +150,13 @@
 
 /* Bits of the status response */
 /* Water is present */
-#define STATUS_WATER      0x20
+#define STATUS_WATER      0x0080
 
 /* Kill switch is attached */
-#define STATUS_KILLSW     0x40
+#define STATUS_KILLSW     0x0100
 
 /* Start switch is being pressed */
-#define STATUS_STARTSW    0x80
+#define STATUS_STARTSW    0x0200
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
