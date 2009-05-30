@@ -19,14 +19,14 @@ Subsystems:
         #downwardPort: 50001
 
         # Includes all camera and vision system settings
-        INCLUDE: data/config/new/vision/nbrf.yml
+        INCLUDE: data/config/vision/nbrf.yml
         
 
     Ai:
          type: AI
 
          # Includes the "taskOrder" for the AI
-         INCLUDE: data/config/new/ai/nbrf_ai.yml
+         INCLUDE: data/config/ai/nbrf_ai.yml
 
 
     StateMachine:
@@ -35,8 +35,8 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: data/config/new/ai/nbrf_state.yml
+            INCLUDE: data/config/ai/nbrf_state.yml
 
 
     # Includes all common subsystems    
-    INCLUDE: data/config/new/base.yml
+    INCLUDE: data/config/base.yml
