@@ -1,4 +1,0 @@
-DuctDetector:
-    redThreshold: 100
-    greenThreshold: 100
-    blueThreshold: 50
