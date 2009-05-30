@@ -12,13 +12,13 @@ Subsystems:
        
         ForwardCamera:
             brightness: auto # 275
-            uValue: auto # 100
-            vValue: auto # 100
+            uValue: 90 # 80 (NBRF sun) # 100
+            vValue: 80 # 90 (NBRF sun) # 100
 
         DownwardCamera:
             brightness: auto # 275
-            uValue: auto # 100
-            vValue: auto # 100
+            uValue: 90 # 80 (NBRF sun) # 100
+            vValue: 80 # 90 (NBRF sun) # 100
 
         AdaptiveThresher:
             foobared: true
@@ -92,11 +92,23 @@ Subsystems:
             dilateIterations: 0
             minTotal: 100
 
+        TargetDetector:
+            filtUMax: 79
+            filtUMin: 0
+            filtVMax: 145
+            filtVMin: 0
+ 
+        BarbedWireDetector:
+            bottomRemovePercentage: 0.1
+            filtVMax: 247
+            filtVMin: 121
+            filtUMax: 75
+            filtUMin: 0
         # Recording Settings
         maxStreamRate: 1 # Hz
         maxRecordRate: 5 # Hz
-        #forwardFile: forward.avi
-        downwardFile: downward.avi
+        forwardFile: forward.avi
+        #downwardFile: downward.avi
         #forwardPort: 50000
         #downwardPort: 50001
     
@@ -169,6 +181,73 @@ Subsystems:
                 desiredRange: 0.5
             ram.ai.duct.Aligning:
                 filterSize: 10
+                desiredRange: 0.5
+
+            # Target Task
+            ram.ai.target.Start:
+                diveDepth: 12.25
+            ram.ai.target.SeekingToRange:
+                depthGain: 0 #0.125
+                #iDepthGain: 0.05
+                #dDepthGain: 0.1
+            ram.ai.target.SeekingToAligned:
+                depthGain: 0 #0.125
+                #iDepthGain: 0.05
+                #dDepthGain: 0.1
+                minSquareNess: 0.96
+                alignGain: 0.5
+                filterSize: 1
+                desiredRange: 0.45
+            ram.ai.target.FireTorpedos:
+                depthGain: 0 #0.125
+                #iDepthGain: 0.05
+                #dDepthGain: 0.1
+                frontThreshold: 0.15
+                desiredRange: 0.4
+                rangeThreshold: 0.03
+                filterSize: 1
+                
+
+            ram.ai.barbedwire.SeekingToRange:
+                depthGain: 0
+                iDepthGain: 0
+                dDepthGain: 0
+                desiredRange: 0.7
+                translateGain: 2.5
+                maxSpeed: 1.5
+                maxRangeDiff: 0.5
+                rangeGain: 2.5
+            ram.ai.barbedwire.SeekingToAligned:
+                depthGain: 0
+                alignGain: 0.1
+                minAlignment: 0.1
+                maxSidewaysSpeed: 1.0
+                maxSpeed: 3
+                maxRangeDiff: 0.5
+                rangeGain: 5
+                desiredRange: 0.7
+            ram.ai.barbedwire.SeekingToRange2:                
+                depthGain: 0
+                iDepthGain: 0 
+                dDepthGain: 0 
+                desiredRange: 0.5
+                translateGain: 2.5
+                maxSpeed: 3
+                maxRangeDiff: 0.5
+                rangeGain: 5
+            ram.ai.barbedwire.SeekingToAligned2:                
+                depthGain: 0 
+                alignGain: 0.1
+                minAlignment: 0.3 
+                maxSidewaysSpeed: 1.0
+                maxSpeed: 3
+                maxRangeDiff: 0.5
+                rangeGain: 5
+                desiredRange: 0.5
+            ram.ai.barbedwire.Aligning:
+                depthGain: 0
+                alignGain: 0.1
+                maxSidewaysSpeed: 2.0
                 desiredRange: 0.5
 
             # Bin Sub task
@@ -343,6 +422,9 @@ Subsystems:
             MarkerDropper:
                 type: SBMarkerDropper
                 depends_on: ["SensorBoard"]
+            TorpedoLauncher:
+                type: SBTorpedoLauncher
+                depends_on: ['SensorBoard']
             Sonar:
                 depends_on: ['SensorBoard']
                 type: SBSonar
