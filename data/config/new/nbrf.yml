@@ -9,8 +9,6 @@ Subsystems:
         type: VisionSystem
         depends_on: ["EventHub", "Vehicle"]
         priority: "low"
-       
-        INCLUDE: data/config/new/vision/nbrf.yml
 
         # Recording Settings
         #maxStreamRate: 1 # Hz
@@ -20,19 +18,25 @@ Subsystems:
         #forwardPort: 50000
         #downwardPort: 50001
 
+        # Includes all camera and vision system settings
+        INCLUDE: data/config/new/vision/nbrf.yml
+        
+
     Ai:
-         taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-                     'ram.ai.course.Light', 'ram.ai.course.Pipe',
-                     'ram.ai.course.Bin', 
-                     'ram.ai.course.Pinger',
-                     'ram.ai.course.Octagaon']
          type: AI
+
+         # Includes the "taskOrder" for the AI
+         INCLUDE: data/config/new/ai/nbrf_ai.yml
+
 
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
-            INCLUDE: data/config/new/ai/nbrf.yml
-    
+            # Includes all the state specific NBRF settings
+            INCLUDE: data/config/new/ai/nbrf_state.yml
+
+
+    # Includes all common subsystems    
     INCLUDE: data/config/new/base.yml
