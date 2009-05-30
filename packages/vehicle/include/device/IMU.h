@@ -101,7 +101,7 @@ public:
     };
     
 private:
-    void rotateAndFilterData(RawIMUData* newState);
+    void rotateAndFilterData(const RawIMUData* newState);
     
     static void quaternionFromIMU(double mag[3], double accel[3],
                                   double* quaternion);

@@ -88,7 +88,7 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
 	
     //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
     //	   m_magYBias, m_magZBias);
-    LOGGER.info("% Accel Mag Accel-Raw Mag-Raw Quat TimeStamp");
+    LOGGER.info("% Accel Mag Gyro Accel-Raw Mag-Raw Gyro-Raw Quat TimeStamp");
 
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -135,10 +135,9 @@ void IMU::update(double timestep)
 	    
             
             
-            // Rotate into vehicle frame and filter data
+            // Read from new state, un-rotate, un-bias and place into 
+	    // filtered values
             rotateAndFilterData(&newState);
-
-
 
             // Use filtered data to get quaternion
             double linearAcceleration[3] = {0,0,0};
@@ -210,11 +209,18 @@ void IMU::update(double timestep)
                                 << m_filteredMagX.getValue() << " "
                                 << m_filteredMagY.getValue() << " "
                                 << m_filteredMagZ.getValue() << " "
+                                << m_filteredGyroX.getValue() << " "
+                                << m_filteredGyroY.getValue() << " "
+                                << m_filteredGyroZ.getValue() << " "
                                 << newState.accelX << " "
                                 << newState.accelY << " "
                                 << newState.accelZ << " "
-                                << newState.magX << " " << newState.magY << " "
+                                << newState.magX << " " 
+				<< newState.magY << " "
                                 << newState.magZ << " "
+                                << newState.gyroX << " " 
+				<< newState.gyroY << " "
+                                << newState.gyroZ << " "
                                 << quaternion[0] << " " << quaternion[1] << " "
                                 << quaternion[2] << " " << quaternion[3];
 
@@ -270,7 +276,7 @@ void IMU::getFilteredState(FilteredIMUData& filteredState)
     filteredState= *m_filteredState;
 }
 
-void IMU::rotateAndFilterData(RawIMUData* newState)
+void IMU::rotateAndFilterData(const RawIMUData* newState)
 {
     // Place into arrays
     double linearAcceleration[3];
