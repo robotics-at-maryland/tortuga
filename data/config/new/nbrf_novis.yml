@@ -1,0 +1,25 @@
+GUI:
+    updateRate: 5
+    singleSubsystem: 1
+
+# Config for the vehicle
+# Each module is a seperate system that needs to be started up
+Subsystems:    
+    Ai:
+         type: AI
+
+         # Includes the "taskOrder" for the AI
+         INCLUDE: data/config/new/ai/nbrf_ai.yml
+
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
+                     "MotionManager", "TimerManager", "Ai"]
+        States:
+            # Includes all the state specific NBRF settings
+            INCLUDE: data/config/new/ai/nbrf_state.yml
+
+
+    # Includes all common subsystems    
+    INCLUDE: data/config/new/base.yml
