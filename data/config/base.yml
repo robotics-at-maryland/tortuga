@@ -150,11 +150,26 @@ Vehicle:
             calibration_factor: 0.3652
             direction: -1
             offset: 0.1967
-
-        IMU:
+            
+        IMU: # MagBoom
             type: IMU
             update_interval: 5
             priority: high
+
+            imuToVehicleRotMatrix: [[ 0.9140, -0.4048, -0.0273],
+                                    [-0.4057, -0.9123, -0.0554],
+                                    [-0.0024,  0.0617, -0.9981]] 
+
+            magXBias: -0.0702
+            magYBias:  0.0056
+            magZBias:  0.0124
+
+            localMagneticPitch: 60
+
+        #IMU:
+        #    type: IMU
+        #    update_interval: 5
+        #    priority: high
             # These are in VEHICLE FRAME
             # Pre-thruster change out
             #magXBias: 0.158325
@@ -177,13 +192,13 @@ Vehicle:
             #magYBias: 0.252917
             #magZBias: -0.183411
             # Tortuga 2 Redo
-            magXBias: 0.2010
-            magYBias: 0.2160
-            magZBias: -0.1899
-            
+        #    magXBias: 0.2010
+        #    magYBias: 0.2160
+        #    magZBias: -0.1899
+
             # Set me to zero to ignore mag.
             #magCorruptThresh: 0.0
-            localMagneticPitch: 60
+        #    localMagneticPitch: 60
 RemoteController:
     type: RemoteController
     depends_on: ["Controller"]
