@@ -242,13 +242,22 @@ int PythonConfigNodeImp::asInt(const int def)
 NodeNameList PythonConfigNodeImp::subNodes()
 {
     try {
+        // Make sure to pull in any nodes needed for includes
+        includeIfNeeded(m_pyobj);
+
+        // Get the python list that is the subnode names
         NodeNameList subnodes;
         py::object nodes(m_pyobj.attr("keys")());
         size_t size = py::len(nodes);
         
         for (size_t i = 0; i < size; ++i)
         {
-            subnodes.insert(py::extract<std::string>(nodes[i]));
+            std::string nodeName = py::extract<std::string>(nodes[i]);
+
+            // Only include values that aren't our special "INCLUDE" and
+            // "INCLUDED_LOADED" values
+            if ((nodeName != "INCLUDE") && (nodeName != "INCLUDE_LOADED"))
+                subnodes.insert(nodeName);
         }
         return subnodes;
     } catch(py::error_already_set err ) {

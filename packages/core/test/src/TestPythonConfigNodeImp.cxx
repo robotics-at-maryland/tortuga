@@ -157,6 +157,16 @@ TEST_FIXTURE(TestPythonConfigNode, include)
 
     // Test recursive import
     CHECK_EQUAL(67, configNode["Other"]["recVal"].asInt());
+
+    // Test to make sure that subnodes works
+    NodeNameList subnodes = configNode["Base"].subNodes();
+    NodeNameListIter result;
+
+    // Ensure we got the right size
+    CHECK_EQUAL(2u, subnodes.size());
+    
+    CHECK(subnodes.end() != subnodes.find("Sub"));
+    CHECK(subnodes.end() != subnodes.find("Sys2"));
 }
 
 
