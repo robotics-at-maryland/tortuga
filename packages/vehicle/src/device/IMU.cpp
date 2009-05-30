@@ -287,9 +287,9 @@ void IMU::rotateAndFilterData(const RawIMUData* newState)
     linearAcceleration[1] = newState->accelY;
     linearAcceleration[2] = newState->accelZ;
 
-    magnetometer[0] = newState->magX;
-    magnetometer[1] = newState->magY;
-    magnetometer[2] = newState->magZ;
+    magnetometer[0] = newState->magX - m_magXBias;
+    magnetometer[1] = newState->magY - m_magYBias;
+    magnetometer[2] = newState->magZ - m_magZBias;
 
     gyro[0] = newState->gyroX;
     gyro[1] = newState->gyroY;
@@ -318,9 +318,9 @@ void IMU::rotateAndFilterData(const RawIMUData* newState)
     m_filteredAccelZ.addValue(rotatedLinearAcceleration[2]);
 
     // Account for magnetic fields of the frame (ie the thrusters)
-    m_filteredMagX.addValue(rotatedMagnetometer[0] - m_magXBias);
-    m_filteredMagY.addValue(rotatedMagnetometer[1] - m_magYBias);
-    m_filteredMagZ.addValue(rotatedMagnetometer[2] - m_magZBias);
+    m_filteredMagX.addValue(rotatedMagnetometer[0]);
+    m_filteredMagY.addValue(rotatedMagnetometer[1]);
+    m_filteredMagZ.addValue(rotatedMagnetometer[2]);
 
     m_filteredGyroX.addValue(rotatedGyro[0]);
     m_filteredGyroY.addValue(rotatedGyro[1]);

@@ -151,37 +151,35 @@ Vehicle:
             direction: -1
             offset: 0.1967
 
-
-
         IMU:
             type: IMU
             update_interval: 5
             priority: high
             # These are in VEHICLE FRAME
             # Pre-thruster change out
-            #magXBias: -0.229488
-            #magYBias: 0.270406
-            #magZBias: 0.158325
+            #magXBias: 0.158325
+            #magYBias: 0.229488
+            #magZBias: -0.270406
             # Post Thruster change out, and with 6 thrusters
-            #magXBias: -0.260058
-            #magYBias: 0.211263
-            #magZBias: 0.243511
+            #magXBias: 0.243511
+            #magYBias: 0.260058
+            #magZBias: -0.211263
             # New Electronics
-            #magXBias: -0.269084
-            #magYBias: 0.221182
-            #magZBias: 0.243998
+            #magXBias: 0.243998
+            #magYBias: 0.269084
+            #magZBias: -0.221182
             # Tortuga 2 first dive
-            #magXBias: -0.196805
-            #magYBias: 0.171669
-            #magZBias: 0.251043
+            #magXBias: 0.251043
+            #magYBias: 0.196805
+            #magZBias: -0.171669
             # Tortuga 2 With Everthing
-            #magXBias: -0.252917
-            #magYBias: 0.183411
-            #magZBias: 0.25861
+            #magXBias: 0.25861
+            #magYBias: 0.252917
+            #magZBias: -0.183411
             # Tortuga 2 Redo
-            magXBias: -0.2160
-            magYBias: 0.1899
-            magZBias: 0.2010
+            magXBias: 0.2010
+            magYBias: 0.2160
+            magZBias: -0.1899
             
             # Set me to zero to ignore mag.
             #magCorruptThresh: 0.0
